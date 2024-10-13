@@ -30,8 +30,7 @@ struct IntersectionSettings : public SettingBase
   enum class Function
   {
     UNKNOWN,
-    COUNT,
-    RECLASSIFY,
+    RECLASSIFY_MOVE,
     RECLASSIFY_COPY,
   };
 
@@ -54,7 +53,7 @@ struct IntersectionSettings : public SettingBase
   //
   // What should happen when an intersection was found
   //
-  Function mode = Function::RECLASSIFY;
+  Function mode = Function::RECLASSIFY_MOVE;
 
   //
   // Minimum intersection in [0-1]
@@ -83,7 +82,7 @@ struct IntersectionSettings : public SettingBase
     CHECK_ERROR(minIntersection >= 0 && minIntersection <= 1, "Min intersection must be in range [0-1].");
     CHECK_ERROR(!inputObjects.inputClusters.empty(), "At least one input must be given!");
     CHECK_ERROR(!inputObjectsIntersectWith.inputClusters.empty(), "At least one interseting class must be given!");
-    if(mode == Function::RECLASSIFY || mode == Function::RECLASSIFY_COPY) {
+    if(mode == Function::RECLASSIFY_MOVE || mode == Function::RECLASSIFY_COPY) {
       CHECK_ERROR(newClassId != joda::enums::ClassIdIn::UNDEFINED, "Define a class the elements should be assigned for reclassification.");
     }
   }
@@ -104,7 +103,7 @@ struct IntersectionSettings : public SettingBase
   [[nodiscard]] ObjectOutputClusters getOutputClasses() const override
   {
     ObjectOutputClusters out;
-    if(mode == Function::RECLASSIFY || mode == Function::RECLASSIFY_COPY) {
+    if(mode == Function::RECLASSIFY_MOVE || mode == Function::RECLASSIFY_COPY) {
       for(const auto &in : inputObjectsIntersectWith.inputClusters) {
         out.emplace(ClassificatorSetting{in.clusterId, newClassId});
       }
@@ -117,8 +116,7 @@ struct IntersectionSettings : public SettingBase
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(IntersectionSettings::Function, {
-                                                                 {IntersectionSettings::Function::COUNT, "Count"},
-                                                                 {IntersectionSettings::Function::RECLASSIFY, "ReclassifyMove"},
+                                                                 {IntersectionSettings::Function::RECLASSIFY_MOVE, "ReclassifyMove"},
                                                                  {IntersectionSettings::Function::RECLASSIFY_COPY, "ReclassifyCopy"},
                                                              });
 

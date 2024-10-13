@@ -31,7 +31,7 @@ enum class Measurement
   INTENSITY_MAX,
   CENTER_OF_MASS_X,
   CENTER_OF_MASS_Y,
-  INTERSECTING_CNT,
+  ORIGIN_OBJECT_ID,
   BOUNDING_BOX_WIDTH,
   BOUNDING_BOX_HEIGHT
 };
@@ -94,8 +94,8 @@ inline std::string toString(const Measurement &enumIn)
       return "x";
     case Measurement::CENTER_OF_MASS_Y:
       return "y";
-    case Measurement::INTERSECTING_CNT:
-      return "Cross channel count";
+    case Measurement::ORIGIN_OBJECT_ID:
+      return "Origin object ID";
       break;
   }
   return "";

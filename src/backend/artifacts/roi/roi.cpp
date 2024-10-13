@@ -37,7 +37,7 @@ ROI::ROI() :
     mIsNull(true), mObjectId(mGlobalUniqueObjectId++), mId({}), confidence(0), mBoundingBoxTile({}), mBoundingBoxReal({}),
     mMask(cv::Mat(0, 0, CV_16UC1)), mMaskContours({}), mImageSize(cv::Size{0, 0}), mAreaSize(0), mPerimeter(0), mCircularity(0),
     mSnapAreaBoundingBox(calcSnapAreaBoundingBox(0, cv::Size{0, 0})), mSnapAreaMask(calculateSnapAreaMask(0)),
-    mSnapAreaMaskContours(calculateSnapContours(0))
+    mSnapAreaMaskContours(calculateSnapContours(0)), mOriginObjectId(mObjectId)
 {
 }
 
@@ -48,7 +48,7 @@ ROI::ROI(RoiObjectId index, Confidence confidence, uint32_t snapAreaSize, const 
     mBoundingBoxReal(calcRealBoundingBox(tile, tileSize)), mMask(mask), mMaskContours(contour), mImageSize(imageSize), mAreaSize(calcAreaSize()),
     mPerimeter(getTracedPerimeter(mMaskContours)), mCircularity(calcCircularity()),
     mSnapAreaBoundingBox(calcSnapAreaBoundingBox(snapAreaSize, imageSize)), mSnapAreaMask(calculateSnapAreaMask(snapAreaSize)),
-    mSnapAreaMaskContours(calculateSnapContours(snapAreaSize)), mSnapAreaRadius(snapAreaSize)
+    mSnapAreaMaskContours(calculateSnapContours(snapAreaSize)), mSnapAreaRadius(snapAreaSize), mOriginObjectId(mObjectId)
 {
 }
 

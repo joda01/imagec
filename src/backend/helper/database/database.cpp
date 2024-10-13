@@ -193,7 +193,8 @@ void Database::createTables()
       " meas_box_height UINTEGER,"
       " meas_box_depth UINTEGER,"
       " meas_mask MAP(UINTEGER,BOOLEAN),"
-      " meas_contour UINTEGER[]"
+      " meas_contour UINTEGER[],"
+      " meas_origin_object_id UBIGINT"
       ");"
 
       "CREATE TABLE IF NOT EXISTS object_measurements ("
@@ -206,12 +207,6 @@ void Database::createTables()
       " meas_intensity_avg float,"
       " meas_intensity_min UINTEGER,"
       " meas_intensity_max UINTEGER"
-      ");"
-
-      "CREATE TABLE IF NOT EXISTS object_intersections ("
-      "	image_id UBIGINT,"
-      " object_id UBIGINT,"
-      " meas_object_id UBIGINT"
       ");";
 
   auto connection = acquire();
@@ -225,9 +220,8 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
 {
   auto connection = acquire();
   // connection->BeginTransaction();
-  auto objects              = duckdb::Appender(*connection, "objects");
-  auto object_measurements  = duckdb::Appender(*connection, "object_measurements");
-  auto object_intersections = duckdb::Appender(*connection, "object_intersections");
+  auto objects             = duckdb::Appender(*connection, "objects");
+  auto object_measurements = duckdb::Appender(*connection, "object_measurements");
 
   for(const auto &[_, obj] : objectsList) {
     for(const auto &roi : *obj) {
@@ -262,6 +256,9 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
       // flatten(roi.getContour(), flattenPoints);
       auto contour = duckdb::Value::LIST(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER), flattenPoints);
       objects.Append<duckdb::Value>(contour);    // " meas_contour UINTEGER[]"
+
+      objects.Append<uint64_t>(roi.getOriginObjectId());    // "	meas_origin_object_id UBIGINT"
+
       objects.EndRow();
 
       //
@@ -282,24 +279,10 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
         object_measurements.Append<uint32_t>(intensity.intensityMax);     //       " meas_intensity_max UINTEGER"
         object_measurements.EndRow();
       }
-
-      //
-      // Intersections
-      //
-      for(const auto &[objectId, intersectingRoi] : roi.getIntersections()) {
-        object_intersections.BeginRow();
-        // Primary key
-        object_intersections.Append<uint64_t>(imgContext.imageId);    //       "	image_id UBIGINT,"
-        object_intersections.Append<uint64_t>(roi.getObjectId());     //       " object_id UBIGINT,"
-        //  Data
-        object_intersections.Append<uint64_t>(objectId);    // meas_object_id UBIGINT
-        object_intersections.EndRow();
-      }
     }
   }
   objects.Close();
   object_measurements.Close();
-  object_intersections.Close();
 
   //
   // Statistics
@@ -762,8 +745,7 @@ std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &
     duckdb::timestamp_t nil = {};
     auto prepare            = connection->Prepare(
         "INSERT INTO jobs (experiment_id, job_id, job_name,imagec_version, time_started, time_finished, settings) VALUES (?, ?, ?, ?, "
-                   "?, "
-                   "?)");
+                   "?, ?, ?)");
 
     prepare->Execute(duckdb::Value::UUID(exp.projectSettings.experimentSettings.experimentId), jobId, jobName, std::string(Version::getVersion()),
                      duckdb::Value::TIMESTAMP(timestampStart), duckdb::Value::TIMESTAMP(nil),
@@ -1058,58 +1040,6 @@ auto Database::selectClassesForClusters() -> std::map<enums::ClusterId, std::pai
   auto classes  = selectClasses();
 
   std::unique_ptr<duckdb::QueryResult> result = select("SELECT cluster_id, class_id FROM objects GROUP BY cluster_id, class_id");
-  if(result->HasError()) {
-    throw std::invalid_argument(result->GetError());
-  }
-  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
-  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-    auto clusterId = static_cast<enums::ClusterId>(materializedResult->GetValue(0, n).GetValue<uint16_t>());
-    auto classId   = static_cast<enums::ClassId>(materializedResult->GetValue(1, n).GetValue<uint16_t>());
-
-    resultOut[clusterId].first = clusters[clusterId].name;
-    if(classes.contains(classId)) {
-      resultOut[clusterId].second.emplace(classId, classes[classId].name);
-    } else {
-      if(classId == enums::ClassId::UNDEFINED) {
-        resultOut[clusterId].second.emplace(classId, "Undefined");
-      }
-      if(classId == enums::ClassId::NONE) {
-        resultOut[clusterId].second.emplace(classId, "None");
-      }
-    }
-  }
-  return resultOut;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-auto Database::selectCrossChannelCountForClusterAndClass(enums::ClusterId clusterId, enums::ClassId classId)
-    -> std::map<enums::ClusterId, std::pair<std::string, std::map<enums::ClassId, std::string>>>
-{
-  std::map<enums::ClusterId, std::pair<std::string, std::map<enums::ClassId, std::string>>> resultOut;
-  auto clusters = selectClusters();
-  auto classes  = selectClasses();
-
-  std::unique_ptr<duckdb::QueryResult> result = select(
-      "SELECT "
-      "  inners.cluster_id, inners.class_id"
-      "  FROM objects"
-      "  JOIN"
-      "  ("
-      "  	SELECT intersect_in.object_id, intersect_in.meas_object_id, objects.cluster_id, objects.class_id FROM "
-      "objects "
-      "  	JOIN object_intersections AS intersect_in ON  objects.object_id = intersect_in.meas_object_id"
-      "   LIMIT 10000000 "
-      "  ) as inners"
-      "  on objects.object_id = inners.object_id"
-      "  WHERE objects.cluster_id = ? AND objects.class_id = ?"
-      "  GROUP BY inners.cluster_id, inners.class_id",
-      (uint16_t) clusterId, (uint16_t) classId);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }

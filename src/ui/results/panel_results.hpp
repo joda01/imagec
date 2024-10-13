@@ -105,7 +105,6 @@ private:
   QComboBox *mStatsSelector;
 
   QComboBox *mCrossChannelStackC;
-  QComboBox *mCrossChannelClusterAndClassesSelector;
 
   /////////////////////////////////////////////////////
   QTableWidget *mTable;
@@ -118,9 +117,8 @@ private:
   PanelResultsInfo::DataSet mSelectedDataSet;
 
   /////////////////////////////////////////////////////
-  QAction *mMarkAsInvalidAction       = nullptr;
-  QAction *mActionCrossChannelCStack  = nullptr;
-  QAction *mActionCrossChannelCluster = nullptr;
+  QAction *mMarkAsInvalidAction      = nullptr;
+  QAction *mActionCrossChannelCStack = nullptr;
 
   /////////////////////////////////////////////////////
   uint16_t mActGroupId = 0;

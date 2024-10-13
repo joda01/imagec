@@ -68,10 +68,7 @@ void SpheralIndex::calcIntersections(joda::settings::IntersectionSettings::Funct
                 if(box1->isIntersecting(*box2, minIntersecion)) {
                   intersecting.emplace(box2);
                   switch(func) {
-                    case settings::IntersectionSettings::Function::COUNT:
-                      box1->addIntersectingRoi(box2);
-                      break;
-                    case settings::IntersectionSettings::Function::RECLASSIFY:
+                    case settings::IntersectionSettings::Function::RECLASSIFY_MOVE:
                       box2->setClass(newClassOFIntersectingObject);
                       break;
                     case settings::IntersectionSettings::Function::RECLASSIFY_COPY: {

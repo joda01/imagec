@@ -88,19 +88,19 @@ public:
       mSnapAreaBoundingBox(std::move(input.mSnapAreaBoundingBox)), mSnapAreaMask(std::move(input.mSnapAreaMask)),
       mSnapAreaMaskContours(std::move(input.mSnapAreaMaskContours)), mSnapAreaRadius(std::move(input.mSnapAreaRadius)),
       mAreaSize(std::move(input.mAreaSize)), mPerimeter(std::move(input.mPerimeter)), mCircularity(std::move(input.mCircularity)),
-      intensity(std::move(input.intensity)), mIntersectingRois(std::move(input.mIntersectingRois))
+      intensity(std::move(input.intensity)), mOriginObjectId(std::move(input.mOriginObjectId))
   {
   }
 
   ROI(bool mIsNull, uint64_t mObjectId, RoiObjectId mId, Confidence confidence, Boxes mBoundingBoxTile, Boxes mBoundingBoxReal, cv::Mat mMask,
       std::vector<cv::Point> mMaskContours, cv::Size mImageSize, Boxes mSnapAreaBoundingBox, cv::Mat mSnapAreaMask,
       std::vector<cv::Point> mSnapAreaMaskContours, uint32_t mSnapAreaRadius, double mAreaSize, float mPerimeter, float mCircularity,
-      std::map<enums::ImageId, Intensity> intensity, std::map<uint64_t, RoiObjectId> mIntersectingRois) :
+      std::map<enums::ImageId, Intensity> intensity, uint64_t originObjectId) :
       mIsNull(mIsNull),
       mObjectId(mObjectId), mId(mId), confidence(confidence), mBoundingBoxTile(mBoundingBoxTile), mBoundingBoxReal(mBoundingBoxReal), mMask(mMask),
       mMaskContours(mMaskContours), mImageSize(mImageSize), mSnapAreaBoundingBox(mSnapAreaBoundingBox), mSnapAreaMask(mSnapAreaMask),
       mSnapAreaMaskContours(mSnapAreaMaskContours), mSnapAreaRadius(mSnapAreaRadius), mAreaSize(mAreaSize), mPerimeter(mPerimeter),
-      mCircularity(mCircularity), intensity(intensity), mIntersectingRois(mIntersectingRois)
+      mCircularity(mCircularity), intensity(intensity), mOriginObjectId(originObjectId)
   {
   }
 
@@ -113,7 +113,7 @@ public:
   {
     return {mIsNull,         mObjectId,     mId,        confidence,           mBoundingBoxTile, mBoundingBoxReal,
             mMask,           mMaskContours, mImageSize, mSnapAreaBoundingBox, mSnapAreaMask,    mSnapAreaMaskContours,
-            mSnapAreaRadius, mAreaSize,     mPerimeter, mCircularity,         intensity,        mIntersectingRois};
+            mSnapAreaRadius, mAreaSize,     mPerimeter, mCircularity,         intensity,        mOriginObjectId};
   }
 
   [[nodiscard]] ROI copy() const
@@ -135,7 +135,7 @@ public:
             mPerimeter,
             mCircularity,
             intensity,
-            mIntersectingRois};
+            mObjectId};
   }
 
   void setClusterAndClass(enums::ClusterId clusterId, enums::ClassId classId)
@@ -284,13 +284,9 @@ public:
 
   [[nodiscard]] bool isIntersecting(const ROI &roi, float minIntersection) const;
 
-  void addIntersectingRoi(const ROI *roi)
+  uint64_t getOriginObjectId() const
   {
-    mIntersectingRois.emplace(roi->getObjectId(), roi->mId);
-  }
-  [[nodiscard]] auto getIntersections() const -> const std::map<uint64_t, RoiObjectId> &
-  {
-    return mIntersectingRois;
+    return mOriginObjectId;
   }
 
 private:
@@ -334,7 +330,7 @@ private:
 
   // Measurements ///////////////////////////////////////////////////
   std::map<enums::ImageId, Intensity> intensity;
-  std::map<uint64_t, RoiObjectId> mIntersectingRois;
+  uint64 mOriginObjectId = 0;
 
   static inline std::atomic<uint64_t> mGlobalUniqueObjectId = 0;
 };

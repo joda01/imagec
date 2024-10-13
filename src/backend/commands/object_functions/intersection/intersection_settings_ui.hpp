@@ -63,20 +63,12 @@ public:
     //
     mMode = SettingBase::create<SettingComboBox<joda::settings::IntersectionSettings::Function>>(parent, {}, "Mode");
     mMode->addOptions(
-        {{.key = joda::settings::IntersectionSettings::Function::COUNT, .label = "Count", .icon = generateIcon("100")},
-         {.key = joda::settings::IntersectionSettings::Function::RECLASSIFY, .label = "Reclassify Move", .icon = generateIcon("move-right")},
+        {{.key = joda::settings::IntersectionSettings::Function::RECLASSIFY_MOVE, .label = "Reclassify Move", .icon = generateIcon("move-right")},
          {.key   = joda::settings::IntersectionSettings::Function::RECLASSIFY_COPY,
           .label = "Reclassify Copy",
           .icon  = generateIcon("query-inner-join")}});
     mMode->setValue(settings.mode);
     mMode->connectWithSetting(&settings.mode);
-    connect(mMode.get(), &SettingBase::valueChanged, [this]() {
-      if(mMode->getValue() != joda::settings::IntersectionSettings::Function::COUNT) {
-        mClassOutput->getEditableWidget()->setVisible(true);
-      } else {
-        mClassOutput->getEditableWidget()->setVisible(false);
-      }
-    });
 
     //
     //

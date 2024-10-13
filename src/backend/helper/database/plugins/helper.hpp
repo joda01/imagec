@@ -35,20 +35,14 @@ struct QueryFilter
   joda::enums::Stats stats;
   std::vector<std::vector<int32_t>> wellImageOrder = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16}};
   uint32_t densityMapAreaSize                      = 200;
-
   uint32_t crossChanelStack_c;
   std::string crossChannelStack_cName;
-  joda::enums::ClusterId crossChannelClusterId;
-  std::string crossChannelClusterName;
-  joda::enums::ClassId crossChannelClassId;
-  std::string crossChannelClassName;
 };
 
 enum MeasureType
 {
   OBJECT,
-  INTENSITY,
-  COUNT
+  INTENSITY
 };
 
 inline MeasureType getType(enums::Measurement measure)
@@ -59,17 +53,19 @@ inline MeasureType getType(enums::Measurement measure)
     case enums::Measurement::INTENSITY_MIN:
     case enums::Measurement::INTENSITY_MAX:
       return MeasureType::INTENSITY;
-    case enums::Measurement::INTERSECTING_CNT:
-      return MeasureType::COUNT;
-    default:
+    case enums::Measurement::ORIGIN_OBJECT_ID:
     case enums::Measurement::CENTER_OF_MASS_X:
     case enums::Measurement::CENTER_OF_MASS_Y:
     case enums::Measurement::CONFIDENCE:
     case enums::Measurement::AREA_SIZE:
     case enums::Measurement::PERIMETER:
     case enums::Measurement::CIRCULARITY:
+    case enums::Measurement::COUNT:
+    case enums::Measurement::BOUNDING_BOX_WIDTH:
+    case enums::Measurement::BOUNDING_BOX_HEIGHT:
       return MeasureType::OBJECT;
   }
+  return MeasureType::OBJECT;
 }
 
 inline std::string getMeasurement(enums::Measurement measure)
@@ -101,6 +97,9 @@ inline std::string getMeasurement(enums::Measurement measure)
       return "meas_box_width";
     case enums::Measurement::BOUNDING_BOX_HEIGHT:
       return "meas_box_height";
+    case enums::Measurement::ORIGIN_OBJECT_ID:
+      return "meas_origin_object_id";
+      break;
   }
   return "";
 }
@@ -142,13 +141,9 @@ inline std::string createHeader(const QueryFilter &filter)
     case INTENSITY:
       prefix = " (CH" + std::to_string(filter.crossChanelStack_c) + ")";
       break;
-    case COUNT:
-      prefix = " (" + filter.crossChannelClusterName + "@" + filter.crossChannelClassName + ")";
-      break;
   }
 
-  return filter.className + " - " + toString(filter.measurementChannel) + " [" + enums::toString(filter.stats) + "]" +
-         prefix;
+  return filter.className + " - " + toString(filter.measurementChannel) + " [" + enums::toString(filter.stats) + "]" + prefix;
 }
 
 }    // namespace joda::db
