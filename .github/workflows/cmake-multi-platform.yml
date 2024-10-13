@@ -27,7 +27,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libva-dev libvdpau-dev xkb-data
-          sudo pip install conan
+          sudo pip install conan --break-system-packages
           sudo chmod 777 -R /root
 
       - name: Restore Conan Cache
