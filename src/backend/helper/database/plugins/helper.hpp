@@ -15,6 +15,7 @@
 
 #include <string>
 #include "backend/enums/enum_measurements.hpp"
+#include "backend/settings/settings_types.hpp"
 
 namespace joda::db {
 
@@ -22,21 +23,31 @@ class Database;
 
 struct QueryFilter
 {
-  Database *analyzer;
-  uint16_t plateRows  = 0;
-  uint16_t plateCols  = 0;
-  uint8_t plateId     = 0;
-  uint16_t actGroupId = 0;
-  uint64_t actImageId = 0;
-  joda::enums::ClusterId clusterId;
-  joda::enums::ClassId classId;
-  std::string className;
-  joda::enums::Measurement measurementChannel;
-  joda::enums::Stats stats;
-  std::vector<std::vector<int32_t>> wellImageOrder = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16}};
-  uint32_t densityMapAreaSize                      = 200;
-  uint32_t crossChanelStack_c;
-  std::string crossChannelStack_cName;
+  struct ObjectFilter
+  {
+    uint8_t plateId                                  = 0;
+    uint16_t groupId                                 = 0;
+    uint64_t imageId                                 = 0;
+    uint16_t plateRows                               = 0;
+    uint16_t plateCols                               = 0;
+    uint32_t heatmapAreaSize                         = 200;
+    std::vector<std::vector<int32_t>> wellImageOrder = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16}};
+  };
+
+  struct Channel
+  {
+    std::string clusterName;
+    std::string className;
+    std::map<enums::Measurement, std::set<enums::Stats>> measureChannels;
+    std::map<int32_t, std::string> crossChannelStacksC;
+  };
+
+  using ChannelFilter  = std::pair<settings::ClassificatorSettingOut, Channel>;
+  using ChannelFilters = std::map<settings::ClassificatorSettingOut, Channel>;
+
+  db::Database *analyzer;
+  ObjectFilter filter;
+  ChannelFilters clustersToExport;
 };
 
 enum MeasureType
@@ -133,17 +144,26 @@ inline std::string getStatsString(enums::Stats stats)
   return statsStr;
 }
 
-inline std::string createHeader(const QueryFilter &filter)
+inline std::map<uint32_t, std::string> createHeader(const QueryFilter::Channel &channel)
 {
-  std::string prefix;
-  switch(getType(filter.measurementChannel)) {
-    case OBJECT:
-    case INTENSITY:
-      prefix = " (CH" + std::to_string(filter.crossChanelStack_c) + ")";
-      break;
+  std::map<uint32_t, std::string> columnHeaders;
+  uint32_t col = 0;
+  for(const auto &[measurement, stats] : channel.measureChannels) {
+    for(const auto stat : stats) {
+      if(getType(measurement) == MeasureType::INTENSITY) {
+        for(const auto [cStack, _] : channel.crossChannelStacksC) {
+          columnHeaders.emplace(col, channel.className + "-" + toString(measurement) + "[" + enums::toString(stat) + "] " + "(CH" +
+                                         std::to_string(cStack) + ")");
+          col++;
+        }
+      } else {
+        columnHeaders.emplace(col, channel.className + "-" + toString(measurement) + "[" + enums::toString(stat) + "]");
+        col++;
+      }
+    }
   }
 
-  return filter.className + " - " + toString(filter.measurementChannel) + " [" + enums::toString(filter.stats) + "]" + prefix;
+  return columnHeaders;
 }
 
 }    // namespace joda::db

@@ -31,8 +31,7 @@ public:
   {
   }
 
-  TableCell(double val, uint64_t id, bool valid, const std::string &linkToImage) :
-      value(val), id(id), validity(valid), linkToImage(linkToImage)
+  TableCell(double val, uint64_t id, bool valid, const std::string &linkToImage) : value(val), id(id), validity(valid), linkToImage(linkToImage)
   {
   }
 
@@ -85,6 +84,7 @@ class Table
 public:
   /////////////////////////////////////////////////////
   Table();
+  void setTitle(const std::string &title);
   void setColHeader(const std::map<uint32_t, std::string> &);
   void setRowHeader(const std::map<uint32_t, std::string> &);
   auto getMutableRowHeader() -> std::map<uint32_t, std::string> &
@@ -191,6 +191,11 @@ public:
     return mColHeader.size();
   }
 
+  [[nodiscard]] std::string getTitle() const
+  {
+    return mTitle;
+  }
+
 private:
   /////////////////////////////////////////////////////
   entry_t mData;    // <ROW, <COL, DATA>>
@@ -200,6 +205,7 @@ private:
   std::map<uint32_t, std::string> mColHeader;
   std::map<uint32_t, std::string> mRowHeader;
   uint32_t mNrOfCols = 0;
+  std::string mTitle;
 };
 
 }    // namespace joda::table

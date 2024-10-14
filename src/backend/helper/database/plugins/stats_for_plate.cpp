@@ -14,13 +14,7 @@
 
 namespace joda::db {
 
-auto StatsPerPlate::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb::QueryResult>
-{
-  auto [sql, params] = toSQL(filter);
-  return filter.analyzer->select(sql, params);
-}
-
-auto StatsPerPlate::toTable(const QueryFilter &filter) -> joda::table::Table
+auto StatsPerPlate::toTable(const QueryFilter &filter) -> std::vector<joda::table::Table>
 {
   auto queryResult = getData(filter);
   if(queryResult->HasError()) {
@@ -58,7 +52,7 @@ auto StatsPerPlate::toTable(const QueryFilter &filter) -> joda::table::Table
   return results;
 }
 
-auto StatsPerPlate::toHeatmap(const QueryFilter &filter) -> joda::table::Table
+auto StatsPerPlate::toHeatmap(const QueryFilter &filter) -> std::vector<joda::table::Table>
 {
   auto queryResult = getData(filter);
   if(queryResult->HasError()) {
@@ -111,6 +105,13 @@ auto StatsPerPlate::toHeatmap(const QueryFilter &filter) -> joda::table::Table
   return results;
 }
 
+auto StatsPerPlate::getData(const QueryFilter::ObjectFilter &filter, const QueryFilter::ChannelFilter &channelFilter)
+    -> std::unique_ptr<duckdb::QueryResult>
+{
+  auto [sql, params] = toSQL(filter, channelFilter);
+  return filter.analyzer->select(sql, params);
+}
+
 ///
 /// \brief
 /// \author
@@ -118,7 +119,8 @@ auto StatsPerPlate::toHeatmap(const QueryFilter &filter) -> joda::table::Table
 /// \param[out]
 /// \return
 ///
-auto StatsPerPlate::toSQL(const QueryFilter &filter) -> std::pair<std::string, DbArgs_t>
+auto StatsPerPlate::toSQL(const QueryFilter::ObjectFilter &filter, const QueryFilter::ChannelFilter &channelFilter)
+    -> std::pair<std::string, DbArgs_t>
 {
   auto buildStats = [&]() {
     return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) + ") FILTER (images.validity = 0) as valid, " +

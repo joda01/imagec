@@ -14,11 +14,13 @@ namespace joda::db {
 class StatsPerImage
 {
 public:
-  static auto toTable(const QueryFilter &filter) -> joda::table::Table;
-  static auto toHeatmap(const QueryFilter &filter) -> joda::table::Table;
-  static auto toHeatmapList(const QueryFilter &filter) -> joda::table::Table;
-  static auto toSqlTable(const QueryFilter &filter) -> std::pair<std::string, DbArgs_t>;
-  static auto toSqlHeatmap(const QueryFilter &filter) -> std::pair<std::string, DbArgs_t>;
+  static auto toTable(const QueryFilter &filter) -> std::vector<joda::table::Table>;
+  static auto toHeatmap(const QueryFilter &filter) -> std::vector<joda::table::Table>;
+  static auto toHeatmapList(const QueryFilter &filter) -> std::vector<joda::table::Table>;
+  static auto toSqlTable(const QueryFilter::ObjectFilter &filter, const QueryFilter::ChannelFilter &channelFilter)
+      -> std::pair<std::string, DbArgs_t>;
+  static auto toSqlHeatmap(const QueryFilter::ObjectFilter &filter, const QueryFilter::ChannelFilter &channelFilter)
+      -> std::pair<std::string, DbArgs_t>;
 
 private:
   struct ImgInfo
@@ -28,6 +30,7 @@ private:
     std::string controlImgPath;
   };
 
-  static auto densityMap(const QueryFilter &filter) -> std::tuple<std::unique_ptr<duckdb::QueryResult>, ImgInfo>;
+  static auto densityMap(db::Database *analyzer, const QueryFilter::ObjectFilter &filter, const QueryFilter::ChannelFilter &channelFilter)
+      -> std::tuple<std::unique_ptr<duckdb::QueryResult>, ImgInfo>;
 };
 }    // namespace joda::db

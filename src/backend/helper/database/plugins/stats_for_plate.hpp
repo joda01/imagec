@@ -13,11 +13,12 @@ namespace joda::db {
 class StatsPerPlate
 {
 public:
-  static auto toTable(const QueryFilter &filter) -> joda::table::Table;
-  static auto toHeatmap(const QueryFilter &filter) -> joda::table::Table;
-  static auto toSQL(const QueryFilter &filter) -> std::pair<std::string, DbArgs_t>;
+  static auto toTable(const QueryFilter &filter) -> std::vector<joda::table::Table>;
+  static auto toHeatmap(const QueryFilter &filter) -> std::vector<joda::table::Table>;
+  static auto toSQL(const QueryFilter::ObjectFilter &filter, const QueryFilter::ChannelFilter &channelFilter) -> std::pair<std::string, DbArgs_t>;
 
 private:
-  static auto getData(const QueryFilter &filter) -> std::unique_ptr<duckdb::QueryResult>;
+  static auto getData(const QueryFilter::ObjectFilter &filter, const QueryFilter::ChannelFilter &channelFilter)
+      -> std::unique_ptr<duckdb::QueryResult>;
 };
 }    // namespace joda::db

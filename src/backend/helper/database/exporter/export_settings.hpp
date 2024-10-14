@@ -22,6 +22,7 @@
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/database/database.hpp"
+#include "backend/helper/database/plugins/helper.hpp"
 #include "backend/helper/table/table.hpp"
 #include "backend/settings/analze_settings.hpp"
 
@@ -43,23 +44,7 @@ struct ExportSettings
     IMAGE
   };
 
-  struct Channel
-  {
-    std::string clusterName;
-    std::string className;
-    std::map<enums::Measurement, std::set<enums::Stats>> measureChannels;
-    std::map<int32_t, std::string> crossChannelStacksC;
-    std::map<settings::ClassificatorSettingOut, std::pair<std::string, std::string>> crossChannelCount;
-  };
-  std::map<settings::ClassificatorSettingOut, Channel> clustersToExport;
-  db::Database &analyzer;
-  uint8_t plateId;
-  uint16_t groupId;
-  uint64_t imageId;
-  uint16_t plateRows;
-  uint16_t plateCols;
-  uint32_t heatmapAreaSize;
-  std::vector<std::vector<int32_t>> wellImageOrder;
+  QueryFilter queryFilter;
   ExportType exportType;
   ExportDetail exportDetail;
 };
