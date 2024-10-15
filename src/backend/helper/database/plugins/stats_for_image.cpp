@@ -313,6 +313,7 @@ auto StatsPerImage::toSqlHeatmap(const QueryFilter::ObjectFilter &filter, const 
                     "floor(meas_center_y / $4) * $4 AS rectangle_y,\n"
                     "FROM innerTable\n"
                     "GROUP BY floor(meas_center_x / $4), floor(meas_center_y / $4)";
+  return {sql, params};
 }
 
 }    // namespace joda::db

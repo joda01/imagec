@@ -115,6 +115,42 @@ inline std::string getMeasurement(enums::Measurement measure)
   return "";
 }
 
+inline std::string getMeasurementAs(enums::Measurement measure)
+{
+  switch(measure) {
+    case enums::Measurement::COUNT:
+      return "counted";
+    case enums::Measurement::CENTER_OF_MASS_X:
+      return "meas_center_x";
+    case enums::Measurement::CENTER_OF_MASS_Y:
+      return "meas_center_y";
+    case enums::Measurement::CONFIDENCE:
+      return "meas_confidence";
+    case enums::Measurement::AREA_SIZE:
+      return "meas_area_size";
+    case enums::Measurement::PERIMETER:
+      return "meas_perimeter";
+    case enums::Measurement::CIRCULARITY:
+      return "meas_circularity";
+    case enums::Measurement::INTENSITY_SUM:
+      return "meas_intensity_sum";
+    case enums::Measurement::INTENSITY_AVG:
+      return "meas_intensity_avg";
+    case enums::Measurement::INTENSITY_MIN:
+      return "meas_intensity_min";
+    case enums::Measurement::INTENSITY_MAX:
+      return "meas_intensity_max";
+    case enums::Measurement::BOUNDING_BOX_WIDTH:
+      return "meas_box_width";
+    case enums::Measurement::BOUNDING_BOX_HEIGHT:
+      return "meas_box_height";
+    case enums::Measurement::ORIGIN_OBJECT_ID:
+      return "meas_origin_object_id";
+      break;
+  }
+  return "";
+}
+
 inline std::string getStatsString(enums::Stats stats)
 {
   std::string statsStr;

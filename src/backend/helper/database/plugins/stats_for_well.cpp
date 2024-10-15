@@ -82,7 +82,6 @@ auto StatsPerGroup::toTable(const QueryFilter &filter, Grouping grouping) -> std
 auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> std::vector<joda::table::Table>
 {
   std::vector<joda::table::Table> tables;
-  tables.reserve(filter.clustersToExport.size());
 
   for(const auto &channels : filter.clustersToExport) {
     auto materializedResult = getData(filter.analyzer, filter.filter, channels, grouping)->Cast<duckdb::StreamQueryResult>().Materialize();
@@ -110,10 +109,12 @@ auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> s
       }
     };
 
-    auto headers = createHeader(channels.second);
+    auto headers  = createHeader(channels.second);
+    size_t offset = headers.size();
+    std::vector<joda::table::Table> innerTables;
+
     for(size_t row = 0; row < materializedResult->RowCount(); row++) {
       try {
-        size_t offset    = headers.size();
         auto groupId     = materializedResult->GetValue(offset + 0, row).GetValue<uint16_t>();
         auto imgGroupIdx = materializedResult->GetValue(offset + 1, row).GetValue<uint32_t>();
         auto platePosX   = materializedResult->GetValue(offset + 2, row).GetValue<uint32_t>();
@@ -126,24 +127,34 @@ auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> s
           pos = wellPos[imgGroupIdx];
         } else {
           if(platePosX > 0) {
-            pos.x = platePosX--;
+            pos.x = --platePosX;
           }
           if(platePosY > 0) {
-            pos.y = platePosY--;
+            pos.y = --platePosY;
           }
         }
 
         for(size_t col = 0; col < offset; col++) {
-          table::Table results;
+          if(innerTables.size() <= col) {
+            auto &results = innerTables.emplace_back();
+            prepareTable(results);
+          }
+          joda::table::Table &results = innerTables.at(col);
+
           results.setTitle(headers[col]);
-          prepareTable(results);
           double value = materializedResult->GetValue(col, row).GetValue<double>();
-          results.setData(pos.y, pos.x, table::TableCell{value, imageId, validity == 0, filename});
+          if(grouping == Grouping::BY_WELL) {
+            results.setData(pos.y, pos.x, table::TableCell{value, imageId, validity == 0, filename});
+          } else {
+            results.setData(pos.y, pos.x, table::TableCell{value, groupId, validity == 0, filename});
+          }
         }
 
       } catch(const duckdb::InternalException &) {
       }
     }
+
+    tables.insert(tables.end(), innerTables.begin(), innerTables.end());
   }
   return tables;
 }
@@ -160,8 +171,6 @@ auto StatsPerGroup::getData(db::Database *analyzer, const QueryFilter::ObjectFil
 {
   auto [sql, params]                          = toSQL(filter, channelFilter, grouping);
   std::unique_ptr<duckdb::QueryResult> result = analyzer->select(sql, params);
-  return result;
-
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
@@ -185,10 +194,10 @@ auto StatsPerGroup::toSQL(const QueryFilter::ObjectFilter &filter, const QueryFi
         if(getType(measurment) == MeasureType::INTENSITY) {
           for(const auto [cStack, _] : channelFilter.second.crossChannelStacksC) {
             channels += "ANY_VALUE(DISTINCT CASE WHEN t2.meas_stack_c = " + std::to_string(cStack) + " THEN " + getMeasurement(measurment) +
-                        " END) AS " + getMeasurement(measurment) + "_" + std::to_string(cStack) + ",\n";
+                        " END) AS " + getMeasurementAs(measurment) + "_" + std::to_string(cStack) + ",\n";
           }
         } else {
-          channels += "ANY_VALUE(DISTINCT " + getMeasurement(measurment) + ") as " + getMeasurement(measurment) + ",\n";
+          channels += "ANY_VALUE(DISTINCT " + getMeasurement(measurment) + ") as " + getMeasurementAs(measurment) + ",\n";
         }
       }
     }
@@ -205,7 +214,7 @@ auto StatsPerGroup::toSQL(const QueryFilter::ObjectFilter &filter, const QueryFi
                         getMeasurement(measurment) + "_" + std::to_string(cStack) + ",\n";
           }
         } else {
-          channels += getStatsString(stat) + "(" + getMeasurement(measurment) + ") as " + getMeasurement(measurment) + ",\n";
+          channels += getStatsString(stat) + "(" + getMeasurement(measurment) + ") as " + getMeasurementAs(measurment) + ",\n";
         }
       }
     }
@@ -222,7 +231,7 @@ auto StatsPerGroup::toSQL(const QueryFilter::ObjectFilter &filter, const QueryFi
                         getMeasurement(measurment) + "_" + std::to_string(cStack) + ",\n";
           }
         } else {
-          channels += getStatsString(outerStats) + "(" + getMeasurement(measurment) + ") as " + getMeasurement(measurment) + ",\n";
+          channels += getStatsString(outerStats) + "(" + getMeasurement(measurment) + ") as " + getMeasurementAs(measurment) + ",\n";
         }
       }
     }
@@ -233,15 +242,16 @@ auto StatsPerGroup::toSQL(const QueryFilter::ObjectFilter &filter, const QueryFi
       "WITH innerTable AS (\n"
       "SELECT\n" +
       buildSelect() +
-      "t1.object_id\n"
+      "t1.object_id,\n"
+      "t1.image_id\n"
       "FROM\n"
       "	objects t1\n"
-      "JOIN object_measurements t2 ON\n"
+      "LEFT JOIN object_measurements t2 ON\n"
       "	t1.object_id = t2.object_id\n"
       "WHERE\n"
-      " t1.cluster_id=$1 AND t2.class_id=$2\n"
+      " t1.cluster_id=$1 AND t1.class_id=$2\n"
       "GROUP BY\n"
-      "	t1.object_id\n"
+      "	t1.object_id, t1.image_id\n"
       "ORDER BY\n"
       "	t1.object_id\n"
       "),\n"
@@ -260,7 +270,7 @@ auto StatsPerGroup::toSQL(const QueryFilter::ObjectFilter &filter, const QueryFi
       "JOIN images_groups ON\n"
       "	innerTable.image_id = images_groups.image_id\n"
       "JOIN groups on\n"
-      "	groups.group_id = images_groups.group_id\n"
+      "	images_groups.group_id = groups.group_id\n"
       "JOIN images on\n"
       "	innerTable.image_id = images.image_id\n";
   if(grouping == Grouping::BY_WELL) {
@@ -271,20 +281,34 @@ auto StatsPerGroup::toSQL(const QueryFilter::ObjectFilter &filter, const QueryFi
       "GROUP BY\n"
       "	innerTable.image_id\n"
       ")\n"
-      "SELECT\n" +
-      buildOutersStats(grouping == Grouping::BY_WELL ? enums::Stats::OFF : enums::Stats::AVG) +
-      " ANY_VALUE(imageGroupd.group_id) as group_id,\n"
-      " ANY_VALUE(imageGroupd.image_group_idx) as image_group_idx,\n"
-      " ANY_VALUE(imageGroupd.pos_on_plate_x) as pos_on_plate_x,\n"
-      " ANY_VALUE(imageGroupd.pos_on_plate_y) as pos_on_plate_y,\n"
-      " ANY_VALUE(imageGroupd.file_name) as file_name,\n"
-      " ANY_VALUE(imageGroupd.image_id) as image_id,\n"
-      " ANY_VALUE(imageGroupd.validity) as validity\n"
-      "FROM imageGrouped";
+      "SELECT\n";
 
-  return {sql,
-          {static_cast<uint16_t>(channelFilter.first.clusterId), static_cast<uint16_t>(channelFilter.first.classId),
-           static_cast<uint16_t>(filter.groupId)}};
+  if(grouping == Grouping::BY_PLATE) {
+    sql += buildOutersStats(grouping == Grouping::BY_WELL ? enums::Stats::OFF : enums::Stats::AVG) +
+           " ANY_VALUE(imageGrouped.group_id) as group_id,\n"
+           " ANY_VALUE(imageGrouped.image_group_idx) as image_group_idx,\n"
+           " ANY_VALUE(imageGrouped.pos_on_plate_x) as pos_on_plate_x,\n"
+           " ANY_VALUE(imageGrouped.pos_on_plate_y) as pos_on_plate_y,\n"
+           " ANY_VALUE(imageGrouped.file_name) as file_name,\n"
+           " ANY_VALUE(imageGrouped.image_id) as image_id,\n"
+           " ANY_VALUE(imageGrouped.validity) as validity\n";
+  } else {
+    sql += "*";
+  }
+  sql += "FROM imageGrouped\n";
+  if(grouping == Grouping::BY_PLATE) {
+    sql += "GROUP BY group_id\n";
+    sql += "ORDER BY group_id";
+  } else {
+    sql += "ORDER BY file_name";
+  }
+
+  if(grouping == Grouping::BY_WELL) {
+    return {sql,
+            {static_cast<uint16_t>(channelFilter.first.clusterId), static_cast<uint16_t>(channelFilter.first.classId),
+             static_cast<uint16_t>(filter.groupId)}};
+  }
+  return {sql, {static_cast<uint16_t>(channelFilter.first.clusterId), static_cast<uint16_t>(channelFilter.first.classId)}};
 }
 
 ///
