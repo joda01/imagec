@@ -33,7 +33,6 @@
 #include "../panel_results.hpp"
 #include "backend/helper/database/plugins/control_image.hpp"
 #include "backend/helper/database/plugins/stats_for_image.hpp"
-#include "backend/helper/database/plugins/stats_for_plate.hpp"
 #include "backend/helper/database/plugins/stats_for_well.hpp"
 #include "ui/container/container_button.hpp"
 #include "ui/container/container_label.hpp"
@@ -54,8 +53,7 @@ ChartHeatMap::ChartHeatMap(PanelResults *parent) : QWidget(parent), mParent(pare
   setMouseTracking(true);
 }
 
-void ChartHeatMap::setData(const joda::table::Table &data, MatrixForm form, PaintControlImage paint,
-                           int32_t newHierarchy)
+void ChartHeatMap::setData(const joda::table::Table &data, MatrixForm form, PaintControlImage paint, int32_t newHierarchy)
 {
   if(mActHierarchy > newHierarchy) {
     // We navigate back
@@ -215,15 +213,12 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
           painter.drawText(textX, textY, txtToPaint);
 
           if(!data.isValid()) {
-            painter.drawLine(x * rectWidth + spacing + xReduce + X_LEFT_MARGIN,
-                             y * rectWidth + spacing + yReduce + Y_TOP_MARING,
+            painter.drawLine(x * rectWidth + spacing + xReduce + X_LEFT_MARGIN, y * rectWidth + spacing + yReduce + Y_TOP_MARING,
                              x * rectWidth + spacing + rectWidth - xReduce + X_LEFT_MARGIN,
                              y * rectWidth + spacing + rectWidth - yReduce + Y_TOP_MARING);
 
-            painter.drawLine(x * rectWidth + spacing + rectWidth - xReduce + X_LEFT_MARGIN,
-                             y * rectWidth + spacing + yReduce + Y_TOP_MARING,
-                             x * rectWidth + spacing + xReduce + X_LEFT_MARGIN,
-                             y * rectWidth + spacing + rectWidth - yReduce + Y_TOP_MARING);
+            painter.drawLine(x * rectWidth + spacing + rectWidth - xReduce + X_LEFT_MARGIN, y * rectWidth + spacing + yReduce + Y_TOP_MARING,
+                             x * rectWidth + spacing + xReduce + X_LEFT_MARGIN, y * rectWidth + spacing + rectWidth - yReduce + Y_TOP_MARING);
           }
         }
         idx++;
@@ -256,14 +251,13 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
           } else {
             painter.setPen(QPen(Qt::red, 1));
           }
-          mHeatMapMinMax.textMinPos = QRect(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE,
-                                            partWith * 2, HEATMAP_COLOR_ROW_TEXT_HEIGHT);
+          mHeatMapMinMax.textMinPos =
+              QRect(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE, partWith * 2, HEATMAP_COLOR_ROW_TEXT_HEIGHT);
           painter.drawText(mHeatMapMinMax.textMinPos, Qt::AlignLeft, formatDoubleScientific(mHeatMapMinMax.min));
         }
         if(n == middle) {
           painter.setPen(QPen(Qt::black, 1));
-          painter.drawText(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE,
-                           formatDoubleScientific(avg));
+          painter.drawText(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE, formatDoubleScientific(avg));
         }
 
         if(n == mColorMap.size() - 1) {
@@ -272,14 +266,13 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
           } else {
             painter.setPen(QPen(Qt::red, 1));
           }
-          mHeatMapMinMax.textMaxPos = QRect(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE,
-                                            partWith * 2, HEATMAP_COLOR_ROW_TEXT_HEIGHT);
+          mHeatMapMinMax.textMaxPos =
+              QRect(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE, partWith * 2, HEATMAP_COLOR_ROW_TEXT_HEIGHT);
           painter.drawText(mHeatMapMinMax.textMaxPos, Qt::AlignRight, formatDoubleScientific(mHeatMapMinMax.max));
         }
       }
       painter.setPen(QPen(Qt::black, 1));
-      drawGaussianCurve(painter, xStart,
-                        yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE + HEATMAP_FONT_SIZE,
+      drawGaussianCurve(painter, xStart, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE + HEATMAP_FONT_SIZE,
                         LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE + HEATMAP_FONT_SIZE - 4, length);
     }
 
@@ -434,8 +427,7 @@ void ChartHeatMap::mousePressEvent(QMouseEvent *event)
       update();    // Trigger repaint to reflect hover state change
     }
 
-    emit onElementClick(mSelection[mActHierarchy].mSelectedPoint.x, mSelection[mActHierarchy].mSelectedPoint.y,
-                        selectedData);
+    emit onElementClick(mSelection[mActHierarchy].mSelectedPoint.x, mSelection[mActHierarchy].mSelectedPoint.y, selectedData);
   }
 
   if(mHeatMapMinMax.textMinPos.contains(event->pos())) {
@@ -490,8 +482,7 @@ void ChartHeatMap::mouseDoubleClickEvent(QMouseEvent *event)
       mSelection[mActHierarchy].mSelectedPoint = selectedPoint;
       update();    // Trigger repaint to reflect hover state change
     }
-    emit onDoubleClicked(mSelection[mActHierarchy].mSelectedPoint.x, mSelection[mActHierarchy].mSelectedPoint.y,
-                         selectedData);
+    emit onDoubleClicked(mSelection[mActHierarchy].mSelectedPoint.x, mSelection[mActHierarchy].mSelectedPoint.y, selectedData);
   }
 }
 

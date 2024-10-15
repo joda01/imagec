@@ -1,7 +1,9 @@
 
 
 #include "stats_for_well.hpp"
+#include <cstddef>
 #include <string>
+#include "backend/enums/enum_measurements.hpp"
 
 namespace joda::db {
 
@@ -26,37 +28,48 @@ auto transformMatrix(const std::vector<std::vector<int32_t>> &wellImageOrder, in
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::toTable(const QueryFilter &filter) -> joda::table::Table
+auto StatsPerGroup::toTable(const QueryFilter &filter, Grouping grouping) -> std::vector<joda::table::Table>
 {
-  auto materializedResult = getData(filter)->Cast<duckdb::StreamQueryResult>().Materialize();
-  table::Table results;
-  results.setColHeader({{0, createHeader(filter)}});
+  std::vector<joda::table::Table> tables;
+  tables.reserve(filter.clustersToExport.size());
 
-  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-    try {
-      uint64_t id = materializedResult->GetValue(0, n).GetValue<uint64_t>();
+  for(const auto &channels : filter.clustersToExport) {
+    table::Table results;
+    results.setColHeader(createHeader(channels.second));
+    auto materializedResult = getData(filter.analyzer, filter.filter, channels, grouping)->Cast<duckdb::StreamQueryResult>().Materialize();
 
-      results.getMutableRowHeader()[n] = materializedResult->GetValue(2, n).GetValue<std::string>();
-      enums::ChannelValidity validity{materializedResult->GetValue(3, n).GetValue<uint64_t>()};
+    for(size_t row = 0; row < materializedResult->RowCount(); row++) {
+      try {
+        size_t offset    = results.getColHeaderSize();
+        auto groupId     = materializedResult->GetValue(offset + 0, row).GetValue<uint16_t>();
+        auto imgGroupIdx = materializedResult->GetValue(offset + 1, row).GetValue<uint32_t>();
+        auto platePosX   = materializedResult->GetValue(offset + 2, row).GetValue<uint32_t>();
+        auto platePosY   = materializedResult->GetValue(offset + 3, row).GetValue<uint32_t>();
+        auto filename    = materializedResult->GetValue(offset + 4, row).GetValue<std::string>();
+        auto imageId     = materializedResult->GetValue(offset + 5, row).GetValue<uint64_t>();
+        auto validity    = materializedResult->GetValue(offset + 6, row).GetValue<uint64_t>();
 
-      double value = 0;
-      // Valid
-      if(!materializedResult->GetValue(5, n).IsNull()) {
-        value = materializedResult->GetValue(5, n).GetValue<double>();
-      }
-      // Invalid
-      if(!materializedResult->GetValue(6, n).IsNull()) {
-        auto valueTmp = materializedResult->GetValue(6, n).GetValue<double>();
-        if(valueTmp > 0) {
-          value = valueTmp;
+        if(grouping == Grouping::BY_WELL) {
+          results.getMutableRowHeader()[row] = filename;
+        } else {
+          char toWrt[2];
+          toWrt[0]                           = platePosY + 'A';
+          toWrt[1]                           = 0;
+          results.getMutableRowHeader()[row] = std::string(toWrt) + std::to_string(platePosX);
         }
-      }
-      results.setData(n, 0, table::TableCell{value, id, true, ""});
 
-    } catch(const duckdb::InternalException &) {
+        for(size_t col = 0; col < results.getColHeaderSize(); col++) {
+          double value = materializedResult->GetValue(col, row).GetValue<double>();
+          results.setData(row, col, table::TableCell{value, imageId, validity == 0, ""});
+        }
+
+      } catch(const duckdb::InternalException &) {
+      }
     }
+
+    tables.emplace_back(results);
   }
-  return results;
+  return tables;
 }
 
 ///
@@ -66,53 +79,73 @@ auto StatsPerGroup::toTable(const QueryFilter &filter) -> joda::table::Table
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::toHeatmap(const QueryFilter &filter) -> joda::table::Table
+auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> std::vector<joda::table::Table>
 {
-  auto materializedResult = getData(filter)->Cast<duckdb::StreamQueryResult>().Materialize();
-  table::Table results;
+  std::vector<joda::table::Table> tables;
+  tables.reserve(filter.clustersToExport.size());
 
-  int32_t sizeX = 0;
-  int32_t sizeY = 0;
-  auto wellPos  = transformMatrix(filter.wellImageOrder, sizeX, sizeY);
-  for(uint8_t row = 0; row < sizeY; row++) {
-    char toWrt[2];
-    toWrt[0]                           = row + 'A';
-    toWrt[1]                           = 0;
-    results.getMutableRowHeader()[row] = std::string(toWrt);
-    for(uint8_t col = 0; col < sizeX; col++) {
-      results.getMutableColHeader()[col] = std::to_string(col + 1);
-      results.setData(row, col, table::TableCell{std::numeric_limits<double>::quiet_NaN(), 0, true, ""});
+  for(const auto &channels : filter.clustersToExport) {
+    auto materializedResult = getData(filter.analyzer, filter.filter, channels, grouping)->Cast<duckdb::StreamQueryResult>().Materialize();
+
+    int32_t sizeX = 0;
+    int32_t sizeY = 0;
+    std::map<int32_t, ImgPositionInWell> wellPos;
+    if(grouping == Grouping::BY_WELL) {
+      wellPos = transformMatrix(filter.filter.wellImageOrder, sizeX, sizeY);
+    } else {
+      sizeX = filter.filter.plateCols;
+      sizeY = filter.filter.plateRows;
     }
-  }
 
-  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-    try {
-      uint64_t imageId        = materializedResult->GetValue(0, n).GetValue<uint64_t>();
-      uint32_t imgIdx         = materializedResult->GetValue(1, n).GetValue<uint32_t>();
-      std::string imgFilename = materializedResult->GetValue(2, n).GetValue<std::string>();
-      enums::ChannelValidity validity{materializedResult->GetValue(3, n).GetValue<uint64_t>()};
-      auto pos = wellPos[imgIdx];
-
-      double value = 0;
-      // Valid
-      if(!materializedResult->GetValue(5, n).IsNull()) {
-        value = materializedResult->GetValue(5, n).GetValue<double>();
-      }
-      // Invalid
-      if(!materializedResult->GetValue(6, n).IsNull()) {
-        auto valueTmp = materializedResult->GetValue(6, n).GetValue<double>();
-        if(valueTmp > 0) {
-          value = valueTmp;
+    auto prepareTable = [&channels, sizeX, sizeY](table::Table &results) {
+      for(uint8_t row = 0; row < sizeY; row++) {
+        char toWrt[2];
+        toWrt[0]                           = row + 'A';
+        toWrt[1]                           = 0;
+        results.getMutableRowHeader()[row] = std::string(toWrt);
+        for(uint8_t col = 0; col < sizeX; col++) {
+          results.getMutableColHeader()[col] = std::to_string(col + 1);
+          results.setData(row, col, table::TableCell{std::numeric_limits<double>::quiet_NaN(), 0, true, ""});
         }
       }
+    };
 
-      results.setData(pos.y, pos.x, table::TableCell{value, imageId, !validity.any(), imgFilename});
-    } catch(const duckdb::InternalException &ex) {
+    auto headers = createHeader(channels.second);
+    for(size_t row = 0; row < materializedResult->RowCount(); row++) {
+      try {
+        size_t offset    = headers.size();
+        auto groupId     = materializedResult->GetValue(offset + 0, row).GetValue<uint16_t>();
+        auto imgGroupIdx = materializedResult->GetValue(offset + 1, row).GetValue<uint32_t>();
+        auto platePosX   = materializedResult->GetValue(offset + 2, row).GetValue<uint32_t>();
+        auto platePosY   = materializedResult->GetValue(offset + 3, row).GetValue<uint32_t>();
+        auto filename    = materializedResult->GetValue(offset + 4, row).GetValue<std::string>();
+        auto imageId     = materializedResult->GetValue(offset + 5, row).GetValue<uint64_t>();
+        auto validity    = materializedResult->GetValue(offset + 6, row).GetValue<uint64_t>();
+        ImgPositionInWell pos;
+        if(grouping == Grouping::BY_WELL) {
+          pos = wellPos[imgGroupIdx];
+        } else {
+          if(platePosX > 0) {
+            pos.x = platePosX--;
+          }
+          if(platePosY > 0) {
+            pos.y = platePosY--;
+          }
+        }
+
+        for(size_t col = 0; col < offset; col++) {
+          table::Table results;
+          results.setTitle(headers[col]);
+          prepareTable(results);
+          double value = materializedResult->GetValue(col, row).GetValue<double>();
+          results.setData(pos.y, pos.x, table::TableCell{value, imageId, validity == 0, filename});
+        }
+
+      } catch(const duckdb::InternalException &) {
+      }
     }
   }
-
-  results.print();
-  return results;
+  return tables;
 }
 
 ///
@@ -122,10 +155,11 @@ auto StatsPerGroup::toHeatmap(const QueryFilter &filter) -> joda::table::Table
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb::QueryResult>
+auto StatsPerGroup::getData(db::Database *analyzer, const QueryFilter::ObjectFilter &filter, const QueryFilter::ChannelFilter &channelFilter,
+                            Grouping grouping) -> std::unique_ptr<duckdb::QueryResult>
 {
-  auto [sql, params]                          = toSQL(filter);
-  std::unique_ptr<duckdb::QueryResult> result = filter.analyzer->select(sql, params);
+  auto [sql, params]                          = toSQL(filter, channelFilter, grouping);
+  std::unique_ptr<duckdb::QueryResult> result = analyzer->select(sql, params);
   return result;
 
   if(result->HasError()) {
@@ -141,73 +175,116 @@ auto StatsPerGroup::getData(const QueryFilter &filter) -> std::unique_ptr<duckdb
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::toSQL(const QueryFilter &filter) -> std::pair<std::string, DbArgs_t>
+auto StatsPerGroup::toSQL(const QueryFilter::ObjectFilter &filter, const QueryFilter::ChannelFilter &channelFilter, Grouping grouping)
+    -> std::pair<std::string, DbArgs_t>
 {
-  auto buildStats = [&]() {
-    return getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) +
-           ") FILTER ((images_planes.validity = 0 OR images_planes.validity is NULL) AND images.validity = 0) as "
-           "valid, " +
-           getStatsString(filter.stats) + "(" + getMeasurement(filter.measurementChannel) +
-           ") FILTER ((images_planes.validity != 0 AND images_planes.validity is not NULL) OR images.validity != 0) as "
-           "invalid\n";
-  };
-
-  auto queryMeasure = [&]() {
-    std::string sqlStatement =
-        " SELECT\n"
-        " objects.image_id,\n"
-        " ANY_VALUE(images_groups.image_group_idx),\n"
-        " ANY_VALUE(images.file_name) as filename,\n"
-        " ANY_VALUE(images.validity) as validity,\n"
-        " images_groups.group_id as group_id,\n" +
-        buildStats() +
-        " FROM objects\n"
-        " JOIN images_groups ON objects.image_id = images_groups.image_id\n"
-        " JOIN images ON objects.image_id = images.image_id\n"
-        " JOIN images_planes ON objects.image_id = images_planes.image_id\n"
-        "                       AND images_planes.stack_c = $4\n"
-        " WHERE cluster_id = $1 AND class_id = $2 AND images_groups.group_id = $3\n"
-        " GROUP BY objects.image_id, images_groups.group_id\n"
-        " ORDER BY filename, objects.image_id, images_groups.group_id";
-    return sqlStatement;
-  };
-
-  auto queryIntensityMeasure = [&]() {
-    std::string sqlStatement =
-        " SELECT\n"
-        " objects.image_id,\n"
-        " ANY_VALUE(images_groups.image_group_idx),\n"
-        " ANY_VALUE(images.file_name) as filename,\n"
-        " ANY_VALUE(images.validity),\n"
-        " images_groups.group_id as group_id,\n" +
-        buildStats() +
-        " FROM objects\n"
-        " JOIN images_groups ON objects.image_id = images_groups.image_id\n"
-        " JOIN images ON objects.image_id = images.image_id\n"
-        " JOIN images_planes ON objects.image_id = images_planes.image_id\n"
-        "                    AND images_planes.stack_c = $4\n"
-        "JOIN object_measurements ON (objects.object_id = object_measurements.object_id AND\n"
-        "                                  objects.image_id = object_measurements.image_id\n"
-        "                             AND object_measurements.meas_stack_c = $4)\n"
-        " WHERE cluster_id = $1 AND class_id = $2 AND images_groups.group_id = $3\n"
-        " GROUP BY objects.image_id, images_groups.group_id\n"
-        " ORDER BY filename, objects.image_id, images_groups.group_id";
-    return sqlStatement;
-  };
-
-  auto query = [&]() -> std::string {
-    switch(getType(filter.measurementChannel)) {
-      default:
-      case OBJECT:
-        return queryMeasure();
-      case INTENSITY:
-        return queryIntensityMeasure();
+  auto buildSelect = [&channelFilter]() {
+    std::string channels;
+    for(const auto &[measurment, stats] : channelFilter.second.measureChannels) {
+      for(const auto stat : stats) {
+        if(getType(measurment) == MeasureType::INTENSITY) {
+          for(const auto [cStack, _] : channelFilter.second.crossChannelStacksC) {
+            channels += "ANY_VALUE(DISTINCT CASE WHEN t2.meas_stack_c = " + std::to_string(cStack) + " THEN " + getMeasurement(measurment) +
+                        " END) AS " + getMeasurement(measurment) + "_" + std::to_string(cStack) + ",\n";
+          }
+        } else {
+          channels += "ANY_VALUE(DISTINCT " + getMeasurement(measurment) + ") as " + getMeasurement(measurment) + ",\n";
+        }
+      }
     }
+    return channels;
   };
 
-  return {query(),
-          {static_cast<uint16_t>(filter.clusterId), static_cast<uint16_t>(filter.classId), static_cast<uint16_t>(filter.actGroupId),
-           static_cast<uint32_t>(filter.crossChanelStack_c)}};
+  auto buildStats = [&channelFilter]() {
+    std::string channels;
+    for(const auto &[measurment, stats] : channelFilter.second.measureChannels) {
+      for(const auto stat : stats) {
+        if(getType(measurment) == MeasureType::INTENSITY) {
+          for(const auto [cStack, _] : channelFilter.second.crossChannelStacksC) {
+            channels += getStatsString(stat) + "(" + getMeasurement(measurment) + "_" + std::to_string(cStack) + ") AS " +
+                        getMeasurement(measurment) + "_" + std::to_string(cStack) + ",\n";
+          }
+        } else {
+          channels += getStatsString(stat) + "(" + getMeasurement(measurment) + ") as " + getMeasurement(measurment) + ",\n";
+        }
+      }
+    }
+    return channels;
+  };
+
+  auto buildOutersStats = [&channelFilter](enums::Stats outerStats) {
+    std::string channels;
+    for(const auto &[measurment, stats] : channelFilter.second.measureChannels) {
+      for(const auto _ : stats) {
+        if(getType(measurment) == MeasureType::INTENSITY) {
+          for(const auto [cStack, _] : channelFilter.second.crossChannelStacksC) {
+            channels += getStatsString(outerStats) + "(" + getMeasurement(measurment) + "_" + std::to_string(cStack) + ") AS " +
+                        getMeasurement(measurment) + "_" + std::to_string(cStack) + ",\n";
+          }
+        } else {
+          channels += getStatsString(outerStats) + "(" + getMeasurement(measurment) + ") as " + getMeasurement(measurment) + ",\n";
+        }
+      }
+    }
+    return channels;
+  };
+
+  std::string sql =
+      "WITH innerTable AS (\n"
+      "SELECT\n" +
+      buildSelect() +
+      "t1.object_id\n"
+      "FROM\n"
+      "	objects t1\n"
+      "JOIN object_measurements t2 ON\n"
+      "	t1.object_id = t2.object_id\n"
+      "WHERE\n"
+      " t1.cluster_id=$1 AND t2.class_id=$2\n"
+      "GROUP BY\n"
+      "	t1.object_id\n"
+      "ORDER BY\n"
+      "	t1.object_id\n"
+      "),\n"
+      "imageGrouped as (\n"
+      "SELECT\n" +
+      buildStats() +
+      "	ANY_VALUE(images_groups.group_id) as group_id,\n"
+      "	ANY_VALUE(images_groups.image_group_idx) as image_group_idx,\n"
+      "	ANY_VALUE(groups.pos_on_plate_x) as pos_on_plate_x,\n"
+      "	ANY_VALUE(groups.pos_on_plate_y) as pos_on_plate_y,\n"
+      "	ANY_VALUE(images.file_name) as file_name,\n"
+      "	ANY_VALUE(images.image_id) as image_id,\n"
+      "	ANY_VALUE(images.validity) as validity\n"
+      "FROM\n"
+      "	innerTable\n"
+      "JOIN images_groups ON\n"
+      "	innerTable.image_id = images_groups.image_id\n"
+      "JOIN groups on\n"
+      "	groups.group_id = images_groups.group_id\n"
+      "JOIN images on\n"
+      "	innerTable.image_id = images.image_id\n";
+  if(grouping == Grouping::BY_WELL) {
+    sql += "WHERE\n";
+    sql += " images_groups.group_id=$3\n";
+  }
+  sql +=
+      "GROUP BY\n"
+      "	innerTable.image_id\n"
+      ")\n"
+      "SELECT\n" +
+      buildOutersStats(grouping == Grouping::BY_WELL ? enums::Stats::OFF : enums::Stats::AVG) +
+      " ANY_VALUE(imageGroupd.group_id) as group_id,\n"
+      " ANY_VALUE(imageGroupd.image_group_idx) as image_group_idx,\n"
+      " ANY_VALUE(imageGroupd.pos_on_plate_x) as pos_on_plate_x,\n"
+      " ANY_VALUE(imageGroupd.pos_on_plate_y) as pos_on_plate_y,\n"
+      " ANY_VALUE(imageGroupd.file_name) as file_name,\n"
+      " ANY_VALUE(imageGroupd.image_id) as image_id,\n"
+      " ANY_VALUE(imageGroupd.validity) as validity\n"
+      "FROM imageGrouped";
+
+  return {sql,
+          {static_cast<uint16_t>(channelFilter.first.clusterId), static_cast<uint16_t>(channelFilter.first.classId),
+           static_cast<uint16_t>(filter.groupId)}};
 }
 
 ///

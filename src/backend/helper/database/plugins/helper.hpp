@@ -140,6 +140,9 @@ inline std::string getStatsString(enums::Stats stats)
     case enums::Stats::CNT:
       statsStr = "  COUNT";
       break;
+    case enums::Stats::OFF:
+      statsStr = "  ANY_VALUE";
+      break;
   };
   return statsStr;
 }

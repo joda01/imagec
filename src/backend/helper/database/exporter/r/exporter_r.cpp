@@ -16,7 +16,6 @@
 #include <string>
 #include "backend/helper/database/plugins/helper.hpp"
 #include "backend/helper/database/plugins/stats_for_image.hpp"
-#include "backend/helper/database/plugins/stats_for_plate.hpp"
 #include "backend/helper/database/plugins/stats_for_well.hpp"
 #include "backend/helper/helper.hpp"
 
@@ -33,6 +32,7 @@ void RExporter::startExport(const ExportSettings &settings, const settings::Anal
                             std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
                             std::string outputFileName)
 {
+  /*
   std::vector<std::string> sqlStatements;
 
   if(settings.clustersToExport.empty()) {
@@ -162,7 +162,7 @@ void RExporter::startExport(const ExportSettings &settings, const settings::Anal
 
   } else {
     throw std::runtime_error("Could not write R script.");
-  }
+  }*/
 }
 
 }    // namespace joda::db

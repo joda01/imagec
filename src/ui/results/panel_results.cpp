@@ -41,7 +41,6 @@
 #include "backend/helper/database/plugins/control_image.hpp"
 #include "backend/helper/database/plugins/helper.hpp"
 #include "backend/helper/database/plugins/stats_for_image.hpp"
-#include "backend/helper/database/plugins/stats_for_plate.hpp"
 #include "backend/helper/database/plugins/stats_for_well.hpp"
 #include "ui/container/container_button.hpp"
 #include "ui/container/container_label.hpp"
@@ -339,25 +338,34 @@ void PanelResults::refreshView()
   }
 
   mFilter = db::QueryFilter{
-      .analyzer                = mAnalyzer.get(),
-      .plateRows               = static_cast<uint16_t>(size.height()),
-      .plateCols               = static_cast<uint16_t>(size.width()),
-      .plateId                 = 0,
-      .actGroupId              = mActGroupId,
-      .actImageId              = mActImageId,
-      .clusterId               = static_cast<enums::ClusterId>(clusterClassSelected.clusterId),
-      .classId                 = static_cast<enums::ClassId>(clusterClassSelected.classId),
-      .className               = className.toStdString(),
-      .measurementChannel      = static_cast<joda::enums::Measurement>(mMeasurementSelector->currentData().toInt()),
-      .stats                   = static_cast<joda::enums::Stats>(mStatsSelector->currentData().toInt()),
-      .wellImageOrder          = wellOrder,
-      .densityMapAreaSize      = mWindowMain->getPanelResultsInfo()->getDensityMapSize(),
-      .crossChanelStack_c      = static_cast<uint32_t>(mCrossChannelStackC->currentData().toInt()),
-      .crossChannelStack_cName = mCrossChannelStackC->currentText().toStdString(),
+      .analyzer = mAnalyzer.get(),
+      .filter{.plateId         = 0,
+              .groupId         = mActGroupId,
+              .imageId         = mActImageId,
+              .plateRows       = static_cast<uint16_t>(size.height()),
+              .plateCols       = static_cast<uint16_t>(size.width()),
+              .heatmapAreaSize = mWindowMain->getPanelResultsInfo()->getDensityMapSize(),
+              .wellImageOrder  = wellOrder
+
+      },
+
+      .clustersToExport = {{settings::ClassificatorSettingOut{.clusterId = static_cast<enums::ClusterId>(clusterClassSelected.clusterId),
+                                                              .classId   = static_cast<enums::ClassId>(clusterClassSelected.classId)
+
+                            },
+                            db::QueryFilter::Channel{
+                                .clusterName         = "",
+                                .className           = className.toStdString(),
+                                .measureChannels     = {{static_cast<joda::enums::Measurement>(mMeasurementSelector->currentData().toInt()),
+                                                         {static_cast<joda::enums::Stats>(mStatsSelector->currentData().toInt())}}},
+                                .crossChannelStacksC = {{static_cast<uint32_t>(mCrossChannelStackC->currentData().toInt()),
+                                                         mCrossChannelStackC->currentText().toStdString()}}
+
+                            }}},
   };
 
   if(mActionCrossChannelCStack != nullptr) {
-    if(db::getType(mFilter.measurementChannel) == db::MeasureType::INTENSITY) {
+    if(db::getType(static_cast<joda::enums::Measurement>(mMeasurementSelector->currentData().toInt())) == db::MeasureType::INTENSITY) {
       mActionCrossChannelCStack->setEnabled(true);
     } else {
       mActionCrossChannelCStack->setEnabled(false);
@@ -526,11 +534,11 @@ void PanelResults::repaintHeatmap()
       switch(mNavigation) {
         case Navigation::PLATE:
           paintPlate();
-          tableToQWidgetTable(joda::db::StatsPerPlate::toTable(mFilter));
+          tableToQWidgetTable(joda::db::StatsPerGroup::toTable(mFilter, db::StatsPerGroup::Grouping::BY_PLATE));
           break;
         case Navigation::WELL:
           paintWell();
-          tableToQWidgetTable(joda::db::StatsPerGroup::toTable(mFilter));
+          tableToQWidgetTable(joda::db::StatsPerGroup::toTable(mFilter, db::StatsPerGroup::Grouping::BY_WELL));
           break;
         case Navigation::IMAGE:
           paintImage();
@@ -552,8 +560,11 @@ void PanelResults::paintPlate()
   mBackButton->setEnabled(false);
   if(mAnalyzer) {
     mNavigation = Navigation::PLATE;
-    auto result = joda::db::StatsPerPlate::toHeatmap(mFilter);
-    mHeatmap01->setData(result, ChartHeatMap::MatrixForm::CIRCLE, ChartHeatMap::PaintControlImage::NO, static_cast<int32_t>(mNavigation));
+    auto result = joda::db::StatsPerGroup::toHeatmap(mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
+    if(result.empty()) {
+      return;
+    }
+    mHeatmap01->setData(result[0], ChartHeatMap::MatrixForm::CIRCLE, ChartHeatMap::PaintControlImage::NO, static_cast<int32_t>(mNavigation));
   } else {
     joda::table::Table table;
 
@@ -582,8 +593,11 @@ void PanelResults::paintWell()
   mBackButton->setEnabled(true);
   if(mAnalyzer) {
     mNavigation = Navigation::WELL;
-    auto result = joda::db::StatsPerGroup::toHeatmap(mFilter);
-    mHeatmap01->setData(result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::NO, static_cast<int32_t>(mNavigation));
+    auto result = joda::db::StatsPerGroup::toHeatmap(mFilter, db::StatsPerGroup::Grouping::BY_WELL);
+    if(result.empty()) {
+      return;
+    }
+    mHeatmap01->setData(result[0], ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::NO, static_cast<int32_t>(mNavigation));
   }
 }
 
@@ -597,7 +611,10 @@ void PanelResults::paintImage()
   if(mAnalyzer) {
     mNavigation = Navigation::IMAGE;
     auto result = joda::db::StatsPerImage::toHeatmap(mFilter);
-    mHeatmap01->setData(result, ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::YES, static_cast<int32_t>(mNavigation));
+    if(result.empty()) {
+      return;
+    }
+    mHeatmap01->setData(result[0], ChartHeatMap::MatrixForm::RECTANGLE, ChartHeatMap::PaintControlImage::YES, static_cast<int32_t>(mNavigation));
   }
 }
 
@@ -665,8 +682,12 @@ void PanelResults::onShowHeatmap()
 /// \param[out]
 /// \return
 ///
-void PanelResults::tableToQWidgetTable(const table::Table &table)
+void PanelResults::tableToQWidgetTable(const std::vector<joda::table::Table> &tableIn)
 {
+  if(tableIn.empty()) {
+    return;
+  }
+  auto &table = tableIn[0];
   mTable->setRowCount(table.getRowHeaderSize());
   mTable->setColumnCount(table.getCols());
 

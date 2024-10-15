@@ -84,7 +84,7 @@ private:
   /////////////////////////////////////////////////////
   void valueChangedEvent() override;
   void setAnalyzer();
-  void tableToQWidgetTable(const table::Table &table);
+  void tableToQWidgetTable(const std::vector<joda::table::Table> &table);
   void refreshView();
   void copyTableToClipboard(QTableWidget *table);
 

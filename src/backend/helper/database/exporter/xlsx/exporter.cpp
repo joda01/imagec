@@ -9,7 +9,6 @@
 #include "backend/enums/enums_grouping.hpp"
 #include "backend/helper/database/plugins/helper.hpp"
 #include "backend/helper/database/plugins/stats_for_image.hpp"
-#include "backend/helper/database/plugins/stats_for_plate.hpp"
 #include "backend/helper/database/plugins/stats_for_well.hpp"
 #include "backend/settings/analze_settings.hpp"
 
@@ -50,83 +49,97 @@ void BatchExporter::startExport(const ExportSettings &settings, const settings::
 ///
 void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const ExportSettings &settings)
 {
-  const size_t MAX_WORKSHETT_NAME_LENGTH = 30;
+  std::vector<joda::table::Table> table;
+  switch(settings.exportDetail) {
+    case ExportSettings::ExportDetail::PLATE:
+      table = joda::db::StatsPerGroup::toHeatmap(settings.queryFilter, StatsPerGroup::Grouping::BY_PLATE);
+      break;
+    case ExportSettings::ExportDetail::WELL:
+      table = joda::db::StatsPerGroup::toHeatmap(settings.queryFilter, StatsPerGroup::Grouping::BY_WELL);
+      break;
+    case ExportSettings::ExportDetail::IMAGE:
+      table = joda::db::StatsPerImage::toHeatmap(settings.queryFilter);
+      break;
+  }
+  /*
+    const size_t MAX_WORKSHETT_NAME_LENGTH = 30;
 
-  enums::ClusterId actClusterId = enums::ClusterId::UNDEFINED;
-  lxw_worksheet *actWorkSheet;
+    enums::ClusterId actClusterId = enums::ClusterId::UNDEFINED;
+    lxw_worksheet *actWorkSheet;
 
-  Pos offsets;
+    Pos offsets;
 
-  auto newWorkSheet = [&](enums::ClusterId clusterId, const ExportSettings::Channel &expChannel) {
-    std::string worksheetName       = expChannel.clusterName;
-    std::string worksheetNameSuffix = "(" + std::to_string(static_cast<uint16_t>(clusterId)) + ")";
-    // Excel only allows 31 Chars as worksheet name -> we have to limit this
-    size_t leftChars = MAX_WORKSHETT_NAME_LENGTH - worksheetNameSuffix.size();
-    if(worksheetName.size() > leftChars) {
-      worksheetName.resize(leftChars);
-    }
+    auto newWorkSheet = [&](enums::ClusterId clusterId, const ExportSettings::Channel &expChannel) {
+      std::string worksheetName       = expChannel.clusterName;
+      std::string worksheetNameSuffix = "(" + std::to_string(static_cast<uint16_t>(clusterId)) + ")";
+      // Excel only allows 31 Chars as worksheet name -> we have to limit this
+      size_t leftChars = MAX_WORKSHETT_NAME_LENGTH - worksheetNameSuffix.size();
+      if(worksheetName.size() > leftChars) {
+        worksheetName.resize(leftChars);
+      }
 
-    actWorkSheet = workbook_add_worksheet(workbookSettings.workbook, static_cast<std ::string>(worksheetName + worksheetNameSuffix).data());
-    offsets.col  = 0;
-    offsets.row  = 0;
-  };
+      actWorkSheet = workbook_add_worksheet(workbookSettings.workbook, static_cast<std ::string>(worksheetName + worksheetNameSuffix).data());
+      offsets.col  = 0;
+      offsets.row  = 0;
+    };
 
-  for(const auto &[clusterAndClassId, imageChannel] : settings.clustersToExport) {
-    if(actClusterId != clusterAndClassId.clusterId) {
-      actClusterId = clusterAndClassId.clusterId;
-      newWorkSheet(clusterAndClassId.clusterId, imageChannel);
-    }
+    for(const auto &[clusterAndClassId, imageChannel] : settings.clustersToExport) {
+      if(actClusterId != clusterAndClassId.clusterId) {
+        actClusterId = clusterAndClassId.clusterId;
+        newWorkSheet(clusterAndClassId.clusterId, imageChannel);
+      }
 
-    for(const auto &[measureChannelId, statsIn] : imageChannel.measureChannels) {
-      for(const auto stats : statsIn) {
-        auto generate = [&, clusterId = clusterAndClassId.clusterId, classId = clusterAndClassId.classId, className = imageChannel.className,
-                         measureChannelId = measureChannelId](uint32_t cStack, const std::string &crossChannelChannelCName,
-                                                              std::pair<enums::ClusterId, std::string> crossChannelCluster,
-                                                              std::pair<enums::ClassId, std::string> crossChannelClass) {
-          table::Table table;
-          auto filter = joda::db::QueryFilter{.analyzer                = &settings.analyzer,
-                                              .plateRows               = settings.plateRows,
-                                              .plateCols               = settings.plateCols,
-                                              .plateId                 = settings.plateId,
-                                              .actGroupId              = settings.groupId,
-                                              .actImageId              = settings.imageId,
-                                              .clusterId               = clusterId,
-                                              .classId                 = classId,
-                                              .className               = className,
-                                              .measurementChannel      = measureChannelId,
-                                              .stats                   = stats,
-                                              .wellImageOrder          = settings.wellImageOrder,
-                                              .densityMapAreaSize      = settings.heatmapAreaSize,
-                                              .crossChanelStack_c      = cStack,
-                                              .crossChannelStack_cName = crossChannelChannelCName};
+      for(const auto &[measureChannelId, statsIn] : imageChannel.measureChannels) {
+        for(const auto stats : statsIn) {
+          auto generate = [&, clusterId = clusterAndClassId.clusterId, classId = clusterAndClassId.classId, className = imageChannel.className,
+                           measureChannelId = measureChannelId](uint32_t cStack, const std::string &crossChannelChannelCName,
+                                                                std::pair<enums::ClusterId, std::string> crossChannelCluster,
+                                                                std::pair<enums::ClassId, std::string> crossChannelClass) {
+            table::Table table;
+            auto filter = joda::db::QueryFilter{.analyzer                = &settings.analyzer,
+                                                .plateRows               = settings.plateRows,
+                                                .plateCols               = settings.plateCols,
+                                                .plateId                 = settings.plateId,
+                                                .actGroupId              = settings.groupId,
+                                                .actImageId              = settings.imageId,
+                                                .clusterId               = clusterId,
+                                                .classId                 = classId,
+                                                .className               = className,
+                                                .measurementChannel      = measureChannelId,
+                                                .stats                   = stats,
+                                                .wellImageOrder          = settings.wellImageOrder,
+                                                .densityMapAreaSize      = settings.heatmapAreaSize,
+                                                .crossChanelStack_c      = cStack,
+                                                .crossChannelStack_cName = crossChannelChannelCName};
 
-          switch(settings.exportDetail) {
-            case ExportSettings::ExportDetail::PLATE:
-              table = joda::db::StatsPerPlate::toHeatmap(filter);
-              break;
-            case ExportSettings::ExportDetail::WELL:
-              table = joda::db::StatsPerGroup::toHeatmap(filter);
-              break;
-            case ExportSettings::ExportDetail::IMAGE:
-              table = joda::db::StatsPerImage::toHeatmap(filter);
-              break;
+            switch(settings.exportDetail) {
+              case ExportSettings::ExportDetail::PLATE:
+                table = joda::db::StatsPerPlate::toHeatmap(filter);
+                break;
+              case ExportSettings::ExportDetail::WELL:
+                table = joda::db::StatsPerGroup::toHeatmap(filter);
+                break;
+              case ExportSettings::ExportDetail::IMAGE:
+                table = joda::db::StatsPerImage::toHeatmap(filter);
+                break;
+            }
+            paintPlateBorder(actWorkSheet, table.getRows(), table.getCols(), offsets.row, workbookSettings.header, workbookSettings.merge_format,
+                             workbookSettings.numberFormat, createHeader(filter));
+            offsets = paintHeatmap(workbookSettings, actWorkSheet, table, offsets.row);
+            offsets.row += 4;
+          };
+
+          if(getType(measureChannelId) == joda::db::MeasureType::INTENSITY) {
+            for(const auto &[cStack, name] : imageChannel.crossChannelStacksC) {
+              generate(cStack, name, {}, {});
+            }
+          } else {
+            generate(0, "", {}, {});
           }
-          paintPlateBorder(actWorkSheet, table.getRows(), table.getCols(), offsets.row, workbookSettings.header, workbookSettings.merge_format,
-                           workbookSettings.numberFormat, createHeader(filter));
-          offsets = paintHeatmap(workbookSettings, actWorkSheet, table, offsets.row);
-          offsets.row += 4;
-        };
-
-        if(getType(measureChannelId) == joda::db::MeasureType::INTENSITY) {
-          for(const auto &[cStack, name] : imageChannel.crossChannelStacksC) {
-            generate(cStack, name, {}, {});
-          }
-        } else {
-          generate(0, "", {}, {});
         }
       }
     }
-  }
+    */
 }
 
 ///
@@ -138,6 +151,7 @@ void BatchExporter::createHeatmapSummary(WorkBook &workbookSettings, const Expor
 ///
 void BatchExporter::createListSummary(WorkBook &workbookSettings, const ExportSettings &settings)
 {
+  /*
   const int ROW_OFFSET = 1;
   const int COL_OFFSET = 1;
 
@@ -236,6 +250,7 @@ void BatchExporter::createListSummary(WorkBook &workbookSettings, const ExportSe
       worksheet_write_string(worksheet, 0, colOffset + COL_OFFSET - tmpCols, imageChannel.clusterName.data(), workbookSettings.header);
     }
   }
+  */
 }
 
 ///

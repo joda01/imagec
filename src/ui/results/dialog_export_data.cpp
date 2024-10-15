@@ -46,7 +46,6 @@
 #include "backend/helper/database/exporter/xlsx/exporter.hpp"
 #include "backend/helper/database/plugins/control_image.hpp"
 #include "backend/helper/database/plugins/stats_for_image.hpp"
-#include "backend/helper/database/plugins/stats_for_plate.hpp"
 #include "backend/helper/database/plugins/stats_for_well.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "ui/container/setting/setting_base.hpp"
@@ -349,7 +348,7 @@ void DialogExportData::onExportClicked(ExportFormat format)
 
   std::thread([this, filePathOfSettingsFile, format] {
     mLastExportedFile = "";
-    std::map<settings::ClassificatorSettingOut, joda::db::ExportSettings::Channel> clustersToExport;
+    std::map<settings::ClassificatorSettingOut, joda::db::QueryFilter::Channel> clustersToExport;
 
     for(const auto &columnToExport : mExportColumns) {
       if(!columnToExport->isEnabled()) {
@@ -357,7 +356,7 @@ void DialogExportData::onExportClicked(ExportFormat format)
       }
       auto [clusterClassID, name] = columnToExport->getClusterClassesToExport();
 
-      joda::db::ExportSettings::Channel channel;
+      db::QueryFilter::Channel channel;
       channel.clusterName         = std::get<0>(name);
       channel.className           = std::get<1>(name);
       channel.measureChannels     = columnToExport->getMeasurementAndStatsToExport();
@@ -366,17 +365,9 @@ void DialogExportData::onExportClicked(ExportFormat format)
     }
 
     joda::db::ExportSettings settings{
-        .clustersToExport = clustersToExport,
-        .analyzer         = *mAnalyzer,
-        .plateId          = mFilter.plateId,
-        .groupId          = mFilter.actGroupId,
-        .imageId          = mFilter.actImageId,
-        .plateRows        = mFilter.plateRows,
-        .plateCols        = mFilter.plateCols,
-        .heatmapAreaSize  = mFilter.densityMapAreaSize,
-        .wellImageOrder   = mFilter.wellImageOrder,
-        .exportType       = mReportingType->getValue(),
-        .exportDetail     = mReportingDetails->getValue(),
+        .queryFilter{.analyzer = mAnalyzer.get(), .filter = mFilter.filter, .clustersToExport = clustersToExport},
+        .exportType   = mReportingType->getValue(),
+        .exportDetail = mReportingDetails->getValue(),
     };
 
     settings::AnalyzeSettings analyzeSettings;
