@@ -238,6 +238,7 @@ auto StatsPerImage::toHeatmapList(const QueryFilter &filter) -> std::vector<joda
       }
       tableRowCount++;
     }
+    tables.emplace_back(results);
   }
   return tables;
 }
