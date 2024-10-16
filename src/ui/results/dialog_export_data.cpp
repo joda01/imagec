@@ -348,7 +348,7 @@ void DialogExportData::onExportClicked(ExportFormat format)
 
   std::thread([this, filePathOfSettingsFile, format] {
     mLastExportedFile = "";
-    std::map<settings::ClassificatorSettingOut, joda::db::QueryFilter::Channel> clustersToExport;
+    std::map<settings::ClassificatorSettingOut, joda::db::QueryFilter::Columns> clustersToExport;
 
     for(const auto &columnToExport : mExportColumns) {
       if(!columnToExport->isEnabled()) {
@@ -356,12 +356,12 @@ void DialogExportData::onExportClicked(ExportFormat format)
       }
       auto [clusterClassID, name] = columnToExport->getClusterClassesToExport();
 
-      db::QueryFilter::Channel channel;
-      channel.clusterName         = std::get<0>(name);
-      channel.className           = std::get<1>(name);
-      channel.measureChannels     = columnToExport->getMeasurementAndStatsToExport();
-      channel.crossChannelStacksC = columnToExport->getCrossChannelIntensityToExport();
-      clustersToExport.emplace(clusterClassID, channel);
+      // db::QueryFilter::Column channel;
+      // channel.clusterName         = std::get<0>(name);
+      // channel.className           = std::get<1>(name);
+      // channel.measureChannel      = columnToExport->getMeasurementAndStatsToExport();
+      // channel.crossChannelStacksC = columnToExport->getCrossChannelIntensityToExport();
+      // clustersToExport.emplace(clusterClassID, channel);
     }
 
     joda::db::ExportSettings settings{

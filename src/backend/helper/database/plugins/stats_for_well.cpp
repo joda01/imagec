@@ -169,7 +169,9 @@ auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> s
 auto StatsPerGroup::getData(db::Database *analyzer, const QueryFilter::ObjectFilter &filter, const QueryFilter::ChannelFilter &channelFilter,
                             Grouping grouping) -> std::unique_ptr<duckdb::QueryResult>
 {
-  auto [sql, params]                          = toSQL(filter, channelFilter, grouping);
+  auto [sql, params] = toSQL(filter, channelFilter, grouping);
+  std::cout << "-----------" << std::endl;
+  std::cout << sql << std::endl;
   std::unique_ptr<duckdb::QueryResult> result = analyzer->select(sql, params);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
@@ -187,61 +189,10 @@ auto StatsPerGroup::getData(db::Database *analyzer, const QueryFilter::ObjectFil
 auto StatsPerGroup::toSQL(const QueryFilter::ObjectFilter &filter, const QueryFilter::ChannelFilter &channelFilter, Grouping grouping)
     -> std::pair<std::string, DbArgs_t>
 {
-  auto buildSelect = [&channelFilter]() {
-    std::string channels;
-    for(const auto &[measurment, stats] : channelFilter.second.measureChannels) {
-      for(const auto stat : stats) {
-        if(getType(measurment) == MeasureType::INTENSITY) {
-          for(const auto [cStack, _] : channelFilter.second.crossChannelStacksC) {
-            channels += "ANY_VALUE(DISTINCT CASE WHEN t2.meas_stack_c = " + std::to_string(cStack) + " THEN " + getMeasurement(measurment) +
-                        " END) AS " + getMeasurementAs(measurment) + "_" + std::to_string(cStack) + ",\n";
-          }
-        } else {
-          channels += "ANY_VALUE(DISTINCT " + getMeasurement(measurment) + ") as " + getMeasurementAs(measurment) + ",\n";
-        }
-      }
-    }
-    return channels;
-  };
-
-  auto buildStats = [&channelFilter]() {
-    std::string channels;
-    for(const auto &[measurment, stats] : channelFilter.second.measureChannels) {
-      for(const auto stat : stats) {
-        if(getType(measurment) == MeasureType::INTENSITY) {
-          for(const auto [cStack, _] : channelFilter.second.crossChannelStacksC) {
-            channels += getStatsString(stat) + "(" + getMeasurement(measurment) + "_" + std::to_string(cStack) + ") AS " +
-                        getMeasurement(measurment) + "_" + std::to_string(cStack) + ",\n";
-          }
-        } else {
-          channels += getStatsString(stat) + "(" + getMeasurement(measurment) + ") as " + getMeasurementAs(measurment) + ",\n";
-        }
-      }
-    }
-    return channels;
-  };
-
-  auto buildOutersStats = [&channelFilter](enums::Stats outerStats) {
-    std::string channels;
-    for(const auto &[measurment, stats] : channelFilter.second.measureChannels) {
-      for(const auto _ : stats) {
-        if(getType(measurment) == MeasureType::INTENSITY) {
-          for(const auto [cStack, _] : channelFilter.second.crossChannelStacksC) {
-            channels += getStatsString(outerStats) + "(" + getMeasurement(measurment) + "_" + std::to_string(cStack) + ") AS " +
-                        getMeasurement(measurment) + "_" + std::to_string(cStack) + ",\n";
-          }
-        } else {
-          channels += getStatsString(outerStats) + "(" + getMeasurement(measurment) + ") as " + getMeasurementAs(measurment) + ",\n";
-        }
-      }
-    }
-    return channels;
-  };
-
   std::string sql =
       "WITH innerTable AS (\n"
       "SELECT\n" +
-      buildSelect() +
+      createStats(channelFilter.second, true, enums::Stats::OFF) +
       "t1.object_id,\n"
       "t1.image_id\n"
       "FROM\n"
@@ -257,7 +208,7 @@ auto StatsPerGroup::toSQL(const QueryFilter::ObjectFilter &filter, const QueryFi
       "),\n"
       "imageGrouped as (\n"
       "SELECT\n" +
-      buildStats() +
+      createStats(channelFilter.second, false) +
       "	ANY_VALUE(images_groups.group_id) as group_id,\n"
       "	ANY_VALUE(images_groups.image_group_idx) as image_group_idx,\n"
       "	ANY_VALUE(groups.pos_on_plate_x) as pos_on_plate_x,\n"
@@ -284,7 +235,7 @@ auto StatsPerGroup::toSQL(const QueryFilter::ObjectFilter &filter, const QueryFi
       "SELECT\n";
 
   if(grouping == Grouping::BY_PLATE) {
-    sql += buildOutersStats(grouping == Grouping::BY_WELL ? enums::Stats::OFF : enums::Stats::AVG) +
+    sql += createStats(channelFilter.second, false, grouping == Grouping::BY_WELL ? enums::Stats::OFF : enums::Stats::AVG) +
            " ANY_VALUE(imageGrouped.group_id) as group_id,\n"
            " ANY_VALUE(imageGrouped.image_group_idx) as image_group_idx,\n"
            " ANY_VALUE(imageGrouped.pos_on_plate_x) as pos_on_plate_x,\n"

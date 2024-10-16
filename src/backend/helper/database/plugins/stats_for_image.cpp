@@ -31,7 +31,7 @@ auto StatsPerImage::toTable(const QueryFilter &filter) -> std::vector<joda::tabl
 
   for(const auto &channels : filter.clustersToExport) {
     table::Table results;
-    results.setTitle(channels.second.clusterName);
+    results.setTitle(channels.second.first.clusterName);
 
     auto [sql, params] = toSqlTable(filter.filter, channels);
     auto result        = filter.analyzer->select(sql, params);
@@ -67,24 +67,7 @@ auto StatsPerImage::toTable(const QueryFilter &filter) -> std::vector<joda::tabl
 auto StatsPerImage::toSqlTable(const QueryFilter::ObjectFilter &filter, const QueryFilter::ChannelFilter &channelFilter)
     -> std::pair<std::string, DbArgs_t>
 {
-  auto buildStats = [](const QueryFilter::Channel &channel) {
-    std::string channels;
-    for(const auto &[measurment, stats] : channel.measureChannels) {
-      for(const auto stat : stats) {
-        if(getType(measurment) == MeasureType::INTENSITY) {
-          for(const auto [cStack, _] : channel.crossChannelStacksC) {
-            channels += getStatsString(stat) + "(DISTINCT CASE WHEN t2.meas_stack_c = " + std::to_string(cStack) + " THEN " +
-                        getMeasurement(measurment) + " END) AS " + getMeasurementAs(measurment) + "_" + std::to_string(cStack) + ",\n";
-          }
-        } else {
-          channels += getStatsString(stat) + "(DISTINCT " + getMeasurement(measurment) + ") as " + getMeasurementAs(measurment) + ",\n";
-        }
-      }
-    }
-    return channels;
-  };
-
-  std::string sql = "SELECT\n" + buildStats(channelFilter.second) +
+  std::string sql = "SELECT\n" + createStats(channelFilter.second, true) +
                     "ANY_VALUE(t1.meas_center_x) as meas_center_x,\n"
                     "ANY_VALUE(t1.meas_center_y) as meas_center_y\n"
                     "FROM\n"
@@ -151,18 +134,7 @@ auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> std::vector<joda::ta
       colIdx++;
       tables.emplace_back(results);
     };
-
-    for(const auto &[measurment, stats] : channels.second.measureChannels) {
-      for(const auto stat : stats) {
-        if(getType(measurment) == MeasureType::INTENSITY) {
-          for(const auto [cStack, _] : channels.second.crossChannelStacksC) {
-            generateHeatmap();
-          }
-        } else {
-          generateHeatmap();
-        }
-      }
-    }
+    generateHeatmap();
   }
   return tables;
 }
@@ -308,28 +280,11 @@ auto StatsPerImage::densityMap(db::Database *analyzer, const QueryFilter::Object
 auto StatsPerImage::toSqlHeatmap(const QueryFilter::ObjectFilter &filter, const QueryFilter::ChannelFilter &channelFilter)
     -> std::pair<std::string, DbArgs_t>
 {
-  auto buildStats = [&channelFilter]() {
-    std::string channels;
-    for(const auto &[measurment, stats] : channelFilter.second.measureChannels) {
-      for(const auto stat : stats) {
-        if(getType(measurment) == MeasureType::INTENSITY) {
-          for(const auto [cStack, _] : channelFilter.second.crossChannelStacksC) {
-            channels += getStatsString(stat) + "(" + getMeasurement(measurment) + "_" + std::to_string(cStack) + ") AS " +
-                        getMeasurement(measurment) + "_" + std::to_string(cStack) + ",\n";
-          }
-        } else {
-          channels += getStatsString(stat) + "(" + getMeasurement(measurment) + ") as " + getMeasurementAs(measurment) + ",\n";
-        }
-      }
-    }
-    return channels;
-  };
-
   auto [innerSql, params] = toSqlTable(filter, channelFilter);
   std::string sql         = "WITH innerTable AS (\n" + innerSql +
                     "\n)\n"
                     "SELECT\n" +
-                    buildStats() +
+                    createStats(channelFilter.second, false) +
                     "floor(meas_center_x / $4) * $4 AS rectangle_x,\n"
                     "floor(meas_center_y / $4) * $4 AS rectangle_y,\n"
                     "FROM innerTable\n"

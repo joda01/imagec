@@ -87,6 +87,7 @@ private:
   void tableToQWidgetTable(const std::vector<joda::table::Table> &table);
   void refreshView();
   void copyTableToClipboard(QTableWidget *table);
+  void assignFilterSelectionToTableColumn();
 
   WindowMain *mWindowMain;
   std::unique_ptr<joda::db::Database> mAnalyzer;
@@ -103,11 +104,12 @@ private:
   QComboBox *mClusterClassSelector;
   QComboBox *mMeasurementSelector;
   QComboBox *mStatsSelector;
-
   QComboBox *mCrossChannelStackC;
 
   /////////////////////////////////////////////////////
   QTableWidget *mTable;
+  int32_t mSelectedTableColumn = -1;
+  int32_t mSelectedTableRow    = -1;
 
   /////////////////////////////////////////////////////
   ChartHeatMap *mHeatmap01;
@@ -135,6 +137,7 @@ public slots:
   void onMarkAsInvalidClicked();
   void onElementSelected(int cellX, int cellY, table::TableCell value);
   void onOpenNextLevel(int cellX, int cellY, table::TableCell value);
+  void onTableCurrentCellChanged(int currentRow, int currentColumn, int previousRow, int previousColumn);
   void onBackClicked();
   void repaintHeatmap();
   void paintPlate();

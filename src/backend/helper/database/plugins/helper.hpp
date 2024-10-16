@@ -34,16 +34,23 @@ struct QueryFilter
     std::vector<std::vector<int32_t>> wellImageOrder = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16}};
   };
 
-  struct Channel
+  struct Naming
   {
     std::string clusterName;
     std::string className;
-    std::map<enums::Measurement, std::set<enums::Stats>> measureChannels;
-    std::map<int32_t, std::string> crossChannelStacksC;
   };
 
-  using ChannelFilter  = std::pair<settings::ClassificatorSettingOut, Channel>;
-  using ChannelFilters = std::map<settings::ClassificatorSettingOut, Channel>;
+  struct Column
+  {
+    enums::Measurement measureChannel = enums::Measurement::NONE;
+    enums::Stats stats                = enums::Stats::AVG;
+    std::string crossChannelName;
+    int32_t crossChannelStacksC = -1;
+  };
+
+  using Columns        = std::pair<Naming, std::vector<Column>>;
+  using ChannelFilter  = std::pair<settings::ClassificatorSettingOut, Columns>;
+  using ChannelFilters = std::map<settings::ClassificatorSettingOut, Columns>;
 
   db::Database *analyzer;
   ObjectFilter filter;
@@ -112,7 +119,7 @@ inline std::string getMeasurement(enums::Measurement measure)
       return "meas_origin_object_id";
       break;
   }
-  return "";
+  return "1";
 }
 
 inline std::string getMeasurementAs(enums::Measurement measure)
@@ -148,7 +155,7 @@ inline std::string getMeasurementAs(enums::Measurement measure)
       return "meas_origin_object_id";
       break;
   }
-  return "";
+  return "none";
 }
 
 inline std::string getStatsString(enums::Stats stats)
@@ -156,53 +163,85 @@ inline std::string getStatsString(enums::Stats stats)
   std::string statsStr;
   switch(stats) {
     case enums::Stats::AVG:
-      statsStr = "  AVG";
+      statsStr = "AVG";
       break;
     case enums::Stats::MEDIAN:
-      statsStr = "  MEDIAN";
+      statsStr = "MEDIAN";
       break;
     case enums::Stats::SUM:
-      statsStr = "  SUM";
+      statsStr = "SUM";
       break;
     case enums::Stats::MIN:
-      statsStr = "  MIN";
+      statsStr = "MIN";
       break;
     case enums::Stats::MAX:
-      statsStr = "  MAX";
+      statsStr = "MAX";
       break;
     case enums::Stats::STDDEV:
-      statsStr = "  STDDEV";
+      statsStr = "STDDEV";
       break;
     case enums::Stats::CNT:
-      statsStr = "  COUNT";
+      statsStr = "COUNT";
       break;
     case enums::Stats::OFF:
-      statsStr = "  ANY_VALUE";
+      statsStr = "ANY_VALUE";
       break;
   };
   return statsStr;
 }
 
-inline std::map<uint32_t, std::string> createHeader(const QueryFilter::Channel &channel)
+inline std::map<uint32_t, std::string> createHeader(const QueryFilter::Columns &columns)
 {
   std::map<uint32_t, std::string> columnHeaders;
   uint32_t col = 0;
-  for(const auto &[measurement, stats] : channel.measureChannels) {
-    for(const auto stat : stats) {
-      if(getType(measurement) == MeasureType::INTENSITY) {
-        for(const auto [cStack, _] : channel.crossChannelStacksC) {
-          columnHeaders.emplace(col, channel.className + "-" + toString(measurement) + "[" + enums::toString(stat) + "] " + "(CH" +
-                                         std::to_string(cStack) + ")");
-          col++;
-        }
-      } else {
-        columnHeaders.emplace(col, channel.className + "-" + toString(measurement) + "[" + enums::toString(stat) + "]");
-        col++;
-      }
+  for(const auto &column : columns.second) {
+    if(getType(column.measureChannel) == MeasureType::INTENSITY) {
+      columnHeaders.emplace(col, columns.first.className + "-" + toString(column.measureChannel) + "[" + enums::toString(column.stats) + "] " +
+                                     "(CH" + std::to_string(column.crossChannelStacksC) + ")");
+      col++;
+
+    } else {
+      columnHeaders.emplace(col, columns.first.className + "-" + toString(column.measureChannel) + "[" + enums::toString(column.stats) + "]");
+      col++;
     }
   }
 
   return columnHeaders;
 }
+
+inline std::string createStats(const QueryFilter::Columns &columns, bool isDistinct, std::optional<enums::Stats> overrideStats = std::nullopt)
+{
+  std::string distinct = isDistinct ? "DISTINCT" : "";
+  std::string channels;
+  for(const auto &column : columns.second) {
+    auto createName = [&column, &isDistinct]() -> std::string {
+      if(isDistinct) {
+        return getMeasurement(column.measureChannel);
+      } else {
+        return getMeasurementAs(column.measureChannel) + "_" + getStatsString(column.stats);
+      }
+    };
+
+    auto stats = overrideStats.has_value() ? overrideStats.value() : column.stats;
+
+    if(getType(column.measureChannel) == MeasureType::INTENSITY) {
+      if(isDistinct) {
+        channels += getStatsString(stats) + "(" + distinct + " CASE WHEN t2.meas_stack_c = " + std::to_string(column.crossChannelStacksC) + " THEN " +
+                    createName() + " END) AS " + getMeasurementAs(column.measureChannel) + "_" + getStatsString(column.stats) + "_" +
+                    std::to_string(column.crossChannelStacksC) + ",\n";
+      } else {
+        channels += getStatsString(stats) + "(" + createName() + "_" + std::to_string(column.crossChannelStacksC) + ") AS " +
+                    getMeasurementAs(column.measureChannel) + "_" + getStatsString(column.stats) + "_" + std::to_string(column.crossChannelStacksC) +
+                    ",\n";
+      }
+
+    } else {
+      channels += getStatsString(stats) + "(" + distinct + " " + createName() + ") as " + getMeasurementAs(column.measureChannel) + "_" +
+                  getStatsString(column.stats) + ",\n";
+    }
+  }
+
+  return channels;
+};
 
 }    // namespace joda::db
