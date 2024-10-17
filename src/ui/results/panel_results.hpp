@@ -81,6 +81,13 @@ public:
 private:
   /////////////////////////////////////////////////////
   static constexpr int32_t PREVIEW_BASE_SIZE = 450;
+
+  enum class ExportFormat
+  {
+    XLSX,
+    R
+  };
+
   /////////////////////////////////////////////////////
   void valueChangedEvent() override;
   void setAnalyzer();
@@ -91,10 +98,11 @@ private:
 
   /////////////////////////////////////////////////////
   void addClusterAndClassToFilter();
-  void resetStylesheet();
+  void onExportClicked(ExportFormat);
 
   WindowMain *mWindowMain;
   std::unique_ptr<joda::db::Database> mAnalyzer;
+  std::filesystem::path mDbFilePath;
 
   // Breadcrumb///////////////////////////////////////////////////
   void createBreadCrump(joda::ui::helper::LayoutGenerator *);
@@ -110,10 +118,14 @@ private:
 
   /////////////////////////////////////////////////////
   QTableWidget *mTable;
-  joda::table::Table mTableData;
+  std::vector<joda::table::Table> mTableData;
+  std::vector<joda::table::Table> mTableDataHeatmap;
+  const joda::table::Table *mSelectedTable = nullptr;
 
   int32_t mSelectedTableColumn = -1;
   int32_t mSelectedTableRow    = -1;
+
+  std::mutex mSelectMutex;
 
   /////////////////////////////////////////////////////
   ChartHeatMap *mHeatmap01;

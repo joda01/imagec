@@ -38,7 +38,6 @@
 #include "ui/container/container_label.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/panel_preview.hpp"
-#include "ui/results/dialog_export_data.hpp"
 #include "ui/window_main/window_main.hpp"
 
 namespace joda::ui {

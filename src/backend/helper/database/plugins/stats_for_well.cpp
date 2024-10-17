@@ -35,6 +35,8 @@ auto StatsPerGroup::toTable(const QueryFilter &filter, Grouping grouping) -> std
 
   for(const auto &channels : filter.clustersToExport) {
     table::Table results;
+    results.setTitle(channels.second.first.clusterName);
+    results.setMeta({channels.second.first.clusterName, channels.second.first.className});
     results.setColHeader(createHeader(channels.second));
     auto materializedResult = getData(filter.analyzer, filter.filter, channels, grouping)->Cast<duckdb::StreamQueryResult>().Materialize();
 
@@ -145,6 +147,8 @@ auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> s
           joda::table::Table &results = innerTables.at(col);
 
           results.setTitle(headers[col]);
+          results.setMeta({channels.second.first.clusterName, channels.second.first.className});
+
           double value = materializedResult->GetValue(col, row).GetValue<double>();
           if(grouping == Grouping::BY_WELL) {
             results.setData(pos.y, pos.x, table::TableCell{value, imageId, validity == 0, filename});

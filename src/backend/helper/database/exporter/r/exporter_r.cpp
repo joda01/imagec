@@ -28,9 +28,9 @@ namespace joda::db {
 /// \param[out]
 /// \return
 ///
-void RExporter::startExport(const ExportSettings &settings, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
+void RExporter::startExport(const std::vector<joda::table::Table> &data, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
                             std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
-                            std::string outputFileName)
+                            const std::string &outputFileName)
 {
   /*
   std::vector<std::string> sqlStatements;

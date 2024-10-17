@@ -78,4 +78,9 @@ void Table::setTitle(const std::string &title)
   mTitle = title;
 }
 
+void Table::setMeta(const Meta &meta)
+{
+  mMeta = meta;
+}
+
 }    // namespace joda::table

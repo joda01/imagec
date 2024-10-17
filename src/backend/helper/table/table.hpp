@@ -83,8 +83,15 @@ class Table
 {
 public:
   /////////////////////////////////////////////////////
+  struct Meta
+  {
+    std::string clusterName;
+    std::string className;
+  };
+
   Table();
   void setTitle(const std::string &title);
+  void setMeta(const Meta &);
   void setColHeader(const std::map<uint32_t, std::string> &);
   void setRowHeader(const std::map<uint32_t, std::string> &);
   auto getMutableRowHeader() -> std::map<uint32_t, std::string> &
@@ -196,6 +203,11 @@ public:
     return mTitle;
   }
 
+  [[nodiscard]] const Meta &getMeta() const
+  {
+    return mMeta;
+  }
+
 private:
   /////////////////////////////////////////////////////
   entry_t mData;    // <ROW, <COL, DATA>>
@@ -206,6 +218,7 @@ private:
   std::map<uint32_t, std::string> mRowHeader;
   uint32_t mNrOfCols = 0;
   std::string mTitle;
+  Meta mMeta;
 };
 
 }    // namespace joda::table

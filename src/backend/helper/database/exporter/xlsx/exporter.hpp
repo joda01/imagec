@@ -18,7 +18,6 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "../export_settings.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
@@ -31,7 +30,7 @@ namespace joda::db {
 class BatchExporter
 {
 public:
-  static void startExport(const ExportSettings &settings, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
+  static void startExport(const std::vector<joda::table::Table> &data, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
                           std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
                           const std::string &outputFileName);
 
@@ -62,8 +61,9 @@ private:
   static WorkBook createWorkBook(std::string outputFileName);
   static void createAnalyzeSettings(WorkBook &, const settings::AnalyzeSettings &settings, const std::string &jobName,
                                     std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished);
-  static void createHeatmapSummary(WorkBook &, const ExportSettings &settings);
-  static void createListSummary(WorkBook &workbookSettings, const ExportSettings &settings);
+  static void createHeatmap(const WorkBook &, std::pair<Pos, lxw_worksheet *> &sheet, const table::Table &data);
+  static void createList(const WorkBook &, std::pair<Pos, lxw_worksheet *> &sheet, const table::Table &data);
+
   static void paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset, lxw_format *header, lxw_format *numberFormat,
                                lxw_format *mergeFormat, const std::string &title);
   static Pos paintHeatmap(const WorkBook &workbookSettings, lxw_worksheet *worksheet, const joda::table::Table &table, uint32_t rowOffset);

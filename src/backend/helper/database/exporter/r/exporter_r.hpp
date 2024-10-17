@@ -7,7 +7,6 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "../export_settings.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
@@ -20,9 +19,9 @@ namespace joda::db {
 class RExporter
 {
 public:
-  static void startExport(const ExportSettings &settings, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
+  static void startExport(const std::vector<joda::table::Table> &data, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
                           std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
-                          std::string outputFileName);
+                          const std::string &outputFileName);
 
 private:
 };

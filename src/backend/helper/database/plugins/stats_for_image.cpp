@@ -32,6 +32,7 @@ auto StatsPerImage::toTable(const QueryFilter &filter) -> std::vector<joda::tabl
   for(const auto &channels : filter.clustersToExport) {
     table::Table results;
     results.setTitle(channels.second.first.clusterName);
+    results.setMeta({channels.second.first.clusterName, channels.second.first.className});
 
     auto [sql, params] = toSqlTable(filter.filter, channels);
     auto result        = filter.analyzer->select(sql, params);
@@ -99,10 +100,11 @@ auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> std::vector<joda::ta
     int colIdx  = 0;
     auto header = createHeader(channels.second);
 
-    auto generateHeatmap = [&tables, &header, &filter, &result = result, imageInfo = imageInfo, &colIdx]() {
+    auto generateHeatmap = [&channels, &tables, &header, &filter, &result = result, imageInfo = imageInfo, &colIdx]() {
       table::Table results;
 
       results.setTitle(header[colIdx]);
+      results.setMeta({channels.second.first.clusterName, channels.second.first.className});
 
       for(uint64_t row = 0; row < imageInfo.height; row++) {
         results.getMutableRowHeader()[row] = std::to_string(row + 1);
