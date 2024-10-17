@@ -21,9 +21,9 @@ namespace joda::db {
 /// \param[out]
 /// \return
 ///
-void BatchExporter::startExport(const std::vector<joda::table::Table> &data, const settings::AnalyzeSettings &analyzeSettings,
-                                const std::string &jobName, std::chrono::system_clock::time_point timeStarted,
-                                std::chrono::system_clock::time_point timeFinished, const std::string &outputFileName)
+void BatchExporter::startExportHeatmap(const std::vector<joda::table::Table> &data, const settings::AnalyzeSettings &analyzeSettings,
+                                       const std::string &jobName, std::chrono::system_clock::time_point timeStarted,
+                                       std::chrono::system_clock::time_point timeFinished, const std::string &outputFileName)
 {
   setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
   auto workbookSettings = createWorkBook(outputFileName);
@@ -50,6 +50,35 @@ void BatchExporter::startExport(const std::vector<joda::table::Table> &data, con
 /// \param[out]
 /// \return
 ///
+void BatchExporter::startExportList(const std::vector<joda::table::Table> &data, const settings::AnalyzeSettings &analyzeSettings,
+                                    const std::string &jobName, std::chrono::system_clock::time_point timeStarted,
+                                    std::chrono::system_clock::time_point timeFinished, const std::string &outputFileName)
+{
+  setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
+  auto workbookSettings = createWorkBook(outputFileName);
+
+  createAnalyzeSettings(workbookSettings, analyzeSettings, jobName, timeStarted, timeFinished);
+
+  std::map<std::string, std::pair<Pos, lxw_worksheet *>> sheets;
+
+  for(const auto &table : data) {
+    std::string name = table.getMeta().clusterName;
+    if(!sheets.contains(name)) {
+      sheets.emplace(name, std::pair<Pos, lxw_worksheet *>{Pos{}, workbook_add_worksheet(workbookSettings.workbook, name.data())});
+    }
+    createList(workbookSettings, sheets.at(name), table);
+  }
+
+  workbook_close(workbookSettings.workbook);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void BatchExporter::createHeatmap(const WorkBook &workbookSettings, std::pair<Pos, lxw_worksheet *> &sheet, const table::Table &data)
 {
   paintPlateBorder(sheet.second, data.getRows(), data.getCols(), sheet.first.row, workbookSettings.header, workbookSettings.merge_format,
@@ -64,8 +93,25 @@ void BatchExporter::createHeatmap(const WorkBook &workbookSettings, std::pair<Po
 /// \param[out]
 /// \return
 ///
-void BatchExporter::createList(const WorkBook &, std::pair<Pos, lxw_worksheet *> &sheet, const table::Table &data)
+void BatchExporter::createList(const WorkBook &workbookSettings, std::pair<Pos, lxw_worksheet *> &sheet, const table::Table &data)
 {
+  int xOffset = sheet.first.col;
+
+  for(int n = 0; n < data.getColHeaderSize(); n++) {
+    worksheet_write_string(sheet.second, 0, n + 1 + xOffset, data.getColHeader(n).data(), workbookSettings.header);
+  }
+
+  for(int n = 0; n < data.getRowHeaderSize(); n++) {
+    worksheet_write_string(sheet.second, n + 1 + xOffset, 0, data.getRowHeader(n).data(), workbookSettings.header);
+  }
+
+  for(int row = 0; row < data.getRows(); row++) {
+    for(int col = 0; col < data.getCols(); col++) {
+      worksheet_write_number(sheet.second, row + 1 + xOffset, 1 + col, data.data(row, col).getVal(), workbookSettings.numberFormat);
+    }
+  }
+
+  sheet.first.col = xOffset + data.getCols();
 }
 
 ///
@@ -236,6 +282,13 @@ void BatchExporter::paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t
   worksheet_conditional_format_range(sheet, rowOffset + ROW_OFFSET, 1, rowOffset + rows + ROW_OFFSET, 1 + cols, condFormat);
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 BatchExporter::Pos BatchExporter::paintHeatmap(const WorkBook &workbookSettings, lxw_worksheet *worksheet, const joda::table::Table &table,
                                                uint32_t rowOffset)
 {

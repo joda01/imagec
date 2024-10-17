@@ -30,9 +30,12 @@ namespace joda::db {
 class BatchExporter
 {
 public:
-  static void startExport(const std::vector<joda::table::Table> &data, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
-                          std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
-                          const std::string &outputFileName);
+  static void startExportHeatmap(const std::vector<joda::table::Table> &data, const settings::AnalyzeSettings &analyzeSettings,
+                                 const std::string &jobName, std::chrono::system_clock::time_point timeStarted,
+                                 std::chrono::system_clock::time_point timeFinished, const std::string &outputFileName);
+  static void startExportList(const std::vector<joda::table::Table> &data, const settings::AnalyzeSettings &analyzeSettings,
+                              const std::string &jobName, std::chrono::system_clock::time_point timeStarted,
+                              std::chrono::system_clock::time_point timeFinished, const std::string &outputFileName);
 
 private:
   /////////////////////////////////////////////////////

@@ -811,8 +811,6 @@ void PanelResults::assignFilterSelectionToTableColumn()
     cStackTmp = mCrossChannelStackC->currentData().toInt();
   }
 
-  std::cout << "Change " << std::to_string(cStackTmp) << std::endl;
-
   if(measTmp == enums::Measurement::NONE || (cStackTmp < 0 && db::getType(measTmp) == db::MeasureType::INTENSITY)) {
     if(colIn.size() > mSelectedTableColumn) {
       colIn.erase(colIn.begin() + mSelectedTableColumn);
@@ -966,9 +964,15 @@ void PanelResults::onExportClicked(ExportFormat format)
   }
 
   std::thread([this, filePathOfSettingsFile, format] {
-    joda::db::BatchExporter::startExport(mTableDataHeatmap, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
-                                         mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
-                                         filePathOfSettingsFile.toStdString());
+    if(!mTable->isVisible()) {
+      joda::db::BatchExporter::startExportHeatmap(mTableDataHeatmap, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
+                                                  mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
+                                                  filePathOfSettingsFile.toStdString());
+    } else {
+      joda::db::BatchExporter::startExportList(mTableData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
+                                               mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
+                                               filePathOfSettingsFile.toStdString());
+    }
   }).detach();
 }
 
