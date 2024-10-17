@@ -52,15 +52,18 @@ auto StatsPerGroup::toTable(const QueryFilter &filter, Grouping grouping) -> std
         if(grouping == Grouping::BY_WELL) {
           results.getMutableRowHeader()[row] = filename;
         } else {
-          char toWrt[2];
-          toWrt[0]                           = platePosY + 'A';
-          toWrt[1]                           = 0;
-          results.getMutableRowHeader()[row] = std::string(toWrt) + std::to_string(platePosX);
+          char toWrt                         = (platePosY - 1) + 'A';
+          results.getMutableRowHeader()[row] = std::string(1, toWrt) + std::to_string(platePosX);
         }
 
         for(size_t col = 0; col < results.getColHeaderSize(); col++) {
           double value = materializedResult->GetValue(col, row).GetValue<double>();
-          results.setData(row, col, table::TableCell{value, imageId, validity == 0, ""});
+
+          if(grouping == Grouping::BY_WELL) {
+            results.setData(row, col, table::TableCell{value, imageId, validity == 0, ""});
+          } else {
+            results.setData(row, col, table::TableCell{value, groupId, validity == 0, ""});
+          }
         }
 
       } catch(const duckdb::InternalException &) {

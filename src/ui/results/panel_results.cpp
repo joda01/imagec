@@ -13,6 +13,7 @@
 
 #include "panel_results.hpp"
 #include <qaction.h>
+#include <qactiongroup.h>
 #include <qboxlayout.h>
 #include <qbuttongroup.h>
 #include <qcombobox.h>
@@ -69,8 +70,19 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   // Create Table
   //
   mTable = new QTableWidget();
-  mTable->setVisible(false);
+  mTable->setRowCount(1000);
+  mTable->setColumnCount(10);
+  mTable->verticalHeader()->setDefaultSectionSize(8);    // Set each row to 50 pixels height
+  for(int col = 0; col < 10; col++) {
+    for(int row = 0; row < 1000; row++) {
+      mTable->setItem(row, col, new QTableWidgetItem(" "));
+    }
+  }
+
   connect(mTable, &QTableWidget::currentCellChanged, this, &PanelResults::onTableCurrentCellChanged);
+  connect(mTable->verticalHeader(), &QHeaderView::sectionDoubleClicked,
+          [this](int logicalIndex) { onOpenNextLevel(logicalIndex, 0, mTableData.data(logicalIndex, 0)); });
+  connect(mTable, &QTableWidget::cellClicked, this, &PanelResults::onCellClicked);
 
   // Middle layout
   auto *tab  = layout().addTab("", [] {});
@@ -110,66 +122,60 @@ void PanelResults::setActive(bool active)
 ///
 void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
 {
+  auto *grp          = new QActionGroup(toolbar);
+  auto *mTableButton = new QAction(generateIcon("table"), "");
+  mTableButton->setCheckable(true);
+  mTableButton->setChecked(true);
+  grp->addAction(mTableButton);
+  toolbar->addItemToTopToolbar(mTableButton);
+
+  auto *mHeatmapButton = new QAction(generateIcon("heat-map"), "");
+  mHeatmapButton->setCheckable(true);
+  grp->addAction(mHeatmapButton);
+  toolbar->addItemToTopToolbar(mHeatmapButton);
+
+  connect(mHeatmapButton, &QAction::toggled, [this](bool checked) {
+    if(checked) {
+      onShowHeatmap();
+    }
+  });
+  connect(mTableButton, &QAction::toggled, [this](bool checked) {
+    if(checked) {
+      onShowTable();
+    }
+  });
+
+  toolbar->addSeparatorToTopToolbar();
+
+  //
+  // Copy Button
+  //
+  auto *copy = new QAction(generateIcon("copy"), "");
+  copy->setToolTip("Copy table");
+  connect(copy, &QAction::triggered, [this]() { copyTableToClipboard(mTable); });
+  toolbar->addItemToTopToolbar(copy);
+
+  //
+  // Export button
+  //
+  auto *exportData = new QAction(generateIcon("excel"), "");
+  exportData->setToolTip("Export XLSX");
+  toolbar->addItemToTopToolbar(exportData);
+
+  auto *exportR = new QAction(generateIcon("r-studio"), "");
+  exportR->setToolTip("Export R");
+  toolbar->addItemToTopToolbar(exportR);
+
+  toolbar->addSeparatorToTopToolbar();
+
+  //
+  //
   // Back button
   mBackButton = new QPushButton(generateIcon("arrow-left"), "");
   mBackButton->setEnabled(false);
   connect(mBackButton, &QPushButton::pressed, this, &PanelResults::onBackClicked);
   toolbar->addItemToTopToolbar(mBackButton);
 
-  QButtonGroup *grp = new QButtonGroup();
-  mTableButton      = new QPushButton(generateIcon("table"), "");
-  mTableButton->setCheckable(true);
-  mTableButton->setChecked(true);
-  grp->addButton(mTableButton);
-  toolbar->addItemToTopToolbar(mTableButton);
-
-  mHeatmapButton = new QPushButton(generateIcon("heat-map"), "");
-  mHeatmapButton->setCheckable(true);
-  grp->addButton(mHeatmapButton);
-  toolbar->addItemToTopToolbar(mHeatmapButton);
-
-  connect(mHeatmapButton, &QPushButton::clicked, [this](bool checked) {
-    if(checked) {
-      onShowHeatmap();
-    }
-  });
-  connect(mTableButton, &QPushButton::clicked, [this](bool checked) {
-    if(checked) {
-      onShowTable();
-    }
-  });
-
-  //
-  // Copy Button
-  //
-  auto *copy = new QPushButton(generateIcon("copy"), "Copy table");
-  copy->setToolTip("Copy table");
-  connect(copy, &QPushButton::pressed, [this]() { copyTableToClipboard(mTable); });
-  toolbar->addItemToTopToolbar(copy);
-
-  //
-  // Export button
-  //
-  auto *exportData = new QPushButton(generateIcon("export-excel"), "Export");
-  exportData->setToolTip("Export data");
-  connect(exportData, &QPushButton::pressed, [this]() {
-    std::map<settings::ClassificatorSettingOut, QString> clustersAndClasses;
-    for(int i = 0; i < mClusterClassSelector->count(); ++i) {
-      clustersAndClasses.emplace(SettingComboBoxClassificationUnmanaged::fromInt(mClusterClassSelector->itemData(i).toUInt()),
-                                 mClusterClassSelector->itemText(i));
-    }
-    if(mSelectedDataSet.analyzeMeta.has_value()) {
-      DialogExportData exportData(mAnalyzer, mFilter, clustersAndClasses, &mSelectedDataSet.analyzeMeta.value(), mWindowMain);
-      exportData.exec();
-    } else {
-      /// \todo Add error message
-    }
-  });
-  toolbar->addItemToTopToolbar(exportData);
-
-  toolbar->addSeparatorToTopToolbar();
-
-  //
   //
   mClusterClassSelector = new QComboBox();
   connect(mClusterClassSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onClusterAndClassesChanged);
@@ -345,15 +351,6 @@ void PanelResults::refreshView()
   const auto &size      = mWindowMain->getPanelResultsInfo()->getPlateSize();
   const auto &wellOrder = mWindowMain->getPanelResultsInfo()->getWellOrder();
 
-  QString className;
-  className = mClusterClassSelector->currentText();
-  if(!className.isEmpty()) {
-    auto splited = className.split("@");
-    if(splited.size() > 1) {
-      className = splited[1];
-    }
-  }
-
   mFilter.analyzer = mAnalyzer.get(), mFilter.filter = {.plateId         = 0,
                                                         .groupId         = mActGroupId,
                                                         .imageId         = mActImageId,
@@ -370,47 +367,6 @@ void PanelResults::refreshView()
     }
   }
   repaintHeatmap();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::assignFilterSelectionToTableColumn()
-{
-  if(mSelectedTableColumn < 0 && mMeasurementSelector->currentData().toInt() >= 0) {
-    return;
-  }
-  auto clusterClassSelected = SettingComboBoxMultiClassificationIn::fromInt(mClusterClassSelector->currentData().toUInt());
-  auto key                  = settings::ClassificatorSettingOut{.clusterId = static_cast<joda::enums::ClusterId>(clusterClassSelected.clusterId),
-                                                                .classId   = static_cast<joda::enums::ClassId>(clusterClassSelected.classId)};
-
-  if(!mFilter.clustersToExport.contains(key)) {
-    mFilter.clustersToExport.emplace(key, db::QueryFilter::Columns{});
-  }
-
-  auto &colIn = mFilter.clustersToExport.at(key).second;
-
-  if(colIn.size() <= mSelectedTableColumn) {
-    colIn.emplace_back();
-  }
-
-  auto &col = colIn[mSelectedTableColumn];
-  if(mCrossChannelStackC->currentIndex() >= 0) {
-    col.crossChannelName    = mCrossChannelStackC->currentText().toStdString();
-    col.crossChannelStacksC = mCrossChannelStackC->currentData().toInt();
-  }
-  col.measureChannel = static_cast<enums::Measurement>(mMeasurementSelector->currentData().toInt());
-  col.stats          = static_cast<enums::Stats>(mStatsSelector->currentData().toInt());
-
-  if(col.measureChannel == enums::Measurement::NONE ||
-     (mCrossChannelStackC->currentData().toInt() < 0 && db::getType(col.measureChannel) == db::MeasureType::INTENSITY)) {
-    colIn.erase(colIn.begin() + mSelectedTableColumn);
-    return;
-  }
 }
 
 ///
@@ -533,6 +489,10 @@ void PanelResults::onOpenNextLevel(int cellX, int cellY, table::TableCell value)
       mActImageId = value.getId();
       break;
   }
+
+  std::cout << "Act ID" << std::to_string(mActGroupId) << std::endl;
+  std::cout << "Act ID" << std::to_string(mActImageId) << std::endl;
+
   onMeasurementChanged();
 }
 
@@ -746,16 +706,19 @@ void PanelResults::tableToQWidgetTable(const std::vector<joda::table::Table> &ta
       tb = &tableIn[idx];
     }
   }
-  mTable->setRowCount(1000);
-  mTable->setColumnCount(10);
+  if(tb != nullptr) {
+    mTableData = *tb;
+  }
 
   // Header
   for(int col = 0; col < 10; col++) {
     if(tb != nullptr && tb->getCols() > col) {
-      mTable->setHorizontalHeaderItem(col, new QTableWidgetItem(tb->getColHeader(col).data()));
-
+      QString headerText = tb->getColHeader(col).data();
+      headerText         = headerText.replace("[", "\n[");
+      mTable->setHorizontalHeaderItem(col, new QTableWidgetItem(headerText));
     } else {
-      mTable->setHorizontalHeaderItem(col, new QTableWidgetItem(QString(std::to_string(col).data())));
+      char txt = col + 'A';
+      mTable->setHorizontalHeaderItem(col, new QTableWidgetItem(QString(std::string(1, txt).data())));
     }
   }
 
@@ -770,12 +733,84 @@ void PanelResults::tableToQWidgetTable(const std::vector<joda::table::Table> &ta
 
   for(int col = 0; col < 10; col++) {
     for(int row = 0; row < 1000; row++) {
-      if(nullptr != tb && tb->getRowHeaderSize() > row && tb->getCols() > col) {
-        mTable->setItem(row, col, new QTableWidgetItem(QString::number((double) tb->data(row, col).getVal())));
-      } else {
-        mTable->setItem(row, col, new QTableWidgetItem(""));
+      QTableWidgetItem *item = mTable->item(row, col);
+      if(item) {
+        if(nullptr != tb && tb->getRowHeaderSize() > row && tb->getCols() > col) {
+          item->setText(QString::number((double) tb->data(row, col).getVal()));
+        } else {
+          item->setText(" ");
+        }
       }
     }
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::addClusterAndClassToFilter()
+{
+  auto clusterClassSelected = SettingComboBoxMultiClassificationIn::fromInt(mClusterClassSelector->currentData().toUInt());
+  auto key                  = settings::ClassificatorSettingOut{.clusterId = static_cast<joda::enums::ClusterId>(clusterClassSelected.clusterId),
+                                                                .classId   = static_cast<joda::enums::ClassId>(clusterClassSelected.classId)};
+
+  if(!mFilter.clustersToExport.contains(key)) {
+    QString clusterName;
+    QString className;
+    className = mClusterClassSelector->currentText();
+    if(!className.isEmpty()) {
+      auto splited = className.split("@");
+      if(splited.size() > 1) {
+        clusterName = splited[0];
+        className   = splited[1];
+      }
+    }
+
+    mFilter.clustersToExport.emplace(
+        key, db::QueryFilter::Columns{db::QueryFilter::Naming{.clusterName = clusterName.toStdString(), .className = className.toStdString()},
+                                      std::vector<db::QueryFilter::Column>{}});
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::assignFilterSelectionToTableColumn()
+{
+  if(mSelectedTableColumn < 0 && mMeasurementSelector->currentData().toInt() >= 0) {
+    return;
+  }
+  auto clusterClassSelected = SettingComboBoxMultiClassificationIn::fromInt(mClusterClassSelector->currentData().toUInt());
+  auto key                  = settings::ClassificatorSettingOut{.clusterId = static_cast<joda::enums::ClusterId>(clusterClassSelected.clusterId),
+                                                                .classId   = static_cast<joda::enums::ClassId>(clusterClassSelected.classId)};
+  addClusterAndClassToFilter();
+
+  auto &colIn = mFilter.clustersToExport.at(key).second;
+
+  if(colIn.size() <= mSelectedTableColumn) {
+    colIn.emplace_back();
+  }
+
+  auto &col = colIn[mSelectedTableColumn];
+  if(mCrossChannelStackC->currentIndex() >= 0) {
+    col.crossChannelName    = mCrossChannelStackC->currentText().toStdString();
+    col.crossChannelStacksC = mCrossChannelStackC->currentData().toInt();
+  }
+  col.measureChannel = static_cast<enums::Measurement>(mMeasurementSelector->currentData().toInt());
+  col.stats          = static_cast<enums::Stats>(mStatsSelector->currentData().toInt());
+
+  if(col.measureChannel == enums::Measurement::NONE ||
+     (mCrossChannelStackC->currentData().toInt() < 0 && db::getType(col.measureChannel) == db::MeasureType::INTENSITY)) {
+    colIn.erase(colIn.begin() + mSelectedTableColumn);
+    return;
   }
 }
 
@@ -806,7 +841,7 @@ void PanelResults::onTableCurrentCellChanged(int currentRow, int currentColumn, 
   mSelectedTableRow    = currentRow;
 
   if(!mFilter.clustersToExport.contains(key)) {
-    mFilter.clustersToExport.emplace(key, db::QueryFilter::Columns{});
+    addClusterAndClassToFilter();
   }
   if(mFilter.clustersToExport.at(key).second.size() <= currentColumn) {
     mMeasurementSelector->setCurrentIndex(0);
@@ -874,6 +909,49 @@ void PanelResults::copyTableToClipboard(QTableWidget *table)
 
   QClipboard *clipboard = QApplication::clipboard();
   clipboard->setText(text);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::onCellClicked(int rowSelected, int columnSelcted)
+{
+  // First, reset the stylesheet for all items to remove any previous borders
+  resetStylesheet();
+
+  // Iterate over all cells in the selected row
+  for(int row = 0; row < mTable->columnCount(); ++row) {
+    QTableWidgetItem *item = mTable->item(row, columnSelcted);
+    if(item) {
+      // Apply red borders to the left and right sides of the cells in the row
+      item->setData(Qt::DecorationRole, QVariant());    // Remove existing decorations
+      item->setBackground(Qt::white);                   // Optional: reset background to white
+      item->setForeground(Qt::black);                   // Optional: reset text color to black
+
+      // Apply the stylesheet with a red left and right border
+      item->setData(Qt::UserRole, QString("QTableWidget::item { border-left: 2px solid red; border-right: 2px solid red; }"));
+      setStyleSheet(item->data(Qt::UserRole).toString());
+    }
+  }
+}
+
+// Function to reset the stylesheet of all cells
+void PanelResults::resetStylesheet()
+{
+  for(int row = 0; row < mTable->rowCount(); ++row) {
+    for(int col = 0; col < mTable->columnCount(); ++col) {
+      QTableWidgetItem *item = mTable->item(row, col);
+      if(item) {
+        item->setData(Qt::DecorationRole, QVariant());    // Remove existing decorations
+        item->setBackground(Qt::white);                   // Reset background
+        item->setForeground(Qt::black);                   // Reset text color
+      }
+    }
+  }
 }
 
 }    // namespace joda::ui

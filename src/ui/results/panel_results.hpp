@@ -89,14 +89,16 @@ private:
   void copyTableToClipboard(QTableWidget *table);
   void assignFilterSelectionToTableColumn();
 
+  /////////////////////////////////////////////////////
+  void addClusterAndClassToFilter();
+  void resetStylesheet();
+
   WindowMain *mWindowMain;
   std::unique_ptr<joda::db::Database> mAnalyzer;
 
   // Breadcrumb///////////////////////////////////////////////////
   void createBreadCrump(joda::ui::helper::LayoutGenerator *);
   QPushButton *mBackButton;
-  QPushButton *mHeatmapButton;
-  QPushButton *mTableButton;
 
   PanelPreview *mPreviewImage;
   // uint32_t mDensityMapSize = 200;
@@ -108,6 +110,8 @@ private:
 
   /////////////////////////////////////////////////////
   QTableWidget *mTable;
+  joda::table::Table mTableData;
+
   int32_t mSelectedTableColumn = -1;
   int32_t mSelectedTableRow    = -1;
 
@@ -148,6 +152,7 @@ public slots:
   void onShowHeatmap();
   void onClusterAndClassesChanged();
   void onMeasurementChanged();
+  void onCellClicked(int row, int column);
 };
 
 }    // namespace joda::ui
