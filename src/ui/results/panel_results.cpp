@@ -197,12 +197,13 @@ void PanelResults::createNavigationBar(QToolBar *toolbar)
   mClusterClassSelector = new QComboBox();
   mClusterClassSelector->setMinimumWidth(150);
   connect(mClusterClassSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onClusterAndClassesChanged);
-  toolbar->addWidget(mClusterClassSelector);
+  mClusterClassSelectorAction = toolbar->addWidget(mClusterClassSelector);
 
   mColumn = new QComboBox();
   mColumn->setMinimumWidth(150);
   connect(mColumn, &QComboBox::currentIndexChanged, this, &PanelResults::onColumnComboChanged);
-  toolbar->addWidget(mColumn);
+  mColumnAction = toolbar->addWidget(mColumn);
+  mColumnAction->setVisible(false);
 
   mMeasurementSelector = new QComboBox();
   mMeasurementSelector->addItem("None", -1);
@@ -217,7 +218,7 @@ void PanelResults::createNavigationBar(QToolBar *toolbar)
   mMeasurementSelector->addItem("Intensity min.", (int32_t) joda::enums::Measurement::INTENSITY_MIN);
   mMeasurementSelector->addItem("Intensity max.", (int32_t) joda::enums::Measurement::INTENSITY_MAX);
   connect(mMeasurementSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
-  toolbar->addWidget(mMeasurementSelector);
+  mMeasurementSelectorAction = toolbar->addWidget(mMeasurementSelector);
 
   //
   //
@@ -230,15 +231,13 @@ void PanelResults::createNavigationBar(QToolBar *toolbar)
   mStatsSelector->addItem("SUM", (int32_t) joda::enums::Stats::SUM);
   mStatsSelector->addItem("CNT", (int32_t) joda::enums::Stats::CNT);
   connect(mStatsSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
-  toolbar->addWidget(mStatsSelector);
+  mStatsSelectorAction = toolbar->addWidget(mStatsSelector);
 
   toolbar->addSeparator();
 
-  toolbar->addWidget(new QLabel("Intensity: "));
-
   mCrossChannelStackC = new QComboBox();
   connect(mCrossChannelStackC, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
-  mActionCrossChannelCStack = toolbar->addWidget(mCrossChannelStackC);
+  mCrossChannelStackCAction = mActionCrossChannelCStack = toolbar->addWidget(mCrossChannelStackC);
   mActionCrossChannelCStack->setEnabled(false);
 
   //
@@ -677,6 +676,11 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
 void PanelResults::onShowTable()
 {
   mTable->setVisible(true);
+  mColumnAction->setVisible(false);
+  mStatsSelectorAction->setVisible(true);
+  mMeasurementSelectorAction->setVisible(true);
+  mCrossChannelStackCAction->setVisible(true);
+
   mHeatmap01->setVisible(false);
   repaintHeatmap();
 }
@@ -691,6 +695,11 @@ void PanelResults::onShowTable()
 void PanelResults::onShowHeatmap()
 {
   mTable->setVisible(false);
+  mColumnAction->setVisible(true);
+  mStatsSelectorAction->setVisible(false);
+  mMeasurementSelectorAction->setVisible(false);
+  mCrossChannelStackCAction->setVisible(false);
+
   mHeatmap01->setVisible(true);
   repaintHeatmap();
 }

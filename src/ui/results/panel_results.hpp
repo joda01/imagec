@@ -124,6 +124,12 @@ private:
   QComboBox *mStatsSelector;
   QComboBox *mCrossChannelStackC;
 
+  QAction *mColumnAction;
+  QAction *mClusterClassSelectorAction;
+  QAction *mMeasurementSelectorAction;
+  QAction *mStatsSelectorAction;
+  QAction *mCrossChannelStackCAction;
+
   /////////////////////////////////////////////////////
   QTableWidget *mTable;
   table::Table mSelectedTable;
