@@ -17,6 +17,7 @@
 #include <qcolormap.h>
 #include <qcombobox.h>
 #include <qmainwindow.h>
+#include <qtoolbar.h>
 #include <qwidget.h>
 #include <memory>
 #include "backend/enums/enum_measurements.hpp"
@@ -91,7 +92,10 @@ private:
   /////////////////////////////////////////////////////
   void valueChangedEvent() override;
   void setAnalyzer();
-  void tableToQWidgetTable(const std::vector<joda::table::Table> &table);
+  void tableToQWidgetTable(const joda::table::Table &table);
+  void tableToHeatmap(const joda::table::Table &table);
+  void paintEmptyHeatmap();
+
   void refreshView();
   void copyTableToClipboard(QTableWidget *table);
   void assignFilterSelectionToTableColumn();
@@ -106,11 +110,15 @@ private:
 
   // Breadcrumb///////////////////////////////////////////////////
   void createBreadCrump(joda::ui::helper::LayoutGenerator *);
+  void createNavigationBar(QToolBar *);
+  auto getClusterAndClassFromCombo() const -> std::pair<std::string, std::string>;
+
   QPushButton *mBackButton;
 
   PanelPreview *mPreviewImage;
   // uint32_t mDensityMapSize = 200;
 
+  QComboBox *mColumn;
   QComboBox *mClusterClassSelector;
   QComboBox *mMeasurementSelector;
   QComboBox *mStatsSelector;
@@ -118,9 +126,7 @@ private:
 
   /////////////////////////////////////////////////////
   QTableWidget *mTable;
-  std::vector<joda::table::Table> mTableData;
-  std::vector<joda::table::Table> mTableDataHeatmap;
-  const joda::table::Table *mSelectedTable = nullptr;
+  table::Table mSelectedTable;
 
   int32_t mSelectedTableColumn = -1;
   int32_t mSelectedTableRow    = -1;
@@ -156,15 +162,13 @@ public slots:
   void onTableCurrentCellChanged(int currentRow, int currentColumn, int previousRow, int previousColumn);
   void onBackClicked();
   void repaintHeatmap();
-  void paintPlate();
-  void paintWell();
-  void paintImage();
   void onExportImageClicked();
   void onShowTable();
   void onShowHeatmap();
   void onClusterAndClassesChanged();
   void onMeasurementChanged();
   void onCellClicked(int row, int column);
+  void onColumnComboChanged();
 };
 
 }    // namespace joda::ui
