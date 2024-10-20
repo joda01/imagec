@@ -13,7 +13,6 @@
 #include "stats_for_image.hpp"
 #include <string>
 #include "backend/enums/enum_measurements.hpp"
-#include "backend/helper/database/plugins/helper.hpp"
 
 namespace joda::db {
 
@@ -24,38 +23,27 @@ namespace joda::db {
 /// \param[out]
 /// \return
 ///
-auto StatsPerImage::toTable(const QueryFilter &filter) -> std::vector<joda::table::Table>
+auto StatsPerImage::toTable(const QueryFilter &filter) -> QueryResult
 {
-  std::vector<joda::table::Table> tables;
-  tables.reserve(filter.clustersToExport.size());
+  auto clustersToExport = filter.getClustersAndClassesToExport();
 
-  for(const auto &channels : filter.clustersToExport) {
-    table::Table results;
-    results.setTitle(channels.second.first.clusterName);
-    results.setMeta({channels.second.first.clusterName, channels.second.first.className});
-
-    auto [sql, params] = toSqlTable(filter.filter, channels);
-    auto result        = filter.analyzer->select(sql, params);
+  for(const auto &[clusterClass, statement] : clustersToExport) {
+    auto [sql, params] = toSqlTable(clusterClass, filter.getFilter(), statement);
+    auto result        = filter.getAnalyzer()->select(sql, params);
 
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());
     }
     auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
-    results.setColHeader(createHeader(channels.second));
-
-    for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-      results.getMutableRowHeader()[n] = std::to_string(n);
-      try {
-        for(int colIdx = 0; colIdx <= results.getColHeaderSize(); colIdx++) {
-          results.setData(n, colIdx, table::TableCell{materializedResult->GetValue(colIdx, n).GetValue<double>(), 0, true, ""});
-        }
-
-      } catch(const duckdb::InternalException &) {
+    size_t columnNr         = statement.getColSize();
+    for(size_t row = 0; row < materializedResult->RowCount(); row++) {
+      for(int32_t colIdx = 0; colIdx < columnNr; colIdx++) {
+        double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
+        clustersToExport.setData(clusterClass, row, colIdx, table::TableCell{value, 0, true, ""});
       }
     }
-    tables.emplace_back(results);
   }
-  return tables;
+  return clustersToExport.getResult();
 }
 
 ///
@@ -65,10 +53,10 @@ auto StatsPerImage::toTable(const QueryFilter &filter) -> std::vector<joda::tabl
 /// \param[out]
 /// \return
 ///
-auto StatsPerImage::toSqlTable(const QueryFilter::ObjectFilter &filter, const QueryFilter::ChannelFilter &channelFilter)
-    -> std::pair<std::string, DbArgs_t>
+auto StatsPerImage::toSqlTable(const settings::ClassificatorSettingOut &clusterAndClass, const QueryFilter::ObjectFilter &filter,
+                               const PreparedStatement &channelFilter) -> std::pair<std::string, DbArgs_t>
 {
-  std::string sql = "SELECT\n" + createStats(channelFilter.second, true) +
+  std::string sql = "SELECT\n" + channelFilter.createStatsQuery(true) +
                     "ANY_VALUE(t1.meas_center_x) as meas_center_x,\n"
                     "ANY_VALUE(t1.meas_center_y) as meas_center_y\n"
                     "FROM\n"
@@ -79,7 +67,7 @@ auto StatsPerImage::toSqlTable(const QueryFilter::ObjectFilter &filter, const Qu
                     " t1.image_id=$1 AND t1.cluster_id=$2 AND t1.class_id=$3\n"
                     "GROUP BY t1.object_id\n"
                     "ORDER BY t1.object_id";
-  return {sql, {filter.imageId, (uint16_t) channelFilter.first.clusterId, (uint16_t) channelFilter.first.classId}};
+  return {sql, {filter.imageId, (uint16_t) clusterAndClass.clusterId, (uint16_t) clusterAndClass.classId}};
 }
 
 ///
@@ -89,22 +77,18 @@ auto StatsPerImage::toSqlTable(const QueryFilter::ObjectFilter &filter, const Qu
 /// \param[out]
 /// \return
 ///
-auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> std::vector<joda::table::Table>
+auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> QueryResult
 {
-  std::vector<joda::table::Table> tables;
-  tables.reserve(filter.clustersToExport.size());
+  auto clustersToExport = filter.getClustersAndClassesToExport();
 
-  for(const auto &channels : filter.clustersToExport) {
-    auto [result, imageInfo] = densityMap(filter.analyzer, filter.filter, channels);
+  int32_t tabIdx = 0;
+  for(const auto &[clusterClass, statement] : clustersToExport) {
+    auto [result, imageInfo] = densityMap(clusterClass, filter.getAnalyzer(), filter.getFilter(), statement);
 
-    int colIdx  = 0;
-    auto header = createHeader(channels.second);
+    int colIdx = 0;
 
-    auto generateHeatmap = [&channels, &tables, &header, &filter, &result = result, imageInfo = imageInfo, &colIdx]() {
-      table::Table results;
-
-      results.setTitle(header[colIdx]);
-      results.setMeta({channels.second.first.clusterName, channels.second.first.className});
+    auto generateHeatmap = [&tabIdx, &clustersToExport, &filter, &result = result, imageInfo = imageInfo, &colIdx]() {
+      joda::table::Table &results = clustersToExport.getTable(tabIdx);
 
       for(uint64_t row = 0; row < imageInfo.height; row++) {
         results.getMutableRowHeader()[row] = std::to_string(row + 1);
@@ -124,8 +108,8 @@ auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> std::vector<joda::ta
           uint32_t rectangleY = materializedResult->GetValue(colY, n).GetValue<double>();
           double value        = materializedResult->GetValue(colIdx, n).GetValue<double>();
 
-          uint32_t x = rectangleX / filter.filter.heatmapAreaSize;
-          uint32_t y = rectangleY / filter.filter.heatmapAreaSize;
+          uint32_t x = rectangleX / filter.getFilter().heatmapAreaSize;
+          uint32_t y = rectangleY / filter.getFilter().heatmapAreaSize;
 
           std::string linkToImage = imageInfo.controlImgPath;
           results.setData(y, x, table::TableCell{value, 0, true, linkToImage});
@@ -134,87 +118,11 @@ auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> std::vector<joda::ta
         }
       }
       colIdx++;
-      tables.emplace_back(results);
     };
     generateHeatmap();
+    tabIdx++;
   }
-  return tables;
-}
-
-///
-/// \brief          Returns the heatmap in list form
-/// \author         Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-auto StatsPerImage::toHeatmapList(const QueryFilter &filter) -> std::vector<joda::table::Table>
-{
-  std::vector<joda::table::Table> tables;
-  tables.reserve(filter.clustersToExport.size());
-
-  for(const auto &channels : filter.clustersToExport) {
-    table::Table results;
-
-    auto [result, imageInfo] = densityMap(filter.analyzer, filter.filter, channels);
-
-    std::map<uint32_t, std::pair<std::vector<double>, std::string>> sortedData;
-
-    auto headers = createHeader(channels.second);
-    results.setColHeader(headers);
-
-    int tableRowCount = 0;
-    for(uint16_t row = 0; row < imageInfo.height; row++) {
-      for(uint16_t col = 0; col < imageInfo.width; col++) {
-        uint32_t key                                 = ((row << 16) & 0xFFFF0000) | (col & 0xFFFF);
-        char letter                                  = 'A' + row;
-        results.getMutableRowHeader()[tableRowCount] = std::string(1, letter) + "" + std::to_string(col + 1);
-        results.setData(tableRowCount, 0, table::TableCell{std::numeric_limits<double>::quiet_NaN(), 0, false, imageInfo.controlImgPath});
-
-        sortedData.emplace(key, std::pair<std::vector<double>, std::string>{{std::numeric_limits<double>::quiet_NaN()}, ""});
-        tableRowCount++;
-      }
-    }
-
-    auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
-    size_t offset           = headers.size();
-    for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-      try {
-        uint32_t rectangleX = materializedResult->GetValue(offset + 0, n).GetValue<double>();
-        uint32_t rectangleY = materializedResult->GetValue(offset + 1, n).GetValue<double>();
-        uint32_t x          = rectangleX / filter.filter.heatmapAreaSize;
-        uint32_t y          = rectangleY / filter.filter.heatmapAreaSize;
-        uint32_t key        = ((y << 16) & 0xFFFF0000) | (x & 0xFFFF);
-
-        std::string linkToImage = imageInfo.controlImgPath;
-
-        std::vector<double> values;
-        for(int colIdx = 0; colIdx <= results.getColHeaderSize(); colIdx++) {
-          double value = materializedResult->GetValue(colIdx, n).GetValue<double>();
-          values.emplace_back(value);
-        }
-        sortedData[key] = {values, linkToImage};
-      } catch(const duckdb::InternalException &ex) {
-        std::cout << "EX " << ex.what() << std::endl;
-      }
-    }
-
-    tableRowCount = 0;
-    for(const auto &[key, data] : sortedData) {
-      uint16_t row                                 = (key >> 16) & 0xFFFF;
-      uint16_t col                                 = (key >> 0) & 0xFFFF;
-      char letter                                  = 'A' + row;
-      results.getMutableRowHeader()[tableRowCount] = std::string(1, letter) + "" + std::to_string(col + 1);
-      int colIdx                                   = 0;
-      for(const auto value : data.second) {
-        results.setData(tableRowCount, colIdx, table::TableCell{std::get<0>(data)[colIdx], 0, true, std::get<1>(data)});
-        colIdx++;
-      }
-      tableRowCount++;
-    }
-    tables.emplace_back(results);
-  }
-  return tables;
+  return clustersToExport.getResult();
 }
 
 ///
@@ -224,7 +132,8 @@ auto StatsPerImage::toHeatmapList(const QueryFilter &filter) -> std::vector<joda
 /// \param[out]
 /// \return
 ///
-auto StatsPerImage::densityMap(db::Database *analyzer, const QueryFilter::ObjectFilter &filter, const QueryFilter::ChannelFilter &channelFilter)
+auto StatsPerImage::densityMap(const settings::ClassificatorSettingOut &clusterAndClass, db::Database *analyzer,
+                               const QueryFilter::ObjectFilter &filter, const PreparedStatement &channelFilter)
     -> std::tuple<std::unique_ptr<duckdb::QueryResult>, ImgInfo>
 {
   std::string controlImgPath;
@@ -261,7 +170,7 @@ auto StatsPerImage::densityMap(db::Database *analyzer, const QueryFilter::Object
     imgInfo.controlImgPath = linkToImage;
   }
 
-  auto [sql, params] = toSqlHeatmap(filter, channelFilter);
+  auto [sql, params] = toSqlHeatmap(clusterAndClass, filter, channelFilter);
   std::cout << sql << std::endl;
   std::unique_ptr<duckdb::QueryResult> result = analyzer->select(sql, params);
 
@@ -279,14 +188,14 @@ auto StatsPerImage::densityMap(db::Database *analyzer, const QueryFilter::Object
 /// \param[out]
 /// \return
 ///
-auto StatsPerImage::toSqlHeatmap(const QueryFilter::ObjectFilter &filter, const QueryFilter::ChannelFilter &channelFilter)
-    -> std::pair<std::string, DbArgs_t>
+auto StatsPerImage::toSqlHeatmap(const settings::ClassificatorSettingOut &clusterAndClass, const QueryFilter::ObjectFilter &filter,
+                                 const PreparedStatement &channelFilter) -> std::pair<std::string, DbArgs_t>
 {
-  auto [innerSql, params] = toSqlTable(filter, channelFilter);
+  auto [innerSql, params] = toSqlTable(clusterAndClass, filter, channelFilter);
   std::string sql         = "WITH innerTable AS (\n" + innerSql +
                     "\n)\n"
                     "SELECT\n" +
-                    createStats(channelFilter.second, false) +
+                    channelFilter.createStatsQuery(false) +
                     "floor(meas_center_x / $4) * $4 AS rectangle_x,\n"
                     "floor(meas_center_y / $4) * $4 AS rectangle_y,\n"
                     "FROM innerTable\n"

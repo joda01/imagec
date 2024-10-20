@@ -17,6 +17,7 @@
 #include <qboxlayout.h>
 #include <qbuttongroup.h>
 #include <qcombobox.h>
+#include <qdialog.h>
 #include <qevent.h>
 #include <qgridlayout.h>
 #include <qlayout.h>
@@ -42,7 +43,7 @@
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/database/exporter/xlsx/exporter.hpp"
 #include "backend/helper/database/plugins/control_image.hpp"
-#include "backend/helper/database/plugins/helper.hpp"
+#include "backend/helper/database/plugins/filter.hpp"
 #include "backend/helper/database/plugins/stats_for_image.hpp"
 #include "backend/helper/database/plugins/stats_for_well.hpp"
 #include "ui/container/container_button.hpp"
@@ -55,6 +56,7 @@
 #include "ui/panel_preview.hpp"
 #include "ui/window_main/panel_results_info.hpp"
 #include "ui/window_main/window_main.hpp"
+#include "dialog_column_settings.hpp"
 
 namespace joda::ui {
 
@@ -65,9 +67,8 @@ namespace joda::ui {
 PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullptr, false), mWindowMain(windowMain)
 {
   // Drop downs
+  createEditColumnDialog();
   createBreadCrump(&layout());
-  auto *navigationBar = new QToolBar();
-  createNavigationBar(navigationBar);
 
   //
   // Create Table
@@ -92,15 +93,15 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   connect(mHeatmap01, &ChartHeatMap::onElementClick, this, &PanelResults::onElementSelected);
   connect(mHeatmap01, &ChartHeatMap::onDoubleClicked, this, &PanelResults::onOpenNextLevel);
   connect(layout().getBackButton(), &QAction::triggered, [this] { mWindowMain->showPanelStartPage(); });
+  connect(getWindowMain()->getPanelResultsInfo(), &joda::ui::PanelResultsInfo::settingsChanged, [this]() { refreshView(); });
 
   col->setContentsMargins(0, 0, 0, 0);
   col->setSpacing(0);
-  col->addWidget(navigationBar);
   col->addWidget(mHeatmap01);
   col->addWidget(mTable);
 
   onShowTable();
-  repaintHeatmap();
+  refreshView();
 }
 
 void PanelResults::valueChangedEvent()
@@ -170,19 +171,29 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   auto *exportR = new QAction(generateIcon("r-studio"), "");
   exportR->setToolTip("Export R");
   toolbar->addItemToTopToolbar(exportR);
-}
 
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::createNavigationBar(QToolBar *toolbar)
-{
-  toolbar->setContentsMargins(0, 0, 0, 0);
-  toolbar->setStyleSheet("QToolBar { border-bottom: 1px solid rgb(170, 170, 170); }");
+  toolbar->addSeparatorToTopToolbar();
+
+  //
+  //
+  //
+  auto *addColumn = new QAction(generateIcon("add-column"), "");
+  addColumn->setToolTip("Add column");
+  connect(addColumn, &QAction::triggered, [this]() { columnEdit(mSelectedTableRow); });
+
+  toolbar->addItemToTopToolbar(addColumn);
+
+  auto *editColumn = new QAction(generateIcon("edit-column"), "");
+  editColumn->setToolTip("Edit column");
+  connect(editColumn, &QAction::triggered, [this]() { columnEdit(mSelectedTableRow); });
+
+  toolbar->addItemToTopToolbar(editColumn);
+
+  auto *deleteColumn = new QAction(generateIcon("delete-column"), "");
+  deleteColumn->setToolTip("Delete column");
+  connect(deleteColumn, &QAction::triggered, [this]() { columnEdit(mSelectedTableRow); });
+
+  toolbar->addItemToTopToolbar(deleteColumn);
 
   //
   //
@@ -191,54 +202,13 @@ void PanelResults::createNavigationBar(QToolBar *toolbar)
   mBackButton->setEnabled(false);
 
   connect(mBackButton, &QPushButton::clicked, this, &PanelResults::onBackClicked);
-  toolbar->addWidget(mBackButton);
-
-  //
-  mClusterClassSelector = new QComboBox();
-  mClusterClassSelector->setMinimumWidth(150);
-  connect(mClusterClassSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onClusterAndClassesChanged);
-  mClusterClassSelectorAction = toolbar->addWidget(mClusterClassSelector);
+  toolbar->addItemToTopToolbar(mBackButton);
 
   mColumn = new QComboBox();
   mColumn->setMinimumWidth(150);
   connect(mColumn, &QComboBox::currentIndexChanged, this, &PanelResults::onColumnComboChanged);
-  mColumnAction = toolbar->addWidget(mColumn);
+  mColumnAction = toolbar->addItemToTopToolbar(mColumn);
   mColumnAction->setVisible(false);
-
-  mMeasurementSelector = new QComboBox();
-  mMeasurementSelector->addItem("None", -1);
-  mMeasurementSelector->addItem("Count", (int32_t) joda::enums::Measurement::COUNT);
-  mMeasurementSelector->addItem("Confidence", (int32_t) joda::enums::Measurement::CONFIDENCE);
-  mMeasurementSelector->addItem("Area size", (int32_t) joda::enums::Measurement::AREA_SIZE);
-  mMeasurementSelector->addItem("Perimeter", (int32_t) joda::enums::Measurement::PERIMETER);
-  mMeasurementSelector->addItem("Circularity", (int32_t) joda::enums::Measurement::CIRCULARITY);
-  mMeasurementSelector->addItem("Origin object ID", (int32_t) joda::enums::Measurement::ORIGIN_OBJECT_ID);
-  mMeasurementSelector->addItem("Intensity sum.", (int32_t) joda::enums::Measurement::INTENSITY_SUM);
-  mMeasurementSelector->addItem("Intensity avg.", (int32_t) joda::enums::Measurement::INTENSITY_AVG);
-  mMeasurementSelector->addItem("Intensity min.", (int32_t) joda::enums::Measurement::INTENSITY_MIN);
-  mMeasurementSelector->addItem("Intensity max.", (int32_t) joda::enums::Measurement::INTENSITY_MAX);
-  connect(mMeasurementSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
-  mMeasurementSelectorAction = toolbar->addWidget(mMeasurementSelector);
-
-  //
-  //
-  mStatsSelector = new QComboBox();
-  mStatsSelector->addItem("AVG", (int32_t) joda::enums::Stats::AVG);
-  mStatsSelector->addItem("MEDIAN", (int32_t) joda::enums::Stats::MEDIAN);
-  mStatsSelector->addItem("MIN", (int32_t) joda::enums::Stats::MIN);
-  mStatsSelector->addItem("MAX", (int32_t) joda::enums::Stats::MAX);
-  mStatsSelector->addItem("STDDEV", (int32_t) joda::enums::Stats::STDDEV);
-  mStatsSelector->addItem("SUM", (int32_t) joda::enums::Stats::SUM);
-  mStatsSelector->addItem("CNT", (int32_t) joda::enums::Stats::CNT);
-  connect(mStatsSelector, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
-  mStatsSelectorAction = toolbar->addWidget(mStatsSelector);
-
-  toolbar->addSeparator();
-
-  mCrossChannelStackC = new QComboBox();
-  connect(mCrossChannelStackC, &QComboBox::currentIndexChanged, this, &PanelResults::onMeasurementChanged);
-  mCrossChannelStackCAction = mActionCrossChannelCStack = toolbar->addWidget(mCrossChannelStackC);
-  mActionCrossChannelCStack->setEnabled(false);
 
   //
   //
@@ -246,11 +216,9 @@ void PanelResults::createNavigationBar(QToolBar *toolbar)
   mMarkAsInvalid = new QComboBox();
   mMarkAsInvalid->addItem("Valid", false);
   mMarkAsInvalid->addItem("Invalid", true);
-  mMarkAsInvalidAction = toolbar->addWidget(mMarkAsInvalid);
+  mMarkAsInvalidAction = toolbar->addItemToTopToolbar(mMarkAsInvalid);
   mMarkAsInvalidAction->setVisible(false);
   connect(mMarkAsInvalid, &QComboBox::currentIndexChanged, this, &PanelResults::onMarkAsInvalidClicked);
-
-  connect(getWindowMain()->getPanelResultsInfo(), &joda::ui::PanelResultsInfo::settingsChanged, this, &PanelResults::onMeasurementChanged);
 }
 
 ///
@@ -262,100 +230,9 @@ void PanelResults::createNavigationBar(QToolBar *toolbar)
 ///
 void PanelResults::setAnalyzer()
 {
-  {
-    // Clusters/Class
-    mClusterClassSelector->blockSignals(true);
-    auto clusters = mAnalyzer->selectClassesForClusters();
-    mClusterClassSelector->clear();
-    for(const auto &[clusterId, cluster] : clusters) {
-      for(const auto &[classId, classsName] : cluster.second) {
-        std::string name = cluster.first + "@" + classsName;
-        mClusterClassSelector->addItem(name.data(), SettingComboBoxMultiClassificationIn::toInt(
-                                                        {static_cast<enums::ClusterIdIn>(clusterId), static_cast<enums::ClassIdIn>(classId)}));
-      }
-      mClusterClassSelector->insertSeparator(mClusterClassSelector->count());
-    }
-    mClusterClassSelector->blockSignals(false);
-  }
-
-  {
-    // Image channels
-    mCrossChannelStackC->blockSignals(true);
-    auto imageChannels = mAnalyzer->selectImageChannels();
-    mCrossChannelStackC->clear();
-    for(const auto &[channelId, channel] : imageChannels) {
-      mCrossChannelStackC->addItem("CH" + QString::number(channelId) + " (" + QString(channel.name.data()) + ")", channelId);
-    }
-    mCrossChannelStackC->blockSignals(false);
-  }
-
-  // Analyze meta
-  {
-    mSelectedDataSet.analyzeMeta = mAnalyzer->selectExperiment();
-  }
-
+  mSelectedDataSet.analyzeMeta = mAnalyzer->selectExperiment();
+  mColumnEditDialog->updateClustersAndClasses(mAnalyzer.get());
   getWindowMain()->getPanelResultsInfo()->setData(mSelectedDataSet);
-  refreshView();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::onMeasurementChanged()
-{
-  assignFilterSelectionToTableColumn();
-  refreshView();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::onClusterAndClassesChanged()
-{
-  auto clusterClassSelected = SettingComboBoxMultiClassificationIn::fromInt(mClusterClassSelector->currentData().toUInt());
-
-  //
-  // Select cross channel intensity
-  //
-  {
-    auto imageChannels  = mAnalyzer->selectImageChannels();
-    auto currentChannel = mCrossChannelStackC->currentData().toInt();
-    auto channels       = mAnalyzer->selectMeasurementChannelsForClusterAndClass(static_cast<enums::ClusterId>(clusterClassSelected.clusterId),
-                                                                                 static_cast<enums::ClassId>(clusterClassSelected.classId));
-    mCrossChannelStackC->blockSignals(true);
-    mCrossChannelStackC->clear();
-    for(const auto channelId : channels) {
-      mCrossChannelStackC->addItem("CH" + QString::number(channelId) + " (" + QString(imageChannels.at(channelId).name.data()) + ")", channelId);
-    }
-    auto idx = mCrossChannelStackC->findData(currentChannel);
-    if(idx >= 0) {
-      mCrossChannelStackC->setCurrentIndex(idx);
-    }
-    mCrossChannelStackC->blockSignals(false);
-  }
-
-  auto key = settings::ClassificatorSettingOut{.clusterId = static_cast<joda::enums::ClusterId>(clusterClassSelected.clusterId),
-                                               .classId   = static_cast<joda::enums::ClassId>(clusterClassSelected.classId)};
-
-  mSelectedTableColumn = 0;
-  mSelectedTableRow    = 0;
-  if(!mFilter.clustersToExport.contains(key)) {
-    mMeasurementSelector->setCurrentIndex(0);
-    mStatsSelector->setCurrentIndex(0);
-    mCrossChannelStackC->setCurrentIndex(0);
-    mFilter.clustersToExport.emplace(key, db::QueryFilter::Columns{});
-  } else {
-    onTableCurrentCellChanged(mSelectedTableRow, mSelectedTableColumn, mSelectedTableRow, mSelectedTableColumn);
-  }
-
   refreshView();
 }
 
@@ -371,22 +248,77 @@ void PanelResults::refreshView()
   const auto &size      = mWindowMain->getPanelResultsInfo()->getPlateSize();
   const auto &wellOrder = mWindowMain->getPanelResultsInfo()->getWellOrder();
 
-  mFilter.analyzer = mAnalyzer.get(), mFilter.filter = {.plateId         = 0,
-                                                        .groupId         = mActGroupId,
-                                                        .imageId         = mActImageId,
-                                                        .plateRows       = static_cast<uint16_t>(size.height()),
-                                                        .plateCols       = static_cast<uint16_t>(size.width()),
-                                                        .heatmapAreaSize = mWindowMain->getPanelResultsInfo()->getDensityMapSize(),
-                                                        .wellImageOrder  = wellOrder};
+  mFilter.setFilter(mAnalyzer.get(), {.plateId         = 0,
+                                      .groupId         = mActGroupId,
+                                      .imageId         = mActImageId,
+                                      .plateRows       = static_cast<uint16_t>(size.height()),
+                                      .plateCols       = static_cast<uint16_t>(size.width()),
+                                      .heatmapAreaSize = mWindowMain->getPanelResultsInfo()->getDensityMapSize(),
+                                      .wellImageOrder  = wellOrder});
 
-  if(mActionCrossChannelCStack != nullptr) {
-    if(db::getType(static_cast<joda::enums::Measurement>(mMeasurementSelector->currentData().toInt())) == db::MeasureType::INTENSITY) {
-      mActionCrossChannelCStack->setEnabled(true);
-    } else {
-      mActionCrossChannelCStack->setEnabled(false);
-    }
+  //
+  //
+  //
+  if(mAnalyzer && !mIsLoading) {
+    mIsLoading = true;
+    std::thread([this] {
+      switch(mNavigation) {
+        case Navigation::PLATE:
+          mBackButton->setEnabled(false);
+          {
+            auto table = joda::db::StatsPerGroup::toTable(mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
+            if(!table.empty()) {
+              tableToQWidgetTable(table[0]);
+            }
+          }
+          {
+            auto table = joda::db::StatsPerGroup::toHeatmap(mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
+            if(!table.empty()) {
+              tableToHeatmap(table[0]);
+            } else {
+              paintEmptyHeatmap();
+            }
+          }
+          break;
+        case Navigation::WELL:
+          mBackButton->setEnabled(true);
+          {
+            auto table = joda::db::StatsPerGroup::toTable(mFilter, db::StatsPerGroup::Grouping::BY_WELL);
+            if(!table.empty()) {
+              tableToQWidgetTable(table[0]);
+            }
+          }
+          {
+            auto table = joda::db::StatsPerGroup::toHeatmap(mFilter, db::StatsPerGroup::Grouping::BY_WELL);
+            if(!table.empty()) {
+              tableToHeatmap(table[0]);
+            } else {
+              paintEmptyHeatmap();
+            }
+          }
+          break;
+        case Navigation::IMAGE:
+          mBackButton->setEnabled(true);
+          {
+            auto table = joda::db::StatsPerImage::toTable(mFilter);
+            if(!table.empty()) {
+              tableToQWidgetTable(table[0]);
+            }
+          }
+          {
+            auto table = joda::db::StatsPerImage::toHeatmap(mFilter);
+            if(!table.empty()) {
+              tableToHeatmap(table[0]);
+            } else {
+              paintEmptyHeatmap();
+            }
+          }
+          break;
+      }
+      update();
+      mIsLoading = false;
+    }).detach();
   }
-  repaintHeatmap();
 }
 
 ///
@@ -434,7 +366,7 @@ void PanelResults::onMarkAsInvalidClicked()
     val.set(enums::ChannelValidityEnum::MANUAL_OUT_SORTED);
     mAnalyzer->unsetImageValidity(mSelectedImageId, val);
   }
-  onMeasurementChanged();
+  refreshView();
 }
 
 ///
@@ -510,7 +442,7 @@ void PanelResults::onOpenNextLevel(int cellX, int cellY, table::TableCell value)
       break;
   }
 
-  onMeasurementChanged();
+  refreshView();
 }
 
 ///
@@ -534,106 +466,8 @@ void PanelResults::onBackClicked()
       break;
   }
 
-  onMeasurementChanged();
+  refreshView();
   getWindowMain()->getPanelResultsInfo()->setData(mSelectedDataSet);
-}
-
-///
-/// \brief      Constructor
-/// \author     Joachim Danmayr
-///
-void PanelResults::repaintHeatmap()
-{
-  if(mAnalyzer && !mIsLoading) {
-    mIsLoading = true;
-    std::thread([this] {
-      auto clusterClassSelected = SettingComboBoxMultiClassificationIn::fromInt(mClusterClassSelector->currentData().toUInt());
-      auto key                  = settings::ClassificatorSettingOut{.clusterId = static_cast<joda::enums::ClusterId>(clusterClassSelected.clusterId),
-                                                                    .classId   = static_cast<joda::enums::ClassId>(clusterClassSelected.classId)};
-
-      if(!mFilter.clustersToExport.contains(key)) {
-        mIsLoading = false;
-        return;
-      }
-      db::QueryFilter tmpFilterTable;
-      tmpFilterTable.analyzer = mFilter.analyzer;
-      tmpFilterTable.filter   = mFilter.filter;
-      tmpFilterTable.clustersToExport.emplace(key, mFilter.clustersToExport.at(key));
-
-      db::QueryFilter tmpFilterHeatmap;
-      tmpFilterHeatmap.analyzer = mFilter.analyzer;
-      tmpFilterHeatmap.filter   = mFilter.filter;
-      auto measTmp              = static_cast<enums::Measurement>(mMeasurementSelector->currentData().toInt());
-      auto statsTmp             = static_cast<enums::Stats>(mStatsSelector->currentData().toInt());
-      auto cStackTmp            = -1;
-      if(mCrossChannelStackC->count() > 0 && db::getType(measTmp) == db::MeasureType::INTENSITY) {
-        mCrossChannelStackC->currentData().toInt();
-      }
-
-      for(const auto &col : mFilter.clustersToExport.at(key).second) {
-        if(col.stats == statsTmp && col.measureChannel == measTmp && (col.crossChannelStacksC == cStackTmp || cStackTmp < 0)) {
-          tmpFilterHeatmap.clustersToExport.emplace(key, joda::db::QueryFilter::Columns{mFilter.clustersToExport.at(key).first, {col}});
-          break;
-        }
-      }
-
-      switch(mNavigation) {
-        case Navigation::PLATE:
-          mBackButton->setEnabled(false);
-          {
-            auto table = joda::db::StatsPerGroup::toTable(tmpFilterTable, db::StatsPerGroup::Grouping::BY_PLATE);
-            if(!table.empty()) {
-              tableToQWidgetTable(table[0]);
-            }
-          }
-          {
-            auto table = joda::db::StatsPerGroup::toHeatmap(tmpFilterHeatmap, db::StatsPerGroup::Grouping::BY_PLATE);
-            if(!table.empty()) {
-              tableToHeatmap(table[0]);
-            } else {
-              paintEmptyHeatmap();
-            }
-          }
-          break;
-        case Navigation::WELL:
-          mBackButton->setEnabled(true);
-          {
-            auto table = joda::db::StatsPerGroup::toTable(tmpFilterTable, db::StatsPerGroup::Grouping::BY_WELL);
-            if(!table.empty()) {
-              tableToQWidgetTable(table[0]);
-            }
-          }
-          {
-            auto table = joda::db::StatsPerGroup::toHeatmap(tmpFilterHeatmap, db::StatsPerGroup::Grouping::BY_WELL);
-            if(!table.empty()) {
-              tableToHeatmap(table[0]);
-            } else {
-              paintEmptyHeatmap();
-            }
-          }
-          break;
-        case Navigation::IMAGE:
-          mBackButton->setEnabled(true);
-          {
-            auto table = joda::db::StatsPerImage::toHeatmapList(tmpFilterTable);
-            if(!table.empty()) {
-              tableToQWidgetTable(table[0]);
-            }
-          }
-          {
-            auto table = joda::db::StatsPerImage::toHeatmap(tmpFilterHeatmap);
-            if(!table.empty()) {
-              tableToHeatmap(table[0]);
-            } else {
-              paintEmptyHeatmap();
-            }
-          }
-          break;
-      }
-      update();
-      mIsLoading = false;
-    }).detach();
-  }
 }
 
 ///
@@ -677,12 +511,9 @@ void PanelResults::onShowTable()
 {
   mTable->setVisible(true);
   mColumnAction->setVisible(false);
-  mStatsSelectorAction->setVisible(true);
-  mMeasurementSelectorAction->setVisible(true);
-  mCrossChannelStackCAction->setVisible(true);
 
   mHeatmap01->setVisible(false);
-  repaintHeatmap();
+  refreshView();
 }
 
 ///
@@ -696,12 +527,9 @@ void PanelResults::onShowHeatmap()
 {
   mTable->setVisible(false);
   mColumnAction->setVisible(true);
-  mStatsSelectorAction->setVisible(false);
-  mMeasurementSelectorAction->setVisible(false);
-  mCrossChannelStackCAction->setVisible(false);
 
   mHeatmap01->setVisible(true);
-  repaintHeatmap();
+  refreshView();
 }
 
 ///
@@ -751,13 +579,41 @@ void PanelResults::paintEmptyHeatmap()
 /// \param[out]
 /// \return
 ///
+void PanelResults::createEditColumnDialog()
+{
+  mColumnEditDialog = new DialogColumnSettings(&mFilter, mWindowMain);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::columnEdit(int32_t colIdx)
+{
+  if(mSelectedTableColumn < 0) {
+    return;
+  }
+  mColumnEditDialog->exec(mSelectedTableColumn);
+  refreshView();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelResults::tableToQWidgetTable(const joda::table::Table &tableIn)
 {
   std::lock_guard<std::mutex> lock(mSelectMutex);
   mSelectedTable = tableIn;
   if(tableIn.getCols() > 0) {
     mTable->setColumnCount(tableIn.getCols() + 1);
-    mTable->setRowCount(tableIn.getRowHeaderSize() + 1);
+    mTable->setRowCount(tableIn.getRows() + 1);
 
   } else {
     mTable->setColumnCount(1);
@@ -797,7 +653,7 @@ void PanelResults::tableToQWidgetTable(const joda::table::Table &tableIn)
 
   // Row
   for(int row = 0; row < mTable->rowCount(); row++) {
-    if(tableIn.getRowHeaderSize() > row) {
+    if(tableIn.getRows() > row) {
       mTable->setVerticalHeaderItem(row, createTableWidget(tableIn.getRowHeader(row).data()));
     } else {
       mTable->setVerticalHeaderItem(row, createTableWidget(QString(std::to_string(row).data())));
@@ -812,57 +668,13 @@ void PanelResults::tableToQWidgetTable(const joda::table::Table &tableIn)
         mTable->setItem(row, col, item);
       }
       if(item) {
-        if(tableIn.getRowHeaderSize() > row && tableIn.getCols() > col) {
+        if(tableIn.getRows() > row && tableIn.getCols() > col) {
           item->setText(QString::number((double) tableIn.data(row, col).getVal()));
         } else {
           item->setText(" ");
         }
       }
     }
-  }
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-auto PanelResults::getClusterAndClassFromCombo() const -> std::pair<std::string, std::string>
-{
-  QString clusterName;
-  QString className;
-  className = mClusterClassSelector->currentText();
-  if(!className.isEmpty()) {
-    auto splited = className.split("@");
-    if(splited.size() > 1) {
-      clusterName = splited[0];
-      className   = splited[1];
-    }
-  }
-
-  return {clusterName.toStdString(), className.toStdString()};
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::addClusterAndClassToFilter()
-{
-  auto clusterClassSelected = SettingComboBoxMultiClassificationIn::fromInt(mClusterClassSelector->currentData().toUInt());
-  auto key                  = settings::ClassificatorSettingOut{.clusterId = static_cast<joda::enums::ClusterId>(clusterClassSelected.clusterId),
-                                                                .classId   = static_cast<joda::enums::ClassId>(clusterClassSelected.classId)};
-
-  if(!mFilter.clustersToExport.contains(key)) {
-    auto [clusterName, className] = getClusterAndClassFromCombo();
-
-    mFilter.clustersToExport.emplace(key, db::QueryFilter::Columns{db::QueryFilter::Naming{.clusterName = clusterName, .className = className},
-                                                                   std::vector<db::QueryFilter::Column>(0)});
   }
 }
 
@@ -886,125 +698,10 @@ void PanelResults::onColumnComboChanged()
 /// \param[out]
 /// \return
 ///
-void PanelResults::assignFilterSelectionToTableColumn()
-{
-  if(mSelectedTableColumn < 0 && mMeasurementSelector->currentData().toInt() >= 0) {
-    return;
-  }
-  auto clusterClassSelected = SettingComboBoxMultiClassificationIn::fromInt(mClusterClassSelector->currentData().toUInt());
-  auto key                  = settings::ClassificatorSettingOut{.clusterId = static_cast<joda::enums::ClusterId>(clusterClassSelected.clusterId),
-                                                                .classId   = static_cast<joda::enums::ClassId>(clusterClassSelected.classId)};
-  addClusterAndClassToFilter();
-  auto &colIn = mFilter.clustersToExport.at(key).second;
-
-  auto measTmp      = static_cast<enums::Measurement>(mMeasurementSelector->currentData().toInt());
-  int32_t cStackTmp = -1;
-  if(mCrossChannelStackC->count() > 0) {
-    cStackTmp = mCrossChannelStackC->currentData().toInt();
-  }
-
-  if(measTmp == enums::Measurement::NONE || (cStackTmp < 0 && db::getType(measTmp) == db::MeasureType::INTENSITY)) {
-    if(colIn.size() > mSelectedTableColumn) {
-      colIn.erase(colIn.begin() + mSelectedTableColumn);
-    }
-    return;
-  }
-
-  if(mSelectedTableColumn >= colIn.size()) {
-    colIn.emplace_back();
-  }
-
-  auto &col               = colIn[mSelectedTableColumn];
-  col.crossChannelName    = mCrossChannelStackC->currentText().toStdString();
-  col.crossChannelStacksC = cStackTmp;
-
-  col.measureChannel = measTmp;
-  col.stats          = static_cast<enums::Stats>(mStatsSelector->currentData().toInt());
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 void PanelResults::onTableCurrentCellChanged(int currentRow, int currentColumn, int previousRow, int previousColumn)
 {
-  if(currentColumn < 0) {
-    return;
-  }
-
-  mTable->blockSignals(true);
-  mClusterClassSelector->blockSignals(true);
-  mMeasurementSelector->blockSignals(true);
-  mStatsSelector->blockSignals(true);
-  mCrossChannelStackC->blockSignals(true);
-  mColumn->blockSignals(true);
-
-  {
-    auto idx = mColumn->findData(currentColumn);
-    if(idx >= 0) {
-      mColumn->setCurrentIndex(idx);
-    }
-  }
-
-  auto clusterClassSelected = SettingComboBoxMultiClassificationIn::fromInt(mClusterClassSelector->currentData().toUInt());
-  auto key                  = settings::ClassificatorSettingOut{.clusterId = static_cast<joda::enums::ClusterId>(clusterClassSelected.clusterId),
-                                                                .classId   = static_cast<joda::enums::ClassId>(clusterClassSelected.classId)};
-
   mSelectedTableColumn = currentColumn;
   mSelectedTableRow    = currentRow;
-
-  mTable->setCurrentCell(currentRow, currentColumn);
-
-  if(!mFilter.clustersToExport.contains(key) || (mFilter.clustersToExport.at(key).second.size() <= currentColumn)) {
-    mMeasurementSelector->setCurrentIndex(0);
-    mStatsSelector->setCurrentIndex(0);
-    mCrossChannelStackC->setCurrentIndex(0);
-
-    mClusterClassSelector->blockSignals(false);
-    mMeasurementSelector->blockSignals(false);
-    mStatsSelector->blockSignals(false);
-    mCrossChannelStackC->blockSignals(false);
-    mTable->blockSignals(false);
-
-    return;
-  }
-  const auto &col = mFilter.clustersToExport.at(key).second[currentColumn];
-
-  auto idx = mMeasurementSelector->findData(static_cast<int32_t>(col.measureChannel));
-  if(idx >= 0) {
-    mMeasurementSelector->setCurrentIndex(idx);
-  } else {
-    mMeasurementSelector->setCurrentIndex(0);
-  }
-
-  {
-    auto idx = mStatsSelector->findData(static_cast<int32_t>(col.stats));
-    if(idx >= 0) {
-      mStatsSelector->setCurrentIndex(idx);
-    } else {
-      mStatsSelector->setCurrentIndex(0);
-    }
-  }
-
-  {
-    auto idx = mCrossChannelStackC->findData(col.crossChannelStacksC);
-    if(idx >= 0) {
-      mCrossChannelStackC->setCurrentIndex(idx);
-    } else {
-      if(mCrossChannelStackC->count() > 0) {
-        mCrossChannelStackC->setCurrentIndex(0);
-      }
-    }
-  }
-  mColumn->blockSignals(false);
-  mClusterClassSelector->blockSignals(false);
-  mMeasurementSelector->blockSignals(false);
-  mStatsSelector->blockSignals(false);
-  mCrossChannelStackC->blockSignals(false);
-  mTable->blockSignals(false);
 }
 
 ///

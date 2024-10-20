@@ -24,7 +24,7 @@
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/database/database.hpp"
-#include "backend/helper/database/plugins/helper.hpp"
+#include "backend/helper/database/plugins/filter.hpp"
 #include "backend/helper/table/table.hpp"
 #include "heatmap/panel_heatmap.hpp"
 #include "ui/container/panel_edit_base.hpp"
@@ -37,6 +37,8 @@ class WindowMain;
 }
 
 namespace joda::ui {
+
+class DialogColumnSettings;
 
 ///
 /// \class      PanelResults
@@ -98,10 +100,8 @@ private:
 
   void refreshView();
   void copyTableToClipboard(QTableWidget *table);
-  void assignFilterSelectionToTableColumn();
 
   /////////////////////////////////////////////////////
-  void addClusterAndClassToFilter();
   void onExportClicked(ExportFormat);
 
   WindowMain *mWindowMain;
@@ -110,30 +110,24 @@ private:
 
   // Breadcrumb///////////////////////////////////////////////////
   void createBreadCrump(joda::ui::helper::LayoutGenerator *);
-  void createNavigationBar(QToolBar *);
   auto getClusterAndClassFromCombo() const -> std::pair<std::string, std::string>;
 
   QPushButton *mBackButton;
 
   PanelPreview *mPreviewImage;
   // uint32_t mDensityMapSize = 200;
-
   QComboBox *mColumn;
-  QComboBox *mClusterClassSelector;
-  QComboBox *mMeasurementSelector;
-  QComboBox *mStatsSelector;
-  QComboBox *mCrossChannelStackC;
-
   QAction *mColumnAction;
-  QAction *mClusterClassSelectorAction;
-  QAction *mMeasurementSelectorAction;
-  QAction *mStatsSelectorAction;
-  QAction *mCrossChannelStackCAction;
+
+  /// COLUMN EDIT //////////////////////////////////////////////////
+  void createEditColumnDialog();
+  void columnEdit(int32_t colIdx);
+  DialogColumnSettings *mColumnEditDialog;
 
   /////////////////////////////////////////////////////
+  db::QueryFilter mFilter;
   QTableWidget *mTable;
   table::Table mSelectedTable;
-
   int32_t mSelectedTableColumn = -1;
   int32_t mSelectedTableRow    = -1;
 
@@ -141,14 +135,12 @@ private:
 
   /////////////////////////////////////////////////////
   ChartHeatMap *mHeatmap01;
-  db::QueryFilter mFilter;
   Navigation mNavigation = Navigation::PLATE;
   QComboBox *mMarkAsInvalid;
   PanelResultsInfo::DataSet mSelectedDataSet;
 
   /////////////////////////////////////////////////////
-  QAction *mMarkAsInvalidAction      = nullptr;
-  QAction *mActionCrossChannelCStack = nullptr;
+  QAction *mMarkAsInvalidAction = nullptr;
 
   /////////////////////////////////////////////////////
   uint16_t mActGroupId = 0;
@@ -167,12 +159,9 @@ public slots:
   void onOpenNextLevel(int cellX, int cellY, table::TableCell value);
   void onTableCurrentCellChanged(int currentRow, int currentColumn, int previousRow, int previousColumn);
   void onBackClicked();
-  void repaintHeatmap();
   void onExportImageClicked();
   void onShowTable();
   void onShowHeatmap();
-  void onClusterAndClassesChanged();
-  void onMeasurementChanged();
   void onCellClicked(int row, int column);
   void onColumnComboChanged();
 };

@@ -14,7 +14,7 @@
 #include <iostream>
 #include <ostream>
 #include <string>
-#include "backend/helper/database/plugins/helper.hpp"
+#include "backend/helper/database/plugins/filter.hpp"
 #include "backend/helper/database/plugins/stats_for_image.hpp"
 #include "backend/helper/database/plugins/stats_for_well.hpp"
 #include "backend/helper/helper.hpp"

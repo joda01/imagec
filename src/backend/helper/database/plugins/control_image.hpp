@@ -10,7 +10,7 @@
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/table/table.hpp"
 #include <opencv2/core/types.hpp>
-#include "helper.hpp"
+#include "filter.hpp"
 
 namespace joda::db {
 
@@ -21,8 +21,8 @@ public:
   /// \brief      Get data for plates
   /// \author     Joachim Danmayr
   ///
-  static auto getControlImage(Database &analyzer, uint64_t imageId, enums::ClusterId channelId, enums::ClassId classId,
-                              enums::Measurement stats, int32_t tileID, const cv::Rect &boundingBox) -> cv::Mat
+  static auto getControlImage(Database &analyzer, uint64_t imageId, enums::ClusterId channelId, enums::ClassId classId, enums::Measurement stats,
+                              int32_t tileID, const cv::Rect &boundingBox) -> cv::Mat
   {
     return {};
     /*

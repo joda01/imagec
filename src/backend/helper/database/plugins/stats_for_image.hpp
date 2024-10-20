@@ -6,7 +6,7 @@
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
-#include "backend/helper/database/plugins/helper.hpp"
+#include "backend/helper/database/plugins/filter.hpp"
 #include "backend/helper/table/table.hpp"
 
 namespace joda::db {
@@ -14,13 +14,12 @@ namespace joda::db {
 class StatsPerImage
 {
 public:
-  static auto toTable(const QueryFilter &filter) -> std::vector<joda::table::Table>;
-  static auto toHeatmap(const QueryFilter &filter) -> std::vector<joda::table::Table>;
-  static auto toHeatmapList(const QueryFilter &filter) -> std::vector<joda::table::Table>;
-  static auto toSqlTable(const QueryFilter::ObjectFilter &filter, const QueryFilter::ChannelFilter &channelFilter)
-      -> std::pair<std::string, DbArgs_t>;
-  static auto toSqlHeatmap(const QueryFilter::ObjectFilter &filter, const QueryFilter::ChannelFilter &channelFilter)
-      -> std::pair<std::string, DbArgs_t>;
+  static auto toTable(const QueryFilter &filter) -> QueryResult;
+  static auto toHeatmap(const QueryFilter &filter) -> QueryResult;
+  static auto toSqlTable(const settings::ClassificatorSettingOut &clusterAndClass, const QueryFilter::ObjectFilter &filter,
+                         const PreparedStatement &channelFilter) -> std::pair<std::string, DbArgs_t>;
+  static auto toSqlHeatmap(const settings::ClassificatorSettingOut &clusterAndClass, const QueryFilter::ObjectFilter &filter,
+                           const PreparedStatement &channelFilter) -> std::pair<std::string, DbArgs_t>;
 
 private:
   struct ImgInfo
@@ -30,7 +29,7 @@ private:
     std::string controlImgPath;
   };
 
-  static auto densityMap(db::Database *analyzer, const QueryFilter::ObjectFilter &filter, const QueryFilter::ChannelFilter &channelFilter)
-      -> std::tuple<std::unique_ptr<duckdb::QueryResult>, ImgInfo>;
+  static auto densityMap(const settings::ClassificatorSettingOut &clusterAndClass, db::Database *analyzer, const QueryFilter::ObjectFilter &filter,
+                         const PreparedStatement &channelFilter) -> std::tuple<std::unique_ptr<duckdb::QueryResult>, ImgInfo>;
 };
 }    // namespace joda::db
