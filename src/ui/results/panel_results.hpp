@@ -126,7 +126,7 @@ private:
 
   /////////////////////////////////////////////////////
   db::QueryFilter mFilter;
-  QTableWidget *mTable;
+  PlaceholderTableWidget *mTable;
   table::Table mSelectedTable;
   int32_t mSelectedTableColumn = -1;
   int32_t mSelectedTableRow    = -1;

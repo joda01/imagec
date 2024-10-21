@@ -73,6 +73,11 @@ void Table::setRowHeader(const std::map<uint32_t, std::string> &data)
   mRowHeader = data;
 }
 
+void Table::setRowName(uint32_t row, const std::string &data)
+{
+  mRowHeader[row] = data;
+}
+
 void Table::setTitle(const std::string &title)
 {
   mTitle = title;

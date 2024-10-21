@@ -94,6 +94,7 @@ public:
   void setMeta(const Meta &);
   void setColHeader(const std::map<uint32_t, std::string> &);
   void setRowHeader(const std::map<uint32_t, std::string> &);
+  void setRowName(uint32_t row, const std::string &data);
   auto getMutableRowHeader() -> std::map<uint32_t, std::string> &
   {
     return mRowHeader;

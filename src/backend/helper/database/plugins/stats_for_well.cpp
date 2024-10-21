@@ -33,12 +33,15 @@ auto StatsPerGroup::toTable(const QueryFilter &filter, Grouping grouping) -> Que
   auto clustersToExport = filter.getClustersAndClassesToExport();
 
   for(const auto &[clusterClass, statement] : clustersToExport) {
+    std::cout << "Get data " << std::to_string((uint32_t) clusterClass.clusterId) << "@" << std::to_string((uint32_t) clusterClass.classId)
+              << std::endl;
+
     auto materializedResult =
         getData(clusterClass, filter.getAnalyzer(), filter.getFilter(), statement, grouping)->Cast<duckdb::StreamQueryResult>().Materialize();
+    size_t columnNr = statement.getColSize();
 
     for(size_t row = 0; row < materializedResult->RowCount(); row++) {
       try {
-        size_t columnNr  = statement.getColSize();
         auto groupId     = materializedResult->GetValue(columnNr + 0, row).GetValue<uint16_t>();
         auto imgGroupIdx = materializedResult->GetValue(columnNr + 1, row).GetValue<uint32_t>();
         auto platePosX   = materializedResult->GetValue(columnNr + 2, row).GetValue<uint32_t>();
@@ -50,9 +53,9 @@ auto StatsPerGroup::toTable(const QueryFilter &filter, Grouping grouping) -> Que
         for(int32_t colIdx = 0; colIdx < columnNr; colIdx++) {
           double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
           if(grouping == Grouping::BY_WELL) {
-            clustersToExport.setData(clusterClass, row, colIdx, table::TableCell{value, imageId, validity == 0, ""});
+            clustersToExport.setData(clusterClass, row, colIdx, filename, table::TableCell{value, imageId, validity == 0, ""});
           } else {
-            clustersToExport.setData(clusterClass, row, colIdx, table::TableCell{value, groupId, validity == 0, ""});
+            clustersToExport.setData(clusterClass, row, colIdx, std::to_string(row), table::TableCell{value, groupId, validity == 0, ""});
           }
         }
 

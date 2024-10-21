@@ -73,9 +73,10 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   //
   // Create Table
   //
-  mTable = new QTableWidget();
-  mTable->setRowCount(1);
-  mTable->setColumnCount(1);
+  mTable = new PlaceholderTableWidget();
+  mTable->setPlaceholderText("Click >Add column> to add your first column.");
+  mTable->setRowCount(0);
+  mTable->setColumnCount(0);
   mTable->verticalHeader()->setDefaultSectionSize(8);    // Set each row to 50 pixels height
 
   connect(mTable, &QTableWidget::currentCellChanged, this, &PanelResults::onTableCurrentCellChanged);
@@ -179,19 +180,28 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   //
   auto *addColumn = new QAction(generateIcon("add-column"), "");
   addColumn->setToolTip("Add column");
-  connect(addColumn, &QAction::triggered, [this]() { columnEdit(mSelectedTableRow); });
+  connect(addColumn, &QAction::triggered, [this]() { columnEdit(mTable->columnCount()); });
 
   toolbar->addItemToTopToolbar(addColumn);
 
   auto *editColumn = new QAction(generateIcon("edit-column"), "");
   editColumn->setToolTip("Edit column");
-  connect(editColumn, &QAction::triggered, [this]() { columnEdit(mSelectedTableRow); });
+  connect(editColumn, &QAction::triggered, [this]() {
+    if(mSelectedTableColumn >= 0) {
+      columnEdit(mSelectedTableColumn);
+    }
+  });
 
   toolbar->addItemToTopToolbar(editColumn);
 
   auto *deleteColumn = new QAction(generateIcon("delete-column"), "");
   deleteColumn->setToolTip("Delete column");
-  connect(deleteColumn, &QAction::triggered, [this]() { columnEdit(mSelectedTableRow); });
+  connect(deleteColumn, &QAction::triggered, [this]() {
+    if(mSelectedTableColumn >= 0) {
+      mFilter.eraseColumn({.tabIdx = 0, .colIdx = mSelectedTableColumn});
+      refreshView();
+    }
+  });
 
   toolbar->addItemToTopToolbar(deleteColumn);
 
@@ -593,10 +603,7 @@ void PanelResults::createEditColumnDialog()
 ///
 void PanelResults::columnEdit(int32_t colIdx)
 {
-  if(mSelectedTableColumn < 0) {
-    return;
-  }
-  mColumnEditDialog->exec(mSelectedTableColumn);
+  mColumnEditDialog->exec(colIdx);
   refreshView();
 }
 
@@ -612,12 +619,12 @@ void PanelResults::tableToQWidgetTable(const joda::table::Table &tableIn)
   std::lock_guard<std::mutex> lock(mSelectMutex);
   mSelectedTable = tableIn;
   if(tableIn.getCols() > 0) {
-    mTable->setColumnCount(tableIn.getCols() + 1);
-    mTable->setRowCount(tableIn.getRows() + 1);
+    mTable->setColumnCount(tableIn.getCols());
+    mTable->setRowCount(tableIn.getRows());
 
   } else {
-    mTable->setColumnCount(1);
-    mTable->setRowCount(1);
+    mTable->setColumnCount(0);
+    mTable->setRowCount(0);
   }
 
   auto createTableWidget = [](const QString &data) {

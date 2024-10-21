@@ -41,6 +41,7 @@ public:
 private:
   /////////////////////////////////////////////////////
   int32_t mSelectedColumn = -1;
+  bool accept             = false;
 
   db::Database *mDatabase  = nullptr;
   db::QueryFilter *mFilter = nullptr;

@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <map>
 #include <stdexcept>
 #include <string>
@@ -87,31 +88,29 @@ public:
     int32_t zStack                    = 0;
     int32_t tStack                    = 0;
 
+    ColumnName names;
+
     bool operator<(const ColumnKey &input) const
     {
-      return clusterClass < input.clusterClass || static_cast<int32_t>(measureChannel) < static_cast<int32_t>(input.measureChannel) ||
-             static_cast<int32_t>(stats) < static_cast<int32_t>(input.stats) || crossChannelStacksC < input.crossChannelStacksC;
+      return clusterClass < input.clusterClass || static_cast<int16_t>(measureChannel) < static_cast<int16_t>(input.measureChannel) ||
+             static_cast<int16_t>(stats) < static_cast<int16_t>(input.stats) || crossChannelStacksC < input.crossChannelStacksC;
     }
 
     bool operator==(const ColumnKey &input) const
     {
-      return static_cast<int32_t>(measureChannel) == static_cast<int32_t>(input.measureChannel) &&
+      return clusterClass == input.clusterClass && static_cast<int32_t>(measureChannel) == static_cast<int32_t>(input.measureChannel) &&
              static_cast<int32_t>(stats) == static_cast<int32_t>(input.stats) && crossChannelStacksC == input.crossChannelStacksC &&
              zStack == input.zStack && tStack == input.tStack;
     }
 
-    std::string createHeader(const QueryFilter *filter) const
+    std::string createHeader() const
     {
-      if(!filter->mColumnNames.contains(*this)) {
-        return "-";
-      }
-      auto names = filter->mColumnNames.at(*this);
       std::map<uint32_t, std::string> columnHeaders;
       if(getType(measureChannel) == MeasureType::INTENSITY) {
-        return names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "] " + "(CH" + std::to_string(crossChannelStacksC) +
-               ")";
+        return names.clusterName + "@" + names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "] " + "(CH" +
+               std::to_string(crossChannelStacksC) + ")";
       }
-      return names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "]";
+      return names.clusterName + "@" + names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "]";
     }
   };
 
@@ -133,15 +132,37 @@ public:
     mFilter   = filter;
   }
 
-  void addColumn(const ColumnIdx &colIdx, const ColumnKey &key, const ColumnName &names)
+  bool addColumn(const ColumnIdx &colIdx, const ColumnKey &key, const ColumnName &names)
   {
+    for(const auto &[_, colKey] : mColumns) {
+      if(colKey == key) {
+        return false;
+      }
+    }
+
     if(!mColumns.contains(colIdx)) {
       mColumns.emplace(colIdx, key);
     } else {
       mColumns[colIdx] = key;
     }
 
-    mColumnNames[key] = names;
+    mColumns[colIdx].names = names;
+    return true;
+  }
+
+  void eraseColumn(const ColumnIdx &colIdx)
+  {
+    mColumns.erase(colIdx);
+  }
+
+  [[nodiscard]] auto getColumn(const ColumnIdx &colIdx) const -> ColumnKey
+  {
+    return mColumns.at(colIdx);
+  }
+
+  [[nodiscard]] bool containsColumn(const ColumnIdx &colIdx) const
+  {
+    return mColumns.contains(colIdx);
   }
 
   [[nodiscard]] auto getClustersAndClassesToExport() const -> ResultingTable;
@@ -161,17 +182,11 @@ public:
     return mColumns;
   }
 
-  [[nodiscard]] auto getColumnName(const ColumnKey &key) const -> const ColumnName &
-  {
-    return mColumnNames.at(key);
-  }
-
 private:
   /////////////////////////////////////////////////////
   db::Database *mAnalyzer = nullptr;
   ObjectFilter mFilter;
   std::map<ColumnIdx, ColumnKey> mColumns;
-  std::map<ColumnKey, ColumnName> mColumnNames;
 };
 
 ///
@@ -184,7 +199,7 @@ class PreparedStatement
 public:
   std::string createStatsQuery(bool isDistinct, std::optional<enums::Stats> overrideStats = std::nullopt) const;
 
-  void addColumn(int32_t colIdx, QueryFilter::ColumnKey col)
+  void addColumn(QueryFilter::ColumnKey col)
   {
     for(const auto &[_, element] : columns) {
       if(element == col) {
@@ -192,7 +207,8 @@ public:
       }
     }
 
-    columns.emplace(colIdx, col);
+    size_t pos = columns.size();
+    columns.emplace(pos, col);
   }
 
   [[nodiscard]] auto getColumns() const -> const std::map<int32_t, QueryFilter::ColumnKey> &
@@ -202,7 +218,7 @@ public:
 
   [[nodiscard]] auto getColumnAt(int32_t dbColIdx) const -> const QueryFilter::ColumnKey &
   {
-    if(dbColIdx >= columns.size()) {
+    if(!columns.contains(dbColIdx)) {
       throw std::invalid_argument("Colum unknown!");
     }
     return columns.at(dbColIdx);
@@ -232,7 +248,8 @@ class ResultingTable
 public:
   explicit ResultingTable(const QueryFilter *);
 
-  void setData(const settings::ClassificatorSettingOut &clusterAndClass, int32_t row, int32_t dbColIx, const table::TableCell &tableCell)
+  void setData(const settings::ClassificatorSettingOut &clusterAndClass, int32_t row, int32_t dbColIx, const std::string &rowName,
+               const table::TableCell &tableCell)
   {
     const PreparedStatement &prep = mClustersAndClasses[clusterAndClass];
     auto columnKey                = prep.getColumnAt(dbColIx);
@@ -240,6 +257,7 @@ public:
     auto tableColumnsToWriteTo = mTableMapping.equal_range(columnKey);
     for(auto it = tableColumnsToWriteTo.first; it != tableColumnsToWriteTo.second; ++it) {
       auto &element = it->second;
+      mResultingTable.at(element.tabIdx).setRowName(row, rowName);
       mResultingTable.at(element.tabIdx).setData(row, element.colIdx, tableCell);
     }
   }
@@ -249,7 +267,6 @@ public:
   {
     const PreparedStatement &prep = mClustersAndClasses[clusterAndClass];
     auto columnKey                = prep.getColumnAt(dbColIx);
-    auto colName                  = mFilter->getColumnName(columnKey);
     mResultingTable[tabIndex].setData(row, col, tableCell);
   }
 
@@ -285,7 +302,6 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  const QueryFilter *mFilter;
   std::map<int32_t, table::Table> mResultingTable;
   std::map<settings::ClassificatorSettingOut, PreparedStatement> mClustersAndClasses;
   std::multimap<QueryFilter::ColumnKey, QueryFilter::ColumnIdx> mTableMapping;

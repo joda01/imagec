@@ -11,7 +11,9 @@
 ///
 
 #include "dialog_column_settings.hpp"
+#include <qaction.h>
 #include <qboxlayout.h>
+#include <qcombobox.h>
 #include <qdialog.h>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
@@ -19,6 +21,7 @@
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/database/plugins/filter.hpp"
 #include "ui/container/setting/setting_combobox_multi_classification_unmanaged.hpp"
+#include "ui/helper/icon_generator.hpp"
 
 namespace joda::ui {
 
@@ -65,6 +68,31 @@ DialogColumnSettings::DialogColumnSettings(db::QueryFilter *filter, QWidget *par
 
   vlayout->addStretch();
 
+  {
+    auto *mToolbarBottom = new QToolBar();
+    mToolbarBottom->setContentsMargins(0, 0, 0, 0);
+    auto *spacerBottom = new QWidget();
+    spacerBottom->setContentsMargins(0, 0, 0, 0);
+    spacerBottom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    auto *mSpaceBottomToolbar = mToolbarBottom->addWidget(spacerBottom);
+
+    //
+    // auto *mDeleteButton = new QAction(generateIcon("delete"), "Delete", mToolbarBottom);
+    // connect(mDeleteButton, &QAction::triggered, [this]() { close(); });
+    // mToolbarBottom->addAction(mDeleteButton);
+
+    //
+
+    auto *okayBottom = new QAction(generateIcon("accept"), "Accept", mToolbarBottom);
+    connect(okayBottom, &QAction::triggered, [this]() {
+      accept = true;
+      close();
+    });
+    mToolbarBottom->addAction(okayBottom);
+
+    vlayout->addWidget(mToolbarBottom);
+  }
+
   setLayout(vlayout);
 }
 
@@ -77,17 +105,42 @@ DialogColumnSettings::DialogColumnSettings(db::QueryFilter *filter, QWidget *par
 ///
 void DialogColumnSettings::exec(int32_t selectedColumn)
 {
+  if(mFilter->containsColumn({.tabIdx = 0, .colIdx = selectedColumn})) {
+    mClusterClassSelector->blockSignals(true);
+
+    auto colKey = mFilter->getColumn({.tabIdx = 0, .colIdx = selectedColumn});
+
+    auto select = [](int idx, QComboBox *combo) {
+      if(idx >= 0) {
+        combo->setCurrentIndex(idx);
+      }
+    };
+
+    select(mClusterClassSelector->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(colKey.clusterClass)), mClusterClassSelector);
+    onClusterAndClassesChanged();
+    select(mMeasurementSelector->findData(static_cast<int32_t>(colKey.measureChannel)), mMeasurementSelector);
+    select(mStatsSelector->findData(static_cast<int32_t>(colKey.stats)), mStatsSelector);
+    select(mCrossChannelStackC->findData(colKey.crossChannelStacksC), mCrossChannelStackC);
+
+    mClusterClassSelector->blockSignals(false);
+  }
+
+  accept          = false;
   mSelectedColumn = selectedColumn;
   QDialog::exec();
-  mFilter->addColumn(
-      db::QueryFilter::ColumnIdx{.tabIdx = 0, .colIdx = selectedColumn},
-      db::QueryFilter::ColumnKey{.clusterClass = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClusterClassSelector->currentData().toUInt()),
-                                 .measureChannel      = static_cast<enums::Measurement>(mMeasurementSelector->currentData().toInt()),
-                                 .stats               = static_cast<enums::Stats>(mStatsSelector->currentData().toInt()),
-                                 .crossChannelStacksC = mCrossChannelStackC->currentData().toInt(),
-                                 .zStack              = 0,
-                                 .tStack              = 0},
-      db::QueryFilter::ColumnName{});
+  if(accept) {
+    auto [clusterName, className] = getClusterAndClassFromCombo();
+
+    mFilter->addColumn(db::QueryFilter::ColumnIdx{.tabIdx = 0, .colIdx = selectedColumn},
+                       db::QueryFilter::ColumnKey{
+                           .clusterClass        = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClusterClassSelector->currentData().toUInt()),
+                           .measureChannel      = static_cast<enums::Measurement>(mMeasurementSelector->currentData().toInt()),
+                           .stats               = static_cast<enums::Stats>(mStatsSelector->currentData().toInt()),
+                           .crossChannelStacksC = mCrossChannelStackC->currentData().toInt(),
+                           .zStack              = 0,
+                           .tStack              = 0},
+                       db::QueryFilter::ColumnName{.clusterName = clusterName, .className = className});
+  }
 }
 
 ///

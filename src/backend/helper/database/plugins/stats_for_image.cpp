@@ -39,7 +39,7 @@ auto StatsPerImage::toTable(const QueryFilter &filter) -> QueryResult
     for(size_t row = 0; row < materializedResult->RowCount(); row++) {
       for(int32_t colIdx = 0; colIdx < columnNr; colIdx++) {
         double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
-        clustersToExport.setData(clusterClass, row, colIdx, table::TableCell{value, 0, true, ""});
+        clustersToExport.setData(clusterClass, row, colIdx, std::to_string(row), table::TableCell{value, 0, true, ""});
       }
     }
   }
