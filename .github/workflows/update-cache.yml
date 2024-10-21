@@ -111,12 +111,9 @@ jobs:
 
       - name: Build with Conan
         run: |
-          if (Test-Path "C:\Users\runneradmin\.conan2\profiles\default") {
-            Write-Host "Loaded from cache!"
-          } else {
-            conan profile detect
-          }
-          cat C:\Users\runneradmin\.conan2\profiles\default
+    
+          New-Item -Path "C:\Users\runneradmin\.conan2\profiles" -ItemType Directory -Force
+          Copy-Item -Path "env:GITHUB_WORKSPACE\conan\profile_win_mingw" -Destination "C:\Users\runneradmin\.conan2\profiles\default"
 
           cd "$env:GITHUB_WORKSPACE/conan/patches/onnx"
           ./patch.ps1
