@@ -216,6 +216,34 @@ void Database::createTables()
   }
 }
 
+std::unique_ptr<duckdb::QueryResult> Database::select(const std::string &query, const DbArgs_t &args)
+{
+  auto connection = acquire();
+  auto prep       = connection->Prepare(query);
+  duckdb::vector<duckdb::Value> argsPrepared;
+  for(const auto &arg : args) {
+    if(std::holds_alternative<std::string>(arg)) {
+      argsPrepared.emplace_back(std::get<std::string>(arg));
+    } else if(std::holds_alternative<uint16_t>(arg)) {
+      argsPrepared.emplace_back(duckdb::Value::USMALLINT(std::get<uint16_t>(arg)));
+    } else if(std::holds_alternative<uint32_t>(arg)) {
+      argsPrepared.emplace_back(duckdb::Value::UINTEGER(std::get<uint32_t>(arg)));
+    } else if(std::holds_alternative<uint64_t>(arg)) {
+      argsPrepared.emplace_back(duckdb::Value::UBIGINT(std::get<uint64_t>(arg)));
+    } else if(std::holds_alternative<double>(arg)) {
+      argsPrepared.emplace_back(duckdb::Value::DOUBLE(std::get<double>(arg)));
+    }
+  }
+  return prep->Execute(argsPrepared);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void Database::insertObjects(const joda::processor::ImageContext &imgContext, const joda::atom::ObjectList &objectsList)
 {
   auto connection = acquire();

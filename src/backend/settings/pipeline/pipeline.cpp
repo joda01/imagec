@@ -54,7 +54,10 @@ ObjectOutputClustersExp Pipeline::getOutputClasses() const
 {
   ObjectOutputClustersExp clusters;
   for(const auto &pipelineStep : pipelineSteps) {
-    auto command            = PipelineFactory<joda::cmd::Command>::generate(pipelineStep);
+    auto command = PipelineFactory<joda::cmd::Command>::generate(pipelineStep);
+    if(command == nullptr) {
+      continue;
+    }
     const auto &clustersCmd = command->getOutputClasses();
     for(const auto &cluster : clustersCmd) {
       auto clusterIdToSet = static_cast<joda::enums::ClusterId>(cluster.clusterId);
