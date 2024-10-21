@@ -85,6 +85,11 @@ DialogColumnSettings::DialogColumnSettings(db::QueryFilter *filter, QWidget *par
 
     auto *okayBottom = new QAction(generateIcon("accept"), "Accept", mToolbarBottom);
     connect(okayBottom, &QAction::triggered, [this]() {
+      if(mCrossChannelStackC->count() == 0 &&
+         db::MeasureType::INTENSITY == db::getType(static_cast<enums::Measurement>(mMeasurementSelector->currentData().toInt()))) {
+        return;
+      }
+
       accept = true;
       close();
     });

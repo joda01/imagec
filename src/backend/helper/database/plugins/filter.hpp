@@ -92,8 +92,17 @@ public:
 
     bool operator<(const ColumnKey &input) const
     {
-      return clusterClass < input.clusterClass || static_cast<int16_t>(measureChannel) < static_cast<int16_t>(input.measureChannel) ||
-             static_cast<int16_t>(stats) < static_cast<int16_t>(input.stats) || crossChannelStacksC < input.crossChannelStacksC;
+      auto toInt = [](const ColumnKey &in) {
+        uint32_t classCluster = in.clusterClass.toUint32(in.clusterClass.clusterId, in.clusterClass.classId);
+        auto measure          = static_cast<uint8_t>(in.measureChannel);
+        auto stat             = static_cast<uint8_t>(in.stats);
+
+        __uint128_t erg = (static_cast<__uint128_t>(classCluster) << 96) | (static_cast<__uint128_t>(in.crossChannelStacksC & 0xFFFF) << 80) |
+                          (static_cast<__uint128_t>(in.zStack) << 18) | (static_cast<__uint128_t>(in.tStack) << 16) | (measure << 8) | (stat);
+        return erg;
+      };
+
+      return toInt(*this) < toInt(input);
     }
 
     bool operator==(const ColumnKey &input) const
@@ -120,7 +129,11 @@ public:
     int32_t colIdx = 0;
     bool operator<(const ColumnIdx &input) const
     {
-      return tabIdx < input.tabIdx || colIdx < input.colIdx;
+      auto toInt = [](const ColumnIdx &in) -> uint64_t {
+        uint64_t erg = (static_cast<uint64_t>(in.tabIdx) << 32) | (static_cast<uint64_t>(in.colIdx));
+        return erg;
+      };
+      return toInt(*this) < toInt(input);
     }
   };
 
@@ -150,9 +163,26 @@ public:
     return true;
   }
 
-  void eraseColumn(const ColumnIdx &colIdx)
+  void eraseColumn(const ColumnIdx colIdx)
   {
-    mColumns.erase(colIdx);
+    if(mColumns.contains(colIdx)) {
+      mColumns.erase(colIdx);
+      std::map<ColumnIdx, ColumnKey> newColumns;
+      bool startToReduce = false;
+
+      for(const auto &[col, _] : mColumns) {
+        auto colNew = col;
+        if(colNew.colIdx > colIdx.colIdx) {
+          startToReduce = true;
+        }
+        if(startToReduce && colIdx.tabIdx == col.tabIdx) {
+          colNew.colIdx--;
+        }
+        newColumns.emplace(colNew, _);
+      }
+      mColumns.clear();
+      mColumns = newColumns;
+    }
   }
 
   [[nodiscard]] auto getColumn(const ColumnIdx &colIdx) const -> ColumnKey
@@ -254,9 +284,8 @@ public:
     const PreparedStatement &prep = mClustersAndClasses[clusterAndClass];
     auto columnKey                = prep.getColumnAt(dbColIx);
 
-    auto tableColumnsToWriteTo = mTableMapping.equal_range(columnKey);
-    for(auto it = tableColumnsToWriteTo.first; it != tableColumnsToWriteTo.second; ++it) {
-      auto &element = it->second;
+    for(auto [itr, rangeEnd] = mTableMapping.equal_range(columnKey); itr != rangeEnd; ++itr) {
+      auto &element = itr->second;
       mResultingTable.at(element.tabIdx).setRowName(row, rowName);
       mResultingTable.at(element.tabIdx).setData(row, element.colIdx, tableCell);
     }

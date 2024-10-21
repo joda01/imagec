@@ -279,6 +279,9 @@ void PanelResults::refreshView()
             auto table = joda::db::StatsPerGroup::toTable(mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
             if(!table.empty()) {
               tableToQWidgetTable(table[0]);
+            } else {
+              mTable->setRowCount(0);
+              mTable->setColumnCount(0);
             }
           }
           {
@@ -296,6 +299,9 @@ void PanelResults::refreshView()
             auto table = joda::db::StatsPerGroup::toTable(mFilter, db::StatsPerGroup::Grouping::BY_WELL);
             if(!table.empty()) {
               tableToQWidgetTable(table[0]);
+            } else {
+              mTable->setRowCount(0);
+              mTable->setColumnCount(0);
             }
           }
           {
@@ -313,6 +319,9 @@ void PanelResults::refreshView()
             auto table = joda::db::StatsPerImage::toTable(mFilter);
             if(!table.empty()) {
               tableToQWidgetTable(table[0]);
+            } else {
+              mTable->setRowCount(0);
+              mTable->setColumnCount(0);
             }
           }
           {

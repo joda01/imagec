@@ -33,12 +33,18 @@ struct PlaneId
 
   bool operator<(const PlaneId &in) const
   {
-    return tStack < in.tStack || zStack < in.zStack || cStack < in.cStack;
+    return toInt(*this) < toInt(in);
   }
 
   void check() const
   {
   }
+
+  auto toInt(const PlaneId &id) const -> __uint128_t
+  {
+    __uint128_t nr = static_cast<__uint128_t>(id.cStack) << 64 | static_cast<__uint128_t>(id.zStack) << 32 | static_cast<__uint128_t>(id.tStack);
+    return nr;
+  };
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PlaneId, tStack, zStack, cStack);
 };
