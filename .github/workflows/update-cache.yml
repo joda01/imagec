@@ -113,7 +113,7 @@ jobs:
         run: |
     
           New-Item -Path "C:\Users\runneradmin\.conan2\profiles" -ItemType Directory -Force
-          Copy-Item -Path "env:GITHUB_WORKSPACE\conan\profile_win_mingw" -Destination "C:\Users\runneradmin\.conan2\profiles\default"
+          Copy-Item -Path "$env:GITHUB_WORKSPACE\conan\profile_win_mingw" -Destination "C:\Users\runneradmin\.conan2\profiles\default"
 
           cd "$env:GITHUB_WORKSPACE/conan/patches/onnx"
           ./patch.ps1
@@ -122,7 +122,7 @@ jobs:
           ls "C:\Users\runneradmin\.conan2\p"
           ls "C:\Users\runneradmin\.conan2\p\onnx305a97e88c569\s"
           ls "C:\Users\runneradmin\.conan2\p\onnx305a97e88c569"
-          conan install . --profile env:GITHUB_WORKSPACE\conan\profile_win_mingw --output-folder=build --build=missing
+          conan install . --profile $env:GITHUB_WORKSPACE\conan\profile_win_mingw --output-folder=build --build=missing
           ls "C:\Users\runneradmin\.conan2\p\b"
 
 
