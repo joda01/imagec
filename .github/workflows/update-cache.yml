@@ -114,7 +114,7 @@ jobs:
     
           New-Item -Path "C:\Users\runneradmin\.conan2\profiles" -ItemType Directory -Force
           Copy-Item -Path "$env:GITHUB_WORKSPACE\conan\profile_win_mingw" -Destination "C:\Users\runneradmin\.conan2\profiles\default"
-          conan install $env:GITHUB_WORKSPACE\conan.py --profile $env:GITHUB_WORKSPACE\conan\profile_win_mingw --output-folder=build --build=missing
+          conan install $env:GITHUB_WORKSPACE\ --profile $env:GITHUB_WORKSPACE\conan\profile_win_mingw --output-folder=build --build=missing
 
 
 
