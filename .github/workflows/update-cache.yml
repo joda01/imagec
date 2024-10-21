@@ -125,7 +125,7 @@ jobs:
           ls "C:\Users\runneradmin\.conan2\p"
           ls "C:\Users\runneradmin\.conan2\p\onnx305a97e88c569\s"
           ls "C:\Users\runneradmin\.conan2\p\onnx305a97e88c569"
-          conan install . --profile conan/profile_win_mingw --output-folder=build --build=missing
+          conan install . --profile env:GITHUB_WORKSPACE\conan\profile_win_mingw --output-folder=build --build=missing
           ls "C:\Users\runneradmin\.conan2\p\b"
 
 
