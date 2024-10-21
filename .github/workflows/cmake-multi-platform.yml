@@ -244,7 +244,7 @@ jobs:
           ./patch.ps1
           cd "$env:GITHUB_WORKSPACE"
           
-          conan install . --profile conan/profile_win_mingw --output-folder=build --build=missing
+          conan install . --profile $env:GITHUB_WORKSPACE\conan\profile_win_mingw --output-folder=build --build=missing
 
       - name: Build imagec
         env:
