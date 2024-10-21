@@ -111,10 +111,13 @@ jobs:
 
       - name: Build with Conan
         run: |
-    
-          New-Item -Path "C:\Users\runneradmin\.conan2\profiles" -ItemType Directory -Force
-          Copy-Item -Path "$env:GITHUB_WORKSPACE\conan\profile_win_mingw" -Destination "C:\Users\runneradmin\.conan2\profiles\default"
-          conan install $env:GITHUB_WORKSPACE\ --profile $env:GITHUB_WORKSPACE\conan\profile_win_mingw --output-folder=build --build=missing
+          if (Test-Path "C:\Users\runneradmin\.conan2\profiles\default") {
+            Write-Host "Loaded from cache!"
+          } else {
+            conan profile detect
+          }
+          cat C:\Users\runneradmin\.conan2\profiles\default
+          conan install . --profile $env:GITHUB_WORKSPACE\conan\profile_win_mingw --output-folder=build --build=missing
 
 
 
