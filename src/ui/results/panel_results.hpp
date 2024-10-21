@@ -127,6 +127,8 @@ private:
   /////////////////////////////////////////////////////
   db::QueryFilter mFilter;
   PlaceholderTableWidget *mTable;
+  std::map<int32_t, joda::table::Table> mActListData;
+  std::map<int32_t, joda::table::Table> mActHeatmapData;
   table::Table mSelectedTable;
   int32_t mSelectedTableColumn = -1;
   int32_t mSelectedTableRow    = -1;

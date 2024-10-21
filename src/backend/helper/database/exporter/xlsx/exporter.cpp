@@ -21,7 +21,7 @@ namespace joda::db {
 /// \param[out]
 /// \return
 ///
-void BatchExporter::startExportHeatmap(const std::vector<joda::table::Table> &data, const settings::AnalyzeSettings &analyzeSettings,
+void BatchExporter::startExportHeatmap(const std::map<int32_t, joda::table::Table> &data, const settings::AnalyzeSettings &analyzeSettings,
                                        const std::string &jobName, std::chrono::system_clock::time_point timeStarted,
                                        std::chrono::system_clock::time_point timeFinished, const std::string &outputFileName)
 {
@@ -32,7 +32,7 @@ void BatchExporter::startExportHeatmap(const std::vector<joda::table::Table> &da
 
   std::map<std::string, std::pair<Pos, lxw_worksheet *>> sheets;
 
-  for(const auto &table : data) {
+  for(const auto &[_, table] : data) {
     std::string name = table.getMeta().clusterName;
     if(!sheets.contains(name)) {
       sheets.emplace(name, std::pair<Pos, lxw_worksheet *>{Pos{}, workbook_add_worksheet(workbookSettings.workbook, name.data())});
@@ -50,7 +50,7 @@ void BatchExporter::startExportHeatmap(const std::vector<joda::table::Table> &da
 /// \param[out]
 /// \return
 ///
-void BatchExporter::startExportList(const std::vector<joda::table::Table> &data, const settings::AnalyzeSettings &analyzeSettings,
+void BatchExporter::startExportList(const std::map<int32_t, joda::table::Table> &data, const settings::AnalyzeSettings &analyzeSettings,
                                     const std::string &jobName, std::chrono::system_clock::time_point timeStarted,
                                     std::chrono::system_clock::time_point timeFinished, const std::string &outputFileName)
 {
@@ -61,7 +61,7 @@ void BatchExporter::startExportList(const std::vector<joda::table::Table> &data,
 
   std::map<std::string, std::pair<Pos, lxw_worksheet *>> sheets;
 
-  for(const auto &table : data) {
+  for(const auto &[_, table] : data) {
     std::string name = table.getMeta().clusterName;
     if(!sheets.contains(name)) {
       sheets.emplace(name, std::pair<Pos, lxw_worksheet *>{Pos{}, workbook_add_worksheet(workbookSettings.workbook, name.data())});

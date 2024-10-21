@@ -276,18 +276,18 @@ void PanelResults::refreshView()
         case Navigation::PLATE:
           mBackButton->setEnabled(false);
           {
-            auto table = joda::db::StatsPerGroup::toTable(mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
-            if(!table.empty()) {
-              tableToQWidgetTable(table[0]);
+            mActListData = joda::db::StatsPerGroup::toTable(mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
+            if(!mActListData.empty()) {
+              tableToQWidgetTable(mActListData[0]);
             } else {
               mTable->setRowCount(0);
               mTable->setColumnCount(0);
             }
           }
           {
-            auto table = joda::db::StatsPerGroup::toHeatmap(mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
-            if(!table.empty()) {
-              tableToHeatmap(table[0]);
+            mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
+            if(!mActHeatmapData.empty()) {
+              tableToHeatmap(mActHeatmapData[0]);
             } else {
               paintEmptyHeatmap();
             }
@@ -296,18 +296,18 @@ void PanelResults::refreshView()
         case Navigation::WELL:
           mBackButton->setEnabled(true);
           {
-            auto table = joda::db::StatsPerGroup::toTable(mFilter, db::StatsPerGroup::Grouping::BY_WELL);
-            if(!table.empty()) {
-              tableToQWidgetTable(table[0]);
+            mActListData = joda::db::StatsPerGroup::toTable(mFilter, db::StatsPerGroup::Grouping::BY_WELL);
+            if(!mActListData.empty()) {
+              tableToQWidgetTable(mActListData[0]);
             } else {
               mTable->setRowCount(0);
               mTable->setColumnCount(0);
             }
           }
           {
-            auto table = joda::db::StatsPerGroup::toHeatmap(mFilter, db::StatsPerGroup::Grouping::BY_WELL);
-            if(!table.empty()) {
-              tableToHeatmap(table[0]);
+            mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mFilter, db::StatsPerGroup::Grouping::BY_WELL);
+            if(!mActHeatmapData.empty()) {
+              tableToHeatmap(mActHeatmapData[0]);
             } else {
               paintEmptyHeatmap();
             }
@@ -316,18 +316,18 @@ void PanelResults::refreshView()
         case Navigation::IMAGE:
           mBackButton->setEnabled(true);
           {
-            auto table = joda::db::StatsPerImage::toTable(mFilter);
-            if(!table.empty()) {
-              tableToQWidgetTable(table[0]);
+            mActListData = joda::db::StatsPerImage::toTable(mFilter);
+            if(!mActListData.empty()) {
+              tableToQWidgetTable(mActListData[0]);
             } else {
               mTable->setRowCount(0);
               mTable->setColumnCount(0);
             }
           }
           {
-            auto table = joda::db::StatsPerImage::toHeatmap(mFilter);
-            if(!table.empty()) {
-              tableToHeatmap(table[0]);
+            mActHeatmapData = joda::db::StatsPerImage::toHeatmap(mFilter);
+            if(!mActHeatmapData.empty()) {
+              tableToHeatmap(mActHeatmapData[0]);
             } else {
               paintEmptyHeatmap();
             }
@@ -780,14 +780,11 @@ void PanelResults::onExportClicked(ExportFormat format)
 
   std::thread([this, filePathOfSettingsFile, format] {
     if(!mTable->isVisible()) {
-      std::vector<joda::table::Table> tableDataHeatmap;
-
-      joda::db::BatchExporter::startExportHeatmap(tableDataHeatmap, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
+      joda::db::BatchExporter::startExportHeatmap(mActListData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
                                                   mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
                                                   filePathOfSettingsFile.toStdString());
     } else {
-      std::vector<joda::table::Table> tableData;
-      joda::db::BatchExporter::startExportList(tableData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
+      joda::db::BatchExporter::startExportList(mActHeatmapData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
                                                mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
                                                filePathOfSettingsFile.toStdString());
     }
