@@ -24,19 +24,24 @@ jobs:
           python-version: '3.10'
 
       - name: Install Conan
+        env:
+          CONAN_IMAGEC_ARTIFACTORY_PW: ${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}
         run: |
           sudo apt-get update
           sudo apt-get install -y libva-dev libvdpau-dev xkb-data
           sudo pip install conan 
           sudo chmod 777 -R /root
+          sudo conan remote remove conancenter
+          sudo conan remote add imageclibs https://imagec.org:4431/artifactory/api/conan/imageclibs
+          sudo conan remote login imageclibs writer -p $CONAN_IMAGEC_ARTIFACTORY_PW
 
-      - name: Restore Conan Cache
-        uses: actions/cache/restore@v4
-        with:
-          path: /root/.conan2
-          key: conan-cache-${{ runner.os }}-v1
-          restore-keys: |
-            conan-cache-${{ runner.os }}-v1
+#      - name: Restore Conan Cache
+#        uses: actions/cache/restore@v4
+#        with:
+#          path: /root/.conan2
+#          key: conan-cache-${{ runner.os }}-v1
+#          restore-keys: |
+#            conan-cache-${{ runner.os }}-v1
 
       - name: Build with Conan
         run: |
@@ -111,16 +116,21 @@ jobs:
           python-version: '3.10'
 
       - name: Install Conan
+        env:
+          CONAN_IMAGEC_ARTIFACTORY_PW: ${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}
         run: |
           pip install conan
+          conan remote remove conancenter
+          conan remote add imageclibs https://imagec.org:4431/artifactory/api/conan/imageclibs
+          conan remote login imageclibs writer -p $CONAN_IMAGEC_ARTIFACTORY_PW
 
-      - name: Restore Conan Cache
-        uses: actions/cache/restore@v4
-        with:
-          path: /Users/runner/.conan2
-          key: conan-cache-${{ runner.os }}-v1
-          restore-keys: |
-            conan-cache-${{ runner.os }}-v1
+#      - name: Restore Conan Cache
+#        uses: actions/cache/restore@v4
+#        with:
+#          path: /Users/runner/.conan2
+#          key: conan-cache-${{ runner.os }}-v1
+#          restore-keys: |
+#            conan-cache-${{ runner.os }}-v1
 
       - name: Build with Conan
         run: |
@@ -220,17 +230,22 @@ jobs:
           python-version: '3.10'
 
       - name: Install Conan
+        env:
+          CONAN_IMAGEC_ARTIFACTORY_PW: ${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}
         run: |
           pip install conan
           pip install numpy
+          conan remote remove conancenter
+          conan remote add imageclibs https://imagec.org:4431/artifactory/api/conan/imageclibs
+          conan remote login imageclibs writer -p "$env:CONAN_IMAGEC_ARTIFACTORY_PW"
 
-      - name: Restore Conan Cache
-        uses: actions/cache/restore@v4
-        with:
-          path: C:/Users/runneradmin/.conan2
-          key: conan-cache-${{ runner.os }}-v1
-          restore-keys: |
-            conan-cache-${{ runner.os }}-v1
+#      - name: Restore Conan Cache
+#        uses: actions/cache/restore@v4
+#        with:
+#          path: C:/Users/runneradmin/.conan2
+#          key: conan-cache-${{ runner.os }}-v1
+#          restore-keys: |
+#            conan-cache-${{ runner.os }}-v1
 
       - name: Build with Conan
         run: |
