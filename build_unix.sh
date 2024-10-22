@@ -2,6 +2,9 @@
 buildlibs(){
     pip install conan --upgrade --break-system-packages
     conan profile detect --force
+    conan remote remove conancenter
+    conan remote add imageclibs https://imagec.org:4431/artifactory/api/conan/imageclibs
+    conan remote login imageclibs reader
     conan install . --profile conan/profile_linux --output-folder=build --build=missing
     #cyclonedx-conan . --output sbom.spdx
     #conan graph info . --profile conan/profile_win_mingw --format=html > graph.html
@@ -12,7 +15,7 @@ build(){
     python3 get_icons.py
     cd ..
     cd build
-    cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
+    #cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
     cmake --build . --config Release --target imagec --parallel 16
     #cmake --build . --config Release --target tests --parallel 16
 
@@ -35,15 +38,15 @@ build(){
     mkdir -p ./java
     cp ../imagec imagec
     cp ../tests tests
-    cp -r /root/.conan2/p/b/*/p/./plugins/* ./plugins
+    cp -r /root/.conan2/p/*/p/./plugins/* ./plugins
     cp -r ../../../resources/templates ./templates
     cp ../../../resources/launcher/imagec.sh imagec.sh
     cd lib
-    cp /root/.conan2/p/b/*/p/lib/libQt6Core.so.6 .
-    cp /root/.conan2/p/b/*/p/lib/libQt6Gui.so.6 .
-    cp /root/.conan2/p/b/*/p/lib/libQt6Widgets.so.6 .
-    cp /root/.conan2/p/b/*/p/lib/libQt6XcbQpa.so.6 .
-    cp /root/.conan2/p/b/*/p/lib/libQt6Svg.so.6 .
+    cp /root/.conan2/p/*/p/lib/libQt6Core.so.6 .
+    cp /root/.conan2/p/*/p/lib/libQt6Gui.so.6 .
+    cp /root/.conan2/p/*/p/lib/libQt6Widgets.so.6 .
+    cp /root/.conan2/p/*/p/lib/libQt6XcbQpa.so.6 .
+    cp /root/.conan2/p/*/p/lib/libQt6Svg.so.6 .
     cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 .
     cd ..
     chmod +x imagec
