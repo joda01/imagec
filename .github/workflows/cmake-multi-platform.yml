@@ -11,8 +11,7 @@ on:
     branches:
       - main
 
-env: # b for conan
-  CONAN_LIB_INSTALL_PREFIX: "b"
+
 
 jobs:
   build-linux:
@@ -76,15 +75,15 @@ jobs:
           mkdir -p ./lib
           mkdir -p ./java
           cp ../imagec imagec
-          cp -r /root/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/./plugins/* ./plugins
+          cp -r /root/.conan2/p/*/p/./plugins/* ./plugins
           cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
           cp ${GITHUB_WORKSPACE}/resources/launcher/imagec.sh imagec.sh
           cd lib
-          cp /root/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/lib/libQt6Core.so.6 .
-          cp /root/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/lib/libQt6Gui.so.6 .
-          cp /root/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/lib/libQt6Widgets.so.6 .
-          cp /root/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/lib/libQt6XcbQpa.so.6 .
-          cp /root/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/lib/libQt6Svg.so.6 .
+          cp /root/.conan2/p/*/p/lib/libQt6Core.so.6 .
+          cp /root/.conan2/p/*/p/lib/libQt6Gui.so.6 .
+          cp /root/.conan2/p/*/p/lib/libQt6Widgets.so.6 .
+          cp /root/.conan2/p/*/p/lib/libQt6XcbQpa.so.6 .
+          cp /root/.conan2/p/*/p/lib/libQt6Svg.so.6 .
           cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 .
           cd ..
           strip imagec
@@ -162,7 +161,7 @@ jobs:
           mkdir -p ./plugins
           mkdir -p ./models
           cp -r ../imagec.app imagec.app
-          cp -r /Users/runner/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/./plugins/* ./plugins
+          cp -r /Users/runner/.conan2/p/*/p/./plugins/* ./plugins
           cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
           strip ./imagec.app/Contents/MacOS/imagec
           chmod +x ./imagec.app/Contents/MacOS/imagec
@@ -170,10 +169,10 @@ jobs:
           mkdir -p imagec.app/Contents/MacOS/lib
           mkdir -p imagec.app/Contents/MacOS/java
           cd imagec.app/Contents/MacOS/lib
-          cp /Users/runner/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/lib/libQt6Core.6.dylib .
-          cp /Users/runner/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/lib/libQt6Gui.6.dylib .
-          cp /Users/runner/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/lib/libQt6Widgets.6.dylib .
-          cp /Users/runner/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/lib/libQt6Svg.6.dylib .
+          cp /Users/runner/.conan2/p/*/p/lib/libQt6Core.6.dylib .
+          cp /Users/runner/.conan2/p/*/p/lib/libQt6Gui.6.dylib .
+          cp /Users/runner/.conan2/p/*/p/lib/libQt6Widgets.6.dylib .
+          cp /Users/runner/.conan2/p/*/p/lib/libQt6Svg.6.dylib .
           cd ..
           cd java
           cp ${GITHUB_WORKSPACE}/resources/java/bioformats.jar .
@@ -279,71 +278,69 @@ jobs:
           ni "java" -ItemType Directory
           Copy-Item -Path "../imagec.exe" -Destination "imagec.exe"
           
-          $qtInstallPath = "C:\Users\runneradmin\.conan2\p\$env:CONAN_LIB_INSTALL_PREFIX"
+          $qtInstallPath = "C:\Users\runneradmin\.conan2\p
 
           Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
             $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\.\plugins\*"
-            Copy-Item -Recurse -Path $pathToCopyFrom -Destination "./plugins"  -Force 
+            if (Test-Path "$pathToCopyFrom") {
+              Copy-Item -Recurse -Path $pathToCopyFrom -Destination "./plugins"  -Force
+            }
           }
 
           Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
             $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\bin\Qt6Core.dll"
-            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+            if (Test-Path "$pathToCopyFrom") {
+              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force
+            }
           }
 
           Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
             $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\bin\Qt6Gui.dll"
-            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+            if (Test-Path "$pathToCopyFrom") {
+              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+            }
           }
           
           Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
             $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\bin\Qt6Widgets.dll"
-            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+            if (Test-Path "$pathToCopyFrom") {
+              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+            }
           }
 
           Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
             $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\bin\Qt6Svg.dll"
-            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+            if (Test-Path "$pathToCopyFrom") {
+              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+            }
           }
           
 
           $mingwPath = "C:\Users\runneradmin\.conan2\p"
-          Get-ChildItem -Path "$mingwPath\*" | Where-Object {$_.Name -like "mingwf*"} | ForEach-Object {
-            $pathToCopyFrom = $mingwPath
-            ls $pathToCopyFrom
-            
-            $pathToCopyFrom = $mingwPath + "\" + $_.Name
-            ls $pathToCopyFrom
-            
-            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p"
-            ls $pathToCopyFrom
-            
-            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32"
-            ls $pathToCopyFrom
+          Get-ChildItem -Path "$mingwPath\*" | Where-Object {$_.Name -like "mingw*"} | ForEach-Object {
 
-            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib"
-            ls $pathToCopyFrom
-            
             $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libatomic-1.dll"
-            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+            if (Test-Path "$pathToCopyFrom") {
+              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
 
-            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libgcc_s_seh-1.dll"
-            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+              $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libgcc_s_seh-1.dll"
+              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
 
-            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libgfortran-5.dll"
-            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+              $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libgfortran-5.dll"
+              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
 
-            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libgomp-1.dll"
-            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+              $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libgomp-1.dll"
+              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
 
-            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libquadmath-0.dll"
-            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+              $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libquadmath-0.dll"
+              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
 
-            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libstdc++-6.dll"
-            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+              $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libstdc++-6.dll"
+              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
 
-            $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libwinpthread-1.dll"
-            Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+              $pathToCopyFrom = $mingwPath + "\" + $_.Name + "\p\x86_64-w64-mingw32\lib\libwinpthread-1.dll"
+              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+            }
           }
 
 
