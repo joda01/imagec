@@ -11,6 +11,9 @@ on:
     branches:
       - main
 
+env: # b for conan
+  CONAN_LIB_INSTALL_PREFIX: "pcre21c2c4126b0ac9"
+
 jobs:
   build-linux:
     runs-on: ubuntu-22.04
@@ -73,15 +76,15 @@ jobs:
           mkdir -p ./lib
           mkdir -p ./java
           cp ../imagec imagec
-          cp -r /root/.conan2/p/b/*/p/./plugins/* ./plugins
+          cp -r /root/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/./plugins/* ./plugins
           cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
           cp ${GITHUB_WORKSPACE}/resources/launcher/imagec.sh imagec.sh
           cd lib
-          cp /root/.conan2/p/b/*/p/lib/libQt6Core.so.6 .
-          cp /root/.conan2/p/b/*/p/lib/libQt6Gui.so.6 .
-          cp /root/.conan2/p/b/*/p/lib/libQt6Widgets.so.6 .
-          cp /root/.conan2/p/b/*/p/lib/libQt6XcbQpa.so.6 .
-          cp /root/.conan2/p/b/*/p/lib/libQt6Svg.so.6 .
+          cp /root/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/lib/libQt6Core.so.6 .
+          cp /root/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/lib/libQt6Gui.so.6 .
+          cp /root/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/lib/libQt6Widgets.so.6 .
+          cp /root/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/lib/libQt6XcbQpa.so.6 .
+          cp /root/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/lib/libQt6Svg.so.6 .
           cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 .
           cd ..
           strip imagec
@@ -159,7 +162,7 @@ jobs:
           mkdir -p ./plugins
           mkdir -p ./models
           cp -r ../imagec.app imagec.app
-          cp -r /Users/runner/.conan2/p/b/*/p/./plugins/* ./plugins
+          cp -r /Users/runner/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/./plugins/* ./plugins
           cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
           strip ./imagec.app/Contents/MacOS/imagec
           chmod +x ./imagec.app/Contents/MacOS/imagec
@@ -167,10 +170,10 @@ jobs:
           mkdir -p imagec.app/Contents/MacOS/lib
           mkdir -p imagec.app/Contents/MacOS/java
           cd imagec.app/Contents/MacOS/lib
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Core.6.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Gui.6.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Widgets.6.dylib .
-          cp /Users/runner/.conan2/p/b/*/p/lib/libQt6Svg.6.dylib .
+          cp /Users/runner/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/lib/libQt6Core.6.dylib .
+          cp /Users/runner/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/lib/libQt6Gui.6.dylib .
+          cp /Users/runner/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/lib/libQt6Widgets.6.dylib .
+          cp /Users/runner/.conan2/p/$CONAN_LIB_INSTALL_PREFIX/*/p/lib/libQt6Svg.6.dylib .
           cd ..
           cd java
           cp ${GITHUB_WORKSPACE}/resources/java/bioformats.jar .
@@ -280,7 +283,7 @@ jobs:
           ni "java" -ItemType Directory
           Copy-Item -Path "../imagec.exe" -Destination "imagec.exe"
           
-          $qtInstallPath = 'C:\Users\runneradmin\.conan2\p\b'
+          $qtInstallPath = "C:\Users\runneradmin\.conan2\p\$env:CONAN_LIB_INSTALL_PREFIX"
 
           Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
             $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\.\plugins\*"
