@@ -278,7 +278,7 @@ jobs:
           ni "java" -ItemType Directory
           Copy-Item -Path "../imagec.exe" -Destination "imagec.exe"
           
-          $qtInstallPath = "C:\Users\runneradmin\.conan2\p
+          $qtInstallPath = "C:\Users\runneradmin\.conan2\p"
 
           Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
             $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\.\plugins\*"
