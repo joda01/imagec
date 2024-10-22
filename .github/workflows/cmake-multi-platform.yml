@@ -12,7 +12,7 @@ on:
       - main
 
 env: # b for conan
-  CONAN_LIB_INSTALL_PREFIX: "pcre21c2c4126b0ac9"
+  CONAN_LIB_INSTALL_PREFIX: "b"
 
 jobs:
   build-linux:
