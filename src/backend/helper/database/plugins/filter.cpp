@@ -38,9 +38,9 @@ ResultingTable::ResultingTable(const QueryFilter *filter)
   std::map<int32_t, std::map<uint32_t, std::string>> tableHeaders;
   for(const auto &[colIdx, colKey] : filter->getColumns()) {
     if(!mClustersAndClasses.contains(colKey.clusterClass)) {
-      mClustersAndClasses.emplace(colKey.clusterClass, PreparedStatement{});
+      mClustersAndClasses.emplace(colKey.clusterClass, PreparedStatement{colKey.names});
     }
-    mClustersAndClasses[colKey.clusterClass].addColumn(colKey);
+    mClustersAndClasses.at(colKey.clusterClass).addColumn(colKey);
     mTableMapping.emplace(colKey, colIdx);
     tableHeaders[colIdx.tabIdx].emplace(colIdx.colIdx, colKey.createHeader());
   }

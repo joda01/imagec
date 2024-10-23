@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <string>
 #include "backend/enums/enum_measurements.hpp"
+#include "backend/helper/database/plugins/filter.hpp"
 
 namespace joda::db {
 
@@ -53,9 +54,11 @@ auto StatsPerGroup::toTable(const QueryFilter &filter, Grouping grouping) -> Que
         for(int32_t colIdx = 0; colIdx < columnNr; colIdx++) {
           double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
           if(grouping == Grouping::BY_WELL) {
-            clustersToExport.setData(clusterClass, row, colIdx, filename, table::TableCell{value, imageId, validity == 0, ""});
+            clustersToExport.setData(clusterClass, statement.getColNames(), row, colIdx, filename,
+                                     table::TableCell{value, imageId, validity == 0, ""});
           } else {
-            clustersToExport.setData(clusterClass, row, colIdx, std::to_string(row), table::TableCell{value, groupId, validity == 0, ""});
+            clustersToExport.setData(clusterClass, statement.getColNames(), row, colIdx, std::to_string(row),
+                                     table::TableCell{value, groupId, validity == 0, ""});
           }
         }
 
@@ -92,7 +95,9 @@ auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> Q
     auto materializedResult =
         getData(clusterClass, filter.getAnalyzer(), filter.getFilter(), statement, grouping)->Cast<duckdb::StreamQueryResult>().Materialize();
 
-    auto prepareTable = [sizeX, sizeY](table::Table &results) {
+    auto prepareTable = [sizeX, sizeY](size_t col, const PreparedStatement &statement, table::Table &results) {
+      results.setTitle(statement.getColumnAt(col).createHeader());
+
       for(uint8_t row = 0; row < sizeY; row++) {
         char toWrt = row + 'A';
 
@@ -131,14 +136,16 @@ auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> Q
 
         for(size_t col = 0; col < columnNr; col++) {
           if(!clustersToExport.containsTable(tabIdx)) {
-            prepareTable(clustersToExport.getTable(tabIdx));
+            prepareTable(col, statement, clustersToExport.getTable(tabIdx));
           }
 
           double value = materializedResult->GetValue(col, row).GetValue<double>();
           if(grouping == Grouping::BY_WELL) {
-            clustersToExport.setData(clusterClass, col, tabIdx, pos.y, pos.x, table::TableCell{value, imageId, validity == 0, filename});
+            clustersToExport.setData(clusterClass, statement.getColNames(), col, tabIdx, pos.y, pos.x,
+                                     table::TableCell{value, imageId, validity == 0, filename});
           } else {
-            clustersToExport.setData(clusterClass, col, tabIdx, pos.y, pos.x, table::TableCell{value, groupId, validity == 0, filename});
+            clustersToExport.setData(clusterClass, statement.getColNames(), col, tabIdx, pos.y, pos.x,
+                                     table::TableCell{value, groupId, validity == 0, filename});
           }
           tabIdx++;
         }

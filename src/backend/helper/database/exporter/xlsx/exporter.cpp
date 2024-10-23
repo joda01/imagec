@@ -61,12 +61,12 @@ void BatchExporter::startExportList(const std::map<int32_t, joda::table::Table> 
 
   std::map<std::string, std::pair<Pos, lxw_worksheet *>> sheets;
 
-  for(const auto &[_, table] : data) {
-    std::string name = table.getMeta().clusterName;
-    if(!sheets.contains(name)) {
-      sheets.emplace(name, std::pair<Pos, lxw_worksheet *>{Pos{}, workbook_add_worksheet(workbookSettings.workbook, name.data())});
+  for(const auto &[tbIdx, table] : data) {
+    std::string sheetName = "Sheet_" + std::to_string(tbIdx);
+    if(!sheets.contains(sheetName)) {
+      sheets.emplace(sheetName, std::pair<Pos, lxw_worksheet *>{Pos{}, workbook_add_worksheet(workbookSettings.workbook, sheetName.data())});
     }
-    createList(workbookSettings, sheets.at(name), table);
+    createList(workbookSettings, sheets.at(sheetName), table);
   }
 
   workbook_close(workbookSettings.workbook);
@@ -84,6 +84,7 @@ void BatchExporter::createHeatmap(const WorkBook &workbookSettings, std::pair<Po
   paintPlateBorder(sheet.second, data.getRows(), data.getCols(), sheet.first.row, workbookSettings.header, workbookSettings.merge_format,
                    workbookSettings.numberFormat, data.getTitle());
   sheet.first = paintHeatmap(workbookSettings, sheet.second, data, sheet.first.row);
+  sheet.first.row += 2;
 }
 
 ///

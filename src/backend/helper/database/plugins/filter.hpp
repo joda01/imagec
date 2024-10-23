@@ -17,6 +17,7 @@
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/helper/table/table.hpp"
 #include "backend/settings/settings_types.hpp"
@@ -227,6 +228,10 @@ private:
 class PreparedStatement
 {
 public:
+  PreparedStatement(QueryFilter::ColumnName names) : mColNames(std::move(names))
+  {
+  }
+
   std::string createStatsQuery(bool isDistinct, std::optional<enums::Stats> overrideStats = std::nullopt) const;
 
   void addColumn(QueryFilter::ColumnKey col)
@@ -259,6 +264,11 @@ public:
     return columns.size();
   }
 
+  [[nodiscard]] auto getColNames() const -> const QueryFilter::ColumnName &
+  {
+    return mColNames;
+  }
+
 private:
   /////////////////////////////////////////////////////
   static std::string getMeasurement(enums::Measurement measure, bool textual);
@@ -266,6 +276,7 @@ private:
 
   /////////////////////////////////////////////////////
   std::map<int32_t, QueryFilter::ColumnKey> columns;
+  QueryFilter::ColumnName mColNames;
 };
 
 ///
@@ -278,25 +289,33 @@ class ResultingTable
 public:
   explicit ResultingTable(const QueryFilter *);
 
-  void setData(const settings::ClassificatorSettingOut &clusterAndClass, int32_t row, int32_t dbColIx, const std::string &rowName,
-               const table::TableCell &tableCell)
+  void setData(const settings::ClassificatorSettingOut &clusterAndClass, const QueryFilter::ColumnName &colName, int32_t row, int32_t dbColIx,
+               const std::string &rowName, const table::TableCell &tableCell)
   {
-    const PreparedStatement &prep = mClustersAndClasses[clusterAndClass];
+    if(!mClustersAndClasses.contains(clusterAndClass)) {
+      mClustersAndClasses.emplace(clusterAndClass, PreparedStatement{colName});
+    }
+    const PreparedStatement &prep = mClustersAndClasses.at(clusterAndClass);
     auto columnKey                = prep.getColumnAt(dbColIx);
 
     for(auto [itr, rangeEnd] = mTableMapping.equal_range(columnKey); itr != rangeEnd; ++itr) {
       auto &element = itr->second;
       mResultingTable.at(element.tabIdx).setRowName(row, rowName);
       mResultingTable.at(element.tabIdx).setData(row, element.colIdx, tableCell);
+      mResultingTable.at(element.tabIdx).setMeta({.clusterName = colName.clusterName, .className = colName.className});
     }
   }
 
-  void setData(const settings::ClassificatorSettingOut &clusterAndClass, int32_t dbColIx, int32_t tabIndex, int32_t row, int32_t col,
-               const table::TableCell &tableCell)
+  void setData(const settings::ClassificatorSettingOut &clusterAndClass, const QueryFilter::ColumnName &colName, int32_t dbColIx, int32_t tabIndex,
+               int32_t row, int32_t col, const table::TableCell &tableCell)
   {
-    const PreparedStatement &prep = mClustersAndClasses[clusterAndClass];
+    if(!mClustersAndClasses.contains(clusterAndClass)) {
+      mClustersAndClasses.emplace(clusterAndClass, PreparedStatement{colName});
+    }
+    const PreparedStatement &prep = mClustersAndClasses.at(clusterAndClass);
     auto columnKey                = prep.getColumnAt(dbColIx);
     mResultingTable[tabIndex].setData(row, col, tableCell);
+    mResultingTable[tabIndex].setMeta({.clusterName = colName.clusterName, .className = colName.className});
   }
 
   auto getTable(int32_t tabIdx) -> table::Table &

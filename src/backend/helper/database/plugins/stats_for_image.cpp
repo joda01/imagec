@@ -39,7 +39,7 @@ auto StatsPerImage::toTable(const QueryFilter &filter) -> QueryResult
     for(size_t row = 0; row < materializedResult->RowCount(); row++) {
       for(int32_t colIdx = 0; colIdx < columnNr; colIdx++) {
         double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
-        clustersToExport.setData(clusterClass, row, colIdx, std::to_string(row), table::TableCell{value, 0, true, ""});
+        clustersToExport.setData(clusterClass, statement.getColNames(), row, colIdx, std::to_string(row), table::TableCell{value, 0, true, ""});
       }
     }
   }
@@ -84,43 +84,43 @@ auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> QueryResult
   int32_t tabIdx = 0;
   for(const auto &[clusterClass, statement] : clustersToExport) {
     auto [result, imageInfo] = densityMap(clusterClass, filter.getAnalyzer(), filter.getFilter(), statement);
+    size_t columnNr          = statement.getColSize();
+    auto materializedResult  = result->Cast<duckdb::StreamQueryResult>().Materialize();
 
-    int colIdx = 0;
+    for(size_t colIdx = 0; colIdx < columnNr; colIdx++) {
+      auto generateHeatmap = [&columnNr, &tabIdx, &clustersToExport, &filter, &materializedResult,
+                              imageInfo = imageInfo](int32_t colIdx, const PreparedStatement &statement) {
+        joda::table::Table &results = clustersToExport.getTable(tabIdx);
+        results.setTitle(statement.getColumnAt(colIdx).createHeader());
+        results.setMeta({statement.getColNames().clusterName, statement.getColNames().className});
 
-    auto generateHeatmap = [&tabIdx, &clustersToExport, &filter, &result = result, imageInfo = imageInfo, &colIdx]() {
-      joda::table::Table &results = clustersToExport.getTable(tabIdx);
-
-      for(uint64_t row = 0; row < imageInfo.height; row++) {
-        results.getMutableRowHeader()[row] = std::to_string(row + 1);
-        for(uint64_t col = 0; col < imageInfo.width; col++) {
-          results.getMutableColHeader()[col] = std::to_string(col + 1);
-          results.setData(row, col, table::TableCell{std::numeric_limits<double>::quiet_NaN(), 0, false, imageInfo.controlImgPath});
+        for(uint64_t row = 0; row < imageInfo.height; row++) {
+          results.getMutableRowHeader()[row] = std::to_string(row + 1);
+          for(uint64_t col = 0; col < imageInfo.width; col++) {
+            results.getMutableColHeader()[col] = std::to_string(col + 1);
+            results.setData(row, col, table::TableCell{std::numeric_limits<double>::quiet_NaN(), 0, false, imageInfo.controlImgPath});
+          }
         }
-      }
+        for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+          try {
+            double value        = materializedResult->GetValue(colIdx, n).GetValue<double>();
+            uint32_t rectangleX = materializedResult->GetValue(columnNr + 0, n).GetValue<double>();
+            uint32_t rectangleY = materializedResult->GetValue(columnNr + 1, n).GetValue<double>();
 
-      auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
-      auto colX               = materializedResult->ColumnCount() - 2;
-      auto colY               = materializedResult->ColumnCount() - 1;
+            uint32_t x = rectangleX / filter.getFilter().heatmapAreaSize;
+            uint32_t y = rectangleY / filter.getFilter().heatmapAreaSize;
 
-      for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-        try {
-          uint32_t rectangleX = materializedResult->GetValue(colX, n).GetValue<double>();
-          uint32_t rectangleY = materializedResult->GetValue(colY, n).GetValue<double>();
-          double value        = materializedResult->GetValue(colIdx, n).GetValue<double>();
+            std::string linkToImage = imageInfo.controlImgPath;
+            results.setData(y, x, table::TableCell{value, 0, true, linkToImage});
 
-          uint32_t x = rectangleX / filter.getFilter().heatmapAreaSize;
-          uint32_t y = rectangleY / filter.getFilter().heatmapAreaSize;
-
-          std::string linkToImage = imageInfo.controlImgPath;
-          results.setData(y, x, table::TableCell{value, 0, true, linkToImage});
-        } catch(const duckdb::InternalException &ex) {
-          std::cout << "EX " << ex.what() << std::endl;
+          } catch(const duckdb::InternalException &ex) {
+            std::cout << "EX " << ex.what() << std::endl;
+          }
         }
-      }
-      colIdx++;
-    };
-    generateHeatmap();
-    tabIdx++;
+      };
+      generateHeatmap(colIdx, statement);
+      tabIdx++;
+    }
   }
   return clustersToExport.getResult();
 }

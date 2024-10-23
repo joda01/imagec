@@ -780,11 +780,11 @@ void PanelResults::onExportClicked(ExportFormat format)
 
   std::thread([this, filePathOfSettingsFile, format] {
     if(!mTable->isVisible()) {
-      joda::db::BatchExporter::startExportHeatmap(mActListData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
+      joda::db::BatchExporter::startExportHeatmap(mActHeatmapData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
                                                   mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
                                                   filePathOfSettingsFile.toStdString());
     } else {
-      joda::db::BatchExporter::startExportList(mActHeatmapData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
+      joda::db::BatchExporter::startExportList(mActListData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
                                                mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
                                                filePathOfSettingsFile.toStdString());
     }
