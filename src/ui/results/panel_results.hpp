@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <qaction.h>
 #include <qboxlayout.h>
 #include <qcolormap.h>
 #include <qcombobox.h>
@@ -81,6 +82,9 @@ public:
     return mHeatmap01->getData();
   }
 
+signals:
+  void finishedLoading();
+
 private:
   /////////////////////////////////////////////////////
   static constexpr int32_t PREVIEW_BASE_SIZE = 450;
@@ -140,11 +144,8 @@ private:
   /////////////////////////////////////////////////////
   ChartHeatMap *mHeatmap01;
   Navigation mNavigation = Navigation::PLATE;
-  QComboBox *mMarkAsInvalid;
+  QAction *mMarkAsInvalid;
   PanelResultsInfo::DataSet mSelectedDataSet;
-
-  /////////////////////////////////////////////////////
-  QAction *mMarkAsInvalidAction = nullptr;
 
   /////////////////////////////////////////////////////
   uint16_t mActGroupId = 0;
@@ -166,7 +167,8 @@ private:
   bool mIsLoading = false;
 
 public slots:
-  void onMarkAsInvalidClicked();
+  void onFinishedLoading();
+  void onMarkAsInvalidClicked(bool);
   void onElementSelected(int cellX, int cellY, table::TableCell value);
   void onOpenNextLevel(int cellX, int cellY, table::TableCell value);
   void onTableCurrentCellChanged(int currentRow, int currentColumn, int previousRow, int previousColumn);

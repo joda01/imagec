@@ -97,6 +97,7 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   connect(mHeatmap01, &ChartHeatMap::onDoubleClicked, this, &PanelResults::onOpenNextLevel);
   connect(layout().getBackButton(), &QAction::triggered, [this] { mWindowMain->showPanelStartPage(); });
   connect(getWindowMain()->getPanelResultsInfo(), &joda::ui::PanelResultsInfo::settingsChanged, [this]() { refreshView(); });
+  connect(this, &PanelResults::finishedLoading, this, &PanelResults::onFinishedLoading);
 
   col->setContentsMargins(0, 0, 0, 0);
   col->setSpacing(0);
@@ -147,19 +148,6 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   toolbar->addSeparatorToTopToolbar();
 
   //
-  // Open and save
-  //
-  auto *openSheet = new QAction(generateIcon("opened-folder"), "Open sheet settings", toolbar);
-  connect(openSheet, &QAction::triggered, [this]() { loadTemplate(); });
-  toolbar->addItemToTopToolbar(openSheet);
-
-  auto *saveSheet = new QAction(generateIcon("save"), "Save sheet settings", toolbar);
-  connect(saveSheet, &QAction::triggered, [this]() { saveTemplate(); });
-  toolbar->addItemToTopToolbar(saveSheet);
-
-  toolbar->addSeparatorToTopToolbar();
-
-  //
   //
   //
   auto *grp          = new QActionGroup(toolbar);
@@ -184,6 +172,19 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
       onShowTable();
     }
   });
+
+  toolbar->addSeparatorToTopToolbar();
+
+  //
+  // Open and save
+  //
+  auto *openSheet = new QAction(generateIcon("opened-folder"), "Open sheet settings", toolbar);
+  connect(openSheet, &QAction::triggered, [this]() { loadTemplate(); });
+  toolbar->addItemToTopToolbar(openSheet);
+
+  auto *saveSheet = new QAction(generateIcon("save"), "Save sheet settings", toolbar);
+  connect(saveSheet, &QAction::triggered, [this]() { saveTemplate(); });
+  toolbar->addItemToTopToolbar(saveSheet);
 
   toolbar->addSeparatorToTopToolbar();
 
@@ -240,15 +241,16 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
 
   toolbar->addItemToTopToolbar(deleteColumn);
 
+  toolbar->addSeparatorToTopToolbar();
+
   //
   //
   //
-  mMarkAsInvalid = new QComboBox();
-  mMarkAsInvalid->addItem("Valid", false);
-  mMarkAsInvalid->addItem("Invalid", true);
-  mMarkAsInvalidAction = toolbar->addItemToTopToolbar(mMarkAsInvalid);
-  mMarkAsInvalidAction->setVisible(false);
-  connect(mMarkAsInvalid, &QComboBox::currentIndexChanged, this, &PanelResults::onMarkAsInvalidClicked);
+  mMarkAsInvalid = new QAction(generateIcon("unavailable"), "");
+  mMarkAsInvalid->setCheckable(true);
+  toolbar->addItemToTopToolbar(mMarkAsInvalid);
+  mMarkAsInvalid->setEnabled(false);
+  connect(mMarkAsInvalid, &QAction::triggered, this, &PanelResults::onMarkAsInvalidClicked);
 }
 
 ///
@@ -296,68 +298,60 @@ void PanelResults::refreshView()
         case Navigation::PLATE:
           mBackButton->setEnabled(false);
           {
-            mActListData = joda::db::StatsPerGroup::toTable(mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
-            if(!mActListData.empty()) {
-              tableToQWidgetTable(mActListData[0]);
-            } else {
-              mTable->setRowCount(0);
-              mTable->setColumnCount(0);
-            }
-          }
-          {
+            mActListData    = joda::db::StatsPerGroup::toTable(mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
             mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
-            if(!mActHeatmapData.empty() && mActHeatmapData.contains(mColumn->currentData().toInt())) {
-              tableToHeatmap(mActHeatmapData[mColumn->currentData().toInt()]);
-            } else {
-              paintEmptyHeatmap();
-            }
           }
           break;
         case Navigation::WELL:
           mBackButton->setEnabled(true);
           {
-            mActListData = joda::db::StatsPerGroup::toTable(mFilter, db::StatsPerGroup::Grouping::BY_WELL);
-            if(!mActListData.empty()) {
-              tableToQWidgetTable(mActListData[0]);
-            } else {
-              mTable->setRowCount(0);
-              mTable->setColumnCount(0);
-            }
-          }
-          {
+            mActListData    = joda::db::StatsPerGroup::toTable(mFilter, db::StatsPerGroup::Grouping::BY_WELL);
             mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mFilter, db::StatsPerGroup::Grouping::BY_WELL);
-            if(!mActHeatmapData.empty() && mActHeatmapData.contains(mColumn->currentData().toInt())) {
-              tableToHeatmap(mActHeatmapData[mColumn->currentData().toInt()]);
-            } else {
-              paintEmptyHeatmap();
-            }
           }
           break;
         case Navigation::IMAGE:
           mBackButton->setEnabled(true);
           {
-            mActListData = joda::db::StatsPerImage::toTable(mFilter);
-            if(!mActListData.empty()) {
-              tableToQWidgetTable(mActListData[0]);
-            } else {
-              mTable->setRowCount(0);
-              mTable->setColumnCount(0);
-            }
-          }
-          {
+            mActListData    = joda::db::StatsPerImage::toTable(mFilter);
             mActHeatmapData = joda::db::StatsPerImage::toHeatmap(mFilter);
-            if(!mActHeatmapData.empty() && mActHeatmapData.contains(mColumn->currentData().toInt())) {
-              tableToHeatmap(mActHeatmapData[mColumn->currentData().toInt()]);
-            } else {
-              paintEmptyHeatmap();
-            }
           }
           break;
       }
-      update();
+      if(mSelection.contains(mNavigation)) {
+        auto col = mSelection[mNavigation].col;
+        auto row = mSelection[mNavigation].row;
+        mTable->setCurrentCell(row, col);
+      } else {
+        mTable->setCurrentCell(0, 0);
+      }
+      emit finishedLoading();
       mIsLoading = false;
     }).detach();
   }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::onFinishedLoading()
+{
+  if(!mActListData.empty()) {
+    tableToQWidgetTable(mActListData[0]);
+  } else {
+    mTable->setRowCount(0);
+    mTable->setColumnCount(0);
+  }
+
+  if(!mActHeatmapData.empty() && mActHeatmapData.contains(mColumn->currentData().toInt())) {
+    tableToHeatmap(mActHeatmapData[mColumn->currentData().toInt()]);
+  } else {
+    paintEmptyHeatmap();
+  }
+  update();
 }
 
 ///
@@ -394,9 +388,9 @@ void PanelResults::onExportImageClicked()
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelResults::onMarkAsInvalidClicked()
+void PanelResults::onMarkAsInvalidClicked(bool isInvalid)
 {
-  if(mMarkAsInvalid->currentData().toBool()) {
+  if(isInvalid) {
     enums::ChannelValidity val;
     val.set(enums::ChannelValidityEnum::MANUAL_OUT_SORTED);
     mAnalyzer->setImageValidity(mSelectedImageId, val);
@@ -424,7 +418,7 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       //  mSelectedDataSet.groupMeta   = result;
       //  mSelectedDataSet.channelMeta = channel;
       mSelectedDataSet.imageMeta.reset();
-      mMarkAsInvalidAction->setVisible(false);
+      mMarkAsInvalid->setEnabled(false);
     } break;
     case Navigation::WELL: {
       mSelectedImageId = value.getId();
@@ -434,18 +428,18 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       mMarkAsInvalid->blockSignals(true);
 
       if(imageInfo.validity.test(enums::ChannelValidityEnum::MANUAL_OUT_SORTED)) {
-        mMarkAsInvalid->setCurrentIndex(1);
+        mMarkAsInvalid->setChecked(true);
       } else {
-        mMarkAsInvalid->setCurrentIndex(0);
+        mMarkAsInvalid->setChecked(false);
       }
       mMarkAsInvalid->blockSignals(false);
-      mMarkAsInvalidAction->setVisible(true);
+      mMarkAsInvalid->setEnabled(true);
     }
 
     break;
     case Navigation::IMAGE:
       mSelectedTileId = value.getId();
-      mMarkAsInvalidAction->setVisible(false);
+      mMarkAsInvalid->setEnabled(false);
       mSelectedAreaPos.x = cellX;
       mSelectedAreaPos.y = cellY;
       break;
@@ -481,7 +475,6 @@ void PanelResults::onOpenNextLevel(int cellX, int cellY, table::TableCell value)
       break;
   }
   refreshView();
-  mTable->setCurrentCell(0, 0);
 }
 
 ///
@@ -499,17 +492,16 @@ void PanelResults::onBackClicked()
   switch(mNavigation) {
     case Navigation::PLATE:
       mSelectedDataSet.imageMeta.reset();
+      mSelection.erase(Navigation::WELL);
       break;
     case Navigation::WELL:
+      mSelection.erase(Navigation::IMAGE);
       break;
     case Navigation::IMAGE:
       break;
   }
 
   refreshView();
-  auto col = mSelection[mNavigation].col;
-  auto row = mSelection[mNavigation].row;
-  mTable->setCurrentCell(row, col);
   getWindowMain()->getPanelResultsInfo()->setData(mSelectedDataSet);
 }
 
@@ -710,6 +702,9 @@ void PanelResults::tableToQWidgetTable(const joda::table::Table &tableIn)
       if(item) {
         if(tableIn.getRows() > row && tableIn.getCols() > col) {
           item->setText(QString::number((double) tableIn.data(row, col).getVal()));
+          QFont font = item->font();
+          font.setStrikeOut(!tableIn.data(row, col).isValid());
+          item->setFont(font);
         } else {
           item->setText(" ");
         }
@@ -828,7 +823,8 @@ void PanelResults::onExportClicked(ExportFormat format)
 ///
 void PanelResults::saveTemplate()
 {
-  QString templatePath      = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+  QString templatePath =
+      mDbFilePath.parent_path().string().data();    // joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
   QString pathToStoreFileIn = QFileDialog::getSaveFileName(this, "Save File", templatePath,
                                                            "ImageC export template files (*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")");
 
@@ -858,7 +854,8 @@ void PanelResults::saveTemplate()
 ///
 void PanelResults::loadTemplate()
 {
-  QString templatePath       = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+  QString templatePath =
+      mDbFilePath.parent_path().string().data();    // joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
   QString pathToOpenFileFrom = QFileDialog::getOpenFileName(this, "Open File", templatePath,
                                                             "ImageC export template files (*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")");
   if(pathToOpenFileFrom.isEmpty()) {

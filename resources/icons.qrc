@@ -43,6 +43,7 @@
     <file>icons/icons8-open-24.png</file>
     <file>icons/icons8-magic-96.png</file>
     <file>icons/icons8-accept-96.png</file>
+    <file>icons/icons8-unavailable-48.png</file>
     <file>icons/icons8-project-setup-24.png</file>
     <file>icons/icons8-stacked-organizational-chart-96.png</file>
     <file>icons/icons8-delete-48.png</file>
@@ -479,6 +480,7 @@
     <file>icons/icons8-initial-state-96.png</file>
     <file>icons/icons8-2-48.png</file>
     <file>icons/icons8-frames-96.png</file>
+    <file>icons/icons8-unavailable-24.png</file>
     <file>icons/icons8-info-blue-16.png</file>
     <file>icons/icons8-browse-page-24.png</file>
     <file>icons/icons8-select-column-48.png</file>
@@ -508,6 +510,7 @@
     <file>icons/icons8-polygon-16.png</file>
     <file>icons/icons8-transfer-24.png</file>
     <file>icons/icons8-light-min-96.png</file>
+    <file>icons/icons8-unavailable-96.png</file>
     <file>icons/icons8-invert-selection-16.png</file>
     <file>icons/icons8-nine-24.png</file>
     <file>icons/icons8-shutdown-48.png</file>
@@ -608,6 +611,7 @@
     <file>icons/icons8-save-16.png</file>
     <file>icons/icons8-automatic-contrast-96.png</file>
     <file>icons/icons8-cancel-16.png</file>
+    <file>icons/icons8-unavailable-16.png</file>
     <file>icons/icons8-length-48.png</file>
     <file>icons/icons8-browse-page-96.png</file>
     <file>icons/icons8-invert-selection-48.png</file>
