@@ -42,6 +42,7 @@
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/database/database.hpp"
+#include "backend/helper/database/exporter/r/exporter_r.hpp"
 #include "backend/helper/database/exporter/xlsx/exporter.hpp"
 #include "backend/helper/database/plugins/control_image.hpp"
 #include "backend/helper/database/plugins/filter.hpp"
@@ -208,6 +209,7 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   auto *exportR = new QAction(generateIcon("r-studio"), "");
   exportR->setToolTip("Export R");
   toolbar->addItemToTopToolbar(exportR);
+  connect(exportR, &QAction::triggered, [this]() { onExportClicked(ExportFormat::R); });
 
   toolbar->addSeparatorToTopToolbar();
 
@@ -802,14 +804,32 @@ void PanelResults::onExportClicked(ExportFormat format)
   }
 
   std::thread([this, filePathOfSettingsFile, format] {
-    if(!mTable->isVisible()) {
-      joda::db::BatchExporter::startExportHeatmap(mActHeatmapData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
-                                                  mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
-                                                  filePathOfSettingsFile.toStdString());
+    if(format == ExportFormat::XLSX) {
+      if(!mTable->isVisible()) {
+        joda::db::BatchExporter::startExportHeatmap(mActHeatmapData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
+                                                    mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
+                                                    filePathOfSettingsFile.toStdString());
+      } else {
+        joda::db::BatchExporter::startExportList(mActListData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
+                                                 mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
+                                                 filePathOfSettingsFile.toStdString());
+      }
     } else {
-      joda::db::BatchExporter::startExportList(mActListData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
-                                               mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
-                                               filePathOfSettingsFile.toStdString());
+      db::StatsPerGroup::Grouping grouping = db::StatsPerGroup::Grouping::BY_PLATE;
+      switch(mNavigation) {
+        case Navigation::PLATE:
+          grouping = db::StatsPerGroup::Grouping::BY_PLATE;
+          break;
+        case Navigation::WELL:
+          grouping = db::StatsPerGroup::Grouping::BY_WELL;
+          break;
+        case Navigation::IMAGE:
+          grouping = db::StatsPerGroup::Grouping::BY_IMAGE;
+          break;
+      }
+      joda::db::RExporter::startExport(mFilter, grouping, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
+                                       mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
+                                       filePathOfSettingsFile.toStdString());
     }
   }).detach();
 }

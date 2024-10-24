@@ -13,7 +13,8 @@ public:
   enum class Grouping
   {
     BY_WELL,
-    BY_PLATE
+    BY_PLATE,
+    BY_IMAGE
   };
 
   static auto toTable(const QueryFilter &filter, Grouping grouping) -> QueryResult;
