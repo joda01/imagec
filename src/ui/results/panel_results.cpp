@@ -40,6 +40,7 @@
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/database/exporter/xlsx/exporter.hpp"
 #include "backend/helper/database/plugins/control_image.hpp"
@@ -56,6 +57,7 @@
 #include "ui/panel_preview.hpp"
 #include "ui/window_main/panel_results_info.hpp"
 #include "ui/window_main/window_main.hpp"
+#include <nlohmann/json_fwd.hpp>
 #include "dialog_column_settings.hpp"
 
 namespace joda::ui {
@@ -127,6 +129,39 @@ void PanelResults::setActive(bool active)
 ///
 void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
 {
+  //
+  //
+  // Back button
+  mBackButton = new QPushButton(generateIcon("arrow-left"), "");
+  mBackButton->setEnabled(false);
+  connect(mBackButton, &QPushButton::clicked, this, &PanelResults::onBackClicked);
+  toolbar->addItemToTopToolbar(mBackButton);
+
+  // Column select
+  mColumn = new QComboBox();
+  mColumn->setMinimumWidth(150);
+  connect(mColumn, &QComboBox::currentIndexChanged, this, &PanelResults::onColumnComboChanged);
+  mColumnAction = toolbar->addItemToTopToolbar(mColumn);
+  mColumnAction->setVisible(false);
+
+  toolbar->addSeparatorToTopToolbar();
+
+  //
+  // Open and save
+  //
+  auto *openSheet = new QAction(generateIcon("opened-folder"), "Open sheet settings", toolbar);
+  connect(openSheet, &QAction::triggered, [this]() { loadTemplate(); });
+  toolbar->addItemToTopToolbar(openSheet);
+
+  auto *saveSheet = new QAction(generateIcon("save"), "Save sheet settings", toolbar);
+  connect(saveSheet, &QAction::triggered, [this]() { saveTemplate(); });
+  toolbar->addItemToTopToolbar(saveSheet);
+
+  toolbar->addSeparatorToTopToolbar();
+
+  //
+  //
+  //
   auto *grp          = new QActionGroup(toolbar);
   auto *mTableButton = new QAction(generateIcon("table"), "");
   mTableButton->setCheckable(true);
@@ -204,21 +239,6 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   });
 
   toolbar->addItemToTopToolbar(deleteColumn);
-
-  //
-  //
-  // Back button
-  mBackButton = new QPushButton(generateIcon("arrow-left"), "");
-  mBackButton->setEnabled(false);
-
-  connect(mBackButton, &QPushButton::clicked, this, &PanelResults::onBackClicked);
-  toolbar->addItemToTopToolbar(mBackButton);
-
-  mColumn = new QComboBox();
-  mColumn->setMinimumWidth(150);
-  connect(mColumn, &QComboBox::currentIndexChanged, this, &PanelResults::onColumnComboChanged);
-  mColumnAction = toolbar->addItemToTopToolbar(mColumn);
-  mColumnAction->setVisible(false);
 
   //
   //
@@ -789,6 +809,65 @@ void PanelResults::onExportClicked(ExportFormat format)
                                                filePathOfSettingsFile.toStdString());
     }
   }).detach();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::saveTemplate()
+{
+  QString templatePath      = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+  QString pathToStoreFileIn = QFileDialog::getSaveFileName(this, "Save File", templatePath,
+                                                           "ImageC export template files (*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")");
+
+  if(pathToStoreFileIn.isEmpty()) {
+    return;
+  }
+  if(!pathToStoreFileIn.startsWith(templatePath)) {
+    joda::log::logError("Templates must be stored in >" + templatePath.toStdString() + "< directory.");
+    QMessageBox messageBox(this);
+    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setWindowTitle("Could not save template!");
+    messageBox.setText("Templates must be stored in >" + templatePath + "< directory.");
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
+    return;
+  }
+  nlohmann::json json = mFilter;
+  joda::templates::TemplateParser::saveTemplate(json, std::filesystem::path(pathToStoreFileIn.toStdString()), joda::fs::EXT_EXPORT_TEMPLATE);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::loadTemplate()
+{
+  QString templatePath       = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+  QString pathToOpenFileFrom = QFileDialog::getOpenFileName(this, "Open File", templatePath,
+                                                            "ImageC export template files (*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")");
+  if(pathToOpenFileFrom.isEmpty()) {
+    return;
+  }
+  try {
+    auto json = joda::templates::TemplateParser::loadTemplate(std::filesystem::path(pathToOpenFileFrom.toStdString()));
+    mFilter   = json;
+    refreshView();
+  } catch(const std::exception &ex) {
+    QMessageBox messageBox(this);
+    messageBox.setIconPixmap(generateIcon("error-red").pixmap(48, 48));
+    messageBox.setWindowTitle("Error...");
+    messageBox.setText("Error in opening template got >" + QString(ex.what()) + "<.");
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
+  }
 }
 
 }    // namespace joda::ui

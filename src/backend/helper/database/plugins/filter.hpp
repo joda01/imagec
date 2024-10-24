@@ -20,6 +20,7 @@
 #include <utility>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/helper/table/table.hpp"
+#include "backend/settings/setting.hpp"
 #include "backend/settings/settings_types.hpp"
 
 namespace joda::db {
@@ -78,6 +79,8 @@ public:
     std::string crossChannelName;
     std::string clusterName;
     std::string className;
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnName, crossChannelName, clusterName, className);
   };
 
   struct ColumnKey
@@ -122,6 +125,8 @@ public:
       }
       return names.clusterName + "@" + names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "]";
     }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnKey, clusterClass, measureChannel, stats, crossChannelStacksC, zStack, tStack, names);
   };
 
   struct ColumnIdx
@@ -136,6 +141,8 @@ public:
       };
       return toInt(*this) < toInt(input);
     }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnIdx, tabIdx, colIdx);
   };
 
   explicit QueryFilter() = default;
@@ -218,6 +225,8 @@ private:
   db::Database *mAnalyzer = nullptr;
   ObjectFilter mFilter;
   std::map<ColumnIdx, ColumnKey> mColumns;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(QueryFilter, mColumns);
 };
 
 ///

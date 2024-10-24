@@ -103,6 +103,8 @@ private:
 
   /////////////////////////////////////////////////////
   void onExportClicked(ExportFormat);
+  void saveTemplate();
+  void loadTemplate();
 
   WindowMain *mWindowMain;
   std::unique_ptr<joda::db::Database> mAnalyzer;

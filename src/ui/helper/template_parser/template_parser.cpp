@@ -36,8 +36,7 @@ struct MetaFinder
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(MetaFinder, meta, configSchema);
 };
 
-auto TemplateParser::findTemplates(const std::map<std::string, Category> &directories)
-    -> std::map<Category, std::map<std::string, Data>>
+auto TemplateParser::findTemplates(const std::map<std::string, Category> &directories) -> std::map<Category, std::map<std::string, Data>>
 {
   std::map<Category, std::map<std::string, Data>> templates;
   for(const auto &[directory, category] : directories) {
@@ -51,10 +50,8 @@ auto TemplateParser::findTemplates(const std::map<std::string, Category> &direct
           if(category == Category::USER) {
             title += " (" + entry.path().filename().string() + ")";
           }
-          templates[category].emplace(name, Data{.title       = title,
-                                                 .description = "",
-                                                 .path        = entry.path().string(),
-                                                 .icon        = base64ToQPixmap(settings.meta.icon)});
+          templates[category].emplace(
+              name, Data{.title = title, .description = "", .path = entry.path().string(), .icon = base64ToQPixmap(settings.meta.icon)});
         }
       }
     }
@@ -76,6 +73,21 @@ struct SchemaFinder
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(SchemaFinder, configSchema);
 };
 auto TemplateParser::loadChannelFromTemplate(const std::filesystem::path &pathToTemplate) -> settings::Pipeline
+{
+  std::ifstream ifs(pathToTemplate.string());
+  nlohmann::json json = nlohmann::json::parse(ifs);
+  ifs.close();
+  return json;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto TemplateParser::loadTemplate(const std::filesystem::path &pathToTemplate) -> nlohmann::json
 {
   std::ifstream ifs(pathToTemplate.string());
   nlohmann::json json = nlohmann::json::parse(ifs);
@@ -126,8 +138,7 @@ void TemplateParser::saveTemplate(const settings::Pipeline &data, const std::fil
 /// \param[out]
 /// \return
 ///
-void TemplateParser::saveTemplate(nlohmann::json &json, const std::filesystem::path &pathToStoreTemplateIn,
-                                  const std::string &endian)
+void TemplateParser::saveTemplate(nlohmann::json &json, const std::filesystem::path &pathToStoreTemplateIn, const std::string &endian)
 {
   std::string pathToStore = pathToStoreTemplateIn.string();
   if(!pathToStore.ends_with(endian)) {
