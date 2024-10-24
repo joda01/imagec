@@ -480,8 +480,8 @@ void PanelResults::onOpenNextLevel(int cellX, int cellY, table::TableCell value)
       mActImageId = value.getId();
       break;
   }
-  mTable->setCurrentCell(0, 0);
   refreshView();
+  mTable->setCurrentCell(0, 0);
 }
 
 ///
@@ -495,9 +495,6 @@ void PanelResults::onBackClicked()
   if(actMenu >= 0) {
     mNavigation = static_cast<Navigation>(actMenu);
   }
-  auto col = mSelection[mNavigation].col;
-  auto row = mSelection[mNavigation].row;
-  mTable->setCurrentCell(row, col);
 
   switch(mNavigation) {
     case Navigation::PLATE:
@@ -510,6 +507,9 @@ void PanelResults::onBackClicked()
   }
 
   refreshView();
+  auto col = mSelection[mNavigation].col;
+  auto row = mSelection[mNavigation].row;
+  mTable->setCurrentCell(row, col);
   getWindowMain()->getPanelResultsInfo()->setData(mSelectedDataSet);
 }
 
