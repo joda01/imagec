@@ -53,6 +53,8 @@ struct ImageInfo
   std::string imageGroupName;
 };
 
+using DbArgs_t = std::vector<std::variant<std::string, uint16_t, uint32_t, uint64_t, double>>;
+
 class Database
 {
 public:
@@ -100,6 +102,8 @@ public:
     auto prep       = connection->Prepare(query);
     return prep->Execute(std::forward<ARGS>(args)...);
   }
+
+  std::unique_ptr<duckdb::QueryResult> select(const std::string &query, const DbArgs_t &args);
 
 private:
   /////////////////////////////////////////////////////
