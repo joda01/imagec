@@ -306,8 +306,8 @@ void PanelResults::refreshView()
           }
           {
             mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
-            if(!mActHeatmapData.empty()) {
-              tableToHeatmap(mActHeatmapData[0]);
+            if(!mActHeatmapData.empty() && mActHeatmapData.contains(mColumn->currentData().toInt())) {
+              tableToHeatmap(mActHeatmapData[mColumn->currentData().toInt()]);
             } else {
               paintEmptyHeatmap();
             }
@@ -326,8 +326,8 @@ void PanelResults::refreshView()
           }
           {
             mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mFilter, db::StatsPerGroup::Grouping::BY_WELL);
-            if(!mActHeatmapData.empty()) {
-              tableToHeatmap(mActHeatmapData[0]);
+            if(!mActHeatmapData.empty() && mActHeatmapData.contains(mColumn->currentData().toInt())) {
+              tableToHeatmap(mActHeatmapData[mColumn->currentData().toInt()]);
             } else {
               paintEmptyHeatmap();
             }
@@ -346,8 +346,8 @@ void PanelResults::refreshView()
           }
           {
             mActHeatmapData = joda::db::StatsPerImage::toHeatmap(mFilter);
-            if(!mActHeatmapData.empty()) {
-              tableToHeatmap(mActHeatmapData[0]);
+            if(!mActHeatmapData.empty() && mActHeatmapData.contains(mColumn->currentData().toInt())) {
+              tableToHeatmap(mActHeatmapData[mColumn->currentData().toInt()]);
             } else {
               paintEmptyHeatmap();
             }
@@ -480,7 +480,7 @@ void PanelResults::onOpenNextLevel(int cellX, int cellY, table::TableCell value)
       mActImageId = value.getId();
       break;
   }
-
+  mTable->setCurrentCell(0, 0);
   refreshView();
 }
 
@@ -495,6 +495,10 @@ void PanelResults::onBackClicked()
   if(actMenu >= 0) {
     mNavigation = static_cast<Navigation>(actMenu);
   }
+  auto col = mSelection[mNavigation].col;
+  auto row = mSelection[mNavigation].row;
+  mTable->setCurrentCell(row, col);
+
   switch(mNavigation) {
     case Navigation::PLATE:
       mSelectedDataSet.imageMeta.reset();
@@ -773,6 +777,10 @@ void PanelResults::copyTableToClipboard(QTableWidget *table)
 ///
 void PanelResults::onCellClicked(int rowSelected, int columnSelcted)
 {
+  // Update table
+  mSelection[mNavigation] = {rowSelected, columnSelcted};
+  auto selectedData       = mActListData.at(0).data(rowSelected, columnSelcted);
+  onElementSelected(columnSelcted, rowSelected, selectedData);
 }
 
 ///

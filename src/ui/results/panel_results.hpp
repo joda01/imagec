@@ -155,6 +155,14 @@ private:
   uint32_t mSelectedTileId;
   Point mSelectedAreaPos;
 
+  struct Selection
+  {
+    int32_t row = 0;
+    int32_t col = 0;
+  };
+
+  std::map<Navigation, Selection> mSelection;
+
   bool mIsLoading = false;
 
 public slots:
