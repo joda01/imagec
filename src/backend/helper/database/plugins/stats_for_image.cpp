@@ -172,8 +172,7 @@ auto StatsPerImage::densityMap(const settings::ClassificatorSettingOut &clusterA
     imgInfo.controlImgPath = linkToImage;
   }
 
-  auto [sql, params] = toSqlHeatmap(clusterAndClass, filter, channelFilter);
-  std::cout << sql << std::endl;
+  auto [sql, params]                          = toSqlHeatmap(clusterAndClass, filter, channelFilter);
   std::unique_ptr<duckdb::QueryResult> result = analyzer->select(sql, params);
 
   if(result->HasError()) {

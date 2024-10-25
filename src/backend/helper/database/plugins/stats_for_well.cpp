@@ -34,9 +34,6 @@ auto StatsPerGroup::toTable(const QueryFilter &filter, Grouping grouping) -> Que
   auto clustersToExport = filter.getClustersAndClassesToExport();
 
   for(const auto &[clusterClass, statement] : clustersToExport) {
-    std::cout << "Get data " << std::to_string((uint32_t) clusterClass.clusterId) << "@" << std::to_string((uint32_t) clusterClass.classId)
-              << std::endl;
-
     auto materializedResult =
         getData(clusterClass, filter.getAnalyzer(), filter.getFilter(), statement, grouping)->Cast<duckdb::StreamQueryResult>().Materialize();
     size_t columnNr = statement.getColSize();
@@ -167,9 +164,7 @@ auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> Q
 auto StatsPerGroup::getData(const settings::ClassificatorSettingOut &clusterAndClass, db::Database *analyzer, const QueryFilter::ObjectFilter &filter,
                             const PreparedStatement &channelFilter, Grouping grouping) -> std::unique_ptr<duckdb::QueryResult>
 {
-  auto [sql, params] = toSQL(clusterAndClass, filter, channelFilter, grouping);
-  std::cout << "-----------" << std::endl;
-  std::cout << sql << std::endl;
+  auto [sql, params]                          = toSQL(clusterAndClass, filter, channelFilter, grouping);
   std::unique_ptr<duckdb::QueryResult> result = analyzer->select(sql, params);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
