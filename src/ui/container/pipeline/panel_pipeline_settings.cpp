@@ -114,7 +114,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 
   // Tool button
 
-  auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", generateIcon("save"));
+  auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", generateIcon("bookmark"));
   connect(saveAsTemplateButton, &QAction::triggered, [this] { this->saveAsTemplate(); });
 
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);

@@ -139,13 +139,6 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   connect(mBackButton, &QPushButton::clicked, this, &PanelResults::onBackClicked);
   toolbar->addItemToTopToolbar(mBackButton);
 
-  // Column select
-  mColumn = new QComboBox();
-  mColumn->setMinimumWidth(150);
-  connect(mColumn, &QComboBox::currentIndexChanged, this, &PanelResults::onColumnComboChanged);
-  mColumnAction = toolbar->addItemToTopToolbar(mColumn);
-  mColumnAction->setVisible(false);
-
   toolbar->addSeparatorToTopToolbar();
 
   //
@@ -177,39 +170,38 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   toolbar->addSeparatorToTopToolbar();
 
   //
-  // Open and save
+  // Bookmark
   //
-  auto *openSheet = new QAction(generateIcon("opened-folder"), "Open sheet settings", toolbar);
-  connect(openSheet, &QAction::triggered, [this]() { loadTemplate(); });
-  toolbar->addItemToTopToolbar(openSheet);
+  auto *bookmarkSubmenu = new QMenu("Bookmark Options");
 
-  auto *saveSheet = new QAction(generateIcon("save"), "Save sheet settings", toolbar);
-  connect(saveSheet, &QAction::triggered, [this]() { saveTemplate(); });
-  toolbar->addItemToTopToolbar(saveSheet);
+  auto *openBookmark = bookmarkSubmenu->addAction(generateIcon("favorite-folder"), "Open preset");
+  connect(openBookmark, &QAction::triggered, [this]() { loadTemplate(); });
 
-  toolbar->addSeparatorToTopToolbar();
+  auto *bookmark = new QAction(generateIcon("bookmark"), "Save table as preset", toolbar);
+  connect(bookmark, &QAction::triggered, [this]() { saveTemplate(); });
+  bookmark->setMenu(bookmarkSubmenu);
+  toolbar->addItemToTopToolbar(bookmark);
 
   //
-  // Copy Button
+  // Export buttons
   //
-  auto *copy = new QAction(generateIcon("copy"), "");
+  auto *exportMenu = new QMenu("Export");
+
+  auto *copy = exportMenu->addAction(generateIcon("copy"), "Copy");
   copy->setToolTip("Copy table");
   connect(copy, &QAction::triggered, [this]() { copyTableToClipboard(mTable); });
-  toolbar->addItemToTopToolbar(copy);
 
-  //
-  // Export button
-  //
-  auto *exportData = new QAction(generateIcon("excel"), "");
+  auto *exportData = exportMenu->addAction(generateIcon("excel"), "Save as XLSX");
   exportData->setToolTip("Export XLSX");
   connect(exportData, &QAction::triggered, [this]() { onExportClicked(ExportFormat::XLSX); });
 
-  toolbar->addItemToTopToolbar(exportData);
-
-  auto *exportR = new QAction(generateIcon("r-studio"), "");
+  auto *exportR = exportMenu->addAction(generateIcon("r-studio"), "Save as R");
   exportR->setToolTip("Export R");
-  toolbar->addItemToTopToolbar(exportR);
   connect(exportR, &QAction::triggered, [this]() { onExportClicked(ExportFormat::R); });
+
+  auto *exports = new QAction(generateIcon("download"), "Export", toolbar);
+  exports->setMenu(exportMenu);
+  toolbar->addItemToTopToolbar(exports);
 
   toolbar->addSeparatorToTopToolbar();
 
@@ -246,13 +238,22 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   toolbar->addSeparatorToTopToolbar();
 
   //
-  //
+  // Mark as invalid button
   //
   mMarkAsInvalid = new QAction(generateIcon("unavailable"), "");
   mMarkAsInvalid->setCheckable(true);
   toolbar->addItemToTopToolbar(mMarkAsInvalid);
   mMarkAsInvalid->setEnabled(false);
   connect(mMarkAsInvalid, &QAction::triggered, this, &PanelResults::onMarkAsInvalidClicked);
+
+  //
+  // Column select
+  //
+  mColumn = new QComboBox();
+  mColumn->setMinimumWidth(150);
+  connect(mColumn, &QComboBox::currentIndexChanged, this, &PanelResults::onColumnComboChanged);
+  mColumnAction = toolbar->addItemToTopToolbar(mColumn);
+  mColumnAction->setVisible(false);
 }
 
 ///
@@ -751,15 +752,22 @@ void PanelResults::onTableCurrentCellChanged(int currentRow, int currentColumn, 
 void PanelResults::copyTableToClipboard(QTableWidget *table)
 {
   QStringList data;
+  QStringList header;
   for(int row = 0; row < table->rowCount(); ++row) {
     QStringList rowData;
     for(int col = 0; col < table->columnCount(); ++col) {
+      if(row == 0) {
+        header << table->horizontalHeaderItem(col)->text().replace("\n", " ");
+      }
+      if(col == 0) {
+        rowData << table->verticalHeaderItem(row)->text().replace("\n", " ");
+      }
       rowData << table->item(row, col)->text();
     }
     data << rowData.join("\t");    // Join row data with tabs for better readability
   }
 
-  QString text = data.join("\n");    // Join rows with newlines
+  QString text = "\t" + header.join("\t") + "\n" + data.join("\n");    // Join rows with newlines
 
   QClipboard *clipboard = QApplication::clipboard();
   clipboard->setText(text);
@@ -843,8 +851,7 @@ void PanelResults::onExportClicked(ExportFormat format)
 ///
 void PanelResults::saveTemplate()
 {
-  QString templatePath =
-      mDbFilePath.parent_path().string().data();    // joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+  QString templatePath      = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
   QString pathToStoreFileIn = QFileDialog::getSaveFileName(this, "Save File", templatePath,
                                                            "ImageC export template files (*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")");
 
@@ -874,8 +881,7 @@ void PanelResults::saveTemplate()
 ///
 void PanelResults::loadTemplate()
 {
-  QString templatePath =
-      mDbFilePath.parent_path().string().data();    // joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+  QString templatePath       = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
   QString pathToOpenFileFrom = QFileDialog::getOpenFileName(this, "Open File", templatePath,
                                                             "ImageC export template files (*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")");
   if(pathToOpenFileFrom.isEmpty()) {
