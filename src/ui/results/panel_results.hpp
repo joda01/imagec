@@ -60,6 +60,7 @@ public:
 
   /////////////////////////////////////////////////////
   PanelResults(WindowMain *win);
+  ~PanelResults();
   void openFromFile(const QString &pathToDbFile);
   void setActive(bool);
   [[nodiscard]] Navigation getActualNavigation() const
@@ -106,6 +107,7 @@ private:
   void copyTableToClipboard(QTableWidget *table);
 
   /////////////////////////////////////////////////////
+  void storeResultsTableSettingsToDatabase();
   void onExportClicked(ExportFormat);
   void saveTemplate();
   void loadTemplate();

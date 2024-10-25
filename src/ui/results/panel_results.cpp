@@ -109,6 +109,11 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   refreshView();
 }
 
+PanelResults::~PanelResults()
+{
+  storeResultsTableSettingsToDatabase();
+}
+
 void PanelResults::valueChangedEvent()
 {
 }
@@ -120,7 +125,11 @@ void PanelResults::valueChangedEvent()
 void PanelResults::setActive(bool active)
 {
   if(!active) {
+    storeResultsTableSettingsToDatabase();
     getWindowMain()->getPanelResultsInfo()->setData({});
+    mSelectedDataSet.analyzeMeta.reset();
+    mSelectedDataSet.imageMeta.reset();
+    mSelectedDataSet.value.reset();
     mAnalyzer.reset();
   }
 }
@@ -268,7 +277,31 @@ void PanelResults::setAnalyzer()
   mSelectedDataSet.analyzeMeta = mAnalyzer->selectExperiment();
   mColumnEditDialog->updateClustersAndClasses(mAnalyzer.get());
   getWindowMain()->getPanelResultsInfo()->setData(mSelectedDataSet);
+  try {
+    if(mSelectedDataSet.analyzeMeta.has_value()) {
+      auto resultsSettings = mAnalyzer->selectResultsTableSettings(mSelectedDataSet.analyzeMeta->jobId);
+      mFilter              = nlohmann::json::parse(resultsSettings);
+    }
+  } catch(...) {
+  }
   refreshView();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::storeResultsTableSettingsToDatabase()
+{
+  try {
+    if(mAnalyzer != nullptr && mSelectedDataSet.analyzeMeta.has_value() && !mSelectedDataSet.analyzeMeta->jobId.empty()) {
+      mAnalyzer->updateResultsTableSettings(mSelectedDataSet.analyzeMeta->jobId, nlohmann::json(mFilter).dump());
+    }
+  } catch(...) {
+  }
 }
 
 ///

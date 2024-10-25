@@ -73,9 +73,13 @@ void Database::createTables()
       " time_started TIMESTAMP,"
       " time_finished TIMESTAMP,"
       " settings TEXT,"
+      " settings_results_table TEXT,"
       " PRIMARY KEY (job_id),"
       " FOREIGN KEY(experiment_id) REFERENCES experiment(experiment_id)"
       ");"
+
+      "ALTER TABLE jobs "
+      " ADD COLUMN IF NOT EXISTS settings_results_table TEXT;"
 
       "CREATE TABLE IF NOT EXISTS plates ("
       " job_id UUID,"
@@ -700,6 +704,7 @@ auto Database::selectExperiment() -> AnalyzeMeta
   std::chrono::system_clock::time_point timestampFinish;
   std::string settingsString;
   std::string jobName;
+  std::string jobId;
 
   {
     std::unique_ptr<duckdb::QueryResult> result = select("SELECT experiment_id,name,notes FROM experiment");
@@ -716,7 +721,8 @@ auto Database::selectExperiment() -> AnalyzeMeta
   }
 
   {
-    std::unique_ptr<duckdb::QueryResult> resultJobs = select("SELECT time_started,time_finished,settings,job_name FROM jobs ORDER BY time_started");
+    std::unique_ptr<duckdb::QueryResult> resultJobs =
+        select("SELECT time_started,time_finished,settings,job_name,job_id FROM jobs ORDER BY time_started");
     if(resultJobs->HasError()) {
       throw std::invalid_argument(resultJobs->GetError());
     }
@@ -740,6 +746,10 @@ auto Database::selectExperiment() -> AnalyzeMeta
       {
         jobName = materializedResult->GetValue(3, 0).GetValue<std::string>();
       }
+
+      {
+        jobId = materializedResult->GetValue(4, 0).GetValue<std::string>();
+      }
     }
   }
 
@@ -747,6 +757,7 @@ auto Database::selectExperiment() -> AnalyzeMeta
           .timestampStart            = timestampStart,
           .timestampFinish           = timestampFinish,
           .jobName                   = jobName,
+          .jobId                     = jobId,
           .analyzeSettingsJsonString = settingsString};
 }
 
@@ -1115,6 +1126,48 @@ auto Database::selectMeasurementChannelsForClusterAndClass(enums::ClusterId clus
     channels.emplace((int32_t) materializedResult->GetValue(0, n).GetValue<uint32_t>());
   }
   return channels;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Database::updateResultsTableSettings(const std::string &jobId, const std::string &settings)
+{
+  auto timestampFinished =
+      duckdb::timestamp_t(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
+  std::unique_ptr<duckdb::QueryResult> result =
+      select("UPDATE jobs SET settings_results_table = ? WHERE job_id = ?", helper::base64Encode(settings), duckdb::Value::UUID(jobId));
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Database::selectResultsTableSettings(const std::string &jobId) -> std::string
+{
+  {
+    std::unique_ptr<duckdb::QueryResult> resultJobs = select("SELECT settings_results_table FROM jobs WHERE job_id = ?", duckdb::Value::UUID(jobId));
+    if(resultJobs->HasError()) {
+      throw std::invalid_argument(resultJobs->GetError());
+    }
+    auto materializedResult = resultJobs->Cast<duckdb::StreamQueryResult>().Materialize();
+    if(materializedResult->RowCount() > 0) {
+      {
+        return helper::base64Decode(materializedResult->GetValue(0, 0).GetValue<std::string>());
+      }
+    }
+  }
+  return "";
 }
 
 }    // namespace joda::db
