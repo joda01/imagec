@@ -270,6 +270,7 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   // Mark as invalid button
   //
   mMarkAsInvalid = new QAction(generateIcon("unavailable"), "");
+  mMarkAsInvalid->setToolTip("Exclude selected image from statistics");
   mMarkAsInvalid->setCheckable(true);
   toolbar->addItemToTopToolbar(mMarkAsInvalid);
   mMarkAsInvalid->setEnabled(false);
