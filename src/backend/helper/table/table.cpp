@@ -88,4 +88,21 @@ void Table::setMeta(const Meta &meta)
   mMeta = meta;
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+[[nodiscard]] TableCell Table::data(uint32_t row, uint32_t col) const
+{
+  if(mData.contains(row)) {
+    if(mData.at(row).contains(col)) {
+      return mData.at(row).at(col);
+    }
+  }
+  return {};
+}
+
 }    // namespace joda::table

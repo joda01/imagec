@@ -120,15 +120,7 @@ public:
   }
 
   void print();
-  [[nodiscard]] TableCell data(uint32_t row, uint32_t col) const
-  {
-    if(mData.contains(row)) {
-      if(mData.at(row).contains(col)) {
-        return mData.at(row).at(col);
-      }
-    }
-    return {};
-  }
+  [[nodiscard]] TableCell data(uint32_t row, uint32_t col) const;
 
   void setData(uint32_t row, uint32_t col, const TableCell &data)
   {
