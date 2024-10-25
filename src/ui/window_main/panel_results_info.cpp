@@ -255,6 +255,17 @@ void PanelResultsInfo::setData(const DataSet &data)
     row++;
   };
 
+  auto addItemDouble = [this, &row](const std::string name, double value, const std::string &prefix) {
+    auto *title = new QTableWidgetItem(name.data());
+    title->setFlags(title->flags() & ~Qt::ItemIsEditable);
+    mResultsProperties->setItem(row, 0, title);
+
+    auto *valueItem = new QTableWidgetItem(QString::number(value) + " " + QString(prefix.data()));
+    valueItem->setFlags(valueItem->flags() & ~Qt::ItemIsEditable);
+    mResultsProperties->setItem(row, 1, valueItem);
+    row++;
+  };
+
   auto addStringItem = [this, &row](const std::string name, const std::string &value) {
     auto *title = new QTableWidgetItem(name.data());
     title->setFlags(title->flags() & ~Qt::ItemIsEditable);
@@ -308,7 +319,7 @@ void PanelResultsInfo::setData(const DataSet &data)
 
   if(data.value.has_value()) {
     addTitle("Value");
-    addItem("Val", data.value->value, "");
+    addItemDouble("Val", data.value->value, "");
     // addItem("Well pos. x", data.groupMeta->wellPosX, "");
     // addItem("Well pos. y", data.groupMeta->wellPosY, "");
   }

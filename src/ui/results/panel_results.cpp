@@ -32,6 +32,7 @@
 #include <QWidget>
 #include <cmath>
 #include <exception>
+#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <random>
@@ -881,6 +882,9 @@ void PanelResults::onExportClicked(ExportFormat format)
                                        mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
                                        filePathOfSettingsFile.toStdString());
     }
+
+    QString folderPath = std::filesystem::path(filePathOfSettingsFile.toStdString()).parent_path().string().data();
+    QDesktopServices::openUrl(QUrl("file:///" + folderPath));
   }).detach();
 }
 

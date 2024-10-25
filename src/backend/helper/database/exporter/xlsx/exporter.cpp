@@ -108,7 +108,11 @@ void BatchExporter::createList(const WorkBook &workbookSettings, std::pair<Pos, 
 
   for(int row = 0; row < data.getRows(); row++) {
     for(int col = 0; col < data.getCols(); col++) {
-      worksheet_write_number(sheet.second, row + 1 + xOffset, 1 + col, data.data(row, col).getVal(), workbookSettings.numberFormat);
+      if(data.data(row, col).isValid()) {
+        worksheet_write_number(sheet.second, row + 1 + xOffset, 1 + col, data.data(row, col).getVal(), workbookSettings.numberFormat);
+      } else {
+        worksheet_write_number(sheet.second, row + 1 + xOffset, 1 + col, data.data(row, col).getVal(), workbookSettings.numberFormatInvalid);
+      }
     }
   }
 
