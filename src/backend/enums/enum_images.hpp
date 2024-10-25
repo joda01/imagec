@@ -35,7 +35,10 @@ struct ImageId
 
   bool operator<(const ImageId &in) const
   {
-    return zProjection < in.zProjection || imagePlane < in.imagePlane;
+    __uint128_t plane1 = (imagePlane.toInt(imagePlane) << 8) | static_cast<uint8_t>(zProjection);
+    __uint128_t plane2 = (in.imagePlane.toInt(in.imagePlane) << 8) | static_cast<uint8_t>(in.zProjection);
+
+    return plane1 < plane2;
   }
 
   void check() const

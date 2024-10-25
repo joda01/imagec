@@ -7,6 +7,7 @@
     <file>icons/icons8-railroad-crossing-24.png</file>
     <file>icons/icons8-invert-colors-96.png</file>
     <file>icons/icons8-address-16.png</file>
+    <file>icons/icons8-add-column-96.png</file>
     <file>icons/icons8-experiment-48.png</file>
     <file>icons/icons8-creative-commons-zero-48.png</file>
     <file>icons/icons8-railroad-crossing-48.png</file>
@@ -19,6 +20,7 @@
     <file>icons/icons8-histogram-96.png</file>
     <file>icons/icons8-pipeline-16.png</file>
     <file>icons/icons8-warning-24.png</file>
+    <file>icons/icons8-add-column-24.png</file>
     <file>icons/icons8-5-24.png</file>
     <file>icons/icons8-sort-by-price-48.png</file>
     <file>icons/icons8-fill-color-16.png</file>
@@ -41,6 +43,7 @@
     <file>icons/icons8-open-24.png</file>
     <file>icons/icons8-magic-96.png</file>
     <file>icons/icons8-accept-96.png</file>
+    <file>icons/icons8-unavailable-48.png</file>
     <file>icons/icons8-project-setup-24.png</file>
     <file>icons/icons8-stacked-organizational-chart-96.png</file>
     <file>icons/icons8-delete-48.png</file>
@@ -54,6 +57,7 @@
     <file>icons/icons8-venn-diagram-48.png</file>
     <file>icons/icons8-open-parcel-24.png</file>
     <file>icons/icons8-flow-many-96.png</file>
+    <file>icons/icons8-delete-column-48.png</file>
     <file>icons/icons8-popup-window-96.png</file>
     <file>icons/icons8-play-48.png</file>
     <file>icons/icons8-matrix-24.png</file>
@@ -93,9 +97,12 @@
     <file>icons/icons8-zoom-in-24.png</file>
     <file>icons/icons8-screenshot-96.png</file>
     <file>icons/icons8-number-16.png</file>
+    <file>icons/icons8-select-column-24.png</file>
     <file>icons/icons8-repeat-96.png</file>
     <file>icons/icons8-project-setup-16.png</file>
+    <file>icons/icons8-excel-24.png</file>
     <file>icons/icons8-zero-48.png</file>
+    <file>icons/icons8-add-column-48.png</file>
     <file>icons/icons8-layer-mask-48.png</file>
     <file>icons/icons8-pin-96.png</file>
     <file>icons/icons8-fill-color-48.png</file>
@@ -124,6 +131,7 @@
     <file>icons/icons8-number-96.png</file>
     <file>icons/icons8-arrow-up-48.png</file>
     <file>icons/icons8-images-folder-24.png</file>
+    <file>icons/icons8-r-48.png</file>
     <file>icons/icons8-arrow-16.png</file>
     <file>icons/icons8-color-48.png</file>
     <file>icons/icons8-triangle-16.png</file>
@@ -135,6 +143,7 @@
     <file>icons/icons8-triangle-48.png</file>
     <file>icons/icons8-favorite-folder-24.png</file>
     <file>icons/icons8-mind-map-16.png</file>
+    <file>icons/icons8-column-16.png</file>
     <file>icons/icons8-remove-image-16.png</file>
     <file>icons/icons8-close-24.png</file>
     <file>icons/icons8-opened-folder-24.png</file>
@@ -142,11 +151,13 @@
     <file>icons/icons8-one-round-96.png</file>
     <file>icons/icons8-2-16.png</file>
     <file>icons/icons8-resolution-96.png</file>
+    <file>icons/icons8-download-48.png</file>
     <file>icons/icons8-5-16.png</file>
     <file>icons/icons8-table-96.png</file>
     <file>icons/icons8-table-detail-16.png</file>
     <file>icons/icons8-one-round-16.png</file>
     <file>icons/icons8-experiment-24.png</file>
+    <file>icons/icons8-r-studio-48.png</file>
     <file>icons/icons8-100-16.png</file>
     <file>icons/icons8-name-48.png</file>
     <file>icons/icons8-error-96.png</file>
@@ -186,6 +197,7 @@
     <file>icons/icons8-copy-16.png</file>
     <file>icons/icons8-filter-16.png</file>
     <file>icons/icons8-arrow-up-16.png</file>
+    <file>icons/icons8-excel-48.png</file>
     <file>icons/icons8-heat-map-96.png</file>
     <file>icons/icons8-external-link-48.png</file>
     <file>icons/icons8-fill-color-96.png</file>
@@ -202,6 +214,7 @@
     <file>icons/icons8-move-right-16.png</file>
     <file>icons/icons8-equals-24.png</file>
     <file>icons/icons8-empty-tray-24.png</file>
+    <file>icons/icons8-column-96.png</file>
     <file>icons/icons8-type-48.png</file>
     <file>icons/icons8-pipeline-24.png</file>
     <file>icons/icons8-preview-96.png</file>
@@ -211,6 +224,8 @@
     <file>icons/icons8-flow-48.png</file>
     <file>icons/icons8-length-24.png</file>
     <file>icons/icons8-classify-48.png</file>
+    <file>icons/icons8-select-column-16.png</file>
+    <file>icons/icons8-download-96.png</file>
     <file>icons/icons8-automatic-contrast-24.png</file>
     <file>icons/icons8-repeat-24.png</file>
     <file>icons/icons8-maximize-window-24.png</file>
@@ -252,6 +267,7 @@
     <file>icons/icons8-no-idea-16.png</file>
     <file>icons/icons8-opened-folder-48.png</file>
     <file>icons/icons8-opened-folder-16.png</file>
+    <file>icons/icons8-r-16.png</file>
     <file>icons/icons8-type-96.png</file>
     <file>icons/icons8-image-48.png</file>
     <file>icons/icons8-name-24.png</file>
@@ -264,17 +280,20 @@
     <file>icons/icons8-play-24.png</file>
     <file>icons/icons8-crop-16.png</file>
     <file>icons/icons8-polygon-48.png</file>
+    <file>icons/icons8-column-48.png</file>
     <file>icons/icons8-zoom-in-16.png</file>
     <file>icons/icons8-screensharing-96.png</file>
     <file>icons/icons8-experiment-16.png</file>
     <file>icons/icons8-zoom-in-96.png</file>
     <file>icons/icons8-warning-96.png</file>
+    <file>icons/icons8-column-24.png</file>
     <file>icons/icons8-invisible-48.png</file>
     <file>icons/icons8-error-16.png</file>
     <file>icons/icons8-favorite-folder-96.png</file>
     <file>icons/icons8-error-48.png</file>
     <file>icons/icons8-original-size-48.png</file>
     <file>icons/icons8-pin-24.png</file>
+    <file>icons/icons8-r-studio-16.png</file>
     <file>icons/icons8-close-48.png</file>
     <file>icons/icons8-full-screen-96.png</file>
     <file>icons/icons8-open-96.png</file>
@@ -291,6 +310,7 @@
     <file>icons/icons8-baseline-48.png</file>
     <file>icons/icons8-picture-in-picture-alternative-48.png</file>
     <file>icons/icons8-crosshair-48.png</file>
+    <file>icons/icons8-download-16.png</file>
     <file>icons/icons8-save-48.png</file>
     <file>icons/icons8-transfer-16.png</file>
     <file>icons/icons8-table-16.png</file>
@@ -300,6 +320,7 @@
     <file>icons/icons8-no-image-24.png</file>
     <file>icons/icons8-zero-16.png</file>
     <file>icons/icons8-screenshot-16.png</file>
+    <file>icons/icons8-edit-column-16.png</file>
     <file>icons/icons8-three-24.png</file>
     <file>icons/icons8-add-24.png</file>
     <file>icons/icon_eva.png</file>
@@ -315,6 +336,7 @@
     <file>icons/icons8-diameter-48.png</file>
     <file>icons/icons8-circle-16.png</file>
     <file>icons/icons8-clone-16.png</file>
+    <file>icons/icons8-delete-column-24.png</file>
     <file>icons/icons8-screenshot-48.png</file>
     <file>icons/icons8-header-96.png</file>
     <file>icons/icons8-snap-background-to-white-48.png</file>
@@ -326,6 +348,7 @@
     <file>icons/icons8-equals-16.png</file>
     <file>icons/icons8-shutdown-96.png</file>
     <file>icons/icons8-light-48.png</file>
+    <file>icons/icons8-delete-column-16.png</file>
     <file>icons/icons8-accept-16.png</file>
     <file>icons/icons8-hexagonal-pattern-48.png</file>
     <file>icons/icons8-arrow-24.png</file>
@@ -333,16 +356,19 @@
     <file>icons/icons8-no-filling-24.png</file>
     <file>icons/icons8-open-parcel-48.png</file>
     <file>icons/icons8-hexagon-16.png</file>
+    <file>icons/icons8-excel-96.png</file>
     <file>icons/icons8-hexagonal-pattern-96.png</file>
     <file>icons/icons8-arrow-left-16.png</file>
     <file>icons/icons8-image-24.png</file>
     <file>icons/icons8-shutdown-16.png</file>
     <file>icons/icons8-favorite-folder-16.png</file>
     <file>icons/icons8-warning-yellow-96.png</file>
+    <file>icons/icons8-edit-column-24.png</file>
     <file>icons/icons8-hand-24.png</file>
     <file>icons/icons8-creative-commons-zero-96.png</file>
     <file>icons/icons8-favorite-16.png</file>
     <file>icons/icons8-layer-16.png</file>
+    <file>icons/icons8-delete-column-96.png</file>
     <file>icons/icons8-no-idea-24.png</file>
     <file>icons/icons8-heat-map-48.png</file>
     <file>icons/icons8-test-tube-96.png</file>
@@ -419,6 +445,7 @@
     <file>icons/icons8-color-96.png</file>
     <file>icons/icons8-two-16.png</file>
     <file>icons/icons8-scatter-plot-96.png</file>
+    <file>icons/icons8-add-column-16.png</file>
     <file>icons/icons8-name-96.png</file>
     <file>icons/icons8-play-96.png</file>
     <file>icons/icons8-bookmark-16.png</file>
@@ -456,8 +483,10 @@
     <file>icons/icons8-initial-state-96.png</file>
     <file>icons/icons8-2-48.png</file>
     <file>icons/icons8-frames-96.png</file>
+    <file>icons/icons8-unavailable-24.png</file>
     <file>icons/icons8-info-blue-16.png</file>
     <file>icons/icons8-browse-page-24.png</file>
+    <file>icons/icons8-select-column-48.png</file>
     <file>icons/icons8-error-24.png</file>
     <file>icons/icons8-zero-96.png</file>
     <file>icons/icons8-crosshair-16.png</file>
@@ -478,11 +507,13 @@
     <file>icons/icons8-frames-48.png</file>
     <file>icons/icons8-one-16.png</file>
     <file>icons/icons8-move-right-48.png</file>
+    <file>icons/icons8-r-studio-24.png</file>
     <file>icons/icons8-open-48.png</file>
     <file>icons/icons8-nine-48.png</file>
     <file>icons/icons8-polygon-16.png</file>
     <file>icons/icons8-transfer-24.png</file>
     <file>icons/icons8-light-min-96.png</file>
+    <file>icons/icons8-unavailable-96.png</file>
     <file>icons/icons8-invert-selection-16.png</file>
     <file>icons/icons8-nine-24.png</file>
     <file>icons/icons8-shutdown-48.png</file>
@@ -491,6 +522,7 @@
     <file>icons/icons8-warning-yellow-48.png</file>
     <file>icons/icons8-no-image-48.png</file>
     <file>icons/icons8-project-management-16.png</file>
+    <file>icons/icons8-edit-column-96.png</file>
     <file>icons/icons8-zoom-out-48.png</file>
     <file>icons/icons8-seven-48.png</file>
     <file>icons/icons8-no-image-96.png</file>
@@ -551,8 +583,10 @@
     <file>icons/icons8-average-math-48.png</file>
     <file>icons/icons8-railroad-crossing-96.png</file>
     <file>icons/icons8-diameter-96.png</file>
+    <file>icons/icons8-r-96.png</file>
     <file>icons/icons8-histogram-24.png</file>
     <file>icons/icons8-hexagon-96.png</file>
+    <file>icons/icons8-select-column-96.png</file>
     <file>icons/icons8-arrow-up-24.png</file>
     <file>icons/icons8-export-excel-48.png</file>
     <file>icons/icons8-normal-distribution-histogram-24.png</file>
@@ -566,6 +600,7 @@
     <file>icons/icons8-add-16.png</file>
     <file>icons/icons8-radius-16.png</file>
     <file>icons/icons8-binary-code-16.png</file>
+    <file>icons/icons8-download-24.png</file>
     <file>icons/icons8-popup-window-24.png</file>
     <file>icons/icons8-address-96.png</file>
     <file>icons/icons8-external-link-16.png</file>
@@ -580,6 +615,7 @@
     <file>icons/icons8-save-16.png</file>
     <file>icons/icons8-automatic-contrast-96.png</file>
     <file>icons/icons8-cancel-16.png</file>
+    <file>icons/icons8-unavailable-16.png</file>
     <file>icons/icons8-length-48.png</file>
     <file>icons/icons8-browse-page-96.png</file>
     <file>icons/icons8-invert-selection-48.png</file>
@@ -587,11 +623,14 @@
     <file>icons/icons8-rename-96.png</file>
     <file>icons/icons8-snap-background-to-white-96.png</file>
     <file>icons/icons8-add-to-favorites-96.png</file>
+    <file>icons/icons8-r-studio-96.png</file>
     <file>icons/icons8-square-number-16.png</file>
     <file>icons/icons8-blur-24.png</file>
     <file>icons/icons8-rename-24.png</file>
+    <file>icons/icons8-r-24.png</file>
     <file>icons/icons8-flow-24.png</file>
     <file>icons/icons8-2-24.png</file>
+    <file>icons/icons8-excel-16.png</file>
     <file>icons/icons8-table-detail-48.png</file>
     <file>icons/icons8-three-96.png</file>
     <file>icons/icons8-save-96.png</file>
@@ -604,6 +643,7 @@
     <file>icons/icons8-aspect-ratio-16.png</file>
     <file>icons/icons8-grayscale-24.png</file>
     <file>icons/icons8-split-96.png</file>
+    <file>icons/icons8-edit-column-48.png</file>
     <file>icons/icons8-polygon-24.png</file>
 </qresource>
 </RCC>

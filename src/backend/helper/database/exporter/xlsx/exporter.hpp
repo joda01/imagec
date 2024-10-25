@@ -1,3 +1,14 @@
+///
+/// \file      exporter.hpp
+/// \author    Joachim Danmayr
+/// \date      2024-10-13
+///
+/// \copyright Copyright 2019 Joachim Danmayr
+///            All rights reserved! This file is subject
+///            to the terms and conditions defined in file
+///            LICENSE.txt, which is part of this package.
+///
+///
 
 #pragma once
 
@@ -19,46 +30,12 @@ namespace joda::db {
 class BatchExporter
 {
 public:
-  struct Settings
-  {
-    enum class ExportType
-    {
-      HEATMAP,
-      TABLE,
-      TABLE_DETAIL
-    };
-
-    enum class ExportDetail
-    {
-      PLATE,
-      WELL,
-      IMAGE
-    };
-
-    struct Channel
-    {
-      std::string clusterName;
-      std::string className;
-      std::map<enums::Measurement, std::set<enums::Stats>> measureChannels;
-      std::map<int32_t, std::string> crossChannelStacksC;
-      std::map<settings::ClassificatorSettingOut, std::pair<std::string, std::string>> crossChannelCount;
-    };
-    std::map<settings::ClassificatorSettingOut, Channel> clustersToExport;
-    db::Database &analyzer;
-    uint8_t plateId;
-    uint16_t groupId;
-    uint64_t imageId;
-    uint16_t plateRows;
-    uint16_t plateCols;
-    uint32_t heatmapAreaSize;
-    std::vector<std::vector<int32_t>> wellImageOrder;
-    ExportType exportType;
-    ExportDetail exportDetail;
-  };
-
-  static void startExport(const Settings &settings, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
-                          std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
-                          const std::string &outputFileName);
+  static void startExportHeatmap(const std::map<int32_t, joda::table::Table> &data, const settings::AnalyzeSettings &analyzeSettings,
+                                 const std::string &jobName, std::chrono::system_clock::time_point timeStarted,
+                                 std::chrono::system_clock::time_point timeFinished, const std::string &outputFileName);
+  static void startExportList(const std::map<int32_t, joda::table::Table> &data, const settings::AnalyzeSettings &analyzeSettings,
+                              const std::string &jobName, std::chrono::system_clock::time_point timeStarted,
+                              std::chrono::system_clock::time_point timeFinished, const std::string &outputFileName);
 
 private:
   /////////////////////////////////////////////////////
@@ -87,8 +64,9 @@ private:
   static WorkBook createWorkBook(std::string outputFileName);
   static void createAnalyzeSettings(WorkBook &, const settings::AnalyzeSettings &settings, const std::string &jobName,
                                     std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished);
-  static void createHeatmapSummary(WorkBook &, const Settings &settings);
-  static void createListSummary(WorkBook &workbookSettings, const Settings &settings);
+  static void createHeatmap(const WorkBook &, std::pair<Pos, lxw_worksheet *> &sheet, const table::Table &data);
+  static void createList(const WorkBook &, std::pair<Pos, lxw_worksheet *> &sheet, const table::Table &data);
+
   static void paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset, lxw_format *header, lxw_format *numberFormat,
                                lxw_format *mergeFormat, const std::string &title);
   static Pos paintHeatmap(const WorkBook &workbookSettings, lxw_worksheet *worksheet, const joda::table::Table &table, uint32_t rowOffset);

@@ -13,17 +13,19 @@
 
 #pragma once
 
+#include <qaction.h>
 #include <qboxlayout.h>
 #include <qcolormap.h>
 #include <qcombobox.h>
 #include <qmainwindow.h>
+#include <qtoolbar.h>
 #include <qwidget.h>
 #include <memory>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/database/database.hpp"
-#include "backend/helper/database/plugins/helper.hpp"
+#include "backend/helper/database/plugins/filter.hpp"
 #include "backend/helper/table/table.hpp"
 #include "heatmap/panel_heatmap.hpp"
 #include "ui/container/panel_edit_base.hpp"
@@ -36,6 +38,8 @@ class WindowMain;
 }
 
 namespace joda::ui {
+
+class DialogColumnSettings;
 
 ///
 /// \class      PanelResults
@@ -56,6 +60,7 @@ public:
 
   /////////////////////////////////////////////////////
   PanelResults(WindowMain *win);
+  ~PanelResults();
   void openFromFile(const QString &pathToDbFile);
   void setActive(bool);
   [[nodiscard]] Navigation getActualNavigation() const
@@ -78,47 +83,74 @@ public:
     return mHeatmap01->getData();
   }
 
+signals:
+  void finishedLoading();
+
 private:
   /////////////////////////////////////////////////////
   static constexpr int32_t PREVIEW_BASE_SIZE = 450;
+
+  enum class ExportFormat
+  {
+    XLSX,
+    R
+  };
+
   /////////////////////////////////////////////////////
   void valueChangedEvent() override;
   void setAnalyzer();
-  void tableToQWidgetTable(const table::Table &table);
+  void tableToQWidgetTable(const joda::table::Table &table);
+  void tableToHeatmap(const joda::table::Table &table);
+  void paintEmptyHeatmap();
+  void goHome();
+
   void refreshView();
   void copyTableToClipboard(QTableWidget *table);
 
+  /////////////////////////////////////////////////////
+  void storeResultsTableSettingsToDatabase();
+  void onExportClicked(ExportFormat);
+  void saveTemplate();
+  void loadTemplate();
+
   WindowMain *mWindowMain;
   std::unique_ptr<joda::db::Database> mAnalyzer;
+  std::filesystem::path mDbFilePath;
 
   // Breadcrumb///////////////////////////////////////////////////
   void createBreadCrump(joda::ui::helper::LayoutGenerator *);
+  auto getClusterAndClassFromCombo() const -> std::pair<std::string, std::string>;
+
   QPushButton *mBackButton;
-  QPushButton *mHeatmapButton;
-  QPushButton *mTableButton;
+  QAction *mTableButton   = nullptr;
+  QAction *mHeatmapButton = nullptr;
 
   PanelPreview *mPreviewImage;
   // uint32_t mDensityMapSize = 200;
+  QComboBox *mColumn;
+  QAction *mColumnAction;
 
-  QComboBox *mClusterClassSelector;
-  QComboBox *mMeasurementSelector;
-  QComboBox *mStatsSelector;
-
-  QComboBox *mCrossChannelStackC;
+  /// COLUMN EDIT //////////////////////////////////////////////////
+  void createEditColumnDialog();
+  void columnEdit(int32_t colIdx);
+  DialogColumnSettings *mColumnEditDialog;
 
   /////////////////////////////////////////////////////
-  QTableWidget *mTable;
+  db::QueryFilter mFilter;
+  PlaceholderTableWidget *mTable;
+  std::map<int32_t, joda::table::Table> mActListData;
+  std::map<int32_t, joda::table::Table> mActHeatmapData;
+  table::Table mSelectedTable;
+  int32_t mSelectedTableColumn = -1;
+  int32_t mSelectedTableRow    = -1;
+
+  std::mutex mSelectMutex;
 
   /////////////////////////////////////////////////////
   ChartHeatMap *mHeatmap01;
-  db::QueryFilter mFilter;
   Navigation mNavigation = Navigation::PLATE;
-  QComboBox *mMarkAsInvalid;
+  QAction *mMarkAsInvalid;
   PanelResultsInfo::DataSet mSelectedDataSet;
-
-  /////////////////////////////////////////////////////
-  QAction *mMarkAsInvalidAction      = nullptr;
-  QAction *mActionCrossChannelCStack = nullptr;
 
   /////////////////////////////////////////////////////
   uint16_t mActGroupId = 0;
@@ -129,22 +161,29 @@ private:
   uint32_t mSelectedTileId;
   Point mSelectedAreaPos;
 
+  struct Selection
+  {
+    int32_t row = 0;
+    int32_t col = 0;
+  };
+
+  std::map<Navigation, Selection> mSelection;
+
   bool mIsLoading = false;
+  bool mIsActive  = false;
 
 public slots:
-  void onMarkAsInvalidClicked();
+  void onFinishedLoading();
+  void onMarkAsInvalidClicked(bool);
   void onElementSelected(int cellX, int cellY, table::TableCell value);
   void onOpenNextLevel(int cellX, int cellY, table::TableCell value);
+  void onTableCurrentCellChanged(int currentRow, int currentColumn, int previousRow, int previousColumn);
   void onBackClicked();
-  void repaintHeatmap();
-  void paintPlate();
-  void paintWell();
-  void paintImage();
   void onExportImageClicked();
   void onShowTable();
   void onShowHeatmap();
-  void onClusterAndClassesChanged();
-  void onMeasurementChanged();
+  void onCellClicked(int row, int column);
+  void onColumnComboChanged();
 };
 
 }    // namespace joda::ui

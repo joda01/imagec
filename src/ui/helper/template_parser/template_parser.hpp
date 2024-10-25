@@ -58,10 +58,10 @@ public:
 
   static auto findTemplates(const std::map<std::string, Category> &directories = {{"templates/basic", Category::BASIC},
                                                                                   {"templates/eva", Category::EVA},
-                                                                                  {getUsersTemplateDirectory().string(),
-                                                                                   Category::USER}})
+                                                                                  {getUsersTemplateDirectory().string(), Category::USER}})
       -> std::map<Category, std::map<std::string, Data>>;
   static auto loadChannelFromTemplate(const std::filesystem::path &pathToTemplate) -> joda::settings::Pipeline;
+  static auto loadTemplate(const std::filesystem::path &pathToTemplate) -> nlohmann::json;
   static auto getUsersTemplateDirectory() -> std::filesystem::path;
 
 private:

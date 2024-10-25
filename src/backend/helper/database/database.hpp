@@ -41,6 +41,7 @@ struct AnalyzeMeta
   std::chrono::system_clock::time_point timestampStart;
   std::chrono::system_clock::time_point timestampFinish;
   std::string jobName;
+  std::string jobId;
   std::string analyzeSettingsJsonString;
 };
 
@@ -52,6 +53,8 @@ struct ImageInfo
   uint32_t height = 0;
   std::string imageGroupName;
 };
+
+using DbArgs_t = std::vector<std::variant<std::string, uint16_t, uint32_t, uint64_t, double>>;
 
 class Database
 {
@@ -93,6 +96,9 @@ public:
   auto selectClassesForClusters() -> std::map<enums::ClusterId, std::pair<std::string, std::map<enums::ClassId, std::string>>>;
   auto selectMeasurementChannelsForClusterAndClass(enums::ClusterId clusterId, enums::ClassId classId) -> std::set<int32_t>;
 
+  void updateResultsTableSettings(const std::string &jobId, const std::string &settings);
+  auto selectResultsTableSettings(const std::string &jobId) -> std::string;
+
   template <typename... ARGS>
   std::unique_ptr<duckdb::QueryResult> select(const std::string &query, ARGS... args)
   {
@@ -100,6 +106,8 @@ public:
     auto prep       = connection->Prepare(query);
     return prep->Execute(std::forward<ARGS>(args)...);
   }
+
+  std::unique_ptr<duckdb::QueryResult> select(const std::string &query, const DbArgs_t &args);
 
 private:
   /////////////////////////////////////////////////////

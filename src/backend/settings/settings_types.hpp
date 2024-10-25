@@ -61,16 +61,22 @@ struct ClassificatorSettingOut
 
   bool operator<(const ClassificatorSettingOut &input) const
   {
-    auto toUint32 = [](enums::ClusterId clu, enums::ClassId cl) -> uint32_t {
-      uint32_t out = (((uint16_t) clu) << 16) | (((uint16_t) cl));
-      return out;
-    };
-
     return toUint32(clusterId, classId) < toUint32(input.clusterId, input.classId);
+  }
+
+  bool operator==(const ClassificatorSettingOut &input) const
+  {
+    return toUint32(clusterId, classId) == toUint32(input.clusterId, input.classId);
   }
 
   void check() const
   {
+  }
+
+  auto toUint32(enums::ClusterId clu, enums::ClassId cl) const -> uint32_t
+  {
+    uint32_t out = (((uint16_t) clu) << 16) | (((uint16_t) cl));
+    return out;
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassificatorSettingOut, clusterId, classId);

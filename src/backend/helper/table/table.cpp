@@ -73,4 +73,36 @@ void Table::setRowHeader(const std::map<uint32_t, std::string> &data)
   mRowHeader = data;
 }
 
+void Table::setRowName(uint32_t row, const std::string &data)
+{
+  mRowHeader[row] = data;
+}
+
+void Table::setTitle(const std::string &title)
+{
+  mTitle = title;
+}
+
+void Table::setMeta(const Meta &meta)
+{
+  mMeta = meta;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+[[nodiscard]] TableCell Table::data(uint32_t row, uint32_t col) const
+{
+  if(mData.contains(row)) {
+    if(mData.at(row).contains(col)) {
+      return mData.at(row).at(col);
+    }
+  }
+  return {};
+}
+
 }    // namespace joda::table

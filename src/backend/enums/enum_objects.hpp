@@ -28,7 +28,10 @@ struct ObjectStoreId
 
   bool operator<(const ObjectStoreId &in) const
   {
-    return storeIdx < in.storeIdx || imagePlane < in.imagePlane;
+    __uint128_t plane1 = (imagePlane.toInt(imagePlane) << 8) | static_cast<uint8_t>(storeIdx);
+    __uint128_t plane2 = (in.imagePlane.toInt(in.imagePlane) << 8) | static_cast<uint8_t>(in.storeIdx);
+
+    return plane1 < plane2;
   }
 
   void check() const
