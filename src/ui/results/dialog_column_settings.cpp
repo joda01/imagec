@@ -15,6 +15,7 @@
 #include <qboxlayout.h>
 #include <qcombobox.h>
 #include <qdialog.h>
+#include <qspinbox.h>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/types.hpp"
@@ -28,13 +29,13 @@ namespace joda::ui {
 DialogColumnSettings::DialogColumnSettings(db::QueryFilter *filter, QWidget *parent) : mFilter(filter), QDialog(parent)
 {
   setMinimumWidth(300);
-  auto *vlayout = new QVBoxLayout();
+  auto *vlayout = new QFormLayout();
 
   //
   mClusterClassSelector = new QComboBox();
   mClusterClassSelector->setMinimumWidth(150);
   connect(mClusterClassSelector, &QComboBox::currentIndexChanged, this, &DialogColumnSettings::onClusterAndClassesChanged);
-  vlayout->addWidget(mClusterClassSelector);
+  vlayout->addRow("Cluster/Class:", mClusterClassSelector);
 
   //
   //
@@ -49,7 +50,7 @@ DialogColumnSettings::DialogColumnSettings(db::QueryFilter *filter, QWidget *par
   mMeasurementSelector->addItem("Intensity avg.", (int32_t) joda::enums::Measurement::INTENSITY_AVG);
   mMeasurementSelector->addItem("Intensity min.", (int32_t) joda::enums::Measurement::INTENSITY_MIN);
   mMeasurementSelector->addItem("Intensity max.", (int32_t) joda::enums::Measurement::INTENSITY_MAX);
-  vlayout->addWidget(mMeasurementSelector);
+  vlayout->addRow("Measurement:", mMeasurementSelector);
 
   //
   //
@@ -61,12 +62,20 @@ DialogColumnSettings::DialogColumnSettings(db::QueryFilter *filter, QWidget *par
   mStatsSelector->addItem("STDDEV", (int32_t) joda::enums::Stats::STDDEV);
   mStatsSelector->addItem("SUM", (int32_t) joda::enums::Stats::SUM);
   mStatsSelector->addItem("CNT", (int32_t) joda::enums::Stats::CNT);
-  vlayout->addWidget(mStatsSelector);
+  vlayout->addRow("Statistics:", mStatsSelector);
 
   mCrossChannelStackC = new QComboBox();
-  vlayout->addWidget(mCrossChannelStackC);
+  vlayout->addRow("Channel intensity:", mCrossChannelStackC);
 
-  vlayout->addStretch();
+  mZStack = new QSpinBox();
+  mZStack->setMinimum(0);
+  mZStack->setValue(0);
+  vlayout->addRow("Z-Stack:", mZStack);
+
+  mTStack = new QSpinBox();
+  mTStack->setMinimum(0);
+  mTStack->setValue(0);
+  vlayout->addRow("T-Stack:", mTStack);
 
   {
     auto *mToolbarBottom = new QToolBar();
@@ -127,6 +136,9 @@ void DialogColumnSettings::exec(int32_t selectedColumn)
     select(mStatsSelector->findData(static_cast<int32_t>(colKey.stats)), mStatsSelector);
     select(mCrossChannelStackC->findData(colKey.crossChannelStacksC), mCrossChannelStackC);
 
+    mZStack->setValue(colKey.zStack);
+    mTStack->setValue(colKey.tStack);
+
     mClusterClassSelector->blockSignals(false);
   }
 
@@ -142,8 +154,8 @@ void DialogColumnSettings::exec(int32_t selectedColumn)
                            .measureChannel      = static_cast<enums::Measurement>(mMeasurementSelector->currentData().toInt()),
                            .stats               = static_cast<enums::Stats>(mStatsSelector->currentData().toInt()),
                            .crossChannelStacksC = mCrossChannelStackC->currentData().toInt(),
-                           .zStack              = 0,
-                           .tStack              = 0},
+                           .zStack              = mZStack->value(),
+                           .tStack              = mTStack->value()},
                        db::QueryFilter::ColumnName{.clusterName = clusterName, .className = className});
   }
 }

@@ -121,11 +121,13 @@ public:
     std::string createHeader() const
     {
       std::map<uint32_t, std::string> columnHeaders;
+      std::string stacks = "{Z" + std::to_string(zStack) + "/T" + std::to_string(tStack) + "}";
+
       if(getType(measureChannel) == MeasureType::INTENSITY) {
-        return names.clusterName + "@" + names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "] " + "(CH" +
-               std::to_string(crossChannelStacksC) + ")";
+        return names.clusterName + "@" + names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "] " + "(C" +
+               std::to_string(crossChannelStacksC) + ")" + stacks;
       }
-      return names.clusterName + "@" + names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "]";
+      return names.clusterName + "@" + names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "]" + stacks;
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnKey, clusterClass, measureChannel, stats, crossChannelStacksC, zStack, tStack, names);
@@ -299,10 +301,27 @@ private:
 class ResultingTable
 {
 public:
+  struct QueryKey
+  {
+    settings::ClassificatorSettingOut clusterClass;
+    int32_t zStack = 0;
+    int32_t tStack = 0;
+
+    bool operator<(const QueryKey &key) const
+    {
+      auto toUint128 = [](const QueryKey &key) -> __uint128_t {
+        return (static_cast<__uint128_t>(key.clusterClass.toUint32(key.clusterClass.clusterId, key.clusterClass.classId)) << 64) |
+               static_cast<__uint128_t>(key.zStack) << 32 | static_cast<__uint128_t>(key.tStack);
+      };
+
+      return toUint128(*this) < toUint128(key);
+    }
+  };
+
   explicit ResultingTable(const QueryFilter *);
 
-  void setData(const settings::ClassificatorSettingOut &clusterAndClass, const QueryFilter::ColumnName &colName, int32_t row, int32_t dbColIx,
-               const std::string &rowName, const table::TableCell &tableCell)
+  void setData(const QueryKey &clusterAndClass, const QueryFilter::ColumnName &colName, int32_t row, int32_t dbColIx, const std::string &rowName,
+               const table::TableCell &tableCell)
   {
     if(!mClustersAndClasses.contains(clusterAndClass)) {
       mClustersAndClasses.emplace(clusterAndClass, PreparedStatement{colName});
@@ -318,8 +337,8 @@ public:
     }
   }
 
-  void setData(const settings::ClassificatorSettingOut &clusterAndClass, const QueryFilter::ColumnName &colName, int32_t dbColIx, int32_t tabIndex,
-               int32_t row, int32_t col, const table::TableCell &tableCell)
+  void setData(const QueryKey &clusterAndClass, const QueryFilter::ColumnName &colName, int32_t dbColIx, int32_t tabIndex, int32_t row, int32_t col,
+               const table::TableCell &tableCell)
   {
     if(!mClustersAndClasses.contains(clusterAndClass)) {
       mClustersAndClasses.emplace(clusterAndClass, PreparedStatement{colName});
@@ -363,7 +382,7 @@ public:
 private:
   /////////////////////////////////////////////////////
   std::map<int32_t, table::Table> mResultingTable;
-  std::map<settings::ClassificatorSettingOut, PreparedStatement> mClustersAndClasses;
+  std::map<QueryKey, PreparedStatement> mClustersAndClasses;
   std::multimap<QueryFilter::ColumnKey, QueryFilter::ColumnIdx> mTableMapping;
 };
 

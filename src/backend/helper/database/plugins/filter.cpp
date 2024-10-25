@@ -39,10 +39,11 @@ ResultingTable::ResultingTable(const QueryFilter *filter)
 {
   std::map<int32_t, std::map<uint32_t, std::string>> tableHeaders;
   for(const auto &[colIdx, colKey] : filter->getColumns()) {
-    if(!mClustersAndClasses.contains(colKey.clusterClass)) {
-      mClustersAndClasses.emplace(colKey.clusterClass, PreparedStatement{colKey.names});
+    QueryKey qKey = {colKey.clusterClass, colKey.zStack, colKey.tStack};
+    if(!mClustersAndClasses.contains(qKey)) {
+      mClustersAndClasses.emplace(qKey, PreparedStatement{colKey.names});
     }
-    mClustersAndClasses.at(colKey.clusterClass).addColumn(colKey);
+    mClustersAndClasses.at(qKey).addColumn(colKey);
     mTableMapping.emplace(colKey, colIdx);
     tableHeaders[colIdx.tabIdx].emplace(colIdx.colIdx, colKey.createHeader());
   }
@@ -121,7 +122,8 @@ std::string PreparedStatement::createStatsQueryJoins() const
       if(!joindStacks.contains(column.crossChannelStacksC)) {
         std::string tableName = "tj" + std::to_string(column.crossChannelStacksC);
         joins += "LEFT JOIN object_measurements " + tableName + " ON\n   t1.object_id = " + tableName +
-                 ".object_id AND meas_stack_c = " + std::to_string(column.crossChannelStacksC) + "\n";
+                 ".object_id AND meas_stack_c = " + std::to_string(column.crossChannelStacksC) +
+                 " AND meas_stack_z = " + std::to_string(column.zStack) + " AND meas_stack_t = " + std::to_string(column.tStack) + "\n";
 
         joindStacks.emplace(column.crossChannelStacksC);
       }

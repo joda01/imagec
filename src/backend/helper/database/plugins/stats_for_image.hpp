@@ -16,9 +16,9 @@ class StatsPerImage
 public:
   static auto toTable(const QueryFilter &filter) -> QueryResult;
   static auto toHeatmap(const QueryFilter &filter) -> QueryResult;
-  static auto toSqlTable(const settings::ClassificatorSettingOut &clusterAndClass, const QueryFilter::ObjectFilter &filter,
+  static auto toSqlTable(const db::ResultingTable::QueryKey &clusterAndClass, const QueryFilter::ObjectFilter &filter,
                          const PreparedStatement &channelFilter) -> std::pair<std::string, DbArgs_t>;
-  static auto toSqlHeatmap(const settings::ClassificatorSettingOut &clusterAndClass, const QueryFilter::ObjectFilter &filter,
+  static auto toSqlHeatmap(const db::ResultingTable::QueryKey &clusterAndClass, const QueryFilter::ObjectFilter &filter,
                            const PreparedStatement &channelFilter) -> std::pair<std::string, DbArgs_t>;
 
 private:
@@ -29,7 +29,7 @@ private:
     std::string controlImgPath;
   };
 
-  static auto densityMap(const settings::ClassificatorSettingOut &clusterAndClass, db::Database *analyzer, const QueryFilter::ObjectFilter &filter,
+  static auto densityMap(const db::ResultingTable::QueryKey &clusterAndClass, db::Database *analyzer, const QueryFilter::ObjectFilter &filter,
                          const PreparedStatement &channelFilter) -> std::tuple<std::unique_ptr<duckdb::QueryResult>, ImgInfo>;
 };
 }    // namespace joda::db

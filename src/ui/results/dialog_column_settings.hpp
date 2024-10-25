@@ -14,6 +14,7 @@
 
 #include <qcombobox.h>
 #include <qdialog.h>
+#include <qspinbox.h>
 #include <qtmetamacros.h>
 
 namespace joda::db {
@@ -50,6 +51,8 @@ private:
   QComboBox *mMeasurementSelector;
   QComboBox *mStatsSelector;
   QComboBox *mCrossChannelStackC;
+  QSpinBox *mZStack;
+  QSpinBox *mTStack;
 
 private slots:
   void onClusterAndClassesChanged();

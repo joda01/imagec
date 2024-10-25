@@ -44,12 +44,12 @@ void RExporter::startExport(const db::QueryFilter &filter, db::StatsPerGroup::Gr
           arguments += std::to_string((std::get<uint16_t>(arg))) + ", ";
         } else if(std::holds_alternative<uint32_t>(arg)) {
           arguments += std::to_string((std::get<uint32_t>(arg))) + ", ";
-          ;
         } else if(std::holds_alternative<uint64_t>(arg)) {
           arguments += std::to_string((std::get<uint64_t>(arg))) + ", ";
-          ;
         } else if(std::holds_alternative<double>(arg)) {
           arguments += std::to_string((std::get<double>(arg))) + ", ";
+        } else if(std::holds_alternative<int32_t>(arg)) {
+          arguments += std::to_string((std::get<int32_t>(arg))) + ", ";
         }
       }
       if(arguments.size() >= 2) {

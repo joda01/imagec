@@ -232,6 +232,8 @@ std::unique_ptr<duckdb::QueryResult> Database::select(const std::string &query, 
       argsPrepared.emplace_back(duckdb::Value::USMALLINT(std::get<uint16_t>(arg)));
     } else if(std::holds_alternative<uint32_t>(arg)) {
       argsPrepared.emplace_back(duckdb::Value::UINTEGER(std::get<uint32_t>(arg)));
+    } else if(std::holds_alternative<int32_t>(arg)) {
+      argsPrepared.emplace_back(duckdb::Value::INTEGER(std::get<int32_t>(arg)));
     } else if(std::holds_alternative<uint64_t>(arg)) {
       argsPrepared.emplace_back(duckdb::Value::UBIGINT(std::get<uint64_t>(arg)));
     } else if(std::holds_alternative<double>(arg)) {

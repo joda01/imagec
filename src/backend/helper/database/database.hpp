@@ -54,7 +54,7 @@ struct ImageInfo
   std::string imageGroupName;
 };
 
-using DbArgs_t = std::vector<std::variant<std::string, uint16_t, uint32_t, uint64_t, double>>;
+using DbArgs_t = std::vector<std::variant<std::string, uint16_t, uint32_t, uint64_t, double, int32_t>>;
 
 class Database
 {

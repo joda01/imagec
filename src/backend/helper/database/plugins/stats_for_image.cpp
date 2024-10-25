@@ -55,7 +55,7 @@ auto StatsPerImage::toTable(const QueryFilter &filter) -> QueryResult
 /// \param[out]
 /// \return
 ///
-auto StatsPerImage::toSqlTable(const settings::ClassificatorSettingOut &clusterAndClass, const QueryFilter::ObjectFilter &filter,
+auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &clusterAndClass, const QueryFilter::ObjectFilter &filter,
                                const PreparedStatement &channelFilter) -> std::pair<std::string, DbArgs_t>
 {
   std::string sql = "SELECT\n" + channelFilter.createStatsQuery(false, false) +
@@ -65,10 +65,12 @@ auto StatsPerImage::toSqlTable(const settings::ClassificatorSettingOut &clusterA
                     "  objects t1\n" +
                     channelFilter.createStatsQueryJoins() +
                     "WHERE\n"
-                    " t1.image_id=$1 AND t1.cluster_id=$2 AND t1.class_id=$3\n"
+                    " t1.image_id=$1 AND t1.cluster_id=$2 AND t1.class_id=$3 AND stack_z=$4 AND stack_t=$5\n"
                     "GROUP BY t1.object_id\n"
                     "ORDER BY t1.object_id";
-  return {sql, {filter.imageId, (uint16_t) clusterAndClass.clusterId, (uint16_t) clusterAndClass.classId}};
+  return {sql,
+          {filter.imageId, static_cast<uint16_t>(clusterAndClass.clusterClass.clusterId), static_cast<uint16_t>(clusterAndClass.clusterClass.classId),
+           static_cast<int32_t>(clusterAndClass.zStack), static_cast<int32_t>(clusterAndClass.tStack)}};
 }
 
 ///
@@ -133,9 +135,8 @@ auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> QueryResult
 /// \param[out]
 /// \return
 ///
-auto StatsPerImage::densityMap(const settings::ClassificatorSettingOut &clusterAndClass, db::Database *analyzer,
-                               const QueryFilter::ObjectFilter &filter, const PreparedStatement &channelFilter)
-    -> std::tuple<std::unique_ptr<duckdb::QueryResult>, ImgInfo>
+auto StatsPerImage::densityMap(const db::ResultingTable::QueryKey &clusterAndClass, db::Database *analyzer, const QueryFilter::ObjectFilter &filter,
+                               const PreparedStatement &channelFilter) -> std::tuple<std::unique_ptr<duckdb::QueryResult>, ImgInfo>
 {
   std::string controlImgPath;
   ImgInfo imgInfo;
@@ -188,7 +189,7 @@ auto StatsPerImage::densityMap(const settings::ClassificatorSettingOut &clusterA
 /// \param[out]
 /// \return
 ///
-auto StatsPerImage::toSqlHeatmap(const settings::ClassificatorSettingOut &clusterAndClass, const QueryFilter::ObjectFilter &filter,
+auto StatsPerImage::toSqlHeatmap(const db::ResultingTable::QueryKey &clusterAndClass, const QueryFilter::ObjectFilter &filter,
                                  const PreparedStatement &channelFilter) -> std::pair<std::string, DbArgs_t>
 {
   auto [innerSql, params] = toSqlTable(clusterAndClass, filter, channelFilter);

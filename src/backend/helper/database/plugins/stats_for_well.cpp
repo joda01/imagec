@@ -161,12 +161,11 @@ auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> Q
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::getData(const settings::ClassificatorSettingOut &clusterAndClass, db::Database *analyzer, const QueryFilter::ObjectFilter &filter,
+auto StatsPerGroup::getData(const db::ResultingTable::QueryKey &clusterAndClass, db::Database *analyzer, const QueryFilter::ObjectFilter &filter,
                             const PreparedStatement &channelFilter, Grouping grouping) -> std::unique_ptr<duckdb::QueryResult>
 {
   auto [sql, params] = toSQL(clusterAndClass, filter, channelFilter, grouping);
 
-  std::cout << sql << std::endl;
   std::unique_ptr<duckdb::QueryResult> result = analyzer->select(sql, params);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
@@ -181,7 +180,7 @@ auto StatsPerGroup::getData(const settings::ClassificatorSettingOut &clusterAndC
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::toSQL(const settings::ClassificatorSettingOut &clusterAndClass, const QueryFilter::ObjectFilter &filter,
+auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &clusterAndClass, const QueryFilter::ObjectFilter &filter,
                           const PreparedStatement &channelFilter, Grouping grouping) -> std::pair<std::string, DbArgs_t>
 {
   std::string sql =
@@ -206,10 +205,10 @@ auto StatsPerGroup::toSQL(const settings::ClassificatorSettingOut &clusterAndCla
       "	t1.image_id = images.image_id\n";
   if(grouping == Grouping::BY_WELL) {
     sql += "WHERE\n";
-    sql += " t1.cluster_id=$1 AND t1.class_id=$2 AND images_groups.group_id=$3\n";
+    sql += " t1.cluster_id=$1 AND t1.class_id=$2 AND images_groups.group_id=$3 AND stack_z=$4 AND stack_t=$5\n";
   } else {
     sql += "WHERE\n";
-    sql += " t1.cluster_id=$1 AND t1.class_id=$2\n";
+    sql += " t1.cluster_id=$1 AND t1.class_id=$2 AND stack_z=$3 AND stack_t=$4\n";
   }
   sql +=
       "GROUP BY\n"
@@ -238,11 +237,13 @@ auto StatsPerGroup::toSQL(const settings::ClassificatorSettingOut &clusterAndCla
   }
 
   if(grouping == Grouping::BY_WELL) {
-    return {
-        sql,
-        {static_cast<uint16_t>(clusterAndClass.clusterId), static_cast<uint16_t>(clusterAndClass.classId), static_cast<uint16_t>(filter.groupId)}};
+    return {sql,
+            {static_cast<uint16_t>(clusterAndClass.clusterClass.clusterId), static_cast<uint16_t>(clusterAndClass.clusterClass.classId),
+             static_cast<uint16_t>(filter.groupId), static_cast<int32_t>(clusterAndClass.zStack), static_cast<int32_t>(clusterAndClass.tStack)}};
   }
-  return {sql, {static_cast<uint16_t>(clusterAndClass.clusterId), static_cast<uint16_t>(clusterAndClass.classId)}};
+  return {sql,
+          {static_cast<uint16_t>(clusterAndClass.clusterClass.clusterId), static_cast<uint16_t>(clusterAndClass.clusterClass.classId),
+           static_cast<int32_t>(clusterAndClass.zStack), static_cast<int32_t>(clusterAndClass.tStack)}};
 }
 
 ///
