@@ -1,0 +1,57 @@
+{
+    "meta":{
+        "name": "Fluorescence microscopy"
+    },
+    "clusters": [
+        {
+            "clusterId": "A",
+            "color": "",
+            "name": "Cy7",
+            "notes": ""
+        },
+        {
+            "clusterId": "B",
+            "color": "",
+            "name": "Cy5",
+            "notes": ""
+        },
+        {
+            "clusterId": "C",
+            "color": "",
+            "name": "CY7Cy5 FRET",
+            "notes": ""
+        },
+        {
+            "clusterId": "D",
+            "color": "",
+            "name": "TS FITC",
+            "notes": ""
+        },
+        {
+            "clusterId": "E",
+            "color": "",
+            "name": "Coloc",
+            "notes": ""
+        }
+    ],
+    "classes": [
+        {
+            "classId": "0",
+            "color": "",
+            "name": "Spot",
+            "notes": ""
+        },
+        {
+            "classId": "1",
+            "color": "",
+            "name": "Tetraspeck",
+            "notes": ""
+        },
+        {
+            "classId": "2",
+            "color": "",
+            "name": "invalid spots",
+            "notes": ""
+        }
+    ]
+}

@@ -38,7 +38,7 @@ class PanelClassification : public QWidget
 public:
   /////////////////////////////////////////////////////
   explicit PanelClassification(joda::settings::ProjectSettings &settings, WindowMain *windowMain);
-  void fromSettings(const joda::settings::ProjectSettings &settings);
+  void fromSettings(const joda::settings::ClusterClasses &settings);
   void toSettings();
   [[nodiscard]] auto getClustersAndClasses() const -> std::tuple<std::map<enums::ClusterIdIn, QString>, std::map<enums::ClassIdIn, QString>>;
 
@@ -53,10 +53,11 @@ private:
   static constexpr int COL_COLOR   = 3;
   static constexpr int COL_NOTES   = 4;
 
-  static constexpr int NR_OF_CLUSTERS = 10;
-  static constexpr int NR_OF_CLASSES  = 10;
+  static constexpr int NR_OF_CLUSTERS = 15;
+  static constexpr int NR_OF_CLASSES  = 15;
   /////////////////////////////////////////////////////
   void initTable();
+  void loadTemplates();
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
@@ -64,7 +65,11 @@ private:
   PlaceholderTableWidget *mClusters;
   PlaceholderTableWidget *mClasses;
 
+  /// TEMPLATE //////////////////////////////////////////////////
+  QComboBox *mTemplateSelection;
+
 private slots:
   void onSettingChanged();
+  void onloadPreset();
 };
 }    // namespace joda::ui

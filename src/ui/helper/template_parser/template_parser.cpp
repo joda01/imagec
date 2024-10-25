@@ -14,6 +14,7 @@
 #include "template_parser.hpp"
 #include <duckdb.h>
 #include <QDir>
+#include <exception>
 #include <filesystem>
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
@@ -36,22 +37,28 @@ struct MetaFinder
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(MetaFinder, meta, configSchema);
 };
 
-auto TemplateParser::findTemplates(const std::map<std::string, Category> &directories) -> std::map<Category, std::map<std::string, Data>>
+auto TemplateParser::findTemplates(const std::map<std::string, Category> &directories, const std::string &endian)
+    -> std::map<Category, std::map<std::string, Data>>
 {
   std::map<Category, std::map<std::string, Data>> templates;
   for(const auto &[directory, category] : directories) {
     if(fs::exists(directory) && fs::is_directory(directory)) {
       for(const auto &entry : fs::recursive_directory_iterator(directory)) {
-        if(entry.is_regular_file() && entry.path().extension().string() == joda::fs::EXT_PIPELINE_TEMPLATE) {
+        if(entry.is_regular_file() && entry.path().extension().string() == endian) {
           std::ifstream ifs(entry.path().string());
-          MetaFinder settings = nlohmann::json::parse(ifs);
-          std::string name    = settings.meta.name + entry.path().filename().string();
-          std::string title   = settings.meta.name;
-          if(category == Category::USER) {
-            title += " (" + entry.path().filename().string() + ")";
+          try {
+            MetaFinder settings = nlohmann::json::parse(ifs);
+            std::string name    = settings.meta.name + entry.path().filename().string();
+            std::string title   = settings.meta.name;
+            if(category == Category::USER) {
+              title += " (" + entry.path().filename().string() + ")";
+            }
+            templates[category].emplace(
+                name, Data{.title = title, .description = "", .path = entry.path().string(), .icon = base64ToQPixmap(settings.meta.icon)});
+          } catch(const std::exception &ex) {
+            std::cout << "Error " << ex.what() << std::endl;
           }
-          templates[category].emplace(
-              name, Data{.title = title, .description = "", .path = entry.path().string(), .icon = base64ToQPixmap(settings.meta.icon)});
+          ifs.close();
         }
       }
     }

@@ -21,6 +21,7 @@
 #include "project_address.hpp"
 #include "project_class.hpp"
 #include "project_cluster.hpp"
+#include "project_cluster_classes.hpp"
 #include "project_image_setup.hpp"
 #include "project_plates.hpp"
 
@@ -45,22 +46,9 @@ public:
   Address address;
 
   //
-  // Object clusters used in this project
+  // Cluster and classes
   //
-  std::list<Cluster> clusters{
-      {.clusterId = joda::enums::ClusterId::A, .name = "A"}, {.clusterId = joda::enums::ClusterId::B, .name = "B"},
-      {.clusterId = joda::enums::ClusterId::C, .name = "C"}, {.clusterId = joda::enums::ClusterId::D, .name = "D"},
-      {.clusterId = joda::enums::ClusterId::E, .name = "E"}, {.clusterId = joda::enums::ClusterId::F, .name = "F"},
-      {.clusterId = joda::enums::ClusterId::G, .name = "G"}};
-
-  //
-  // Object classes used in this project
-  //
-  std::list<Class> classes{{.classId = joda::enums::ClassId::C0, .name = "Spot"},
-                           {.classId = joda::enums::ClassId::C1, .name = "Tetraspeck"},
-                           {.classId = joda::enums::ClassId::C2, .name = "Cell"},
-                           {.classId = joda::enums::ClassId::C3, .name = "Nucleus"},
-                           {.classId = joda::enums::ClassId::C4, .name = "Background"}};
+  ClusterClasses classification;
 
   //
   // Directory where outputs will be stored
@@ -82,9 +70,9 @@ public:
     }
     // Check clusters
     {
-      CHECK_ERROR(!clusters.empty(), "At least one cluster must be given!");
+      CHECK_ERROR(!classification.clusters.empty(), "At least one cluster must be given!");
       std::set<enums::ClusterId> ids;
-      for(const auto &element : clusters) {
+      for(const auto &element : classification.clusters) {
         if(element.clusterId == enums::ClusterId::UNDEFINED) {
           THROW_ERROR("Cluster >UNDEFINED< is not allowed was used twice!");
         }
@@ -95,9 +83,9 @@ public:
     }
     // Check classes
     {
-      CHECK_ERROR(!classes.empty(), "At least one class must be given!");
+      CHECK_ERROR(!classification.classes.empty(), "At least one class must be given!");
       std::set<enums::ClassId> ids;
-      for(const auto &element : classes) {
+      for(const auto &element : classification.classes) {
         if(element.classId == enums::ClassId::UNDEFINED) {
           THROW_ERROR("Class >UNDEFINED< is not allowed was used twice!");
         }
@@ -108,8 +96,7 @@ public:
     }
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectSettings, experimentSettings, plates, address, clusters,
-                                                       classes, workingDirectory);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectSettings, experimentSettings, plates, address, classification, workingDirectory);
 };
 
 }    // namespace joda::settings
