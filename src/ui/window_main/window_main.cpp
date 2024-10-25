@@ -106,6 +106,25 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   std::thread([]() { joda::onnx::OnnxParser::findOnnxFiles(); }).detach();
 }
 
+WindowMain::~WindowMain()
+{
+}
+
+void WindowMain::closeEvent(QCloseEvent *event)
+{
+  // Perform any actions before closing
+  int result = QMessageBox::question(this, "Confirm Exit", "Are you sure you want to exit?", QMessageBox::Yes | QMessageBox::No);
+
+  if(result == QMessageBox::Yes) {
+    // Accept the close event to allow the window to close
+    showPanelStartPage();
+    event->accept();
+  } else {
+    // Ignore the close event to keep the window open
+    event->ignore();
+  }
+}
+
 void WindowMain::setWindowTitlePrefix(const QString &txt)
 {
   if(!txt.isEmpty()) {

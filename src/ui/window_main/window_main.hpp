@@ -53,9 +53,7 @@ class WindowMain : public QMainWindow
 
 public:
   WindowMain(joda::ctrl::Controller *controller);
-  ~WindowMain()
-  {
-  }
+  ~WindowMain();
   bool showPanelStartPage();
   void showPanelPipelineSettingsEdit(PanelPipelineSettings *);
   void showPanelResults();
@@ -141,6 +139,8 @@ private:
 
   void openProjectSettings(const QString &filePath);
   void openResultsSettings(const QString &filePath);
+
+  void closeEvent(QCloseEvent *event) override;
 
   QWidget *createStackedWidget();
   QWidget *createStartPageWidget();

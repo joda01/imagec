@@ -167,6 +167,7 @@ private:
   std::map<Navigation, Selection> mSelection;
 
   bool mIsLoading = false;
+  bool mIsActive  = false;
 
 public slots:
   void onFinishedLoading();

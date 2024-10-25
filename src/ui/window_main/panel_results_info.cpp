@@ -322,4 +322,53 @@ void PanelResultsInfo::setData(const DataSet &data)
   mResultsProperties->setRowCount(row);
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResultsInfo::setWellOrder(const std::vector<std::vector<int32_t>> &wellOrder)
+{
+  mWellOrderMatrix->blockSignals(true);
+  mWellOrderMatrix->setText(joda::settings::vectorToString(wellOrder).data());
+  mWellOrderMatrix->blockSignals(false);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResultsInfo::setPlateSize(const QSize &size)
+{
+  mPlateSize->blockSignals(true);
+  uint32_t plateSizeCoded = (size.height() * 100) + size.width();
+  auto idx                = mPlateSize->findData(plateSizeCoded);
+  if(idx >= 0) {
+    mPlateSize->setCurrentIndex(idx);
+  }
+  mPlateSize->blockSignals(false);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResultsInfo::setDensityMapSize(uint32_t densityMapSize)
+{
+  mDensityMapSize->blockSignals(true);
+  auto idx = mDensityMapSize->findData(densityMapSize);
+  if(idx >= 0) {
+    mDensityMapSize->setCurrentIndex(idx);
+  }
+  mDensityMapSize->blockSignals(false);
+}
+
 }    // namespace joda::ui

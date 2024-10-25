@@ -109,8 +109,8 @@ auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> QueryResult
             uint32_t rectangleX = materializedResult->GetValue(columnNr + 0, n).GetValue<double>();
             uint32_t rectangleY = materializedResult->GetValue(columnNr + 1, n).GetValue<double>();
 
-            uint32_t x = rectangleX / filter.getFilter().heatmapAreaSize;
-            uint32_t y = rectangleY / filter.getFilter().heatmapAreaSize;
+            uint32_t x = rectangleX / filter.getFilter().densityMapAreaSize;
+            uint32_t y = rectangleY / filter.getFilter().densityMapAreaSize;
 
             std::string linkToImage = imageInfo.controlImgPath;
             results.setData(y, x, table::TableCell{value, 0, true, linkToImage});
@@ -164,8 +164,8 @@ auto StatsPerImage::densityMap(const settings::ClassificatorSettingOut &clusterA
     std::string linkToImage = controlImgPath;
     helper::stringReplace(linkToImage, "${tile_id}", std::to_string(0));
 
-    uint64_t width  = std::ceil(static_cast<float>(imgWidth) / static_cast<float>(filter.heatmapAreaSize));
-    uint64_t height = std::ceil(static_cast<float>(imgWeight) / static_cast<float>(filter.heatmapAreaSize));
+    uint64_t width  = std::ceil(static_cast<float>(imgWidth) / static_cast<float>(filter.densityMapAreaSize));
+    uint64_t height = std::ceil(static_cast<float>(imgWeight) / static_cast<float>(filter.densityMapAreaSize));
 
     imgInfo.width          = width;
     imgInfo.height         = height;
@@ -202,7 +202,7 @@ auto StatsPerImage::toSqlHeatmap(const settings::ClassificatorSettingOut &cluste
                     "FROM innerTable\n"
                     "GROUP BY floor(meas_center_x / $4), floor(meas_center_y / $4)";
 
-  params.emplace_back(static_cast<double>(filter.heatmapAreaSize));
+  params.emplace_back(static_cast<double>(filter.densityMapAreaSize));
   return {sql, params};
 }
 

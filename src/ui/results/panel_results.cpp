@@ -97,7 +97,11 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   connect(mHeatmap01, &ChartHeatMap::onElementClick, this, &PanelResults::onElementSelected);
   connect(mHeatmap01, &ChartHeatMap::onDoubleClicked, this, &PanelResults::onOpenNextLevel);
   connect(layout().getBackButton(), &QAction::triggered, [this] { mWindowMain->showPanelStartPage(); });
-  connect(getWindowMain()->getPanelResultsInfo(), &joda::ui::PanelResultsInfo::settingsChanged, [this]() { refreshView(); });
+  connect(getWindowMain()->getPanelResultsInfo(), &joda::ui::PanelResultsInfo::settingsChanged, [this]() {
+    if(mIsActive) {
+      refreshView();
+    }
+  });
   connect(this, &PanelResults::finishedLoading, this, &PanelResults::onFinishedLoading);
 
   col->setContentsMargins(0, 0, 0, 0);
@@ -111,7 +115,6 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
 
 PanelResults::~PanelResults()
 {
-  storeResultsTableSettingsToDatabase();
 }
 
 void PanelResults::valueChangedEvent()
@@ -124,8 +127,8 @@ void PanelResults::valueChangedEvent()
 ///
 void PanelResults::setActive(bool active)
 {
+  mIsActive = active;
   if(!active) {
-    storeResultsTableSettingsToDatabase();
     getWindowMain()->getPanelResultsInfo()->setData({});
     mSelectedDataSet.analyzeMeta.reset();
     mSelectedDataSet.imageMeta.reset();
@@ -276,7 +279,6 @@ void PanelResults::setAnalyzer()
 {
   mSelectedDataSet.analyzeMeta = mAnalyzer->selectExperiment();
   mColumnEditDialog->updateClustersAndClasses(mAnalyzer.get());
-  getWindowMain()->getPanelResultsInfo()->setData(mSelectedDataSet);
   try {
     if(mSelectedDataSet.analyzeMeta.has_value()) {
       auto resultsSettings = mAnalyzer->selectResultsTableSettings(mSelectedDataSet.analyzeMeta->jobId);
@@ -284,6 +286,12 @@ void PanelResults::setAnalyzer()
     }
   } catch(...) {
   }
+  auto *resPanel = getWindowMain()->getPanelResultsInfo();
+  resPanel->setData(mSelectedDataSet);
+  resPanel->setWellOrder(mFilter.getFilter().wellImageOrder);
+  resPanel->setPlateSize({mFilter.getFilter().plateCols, mFilter.getFilter().plateRows});
+  resPanel->setDensityMapSize(mFilter.getFilter().densityMapAreaSize);
+
   refreshView();
 }
 
@@ -297,7 +305,7 @@ void PanelResults::setAnalyzer()
 void PanelResults::storeResultsTableSettingsToDatabase()
 {
   try {
-    if(mAnalyzer != nullptr && mSelectedDataSet.analyzeMeta.has_value() && !mSelectedDataSet.analyzeMeta->jobId.empty()) {
+    if(mIsActive && mAnalyzer != nullptr && mSelectedDataSet.analyzeMeta.has_value() && !mSelectedDataSet.analyzeMeta->jobId.empty()) {
       mAnalyzer->updateResultsTableSettings(mSelectedDataSet.analyzeMeta->jobId, nlohmann::json(mFilter).dump());
     }
   } catch(...) {
@@ -316,20 +324,21 @@ void PanelResults::refreshView()
   const auto &size      = mWindowMain->getPanelResultsInfo()->getPlateSize();
   const auto &wellOrder = mWindowMain->getPanelResultsInfo()->getWellOrder();
 
-  mFilter.setFilter(mAnalyzer.get(), {.plateId         = 0,
-                                      .groupId         = mActGroupId,
-                                      .imageId         = mActImageId,
-                                      .plateRows       = static_cast<uint16_t>(size.height()),
-                                      .plateCols       = static_cast<uint16_t>(size.width()),
-                                      .heatmapAreaSize = mWindowMain->getPanelResultsInfo()->getDensityMapSize(),
-                                      .wellImageOrder  = wellOrder});
+  mFilter.setFilter(mAnalyzer.get(), {.plateId            = 0,
+                                      .groupId            = mActGroupId,
+                                      .imageId            = mActImageId,
+                                      .plateRows          = static_cast<uint16_t>(size.height()),
+                                      .plateCols          = static_cast<uint16_t>(size.width()),
+                                      .densityMapAreaSize = mWindowMain->getPanelResultsInfo()->getDensityMapSize(),
+                                      .wellImageOrder     = wellOrder});
 
   //
   //
   //
-  if(mAnalyzer && !mIsLoading) {
+  if(mIsActive && mAnalyzer && !mIsLoading) {
     mIsLoading = true;
     std::thread([this] {
+      storeResultsTableSettingsToDatabase();
       switch(mNavigation) {
         case Navigation::PLATE:
           mBackButton->setEnabled(false);
@@ -921,8 +930,13 @@ void PanelResults::loadTemplate()
     return;
   }
   try {
-    auto json = joda::templates::TemplateParser::loadTemplate(std::filesystem::path(pathToOpenFileFrom.toStdString()));
-    mFilter   = json;
+    auto json      = joda::templates::TemplateParser::loadTemplate(std::filesystem::path(pathToOpenFileFrom.toStdString()));
+    mFilter        = json;
+    auto *resPanel = getWindowMain()->getPanelResultsInfo();
+    resPanel->setData(mSelectedDataSet);
+    resPanel->setWellOrder(mFilter.getFilter().wellImageOrder);
+    resPanel->setPlateSize({mFilter.getFilter().plateCols, mFilter.getFilter().plateRows});
+    resPanel->setDensityMapSize(mFilter.getFilter().densityMapAreaSize);
     refreshView();
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);
