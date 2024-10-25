@@ -102,6 +102,7 @@ private:
   void tableToQWidgetTable(const joda::table::Table &table);
   void tableToHeatmap(const joda::table::Table &table);
   void paintEmptyHeatmap();
+  void goHome();
 
   void refreshView();
   void copyTableToClipboard(QTableWidget *table);
@@ -121,6 +122,8 @@ private:
   auto getClusterAndClassFromCombo() const -> std::pair<std::string, std::string>;
 
   QPushButton *mBackButton;
+  QAction *mTableButton   = nullptr;
+  QAction *mHeatmapButton = nullptr;
 
   PanelPreview *mPreviewImage;
   // uint32_t mDensityMapSize = 200;

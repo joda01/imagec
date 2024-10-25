@@ -135,6 +135,22 @@ void PanelResults::setActive(bool active)
     mSelectedDataSet.imageMeta.reset();
     mSelectedDataSet.value.reset();
     mAnalyzer.reset();
+
+    goHome();
+    mTableButton->blockSignals(true);
+    mHeatmapButton->blockSignals(true);
+
+    mHeatmapButton->setChecked(false);
+    mTableButton->setChecked(true);
+    mTable->setVisible(true);
+    mColumnAction->setVisible(false);
+    mHeatmap01->setVisible(false);
+
+    mTableButton->blockSignals(false);
+    mHeatmapButton->blockSignals(false);
+    mTable->setRowCount(0);
+    mTable->setColumnCount(0);
+    refreshView();
   }
 }
 
@@ -157,14 +173,14 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   //
   //
   //
-  auto *grp          = new QActionGroup(toolbar);
-  auto *mTableButton = new QAction(generateIcon("table"), "");
+  auto *grp    = new QActionGroup(toolbar);
+  mTableButton = new QAction(generateIcon("table"), "");
   mTableButton->setCheckable(true);
   mTableButton->setChecked(true);
   grp->addAction(mTableButton);
   toolbar->addItemToTopToolbar(mTableButton);
 
-  auto *mHeatmapButton = new QAction(generateIcon("heat-map"), "");
+  mHeatmapButton = new QAction(generateIcon("heat-map"), "");
   mHeatmapButton->setCheckable(true);
   grp->addAction(mHeatmapButton);
   toolbar->addItemToTopToolbar(mHeatmapButton);
@@ -551,6 +567,15 @@ void PanelResults::onBackClicked()
   getWindowMain()->getPanelResultsInfo()->setData(mSelectedDataSet);
 }
 
+void PanelResults::goHome()
+{
+  mNavigation = Navigation::PLATE;
+  mSelectedDataSet.imageMeta.reset();
+  mSelection.erase(Navigation::WELL);
+  mSelection.erase(Navigation::IMAGE);
+  getWindowMain()->getPanelResultsInfo()->setData(mSelectedDataSet);
+}
+
 ///
 /// \brief
 /// \author     Joachim Danmayr
@@ -592,7 +617,6 @@ void PanelResults::onShowTable()
 {
   mTable->setVisible(true);
   mColumnAction->setVisible(false);
-
   mHeatmap01->setVisible(false);
   refreshView();
 }
