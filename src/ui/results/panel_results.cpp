@@ -78,7 +78,7 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   // Create Table
   //
   mTable = new PlaceholderTableWidget();
-  mTable->setPlaceholderText("Click >Add column> to add your first column.");
+  mTable->setPlaceholderText("Click >Add column< to start.");
   mTable->setRowCount(0);
   mTable->setColumnCount(0);
   mTable->verticalHeader()->setDefaultSectionSize(8);    // Set each row to 50 pixels height
@@ -356,11 +356,18 @@ void PanelResults::refreshView()
     mIsLoading = true;
     std::thread([this] {
       storeResultsTableSettingsToDatabase();
+    REFRESH_VIEW:
       switch(mNavigation) {
         case Navigation::PLATE:
           mBackButton->setEnabled(false);
           {
-            mActListData    = joda::db::StatsPerGroup::toTable(mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
+            mActListData = joda::db::StatsPerGroup::toTable(mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
+            if(!mActListData.empty() && mActListData.at(0).getRows() == 1) {
+              // If there are no groups, switch directly to well view
+              mNavigation = Navigation::WELL;
+              mActGroupId = static_cast<uint16_t>(mActListData.at(0).data(0, 0).getId());
+              goto REFRESH_VIEW;
+            }
             mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
           }
           break;
