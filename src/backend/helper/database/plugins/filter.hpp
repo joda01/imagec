@@ -243,7 +243,8 @@ public:
   {
   }
 
-  std::string createStatsQuery(bool isDistinct, std::optional<enums::Stats> overrideStats = std::nullopt) const;
+  std::string createStatsQuery(bool isOuter, bool excludeInvalid, std::optional<enums::Stats> overrideStats = std::nullopt) const;
+  std::string createStatsQueryJoins() const;
 
   void addColumn(QueryFilter::ColumnKey col)
   {

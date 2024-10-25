@@ -208,6 +208,7 @@ BatchExporter::WorkBook BatchExporter::createWorkBook(std::string outputFileName
   format_set_num_format(numberFormatInvalid, "0.00");
   format_set_font_size(numberFormatInvalid, 10);
   format_set_font_color(numberFormatInvalid, 0x820000);
+  format_set_font_strikeout(numberFormatInvalid);
 
   // Number format scientific
   lxw_format *numberFormatScientific = workbook_add_format(workbook);

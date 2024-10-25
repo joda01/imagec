@@ -58,13 +58,12 @@ auto StatsPerImage::toTable(const QueryFilter &filter) -> QueryResult
 auto StatsPerImage::toSqlTable(const settings::ClassificatorSettingOut &clusterAndClass, const QueryFilter::ObjectFilter &filter,
                                const PreparedStatement &channelFilter) -> std::pair<std::string, DbArgs_t>
 {
-  std::string sql = "SELECT\n" + channelFilter.createStatsQuery(true) +
+  std::string sql = "SELECT\n" + channelFilter.createStatsQuery(false, false) +
                     "ANY_VALUE(t1.meas_center_x) as meas_center_x,\n"
                     "ANY_VALUE(t1.meas_center_y) as meas_center_y\n"
                     "FROM\n"
-                    "  objects t1\n"
-                    "LEFT JOIN object_measurements t2 ON\n"
-                    "  t1.object_id = t2.object_id\n"
+                    "  objects t1\n" +
+                    channelFilter.createStatsQueryJoins() +
                     "WHERE\n"
                     " t1.image_id=$1 AND t1.cluster_id=$2 AND t1.class_id=$3\n"
                     "GROUP BY t1.object_id\n"
@@ -196,7 +195,7 @@ auto StatsPerImage::toSqlHeatmap(const settings::ClassificatorSettingOut &cluste
   std::string sql         = "WITH innerTable AS (\n" + innerSql +
                     "\n)\n"
                     "SELECT\n" +
-                    channelFilter.createStatsQuery(false) +
+                    channelFilter.createStatsQuery(true, false) +
                     "floor(meas_center_x / $4) * $4 AS rectangle_x,\n"
                     "floor(meas_center_y / $4) * $4 AS rectangle_y,\n"
                     "FROM innerTable\n"

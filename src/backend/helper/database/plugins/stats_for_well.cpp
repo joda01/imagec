@@ -164,7 +164,9 @@ auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> Q
 auto StatsPerGroup::getData(const settings::ClassificatorSettingOut &clusterAndClass, db::Database *analyzer, const QueryFilter::ObjectFilter &filter,
                             const PreparedStatement &channelFilter, Grouping grouping) -> std::unique_ptr<duckdb::QueryResult>
 {
-  auto [sql, params]                          = toSQL(clusterAndClass, filter, channelFilter, grouping);
+  auto [sql, params] = toSQL(clusterAndClass, filter, channelFilter, grouping);
+
+  std::cout << sql << std::endl;
   std::unique_ptr<duckdb::QueryResult> result = analyzer->select(sql, params);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
@@ -183,59 +185,47 @@ auto StatsPerGroup::toSQL(const settings::ClassificatorSettingOut &clusterAndCla
                           const PreparedStatement &channelFilter, Grouping grouping) -> std::pair<std::string, DbArgs_t>
 {
   std::string sql =
-      "WITH innerTable AS (\n"
+      "WITH imageGrouped as (\n"
       "SELECT\n" +
-      channelFilter.createStatsQuery(true, enums::Stats::OFF) +
-      "t1.object_id,\n"
-      "t1.image_id\n"
-      "FROM\n"
-      "	objects t1\n"
-      "LEFT JOIN object_measurements t2 ON\n"
-      "	t1.object_id = t2.object_id\n"
-      "WHERE\n"
-      " t1.cluster_id=$1 AND t1.class_id=$2\n"
-      "GROUP BY\n"
-      "	t1.object_id, t1.image_id\n"
-      "ORDER BY\n"
-      "	t1.object_id\n"
-      "),\n"
-      "imageGrouped as (\n"
-      "SELECT\n" +
-      channelFilter.createStatsQuery(false) +
+      channelFilter.createStatsQuery(false, false) +
       "	ANY_VALUE(images_groups.group_id) as group_id,\n"
       "	ANY_VALUE(images_groups.image_group_idx) as image_group_idx,\n"
       "	ANY_VALUE(groups.pos_on_plate_x) as pos_on_plate_x,\n"
       "	ANY_VALUE(groups.pos_on_plate_y) as pos_on_plate_y,\n"
       "	ANY_VALUE(images.file_name) as file_name,\n"
       "	ANY_VALUE(images.image_id) as image_id,\n"
-      "	ANY_VALUE(images.validity) as validity\n"
+      "	MAX(images.validity) as validity\n"
       "FROM\n"
-      "	innerTable\n"
+      "	objects t1\n" +
+      channelFilter.createStatsQueryJoins() +
       "JOIN images_groups ON\n"
-      "	innerTable.image_id = images_groups.image_id\n"
+      "	t1.image_id = images_groups.image_id\n"
       "JOIN groups on\n"
       "	images_groups.group_id = groups.group_id\n"
       "JOIN images on\n"
-      "	innerTable.image_id = images.image_id\n";
+      "	t1.image_id = images.image_id\n";
   if(grouping == Grouping::BY_WELL) {
     sql += "WHERE\n";
-    sql += " images_groups.group_id=$3\n";
+    sql += " t1.cluster_id=$1 AND t1.class_id=$2 AND images_groups.group_id=$3\n";
+  } else {
+    sql += "WHERE\n";
+    sql += " t1.cluster_id=$1 AND t1.class_id=$2\n";
   }
   sql +=
       "GROUP BY\n"
-      "	innerTable.image_id\n"
+      "	t1.image_id\n"
       ")\n"
       "SELECT\n";
 
   if(grouping == Grouping::BY_PLATE) {
-    sql += channelFilter.createStatsQuery(false, grouping == Grouping::BY_WELL ? enums::Stats::OFF : enums::Stats::AVG) +
+    sql += channelFilter.createStatsQuery(true, true, grouping == Grouping::BY_WELL ? enums::Stats::OFF : enums::Stats::AVG) +
            " ANY_VALUE(imageGrouped.group_id) as group_id,\n"
            " ANY_VALUE(imageGrouped.image_group_idx) as image_group_idx,\n"
            " ANY_VALUE(imageGrouped.pos_on_plate_x) as pos_on_plate_x,\n"
            " ANY_VALUE(imageGrouped.pos_on_plate_y) as pos_on_plate_y,\n"
            " ANY_VALUE(imageGrouped.file_name) as file_name,\n"
            " ANY_VALUE(imageGrouped.image_id) as image_id,\n"
-           " ANY_VALUE(imageGrouped.validity) as validity\n";
+           " MAX(imageGrouped.validity) as validity\n";
   } else {
     sql += "*";
   }

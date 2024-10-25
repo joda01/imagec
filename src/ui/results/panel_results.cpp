@@ -354,6 +354,7 @@ void PanelResults::refreshView()
   //
   if(mIsActive && mAnalyzer && !mIsLoading) {
     mIsLoading = true;
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     std::thread([this] {
       storeResultsTableSettingsToDatabase();
     REFRESH_VIEW:
@@ -421,6 +422,7 @@ void PanelResults::onFinishedLoading()
     paintEmptyHeatmap();
   }
   update();
+  QApplication::restoreOverrideCursor();
 }
 
 ///

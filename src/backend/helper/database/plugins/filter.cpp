@@ -11,6 +11,8 @@
 ///
 
 #include "filter.hpp"
+#include <string>
+#include "backend/enums/enum_measurements.hpp"
 
 namespace joda::db {
 
@@ -57,13 +59,12 @@ ResultingTable::ResultingTable(const QueryFilter *filter)
 /// \param[out]
 /// \return
 ///
-std::string PreparedStatement::createStatsQuery(bool isDistinct, std::optional<enums::Stats> overrideStats) const
+std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvalid, std::optional<enums::Stats> overrideStats) const
 {
-  std::string distinct = isDistinct ? "DISTINCT" : "";
   std::string channels;
   for(const auto &[_, column] : columns) {
-    auto createName = [&column = column, &isDistinct]() -> std::string {
-      if(isDistinct) {
+    auto createName = [&column = column, &isOuter]() -> std::string {
+      if(!isOuter) {
         return getMeasurement(column.measureChannel, false);
       } else {
         return getMeasurement(column.measureChannel, true) + "_" + getStatsString(column.stats);
@@ -72,24 +73,62 @@ std::string PreparedStatement::createStatsQuery(bool isDistinct, std::optional<e
 
     auto stats = overrideStats.has_value() ? overrideStats.value() : column.stats;
 
+    auto injectCase = [&excludeInvalid](const std::string &columnToCalc) {
+      if(excludeInvalid) {
+        return "CASE WHEN validity = 0 THEN " + columnToCalc + " ELSE NULL END";
+      }
+      return columnToCalc;
+    };
+
     if(getType(column.measureChannel) == MeasureType::INTENSITY) {
-      if(isDistinct) {
-        channels += getStatsString(stats) + "(" + distinct + " CASE WHEN t2.meas_stack_c = " + std::to_string(column.crossChannelStacksC) + " THEN " +
-                    createName() + " END) AS " + getMeasurement(column.measureChannel, true) + "_" + getStatsString(column.stats) + "_" +
-                    std::to_string(column.crossChannelStacksC) + ",\n";
-      } else {
-        channels += getStatsString(stats) + "(" + createName() + "_" + std::to_string(column.crossChannelStacksC) + ") AS " +
-                    getMeasurement(column.measureChannel, true) + "_" + getStatsString(column.stats) + "_" +
-                    std::to_string(column.crossChannelStacksC) + ",\n";
+      std::string tablePrefix = " tj" + std::to_string(column.crossChannelStacksC) + ".";
+      std::string meas_suffix;
+      if(isOuter) {
+        tablePrefix = " ";
+        meas_suffix = "_" + std::to_string(column.crossChannelStacksC);
       }
 
+      channels += getStatsString(stats) + "(" + injectCase(tablePrefix + createName() + meas_suffix) + ") as " +
+                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(column.stats) + "_" +
+                  std::to_string(column.crossChannelStacksC) + ",\n";
+
     } else {
-      channels += getStatsString(stats) + "(" + distinct + " " + createName() + ") as " + getMeasurement(column.measureChannel, true) + "_" +
+      std::string tablePrefix = " t1.";
+      if(isOuter || column.measureChannel == enums::Measurement::COUNT) {
+        tablePrefix = " ";
+      }
+      channels += getStatsString(stats) + "(" + injectCase(tablePrefix + createName()) + ") as " + getMeasurement(column.measureChannel, true) + "_" +
                   getStatsString(column.stats) + ",\n";
     }
   }
 
   return channels;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+std::string PreparedStatement::createStatsQueryJoins() const
+{
+  std::set<uint32_t> joindStacks;
+  std::string joins;
+  for(const auto &[_, column] : columns) {
+    if(getType(column.measureChannel) == MeasureType::INTENSITY) {
+      if(!joindStacks.contains(column.crossChannelStacksC)) {
+        std::string tableName = "tj" + std::to_string(column.crossChannelStacksC);
+        joins += "LEFT JOIN object_measurements " + tableName + " ON\n   t1.object_id = " + tableName +
+                 ".object_id AND meas_stack_c = " + std::to_string(column.crossChannelStacksC) + "\n";
+
+        joindStacks.emplace(column.crossChannelStacksC);
+      }
+    }
+  }
+
+  return joins;
 }
 
 std::string PreparedStatement::getStatsString(enums::Stats stats)
