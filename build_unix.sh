@@ -11,9 +11,9 @@ buildlibs(){
 }
 
 build(){
-    cd resources
-    python3 get_icons.py
-    cd ..
+    #cd resources
+    #python3 get_icons.py
+    #cd ..
     cd build
     #cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
     cmake --build . --config Release --target imagec --parallel 16
@@ -36,10 +36,11 @@ build(){
     mkdir -p ./models
     mkdir -p ./lib
     mkdir -p ./java
+    mkdir -p ./templates
     cp ../imagec imagec
     cp ../tests tests
     cp -r /root/.conan2/p/*/p/./plugins/* ./plugins
-    cp -r ../../../resources/templates ./templates
+    cp -r ../../../resources/templates/* ./templates/
     cp ../../../resources/launcher/imagec.sh imagec.sh
     cd lib
     cp /root/.conan2/p/*/p/lib/libQt6Core.so.6 .

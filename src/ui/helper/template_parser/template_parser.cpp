@@ -50,6 +50,9 @@ auto TemplateParser::findTemplates(const std::map<std::string, Category> &direct
             MetaFinder settings = nlohmann::json::parse(ifs);
             std::string name    = settings.meta.name + entry.path().filename().string();
             std::string title   = settings.meta.name;
+            if(!settings.meta.revision.empty()) {
+              title += ":" + settings.meta.revision;
+            }
             if(category == Category::USER) {
               title += " (" + entry.path().filename().string() + ")";
             }

@@ -58,6 +58,7 @@ private:
   /////////////////////////////////////////////////////
   void initTable();
   void loadTemplates();
+  void updateTableLock(bool lock);
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
@@ -66,6 +67,7 @@ private:
   PlaceholderTableWidget *mClasses;
 
   /// TEMPLATE //////////////////////////////////////////////////
+  QPushButton *mBookmarkButton;
   QComboBox *mTemplateSelection;
 
 private slots:

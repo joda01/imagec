@@ -1,6 +1,7 @@
 {
     "meta":{
-        "name": "Fluorescence microscopy"
+        "name": "Fluorescence microscopy",
+        "revision": "v1"
     },
     "clusters": [
         {

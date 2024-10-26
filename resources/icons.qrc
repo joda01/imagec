@@ -50,6 +50,7 @@
     <file>icons/icons8-experiment-96.png</file>
     <file>icons/icons8-divide-horizontal-direction-48.png</file>
     <file>icons/icons8-maximize-window-48.png</file>
+    <file>icons/icons8-lock-16.png</file>
     <file>icons/icons8-fill-color-24.png</file>
     <file>icons/icons8-project-management-48.png</file>
     <file>icons/icons8-binary-code-48.png</file>
@@ -104,6 +105,7 @@
     <file>icons/icons8-zero-48.png</file>
     <file>icons/icons8-add-column-48.png</file>
     <file>icons/icons8-layer-mask-48.png</file>
+    <file>icons/icons8-open-lock-96.png</file>
     <file>icons/icons8-pin-96.png</file>
     <file>icons/icons8-fill-color-48.png</file>
     <file>icons/icons8-six-24.png</file>
@@ -316,6 +318,7 @@
     <file>icons/icons8-table-16.png</file>
     <file>icons/icons8-hand-96.png</file>
     <file>icons/icons8-mind-map-24.png</file>
+    <file>icons/icons8-lock-96.png</file>
     <file>icons/icons8-oval-96.png</file>
     <file>icons/icons8-no-image-24.png</file>
     <file>icons/icons8-zero-16.png</file>
@@ -349,6 +352,7 @@
     <file>icons/icons8-shutdown-96.png</file>
     <file>icons/icons8-light-48.png</file>
     <file>icons/icons8-delete-column-16.png</file>
+    <file>icons/icons8-open-lock-24.png</file>
     <file>icons/icons8-accept-16.png</file>
     <file>icons/icons8-hexagonal-pattern-48.png</file>
     <file>icons/icons8-arrow-24.png</file>
@@ -463,6 +467,7 @@
     <file>icons/icons8-file-96.png</file>
     <file>icons/icons8-light-min-48.png</file>
     <file>icons/icons8-arrow-up-96.png</file>
+    <file>icons/icons8-lock-48.png</file>
     <file>icons/icons8-add-to-favorites-16.png</file>
     <file>icons/icons8-sort-by-price-24.png</file>
     <file>icons/icons8-test-tube-24.png</file>
@@ -578,6 +583,7 @@
     <file>icons/icons8-contrast-16.png</file>
     <file>icons/icons8-pin-48.png</file>
     <file>icons/icons8-no-filling-16.png</file>
+    <file>icons/icons8-open-lock-16.png</file>
     <file>icons/icons8-sigma-48.png</file>
     <file>icons/icons8-average-math-24.png</file>
     <file>icons/icons8-average-math-48.png</file>
@@ -592,6 +598,7 @@
     <file>icons/icons8-normal-distribution-histogram-24.png</file>
     <file>icons/icons8-arrow-left-48.png</file>
     <file>icons/icons8-arrow-left-96.png</file>
+    <file>icons/icons8-open-lock-48.png</file>
     <file>icons/icons8-contrast-24.png</file>
     <file>icons/icons8-warning-yellow-16.png</file>
     <file>icons/icons8-grayscale-48.png</file>
@@ -631,6 +638,7 @@
     <file>icons/icons8-flow-24.png</file>
     <file>icons/icons8-2-24.png</file>
     <file>icons/icons8-excel-16.png</file>
+    <file>icons/icons8-lock-24.png</file>
     <file>icons/icons8-table-detail-48.png</file>
     <file>icons/icons8-three-96.png</file>
     <file>icons/icons8-save-96.png</file>

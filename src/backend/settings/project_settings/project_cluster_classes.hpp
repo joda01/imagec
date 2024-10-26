@@ -38,19 +38,12 @@ struct ClusterClasses
   //
   // Object clusters used in this project
   //
-  std::list<Cluster> clusters{{.clusterId = joda::enums::ClusterId::A, .name = "A"}, {.clusterId = joda::enums::ClusterId::B, .name = "B"},
-                              {.clusterId = joda::enums::ClusterId::C, .name = "C"}, {.clusterId = joda::enums::ClusterId::D, .name = "D"},
-                              {.clusterId = joda::enums::ClusterId::E, .name = "E"}, {.clusterId = joda::enums::ClusterId::F, .name = "F"},
-                              {.clusterId = joda::enums::ClusterId::G, .name = "G"}};
+  std::list<Cluster> clusters{};
 
   //
   // Object classes used in this project
   //
-  std::list<Class> classes{{.classId = joda::enums::ClassId::C0, .name = "Spot"},
-                           {.classId = joda::enums::ClassId::C1, .name = "Tetraspeck"},
-                           {.classId = joda::enums::ClassId::C2, .name = "Cell"},
-                           {.classId = joda::enums::ClassId::C3, .name = "Nucleus"},
-                           {.classId = joda::enums::ClassId::C4, .name = "Background"}};
+  std::list<Class> classes{};
 
   void check() const
   {
