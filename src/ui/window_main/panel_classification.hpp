@@ -59,6 +59,8 @@ private:
   void initTable();
   void loadTemplates();
   void updateTableLock(bool lock);
+  void newTemplate();
+  void saveAsNewTemplate();
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;

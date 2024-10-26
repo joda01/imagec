@@ -12,6 +12,7 @@
 ///
 
 #include "panel_classification.hpp"
+#include <qaction.h>
 #include <qboxlayout.h>
 #include <qlineedit.h>
 #include <exception>
@@ -47,8 +48,10 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     templateSelection->addWidget(mTemplateSelection);
 
     auto *bookMarkMenu = new QMenu();
-    bookMarkMenu->addAction(generateIcon(""), "New from template");
-    bookMarkMenu->addAction(generateIcon(""), "Save");
+    auto *newTemplate  = bookMarkMenu->addAction(generateIcon("file"), "New from template");
+    connect(newTemplate, &QAction::triggered, [this]() { this->newTemplate(); });
+    auto *saveBookmark = bookMarkMenu->addAction(generateIcon("save"), "Save as new template");
+    connect(saveBookmark, &QAction::triggered, [this]() { saveAsNewTemplate(); });
 
     mBookmarkButton = new QPushButton(generateIcon("bookmark"), "");
     mBookmarkButton->setMenu(bookMarkMenu);
@@ -221,8 +224,11 @@ void PanelClassification::updateTableLock(bool lock)
 
   if(lock) {
     mClusters->horizontalHeaderItem(COL_NAME)->setIcon(generateIcon("lock"));
+    mClasses->horizontalHeaderItem(COL_NAME)->setIcon(generateIcon("lock"));
+
   } else {
     mClusters->horizontalHeaderItem(COL_NAME)->setIcon({});
+    mClasses->horizontalHeaderItem(COL_NAME)->setIcon({});
   }
   //
   // Load clusters
@@ -414,10 +420,41 @@ void PanelClassification::loadTemplates()
 /// \param[out]
 /// \return
 ///
+void PanelClassification::saveAsNewTemplate()
+{
+  QString templatePath      = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+  QString pathToStoreFileIn = QFileDialog::getSaveFileName(
+      this, "Save File", templatePath, "ImageC classification template (*" + QString(joda::fs::EXT_CLUSTER_CLASS_TEMPLATE.data()) + ")");
+
+  if(pathToStoreFileIn.isEmpty()) {
+    return;
+  }
+  if(!pathToStoreFileIn.startsWith(templatePath)) {
+    joda::log::logError("Templates must be stored in >" + templatePath.toStdString() + "< directory.");
+    QMessageBox messageBox(this);
+    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setWindowTitle("Could not save template!");
+    messageBox.setText("Templates must be stored in >" + templatePath + "< directory.");
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
+    return;
+  }
+
+  nlohmann::json json = mWindowMain->getSettings().projectSettings.classification;
+  joda::templates::TemplateParser::saveTemplate(json, std::filesystem::path(pathToStoreFileIn.toStdString()), joda::fs::EXT_CLUSTER_CLASS_TEMPLATE);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 bool PanelClassification::askForChangeTemplateIndex()
 {
   QMessageBox messageBox(mWindowMain);
-  messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+  messageBox.setIconPixmap(generateIcon("info-blue").pixmap(48, 48));
   messageBox.setWindowTitle("Load preset?");
   messageBox.setText("Load new classification preset? Actual taken settings will get lost!");
   QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
@@ -425,6 +462,25 @@ bool PanelClassification::askForChangeTemplateIndex()
   messageBox.setDefaultButton(noButton);
   auto reply = messageBox.exec();
   return messageBox.clickedButton() != noButton;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::newTemplate()
+{
+  mActSelectedIndex = 0;
+  mTemplateSelection->setCurrentIndex(0);
+  updateTableLock(false);
+  mWindowMain->mutableSettings().projectSettings.classification.meta.revision = "";
+  mWindowMain->mutableSettings().projectSettings.classification.meta.uid      = "";
+  mWindowMain->mutableSettings().projectSettings.classification.meta.icon     = "";
+  mWindowMain->mutableSettings().projectSettings.classification.meta.name     = "";
+  mWindowMain->mutableSettings().projectSettings.classification.meta.name     = "User defined";
 }
 
 ///
@@ -442,13 +498,7 @@ void PanelClassification::onloadPreset(int index)
   auto selection = mTemplateSelection->currentData().toString();
 
   if(selection == "") {
-    mActSelectedIndex = index;
-    updateTableLock(false);
-    if(mBookmarkButton != nullptr) {
-      mBookmarkButton->setEnabled(true);
-      mWindowMain->mutableSettings().projectSettings.classification.meta.revision = "";
-      mWindowMain->mutableSettings().projectSettings.classification.meta.name     = "User defined";
-    }
+    newTemplate();
   } else {
     if(!askForChangeTemplateIndex()) {
       mTemplateSelection->setCurrentIndex(mActSelectedIndex);    // Revert to previous selection
@@ -457,9 +507,6 @@ void PanelClassification::onloadPreset(int index)
 
     mActSelectedIndex = index;
 
-    if(mBookmarkButton != nullptr) {
-      mBookmarkButton->setEnabled(false);
-    }
     try {
       joda::settings::ClusterClasses settings =
           joda::templates::TemplateParser::loadTemplate(std::filesystem::path(mTemplateSelection->currentData().toString().toStdString()));
