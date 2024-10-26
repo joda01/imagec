@@ -441,7 +441,15 @@ void PanelClassification::saveAsNewTemplate()
   }
 
   nlohmann::json json = mWindowMain->getSettings().projectSettings.classification;
-  joda::templates::TemplateParser::saveTemplate(json, std::filesystem::path(pathToStoreFileIn.toStdString()), joda::fs::EXT_CLUSTER_CLASS_TEMPLATE);
+  auto storedFileName = joda::templates::TemplateParser::saveTemplate(json, std::filesystem::path(pathToStoreFileIn.toStdString()),
+                                                                      joda::fs::EXT_CLUSTER_CLASS_TEMPLATE);
+  loadTemplates();
+
+  auto idx = mTemplateSelection->findData(QString(storedFileName.string().data()));
+  if(idx > 0) {
+    mDontAsk = true;
+    mTemplateSelection->setCurrentIndex(idx);
+  }
 }
 
 ///
@@ -500,9 +508,13 @@ void PanelClassification::onloadPreset(int index)
   if(selection == "") {
     newTemplate();
   } else {
-    if(!askForChangeTemplateIndex()) {
-      mTemplateSelection->setCurrentIndex(mActSelectedIndex);    // Revert to previous selection
-      return;
+    if(mDontAsk) {
+      mDontAsk = false;
+    } else {
+      if(!askForChangeTemplateIndex()) {
+        mTemplateSelection->setCurrentIndex(mActSelectedIndex);    // Revert to previous selection
+        return;
+      }
     }
 
     mActSelectedIndex = index;

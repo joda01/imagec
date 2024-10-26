@@ -53,8 +53,8 @@ public:
   };
 
   static void saveTemplate(const joda::settings::Pipeline &data, const std::filesystem::path &pathToStoreTemplateIn);
-  static void saveTemplate(nlohmann::json &, const std::filesystem::path &pathToStoreTemplateIn,
-                           const std::string &endian = joda::fs::EXT_PIPELINE_TEMPLATE);
+  static std::filesystem::path saveTemplate(nlohmann::json &, const std::filesystem::path &pathToStoreTemplateIn,
+                                            const std::string &endian = joda::fs::EXT_PIPELINE_TEMPLATE);
 
   static auto findTemplates(const std::map<std::string, Category> &directories = {{"templates/basic", Category::BASIC},
                                                                                   {"templates/eva", Category::EVA},

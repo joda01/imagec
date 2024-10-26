@@ -148,7 +148,8 @@ void TemplateParser::saveTemplate(const settings::Pipeline &data, const std::fil
 /// \param[out]
 /// \return
 ///
-void TemplateParser::saveTemplate(nlohmann::json &json, const std::filesystem::path &pathToStoreTemplateIn, const std::string &endian)
+std::filesystem::path TemplateParser::saveTemplate(nlohmann::json &json, const std::filesystem::path &pathToStoreTemplateIn,
+                                                   const std::string &endian)
 {
   std::string pathToStore = pathToStoreTemplateIn.string();
   if(!pathToStore.ends_with(endian)) {
@@ -158,6 +159,8 @@ void TemplateParser::saveTemplate(nlohmann::json &json, const std::filesystem::p
   std::ofstream out(pathToStore);
   out << json.dump(2);
   out.close();
+
+  return std::filesystem::path(pathToStore);
 }
 
 ///

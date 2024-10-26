@@ -71,6 +71,7 @@ private:
   /// TEMPLATE //////////////////////////////////////////////////
   bool askForChangeTemplateIndex();
   int32_t mActSelectedIndex = 0;
+  bool mDontAsk             = false;
   QPushButton *mBookmarkButton;
   QComboBox *mTemplateSelection;
 
