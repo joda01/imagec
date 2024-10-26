@@ -42,11 +42,16 @@ struct PipelineMeta
   //
   std::string revision;
 
+  //
+  // Optional uuid identifying this object unique
+  //
+  std::string uid;
+
   void check() const
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineMeta, name, color, icon, revision);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineMeta, name, color, icon, revision, uid);
 };
 
 };    // namespace joda::settings

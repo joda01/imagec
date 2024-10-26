@@ -67,11 +67,13 @@ private:
   PlaceholderTableWidget *mClasses;
 
   /// TEMPLATE //////////////////////////////////////////////////
+  bool askForChangeTemplateIndex();
+  int32_t mActSelectedIndex = 0;
   QPushButton *mBookmarkButton;
   QComboBox *mTemplateSelection;
 
 private slots:
   void onSettingChanged();
-  void onloadPreset();
+  void onloadPreset(int index);
 };
 }    // namespace joda::ui

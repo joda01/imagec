@@ -414,10 +414,35 @@ void PanelClassification::loadTemplates()
 /// \param[out]
 /// \return
 ///
-void PanelClassification::onloadPreset()
+bool PanelClassification::askForChangeTemplateIndex()
 {
+  QMessageBox messageBox(mWindowMain);
+  messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+  messageBox.setWindowTitle("Load preset?");
+  messageBox.setText("Load new classification preset? Actual taken settings will get lost!");
+  QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+  QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+  messageBox.setDefaultButton(noButton);
+  auto reply = messageBox.exec();
+  return messageBox.clickedButton() != noButton;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::onloadPreset(int index)
+{
+  if(index == mActSelectedIndex) {
+    return;
+  }
   auto selection = mTemplateSelection->currentData().toString();
+
   if(selection == "") {
+    mActSelectedIndex = index;
     updateTableLock(false);
     if(mBookmarkButton != nullptr) {
       mBookmarkButton->setEnabled(true);
@@ -425,6 +450,13 @@ void PanelClassification::onloadPreset()
       mWindowMain->mutableSettings().projectSettings.classification.meta.name     = "User defined";
     }
   } else {
+    if(!askForChangeTemplateIndex()) {
+      mTemplateSelection->setCurrentIndex(mActSelectedIndex);    // Revert to previous selection
+      return;
+    }
+
+    mActSelectedIndex = index;
+
     if(mBookmarkButton != nullptr) {
       mBookmarkButton->setEnabled(false);
     }

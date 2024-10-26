@@ -1,7 +1,8 @@
 {
     "meta":{
         "name": "Fluorescence microscopy",
-        "revision": "v1"
+        "revision": "v1",
+        "uid": "3c9269c5-3355-45fd-b34e-8b199254ff5e" 
     },
     "clusters": [
         {
