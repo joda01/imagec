@@ -324,6 +324,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
   IterationContext iterationContext;
 
   int executedSteps = 0;
+  int colorIdx      = 0;
   for(const auto &[order, pipelines] : pipelineOrder) {
     for(const auto &pipeline : pipelines) {
       if(!deps.contains(pipeline)) {
@@ -355,7 +356,6 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
       std::map<settings::ClassificatorSetting, std::string> colors;
       if(executedSteps >= deps.size()) {
         joda::settings::ImageSaverSettings saverSettings;
-        int colorIdx = 0;
         for(int cluster = 0; cluster < 10; cluster++) {
           for(int classs = 0; classs < 10; classs++) {
             auto color = settings::IMAGE_SAVER_COLORS[colorIdx % settings::IMAGE_SAVER_COLORS.size()];
