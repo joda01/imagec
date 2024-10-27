@@ -12,16 +12,21 @@
 ///
 
 #include "panel_classification.hpp"
+#include <qaction.h>
 #include <qboxlayout.h>
 #include <qlineedit.h>
+#include <exception>
 #include <string>
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/file_parser/directory_iterator.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
+#include "backend/settings/project_settings/project_cluster_classes.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "ui/results/panel_results.hpp"
 #include "ui/window_main/window_main.hpp"
+#include <nlohmann/json_fwd.hpp>
 
 namespace joda::ui {
 
@@ -36,6 +41,29 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     separator->setFrameShadow(QFrame::Sunken);
     layout->addWidget(separator);
   };
+
+  {
+    auto *templateSelection = new QHBoxLayout();
+    mTemplateSelection      = new QComboBox();
+    templateSelection->addWidget(mTemplateSelection);
+
+    auto *bookMarkMenu = new QMenu();
+    auto *newTemplate  = bookMarkMenu->addAction(generateIcon("file"), "New from template");
+    connect(newTemplate, &QAction::triggered, [this]() { this->newTemplate(); });
+    auto *saveBookmark = bookMarkMenu->addAction(generateIcon("save"), "Save as new template");
+    connect(saveBookmark, &QAction::triggered, [this]() { saveAsNewTemplate(); });
+
+    mBookmarkButton = new QPushButton(generateIcon("bookmark"), "");
+    mBookmarkButton->setMenu(bookMarkMenu);
+    mBookmarkButton->setToolTip("Bookmark settings!");
+    templateSelection->addWidget(mBookmarkButton);
+
+    templateSelection->setStretch(0, 1);
+    layout->addLayout(templateSelection);
+
+    loadTemplates();
+    connect(mTemplateSelection, &QComboBox::currentIndexChanged, this, &PanelClassification::onloadPreset);
+  }
 
   {
     mClusters = new PlaceholderTableWidget(NR_OF_CLUSTERS, 5);
@@ -99,6 +127,7 @@ void PanelClassification::initTable()
 
     nlohmann::json classIdStr = static_cast<enums::ClusterId>(clusterId);
     auto *itemEnum            = new QTableWidgetItem(QString(std::string(classIdStr).data()));
+    itemEnum->setFlags(itemEnum->flags() & ~Qt::ItemIsEditable);
     mClusters->setItem(clusterId, COL_ID_ENUM, itemEnum);
 
     auto *item = new QTableWidgetItem(QString(""));
@@ -121,6 +150,7 @@ void PanelClassification::initTable()
 
     nlohmann::json classIdStr = static_cast<enums::ClassId>(classId);
     auto *itemEnum            = new QTableWidgetItem(QString(std::string(classIdStr).data()));
+    itemEnum->setFlags(itemEnum->flags() & ~Qt::ItemIsEditable);
     mClasses->setItem(classId, COL_ID_ENUM, itemEnum);
 
     auto *item = new QTableWidgetItem(QString(""));
@@ -143,31 +173,24 @@ void PanelClassification::initTable()
 /// \param[out]
 /// \return
 ///
-void PanelClassification::fromSettings(const joda::settings::ProjectSettings &settings)
+void PanelClassification::fromSettings(const joda::settings::ClusterClasses &settings)
 {
   mClasses->blockSignals(true);
   mClusters->blockSignals(true);
+
+  initTable();
+
   //
   // Load clusters
   //
   for(const auto &cluster : settings.clusters) {
     auto clusterId = static_cast<int32_t>(cluster.clusterId);
-    auto *index    = new QTableWidgetItem(QString::number(clusterId));
-    index->setFlags(index->flags() & ~Qt::ItemIsEditable);
-    mClusters->setItem(clusterId, COL_ID, index);
 
     nlohmann::json classIdStr = cluster.clusterId;
-    auto *itemEnum            = new QTableWidgetItem(QString(std::string(classIdStr).data()));
-    mClusters->setItem(clusterId, COL_ID_ENUM, itemEnum);
-
-    auto *item = new QTableWidgetItem(cluster.name.data());
-    mClusters->setItem(clusterId, COL_NAME, item);
-
-    auto *itemColor = new QTableWidgetItem(cluster.color.data());
-    mClusters->setItem(clusterId, COL_COLOR, itemColor);
-
-    auto *itemNotes = new QTableWidgetItem(cluster.notes.data());
-    mClusters->setItem(clusterId, COL_NOTES, itemNotes);
+    mClusters->item(clusterId, COL_ID_ENUM)->setText(QString(std::string(classIdStr).data()));
+    mClusters->item(clusterId, COL_NAME)->setText(cluster.name.data());
+    mClusters->item(clusterId, COL_COLOR)->setText(cluster.color.data());
+    mClusters->item(clusterId, COL_NOTES)->setText(cluster.notes.data());
   }
 
   //
@@ -175,22 +198,58 @@ void PanelClassification::fromSettings(const joda::settings::ProjectSettings &se
   //
   for(const auto &classs : settings.classes) {
     auto classId = static_cast<int32_t>(classs.classId);
-    auto *index  = new QTableWidgetItem(QString::number(classId));
-    index->setFlags(index->flags() & ~Qt::ItemIsEditable);
-    mClasses->setItem(classId, COL_ID, index);
 
     nlohmann::json classIdStr = classs.classId;
-    auto *itemEnum            = new QTableWidgetItem(QString(std::string(classIdStr).data()));
-    mClasses->setItem(classId, COL_ID_ENUM, itemEnum);
+    mClasses->item(classId, COL_ID_ENUM)->setText(QString(std::string(classIdStr).data()));
+    mClasses->item(classId, COL_NAME)->setText(classs.name.data());
+    mClasses->item(classId, COL_COLOR)->setText(classs.color.data());
+    mClasses->item(classId, COL_NOTES)->setText(classs.notes.data());
+  }
 
-    auto *item = new QTableWidgetItem(classs.name.data());
-    mClasses->setItem(classId, COL_NAME, item);
+  mClasses->blockSignals(false);
+  mClusters->blockSignals(false);
+}
 
-    auto *itemColor = new QTableWidgetItem(classs.color.data());
-    mClasses->setItem(classId, COL_COLOR, itemColor);
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::updateTableLock(bool lock)
+{
+  mClasses->blockSignals(true);
+  mClusters->blockSignals(true);
 
-    auto *itemNotes = new QTableWidgetItem(classs.notes.data());
-    mClasses->setItem(classId, COL_NOTES, itemNotes);
+  if(lock) {
+    mClusters->horizontalHeaderItem(COL_NAME)->setIcon(generateIcon("lock"));
+    mClasses->horizontalHeaderItem(COL_NAME)->setIcon(generateIcon("lock"));
+
+  } else {
+    mClusters->horizontalHeaderItem(COL_NAME)->setIcon({});
+    mClasses->horizontalHeaderItem(COL_NAME)->setIcon({});
+  }
+  //
+  // Load clusters
+  //
+  for(int n = 0; n < NR_OF_CLUSTERS; n++) {
+    if(lock) {
+      mClusters->item(n, COL_NAME)->setFlags(mClusters->item(n, COL_NAME)->flags() & ~Qt::ItemIsEditable);
+    } else {
+      mClusters->item(n, COL_NAME)->setFlags(mClusters->item(n, COL_NAME)->flags() | Qt::ItemIsEditable);
+    }
+  }
+
+  //
+  // Load classes
+  //
+  for(int n = 0; n < NR_OF_CLASSES; n++) {
+    if(lock) {
+      mClasses->item(n, COL_NAME)->setFlags(mClasses->item(n, COL_NAME)->flags() & ~Qt::ItemIsEditable);
+    } else {
+      mClasses->item(n, COL_NAME)->setFlags(mClasses->item(n, COL_NAME)->flags() | Qt::ItemIsEditable);
+    }
   }
 
   mClasses->blockSignals(false);
@@ -209,7 +268,7 @@ void PanelClassification::toSettings()
   //
   // Save clusters
   //
-  mSettings.clusters.clear();
+  mSettings.classification.clusters.clear();
   for(int row = 0; row < mClusters->rowCount(); row++) {
     QTableWidgetItem *item = mClusters->item(row, COL_ID);
     if(item == nullptr) {
@@ -235,14 +294,14 @@ void PanelClassification::toSettings()
       clusterNotes = itemNotes->text();
     }
 
-    mSettings.clusters.emplace_back(joda::settings::Cluster{
+    mSettings.classification.clusters.emplace_back(joda::settings::Cluster{
         .clusterId = clusterId, .name = clusterName.toStdString(), .color = clusterColor.toStdString(), .notes = clusterNotes.toStdString()});
   }
 
   //
   // Save classes
   //
-  mSettings.classes.clear();
+  mSettings.classification.classes.clear();
   for(int row = 0; row < mClasses->rowCount(); row++) {
     QTableWidgetItem *item = mClasses->item(row, COL_ID);
     if(item == nullptr) {
@@ -268,7 +327,7 @@ void PanelClassification::toSettings()
       classNotes = itemNotes->text();
     }
 
-    mSettings.classes.emplace_back(joda::settings::Class{
+    mSettings.classification.classes.emplace_back(joda::settings::Class{
         .classId = classId, .name = className.toStdString(), .color = classColor.toStdString(), .notes = classNotes.toStdString()});
   }
 }
@@ -294,11 +353,11 @@ void PanelClassification::toSettings()
   classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::NONE), QString("None"));
   classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::UNDEFINED), QString("Undefined"));
 
-  for(const auto &cluster : mSettings.clusters) {
+  for(const auto &cluster : mSettings.classification.clusters) {
     clusters.emplace(static_cast<enums::ClusterIdIn>(cluster.clusterId), QString(cluster.name.data()));
   }
 
-  for(const auto &classs : mSettings.classes) {
+  for(const auto &classs : mSettings.classification.classes) {
     classes.emplace(static_cast<enums::ClassIdIn>(classs.classId), QString(classs.name.data()));
   }
 
@@ -317,6 +376,158 @@ void PanelClassification::onSettingChanged()
   toSettings();
   mWindowMain->checkForSettingsChanged();
   emit settingsChanged();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::loadTemplates()
+{
+  auto foundTemplates = joda::templates::TemplateParser::findTemplates(
+      {{"templates/classification", joda::templates::TemplateParser::Category::BASIC},
+       {joda::templates::TemplateParser::getUsersTemplateDirectory().string(), joda::templates::TemplateParser::Category::USER}},
+      joda::fs::EXT_CLUSTER_CLASS_TEMPLATE);
+
+  mTemplateSelection->clear();
+  mTemplateSelection->addItem("User defined", "");
+  mTemplateSelection->insertSeparator(mTemplateSelection->count());
+
+  joda::templates::TemplateParser::Category actCategory = joda::templates::TemplateParser::Category::BASIC;
+  for(const auto &[category, dataInCategory] : foundTemplates) {
+    for(const auto &[_, data] : dataInCategory) {
+      // Now the user templates start, add an addition separator
+      if(category != actCategory) {
+        actCategory = category;
+        mTemplateSelection->insertSeparator(mTemplateSelection->count());
+      }
+      if(!data.icon.isNull()) {
+        mTemplateSelection->addItem(QIcon(data.icon.scaled(28, 28)), data.title.data(), data.path.data());
+      } else {
+        mTemplateSelection->addItem(generateIcon("favorite"), data.title.data(), data.path.data());
+      }
+    }
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::saveAsNewTemplate()
+{
+  QString templatePath      = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+  QString pathToStoreFileIn = QFileDialog::getSaveFileName(
+      this, "Save File", templatePath, "ImageC classification template (*" + QString(joda::fs::EXT_CLUSTER_CLASS_TEMPLATE.data()) + ")");
+
+  if(pathToStoreFileIn.isEmpty()) {
+    return;
+  }
+  if(!pathToStoreFileIn.startsWith(templatePath)) {
+    joda::log::logError("Templates must be stored in >" + templatePath.toStdString() + "< directory.");
+    QMessageBox messageBox(this);
+    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setWindowTitle("Could not save template!");
+    messageBox.setText("Templates must be stored in >" + templatePath + "< directory.");
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
+    return;
+  }
+
+  nlohmann::json json = mWindowMain->getSettings().projectSettings.classification;
+  auto storedFileName = joda::templates::TemplateParser::saveTemplate(json, std::filesystem::path(pathToStoreFileIn.toStdString()),
+                                                                      joda::fs::EXT_CLUSTER_CLASS_TEMPLATE);
+  loadTemplates();
+
+  auto idx = mTemplateSelection->findData(QString(storedFileName.string().data()));
+  if(idx > 0) {
+    mDontAsk = true;
+    mTemplateSelection->setCurrentIndex(idx);
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+bool PanelClassification::askForChangeTemplateIndex()
+{
+  QMessageBox messageBox(mWindowMain);
+  messageBox.setIconPixmap(generateIcon("info-blue").pixmap(48, 48));
+  messageBox.setWindowTitle("Load preset?");
+  messageBox.setText("Load new classification preset? Actual taken settings will get lost!");
+  QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+  QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+  messageBox.setDefaultButton(noButton);
+  auto reply = messageBox.exec();
+  return messageBox.clickedButton() != noButton;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::newTemplate()
+{
+  mActSelectedIndex = 0;
+  mTemplateSelection->setCurrentIndex(0);
+  updateTableLock(false);
+  mWindowMain->mutableSettings().projectSettings.classification.meta.revision = "";
+  mWindowMain->mutableSettings().projectSettings.classification.meta.uid      = "";
+  mWindowMain->mutableSettings().projectSettings.classification.meta.icon     = "";
+  mWindowMain->mutableSettings().projectSettings.classification.meta.name     = "";
+  mWindowMain->mutableSettings().projectSettings.classification.meta.name     = "User defined";
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::onloadPreset(int index)
+{
+  if(index == mActSelectedIndex) {
+    return;
+  }
+  auto selection = mTemplateSelection->currentData().toString();
+
+  if(selection == "") {
+    newTemplate();
+  } else {
+    if(mDontAsk) {
+      mDontAsk = false;
+    } else {
+      if(!askForChangeTemplateIndex()) {
+        mTemplateSelection->setCurrentIndex(mActSelectedIndex);    // Revert to previous selection
+        return;
+      }
+    }
+
+    mActSelectedIndex = index;
+
+    try {
+      joda::settings::ClusterClasses settings =
+          joda::templates::TemplateParser::loadTemplate(std::filesystem::path(mTemplateSelection->currentData().toString().toStdString()));
+      mWindowMain->mutableSettings().projectSettings.classification = settings;
+      fromSettings(settings);
+      updateTableLock(true);
+    } catch(const std::exception &ex) {
+    }
+  }
 }
 
 }    // namespace joda::ui

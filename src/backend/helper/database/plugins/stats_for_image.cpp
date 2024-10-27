@@ -197,10 +197,10 @@ auto StatsPerImage::toSqlHeatmap(const db::ResultingTable::QueryKey &clusterAndC
                     "\n)\n"
                     "SELECT\n" +
                     channelFilter.createStatsQuery(true, false) +
-                    "floor(meas_center_x / $4) * $4 AS rectangle_x,\n"
-                    "floor(meas_center_y / $4) * $4 AS rectangle_y,\n"
+                    "floor(meas_center_x / $6) * $4 AS rectangle_x,\n"
+                    "floor(meas_center_y / $6) * $4 AS rectangle_y,\n"
                     "FROM innerTable\n"
-                    "GROUP BY floor(meas_center_x / $4), floor(meas_center_y / $4)";
+                    "GROUP BY floor(meas_center_x / $6), floor(meas_center_y / $6)";
 
   params.emplace_back(static_cast<double>(filter.densityMapAreaSize));
   return {sql, params};

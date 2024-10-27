@@ -84,6 +84,7 @@ private:
   void createSettings(helper::TabWidget *, WindowMain *windowMain);
   void saveAsTemplate();
   void previewThread();
+  void copyPipeline();
 
   /////////////////////////////////////////////////////
   helper::LayoutGenerator mLayout;

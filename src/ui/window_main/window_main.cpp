@@ -447,10 +447,11 @@ void WindowMain::openProjectSettings(const QString &filePath)
     clearSettings();
 
     mPanelProjectSettings->fromSettings(analyzeSettings);
-    mPanelClassification->fromSettings(analyzeSettings.projectSettings);
+    mPanelClassification->fromSettings(analyzeSettings.projectSettings.classification);
 
-    mAnalyzeSettings.projectSettings = analyzeSettings.projectSettings;
-    mAnalyzeSettingsOld              = mAnalyzeSettings;
+    mAnalyzeSettings.projectSettings                = analyzeSettings.projectSettings;
+    mAnalyzeSettings.projectSettings.classification = analyzeSettings.projectSettings.classification;
+    mAnalyzeSettingsOld                             = mAnalyzeSettings;
 
     for(const auto &channel : analyzeSettings.pipelines) {
       mPanelPipeline->addChannel(channel);

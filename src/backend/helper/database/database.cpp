@@ -640,8 +640,8 @@ void Database::insetImageToGroup(uint16_t plateId, uint64_t imageId, uint16_t im
 std::string Database::startJob(const joda::settings::AnalyzeSettings &exp, const std::string &jobName)
 {
   if(insertExperiment(exp.projectSettings.experimentSettings)) {
-    insertClusters(exp.projectSettings.clusters);
-    insertClasses(exp.projectSettings.classes);
+    insertClusters(exp.projectSettings.classification.clusters);
+    insertClasses(exp.projectSettings.classification.classes);
   }
   return insertJobAndPlates(exp, jobName);
 }

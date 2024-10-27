@@ -91,13 +91,13 @@ auto AnalyzeSettings::checkForErrors() const -> std::vector<std::pair<std::strin
   }
 
   std::map<enums::ClassId, std::string> classes;
-  for(const auto &classs : projectSettings.classes) {
+  for(const auto &classs : projectSettings.classification.classes) {
     classes.emplace(classs.classId, classs.name);
   }
   classes.emplace(enums::ClassId::NONE, "None");
 
   std::map<enums::ClusterId, std::string> clusters;
-  for(const auto &cluster : projectSettings.clusters) {
+  for(const auto &cluster : projectSettings.classification.clusters) {
     clusters.emplace(cluster.clusterId, cluster.name);
   }
 
@@ -110,8 +110,7 @@ auto AnalyzeSettings::checkForErrors() const -> std::vector<std::pair<std::strin
     for(const auto &outputClass : outputClasses) {
       if(!inputClasses.contains(outputClass)) {
         // This class is not used
-        CHECK_WARNING(false, "Output cluster/class >" + clusters[outputClass.clusterId] + "/" +
-                                 classes[outputClass.classId] + "< is unused!");
+        CHECK_WARNING(false, "Output cluster/class >" + clusters[outputClass.clusterId] + "/" + classes[outputClass.classId] + "< is unused!");
       }
     }
     errorOrderedByPipeline.emplace_back("Image setup", joda_settings_log);

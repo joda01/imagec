@@ -353,13 +353,13 @@ void BatchExporter::createAnalyzeSettings(WorkBook &workbookSettings, const sett
   addElement("Build", settings.meta.buildTime);
 
   addTitle("Clusters");
-  for(const auto &cluster : settings.projectSettings.clusters) {
+  for(const auto &cluster : settings.projectSettings.classification.clusters) {
     nlohmann::json classIdStr = static_cast<enums::ClusterId>(cluster.clusterId);
     addElement(std::string(classIdStr), cluster.name);
   }
 
   addTitle("Classes");
-  for(const auto &classs : settings.projectSettings.classes) {
+  for(const auto &classs : settings.projectSettings.classification.classes) {
     nlohmann::json classIdStr = static_cast<enums::ClassId>(classs.classId);
     addElement(std::string(classIdStr), classs.name);
   }

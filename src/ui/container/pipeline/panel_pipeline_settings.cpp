@@ -117,6 +117,9 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", generateIcon("bookmark"));
   connect(saveAsTemplateButton, &QAction::triggered, [this] { this->saveAsTemplate(); });
 
+  auto *copyPipeline = mLayout.addActionButton("Copy pipeline", generateIcon("copy"));
+  connect(copyPipeline, &QAction::triggered, [this] { this->copyPipeline(); });
+
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);
   connect(this, &PanelPipelineSettings::updatePreviewFinished, this, &PanelPipelineSettings::onPreviewFinished);
   connect(mPreviewImage, &PanelPreview::tileClicked, this, &PanelPipelineSettings::onTileClicked);
@@ -680,6 +683,20 @@ void PanelPipelineSettings::saveAsTemplate()
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
   }
+}
+
+///
+/// \brief      Copy pipeline
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::copyPipeline()
+{
+  joda::settings::Pipeline copiedPipeline = mSettings;
+  copiedPipeline.meta.name += " (copy)";
+  mWindowMain->getPanelPipeline()->addChannel(copiedPipeline);
 }
 
 ///

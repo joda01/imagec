@@ -98,6 +98,11 @@ public:
     return mAnalyzeSettings;
   }
 
+  settings::AnalyzeSettings &mutableSettings()
+  {
+    return mAnalyzeSettings;
+  }
+
   void setWindowTitlePrefix(const QString &txt);
   void checkForSettingsChanged();
   auto getOutputClasses() -> std::set<settings::ClassificatorSettingOut>;
