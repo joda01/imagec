@@ -1,8 +1,8 @@
 {
-    "meta":{
+    "meta": {
         "name": "Fluorescence microscopy",
         "revision": "v1",
-        "uid": "3c9269c5-3355-45fd-b34e-8b199254ff5e" 
+        "uid": "3c9269c5-3355-45fd-b34e-8b199254ff5e"
     },
     "clusters": [
         {
@@ -20,19 +20,37 @@
         {
             "clusterId": "C",
             "color": "",
-            "name": "CY7Cy5 FRET",
+            "name": "CY5-CY7 FRET",
             "notes": ""
         },
         {
             "clusterId": "D",
             "color": "",
-            "name": "TS FITC",
+            "name": "CY3",
             "notes": ""
         },
         {
             "clusterId": "E",
             "color": "",
-            "name": "Coloc",
+            "name": "CY3-CY5 FRET",
+            "notes": ""
+        },
+        {
+            "clusterId": "F",
+            "color": "",
+            "name": "FITC",
+            "notes": ""
+        },
+        {
+            "clusterId": "G",
+            "color": "",
+            "name": "DAPI",
+            "notes": ""
+        },
+        {
+            "clusterId": "H",
+            "color": "",
+            "name": "Brightfield",
             "notes": ""
         }
     ],
@@ -40,19 +58,37 @@
         {
             "classId": "0",
             "color": "",
-            "name": "Spot",
+            "name": "Spots",
             "notes": ""
         },
         {
             "classId": "1",
             "color": "",
-            "name": "Tetraspeck",
+            "name": "Invalid spots",
             "notes": ""
         },
         {
             "classId": "2",
             "color": "",
-            "name": "invalid spots",
+            "name": "Reference beads",
+            "notes": ""
+        },
+        {
+            "classId": "3",
+            "color": "",
+            "name": "Nucleus",
+            "notes": ""
+        },
+        {
+            "classId": "4",
+            "color": "",
+            "name": "Cell area",
+            "notes": ""
+        },
+        {
+            "classId": "5",
+            "color": "",
+            "name": "Cell",
             "notes": ""
         }
     ]
