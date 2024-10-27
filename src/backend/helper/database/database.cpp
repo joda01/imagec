@@ -1116,7 +1116,7 @@ auto Database::selectMeasurementChannelsForClusterAndClass(enums::ClusterId clus
   std::set<int32_t> channels;
   std::unique_ptr<duckdb::QueryResult> result = select(
       "  SELECT object_measurements.meas_stack_c FROM objects"
-      "  JOIN object_measurements ON objects.object_id = object_measurements.object_id"
+      "  JOIN object_measurements ON objects.object_id = object_measurements.object_id AND objects.image_id = object_measurements.image_id\n"
       "   WHERE cluster_id = ? AND class_id = ? "
       "   GROUP BY object_measurements.meas_stack_c",
       (uint16_t) clusterId, (uint16_t) classId);

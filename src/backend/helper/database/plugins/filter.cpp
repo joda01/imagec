@@ -121,8 +121,8 @@ std::string PreparedStatement::createStatsQueryJoins() const
     if(getType(column.measureChannel) == MeasureType::INTENSITY) {
       if(!joindStacks.contains(column.crossChannelStacksC)) {
         std::string tableName = "tj" + std::to_string(column.crossChannelStacksC);
-        joins += "LEFT JOIN object_measurements " + tableName + " ON\n   t1.object_id = " + tableName +
-                 ".object_id AND meas_stack_c = " + std::to_string(column.crossChannelStacksC) +
+        joins += "LEFT JOIN object_measurements " + tableName + " ON\n   t1.object_id = " + tableName + ".object_id AND t1.image_id = " + tableName +
+                 ".image_id  AND meas_stack_c = " + std::to_string(column.crossChannelStacksC) +
                  " AND meas_stack_z = " + std::to_string(column.zStack) + " AND meas_stack_t = " + std::to_string(column.tStack) + "\n";
 
         joindStacks.emplace(column.crossChannelStacksC);
