@@ -197,8 +197,8 @@ auto StatsPerImage::toSqlHeatmap(const db::ResultingTable::QueryKey &clusterAndC
                     "\n)\n"
                     "SELECT\n" +
                     channelFilter.createStatsQuery(true, false) +
-                    "floor(meas_center_x / $6) * $4 AS rectangle_x,\n"
-                    "floor(meas_center_y / $6) * $4 AS rectangle_y,\n"
+                    "floor(meas_center_x / $6) * $6 AS rectangle_x,\n"
+                    "floor(meas_center_y / $6) * $6 AS rectangle_y,\n"
                     "FROM innerTable\n"
                     "GROUP BY floor(meas_center_x / $6), floor(meas_center_y / $6)";
 
