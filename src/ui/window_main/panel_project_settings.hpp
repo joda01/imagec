@@ -84,6 +84,7 @@ private:
 
   QComboBox *mStackHandlingZ;
   QComboBox *mStackHandlingT;
+  QComboBox *mCompositeTileSize;
 
   QLineEdit *mWorkingDir;
   QLabel *mWellOrderMatrixLabel;

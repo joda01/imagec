@@ -77,7 +77,6 @@ public:
                const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX,
                int32_t tileY, Preview &previewOut);
   [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series = 0) -> joda::ome::OmeInfo;
-  cv::Size getCompositeTileSize() const;
 
   // FLOW CONTROL ///////////////////////////////////////////////////
   void start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const std::string &jobName);

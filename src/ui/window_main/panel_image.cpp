@@ -163,7 +163,7 @@ void PanelImages::updateImageMeta()
     auto [imagePath, series] = getSelectedImage();
 
     auto ome            = mWindowMain->getController()->getImageProperties(imagePath, series);
-    auto tileSize       = mWindowMain->getController()->getCompositeTileSize();
+    auto tileSize       = mWindowMain->getSettings().imageSetup.imageTileSettings;
     const auto &imgInfo = ome.getImageInfo();
 
     mImageMeta->setRowCount(20);
@@ -223,9 +223,9 @@ void PanelImages::updateImageMeta()
     addItem("Tile height", imgInfo.resolutions.at(0).optimalTileHeight, "px");
     addItem("Tile count", imgInfo.resolutions.at(0).getTileCount(), "");
 
-    addItem("Composite tile width", tileSize.width, "px");
-    addItem("Composite tile height", tileSize.height, "px");
-    addItem("Composite tile count", imgInfo.resolutions.at(0).getTileCount(tileSize.width, tileSize.height), "");
+    addItem("Composite tile width", tileSize.tileWidth, "px");
+    addItem("Composite tile height", tileSize.tileHeight, "px");
+    addItem("Composite tile count", imgInfo.resolutions.at(0).getTileCount(tileSize.tileWidth, tileSize.tileHeight), "");
     addItem("Series", ome.getNrOfSeries(), "");
     addItem("Pyramids", ome.getResolutionCount().size(), "");
 

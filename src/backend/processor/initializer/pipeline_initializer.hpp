@@ -13,11 +13,13 @@
 
 #pragma once
 
+#include <tuple>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/processor/context/process_context.hpp"
 #include "backend/settings/project_settings/project_image_setup.hpp"
+#include <opencv2/core/types.hpp>
 #include "pipeline_settings.hpp"
 
 namespace joda::processor {
@@ -26,9 +28,12 @@ class PipelineInitializer
 {
 public:
   /////////////////////////////////////////////////////
-  inline static constexpr int64_t MAX_IMAGE_SIZE_BYTES_TO_LOAD_AT_ONCE = 100000000;
-  inline static constexpr int32_t COMPOSITE_TILE_WIDTH                 = 4096;
-  inline static constexpr int32_t COMPOSITE_TILE_HEIGHT                = 4096;
+
+  struct TileSize
+  {
+    int32_t width = 0;
+    int32_t height;
+  };
 
   /////////////////////////////////////////////////////
   PipelineInitializer(const settings::ProjectImageSetup &settings);
@@ -47,11 +52,13 @@ public:
     return mZStackToLoad;
   }
 
-  enums::ImageId loadImageToCache(const enums::PlaneId &planeToLoad, enums::ZProjection zProjection,
-                                  const enums::tile_t &tile, joda::processor::ProcessContext &processContext) const;
+  auto getCompositeTileSize() const -> TileSize const;
 
-  void initPipeline(const joda::settings::PipelineSettings &settings, const enums::tile_t &tile,
-                    const joda::enums::PlaneId &imagePartToLoad, ProcessContext &processStepOu) const;
+  enums::ImageId loadImageToCache(const enums::PlaneId &planeToLoad, enums::ZProjection zProjection, const enums::tile_t &tile,
+                                  joda::processor::ProcessContext &processContext) const;
+
+  void initPipeline(const joda::settings::PipelineSettings &settings, const enums::tile_t &tile, const joda::enums::PlaneId &imagePartToLoad,
+                    ProcessContext &processStepOu) const;
 
 private:
   /////////////////////////////////////////////////////

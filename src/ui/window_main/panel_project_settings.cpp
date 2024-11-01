@@ -146,8 +146,18 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   mStackHandlingT->addItem("Each one", static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EACH_ONE));
   mStackHandlingT->addItem("Exact one", static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EACH_ONE));
   connect(mStackHandlingT, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onSettingChanged);
-
   formLayout->addRow(new QLabel(tr("T-Stack:")), mStackHandlingT);
+
+  //
+  mCompositeTileSize = new QComboBox();
+  mCompositeTileSize->addItem("8192x8192 (~134 MB)", static_cast<int32_t>(8192));
+  mCompositeTileSize->addItem("4096x4096 (~34 MB)", static_cast<int32_t>(4096));
+  mCompositeTileSize->addItem("2048x2048 (~8 MB)", static_cast<int32_t>(2048));
+  mCompositeTileSize->addItem("1024x1024 (~2 MB)", static_cast<int32_t>(1024));
+  mCompositeTileSize->addItem("512x512 (~0.5 MB)", static_cast<int32_t>(512));
+  mCompositeTileSize->addItem("256x256 (~0.02 MB)", static_cast<int32_t>(256));
+  connect(mCompositeTileSize, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onSettingChanged);
+  formLayout->addRow(new QLabel(tr("Tile size:")), mCompositeTileSize);
 
   addSeparator();
 
@@ -251,6 +261,15 @@ void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &s
       mStackHandlingT->setCurrentIndex(0);
     }
   }
+  {
+    auto idx = mCompositeTileSize->findData(
+        static_cast<int>(std::max(settings.imageSetup.imageTileSettings.tileWidth, settings.imageSetup.imageTileSettings.tileHeight)));
+    if(idx >= 0) {
+      mCompositeTileSize->setCurrentIndex(idx);
+    } else {
+      mCompositeTileSize->setCurrentIndex(0);
+    }
+  }
 
   mWorkingDir->setText(settings.projectSettings.workingDirectory.data());
   mRegexToFindTheWellPosition->setCurrentText(settings.projectSettings.plates.begin()->filenameRegex.data());
@@ -290,6 +309,8 @@ void PanelProjectSettings::toSettings()
 
   mSettings.imageSetup.zStackHandling = static_cast<joda::settings::ProjectImageSetup::ZStackHandling>(mStackHandlingZ->currentData().toInt());
   mSettings.imageSetup.tStackHandling = static_cast<joda::settings::ProjectImageSetup::TStackHandling>(mStackHandlingT->currentData().toInt());
+  mSettings.imageSetup.imageTileSettings.tileWidth  = static_cast<int32_t>(mCompositeTileSize->currentData().toInt());
+  mSettings.imageSetup.imageTileSettings.tileHeight = static_cast<int32_t>(mCompositeTileSize->currentData().toInt());
 
   mParentWindow->checkForSettingsChanged();
 }
