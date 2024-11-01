@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <set>
+#include <utility>
 #include "backend/enums/types.hpp"
 #include "backend/settings/setting.hpp"
 #include "backend/settings/setting_base.hpp"
@@ -25,9 +26,9 @@ public:
     // a triangle on the HSV color circle is defined.
     // All colors wihin this triangle are accepted
     //
-    joda::enums::HsvColor filterPointA{223, 172, 0};
-    joda::enums::HsvColor filterPointB{287, 200, 0};
-    joda::enums::HsvColor filterPointC{62, 71, 255};
+    joda::enums::HsvColor filterPointA{.hue = 223, .sat = 172, .val = 0};
+    joda::enums::HsvColor filterPointB{.hue = 287, .sat = 200, .val = 0};
+    joda::enums::HsvColor filterPointC{.hue = 62, .sat = 71, .val = 255};
 
     void check() const
     {
@@ -36,7 +37,7 @@ public:
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Filter, filterPointA, filterPointB, filterPointC);
   };
 
-  std::vector<Filter> filter;
+  std::list<Filter> filter;
 
   //
   // Use 0.299 * R + 0.587 * G + 0.114 * B

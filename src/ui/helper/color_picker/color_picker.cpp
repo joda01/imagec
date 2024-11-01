@@ -79,8 +79,9 @@ void ColorPicker::paintEvent(QPaintEvent *event)
         int32_t hue = angle;
         int32_t sat = (dist * 255);
         int32_t val = 0;
+
         for(auto &cpt : mClickPoints) {
-          if(!cpt.isDraged && cpt.mSelectedHue == hue && cpt.mSelectedSaturation == sat) {
+          if(!cpt.isDraged && cpt.mSelectedHue == hue && std::abs(cpt.mSelectedSaturation - sat) <= 3) {
             cpt.mClickedPoint = {cx + x, cy + y};
           }
         }
@@ -93,11 +94,24 @@ void ColorPicker::paintEvent(QPaintEvent *event)
   int startY = -1;
   int actX   = -1;
   int actY   = -1;
+  int idx    = 0;
   for(const auto &cpt : mClickPoints) {
     if(cpt.mClickedPoint != QPoint(-1, -1)) {
-      painter.setPen(Qt::black);                       // Black marker
-      painter.setBrush(Qt::white);                     // White fill
-      painter.drawEllipse(cpt.mClickedPoint, 5, 5);    // Draw a small circle around the clicked point
+      if(cpt.isClicked) {
+        painter.setPen(Qt::red);    // Red marker
+      } else {
+        painter.setPen(Qt::black);    // Black marker
+      }
+      // The grayscale value of the point is the vue
+      painter.setBrush(QColor(cpt.mSelectedVal, cpt.mSelectedVal, cpt.mSelectedVal));    // White fill
+      painter.drawEllipse(cpt.mClickedPoint, 5, 5);                                      // Draw a small circle around the clicked point
+      auto txtPos = cpt.mClickedPoint;
+      txtPos.setX(txtPos.x() + 10);
+      if(idx != 1) {
+        painter.drawText(txtPos, QString::number(cpt.mSelectedVal));
+      }
+
+      painter.setPen(Qt::black);    // Black marker
       if(actX < 0) {
         actX   = cpt.mClickedPoint.x();
         actY   = cpt.mClickedPoint.y();
@@ -109,6 +123,7 @@ void ColorPicker::paintEvent(QPaintEvent *event)
         actY = cpt.mClickedPoint.y();
       }
     }
+    idx++;
   }
   if(startX >= 0) {
     painter.drawLine(actX, actY, startX, startY);
@@ -122,17 +137,55 @@ void ColorPicker::paintEvent(QPaintEvent *event)
 /// \param[out]
 /// \return
 ///
+void ColorPicker::wheelEvent(QWheelEvent *event)
+{
+  for(auto &circ : mClickPoints) {
+    if(circ.isClicked) {
+      if(event->angleDelta().y() > 0) {
+        circ.mSelectedVal++;
+        if(circ.mSelectedVal >= 255) {
+          circ.mSelectedVal = 255;
+        }
+      } else {
+        circ.mSelectedVal--;
+        if(circ.mSelectedVal <= 0) {
+          circ.mSelectedVal = 0;
+        }
+      }
+      break;
+    }
+  }
+
+  // Sync clickpoint 0 and 1
+  mClickPoints[1].mSelectedVal = mClickPoints[0].mSelectedVal;
+
+  update();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void ColorPicker::mousePressEvent(QMouseEvent *event)
 {
   QPoint clickPos = event->pos();
+  for(auto &circ : mClickPoints) {
+    circ.isClicked = false;
+  }
+
   // Check if the click is near the currently selected circle
   for(auto &circ : mClickPoints) {
     if(circ.mClickedPoint != QPoint(-1, -1) && (clickPos - circ.mClickedPoint).manhattanLength() < 10) {
       // Start dragging the circle if the click is close to the marker
-      circ.isDraged = true;
+      circ.isDraged  = true;
+      circ.isClicked = true;
       return;
     }
   }
+  update();
 }
 
 void ColorPicker::mouseMoveEvent(QMouseEvent *event)
