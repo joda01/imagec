@@ -379,7 +379,18 @@ void PanelPipelineSettings::updatePreview()
     cnt++;
   }
 
-  PreviewJob job{.settings           = mWindowMain->getSettings(),
+  settings::AnalyzeSettings settingsTmp = mWindowMain->getSettings();
+
+  auto previewSize                                    = mPreviewImage->getPreviewSize();
+  settingsTmp.imageSetup.imageTileSettings.tileWidth  = previewSize;
+  settingsTmp.imageSetup.imageTileSettings.tileHeight = previewSize;
+  if(mLastSelectedPreviewSize != previewSize) {
+    mLastSelectedPreviewSize = previewSize;
+    mSelectedTileX           = 0;
+    mSelectedTileY           = 0;
+  }
+
+  PreviewJob job{.settings           = settingsTmp,
                  .controller         = mWindowMain->getController(),
                  .previewPanel       = mPreviewImage,
                  .selectedImage      = mWindowMain->getImagePanel()->getSelectedImage(),
@@ -419,11 +430,22 @@ void PanelPipelineSettings::previewThread()
         auto [imgIndex, selectedSeries] = jobToDo.selectedImage;
         if(!imgIndex.empty()) {
           try {
-            int32_t resolution      = 0;
-            uint32_t series         = selectedSeries;
-            auto tileSize           = jobToDo.controller->getCompositeTileSize();
-            auto imgProps           = joda::ctrl::Controller::getImageProperties(imgIndex, series);
-            auto [tileNrX, tileNrY] = imgProps.getImageInfo().resolutions.at(resolution).getNrOfTiles(tileSize.width, tileSize.height);
+            int32_t resolution = 0;
+            uint32_t series    = selectedSeries;
+            auto tileSize      = jobToDo.settings.imageSetup.imageTileSettings;
+            auto imgProps      = joda::ctrl::Controller::getImageProperties(imgIndex, series);
+
+            // If image is too big scale to tiles
+            if(imgProps.getImageInfo().resolutions.at(0).imageWidth > jobToDo.settings.imageSetup.imageTileSettings.tileWidth ||
+               imgProps.getImageInfo().resolutions.at(0).imageHeight > jobToDo.settings.imageSetup.imageTileSettings.tileHeight) {
+              tileSize.tileWidth  = jobToDo.settings.imageSetup.imageTileSettings.tileWidth;
+              tileSize.tileHeight = jobToDo.settings.imageSetup.imageTileSettings.tileHeight;
+            } else {
+              tileSize.tileWidth  = imgProps.getImageInfo().resolutions.at(0).imageWidth;
+              tileSize.tileHeight = imgProps.getImageInfo().resolutions.at(0).imageHeight;
+            }
+
+            auto [tileNrX, tileNrY] = imgProps.getImageInfo().resolutions.at(resolution).getNrOfTiles(tileSize.tileWidth, tileSize.tileHeight);
 
             auto &previewResult = jobToDo.previewPanel->getPreviewObject();
             processor::PreviewSettings prevSettings;

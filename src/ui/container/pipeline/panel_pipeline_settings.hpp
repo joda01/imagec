@@ -107,8 +107,9 @@ private:
   std::vector<std::unique_ptr<Command>> mCommands;
 
   /////////////////////////////////////////////////////
-  int32_t mSelectedTileX = 0;
-  int32_t mSelectedTileY = 0;
+  int32_t mLastSelectedPreviewSize = 0;
+  int32_t mSelectedTileX           = 0;
+  int32_t mSelectedTileY           = 0;
 
   // joda::ctrl::Preview mPreviewObject;
   PanelChannelOverview *mOverview;

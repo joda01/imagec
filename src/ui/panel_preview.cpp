@@ -110,6 +110,22 @@ QWidget *PanelPreview::createToolBar()
   connect(filled, &QPushButton::toggled, this, &PanelPreview::onSettingChanged);
   layout->addWidget(filled);
 
+  //
+  // Preview size
+  //
+  mPreviewSize = new QComboBox();
+  mPreviewSize->addItem("8192x8192", static_cast<int32_t>(8192));
+  mPreviewSize->addItem("4096x4096", static_cast<int32_t>(4096));
+  mPreviewSize->addItem("2048x2048", static_cast<int32_t>(2048));
+  mPreviewSize->addItem("1024x1024", static_cast<int32_t>(1024));
+  mPreviewSize->addItem("512x512", static_cast<int32_t>(512));
+  mPreviewSize->addItem("256x256", static_cast<int32_t>(256));
+  mPreviewSize->addItem("128x128", static_cast<int32_t>(128));
+  mPreviewSize->addItem("64x64", static_cast<int32_t>(64));
+  mPreviewSize->setCurrentIndex(mPreviewSize->findData(2048));
+  connect(mPreviewSize, &QComboBox::currentIndexChanged, this, &PanelPreview::onSettingChanged);
+  layout->addWidget(mPreviewSize);
+
   layout->addStretch();
 
   return container;

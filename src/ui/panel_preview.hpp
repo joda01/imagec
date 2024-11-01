@@ -66,6 +66,11 @@ public:
     return filled->isChecked();
   }
 
+  int32_t getPreviewSize() const
+  {
+    return mPreviewSize->currentData().toInt();
+  }
+
 signals:
   void tileClicked(int32_t tileX, int32_t tileY);
   void onSettingChanged();
@@ -82,6 +87,7 @@ private:
   QWidget *createToolBar();
   QLabel *mPreviewInfo;
   QPushButton *filled;
+  QComboBox *mPreviewSize;
 
   /////////////////////////////////////////////////////
   DialogImageViewer mImageViewer;
