@@ -43,10 +43,10 @@ public:
     //
     //
     mTargetColor = SettingBase::create<SettingColorPicker>(parent, generateIcon("color"), "");
-    mTargetColor->setValue({settings.filter.begin()->filterPointA, settings.filter.begin()->filterPointB, settings.filter.begin()->filterPointC});
+    mTargetColor->setValue({settings.filter.begin()->colorRangeFrom, settings.filter.begin()->colorRangeTo});
     mTargetColor->setShortDescription("Color: ");
 
-    auto [mPointA, mPointB, mPointC] = mTargetColor->getValue();
+    auto [mPointA, mPointB] = mTargetColor->getValue();
 
     auto createSpinBox = [&](const std::string &desc, uint32_t max, uint32_t value) -> std::shared_ptr<SettingSpinBox<uint32_t>> {
       auto box = SettingBase::create<SettingSpinBox<uint32_t>>(parent, generateIcon(""), desc.data());
@@ -59,17 +59,13 @@ public:
     //
     // Spinner boxes
     //
-    mPointAHue = createSpinBox("Color A", 359, settings.filter.begin()->filterPointA.hue);
-    mPointASat = createSpinBox("Saturation A", 255, settings.filter.begin()->filterPointA.sat);
+    mPointAHue = createSpinBox("Color from", 359, settings.filter.begin()->colorRangeFrom.hue);
+    mPointASat = createSpinBox("Saturation from", 255, settings.filter.begin()->colorRangeFrom.sat);
+    mPointAVal = createSpinBox("Value from", 255, settings.filter.begin()->colorRangeFrom.val);
 
-    mPointBHue = createSpinBox("Color B", 359, settings.filter.begin()->filterPointB.hue);
-    mPointBSat = createSpinBox("Saturation B", 255, settings.filter.begin()->filterPointB.sat);
-
-    mPointCHue = createSpinBox("Color C", 359, settings.filter.begin()->filterPointC.hue);
-    mPointCSat = createSpinBox("Saturation C", 255, settings.filter.begin()->filterPointC.sat);
-
-    mPointAVal = createSpinBox("Value from", 255, settings.filter.begin()->filterPointA.val);
-    mPointCVal = createSpinBox("Value to", 255, settings.filter.begin()->filterPointC.val);
+    mPointBHue = createSpinBox("Color to", 359, settings.filter.begin()->colorRangeTo.hue);
+    mPointBSat = createSpinBox("Saturation to", 255, settings.filter.begin()->colorRangeTo.sat);
+    mPointBVal = createSpinBox("Value to", 255, settings.filter.begin()->colorRangeTo.val);
 
     //
     //
@@ -91,19 +87,18 @@ public:
     addSetting(tab, "Fine tuning",
                {
                    {mPointAHue.get(), false, 0},
-                   {mPointASat.get(), false, 0},
                    {mPointBHue.get(), false, 0},
+
+                   {mPointASat.get(), false, 0},
                    {mPointBSat.get(), false, 0},
-                   {mPointCHue.get(), false, 0},
-                   {mPointCSat.get(), false, 0},
+
                    {mPointAVal.get(), false, 0},
-                   {mPointCVal.get(), false, 0},
+                   {mPointBVal.get(), false, 0},
                });
 
     connect(mTargetColor.get(), &SettingBase::valueChanged, this, &ColorFilter::colorPickerToSpinner);
     colorPickerToSpinner();
-    mTargetColor->connectWithSetting(&settings.filter.begin()->filterPointA, &settings.filter.begin()->filterPointB,
-                                     &settings.filter.begin()->filterPointC);
+    mTargetColor->connectWithSetting(&settings.filter.begin()->colorRangeFrom, &settings.filter.begin()->colorRangeTo);
   }
 
 private:
@@ -128,10 +123,7 @@ private:
   std::shared_ptr<SettingSpinBox<uint32_t>> mPointAVal;
   std::shared_ptr<SettingSpinBox<uint32_t>> mPointBHue;
   std::shared_ptr<SettingSpinBox<uint32_t>> mPointBSat;
-  // std::shared_ptr<SettingSpinBox<uint32_t>> mPointBVal;
-  std::shared_ptr<SettingSpinBox<uint32_t>> mPointCHue;
-  std::shared_ptr<SettingSpinBox<uint32_t>> mPointCSat;
-  std::shared_ptr<SettingSpinBox<uint32_t>> mPointCVal;
+  std::shared_ptr<SettingSpinBox<uint32_t>> mPointBVal;
 
   std::shared_ptr<SettingColorPicker> mTargetColor;
   std::unique_ptr<SettingComboBox<joda::settings::ColorFilterSettings::GrayscaleMode>> mGrayscaleMode;
@@ -145,12 +137,9 @@ private slots:
 
     mPointBHue->blockAllSignals(true);
     mPointBSat->blockAllSignals(true);
+    mPointBVal->blockAllSignals(true);
 
-    mPointCHue->blockAllSignals(true);
-    mPointCSat->blockAllSignals(true);
-    mPointCVal->blockAllSignals(true);
-
-    auto [mPointA, mPointB, mPointC] = mTargetColor->getValue();
+    auto [mPointA, mPointB] = mTargetColor->getValue();
 
     mPointAHue->setValue((uint32_t) mPointA.hue);
     mPointASat->setValue((uint32_t) mPointA.sat);
@@ -158,10 +147,7 @@ private slots:
 
     mPointBHue->setValue((uint32_t) mPointB.hue);
     mPointBSat->setValue((uint32_t) mPointB.sat);
-
-    mPointCHue->setValue((uint32_t) mPointC.hue);
-    mPointCSat->setValue((uint32_t) mPointC.sat);
-    mPointCVal->setValue((uint32_t) mPointC.val);
+    mPointBVal->setValue((uint32_t) mPointB.val);
 
     mPointAHue->blockAllSignals(false);
     mPointASat->blockAllSignals(false);
@@ -169,20 +155,15 @@ private slots:
 
     mPointBHue->blockAllSignals(false);
     mPointBSat->blockAllSignals(false);
-
-    mPointCHue->blockAllSignals(false);
-    mPointCSat->blockAllSignals(false);
-    mPointCVal->blockAllSignals(false);
+    mPointBVal->blockAllSignals(false);
   }
-
   void spinnerToColorPicker()
   {
     mTargetColor->blockAllSignals(true);
 
     mTargetColor->setValue(
         {joda::enums::HsvColor{(int32_t) mPointAHue->getValue(), (int32_t) mPointASat->getValue(), (int32_t) mPointAVal->getValue()},
-         joda::enums::HsvColor{(int32_t) mPointBHue->getValue(), (int32_t) mPointBSat->getValue(), (int32_t) mPointAVal->getValue()},
-         joda::enums::HsvColor{(int32_t) mPointCHue->getValue(), (int32_t) mPointCSat->getValue(), (int32_t) mPointCVal->getValue()}});
+         joda::enums::HsvColor{(int32_t) mPointBHue->getValue(), (int32_t) mPointBSat->getValue(), (int32_t) mPointBVal->getValue()}});
 
     mTargetColor->blockAllSignals(false);
   }

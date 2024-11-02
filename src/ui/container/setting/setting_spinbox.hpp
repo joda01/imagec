@@ -38,9 +38,9 @@ public:
     // if(!getIcon().isNull()) {
     //  mSpinBox->addAction(getIcon().pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE), QLineEdit::LeadingPosition);
     //}
-    // connect(mSpinBox, &QSpinBox::editingFinished, this, &SettingSpinBox::onValueChanged);
-    connect(mSpinBox, &QSpinBox::valueChanged, this, &SettingSpinBox::onValueChanged);
-    //  connect(mLineEdit, &QLineEdit::textChanged, this, &SettingSpinBox::onValueChanged);
+    connect(mSpinBox, &QSpinBox::editingFinished, this, &SettingSpinBox::onValueChanged);
+    // connect(mSpinBox, &QSpinBox::valueChanged, this, &SettingSpinBox::onValueChanged);
+    //   connect(mLineEdit, &QLineEdit::textChanged, this, &SettingSpinBox::onValueChanged);
     return mSpinBox;
   }
 

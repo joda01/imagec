@@ -39,18 +39,12 @@ public:
       cv::Mat hsvImageTmp;
       cvtColor(image, hsvImageTmp, cv::COLOR_BGR2HSV_FULL);
 
-      int32_t hueMax = std::max(mSetting.filter.begin()->filterPointA.hue,
-                                std::max(mSetting.filter.begin()->filterPointB.hue, mSetting.filter.begin()->filterPointC.hue));
-      int32_t hueMin = std::min(mSetting.filter.begin()->filterPointA.hue,
-                                std::min(mSetting.filter.begin()->filterPointB.hue, mSetting.filter.begin()->filterPointC.hue));
-      int32_t satMax = std::max(mSetting.filter.begin()->filterPointA.sat,
-                                std::max(mSetting.filter.begin()->filterPointB.sat, mSetting.filter.begin()->filterPointC.sat));
-      int32_t satMin = std::min(mSetting.filter.begin()->filterPointA.sat,
-                                std::min(mSetting.filter.begin()->filterPointB.sat, mSetting.filter.begin()->filterPointC.sat));
-      int32_t valMax = std::max(mSetting.filter.begin()->filterPointA.val,
-                                std::max(mSetting.filter.begin()->filterPointB.val, mSetting.filter.begin()->filterPointC.val));
-      int32_t valMin = std::min(mSetting.filter.begin()->filterPointA.val,
-                                std::min(mSetting.filter.begin()->filterPointB.val, mSetting.filter.begin()->filterPointC.val));
+      int32_t hueMax = std::max(mSetting.filter.begin()->colorRangeFrom.hue, mSetting.filter.begin()->colorRangeTo.hue);
+      int32_t hueMin = std::min(mSetting.filter.begin()->colorRangeFrom.hue, mSetting.filter.begin()->colorRangeTo.hue);
+      int32_t satMax = std::max(mSetting.filter.begin()->colorRangeFrom.sat, mSetting.filter.begin()->colorRangeTo.sat);
+      int32_t satMin = std::min(mSetting.filter.begin()->colorRangeFrom.sat, mSetting.filter.begin()->colorRangeTo.sat);
+      int32_t valMax = std::max(mSetting.filter.begin()->colorRangeFrom.val, mSetting.filter.begin()->colorRangeTo.val);
+      int32_t valMin = std::min(mSetting.filter.begin()->colorRangeFrom.val, mSetting.filter.begin()->colorRangeTo.val);
 
       cv::Scalar lowerBound((hueMin * 255) / 360, satMin, valMin);    // Hue, Satturation, Value
       cv::Scalar upperBound((hueMax * 255) / 360, satMax, valMax);    // Hue, Satturation, Value

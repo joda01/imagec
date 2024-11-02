@@ -35,12 +35,49 @@ ColorPicker::ColorPicker(QWidget *parent) : QWidget(parent)
 }
 
 ///
-/// \brief      Painter
+/// \brief
 /// \author     Joachim Danmayr
 ///
-void ColorPicker::calculateRangeBasedOnPoints()
+void ColorPicker::setValue(const std::tuple<joda::enums::HsvColor, joda::enums::HsvColor> &triangle)
 {
+  for(auto &cpt : mClickPoints) {
+    cpt.isDraged  = false;
+    cpt.isClicked = false;
+  }
+
+  auto calcHueVorMiddle = [&]() {
+    double max = std::max(std::get<0>(triangle).hue, std::get<1>(triangle).hue);
+    double min = std::min(std::get<0>(triangle).hue, std::get<1>(triangle).hue);
+    return static_cast<int32_t>(max - ((max - min) / 2.0));
+  };
+
+  mClickPoints[0].mSelectedHue        = std::get<0>(triangle).hue;
+  mClickPoints[0].mSelectedSaturation = std::get<0>(triangle).sat;
+  mClickPoints[0].mSelectedVal        = std::get<0>(triangle).val;
+
+  mClickPoints[1].mSelectedHue        = std::get<1>(triangle).hue;
+  mClickPoints[1].mSelectedSaturation = std::get<0>(triangle).sat;
+  mClickPoints[1].mSelectedVal        = std::get<0>(triangle).val;
+
+  mClickPoints[2].mSelectedHue        = calcHueVorMiddle();
+  mClickPoints[2].mSelectedSaturation = std::get<1>(triangle).sat;
+  mClickPoints[2].mSelectedVal        = std::get<1>(triangle).val;
+
+  mClickPoints[1].mSelectedVal = mClickPoints[0].mSelectedVal;
+
+  adjustPoints(-1);
+  update();
   emit valueChanged();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+auto ColorPicker::getValue() -> std::tuple<joda::enums::HsvColor, joda::enums::HsvColor>
+{
+  return {{.hue = mClickPoints[0].mSelectedHue, .sat = mClickPoints[0].mSelectedSaturation, .val = mClickPoints[0].mSelectedVal},
+          {.hue = mClickPoints[1].mSelectedHue, .sat = mClickPoints[2].mSelectedSaturation, .val = mClickPoints[2].mSelectedVal}};
 }
 
 ///
@@ -81,7 +118,7 @@ void ColorPicker::paintEvent(QPaintEvent *event)
         int32_t val = 0;
 
         for(auto &cpt : mClickPoints) {
-          if(!cpt.isDraged && cpt.mSelectedHue == hue && std::abs(cpt.mSelectedSaturation - sat) <= 3) {
+          if(!cpt.isDraged && std::abs(cpt.mSelectedHue - hue) <= 5 && std::abs(cpt.mSelectedSaturation - sat) <= 5) {
             cpt.mClickedPoint = {cx + x, cy + y};
           }
         }
@@ -95,7 +132,9 @@ void ColorPicker::paintEvent(QPaintEvent *event)
   int actX   = -1;
   int actY   = -1;
   int idx    = 0;
-  for(const auto &cpt : mClickPoints) {
+  for(std::size_t i = 0; i < mClickPoints.size(); ++i) {
+    auto &cpt = mClickPoints[i];
+
     if(cpt.mClickedPoint != QPoint(-1, -1)) {
       if(cpt.isClicked) {
         painter.setPen(Qt::red);    // Red marker
@@ -107,9 +146,7 @@ void ColorPicker::paintEvent(QPaintEvent *event)
       painter.drawEllipse(cpt.mClickedPoint, 5, 5);                                      // Draw a small circle around the clicked point
       auto txtPos = cpt.mClickedPoint;
       txtPos.setX(txtPos.x() + 10);
-      if(idx != 1) {
-        painter.drawText(txtPos, QString::number(cpt.mSelectedVal));
-      }
+      painter.drawText(txtPos, QString::number(cpt.mSelectedVal) + "(" + QString::number(i) + ")");
 
       painter.setPen(Qt::black);    // Black marker
       if(actX < 0) {
@@ -137,9 +174,45 @@ void ColorPicker::paintEvent(QPaintEvent *event)
 /// \param[out]
 /// \return
 ///
+void ColorPicker::adjustPoints(int32_t modifiedPtIdx)
+{
+  auto calcHueVorMiddle = [this]() {
+    double max = std::max(mClickPoints[0].mSelectedHue, mClickPoints[1].mSelectedHue);
+    double min = std::min(mClickPoints[0].mSelectedHue, mClickPoints[1].mSelectedHue);
+    return static_cast<int32_t>(max - ((max - min) / 2.0));
+  };
+
+  if(modifiedPtIdx == 0) {
+    mClickPoints[1].mSelectedSaturation = mClickPoints[0].mSelectedSaturation;
+    mClickPoints[1].mSelectedVal        = mClickPoints[0].mSelectedVal;
+    mClickPoints[2].mSelectedHue        = calcHueVorMiddle();
+  } else if(modifiedPtIdx == 1) {
+    mClickPoints[0].mSelectedSaturation = mClickPoints[1].mSelectedSaturation;
+    mClickPoints[0].mSelectedVal        = mClickPoints[1].mSelectedVal;
+    mClickPoints[2].mSelectedHue        = calcHueVorMiddle();
+  } else if(modifiedPtIdx == 2) {
+    mClickPoints[2].mSelectedHue = calcHueVorMiddle();
+  }
+
+  if(mClickPoints[1].mSelectedSaturation < mClickPoints[2].mSelectedSaturation) {
+    auto tmp                            = mClickPoints[2].mSelectedSaturation;
+    mClickPoints[2].mSelectedSaturation = mClickPoints[1].mSelectedSaturation;
+    mClickPoints[0].mSelectedSaturation = tmp;
+    mClickPoints[1].mSelectedSaturation = tmp;
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void ColorPicker::wheelEvent(QWheelEvent *event)
 {
-  for(auto &circ : mClickPoints) {
+  for(std::size_t i = 0; i < mClickPoints.size(); ++i) {
+    auto &circ = mClickPoints[i];
     if(circ.isClicked) {
       if(event->angleDelta().y() > 0) {
         circ.mSelectedVal++;
@@ -152,12 +225,11 @@ void ColorPicker::wheelEvent(QWheelEvent *event)
           circ.mSelectedVal = 0;
         }
       }
+      adjustPoints(i);
+      emit valueChanged();
       break;
     }
   }
-
-  // Sync clickpoint 0 and 1
-  mClickPoints[1].mSelectedVal = mClickPoints[0].mSelectedVal;
 
   update();
 }
@@ -201,16 +273,17 @@ void ColorPicker::mouseMoveEvent(QMouseEvent *event)
 
 void ColorPicker::mouseReleaseEvent(QMouseEvent *event)
 {
-  for(auto &circ : mClickPoints) {
+  for(std::size_t i = 0; i < mClickPoints.size(); ++i) {
+    auto &circ = mClickPoints[i];
     if(circ.isDraged) {
       // Stop dragging when the mouse button is released
-      getValuesOfPoint(circ, event->pos());
+      getValuesOfPoint(i, circ, event->pos());
       circ.isDraged = false;
     }
   }
 }
 
-void ColorPicker::getValuesOfPoint(ClickPoint &point, QPoint clickPos)
+void ColorPicker::getValuesOfPoint(int32_t idx, ClickPoint &point, QPoint clickPos)
 {
   int w  = width();
   int h  = height();
@@ -232,7 +305,8 @@ void ColorPicker::getValuesOfPoint(ClickPoint &point, QPoint clickPos)
     point.mSelectedSaturation = dist * 255;
 
     // Trigger a repaint to mark the clicked point
-    calculateRangeBasedOnPoints();
+    adjustPoints(idx);
+    emit valueChanged();
     update();
   }
 }
