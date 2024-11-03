@@ -338,7 +338,7 @@ public:
   }
 
   void setData(const QueryKey &clusterAndClass, const QueryFilter::ColumnName &colName, int32_t dbColIx, int32_t row, int32_t col,
-               const table::TableCell &tableCell, int32_t sizeY, int32_t sizeX, const std::string &header)
+               const table::TableCell &tableCell, int32_t sizeX, int32_t sizeY, const std::string &header)
   {
     if(!mClustersAndClasses.contains(clusterAndClass)) {
       mClustersAndClasses.emplace(clusterAndClass, PreparedStatement{colName});
