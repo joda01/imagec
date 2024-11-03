@@ -5,6 +5,7 @@
 #include <string>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/helper/database/plugins/filter.hpp"
+#include "backend/helper/table/table.hpp"
 
 namespace joda::db {
 
@@ -54,8 +55,8 @@ auto StatsPerGroup::toTable(const QueryFilter &filter, Grouping grouping) -> Que
             clustersToExport.setData(clusterClass, statement.getColNames(), row, colIdx, filename,
                                      table::TableCell{value, imageId, validity == 0, ""});
           } else {
-            clustersToExport.setData(clusterClass, statement.getColNames(), row, colIdx, std::to_string(row),
-                                     table::TableCell{value, groupId, validity == 0, ""});
+            auto colC = std::string(1, ((char) platePosY + 'A')) + std::to_string(platePosX);
+            clustersToExport.setData(clusterClass, statement.getColNames(), row, colIdx, colC, table::TableCell{value, groupId, validity == 0, ""});
           }
         }
 
@@ -92,25 +93,9 @@ auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> Q
     auto materializedResult =
         getData(clusterClass, filter.getAnalyzer(), filter.getFilter(), statement, grouping)->Cast<duckdb::StreamQueryResult>().Materialize();
 
-    auto prepareTable = [sizeX, sizeY](size_t col, const PreparedStatement &statement, table::Table &results) {
-      results.setTitle(statement.getColumnAt(col).createHeader());
-
-      for(uint8_t row = 0; row < sizeY; row++) {
-        char toWrt = row + 'A';
-
-        results.getMutableRowHeader()[row] = std::string(1, toWrt);
-        for(uint8_t col = 0; col < sizeX; col++) {
-          results.getMutableColHeader()[col] = std::to_string(col + 1);
-          results.setData(row, col, table::TableCell{std::numeric_limits<double>::quiet_NaN(), 0, true, ""});
-        }
-      }
-    };
-
     size_t columnNr = statement.getColSize();
 
     for(size_t row = 0; row < materializedResult->RowCount(); row++) {
-      int32_t tabIdx = 0;
-
       try {
         auto groupId     = materializedResult->GetValue(columnNr + 0, row).GetValue<uint16_t>();
         auto imgGroupIdx = materializedResult->GetValue(columnNr + 1, row).GetValue<uint32_t>();
@@ -132,19 +117,16 @@ auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> Q
         }
 
         for(size_t col = 0; col < columnNr; col++) {
-          if(!clustersToExport.containsTable(tabIdx)) {
-            prepareTable(col, statement, clustersToExport.getTable(tabIdx));
-          }
-
           double value = materializedResult->GetValue(col, row).GetValue<double>();
           if(grouping == Grouping::BY_WELL) {
-            clustersToExport.setData(clusterClass, statement.getColNames(), col, tabIdx, pos.y, pos.x,
-                                     table::TableCell{value, imageId, validity == 0, filename});
+            clustersToExport.setData(clusterClass, statement.getColNames(), col, pos.y, pos.x,
+                                     table::TableCell{value, imageId, validity == 0, filename}, sizeX, sizeY,
+                                     statement.getColumnAt(col).createHeader());
           } else {
-            clustersToExport.setData(clusterClass, statement.getColNames(), col, tabIdx, pos.y, pos.x,
-                                     table::TableCell{value, groupId, validity == 0, filename});
+            clustersToExport.setData(clusterClass, statement.getColNames(), col, pos.y, pos.x,
+                                     table::TableCell{value, groupId, validity == 0, filename}, sizeX, sizeY,
+                                     statement.getColumnAt(col).createHeader());
           }
-          tabIdx++;
         }
 
       } catch(const duckdb::InternalException &) {
@@ -231,7 +213,7 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &clusterAndClass, c
   sql += "FROM imageGrouped\n";
   if(grouping == Grouping::BY_PLATE) {
     sql += "GROUP BY group_id\n";
-    sql += "ORDER BY group_id";
+    sql += "ORDER BY pos_on_plate_x, pos_on_plate_y\n";
   } else {
     sql += "ORDER BY file_name";
   }
