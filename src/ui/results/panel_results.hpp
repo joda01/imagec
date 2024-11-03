@@ -98,7 +98,6 @@ private:
 
   /////////////////////////////////////////////////////
   void valueChangedEvent() override;
-  void setAnalyzer();
   void tableToQWidgetTable(const joda::table::Table &table);
   void tableToHeatmap(const joda::table::Table &table);
   void paintEmptyHeatmap();

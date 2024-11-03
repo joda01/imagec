@@ -423,9 +423,22 @@ void WindowMain::onOpenClicked()
 ///
 void WindowMain::openResultsSettings(const QString &filePath)
 {
-  showPanelResults();
-  mPanelReporting->openFromFile(filePath);
-  mTabWidget->setCurrentIndex((int) Tabs::RESULTS);
+  onBackClicked();
+
+  try {
+    mPanelReporting->openFromFile(filePath);
+    mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::REPORTING));
+    mNavigation = Navigation::REPORTING;
+    mTabWidget->setCurrentIndex((int) Tabs::RESULTS);
+  } catch(const std::exception &ex) {
+    joda::log::logError(ex.what());
+    QMessageBox messageBox(this);
+    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setWindowTitle("Could not load database!");
+    messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
+  }
 }
 
 ///
@@ -487,7 +500,12 @@ void WindowMain::checkForSettingsChanged()
     // Not equal
     mSaveProject->setEnabled(true);
     /// \todo check if all updates still work
-    emit onOutputClassifierChanges();
+    auto actClasses = getOutputClasses();
+
+    if(actClasses != mOutPutClustersOld) {
+      mOutPutClustersOld = actClasses;
+      emit onOutputClassifierChanges();
+    }
   } else {
     // Equal
     mSaveProject->setEnabled(false);
@@ -704,22 +722,14 @@ void WindowMain::showPanelPipelineSettingsEdit(PanelPipelineSettings *selectedCh
   onBackClicked();
   mSelectedChannel = selectedChannel;
   selectedChannel->setActive(true);
-  mStackedWidget->removeWidget(mStackedWidget->widget(static_cast<int32_t>(Navigation::CHANNEL_EDIT)));
+
+  if(mStackedWidget->count() == 3) {
+    mStackedWidget->removeWidget(mStackedWidget->widget(static_cast<int32_t>(Navigation::CHANNEL_EDIT)));
+  }
   mStackedWidget->insertWidget(static_cast<int32_t>(Navigation::CHANNEL_EDIT), selectedChannel->getEditPanel());
   mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::CHANNEL_EDIT));
-  mNavigation = Navigation::CHANNEL_EDIT;
-}
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
-void WindowMain::showPanelResults()
-{
-  onBackClicked();
-  mPanelReporting->setActive(true);
-  mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::REPORTING));
-  mNavigation = Navigation::REPORTING;
+  mNavigation = Navigation::CHANNEL_EDIT;
 }
 
 ///

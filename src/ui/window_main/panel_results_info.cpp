@@ -55,8 +55,7 @@ PanelResultsInfo::PanelResultsInfo(WindowMain *windowMain) : mWindowMain(windowM
 
     connect(mLastLoadedResults, &QTableWidget::cellDoubleClicked, [&](int row, int column) {
       // Open results
-      mWindowMain->showPanelResults();
-      mWindowMain->getPanelResults()->openFromFile(mLastLoadedResults->item(row, 0)->text());
+      mWindowMain->openResultsSettings(mLastLoadedResults->item(row, 0)->text());
     });
 
     layout->addWidget(mLastLoadedResults);

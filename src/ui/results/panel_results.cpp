@@ -128,8 +128,8 @@ void PanelResults::valueChangedEvent()
 ///
 void PanelResults::setActive(bool active)
 {
-  mIsActive = active;
   if(!active) {
+    mIsActive = active;
     getWindowMain()->getPanelResultsInfo()->setData({});
     mSelectedDataSet.analyzeMeta.reset();
     mSelectedDataSet.imageMeta.reset();
@@ -284,33 +284,6 @@ void PanelResults::createBreadCrump(joda::ui::helper::LayoutGenerator *toolbar)
   connect(mColumn, &QComboBox::currentIndexChanged, this, &PanelResults::onColumnComboChanged);
   mColumnAction = toolbar->addItemToTopToolbar(mColumn);
   mColumnAction->setVisible(false);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::setAnalyzer()
-{
-  mSelectedDataSet.analyzeMeta = mAnalyzer->selectExperiment();
-  mColumnEditDialog->updateClustersAndClasses(mAnalyzer.get());
-  try {
-    if(mSelectedDataSet.analyzeMeta.has_value()) {
-      auto resultsSettings = mAnalyzer->selectResultsTableSettings(mSelectedDataSet.analyzeMeta->jobId);
-      mFilter              = nlohmann::json::parse(resultsSettings);
-    }
-  } catch(...) {
-  }
-  auto *resPanel = getWindowMain()->getPanelResultsInfo();
-  resPanel->setData(mSelectedDataSet);
-  resPanel->setWellOrder(mFilter.getFilter().wellImageOrder);
-  resPanel->setPlateSize({mFilter.getFilter().plateCols, mFilter.getFilter().plateRows});
-  resPanel->setDensityMapSize(mFilter.getFilter().densityMapAreaSize);
-
-  refreshView();
 }
 
 ///
@@ -596,23 +569,30 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
     return;
   }
   mDbFilePath = std::filesystem::path(pathToDbFile.toStdString());
-  try {
-    mAnalyzer = std::make_unique<joda::db::Database>();
-    mAnalyzer->openDatabase(std::filesystem::path(pathToDbFile.toStdString()));
-    setAnalyzer();
-    if(mSelectedDataSet.analyzeMeta.has_value()) {
-      getWindowMain()->getPanelResultsInfo()->addResultsFileToHistory(
-          std::filesystem::path(pathToDbFile.toStdString()), mSelectedDataSet.analyzeMeta->jobName, mSelectedDataSet.analyzeMeta->timestampStart);
-    }
+  mAnalyzer   = std::make_unique<joda::db::Database>();
+  mAnalyzer->openDatabase(std::filesystem::path(pathToDbFile.toStdString()));
 
-  } catch(const std::exception &ex) {
-    joda::log::logError(ex.what());
-    QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
-    messageBox.setWindowTitle("Could not load database!");
-    messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
-    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-    auto reply = messageBox.exec();
+  mSelectedDataSet.analyzeMeta = mAnalyzer->selectExperiment();
+  mColumnEditDialog->updateClustersAndClasses(mAnalyzer.get());
+  // Try to load settings if available
+  try {
+    if(mSelectedDataSet.analyzeMeta.has_value()) {
+      auto resultsSettings = mAnalyzer->selectResultsTableSettings(mSelectedDataSet.analyzeMeta->jobId);
+      mFilter              = nlohmann::json::parse(resultsSettings);
+    }
+  } catch(...) {
+  }
+  auto *resPanel = getWindowMain()->getPanelResultsInfo();
+  resPanel->setData(mSelectedDataSet);
+  resPanel->setWellOrder(mFilter.getFilter().wellImageOrder);
+  resPanel->setPlateSize({mFilter.getFilter().plateCols, mFilter.getFilter().plateRows});
+  resPanel->setDensityMapSize(mFilter.getFilter().densityMapAreaSize);
+  mIsActive = true;
+  refreshView();
+
+  if(mSelectedDataSet.analyzeMeta.has_value()) {
+    getWindowMain()->getPanelResultsInfo()->addResultsFileToHistory(
+        std::filesystem::path(pathToDbFile.toStdString()), mSelectedDataSet.analyzeMeta->jobName, mSelectedDataSet.analyzeMeta->timestampStart);
   }
 }
 

@@ -56,7 +56,8 @@ public:
   ~WindowMain();
   bool showPanelStartPage();
   void showPanelPipelineSettingsEdit(PanelPipelineSettings *);
-  void showPanelResults();
+  void openProjectSettings(const QString &filePath);
+  void openResultsSettings(const QString &filePath);
 
   joda::ctrl::Controller *getController()
   {
@@ -141,10 +142,6 @@ private:
   void loadTemplates();
   void clearSettings();
   void saveProject(std::filesystem::path filename);
-
-  void openProjectSettings(const QString &filePath);
-  void openResultsSettings(const QString &filePath);
-
   void closeEvent(QCloseEvent *event) override;
 
   QWidget *createStackedWidget();
@@ -164,6 +161,7 @@ private:
   joda::settings::AnalyzeSettings mAnalyzeSettings;
   joda::settings::AnalyzeSettings mAnalyzeSettingsOld;
   std::filesystem::path mSelectedProjectSettingsFilePath;
+  std::set<settings::ClassificatorSettingOut> mOutPutClustersOld;
 
   ////Left Toolbar/////////////////////////////////////////////////
   QToolBar *mSidebar;
