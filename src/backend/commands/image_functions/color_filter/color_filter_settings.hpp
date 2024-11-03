@@ -26,15 +26,14 @@ public:
     // a triangle on the HSV color circle is defined.
     // All colors wihin this triangle are accepted
     //
-    joda::enums::HsvColor filterPointA{.hue = 223, .sat = 172, .val = 0};
-    joda::enums::HsvColor filterPointB{.hue = 287, .sat = 200, .val = 0};
-    joda::enums::HsvColor filterPointC{.hue = 62, .sat = 71, .val = 255};
+    joda::enums::HsvColor colorRangeFrom{.hue = 195, .sat = 80, .val = 0};
+    joda::enums::HsvColor colorRangeTo{.hue = 230, .sat = 252, .val = 255};
 
     void check() const
     {
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Filter, filterPointA, filterPointB, filterPointC);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Filter, colorRangeFrom, colorRangeTo);
   };
 
   std::list<Filter> filter;

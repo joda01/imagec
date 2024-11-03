@@ -41,29 +41,28 @@ public:
 
   void reset() override
   {
-    setValue({{}, {}, {}});
+    setValue({{}, {}});
   }
 
   void clear() override
   {
-    setValue({{}, {}, {}});
+    setValue({{}, {}});
   }
 
-  auto getValue() -> std::tuple<joda::enums::HsvColor, joda::enums::HsvColor, joda::enums::HsvColor>
+  auto getValue() -> std::tuple<joda::enums::HsvColor, joda::enums::HsvColor>
   {
     return mColorPicker->getValue();
   }
 
-  void setValue(const std::tuple<joda::enums::HsvColor, joda::enums::HsvColor, joda::enums::HsvColor> &fromTo)
+  void setValue(const std::tuple<joda::enums::HsvColor, joda::enums::HsvColor> &fromTo)
   {
     mColorPicker->setValue(fromTo);
   }
 
-  void connectWithSetting(joda::enums::HsvColor *a, joda::enums::HsvColor *b, joda::enums::HsvColor *c)
+  void connectWithSetting(joda::enums::HsvColor *a, joda::enums::HsvColor *b)
   {
     mSettingsA = a;
     mSettingsB = b;
-    mSettingsC = c;
   }
 
   void blockComponentSignals(bool bl) override
@@ -78,16 +77,14 @@ private:
   joda::ui::ColorPicker *mColorPicker;
   joda::enums::HsvColor *mSettingsA = nullptr;
   joda::enums::HsvColor *mSettingsB = nullptr;
-  joda::enums::HsvColor *mSettingsC = nullptr;
 
 private slots:
   void onValueChanged()
   {
-    if(mSettingsA != nullptr && mSettingsB != nullptr && mSettingsC != nullptr) {
-      auto [a, b, c] = mColorPicker->getValue();
-      *mSettingsA    = a;
-      *mSettingsB    = b;
-      *mSettingsC    = c;
+    if(mSettingsA != nullptr && mSettingsB != nullptr) {
+      auto [a, b] = mColorPicker->getValue();
+      *mSettingsA = a;
+      *mSettingsB = b;
     }
     triggerValueChanged("From-To");
   }

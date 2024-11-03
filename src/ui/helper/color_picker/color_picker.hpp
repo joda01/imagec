@@ -32,37 +32,8 @@ public:
   /////////////////////////////////////////////////////
   ColorPicker(QWidget *parent = nullptr);
 
-  void setValue(const std::tuple<joda::enums::HsvColor, joda::enums::HsvColor, joda::enums::HsvColor> &triangle)
-  {
-    for(auto &cpt : mClickPoints) {
-      cpt.isDraged  = false;
-      cpt.isClicked = false;
-    }
-
-    mClickPoints[0].mSelectedHue        = std::get<0>(triangle).hue;
-    mClickPoints[0].mSelectedSaturation = std::get<0>(triangle).sat;
-    mClickPoints[0].mSelectedVal        = std::get<0>(triangle).val;
-
-    mClickPoints[1].mSelectedHue        = std::get<1>(triangle).hue;
-    mClickPoints[1].mSelectedSaturation = std::get<1>(triangle).sat;
-    mClickPoints[1].mSelectedVal        = std::get<1>(triangle).val;
-
-    mClickPoints[2].mSelectedHue        = std::get<2>(triangle).hue;
-    mClickPoints[2].mSelectedSaturation = std::get<2>(triangle).sat;
-    mClickPoints[2].mSelectedVal        = std::get<2>(triangle).val;
-
-    mClickPoints[1].mSelectedVal = mClickPoints[0].mSelectedVal;
-
-    update();
-    emit valueChanged();
-  }
-
-  auto getValue() -> std::tuple<joda::enums::HsvColor, joda::enums::HsvColor, joda::enums::HsvColor>
-  {
-    return {{.hue = mClickPoints[0].mSelectedHue, .sat = mClickPoints[0].mSelectedSaturation, .val = mClickPoints[0].mSelectedVal},
-            {.hue = mClickPoints[1].mSelectedHue, .sat = mClickPoints[1].mSelectedSaturation, .val = mClickPoints[1].mSelectedVal},
-            {.hue = mClickPoints[2].mSelectedHue, .sat = mClickPoints[2].mSelectedSaturation, .val = mClickPoints[2].mSelectedVal}};
-  }
+  void setValue(const std::tuple<joda::enums::HsvColor, joda::enums::HsvColor> &triangle);
+  auto getValue() -> std::tuple<joda::enums::HsvColor, joda::enums::HsvColor>;
 
 signals:
   void valueChanged();
@@ -71,6 +42,7 @@ private:
   /////////////////////////////////////////////////////
   struct ClickPoint
   {
+    QPoint mOldClickPos{0, 0};          // To store the location of the clicked point
     QPoint mClickedPoint{0, 0};         // To store the location of the clicked point
     int32_t mSelectedHue        = 0;    // Store the selected hue
     int32_t mSelectedSaturation = 0;    // Store the selected saturation
@@ -81,13 +53,13 @@ private:
   };
 
   /////////////////////////////////////////////////////
+  void adjustPoints(int32_t modifiedPtIdx);
   void paintEvent(QPaintEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;
   void mouseMoveEvent(QMouseEvent *event) override;
   void wheelEvent(QWheelEvent *event) override;
   void mouseReleaseEvent(QMouseEvent *event) override;
-  void calculateRangeBasedOnPoints();
-  void getValuesOfPoint(ClickPoint &point, QPoint clickPos);
+  void getValuesOfPoint(int32_t idx, ClickPoint &point, QPoint clickPos);
 
   std::array<ClickPoint, 3> mClickPoints;
 };

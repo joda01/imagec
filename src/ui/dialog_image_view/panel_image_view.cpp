@@ -325,7 +325,7 @@ void PanelImageView::paintEvent(QPaintEvent *event)
 ///
 void PanelImageView::drawThumbnail()
 {
-  if(mNrOfTilesX <= 1 && mNrOfTilesY <= 1) {
+  if(mThumbnailParameter.nrOfTilesX <= 1 && mThumbnailParameter.nrOfTilesY <= 1) {
     return;
   }
   float rectHeight = THUMB_RECT_HEIGHT_NORMAL;
@@ -346,7 +346,8 @@ void PanelImageView::drawThumbnail()
   //
   // Scale thumbnail
   //
-  int newWidth, newHeight;
+  int newWidth;
+  int newHeight;
   // Check if width or height is the limiting factor
   float aspectRatio = static_cast<float>(thumbnailWidth) / static_cast<float>(thumbnailHeight);
   if(rectWidth / aspectRatio <= rectHeight) {
@@ -358,28 +359,40 @@ void PanelImageView::drawThumbnail()
     newHeight = rectHeight;
     newWidth  = static_cast<int>(rectHeight * aspectRatio);
   }
+  if(newWidth < 0 || newHeight < 0) {
+    return;
+  }
+
   QRect thumbRect(QPoint(width() - THUMB_RECT_START_X - rectWidth, THUMB_RECT_START_Y), QSize(newWidth,
                                                                                               newHeight));    // Adjust the size as needed
   painter.drawPixmap(thumbRect, mThumbnailImageReference.getPixmap());
 
   //
-  // Draw bounding rext
+  // Draw bounding rect
   //
   painter.setPen(QColor(173, 216, 230));    // Set the pen color to light blue
   painter.setBrush(Qt::NoBrush);            // Set the brush to no brush for transparent fill
-  QRect rectangle(QPoint(width() - THUMB_RECT_START_X - rectWidth, THUMB_RECT_START_Y), QSize(rectWidth,
-                                                                                              rectHeight));    // Adjust the size as needed
+  QRect rectangle(QPoint(width() - THUMB_RECT_START_X - rectWidth, THUMB_RECT_START_Y), QSize(newWidth,
+                                                                                              newHeight));    // Adjust the size as needed
   painter.drawRect(rectangle);
+
+  mThumbRectWidth  = newWidth;
+  mThumbRectHeight = newHeight;
 
   //
   // Draw grid
   //
-  float tileRectWidth  = rectWidth / mNrOfTilesX;
-  float tileRectHeight = rectHeight / mNrOfTilesY;
-  for(int y = 0; y < mNrOfTilesY; y++) {
-    for(int x = 0; x < mNrOfTilesX; x++) {
+  // float tileRectWidth  = newWidth / mNrOfTilesX;
+  // float tileRectHeight = newHeight / mNrOfTilesY;
+  mTileRectWidthScaled =
+      static_cast<int32_t>(static_cast<float>(mThumbnailParameter.tileWidth) * (float) newWidth / (float) mThumbnailParameter.originalImageWidth);
+  mTileRectHeightScaled =
+      static_cast<int32_t>(static_cast<float>(mThumbnailParameter.tileHeight) * (float) newHeight / (float) mThumbnailParameter.originalImageHeight);
+
+  for(int y = 0; y < mThumbnailParameter.nrOfTilesY; y++) {
+    for(int x = 0; x < mThumbnailParameter.nrOfTilesX; x++) {
       bool isSelected = false;
-      if(x == mSelectedTileX && y == mSelectedTileY) {
+      if(x == mThumbnailParameter.selectedTileX && y == mThumbnailParameter.selectedTileY) {
         painter.setBrush(QColor(173, 216, 230));    // Set the brush to no brush for transparent fill
         isSelected = true;
       } else {
@@ -390,11 +403,21 @@ void PanelImageView::drawThumbnail()
         }
       }
       if(mThumbnailAreaEntered || isSelected) {
-        float xOffset = std::floor(static_cast<float>(x) * tileRectWidth);
-        float yOffset = std::floor(static_cast<float>(y) * tileRectHeight);
-        QRect rectangle(QPoint(width() - THUMB_RECT_START_X - rectWidth + xOffset, THUMB_RECT_START_Y + yOffset),
-                        QSize(tileRectWidth, tileRectHeight));
-        painter.drawRect(rectangle);
+        float xOffset = std::floor(static_cast<float>(x) * static_cast<float>(mTileRectWidthScaled));
+        float yOffset = std::floor(static_cast<float>(y) * static_cast<float>(mTileRectHeightScaled));
+        QRect tileRect(QPoint(width() - THUMB_RECT_START_X - static_cast<float>(newWidth) + xOffset, THUMB_RECT_START_Y + yOffset),
+                       QSize(mTileRectWidthScaled, mTileRectHeightScaled));
+
+        if(tileRect.x() + tileRect.width() > rectangle.x() + rectangle.width()) {
+          auto newWidth = (tileRect.x() + tileRect.width()) - (rectangle.x() + rectangle.width());
+          tileRect.setWidth(tileRect.width() - newWidth);
+        }
+        if(tileRect.y() + tileRect.height() > rectangle.y() + rectangle.height()) {
+          auto newHeight = (tileRect.y() + tileRect.height()) - (rectangle.y() + rectangle.height());
+          tileRect.setHeight(tileRect.height() - newHeight);
+        }
+
+        painter.drawRect(tileRect);
       }
     }
   }
@@ -409,24 +432,16 @@ void PanelImageView::drawThumbnail()
 ///
 void PanelImageView::getClickedTileInThumbnail(QMouseEvent *event)
 {
-  float rectHeight = THUMB_RECT_HEIGHT_NORMAL;
-  float rectWidth  = THUMB_RECT_WIDTH_NORMAL;
-  if(mThumbnailAreaEntered) {
-    rectHeight = THUMB_RECT_HEIGHT_ZOOMED;
-    rectWidth  = THUMB_RECT_WIDTH_ZOOMED;
-  }
+  for(int y = 0; y < mThumbnailParameter.nrOfTilesY; y++) {
+    for(int x = 0; x < mThumbnailParameter.nrOfTilesX; x++) {
+      int xOffset = x * mTileRectWidthScaled;
+      int yOffset = y * mTileRectHeightScaled;
 
-  float tileRectWidth  = rectWidth / mNrOfTilesX;
-  float tileRectHeight = rectHeight / mNrOfTilesY;
-  for(int y = 0; y < mNrOfTilesY; y++) {
-    for(int x = 0; x < mNrOfTilesX; x++) {
-      int xOffset = x * tileRectWidth;
-      int yOffset = y * tileRectHeight;
-
-      QRect rectangle(QPoint(width() - THUMB_RECT_START_X - rectWidth + xOffset, THUMB_RECT_START_Y + yOffset), QSize(tileRectWidth, tileRectHeight));
+      QRect rectangle(QPoint(width() - THUMB_RECT_START_X - mThumbRectWidth + xOffset, THUMB_RECT_START_Y + yOffset),
+                      QSize(mTileRectWidthScaled, mTileRectHeightScaled));
       if(rectangle.contains(event->pos())) {
-        mSelectedTileX = x;
-        mSelectedTileY = y;
+        mThumbnailParameter.selectedTileX = x;
+        mThumbnailParameter.selectedTileY = y;
         scene->update();
         update();
         emit tileClicked(x, y);
@@ -445,14 +460,7 @@ void PanelImageView::getClickedTileInThumbnail(QMouseEvent *event)
 ///
 void PanelImageView::getThumbnailAreaEntered(QMouseEvent *event)
 {
-  float rectHeight = THUMB_RECT_HEIGHT_NORMAL;
-  float rectWidth  = THUMB_RECT_WIDTH_NORMAL;
-  if(mThumbnailAreaEntered) {
-    rectHeight = THUMB_RECT_HEIGHT_ZOOMED;
-    rectWidth  = THUMB_RECT_WIDTH_ZOOMED;
-  }
-
-  QRect rectangle(QPoint(width() - THUMB_RECT_START_X - rectWidth, THUMB_RECT_START_Y), QSize(rectWidth, rectHeight));
+  QRect rectangle(QPoint(width() - THUMB_RECT_START_X - mThumbRectWidth, THUMB_RECT_START_Y), QSize(mThumbRectWidth, mThumbRectHeight));
   if(rectangle.contains(event->pos())) {
     if(!mThumbnailAreaEntered) {
       mThumbnailAreaEntered = true;
@@ -476,13 +484,10 @@ void PanelImageView::getThumbnailAreaEntered(QMouseEvent *event)
   }
 }
 
-void PanelImageView::setThumbnailPosition(uint32_t nrOfTilesX, uint32_t nrOfTilesY, uint32_t x, uint32_t y)
+void PanelImageView::setThumbnailPosition(const ThumbParameter &param)
 
 {
-  mNrOfTilesX    = nrOfTilesX;
-  mNrOfTilesY    = nrOfTilesY;
-  mSelectedTileX = x;
-  mSelectedTileY = y;
+  mThumbnailParameter = param;
 }
 
 ///

@@ -41,10 +41,10 @@ public:
   {
     return mPreviewImages;
   }
-  void setThumbnailPosition(uint32_t nrOfTilesX, uint32_t nrOfTilesY, uint32_t x, uint32_t y)
+  void setThumbnailPosition(const PanelImageView::ThumbParameter &param)
   {
-    mImageViewLeft.setThumbnailPosition(nrOfTilesX, nrOfTilesY, x, y);
-    mImageViewRight.setThumbnailPosition(nrOfTilesX, nrOfTilesY, x, y);
+    mImageViewLeft.setThumbnailPosition(param);
+    mImageViewRight.setThumbnailPosition(param);
   }
   void resetImage()
   {
