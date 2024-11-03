@@ -39,8 +39,8 @@ public:
       cv::Mat hsvImageTmp;
       cvtColor(image, hsvImageTmp, cv::COLOR_BGR2HSV_FULL);
 
-      int32_t hueMax = std::max(mSetting.filter.begin()->colorRangeFrom.hue, mSetting.filter.begin()->colorRangeTo.hue);
-      int32_t hueMin = std::min(mSetting.filter.begin()->colorRangeFrom.hue, mSetting.filter.begin()->colorRangeTo.hue);
+      int32_t hueMin = mSetting.filter.begin()->colorRangeFrom.hue;
+      int32_t hueMax = mSetting.filter.begin()->colorRangeTo.hue;
       int32_t satMax = std::max(mSetting.filter.begin()->colorRangeFrom.sat, mSetting.filter.begin()->colorRangeTo.sat);
       int32_t satMin = std::min(mSetting.filter.begin()->colorRangeFrom.sat, mSetting.filter.begin()->colorRangeTo.sat);
       int32_t valMax = std::max(mSetting.filter.begin()->colorRangeFrom.val, mSetting.filter.begin()->colorRangeTo.val);

@@ -45,10 +45,10 @@ public:
     mPreviewLabel.resetImage();
     QMetaObject::invokeMethod(mPreviewInfo, "setText", Q_ARG(QString, info));
   }
-  void setThumbnailPosition(uint32_t nrOfTilesX, uint32_t nrOfTilesY, uint32_t x, uint32_t y)
+  void setThumbnailPosition(const PanelImageView::ThumbParameter &param)
   {
-    mPreviewLabel.setThumbnailPosition(nrOfTilesX, nrOfTilesY, x, y);
-    mImageViewer.setThumbnailPosition(nrOfTilesX, nrOfTilesY, x, y);
+    mPreviewLabel.setThumbnailPosition(param);
+    mImageViewer.setThumbnailPosition(param);
   }
   joda::ctrl::Preview &getPreviewObject()
   {

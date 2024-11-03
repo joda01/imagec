@@ -42,6 +42,7 @@ private:
   /////////////////////////////////////////////////////
   struct ClickPoint
   {
+    QPoint mOldClickPos{0, 0};          // To store the location of the clicked point
     QPoint mClickedPoint{0, 0};         // To store the location of the clicked point
     int32_t mSelectedHue        = 0;    // Store the selected hue
     int32_t mSelectedSaturation = 0;    // Store the selected saturation

@@ -37,6 +37,18 @@ public:
     PAINT
   };
 
+  struct ThumbParameter
+  {
+    int32_t nrOfTilesX          = 0;
+    int32_t nrOfTilesY          = 0;
+    int32_t tileWidth           = 0;
+    int32_t tileHeight          = 0;
+    int32_t originalImageWidth  = 0;
+    int32_t originalImageHeight = 0;
+    int32_t selectedTileX       = 0;
+    int32_t selectedTileY       = 0;
+  };
+
   /////////////////////////////////////////////////////
   PanelImageView(const joda::image::Image &imageReference, const joda::image::Image &thumbnailImageReference, QWidget *parent = nullptr);
   void imageUpdated();
@@ -61,7 +73,7 @@ public:
   void setState(State);
   void setShowThumbnail(bool);
   void setShowCrosshandCursor(bool);
-  void setThumbnailPosition(uint32_t nrOfTilesX, uint32_t nrOfTilesY, uint32_t x, uint32_t y);
+  void setThumbnailPosition(const ThumbParameter &);
   void setCursorPosition(const QPoint &pos);
   auto getCursorPosition() -> QPoint;
 
@@ -107,10 +119,12 @@ private:
   cv::Size mPixmapSize;
 
   /////////////////////////////////////////////////////
-  uint32_t mNrOfTilesX    = 0;
-  uint32_t mNrOfTilesY    = 0;
-  uint32_t mSelectedTileX = 0;
-  uint32_t mSelectedTileY = 0;
+  ThumbParameter mThumbnailParameter;
+
+  uint32_t mThumbRectWidth      = 0;
+  uint32_t mThumbRectHeight     = 0;
+  int32_t mTileRectWidthScaled  = 0;
+  int32_t mTileRectHeightScaled = 0;
 
   /////////////////////////////////////////////////////
   bool mThumbnailAreaEntered = false;

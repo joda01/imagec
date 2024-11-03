@@ -14,6 +14,7 @@
 
 #include <qglobal.h>
 #include <qspinbox.h>
+#include <cstdint>
 #include <optional>
 #include "ui/helper/clickablelineedit.hpp"
 #include "setting_base.hpp"
@@ -164,10 +165,16 @@ private:
   QSpinBox *mSpinBox = nullptr;
   std::optional<VALUE_T> mDefaultValue;
   VALUE_T *mSetting = nullptr;
+  std::optional<VALUE_T> mOldValue;
 
 private slots:
   void onValueChanged()
   {
+    // Only trigger value changed if old value is not equal to actual value
+    if(mOldValue.has_value() && mOldValue == getValue()) {
+      return;
+    }
+    mOldValue = getValue();
     if(mSetting != nullptr) {
       *mSetting = getValue();
     }

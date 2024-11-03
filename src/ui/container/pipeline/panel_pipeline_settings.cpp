@@ -436,13 +436,16 @@ void PanelPipelineSettings::previewThread()
             auto imgProps      = joda::ctrl::Controller::getImageProperties(imgIndex, series);
 
             // If image is too big scale to tiles
+            auto imgWidth    = imgProps.getImageInfo().resolutions.at(0).imageWidth;
+            auto imageHeight = imgProps.getImageInfo().resolutions.at(0).imageHeight;
+
             if(imgProps.getImageInfo().resolutions.at(0).imageWidth > jobToDo.settings.imageSetup.imageTileSettings.tileWidth ||
                imgProps.getImageInfo().resolutions.at(0).imageHeight > jobToDo.settings.imageSetup.imageTileSettings.tileHeight) {
               tileSize.tileWidth  = jobToDo.settings.imageSetup.imageTileSettings.tileWidth;
               tileSize.tileHeight = jobToDo.settings.imageSetup.imageTileSettings.tileHeight;
             } else {
-              tileSize.tileWidth  = imgProps.getImageInfo().resolutions.at(0).imageWidth;
-              tileSize.tileHeight = imgProps.getImageInfo().resolutions.at(0).imageHeight;
+              tileSize.tileWidth  = imgWidth;
+              tileSize.tileHeight = imageHeight;
             }
 
             auto [tileNrX, tileNrY] = imgProps.getImageInfo().resolutions.at(resolution).getNrOfTiles(tileSize.tileWidth, tileSize.tileHeight);
@@ -476,7 +479,15 @@ void PanelPipelineSettings::previewThread()
               info += tmp;
             }
             info += "</html>";
-            jobToDo.previewPanel->setThumbnailPosition(tileNrX, tileNrY, jobToDo.selectedTileX, jobToDo.selectedTileY);
+            jobToDo.previewPanel->setThumbnailPosition(
+                PanelImageView::ThumbParameter{.nrOfTilesX          = tileNrX,
+                                               .nrOfTilesY          = tileNrY,
+                                               .tileWidth           = jobToDo.settings.imageSetup.imageTileSettings.tileWidth,
+                                               .tileHeight          = jobToDo.settings.imageSetup.imageTileSettings.tileHeight,
+                                               .originalImageWidth  = imgWidth,
+                                               .originalImageHeight = imageHeight,
+                                               .selectedTileX       = jobToDo.selectedTileX,
+                                               .selectedTileY       = jobToDo.selectedTileY});
             jobToDo.previewPanel->updateImage(info);
 
           } catch(const std::exception &error) {
