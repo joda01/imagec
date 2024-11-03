@@ -487,7 +487,7 @@ void WindowMain::checkForSettingsChanged()
     // Not equal
     mSaveProject->setEnabled(true);
     /// \todo check if all updates still work
-    // emit onOutputClassifierChanges();
+    emit onOutputClassifierChanges();
   } else {
     // Equal
     mSaveProject->setEnabled(false);
