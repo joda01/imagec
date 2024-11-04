@@ -123,6 +123,7 @@
     <file>icons/icons8-three-48.png</file>
     <file>icons/icons8-length-16.png</file>
     <file>icons/icons8-brightness-16.png</file>
+    <file>icons/icons8-ratio-16.png</file>
     <file>icons/icons8-ampersand-96.png</file>
     <file>icons/icons8-metamorphose-48.png</file>
     <file>icons/icons8-clone-24.png</file>
@@ -340,6 +341,7 @@
     <file>icons/icons8-circle-16.png</file>
     <file>icons/icons8-clone-16.png</file>
     <file>icons/icons8-delete-column-24.png</file>
+    <file>icons/icons8-ratio-96.png</file>
     <file>icons/icons8-screenshot-48.png</file>
     <file>icons/icons8-header-96.png</file>
     <file>icons/icons8-snap-background-to-white-48.png</file>
@@ -523,6 +525,7 @@
     <file>icons/icons8-nine-24.png</file>
     <file>icons/icons8-shutdown-48.png</file>
     <file>icons/icons8-blur-16.png</file>
+    <file>icons/icons8-ratio-48.png</file>
     <file>icons/icons8-delete-96.png</file>
     <file>icons/icons8-warning-yellow-48.png</file>
     <file>icons/icons8-no-image-48.png</file>
@@ -596,6 +599,7 @@
     <file>icons/icons8-arrow-up-24.png</file>
     <file>icons/icons8-export-excel-48.png</file>
     <file>icons/icons8-normal-distribution-histogram-24.png</file>
+    <file>icons/icons8-ratio-24.png</file>
     <file>icons/icons8-arrow-left-48.png</file>
     <file>icons/icons8-arrow-left-96.png</file>
     <file>icons/icons8-open-lock-48.png</file>

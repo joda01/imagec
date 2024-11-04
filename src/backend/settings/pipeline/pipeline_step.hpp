@@ -21,6 +21,7 @@
 #include "backend/commands/image_functions/color_filter/color_filter_settings.hpp"
 #include "backend/commands/image_functions/edge_detection/edge_detection_settings.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class_settings.hpp"
+#include "backend/commands/image_functions/image_math/image_math_settings.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/commands/image_functions/intensity/intensity_settings.hpp"
 #include "backend/commands/image_functions/margin_crop/margin_crop_settings.hpp"
@@ -73,6 +74,7 @@ public:
   std::optional<NoiseValidatorSettings> $noiseValidator              = std::nullopt;
   std::optional<ColorFilterSettings> $colorFilter                    = std::nullopt;
   std::optional<ObjectMathSettings> $objectMath                      = std::nullopt;
+  std::optional<ImageMathSettings> $imageMath                        = std::nullopt;
 
   /////////////////////////////////////////////////////
   void operator()(processor::ProcessContext &context, cv::Mat &image, joda::atom::ObjectList &result) const;
@@ -81,7 +83,7 @@ public:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineStep, $blur, $saveImage, $threshold, $watershed, $imageFromClass, $classify,
                                                        $aiClassify, $colocalization, $reclassify, $measure, $rollingBall, $medianSubtract,
                                                        $edgeDetection, $crop, $voronoi, $thresholdValidator, $noiseValidator, $intensityTransform,
-                                                       $colorFilter, $objectMath, disabled);
+                                                       $colorFilter, $objectMath, $imageMath, disabled);
 };
 
 }    // namespace joda::settings

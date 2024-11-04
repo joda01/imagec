@@ -18,6 +18,7 @@
 #include <string>
 #include "backend/commands/image_functions/blur/blur_settings.hpp"
 #include "backend/commands/image_functions/blur/blur_settings_ui.hpp"
+#include "backend/commands/image_functions/image_math/image_math_settings.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/commands/image_functions/threshold/threshold_settings.hpp"
 #include "backend/commands/image_functions/watershed/watershed_settings.hpp"
@@ -96,6 +97,7 @@ void DialogCommandSelection::addCommandsToTable(InOuts outOfStepBefore)
     inserted += addCommandToTable(settings::PipelineStep{.$rollingBall = settings::RollingBallSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$medianSubtract = settings::MedianSubtractSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$edgeDetection = settings::EdgeDetectionSettings{}}, outOfStepBefore);
+    inserted += addCommandToTable(settings::PipelineStep{.$imageMath = settings::ImageMathSettings{}}, outOfStepBefore);
 
     if(inserted > 0) {
       // Only insert title if at least one element has been added

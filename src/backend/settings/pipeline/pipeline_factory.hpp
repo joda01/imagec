@@ -31,6 +31,8 @@
 #include "backend/commands/image_functions/edge_detection/edge_detection.hpp"
 #include "backend/commands/image_functions/edge_detection/edge_detection_settings_ui.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class.hpp"
+#include "backend/commands/image_functions/image_math/image_math.hpp"
+#include "backend/commands/image_functions/image_math/image_math_settings_ui.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings_ui.hpp"
 #include "backend/commands/image_functions/intensity/intensity.hpp"
@@ -267,6 +269,15 @@ private:
       } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
         return std::move(std::make_unique<joda::ui::Factory<joda::ui::ObjectMath, ObjectMathSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<ObjectMathSettings &>(step.$objectMath.value()), parent));
+      }
+    }
+
+    if(step.$imageMath) {
+      if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
+        return std::make_unique<joda::cmd::Factory<joda::cmd::ImageMath, ImageMathSettings>>(step.$imageMath.value());
+      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::Factory<joda::ui::ImageMath, ImageMathSettings>>(
+            const_cast<settings::PipelineStep &>(step), const_cast<ImageMathSettings &>(step.$imageMath.value()), parent));
       }
     }
 
