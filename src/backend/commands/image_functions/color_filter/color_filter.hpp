@@ -10,6 +10,7 @@
 ///
 ///
 
+#include <string>
 #include "backend/commands/command.hpp"
 #include "backend/commands/image_functions/color_filter/color_filter_settings.hpp"
 
@@ -46,19 +47,37 @@ public:
       int32_t valMax = std::max(mSetting.filter.begin()->colorRangeFrom.val, mSetting.filter.begin()->colorRangeTo.val);
       int32_t valMin = std::min(mSetting.filter.begin()->colorRangeFrom.val, mSetting.filter.begin()->colorRangeTo.val);
 
-      cv::Scalar lowerBound((hueMin * 255) / 360, satMin, valMin);    // Hue, Satturation, Value
-      cv::Scalar upperBound((hueMax * 255) / 360, satMax, valMax);    // Hue, Satturation, Value
+      std::cout << "Range: " << std::to_string(hueMin) << " " << std::to_string(hueMax) << " | " << std::to_string(satMin) << " "
+                << std::to_string(satMax) << " | " << std::to_string(valMin) << " " << std::to_string(valMax) << std::endl;
 
       // Create a mask that isolates the target color
-      cv::Mat mask;
-      cv::inRange(hsvImageTmp, lowerBound, upperBound, mask);
+      cv::Mat combinedMask;
+      if(hueMin > hueMax) {
+        cv::Scalar lowerBound1((hueMin * 255) / 360, satMin, valMin);    // Hue, Satturation, Value
+        cv::Scalar upperBound1((360 * 255) / 360, satMax, valMax);       // Hue, Satturation, Value
+
+        cv::inRange(hsvImageTmp, lowerBound1, upperBound1, combinedMask);
+        cv::Scalar lowerBound2((0 * 255) / 360, satMin, valMin);         // Hue, Satturation, Value
+        cv::Scalar upperBound2((hueMax * 255) / 360, satMax, valMax);    // Hue, Satturation, Value
+
+        cv::Mat mask2;
+        cv::inRange(hsvImageTmp, lowerBound2, upperBound2, mask2);
+
+        // Combine the masks
+        cv::bitwise_or(combinedMask, mask2, combinedMask);
+
+      } else {
+        cv::Scalar lowerBound1((hueMin * 255) / 360, satMin, valMin);    // Hue, Satturation, Value
+        cv::Scalar upperBound1((hueMax * 255) / 360, satMax, valMax);    // Hue, Satturation, Value
+        cv::inRange(hsvImageTmp, lowerBound1, upperBound1, combinedMask);
+      }
 
       // Convert the original image to grayscale
       hsvImageTmp = cv::Mat::zeros(image.size(), CV_16UC1);
       if(mSetting.grayScaleConvertMode == settings::ColorFilterSettings::GrayscaleMode::HUMAN) {
         for(int i = 0; i < image.rows; ++i) {
           for(int j = 0; j < image.cols; ++j) {
-            if(mask.at<uint8_t>(i, j) == 0) {
+            if(combinedMask.at<uint8_t>(i, j) == 0) {
             } else {
               cv::Vec3b pixel = image.at<cv::Vec3b>(i, j);
               uint16_t grayValue =
@@ -70,7 +89,7 @@ public:
       } else {
         for(int i = 0; i < image.rows; ++i) {
           for(int j = 0; j < image.cols; ++j) {
-            if(mask.at<uint8_t>(i, j) == 0) {
+            if(combinedMask.at<uint8_t>(i, j) == 0) {
             } else {
               cv::Vec3b pixel                = image.at<cv::Vec3b>(i, j);
               uint16_t grayValue             = (((pixel[2] + pixel[1] + pixel[0]) * 65535.0) / (3 * 255.0));    // BGR format
@@ -82,7 +101,7 @@ public:
 
       // Copy grayscale values only where the mask is non-zero (color matches)
       image = cv::Mat::zeros(image.size(), CV_16UC1);
-      hsvImageTmp.copyTo(image, mask);
+      hsvImageTmp.copyTo(image, combinedMask);
     }
   }
 

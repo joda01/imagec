@@ -57,6 +57,7 @@ public:
   void setValue(const std::tuple<joda::enums::HsvColor, joda::enums::HsvColor> &fromTo)
   {
     mColorPicker->setValue(fromTo);
+    onValueChanged();
   }
 
   void connectWithSetting(joda::enums::HsvColor *a, joda::enums::HsvColor *b)

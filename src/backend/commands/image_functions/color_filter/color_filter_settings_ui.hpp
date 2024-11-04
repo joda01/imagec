@@ -141,13 +141,13 @@ private slots:
 
     auto [mPointA, mPointB] = mTargetColor->getValue();
 
-    mPointAHue->setValue((uint32_t) mPointA.hue);
-    mPointASat->setValue((uint32_t) mPointA.sat);
-    mPointAVal->setValue((uint32_t) mPointA.val);
+    mPointAHue->setValue(static_cast<uint32_t>(mPointA.hue));
+    mPointASat->setValue(static_cast<uint32_t>(mPointA.sat));
+    mPointAVal->setValue(static_cast<uint32_t>(mPointA.val));
 
-    mPointBHue->setValue((uint32_t) mPointB.hue);
-    mPointBSat->setValue((uint32_t) mPointB.sat);
-    mPointBVal->setValue((uint32_t) mPointB.val);
+    mPointBHue->setValue(static_cast<uint32_t>(mPointB.hue));
+    mPointBSat->setValue(static_cast<uint32_t>(mPointB.sat));
+    mPointBVal->setValue(static_cast<uint32_t>(mPointB.val));
 
     mPointAHue->blockAllSignals(false);
     mPointASat->blockAllSignals(false);

@@ -128,7 +128,7 @@ void ColorPicker::paintEvent(QPaintEvent *event)
         }
 
         // Convert HSV to QColor
-        QColor color = QColor::fromHsv(angle, dist * 255, 255, alpha);
+        QColor color = QColor::fromHsv(angle, sat, 255, alpha);
         // Set the pixel color
         painter.setPen(color);
         painter.drawPoint(cx + x, cy + y);
