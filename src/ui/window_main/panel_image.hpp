@@ -18,6 +18,7 @@
 #include <QtWidgets>
 #include <filesystem>
 #include <utility>
+#include "backend/helper/ome_parser/ome_info.hpp"
 #include "ui/helper/table_widget.hpp"
 
 namespace joda::ui {
@@ -36,7 +37,7 @@ class PanelImages : public QWidget
 public:
   /////////////////////////////////////////////////////
   explicit PanelImages(WindowMain *windowMain);
-  [[nodiscard]] auto getSelectedImage() const -> std::tuple<std::filesystem::path, uint32_t>;
+  [[nodiscard]] auto getSelectedImage() const -> std::tuple<std::filesystem::path, uint32_t, joda::ome::OmeInfo>;
 
 signals:
   void imageSelectionChanged(int32_t newImgIdex, int32_t selectedSeries);
@@ -51,6 +52,7 @@ private:
   PlaceholderTableWidget *mImages;
   PlaceholderTableWidget *mImageMeta;
   QLineEdit *mSearchField;
+  joda::ome::OmeInfo mOmeFromActSelectedImage;
 
 private slots:
   void filterImages();

@@ -427,13 +427,12 @@ void PanelPipelineSettings::previewThread()
       mPreviewInProgress = true;
       emit updatePreviewStarted();
       if(nullptr != jobToDo.previewPanel && mIsActiveShown) {
-        auto [imgIndex, selectedSeries] = jobToDo.selectedImage;
+        auto [imgIndex, selectedSeries, imgProps] = jobToDo.selectedImage;
         if(!imgIndex.empty()) {
           try {
             int32_t resolution = 0;
             uint32_t series    = selectedSeries;
             auto tileSize      = jobToDo.settings.imageSetup.imageTileSettings;
-            auto imgProps      = joda::ctrl::Controller::getImageProperties(imgIndex, series);
 
             // If image is too big scale to tiles
             auto imgWidth    = imgProps.getImageInfo().resolutions.at(0).imageWidth;

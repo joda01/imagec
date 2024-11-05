@@ -15,6 +15,7 @@
 #include <filesystem>
 #include <memory>
 #include <stdexcept>
+#include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/system/system_resources.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
@@ -206,12 +207,23 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
                          const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline, const std::filesystem::path &imagePath,
                          int32_t tileX, int32_t tileY, Preview &previewOut)
 {
+  static std::filesystem::path lastImagePath;
+  static ome::OmeInfo lastOme;
+  bool generateThumb = false;
+  if(imagePath != lastImagePath || previewOut.thumbnail.empty()) {
+    lastImagePath = imagePath;
+    generateThumb = true;
+    lastOme       = joda::image::reader::ImageReader::getOmeInformation(imagePath);
+  }
+
   processor::Processor process;
   auto [originalImg, previewImage, thumb, foundObjects] =
-      process.generatePreview(previewSettings, imageSetup, settings, pipeline, imagePath, 0, 0, tileX, tileY);
+      process.generatePreview(previewSettings, imageSetup, settings, pipeline, imagePath, 0, 0, tileX, tileY, generateThumb, lastOme);
   previewOut.originalImage.setImage(std::move(originalImg));
   previewOut.previewImage.setImage(std::move(previewImage));
-  previewOut.thumbnail.setImage(std::move(thumb));
+  if(generateThumb) {
+    previewOut.thumbnail.setImage(std::move(thumb));
+  }
   previewOut.foundObjects.clear();
   for(const auto &[key, val] : foundObjects) {
     previewOut.foundObjects[key].color = val.color;

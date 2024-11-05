@@ -22,6 +22,7 @@
 #include "backend/enums/enum_memory_idx.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/enums/types.hpp"
+#include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/fnv1a.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/processor/context/process_context.hpp"
@@ -222,6 +223,8 @@ enums::ImageId PipelineInitializer::loadImageToCache(const enums::PlaneId &plane
     loadImage = loadImageTile;
   }
 
+  auto i = DurationCount::start("Load image");
+
   auto &image = imagePlaneOut.image;
   image       = loadImage(z, c, t);
 
@@ -253,6 +256,7 @@ enums::ImageId PipelineInitializer::loadImageToCache(const enums::PlaneId &plane
       func(zIdx);
     }
   }
+  DurationCount::stop(i);
 
   // Store original image to cache
   processContext.addImageToCache(imagePlaneOut.getId(), std::move(std::make_unique<joda::atom::ImagePlane>(imagePlaneOut)));

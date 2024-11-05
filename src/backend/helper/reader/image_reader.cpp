@@ -273,13 +273,12 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &i
 /// \param[out]
 /// \return
 ///
-cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &imagePlane, uint16_t series)
+cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &imagePlane, uint16_t series, const joda::ome::OmeInfo &ome)
 {
   // Takes 150 ms
   if(nullptr != myJVM && mJVMInitialised && imagePlane.c >= 0 && imagePlane.z >= 0 && imagePlane.t >= 0) {
     // std::lock_guard<std::mutex> lock(mReadMutex);
 
-    auto ome           = getOmeInformation(filename);
     auto resolutionIdx = ome.getResolutionCount().size() - 1;
     auto resolution    = ome.getResolutionCount(series).at(resolutionIdx);
 

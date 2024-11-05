@@ -188,7 +188,7 @@ public:
 
   auto generatePreview(const PreviewSettings &previewSettings, const settings::ProjectImageSetup &imageSetup,
                        const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline, const std::filesystem::path &imagePath,
-                       int32_t tStack, int32_t zStack, int32_t tileX, int32_t tileY)
+                       int32_t tStack, int32_t zStack, int32_t tileX, int32_t tileY, bool generateThumb, const ome::OmeInfo &ome)
       -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<settings::ClassificatorSetting, PreviewReturn>>;
 
 private:

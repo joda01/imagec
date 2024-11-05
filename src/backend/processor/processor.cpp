@@ -291,7 +291,8 @@ void Processor::listImages(const joda::settings::AnalyzeSettings &program, image
 ///
 auto Processor::generatePreview(const PreviewSettings &previewSettings, const settings::ProjectImageSetup &imageSetup,
                                 const settings::AnalyzeSettings &program, const settings::Pipeline &pipelineStart,
-                                const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX, int32_t tileY)
+                                const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX, int32_t tileY,
+                                bool generateThumb, const ome::OmeInfo &ome)
     -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<settings::ClassificatorSetting, PreviewReturn>>
 {
   //
@@ -312,8 +313,6 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
   //
   // Get image
   //
-  auto ome = joda::image::reader::ImageReader::getOmeInformation(imagePath);
-
   GlobalContext globalContext;
   PlateContext plateContext{.plateId = 0};
   joda::grp::FileGrouper grouper(enums::GroupBy::OFF, "");
@@ -376,9 +375,14 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         auto saver               = joda::settings::PipelineFactory<joda::cmd::Command>::generate(step);
         saver->execute(context, context.getActImage().image, context.getActObjects());
 
-        auto thumb = joda::image::reader::ImageReader::loadThumbnail(
-            imagePath.string(), joda::image::reader::ImageReader::Plane{.z = zStack, .c = pipeline->pipelineSetup.cStackIndex, .t = tStack}, 0);
-
+        cv::Mat thumb;
+        if(generateThumb) {
+          auto i = DurationCount::start("Generate thumb");
+          thumb  = joda::image::reader::ImageReader::loadThumbnail(
+              imagePath.string(), joda::image::reader::ImageReader::Plane{.z = zStack, .c = pipeline->pipelineSetup.cStackIndex, .t = tStack}, 0,
+              ome);
+          DurationCount::stop(i);
+        }
         //
         // Count elements
         //
