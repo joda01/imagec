@@ -68,7 +68,7 @@ void ImageMath::execute(processor::ProcessContext &context, cv::Mat &image, atom
     case settings::ImageMathSettings::Function::AVERAGE:
       image = (image + img2->image) / 2.0;
       break;
-    case settings::ImageMathSettings::Function::DIFFERENCE:
+    case settings::ImageMathSettings::Function::DIFFERENCE_TYPE:
       image = cv::abs(image - img2->image);
       break;
     default:

@@ -59,7 +59,7 @@ public:
         {.key = joda::settings::ImageMathSettings::Function::MIN, .label = "Min", .icon = generateIcon("ampersand")},
         {.key = joda::settings::ImageMathSettings::Function::MAX, .label = "Max", .icon = generateIcon("ampersand")},
         {.key = joda::settings::ImageMathSettings::Function::AVERAGE, .label = "Average", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::ImageMathSettings::Function::DIFFERENCE, .label = "Difference", .icon = generateIcon("ampersand")},
+        {.key = joda::settings::ImageMathSettings::Function::DIFFERENCE_TYPE, .label = "Difference", .icon = generateIcon("ampersand")},
     });
 
     mFunction->setValue(settings.function);

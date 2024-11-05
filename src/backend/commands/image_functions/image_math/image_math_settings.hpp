@@ -40,7 +40,7 @@ struct ImageMathSettings : public SettingBase
     MIN,
     MAX,
     AVERAGE,
-    DIFFERENCE
+    DIFFERENCE_TYPE
   };
 
   //
@@ -83,7 +83,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ImageMathSettings::Function, {
                                                               {ImageMathSettings::Function::MIN, "Min"},
                                                               {ImageMathSettings::Function::MAX, "Max"},
                                                               {ImageMathSettings::Function::AVERAGE, "Average"},
-                                                              {ImageMathSettings::Function::DIFFERENCE, "Difference"},
+                                                              {ImageMathSettings::Function::DIFFERENCE_TYPE, "Difference"},
                                                           });
 
 }    // namespace joda::settings
