@@ -16,6 +16,7 @@
 #include <filesystem>
 #include <memory>
 #include <string>
+#include <thread>
 #include "backend/commands/image_functions/image_saver/image_saver.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/enums/enum_images.hpp"
@@ -295,6 +296,8 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
                                 bool generateThumb, const ome::OmeInfo &ome)
     -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<settings::ClassificatorSetting, PreviewReturn>>
 {
+  auto ii = DurationCount::start("Generate preview");
+
   //
   //  Resolve dependencies
   //  We only want to execute those pipelines which are needed for the preview
@@ -309,6 +312,20 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
     }
   }
   deps.emplace(&pipelineStart);
+
+  //
+  // Generate preview in a thread
+  //
+  cv::Mat thumb;
+  auto thumbThread = std::thread([&]() {
+    if(generateThumb) {
+      auto i = DurationCount::start("Generate thumb");
+      thumb  = joda::image::reader::ImageReader::loadThumbnail(
+          imagePath.string(), joda::image::reader::ImageReader::Plane{.z = zStack, .c = pipelineStart.pipelineSetup.cStackIndex, .t = tStack}, 0,
+          ome);
+      DurationCount::stop(i);
+    }
+  });
 
   //
   // Get image
@@ -375,14 +392,6 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         auto saver               = joda::settings::PipelineFactory<joda::cmd::Command>::generate(step);
         saver->execute(context, context.getActImage().image, context.getActObjects());
 
-        cv::Mat thumb;
-        if(generateThumb) {
-          auto i = DurationCount::start("Generate thumb");
-          thumb  = joda::image::reader::ImageReader::loadThumbnail(
-              imagePath.string(), joda::image::reader::ImageReader::Plane{.z = zStack, .c = pipeline->pipelineSetup.cStackIndex, .t = tStack}, 0,
-              ome);
-          DurationCount::stop(i);
-        }
         //
         // Count elements
         //
@@ -402,11 +411,15 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
           }
         }
 
+        thumbThread.join();
+        DurationCount::stop(ii);
         return {context.loadImageFromCache(joda::enums::ImageId{.zProjection = enums::ZProjection::$, .imagePlane = {}})->image,
                 context.getActImage().image, thumb, foundObjects};
       }
     }
   }
+  thumbThread.join();
+  DurationCount::stop(ii);
   return {{}, {}, {}, {}};
 }
 
