@@ -85,7 +85,7 @@ struct ObjectMathSettings : public SettingBase
 NLOHMANN_JSON_SERIALIZE_ENUM(ObjectMathSettings::Function, {
                                                                {ObjectMathSettings::Function::NOT, "NOT"},
                                                                {ObjectMathSettings::Function::AND, "AND"},
-                                                               {ObjectMathSettings::Function::AND_NOT, "AND_NOT"},
+                                                               {ObjectMathSettings::Function::AND_NOT, "AND-NOT"},
                                                                {ObjectMathSettings::Function::OR, "OR"},
                                                                {ObjectMathSettings::Function::XOR, "XOR"},
                                                            });
