@@ -50,6 +50,10 @@ void ObjectMath::execute(processor::ProcessContext &context, cv::Mat &image, ato
     case settings::ObjectMathSettings::Function::AND:
       cv::bitwise_and(image, img2, image);
       break;
+    case settings::ObjectMathSettings::Function::AND_NOT:
+      cv::bitwise_not(img2, img2);
+      cv::bitwise_and(image, img2, image);
+      break;
     case settings::ObjectMathSettings::Function::OR:
       cv::bitwise_or(image, img2, image);
       break;
