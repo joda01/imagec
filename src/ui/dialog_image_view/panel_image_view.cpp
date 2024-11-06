@@ -384,10 +384,12 @@ void PanelImageView::drawThumbnail()
   //
   // float tileRectWidth  = newWidth / mNrOfTilesX;
   // float tileRectHeight = newHeight / mNrOfTilesY;
+
+  /// \todo Hier muss man aufgrunden
   mTileRectWidthScaled =
-      static_cast<int32_t>(static_cast<float>(mThumbnailParameter.tileWidth) * (float) newWidth / (float) mThumbnailParameter.originalImageWidth);
+      std::ceil(static_cast<float>(mThumbnailParameter.tileWidth) * (float) newWidth / (float) mThumbnailParameter.originalImageWidth);
   mTileRectHeightScaled =
-      static_cast<int32_t>(static_cast<float>(mThumbnailParameter.tileHeight) * (float) newHeight / (float) mThumbnailParameter.originalImageHeight);
+      std::ceil(static_cast<float>(mThumbnailParameter.tileHeight) * (float) newHeight / (float) mThumbnailParameter.originalImageHeight);
 
   for(int y = 0; y < mThumbnailParameter.nrOfTilesY; y++) {
     for(int x = 0; x < mThumbnailParameter.nrOfTilesX; x++) {
