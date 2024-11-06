@@ -87,6 +87,7 @@ public:
       int64_t optimalTileMemoryUsage = 0;
       int32_t optimalTileWidth       = 0;
       int32_t optimalTileHeight      = 0;
+      bool isInterleaved             = false;
 
       [[nodiscard]] int32_t getTileCount(int32_t tileWidth, int32_t tileHeight) const
       {
@@ -178,6 +179,46 @@ public:
   std::map<int32_t, ImageInfo> &getImageInfoSeries()
   {
     return mImageInfo;
+  }
+
+  int32_t getImageWidth(int32_t resolutionIdx = 0) const
+  {
+    if(mImageInfo.empty() || !mImageInfo.begin()->second.resolutions.contains(resolutionIdx)) {
+      return 0;
+    }
+    return mImageInfo.begin()->second.resolutions.at(resolutionIdx).imageWidth;
+  }
+
+  int32_t getImageHeight(int32_t resolutionIdx = 0) const
+  {
+    if(mImageInfo.empty() || !mImageInfo.begin()->second.resolutions.contains(resolutionIdx)) {
+      return 0;
+    }
+    return mImageInfo.begin()->second.resolutions.at(resolutionIdx).imageHeight;
+  }
+
+  int32_t getBitDepth(int32_t resolutionIdx = 0) const
+  {
+    if(mImageInfo.empty() || !mImageInfo.begin()->second.resolutions.contains(resolutionIdx)) {
+      return 0;
+    }
+    return mImageInfo.begin()->second.resolutions.at(resolutionIdx).bits;
+  }
+
+  int32_t getRGBchannelCount(int32_t resolutionIdx = 0) const
+  {
+    if(mImageInfo.empty() || !mImageInfo.begin()->second.resolutions.contains(resolutionIdx)) {
+      return 0;
+    }
+    return mImageInfo.begin()->second.resolutions.at(resolutionIdx).rgbChannelCount;
+  }
+
+  bool getIsInterleaved(int32_t resolutionIdx = 0) const
+  {
+    if(mImageInfo.empty() || !mImageInfo.begin()->second.resolutions.contains(resolutionIdx)) {
+      return 0;
+    }
+    return mImageInfo.begin()->second.resolutions.at(resolutionIdx).isInterleaved;
   }
 
 private:
