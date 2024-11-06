@@ -205,8 +205,8 @@ enums::ImageId PipelineInitializer::loadImageToCache(const enums::PlaneId &plane
   //
 
   auto loadEntireImage = [this, &planeToLoad](int32_t z, int32_t c, int32_t t) {
-    return joda::image::reader::ImageReader::loadEntireImage(mImageContext->imagePath.string(),
-                                                             joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, 0, 0);
+    return joda::image::reader::ImageReader::loadEntireImage(
+        mImageContext->imagePath.string(), joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, 0, 0, mImageContext->imageMeta);
   };
 
   auto loadImageTile = [this, &tile](int32_t z, int32_t c, int32_t t) {
@@ -215,7 +215,8 @@ enums::ImageId PipelineInitializer::loadImageToCache(const enums::PlaneId &plane
                                                            joda::ome::TileToLoad{.tileX      = std::get<0>(tile),
                                                                                  .tileY      = std::get<1>(tile),
                                                                                  .tileWidth  = getCompositeTileSize().width,
-                                                                                 .tileHeight = getCompositeTileSize().height});
+                                                                                 .tileHeight = getCompositeTileSize().height},
+                                                           mImageContext->imageMeta);
   };
 
   std::function<cv::Mat(int32_t, int32_t, int32_t)> loadImage = loadEntireImage;

@@ -224,7 +224,8 @@ std::string ImageReader::getJavaVersion()
 /// \param[out]
 /// \return
 ///
-cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &imagePlane, uint16_t series, uint16_t resolutionIdx)
+cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &imagePlane, uint16_t series, uint16_t resolutionIdx,
+                                     const joda::ome::OmeInfo &ome)
 {
   // Takes 150 ms
   if(myJVM != nullptr && mJVMInitialised && imagePlane.c >= 0 && imagePlane.z >= 0 && imagePlane.t >= 0) {
@@ -237,17 +238,11 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &i
     //
     // ReadImage Info
     //
-    jintArray readImgInfo     = (jintArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageInfo, filePath, static_cast<int>(series),
-                                                                          static_cast<int>(resolutionIdx));
-    jsize totalSizeLoadedInfo = myEnv->GetArrayLength(readImgInfo);
-    int32_t *imageInfo        = new int32_t[totalSizeLoadedInfo];
-    myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, (jint *) imageInfo);
-    int32_t imageHeight     = imageInfo[0];
-    int32_t imageWidth      = imageInfo[1];
-    int32_t bitDepth        = imageInfo[4];
-    int32_t rgbChannelCount = imageInfo[5];
-    int32_t isInterleaved   = imageInfo[7];
-    delete[] imageInfo;
+    int32_t imageHeight     = ome.getImageHeight(resolutionIdx);
+    int32_t imageWidth      = ome.getImageWidth(resolutionIdx);
+    int32_t bitDepth        = ome.getBitDepth(resolutionIdx);
+    int32_t rgbChannelCount = ome.getRGBchannelCount(resolutionIdx);
+    bool isInterleaved      = ome.getIsInterleaved(resolutionIdx);
 
     //
     // Load image
@@ -279,8 +274,8 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &ima
   if(nullptr != myJVM && mJVMInitialised && imagePlane.c >= 0 && imagePlane.z >= 0 && imagePlane.t >= 0) {
     // std::lock_guard<std::mutex> lock(mReadMutex);
 
-    auto resolutionIdx = ome.getResolutionCount().size() - 1;
-    auto resolution    = ome.getResolutionCount(series).at(resolutionIdx);
+    int32_t resolutionIdx = static_cast<int32_t>(ome.getResolutionCount().size()) - 1;
+    auto resolution       = ome.getResolutionCount(series).at(resolutionIdx);
 
     if(resolution.imageMemoryUsage > 209715200) {
       joda::log::logWarning("Cannot create thumbnail. Pyramid to big: >" + std::to_string(resolution.imageMemoryUsage) + "< Bytes.");
@@ -288,22 +283,16 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &ima
     }
     JNIEnv *myEnv;
     myJVM->AttachCurrentThread((void **) &myEnv, NULL);
-    jstring filePath      = myEnv->NewStringUTF(filename.c_str());
-    jintArray readImgInfo = (jintArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageInfo, filePath, static_cast<int>(series),
-                                                                      static_cast<int>(resolutionIdx));
+    jstring filePath = myEnv->NewStringUTF(filename.c_str());
 
     //
     // ReadImage Info
     //
-    jsize totalSizeLoadedInfo = myEnv->GetArrayLength(readImgInfo);
-    int32_t *imageInfo        = new int32_t[totalSizeLoadedInfo];
-    myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, (jint *) imageInfo);
-    int32_t imageHeight     = imageInfo[0];
-    int32_t imageWidth      = imageInfo[1];
-    int32_t bitDepth        = imageInfo[4];
-    int32_t rgbChannelCount = imageInfo[5];
-    int32_t isInterleaved   = imageInfo[7];
-    delete[] imageInfo;
+    int32_t imageHeight     = ome.getImageHeight(resolutionIdx);
+    int32_t imageWidth      = ome.getImageWidth(resolutionIdx);
+    int32_t bitDepth        = ome.getBitDepth(resolutionIdx);
+    int32_t rgbChannelCount = ome.getRGBchannelCount(resolutionIdx);
+    bool isInterleaved      = ome.getIsInterleaved(resolutionIdx);
 
     //
     // Read image
@@ -370,7 +359,7 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &ima
 /// \return Loaded composite image
 ///
 cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &imagePlane, uint16_t series, uint16_t resolutionIdx,
-                                   const joda::ome::TileToLoad &tile)
+                                   const joda::ome::TileToLoad &tile, const joda::ome::OmeInfo &ome)
 {
   if(nullptr != myJVM && mJVMInitialised && imagePlane.c >= 0 && imagePlane.z >= 0 && imagePlane.t >= 0) {
     JNIEnv *myEnv = nullptr;
@@ -380,17 +369,11 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
     //
     // ReadImage Info
     //
-    auto *readImgInfo         = (jintArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageInfo, filePath, static_cast<int>(series),
-                                                                          static_cast<int>(resolutionIdx));
-    jsize totalSizeLoadedInfo = myEnv->GetArrayLength(readImgInfo);
-    auto *imageInfo           = new int32_t[totalSizeLoadedInfo];
-    myEnv->GetIntArrayRegion(readImgInfo, 0, totalSizeLoadedInfo, (jint *) imageInfo);
-    int32_t imageHeight     = imageInfo[0];
-    int32_t imageWidth      = imageInfo[1];
-    int32_t bitDepth        = imageInfo[4];
-    int32_t rgbChannelCount = imageInfo[5];
-    int32_t isInterleaved   = imageInfo[7];
-    delete[] imageInfo;
+    int32_t imageHeight     = ome.getImageHeight(resolutionIdx);
+    int32_t imageWidth      = ome.getImageWidth(resolutionIdx);
+    int32_t bitDepth        = ome.getBitDepth(resolutionIdx);
+    int32_t rgbChannelCount = ome.getRGBchannelCount(resolutionIdx);
+    bool isInterleaved      = ome.getIsInterleaved(resolutionIdx);
 
     //
     // Calculate tile position
@@ -410,10 +393,12 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
     //
     // Load image
     //
+    auto i1       = DurationCount::start("Load from filesystm");
     auto *readImg = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImageTile, filePath, static_cast<int>(series),
                                                                static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t, offsetX,
                                                                offsetY, tileWidthToLoad, tileHeightToLoad);
 
+    DurationCount::stop(i1);
     //
     // Assign image data
     //
@@ -462,7 +447,7 @@ auto ImageReader::getOmeInformation(const std::filesystem::path &filename) -> jo
 }
 
 cv::Mat ImageReader::convertImageToMat(JNIEnv *myEnv, const jbyteArray &readImg, int32_t imageWidth, int32_t imageHeight, int32_t bitDepth,
-                                       int32_t rgbChannelCount, int32_t isInterleaved)
+                                       int32_t rgbChannelCount, bool isInterleaved)
 {
   //
   //
@@ -476,9 +461,9 @@ cv::Mat ImageReader::convertImageToMat(JNIEnv *myEnv, const jbyteArray &readImg,
     format = CV_16UC1;
   } else if(bitDepth == 16 && rgbChannelCount != 3) {
     format = CV_8UC1;
-  } else if(bitDepth == 8 && rgbChannelCount == 3 && 1 == isInterleaved) {
+  } else if(bitDepth == 8 && rgbChannelCount == 3 && isInterleaved) {
     format = CV_8UC3;
-  } else if(bitDepth == 8 && rgbChannelCount == 3 && 0 == isInterleaved) {
+  } else if(bitDepth == 8 && rgbChannelCount == 3 && !isInterleaved) {
     format    = CV_8UC1;
     heightTmp = imageHeight * 3;
     widthTmp  = imageWidth;

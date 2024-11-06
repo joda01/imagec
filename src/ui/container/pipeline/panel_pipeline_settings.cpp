@@ -468,7 +468,7 @@ void PanelPipelineSettings::previewThread()
             }
 
             jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, *myPipeline, imgIndex, jobToDo.selectedTileX,
-                                        jobToDo.selectedTileY, previewResult);
+                                        jobToDo.selectedTileY, previewResult, imgProps);
             // Create a QByteArray from the char array
             QString info             = "<html>";
             auto [clusters, classes] = jobToDo.clustersAndClasses;
