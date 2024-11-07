@@ -160,13 +160,6 @@ private:
         if(!contours.empty()) {
           drawContours(imageOut(roi.getBoundingBox()), contours, -1, contourColor, 1);
         }
-
-        if(roi.hasSnapArea()) {
-          std::vector<std::vector<cv::Point>> contours;
-          contours.push_back(roi.getSnapAreaContour());
-          if(!contours.empty())
-            drawContours(imageOut(roi.getSnapAreaBoundingBox()), contours, -1, contourColor, 1);
-        }
       }
     }
   }

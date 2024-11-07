@@ -62,9 +62,8 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
         // Mask if enabled
         //
         if(toIntersect != nullptr) {
-          auto cutedVoronoiArea =
-              voronoiArea.calcIntersection(voronoiArea.getId().imagePlane, *toIntersect, voronoiArea.getSnapAreaRadius(), 0, context.getActTile(),
-                                           context.getTileSize(), voronoiArea.getClusterId(), voronoiArea.getClassId());
+          auto cutedVoronoiArea = voronoiArea.calcIntersection(voronoiArea.getId().imagePlane, *toIntersect, 0, context.getActTile(),
+                                                               context.getTileSize(), voronoiArea.getClusterId(), voronoiArea.getClassId());
           if(!cutedVoronoiArea.isNull()) {
             applyFilter(cutedVoronoiArea);
           }

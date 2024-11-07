@@ -12,8 +12,8 @@ void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const Sphe
                                       const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
                                       const std::set<joda::enums::ClassId> &objectClassesOther,
                                       joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
-                                      joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo, uint32_t snapAreaOfIntersectingRoi,
-                                      float minIntersecion, const enums::tile_t &tile, const cv::Size &tileSize) const
+                                      joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo, float minIntersecion,
+                                      const enums::tile_t &tile, const cv::Size &tileSize) const
 {
   std::set<ROI *> intersecting;
 
@@ -31,8 +31,8 @@ void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const Sphe
               if(!intersecting.contains(box1) && !intersecting.contains(box2)) {
                 if(isCollision(box1, box2)) {
                   auto colocROI =
-                      box1->calcIntersection(iterator, *box2, snapAreaOfIntersectingRoi, minIntersecion, tile, tileSize,
-                                             objectClusterIntersectingObjectsShouldBeAssignedTo, objectClassIntersectingObjectsShouldBeAssignedTo);
+                      box1->calcIntersection(iterator, *box2, minIntersecion, tile, tileSize, objectClusterIntersectingObjectsShouldBeAssignedTo,
+                                             objectClassIntersectingObjectsShouldBeAssignedTo);
                   if(!colocROI.isNull()) {
                     result->push_back(std::move(colocROI));
                     intersecting.emplace(box1);

@@ -78,29 +78,25 @@ public:
 
   ROI();
   ROI(const ROI &) = delete;
-  ROI(RoiObjectId index, Confidence confidence, uint32_t snapAreaSize, const Boxes &boundingBox, const cv::Mat &mask,
-      const std::vector<cv::Point> &contour, const cv::Size &imageSize, const enums::tile_t &tile, const cv::Size &tileSize);
+  ROI(RoiObjectId index, Confidence confidence, const Boxes &boundingBox, const cv::Mat &mask, const std::vector<cv::Point> &contour,
+      const cv::Size &imageSize, const enums::tile_t &tile, const cv::Size &tileSize);
 
   ROI(ROI &&input) :
       mIsNull(std::move(input.mIsNull)), mObjectId(std::move(input.mObjectId)), mId(std::move(input.mId)), confidence(std::move(input.confidence)),
       mBoundingBoxTile(std::move(input.mBoundingBoxTile)), mBoundingBoxReal(std::move(input.mBoundingBoxReal)), mMask(std::move(input.mMask)),
-      mMaskContours(std::move(input.mMaskContours)), mImageSize(std::move(input.mImageSize)),
-      mSnapAreaBoundingBox(std::move(input.mSnapAreaBoundingBox)), mSnapAreaMask(std::move(input.mSnapAreaMask)),
-      mSnapAreaMaskContours(std::move(input.mSnapAreaMaskContours)), mSnapAreaRadius(std::move(input.mSnapAreaRadius)),
-      mAreaSize(std::move(input.mAreaSize)), mPerimeter(std::move(input.mPerimeter)), mCircularity(std::move(input.mCircularity)),
-      intensity(std::move(input.intensity)), mOriginObjectId(std::move(input.mOriginObjectId))
+      mMaskContours(std::move(input.mMaskContours)), mImageSize(std::move(input.mImageSize)), mAreaSize(std::move(input.mAreaSize)),
+      mPerimeter(std::move(input.mPerimeter)), mCircularity(std::move(input.mCircularity)), intensity(std::move(input.intensity)),
+      mOriginObjectId(std::move(input.mOriginObjectId))
   {
   }
 
   ROI(bool mIsNull, uint64_t mObjectId, RoiObjectId mId, Confidence confidence, Boxes mBoundingBoxTile, Boxes mBoundingBoxReal, cv::Mat mMask,
-      std::vector<cv::Point> mMaskContours, cv::Size mImageSize, Boxes mSnapAreaBoundingBox, cv::Mat mSnapAreaMask,
-      std::vector<cv::Point> mSnapAreaMaskContours, uint32_t mSnapAreaRadius, double mAreaSize, float mPerimeter, float mCircularity,
+      std::vector<cv::Point> mMaskContours, cv::Size mImageSize, double mAreaSize, float mPerimeter, float mCircularity,
       std::map<enums::ImageId, Intensity> intensity, uint64_t originObjectId) :
       mIsNull(mIsNull),
       mObjectId(mObjectId), mId(mId), confidence(confidence), mBoundingBoxTile(mBoundingBoxTile), mBoundingBoxReal(mBoundingBoxReal), mMask(mMask),
-      mMaskContours(mMaskContours), mImageSize(mImageSize), mSnapAreaBoundingBox(mSnapAreaBoundingBox), mSnapAreaMask(mSnapAreaMask),
-      mSnapAreaMaskContours(mSnapAreaMaskContours), mSnapAreaRadius(mSnapAreaRadius), mAreaSize(mAreaSize), mPerimeter(mPerimeter),
-      mCircularity(mCircularity), intensity(intensity), mOriginObjectId(originObjectId)
+      mMaskContours(mMaskContours), mImageSize(mImageSize), mAreaSize(mAreaSize), mPerimeter(mPerimeter), mCircularity(mCircularity),
+      intensity(intensity), mOriginObjectId(originObjectId)
   {
   }
 
@@ -111,9 +107,8 @@ public:
 
   [[nodiscard]] ROI clone() const
   {
-    return {mIsNull,         mObjectId,     mId,        confidence,           mBoundingBoxTile, mBoundingBoxReal,
-            mMask,           mMaskContours, mImageSize, mSnapAreaBoundingBox, mSnapAreaMask,    mSnapAreaMaskContours,
-            mSnapAreaRadius, mAreaSize,     mPerimeter, mCircularity,         intensity,        mOriginObjectId};
+    return {mIsNull,       mObjectId,  mId,       confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,
+            mMaskContours, mImageSize, mAreaSize, mPerimeter, mCircularity,     intensity,        mOriginObjectId};
   }
 
   [[nodiscard]] ROI copy() const
@@ -127,10 +122,6 @@ public:
             mMask,
             mMaskContours,
             mImageSize,
-            mSnapAreaBoundingBox,
-            mSnapAreaMask,
-            mSnapAreaMaskContours,
-            mSnapAreaRadius,
             mAreaSize,
             mPerimeter,
             mCircularity,
@@ -221,35 +212,6 @@ public:
     return mMaskContours;
   }
 
-  [[nodiscard]] auto getSnapAreaBoundingBox() const -> const Boxes &
-  {
-    if(hasSnapArea()) {
-      return mSnapAreaBoundingBox;
-    }
-    return mBoundingBoxTile;
-  }
-
-  [[nodiscard]] auto getSnapAreaMask() const -> const cv::Mat &
-  {
-    if(hasSnapArea()) {
-      return mSnapAreaMask;
-    }
-    return mMask;
-  }
-
-  [[nodiscard]] auto getSnapAreaContour() const -> const std::vector<cv::Point> &
-  {
-    if(hasSnapArea()) {
-      return mSnapAreaMaskContours;
-    }
-    return mMaskContours;
-  }
-
-  [[nodiscard]] auto hasSnapArea() const -> bool
-  {
-    return !mSnapAreaMaskContours.empty();
-  }
-
   [[nodiscard]] const auto &getIntensity() const
   {
     return intensity;
@@ -258,11 +220,6 @@ public:
   [[nodiscard]] double getAreaSize() const
   {
     return mAreaSize;
-  }
-
-  [[nodiscard]] uint32_t getSnapAreaRadius() const
-  {
-    return mSnapAreaRadius;
   }
 
   [[nodiscard]] float getCircularity() const
@@ -275,9 +232,8 @@ public:
     return mPerimeter;
   }
 
-  [[nodiscard]] ROI calcIntersection(const enums::PlaneId &iterator, const ROI &roi, uint32_t snapAreaOfIntersectingRoi, float minIntersection,
-                                     const enums::tile_t &tile, const cv::Size &tileSize,
-                                     joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
+  [[nodiscard]] ROI calcIntersection(const enums::PlaneId &iterator, const ROI &roi, float minIntersection, const enums::tile_t &tile,
+                                     const cv::Size &tileSize, joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
                                      joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const;
 
   auto measureIntensityAndAdd(const joda::atom::ImagePlane &image) -> Intensity;
@@ -294,10 +250,7 @@ private:
   [[nodiscard]] uint64_t calcAreaSize() const;
   [[nodiscard]] float calcPerimeter() const;
   [[nodiscard]] float calcCircularity() const;
-  [[nodiscard]] Boxes calcSnapAreaBoundingBox(int32_t snapAreaSize, const cv::Size &imageSize) const;
   [[nodiscard]] Boxes calcRealBoundingBox(const enums::tile_t &tile, const cv::Size &tileSize);
-  [[nodiscard]] cv::Mat calculateSnapAreaMask(int32_t snapAreaSize) const;
-  [[nodiscard]] std::vector<cv::Point> calculateSnapContours(int32_t snapAreaSize) const;
   [[nodiscard]] std::tuple<int32_t, int32_t, int32_t, int32_t, int32_t> calcCircleRadius(int32_t snapAreaSize) const;
 
   auto calcIntensity(const cv::Mat &imageOriginal) -> Intensity;
@@ -319,11 +272,6 @@ private:
   const std::vector<cv::Point> mMaskContours;
 
   const cv::Size mImageSize;
-  const Boxes mSnapAreaBoundingBox;    ///< Rectangle around the prediction with snap area
-  const cv::Mat mSnapAreaMask;         ///< Segmentation mask with snap area
-  const std::vector<cv::Point> mSnapAreaMaskContours;
-  const uint32_t mSnapAreaRadius = 0;
-
   const double mAreaSize;      ///< size of the masking area [px^2 / px^3]
   const float mPerimeter;      ///< Perimeter (boundary size) [px]
   const float mCircularity;    ///< Circularity of the masking area [0-1]

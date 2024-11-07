@@ -102,8 +102,8 @@ public:
                           const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
                           const std::set<joda::enums::ClassId> &objectClassesOther,
                           joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
-                          joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo, uint32_t snapAreaOfIntersectingRoi,
-                          float minIntersecion, const enums::tile_t &tile, const cv::Size &tileSize) const;
+                          joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo, float minIntersecion, const enums::tile_t &tile,
+                          const cv::Size &tileSize) const;
 
   void calcIntersection(joda::processor::ProcessContext &context, joda::settings::ReclassifySettings::Mode func, SpheralIndex *other,
                         const std::set<joda::enums::ClassId> objectClassesMe, const std::set<joda::enums::ClassId> objectClassesOther,
