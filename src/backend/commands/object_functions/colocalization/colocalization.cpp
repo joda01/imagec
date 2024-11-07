@@ -110,7 +110,6 @@ for(const auto idxToIntersect : clustersToIntersect) {
 joda::settings::ChannelSettingsFilter filter;
 filter.maxParticleSize = INT64_MAX;
 filter.minParticleSize = mMinColocalization;    ///\todo Add filtering
-filter.snapAreaSize    = 0;
 filter.minCircularity  = 0;
 joda::image::segment::ObjectSegmentation seg(filter, 200, joda::settings::ThresholdSettings::Mode::MANUAL, false);
 std::unique_ptr<image::detect::DetectionResponse> response = seg.forward(intersectingMask,

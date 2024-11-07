@@ -61,8 +61,7 @@
                 "metrics": {
                   "maxParticleSize": -1,
                   "minCircularity": 0.0,
-                  "minParticleSize": 2000,
-                  "snapAreaSize": 0.0
+                  "minParticleSize": 2000
                 },
                 "outputCluster": {
                   "classId": "None",

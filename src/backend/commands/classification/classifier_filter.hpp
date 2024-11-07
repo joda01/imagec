@@ -72,20 +72,14 @@ struct MetricsFilter
   //
   float minCircularity = -1;
 
-  //
-  //
-  //
-  float snapAreaSize = 0;
-
   void check() const
   {
     CHECK_ERROR(maxParticleSize < 0 || minParticleSize < 0 || maxParticleSize >= minParticleSize,
                 "Max particle size must be bigger than min particle size!");
     CHECK_ERROR(minCircularity < 0 || (minCircularity >= 0 && minCircularity <= 1), "Min circularity must be in range [0-1].");
-    CHECK_ERROR(snapAreaSize >= 0, "Snap area size must be > 0.");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MetricsFilter, minParticleSize, maxParticleSize, minCircularity, snapAreaSize);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MetricsFilter, minParticleSize, maxParticleSize, minCircularity);
 };
 
 struct ClassifierFilter
