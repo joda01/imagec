@@ -28,7 +28,7 @@ std::set<settings::ClassificatorSettingOut> Node::consumes() const
 {
   std::set<settings::ClassificatorSettingOut> out;
   for(const auto &element : me->getInputClusters()) {
-    out.emplace(element.clusterId);
+    out.emplace(element);
   }
 
   return out;
