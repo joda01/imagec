@@ -37,7 +37,7 @@ void ObjectTransform::execute(processor::ProcessContext &context, cv::Mat &image
   for(auto &roi : *operand01) {
     switch(mSettings.function) {
       case settings::ObjectTransformSettings::Function::SCALE:
-        cv::bitwise_not(image, image);
+        roi.resize(mSettings.scaleFactor, mSettings.scaleFactor);
         break;
     }
   }

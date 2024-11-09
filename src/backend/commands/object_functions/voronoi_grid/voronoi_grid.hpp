@@ -142,7 +142,7 @@ public:
       atom::ROI roi(atom::ROI::RoiObjectId{.clusterId  = context.getClusterId(mSettings.outputClustersVoronoi.clusterId),
                                            .classId    = context.getClassId(mSettings.outputClustersVoronoi.classId),
                                            .imagePlane = context.getActIterator()},
-                    1, box, boxMask, contours[idxMax], imgSize, context.getActTile(), context.getTileSize());
+                    1, box, boxMask, contours[idxMax], imgSize, context.getOriginalImageSize(), context.getActTile(), context.getTileSize());
       result.push_back(roi);
     }
   }

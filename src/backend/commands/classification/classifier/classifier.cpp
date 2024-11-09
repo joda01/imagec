@@ -92,8 +92,8 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
           joda::atom::ROI detectedRoi(atom::ROI::RoiObjectId{.clusterId  = context.getClusterId(objectClass.outputClusterNoMatch.clusterId),
                                                              .classId    = context.getClassId(objectClass.outputClusterNoMatch.classId),
                                                              .imagePlane = context.getActIterator()},
-                                      context.getAppliedMinThreshold(), boundingBox, mask, contour, context.getImageSize(), context.getActTile(),
-                                      context.getTileSize());
+                                      context.getAppliedMinThreshold(), boundingBox, mask, contour, context.getImageSize(),
+                                      context.getOriginalImageSize(), context.getActTile(), context.getTileSize());
 
           for(const auto &filter : objectClass.filters) {
             // If filter matches assign the new cluster and class to the ROI

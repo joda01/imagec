@@ -32,6 +32,7 @@
 #include "backend/commands/object_functions/colocalization/colocalization_settings.hpp"
 #include "backend/commands/object_functions/measure/measure_settings.hpp"
 #include "backend/commands/object_functions/object_math/object_math_settings.hpp"
+#include "backend/commands/object_functions/object_transform/object_transform_settings.hpp"
 #include "backend/commands/object_functions/validator_noise/validator_noise_settings.hpp"
 #include "backend/commands/object_functions/validator_threshold/validator_threshold_settings.hpp"
 #include "backend/commands/object_functions/voronoi_grid/voronoi_grid_settings.hpp"
@@ -74,6 +75,7 @@ public:
   std::optional<NoiseValidatorSettings> $noiseValidator              = std::nullopt;
   std::optional<ColorFilterSettings> $colorFilter                    = std::nullopt;
   std::optional<ObjectMathSettings> $objectMath                      = std::nullopt;
+  std::optional<ObjectTransformSettings> $objectTransform            = std::nullopt;
   std::optional<ImageMathSettings> $imageMath                        = std::nullopt;
 
   /////////////////////////////////////////////////////
@@ -83,7 +85,7 @@ public:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineStep, $blur, $saveImage, $threshold, $watershed, $imageFromClass, $classify,
                                                        $aiClassify, $colocalization, $reclassify, $measure, $rollingBall, $medianSubtract,
                                                        $edgeDetection, $crop, $voronoi, $thresholdValidator, $noiseValidator, $intensityTransform,
-                                                       $colorFilter, $objectMath, $imageMath, disabled);
+                                                       $colorFilter, $objectMath, $imageMath, $objectTransform, disabled);
 };
 
 }    // namespace joda::settings

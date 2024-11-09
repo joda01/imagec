@@ -35,17 +35,18 @@ namespace joda::atom {
 
 ROI::ROI() :
     mIsNull(true), mObjectId(mGlobalUniqueObjectId++), mId({}), confidence(0), mBoundingBoxTile({}), mBoundingBoxReal({}),
-    mMask(cv::Mat(0, 0, CV_16UC1)), mMaskContours({}), mImageSize(cv::Size{0, 0}), mAreaSize(0), mPerimeter(0), mCircularity(0),
-    mOriginObjectId(mObjectId)
+    mMask(cv::Mat(0, 0, CV_16UC1)), mMaskContours({}), mImageSize(cv::Size{0, 0}), mOriginalImageSize(cv::Size{0, 0}), mAreaSize(0), mPerimeter(0),
+    mCircularity(0), mOriginObjectId(mObjectId)
 {
 }
 
 ROI::ROI(RoiObjectId index, Confidence confidence, const Boxes &boundingBox, const cv::Mat &mask, const std::vector<cv::Point> &contour,
-         const cv::Size &imageSize, const enums::tile_t &tile, const cv::Size &tileSize) :
+         const cv::Size &imageSize, const cv::Size &originalImageSize, const enums::tile_t &tile, const cv::Size &tileSize) :
     mIsNull(false),
     mObjectId(mGlobalUniqueObjectId++), mId(index), confidence(confidence), mBoundingBoxTile(boundingBox),
-    mBoundingBoxReal(calcRealBoundingBox(tile, tileSize)), mMask(mask), mMaskContours(contour), mImageSize(imageSize), mAreaSize(calcAreaSize()),
-    mPerimeter(getTracedPerimeter(mMaskContours)), mCircularity(calcCircularity()), mOriginObjectId(mObjectId)
+    mBoundingBoxReal(calcRealBoundingBox(tile, tileSize)), mMask(mask), mMaskContours(contour), mImageSize(imageSize),
+    mOriginalImageSize(originalImageSize), mAreaSize(calcAreaSize()), mPerimeter(getTracedPerimeter(mMaskContours)), mCircularity(calcCircularity()),
+    mOriginObjectId(mObjectId)
 {
 }
 
@@ -295,6 +296,7 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
                  intersectingMask.intersectedMask,
                  contour,
                  mImageSize,
+                 mOriginalImageSize,
                  tile,
                  tileSize};
     }
@@ -386,6 +388,91 @@ auto ROI::measureIntensityAndAdd(const joda::atom::ImagePlane &image) -> Intensi
   } else {
   }
   return intensity[image.getId()];
+}
+
+///
+/// \brief  Resizes the ROI based on the given scale factors
+/// \author Joachim Danmayr
+/// \todo   If there were still intensity measurements they are not valid any more for the new size what should happen?
+///
+void ROI::resize(float scaleX, float scaleY)
+{
+  if(mIsNull || mBoundingBoxReal.width <= 0 || mBoundingBoxReal.height <= 0) {
+    return;
+  }
+  std::cout << "-----" << std::endl;
+
+  std::cout << "Old width: " << std::to_string(mBoundingBoxReal.width) << " | " << std::to_string(mMask.cols) << std::endl;
+  std::cout << "Old width: " << std::to_string(mBoundingBoxTile.width) << " | " << std::to_string(mMask.cols) << std::endl;
+  std::cout << "width: " << std::to_string(mOriginalImageSize.width) << " | " << std::to_string(mImageSize.width) << std::endl;
+
+  // Compute the new size
+  cv::Size newSize(static_cast<int>(mMask.cols * scaleX), static_cast<int>(mMask.rows * scaleY));
+  if(newSize.height <= 0) {
+    newSize.height = 1;
+  }
+  if(newSize.width <= 0) {
+    newSize.width = 1;
+  }
+
+  // Resize the image
+  cv::Mat scaledImage = cv::Mat::zeros(newSize, CV_8UC1);
+  cv::resize(mMask, scaledImage, newSize);
+  mMask = scaledImage;
+
+  auto scaleBoundingBox = [&](Boxes &box, const cv::Size &imgSize) {
+    int32_t widthDif  = newSize.width - box.width;
+    int32_t heightDif = newSize.height - box.height;
+
+    int32_t moveX = std::ceil(static_cast<float>(widthDif) / 2.0);
+    int32_t moveY = std::ceil(static_cast<float>(heightDif) / 2.0);
+
+    std::cout << "Move x: " << std::to_string(moveX) << std::endl;
+
+    box.x = box.x - moveX;
+    if(box.x < 0) {
+      box.x = 0;
+    }
+    if(box.x > imgSize.width) {
+      box.x = imgSize.width;
+    }
+    box.y = box.y - moveY;
+    if(box.y < 0) {
+      box.y = 0;
+    }
+    if(box.y > imgSize.height) {
+      box.y = imgSize.height;
+    }
+
+    box.width = newSize.width;
+    if((box.x + box.width) > imgSize.width) {
+      box.width = box.width - ((box.x + box.width) - imgSize.width);
+    }
+
+    box.height = newSize.height;
+    if((box.y + box.height) > imgSize.height) {
+      box.height = box.height - ((box.y + box.height) - imgSize.height);
+    }
+  };
+  scaleBoundingBox(mBoundingBoxTile, mImageSize);
+  scaleBoundingBox(mBoundingBoxReal, mOriginalImageSize);
+
+  cv::Rect crop(0, 0, mBoundingBoxTile.width, mBoundingBoxTile.height);
+  mMask = mMask(crop).clone();
+
+  std::cout << "New width: " << std::to_string(mBoundingBoxReal.width) << " | " << std::to_string(mMask.cols) << std::endl;
+  std::cout << "New width: " << std::to_string(mBoundingBoxTile.width) << " | " << std::to_string(mMask.cols) << std::endl;
+
+  std::cout << "-----" << std::endl;
+
+  std::vector<std::vector<cv::Point>> contours;
+  cv::findContours(mMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
+  if(!contours.empty()) {
+    mMaskContours = contours[0];
+  }
+  mAreaSize    = static_cast<double>(calcAreaSize());
+  mPerimeter   = getTracedPerimeter(mMaskContours);
+  mCircularity = calcCircularity();
 }
 
 }    // namespace joda::atom

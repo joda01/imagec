@@ -79,24 +79,24 @@ public:
   ROI();
   ROI(const ROI &) = delete;
   ROI(RoiObjectId index, Confidence confidence, const Boxes &boundingBox, const cv::Mat &mask, const std::vector<cv::Point> &contour,
-      const cv::Size &imageSize, const enums::tile_t &tile, const cv::Size &tileSize);
+      const cv::Size &imageSize, const cv::Size &originalImageSize, const enums::tile_t &tile, const cv::Size &tileSize);
 
   ROI(ROI &&input) :
       mIsNull(std::move(input.mIsNull)), mObjectId(std::move(input.mObjectId)), mId(std::move(input.mId)), confidence(std::move(input.confidence)),
       mBoundingBoxTile(std::move(input.mBoundingBoxTile)), mBoundingBoxReal(std::move(input.mBoundingBoxReal)), mMask(std::move(input.mMask)),
-      mMaskContours(std::move(input.mMaskContours)), mImageSize(std::move(input.mImageSize)), mAreaSize(std::move(input.mAreaSize)),
-      mPerimeter(std::move(input.mPerimeter)), mCircularity(std::move(input.mCircularity)), intensity(std::move(input.intensity)),
-      mOriginObjectId(std::move(input.mOriginObjectId))
+      mMaskContours(std::move(input.mMaskContours)), mImageSize(std::move(input.mImageSize)), mOriginalImageSize(std::move(input.mOriginalImageSize)),
+      mAreaSize(std::move(input.mAreaSize)), mPerimeter(std::move(input.mPerimeter)), mCircularity(std::move(input.mCircularity)),
+      intensity(std::move(input.intensity)), mOriginObjectId(std::move(input.mOriginObjectId))
   {
   }
 
   ROI(bool mIsNull, uint64_t mObjectId, RoiObjectId mId, Confidence confidence, Boxes mBoundingBoxTile, Boxes mBoundingBoxReal, cv::Mat mMask,
-      std::vector<cv::Point> mMaskContours, cv::Size mImageSize, double mAreaSize, float mPerimeter, float mCircularity,
+      std::vector<cv::Point> mMaskContours, cv::Size mImageSize, cv::Size originalImageSize, double mAreaSize, float mPerimeter, float mCircularity,
       std::map<enums::ImageId, Intensity> intensity, uint64_t originObjectId) :
       mIsNull(mIsNull),
       mObjectId(mObjectId), mId(mId), confidence(confidence), mBoundingBoxTile(mBoundingBoxTile), mBoundingBoxReal(mBoundingBoxReal), mMask(mMask),
-      mMaskContours(mMaskContours), mImageSize(mImageSize), mAreaSize(mAreaSize), mPerimeter(mPerimeter), mCircularity(mCircularity),
-      intensity(intensity), mOriginObjectId(originObjectId)
+      mMaskContours(mMaskContours), mImageSize(mImageSize), mOriginalImageSize(originalImageSize), mAreaSize(mAreaSize), mPerimeter(mPerimeter),
+      mCircularity(mCircularity), intensity(intensity), mOriginObjectId(originObjectId)
   {
   }
 
@@ -107,26 +107,14 @@ public:
 
   [[nodiscard]] ROI clone() const
   {
-    return {mIsNull,       mObjectId,  mId,       confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,
-            mMaskContours, mImageSize, mAreaSize, mPerimeter, mCircularity,     intensity,        mOriginObjectId};
+    return {mIsNull,    mObjectId,          mId,       confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,          mMaskContours,
+            mImageSize, mOriginalImageSize, mAreaSize, mPerimeter, mCircularity,     intensity,        mOriginObjectId};
   }
 
   [[nodiscard]] ROI copy() const
   {
-    return {mIsNull,
-            mGlobalUniqueObjectId++,
-            mId,
-            confidence,
-            mBoundingBoxTile,
-            mBoundingBoxReal,
-            mMask,
-            mMaskContours,
-            mImageSize,
-            mAreaSize,
-            mPerimeter,
-            mCircularity,
-            intensity,
-            mObjectId};
+    return {mIsNull,    mGlobalUniqueObjectId++, mId,       confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,    mMaskContours,
+            mImageSize, mOriginalImageSize,      mAreaSize, mPerimeter, mCircularity,     intensity,        mObjectId};
   }
 
   void setClusterAndClass(enums::ClusterId clusterId, enums::ClassId classId)
@@ -245,6 +233,8 @@ public:
     return mOriginObjectId;
   }
 
+  void resize(float scaleX, float scaleY);
+
 private:
   /////////////////////////////////////////////////////
   [[nodiscard]] uint64_t calcAreaSize() const;
@@ -266,15 +256,16 @@ private:
   const Confidence confidence;    ///< Probability
 
   // Metrics ///////////////////////////////////////////////////
-  const Boxes mBoundingBoxTile;    ///< Rectangle around the prediction in tile
-  const Boxes mBoundingBoxReal;    ///< Rectangle around the prediction with real coordinates
-  const cv::Mat mMask;             ///< Segmentation mask
-  const std::vector<cv::Point> mMaskContours;
+  Boxes mBoundingBoxTile;    ///< Rectangle around the prediction in tile
+  Boxes mBoundingBoxReal;    ///< Rectangle around the prediction with real coordinates
+  cv::Mat mMask;             ///< Segmentation mask
+  std::vector<cv::Point> mMaskContours;
 
   const cv::Size mImageSize;
-  const double mAreaSize;      ///< size of the masking area [px^2 / px^3]
-  const float mPerimeter;      ///< Perimeter (boundary size) [px]
-  const float mCircularity;    ///< Circularity of the masking area [0-1]
+  const cv::Size mOriginalImageSize;
+  double mAreaSize;      ///< size of the masking area [px^2 / px^3]
+  float mPerimeter;      ///< Perimeter (boundary size) [px]
+  float mCircularity;    ///< Circularity of the masking area [0-1]
 
   // Measurements ///////////////////////////////////////////////////
   std::map<enums::ImageId, Intensity> intensity;
