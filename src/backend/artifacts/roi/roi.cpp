@@ -414,12 +414,6 @@ void ROI::resize(float scaleX, float scaleY)
   if(mIsNull || mBoundingBoxReal.width <= 0 || mBoundingBoxReal.height <= 0) {
     return;
   }
-  std::cout << "-----" << std::endl;
-
-  std::cout << "Old width: " << std::to_string(mBoundingBoxReal.width) << " | " << std::to_string(mMask.cols) << std::endl;
-  std::cout << "Old width: " << std::to_string(mBoundingBoxTile.width) << " | " << std::to_string(mMask.cols) << std::endl;
-  std::cout << "width: " << std::to_string(mOriginalImageSize.width) << " | " << std::to_string(mImageSize.width) << std::endl;
-
   // Compute the new size
   cv::Size newSize(static_cast<int>(mMask.cols * scaleX), static_cast<int>(mMask.rows * scaleY));
   if(newSize.height <= 0) {
@@ -437,17 +431,12 @@ void ROI::resize(float scaleX, float scaleY)
   auto oldCentroid = mCentroid;
   auto newCentroid = calcCentroid(mMask);
 
-  std::cout << "O " << std::to_string(oldCentroid.x) << " | " << std::to_string(oldCentroid.y) << std::endl;
-  std::cout << "N " << std::to_string(newCentroid.x) << " | " << std::to_string(newCentroid.y) << std::endl;
-
   auto scaleBoundingBox = [&](Boxes &box, const cv::Size &imgSize) {
     int32_t widthDif  = newCentroid.x - oldCentroid.x;
     int32_t heightDif = newCentroid.y - oldCentroid.y;
 
     int32_t moveX = std::ceil(static_cast<float>(widthDif) / 1.0);
     int32_t moveY = std::ceil(static_cast<float>(heightDif) / 1.0);
-
-    std::cout << "Move x: " << std::to_string(moveX) << std::endl;
 
     box.x = box.x - moveX;
     if(box.x < 0) {
@@ -479,11 +468,6 @@ void ROI::resize(float scaleX, float scaleY)
 
   cv::Rect crop(0, 0, mBoundingBoxTile.width, mBoundingBoxTile.height);
   mMask = mMask(crop).clone();
-
-  std::cout << "New width: " << std::to_string(mBoundingBoxReal.width) << " | " << std::to_string(mMask.cols) << std::endl;
-  std::cout << "New width: " << std::to_string(mBoundingBoxTile.width) << " | " << std::to_string(mMask.cols) << std::endl;
-
-  std::cout << "-----" << std::endl;
 
   std::vector<std::vector<cv::Point>> contours;
   cv::findContours(mMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
