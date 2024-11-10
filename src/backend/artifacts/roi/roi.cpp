@@ -470,9 +470,18 @@ void ROI::resize(float scaleX, float scaleY)
   mMask = mMask(crop).clone();
 
   std::vector<std::vector<cv::Point>> contours;
-  cv::findContours(mMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
+  std::vector<cv::Vec4i> hierarchy;
+  cv::findContours(mMask, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
+
   if(!contours.empty()) {
-    mMaskContours = contours[0];
+    for(int i = 0; i < contours.size(); i++) {
+      // Do not paint a contour for elements inside an element.
+      // In other words if there is a particle with a hole, ignore the hole.
+      // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html
+      if(hierarchy[i][3] == -1) {
+        mMaskContours = contours[i];
+      }
+    }
   }
   mAreaSize    = static_cast<double>(calcAreaSize());
   mPerimeter   = getTracedPerimeter(mMaskContours);
