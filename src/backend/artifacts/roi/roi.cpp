@@ -18,6 +18,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/types.hpp"
@@ -36,7 +37,7 @@ namespace joda::atom {
 ROI::ROI() :
     mIsNull(true), mObjectId(mGlobalUniqueObjectId++), mId({}), confidence(0), mBoundingBoxTile({}), mBoundingBoxReal({}),
     mMask(cv::Mat(0, 0, CV_16UC1)), mMaskContours({}), mImageSize(cv::Size{0, 0}), mOriginalImageSize(cv::Size{0, 0}), mAreaSize(0), mPerimeter(0),
-    mCircularity(0), mOriginObjectId(mObjectId)
+    mCircularity(0), mOriginObjectId(mObjectId), mCentroid(0, 0)
 {
 }
 
@@ -46,7 +47,7 @@ ROI::ROI(RoiObjectId index, Confidence confidence, const Boxes &boundingBox, con
     mObjectId(mGlobalUniqueObjectId++), mId(index), confidence(confidence), mBoundingBoxTile(boundingBox),
     mBoundingBoxReal(calcRealBoundingBox(tile, tileSize)), mMask(mask), mMaskContours(contour), mImageSize(imageSize),
     mOriginalImageSize(originalImageSize), mAreaSize(calcAreaSize()), mPerimeter(getTracedPerimeter(mMaskContours)), mCircularity(calcCircularity()),
-    mOriginObjectId(mObjectId)
+    mOriginObjectId(mObjectId), mCentroid(calcCentroid())
 {
 }
 
@@ -111,6 +112,21 @@ float ROI::calcCircularity() const
     return dividend / perimterSquare;
   }
   return 1;
+}
+
+///
+/// \brief        Calculate centroid (center of mass)
+/// \author       Joachim Danmayr
+///
+auto ROI::calcCentroid() const -> cv::Point
+{
+  // Calculate moments
+  cv::Moments moments = cv::moments(mMask, true);
+
+  double cx = (moments.m10 / moments.m00) + getBoundingBoxReal().x;
+  double cy = (moments.m01 / moments.m00) + getBoundingBoxReal().y;
+
+  return cv::Point(cx, cy);
 }
 
 ///
@@ -313,17 +329,17 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
 {
   IntersectingMask result;
-  result.intersectedRect = getBoundingBox() & roi.getBoundingBox();
+  result.intersectedRect = getBoundingBoxTile() & roi.getBoundingBoxTile();
 
   if(result.intersectedRect.area() <= 0) {
     return {};
   }
   result.intersectedMask = cv::Mat::zeros(result.intersectedRect.height, result.intersectedRect.width, CV_8UC1);
 
-  const int32_t xM1Base = (result.intersectedRect.x - getBoundingBox().x);
-  const int32_t yM1Base = (result.intersectedRect.y - getBoundingBox().y);
-  const int32_t xM2Base = (result.intersectedRect.x - roi.getBoundingBox().x);
-  const int32_t yM2Base = (result.intersectedRect.y - roi.getBoundingBox().y);
+  const int32_t xM1Base = (result.intersectedRect.x - getBoundingBoxTile().x);
+  const int32_t yM1Base = (result.intersectedRect.y - getBoundingBoxTile().y);
+  const int32_t xM2Base = (result.intersectedRect.x - roi.getBoundingBoxTile().x);
+  const int32_t yM2Base = (result.intersectedRect.y - roi.getBoundingBoxTile().y);
 
   // Iterate through the pixels in the intersection and set them in the new mask
   for(int y = 0; y < result.intersectedRect.height; ++y) {
@@ -473,6 +489,7 @@ void ROI::resize(float scaleX, float scaleY)
   mAreaSize    = static_cast<double>(calcAreaSize());
   mPerimeter   = getTracedPerimeter(mMaskContours);
   mCircularity = calcCircularity();
+  mCentroid    = calcCentroid();
 }
 
 }    // namespace joda::atom

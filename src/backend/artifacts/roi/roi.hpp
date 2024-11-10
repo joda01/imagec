@@ -86,17 +86,17 @@ public:
       mBoundingBoxTile(std::move(input.mBoundingBoxTile)), mBoundingBoxReal(std::move(input.mBoundingBoxReal)), mMask(std::move(input.mMask)),
       mMaskContours(std::move(input.mMaskContours)), mImageSize(std::move(input.mImageSize)), mOriginalImageSize(std::move(input.mOriginalImageSize)),
       mAreaSize(std::move(input.mAreaSize)), mPerimeter(std::move(input.mPerimeter)), mCircularity(std::move(input.mCircularity)),
-      intensity(std::move(input.intensity)), mOriginObjectId(std::move(input.mOriginObjectId))
+      intensity(std::move(input.intensity)), mOriginObjectId(std::move(input.mOriginObjectId)), mCentroid(std::move(input.mCentroid))
   {
   }
 
   ROI(bool mIsNull, uint64_t mObjectId, RoiObjectId mId, Confidence confidence, Boxes mBoundingBoxTile, Boxes mBoundingBoxReal, cv::Mat mMask,
       std::vector<cv::Point> mMaskContours, cv::Size mImageSize, cv::Size originalImageSize, double mAreaSize, float mPerimeter, float mCircularity,
-      std::map<enums::ImageId, Intensity> intensity, uint64_t originObjectId) :
+      std::map<enums::ImageId, Intensity> intensity, uint64_t originObjectId, cv::Point centroid) :
       mIsNull(mIsNull),
       mObjectId(mObjectId), mId(mId), confidence(confidence), mBoundingBoxTile(mBoundingBoxTile), mBoundingBoxReal(mBoundingBoxReal), mMask(mMask),
       mMaskContours(mMaskContours), mImageSize(mImageSize), mOriginalImageSize(originalImageSize), mAreaSize(mAreaSize), mPerimeter(mPerimeter),
-      mCircularity(mCircularity), intensity(intensity), mOriginObjectId(originObjectId)
+      mCircularity(mCircularity), intensity(intensity), mOriginObjectId(originObjectId), mCentroid(centroid)
   {
   }
 
@@ -107,14 +107,14 @@ public:
 
   [[nodiscard]] ROI clone() const
   {
-    return {mIsNull,    mObjectId,          mId,       confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,          mMaskContours,
-            mImageSize, mOriginalImageSize, mAreaSize, mPerimeter, mCircularity,     intensity,        mOriginObjectId};
+    return {mIsNull,    mObjectId,          mId,       confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,           mMaskContours,
+            mImageSize, mOriginalImageSize, mAreaSize, mPerimeter, mCircularity,     intensity,        mOriginObjectId, mCentroid};
   }
 
   [[nodiscard]] ROI copy() const
   {
-    return {mIsNull,    mGlobalUniqueObjectId++, mId,       confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,    mMaskContours,
-            mImageSize, mOriginalImageSize,      mAreaSize, mPerimeter, mCircularity,     intensity,        mObjectId};
+    return {mIsNull,    mGlobalUniqueObjectId++, mId,       confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,     mMaskContours,
+            mImageSize, mOriginalImageSize,      mAreaSize, mPerimeter, mCircularity,     intensity,        mObjectId, mCentroid};
   }
 
   void setClusterAndClass(enums::ClusterId clusterId, enums::ClassId classId)
@@ -175,19 +175,14 @@ public:
     return mBoundingBoxReal;
   }
 
-  [[nodiscard]] auto getBoundingBox() const -> const Boxes &
+  [[nodiscard]] auto getBoundingBoxTile() const -> const Boxes &
   {
     return mBoundingBoxTile;
   }
 
   [[nodiscard]] auto getCenterOfMassReal() const -> cv::Point
   {
-    return {(mBoundingBoxReal.x + mBoundingBoxReal.width / 2), (mBoundingBoxReal.y + mBoundingBoxReal.height / 2)};
-  }
-
-  [[nodiscard]] auto getCenterOfMassInTile() const -> cv::Point
-  {
-    return {(mBoundingBoxTile.x + mBoundingBoxTile.width / 2), (mBoundingBoxTile.y + mBoundingBoxTile.height / 2)};
+    return mCentroid;
   }
 
   [[nodiscard]] auto getMask() const -> const cv::Mat &
@@ -238,8 +233,8 @@ public:
 private:
   /////////////////////////////////////////////////////
   [[nodiscard]] uint64_t calcAreaSize() const;
-  [[nodiscard]] float calcPerimeter() const;
   [[nodiscard]] float calcCircularity() const;
+  [[nodiscard]] auto calcCentroid() const -> cv::Point;
   [[nodiscard]] Boxes calcRealBoundingBox(const enums::tile_t &tile, const cv::Size &tileSize);
   [[nodiscard]] std::tuple<int32_t, int32_t, int32_t, int32_t, int32_t> calcCircleRadius(int32_t snapAreaSize) const;
 
@@ -266,6 +261,7 @@ private:
   double mAreaSize;      ///< size of the masking area [px^2 / px^3]
   float mPerimeter;      ///< Perimeter (boundary size) [px]
   float mCircularity;    ///< Circularity of the masking area [0-1]
+  cv::Point mCentroid;
 
   // Measurements ///////////////////////////////////////////////////
   std::map<enums::ImageId, Intensity> intensity;

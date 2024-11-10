@@ -48,7 +48,7 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
           // Remove area at the edges if filter enabled
           //
           if(mSettings.excludeAreasAtTheEdge) {
-            auto box       = cutedVoronoiArea.getBoundingBox();
+            auto box       = cutedVoronoiArea.getBoundingBoxTile();
             auto imageSize = context.getImageSize();
             if(box.x <= 0 || box.y <= 0 || box.x + box.width >= imageSize.width || box.y + box.height >= imageSize.height) {
               // Touches the edge

@@ -60,8 +60,8 @@ public:
       for(const auto &res : *voronoiPointsTmp) {
         if(context.getClassId(inputPoints.classId) == res.getClassId()) {
           voronoiPoints.emplace(res);
-          int x = static_cast<int>(static_cast<float>(res.getBoundingBox().x) + static_cast<float>(res.getBoundingBox().width) / 2.0F);
-          int y = static_cast<int>(static_cast<float>(res.getBoundingBox().y) + static_cast<float>(res.getBoundingBox().height) / 2.0F);
+          int x = static_cast<int>(static_cast<float>(res.getBoundingBoxTile().x) + static_cast<float>(res.getBoundingBoxTile().width) / 2.0F);
+          int y = static_cast<int>(static_cast<float>(res.getBoundingBoxTile().y) + static_cast<float>(res.getBoundingBoxTile().height) / 2.0F);
           subdiv.insert(cv::Point2f(x, y));
         }
       }
