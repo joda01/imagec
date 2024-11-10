@@ -375,7 +375,7 @@ void PanelImageView::drawPixelInfo(int32_t startX, int32_t startY, const PixelIn
   painter.setPen(QColor(255, 255, 255));    // Set the pen color to light blue
 
   if(info.grayScale >= 0) {
-    QString textToPrint = QString("%1, %2\nI %3").arg(QString::number(info.posX)).arg(info.posY).arg(info.grayScale);
+    QString textToPrint = QString("%1, %2\nIntensity %3").arg(QString::number(info.posX)).arg(info.posY).arg(info.grayScale);
     painter.drawText(pixelInfoRect, Qt::AlignCenter, textToPrint);
   } else if(info.redVal >= 0) {
     QString textToPrint =
