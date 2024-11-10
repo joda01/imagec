@@ -125,7 +125,7 @@ void PanelImages::updateImagesList()
   };
 
   const auto &foundImages = mWindowMain->getController()->getListOfFoundImages();
-
+  mImages->clearContents();
   int row = 0;
   int idx = 0;
   for(const auto &[plateId, images] : foundImages) {
@@ -166,6 +166,7 @@ void PanelImages::updateImageMeta()
     auto tileSize            = mWindowMain->getSettings().imageSetup.imageTileSettings;
     const auto &imgInfo      = mOmeFromActSelectedImage.getImageInfo();
 
+    mImageMeta->clearContents();
     mImageMeta->setRowCount(20);
 
     int32_t row = 0;

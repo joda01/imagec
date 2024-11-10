@@ -37,8 +37,8 @@ using namespace std::chrono_literals;
 /// \return
 ///
 DialogImageViewer::DialogImageViewer(QWidget *parent) :
-    QMainWindow(parent), mImageViewLeft(mPreviewImages.originalImage, mPreviewImages.thumbnail),
-    mImageViewRight(mPreviewImages.previewImage, mPreviewImages.thumbnail)
+    QMainWindow(parent), mImageViewLeft(mPreviewImages.originalImage, mPreviewImages.thumbnail, false),
+    mImageViewRight(mPreviewImages.previewImage, mPreviewImages.thumbnail, true)
 {
   // setWindowFlags(windowFlags() | Qt::Window | Qt::WindowMaximizeButtonHint);
   setBaseSize(1200, 600);
@@ -46,8 +46,6 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
 
   {
     QToolBar *toolbarTop = new QToolBar();
-    //     toolbarTop->setContentsMargins(0, 0, 0, 0);
-    toolbarTop->setMaximumHeight(32);
 
     QAction *fitToScreen = new QAction(generateIcon("full-screen"), "");
     fitToScreen->setObjectName("ToolButton");
@@ -92,7 +90,14 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     connect(showThumbnail, &QAction::triggered, this, &DialogImageViewer::onShowThumbnailChanged);
     toolbarTop->addAction(showThumbnail);
 
+    QAction *showPixelInfo = new QAction(generateIcon("abscissa"), "");
+    showPixelInfo->setCheckable(true);
+    showPixelInfo->setChecked(true);
+    connect(showPixelInfo, &QAction::triggered, this, &DialogImageViewer::onShowPixelInfo);
+    toolbarTop->addAction(showPixelInfo);
+
     QAction *showCrossHairCursor = new QAction(generateIcon("crosshair"), "");
+    showCrossHairCursor->setToolTip("Right click to place a reference cursor.");
     showCrossHairCursor->setCheckable(true);
     showCrossHairCursor->setChecked(false);
     connect(showCrossHairCursor, &QAction::triggered, this, &DialogImageViewer::onShowCrossHandCursor);
@@ -418,6 +423,19 @@ void DialogImageViewer::onShowThumbnailChanged(bool checked)
 {
   mImageViewLeft.setShowThumbnail(checked);
   mImageViewRight.setShowThumbnail(checked);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::onShowPixelInfo(bool checked)
+{
+  mImageViewLeft.setShowPixelInfo(checked);
+  mImageViewRight.setShowPixelInfo(checked);
 }
 
 ///

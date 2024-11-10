@@ -159,3 +159,6 @@ imageC is the follower of [evanalyzer](https://github.com/joda01/evanalyzer).
 chmod +x imagec.app/Contents/MacOS/imagec
 xattr -dr com.apple.quarantine imagec.app
 open imagec.app
+
+
+## Finding memory leaks

@@ -49,8 +49,28 @@ public:
     int32_t selectedTileY       = 0;
   };
 
+  struct PixelInfo
+  {
+    int32_t posX       = 0;
+    int32_t posY       = 0;
+    int32_t grayScale  = -1;
+    int32_t redVal     = -1;
+    int32_t greenVal   = -1;
+    int32_t blueVal    = -1;
+    int32_t hue        = -1;
+    int32_t saturation = -1;
+    int32_t value      = -1;
+  };
+
+  struct CrossCursorInfo
+  {
+    QPoint mCursorPos;
+    PixelInfo pixelInfo;
+  };
+
   /////////////////////////////////////////////////////
-  PanelImageView(const joda::image::Image &imageReference, const joda::image::Image &thumbnailImageReference, QWidget *parent = nullptr);
+  PanelImageView(const joda::image::Image &imageReference, const joda::image::Image &thumbnailImageReference, bool isEditedImage,
+                 QWidget *parent = nullptr);
   void imageUpdated();
   void resetImage();
   void fitImageToScreenSize();
@@ -72,6 +92,7 @@ public:
 
   void setState(State);
   void setShowThumbnail(bool);
+  void setShowPixelInfo(bool);
   void setShowCrosshandCursor(bool);
   void setThumbnailPosition(const ThumbParameter &);
   void setCursorPosition(const QPoint &pos);
@@ -92,19 +113,24 @@ protected:
   void paintEvent(QPaintEvent *event) override;
   void drawHistogram();
   void drawThumbnail();
+  void drawPixelInfo(int32_t startX, int32_t startY, const PixelInfo &info);
 
   void getClickedTileInThumbnail(QMouseEvent *event);
   void getThumbnailAreaEntered(QMouseEvent *event);
+  auto fetchPixelInfoFromMousePosition(const QPoint &pos) const -> PixelInfo;
 
 private:
   /////////////////////////////////////////////////////
   const float THUMB_RECT_START_X       = 10;
-  const float THUMB_RECT_START_Y       = 12;
+  const float THUMB_RECT_START_Y       = 10;
   const float THUMB_RECT_HEIGHT_NORMAL = 128;
   const float THUMB_RECT_WIDTH_NORMAL  = 128;
 
   const float THUMB_RECT_HEIGHT_ZOOMED = 200;
   const float THUMB_RECT_WIDTH_ZOOMED  = 200;
+
+  const float PIXEL_INFO_RECT_WIDTH  = 150;
+  const float PIXEL_INFO_RECT_HEIGHT = 40;
 
   /////////////////////////////////////////////////////
   bool mPlaceholderImageSet = true;
@@ -114,12 +140,15 @@ private:
   QGraphicsScene *scene;
   bool isDragging = false;
   QPoint lastPos;
-  QPoint mCursorPos;
   State mState = State::MOVE;
   cv::Size mPixmapSize;
 
   /////////////////////////////////////////////////////
+  CrossCursorInfo mCrossCursorInfo;
+
+  /////////////////////////////////////////////////////
   ThumbParameter mThumbnailParameter;
+  PixelInfo mPixelInfo;
 
   uint32_t mThumbRectWidth      = 0;
   uint32_t mThumbRectHeight     = 0;
@@ -132,7 +161,10 @@ private:
   /////////////////////////////////////////////////////
   bool mWaiting             = false;
   bool mShowThumbnail       = true;
+  bool mShowPixelInfo       = true;
   bool mShowCrosshandCursor = false;
+
+  bool mIsEditedImage = false;
 
 private slots:
   void onUpdateImage();
