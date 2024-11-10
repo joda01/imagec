@@ -197,6 +197,7 @@ private:
       openEditView();
     }
   }
+  void setDisabled(bool);
   void paintEvent(QPaintEvent *event) override;
 
   /////////////////////////////////////////////////////
