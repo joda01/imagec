@@ -234,7 +234,7 @@ private:
   /////////////////////////////////////////////////////
   [[nodiscard]] uint64_t calcAreaSize() const;
   [[nodiscard]] float calcCircularity() const;
-  [[nodiscard]] auto calcCentroid() const -> cv::Point;
+  [[nodiscard]] auto calcCentroid(const cv::Mat &) const -> cv::Point;
   [[nodiscard]] Boxes calcRealBoundingBox(const enums::tile_t &tile, const cv::Size &tileSize);
   [[nodiscard]] std::tuple<int32_t, int32_t, int32_t, int32_t, int32_t> calcCircleRadius(int32_t snapAreaSize) const;
 

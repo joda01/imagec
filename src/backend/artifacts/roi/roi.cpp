@@ -47,7 +47,7 @@ ROI::ROI(RoiObjectId index, Confidence confidence, const Boxes &boundingBox, con
     mObjectId(mGlobalUniqueObjectId++), mId(index), confidence(confidence), mBoundingBoxTile(boundingBox),
     mBoundingBoxReal(calcRealBoundingBox(tile, tileSize)), mMask(mask), mMaskContours(contour), mImageSize(imageSize),
     mOriginalImageSize(originalImageSize), mAreaSize(calcAreaSize()), mPerimeter(getTracedPerimeter(mMaskContours)), mCircularity(calcCircularity()),
-    mOriginObjectId(mObjectId), mCentroid(calcCentroid())
+    mOriginObjectId(mObjectId), mCentroid(calcCentroid(mMask))
 {
 }
 
@@ -118,10 +118,10 @@ float ROI::calcCircularity() const
 /// \brief        Calculate centroid (center of mass)
 /// \author       Joachim Danmayr
 ///
-auto ROI::calcCentroid() const -> cv::Point
+auto ROI::calcCentroid(const cv::Mat &mask) const -> cv::Point
 {
   // Calculate moments
-  cv::Moments moments = cv::moments(mMask, true);
+  cv::Moments moments = cv::moments(mask, true);
 
   double cx = (moments.m10 / moments.m00) + getBoundingBoxReal().x;
   double cy = (moments.m01 / moments.m00) + getBoundingBoxReal().y;
@@ -436,12 +436,18 @@ void ROI::resize(float scaleX, float scaleY)
   cv::resize(mMask, scaledImage, newSize);
   mMask = scaledImage;
 
-  auto scaleBoundingBox = [&](Boxes &box, const cv::Size &imgSize) {
-    int32_t widthDif  = newSize.width - box.width;
-    int32_t heightDif = newSize.height - box.height;
+  auto oldCentroid = mCentroid;
+  auto newCentroid = calcCentroid(mMask);
 
-    int32_t moveX = std::ceil(static_cast<float>(widthDif) / 2.0);
-    int32_t moveY = std::ceil(static_cast<float>(heightDif) / 2.0);
+  std::cout << "O " << std::to_string(oldCentroid.x) << " | " << std::to_string(oldCentroid.y) << std::endl;
+  std::cout << "N " << std::to_string(newCentroid.x) << " | " << std::to_string(newCentroid.y) << std::endl;
+
+  auto scaleBoundingBox = [&](Boxes &box, const cv::Size &imgSize) {
+    int32_t widthDif  = newCentroid.x - oldCentroid.x;
+    int32_t heightDif = newCentroid.y - oldCentroid.y;
+
+    int32_t moveX = std::ceil(static_cast<float>(widthDif) / 1.0);
+    int32_t moveY = std::ceil(static_cast<float>(heightDif) / 1.0);
 
     std::cout << "Move x: " << std::to_string(moveX) << std::endl;
 
@@ -489,7 +495,7 @@ void ROI::resize(float scaleX, float scaleY)
   mAreaSize    = static_cast<double>(calcAreaSize());
   mPerimeter   = getTracedPerimeter(mMaskContours);
   mCircularity = calcCircularity();
-  mCentroid    = calcCentroid();
+  mCentroid    = calcCentroid(mMask);
 }
 
 }    // namespace joda::atom
