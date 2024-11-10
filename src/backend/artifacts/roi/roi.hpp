@@ -182,7 +182,18 @@ public:
 
   [[nodiscard]] auto getCenterOfMassReal() const -> cv::Point
   {
-    return mCentroid;
+    double cx = mCentroid.x + getBoundingBoxReal().x;
+    double cy = mCentroid.y + getBoundingBoxReal().y;
+
+    return cv::Point(cx, cy);
+  }
+
+  [[nodiscard]] auto getCenterOfMassTile() const -> cv::Point
+  {
+    double cx = mCentroid.x + getBoundingBoxTile().x;
+    double cy = mCentroid.y + getBoundingBoxTile().y;
+
+    return cv::Point(cx, cy);
   }
 
   [[nodiscard]] auto getMask() const -> const cv::Mat &

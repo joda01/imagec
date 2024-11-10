@@ -140,8 +140,15 @@ private:
       int width  = roi.getBoundingBoxTile().width;
       int height = roi.getBoundingBoxTile().height;
 
+      auto centroid = roi.getCenterOfMassTile();
+
       if(!roi.getMask().empty() && !roi.getBoundingBoxTile().empty()) {
         auto areaColor = hexToScalar(settings.color);
+
+        // Centroid
+        cv::circle(imageOut, centroid, 3, RED, cv::FILLED);
+
+        cv::circle(imageOut, {left + width / 2, top + height / 2}, 4, YELLOW, cv::FILLED);
 
         // Boundding box
         if(settings.paintBoundingBox && !roi.getBoundingBoxTile().empty()) {

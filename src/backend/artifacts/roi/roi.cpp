@@ -122,10 +122,8 @@ auto ROI::calcCentroid(const cv::Mat &mask) const -> cv::Point
 {
   // Calculate moments
   cv::Moments moments = cv::moments(mask, true);
-
-  double cx = (moments.m10 / moments.m00) + getBoundingBoxReal().x;
-  double cy = (moments.m01 / moments.m00) + getBoundingBoxReal().y;
-
+  double cx           = (moments.m10 / moments.m00);
+  double cy           = (moments.m01 / moments.m00);
   return cv::Point(cx, cy);
 }
 
