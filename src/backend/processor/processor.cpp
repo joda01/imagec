@@ -16,6 +16,7 @@
 #include <filesystem>
 #include <memory>
 #include <string>
+#include <thread>
 #include "backend/commands/image_functions/image_saver/image_saver.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/enums/enum_images.hpp"
@@ -291,9 +292,12 @@ void Processor::listImages(const joda::settings::AnalyzeSettings &program, image
 ///
 auto Processor::generatePreview(const PreviewSettings &previewSettings, const settings::ProjectImageSetup &imageSetup,
                                 const settings::AnalyzeSettings &program, const settings::Pipeline &pipelineStart,
-                                const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX, int32_t tileY)
+                                const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX, int32_t tileY,
+                                bool generateThumb, const ome::OmeInfo &ome)
     -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<settings::ClassificatorSetting, PreviewReturn>>
 {
+  auto ii = DurationCount::start("Generate preview");
+
   //
   //  Resolve dependencies
   //  We only want to execute those pipelines which are needed for the preview
@@ -310,10 +314,22 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
   deps.emplace(&pipelineStart);
 
   //
+  // Generate preview in a thread
+  //
+  cv::Mat thumb;
+  auto thumbThread = std::thread([&]() {
+    if(generateThumb) {
+      auto i = DurationCount::start("Generate thumb");
+      thumb  = joda::image::reader::ImageReader::loadThumbnail(
+          imagePath.string(), joda::image::reader::ImageReader::Plane{.z = zStack, .c = pipelineStart.pipelineSetup.cStackIndex, .t = tStack}, 0,
+          ome);
+      DurationCount::stop(i);
+    }
+  });
+
+  //
   // Get image
   //
-  auto ome = joda::image::reader::ImageReader::getOmeInformation(imagePath);
-
   GlobalContext globalContext;
   PlateContext plateContext{.plateId = 0};
   joda::grp::FileGrouper grouper(enums::GroupBy::OFF, "");
@@ -376,9 +392,6 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         auto saver               = joda::settings::PipelineFactory<joda::cmd::Command>::generate(step);
         saver->execute(context, context.getActImage().image, context.getActObjects());
 
-        auto thumb = joda::image::reader::ImageReader::loadThumbnail(
-            imagePath.string(), joda::image::reader::ImageReader::Plane{.z = zStack, .c = pipeline->pipelineSetup.cStackIndex, .t = tStack}, 0);
-
         //
         // Count elements
         //
@@ -398,11 +411,15 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
           }
         }
 
+        thumbThread.join();
+        DurationCount::stop(ii);
         return {context.loadImageFromCache(joda::enums::ImageId{.zProjection = enums::ZProjection::$, .imagePlane = {}})->image,
                 context.getActImage().image, thumb, foundObjects};
       }
     }
   }
+  thumbThread.join();
+  DurationCount::stop(ii);
   return {{}, {}, {}, {}};
 }
 

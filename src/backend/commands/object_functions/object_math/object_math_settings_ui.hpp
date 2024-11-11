@@ -57,6 +57,7 @@ public:
     mFunction = SettingBase::create<SettingComboBox<joda::settings::ObjectMathSettings::Function>>(parent, {}, "Function");
     mFunction->addOptions({{.key = joda::settings::ObjectMathSettings::Function::NOT, .label = "NOT", .icon = generateIcon("ampersand")},
                            {.key = joda::settings::ObjectMathSettings::Function::AND, .label = "AND", .icon = generateIcon("ampersand")},
+                           {.key = joda::settings::ObjectMathSettings::Function::AND_NOT, .label = "AND-NOT", .icon = generateIcon("ampersand")},
                            {.key = joda::settings::ObjectMathSettings::Function::OR, .label = "OR", .icon = generateIcon("ampersand")},
                            {.key = joda::settings::ObjectMathSettings::Function::XOR, .label = "XOR", .icon = generateIcon("ampersand")}});
     mFunction->setValue(settings.function);

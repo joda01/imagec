@@ -163,19 +163,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   mDisabled->setCheckable(true);
   mDisabled->setChecked(mPipelineStep.disabled);
   connect(mDisabled, &QAction::triggered, [this, pipelineSettingsUi](bool) {
-    if(mDisabled->isChecked()) {
-      QFont font;
-      font.setItalic(true);
-      mDisplayableText->setFont(font);
-      mDisplayableText->setStyleSheet("QLabel { color : #808080; }");
-    } else {
-      QFont font;
-      font.setItalic(false);
-      mDisplayableText->setFont(font);
-      mDisplayableText->setStyleSheet("QLabel { color: black; }");
-    }
-    mDisplayableText->repaint();
-    mPipelineStep.disabled = mDisabled->isChecked();
+    setDisabled(mDisabled->isChecked());
     emit valueChanged();
   });
 
@@ -198,6 +186,32 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
     mEditDialog->close();
     pipelineSettingsUi->erasePipelineStep(this);
   });
+
+  setDisabled(mDisabled->isChecked());
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Command::setDisabled(bool disabled)
+{
+  if(disabled) {
+    QFont font;
+    font.setItalic(true);
+    mDisplayableText->setFont(font);
+    mDisplayableText->setStyleSheet("QLabel { color : #808080; }");
+  } else {
+    QFont font;
+    font.setItalic(false);
+    mDisplayableText->setFont(font);
+    mDisplayableText->setStyleSheet("QLabel { color: black; }");
+  }
+  mDisplayableText->repaint();
+  mPipelineStep.disabled = disabled;
 }
 
 ///

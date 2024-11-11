@@ -22,8 +22,8 @@ class Node
 public:
   /////////////////////////////////////////////////////
   Node(const settings::Pipeline *me);
-  enums::ClusterId provides() const;
-  std::set<enums::ClusterId> consumes() const;
+  std::set<settings::ClassificatorSettingOut> provides() const;
+  std::set<settings::ClassificatorSettingOut> consumes() const;
   bool attacheNode(Node node);
   void printTree(int level = 0) const;
   void orderPipeline(std::map<const settings::Pipeline *, int> &ordered, int level = 0) const;

@@ -19,16 +19,16 @@ Node::Node(const settings::Pipeline *me) : me(me)
 {
 }
 
-enums::ClusterId Node::provides() const
+std::set<settings::ClassificatorSettingOut> Node::provides() const
 {
-  return me->getOutputCluster();
+  return me->getOutputClasses();
 }
 
-std::set<enums::ClusterId> Node::consumes() const
+std::set<settings::ClassificatorSettingOut> Node::consumes() const
 {
-  std::set<enums::ClusterId> out;
+  std::set<settings::ClassificatorSettingOut> out;
   for(const auto &element : me->getInputClusters()) {
-    out.emplace(element.clusterId);
+    out.emplace(element);
   }
 
   return out;
@@ -43,7 +43,10 @@ bool Node::attacheNode(Node node)
     }
   }
 
-  if(node.me != me && node.consumes().contains(provides())) {
+  bool hasCommon =
+      std::any_of(node.consumes().begin(), node.consumes().end(), [&](auto element) { return provides().find(element) != provides().end(); });
+
+  if(node.me != me && hasCommon) {
     // This node provides data for the other node
     bool stillExists = false;
     for(const auto &child : children) {

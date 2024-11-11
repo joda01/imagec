@@ -49,11 +49,13 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings)
     std::set<const settings::Pipeline *> attached;
     for(const auto *pipeline : pipelinesToAttache) {
       // If empty or input cluster is me
-      std::set<enums::ClusterId> clusters;
+      std::set<settings::ClassificatorSettingOut> clusters;
       for(const auto &element : pipeline->getInputClusters()) {
-        clusters.emplace(element.clusterId);
+        clusters.emplace(element);
       }
-      if(clusters.empty() || (clusters.size() == 1 && *clusters.begin() == pipeline->pipelineSetup.defaultClusterId)) {
+      if(clusters.empty() ||
+         (clusters.size() == 1 &&
+          *clusters.begin() == settings::ClassificatorSettingOut{pipeline->pipelineSetup.defaultClusterId, pipeline->pipelineSetup.defaultClassId})) {
         // This is a root node
         rootNodes.emplace_back(pipeline);
         attached.emplace(pipeline);
@@ -110,11 +112,11 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings)
   }
   // Print result
   /* {
-     for(auto &rootNode : rootNodes) {
-       rootNode.printTree();
-     }
+    for(auto &rootNode : rootNodes) {
+      rootNode.printTree();
+    }
 
-     printOrder(finishedOrder);
+    printOrder(finishedOrder);
    }*/
 
   return {finishedOrder, rootNodes};

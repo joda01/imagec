@@ -22,6 +22,7 @@
 #include "backend/enums/enum_memory_idx.hpp"
 #include "backend/enums/enums_clusters.hpp"
 #include "backend/enums/types.hpp"
+#include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/fnv1a.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/processor/context/process_context.hpp"
@@ -204,8 +205,8 @@ enums::ImageId PipelineInitializer::loadImageToCache(const enums::PlaneId &plane
   //
 
   auto loadEntireImage = [this, &planeToLoad](int32_t z, int32_t c, int32_t t) {
-    return joda::image::reader::ImageReader::loadEntireImage(mImageContext->imagePath.string(),
-                                                             joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, 0, 0);
+    return joda::image::reader::ImageReader::loadEntireImage(
+        mImageContext->imagePath.string(), joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, 0, 0, mImageContext->imageMeta);
   };
 
   auto loadImageTile = [this, &tile](int32_t z, int32_t c, int32_t t) {
@@ -214,13 +215,16 @@ enums::ImageId PipelineInitializer::loadImageToCache(const enums::PlaneId &plane
                                                            joda::ome::TileToLoad{.tileX      = std::get<0>(tile),
                                                                                  .tileY      = std::get<1>(tile),
                                                                                  .tileWidth  = getCompositeTileSize().width,
-                                                                                 .tileHeight = getCompositeTileSize().height});
+                                                                                 .tileHeight = getCompositeTileSize().height},
+                                                           mImageContext->imageMeta);
   };
 
   std::function<cv::Mat(int32_t, int32_t, int32_t)> loadImage = loadEntireImage;
   if(mLoadImageInTiles) {
     loadImage = loadImageTile;
   }
+
+  auto i = DurationCount::start("Load image");
 
   auto &image = imagePlaneOut.image;
   image       = loadImage(z, c, t);
@@ -253,6 +257,7 @@ enums::ImageId PipelineInitializer::loadImageToCache(const enums::PlaneId &plane
       func(zIdx);
     }
   }
+  DurationCount::stop(i);
 
   // Store original image to cache
   processContext.addImageToCache(imagePlaneOut.getId(), std::move(std::make_unique<joda::atom::ImagePlane>(imagePlaneOut)));

@@ -48,7 +48,7 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
           // Remove area at the edges if filter enabled
           //
           if(mSettings.excludeAreasAtTheEdge) {
-            auto box       = cutedVoronoiArea.getBoundingBox();
+            auto box       = cutedVoronoiArea.getBoundingBoxTile();
             auto imageSize = context.getImageSize();
             if(box.x <= 0 || box.y <= 0 || box.x + box.width >= imageSize.width || box.y + box.height >= imageSize.height) {
               // Touches the edge
@@ -62,9 +62,8 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
         // Mask if enabled
         //
         if(toIntersect != nullptr) {
-          auto cutedVoronoiArea =
-              voronoiArea.calcIntersection(voronoiArea.getId().imagePlane, *toIntersect, voronoiArea.getSnapAreaRadius(), 0, context.getActTile(),
-                                           context.getTileSize(), voronoiArea.getClusterId(), voronoiArea.getClassId());
+          auto cutedVoronoiArea = voronoiArea.calcIntersection(voronoiArea.getId().imagePlane, *toIntersect, 0, context.getActTile(),
+                                                               context.getTileSize(), voronoiArea.getClusterId(), voronoiArea.getClassId());
           if(!cutedVoronoiArea.isNull()) {
             applyFilter(cutedVoronoiArea);
           }

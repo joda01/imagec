@@ -12,6 +12,7 @@
 ///
 
 #include "panel_image_view.hpp"
+#include <qcolor.h>
 #include <qnamespace.h>
 #include <qpixmap.h>
 #include <cmath>
@@ -19,6 +20,7 @@
 #include <ranges>
 #include <string>
 #include "backend/helper/image/image.hpp"
+#include <opencv2/core/matx.hpp>
 #include <opencv2/imgproc.hpp>
 
 namespace joda::ui {
@@ -26,8 +28,11 @@ namespace joda::ui {
 ////////////////////////////////////////////////////////////////
 // Image view section
 //
-PanelImageView::PanelImageView(const joda::image::Image &imageReference, const joda::image::Image &thumbnailImageReference, QWidget *parent) :
-    QGraphicsView(parent), mActPixmapOriginal(imageReference), mThumbnailImageReference(thumbnailImageReference), scene(new QGraphicsScene(this))
+PanelImageView::PanelImageView(const joda::image::Image &imageReference, const joda::image::Image &thumbnailImageReference, bool isEditedImage,
+                               QWidget *parent) :
+    QGraphicsView(parent),
+    mActPixmapOriginal(imageReference), mThumbnailImageReference(thumbnailImageReference), scene(new QGraphicsScene(this)),
+    mIsEditedImage(isEditedImage)
 {
   setScene(scene);
   setBackgroundBrush(QBrush(Qt::black));
@@ -42,6 +47,8 @@ PanelImageView::PanelImageView(const joda::image::Image &imageReference, const j
   setMouseTracking(true);
 
   setFrameShape(Shape::NoFrame);
+  setCursor(Qt::PointingHandCursor);
+  viewport()->setCursor(Qt::PointingHandCursor);
 
   connect(this, &PanelImageView::updateImage, this, &PanelImageView::onUpdateImage);
 }
@@ -51,7 +58,7 @@ void PanelImageView::setState(State state)
   mState = state;
   switch(mState) {
     case MOVE:
-      viewport()->setCursor(QCursor(Qt::OpenHandCursor));
+      viewport()->setCursor(QCursor(Qt::PointingHandCursor));
       break;
     case PAINT:
       viewport()->setCursor(QCursor(Qt::CrossCursor));
@@ -130,6 +137,15 @@ void PanelImageView::mouseMoveEvent(QMouseEvent *event)
   if(mShowThumbnail) {
     getThumbnailAreaEntered(event);
   }
+  if(mShowPixelInfo) {
+    mPixelInfo = fetchPixelInfoFromMousePosition(event->pos());
+  }
+  if(mShowCrosshandCursor) {
+    mCrossCursorInfo.pixelInfo = fetchPixelInfoFromMousePosition(mCrossCursorInfo.mCursorPos);
+  }
+
+  scene->update();
+  update();
 }
 
 ///
@@ -143,9 +159,9 @@ void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
 {
   if(event->button() == Qt::LeftButton) {
     // End dragging
-    if(cursor() != Qt::OpenHandCursor) {
-      setCursor(Qt::OpenHandCursor);
-      viewport()->setCursor(Qt::OpenHandCursor);
+    if(cursor() != Qt::PointingHandCursor) {
+      setCursor(Qt::PointingHandCursor);
+      viewport()->setCursor(Qt::PointingHandCursor);
     }
 
     isDragging = false;
@@ -162,7 +178,8 @@ void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
 void PanelImageView::mousePressEvent(QMouseEvent *event)
 {
   if(mShowCrosshandCursor && event->button() == Qt::RightButton) {
-    mCursorPos = event->pos();
+    mCrossCursorInfo.mCursorPos = event->pos();
+    mCrossCursorInfo.pixelInfo  = fetchPixelInfoFromMousePosition(event->pos());
     viewport()->update();
     emit onImageRepainted();
     return;
@@ -280,9 +297,18 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   }
 
   // Draw histogram
-  drawHistogram();
+  if(!mIsEditedImage) {
+    drawHistogram();
+  }
+
+  // Draw thumbnail
   if(mShowThumbnail) {
     drawThumbnail();
+  }
+
+  // Draw pixelInfo
+  if(mShowPixelInfo && !mIsEditedImage) {
+    drawPixelInfo(width(), height(), mPixelInfo);
   }
 
   // Overlay
@@ -306,13 +332,55 @@ void PanelImageView::paintEvent(QPaintEvent *event)
     QPen pen(Qt::blue, 2);
     painter.setPen(pen);
 
-    if(mCursorPos.x() != -1 && mCursorPos.y() != -1) {
+    if(mCrossCursorInfo.mCursorPos.x() != -1 && mCrossCursorInfo.mCursorPos.y() != -1) {
       // Draw horizontal line at cursor's Y position
-      painter.drawLine(0, mCursorPos.y(), width(), mCursorPos.y());
+      painter.drawLine(0, mCrossCursorInfo.mCursorPos.y(), width(), mCrossCursorInfo.mCursorPos.y());
 
       // Draw vertical line at cursor's X position
-      painter.drawLine(mCursorPos.x(), 0, mCursorPos.x(), height());
+      painter.drawLine(mCrossCursorInfo.mCursorPos.x(), 0, mCrossCursorInfo.mCursorPos.x(), height());
+
+      if(!mIsEditedImage) {
+        drawPixelInfo(mCrossCursorInfo.mCursorPos.x(), mCrossCursorInfo.mCursorPos.y(), mCrossCursorInfo.pixelInfo);
+      }
     }
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+
+void PanelImageView::drawPixelInfo(int32_t startX, int32_t startY, const PixelInfo &info)
+{
+  const auto *image = mActPixmapOriginal.getImage();
+  if(image == nullptr) {
+    return;
+  }
+  QPainter painter(viewport());
+
+  QRect pixelInfoRect(QPoint(startX - THUMB_RECT_START_X - PIXEL_INFO_RECT_WIDTH, startY - THUMB_RECT_START_Y - PIXEL_INFO_RECT_HEIGHT),
+                      QSize(PIXEL_INFO_RECT_WIDTH,
+                            PIXEL_INFO_RECT_HEIGHT));    // Adjust the size as needed
+
+  painter.setPen(Qt::NoPen);    // Set the pen color to light blue
+
+  QColor transparentBlack(0, 0, 0, 127);    // 127 is approximately 50% of 255 for alpha
+  painter.setBrush(transparentBlack);       // Set the brush to no brush for transparent fill
+  painter.drawRect(pixelInfoRect);
+
+  painter.setPen(QColor(255, 255, 255));    // Set the pen color to light blue
+
+  if(info.grayScale >= 0) {
+    QString textToPrint = QString("%1, %2\nIntensity %3").arg(QString::number(info.posX)).arg(info.posY).arg(info.grayScale);
+    painter.drawText(pixelInfoRect, Qt::AlignCenter, textToPrint);
+  } else if(info.redVal >= 0) {
+    QString textToPrint =
+        QString("%1, %2\nH %3, S %4, V %5").arg(QString::number(info.posX)).arg(info.posY).arg(info.hue).arg(info.saturation).arg(info.value);
+    painter.drawText(pixelInfoRect, Qt::AlignCenter, textToPrint);
   }
 }
 
@@ -384,10 +452,12 @@ void PanelImageView::drawThumbnail()
   //
   // float tileRectWidth  = newWidth / mNrOfTilesX;
   // float tileRectHeight = newHeight / mNrOfTilesY;
+
+  /// \todo Hier muss man aufgrunden
   mTileRectWidthScaled =
-      static_cast<int32_t>(static_cast<float>(mThumbnailParameter.tileWidth) * (float) newWidth / (float) mThumbnailParameter.originalImageWidth);
+      std::ceil(static_cast<float>(mThumbnailParameter.tileWidth) * (float) newWidth / (float) mThumbnailParameter.originalImageWidth);
   mTileRectHeightScaled =
-      static_cast<int32_t>(static_cast<float>(mThumbnailParameter.tileHeight) * (float) newHeight / (float) mThumbnailParameter.originalImageHeight);
+      std::ceil(static_cast<float>(mThumbnailParameter.tileHeight) * (float) newHeight / (float) mThumbnailParameter.originalImageHeight);
 
   for(int y = 0; y < mThumbnailParameter.nrOfTilesY; y++) {
     for(int x = 0; x < mThumbnailParameter.nrOfTilesX; x++) {
@@ -464,8 +534,6 @@ void PanelImageView::getThumbnailAreaEntered(QMouseEvent *event)
   if(rectangle.contains(event->pos())) {
     if(!mThumbnailAreaEntered) {
       mThumbnailAreaEntered = true;
-      scene->update();
-      update();
     }
     if(cursor() != Qt::CrossCursor) {
       setCursor(Qt::CrossCursor);
@@ -474,12 +542,10 @@ void PanelImageView::getThumbnailAreaEntered(QMouseEvent *event)
   } else {
     if(mThumbnailAreaEntered) {
       mThumbnailAreaEntered = false;
-      scene->update();
-      update();
     }
     if(cursor() == Qt::CrossCursor) {
-      setCursor(Qt::OpenHandCursor);
-      viewport()->setCursor(Qt::OpenHandCursor);
+      setCursor(Qt::PointingHandCursor);
+      viewport()->setCursor(Qt::PointingHandCursor);
     }
   }
 }
@@ -488,6 +554,48 @@ void PanelImageView::setThumbnailPosition(const ThumbParameter &param)
 
 {
   mThumbnailParameter = param;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto PanelImageView::fetchPixelInfoFromMousePosition(const QPoint &viewPos) const -> PixelInfo
+{
+  // Map the view coordinates to scene coordinates
+  QPointF scenePos = mapToScene(viewPos);
+  PixelInfo pixelInfo;
+
+  // Map the scene coordinates to image coordinates
+  if(mActPixmap != nullptr) {
+    QPointF imagePos = mActPixmap->mapFromScene(scenePos);
+    pixelInfo.posX   = imagePos.x();
+    pixelInfo.posY   = imagePos.y();
+
+    int type  = mActPixmapOriginal.getImage()->type();
+    int depth = type & CV_MAT_DEPTH_MASK;
+    cv::Mat image;
+    if(pixelInfo.posX >= 0 && pixelInfo.posX < mActPixmapOriginal.getImage()->cols && pixelInfo.posY >= 0 &&
+       pixelInfo.posY < mActPixmapOriginal.getImage()->rows) {
+      if(depth == CV_16U) {
+        pixelInfo.grayScale = mActPixmapOriginal.getImage()->at<uint16_t>(pixelInfo.posY, pixelInfo.posX);
+        pixelInfo.redVal    = -1;
+        pixelInfo.greenVal  = -1;
+        pixelInfo.blueVal   = -1;
+      } else {
+        pixelInfo.grayScale = -1;
+        pixelInfo.redVal    = mActPixmapOriginal.getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[2];
+        pixelInfo.greenVal  = mActPixmapOriginal.getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[1];
+        pixelInfo.blueVal   = mActPixmapOriginal.getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[0];
+        QColor color(pixelInfo.redVal, pixelInfo.greenVal, pixelInfo.blueVal);
+        color.getHsv(&pixelInfo.hue, &pixelInfo.saturation, &pixelInfo.value);
+      }
+    }
+  }
+  return pixelInfo;
 }
 
 ///
@@ -590,20 +698,28 @@ void PanelImageView::setShowThumbnail(bool showThumbnail)
   viewport()->update();
 }
 
+void PanelImageView::setShowPixelInfo(bool show)
+{
+  mShowPixelInfo = show;
+  viewport()->update();
+}
+
 void PanelImageView::setShowCrosshandCursor(bool show)
 {
-  mShowCrosshandCursor = show;
+  mShowCrosshandCursor       = show;
+  mCrossCursorInfo.pixelInfo = fetchPixelInfoFromMousePosition(mCrossCursorInfo.mCursorPos);
   viewport()->update();
 }
 
 void PanelImageView::setCursorPosition(const QPoint &pos)
 {
-  mCursorPos = pos;
+  mCrossCursorInfo.mCursorPos = pos;
+  mCrossCursorInfo.pixelInfo  = fetchPixelInfoFromMousePosition(pos);
   viewport()->update();
 }
 auto PanelImageView::getCursorPosition() -> QPoint
 {
-  return mCursorPos;
+  return mCrossCursorInfo.mCursorPos;
 }
 
 }    // namespace joda::ui

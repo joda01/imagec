@@ -237,8 +237,8 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
               .classId    = context.getClassId(objectClass->outputClusterNoMatch.classId),
               .imagePlane = context.getActIterator(),
           },
-          context.getAppliedMinThreshold(), 0, fittedBoundingBox, shiftedMask, contour, context.getImageSize(), context.getActTile(),
-          context.getTileSize());
+          context.getAppliedMinThreshold(), fittedBoundingBox, shiftedMask, contour, context.getImageSize(), context.getOriginalImageSize(),
+          context.getActTile(), context.getTileSize());
 
       for(const auto &filter : objectClass->filters) {
         if(joda::settings::ClassifierFilter::doesFilterMatch(context, detectedRoi, filter.metrics, filter.intensity)) {

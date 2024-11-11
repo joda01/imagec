@@ -96,6 +96,7 @@ private slots:
   void onFitHistogramToScreenSizeClicked();
   void onZoomHistogramOutClicked();
   void onZoomHistogramInClicked();
+  void onShowPixelInfo(bool checked);
   void onShowThumbnailChanged(bool checked);
   void onShowCrossHandCursor(bool checked);
   void onTileClicked(int32_t tileX, int32_t tileY);

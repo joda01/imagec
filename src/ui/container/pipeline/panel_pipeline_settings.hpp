@@ -120,7 +120,7 @@ private:
     settings::AnalyzeSettings settings;
     joda::ctrl::Controller *controller;
     PanelPreview *previewPanel;
-    std::tuple<std::filesystem::path, uint32_t> selectedImage;
+    std::tuple<std::filesystem::path, uint32_t, joda::ome::OmeInfo> selectedImage;
     int32_t pipelinePos;
     int32_t selectedTileX = 0;
     int32_t selectedTileY = 0;

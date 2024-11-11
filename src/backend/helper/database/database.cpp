@@ -192,10 +192,10 @@ void Database::createTables()
       " meas_circularity float,"
       " meas_center_x UINTEGER,"
       " meas_center_y UINTEGER,"
-      " meas_center_z UINTEGER,"
+      " meas_box_x UINTEGER,"
+      " meas_box_y UINTEGER,"
       " meas_box_width UINTEGER,"
       " meas_box_height UINTEGER,"
-      " meas_box_depth UINTEGER,"
       " meas_mask MAP(UINTEGER,BOOLEAN),"
       " meas_contour UINTEGER[],"
       " meas_origin_object_id UBIGINT"
@@ -275,10 +275,10 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
       objects.Append<float>(roi.getCircularity());                  // " meas_circularity float,"
       objects.Append<uint32_t>(roi.getCenterOfMassReal().x);        // " meas_center_x UINTEGER,"
       objects.Append<uint32_t>(roi.getCenterOfMassReal().y);        // " meas_center_y UINTEGER,"
-      objects.Append<uint32_t>(0);                                  // " meas_center_z UINTEGER,"
+      objects.Append<uint32_t>(roi.getBoundingBoxReal().x);         // " meas_box_x UINTEGER,"
+      objects.Append<uint32_t>(roi.getBoundingBoxReal().y);         // " meas_box_y UINTEGER,"
       objects.Append<uint32_t>(roi.getBoundingBoxReal().width);     // " meas_box_width UINTEGER,"
       objects.Append<uint32_t>(roi.getBoundingBoxReal().height);    // " meas_box_height UINTEGER,"
-      objects.Append<uint32_t>(0);                                  // " meas_box_depth UINTEGER,"
 
       auto mask =
           duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER), duckdb::LogicalType(duckdb::LogicalTypeId::BOOLEAN), {}, {});

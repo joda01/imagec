@@ -18,6 +18,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/types.hpp"
@@ -35,20 +36,18 @@ namespace joda::atom {
 
 ROI::ROI() :
     mIsNull(true), mObjectId(mGlobalUniqueObjectId++), mId({}), confidence(0), mBoundingBoxTile({}), mBoundingBoxReal({}),
-    mMask(cv::Mat(0, 0, CV_16UC1)), mMaskContours({}), mImageSize(cv::Size{0, 0}), mAreaSize(0), mPerimeter(0), mCircularity(0),
-    mSnapAreaBoundingBox(calcSnapAreaBoundingBox(0, cv::Size{0, 0})), mSnapAreaMask(calculateSnapAreaMask(0)),
-    mSnapAreaMaskContours(calculateSnapContours(0)), mOriginObjectId(mObjectId)
+    mMask(cv::Mat(0, 0, CV_16UC1)), mMaskContours({}), mImageSize(cv::Size{0, 0}), mOriginalImageSize(cv::Size{0, 0}), mAreaSize(0), mPerimeter(0),
+    mCircularity(0), mOriginObjectId(mObjectId), mCentroid(0, 0)
 {
 }
 
-ROI::ROI(RoiObjectId index, Confidence confidence, uint32_t snapAreaSize, const Boxes &boundingBox, const cv::Mat &mask,
-         const std::vector<cv::Point> &contour, const cv::Size &imageSize, const enums::tile_t &tile, const cv::Size &tileSize) :
+ROI::ROI(RoiObjectId index, Confidence confidence, const Boxes &boundingBox, const cv::Mat &mask, const std::vector<cv::Point> &contour,
+         const cv::Size &imageSize, const cv::Size &originalImageSize, const enums::tile_t &tile, const cv::Size &tileSize) :
     mIsNull(false),
     mObjectId(mGlobalUniqueObjectId++), mId(index), confidence(confidence), mBoundingBoxTile(boundingBox),
-    mBoundingBoxReal(calcRealBoundingBox(tile, tileSize)), mMask(mask), mMaskContours(contour), mImageSize(imageSize), mAreaSize(calcAreaSize()),
-    mPerimeter(getTracedPerimeter(mMaskContours)), mCircularity(calcCircularity()),
-    mSnapAreaBoundingBox(calcSnapAreaBoundingBox(snapAreaSize, imageSize)), mSnapAreaMask(calculateSnapAreaMask(snapAreaSize)),
-    mSnapAreaMaskContours(calculateSnapContours(snapAreaSize)), mSnapAreaRadius(snapAreaSize), mOriginObjectId(mObjectId)
+    mBoundingBoxReal(calcRealBoundingBox(tile, tileSize)), mMask(mask), mMaskContours(contour), mImageSize(imageSize),
+    mOriginalImageSize(originalImageSize), mAreaSize(calcAreaSize()), mPerimeter(getTracedPerimeter(mMaskContours)), mCircularity(calcCircularity()),
+    mOriginObjectId(mObjectId), mCentroid(calcCentroid(mMask))
 {
 }
 
@@ -93,64 +92,6 @@ std::tuple<int32_t, int32_t, int32_t, int32_t, int32_t> ROI::calcCircleRadius(in
 }
 
 ///
-/// \brief      Calculates a snap area bounding box
-/// \author     Joachim Danmayr
-///
-[[nodiscard]] Boxes ROI::calcSnapAreaBoundingBox(int32_t snapAreaSize, const cv::Size &imageSize) const
-{
-  if(snapAreaSize > 1) {
-    if(snapAreaSize > mBoundingBoxTile.width && snapAreaSize > mBoundingBoxTile.height) {
-      int32_t boundingBoxWith          = snapAreaSize;
-      int32_t boundingBoxHeight        = snapAreaSize;
-      auto [x, y, circleX, circleY, _] = calcCircleRadius(snapAreaSize);
-      if(x + boundingBoxWith > imageSize.width) {
-        boundingBoxWith = (imageSize.width - x);
-      }
-      if(y + boundingBoxHeight > imageSize.height) {
-        boundingBoxHeight = (imageSize.height - y);
-      }
-
-      return cv::Rect{x, y, boundingBoxWith, boundingBoxHeight};
-    }
-  }
-  return {};
-}
-
-///
-/// \brief      Calculates a snap area mask
-/// \author     Joachim Danmayr
-///
-cv::Mat ROI::calculateSnapAreaMask(int32_t snapAreaSize) const
-{
-  if(snapAreaSize > 1) {
-    if(snapAreaSize > mBoundingBoxTile.width && snapAreaSize > mBoundingBoxTile.height) {
-      return cv::Mat::zeros(mSnapAreaBoundingBox.height, mSnapAreaBoundingBox.width, CV_8UC1);
-    }
-  }
-  return {};
-}
-
-///
-/// \brief      Calculates a snap area contours
-/// \author     Joachim Danmayr
-///
-std::vector<cv::Point> ROI::calculateSnapContours(int32_t snapAreaSize) const
-{
-  if(snapAreaSize > 1) {
-    if(snapAreaSize > mBoundingBoxTile.width && snapAreaSize > mBoundingBoxTile.height) {
-      auto [x, y, circleX, circleY, circleRadius] = calcCircleRadius(snapAreaSize);
-      circle(mSnapAreaMask, cv::Point(circleX, circleY), circleRadius, cv::Scalar(255), -1);
-      std::vector<std::vector<cv::Point>> contours;
-      cv::findContours(mSnapAreaMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
-      if(!contours.empty()) {
-        return contours[0];
-      }
-    }
-  }
-  return {};
-}
-
-///
 /// \brief        Calculate area size
 /// \author       Joachim Danmayr
 ///
@@ -171,6 +112,19 @@ float ROI::calcCircularity() const
     return dividend / perimterSquare;
   }
   return 1;
+}
+
+///
+/// \brief        Calculate centroid (center of mass)
+/// \author       Joachim Danmayr
+///
+auto ROI::calcCentroid(const cv::Mat &mask) const -> cv::Point
+{
+  // Calculate moments
+  cv::Moments moments = cv::moments(mask, true);
+  double cx           = (moments.m10 / moments.m00);
+  double cy           = (moments.m01 / moments.m00);
+  return cv::Point(cx, cy);
 }
 
 ///
@@ -325,9 +279,8 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 /// \param[in]  roi   ROI to check against
 /// \return     Intersection of the areas in percent
 ///
-[[nodiscard]] ROI ROI::calcIntersection(const enums::PlaneId &iterator, const ROI &roi, uint32_t snapAreaOfIntersectingRoi, float minIntersection,
-                                        const enums::tile_t &tile, const cv::Size &tileSize,
-                                        joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
+[[nodiscard]] ROI ROI::calcIntersection(const enums::PlaneId &iterator, const ROI &roi, float minIntersection, const enums::tile_t &tile,
+                                        const cv::Size &tileSize, joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
                                         joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const
 {
   auto intersectingMask = calcIntersectingMask(roi);
@@ -353,11 +306,11 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
                      .imagePlane = iterator,
                  },
                  intersectingMask.intersectionArea,
-                 snapAreaOfIntersectingRoi,
                  intersectingMask.intersectedRect,
                  intersectingMask.intersectedMask,
                  contour,
                  mImageSize,
+                 mOriginalImageSize,
                  tile,
                  tileSize};
     }
@@ -374,17 +327,17 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
 {
   IntersectingMask result;
-  result.intersectedRect = getSnapAreaBoundingBox() & roi.getSnapAreaBoundingBox();
+  result.intersectedRect = getBoundingBoxTile() & roi.getBoundingBoxTile();
 
   if(result.intersectedRect.area() <= 0) {
     return {};
   }
   result.intersectedMask = cv::Mat::zeros(result.intersectedRect.height, result.intersectedRect.width, CV_8UC1);
 
-  const int32_t xM1Base = (result.intersectedRect.x - getSnapAreaBoundingBox().x);
-  const int32_t yM1Base = (result.intersectedRect.y - getSnapAreaBoundingBox().y);
-  const int32_t xM2Base = (result.intersectedRect.x - roi.getSnapAreaBoundingBox().x);
-  const int32_t yM2Base = (result.intersectedRect.y - roi.getSnapAreaBoundingBox().y);
+  const int32_t xM1Base = (result.intersectedRect.x - getBoundingBoxTile().x);
+  const int32_t yM1Base = (result.intersectedRect.y - getBoundingBoxTile().y);
+  const int32_t xM2Base = (result.intersectedRect.x - roi.getBoundingBoxTile().x);
+  const int32_t yM2Base = (result.intersectedRect.y - roi.getBoundingBoxTile().y);
 
   // Iterate through the pixels in the intersection and set them in the new mask
   for(int y = 0; y < result.intersectedRect.height; ++y) {
@@ -394,14 +347,14 @@ ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
 
       bool mask1On = false;
       if(xM1 >= 0 && yM1 >= 0) {
-        mask1On = getSnapAreaMask().at<uchar>(yM1, xM1) > 0;
+        mask1On = getMask().at<uchar>(yM1, xM1) > 0;
       }
 
       int xM2      = x + xM2Base;
       int yM2      = y + yM2Base;
       bool mask2On = false;
       if(xM2 >= 0 && yM2 >= 0) {
-        mask2On = roi.getSnapAreaMask().at<uchar>(yM2, xM2) > 0;
+        mask2On = roi.getMask().at<uchar>(yM2, xM2) > 0;
       }
 
       if(mask1On) {
@@ -449,6 +402,91 @@ auto ROI::measureIntensityAndAdd(const joda::atom::ImagePlane &image) -> Intensi
   } else {
   }
   return intensity[image.getId()];
+}
+
+///
+/// \brief  Resizes the ROI based on the given scale factors
+/// \author Joachim Danmayr
+/// \todo   If there were still intensity measurements they are not valid any more for the new size what should happen?
+///
+void ROI::resize(float scaleX, float scaleY)
+{
+  if(mIsNull || mBoundingBoxReal.width <= 0 || mBoundingBoxReal.height <= 0) {
+    return;
+  }
+  // Compute the new size
+  cv::Size newSize(static_cast<int>(mMask.cols * scaleX), static_cast<int>(mMask.rows * scaleY));
+  if(newSize.height <= 0) {
+    newSize.height = 1;
+  }
+  if(newSize.width <= 0) {
+    newSize.width = 1;
+  }
+
+  // Resize the image
+  cv::Mat scaledImage = cv::Mat::zeros(newSize, CV_8UC1);
+  cv::resize(mMask, scaledImage, newSize);
+  mMask = scaledImage;
+
+  auto oldCentroid = mCentroid;
+  auto newCentroid = calcCentroid(mMask);
+
+  auto scaleBoundingBox = [&](Boxes &box, const cv::Size &imgSize) {
+    int32_t widthDif  = newCentroid.x - oldCentroid.x;
+    int32_t heightDif = newCentroid.y - oldCentroid.y;
+
+    int32_t moveX = std::ceil(static_cast<float>(widthDif) / 1.0);
+    int32_t moveY = std::ceil(static_cast<float>(heightDif) / 1.0);
+
+    box.x = box.x - moveX;
+    if(box.x < 0) {
+      box.x = 0;
+    }
+    if(box.x > imgSize.width) {
+      box.x = imgSize.width;
+    }
+    box.y = box.y - moveY;
+    if(box.y < 0) {
+      box.y = 0;
+    }
+    if(box.y > imgSize.height) {
+      box.y = imgSize.height;
+    }
+
+    box.width = newSize.width;
+    if((box.x + box.width) > imgSize.width) {
+      box.width = box.width - ((box.x + box.width) - imgSize.width);
+    }
+
+    box.height = newSize.height;
+    if((box.y + box.height) > imgSize.height) {
+      box.height = box.height - ((box.y + box.height) - imgSize.height);
+    }
+  };
+  scaleBoundingBox(mBoundingBoxTile, mImageSize);
+  scaleBoundingBox(mBoundingBoxReal, mOriginalImageSize);
+
+  cv::Rect crop(0, 0, mBoundingBoxTile.width, mBoundingBoxTile.height);
+  mMask = mMask(crop).clone();
+
+  std::vector<std::vector<cv::Point>> contours;
+  std::vector<cv::Vec4i> hierarchy;
+  cv::findContours(mMask, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
+
+  if(!contours.empty()) {
+    for(int i = 0; i < contours.size(); i++) {
+      // Do not paint a contour for elements inside an element.
+      // In other words if there is a particle with a hole, ignore the hole.
+      // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html
+      if(hierarchy[i][3] == -1) {
+        mMaskContours = contours[i];
+      }
+    }
+  }
+  mAreaSize    = static_cast<double>(calcAreaSize());
+  mPerimeter   = getTracedPerimeter(mMaskContours);
+  mCircularity = calcCircularity();
+  mCentroid    = calcCentroid(mMask);
 }
 
 }    // namespace joda::atom

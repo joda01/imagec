@@ -22,6 +22,7 @@
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/commands/image_functions/threshold/threshold_settings.hpp"
 #include "backend/commands/image_functions/watershed/watershed_settings.hpp"
+#include "backend/commands/object_functions/object_transform/object_transform_settings.hpp"
 #include "backend/commands/object_functions/validator_threshold/validator_threshold_settings.hpp"
 #include "backend/commands/object_functions/voronoi_grid/voronoi_grid_settings.hpp"
 #include "backend/settings/pipeline/pipeline_factory.hpp"
@@ -130,6 +131,7 @@ void DialogCommandSelection::addCommandsToTable(InOuts outOfStepBefore)
     inserted += addCommandToTable(settings::PipelineStep{.$voronoi = settings::VoronoiGridSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$reclassify = settings::ReclassifySettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$objectMath = settings::ObjectMathSettings{}}, outOfStepBefore);
+    inserted += addCommandToTable(settings::PipelineStep{.$objectTransform = settings::ObjectTransformSettings{}}, outOfStepBefore);
     if(inserted > 0) {
       addTitleToTable("Object Processing", inserted);
     }

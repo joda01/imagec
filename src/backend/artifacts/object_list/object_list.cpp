@@ -12,8 +12,8 @@ void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const Sphe
                                       const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
                                       const std::set<joda::enums::ClassId> &objectClassesOther,
                                       joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
-                                      joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo, uint32_t snapAreaOfIntersectingRoi,
-                                      float minIntersecion, const enums::tile_t &tile, const cv::Size &tileSize) const
+                                      joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo, float minIntersecion,
+                                      const enums::tile_t &tile, const cv::Size &tileSize) const
 {
   std::set<ROI *> intersecting;
 
@@ -31,8 +31,8 @@ void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const Sphe
               if(!intersecting.contains(box1) && !intersecting.contains(box2)) {
                 if(isCollision(box1, box2)) {
                   auto colocROI =
-                      box1->calcIntersection(iterator, *box2, snapAreaOfIntersectingRoi, minIntersecion, tile, tileSize,
-                                             objectClusterIntersectingObjectsShouldBeAssignedTo, objectClassIntersectingObjectsShouldBeAssignedTo);
+                      box1->calcIntersection(iterator, *box2, minIntersecion, tile, tileSize, objectClusterIntersectingObjectsShouldBeAssignedTo,
+                                             objectClassIntersectingObjectsShouldBeAssignedTo);
                   if(!colocROI.isNull()) {
                     result->push_back(std::move(colocROI));
                     intersecting.emplace(box1);
@@ -104,16 +104,17 @@ void SpheralIndex::createBinaryImage(cv::Mat &img, const std::set<joda::enums::C
 {
   for(const auto &roi : *this) {
     if(objectClasses.contains(roi.getClassId())) {
-      int left   = roi.getBoundingBox().x;
-      int top    = roi.getBoundingBox().y;
-      int width  = roi.getBoundingBox().width;
-      int height = roi.getBoundingBox().height;
+      int left   = roi.getBoundingBoxTile().x;
+      int top    = roi.getBoundingBoxTile().y;
+      int width  = roi.getBoundingBoxTile().width;
+      int height = roi.getBoundingBoxTile().height;
 
-      if(!roi.getMask().empty() && !roi.getBoundingBox().empty() && roi.getBoundingBox().x >= 0 && roi.getBoundingBox().y >= 0 &&
-         roi.getBoundingBox().width >= 0 && roi.getBoundingBox().height >= 0 && roi.getBoundingBox().x + roi.getBoundingBox().width <= img.cols &&
-         roi.getBoundingBox().y + roi.getBoundingBox().height <= img.rows) {
+      if(!roi.getMask().empty() && !roi.getBoundingBoxTile().empty() && roi.getBoundingBoxTile().x >= 0 && roi.getBoundingBoxTile().y >= 0 &&
+         roi.getBoundingBoxTile().width >= 0 && roi.getBoundingBoxTile().height >= 0 &&
+         roi.getBoundingBoxTile().x + roi.getBoundingBoxTile().width <= img.cols &&
+         roi.getBoundingBoxTile().y + roi.getBoundingBoxTile().height <= img.rows) {
         try {
-          img(roi.getBoundingBox()).setTo(cv::Scalar(UINT16_MAX), roi.getMask());
+          img(roi.getBoundingBoxTile()).setTo(cv::Scalar(UINT16_MAX), roi.getMask());
         } catch(const std::exception &ex) {
           std::cout << "PA: " << ex.what() << std::endl;
         }

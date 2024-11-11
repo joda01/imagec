@@ -102,8 +102,8 @@ public:
                           const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
                           const std::set<joda::enums::ClassId> &objectClassesOther,
                           joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
-                          joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo, uint32_t snapAreaOfIntersectingRoi,
-                          float minIntersecion, const enums::tile_t &tile, const cv::Size &tileSize) const;
+                          joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo, float minIntersecion, const enums::tile_t &tile,
+                          const cv::Size &tileSize) const;
 
   void calcIntersection(joda::processor::ProcessContext &context, joda::settings::ReclassifySettings::Mode func, SpheralIndex *other,
                         const std::set<joda::enums::ClassId> objectClassesMe, const std::set<joda::enums::ClassId> objectClassesOther,
@@ -139,7 +139,7 @@ private:
   ROI &insertIntoGrid(const ROI &boxIn)
   {
     ROI cloned       = boxIn.clone();
-    const auto &rect = cloned.getBoundingBox();
+    const auto &rect = cloned.getBoundingBoxTile();
     int min_x        = rect.x;
     int min_y        = rect.y;
     int max_x        = rect.x + rect.width;
@@ -158,13 +158,13 @@ private:
 
   static bool isCollision(const ROI *box1, const ROI *box2)
   {
-    auto &rect1 = box1->getBoundingBox();
+    auto &rect1 = box1->getBoundingBoxTile();
     int min01_x = rect1.x;
     int min11_y = rect1.y;
     int max21_x = rect1.x + rect1.width;
     int max31_y = rect1.y + rect1.height;
 
-    auto &rect2 = box2->getBoundingBox();
+    auto &rect2 = box2->getBoundingBoxTile();
     int min02_x = rect2.x;
     int min12_y = rect2.y;
     int max22_x = rect2.x + rect2.width;

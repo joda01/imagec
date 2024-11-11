@@ -17,6 +17,7 @@
 #include <filesystem>
 #include <map>
 #include <memory>
+#include <string>
 #include "backend/artifacts/image/image.hpp"
 #include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/enums/enum_images.hpp"
@@ -195,6 +196,11 @@ public:
   [[nodiscard]] cv::Size getImageSize() const
   {
     return pipelineContext.actImagePlane.image.size();
+  }
+
+  [[nodiscard]] cv::Size getOriginalImageSize() const
+  {
+    return {imageContext.imageMeta.getImageWidth(), imageContext.imageMeta.getImageHeight()};
   }
 
   [[nodiscard]] enums::ClusterId getClusterId(enums::ClusterIdIn in) const

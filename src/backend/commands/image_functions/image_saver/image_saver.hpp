@@ -135,22 +135,29 @@ private:
                   cv::Mat &imageOut)
   {
     if(context.getClassId(settings.inputCluster.classId) == roi.getClassId()) {
-      int left   = roi.getBoundingBox().x;
-      int top    = roi.getBoundingBox().y;
-      int width  = roi.getBoundingBox().width;
-      int height = roi.getBoundingBox().height;
+      int left   = roi.getBoundingBoxTile().x;
+      int top    = roi.getBoundingBoxTile().y;
+      int width  = roi.getBoundingBoxTile().width;
+      int height = roi.getBoundingBoxTile().height;
 
-      if(!roi.getMask().empty() && !roi.getBoundingBox().empty()) {
+      auto centroid = roi.getCenterOfMassTile();
+
+      if(!roi.getMask().empty() && !roi.getBoundingBoxTile().empty()) {
         auto areaColor = hexToScalar(settings.color);
 
+        // Centroid
+        cv::circle(imageOut, centroid, 3, RED, cv::FILLED);
+
+        cv::circle(imageOut, {left + width / 2, top + height / 2}, 4, YELLOW, cv::FILLED);
+
         // Boundding box
-        if(settings.paintBoundingBox && !roi.getBoundingBox().empty()) {
-          rectangle(imageOut, roi.getBoundingBox(), areaColor, 1 * THICKNESS, cv::LINE_4);
+        if(settings.paintBoundingBox && !roi.getBoundingBoxTile().empty()) {
+          rectangle(imageOut, roi.getBoundingBoxTile(), areaColor, 1 * THICKNESS, cv::LINE_4);
         }
 
         // Fill area
         if(settings.style == settings::ImageSaverSettings::Style::FILLED) {
-          imageOut(roi.getBoundingBox()).setTo(areaColor, roi.getMask());
+          imageOut(roi.getBoundingBoxTile()).setTo(areaColor, roi.getMask());
         }
 
         // Paint contour only for valid particles
@@ -158,14 +165,7 @@ private:
         std::vector<std::vector<cv::Point>> contours;
         contours.push_back(roi.getContour());
         if(!contours.empty()) {
-          drawContours(imageOut(roi.getBoundingBox()), contours, -1, contourColor, 1);
-        }
-
-        if(roi.hasSnapArea()) {
-          std::vector<std::vector<cv::Point>> contours;
-          contours.push_back(roi.getSnapAreaContour());
-          if(!contours.empty())
-            drawContours(imageOut(roi.getSnapAreaBoundingBox()), contours, -1, contourColor, 1);
+          drawContours(imageOut(roi.getBoundingBoxTile()), contours, -1, contourColor, 1);
         }
       }
     }

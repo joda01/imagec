@@ -427,13 +427,12 @@ void PanelPipelineSettings::previewThread()
       mPreviewInProgress = true;
       emit updatePreviewStarted();
       if(nullptr != jobToDo.previewPanel && mIsActiveShown) {
-        auto [imgIndex, selectedSeries] = jobToDo.selectedImage;
+        auto [imgIndex, selectedSeries, imgProps] = jobToDo.selectedImage;
         if(!imgIndex.empty()) {
           try {
             int32_t resolution = 0;
             uint32_t series    = selectedSeries;
             auto tileSize      = jobToDo.settings.imageSetup.imageTileSettings;
-            auto imgProps      = joda::ctrl::Controller::getImageProperties(imgIndex, series);
 
             // If image is too big scale to tiles
             auto imgWidth    = imgProps.getImageInfo().resolutions.at(0).imageWidth;
@@ -469,7 +468,7 @@ void PanelPipelineSettings::previewThread()
             }
 
             jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, *myPipeline, imgIndex, jobToDo.selectedTileX,
-                                        jobToDo.selectedTileY, previewResult);
+                                        jobToDo.selectedTileY, previewResult, imgProps);
             // Create a QByteArray from the char array
             QString info             = "<html>";
             auto [clusters, classes] = jobToDo.clustersAndClasses;

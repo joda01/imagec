@@ -92,17 +92,17 @@ void PanelImages::filterImages()
 /// \param[out]
 /// \return
 ///
-auto PanelImages::getSelectedImage() const -> std::tuple<std::filesystem::path, uint32_t>
+auto PanelImages::getSelectedImage() const -> std::tuple<std::filesystem::path, uint32_t, joda::ome::OmeInfo>
 {
   int selectedRow = mImages->currentRow();
   if(selectedRow >= 0) {
     QTableWidgetItem *item = mImages->item(selectedRow, 0);
     if(item != nullptr) {
-      return {std::filesystem::path(item->text().toStdString()), 0};
+      return {std::filesystem::path(item->text().toStdString()), 0, mOmeFromActSelectedImage};
     }
   }
 
-  return {std::filesystem::path{}, 0};
+  return {std::filesystem::path{}, 0, {}};
 }
 
 ///
@@ -125,7 +125,7 @@ void PanelImages::updateImagesList()
   };
 
   const auto &foundImages = mWindowMain->getController()->getListOfFoundImages();
-
+  mImages->clearContents();
   int row = 0;
   int idx = 0;
   for(const auto &[plateId, images] : foundImages) {
@@ -160,12 +160,13 @@ void PanelImages::updateImageMeta()
 {
   QList<QTableWidgetItem *> selectedItems = mImages->selectedItems();
   if(!selectedItems.isEmpty()) {
-    auto [imagePath, series] = getSelectedImage();
+    auto [imagePath, series, _] = getSelectedImage();
 
-    auto ome            = mWindowMain->getController()->getImageProperties(imagePath, series);
-    auto tileSize       = mWindowMain->getSettings().imageSetup.imageTileSettings;
-    const auto &imgInfo = ome.getImageInfo();
+    mOmeFromActSelectedImage = mWindowMain->getController()->getImageProperties(imagePath, series);
+    auto tileSize            = mWindowMain->getSettings().imageSetup.imageTileSettings;
+    const auto &imgInfo      = mOmeFromActSelectedImage.getImageInfo();
 
+    mImageMeta->clearContents();
     mImageMeta->setRowCount(20);
 
     int32_t row = 0;
@@ -226,10 +227,10 @@ void PanelImages::updateImageMeta()
     addItem("Composite tile width", tileSize.tileWidth, "px");
     addItem("Composite tile height", tileSize.tileHeight, "px");
     addItem("Composite tile count", imgInfo.resolutions.at(0).getTileCount(tileSize.tileWidth, tileSize.tileHeight), "");
-    addItem("Series", ome.getNrOfSeries(), "");
-    addItem("Pyramids", ome.getResolutionCount().size(), "");
+    addItem("Series", mOmeFromActSelectedImage.getNrOfSeries(), "");
+    addItem("Pyramids", mOmeFromActSelectedImage.getResolutionCount().size(), "");
 
-    const auto &objectiveInfo = ome.getObjectiveInfo();
+    const auto &objectiveInfo = mOmeFromActSelectedImage.getObjectiveInfo();
     addTitle("Objective");
     addStringItem("Manufacturer", objectiveInfo.manufacturer);
     addStringItem("Model", objectiveInfo.model);
@@ -237,7 +238,7 @@ void PanelImages::updateImageMeta()
     addStringItem("Magnification", "x" + std::to_string(objectiveInfo.magnification));
 
     QString channelInfoStr;
-    for(const auto &[idx, channelInfo] : ome.getChannelInfos()) {
+    for(const auto &[idx, channelInfo] : mOmeFromActSelectedImage.getChannelInfos()) {
       mImageMeta->setRowCount(mImageMeta->rowCount() + 5);
       addTitle("Channel " + std::to_string(idx));
       addStringItem("ID", channelInfo.channelId);

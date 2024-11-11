@@ -203,7 +203,8 @@ TRY_AGAIN:
                                                                .imageHeight            = height,
                                                                .optimalTileMemoryUsage = static_cast<int64_t>(tileWidth) * tileHeight * (bits / 8),
                                                                .optimalTileWidth       = tileWidth,
-                                                               .optimalTileHeight      = tileHeight});
+                                                               .optimalTileHeight      = tileHeight,
+                                                               .isInterleaved          = isInterleaved != 0});
     }
   }
 }
