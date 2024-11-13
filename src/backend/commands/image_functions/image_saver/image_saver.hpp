@@ -146,9 +146,9 @@ private:
         auto areaColor = hexToScalar(settings.color);
 
         // Centroid
-        cv::circle(imageOut, centroid, 3, RED, cv::FILLED);
-
-        cv::circle(imageOut, {left + width / 2, top + height / 2}, 4, YELLOW, cv::FILLED);
+        // cv::circle(imageOut, centroid, 3, RED, cv::FILLED);
+        // Center
+        // cv::circle(imageOut, {left + width / 2, top + height / 2}, 4, YELLOW, cv::FILLED);
 
         // Boundding box
         if(settings.paintBoundingBox && !roi.getBoundingBoxTile().empty()) {
