@@ -190,8 +190,8 @@ void Database::createTables()
       " meas_area_size DOUBLE,"
       " meas_perimeter float,"
       " meas_circularity float,"
-      " meas_center_x UINTEGER,"
-      " meas_center_y UINTEGER,"
+      " meas_center_x UINTEGER,"    // Centroid X (unweighted center of mass)
+      " meas_center_y UINTEGER,"    // Centroid Y (unweighted center of mass)
       " meas_box_x UINTEGER,"
       " meas_box_y UINTEGER,"
       " meas_box_width UINTEGER,"
@@ -273,8 +273,8 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
       objects.Append<double>(roi.getAreaSize());                    // " meas_area_size DOUBLE,"
       objects.Append<float>(roi.getPerimeter());                    // " meas_perimeter float,"
       objects.Append<float>(roi.getCircularity());                  // " meas_circularity float,"
-      objects.Append<uint32_t>(roi.getCenterOfMassReal().x);        // " meas_center_x UINTEGER,"
-      objects.Append<uint32_t>(roi.getCenterOfMassReal().y);        // " meas_center_y UINTEGER,"
+      objects.Append<uint32_t>(roi.getCentroidReal().x);            // " meas_center_x UINTEGER,"
+      objects.Append<uint32_t>(roi.getCentroidReal().y);            // " meas_center_y UINTEGER,"
       objects.Append<uint32_t>(roi.getBoundingBoxReal().x);         // " meas_box_x UINTEGER,"
       objects.Append<uint32_t>(roi.getBoundingBoxReal().y);         // " meas_box_y UINTEGER,"
       objects.Append<uint32_t>(roi.getBoundingBoxReal().width);     // " meas_box_width UINTEGER,"

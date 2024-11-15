@@ -180,7 +180,7 @@ public:
     return mBoundingBoxTile;
   }
 
-  [[nodiscard]] auto getCenterOfMassReal() const -> cv::Point
+  [[nodiscard]] auto getCentroidReal() const -> cv::Point
   {
     double cx = mCentroid.x + getBoundingBoxReal().x;
     double cy = mCentroid.y + getBoundingBoxReal().y;
@@ -188,7 +188,7 @@ public:
     return cv::Point(cx, cy);
   }
 
-  [[nodiscard]] auto getCenterOfMassTile() const -> cv::Point
+  [[nodiscard]] auto getCentroidTile() const -> cv::Point
   {
     double cx = mCentroid.x + getBoundingBoxTile().x;
     double cy = mCentroid.y + getBoundingBoxTile().y;

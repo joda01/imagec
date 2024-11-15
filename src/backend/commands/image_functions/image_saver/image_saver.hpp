@@ -140,7 +140,7 @@ private:
       int width  = roi.getBoundingBoxTile().width;
       int height = roi.getBoundingBoxTile().height;
 
-      auto centroid = roi.getCenterOfMassTile();
+      auto centroid = roi.getCentroidTile();
 
       if(!roi.getMask().empty() && !roi.getBoundingBoxTile().empty()) {
         auto areaColor = hexToScalar(settings.color);

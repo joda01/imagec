@@ -115,7 +115,7 @@ float ROI::calcCircularity() const
 }
 
 ///
-/// \brief        Calculate centroid (center of mass)
+/// \brief        Calculate centroid
 /// \author       Joachim Danmayr
 ///
 auto ROI::calcCentroid(const cv::Mat &mask) const -> cv::Point

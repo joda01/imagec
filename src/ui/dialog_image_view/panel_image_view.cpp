@@ -570,7 +570,7 @@ auto PanelImageView::fetchPixelInfoFromMousePosition(const QPoint &viewPos) cons
   PixelInfo pixelInfo;
 
   // Map the scene coordinates to image coordinates
-  if(mActPixmap != nullptr) {
+  if(mActPixmap != nullptr && mActPixmapOriginal.getImage() != nullptr) {
     QPointF imagePos = mActPixmap->mapFromScene(scenePos);
     pixelInfo.posX   = imagePos.x();
     pixelInfo.posY   = imagePos.y();
