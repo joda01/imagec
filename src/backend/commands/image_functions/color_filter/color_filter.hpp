@@ -47,9 +47,6 @@ public:
       int32_t valMax = std::max(mSetting.filter.begin()->colorRangeFrom.val, mSetting.filter.begin()->colorRangeTo.val);
       int32_t valMin = std::min(mSetting.filter.begin()->colorRangeFrom.val, mSetting.filter.begin()->colorRangeTo.val);
 
-      std::cout << "Range: " << std::to_string(hueMin) << " " << std::to_string(hueMax) << " | " << std::to_string(satMin) << " "
-                << std::to_string(satMax) << " | " << std::to_string(valMin) << " " << std::to_string(valMax) << std::endl;
-
       // Create a mask that isolates the target color
       cv::Mat combinedMask;
       if(hueMin > hueMax) {
