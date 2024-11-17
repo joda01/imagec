@@ -473,8 +473,8 @@ void PanelPipelineSettings::previewThread()
             auto imgWidth    = imgProps.getImageInfo().resolutions.at(0).imageWidth;
             auto imageHeight = imgProps.getImageInfo().resolutions.at(0).imageHeight;
 
-            if(imgProps.getImageInfo().resolutions.at(0).imageWidth > jobToDo.settings.imageSetup.imageTileSettings.tileWidth ||
-               imgProps.getImageInfo().resolutions.at(0).imageHeight > jobToDo.settings.imageSetup.imageTileSettings.tileHeight) {
+            if(imgWidth > jobToDo.settings.imageSetup.imageTileSettings.tileWidth ||
+               imageHeight > jobToDo.settings.imageSetup.imageTileSettings.tileHeight) {
               tileSize.tileWidth  = jobToDo.settings.imageSetup.imageTileSettings.tileWidth;
               tileSize.tileHeight = jobToDo.settings.imageSetup.imageTileSettings.tileHeight;
             } else {

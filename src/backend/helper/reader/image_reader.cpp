@@ -287,7 +287,8 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &ima
     int32_t resolutionIdx = static_cast<int32_t>(ome.getResolutionCount().size()) - 1;
     auto resolution       = ome.getResolutionCount(series).at(resolutionIdx);
 
-    if(resolution.imageMemoryUsage > 209715200) {
+    /// \todo Make preview size configurable
+    if(resolution.imageMemoryUsage > 838860800) {
       joda::log::logWarning("Cannot create thumbnail. Pyramid to big: >" + std::to_string(resolution.imageMemoryUsage) + "< Bytes.");
       return cv::Mat{};
     }
