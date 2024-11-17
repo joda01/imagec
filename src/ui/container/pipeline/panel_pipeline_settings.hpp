@@ -104,7 +104,7 @@ private:
 
   // PIPELINE STEPS //////////////////////////////////////////////////
   QVBoxLayout *mPipelineSteps;
-  std::vector<std::unique_ptr<Command>> mCommands;
+  std::vector<std::shared_ptr<Command>> mCommands;
 
   /////////////////////////////////////////////////////
   int32_t mLastSelectedPreviewSize = 0;

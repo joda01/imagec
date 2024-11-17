@@ -68,6 +68,10 @@ public:
   void removeAllTabsExceptFirst();
   void registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi);
   void registerAddCommandButton(joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineSettingsUi, WindowMain *mainWindow);
+  void setCommandBefore(std::shared_ptr<Command> commandBefore)
+  {
+    mCommandBefore = commandBefore;
+  }
 
   void addSetting(const std::vector<std::tuple<SettingBase *, bool, int32_t>> &settings)
   {
@@ -217,6 +221,7 @@ private:
   std::vector<SettingComboBoxMulti<enums::ClusterIdIn> *> mClustersMulti;
   std::vector<SettingComboBoxMulti<enums::ClassIdIn> *> mClassesMulti;
   const InOut mInOut;
+  std::shared_ptr<Command> mCommandBefore = nullptr;
 protected slots:
   void updateDisplayText();
 };

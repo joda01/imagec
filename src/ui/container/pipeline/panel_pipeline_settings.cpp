@@ -145,6 +145,11 @@ void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::Command> c
   command->blockComponentSignals(true);
   command->registerDeleteButton(this);
   command->registerAddCommandButton(mSettings, this, mWindowMain);
+  if(mCommands.empty()) {
+    command->setCommandBefore(nullptr);
+  } else {
+    command->setCommandBefore(mCommands.at(mCommands.size() - 1));
+  }
   connect(command.get(), &joda::ui::Command::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   mPipelineSteps->addWidget(command.get());
   command->blockComponentSignals(false);
@@ -167,7 +172,19 @@ void PanelPipelineSettings::insertNewPipelineStep(int32_t posToInsert, std::uniq
   connect(command.get(), &joda::ui::Command::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   int widgetPos = posToInsert + 1;    // Each second is a button
   mPipelineSteps->insertWidget(widgetPos, command.get());
+
+  if(mCommands.empty()) {
+    command->setCommandBefore(nullptr);
+  } else {
+    command->setCommandBefore(mCommands.at(posToInsert - 1));
+  }
+
   mCommands.insert(mCommands.begin() + posToInsert, std::move(command));
+
+  if((posToInsert + 1) < mCommands.size()) {
+    mCommands.at(posToInsert + 1)->setCommandBefore(mCommands.at(posToInsert));
+  }
+
   mWindowMain->checkForSettingsChanged();
   updatePreview();
 }
@@ -199,10 +216,28 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete)
 
       // Delete command from vector
       {
+        int32_t deletedPos = 0;
         for(auto it = mCommands.begin(); it != mCommands.end(); it++) {
           if(it->get() == toDelete) {
             mCommands.erase(it);
             break;
+          }
+          deletedPos++;
+        }
+
+        // This command is now at the old position. And for this command the parent has been changed
+        if(deletedPos < mCommands.size()) {
+          int32_t posPrev                  = deletedPos - 1;
+          int32_t posNext                  = deletedPos + 1;
+          std::shared_ptr<Command> &newOld = mCommands.at(deletedPos);
+          if(posPrev >= 0) {
+            std::shared_ptr<Command> &prevCommand = mCommands.at(posPrev);
+            newOld->setCommandBefore(prevCommand);
+          } else {
+            newOld->setCommandBefore(nullptr);
+          }
+          if(posNext < mCommands.size()) {
+            mCommands.at(posNext)->setCommandBefore(newOld);
           }
         }
       }
