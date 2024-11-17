@@ -107,22 +107,20 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
             for(const auto &element : provided) {
               inputClusters.erase(element);    // Remove deps which are still covered
             }
-
-            if(inputClusters.empty()) {
-              std::cout << pipelineOne->meta.name << " depends only on " << pipelineTwo->meta.name << std::endl;
-            } else {
-              std::cout << pipelineOne->meta.name << " depends on " << pipelineTwo->meta.name << std::endl;
-            }
+            std::cout << pipelineOne->meta.name << " depends on " << pipelineTwo->meta.name << std::endl;
           }
         }
 
         if(!inputClusters.empty()) {
           joda::log::logError("There is an unresolved dependency in pipeline " + pipelineOne->meta.name);
+          for(const auto &ele : inputClusters) {
+            joda::log::logError("There is an unresolved dependency in pipeline " + std::to_string((int32_t) ele.clusterId) + "/" +
+                                std::to_string((int32_t) ele.classId));
+          }
         }
       }
     }
   }
-  std::cout << "-----" << std::endl;
 
   // Remove all nodes except the one we want to calc the graph for and this graph depends on
   if(calcGraphFor != nullptr) {
