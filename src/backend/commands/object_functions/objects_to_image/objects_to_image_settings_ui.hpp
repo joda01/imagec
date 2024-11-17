@@ -39,7 +39,7 @@ public:
   inline static std::string ICON  = "metamorphose";
 
   ObjectsToImage(joda::settings::PipelineStep &pipelineStep, settings::ObjectsToImageSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::BINARY}), mParent(parent)
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::OBJECT}, InOuts::BINARY}), mParent(parent)
   {
     auto *modelTab = addTab("Base", [] {});
 

@@ -193,7 +193,7 @@ int DialogCommandSelection::addCommandToTable(const settings::PipelineStep &step
   std::unique_ptr<joda::ui::Command> cmd = joda::settings::PipelineFactory<joda::ui::Command>::generate(step, nullptr);
   if(cmd != nullptr) {
     // Add only commands which are allowed to add
-    if(outOfStepBefore != InOuts::ALL && cmd->getInOut().in != outOfStepBefore) {
+    if(outOfStepBefore != InOuts::ALL && !cmd->getInOut().in.contains(outOfStepBefore)) {
       return 0;
     }
     mCommandList.emplace_back(step);

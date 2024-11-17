@@ -38,7 +38,7 @@ public:
   inline static std::string ICON  = "classify";
 
   Classifier(joda::settings::PipelineStep &pipelineStep, settings::ClassifierSettings &settingsIn, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::BINARY, InOuts::OBJECT}), mSettings(settingsIn), mParent(parent)
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::OBJECT}}), mSettings(settingsIn), mParent(parent)
   {
     if(settingsIn.modelClasses.empty()) {
       addFilter();

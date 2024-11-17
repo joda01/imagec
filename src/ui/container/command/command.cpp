@@ -117,13 +117,15 @@ void Command::paintEvent(QPaintEvent *event)
     return Qt::lightGray;
   };
 
+  auto getColorSet = [&](std::set<InOuts> inouts) { return getColor(*inouts.begin()); };
+
   QWidget::paintEvent(event);
 
   QPainter painter(this);
   const int LINE_WIDTH = 5;
 
   int heightToPaint = std::ceil(static_cast<float>(height()) / 2.0);
-  auto colorIn      = getColor(mInOut.in);
+  auto colorIn      = getColorSet(mInOut.in);
   if(colorIn != Qt::lightGray) {
     painter.fillRect((width() - LINE_WIDTH), 0, LINE_WIDTH, heightToPaint, colorIn);
   }

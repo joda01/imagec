@@ -34,7 +34,7 @@ public:
   inline static std::string ICON  = "color";
 
   ColorFilter(joda::settings::PipelineStep &pipelineStep, settings::ColorFilterSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::IMAGE, InOuts::IMAGE})
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::IMAGE}})
   {
     if(settings.filter.empty()) {
       settings.filter.emplace_back(settings::ColorFilterSettings::Filter{});

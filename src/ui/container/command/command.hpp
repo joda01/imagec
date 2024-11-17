@@ -39,8 +39,8 @@ enum class InOuts
 
 struct InOut
 {
-  InOuts in  = InOuts::ALL;
-  InOuts out = InOuts::ALL;
+  std::set<InOuts> in = {InOuts::ALL};
+  InOuts out          = InOuts::ALL;
 };
 
 class WrapLabel : public QLabel
