@@ -14,26 +14,26 @@
 
 #include "backend/commands/command.hpp"
 #include "backend/processor/context/process_context.hpp"
-#include "object_math_settings.hpp"
+#include "objects_to_image_settings.hpp"
 
 namespace joda::cmd {
 
 ///
-/// \class      ObjectMath
+/// \class      ObjectsToImage
 /// \author     Joachim Danmayr
 /// \brief      Classify objects in a grayscal image.
 ///             Each gray value is used for one object class.
 ///
-class ObjectMath : public Command
+class ObjectsToImage : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  ObjectMath(const settings::ObjectMathSettings &);
+  ObjectsToImage(const settings::ObjectsToImageSettings &);
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
 
 private:
   /////////////////////////////////////////////////////
-  const settings::ObjectMathSettings &mSettings;
+  const settings::ObjectsToImageSettings &mSettings;
 };
 
 }    // namespace joda::cmd

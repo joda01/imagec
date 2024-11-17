@@ -11,7 +11,7 @@
 
 ///
 
-#include "object_math.hpp"
+#include "objects_to_image.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -22,42 +22,45 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
-#include "object_math_settings.hpp"
+#include "objects_to_image_settings.hpp"
 
 namespace joda::cmd {
 
-ObjectMath::ObjectMath(const settings::ObjectMathSettings &settings) : mSettings(settings)
+ObjectsToImage::ObjectsToImage(const settings::ObjectsToImageSettings &settings) : mSettings(settings)
 {
 }
 
-void ObjectMath::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList & /*resultIn*/)
+void ObjectsToImage::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList & /*resultIn*/)
 {
   auto &operand01 = context.loadObjectsFromCache()->at(context.getClusterId(mSettings.inputObjectFirst.clusterId));
   image           = cv::Mat::zeros(image.size(), CV_16UC1);
   operand01->createBinaryImage(image, {context.getClassId(mSettings.inputObjectFirst.classId)});
 
   cv::Mat img2;
-  if(mSettings.function != settings::ObjectMathSettings::Function::NOT) {
+  if(mSettings.function != settings::ObjectsToImageSettings::Function::NOT &&
+     mSettings.function != settings::ObjectsToImageSettings::Function::NONE) {
     auto &operand02 = context.loadObjectsFromCache()->at(context.getClusterId(mSettings.inputObjectSecond.clusterId));
     img2            = cv::Mat::zeros(image.size(), CV_16UC1);
     operand02->createBinaryImage(img2, {context.getClassId(mSettings.inputObjectSecond.classId)});
   }
 
   switch(mSettings.function) {
-    case settings::ObjectMathSettings::Function::NOT:
+    case settings::ObjectsToImageSettings::Function::NONE:
+      break;
+    case settings::ObjectsToImageSettings::Function::NOT:
       cv::bitwise_not(image, image);
       break;
-    case settings::ObjectMathSettings::Function::AND:
+    case settings::ObjectsToImageSettings::Function::AND:
       cv::bitwise_and(image, img2, image);
       break;
-    case settings::ObjectMathSettings::Function::AND_NOT:
+    case settings::ObjectsToImageSettings::Function::AND_NOT:
       cv::bitwise_not(img2, img2);
       cv::bitwise_and(image, img2, image);
       break;
-    case settings::ObjectMathSettings::Function::OR:
+    case settings::ObjectsToImageSettings::Function::OR:
       cv::bitwise_or(image, img2, image);
       break;
-    case settings::ObjectMathSettings::Function::XOR:
+    case settings::ObjectsToImageSettings::Function::XOR:
       cv::bitwise_xor(image, img2, image);
       break;
   }

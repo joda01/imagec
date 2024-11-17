@@ -27,18 +27,18 @@
 #include "ui/container/setting/setting_line_edit.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/helper/setting_generator.hpp"
-#include "object_math_settings.hpp"
+#include "objects_to_image_settings.hpp"
 
 namespace joda::ui {
 
-class ObjectMath : public Command
+class ObjectsToImage : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE = "Object math";
-  inline static std::string ICON  = "equals";
+  inline static std::string TITLE = "Objects to binary image";
+  inline static std::string ICON  = "metamorphose";
 
-  ObjectMath(joda::settings::PipelineStep &pipelineStep, settings::ObjectMathSettings &settings, QWidget *parent) :
+  ObjectsToImage(joda::settings::PipelineStep &pipelineStep, settings::ObjectsToImageSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::BINARY}), mParent(parent)
   {
     auto *modelTab = addTab("Base", [] {});
@@ -54,16 +54,18 @@ public:
     //
     // Options
     //
-    mFunction = SettingBase::create<SettingComboBox<joda::settings::ObjectMathSettings::Function>>(parent, {}, "Function");
-    mFunction->addOptions({{.key = joda::settings::ObjectMathSettings::Function::NOT, .label = "NOT", .icon = generateIcon("ampersand")},
-                           {.key = joda::settings::ObjectMathSettings::Function::AND, .label = "AND", .icon = generateIcon("ampersand")},
-                           {.key = joda::settings::ObjectMathSettings::Function::AND_NOT, .label = "AND-NOT", .icon = generateIcon("ampersand")},
-                           {.key = joda::settings::ObjectMathSettings::Function::OR, .label = "OR", .icon = generateIcon("ampersand")},
-                           {.key = joda::settings::ObjectMathSettings::Function::XOR, .label = "XOR", .icon = generateIcon("ampersand")}});
+    mFunction = SettingBase::create<SettingComboBox<joda::settings::ObjectsToImageSettings::Function>>(parent, {}, "Function");
+    mFunction->addOptions({{.key = joda::settings::ObjectsToImageSettings::Function::NONE, .label = "NONE", .icon = generateIcon("ampersand")},
+                           {.key = joda::settings::ObjectsToImageSettings::Function::NOT, .label = "NOT", .icon = generateIcon("ampersand")},
+                           {.key = joda::settings::ObjectsToImageSettings::Function::AND, .label = "AND", .icon = generateIcon("ampersand")},
+                           {.key = joda::settings::ObjectsToImageSettings::Function::AND_NOT, .label = "AND-NOT", .icon = generateIcon("ampersand")},
+                           {.key = joda::settings::ObjectsToImageSettings::Function::OR, .label = "OR", .icon = generateIcon("ampersand")},
+                           {.key = joda::settings::ObjectsToImageSettings::Function::XOR, .label = "XOR", .icon = generateIcon("ampersand")}});
     mFunction->setValue(settings.function);
     mFunction->connectWithSetting(&settings.function);
     connect(mFunction.get(), &SettingBase::valueChanged, [this]() {
-      if(mFunction->getValue() != joda::settings::ObjectMathSettings::Function::NOT) {
+      if(mFunction->getValue() != joda::settings::ObjectsToImageSettings::Function::NOT &&
+         mFunction->getValue() != joda::settings::ObjectsToImageSettings::Function::NONE) {
         mInoutSecond->getEditableWidget()->setVisible(true);
       } else {
         mInoutSecond->getEditableWidget()->setVisible(false);
@@ -78,7 +80,7 @@ private:
   QWidget *mParent;
 
   /////////////////////////////////////////////////////
-  std::unique_ptr<SettingComboBox<joda::settings::ObjectMathSettings::Function>> mFunction;
+  std::unique_ptr<SettingComboBox<joda::settings::ObjectsToImageSettings::Function>> mFunction;
   std::unique_ptr<SettingComboBoxClassificationIn> mInputFirst;
   std::unique_ptr<SettingComboBoxClassificationIn> mInoutSecond;
 

@@ -24,11 +24,12 @@
 
 namespace joda::settings {
 
-struct ObjectMathSettings : public SettingBase
+struct ObjectsToImageSettings : public SettingBase
 {
   enum class Function
   {
     UNKNOWN,
+    NONE,
     NOT,
     AND,
     OR,
@@ -54,10 +55,10 @@ struct ObjectMathSettings : public SettingBase
   /////////////////////////////////////////////////////
   void check() const
   {
-    if(function != Function::NOT) {
+    if(function != Function::NOT && function != Function::NONE) {
       CHECK_ERROR(inputObjectSecond.clusterId != joda::enums::ClusterIdIn::UNDEFINED &&
                       inputObjectSecond.classId != joda::enums::ClassIdIn::UNDEFINED,
-                  "Object math needs a second operand!");
+                  "Object to image needs a second operand!");
     }
   }
 
@@ -66,7 +67,7 @@ struct ObjectMathSettings : public SettingBase
     settings::ObjectInputClusters clusters;
     clusters.emplace(inputObjectFirst);
 
-    if(function != Function::NOT) {
+    if(function != Function::NOT && function != Function::NONE) {
       clusters.emplace(inputObjectSecond);
     }
 
@@ -79,15 +80,16 @@ struct ObjectMathSettings : public SettingBase
     return out;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectMathSettings, function, inputObjectFirst, inputObjectSecond);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectsToImageSettings, function, inputObjectFirst, inputObjectSecond);
 };
 
-NLOHMANN_JSON_SERIALIZE_ENUM(ObjectMathSettings::Function, {
-                                                               {ObjectMathSettings::Function::NOT, "NOT"},
-                                                               {ObjectMathSettings::Function::AND, "AND"},
-                                                               {ObjectMathSettings::Function::AND_NOT, "AND-NOT"},
-                                                               {ObjectMathSettings::Function::OR, "OR"},
-                                                               {ObjectMathSettings::Function::XOR, "XOR"},
-                                                           });
+NLOHMANN_JSON_SERIALIZE_ENUM(ObjectsToImageSettings::Function, {
+                                                                   {ObjectsToImageSettings::Function::NONE, "NONE"},
+                                                                   {ObjectsToImageSettings::Function::NOT, "NOT"},
+                                                                   {ObjectsToImageSettings::Function::AND, "AND"},
+                                                                   {ObjectsToImageSettings::Function::AND_NOT, "AND-NOT"},
+                                                                   {ObjectsToImageSettings::Function::OR, "OR"},
+                                                                   {ObjectsToImageSettings::Function::XOR, "XOR"},
+                                                               });
 
 }    // namespace joda::settings

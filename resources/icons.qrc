@@ -14,6 +14,7 @@
     <file>icons/icons8-accept-48.png</file>
     <file>icons/icons8-oval-48.png</file>
     <file>icons/icons8-brightness-48.png</file>
+    <file>icons/icons8-black-and-white-24.png</file>
     <file>icons/icons8-pin-16.png</file>
     <file>icons/icons8-square-number-48.png</file>
     <file>icons/icons8-voronoi-48.png</file>
@@ -31,9 +32,11 @@
     <file>icons/icons8-project-management-24.png</file>
     <file>icons/icons8-image-96.png</file>
     <file>icons/icons8-color-16.png</file>
+    <file>icons/icons8-resize-48.png</file>
     <file>icons/icons8-file-24.png</file>
     <file>icons/icons8-no-filling-48.png</file>
     <file>icons/icons8-eight-48.png</file>
+    <file>icons/icons8-black-and-white-96.png</file>
     <file>icons/icons8-contrast-96.png</file>
     <file>icons/icons8-stacked-organizational-chart-16.png</file>
     <file>icons/icons8-light-96.png</file>
@@ -99,6 +102,7 @@
     <file>icons/icons8-screenshot-96.png</file>
     <file>icons/icons8-number-16.png</file>
     <file>icons/icons8-select-column-24.png</file>
+    <file>icons/icons8-black-and-white-16.png</file>
     <file>icons/icons8-repeat-96.png</file>
     <file>icons/icons8-project-setup-16.png</file>
     <file>icons/icons8-excel-24.png</file>
@@ -374,6 +378,7 @@
     <file>icons/icons8-edit-column-24.png</file>
     <file>icons/icons8-hand-24.png</file>
     <file>icons/icons8-creative-commons-zero-96.png</file>
+    <file>icons/icons8-black-and-white-48.png</file>
     <file>icons/icons8-favorite-16.png</file>
     <file>icons/icons8-layer-16.png</file>
     <file>icons/icons8-delete-column-96.png</file>
@@ -492,6 +497,7 @@
     <file>icons/icons8-initial-state-96.png</file>
     <file>icons/icons8-2-48.png</file>
     <file>icons/icons8-frames-96.png</file>
+    <file>icons/icons8-resize-96.png</file>
     <file>icons/icons8-unavailable-24.png</file>
     <file>icons/icons8-info-blue-16.png</file>
     <file>icons/icons8-browse-page-24.png</file>
@@ -560,6 +566,7 @@
     <file>icons/icons8-crop-96.png</file>
     <file>icons/icons8-help-24.png</file>
     <file>icons/icons8-preview-16.png</file>
+    <file>icons/icons8-resize-16.png</file>
     <file>icons/icons8-no-idea-48.png</file>
     <file>icons/icons8-radius-48.png</file>
     <file>icons/icons8-sort-by-price-16.png</file>
@@ -590,6 +597,7 @@
     <file>icons/icons8-pin-48.png</file>
     <file>icons/icons8-no-filling-16.png</file>
     <file>icons/icons8-open-lock-16.png</file>
+    <file>icons/icons8-resize-24.png</file>
     <file>icons/icons8-sigma-48.png</file>
     <file>icons/icons8-average-math-24.png</file>
     <file>icons/icons8-average-math-48.png</file>
