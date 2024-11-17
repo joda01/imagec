@@ -63,6 +63,12 @@ public:
                            {.key = joda::settings::ObjectsToImageSettings::Function::XOR, .label = "XOR", .icon = generateIcon("ampersand")}});
     mFunction->setValue(settings.function);
     mFunction->connectWithSetting(&settings.function);
+    if(mFunction->getValue() != joda::settings::ObjectsToImageSettings::Function::NOT &&
+       mFunction->getValue() != joda::settings::ObjectsToImageSettings::Function::NONE) {
+      mInoutSecond->getEditableWidget()->setVisible(true);
+    } else {
+      mInoutSecond->getEditableWidget()->setVisible(false);
+    }
     connect(mFunction.get(), &SettingBase::valueChanged, [this]() {
       if(mFunction->getValue() != joda::settings::ObjectsToImageSettings::Function::NOT &&
          mFunction->getValue() != joda::settings::ObjectsToImageSettings::Function::NONE) {
