@@ -62,7 +62,7 @@ struct ObjectsToImageSettings : public SettingBase
     }
   }
 
-  settings::ObjectInputClusters getInputClusters() const override
+  settings::ObjectInputClusters getInputClustersAndClasses() const override
   {
     settings::ObjectInputClusters clusters;
     clusters.emplace(inputObjectFirst);
@@ -74,7 +74,7 @@ struct ObjectsToImageSettings : public SettingBase
     return clusters;
   }
 
-  [[nodiscard]] ObjectOutputClusters getOutputClasses() const override
+  [[nodiscard]] ObjectOutputClusters getOutputClustersAndClasses() const override
   {
     ObjectOutputClusters out;
     return out;

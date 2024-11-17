@@ -500,7 +500,7 @@ void WindowMain::checkForSettingsChanged()
     // Not equal
     mSaveProject->setEnabled(true);
     /// \todo check if all updates still work
-    auto actClasses = getOutputClasses();
+    auto actClasses = getOutputClustersAndClasses();
 
     if(actClasses != mOutPutClustersOld) {
       mOutPutClustersOld = actClasses;
@@ -846,12 +846,12 @@ QString WindowMain::bytesToString(int64_t bytes)
 /// \author     Joachim Danmayr
 /// \return
 ///
-auto WindowMain::getOutputClasses() -> std::set<settings::ClassificatorSettingOut>
+auto WindowMain::getOutputClustersAndClasses() -> std::set<settings::ClassificatorSettingOut>
 {
   if(mActAnalyzeSettings != nullptr) {
-    return mActAnalyzeSettings->getOutputClasses();
+    return mActAnalyzeSettings->getOutputClustersAndClasses();
   }
-  return mAnalyzeSettings.getOutputClasses();
+  return mAnalyzeSettings.getOutputClustersAndClasses();
 }
 
 }    // namespace joda::ui

@@ -48,7 +48,7 @@ struct MeasureSettings : public SettingBase
     CHECK_ERROR(!planesIn.empty(), "At least one image plane must be given for measurement.");
   }
 
-  settings::ObjectInputClusters getInputClusters() const override
+  settings::ObjectInputClusters getInputClustersAndClasses() const override
   {
     settings::ObjectInputClusters clusters;
     for(const auto &in : inputClusters) {

@@ -15,7 +15,6 @@
 #include <map>
 #include <set>
 #include <vector>
-#include "graph.hpp"
 
 namespace joda::settings {
 class AnalyzeSettings;
@@ -23,6 +22,40 @@ class Pipeline;
 }    // namespace joda::settings
 
 namespace joda::processor {
+
+class Node
+{
+public:
+  /////////////////////////////////////////////////////
+  Node(const settings::Pipeline *me) : pipeline(me)
+  {
+  }
+  void addDependency(const settings::Pipeline *dep)
+  {
+    pipelinesProvidingMyDeps.emplace(dep);
+  }
+  bool isRootNode() const;
+  const settings::Pipeline *getPipeline() const
+  {
+    return pipeline;
+  }
+  void removePipeline(const std::set<const settings::Pipeline *> &pip)
+  {
+    for(const settings::Pipeline *toRemove : pip) {
+      pipelinesProvidingMyDeps.erase(toRemove);
+    }
+  }
+
+  auto getDeps() const -> std::set<const settings::Pipeline *>
+  {
+    return pipelinesProvidingMyDeps;
+  }
+
+private:
+  /////////////////////////////////////////////////////
+  const settings::Pipeline *pipeline;
+  std::set<const settings::Pipeline *> pipelinesProvidingMyDeps;
+};
 
 using PipelineOrder_t = std::map<int, std::set<const settings::Pipeline *>>;
 using Graph_t         = std::vector<Node>;
@@ -37,7 +70,7 @@ using Graph_t         = std::vector<Node>;
 class DependencyGraph
 {
 public:
-  static auto calcGraph(const joda::settings::AnalyzeSettings &) -> std::pair<PipelineOrder_t, Graph_t>;
+  static auto calcGraph(const joda::settings::AnalyzeSettings &, const settings::Pipeline *calcGRaphFor = nullptr) -> PipelineOrder_t;
   static void printOrder(const PipelineOrder_t &order);
 };
 

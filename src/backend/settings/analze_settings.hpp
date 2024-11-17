@@ -44,7 +44,7 @@ public:
     return configSchema;
   }
 
-  std::set<ClassificatorSettingOut> getOutputClasses() const;
+  std::set<ClassificatorSettingOut> getOutputClustersAndClasses() const;
   std::set<ClassificatorSettingOut> getInputClasses() const;
 
   auto checkForErrors() const -> std::vector<std::pair<std::string, SettingParserLog_t>>;

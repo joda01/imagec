@@ -75,8 +75,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
     int poolSizeTiles    = threadingSettings.cores.at(joda::thread::ThreadingSettings::TILES);
 
     // Resolve dependencies
-    auto [pipelineOrderO, _] = joda::processor::DependencyGraph::calcGraph(program);
-    auto pipelineOrder       = pipelineOrderO;
+    auto pipelineOrder = joda::processor::DependencyGraph::calcGraph(program);
 
     // Prepare the context
     GlobalContext globalContext;
@@ -302,16 +301,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
   //  Resolve dependencies
   //  We only want to execute those pipelines which are needed for the preview
   //
-  auto [pipelineOrder, dependencyGraph] = joda::processor::DependencyGraph::calcGraph(program);
-  std::set<const settings::Pipeline *> deps;
-  for(const auto &node : dependencyGraph) {
-    auto parent = node.findParents(&pipelineStart);
-    for(const auto &ele : parent) {
-      deps.emplace(ele.pipeline());
-      node.printTree();
-    }
-  }
-  deps.emplace(&pipelineStart);
+  auto pipelineOrder = joda::processor::DependencyGraph::calcGraph(program, &pipelineStart);
 
   //
   // Generate preview in a thread
@@ -339,13 +329,17 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
 
   IterationContext iterationContext;
 
+  int32_t totalRuns = 0;
+  for(const auto &[order, pipelines] : pipelineOrder) {
+    for(const auto &pipeline : pipelines) {
+      totalRuns++;
+    }
+  }
+
   int executedSteps = 0;
   int colorIdx      = 0;
   for(const auto &[order, pipelines] : pipelineOrder) {
     for(const auto &pipeline : pipelines) {
-      if(!deps.contains(pipeline)) {
-        continue;
-      }
       executedSteps++;
       //
       // Load the image imagePlane
@@ -369,7 +363,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
       //
       // The last step is the wanted pipeline
       //
-      if(executedSteps >= deps.size()) {
+      if(executedSteps >= totalRuns) {
         //
         // Count elements
         //

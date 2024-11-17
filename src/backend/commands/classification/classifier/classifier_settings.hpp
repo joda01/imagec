@@ -37,7 +37,7 @@ struct ClassifierSettings : public SettingBase
     CHECK_ERROR(!modelClasses.empty(), "At least one classifier must be given!");
   }
 
-  [[nodiscard]] ObjectOutputClusters getOutputClasses() const override
+  [[nodiscard]] ObjectOutputClusters getOutputClustersAndClasses() const override
   {
     ObjectOutputClusters out;
     for(const auto &clas : modelClasses) {

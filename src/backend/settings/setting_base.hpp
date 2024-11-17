@@ -28,12 +28,12 @@ class SettingBase
 {
 public:
   SettingBase() = default;
-  [[nodiscard]] virtual ObjectInputClusters getInputClusters() const
+  [[nodiscard]] virtual ObjectInputClusters getInputClustersAndClasses() const
   {
     return {};
   }
 
-  [[nodiscard]] virtual ObjectOutputClusters getOutputClasses() const
+  [[nodiscard]] virtual ObjectOutputClusters getOutputClustersAndClasses() const
   {
     return {};
   }

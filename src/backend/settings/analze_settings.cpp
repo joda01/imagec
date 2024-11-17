@@ -34,11 +34,11 @@ void AnalyzeSettings::check() const
 /// \param[out]
 /// \return
 ///
-std::set<ClassificatorSettingOut> AnalyzeSettings::getOutputClasses() const
+std::set<ClassificatorSettingOut> AnalyzeSettings::getOutputClustersAndClasses() const
 {
   std::set<ClassificatorSettingOut> out;
   for(const auto &pipeline : pipelines) {
-    auto cluster = pipeline.getOutputClasses();
+    auto cluster = pipeline.getOutputClustersAndClasses();
     for(const auto &outClassesOfPipeline : cluster) {
       out.emplace(outClassesOfPipeline);
     }
@@ -58,7 +58,7 @@ std::set<ClassificatorSettingOut> AnalyzeSettings::getInputClasses() const
 {
   std::set<ClassificatorSettingOut> out;
   for(const auto &pipeline : pipelines) {
-    auto cluster = pipeline.getInputClusters();
+    auto cluster = pipeline.getInputClustersAndClasses();
     for(const auto &outClassesOfPipeline : cluster) {
       out.emplace(outClassesOfPipeline);
     }
@@ -105,7 +105,7 @@ auto AnalyzeSettings::checkForErrors() const -> std::vector<std::pair<std::strin
 
   // Check for unused output classes
   {
-    auto outputClasses = getOutputClasses();
+    auto outputClasses = getOutputClustersAndClasses();
     auto inputClasses  = getInputClasses();
     for(const auto &outputClass : outputClasses) {
       if(!inputClasses.contains(outputClass)) {

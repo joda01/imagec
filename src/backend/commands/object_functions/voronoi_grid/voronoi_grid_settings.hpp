@@ -63,7 +63,7 @@ public:
   {
   }
 
-  settings::ObjectInputClusters getInputClusters() const override
+  settings::ObjectInputClusters getInputClustersAndClasses() const override
   {
     settings::ObjectInputClusters clusters;
     for(const auto &in : inputClustersPoints) {
@@ -76,14 +76,13 @@ public:
     return clusters;
   }
 
-  [[nodiscard]] ObjectOutputClusters getOutputClasses() const override
+  [[nodiscard]] ObjectOutputClusters getOutputClustersAndClasses() const override
   {
     return {outputClustersVoronoi};
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(VoronoiGridSettings, inputClustersPoints, outputClustersVoronoi,
-                                                       inputClustersMask, excludeAreasWithoutPoint,
-                                                       excludeAreasAtTheEdge, maxRadius, minAreaSize, maxAreaSize);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(VoronoiGridSettings, inputClustersPoints, outputClustersVoronoi, inputClustersMask,
+                                                       excludeAreasWithoutPoint, excludeAreasAtTheEdge, maxRadius, minAreaSize, maxAreaSize);
 };
 
 }    // namespace joda::settings

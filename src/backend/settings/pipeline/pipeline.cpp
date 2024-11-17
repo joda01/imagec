@@ -22,12 +22,12 @@ namespace joda::settings {
 /// \brief      Returns the input clusters this pipeline is using
 /// \author     Joachim Danmayr
 ///
-ObjectInputClustersExp Pipeline::getInputClusters() const
+ObjectInputClustersExp Pipeline::getInputClustersAndClasses() const
 {
   ObjectInputClustersExp clusters;
   for(const auto &pipelineStep : pipelineSteps) {
     auto command            = PipelineFactory<joda::cmd::Command>::generate(pipelineStep);
-    const auto &clustersCmd = command->getInputClusters();
+    const auto &clustersCmd = command->getInputClustersAndClasses();
     for(const auto &clusterId : clustersCmd) {
       auto clusterIdToSet = static_cast<joda::enums::ClusterId>(clusterId.clusterId);
       auto classIdToSet   = static_cast<joda::enums::ClassId>(clusterId.classId);
@@ -50,7 +50,7 @@ ObjectInputClustersExp Pipeline::getInputClusters() const
 /// \brief      Returns the cluster ID this pipeline is storing the results in
 /// \author     Joachim Danmayr
 ///
-ObjectOutputClustersExp Pipeline::getOutputClasses() const
+ObjectOutputClustersExp Pipeline::getOutputClustersAndClasses() const
 {
   ObjectOutputClustersExp clusters;
   for(const auto &pipelineStep : pipelineSteps) {
@@ -58,7 +58,7 @@ ObjectOutputClustersExp Pipeline::getOutputClasses() const
     if(command == nullptr) {
       continue;
     }
-    const auto &clustersCmd = command->getOutputClasses();
+    const auto &clustersCmd = command->getOutputClustersAndClasses();
     for(const auto &cluster : clustersCmd) {
       auto clusterIdToSet = static_cast<joda::enums::ClusterId>(cluster.clusterId);
       auto classIdToSet   = static_cast<joda::enums::ClassId>(cluster.classId);
