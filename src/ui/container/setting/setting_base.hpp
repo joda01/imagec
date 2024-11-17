@@ -69,6 +69,7 @@ public:
 
   QWidget *getDisplayLabelWidget();
   QWidget *getEditableWidget();
+  QWidget *getInputObject();
 
   [[nodiscard]] QString getDisplayLabelText() const;
   virtual void reset() = 0;
@@ -114,6 +115,7 @@ private:
   /////////////////////////////////////////////////////
   WindowMain *mParent = nullptr;
   QIcon mIcon;
+  QWidget *mInputObject     = nullptr;
   QWidget *mEditable        = nullptr;
   QWidget *mDisplayable     = nullptr;
   QLabel *mDisplayLabel     = nullptr;

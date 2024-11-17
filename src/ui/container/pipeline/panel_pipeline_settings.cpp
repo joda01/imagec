@@ -106,7 +106,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 
   {
     auto *col4    = tab->addVerticalPanel();
-    mPreviewImage = new PanelPreview(PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, this);
+    mPreviewImage = new PanelPreview(PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, mWindowMain);
     mPreviewImage->setContentsMargins(0, 0, 0, 0);
     mPreviewImage->resetImage("");
     col4->addWidget(mPreviewImage);
@@ -417,6 +417,7 @@ void PanelPipelineSettings::updatePreview()
   settings::AnalyzeSettings settingsTmp = mWindowMain->getSettings();
 
   auto previewSize                                    = mPreviewImage->getPreviewSize();
+  auto clustersClassesToShow                          = mPreviewImage->getSelectedClustersAndClasses();
   settingsTmp.imageSetup.imageTileSettings.tileWidth  = previewSize;
   settingsTmp.imageSetup.imageTileSettings.tileHeight = previewSize;
   if(mLastSelectedPreviewSize != previewSize) {
@@ -425,16 +426,15 @@ void PanelPipelineSettings::updatePreview()
     mSelectedTileY           = 0;
   }
 
-  PreviewJob job{.settings           = settingsTmp,
-                 .controller         = mWindowMain->getController(),
-                 .previewPanel       = mPreviewImage,
-                 .selectedImage      = mWindowMain->getImagePanel()->getSelectedImage(),
-                 .pipelinePos        = cnt,
-                 .selectedTileX      = mSelectedTileX,
-                 .selectedTileY      = mSelectedTileY,
-                 .clustersAndClasses = mWindowMain->getPanelClassification()->getClustersAndClasses()
-
-  };
+  PreviewJob job{.settings              = settingsTmp,
+                 .controller            = mWindowMain->getController(),
+                 .previewPanel          = mPreviewImage,
+                 .selectedImage         = mWindowMain->getImagePanel()->getSelectedImage(),
+                 .pipelinePos           = cnt,
+                 .selectedTileX         = mSelectedTileX,
+                 .selectedTileY         = mSelectedTileY,
+                 .clustersAndClasses    = mWindowMain->getPanelClassification()->getClustersAndClasses(),
+                 .clustersClassesToShow = clustersClassesToShow};
 
   std::lock_guard<std::mutex> lock(mCheckForEmptyMutex);
   mPreviewQue.push(job);
@@ -503,7 +503,7 @@ void PanelPipelineSettings::previewThread()
             }
 
             jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, *myPipeline, imgIndex, jobToDo.selectedTileX,
-                                        jobToDo.selectedTileY, previewResult, imgProps);
+                                        jobToDo.selectedTileY, previewResult, imgProps, jobToDo.clustersClassesToShow);
             // Create a QByteArray from the char array
             QString info             = "<html>";
             auto [clusters, classes] = jobToDo.clustersAndClasses;

@@ -125,6 +125,7 @@ private:
     int32_t selectedTileX = 0;
     int32_t selectedTileY = 0;
     std::tuple<std::map<enums::ClusterIdIn, QString>, std::map<enums::ClassIdIn, QString>> clustersAndClasses;
+    settings::ObjectInputClusters clustersClassesToShow;
   };
 
   bool mStopped = false;

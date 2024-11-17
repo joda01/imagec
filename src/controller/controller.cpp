@@ -215,7 +215,8 @@ void Controller::registerImageLookupCallback(const std::function<void(joda::file
 
 void Controller::preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
                          const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline, const std::filesystem::path &imagePath,
-                         int32_t tileX, int32_t tileY, Preview &previewOut, const joda::ome::OmeInfo &ome)
+                         int32_t tileX, int32_t tileY, Preview &previewOut, const joda::ome::OmeInfo &ome,
+                         const settings::ObjectInputClusters &clustersClassesToShow)
 {
   static std::filesystem::path lastImagePath;
   bool generateThumb = false;
@@ -225,8 +226,8 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
   }
 
   processor::Processor process;
-  auto [originalImg, previewImage, thumb, foundObjects] =
-      process.generatePreview(previewSettings, imageSetup, settings, pipeline, imagePath, 0, 0, tileX, tileY, generateThumb, ome);
+  auto [originalImg, previewImage, thumb, foundObjects] = process.generatePreview(previewSettings, imageSetup, settings, pipeline, imagePath, 0, 0,
+                                                                                  tileX, tileY, generateThumb, ome, clustersClassesToShow);
   previewOut.originalImage.setImage(std::move(originalImg));
   previewOut.previewImage.setImage(std::move(previewImage));
   if(generateThumb) {

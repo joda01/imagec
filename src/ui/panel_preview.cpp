@@ -24,7 +24,11 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_clusters.hpp"
+#include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
 #include "ui/helper/icon_generator.hpp"
+#include "ui/window_main/window_main.hpp"
 
 namespace joda::ui {
 
@@ -32,8 +36,9 @@ namespace joda::ui {
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-PanelPreview::PanelPreview(int width, int height, QWidget *parent) :
-    mImageViewer(parent), mPreviewLabel(mImageViewer.getPreviewObject().previewImage, mImageViewer.getPreviewObject().thumbnail, true)
+PanelPreview::PanelPreview(int width, int height, WindowMain *parent) :
+    mParent(parent), mImageViewer(parent),
+    mPreviewLabel(mImageViewer.getPreviewObject().previewImage, mImageViewer.getPreviewObject().thumbnail, true)
 {
   mPreviewLabel.setMinimumWidth(width);
   mPreviewLabel.setMinimumHeight(height);
@@ -111,6 +116,15 @@ QWidget *PanelPreview::createToolBar()
   layout->addWidget(filled);
 
   //
+  // Preview classes
+  //
+  mClustersClassesToShow = SettingBase::create<SettingComboBoxMultiClassificationIn>(mParent, generateIcon("circle"), "Classes to paint");
+  mClustersClassesToShow->getInputObject()->setMaximumWidth(175);
+  mClustersClassesToShow->getInputObject()->setMinimumWidth(175);
+  mClustersClassesToShow->setValue(settings::ObjectInputClusters{{enums::ClusterIdIn::$, enums::ClassIdIn::$}});
+  layout->addWidget(mClustersClassesToShow->getInputObject());
+
+  //
   // Preview size
   //
   mPreviewSize = new QComboBox();
@@ -123,8 +137,10 @@ QWidget *PanelPreview::createToolBar()
   mPreviewSize->addItem("128x128", static_cast<int32_t>(128));
   mPreviewSize->addItem("64x64", static_cast<int32_t>(64));
   mPreviewSize->setCurrentIndex(mPreviewSize->findData(2048));
-  connect(mPreviewSize, &QComboBox::currentIndexChanged, this, &PanelPreview::onSettingChanged);
   layout->addWidget(mPreviewSize);
+
+  connect(mPreviewSize, &QComboBox::currentIndexChanged, this, &PanelPreview::onSettingChanged);
+  connect(mClustersClassesToShow.get(), &SettingBase::valueChanged, this, &PanelPreview::onSettingChanged);
 
   layout->addStretch();
 

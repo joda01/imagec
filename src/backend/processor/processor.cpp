@@ -293,7 +293,7 @@ void Processor::listImages(const joda::settings::AnalyzeSettings &program, image
 auto Processor::generatePreview(const PreviewSettings &previewSettings, const settings::ProjectImageSetup &imageSetup,
                                 const settings::AnalyzeSettings &program, const settings::Pipeline &pipelineStart,
                                 const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX, int32_t tileY,
-                                bool generateThumb, const ome::OmeInfo &ome)
+                                bool generateThumb, const ome::OmeInfo &ome, const settings::ObjectInputClusters &clustersClassesToShow)
     -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<settings::ClassificatorSetting, PreviewReturn>>
 {
   auto ii = DurationCount::start("Generate preview");
@@ -369,19 +369,53 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
       //
       // The last step is the wanted pipeline
       //
-      std::map<settings::ClassificatorSetting, std::string> colors;
       if(executedSteps >= deps.size()) {
+        //
+        // Count elements
+        //
+        std::map<settings::ClassificatorSetting, PreviewReturn> foundObjects;
+        // auto cluster = pipelineStart.getOutputCluster();
+        {
+          for(auto const &[cluster, objects] : context.getActObjects()) {
+            for(const auto &roi : *objects) {
+              settings::ClassificatorSetting key{static_cast<enums::ClusterIdIn>(cluster), static_cast<enums::ClassIdIn>(roi.getClassId())};
+              if(!foundObjects.contains(key)) {
+                foundObjects[key].count       = 0;
+                foundObjects[key].color       = "#000000";
+                foundObjects[key].wantedColor = settings::IMAGE_SAVER_COLORS[colorIdx % settings::IMAGE_SAVER_COLORS.size()];
+                colorIdx++;
+              }
+              foundObjects[key].count++;
+            }
+          }
+        }
+
+        //
+        // Generate preview image
+        //
         joda::settings::ImageSaverSettings saverSettings;
-        for(int cluster = 0; cluster < 10; cluster++) {
-          for(int classs = 0; classs < 10; classs++) {
-            auto color = settings::IMAGE_SAVER_COLORS[colorIdx % settings::IMAGE_SAVER_COLORS.size()];
-            colors.emplace(settings::ClassificatorSetting{static_cast<enums::ClusterIdIn>(cluster), static_cast<enums::ClassIdIn>(classs)}, color);
-            saverSettings.clustersIn.emplace_back(settings::ImageSaverSettings::SaveCluster{
-                .inputCluster     = {static_cast<enums::ClusterIdIn>(cluster), static_cast<enums::ClassIdIn>(classs)},
-                .color            = color,
-                .style            = previewSettings.style,
-                .paintBoundingBox = false});
-            colorIdx++;
+        saverSettings.clustersIn.clear();
+        for(const auto &clusterClass : clustersClassesToShow) {
+          auto cluster = clusterClass.clusterId;
+          std::cout << "Clutseras and classes to show" << std::endl;
+          auto classs = clusterClass.classId;
+          if(cluster == enums::ClusterIdIn::$) {
+            cluster = static_cast<enums::ClusterIdIn>(pipelineStart.pipelineSetup.defaultClusterId);
+          }
+
+          if(classs == enums::ClassIdIn::$) {
+            classs = static_cast<enums::ClassIdIn>(pipelineStart.pipelineSetup.defaultClassId);
+          }
+
+          auto key = settings::ClassificatorSetting{cluster, classs};
+          if(foundObjects.contains(key)) {
+            // Objects which are selected should be painted in color in the legend, not selected are black
+            foundObjects[key].color = foundObjects.at(key).wantedColor;
+
+            saverSettings.clustersIn.emplace_back(settings::ImageSaverSettings::SaveCluster{.inputCluster     = {cluster, classs},
+                                                                                            .color            = foundObjects.at(key).wantedColor,
+                                                                                            .style            = previewSettings.style,
+                                                                                            .paintBoundingBox = false});
           }
         }
 
@@ -391,25 +425,6 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         auto step                = settings::PipelineStep{.$saveImage = saverSettings};
         auto saver               = joda::settings::PipelineFactory<joda::cmd::Command>::generate(step);
         saver->execute(context, context.getActImage().image, context.getActObjects());
-
-        //
-        // Count elements
-        //
-        std::map<settings::ClassificatorSetting, PreviewReturn> foundObjects;
-        // auto cluster = pipelineStart.getOutputCluster();
-        for(auto const &[cluster, objects] : context.getActObjects()) {
-          for(const auto &roi : *objects) {
-            settings::ClassificatorSetting key{static_cast<enums::ClusterIdIn>(cluster), static_cast<enums::ClassIdIn>(roi.getClassId())};
-
-            if(!foundObjects.contains(key)) {
-              foundObjects[key].count = 0;
-              if(colors.contains(key)) {
-                foundObjects[key].color = colors[key];
-              }
-            }
-            foundObjects[key].count++;
-          }
-        }
 
         thumbThread.join();
         DurationCount::stop(ii);

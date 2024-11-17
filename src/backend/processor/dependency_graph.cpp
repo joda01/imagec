@@ -111,13 +111,15 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings)
     }
   }
   // Print result
-  /* {
+  std::cout << "----------------" << std::endl;
+  {
     for(auto &rootNode : rootNodes) {
       rootNode.printTree();
     }
 
     printOrder(finishedOrder);
-   }*/
+  }
+  std::cout << "----------------" << std::endl;
 
   return {finishedOrder, rootNodes};
 }

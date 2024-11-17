@@ -141,6 +141,18 @@ QWidget *SettingBase::getEditableWidget()
 /// \param[out]
 /// \return
 ///
+QWidget *SettingBase::getInputObject()
+{
+  return mInputObject;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void SettingBase::triggerValueChanged(const QString &newValue, const QIcon &icon)
 {
   mDisplayValue = newValue;
@@ -239,8 +251,8 @@ void SettingBase::createEditableWidget()
 {
   mEditable = new QWidget();
   mEditable->setContentsMargins(0, 0, 0, 0);
-  auto *inputObject = createInputObject();
-  inputObject->setObjectName("panelFunction");
+  mInputObject = createInputObject();
+  mInputObject->setObjectName("panelFunction");
   QVBoxLayout *layoutVertical = new QVBoxLayout();
   layoutVertical->setContentsMargins(0, 0, 0, 0);
   layoutVertical->setSpacing(0);
@@ -249,7 +261,7 @@ void SettingBase::createEditableWidget()
   QHBoxLayout *layoutHorizontal = new QHBoxLayout();
   layoutHorizontal->setContentsMargins(0, 0, 0, 0);
   layoutHorizontal->setSpacing(4);
-  layoutHorizontal->addWidget(inputObject);
+  layoutHorizontal->addWidget(mInputObject);
 
   // if(!optionsSecond.empty()) {
   //   layoutHorizontal->addWidget(createSecondCombo(optionsSecond));
