@@ -7,11 +7,21 @@
 
 int main(int argc, char *argv[])
 {
+  auto systemRecourses = joda::system::acquire();
+
+  int32_t totalRam       = std::ceil(static_cast<float>(systemRecourses.ramTotal) / 1000000.0f);
+  int32_t availableRam   = std::ceil(static_cast<float>(systemRecourses.ramAvailable) / 1000000.0f);
+  int32_t jvmReservedRam = std::ceil(static_cast<float>(systemRecourses.ramReservedForJVM) / 1000000.0f);
+
+  joda::log::logTrace("Total available RAM " + std::to_string(totalRam) + " MB.");
+  joda::log::logTrace("Available RAM " + std::to_string(availableRam) + " MB.");
+  joda::log::logTrace("JVM reserved RAM " + std::to_string(jvmReservedRam) + " MB.");
+
   //
   // Init
   //
   Version::initVersion(std::string(argv[0]));
-  joda::image::reader::ImageReader::init();
+  joda::image::reader::ImageReader::init(systemRecourses.ramReservedForJVM);
 
 #ifdef _WIN32
 #elif defined(__APPLE__)

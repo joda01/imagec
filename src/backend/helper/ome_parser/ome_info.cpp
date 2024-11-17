@@ -196,15 +196,16 @@ TRY_AGAIN:
       int32_t rgbChannelCpunt = pyramid.attribute("RGBChannelCount").as_int();
       int32_t isInterleaved   = pyramid.attribute("IsInterleaved").as_int();
 
-      actImageInfo.resolutions.emplace(idx, ImageInfo::Pyramid{.bits                   = bits,
-                                                               .rgbChannelCount        = rgbChannelCpunt,
-                                                               .imageMemoryUsage       = static_cast<int64_t>(width) * height * (bits / 8),
-                                                               .imageWidth             = width,
-                                                               .imageHeight            = height,
-                                                               .optimalTileMemoryUsage = static_cast<int64_t>(tileWidth) * tileHeight * (bits / 8),
-                                                               .optimalTileWidth       = tileWidth,
-                                                               .optimalTileHeight      = tileHeight,
-                                                               .isInterleaved          = isInterleaved != 0});
+      actImageInfo.resolutions.emplace(
+          idx, ImageInfo::Pyramid{.bits                   = bits,
+                                  .rgbChannelCount        = rgbChannelCpunt,
+                                  .imageMemoryUsage       = static_cast<int64_t>(width) * height * rgbChannelCpunt * (bits / 8),
+                                  .imageWidth             = width,
+                                  .imageHeight            = height,
+                                  .optimalTileMemoryUsage = static_cast<int64_t>(tileWidth) * tileHeight * rgbChannelCpunt * (bits / 8),
+                                  .optimalTileWidth       = tileWidth,
+                                  .optimalTileHeight      = tileHeight,
+                                  .isInterleaved          = isInterleaved != 0});
     }
   }
 }
