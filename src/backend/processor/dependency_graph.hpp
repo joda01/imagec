@@ -16,6 +16,8 @@
 #include <set>
 #include <vector>
 
+class SettingParserLog;
+
 namespace joda::settings {
 class AnalyzeSettings;
 class Pipeline;
@@ -70,7 +72,8 @@ using Graph_t         = std::vector<Node>;
 class DependencyGraph
 {
 public:
-  static auto calcGraph(const joda::settings::AnalyzeSettings &, const settings::Pipeline *calcGRaphFor = nullptr) -> PipelineOrder_t;
+  static auto calcGraph(const joda::settings::AnalyzeSettings &, const settings::Pipeline *calcGRaphFor = nullptr,
+                        std::vector<SettingParserLog> *settingParserLog = nullptr) -> PipelineOrder_t;
   static void printOrder(const PipelineOrder_t &order);
 };
 

@@ -20,6 +20,7 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
+#include "backend/settings/setting.hpp"
 
 namespace joda::processor {
 
@@ -74,8 +75,17 @@ bool Node::isRootNode() const
 /// \param[out]
 /// \return
 ///
-auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings, const settings::Pipeline *calcGraphFor) -> PipelineOrder_t
+auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings, const settings::Pipeline *calcGraphFor,
+                                std::vector<SettingParserLog> *settingParserLog) -> PipelineOrder_t
 {
+  auto writeToLog = [&](SettingParserLog::Severity severity, const std::string &pipelineName, const std::string &what) {
+    if(settingParserLog != nullptr) {
+      const auto name = std::string(pipelineName);
+      auto data       = SettingParserLog(severity, name, what);
+      settingParserLog->emplace_back(data);
+    }
+  };
+
   // List all pipelines to process
   std::set<const settings::Pipeline *> pipelinesToAttache;
   for(const auto &pipelines : settings.pipelines) {
@@ -91,14 +101,12 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
       depGraph.push_back(Node{pipelineOne});
 
       if(inputClusters.empty()) {
-        std::cout << pipelineOne->meta.name << " depends on nothing" << std::endl;
+        // This pipeline depends on nothing
       } else {
         Node &inserted = depGraph.at(depGraph.size() - 1);
-
         // Look for pipeline providing the needed input cluster/classes
         for(const auto *pipelineTwo : pipelinesToAttache) {
           std::set<settings::ClassificatorSettingOut> outputClusters = pipelineTwo->getOutputClustersAndClasses();
-
           // This pipeline depends on more than one other pipeline
           auto provided = whichOneAreProvided(inputClusters, outputClusters);
           if(!provided.empty()) {
@@ -107,16 +115,21 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
             for(const auto &element : provided) {
               inputClusters.erase(element);    // Remove deps which are still covered
             }
-            std::cout << pipelineOne->meta.name << " depends on " << pipelineTwo->meta.name << std::endl;
+            // std::cout << pipelineOne->meta.name << " depends on " << pipelineTwo->meta.name << std::endl;
           }
         }
 
         if(!inputClusters.empty()) {
-          joda::log::logError("There is an unresolved dependency in pipeline " + pipelineOne->meta.name);
+          std::string unresolved;
           for(const auto &ele : inputClusters) {
-            joda::log::logError("There is an unresolved dependency in pipeline " + std::to_string((int32_t) ele.clusterId) + "/" +
-                                std::to_string((int32_t) ele.classId));
+            unresolved += std::to_string((int32_t) ele.clusterId) + "/" + std::to_string((int32_t) ele.classId) + ",";
           }
+          if(!unresolved.empty()) {
+            unresolved.pop_back();
+          }
+
+          writeToLog(SettingParserLog::Severity::JODA_WARNING, pipelineOne->meta.name,
+                     "There is an unresolved dependency in pipeline which needs following cluster/clases but not found: [" + unresolved + "]!");
         }
       }
     }
@@ -178,8 +191,16 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
       }
     }
     depth++;
-    if(--maxRuns <= 0) {
+    if(--maxRuns < 0) {
       // Cycle detected
+      std::string pipelines;
+      for(const auto &pip : depGraph) {
+        pipelines += pip.getPipeline()->meta.name + ",";
+      }
+      if(!pipelines.empty()) {
+        pipelines.pop_back();
+      }
+      writeToLog(SettingParserLog::Severity::JODA_ERROR, "", "Cycle detected in pipelines [" + pipelines + "]");
       break;
     }
   }
