@@ -49,6 +49,7 @@ struct ReclassifySettings : public SettingBase
 
     void check() const
     {
+      /// \todo check that ouput is not equal to input
       CHECK_ERROR(!inputClustersIntersectWith.empty(), "At least one intersection class must be given!");
       CHECK_ERROR(minIntersection >= 0 && minIntersection <= 1, "Min intersection must be in range [0-1].");
     }
@@ -113,7 +114,7 @@ struct ReclassifySettings : public SettingBase
   {
     ObjectOutputClusters out;
     if(mode == Mode::RECLASSIFY_MOVE || mode == Mode::RECLASSIFY_COPY) {
-      for(const auto &in : intersection.inputClustersIntersectWith) {
+      for(const auto &in : inputClusters) {
         out.emplace(ClassificatorSetting{in.clusterId, newClassId});
       }
     }
