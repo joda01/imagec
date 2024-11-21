@@ -102,6 +102,8 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
 
       if(inputClusters.empty()) {
         // This pipeline depends on nothing
+        std::cout << pipelineOne->meta.name << " depends on nothing" << std::endl;
+
       } else {
         Node &inserted = depGraph.at(depGraph.size() - 1);
         // Look for pipeline providing the needed input cluster/classes
@@ -115,7 +117,7 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
             for(const auto &element : provided) {
               inputClusters.erase(element);    // Remove deps which are still covered
             }
-            // std::cout << pipelineOne->meta.name << " depends on " << pipelineTwo->meta.name << std::endl;
+            std::cout << pipelineOne->meta.name << " depends on " << pipelineTwo->meta.name << std::endl;
           }
         }
 
@@ -132,6 +134,8 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
                      "There is an unresolved dependency in pipeline which needs following cluster/clases but not found: [" + unresolved + "]!");
         }
       }
+
+      std::cout << "###############" << std::endl;
     }
   }
 

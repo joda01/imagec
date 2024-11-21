@@ -26,7 +26,11 @@ ObjectInputClustersExp Pipeline::getInputClustersAndClasses() const
 {
   ObjectInputClustersExp clusters;
   for(const auto &pipelineStep : pipelineSteps) {
-    auto command            = PipelineFactory<joda::cmd::Command>::generate(pipelineStep);
+    auto command = PipelineFactory<joda::cmd::Command>::generate(pipelineStep);
+    if(command == nullptr) {
+      /// \todo Log warning
+      continue;
+    }
     const auto &clustersCmd = command->getInputClustersAndClasses();
     for(const auto &clusterId : clustersCmd) {
       auto clusterIdToSet = static_cast<joda::enums::ClusterId>(clusterId.clusterId);

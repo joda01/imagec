@@ -292,6 +292,7 @@ private:
       }
     }
 
+    /// \todo handle not supported commands
     return nullptr;
   }
 };
