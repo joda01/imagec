@@ -48,16 +48,16 @@ void ImageMath::execute(processor::ProcessContext &context, cv::Mat &image, atom
       cv::bitwise_xor(image, img2->image, image);
       break;
     case settings::ImageMathSettings::Function::ADD:
-      image = image + img2->image;
+      cv::add(image, img2->image, image);
       break;
     case settings::ImageMathSettings::Function::SUBTRACT:
-      image = image - img2->image;
+      cv::subtract(image, img2->image, image);
       break;
     case settings::ImageMathSettings::Function::MULTIPLY:
-      image = image * img2->image;
+      cv::multiply(image, img2->image, image);
       break;
     case settings::ImageMathSettings::Function::DIVIDE:
-      image = image / img2->image;
+      cv::divide(image, img2->image, image);
       break;
     case settings::ImageMathSettings::Function::MIN:
       cv::min(image, img2->image, image);
