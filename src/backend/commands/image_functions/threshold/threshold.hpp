@@ -67,8 +67,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  [[nodiscard]] uint16_t calcThresholdValue(const settings::ThresholdSettings::Threshold &settings,
-                                            cv::Mat &histogram) const
+  [[nodiscard]] uint16_t calcThresholdValue(const settings::ThresholdSettings::Threshold &settings, cv::Mat &histogram) const
   {
     switch(settings.mode) {
       case settings::ThresholdSettings::Mode::NONE:
@@ -100,8 +99,8 @@ private:
     return settings.thresholdMin;
   }
 
-  [[nodiscard]] virtual std::tuple<uint16_t, uint16_t>
-  autoThreshold(const settings::ThresholdSettings::Threshold &settings, const cv::Mat &srcImg) const
+  [[nodiscard]] virtual std::tuple<uint16_t, uint16_t> autoThreshold(const settings::ThresholdSettings::Threshold &settings,
+                                                                     const cv::Mat &srcImg) const
   {
     //
     // Scale image
@@ -136,7 +135,7 @@ private:
     // histogram.at<float>(0) = 0;
 
     uint16_t thresholdTempMin = settings.thresholdMin;
-    if(settings.mode != settings::ThresholdSettings::Mode::MANUAL) {
+    if(settings.mode != settings::ThresholdSettings::Mode::MANUAL && settings.mode != settings::ThresholdSettings::Mode::NONE) {
       thresholdTempMin = scaleAndSetThreshold(0, calcThresholdValue(settings, histogram) + 1, min, max);
     }
 
