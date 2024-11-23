@@ -15,6 +15,7 @@
 #include <filesystem>
 #include <memory>
 #include <stdexcept>
+#include <string>
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/system/system_resources.hpp"
@@ -73,15 +74,20 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
   int64_t tileNr       = 1;
   int64_t pipelineNr   = settings.pipelines.size();
   const auto &props    = ome.getImageInfo();
-  auto systemRecources = getSystemResources();
+  auto systemRecourses = getSystemResources();
 
   // Load image in tiles if too big
   const auto &imageInfo = ome.getImageInfo().resolutions.at(0);
-  if(imageInfo.imageWidth > settings.imageSetup.imageTileSettings.tileWidth ||
-     imageInfo.imageHeight > settings.imageSetup.imageTileSettings.tileHeight) {
+
+  bool canLoadTiles =
+      (imageInfo.optimalTileHeight <= settings.imageSetup.imageTileSettings.tileHeight && imageInfo.optimalTileWidth <= imageInfo.imageWidth);
+  if(canLoadTiles && (imageInfo.imageWidth > settings.imageSetup.imageTileSettings.tileWidth ||
+                      imageInfo.imageHeight > settings.imageSetup.imageTileSettings.tileHeight)) {
     auto [tilesX, tilesY] = imageInfo.getNrOfTiles(settings.imageSetup.imageTileSettings.tileWidth, settings.imageSetup.imageTileSettings.tileHeight);
     tileNr                = static_cast<int64_t>(tilesX) * tilesY;
-    threads.ramPerImage   = (imageInfo.bits * settings.imageSetup.imageTileSettings.tileWidth * settings.imageSetup.imageTileSettings.tileHeight) / 8;
+    threads.ramPerImage   = (imageInfo.rgbChannelCount * imageInfo.bits * settings.imageSetup.imageTileSettings.tileWidth *
+                           settings.imageSetup.imageTileSettings.tileHeight) /
+                          8;
   } else {
     tileNr              = 1;
     threads.ramPerImage = imageInfo.imageMemoryUsage;
@@ -90,9 +96,9 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
   if(threads.ramPerImage <= 0) {
     threads.ramPerImage = 1;
   }
-  threads.ramFree        = systemRecources.ramAvailable;
-  threads.ramTotal       = systemRecources.ramTotal;
-  threads.coresAvailable = systemRecources.cpus;
+  threads.ramFree        = std::min(systemRecourses.ramAvailable, systemRecourses.ramReservedForJVM);
+  threads.ramTotal       = systemRecourses.ramTotal;
+  threads.coresAvailable = systemRecourses.cpus;
 
   // No multi threading when AI is used, sinze AI is still using all cPUs
   // for(const auto &ch : settings.getChannelsVector()) {
@@ -104,11 +110,11 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
 
   // Maximum number of cores depends on the available RAM.)
   int32_t maxNumberOfCoresToAssign =
-      std::min(static_cast<uint64_t>(systemRecources.cpus), static_cast<uint64_t>(systemRecources.ramAvailable / threads.ramPerImage));
+      std::min(static_cast<uint64_t>(systemRecourses.cpus), static_cast<uint64_t>(threads.ramFree / threads.ramPerImage));
   if(maxNumberOfCoresToAssign <= 0) {
     maxNumberOfCoresToAssign = 1;
   }
-  if(maxNumberOfCoresToAssign > 1 && maxNumberOfCoresToAssign == systemRecources.cpus) {
+  if(maxNumberOfCoresToAssign > 1 && maxNumberOfCoresToAssign == systemRecourses.cpus) {
     // Don't use all CPU cores if there are more than 1
     maxNumberOfCoresToAssign--;
   }
@@ -137,6 +143,10 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
   }
 
   threads.totalRuns = imgNr * tileNr * pipelineNr;
+
+  std::cout << "Calculated threads " << std::to_string(imageInfo.optimalTileHeight) << "x" << std::to_string(imageInfo.optimalTileWidth) << " | "
+            << std::to_string((float) threads.ramPerImage / 1000000.0f) << " MB "
+            << " | " << std::to_string(threads.coresUsed) << std::endl;
 
   return threads;
 }
@@ -205,7 +215,8 @@ void Controller::registerImageLookupCallback(const std::function<void(joda::file
 
 void Controller::preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
                          const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline, const std::filesystem::path &imagePath,
-                         int32_t tileX, int32_t tileY, Preview &previewOut, const joda::ome::OmeInfo &ome)
+                         int32_t tileX, int32_t tileY, Preview &previewOut, const joda::ome::OmeInfo &ome,
+                         const settings::ObjectInputClusters &clustersClassesToShow)
 {
   static std::filesystem::path lastImagePath;
   bool generateThumb = false;
@@ -215,8 +226,8 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
   }
 
   processor::Processor process;
-  auto [originalImg, previewImage, thumb, foundObjects] =
-      process.generatePreview(previewSettings, imageSetup, settings, pipeline, imagePath, 0, 0, tileX, tileY, generateThumb, ome);
+  auto [originalImg, previewImage, thumb, foundObjects] = process.generatePreview(previewSettings, imageSetup, settings, pipeline, imagePath, 0, 0,
+                                                                                  tileX, tileY, generateThumb, ome, clustersClassesToShow);
   previewOut.originalImage.setImage(std::move(originalImg));
   previewOut.previewImage.setImage(std::move(previewImage));
   if(generateThumb) {

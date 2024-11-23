@@ -1,6 +1,7 @@
 #include "analze_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/processor/dependency_graph.hpp"
 
 namespace joda::settings {
 
@@ -34,11 +35,11 @@ void AnalyzeSettings::check() const
 /// \param[out]
 /// \return
 ///
-std::set<ClassificatorSettingOut> AnalyzeSettings::getOutputClasses() const
+std::set<ClassificatorSettingOut> AnalyzeSettings::getOutputClustersAndClasses() const
 {
   std::set<ClassificatorSettingOut> out;
   for(const auto &pipeline : pipelines) {
-    auto cluster = pipeline.getOutputClasses();
+    auto cluster = pipeline.getOutputClustersAndClasses();
     for(const auto &outClassesOfPipeline : cluster) {
       out.emplace(outClassesOfPipeline);
     }
@@ -58,7 +59,7 @@ std::set<ClassificatorSettingOut> AnalyzeSettings::getInputClasses() const
 {
   std::set<ClassificatorSettingOut> out;
   for(const auto &pipeline : pipelines) {
-    auto cluster = pipeline.getInputClusters();
+    auto cluster = pipeline.getInputClustersAndClasses();
     for(const auto &outClassesOfPipeline : cluster) {
       out.emplace(outClassesOfPipeline);
     }
@@ -105,7 +106,7 @@ auto AnalyzeSettings::checkForErrors() const -> std::vector<std::pair<std::strin
 
   // Check for unused output classes
   {
-    auto outputClasses = getOutputClasses();
+    auto outputClasses = getOutputClustersAndClasses();
     auto inputClasses  = getInputClasses();
     for(const auto &outputClass : outputClasses) {
       if(!inputClasses.contains(outputClass)) {
@@ -116,12 +117,22 @@ auto AnalyzeSettings::checkForErrors() const -> std::vector<std::pair<std::strin
     errorOrderedByPipeline.emplace_back("Image setup", joda_settings_log);
   }
 
-  // Check the pipelines
-  for(const auto &pipeline : pipelines) {
-    SettingParserLog_t errors;
-    pipeline.getErrorLogRecursive(errors);
-    errorOrderedByPipeline.emplace_back(pipeline.meta.name, errors);
+  // Check the pipeline graph for errors
+  {
+    SettingParserLog_t depGraphLog;
+    joda::processor::DependencyGraph::calcGraph(*this, nullptr, &depGraphLog);
+    errorOrderedByPipeline.emplace_back("Dependency graph", depGraphLog);
   }
+
+  // Check the pipelines
+  {
+    for(const auto &pipeline : pipelines) {
+      SettingParserLog_t errors;
+      pipeline.getErrorLogRecursive(errors);
+      errorOrderedByPipeline.emplace_back(pipeline.meta.name, errors);
+    }
+  }
+
   return errorOrderedByPipeline;
 }
 

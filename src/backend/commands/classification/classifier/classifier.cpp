@@ -65,46 +65,45 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
 
     if(contours.size() > 50000) {
       WARN("Too much particles found >" + std::to_string(contours.size()) + "<, seems to be noise.");
-    } else {
-      // Create a mask for each contour and draw bounding boxes
-      size_t i = 0;
-      for(auto &contour : contours) {
-        // Do not paint a contour for elements inside an element.
-        // In other words if there is a particle with a hole, ignore the hole.
-        // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html
-        if(hierarchy[i][3] == -1) {
-          auto boundingBox  = cv::boundingRect(contour);
-          cv::Mat mask      = cv::Mat::zeros(boundingBox.size(), CV_8UC1);
-          cv::Mat imagePart = binaryImage(boundingBox).clone();
+    }
+    // Create a mask for each contour and draw bounding boxes
+    size_t i = 0;
+    for(auto &contour : contours) {
+      // Do not paint a contour for elements inside an element.
+      // In other words if there is a particle with a hole, ignore the hole.
+      // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html
+      if(hierarchy[i][3] == -1) {
+        auto boundingBox  = cv::boundingRect(contour);
+        cv::Mat mask      = cv::Mat::zeros(boundingBox.size(), CV_8UC1);
+        cv::Mat imagePart = binaryImage(boundingBox).clone();
 
-          // Bring the contours box in the area of the bounding box
-          for(auto &point : contour) {
-            point.x = point.x - boundingBox.x;
-            point.y = point.y - boundingBox.y;
-          }
-          cv::drawContours(mask, contours, i, cv::Scalar(255), cv::FILLED);
-          // Remove inner holes from the mask
-          cv::bitwise_and(mask, imagePart, mask);
-
-          //
-          // Ready to classify -> First create a ROI object to get the measurements
-          //
-          joda::atom::ROI detectedRoi(atom::ROI::RoiObjectId{.clusterId  = context.getClusterId(objectClass.outputClusterNoMatch.clusterId),
-                                                             .classId    = context.getClassId(objectClass.outputClusterNoMatch.classId),
-                                                             .imagePlane = context.getActIterator()},
-                                      context.getAppliedMinThreshold(), boundingBox, mask, contour, context.getImageSize(),
-                                      context.getOriginalImageSize(), context.getActTile(), context.getTileSize());
-
-          for(const auto &filter : objectClass.filters) {
-            // If filter matches assign the new cluster and class to the ROI
-            if(joda::settings::ClassifierFilter::doesFilterMatch(context, detectedRoi, filter.metrics, filter.intensity)) {
-              detectedRoi.setClusterAndClass(context.getClusterId(filter.outputCluster.clusterId), context.getClassId(filter.outputCluster.classId));
-            }
-          }
-          result.push_back(detectedRoi);
+        // Bring the contours box in the area of the bounding box
+        for(auto &point : contour) {
+          point.x = point.x - boundingBox.x;
+          point.y = point.y - boundingBox.y;
         }
-        i++;
+        cv::drawContours(mask, contours, i, cv::Scalar(255), cv::FILLED);
+        // Remove inner holes from the mask
+        cv::bitwise_and(mask, imagePart, mask);
+
+        //
+        // Ready to classify -> First create a ROI object to get the measurements
+        //
+        joda::atom::ROI detectedRoi(atom::ROI::RoiObjectId{.clusterId  = context.getClusterId(objectClass.outputClusterNoMatch.clusterId),
+                                                           .classId    = context.getClassId(objectClass.outputClusterNoMatch.classId),
+                                                           .imagePlane = context.getActIterator()},
+                                    context.getAppliedMinThreshold(), boundingBox, mask, contour, context.getImageSize(),
+                                    context.getOriginalImageSize(), context.getActTile(), context.getTileSize());
+
+        for(const auto &filter : objectClass.filters) {
+          // If filter matches assign the new cluster and class to the ROI
+          if(joda::settings::ClassifierFilter::doesFilterMatch(context, detectedRoi, filter.metrics, filter.intensity)) {
+            detectedRoi.setClusterAndClass(context.getClusterId(filter.outputCluster.clusterId), context.getClassId(filter.outputCluster.classId));
+          }
+        }
+        result.push_back(detectedRoi);
       }
+      i++;
     }
   }
 }

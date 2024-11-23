@@ -72,6 +72,7 @@ private:
   /////////////////////////////////////////////////////
   const settings::ProjectImageSetup &mSettings;
   processor::ImageContext *mImageContext = nullptr;
+  mutable std::mutex mLoadMutex;
 };
 
 }    // namespace joda::processor

@@ -15,6 +15,7 @@
 #include <filesystem>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -186,6 +187,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
 enums::ImageId PipelineInitializer::loadImageToCache(const enums::PlaneId &planeToLoad, enums::ZProjection zProjection, const enums::tile_t &tile,
                                                      joda::processor::ProcessContext &processContext) const
 {
+  std::lock_guard<std::mutex> locked(mLoadMutex);
   joda::atom::ImagePlane imagePlaneOut;
   imagePlaneOut.tile = tile;
 
@@ -224,7 +226,7 @@ enums::ImageId PipelineInitializer::loadImageToCache(const enums::PlaneId &plane
     loadImage = loadImageTile;
   }
 
-  auto i = DurationCount::start("Load image");
+  auto i = DurationCount::start("Load image " + mImageContext->imagePath.string());
 
   auto &image = imagePlaneOut.image;
   image       = loadImage(z, c, t);

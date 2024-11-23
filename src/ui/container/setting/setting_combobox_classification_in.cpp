@@ -60,7 +60,7 @@ void SettingComboBoxClassificationIn::outputClustersChanges()
 {
   auto *parent = getParent();
   if(parent != nullptr) {
-    auto outputClusters = parent->getOutputClasses();
+    auto outputClusters = parent->getOutputClustersAndClasses();
 
     mComboBox->blockSignals(true);
     auto actSelected = getValue();
@@ -69,6 +69,10 @@ void SettingComboBoxClassificationIn::outputClustersChanges()
     // Add this cluster
     mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Default",
                        QVariant(toInt({enums::ClusterIdIn::$, enums::ClassIdIn::$})));
+
+    // Add undefined cluster
+    mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Undefined",
+                       QVariant(toInt({enums::ClusterIdIn::UNDEFINED, enums::ClassIdIn::UNDEFINED})));
 
     auto [clusteres, classes] = parent->getPanelClassification()->getClustersAndClasses();
     if(!outputClusters.empty()) {

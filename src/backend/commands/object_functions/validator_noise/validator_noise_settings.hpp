@@ -58,7 +58,7 @@ struct NoiseValidatorSettings : public SettingBase
     CHECK_ERROR(maxObjects > 0, "Max objects must be > 0!");
   }
 
-  settings::ObjectInputClusters getInputClusters() const override
+  settings::ObjectInputClusters getInputClustersAndClasses() const override
   {
     settings::ObjectInputClusters clusters;
     for(const auto &in : inputClusters) {
@@ -67,8 +67,7 @@ struct NoiseValidatorSettings : public SettingBase
     return clusters;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(NoiseValidatorSettings, mode, imageIn, inputClusters,
-                                                       maxObjects);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(NoiseValidatorSettings, mode, imageIn, inputClusters, maxObjects);
 };
 
 }    // namespace joda::settings

@@ -127,13 +127,22 @@ public class BioFormatsWrapper {
             omeXML = service.getOMEXML(metadata);
             omeXML = omeXML + "\n<JODA xmlns=\"https://www.imagec.org/\" ResolutionCount=\""
                     + String.valueOf(formatReader.getResolutionCount()) + "\">";
+
+            String format = formatReader.getFormat().toLowerCase();
+            int optimalTileWidth = formatReader.getOptimalTileWidth();
+            int optimalTileHeight = formatReader.getOptimalTileHeight();
+            if (format.contains("jpeg")) {
+                optimalTileWidth = formatReader.getSizeX();
+                optimalTileHeight = formatReader.getSizeY();
+            }
+
             for (int n = 0; n < formatReader.getResolutionCount(); n++) {
                 formatReader.setResolution(n);
                 omeXML += "<PyramidResolution idx=\"" + String.valueOf(n) + "\" width=\""
                         + String.valueOf(formatReader.getSizeX()) + "\" height=\""
                         + String.valueOf(formatReader.getSizeY()) + "\" TileWidth=\""
-                        + String.valueOf(formatReader.getOptimalTileWidth()) + "\" TileHeight=\""
-                        + String.valueOf(formatReader.getOptimalTileHeight()) + "\" BitsPerPixel=\""
+                        + String.valueOf(optimalTileWidth) + "\" TileHeight=\""
+                        + String.valueOf(optimalTileHeight) + "\" BitsPerPixel=\""
                         + String.valueOf(formatReader.getBitsPerPixel()) + "\" RGBChannelCount=\""
                         + String.valueOf(formatReader.getRGBChannelCount()) + "\" IsInterleaved=\""
                         + String.valueOf(formatReader.isInterleaved() == true ? 1 : 0) + "\"/>";

@@ -99,7 +99,7 @@ void ImageReader::setPath()
 /// \param[out]
 /// \return
 ///
-void ImageReader::init()
+void ImageReader::init(uint64_t reservedRamForVMInBytes)
 {
   setPath();
 
@@ -144,9 +144,12 @@ void ImageReader::init()
 #else
     options[0].optionString = const_cast<char *>("-Djava.class.path=./:java/bioformats.jar:java");
 #endif
+    int32_t jvmRam          = std::ceil(static_cast<double>(reservedRamForVMInBytes) / 1000000.0f);
+    std::string ramReserved = "-Xmx" + std::to_string(jvmRam) + "m";
+    options[1].optionString = const_cast<char *>(ramReserved.data());
 
     initArgs.options  = options; /* Pass in the classpath that has been set up. */
-    initArgs.nOptions = 1;       /* Pass in classpath and version options */
+    initArgs.nOptions = 2;       /* Pass in classpath and version options */
 
     /*  Create the JVM -- a nonzero return code indicates there was
      *  an error. Drop back into EBCDIC and write a message to stderr
@@ -247,8 +250,15 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &i
     //
     // Load image
     //
-    jbyteArray readImg  = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, static_cast<int>(series),
-                                                                     static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t);
+    jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, static_cast<int>(series),
+                                                                    static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t);
+    if(readImg == nullptr) {
+      myEnv->DeleteLocalRef(filePath);
+      myJVM->DetachCurrentThread();
+      joda::log::logError("Cannot load image tile info for >" + filename + "<, nullptr in result!");
+      return {};
+    }
+
     cv::Mat loadedImage = convertImageToMat(myEnv, readImg, imageWidth, imageHeight, bitDepth, rgbChannelCount, isInterleaved);
     //
     // Cleanup
@@ -277,7 +287,8 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &ima
     int32_t resolutionIdx = static_cast<int32_t>(ome.getResolutionCount().size()) - 1;
     auto resolution       = ome.getResolutionCount(series).at(resolutionIdx);
 
-    if(resolution.imageMemoryUsage > 209715200) {
+    /// \todo Make preview size configurable
+    if(resolution.imageMemoryUsage > 838860800) {
       joda::log::logWarning("Cannot create thumbnail. Pyramid to big: >" + std::to_string(resolution.imageMemoryUsage) + "< Bytes.");
       return cv::Mat{};
     }
@@ -297,8 +308,15 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &ima
     //
     // Read image
     //
-    jbyteArray readImg    = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, static_cast<int>(series),
-                                                                       static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t);
+    jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, static_cast<int>(series),
+                                                                    static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t);
+    if(readImg == nullptr) {
+      myEnv->DeleteLocalRef(filePath);
+      myJVM->DetachCurrentThread();
+      joda::log::logError("Cannot load image tile info for >" + filename + "<, nullptr in result!");
+      return {};
+    }
+
     jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
 
     // This is the image information
@@ -399,6 +417,12 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
                                                                offsetY, tileWidthToLoad, tileHeightToLoad);
 
     DurationCount::stop(i1);
+    if(readImg == nullptr) {
+      myEnv->DeleteLocalRef(filePath);
+      myJVM->DetachCurrentThread();
+      joda::log::logError("Cannot load image tile info for >" + filename + "<, nullptr in result!");
+      return {};
+    }
     //
     // Assign image data
     //
@@ -432,11 +456,19 @@ auto ImageReader::getOmeInformation(const std::filesystem::path &filename) -> jo
     jstring filePath = myEnv->NewStringUTF(filename.string().c_str());
     jstring result   = (jstring) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageProperties, filePath, static_cast<int>(series));
     myEnv->DeleteLocalRef(filePath);
+    if(result == nullptr) {
+      myJVM->DetachCurrentThread();
+      DurationCount::stop(id);
+      joda::log::logError("Cannot load OME info for >" + filename.string() + "<, nullptr in result!");
+      return {};
+    }
+
     const char *stringChars = myEnv->GetStringUTFChars(result, NULL);
     std::string omeXML(stringChars);
     myEnv->ReleaseStringUTFChars(result, stringChars);
-    joda::ome::OmeInfo omeInfo;
 
+    // Parse ome
+    joda::ome::OmeInfo omeInfo;
     omeInfo.loadOmeInformationFromXMLString(omeXML);    ///\todo this method can throw an excaption
 
     myJVM->DetachCurrentThread();

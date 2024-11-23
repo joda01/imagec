@@ -29,7 +29,7 @@ public:
   inline static std::string ICON  = "bubble";
 
   RollingBallBackground(joda::settings::PipelineStep &pipelineStep, settings::RollingBallSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::IMAGE, InOuts::IMAGE})
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::IMAGE}})
   {
     //
     //

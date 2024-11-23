@@ -59,7 +59,7 @@ void SettingComboBoxMultiClassificationIn::outputClustersChanges()
 {
   auto *parent = getParent();
   if(parent != nullptr) {
-    auto outputClusters = parent->getOutputClasses();
+    auto outputClusters = parent->getOutputClustersAndClasses();
 
     mComboBox->blockSignals(true);
     auto actSelected = getValue();

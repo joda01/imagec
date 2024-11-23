@@ -40,7 +40,7 @@ public:
   inline static std::string ICON  = "magic";
 
   AiClassifier(joda::settings::PipelineStep &pipelineStep, settings::AiClassifierSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::IMAGE, InOuts::OBJECT}), mSettings(settings), mParent(parent)
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::OBJECT}}), mSettings(settings), mParent(parent)
   {
     auto *modelTab = addTab("Model", [] {});
 

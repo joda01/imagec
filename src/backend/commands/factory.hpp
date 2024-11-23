@@ -36,8 +36,8 @@ class CommandFactory
 public:
   virtual ~CommandFactory()                                                                          = default;
   virtual void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) = 0;
-  virtual settings::ObjectInputClusters getInputClusters() const                                     = 0;
-  virtual settings::ObjectOutputClusters getOutputClasses() const                                    = 0;
+  virtual settings::ObjectInputClusters getInputClustersAndClasses() const                           = 0;
+  virtual settings::ObjectOutputClusters getOutputClustersAndClasses() const                         = 0;
 };
 
 template <Command_t CMD, Setting_t SETTING>
@@ -52,14 +52,14 @@ public:
     CMD func(mSetting);
     func(context, image, result);
   }
-  [[nodiscard]] settings::ObjectInputClusters getInputClusters() const override
+  [[nodiscard]] settings::ObjectInputClusters getInputClustersAndClasses() const override
   {
-    return mSetting.getInputClusters();
+    return mSetting.getInputClustersAndClasses();
   }
 
-  [[nodiscard]] settings::ObjectOutputClusters getOutputClasses() const override
+  [[nodiscard]] settings::ObjectOutputClusters getOutputClustersAndClasses() const override
   {
-    return mSetting.getOutputClasses();
+    return mSetting.getOutputClustersAndClasses();
   }
 
 private:

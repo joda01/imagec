@@ -52,10 +52,10 @@
 #include "backend/commands/object_functions/colocalization/colocalization_settings_ui.hpp"
 #include "backend/commands/object_functions/measure/measure.hpp"
 #include "backend/commands/object_functions/measure/measure_settings_ui.hpp"
-#include "backend/commands/object_functions/object_math/object_math.hpp"
-#include "backend/commands/object_functions/object_math/object_math_settings_ui.hpp"
 #include "backend/commands/object_functions/object_transform/object_transform.hpp"
 #include "backend/commands/object_functions/object_transform/object_transform_settings_ui.hpp"
+#include "backend/commands/object_functions/objects_to_image/objects_to_image.hpp"
+#include "backend/commands/object_functions/objects_to_image/objects_to_image_settings_ui.hpp"
 #include "backend/commands/object_functions/validator_noise/validator_noise.hpp"
 #include "backend/commands/object_functions/validator_noise/validator_noise_settings_ui.hpp"
 #include "backend/commands/object_functions/validator_threshold/validator_threshold.hpp"
@@ -265,12 +265,12 @@ private:
       }
     }
 
-    if(step.$objectMath) {
+    if(step.$objectsToImage) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
-        return std::make_unique<joda::cmd::Factory<joda::cmd::ObjectMath, ObjectMathSettings>>(step.$objectMath.value());
+        return std::make_unique<joda::cmd::Factory<joda::cmd::ObjectsToImage, ObjectsToImageSettings>>(step.$objectsToImage.value());
       } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::move(std::make_unique<joda::ui::Factory<joda::ui::ObjectMath, ObjectMathSettings>>(
-            const_cast<settings::PipelineStep &>(step), const_cast<ObjectMathSettings &>(step.$objectMath.value()), parent));
+        return std::move(std::make_unique<joda::ui::Factory<joda::ui::ObjectsToImage, ObjectsToImageSettings>>(
+            const_cast<settings::PipelineStep &>(step), const_cast<ObjectsToImageSettings &>(step.$objectsToImage.value()), parent));
       }
     }
 
@@ -292,6 +292,7 @@ private:
       }
     }
 
+    /// \todo handle not supported commands
     return nullptr;
   }
 };

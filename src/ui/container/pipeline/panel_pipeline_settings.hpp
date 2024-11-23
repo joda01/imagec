@@ -104,7 +104,7 @@ private:
 
   // PIPELINE STEPS //////////////////////////////////////////////////
   QVBoxLayout *mPipelineSteps;
-  std::vector<std::unique_ptr<Command>> mCommands;
+  std::vector<std::shared_ptr<Command>> mCommands;
 
   /////////////////////////////////////////////////////
   int32_t mLastSelectedPreviewSize = 0;
@@ -125,6 +125,7 @@ private:
     int32_t selectedTileX = 0;
     int32_t selectedTileY = 0;
     std::tuple<std::map<enums::ClusterIdIn, QString>, std::map<enums::ClassIdIn, QString>> clustersAndClasses;
+    settings::ObjectInputClusters clustersClassesToShow;
   };
 
   bool mStopped = false;

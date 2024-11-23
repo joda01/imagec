@@ -117,19 +117,79 @@ void Command::paintEvent(QPaintEvent *event)
     return Qt::lightGray;
   };
 
-  QWidget::paintEvent(event);
+  auto getColorSet = [&](std::set<InOuts> inouts) {
+    // Select the input color depending on the previous command output
+    if(mCommandBefore != nullptr) {
+      if(inouts.contains(mCommandBefore->getInOut().out)) {
+        return getColor(mCommandBefore->getInOut().out);
+      }    // This command is not allowed
+      return Qt::red;
+    }
+    return getColor(*inouts.begin());
+  };
 
   QPainter painter(this);
-  const int LINE_WIDTH = 5;
+  const int LINE_WIDTH = 6;
 
-  int heightToPaint = std::ceil(static_cast<float>(height()) / 2.0);
-  auto colorIn      = getColor(mInOut.in);
+  int heightToPaint    = std::ceil(static_cast<float>(height()) / 2.0);
+  auto paintTopPolygon = [&](const QColor &color) {
+    QPen pen(color, 1);    // Black pen with 3px width
+    painter.setPen(pen);
+    QBrush brush(color);    // Fill with blue color
+    painter.setBrush(brush);
+    QPolygon chevron;
+    auto left         = static_cast<float>(((width() - 1) - LINE_WIDTH));
+    auto middle       = static_cast<float>(((width() - 1) - static_cast<float>(LINE_WIDTH) / 2.0));
+    auto right        = static_cast<float>(width() - 1);
+    auto heightStart  = 0.0f;
+    auto heightMiddle = static_cast<float>(heightToPaint / 3.0);
+    auto heightEnd    = static_cast<float>(heightToPaint);
+    chevron << QPoint(left, heightStart)       // Top-left
+            << QPoint(middle, heightMiddle)    // Top-middle
+            << QPoint(right, heightStart)      // Top-right
+            << QPoint(right, heightEnd)        // Bottom point
+            << QPoint(left, heightEnd)         // Bottom-left
+            << QPoint(left, heightStart);      // Return to middle
+
+    // Draw the chevron
+    painter.drawPolygon(chevron);
+  };
+
+  auto paintBottomPolygon = [&](const QColor &color) {
+    QPen pen(color, 1);    // Black pen with 3px width
+    painter.setPen(pen);
+    QBrush brush(color);    // Fill with blue color
+    painter.setBrush(brush);
+
+    QPolygon chevron;
+    auto left         = static_cast<float>(((width() - 1) - LINE_WIDTH));
+    auto middle       = static_cast<float>(((width() - 1) - static_cast<float>(LINE_WIDTH) / 2.0));
+    auto right        = static_cast<float>(width() - 1);
+    auto heightStart  = heightToPaint;
+    auto heightMiddle = static_cast<float>(heightToPaint * 2) - (static_cast<float>(heightToPaint / 3.0));
+    auto heightEnd    = static_cast<float>(heightToPaint * 2);
+    chevron << QPoint(left, heightStart)      // Top-left
+            << QPoint(right, heightStart)     // Top-middle
+            << QPoint(right, heightMiddle)    // Top-right
+            << QPoint(middle, heightEnd)      // Bottom point
+            << QPoint(left, heightMiddle)     // Bottom-left
+            << QPoint(left, heightStart);     // Return to middle
+
+    // Draw the chevron
+    painter.drawPolygon(chevron);
+  };
+
+  QWidget::paintEvent(event);
+
+  auto colorIn = getColorSet(mInOut.in);
   if(colorIn != Qt::lightGray) {
-    painter.fillRect((width() - LINE_WIDTH), 0, LINE_WIDTH, heightToPaint, colorIn);
+    // painter.fillRect((width() - LINE_WIDTH), 0, LINE_WIDTH, heightToPaint, colorIn);
+    paintTopPolygon(colorIn);
   }
   auto colorOut = getColor(mInOut.out);
   if(colorOut != Qt::lightGray) {
-    painter.fillRect((width() - LINE_WIDTH), heightToPaint, LINE_WIDTH, heightToPaint, colorOut);
+    // painter.fillRect((width() - LINE_WIDTH), heightToPaint, LINE_WIDTH, heightToPaint, colorOut);
+    paintBottomPolygon(colorOut);
   }
 }
 

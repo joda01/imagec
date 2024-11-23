@@ -33,8 +33,8 @@ public:
   /////////////////////////////////////////////////////
   void check() const;
 
-  ObjectInputClustersExp getInputClusters() const;
-  ObjectOutputClustersExp getOutputClasses() const;
+  ObjectInputClustersExp getInputClustersAndClasses() const;
+  ObjectOutputClustersExp getOutputClustersAndClasses() const;
   enums::ClusterId getOutputCluster() const;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Pipeline, meta, pipelineSetup, pipelineSteps);

@@ -44,7 +44,7 @@ public:
   static cv::Mat loadThumbnail(const std::string &filename, const Plane &directory, uint16_t series, const joda::ome::OmeInfo &ome);
 
   static auto getOmeInformation(const std::filesystem::path &filename) -> joda::ome::OmeInfo;
-  static void init();
+  static void init(uint64_t reservedRamForVMInBytes);
   static void destroy();
 
 private:
@@ -57,7 +57,7 @@ private:
 
   /////////////////////////////////////////////////////
   static inline std::mutex mReadMutex{};
-  static inline JavaVMOption options[1];        /* Options array -- use options to set classpath */
+  static inline JavaVMOption options[2];        /* Options array -- use options to set classpath */
   static inline JavaVMInitArgs initArgs;        /* Virtual Machine (VM) initialization structure, passed by*/
   static inline jobjectArray args;              /* The String[] itself */
   static inline JavaVM *myJVM        = nullptr; /* JavaVM pointer set by call to JNI_CreateJavaVM */

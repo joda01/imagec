@@ -58,12 +58,12 @@ struct ImageMathSettings : public SettingBase
   {
   }
 
-  settings::ObjectInputClusters getInputClusters() const override
+  settings::ObjectInputClusters getInputClustersAndClasses() const override
   {
     return {};
   }
 
-  [[nodiscard]] ObjectOutputClusters getOutputClasses() const override
+  [[nodiscard]] ObjectOutputClusters getOutputClustersAndClasses() const override
   {
     return {};
   }

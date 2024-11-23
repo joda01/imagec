@@ -159,15 +159,17 @@ struct SystemResources
 {
   uint64_t ramTotal;    // RAM in bytes
   uint64_t ramAvailable;
-  uint32_t cpus;    // Nr. of CPUs
+  uint64_t ramReservedForJVM;    // RAM reserved for Java virtual machine
+  uint32_t cpus;                 // Nr. of CPUs
 };
 
 inline SystemResources acquire()
 {
   SystemResources ret;
-  ret.ramTotal     = getTotalSystemMemory();
-  ret.ramAvailable = getAvailableSystemMemory();
-  ret.cpus         = getNrOfCPUs();
+  ret.ramTotal          = getTotalSystemMemory();
+  ret.ramAvailable      = getAvailableSystemMemory();
+  ret.ramReservedForJVM = static_cast<uint64_t>(static_cast<double>(ret.ramAvailable) * static_cast<double>(0.7));
+  ret.cpus              = getNrOfCPUs();
   return ret;
 }
 

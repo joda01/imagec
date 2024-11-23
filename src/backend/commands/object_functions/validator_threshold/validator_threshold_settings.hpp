@@ -60,7 +60,7 @@ struct ThresholdValidatorSettings : public SettingBase
     CHECK_ERROR(histMinThresholdFilterFactor >= 0, "Thresholdfactor must be >=0!");
   }
 
-  settings::ObjectInputClusters getInputClusters() const override
+  settings::ObjectInputClusters getInputClustersAndClasses() const override
   {
     return {{inputCluster, enums::ClassIdIn::UNDEFINED}};
   }

@@ -66,18 +66,18 @@ void SpheralIndex::calcIntersection(joda::processor::ProcessContext &context, jo
           for(auto *box2 : boxes2) {
             if(objectClassesOther.contains(box2->getClassId())) {
               // Each intersecting particle is only allowed to be counted once
-              if(!intersecting.contains(box2)) {
+              if(!intersecting.contains(box1)) {
                 if(box1->isIntersecting(*box2, minIntersecion)) {
-                  intersecting.emplace(box2);
+                  intersecting.emplace(box1);
                   switch(func) {
                     case settings::ReclassifySettings::Mode::RECLASSIFY_MOVE:
-                      if(settings::ClassifierFilter::doesFilterMatch(context, *box2, metrics, intensity)) {
-                        box2->setClass(newClassOFIntersectingObject);
+                      if(settings::ClassifierFilter::doesFilterMatch(context, *box1, metrics, intensity)) {
+                        box1->setClass(newClassOFIntersectingObject);
                       }
                       break;
                     case settings::ReclassifySettings::Mode::RECLASSIFY_COPY: {
-                      if(settings::ClassifierFilter::doesFilterMatch(context, *box2, metrics, intensity)) {
-                        auto newRoi = box2->copy();
+                      if(settings::ClassifierFilter::doesFilterMatch(context, *box1, metrics, intensity)) {
+                        auto newRoi = box1->copy();
                         newRoi.setClass(newClassOFIntersectingObject);
                         // Store the ROIs we want to enter
                         roisToEnter.emplace_back(std::move(newRoi));
@@ -95,7 +95,7 @@ void SpheralIndex::calcIntersection(joda::processor::ProcessContext &context, jo
     }
     // Enter the rois from the temp storage
     for(const auto &roi : roisToEnter) {
-      other->emplace(roi);
+      this->emplace(roi);
     }
   }
 }

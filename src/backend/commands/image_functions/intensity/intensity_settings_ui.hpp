@@ -31,7 +31,7 @@ public:
   inline static std::string ICON  = "brightness";
 
   IntensityTransformation(joda::settings::PipelineStep &pipelineStep, settings::IntensityTransformationSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::IMAGE, InOuts::IMAGE})
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::IMAGE}})
   {
     //
     //

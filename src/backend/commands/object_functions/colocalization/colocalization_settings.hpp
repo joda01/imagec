@@ -53,7 +53,7 @@ struct ColocalizationSettings : public SettingBase
     CHECK_ERROR(minIntersection >= 0 && minIntersection <= 1, "Min intersection must be between [0-1].");
   }
 
-  settings::ObjectInputClusters getInputClusters() const override
+  settings::ObjectInputClusters getInputClustersAndClasses() const override
   {
     settings::ObjectInputClusters clusters;
     for(const auto cluster : inputClusters) {
@@ -63,7 +63,7 @@ struct ColocalizationSettings : public SettingBase
     return clusters;
   }
 
-  [[nodiscard]] ObjectOutputClusters getOutputClasses() const override
+  [[nodiscard]] ObjectOutputClusters getOutputClustersAndClasses() const override
   {
     return {{outputCluster}};
   }

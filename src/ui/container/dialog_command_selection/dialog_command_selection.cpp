@@ -130,7 +130,7 @@ void DialogCommandSelection::addCommandsToTable(InOuts outOfStepBefore)
     int inserted = 0;
     inserted += addCommandToTable(settings::PipelineStep{.$voronoi = settings::VoronoiGridSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$reclassify = settings::ReclassifySettings{}}, outOfStepBefore);
-    inserted += addCommandToTable(settings::PipelineStep{.$objectMath = settings::ObjectMathSettings{}}, outOfStepBefore);
+    inserted += addCommandToTable(settings::PipelineStep{.$objectsToImage = settings::ObjectsToImageSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$objectTransform = settings::ObjectTransformSettings{}}, outOfStepBefore);
     if(inserted > 0) {
       addTitleToTable("Object Processing", inserted);
@@ -193,7 +193,7 @@ int DialogCommandSelection::addCommandToTable(const settings::PipelineStep &step
   std::unique_ptr<joda::ui::Command> cmd = joda::settings::PipelineFactory<joda::ui::Command>::generate(step, nullptr);
   if(cmd != nullptr) {
     // Add only commands which are allowed to add
-    if(outOfStepBefore != InOuts::ALL && cmd->getInOut().in != outOfStepBefore) {
+    if(outOfStepBefore != InOuts::ALL && !cmd->getInOut().in.contains(outOfStepBefore)) {
       return 0;
     }
     mCommandList.emplace_back(step);

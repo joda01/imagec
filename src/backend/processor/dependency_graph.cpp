@@ -17,8 +17,10 @@
 #include <stdexcept>
 #include <string>
 #include "backend/enums/enums_clusters.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
+#include "backend/settings/setting.hpp"
 
 namespace joda::processor {
 
@@ -29,97 +31,186 @@ namespace joda::processor {
 /// \param[out]
 /// \return
 ///
-auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings) -> std::pair<PipelineOrder_t, Graph_t>
+bool providesAllClustersAndClasses(const std::set<settings::ClassificatorSettingOut> &inputClusters,
+                                   const std::set<settings::ClassificatorSettingOut> &outputClusters)
 {
+  for(const auto &element : inputClusters) {
+    if(!outputClusters.contains(element)) {
+      // This node depends on an other
+      return false;
+    }
+  }
+  return true;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto whichOneAreProvided(const std::set<settings::ClassificatorSettingOut> &inputClusters,
+                         const std::set<settings::ClassificatorSettingOut> &outputClusters) -> std::set<settings::ClassificatorSettingOut>
+{
+  std::set<settings::ClassificatorSettingOut> provides;
+  for(const auto &element : inputClusters) {
+    if(outputClusters.contains(element)) {
+      provides.emplace(element);
+    }
+  }
+  return provides;
+}
+
+bool Node::isRootNode() const
+{
+  // If there are no dpes or the only dep is me this is a root node
+  return pipelinesProvidingMyDeps.empty() || (pipelinesProvidingMyDeps.size() == 1 && *pipelinesProvidingMyDeps.begin() == pipeline);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings, const settings::Pipeline *calcGraphFor,
+                                std::vector<SettingParserLog> *settingParserLog) -> PipelineOrder_t
+{
+  auto writeToLog = [&](SettingParserLog::Severity severity, const std::string &pipelineName, const std::string &what) {
+    if(settingParserLog != nullptr) {
+      const auto name = std::string(pipelineName);
+      auto data       = SettingParserLog(severity, name, what);
+      settingParserLog->emplace_back(data);
+    }
+  };
+
   // List all pipelines to process
   std::set<const settings::Pipeline *> pipelinesToAttache;
   for(const auto &pipelines : settings.pipelines) {
     pipelinesToAttache.emplace(reinterpret_cast<const settings::Pipeline *>(&pipelines));
   }
 
-  auto cleanup = [&pipelinesToAttache](std::set<const settings::Pipeline *> &attached) {
-    for(const auto *toRemove : attached) {
-      pipelinesToAttache.erase(toRemove);
-    }
-  };
-
-  // Find root nodes
-  Graph_t rootNodes;
+  // Find all dependencies
+  Graph_t depGraph;
   {
-    std::set<const settings::Pipeline *> attached;
-    for(const auto *pipeline : pipelinesToAttache) {
-      // If empty or input cluster is me
-      std::set<settings::ClassificatorSettingOut> clusters;
-      for(const auto &element : pipeline->getInputClusters()) {
-        clusters.emplace(element);
-      }
-      if(clusters.empty() ||
-         (clusters.size() == 1 &&
-          *clusters.begin() == settings::ClassificatorSettingOut{pipeline->pipelineSetup.defaultClusterId, pipeline->pipelineSetup.defaultClassId})) {
-        // This is a root node
-        rootNodes.emplace_back(pipeline);
-        attached.emplace(pipeline);
-      }
-    }
-    cleanup(attached);
-    // There is no root, there must be a cycle
-    if(rootNodes.empty()) {
-      throw std::invalid_argument("No root node, cycle detected!");
-    }
-  }
+    for(const settings::Pipeline *pipelineOne : pipelinesToAttache) {
+      std::set<settings::ClassificatorSettingOut> inputClusters = pipelineOne->getInputClustersAndClasses();
 
-  // Build up the dependency graph inclusive cycle detection
-  {
-    size_t pipelineCount = pipelinesToAttache.size();
-    std::map<const settings::Pipeline *, int> notAttachedTrys;
-    while(!pipelinesToAttache.empty()) {
-      std::set<const settings::Pipeline *> attached;
-      bool isAttached = false;
-      for(int x = 0; x < pipelinesToAttache.size() + 1; x++) {
-        for(const auto *pipeline : pipelinesToAttache) {
-          for(int n = 0; n < rootNodes.size(); n++) {
-            auto &rootNode = rootNodes[n];
-            if(rootNode.attacheNode({pipeline})) {
-              attached.emplace(pipeline);
-              isAttached = true;
+      depGraph.push_back(Node{pipelineOne});
+
+      if(inputClusters.empty()) {
+        // This pipeline depends on nothing
+        std::cout << pipelineOne->meta.name << " depends on nothing" << std::endl;
+
+      } else {
+        Node &inserted = depGraph.at(depGraph.size() - 1);
+        // Look for pipeline providing the needed input cluster/classes
+        for(const auto *pipelineTwo : pipelinesToAttache) {
+          std::set<settings::ClassificatorSettingOut> outputClusters = pipelineTwo->getOutputClustersAndClasses();
+          // This pipeline depends on more than one other pipeline
+          auto provided = whichOneAreProvided(inputClusters, outputClusters);
+          if(!provided.empty()) {
+            inserted.addDependency(pipelineTwo);
+
+            for(const auto &element : provided) {
+              inputClusters.erase(element);    // Remove deps which are still covered
             }
-          }
-          if(pipelinesToAttache.size() == x) {
-            if(!isAttached) {
-              notAttachedTrys[pipeline]++;
-              if(notAttachedTrys[pipeline] > (pipelineCount * pipelineCount) * rootNodes.size()) {
-                throw std::invalid_argument("Cycle detected for pipeline >" + pipeline->meta.name + "<!");
-              }
-            } else {
-              notAttachedTrys.erase(pipeline);
-            }
+            std::cout << pipelineOne->meta.name << " depends on " << pipelineTwo->meta.name << std::endl;
           }
         }
+
+        if(!inputClusters.empty()) {
+          std::string unresolved;
+          for(const auto &ele : inputClusters) {
+            unresolved += std::to_string((int32_t) ele.clusterId) + "/" + std::to_string((int32_t) ele.classId) + ",";
+          }
+          if(!unresolved.empty()) {
+            unresolved.pop_back();
+          }
+
+          writeToLog(SettingParserLog::Severity::JODA_WARNING, pipelineOne->meta.name,
+                     "There is an unresolved dependency in pipeline which needs following cluster/clases but not found: [" + unresolved + "]!");
+        }
       }
-      cleanup(attached);
+
+      std::cout << "###############" << std::endl;
     }
   }
-  // Order pipelines
+
+  // Remove all nodes except the one we want to calc the graph for and this graph depends on
+  if(calcGraphFor != nullptr) {
+    std::set<const settings::Pipeline *> meDeps;
+
+    for(const auto &me : depGraph) {
+      if(me.getPipeline() == calcGraphFor) {
+        meDeps = me.getDeps();
+      }
+    }
+
+    // Remove not needed nodes
+    for(int idx = (depGraph.size() - 1); idx >= 0; idx--) {
+      const auto *pip = depGraph.at(idx).getPipeline();
+      if(!meDeps.contains(pip) && pip != calcGraphFor) {
+        depGraph.erase(depGraph.begin() + idx);
+      }
+    }
+  }
+
+  // Now reduce the graph
+  int depth = 0;
   PipelineOrder_t finishedOrder;
-  {
-    std::map<const settings::Pipeline *, int> pipelineOrder;
-    for(auto &rootNode : rootNodes) {
-      rootNode.orderPipeline(pipelineOrder);
+
+  //
+  // Repeat until the graph is empty
+  // If there is a cycle this loop will never stop
+  //
+  int32_t maxRuns = depGraph.size() * depGraph.size();
+  while(!depGraph.empty()) {
+    //
+    // Find the root nodes: Root nodes are nodes which have no dependency or only depends on itself
+    //
+    std::set<const settings::Pipeline *> toRemove;
+    for(const auto &node : depGraph) {
+      if(node.isRootNode()) {
+        finishedOrder[depth].emplace(node.getPipeline());
+        toRemove.emplace(node.getPipeline());
+      }
     }
-    for(const auto &[pipeline, order] : pipelineOrder) {
-      finishedOrder[order].emplace(pipeline);
+
+    //
+    // Remove all the root nodes from all pipelines since this dependency has been resolved
+    //
+    for(auto &node : depGraph) {
+      node.removePipeline(toRemove);
+    }
+
+    //
+    // Remove the nodes from the graph
+    //
+    for(int idx = (depGraph.size() - 1); idx >= 0; idx--) {
+      if(toRemove.contains(depGraph.at(idx).getPipeline())) {
+        depGraph.erase(depGraph.begin() + idx);
+      }
+    }
+    depth++;
+    if(--maxRuns < 0) {
+      // Cycle detected
+      std::string pipelines;
+      for(const auto &pip : depGraph) {
+        pipelines += pip.getPipeline()->meta.name + ",";
+      }
+      if(!pipelines.empty()) {
+        pipelines.pop_back();
+      }
+      writeToLog(SettingParserLog::Severity::JODA_ERROR, "", "Cycle detected in pipelines [" + pipelines + "]");
+      break;
     }
   }
-  // Print result
-  /* {
-    for(auto &rootNode : rootNodes) {
-      rootNode.printTree();
-    }
 
-    printOrder(finishedOrder);
-   }*/
-
-  return {finishedOrder, rootNodes};
+  printOrder(finishedOrder);
+  return finishedOrder;
 }
 
 ///

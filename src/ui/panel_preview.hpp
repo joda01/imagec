@@ -21,17 +21,20 @@
 #include <string>
 #include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"
+#include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
 #include "ui/dialog_image_view/dialog_image_view.hpp"
 #include "ui/dialog_image_view/panel_image_view.hpp"
 
 namespace joda::ui {
+
+class WindowMain;
 
 class PanelPreview : public QWidget
 {
   Q_OBJECT
 
 public:
-  PanelPreview(int width, int height, QWidget *parent);
+  PanelPreview(int width, int height, WindowMain *parent);
   void updateImage(const QString &info)
   {
     mImageViewer.imageUpdated();
@@ -66,6 +69,11 @@ public:
     return filled->isChecked();
   }
 
+  auto getSelectedClustersAndClasses() const -> settings::ObjectInputClusters
+  {
+    return mClustersClassesToShow->getValue();
+  }
+
   int32_t getPreviewSize() const
   {
     return mPreviewSize->currentData().toInt();
@@ -84,10 +92,12 @@ private slots:
 
 private:
   /////////////////////////////////////////////////////
+  WindowMain *mParent;
   QWidget *createToolBar();
   QLabel *mPreviewInfo;
   QPushButton *filled;
   QComboBox *mPreviewSize;
+  std::unique_ptr<SettingComboBoxMultiClassificationIn> mClustersClassesToShow;
 
   /////////////////////////////////////////////////////
   DialogImageViewer mImageViewer;

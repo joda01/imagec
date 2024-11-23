@@ -38,14 +38,14 @@ public:
   inline static std::string ICON  = "move-right";
 
   Reclassify(joda::settings::PipelineStep &pipelineStep, settings::ReclassifySettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::OBJECT, InOuts::OBJECT}), mSettings(settings), mParent(parent)
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings), mParent(parent)
   {
     auto *modelTab = addTab("Base", [] {});
 
     //
     // Base settings
     //
-    mClustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Input (e.g. Tetraspeck, Cell)");
+    mClustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Input (e.g. Spot)");
     mClustersIn->setValue(settings.inputClusters);
     mClustersIn->connectWithSetting(&settings.inputClusters);
 
@@ -66,7 +66,7 @@ public:
     // Intersection filter
     //
     mClustersIntersectWith =
-        SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("query-outer-join-right"), "Intersect with  (e.g. Spot)");
+        SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("query-outer-join-right"), "Intersect with (e.g. Tetraspeck)");
     mClustersIntersectWith->setValue(settings.intersection.inputClustersIntersectWith);
     mClustersIntersectWith->connectWithSetting(&settings.intersection.inputClustersIntersectWith);
 

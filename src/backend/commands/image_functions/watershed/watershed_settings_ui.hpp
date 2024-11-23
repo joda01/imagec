@@ -30,7 +30,7 @@ public:
   inline static std::string ICON  = "split";
 
   Watershed(joda::settings::PipelineStep &pipelineStep, settings::WatershedSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {InOuts::BINARY, InOuts::BINARY})
+      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}})
   {
     mFindTolerance = SettingBase::create<SettingComboBox<float>>(parent, generateIcon("split"), "Find tolerance");
     mFindTolerance->addOptions({
