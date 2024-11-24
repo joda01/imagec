@@ -24,12 +24,12 @@
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enum_validity.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/processor/context/plate_context.hpp"
+#include "backend/settings/project_settings/project_class.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
 #include "image_context.hpp"
@@ -46,7 +46,7 @@ struct GlobalContext
 
   std::filesystem::path resultsOutputFolder;
   db::Database database;
-  joda::settings::ClusterClassColorAssignments clusterClassColors;
+  std::map<enums::ClassId, joda::settings::Class> classes;
 
 private:
   objectCache_t objectCache;
@@ -57,9 +57,8 @@ class ProcessContext
 public:
   ProcessContext(GlobalContext &globalContext, PlateContext &plateContext, ImageContext &imageContext, IterationContext &iterationContext);
 
-  void initDefaultSettings(enums::ClusterId cluster, enums::ClassId classId, enums::ZProjection zProjection)
+  void initDefaultSettings(enums::ClassId classId, enums::ZProjection zProjection)
   {
-    pipelineContext.defaultClusterId   = cluster;
     pipelineContext.defaultClassId     = classId;
     pipelineContext.defaultZProjection = zProjection;
   }
@@ -174,16 +173,16 @@ public:
     globalContext.database.setImagePlaneValidity(imageContext.imageId, getActIterator(), validity);
   }
 
-  void setImagePlaneClusterClusterValidity(enums::ClusterIdIn clusterIn, enums::ChannelValidityEnum validityIn)
+  void setImagePlaneClasssClasssValidity(enums::ClassIdIn classIn, enums::ChannelValidityEnum validityIn)
   {
     enums::ChannelValidity validity;
     validity.set(validityIn);
-    globalContext.database.setImagePlaneClusterClusterValidity(imageContext.imageId, getActIterator(), getClusterId(clusterIn), validity);
+    globalContext.database.setImagePlaneClasssClasssValidity(imageContext.imageId, getActIterator(), getClassId(classIn), validity);
   }
 
   // void storeObjectsToCache(joda::enums::ObjectStoreId cacheId, const joda::atom::ObjectList &object) const
   //{
-  // #warning "IF cluster ID still exists. Merge or override!?"
+  // #warning "IF classs ID still exists. Merge or override!?"
   //   getCorrectObjectId(cacheId);
   //
   //  auto oby = ::std::make_unique<joda::atom::ObjectList>();
@@ -204,11 +203,6 @@ public:
     return {imageContext.imageMeta.getImageWidth(), imageContext.imageMeta.getImageHeight()};
   }
 
-  [[nodiscard]] enums::ClusterId getClusterId(enums::ClusterIdIn in) const
-  {
-    return in != enums::ClusterIdIn::$ ? static_cast<enums::ClusterId>(in) : pipelineContext.defaultClusterId;
-  }
-
   [[nodiscard]] enums::ClassId getClassId(enums::ClassIdIn in) const
   {
     return in != enums::ClassIdIn::$ ? static_cast<enums::ClassId>(in) : pipelineContext.defaultClassId;
@@ -223,7 +217,10 @@ public:
     return out;
   }
 
-  std::string getColorForClusterAndClass(enums::ClusterIdIn cluster, enums::ClassIdIn classs) const;
+  std::string getColorClass(enums::ClassIdIn in) const
+  {
+    return "";
+  }
 
   ///
   /// \brief      Returns a corrected iterator. Every value < 0 is interpreted as THIS and

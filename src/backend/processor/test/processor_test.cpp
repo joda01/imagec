@@ -10,7 +10,7 @@
 #include "../initializer/pipeline_initializer.hpp"
 #include "../processor.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/settings/analze_settings.hpp"
@@ -36,10 +36,8 @@ SCENARIO("pipeline:test:heatmap", "[processor]")
   processor::imagesList_t workingdirs;
   workingdirs.setWorkingDirectory(0, settings.projectSettings.plates.begin()->imageFolder);
   workingdirs.waitForFinished();
-  processor.execute(
-      settings, "test",
-      joda::ctrl::Controller::calcOptimalThreadNumber(settings, workingdirs.gitFirstFile(), workingdirs.getNrOfFiles()),
-      workingdirs);
+  processor.execute(settings, "test",
+                    joda::ctrl::Controller::calcOptimalThreadNumber(settings, workingdirs.gitFirstFile(), workingdirs.getNrOfFiles()), workingdirs);
 }
 
 }    // namespace joda::test

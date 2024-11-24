@@ -17,7 +17,7 @@
 #include <cstdint>
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_base.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
@@ -44,12 +44,12 @@ public:
     auto *modelTab = addTab("Base", [] {});
 
     mInputFirst = SettingBase::create<SettingComboBoxClassificationIn>(parent, generateIcon("circle"), "First operand");
-    mInputFirst->setValue(settings.inputObjectFirst);
-    mInputFirst->connectWithSetting(&settings.inputObjectFirst);
+    mInputFirst->setValue(settings.inputClassesFirst);
+    mInputFirst->connectWithSetting(&settings.inputClassesFirst);
 
     mInoutSecond = SettingBase::create<SettingComboBoxClassificationIn>(parent, generateIcon("circle"), "Second operand");
-    mInoutSecond->setValue(settings.inputObjectSecond);
-    mInoutSecond->connectWithSetting(&settings.inputObjectSecond);
+    mInoutSecond->setValue(settings.inputClassesSecond);
+    mInoutSecond->connectWithSetting(&settings.inputClassesSecond);
 
     //
     // Options

@@ -16,7 +16,7 @@
 #include <qwidget.h>
 #include <QtWidgets>
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/settings/setting.hpp"
 
 namespace joda::ui {
@@ -104,11 +104,11 @@ private:
   void createHelperText(QVBoxLayout *layout, const QString &helpText);
   virtual QWidget *createInputObject() = 0;
 
-  virtual void clusterNamesChanged()
+  virtual void classsNamesChanged()
   {
   }
 
-  virtual void outputClustersChanges()
+  virtual void outputClassesChanges()
   {
   }
 

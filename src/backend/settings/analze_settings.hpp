@@ -44,8 +44,8 @@ public:
     return configSchema;
   }
 
-  std::set<ClassificatorSettingOut> getOutputClustersAndClasses() const;
-  std::set<ClassificatorSettingOut> getInputClasses() const;
+  std::set<joda::enums::ClassId> getOutputClasses() const;
+  std::set<joda::enums::ClassId> getInputClasses() const;
 
   auto checkForErrors() const -> std::vector<std::pair<std::string, SettingParserLog_t>>;
 

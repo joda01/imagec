@@ -85,9 +85,9 @@ struct MetricsFilter
 struct ClassifierFilter
 {
   //
-  // Cluster the objects should be assigned if filter matches
+  // Classs the objects should be assigned if filter matches
   //
-  ClassificatorSetting outputCluster;
+  enums::ClassIdIn outputClass;
 
   //
   // Use an intensity filter for classification
@@ -106,7 +106,7 @@ struct ClassifierFilter
   static bool doesFilterMatch(joda::processor::ProcessContext &context, atom::ROI &roi, const MetricsFilter &metrics,
                               const IntensityFilter &intensity);
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassifierFilter, metrics, intensity, outputCluster);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassifierFilter, metrics, intensity, outputClass);
 };
 
 struct ObjectClass
@@ -119,7 +119,7 @@ struct ObjectClass
   //
   // If no filter matches this class is assigned to the object
   //
-  ClassificatorSetting outputClusterNoMatch = {.classId = enums::ClassIdIn::NONE};
+  enums::ClassIdIn outputClassNoMatch = enums::ClassIdIn::NONE;
 
   //
   // Grayscale or object class id from model
@@ -132,7 +132,7 @@ struct ObjectClass
     CHECK_ERROR(modelClassId >= 0, "A model class id >= 0 must be given for classification.");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectClass, filters, outputClusterNoMatch, modelClassId);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectClass, filters, outputClassNoMatch, modelClassId);
 };
 
 }    // namespace joda::settings

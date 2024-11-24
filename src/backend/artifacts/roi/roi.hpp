@@ -21,7 +21,6 @@
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/global_enums.hpp"
 #include <opencv2/core/mat.hpp>
@@ -46,7 +45,6 @@ class ROI
 public:
   struct RoiObjectId
   {
-    joda::enums::ClusterId clusterId;
     joda::enums::ClassId classId;
     joda::enums::PlaneId imagePlane;
   };
@@ -117,11 +115,10 @@ public:
             mImageSize, mOriginalImageSize,      mAreaSize, mPerimeter, mCircularity,     intensity,        mObjectId, mCentroid};
   }
 
-  void setClusterAndClass(enums::ClusterId clusterId, enums::ClassId classId)
+  void setClasss(enums::ClassId classId)
   {
-    auto &oId     = const_cast<RoiObjectId &>(mId);
-    oId.clusterId = clusterId;
-    oId.classId   = classId;
+    auto &oId   = const_cast<RoiObjectId &>(mId);
+    oId.classId = classId;
   }
 
   void setClass(enums::ClassId classId)
@@ -138,11 +135,6 @@ public:
   [[nodiscard]] auto getObjectId() const
   {
     return mObjectId;
-  }
-
-  [[nodiscard]] auto getClusterId() const
-  {
-    return mId.clusterId;
   }
 
   [[nodiscard]] auto getClassId() const
@@ -227,8 +219,7 @@ public:
   }
 
   [[nodiscard]] ROI calcIntersection(const enums::PlaneId &iterator, const ROI &roi, float minIntersection, const enums::tile_t &tile,
-                                     const cv::Size &tileSize, joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
-                                     joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const;
+                                     const cv::Size &tileSize, joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const;
 
   auto measureIntensityAndAdd(const joda::atom::ImagePlane &image) -> Intensity;
 

@@ -6,7 +6,7 @@
 #include <set>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/helper/json_optional_parser_helper.hpp"
 #include "backend/settings/setting.hpp"
 #include "backend/settings/setting_base.hpp"
@@ -37,9 +37,9 @@ public:
     FILLED
   };
 
-  struct SaveCluster
+  struct SaveClasss
   {
-    ClassificatorSetting inputCluster;
+    enums::ClassIdIn inputClass;
     Style style           = Style::OUTLINED;
     bool paintBoundingBox = false;
 
@@ -47,10 +47,10 @@ public:
     {
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(SaveCluster, inputCluster, style, paintBoundingBox);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(SaveClasss, inputClass, style, paintBoundingBox);
   };
 
-  std::list<SaveCluster> clustersIn = {{.inputCluster = {}, .style = Style::OUTLINED, .paintBoundingBox = false}};
+  std::list<SaveClasss> classesIn = {{.inputClass = enums::ClassIdIn::$, .style = Style::OUTLINED, .paintBoundingBox = false}};
 
   //
   // PNG compression level (0 = no compression)
@@ -91,18 +91,18 @@ public:
     CHECK_ERROR(compression >= 0 && compression <= 6, "Image compression must be in between [0-6].");
   }
 
-  settings::ObjectInputClusters getInputClustersAndClasses() const override
+  settings::ObjectInputClasses getInputClasses() const override
   {
-    settings::ObjectInputClusters clusters;
+    settings::ObjectInputClasses classes;
 
-    for(const auto &cl : clustersIn) {
-      clusters.emplace(cl.inputCluster);
+    for(const auto &cl : classesIn) {
+      classes.emplace(cl.inputClass);
     }
 
-    return clusters;
+    return classes;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageSaverSettings, subFolder, canvas, planesIn, compression, namePrefix, clustersIn);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageSaverSettings, subFolder, canvas, planesIn, compression, namePrefix, classesIn);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ImageSaverSettings::Style, {

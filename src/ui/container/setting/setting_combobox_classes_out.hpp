@@ -52,7 +52,7 @@ public:
   void reset() override;
   void clear() override;
 
-  void clusterNamesChanged() override;
+  void classsNamesChanged() override;
   QString getName(enums::ClassIdIn key) const;
   enums::ClassIdIn getValue();
   std::pair<enums::ClassIdIn, std::string> getValueAndNames();

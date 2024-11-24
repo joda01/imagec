@@ -233,8 +233,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
 
       joda::atom::ROI detectedRoi(
           atom::ROI::RoiObjectId{
-              .clusterId  = context.getClusterId(objectClass->outputClusterNoMatch.clusterId),
-              .classId    = context.getClassId(objectClass->outputClusterNoMatch.classId),
+              .classId    = context.getClassId(objectClass->outputClassNoMatch),
               .imagePlane = context.getActIterator(),
           },
           context.getAppliedMinThreshold(), fittedBoundingBox, shiftedMask, contour, context.getImageSize(), context.getOriginalImageSize(),
@@ -242,7 +241,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
 
       for(const auto &filter : objectClass->filters) {
         if(joda::settings::ClassifierFilter::doesFilterMatch(context, detectedRoi, filter.metrics, filter.intensity)) {
-          detectedRoi.setClusterAndClass(context.getClusterId(filter.outputCluster.clusterId), context.getClassId(filter.outputCluster.classId));
+          detectedRoi.setClasss(context.getClassId(filter.outputClass));
         }
       }
       result.push_back(detectedRoi);

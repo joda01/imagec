@@ -18,7 +18,7 @@
 #include "backend/commands/classification/classifier_filter.hpp"
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_base.hpp"
 #include "ui/container/setting/setting_combobox_multi.hpp"
@@ -42,9 +42,9 @@ public:
   {
     //
     //
-    clustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Classes in");
-    clustersIn->setValue(settings.inputClusters);
-    clustersIn->connectWithSetting(&settings.inputClusters);
+    classesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Classes in");
+    classesIn->setValue(settings.inputClasses);
+    classesIn->connectWithSetting(&settings.inputClasses);
 
     //
     //
@@ -67,7 +67,7 @@ public:
     //
     //
     auto *tab = addTab("Input class", [] {});
-    addSetting(tab, "Input classes", {{clustersIn.get(), true, 0}});
+    addSetting(tab, "Input classes", {{classesIn.get(), true, 0}});
     addSetting(tab, "Input image channels", {{cStackIndex.get(), true, 0}, {zProjection.get(), true, 0}});
 
     // auto *addClassifier = addActionButton("Add class", "icons8-genealogy");
@@ -76,7 +76,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  std::unique_ptr<SettingComboBoxMultiClassificationIn> clustersIn;
+  std::unique_ptr<SettingComboBoxMultiClassificationIn> classesIn;
   std::unique_ptr<SettingComboBoxMulti<int32_t>> cStackIndex;
   std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjection;
 

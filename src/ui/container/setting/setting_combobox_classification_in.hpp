@@ -36,53 +36,50 @@ class SettingComboBoxClassificationIn : public SettingBase
 public:
   struct ComboEntry
   {
-    settings::ClassificatorSetting key;
+    enums::ClassIdIn key;
     QString label;
     QString icon;
   };
 
   struct ComboEntryText
   {
-    settings::ClassificatorSetting key;
+    enums::ClassIdIn key;
     QString label;
   };
 
   using SettingBase::SettingBase;
 
   QWidget *createInputObject() override;
-  void setDefaultValue(settings::ClassificatorSetting defaultVal);
+  void setDefaultValue(enums::ClassIdIn defaultVal);
   void reset() override;
   void clear() override;
 
-  void clusterNamesChanged() override;
-  void outputClustersChanges() override;
-  QString getName(settings::ClassificatorSetting key) const;
-  settings::ObjectInputCluster getValue();
-  std::map<settings::ClassificatorSetting, std::string> getValueAndNames();
+  void classsNamesChanged() override;
+  void outputClassesChanges() override;
+  QString getName(enums::ClassIdIn key) const;
+  settings::ObjectInputClasss getValue();
+  std::map<enums::ClassIdIn, std::string> getValueAndNames();
 
-  void setValue(const settings::ObjectInputCluster &valueIn);
+  void setValue(const settings::ObjectInputClasss &valueIn);
 
-  void connectWithSetting(settings::ObjectInputCluster *setting)
+  void connectWithSetting(settings::ObjectInputClasss *setting)
   {
     mSetting = setting;
   }
 
-  static uint32_t toInt(const settings::ClassificatorSetting &in)
+  static uint32_t toInt(const enums::ClassIdIn &in)
   {
-    return ((((uint16_t) in.clusterId) & 0x0000FFFF) << 16) | ((uint16_t) (in.classId)) & 0x0000FFFF;
+    return (static_cast<uint16_t>(in));
   }
 
-  static uint32_t toInt(const settings::ClassificatorSettingOut &in)
+  static uint32_t toInt(const enums::ClassId &in)
   {
-    return ((((uint16_t) in.clusterId) & 0x0000FFFF) << 16) | ((uint16_t) (in.classId)) & 0x0000FFFF;
+    return (static_cast<uint16_t>(in));
   }
 
-  static settings::ClassificatorSetting fromInt(uint32_t in)
+  static enums::ClassIdIn fromInt(uint32_t in)
   {
-    settings::ClassificatorSetting out;
-    out.clusterId = static_cast<joda::enums::ClusterIdIn>((in >> 16) & 0x0000FFFF);
-    out.classId   = static_cast<joda::enums::ClassIdIn>(in & 0x0000FFFF);
-    return out;
+    return static_cast<enums::ClassIdIn>(in);
   }
 
   void blockComponentSignals(bool bl) override
@@ -94,9 +91,9 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  std::optional<settings::ClassificatorSetting> mDefaultValue;
+  std::optional<enums::ClassIdIn> mDefaultValue;
   QComboBox *mComboBox;
-  settings::ObjectInputCluster *mSetting = nullptr;
+  settings::ObjectInputClasss *mSetting = nullptr;
 
 private slots:
   void onValueChanged();

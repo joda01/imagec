@@ -14,7 +14,6 @@
 #pragma once
 
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
 #include "backend/processor/initializer/pipeline_settings.hpp"
 #include "backend/settings/pipeline/pipeline_meta.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
@@ -33,9 +32,9 @@ public:
   /////////////////////////////////////////////////////
   void check() const;
 
-  ObjectInputClustersExp getInputClustersAndClasses() const;
-  ObjectOutputClustersExp getOutputClustersAndClasses() const;
-  enums::ClusterId getOutputCluster() const;
+  ObjectInputClassesExp getInputClasses() const;
+  ObjectOutputClassesExp getOutputClasses() const;
+  enums::ClassId getOutputClass() const;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Pipeline, meta, pipelineSetup, pipelineSteps);
 };

@@ -22,7 +22,6 @@
 #include "../setting/setting_base.hpp"
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
 #include "ui/container/setting/setting_combobox_multi.hpp"
@@ -105,21 +104,9 @@ public:
       }
     }
 
-    for(int m = mClusters.size() - 1; m >= 0; m--) {
-      if(toRemove.contains(mClusters[m])) {
-        mClusters.erase(mClusters.begin() + m);
-      }
-    }
-
     for(int m = mClasses.size() - 1; m >= 0; m--) {
       if(toRemove.contains(mClasses[m])) {
         mClasses.erase(mClasses.begin() + m);
-      }
-    }
-
-    for(int m = mClustersMulti.size() - 1; m >= 0; m--) {
-      if(toRemove.contains(mClustersMulti[m])) {
-        mClustersMulti.erase(mClustersMulti.begin() + m);
       }
     }
 
@@ -161,7 +148,7 @@ public:
     return mLayout.addActionButton(text, icon);
   }
 
-  void updateClassesAndClusterNames(const std::map<enums::ClusterIdIn, QString> &clusterNames, const std::map<enums::ClassIdIn, QString> &classNames);
+  void updateClassesAndClasssNames(const std::map<enums::ClassIdIn, QString> &classNames);
 
   const QString &getTitle()
   {
@@ -177,7 +164,7 @@ signals:
   void valueChanged();
 
 protected:
-  void updateClassesAndClusters();
+  void updateClassesAndClasses();
   [[nodiscard]] bool isDisabled() const
   {
     return mDisabled->isChecked();
@@ -216,9 +203,7 @@ private:
   QDialog *mEditDialog;
   WrapLabel *mDisplayableText;
   std::vector<std::tuple<SettingBase *, bool, int32_t>> mSettings;
-  std::vector<SettingComboBox<enums::ClusterIdIn> *> mClusters;
   std::vector<SettingComboBox<enums::ClassIdIn> *> mClasses;
-  std::vector<SettingComboBoxMulti<enums::ClusterIdIn> *> mClustersMulti;
   std::vector<SettingComboBoxMulti<enums::ClassIdIn> *> mClassesMulti;
   const InOut mInOut;
   std::shared_ptr<Command> mCommandBefore = nullptr;

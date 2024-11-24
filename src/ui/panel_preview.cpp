@@ -25,7 +25,7 @@
 #include <memory>
 #include <string>
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
 #include "ui/helper/icon_generator.hpp"
 #include "ui/window_main/window_main.hpp"
@@ -118,11 +118,11 @@ QWidget *PanelPreview::createToolBar()
   //
   // Preview classes
   //
-  mClustersClassesToShow = SettingBase::create<SettingComboBoxMultiClassificationIn>(mParent, generateIcon("circle"), "Classes to paint");
-  mClustersClassesToShow->getInputObject()->setMaximumWidth(175);
-  mClustersClassesToShow->getInputObject()->setMinimumWidth(175);
-  mClustersClassesToShow->setValue(settings::ObjectInputClusters{{enums::ClusterIdIn::$, enums::ClassIdIn::$}});
-  layout->addWidget(mClustersClassesToShow->getInputObject());
+  mClassesClassesToShow = SettingBase::create<SettingComboBoxMultiClassificationIn>(mParent, generateIcon("circle"), "Classes to paint");
+  mClassesClassesToShow->getInputObject()->setMaximumWidth(175);
+  mClassesClassesToShow->getInputObject()->setMinimumWidth(175);
+  mClassesClassesToShow->setValue(settings::ObjectInputClasses{enums::ClassIdIn::$});
+  layout->addWidget(mClassesClassesToShow->getInputObject());
 
   //
   // Preview size
@@ -140,7 +140,7 @@ QWidget *PanelPreview::createToolBar()
   layout->addWidget(mPreviewSize);
 
   connect(mPreviewSize, &QComboBox::currentIndexChanged, this, &PanelPreview::onSettingChanged);
-  connect(mClustersClassesToShow.get(), &SettingBase::valueChanged, this, &PanelPreview::onSettingChanged);
+  connect(mClassesClassesToShow.get(), &SettingBase::valueChanged, this, &PanelPreview::onSettingChanged);
 
   layout->addStretch();
 

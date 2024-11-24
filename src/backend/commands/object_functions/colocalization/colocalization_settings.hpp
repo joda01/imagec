@@ -18,7 +18,7 @@
 #include <set>
 #include <vector>
 #include "backend/enums/enum_objects.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/global_enums.hpp"
 #include "backend/settings/setting.hpp"
 #include "backend/settings/setting_base.hpp"
@@ -32,9 +32,9 @@ namespace joda::settings {
 struct ColocalizationSettings : public SettingBase
 {
   //
-  // Clusters to calculate the intersection with
+  // Classes to calculate the intersection with
   //
-  ObjectInputClusters inputClusters;
+  ObjectInputClasses inputClasses;
 
   //
   // Minimum intersection in [0-1]
@@ -42,33 +42,33 @@ struct ColocalizationSettings : public SettingBase
   float minIntersection = 0.1F;
 
   //
-  // Resulting object cluster of the intersecting objects
+  // Resulting object classs of the intersecting objects
   //
-  ClassificatorSetting outputCluster;
+  enums::ClassIdIn outputClass;
 
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK_ERROR(inputClusters.size() > 1, "At least two input objects must be given!");
+    CHECK_ERROR(inputClasses.size() > 1, "At least two input objects must be given!");
     CHECK_ERROR(minIntersection >= 0 && minIntersection <= 1, "Min intersection must be between [0-1].");
   }
 
-  settings::ObjectInputClusters getInputClustersAndClasses() const override
+  settings::ObjectInputClasses getInputClasses() const override
   {
-    settings::ObjectInputClusters clusters;
-    for(const auto cluster : inputClusters) {
-      clusters.emplace(cluster);
+    settings::ObjectInputClasses classes;
+    for(const auto classs : inputClasses) {
+      classes.emplace(classs);
     }
 
-    return clusters;
+    return classes;
   }
 
-  [[nodiscard]] ObjectOutputClusters getOutputClustersAndClasses() const override
+  [[nodiscard]] ObjectOutputClasses getOutputClasses() const override
   {
-    return {{outputCluster}};
+    return {outputClass};
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_EXTENDED(ColocalizationSettings, inputClusters, minIntersection, outputCluster);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_EXTENDED(ColocalizationSettings, inputClasses, minIntersection, outputClass);
 };
 
 }    // namespace joda::settings

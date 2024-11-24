@@ -106,7 +106,7 @@ public:
 
   void setWindowTitlePrefix(const QString &txt);
   void checkForSettingsChanged();
-  auto getOutputClustersAndClasses() -> std::set<settings::ClassificatorSettingOut>;
+  auto getOutputClasses() -> std::set<joda::enums::ClassId>;
 
 public slots:
   void onBackClicked();
@@ -161,7 +161,7 @@ private:
   joda::settings::AnalyzeSettings mAnalyzeSettings;
   joda::settings::AnalyzeSettings mAnalyzeSettingsOld;
   std::filesystem::path mSelectedProjectSettingsFilePath;
-  std::set<settings::ClassificatorSettingOut> mOutPutClustersOld;
+  std::set<joda::enums::ClassId> mOutPutClassesOld;
 
   ////Left Toolbar/////////////////////////////////////////////////
   QToolBar *mSidebar;

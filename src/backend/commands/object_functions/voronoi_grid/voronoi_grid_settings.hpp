@@ -6,7 +6,7 @@
 #include <string>
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/helper/json_optional_parser_helper.hpp"
 #include "backend/settings/setting.hpp"
 #include "backend/settings/setting_base.hpp"
@@ -19,19 +19,19 @@ struct VoronoiGridSettings : public SettingBase
 {
 public:
   //
-  // Cluster where the points which should be used to generate the voronoi grid are stored in
+  // Classs where the points which should be used to generate the voronoi grid are stored in
   //
-  ObjectInputClusters inputClustersPoints;
+  ObjectInputClasses inputClassesPoints;
 
   //
-  // To which cluster the result should be assigned to
+  // To which classs the result should be assigned to
   //
-  ClassificatorSetting outputClustersVoronoi;
+  enums::ClassIdIn outputClassVoronoi;
 
   //
-  // Cluster which contains the masking classes
+  // Classs which contains the masking classes
   //
-  ObjectInputClusters inputClustersMask;
+  ObjectInputClasses inputClassesMask;
 
   //
   // Exclude voronoi areas with now points after a cut
@@ -63,25 +63,25 @@ public:
   {
   }
 
-  settings::ObjectInputClusters getInputClustersAndClasses() const override
+  settings::ObjectInputClasses getInputClasses() const override
   {
-    settings::ObjectInputClusters clusters;
-    for(const auto &in : inputClustersPoints) {
-      clusters.emplace(in);
+    settings::ObjectInputClasses classes;
+    for(const auto &in : inputClassesPoints) {
+      classes.emplace(in);
     }
 
-    for(const auto &in : inputClustersMask) {
-      clusters.emplace(in);
+    for(const auto &in : inputClassesMask) {
+      classes.emplace(in);
     }
-    return clusters;
+    return classes;
   }
 
-  [[nodiscard]] ObjectOutputClusters getOutputClustersAndClasses() const override
+  [[nodiscard]] ObjectOutputClasses getOutputClasses() const override
   {
-    return {outputClustersVoronoi};
+    return {outputClassVoronoi};
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(VoronoiGridSettings, inputClustersPoints, outputClustersVoronoi, inputClustersMask,
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(VoronoiGridSettings, inputClassesPoints, outputClassVoronoi, inputClassesMask,
                                                        excludeAreasWithoutPoint, excludeAreasAtTheEdge, maxRadius, minAreaSize, maxAreaSize);
 };
 

@@ -15,7 +15,6 @@
 #include <cstddef>
 #include <optional>
 #include "backend/artifacts/object_list/object_list.hpp"
-#include "backend/enums/enums_clusters.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
@@ -28,23 +27,23 @@ Reclassify::Reclassify(const settings::ReclassifySettings &settings) : mSettings
 
 void Reclassify::execute(processor::ProcessContext &context, cv::Mat & /*image*/, atom::ObjectList & /*resultIn*/)
 {
-  for(const auto &inputClassification : mSettings.inputClusters) {
-    auto &objectsInOut = context.loadObjectsFromCache()->at(context.getClusterId(inputClassification.clusterId));
+  for(const auto &inputClassification : mSettings.inputClasses) {
+    auto &objectsInOut = context.loadObjectsFromCache()->at(context.getClassId(inputClassification));
 
-    if(mSettings.intersection.inputClustersIntersectWith.empty()) {
+    if(mSettings.intersection.inputClassesIntersectWith.empty()) {
       for(auto &roi : *objectsInOut) {
         if(settings::ClassifierFilter::doesFilterMatch(context, roi, mSettings.metrics, mSettings.intensity)) {
-          if(mSettings.intersection.inputClustersIntersectWith.empty()) {
+          if(mSettings.intersection.inputClassesIntersectWith.empty()) {
             roi.setClass(context.getClassId(mSettings.newClassId));
           }
         }
       }
     } else {
-      for(const auto &intersectWithClusterId : mSettings.intersection.inputClustersIntersectWith) {
-        auto *intersectWith = context.loadObjectsFromCache()->at(context.getClusterId(intersectWithClusterId.clusterId)).get();
-        objectsInOut->calcIntersection(context, mSettings.mode, intersectWith, {context.getClassId(inputClassification.classId)},
-                                       {context.getClassId(intersectWithClusterId.classId)}, mSettings.intersection.minIntersection,
-                                       mSettings.metrics, mSettings.intensity, context.getClassId(mSettings.newClassId));
+      for(const auto &intersectWithClasssId : mSettings.intersection.inputClassesIntersectWith) {
+        auto *intersectWith = context.loadObjectsFromCache()->at(context.getClassId(intersectWithClasssId)).get();
+        objectsInOut->calcIntersection(context, mSettings.mode, intersectWith, {context.getClassId(inputClassification)},
+                                       {context.getClassId(intersectWithClasssId)}, mSettings.intersection.minIntersection, mSettings.metrics,
+                                       mSettings.intensity, context.getClassId(mSettings.newClassId));
       }
     }
   }

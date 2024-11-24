@@ -17,7 +17,6 @@
 #include <cstdint>
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_base.hpp"
 #include "ui/container/setting/setting_combobox.hpp"

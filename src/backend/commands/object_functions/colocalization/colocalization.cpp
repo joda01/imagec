@@ -15,7 +15,7 @@
 #include <cstddef>
 #include <optional>
 #include "backend/artifacts/object_list/object_list.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/global_enums.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
@@ -28,12 +28,12 @@ Colocalization::Colocalization(const settings::ColocalizationSettings &settings)
 
 void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &resultIn)
 {
-  const auto &clustersToIntersect = mSettings.inputClusters;
-  size_t intersectCount           = clustersToIntersect.size();
+  const auto &classesToIntersect = mSettings.inputClasses;
+  size_t intersectCount          = classesToIntersect.size();
   try {
     int idx = 0;
-    auto it = clustersToIntersect.begin();
-    if(it == clustersToIntersect.end()) {
+    auto it = classesToIntersect.begin();
+    if(it == classesToIntersect.end()) {
       return;
     }
 
@@ -41,9 +41,9 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
       joda::log::logWarning("At least two channels must be given to calc Colocalization!");
       return;
     }
-    atom::SpheralIndex *result = resultIn[context.getClusterId(mSettings.outputCluster.clusterId)].get();
+    atom::SpheralIndex *result = resultIn[context.getClassId(mSettings.outputClass)].get();
 
-    const auto *firstDataBuffer    = context.loadObjectsFromCache()->at(context.getClusterId(it->clusterId)).get();
+    const auto *firstDataBuffer    = context.loadObjectsFromCache()->at(context.getClassId(*it)).get();
     const auto *working            = firstDataBuffer;
     atom::SpheralIndex *resultTemp = nullptr;
     // Directly write to the output buffer
@@ -55,16 +55,15 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
       resultTemp = &buffer01;
     }
 
-    std::optional<std::set<joda::enums::ClassId>> objectClassesMe = std::set<joda::enums::ClassId>{context.getClassId(it->classId)};
+    std::optional<std::set<joda::enums::ClassId>> objectClassesMe = std::set<joda::enums::ClassId>{context.getClassId(*it)};
 
     ++it;
     ++idx;
 
-    for(; it != clustersToIntersect.end(); ++it) {
-      const auto *objects02 = context.loadObjectsFromCache()->at(context.getClusterId(it->clusterId)).get();
-      working->calcColocalization(context.getActIterator(), objects02, resultTemp, objectClassesMe, {context.getClassId(it->classId)},
-                                  context.getClusterId(mSettings.outputCluster.clusterId), context.getClassId(mSettings.outputCluster.classId),
-                                  mSettings.minIntersection, context.getActTile(), context.getTileSize());
+    for(; it != classesToIntersect.end(); ++it) {
+      const auto *objects02 = context.loadObjectsFromCache()->at(context.getClassId(*it)).get();
+      working->calcColocalization(context.getActIterator(), objects02, resultTemp, objectClassesMe, {context.getClassId(*it)},
+                                  context.getClassId(mSettings.outputClass), mSettings.minIntersection, context.getActTile(), context.getTileSize());
       // In the second run, we have to ignore the object class filter of me, because this are still the filtered objects
       objectClassesMe.reset();
       idx++;
@@ -93,11 +92,11 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
 }
 /*
 cv::Mat intersectingMask =
-    cv::Mat(detectionResultsIn.at(*clustersToIntersect.begin()).controlImage.size(), CV_8UC1, cv::Scalar(255));
+    cv::Mat(detectionResultsIn.at(*classesToIntersect.begin()).controlImage.size(), CV_8UC1, cv::Scalar(255));
 cv::Mat originalImage =
-    cv::Mat::ones(detectionResultsIn.at(*clustersToIntersect.begin()).controlImage.size(), CV_16UC1) * 65535;
+    cv::Mat::ones(detectionResultsIn.at(*classesToIntersect.begin()).controlImage.size(), CV_16UC1) * 65535;
 
-for(const auto idxToIntersect : clustersToIntersect) {
+for(const auto idxToIntersect : classesToIntersect) {
   if(detectionResultsIn.contains(idxToIntersect)) {
     cv::Mat binaryImage = cv::Mat::zeros(detectionResultsIn.at(idxToIntersect).originalImage.size(), CV_8UC1);
     detectionResultsIn.at(idxToIntersect).result.createBinaryImage(binaryImage);

@@ -12,7 +12,7 @@
 
 #include "setting_combobox_classification_unmanaged.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "ui/window_main/window_main.hpp"
 
 namespace joda::ui {
@@ -29,16 +29,16 @@ QWidget *SettingComboBoxClassificationUnmanaged::createInputObject()
   return mComboBox;
 }
 
-void SettingComboBoxClassificationUnmanaged::addOptions(const std::map<settings::ClassificatorSettingOut, QString> &dataIn)
+void SettingComboBoxClassificationUnmanaged::addOptions(const std::map<joda::enums::ClassId, QString> &dataIn)
 {
   mComboBox->blockSignals(true);
   auto actSelected = getValue();
   mComboBox->clear();
   if(!dataIn.empty()) {
-    auto oldCluster = dataIn.begin()->first.clusterId;
+    auto oldClasss = dataIn.begin()->first;
     for(const auto &[data, label] : dataIn) {
-      if(oldCluster != data.clusterId) {
-        oldCluster = data.clusterId;
+      if(oldClasss != data) {
+        oldClasss = data;
         mComboBox->insertSeparator(mComboBox->count());
       }
 
@@ -51,7 +51,7 @@ void SettingComboBoxClassificationUnmanaged::addOptions(const std::map<settings:
   mComboBox->blockSignals(false);
 }
 
-void SettingComboBoxClassificationUnmanaged::setDefaultValue(settings::ClassificatorSettingOut defaultVal)
+void SettingComboBoxClassificationUnmanaged::setDefaultValue(joda::enums::ClassId defaultVal)
 {
   mDefaultValue = defaultVal;
   reset();
@@ -69,7 +69,7 @@ void SettingComboBoxClassificationUnmanaged::clear()
   mComboBox->setCurrentIndex(0);
 }
 
-QString SettingComboBoxClassificationUnmanaged::getName(settings::ClassificatorSettingOut key) const
+QString SettingComboBoxClassificationUnmanaged::getName(joda::enums::ClassId key) const
 {
   auto idx = mComboBox->findData(toInt(key), Qt::UserRole + 1);
   if(idx >= 0) {
@@ -78,12 +78,12 @@ QString SettingComboBoxClassificationUnmanaged::getName(settings::ClassificatorS
   return "";
 }
 
-settings::ClassificatorSettingOut SettingComboBoxClassificationUnmanaged::getValue()
+joda::enums::ClassId SettingComboBoxClassificationUnmanaged::getValue()
 {
   return fromInt(mComboBox->currentData().toUInt());
 }
 
-void SettingComboBoxClassificationUnmanaged::setValue(const settings::ClassificatorSettingOut &valueIn)
+void SettingComboBoxClassificationUnmanaged::setValue(const joda::enums::ClassId &valueIn)
 {
   auto idx = mComboBox->findData(toInt(valueIn));
   if(idx >= 0) {
@@ -91,16 +91,16 @@ void SettingComboBoxClassificationUnmanaged::setValue(const settings::Classifica
   }
 }
 
-std::pair<settings::ClassificatorSettingOut, std::pair<std::string, std::string>> SettingComboBoxClassificationUnmanaged::getValueAndNames()
+std::pair<joda::enums::ClassId, std::pair<std::string, std::string>> SettingComboBoxClassificationUnmanaged::getValueAndNames()
 {
-  std::string clusterName;
+  std::string classsName;
   std::string className;
   auto split = mComboBox->currentText().split("@");
   if(split.size() == 2) {
-    clusterName = split[0].toStdString();
-    className   = split[1].toStdString();
+    classsName = split[0].toStdString();
+    className  = split[1].toStdString();
   }
-  return {fromInt(mComboBox->currentData().toUInt()), {clusterName, className}};
+  return {fromInt(mComboBox->currentData().toUInt()), {classsName, className}};
 }
 
 void SettingComboBoxClassificationUnmanaged::onValueChanged()

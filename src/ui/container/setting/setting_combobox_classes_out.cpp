@@ -24,7 +24,7 @@ QWidget *SettingComboBoxClassesOut::createInputObject()
   mComboBox->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
   mComboBox->addAction(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE), "");
 
-  clusterNamesChanged();
+  classsNamesChanged();
 
   SettingBase::connect(mComboBox, &QComboBox::currentIndexChanged, this, &SettingComboBoxClassesOut::onValueChanged);
   SettingBase::connect(mComboBox, &QComboBox::currentTextChanged, this, &SettingComboBoxClassesOut::onValueChanged);
@@ -50,16 +50,16 @@ void SettingComboBoxClassesOut::clear()
   mComboBox->setCurrentIndex(0);
 }
 
-void SettingComboBoxClassesOut::clusterNamesChanged()
+void SettingComboBoxClassesOut::classsNamesChanged()
 {
   auto *parent = getParent();
   if(parent != nullptr) {
     mComboBox->blockSignals(true);
     auto actSelected = getValue();
     mComboBox->clear();
-    auto [_, classes] = parent->getPanelClassification()->getClustersAndClasses();
+    auto classes = parent->getPanelClassification()->getClassesAndClasses();
 
-    // Add this cluster
+    // Add this classs
     for(const auto &data : classes) {
       QVariant variant;
       variant = QVariant(toInt(data.first));

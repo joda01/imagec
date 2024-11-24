@@ -6,7 +6,7 @@
 #include "../database.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/table/table.hpp"
 #include <opencv2/core/types.hpp>
@@ -21,8 +21,8 @@ public:
   /// \brief      Get data for plates
   /// \author     Joachim Danmayr
   ///
-  static auto getControlImage(Database &analyzer, uint64_t imageId, enums::ClusterId channelId, enums::ClassId classId, enums::Measurement stats,
-                              int32_t tileID, const cv::Rect &boundingBox) -> cv::Mat
+  static auto getControlImage(Database &analyzer, uint64_t imageId, enums::ClassId classId, enums::Measurement stats, int32_t tileID,
+                              const cv::Rect &boundingBox) -> cv::Mat
   {
     return {};
     /*

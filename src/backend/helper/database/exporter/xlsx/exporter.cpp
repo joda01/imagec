@@ -5,7 +5,7 @@
 #include <string>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/enums/enums_grouping.hpp"
 #include "backend/helper/database/plugins/filter.hpp"
 #include "backend/helper/database/plugins/stats_for_image.hpp"
@@ -33,7 +33,7 @@ void BatchExporter::startExportHeatmap(const std::map<int32_t, joda::table::Tabl
   std::map<std::string, std::pair<Pos, lxw_worksheet *>> sheets;
 
   for(const auto &[_, table] : data) {
-    std::string name = table.getMeta().clusterName;
+    std::string name = table.getMeta().classsName;
     // Max. sheet name length = 31 because of excel limitation
     if(name.size() > 30) {
       name = name.substr(0, 30);
@@ -357,12 +357,6 @@ void BatchExporter::createAnalyzeSettings(WorkBook &workbookSettings, const sett
   addElement("Version", settings.meta.imagecVersion);
   addElement("Build", settings.meta.buildTime);
 
-  addTitle("Clusters");
-  for(const auto &cluster : settings.projectSettings.classification.clusters) {
-    nlohmann::json classIdStr = static_cast<enums::ClusterId>(cluster.clusterId);
-    addElement(std::string(classIdStr), cluster.name);
-  }
-
   addTitle("Classes");
   for(const auto &classs : settings.projectSettings.classification.classes) {
     nlohmann::json classIdStr = static_cast<enums::ClassId>(classs.classId);
@@ -372,9 +366,6 @@ void BatchExporter::createAnalyzeSettings(WorkBook &workbookSettings, const sett
   addTitle("Pipelines");
   for(const auto &pipeline : settings.pipelines) {
     addElement("Name", pipeline.meta.name);
-
-    nlohmann::json clusterId = static_cast<enums::ClusterId>(pipeline.pipelineSetup.defaultClusterId);
-    addElement("Default cluster", std::string(clusterId));
 
     nlohmann::json classId = static_cast<enums::ClassId>(pipeline.pipelineSetup.defaultClassId);
     addElement("Default class", std::string(classId));

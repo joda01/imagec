@@ -43,14 +43,4 @@ ProcessContext::ProcessContext(GlobalContext &globalContext, PlateContext &plate
   return iterationContext.imageCache.at(cacheId).get();
 }
 
-std::string ProcessContext::getColorForClusterAndClass(enums::ClusterIdIn cluster, enums::ClassIdIn classs) const
-{
-  settings::ClassificatorSettingOut tmp{getClusterId(cluster), getClassId(classs)};
-  auto color = globalContext.clusterClassColors.getColor(tmp);
-  if(color.empty()) {
-    // Assign a random color if no color was found
-  }
-  return color;
-}
-
 }    // namespace joda::processor

@@ -18,10 +18,9 @@
 #include <exception>
 #include <string>
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/file_parser/directory_iterator.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
-#include "backend/settings/project_settings/project_cluster_classes.hpp"
+#include "backend/settings/project_settings/project_classification.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
 #include "ui/helper/icon_generator.hpp"
 #include "ui/results/panel_results.hpp"
@@ -66,23 +65,6 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
   }
 
   {
-    mClusters = new PlaceholderTableWidget(NR_OF_CLUSTERS, 5);
-    mClusters->setPlaceholderText("Add a cluster");
-    mClusters->verticalHeader()->setVisible(false);
-    mClusters->setHorizontalHeaderLabels({"IdNr", "Id", "Cluster", "Color", "Notes"});
-    mClusters->setAlternatingRowColors(true);
-    mClusters->setSelectionBehavior(QAbstractItemView::SelectRows);
-    mClusters->setColumnHidden(COL_ID, true);
-    mClusters->setColumnHidden(COL_COLOR, true);
-    mClusters->setColumnWidth(COL_ID_ENUM, 10);
-    mClusters->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
-    mClusters->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
-    mClusters->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Stretch);
-
-    layout->addWidget(mClusters);
-  }
-
-  {
     mClasses = new PlaceholderTableWidget(NR_OF_CLASSES, 5);
     mClasses->setPlaceholderText("Add a class");
     mClasses->verticalHeader()->setVisible(false);
@@ -102,8 +84,7 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
 
   initTable();
   connect(mClasses, &QTableWidget::itemChanged, [&](QTableWidgetItem *item) { onSettingChanged(); });
-  connect(mClusters, &QTableWidget::itemChanged, [&](QTableWidgetItem *item) { onSettingChanged(); });
-  connect(mClusters, &QTableWidget::cellDoubleClicked, [&](int row, int column) {});
+  connect(mClasses, &QTableWidget::cellDoubleClicked, [&](int row, int column) {});
 }
 
 ///
@@ -116,29 +97,6 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
 void PanelClassification::initTable()
 {
   mClasses->blockSignals(true);
-  mClusters->blockSignals(true);
-  //
-  // Load clusters
-  //
-  for(int32_t clusterId = 0; clusterId < NR_OF_CLUSTERS; clusterId++) {
-    auto *index = new QTableWidgetItem(QString::number(clusterId));
-    index->setFlags(index->flags() & ~Qt::ItemIsEditable);
-    mClusters->setItem(clusterId, COL_ID, index);
-
-    nlohmann::json classIdStr = static_cast<enums::ClusterId>(clusterId);
-    auto *itemEnum            = new QTableWidgetItem(QString(std::string(classIdStr).data()));
-    itemEnum->setFlags(itemEnum->flags() & ~Qt::ItemIsEditable);
-    mClusters->setItem(clusterId, COL_ID_ENUM, itemEnum);
-
-    auto *item = new QTableWidgetItem(QString(""));
-    mClusters->setItem(clusterId, COL_NAME, item);
-
-    auto *itemColor = new QTableWidgetItem(QString(""));
-    mClusters->setItem(clusterId, COL_COLOR, itemColor);
-
-    auto *itemNotes = new QTableWidgetItem(QString(""));
-    mClusters->setItem(clusterId, COL_NOTES, itemNotes);
-  }
 
   //
   // Load classes
@@ -163,7 +121,6 @@ void PanelClassification::initTable()
     mClasses->setItem(classId, COL_NOTES, itemNotes);
   }
   mClasses->blockSignals(false);
-  mClusters->blockSignals(false);
 }
 
 ///
@@ -173,25 +130,11 @@ void PanelClassification::initTable()
 /// \param[out]
 /// \return
 ///
-void PanelClassification::fromSettings(const joda::settings::ClusterClasses &settings)
+void PanelClassification::fromSettings(const joda::settings::Classification &settings)
 {
   mClasses->blockSignals(true);
-  mClusters->blockSignals(true);
 
   initTable();
-
-  //
-  // Load clusters
-  //
-  for(const auto &cluster : settings.clusters) {
-    auto clusterId = static_cast<int32_t>(cluster.clusterId);
-
-    nlohmann::json classIdStr = cluster.clusterId;
-    mClusters->item(clusterId, COL_ID_ENUM)->setText(QString(std::string(classIdStr).data()));
-    mClusters->item(clusterId, COL_NAME)->setText(cluster.name.data());
-    mClusters->item(clusterId, COL_COLOR)->setText(cluster.color.data());
-    mClusters->item(clusterId, COL_NOTES)->setText(cluster.notes.data());
-  }
 
   //
   // Load classes
@@ -207,7 +150,6 @@ void PanelClassification::fromSettings(const joda::settings::ClusterClasses &set
   }
 
   mClasses->blockSignals(false);
-  mClusters->blockSignals(false);
 }
 
 ///
@@ -220,25 +162,12 @@ void PanelClassification::fromSettings(const joda::settings::ClusterClasses &set
 void PanelClassification::updateTableLock(bool lock)
 {
   mClasses->blockSignals(true);
-  mClusters->blockSignals(true);
 
   if(lock) {
-    mClusters->horizontalHeaderItem(COL_NAME)->setIcon(generateIcon("lock"));
     mClasses->horizontalHeaderItem(COL_NAME)->setIcon(generateIcon("lock"));
 
   } else {
-    mClusters->horizontalHeaderItem(COL_NAME)->setIcon({});
     mClasses->horizontalHeaderItem(COL_NAME)->setIcon({});
-  }
-  //
-  // Load clusters
-  //
-  for(int n = 0; n < NR_OF_CLUSTERS; n++) {
-    if(lock) {
-      mClusters->item(n, COL_NAME)->setFlags(mClusters->item(n, COL_NAME)->flags() & ~Qt::ItemIsEditable);
-    } else {
-      mClusters->item(n, COL_NAME)->setFlags(mClusters->item(n, COL_NAME)->flags() | Qt::ItemIsEditable);
-    }
   }
 
   //
@@ -253,7 +182,6 @@ void PanelClassification::updateTableLock(bool lock)
   }
 
   mClasses->blockSignals(false);
-  mClusters->blockSignals(false);
 }
 
 ///
@@ -265,39 +193,6 @@ void PanelClassification::updateTableLock(bool lock)
 ///
 void PanelClassification::toSettings()
 {
-  //
-  // Save clusters
-  //
-  mSettings.classification.clusters.clear();
-  for(int row = 0; row < mClusters->rowCount(); row++) {
-    QTableWidgetItem *item = mClusters->item(row, COL_ID);
-    if(item == nullptr) {
-      continue;
-    }
-    auto clusterId = static_cast<joda::enums::ClusterId>(item->text().toInt());
-
-    QTableWidgetItem *itemName = mClusters->item(row, COL_NAME);
-    if(itemName == nullptr || itemName->text().isEmpty()) {
-      continue;
-    }
-    auto clusterName = itemName->text();
-
-    QTableWidgetItem *itemColor = mClusters->item(row, COL_COLOR);
-    QString clusterColor;
-    if(itemColor != nullptr && !itemColor->text().isEmpty()) {
-      clusterColor = itemColor->text();
-    }
-
-    QTableWidgetItem *itemNotes = mClusters->item(row, COL_NOTES);
-    QString clusterNotes;
-    if(itemNotes != nullptr && !itemNotes->text().isEmpty()) {
-      clusterNotes = itemNotes->text();
-    }
-
-    mSettings.classification.clusters.emplace_back(joda::settings::Cluster{
-        .clusterId = clusterId, .name = clusterName.toStdString(), .color = clusterColor.toStdString(), .notes = clusterNotes.toStdString()});
-  }
-
   //
   // Save classes
   //
@@ -339,29 +234,19 @@ void PanelClassification::toSettings()
 /// \param[out]
 /// \return
 ///
-[[nodiscard]] auto PanelClassification::getClustersAndClasses() const
-    -> std::tuple<std::map<enums::ClusterIdIn, QString>, std::map<enums::ClassIdIn, QString>>
+[[nodiscard]] auto PanelClassification::getClassesAndClasses() const -> std::map<enums::ClassIdIn, QString>
 {
-  std::map<enums::ClusterIdIn, QString> clusters;
   std::map<enums::ClassIdIn, QString> classes;
-
-  clusters.emplace(static_cast<enums::ClusterIdIn>(enums::ClusterIdIn::$), QString("Default"));
-  clusters.emplace(static_cast<enums::ClusterIdIn>(enums::ClusterIdIn::NONE), QString("None"));
-  clusters.emplace(static_cast<enums::ClusterIdIn>(enums::ClusterIdIn::UNDEFINED), QString("Undefined"));
 
   classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::$), QString("Default"));
   classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::NONE), QString("None"));
   classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::UNDEFINED), QString("Undefined"));
 
-  for(const auto &cluster : mSettings.classification.clusters) {
-    clusters.emplace(static_cast<enums::ClusterIdIn>(cluster.clusterId), QString(cluster.name.data()));
-  }
-
   for(const auto &classs : mSettings.classification.classes) {
     classes.emplace(static_cast<enums::ClassIdIn>(classs.classId), QString(classs.name.data()));
   }
 
-  return {clusters, classes};
+  return classes;
 }
 
 ///
@@ -390,7 +275,7 @@ void PanelClassification::loadTemplates()
   auto foundTemplates = joda::templates::TemplateParser::findTemplates(
       {{"templates/classification", joda::templates::TemplateParser::Category::BASIC},
        {joda::templates::TemplateParser::getUsersTemplateDirectory().string(), joda::templates::TemplateParser::Category::USER}},
-      joda::fs::EXT_CLUSTER_CLASS_TEMPLATE);
+      joda::fs::EXT_CLASS_CLASS_TEMPLATE);
 
   mTemplateSelection->clear();
   mTemplateSelection->addItem("User defined", "");
@@ -424,7 +309,7 @@ void PanelClassification::saveAsNewTemplate()
 {
   QString templatePath      = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
   QString pathToStoreFileIn = QFileDialog::getSaveFileName(
-      this, "Save File", templatePath, "ImageC classification template (*" + QString(joda::fs::EXT_CLUSTER_CLASS_TEMPLATE.data()) + ")");
+      this, "Save File", templatePath, "ImageC classification template (*" + QString(joda::fs::EXT_CLASS_CLASS_TEMPLATE.data()) + ")");
 
   if(pathToStoreFileIn.isEmpty()) {
     return;
@@ -441,8 +326,8 @@ void PanelClassification::saveAsNewTemplate()
   }
 
   nlohmann::json json = mWindowMain->getSettings().projectSettings.classification;
-  auto storedFileName = joda::templates::TemplateParser::saveTemplate(json, std::filesystem::path(pathToStoreFileIn.toStdString()),
-                                                                      joda::fs::EXT_CLUSTER_CLASS_TEMPLATE);
+  auto storedFileName =
+      joda::templates::TemplateParser::saveTemplate(json, std::filesystem::path(pathToStoreFileIn.toStdString()), joda::fs::EXT_CLASS_CLASS_TEMPLATE);
   loadTemplates();
 
   auto idx = mTemplateSelection->findData(QString(storedFileName.string().data()));
@@ -520,7 +405,7 @@ void PanelClassification::onloadPreset(int index)
     mActSelectedIndex = index;
 
     try {
-      joda::settings::ClusterClasses settings =
+      joda::settings::Classification settings =
           joda::templates::TemplateParser::loadTemplate(std::filesystem::path(mTemplateSelection->currentData().toString().toStdString()));
       mWindowMain->mutableSettings().projectSettings.classification = settings;
       fromSettings(settings);

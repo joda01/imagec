@@ -28,12 +28,12 @@
 #include <thread>
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/processor/processor.hpp"
 #include "backend/settings/pipeline/pipeline_factory.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
-#include "backend/settings/project_settings/project_cluster.hpp"
+
 #include "ui/container/command/command.hpp"
 #include "ui/container/command/factory.hpp"
 #include "ui/container/container_base.hpp"
@@ -288,20 +288,6 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 
   //
   //
-  defaultClusterId = SettingBase::create<SettingComboBox<enums::ClusterId>>(windowMain, generateIcon("hexagon"), "Cluster");
-  defaultClusterId->addOptions({{enums::ClusterId::NONE, "None"},
-                                {enums::ClusterId::A, "Cluster A"},
-                                {enums::ClusterId::B, "Cluster B"},
-                                {enums::ClusterId::C, "Cluster C"},
-                                {enums::ClusterId::D, "Cluster D"},
-                                {enums::ClusterId::E, "Cluster E"},
-                                {enums::ClusterId::F, "Cluster F"},
-                                {enums::ClusterId::G, "Cluster G"},
-                                {enums::ClusterId::H, "Cluster H"},
-                                {enums::ClusterId::I, "Cluster I"},
-                                {enums::ClusterId::J, "Cluster J"}});
-  defaultClusterId->connectWithSetting(&mSettings.pipelineSetup.defaultClusterId);
-
   defaultClassId = SettingBase::create<SettingComboBox<enums::ClassId>>(windowMain, generateIcon("circle"), "Class");
   defaultClassId->addOptions({{enums::ClassId::UNDEFINED, "Undefined"},
                               {enums::ClassId::C0, "Class A"},
@@ -319,14 +305,13 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
   connect(pipelineName.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::metaChangedEvent);
   connect(cStackIndex.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   connect(zProjection.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
-  connect(defaultClusterId.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   connect(defaultClassId.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
 
   {
     auto *col1 = tab->addVerticalPanel();
     col1->addGroup("Pipeline meta", {pipelineName.get()});
     col1->addGroup("Pipeline input", {cStackIndex.get(), zProjection.get()});
-    col1->addGroup("Pipeline output", {defaultClusterId.get(), defaultClassId.get()});
+    col1->addGroup("Pipeline output", {defaultClassId.get()});
   }
 
   mOverview = new PanelChannelOverview(windowMain, this);
@@ -419,7 +404,7 @@ void PanelPipelineSettings::updatePreview()
   settings::AnalyzeSettings settingsTmp = mWindowMain->getSettings();
 
   auto previewSize                                    = mPreviewImage->getPreviewSize();
-  auto clustersClassesToShow                          = mPreviewImage->getSelectedClustersAndClasses();
+  auto classesToShow                                  = mPreviewImage->getSelectedClassesAndClasses();
   settingsTmp.imageSetup.imageTileSettings.tileWidth  = previewSize;
   settingsTmp.imageSetup.imageTileSettings.tileHeight = previewSize;
   if(mLastSelectedPreviewSize != previewSize) {
@@ -428,15 +413,15 @@ void PanelPipelineSettings::updatePreview()
     mSelectedTileY           = 0;
   }
 
-  PreviewJob job{.settings              = settingsTmp,
-                 .controller            = mWindowMain->getController(),
-                 .previewPanel          = mPreviewImage,
-                 .selectedImage         = mWindowMain->getImagePanel()->getSelectedImage(),
-                 .pipelinePos           = cnt,
-                 .selectedTileX         = mSelectedTileX,
-                 .selectedTileY         = mSelectedTileY,
-                 .clustersAndClasses    = mWindowMain->getPanelClassification()->getClustersAndClasses(),
-                 .clustersClassesToShow = clustersClassesToShow};
+  PreviewJob job{.settings      = settingsTmp,
+                 .controller    = mWindowMain->getController(),
+                 .previewPanel  = mPreviewImage,
+                 .selectedImage = mWindowMain->getImagePanel()->getSelectedImage(),
+                 .pipelinePos   = cnt,
+                 .selectedTileX = mSelectedTileX,
+                 .selectedTileY = mSelectedTileY,
+                 .classes       = mWindowMain->getPanelClassification()->getClassesAndClasses(),
+                 .classesToShow = classesToShow};
 
   std::lock_guard<std::mutex> lock(mCheckForEmptyMutex);
   mPreviewQue.push(job);
@@ -505,14 +490,13 @@ void PanelPipelineSettings::previewThread()
             }
 
             jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, *myPipeline, imgIndex, jobToDo.selectedTileX,
-                                        jobToDo.selectedTileY, previewResult, imgProps, jobToDo.clustersClassesToShow);
+                                        jobToDo.selectedTileY, previewResult, imgProps, jobToDo.classesToShow);
             // Create a QByteArray from the char array
-            QString info             = "<html>";
-            auto [clusters, classes] = jobToDo.clustersAndClasses;
+            QString info = "<html>";
+            auto classes = jobToDo.classes;
             for(const auto &[classId, count] : previewResult.foundObjects) {
               QString tmp = "<span style=\"color: " + QString(count.color.data()) + ";\">" +
-                            (clusters[static_cast<enums::ClusterIdIn>(classId.clusterId)] + "/" +
-                             classes[static_cast<enums::ClassIdIn>(classId.classId)] + "</span>: " + QString::number(count.count) + "<br>");
+                            (classes[static_cast<enums::ClassIdIn>(classId)] + "</span>: " + QString::number(count.count) + "<br>");
               info += tmp;
             }
             info += "</html>";
@@ -621,7 +605,6 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   pipelineName->setValue(settings.meta.name);
   cStackIndex->setValue(settings.pipelineSetup.cStackIndex);
   zProjection->setValue(settings.pipelineSetup.zProjection);
-  defaultClusterId->setValue(settings.pipelineSetup.defaultClusterId);
   defaultClassId->setValue(settings.pipelineSetup.defaultClassId);
 
   //
@@ -655,11 +638,10 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
 ///
 void PanelPipelineSettings::toSettings()
 {
-  mSettings.meta.name                      = pipelineName->getValue();
-  mSettings.pipelineSetup.cStackIndex      = cStackIndex->getValue();
-  mSettings.pipelineSetup.zProjection      = zProjection->getValue();
-  mSettings.pipelineSetup.defaultClusterId = defaultClusterId->getValue();
-  mSettings.pipelineSetup.defaultClassId   = defaultClassId->getValue();
+  mSettings.meta.name                    = pipelineName->getValue();
+  mSettings.pipelineSetup.cStackIndex    = cStackIndex->getValue();
+  mSettings.pipelineSetup.zProjection    = zProjection->getValue();
+  mSettings.pipelineSetup.defaultClassId = defaultClassId->getValue();
 }
 
 ///
@@ -701,7 +683,7 @@ void PanelPipelineSettings::deletePipeline()
 
 ///
 /// \brief        Names in the classification has been changed, update all commands using
-///               Class or Cluster with the new name
+///               Class or Classs with the new name
 /// \author
 /// \param[in]
 /// \param[out]
@@ -709,20 +691,9 @@ void PanelPipelineSettings::deletePipeline()
 ///
 void PanelPipelineSettings::onClassificationNameChanged()
 {
-  defaultClusterId->blockComponentSignals(true);
   defaultClassId->blockComponentSignals(true);
 
-  const auto [clusters, classes] = mWindowMain->getPanelClassification()->getClustersAndClasses();
-
-  {
-    std::map<enums::ClusterId, QString> clustersN;
-    for(const auto &[id, name] : clusters) {
-      if(id != enums::ClusterIdIn::$) {
-        clustersN.emplace(static_cast<enums::ClusterId>(id), name);
-      }
-    }
-    defaultClusterId->changeOptionText(clustersN);
-  }
+  const auto classes = mWindowMain->getPanelClassification()->getClassesAndClasses();
 
   {
     std::map<enums::ClassId, QString> classN;
@@ -734,7 +705,6 @@ void PanelPipelineSettings::onClassificationNameChanged()
     defaultClassId->changeOptionText(classN);
   }
 
-  defaultClusterId->blockComponentSignals(false);
   defaultClassId->blockComponentSignals(false);
 
   valueChangedEvent();

@@ -21,7 +21,7 @@
 #include <utility>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_memory_idx.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/enums/types.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/fnv1a.hpp"
@@ -174,7 +174,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   //
   // Write context
   //
-  processContext.initDefaultSettings(pipelineSetup.defaultClusterId, pipelineSetup.defaultClassId, zProjection);
+  processContext.initDefaultSettings(pipelineSetup.defaultClassId, zProjection);
 }
 
 ///

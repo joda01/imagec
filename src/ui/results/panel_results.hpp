@@ -23,7 +23,7 @@
 #include <memory>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/database/plugins/filter.hpp"
 #include "backend/helper/table/table.hpp"
@@ -118,7 +118,7 @@ private:
 
   // Breadcrumb///////////////////////////////////////////////////
   void createBreadCrump(joda::ui::helper::LayoutGenerator *);
-  auto getClusterAndClassFromCombo() const -> std::pair<std::string, std::string>;
+  auto getClasssFromCombo() const -> std::pair<std::string, std::string>;
 
   QPushButton *mBackButton;
   QAction *mTableButton   = nullptr;

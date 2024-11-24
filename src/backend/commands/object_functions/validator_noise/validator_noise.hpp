@@ -30,7 +30,7 @@ public:
   {
     uint64_t count = mSettings.maxObjects;
 
-    for(const auto &classes : mSettings.inputClusters) {
+    for(const auto &classes : mSettings.inputClasses) {
       auto markAsInvalid = [this, &context, classes]() {
         switch(mSettings.mode) {
           case settings::NoiseValidatorSettings::FilterMode::UNKNOWN:
@@ -40,15 +40,15 @@ public:
           case settings::NoiseValidatorSettings::FilterMode::INVALIDATE_IMAGE_PLANE:
             context.setImagePlaneValidity(joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
             break;
-          case settings::NoiseValidatorSettings::FilterMode::INVALIDATE_IAMGE_PLANE_CLUSTER:
-            context.setImagePlaneClusterClusterValidity(classes.clusterId, joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
+          case settings::NoiseValidatorSettings::FilterMode::INVALIDATE_IAMGE_PLANE_CLASS:
+            context.setImagePlaneClasssClasssValidity(classes, joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
             break;
         }
       };
 
-      const auto *cluster = result.at(context.getClusterId(classes.clusterId)).get();
-      for(const auto &roi : *cluster) {
-        if(roi.getClassId() == context.getClassId(classes.classId)) {
+      const auto *classs = result.at(context.getClassId(classes)).get();
+      for(const auto &roi : *classs) {
+        if(roi.getClassId() == context.getClassId(classes)) {
           if(count > 0) {
             count--;
           } else {

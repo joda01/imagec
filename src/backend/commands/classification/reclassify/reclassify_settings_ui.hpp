@@ -17,7 +17,7 @@
 #include <cstdint>
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_base.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
@@ -45,9 +45,9 @@ public:
     //
     // Base settings
     //
-    mClustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Input (e.g. Spot)");
-    mClustersIn->setValue(settings.inputClusters);
-    mClustersIn->connectWithSetting(&settings.inputClusters);
+    mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Input (e.g. Spot)");
+    mClassesIn->setValue(settings.inputClasses);
+    mClassesIn->connectWithSetting(&settings.inputClasses);
 
     mMode = SettingBase::create<SettingComboBox<joda::settings::ReclassifySettings::Mode>>(parent, {}, "Mode");
     mMode->addOptions(
@@ -60,15 +60,15 @@ public:
     mClassOutput->setValue(settings.newClassId);
     mClassOutput->connectWithSetting(&settings.newClassId);
 
-    addSetting(modelTab, "Input", {{mClustersIn.get(), true, 0}, {mMode.get(), true, 0}, {mClassOutput.get(), true, 0}});
+    addSetting(modelTab, "Input", {{mClassesIn.get(), true, 0}, {mMode.get(), true, 0}, {mClassOutput.get(), true, 0}});
 
     //
     // Intersection filter
     //
-    mClustersIntersectWith =
+    mClassesIntersectWith =
         SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("query-outer-join-right"), "Intersect with (e.g. Tetraspeck)");
-    mClustersIntersectWith->setValue(settings.intersection.inputClustersIntersectWith);
-    mClustersIntersectWith->connectWithSetting(&settings.intersection.inputClustersIntersectWith);
+    mClassesIntersectWith->setValue(settings.intersection.inputClassesIntersectWith);
+    mClassesIntersectWith->connectWithSetting(&settings.intersection.inputClassesIntersectWith);
 
     mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("query-inner-join"), "Min. intersection");
     mMinIntersection->setDefaultValue(0.1);
@@ -79,7 +79,7 @@ public:
     mMinIntersection->connectWithSetting(&settings.intersection.minIntersection);
     mMinIntersection->setShortDescription("Cls. ");
 
-    auto *col2 = addSetting(modelTab, "Intersect with", {{mClustersIntersectWith.get(), false, 0}, {mMinIntersection.get(), false, 0}});
+    auto *col2 = addSetting(modelTab, "Intersect with", {{mClassesIntersectWith.get(), false, 0}, {mMinIntersection.get(), false, 0}});
 
     //
     // Intensity filter
@@ -127,11 +127,11 @@ private:
   QWidget *mParent;
 
   /////////////////////////////////////////////////////
-  std::unique_ptr<SettingComboBoxMultiClassificationIn> mClustersIn;
+  std::unique_ptr<SettingComboBoxMultiClassificationIn> mClassesIn;
   std::unique_ptr<SettingComboBox<joda::settings::ReclassifySettings::Mode>> mMode;
   std::unique_ptr<SettingComboBoxClassesOut> mClassOutput;
 
-  std::unique_ptr<SettingComboBoxMultiClassificationIn> mClustersIntersectWith;
+  std::unique_ptr<SettingComboBoxMultiClassificationIn> mClassesIntersectWith;
   std::unique_ptr<SettingLineEdit<float>> mMinIntersection;
 
   std::unique_ptr<SettingComboBox<int32_t>> cStackForIntensityFilter;

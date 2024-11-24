@@ -16,7 +16,7 @@
 #include <exception>
 #include <stdexcept>
 #include <string>
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
@@ -31,11 +31,10 @@ namespace joda::processor {
 /// \param[out]
 /// \return
 ///
-bool providesAllClustersAndClasses(const std::set<settings::ClassificatorSettingOut> &inputClusters,
-                                   const std::set<settings::ClassificatorSettingOut> &outputClusters)
+bool providesAllClassesAndClasses(const std::set<joda::enums::ClassId> &inputClasses, const std::set<joda::enums::ClassId> &outputClasses)
 {
-  for(const auto &element : inputClusters) {
-    if(!outputClusters.contains(element)) {
+  for(const auto &element : inputClasses) {
+    if(!outputClasses.contains(element)) {
       // This node depends on an other
       return false;
     }
@@ -50,12 +49,12 @@ bool providesAllClustersAndClasses(const std::set<settings::ClassificatorSetting
 /// \param[out]
 /// \return
 ///
-auto whichOneAreProvided(const std::set<settings::ClassificatorSettingOut> &inputClusters,
-                         const std::set<settings::ClassificatorSettingOut> &outputClusters) -> std::set<settings::ClassificatorSettingOut>
+auto whichOneAreProvided(const std::set<joda::enums::ClassId> &inputClasses, const std::set<joda::enums::ClassId> &outputClasses)
+    -> std::set<joda::enums::ClassId>
 {
-  std::set<settings::ClassificatorSettingOut> provides;
-  for(const auto &element : inputClusters) {
-    if(outputClusters.contains(element)) {
+  std::set<joda::enums::ClassId> provides;
+  for(const auto &element : inputClasses) {
+    if(outputClasses.contains(element)) {
       provides.emplace(element);
     }
   }
@@ -96,42 +95,42 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
   Graph_t depGraph;
   {
     for(const settings::Pipeline *pipelineOne : pipelinesToAttache) {
-      std::set<settings::ClassificatorSettingOut> inputClusters = pipelineOne->getInputClustersAndClasses();
+      std::set<joda::enums::ClassId> inputClasses = pipelineOne->getInputClasses();
 
       depGraph.push_back(Node{pipelineOne});
 
-      if(inputClusters.empty()) {
+      if(inputClasses.empty()) {
         // This pipeline depends on nothing
         std::cout << pipelineOne->meta.name << " depends on nothing" << std::endl;
 
       } else {
         Node &inserted = depGraph.at(depGraph.size() - 1);
-        // Look for pipeline providing the needed input cluster/classes
+        // Look for pipeline providing the needed input classs/classes
         for(const auto *pipelineTwo : pipelinesToAttache) {
-          std::set<settings::ClassificatorSettingOut> outputClusters = pipelineTwo->getOutputClustersAndClasses();
+          std::set<joda::enums::ClassId> outputClasses = pipelineTwo->getOutputClasses();
           // This pipeline depends on more than one other pipeline
-          auto provided = whichOneAreProvided(inputClusters, outputClusters);
+          auto provided = whichOneAreProvided(inputClasses, outputClasses);
           if(!provided.empty()) {
             inserted.addDependency(pipelineTwo);
 
             for(const auto &element : provided) {
-              inputClusters.erase(element);    // Remove deps which are still covered
+              inputClasses.erase(element);    // Remove deps which are still covered
             }
             std::cout << pipelineOne->meta.name << " depends on " << pipelineTwo->meta.name << std::endl;
           }
         }
 
-        if(!inputClusters.empty()) {
+        if(!inputClasses.empty()) {
           std::string unresolved;
-          for(const auto &ele : inputClusters) {
-            unresolved += std::to_string((int32_t) ele.clusterId) + "/" + std::to_string((int32_t) ele.classId) + ",";
+          for(const auto &ele : inputClasses) {
+            unresolved += std::to_string(static_cast<int32_t>(ele)) + ",";
           }
           if(!unresolved.empty()) {
             unresolved.pop_back();
           }
 
           writeToLog(SettingParserLog::Severity::JODA_WARNING, pipelineOne->meta.name,
-                     "There is an unresolved dependency in pipeline which needs following cluster/clases but not found: [" + unresolved + "]!");
+                     "There is an unresolved dependency in pipeline which needs following classs/clases but not found: [" + unresolved + "]!");
         }
       }
 

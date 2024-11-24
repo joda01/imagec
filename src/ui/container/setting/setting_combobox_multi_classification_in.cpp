@@ -12,7 +12,7 @@
 
 #include "setting_combobox_multi_classification_in.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/settings/settings_types.hpp"
 #include "ui/window_main/window_main.hpp"
 
@@ -24,7 +24,7 @@ QWidget *SettingComboBoxMultiClassificationIn::createInputObject()
   mComboBox->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
   mComboBox->addAction(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE), "");
 
-  clusterNamesChanged();
+  classsNamesChanged();
 
   SettingBase::connect(mComboBox, &QComboBoxMulti::currentIndexChanged, this, &SettingComboBoxMultiClassificationIn::onValueChanged);
   SettingBase::connect(mComboBox, &QComboBoxMulti::currentTextChanged, this, &SettingComboBoxMultiClassificationIn::onValueChanged);
@@ -32,7 +32,7 @@ QWidget *SettingComboBoxMultiClassificationIn::createInputObject()
   return mComboBox;
 }
 
-void SettingComboBoxMultiClassificationIn::setDefaultValue(settings::ClassificatorSetting defaultVal)
+void SettingComboBoxMultiClassificationIn::setDefaultValue(joda::enums::ClassIdIn defaultVal)
 {
   mDefaultValue = defaultVal;
   reset();
@@ -50,40 +50,39 @@ void SettingComboBoxMultiClassificationIn::clear()
   mComboBox->setCurrentIndex(0);
 }
 
-void SettingComboBoxMultiClassificationIn::clusterNamesChanged()
+void SettingComboBoxMultiClassificationIn::classsNamesChanged()
 {
-  outputClustersChanges();
+  outputClassesChanges();
 }
 
-void SettingComboBoxMultiClassificationIn::outputClustersChanges()
+void SettingComboBoxMultiClassificationIn::outputClassesChanges()
 {
   auto *parent = getParent();
   if(parent != nullptr) {
-    auto outputClusters = parent->getOutputClustersAndClasses();
+    auto outputClasses = parent->getOutputClasses();
 
     mComboBox->blockSignals(true);
     auto actSelected = getValue();
     mComboBox->clear();
 
-    // Add this cluster
+    // Add this classs
     mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Default",
-                       QVariant(toInt({enums::ClusterIdIn::$, enums::ClassIdIn::$})));
+                       QVariant(toInt(enums::ClassIdIn::$)));
 
-    auto [clusteres, classes] = parent->getPanelClassification()->getClustersAndClasses();
-    if(!outputClusters.empty()) {
-      auto oldCluster = outputClusters.begin()->clusterId;
-      for(const auto &data : outputClusters) {
-        if(data.classId != enums::ClassId::UNDEFINED) {
-          if(oldCluster != data.clusterId) {
-            oldCluster = data.clusterId;
+    auto classes = parent->getPanelClassification()->getClassesAndClasses();
+    if(!outputClasses.empty()) {
+      auto oldClasss = *outputClasses.begin();
+      for(const auto &data : outputClasses) {
+        if(data != enums::ClassId::UNDEFINED) {
+          if(oldClasss != data) {
+            oldClasss = data;
             mComboBox->insertSeparator(mComboBox->count());
           }
 
           QVariant variant;
           variant = QVariant(toInt(data));
           mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
-                             clusteres[static_cast<enums::ClusterIdIn>(data.clusterId)] + "@" + classes[static_cast<enums::ClassIdIn>(data.classId)],
-                             variant);
+                             classes[static_cast<enums::ClassIdIn>(data)], variant);
         }
       }
     }
@@ -92,7 +91,7 @@ void SettingComboBoxMultiClassificationIn::outputClustersChanges()
   }
 }
 
-QString SettingComboBoxMultiClassificationIn::getName(settings::ClassificatorSetting key) const
+QString SettingComboBoxMultiClassificationIn::getName(joda::enums::ClassIdIn key) const
 {
   auto idx = mComboBox->findData(toInt(key), Qt::UserRole + 1);
   if(idx >= 0) {
@@ -101,9 +100,9 @@ QString SettingComboBoxMultiClassificationIn::getName(settings::ClassificatorSet
   return "";
 }
 
-settings::ObjectInputClusters SettingComboBoxMultiClassificationIn::getValue()
+settings::ObjectInputClasses SettingComboBoxMultiClassificationIn::getValue()
 {
-  settings::ObjectInputClusters toReturn;
+  settings::ObjectInputClasses toReturn;
   auto checked = (mComboBox)->getCheckedItems();
 
   for(const auto &[data, _] : checked) {
@@ -113,7 +112,7 @@ settings::ObjectInputClusters SettingComboBoxMultiClassificationIn::getValue()
   return toReturn;
 }
 
-void SettingComboBoxMultiClassificationIn::setValue(const settings::ObjectInputClusters &valueIn)
+void SettingComboBoxMultiClassificationIn::setValue(const settings::ObjectInputClasses &valueIn)
 {
   QVariantList toCheck;
   for(const auto &value : valueIn) {
@@ -122,9 +121,9 @@ void SettingComboBoxMultiClassificationIn::setValue(const settings::ObjectInputC
   (mComboBox)->setCheckedItems(toCheck);
 }
 
-std::map<settings::ClassificatorSetting, std::string> SettingComboBoxMultiClassificationIn::getValueAndNames()
+std::map<joda::enums::ClassIdIn, std::string> SettingComboBoxMultiClassificationIn::getValueAndNames()
 {
-  std::map<settings::ClassificatorSetting, std::string> toReturn;
+  std::map<joda::enums::ClassIdIn, std::string> toReturn;
   auto checked = ((QComboBoxMulti *) mComboBox)->getCheckedItems();
 
   for(const auto &[data, txt] : checked) {

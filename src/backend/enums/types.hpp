@@ -14,7 +14,6 @@
 #pragma once
 
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
 #include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 

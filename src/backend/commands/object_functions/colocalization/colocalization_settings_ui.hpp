@@ -19,7 +19,7 @@
 #include "backend/commands/command.hpp"
 #include "backend/commands/object_functions/colocalization/colocalization_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
 #include "ui/container/setting/setting_combobox_classes_out.hpp"
@@ -44,18 +44,18 @@ public:
   {
     auto *modelTab = addTab("Base", [] {});
 
-    mClustersIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("venn-diagram"), "Classes to coloc.");
-    mClustersIn->setValue(settings.inputClusters);
-    mClustersIn->connectWithSetting(&settings.inputClusters);
+    mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("venn-diagram"), "Classes to coloc.");
+    mClassesIn->setValue(settings.inputClasses);
+    mClassesIn->connectWithSetting(&settings.inputClasses);
 
-    addSetting(modelTab, "Input", {{mClustersIn.get(), true, 0}});
+    addSetting(modelTab, "Input", {{mClassesIn.get(), true, 0}});
 
     //
     //
     //
     mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("circle"), "Output class");
-    mClassOutput->setValue(settings.outputCluster.classId);
-    mClassOutput->connectWithSetting(&settings.outputCluster.classId);
+    mClassOutput->setValue(settings.outputClass);
+    mClassOutput->connectWithSetting(&settings.outputClass);
 
     //
     //
@@ -79,7 +79,7 @@ private:
   /////////////////////////////////////////////////////
   std::unique_ptr<SettingComboBoxClassesOut> mClassOutput;
   std::unique_ptr<SettingLineEdit<float>> mMinIntersection;
-  std::unique_ptr<SettingComboBoxMultiClassificationIn> mClustersIn;
+  std::unique_ptr<SettingComboBoxMultiClassificationIn> mClassesIn;
 
   /////////////////////////////////////////////////////
 };

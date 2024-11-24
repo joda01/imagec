@@ -42,13 +42,13 @@ public:
     auto *tab = addTab("", [] {});
     //
     //
-    pointsCluster = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("initial-state"), "Centers");
-    pointsCluster->setValue(settings.inputClustersPoints);
-    pointsCluster->connectWithSetting(&settings.inputClustersPoints);
+    pointsClasss = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("initial-state"), "Centers");
+    pointsClasss->setValue(settings.inputClassesPoints);
+    pointsClasss->connectWithSetting(&settings.inputClassesPoints);
 
     voronoiClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("voronoi"), "Output class");
-    voronoiClassOut->setValue(settings.outputClustersVoronoi.classId);
-    voronoiClassOut->connectWithSetting(&settings.outputClustersVoronoi.classId);
+    voronoiClassOut->setValue(settings.outputClassVoronoi);
+    voronoiClassOut->connectWithSetting(&settings.outputClassVoronoi);
 
     //
     //
@@ -62,12 +62,12 @@ public:
 
     //
     //
-    maskingCluster = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("layer-mask"), "Masking cluster (optional)");
-    maskingCluster->setValue(settings.inputClustersMask);
-    maskingCluster->connectWithSetting(&settings.inputClustersMask);
+    maskingClasss = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("layer-mask"), "Masking classs (optional)");
+    maskingClasss->setValue(settings.inputClassesMask);
+    maskingClasss->connectWithSetting(&settings.inputClassesMask);
 
-    auto *col1 = addSetting(tab, "Voronoi input/output", {{pointsCluster.get(), true, 0}, {voronoiClassOut.get(), false, 0}});
-    addSetting(tab, "Voronoi masking", {{mMaxRadius.get(), true, 0}, {maskingCluster.get(), false, 0}}, col1);
+    auto *col1 = addSetting(tab, "Voronoi input/output", {{pointsClasss.get(), true, 0}, {voronoiClassOut.get(), false, 0}});
+    addSetting(tab, "Voronoi masking", {{mMaxRadius.get(), true, 0}, {maskingClasss.get(), false, 0}}, col1);
 
     excludeAreasWithoutPoints = SettingBase::create<SettingComboBox<bool>>(parent, {}, "Exclude areas without points");
     excludeAreasWithoutPoints->addOptions({{false, "Off", {}}, {true, "On", {}}});
@@ -109,8 +109,8 @@ public:
 private:
   /////////////////////////////////////////////////////
   std::unique_ptr<SettingComboBoxClassesOut> voronoiClassOut;
-  std::unique_ptr<SettingComboBoxMultiClassificationIn> pointsCluster;
-  std::unique_ptr<SettingComboBoxMultiClassificationIn> maskingCluster;
+  std::unique_ptr<SettingComboBoxMultiClassificationIn> pointsClasss;
+  std::unique_ptr<SettingComboBoxMultiClassificationIn> maskingClasss;
 
   std::unique_ptr<SettingComboBox<bool>> excludeAreasWithoutPoints;
   std::unique_ptr<SettingComboBox<bool>> excludeAreasAtTheEdge;

@@ -15,7 +15,7 @@
 #include <filesystem>
 #include <mutex>
 #include "backend/enums/enum_images.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/global_enums.hpp"
 #include "backend/helper/file_grouper/file_grouper.hpp"
 #include "backend/helper/file_parser/directory_iterator.hpp"
@@ -190,8 +190,8 @@ public:
   auto generatePreview(const PreviewSettings &previewSettings, const settings::ProjectImageSetup &imageSetup,
                        const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline, const std::filesystem::path &imagePath,
                        int32_t tStack, int32_t zStack, int32_t tileX, int32_t tileY, bool generateThumb, const ome::OmeInfo &ome,
-                       const settings::ObjectInputClusters &clustersClassesToShow)
-      -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<settings::ClassificatorSettingOut, PreviewReturn>>;
+                       const settings::ObjectInputClasses &classesToShow)
+      -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>>;
 
 private:
   /////////////////////////////////////////////////////

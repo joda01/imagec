@@ -11,7 +11,6 @@
 ///
 
 #include "voronoi_grid.hpp"
-#include "backend/enums/enums_clusters.hpp"
 
 namespace joda::cmd {
 
@@ -20,7 +19,7 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
 {
   auto filterVoronoiAreas = [this, &context, &response, &voronoiPoints, &voronoiGrid](const atom::ROI *toIntersect) {
     for(const atom::ROI &voronoiArea : voronoiGrid) {
-      if(voronoiArea.getClassId() == context.getClassId(mSettings.outputClustersVoronoi.classId)) {
+      if(voronoiArea.getClassId() == context.getClassId(mSettings.outputClassVoronoi)) {
         //
         // Apply filter
         //
@@ -29,8 +28,8 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
           // Areas without point are filtered out
           //
           if(mSettings.excludeAreasWithoutPoint) {
-            for(const auto &points : mSettings.inputClustersPoints) {
-              if(!doesAreaContainsPoint(cutedVoronoiArea, voronoiPoints, {context.getClassId(points.classId)})) {
+            for(const auto &points : mSettings.inputClassesPoints) {
+              if(!doesAreaContainsPoint(cutedVoronoiArea, voronoiPoints, {context.getClassId(points)})) {
                 return;
               }
             }
@@ -63,7 +62,7 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
         //
         if(toIntersect != nullptr) {
           auto cutedVoronoiArea = voronoiArea.calcIntersection(voronoiArea.getId().imagePlane, *toIntersect, 0, context.getActTile(),
-                                                               context.getTileSize(), voronoiArea.getClusterId(), voronoiArea.getClassId());
+                                                               context.getTileSize(), voronoiArea.getClassId());
           if(!cutedVoronoiArea.isNull()) {
             applyFilter(cutedVoronoiArea);
           }
@@ -75,11 +74,11 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
     }
   };
 
-  if(!mSettings.inputClustersMask.empty()) {
-    for(const auto &maskIn : mSettings.inputClustersMask) {
-      const auto *mask = objects.at(context.getClusterId(maskIn.clusterId)).get();
+  if(!mSettings.inputClassesMask.empty()) {
+    for(const auto &maskIn : mSettings.inputClassesMask) {
+      const auto *mask = objects.at(context.getClassId(maskIn)).get();
       for(const auto &toIntersect : *mask) {
-        if(context.getClassId(maskIn.classId) == toIntersect.getClassId()) {
+        if(context.getClassId(maskIn) == toIntersect.getClassId()) {
           filterVoronoiAreas(&toIntersect);
         }
       }

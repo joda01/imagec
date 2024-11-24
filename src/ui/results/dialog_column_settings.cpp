@@ -32,10 +32,10 @@ DialogColumnSettings::DialogColumnSettings(db::QueryFilter *filter, QWidget *par
   auto *vlayout = new QFormLayout();
 
   //
-  mClusterClassSelector = new QComboBox();
-  mClusterClassSelector->setMinimumWidth(150);
-  connect(mClusterClassSelector, &QComboBox::currentIndexChanged, this, &DialogColumnSettings::onClusterAndClassesChanged);
-  vlayout->addRow("Cluster/Class:", mClusterClassSelector);
+  mClasssClassSelector = new QComboBox();
+  mClasssClassSelector->setMinimumWidth(150);
+  connect(mClasssClassSelector, &QComboBox::currentIndexChanged, this, &DialogColumnSettings::onClassesChanged);
+  vlayout->addRow("Classs/Class:", mClasssClassSelector);
 
   //
   //
@@ -120,7 +120,7 @@ DialogColumnSettings::DialogColumnSettings(db::QueryFilter *filter, QWidget *par
 void DialogColumnSettings::exec(int32_t selectedColumn)
 {
   if(mFilter->containsColumn({.tabIdx = 0, .colIdx = selectedColumn})) {
-    mClusterClassSelector->blockSignals(true);
+    mClasssClassSelector->blockSignals(true);
 
     auto colKey = mFilter->getColumn({.tabIdx = 0, .colIdx = selectedColumn});
 
@@ -130,8 +130,8 @@ void DialogColumnSettings::exec(int32_t selectedColumn)
       }
     };
 
-    select(mClusterClassSelector->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(colKey.clusterClass)), mClusterClassSelector);
-    onClusterAndClassesChanged();
+    select(mClasssClassSelector->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(colKey.classs)), mClasssClassSelector);
+    onClassesChanged();
     select(mMeasurementSelector->findData(static_cast<int32_t>(colKey.measureChannel)), mMeasurementSelector);
     select(mStatsSelector->findData(static_cast<int32_t>(colKey.stats)), mStatsSelector);
     select(mCrossChannelStackC->findData(colKey.crossChannelStacksC), mCrossChannelStackC);
@@ -139,24 +139,24 @@ void DialogColumnSettings::exec(int32_t selectedColumn)
     mZStack->setValue(colKey.zStack);
     mTStack->setValue(colKey.tStack);
 
-    mClusterClassSelector->blockSignals(false);
+    mClasssClassSelector->blockSignals(false);
   }
 
   accept          = false;
   mSelectedColumn = selectedColumn;
   QDialog::exec();
   if(accept) {
-    auto [clusterName, className] = getClusterAndClassFromCombo();
+    auto [classsName, className] = getClasssFromCombo();
 
-    mFilter->addColumn(db::QueryFilter::ColumnIdx{.tabIdx = 0, .colIdx = selectedColumn},
-                       db::QueryFilter::ColumnKey{
-                           .clusterClass        = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClusterClassSelector->currentData().toUInt()),
-                           .measureChannel      = static_cast<enums::Measurement>(mMeasurementSelector->currentData().toInt()),
-                           .stats               = static_cast<enums::Stats>(mStatsSelector->currentData().toInt()),
-                           .crossChannelStacksC = mCrossChannelStackC->currentData().toInt(),
-                           .zStack              = mZStack->value(),
-                           .tStack              = mTStack->value()},
-                       db::QueryFilter::ColumnName{.clusterName = clusterName, .className = className});
+    mFilter->addColumn(
+        db::QueryFilter::ColumnIdx{.tabIdx = 0, .colIdx = selectedColumn},
+        db::QueryFilter::ColumnKey{.classs = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClasssClassSelector->currentData().toUInt()),
+                                   .measureChannel      = static_cast<enums::Measurement>(mMeasurementSelector->currentData().toInt()),
+                                   .stats               = static_cast<enums::Stats>(mStatsSelector->currentData().toInt()),
+                                   .crossChannelStacksC = mCrossChannelStackC->currentData().toInt(),
+                                   .zStack              = mZStack->value(),
+                                   .tStack              = mTStack->value()},
+        db::QueryFilter::ColumnName{.classsName = classsName, .className = className});
   }
 }
 
@@ -167,12 +167,12 @@ void DialogColumnSettings::exec(int32_t selectedColumn)
 /// \param[out]
 /// \return
 ///
-void DialogColumnSettings::onClusterAndClassesChanged()
+void DialogColumnSettings::onClassesChanged()
 {
   if(mDatabase == nullptr) {
     return;
   }
-  auto clusterClassSelected = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClusterClassSelector->currentData().toUInt());
+  auto classsSelected = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClasssClassSelector->currentData().toUInt());
 
   //
   // Select cross channel intensity
@@ -180,8 +180,7 @@ void DialogColumnSettings::onClusterAndClassesChanged()
   {
     auto imageChannels  = mDatabase->selectImageChannels();
     auto currentChannel = mCrossChannelStackC->currentData().toInt();
-    auto channels       = mDatabase->selectMeasurementChannelsForClusterAndClass(static_cast<enums::ClusterId>(clusterClassSelected.clusterId),
-                                                                                 static_cast<enums::ClassId>(clusterClassSelected.classId));
+    auto channels       = mDatabase->selectMeasurementChannelsForClasss(static_cast<enums::ClassId>(classsSelected));
     mCrossChannelStackC->blockSignals(true);
     mCrossChannelStackC->clear();
     for(const auto channelId : channels) {
@@ -202,26 +201,12 @@ void DialogColumnSettings::onClusterAndClassesChanged()
 /// \param[out]
 /// \return
 ///
-void DialogColumnSettings::updateClustersAndClasses(db::Database *database)
+void DialogColumnSettings::updateClassesAndClasses(db::Database *database)
 {
   if(database == nullptr) {
     return;
   }
   mDatabase = database;
-  {
-    // Clusters/Class
-    mClusterClassSelector->blockSignals(true);
-    auto clusters = mDatabase->selectClassesForClusters();
-    mClusterClassSelector->clear();
-    for(const auto &[clusterId, cluster] : clusters) {
-      for(const auto &[classId, classsName] : cluster.second) {
-        std::string name = cluster.first + "@" + classsName;
-        mClusterClassSelector->addItem(name.data(), SettingComboBoxMultiClassificationUnmanaged::toInt({clusterId, classId}));
-      }
-      mClusterClassSelector->insertSeparator(mClusterClassSelector->count());
-    }
-    mClusterClassSelector->blockSignals(false);
-  }
 
   {
     // Image channels
@@ -242,20 +227,20 @@ void DialogColumnSettings::updateClustersAndClasses(db::Database *database)
 /// \param[out]
 /// \return
 ///
-auto DialogColumnSettings::getClusterAndClassFromCombo() const -> std::pair<std::string, std::string>
+auto DialogColumnSettings::getClasssFromCombo() const -> std::pair<std::string, std::string>
 {
-  QString clusterName;
+  QString classsName;
   QString className;
-  className = mClusterClassSelector->currentText();
+  className = mClasssClassSelector->currentText();
   if(!className.isEmpty()) {
     auto splited = className.split("@");
     if(splited.size() > 1) {
-      clusterName = splited[0];
-      className   = splited[1];
+      classsName = splited[0];
+      className  = splited[1];
     }
   }
 
-  return {clusterName.toStdString(), className.toStdString()};
+  return {classsName.toStdString(), className.toStdString()};
 }
 
 }    // namespace joda::ui

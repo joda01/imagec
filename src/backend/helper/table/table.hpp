@@ -85,7 +85,7 @@ public:
   /////////////////////////////////////////////////////
   struct Meta
   {
-    std::string clusterName;
+    std::string classsName;
     std::string className;
   };
 

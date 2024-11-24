@@ -22,12 +22,12 @@ struct SettingsExportData
 {
   struct Column
   {
-    settings::ClassificatorSettingOut inputCluster;
+    joda::enums::ClassId inputClasss;
     std::set<joda::enums::Measurement> measurements;
     std::set<enums::Stats> stats;
     std::set<int32_t> crossChannelIntensity;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Column, inputCluster, measurements, stats, crossChannelIntensity);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Column, inputClasss, measurements, stats, crossChannelIntensity);
   };
 
   std::vector<Column> columns;

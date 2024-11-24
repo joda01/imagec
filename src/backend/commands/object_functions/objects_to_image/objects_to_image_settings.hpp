@@ -16,7 +16,7 @@
 #include <set>
 #include <vector>
 #include "backend/enums/enum_objects.hpp"
-#include "backend/enums/enums_clusters.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/settings/setting.hpp"
 #include "backend/settings/setting_base.hpp"
@@ -45,42 +45,40 @@ struct ObjectsToImageSettings : public SettingBase
   //
   // Objects to use for intersection calculation
   //
-  ObjectInputCluster inputObjectFirst;
+  enums::ClassIdIn inputClassesFirst;
 
   //
   // Objects to calc the intersection with
   //
-  ObjectInputCluster inputObjectSecond = {joda::enums::ClusterIdIn::UNDEFINED, joda::enums::ClassIdIn::UNDEFINED};
+  enums::ClassIdIn inputClassesSecond = joda::enums::ClassIdIn::UNDEFINED;
 
   /////////////////////////////////////////////////////
   void check() const
   {
     if(function != Function::NOT && function != Function::NONE) {
-      CHECK_ERROR(inputObjectSecond.clusterId != joda::enums::ClusterIdIn::UNDEFINED &&
-                      inputObjectSecond.classId != joda::enums::ClassIdIn::UNDEFINED,
-                  "Object to image needs a second operand!");
+      CHECK_ERROR(inputClassesSecond != joda::enums::ClassIdIn::UNDEFINED, "Object to image needs a second operand!");
     }
   }
 
-  settings::ObjectInputClusters getInputClustersAndClasses() const override
+  settings::ObjectInputClasses getInputClasses() const override
   {
-    settings::ObjectInputClusters clusters;
-    clusters.emplace(inputObjectFirst);
+    settings::ObjectInputClasses classes;
+    classes.emplace(inputClassesFirst);
 
     if(function != Function::NOT && function != Function::NONE) {
-      clusters.emplace(inputObjectSecond);
+      classes.emplace(inputClassesSecond);
     }
 
-    return clusters;
+    return classes;
   }
 
-  [[nodiscard]] ObjectOutputClusters getOutputClustersAndClasses() const override
+  [[nodiscard]] ObjectOutputClasses getOutputClasses() const override
   {
-    ObjectOutputClusters out;
+    ObjectOutputClasses out;
     return out;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectsToImageSettings, function, inputObjectFirst, inputObjectSecond);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectsToImageSettings, function, inputClassesFirst, inputClassesSecond);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ObjectsToImageSettings::Function, {

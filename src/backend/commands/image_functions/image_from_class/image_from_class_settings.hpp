@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <set>
 #include <vector>
+#include "backend/enums/enums_classes.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/settings/setting.hpp"
 #include "backend/settings/setting_base.hpp"
@@ -14,11 +15,6 @@ struct ImageFromClassSettings : public SettingBase
 {
 public:
   //
-  // Cluster to extract
-  //
-  joda::enums::ClusterIdIn clusterIn = joda::enums::ClusterIdIn::$;
-
-  //
   // Object classes to extract
   //
   std::set<joda::enums::ClassIdIn> classesIn;
@@ -28,6 +24,6 @@ public:
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageFromClassSettings, clusterIn, classesIn);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageFromClassSettings, classesIn);
 };
 }    // namespace joda::settings

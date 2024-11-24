@@ -36,8 +36,8 @@ public:
   /////////////////////////////////////////////////////
   DialogColumnSettings(db::QueryFilter *filter, QWidget *parent);
   void exec(int32_t selectedColumn);
-  void updateClustersAndClasses(db::Database *);
-  auto getClusterAndClassFromCombo() const -> std::pair<std::string, std::string>;
+  void updateClassesAndClasses(db::Database *);
+  auto getClasssFromCombo() const -> std::pair<std::string, std::string>;
 
 private:
   /////////////////////////////////////////////////////
@@ -47,7 +47,7 @@ private:
   db::Database *mDatabase  = nullptr;
   db::QueryFilter *mFilter = nullptr;
 
-  QComboBox *mClusterClassSelector;
+  QComboBox *mClasssClassSelector;
   QComboBox *mMeasurementSelector;
   QComboBox *mStatsSelector;
   QComboBox *mCrossChannelStackC;
@@ -55,7 +55,7 @@ private:
   QSpinBox *mTStack;
 
 private slots:
-  void onClusterAndClassesChanged();
+  void onClassesChanged();
 };
 
 }    // namespace joda::ui

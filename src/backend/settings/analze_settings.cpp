@@ -1,6 +1,6 @@
 #include "analze_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/processor/dependency_graph.hpp"
 
 namespace joda::settings {
@@ -35,12 +35,12 @@ void AnalyzeSettings::check() const
 /// \param[out]
 /// \return
 ///
-std::set<ClassificatorSettingOut> AnalyzeSettings::getOutputClustersAndClasses() const
+std::set<joda::enums::ClassId> AnalyzeSettings::getOutputClasses() const
 {
-  std::set<ClassificatorSettingOut> out;
+  std::set<joda::enums::ClassId> out;
   for(const auto &pipeline : pipelines) {
-    auto cluster = pipeline.getOutputClustersAndClasses();
-    for(const auto &outClassesOfPipeline : cluster) {
+    auto classs = pipeline.getOutputClasses();
+    for(const auto &outClassesOfPipeline : classs) {
       out.emplace(outClassesOfPipeline);
     }
   }
@@ -55,12 +55,12 @@ std::set<ClassificatorSettingOut> AnalyzeSettings::getOutputClustersAndClasses()
 /// \param[out]
 /// \return
 ///
-std::set<ClassificatorSettingOut> AnalyzeSettings::getInputClasses() const
+std::set<joda::enums::ClassId> AnalyzeSettings::getInputClasses() const
 {
-  std::set<ClassificatorSettingOut> out;
+  std::set<joda::enums::ClassId> out;
   for(const auto &pipeline : pipelines) {
-    auto cluster = pipeline.getInputClustersAndClasses();
-    for(const auto &outClassesOfPipeline : cluster) {
+    auto classs = pipeline.getInputClasses();
+    for(const auto &outClassesOfPipeline : classs) {
       out.emplace(outClassesOfPipeline);
     }
   }
@@ -97,21 +97,14 @@ auto AnalyzeSettings::checkForErrors() const -> std::vector<std::pair<std::strin
   }
   classes.emplace(enums::ClassId::NONE, "None");
 
-  std::map<enums::ClusterId, std::string> clusters;
-  for(const auto &cluster : projectSettings.classification.clusters) {
-    clusters.emplace(cluster.clusterId, cluster.name);
-  }
-
-  clusters.emplace(enums::ClusterId::NONE, "None");
-
   // Check for unused output classes
   {
-    auto outputClasses = getOutputClustersAndClasses();
+    auto outputClasses = getOutputClasses();
     auto inputClasses  = getInputClasses();
     for(const auto &outputClass : outputClasses) {
       if(!inputClasses.contains(outputClass)) {
         // This class is not used
-        CHECK_WARNING(false, "Output cluster/class >" + clusters[outputClass.clusterId] + "/" + classes[outputClass.classId] + "< is unused!");
+        CHECK_WARNING(false, "Output classs/class >" + classes[outputClass] + "< is unused!");
       }
     }
     errorOrderedByPipeline.emplace_back("Image setup", joda_settings_log);

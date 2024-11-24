@@ -347,21 +347,21 @@ void SettingBase::onHelpButtonClicked()
 }
 
 ///
-/// \brief    Name of cluster or class changed
+/// \brief    Name of classs or class changed
 /// \author   Joachim Danmayr
 ///
 void SettingBase::onClassificationNameChanged()
 {
-  clusterNamesChanged();
+  classsNamesChanged();
 }
 
 ///
-/// \brief    Name of cluster or class changed
+/// \brief    Name of classs or class changed
 /// \author   Joachim Danmayr
 ///
 void SettingBase::onOutputClassifierChanges()
 {
-  outputClustersChanges();
+  outputClassesChanges();
 }
 
 }    // namespace joda::ui

@@ -13,11 +13,13 @@
 
 #pragma once
 
+#include <opencv2/core/hal/interface.h>
 #include <filesystem>
 #include <string>
 #include "backend/commands/command.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class_settings.hpp"
 #include "backend/helper/duration_count/duration_count.h"
+#include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
@@ -39,7 +41,11 @@ public:
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
     image = 0;
-    result.at(context.getClusterId(mSettings.clusterIn))->createBinaryImage(image, context.getClassId(mSettings.classesIn));
+    for(const auto &cl : mSettings.classesIn) {
+      cv::Mat tmp = cv::Mat::zeros(image.size(), CV_16UC1);
+      result.at(context.getClassId(cl))->createBinaryImage(tmp);
+      cv::bitwise_or(image, tmp, image);
+    }
   }
 
 private:

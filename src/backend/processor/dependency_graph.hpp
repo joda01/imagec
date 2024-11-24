@@ -66,7 +66,7 @@ using Graph_t         = std::vector<Node>;
 /// \class      DependencyGraph
 /// \author     Joachim Danmayr
 /// \brief      Calculates the pipeline dependency graph
-///             based on the input and output clusters of
+///             based on the input and output classes of
 ///             the pipelines of an analyze setting
 ///
 class DependencyGraph
