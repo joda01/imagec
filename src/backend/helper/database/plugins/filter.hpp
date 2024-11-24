@@ -207,7 +207,7 @@ public:
     return mColumns.contains(colIdx);
   }
 
-  [[nodiscard]] auto getClassesAndClassesToExport() const -> ResultingTable;
+  [[nodiscard]] auto getClassesToExport() const -> ResultingTable;
 
   [[nodiscard]] auto getAnalyzer() const -> db::Database *
   {

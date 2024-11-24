@@ -416,7 +416,7 @@ void Command::updateDisplayText()
 void Command::updateClassesAndClasses()
 {
   if(mParent != nullptr) {
-    auto classNames = ((WindowMain *) mParent)->getPanelClassification()->getClassesAndClasses();
+    auto classNames = ((WindowMain *) mParent)->getPanelClassification()->getClasses();
     updateClassesAndClasssNames(classNames);
   }
 }

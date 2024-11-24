@@ -25,7 +25,7 @@ namespace joda::db {
 ///
 auto StatsPerImage::toTable(const QueryFilter &filter) -> QueryResult
 {
-  auto classesToExport = filter.getClassesAndClassesToExport();
+  auto classesToExport = filter.getClassesToExport();
 
   for(const auto &[classs, statement] : classesToExport) {
     auto [sql, params] = toSqlTable(classs, filter.getFilter(), statement);
@@ -82,7 +82,7 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
 ///
 auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> QueryResult
 {
-  auto classesToExport = filter.getClassesAndClassesToExport();
+  auto classesToExport = filter.getClassesToExport();
 
   int32_t tabIdx = 0;
   for(const auto &[classs, statement] : classesToExport) {

@@ -32,7 +32,7 @@ auto transformMatrix(const std::vector<std::vector<int32_t>> &wellImageOrder, in
 ///
 auto StatsPerGroup::toTable(const QueryFilter &filter, Grouping grouping) -> QueryResult
 {
-  auto classesToExport = filter.getClassesAndClassesToExport();
+  auto classesToExport = filter.getClassesToExport();
 
   for(const auto &[classs, statement] : classesToExport) {
     auto materializedResult =
@@ -75,7 +75,7 @@ auto StatsPerGroup::toTable(const QueryFilter &filter, Grouping grouping) -> Que
 ///
 auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> QueryResult
 {
-  auto classesToExport = filter.getClassesAndClassesToExport();
+  auto classesToExport = filter.getClassesToExport();
   classesToExport.clearTables();
 
   int32_t sizeX = 0;

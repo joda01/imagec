@@ -69,7 +69,7 @@ void SettingComboBoxMultiClassificationIn::outputClassesChanges()
     mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Default",
                        QVariant(toInt(enums::ClassIdIn::$)));
 
-    auto classes = parent->getPanelClassification()->getClassesAndClasses();
+    auto classes = parent->getPanelClassification()->getClasses();
     if(!outputClasses.empty()) {
       auto oldClasss = *outputClasses.begin();
       for(const auto &data : outputClasses) {

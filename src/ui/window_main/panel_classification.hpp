@@ -40,7 +40,7 @@ public:
   explicit PanelClassification(joda::settings::ProjectSettings &settings, WindowMain *windowMain);
   void fromSettings(const joda::settings::Classification &settings);
   void toSettings();
-  [[nodiscard]] auto getClassesAndClasses() const -> std::map<enums::ClassIdIn, QString>;
+  [[nodiscard]] auto getClasses() const -> std::map<enums::ClassIdIn, QString>;
 
 signals:
   void settingsChanged();
@@ -53,8 +53,7 @@ private:
   static constexpr int COL_COLOR   = 3;
   static constexpr int COL_NOTES   = 4;
 
-  static constexpr int NR_OF_CLASSS  = 15;
-  static constexpr int NR_OF_CLASSES = 15;
+  static constexpr int NR_OF_CLASSES = 30;
   /////////////////////////////////////////////////////
   void initTable();
   void loadTemplates();

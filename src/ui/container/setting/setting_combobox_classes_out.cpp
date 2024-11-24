@@ -57,7 +57,7 @@ void SettingComboBoxClassesOut::classsNamesChanged()
     mComboBox->blockSignals(true);
     auto actSelected = getValue();
     mComboBox->clear();
-    auto classes = parent->getPanelClassification()->getClassesAndClasses();
+    auto classes = parent->getPanelClassification()->getClasses();
 
     // Add this classs
     for(const auto &data : classes) {

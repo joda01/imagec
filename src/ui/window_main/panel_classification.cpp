@@ -22,6 +22,7 @@
 #include "backend/settings/project_settings/project_class.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
+#include "ui/helper/colord_square_delegate.hpp"
 #include "ui/helper/icon_generator.hpp"
 #include "ui/results/panel_results.hpp"
 #include "ui/window_main/window_main.hpp"
@@ -77,6 +78,10 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     mClasses->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
     mClasses->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
     mClasses->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Stretch);
+
+    auto *delegate = new ColoredSquareDelegate(mClasses);
+    mClasses->setItemDelegateForColumn(COL_NAME, delegate);    // Set the delegate for the desired column
+
     layout->addWidget(mClasses);
   }
   addSeparator();
@@ -114,7 +119,7 @@ void PanelClassification::initTable()
     auto *item = new QTableWidgetItem(QString(""));
     mClasses->setItem(classId, COL_NAME, item);
 
-    auto *itemColor = new QTableWidgetItem(QString(""));
+    auto *itemColor = new QTableWidgetItem(QString(joda::settings::COLORS.at(classId % joda::settings::COLORS.size()).data()));
     mClasses->setItem(classId, COL_COLOR, itemColor);
 
     auto *itemNotes = new QTableWidgetItem(QString(""));
@@ -234,7 +239,7 @@ void PanelClassification::toSettings()
 /// \param[out]
 /// \return
 ///
-[[nodiscard]] auto PanelClassification::getClassesAndClasses() const -> std::map<enums::ClassIdIn, QString>
+[[nodiscard]] auto PanelClassification::getClasses() const -> std::map<enums::ClassIdIn, QString>
 {
   std::map<enums::ClassIdIn, QString> classes;
 

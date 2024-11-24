@@ -23,7 +23,7 @@ namespace joda::db {
 /// \param[out]
 /// \return
 ///
-auto joda::db::QueryFilter::getClassesAndClassesToExport() const -> ResultingTable
+auto joda::db::QueryFilter::getClassesToExport() const -> ResultingTable
 {
   return ResultingTable{this};
 }

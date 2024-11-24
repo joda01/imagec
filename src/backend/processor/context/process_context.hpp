@@ -219,7 +219,11 @@ public:
 
   std::string getColorClass(enums::ClassIdIn in) const
   {
-    return "";
+    auto classs = getClassId(in);
+    if(globalContext.classes.contains(classs)) {
+      return globalContext.classes.at(classs).color;
+    }
+    return "#ADD8E6";
   }
 
   ///

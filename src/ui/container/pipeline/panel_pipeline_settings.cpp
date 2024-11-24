@@ -420,7 +420,7 @@ void PanelPipelineSettings::updatePreview()
                  .pipelinePos   = cnt,
                  .selectedTileX = mSelectedTileX,
                  .selectedTileY = mSelectedTileY,
-                 .classes       = mWindowMain->getPanelClassification()->getClassesAndClasses(),
+                 .classes       = mWindowMain->getPanelClassification()->getClasses(),
                  .classesToShow = classesToShow};
 
   std::lock_guard<std::mutex> lock(mCheckForEmptyMutex);
@@ -693,7 +693,7 @@ void PanelPipelineSettings::onClassificationNameChanged()
 {
   defaultClassId->blockComponentSignals(true);
 
-  const auto classes = mWindowMain->getPanelClassification()->getClassesAndClasses();
+  const auto classes = mWindowMain->getPanelClassification()->getClasses();
 
   {
     std::map<enums::ClassId, QString> classN;
