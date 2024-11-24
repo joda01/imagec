@@ -96,7 +96,6 @@ private:
     for(const auto &cluster : clusters) {
       settings::ImageSaverSettings::SaveCluster clusterObj;
       clusterObj.inputCluster     = cluster;
-      clusterObj.color            = settings::IMAGE_SAVER_COLORS[colorIdx % settings::IMAGE_SAVER_COLORS.size()];
       clusterObj.style            = style->getValue();
       clusterObj.paintBoundingBox = false;
       mSettings.clustersIn.emplace_back(clusterObj);

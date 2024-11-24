@@ -46,6 +46,7 @@ struct GlobalContext
 
   std::filesystem::path resultsOutputFolder;
   db::Database database;
+  joda::settings::ClusterClassColorAssignments clusterClassColors;
 
 private:
   objectCache_t objectCache;
@@ -221,6 +222,8 @@ public:
     }
     return out;
   }
+
+  std::string getColorForClusterAndClass(enums::ClusterIdIn cluster, enums::ClassIdIn classs) const;
 
   ///
   /// \brief      Returns a corrected iterator. Every value < 0 is interpreted as THIS and

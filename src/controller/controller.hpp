@@ -42,7 +42,7 @@ struct Preview
   joda::image::Image thumbnail;
   joda::image::Image previewImage;
   joda::image::Image originalImage;
-  std::map<settings::ClassificatorSetting, PreviewCount> foundObjects;
+  std::map<settings::ClassificatorSettingOut, PreviewCount> foundObjects;
   int height;
   int width;
   std::string imageFileName;

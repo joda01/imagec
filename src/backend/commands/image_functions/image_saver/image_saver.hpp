@@ -143,7 +143,8 @@ private:
       auto centroid = roi.getCentroidTile();
 
       if(!roi.getMask().empty() && !roi.getBoundingBoxTile().empty()) {
-        auto areaColor = hexToScalar(settings.color);
+        auto color     = context.getColorForClusterAndClass(settings.inputCluster.clusterId, settings.inputCluster.classId);
+        auto areaColor = hexToScalar(color);
 
         // Centroid
         // cv::circle(imageOut, centroid, 3, RED, cv::FILLED);
@@ -161,7 +162,7 @@ private:
         }
 
         // Paint contour only for valid particles
-        cv::Scalar contourColor = hexToScalar(settings.color);
+        cv::Scalar contourColor = hexToScalar(color);
         std::vector<std::vector<cv::Point>> contours;
         contours.push_back(roi.getContour());
         if(!contours.empty()) {

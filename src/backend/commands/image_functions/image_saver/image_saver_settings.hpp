@@ -14,29 +14,6 @@
 
 namespace joda::settings {
 
-static inline const std::vector<std::string> IMAGE_SAVER_COLORS = {
-    "#FF5733",    // - Vibrant Orange
-    "#33FF57",    // - Bright Green
-    "#FF33FF",    // - Magenta
-    "#33A1FF",    // - Sky Blue
-    "#FFFF33",    // - Bright Yellow
-    "#FF33A1",    // - Hot Pink
-    "#33FFD1",    // - Aqua
-    "#FF8C33",    // - Deep Orange
-    "#9933FF",    // - Purple
-    "#33FFCC",    // - Mint Green
-    "#FF3380",    // - Electric Pink
-    "#33FF88",    // - Neon Green
-    "#FFCC33",    // - Golden Yellow
-    "#33CFFF",    // - Light Cyan
-    "#FF3366",    // - Coral Red
-    "#66FF33",    // - Lime Green
-    "#FF33C4",    // - Bright Rose
-    "#33FF99",    // - Spring Green
-    "#FF6F33",    // - Pumpkin Orange
-    "#3399FF",    // - Electric Blue
-};
-
 struct ImageSaverSettings : public SettingBase
 {
 public:
@@ -63,7 +40,6 @@ public:
   struct SaveCluster
   {
     ClassificatorSetting inputCluster;
-    std::string color     = "#FF0000";
     Style style           = Style::OUTLINED;
     bool paintBoundingBox = false;
 
@@ -71,10 +47,10 @@ public:
     {
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(SaveCluster, inputCluster, color, style, paintBoundingBox);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(SaveCluster, inputCluster, style, paintBoundingBox);
   };
 
-  std::list<SaveCluster> clustersIn = {{.inputCluster = {}, .color = "#FF5733", .style = Style::OUTLINED, .paintBoundingBox = false}};
+  std::list<SaveCluster> clustersIn = {{.inputCluster = {}, .style = Style::OUTLINED, .paintBoundingBox = false}};
 
   //
   // PNG compression level (0 = no compression)

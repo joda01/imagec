@@ -191,7 +191,7 @@ public:
                        const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline, const std::filesystem::path &imagePath,
                        int32_t tStack, int32_t zStack, int32_t tileX, int32_t tileY, bool generateThumb, const ome::OmeInfo &ome,
                        const settings::ObjectInputClusters &clustersClassesToShow)
-      -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<settings::ClassificatorSetting, PreviewReturn>>;
+      -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<settings::ClassificatorSettingOut, PreviewReturn>>;
 
 private:
   /////////////////////////////////////////////////////

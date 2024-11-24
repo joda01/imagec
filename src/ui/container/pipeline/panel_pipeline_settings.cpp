@@ -511,7 +511,8 @@ void PanelPipelineSettings::previewThread()
             auto [clusters, classes] = jobToDo.clustersAndClasses;
             for(const auto &[classId, count] : previewResult.foundObjects) {
               QString tmp = "<span style=\"color: " + QString(count.color.data()) + ";\">" +
-                            (clusters[classId.clusterId] + "/" + classes[classId.classId] + "</span>: " + QString::number(count.count) + "<br>");
+                            (clusters[static_cast<enums::ClusterIdIn>(classId.clusterId)] + "/" +
+                             classes[static_cast<enums::ClassIdIn>(classId.classId)] + "</span>: " + QString::number(count.count) + "<br>");
               info += tmp;
             }
             info += "</html>";
