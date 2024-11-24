@@ -75,6 +75,7 @@ public:
 
   void toSettings() override;
   void fromSettings(const joda::settings::Pipeline &settings);
+  void clearPipeline();
 
 private:
   /////////////////////////////////////////////////////
@@ -82,6 +83,7 @@ private:
 
   /////////////////////////////////////////////////////
   void createSettings(helper::TabWidget *, WindowMain *windowMain);
+  void openTemplate();
   void saveAsTemplate();
   void previewThread();
   void copyPipeline();

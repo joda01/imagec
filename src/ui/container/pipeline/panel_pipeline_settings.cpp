@@ -113,6 +113,8 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   }
 
   // Tool button
+  auto *openTemplate = mLayout.addActionButton("Open template", generateIcon("opened-folder"));
+  connect(openTemplate, &QAction::triggered, [this] { this->openTemplate(); });
 
   auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", generateIcon("bookmark"));
   connect(saveAsTemplateButton, &QAction::triggered, [this] { this->saveAsTemplate(); });
@@ -595,6 +597,21 @@ void PanelPipelineSettings::onPreviewFinished()
 /// \param[out]
 /// \return
 ///
+void PanelPipelineSettings::clearPipeline()
+{
+  std::vector<std::shared_ptr<Command>> toDelete = mCommands;
+  for(const std::shared_ptr<Command> &cmd : toDelete) {
+    erasePipelineStep(cmd.get());
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &settings)
 {
   mSettings.meta          = settings.meta;
@@ -720,6 +737,38 @@ void PanelPipelineSettings::onClassificationNameChanged()
   defaultClassId->blockComponentSignals(false);
 
   valueChangedEvent();
+}
+
+///
+/// \brief      Open template
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::openTemplate()
+{
+  QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+  QString filePathOfSettingsFile = QFileDialog::getOpenFileName(this, "Open template", folderToOpen,
+                                                                "ImageC template files (*" + QString(joda::fs::EXT_PIPELINE_TEMPLATE.data()) + ")");
+  if(filePathOfSettingsFile.isEmpty()) {
+    return;
+  }
+
+  try {
+    nlohmann::json templateJson = mSettings;
+    auto loadedChannelSettings  = joda::templates::TemplateParser::loadTemplate(std::filesystem::path(filePathOfSettingsFile.toStdString()));
+    clearPipeline();
+    fromSettings(loadedChannelSettings);
+  } catch(const std::exception &ex) {
+    joda::log::logError(ex.what());
+    QMessageBox messageBox(mWindowMain);
+    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setWindowTitle("Could not open template!");
+    messageBox.setText("Could not open template, got error >" + QString(ex.what()) + "<!");
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
+  }
 }
 
 ///
