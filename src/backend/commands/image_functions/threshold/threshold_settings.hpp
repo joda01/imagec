@@ -39,7 +39,7 @@ public:
     // Which threshold algorithm should be used
     // [MANUAL, LI, MIN_ERROR, TRIANGLE]
     //
-    Mode mode = Mode::NONE;
+    Mode mode = Mode::MANUAL;
 
     //
     // Minimum threshold value.
