@@ -177,10 +177,11 @@ void PanelPipelineSettings::insertNewPipelineStep(int32_t posToInsert, std::uniq
 
   if(mCommands.empty()) {
     command->setCommandBefore(nullptr);
-  } else {
+  } else if(posToInsert > 0) {
     command->setCommandBefore(mCommands.at(posToInsert - 1));
+  } else {
+    command->setCommandBefore(nullptr);
   }
-
   mCommands.insert(mCommands.begin() + posToInsert, std::move(command));
 
   if((posToInsert + 1) < mCommands.size()) {
