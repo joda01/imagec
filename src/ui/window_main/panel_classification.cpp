@@ -14,7 +14,9 @@
 #include "panel_classification.hpp"
 #include <qaction.h>
 #include <qboxlayout.h>
+#include <qcombobox.h>
 #include <qlineedit.h>
+#include <qpushbutton.h>
 #include <exception>
 #include <string>
 #include "backend/enums/enums_classes.hpp"
@@ -22,6 +24,7 @@
 #include "backend/settings/project_settings/project_class.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
+#include "ui/color_combo/color_combo.hpp"
 #include "ui/helper/colord_square_delegate.hpp"
 #include "ui/helper/icon_generator.hpp"
 #include "ui/results/panel_results.hpp"
@@ -88,8 +91,70 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
   setLayout(layout);
 
   initTable();
-  connect(mClasses, &QTableWidget::itemChanged, [&](QTableWidgetItem *item) { onSettingChanged(); });
-  connect(mClasses, &QTableWidget::cellDoubleClicked, [&](int row, int column) {});
+  // connect(mClasses, &QTableWidget::itemChanged, [&](QTableWidgetItem *item) { onSettingChanged(); });
+  connect(mClasses, &QTableWidget::cellDoubleClicked, [&](int row, int column) { openEditDialog(row, column); });
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::openEditDialog(int row, int column)
+{
+  auto *dialog = new QDialog(mWindowMain);
+  dialog->setWindowTitle("Class editor");
+  dialog->setMinimumWidth(300);
+  auto *layout = new QVBoxLayout();
+  auto *name   = new QLineEdit();
+  name->setPlaceholderText("e.g. cy5 spot");
+  name->setText(mClasses->item(row, COL_NAME)->text());
+  if(mIsLocked) {
+    name->setEnabled(false);
+  }
+  auto *colors = new ColorComboBox();
+  auto *model  = qobject_cast<QStandardItemModel *>(colors->model());
+
+  // Set the custom delegate
+  for(const auto &color : settings::COLORS) {
+    QString colorStr = color.data();
+    auto *item       = new QStandardItem(colorStr);
+    item->setBackground(QColor(colorStr));    // Set the background color
+    model->appendRow(item);
+  }
+
+  auto colorIdx = colors->findData(mClasses->item(row, COL_COLOR)->text());
+  if(colorIdx >= 0) {
+    colors->setCurrentIndex(colorIdx);
+  }
+
+  // Create buttons
+  auto *okButton = new QPushButton("OK", this);
+  okButton->setDefault(true);
+  connect(okButton, &QPushButton::pressed, [&]() {
+    mClasses->item(row, COL_NAME)->setText(name->displayText());
+    mClasses->item(row, COL_COLOR)->setText(colors->currentText());
+    onSettingChanged();
+    dialog->close();
+  });
+  auto *cancelButton = new QPushButton("Cancel", this);
+  connect(cancelButton, &QPushButton::pressed, [&]() { dialog->close(); });
+
+  // Create a horizontal layout for the buttons
+  auto *buttonLayout = new QHBoxLayout;
+  buttonLayout->addStretch();
+  buttonLayout->addWidget(cancelButton);
+  buttonLayout->addWidget(okButton);
+
+  layout->addWidget(name);
+  layout->addWidget(colors);
+  layout->addLayout(buttonLayout);
+
+  dialog->setLayout(layout);
+
+  dialog->exec();
 }
 
 ///
@@ -117,6 +182,7 @@ void PanelClassification::initTable()
     mClasses->setItem(classId, COL_ID_ENUM, itemEnum);
 
     auto *item = new QTableWidgetItem(QString(""));
+    item->setFlags(itemEnum->flags() & ~Qt::ItemIsEditable);
     mClasses->setItem(classId, COL_NAME, item);
 
     auto *itemColor = new QTableWidgetItem(QString(joda::settings::COLORS.at(classId % joda::settings::COLORS.size()).data()));
@@ -166,6 +232,7 @@ void PanelClassification::fromSettings(const joda::settings::Classification &set
 ///
 void PanelClassification::updateTableLock(bool lock)
 {
+  mIsLocked = lock;
   mClasses->blockSignals(true);
 
   if(lock) {
@@ -173,17 +240,6 @@ void PanelClassification::updateTableLock(bool lock)
 
   } else {
     mClasses->horizontalHeaderItem(COL_NAME)->setIcon({});
-  }
-
-  //
-  // Load classes
-  //
-  for(int n = 0; n < NR_OF_CLASSES; n++) {
-    if(lock) {
-      mClasses->item(n, COL_NAME)->setFlags(mClasses->item(n, COL_NAME)->flags() & ~Qt::ItemIsEditable);
-    } else {
-      mClasses->item(n, COL_NAME)->setFlags(mClasses->item(n, COL_NAME)->flags() | Qt::ItemIsEditable);
-    }
   }
 
   mClasses->blockSignals(false);

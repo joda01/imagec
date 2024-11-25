@@ -60,6 +60,7 @@ private:
   void updateTableLock(bool lock);
   void newTemplate();
   void saveAsNewTemplate();
+  void openEditDialog(int row, int column);
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
@@ -70,6 +71,7 @@ private:
   bool askForChangeTemplateIndex();
   int32_t mActSelectedIndex = 0;
   bool mDontAsk             = false;
+  bool mIsLocked            = false;
   QPushButton *mBookmarkButton;
   QComboBox *mTemplateSelection;
 
