@@ -364,4 +364,13 @@ void SettingBase::onOutputClassifierChanges()
   outputClassesChanges();
 }
 
+///
+/// \brief   Returns classes from main
+/// \author   Joachim Danmayr
+///
+[[nodiscard]] auto SettingBase::getClasses() const -> std::map<enums::ClassIdIn, QString>
+{
+  return mParent->getPanelClassification()->getClasses();
+}
+
 }    // namespace joda::ui

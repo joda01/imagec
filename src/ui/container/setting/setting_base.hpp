@@ -94,6 +94,8 @@ protected:
     return mParent;
   }
 
+  [[nodiscard]] auto getClasses() const -> std::map<enums::ClassIdIn, QString>;
+
 private:
   /////////////////////////////////////////////////////
   virtual void blockComponentSignals(bool) = 0;

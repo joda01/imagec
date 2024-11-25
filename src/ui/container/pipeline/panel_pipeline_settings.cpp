@@ -289,7 +289,7 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 
   //
   //
-  defaultClassId = SettingBase::create<SettingComboBox<enums::ClassId>>(windowMain, generateIcon("circle"), "Class");
+  defaultClassId = SettingBase::create<SettingComboBoxClassesOutN>(windowMain, generateIcon("circle"), "Class");
   defaultClassId->addOptions({
       {enums::ClassId::UNDEFINED, "Undefined"}, {enums::ClassId::C0, "Class C0"},   {enums::ClassId::C1, "Class C1"},
       {enums::ClassId::C2, "Class C2"},         {enums::ClassId::C3, "Class C3"},   {enums::ClassId::C4, "Class C4"},
@@ -305,6 +305,7 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
       {enums::ClassId::C32, "Class C32"},
   });
   defaultClassId->connectWithSetting(&mSettings.pipelineSetup.defaultClassId);
+  defaultClassId->classsNamesChanged();
 
   connect(pipelineName.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::metaChangedEvent);
   connect(cStackIndex.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
@@ -695,22 +696,6 @@ void PanelPipelineSettings::deletePipeline()
 ///
 void PanelPipelineSettings::onClassificationNameChanged()
 {
-  defaultClassId->blockComponentSignals(true);
-
-  const auto classes = mWindowMain->getPanelClassification()->getClasses();
-
-  {
-    std::map<enums::ClassId, QString> classN;
-    for(const auto &[id, name] : classes) {
-      if(id != enums::ClassIdIn::$) {
-        classN.emplace(static_cast<enums::ClassId>(id), name);
-      }
-    }
-    defaultClassId->changeOptionText(classN);
-  }
-
-  defaultClassId->blockComponentSignals(false);
-
   valueChangedEvent();
 }
 

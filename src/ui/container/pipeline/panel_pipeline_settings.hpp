@@ -24,6 +24,7 @@
 #include "ui/container/container_base.hpp"
 #include "ui/container/pipeline/panel_channel_overview.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
+#include "ui/container/setting/setting_combobox_classes_out.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/panel_preview.hpp"
@@ -92,7 +93,7 @@ private:
   std::unique_ptr<SettingLineEdit<std::string>> pipelineName;
   std::unique_ptr<SettingComboBox<int32_t>> cStackIndex;
   std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjection;
-  std::unique_ptr<SettingComboBox<enums::ClassId>> defaultClassId;
+  std::unique_ptr<SettingComboBoxClassesOutN> defaultClassId;
 
   /////////////////////////////////////////////////////
   PanelPreview *mPreviewImage                 = nullptr;
