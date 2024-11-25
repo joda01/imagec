@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "backend/helper/helper.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::enums {
@@ -95,9 +96,17 @@ enum class ClassId : uint16_t
   UNDEFINED = 0xFFFE,
 };
 
+inline auto getPrefixFromClassName(const std::string &className) -> std::string
+{
+  auto areas = joda::helper::split(joda::helper::trim(className), {'@'});
+  if(areas.size() > 1) {
+    return joda::helper::trim(areas[0]);
+  }
+  return "";
+};
+
 NLOHMANN_JSON_SERIALIZE_ENUM(ClassId, {
                                           {ClassId::NONE, "None"}, {ClassId::UNDEFINED, "Undefined"},
-
                                           {ClassId::C0, "0"},      {ClassId::C1, "1"},
                                           {ClassId::C2, "2"},      {ClassId::C3, "3"},
                                           {ClassId::C4, "4"},      {ClassId::C5, "5"},

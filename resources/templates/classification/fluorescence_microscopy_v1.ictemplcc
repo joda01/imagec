@@ -4,89 +4,129 @@
         "revision": "v1",
         "uid": "3c9269c5-3355-45fd-b34e-8b199254ff5e"
     },
-    "clusters": [
-        {
-            "clusterId": "A",
-            "color": "",
-            "name": "Cy7",
-            "notes": ""
-        },
-        {
-            "clusterId": "B",
-            "color": "",
-            "name": "Cy5",
-            "notes": ""
-        },
-        {
-            "clusterId": "C",
-            "color": "",
-            "name": "CY5-CY7 FRET",
-            "notes": ""
-        },
-        {
-            "clusterId": "D",
-            "color": "",
-            "name": "CY3",
-            "notes": ""
-        },
-        {
-            "clusterId": "E",
-            "color": "",
-            "name": "CY3-CY5 FRET",
-            "notes": ""
-        },
-        {
-            "clusterId": "F",
-            "color": "",
-            "name": "FITC",
-            "notes": ""
-        },
-        {
-            "clusterId": "G",
-            "color": "",
-            "name": "DAPI",
-            "notes": ""
-        },
-        {
-            "clusterId": "H",
-            "color": "",
-            "name": "Brightfield",
-            "notes": ""
-        }
-    ],
     "classes": [
         {
             "classId": "0",
             "color": "",
-            "name": "Spots",
+            "name": "cy7@Spots",
             "notes": ""
         },
         {
             "classId": "1",
             "color": "",
-            "name": "Invalid spots",
+            "name": "cy7@Invalid spots",
             "notes": ""
         },
         {
             "classId": "2",
             "color": "",
-            "name": "Reference beads",
+            "name": "cy7@Reference beads",
             "notes": ""
         },
         {
             "classId": "3",
             "color": "",
-            "name": "Nucleus",
+            "name": "cy5@Spots",
             "notes": ""
         },
         {
             "classId": "4",
             "color": "",
-            "name": "Cell area",
+            "name": "cy5@Invalid spots",
             "notes": ""
         },
         {
             "classId": "5",
+            "color": "",
+            "name": "cy5@Reference beads",
+            "notes": ""
+        },
+        {
+            "classId": "6",
+            "color": "",
+            "name": "cy3@Spots",
+            "notes": ""
+        },
+        {
+            "classId": "7",
+            "color": "",
+            "name": "cy3@Invalid spots",
+            "notes": ""
+        },
+        {
+            "classId": "8",
+            "color": "",
+            "name": "cy3@Reference beads",
+            "notes": ""
+        },
+        {
+            "classId": "9",
+            "color": "",
+            "name": "FITC@Spots",
+            "notes": ""
+        },
+        {
+            "classId": "10",
+            "color": "",
+            "name": "FITC@Invalid spots",
+            "notes": ""
+        },
+        {
+            "classId": "11",
+            "color": "",
+            "name": "FITC@Reference beads",
+            "notes": ""
+        },
+        {
+            "classId": "12",
+            "color": "",
+            "name": "CY5-CY7 FRET@Spots",
+            "notes": ""
+        },
+        {
+            "classId": "13",
+            "color": "",
+            "name": "CY5-CY7 FRET@Invalid spots",
+            "notes": ""
+        },
+        {
+            "classId": "14",
+            "color": "",
+            "name": "CY5-CY7 FRET@Reference beads",
+            "notes": ""
+        },
+        {
+            "classId": "15",
+            "color": "",
+            "name": "CY3-CY5 FRET@Spots",
+            "notes": ""
+        },
+        {
+            "classId": "16",
+            "color": "",
+            "name": "CY3-CY5 FRET@Invalid spots",
+            "notes": ""
+        },
+        {
+            "classId": "17",
+            "color": "",
+            "name": "CY3-CY5 FRET@Reference beads",
+            "notes": ""
+        },
+        {
+            "classId": "18",
+            "color": "",
+            "name": "DAPI@Nucleus",
+            "notes": ""
+        },
+        {
+            "classId": "19",
+            "color": "",
+            "name": "Brightfield@Cell area",
+            "notes": ""
+        },
+        {
+            "classId": "20",
             "color": "",
             "name": "Cell",
             "notes": ""

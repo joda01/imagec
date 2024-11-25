@@ -87,17 +87,9 @@ public:
     auto actSelected = getValue();
     mComboBox->clear();
 
-    auto getPrefix = [](const QString &className) -> QString {
-      auto areas = className.trimmed().split(" ");
-      if(areas.size() > 1) {
-        return areas[0].trimmed();
-      }
-      return "";
-    };
-
     std::map<std::string, std::multimap<std::string, CLASSID>> orderedClasses;
     for(const auto &[id, className] : dataIn) {
-      orderedClasses[getPrefix(className).toStdString()].emplace(className.toStdString(), id);
+      orderedClasses[enums::getPrefixFromClassName(className.toStdString())].emplace(className.toStdString(), id);
     }
 
     for(const auto &[prefix, group] : orderedClasses) {
@@ -108,6 +100,14 @@ public:
       }
       mComboBox->insertSeparator(mComboBox->count());
     }
+
+    auto removeLastSeparator = [this]() {
+      int lastIndex = mComboBox->count() - 1;
+      if(lastIndex >= 0) {
+        mComboBox->removeItem(lastIndex);
+      }
+    };
+    removeLastSeparator();
 
     setValue(actSelected);
     mComboBox->blockSignals(false);
@@ -122,17 +122,9 @@ public:
       mComboBox->clear();
       auto classes = getClasses();
 
-      auto getPrefix = [](const QString &className) -> QString {
-        auto areas = className.trimmed().split(" ");
-        if(areas.size() > 1) {
-          return areas[0].trimmed();
-        }
-        return "";
-      };
-
       std::map<std::string, std::multimap<std::string, CLASSID>> orderedClasses;
       for(const auto &[id, className] : classes) {
-        orderedClasses[getPrefix(className).toStdString()].emplace(className.toStdString(), (CLASSID) id);
+        orderedClasses[enums::getPrefixFromClassName(className.toStdString())].emplace(className.toStdString(), (CLASSID) id);
       }
 
       for(const auto &[prefix, group] : orderedClasses) {
@@ -164,6 +156,14 @@ public:
         }
         mComboBox->insertSeparator(mComboBox->count());
       }
+
+      auto removeLastSeparator = [this]() {
+        int lastIndex = mComboBox->count() - 1;
+        if(lastIndex >= 0) {
+          mComboBox->removeItem(lastIndex);
+        }
+      };
+      removeLastSeparator();
     }
   }
   QString getName(CLASSID key) const

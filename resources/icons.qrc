@@ -214,6 +214,7 @@
     <file>icons/icons8-project-setup-48.png</file>
     <file>icons/icons8-matrix-96.png</file>
     <file>icons/icons8-rename-48.png</file>
+    <file>icons/icons8-add-file-24.png</file>
     <file>icons/icons8-triangle-24.png</file>
     <file>icons/icons8-save-as-16.png</file>
     <file>icons/icons8-snap-background-to-white-24.png</file>
@@ -225,6 +226,7 @@
     <file>icons/icons8-type-48.png</file>
     <file>icons/icons8-pipeline-24.png</file>
     <file>icons/icons8-preview-96.png</file>
+    <file>icons/icons8-add-file-96.png</file>
     <file>icons/icons8-play-16.png</file>
     <file>icons/icons8-sheets-48.png</file>
     <file>icons/icons8-delete-24.png</file>
@@ -274,6 +276,7 @@
     <file>icons/icons8-no-idea-16.png</file>
     <file>icons/icons8-abscissa-48.png</file>
     <file>icons/icons8-opened-folder-48.png</file>
+    <file>icons/icons8-menu-96.png</file>
     <file>icons/icons8-opened-folder-16.png</file>
     <file>icons/icons8-r-16.png</file>
     <file>icons/icons8-type-96.png</file>
@@ -412,6 +415,7 @@
     <file>icons/icons8-genealogy-24.png</file>
     <file>icons/icons8-baseline-16.png</file>
     <file>icons/icons8-frames-24.png</file>
+    <file>icons/icons8-menu-24.png</file>
     <file>icons/icons8-opened-folder-96.png</file>
     <file>icons/icons8-matrix-16.png</file>
     <file>icons/icons8-query-inner-join-24.png</file>
@@ -420,6 +424,7 @@
     <file>icons/icons8-aspect-ratio-24.png</file>
     <file>icons/icons8-nine-16.png</file>
     <file>icons/icons8-channel-16.png</file>
+    <file>icons/icons8-add-file-16.png</file>
     <file>icons/icons8-5-48.png</file>
     <file>icons/icons8-qr-code-24.png</file>
     <file>icons/icons8-seven-16.png</file>
@@ -455,6 +460,7 @@
     <file>icons/icons8-one-24.png</file>
     <file>icons/icons8-original-size-16.png</file>
     <file>icons/icons8-baseline-24.png</file>
+    <file>icons/icons8-menu-48.png</file>
     <file>icons/icons8-color-96.png</file>
     <file>icons/icons8-two-16.png</file>
     <file>icons/icons8-scatter-plot-96.png</file>
@@ -613,6 +619,7 @@
     <file>icons/icons8-ratio-24.png</file>
     <file>icons/icons8-arrow-left-48.png</file>
     <file>icons/icons8-arrow-left-96.png</file>
+    <file>icons/icons8-menu-16.png</file>
     <file>icons/icons8-open-lock-48.png</file>
     <file>icons/icons8-contrast-24.png</file>
     <file>icons/icons8-warning-yellow-16.png</file>
@@ -620,6 +627,7 @@
     <file>icons/icons8-export-excel-16.png</file>
     <file>icons/icons8-flow-many-16.png</file>
     <file>icons/icons8-add-16.png</file>
+    <file>icons/icons8-add-file-48.png</file>
     <file>icons/icons8-radius-16.png</file>
     <file>icons/icons8-binary-code-16.png</file>
     <file>icons/icons8-download-24.png</file>

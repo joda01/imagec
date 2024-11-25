@@ -69,19 +69,11 @@ void SettingComboBoxMultiClassificationIn::outputClassesChanges()
     mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Default",
                        QVariant(toInt(enums::ClassIdIn::$)));
 
-    auto getPrefix = [](const QString &className) -> QString {
-      auto areas = className.trimmed().split(" ");
-      if(areas.size() > 1) {
-        return areas[0].trimmed();
-      }
-      return "";
-    };
-
     auto classes = parent->getPanelClassification()->getClasses();
     std::map<std::string, std::multimap<std::string, enums::ClassId>> orderedClasses;
     for(const auto &data : outputClasses) {
       QString className = classes[static_cast<enums::ClassIdIn>(data)];
-      orderedClasses[getPrefix(className).toStdString()].emplace(className.toStdString(), data);
+      orderedClasses[enums::getPrefixFromClassName(className.toStdString())].emplace(className.toStdString(), data);
     }
 
     for(const auto &[prefix, group] : orderedClasses) {
@@ -92,7 +84,13 @@ void SettingComboBoxMultiClassificationIn::outputClassesChanges()
       }
       mComboBox->insertSeparator(mComboBox->count());
     }
-
+    auto removeLastSeparator = [this]() {
+      int lastIndex = mComboBox->count() - 1;
+      if(lastIndex >= 0) {
+        mComboBox->removeItem(lastIndex);
+      }
+    };
+    removeLastSeparator();
     setValue(actSelected);
     mComboBox->blockSignals(false);
   }

@@ -9,6 +9,7 @@
 #include <iostream>
 #include <regex>
 #include <sstream>
+#include <unordered_set>
 
 namespace joda::helper {
 
@@ -123,6 +124,43 @@ inline std::string getDurationAsString(const std::chrono::system_clock::time_poi
   oss << minutes << " min. " << seconds << " sec.";
 
   return oss.str();
+}
+
+// Function to trim whitespace from the beginning and end of a string
+inline std::string trim(const std::string &str)
+{
+  auto start = str.find_first_not_of(" \t\n\r");
+  if(start == std::string::npos)
+    return "";    // All whitespace
+  auto end = str.find_last_not_of(" \t\n\r");
+  return str.substr(start, end - start + 1);
+}
+
+// Function to split a string by spaces
+inline std::vector<std::string> split(const std::string &str, const std::vector<char> &delimiters)
+{
+  std::unordered_set<char> delimiter_set(delimiters.begin(), delimiters.end());
+  std::vector<std::string> result;
+  std::string current;
+
+  for(char ch : str) {
+    if(delimiter_set.find(ch) != delimiter_set.end()) {
+      // If the current character is a delimiter
+      if(!current.empty()) {
+        result.push_back(current);
+        current.clear();
+      }
+    } else {
+      // Add non-delimiter character to the current segment
+      current += ch;
+    }
+  }
+  // Add the last segment if it exists
+  if(!current.empty()) {
+    result.push_back(current);
+  }
+
+  return result;
 }
 
 }    // namespace joda::helper

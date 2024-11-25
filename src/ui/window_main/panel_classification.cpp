@@ -51,14 +51,26 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     templateSelection->addWidget(mTemplateSelection);
 
     auto *bookMarkMenu = new QMenu();
-    auto *newTemplate  = bookMarkMenu->addAction(generateIcon("file"), "New from template");
+
+    // New from template
+    auto *clearList = bookMarkMenu->addAction(generateIcon("file"), "Clear");
+    connect(clearList, &QAction::triggered, [this]() {
+      if(this->askForChangeTemplateIndex()) {
+        this->initTable();
+      }
+    });
+
+    // New from template
+    auto *newTemplate = bookMarkMenu->addAction(generateIcon("add-file"), "New from template");
     connect(newTemplate, &QAction::triggered, [this]() { this->newTemplate(); });
+
+    // Save template
     auto *saveBookmark = bookMarkMenu->addAction(generateIcon("save"), "Save as new template");
     connect(saveBookmark, &QAction::triggered, [this]() { saveAsNewTemplate(); });
 
-    mBookmarkButton = new QPushButton(generateIcon("bookmark"), "");
+    mBookmarkButton = new QPushButton(generateIcon("menu"), "");
     mBookmarkButton->setMenu(bookMarkMenu);
-    mBookmarkButton->setToolTip("Bookmark settings!");
+    mBookmarkButton->setToolTip("Menu");
     templateSelection->addWidget(mBookmarkButton);
 
     templateSelection->setStretch(0, 1);
@@ -114,7 +126,7 @@ void PanelClassification::openEditDialog(int row, int column)
   dialog->setMinimumWidth(300);
   auto *layout = new QVBoxLayout();
   auto *name   = new QLineEdit();
-  name->setPlaceholderText("e.g. cy5 spot");
+  name->setPlaceholderText("e.g. cy5@spot");
   name->setText(mClasses->item(row, COL_NAME)->text());
   if(mIsLocked) {
     name->setEnabled(false);
@@ -222,10 +234,15 @@ void PanelClassification::fromSettings(const joda::settings::Classification &set
     nlohmann::json classIdStr = classs.classId;
     mClasses->item(classId, COL_ID_ENUM)->setText(QString(std::string(classIdStr).data()));
     mClasses->item(classId, COL_NAME)->setText(classs.name.data());
-    mClasses->item(classId, COL_COLOR)->setText(classs.color.data());
+    if(classs.color.empty()) {
+      mClasses->item(classId, COL_COLOR)->setText(QString(joda::settings::COLORS.at(classId % joda::settings::COLORS.size()).data()));
+    } else {
+      mClasses->item(classId, COL_COLOR)->setText(classs.color.data());
+    }
     mClasses->item(classId, COL_NOTES)->setText(classs.notes.data());
   }
 
+  toSettings();
   mClasses->blockSignals(false);
 }
 
@@ -415,8 +432,8 @@ bool PanelClassification::askForChangeTemplateIndex()
 {
   QMessageBox messageBox(mWindowMain);
   messageBox.setIconPixmap(generateIcon("info-blue").pixmap(48, 48));
-  messageBox.setWindowTitle("Load preset?");
-  messageBox.setText("Load new classification preset? Actual taken settings will get lost!");
+  messageBox.setWindowTitle("Proceed?");
+  messageBox.setText("Actual taken settings will get lost!");
   QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
   QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
   messageBox.setDefaultButton(noButton);
