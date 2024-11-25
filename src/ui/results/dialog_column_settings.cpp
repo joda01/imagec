@@ -212,11 +212,27 @@ void DialogColumnSettings::updateClassesAndClasses(db::Database *database)
     mClasssClassSelector->blockSignals(true);
     auto clusters = mDatabase->selectClasses();
     mClasssClassSelector->clear();
-    for(const auto &[classId, classsName] : clusters) {
-      mClasssClassSelector->addItem(classsName.name.data(), SettingComboBoxMultiClassificationUnmanaged::toInt(classId));
 
+    std::map<std::string, std::multimap<std::string, enums::ClassId>> orderedClasses;
+    for(const auto &[classId, classsName] : clusters) {
+      orderedClasses[enums::getPrefixFromClassName(classsName.name)].emplace(classsName.name, classId);
+    }
+
+    for(const auto &[prefix, group] : orderedClasses) {
+      for(const auto &[className, id] : group) {
+        QVariant variant;
+        mClasssClassSelector->addItem(className.data(), SettingComboBoxMultiClassificationUnmanaged::toInt(id));
+      }
       mClasssClassSelector->insertSeparator(mClasssClassSelector->count());
     }
+    auto removeLastSeparator = [this]() {
+      int lastIndex = mClasssClassSelector->count() - 1;
+      if(lastIndex >= 0) {
+        mClasssClassSelector->removeItem(lastIndex);
+      }
+    };
+    removeLastSeparator();
+
     mClasssClassSelector->blockSignals(false);
   }
   {
