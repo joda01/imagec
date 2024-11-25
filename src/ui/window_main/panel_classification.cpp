@@ -24,7 +24,7 @@
 #include "backend/settings/project_settings/project_class.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
-#include "ui/color_combo/color_combo.hpp"
+#include "ui/helper/color_combo/color_combo.hpp"
 #include "ui/helper/colord_square_delegate.hpp"
 #include "ui/helper/icon_generator.hpp"
 #include "ui/results/panel_results.hpp"
@@ -76,6 +76,7 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     mClasses->setAlternatingRowColors(true);
     mClasses->setSelectionBehavior(QAbstractItemView::SelectRows);
     mClasses->setColumnHidden(COL_ID, true);
+    mClasses->setColumnHidden(COL_ID_ENUM, true);
     mClasses->setColumnHidden(COL_COLOR, true);
     mClasses->setColumnWidth(COL_ID_ENUM, 10);
     mClasses->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
@@ -92,7 +93,11 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
 
   initTable();
   // connect(mClasses, &QTableWidget::itemChanged, [&](QTableWidgetItem *item) { onSettingChanged(); });
-  connect(mClasses, &QTableWidget::cellDoubleClicked, [&](int row, int column) { openEditDialog(row, column); });
+  connect(mClasses, &QTableWidget::cellDoubleClicked, [&](int row, int column) {
+    if(column == COL_NAME) {
+      openEditDialog(row, column);
+    }
+  });
 }
 
 ///
@@ -121,11 +126,12 @@ void PanelClassification::openEditDialog(int row, int column)
   for(const auto &color : settings::COLORS) {
     QString colorStr = color.data();
     auto *item       = new QStandardItem(colorStr);
-    item->setBackground(QColor(colorStr));    // Set the background color
+    item->setBackground(QColor(colorStr));                  // Set the background color
+    item->setData(QColor(colorStr), Qt::BackgroundRole);    // Store background color for use in the delegate
     model->appendRow(item);
   }
 
-  auto colorIdx = colors->findData(mClasses->item(row, COL_COLOR)->text());
+  auto colorIdx = colors->findData(QColor(mClasses->item(row, COL_COLOR)->text()), Qt::BackgroundRole);
   if(colorIdx >= 0) {
     colors->setCurrentIndex(colorIdx);
   }
@@ -133,7 +139,7 @@ void PanelClassification::openEditDialog(int row, int column)
   // Create buttons
   auto *okButton = new QPushButton("OK", this);
   okButton->setDefault(true);
-  connect(okButton, &QPushButton::pressed, [&]() {
+  connect(okButton, &QPushButton::pressed, [this, row, dialog, name, colors]() {
     mClasses->item(row, COL_NAME)->setText(name->displayText());
     mClasses->item(row, COL_COLOR)->setText(colors->currentText());
     onSettingChanged();

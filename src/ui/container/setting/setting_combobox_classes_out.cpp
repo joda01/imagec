@@ -59,24 +59,37 @@ void SettingComboBoxClassesOut::classsNamesChanged()
     mComboBox->clear();
     auto classes = parent->getPanelClassification()->getClasses();
 
-    // Add this classs
-    for(const auto &data : classes) {
-      QVariant variant;
-      variant = QVariant(toInt(data.first));
+    auto getPrefix = [](const QString &className) -> QString {
+      auto areas = className.trimmed().split(" ");
+      if(areas.size() > 1) {
+        return areas[0].trimmed();
+      }
+      return "";
+    };
 
-      if(data.first == enums::ClassIdIn::$) {
-        // We want this to be the first
-        mComboBox->insertItem(0, generateIcon("circle"), data.second, variant);
-      } else {
-        if(!SettingBase::getIcon().isNull()) {
-          mComboBox->addItem(SettingBase::getIcon(), data.second, variant);
+    std::map<std::string, std::multimap<std::string, enums::ClassIdIn>> orderedClasses;
+    for(const auto &[id, className] : classes) {
+      orderedClasses[getPrefix(className).toStdString()].emplace(className.toStdString(), id);
+    }
+
+    for(const auto &[prefix, group] : orderedClasses) {
+      for(const auto &[className, id] : group) {
+        QVariant variant;
+        variant = QVariant(toInt(id));
+        if(id == enums::ClassIdIn::$) {
+          // We want this to be the first
+          mComboBox->insertItem(0, generateIcon("circle"), className.data(), variant);
         } else {
-          mComboBox->addItem(generateIcon("circle"), data.second, variant);
+          if(!SettingBase::getIcon().isNull()) {
+            mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), className.data(),
+                               variant);
+          } else {
+            mComboBox->addItem(generateIcon("circle"), className.data(), variant);
+          }
         }
       }
+      mComboBox->insertSeparator(mComboBox->count());
     }
-    setValue(actSelected);
-    mComboBox->blockSignals(false);
   }
 }
 

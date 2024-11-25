@@ -290,17 +290,20 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
   //
   //
   defaultClassId = SettingBase::create<SettingComboBox<enums::ClassId>>(windowMain, generateIcon("circle"), "Class");
-  defaultClassId->addOptions({{enums::ClassId::UNDEFINED, "Undefined"},
-                              {enums::ClassId::C0, "Class A"},
-                              {enums::ClassId::C1, "Class B"},
-                              {enums::ClassId::C2, "Class C"},
-                              {enums::ClassId::C3, "Class D"},
-                              {enums::ClassId::C4, "Class E"},
-                              {enums::ClassId::C5, "Class F"},
-                              {enums::ClassId::C6, "Class G"},
-                              {enums::ClassId::C7, "Class H"},
-                              {enums::ClassId::C8, "Class I"},
-                              {enums::ClassId::C9, "Class J"}});
+  defaultClassId->addOptions({
+      {enums::ClassId::UNDEFINED, "Undefined"}, {enums::ClassId::C0, "Class C0"},   {enums::ClassId::C1, "Class C1"},
+      {enums::ClassId::C2, "Class C2"},         {enums::ClassId::C3, "Class C3"},   {enums::ClassId::C4, "Class C4"},
+      {enums::ClassId::C5, "Class C5"},         {enums::ClassId::C6, "Class C6"},   {enums::ClassId::C7, "Class C7"},
+      {enums::ClassId::C8, "Class C8"},         {enums::ClassId::C9, "Class C9"},   {enums::ClassId::C10, "Class C10"},
+      {enums::ClassId::C11, "Class C11"},       {enums::ClassId::C12, "Class C12"}, {enums::ClassId::C13, "Class C13"},
+      {enums::ClassId::C14, "Class C14"},       {enums::ClassId::C15, "Class C15"}, {enums::ClassId::C16, "Class C16"},
+      {enums::ClassId::C17, "Class C17"},       {enums::ClassId::C18, "Class C18"}, {enums::ClassId::C19, "Class C19"},
+      {enums::ClassId::C20, "Class C20"},       {enums::ClassId::C21, "Class C21"}, {enums::ClassId::C22, "Class C22"},
+      {enums::ClassId::C23, "Class C23"},       {enums::ClassId::C24, "Class C24"}, {enums::ClassId::C25, "Class C25"},
+      {enums::ClassId::C26, "Class C26"},       {enums::ClassId::C27, "Class C27"}, {enums::ClassId::C28, "Class C28"},
+      {enums::ClassId::C29, "Class C29"},       {enums::ClassId::C30, "Class C30"}, {enums::ClassId::C31, "Class C31"},
+      {enums::ClassId::C32, "Class C32"},
+  });
   defaultClassId->connectWithSetting(&mSettings.pipelineSetup.defaultClassId);
 
   connect(pipelineName.get(), &joda::ui::SettingBase::valueChanged, this, &PanelPipelineSettings::metaChangedEvent);

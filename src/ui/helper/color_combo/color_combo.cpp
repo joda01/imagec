@@ -20,23 +20,33 @@ void ColorComboBox::paintEvent(QPaintEvent *event)
 {
   QPainter painter(this);
 
-  // Draw the combo box as usual
+  // Use the default style options for the combo box
   QStyleOptionComboBox opt;
   initStyleOption(&opt);
+
+  // Draw the default combo box, including the frame and drop-down arrow
   style()->drawComplexControl(QStyle::CC_ComboBox, &opt, &painter, this);
 
   // Get the current index
   int index = currentIndex();
   if(index >= 0) {
-    // Get the model's background color for the current item
+    // Retrieve the background color and text from the model
     QVariant bgColor = model()->data(model()->index(index, 0), Qt::BackgroundRole);
     QVariant text    = model()->data(model()->index(index, 0), Qt::DisplayRole);
 
-    // Set the background color and draw it
-    painter.fillRect(opt.rect, bgColor.value<QColor>());
+    // Set the background color
+    QRect colorRect = style()->subControlRect(QStyle::CC_ComboBox, &opt, QStyle::SC_ComboBoxEditField, this);
+    colorRect.setY(colorRect.y() + colorRect.height() / 2 - 4);
+    colorRect.setX(colorRect.x() + 4);
+    colorRect.setWidth(8);
+    colorRect.setHeight(8);
+
+    painter.fillRect(colorRect, bgColor.value<QColor>());
 
     // Draw the text
+    QRect textRect = style()->subControlRect(QStyle::CC_ComboBox, &opt, QStyle::SC_ComboBoxEditField, this);
+    textRect.setX(textRect.x() + 12);
     painter.setPen(palette().color(QPalette::Text));
-    painter.drawText(opt.rect.adjusted(5, 0, -5, 0), Qt::AlignVCenter | Qt::AlignLeft, text.toString());
+    painter.drawText(textRect.adjusted(5, 0, -5, 0), Qt::AlignVCenter | Qt::AlignLeft, text.toString());
   }
 }

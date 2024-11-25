@@ -73,22 +73,28 @@ void SettingComboBoxClassificationIn::outputClassesChanges()
     mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Undefined",
                        QVariant(toInt(enums::ClassIdIn::UNDEFINED)));
 
-    auto classes = parent->getPanelClassification()->getClasses();
-    if(!outputClasses.empty()) {
-      auto oldClasss = *outputClasses.begin();
-      for(const auto &data : outputClasses) {
-        if(data != enums::ClassId::UNDEFINED) {
-          if(oldClasss != data) {
-            oldClasss = data;
-            mComboBox->insertSeparator(mComboBox->count());
-          }
-
-          QVariant variant;
-          variant = QVariant(toInt(data));
-          mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)),
-                             classes[static_cast<enums::ClassIdIn>(data)], variant);
-        }
+    auto getPrefix = [](const QString &className) -> QString {
+      auto areas = className.trimmed().split(" ");
+      if(areas.size() > 1) {
+        return areas[0].trimmed();
       }
+      return "";
+    };
+
+    auto classes = parent->getPanelClassification()->getClasses();
+    std::map<std::string, std::multimap<std::string, enums::ClassId>> orderedClasses;
+    for(const auto &data : outputClasses) {
+      QString className = classes[static_cast<enums::ClassIdIn>(data)];
+      orderedClasses[getPrefix(className).toStdString()].emplace(className.toStdString(), data);
+    }
+
+    for(const auto &[prefix, group] : orderedClasses) {
+      for(const auto &[className, id] : group) {
+        QVariant variant;
+        variant = QVariant(toInt(id));
+        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), className.data(), variant);
+      }
+      mComboBox->insertSeparator(mComboBox->count());
     }
     setValue(actSelected);
     mComboBox->blockSignals(false);
