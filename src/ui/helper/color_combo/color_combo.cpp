@@ -11,6 +11,14 @@
 ///
 
 #include "color_combo.hpp"
+#include <qcombobox.h>
+#include "color_item.hpp"
+
+ColorComboBox::ColorComboBox(QWidget *parent) : QComboBox(parent)
+{
+  auto *delegate = new ColorRectDelegate(this);
+  setItemDelegate(delegate);
+}
 
 ColorComboBox::~ColorComboBox()
 {

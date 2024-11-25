@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <qstyleditemdelegate.h>
+#include <qwidget.h>
 #include <QApplication>
 #include <QComboBox>
 #include <QPainter>
@@ -14,8 +16,9 @@ class ColorComboBox : public QComboBox
 {
   Q_OBJECT
 public:
-  using QComboBox::QComboBox;
+  ColorComboBox(QWidget *parent = nullptr);
   ~ColorComboBox() override;
+  void init();
 
 protected:
   void paintEvent(QPaintEvent *event) override;
