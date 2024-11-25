@@ -44,7 +44,7 @@ struct ColocalizationSettings : public SettingBase
   //
   // Resulting object classs of the intersecting objects
   //
-  enums::ClassIdIn outputClass;
+  enums::ClassIdIn outputClass = enums::ClassIdIn::$;
 
   /////////////////////////////////////////////////////
   void check() const

@@ -87,7 +87,7 @@ struct ClassifierFilter
   //
   // Classs the objects should be assigned if filter matches
   //
-  enums::ClassIdIn outputClass;
+  enums::ClassIdIn outputClass = enums::ClassIdIn::$;
 
   //
   // Use an intensity filter for classification

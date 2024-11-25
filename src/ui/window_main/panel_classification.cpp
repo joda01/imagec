@@ -189,7 +189,7 @@ void PanelClassification::initTable()
   //
   // Load classes
   //
-  for(int32_t classId = 0; classId < NR_OF_CLASSES; classId++) {
+  for(uint16_t classId = 0; classId < NR_OF_CLASSES; classId++) {
     auto *index = new QTableWidgetItem(QString::number(classId));
     index->setFlags(index->flags() & ~Qt::ItemIsEditable);
     mClasses->setItem(classId, COL_ID, index);

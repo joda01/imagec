@@ -26,7 +26,7 @@ public:
   //
   // To which classs the result should be assigned to
   //
-  enums::ClassIdIn outputClassVoronoi;
+  enums::ClassIdIn outputClassVoronoi = enums::ClassIdIn::$;
 
   //
   // Classs which contains the masking classes

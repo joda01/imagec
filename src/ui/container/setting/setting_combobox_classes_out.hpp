@@ -108,7 +108,6 @@ public:
       }
     };
     removeLastSeparator();
-
     setValue(actSelected);
     mComboBox->blockSignals(false);
   }
@@ -164,6 +163,8 @@ public:
         }
       };
       removeLastSeparator();
+      setValue(actSelected);
+      mComboBox->blockSignals(false);
     }
   }
   QString getName(CLASSID key) const
@@ -209,14 +210,14 @@ private:
   QComboBox *mComboBox;
   CLASSID *mSetting = nullptr;
 
-  static uint32_t toInt(const CLASSID &in)
+  static uint16_t toInt(const CLASSID &in)
   {
-    return static_cast<uint32_t>(in);
+    return static_cast<uint16_t>(in);
   }
 
-  static CLASSID fromInt(uint32_t in)
+  static CLASSID fromInt(uint16_t in)
   {
-    return static_cast<CLASSID>(in);
+    return static_cast<CLASSID>(in & 0xFFFF);
   }
 
 private slots:
