@@ -35,7 +35,7 @@ DialogColumnSettings::DialogColumnSettings(db::QueryFilter *filter, QWidget *par
   mClasssClassSelector = new QComboBox();
   mClasssClassSelector->setMinimumWidth(150);
   connect(mClasssClassSelector, &QComboBox::currentIndexChanged, this, &DialogColumnSettings::onClassesChanged);
-  vlayout->addRow("Classs/Class:", mClasssClassSelector);
+  vlayout->addRow("Classs:", mClasssClassSelector);
 
   //
   //
@@ -156,7 +156,7 @@ void DialogColumnSettings::exec(int32_t selectedColumn)
                                    .crossChannelStacksC = mCrossChannelStackC->currentData().toInt(),
                                    .zStack              = mZStack->value(),
                                    .tStack              = mTStack->value()},
-        db::QueryFilter::ColumnName{.classsName = classsName, .className = className});
+        db::QueryFilter::ColumnName{.className = className});
   }
 }
 
@@ -207,7 +207,18 @@ void DialogColumnSettings::updateClassesAndClasses(db::Database *database)
     return;
   }
   mDatabase = database;
+  {
+    // Clusters/Class
+    mClasssClassSelector->blockSignals(true);
+    auto clusters = mDatabase->selectClasses();
+    mClasssClassSelector->clear();
+    for(const auto &[classId, classsName] : clusters) {
+      mClasssClassSelector->addItem(classsName.name.data(), SettingComboBoxMultiClassificationUnmanaged::toInt(classId));
 
+      mClasssClassSelector->insertSeparator(mClasssClassSelector->count());
+    }
+    mClasssClassSelector->blockSignals(false);
+  }
   {
     // Image channels
     mCrossChannelStackC->blockSignals(true);
@@ -229,18 +240,9 @@ void DialogColumnSettings::updateClassesAndClasses(db::Database *database)
 ///
 auto DialogColumnSettings::getClasssFromCombo() const -> std::pair<std::string, std::string>
 {
-  QString classsName;
   QString className;
   className = mClasssClassSelector->currentText();
-  if(!className.isEmpty()) {
-    auto splited = className.split("@");
-    if(splited.size() > 1) {
-      classsName = splited[0];
-      className  = splited[1];
-    }
-  }
-
-  return {classsName.toStdString(), className.toStdString()};
+  return {className.toStdString(), className.toStdString()};
 }
 
 }    // namespace joda::ui

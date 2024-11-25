@@ -101,14 +101,8 @@ void SettingComboBoxClassificationUnmanaged::setValue(const joda::enums::ClassId
 
 std::pair<joda::enums::ClassId, std::pair<std::string, std::string>> SettingComboBoxClassificationUnmanaged::getValueAndNames()
 {
-  std::string classsName;
-  std::string className;
-  auto split = mComboBox->currentText().split("@");
-  if(split.size() == 2) {
-    classsName = split[0].toStdString();
-    className  = split[1].toStdString();
-  }
-  return {fromInt(mComboBox->currentData().toUInt()), {classsName, className}};
+  std::string className = mComboBox->currentText().toStdString();
+  return {fromInt(mComboBox->currentData().toUInt()), {className, className}};
 }
 
 void SettingComboBoxClassificationUnmanaged::onValueChanged()

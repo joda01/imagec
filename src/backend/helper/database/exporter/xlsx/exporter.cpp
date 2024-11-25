@@ -33,7 +33,7 @@ void BatchExporter::startExportHeatmap(const std::map<int32_t, joda::table::Tabl
   std::map<std::string, std::pair<Pos, lxw_worksheet *>> sheets;
 
   for(const auto &[_, table] : data) {
-    std::string name = table.getMeta().classsName;
+    std::string name = table.getMeta().className;    /// \todo Was cluster
     // Max. sheet name length = 31 because of excel limitation
     if(name.size() > 30) {
       name = name.substr(0, 30);

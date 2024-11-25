@@ -113,15 +113,7 @@ std::map<joda::enums::ClassId, std::pair<std::string, std::string>> SettingCombo
   auto checked = ((QComboBoxMulti *) mComboBox)->getCheckedItems();
 
   for(const auto &[data, txt] : checked) {
-    std::string classsName;
-    std::string className;
-    auto split = txt.split("@");
-    if(split.size() == 2) {
-      classsName = split[0].toStdString();
-      className  = split[1].toStdString();
-    }
-
-    toReturn.emplace(fromInt(data.toUInt()), std::pair<std::string, std::string>{classsName, className});
+    toReturn.emplace(fromInt(data.toUInt()), std::pair<std::string, std::string>{txt.toStdString(), txt.toStdString()});
   }
 
   return toReturn;

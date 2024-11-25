@@ -79,10 +79,9 @@ public:
   struct ColumnName
   {
     std::string crossChannelName;
-    std::string classsName;
     std::string className;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnName, crossChannelName, classsName, className);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnName, crossChannelName, className);
   };
 
   struct ColumnKey
@@ -124,10 +123,10 @@ public:
       std::string stacks = "{Z" + std::to_string(zStack) + "/T" + std::to_string(tStack) + "}";
 
       if(getType(measureChannel) == MeasureType::INTENSITY) {
-        return names.classsName + "@" + names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "] " + "(C" +
-               std::to_string(crossChannelStacksC) + ")" + stacks;
+        return names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "] " + "(C" + std::to_string(crossChannelStacksC) +
+               ")" + stacks;
       }
-      return names.classsName + "@" + names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "]" + stacks;
+      return names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "]" + stacks;
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnKey, classs, measureChannel, stats, crossChannelStacksC, zStack, tStack, names);
@@ -332,7 +331,7 @@ public:
       auto &element = itr->second;
       mResultingTable.at(element.tabIdx).setRowName(row, rowName);
       mResultingTable.at(element.tabIdx).setData(row, element.colIdx, tableCell);
-      mResultingTable.at(element.tabIdx).setMeta({.classsName = colName.classsName, .className = colName.className});
+      mResultingTable.at(element.tabIdx).setMeta({.className = colName.className});
     }
   }
 
@@ -361,7 +360,7 @@ public:
       }
 
       mResultingTable[element.colIdx].setData(row, col, tableCell);
-      mResultingTable[element.colIdx].setMeta({.classsName = colName.classsName, .className = colName.className});
+      mResultingTable[element.colIdx].setMeta({.className = colName.className});
     }
   }
 

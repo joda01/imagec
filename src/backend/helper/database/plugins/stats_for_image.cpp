@@ -95,7 +95,7 @@ auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> QueryResult
                               imageInfo = imageInfo](int32_t colIdx, const PreparedStatement &statement) {
         joda::table::Table &results = classesToExport.getTable(tabIdx);
         results.setTitle(statement.getColumnAt(colIdx).createHeader());
-        results.setMeta({statement.getColNames().classsName, statement.getColNames().className});
+        results.setMeta({statement.getColNames().className});
 
         for(uint64_t row = 0; row < imageInfo.height; row++) {
           results.getMutableRowHeader()[row] = std::to_string(row + 1);
@@ -197,10 +197,10 @@ auto StatsPerImage::toSqlHeatmap(const db::ResultingTable::QueryKey &classsAndCl
                     "\n)\n"
                     "SELECT\n" +
                     channelFilter.createStatsQuery(true, false) +
-                    "floor(meas_center_x / $6) * $6 AS rectangle_x,\n"
-                    "floor(meas_center_y / $6) * $6 AS rectangle_y,\n"
+                    "floor(meas_center_x / $5) * $5 AS rectangle_x,\n"
+                    "floor(meas_center_y / $5) * $5 AS rectangle_y,\n"
                     "FROM innerTable\n"
-                    "GROUP BY floor(meas_center_x / $6), floor(meas_center_y / $6)";
+                    "GROUP BY floor(meas_center_x / $5), floor(meas_center_y / $5)";
 
   params.emplace_back(static_cast<double>(filter.densityMapAreaSize));
   return {sql, params};

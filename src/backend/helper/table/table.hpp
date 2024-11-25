@@ -85,7 +85,6 @@ public:
   /////////////////////////////////////////////////////
   struct Meta
   {
-    std::string classsName;
     std::string className;
   };
 
