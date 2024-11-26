@@ -96,7 +96,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     col2->addWidgetGroup("Pipeline steps", {scrollArea}, 300, 300);
 
     // Allow to start with
-    mTopAddCommandButton = new AddCommandButtonBase(mSettings, this, nullptr, InOuts::OBJECT, mWindowMain);
+    mTopAddCommandButton = new AddCommandButtonBase(mSettings, this, nullptr, InOuts::ALL, mWindowMain);
     mPipelineSteps->addWidget(mTopAddCommandButton);
   }
 
@@ -275,9 +275,9 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
   connect(cStackIndex.get(), &SettingBase::valueChanged, [this]() {
     if(nullptr != mTopAddCommandButton) {
       if(cStackIndex->getValue() == -1) {
-        mTopAddCommandButton->setInOutBefore(InOuts::OBJECT);
+        mTopAddCommandButton->setInOutBefore(InOuts::ALL);
       } else {
-        mTopAddCommandButton->setInOutBefore(InOuts::IMAGE);
+        mTopAddCommandButton->setInOutBefore(InOuts::ALL);
       }
     }
   });
