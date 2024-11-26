@@ -17,6 +17,7 @@
 #include <qpixmap.h>
 #include <cmath>
 #include <cstdint>
+#include <mutex>
 #include <ranges>
 #include <string>
 #include "backend/helper/image/image.hpp"
@@ -75,6 +76,7 @@ void PanelImageView::imageUpdated()
 
 void PanelImageView::resetImage()
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mPlaceholderImageSet = true;
   delete mActPixmap;
   mActPixmap = nullptr;
@@ -339,8 +341,17 @@ void PanelImageView::paintEvent(QPaintEvent *event)
       // Draw vertical line at cursor's X position
       painter.drawLine(mCrossCursorInfo.mCursorPos.x(), 0, mCrossCursorInfo.mCursorPos.x(), height());
 
-      if(!mIsEditedImage) {
-        drawPixelInfo(mCrossCursorInfo.mCursorPos.x(), mCrossCursorInfo.mCursorPos.y(), mCrossCursorInfo.pixelInfo);
+      if(!mIsEditedImage && mShowPixelInfo) {
+        auto x = mCrossCursorInfo.mCursorPos.x();
+        if(x < width() / 2) {
+          // Switch the side
+          x = x + PIXEL_INFO_RECT_WIDTH + THUMB_RECT_START_X * 2;
+        }
+        auto y = mCrossCursorInfo.mCursorPos.y();
+        if(y < height() / 2) {
+          y = y + PIXEL_INFO_RECT_HEIGHT + THUMB_RECT_START_Y * 2;
+        }
+        drawPixelInfo(x, y, mCrossCursorInfo.pixelInfo);
       }
     }
   }
@@ -356,6 +367,7 @@ void PanelImageView::paintEvent(QPaintEvent *event)
 
 void PanelImageView::drawPixelInfo(int32_t startX, int32_t startY, const PixelInfo &info)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   const auto *image = mActPixmapOriginal.getImage();
   if(image == nullptr) {
     return;
@@ -453,7 +465,6 @@ void PanelImageView::drawThumbnail()
   // float tileRectWidth  = newWidth / mNrOfTilesX;
   // float tileRectHeight = newHeight / mNrOfTilesY;
 
-  /// \todo Hier muss man aufgrunden
   mTileRectWidthScaled =
       std::ceil(static_cast<float>(mThumbnailParameter.tileWidth) * (float) newWidth / (float) mThumbnailParameter.originalImageWidth);
   mTileRectHeightScaled =
@@ -568,7 +579,7 @@ auto PanelImageView::fetchPixelInfoFromMousePosition(const QPoint &viewPos) cons
   // Map the view coordinates to scene coordinates
   QPointF scenePos = mapToScene(viewPos);
   PixelInfo pixelInfo;
-
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   // Map the scene coordinates to image coordinates
   if(mActPixmap != nullptr && mActPixmapOriginal.getImage() != nullptr) {
     QPointF imagePos = mActPixmap->mapFromScene(scenePos);

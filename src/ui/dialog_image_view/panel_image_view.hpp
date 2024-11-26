@@ -17,6 +17,7 @@
 #include <qwidget.h>
 #include <QtWidgets>
 #include <iostream>
+#include <mutex>
 #include <string>
 #include "backend/helper/image/image.hpp"
 #include <opencv2/core/types.hpp>
@@ -163,8 +164,9 @@ private:
   bool mShowThumbnail       = true;
   bool mShowPixelInfo       = true;
   bool mShowCrosshandCursor = false;
+  bool mIsEditedImage       = false;
 
-  bool mIsEditedImage = false;
+  mutable std::mutex mImageResetMutex;
 
 private slots:
   void onUpdateImage();
