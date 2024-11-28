@@ -57,6 +57,7 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     connect(clearList, &QAction::triggered, [this]() {
       if(this->askForChangeTemplateIndex()) {
         this->initTable();
+        this->newTemplate();
       }
     });
 
