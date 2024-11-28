@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <set>
 #include <vector>
+#include "backend/enums/enum_memory_idx.hpp"
 #include "backend/enums/enum_objects.hpp"
 
 #include "backend/global_enums.hpp"
@@ -65,6 +66,14 @@ struct ImageMathSettings : public SettingBase
 
   [[nodiscard]] ObjectOutputClasses getOutputClasses() const override
   {
+    return {};
+  }
+
+  [[nodiscard]] std::set<enums::MemoryIdx> getInputImageCache() const override
+  {
+    if(inputImageSecond.memoryId != enums::MemoryIdx::NONE) {
+      return {inputImageSecond.memoryId};
+    }
     return {};
   }
 

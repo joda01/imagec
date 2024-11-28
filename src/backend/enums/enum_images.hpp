@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "backend/enums/enum_memory_idx.hpp"
 #include "backend/enums/types.hpp"
 #include <nlohmann/json.hpp>
 
@@ -30,15 +31,30 @@ enum class ZProjection
 
 struct ImageId
 {
+  //
+  // If not using memory but loading image directly, the z-projection mode used for image loasing
+  //
   ZProjection zProjection = ZProjection::$;
+
+  //
+  // Image plane to load
+  //
   joda::enums::PlaneId imagePlane;
+
+  //
+  // If a memory ID is given the image is loaded from the memory instead of using the given plane
+  //
+  MemoryIdx memoryId = MemoryIdx::NONE;
 
   bool operator<(const ImageId &in) const
   {
-    __uint128_t plane1 = (imagePlane.toInt(imagePlane) << 8) | static_cast<uint8_t>(zProjection);
-    __uint128_t plane2 = (in.imagePlane.toInt(in.imagePlane) << 8) | static_cast<uint8_t>(in.zProjection);
+    if(memoryId == MemoryIdx::NONE) {
+      __uint128_t plane1 = (imagePlane.toInt(imagePlane) << 8) | static_cast<uint8_t>(zProjection);
+      __uint128_t plane2 = (in.imagePlane.toInt(in.imagePlane) << 8) | static_cast<uint8_t>(in.zProjection);
 
-    return plane1 < plane2;
+      return plane1 < plane2;
+    }
+    return memoryId < in.memoryId;
   }
 
   void check() const
@@ -46,7 +62,7 @@ struct ImageId
     CHECK_ERROR(zProjection != enums::ZProjection::UNDEFINED, "Define the z-projection mode for image loading!");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageId, zProjection, imagePlane);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageId, zProjection, imagePlane, memoryId);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ZProjection, {

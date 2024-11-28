@@ -12,6 +12,7 @@
 
 #include "pipeline.hpp"
 #include <memory>
+#include <string>
 #include "backend/enums/enums_classes.hpp"
 #include "pipeline_factory.hpp"
 
@@ -68,6 +69,45 @@ ObjectOutputClassesExp Pipeline::getOutputClasses() const
     }
   }
   return classes;
+}
+
+[[nodiscard]] std::set<enums::MemoryIdx> Pipeline::getInputImageCache() const
+{
+  std::set<enums::MemoryIdx> caches;
+  for(const auto &pipelineStep : pipelineSteps) {
+    auto command = PipelineFactory<joda::cmd::Command>::generate(pipelineStep);
+    if(command == nullptr) {
+      continue;
+    }
+    const auto &mems = command->getInputImageCache();
+    caches.insert(mems.begin(), mems.end());
+  }
+
+  std::cout << "In" << std::endl;
+  for(const auto &i : caches) {
+    std::cout << enums::uint128ToString(static_cast<__uint128_t>(i)) << std::endl;
+  }
+  return caches;
+}
+
+[[nodiscard]] std::set<enums::MemoryIdx> Pipeline::getOutputImageCache() const
+{
+  std::set<enums::MemoryIdx> caches;
+  for(const auto &pipelineStep : pipelineSteps) {
+    auto command = PipelineFactory<joda::cmd::Command>::generate(pipelineStep);
+    if(command == nullptr) {
+      continue;
+    }
+    const auto &mems = command->getOutputImageCache();
+    caches.insert(mems.begin(), mems.end());
+  }
+
+  std::cout << "Out" << std::endl;
+  for(const auto &i : caches) {
+    std::cout << enums::uint128ToString(static_cast<__uint128_t>(i)) << std::endl;
+  }
+  std::cout << "-- O --" << std::endl;
+  return caches;
 }
 
 ///

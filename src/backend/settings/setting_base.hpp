@@ -13,6 +13,7 @@
 #pragma once
 
 #include <set>
+#include "backend/enums/enum_memory_idx.hpp"
 #include "backend/enums/enums_classes.hpp"
 
 #include "backend/settings/settings_types.hpp"
@@ -34,6 +35,16 @@ public:
   }
 
   [[nodiscard]] virtual ObjectOutputClasses getOutputClasses() const
+  {
+    return {};
+  }
+
+  [[nodiscard]] virtual std::set<enums::MemoryIdx> getInputImageCache() const
+  {
+    return {};
+  }
+
+  [[nodiscard]] virtual std::set<enums::MemoryIdx> getOutputImageCache() const
   {
     return {};
   }

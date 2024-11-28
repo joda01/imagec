@@ -34,6 +34,9 @@ public:
 
   ObjectInputClassesExp getInputClasses() const;
   ObjectOutputClassesExp getOutputClasses() const;
+  std::set<enums::MemoryIdx> getInputImageCache() const;
+  std::set<enums::MemoryIdx> getOutputImageCache() const;
+
   enums::ClassId getOutputClass() const;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Pipeline, meta, pipelineSetup, pipelineSteps);

@@ -21,6 +21,7 @@
 #include "backend/artifacts/image/image.hpp"
 #include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/enums/enum_images.hpp"
+#include "backend/enums/enum_memory_idx.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enum_validity.hpp"
 #include "backend/enums/enums_classes.hpp"
@@ -129,20 +130,20 @@ public:
   [[nodiscard]] bool doesImageInCacheExist(joda::enums::ImageId cacheId) const
   {
     getCorrectIteration(cacheId.imagePlane);
-    return iterationContext.imageCache.contains(cacheId);
+    return iterationContext.imageCache.contains(getMemoryIdx(cacheId));
   }
 
   joda::atom::ImagePlane *addImageToCache(joda::enums::ImageId cacheId, std::unique_ptr<joda::atom::ImagePlane> img)
   {
     getCorrectIteration(cacheId.imagePlane);
-    return iterationContext.imageCache.try_emplace(cacheId, std::move(img)).first->second.get();
+    return iterationContext.imageCache.try_emplace(getMemoryIdx(cacheId), std::move(img)).first->second.get();
   }
 
   [[nodiscard]] const joda::atom::ImagePlane *loadImageFromCache(joda::enums::ImageId cacheId);
   void storeImageToCache(joda::enums::ImageId cacheId, const joda::atom::ImagePlane &image) const
   {
     getCorrectIteration(cacheId.imagePlane);
-    iterationContext.imageCache.try_emplace(cacheId, ::std::make_unique<joda::atom::ImagePlane>(image));
+    iterationContext.imageCache.try_emplace(getMemoryIdx(cacheId), ::std::make_unique<joda::atom::ImagePlane>(image));
   }
 
   [[nodiscard]] joda::atom::ObjectList *loadObjectsFromCache(joda::enums::ObjectStoreId cacheId = {}) const
@@ -215,6 +216,21 @@ public:
       out.emplace(getClassId(d));
     }
     return out;
+  }
+
+  enums::MemoryIdx getMemoryIdx(enums::ImageId imgId) const
+  {
+    getCorrectIteration(imgId.imagePlane);
+
+    if(imgId.memoryId == enums::MemoryIdx::NONE) {
+      if(imgId.zProjection == enums::ZProjection::$) {
+        imgId.zProjection = pipelineContext.defaultZProjection;
+      }
+      __uint128_t plane1 = ((imgId.imagePlane.toInt(imgId.imagePlane) << 8) | static_cast<uint8_t>(imgId.zProjection)) +
+                           static_cast<__uint128_t>(enums::MemoryIdx::RESERVED_01);
+      return static_cast<enums::MemoryIdx>(plane1);
+    }
+    return imgId.memoryId;
   }
 
   std::string getColorClass(enums::ClassIdIn in) const

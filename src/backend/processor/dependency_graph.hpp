@@ -15,6 +15,8 @@
 #include <map>
 #include <set>
 #include <vector>
+#include "backend/enums/enum_memory_idx.hpp"
+#include "backend/enums/enums_classes.hpp"
 
 class SettingParserLog;
 

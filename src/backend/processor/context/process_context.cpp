@@ -13,6 +13,7 @@
 #include "process_context.hpp"
 #include <stdexcept>
 #include "backend/enums/enum_images.hpp"
+#include "backend/enums/enum_memory_idx.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
 
 namespace joda::processor {
@@ -27,7 +28,12 @@ ProcessContext::ProcessContext(GlobalContext &globalContext, PlateContext &plate
 [[nodiscard]] const joda::atom::ImagePlane *ProcessContext::loadImageFromCache(joda::enums::ImageId cacheId)
 {
   getCorrectIteration(cacheId.imagePlane);
-  if(!doesImageInCacheExist(cacheId)) {
+
+  if(cacheId.memoryId != enums::MemoryIdx::NONE) {
+    if(!doesImageInCacheExist(cacheId)) {
+      throw std::invalid_argument("Image does not exist in cache!");
+    }
+  } else if(!doesImageInCacheExist(cacheId)) {
     // Load image to cache
     if(cacheId.zProjection == enums::ZProjection::UNDEFINED) {
       throw std::invalid_argument("Define image plane to load from!");
@@ -41,7 +47,7 @@ ProcessContext::ProcessContext(GlobalContext &globalContext, PlateContext &plate
                                                                    imageContext);
   }
 
-  return iterationContext.imageCache.at(cacheId).get();
+  return iterationContext.imageCache.at(getMemoryIdx(cacheId)).get();
 }
 
 }    // namespace joda::processor

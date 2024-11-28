@@ -85,9 +85,26 @@ public:
     zProjection->setValue(settings.inputImageSecond.zProjection);
     zProjection->connectWithSetting(&settings.inputImageSecond.zProjection);
 
+    mMemoryIdx = SettingBase::create<SettingComboBox<enums::MemoryIdx>>(parent, generateIcon("matrix"), "From cache");
+    mMemoryIdx->addOptions({{enums::MemoryIdx::NONE, "None"},
+                            {enums::MemoryIdx::M0, "M0"},
+                            {enums::MemoryIdx::M1, "M1"},
+                            {enums::MemoryIdx::M2, "M2"},
+                            {enums::MemoryIdx::M3, "M3"},
+                            {enums::MemoryIdx::M4, "M4"},
+                            {enums::MemoryIdx::M5, "M5"},
+                            {enums::MemoryIdx::M6, "M6"},
+                            {enums::MemoryIdx::M7, "M7"},
+                            {enums::MemoryIdx::M8, "M8"},
+                            {enums::MemoryIdx::M9, "M9"},
+                            {enums::MemoryIdx::M10, "M10"}});
+    mMemoryIdx->setValue(settings.inputImageSecond.memoryId);
+    mMemoryIdx->connectWithSetting(&settings.inputImageSecond.memoryId);
+    mMemoryIdx->setShortDescription("Cache: ");
+
     //
     //
-    addSetting(modelTab, "Input image channels", {{cStackIndex.get(), true, 0}, {zProjection.get(), true, 0}});
+    addSetting(modelTab, "Input image channels", {{cStackIndex.get(), true, 0}, {zProjection.get(), true, 0}, {mMemoryIdx.get(), true, 0}});
   }
 
 private:
@@ -98,6 +115,7 @@ private:
   std::unique_ptr<SettingComboBox<joda::settings::ImageMathSettings::Function>> mFunction;
   std::unique_ptr<SettingComboBox<int32_t>> cStackIndex;
   std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjection;
+  std::shared_ptr<SettingComboBox<enums::MemoryIdx>> mMemoryIdx;
 
   /////////////////////////////////////////////////////
 
