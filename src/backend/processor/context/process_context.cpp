@@ -37,7 +37,8 @@ ProcessContext::ProcessContext(GlobalContext &globalContext, PlateContext &plate
       cacheId.zProjection = pipelineContext.actImagePlane.getId().zProjection;
     }
 
-    imageContext.imageLoader.loadImageToCache(cacheId.imagePlane, cacheId.zProjection, pipelineContext.actImagePlane.tile, *this);
+    joda::processor::PipelineInitializer::loadImageAndStoreToCache(cacheId.imagePlane, cacheId.zProjection, pipelineContext.actImagePlane.tile, *this,
+                                                                   imageContext);
   }
 
   return iterationContext.imageCache.at(cacheId).get();

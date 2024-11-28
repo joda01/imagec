@@ -54,25 +54,22 @@ public:
 
   auto getCompositeTileSize() const -> TileSize const;
 
-  enums::ImageId loadImageToCache(const enums::PlaneId &planeToLoad, enums::ZProjection zProjection, const enums::tile_t &tile,
-                                  joda::processor::ProcessContext &processContext) const;
+  static enums::ImageId loadImageAndStoreToCache(const enums::PlaneId &planeToLoad, enums::ZProjection zProjection, const enums::tile_t &tile,
+                                                 joda::processor::ProcessContext &processContext, processor::ImageContext &imageContext);
 
   void initPipeline(const joda::settings::PipelineSettings &settings, const enums::tile_t &tile, const joda::enums::PlaneId &imagePartToLoad,
                     ProcessContext &processStepOu) const;
 
 private:
   /////////////////////////////////////////////////////
-  bool mLoadImageInTiles                  = false;
   std::tuple<int32_t, int32_t> mNrOfTiles = {1, 1};
   uint32_t mTstackToLoad                  = 0;
   uint32_t mZStackToLoad                  = 0;
-  uint32_t mNrOfZStacks                   = 0;
   int32_t mTotalNrOfChannels              = 0;
 
   /////////////////////////////////////////////////////
   const settings::ProjectImageSetup &mSettings;
   processor::ImageContext *mImageContext = nullptr;
-  mutable std::mutex mLoadMutex;
 };
 
 }    // namespace joda::processor
