@@ -127,11 +127,16 @@ public:
     return &mEditView;
   }
 
+  auto mutableEditDialog() const -> QWidget *
+  {
+    return mEditDialog;
+  }
+
   void openEditView()
   {
     mEditDialog->show();
-    mEditDialog->setFixedSize(mEditDialog->sizeHint());      // Set size according to content
-    mEditDialog->setMaximumSize(mEditDialog->sizeHint());    // Set size according to content
+    // mEditDialog->setFixedSize(mEditDialog->sizeHint());      // Set size according to content
+    // mEditDialog->setMaximumSize(mEditDialog->sizeHint());    // Set size according to content
     mEditDialog->setMinimumSize(mEditDialog->sizeHint());    // Set size according to content
   }
 

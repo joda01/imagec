@@ -41,6 +41,9 @@ public:
   AiClassifier(joda::settings::PipelineStep &pipelineStep, settings::AiClassifierSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::OBJECT}}), mSettings(settings), mParent(parent)
   {
+    this->mutableEditDialog()->setMinimumWidth(600);
+    this->mutableEditDialog()->setMinimumHeight(400);
+
     auto *modelTab = addTab("Model", [] {});
 
     auto onnxModels = joda::onnx::OnnxParser::findOnnxFiles();
