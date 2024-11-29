@@ -88,6 +88,7 @@ private:
   // Colors
   int32_t mNumberOfClasses;
   cv::dnn::Net mNet;
+  bool mIsReady = false;
 
   const settings::AiClassifierSettings &mSettings;
 };
