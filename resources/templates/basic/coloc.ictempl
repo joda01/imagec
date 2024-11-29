@@ -6,7 +6,7 @@
   },
   "pipelineSetup": {
     "cStackIndex": -1,
-    "defaultClusterId": "None",
+    "defaultClassId": "None",
     "source": "FromFile",
     "tStackIndex": -1,
     "zProjection": "None",
@@ -15,24 +15,20 @@
   "pipelineSteps": [
     {
       "$colocalization": {
-        "inputClusters": [],
+        "inputClasses": [],
         "minIntersection": 0.10000000149011612,
-        "outputCluster": {
-          "classId": "None",
-          "clusterId": "$"
-        }
+        "outputClass": "$"
       }
     },
     {
       "$measure": {
-        "inputClusters": [],
-        "planesIn": []
+        "inputClasses": ["$"]
       }
     },
     {
       "$saveImage": {
         "canvas": "$",
-        "clustersIn": [],
+        "classesIn": ["$"],
         "compression": 1,
         "namePrefix": "",
         "subFolder": "images/${imageName}"

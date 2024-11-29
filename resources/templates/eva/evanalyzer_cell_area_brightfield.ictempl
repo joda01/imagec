@@ -6,7 +6,7 @@
   },
   "pipelineSetup": {
     "cStackIndex": 0,
-    "defaultClusterId": "None",
+    "defaultClassId": "None",
     "source": "FromFile",
     "tStackIndex": -1,
     "zProjection": "MaxIntensity",
@@ -63,17 +63,11 @@
                   "minCircularity": 0.0,
                   "minParticleSize": 2000
                 },
-                "outputCluster": {
-                  "classId": "None",
-                  "clusterId": "$"
-                }
+                "outputClass": "$"
               }
             ],
             "modelClassId": 65535,
-            "outputClusterNoMatch": {
-              "classId": "None",
-              "clusterId": "$"
-            }
+            "outputClassNoMatch": "None"
           }
         ]
       },
@@ -81,23 +75,20 @@
     },
     {
       "$measure": {
-        "inputClusters": [],
-        "objectIn": {
-          "imagePlane": {
-            "cStack": -1,
-            "tStack": -1,
-            "zStack": -1
-          },
-          "storeIdx": "M0"
-        },
-        "planesIn": []
+        "inputClasses": [
+          "$"
+        ]
       },
       "disabled": false
     },
     {
       "$saveImage": {
         "canvas": "$",
-        "clustersIn": [],
+        "classesIn": [
+          {
+            "inputClass": "$"
+          }
+        ],
         "compression": 1,
         "namePrefix": "cell_area",
         "subFolder": "images/${imageName}"

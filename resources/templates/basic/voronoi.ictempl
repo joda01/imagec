@@ -6,7 +6,7 @@
   },
   "pipelineSetup": {
     "cStackIndex": 0,
-    "defaultClusterId": "A",
+    "defaultClassId": "A",
     "source": "FromFile",
     "tStackIndex": -1,
     "zProjection": "None",
@@ -17,31 +17,23 @@
       "$voronoi": {
         "excludeAreasAtTheEdge": false,
         "excludeAreasWithoutPoint": true,
-        "maskClasses": [],
-        "maskCluster": "None",
         "maxAreaSize": -1,
         "maxRadius": -1,
         "minAreaSize": -1,
-        "pointsClassIn": [],
-        "pointsClusterIn": "$",
-        "pointsClusterOut": "$",
-        "voronoiClassOut": "0"
+        "inputClassesPoints": [],
+        "inputClassesMask": [],
+        "outputClassVoronoi": "$"
       }
     },
     {
       "$saveImage": {
         "canvas": "$",
-        "clustersIn": [
+        "classesIn": [
           {
-            "classesIn": [
-              {
-                "classIn": "2",
-                "color": "#FF0000",
-                "paintBoundingBox": false,
-                "style": "Outlined"
-              }
-            ],
-            "clusterIn": "$"
+            "inputClass": "$",
+            "color": "#FF0000",
+            "paintBoundingBox": false,
+            "style": "Outlined"
           }
         ],
         "compression": 1,

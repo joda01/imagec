@@ -39,9 +39,9 @@ public:
 
   struct SaveClasss
   {
-    enums::ClassIdIn inputClass;
-    Style style           = Style::OUTLINED;
-    bool paintBoundingBox = false;
+    enums::ClassIdIn inputClass = enums::ClassIdIn::$;
+    Style style                 = Style::OUTLINED;
+    bool paintBoundingBox       = false;
 
     void check() const
     {

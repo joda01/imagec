@@ -6,7 +6,7 @@
   },
   "pipelineSetup": {
     "cStackIndex": 0,
-    "defaultClusterId": "None",
+    "defaultClassId": "None",
     "source": "FromFile",
     "tStackIndex": -1,
     "zProjection": "MaxIntensity",
@@ -70,17 +70,11 @@
                   "minCircularity": 0.0,
                   "minParticleSize": 1000
                 },
-                "outputCluster": {
-                  "classId": "None",
-                  "clusterId": "$"
-                }
+                "outputClass": "$"
               }
             ],
             "modelClassId": 65535,
-            "outputClusterNoMatch": {
-              "classId": "None",
-              "clusterId": "$"
-            }
+            "outputClassNoMatch": "$"
           }
         ]
       },
@@ -88,29 +82,19 @@
     },
     {
       "$measure": {
-        "inputClusters": [],
-        "objectIn": {
-          "imagePlane": {
-            "cStack": -1,
-            "tStack": -1,
-            "zStack": -1
-          },
-          "storeIdx": "M0"
-        },
-        "planesIn": []
+        "inputClasses": [
+          "$"
+        ]
       },
       "disabled": false
     },
     {
       "$saveImage": {
         "canvas": "$",
-        "clustersIn": [
+        "classesIn": [
           {
             "color": "#FF0000",
-            "inputCluster": {
-              "classId": "None",
-              "clusterId": "$"
-            },
+            "inputClass": "$",
             "paintBoundingBox": false,
             "style": "Outlined"
           }
