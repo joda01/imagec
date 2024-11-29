@@ -28,12 +28,10 @@
 #include <thread>
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
-
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/processor/processor.hpp"
 #include "backend/settings/pipeline/pipeline_factory.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
-
 #include "ui/container/command/command.hpp"
 #include "ui/container/command/factory.hpp"
 #include "ui/container/container_base.hpp"
@@ -627,9 +625,9 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
 
   if(nullptr != mTopAddCommandButton) {
     if(cStackIndex->getValue() == -1) {
-      mTopAddCommandButton->setInOutBefore(InOuts::OBJECT);
+      mTopAddCommandButton->setInOutBefore(InOuts::ALL);
     } else {
-      mTopAddCommandButton->setInOutBefore(InOuts::IMAGE);
+      mTopAddCommandButton->setInOutBefore(InOuts::ALL);
     }
   }
 }
