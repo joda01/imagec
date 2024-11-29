@@ -219,10 +219,12 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
                          const settings::ObjectInputClasses &classesToShow)
 {
   static std::filesystem::path lastImagePath;
-  bool generateThumb = false;
-  if(imagePath != lastImagePath || previewOut.thumbnail.empty()) {
-    lastImagePath = imagePath;
-    generateThumb = true;
+  static int32_t lastImageChannel = -1;
+  bool generateThumb              = false;
+  if(imagePath != lastImagePath || previewOut.thumbnail.empty() || lastImageChannel != pipeline.pipelineSetup.cStackIndex) {
+    lastImagePath    = imagePath;
+    generateThumb    = true;
+    lastImageChannel = pipeline.pipelineSetup.cStackIndex;
   }
 
   processor::Processor process;
