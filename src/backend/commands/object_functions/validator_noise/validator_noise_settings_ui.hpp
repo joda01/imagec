@@ -38,8 +38,8 @@ public:
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}})
   {
     mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Input class");
-    mClassesIn->setValue(settings.inputClusters);
-    mClassesIn->connectWithSetting(&settings.inputClusters);
+    mClassesIn->setValue(settings.inputClasses);
+    mClassesIn->connectWithSetting(&settings.inputClasses);
 
     //
     //

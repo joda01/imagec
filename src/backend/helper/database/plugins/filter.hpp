@@ -79,15 +79,14 @@ public:
   struct ColumnName
   {
     std::string crossChannelName;
-    std::string clusterName;
     std::string className;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnName, crossChannelName, clusterName, className);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnName, crossChannelName, className);
   };
 
   struct ColumnKey
   {
-    settings::ClassificatorSettingOut clusterClass;
+    joda::enums::ClassId classs;
     enums::Measurement measureChannel = enums::Measurement::NONE;
     enums::Stats stats                = enums::Stats::AVG;
     int32_t crossChannelStacksC       = -1;
@@ -99,11 +98,11 @@ public:
     bool operator<(const ColumnKey &input) const
     {
       auto toInt = [](const ColumnKey &in) {
-        uint32_t classCluster = in.clusterClass.toUint32(in.clusterClass.clusterId, in.clusterClass.classId);
-        auto measure          = static_cast<uint8_t>(in.measureChannel);
-        auto stat             = static_cast<uint8_t>(in.stats);
+        uint32_t classClasss = static_cast<uint32_t>(in.classs);
+        auto measure         = static_cast<uint8_t>(in.measureChannel);
+        auto stat            = static_cast<uint8_t>(in.stats);
 
-        __uint128_t erg = (static_cast<__uint128_t>(classCluster) << 96) | (static_cast<__uint128_t>(in.crossChannelStacksC & 0xFFFF) << 80) |
+        __uint128_t erg = (static_cast<__uint128_t>(classClasss) << 96) | (static_cast<__uint128_t>(in.crossChannelStacksC & 0xFFFF) << 80) |
                           (static_cast<__uint128_t>(in.zStack) << 18) | (static_cast<__uint128_t>(in.tStack) << 16) | (measure << 8) | (stat);
         return erg;
       };
@@ -113,7 +112,7 @@ public:
 
     bool operator==(const ColumnKey &input) const
     {
-      return clusterClass == input.clusterClass && static_cast<int32_t>(measureChannel) == static_cast<int32_t>(input.measureChannel) &&
+      return classs == input.classs && static_cast<int32_t>(measureChannel) == static_cast<int32_t>(input.measureChannel) &&
              static_cast<int32_t>(stats) == static_cast<int32_t>(input.stats) && crossChannelStacksC == input.crossChannelStacksC &&
              zStack == input.zStack && tStack == input.tStack;
     }
@@ -124,13 +123,13 @@ public:
       std::string stacks = "{Z" + std::to_string(zStack) + "/T" + std::to_string(tStack) + "}";
 
       if(getType(measureChannel) == MeasureType::INTENSITY) {
-        return names.clusterName + "@" + names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "] " + "(C" +
-               std::to_string(crossChannelStacksC) + ")" + stacks;
+        return names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "] " + "(C" + std::to_string(crossChannelStacksC) +
+               ")" + stacks;
       }
-      return names.clusterName + "@" + names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "]" + stacks;
+      return names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "]" + stacks;
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnKey, clusterClass, measureChannel, stats, crossChannelStacksC, zStack, tStack, names);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnKey, classs, measureChannel, stats, crossChannelStacksC, zStack, tStack, names);
   };
 
   struct ColumnIdx
@@ -207,7 +206,7 @@ public:
     return mColumns.contains(colIdx);
   }
 
-  [[nodiscard]] auto getClustersAndClassesToExport() const -> ResultingTable;
+  [[nodiscard]] auto getClassesToExport() const -> ResultingTable;
 
   [[nodiscard]] auto getAnalyzer() const -> db::Database *
   {
@@ -303,15 +302,14 @@ class ResultingTable
 public:
   struct QueryKey
   {
-    settings::ClassificatorSettingOut clusterClass;
+    joda::enums::ClassId classs;
     int32_t zStack = 0;
     int32_t tStack = 0;
 
     bool operator<(const QueryKey &key) const
     {
       auto toUint128 = [](const QueryKey &key) -> __uint128_t {
-        return (static_cast<__uint128_t>(key.clusterClass.toUint32(key.clusterClass.clusterId, key.clusterClass.classId)) << 64) |
-               static_cast<__uint128_t>(key.zStack) << 32 | static_cast<__uint128_t>(key.tStack);
+        return (static_cast<__uint128_t>(key.classs) << 64) | static_cast<__uint128_t>(key.zStack) << 32 | static_cast<__uint128_t>(key.tStack);
       };
 
       return toUint128(*this) < toUint128(key);
@@ -320,30 +318,30 @@ public:
 
   explicit ResultingTable(const QueryFilter *);
 
-  void setData(const QueryKey &clusterAndClass, const QueryFilter::ColumnName &colName, int32_t row, int32_t dbColIx, const std::string &rowName,
+  void setData(const QueryKey &classsAndClass, const QueryFilter::ColumnName &colName, int32_t row, int32_t dbColIx, const std::string &rowName,
                const table::TableCell &tableCell)
   {
-    if(!mClustersAndClasses.contains(clusterAndClass)) {
-      mClustersAndClasses.emplace(clusterAndClass, PreparedStatement{colName});
+    if(!mClassesAndClasses.contains(classsAndClass)) {
+      mClassesAndClasses.emplace(classsAndClass, PreparedStatement{colName});
     }
-    const PreparedStatement &prep = mClustersAndClasses.at(clusterAndClass);
+    const PreparedStatement &prep = mClassesAndClasses.at(classsAndClass);
     auto columnKey                = prep.getColumnAt(dbColIx);
 
     for(auto [itr, rangeEnd] = mTableMapping.equal_range(columnKey); itr != rangeEnd; ++itr) {
       auto &element = itr->second;
       mResultingTable.at(element.tabIdx).setRowName(row, rowName);
       mResultingTable.at(element.tabIdx).setData(row, element.colIdx, tableCell);
-      mResultingTable.at(element.tabIdx).setMeta({.clusterName = colName.clusterName, .className = colName.className});
+      mResultingTable.at(element.tabIdx).setMeta({.className = colName.className});
     }
   }
 
-  void setData(const QueryKey &clusterAndClass, const QueryFilter::ColumnName &colName, int32_t dbColIx, int32_t row, int32_t col,
+  void setData(const QueryKey &classsAndClass, const QueryFilter::ColumnName &colName, int32_t dbColIx, int32_t row, int32_t col,
                const table::TableCell &tableCell, int32_t sizeX, int32_t sizeY, const std::string &header)
   {
-    if(!mClustersAndClasses.contains(clusterAndClass)) {
-      mClustersAndClasses.emplace(clusterAndClass, PreparedStatement{colName});
+    if(!mClassesAndClasses.contains(classsAndClass)) {
+      mClassesAndClasses.emplace(classsAndClass, PreparedStatement{colName});
     }
-    const PreparedStatement &prep = mClustersAndClasses.at(clusterAndClass);
+    const PreparedStatement &prep = mClassesAndClasses.at(classsAndClass);
     auto columnKey                = prep.getColumnAt(dbColIx);
 
     for(auto [itr, rangeEnd] = mTableMapping.equal_range(columnKey); itr != rangeEnd; ++itr) {
@@ -362,7 +360,7 @@ public:
       }
 
       mResultingTable[element.colIdx].setData(row, col, tableCell);
-      mResultingTable[element.colIdx].setMeta({.clusterName = colName.clusterName, .className = colName.className});
+      mResultingTable[element.colIdx].setMeta({.className = colName.className});
     }
   }
 
@@ -378,12 +376,12 @@ public:
 
   auto begin()
   {
-    return mClustersAndClasses.begin();
+    return mClassesAndClasses.begin();
   }
 
   auto end()
   {
-    return mClustersAndClasses.end();
+    return mClassesAndClasses.end();
   }
 
   auto getResult() -> const std::map<int32_t, table::Table> &
@@ -399,7 +397,7 @@ public:
 private:
   /////////////////////////////////////////////////////
   std::map<int32_t, table::Table> mResultingTable;
-  std::map<QueryKey, PreparedStatement> mClustersAndClasses;
+  std::map<QueryKey, PreparedStatement> mClassesAndClasses;
   std::multimap<QueryFilter::ColumnKey, QueryFilter::ColumnIdx> mTableMapping;
 };
 

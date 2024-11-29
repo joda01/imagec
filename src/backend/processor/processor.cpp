@@ -22,7 +22,7 @@
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/enums/enums_grouping.hpp"
 #include "backend/helper/database/database.hpp"
@@ -41,6 +41,7 @@
 #include "backend/settings/pipeline/pipeline_factory.hpp"
 #include "backend/settings/setting.hpp"
 #include "backend/settings/settings.hpp"
+#include "backend/settings/settings_types.hpp"
 
 namespace joda::processor {
 
@@ -255,6 +256,11 @@ std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSett
 {
   auto now = std::chrono::system_clock::now();
   mProgress.reset();
+  globalContext.classes.clear();
+  for(const auto &elem : program.projectSettings.classification.classes) {
+    globalContext.classes.emplace(elem.classId, elem);
+  }
+
   globalContext.resultsOutputFolder =
       std::filesystem::path(program.projectSettings.workingDirectory) / "imagec" / (joda::helper::timepointToIsoString(now) + "_" + jobName);
 
@@ -292,8 +298,8 @@ void Processor::listImages(const joda::settings::AnalyzeSettings &program, image
 auto Processor::generatePreview(const PreviewSettings &previewSettings, const settings::ProjectImageSetup &imageSetup,
                                 const settings::AnalyzeSettings &program, const settings::Pipeline &pipelineStart,
                                 const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX, int32_t tileY,
-                                bool generateThumb, const ome::OmeInfo &ome, const settings::ObjectInputClusters &clustersClassesToShow)
-    -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<settings::ClassificatorSetting, PreviewReturn>>
+                                bool generateThumb, const ome::OmeInfo &ome, const settings::ObjectInputClasses &classesToShow)
+    -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>>
 {
   auto ii = DurationCount::start("Generate preview");
 
@@ -321,6 +327,11 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
   // Get image
   //
   GlobalContext globalContext;
+  globalContext.classes.clear();
+  for(const auto &elem : program.projectSettings.classification.classes) {
+    globalContext.classes.emplace(elem.classId, elem);
+  }
+
   PlateContext plateContext{.plateId = 0};
   joda::grp::FileGrouper grouper(enums::GroupBy::OFF, "");
   PipelineInitializer imageLoader(imageSetup);
@@ -367,16 +378,15 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         //
         // Count elements
         //
-        std::map<settings::ClassificatorSetting, PreviewReturn> foundObjects;
-        // auto cluster = pipelineStart.getOutputCluster();
+        std::map<joda::enums::ClassId, PreviewReturn> foundObjects;
         {
-          for(auto const &[cluster, objects] : context.getActObjects()) {
+          for(auto const &[classs, objects] : context.getActObjects()) {
             for(const auto &roi : *objects) {
-              settings::ClassificatorSetting key{static_cast<enums::ClusterIdIn>(cluster), static_cast<enums::ClassIdIn>(roi.getClassId())};
+              joda::enums::ClassId key = static_cast<enums::ClassId>(roi.getClassId());
               if(!foundObjects.contains(key)) {
                 foundObjects[key].count       = 0;
                 foundObjects[key].color       = "#000000";
-                foundObjects[key].wantedColor = settings::IMAGE_SAVER_COLORS[colorIdx % settings::IMAGE_SAVER_COLORS.size()];
+                foundObjects[key].wantedColor = globalContext.classes[key].color;
                 colorIdx++;
               }
               foundObjects[key].count++;
@@ -388,28 +398,19 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         // Generate preview image
         //
         joda::settings::ImageSaverSettings saverSettings;
-        saverSettings.clustersIn.clear();
-        for(const auto &clusterClass : clustersClassesToShow) {
-          auto cluster = clusterClass.clusterId;
-          std::cout << "Clutseras and classes to show" << std::endl;
-          auto classs = clusterClass.classId;
-          if(cluster == enums::ClusterIdIn::$) {
-            cluster = static_cast<enums::ClusterIdIn>(pipelineStart.pipelineSetup.defaultClusterId);
-          }
-
+        saverSettings.classesIn.clear();
+        for(auto classs : classesToShow) {
           if(classs == enums::ClassIdIn::$) {
             classs = static_cast<enums::ClassIdIn>(pipelineStart.pipelineSetup.defaultClassId);
           }
 
-          auto key = settings::ClassificatorSetting{cluster, classs};
+          auto key = static_cast<enums::ClassId>(classs);
           if(foundObjects.contains(key)) {
             // Objects which are selected should be painted in color in the legend, not selected are black
             foundObjects[key].color = foundObjects.at(key).wantedColor;
 
-            saverSettings.clustersIn.emplace_back(settings::ImageSaverSettings::SaveCluster{.inputCluster     = {cluster, classs},
-                                                                                            .color            = foundObjects.at(key).wantedColor,
-                                                                                            .style            = previewSettings.style,
-                                                                                            .paintBoundingBox = false});
+            saverSettings.classesIn.emplace_back(
+                settings::ImageSaverSettings::SaveClasss{.inputClass = classs, .style = previewSettings.style, .paintBoundingBox = false});
           }
         }
 

@@ -16,7 +16,7 @@
 #include <qwidget.h>
 #include <QtWidgets>
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/settings/setting.hpp"
 
 namespace joda::ui {
@@ -94,6 +94,8 @@ protected:
     return mParent;
   }
 
+  [[nodiscard]] auto getClasses() const -> std::map<enums::ClassIdIn, QString>;
+
 private:
   /////////////////////////////////////////////////////
   virtual void blockComponentSignals(bool) = 0;
@@ -104,11 +106,11 @@ private:
   void createHelperText(QVBoxLayout *layout, const QString &helpText);
   virtual QWidget *createInputObject() = 0;
 
-  virtual void clusterNamesChanged()
+  virtual void classsNamesChanged()
   {
   }
 
-  virtual void outputClustersChanges()
+  virtual void outputClassesChanges()
   {
   }
 

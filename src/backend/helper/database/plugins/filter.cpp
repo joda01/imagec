@@ -23,7 +23,7 @@ namespace joda::db {
 /// \param[out]
 /// \return
 ///
-auto joda::db::QueryFilter::getClustersAndClassesToExport() const -> ResultingTable
+auto joda::db::QueryFilter::getClassesToExport() const -> ResultingTable
 {
   return ResultingTable{this};
 }
@@ -39,11 +39,11 @@ ResultingTable::ResultingTable(const QueryFilter *filter)
 {
   std::map<int32_t, std::map<uint32_t, std::string>> tableHeaders;
   for(const auto &[colIdx, colKey] : filter->getColumns()) {
-    QueryKey qKey = {colKey.clusterClass, colKey.zStack, colKey.tStack};
-    if(!mClustersAndClasses.contains(qKey)) {
-      mClustersAndClasses.emplace(qKey, PreparedStatement{colKey.names});
+    QueryKey qKey = {colKey.classs, colKey.zStack, colKey.tStack};
+    if(!mClassesAndClasses.contains(qKey)) {
+      mClassesAndClasses.emplace(qKey, PreparedStatement{colKey.names});
     }
-    mClustersAndClasses.at(qKey).addColumn(colKey);
+    mClassesAndClasses.at(qKey).addColumn(colKey);
     mTableMapping.emplace(colKey, colIdx);
     tableHeaders[colIdx.tabIdx].emplace(colIdx.colIdx, colKey.createHeader());
   }

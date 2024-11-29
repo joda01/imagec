@@ -16,7 +16,6 @@
 #include <cstdint>
 #include <optional>
 #include "backend/artifacts/object_list/object_list.hpp"
-#include "backend/enums/enums_clusters.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"

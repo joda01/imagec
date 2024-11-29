@@ -16,7 +16,7 @@
 #include <cstdint>
 #include <optional>
 #include "backend/artifacts/object_list/object_list.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/global_enums.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
@@ -32,16 +32,16 @@ ObjectsToImage::ObjectsToImage(const settings::ObjectsToImageSettings &settings)
 
 void ObjectsToImage::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList & /*resultIn*/)
 {
-  auto &operand01 = context.loadObjectsFromCache()->at(context.getClusterId(mSettings.inputObjectFirst.clusterId));
+  auto &operand01 = context.loadObjectsFromCache()->at(context.getClassId(mSettings.inputClassesFirst));
   image           = cv::Mat::zeros(image.size(), CV_16UC1);
-  operand01->createBinaryImage(image, {context.getClassId(mSettings.inputObjectFirst.classId)});
+  operand01->createBinaryImage(image);
 
   cv::Mat img2;
   if(mSettings.function != settings::ObjectsToImageSettings::Function::NOT &&
      mSettings.function != settings::ObjectsToImageSettings::Function::NONE) {
-    auto &operand02 = context.loadObjectsFromCache()->at(context.getClusterId(mSettings.inputObjectSecond.clusterId));
+    auto &operand02 = context.loadObjectsFromCache()->at(context.getClassId(mSettings.inputClassesSecond));
     img2            = cv::Mat::zeros(image.size(), CV_16UC1);
-    operand02->createBinaryImage(img2, {context.getClassId(mSettings.inputObjectSecond.classId)});
+    operand02->createBinaryImage(img2);
   }
 
   switch(mSettings.function) {

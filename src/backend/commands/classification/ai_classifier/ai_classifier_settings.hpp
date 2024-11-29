@@ -17,7 +17,6 @@
 #include <set>
 #include "backend/commands/classification/classifier_filter.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
 #include "backend/settings/setting.hpp"
 #include "backend/settings/setting_base.hpp"
 #include "backend/settings/settings_types.hpp"
@@ -57,13 +56,13 @@ struct AiClassifierSettings : public SettingBase
     CHECK_ERROR(!modelClasses.empty(), "At least one classifier must be given!");
   }
 
-  [[nodiscard]] ObjectOutputClusters getOutputClustersAndClasses() const override
+  [[nodiscard]] ObjectOutputClasses getOutputClasses() const override
   {
-    ObjectOutputClusters out;
+    ObjectOutputClasses out;
     for(const auto &clas : modelClasses) {
-      out.emplace(clas.outputClusterNoMatch);
+      out.emplace(clas.outputClassNoMatch);
       for(const auto &clasInner : clas.filters) {
-        out.emplace(clasInner.outputCluster);
+        out.emplace(clasInner.outputClass);
       }
     }
     return out;

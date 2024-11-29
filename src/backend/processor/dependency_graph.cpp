@@ -16,13 +16,81 @@
 #include <exception>
 #include <stdexcept>
 #include <string>
-#include "backend/enums/enums_clusters.hpp"
+
+#include "backend/enums/enum_memory_idx.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "backend/settings/setting.hpp"
 
 namespace joda::processor {
+
+class DependencyGraphKey
+{
+public:
+  DependencyGraphKey(joda::enums::ClassId in) : mKey(static_cast<__uint128_t>(in))
+  {
+  }
+  DependencyGraphKey(joda::enums::MemoryIdx in) : mKey(static_cast<__uint128_t>(in) << static_cast<__uint128_t>(16))
+  {
+  }
+
+  bool operator<(const DependencyGraphKey &in) const
+  {
+    return mKey < in.mKey;
+  }
+
+  operator __uint128_t() const
+  {
+    return mKey;
+  }
+
+  std::string toString() const
+  {
+    __uint128_t key = mKey;
+    if(key == 0)
+      return "0";
+
+    std::string result;
+    while(key > 0) {
+      // Get the last digit using modulo 10
+      unsigned int digit = key % 10;
+      result             = char('0' + digit) + result;
+      key /= 10;
+    }
+
+    return result;
+  }
+
+private:
+  __uint128_t mKey;
+};
+
+class DependencyGraphKeySet : public std::set<DependencyGraphKey>
+{
+public:
+  using std::set<DependencyGraphKey>::set;
+
+  DependencyGraphKeySet(const std::set<enums::ClassId> &in1, const std::set<enums::MemoryIdx> &in)
+  {
+    insert(in1);
+    insert(in);
+  }
+
+  void insert(const std::set<enums::ClassId> &in)
+  {
+    for(const auto &id : in) {
+      this->emplace(DependencyGraphKey(id));
+    }
+  }
+  void insert(const std::set<enums::MemoryIdx> &in)
+  {
+    for(const auto &id : in) {
+      this->emplace(DependencyGraphKey(id));
+    }
+  }
+};
 
 ///
 /// \brief
@@ -31,11 +99,10 @@ namespace joda::processor {
 /// \param[out]
 /// \return
 ///
-bool providesAllClustersAndClasses(const std::set<settings::ClassificatorSettingOut> &inputClusters,
-                                   const std::set<settings::ClassificatorSettingOut> &outputClusters)
+bool providesAllClassesAndClasses(const std::set<DependencyGraphKey> &inputClasses, const std::set<DependencyGraphKey> &outputClasses)
 {
-  for(const auto &element : inputClusters) {
-    if(!outputClusters.contains(element)) {
+  for(const auto &element : inputClasses) {
+    if(!outputClasses.contains(element)) {
       // This node depends on an other
       return false;
     }
@@ -50,12 +117,12 @@ bool providesAllClustersAndClasses(const std::set<settings::ClassificatorSetting
 /// \param[out]
 /// \return
 ///
-auto whichOneAreProvided(const std::set<settings::ClassificatorSettingOut> &inputClusters,
-                         const std::set<settings::ClassificatorSettingOut> &outputClusters) -> std::set<settings::ClassificatorSettingOut>
+auto whichOneAreProvided(const std::set<DependencyGraphKey> &inputClasses, const std::set<DependencyGraphKey> &outputClasses)
+    -> std::set<DependencyGraphKey>
 {
-  std::set<settings::ClassificatorSettingOut> provides;
-  for(const auto &element : inputClusters) {
-    if(outputClusters.contains(element)) {
+  std::set<DependencyGraphKey> provides;
+  for(const auto &element : inputClasses) {
+    if(outputClasses.contains(element)) {
       provides.emplace(element);
     }
   }
@@ -96,42 +163,43 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
   Graph_t depGraph;
   {
     for(const settings::Pipeline *pipelineOne : pipelinesToAttache) {
-      std::set<settings::ClassificatorSettingOut> inputClusters = pipelineOne->getInputClustersAndClasses();
+      DependencyGraphKeySet inputClasses(pipelineOne->getInputClasses(), pipelineOne->getInputImageCache());
 
       depGraph.push_back(Node{pipelineOne});
 
-      if(inputClusters.empty()) {
+      if(inputClasses.empty()) {
         // This pipeline depends on nothing
         std::cout << pipelineOne->meta.name << " depends on nothing" << std::endl;
 
       } else {
         Node &inserted = depGraph.at(depGraph.size() - 1);
-        // Look for pipeline providing the needed input cluster/classes
+        // Look for pipeline providing the needed input classs/classes
         for(const auto *pipelineTwo : pipelinesToAttache) {
-          std::set<settings::ClassificatorSettingOut> outputClusters = pipelineTwo->getOutputClustersAndClasses();
+          DependencyGraphKeySet outputClasses(pipelineTwo->getOutputClasses(), pipelineTwo->getOutputImageCache());
+
           // This pipeline depends on more than one other pipeline
-          auto provided = whichOneAreProvided(inputClusters, outputClusters);
+          auto provided = whichOneAreProvided(inputClasses, outputClasses);
           if(!provided.empty()) {
             inserted.addDependency(pipelineTwo);
 
             for(const auto &element : provided) {
-              inputClusters.erase(element);    // Remove deps which are still covered
+              inputClasses.erase(element);    // Remove deps which are still covered
             }
             std::cout << pipelineOne->meta.name << " depends on " << pipelineTwo->meta.name << std::endl;
           }
         }
 
-        if(!inputClusters.empty()) {
+        if(!inputClasses.empty()) {
           std::string unresolved;
-          for(const auto &ele : inputClusters) {
-            unresolved += std::to_string((int32_t) ele.clusterId) + "/" + std::to_string((int32_t) ele.classId) + ",";
+          for(const auto &ele : inputClasses) {
+            unresolved += ele.toString() + ",";
           }
           if(!unresolved.empty()) {
             unresolved.pop_back();
           }
 
           writeToLog(SettingParserLog::Severity::JODA_WARNING, pipelineOne->meta.name,
-                     "There is an unresolved dependency in pipeline which needs following cluster/clases but not found: [" + unresolved + "]!");
+                     "There is an unresolved dependency in pipeline which needs following classs/memory but not found: [" + unresolved + "]!");
         }
       }
 
@@ -209,7 +277,10 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
     }
   }
 
+  std::cout << "------ Finished ------" << std::endl;
   printOrder(finishedOrder);
+  std::cout << "------ -------- ------" << std::endl;
+
   return finishedOrder;
 }
 

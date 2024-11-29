@@ -40,7 +40,7 @@
 #include <utility>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/database/exporter/r/exporter_r.hpp"
@@ -573,7 +573,7 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   mAnalyzer->openDatabase(std::filesystem::path(pathToDbFile.toStdString()));
 
   mSelectedDataSet.analyzeMeta = mAnalyzer->selectExperiment();
-  mColumnEditDialog->updateClustersAndClasses(mAnalyzer.get());
+  mColumnEditDialog->updateClassesAndClasses(mAnalyzer.get());
   // Try to load settings if available
   try {
     if(mSelectedDataSet.analyzeMeta.has_value()) {

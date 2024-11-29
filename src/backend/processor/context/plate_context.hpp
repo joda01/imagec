@@ -14,7 +14,6 @@
 
 #include <filesystem>
 #include "backend/artifacts/image/image.hpp"
-#include "backend/enums/enums_clusters.hpp"
 
 namespace joda::processor {
 

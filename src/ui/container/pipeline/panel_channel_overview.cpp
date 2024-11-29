@@ -20,8 +20,7 @@
 
 namespace joda::ui {
 
-PanelChannelOverview::PanelChannelOverview(WindowMain *wm, PanelPipelineSettings *parent) :
-    mWindowMain(wm), mParentContainer(parent)
+PanelChannelOverview::PanelChannelOverview(WindowMain *wm, PanelPipelineSettings *parent) : mWindowMain(wm), mParentContainer(parent)
 {
   setObjectName("PanelChannelOverview");
   setContentsMargins(0, 4, 4, 4);
@@ -34,7 +33,7 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm, PanelPipelineSettings
   // layout->addWidget(parent->mChannelName->getLabelWidget(), 0, 0, 1, 3);
 
   layout->addWidget(parent->pipelineName->getDisplayLabelWidget(), 0, 0);
-  layout->addWidget(parent->defaultClusterId->getDisplayLabelWidget(), 0, 1);
+  layout->addWidget(parent->defaultClassId->getDisplayLabelWidget(), 0, 1);
   layout->addWidget(parent->cStackIndex->getDisplayLabelWidget(), 0, 2);
   /*
     layout->addWidget(new QLabel(), 1, 0);

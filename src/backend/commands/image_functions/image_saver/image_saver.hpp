@@ -99,13 +99,13 @@ public:
     //
     // Paint the objects
     //
-    for(const auto &cluster : mSettings.clustersIn) {
-      if(!result.contains(context.getClusterId(cluster.inputCluster.clusterId))) {
+    for(const auto &classs : mSettings.classesIn) {
+      if(!result.contains(context.getClassId(classs.inputClass))) {
         continue;
       }
-      const auto *clusterObjects = result.at(context.getClusterId(cluster.inputCluster.clusterId)).get();
-      for(const auto &roi : *clusterObjects) {
-        drawObject(context, cluster, roi, img_8bit_color);
+      const auto *classsObjects = result.at(context.getClassId(classs.inputClass)).get();
+      for(const auto &roi : *classsObjects) {
+        drawObject(context, classs, roi, img_8bit_color);
       }
     }
 
@@ -131,10 +131,10 @@ private:
   static inline cv::Scalar GREEN  = cv::Scalar(0, 255, 0);
 
   /////////////////////////////////////////////////////
-  void drawObject(processor::ProcessContext &context, const settings::ImageSaverSettings::SaveCluster &settings, const atom::ROI &roi,
+  void drawObject(processor::ProcessContext &context, const settings::ImageSaverSettings::SaveClasss &settings, const atom::ROI &roi,
                   cv::Mat &imageOut)
   {
-    if(context.getClassId(settings.inputCluster.classId) == roi.getClassId()) {
+    if(context.getClassId(settings.inputClass) == roi.getClassId()) {
       int left   = roi.getBoundingBoxTile().x;
       int top    = roi.getBoundingBoxTile().y;
       int width  = roi.getBoundingBoxTile().width;
@@ -143,7 +143,8 @@ private:
       auto centroid = roi.getCentroidTile();
 
       if(!roi.getMask().empty() && !roi.getBoundingBoxTile().empty()) {
-        auto areaColor = hexToScalar(settings.color);
+        auto color     = context.getColorClass(settings.inputClass);
+        auto areaColor = hexToScalar(color);
 
         // Centroid
         // cv::circle(imageOut, centroid, 3, RED, cv::FILLED);
@@ -161,7 +162,7 @@ private:
         }
 
         // Paint contour only for valid particles
-        cv::Scalar contourColor = hexToScalar(settings.color);
+        cv::Scalar contourColor = hexToScalar(color);
         std::vector<std::vector<cv::Point>> contours;
         contours.push_back(roi.getContour());
         if(!contours.empty()) {

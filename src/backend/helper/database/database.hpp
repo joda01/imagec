@@ -17,7 +17,6 @@
 #include <vector>
 #include "backend/enums/enum_validity.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/file_grouper/file_grouper_types.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
@@ -25,7 +24,6 @@
 #include "backend/processor/context/image_context.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/experiment_settings.hpp"
-#include "backend/settings/project_settings/project_cluster.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
 #include "backend/settings/project_settings/project_settings.hpp"
 #include <duckdb/main/config.hpp>
@@ -81,20 +79,18 @@ public:
   void setImageValidity(uint64_t imageId, enums::ChannelValidity validity);
   void unsetImageValidity(uint64_t imageId, enums::ChannelValidity validity);
   void setImagePlaneValidity(uint64_t imageId, const enums::PlaneId &, enums::ChannelValidity validity);
-  void setImagePlaneClusterClusterValidity(uint64_t imageId, const enums::PlaneId &, enums::ClusterId clusterId, enums::ChannelValidity validity);
+  void setImagePlaneClasssClasssValidity(uint64_t imageId, const enums::PlaneId &, enums::ClassId classId, enums::ChannelValidity validity);
 
   void insertObjects(const joda::processor::ImageContext &, const joda::atom::ObjectList &);
 
   auto selectExperiment() -> AnalyzeMeta;
   auto selectPlates() -> std::map<uint16_t, joda::settings::Plate>;
   auto selectImageChannels() -> std::map<uint32_t, joda::ome::OmeInfo::ChannelInfo>;
-  auto selectClusters() -> std::map<enums::ClusterId, joda::settings::Cluster>;
   auto selectClasses() -> std::map<enums::ClassId, joda::settings::Class>;
 
   auto selectImageInfo(uint64_t imageId) -> ImageInfo;
   auto selectImages() -> std::vector<ImageInfo>;
-  auto selectClassesForClusters() -> std::map<enums::ClusterId, std::pair<std::string, std::map<enums::ClassId, std::string>>>;
-  auto selectMeasurementChannelsForClusterAndClass(enums::ClusterId clusterId, enums::ClassId classId) -> std::set<int32_t>;
+  auto selectMeasurementChannelsForClasss(enums::ClassId classId) -> std::set<int32_t>;
 
   void updateResultsTableSettings(const std::string &jobId, const std::string &settings);
   auto selectResultsTableSettings(const std::string &jobId) -> std::string;
@@ -120,7 +116,6 @@ private:
   void createTables();
   bool insertExperiment(const joda::settings::ExperimentSettings &);
   std::string insertJobAndPlates(const joda::settings::AnalyzeSettings &exp, const std::string &jobName);
-  void insertClusters(const std::list<settings::Cluster> &);
   void insertClasses(const std::list<settings::Class> &);
   void insertGroup();
   void flatten(const std::vector<cv::Point> &, duckdb::vector<duckdb::Value> &);

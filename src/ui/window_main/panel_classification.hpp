@@ -38,9 +38,9 @@ class PanelClassification : public QWidget
 public:
   /////////////////////////////////////////////////////
   explicit PanelClassification(joda::settings::ProjectSettings &settings, WindowMain *windowMain);
-  void fromSettings(const joda::settings::ClusterClasses &settings);
+  void fromSettings(const joda::settings::Classification &settings);
   void toSettings();
-  [[nodiscard]] auto getClustersAndClasses() const -> std::tuple<std::map<enums::ClusterIdIn, QString>, std::map<enums::ClassIdIn, QString>>;
+  [[nodiscard]] auto getClasses() const -> std::map<enums::ClassIdIn, QString>;
 
 signals:
   void settingsChanged();
@@ -53,25 +53,25 @@ private:
   static constexpr int COL_COLOR   = 3;
   static constexpr int COL_NOTES   = 4;
 
-  static constexpr int NR_OF_CLUSTERS = 15;
-  static constexpr int NR_OF_CLASSES  = 15;
+  static constexpr int NR_OF_CLASSES = 30;
   /////////////////////////////////////////////////////
   void initTable();
   void loadTemplates();
   void updateTableLock(bool lock);
   void newTemplate();
   void saveAsNewTemplate();
+  void openEditDialog(int row, int column);
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
   joda::settings::ProjectSettings &mSettings;
-  PlaceholderTableWidget *mClusters;
   PlaceholderTableWidget *mClasses;
 
   /// TEMPLATE //////////////////////////////////////////////////
   bool askForChangeTemplateIndex();
   int32_t mActSelectedIndex = 0;
   bool mDontAsk             = false;
+  bool mIsLocked            = false;
   QPushButton *mBookmarkButton;
   QComboBox *mTemplateSelection;
 

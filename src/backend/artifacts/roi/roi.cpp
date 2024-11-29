@@ -21,6 +21,7 @@
 #include <tuple>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_objects.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/global_enums.hpp"
 #include <opencv2/core.hpp>
@@ -280,8 +281,7 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 /// \return     Intersection of the areas in percent
 ///
 [[nodiscard]] ROI ROI::calcIntersection(const enums::PlaneId &iterator, const ROI &roi, float minIntersection, const enums::tile_t &tile,
-                                        const cv::Size &tileSize, joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
-                                        joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const
+                                        const cv::Size &tileSize, joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const
 {
   auto intersectingMask = calcIntersectingMask(roi);
 
@@ -301,7 +301,6 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
     }
     if(intersectingMask.intersectionArea >= minIntersection) {
       return ROI{atom::ROI::RoiObjectId{
-                     .clusterId  = objectClusterIntersectingObjectsShouldBeAssignedTo,
                      .classId    = objectClassIntersectingObjectsShouldBeAssignedTo,
                      .imagePlane = iterator,
                  },

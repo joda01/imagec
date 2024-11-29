@@ -18,7 +18,6 @@
 #include "backend/commands/classification/classifier_filter.hpp"
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_base.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
@@ -111,15 +110,15 @@ private:
       //
       //
       mClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("circle"), "Match");
-      mClassOut->setValue(classifyFilter.outputCluster.classId);
-      mClassOut->connectWithSetting(&classifyFilter.outputCluster.classId);
+      mClassOut->setValue(classifyFilter.outputClass);
+      mClassOut->connectWithSetting(&classifyFilter.outputClass);
       mClassOut->setDisplayIconVisible(false);
 
       //
       //
       mClassOutNoMatch = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("railroad-crossing"), "No match");
-      mClassOutNoMatch->setValue(settings.outputClusterNoMatch.classId);
-      mClassOutNoMatch->connectWithSetting(&settings.outputClusterNoMatch.classId);
+      mClassOutNoMatch->setValue(settings.outputClassNoMatch);
+      mClassOutNoMatch->connectWithSetting(&settings.outputClassNoMatch);
 
       outer.addSetting(tab, "Result output", {{mClassOut.get(), true, tabIndex}, {mClassOutNoMatch.get(), true, tabIndex}});
 
@@ -171,7 +170,7 @@ private:
                            mMaxIntensity.get()});
     }
 
-    // std::unique_ptr<SettingComboBox<enums::ClusterIdIn>> mClusterOut;
+    // std::unique_ptr<SettingComboBox<enums::ClasssIdIn>> mClasssOut;
     std::unique_ptr<SettingComboBoxClassesOut> mClassOutNoMatch;
     std::unique_ptr<SettingComboBox<int32_t>> mGrayScaleValue;
     QWidget *mParent;

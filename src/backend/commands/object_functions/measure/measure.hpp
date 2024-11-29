@@ -44,10 +44,10 @@ public:
         }
       }
 
-      for(const auto &clusterIdIn : mSettings.inputClusters) {
-        auto *clusterObjects = store.at(context.getClusterId(clusterIdIn.clusterId)).get();
-        for(auto &object : *clusterObjects) {
-          if(context.getClassId(clusterIdIn.classId) == object.getClassId()) {
+      for(const auto &classIdIn : mSettings.inputClasses) {
+        auto *classsObjects = store.at(context.getClassId(classIdIn)).get();
+        for(auto &object : *classsObjects) {
+          if(context.getClassId(classIdIn) == object.getClassId()) {
             if(image.isRgb()) {
               object.measureIntensityAndAdd(rgbPlane);
             } else {

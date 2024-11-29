@@ -453,7 +453,7 @@ void WindowMain::openProjectSettings(const QString &filePath)
     ifs.close();
 
     // Assign temporary the newly loaded settings.
-    // This is needed to avoid a hen and eg problem when loading the output clusters which are needed for the pipelines.
+    // This is needed to avoid a hen and eg problem when loading the output classes which are needed for the pipelines.
     // They must be known before the pipeline steps are loaded.
     mActAnalyzeSettings = &analyzeSettings;
     showPanelStartPage();
@@ -500,10 +500,10 @@ void WindowMain::checkForSettingsChanged()
     // Not equal
     mSaveProject->setEnabled(true);
     /// \todo check if all updates still work
-    auto actClasses = getOutputClustersAndClasses();
+    auto actClasses = getOutputClasses();
 
-    if(actClasses != mOutPutClustersOld) {
-      mOutPutClustersOld = actClasses;
+    if(actClasses != mOutPutClassesOld) {
+      mOutPutClassesOld = actClasses;
       emit onOutputClassifierChanges();
     }
   } else {
@@ -846,12 +846,12 @@ QString WindowMain::bytesToString(int64_t bytes)
 /// \author     Joachim Danmayr
 /// \return
 ///
-auto WindowMain::getOutputClustersAndClasses() -> std::set<settings::ClassificatorSettingOut>
+auto WindowMain::getOutputClasses() -> std::set<joda::enums::ClassId>
 {
   if(mActAnalyzeSettings != nullptr) {
-    return mActAnalyzeSettings->getOutputClustersAndClasses();
+    return mActAnalyzeSettings->getOutputClasses();
   }
-  return mAnalyzeSettings.getOutputClustersAndClasses();
+  return mAnalyzeSettings.getOutputClasses();
 }
 
 }    // namespace joda::ui

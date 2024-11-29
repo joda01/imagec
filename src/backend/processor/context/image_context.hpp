@@ -30,6 +30,8 @@ struct ImageContext
   const joda::ome::OmeInfo &imageMeta;
   uint64_t imageId;
   cv::Size tileSize;
+  uint32_t nrOfZStacks  = 0;
+  bool loadImageInTiles = false;
 };
 
 }    // namespace joda::processor

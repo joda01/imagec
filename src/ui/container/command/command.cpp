@@ -326,23 +326,9 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
       mSettings.emplace_back(data, bo, group);
 
       {
-        auto *casted = dynamic_cast<SettingComboBox<enums::ClusterIdIn> *>(data);
-        if(casted) {
-          mClusters.emplace_back(casted);
-        }
-      }
-
-      {
         auto *casted = dynamic_cast<SettingComboBox<enums::ClassIdIn> *>(data);
         if(casted) {
           mClasses.emplace_back(casted);
-        }
-      }
-
-      {
-        auto *casted = dynamic_cast<SettingComboBoxMulti<enums::ClusterIdIn> *>(data);
-        if(casted) {
-          mClustersMulti.emplace_back(casted);
         }
       }
 
@@ -373,7 +359,7 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
     connect(setting, &SettingBase::valueChanged, this, &Command::valueChanged);
   }
   updateDisplayText();
-  updateClassesAndClusters();
+  updateClassesAndClasses();
   connect(this, &Command::valueChanged, this, &Command::updateDisplayText);
   return col;
 }
@@ -427,11 +413,11 @@ void Command::updateDisplayText()
 /// \param[out]
 /// \return
 ///
-void Command::updateClassesAndClusters()
+void Command::updateClassesAndClasses()
 {
   if(mParent != nullptr) {
-    auto [clusterNames, classNames] = ((WindowMain *) mParent)->getPanelClassification()->getClustersAndClasses();
-    updateClassesAndClusterNames(clusterNames, classNames);
+    auto classNames = ((WindowMain *) mParent)->getPanelClassification()->getClasses();
+    updateClassesAndClasssNames(classNames);
   }
 }
 
@@ -442,19 +428,10 @@ void Command::updateClassesAndClusters()
 /// \param[out]
 /// \return
 ///
-void Command::updateClassesAndClusterNames(const std::map<enums::ClusterIdIn, QString> &clusterNames,
-                                           const std::map<enums::ClassIdIn, QString> &classNames)
+void Command::updateClassesAndClasssNames(const std::map<enums::ClassIdIn, QString> &classNames)
 {
-  for(auto &cluster : mClusters) {
-    cluster->changeOptionText(clusterNames);
-  }
-
   for(auto &classs : mClasses) {
     classs->changeOptionText(classNames);
-  }
-
-  for(auto &cluster : mClustersMulti) {
-    cluster->changeOptionText(clusterNames);
   }
 
   for(auto &classs : mClassesMulti) {

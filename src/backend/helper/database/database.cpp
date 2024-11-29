@@ -19,7 +19,7 @@
 #include <string>
 #include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/enums/enums_grouping.hpp"
 #include "backend/helper/base64.hpp"
 #include "backend/helper/duration_count/duration_count.h"
@@ -105,15 +105,6 @@ void Database::createTables()
       " PRIMARY KEY (class_id)"
       ");"
 
-      "CREATE TABLE IF NOT EXISTS clusters ("
-      "	cluster_id USMALLINT,"
-      " short_name STRING,"
-      " name STRING,"
-      " notes STRING,"
-      " color STRING,"
-      " PRIMARY KEY (cluster_id)"
-      ");"
-
       "CREATE TABLE IF NOT EXISTS groups ("
       " plate_id USMALLINT,"
       " group_id USMALLINT,"
@@ -167,21 +158,20 @@ void Database::createTables()
       " FOREIGN KEY(image_id) REFERENCES images(image_id)"
       ");"
 
-      "CREATE TABLE IF NOT EXISTS clusters_planes ("
+      "CREATE TABLE IF NOT EXISTS classes_planes ("
       " image_id UBIGINT,"
-      "	cluster_id USMALLINT,"
+      "	class_id USMALLINT,"
       " stack_c UINTEGER, "
       " stack_z UINTEGER, "
       " stack_t UINTEGER, "
       " validity UBIGINT,"
-      " PRIMARY KEY (image_id,cluster_id, stack_c, stack_z, stack_t),"
+      " PRIMARY KEY (image_id,class_id, stack_c, stack_z, stack_t),"
       " FOREIGN KEY(image_id) REFERENCES images(image_id)"
       ");"
 
       "CREATE TABLE IF NOT EXISTS objects ("
       "	image_id UBIGINT,"
       " object_id UBIGINT,"
-      " cluster_id USMALLINT,"
       " class_id USMALLINT,"
       " stack_c UINTEGER,"
       " stack_z UINTEGER,"
@@ -261,13 +251,12 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
     for(const auto &roi : *obj) {
       objects.BeginRow();
       // Primary key
-      objects.Append<uint64_t>(imgContext.imageId);               // "	image_id UBIGINT,"
-      objects.Append<uint64_t>(roi.getObjectId());                // " object_id UBIGINT,"
-      objects.Append<uint16_t>((uint16_t) roi.getClusterId());    // " cluster_id USMALLINT,"
-      objects.Append<uint16_t>((uint16_t) roi.getClassId());      // " class_id USMALLINT,"
-      objects.Append<uint32_t>(roi.getC());                       // " stack_c UINTEGER,"
-      objects.Append<uint32_t>(roi.getZ());                       // " stack_z UINTEGER,"
-      objects.Append<uint32_t>(roi.getT());                       // " stack_t UINTEGER,"
+      objects.Append<uint64_t>(imgContext.imageId);             // "	image_id UBIGINT,"
+      objects.Append<uint64_t>(roi.getObjectId());              // " object_id UBIGINT,"
+      objects.Append<uint16_t>((uint16_t) roi.getClassId());    // " class_id USMALLINT,"
+      objects.Append<uint32_t>(roi.getC());                     // " stack_c UINTEGER,"
+      objects.Append<uint32_t>(roi.getZ());                     // " stack_z UINTEGER,"
+      objects.Append<uint32_t>(roi.getT());                     // " stack_t UINTEGER,"
       // Data
       objects.Append<float>(roi.getConfidence());                   // " meas_confidence float,"
       objects.Append<double>(roi.getAreaSize());                    // " meas_area_size DOUBLE,"
@@ -603,13 +592,13 @@ void Database::setImagePlaneValidity(uint64_t imageId, const enums::PlaneId &pla
 /// \param[out]
 /// \return
 ///
-void Database::setImagePlaneClusterClusterValidity(uint64_t imageId, const enums::PlaneId &planeId, enums::ClusterId clusterId,
-                                                   enums::ChannelValidity validity)
+void Database::setImagePlaneClasssClasssValidity(uint64_t imageId, const enums::PlaneId &planeId, enums::ClassId classId,
+                                                 enums::ChannelValidity validity)
 {
   std::unique_ptr<duckdb::QueryResult> result = select(
-      "INSERT INTO clusters_planes (image_id, cluster_id, stack_c, stack_z, stack_t, validity) VALUES (?, ?, ?, ?, ?) "
+      "INSERT INTO classes_planes (image_id, class_id, stack_c, stack_z, stack_t, validity) VALUES (?, ?, ?, ?, ?) "
       "ON CONFLICT DO UPDATE SET validity = validity | ?",
-      imageId, static_cast<uint16_t>(clusterId), planeId.cStack, planeId.zStack, planeId.tStack, static_cast<uint64_t>(validity.to_ullong()),
+      imageId, static_cast<uint16_t>(classId), planeId.cStack, planeId.zStack, planeId.tStack, static_cast<uint64_t>(validity.to_ullong()),
       static_cast<uint64_t>(validity.to_ullong()));
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
@@ -640,7 +629,6 @@ void Database::insetImageToGroup(uint16_t plateId, uint64_t imageId, uint16_t im
 std::string Database::startJob(const joda::settings::AnalyzeSettings &exp, const std::string &jobName)
 {
   if(insertExperiment(exp.projectSettings.experimentSettings)) {
-    insertClusters(exp.projectSettings.classification.clusters);
     insertClasses(exp.projectSettings.classification.classes);
   }
   return insertJobAndPlates(exp, jobName);
@@ -860,45 +848,21 @@ auto Database::selectPlates() -> std::map<uint16_t, joda::settings::Plate>
   return results;
 }
 
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void Database::insertClusters(const std::list<settings::Cluster> &clustersIn)
-{
-  auto connection = acquire();
-  auto clusters   = duckdb::Appender(*connection, "clusters");
-  for(const auto &cluster : clustersIn) {
-    nlohmann::json j = cluster.clusterId;
-    std::string cid  = j;
-    clusters.BeginRow();
-    clusters.Append<uint16_t>(static_cast<uint16_t>(cluster.clusterId));    //        "	class_id USMALLINT,"
-    clusters.Append<duckdb::string_t>(cid);                                 //         " short_name STRING,"
-    clusters.Append<duckdb::string_t>(cluster.name);                        //         " name STRING,"
-    clusters.Append<duckdb::string_t>(cluster.notes);                       //         " notes STRING"
-    clusters.Append<duckdb::string_t>(cluster.color);                       //         " color STRING"
-    clusters.EndRow();
-  }
-  clusters.Close();
-}
 void Database::insertClasses(const std::list<settings::Class> &classesIn)
 {
   auto connection = acquire();
-  auto clusters   = duckdb::Appender(*connection, "classes");
+  auto classes    = duckdb::Appender(*connection, "classes");
   for(const auto &classs : classesIn) {
     nlohmann::json j = classs.classId;
-    clusters.BeginRow();
-    clusters.Append<uint16_t>(static_cast<uint16_t>(classs.classId));    //        "	class_id USMALLINT,"
-    clusters.Append<duckdb::string_t>(std::string(j));                   //         " short_name STRING,"
-    clusters.Append<duckdb::string_t>(classs.name);                      //         " name STRING,"
-    clusters.Append<duckdb::string_t>(classs.notes);                     //         " notes STRING"
-    clusters.Append<duckdb::string_t>(classs.color);                     //         " color STRING"
-    clusters.EndRow();
+    classes.BeginRow();
+    classes.Append<uint16_t>(static_cast<uint16_t>(classs.classId));    //        "	class_id USMALLINT,"
+    classes.Append<duckdb::string_t>(std::string(j));                   //         " short_name STRING,"
+    classes.Append<duckdb::string_t>(classs.name);                      //         " name STRING,"
+    classes.Append<duckdb::string_t>(classs.notes);                     //         " notes STRING"
+    classes.Append<duckdb::string_t>(classs.color);                     //         " color STRING"
+    classes.EndRow();
   }
-  clusters.Close();
+  classes.Close();
 }
 
 void Database::insertGroup()
@@ -1020,33 +984,6 @@ auto Database::selectImages() -> std::vector<ImageInfo>
 /// \param[out]
 /// \return
 ///
-auto Database::selectClusters() -> std::map<enums::ClusterId, joda::settings::Cluster>
-{
-  std::unique_ptr<duckdb::QueryResult> result = select("SELECT cluster_id, name FROM clusters");
-  if(result->HasError()) {
-    throw std::invalid_argument(result->GetError());
-  }
-
-  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
-
-  std::map<enums::ClusterId, joda::settings::Cluster> results;
-  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-    joda::settings::Cluster tmp;
-    tmp.clusterId = static_cast<enums::ClusterId>(materializedResult->GetValue(0, n).GetValue<uint16_t>());
-    tmp.name      = materializedResult->GetValue(1, n).GetValue<std::string>();
-    results.try_emplace(tmp.clusterId, tmp);
-  }
-
-  return results;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 auto Database::selectClasses() -> std::map<enums::ClassId, joda::settings::Class>
 {
   std::unique_ptr<duckdb::QueryResult> result = select("SELECT class_id, name FROM classes");
@@ -1074,52 +1011,15 @@ auto Database::selectClasses() -> std::map<enums::ClassId, joda::settings::Class
 /// \param[out]
 /// \return
 ///
-auto Database::selectClassesForClusters() -> std::map<enums::ClusterId, std::pair<std::string, std::map<enums::ClassId, std::string>>>
-{
-  std::map<enums::ClusterId, std::pair<std::string, std::map<enums::ClassId, std::string>>> resultOut;
-  auto clusters = selectClusters();
-  auto classes  = selectClasses();
-
-  std::unique_ptr<duckdb::QueryResult> result = select("SELECT cluster_id, class_id FROM objects GROUP BY cluster_id, class_id");
-  if(result->HasError()) {
-    throw std::invalid_argument(result->GetError());
-  }
-  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
-  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-    auto clusterId = static_cast<enums::ClusterId>(materializedResult->GetValue(0, n).GetValue<uint16_t>());
-    auto classId   = static_cast<enums::ClassId>(materializedResult->GetValue(1, n).GetValue<uint16_t>());
-
-    resultOut[clusterId].first = clusters[clusterId].name;
-    if(classes.contains(classId)) {
-      resultOut[clusterId].second.emplace(classId, classes[classId].name);
-    } else {
-      if(classId == enums::ClassId::UNDEFINED) {
-        resultOut[clusterId].second.emplace(classId, "Undefined");
-      }
-      if(classId == enums::ClassId::NONE) {
-        resultOut[clusterId].second.emplace(classId, "None");
-      }
-    }
-  }
-  return resultOut;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-auto Database::selectMeasurementChannelsForClusterAndClass(enums::ClusterId clusterId, enums::ClassId classId) -> std::set<int32_t>
+auto Database::selectMeasurementChannelsForClasss(enums::ClassId classId) -> std::set<int32_t>
 {
   std::set<int32_t> channels;
   std::unique_ptr<duckdb::QueryResult> result = select(
       "  SELECT object_measurements.meas_stack_c FROM objects"
       "  JOIN object_measurements ON objects.object_id = object_measurements.object_id AND objects.image_id = object_measurements.image_id\n"
-      "   WHERE cluster_id = ? AND class_id = ? "
+      "   WHERE  class_id = ? "
       "   GROUP BY object_measurements.meas_stack_c",
-      (uint16_t) clusterId, (uint16_t) classId);
+      (uint16_t) classId);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }

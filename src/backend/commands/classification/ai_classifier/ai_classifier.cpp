@@ -12,11 +12,13 @@
 /// \link      https://github.com/UNeedCryDear/yolov5-seg-opencv-onnxruntime-cpp
 
 #include "ai_classifier.hpp"
+#include <exception>
 #include <memory>
 #include <string>
 #include "backend/artifacts/roi/roi.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/helper/duration_count/duration_count.h"
+#include "backend/helper/logger/console_logger.hpp"
 #include <opencv2/core/matx.hpp>
 #include <opencv2/core/persistence.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -36,14 +38,22 @@ using namespace cv::dnn;
 ///
 AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) : mSettings(settings), mNumberOfClasses(settings.numberOfModelClasses)
 {
-  mNet        = cv::dnn::readNet(settings.modelPath);
-  bool isCuda = false;
-  if(isCuda) {
-    mNet.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
-    mNet.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA_FP16);
-  } else {
-    mNet.setPreferableBackend(cv::dnn::DNN_BACKEND_DEFAULT);
-    mNet.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+  if(settings.modelPath.empty()) {
+    return;
+  }
+  try {
+    mNet        = cv::dnn::readNet(settings.modelPath);
+    bool isCuda = false;
+    if(isCuda) {
+      mNet.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
+      mNet.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA_FP16);
+    } else {
+      mNet.setPreferableBackend(cv::dnn::DNN_BACKEND_DEFAULT);
+      mNet.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+    }
+    mIsReady = true;
+  } catch(const std::exception &ex) {
+    WARN("Cannot load AI model! What: " + std::string(ex.what()));
   }
 }
 
@@ -69,6 +79,11 @@ AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) : mSe
 ///
 void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNotUse, atom::ObjectList &result)
 {
+  if(!mIsReady) {
+    WARN("No AI model loaded!");
+    return;
+  }
+
   const cv::Mat &inputImageOriginal = imageNotUse;
 
   // Normalize the pixel values to [0, 255] float for detection
@@ -233,8 +248,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
 
       joda::atom::ROI detectedRoi(
           atom::ROI::RoiObjectId{
-              .clusterId  = context.getClusterId(objectClass->outputClusterNoMatch.clusterId),
-              .classId    = context.getClassId(objectClass->outputClusterNoMatch.classId),
+              .classId    = context.getClassId(objectClass->outputClassNoMatch),
               .imagePlane = context.getActIterator(),
           },
           context.getAppliedMinThreshold(), fittedBoundingBox, shiftedMask, contour, context.getImageSize(), context.getOriginalImageSize(),
@@ -242,7 +256,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
 
       for(const auto &filter : objectClass->filters) {
         if(joda::settings::ClassifierFilter::doesFilterMatch(context, detectedRoi, filter.metrics, filter.intensity)) {
-          detectedRoi.setClusterAndClass(context.getClusterId(filter.outputCluster.clusterId), context.getClassId(filter.outputCluster.classId));
+          detectedRoi.setClasss(context.getClassId(filter.outputClass));
         }
       }
       result.push_back(detectedRoi);

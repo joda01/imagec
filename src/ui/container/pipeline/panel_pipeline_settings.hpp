@@ -18,13 +18,13 @@
 #include <mutex>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
 #include "backend/helper/thread_safe_queue.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/container_base.hpp"
 #include "ui/container/pipeline/panel_channel_overview.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
+#include "ui/container/setting/setting_combobox_classes_out.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/panel_preview.hpp"
@@ -93,8 +93,7 @@ private:
   std::unique_ptr<SettingLineEdit<std::string>> pipelineName;
   std::unique_ptr<SettingComboBox<int32_t>> cStackIndex;
   std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjection;
-  std::unique_ptr<SettingComboBox<enums::ClusterId>> defaultClusterId;
-  std::unique_ptr<SettingComboBox<enums::ClassId>> defaultClassId;
+  std::unique_ptr<SettingComboBoxClassesOutN> defaultClassId;
 
   /////////////////////////////////////////////////////
   PanelPreview *mPreviewImage                 = nullptr;
@@ -126,8 +125,8 @@ private:
     int32_t pipelinePos;
     int32_t selectedTileX = 0;
     int32_t selectedTileY = 0;
-    std::tuple<std::map<enums::ClusterIdIn, QString>, std::map<enums::ClassIdIn, QString>> clustersAndClasses;
-    settings::ObjectInputClusters clustersClassesToShow;
+    std::map<enums::ClassIdIn, QString> classes;
+    settings::ObjectInputClasses classesToShow;
   };
 
   bool mStopped = false;

@@ -12,82 +12,102 @@
 
 #include "pipeline.hpp"
 #include <memory>
+#include <string>
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
 #include "pipeline_factory.hpp"
 
 namespace joda::settings {
 
 ///
-/// \brief      Returns the input clusters this pipeline is using
+/// \brief      Returns the input classes this pipeline is using
 /// \author     Joachim Danmayr
 ///
-ObjectInputClustersExp Pipeline::getInputClustersAndClasses() const
+ObjectInputClassesExp Pipeline::getInputClasses() const
 {
-  ObjectInputClustersExp clusters;
+  ObjectInputClassesExp classes;
   for(const auto &pipelineStep : pipelineSteps) {
     auto command = PipelineFactory<joda::cmd::Command>::generate(pipelineStep);
     if(command == nullptr) {
       /// \todo Log warning
       continue;
     }
-    const auto &clustersCmd = command->getInputClustersAndClasses();
-    for(const auto &clusterId : clustersCmd) {
-      auto clusterIdToSet = static_cast<joda::enums::ClusterId>(clusterId.clusterId);
-      auto classIdToSet   = static_cast<joda::enums::ClassId>(clusterId.classId);
+    const auto &classesCmd = command->getInputClasses();
+    for(const auto &classId : classesCmd) {
+      auto classIdToSet = static_cast<joda::enums::ClassId>(classId);
 
-      if(clusterId.clusterId == enums::ClusterIdIn::$) {
-        clusterIdToSet = pipelineSetup.defaultClusterId;
-      }
-
-      if(clusterId.classId == enums::ClassIdIn::$) {
+      if(classId == enums::ClassIdIn::$) {
         classIdToSet = pipelineSetup.defaultClassId;
       }
 
-      clusters.emplace(ClassificatorSettingOut{clusterIdToSet, classIdToSet});
+      classes.emplace(classIdToSet);
     }
   }
-  return clusters;
+  return classes;
 }
 
 ///
-/// \brief      Returns the cluster ID this pipeline is storing the results in
+/// \brief      Returns the classs ID this pipeline is storing the results in
 /// \author     Joachim Danmayr
 ///
-ObjectOutputClustersExp Pipeline::getOutputClustersAndClasses() const
+ObjectOutputClassesExp Pipeline::getOutputClasses() const
 {
-  ObjectOutputClustersExp clusters;
+  ObjectOutputClassesExp classes;
   for(const auto &pipelineStep : pipelineSteps) {
     auto command = PipelineFactory<joda::cmd::Command>::generate(pipelineStep);
     if(command == nullptr) {
       continue;
     }
-    const auto &clustersCmd = command->getOutputClustersAndClasses();
-    for(const auto &cluster : clustersCmd) {
-      auto clusterIdToSet = static_cast<joda::enums::ClusterId>(cluster.clusterId);
-      auto classIdToSet   = static_cast<joda::enums::ClassId>(cluster.classId);
+    const auto &classesCmd = command->getOutputClasses();
+    for(const auto &classs : classesCmd) {
+      auto classIdToSet = static_cast<joda::enums::ClassId>(classs);
 
-      if(cluster.clusterId == enums::ClusterIdIn::$) {
-        clusterIdToSet = pipelineSetup.defaultClusterId;
-      }
-
-      if(cluster.classId == enums::ClassIdIn::$) {
+      if(classs == enums::ClassIdIn::$) {
         classIdToSet = pipelineSetup.defaultClassId;
       }
 
-      clusters.emplace(ClassificatorSettingOut{clusterIdToSet, classIdToSet});
+      classes.emplace(classIdToSet);
     }
   }
-  return clusters;
+  return classes;
 }
 
-///
-/// \brief      Returns the cluster ID this pipeline is storing the results in
-/// \author     Joachim Danmayr
-///
-enums::ClusterId Pipeline::getOutputCluster() const
+[[nodiscard]] std::set<enums::MemoryIdx> Pipeline::getInputImageCache() const
 {
-  return pipelineSetup.defaultClusterId;
+  std::set<enums::MemoryIdx> caches;
+  for(const auto &pipelineStep : pipelineSteps) {
+    auto command = PipelineFactory<joda::cmd::Command>::generate(pipelineStep);
+    if(command == nullptr) {
+      continue;
+    }
+    const auto &mems = command->getInputImageCache();
+    caches.insert(mems.begin(), mems.end());
+  }
+
+  std::cout << "In" << std::endl;
+  for(const auto &i : caches) {
+    std::cout << enums::uint128ToString(static_cast<__uint128_t>(i)) << std::endl;
+  }
+  return caches;
+}
+
+[[nodiscard]] std::set<enums::MemoryIdx> Pipeline::getOutputImageCache() const
+{
+  std::set<enums::MemoryIdx> caches;
+  for(const auto &pipelineStep : pipelineSteps) {
+    auto command = PipelineFactory<joda::cmd::Command>::generate(pipelineStep);
+    if(command == nullptr) {
+      continue;
+    }
+    const auto &mems = command->getOutputImageCache();
+    caches.insert(mems.begin(), mems.end());
+  }
+
+  std::cout << "Out" << std::endl;
+  for(const auto &i : caches) {
+    std::cout << enums::uint128ToString(static_cast<__uint128_t>(i)) << std::endl;
+  }
+  std::cout << "-- O --" << std::endl;
+  return caches;
 }
 
 ///

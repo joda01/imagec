@@ -64,7 +64,16 @@ public:
   uint16_t appliedMaxThreshold = 0;
   enums::ImageId mId;
 
-private:
+  ImagePlane clone(const cv::Mat &img) const
+  {
+    return ImagePlane{.tile                = tile,
+                      .image               = img.clone(),
+                      .appliedMinThreshold = appliedMinThreshold,
+                      .appliedMaxThreshold = appliedMaxThreshold,
+                      .mId                 = mId,
+                      .imageType           = imageType};
+  }
+
   ImageType imageType = ImageType::GRAYSCALE;
 };
 

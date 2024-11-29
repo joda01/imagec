@@ -34,7 +34,7 @@ void RExporter::startExport(const db::QueryFilter &filter, db::StatsPerGroup::Gr
 {
   std::vector<std::string> sqlStatements;
   int32_t loopCount = 0;
-  for(const auto &cc : filter.getClustersAndClassesToExport()) {
+  for(const auto &cc : filter.getClassesToExport()) {
     auto createSQL = [&sqlStatements](const std::pair<std::string, DbArgs_t> &sqlData, int32_t loopCount) {
       std::string arguments;
       for(const auto &arg : sqlData.second) {

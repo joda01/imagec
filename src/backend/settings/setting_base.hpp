@@ -13,8 +13,9 @@
 #pragma once
 
 #include <set>
+#include "backend/enums/enum_memory_idx.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/settings/settings_types.hpp"
 
 namespace joda::settings {
@@ -28,12 +29,22 @@ class SettingBase
 {
 public:
   SettingBase() = default;
-  [[nodiscard]] virtual ObjectInputClusters getInputClustersAndClasses() const
+  [[nodiscard]] virtual ObjectInputClasses getInputClasses() const
   {
     return {};
   }
 
-  [[nodiscard]] virtual ObjectOutputClusters getOutputClustersAndClasses() const
+  [[nodiscard]] virtual ObjectOutputClasses getOutputClasses() const
+  {
+    return {};
+  }
+
+  [[nodiscard]] virtual std::set<enums::MemoryIdx> getInputImageCache() const
+  {
+    return {};
+  }
+
+  [[nodiscard]] virtual std::set<enums::MemoryIdx> getOutputImageCache() const
   {
     return {};
   }

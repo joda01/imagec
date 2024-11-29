@@ -12,7 +12,7 @@
 
 #include "setting_combobox_multi_classification_unmanaged.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "ui/window_main/window_main.hpp"
 
 namespace joda::ui {
@@ -29,7 +29,7 @@ QWidget *SettingComboBoxMultiClassificationUnmanaged::createInputObject()
   return mComboBox;
 }
 
-void SettingComboBoxMultiClassificationUnmanaged::setDefaultValue(settings::ClassificatorSettingOut defaultVal)
+void SettingComboBoxMultiClassificationUnmanaged::setDefaultValue(joda::enums::ClassId defaultVal)
 {
   mDefaultValue = defaultVal;
   reset();
@@ -47,31 +47,37 @@ void SettingComboBoxMultiClassificationUnmanaged::clear()
   mComboBox->setCurrentIndex(0);
 }
 
-void SettingComboBoxMultiClassificationUnmanaged::addOptions(const std::map<settings::ClassificatorSettingOut, QString> &dataIn)
+void SettingComboBoxMultiClassificationUnmanaged::addOptions(const std::map<joda::enums::ClassId, QString> &dataIn)
 {
   mComboBox->blockSignals(true);
   auto actSelected = getValue();
   mComboBox->clear();
-  if(!dataIn.empty()) {
-    auto oldCluster = dataIn.begin()->first.clusterId;
-    for(const auto &[data, label] : dataIn) {
-      if(data.classId != enums::ClassId::UNDEFINED) {
-        if(oldCluster != data.clusterId) {
-          oldCluster = data.clusterId;
-          mComboBox->insertSeparator(mComboBox->count());
-        }
 
-        QVariant variant;
-        variant = QVariant(toInt(data));
-        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), label, variant);
-      }
-    }
+  std::map<std::string, std::multimap<std::string, enums::ClassId>> orderedClasses;
+  for(const auto &[id, className] : dataIn) {
+    orderedClasses[enums::getPrefixFromClassName(className.toStdString())].emplace(className.toStdString(), id);
   }
+
+  for(const auto &[prefix, group] : orderedClasses) {
+    for(const auto &[className, id] : group) {
+      QVariant variant;
+      variant = QVariant(toInt(id));
+      mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), className.data(), variant);
+    }
+    mComboBox->insertSeparator(mComboBox->count());
+  }
+  auto removeLastSeparator = [this]() {
+    int lastIndex = mComboBox->count() - 1;
+    if(lastIndex >= 0) {
+      mComboBox->removeItem(lastIndex);
+    }
+  };
+  removeLastSeparator();
   setValue(actSelected);
   mComboBox->blockSignals(false);
 }
 
-QString SettingComboBoxMultiClassificationUnmanaged::getName(settings::ClassificatorSettingOut key) const
+QString SettingComboBoxMultiClassificationUnmanaged::getName(joda::enums::ClassId key) const
 {
   auto idx = mComboBox->findData(toInt(key), Qt::UserRole + 1);
   if(idx >= 0) {
@@ -80,9 +86,9 @@ QString SettingComboBoxMultiClassificationUnmanaged::getName(settings::Classific
   return "";
 }
 
-settings::ObjectInputClustersExp SettingComboBoxMultiClassificationUnmanaged::getValue()
+settings::ObjectInputClassesExp SettingComboBoxMultiClassificationUnmanaged::getValue()
 {
-  settings::ObjectInputClustersExp toReturn;
+  settings::ObjectInputClassesExp toReturn;
   auto checked = (mComboBox)->getCheckedItems();
 
   for(const auto &[data, _] : checked) {
@@ -92,7 +98,7 @@ settings::ObjectInputClustersExp SettingComboBoxMultiClassificationUnmanaged::ge
   return toReturn;
 }
 
-void SettingComboBoxMultiClassificationUnmanaged::setValue(const settings::ObjectInputClustersExp &valueIn)
+void SettingComboBoxMultiClassificationUnmanaged::setValue(const settings::ObjectInputClassesExp &valueIn)
 {
   QVariantList toCheck;
   for(const auto &value : valueIn) {
@@ -101,21 +107,13 @@ void SettingComboBoxMultiClassificationUnmanaged::setValue(const settings::Objec
   (mComboBox)->setCheckedItems(toCheck);
 }
 
-std::map<settings::ClassificatorSettingOut, std::pair<std::string, std::string>> SettingComboBoxMultiClassificationUnmanaged::getValueAndNames()
+std::map<joda::enums::ClassId, std::pair<std::string, std::string>> SettingComboBoxMultiClassificationUnmanaged::getValueAndNames()
 {
-  std::map<settings::ClassificatorSettingOut, std::pair<std::string, std::string>> toReturn;
+  std::map<joda::enums::ClassId, std::pair<std::string, std::string>> toReturn;
   auto checked = ((QComboBoxMulti *) mComboBox)->getCheckedItems();
 
   for(const auto &[data, txt] : checked) {
-    std::string clusterName;
-    std::string className;
-    auto split = txt.split("@");
-    if(split.size() == 2) {
-      clusterName = split[0].toStdString();
-      className   = split[1].toStdString();
-    }
-
-    toReturn.emplace(fromInt(data.toUInt()), std::pair<std::string, std::string>{clusterName, className});
+    toReturn.emplace(fromInt(data.toUInt()), std::pair<std::string, std::string>{txt.toStdString(), txt.toStdString()});
   }
 
   return toReturn;

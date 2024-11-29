@@ -15,8 +15,9 @@
 #include <cstdint>
 #include <set>
 #include <vector>
+#include "backend/enums/enum_memory_idx.hpp"
 #include "backend/enums/enum_objects.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/global_enums.hpp"
 #include "backend/settings/setting.hpp"
 #include "backend/settings/setting_base.hpp"
@@ -58,13 +59,21 @@ struct ImageMathSettings : public SettingBase
   {
   }
 
-  settings::ObjectInputClusters getInputClustersAndClasses() const override
+  settings::ObjectInputClasses getInputClasses() const override
   {
     return {};
   }
 
-  [[nodiscard]] ObjectOutputClusters getOutputClustersAndClasses() const override
+  [[nodiscard]] ObjectOutputClasses getOutputClasses() const override
   {
+    return {};
+  }
+
+  [[nodiscard]] std::set<enums::MemoryIdx> getInputImageCache() const override
+  {
+    if(inputImageSecond.memoryId != enums::MemoryIdx::NONE) {
+      return {inputImageSecond.memoryId};
+    }
     return {};
   }
 

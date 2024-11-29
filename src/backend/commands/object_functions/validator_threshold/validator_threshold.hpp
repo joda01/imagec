@@ -67,7 +67,7 @@ private:
 
       float filterThreshold = static_cast<float>(maxIdx) * mSettings.histMinThresholdFilterFactor;
       if(static_cast<float>(imageThreshold.appliedMinThreshold) < filterThreshold) {
-        // Mark image or cluster as invalid
+        // Mark image or classs as invalid
         enums::ChannelValidity validity;
         validity.set(joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
         switch(mSettings.mode) {
@@ -78,8 +78,8 @@ private:
           case settings::ThresholdValidatorSettings::FilterMode::INVALIDATE_IMAGE_PLANE:
             context.setImagePlaneValidity(joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
             break;
-          case settings::ThresholdValidatorSettings::FilterMode::INVALIDATE_IAMGE_PLANE_CLUSTER:
-            context.setImagePlaneClusterClusterValidity(mSettings.inputCluster, joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
+          case settings::ThresholdValidatorSettings::FilterMode::INVALIDATE_IAMGE_PLANE_CLASS:
+            context.setImagePlaneClasssClasssValidity(mSettings.inputClasses, joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
             break;
         }
       }

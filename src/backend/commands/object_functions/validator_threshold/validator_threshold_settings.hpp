@@ -15,7 +15,6 @@
 #include <set>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/settings/setting_base.hpp"
 #include "backend/settings/settings_types.hpp"
@@ -29,7 +28,7 @@ struct ThresholdValidatorSettings : public SettingBase
     UNKNOWN,
     INVALIDATE_IMAGE,
     INVALIDATE_IMAGE_PLANE,
-    INVALIDATE_IAMGE_PLANE_CLUSTER
+    INVALIDATE_IAMGE_PLANE_CLASS
   };
 
   //
@@ -43,9 +42,9 @@ struct ThresholdValidatorSettings : public SettingBase
   enums::ImageId imageIn = {.zProjection = enums::ZProjection::$};
 
   //
-  // Cluster on which the result should be applied to
+  // Classs on which the result should be applied to
   //
-  enums::ClusterIdIn inputCluster = enums::ClusterIdIn::$;
+  enums::ClassIdIn inputClasses = enums::ClassIdIn::$;
 
   //
   // If the min threshold is lower than the value at the maximum
@@ -60,12 +59,12 @@ struct ThresholdValidatorSettings : public SettingBase
     CHECK_ERROR(histMinThresholdFilterFactor >= 0, "Thresholdfactor must be >=0!");
   }
 
-  settings::ObjectInputClusters getInputClustersAndClasses() const override
+  settings::ObjectInputClasses getInputClasses() const override
   {
-    return {{inputCluster, enums::ClassIdIn::UNDEFINED}};
+    return {inputClasses};
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ThresholdValidatorSettings, mode, imageIn, inputCluster, histMinThresholdFilterFactor);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ThresholdValidatorSettings, mode, imageIn, inputClasses, histMinThresholdFilterFactor);
 };
 
 }    // namespace joda::settings

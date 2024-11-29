@@ -16,7 +16,7 @@
 #include <set>
 #include <vector>
 #include "backend/enums/enum_objects.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/global_enums.hpp"
 #include "backend/settings/setting.hpp"
 #include "backend/settings/setting_base.hpp"
@@ -40,7 +40,7 @@ struct ObjectTransformSettings : public SettingBase
   //
   // Objects to use for intersection calculation
   //
-  ObjectInputCluster inputObject;
+  ObjectInputClasss inputClasses;
 
   //
   // Factor
@@ -52,21 +52,21 @@ struct ObjectTransformSettings : public SettingBase
   {
   }
 
-  settings::ObjectInputClusters getInputClustersAndClasses() const override
+  settings::ObjectInputClasses getInputClasses() const override
   {
-    settings::ObjectInputClusters clusters;
-    clusters.emplace(inputObject);
+    settings::ObjectInputClasses classes;
+    classes.emplace(inputClasses);
 
-    return clusters;
+    return classes;
   }
 
-  [[nodiscard]] ObjectOutputClusters getOutputClustersAndClasses() const override
+  [[nodiscard]] ObjectOutputClasses getOutputClasses() const override
   {
-    ObjectOutputClusters out;
+    ObjectOutputClasses out;
     return out;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectTransformSettings, function, inputObject, scaleFactor);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectTransformSettings, function, inputClasses, scaleFactor);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ObjectTransformSettings::Function, {

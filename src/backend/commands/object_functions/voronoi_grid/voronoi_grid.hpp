@@ -52,13 +52,13 @@ public:
     cv::Subdiv2D subdiv(rect);
     atom::SpheralIndex voronoiPoints;
 
-    for(const auto &inputPoints : mSettings.inputClustersPoints) {
-      const auto *voronoiPointsTmp = context.loadObjectsFromCache()->at(context.getClusterId(inputPoints.clusterId)).get();
+    for(const auto &inputPoints : mSettings.inputClassesPoints) {
+      const auto *voronoiPointsTmp = context.loadObjectsFromCache()->at(context.getClassId(inputPoints)).get();
 
       // Create an instance of Subdiv2D
 
       for(const auto &res : *voronoiPointsTmp) {
-        if(context.getClassId(inputPoints.classId) == res.getClassId()) {
+        if(context.getClassId(inputPoints) == res.getClassId()) {
           voronoiPoints.emplace(res);
           int x = static_cast<int>(static_cast<float>(res.getBoundingBoxTile().x) + static_cast<float>(res.getBoundingBoxTile().width) / 2.0F);
           int y = static_cast<int>(static_cast<float>(res.getBoundingBoxTile().y) + static_cast<float>(res.getBoundingBoxTile().height) / 2.0F);
@@ -76,7 +76,7 @@ public:
      cv::imwrite("test.jpg", image);
      */
 
-    atom::SpheralIndex *response = objects[context.getClusterId(mSettings.outputClustersVoronoi.clusterId)].get();
+    atom::SpheralIndex *response = objects[context.getClassId(mSettings.outputClassVoronoi)].get();
 
     atom::SpheralIndex voronoiGrid;
     drawVoronoi(context, size, subdiv, mSettings.maxRadius, voronoiGrid);
@@ -139,10 +139,8 @@ public:
         }
       }
 
-      atom::ROI roi(atom::ROI::RoiObjectId{.clusterId  = context.getClusterId(mSettings.outputClustersVoronoi.clusterId),
-                                           .classId    = context.getClassId(mSettings.outputClustersVoronoi.classId),
-                                           .imagePlane = context.getActIterator()},
-                    1, box, boxMask, contours[idxMax], imgSize, context.getOriginalImageSize(), context.getActTile(), context.getTileSize());
+      atom::ROI roi(atom::ROI::RoiObjectId{.classId = context.getClassId(mSettings.outputClassVoronoi), .imagePlane = context.getActIterator()}, 1,
+                    box, boxMask, contours[idxMax], imgSize, context.getOriginalImageSize(), context.getActTile(), context.getTileSize());
       result.push_back(roi);
     }
   }

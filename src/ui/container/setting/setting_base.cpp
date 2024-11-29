@@ -347,21 +347,30 @@ void SettingBase::onHelpButtonClicked()
 }
 
 ///
-/// \brief    Name of cluster or class changed
+/// \brief    Name of classs or class changed
 /// \author   Joachim Danmayr
 ///
 void SettingBase::onClassificationNameChanged()
 {
-  clusterNamesChanged();
+  classsNamesChanged();
 }
 
 ///
-/// \brief    Name of cluster or class changed
+/// \brief    Name of classs or class changed
 /// \author   Joachim Danmayr
 ///
 void SettingBase::onOutputClassifierChanges()
 {
-  outputClustersChanges();
+  outputClassesChanges();
+}
+
+///
+/// \brief   Returns classes from main
+/// \author   Joachim Danmayr
+///
+[[nodiscard]] auto SettingBase::getClasses() const -> std::map<enums::ClassIdIn, QString>
+{
+  return mParent->getPanelClassification()->getClasses();
 }
 
 }    // namespace joda::ui

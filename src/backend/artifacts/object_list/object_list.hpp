@@ -15,7 +15,6 @@
 #include "../roi/roi.hpp"
 #include "backend/commands/classification/reclassify/reclassify_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
 
 namespace joda::atom {
 
@@ -43,7 +42,7 @@ public:
   {
   }
 
-  void createBinaryImage(cv::Mat &img, const std::set<joda::enums::ClassId> &objectClasses) const;
+  void createBinaryImage(cv::Mat &img) const;
 
   ROI &emplace(const ROI &box)
   {
@@ -101,7 +100,6 @@ public:
   void calcColocalization(const enums::PlaneId &iterator, const SpheralIndex *other, SpheralIndex *result,
                           const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
                           const std::set<joda::enums::ClassId> &objectClassesOther,
-                          joda::enums::ClusterId objectClusterIntersectingObjectsShouldBeAssignedTo,
                           joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo, float minIntersecion, const enums::tile_t &tile,
                           const cv::Size &tileSize) const;
 
@@ -176,25 +174,25 @@ private:
   std::mutex mInsertLock;
 };
 
-class ObjectList : public std::map<enums::ClusterId, std::unique_ptr<SpheralIndex>>
+class ObjectList : public std::map<enums::ClassId, std::unique_ptr<SpheralIndex>>
 {
 public:
   void push_back(const ROI &roi)
   {
-    if(!contains(roi.getClusterId())) {
+    if(!contains(roi.getClassId())) {
       SpheralIndex idx{};
-      operator[](roi.getClusterId())->cloneFromOther(idx);
+      operator[](roi.getClassId())->cloneFromOther(idx);
     }
-    at(roi.getClusterId())->emplace(roi);
+    at(roi.getClassId())->emplace(roi);
   }
 
-  std::unique_ptr<SpheralIndex> &operator[](enums::ClusterId clusterId)
+  std::unique_ptr<SpheralIndex> &operator[](enums::ClassId classId)
   {
-    if(!contains(clusterId)) {
+    if(!contains(classId)) {
       auto newS = std::make_unique<SpheralIndex>();
-      emplace(clusterId, std::move(newS));
+      emplace(classId, std::move(newS));
     }
-    return at(clusterId);
+    return at(classId);
   }
 };
 

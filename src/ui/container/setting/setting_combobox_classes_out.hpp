@@ -19,47 +19,180 @@
 #include <set>
 #include "backend/enums/enums_classes.hpp"
 #include "backend/settings/setting.hpp"
+#include "ui/helper/icon_generator.hpp"
 #include "setting_base.hpp"
 #include "setting_combobox.hpp"
 
 namespace joda::ui {
+
+template <typename T>
+concept ClassId_t = std::same_as<T, enums::ClassIdIn> || std::same_as<T, enums::ClassId>;
 
 ///
 /// \class
 /// \author
 /// \brief
 ///
-class SettingComboBoxClassesOut : public SettingBase
+template <ClassId_t CLASSID>
+class SettingComboBoxClassesOutTemplate : public SettingBase
 {
 public:
   struct ComboEntry
   {
-    enums::ClassIdIn key;
+    CLASSID key;
     QString label;
     QString icon;
   };
 
   struct ComboEntryText
   {
-    enums::ClassIdIn key;
+    CLASSID key;
     QString label;
   };
 
   using SettingBase::SettingBase;
 
-  QWidget *createInputObject() override;
-  void setDefaultValue(enums::ClassIdIn defaultVal);
-  void reset() override;
-  void clear() override;
+  QWidget *createInputObject() override
+  {
+    mComboBox = new QComboBox();
+    mComboBox->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    mComboBox->addAction(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE), "");
 
-  void clusterNamesChanged() override;
-  QString getName(enums::ClassIdIn key) const;
-  enums::ClassIdIn getValue();
-  std::pair<enums::ClassIdIn, std::string> getValueAndNames();
+    classsNamesChanged();
 
-  void setValue(const enums::ClassIdIn &valueIn);
+    SettingBase::connect(mComboBox, &QComboBox::currentIndexChanged, this, &SettingComboBoxClassesOutTemplate::onValueChanged);
+    SettingBase::connect(mComboBox, &QComboBox::currentTextChanged, this, &SettingComboBoxClassesOutTemplate::onValueChanged);
 
-  void connectWithSetting(enums::ClassIdIn *setting)
+    return mComboBox;
+  }
+  void setDefaultValue(CLASSID defaultVal)
+  {
+    mDefaultValue = defaultVal;
+    reset();
+  }
+  void reset() override
+  {
+    if(mDefaultValue.has_value()) {
+      setValue({mDefaultValue.value()});
+    }
+  }
+  void clear() override
+  {
+    mComboBox->setCurrentIndex(0);
+  }
+
+  void addOptions(const std::map<CLASSID, QString> &dataIn)
+  {
+    mComboBox->blockSignals(true);
+    auto actSelected = getValue();
+    mComboBox->clear();
+
+    std::map<std::string, std::multimap<std::string, CLASSID>> orderedClasses;
+    for(const auto &[id, className] : dataIn) {
+      orderedClasses[enums::getPrefixFromClassName(className.toStdString())].emplace(className.toStdString(), id);
+    }
+
+    for(const auto &[prefix, group] : orderedClasses) {
+      for(const auto &[className, id] : group) {
+        QVariant variant;
+        variant = QVariant(toInt(id));
+        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), className.data(), variant);
+      }
+      mComboBox->insertSeparator(mComboBox->count());
+    }
+
+    auto removeLastSeparator = [this]() {
+      int lastIndex = mComboBox->count() - 1;
+      if(lastIndex >= 0) {
+        mComboBox->removeItem(lastIndex);
+      }
+    };
+    removeLastSeparator();
+    setValue(actSelected);
+    mComboBox->blockSignals(false);
+  }
+
+  void classsNamesChanged() override
+  {
+    auto *parent = getParent();
+    if(parent != nullptr) {
+      mComboBox->blockSignals(true);
+      auto actSelected = getValue();
+      mComboBox->clear();
+      auto classes = getClasses();
+
+      std::map<std::string, std::multimap<std::string, CLASSID>> orderedClasses;
+      for(const auto &[id, className] : classes) {
+        orderedClasses[enums::getPrefixFromClassName(className.toStdString())].emplace(className.toStdString(), (CLASSID) id);
+      }
+
+      for(const auto &[prefix, group] : orderedClasses) {
+        for(const auto &[className, id] : group) {
+          QVariant variant;
+          variant = QVariant(toInt(id));
+          if constexpr(std::same_as<CLASSID, enums::ClassIdIn>) {
+            if(id == enums::ClassIdIn::$) {
+              // We want this to be the first
+              mComboBox->insertItem(0, generateIcon("circle"), className.data(), variant);
+            } else {
+              if(!SettingBase::getIcon().isNull()) {
+                mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), className.data(),
+                                   variant);
+              } else {
+                mComboBox->addItem(generateIcon("circle"), className.data(), variant);
+              }
+            }
+          } else {
+            if((enums::ClassIdIn) id != enums::ClassIdIn::$) {
+              if(!SettingBase::getIcon().isNull()) {
+                mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), className.data(),
+                                   variant);
+              } else {
+                mComboBox->addItem(generateIcon("circle"), className.data(), variant);
+              }
+            }
+          }
+        }
+        mComboBox->insertSeparator(mComboBox->count());
+      }
+
+      auto removeLastSeparator = [this]() {
+        int lastIndex = mComboBox->count() - 1;
+        if(lastIndex >= 0) {
+          mComboBox->removeItem(lastIndex);
+        }
+      };
+      removeLastSeparator();
+      setValue(actSelected);
+      mComboBox->blockSignals(false);
+    }
+  }
+  QString getName(CLASSID key) const
+  {
+    auto idx = mComboBox->findData(toInt(key), Qt::UserRole + 1);
+    if(idx >= 0) {
+      return mComboBox->itemText(idx);
+    }
+    return "";
+  }
+  CLASSID getValue()
+  {
+    return fromInt(mComboBox->currentData().toUInt());
+  }
+  std::pair<CLASSID, std::string> getValueAndNames()
+  {
+    return {fromInt(mComboBox->currentData().toUInt()), mComboBox->currentText().toStdString()};
+  }
+
+  void setValue(const CLASSID &valueIn)
+  {
+    auto idx = mComboBox->findData(toInt(valueIn));
+    if(idx >= 0) {
+      (mComboBox)->setCurrentIndex(idx);
+    }
+  }
+
+  void connectWithSetting(CLASSID *setting)
   {
     mSetting = setting;
   }
@@ -73,22 +206,37 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  std::optional<enums::ClassIdIn> mDefaultValue;
+  std::optional<CLASSID> mDefaultValue;
   QComboBox *mComboBox;
-  enums::ClassIdIn *mSetting = nullptr;
+  CLASSID *mSetting = nullptr;
 
-  static uint32_t toInt(const enums::ClassIdIn &in)
+  static uint16_t toInt(const CLASSID &in)
   {
-    return static_cast<uint32_t>(in);
+    return static_cast<uint16_t>(in);
   }
 
-  static enums::ClassIdIn fromInt(uint32_t in)
+  static CLASSID fromInt(uint16_t in)
   {
-    return static_cast<enums::ClassIdIn>(in);
+    return static_cast<CLASSID>(in & 0xFFFF);
   }
 
 private slots:
-  void onValueChanged();
+  void onValueChanged()
+  {
+    if(mSetting != nullptr) {
+      *mSetting = getValue();
+    }
+    QVariant itemData = mComboBox->itemData(mComboBox->currentIndex(), Qt::DecorationRole);
+    if(itemData.isValid() && itemData.canConvert<QIcon>()) {
+      auto selectedIcon = qvariant_cast<QIcon>(itemData);
+      SettingBase::triggerValueChanged(mComboBox->currentText(), selectedIcon);
+    } else {
+      SettingBase::triggerValueChanged(mComboBox->currentText());
+    }
+  }
 };
+
+using SettingComboBoxClassesOut  = SettingComboBoxClassesOutTemplate<enums::ClassIdIn>;
+using SettingComboBoxClassesOutN = SettingComboBoxClassesOutTemplate<enums::ClassId>;
 
 }    // namespace joda::ui

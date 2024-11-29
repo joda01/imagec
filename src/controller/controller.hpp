@@ -42,7 +42,7 @@ struct Preview
   joda::image::Image thumbnail;
   joda::image::Image previewImage;
   joda::image::Image originalImage;
-  std::map<settings::ClassificatorSetting, PreviewCount> foundObjects;
+  std::map<joda::enums::ClassId, PreviewCount> foundObjects;
   int height;
   int width;
   std::string imageFileName;
@@ -75,7 +75,7 @@ public:
   // PREVIEW ///////////////////////////////////////////////////
   void preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
                const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX,
-               int32_t tileY, Preview &previewOut, const joda::ome::OmeInfo &, const settings::ObjectInputClusters &clustersClassesToShow);
+               int32_t tileY, Preview &previewOut, const joda::ome::OmeInfo &, const settings::ObjectInputClasses &classesToShow);
   [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series = 0) -> joda::ome::OmeInfo;
 
   // FLOW CONTROL ///////////////////////////////////////////////////

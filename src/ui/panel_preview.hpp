@@ -69,9 +69,9 @@ public:
     return filled->isChecked();
   }
 
-  auto getSelectedClustersAndClasses() const -> settings::ObjectInputClusters
+  auto getSelectedClassesAndClasses() const -> settings::ObjectInputClasses
   {
-    return mClustersClassesToShow->getValue();
+    return mClassesClassesToShow->getValue();
   }
 
   int32_t getPreviewSize() const
@@ -97,7 +97,7 @@ private:
   QLabel *mPreviewInfo;
   QPushButton *filled;
   QComboBox *mPreviewSize;
-  std::unique_ptr<SettingComboBoxMultiClassificationIn> mClustersClassesToShow;
+  std::unique_ptr<SettingComboBoxMultiClassificationIn> mClassesClassesToShow;
 
   /////////////////////////////////////////////////////
   DialogImageViewer mImageViewer;

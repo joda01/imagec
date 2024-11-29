@@ -18,7 +18,7 @@
 #include <vector>
 #include "backend/commands/classification/classifier_filter.hpp"
 #include "backend/enums/enum_objects.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/global_enums.hpp"
 #include "backend/settings/setting.hpp"
 #include "backend/settings/setting_base.hpp"
@@ -40,7 +40,7 @@ struct ReclassifySettings : public SettingBase
     //
     // Objects to calc the intersection with
     //
-    ObjectInputClusters inputClustersIntersectWith;
+    ObjectInputClasses inputClassesIntersectWith;
 
     //
     // Minimum intersection in [0-1]
@@ -50,11 +50,11 @@ struct ReclassifySettings : public SettingBase
     void check() const
     {
       /// \todo check that ouput is not equal to input
-      CHECK_ERROR(!inputClustersIntersectWith.empty(), "At least one intersection class must be given!");
+      CHECK_ERROR(!inputClassesIntersectWith.empty(), "At least one intersection class must be given!");
       CHECK_ERROR(minIntersection >= 0 && minIntersection <= 1, "Min intersection must be in range [0-1].");
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectionFilter, inputClustersIntersectWith, minIntersection);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectionFilter, inputClassesIntersectWith, minIntersection);
   };
 
   //
@@ -65,7 +65,7 @@ struct ReclassifySettings : public SettingBase
   //
   // Objects to use for intersection calculation
   //
-  ObjectInputClusters inputClusters;
+  ObjectInputClasses inputClasses;
 
   //
   // In case of reclassification this is the new class ID for intersecting elements
@@ -91,37 +91,37 @@ struct ReclassifySettings : public SettingBase
   void check() const
   {
     CHECK_ERROR(mode != Mode::UNKNOWN, "Define a intersection function!");
-    CHECK_ERROR(!inputClusters.empty(), "At least one input must be given!");
+    CHECK_ERROR(!inputClasses.empty(), "At least one input must be given!");
     if(mode == Mode::RECLASSIFY_MOVE || mode == Mode::RECLASSIFY_COPY) {
       CHECK_ERROR(newClassId != joda::enums::ClassIdIn::UNDEFINED, "Define a class the elements should be assigned for reclassification.");
     }
   }
 
-  settings::ObjectInputClusters getInputClustersAndClasses() const override
+  settings::ObjectInputClasses getInputClasses() const override
   {
-    settings::ObjectInputClusters clusters;
-    for(const auto &in : inputClusters) {
-      clusters.emplace(in);
+    settings::ObjectInputClasses classes;
+    for(const auto &in : inputClasses) {
+      classes.emplace(in);
     }
 
-    for(const auto &in : intersection.inputClustersIntersectWith) {
-      clusters.emplace(in);
+    for(const auto &in : intersection.inputClassesIntersectWith) {
+      classes.emplace(in);
     }
-    return clusters;
+    return classes;
   }
 
-  [[nodiscard]] ObjectOutputClusters getOutputClustersAndClasses() const override
+  [[nodiscard]] ObjectOutputClasses getOutputClasses() const override
   {
-    ObjectOutputClusters out;
+    ObjectOutputClasses out;
     if(mode == Mode::RECLASSIFY_MOVE || mode == Mode::RECLASSIFY_COPY) {
-      for(const auto &in : inputClusters) {
-        out.emplace(ClassificatorSetting{in.clusterId, newClassId});
+      for(const auto &in : inputClasses) {
+        out.emplace(newClassId);
       }
     }
     return out;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ReclassifySettings, mode, inputClusters, intersection, metrics, intensity, newClassId);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ReclassifySettings, mode, inputClasses, intersection, metrics, intensity, newClassId);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ReclassifySettings::Mode, {

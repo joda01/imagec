@@ -32,11 +32,11 @@ auto transformMatrix(const std::vector<std::vector<int32_t>> &wellImageOrder, in
 ///
 auto StatsPerGroup::toTable(const QueryFilter &filter, Grouping grouping) -> QueryResult
 {
-  auto clustersToExport = filter.getClustersAndClassesToExport();
+  auto classesToExport = filter.getClassesToExport();
 
-  for(const auto &[clusterClass, statement] : clustersToExport) {
+  for(const auto &[classs, statement] : classesToExport) {
     auto materializedResult =
-        getData(clusterClass, filter.getAnalyzer(), filter.getFilter(), statement, grouping)->Cast<duckdb::StreamQueryResult>().Materialize();
+        getData(classs, filter.getAnalyzer(), filter.getFilter(), statement, grouping)->Cast<duckdb::StreamQueryResult>().Materialize();
     size_t columnNr = statement.getColSize();
 
     for(size_t row = 0; row < materializedResult->RowCount(); row++) {
@@ -52,11 +52,10 @@ auto StatsPerGroup::toTable(const QueryFilter &filter, Grouping grouping) -> Que
         for(int32_t colIdx = 0; colIdx < columnNr; colIdx++) {
           double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
           if(grouping == Grouping::BY_WELL) {
-            clustersToExport.setData(clusterClass, statement.getColNames(), row, colIdx, filename,
-                                     table::TableCell{value, imageId, validity == 0, ""});
+            classesToExport.setData(classs, statement.getColNames(), row, colIdx, filename, table::TableCell{value, imageId, validity == 0, ""});
           } else {
             auto colC = std::string(1, ((char) platePosY + 'A')) + std::to_string(platePosX);
-            clustersToExport.setData(clusterClass, statement.getColNames(), row, colIdx, colC, table::TableCell{value, groupId, validity == 0, ""});
+            classesToExport.setData(classs, statement.getColNames(), row, colIdx, colC, table::TableCell{value, groupId, validity == 0, ""});
           }
         }
 
@@ -64,7 +63,7 @@ auto StatsPerGroup::toTable(const QueryFilter &filter, Grouping grouping) -> Que
       }
     }
   }
-  return clustersToExport.getResult();
+  return classesToExport.getResult();
 }
 
 ///
@@ -76,8 +75,8 @@ auto StatsPerGroup::toTable(const QueryFilter &filter, Grouping grouping) -> Que
 ///
 auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> QueryResult
 {
-  auto clustersToExport = filter.getClustersAndClassesToExport();
-  clustersToExport.clearTables();
+  auto classesToExport = filter.getClassesToExport();
+  classesToExport.clearTables();
 
   int32_t sizeX = 0;
   int32_t sizeY = 0;
@@ -89,9 +88,9 @@ auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> Q
     sizeY = filter.getFilter().plateRows;
   }
 
-  for(const auto &[clusterClass, statement] : clustersToExport) {
+  for(const auto &[classs, statement] : classesToExport) {
     auto materializedResult =
-        getData(clusterClass, filter.getAnalyzer(), filter.getFilter(), statement, grouping)->Cast<duckdb::StreamQueryResult>().Materialize();
+        getData(classs, filter.getAnalyzer(), filter.getFilter(), statement, grouping)->Cast<duckdb::StreamQueryResult>().Materialize();
 
     size_t columnNr = statement.getColSize();
 
@@ -119,13 +118,11 @@ auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> Q
         for(size_t col = 0; col < columnNr; col++) {
           double value = materializedResult->GetValue(col, row).GetValue<double>();
           if(grouping == Grouping::BY_WELL) {
-            clustersToExport.setData(clusterClass, statement.getColNames(), col, pos.y, pos.x,
-                                     table::TableCell{value, imageId, validity == 0, filename}, sizeX, sizeY,
-                                     statement.getColumnAt(col).createHeader());
+            classesToExport.setData(classs, statement.getColNames(), col, pos.y, pos.x, table::TableCell{value, imageId, validity == 0, filename},
+                                    sizeX, sizeY, statement.getColumnAt(col).createHeader());
           } else {
-            clustersToExport.setData(clusterClass, statement.getColNames(), col, pos.y, pos.x,
-                                     table::TableCell{value, groupId, validity == 0, filename}, sizeX, sizeY,
-                                     statement.getColumnAt(col).createHeader());
+            classesToExport.setData(classs, statement.getColNames(), col, pos.y, pos.x, table::TableCell{value, groupId, validity == 0, filename},
+                                    sizeX, sizeY, statement.getColumnAt(col).createHeader());
           }
         }
 
@@ -133,7 +130,7 @@ auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> Q
       }
     }
   }
-  return clustersToExport.getResult();
+  return classesToExport.getResult();
 }
 
 ///
@@ -143,10 +140,10 @@ auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> Q
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::getData(const db::ResultingTable::QueryKey &clusterAndClass, db::Database *analyzer, const QueryFilter::ObjectFilter &filter,
+auto StatsPerGroup::getData(const db::ResultingTable::QueryKey &classsAndClass, db::Database *analyzer, const QueryFilter::ObjectFilter &filter,
                             const PreparedStatement &channelFilter, Grouping grouping) -> std::unique_ptr<duckdb::QueryResult>
 {
-  auto [sql, params] = toSQL(clusterAndClass, filter, channelFilter, grouping);
+  auto [sql, params] = toSQL(classsAndClass, filter, channelFilter, grouping);
 
   std::unique_ptr<duckdb::QueryResult> result = analyzer->select(sql, params);
   if(result->HasError()) {
@@ -162,7 +159,7 @@ auto StatsPerGroup::getData(const db::ResultingTable::QueryKey &clusterAndClass,
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &clusterAndClass, const QueryFilter::ObjectFilter &filter,
+auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, const QueryFilter::ObjectFilter &filter,
                           const PreparedStatement &channelFilter, Grouping grouping) -> std::pair<std::string, DbArgs_t>
 {
   std::string sql =
@@ -187,10 +184,10 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &clusterAndClass, c
       "	t1.image_id = images.image_id\n";
   if(grouping == Grouping::BY_WELL) {
     sql += "WHERE\n";
-    sql += " t1.cluster_id=$1 AND t1.class_id=$2 AND images_groups.group_id=$3 AND stack_z=$4 AND stack_t=$5\n";
+    sql += " t1.class_id=$1 AND images_groups.group_id=$2 AND stack_z=$3 AND stack_t=$4\n";
   } else {
     sql += "WHERE\n";
-    sql += " t1.cluster_id=$1 AND t1.class_id=$2 AND stack_z=$3 AND stack_t=$4\n";
+    sql += " t1.class_id=$1 AND stack_z=$2 AND stack_t=$3\n";
   }
   sql +=
       "GROUP BY\n"
@@ -220,12 +217,11 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &clusterAndClass, c
 
   if(grouping == Grouping::BY_WELL) {
     return {sql,
-            {static_cast<uint16_t>(clusterAndClass.clusterClass.clusterId), static_cast<uint16_t>(clusterAndClass.clusterClass.classId),
-             static_cast<uint16_t>(filter.groupId), static_cast<int32_t>(clusterAndClass.zStack), static_cast<int32_t>(clusterAndClass.tStack)}};
+            {static_cast<uint16_t>(classsAndClass.classs), static_cast<uint16_t>(filter.groupId), static_cast<int32_t>(classsAndClass.zStack),
+             static_cast<int32_t>(classsAndClass.tStack)}};
   }
   return {sql,
-          {static_cast<uint16_t>(clusterAndClass.clusterClass.clusterId), static_cast<uint16_t>(clusterAndClass.clusterClass.classId),
-           static_cast<int32_t>(clusterAndClass.zStack), static_cast<int32_t>(clusterAndClass.tStack)}};
+          {static_cast<uint16_t>(classsAndClass.classs), static_cast<int32_t>(classsAndClass.zStack), static_cast<int32_t>(classsAndClass.tStack)}};
 }
 
 ///

@@ -99,6 +99,7 @@ void DialogCommandSelection::addCommandsToTable(InOuts outOfStepBefore)
     inserted += addCommandToTable(settings::PipelineStep{.$medianSubtract = settings::MedianSubtractSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$edgeDetection = settings::EdgeDetectionSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$imageMath = settings::ImageMathSettings{}}, outOfStepBefore);
+    inserted += addCommandToTable(settings::PipelineStep{.$imageToCache = settings::ImageCacheSettings{}}, outOfStepBefore);
 
     if(inserted > 0) {
       // Only insert title if at least one element has been added

@@ -15,7 +15,7 @@
 #include <set>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "backend/enums/types.hpp"
 #include "backend/settings/setting_base.hpp"
 
@@ -28,7 +28,7 @@ struct NoiseValidatorSettings : public SettingBase
     UNKNOWN,
     INVALIDATE_IMAGE,
     INVALIDATE_IMAGE_PLANE,
-    INVALIDATE_IAMGE_PLANE_CLUSTER
+    INVALIDATE_IAMGE_PLANE_CLASS
   };
 
   //
@@ -42,9 +42,9 @@ struct NoiseValidatorSettings : public SettingBase
   enums::ImageId imageIn = {.zProjection = enums::ZProjection::$};
 
   //
-  // Cluster on which the result should be applied to
+  // Classs on which the result should be applied to
   //
-  ObjectInputClusters inputClusters;
+  ObjectInputClasses inputClasses;
 
   //
   // If this number of objects is exceeded the filter will be applied
@@ -58,16 +58,16 @@ struct NoiseValidatorSettings : public SettingBase
     CHECK_ERROR(maxObjects > 0, "Max objects must be > 0!");
   }
 
-  settings::ObjectInputClusters getInputClustersAndClasses() const override
+  settings::ObjectInputClasses getInputClasses() const override
   {
-    settings::ObjectInputClusters clusters;
-    for(const auto &in : inputClusters) {
-      clusters.emplace(in);
+    settings::ObjectInputClasses classes;
+    for(const auto &in : inputClasses) {
+      classes.emplace(in);
     }
-    return clusters;
+    return classes;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(NoiseValidatorSettings, mode, imageIn, inputClusters, maxObjects);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(NoiseValidatorSettings, mode, imageIn, inputClasses, maxObjects);
 };
 
 }    // namespace joda::settings

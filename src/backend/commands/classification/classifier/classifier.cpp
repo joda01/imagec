@@ -89,16 +89,15 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
         //
         // Ready to classify -> First create a ROI object to get the measurements
         //
-        joda::atom::ROI detectedRoi(atom::ROI::RoiObjectId{.clusterId  = context.getClusterId(objectClass.outputClusterNoMatch.clusterId),
-                                                           .classId    = context.getClassId(objectClass.outputClusterNoMatch.classId),
-                                                           .imagePlane = context.getActIterator()},
-                                    context.getAppliedMinThreshold(), boundingBox, mask, contour, context.getImageSize(),
-                                    context.getOriginalImageSize(), context.getActTile(), context.getTileSize());
+        joda::atom::ROI detectedRoi(
+            atom::ROI::RoiObjectId{.classId = context.getClassId(objectClass.outputClassNoMatch), .imagePlane = context.getActIterator()},
+            context.getAppliedMinThreshold(), boundingBox, mask, contour, context.getImageSize(), context.getOriginalImageSize(),
+            context.getActTile(), context.getTileSize());
 
         for(const auto &filter : objectClass.filters) {
-          // If filter matches assign the new cluster and class to the ROI
+          // If filter matches assign the new classs and class to the ROI
           if(joda::settings::ClassifierFilter::doesFilterMatch(context, detectedRoi, filter.metrics, filter.intensity)) {
-            detectedRoi.setClusterAndClass(context.getClusterId(filter.outputCluster.clusterId), context.getClassId(filter.outputCluster.classId));
+            detectedRoi.setClasss(context.getClassId(filter.outputClass));
           }
         }
         result.push_back(detectedRoi);

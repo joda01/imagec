@@ -16,7 +16,7 @@
 #include <type_traits>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/enums/enums_clusters.hpp"
+
 #include "ui/container/setting/setting_base.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
 #include "ui/container/setting/setting_combobox_multi.hpp"
