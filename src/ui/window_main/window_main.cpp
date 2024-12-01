@@ -517,20 +517,6 @@ void WindowMain::checkForSettingsChanged()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::onSaveProjectAsClicked()
-{
-  std::filesystem::path folderToSaveSettings(mSelectedProjectSettingsFilePath.parent_path());
-  QString filePath = QFileDialog::getSaveFileName(this, "Save File", folderToSaveSettings.string().data(),
-                                                  "ImageC project files (*" + QString(joda::fs::EXT_PROJECT.data()) + ")");
-  if(!filePath.isEmpty()) {
-    joda::settings::Settings::storeSettings(std::filesystem::path(filePath.toStdString()), mAnalyzeSettings);
-  }
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
 void WindowMain::onSaveProject()
 {
   saveProject(mSelectedProjectSettingsFilePath);
@@ -542,14 +528,14 @@ void WindowMain::onSaveProject()
 ///
 void WindowMain::onSaveProjectAs()
 {
-  saveProject("");
+  saveProject("", true);
 }
 
 ///
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::saveProject(std::filesystem::path filename)
+void WindowMain::saveProject(std::filesystem::path filename, bool saveAs)
 {
   try {
     if(filename.empty()) {
@@ -565,7 +551,7 @@ void WindowMain::saveProject(std::filesystem::path filename)
     }
 
     if(!filename.empty()) {
-      if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
+      if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld) || saveAs) {
         joda::settings::Settings::storeSettings(filename, mAnalyzeSettings);
       }
       mAnalyzeSettingsOld = mAnalyzeSettings;

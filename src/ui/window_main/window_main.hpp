@@ -141,7 +141,7 @@ private:
   void createLeftToolbar();
   void loadTemplates();
   void clearSettings();
-  void saveProject(std::filesystem::path filename);
+  void saveProject(std::filesystem::path filename, bool saveAs = false);
   void closeEvent(QCloseEvent *event) override;
 
   QWidget *createStackedWidget();
@@ -198,7 +198,6 @@ private slots:
   void onAddChannel();
   void onSaveProject();
   void onSaveProjectAs();
-  void onSaveProjectAsClicked();
   void onStartClicked();
   void onShowInfoDialog();
   void onShowHelpClicked();
