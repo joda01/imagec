@@ -52,14 +52,9 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
 
     auto *bookMarkMenu = new QMenu();
 
-    // New from template
-    auto *clearList = bookMarkMenu->addAction(generateIcon("file"), "Clear");
-    connect(clearList, &QAction::triggered, [this]() {
-      if(this->askForChangeTemplateIndex()) {
-        this->initTable();
-        this->newTemplate();
-      }
-    });
+    // Populate from image
+    auto *populateFromImage = bookMarkMenu->addAction(generateIcon("double-down"), "Populate from image channels");
+    connect(populateFromImage, &QAction::triggered, [this]() { this->populateClassesFromImage(); });
 
     // New from template
     auto *newTemplate = bookMarkMenu->addAction(generateIcon("add-file"), "New from template");
@@ -68,6 +63,15 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     // Save template
     auto *saveBookmark = bookMarkMenu->addAction(generateIcon("save"), "Save as new template");
     connect(saveBookmark, &QAction::triggered, [this]() { saveAsNewTemplate(); });
+
+    // Clear
+    auto *clearList = bookMarkMenu->addAction(generateIcon("delete"), "Clear");
+    connect(clearList, &QAction::triggered, [this]() {
+      if(this->askForChangeTemplateIndex()) {
+        this->initTable();
+        this->newTemplate();
+      }
+    });
 
     mBookmarkButton = new QPushButton(generateIcon("menu"), "");
     mBookmarkButton->setMenu(bookMarkMenu);
@@ -497,6 +501,32 @@ void PanelClassification::onloadPreset(int index)
       updateTableLock(true);
     } catch(const std::exception &ex) {
     }
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::populateClassesFromImage()
+{
+  auto [path, _, omeInfo] = mWindowMain->getImagePanel()->getSelectedImageOrFirst();
+  if(path.empty()) {
+    joda::log::logError("No images found! Please select a image directory first!");
+    QMessageBox messageBox(this);
+    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setWindowTitle("Could not find any images!");
+    messageBox.setText("No images found! Please select a image directory first!");
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
+    return;
+  }
+  auto classes = mWindowMain->getController()->populateClassesFromImage(omeInfo);
+  if(askForChangeTemplateIndex()) {
+    fromSettings(classes);
   }
 }
 

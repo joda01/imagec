@@ -106,6 +106,31 @@ auto PanelImages::getSelectedImage() const -> std::tuple<std::filesystem::path, 
 }
 
 ///
+/// \brief  Get first image from list
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+[[nodiscard]] auto PanelImages::getSelectedImageOrFirst() const -> std::tuple<std::filesystem::path, uint32_t, joda::ome::OmeInfo>
+{
+  auto [path, idx, omeInfo] = getSelectedImage();
+
+  if(path.empty()) {
+    if(mImages->rowCount() > 0) {
+      QTableWidgetItem *item = mImages->item(0, 0);
+      if(item != nullptr) {
+        auto path    = std::filesystem::path(item->text().toStdString());
+        auto omeInfo = mWindowMain->getController()->getImageProperties(path, 0);
+        return {path, 0, omeInfo};
+      }
+    }
+  }
+
+  return {path, idx, omeInfo};
+}
+
+///
 /// \brief
 /// \author
 /// \param[in]

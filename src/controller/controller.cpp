@@ -16,11 +16,13 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include "backend/enums/enums_classes.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/system/system_resources.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/settings/analze_settings.hpp"
+#include "backend/settings/project_settings/project_class.hpp"
 
 namespace joda::ctrl {
 
@@ -309,6 +311,41 @@ void Controller::stop()
     return mActProcessor->getJobInformation();
   }
   throw std::runtime_error("No job executed!");
+}
+
+///
+/// \brief  Extract classes from image OME info
+/// \author
+/// \return
+///
+auto Controller::populateClassesFromImage(const joda::ome::OmeInfo &omeInfo) -> joda::settings::Classification
+{
+  const std::map<std::string, std::string> channelNameToColorMap = {
+      {"dapi", "#9933FF"},    {"dapi_mb", "#9933FF"}, {"cfp", "#33A1FF"}, {"dpss", "#3399FF"},  {"fitc", "#33CFFF"},
+      {"gfp", "#33CFFF"},     {"yfp", "#33FF88"},     {"cy3", "#FFCC33"}, {"tritc", "#FFCC33"}, {"rfp", "#FFCC33"},
+      {"mcherry", "#FF8C33"}, {"cy5", "#FF3366"},     {"cy7", "#ff3333"}, {"bf", "#FFFF33"},    {"brightfield", "#FFFF33"}};
+
+  joda::settings::Classification classes;
+  auto channels           = omeInfo.getChannelInfos();
+  enums::ClassId actClass = enums::ClassId::C0;
+  int colorIdx            = 0;
+  for(const auto &[_, channel] : channels) {
+    auto addSubClass = [&actClass, &classes](const std::string &channel, const std::string &subclass, const std::string &color) {
+      classes.classes.push_back(joda::settings::Class{.classId = actClass, .name = channel + "@" + subclass, .color = color, .notes = ""});
+      actClass = static_cast<enums::ClassId>((static_cast<uint16_t>(actClass)) + 1);
+    };
+
+    auto waveLength   = channel.emissionWaveLength;
+    auto channelName  = helper::toLower(channel.name);
+    std::string color = joda::settings::COLORS.at(colorIdx % joda::settings::COLORS.size());
+    if(channelNameToColorMap.contains(channelName)) {
+      color = channelNameToColorMap.at(channelName);
+    }
+    addSubClass(channelName, "spot", color);
+    addSubClass(channelName, "ignore", "#bfbfbf");
+  }
+
+  return classes;
 }
 
 }    // namespace joda::ctrl

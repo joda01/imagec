@@ -20,26 +20,39 @@
 namespace joda::settings {
 
 static inline const std::vector<std::string> COLORS = {
-    "#FF5733",    // - Vibrant Orange
-    "#33FF57",    // - Bright Green
-    "#FF33FF",    // - Magenta
-    "#33A1FF",    // - Sky Blue
-    "#FFFF33",    // - Bright Yellow
-    "#FF33A1",    // - Hot Pink
-    "#33FFD1",    // - Aqua
-    "#FF8C33",    // - Deep Orange
+
     "#9933FF",    // - Purple
-    "#33FFCC",    // - Mint Green
-    "#FF3380",    // - Electric Pink
-    "#33FF88",    // - Neon Green
-    "#FFCC33",    // - Golden Yellow
-    "#33CFFF",    // - Light Cyan
-    "#FF3366",    // - Coral Red
-    "#66FF33",    // - Lime Green
-    "#FF33C4",    // - Bright Rose
-    "#33FF99",    // - Spring Green
-    "#FF6F33",    // - Pumpkin Orange
+
+    // Blue tones
     "#3399FF",    // - Electric Blue
+    "#33A1FF",    // - Sky Blue
+    "#33CFFF",    // - Light Cyan
+    "#33FFD1",    // - Aqua
+
+    // Green tones
+    "#33FFCC",    // - Mint Green
+    "#33FF99",    // - Spring Green
+    "#33FF88",    // - Neon Green
+    "#33FF57",    // - Bright Green
+    "#66FF33",    // - Lime Green
+
+    // Yellow tones
+    "#FFFF33",    // - Bright Yellow
+    "#FFCC33",    // - Golden Yellow
+
+    // Orange tones
+    "#FF8C33",    // - Deep Orange
+    "#FF6F33",    // - Pumpkin Orange
+    "#FF5733",    // - Vibrant Orange
+    "#FF33FF",    // - Magenta
+    "#FF33C4",    // - Bright Rose
+    "#FF33A1",    // - Hot Pink
+    "#FF3380",    // - Electric Pink
+    "#FF3333",    // - Neon red
+    "#FF3366",    // - Coral Red
+
+    // Gray
+    "#BFBFBF"    // -Light gray
 };
 
 struct Class

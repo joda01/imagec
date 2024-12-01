@@ -38,6 +38,7 @@ public:
   /////////////////////////////////////////////////////
   explicit PanelImages(WindowMain *windowMain);
   [[nodiscard]] auto getSelectedImage() const -> std::tuple<std::filesystem::path, uint32_t, joda::ome::OmeInfo>;
+  [[nodiscard]] auto getSelectedImageOrFirst() const -> std::tuple<std::filesystem::path, uint32_t, joda::ome::OmeInfo>;
 
 signals:
   void imageSelectionChanged(int32_t newImgIdex, int32_t selectedSeries);

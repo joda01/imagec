@@ -61,6 +61,7 @@ private:
   void newTemplate();
   void saveAsNewTemplate();
   void openEditDialog(int row, int column);
+  void populateClassesFromImage();
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;

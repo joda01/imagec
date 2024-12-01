@@ -96,6 +96,13 @@ inline auto stringToNumber(const std::string &str) -> int
   return result;
 };
 
+inline std::string toLower(const std::string &input)
+{
+  std::string result = input;
+  std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) { return std::tolower(c); });
+  return result;
+}
+
 inline std::string timepointToIsoString(const std::chrono::system_clock::time_point &tp)
 {
   std::time_t t = std::chrono::system_clock::to_time_t(tp);

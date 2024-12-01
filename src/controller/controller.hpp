@@ -71,6 +71,7 @@ public:
   void stopLookingForFiles();
   void setWorkingDirectory(uint8_t plateNr, const std::filesystem::path &dir);
   void registerImageLookupCallback(const std::function<void(joda::filesystem::State)> &lookingForFilesFinished);
+  static auto populateClassesFromImage(const joda::ome::OmeInfo &omeInfo) -> joda::settings::Classification;
 
   // PREVIEW ///////////////////////////////////////////////////
   void preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
