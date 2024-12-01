@@ -133,6 +133,7 @@ public:
 
   void setValue(VALUE_T value)
   {
+    mLineEdit->blockSignals(true);
     if constexpr(std::same_as<VALUE_T, int>) {
       if(value >= 0) {
         mLineEdit->setText(QString::number(value));
@@ -165,6 +166,7 @@ public:
       mLineEdit->setText(value.data());
     }
     onValueChanged();
+    mLineEdit->blockSignals(false);
   }
 
   void connectWithSetting(VALUE_T *setting)
@@ -188,10 +190,12 @@ private:
 private slots:
   void onValueChanged()
   {
+    bool hasValueChanged = true;
     if(mSetting != nullptr) {
-      *mSetting = getValue();
+      hasValueChanged = *mSetting != getValue();
+      *mSetting       = getValue();
     }
-    triggerValueChanged(mLineEdit->text());
+    triggerValueChanged(mLineEdit->text(), hasValueChanged);
   }
 };
 

@@ -55,7 +55,7 @@ public:
     mComboBox->addAction(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE), "");
 
     SettingBase::connect(mComboBox, &QComboBoxMulti::currentIndexChanged, this, &SettingComboBoxMulti::onValueChanged);
-    SettingBase::connect(mComboBox, &QComboBoxMulti::currentTextChanged, this, &SettingComboBoxMulti::onValueChanged);
+    // SettingBase::connect(mComboBox, &QComboBoxMulti::currentTextChanged, this, &SettingComboBoxMulti::onValueChanged);
 
     return mComboBox;
   }
@@ -148,7 +148,6 @@ public:
       mComboBox->addItem(QIcon(getIcon().pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), label, variant);
     }
     setValue(act);
-    onValueChanged();
   }
 
   QString getName(VALUE_T key) const
@@ -225,6 +224,7 @@ public:
 
   void setValue(const std::set<VALUE_T> &valueIn)
   {
+    mComboBox->blockSignals(true);
     QVariantList toCheck;
     for(const auto &value : valueIn) {
       if constexpr(std::same_as<VALUE_T, int32_t>) {
@@ -247,6 +247,8 @@ public:
       }
     }
     ((QComboBoxMulti *) mComboBox)->setCheckedItems(toCheck);
+    onValueChanged();
+    mComboBox->blockSignals(false);
   }
 
   void connectWithSetting(std::set<VALUE_T> *setting)
@@ -270,15 +272,17 @@ private:
 private slots:
   void onValueChanged()
   {
+    bool hasValueChanged = true;
     if(mSetting != nullptr) {
-      *mSetting = getValue();
+      hasValueChanged = *mSetting != getValue();
+      *mSetting       = getValue();
     }
     QVariant itemData = mComboBox->itemData(mComboBox->currentIndex(), Qt::DecorationRole);
     if(itemData.isValid() && itemData.canConvert<QIcon>()) {
       auto selectedIcon = qvariant_cast<QIcon>(itemData);
-      SettingBase::triggerValueChanged(((QComboBoxMulti *) mComboBox)->getDisplayText(), selectedIcon);
+      SettingBase::triggerValueChanged(((QComboBoxMulti *) mComboBox)->getDisplayText(), hasValueChanged, selectedIcon);
     } else {
-      SettingBase::triggerValueChanged(((QComboBoxMulti *) mComboBox)->getDisplayText());
+      SettingBase::triggerValueChanged(((QComboBoxMulti *) mComboBox)->getDisplayText(), hasValueChanged);
     }
   }
 };

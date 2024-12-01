@@ -61,7 +61,7 @@ public:
     classsNamesChanged();
 
     SettingBase::connect(mComboBox, &QComboBox::currentIndexChanged, this, &SettingComboBoxClassesOutTemplate::onValueChanged);
-    SettingBase::connect(mComboBox, &QComboBox::currentTextChanged, this, &SettingComboBoxClassesOutTemplate::onValueChanged);
+    // SettingBase::connect(mComboBox, &QComboBox::currentTextChanged, this, &SettingComboBoxClassesOutTemplate::onValueChanged);
 
     return mComboBox;
   }
@@ -163,7 +163,11 @@ public:
         }
       };
       removeLastSeparator();
-      setValue(actSelected);
+      auto idx = mComboBox->findData(toInt(actSelected));
+      if(idx >= 0) {
+        (mComboBox)->setCurrentIndex(idx);
+      }
+      SettingBase::triggerValueChanged(mComboBox->currentText(), false);
       mComboBox->blockSignals(false);
     }
   }
@@ -186,10 +190,13 @@ public:
 
   void setValue(const CLASSID &valueIn)
   {
+    mComboBox->blockSignals(true);
     auto idx = mComboBox->findData(toInt(valueIn));
     if(idx >= 0) {
       (mComboBox)->setCurrentIndex(idx);
     }
+    onValueChanged();
+    mComboBox->blockSignals(false);
   }
 
   void connectWithSetting(CLASSID *setting)
@@ -223,15 +230,17 @@ private:
 private slots:
   void onValueChanged()
   {
+    bool hasValueChanged = true;
     if(mSetting != nullptr) {
-      *mSetting = getValue();
+      hasValueChanged = *mSetting != getValue();
+      *mSetting       = getValue();
     }
     QVariant itemData = mComboBox->itemData(mComboBox->currentIndex(), Qt::DecorationRole);
     if(itemData.isValid() && itemData.canConvert<QIcon>()) {
       auto selectedIcon = qvariant_cast<QIcon>(itemData);
-      SettingBase::triggerValueChanged(mComboBox->currentText(), selectedIcon);
+      SettingBase::triggerValueChanged(mComboBox->currentText(), hasValueChanged, selectedIcon);
     } else {
-      SettingBase::triggerValueChanged(mComboBox->currentText());
+      SettingBase::triggerValueChanged(mComboBox->currentText(), hasValueChanged);
     }
   }
 };

@@ -56,8 +56,10 @@ public:
 
   void setValue(const std::tuple<joda::enums::HsvColor, joda::enums::HsvColor> &fromTo)
   {
+    mColorPicker->blockSignals(true);
     mColorPicker->setValue(fromTo);
     onValueChanged();
+    mColorPicker->blockSignals(false);
   }
 
   void connectWithSetting(joda::enums::HsvColor *a, joda::enums::HsvColor *b)
@@ -87,7 +89,7 @@ private slots:
       *mSettingsA = a;
       *mSettingsB = b;
     }
-    triggerValueChanged("From-To");
+    triggerValueChanged("From-To", true);
   }
 };
 

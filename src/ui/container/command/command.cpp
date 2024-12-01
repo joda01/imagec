@@ -324,20 +324,6 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
   for(auto &[data, bo, group] : settings) {
     if(!containsPtr(data)) {
       mSettings.emplace_back(data, bo, group);
-
-      {
-        auto *casted = dynamic_cast<SettingComboBox<enums::ClassIdIn> *>(data);
-        if(casted) {
-          mClasses.emplace_back(casted);
-        }
-      }
-
-      {
-        auto *casted = dynamic_cast<SettingComboBoxMulti<enums::ClassIdIn> *>(data);
-        if(casted) {
-          mClassesMulti.emplace_back(casted);
-        }
-      }
     }
   }
   auto convert = [&]() {
@@ -356,11 +342,10 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
   }
   for(const auto &[setting, show, group] : settings) {
     setting->setDisplayIconVisible(false);
-    connect(setting, &SettingBase::valueChanged, this, &Command::valueChanged);
+    connect(setting, &SettingBase::displayTextChanged, this, &Command::displayTextChanged);
   }
   updateDisplayText();
-  updateClassesAndClasses();
-  connect(this, &Command::valueChanged, this, &Command::updateDisplayText);
+  connect(this, &Command::displayTextChanged, this, &Command::updateDisplayText);
   return col;
 }
 
@@ -404,39 +389,6 @@ void Command::updateDisplayText()
   }
   txt += "</html>";
   mDisplayableText->setText(txt);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void Command::updateClassesAndClasses()
-{
-  if(mParent != nullptr) {
-    auto classNames = ((WindowMain *) mParent)->getPanelClassification()->getClasses();
-    updateClassesAndClasssNames(classNames);
-  }
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void Command::updateClassesAndClasssNames(const std::map<enums::ClassIdIn, QString> &classNames)
-{
-  for(auto &classs : mClasses) {
-    classs->changeOptionText(classNames);
-  }
-
-  for(auto &classs : mClassesMulti) {
-    classs->changeOptionText(classNames);
-  }
 }
 
 }    // namespace joda::ui

@@ -78,6 +78,7 @@ public:
 signals:
   /////////////////////////////////////////////////////
   void valueChanged();
+  void displayTextChanged();
 
 protected:
   /////////////////////////////////////////////////////
@@ -86,7 +87,8 @@ protected:
   static constexpr int32_t HELP_ICON_SIZE = 8;
 
   /////////////////////////////////////////////////////
-  void triggerValueChanged(const QString &newValue, const QIcon &icon = {});
+  void triggerValueChanged(const QString &newValue, bool hasValueChanged, const QIcon &icon = {});
+  void updateDisplayLabel();
   auto getIcon() -> const QIcon &;
 
   WindowMain *getParent()
@@ -99,7 +101,6 @@ protected:
 private:
   /////////////////////////////////////////////////////
   virtual void blockComponentSignals(bool) = 0;
-  void updateDisplayLabel();
   void createDisplayAbleWidget(const QIcon &icon, const QString &tooltip);
   QWidget *createDisplayAbleWidgetPlaceholder();
   void createEditableWidget();

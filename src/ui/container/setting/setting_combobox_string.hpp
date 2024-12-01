@@ -106,7 +106,6 @@ public:
       mComboBox->addItem(QIcon(getIcon().pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE)), label, variant);
     }
     setValue(act);
-    onValueChanged();
   }
 
   std::string getValue()
@@ -116,6 +115,8 @@ public:
 
   void setValue(std::string value)
   {
+    mComboBox->blockSignals(true);
+
     int idx = mComboBox->findData(QString(value.data()));
 
     if(idx >= 0) {
@@ -123,6 +124,8 @@ public:
     } else {
       mComboBox->setCurrentIndex(0);
     }
+    onValueChanged();
+    mComboBox->blockSignals(false);
   }
 
   void connectWithSetting(std::string *setting)
@@ -146,15 +149,17 @@ private:
 private slots:
   void onValueChanged()
   {
+    bool hasValueChanged = true;
     if(mSetting != nullptr) {
-      *mSetting = getValue();
+      hasValueChanged = *mSetting != getValue();
+      *mSetting       = getValue();
     }
     QVariant itemData = mComboBox->itemData(mComboBox->currentIndex(), Qt::DecorationRole);
     if(itemData.isValid() && itemData.canConvert<QIcon>()) {
       auto selectedIcon = qvariant_cast<QIcon>(itemData);
-      triggerValueChanged(mComboBox->currentText(), selectedIcon);
+      triggerValueChanged(mComboBox->currentText(), hasValueChanged, selectedIcon);
     } else {
-      triggerValueChanged(mComboBox->currentText());
+      triggerValueChanged(mComboBox->currentText(), hasValueChanged);
     }
   }
 };

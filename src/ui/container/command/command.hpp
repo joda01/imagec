@@ -103,18 +103,6 @@ public:
         mSettings.erase(mSettings.begin() + m);
       }
     }
-
-    for(int m = mClasses.size() - 1; m >= 0; m--) {
-      if(toRemove.contains(mClasses[m])) {
-        mClasses.erase(mClasses.begin() + m);
-      }
-    }
-
-    for(int m = mClassesMulti.size() - 1; m >= 0; m--) {
-      if(toRemove.contains(mClassesMulti[m])) {
-        mClassesMulti.erase(mClassesMulti.begin() + m);
-      }
-    }
   }
 
   auto getDisplayWidget() const -> const QWidget *
@@ -153,8 +141,6 @@ public:
     return mLayout.addActionButton(text, icon);
   }
 
-  void updateClassesAndClasssNames(const std::map<enums::ClassIdIn, QString> &classNames);
-
   const QString &getTitle()
   {
     return mTitle;
@@ -167,9 +153,12 @@ public:
 
 signals:
   void valueChanged();
+  void displayTextChanged();
+
+public slots:
+  void updateDisplayText();
 
 protected:
-  void updateClassesAndClasses();
   [[nodiscard]] bool isDisabled() const
   {
     return mDisabled->isChecked();
@@ -208,12 +197,8 @@ private:
   QDialog *mEditDialog;
   WrapLabel *mDisplayableText;
   std::vector<std::tuple<SettingBase *, bool, int32_t>> mSettings;
-  std::vector<SettingComboBox<enums::ClassIdIn> *> mClasses;
-  std::vector<SettingComboBoxMulti<enums::ClassIdIn> *> mClassesMulti;
   const InOut mInOut;
   std::shared_ptr<Command> mCommandBefore = nullptr;
-protected slots:
-  void updateDisplayText();
 };
 
 }    // namespace joda::ui

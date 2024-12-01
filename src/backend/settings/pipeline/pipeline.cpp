@@ -82,11 +82,6 @@ ObjectOutputClassesExp Pipeline::getOutputClasses() const
     const auto &mems = command->getInputImageCache();
     caches.insert(mems.begin(), mems.end());
   }
-
-  std::cout << "In" << std::endl;
-  for(const auto &i : caches) {
-    std::cout << enums::uint128ToString(static_cast<__uint128_t>(i)) << std::endl;
-  }
   return caches;
 }
 
@@ -101,12 +96,6 @@ ObjectOutputClassesExp Pipeline::getOutputClasses() const
     const auto &mems = command->getOutputImageCache();
     caches.insert(mems.begin(), mems.end());
   }
-
-  std::cout << "Out" << std::endl;
-  for(const auto &i : caches) {
-    std::cout << enums::uint128ToString(static_cast<__uint128_t>(i)) << std::endl;
-  }
-  std::cout << "-- O --" << std::endl;
   return caches;
 }
 

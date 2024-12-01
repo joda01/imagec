@@ -114,6 +114,7 @@ public:
 
   void setValue(VALUE_T value)
   {
+    mSpinBox->blockSignals(true);
     if constexpr(std::same_as<VALUE_T, int>) {
       if(value >= 0) {
         mSpinBox->setValue(value);
@@ -146,6 +147,7 @@ public:
       mSpinBox->setValue(value);
     }
     onValueChanged();
+    mSpinBox->blockSignals(false);
   }
 
   void connectWithSetting(VALUE_T *setting)
@@ -174,12 +176,14 @@ private slots:
     if(mOldValue.has_value() && mOldValue == getValue()) {
       return;
     }
-    mOldValue = getValue();
+    mOldValue            = getValue();
+    bool hasValueChanged = true;
     if(mSetting != nullptr) {
-      *mSetting = getValue();
+      hasValueChanged = *mSetting != getValue();
+      *mSetting       = getValue();
     }
     if(mSpinBox != nullptr) {
-      triggerValueChanged(QString::number(mSpinBox->value()));
+      triggerValueChanged(QString::number(mSpinBox->value()), hasValueChanged);
     }
   }
 };

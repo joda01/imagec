@@ -27,7 +27,7 @@ QWidget *SettingComboBoxClassificationIn::createInputObject()
   classsNamesChanged();
 
   SettingBase::connect(mComboBox, &QComboBox::currentIndexChanged, this, &SettingComboBoxClassificationIn::onValueChanged);
-  SettingBase::connect(mComboBox, &QComboBox::currentTextChanged, this, &SettingComboBoxClassificationIn::onValueChanged);
+  // SettingBase::connect(mComboBox, &QComboBox::currentTextChanged, this, &SettingComboBoxClassificationIn::onValueChanged);
 
   return mComboBox;
 }
@@ -95,7 +95,11 @@ void SettingComboBoxClassificationIn::outputClassesChanges()
       }
     };
     removeLastSeparator();
-    setValue(actSelected);
+    auto idx = mComboBox->findData(toInt(actSelected));
+    if(idx >= 0) {
+      mComboBox->setCurrentIndex(idx);
+    }
+    SettingBase::triggerValueChanged(mComboBox->currentText(), false);
     mComboBox->blockSignals(false);
   }
 }
@@ -116,10 +120,13 @@ settings::ObjectInputClasss SettingComboBoxClassificationIn::getValue()
 
 void SettingComboBoxClassificationIn::setValue(const settings::ObjectInputClasss &valueIn)
 {
+  mComboBox->blockSignals(true);
   auto idx = mComboBox->findData(toInt(valueIn));
   if(idx >= 0) {
     mComboBox->setCurrentIndex(idx);
   }
+  onValueChanged();
+  mComboBox->blockSignals(false);
 }
 
 std::map<enums::ClassIdIn, std::string> SettingComboBoxClassificationIn::getValueAndNames()
@@ -136,15 +143,17 @@ std::map<enums::ClassIdIn, std::string> SettingComboBoxClassificationIn::getValu
 
 void SettingComboBoxClassificationIn::onValueChanged()
 {
+  bool hasValueChanged = true;
   if(mSetting != nullptr) {
-    *mSetting = getValue();
+    hasValueChanged = *mSetting != getValue();
+    *mSetting       = getValue();
   }
   QVariant itemData = mComboBox->itemData(mComboBox->currentIndex(), Qt::DecorationRole);
   if(itemData.isValid() && itemData.canConvert<QIcon>()) {
     auto selectedIcon = qvariant_cast<QIcon>(itemData);
-    SettingBase::triggerValueChanged(mComboBox->currentText(), selectedIcon);
+    SettingBase::triggerValueChanged(mComboBox->currentText(), hasValueChanged, selectedIcon);
   } else {
-    SettingBase::triggerValueChanged(mComboBox->currentText());
+    SettingBase::triggerValueChanged(mComboBox->currentText(), hasValueChanged);
   }
 }
 

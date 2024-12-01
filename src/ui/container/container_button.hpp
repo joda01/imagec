@@ -51,7 +51,7 @@ private slots:
   void onButtonPressed()
   {
     /////////////////////////////////////////////////////
-    triggerValueChanged("");
+    triggerValueChanged("", true);
   }
 
 private:

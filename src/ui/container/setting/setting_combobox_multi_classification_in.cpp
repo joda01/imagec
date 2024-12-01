@@ -26,7 +26,7 @@ QWidget *SettingComboBoxMultiClassificationIn::createInputObject()
 
   classsNamesChanged();
 
-  SettingBase::connect(mComboBox, &QComboBoxMulti::currentIndexChanged, this, &SettingComboBoxMultiClassificationIn::onValueChanged);
+  // SettingBase::connect(mComboBox, &QComboBoxMulti::currentIndexChanged, this, &SettingComboBoxMultiClassificationIn::onValueChanged);
   SettingBase::connect(mComboBox, &QComboBoxMulti::currentTextChanged, this, &SettingComboBoxMultiClassificationIn::onValueChanged);
 
   return mComboBox;
@@ -91,7 +91,12 @@ void SettingComboBoxMultiClassificationIn::outputClassesChanges()
       }
     };
     removeLastSeparator();
-    setValue(actSelected);
+    QVariantList toCheck;
+    for(const auto &value : actSelected) {
+      toCheck.append(toInt(value));
+    }
+    (mComboBox)->setCheckedItems(toCheck);
+    SettingBase::triggerValueChanged(mComboBox->currentText(), false);
     mComboBox->blockSignals(false);
   }
 }
@@ -119,11 +124,14 @@ settings::ObjectInputClasses SettingComboBoxMultiClassificationIn::getValue()
 
 void SettingComboBoxMultiClassificationIn::setValue(const settings::ObjectInputClasses &valueIn)
 {
+  mComboBox->blockSignals(true);
   QVariantList toCheck;
   for(const auto &value : valueIn) {
     toCheck.append(toInt(value));
   }
   (mComboBox)->setCheckedItems(toCheck);
+  onValueChanged();
+  mComboBox->blockSignals(false);
 }
 
 std::map<joda::enums::ClassIdIn, std::string> SettingComboBoxMultiClassificationIn::getValueAndNames()
@@ -140,15 +148,17 @@ std::map<joda::enums::ClassIdIn, std::string> SettingComboBoxMultiClassification
 
 void SettingComboBoxMultiClassificationIn::onValueChanged()
 {
+  bool hasValueChanged = true;
   if(mSetting != nullptr) {
-    *mSetting = getValue();
+    hasValueChanged = *mSetting != getValue();
+    *mSetting       = getValue();
   }
   QVariant itemData = mComboBox->itemData(mComboBox->currentIndex(), Qt::DecorationRole);
   if(itemData.isValid() && itemData.canConvert<QIcon>()) {
     auto selectedIcon = qvariant_cast<QIcon>(itemData);
-    SettingBase::triggerValueChanged(((QComboBoxMulti *) mComboBox)->getDisplayText(), selectedIcon);
+    SettingBase::triggerValueChanged(((QComboBoxMulti *) mComboBox)->getDisplayText(), hasValueChanged, selectedIcon);
   } else {
-    SettingBase::triggerValueChanged(((QComboBoxMulti *) mComboBox)->getDisplayText());
+    SettingBase::triggerValueChanged(((QComboBoxMulti *) mComboBox)->getDisplayText(), hasValueChanged);
   }
 }
 

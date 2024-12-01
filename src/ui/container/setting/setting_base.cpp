@@ -153,14 +153,17 @@ QWidget *SettingBase::getInputObject()
 /// \param[out]
 /// \return
 ///
-void SettingBase::triggerValueChanged(const QString &newValue, const QIcon &icon)
+void SettingBase::triggerValueChanged(const QString &newValue, bool hasValueChanged, const QIcon &icon)
 {
   mDisplayValue = newValue;
   if(!icon.isNull()) {
     mDisplayLabelIcon->setPixmap(icon.pixmap(DISP_ICON_SIZE, DISP_ICON_SIZE));    // You can adjust the size of the icon as needed
   }
   updateDisplayLabel();
-  emit valueChanged();
+  emit displayTextChanged();
+  if(hasValueChanged) {
+    emit valueChanged();
+  }
 }
 
 ///

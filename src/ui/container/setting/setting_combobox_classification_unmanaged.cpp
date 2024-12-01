@@ -24,7 +24,7 @@ QWidget *SettingComboBoxClassificationUnmanaged::createInputObject()
   mComboBox->addAction(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE), "");
 
   SettingBase::connect(mComboBox, &QComboBox::currentIndexChanged, this, &SettingComboBoxClassificationUnmanaged::onValueChanged);
-  SettingBase::connect(mComboBox, &QComboBox::currentTextChanged, this, &SettingComboBoxClassificationUnmanaged::onValueChanged);
+  // SettingBase::connect(mComboBox, &QComboBox::currentTextChanged, this, &SettingComboBoxClassificationUnmanaged::onValueChanged);
 
   return mComboBox;
 }
@@ -55,7 +55,11 @@ void SettingComboBoxClassificationUnmanaged::addOptions(const std::map<joda::enu
     }
   };
   removeLastSeparator();
-  setValue(actSelected);
+  auto idx = mComboBox->findData(toInt(actSelected));
+  if(idx >= 0) {
+    mComboBox->setCurrentIndex(idx);
+  }
+  SettingBase::triggerValueChanged(mComboBox->currentText(), false);
   mComboBox->blockSignals(false);
 }
 
@@ -93,10 +97,13 @@ joda::enums::ClassId SettingComboBoxClassificationUnmanaged::getValue()
 
 void SettingComboBoxClassificationUnmanaged::setValue(const joda::enums::ClassId &valueIn)
 {
+  mComboBox->blockSignals(true);
   auto idx = mComboBox->findData(toInt(valueIn));
   if(idx >= 0) {
     mComboBox->setCurrentIndex(idx);
   }
+  onValueChanged();
+  mComboBox->blockSignals(false);
 }
 
 std::pair<joda::enums::ClassId, std::pair<std::string, std::string>> SettingComboBoxClassificationUnmanaged::getValueAndNames()
@@ -110,9 +117,9 @@ void SettingComboBoxClassificationUnmanaged::onValueChanged()
   QVariant itemData = mComboBox->itemData(mComboBox->currentIndex(), Qt::DecorationRole);
   if(itemData.isValid() && itemData.canConvert<QIcon>()) {
     auto selectedIcon = qvariant_cast<QIcon>(itemData);
-    SettingBase::triggerValueChanged(mComboBox->currentText(), selectedIcon);
+    SettingBase::triggerValueChanged(mComboBox->currentText(), true, selectedIcon);
   } else {
-    SettingBase::triggerValueChanged(mComboBox->currentText());
+    SettingBase::triggerValueChanged(mComboBox->currentText(), true);
   }
 }
 

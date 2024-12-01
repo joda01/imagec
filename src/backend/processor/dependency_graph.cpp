@@ -169,7 +169,7 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
 
       if(inputClasses.empty()) {
         // This pipeline depends on nothing
-        std::cout << pipelineOne->meta.name << " depends on nothing" << std::endl;
+        //    std::cout << pipelineOne->meta.name << " depends on nothing" << std::endl;
 
       } else {
         Node &inserted = depGraph.at(depGraph.size() - 1);
@@ -185,7 +185,7 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
             for(const auto &element : provided) {
               inputClasses.erase(element);    // Remove deps which are still covered
             }
-            std::cout << pipelineOne->meta.name << " depends on " << pipelineTwo->meta.name << std::endl;
+            //    std::cout << pipelineOne->meta.name << " depends on " << pipelineTwo->meta.name << std::endl;
           }
         }
 
@@ -203,7 +203,7 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
         }
       }
 
-      std::cout << "###############" << std::endl;
+      //  std::cout << "###############" << std::endl;
     }
   }
 
@@ -277,9 +277,9 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
     }
   }
 
-  std::cout << "------ Finished ------" << std::endl;
-  printOrder(finishedOrder);
-  std::cout << "------ -------- ------" << std::endl;
+  // std::cout << "------ Finished ------" << std::endl;
+  // printOrder(finishedOrder);
+  // std::cout << "------ -------- ------" << std::endl;
 
   return finishedOrder;
 }

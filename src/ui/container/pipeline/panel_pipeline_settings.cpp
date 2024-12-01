@@ -142,7 +142,6 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 ///
 void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::Command> command, const settings::PipelineStep *pipelineStepBefore)
 {
-  command->blockComponentSignals(true);
   command->registerDeleteButton(this);
   command->registerAddCommandButton(mSettings, this, mWindowMain);
   if(mCommands.empty()) {
@@ -152,7 +151,6 @@ void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::Command> c
   }
   connect(command.get(), &joda::ui::Command::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   mPipelineSteps->addWidget(command.get());
-  command->blockComponentSignals(false);
   mCommands.push_back(std::move(command));
   mWindowMain->checkForSettingsChanged();
 }
@@ -389,7 +387,7 @@ void PanelPipelineSettings::updatePreview()
 {
   {
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
-    if(!mIsActiveShown) {
+    if(!mIsActiveShown || mLoadingSettings) {
       return;
     }
   }
@@ -428,6 +426,7 @@ void PanelPipelineSettings::updatePreview()
 
   std::lock_guard<std::mutex> lock(mCheckForEmptyMutex);
   mPreviewQue.push(job);
+  log::logTrace("Add preview job!");
 }
 
 ///
@@ -602,6 +601,7 @@ void PanelPipelineSettings::clearPipeline()
 ///
 void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &settings)
 {
+  mLoadingSettings        = true;
   mSettings.meta          = settings.meta;
   mSettings.pipelineSetup = settings.pipelineSetup;
 
@@ -630,6 +630,9 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
       mTopAddCommandButton->setInOutBefore(InOuts::ALL);
     }
   }
+  mLoadingSettings = false;
+
+  updatePreview();
 }
 
 ///
