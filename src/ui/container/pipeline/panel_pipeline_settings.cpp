@@ -346,21 +346,31 @@ PanelPipelineSettings::~PanelPipelineSettings()
 ///
 void PanelPipelineSettings::valueChangedEvent()
 {
+  static bool isBlocked = false;
   // if(cStackIndex < 0) {
   //   zProjection->getDisplayLabelWidget()->setVisible(false);
   // } else {
   //   zProjection->getDisplayLabelWidget()->setVisible(true);
   // }
 
-  // QObject *senderObject = sender();    // Get the signal's origin
-  // if(senderObject) {
-  //   qDebug() << "Signal received from:" << senderObject->objectName();
-  //   senderObject->dumpObjectInfo();
-  // } else {
-  //   qDebug() << "Could not identify sender!";
-  // }
+  if(isBlocked) {
+    return;
+  }
 
+  isBlocked = true;
+
+  QObject *senderObject = sender();    // Get the signal's origin
+  if(senderObject) {
+    qDebug() << "Signal received from:" << senderObject->objectName();
+    senderObject->dumpObjectInfo();
+  } else {
+    qDebug() << "Could not identify sender!";
+  }
   updatePreview();
+
+  QTimer::singleShot(100, this, [this]() {
+    isBlocked = false;    // Unblock after 100ms
+  });
 }
 
 ///
