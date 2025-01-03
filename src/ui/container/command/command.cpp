@@ -343,9 +343,11 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
   for(const auto &[setting, show, group] : settings) {
     setting->setDisplayIconVisible(false);
     connect(setting, &SettingBase::displayTextChanged, this, &Command::displayTextChanged);
+    connect(setting, &SettingBase::valueChanged, this, &Command::valueChanged);
   }
   updateDisplayText();
   connect(this, &Command::displayTextChanged, this, &Command::updateDisplayText);
+
   return col;
 }
 
