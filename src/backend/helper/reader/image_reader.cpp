@@ -280,16 +280,26 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &i
 ///
 cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &imagePlane, uint16_t series, const joda::ome::OmeInfo &ome)
 {
+  const int32_t THUMBNAIL_SIZE = 1024;
+
   // Takes 150 ms
   if(nullptr != myJVM && mJVMInitialised && imagePlane.c >= 0 && imagePlane.z >= 0 && imagePlane.t >= 0) {
     // std::lock_guard<std::mutex> lock(mReadMutex);
 
-    int32_t resolutionIdx = static_cast<int32_t>(ome.getResolutionCount().size()) - 1;
-    auto resolution       = ome.getResolutionCount(series).at(resolutionIdx);
+    // Find the pyramid with the best matching resolution for thumbnail creation
+    int32_t resolutionIdx                       = 0;
+    ome::OmeInfo::ImageInfo::Pyramid resolution = ome.getResolutionCount(series).at(0);
+    for(resolutionIdx = 0; resolutionIdx < ome.getResolutionCount().size(); resolutionIdx++) {
+      resolution = ome.getResolutionCount(series).at(resolutionIdx);
+      if(resolution.imageWidth <= THUMBNAIL_SIZE || resolution.imageHeight <= THUMBNAIL_SIZE) {
+        std::cout << "Thum: " << std::to_string(ome.getImageHeight(resolutionIdx)) << std::endl;
+        break;
+      }
+    }
 
     /// \todo Make preview size configurable
     if(resolution.imageMemoryUsage > 838860800) {
-      joda::log::logWarning("Cannot create thumbnail. Pyramid to big: >" + std::to_string(resolution.imageMemoryUsage) + "< Bytes.");
+      joda::log::logWarning("Cannot create thumbnail. Pyramid too big: >" + std::to_string(resolution.imageMemoryUsage) + "< Bytes.");
       return cv::Mat{};
     }
     JNIEnv *myEnv;
@@ -324,71 +334,7 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &ima
 
     myEnv->DeleteLocalRef(filePath);
     myJVM->DetachCurrentThread();
-    auto resizedImage = cv::Mat(joda::image::func::Resizer::resizeWithAspectRatio(loadedImage, 256, 256));
-
-    auto autoAdjustBrightness = [](cv::Mat &input) {
-      int32_t lowerValue = 0;
-      int32_t upperValue = 0;
-
-      // Compute the histogram
-      int histSize           = UINT16_MAX + 1;
-      float range[]          = {0, UINT16_MAX + 1};
-      const float *histRange = {range};
-      bool uniform           = true;
-      bool accumulate        = false;
-      cv::Mat hist;
-      cv::calcHist(&input, 1, 0, cv::Mat(), hist, 1, &histSize, &histRange);    //, uniform, accumulate);
-      // Normalize the histogram to [0, histImage.height()]
-      hist.at<float>(0) = 0;    // We don't want to display black
-
-      uint16_t histMaxIdx = 0;
-      uint16_t histMax    = 0;
-      for(int idx = 0; idx < (histSize - 1); idx++) {
-        uint16_t histValue = hist.at<float>(idx);
-        if(histValue > histMax) {
-          histMax    = histValue;
-          histMaxIdx = idx;
-        }
-      }
-
-      uint16_t histMinIdx = histMaxIdx;
-      for(int idx = histMaxIdx; idx < (histSize - 1); idx++) {
-        uint16_t histValue = hist.at<float>(idx);
-        if(histValue < histMax / 3) {
-          histMinIdx = idx;
-        }
-      }
-
-      upperValue = histMinIdx;
-      if(upperValue > 65535) {
-        upperValue = 65535;
-      }
-
-      // Create a lookup table for mapping pixel values
-      cv::Mat lookupTable(1, 65535, CV_16U);
-
-      for(int i = 0; i < 65535; ++i) {
-        if(i < lowerValue) {
-          lookupTable.at<uint16_t>(i) = 0;
-        } else if(i > upperValue) {
-          lookupTable.at<uint16_t>(i) = 65535;
-        } else {
-          lookupTable.at<uint16_t>(i) = static_cast<uint16_t>((i - static_cast<float>(lowerValue)) * 65535.0 /
-                                                              (static_cast<float>(upperValue) - static_cast<float>(lowerValue)));
-        }
-      }
-
-      // Apply the lookup table to the source image to get the destination image
-      for(int y = 0; y < input.rows; ++y) {
-        for(int x = 0; x < input.cols; ++x) {
-          uint16_t pixelValue      = input.at<uint16_t>(y, x);
-          input.at<uint16_t>(y, x) = lookupTable.at<uint16_t>(pixelValue);
-        }
-      }
-    };
-
-    autoAdjustBrightness(resizedImage);
-    return resizedImage;
+    return cv::Mat(joda::image::func::Resizer::resizeWithAspectRatio(loadedImage, THUMBNAIL_SIZE, THUMBNAIL_SIZE));
   }
 
   return cv::Mat{};

@@ -30,10 +30,10 @@ namespace joda::ui {
 // Image view section
 //
 PanelImageView::PanelImageView(const joda::image::Image &imageReference, const joda::image::Image &thumbnailImageReference, bool isEditedImage,
-                               QWidget *parent) :
+                               bool withThumbnail, QWidget *parent) :
     QGraphicsView(parent),
     mActPixmapOriginal(imageReference), mThumbnailImageReference(thumbnailImageReference), scene(new QGraphicsScene(this)),
-    mIsEditedImage(isEditedImage)
+    mIsEditedImage(isEditedImage), mWithThumbnail(withThumbnail)
 {
   setScene(scene);
   setBackgroundBrush(QBrush(Qt::black));
@@ -71,6 +71,7 @@ void PanelImageView::setState(State state)
 
 void PanelImageView::imageUpdated()
 {
+  const_cast<joda::image::Image &>(mThumbnailImageReference).autoAdjustBrightnessRange();
   emit updateImage();
 }
 
@@ -136,7 +137,7 @@ void PanelImageView::mouseMoveEvent(QMouseEvent *event)
     lastPos = event->pos();
     emit onImageRepainted();
   }
-  if(mShowThumbnail) {
+  if(mShowThumbnail && mWithThumbnail) {
     getThumbnailAreaEntered(event);
   }
   if(mShowPixelInfo) {
@@ -196,7 +197,7 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
 
     isDragging = true;
     lastPos    = event->pos();
-    if(mShowThumbnail) {
+    if(mShowThumbnail && mWithThumbnail) {
       getClickedTileInThumbnail(event);
     }
   }
@@ -304,7 +305,7 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   }
 
   // Draw thumbnail
-  if(mShowThumbnail) {
+  if(mShowThumbnail && mWithThumbnail) {
     drawThumbnail();
   }
 

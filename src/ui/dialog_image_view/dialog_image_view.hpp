@@ -64,6 +64,9 @@ public:
 signals:
   void tileClicked(int32_t tileX, int32_t tileY);
 
+public slots:
+  void autoAdjustHistogram();
+
 private:
   /////////////////////////////////////////////////////
   static constexpr float HISTOGRAM_ZOOM_STEP = 25;
@@ -83,6 +86,8 @@ private:
   /////////////////////////////////////////////////////
   QDialog *mHistogramDialog;
 
+  void triggerPreviewUpdate();
+
 private slots:
   void onFitImageToScreenSizeClicked();
   void onZoomOutClicked();
@@ -93,7 +98,6 @@ private slots:
   void onShowHistogramDialog();
   void onSetSateToMove();
   void onSetStateToPaintRect();
-  void onFitHistogramToScreenSizeClicked();
   void onZoomHistogramOutClicked();
   void onZoomHistogramInClicked();
   void onShowPixelInfo(bool checked);

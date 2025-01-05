@@ -67,8 +67,16 @@ public:
     mImageOriginal = nullptr;
   }
 
-  void setBrightnessRange(uint16_t lowerValue, uint16_t upperValue, float histogramZoomFactor,
-                          uint16_t histogramOffset);
+  void setBrightnessRange(uint16_t lowerValue, uint16_t upperValue, float histogramZoomFactor, uint16_t histogramOffset);
+
+  struct AutoAdjustRet
+  {
+    uint16_t sigmaLower       = 0;    // +/- index around the maximum
+    uint16_t sigmaUpper       = 0;    // +/- index around the maximum
+    uint16_t histogramMaximum = 0;    // Index of the maximum
+    uint16_t adjustIdx        = 0;    // Calculated "optimal" adjustment index
+  };
+  AutoAdjustRet autoAdjustBrightnessRange();
 
 private:
   /////////////////////////////////////////////////////

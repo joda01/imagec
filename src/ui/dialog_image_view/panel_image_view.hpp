@@ -70,7 +70,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  PanelImageView(const joda::image::Image &imageReference, const joda::image::Image &thumbnailImageReference, bool isEditedImage,
+  PanelImageView(const joda::image::Image &imageReference, const joda::image::Image &thumbnailImageReference, bool isEditedImage, bool withThumbnail,
                  QWidget *parent = nullptr);
   void imageUpdated();
   void resetImage();
@@ -160,6 +160,7 @@ private:
   bool mThumbnailAreaEntered = false;
 
   /////////////////////////////////////////////////////
+  const bool mWithThumbnail;
   bool mWaiting             = false;
   bool mShowThumbnail       = true;
   bool mShowPixelInfo       = true;

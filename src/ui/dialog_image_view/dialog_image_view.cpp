@@ -19,6 +19,7 @@
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qslider.h>
+#include <cmath>
 #include <cstdint>
 #include <string>
 #include <thread>
@@ -37,8 +38,8 @@ using namespace std::chrono_literals;
 /// \return
 ///
 DialogImageViewer::DialogImageViewer(QWidget *parent) :
-    QMainWindow(parent), mImageViewLeft(mPreviewImages.originalImage, mPreviewImages.thumbnail, false),
-    mImageViewRight(mPreviewImages.previewImage, mPreviewImages.thumbnail, true)
+    QMainWindow(parent), mImageViewLeft(mPreviewImages.originalImage, mPreviewImages.thumbnail, false, false),
+    mImageViewRight(mPreviewImages.previewImage, mPreviewImages.thumbnail, true, true)
 {
   // setWindowFlags(windowFlags() | Qt::Window | Qt::WindowMaximizeButtonHint);
   setBaseSize(1200, 600);
@@ -142,13 +143,13 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     connect(mSlider, &QSlider::valueChanged, this, &DialogImageViewer::onSliderMoved);
     toolBar->addWidget(mSlider);
 
-    // QAction *fitToScreen = new QAction(QIcon(":/icons/icons/icons8-full-screen"), "");
-    // fitToScreen->setObjectName("ToolButton");
-    // fitToScreen->setToolTip("Fit histogram to screen");
-    // connect(fitToScreen, &QAction::triggered, this, &DialogImageViewer::onFitHistogramToScreenSizeClicked);
-    // toolBar->addAction(fitToScreen);
+    QAction *fitToScreen = new QAction(generateIcon("automatic-contrast"), "");
+    fitToScreen->setObjectName("ToolButton");
+    fitToScreen->setToolTip("Auto adjust");
+    connect(fitToScreen, &QAction::triggered, this, &DialogImageViewer::autoAdjustHistogram);
+    toolBar->addAction(fitToScreen);
 
-    QAction *action1 = new QAction(generateIcon("distribution-histogram"), "");
+    QAction *action1 = new QAction(generateIcon("normal-distribution-histogram"), "");
     connect(action1, &QAction::triggered, this, &DialogImageViewer::onShowHistogramDialog);
     toolBar->addAction(action1);
 
@@ -192,6 +193,39 @@ void DialogImageViewer::fitImageToScreenSize()
 /// \param[out]
 /// \return
 ///
+void DialogImageViewer::autoAdjustHistogram()
+{
+  mSliderScaling->blockSignals(true);
+  mSlider->blockSignals(true);
+  mSliderHistogramOffset->blockSignals(true);
+
+  auto autoAdjustResult       = mPreviewImages.originalImage.autoAdjustBrightnessRange();
+  int32_t preferredLowerRange = autoAdjustResult.sigmaLower;
+  int32_t preferredUpperRange = autoAdjustResult.sigmaUpper;
+
+  mSliderScaling->setValue(1);
+
+  mSliderHistogramOffset->setValue(0);
+  mSliderHistogramOffset->setMaximum(0);
+  mSlider->setMinimum(mSliderHistogramOffset->value());
+  mSlider->setMaximum(mSliderHistogramOffset->value() + UINT16_MAX);
+  mSlider->setValue(autoAdjustResult.adjustIdx);
+
+  //
+  mSliderScaling->blockSignals(false);
+  mSlider->blockSignals(false);
+  mSliderHistogramOffset->blockSignals(false);
+
+  triggerPreviewUpdate();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void DialogImageViewer::onSliderMoved(int position)
 {
   blockSignals(true);
@@ -202,6 +236,18 @@ void DialogImageViewer::onSliderMoved(int position)
   mSlider->setMaximum(mSliderHistogramOffset->value() + number);
   blockSignals(false);
 
+  triggerPreviewUpdate();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::triggerPreviewUpdate()
+{
   if(mPreviewCounter == 0) {
     {
       std::lock_guard<std::mutex> lock(mPreviewMutex);
@@ -216,8 +262,7 @@ void DialogImageViewer::onSliderMoved(int position)
       int previewCounter = 0;
       do {
         mPreviewImages.originalImage.setBrightnessRange(0, mSlider->value(), mSliderScaling->value(), mSliderHistogramOffset->value());
-
-        mPreviewImages.thumbnail.setBrightnessRange(0, 600, 128, 0);
+        // mPreviewImages.thumbnail.setBrightnessRange(0, mSlider->value(), mSliderScaling->value(), mSliderHistogramOffset->value());
         mImageViewLeft.emitUpdateImage();
         std::this_thread::sleep_for(20ms);
         {
@@ -245,6 +290,7 @@ void DialogImageViewer::imageUpdated()
 {
   mImageViewLeft.imageUpdated();
   mImageViewRight.imageUpdated();
+  autoAdjustHistogram();
 }
 
 ///
@@ -309,7 +355,7 @@ void DialogImageViewer::createHistogramDialog()
     mSliderScaling      = new QScrollBar(mHistogramDialog);
     mSliderScaling->setMinimum(1);
     mSliderScaling->setMaximum(UINT8_MAX);
-    mSliderScaling->setValue(128);
+    mSliderScaling->setValue(1);
     mSliderScaling->setOrientation(Qt::Orientation::Horizontal);
     mSliderScaling->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     connect(mSliderScaling, &QSlider::valueChanged, this, &DialogImageViewer::onSliderMoved);
@@ -449,18 +495,6 @@ void DialogImageViewer::onShowCrossHandCursor(bool checked)
 {
   mImageViewLeft.setShowCrosshandCursor(checked);
   mImageViewRight.setShowCrosshandCursor(checked);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogImageViewer::onFitHistogramToScreenSizeClicked()
-{
-  mSliderScaling->setValue(128);
 }
 
 ///

@@ -84,9 +84,8 @@ QPixmap Image::getPixmap() const
       } else if(i > mUpperValue) {
         lookupTable.at<uint16_t>(i) = 65535;
       } else {
-        lookupTable.at<uint16_t>(i) =
-            static_cast<uint16_t>((i - static_cast<float>(mLowerValue)) * 65535.0 /
-                                  (static_cast<float>(mUpperValue) - static_cast<float>(mLowerValue)));
+        lookupTable.at<uint16_t>(i) = static_cast<uint16_t>((i - static_cast<float>(mLowerValue)) * 65535.0 /
+                                                            (static_cast<float>(mUpperValue) - static_cast<float>(mLowerValue)));
       }
     }
 
@@ -109,13 +108,90 @@ QPixmap Image::getPixmap() const
 /// \param[out]
 /// \return
 ///
-void Image::setBrightnessRange(uint16_t lowerValue, uint16_t upperValue, float histogramZoomFactor,
-                               uint16_t histogramOffset)
+void Image::setBrightnessRange(uint16_t lowerValue, uint16_t upperValue, float histogramZoomFactor, uint16_t histogramOffset)
 {
   mLowerValue          = lowerValue;
   mUpperValue          = upperValue;
   mHistogramZoomFactor = histogramZoomFactor;
   mHistogramOffset     = histogramOffset;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+Image::AutoAdjustRet Image::autoAdjustBrightnessRange()
+{
+  if(mImageOriginal != nullptr) {
+    // Compute the histogram
+    int histSize           = UINT16_MAX + 1;
+    float range[]          = {0, UINT16_MAX + 1};
+    const float *histRange = {range};
+    bool uniform           = true;
+    bool accumulate        = false;
+    cv::Mat hist;
+    cv::calcHist(mImageOriginal, 1, 0, cv::Mat(), hist, 1, &histSize, &histRange);    //, uniform, accumulate);
+    // Normalize the histogram to [0, histImage.height()]
+    hist.at<float>(0) = 0;    // We don't want to display black
+
+    double globalMaximum = 0;
+    double globalMinimum = 0;
+
+    cv::minMaxLoc(hist, &globalMinimum, &globalMaximum);
+
+    double threshold = globalMaximum * (double) 0.7;
+    std::vector<int> maximaIndexs;
+    std::vector<float> maxima;
+    for(int idx = 1; idx < (histSize - 1); idx++) {
+      if(hist.at<float>(idx) > hist.at<float>(idx - 1) && hist.at<float>(idx) > hist.at<float>(idx + 1)) {
+        // Find all local maxima higher than 50% of the global maxima
+        if(hist.at<float>(idx) >= threshold) {
+          maximaIndexs.push_back(idx);              // Store the index of the maximum
+          maxima.push_back(hist.at<float>(idx));    // Store the index of the maximum
+        }
+      }
+    }
+
+    uint16_t histMaxIdx = maximaIndexs.at(maximaIndexs.size() - 1);
+    float histMax       = maxima.at(maxima.size() - 1);
+
+    auto findInIndex = [&histMaxIdx, &hist, &histSize, &histMax](uint16_t startIndex, int32_t stopIndex, const float sigma, bool upperLower,
+                                                                 uint16_t offset = 0) -> int32_t {
+      uint16_t histIdx = startIndex;
+      for(int idx = startIndex; idx < stopIndex; idx++) {
+        uint16_t histValue = hist.at<float>(idx);
+        if(upperLower) {
+          if(histValue < static_cast<float>(histMax) / sigma) {
+            histIdx = idx + offset;
+            break;
+          }
+        } else {
+          if(histValue > static_cast<float>(histMax) / sigma) {
+            histIdx = idx - offset;
+            break;
+          }
+        }
+      }
+      if(histIdx > 65535) {
+        histIdx = 65535;
+      }
+      if(histIdx < 0) {
+        histIdx = 0;
+      }
+      return histIdx;
+    };
+
+    uint16_t adjustedValue = findInIndex(histMaxIdx, (histSize - 1), 3.0, true, 5000);
+    uint16_t lowerBound    = findInIndex(0, histMaxIdx, 6.0, false);
+    uint16_t upperBound    = findInIndex(histMaxIdx, (histSize - 1), 6.0, true, 5000);
+
+    mUpperValue = adjustedValue;
+    return {lowerBound, upperBound, histMaxIdx, adjustedValue};
+  }
+  return {};
 }
 
 ///
@@ -133,23 +209,19 @@ QPixmap Image::encode(const cv::Mat *image) const
 
   switch(image->type()) {
     case CV_16UC1: {
-      return QPixmap::fromImage(QImage(image->data, image->cols, image->rows, static_cast<uint32_t>(image->step),
-                                       QImage::Format_Grayscale16));
+      return QPixmap::fromImage(QImage(image->data, image->cols, image->rows, static_cast<uint32_t>(image->step), QImage::Format_Grayscale16));
     } break;
 
     case CV_8UC1: {
-      return QPixmap::fromImage(
-          QImage(image->data, image->cols, image->rows, static_cast<uint32_t>(image->step), QImage::Format_Grayscale8));
+      return QPixmap::fromImage(QImage(image->data, image->cols, image->rows, static_cast<uint32_t>(image->step), QImage::Format_Grayscale8));
     } break;
     case CV_8UC3: {
-      auto pixmap = QPixmap::fromImage(
-          QImage(image->data, image->cols, image->rows, static_cast<uint32_t>(image->step), QImage::Format_RGB888)
-              .rgbSwapped());
+      auto pixmap =
+          QPixmap::fromImage(QImage(image->data, image->cols, image->rows, static_cast<uint32_t>(image->step), QImage::Format_RGB888).rgbSwapped());
       return pixmap;
     } break;
     case CV_8UC4: {
-      return QPixmap::fromImage(
-          QImage(image->data, image->cols, image->rows, static_cast<uint32_t>(image->step), QImage::Format_ARGB32));
+      return QPixmap::fromImage(QImage(image->data, image->cols, image->rows, static_cast<uint32_t>(image->step), QImage::Format_ARGB32));
     } break;
     default:
       std::cout << "Not supported" << std::endl;
