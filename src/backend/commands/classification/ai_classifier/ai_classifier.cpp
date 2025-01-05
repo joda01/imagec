@@ -126,7 +126,11 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
       const float anchor_h = NET_ANCHORS[stride][anchor * 2 + 1];
       for(int i = 0; i < grid_y; ++i) {
         for(int j = 0; j < grid_x; ++j) {
+          if(pdata == nullptr || *pdata == 0) {
+            continue;
+          }
           float box_score = pdata[4];
+
           // Get the probability that an object is contained in the box of
           // each row
           if(box_score >= BOX_THRESHOLD) {

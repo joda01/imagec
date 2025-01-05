@@ -289,10 +289,10 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &ima
     // Find the pyramid with the best matching resolution for thumbnail creation
     int32_t resolutionIdx                       = 0;
     ome::OmeInfo::ImageInfo::Pyramid resolution = ome.getResolutionCount(series).at(0);
-    for(resolutionIdx = 0; resolutionIdx < ome.getResolutionCount().size(); resolutionIdx++) {
-      resolution = ome.getResolutionCount(series).at(resolutionIdx);
+    for(int idx = 0; idx < ome.getResolutionCount().size(); idx++) {
+      resolution = ome.getResolutionCount(series).at(idx);
       if(resolution.imageWidth <= THUMBNAIL_SIZE || resolution.imageHeight <= THUMBNAIL_SIZE) {
-        std::cout << "Thum: " << std::to_string(ome.getImageHeight(resolutionIdx)) << std::endl;
+        resolutionIdx = idx;
         break;
       }
     }

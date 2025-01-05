@@ -154,7 +154,9 @@ Image::AutoAdjustRet Image::autoAdjustBrightnessRange()
         }
       }
     }
-
+    if(maximaIndexs.empty()) {
+      return {};
+    }
     uint16_t histMaxIdx = maximaIndexs.at(maximaIndexs.size() - 1);
     float histMax       = maxima.at(maxima.size() - 1);
 
