@@ -75,15 +75,16 @@ private:
   static constexpr inline int STRIDE_SIZE  = 3;
 #endif    // YOLO_P6
 
-  static constexpr inline float NET_STRIDE[4]           = {8, 16, 32, 64};
-  static constexpr inline float BOX_THRESHOLD           = 0.25;    // (default = 0.25)
-  static constexpr inline float CLASS_THRESHOLD_DEFAULT = 0.5;     // (default = 0.5)
-  static constexpr inline float NMS_THRESHOLD           = 0.45;    // To prevent double bounding boxes (default = 0.45)
-  static constexpr inline float MASK_THRESHOLD          = 0.8;     // (default = 0.5)
-  static constexpr inline float NMS_SCORE_THRESHOLD     = BOX_THRESHOLD * CLASS_THRESHOLD_DEFAULT;
+  static constexpr inline float NET_STRIDE[4] = {8, 16, 32, 64};
+  static constexpr inline float BOX_THRESHOLD = 0.25;    // (default = 0.25)
+  // static constexpr inline float CLASS_THRESHOLD_DEFAULT = 0.5;     // (default = 0.5)
+  static constexpr inline float NMS_THRESHOLD = 0.45;    // To prevent double bounding boxes (default = 0.45)
+  // static constexpr inline float MASK_THRESHOLD = 0.8;     // (default = 0.5)
+  //  static constexpr inline float NMS_SCORE_THRESHOLD     = BOX_THRESHOLD * CLASS_THRESHOLD_DEFAULT;
 
-  // float mClassThreshold;
-  // float mNmsScoreThreshold;
+  const float mClassThreshold;
+  const float mNmsScoreThreshold;
+  const float mMaskThreshold;
 
   // Colors
   int32_t mNumberOfClasses;

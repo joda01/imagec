@@ -36,7 +36,9 @@ using namespace cv::dnn;
 /// \param[in]  onnxNetPath Path to the ONNX net file
 /// \param[in]  classNames  Array of class names e.g. {"nuclues","cell"}
 ///
-AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) : mSettings(settings), mNumberOfClasses(settings.numberOfModelClasses)
+AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) :
+    mSettings(settings), mNumberOfClasses(settings.numberOfModelClasses), mClassThreshold(settings.classThreshold),
+    mNmsScoreThreshold(BOX_THRESHOLD * settings.classThreshold), mMaskThreshold(settings.maskThreshold)
 {
   if(settings.modelPath.empty()) {
     return;
@@ -133,7 +135,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
             double maxClassScores;
             minMaxLoc(scores, nullptr, &maxClassScores, nullptr, &classIdPoint);
             maxClassScores = static_cast<float>(maxClassScores);
-            if(maxClassScores >= CLASS_THRESHOLD_DEFAULT) {
+            if(maxClassScores >= mClassThreshold) {
               vector<float> temp_proto(pdata + 5 + mNumberOfClasses, pdata + net_width);
               pickedProposals.push_back(temp_proto);
               // rect [x,y,w,h]
@@ -157,7 +159,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
   // Perform non-maximum suppression to remove redundant overlapping boxes with
   // lower confidence
   vector<int> nms_result;
-  NMSBoxes(boxes, confidences, NMS_SCORE_THRESHOLD, NMS_THRESHOLD, nms_result);
+  NMSBoxes(boxes, confidences, mNmsScoreThreshold, NMS_THRESHOLD, nms_result);
 
   Mat mask_proposals;
   for(int i = 0; i < nms_result.size(); ++i) {
@@ -285,7 +287,7 @@ auto AiClassifier::getMask(const Mat &maskChannel, const cv::Size &inputImageSha
   dest = (1.0 / (1.0 + dest))(roi);
   resize(dest, mask, inputImageShape, INTER_NEAREST);
   mask = mask(box).clone();
-  mask = mask > MASK_THRESHOLD;
+  mask = mask > mMaskThreshold;
 
   return mask;
 }

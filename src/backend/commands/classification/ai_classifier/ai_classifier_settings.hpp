@@ -42,6 +42,11 @@ struct AiClassifierSettings : public SettingBase
   float classThreshold = 0.5;
 
   //
+  // Default mask threshold
+  //
+  float maskThreshold = 0.8;
+
+  //
   // Vector array index is the class ID used by the AI model starting with 0
   //
   std::vector<ObjectClass> modelClasses = {};
@@ -68,7 +73,8 @@ struct AiClassifierSettings : public SettingBase
     return out;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AiClassifierSettings, modelPath, classThreshold, numberOfModelClasses, modelClasses);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AiClassifierSettings, modelPath, classThreshold, maskThreshold, numberOfModelClasses,
+                                                       modelClasses);
 };
 
 }    // namespace joda::settings

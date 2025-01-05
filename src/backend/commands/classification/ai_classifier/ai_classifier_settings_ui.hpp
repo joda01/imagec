@@ -83,7 +83,23 @@ public:
     mNumberOdModelClasses->connectWithSetting(&settings.numberOfModelClasses);
     mNumberOdModelClasses->setShortDescription("Classes:");
 
-    auto *col   = addSetting(modelTab, "AI model settings", {{mModelPath.get(), true, 0}, {mNumberOdModelClasses.get(), false, 0}});
+    mClassThreshold = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Class threshold (0.5)");
+    mClassThreshold->setPlaceholderText("[0 - 1]");
+    mClassThreshold->setUnit("");
+    mClassThreshold->setMinMax(0, 1);
+    mClassThreshold->setValue(settings.classThreshold);
+    mClassThreshold->connectWithSetting(&settings.classThreshold);
+
+    mMaskThreshold = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Mask threshold (0.8)");
+    mMaskThreshold->setPlaceholderText("[0 - 1");
+    mMaskThreshold->setUnit("");
+    mMaskThreshold->setMinMax(0, 1);
+    mMaskThreshold->setValue(settings.maskThreshold);
+    mMaskThreshold->connectWithSetting(&settings.maskThreshold);
+
+    auto *col  = addSetting(modelTab, "AI model settings", {{mModelPath.get(), true, 0}, {mNumberOdModelClasses.get(), false, 0}});
+    auto *col2 = addSetting(modelTab, "Probabilities", {{mClassThreshold.get(), false, 0}, {mMaskThreshold.get(), false, 0}});
+
     int32_t cnt = 0;
     for(auto &classifierSetting : settings.modelClasses) {
       auto *tab = addTab("Filter", [this, &classifierSetting] { removeObjectClass(&classifierSetting); });
@@ -231,6 +247,9 @@ private:
 
   std::unique_ptr<SettingComboBoxString> mModelPath;
   std::unique_ptr<SettingLineEdit<int32_t>> mNumberOdModelClasses;
+  std::unique_ptr<SettingLineEdit<float>> mClassThreshold;
+  std::unique_ptr<SettingLineEdit<float>> mMaskThreshold;
+
   std::list<ClassifierFilter> mClassifyFilter;
   settings::AiClassifierSettings &mSettings;
   QWidget *mParent;
