@@ -67,7 +67,7 @@ public:
         mNumberOdModelClasses->setValue(info.classes.size());
         int n = 0;
         for(const auto &classs : info.classes) {
-          addFilter(classs, n);
+          addFilter(classs, n, 1);
           n++;
         }
       }
@@ -82,6 +82,7 @@ public:
     mNumberOdModelClasses->setValue(settings.numberOfModelClasses);
     mNumberOdModelClasses->connectWithSetting(&settings.numberOfModelClasses);
     mNumberOdModelClasses->setShortDescription("Classes:");
+    mNumberOdModelClasses->setEnabled(false);
 
     mClassThreshold = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Class threshold (0.5)");
     mClassThreshold->setPlaceholderText("[0 - 1]");
@@ -175,7 +176,16 @@ private:
       mClassOutNoMatch->setValue(settings.outputClassNoMatch);
       mClassOutNoMatch->connectWithSetting(&settings.outputClassNoMatch);
 
-      outer.addSetting(tab, "Result output", {{mClassOut.get(), true, tabIndex}, {mClassOutNoMatch.get(), true, tabIndex}});
+      //
+      mProbabilityHandicap = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Probability handicap (1)");
+      mProbabilityHandicap->setPlaceholderText("[0 - 256]");
+      mProbabilityHandicap->setUnit("");
+      mProbabilityHandicap->setMinMax(0, 256);
+      mProbabilityHandicap->setValue(settings.probabilityHandicap);
+      mProbabilityHandicap->connectWithSetting(&settings.probabilityHandicap);
+
+      outer.addSetting(tab, "Result output",
+                       {{mClassOut.get(), true, tabIndex}, {mClassOutNoMatch.get(), true, tabIndex}, {mProbabilityHandicap.get(), false, tabIndex}});
 
       // Intensity filter
 
@@ -222,7 +232,7 @@ private:
     {
       outer.removeSetting({mClassOutNoMatch.get(), mGrayScaleValue.get(), mClassOut.get(), mMinParticleSize.get(), mMaxParticleSize.get(),
                            mMinCircularity.get(), cStackForIntensityFilter.get(), zProjectionForIntensityFilter.get(), mMinIntensity.get(),
-                           mMaxIntensity.get()});
+                           mMaxIntensity.get(), mProbabilityHandicap.get()});
     }
 
     // std::unique_ptr<SettingComboBox<enums::ClasssIdIn>> mClasssOut;
@@ -239,6 +249,8 @@ private:
     std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjectionForIntensityFilter;
     std::unique_ptr<SettingLineEdit<int>> mMinIntensity;
     std::unique_ptr<SettingLineEdit<int>> mMaxIntensity;
+
+    std::unique_ptr<SettingLineEdit<float>> mProbabilityHandicap;
 
     settings::ObjectClass &settings;
     AiClassifier &outer;
@@ -286,12 +298,13 @@ private:
   /////////////////////////////////////////////////////
 
 private slots:
-  void addFilter(const std::string &title, int32_t classId)
+  void addFilter(const std::string &title, int32_t classId, float handicap)
   {
     settings::ObjectClass objClass;
-    objClass.modelClassId = classId;
-    auto &ret             = mSettings.modelClasses.emplace_back(objClass);
-    auto *tab             = addTab(title.data(), [this, &ret] { removeObjectClass(&ret); });
+    objClass.modelClassId        = classId;
+    objClass.probabilityHandicap = handicap;
+    auto &ret                    = mSettings.modelClasses.emplace_back(objClass);
+    auto *tab                    = addTab(title.data(), [this, &ret] { removeObjectClass(&ret); });
     mClassifyFilter.emplace_back(ret, *this, tab, mSettings.modelClasses.size(), mParent);
     updateDisplayText();
   }

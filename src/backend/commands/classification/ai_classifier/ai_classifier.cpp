@@ -21,6 +21,7 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include <opencv2/core/matx.hpp>
 #include <opencv2/core/persistence.hpp>
+#include <opencv2/dnn/dnn.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
@@ -43,6 +44,13 @@ AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) :
   if(settings.modelPath.empty()) {
     return;
   }
+
+  mProbabilityHandicap.clear();
+  for(const auto &modelClass : settings.modelClasses) {
+    std::cout << "H " << std::to_string(modelClass.modelClassId) << " | " << std::to_string(modelClass.probabilityHandicap) << std::endl;
+    mProbabilityHandicap.emplace(modelClass.modelClassId, modelClass.probabilityHandicap);
+  }
+
   try {
     mNet        = cv::dnn::readNet(settings.modelPath);
     bool isCuda = false;
@@ -135,9 +143,18 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
           // each row
           if(box_score >= BOX_THRESHOLD) {
             cv::Mat scores(1, mNumberOfClasses, CV_32FC1, pdata + 5);
-            Point classIdPoint;
+
+            // Add a handicap for the probability to rank some classes up or down
+            for(int32_t modelClassIdx = 0; modelClassIdx < scores.cols; modelClassIdx++) {
+              scores.at<float>(modelClassIdx) = scores.at<float>(modelClassIdx) * mProbabilityHandicap[modelClassIdx];
+            }
+
+            Point classIdPointMax;
+            Point classIdPointMin;
+
             double maxClassScores;
-            minMaxLoc(scores, nullptr, &maxClassScores, nullptr, &classIdPoint);
+            double minClassScores;
+            minMaxLoc(scores, &minClassScores, &maxClassScores, &classIdPointMin, &classIdPointMax);
             maxClassScores = static_cast<float>(maxClassScores);
             if(maxClassScores >= mClassThreshold) {
               vector<float> temp_proto(pdata + 5 + mNumberOfClasses, pdata + net_width);
@@ -149,7 +166,8 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
               float h  = pdata[3] / ratio[1];    // h
               int left = MAX((x - 0.5 * w), 0);
               int top  = MAX((y - 0.5 * h), 0);
-              classIds.push_back(classIdPoint.x);
+
+              classIds.push_back(classIdPointMax.x);
               confidences.push_back(maxClassScores * box_score);
               boxes.push_back(Rect(left, top, static_cast<int>(w), static_cast<int>(h)));
             }
@@ -243,24 +261,25 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
     //
     // Apply the filter based on the object class
     //
-    int32_t classId = classIds[idx];
-    if(mSettings.modelClasses.size() > classId) {
-      const auto objectClass = mSettings.modelClasses.begin();
-      while(objectClass != mSettings.modelClasses.end()) {
-        if(objectClass->modelClassId == classId) {
+    int32_t modelClassId = classIds[idx];
+    if(mSettings.modelClasses.size() > modelClassId) {
+      auto objectClass = mSettings.modelClasses[0];
+      for(int32_t n = 1; n < mSettings.modelClasses.size(); n++) {
+        if(mSettings.modelClasses[n].modelClassId == modelClassId) {
+          objectClass = mSettings.modelClasses[n];
           break;
         }
       }
 
       joda::atom::ROI detectedRoi(
           atom::ROI::RoiObjectId{
-              .classId    = context.getClassId(objectClass->outputClassNoMatch),
+              .classId    = context.getClassId(objectClass.outputClassNoMatch),
               .imagePlane = context.getActIterator(),
           },
           context.getAppliedMinThreshold(), fittedBoundingBox, shiftedMask, contour, context.getImageSize(), context.getOriginalImageSize(),
           context.getActTile(), context.getTileSize());
 
-      for(const auto &filter : objectClass->filters) {
+      for(const auto &filter : objectClass.filters) {
         if(joda::settings::ClassifierFilter::doesFilterMatch(context, detectedRoi, filter.metrics, filter.intensity)) {
           detectedRoi.setClasss(context.getClassId(filter.outputClass));
         }

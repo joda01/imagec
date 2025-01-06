@@ -90,6 +90,7 @@ private:
   int32_t mNumberOfClasses;
   cv::dnn::Net mNet;
   bool mIsReady = false;
+  std::map<int32_t, float> mProbabilityHandicap;
 
   const settings::AiClassifierSettings &mSettings;
 };
