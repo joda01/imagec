@@ -47,7 +47,6 @@ AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) :
 
   mProbabilityHandicap.clear();
   for(const auto &modelClass : settings.modelClasses) {
-    std::cout << "H " << std::to_string(modelClass.modelClassId) << " | " << std::to_string(modelClass.probabilityHandicap) << std::endl;
     mProbabilityHandicap.emplace(modelClass.modelClassId, modelClass.probabilityHandicap);
   }
 
@@ -263,23 +262,23 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
     //
     int32_t modelClassId = classIds[idx];
     if(mSettings.modelClasses.size() > modelClassId) {
-      auto objectClass = mSettings.modelClasses[0];
-      for(int32_t n = 1; n < mSettings.modelClasses.size(); n++) {
-        if(mSettings.modelClasses[n].modelClassId == modelClassId) {
-          objectClass = mSettings.modelClasses[n];
+      auto objectClassToUse = *mSettings.modelClasses.begin();
+      for(const auto &objectClass : mSettings.modelClasses) {
+        if(objectClass.modelClassId == modelClassId) {
+          objectClassToUse = objectClass;
           break;
         }
       }
 
       joda::atom::ROI detectedRoi(
           atom::ROI::RoiObjectId{
-              .classId    = context.getClassId(objectClass.outputClassNoMatch),
+              .classId    = context.getClassId(objectClassToUse.outputClassNoMatch),
               .imagePlane = context.getActIterator(),
           },
           context.getAppliedMinThreshold(), fittedBoundingBox, shiftedMask, contour, context.getImageSize(), context.getOriginalImageSize(),
           context.getActTile(), context.getTileSize());
 
-      for(const auto &filter : objectClass.filters) {
+      for(const auto &filter : objectClassToUse.filters) {
         if(joda::settings::ClassifierFilter::doesFilterMatch(context, detectedRoi, filter.metrics, filter.intensity)) {
           detectedRoi.setClasss(context.getClassId(filter.outputClass));
         }
