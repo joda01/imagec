@@ -19,10 +19,10 @@ BEGIN
             VALUE "CompanyName", "danmayr.org"
             VALUE "FileDescription", "Image processing software."
             VALUE "FileVersion", "1, 0, 0, 0"
-            VALUE "InternalName", "imageC"
+            VALUE "InternalName", "ImageC"
             VALUE "LegalCopyright", "2023 Joachim Damayr"
             VALUE "OriginalFilename", "imagec.exe"
-            VALUE "ProductName", "imageC"
+            VALUE "ProductName", "ImageC"
             VALUE "ProductVersion", "1, 0, 0, 0"
         END
     END

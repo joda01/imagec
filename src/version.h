@@ -40,12 +40,12 @@ public:
 
   static std::string getProgamName()
   {
-    return "imageC";
+    return "ImageC";
   }
 
   static std::string getTitle()
   {
-    return "EVAnalayzer2";
+    return "EVAnalyzer2";
   }
 
   static std::string getSubtitle()

@@ -4,19 +4,19 @@
 ![GitHub License](https://img.shields.io/github/license/joda01/imagec)
 
 
-# imageC (EVAnalyzer 2)
+# ImageC (EVAnalyzer 2)
 
 is an open source application designed for high throughput analyzing of microscopy images in the biological sciences.  
 
-With imageC image processing pipelines can be defined which are applied on a set of images to analyze.
-The resulting data is stored in a file-based database (duckdb) and can either be viewed directly in imageC using the built-in reporting tool, or the data can be exported to other file formats.  
+With ImageC image processing pipelines can be defined which are applied on a set of images to analyze.
+The resulting data is stored in a file-based database (duckdb) and can either be viewed directly in ImageC using the built-in reporting tool, or the data can be exported to other file formats.  
 
-imageC (EVAnalayzer 2), the direct successor of [EVAnalayzer](https://github.com/joda01/evanalyzer) an imageJ plugin with more than 3000 downloads (June 2024), is a standalone application written in C++.
+ImageC (EVAnalyzer 2), the direct successor of [EVAnalyzer](https://github.com/joda01/evanalyzer) an imageJ plugin with more than 3000 downloads (June 2024), is a standalone application written in C++.
 The main goals were to improve performance, allow the processing of big tiffs and improve usability.
 
 ## Feature comparison
 
-|                                                           |imageC   |EVAnalyzer |
+|                                                           |ImageC   |EVAnalyzer |
 |-----------------------------------------------------------|-------  |-------    |
 |[BioFormats support](https://github.com/ome/bioformats)    |x        |x          |
 |[OME-XML support](https://docs.openmicroscopy.org/)        |x        |x          |
@@ -150,7 +150,7 @@ ome/bioformats          |https://github.com/ome/bioformats              | GPL-2.
 microsoft/onnxruntime   |https://github.com/microsoft/onnxruntime       | MIT
 
 Thank's to the authors of [imagej](https://github.com/imagej/imagej2) I ported some image processing algorithms from to C++.  
-imageC is the follower of [evanalyzer](https://github.com/joda01/evanalyzer).
+ImageC is the follower of [evanalyzer](https://github.com/joda01/evanalyzer).
 
 
 
