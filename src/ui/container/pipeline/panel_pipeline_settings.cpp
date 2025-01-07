@@ -358,14 +358,15 @@ void PanelPipelineSettings::valueChangedEvent()
   }
 
   isBlocked = true;
-
-  QObject *senderObject = sender();    // Get the signal's origin
-  if(senderObject) {
-    qDebug() << "Signal received from:" << senderObject->objectName();
-    senderObject->dumpObjectInfo();
-  } else {
-    qDebug() << "Could not identify sender!";
-  }
+  /*
+    QObject *senderObject = sender();    // Get the signal's origin
+    if(senderObject) {
+      qDebug() << "Signal received from:" << senderObject->objectName();
+      senderObject->dumpObjectInfo();
+    } else {
+      qDebug() << "Could not identify sender!";
+    }
+    */
   updatePreview();
 
   QTimer::singleShot(100, this, [this]() {

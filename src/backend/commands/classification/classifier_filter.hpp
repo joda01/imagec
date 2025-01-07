@@ -13,6 +13,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include "backend/artifacts/roi/roi.hpp"
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enums_classes.hpp"
@@ -126,13 +127,20 @@ struct ObjectClass
   //
   int32_t modelClassId = -1;
 
+  //
+  // The detected probability of the selected model class is multiplied by this factor.
+  // If not given the factor is 1. This can be useful to compensate bad training data for
+  // some of the classes.
+  //
+  float probabilityHandicap = 1.0;
+
   void check() const
   {
     CHECK_ERROR(!filters.empty(), "At least one classification filter must be given!");
     CHECK_ERROR(modelClassId >= 0, "A model class id >= 0 must be given for classification.");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectClass, filters, outputClassNoMatch, modelClassId);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectClass, filters, outputClassNoMatch, modelClassId, probabilityHandicap);
 };
 
 }    // namespace joda::settings
