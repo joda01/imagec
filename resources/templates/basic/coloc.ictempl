@@ -22,15 +22,25 @@
     },
     {
       "$measure": {
-        "inputClasses": ["$"]
-      }
+        "inputClasses": [
+          "$"
+        ]
+      },
+      "disabled": false
     },
     {
       "$saveImage": {
         "canvas": "$",
-        "classesIn": ["$"],
+        "classesIn": [
+          {
+            "inputClass": "$",
+            "color": "#FF0000",
+            "paintBoundingBox": false,
+            "style": "Outlined"
+          }
+        ],
         "compression": 1,
-        "namePrefix": "",
+        "namePrefix": "coloc",
         "subFolder": "images/${imageName}"
       }
     }
