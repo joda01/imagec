@@ -14,6 +14,7 @@
 #include <concepts>
 #include <cstddef>
 #include <exception>
+#include <stack>
 #include <stdexcept>
 #include <string>
 
