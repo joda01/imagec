@@ -211,9 +211,26 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
   if(calcGraphFor != nullptr) {
     std::set<const settings::Pipeline *> meDeps;
 
-    for(const auto &me : depGraph) {
-      if(me.getPipeline() == calcGraphFor) {
-        meDeps = me.getDeps();
+    std::stack<const settings::Pipeline *> stack;
+    stack.push(calcGraphFor);
+
+    // Find the dependencies of the current pipeline and the dependencies of the dependencies
+    while(!stack.empty()) {
+      const settings::Pipeline *current = stack.top();
+      stack.pop();
+      for(const auto &me : depGraph) {
+        if(me.getPipeline() == current) {
+          // Get dependencies of the current pipeline
+          auto myDeps = me.getDeps();
+          // Push dependencies onto the stack for further processing
+          for(const settings::Pipeline *depthFor : myDeps) {
+            if(!meDeps.contains(depthFor)) {
+              stack.push(depthFor);
+            }
+          }
+          meDeps.insert(myDeps.begin(), myDeps.end());
+          break;    // Once the matching pipeline is processed, break out of the loop
+        }
       }
     }
 
