@@ -71,13 +71,13 @@ public:
   void stopLookingForFiles();
   void setWorkingDirectory(uint8_t plateNr, const std::filesystem::path &dir);
   void registerImageLookupCallback(const std::function<void(joda::filesystem::State)> &lookingForFilesFinished);
-  static auto populateClassesFromImage(const joda::ome::OmeInfo &omeInfo) -> joda::settings::Classification;
+  static auto populateClassesFromImage(const joda::ome::OmeInfo &omeInfo, int32_t series) -> joda::settings::Classification;
 
   // PREVIEW ///////////////////////////////////////////////////
   void preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
                const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX,
                int32_t tileY, Preview &previewOut, const joda::ome::OmeInfo &, const settings::ObjectInputClasses &classesToShow);
-  [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series = 0) -> joda::ome::OmeInfo;
+  [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series) -> joda::ome::OmeInfo;
 
   // FLOW CONTROL ///////////////////////////////////////////////////
   void start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const std::string &jobName);

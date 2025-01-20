@@ -62,10 +62,18 @@ public:
     return mExperimentId->text();
   }
 
+  [[nodiscard]] int32_t getImageSeries() const
+  {
+    return static_cast<int32_t>(mImageSeries->currentData().toInt());
+  }
+
   void generateNewJobName()
   {
     mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
   }
+
+signals:
+  void updateImagePreview();
 
 private:
   /////////////////////////////////////////////////////
@@ -82,6 +90,7 @@ private:
   QComboBox *mGroupByComboBox;
   QComboBox *mPlateSize;
 
+  QComboBox *mImageSeries;
   QComboBox *mStackHandlingZ;
   QComboBox *mStackHandlingT;
   QComboBox *mCompositeTileSize;

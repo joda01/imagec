@@ -33,7 +33,7 @@ TEST_CASE("image:loader:bioformats:pyramid", "[image_loader_pyramid]")
   joda::image::reader::ImageReader::init();
 
   joda::ome::OmeInfo ome;
-  auto omeXML = joda::image::reader::ImageReader::getOmeInformation("/workspaces/imagec/test/test_data/images_pyramid/pyramid.ome.btf");
+  auto omeXML = joda::image::reader::ImageReader::getOmeInformation("/workspaces/imagec/test/test_data/images_pyramid/pyramid.ome.btf", 0);
 
   auto img = joda::image::reader::ImageReader::loadEntireImage("/workspaces/imagec/test/test_data/images_pyramid/pyramid.ome.btf", {0, 0, 0}, 0, 1);
   img *= 256;

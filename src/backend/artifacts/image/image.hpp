@@ -59,6 +59,7 @@ public:
   }
 
   enums::tile_t tile;
+  int32_t series = 0;
   cv::Mat image;
   uint16_t appliedMinThreshold = 0;
   uint16_t appliedMaxThreshold = 0;
@@ -67,6 +68,7 @@ public:
   ImagePlane clone(const cv::Mat &img) const
   {
     return ImagePlane{.tile                = tile,
+                      .series              = series,
                       .image               = img.clone(),
                       .appliedMinThreshold = appliedMinThreshold,
                       .appliedMaxThreshold = appliedMaxThreshold,

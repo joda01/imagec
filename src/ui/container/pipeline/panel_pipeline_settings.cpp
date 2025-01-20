@@ -41,6 +41,7 @@
 #include "ui/helper/layout_generator.hpp"
 #include "ui/helper/template_parser/template_parser.hpp"
 #include "ui/window_main/panel_classification.hpp"
+#include "ui/window_main/panel_project_settings.hpp"
 #include "ui/window_main/window_main.hpp"
 #include <nlohmann/json_fwd.hpp>
 #include "add_command_button.hpp"
@@ -125,6 +126,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   connect(mPreviewImage, &PanelPreview::tileClicked, this, &PanelPipelineSettings::onTileClicked);
   connect(mPreviewImage, &PanelPreview::onSettingChanged, this, &PanelPipelineSettings::updatePreview);
   connect(wm->getImagePanel(), &PanelImages::imageSelectionChanged, this, &PanelPipelineSettings::updatePreview);
+  connect(wm->getPanelProjectSettings(), &PanelProjectSettings::updateImagePreview, this, &PanelPipelineSettings::updatePreview);
   connect(mLayout.getBackButton(), &QAction::triggered, this, &PanelPipelineSettings::closeWindow);
   connect(mLayout.getDeleteButton(), &QAction::triggered, this, &PanelPipelineSettings::deletePipeline);
   connect(wm->getPanelClassification(), &PanelClassification::settingsChanged, this, &PanelPipelineSettings::onClassificationNameChanged);
@@ -466,12 +468,12 @@ void PanelPipelineSettings::previewThread()
         if(!imgIndex.empty()) {
           try {
             int32_t resolution = 0;
-            uint32_t series    = selectedSeries;
+            int32_t series     = selectedSeries;
             auto tileSize      = jobToDo.settings.imageSetup.imageTileSettings;
 
             // If image is too big scale to tiles
-            auto imgWidth    = imgProps.getImageInfo().resolutions.at(0).imageWidth;
-            auto imageHeight = imgProps.getImageInfo().resolutions.at(0).imageHeight;
+            auto imgWidth    = imgProps.getImageInfo(series).resolutions.at(0).imageWidth;
+            auto imageHeight = imgProps.getImageInfo(series).resolutions.at(0).imageHeight;
 
             if(imgWidth > jobToDo.settings.imageSetup.imageTileSettings.tileWidth ||
                imageHeight > jobToDo.settings.imageSetup.imageTileSettings.tileHeight) {
@@ -482,7 +484,7 @@ void PanelPipelineSettings::previewThread()
               tileSize.tileHeight = imageHeight;
             }
 
-            auto [tileNrX, tileNrY] = imgProps.getImageInfo().resolutions.at(resolution).getNrOfTiles(tileSize.tileWidth, tileSize.tileHeight);
+            auto [tileNrX, tileNrY] = imgProps.getImageInfo(series).resolutions.at(resolution).getNrOfTiles(tileSize.tileWidth, tileSize.tileHeight);
 
             auto &previewResult = jobToDo.previewPanel->getPreviewObject();
             processor::PreviewSettings prevSettings;

@@ -48,15 +48,16 @@ PipelineInitializer::PipelineInitializer(const settings::ProjectImageSetup &sett
 void PipelineInitializer::init(ImageContext &imageContextOut)
 {
   mImageContext              = &imageContextOut;
-  mImageContext->nrOfZStacks = imageContextOut.imageMeta.getNrOfZStack();
-  mTotalNrOfChannels         = imageContextOut.imageMeta.getNrOfChannels();
+  mImageContext->nrOfZStacks = imageContextOut.imageMeta.getNrOfZStack(mSettings.series);
+  mTotalNrOfChannels         = imageContextOut.imageMeta.getNrOfChannels(mSettings.series);
+  mImageContext->series      = mSettings.series;
 
   switch(mSettings.tStackHandling) {
     case settings::ProjectImageSetup::TStackHandling::EXACT_ONE:
       mTstackToLoad = 1;
       break;
     case settings::ProjectImageSetup::TStackHandling::EACH_ONE:
-      mTstackToLoad = imageContextOut.imageMeta.getNrOfTStack();
+      mTstackToLoad = imageContextOut.imageMeta.getNrOfTStack(mSettings.series);
       break;
   }
 
@@ -66,13 +67,13 @@ void PipelineInitializer::init(ImageContext &imageContextOut)
       mZStackToLoad = 1;
       break;
     case settings::ProjectImageSetup::ZStackHandling::EACH_ONE:
-      mZStackToLoad = imageContextOut.imageMeta.getNrOfZStack();
+      mZStackToLoad = imageContextOut.imageMeta.getNrOfZStack(mSettings.series);
       break;
   }
 
   // Load image in tiles if too big
-  const auto &imageInfo = imageContextOut.imageMeta.getImageInfo().resolutions.at(0);
-  auto imageSize        = imageContextOut.imageMeta.getSize();
+  const auto &imageInfo = imageContextOut.imageMeta.getImageInfo(mSettings.series).resolutions.at(0);
+  auto imageSize        = imageContextOut.imageMeta.getSize(mSettings.series);
 
   if(std::get<0>(imageSize) > getCompositeTileSize().width || std::get<1>(imageSize) > getCompositeTileSize().height) {
     mNrOfTiles               = imageInfo.getNrOfTiles(getCompositeTileSize().width, getCompositeTileSize().height);
@@ -103,6 +104,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
 
   joda::atom::ImagePlane &imagePlaneOut = processContext.getActImage();
   imagePlaneOut.tile                    = tile;
+  imagePlaneOut.series                  = mSettings.series;
 
   switch(mSettings.tStackHandling) {
     case settings::ProjectImageSetup::TStackHandling::EXACT_ONE:
@@ -133,8 +135,8 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   // Start with blank image
   //
   if(joda::settings::PipelineSettings::Source::BLANK == pipelineSetup.source || c < 0 || c >= mTotalNrOfChannels) {
-    auto imageHeight = mImageContext->imageMeta.getImageInfo().resolutions.at(0).imageHeight;
-    auto imageWidth  = mImageContext->imageMeta.getImageInfo().resolutions.at(0).imageWidth;
+    auto imageHeight = mImageContext->imageMeta.getImageInfo(mSettings.series).resolutions.at(0).imageHeight;
+    auto imageWidth  = mImageContext->imageMeta.getImageInfo(mSettings.series).resolutions.at(0).imageWidth;
 
     if(mImageContext->loadImageInTiles) {
       int32_t offsetX         = std::get<0>(tile) * getCompositeTileSize().width;
@@ -211,14 +213,14 @@ enums::ImageId PipelineInitializer::loadImageAndStoreToCache(const enums::PlaneI
   // Load from image file
   //
 
-  auto loadEntireImage = [&imageContext, &planeToLoad](int32_t z, int32_t c, int32_t t) {
+  auto loadEntireImage = [&imageContext, &planeToLoad, series = imageContext.series](int32_t z, int32_t c, int32_t t) {
     return joda::image::reader::ImageReader::loadEntireImage(
-        imageContext.imagePath.string(), joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, 0, 0, imageContext.imageMeta);
+        imageContext.imagePath.string(), joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, series, 0, imageContext.imageMeta);
   };
 
-  auto loadImageTile = [&imageContext, &tile](int32_t z, int32_t c, int32_t t) {
+  auto loadImageTile = [&imageContext, &tile, series = imageContext.series](int32_t z, int32_t c, int32_t t) {
     return joda::image::reader::ImageReader::loadImageTile(imageContext.imagePath.string(),
-                                                           joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, 0, 0,
+                                                           joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, series, 0,
                                                            joda::ome::TileToLoad{.tileX      = std::get<0>(tile),
                                                                                  .tileY      = std::get<1>(tile),
                                                                                  .tileWidth  = imageContext.tileSize.width,

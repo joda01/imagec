@@ -89,6 +89,11 @@ public:
     return mPanelClassification;
   }
 
+  [[nodiscard]] PanelProjectSettings *getPanelProjectSettings()
+  {
+    return mPanelProjectSettings;
+  }
+
   [[nodiscard]] PanelResults *getPanelResults()
   {
     return mPanelReporting;

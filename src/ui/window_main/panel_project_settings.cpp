@@ -13,6 +13,7 @@
 
 #include "panel_project_settings.hpp"
 #include <qcombobox.h>
+#include <string>
 #include "backend/helper/file_grouper/file_grouper_types.hpp"
 #include "backend/helper/username.hpp"
 #include "backend/settings/project_settings/project_image_setup.hpp"
@@ -132,6 +133,17 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   addSeparator();
 
   //
+  // Image Series
+  //
+  mImageSeries = new QComboBox();
+  for(int32_t series = 0; series < 10; series++) {
+    mImageSeries->addItem(("Series " + std::to_string(series)).data(), static_cast<int32_t>(series));
+  }
+  formLayout->addRow(new QLabel(tr("Series:")), mImageSeries);
+  connect(mImageSeries, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onSettingChanged);
+  connect(mImageSeries, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::updateImagePreview);
+
+  //
   // Stack handling
   //
   mStackHandlingZ = new QComboBox();
@@ -246,6 +258,15 @@ void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &s
     }
   }
   {
+    auto idx = mImageSeries->findData(static_cast<int>(settings.imageSetup.series));
+    if(idx >= 0) {
+      mImageSeries->setCurrentIndex(idx);
+    } else {
+      mImageSeries->setCurrentIndex(0);
+    }
+  }
+
+  {
     auto idx = mStackHandlingZ->findData(static_cast<int>(settings.imageSetup.zStackHandling));
     if(idx >= 0) {
       mStackHandlingZ->setCurrentIndex(idx);
@@ -307,6 +328,7 @@ void PanelProjectSettings::toSettings()
   mSettings.projectSettings.plates.begin()->cols    = value % 100;
   mSettings.projectSettings.plates.begin()->plateId = 1;
 
+  mSettings.imageSetup.series         = static_cast<int32_t>(mImageSeries->currentData().toInt());
   mSettings.imageSetup.zStackHandling = static_cast<joda::settings::ProjectImageSetup::ZStackHandling>(mStackHandlingZ->currentData().toInt());
   mSettings.imageSetup.tStackHandling = static_cast<joda::settings::ProjectImageSetup::TStackHandling>(mStackHandlingT->currentData().toInt());
   mSettings.imageSetup.imageTileSettings.tileWidth  = static_cast<int32_t>(mCompositeTileSize->currentData().toInt());

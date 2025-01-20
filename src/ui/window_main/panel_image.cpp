@@ -92,13 +92,15 @@ void PanelImages::filterImages()
 /// \param[out]
 /// \return
 ///
-auto PanelImages::getSelectedImage() const -> std::tuple<std::filesystem::path, uint32_t, joda::ome::OmeInfo>
+auto PanelImages::getSelectedImage() const -> std::tuple<std::filesystem::path, int32_t, joda::ome::OmeInfo>
 {
   int selectedRow = mImages->currentRow();
+  int32_t series  = mWindowMain->getPanelProjectSettings()->getImageSeries();
+
   if(selectedRow >= 0) {
     QTableWidgetItem *item = mImages->item(selectedRow, 0);
     if(item != nullptr) {
-      return {std::filesystem::path(item->text().toStdString()), 0, mOmeFromActSelectedImage};
+      return {std::filesystem::path(item->text().toStdString()), series, mOmeFromActSelectedImage};
     }
   }
 
@@ -112,22 +114,23 @@ auto PanelImages::getSelectedImage() const -> std::tuple<std::filesystem::path, 
 /// \param[out]
 /// \return
 ///
-[[nodiscard]] auto PanelImages::getSelectedImageOrFirst() const -> std::tuple<std::filesystem::path, uint32_t, joda::ome::OmeInfo>
+[[nodiscard]] auto PanelImages::getSelectedImageOrFirst() const -> std::tuple<std::filesystem::path, int32_t, joda::ome::OmeInfo>
 {
   auto [path, idx, omeInfo] = getSelectedImage();
+  int32_t series            = mWindowMain->getPanelProjectSettings()->getImageSeries();
 
   if(path.empty()) {
     if(mImages->rowCount() > 0) {
       QTableWidgetItem *item = mImages->item(0, 0);
       if(item != nullptr) {
         auto path    = std::filesystem::path(item->text().toStdString());
-        auto omeInfo = mWindowMain->getController()->getImageProperties(path, 0);
-        return {path, 0, omeInfo};
+        auto omeInfo = mWindowMain->getController()->getImageProperties(path, series);
+        return {path, series, omeInfo};
       }
     }
   }
 
-  return {path, idx, omeInfo};
+  return {path, series, omeInfo};
 }
 
 ///
@@ -189,10 +192,9 @@ void PanelImages::updateImageMeta()
 
     mOmeFromActSelectedImage = mWindowMain->getController()->getImageProperties(imagePath, series);
     auto tileSize            = mWindowMain->getSettings().imageSetup.imageTileSettings;
-    const auto &imgInfo      = mOmeFromActSelectedImage.getImageInfo();
 
     mImageMeta->clearContents();
-    mImageMeta->setRowCount(20);
+    mImageMeta->setRowCount(20 + mOmeFromActSelectedImage.getNrOfSeries() * 20);
 
     int32_t row = 0;
 
@@ -239,22 +241,6 @@ void PanelImages::updateImageMeta()
       row++;
     };
 
-    addTitle("Image");
-    addStringItem("Name", imagePath.filename().string());
-    addItem("Width", imgInfo.resolutions.at(0).imageWidth, "px");
-    addItem("Height", imgInfo.resolutions.at(0).imageHeight, "px");
-    addItem("Bits", imgInfo.resolutions.at(0).bits, "");
-
-    addItem("Tile width", imgInfo.resolutions.at(0).optimalTileWidth, "px");
-    addItem("Tile height", imgInfo.resolutions.at(0).optimalTileHeight, "px");
-    addItem("Tile count", imgInfo.resolutions.at(0).getTileCount(), "");
-
-    addItem("Composite tile width", tileSize.tileWidth, "px");
-    addItem("Composite tile height", tileSize.tileHeight, "px");
-    addItem("Composite tile count", imgInfo.resolutions.at(0).getTileCount(tileSize.tileWidth, tileSize.tileHeight), "");
-    addItem("Series", mOmeFromActSelectedImage.getNrOfSeries(), "");
-    addItem("Pyramids", mOmeFromActSelectedImage.getResolutionCount().size(), "");
-
     const auto &objectiveInfo = mOmeFromActSelectedImage.getObjectiveInfo();
     addTitle("Objective");
     addStringItem("Manufacturer", objectiveInfo.manufacturer);
@@ -262,24 +248,47 @@ void PanelImages::updateImageMeta()
     addStringItem("Medium", objectiveInfo.medium);
     addStringItem("Magnification", "x" + std::to_string(objectiveInfo.magnification));
 
-    QString channelInfoStr;
-    for(const auto &[idx, channelInfo] : mOmeFromActSelectedImage.getChannelInfos()) {
-      mImageMeta->setRowCount(mImageMeta->rowCount() + 5);
-      addTitle("Channel " + std::to_string(idx));
-      addStringItem("ID", channelInfo.channelId);
-      addStringItem("Name", channelInfo.name);
-      addItemFloat("Emission wave length", channelInfo.emissionWaveLength, channelInfo.emissionWaveLengthUnit);
-      addStringItem("Contrast method", channelInfo.contrastMethod);
+    addItem("Series", mOmeFromActSelectedImage.getNrOfSeries(), "");
 
-      for(const auto &[tStack, tdata] : channelInfo.planes) {
-        for(const auto &[zStack, zData] : tdata) {
-          mImageMeta->setRowCount(mImageMeta->rowCount() + 3);
-          addItemFloat("Exposure time", zData.exposureTime, zData.exposureTimeUnit);
-          addItem("Z-Stack", zStack, "");
-          addItem("T-Stack", tStack, "");
+    for(int32_t series = 0; series < mOmeFromActSelectedImage.getNrOfSeries(); series++) {
+      const auto &imgInfo = mOmeFromActSelectedImage.getImageInfo(series);
+
+      addTitle("Image (Series - " + std::to_string(series) + ")");
+      addStringItem("Name", imagePath.filename().string());
+      addItem("Width", imgInfo.resolutions.at(0).imageWidth, "px");
+      addItem("Height", imgInfo.resolutions.at(0).imageHeight, "px");
+      addItem("Bits", imgInfo.resolutions.at(0).bits, "");
+
+      addItem("Tile width", imgInfo.resolutions.at(0).optimalTileWidth, "px");
+      addItem("Tile height", imgInfo.resolutions.at(0).optimalTileHeight, "px");
+      addItem("Tile count", imgInfo.resolutions.at(0).getTileCount(), "");
+
+      addItem("Composite tile width", tileSize.tileWidth, "px");
+      addItem("Composite tile height", tileSize.tileHeight, "px");
+      addItem("Composite tile count", imgInfo.resolutions.at(0).getTileCount(tileSize.tileWidth, tileSize.tileHeight), "");
+      addItem("Pyramids", mOmeFromActSelectedImage.getResolutionCount(series).size(), "");
+
+      QString channelInfoStr;
+      for(const auto &[idx, channelInfo] : mOmeFromActSelectedImage.getChannelInfos(series)) {
+        mImageMeta->setRowCount(mImageMeta->rowCount() + 5);
+        addTitle("Channel " + std::to_string(idx));
+        addStringItem("ID", channelInfo.channelId);
+        addStringItem("Name", channelInfo.name);
+        addItemFloat("Emission wave length", channelInfo.emissionWaveLength, channelInfo.emissionWaveLengthUnit);
+        addStringItem("Contrast method", channelInfo.contrastMethod);
+
+        for(const auto &[tStack, tdata] : channelInfo.planes) {
+          for(const auto &[zStack, zData] : tdata) {
+            mImageMeta->setRowCount(mImageMeta->rowCount() + 3);
+            addItemFloat("Exposure time", zData.exposureTime, zData.exposureTimeUnit);
+            addItem("Z-Stack", zStack, "");
+            addItem("T-Stack", tStack, "");
+          }
         }
       }
     }
+    mImageMeta->setRowCount(row);
+
   } else {
     mImageMeta->setRowCount(0);
   }

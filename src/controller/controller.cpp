@@ -71,15 +71,15 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
 {
   joda::thread::ThreadingSettings threads;
 
-  auto ome             = getImageProperties(file);
+  auto ome             = getImageProperties(file, settings.imageSetup.series);
   int64_t imgNr        = nrOfFiles;
   int64_t tileNr       = 1;
   int64_t pipelineNr   = settings.pipelines.size();
-  const auto &props    = ome.getImageInfo();
+  const auto &props    = ome.getImageInfo(settings.imageSetup.series);
   auto systemRecourses = getSystemResources();
 
   // Load image in tiles if too big
-  const auto &imageInfo = ome.getImageInfo().resolutions.at(0);
+  const auto &imageInfo = ome.getImageInfo(settings.imageSetup.series).resolutions.at(0);
 
   bool canLoadTiles =
       (imageInfo.optimalTileHeight <= settings.imageSetup.imageTileSettings.tileHeight && imageInfo.optimalTileWidth <= imageInfo.imageWidth);
@@ -222,8 +222,11 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
 {
   static std::filesystem::path lastImagePath;
   static int32_t lastImageChannel = -1;
+  static int32_t lastImageSeries  = -1;
   bool generateThumb              = false;
-  if(imagePath != lastImagePath || previewOut.thumbnail.empty() || lastImageChannel != pipeline.pipelineSetup.cStackIndex) {
+  if(imagePath != lastImagePath || previewOut.thumbnail.empty() || lastImageChannel != pipeline.pipelineSetup.cStackIndex ||
+     lastImageSeries != imageSetup.series) {
+    lastImageSeries  = imageSetup.series;
     lastImagePath    = imagePath;
     generateThumb    = true;
     lastImageChannel = pipeline.pipelineSetup.cStackIndex;
@@ -251,7 +254,7 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
 ///
 auto Controller::getImageProperties(const std::filesystem::path &image, int series) -> joda::ome::OmeInfo
 {
-  return joda::image::reader::ImageReader::getOmeInformation(image);
+  return joda::image::reader::ImageReader::getOmeInformation(image, series);
 }
 
 // FLOW CONTROL ///////////////////////////////////////////////////
@@ -318,7 +321,7 @@ void Controller::stop()
 /// \author
 /// \return
 ///
-auto Controller::populateClassesFromImage(const joda::ome::OmeInfo &omeInfo) -> joda::settings::Classification
+auto Controller::populateClassesFromImage(const joda::ome::OmeInfo &omeInfo, int32_t series) -> joda::settings::Classification
 {
   const std::map<std::string, std::string> channelNameToColorMap = {
       {"dapi", "#9933FF"},    {"dapi_mb", "#9933FF"}, {"cfp", "#33A1FF"}, {"dpss", "#3399FF"},  {"fitc", "#33CFFF"},
@@ -326,7 +329,7 @@ auto Controller::populateClassesFromImage(const joda::ome::OmeInfo &omeInfo) -> 
       {"mcherry", "#FF8C33"}, {"cy5", "#FF3366"},     {"cy7", "#ff3333"}, {"bf", "#FFFF33"},    {"brightfield", "#FFFF33"}};
 
   joda::settings::Classification classes;
-  auto channels           = omeInfo.getChannelInfos();
+  auto channels           = omeInfo.getChannelInfos(series);
   enums::ClassId actClass = enums::ClassId::C0;
   int colorIdx            = 0;
   for(const auto &[_, channel] : channels) {

@@ -250,6 +250,9 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &i
     //
     // Load image
     //
+    if(series >= ome.getNrOfSeries()) {
+      series = ome.getNrOfSeries() - 1;
+    }
     jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, static_cast<int>(series),
                                                                     static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t);
     if(readImg == nullptr) {
@@ -285,11 +288,13 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &ima
   // Takes 150 ms
   if(nullptr != myJVM && mJVMInitialised && imagePlane.c >= 0 && imagePlane.z >= 0 && imagePlane.t >= 0) {
     // std::lock_guard<std::mutex> lock(mReadMutex);
-
+    if(series >= ome.getNrOfSeries()) {
+      series = ome.getNrOfSeries() - 1;
+    }
     // Find the pyramid with the best matching resolution for thumbnail creation
     int32_t resolutionIdx                       = 0;
     ome::OmeInfo::ImageInfo::Pyramid resolution = ome.getResolutionCount(series).at(0);
-    for(int idx = 0; idx < ome.getResolutionCount().size(); idx++) {
+    for(int idx = 0; idx < ome.getResolutionCount(series).size(); idx++) {
       resolution = ome.getResolutionCount(series).at(idx);
       if(resolution.imageWidth <= THUMBNAIL_SIZE || resolution.imageHeight <= THUMBNAIL_SIZE) {
         resolutionIdx = idx;
@@ -421,6 +426,9 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
     //
     // Load image
     //
+    if(series >= ome.getNrOfSeries()) {
+      series = ome.getNrOfSeries() - 1;
+    }
     auto i1       = DurationCount::start("Load from filesystm");
     auto *readImg = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImageTile, filePath, static_cast<int>(series),
                                                                static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t, offsetX,
@@ -455,9 +463,9 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
 /// \param[out]
 /// \return
 ///
-auto ImageReader::getOmeInformation(const std::filesystem::path &filename) -> joda::ome::OmeInfo
+auto ImageReader::getOmeInformation(const std::filesystem::path &filename, uint16_t series) -> joda::ome::OmeInfo
 {
-  const int32_t series = 0;
+#warning "Check if series is needed for OME"
   if(nullptr != myJVM && mJVMInitialised) {
     auto id = DurationCount::start("Get OEM");
     JNIEnv *myEnv;
@@ -479,6 +487,8 @@ auto ImageReader::getOmeInformation(const std::filesystem::path &filename) -> jo
 
     // Parse ome
     joda::ome::OmeInfo omeInfo;
+    std::cout << omeXML << std::endl;
+
     omeInfo.loadOmeInformationFromXMLString(omeXML);    ///\todo this method can throw an excaption
 
     myJVM->DetachCurrentThread();
@@ -517,7 +527,6 @@ cv::Mat ImageReader::convertImageToMat(JNIEnv *myEnv, const jbyteArray &readImg,
   //
   // Handling of special formats
   //
-
   // 16 bit grayscale
   if(format == CV_16UC1) {
     return image;

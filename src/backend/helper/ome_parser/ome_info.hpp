@@ -141,25 +141,25 @@ public:
   {
     return mImageInfo.size();
   }
-  [[nodiscard]] auto getResolutionCount(int32_t series = -1) const -> const std::map<int32_t, ImageInfo::Pyramid> &
+  [[nodiscard]] auto getResolutionCount(int32_t series) const -> const std::map<int32_t, ImageInfo::Pyramid> &
   {
     if(series < 0) {
       series = getSeriesWithHighestResolution();
     }
     return mImageInfo.at(series).resolutions;
   }
-  [[nodiscard]] int getNrOfChannels(int32_t series = -1) const;
-  [[nodiscard]] int getNrOfZStack(int32_t series = -1) const;
-  [[nodiscard]] int getNrOfTStack(int32_t series = -1) const;
+  [[nodiscard]] int getNrOfChannels(int32_t series) const;
+  [[nodiscard]] int getNrOfZStack(int32_t series) const;
+  [[nodiscard]] int getNrOfTStack(int32_t series) const;
 
-  [[nodiscard]] std::tuple<int64_t, int64_t> getSize(int32_t series = -1) const;
-  [[nodiscard]] int32_t getBits(int32_t series = -1) const;
+  [[nodiscard]] std::tuple<int64_t, int64_t> getSize(int32_t series) const;
+  [[nodiscard]] int32_t getBits(int32_t series) const;
   [[nodiscard]] int32_t getSeriesWithHighestResolution() const;
 
-  [[nodiscard]] const ImageInfo &getImageInfo(int32_t series = -1) const
+  [[nodiscard]] const ImageInfo &getImageInfo(int32_t series) const
   {
-    if(series < 0) {
-      series = getSeriesWithHighestResolution();
+    if(series < 0 || series >= getNrOfSeries()) {
+      series = 0;
     }
     return mImageInfo.at(series);
   }
@@ -168,10 +168,10 @@ public:
     return mObjectiveInfo;
   }
 
-  [[nodiscard]] const std::map<uint32_t, ChannelInfo> &getChannelInfos(int32_t series = -1) const
+  [[nodiscard]] const std::map<uint32_t, ChannelInfo> &getChannelInfos(int32_t series) const
   {
-    if(series < 0) {
-      series = getSeriesWithHighestResolution();
+    if(series < 0 || series >= getNrOfSeries()) {
+      series = 0;
     }
     return mImageInfo.at(series).channels;
   }
@@ -181,49 +181,50 @@ public:
     return mImageInfo;
   }
 
-  int32_t getImageWidth(int32_t resolutionIdx = 0) const
+  int32_t getImageWidth(int32_t series, int32_t resolutionIdx = 0) const
   {
-    if(mImageInfo.empty() || !mImageInfo.begin()->second.resolutions.contains(resolutionIdx)) {
-      return 0;
+    if(series < 0 || series >= getNrOfSeries()) {
+      series = 0;
     }
-    return mImageInfo.begin()->second.resolutions.at(resolutionIdx).imageWidth;
+    return mImageInfo.at(series).resolutions.at(resolutionIdx).imageWidth;
   }
 
-  int32_t getImageHeight(int32_t resolutionIdx = 0) const
+  int32_t getImageHeight(int32_t series, int32_t resolutionIdx = 0) const
   {
-    if(mImageInfo.empty() || !mImageInfo.begin()->second.resolutions.contains(resolutionIdx)) {
-      return 0;
+    if(series < 0 || series >= getNrOfSeries()) {
+      series = 0;
     }
-    return mImageInfo.begin()->second.resolutions.at(resolutionIdx).imageHeight;
+
+    return mImageInfo.at(series).resolutions.at(resolutionIdx).imageHeight;
   }
 
-  int32_t getBitDepth(int32_t resolutionIdx = 0) const
+  int32_t getBitDepth(int32_t series, int32_t resolutionIdx = 0) const
   {
-    if(mImageInfo.empty() || !mImageInfo.begin()->second.resolutions.contains(resolutionIdx)) {
-      return 0;
+    if(series < 0 || series >= getNrOfSeries()) {
+      series = 0;
     }
-    return mImageInfo.begin()->second.resolutions.at(resolutionIdx).bits;
+    return mImageInfo.at(series).resolutions.at(resolutionIdx).bits;
   }
 
-  int32_t getRGBchannelCount(int32_t resolutionIdx = 0) const
+  int32_t getRGBchannelCount(int32_t series, int32_t resolutionIdx = 0) const
   {
-    if(mImageInfo.empty() || !mImageInfo.begin()->second.resolutions.contains(resolutionIdx)) {
-      return 0;
+    if(series < 0 || series >= getNrOfSeries()) {
+      series = 0;
     }
-    return mImageInfo.begin()->second.resolutions.at(resolutionIdx).rgbChannelCount;
+    return mImageInfo.at(series).resolutions.at(resolutionIdx).rgbChannelCount;
   }
 
-  bool getIsInterleaved(int32_t resolutionIdx = 0) const
+  bool getIsInterleaved(int32_t series, int32_t resolutionIdx = 0) const
   {
-    if(mImageInfo.empty() || !mImageInfo.begin()->second.resolutions.contains(resolutionIdx)) {
-      return 0;
+    if(series < 0 || series >= getNrOfSeries()) {
+      series = 0;
     }
-    return mImageInfo.begin()->second.resolutions.at(resolutionIdx).isInterleaved;
+    return mImageInfo.at(series).resolutions.at(resolutionIdx).isInterleaved;
   }
 
 private:
   /////////////////////////////////////////////////////
-  std::map<int32_t, ImageInfo> mImageInfo;
+  std::map<int32_t, ImageInfo> mImageInfo;    // Key is series
   ObjectiveInfo mObjectiveInfo;
 };
 }    // namespace joda::ome

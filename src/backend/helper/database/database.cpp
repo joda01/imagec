@@ -316,7 +316,7 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
   // statistic_measurements.Close();
 }
 
-auto Database::prepareImages(uint8_t plateId, enums::GroupBy groupBy, const std::string &filenameRegex,
+auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
                              const std::vector<std::filesystem::path> &imagePaths, BS::thread_pool &globalThreadPool)
     -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>
 {
@@ -338,9 +338,9 @@ auto Database::prepareImages(uint8_t plateId, enums::GroupBy groupBy, const std:
   BS::multi_future<void> prepareFuture;
 
   for(const auto &imagePath : imagePaths) {
-    auto prepareImage = [&groups, &grouper, &addedGroups, &imagesToProcess, &images, &images_groups, &images_channels, &insertMutex, plateId,
+    auto prepareImage = [&groups, &grouper, &addedGroups, &imagesToProcess, &images, &images_groups, &images_channels, &insertMutex, &series, plateId,
                          imagePath]() {
-      auto ome         = joda::image::reader::ImageReader::getOmeInformation(imagePath);
+      auto ome         = joda::image::reader::ImageReader::getOmeInformation(imagePath, series);
       uint64_t imageId = joda::helper::fnv1a(imagePath.string());
       auto groupInfo   = grouper.getGroupForFilename(imagePath);
 
@@ -368,11 +368,11 @@ auto Database::prepareImages(uint8_t plateId, enums::GroupBy groupBy, const std:
           images.Append<uint64_t>(imageId);                                  //       " image_id UBIGINT,"
           images.Append<duckdb::string_t>(imagePath.filename().string());    //       " file_name TEXT,"
           images.Append<duckdb::string_t>(imagePath.string());               //       " original_file_path TEXT
-          images.Append<uint32_t>(ome.getNrOfChannels());                    //       " nr_of_c_stacks UINTEGER
-          images.Append<uint32_t>(ome.getNrOfZStack());                      //       " nr_of_z_stacks UINTEGER
-          images.Append<uint32_t>(ome.getNrOfTStack());                      //       " nr_of_t_stacks UINTEGER
-          images.Append<uint32_t>(std::get<0>(ome.getSize()));               //       " width UINTEGER,"
-          images.Append<uint32_t>(std::get<1>(ome.getSize()));               //       " height UINTEGER,"
+          images.Append<uint32_t>(ome.getNrOfChannels(series));              //       " nr_of_c_stacks UINTEGER
+          images.Append<uint32_t>(ome.getNrOfZStack(series));                //       " nr_of_z_stacks UINTEGER
+          images.Append<uint32_t>(ome.getNrOfTStack(series));                //       " nr_of_t_stacks UINTEGER
+          images.Append<uint32_t>(std::get<0>(ome.getSize(series)));         //       " width UINTEGER,"
+          images.Append<uint32_t>(std::get<1>(ome.getSize(series)));         //       " height UINTEGER,"
           images.Append<uint64_t>(0);                                        //       " validity UBIGINT,"
           images.Append<bool>(false);                                        //       " processed BOOL,"
           images.EndRow();
@@ -390,7 +390,7 @@ auto Database::prepareImages(uint8_t plateId, enums::GroupBy groupBy, const std:
 
         // Image channel
         {
-          for(const auto &[channelId, channel] : ome.getChannelInfos()) {
+          for(const auto &[channelId, channel] : ome.getChannelInfos(series)) {
             images_channels.BeginRow();
             images_channels.Append<uint64_t>(imageId);                      // " image_id UBIGINT,"
             images_channels.Append<uint32_t>(channelId);                    // " stack_c UINTEGER, "
@@ -448,8 +448,8 @@ void Database::insertImage(const joda::processor::ImageContext &image, const jod
          "nr_of_t_stacks,width,height,validity) "
          "VALUES (?, ?, ?, ?, ?, ?, ?, ? ,? )");
 
-  auto [width, heigh] = image.imageMeta.getSize();
-  prepare->Execute(image.imageId, image.imagePath.filename().string(), image.imagePath.string(), image.imageMeta.getNrOfChannels(),
+  auto [width, heigh] = image.imageMeta.getSize(image.series);
+  prepare->Execute(image.imageId, image.imagePath.filename().string(), image.imagePath.string(), image.imageMeta.getNrOfChannels(image.series),
                    image.imageLoader.getNrOfZStacksToProcess(), image.imageLoader.getNrOfTStacksToProcess(), width, heigh, 0);
 }
 
@@ -460,11 +460,11 @@ void Database::insertImage(const joda::processor::ImageContext &image, const jod
 /// \param[out]
 /// \return
 ///
-void Database::insertImageChannels(uint64_t imageId, const joda::ome::OmeInfo &ome)
+void Database::insertImageChannels(uint64_t imageId, int32_t series, const joda::ome::OmeInfo &ome)
 {
   auto connection = acquire();
   auto channelsDb = duckdb::Appender(*connection, "images_channels");
-  for(const auto &[channelId, channel] : ome.getChannelInfos()) {
+  for(const auto &[channelId, channel] : ome.getChannelInfos(series)) {
     channelsDb.BeginRow();
     channelsDb.Append<uint64_t>(imageId);                      // " image_id UBIGINT,"
     channelsDb.Append<uint32_t>(channelId);                    // " stack_c UINTEGER, "

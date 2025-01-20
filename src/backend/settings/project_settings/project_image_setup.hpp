@@ -51,7 +51,12 @@ struct ProjectImageSetup
   //
   ImageTileSettings imageTileSettings;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectImageSetup, zStackHandling, tStackHandling, imageTileSettings);
+  //
+  // Define which image series should be used for image loading
+  //
+  int32_t series = 0;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectImageSetup, zStackHandling, tStackHandling, imageTileSettings, series);
 
   void check() const
   {
