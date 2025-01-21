@@ -95,7 +95,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
       const auto &images = allImages.getFilesListAt(plate.plateId);
 
       mProgress.setRunningPreparingPipeline();
-      auto imagesToProcess = db.prepareImages(plate.plateId, plate.groupBy, plate.filenameRegex, images, mGlobThreadPool);
+      auto imagesToProcess = db.prepareImages(plate.plateId, program.imageSetup.series, plate.groupBy, plate.filenameRegex, images, mGlobThreadPool);
       mProgress.setStateRunning();
 
       //
@@ -114,7 +114,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
           auto [tilesX, tilesY] = imageLoader.getNrOfTilesToProcess();
           auto nrtStack         = imageLoader.getNrOfTStacksToProcess();
           auto nrzSTack         = imageLoader.getNrOfZStacksToProcess();
-          auto nrChannels       = omeInfo.getNrOfChannels();
+          auto nrChannels       = omeInfo.getNrOfChannels(imageContext.series);
 
           mProgress.setTotalNrOfTiles(mProgress.totalImages() * tilesX * tilesY);
           BS::multi_future<void> tilesFutures;
@@ -166,7 +166,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                             try {
                               if(pipeline->pipelineSetup.cStackIndex >= 0 && pipeline->pipelineSetup.cStackIndex < nrChannels) {
                                 db.insertImagePlane(imageContext.imageId, planeId,
-                                                    imageContext.imageMeta.getChannelInfos()
+                                                    imageContext.imageMeta.getChannelInfos(imageContext.series)
                                                         .at(pipeline->pipelineSetup.cStackIndex)
                                                         .planes.at(planeId.tStack)
                                                         .at(planeId.zStack));
@@ -317,8 +317,8 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
     if(generateThumb) {
       auto i = DurationCount::start("Generate thumb");
       thumb  = joda::image::reader::ImageReader::loadThumbnail(
-          imagePath.string(), joda::image::reader::ImageReader::Plane{.z = zStack, .c = pipelineStart.pipelineSetup.cStackIndex, .t = tStack}, 0,
-          ome);
+          imagePath.string(), joda::image::reader::ImageReader::Plane{.z = zStack, .c = pipelineStart.pipelineSetup.cStackIndex, .t = tStack},
+          imageSetup.series, ome);
       DurationCount::stop(i);
     }
   });
@@ -420,7 +420,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         auto step                = settings::PipelineStep{.$saveImage = saverSettings};
         auto saver               = joda::settings::PipelineFactory<joda::cmd::Command>::generate(step);
         saver->execute(context, context.getActImage().image, context.getActObjects());
-
+#warning "Exception on thread destructor"
         thumbThread.join();
         DurationCount::stop(ii);
         return {context.loadImageFromCache(joda::enums::ImageId{.zProjection = enums::ZProjection::$, .imagePlane = {}})->image,

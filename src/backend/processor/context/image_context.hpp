@@ -31,6 +31,7 @@ struct ImageContext
   uint64_t imageId;
   cv::Size tileSize;
   uint32_t nrOfZStacks  = 0;
+  int32_t series        = 0;
   bool loadImageInTiles = false;
 };
 

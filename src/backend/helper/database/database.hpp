@@ -65,15 +65,16 @@ public:
   std::string startJob(const joda::settings::AnalyzeSettings &, const std::string &jobName);
   void finishJob(const std::string &jobId);
 
-  auto prepareImages(uint8_t plateId, enums::GroupBy groupBy, const std::string &filenameRegex, const std::vector<std::filesystem::path> &imagePaths,
-                     BS::thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>;
+  auto prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
+                     const std::vector<std::filesystem::path> &imagePaths, BS::thread_pool &globalThreadPool)
+      -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>;
   void setImageProcessed(uint64_t);
 
   void insertGroup(uint16_t plateId, const joda::grp::GroupInformation &groupInfo);
   void insertImage(const joda::processor::ImageContext &, const joda::grp::GroupInformation &groupInfo);
   void insetImageToGroup(uint16_t plateId, uint64_t imageId, uint16_t imageIdx, const joda::grp::GroupInformation &groupInfo);
 
-  void insertImageChannels(uint64_t imageId, const joda::ome::OmeInfo &ome);
+  void insertImageChannels(uint64_t imageId, int32_t series, const joda::ome::OmeInfo &ome);
   void insertImagePlane(uint64_t imageId, const enums::PlaneId &, const ome::OmeInfo::ImagePlane &);
 
   void setImageValidity(uint64_t imageId, enums::ChannelValidity validity);

@@ -82,6 +82,31 @@ TRY_AGAIN:
 
   int series = 0;
 
+  // Function to find the Series node by index
+  auto getSeriesByIndex = [](const pugi::xml_document &doc, int index) -> std::tuple<pugi::xml_node, int32_t> {
+    // Get the root node (JODA)
+    pugi::xml_node root = doc.child("JODA");
+
+    // Check if the root node exists
+    if(!root) {
+      std::cerr << "Error: Root node <JODA> not found!" << std::endl;
+      return {pugi::xml_node(), -1};    // Return empty node
+    }
+
+    // Iterate over all <Series> nodes
+    for(pugi::xml_node series : root.children("Series")) {
+      // Check the idx attribute
+      if(series.attribute("idx").as_int() == index) {
+        int32_t resolutionCount = series.attribute("ResolutionCount").as_int();
+        return {series, resolutionCount};    // Found the Series node with the given index
+      }
+    }
+
+    // Return an empty node if not found
+    std::cerr << "Error: Series with index " << index << " not found!" << std::endl;
+    return {pugi::xml_node(), -1};
+  };
+
   for(pugi::xml_node image = doc.child("OME").child(std::string(keyPrefix + "Image").data()); image != nullptr;
       image                = image.next_sibling(std::string(keyPrefix + "Image").data())) {
     mImageInfo.emplace(series, ImageInfo{});
@@ -183,9 +208,9 @@ TRY_AGAIN:
       planeInfo.exposureTimeUnit = std::string(plane.attribute("ExposureTimeUnit").as_string());
     }
 
-    int64_t resolutionCount = doc.child("JODA").attribute("ResolutionCount").as_int();
+    auto [seriesNode, resolutionCount] = getSeriesByIndex(doc, actImageInfo.seriesIdx);
 
-    for(pugi::xml_node pyramid = doc.child("JODA").child(std::string("PyramidResolution").data()); pyramid != nullptr;
+    for(pugi::xml_node pyramid = seriesNode.child(std::string("PyramidResolution").data()); pyramid != nullptr;
         pyramid                = pyramid.next_sibling(std::string("PyramidResolution").data())) {
       int32_t idx             = pyramid.attribute("idx").as_int();
       int32_t width           = pyramid.attribute("width").as_int();
@@ -195,6 +220,7 @@ TRY_AGAIN:
       int32_t bits            = pyramid.attribute("BitsPerPixel").as_int();
       int32_t rgbChannelCpunt = pyramid.attribute("RGBChannelCount").as_int();
       int32_t isInterleaved   = pyramid.attribute("IsInterleaved").as_int();
+      int32_t isLittleEndian  = pyramid.attribute("IsLittleEndian").as_int();
 
       actImageInfo.resolutions.emplace(
           idx, ImageInfo::Pyramid{.bits                   = bits,
@@ -205,7 +231,8 @@ TRY_AGAIN:
                                   .optimalTileMemoryUsage = static_cast<int64_t>(tileWidth) * tileHeight * rgbChannelCpunt * (bits / 8),
                                   .optimalTileWidth       = tileWidth,
                                   .optimalTileHeight      = tileHeight,
-                                  .isInterleaved          = isInterleaved != 0});
+                                  .isInterleaved          = isInterleaved != 0,
+                                  .isLittleEndian         = isLittleEndian != 0});
     }
   }
 }

@@ -3,6 +3,7 @@
 
 import loci.common.services.ServiceFactory;
 import loci.formats.ImageReader;
+import loci.formats.in.MetadataOptions;
 import loci.formats.in.OMEXMLReader;
 import loci.formats.meta.IMetadata;
 import loci.formats.services.OMEXMLService;
@@ -29,7 +30,7 @@ public class BioFormatsWrapper {
             }
             formatReader.setResolution(resolution);
 
-            int[] imageBytes = new int[8];
+            int[] imageBytes = new int[9];
             imageBytes[0] = formatReader.getSizeY(); // Height
             imageBytes[1] = formatReader.getSizeX(); // Width
             imageBytes[2] = formatReader.getOptimalTileHeight();
@@ -39,6 +40,7 @@ public class BioFormatsWrapper {
             imageBytes[6] = formatReader.getResolutionCount();
             imageBytes[7] = formatReader.isInterleaved() == true ? 1 : 0; // if interleaved [R1, G1, B1, R2, G2, B2,
                                                                           // ..., Rn, Gn, Bn]
+            imageBytes[8] = formatReader.isLittleEndian() == true ? 1 : 0;
             return imageBytes;
         } catch (Exception e) {
             e.printStackTrace();
@@ -104,7 +106,7 @@ public class BioFormatsWrapper {
     }
 
     /// https://docs.openmicroscopy.org/ome-model/6.2.2/ome-tiff/specification.html
-    public static String getImageProperties(String imagePath, int series) {
+    public static String getImageProperties(String imagePath, int tmp/* series */) {
         DebugTools.setRootLevel("OFF");
 
         String omeXML = "";
@@ -123,30 +125,37 @@ public class BioFormatsWrapper {
             // Initialize the reader with the image file
             formatReader.setMetadataStore(metadata);
             formatReader.setId(imagePath);
-            formatReader.setSeries(series);
             omeXML = service.getOMEXML(metadata);
-            omeXML = omeXML + "\n<JODA xmlns=\"https://www.imagec.org/\" ResolutionCount=\""
-                    + String.valueOf(formatReader.getResolutionCount()) + "\">";
+            omeXML = omeXML + "\n<JODA xmlns=\"https://www.imagec.org/\" SeriesCount=\""
+                    + String.valueOf(formatReader.getSeriesCount()) + "\">";
 
-            String format = formatReader.getFormat().toLowerCase();
-            int optimalTileWidth = formatReader.getOptimalTileWidth();
-            int optimalTileHeight = formatReader.getOptimalTileHeight();
-            if (format.contains("jpeg")) {
-                optimalTileWidth = formatReader.getSizeX();
-                optimalTileHeight = formatReader.getSizeY();
-            }
+            for (int series = 0; series < formatReader.getSeriesCount(); series++) {
+                formatReader.setSeries(series);
+                omeXML = omeXML + "\n<Series idx=\"" + String.valueOf(series) + "\" ResolutionCount=\""
+                        + String.valueOf(formatReader.getResolutionCount()) + "\">";
 
-            for (int n = 0; n < formatReader.getResolutionCount(); n++) {
-                formatReader.setResolution(n);
-                omeXML += "<PyramidResolution idx=\"" + String.valueOf(n) + "\" width=\""
-                        + String.valueOf(formatReader.getSizeX()) + "\" height=\""
-                        + String.valueOf(formatReader.getSizeY()) + "\" TileWidth=\""
-                        + String.valueOf(optimalTileWidth) + "\" TileHeight=\""
-                        + String.valueOf(optimalTileHeight) + "\" BitsPerPixel=\""
-                        + String.valueOf(formatReader.getBitsPerPixel()) + "\" RGBChannelCount=\""
-                        + String.valueOf(formatReader.getRGBChannelCount()) + "\" IsInterleaved=\""
-                        + String.valueOf(formatReader.isInterleaved() == true ? 1 : 0) + "\"/>";
+                String format = formatReader.getFormat().toLowerCase();
+                int optimalTileWidth = formatReader.getOptimalTileWidth();
+                int optimalTileHeight = formatReader.getOptimalTileHeight();
+                if (format.contains("jpeg")) {
+                    optimalTileWidth = formatReader.getSizeX();
+                    optimalTileHeight = formatReader.getSizeY();
+                }
 
+                for (int n = 0; n < formatReader.getResolutionCount(); n++) {
+                    formatReader.setResolution(n);
+                    omeXML += "<PyramidResolution idx=\"" + String.valueOf(n) + "\" width=\""
+                            + String.valueOf(formatReader.getSizeX()) + "\" height=\""
+                            + String.valueOf(formatReader.getSizeY()) + "\" TileWidth=\""
+                            + String.valueOf(optimalTileWidth) + "\" TileHeight=\""
+                            + String.valueOf(optimalTileHeight) + "\" BitsPerPixel=\""
+                            + String.valueOf(formatReader.getBitsPerPixel()) + "\" RGBChannelCount=\""
+                            + String.valueOf(formatReader.getRGBChannelCount()) + "\" IsInterleaved=\""
+                            + String.valueOf(formatReader.isInterleaved() == true ? 1 : 0) + "\" IsLittleEndian=\""
+                            + String.valueOf(formatReader.isLittleEndian() == true ? 1 : 0) + "\"/>";
+
+                }
+                omeXML = omeXML + "</Series>\n";
             }
             omeXML += "</JODA>";
 

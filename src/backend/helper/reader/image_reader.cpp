@@ -241,15 +241,19 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &i
     //
     // ReadImage Info
     //
-    int32_t imageHeight     = ome.getImageHeight(resolutionIdx);
-    int32_t imageWidth      = ome.getImageWidth(resolutionIdx);
-    int32_t bitDepth        = ome.getBitDepth(resolutionIdx);
-    int32_t rgbChannelCount = ome.getRGBchannelCount(resolutionIdx);
-    bool isInterleaved      = ome.getIsInterleaved(resolutionIdx);
+    int32_t imageHeight     = ome.getImageHeight(series, resolutionIdx);
+    int32_t imageWidth      = ome.getImageWidth(series, resolutionIdx);
+    int32_t bitDepth        = ome.getBitDepth(series, resolutionIdx);
+    int32_t rgbChannelCount = ome.getRGBchannelCount(series, resolutionIdx);
+    bool isInterleaved      = ome.getIsInterleaved(series, resolutionIdx);
+    bool isLittleEndian     = ome.getIsLittleEndian(series, resolutionIdx);
 
     //
     // Load image
     //
+    if(series >= ome.getNrOfSeries()) {
+      series = ome.getNrOfSeries() - 1;
+    }
     jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, static_cast<int>(series),
                                                                     static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t);
     if(readImg == nullptr) {
@@ -259,7 +263,7 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &i
       return {};
     }
 
-    cv::Mat loadedImage = convertImageToMat(myEnv, readImg, imageWidth, imageHeight, bitDepth, rgbChannelCount, isInterleaved);
+    cv::Mat loadedImage = convertImageToMat(myEnv, readImg, imageWidth, imageHeight, bitDepth, rgbChannelCount, isInterleaved, isLittleEndian);
     //
     // Cleanup
     //
@@ -285,11 +289,13 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &ima
   // Takes 150 ms
   if(nullptr != myJVM && mJVMInitialised && imagePlane.c >= 0 && imagePlane.z >= 0 && imagePlane.t >= 0) {
     // std::lock_guard<std::mutex> lock(mReadMutex);
-
+    if(series >= ome.getNrOfSeries()) {
+      series = ome.getNrOfSeries() - 1;
+    }
     // Find the pyramid with the best matching resolution for thumbnail creation
     int32_t resolutionIdx                       = 0;
     ome::OmeInfo::ImageInfo::Pyramid resolution = ome.getResolutionCount(series).at(0);
-    for(int idx = 0; idx < ome.getResolutionCount().size(); idx++) {
+    for(int idx = 0; idx < ome.getResolutionCount(series).size(); idx++) {
       resolution = ome.getResolutionCount(series).at(idx);
       if(resolution.imageWidth <= THUMBNAIL_SIZE || resolution.imageHeight <= THUMBNAIL_SIZE) {
         resolutionIdx = idx;
@@ -309,11 +315,12 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &ima
     //
     // ReadImage Info
     //
-    int32_t imageHeight     = ome.getImageHeight(resolutionIdx);
-    int32_t imageWidth      = ome.getImageWidth(resolutionIdx);
-    int32_t bitDepth        = ome.getBitDepth(resolutionIdx);
-    int32_t rgbChannelCount = ome.getRGBchannelCount(resolutionIdx);
-    bool isInterleaved      = ome.getIsInterleaved(resolutionIdx);
+    int32_t imageHeight     = ome.getImageHeight(series, resolutionIdx);
+    int32_t imageWidth      = ome.getImageWidth(series, resolutionIdx);
+    int32_t bitDepth        = ome.getBitDepth(series, resolutionIdx);
+    int32_t rgbChannelCount = ome.getRGBchannelCount(series, resolutionIdx);
+    bool isInterleaved      = ome.getIsInterleaved(series, resolutionIdx);
+    bool isLittleEndian     = ome.getIsLittleEndian(series, resolutionIdx);
 
     //
     // Read image
@@ -330,7 +337,7 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &ima
     jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
 
     // This is the image information
-    cv::Mat loadedImage = convertImageToMat(myEnv, readImg, imageWidth, imageHeight, bitDepth, rgbChannelCount, isInterleaved);
+    cv::Mat loadedImage = convertImageToMat(myEnv, readImg, imageWidth, imageHeight, bitDepth, rgbChannelCount, isInterleaved, isLittleEndian);
 
     myEnv->DeleteLocalRef(filePath);
     myJVM->DetachCurrentThread();
@@ -397,11 +404,12 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
     //
     // ReadImage Info
     //
-    int32_t imageHeight     = ome.getImageHeight(resolutionIdx);
-    int32_t imageWidth      = ome.getImageWidth(resolutionIdx);
-    int32_t bitDepth        = ome.getBitDepth(resolutionIdx);
-    int32_t rgbChannelCount = ome.getRGBchannelCount(resolutionIdx);
-    bool isInterleaved      = ome.getIsInterleaved(resolutionIdx);
+    int32_t imageHeight     = ome.getImageHeight(series, resolutionIdx);
+    int32_t imageWidth      = ome.getImageWidth(series, resolutionIdx);
+    int32_t bitDepth        = ome.getBitDepth(series, resolutionIdx);
+    int32_t rgbChannelCount = ome.getRGBchannelCount(series, resolutionIdx);
+    bool isInterleaved      = ome.getIsInterleaved(series, resolutionIdx);
+    bool isLittleEndian     = ome.getIsLittleEndian(series, resolutionIdx);
 
     //
     // Calculate tile position
@@ -421,6 +429,9 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
     //
     // Load image
     //
+    if(series >= ome.getNrOfSeries()) {
+      series = ome.getNrOfSeries() - 1;
+    }
     auto i1       = DurationCount::start("Load from filesystm");
     auto *readImg = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImageTile, filePath, static_cast<int>(series),
                                                                static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t, offsetX,
@@ -436,7 +447,7 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
     //
     // Assign image data
     //
-    cv::Mat image = convertImageToMat(myEnv, readImg, tileWidthToLoad, tileHeightToLoad, bitDepth, rgbChannelCount, isInterleaved);
+    cv::Mat image = convertImageToMat(myEnv, readImg, tileWidthToLoad, tileHeightToLoad, bitDepth, rgbChannelCount, isInterleaved, isLittleEndian);
 
     //
     // Cleanup
@@ -455,9 +466,9 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
 /// \param[out]
 /// \return
 ///
-auto ImageReader::getOmeInformation(const std::filesystem::path &filename) -> joda::ome::OmeInfo
+auto ImageReader::getOmeInformation(const std::filesystem::path &filename, uint16_t series) -> joda::ome::OmeInfo
 {
-  const int32_t series = 0;
+#warning "Check if series is needed for OME"
   if(nullptr != myJVM && mJVMInitialised) {
     auto id = DurationCount::start("Get OEM");
     JNIEnv *myEnv;
@@ -489,7 +500,7 @@ auto ImageReader::getOmeInformation(const std::filesystem::path &filename) -> jo
 }
 
 cv::Mat ImageReader::convertImageToMat(JNIEnv *myEnv, const jbyteArray &readImg, int32_t imageWidth, int32_t imageHeight, int32_t bitDepth,
-                                       int32_t rgbChannelCount, bool isInterleaved)
+                                       int32_t rgbChannelCount, bool isInterleaved, bool isLittleEndian)
 {
   //
   //
@@ -513,11 +524,13 @@ cv::Mat ImageReader::convertImageToMat(JNIEnv *myEnv, const jbyteArray &readImg,
 
   cv::Mat image = cv::Mat::zeros(heightTmp, widthTmp, format);
   myEnv->GetByteArrayRegion(readImg, 0, totalSizeLoaded, (jbyte *) image.data);
+  if(!isLittleEndian) {
+    bigEndianToLittleEndian(image, format);
+  }
 
   //
   // Handling of special formats
   //
-
   // 16 bit grayscale
   if(format == CV_16UC1) {
     return image;
@@ -550,6 +563,17 @@ cv::Mat ImageReader::convertImageToMat(JNIEnv *myEnv, const jbyteArray &readImg,
   }
 
   throw std::invalid_argument("Not supported image format!");
+}
+
+void ImageReader::bigEndianToLittleEndian(cv::Mat &inOut, uint32_t format)
+{
+  // 16 bit grayscale
+  if(format == CV_16UC1) {
+    for(int p = 0; p < inOut.total(); p++) {
+      uint16_t tmp         = inOut.at<int16_t>(p);
+      inOut.at<int16_t>(p) = (tmp >> 8) | (tmp << 8);
+    }
+  }
 }
 
 //     jsize imageArraySize = myEnv->GetArrayLength(readImg);

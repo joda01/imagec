@@ -12,6 +12,7 @@
 ///
 
 #include "image.hpp"
+#include <algorithm>
 #include <cstdint>
 #include <iostream>
 #include <mutex>
@@ -45,7 +46,8 @@ Image::Image()
 void Image::setImage(const cv::Mat &&imageToDisplay)
 {
   delete mImageOriginal;
-  mImageOriginal = new cv::Mat(joda::image::func::Resizer::resizeWithAspectRatio(imageToDisplay, WIDTH, WIDTH));
+  mImageOriginal = new cv::Mat(
+      joda::image::func::Resizer::resizeWithAspectRatio(imageToDisplay, std::min(imageToDisplay.cols, WIDTH), std::min(imageToDisplay.rows, WIDTH)));
 }
 
 ///
@@ -70,7 +72,7 @@ QPixmap Image::getPixmap() const
   if(depth == CV_16U) {
     image = mImageOriginal->clone();
     // Ensure minVal is less than maxVal
-    if(mLowerValue >= mUpperValue) {
+    if(mLowerValue > mUpperValue) {
       std::cerr << "Minimum value must be less than maximum value." << std::endl;
       return {};
     }

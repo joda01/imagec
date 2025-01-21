@@ -513,7 +513,7 @@ void PanelClassification::onloadPreset(int index)
 ///
 void PanelClassification::populateClassesFromImage()
 {
-  auto [path, _, omeInfo] = mWindowMain->getImagePanel()->getSelectedImageOrFirst();
+  auto [path, series, omeInfo] = mWindowMain->getImagePanel()->getSelectedImageOrFirst();
   if(path.empty()) {
     joda::log::logError("No images found! Please select a image directory first!");
     QMessageBox messageBox(this);
@@ -524,7 +524,7 @@ void PanelClassification::populateClassesFromImage()
     auto reply = messageBox.exec();
     return;
   }
-  auto classes = mWindowMain->getController()->populateClassesFromImage(omeInfo);
+  auto classes = mWindowMain->getController()->populateClassesFromImage(omeInfo, series);
   if(askForChangeTemplateIndex()) {
     fromSettings(classes);
   }
