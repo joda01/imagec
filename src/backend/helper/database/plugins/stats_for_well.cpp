@@ -54,7 +54,7 @@ auto StatsPerGroup::toTable(const QueryFilter &filter, Grouping grouping) -> Que
           if(grouping == Grouping::BY_WELL) {
             classesToExport.setData(classs, statement.getColNames(), row, colIdx, filename, table::TableCell{value, imageId, validity == 0, ""});
           } else {
-            auto colC = std::string(1, ((char) platePosY + 'A')) + std::to_string(platePosX);
+            auto colC = std::string(1, ((char) (platePosY - 1) + 'A')) + std::to_string(platePosX);
             classesToExport.setData(classs, statement.getColNames(), row, colIdx, colC, table::TableCell{value, groupId, validity == 0, ""});
           }
         }
@@ -210,7 +210,7 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
   sql += "FROM imageGrouped\n";
   if(grouping == Grouping::BY_PLATE) {
     sql += "GROUP BY group_id\n";
-    sql += "ORDER BY pos_on_plate_x, pos_on_plate_y\n";
+    sql += "ORDER BY pos_on_plate_y, pos_on_plate_x\n";
   } else {
     sql += "ORDER BY file_name";
   }
