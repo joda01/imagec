@@ -241,6 +241,16 @@ void PanelImages::updateImageMeta()
       row++;
     };
 
+    auto addSubTitle = [this, &row](const std::string name) {
+      auto *item = new QTableWidgetItem(name.data());
+      QFont font;
+      font.setItalic(true);
+      item->setFont(font);
+      mImageMeta->setItem(row, 0, item);
+      mImageMeta->setItem(row, 1, new QTableWidgetItem(""));
+      row++;
+    };
+
     const auto &objectiveInfo = mOmeFromActSelectedImage.getObjectiveInfo();
     addTitle("Objective");
     addStringItem("Manufacturer", objectiveInfo.manufacturer);
@@ -271,7 +281,7 @@ void PanelImages::updateImageMeta()
       QString channelInfoStr;
       for(const auto &[idx, channelInfo] : mOmeFromActSelectedImage.getChannelInfos(series)) {
         mImageMeta->setRowCount(mImageMeta->rowCount() + 5);
-        addTitle("Channel " + std::to_string(idx));
+        addSubTitle("Channel " + std::to_string(idx));
         addStringItem("ID", channelInfo.channelId);
         addStringItem("Name", channelInfo.name);
         addItemFloat("Emission wave length", channelInfo.emissionWaveLength, channelInfo.emissionWaveLengthUnit);
