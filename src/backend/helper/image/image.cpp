@@ -72,7 +72,7 @@ QPixmap Image::getPixmap() const
   if(depth == CV_16U) {
     image = mImageOriginal->clone();
     // Ensure minVal is less than maxVal
-    if(mLowerValue >= mUpperValue) {
+    if(mLowerValue > mUpperValue) {
       std::cerr << "Minimum value must be less than maximum value." << std::endl;
       return {};
     }

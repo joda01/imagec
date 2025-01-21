@@ -220,6 +220,7 @@ TRY_AGAIN:
       int32_t bits            = pyramid.attribute("BitsPerPixel").as_int();
       int32_t rgbChannelCpunt = pyramid.attribute("RGBChannelCount").as_int();
       int32_t isInterleaved   = pyramid.attribute("IsInterleaved").as_int();
+      int32_t isLittleEndian  = pyramid.attribute("IsLittleEndian").as_int();
 
       actImageInfo.resolutions.emplace(
           idx, ImageInfo::Pyramid{.bits                   = bits,
@@ -230,7 +231,8 @@ TRY_AGAIN:
                                   .optimalTileMemoryUsage = static_cast<int64_t>(tileWidth) * tileHeight * rgbChannelCpunt * (bits / 8),
                                   .optimalTileWidth       = tileWidth,
                                   .optimalTileHeight      = tileHeight,
-                                  .isInterleaved          = isInterleaved != 0});
+                                  .isInterleaved          = isInterleaved != 0,
+                                  .isLittleEndian         = isLittleEndian != 0});
     }
   }
 }

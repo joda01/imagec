@@ -88,6 +88,7 @@ public:
       int32_t optimalTileWidth       = 0;
       int32_t optimalTileHeight      = 0;
       bool isInterleaved             = false;
+      bool isLittleEndian            = true;
 
       [[nodiscard]] int32_t getTileCount(int32_t tileWidth, int32_t tileHeight) const
       {
@@ -181,7 +182,7 @@ public:
     return mImageInfo;
   }
 
-  int32_t getImageWidth(int32_t series, int32_t resolutionIdx = 0) const
+  int32_t getImageWidth(int32_t series, int32_t resolutionIdx) const
   {
     if(series < 0 || series >= getNrOfSeries()) {
       series = 0;
@@ -189,7 +190,7 @@ public:
     return mImageInfo.at(series).resolutions.at(resolutionIdx).imageWidth;
   }
 
-  int32_t getImageHeight(int32_t series, int32_t resolutionIdx = 0) const
+  int32_t getImageHeight(int32_t series, int32_t resolutionIdx) const
   {
     if(series < 0 || series >= getNrOfSeries()) {
       series = 0;
@@ -198,7 +199,7 @@ public:
     return mImageInfo.at(series).resolutions.at(resolutionIdx).imageHeight;
   }
 
-  int32_t getBitDepth(int32_t series, int32_t resolutionIdx = 0) const
+  int32_t getBitDepth(int32_t series, int32_t resolutionIdx) const
   {
     if(series < 0 || series >= getNrOfSeries()) {
       series = 0;
@@ -206,7 +207,7 @@ public:
     return mImageInfo.at(series).resolutions.at(resolutionIdx).bits;
   }
 
-  int32_t getRGBchannelCount(int32_t series, int32_t resolutionIdx = 0) const
+  int32_t getRGBchannelCount(int32_t series, int32_t resolutionIdx) const
   {
     if(series < 0 || series >= getNrOfSeries()) {
       series = 0;
@@ -214,12 +215,19 @@ public:
     return mImageInfo.at(series).resolutions.at(resolutionIdx).rgbChannelCount;
   }
 
-  bool getIsInterleaved(int32_t series, int32_t resolutionIdx = 0) const
+  bool getIsInterleaved(int32_t series, int32_t resolutionIdx) const
   {
     if(series < 0 || series >= getNrOfSeries()) {
       series = 0;
     }
     return mImageInfo.at(series).resolutions.at(resolutionIdx).isInterleaved;
+  }
+  bool getIsLittleEndian(int32_t series, int32_t resolutionIdx) const
+  {
+    if(series < 0 || series >= getNrOfSeries()) {
+      series = 0;
+    }
+    return mImageInfo.at(series).resolutions.at(resolutionIdx).isLittleEndian;
   }
 
 private:

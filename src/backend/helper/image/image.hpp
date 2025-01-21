@@ -80,7 +80,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  const int32_t WIDTH = 8192;
+  const int32_t WIDTH = 2048;
 
   /////////////////////////////////////////////////////
   [[nodiscard]] QPixmap encode(const cv::Mat *image) const;

@@ -201,7 +201,7 @@ public:
 
   [[nodiscard]] cv::Size getOriginalImageSize() const
   {
-    return {imageContext.imageMeta.getImageWidth(imageContext.series), imageContext.imageMeta.getImageHeight(imageContext.series)};
+    return {imageContext.imageMeta.getImageWidth(imageContext.series, 0), imageContext.imageMeta.getImageHeight(imageContext.series, 0)};
   }
 
   [[nodiscard]] enums::ClassId getClassId(enums::ClassIdIn in) const

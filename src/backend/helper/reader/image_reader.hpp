@@ -53,7 +53,8 @@ private:
 
   static void setPath();
   static cv::Mat convertImageToMat(JNIEnv *myEnv, const jbyteArray &readImg, int32_t imageWidth, int32_t imageHeight, int32_t bitDepth,
-                                   int32_t rgbChannelCount, bool isInterleaved);
+                                   int32_t rgbChannelCount, bool isInterleaved, bool isLittleEndian);
+  static void bigEndianToLittleEndian(cv::Mat &inOut, uint32_t format);
 
   /////////////////////////////////////////////////////
   static inline std::mutex mReadMutex{};
