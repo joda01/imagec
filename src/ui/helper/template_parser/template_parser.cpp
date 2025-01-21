@@ -114,7 +114,14 @@ auto TemplateParser::loadTemplate(const std::filesystem::path &pathToTemplate) -
 ///
 auto TemplateParser::getUsersTemplateDirectory() -> std::filesystem::path
 {
-  auto homeDir = std::filesystem::path(QDir::homePath().toStdString()) / ".imagec" / "templates";
+#ifdef _WIN32
+  auto homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path("imagec") /
+                 std::filesystem::path("templates");
+#else
+  auto homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path(".imagec") /
+                 std::filesystem::path("templates");
+
+#endif
   if(!fs::exists(homeDir) || !fs::is_directory(homeDir)) {
     try {
       fs::create_directories(homeDir);
