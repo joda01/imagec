@@ -29,7 +29,12 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  static constexpr int32_t HANDLE_WITH = 10;
+  /////////////////////////////////////////////////////
+  void startDrag();
+  void paintEvent(QPaintEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;
+  void mouseDoubleClickEvent(QMouseEvent *event) override;
   PanelPipelineSettings *mParentContainer;
   WindowMain *mWindowMain;
 };

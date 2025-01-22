@@ -39,17 +39,10 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
   // Create a widget to hold the panels
-  auto *contentWidget = new QWidget;
-  contentWidget->setObjectName("contentOverview");
-  setWidget(contentWidget);
+  mContentWidget = new DroppableWidget();
+  mContentWidget->setObjectName("contentOverview");
+  setWidget(mContentWidget);
   setWidgetResizable(true);
-
-  // Create a horizontal layout for the panels
-  mVerticalLayout = new QVBoxLayout(contentWidget);
-  mVerticalLayout->setContentsMargins(0, 0, 0, 0);
-  mVerticalLayout->setSpacing(8);    // Adjust this value as needed
-  mVerticalLayout->setAlignment(Qt::AlignTop);
-  contentWidget->setLayout(mVerticalLayout);
 }
 
 ///
@@ -62,7 +55,7 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
 
 void PanelPipeline::addElement(std::unique_ptr<PanelPipelineSettings> baseContainer, void *pointerToSettings)
 {
-  mVerticalLayout->addWidget(baseContainer->getOverviewPanel());
+  mContentWidget->getLayout()->addWidget(baseContainer->getOverviewPanel());
   mChannels.emplace(std::move(baseContainer), pointerToSettings);
 }
 
@@ -87,7 +80,7 @@ void PanelPipeline::erase(PanelPipelineSettings *toRemove)
 
       mAnalyzeSettings.pipelines.remove_if([&elementInSettings](const joda::settings::Pipeline &item) { return &item == elementInSettings; });
 
-      mVerticalLayout->removeWidget(toRemove->getOverviewPanel());
+      mContentWidget->getLayout()->removeWidget(toRemove->getOverviewPanel());
       toRemove->getOverviewPanel()->setParent(nullptr);
       mChannels.erase(it);
       mWindowMain->checkForSettingsChanged();
@@ -105,7 +98,7 @@ void PanelPipeline::erase(PanelPipelineSettings *toRemove)
 void PanelPipeline::clear()
 {
   // Iterate through all items in the layout
-  while(QLayoutItem *item = mVerticalLayout->takeAt(0)) {
+  while(QLayoutItem *item = mContentWidget->getLayout()->takeAt(0)) {
     // Check if the item contains a widget
     if(QWidget *widget = item->widget()) {
       // Optionally, remove the widget from the layout and delete it

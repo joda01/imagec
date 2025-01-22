@@ -19,6 +19,7 @@
 #include <memory>
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
+#include "ui/helper/droppable_widget/droppable_widget.hpp"
 
 namespace joda::ui {
 
@@ -45,9 +46,8 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  QVBoxLayout *mVerticalLayout;
-  std::map<std::unique_ptr<PanelPipelineSettings>, void *>
-      mChannels;    // The second value is the pointer to the array entry in the AnalyzeSettings
+  DroppableWidget *mContentWidget;
+  std::map<std::unique_ptr<PanelPipelineSettings>, void *> mChannels;    // The second value is the pointer to the array entry in the AnalyzeSettings
   WindowMain *mWindowMain;
   joda::settings::AnalyzeSettings &mAnalyzeSettings;
 };
