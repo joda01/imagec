@@ -19,8 +19,8 @@
 #include <memory>
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
-#include "ui/helper/droppable_widget/droppable_widget.hpp"
 
+class DroppableWidget;
 namespace joda::ui {
 
 class WindowMain;

@@ -29,7 +29,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  static constexpr int32_t HANDLE_WITH = 10;
+  static constexpr int32_t HANDLE_WITH = 8;
   /////////////////////////////////////////////////////
   void startDrag();
   void paintEvent(QPaintEvent *event) override;

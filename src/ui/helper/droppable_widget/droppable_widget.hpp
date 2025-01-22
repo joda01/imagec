@@ -15,6 +15,8 @@
 #include <qnamespace.h>
 #include <QtWidgets>
 #include <algorithm>
+#include <iostream>
+#include <string>
 
 class DroppableWidget : public QWidget
 {
@@ -65,22 +67,31 @@ protected:
   {
     QWidget *droppedWidget = (QWidget *) event->mimeData()->text().toLongLong();
     if(droppedWidget == nullptr) {
+      mInDrag = false;
+      update();
       return;
     }
 
     int oldIndex = layout->indexOf(droppedWidget);
     if(oldIndex == -1) {
+      mInDrag = false;
+      update();
       return;
     }
 
     int dropIndex = findDropIndex(event->position().toPoint());
+    if(dropIndex >= layout->count()) {
+      mInDrag = false;
+      update();
+      return;
+    }
 
     layout->removeWidget(droppedWidget);
     layout->insertWidget(dropIndex, droppedWidget);
 
     event->acceptProposedAction();
     mInDrag = false;
-    update();    // Clear the indicator
+    update();
   }
 
 private:
@@ -90,20 +101,26 @@ private:
 
     if(mInDrag) {
       int dropIndex = findDropIndex(currentDragPos);
+      if(dropIndex >= layout->count()) {
+        return;
+      }
 
-      int yPos = 0;
+      int yPos       = 0;
+      int itemHeight = 0;
       if(layout->count() > 0) {
         if(dropIndex < layout->count()) {
-          yPos = layout->itemAt(dropIndex)->geometry().top();
+          yPos       = layout->itemAt(dropIndex)->geometry().top();
+          itemHeight = layout->itemAt(dropIndex)->geometry().height();
+
         } else {
           yPos = layout->itemAt(layout->count() - 1)->geometry().bottom();
         }
       }
       QPainter painter(this);
-      QPen pen(Qt::red);
+      QPen pen(Qt::darkGray);
       pen.setWidth(2);
       painter.setPen(pen);
-      painter.drawLine(0, yPos, width(), yPos);
+      painter.drawRect(0, yPos, width(), itemHeight);
     }
   }
 

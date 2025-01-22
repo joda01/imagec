@@ -12,9 +12,11 @@
 ///
 
 #include "panel_channel_overview.hpp"
+#include <qcolor.h>
 #include <qgridlayout.h>
 #include <qlabel.h>
 #include <qlineedit.h>
+#include <qnamespace.h>
 #include "ui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/window_main/window_main.hpp"
 
@@ -23,7 +25,7 @@ namespace joda::ui {
 PanelChannelOverview::PanelChannelOverview(WindowMain *wm, PanelPipelineSettings *parent) : mWindowMain(wm), mParentContainer(parent)
 {
   setObjectName("PanelChannelOverview");
-  setContentsMargins(HANDLE_WITH, 4, 4, 4);
+  setContentsMargins(4, 4, 4, 4);
   QGridLayout *layout = new QGridLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
   setLayout(layout);
@@ -68,7 +70,16 @@ void PanelChannelOverview::paintEvent(QPaintEvent *event)
   QWidget::paintEvent(event);    // Call the base class paint event
 
   QPainter painter(this);
-  painter.fillRect(0, 0, HANDLE_WITH, height(), Qt::darkGray);    // Draw the handle
+  // painter.fillRect(size().width() - HANDLE_WITH - 2, 4, HANDLE_WITH, height() - 8, Qt::darkGray);    // Draw the handle
+
+  int x          = size().width() - HANDLE_WITH - 2;
+  int ovalHeight = (height() - 8 - 8) / 3;
+  painter.setBrush(Qt::lightGray);
+  QPen pen(Qt::lightGray, 4);    // darkYellow, 5px width
+  painter.setPen(pen);
+  painter.drawEllipse(x, 4, ovalHeight, ovalHeight);
+  painter.drawEllipse(x, ovalHeight + 8, ovalHeight, ovalHeight);
+  painter.drawEllipse(x, ovalHeight * 2 + 8 + 4, ovalHeight, ovalHeight);
 }
 
 ///
@@ -77,7 +88,7 @@ void PanelChannelOverview::paintEvent(QPaintEvent *event)
 ///
 void PanelChannelOverview::mousePressEvent(QMouseEvent *event)
 {
-  if(event->button() == Qt::LeftButton && event->position().x() <= HANDLE_WITH) {
+  if(event->button() == Qt::LeftButton && event->position().x() >= (size().width() - HANDLE_WITH - 2)) {
     startDrag();
   }
 
@@ -99,8 +110,8 @@ void PanelChannelOverview::startDrag()
   drag->setMimeData(mimeData);
 
   // Create a pixmap for the drag image (optional, but recommended)
-  QPixmap pixmap(size());        // Create a pixmap of the widget's size
-  pixmap.fill(Qt::lightGray);    // Fill it with gray
+  QPixmap pixmap(size());                     // Create a pixmap of the widget's size
+  pixmap.fill(QColor(200, 200, 200, 192));    // Fill it with gray
 
   QPainter painter(&pixmap);
   render(&painter);    // Render the widget onto the pixmap

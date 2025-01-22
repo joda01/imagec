@@ -16,6 +16,7 @@
 #include <memory>
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "ui/container/pipeline/panel_pipeline_settings.hpp"
+#include "ui/helper/droppable_widget/droppable_widget.hpp"
 #include "ui/helper/icon_generator.hpp"
 #include "ui/helper/template_parser/template_parser.hpp"
 #include "ui/window_main/window_main.hpp"
