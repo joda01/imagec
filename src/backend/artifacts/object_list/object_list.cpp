@@ -46,12 +46,15 @@ void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const Sphe
   }
 }
 
-void SpheralIndex::calcIntersection(joda::processor::ProcessContext &context, joda::settings::ReclassifySettings::Mode func, SpheralIndex *other,
-                                    const std::set<joda::enums::ClassId> objectClassesMe, const std::set<joda::enums::ClassId> objectClassesOther,
-                                    float minIntersecion, const settings::MetricsFilter &metrics, const settings::IntensityFilter &intensity,
+void SpheralIndex::calcIntersection(ObjectList *objectList, joda::processor::ProcessContext &context, joda::settings::ReclassifySettings::Mode func,
+                                    SpheralIndex *other, const std::set<joda::enums::ClassId> objectClassesMe,
+                                    const std::set<joda::enums::ClassId> objectClassesOther, float minIntersecion,
+                                    const settings::MetricsFilter &metrics, const settings::IntensityFilter &intensity,
                                     joda::enums::ClassId newClassOFIntersectingObject)
 {
   std::set<ROI *> intersecting;
+  std::set<ROI *> roisToRemove;
+
   // Check for collisions between objects in grid1 and grid2
   for(const auto &cell : grid) {
     const auto &boxes1 = cell.second;
@@ -64,21 +67,22 @@ void SpheralIndex::calcIntersection(joda::processor::ProcessContext &context, jo
           for(auto *box2 : boxes2) {
             if(objectClassesOther.contains(box2->getClassId())) {
               // Each intersecting particle is only allowed to be counted once
-              if(!intersecting.contains(box1)) {
+              if(!intersecting.contains(box1) && !roisToRemove.contains(box1)) {
                 if(box1->isIntersecting(*box2, minIntersecion)) {
                   intersecting.emplace(box1);
                   switch(func) {
                     case settings::ReclassifySettings::Mode::RECLASSIFY_MOVE:
                       if(settings::ClassifierFilter::doesFilterMatch(context, *box1, metrics, intensity)) {
-                        box1->setClass(newClassOFIntersectingObject);
+                        // We have to reenter to organize correct in the map of objects
+                        auto newRoi = box1->clone(newClassOFIntersectingObject);
+                        roisToEnter.emplace_back(std::move(newRoi));
+                        roisToRemove.emplace(box1);
                       }
                       break;
                     case settings::ReclassifySettings::Mode::RECLASSIFY_COPY: {
                       if(settings::ClassifierFilter::doesFilterMatch(context, *box1, metrics, intensity)) {
-                        auto newRoi = box1->copy();
-                        newRoi.setClass(newClassOFIntersectingObject);
-                        // Store the ROIs we want to enter
-                        roisToEnter.emplace_back(std::move(newRoi));
+                        auto newRoi = box1->copy(newClassOFIntersectingObject);
+                        roisToEnter.emplace_back(std::move(newRoi));    // Store the ROIs we want to enter
                       }
                     } break;
                     case settings::ReclassifySettings::Mode::UNKNOWN:
@@ -93,8 +97,13 @@ void SpheralIndex::calcIntersection(joda::processor::ProcessContext &context, jo
     }
     // Enter the rois from the temp storage
     for(const auto &roi : roisToEnter) {
-      this->emplace(roi);
+      objectList->push_back(roi);
     }
+  }
+
+  // Remove ROIs
+  for(const auto *roi : roisToRemove) {
+    this->erase(roi);
   }
 }
 

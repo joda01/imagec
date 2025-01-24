@@ -109,13 +109,42 @@ public:
             mImageSize, mOriginalImageSize, mAreaSize, mPerimeter, mCircularity,     intensity,        mOriginObjectId, mCentroid};
   }
 
+  [[nodiscard]] ROI clone(enums::ClassId newClassId) const
+  {
+    return {mIsNull,         mObjectId,  {newClassId, mId.imagePlane}, confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,
+            mMaskContours,   mImageSize, mOriginalImageSize,           mAreaSize,  mPerimeter,       mCircularity,     intensity,
+            mOriginObjectId, mCentroid};
+  }
+
   [[nodiscard]] ROI copy() const
   {
     return {mIsNull,    mGlobalUniqueObjectId++, mId,       confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,     mMaskContours,
             mImageSize, mOriginalImageSize,      mAreaSize, mPerimeter, mCircularity,     intensity,        mObjectId, mCentroid};
   }
 
-  void setClass(enums::ClassId classId)
+  [[nodiscard]] ROI copy(enums::ClassId newClassId) const
+  {
+    return {mIsNull,
+            mGlobalUniqueObjectId++,
+            {newClassId, mId.imagePlane},
+            confidence,
+            mBoundingBoxTile,
+            mBoundingBoxReal,
+            mMask,
+            mMaskContours,
+            mImageSize,
+            mOriginalImageSize,
+            mAreaSize,
+            mPerimeter,
+            mCircularity,
+            intensity,
+            mObjectId,
+            mCentroid};
+  }
+
+  /// @brief  ATTENTION This method must not be used when the ROI is still added to the spheral index
+  /// @param classId
+  void changeClass(enums::ClassId classId)
   {
     auto &oId   = const_cast<RoiObjectId &>(mId);
     oId.classId = classId;

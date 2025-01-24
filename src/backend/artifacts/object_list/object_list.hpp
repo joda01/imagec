@@ -18,6 +18,8 @@
 
 namespace joda::atom {
 
+class ObjectList;
+
 using namespace std;
 
 // Define a hash function for a pair of integers (x, y) to be used in the unordered_map
@@ -52,6 +54,23 @@ public:
   ROI &push_back(const ROI &box)
   {
     return insertIntoGrid(box);
+  }
+
+  void erase(const ROI *eraseRoi)
+  {
+    mElements.remove_if([eraseRoi](const ROI &obj) { return &obj == eraseRoi; });
+    for(auto &[_, vec] : grid) {
+      int32_t vecSizeBefore = vec.size();
+      vec.erase(std::remove_if(vec.begin(), vec.end(), [eraseRoi](const ROI *obj) { return obj == eraseRoi; }), vec.end());
+      if(vec.size() < vecSizeBefore) {
+        // We removed something
+        if(vec.empty()) {
+          // If the vector is empty, we can remove the grid element form the spheral index
+          grid.erase(_);
+        }
+        break;
+      }
+    }
   }
 
   bool empty() const
@@ -103,10 +122,10 @@ public:
                           joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo, float minIntersecion, const enums::tile_t &tile,
                           const cv::Size &tileSize) const;
 
-  void calcIntersection(joda::processor::ProcessContext &context, joda::settings::ReclassifySettings::Mode func, SpheralIndex *other,
-                        const std::set<joda::enums::ClassId> objectClassesMe, const std::set<joda::enums::ClassId> objectClassesOther,
-                        float minIntersecion, const settings::MetricsFilter &metrics, const settings::IntensityFilter &intensity,
-                        joda::enums::ClassId newClassOFIntersectingObject = joda::enums::ClassId::NONE);
+  void calcIntersection(ObjectList *objectList, joda::processor::ProcessContext &context, joda::settings::ReclassifySettings::Mode func,
+                        SpheralIndex *other, const std::set<joda::enums::ClassId> objectClassesMe,
+                        const std::set<joda::enums::ClassId> objectClassesOther, float minIntersecion, const settings::MetricsFilter &metrics,
+                        const settings::IntensityFilter &intensity, joda::enums::ClassId newClassOFIntersectingObject = joda::enums::ClassId::NONE);
 
   auto begin() const
   {

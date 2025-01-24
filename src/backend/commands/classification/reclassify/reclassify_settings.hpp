@@ -113,11 +113,7 @@ struct ReclassifySettings : public SettingBase
   [[nodiscard]] ObjectOutputClasses getOutputClasses() const override
   {
     ObjectOutputClasses out;
-    if(mode == Mode::RECLASSIFY_MOVE || mode == Mode::RECLASSIFY_COPY) {
-      for(const auto &in : inputClasses) {
-        out.emplace(newClassId);
-      }
-    }
+    out.emplace(newClassId);
     return out;
   }
 
