@@ -115,12 +115,6 @@ public:
             mImageSize, mOriginalImageSize,      mAreaSize, mPerimeter, mCircularity,     intensity,        mObjectId, mCentroid};
   }
 
-  void setClasss(enums::ClassId classId)
-  {
-    auto &oId   = const_cast<RoiObjectId &>(mId);
-    oId.classId = classId;
-  }
-
   void setClass(enums::ClassId classId)
   {
     auto &oId   = const_cast<RoiObjectId &>(mId);

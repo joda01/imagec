@@ -280,7 +280,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
 
       for(const auto &filter : objectClassToUse.filters) {
         if(joda::settings::ClassifierFilter::doesFilterMatch(context, detectedRoi, filter.metrics, filter.intensity)) {
-          detectedRoi.setClasss(context.getClassId(filter.outputClass));
+          detectedRoi.setClass(context.getClassId(filter.outputClass));
         }
       }
       result.push_back(detectedRoi);
