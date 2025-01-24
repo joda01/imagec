@@ -45,6 +45,9 @@ public:
       }
 
       for(const auto &classIdIn : mSettings.inputClasses) {
+        if(!store.contains(context.getClassId(classIdIn))) {
+          continue;
+        }
         auto *classsObjects = store.at(context.getClassId(classIdIn)).get();
         for(auto &object : *classsObjects) {
           if(context.getClassId(classIdIn) == object.getClassId()) {
