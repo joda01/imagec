@@ -12,9 +12,15 @@
 ///
 
 #include "panel_pipeline.hpp"
+#include <qwidget.h>
+#include <cmath>
 #include <filesystem>
+#include <iterator>
 #include <memory>
+#include <stdexcept>
+#include <string>
 #include "backend/settings/pipeline/pipeline.hpp"
+#include "ui/container/pipeline/panel_channel_overview.hpp"
 #include "ui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/helper/droppable_widget/droppable_widget.hpp"
 #include "ui/helper/icon_generator.hpp"
@@ -44,6 +50,8 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
   mContentWidget->setObjectName("contentOverview");
   setWidget(mContentWidget);
   setWidgetResizable(true);
+
+  connect(mContentWidget, &DroppableWidget::dropFinished, this, &PanelPipeline::dropFinishedEvent);
 }
 
 ///
@@ -168,6 +176,47 @@ void PanelPipeline::addChannel(const nlohmann::json &json)
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
   }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipeline::dropFinishedEvent()
+{
+  auto moveElementToListPosition = [](std::list<joda::settings::Pipeline> &myList, void *elementToMove, size_t newPos) {
+    size_t oldPos = 0;
+    for(const auto &pip : myList) {
+      if(&pip == elementToMove) {
+        break;
+      }
+      oldPos++;
+    }
+    if(oldPos >= myList.size()) {
+      throw std::runtime_error("Cannot mve");
+    }
+    // Get iterators to the old and new positions
+    auto oldIt = std::next(myList.begin(), oldPos);
+    auto newIt = std::next(myList.begin(), newPos);
+    // Splice the element at oldIt to before newIt
+    myList.splice(newIt, myList, oldIt);
+  };
+
+  for(size_t i = 0; i < mContentWidget->getLayout()->count(); ++i) {
+    auto *toMove = mContentWidget->getLayout()->itemAt(i)->widget();
+    auto it = std::find_if(mChannels.begin(), mChannels.end(), [&toMove](std::pair<const std::unique_ptr<PanelPipelineSettings>, void *> &entry) {
+      return entry.first.get()->getOverviewPanel() == toMove;
+    });
+
+    if(it != mChannels.end()) {
+      void *elementToMove = it->second;
+      moveElementToListPosition(mAnalyzeSettings.pipelines, elementToMove, i);
+    }
+  }
+  mWindowMain->checkForSettingsChanged();
 }
 
 }    // namespace joda::ui

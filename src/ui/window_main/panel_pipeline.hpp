@@ -14,6 +14,7 @@
 #pragma once
 
 #include <qcombobox.h>
+#include <qtmetamacros.h>
 #include <qwidget.h>
 #include <QtWidgets>
 #include <memory>
@@ -21,6 +22,7 @@
 #include "backend/settings/pipeline/pipeline.hpp"
 
 class DroppableWidget;
+
 namespace joda::ui {
 
 class WindowMain;
@@ -33,6 +35,8 @@ class PanelPipelineSettings;
 ///
 class PanelPipeline : public QScrollArea
 {
+  Q_OBJECT
+
 public:
   /////////////////////////////////////////////////////
   explicit PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSettings &settings);
@@ -50,6 +54,9 @@ private:
   std::map<std::unique_ptr<PanelPipelineSettings>, void *> mChannels;    // The second value is the pointer to the array entry in the AnalyzeSettings
   WindowMain *mWindowMain;
   joda::settings::AnalyzeSettings &mAnalyzeSettings;
+
+private slots:
+  void dropFinishedEvent();
 };
 
 }    // namespace joda::ui

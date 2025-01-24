@@ -75,7 +75,7 @@ void PanelChannelOverview::paintEvent(QPaintEvent *event)
   int x          = size().width() - HANDLE_WITH - 2;
   int ovalHeight = (height() - 8 - 8) / 3;
   painter.setBrush(Qt::lightGray);
-  QPen pen(Qt::lightGray, 4);    // darkYellow, 5px width
+  QPen pen(Qt::lightGray, 1);    // darkYellow, 5px width
   painter.setPen(pen);
   painter.drawEllipse(x, 4, ovalHeight, ovalHeight);
   painter.drawEllipse(x, ovalHeight + 8, ovalHeight, ovalHeight);
