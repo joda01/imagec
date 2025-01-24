@@ -12,9 +12,11 @@
 ///
 
 #include "panel_channel_overview.hpp"
+#include <qcolor.h>
 #include <qgridlayout.h>
 #include <qlabel.h>
 #include <qlineedit.h>
+#include <qnamespace.h>
 #include "ui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/window_main/window_main.hpp"
 
@@ -23,11 +25,14 @@ namespace joda::ui {
 PanelChannelOverview::PanelChannelOverview(WindowMain *wm, PanelPipelineSettings *parent) : mWindowMain(wm), mParentContainer(parent)
 {
   setObjectName("PanelChannelOverview");
-  setContentsMargins(0, 4, 4, 4);
+  setContentsMargins(4, 4, 4, 4);
   QGridLayout *layout = new QGridLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
   setLayout(layout);
   layout->setSpacing(4);
+
+  // It should be droppable
+  setAcceptDrops(false);
 
   // Add the functions
   // layout->addWidget(parent->mChannelName->getLabelWidget(), 0, 0, 1, 3);
@@ -60,15 +65,66 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm, PanelPipelineSettings
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 }
 
+void PanelChannelOverview::paintEvent(QPaintEvent *event)
+{
+  QWidget::paintEvent(event);    // Call the base class paint event
+
+  QPainter painter(this);
+  // painter.fillRect(size().width() - HANDLE_WITH - 2, 4, HANDLE_WITH, height() - 8, Qt::darkGray);    // Draw the handle
+
+  int x          = size().width() - HANDLE_WITH - 2;
+  int ovalHeight = (height() - 8 - 8) / 3;
+  painter.setBrush(Qt::lightGray);
+  QPen pen(Qt::lightGray, 1);    // darkYellow, 5px width
+  painter.setPen(pen);
+  painter.drawEllipse(x, 4, ovalHeight, ovalHeight);
+  painter.drawEllipse(x, ovalHeight + 8, ovalHeight, ovalHeight);
+  painter.drawEllipse(x, ovalHeight * 2 + 8 + 4, ovalHeight, ovalHeight);
+}
+
 ///
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
 void PanelChannelOverview::mousePressEvent(QMouseEvent *event)
 {
+  if(event->button() == Qt::LeftButton && event->position().x() >= (size().width() - HANDLE_WITH - 2)) {
+    startDrag();
+  }
+
+  QWidget::mousePressEvent(event);
+}
+
+void PanelChannelOverview::mouseDoubleClickEvent(QMouseEvent *event)
+{
   if(event->button() == Qt::LeftButton) {
     mWindowMain->showPanelPipelineSettingsEdit(mParentContainer);
   }
+}
+
+void PanelChannelOverview::startDrag()
+{
+  QDrag *drag         = new QDrag(this);
+  QMimeData *mimeData = new QMimeData;
+  mimeData->setText(QString::number((qintptr) this));    // Store the widget's address as text
+  drag->setMimeData(mimeData);
+
+  // Create a pixmap for the drag image (optional, but recommended)
+  QPixmap pixmap(size());                     // Create a pixmap of the widget's size
+  pixmap.fill(QColor(200, 200, 200, 192));    // Fill it with gray
+
+  QPainter painter(&pixmap);
+  render(&painter);    // Render the widget onto the pixmap
+  painter.end();
+
+  // Calculate the offset between the mouse click and the widget's center
+  QPoint mousePosInWidget = mapFromGlobal(QCursor::pos());
+  QPoint offset           = mousePosInWidget - QPoint(width() / 2, height() / 2);
+
+  drag->setPixmap(pixmap);
+  drag->setHotSpot(QPoint(pixmap.width() / 2 + offset.x(), pixmap.height() / 2));    // Center the hotspot
+
+  drag->exec(Qt::CopyAction | Qt::MoveAction);
 }
 
 }    // namespace joda::ui

@@ -12,10 +12,17 @@
 ///
 
 #include "panel_pipeline.hpp"
+#include <qwidget.h>
+#include <cmath>
 #include <filesystem>
+#include <iterator>
 #include <memory>
+#include <stdexcept>
+#include <string>
 #include "backend/settings/pipeline/pipeline.hpp"
+#include "ui/container/pipeline/panel_channel_overview.hpp"
 #include "ui/container/pipeline/panel_pipeline_settings.hpp"
+#include "ui/helper/droppable_widget/droppable_widget.hpp"
 #include "ui/helper/icon_generator.hpp"
 #include "ui/helper/template_parser/template_parser.hpp"
 #include "ui/window_main/window_main.hpp"
@@ -39,17 +46,12 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
   // Create a widget to hold the panels
-  auto *contentWidget = new QWidget;
-  contentWidget->setObjectName("contentOverview");
-  setWidget(contentWidget);
+  mContentWidget = new DroppableWidget();
+  mContentWidget->setObjectName("contentOverview");
+  setWidget(mContentWidget);
   setWidgetResizable(true);
 
-  // Create a horizontal layout for the panels
-  mVerticalLayout = new QVBoxLayout(contentWidget);
-  mVerticalLayout->setContentsMargins(0, 0, 0, 0);
-  mVerticalLayout->setSpacing(8);    // Adjust this value as needed
-  mVerticalLayout->setAlignment(Qt::AlignTop);
-  contentWidget->setLayout(mVerticalLayout);
+  connect(mContentWidget, &DroppableWidget::dropFinished, this, &PanelPipeline::dropFinishedEvent);
 }
 
 ///
@@ -62,7 +64,7 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
 
 void PanelPipeline::addElement(std::unique_ptr<PanelPipelineSettings> baseContainer, void *pointerToSettings)
 {
-  mVerticalLayout->addWidget(baseContainer->getOverviewPanel());
+  mContentWidget->getLayout()->addWidget(baseContainer->getOverviewPanel());
   mChannels.emplace(std::move(baseContainer), pointerToSettings);
 }
 
@@ -87,7 +89,7 @@ void PanelPipeline::erase(PanelPipelineSettings *toRemove)
 
       mAnalyzeSettings.pipelines.remove_if([&elementInSettings](const joda::settings::Pipeline &item) { return &item == elementInSettings; });
 
-      mVerticalLayout->removeWidget(toRemove->getOverviewPanel());
+      mContentWidget->getLayout()->removeWidget(toRemove->getOverviewPanel());
       toRemove->getOverviewPanel()->setParent(nullptr);
       mChannels.erase(it);
       mWindowMain->checkForSettingsChanged();
@@ -105,7 +107,7 @@ void PanelPipeline::erase(PanelPipelineSettings *toRemove)
 void PanelPipeline::clear()
 {
   // Iterate through all items in the layout
-  while(QLayoutItem *item = mVerticalLayout->takeAt(0)) {
+  while(QLayoutItem *item = mContentWidget->getLayout()->takeAt(0)) {
     // Check if the item contains a widget
     if(QWidget *widget = item->widget()) {
       // Optionally, remove the widget from the layout and delete it
@@ -174,6 +176,47 @@ void PanelPipeline::addChannel(const nlohmann::json &json)
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
   }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipeline::dropFinishedEvent()
+{
+  auto moveElementToListPosition = [](std::list<joda::settings::Pipeline> &myList, void *elementToMove, size_t newPos) {
+    size_t oldPos = 0;
+    for(const auto &pip : myList) {
+      if(&pip == elementToMove) {
+        break;
+      }
+      oldPos++;
+    }
+    if(oldPos >= myList.size()) {
+      throw std::runtime_error("Cannot mve");
+    }
+    // Get iterators to the old and new positions
+    auto oldIt = std::next(myList.begin(), oldPos);
+    auto newIt = std::next(myList.begin(), newPos);
+    // Splice the element at oldIt to before newIt
+    myList.splice(newIt, myList, oldIt);
+  };
+
+  for(size_t i = 0; i < mContentWidget->getLayout()->count(); ++i) {
+    auto *toMove = mContentWidget->getLayout()->itemAt(i)->widget();
+    auto it = std::find_if(mChannels.begin(), mChannels.end(), [&toMove](std::pair<const std::unique_ptr<PanelPipelineSettings>, void *> &entry) {
+      return entry.first.get()->getOverviewPanel() == toMove;
+    });
+
+    if(it != mChannels.end()) {
+      void *elementToMove = it->second;
+      moveElementToListPosition(mAnalyzeSettings.pipelines, elementToMove, i);
+    }
+  }
+  mWindowMain->checkForSettingsChanged();
 }
 
 }    // namespace joda::ui
