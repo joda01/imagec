@@ -28,20 +28,40 @@ Reclassify::Reclassify(const settings::ReclassifySettings &settings) : mSettings
 void Reclassify::execute(processor::ProcessContext &context, cv::Mat & /*image*/, atom::ObjectList & /*resultIn*/)
 {
   for(const auto &inputClassification : mSettings.inputClasses) {
-    auto &objectsInOut = context.loadObjectsFromCache()->at(context.getClassId(inputClassification));
+    auto *objectList                                  = context.loadObjectsFromCache();
+    std::unique_ptr<atom::SpheralIndex> &objectsInOut = objectList->at(context.getClassId(inputClassification));
 
     if(mSettings.intersection.inputClassesIntersectWith.empty()) {
+      std::vector<atom::ROI> roisToEnter;
+      std::vector<atom::ROI *> roisToRemove;
+
       for(auto &roi : *objectsInOut) {
         if(settings::ClassifierFilter::doesFilterMatch(context, roi, mSettings.metrics, mSettings.intensity)) {
-          if(mSettings.intersection.inputClassesIntersectWith.empty()) {
-            roi.setClass(context.getClassId(mSettings.newClassId));
+          if(mSettings.mode == settings::ReclassifySettings::Mode::RECLASSIFY_MOVE) {
+            // We have to reenter to organize correct in the map of objects
+            auto newRoi = roi.clone(context.getClassId(mSettings.newClassId));
+            roisToEnter.emplace_back(std::move(newRoi));
+            roisToRemove.emplace_back(&roi);
+          } else if(mSettings.mode == settings::ReclassifySettings::Mode::RECLASSIFY_COPY) {
+            auto newRoi = roi.copy(context.getClassId(mSettings.newClassId));
+            roisToEnter.emplace_back(std::move(newRoi));    // Store the ROIs we want to enter
           }
         }
       }
+      // Enter the rois from the temp storage
+      for(const auto &roi : roisToEnter) {
+        objectList->push_back(roi);
+      }
+
+      // Remove ROIs
+      for(const auto *roi : roisToRemove) {
+        objectsInOut->erase(roi);
+      }
+
     } else {
       for(const auto &intersectWithClasssId : mSettings.intersection.inputClassesIntersectWith) {
         auto *intersectWith = context.loadObjectsFromCache()->at(context.getClassId(intersectWithClasssId)).get();
-        objectsInOut->calcIntersection(context, mSettings.mode, intersectWith, {context.getClassId(inputClassification)},
+        objectsInOut->calcIntersection(objectList, context, mSettings.mode, intersectWith, {context.getClassId(inputClassification)},
                                        {context.getClassId(intersectWithClasssId)}, mSettings.intersection.minIntersection, mSettings.metrics,
                                        mSettings.intensity, context.getClassId(mSettings.newClassId));
       }

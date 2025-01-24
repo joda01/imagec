@@ -64,24 +64,31 @@ public:
     reset();
   }
 
+  /// \todo Implement valifator
   void setMinMax(VALUE_T min, VALUE_T max)
     requires Number_t<VALUE_T>
   {
-    QValidator *validator;
-    if constexpr(std::same_as<VALUE_T, int>) {
-      validator = new QIntValidator(min, max, mLineEdit);
-    }
-    if constexpr(std::same_as<VALUE_T, uint32_t>) {
-      validator = new QIntValidator(min, max, mLineEdit);
-    }
-    if constexpr(std::same_as<VALUE_T, uint16_t>) {
-      validator = new QIntValidator(min, max, mLineEdit);
-    }
-    if constexpr(std::same_as<VALUE_T, float>) {
-      validator = new QDoubleValidator(min, max, 2, mLineEdit);
-      ((QDoubleValidator *) validator)->setLocale(QLocale::C);
-    }
-    mLineEdit->setValidator(validator);
+    // If the textfield is empty, no signal was emitted
+    /*
+        QValidator *validator;
+        if constexpr(std::same_as<VALUE_T, int>) {
+          validator = new QIntValidator(min, max, mLineEdit);
+        }
+        if constexpr(std::same_as<VALUE_T, uint32_t>) {
+          validator = new QIntValidator(min, max, mLineEdit);
+        }
+        if constexpr(std::same_as<VALUE_T, uint16_t>) {
+          validator = new QIntValidator(min, max, mLineEdit);
+        }
+        if constexpr(std::same_as<VALUE_T, float>) {
+          validator = new QDoubleValidator(min, max, 2, mLineEdit);
+          ((QDoubleValidator *) validator)->setLocale(QLocale::C);
+        }
+
+        auto regexp    = QtCore.QRegExp('(^[0-9]+$|^$)');
+        auto validator = QtGui.QRegExpValidator(regexp);
+        mLineEdit->setValidator(validator);
+        */
   }
 
   void reset() override
