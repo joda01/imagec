@@ -54,8 +54,8 @@ public:
     mComboBox->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     mComboBox->addAction(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE), "");
 
-    SettingBase::connect(mComboBox, &QComboBoxMulti::currentIndexChanged, this, &SettingComboBoxMulti::onValueChanged);
-    // SettingBase::connect(mComboBox, &QComboBoxMulti::currentTextChanged, this, &SettingComboBoxMulti::onValueChanged);
+    // SettingBase::connect(mComboBox, &QComboBoxMulti::currentIndexChanged, this, &SettingComboBoxMulti::onValueChanged);
+    SettingBase::connect(mComboBox, &QComboBoxMulti::currentTextChanged, this, &SettingComboBoxMulti::onValueChanged);
 
     return mComboBox;
   }
