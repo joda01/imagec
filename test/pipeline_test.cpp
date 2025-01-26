@@ -10,7 +10,7 @@
 ///
 
 ///
-
+/*
 #include <exception>
 #include <filesystem>
 #include <sstream>
@@ -18,7 +18,6 @@
 #include <thread>
 
 #include "backend/helper/database/database.hpp"
-#include "backend/helper/database/plugins/stats_for_plate.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/random_name_generator.hpp"
 #include "backend/helper/reader/image_reader.hpp"
@@ -10044,3 +10043,4 @@ void generateTestingCode(joda::db::Database *results)
   outFile.close();
 }
 }    // namespace joda::test
+*/

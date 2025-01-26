@@ -37,7 +37,11 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  void loadONNXModel(const std::string &modelPath);
+  void loadTORCHModel(const std::string &modelPath);
 
+  void executeONNX(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result);
+  void executeTORCH(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result);
   auto getMask(const cv::Mat &maskChannel, const cv::Size &inputImageShape, const cv::Rect &box) -> cv::Mat;
 
 /////////////////////////////////////////////////////

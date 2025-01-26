@@ -65,7 +65,7 @@ execute_process(COMMAND hostname OUTPUT_VARIABLE BUILD_HOST OUTPUT_STRIP_TRAILIN
 SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
-#SET(CMAKE_CXX_FLAGS "-g -O0")
+SET(CMAKE_CXX_FLAGS "-g -O0")
 SET(CMAKE_GENERATOR "Unix Makefiles")
 SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -81,7 +81,7 @@ find_package( nlohmann_json CONFIG REQUIRED)
 find_package( DuckDB CONFIG REQUIRED)
 find_package( Qt6 REQUIRED COMPONENTS Core Gui Widgets )
 find_package( ONNX REQUIRED )
-
+find_package( Torch REQUIRED )
 
 SET(DuckDB_USE_STATIC_LIBS TRUE)
 
@@ -95,6 +95,7 @@ set(LIBS
   duckdb::duckdb
   nlohmann_json::nlohmann_json
   onnx::onnx
+  ${TORCH_LIBRARIES}
 )
 
 set(RESOURCE_FILES

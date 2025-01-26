@@ -11,7 +11,12 @@
 
 /// \link      https://github.com/UNeedCryDear/yolov5-seg-opencv-onnxruntime-cpp
 
-#include "ai_classifier.hpp"
+#include <c10/core/ScalarType.h>
+#include <c10/core/TensorOptions.h>
+#include <torch/csrc/jit/serialization/import.h>
+#include <torch/script.h>    // One-stop header.
+#include <torch/types.h>
+
 #include <exception>
 #include <memory>
 #include <string>
@@ -24,6 +29,7 @@
 #include <opencv2/dnn/dnn.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+#include "ai_classifier.hpp"
 
 namespace joda::cmd {
 
@@ -50,8 +56,22 @@ AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) :
     mProbabilityHandicap.emplace(modelClass.modelClassId, modelClass.probabilityHandicap);
   }
 
+  if(settings.modelPath.ends_with(".onnx")) {
+    loadONNXModel(settings.modelPath);
+  } else if(settings.modelPath.ends_with(".pt")) {
+    loadTORCHModel(settings.modelPath);
+  }
+}
+
+///
+/// \brief      Loads an ONNX model
+/// \author     Joachim Danmayr
+/// \param[in]  modelPath Path to the ONNX model
+///
+void AiClassifier::loadONNXModel(const std::string &modelPath)
+{
   try {
-    mNet        = cv::dnn::readNet(settings.modelPath);
+    mNet        = cv::dnn::readNet(modelPath);
     bool isCuda = false;
     if(isCuda) {
       mNet.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
@@ -65,6 +85,107 @@ AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) :
     WARN("Cannot load AI model! What: " + std::string(ex.what()));
   }
 }
+
+///
+/// \brief      Loads an ONNX model
+/// \author     Joachim Danmayr
+/// \param[in]  modelPath Path to the ONNX model
+///
+void AiClassifier::loadTORCHModel(const std::string &modelPath)
+{
+}
+
+void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNotUse, atom::ObjectList &result)
+{
+  if(mSettings.modelPath.ends_with(".onnx")) {
+    executeONNX(context, imageNotUse, result);
+  } else if(mSettings.modelPath.ends_with(".pt")) {
+    executeTORCH(context, imageNotUse, result);
+  }
+}
+
+// Assuming your model outputs a segmentation mask where each pixel
+// has a class label (integer).
+cv::Mat tensorToMask(const at::Tensor &tensor, int object_index)
+{
+  // Assuming tensor shape is [batch_size, channels, height, width]
+  int channels = tensor.size(1);
+  int height   = tensor.size(2);
+  int width    = tensor.size(3);
+
+  // Ensure the tensor is in CPU and float32 for processing
+  at::Tensor tensor_cpu = tensor.to(at::kCPU).to(at::kFloat);
+
+  // Extract the mask for the object (channel corresponds to the object index)
+  at::Tensor mask_tensor = tensor_cpu[0][object_index];    // [height, width]
+
+  // Convert to OpenCV Mat by flattening the tensor and setting a threshold
+  cv::Mat mask(height, width, CV_32F, mask_tensor.data_ptr<float>());
+
+  // Apply a threshold to create a binary mask (assuming > 0.5 means object presence)
+  cv::Mat binary_mask;
+  cv::threshold(mask, binary_mask, 0.5, 1.0, cv::THRESH_BINARY);
+
+  // Convert the binary mask to 8-bit (if you need)
+  binary_mask.convertTo(binary_mask, CV_8U, 255);
+
+  return binary_mask;
+}
+
+///
+/// \brief
+///
+/// \author     Joachim Danmayr
+/// \ref
+/// https://learnopencv.com/object-detection-using-yolov5-and-opencv-dnn-in-c-and-python/
+///
+/// \param[in]  inputImage Image which has been used for detection
+/// \return     Result of the analysis
+///
+void AiClassifier::executeTORCH(processor::ProcessContext &context, cv::Mat &imageNotUse, atom::ObjectList &result)
+{
+  int32_t INPUT_SIZE   = 256;
+  int32_t CHANNEL_SIZE = 1;
+
+  // Load the TorchScript model
+  torch::jit::script::Module module;
+  try {
+    module = torch::jit::load(mSettings.modelPath);
+  } catch(const c10::Error &e) {
+    THROW("Could not load torch model!");
+  }
+
+  const cv::Mat &inputImageOriginal = imageNotUse;
+  // Normalize the pixel values to [0, 1] float for detection
+  cv::Mat inputImage;
+  inputImageOriginal.convertTo(inputImage, CV_32F, 1.0 / 65535.0);
+
+  // Resize and normalize the image
+  cv::Mat resized_image;
+  cv::resize(inputImage, resized_image, cv::Size(INPUT_SIZE, INPUT_SIZE));    // Adjust size to your model's input
+
+  cv::imwrite("inout.jpg", inputImage * 256);
+
+  // Create a tensor from the image data
+  auto input_tensor = torch::from_blob(resized_image.data, {1, 1, INPUT_SIZE, INPUT_SIZE}, torch::kFloat32);
+
+  // Clone to ensure the tensor is contiguous
+  input_tensor = input_tensor.to(torch::kFloat).clone();
+
+  // Step 3: Perform inference
+  auto output = module.forward({input_tensor}).toTensor();
+
+  int num_objects = output.size(1);    // Number of objects (channels)
+
+  // Loop through each detected object (assuming 3 objects here)
+  for(int i = 0; i < num_objects; ++i) {
+    cv::Mat mask = tensorToMask(output, i);
+    cv::imwrite("Object Mask " + std::to_string(i) + ".jpg", mask);
+  }
+}
+
+// weight of size [64, 1, 3, 3], expected input[1, 3, 256, 256] to have 1 channels, but got 3 channels instead
+// Expected 4-dimensional input for 4-dimensional weight [64, 1, 3, 3], but got 5-dimensional input of size [1, 1, 256, 256, 3] instead
 
 ///
 /// \brief      Post process the prediction.
@@ -86,7 +207,7 @@ AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) :
 /// \param[in]  inputImage Image which has been used for detection
 /// \return     Result of the analysis
 ///
-void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNotUse, atom::ObjectList &result)
+void AiClassifier::executeONNX(processor::ProcessContext &context, cv::Mat &imageNotUse, atom::ObjectList &result)
 {
   if(!mIsReady) {
     WARN("No AI model loaded!");
