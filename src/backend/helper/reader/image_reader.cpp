@@ -520,6 +520,10 @@ cv::Mat ImageReader::convertImageToMat(JNIEnv *myEnv, const jbyteArray &readImg,
     format    = CV_8UC1;
     heightTmp = imageHeight * 3;
     widthTmp  = imageWidth;
+  } else if(bitDepth == 8 && rgbChannelCount == 1 && !isInterleaved) {
+    format    = CV_8UC1;
+    heightTmp = imageHeight;
+    widthTmp  = imageWidth;
   }
 
   cv::Mat image = cv::Mat::zeros(heightTmp, widthTmp, format);
@@ -534,6 +538,13 @@ cv::Mat ImageReader::convertImageToMat(JNIEnv *myEnv, const jbyteArray &readImg,
   // 16 bit grayscale
   if(format == CV_16UC1) {
     return image;
+  }
+
+  // 8 bit grayscale interleaved
+  if(format == CV_8UC1 && rgbChannelCount == 1 && !isInterleaved) {
+    cv::Mat img16bit;
+    image.convertTo(img16bit, CV_16U, 256);    // Scale 8-bit values (0–255) to 16-bit (0–65535)
+    return img16bit;
   }
 
   // 8 bit grayscale
