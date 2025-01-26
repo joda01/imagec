@@ -18,8 +18,6 @@ TEST_CASE("ai::classifier::test", "[.][ai_classifieer]")
   auto omeXML = joda::image::reader::ImageReader::getOmeInformation("tmp/sample_input_00.tif", 0);
   auto img    = joda::image::reader::ImageReader::loadEntireImage("tmp/sample_input_00.tif", {0, 0, 0}, 1, 0, omeXML);
 
-  cv::imwrite("inout_00.jpg", img / 256);
-
   joda::settings::AiClassifierSettings aiSets;
   aiSets.modelPath            = "tmp/weights-torchscript.pt";
   aiSets.numberOfModelClasses = 3;

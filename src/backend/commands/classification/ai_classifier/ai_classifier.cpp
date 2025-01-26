@@ -132,6 +132,81 @@ cv::Mat tensorToMask(const at::Tensor &tensor, int object_index)
   return binary_mask;
 }
 
+std::vector<cv::Mat> tensorToObjectMasks(const at::Tensor &tensor, const at::Tensor &class_probabilities)
+{
+  // Assuming tensor shape is [batch_size, channels, height, width]
+  int channels = tensor.size(1);
+  int height   = tensor.size(2);
+  int width    = tensor.size(3);
+
+  // Ensure the tensor is in CPU and float32 for processing
+  at::Tensor tensor_cpu      = tensor.to(at::kCPU).to(at::kFloat);
+  at::Tensor class_probs_cpu = class_probabilities.to(at::kCPU).to(at::kFloat);
+
+  std::vector<cv::Mat> object_masks;    // Vector to store the individual object masks
+
+  // Loop through each channel (object)
+  for(int i = 0; i < channels; ++i) {
+    // Extract the mask for the object (channel corresponds to the object index)
+    at::Tensor mask_tensor = tensor_cpu[0][i];    // [height, width]
+
+    // Convert to OpenCV Mat
+    cv::Mat mask(height, width, CV_32F, mask_tensor.data_ptr<float>());
+
+    // Apply a threshold to create a binary mask for the object
+    cv::Mat binary_mask;
+    cv::threshold(mask, binary_mask, 0.5, 1.0, cv::THRESH_BINARY);
+
+    // Convert the binary mask to 8-bit (if you need)
+    binary_mask.convertTo(binary_mask, CV_8U, 255);
+
+    // Now, extract each individual object by finding connected components
+    std::vector<cv::Mat> contours;
+    std::vector<std::vector<cv::Point>> contours_poly;
+    cv::findContours(binary_mask, contours_poly, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+    // For each detected object, create a separate mask
+    for(size_t j = 0; j < contours_poly.size(); ++j) {
+      // Create an empty mask for this object
+      cv::Mat object_mask = cv::Mat::zeros(binary_mask.size(), CV_8U);
+
+      // Draw the contour for this object on the empty mask
+      cv::drawContours(object_mask, contours_poly, (int) j, cv::Scalar(255), cv::FILLED);
+
+      // Get the class probabilities for this object (we take the maximum probability over the mask)
+      cv::Mat object_probs = cv::Mat::zeros(binary_mask.size(), CV_32F);
+
+      // Loop through the mask and find the max class probability
+      float max_prob      = 0.0f;
+      int predicted_class = -1;
+
+      for(int y = 0; y < height; ++y) {
+        for(int x = 0; x < width; ++x) {
+          if(object_mask.at<uchar>(y, x) == 255) {
+            // Get the class probabilities at this pixel (for all classes)
+            for(int c = 0; c < class_probs_cpu.size(1); ++c) {
+              float prob = class_probs_cpu[0][c][y][x].item<float>();
+              if(prob > max_prob) {
+                max_prob        = prob;
+                predicted_class = c;
+              }
+            }
+          }
+        }
+      }
+
+      cv::imwrite("tmp/predict/file" + std::to_string(j) + std::to_string(i) + "_class_" + std::to_string(predicted_class) + "__prob_" +
+                      std::to_string(max_prob) + ".jpg",
+                  object_mask);
+
+      // Add the individual object mask to the vector
+
+      object_masks.push_back(object_mask);
+    }
+  }
+
+  return object_masks;    // Return the vector of individual object masks
+}
 ///
 /// \brief
 ///
@@ -164,8 +239,6 @@ void AiClassifier::executeTORCH(processor::ProcessContext &context, cv::Mat &ima
   cv::Mat resized_image;
   cv::resize(inputImage, resized_image, cv::Size(INPUT_SIZE, INPUT_SIZE));    // Adjust size to your model's input
 
-  cv::imwrite("inout.jpg", inputImage * 256);
-
   // Create a tensor from the image data
   auto input_tensor = torch::from_blob(resized_image.data, {1, 1, INPUT_SIZE, INPUT_SIZE}, torch::kFloat32);
 
@@ -175,13 +248,17 @@ void AiClassifier::executeTORCH(processor::ProcessContext &context, cv::Mat &ima
   // Step 3: Perform inference
   auto output = module.forward({input_tensor}).toTensor();
 
+  // Step 4: Apply softmax to get probabilities
+  torch::Tensor probabilities = torch::softmax(output, 1);    // Along the class dimension
+
   int num_objects = output.size(1);    // Number of objects (channels)
 
+  tensorToObjectMasks(output, probabilities);
   // Loop through each detected object (assuming 3 objects here)
-  for(int i = 0; i < num_objects; ++i) {
-    cv::Mat mask = tensorToMask(output, i);
-    cv::imwrite("Object Mask " + std::to_string(i) + ".jpg", mask);
-  }
+  // for(int i = 0; i < num_objects; ++i) {
+  //   cv::Mat mask = tensorToMask(output, i);
+  //   cv::imwrite("Object Mask " + std::to_string(i) + ".jpg", mask);
+  // }
 }
 
 // weight of size [64, 1, 3, 3], expected input[1, 3, 256, 256] to have 1 channels, but got 3 channels instead
