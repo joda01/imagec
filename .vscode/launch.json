@@ -8,9 +8,9 @@
             "name": "CMake Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/workspaces/imagec/build/build/output/imagec",
+            "program": "/workspaces/imagec/build/build/output/tests",
             "args": [
-                "[image_loader_rgb]"
+                "ai::classifier::test"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
