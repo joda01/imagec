@@ -10,6 +10,8 @@
 ///
 ///
 
+#if defined(WITH_TENSORFLOW)
+
 #include <vector>
 #include "../ai_segmentation.hpp"
 #include "backend/artifacts/roi/roi.hpp"
@@ -39,3 +41,5 @@ private:
 };
 
 }    // namespace joda::ai
+
+#endif

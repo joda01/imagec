@@ -11,16 +11,12 @@
 
 /// \link      https://github.com/UNeedCryDear/yolov5-seg-opencv-onnxruntime-cpp
 
-#include <c10/core/ScalarType.h>
-#include <c10/core/TensorOptions.h>
-#include <torch/csrc/jit/serialization/import.h>
-#include <torch/script.h>    // One-stop header.
-#include <torch/types.h>
-
+#include "ai_classifier.hpp"
 #include <exception>
 #include <memory>
 #include <string>
 #include "backend/artifacts/roi/roi.hpp"
+#include "backend/commands/classification/ai_classifier/pytorch/ai_classifier_pytorch.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
@@ -29,8 +25,6 @@
 #include <opencv2/dnn/dnn.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
-#include "ai_classifier.hpp"
-#include "ai_segmentation.hpp"
 
 namespace joda::cmd {
 
@@ -50,7 +44,9 @@ AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) : mSe
 
 void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNotUse, atom::ObjectList &result)
 {
-  std::vector<joda::ai::AiSegmentation::Result> segResult;
+  joda::ai::AiClassifierPyTorch torch(mSettings);
+
+  std::vector<joda::ai::AiSegmentation::Result> segResult = torch.execute(imageNotUse);
 
   for(const auto &res : segResult) {
     //
@@ -64,6 +60,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
           break;
         }
       }
+
       joda::atom::ROI detectedRoi(
           atom::ROI::RoiObjectId{
               .classId    = context.getClassId(objectClassToUse.outputClassNoMatch),
@@ -78,6 +75,8 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
           break;
         }
       }
+
+      result.push_back(std::move(detectedRoi));
     }
   }
 }
