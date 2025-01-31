@@ -33,6 +33,14 @@ namespace fs = std::filesystem;
 class OnnxParser
 {
 public:
+  enum class ModelType
+  {
+    UNKNOWN,
+    ONNX,
+    PYTORCH,
+    TENSORFLOW
+  };
+
   /////////////////////////////////////////////////////
   struct Data
   {
@@ -40,6 +48,11 @@ public:
     std::string description;
     std::filesystem::path modelPath;
     std::vector<std::string> classes;
+    ModelType type      = ModelType::UNKNOWN;
+    int32_t inputWith   = 256;
+    int32_t inputHeight = 256;
+    int32_t channels    = 1;
+    int32_t batchSize   = 1;
   };
 
   static auto findOnnxFiles(const std::string &directory = "models") -> std::map<std::filesystem::path, Data>;

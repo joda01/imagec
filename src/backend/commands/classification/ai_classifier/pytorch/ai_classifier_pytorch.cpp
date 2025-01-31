@@ -10,9 +10,6 @@
 ///
 ///
 
-#include <opencv2/core.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/imgproc.hpp>
 #if defined(WITH_TENSORFLOW)
 
 #include <c10/core/ScalarType.h>
@@ -20,7 +17,11 @@
 #include <torch/csrc/jit/serialization/import.h>
 #include <torch/script.h>    // One-stop header.
 #include <torch/types.h>
+
 #include <stdexcept>
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "ai_classifier_pytorch.hpp"
 
@@ -35,6 +36,30 @@ namespace joda::ai {
 ///
 AiClassifierPyTorch::AiClassifierPyTorch(const settings::AiClassifierSettings &settings) : mSettings(settings)
 {
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto AiClassifierPyTorch::getClasses(const std::filesystem::path &modelPath) -> std::vector<std::string>
+{
+  // Load the TorchScript model
+  try {
+    int32_t INPUT_SIZE = 256;
+    auto model         = torch::jit::load(modelPath.string());
+    // Create a dummy input with the expected input shape
+    torch::Tensor dummy_input = torch::randn({1, 1, INPUT_SIZE, INPUT_SIZE});    // Adjust shape as needed
+    auto output               = model.forward({dummy_input}).toTensor();
+    int num_classes           = output.size(1);    // Assuming the output is of shape [batch_size, num_classes]
+
+    std::cout << "Number of output classes: " << num_classes << std::endl;
+  } catch(const c10::Error &e) {
+    throw std::runtime_error("Could not load torch model!");
+  }
 }
 
 ///
@@ -62,30 +87,75 @@ auto AiClassifierPyTorch::execute(const cv::Mat &originalImage) -> std::vector<R
   cv::Mat inputImage;
   inputImageOriginal.convertTo(inputImage, CV_32F, 1.0 / 65535.0);
 
-  // Resize and normalize the image
-  cv::Mat resized_image;
-  cv::resize(inputImage, resized_image, cv::Size(INPUT_SIZE, INPUT_SIZE));    // Adjust size to your model's input
+  return slidingWindowInterference(&module, inputImage, mSettings.netInputWidth, mSettings.netInputHeight, mSettings.netInputWidth);
 
-  // Create a tensor from the image data
-  auto input_tensor = torch::from_blob(resized_image.data, {1, 1, INPUT_SIZE, INPUT_SIZE}, torch::kFloat32);
-
-  // Clone to ensure the tensor is contiguous
-  input_tensor = input_tensor.to(torch::kFloat).clone();
-
-  // Step 3: Perform inference
-  auto output = module.forward({input_tensor}).toTensor();
-
-  // Step 4: Apply softmax to get probabilities
-  torch::Tensor probabilities = torch::softmax(output, 1);    // Along the class dimension
-
-  int num_objects = output.size(1);    // Number of objects (channels)
-
-  return tensorToObjectMasks(output, probabilities);
   // Loop through each detected object (assuming 3 objects here)
   // for(int i = 0; i < num_objects; ++i) {
   //   cv::Mat mask = tensorToMask(output, i);
   //   cv::imwrite("Object Mask " + std::to_string(i) + ".jpg", mask);
   // }
+}
+
+// Sliding window function
+auto AiClassifierPyTorch::slidingWindowInterference(void *model, cv::Mat &inputImage, int net_width, int net_height, int stride)
+    -> std::vector<Result>
+{
+  auto detectObject = [&](cv::Mat &tile, int32_t tileXOffset, int32_t tileYOffset) -> std::vector<Result> {
+    // Create a tensor from the image data
+    auto input_tensor = torch::from_blob(tile.data, {1, 1, tile.rows, tile.cols}, torch::kFloat32);
+
+    // Clone to ensure the tensor is contiguous
+    input_tensor = input_tensor.to(torch::kFloat).clone();
+
+    // Step 3: Perform inference
+    auto output = (static_cast<torch::jit::script::Module *>(model))->forward({input_tensor}).toTensor();
+
+    // Step 4: Apply softmax to get probabilities
+    torch::Tensor probabilities = torch::softmax(output, 1);    // Along the class dimension
+
+    int num_objects = output.size(1);    // Number of objects (channels)
+
+    return tensorToObjectMasks(output, probabilities, tileXOffset, tileYOffset, inputImage.cols, inputImage.rows);
+  };
+
+  std::vector<Result> detections;
+
+  cv::Mat resized_image;
+  cv::resize(inputImage, resized_image, cv::Size(net_width, net_height));    // Adjust size to your model's input
+
+  // Special case: If image size is exactly the network input size, run inference directly
+  if(resized_image.cols == net_width && resized_image.rows == net_height) {
+    return detectObject(resized_image, 0, 0);
+  }
+
+  cv::Mat processed_image;
+  int pad_x = 0;
+  int pad_y = 0;
+
+  if(resized_image.cols < net_width || resized_image.rows < net_height) {
+    pad_x = std::max(0, net_width - resized_image.cols);
+    pad_y = std::max(0, net_height - resized_image.rows);
+
+    cv::copyMakeBorder(resized_image, processed_image, 0, pad_y, 0, pad_x, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
+  } else {
+    processed_image = resized_image;
+  }
+
+  for(int y = 0; y < processed_image.rows - net_height; y += stride) {
+    for(int x = 0; x < processed_image.cols - net_width; x += stride) {
+      cv::Rect roi(x, y, net_width, net_height);
+      cv::Mat tile = processed_image(roi).clone();
+
+      // Run object detection on tile
+      auto results = detectObject(tile, x, y);
+
+      // Process results (convert back to original coordinates)
+      for(const auto &result : results) {
+        detections.push_back(result);
+      }
+    }
+  }
+  return detections;
 }
 
 ///
@@ -95,7 +165,8 @@ auto AiClassifierPyTorch::execute(const cv::Mat &originalImage) -> std::vector<R
 /// \param[out]
 /// \return
 ///
-auto AiClassifierPyTorch::tensorToObjectMasks(const at::Tensor &tensor, const at::Tensor &class_probabilities) -> std::vector<Result>
+auto AiClassifierPyTorch::tensorToObjectMasks(const at::Tensor &tensor, const at::Tensor &class_probabilities, int32_t tileXOffset,
+                                              int32_t tileYOffset, int originalWith, int originalHeight) -> std::vector<Result>
 {
   // Assuming tensor shape is [batch_size, channels, height, width]
   int channels = tensor.size(1);
@@ -116,7 +187,10 @@ auto AiClassifierPyTorch::tensorToObjectMasks(const at::Tensor &tensor, const at
   at::Tensor mask_tensor = tensor_cpu[0][CHANNEL_MASK];    // [height, width]
 
   // Convert to OpenCV Mat
-  cv::Mat mask(height, width, CV_32F, mask_tensor.data_ptr<float>());
+  cv::Mat maskTmp(height, width, CV_32F, mask_tensor.data_ptr<float>());
+
+  cv::Mat mask;
+  cv::resize(maskTmp, mask, cv::Size(originalWith, originalHeight));    // Adjust size to your model's input
 
   // Apply a threshold to create a binary mask for the object
   cv::Mat binary_mask;
@@ -181,6 +255,8 @@ auto AiClassifierPyTorch::tensorToObjectMasks(const at::Tensor &tensor, const at
       }
     }
 
+    fittedBoundingBox.x += tileXOffset;
+    fittedBoundingBox.y += tileYOffset;
     // Add the individual object mask to the vector
     object_masks.push_back(AiSegmentation::Result{.boundingBox = fittedBoundingBox,
                                                   .mask        = std::move(shiftedMask),

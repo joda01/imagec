@@ -34,9 +34,12 @@ public:
   /////////////////////////////////////////////////////
   AiClassifierPyTorch(const settings::AiClassifierSettings &settings);
   auto execute(const cv::Mat &originalImage) -> std::vector<Result> override;
+  static auto getClasses(const std::filesystem::path &modelPath) -> std::vector<std::string>;
 
 private:
-  auto tensorToObjectMasks(const at::Tensor &tensor, const at::Tensor &class_probabilities) -> std::vector<Result>;
+  auto slidingWindowInterference(void *model, cv::Mat &image, int net_width, int net_height, int stride) -> std::vector<Result>;
+  auto tensorToObjectMasks(const at::Tensor &tensor, const at::Tensor &class_probabilities, int32_t tileXOffset, int32_t tileYOffset,
+                           int originalWith, int originalHeight) -> std::vector<Result>;
   const settings::AiClassifierSettings &mSettings;
 };
 

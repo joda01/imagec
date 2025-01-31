@@ -47,7 +47,17 @@ auto OnnxParser::findOnnxFiles(const std::string &directory) -> std::map<std::fi
 
         data.modelName = entry.path().filename().string();
         data.modelPath = entry.path();
+        data.type      = ModelType::ONNX;
         onnxFiles.emplace(entry.path().string(), data);
+      } else if(entry.is_regular_file() && entry.path().extension().string() == ".pt") {
+        Data data;
+        data.classes   = {{"Class 01"}};
+        data.modelName = entry.path().filename().string();
+        data.modelPath = entry.path();
+        data.type      = ModelType::PYTORCH;
+        onnxFiles.emplace(entry.path().string(), data);
+
+      } else if(entry.is_regular_file() && entry.path().extension().string() == ".tensor") {
       }
     }
   }

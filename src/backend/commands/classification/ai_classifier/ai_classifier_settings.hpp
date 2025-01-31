@@ -51,6 +51,21 @@ struct AiClassifierSettings : public SettingBase
   //
   std::list<ObjectClass> modelClasses = {};
 
+  //
+  // The expected image input with of the net
+  //
+  int32_t netInputWidth = 256;
+
+  //
+  // The expected image input heigh the net
+  //
+  int32_t netInputHeight = 256;
+
+  //
+  // Nr. of input channels. 1=gray scale, 3 = color
+  //
+  int32_t netNrOfChannels = 1;
+
   /////////////////////////////////////////////////////
   void check() const
   {
@@ -74,7 +89,7 @@ struct AiClassifierSettings : public SettingBase
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AiClassifierSettings, modelPath, classThreshold, maskThreshold, numberOfModelClasses,
-                                                       modelClasses);
+                                                       modelClasses, netInputWidth, netInputHeight, netNrOfChannels);
 };
 
 }    // namespace joda::settings
