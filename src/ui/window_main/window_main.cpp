@@ -103,7 +103,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   //
   // Initial background tasks
   //
-  std::thread([]() { joda::onnx::OnnxParser::findOnnxFiles(); }).detach();
+  std::thread([]() { joda::onnx::OnnxParser::findAiModelFiles(); }).detach();
 }
 
 WindowMain::~WindowMain()

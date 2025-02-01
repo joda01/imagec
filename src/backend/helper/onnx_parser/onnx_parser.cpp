@@ -13,7 +13,9 @@
 #include "onnx_parser.hpp"
 #include <onnx/onnx_pb.h>    // The ONNX protobuf headers
 #include <mutex>
+#include <c4/yml/parse.hpp>
 #include <nlohmann/json_fwd.hpp>
+#include <ryml.hpp>
 
 namespace joda::onnx {
 
@@ -24,7 +26,7 @@ namespace joda::onnx {
 /// \param[out]
 /// \return
 ///
-auto OnnxParser::findOnnxFiles(const std::string &directory) -> std::map<std::filesystem::path, Data>
+auto OnnxParser::findAiModelFiles(const std::string &directory) -> std::map<std::filesystem::path, Data>
 {
   std::lock_guard<std::mutex> lock(lookForMutex);
   std::map<std::filesystem::path, Data> onnxFiles;
@@ -50,22 +52,123 @@ auto OnnxParser::findOnnxFiles(const std::string &directory) -> std::map<std::fi
         data.type      = ModelType::ONNX;
         onnxFiles.emplace(entry.path().string(), data);
       } else if(entry.is_regular_file() && entry.path().extension().string() == ".pt") {
-        Data data;
-        data.classes   = {{"Class 01"}};
-        data.modelName = entry.path().filename().string();
-        data.modelPath = entry.path();
-        data.type      = ModelType::PYTORCH;
-        onnxFiles.emplace(entry.path().string(), data);
-
+        if(!mCache.contains(entry.path().string())) {
+          Data data      = parseResourceDescriptionFile(entry.path().parent_path() / "rdf.yaml");
+          data.modelName = entry.path().filename().string();
+          data.modelPath = entry.path();
+          data.type      = ModelType::PYTORCH;
+          onnxFiles.emplace(entry.path().string(), data);
+        } else {
+          // Read form cache
+          onnxFiles.emplace(entry.path().string(), mCache.at(entry.path()));
+        }
       } else if(entry.is_regular_file() && entry.path().extension().string() == ".tensor") {
       }
     }
   }
   mCache = onnxFiles;
   return onnxFiles;
-};
+}
 
-// Function to get the number of outputs in an ONNX model
+auto OnnxParser::getModelInfo(const std::filesystem::path &modelPath) -> Data
+{
+  if(mCache.contains(modelPath.string())) {
+    return mCache.at(modelPath.string());
+  }
+  return {};
+}
+
+auto OnnxParser::parseResourceDescriptionFile(const std::filesystem::path &rdfYaml) -> Data
+{
+  if(!std::filesystem::exists(rdfYaml)) {
+    return {};
+  }
+  // Open the YAML file
+  std::ifstream file(rdfYaml.string());
+  if(!file.is_open()) {
+    std::cerr << "Failed to open YAML file!" << std::endl;
+    return {};
+  }
+
+  Data response;
+
+  // Read the entire file into a string
+  std::string yamlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+  auto tree = ryml::parse_in_place(yamlContent.data());
+
+  response.description      = tree["description"].val().str;
+  std::string formatVersion = tree["format_version"].val().str;
+
+  //
+  // Data type
+  //
+  std::string weightsPytorch = tree["inputs"][0]["data_type"].val().str;
+
+  // bcyx
+  std::string axes = tree["inputs"][0]["axes"].val().str;
+
+  size_t xPos = axes.find('x');
+  size_t yPos = axes.find('y');
+
+  //
+  // shape = min + k * step for k in {0, 1, ...}
+  //
+  if(tree["inputs"][0]["shape"]["min"].has_key()) {
+    int32_t minWidth   = std::stoi(tree["inputs"][0]["shape"]["min"][xPos].val().str);
+    int32_t minHeight  = std::stoi(tree["inputs"][0]["shape"]["min"][yPos].val().str);
+    int32_t withStep   = std::stoi(tree["inputs"][0]["shape"]["step"][xPos].val().str);
+    int32_t heightStep = std::stoi(tree["inputs"][0]["shape"]["step"][yPos].val().str);
+
+    int32_t k = ((256.0f - static_cast<float>(minWidth)) / static_cast<float>(withStep));
+    if(k < 1) {
+      k = 0;
+    }
+    response.inputWith   = minWidth + k * withStep;
+    response.inputHeight = minHeight + k * heightStep;
+  } else {
+    response.inputWith   = std::stoi(tree["inputs"][0]["shape"][xPos].val().str);
+    response.inputHeight = std::stoi(tree["inputs"][0]["shape"][yPos].val().str);
+  }
+
+  response.classes.emplace_back("Class 0");
+  return response;
+
+  //
+  // Weights
+  //
+  // std::string torchscript        = tree["weights"]["torchscript"]["source"].val().str;
+  // std::string pytorch_state_dict = tree["weights"]["pytorch_state_dict"]["source"].val().str;
+  // std::string tensorflow_js      = tree["weights"]["tensorflow_js"]["source"].val().str;
+  // std::string onnx               = tree["weights"]["onnx"]["source"].val().str;
+  // std::string weightsTensorflow  = tree["weights"]["tensorflow_saved_model_bundle"]["source"].val().str;
+  // std::string tensorflowVersion  = tree["weights"]["tensorflow_saved_model_bundle"]["tensorflow_version"].val().str;
+}
+
+/*
+
+    std::string contents = get_file_contents("config.yaml");
+    ryml::Tree tree = ryml::parse_in_place(ryml::to_substr(contents));
+    ryml::NodeRef foo = tree["foo"];
+    for (ryml::NodeRef const& child : foo.children()) {
+        std::cout << "key: " << child.key() << " val: " << child.val() << std::endl;
+    }
+
+    ryml::NodeRef array = tree["matrix"]["array"];
+    for (ryml::NodeRef const& child : array.children()) {
+        double val;
+        child >> val;
+        std::cout << "float val: " << std::setprecision (18) << val << std::endl;
+    }
+
+*/
+
+///
+/// \brief      ONNX model parser
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 std::map<int, std::string> OnnxParser::getONNXModelOutputClasses(const std::filesystem::path &modelPath)
 {
   // Read the ONNX model into a protobuf object
@@ -91,103 +194,6 @@ std::map<int, std::string> OnnxParser::getONNXModelOutputClasses(const std::file
   }
 
   return output_classes;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-auto OnnxParser::getOnnxInfo(const std::filesystem::path &path) -> Data
-{
-  std::lock_guard<std::mutex> lock(lookForMutex);
-  if(mCache.contains(path)) {
-    return mCache.at(path);
-  }
-  return {};
-}
-
-/*
-std::map<int, std::string> OnnxParser::getONNXModelOutputClasses(const std::filesystem::path &modelPath)
-{
-  // Initialize ONNX Runtime
-  Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "ONNX Model Output Classes Reader");
-
-  // Define the session options and load the model
-  Ort::SessionOptions session_options;
-  Ort::Session session(env, modelPath.c_str(), session_options);
-
-  // Get the output count
-  size_t output_count = session.GetOutputCount();
-
-  // Create a vector to hold the output classes with their indices
-  std::map<int, std::string> output_classes;
-
-  // Allocate memory for output names using ONNX Runtime allocator
-  Ort::AllocatorWithDefaultOptions allocator;
-
-  // Get model output names
-  for(size_t i = 0; i < output_count; ++i) {
-    // Get output name allocated by ONNX Runtime
-    auto meta                               = session.GetModelMetadata();
-    Ort::AllocatedStringPtr output_name_ptr = session.GetOutputNameAllocated(i, allocator);
-    std::string output_name(output_name_ptr.get());    // Convert to std::string
-    // Add the index and output name to the vector
-    output_classes.emplace(i, output_name);
-    //////////////////////////
-
-    Ort::AllocatorWithDefaultOptions customMeta;
-    std::vector<Ort::AllocatedStringPtr> customMetaKey = meta.GetCustomMetadataMapKeysAllocated(customMeta);
-    for(const auto &m : customMetaKey) {
-      std::string key = std::string(m.get());
-      if(key == "names") {
-        Ort::AllocatorWithDefaultOptions customMetaAlloc;
-        auto data     = meta.LookupCustomMetadataMapAllocated(m.get(), customMetaAlloc);
-        auto elements = parseName(std::string(data.get()));
-        if(elements.contains(i)) {
-          output_classes.at(i) = elements.at(i);
-        }
-      }
-    }
-  }
-
-  return output_classes;
-}
-*/
-
-std::map<int, std::string> OnnxParser::parseName(const std::string &inputIn)
-{
-  // Remove the curly braces
-  auto input = inputIn.substr(1, inputIn.size() - 2);
-
-  // Map to store parsed data
-  std::map<int, std::string> parsed_data;
-
-  std::istringstream ss(input);
-  std::string key_value_pair;
-
-  // Split by commas to get key-value pairs
-  while(std::getline(ss, key_value_pair, ',')) {
-    // Find the position of the colon (key-value separator)
-    size_t colon_pos = key_value_pair.find(':');
-
-    // Extract the key
-    std::string key_str = key_value_pair.substr(0, colon_pos);
-    key_str.erase(remove(key_str.begin(), key_str.end(), ' '), key_str.end());    // Remove whitespace
-    int key = std::stoi(key_str);
-
-    // Extract the value
-    std::string value = key_value_pair.substr(colon_pos + 1);
-    value.erase(remove(value.begin(), value.end(), ' '), value.end());     // Remove whitespace
-    value.erase(remove(value.begin(), value.end(), '\''), value.end());    // Remove quotes
-
-    // Store the parsed key-value pair
-    parsed_data[key] = value;
-  }
-
-  return parsed_data;
 }
 
 }    // namespace joda::onnx

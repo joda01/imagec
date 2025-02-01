@@ -9,14 +9,18 @@
 ///            LICENSE.txt, which is part of this package.
 ///
 ///
-
-#include <ATen/ops/upsample_nearest2d.h>
+#include <torch/cuda.h>
+#include <string>
+#include "backend/helper/logger/console_logger.hpp"
 #if defined(WITH_TENSORFLOW)
 
+#include <ATen/ops/upsample_nearest2d.h>
+#include <c10/core/Device.h>
 #include <c10/core/ScalarType.h>
 #include <c10/core/TensorOptions.h>
 #include <torch/csrc/jit/serialization/import.h>
 #include <torch/script.h>    // One-stop header.
+#include <torch/torch.h>
 #include <torch/types.h>
 
 #include <stdexcept>
@@ -46,39 +50,24 @@ AiClassifierPyTorch::AiClassifierPyTorch(const settings::AiClassifierSettings &s
 /// \param[out]
 /// \return
 ///
-auto AiClassifierPyTorch::getClasses(const std::filesystem::path &modelPath) -> std::vector<std::string>
-{
-  // Load the TorchScript model
-  try {
-    int32_t INPUT_SIZE = 256;
-    auto model         = torch::jit::load(modelPath.string());
-    // Create a dummy input with the expected input shape
-    torch::Tensor dummy_input = torch::randn({1, 1, INPUT_SIZE, INPUT_SIZE});    // Adjust shape as needed
-    auto output               = model.forward({dummy_input}).toTensor();
-    int num_classes           = output.size(1);    // Assuming the output is of shape [batch_size, num_classes]
-
-    std::cout << "Number of output classes: " << num_classes << std::endl;
-  } catch(const c10::Error &e) {
-    throw std::runtime_error("Could not load torch model!");
-  }
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 auto AiClassifierPyTorch::execute(const cv::Mat &originalImage) -> std::vector<Result>
 {
   int32_t INPUT_SIZE   = 256;
   int32_t CHANNEL_SIZE = 1;
 
+  // Check if CUDA is available
+  bool cudaAvailable = torch::cuda::is_available();
+  int numCudaDevices = torch::cuda::device_count();
+
+  joda::log::logInfo("Nr. of found CUDA devices >" + std::to_string(numCudaDevices) + "<.");
+
   // Load the TorchScript model
   torch::jit::script::Module model;
   try {
     model = torch::jit::load(mSettings.modelPath);
+    if(numCudaDevices > 0) {
+      model.to(at::Device("cuda:0"));
+    }
   } catch(const c10::Error &e) {
     throw std::runtime_error("Could not load torch model!");
   }

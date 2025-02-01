@@ -84,6 +84,8 @@ find_package( nlohmann_json CONFIG REQUIRED)
 find_package( DuckDB CONFIG REQUIRED)
 find_package( Qt6 REQUIRED COMPONENTS Core Gui Widgets )
 find_package( ONNX REQUIRED )
+find_package( ryml REQUIRED )
+
 
 SET(DuckDB_USE_STATIC_LIBS TRUE)
 
@@ -96,6 +98,7 @@ set(LIBS
   duckdb::duckdb
   nlohmann_json::nlohmann_json
   onnx::onnx
+  ryml::ryml
 )
 
 if(WITH_PYTORCH)

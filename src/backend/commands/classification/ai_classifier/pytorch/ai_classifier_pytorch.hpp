@@ -34,7 +34,6 @@ public:
   /////////////////////////////////////////////////////
   AiClassifierPyTorch(const settings::AiClassifierSettings &settings);
   auto execute(const cv::Mat &originalImage) -> std::vector<Result> override;
-  static auto getClasses(const std::filesystem::path &modelPath) -> std::vector<std::string>;
 
 private:
   auto tensorToObjectMasks(const at::Tensor &tensor, const at::Tensor &class_probabilities, int originalWith, int originalHeight)

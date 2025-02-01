@@ -55,13 +55,14 @@ public:
     int32_t batchSize   = 1;
   };
 
-  static auto findOnnxFiles(const std::string &directory = "models") -> std::map<std::filesystem::path, Data>;
-  static auto getOnnxInfo(const std::filesystem::path &) -> Data;
+  static auto findAiModelFiles(const std::string &directory = "models") -> std::map<std::filesystem::path, Data>;
+  static auto getModelInfo(const std::filesystem::path &modelPath) -> Data;
 
 private:
   /////////////////////////////////////////////////////
+  static auto parseResourceDescriptionFile(const std::filesystem::path &rdfYaml) -> Data;
+
   static std::map<int, std::string> getONNXModelOutputClasses(const std::filesystem::path &modelPath);
-  static std::map<int, std::string> parseName(const std::string &input);
   static inline std::map<std::filesystem::path, Data> mCache;
   static inline std::mutex lookForMutex;
 };

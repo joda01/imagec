@@ -21,9 +21,12 @@ class ImageC(ConanFile):
         "with_pytorch": True,
     }
 
-    #generators = "CMakeDeps", "CMakeToolchain"
     exports_sources = "src/*"
     
+    def config_options(self):
+        if self.settings.os == "Windows":
+            self.options.with_pytorch = False
+
 
     def requirements(self):
         self.requires("qt/6.7.1")
@@ -34,6 +37,7 @@ class ImageC(ConanFile):
         self.requires("libxlsxwriter/1.1.8")
         self.requires("duckdb/1.1.0")
         self.requires("onnx/1.17.0")
+        self.requires("rapidyaml/0.7.1")
         if self.options.get_safe("with_pytorch"):
             self.requires("libtorch/2.4.0")
         if self.options.get_safe("with_tensorflow"):

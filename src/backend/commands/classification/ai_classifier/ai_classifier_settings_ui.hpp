@@ -49,7 +49,7 @@ public:
     auto *modelTab = addTab(
         "Model settings", [] {}, false);
 
-    auto onnxModels = joda::onnx::OnnxParser::findOnnxFiles();
+    auto onnxModels = joda::onnx::OnnxParser::findAiModelFiles();
 
     std::vector<SettingComboBoxString::ComboEntry> entries;
     entries.reserve(onnxModels.size() + 1);
@@ -64,16 +64,18 @@ public:
     mModelPath->setValue(settings.modelPath);
     mModelPath->setShortDescription("Path:");
     connect(mModelPath.get(), &SettingBase::valueChanged, [this]() {
-      /*if(!mModelPath->getValue().empty()) {
-        auto info = joda::onnx::OnnxParser::getOnnxInfo(std::filesystem::path(mModelPath->getValue()));
-        removeAll();
-        mNumberOdModelClasses->setValue(info.classes.size());
-        int n = 0;
-        for(const auto &classs : info.classes) {
-          addFilter(classs, n, 1);
-          n++;
-        }
-      }*/
+      if(!mModelPath->getValue().empty()) {
+        auto info = joda::onnx::OnnxParser::getModelInfo(std::filesystem::path(mModelPath->getValue()));
+        mNetHeight->setValue(info.inputHeight);
+        mNetWidth->setValue(info.inputWith);
+        /* removeAll();
+         mNumberOdModelClasses->setValue(info.classes.size());
+         int n = 0;
+         for(const auto &classs : info.classes) {
+           addFilter(classs, n, 1);
+           n++;
+         }*/
+      }
     });
 
     //
