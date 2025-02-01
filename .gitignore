@@ -71,3 +71,4 @@ models/cell-brightfield--03-80.onnx
 models/cell-brightfield-02.onnx
 models/nucleus_detection_ex_vivo_v1.onnx
 settings.icproj
+*.pt

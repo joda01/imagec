@@ -15,6 +15,7 @@
 #include <qaction.h>
 #include <qwidget.h>
 #include <cstdint>
+#include <string>
 #include "backend/commands/classification/classifier_filter.hpp"
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
@@ -24,6 +25,7 @@
 #include "ui/container/setting/setting_combobox_classes_out.hpp"
 #include "ui/container/setting/setting_combobox_string.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
+#include "ui/container/setting/setting_spinbox.hpp"
 #include "ui/helper/icon_generator.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/helper/setting_generator.hpp"
@@ -41,10 +43,11 @@ public:
   AiClassifier(joda::settings::PipelineStep &pipelineStep, settings::AiClassifierSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::OBJECT}}), mSettings(settings), mParent(parent)
   {
-    this->mutableEditDialog()->setMinimumWidth(600);
-    this->mutableEditDialog()->setMinimumHeight(400);
+    this->mutableEditDialog()->setMinimumWidth(700);
+    this->mutableEditDialog()->setMinimumHeight(500);
 
-    auto *modelTab = addTab("Model", [] {});
+    auto *modelTab = addTab(
+        "Model settings", [] {}, false);
 
     auto onnxModels = joda::onnx::OnnxParser::findOnnxFiles();
 
@@ -61,7 +64,7 @@ public:
     mModelPath->setValue(settings.modelPath);
     mModelPath->setShortDescription("Path:");
     connect(mModelPath.get(), &SettingBase::valueChanged, [this]() {
-      if(!mModelPath->getValue().empty()) {
+      /*if(!mModelPath->getValue().empty()) {
         auto info = joda::onnx::OnnxParser::getOnnxInfo(std::filesystem::path(mModelPath->getValue()));
         removeAll();
         mNumberOdModelClasses->setValue(info.classes.size());
@@ -70,55 +73,61 @@ public:
           addFilter(classs, n, 1);
           n++;
         }
-      }
+      }*/
     });
 
     //
     //
-    mNumberOdModelClasses = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Nr. of model classes");
-    mNumberOdModelClasses->setPlaceholderText("[0 - 2,147,483,647]");
+    mNumberOdModelClasses = SettingBase::create<SettingSpinBox<int32_t>>(parent, generateIcon("deviation"), "Nr. of model classes");
+    mNumberOdModelClasses->setMinMax(1, 99);
     mNumberOdModelClasses->setUnit("");
     mNumberOdModelClasses->setMinMax(1, INT32_MAX);
     mNumberOdModelClasses->setValue(settings.numberOfModelClasses);
     mNumberOdModelClasses->connectWithSetting(&settings.numberOfModelClasses);
     mNumberOdModelClasses->setShortDescription("Classes:");
     mNumberOdModelClasses->setEnabled(false);
+    connect(mNumberOdModelClasses.get(), &SettingBase::valueChanged, [this]() {
+      // We have to add
+      while(mClassifyFilter.size() < mNumberOdModelClasses->getValue()) {
+        addFilter("Class " + std::to_string(mClassifyFilter.size()), mClassifyFilter.size(), 1);
+      }
+      // We have to remove
+      while(mClassifyFilter.size() > mNumberOdModelClasses->getValue()) {
+        removeTab(mClassifyFilter.size());
+      }
+    });
 
-    mNetWidth = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Net input width");
+    mNetWidth = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Input with of the model");
     mNetWidth->setPlaceholderText("[0 - 2,147,483,647]");
     mNetWidth->setUnit("");
     mNetWidth->setMinMax(1, INT32_MAX);
     mNetWidth->setValue(settings.netInputWidth);
     mNetWidth->connectWithSetting(&settings.netInputWidth);
     mNetWidth->setShortDescription("Width:");
-    mNetWidth->setEnabled(false);
 
-    mNetHeight = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Net input height");
+    mNetHeight = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Input height of the model");
     mNetHeight->setPlaceholderText("[0 - 2,147,483,647]");
     mNetHeight->setUnit("");
     mNetHeight->setMinMax(1, INT32_MAX);
     mNetHeight->setValue(settings.netInputHeight);
     mNetHeight->connectWithSetting(&settings.netInputHeight);
     mNetHeight->setShortDescription("Height:");
-    mNetHeight->setEnabled(false);
 
-    mChannels = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Nr. of channels");
-    mChannels->setPlaceholderText("[0 - 3]");
-    mChannels->setUnit("");
-    mChannels->setMinMax(1, INT32_MAX);
+    mChannels = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, "Input channels of the model");
+    mChannels->setDefaultValue(1);
+    mChannels->addOptions({{1, "Grayscale", generateIcon("grayscale")}, {3, "Color", generateIcon("color")}});
     mChannels->setValue(settings.netNrOfChannels);
     mChannels->connectWithSetting(&settings.netNrOfChannels);
     mChannels->setShortDescription("Channels:");
-    mChannels->setEnabled(false);
 
-    mClassThreshold = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Class threshold (0.5)");
+    mClassThreshold = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("percent"), "Class threshold (0.5)");
     mClassThreshold->setPlaceholderText("[0 - 1]");
     mClassThreshold->setUnit("");
     mClassThreshold->setMinMax(0, 1);
     mClassThreshold->setValue(settings.classThreshold);
     mClassThreshold->connectWithSetting(&settings.classThreshold);
 
-    mMaskThreshold = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Mask threshold (0.8)");
+    mMaskThreshold = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("layer-mask"), "Mask threshold (0.8)");
     mMaskThreshold->setPlaceholderText("[0 - 1");
     mMaskThreshold->setUnit("");
     mMaskThreshold->setMinMax(0, 1);
@@ -133,9 +142,10 @@ public:
                              {mChannels.get(), false, 0}});
     auto *col2 = addSetting(modelTab, "Probabilities", {{mClassThreshold.get(), false, 0}, {mMaskThreshold.get(), false, 0}});
 
-    int32_t cnt = 0;
+    int32_t cnt = 1;
     for(auto &classifierSetting : settings.modelClasses) {
-      auto *tab = addTab("Filter", [this, &classifierSetting] { removeObjectClass(&classifierSetting); });
+      auto *tab = addTab(
+          std::string("Class " + std::to_string(cnt - 1)).data(), [this, &classifierSetting] { removeObjectClass(&classifierSetting); }, false);
       mClassifyFilter.emplace_back(classifierSetting, *this, tab, cnt, parent);
       cnt++;
     }
@@ -290,10 +300,10 @@ private:
   };
 
   std::unique_ptr<SettingComboBoxString> mModelPath;
-  std::unique_ptr<SettingLineEdit<int32_t>> mNumberOdModelClasses;
+  std::unique_ptr<SettingSpinBox<int32_t>> mNumberOdModelClasses;
   std::unique_ptr<SettingLineEdit<int32_t>> mNetWidth;
   std::unique_ptr<SettingLineEdit<int32_t>> mNetHeight;
-  std::unique_ptr<SettingLineEdit<int32_t>> mChannels;
+  std::unique_ptr<SettingComboBox<int32_t>> mChannels;
 
   std::unique_ptr<SettingLineEdit<float>> mClassThreshold;
   std::unique_ptr<SettingLineEdit<float>> mMaskThreshold;
@@ -340,7 +350,8 @@ private slots:
     objClass.modelClassId        = classId;
     objClass.probabilityHandicap = handicap;
     auto &ret                    = mSettings.modelClasses.emplace_back(objClass);
-    auto *tab                    = addTab(title.data(), [this, &ret] { removeObjectClass(&ret); });
+    auto *tab                    = addTab(
+        title.data(), [this, &ret] { removeObjectClass(&ret); }, false);
     mClassifyFilter.emplace_back(ret, *this, tab, mSettings.modelClasses.size(), mParent);
     updateDisplayText();
   }

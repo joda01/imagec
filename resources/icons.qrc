@@ -64,6 +64,7 @@
     <file>icons/icons8-delete-column-48.png</file>
     <file>icons/icons8-popup-window-96.png</file>
     <file>icons/icons8-play-48.png</file>
+    <file>icons/icons8-percent-96.png</file>
     <file>icons/icons8-matrix-24.png</file>
     <file>icons/icons8-query-outer-join-right-96.png</file>
     <file>icons/icons8-bookmark-24.png</file>
@@ -120,12 +121,14 @@
     <file>icons/icons8-mind-map-48.png</file>
     <file>icons/icons8-favorite-96.png</file>
     <file>icons/icons8-square-border-24.png</file>
+    <file>icons/icons8-percent-48.png</file>
     <file>icons/icons8-export-excel-96.png</file>
     <file>icons/icons8-full-screen-24.png</file>
     <file>icons/icons8-mark-as-favorite-24.png</file>
     <file>icons/icons8-favorite-48.png</file>
     <file>icons/icons8-three-48.png</file>
     <file>icons/icons8-length-16.png</file>
+    <file>icons/icons8-deviation-48.png</file>
     <file>icons/icons8-brightness-16.png</file>
     <file>icons/icons8-ratio-16.png</file>
     <file>icons/icons8-ampersand-96.png</file>
@@ -149,6 +152,7 @@
     <file>icons/icons8-help-96.png</file>
     <file>icons/icons8-triangle-48.png</file>
     <file>icons/icons8-favorite-folder-24.png</file>
+    <file>icons/icons8-deviation-24.png</file>
     <file>icons/icons8-mind-map-16.png</file>
     <file>icons/icons8-column-16.png</file>
     <file>icons/icons8-remove-image-16.png</file>
@@ -187,8 +191,10 @@
     <file>icons/icons8-error-red-48.png</file>
     <file>icons/icons8-aspect-ratio-96.png</file>
     <file>icons/icons8-metamorphose-96.png</file>
+    <file>icons/icons8-percent-16.png</file>
     <file>icons/icons8-maximize-window-96.png</file>
     <file>icons/icons8-info-blue-96.png</file>
+    <file>icons/icons8-deviation-16.png</file>
     <file>icons/icons8-three-16.png</file>
     <file>icons/icons8-one-48.png</file>
     <file>icons/icons8-query-inner-join-96.png</file>
@@ -414,6 +420,7 @@
     <file>icons/icons8-circle-24.png</file>
     <file>icons/icons8-close-96.png</file>
     <file>icons/icons8-light-16.png</file>
+    <file>icons/icons8-percent-24.png</file>
     <file>icons/icons8-genealogy-24.png</file>
     <file>icons/icons8-baseline-16.png</file>
     <file>icons/icons8-frames-24.png</file>
@@ -575,6 +582,7 @@
     <file>icons/icons8-creative-commons-zero-16.png</file>
     <file>icons/icons8-arrow-down-48.png</file>
     <file>icons/icons8-info-16.png</file>
+    <file>icons/icons8-deviation-96.png</file>
     <file>icons/icons8-triangle-96.png</file>
     <file>icons/icons8-crop-96.png</file>
     <file>icons/icons8-help-24.png</file>

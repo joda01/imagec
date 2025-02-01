@@ -41,7 +41,8 @@ public:
     }
     int cnt = 0;
     for(auto &classifierSetting : settings.modelClasses) {
-      auto *tab = addTab("Th", [this, &classifierSetting] { removeObjectClass(&classifierSetting); });
+      auto *tab = addTab(
+          "Th", [this, &classifierSetting] { removeObjectClass(&classifierSetting); }, cnt > 0);
       thresholds.emplace_back(classifierSetting, *this, tab, cnt, parent);
       cnt++;
     }
@@ -154,7 +155,8 @@ private slots:
   {
     settings::ThresholdSettings::Threshold objClass;
     auto &ret = mSettings.modelClasses.emplace_back(objClass);
-    auto *tab = addTab("TH", [this, &ret] { removeObjectClass(&ret); });
+    auto *tab = addTab(
+        "Th", [this, &ret] { removeObjectClass(&ret); }, true);
     thresholds.emplace_back(ret, *this, tab, mSettings.modelClasses.size(), mParent);
     updateDisplayText();
   }

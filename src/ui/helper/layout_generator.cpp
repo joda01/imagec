@@ -84,12 +84,13 @@ LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool wi
 /// \param[out]
 /// \return
 ///
-TabWidget *LayoutGenerator::addTab(const QString &title, std::function<void()> beforeTabClose)
+TabWidget *LayoutGenerator::addTab(const QString &title, std::function<void()> beforeTabClose, bool showCloseButton)
 {
   auto *tab = new TabWidget(mDeleteButton != nullptr, std::move(beforeTabClose), this, mParent);
   mTabWidget->addTab(tab, title);
-
-  mTabWidget->tabBar()->tabButton(0, QTabBar::RightSide)->setVisible(false);
+  if(!showCloseButton) {
+    mTabWidget->tabBar()->tabButton(mTabWidget->count() - 1, QTabBar::RightSide)->setVisible(false);
+  }
   // mTabWidget->tabBar()->setTabButton(0, QTabBar::RightSide, nullptr);
 
   return tab;

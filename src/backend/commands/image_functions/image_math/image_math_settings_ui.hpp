@@ -40,7 +40,8 @@ public:
   ImageMath(joda::settings::PipelineStep &pipelineStep, settings::ImageMathSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}}), mParent(parent)
   {
-    auto *modelTab = addTab("Base", [] {});
+    auto *modelTab = addTab(
+        "Base", [] {}, false);
 
     //
     // Options

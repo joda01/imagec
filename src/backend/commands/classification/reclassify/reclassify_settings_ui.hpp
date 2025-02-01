@@ -40,7 +40,8 @@ public:
   Reclassify(joda::settings::PipelineStep &pipelineStep, settings::ReclassifySettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings), mParent(parent)
   {
-    auto *modelTab = addTab("Base", [] {});
+    auto *modelTab = addTab(
+        "Base", [] {}, false);
 
     //
     // Base settings

@@ -54,7 +54,7 @@ public:
   explicit LayoutGenerator(QWidget *parent, bool withDeleteButton = true, bool withTopToolbar = true, bool withBackButton = true,
                            bool withBottomToolbar = false);
 
-  TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose);
+  TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose, bool showCloseButton);
 
   void removeTab(int idx)
   {

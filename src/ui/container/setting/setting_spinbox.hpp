@@ -35,6 +35,7 @@ public:
   QWidget *createInputObject() override
   {
     mSpinBox = new QSpinBox();
+    mSpinBox->setMinimumHeight(34);
     // mLineEdit->setClearButtonEnabled(true);
     // if(!getIcon().isNull()) {
     //  mSpinBox->addAction(getIcon().pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE), QLineEdit::LeadingPosition);

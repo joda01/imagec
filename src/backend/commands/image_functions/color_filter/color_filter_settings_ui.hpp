@@ -76,7 +76,8 @@ public:
     mGrayscaleMode->setValue(settings.grayScaleConvertMode);
     mGrayscaleMode->connectWithSetting(&settings.grayScaleConvertMode);
 
-    auto *tab = addTab("", [] {});
+    auto *tab = addTab(
+        "", [] {}, false);
 
     addSetting(tab, "Color chooser",
                {

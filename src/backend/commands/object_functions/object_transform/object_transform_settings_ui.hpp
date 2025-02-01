@@ -40,7 +40,8 @@ public:
   ObjectTransform(joda::settings::PipelineStep &pipelineStep, settings::ObjectTransformSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mParent(parent)
   {
-    auto *modelTab = addTab("Base", [] {});
+    auto *modelTab = addTab(
+        "Base", [] {}, false);
 
     mInput = SettingBase::create<SettingComboBoxClassificationIn>(parent, generateIcon("circle"), "First operand");
     mInput->setValue(settings.inputClasses);

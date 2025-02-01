@@ -49,7 +49,7 @@ struct AiClassifierSettings : public SettingBase
   //
   // Vector array index is the class ID used by the AI model starting with 0
   //
-  std::list<ObjectClass> modelClasses = {};
+  std::list<ObjectClass> modelClasses = {{}};
 
   //
   // The expected image input with of the net

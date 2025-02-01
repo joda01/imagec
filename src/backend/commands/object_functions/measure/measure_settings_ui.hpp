@@ -66,7 +66,8 @@ public:
 
     //
     //
-    auto *tab = addTab("Input class", [] {});
+    auto *tab = addTab(
+        "Input class", [] {}, false);
     addSetting(tab, "Input classes", {{classesIn.get(), true, 0}});
     addSetting(tab, "Input image channels", {{cStackIndex.get(), true, 0}, {zProjection.get(), true, 0}});
 

@@ -41,7 +41,8 @@ public:
   ObjectsToImage(joda::settings::PipelineStep &pipelineStep, settings::ObjectsToImageSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::OBJECT}, InOuts::BINARY}), mParent(parent)
   {
-    auto *modelTab = addTab("Base", [] {});
+    auto *modelTab = addTab(
+        "Base", [] {}, false);
 
     mInputFirst = SettingBase::create<SettingComboBoxClassificationIn>(parent, generateIcon("circle"), "First operand");
     mInputFirst->setValue(settings.inputClassesFirst);

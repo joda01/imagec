@@ -61,7 +61,8 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     QWidget(wm), mLayout(this, true), mWindowMain(wm), mSettings(settings)
 {
   setObjectName("PanelPipelineSettings");
-  auto *tab = mLayout.addTab("", [] {});
+  auto *tab = mLayout.addTab(
+      "", [] {}, false);
   createSettings(tab, wm);
 
   {

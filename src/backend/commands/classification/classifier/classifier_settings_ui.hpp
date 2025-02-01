@@ -43,9 +43,10 @@ public:
       addFilter();
     }
 
-    int32_t cnt = 0;
+    int32_t cnt = 1;
     for(auto &classifierSetting : settingsIn.modelClasses) {
-      auto *tab = addTab("Filter", [this, &classifierSetting] { removeObjectClass(&classifierSetting); });
+      auto *tab = addTab(
+          "Filter", [this, &classifierSetting] { removeObjectClass(&classifierSetting); }, false);
       mClassifyFilter.emplace_back(classifierSetting, *this, tab, cnt, parent);
       cnt++;
     }
@@ -224,7 +225,8 @@ private slots:
   {
     settings::ObjectClass objClass;
     auto &ret = mSettings.modelClasses.emplace_back(objClass);
-    auto *tab = addTab("Filter", [this, &ret] { removeObjectClass(&ret); });
+    auto *tab = addTab(
+        "Filter", [this, &ret] { removeObjectClass(&ret); }, true);
     mClassifyFilter.emplace_back(ret, *this, tab, mSettings.modelClasses.size(), mParent);
     updateDisplayText();
   }

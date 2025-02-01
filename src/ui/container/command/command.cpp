@@ -281,9 +281,9 @@ void Command::setDisabled(bool disabled)
 /// \param[out]
 /// \return
 ///
-helper::TabWidget *Command::addTab(const QString &title, std::function<void()> beforeTabClose)
+helper::TabWidget *Command::addTab(const QString &title, std::function<void()> beforeTabClose, bool showCloseButton)
 {
-  auto *tab = mLayout.addTab(title, beforeTabClose);
+  auto *tab = mLayout.addTab(title, beforeTabClose, showCloseButton);
   /// \todo rethink this
   // if(mEditDialog->isVisible()) {
   //   std::thread([this] {
@@ -292,6 +292,20 @@ helper::TabWidget *Command::addTab(const QString &title, std::function<void()> b
   //   }).detach();
   // }
   return tab;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Command::removeTab(int32_t idx)
+{
+  if(idx > 0 && idx < mLayout.getNrOfTabs()) {
+    mLayout.onRemoveTab(idx);
+  }
 }
 
 ///
