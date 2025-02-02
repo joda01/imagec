@@ -16,6 +16,7 @@
 #include <memory>
 #include <string>
 #include "backend/artifacts/roi/roi.hpp"
+#include "backend/commands/classification/ai_classifier/onnx/ai_lassifier_onnx.hpp"
 #include "backend/commands/classification/ai_classifier/pytorch/ai_classifier_pytorch.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/helper/duration_count/duration_count.h"
@@ -38,7 +39,7 @@ using namespace cv::dnn;
 /// \param[in]  onnxNetPath Path to the ONNX net file
 /// \param[in]  classNames  Array of class names e.g. {"nuclues","cell"}
 ///
-AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) : mSettings(settings), mNumberOfClasses(settings.numberOfModelClasses)
+AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) : mSettings(settings)
 {
 }
 
@@ -52,7 +53,9 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
   if(mSettings.modelPath.ends_with(".pt")) {
     joda::ai::AiClassifierPyTorch torch(mSettings);
     segResult = torch.execute(imageNotUse);
-  } else if(mSettings.modelPath.ends_with(".pt")) {
+  } else if(mSettings.modelPath.ends_with(".onnx")) {
+    joda::ai::AiClassifierOnnx onnxClassifier(mSettings);
+    segResult = onnxClassifier.execute(imageNotUse);
   }
 
   for(const auto &res : segResult) {

@@ -9,9 +9,7 @@
 ///            LICENSE.txt, which is part of this package.
 ///
 ///
-#include <torch/cuda.h>
-#include <string>
-#include "backend/helper/logger/console_logger.hpp"
+#include <c10/util/ArrayRef.h>
 #if defined(WITH_TENSORFLOW)
 
 #include <ATen/ops/upsample_nearest2d.h>
@@ -19,15 +17,17 @@
 #include <c10/core/ScalarType.h>
 #include <c10/core/TensorOptions.h>
 #include <torch/csrc/jit/serialization/import.h>
+#include <torch/cuda.h>
 #include <torch/script.h>    // One-stop header.
 #include <torch/torch.h>
 #include <torch/types.h>
+#include <string>
+#include "backend/helper/logger/console_logger.hpp"
 
 #include <stdexcept>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
-
 #include "ai_classifier_pytorch.hpp"
 
 namespace joda::ai {
@@ -52,9 +52,6 @@ AiClassifierPyTorch::AiClassifierPyTorch(const settings::AiClassifierSettings &s
 ///
 auto AiClassifierPyTorch::execute(const cv::Mat &originalImage) -> std::vector<Result>
 {
-  int32_t INPUT_SIZE   = 256;
-  int32_t CHANNEL_SIZE = 1;
-
   // Check if CUDA is available
   bool cudaAvailable = torch::cuda::is_available();
   int numCudaDevices = torch::cuda::device_count();
@@ -65,6 +62,7 @@ auto AiClassifierPyTorch::execute(const cv::Mat &originalImage) -> std::vector<R
   torch::jit::script::Module model;
   try {
     model = torch::jit::load(mSettings.modelPath);
+    model.eval();
     if(numCudaDevices > 0) {
       model.to(at::Device("cuda:0"));
     }
@@ -72,30 +70,58 @@ auto AiClassifierPyTorch::execute(const cv::Mat &originalImage) -> std::vector<R
     throw std::runtime_error("Could not load torch model!");
   }
 
-  const cv::Mat &inputImageOriginal = originalImage;
-  // Normalize the pixel values to [0, 1] float for detection
-  cv::Mat inputImage;
-  inputImageOriginal.convertTo(inputImage, CV_32F, 1.0 / 65535.0);
+  detectModelParameter(model);
 
   // Resize
-  cv::Mat resized_image;
-  cv::resize(inputImage, resized_image, cv::Size(mSettings.netInputWidth, mSettings.netInputHeight));    // Adjust size to your model's input
+  cv::Mat resizedImage = prepareImage(originalImage, mSettings);
 
   // Create a tensor from the image data
-  auto input_tensor = torch::from_blob(resized_image.data, {1, 1, resized_image.rows, resized_image.cols}, torch::kFloat32);
+  auto inputTensor = torch::from_blob(resizedImage.data, toTensorOptions(), torch::kFloat32);
 
   // Clone to ensure the tensor is contiguous
-  input_tensor = input_tensor.to(torch::kFloat).clone();
+  inputTensor = inputTensor.to(torch::kFloat).clone();
 
   // Step 3: Perform inference
-  auto output = model.forward({input_tensor}).toTensor();
+  auto output = model.forward({inputTensor}).toTensor();
 
   // Step 4: Apply softmax to get probabilities
-  torch::Tensor probabilities = torch::softmax(output, 1);    // Along the class dimension
+  // dim = 0 ... rows
+  // dim = 1 ... cols
+  // For a batch of predictions, where each row corresponds to a separate input sample and each column corresponds to a class:
+  auto probabilities = torch::softmax(output, 1);    // Along the class dimension
 
-  // int num_objects = output.size(1);    // Number of objects (channels)
+  return tensorToObjectMasks(output, probabilities, originalImage.cols, originalImage.rows);
+}
 
-  return tensorToObjectMasks(output, probabilities, inputImage.cols, inputImage.rows);
+///
+/// \brief      Generate tensor options in correct order
+/// \author     Joachim Danmayr
+/// \return     Input vector for
+///
+auto AiClassifierPyTorch::toTensorOptions() const -> std::vector<int64_t>
+{
+  std::vector<int64_t> retArray(4);
+  retArray.at(mSettings.modelInputParameters.getBatchIndex())   = mSettings.modelInputParameters.netInputBatchSize;
+  retArray.at(mSettings.modelInputParameters.getChannelIndex()) = static_cast<int32_t>(mSettings.modelInputParameters.netNrOfChannels);
+  retArray.at(mSettings.modelInputParameters.getHeightIndex())  = mSettings.modelInputParameters.netInputHeight;
+  retArray.at(mSettings.modelInputParameters.getWidthIndex())   = mSettings.modelInputParameters.netInputWidth;
+  return retArray;
+}
+
+void AiClassifierPyTorch::detectModelParameter(torch::jit::script::Module &model)
+{
+  // Create a dummy input tensor
+  torch::Tensor input_tensor = torch::randn(toTensorOptions());
+
+  // Run inference
+  torch::Tensor output = model.forward({input_tensor}).toTensor();
+
+  // Detect output shape dynamically
+  std::cout << "Output Tensor Shape: ";
+  for(auto size : output.sizes()) {
+    std::cout << size << " ";
+  }
+  std::cout << std::endl;
 }
 
 ///
@@ -109,9 +135,9 @@ auto AiClassifierPyTorch::tensorToObjectMasks(const at::Tensor &tensor, const at
     -> std::vector<Result>
 {
   // Assuming tensor shape is [batch_size, channels, height, width]
-  int channels  = tensor.size(1);
-  int heightNet = tensor.size(2);
-  int widthNet  = tensor.size(3);
+  int channels  = tensor.size(mSettings.modelInputParameters.getChannelIndex());
+  int heightNet = tensor.size(mSettings.modelInputParameters.getHeightIndex());
+  int widthNet  = tensor.size(mSettings.modelInputParameters.getWidthIndex());
 
   // Ensure the tensor is in CPU and float32 for processing
   at::Tensor tensor_cpuSmall      = tensor.to(at::kCPU).to(at::kFloat);

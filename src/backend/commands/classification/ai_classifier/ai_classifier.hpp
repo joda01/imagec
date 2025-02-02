@@ -43,7 +43,6 @@ private:
   auto getMask(const cv::Mat &maskChannel, const cv::Size &inputImageShape, const cv::Rect &box) -> cv::Mat;
 
   // Colors
-  int32_t mNumberOfClasses;
   bool mIsReady = false;
 
   const settings::AiClassifierSettings &mSettings;

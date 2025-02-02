@@ -10,6 +10,9 @@
 ///
 ///
 
+#pragma once
+
+#include "backend/commands/classification/ai_classifier/ai_classifier_settings.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
 
@@ -27,6 +30,9 @@ public:
     float probability;
   };
   virtual auto execute(const cv::Mat &originalImage) -> std::vector<Result> = 0;
+
+protected:
+  auto prepareImage(const cv::Mat &inputImage, const settings::AiClassifierSettings &settings) -> cv::Mat;
 };
 
 }    // namespace joda::ai

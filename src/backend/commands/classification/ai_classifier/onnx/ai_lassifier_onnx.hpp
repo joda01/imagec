@@ -23,6 +23,7 @@ namespace joda::ai {
 
 class AiClassifierOnnx : public AiSegmentation
 {
+public:
   /////////////////////////////////////////////////////
   AiClassifierOnnx(const settings::AiClassifierSettings &settings);
   auto execute(const cv::Mat &originalImage) -> std::vector<ai::AiSegmentation::Result> override;
@@ -57,8 +58,6 @@ private:
   // Anchors defined in: https://github.com/ultralytics/yolov5/blob/master/models/segment/yolov5l-seg.yaml
   static constexpr inline float NET_ANCHORS[3][6] = {{10, 13, 16, 30, 33, 23}, {30, 61, 62, 45, 59, 119}, {116, 90, 156, 198, 373, 326}};
 
-  static constexpr inline int NET_WIDTH    = 640;
-  static constexpr inline int NET_HEIGHT   = 640;
   static constexpr inline int SEG_WIDTH    = 160;
   static constexpr inline int SEG_HEIGHT   = 160;
   static constexpr inline int SEG_CHANNELS = 32;

@@ -12,6 +12,7 @@
 
 #if defined(WITH_TENSORFLOW)
 
+#include <ATen/core/ATen_fwd.h>
 #include <vector>
 #include "../ai_segmentation.hpp"
 #include "backend/artifacts/roi/roi.hpp"
@@ -19,6 +20,10 @@
 
 namespace at {
 class Tensor;
+}
+
+namespace torch::jit {
+class Module;
 }
 
 namespace joda::ai {
@@ -36,6 +41,8 @@ public:
   auto execute(const cv::Mat &originalImage) -> std::vector<Result> override;
 
 private:
+  auto toTensorOptions() const -> std::vector<int64_t>;
+  void detectModelParameter(torch::jit::Module &model);
   auto tensorToObjectMasks(const at::Tensor &tensor, const at::Tensor &class_probabilities, int originalWith, int originalHeight)
       -> std::vector<Result>;
   const settings::AiClassifierSettings &mSettings;

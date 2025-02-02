@@ -66,8 +66,8 @@ public:
     connect(mModelPath.get(), &SettingBase::valueChanged, [this]() {
       if(!mModelPath->getValue().empty()) {
         auto info = joda::onnx::OnnxParser::getModelInfo(std::filesystem::path(mModelPath->getValue()));
-        mNetHeight->setValue(info.inputHeight);
-        mNetWidth->setValue(info.inputWith);
+        mNetHeight->setValue(info.netInputHeight);
+        mNetWidth->setValue(info.netInputWidth);
         /* removeAll();
          mNumberOdModelClasses->setValue(info.classes.size());
          int n = 0;
@@ -84,8 +84,8 @@ public:
     mNumberOdModelClasses->setMinMax(1, 99);
     mNumberOdModelClasses->setUnit("");
     mNumberOdModelClasses->setMinMax(1, INT32_MAX);
-    mNumberOdModelClasses->setValue(settings.numberOfModelClasses);
-    mNumberOdModelClasses->connectWithSetting(&settings.numberOfModelClasses);
+    mNumberOdModelClasses->setValue(settings.modelClasses.size());
+    mNumberOdModelClasses->connectWithSetting(&nrOfClassesTmp);
     mNumberOdModelClasses->setShortDescription("Classes:");
     mNumberOdModelClasses->setEnabled(false);
     connect(mNumberOdModelClasses.get(), &SettingBase::valueChanged, [this]() {
@@ -103,23 +103,24 @@ public:
     mNetWidth->setPlaceholderText("[0 - 2,147,483,647]");
     mNetWidth->setUnit("");
     mNetWidth->setMinMax(1, INT32_MAX);
-    mNetWidth->setValue(settings.netInputWidth);
-    mNetWidth->connectWithSetting(&settings.netInputWidth);
+    mNetWidth->setValue(settings.modelInputParameters.netInputWidth);
+    mNetWidth->connectWithSetting(&settings.modelInputParameters.netInputWidth);
     mNetWidth->setShortDescription("Width:");
 
     mNetHeight = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Input height of the model");
     mNetHeight->setPlaceholderText("[0 - 2,147,483,647]");
     mNetHeight->setUnit("");
     mNetHeight->setMinMax(1, INT32_MAX);
-    mNetHeight->setValue(settings.netInputHeight);
-    mNetHeight->connectWithSetting(&settings.netInputHeight);
+    mNetHeight->setValue(settings.modelInputParameters.netInputHeight);
+    mNetHeight->connectWithSetting(&settings.modelInputParameters.netInputHeight);
     mNetHeight->setShortDescription("Height:");
 
-    mChannels = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, "Input channels of the model");
-    mChannels->setDefaultValue(1);
-    mChannels->addOptions({{1, "Grayscale", generateIcon("grayscale")}, {3, "Color", generateIcon("color")}});
-    mChannels->setValue(settings.netNrOfChannels);
-    mChannels->connectWithSetting(&settings.netNrOfChannels);
+    mChannels = SettingBase::create<SettingComboBox<joda::settings::AiClassifierSettings::NetChannels>>(parent, {}, "Input channels of the model");
+    mChannels->setDefaultValue(joda::settings::AiClassifierSettings::NetChannels::GRAYSCALE);
+    mChannels->addOptions({{joda::settings::AiClassifierSettings::NetChannels::GRAYSCALE, "Grayscale", generateIcon("grayscale")},
+                           {joda::settings::AiClassifierSettings::NetChannels::RGB, "Color", generateIcon("color")}});
+    mChannels->setValue(settings.modelInputParameters.netNrOfChannels);
+    mChannels->connectWithSetting(&settings.modelInputParameters.netNrOfChannels);
     mChannels->setShortDescription("Channels:");
 
     mClassThreshold = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("percent"), "Class threshold (0.5)");
@@ -305,7 +306,7 @@ private:
   std::unique_ptr<SettingSpinBox<int32_t>> mNumberOdModelClasses;
   std::unique_ptr<SettingLineEdit<int32_t>> mNetWidth;
   std::unique_ptr<SettingLineEdit<int32_t>> mNetHeight;
-  std::unique_ptr<SettingComboBox<int32_t>> mChannels;
+  std::unique_ptr<SettingComboBox<joda::settings::AiClassifierSettings::NetChannels>> mChannels;
 
   std::unique_ptr<SettingLineEdit<float>> mClassThreshold;
   std::unique_ptr<SettingLineEdit<float>> mMaskThreshold;
@@ -313,6 +314,7 @@ private:
   std::list<ClassifierFilter> mClassifyFilter;
   settings::AiClassifierSettings &mSettings;
   QWidget *mParent;
+  int32_t nrOfClassesTmp;
 
   void removeObjectClass(settings::ObjectClass *obj)
   {

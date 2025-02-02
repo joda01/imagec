@@ -20,6 +20,7 @@
 #include <map>
 #include <regex>
 #include <string>
+#include "backend/commands/classification/ai_classifier/ai_classifier_settings.hpp"
 #include <nlohmann/json.hpp>
 #include <nlohmann/json_fwd.hpp>
 #include <opencv2/gapi/infer/onnx.hpp>
@@ -42,17 +43,13 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  struct Data
+  struct Data : public joda::settings::AiClassifierSettings::NetInputParameters
   {
     std::string modelName;
     std::string description;
     std::filesystem::path modelPath;
+    ModelType type = ModelType::UNKNOWN;
     std::vector<std::string> classes;
-    ModelType type      = ModelType::UNKNOWN;
-    int32_t inputWith   = 256;
-    int32_t inputHeight = 256;
-    int32_t channels    = 1;
-    int32_t batchSize   = 1;
   };
 
   static auto findAiModelFiles(const std::string &directory = "models") -> std::map<std::filesystem::path, Data>;

@@ -80,7 +80,6 @@ auto AiClassifierOnnx::execute(const cv::Mat &originalImage) -> std::vector<ai::
 
   Mat blob;
   Mat netInputImg = inputImage.clone();
-  blobFromImage(netInputImg, blob, 1 / 255.0, cv::Size(NET_WIDTH, NET_HEIGHT), cv::Scalar(0, 0, 0), true, false);
   mNet.setInput(blob);
   std::vector<cv::Mat> netOutputImg;
   mNet.forward(netOutputImg, mNet.getUnconnectedOutLayersNames());
@@ -88,8 +87,8 @@ auto AiClassifierOnnx::execute(const cv::Mat &originalImage) -> std::vector<ai::
   float ratio[2] = {};
   {
     cv::Size shape = inputImage.size();
-    ratio[0]       = static_cast<float>(NET_WIDTH) / static_cast<float>(shape.width);
-    ratio[1]       = static_cast<float>(NET_HEIGHT) / static_cast<float>(shape.height);
+    ratio[0]       = static_cast<float>(mSettings.modelInputParameters.netInputWidth) / static_cast<float>(shape.width);
+    ratio[1]       = static_cast<float>(mSettings.modelInputParameters.netInputHeight) / static_cast<float>(shape.height);
   }
 
   // vector<string> outputLayerName{"output0", "output1"};
@@ -100,11 +99,11 @@ auto AiClassifierOnnx::execute(const cv::Mat &originalImage) -> std::vector<ai::
   std::vector<cv::Rect> boxes;
   std::vector<vector<float>> pickedProposals;    // output0[:,:, 5 + mClassNames.size():net_width]
 
-  int net_width = mSettings.numberOfModelClasses + 5 + SEG_CHANNELS;
+  int net_width = mSettings.modelClasses.size() + 5 + SEG_CHANNELS;
   float *pdata  = (float *) netOutputImg[0].data;
   for(int stride = 0; stride < STRIDE_SIZE; stride++) {    // stride
-    int grid_x = static_cast<int>(NET_WIDTH / NET_STRIDE[stride]);
-    int grid_y = static_cast<int>(NET_HEIGHT / NET_STRIDE[stride]);
+    int grid_x = static_cast<int>(mSettings.modelInputParameters.netInputWidth / NET_STRIDE[stride]);
+    int grid_y = static_cast<int>(mSettings.modelInputParameters.netInputHeight / NET_STRIDE[stride]);
     for(int anchor = 0; anchor < 3; anchor++) {    // anchors
       const float anchor_w = NET_ANCHORS[stride][anchor * 2];
       const float anchor_h = NET_ANCHORS[stride][anchor * 2 + 1];
@@ -118,7 +117,7 @@ auto AiClassifierOnnx::execute(const cv::Mat &originalImage) -> std::vector<ai::
           // Get the probability that an object is contained in the box of
           // each row
           if(box_score >= BOX_THRESHOLD) {
-            cv::Mat scores(1, mSettings.numberOfModelClasses, CV_32FC1, pdata + 5);
+            cv::Mat scores(1, mSettings.modelClasses.size(), CV_32FC1, pdata + 5);
 
             // Add a handicap for the probability to rank some classes up or down
             for(int32_t modelClassIdx = 0; modelClassIdx < scores.cols; modelClassIdx++) {
@@ -133,7 +132,7 @@ auto AiClassifierOnnx::execute(const cv::Mat &originalImage) -> std::vector<ai::
             minMaxLoc(scores, &minClassScores, &maxClassScores, &classIdPointMin, &classIdPointMax);
             maxClassScores = static_cast<float>(maxClassScores);
             if(maxClassScores >= mClassThreshold) {
-              vector<float> temp_proto(pdata + 5 + mSettings.numberOfModelClasses, pdata + net_width);
+              vector<float> temp_proto(pdata + 5 + mSettings.modelClasses.size(), pdata + net_width);
               pickedProposals.push_back(temp_proto);
               // rect [x,y,w,h]
               float x  = pdata[0] / ratio[0];    // x

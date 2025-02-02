@@ -100,3 +100,14 @@ models/small-extracellular-vesicle-tem-segmentation-(fully-residual-u-net)_tenso
 models/small-extracellular-vesicle-tem-segmentation-(fully-residual-u-net)_tensorflow_saved_model_bundle/README.md
 models/small-extracellular-vesicle-tem-segmentation-(fully-residual-u-net)_tensorflow_saved_model_bundle/resultImage.npy
 models/small-extracellular-vesicle-tem-segmentation-(fully-residual-u-net)_tensorflow_saved_model_bundle/tensorflow_saved_model_bundle.zip
+models/nucleisegmentationboundarymodel_torchscript/cover.png
+models/nucleisegmentationboundarymodel_torchscript/documentation.md
+models/nucleisegmentationboundarymodel_torchscript/model.yaml
+models/nucleisegmentationboundarymodel_torchscript/rdf.yaml
+models/nucleisegmentationboundarymodel_torchscript/sample_input_0.tif
+models/nucleisegmentationboundarymodel_torchscript/sample_output_0.tif
+models/nucleisegmentationboundarymodel_torchscript/test_input_0.npy
+models/nucleisegmentationboundarymodel_torchscript/test_output_0.npy
+models/nucleisegmentationboundarymodel_torchscript/zero_mean_unit_variance.ijm
+models/university_of_sbg_cell_segmentation_v3/rdf.yaml
+models/university_of_sbg_cell_segmentation_v3/weights.onnx

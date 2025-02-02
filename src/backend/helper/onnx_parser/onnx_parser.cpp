@@ -13,6 +13,7 @@
 #include "onnx_parser.hpp"
 #include <onnx/onnx_pb.h>    // The ONNX protobuf headers
 #include <mutex>
+#include <stdexcept>
 #include <c4/yml/parse.hpp>
 #include <nlohmann/json_fwd.hpp>
 #include <ryml.hpp>
@@ -32,55 +33,10 @@ auto OnnxParser::findAiModelFiles(const std::string &directory) -> std::map<std:
   std::map<std::filesystem::path, Data> onnxFiles;
   if(fs::exists(directory) && fs::is_directory(directory)) {
     for(const auto &entry : fs::recursive_directory_iterator(directory)) {
-      std::string endian;
       if(entry.is_regular_file()) {
-        endian = entry.path().extension().string();
-      }
-
-      if(entry.is_regular_file() && endian == ".onnx") {
-        // auto data = readMetaJson(entry.path().string());
-
-        Data data;
-
-        if(!mCache.contains(entry.path().string())) {
-          auto result = getONNXModelOutputClasses(entry.path());
-          for(auto const &[idx, value] : result) {
-            data.classes.push_back(value);
-          }
-        } else {
-          // Read form cache
-          data.classes = mCache.at(entry.path()).classes;
-        }
-
-        data.modelName = entry.path().filename().string();
-        data.modelPath = entry.path();
-        data.type      = ModelType::ONNX;
-        onnxFiles.emplace(entry.path().string(), data);
-      } else if(entry.is_regular_file() && (endian == ".pt" || endian == ".pth")) {
-        if(!mCache.contains(entry.path().string())) {
-          Data data = parseResourceDescriptionFile(entry.path().parent_path() / "rdf.yaml");
-          if(data.modelName.empty()) {
-            data.modelName = entry.path().filename().string();
-          }
-          data.modelPath = entry.path();
-          data.type      = ModelType::PYTORCH;
-          onnxFiles.emplace(entry.path().string(), data);
-        } else {
-          // Read form cache
-          onnxFiles.emplace(entry.path().string(), mCache.at(entry.path()));
-        }
-      } else if(entry.is_regular_file() && endian == ".zip") {
-        if(!mCache.contains(entry.path().string())) {
-          Data data = parseResourceDescriptionFile(entry.path().parent_path() / "rdf.yaml");
-          if(data.modelName.empty()) {
-            data.modelName = entry.path().filename().string();
-          }
-          data.modelPath = entry.path();
-          data.type      = ModelType::TENSORFLOW;
-          onnxFiles.emplace(entry.path().string(), data);
-        } else {
-          // Read form cache
-          onnxFiles.emplace(entry.path().string(), mCache.at(entry.path()));
+        try {
+          onnxFiles.emplace(entry.path().string(), getModelInfo(entry.path()));
+        } catch(...) {
         }
       }
     }
@@ -94,7 +50,25 @@ auto OnnxParser::getModelInfo(const std::filesystem::path &modelPath) -> Data
   if(mCache.contains(modelPath.string())) {
     return mCache.at(modelPath.string());
   }
-  return {};
+  auto endian = modelPath.extension().string();
+  if((endian == ".pt" || endian == ".pth" || endian == ".onnx")) {
+    Data data = parseResourceDescriptionFile(modelPath.parent_path() / "rdf.yaml");
+    if(data.modelName.empty()) {
+      data.modelName = modelPath.filename().string();
+    }
+    data.modelPath = modelPath;
+    if(endian == ".onnx") {
+      data.type   = ModelType::ONNX;
+      auto result = getONNXModelOutputClasses(modelPath);
+      for(auto const &[idx, value] : result) {
+        data.classes.push_back(value);
+      }
+    } else if(endian == ".pt") {
+      data.type = ModelType::PYTORCH;
+    }
+    return data;
+  }
+  throw std::runtime_error("Not supported model!");
 }
 
 auto OnnxParser::parseResourceDescriptionFile(const std::filesystem::path &rdfYaml) -> Data
@@ -134,10 +108,25 @@ auto OnnxParser::parseResourceDescriptionFile(const std::filesystem::path &rdfYa
         if(axis.has_child("id")) {
           auto id = std::string(axis["id"].val().str, axis["id"].val().len);
           if(axis.has_child("size")) {
-            if(id == "y") {
-              response.inputHeight = std::stoi(std::string(axis["size"].val().str, axis["size"].val().len));
-            } else if(id == "x") {
-              response.inputWith = std::stoi(std::string(axis["size"].val().str, axis["size"].val().len));
+            if(axis["size"].is_val()) {
+              if(id == "y") {
+                response.netInputHeight = std::stoi(std::string(axis["size"].val().str, axis["size"].val().len));
+              } else if(id == "x") {
+                response.netInputWidth = std::stoi(std::string(axis["size"].val().str, axis["size"].val().len));
+              }
+            } else {
+              int32_t min  = std::stoi(std::string(axis["size"]["min"].val().str, axis["size"]["min"].val().len));
+              int32_t step = std::stoi(std::string(axis["size"]["step"].val().str, axis["size"]["step"].val().len));
+              int32_t k    = ((256.0f - static_cast<float>(min)) / static_cast<float>(step));
+              if(k < 1) {
+                k = 0;
+              }
+              int32_t size = min + k * step;
+              if(id == "y") {
+                response.netInputHeight = size;
+              } else if(id == "x") {
+                response.netInputWidth = size;
+              }
             }
           }
         }
@@ -151,10 +140,10 @@ auto OnnxParser::parseResourceDescriptionFile(const std::filesystem::path &rdfYa
 
     } else {
       // bcyx
-      std::string axes = std::string(tree["inputs"][0]["axes"].val().str, tree["inputs"][0]["axes"].val().len);
+      response.axesOrder = std::string(tree["inputs"][0]["axes"].val().str, tree["inputs"][0]["axes"].val().len);
 
-      size_t xPos = axes.find('x');
-      size_t yPos = axes.find('y');
+      size_t xPos = response.axesOrder.find('x');
+      size_t yPos = response.axesOrder.find('y');
 
       //
       // shape = min + k * step for k in {0, 1, ...}
@@ -173,11 +162,11 @@ auto OnnxParser::parseResourceDescriptionFile(const std::filesystem::path &rdfYa
         if(k < 1) {
           k = 0;
         }
-        response.inputWith   = minWidth + k * withStep;
-        response.inputHeight = minHeight + k * heightStep;
+        response.netInputWidth  = minWidth + k * withStep;
+        response.netInputHeight = minHeight + k * heightStep;
       } else {
-        response.inputWith   = std::stoi(std::string(tree["inputs"][0]["shape"][xPos].val().str, tree["inputs"][0]["shape"][xPos].val().len));
-        response.inputHeight = std::stoi(std::string(tree["inputs"][0]["shape"][yPos].val().str, tree["inputs"][0]["shape"][yPos].val().len));
+        response.netInputWidth  = std::stoi(std::string(tree["inputs"][0]["shape"][xPos].val().str, tree["inputs"][0]["shape"][xPos].val().len));
+        response.netInputHeight = std::stoi(std::string(tree["inputs"][0]["shape"][yPos].val().str, tree["inputs"][0]["shape"][yPos].val().len));
       }
     }
   }
