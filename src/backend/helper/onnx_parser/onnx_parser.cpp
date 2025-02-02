@@ -32,7 +32,12 @@ auto OnnxParser::findAiModelFiles(const std::string &directory) -> std::map<std:
   std::map<std::filesystem::path, Data> onnxFiles;
   if(fs::exists(directory) && fs::is_directory(directory)) {
     for(const auto &entry : fs::recursive_directory_iterator(directory)) {
-      if(entry.is_regular_file() && entry.path().extension().string() == ".onnx") {
+      std::string endian;
+      if(entry.is_regular_file()) {
+        endian = entry.path().extension().string();
+      }
+
+      if(entry.is_regular_file() && endian == ".onnx") {
         // auto data = readMetaJson(entry.path().string());
 
         Data data;
@@ -51,10 +56,12 @@ auto OnnxParser::findAiModelFiles(const std::string &directory) -> std::map<std:
         data.modelPath = entry.path();
         data.type      = ModelType::ONNX;
         onnxFiles.emplace(entry.path().string(), data);
-      } else if(entry.is_regular_file() && entry.path().extension().string() == ".pt") {
+      } else if(entry.is_regular_file() && (endian == ".pt" || endian == ".pth")) {
         if(!mCache.contains(entry.path().string())) {
-          Data data      = parseResourceDescriptionFile(entry.path().parent_path() / "rdf.yaml");
-          data.modelName = entry.path().filename().string();
+          Data data = parseResourceDescriptionFile(entry.path().parent_path() / "rdf.yaml");
+          if(data.modelName.empty()) {
+            data.modelName = entry.path().filename().string();
+          }
           data.modelPath = entry.path();
           data.type      = ModelType::PYTORCH;
           onnxFiles.emplace(entry.path().string(), data);
@@ -62,7 +69,19 @@ auto OnnxParser::findAiModelFiles(const std::string &directory) -> std::map<std:
           // Read form cache
           onnxFiles.emplace(entry.path().string(), mCache.at(entry.path()));
         }
-      } else if(entry.is_regular_file() && entry.path().extension().string() == ".tensor") {
+      } else if(entry.is_regular_file() && endian == ".zip") {
+        if(!mCache.contains(entry.path().string())) {
+          Data data = parseResourceDescriptionFile(entry.path().parent_path() / "rdf.yaml");
+          if(data.modelName.empty()) {
+            data.modelName = entry.path().filename().string();
+          }
+          data.modelPath = entry.path();
+          data.type      = ModelType::TENSORFLOW;
+          onnxFiles.emplace(entry.path().string(), data);
+        } else {
+          // Read form cache
+          onnxFiles.emplace(entry.path().string(), mCache.at(entry.path()));
+        }
       }
     }
   }
@@ -96,40 +115,72 @@ auto OnnxParser::parseResourceDescriptionFile(const std::filesystem::path &rdfYa
   std::string yamlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
   auto tree = ryml::parse_in_place(yamlContent.data());
 
-  response.description      = tree["description"].val().str;
+  response.description      = std::string(tree["description"].val().str, tree["description"].val().len);
+  response.modelName        = std::string(tree["name"].val().str, tree["name"].val().len);
   std::string formatVersion = tree["format_version"].val().str;
 
   //
   // Data type
   //
-  std::string weightsPytorch = tree["inputs"][0]["data_type"].val().str;
+  std::string weightsPytorch = std::string(tree["inputs"][0]["data_type"].val().str, tree["inputs"][0]["data_type"].val().len);
 
-  // bcyx
-  std::string axes = tree["inputs"][0]["axes"].val().str;
+  auto input = tree["inputs"][0];
+  if(input.has_child("axes")) {
+    if(input["axes"].is_seq()) {
+      for(auto axis : input["axes"]) {
+        /*if(axis.has_child("type")) {
+          std::cout << "  Type: " << axis["type"].val() << "\n";
+        }*/
+        if(axis.has_child("id")) {
+          auto id = std::string(axis["id"].val().str, axis["id"].val().len);
+          if(axis.has_child("size")) {
+            if(id == "y") {
+              response.inputHeight = std::stoi(std::string(axis["size"].val().str, axis["size"].val().len));
+            } else if(id == "x") {
+              response.inputWith = std::stoi(std::string(axis["size"].val().str, axis["size"].val().len));
+            }
+          }
+        }
+        /*if(axis.has_child("channel_names")) {
+          std::cout << "  Channel Names:\n";
+          for(auto name : axis["channel_names"]) {
+            std::cout << "    - " << name.val() << "\n";
+          }
+        }*/
+      }
 
-  size_t xPos = axes.find('x');
-  size_t yPos = axes.find('y');
+    } else {
+      // bcyx
+      std::string axes = std::string(tree["inputs"][0]["axes"].val().str, tree["inputs"][0]["axes"].val().len);
 
-  //
-  // shape = min + k * step for k in {0, 1, ...}
-  //
-  if(tree["inputs"][0]["shape"]["min"].has_key()) {
-    int32_t minWidth   = std::stoi(tree["inputs"][0]["shape"]["min"][xPos].val().str);
-    int32_t minHeight  = std::stoi(tree["inputs"][0]["shape"]["min"][yPos].val().str);
-    int32_t withStep   = std::stoi(tree["inputs"][0]["shape"]["step"][xPos].val().str);
-    int32_t heightStep = std::stoi(tree["inputs"][0]["shape"]["step"][yPos].val().str);
+      size_t xPos = axes.find('x');
+      size_t yPos = axes.find('y');
 
-    int32_t k = ((256.0f - static_cast<float>(minWidth)) / static_cast<float>(withStep));
-    if(k < 1) {
-      k = 0;
+      //
+      // shape = min + k * step for k in {0, 1, ...}
+      //
+      if(tree["inputs"][0]["shape"].has_child("min")) {
+        int32_t minWidth =
+            std::stoi(std::string(tree["inputs"][0]["shape"]["min"][xPos].val().str, tree["inputs"][0]["shape"]["min"][xPos].val().len));
+        int32_t minHeight =
+            std::stoi(std::string(tree["inputs"][0]["shape"]["min"][yPos].val().str, tree["inputs"][0]["shape"]["min"][yPos].val().len));
+        int32_t withStep =
+            std::stoi(std::string(tree["inputs"][0]["shape"]["step"][xPos].val().str, tree["inputs"][0]["shape"]["step"][xPos].val().len));
+        int32_t heightStep =
+            std::stoi(std::string(tree["inputs"][0]["shape"]["step"][yPos].val().str, tree["inputs"][0]["shape"]["step"][yPos].val().len));
+
+        int32_t k = ((256.0f - static_cast<float>(minWidth)) / static_cast<float>(withStep));
+        if(k < 1) {
+          k = 0;
+        }
+        response.inputWith   = minWidth + k * withStep;
+        response.inputHeight = minHeight + k * heightStep;
+      } else {
+        response.inputWith   = std::stoi(std::string(tree["inputs"][0]["shape"][xPos].val().str, tree["inputs"][0]["shape"][xPos].val().len));
+        response.inputHeight = std::stoi(std::string(tree["inputs"][0]["shape"][yPos].val().str, tree["inputs"][0]["shape"][yPos].val().len));
+      }
     }
-    response.inputWith   = minWidth + k * withStep;
-    response.inputHeight = minHeight + k * heightStep;
-  } else {
-    response.inputWith   = std::stoi(tree["inputs"][0]["shape"][xPos].val().str);
-    response.inputHeight = std::stoi(tree["inputs"][0]["shape"][yPos].val().str);
   }
-
   response.classes.emplace_back("Class 0");
   return response;
 
@@ -143,24 +194,6 @@ auto OnnxParser::parseResourceDescriptionFile(const std::filesystem::path &rdfYa
   // std::string weightsTensorflow  = tree["weights"]["tensorflow_saved_model_bundle"]["source"].val().str;
   // std::string tensorflowVersion  = tree["weights"]["tensorflow_saved_model_bundle"]["tensorflow_version"].val().str;
 }
-
-/*
-
-    std::string contents = get_file_contents("config.yaml");
-    ryml::Tree tree = ryml::parse_in_place(ryml::to_substr(contents));
-    ryml::NodeRef foo = tree["foo"];
-    for (ryml::NodeRef const& child : foo.children()) {
-        std::cout << "key: " << child.key() << " val: " << child.val() << std::endl;
-    }
-
-    ryml::NodeRef array = tree["matrix"]["array"];
-    for (ryml::NodeRef const& child : array.children()) {
-        double val;
-        child >> val;
-        std::cout << "float val: " << std::setprecision (18) << val << std::endl;
-    }
-
-*/
 
 ///
 /// \brief      ONNX model parser

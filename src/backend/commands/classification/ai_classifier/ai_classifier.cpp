@@ -44,9 +44,16 @@ AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) : mSe
 
 void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNotUse, atom::ObjectList &result)
 {
-  joda::ai::AiClassifierPyTorch torch(mSettings);
+  if(mSettings.modelPath.empty()) {
+    return;
+  }
+  std::vector<joda::ai::AiSegmentation::Result> segResult;
 
-  std::vector<joda::ai::AiSegmentation::Result> segResult = torch.execute(imageNotUse);
+  if(mSettings.modelPath.ends_with(".pt")) {
+    joda::ai::AiClassifierPyTorch torch(mSettings);
+    segResult = torch.execute(imageNotUse);
+  } else if(mSettings.modelPath.ends_with(".pt")) {
+  }
 
   for(const auto &res : segResult) {
     //
