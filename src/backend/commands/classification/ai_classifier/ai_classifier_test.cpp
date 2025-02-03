@@ -18,8 +18,8 @@
 TEST_CASE("ai::classifier::test", "[.][ai_classifieer]")
 {
   joda::image::reader::ImageReader::init(1e9);
-  auto omeXML = joda::image::reader::ImageReader::getOmeInformation("models/nucleisegmentationboundarymodel_torchscript/sample_input_0.tif", 0);
-  auto img = joda::image::reader::ImageReader::loadEntireImage("models/nucleisegmentationboundarymodel_torchscript/sample_input_0.tif", {0, 0, 0}, 1,
+  auto omeXML = joda::image::reader::ImageReader::getOmeInformation("models/nucleisegmentationboundarymodel_torchscript/sample_input_00.tif", 0);
+  auto img = joda::image::reader::ImageReader::loadEntireImage("models/nucleisegmentationboundarymodel_torchscript/sample_input_00.tif", {0, 0, 0}, 1,
                                                                0, omeXML);
 
   joda::settings::AiClassifierSettings aiSets;
@@ -37,7 +37,7 @@ TEST_CASE("ai::classifier::test", "[.][ai_classifieer]")
   joda::processor::GlobalContext glob;
   glob.resultsOutputFolder = "/workspaces/imagec/tmp";
   joda::processor::PlateContext plate;
-  joda::processor::ImageContext imgCtx{pipeLinieInit, "models/nucleisegmentationboundarymodel_torchscript/sample_input_0.tif", omeXML};
+  joda::processor::ImageContext imgCtx{pipeLinieInit, "models/nucleisegmentationboundarymodel_torchscript/sample_input_00.tif", omeXML};
   joda::processor::IterationContext iter;
   joda::processor::ProcessContext context(glob, plate, imgCtx, iter);
 

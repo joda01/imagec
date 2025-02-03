@@ -101,6 +101,9 @@ auto OnnxParser::parseResourceDescriptionFile(const std::filesystem::path &rdfYa
   auto input = tree["inputs"][0];
   if(input.has_child("axes")) {
     if(input["axes"].is_seq()) {
+      /// \todo where does this information come from?
+      response.netNrOfChannels = settings::AiClassifierSettings::NetChannels::GRAYSCALE;
+
       for(auto axis : input["axes"]) {
         /*if(axis.has_child("type")) {
           std::cout << "  Type: " << axis["type"].val() << "\n";
@@ -142,8 +145,12 @@ auto OnnxParser::parseResourceDescriptionFile(const std::filesystem::path &rdfYa
       // bcyx
       response.axesOrder = std::string(tree["inputs"][0]["axes"].val().str, tree["inputs"][0]["axes"].val().len);
 
+      size_t cPos = response.axesOrder.find('c');
       size_t xPos = response.axesOrder.find('x');
       size_t yPos = response.axesOrder.find('y');
+
+      response.netNrOfChannels = (settings::AiClassifierSettings::NetChannels) std::stoi(
+          std::string(tree["inputs"][0]["shape"]["min"][cPos].val().str, tree["inputs"][0]["shape"]["min"][cPos].val().len));
 
       //
       // shape = min + k * step for k in {0, 1, ...}
