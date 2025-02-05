@@ -22,13 +22,13 @@ namespace joda::enums {
 
 struct ObjectStoreId
 {
-  joda::enums::MemoryIdx storeIdx = joda::enums::MemoryIdx::M0;
+  joda::enums::MemoryIdx::Enum storeIdx = joda::enums::MemoryIdx::M0;
   joda::enums::PlaneId imagePlane;
 
   bool operator<(const ObjectStoreId &in) const
   {
-    __uint128_t plane1 = (imagePlane.toInt(imagePlane) << 8) | static_cast<uint8_t>(storeIdx);
-    __uint128_t plane2 = (in.imagePlane.toInt(in.imagePlane) << 8) | static_cast<uint8_t>(in.storeIdx);
+    stdi::uint128_t plane1 = (imagePlane.toInt(imagePlane) << 8) | static_cast<uint8_t>(storeIdx);
+    stdi::uint128_t plane2 = (in.imagePlane.toInt(in.imagePlane) << 8) | static_cast<uint8_t>(in.storeIdx);
 
     return plane1 < plane2;
   }

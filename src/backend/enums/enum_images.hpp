@@ -19,16 +19,6 @@
 
 namespace joda::enums {
 
-enum class ZProjection
-{
-  $             = -2,
-  UNDEFINED     = -1,
-  NONE          = 0,
-  MAX_INTENSITY = 1,
-  MIN_INTENSITY = 2,
-  AVG_INTENSITY = 3
-};
-
 struct ImageId
 {
   //
@@ -44,13 +34,13 @@ struct ImageId
   //
   // If a memory ID is given the image is loaded from the memory instead of using the given plane
   //
-  MemoryIdx memoryId = MemoryIdx::NONE;
+  MemoryIdx::Enum memoryId = MemoryIdx::NONE;
 
   bool operator<(const ImageId &in) const
   {
     if(memoryId == MemoryIdx::NONE) {
-      __uint128_t plane1 = (imagePlane.toInt(imagePlane) << 8) | static_cast<uint8_t>(zProjection);
-      __uint128_t plane2 = (in.imagePlane.toInt(in.imagePlane) << 8) | static_cast<uint8_t>(in.zProjection);
+      stdi::uint128_t plane1 = (imagePlane.toInt(imagePlane) << 8) | static_cast<uint8_t>(zProjection);
+      stdi::uint128_t plane2 = (in.imagePlane.toInt(in.imagePlane) << 8) | static_cast<uint8_t>(in.zProjection);
 
       return plane1 < plane2;
     }
@@ -64,13 +54,5 @@ struct ImageId
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageId, zProjection, imagePlane, memoryId);
 };
-
-NLOHMANN_JSON_SERIALIZE_ENUM(ZProjection, {
-                                              {ZProjection::$, "$"},
-                                              {ZProjection::NONE, "None"},
-                                              {ZProjection::MAX_INTENSITY, "MaxIntensity"},
-                                              {ZProjection::MIN_INTENSITY, "MinIntensity"},
-                                              {ZProjection::AVG_INTENSITY, "AvgIntensity"},
-                                          });
 
 }    // namespace joda::enums

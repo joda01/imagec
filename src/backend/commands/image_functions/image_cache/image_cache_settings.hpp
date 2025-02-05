@@ -12,7 +12,7 @@ namespace joda::settings {
 struct ImageCacheSettings : public SettingBase
 {
 public:
-  enums::MemoryIdx memoryId = enums::MemoryIdx::M0;
+  enums::MemoryIdx::Enum memoryId = enums::MemoryIdx::M0;
   std::string name;
 
   /////////////////////////////////////////////////////
@@ -20,12 +20,12 @@ public:
   {
   }
 
-  [[nodiscard]] std::set<enums::MemoryIdx> getInputImageCache() const override
+  [[nodiscard]] std::set<enums::MemoryIdx::Enum> getInputImageCache() const override
   {
     return {};
   }
 
-  [[nodiscard]] std::set<enums::MemoryIdx> getOutputImageCache() const override
+  [[nodiscard]] std::set<enums::MemoryIdx::Enum> getOutputImageCache() const override
   {
     return {memoryId};
   }

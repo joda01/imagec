@@ -69,7 +69,7 @@ struct ImageMathSettings : public SettingBase
     return {};
   }
 
-  [[nodiscard]] std::set<enums::MemoryIdx> getInputImageCache() const override
+  [[nodiscard]] std::set<enums::MemoryIdx::Enum> getInputImageCache() const override
   {
     if(inputImageSecond.memoryId != enums::MemoryIdx::NONE) {
       return {inputImageSecond.memoryId};
