@@ -56,6 +56,7 @@ else ()
 endif()
 
 # Options
+set(WITH_ONNX "With onnx support" ON)
 set(WITH_PYTORCH "With pytorch support" ON)
 set(WITH_TENSORFLOW "With tensorflow support" ON)
 
@@ -101,9 +102,14 @@ set(LIBS
   ryml::ryml
 )
 
+if(WITH_ONNX)
+  find_package(onnxruntime REQUIRED)
+  set(LIBS ${LIBS} onnxruntime::onnxruntime)
+endif()
+
 if(WITH_PYTORCH)
   find_package( Torch REQUIRED )
-  set(LIBS ${LIBS}  ${TORCH_LIBRARIES})
+  set(LIBS ${LIBS} ${TORCH_LIBRARIES})
 endif()
 
 if(WITH_TENSORFLOW)
@@ -147,6 +153,10 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 target_sources(${PROJECT_NAME} PRIVATE ${RESOURCE_SOURCES})
 target_compile_definitions(${PROJECT_NAME} PUBLIC BS_THREAD_POOL_ENABLE_PRIORITY DUCKDB_BUILD_LIBRARY )
+
+if(WITH_ONNX)
+  add_compile_definitions(WITH_ONNX)
+endif()
 
 if(WITH_PYTORCH)
   add_compile_definitions(WITH_PYTORCH)
