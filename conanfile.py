@@ -25,9 +25,8 @@ class ImageC(ConanFile):
 
     exports_sources = "src/*"
     
-    def config_options(self):
-        if self.settings.os == "Windows":
-            self.options.with_pytorch = False
+    #def config_options(self):
+    #    print("")
 
 
     def requirements(self):
