@@ -255,7 +255,7 @@ jobs:
           TAG_NAME: "${{ github.ref_name }}"
         run: |    
           cd D:\a\imagec\imagec\build
-          cmake .. -G "MinGW Makefiles" -DTAG_NAME="$env:TAG_NAME" -DCMAKE_SH=CMAKE_SH-NOTFOUND -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
+          cmake .. -G "Visual Studio 17 2022" -DTAG_NAME="$env:TAG_NAME" -DCMAKE_SH=CMAKE_SH-NOTFOUND -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
           cmake --build . --config Release --target imagec --parallel 8
 
       - name: Prepare output
