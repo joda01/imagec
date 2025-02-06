@@ -468,7 +468,6 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
 ///
 auto ImageReader::getOmeInformation(const std::filesystem::path &filename, uint16_t series) -> joda::ome::OmeInfo
 {
-#warning "Check if series is needed for OME"
   if(nullptr != myJVM && mJVMInitialised) {
     auto id = DurationCount::start("Get OEM");
     JNIEnv *myEnv;

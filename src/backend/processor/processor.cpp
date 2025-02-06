@@ -420,7 +420,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         auto step                = settings::PipelineStep{.$saveImage = saverSettings};
         auto saver               = joda::settings::PipelineFactory<joda::cmd::Command>::generate(step);
         saver->execute(context, context.getActImage().image, context.getActObjects());
-#warning "Exception on thread destructor"
+        ///\warning #warning "Exception on thread destructor"
         thumbThread.join();
         DurationCount::stop(ii);
         return {context.loadImageFromCache(joda::enums::ImageId{.zProjection = enums::ZProjection::$, .imagePlane = {}})->image,
