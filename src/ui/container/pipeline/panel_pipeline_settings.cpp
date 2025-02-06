@@ -68,7 +68,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   {
     auto *col2 = tab->addVerticalPanel();
 
-    QScrollArea *scrollArea = new QScrollArea();
+    auto *scrollArea = new QScrollArea();
     scrollArea->setContentsMargins(0, 0, 0, 0);
     scrollArea->setFrameStyle(0);
     scrollArea->setFrameShape(QFrame::NoFrame);
