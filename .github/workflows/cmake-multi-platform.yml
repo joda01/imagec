@@ -306,27 +306,12 @@ jobs:
             }
           }
           
-
-          $msvcPath = "C:\Windows\System32\"
-          Get-ChildItem -Path "$msvcPath\*" | Where-Object {$_.Name -like "mingw*"} | ForEach-Object {
-
-            $pathToCopyFrom = $msvcPath + "\" + $_.Name + "\vcruntime140.dll"
-            if (Test-Path "$pathToCopyFrom") {
-              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
-
-              $pathToCopyFrom = $msvcPath + "\" + $_.Name + "\vcruntime140_1.dll"
-              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
-
-              $pathToCopyFrom = $msvcPath + "\" + $_.Name + "\msvcp140.dll"
-              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
-
-              $pathToCopyFrom = $msvcPath + "\" + $_.Name + "\concrt140.dll"
-              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
-
-              $pathToCopyFrom = $msvcPath + "\" + $_.Name + "\msvcp140_codecvt_ids.dll"
-              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
-            }
-          }
+          ls "C:\Windows\System32"
+          Copy-Item -Path "C:\Windows\System32\vcruntime140.dll" -Destination "."  -Force
+          Copy-Item -Path "C:\Windows\System32\vcruntime140_1.dll" -Destination "."  -Force
+          Copy-Item -Path "C:\Windows\System32\msvcp140.dll" -Destination "."  -Force
+          Copy-Item -Path "C:\Windows\System32\concrt140.dll" -Destination "."  -Force
+          Copy-Item -Path "C:\Windows\System32\msvcp140_codecvt_ids.dll" -Destination "."  -Force
 
 
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/templates" ./templates
