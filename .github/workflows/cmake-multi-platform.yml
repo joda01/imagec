@@ -261,13 +261,13 @@ jobs:
       - name: Prepare output
         run: |
           cd build/build
-          strip imagec.exe
+          strip "D:\a\imagec\imagec\build\build\Release\imagec.exe"
           ni "output" -ItemType Directory
           cd output
           ni "plugins" -ItemType Directory
           ni "models" -ItemType Directory
           ni "java" -ItemType Directory
-          Copy-Item -Path "../imagec.exe" -Destination "imagec.exe"
+          Copy-Item -Path "D:\a\imagec\imagec\build\build\Release\imagec.exe" -Destination "imagec.exe"
           
           $qtInstallPath = "C:\Users\runneradmin\.conan2\p"
 
