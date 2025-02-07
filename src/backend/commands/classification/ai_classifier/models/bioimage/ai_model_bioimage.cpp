@@ -27,7 +27,8 @@ auto AiModelBioImage::processPrediction(const cv::Mat &inputImage, const torch::
 {
   static const int CHANNEL_MASK    = 0;
   static const int CHANNEL_CONTOUR = 1;
-  static float PROBABILITY         = 0.5;
+  static float MASK_THRESHOLD      = 0.5;
+  static float CONTOUR_THRESHOLD   = 0.3;
 
   int32_t originalHeight = inputImage.rows;
   int32_t originalWith   = inputImage.cols;
@@ -53,20 +54,17 @@ auto AiModelBioImage::processPrediction(const cv::Mat &inputImage, const torch::
   cv::Mat mask(originalHeight, originalWith, CV_32F, maskTensor.data_ptr<float>());
   cv::Mat contourMask(originalHeight, originalWith, CV_32F, contourTensor.data_ptr<float>());
 
-  cv::imwrite("mask__.png", mask * 255);
-  cv::imwrite("cont__.png", contourMask * 255);
-
   // cv::bitwise_xor(mask, contourMask, mask);
 
   // ===============================
   // 2.  Apply a threshold to create a binary mask for the object
   // ===============================
   cv::Mat binaryMask;
-  cv::threshold(mask, binaryMask, PROBABILITY, 1.0, cv::THRESH_BINARY);
+  cv::threshold(mask, binaryMask, MASK_THRESHOLD, 1.0, cv::THRESH_BINARY);
   binaryMask.convertTo(binaryMask, CV_8U, 255);
 
   cv::Mat binaryContourMask;
-  cv::threshold(contourMask, binaryContourMask, 0.3, 1.0, cv::THRESH_BINARY);
+  cv::threshold(contourMask, binaryContourMask, CONTOUR_THRESHOLD, 1.0, cv::THRESH_BINARY);
   binaryContourMask.convertTo(binaryContourMask, CV_8U, 255);
 
   // --- Step 2.1. Thin the contour mask using erosion ---
@@ -74,15 +72,7 @@ auto AiModelBioImage::processPrediction(const cv::Mat &inputImage, const torch::
   cv::Mat contourThin;
   cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(4, 4));
   cv::erode(binaryContourMask, binaryContourMask, kernel);
-  // cv::morphologyEx(binaryContourMask, binaryContourMask, cv::MORPH_OPEN, cv::Mat(), cv::Point(-1, -1), 1);
-
-  cv::imwrite("mask.png", binaryMask);
-  cv::imwrite("cont.png", binaryContourMask);
-
-  cv::bitwise_xor(binaryMask, binaryContourMask, binaryMask);
-
   cv::subtract(binaryMask, binaryContourMask, binaryMask);
-  cv::imwrite("mask01.png", binaryMask);
 
   //
   // ===============================
