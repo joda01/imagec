@@ -16,22 +16,20 @@
 #include <memory>
 #include <string>
 #include "backend/artifacts/roi/roi.hpp"
-#include "backend/commands/classification/ai_classifier/onnx/ai_lassifier_onnx.hpp"
-#include "backend/commands/classification/ai_classifier/pytorch/ai_classifier_pytorch.hpp"
+#include "backend/commands/classification/ai_classifier/frameworks/ai_framework.hpp"
+#include "backend/commands/classification/ai_classifier/frameworks/onnx/ai_classifier_onnx.hpp"
+#include "backend/commands/classification/ai_classifier/frameworks/pytorch/ai_classifier_pytorch.hpp"
+#include "backend/commands/classification/ai_classifier/models/ai_model.hpp"
+#include "backend/commands/classification/ai_classifier/models/bioimage/ai_model_bioimage.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
 #include <opencv2/core/matx.hpp>
 #include <opencv2/core/persistence.hpp>
 #include <opencv2/dnn/dnn.hpp>
-#include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
 namespace joda::cmd {
-
-using namespace std;
-using namespace cv;
-using namespace cv::dnn;
 
 ///
 /// \brief      Constructor
@@ -48,14 +46,25 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
   if(mSettings.modelPath.empty()) {
     return;
   }
-  std::vector<joda::ai::AiSegmentation::Result> segResult;
+  std::vector<joda::ai::AiModel::Result> segResult;
+
+  auto params = joda::ai::AiFramework::InputParameters{
+      .axesOrder    = mSettings.modelInputParameters.axesOrder,
+      .dataType     = static_cast<joda::ai::AiFramework::InputParameters::NetInputType>(mSettings.modelInputParameters.netInputType),
+      .batchSize    = mSettings.modelInputParameters.netInputBatchSize,
+      .nrOfChannels = static_cast<int32_t>(mSettings.modelInputParameters.netNrOfChannels),
+      .inputWidth   = mSettings.modelInputParameters.netInputWidth,
+      .inputHeight  = mSettings.modelInputParameters.netInputHeight};
 
   if(mSettings.modelPath.ends_with(".pt")) {
-    joda::ai::AiClassifierPyTorch torch(mSettings);
-    segResult = torch.execute(imageNotUse);
+    joda::ai::AiFrameworkPytorch torch(mSettings.modelPath, params);
+    auto tensor = torch.predict(imageNotUse);
+    ai::AiModelBioImage bioImage;
+    segResult = bioImage.processPrediction(imageNotUse, tensor);
+
   } else if(mSettings.modelPath.ends_with(".onnx")) {
-    joda::ai::AiClassifierOnnx onnxClassifier(mSettings);
-    segResult = onnxClassifier.execute(imageNotUse);
+    joda::ai::AiFrameworkOnnx onnxClassifier(mSettings.modelPath, params);
+    auto tensor = onnxClassifier.predict(imageNotUse);
   }
 
   for(const auto &res : segResult) {

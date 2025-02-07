@@ -1,7 +1,7 @@
 ///
-/// \file      ai_detector.hpp
-/// \author    Joachim Danmyr
-/// \date      2025-01-27
+/// \file      ai_model.hpp
+/// \author    Joachim Danmayr
+/// \date      2025-02-07
 ///
 /// \copyright Copyright 2019 Joachim Danmayr
 ///            All rights reserved! This file is subject
@@ -12,13 +12,17 @@
 
 #pragma once
 
+#undef slots
+
+#include <torch/torch.h>
 #include "backend/commands/classification/ai_classifier/ai_classifier_settings.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
+#define slots Q_SLOTS
 
 namespace joda::ai {
 
-class AiSegmentation
+class AiModel
 {
 public:
   struct Result
@@ -29,10 +33,8 @@ public:
     int32_t classId;
     float probability;
   };
-  virtual auto execute(const cv::Mat &originalImage) -> std::vector<Result> = 0;
 
-protected:
-  auto prepareImage(const cv::Mat &inputImage, const settings::AiClassifierSettings &settings) -> cv::Mat;
+  virtual auto processPrediction(const cv::Mat &inputImage, const torch::Tensor &prediction) -> std::vector<Result> = 0;
 };
 
 }    // namespace joda::ai
