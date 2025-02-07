@@ -21,6 +21,7 @@
 #include "backend/commands/classification/ai_classifier/frameworks/pytorch/ai_classifier_pytorch.hpp"
 #include "backend/commands/classification/ai_classifier/models/ai_model.hpp"
 #include "backend/commands/classification/ai_classifier/models/bioimage/ai_model_bioimage.hpp"
+#include "backend/commands/classification/ai_classifier/models/yolo/ai_model_yolo.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
@@ -65,6 +66,8 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
   } else if(mSettings.modelPath.ends_with(".onnx")) {
     joda::ai::AiFrameworkOnnx onnxClassifier(mSettings.modelPath, params);
     auto tensor = onnxClassifier.predict(imageNotUse);
+    ai::AiModelYolo yoloy;
+    segResult = yoloy.processPrediction(imageNotUse, tensor);
   }
 
   for(const auto &res : segResult) {

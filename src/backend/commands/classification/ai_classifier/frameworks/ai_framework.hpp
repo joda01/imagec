@@ -60,7 +60,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  virtual torch::Tensor predict(const cv::Mat &inputImage) = 0;
+  virtual at::IValue predict(const cv::Mat &inputImage) = 0;
 
 protected:
   /////////////////////////////////////////////////////

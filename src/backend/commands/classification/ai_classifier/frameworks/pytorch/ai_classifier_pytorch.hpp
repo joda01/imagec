@@ -29,7 +29,7 @@ class AiFrameworkPytorch : public AiFramework
 public:
   /////////////////////////////////////////////////////
   AiFrameworkPytorch(const std::string &modelPath, const InputParameters &inputParameters);
-  auto predict(const cv::Mat &originalImage) -> torch::Tensor override;
+  auto predict(const cv::Mat &originalImage) -> at::IValue override;
 
 private:
   /////////////////////////////////////////////////////

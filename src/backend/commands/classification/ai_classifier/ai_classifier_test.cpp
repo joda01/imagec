@@ -195,3 +195,41 @@ TEST_CASE("ai::classifier::test::onnx", "[.][ai_classifieer_onnx]")
 
   joda::image::reader::ImageReader::destroy();
 }
+
+TEST_CASE("ai::classifier::test::pytorch::yolo", "[.][ai_classifieer_onnx]")
+{
+  std::string path = "/workspaces/imagec/build/build/output/Test ImageC v15/test folder/B2_15_5ADVMLE.vsi.vsi";
+  joda::image::reader::ImageReader::init(1e8);
+  auto omeXML = joda::image::reader::ImageReader::getOmeInformation(path, 0);
+  auto img    = joda::image::reader::ImageReader::loadEntireImage(path, {0, 3, 0}, 0, 0, omeXML);
+
+  joda::settings::AiClassifierSettings aiSets;
+  aiSets.modelPath = "models/university_of_sbg_cell_segmentation_v3/weights.pt";
+  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 0});
+  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 1});
+
+  aiSets.modelInputParameters = joda::onnx::OnnxParser::getModelInfo("models/university_of_sbg_cell_segmentation_v3/weights.pt");
+
+  joda::cmd::AiClassifier ai(aiSets);
+  joda::atom::ObjectList result;
+  joda::settings::ProjectImageSetup setup;
+  joda::processor::PipelineInitializer pipeLinieInit(setup);
+  joda::processor::GlobalContext glob;
+  glob.resultsOutputFolder = "/workspaces/imagec/tmp";
+  joda::processor::PlateContext plate;
+  joda::processor::ImageContext imgCtx{pipeLinieInit, path, omeXML};
+  joda::processor::IterationContext iter;
+  joda::processor::ProcessContext context(glob, plate, imgCtx, iter);
+
+  ai.execute(context, img, result);
+  joda::settings::ImageSaverSettings imageSaver;
+  imageSaver.classesIn.emplace_back(
+      joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C0, .paintBoundingBox = false});
+  imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C1});
+  imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C2});
+
+  joda::cmd::ImageSaver imgSaver(imageSaver);
+  imgSaver.execute(context, img, result);
+
+  joda::image::reader::ImageReader::destroy();
+}

@@ -9,10 +9,10 @@
 ///            LICENSE.txt, which is part of this package.
 ///
 ///
+#include <vector>
 #if defined(WITH_PYTORCH)
 
 #undef slots
-#include "ai_classifier_pytorch.hpp"
 #include <ATen/ops/upsample_nearest2d.h>
 #include <c10/core/Device.h>
 #include <c10/core/ScalarType.h>
@@ -29,6 +29,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+#include "ai_classifier_pytorch.hpp"
 #define slots Q_SLOTS
 
 namespace joda::ai {
@@ -52,7 +53,7 @@ AiFrameworkPytorch::AiFrameworkPytorch(const std::string &modelPath, const Input
 /// \param[out]
 /// \return
 ///
-auto AiFrameworkPytorch::predict(const cv::Mat &originalImage) -> torch::Tensor
+auto AiFrameworkPytorch::predict(const cv::Mat &originalImage) -> at::IValue
 {
   // Check if CUDA is available
   bool cudaAvailable = torch::cuda::is_available();
@@ -91,7 +92,8 @@ auto AiFrameworkPytorch::predict(const cv::Mat &originalImage) -> torch::Tensor
   // ===============================
   // 3. Run the Model Inference
   // ===============================
-  torch::Tensor output = model.forward({inputTensor}).toTensor();
+  at::IValue output = model.forward({inputTensor});
+
   return output;
 }
 

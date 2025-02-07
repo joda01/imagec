@@ -11,6 +11,7 @@
 ///
 
 #include "ai_classifier_onnx.hpp"
+#include <ATen/ops/from_blob.h>
 #include <onnxruntime_cxx_api.h>
 #include <torch/types.h>
 #include <cstddef>
@@ -54,7 +55,7 @@ std::vector<float> convertToTensor(const cv::Mat &img)
 /// \param[out]
 /// \return
 ///
-auto AiFrameworkOnnx::predict(const cv::Mat &originalImage) -> torch::Tensor
+auto AiFrameworkOnnx::predict(const cv::Mat &originalImage) -> at::IValue
 {
   if(originalImage.empty()) {
     throw std::runtime_error("Failed to load image!");
@@ -95,12 +96,48 @@ auto AiFrameworkOnnx::predict(const cv::Mat &originalImage) -> torch::Tensor
   Ort::Value inputTensorOnnx =
       Ort::Value::CreateTensor<float>(memoryInfo, inputTensor.data(), inputTensor.size(), inputDims.data(), inputDims.size());
 
-  auto outputTensors = session.Run(Ort::RunOptions{}, inputNames.data(), &inputTensorOnnx, inputCount, outputNames.data(), outputCount);
+  std::vector<Ort::Value> outputTensors =
+      session.Run(Ort::RunOptions{}, inputNames.data(), &inputTensorOnnx, inputCount, outputNames.data(), outputCount);
 
-  // Convert output to torch::Tensor
-  float *outputData = outputTensors.front().GetTensorMutableData<float>();
-  std::vector<int64_t> outputDims(outputTensors.front().GetTensorTypeAndShapeInfo().GetShape());
-  return at::from_blob(outputData, at::IntArrayRef(outputDims), torch::kFloat32).clone();
+  // ----------------------------
+  // Convert to torch tensor
+  // ----------------------------
+
+  // Create a vector to hold the converted torch::Tensor objects.
+  std::vector<torch::Tensor> torchTensors;
+
+  // Iterate over each Ort::Value and convert it to a torch::Tensor.
+  for(auto &ortValue : outputTensors) {
+    // Get the shape of the tensor as a vector of int64_t.
+    Ort::TensorTypeAndShapeInfo tensorInfo = ortValue.GetTensorTypeAndShapeInfo();
+    std::vector<int64_t> tensor_shape      = tensorInfo.GetShape();
+
+    // Retrieve the pointer to the raw data.
+    // In this example, we assume that the data type is float.
+    auto *dataPtr = ortValue.GetTensorMutableData<float>();
+
+    // Specify the tensor options (data type, device, etc.).
+    auto options = torch::TensorOptions().dtype(torch::kFloat32);
+
+    // Create a torch tensor from the raw data.
+    // Note: torch::from_blob does not copy the data by default, so we call .clone()
+    // to ensure that the tensor owns its memory.
+    torch::Tensor tensor = torch::from_blob(dataPtr, tensor_shape, options).clone();
+
+    // Append the tensor to our vector.
+    torchTensors.push_back(tensor);
+  }
+
+  // First, convert the vector of tensors into a vector of IValues.
+  std::vector<torch::IValue> tuple_elems;
+  tuple_elems.reserve(torchTensors.size());
+  for(const auto &t : torchTensors) {
+    tuple_elems.emplace_back(t);
+  }
+
+  // Create the tuple from the vector of IValues.
+  auto tensorTuple = c10::ivalue::Tuple::create(tuple_elems);
+  return tensorTuple;
 }
 
 }    // namespace joda::ai

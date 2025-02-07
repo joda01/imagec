@@ -34,7 +34,7 @@ public:
     float probability;
   };
 
-  virtual auto processPrediction(const cv::Mat &inputImage, const torch::Tensor &prediction) -> std::vector<Result> = 0;
+  virtual auto processPrediction(const cv::Mat &inputImage, const at::IValue &prediction) -> std::vector<Result> = 0;
 };
 
 }    // namespace joda::ai

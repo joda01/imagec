@@ -20,7 +20,7 @@ class AiModelBioImage : public AiModel
 {
 public:
   AiModelBioImage() = default;
-  auto processPrediction(const cv::Mat &inputImage, const torch::Tensor &prediction) -> std::vector<Result> override;
+  auto processPrediction(const cv::Mat &inputImage, const at::IValue &prediction) -> std::vector<Result> override;
 };
 
 }    // namespace joda::ai

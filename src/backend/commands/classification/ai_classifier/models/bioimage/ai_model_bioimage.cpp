@@ -23,16 +23,16 @@ namespace joda::ai {
 /// \param[out]
 /// \return
 ///
-auto AiModelBioImage::processPrediction(const cv::Mat &inputImage, const torch::Tensor &tensor) -> std::vector<Result>
+auto AiModelBioImage::processPrediction(const cv::Mat &inputImage, const at::IValue &tensorIn) -> std::vector<Result>
 {
   static const int CHANNEL_MASK    = 0;
   static const int CHANNEL_CONTOUR = 1;
   static float MASK_THRESHOLD      = 0.5;
   static float CONTOUR_THRESHOLD   = 0.3;
 
-  int32_t originalHeight = inputImage.rows;
-  int32_t originalWith   = inputImage.cols;
-
+  int32_t originalHeight  = inputImage.rows;
+  int32_t originalWith    = inputImage.cols;
+  const auto &tensor      = tensorIn.toTensor();
   auto classProbabilities = torch::softmax(tensor, 1);    // Along the class dimension
 
   // ===============================
