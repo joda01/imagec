@@ -41,19 +41,19 @@ public:
     int32_t inputWidth    = 640;
     int32_t inputHeight   = 640;
 
-    [[nodiscard]] size_t getChannelIndex() const
+    [[nodiscard]] long getChannelIndex() const
     {
       return axesOrder.find('c');
     }
-    [[nodiscard]] size_t getBatchIndex() const
+    [[nodiscard]] long getBatchIndex() const
     {
       return axesOrder.find('b');
     }
-    [[nodiscard]] size_t getHeightIndex() const
+    [[nodiscard]] long getHeightIndex() const
     {
       return axesOrder.find('y');
     }
-    [[nodiscard]] size_t getWidthIndex() const
+    [[nodiscard]] long getWidthIndex() const
     {
       return axesOrder.find('x');
     }
@@ -64,7 +64,7 @@ public:
 
 protected:
   /////////////////////////////////////////////////////
-  static auto prepareImage(const cv::Mat &inputImageOriginal, const InputParameters &settings) -> cv::Mat;
+  static auto prepareImage(const cv::Mat &inputImageOriginal, const InputParameters &settings, int colorOrder) -> cv::Mat;
 };
 
 }    // namespace joda::ai

@@ -60,8 +60,14 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
   if(mSettings.modelPath.ends_with(".pt")) {
     joda::ai::AiFrameworkPytorch torch(mSettings.modelPath, params);
     auto tensor = torch.predict(imageNotUse);
-    ai::AiModelBioImage bioImage;
-    segResult = bioImage.processPrediction(imageNotUse, tensor);
+
+    if(mSettings.modelPath.ends_with("university_of_sbg_cell_segmentation_v3/weights.pt")) {
+      ai::AiModelYolo yoloy;
+      segResult = yoloy.processPrediction(imageNotUse, tensor);
+    } else {
+      ai::AiModelBioImage bioImage;
+      segResult = bioImage.processPrediction(imageNotUse, tensor);
+    }
 
   } else if(mSettings.modelPath.ends_with(".onnx")) {
     joda::ai::AiFrameworkOnnx onnxClassifier(mSettings.modelPath, params);

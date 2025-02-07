@@ -85,17 +85,24 @@ auto AiFrameworkOnnx::predict(const cv::Mat &originalImage) -> at::IValue
     allocateHolder.push_back(std::move(i));    // Move to avoid premature deallocation
   }
 
-  // Prepare image
-  cv::Mat blob = prepareImage(originalImage, mSettings);
+  // ===============================
+  // 1. Prepare image
+  // ===============================
+  cv::Mat blob = prepareImage(originalImage, mSettings, cv::COLOR_GRAY2BGR);
 
   std::array<int64_t, 4> inputDims = {mSettings.batchSize, mSettings.nrOfChannels, mSettings.inputWidth, mSettings.inputHeight};
 
-  // Create input tensor
+  // ===============================
+  // 2. Prepare input tensor
+  // ===============================
   Ort::MemoryInfo memoryInfo     = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeDefault);
   std::vector<float> inputTensor = convertToTensor(blob);
   Ort::Value inputTensorOnnx =
       Ort::Value::CreateTensor<float>(memoryInfo, inputTensor.data(), inputTensor.size(), inputDims.data(), inputDims.size());
 
+  // ===============================
+  // 3. Run the Model Inference
+  // ===============================
   std::vector<Ort::Value> outputTensors =
       session.Run(Ort::RunOptions{}, inputNames.data(), &inputTensorOnnx, inputCount, outputNames.data(), outputCount);
 

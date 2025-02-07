@@ -42,6 +42,23 @@ void printTensorProperties(const torch::Tensor &tensor)
       std::cout << ", ";
   }
   std::cout << "]" << std::endl;
+
+  // Compute the minimum, maximum, and mean values.
+  // Note: These operations return a tensor containing a single value.
+  torch::Tensor min_tensor  = tensor.min();
+  torch::Tensor max_tensor  = tensor.max();
+  torch::Tensor mean_tensor = tensor.mean();
+
+  // Convert the single-element tensors to scalar values.
+  // Change <float> to another type if your tensor has a different data type.
+  float min_val  = min_tensor.item<float>();
+  float max_val  = max_tensor.item<float>();
+  float mean_val = mean_tensor.item<float>();
+
+  // Print the tensor and its statistics.
+  std::cout << "Minimum value: " << min_val << "\n";
+  std::cout << "Maximum value: " << max_val << "\n";
+  std::cout << "Mean value: " << mean_val << "\n";
 }
 
 cv::Mat sigmoid(const cv::Mat &x)
@@ -116,6 +133,10 @@ auto AiModelYolo::processPrediction(const cv::Mat &inputImage, const at::IValue 
   }
   auto detections = output_tuple->elements()[0].toTensor();    // Shape: [N, 6]
   auto seg_masks  = output_tuple->elements()[1].toTensor();    // Shape: [N, mask_height, mask_width]
+
+  printTensorProperties(detections);
+  std::cout << "-----" << std::endl;
+  printTensorProperties(seg_masks);
 
   float ratio[2] = {};
   {

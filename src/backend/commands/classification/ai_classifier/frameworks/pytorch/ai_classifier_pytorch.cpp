@@ -76,15 +76,20 @@ auto AiFrameworkPytorch::predict(const cv::Mat &originalImage) -> at::IValue
   // ===============================
   // 1. Prepare image
   // ===============================
-  cv::Mat resizedImage = prepareImage(originalImage, mSettings);
+  cv::Mat resizedImage = prepareImage(originalImage, mSettings, cv::COLOR_GRAY2RGB);
   if(!resizedImage.isContinuous()) {
     resizedImage = resizedImage.clone();
   }
 
   // ===============================
-  // 2. Run the Model Inference
+  // 2. Prepare input tensor
   // ===============================
-  auto inputTensor = torch::from_blob(resizedImage.data, toTensorOptions(), torch::kFloat32);
+  auto inputTensor = torch::from_blob(resizedImage.data, {resizedImage.rows, resizedImage.cols, resizedImage.channels()}, torch::kFloat32);
+  inputTensor      = inputTensor.permute({2, 0, 1}).to(torch::kFloat32);    // Now shape is (C, H, W)
+  inputTensor      = inputTensor.unsqueeze(0);                              // Now shape is (B, C, H, W)
+  inputTensor = inputTensor.permute({mSettings.getBatchIndex(), mSettings.getChannelIndex(), mSettings.getHeightIndex(), mSettings.getWidthIndex()})
+                    .to(torch::kFloat32);
+
   if(!inputTensor.is_contiguous()) {
     inputTensor = inputTensor.to(torch::kFloat).clone();
   }
@@ -95,21 +100,6 @@ auto AiFrameworkPytorch::predict(const cv::Mat &originalImage) -> at::IValue
   at::IValue output = model.forward({inputTensor});
 
   return output;
-}
-
-///
-/// \brief      Generate tensor options in correct order
-/// \author     Joachim Danmayr
-/// \return     Input vector for
-///
-auto AiFrameworkPytorch::toTensorOptions() const -> std::vector<int64_t>
-{
-  std::vector<int64_t> retArray(4);
-  retArray.at(mSettings.getBatchIndex())   = mSettings.batchSize;
-  retArray.at(mSettings.getChannelIndex()) = mSettings.nrOfChannels;
-  retArray.at(mSettings.getHeightIndex())  = mSettings.inputHeight;
-  retArray.at(mSettings.getWidthIndex())   = mSettings.inputWidth;
-  return retArray;
 }
 
 }    // namespace joda::ai

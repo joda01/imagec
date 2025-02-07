@@ -221,7 +221,8 @@ TEST_CASE("ai::classifier::test::pytorch::yolo", "[.][ai_classifieer_onnx]")
   joda::processor::IterationContext iter;
   joda::processor::ProcessContext context(glob, plate, imgCtx, iter);
 
-  ai.execute(context, img, result);
+  cv::Mat aiorward = img.clone();
+  ai.execute(context, aiorward, result);
   joda::settings::ImageSaverSettings imageSaver;
   imageSaver.classesIn.emplace_back(
       joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C0, .paintBoundingBox = false});

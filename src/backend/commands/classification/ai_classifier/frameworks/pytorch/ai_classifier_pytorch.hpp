@@ -33,7 +33,6 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  auto toTensorOptions() const -> std::vector<int64_t>;
 
   const InputParameters &mSettings;
   const std::string &mModelPath;
