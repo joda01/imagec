@@ -11,6 +11,8 @@
 ///
 
 #include "ai_model_bioimage.hpp"
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 namespace joda::ai {
 
@@ -40,21 +42,47 @@ auto AiModelBioImage::processPrediction(const cv::Mat &inputImage, const torch::
   torch::Tensor tensorCpu              = torch::upsample_bilinear2d(tensorSmall, {originalHeight, originalWith}, false);
   torch::Tensor tensorProbabilitiesCpu = torch::upsample_nearest2d(classProbabilitiesSmall, {originalHeight, originalWith});
 
-  at::Tensor mask_tensor = tensorCpu[0][CHANNEL_MASK].clone().contiguous();    // [height, width]
+  at::Tensor maskTensor    = tensorCpu[0][CHANNEL_MASK].clone().contiguous();       // [height, width]
+  at::Tensor contourTensor = tensorCpu[0][CHANNEL_CONTOUR].clone().contiguous();    // [height, width]
 
   // Convert to OpenCV Mat
 
   // ===============================
   // 1. Convert mask to cv::mat
   // ===============================
-  cv::Mat mask(originalHeight, originalWith, CV_32F, mask_tensor.data_ptr<float>());
+  cv::Mat mask(originalHeight, originalWith, CV_32F, maskTensor.data_ptr<float>());
+  cv::Mat contourMask(originalHeight, originalWith, CV_32F, contourTensor.data_ptr<float>());
+
+  cv::imwrite("mask__.png", mask * 255);
+  cv::imwrite("cont__.png", contourMask * 255);
+
+  // cv::bitwise_xor(mask, contourMask, mask);
 
   // ===============================
   // 2.  Apply a threshold to create a binary mask for the object
   // ===============================
-  cv::Mat binary_mask;
-  cv::threshold(mask, binary_mask, PROBABILITY, 1.0, cv::THRESH_BINARY);
-  binary_mask.convertTo(binary_mask, CV_8U, 255);
+  cv::Mat binaryMask;
+  cv::threshold(mask, binaryMask, PROBABILITY, 1.0, cv::THRESH_BINARY);
+  binaryMask.convertTo(binaryMask, CV_8U, 255);
+
+  cv::Mat binaryContourMask;
+  cv::threshold(contourMask, binaryContourMask, 0.3, 1.0, cv::THRESH_BINARY);
+  binaryContourMask.convertTo(binaryContourMask, CV_8U, 255);
+
+  // --- Step 2.1. Thin the contour mask using erosion ---
+  // Use a small elliptical kernel to erode the contours.
+  cv::Mat contourThin;
+  cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(4, 4));
+  cv::erode(binaryContourMask, binaryContourMask, kernel);
+  // cv::morphologyEx(binaryContourMask, binaryContourMask, cv::MORPH_OPEN, cv::Mat(), cv::Point(-1, -1), 1);
+
+  cv::imwrite("mask.png", binaryMask);
+  cv::imwrite("cont.png", binaryContourMask);
+
+  cv::bitwise_xor(binaryMask, binaryContourMask, binaryMask);
+
+  cv::subtract(binaryMask, binaryContourMask, binaryMask);
+  cv::imwrite("mask01.png", binaryMask);
 
   //
   // ===============================
@@ -62,18 +90,18 @@ auto AiModelBioImage::processPrediction(const cv::Mat &inputImage, const torch::
   // ===============================
   std::vector<cv::Mat> contours;
   std::vector<std::vector<cv::Point>> contours_poly;
-  cv::findContours(binary_mask, contours_poly, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+  cv::findContours(binaryMask, contours_poly, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
   std::vector<Result> results;
   for(size_t j = 0; j < contours_poly.size(); ++j) {
     // Create an empty mask for this object
-    cv::Mat object_mask = cv::Mat::zeros(binary_mask.size(), CV_8U);
+    cv::Mat object_mask = cv::Mat::zeros(binaryMask.size(), CV_8U);
 
     // Draw the contour for this object on the empty mask
     cv::drawContours(object_mask, contours_poly, (int) j, cv::Scalar(255), cv::FILLED);
 
     // Get the class probabilities for this object (we take the maximum probability over the mask)
-    cv::Mat object_probs = cv::Mat::zeros(binary_mask.size(), CV_32F);
+    cv::Mat object_probs = cv::Mat::zeros(binaryMask.size(), CV_32F);
 
     // Loop through the mask and find the max class probability
     float max_prob      = 0.0f;
