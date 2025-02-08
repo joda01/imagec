@@ -19,8 +19,18 @@ namespace joda::ai {
 class AiModelBioImage : public AiModel
 {
 public:
-  AiModelBioImage() = default;
+  struct ProbabilitySettings
+  {
+    float maskThreshold     = 0.5;
+    float mContourThreshold = 0.3;
+  };
+
+  AiModelBioImage(const ProbabilitySettings &settings);
   auto processPrediction(const cv::Mat &inputImage, const at::IValue &prediction) -> std::vector<Result> override;
+
+private:
+  /////////////////////////////////////////////////////
+  const ProbabilitySettings &mSettings;
 };
 
 }    // namespace joda::ai

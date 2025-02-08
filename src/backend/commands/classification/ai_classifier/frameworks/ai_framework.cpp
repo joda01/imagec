@@ -20,9 +20,9 @@ auto AiFramework::prepareImage(const cv::Mat &inputImageOriginal, const InputPar
 {
   // Normalize the pixel values to [0, 1] float for detection
   cv::Mat grayImageFloat;
-  if(settings.dataType == InputParameters::NetInputType::FLOAT32) {
+  if(settings.dataType == InputParameters::NetInputDataType::FLOAT32) {
     inputImageOriginal.convertTo(grayImageFloat, CV_32F, 1 / 65535.0);
-  } else if(settings.dataType == InputParameters::NetInputType::UINT8) {
+  } else if(settings.dataType == InputParameters::NetInputDataType::UINT8) {
     inputImageOriginal.convertTo(grayImageFloat, CV_32F, 255.0 / 65535.0);
   }
 

@@ -10,7 +10,8 @@
 ///
 ///
 
-#include "ai_model_yolo.hpp"
+#include "backend/helper/logger/console_logger.hpp"
+#undef slots
 #include <ATen/core/TensorBody.h>
 #include <stdexcept>
 #include <opencv2/core.hpp>
@@ -19,95 +20,10 @@
 #include <opencv2/dnn/dnn.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+#include "ai_model_yolo.hpp"
+#define slots Q_SLOTS
 
 namespace joda::ai {
-
-void printTensorProperties(const torch::Tensor &tensor)
-{
-  // Print the number of dimensions
-  std::cout << "Tensor dimensions: " << tensor.dim() << std::endl;
-
-  // Print the tensor sizes (shape)
-  std::cout << "Tensor sizes: " << tensor.sizes() << std::endl;
-
-  // Print data type and device information
-  std::cout << "Tensor type: " << tensor.dtype() << std::endl;
-  std::cout << "Tensor device: " << tensor.device() << std::endl;
-
-  // Optionally, iterate through each dimension and print its size individually
-  std::cout << "Tensor shape: [";
-  for(int i = 0; i < tensor.dim(); i++) {
-    std::cout << tensor.size(i);
-    if(i < tensor.dim() - 1)
-      std::cout << ", ";
-  }
-  std::cout << "]" << std::endl;
-
-  // Compute the minimum, maximum, and mean values.
-  // Note: These operations return a tensor containing a single value.
-  torch::Tensor min_tensor  = tensor.min();
-  torch::Tensor max_tensor  = tensor.max();
-  torch::Tensor mean_tensor = tensor.mean();
-
-  // Convert the single-element tensors to scalar values.
-  // Change <float> to another type if your tensor has a different data type.
-  float min_val  = min_tensor.item<float>();
-  float max_val  = max_tensor.item<float>();
-  float mean_val = mean_tensor.item<float>();
-
-  // Print the tensor and its statistics.
-  std::cout << "Minimum value: " << min_val << "\n";
-  std::cout << "Maximum value: " << max_val << "\n";
-  std::cout << "Mean value: " << mean_val << "\n";
-}
-
-cv::Mat sigmoid(const cv::Mat &x)
-{
-  cv::Mat result;
-  cv::exp(-x, result);
-  result = 1.0 / (1.0 + result);
-  return result;
-}
-
-static constexpr inline int SEG_WIDTH       = 160;
-static constexpr inline int SEG_HEIGHT      = 160;
-static constexpr inline int NET_WIDTH       = 640;
-static constexpr inline int NET_HEIGHT      = 640;
-static constexpr inline float BOX_THRESHOLD = 0.25;    // (default = 0.25)
-static constexpr inline float NET_STRIDE[4] = {8, 16, 32, 64};
-static constexpr inline int SEG_CHANNELS    = 32;
-static constexpr inline int STRIDE_SIZE     = 3;
-static constexpr inline float NMS_THRESHOLD = 0.45;    // To prevent double bounding boxes (default = 0.45)
-
-const float mClassThreshold = 0.5;
-const float mNmsScoreThreshold(BOX_THRESHOLD *mClassThreshold);
-const float mMaskThreshold = 0.8;
-
-///
-/// \brief      Extracts the mask from the prediction and stores the mask
-///             to the output >output[i].boxMask<
-/// \author     Joachim Danmayr
-/// \param[in]  maskChannel     Mask proposal
-/// \param[in]  params          Image scaling parameters
-/// \param[in]  inputImageShape Image shape
-/// \param[out] output          Stores the mask to the output
-///
-auto getMask(const cv::Mat &maskChannel, const cv::Size &inputImageShape, const cv::Rect &box) -> cv::Mat
-{
-  if(maskChannel.empty()) {
-    return {};
-  }
-  static const cv::Rect roi(0, 0, static_cast<int>(SEG_WIDTH), static_cast<int>(SEG_HEIGHT));
-  cv::Mat dest;
-  cv::Mat mask;
-  cv::exp(-maskChannel, dest);    // sigmoid
-  dest = (1.0 / (1.0 + dest))(roi);
-  resize(dest, mask, inputImageShape, cv::INTER_NEAREST);
-  mask = mask(box).clone();
-  mask = mask > mMaskThreshold;
-
-  return mask;
-}
 
 ///
 /// \brief
@@ -116,27 +32,45 @@ auto getMask(const cv::Mat &maskChannel, const cv::Size &inputImageShape, const 
 /// \param[out]
 /// \return
 ///
+AiModelYolo::AiModelYolo(const ProbabilitySettings &settings) :
+    mClassThreshold(settings.mClassThreshold), mMaskThreshold(settings.maskThreshold), mNmsScoreThreshold(BOX_THRESHOLD * settings.mClassThreshold)
+{
+}
+
+///
+/// \brief      Post process the prediction.
+///             YOLO produces an ouput array with following format
+///             +-+-+-+-+----------+-------------+-------------+-------+--------------+---------------
+///             |x|y|w|h|confidence|class score 1|class score 2|.....  |class
+///             score n | masking ...
+///             +-+-+-+-+----------+-------------+-------------+-------+--------------+---------------
+///             The first two places are normalized center coordinates of the
+///             detected bounding box. Then comes the normalized width and
+///             height. Index 4 has the confidence score that tells the
+///             probability of the detection being an object. The following
+///             entries tell the class scores.
+///
+/// \author     Joachim Danmayr
+/// \ref
+/// https://learnopencv.com/object-detection-using-yolov5-and-opencv-dnn-in-c-and-python/
+///
+/// \param[in]  inputImage Image which has been used for detection
+/// \return     Result of the analysis
+///
 auto AiModelYolo::processPrediction(const cv::Mat &inputImage, const at::IValue &tensor) -> std::vector<Result>
 {
-  const int input_width  = 640;
-  const int input_height = 640;
-
   // We assume the model returns a tuple: (detections, seg_masks)
   if(!tensor.isTuple()) {
-    std::cerr << "Expected model output to be a tuple (detections, seg_masks)." << std::endl;
+    joda::log::logError("Expected model output to be a tuple (detections, seg_masks).");
     return {};
   }
   auto output_tuple = tensor.toTuple();
   if(output_tuple->elements().size() != 2) {
-    std::cerr << "Expected tuple with 2 elements." << std::endl;
+    joda::log::logError("Expected tuple with 2 elements.");
     return {};
   }
   auto detections = output_tuple->elements()[0].toTensor();    // Shape: [N, 6]
   auto seg_masks  = output_tuple->elements()[1].toTensor();    // Shape: [N, mask_height, mask_width]
-
-  printTensorProperties(detections);
-  std::cout << "-----" << std::endl;
-  printTensorProperties(seg_masks);
 
   float ratio[2] = {};
   {
@@ -156,7 +90,7 @@ auto AiModelYolo::processPrediction(const cv::Mat &inputImage, const at::IValue 
   int32_t mNumberOfClasses = 2;
 
   int net_width = mNumberOfClasses + 5 + SEG_CHANNELS;
-  float *pdata  = static_cast<float *>(detections.data_ptr());
+  auto *pdata   = static_cast<float *>(detections.data_ptr());
   for(int stride = 0; stride < STRIDE_SIZE; stride++) {    // stride
     int grid_x = static_cast<int>(NET_WIDTH / NET_STRIDE[stride]);
     int grid_y = static_cast<int>(NET_HEIGHT / NET_STRIDE[stride]);
@@ -198,7 +132,7 @@ auto AiModelYolo::processPrediction(const cv::Mat &inputImage, const at::IValue 
 
               classIds.push_back(classIdPointMax.x);
               confidences.push_back(maxClassScores * box_score);
-              boxes.push_back(cv::Rect(left, top, static_cast<int>(w), static_cast<int>(h)));
+              boxes.emplace_back(left, top, static_cast<int>(w), static_cast<int>(h));
             }
           }
           pdata += net_width;
@@ -297,7 +231,33 @@ auto AiModelYolo::processPrediction(const cv::Mat &inputImage, const at::IValue 
     results.push_back(
         Result{.boundingBox = fittedBoundingBox, .mask = shiftedMask, .contour = contour, .classId = modelClassId, .probability = confidences[idx]});
   }
-  std::cout << "Finished" << std::endl;
   return results;
 }
+
+///
+/// \brief      Extracts the mask from the prediction and stores the mask
+///             to the output >output[i].boxMask<
+/// \author     Joachim Danmayr
+/// \param[in]  maskChannel     Mask proposal
+/// \param[in]  params          Image scaling parameters
+/// \param[in]  inputImageShape Image shape
+/// \param[out] output          Stores the mask to the output
+///
+auto AiModelYolo::getMask(const cv::Mat &maskChannel, const cv::Size &inputImageShape, const cv::Rect &box) const -> cv::Mat
+{
+  if(maskChannel.empty()) {
+    return {};
+  }
+  static const cv::Rect roi(0, 0, static_cast<int>(SEG_WIDTH), static_cast<int>(SEG_HEIGHT));
+  cv::Mat dest;
+  cv::Mat mask;
+  cv::exp(-maskChannel, dest);    // sigmoid
+  dest = (1.0 / (1.0 + dest))(roi);
+  resize(dest, mask, inputImageShape, cv::INTER_NEAREST);
+  mask = mask(box).clone();
+  mask = mask > mMaskThreshold;
+
+  return mask;
+}
+
 }    // namespace joda::ai

@@ -64,7 +64,12 @@ auto AiFrameworkOnnx::predict(const cv::Mat &originalImage) -> at::IValue
   // Initialize ONNX Runtime
   Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "Segmentation");
   Ort::SessionOptions session_options;
-  Ort::Session session(env, mModelPath.c_str(), mModelPath.size(), session_options);
+#ifdef _WIN32
+  std::wstring widestr = std::wstring(mModelPath.begin(), mModelPath.end());
+  Ort::Session session(env, widestr.c_str(), session_options);
+#else
+  Ort::Session session(env, mModelPath.c_str(), session_options);
+#endif
 
   Ort::AllocatorWithDefaultOptions allocator;
   std::vector<Ort::AllocatedStringPtr> allocateHolder;

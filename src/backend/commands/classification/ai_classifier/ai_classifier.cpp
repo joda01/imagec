@@ -51,7 +51,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
 
   auto params = joda::ai::AiFramework::InputParameters{
       .axesOrder    = mSettings.modelInputParameters.axesOrder,
-      .dataType     = static_cast<joda::ai::AiFramework::InputParameters::NetInputType>(mSettings.modelInputParameters.netInputType),
+      .dataType     = static_cast<joda::ai::AiFramework::InputParameters::NetInputDataType>(mSettings.modelInputParameters.netInputType),
       .batchSize    = mSettings.modelInputParameters.netInputBatchSize,
       .nrOfChannels = static_cast<int32_t>(mSettings.modelInputParameters.netNrOfChannels),
       .inputWidth   = mSettings.modelInputParameters.netInputWidth,
@@ -62,17 +62,17 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
     auto tensor = torch.predict(imageNotUse);
 
     if(mSettings.modelPath.ends_with("university_of_sbg_cell_segmentation_v3/weights.pt")) {
-      ai::AiModelYolo yoloy;
+      ai::AiModelYolo yoloy({});
       segResult = yoloy.processPrediction(imageNotUse, tensor);
     } else {
-      ai::AiModelBioImage bioImage;
+      ai::AiModelBioImage bioImage({});
       segResult = bioImage.processPrediction(imageNotUse, tensor);
     }
 
   } else if(mSettings.modelPath.ends_with(".onnx")) {
     joda::ai::AiFrameworkOnnx onnxClassifier(mSettings.modelPath, params);
     auto tensor = onnxClassifier.predict(imageNotUse);
-    ai::AiModelYolo yoloy;
+    ai::AiModelYolo yoloy({});
     segResult = yoloy.processPrediction(imageNotUse, tensor);
   }
 

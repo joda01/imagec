@@ -26,7 +26,7 @@ namespace joda::settings {
 
 struct AiClassifierSettings : public SettingBase
 {
-  enum class NetInputType
+  enum class NetInputDataType
   {
     FLOAT32,
     UINT8,
@@ -38,6 +38,13 @@ struct AiClassifierSettings : public SettingBase
   {
     GRAYSCALE = 1,
     RGB       = 3
+  };
+
+  enum class Format
+  {
+    ONNX,
+    PYTORCH,
+    TENSORFLOW
   };
 
   struct NetInputParameters
@@ -70,27 +77,10 @@ struct AiClassifierSettings : public SettingBase
     //
     // Data type input
     //
-    NetInputType netInputType = NetInputType::FLOAT32;
+    NetInputDataType netInputType = NetInputDataType::FLOAT32;
 
     void check() const
     {
-    }
-
-    size_t getChannelIndex() const
-    {
-      return axesOrder.find('c');
-    }
-    size_t getBatchIndex() const
-    {
-      return axesOrder.find('b');
-    }
-    size_t getHeightIndex() const
-    {
-      return axesOrder.find('y');
-    }
-    size_t getWidthIndex() const
-    {
-      return axesOrder.find('x');
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(NetInputParameters, axesOrder, netInputWidth, netInputHeight, netInputBatchSize,
@@ -145,5 +135,23 @@ struct AiClassifierSettings : public SettingBase
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AiClassifierSettings, modelPath, classThreshold, maskThreshold, modelClasses);
 };
+
+NLOHMANN_JSON_SERIALIZE_ENUM(AiClassifierSettings::NetInputDataType, {
+                                                                         {AiClassifierSettings::NetInputDataType::FLOAT32, "float32"},
+                                                                         {AiClassifierSettings::NetInputDataType::UINT8, "uint8"},
+                                                                         {AiClassifierSettings::NetInputDataType::UINT16, "uint16"},
+                                                                         {AiClassifierSettings::NetInputDataType::UINT32, "uint32"},
+                                                                     });
+
+NLOHMANN_JSON_SERIALIZE_ENUM(AiClassifierSettings::NetChannels, {
+                                                                    {AiClassifierSettings::NetChannels::GRAYSCALE, 1},
+                                                                    {AiClassifierSettings::NetChannels::RGB, 3},
+                                                                });
+
+NLOHMANN_JSON_SERIALIZE_ENUM(AiClassifierSettings::Format, {
+                                                               {AiClassifierSettings::Format::ONNX, "Onnx"},
+                                                               {AiClassifierSettings::Format::PYTORCH, "Pytorch"},
+                                                               {AiClassifierSettings::Format::TENSORFLOW, "Tensorflow"},
+                                                           });
 
 }    // namespace joda::settings

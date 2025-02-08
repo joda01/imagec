@@ -24,7 +24,7 @@ class AiFramework
 public:
   struct InputParameters
   {
-    enum class NetInputType
+    enum class NetInputDataType
     {
       FLOAT32,
       UINT8,
@@ -34,12 +34,12 @@ public:
     //
     // Axes input order (b=batch, c = channel, y = height, x = width)
     //
-    std::string axesOrder = "bcyx";
-    NetInputType dataType = NetInputType::FLOAT32;
-    int32_t batchSize     = 1;
-    int32_t nrOfChannels  = 3;
-    int32_t inputWidth    = 640;
-    int32_t inputHeight   = 640;
+    std::string axesOrder     = "bcyx";
+    NetInputDataType dataType = NetInputDataType::FLOAT32;
+    int32_t batchSize         = 1;
+    int32_t nrOfChannels      = 3;
+    int32_t inputWidth        = 640;
+    int32_t inputHeight       = 640;
 
     [[nodiscard]] long getChannelIndex() const
     {

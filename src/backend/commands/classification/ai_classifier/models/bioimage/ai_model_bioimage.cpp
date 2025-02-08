@@ -23,12 +23,21 @@ namespace joda::ai {
 /// \param[out]
 /// \return
 ///
+AiModelBioImage::AiModelBioImage(const ProbabilitySettings &settings) : mSettings(settings)
+{
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 auto AiModelBioImage::processPrediction(const cv::Mat &inputImage, const at::IValue &tensorIn) -> std::vector<Result>
 {
   static const int CHANNEL_MASK    = 0;
   static const int CHANNEL_CONTOUR = 1;
-  static float MASK_THRESHOLD      = 0.5;
-  static float CONTOUR_THRESHOLD   = 0.3;
 
   int32_t originalHeight  = inputImage.rows;
   int32_t originalWith    = inputImage.cols;
@@ -60,11 +69,11 @@ auto AiModelBioImage::processPrediction(const cv::Mat &inputImage, const at::IVa
   // 2.  Apply a threshold to create a binary mask for the object
   // ===============================
   cv::Mat binaryMask;
-  cv::threshold(mask, binaryMask, MASK_THRESHOLD, 1.0, cv::THRESH_BINARY);
+  cv::threshold(mask, binaryMask, mSettings.maskThreshold, 1.0, cv::THRESH_BINARY);
   binaryMask.convertTo(binaryMask, CV_8U, 255);
 
   cv::Mat binaryContourMask;
-  cv::threshold(contourMask, binaryContourMask, CONTOUR_THRESHOLD, 1.0, cv::THRESH_BINARY);
+  cv::threshold(contourMask, binaryContourMask, mSettings.mContourThreshold, 1.0, cv::THRESH_BINARY);
   binaryContourMask.convertTo(binaryContourMask, CV_8U, 255);
 
   // --- Step 2.1. Thin the contour mask using erosion ---

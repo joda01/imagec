@@ -1,40 +1,4 @@
-/*
-///
-/// \brief      Post process the prediction.
-///             YOLO produces an ouput array with following format
-///             +-+-+-+-+----------+-------------+-------------+-------+--------------+---------------
-///             |x|y|w|h|confidence|class score 1|class score 2|.....  |class
-///             score n | masking ...
-///             +-+-+-+-+----------+-------------+-------------+-------+--------------+---------------
-///             The first two places are normalized center coordinates of the
-///             detected bounding box. Then comes the normalized width and
-///             height. Index 4 has the confidence score that tells the
-///             probability of the detection being an object. The following
-///             entries tell the class scores.
-///
-/// \author     Joachim Danmayr
-/// \ref
-/// https://learnopencv.com/object-detection-using-yolov5-and-opencv-dnn-in-c-and-python/
-///
-/// \param[in]  inputImage Image which has been used for detection
-/// \return     Result of the analysis
-///
-/*
 
-// Function to detect model type
-string detectModelType(Ort::Session &session)
-{
-  auto outputShape = session.GetOutputTypeInfo(1).GetTensorTypeAndShapeInfo().GetShape();
-
-  if(outputShape.size() == 3) {
-    return "semantic";    // (C, H, W) - Semantic Segmentation
-  }
-  if(outputShape.size() == 4) {
-    return "instance";    // (N, C, H, W) - Instance Segmentation
-  }
-  return "unknown";
-}
-*/
 
 ///
 /// \file      ai_model_bioimage.hpp
@@ -57,11 +21,33 @@ namespace joda::ai {
 class AiModelYolo : public AiModel
 {
 public:
-  AiModelYolo() = default;
+  struct ProbabilitySettings
+  {
+    float maskThreshold   = 0.8;
+    float mClassThreshold = 0.5;
+  };
+
+  AiModelYolo(const ProbabilitySettings &settings);
   auto processPrediction(const cv::Mat &inputImage, const at::IValue &prediction) -> std::vector<Result> override;
 
 private:
   /////////////////////////////////////////////////////
+  static constexpr inline int SEG_WIDTH       = 160;
+  static constexpr inline int SEG_HEIGHT      = 160;
+  static constexpr inline int NET_WIDTH       = 640;
+  static constexpr inline int NET_HEIGHT      = 640;
+  static constexpr inline float BOX_THRESHOLD = 0.25;    // (default = 0.25)
+  static constexpr inline float NET_STRIDE[4] = {8, 16, 32, 64};
+  static constexpr inline int SEG_CHANNELS    = 32;
+  static constexpr inline int STRIDE_SIZE     = 3;
+  static constexpr inline float NMS_THRESHOLD = 0.45;    // To prevent double bounding boxes (default = 0.45)
+
+  const float mClassThreshold = 0.5;
+  const float mMaskThreshold  = 0.8;
+  const float mNmsScoreThreshold;
+
+  /////////////////////////////////////////////////////
+  [[nodiscard]] auto getMask(const cv::Mat &maskChannel, const cv::Size &inputImageShape, const cv::Rect &box) const -> cv::Mat;
 };
 
 }    // namespace joda::ai
