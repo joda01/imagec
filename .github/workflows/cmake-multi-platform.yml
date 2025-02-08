@@ -310,8 +310,10 @@ jobs:
           Copy-Item -Path "C:\Windows\System32\vcruntime140.dll" -Destination "."  -Force
           Copy-Item -Path "C:\Windows\System32\vcruntime140_1.dll" -Destination "."  -Force
           Copy-Item -Path "C:\Windows\System32\msvcp140.dll" -Destination "."  -Force
+          Copy-Item -Path "C:\Windows\System32\msvcp140_1.dll" -Destination "."  -Force
           Copy-Item -Path "C:\Windows\System32\concrt140.dll" -Destination "."  -Force
           Copy-Item -Path "C:\Windows\System32\msvcp140_codecvt_ids.dll" -Destination "."  -Force
+          Copy-Item -Path "C:\Windows\System32\vcomp140.dll" -Destination "."  -Force
 
 
           Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/templates" ./templates
