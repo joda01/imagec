@@ -73,7 +73,7 @@ auto AiModelBioImage::processPrediction(const cv::Mat &inputImage, const at::IVa
   binaryMask.convertTo(binaryMask, CV_8U, 255);
 
   cv::Mat binaryContourMask;
-  cv::threshold(contourMask, binaryContourMask, mSettings.mContourThreshold, 1.0, cv::THRESH_BINARY);
+  cv::threshold(contourMask, binaryContourMask, mSettings.contourThreshold, 1.0, cv::THRESH_BINARY);
   binaryContourMask.convertTo(binaryContourMask, CV_8U, 255);
 
   // --- Step 2.1. Thin the contour mask using erosion ---

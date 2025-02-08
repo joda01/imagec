@@ -16,10 +16,10 @@ deploy/
 build/
 src/build_info.h
 tmpfile
-tmp
+/tmp
 conan.lock
 CMakeUserPresets.json
-models
 java
 *.log
-test
+/test
+/models

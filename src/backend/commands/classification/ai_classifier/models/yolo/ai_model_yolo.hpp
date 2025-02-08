@@ -23,8 +23,8 @@ class AiModelYolo : public AiModel
 public:
   struct ProbabilitySettings
   {
-    float maskThreshold   = 0.8;
-    float mClassThreshold = 0.5;
+    float maskThreshold  = 0.8;
+    float classThreshold = 0.5;
   };
 
   AiModelYolo(const ProbabilitySettings &settings);

@@ -21,8 +21,8 @@ class AiModelBioImage : public AiModel
 public:
   struct ProbabilitySettings
   {
-    float maskThreshold     = 0.5;
-    float mContourThreshold = 0.3;
+    float maskThreshold    = 0.5;
+    float contourThreshold = 0.3;
   };
 
   AiModelBioImage(const ProbabilitySettings &settings);

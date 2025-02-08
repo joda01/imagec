@@ -90,7 +90,7 @@
         "queue": "cpp"
     },
     "files.exclude": {
-        ".gitignore": true,
+        ".gitignore": false,
         ".dockerignore": true,
         ".clang-tidy": true,
         ".clangd": true

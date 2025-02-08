@@ -14,6 +14,7 @@
     <file>icons/icons8-accept-48.png</file>
     <file>icons/icons8-oval-48.png</file>
     <file>icons/icons8-brightness-48.png</file>
+    <file>icons/icons8-tensorflow-16.png</file>
     <file>icons/icons8-black-and-white-24.png</file>
     <file>icons/icons8-pin-16.png</file>
     <file>icons/icons8-square-number-48.png</file>
@@ -70,6 +71,8 @@
     <file>icons/icons8-bookmark-24.png</file>
     <file>icons/icons8-scatter-plot-24.png</file>
     <file>icons/icons8-classify-16.png</file>
+    <file>icons/icons8-connect-48.png</file>
+    <file>icons/icons8-select-none-24.png</file>
     <file>icons/icons8-asterisk-key-16.png</file>
     <file>icons/icons8-square-24.png</file>
     <file>icons/icons8-cancel-96.png</file>
@@ -81,6 +84,7 @@
     <file>icons/icons8-one-round-48.png</file>
     <file>icons/icons8-transfer-48.png</file>
     <file>icons/icons8-mark-as-favorite-16.png</file>
+    <file>icons/icons8-select-none-16.png</file>
     <file>icons/icons8-asterisk-key-96.png</file>
     <file>icons/icons8-heat-map-24.png</file>
     <file>icons/icons8-pipeline-48.png</file>
@@ -104,10 +108,12 @@
     <file>icons/icons8-number-16.png</file>
     <file>icons/icons8-select-column-24.png</file>
     <file>icons/icons8-black-and-white-16.png</file>
+    <file>icons/icons8-pytorch-16.png</file>
     <file>icons/icons8-repeat-96.png</file>
     <file>icons/icons8-project-setup-16.png</file>
     <file>icons/icons8-excel-24.png</file>
     <file>icons/icons8-zero-48.png</file>
+    <file>icons/icons8-onnx-24.png</file>
     <file>icons/icons8-add-column-48.png</file>
     <file>icons/icons8-layer-mask-48.png</file>
     <file>icons/icons8-open-lock-96.png</file>
@@ -269,6 +275,7 @@
     <file>icons/icons8-eight-24.png</file>
     <file>icons/icons8-copy-96.png</file>
     <file>icons/icons8-table-detail-96.png</file>
+    <file>icons/icons8-onnx-48.png</file>
     <file>icons/icons8-images-folder-48.png</file>
     <file>icons/icons8-six-96.png</file>
     <file>icons/icons8-open-16.png</file>
@@ -306,6 +313,7 @@
     <file>icons/icons8-warning-96.png</file>
     <file>icons/icons8-abscissa-96.png</file>
     <file>icons/icons8-column-24.png</file>
+    <file>icons/icons8-select-none-48.png</file>
     <file>icons/icons8-invisible-48.png</file>
     <file>icons/icons8-error-16.png</file>
     <file>icons/icons8-favorite-folder-96.png</file>
@@ -318,6 +326,7 @@
     <file>icons/icons8-open-96.png</file>
     <file>icons/icons8-preview-48.png</file>
     <file>icons/icons8-log-96.png</file>
+    <file>icons/icons8-question-mark-96.png</file>
     <file>icons/icons8-query-outer-join-right-48.png</file>
     <file>icons/icons8-help-48.png</file>
     <file>icons/icons8-repeat-48.png</file>
@@ -325,7 +334,9 @@
     <file>icons/icons8-initial-state-16.png</file>
     <file>icons/icons8-mind-map-96.png</file>
     <file>icons/icons8-pipeline-96.png</file>
+    <file>icons/icons8-onnx-16.png</file>
     <file>icons/icons8-rename-16.png</file>
+    <file>icons/icons8-question-mark-16.png</file>
     <file>icons/icons8-baseline-48.png</file>
     <file>icons/icons8-picture-in-picture-alternative-48.png</file>
     <file>icons/icons8-crosshair-48.png</file>
@@ -353,6 +364,7 @@
     <file>icons/icons8-ampersand-16.png</file>
     <file>icons/icons8-circle-48.png</file>
     <file>icons/icons8-no-image-16.png</file>
+    <file>icons/icons8-connect-96.png</file>
     <file>icons/icons8-diameter-48.png</file>
     <file>icons/icons8-circle-16.png</file>
     <file>icons/icons8-clone-16.png</file>
@@ -391,6 +403,7 @@
     <file>icons/icons8-creative-commons-zero-96.png</file>
     <file>icons/icons8-black-and-white-48.png</file>
     <file>icons/icons8-favorite-16.png</file>
+    <file>icons/icons8-onnx-96.png</file>
     <file>icons/icons8-layer-16.png</file>
     <file>icons/icons8-delete-column-96.png</file>
     <file>icons/icons8-no-idea-24.png</file>
@@ -493,6 +506,7 @@
     <file>icons/icons8-light-min-48.png</file>
     <file>icons/icons8-arrow-up-96.png</file>
     <file>icons/icons8-lock-48.png</file>
+    <file>icons/icons8-pytorch-48.png</file>
     <file>icons/icons8-add-to-favorites-16.png</file>
     <file>icons/icons8-sort-by-price-24.png</file>
     <file>icons/icons8-test-tube-24.png</file>
@@ -573,10 +587,12 @@
     <file>icons/icons8-snap-background-to-white-16.png</file>
     <file>icons/icons8-save-as-96.png</file>
     <file>icons/icons8-layer-mask-24.png</file>
+    <file>icons/icons8-question-mark-24.png</file>
     <file>icons/icons8-square-number-96.png</file>
     <file>icons/icons8-classify-24.png</file>
     <file>icons/icons8-mark-as-favorite-96.png</file>
     <file>icons/icons8-sheets-16.png</file>
+    <file>icons/icons8-tensorflow-48.png</file>
     <file>icons/icons8-histogram-48.png</file>
     <file>icons/icons8-six-16.png</file>
     <file>icons/icons8-creative-commons-zero-16.png</file>
@@ -605,9 +621,13 @@
     <file>icons/icons8-sigma-16.png</file>
     <file>icons/icons8-invert-colors-24.png</file>
     <file>icons/icons8-arrow-48.png</file>
+    <file>icons/icons8-pytorch-96.png</file>
     <file>icons/icons8-flow-96.png</file>
     <file>icons/icons8-preview-24.png</file>
+    <file>icons/icons8-tensorflow-96.png</file>
+    <file>icons/icons8-connect-16.png</file>
     <file>icons/icons8-2-96.png</file>
+    <file>icons/icons8-connect-24.png</file>
     <file>icons/icons8-invisible-16.png</file>
     <file>icons/icons8-grayscale-96.png</file>
     <file>icons/icons8-square-number-24.png</file>
@@ -663,6 +683,7 @@
     <file>icons/icons8-cancel-16.png</file>
     <file>icons/icons8-unavailable-16.png</file>
     <file>icons/icons8-length-48.png</file>
+    <file>icons/icons8-select-none-96.png</file>
     <file>icons/icons8-browse-page-96.png</file>
     <file>icons/icons8-invert-selection-48.png</file>
     <file>icons/icons8-popup-window-48.png</file>
@@ -679,6 +700,7 @@
     <file>icons/icons8-excel-16.png</file>
     <file>icons/icons8-lock-24.png</file>
     <file>icons/icons8-table-detail-48.png</file>
+    <file>icons/icons8-question-mark-48.png</file>
     <file>icons/icons8-three-96.png</file>
     <file>icons/icons8-save-96.png</file>
     <file>icons/icons8-genealogy-96.png</file>

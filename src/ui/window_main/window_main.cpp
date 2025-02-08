@@ -36,9 +36,9 @@
 #include <string>
 #include <thread>
 #include "backend/enums/enums_file_endians.hpp"
+#include "backend/helper/ai_model_parser/ai_model_parser.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
-#include "backend/helper/onnx_parser/onnx_parser.hpp"
 #include "backend/helper/random_name_generator.hpp"
 #include "backend/helper/username.hpp"
 #include "backend/settings/analze_settings.hpp"
@@ -103,7 +103,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   //
   // Initial background tasks
   //
-  std::thread([]() { joda::onnx::OnnxParser::findAiModelFiles(); }).detach();
+  std::thread([]() { joda::onnx::AiModelParser::findAiModelFiles(); }).detach();
 }
 
 WindowMain::~WindowMain()

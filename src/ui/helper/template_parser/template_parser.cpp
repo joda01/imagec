@@ -1,5 +1,5 @@
 ///
-/// \file      onnx_parser.hpp
+/// \file      ai_model_parser.hpp
 /// \author    Joachim Danmayr
 /// \date      2024-01-13
 ///

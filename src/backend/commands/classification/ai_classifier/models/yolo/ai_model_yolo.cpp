@@ -10,6 +10,7 @@
 ///
 ///
 
+#include <string>
 #include "backend/helper/logger/console_logger.hpp"
 #undef slots
 #include <ATen/core/TensorBody.h>
@@ -33,7 +34,7 @@ namespace joda::ai {
 /// \return
 ///
 AiModelYolo::AiModelYolo(const ProbabilitySettings &settings) :
-    mClassThreshold(settings.mClassThreshold), mMaskThreshold(settings.maskThreshold), mNmsScoreThreshold(BOX_THRESHOLD * settings.mClassThreshold)
+    mClassThreshold(settings.classThreshold), mMaskThreshold(settings.maskThreshold), mNmsScoreThreshold(BOX_THRESHOLD * settings.classThreshold)
 {
 }
 
@@ -70,7 +71,34 @@ auto AiModelYolo::processPrediction(const cv::Mat &inputImage, const at::IValue 
     return {};
   }
   auto detections = output_tuple->elements()[0].toTensor();    // Shape: [N, 6]
-  auto seg_masks  = output_tuple->elements()[1].toTensor();    // Shape: [N, mask_height, mask_width]
+
+  torch::Tensor seg_masks;
+  bool yolo11Detected = false;
+  if(output_tuple->elements()[1].isTensor()) {
+    seg_masks = output_tuple->elements()[1].toTensor();    // Shape: [N, mask_height, mask_width]
+  } else if(output_tuple->elements()[1].isTuple()) {
+    yolo11Detected = true;
+    auto tuples    = output_tuple->elements()[1].toTuple()->elements();
+    for(const auto &tuple : tuples) {
+      if(tuple.isTensor()) {
+        auto tensorTmp = tuple.toTensor();
+        if(tensorTmp.size(0) == 1 && tensorTmp.size(1) == 32 && tensorTmp.size(2) == 160) {
+          seg_masks = tensorTmp;
+          break;
+        }
+      }
+    }
+  }
+
+  // We want an ouput order of  [B, N, 4+1+C]
+  // - YoloV5  has [B, N, 4+1+C]
+  // - YoloV11 has [B 4+1+C, N]
+  if(yolo11Detected) {
+    detections = detections.permute({0, 2, 1});
+  }
+
+  int64_t lastSimSize     = detections.size(detections.dim() - 1);
+  int64_t numberOfClasses = lastSimSize - 5 - SEG_CHANNELS;
 
   float ratio[2] = {};
   {
@@ -87,9 +115,23 @@ auto AiModelYolo::processPrediction(const cv::Mat &inputImage, const at::IValue 
   std::vector<cv::Rect> boxes;
   std::vector<std::vector<float>> pickedProposals;    // output0[:,:, 5 + mClassNames.size():net_width]
 
-  int32_t mNumberOfClasses = 2;
+  // int32_t mNumberOfClasses = 2;
 
-  int net_width = mNumberOfClasses + 5 + SEG_CHANNELS;
+  // [batch_size, num_predictions, (5 + num_classes)]
+  /*
+  batch_size is the number of images processed at once.
+        num_predictions is the total number of candidate detections.
+                        This number comes from flattening the predictions from all detection layers (YOLOv5
+                        normally predicts at three different scales, each with its own grid size and set of anchor boxes).
+        (5 + num_classes) represents the data for each prediction: The first 4 numbers correspond to the bounding box
+                          parameters: x, y: The center coordinates of the box (typically relative to a grid cell
+                          or normalized). w, h: The width and height of the box (often predicted as offsets/scales
+                          relative to predefined anchor boxes). The 5th number is the objectness score (i.e., the confidence
+                          that an object exists in that box). The remaining num_classes numbers are the class scores (one per possible
+                          class). For example, if you’re using a model trained on the COCO dataset, there would be 80 class scores.
+  */
+
+  int net_width = numberOfClasses + 5 + SEG_CHANNELS;
   auto *pdata   = static_cast<float *>(detections.data_ptr());
   for(int stride = 0; stride < STRIDE_SIZE; stride++) {    // stride
     int grid_x = static_cast<int>(NET_WIDTH / NET_STRIDE[stride]);
@@ -105,12 +147,7 @@ auto AiModelYolo::processPrediction(const cv::Mat &inputImage, const at::IValue 
           // Get the probability that an object is contained in the box of
           // each row
           if(box_score >= BOX_THRESHOLD) {
-            cv::Mat scores(1, mNumberOfClasses, CV_32FC1, pdata + 5);
-
-            // Add a handicap for the probability to rank some classes up or down
-            for(int32_t modelClassIdx = 0; modelClassIdx < scores.cols; modelClassIdx++) {
-              scores.at<float>(modelClassIdx) = scores.at<float>(modelClassIdx);
-            }
+            cv::Mat scores(1, numberOfClasses, CV_32FC1, pdata + 5);
 
             cv::Point classIdPointMax;
             cv::Point classIdPointMin;
@@ -120,9 +157,9 @@ auto AiModelYolo::processPrediction(const cv::Mat &inputImage, const at::IValue 
             minMaxLoc(scores, &minClassScores, &maxClassScores, &classIdPointMin, &classIdPointMax);
             maxClassScores = static_cast<float>(maxClassScores);
             if(maxClassScores >= mClassThreshold) {
-              std::vector<float> temp_proto(pdata + 5 + mNumberOfClasses, pdata + net_width);
+              std::vector<float> temp_proto(pdata + 5 + numberOfClasses, pdata + 5 + numberOfClasses + SEG_CHANNELS);
               pickedProposals.push_back(temp_proto);
-              // rect [x,y,w,h]
+              //  rect [x,y,w,h]
               float x  = pdata[0] / ratio[0];    // x
               float y  = pdata[1] / ratio[1];    // y
               float w  = pdata[2] / ratio[0];    // w
@@ -165,6 +202,10 @@ auto AiModelYolo::processPrediction(const cv::Mat &inputImage, const at::IValue 
   cv::Rect holeImgRect(0, 0, inputImage.cols, inputImage.rows);
   std::vector<Result> results;
   for(int i = 0; i < nms_result.size(); ++i) {
+    if(maskChannels[i].empty()) {
+      continue;
+    }
+
     int idx              = nms_result[i];
     cv::Rect boundingBox = boxes[idx] & holeImgRect;
     auto mask            = getMask(maskChannels[i], inputImage.size(), boundingBox);
@@ -255,7 +296,9 @@ auto AiModelYolo::getMask(const cv::Mat &maskChannel, const cv::Size &inputImage
   dest = (1.0 / (1.0 + dest))(roi);
   resize(dest, mask, inputImageShape, cv::INTER_NEAREST);
   mask = mask(box).clone();
-  mask = mask > mMaskThreshold;
+  if(!mask.empty()) {
+    mask = mask > mMaskThreshold;
+  }
 
   return mask;
 }

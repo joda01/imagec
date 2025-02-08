@@ -1,5 +1,5 @@
 ///
-/// \file      onnx_parser.hpp
+/// \file      ai_model_parser.hpp
 /// \author    Joachim Danmayr
 /// \date      2024-01-13
 ///
@@ -31,33 +31,26 @@ namespace joda::onnx {
 namespace fs = std::filesystem;
 // using namespace ::onnx;
 
-class OnnxParser
+class AiModelParser
 {
 public:
-  enum class ModelType
-  {
-    UNKNOWN,
-    ONNX,
-    PYTORCH,
-    TENSORFLOW
-  };
-
   /////////////////////////////////////////////////////
-  struct Data : public joda::settings::AiClassifierSettings::NetInputParameters
+  struct Data
   {
     std::string modelName;
     std::string description;
     std::filesystem::path modelPath;
-    ModelType type = ModelType::UNKNOWN;
     std::vector<std::string> classes;
+    settings::AiClassifierSettings::ModelParameters modelParameter;
+    std::map<std::string, settings::AiClassifierSettings::NetInputParameters> inputs;
+    std::map<std::string, settings::AiClassifierSettings::NetOutputParameters> outputs;
   };
 
   static auto findAiModelFiles(const std::string &directory = "models") -> std::map<std::filesystem::path, Data>;
-  static auto getModelInfo(const std::filesystem::path &modelPath) -> Data;
+  static auto parseResourceDescriptionFile(std::filesystem::path rdfYaml) -> Data;
 
 private:
   /////////////////////////////////////////////////////
-  static auto parseResourceDescriptionFile(const std::filesystem::path &rdfYaml) -> Data;
 
   static std::map<int, std::string> getONNXModelOutputClasses(const std::filesystem::path &modelPath);
   static inline std::map<std::filesystem::path, Data> mCache;

@@ -15,7 +15,7 @@
 
 #include <iostream>
 #include "backend/commands/command.hpp"
-#include "backend/helper/onnx_parser/onnx_parser.hpp"
+#include "backend/helper/ai_model_parser/ai_model_parser.hpp"
 #include <opencv2/opencv.hpp>
 #include "ai_classifier_settings.hpp"
 

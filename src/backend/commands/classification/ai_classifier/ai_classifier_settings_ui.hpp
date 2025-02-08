@@ -19,7 +19,7 @@
 #include "backend/commands/classification/classifier_filter.hpp"
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/helper/onnx_parser/onnx_parser.hpp"
+#include "backend/helper/ai_model_parser/ai_model_parser.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
 #include "ui/container/setting/setting_combobox_classes_out.hpp"
@@ -196,6 +196,9 @@ private:
   std::unique_ptr<SettingLineEdit<int32_t>> mNetHeight;
   std::unique_ptr<SettingComboBox<joda::settings::AiClassifierSettings::NetChannels>> mChannels;
 
+  std::unique_ptr<SettingComboBox<joda::settings::AiClassifierSettings::ModelFormat>> mModelFormat;
+  std::unique_ptr<SettingComboBox<joda::settings::AiClassifierSettings::ModelArchitecture>> mModelArchitecture;
+
   std::unique_ptr<SettingLineEdit<float>> mClassThreshold;
   std::unique_ptr<SettingLineEdit<float>> mMaskThreshold;
 
@@ -234,6 +237,8 @@ private:
   }
 
   /////////////////////////////////////////////////////
+  void updateInputFields(int32_t nrOfClasses, const settings::AiClassifierSettings::ModelParameters &model,
+                         const settings::AiClassifierSettings::NetInputParameters &settings);
 
 private slots:
   void addFilter(const std::string &title, int32_t classId, float handicap)

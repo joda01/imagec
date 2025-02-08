@@ -70,7 +70,7 @@ auto AiFrameworkPytorch::predict(const cv::Mat &originalImage) -> at::IValue
       model.to(at::Device("cuda:0"));
     }
   } catch(const c10::Error &e) {
-    throw std::runtime_error("Could not load torch model!");
+    throw std::runtime_error(e.what());
   }
 
   // ===============================

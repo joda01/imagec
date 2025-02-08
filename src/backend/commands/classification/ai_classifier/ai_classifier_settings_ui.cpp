@@ -30,7 +30,7 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   auto *modelTab = addTab(
       "Model settings", [] {}, false);
 
-  auto onnxModels = joda::onnx::OnnxParser::findAiModelFiles();
+  auto onnxModels = joda::onnx::AiModelParser::findAiModelFiles();
 
   std::vector<SettingComboBoxString::ComboEntry> entries;
   entries.reserve(onnxModels.size() + 1);
@@ -46,16 +46,19 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   mModelPath->setShortDescription("Path:");
   connect(mModelPath.get(), &SettingBase::valueChanged, [this]() {
     if(!mModelPath->getValue().empty()) {
-      auto info = joda::onnx::OnnxParser::getModelInfo(std::filesystem::path(mModelPath->getValue()));
-      mNetHeight->setValue(info.netInputHeight);
-      mNetWidth->setValue(info.netInputWidth);
-      /* removeAll();
-       mNumberOdModelClasses->setValue(info.classes.size());
-       int n = 0;
-       for(const auto &classs : info.classes) {
-         addFilter(classs, n, 1);
-         n++;
-       }*/
+      try {
+        auto info                     = joda::onnx::AiModelParser::parseResourceDescriptionFile(std::filesystem::path(mModelPath->getValue()));
+        mSettings.modelInputParameter = info.inputs.begin()->second;
+        updateInputFields(info.classes.size(), info.modelParameter, info.inputs.begin()->second);
+        /* removeAll();
+         mNumberOdModelClasses->setValue(info.classes.size());
+         int n = 0;
+         for(const auto &classs : info.classes) {
+           addFilter(classs, n, 1);
+           n++;
+         }*/
+      } catch(...) {
+      }
     }
   });
 
@@ -80,51 +83,91 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
     }
   });
 
-  mNetWidth = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Input with of the model");
+  mNetWidth = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Input width of the model");
   mNetWidth->setPlaceholderText("[0 - 2,147,483,647]");
   mNetWidth->setUnit("");
   mNetWidth->setMinMax(1, INT32_MAX);
-  mNetWidth->setValue(settings.modelInputParameters.netInputWidth);
-  mNetWidth->connectWithSetting(&settings.modelInputParameters.netInputWidth);
+  mNetWidth->setValue(settings.modelInputParameter.spaceX);
+  mNetWidth->connectWithSetting(&settings.modelInputParameter.spaceX);
   mNetWidth->setShortDescription("Width:");
 
   mNetHeight = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Input height of the model");
   mNetHeight->setPlaceholderText("[0 - 2,147,483,647]");
   mNetHeight->setUnit("");
   mNetHeight->setMinMax(1, INT32_MAX);
-  mNetHeight->setValue(settings.modelInputParameters.netInputHeight);
-  mNetHeight->connectWithSetting(&settings.modelInputParameters.netInputHeight);
+  mNetHeight->setValue(settings.modelInputParameter.spaceY);
+  mNetHeight->connectWithSetting(&settings.modelInputParameter.spaceY);
   mNetHeight->setShortDescription("Height:");
 
   mChannels = SettingBase::create<SettingComboBox<joda::settings::AiClassifierSettings::NetChannels>>(parent, {}, "Input channels of the model");
   mChannels->setDefaultValue(joda::settings::AiClassifierSettings::NetChannels::GRAYSCALE);
   mChannels->addOptions({{joda::settings::AiClassifierSettings::NetChannels::GRAYSCALE, "Grayscale", generateIcon("grayscale")},
                          {joda::settings::AiClassifierSettings::NetChannels::RGB, "Color", generateIcon("color")}});
-  mChannels->setValue(settings.modelInputParameters.netNrOfChannels);
-  mChannels->connectWithSetting(&settings.modelInputParameters.netNrOfChannels);
+  mChannels->setValue(settings.modelInputParameter.channels);
+  mChannels->connectWithSetting(&settings.modelInputParameter.channels);
   mChannels->setShortDescription("Channels:");
 
+  //
+  //
+  ////
+  mModelFormat = SettingBase::create<SettingComboBox<joda::settings::AiClassifierSettings::ModelFormat>>(parent, {}, "Model format");
+  mModelFormat->setDefaultValue(joda::settings::AiClassifierSettings::ModelFormat::ONNX);
+  mModelFormat->addOptions({{joda::settings::AiClassifierSettings::ModelFormat::UNKNOWN, "Unknown", generateIcon("question-mark")},
+                            {joda::settings::AiClassifierSettings::ModelFormat::ONNX, "Onnx", generateIcon("onnx")},
+                            {joda::settings::AiClassifierSettings::ModelFormat::TORCHSCRIPT, "Torchscript", generateIcon("pytorch")},
+                            {joda::settings::AiClassifierSettings::ModelFormat::TENSORFLOW, "Tensorflow", generateIcon("tensorflow")}
+
+  });
+  mModelFormat->setValue(settings.modelParameter.modelFormat);
+  mModelFormat->connectWithSetting(&settings.modelParameter.modelFormat);
+  mModelFormat->setShortDescription("Format:");
+
+  //
+  //
+  //
+  mModelArchitecture =
+      SettingBase::create<SettingComboBox<joda::settings::AiClassifierSettings::ModelArchitecture>>(parent, {}, "Model architecture");
+  mModelArchitecture->setDefaultValue(joda::settings::AiClassifierSettings::ModelArchitecture::YOLO_V5);
+  mModelArchitecture->addOptions({{joda::settings::AiClassifierSettings::ModelArchitecture::UNKNOWN, "Unknown", generateIcon("question-mark")},
+                                  {joda::settings::AiClassifierSettings::ModelArchitecture::YOLO_V5, "Yolo V5", generateIcon("connect")},
+                                  {joda::settings::AiClassifierSettings::ModelArchitecture::U_NET, "U-Net", generateIcon("connect")},
+                                  {joda::settings::AiClassifierSettings::ModelArchitecture::STAR_DIST, "StarDist", generateIcon("connect")},
+                                  {joda::settings::AiClassifierSettings::ModelArchitecture::MASK_R_CNN, "Mask R-CNN", generateIcon("connect")}});
+  mModelArchitecture->setValue(settings.modelParameter.modelArchitecture);
+  mModelArchitecture->connectWithSetting(&settings.modelParameter.modelArchitecture);
+  mModelArchitecture->setShortDescription("Architecture:");
+
+  //
+  //
+  //
   mClassThreshold = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("percent"), "Class threshold (0.5)");
   mClassThreshold->setPlaceholderText("[0 - 1]");
   mClassThreshold->setUnit("");
   mClassThreshold->setMinMax(0, 1);
-  mClassThreshold->setValue(settings.classThreshold);
-  mClassThreshold->connectWithSetting(&settings.classThreshold);
+  mClassThreshold->setValue(settings.thresholds.classThreshold);
+  mClassThreshold->connectWithSetting(&settings.thresholds.classThreshold);
 
+  //
+  //
+  //
   mMaskThreshold = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("layer-mask"), "Mask threshold (0.8)");
   mMaskThreshold->setPlaceholderText("[0 - 1");
   mMaskThreshold->setUnit("");
   mMaskThreshold->setMinMax(0, 1);
-  mMaskThreshold->setValue(settings.maskThreshold);
-  mMaskThreshold->connectWithSetting(&settings.maskThreshold);
+  mMaskThreshold->setValue(settings.thresholds.maskThreshold);
+  mMaskThreshold->connectWithSetting(&settings.thresholds.maskThreshold);
 
-  auto *col  = addSetting(modelTab, "AI model settings",
-                          {{mModelPath.get(), true, 0},
-                           {mNumberOdModelClasses.get(), false, 0},
-                           {mNetWidth.get(), false, 0},
-                           {mNetHeight.get(), false, 0},
-                           {mChannels.get(), false, 0}});
-  auto *col2 = addSetting(modelTab, "Probabilities", {{mClassThreshold.get(), false, 0}, {mMaskThreshold.get(), false, 0}});
+  auto *col = addSetting(modelTab, "AI model settings",
+                         {
+                             {mModelPath.get(), true, 0},
+                             {mModelFormat.get(), false, 0},
+                             {mModelArchitecture.get(), false, 0},
+                             {mNumberOdModelClasses.get(), false, 0},
+                         });
+  col->addWidget(new QLabel("This is a description text"));
+
+  auto *col2 = addSetting(modelTab, "Input parameters", {{mNetWidth.get(), false, 0}, {mNetHeight.get(), false, 0}, {mChannels.get(), false, 0}});
+  addSetting(modelTab, "Thresholds", {{mMaskThreshold.get(), false, 0}, {mClassThreshold.get(), false, 0}}, col2);
 
   int32_t cnt = 1;
   for(auto &classifierSetting : settings.modelClasses) {
@@ -133,6 +176,18 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
     mClassifyFilter.emplace_back(classifierSetting, *this, tab, cnt, parent);
     cnt++;
   }
+}
+
+void AiClassifier::updateInputFields(int32_t nrOfClasses, const settings::AiClassifierSettings::ModelParameters &model,
+                                     const settings::AiClassifierSettings::NetInputParameters &settings)
+{
+  mNetWidth->setValue(settings.spaceX);
+  mNetHeight->setValue(settings.spaceY);
+  mChannels->setValue(settings.channels);
+  mModelFormat->setValue(model.modelFormat);
+  mModelArchitecture->setValue(model.modelArchitecture);
+
+  mNumberOdModelClasses->setValue(nrOfClasses);
 }
 
 }    // namespace joda::ui

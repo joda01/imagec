@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "/workspaces/imagec/build/build/output/imagec",
             "args": [
-                "ai::classifier::test"
+                "ai::classifier::test::pytorch::coco"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

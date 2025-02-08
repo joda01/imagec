@@ -40,11 +40,40 @@ struct AiClassifierSettings : public SettingBase
     RGB       = 3
   };
 
-  enum class Format
+  enum class ModelFormat
   {
+    UNKNOWN,
     ONNX,
-    PYTORCH,
+    TORCHSCRIPT,
     TENSORFLOW
+  };
+
+  enum class ModelArchitecture
+  {
+    UNKNOWN,
+    YOLO_V5,
+    STAR_DIST,
+    U_NET,
+    MASK_R_CNN,
+  };
+
+  struct ModelParameters
+  {
+    //
+    // Model format
+    //
+    ModelFormat modelFormat = ModelFormat::ONNX;
+
+    //
+    // Model architecture
+    //
+    ModelArchitecture modelArchitecture = ModelArchitecture::UNKNOWN;
+
+    void check() const
+    {
+    }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ModelParameters, modelFormat, modelArchitecture);
   };
 
   struct NetInputParameters
@@ -52,39 +81,91 @@ struct AiClassifierSettings : public SettingBase
     //
     // Axes input order (b=batch, c = channel, y = height, x = width)
     //
-    std::string axesOrder = "bcyx";
-
-    //
-    // The expected image input with of the net
-    //
-    int32_t netInputWidth = 256;
-
-    //
-    // The expected image input heigh the net
-    //
-    int32_t netInputHeight = 256;
+    std::string axes = "bcyx";
 
     //
     // Batch size
     //
-    int32_t netInputBatchSize = 1;
+    int32_t batch = 1;
 
     //
     // Nr. of input channels. 1=gray scale, 3 = color
     //
-    NetChannels netNrOfChannels = NetChannels::RGB;
+    NetChannels channels = NetChannels::RGB;
+
+    //
+    // The expected image input with of the net
+    //
+    int32_t spaceX = 256;
+
+    //
+    // The expected image input heigh the net
+    //
+    int32_t spaceY = 256;
 
     //
     // Data type input
     //
-    NetInputDataType netInputType = NetInputDataType::FLOAT32;
+    NetInputDataType dataType = NetInputDataType::FLOAT32;
 
     void check() const
     {
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(NetInputParameters, axesOrder, netInputWidth, netInputHeight, netInputBatchSize,
-                                                         netNrOfChannels, netInputType);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(NetInputParameters, axes, batch, channels, spaceX, spaceY, dataType);
+  };
+
+  struct NetOutputParameters
+  {
+    //
+    // Axes input order (b=batch, c = channel, y = height, x = width)
+    //
+    std::string axes = "bcyx";
+
+    //
+    // Batch size
+    //
+    int32_t batch = 1;
+
+    //
+    // Nr. of output channels
+    //
+    int32_t channels = 32;
+
+    //
+    // The expected image input with of the net
+    //
+    int32_t spaceX = 160;
+
+    //
+    // The expected image input heigh the net
+    //
+    int32_t spaceY = 160;
+
+    //
+    // Index size
+    //
+    int32_t index = 0;
+  };
+
+  struct Thresholds
+  {
+    //
+    // Default class threshold used to mark an object as object
+    //
+    float classThreshold = 0.5;
+
+    //
+    // Default mask threshold
+    //
+    float maskThreshold = 0.8;
+
+    void check() const
+    {
+      CHECK_ERROR(classThreshold >= 0, "Class threshold must be >0.");
+    }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Thresholds, classThreshold, maskThreshold);
   };
 
   //
@@ -93,9 +174,14 @@ struct AiClassifierSettings : public SettingBase
   std::string modelPath;
 
   //
+  // Model parameter
+  //
+  ModelParameters modelParameter;
+
+  //
   // Model input parameter settings
   //
-  NetInputParameters modelInputParameters;
+  NetInputParameters modelInputParameter;
 
   //
   // Vector array index is the class ID used by the AI model starting with 0
@@ -103,21 +189,15 @@ struct AiClassifierSettings : public SettingBase
   std::list<ObjectClass> modelClasses = {{}};
 
   //
-  // Default class threshold used to mark an object as object
+  // The thresholds used for the prediction
   //
-  float classThreshold = 0.5;
-
-  //
-  // Default mask threshold
-  //
-  float maskThreshold = 0.8;
+  Thresholds thresholds;
 
   /////////////////////////////////////////////////////
   void check() const
   {
     CHECK_ERROR(!modelPath.empty(), "A AI model path must be given!");
     CHECK_ERROR(std::filesystem::exists(modelPath), "AI model >" + modelPath + "< cannot be opened!");
-    CHECK_ERROR(classThreshold >= 0, "Class threshold must be >0.");
     CHECK_ERROR(!modelClasses.empty(), "At least one classifier must be given!");
   }
 
@@ -133,7 +213,7 @@ struct AiClassifierSettings : public SettingBase
     return out;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AiClassifierSettings, modelPath, classThreshold, maskThreshold, modelClasses);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AiClassifierSettings, modelPath, modelParameter, thresholds, modelClasses);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(AiClassifierSettings::NetInputDataType, {
@@ -148,10 +228,19 @@ NLOHMANN_JSON_SERIALIZE_ENUM(AiClassifierSettings::NetChannels, {
                                                                     {AiClassifierSettings::NetChannels::RGB, 3},
                                                                 });
 
-NLOHMANN_JSON_SERIALIZE_ENUM(AiClassifierSettings::Format, {
-                                                               {AiClassifierSettings::Format::ONNX, "Onnx"},
-                                                               {AiClassifierSettings::Format::PYTORCH, "Pytorch"},
-                                                               {AiClassifierSettings::Format::TENSORFLOW, "Tensorflow"},
-                                                           });
+NLOHMANN_JSON_SERIALIZE_ENUM(AiClassifierSettings::ModelFormat, {
+                                                                    {AiClassifierSettings::ModelFormat::UNKNOWN, "Unknown"},
+                                                                    {AiClassifierSettings::ModelFormat::ONNX, "Onnx"},
+                                                                    {AiClassifierSettings::ModelFormat::TORCHSCRIPT, "Torchscript"},
+                                                                    {AiClassifierSettings::ModelFormat::TENSORFLOW, "Tensorflow"},
+                                                                });
+
+NLOHMANN_JSON_SERIALIZE_ENUM(AiClassifierSettings::ModelArchitecture, {
+                                                                          {AiClassifierSettings::ModelArchitecture::UNKNOWN, "Unknown"},
+                                                                          {AiClassifierSettings::ModelArchitecture::YOLO_V5, "YoloV5"},
+                                                                          {AiClassifierSettings::ModelArchitecture::STAR_DIST, "StarDist"},
+                                                                          {AiClassifierSettings::ModelArchitecture::U_NET, "U-Net"},
+                                                                          {AiClassifierSettings::ModelArchitecture::MASK_R_CNN, "Mask R-CNN"},
+                                                                      });
 
 }    // namespace joda::settings

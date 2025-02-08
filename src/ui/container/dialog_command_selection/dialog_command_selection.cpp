@@ -64,7 +64,8 @@ DialogCommandSelection::DialogCommandSelection(joda::settings::Pipeline &setting
   layout->addWidget(mCommands);
   addCommandsToTable(outOfStepBefore);
   setLayout(layout);
-  setMinimumHeight(350);
+  setMinimumHeight(600);
+  setMinimumWidth(500);
 }
 
 ///

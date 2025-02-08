@@ -50,30 +50,50 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
   std::vector<joda::ai::AiModel::Result> segResult;
 
   auto params = joda::ai::AiFramework::InputParameters{
-      .axesOrder    = mSettings.modelInputParameters.axesOrder,
-      .dataType     = static_cast<joda::ai::AiFramework::InputParameters::NetInputDataType>(mSettings.modelInputParameters.netInputType),
-      .batchSize    = mSettings.modelInputParameters.netInputBatchSize,
-      .nrOfChannels = static_cast<int32_t>(mSettings.modelInputParameters.netNrOfChannels),
-      .inputWidth   = mSettings.modelInputParameters.netInputWidth,
-      .inputHeight  = mSettings.modelInputParameters.netInputHeight};
+      .axesOrder    = mSettings.modelInputParameter.axes,
+      .dataType     = static_cast<joda::ai::AiFramework::InputParameters::NetInputDataType>(mSettings.modelInputParameter.dataType),
+      .batchSize    = mSettings.modelInputParameter.batch,
+      .nrOfChannels = static_cast<int32_t>(mSettings.modelInputParameter.channels),
+      .inputWidth   = mSettings.modelInputParameter.spaceX,
+      .inputHeight  = mSettings.modelInputParameter.spaceY};
 
-  if(mSettings.modelPath.ends_with(".pt")) {
-    joda::ai::AiFrameworkPytorch torch(mSettings.modelPath, params);
-    auto tensor = torch.predict(imageNotUse);
+  at::IValue prediction;
+  switch(mSettings.modelParameter.modelFormat) {
+    case settings::AiClassifierSettings::ModelFormat::UNKNOWN:
+      THROW("Unsupported model format!");
+      break;
 
-    if(mSettings.modelPath.ends_with("university_of_sbg_cell_segmentation_v3/weights.pt")) {
-      ai::AiModelYolo yoloy({});
-      segResult = yoloy.processPrediction(imageNotUse, tensor);
-    } else {
-      ai::AiModelBioImage bioImage({});
-      segResult = bioImage.processPrediction(imageNotUse, tensor);
-    }
+    case settings::AiClassifierSettings::ModelFormat::ONNX: {
+      joda::ai::AiFrameworkOnnx onnxClassifier(mSettings.modelPath, params);
+      prediction = onnxClassifier.predict(imageNotUse);
+    } break;
 
-  } else if(mSettings.modelPath.ends_with(".onnx")) {
-    joda::ai::AiFrameworkOnnx onnxClassifier(mSettings.modelPath, params);
-    auto tensor = onnxClassifier.predict(imageNotUse);
-    ai::AiModelYolo yoloy({});
-    segResult = yoloy.processPrediction(imageNotUse, tensor);
+    case settings::AiClassifierSettings::ModelFormat::TORCHSCRIPT: {
+      joda::ai::AiFrameworkPytorch torch(mSettings.modelPath, params);
+      prediction = torch.predict(imageNotUse);
+    } break;
+
+    case settings::AiClassifierSettings::ModelFormat::TENSORFLOW:
+      THROW("Tensorflow is not yet supported!");
+      break;
+  }
+
+  switch(mSettings.modelParameter.modelArchitecture) {
+    case settings::AiClassifierSettings::ModelArchitecture::UNKNOWN:
+      THROW("Unsupported architecture!");
+      break;
+    case settings::AiClassifierSettings::ModelArchitecture::YOLO_V5: {
+      ai::AiModelYolo yoloy({.maskThreshold = mSettings.thresholds.maskThreshold, .classThreshold = mSettings.thresholds.classThreshold});
+      segResult = yoloy.processPrediction(imageNotUse, prediction);
+    } break;
+    case settings::AiClassifierSettings::ModelArchitecture::STAR_DIST:
+    case settings::AiClassifierSettings::ModelArchitecture::U_NET: {
+      ai::AiModelBioImage bioImage({.maskThreshold = mSettings.thresholds.maskThreshold, .contourThreshold = 0.3});
+      segResult = bioImage.processPrediction(imageNotUse, prediction);
+    } break;
+    case settings::AiClassifierSettings::ModelArchitecture::MASK_R_CNN:
+      THROW("Mask R-CNN architecture is not supported yet");
+      break;
   }
 
   for(const auto &res : segResult) {
