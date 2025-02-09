@@ -204,10 +204,12 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
 
       auto shape = input["shape"];
       if(shape.is_array()) {
-        // int32_t c         = shape[1];
         elementToWork.batch = 1;
         if(bPos.has_value()) {
           elementToWork.batch = shape[bPos.value()];
+        }
+        if(cPos.has_value()) {
+          elementToWork.channels = static_cast<settings::AiClassifierSettings::NetChannels>(shape[cPos.value()]);
         }
         if(xPos.has_value()) {
           elementToWork.spaceX = shape[xPos.value()];
@@ -220,12 +222,15 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
         auto min  = shape["min"];
         auto step = shape["step"];
 
-        // int32_t min_c = min[1];
-        // int32_t step_c = step[1];
+        int32_t min_c  = 1;
+        int32_t step_c = 0;
+        if(cPos.has_value()) {
+          min_c  = min[cPos.value()];
+          step_c = step[cPos.value()];
+        }
 
         int32_t min_b  = 1;
         int32_t step_b = 0;
-
         if(bPos.has_value()) {
           min_b  = min[bPos.value()];
           step_b = step[bPos.value()];
@@ -245,9 +250,10 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
           step_x = step[xPos.value()];
         }
 
-        elementToWork.batch  = calcOptimalSize(min_b, step_b);
-        elementToWork.spaceX = calcOptimalSize(min_x, step_x);
-        elementToWork.spaceY = calcOptimalSize(min_y, step_y);
+        elementToWork.channels = static_cast<settings::AiClassifierSettings::NetChannels>(calcOptimalSize(min_c, step_c));
+        elementToWork.batch    = calcOptimalSize(min_b, step_b);
+        elementToWork.spaceX   = calcOptimalSize(min_x, step_x);
+        elementToWork.spaceY   = calcOptimalSize(min_y, step_y);
       }
     }
   } else if(rdfFormatVersion == "0.5.3") {
@@ -272,6 +278,13 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
         }
         if(type == "channel") {
           axesString += "c";
+          auto channelNames = axe["channel_names"];
+          std::vector<std::string> channelNamesOut;
+          for(const auto &channelName : channelNames) {
+            channelNamesOut.emplace_back(channelName);
+          }
+          /// How to get correct channel size
+          elementToWork.channels = static_cast<settings::AiClassifierSettings::NetChannels>(channelNamesOut.size());
         }
         if(type == "space") {
           std::string id = axe["id"];
@@ -440,6 +453,7 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
           for(const auto &channelName : channelNames) {
             channelNamesOut.emplace_back(channelName);
           }
+          /// How to get correct channel size
           objectToWorkOn.channels = channelNamesOut.size();
         }
         if(type == "space") {
