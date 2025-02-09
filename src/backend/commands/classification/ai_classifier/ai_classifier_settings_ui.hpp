@@ -242,6 +242,7 @@ private:
   void updateInputFields(int32_t nrOfClasses, const settings::AiClassifierSettings::ModelParameters &model,
                          const settings::AiClassifierSettings::NetInputParameters &settings);
 
+  void refreshModels();
 private slots:
   void addFilter(const std::string &title, int32_t classId, float handicap)
   {

@@ -27,23 +27,29 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   this->mutableEditDialog()->setMinimumWidth(700);
   this->mutableEditDialog()->setMinimumHeight(600);
 
+  auto *openModelsPath = addActionButton("Open models path", generateIcon("open"));
+  connect(openModelsPath, &QAction::triggered, [this]() {
+    QString appDirPath = QCoreApplication::applicationDirPath() + "/models";
+    QDesktopServices::openUrl(QUrl("file:///" + appDirPath));
+  });
+
+  auto *reloadModels = addActionButton("Reload models", generateIcon("refresh"));
+  connect(reloadModels, &QAction::triggered, [this]() { refreshModels(); });
+
+  auto *helpButton = addActionButton("Help", generateIcon("help"));
+  connect(helpButton, &QAction::triggered, [this]() {
+    QUrl url("https://imagec.org/doc/docs/commands/index.html#object-classification");
+    QDesktopServices::openUrl(url);
+  });
+
   auto *modelTab = addTab(
       "Model settings", [] {}, false);
 
-  auto onnxModels = joda::onnx::AiModelParser::findAiModelFiles();
-
-  std::vector<SettingComboBoxString::ComboEntry> entries;
-  entries.reserve(onnxModels.size() + 1);
-  entries.emplace_back(SettingComboBoxString::ComboEntry{.key = "", .label = "Select model ..."});
-  for(const auto &[key, model] : onnxModels) {
-    entries.emplace_back(SettingComboBoxString::ComboEntry{.key = model.modelPath.string(), .label = model.modelName.data()});
-  }
-
   mModelPath = SettingBase::create<SettingComboBoxString>(parent, {}, "Model path");
-  mModelPath->addOptions(entries);
   mModelPath->connectWithSetting(&settings.modelPath);
   mModelPath->setValue(settings.modelPath);
   mModelPath->setShortDescription("Path:");
+  refreshModels();
   connect(mModelPath.get(), &SettingBase::valueChanged, [this]() {
     if(!mModelPath->getValue().empty()) {
       try {
@@ -198,6 +204,18 @@ void AiClassifier::updateInputFields(int32_t nrOfClasses, const settings::AiClas
   mModelArchitecture->setValue(model.modelArchitecture);
 
   mNumberOdModelClasses->setValue(nrOfClasses);
+}
+
+void AiClassifier::refreshModels()
+{
+  auto onnxModels = joda::onnx::AiModelParser::findAiModelFiles();
+  std::vector<SettingComboBoxString::ComboEntry> entries;
+  entries.reserve(onnxModels.size() + 1);
+  entries.emplace_back(SettingComboBoxString::ComboEntry{.key = "", .label = "Select model ..."});
+  for(const auto &[key, model] : onnxModels) {
+    entries.emplace_back(SettingComboBoxString::ComboEntry{.key = model.modelPath.string(), .label = model.modelName.data()});
+  }
+  mModelPath->addOptions(entries);
 }
 
 }    // namespace joda::ui

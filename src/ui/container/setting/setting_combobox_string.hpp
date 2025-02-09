@@ -74,6 +74,9 @@ public:
 
   void addOptions(const std::vector<ComboEntry> &options)
   {
+    mComboBox->blockSignals(true);
+    auto actSelected = getValue();
+    mComboBox->clear();
     for(const auto &data : options) {
       QVariant variant;
       variant = QVariant(data.key.data());
@@ -83,6 +86,8 @@ public:
         mComboBox->addItem(data.icon, data.label, variant);
       }
     }
+    setValue(actSelected);
+    mComboBox->blockSignals(false);
   }
 
   void changeOptionText(const std::map<std::string, QString> &options)

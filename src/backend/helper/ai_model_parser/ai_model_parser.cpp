@@ -145,19 +145,21 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
     tags.emplace(helper::toLower(tag));
   }
 
-  // =======================================
-  // Weights information data
-  // =======================================
-  auto weights = rdfParsed["weights"];
-
   if(rdfParsed.contains("version")) {
     if(rdfParsed["version"].is_string()) {
       response.version = rdfParsed["version"];
     } else {
       float modelVersion = rdfParsed["version"];
-      response.version   = std::to_string(modelVersion);
+      std::ostringstream oss;
+      oss << std::fixed << std::setprecision(1) << modelVersion;
+      response.version = oss.str();
     }
   }
+
+  // =======================================
+  // Weights information data
+  // =======================================
+  auto weights = rdfParsed["weights"];
   std::string modelWeighsFileName;
   if(weights.contains("onnx")) {
     response.modelParameter.modelFormat = settings::AiClassifierSettings::ModelFormat::ONNX;
@@ -598,7 +600,7 @@ std::string AiModelParser::Data::toString() const
 {
   std::stringstream out;
 
-  out << modelName << " v" << version << "\n\n";
+  out << modelName << " v" << version << "\n----\n";
 
   out << "IN:\n";
   for(const auto &[id, input] : inputs) {
@@ -610,7 +612,7 @@ std::string AiModelParser::Data::toString() const
     out << toInputOrder<settings::AiClassifierSettings::NetOutputParameters>(id, input) << "\n";
   }
 
-  out << "\n\n";
+  out << "\n----\n”";
   for(int n = 0; n < authors.size(); n++) {
     const auto &author = authors[n];
     if(!author.affiliation.empty()) {
