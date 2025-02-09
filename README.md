@@ -41,14 +41,6 @@ The main goals were to improve performance, allow the processing of big tiffs an
 ![doc/screenshot_well.png](doc/screenshot_well.png)
 
 
-## Using pyramid images
-
-Covert to
-
-`
-bfconvert -no-upgrade -noflat -pyramid-resolutions 4 -pyramid-scale 2 -tilex 512 -tiley 512 /workspaces/imagec/test_local/bigtif/GMEV5minM1OT3_0001.btf /workspaces/imagec/test_local/bigtif/GMEV5minM1OT3_0001.ome.btf
-`
-
 -----
 
 ## Developers section
@@ -96,40 +88,18 @@ docker push  joda001/imagec:v1.7.x
 
 #### Preparation
 
-Install MSYS2 and following packages:
-
-```
-pacman -S --needed base-devel mingw-w64-x86_64-toolchain
-pacman -S mingw-w64-x86_64-catch
-pacman -S mingw-w64-x86_64-pugixml
-pacman -S mingw-w64-protobuf
-pacman -S mingw-w64-x86_64-opencv
-pacman -S mingw-w64-x86_64-nlohmann-json
-pacman -S mingw-w64-x86_64-python-mingw-ldd
-pacman -S mingw-w64-x86_64-qt6-base
-pacman -S mingw-w64-x86_64-libxlsxwriter
-```
-
-Add following ENV variables:
-
-```
-C:\msys64\usr\bin
-C:\msys64\mingw64\bin
-```
-
 Add powershell permissions:
 
 `set-executionpolicy remotesigned`
 
+Install:
+
+- Python3
+- `pip install conan`
+
 #### Compile
 
-Execute `make.ps1` and `build_local.ps1`.
-The EXE file will be placed in `build/build/imagec.exe`
-
-`
-mingw-ldd.exe  imagec.exe --dll-lookup-dirs C:\msys64\mingw64\bin
-strip.exe imagec.exe
-`
+Execute `build_win.ps1` 
 
 
 ## Used open source libs
@@ -159,6 +129,3 @@ ImageC is the follower of [evanalyzer](https://github.com/joda01/evanalyzer).
 chmod +x imagec.app/Contents/MacOS/imagec
 xattr -dr com.apple.quarantine imagec.app
 open imagec.app
-
-
-## Finding memory leaks
