@@ -30,10 +30,10 @@ namespace joda::processor {
 class DependencyGraphKey
 {
 public:
-  DependencyGraphKey(joda::enums::ClassId in) : mKey(static_cast<__uint128_t>(in))
+  DependencyGraphKey(joda::enums::ClassId in) : mKey(static_cast<uint64_t>(in))
   {
   }
-  DependencyGraphKey(joda::enums::MemoryIdx in) : mKey(static_cast<__uint128_t>(in) << static_cast<__uint128_t>(16))
+  DependencyGraphKey(joda::enums::MemoryIdx in) : mKey(static_cast<stdi::uint128_t>(in) << 16)
   {
   }
 
@@ -42,22 +42,22 @@ public:
     return mKey < in.mKey;
   }
 
-  operator __uint128_t() const
+  operator stdi::uint128_t() const
   {
     return mKey;
   }
 
   std::string toString() const
   {
-    __uint128_t key = mKey;
+    stdi::uint128_t key = mKey;
     if(key == 0)
       return "0";
 
     std::string result;
     while(key > 0) {
       // Get the last digit using modulo 10
-      unsigned int digit = key % 10;
-      result             = char('0' + digit) + result;
+      stdi::uint128_t digit = key % 10;
+      result                = char('0' + digit.lowRet()) + result;
       key /= 10;
     }
 
@@ -65,7 +65,7 @@ public:
   }
 
 private:
-  __uint128_t mKey;
+  stdi::uint128_t mKey;
 };
 
 class DependencyGraphKeySet : public std::set<DependencyGraphKey>

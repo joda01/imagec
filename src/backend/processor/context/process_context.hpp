@@ -226,9 +226,8 @@ public:
       if(imgId.zProjection == enums::ZProjection::$) {
         imgId.zProjection = pipelineContext.defaultZProjection;
       }
-      __uint128_t plane1 = ((imgId.imagePlane.toInt(imgId.imagePlane) << 8) | static_cast<uint8_t>(imgId.zProjection)) +
-                           static_cast<__uint128_t>(enums::MemoryIdx::RESERVED_01);
-      return static_cast<enums::MemoryIdx>(plane1);
+      enums::MemoryIdx xx(imgId.imagePlane, imgId.zProjection, enums::MemoryIdx::Enum::RESERVED_01);
+      return enums::MemoryIdx(imgId.imagePlane, imgId.zProjection, enums::MemoryIdx::Enum::RESERVED_01);
     }
     return imgId.memoryId;
   }

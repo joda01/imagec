@@ -38,7 +38,8 @@ public:
   ImageSaver(joda::settings::PipelineStep &pipelineStep, settings::ImageSaverSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings)
   {
-    auto *tab = addTab("", [] {});
+    auto *tab = addTab(
+        "", [] {}, false);
     {
       //
       //

@@ -84,12 +84,13 @@ LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool wi
 /// \param[out]
 /// \return
 ///
-TabWidget *LayoutGenerator::addTab(const QString &title, std::function<void()> beforeTabClose)
+TabWidget *LayoutGenerator::addTab(const QString &title, std::function<void()> beforeTabClose, bool showCloseButton)
 {
   auto *tab = new TabWidget(mDeleteButton != nullptr, std::move(beforeTabClose), this, mParent);
   mTabWidget->addTab(tab, title);
-
-  mTabWidget->tabBar()->tabButton(0, QTabBar::RightSide)->setVisible(false);
+  if(!showCloseButton) {
+    mTabWidget->tabBar()->tabButton(mTabWidget->count() - 1, QTabBar::RightSide)->setVisible(false);
+  }
   // mTabWidget->tabBar()->setTabButton(0, QTabBar::RightSide, nullptr);
 
   return tab;
@@ -229,6 +230,27 @@ void VerticalPane::addGroup(const std::vector<SettingBase *> &elements, int minW
 void VerticalPane ::addWidgetGroup(const QString &title, const std::vector<QWidget *> &elements, int minWidth, int maxWidth)
 {
   auto *group = new QGroupBox(title);
+  group->setMaximumWidth(maxWidth);
+  group->setMinimumWidth(minWidth);
+  auto *layout = new QVBoxLayout;
+  for(const auto &element : elements) {
+    element->setParent(group);
+    layout->addWidget(element);
+  }
+  group->setLayout(layout);
+  addWidget(group);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void VerticalPane ::addWidgetGroup(const std::vector<QWidget *> &elements, int minWidth, int maxWidth)
+{
+  auto *group = new QWidget();
   group->setMaximumWidth(maxWidth);
   group->setMinimumWidth(minWidth);
   auto *layout = new QVBoxLayout;

@@ -281,9 +281,9 @@ void Command::setDisabled(bool disabled)
 /// \param[out]
 /// \return
 ///
-helper::TabWidget *Command::addTab(const QString &title, std::function<void()> beforeTabClose)
+helper::TabWidget *Command::addTab(const QString &title, std::function<void()> beforeTabClose, bool showCloseButton)
 {
-  auto *tab = mLayout.addTab(title, beforeTabClose);
+  auto *tab = mLayout.addTab(title, beforeTabClose, showCloseButton);
   /// \todo rethink this
   // if(mEditDialog->isVisible()) {
   //   std::thread([this] {
@@ -292,6 +292,20 @@ helper::TabWidget *Command::addTab(const QString &title, std::function<void()> b
   //   }).detach();
   // }
   return tab;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Command::removeTab(int32_t idx)
+{
+  if(idx > 0 && idx < mLayout.getNrOfTabs()) {
+    mLayout.onRemoveTab(idx);
+  }
 }
 
 ///
@@ -347,6 +361,21 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
   }
   updateDisplayText();
   connect(this, &Command::displayTextChanged, this, &Command::updateDisplayText);
+
+  return col;
+}
+
+helper::VerticalPane *Command::addWidgets(helper::TabWidget *tab, const QString &boxTitle, const std::vector<QWidget *> &settings,
+                                          helper::VerticalPane *col)
+{
+  if(nullptr == col) {
+    col = tab->addVerticalPanel();
+  }
+  if(boxTitle.isEmpty()) {
+    col->addWidgetGroup(settings, 220, 300);
+  } else {
+    col->addWidgetGroup(boxTitle, settings, 220, 300);
+  }
 
   return col;
 }

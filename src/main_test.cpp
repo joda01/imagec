@@ -5,12 +5,16 @@
 
 int main(int argc, char **argv)
 {
+  joda::image::reader::ImageReader::init(1e9);
+
   sleep(1);
 
   int result = Catch::Session().run(argc, argv);
 
   // global clean-up...
   // joda::image::reader::ImageReader::destroy();
+  joda::image::reader::ImageReader::destroy();
+
   return result;
 }
 

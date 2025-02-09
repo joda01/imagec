@@ -282,7 +282,7 @@ void RollingBallBackground::rollBall(RollingBall *ball, cv::Mat &fp) const
   auto *zBall   = ball->data;
   int ballWidth = ball->width;
   int radius    = ballWidth / 2;
-  float cache[width * ballWidth];    // temporarily stores the pixels we work on
+  float *cache  = new float[width * ballWidth];    // temporarily stores the pixels we work on
 
   for(int y = -radius; y < height + radius; y++) {    // for all positions of the ball center:
     int nextLineToWriteInCache = (y + radius) % ballWidth;
@@ -334,6 +334,7 @@ void RollingBallBackground::rollBall(RollingBall *ball, cv::Mat &fp) const
   }
 
   // new ImagePlus("bg rolled", fp.duplicate()).show();
+  delete[] cache;
 }
 
 double RollingBallBackground::filter3x3(cv::Mat &ip, int type) const

@@ -91,7 +91,8 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   connect(mTable, &QTableWidget::cellClicked, this, &PanelResults::onCellClicked);
 
   // Middle layout
-  auto *tab  = layout().addTab("", [] {});
+  auto *tab = layout().addTab(
+      "", [] {}, false);
   auto *col  = tab->addVerticalPanel();
   mHeatmap01 = new ChartHeatMap(this);
   mHeatmap01->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);

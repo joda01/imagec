@@ -13,74 +13,106 @@
 #pragma once
 
 #include "backend/enums/enums_classes.hpp"
+#include "backend/enums/types.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::enums {
 
-enum class MemoryIdx : __uint128_t
+class MemoryIdx
 {
-  M0  = 0x0,
-  M1  = 0x1,
-  M2  = 0x2,
-  M3  = 0x3,
-  M4  = 0x4,
-  M5  = 0x5,
-  M6  = 0x6,
-  M7  = 0x7,
-  M8  = 0x8,
-  M9  = 0x9,
-  M10 = 0xA,
-  M11 = 0xB,
-  M12 = 0xC,
-  M13 = 0xD,
-  M14 = 0xE,
-  M15 = 0xF,
-  // From 0x100 all the numbers are reserved
-  RESERVED_01 = 0x100,
-  NONE        = (static_cast<__uint128_t>(0xFFFFFFFFFFFFFFFF) << 64) | 0xFFFFFFFFFFFFFFFE,
-  $           = (static_cast<__uint128_t>(0xFFFFFFFFFFFFFFFF) << 64) | 0xFFFFFFFFFFFFFFFF
-};
+public:
+  enum Enum
+  {
+    M0  = 0x0,
+    M1  = 0x1,
+    M2  = 0x2,
+    M3  = 0x3,
+    M4  = 0x4,
+    M5  = 0x5,
+    M6  = 0x6,
+    M7  = 0x7,
+    M8  = 0x8,
+    M9  = 0x9,
+    M10 = 0xA,
+    M11 = 0xB,
+    M12 = 0xC,
+    M13 = 0xD,
+    M14 = 0xE,
+    M15 = 0xF,
+    // From 0x100 all the numbers are reserved
+    NONE        = 0xFE,
+    $           = 0xFF,
+    RESERVED_01 = 0x100,
+  };
 
-inline std::string uint128ToString(__uint128_t value)
-{
-  std::ostringstream oss;
-
-  // Use the same logic to extract digits
-  if(value == 0) {
-    oss << "0";
-  } else {
-    while(value > 0) {
-      oss.put('0' + (value % 10));
-      value /= 10;
-    }
+  MemoryIdx(const MemoryIdx &inData) : value(inData.value)
+  {
   }
 
-  // Reverse the string stream result
-  std::string result = oss.str();
-  std::reverse(result.begin(), result.end());
+  MemoryIdx(const MemoryIdx &&inData) : value(inData.value)
+  {
+  }
 
-  return result;
-}
+  MemoryIdx(Enum idx) : value(0, static_cast<uint64_t>(idx))
+  {
+  }
 
-NLOHMANN_JSON_SERIALIZE_ENUM(MemoryIdx, {
-                                            {MemoryIdx::$, "$"},
-                                            {MemoryIdx::NONE, "None"},
-                                            {MemoryIdx::M0, "M0"},
-                                            {MemoryIdx::M1, "M1"},
-                                            {MemoryIdx::M2, "M2"},
-                                            {MemoryIdx::M3, "M3"},
-                                            {MemoryIdx::M4, "M4"},
-                                            {MemoryIdx::M5, "M5"},
-                                            {MemoryIdx::M6, "M6"},
-                                            {MemoryIdx::M7, "M7"},
-                                            {MemoryIdx::M8, "M8"},
-                                            {MemoryIdx::M9, "M9"},
-                                            {MemoryIdx::M10, "M10"},
-                                            {MemoryIdx::M11, "M11"},
-                                            {MemoryIdx::M12, "M12"},
-                                            {MemoryIdx::M13, "M13"},
-                                            {MemoryIdx::M14, "M14"},
-                                            {MemoryIdx::M15, "M15"},
-                                        });
+  // user-defined copy assignment (copy-and-swap idiom)
+  MemoryIdx &operator=(MemoryIdx other)
+  {
+    std::swap(value, other.value);
+    return *this;
+  }
+
+  MemoryIdx(const joda::enums::PlaneId &plane, const enums::ZProjection &zProject, Enum idx) :
+      value(((static_cast<uint64_t>(plane.cStack) << 32) | plane.zStack),
+            ((static_cast<uint64_t>(plane.tStack) << 32) | ((static_cast<uint32_t>(zProject)) + static_cast<uint32_t>(idx))))
+  {
+  }
+
+  constexpr bool operator==(const MemoryIdx &other) const
+  {
+    return value == other.value;
+  }
+
+  bool operator<(const MemoryIdx &other) const
+  {
+    return value < other.value;
+  }
+
+  bool operator==(const Enum &other) const
+  {
+    return stdi::uint128_t(0, other) == value;
+  }
+
+  explicit operator stdi::uint128_t() const
+  {
+    return value;
+  }
+
+private:
+  stdi::uint128_t value;
+};
+
+NLOHMANN_JSON_SERIALIZE_ENUM(MemoryIdx::Enum, {
+                                                  {MemoryIdx::$, "$"},
+                                                  {MemoryIdx::NONE, "None"},
+                                                  {MemoryIdx::M0, "M0"},
+                                                  {MemoryIdx::M1, "M1"},
+                                                  {MemoryIdx::M2, "M2"},
+                                                  {MemoryIdx::M3, "M3"},
+                                                  {MemoryIdx::M4, "M4"},
+                                                  {MemoryIdx::M5, "M5"},
+                                                  {MemoryIdx::M6, "M6"},
+                                                  {MemoryIdx::M7, "M7"},
+                                                  {MemoryIdx::M8, "M8"},
+                                                  {MemoryIdx::M9, "M9"},
+                                                  {MemoryIdx::M10, "M10"},
+                                                  {MemoryIdx::M11, "M11"},
+                                                  {MemoryIdx::M12, "M12"},
+                                                  {MemoryIdx::M13, "M13"},
+                                                  {MemoryIdx::M14, "M14"},
+                                                  {MemoryIdx::M15, "M15"},
+                                              });
 
 }    // namespace joda::enums

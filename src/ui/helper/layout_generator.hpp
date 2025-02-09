@@ -54,7 +54,7 @@ public:
   explicit LayoutGenerator(QWidget *parent, bool withDeleteButton = true, bool withTopToolbar = true, bool withBackButton = true,
                            bool withBottomToolbar = false);
 
-  TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose);
+  TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose, bool showCloseButton);
 
   void removeTab(int idx)
   {
@@ -141,6 +141,7 @@ public:
   void addGroup(const std::vector<SettingBase *> &elements, int minWidth = 220, int maxWidth = 220);
   void addGroup(const QString &title, const std::vector<SettingBase *> &elements, int minWidth = 220, int maxWidth = 220);
   void addWidgetGroup(const QString &title, const std::vector<QWidget *> &elements, int minWidth = 220, int maxWidth = 220);
+  void addWidgetGroup(const std::vector<QWidget *> &elements, int minWidth = 220, int maxWidth = 220);
 
 private:
   LayoutGenerator *layoutGenerator;

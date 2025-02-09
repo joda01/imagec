@@ -63,7 +63,8 @@ public:
   /////////////////////////////////////////////////////
   Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &icon, QWidget *parent, InOut type);
 
-  helper::TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose);
+  helper::TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose, bool showCloseButton);
+  void removeTab(int32_t idx);
   void removeAllTabsExceptFirst();
   void registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi);
   void registerAddCommandButton(joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineSettingsUi, WindowMain *mainWindow);
@@ -72,9 +73,11 @@ public:
     mCommandBefore = commandBefore;
   }
 
-  void addSetting(const std::vector<std::tuple<SettingBase *, bool, int32_t>> &settings)
+  void addSetting(const std::vector<std::tuple<SettingBase *, bool, int32_t>> &settings, bool showCloseButton = false)
   {
-    addSetting(addTab("", [] {}), "", settings);
+    addSetting(addTab(
+                   "", [] {}, showCloseButton),
+               "", settings);
   }
   void addSetting(helper::TabWidget *tab, const std::vector<std::tuple<SettingBase *, bool, int32_t>> &settings)
   {
@@ -82,6 +85,9 @@ public:
   }
   helper::VerticalPane *addSetting(helper::TabWidget *tab, const QString &boxTitle,
                                    const std::vector<std::tuple<SettingBase *, bool, int32_t>> &settings, helper::VerticalPane *col = nullptr);
+
+  helper::VerticalPane *addWidgets(helper::TabWidget *tab, const QString &boxTitle, const std::vector<QWidget *> &settings,
+                                   helper::VerticalPane *col = nullptr);
 
   [[nodiscard]] InOut getInOut() const
   {

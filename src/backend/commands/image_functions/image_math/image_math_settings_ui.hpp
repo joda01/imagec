@@ -40,7 +40,8 @@ public:
   ImageMath(joda::settings::PipelineStep &pipelineStep, settings::ImageMathSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}}), mParent(parent)
   {
-    auto *modelTab = addTab("Base", [] {});
+    auto *modelTab = addTab(
+        "Base", [] {}, false);
 
     //
     // Options
@@ -85,7 +86,7 @@ public:
     zProjection->setValue(settings.inputImageSecond.zProjection);
     zProjection->connectWithSetting(&settings.inputImageSecond.zProjection);
 
-    mMemoryIdx = SettingBase::create<SettingComboBox<enums::MemoryIdx>>(parent, generateIcon("matrix"), "From cache");
+    mMemoryIdx = SettingBase::create<SettingComboBox<enums::MemoryIdx::Enum>>(parent, generateIcon("matrix"), "From cache");
     mMemoryIdx->addOptions({{enums::MemoryIdx::NONE, "None"},
                             {enums::MemoryIdx::M0, "M0"},
                             {enums::MemoryIdx::M1, "M1"},
@@ -115,7 +116,7 @@ private:
   std::unique_ptr<SettingComboBox<joda::settings::ImageMathSettings::Function>> mFunction;
   std::unique_ptr<SettingComboBox<int32_t>> cStackIndex;
   std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjection;
-  std::shared_ptr<SettingComboBox<enums::MemoryIdx>> mMemoryIdx;
+  std::shared_ptr<SettingComboBox<enums::MemoryIdx::Enum>> mMemoryIdx;
 
   /////////////////////////////////////////////////////
 

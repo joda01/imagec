@@ -38,7 +38,7 @@ public:
     //
     //
     //
-    mMemoryIdx = SettingBase::create<SettingComboBox<enums::MemoryIdx>>(parent, generateIcon("matrix"), "Cache");
+    mMemoryIdx = SettingBase::create<SettingComboBox<enums::MemoryIdx::Enum>>(parent, generateIcon("matrix"), "Cache");
     mMemoryIdx->addOptions({{enums::MemoryIdx::M0, "M0"},
                             {enums::MemoryIdx::M1, "M1"},
                             {enums::MemoryIdx::M2, "M2"},
@@ -59,7 +59,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  std::shared_ptr<SettingComboBox<enums::MemoryIdx>> mMemoryIdx;
+  std::shared_ptr<SettingComboBox<enums::MemoryIdx::Enum>> mMemoryIdx;
 };
 
 }    // namespace joda::ui

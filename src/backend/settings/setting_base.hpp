@@ -39,12 +39,12 @@ public:
     return {};
   }
 
-  [[nodiscard]] virtual std::set<enums::MemoryIdx> getInputImageCache() const
+  [[nodiscard]] virtual std::set<enums::MemoryIdx::Enum> getInputImageCache() const
   {
     return {};
   }
 
-  [[nodiscard]] virtual std::set<enums::MemoryIdx> getOutputImageCache() const
+  [[nodiscard]] virtual std::set<enums::MemoryIdx::Enum> getOutputImageCache() const
   {
     return {};
   }

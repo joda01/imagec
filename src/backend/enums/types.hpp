@@ -13,6 +13,8 @@
 
 #pragma once
 
+#include <cstdint>
+#include "backend/enums/bigtypes.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
@@ -39,9 +41,9 @@ struct PlaneId
   {
   }
 
-  auto toInt(const PlaneId &id) const -> __uint128_t
+  auto toInt(const PlaneId &id) const -> stdi::uint128_t
   {
-    __uint128_t nr = static_cast<__uint128_t>(id.cStack) << 64 | static_cast<__uint128_t>(id.zStack) << 32 | static_cast<__uint128_t>(id.tStack);
+    stdi::uint128_t nr(static_cast<uint64_t>(id.cStack), static_cast<uint64_t>(id.zStack) << 32 | static_cast<uint64_t>(id.tStack));
     return nr;
   };
 
@@ -63,5 +65,23 @@ struct HsvColor
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(HsvColor, hue, sat, val);
 };
+
+enum class ZProjection
+{
+  $             = -2,
+  UNDEFINED     = -1,
+  NONE          = 0,
+  MAX_INTENSITY = 1,
+  MIN_INTENSITY = 2,
+  AVG_INTENSITY = 3
+};
+
+NLOHMANN_JSON_SERIALIZE_ENUM(ZProjection, {
+                                              {ZProjection::$, "$"},
+                                              {ZProjection::NONE, "None"},
+                                              {ZProjection::MAX_INTENSITY, "MaxIntensity"},
+                                              {ZProjection::MIN_INTENSITY, "MinIntensity"},
+                                              {ZProjection::AVG_INTENSITY, "AvgIntensity"},
+                                          });
 
 }    // namespace joda::enums

@@ -55,6 +55,10 @@ else ()
     set(CMAKE_INSTALL_RPATH "$ORIGIN/lib")
 endif()
 
+# Options
+set(WITH_ONNX "With onnx support" ON)
+set(WITH_PYTORCH "With pytorch support" ON)
+set(WITH_TENSORFLOW "With tensorflow support" ON)
 
 
 # Get the current user and host
@@ -81,10 +85,10 @@ find_package( nlohmann_json CONFIG REQUIRED)
 find_package( DuckDB CONFIG REQUIRED)
 find_package( Qt6 REQUIRED COMPONENTS Core Gui Widgets )
 find_package( ONNX REQUIRED )
+find_package( ryml REQUIRED )
 
 
 SET(DuckDB_USE_STATIC_LIBS TRUE)
-
 
 set(LIBS
   ${OpenCV_LIBS}
@@ -95,7 +99,24 @@ set(LIBS
   duckdb::duckdb
   nlohmann_json::nlohmann_json
   onnx::onnx
+  ryml::ryml
 )
+
+if(WITH_ONNX)
+  find_package(onnxruntime REQUIRED)
+  set(LIBS ${LIBS} onnxruntime::onnxruntime)
+endif()
+
+if(WITH_PYTORCH)
+  find_package( Torch REQUIRED )
+  set(LIBS ${LIBS} ${TORCH_LIBRARIES})
+endif()
+
+if(WITH_TENSORFLOW)
+  find_package( tensorflowlite REQUIRED )
+  set(LIBS ${LIBS} tensorflow::tensorflowlite)
+endif()
+
 
 set(RESOURCE_FILES
     resources/qt_conf.qrc
@@ -132,6 +153,19 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 target_sources(${PROJECT_NAME} PRIVATE ${RESOURCE_SOURCES})
 target_compile_definitions(${PROJECT_NAME} PUBLIC BS_THREAD_POOL_ENABLE_PRIORITY DUCKDB_BUILD_LIBRARY )
+
+if(WITH_ONNX)
+  add_compile_definitions(WITH_ONNX)
+endif()
+
+if(WITH_PYTORCH)
+  add_compile_definitions(WITH_PYTORCH)
+endif()
+
+if(WITH_TENSORFLOW)
+  add_compile_definitions(WITH_TENSORFLOW)
+endif()
+
 
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES

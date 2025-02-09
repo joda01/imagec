@@ -39,7 +39,8 @@ public:
   VoronoiGrid(joda::settings::PipelineStep &pipelineStep, settings::VoronoiGridSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}})
   {
-    auto *tab = addTab("", [] {});
+    auto *tab = addTab(
+        "", [] {}, false);
     //
     //
     pointsClasss = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("initial-state"), "Centers");

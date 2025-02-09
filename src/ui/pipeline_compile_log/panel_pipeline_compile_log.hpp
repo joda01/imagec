@@ -14,6 +14,7 @@
 
 #include <qtablewidget.h>
 #include <qwidget.h>
+#include <mutex>
 
 namespace joda::settings {
 class AnalyzeSettings;

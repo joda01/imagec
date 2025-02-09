@@ -15,15 +15,17 @@
 #include <qaction.h>
 #include <qwidget.h>
 #include <cstdint>
+#include <string>
 #include "backend/commands/classification/classifier_filter.hpp"
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/helper/onnx_parser/onnx_parser.hpp"
+#include "backend/helper/ai_model_parser/ai_model_parser.hpp"
 #include "ui/container/command/command.hpp"
 #include "ui/container/setting/setting_combobox.hpp"
 #include "ui/container/setting/setting_combobox_classes_out.hpp"
 #include "ui/container/setting/setting_combobox_string.hpp"
 #include "ui/container/setting/setting_line_edit.hpp"
+#include "ui/container/setting/setting_spinbox.hpp"
 #include "ui/helper/icon_generator.hpp"
 #include "ui/helper/layout_generator.hpp"
 #include "ui/helper/setting_generator.hpp"
@@ -38,76 +40,7 @@ public:
   inline static std::string TITLE = "AI Classifier";
   inline static std::string ICON  = "magic";
 
-  AiClassifier(joda::settings::PipelineStep &pipelineStep, settings::AiClassifierSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::OBJECT}}), mSettings(settings), mParent(parent)
-  {
-    this->mutableEditDialog()->setMinimumWidth(600);
-    this->mutableEditDialog()->setMinimumHeight(400);
-
-    auto *modelTab = addTab("Model", [] {});
-
-    auto onnxModels = joda::onnx::OnnxParser::findOnnxFiles();
-
-    std::vector<SettingComboBoxString::ComboEntry> entries;
-    entries.reserve(onnxModels.size() + 1);
-    entries.emplace_back(SettingComboBoxString::ComboEntry{.key = "", .label = "Select model ..."});
-    for(const auto &[key, model] : onnxModels) {
-      entries.emplace_back(SettingComboBoxString::ComboEntry{.key = model.modelPath.string(), .label = model.modelName.data()});
-    }
-
-    mModelPath = SettingBase::create<SettingComboBoxString>(parent, {}, "Model path");
-    mModelPath->addOptions(entries);
-    mModelPath->connectWithSetting(&settings.modelPath);
-    mModelPath->setValue(settings.modelPath);
-    mModelPath->setShortDescription("Path:");
-    connect(mModelPath.get(), &SettingBase::valueChanged, [this]() {
-      if(!mModelPath->getValue().empty()) {
-        auto info = joda::onnx::OnnxParser::getOnnxInfo(std::filesystem::path(mModelPath->getValue()));
-        removeAll();
-        mNumberOdModelClasses->setValue(info.classes.size());
-        int n = 0;
-        for(const auto &classs : info.classes) {
-          addFilter(classs, n, 1);
-          n++;
-        }
-      }
-    });
-
-    //
-    //
-    mNumberOdModelClasses = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Nr. of model classes");
-    mNumberOdModelClasses->setPlaceholderText("[0 - 2,147,483,647]");
-    mNumberOdModelClasses->setUnit("");
-    mNumberOdModelClasses->setMinMax(1, INT32_MAX);
-    mNumberOdModelClasses->setValue(settings.numberOfModelClasses);
-    mNumberOdModelClasses->connectWithSetting(&settings.numberOfModelClasses);
-    mNumberOdModelClasses->setShortDescription("Classes:");
-    mNumberOdModelClasses->setEnabled(false);
-
-    mClassThreshold = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Class threshold (0.5)");
-    mClassThreshold->setPlaceholderText("[0 - 1]");
-    mClassThreshold->setUnit("");
-    mClassThreshold->setMinMax(0, 1);
-    mClassThreshold->setValue(settings.classThreshold);
-    mClassThreshold->connectWithSetting(&settings.classThreshold);
-
-    mMaskThreshold = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Mask threshold (0.8)");
-    mMaskThreshold->setPlaceholderText("[0 - 1");
-    mMaskThreshold->setUnit("");
-    mMaskThreshold->setMinMax(0, 1);
-    mMaskThreshold->setValue(settings.maskThreshold);
-    mMaskThreshold->connectWithSetting(&settings.maskThreshold);
-
-    auto *col  = addSetting(modelTab, "AI model settings", {{mModelPath.get(), true, 0}, {mNumberOdModelClasses.get(), false, 0}});
-    auto *col2 = addSetting(modelTab, "Probabilities", {{mClassThreshold.get(), false, 0}, {mMaskThreshold.get(), false, 0}});
-
-    int32_t cnt = 0;
-    for(auto &classifierSetting : settings.modelClasses) {
-      auto *tab = addTab("Filter", [this, &classifierSetting] { removeObjectClass(&classifierSetting); });
-      mClassifyFilter.emplace_back(classifierSetting, *this, tab, cnt, parent);
-      cnt++;
-    }
-  }
+  AiClassifier(joda::settings::PipelineStep &pipelineStep, settings::AiClassifierSettings &settings, QWidget *parent);
 
 private:
   /////////////////////////////////////////////////////
@@ -258,13 +191,23 @@ private:
   };
 
   std::unique_ptr<SettingComboBoxString> mModelPath;
-  std::unique_ptr<SettingLineEdit<int32_t>> mNumberOdModelClasses;
+  std::unique_ptr<SettingSpinBox<int32_t>> mNumberOdModelClasses;
+  std::unique_ptr<SettingLineEdit<int32_t>> mNetWidth;
+  std::unique_ptr<SettingLineEdit<int32_t>> mNetHeight;
+  std::unique_ptr<SettingComboBox<joda::settings::AiClassifierSettings::NetChannels>> mChannels;
+
+  std::unique_ptr<SettingComboBox<joda::settings::AiClassifierSettings::ModelFormat>> mModelFormat;
+  std::unique_ptr<SettingComboBox<joda::settings::AiClassifierSettings::ModelArchitecture>> mModelArchitecture;
+
   std::unique_ptr<SettingLineEdit<float>> mClassThreshold;
   std::unique_ptr<SettingLineEdit<float>> mMaskThreshold;
 
   std::list<ClassifierFilter> mClassifyFilter;
   settings::AiClassifierSettings &mSettings;
   QWidget *mParent;
+  int32_t nrOfClassesTmp;
+
+  QLabel *mModelDetails;
 
   void removeObjectClass(settings::ObjectClass *obj)
   {
@@ -296,7 +239,10 @@ private:
   }
 
   /////////////////////////////////////////////////////
+  void updateInputFields(int32_t nrOfClasses, const settings::AiClassifierSettings::ModelParameters &model,
+                         const settings::AiClassifierSettings::NetInputParameters &settings);
 
+  void refreshModels();
 private slots:
   void addFilter(const std::string &title, int32_t classId, float handicap)
   {
@@ -304,7 +250,8 @@ private slots:
     objClass.modelClassId        = classId;
     objClass.probabilityHandicap = handicap;
     auto &ret                    = mSettings.modelClasses.emplace_back(objClass);
-    auto *tab                    = addTab(title.data(), [this, &ret] { removeObjectClass(&ret); });
+    auto *tab                    = addTab(
+        title.data(), [this, &ret] { removeObjectClass(&ret); }, false);
     mClassifyFilter.emplace_back(ret, *this, tab, mSettings.modelClasses.size(), mParent);
     updateDisplayText();
   }

@@ -66,12 +66,22 @@ public:
 
   [[nodiscard]] std::set<enums::MemoryIdx> getInputImageCache() const override
   {
-    return mSetting.getInputImageCache();
+    std::set<enums::MemoryIdx> ret;
+    auto tmp = mSetting.getInputImageCache();
+    for(const auto &element : tmp) {
+      ret.emplace(enums::MemoryIdx(element));
+    }
+    return ret;
   }
 
   [[nodiscard]] std::set<enums::MemoryIdx> getOutputImageCache() const override
   {
-    return mSetting.getOutputImageCache();
+    std::set<enums::MemoryIdx> ret;
+    auto tmp = mSetting.getOutputImageCache();
+    for(const auto &element : tmp) {
+      ret.emplace(enums::MemoryIdx(element));
+    }
+    return ret;
   }
 
 private:

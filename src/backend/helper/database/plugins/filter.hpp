@@ -13,11 +13,13 @@
 
 #pragma once
 
+#include <opencv2/core/hal/interface.h>
 #include <cstddef>
 #include <map>
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include "backend/enums/bigtypes.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/helper/table/table.hpp"
 #include "backend/settings/setting.hpp"
@@ -102,8 +104,9 @@ public:
         auto measure         = static_cast<uint8_t>(in.measureChannel);
         auto stat            = static_cast<uint8_t>(in.stats);
 
-        __uint128_t erg = (static_cast<__uint128_t>(classClasss) << 96) | (static_cast<__uint128_t>(in.crossChannelStacksC & 0xFFFF) << 80) |
-                          (static_cast<__uint128_t>(in.zStack) << 18) | (static_cast<__uint128_t>(in.tStack) << 16) | (measure << 8) | (stat);
+        stdi::uint128_t erg =
+            (static_cast<stdi::uint128_t>(classClasss) << 96) | (static_cast<stdi::uint128_t>(in.crossChannelStacksC & 0xFFFF) << 80) |
+            (static_cast<stdi::uint128_t>(in.zStack) << 18) | (static_cast<stdi::uint128_t>(in.tStack) << 16) | (measure << 8) | (stat);
         return erg;
       };
 
@@ -308,8 +311,8 @@ public:
 
     bool operator<(const QueryKey &key) const
     {
-      auto toUint128 = [](const QueryKey &key) -> __uint128_t {
-        return (static_cast<__uint128_t>(key.classs) << 64) | static_cast<__uint128_t>(key.zStack) << 32 | static_cast<__uint128_t>(key.tStack);
+      auto toUint128 = [](const QueryKey &key) -> stdi::uint128_t {
+        return stdi::uint128_t(static_cast<uint64>(key.classs), static_cast<uint64>(key.zStack) << 32 | static_cast<uint64>(key.tStack));
       };
 
       return toUint128(*this) < toUint128(key);

@@ -219,7 +219,6 @@ jobs:
           if-no-files-found: error
           path: build/build/output
 
-
   build-windows:
     runs-on: windows-2022
 
@@ -241,13 +240,141 @@ jobs:
           conan remote add imageclibs https://imagec.org:4431/artifactory/api/conan/imageclibs
           conan remote login imageclibs writer -p "$env:CONAN_IMAGEC_ARTIFACTORY_PW"
 
-#      - name: Restore Conan Cache
-#        uses: actions/cache/restore@v4
-#        with:
-#          path: C:/Users/runneradmin/.conan2
-#          key: conan-cache-${{ runner.os }}-v1
-#          restore-keys: |
-#            conan-cache-${{ runner.os }}-v1
+      - name: Build with Conan
+        run: |
+          if (Test-Path "C:\Users\runneradmin\.conan2\profiles\default") {
+            Write-Host "Loaded from cache!"
+          } else {
+            conan profile detect
+          }
+          
+          conan install . --profile $env:GITHUB_WORKSPACE\conan\profile_win --output-folder=build --build=missing
+
+      - name: Build imagec
+        env:
+          TAG_NAME: "${{ github.ref_name }}"
+        run: |    
+          cd D:\a\imagec\imagec\build
+          cmake .. -G "Visual Studio 17 2022" -DTAG_NAME="$env:TAG_NAME" -DCMAKE_SH=CMAKE_SH-NOTFOUND -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake"
+          cmake --build . --config Release --target imagec --parallel 8
+
+      - name: Prepare output
+        run: |
+          cd build/build
+          strip "D:\a\imagec\imagec\build\build\Release\imagec.exe"
+          ni "output" -ItemType Directory
+          cd output
+          ni "plugins" -ItemType Directory
+          ni "models" -ItemType Directory
+          ni "java" -ItemType Directory
+          Copy-Item -Path "D:\a\imagec\imagec\build\build\Release\imagec.exe" -Destination "imagec.exe"
+          
+          $qtInstallPath = "C:\Users\runneradmin\.conan2\p"
+
+          Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+            $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\.\plugins\*"
+            if (Test-Path "$pathToCopyFrom") {
+              Copy-Item -Recurse -Path $pathToCopyFrom -Destination "./plugins"  -Force
+            }
+          }
+
+          Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+            $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\bin\Qt6Core.dll"
+            if (Test-Path "$pathToCopyFrom") {
+              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force
+            }
+          }
+
+          Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+            $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\bin\Qt6Gui.dll"
+            if (Test-Path "$pathToCopyFrom") {
+              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+            }
+          }
+          
+          Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+            $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\bin\Qt6Widgets.dll"
+            if (Test-Path "$pathToCopyFrom") {
+              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+            }
+          }
+
+          Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+            $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\bin\Qt6Svg.dll"
+            if (Test-Path "$pathToCopyFrom") {
+              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
+            }
+          }
+          
+          ls "C:\Windows\System32"
+          Copy-Item -Path "C:\Windows\System32\vcruntime140.dll" -Destination "."  -Force
+          Copy-Item -Path "C:\Windows\System32\vcruntime140_1.dll" -Destination "."  -Force
+          Copy-Item -Path "C:\Windows\System32\msvcp140.dll" -Destination "."  -Force
+          Copy-Item -Path "C:\Windows\System32\msvcp140_1.dll" -Destination "."  -Force
+          Copy-Item -Path "C:\Windows\System32\msvcp140_2.dll" -Destination "."  -Force
+          Copy-Item -Path "C:\Windows\System32\concrt140.dll" -Destination "."  -Force
+          Copy-Item -Path "C:\Windows\System32\msvcp140_codecvt_ids.dll" -Destination "."  -Force
+          Copy-Item -Path "C:\Windows\System32\vcomp140.dll" -Destination "."  -Force
+
+
+          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/templates" ./templates
+          cd java
+          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/bioformats.jar" -Destination "."
+          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/BioFormatsWrapper.class" -Destination "."
+          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/jre_win.zip" -Destination "."
+          Expand-Archive "jre_win.zip" -DestinationPath "."
+          Remove-Item jre_win.zip
+          cd ..
+
+      - name: Sign Binaries
+        env:
+          PRIV_KEY: ${{ secrets.PRIV_KEY }}
+          PUB_KEY: ${{ secrets.PUB_KEY }}
+        run: |
+          if ($env:GITHUB_REPOSITORY -eq "joda01/imagec-sign") {
+            "$env:PRIV_KEY" | Set-Content -Path privkey.key
+            "$env:PUB_KEY" | Set-Content -Path pubkey.pem
+            cd build/build
+            openssl pkcs12 -password pass: -inkey privkey.key -in pubkey.pem -export -out mycert.pfx
+            & "C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe" sign /fd SHA256 /td sha256 /f "mycert.pfx" /tr http://timestamp.digicert.com "imagec.exe"
+            Remove-Item -Force mycert.pfx
+            Remove-Item -Force privkey.key
+            Remove-Item -Force pubkey.pem
+          }
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: imagec-x64-win
+          include-hidden-files: true
+          if-no-files-found: error
+          path: build/build/output
+
+
+
+
+
+  build-windows-mingw:
+    runs-on: windows-2022
+    if: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Conan
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Conan
+        env:
+          CONAN_IMAGEC_ARTIFACTORY_PW: ${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}
+        run: |
+          pip install conan
+          pip install numpy
+          conan remote remove conancenter
+          conan remote add imageclibs https://imagec.org:4431/artifactory/api/conan/imageclibs
+          conan remote login imageclibs writer -p "$env:CONAN_IMAGEC_ARTIFACTORY_PW"
 
       - name: Build with Conan
         run: |
