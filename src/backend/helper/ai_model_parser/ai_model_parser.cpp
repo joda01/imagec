@@ -15,8 +15,11 @@
 #include <cstddef>
 #include <exception>
 #include <mutex>
+#include <sstream>
 #include <stdexcept>
+#include <string>
 #include "backend/commands/classification/ai_classifier/ai_classifier_settings.hpp"
+#include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/rapidyaml/rapidyaml.hpp"
 #include <nlohmann/json_fwd.hpp>
@@ -127,15 +130,32 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
   response.description = rdfParsed["description"];
   response.modelName   = rdfParsed["name"];
 
+  auto authors = rdfParsed["authors"];
+  for(const auto &author : authors) {
+    std::string affiliation;
+    if(author.contains("affiliation")) {
+      affiliation = author["affiliation"];
+    }
+    response.authors.emplace_back(Data::Author{.affiliation = affiliation, .authorName = author["name"]});
+  }
+
+  auto tagsJson = rdfParsed["tags"];
+  std::set<std::string> tags;
+  for(const std::string tag : tagsJson) {
+    tags.emplace(helper::toLower(tag));
+  }
+
   // =======================================
   // Weights information data
   // =======================================
   auto weights = rdfParsed["weights"];
+
   if(rdfParsed.contains("version")) {
     if(rdfParsed["version"].is_string()) {
-      std::string modelVersion = rdfParsed["version"];
+      response.version = rdfParsed["version"];
     } else {
       float modelVersion = rdfParsed["version"];
+      response.version   = std::to_string(modelVersion);
     }
   }
   std::string modelWeighsFileName;
@@ -468,17 +488,33 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
           }
         }
       }
+      objectToWorkOn.axes = axesString;
     }
   }
 
   // =======================================
   // Try to detect model architecture
   // =======================================
-  /* auto result = getONNXModelOutputClasses(response.modelPath);
-   response.classes.clear();
-   for(auto const &[idx, value] : result) {
-     response.classes.push_back(value);
-   }*/
+  if(response.modelParameter.modelFormat == settings::AiClassifierSettings::ModelFormat::ONNX) {
+    auto result = getONNXModelOutputClasses(response.modelPath);
+    response.classes.clear();
+    for(auto const &[idx, value] : result) {
+      response.classes.push_back(value);
+    }
+  }
+
+  auto description = helper::toLower(response.description);
+  if(tags.contains("cyto3") || tags.contains("cellpose")) {
+    response.modelParameter.modelArchitecture = settings::AiClassifierSettings::ModelArchitecture::CYTO3;
+  } else if(tags.contains("stardist")) {
+    response.modelParameter.modelArchitecture = settings::AiClassifierSettings::ModelArchitecture::STAR_DIST;
+  } else if(tags.contains("unet")) {
+    response.modelParameter.modelArchitecture = settings::AiClassifierSettings::ModelArchitecture::U_NET;
+  } else if(tags.contains("yolov5")) {
+    response.modelParameter.modelArchitecture = settings::AiClassifierSettings::ModelArchitecture::YOLO_V5;
+  } else if(helper::stringContains(description, "cyto3") || helper::stringContains(description, "cellpose")) {
+    response.modelParameter.modelArchitecture = settings::AiClassifierSettings::ModelArchitecture::CYTO3;
+  }
 
   return response;
 }
@@ -515,6 +551,79 @@ std::map<int, std::string> AiModelParser::getONNXModelOutputClasses(const std::f
   }
 
   return output_classes;
+}
+
+template <class T>
+auto toInputOrder(const std::string &id, const T &in) -> std::string
+{
+  std::stringstream prefix;
+  std::stringstream outTmp;
+  prefix << joda::helper::shrinkString(id, 7) << ":\t[";
+  outTmp << "[";
+  for(int32_t idx = 0; idx < in.axes.size(); idx++) {
+    char ax = in.axes.at(idx);
+    if(outTmp.str().size() > 1) {
+      outTmp << " ";
+      prefix << " ";
+    }
+    prefix << ax;
+    if('b' == ax) {
+      outTmp << std::to_string(in.batch);
+    }
+    if('c' == ax) {
+      outTmp << std::to_string(static_cast<int32_t>(in.channels));
+    }
+    if('x' == ax) {
+      outTmp << std::to_string(in.spaceX);
+    }
+    if('y' == ax) {
+      outTmp << std::to_string(in.spaceY);
+    }
+  }
+  prefix << "] ";
+  outTmp << "]";
+
+  std::string outStr = prefix.str() + outTmp.str();
+  return outStr;
+};
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+std::string AiModelParser::Data::toString() const
+{
+  std::stringstream out;
+
+  out << modelName << " v" << version << "\n\n";
+
+  out << "IN:\n";
+  for(const auto &[id, input] : inputs) {
+    out << toInputOrder<settings::AiClassifierSettings::NetInputParameters>(id, input) << "\n";
+  }
+  out << "\n";
+  out << "OUT:\n";
+  for(const auto &[id, input] : outputs) {
+    out << toInputOrder<settings::AiClassifierSettings::NetOutputParameters>(id, input) << "\n";
+  }
+
+  out << "\n\n";
+  for(int n = 0; n < authors.size(); n++) {
+    const auto &author = authors[n];
+    if(!author.affiliation.empty()) {
+      out << author.affiliation << "/" << author.authorName;
+    } else {
+      out << author.authorName;
+    }
+    if(n + 1 < authors.size()) {
+      out << ", ";
+    }
+  }
+
+  return out.str();
 }
 
 }    // namespace joda::onnx

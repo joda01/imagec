@@ -63,6 +63,7 @@
     <file>icons/icons8-open-parcel-24.png</file>
     <file>icons/icons8-flow-many-96.png</file>
     <file>icons/icons8-delete-column-48.png</file>
+    <file>icons/icons8-u-96.png</file>
     <file>icons/icons8-popup-window-96.png</file>
     <file>icons/icons8-play-48.png</file>
     <file>icons/icons8-percent-96.png</file>
@@ -133,6 +134,7 @@
     <file>icons/icons8-mark-as-favorite-24.png</file>
     <file>icons/icons8-favorite-48.png</file>
     <file>icons/icons8-three-48.png</file>
+    <file>icons/icons8-cellpose-16.png</file>
     <file>icons/icons8-length-16.png</file>
     <file>icons/icons8-deviation-48.png</file>
     <file>icons/icons8-brightness-16.png</file>
@@ -269,6 +271,7 @@
     <file>icons/icons8-two-96.png</file>
     <file>icons/icons8-clone-48.png</file>
     <file>icons/icons8-shutdown-24.png</file>
+    <file>icons/icons8-star-96.png</file>
     <file>icons/icons8-one-round-24.png</file>
     <file>icons/icons8-two-24.png</file>
     <file>icons/icons8-picture-in-picture-alternative-96.png</file>
@@ -447,6 +450,7 @@
     <file>icons/icons8-nine-16.png</file>
     <file>icons/icons8-channel-16.png</file>
     <file>icons/icons8-add-file-16.png</file>
+    <file>icons/icons8-star-16.png</file>
     <file>icons/icons8-5-48.png</file>
     <file>icons/icons8-qr-code-24.png</file>
     <file>icons/icons8-seven-16.png</file>
@@ -469,6 +473,7 @@
     <file>icons/icons8-aspect-ratio-48.png</file>
     <file>icons/icons8-full-screen-16.png</file>
     <file>icons/icons8-seven-96.png</file>
+    <file>icons/icons8-cellpose-96.png</file>
     <file>icons/icons8-equals-96.png</file>
     <file>icons/icons8-invert-selection-24.png</file>
     <file>icons/icons8-warning-16.png</file>
@@ -535,6 +540,7 @@
     <file>icons/icons8-select-column-48.png</file>
     <file>icons/icons8-error-24.png</file>
     <file>icons/icons8-zero-96.png</file>
+    <file>icons/icons8-u-24.png</file>
     <file>icons/icons8-crosshair-16.png</file>
     <file>icons/icons8-number-24.png</file>
     <file>icons/icons8-popup-window-16.png</file>
@@ -570,6 +576,7 @@
     <file>icons/icons8-warning-yellow-48.png</file>
     <file>icons/icons8-no-image-48.png</file>
     <file>icons/icons8-project-management-16.png</file>
+    <file>icons/icons8-star-48.png</file>
     <file>icons/icons8-abscissa-24.png</file>
     <file>icons/icons8-edit-column-96.png</file>
     <file>icons/icons8-zoom-out-48.png</file>
@@ -602,6 +609,7 @@
     <file>icons/icons8-triangle-96.png</file>
     <file>icons/icons8-crop-96.png</file>
     <file>icons/icons8-help-24.png</file>
+    <file>icons/icons8-cellpose-24.png</file>
     <file>icons/icons8-preview-16.png</file>
     <file>icons/icons8-resize-16.png</file>
     <file>icons/icons8-no-idea-48.png</file>
@@ -618,6 +626,8 @@
     <file>icons/icons8-type-16.png</file>
     <file>icons/icons8-square-border-48.png</file>
     <file>icons/icons8-equals-48.png</file>
+    <file>icons/icons8-cellpose-48.png</file>
+    <file>icons/icons8-u-48.png</file>
     <file>icons/icons8-sigma-16.png</file>
     <file>icons/icons8-invert-colors-24.png</file>
     <file>icons/icons8-arrow-48.png</file>

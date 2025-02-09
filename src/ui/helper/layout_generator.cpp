@@ -248,6 +248,27 @@ void VerticalPane ::addWidgetGroup(const QString &title, const std::vector<QWidg
 /// \param[out]
 /// \return
 ///
+void VerticalPane ::addWidgetGroup(const std::vector<QWidget *> &elements, int minWidth, int maxWidth)
+{
+  auto *group = new QWidget();
+  group->setMaximumWidth(maxWidth);
+  group->setMinimumWidth(minWidth);
+  auto *layout = new QVBoxLayout;
+  for(const auto &element : elements) {
+    element->setParent(group);
+    layout->addWidget(element);
+  }
+  group->setLayout(layout);
+  addWidget(group);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 TabWidget::TabWidget(bool hasBottomToolbar, std::function<void()> beforeTabClose, LayoutGenerator *layoutGenerator, QWidget *parent) :
     beforeTabClose(std::move(beforeTabClose)), mLayoutGenerator(layoutGenerator), mParent(parent)
 {

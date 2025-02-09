@@ -25,7 +25,7 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
     Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::OBJECT}}), mSettings(settings), mParent(parent)
 {
   this->mutableEditDialog()->setMinimumWidth(700);
-  this->mutableEditDialog()->setMinimumHeight(500);
+  this->mutableEditDialog()->setMinimumHeight(600);
 
   auto *modelTab = addTab(
       "Model settings", [] {}, false);
@@ -47,7 +47,8 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   connect(mModelPath.get(), &SettingBase::valueChanged, [this]() {
     if(!mModelPath->getValue().empty()) {
       try {
-        auto info                     = joda::onnx::AiModelParser::parseResourceDescriptionFile(std::filesystem::path(mModelPath->getValue()));
+        auto info = joda::onnx::AiModelParser::parseResourceDescriptionFile(std::filesystem::path(mModelPath->getValue()));
+        mModelDetails->setText(info.toString().data());
         mSettings.modelInputParameter = info.inputs.begin()->second;
         updateInputFields(info.classes.size(), info.modelParameter, info.inputs.begin()->second);
         /* removeAll();
@@ -128,11 +129,14 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   mModelArchitecture =
       SettingBase::create<SettingComboBox<joda::settings::AiClassifierSettings::ModelArchitecture>>(parent, {}, "Model architecture");
   mModelArchitecture->setDefaultValue(joda::settings::AiClassifierSettings::ModelArchitecture::YOLO_V5);
-  mModelArchitecture->addOptions({{joda::settings::AiClassifierSettings::ModelArchitecture::UNKNOWN, "Unknown", generateIcon("question-mark")},
-                                  {joda::settings::AiClassifierSettings::ModelArchitecture::YOLO_V5, "Yolo V5", generateIcon("connect")},
-                                  {joda::settings::AiClassifierSettings::ModelArchitecture::U_NET, "U-Net", generateIcon("connect")},
-                                  {joda::settings::AiClassifierSettings::ModelArchitecture::STAR_DIST, "StarDist", generateIcon("connect")},
-                                  {joda::settings::AiClassifierSettings::ModelArchitecture::MASK_R_CNN, "Mask R-CNN", generateIcon("connect")}});
+  mModelArchitecture->addOptions({
+      {joda::settings::AiClassifierSettings::ModelArchitecture::UNKNOWN, "Unknown", generateIcon("question-mark")},
+      {joda::settings::AiClassifierSettings::ModelArchitecture::YOLO_V5, "Yolo v5", generateIcon("connect")},
+      {joda::settings::AiClassifierSettings::ModelArchitecture::U_NET, "U-Net", generateIcon("u")},
+      {joda::settings::AiClassifierSettings::ModelArchitecture::CYTO3, "Cyto3", generateIcon("cellpose")},
+      {joda::settings::AiClassifierSettings::ModelArchitecture::STAR_DIST, "StarDist", generateIcon("star")},
+      //{joda::settings::AiClassifierSettings::ModelArchitecture::MASK_R_CNN, "Mask R-CNN", generateIcon("connect")}
+  });
   mModelArchitecture->setValue(settings.modelParameter.modelArchitecture);
   mModelArchitecture->connectWithSetting(&settings.modelParameter.modelArchitecture);
   mModelArchitecture->setShortDescription("Architecture:");
@@ -157,14 +161,20 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   mMaskThreshold->setValue(settings.thresholds.maskThreshold);
   mMaskThreshold->connectWithSetting(&settings.thresholds.maskThreshold);
 
-  auto *col = addSetting(modelTab, "AI model settings",
+  //
+  //
+  //
+  mModelDetails = new QLabel();
+
+  auto *col = addSetting(modelTab, "Model settings",
                          {
                              {mModelPath.get(), true, 0},
                              {mModelFormat.get(), false, 0},
                              {mModelArchitecture.get(), false, 0},
                              {mNumberOdModelClasses.get(), false, 0},
                          });
-  col->addWidget(new QLabel("This is a description text"));
+
+  addWidgets(modelTab, "Model details", {mModelDetails}, col);
 
   auto *col2 = addSetting(modelTab, "Input parameters", {{mNetWidth.get(), false, 0}, {mNetHeight.get(), false, 0}, {mChannels.get(), false, 0}});
   addSetting(modelTab, "Thresholds", {{mMaskThreshold.get(), false, 0}, {mClassThreshold.get(), false, 0}}, col2);

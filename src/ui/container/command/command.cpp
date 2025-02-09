@@ -365,6 +365,21 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
   return col;
 }
 
+helper::VerticalPane *Command::addWidgets(helper::TabWidget *tab, const QString &boxTitle, const std::vector<QWidget *> &settings,
+                                          helper::VerticalPane *col)
+{
+  if(nullptr == col) {
+    col = tab->addVerticalPanel();
+  }
+  if(boxTitle.isEmpty()) {
+    col->addWidgetGroup(settings, 220, 300);
+  } else {
+    col->addWidgetGroup(boxTitle, settings, 220, 300);
+  }
+
+  return col;
+}
+
 void Command::updateDisplayText()
 {
   QString txt = "<html>";

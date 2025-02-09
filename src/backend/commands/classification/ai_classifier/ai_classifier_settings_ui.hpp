@@ -207,6 +207,8 @@ private:
   QWidget *mParent;
   int32_t nrOfClassesTmp;
 
+  QLabel *mModelDetails;
+
   void removeObjectClass(settings::ObjectClass *obj)
   {
     {

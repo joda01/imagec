@@ -141,6 +141,7 @@ public:
   void addGroup(const std::vector<SettingBase *> &elements, int minWidth = 220, int maxWidth = 220);
   void addGroup(const QString &title, const std::vector<SettingBase *> &elements, int minWidth = 220, int maxWidth = 220);
   void addWidgetGroup(const QString &title, const std::vector<QWidget *> &elements, int minWidth = 220, int maxWidth = 220);
+  void addWidgetGroup(const std::vector<QWidget *> &elements, int minWidth = 220, int maxWidth = 220);
 
 private:
   LayoutGenerator *layoutGenerator;

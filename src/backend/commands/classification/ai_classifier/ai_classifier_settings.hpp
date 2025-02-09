@@ -53,6 +53,7 @@ struct AiClassifierSettings : public SettingBase
     UNKNOWN,
     YOLO_V5,
     STAR_DIST,
+    CYTO3,
     U_NET,
     MASK_R_CNN,
   };
@@ -125,22 +126,22 @@ struct AiClassifierSettings : public SettingBase
     //
     // Batch size
     //
-    int32_t batch = 1;
+    int32_t batch = 0;
 
     //
     // Nr. of output channels
     //
-    int32_t channels = 32;
+    int32_t channels = 0;
 
     //
     // The expected image input with of the net
     //
-    int32_t spaceX = 160;
+    int32_t spaceX = 0;
 
     //
     // The expected image input heigh the net
     //
-    int32_t spaceY = 160;
+    int32_t spaceY = 0;
 
     //
     // Index size
@@ -238,6 +239,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(AiClassifierSettings::ModelFormat, {
 NLOHMANN_JSON_SERIALIZE_ENUM(AiClassifierSettings::ModelArchitecture, {
                                                                           {AiClassifierSettings::ModelArchitecture::UNKNOWN, "Unknown"},
                                                                           {AiClassifierSettings::ModelArchitecture::YOLO_V5, "YoloV5"},
+                                                                          {AiClassifierSettings::ModelArchitecture::CYTO3, "Cyto3"},
                                                                           {AiClassifierSettings::ModelArchitecture::STAR_DIST, "StarDist"},
                                                                           {AiClassifierSettings::ModelArchitecture::U_NET, "U-Net"},
                                                                           {AiClassifierSettings::ModelArchitecture::MASK_R_CNN, "Mask R-CNN"},

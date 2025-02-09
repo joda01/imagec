@@ -77,6 +77,12 @@ inline void stringReplace(std::string &str, const std::string &searchStr, const 
   }
 }
 
+inline bool stringContains(const std::string &text, const std::string &searchFor)
+{
+  // Check if "helloe" is in the string
+  return text.find(searchFor) != std::string::npos;
+}
+
 ///
 /// \brief      Converts a a string to a number
 /// \author     Joachim Danmayr
@@ -141,6 +147,15 @@ inline std::string trim(const std::string &str)
     return "";    // All whitespace
   auto end = str.find_last_not_of(" \t\n\r");
   return str.substr(start, end - start + 1);
+}
+
+inline std::string shrinkString(const std::string &str, size_t maxLength)
+{
+  if(str.length() <= maxLength) {
+    return str;    // No need to shrink
+  } else {
+    return str.substr(0, maxLength);    // Shrink to maxLength
+  }
 }
 
 // Function to split a string by spaces

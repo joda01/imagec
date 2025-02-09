@@ -37,13 +37,22 @@ public:
   /////////////////////////////////////////////////////
   struct Data
   {
+    struct Author
+    {
+      std::string affiliation;
+      std::string authorName;
+    };
+
     std::string modelName;
     std::string description;
+    std::string version;
     std::filesystem::path modelPath;
     std::vector<std::string> classes;
     settings::AiClassifierSettings::ModelParameters modelParameter;
     std::map<std::string, settings::AiClassifierSettings::NetInputParameters> inputs;
     std::map<std::string, settings::AiClassifierSettings::NetOutputParameters> outputs;
+    std::vector<Author> authors;
+    std::string toString() const;
   };
 
   static auto findAiModelFiles(const std::string &directory = "models") -> std::map<std::filesystem::path, Data>;

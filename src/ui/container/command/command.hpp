@@ -86,6 +86,9 @@ public:
   helper::VerticalPane *addSetting(helper::TabWidget *tab, const QString &boxTitle,
                                    const std::vector<std::tuple<SettingBase *, bool, int32_t>> &settings, helper::VerticalPane *col = nullptr);
 
+  helper::VerticalPane *addWidgets(helper::TabWidget *tab, const QString &boxTitle, const std::vector<QWidget *> &settings,
+                                   helper::VerticalPane *col = nullptr);
+
   [[nodiscard]] InOut getInOut() const
   {
     return mInOut;
