@@ -8,9 +8,9 @@
             "name": "CMake Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/workspaces/imagec/build/build/output/imagec",
+            "program": "/workspaces/imagec/build/build/output/tests",
             "args": [
-                "ai::classifier::test::pytorch::coco"
+                "[ai_classifier]"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

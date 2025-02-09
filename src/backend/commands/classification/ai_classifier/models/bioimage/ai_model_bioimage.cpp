@@ -63,8 +63,6 @@ auto AiModelBioImage::processPrediction(const cv::Mat &inputImage, const at::IVa
   cv::Mat mask(originalHeight, originalWith, CV_32F, maskTensor.data_ptr<float>());
   cv::Mat contourMask(originalHeight, originalWith, CV_32F, contourTensor.data_ptr<float>());
 
-  // cv::bitwise_xor(mask, contourMask, mask);
-
   // ===============================
   // 2.  Apply a threshold to create a binary mask for the object
   // ===============================
@@ -79,9 +77,9 @@ auto AiModelBioImage::processPrediction(const cv::Mat &inputImage, const at::IVa
   // --- Step 2.1. Thin the contour mask using erosion ---
   // Use a small elliptical kernel to erode the contours.
   cv::Mat contourThin;
-  cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(4, 4));
+  cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(2, 2));
   cv::erode(binaryContourMask, binaryContourMask, kernel);
-  cv::subtract(binaryMask, binaryContourMask, binaryMask);
+  cv::bitwise_xor(binaryMask, binaryContourMask, binaryMask);
 
   //
   // ===============================

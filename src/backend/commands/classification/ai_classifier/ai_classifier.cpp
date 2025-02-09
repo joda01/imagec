@@ -94,6 +94,9 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
     case settings::AiClassifierSettings::ModelArchitecture::MASK_R_CNN:
       THROW("Mask R-CNN architecture is not supported yet");
       break;
+    case settings::AiClassifierSettings::ModelArchitecture::CYTO3:
+      THROW("Cyto3 architecture is not supported yet");
+      break;
   }
 
   for(const auto &res : segResult) {

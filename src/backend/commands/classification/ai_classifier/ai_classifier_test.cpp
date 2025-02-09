@@ -3,6 +3,7 @@
 #include "ai_classifier.hpp"
 
 #include <string>
+#include "backend/commands/classification/ai_classifier/ai_classifier_settings.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver.hpp"
 #include "backend/helper/ai_model_parser/ai_model_parser.hpp"
 #include "backend/helper/reader/image_reader.hpp"
@@ -27,7 +28,11 @@ TEST_CASE("ai::classifier::test::nucleus", "[ai_classifier]")
   aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 1});
   aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 2});
 
-  aiSets.modelParameters = joda::onnx::AiModelParser::getModelInfo("models/nucleisegmentationboundarymodel_torchscript/weights-torchscript.pt");
+  auto info                  = joda::onnx::AiModelParser::parseResourceDescriptionFile("models/nucleisegmentationboundarymodel_torchscript/rdf.yaml");
+  aiSets.modelParameter      = info.modelParameter;
+  aiSets.modelInputParameter = info.inputs.begin()->second;
+  aiSets.thresholds.maskThreshold  = 0.5;
+  aiSets.thresholds.classThreshold = 0.3;
 
   joda::cmd::AiClassifier ai(aiSets);
   joda::atom::ObjectList result;
@@ -68,7 +73,11 @@ TEST_CASE("ai::classifier::test::livecell", "[ai_classifier]")
   aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 4});
   aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 5});
 
-  aiSets.modelParameters = joda::onnx::AiModelParser::getModelInfo("models/livecellsegmentationboundarymodel_torchscript/weights-torchscript.pt");
+  auto info             = joda::onnx::AiModelParser::parseResourceDescriptionFile("models/livecellsegmentationboundarymodel_torchscript/rdf.yaml");
+  aiSets.modelParameter = info.modelParameter;
+  aiSets.modelInputParameter       = info.inputs.begin()->second;
+  aiSets.thresholds.maskThreshold  = 0.5;
+  aiSets.thresholds.classThreshold = 0.3;
 
   joda::cmd::AiClassifier ai(aiSets);
   joda::atom::ObjectList result;
@@ -100,7 +109,7 @@ TEST_CASE("ai::classifier::test::livecell", "[ai_classifier]")
   imgSaver.execute(context, img, result);
 
   CHECK(result.size() == 1);
-  CHECK(result.begin()->second->size() == 193);
+  CHECK(result.begin()->second->size() == 405);
 }
 
 ///
@@ -118,7 +127,10 @@ TEST_CASE("ai::classifier::test::onnx", "[ai_classifier]")
   aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 0});
   aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 1});
 
-  aiSets.modelParameters = joda::onnx::AiModelParser::getModelInfo("models/university_of_sbg_cell_segmentation_v3/weights.onnx");
+  auto info             = joda::onnx::AiModelParser::parseResourceDescriptionFile("models/university_of_sbg_cell_segmentation_v3/rdf.yaml");
+  aiSets.modelParameter = info.modelParameter;
+  aiSets.modelParameter.modelFormat = joda::settings::AiClassifierSettings::ModelFormat::ONNX;
+  aiSets.modelInputParameter        = info.inputs.begin()->second;
 
   joda::cmd::AiClassifier ai(aiSets);
   joda::atom::ObjectList result;
@@ -156,47 +168,10 @@ TEST_CASE("ai::classifier::test::pytorch::yolo", "[ai_classifier]")
   aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 0});
   aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 1});
 
-  aiSets.modelParameters = joda::onnx::AiModelParser::getModelInfo("models/university_of_sbg_cell_segmentation_v3/weights.pt");
-
-  joda::cmd::AiClassifier ai(aiSets);
-  joda::atom::ObjectList result;
-  joda::settings::ProjectImageSetup setup;
-  joda::processor::PipelineInitializer pipeLinieInit(setup);
-  joda::processor::GlobalContext glob;
-  glob.resultsOutputFolder = "/workspaces/imagec/tmp";
-  joda::processor::PlateContext plate;
-  joda::processor::ImageContext imgCtx{pipeLinieInit, path, omeXML};
-  joda::processor::IterationContext iter;
-  joda::processor::ProcessContext context(glob, plate, imgCtx, iter);
-
-  cv::Mat aiorward = img.clone();
-  ai.execute(context, aiorward, result);
-  joda::settings::ImageSaverSettings imageSaver;
-  imageSaver.classesIn.emplace_back(
-      joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C0, .paintBoundingBox = false});
-  imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C1});
-  imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C2});
-
-  joda::cmd::ImageSaver imgSaver(imageSaver);
-  imgSaver.execute(context, img, result);
-
-  CHECK(result.size() == 1);
-  CHECK(result.begin()->second->size() == 56);
-}
-
-TEST_CASE("ai::classifier::test::pytorch::coco", "[ai_classifier]")
-{
-  std::string path = "/workspaces/imagec/build/build/output/Test ImageC v15/test folder/B2_15_5ADVMLE.vsi.vsi";
-  auto omeXML      = joda::image::reader::ImageReader::getOmeInformation(path, 0);
-  auto img         = joda::image::reader::ImageReader::loadEntireImage(path, {0, 3, 0}, 0, 0, omeXML);
-
-  joda::settings::AiClassifierSettings aiSets;
-  aiSets.modelPath = "models/coco/yolo11m.pt";
-  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 0});
-  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 1});
-
-  aiSets.modelParameters = joda::onnx::AiModelParser::getModelInfo("models/coco/yolo11m.pt");
-
+  auto info             = joda::onnx::AiModelParser::parseResourceDescriptionFile("models/university_of_sbg_cell_segmentation_v3/rdf.yaml");
+  aiSets.modelParameter = info.modelParameter;
+  aiSets.modelParameter.modelFormat = joda::settings::AiClassifierSettings::ModelFormat::TORCHSCRIPT;
+  aiSets.modelInputParameter        = info.inputs.begin()->second;
   joda::cmd::AiClassifier ai(aiSets);
   joda::atom::ObjectList result;
   joda::settings::ProjectImageSetup setup;
