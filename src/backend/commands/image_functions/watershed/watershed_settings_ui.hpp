@@ -14,13 +14,13 @@
 
 #include <qwidget.h>
 #include "backend/commands/command.hpp"
-#include "ui/container/command/command.hpp"
-#include "ui/container/setting/setting_combobox.hpp"
-#include "ui/helper/icon_generator.hpp"
-#include "ui/helper/layout_generator.hpp"
+#include "ui/gui/container/command/command.hpp"
+#include "ui/gui/container/setting/setting_combobox.hpp"
+#include "ui/gui/helper/icon_generator.hpp"
+#include "ui/gui/helper/layout_generator.hpp"
 #include "watershed_settings.hpp"
 
-namespace joda::ui {
+namespace joda::ui::gui {
 
 class Watershed : public Command
 {
@@ -52,4 +52,4 @@ private:
   std::unique_ptr<SettingComboBox<float>> mFindTolerance;
 };
 
-}    // namespace joda::ui
+}    // namespace joda::ui::gui

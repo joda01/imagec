@@ -14,14 +14,14 @@
 
 #include <qwidget.h>
 #include "backend/commands/command.hpp"
-#include "ui/container/command/command.hpp"
-#include "ui/container/setting/setting_combobox.hpp"
-#include "ui/container/setting/setting_line_edit.hpp"
-#include "ui/helper/icon_generator.hpp"
-#include "ui/helper/layout_generator.hpp"
+#include "ui/gui/container/command/command.hpp"
+#include "ui/gui/container/setting/setting_combobox.hpp"
+#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/helper/icon_generator.hpp"
+#include "ui/gui/helper/layout_generator.hpp"
 #include "edge_detection_settings.hpp"
 
-namespace joda::ui {
+namespace joda::ui::gui {
 
 class EdgeDetection : public Command
 {
@@ -50,4 +50,4 @@ private:
   std::unique_ptr<SettingComboBox<settings::EdgeDetectionSettings::Mode>> mEdgeDetectionMode;
 };
 
-}    // namespace joda::ui
+}    // namespace joda::ui::gui

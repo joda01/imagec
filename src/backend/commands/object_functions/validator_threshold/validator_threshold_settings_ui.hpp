@@ -16,15 +16,15 @@
 #include <cstdint>
 #include <string>
 #include "backend/commands/command.hpp"
-#include "ui/container/command/command.hpp"
-#include "ui/container/setting/setting_combobox.hpp"
-#include "ui/container/setting/setting_line_edit.hpp"
-#include "ui/helper/icon_generator.hpp"
-#include "ui/helper/layout_generator.hpp"
-#include "ui/helper/setting_generator.hpp"
+#include "ui/gui/container/command/command.hpp"
+#include "ui/gui/container/setting/setting_combobox.hpp"
+#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/helper/icon_generator.hpp"
+#include "ui/gui/helper/layout_generator.hpp"
+#include "ui/gui/helper/setting_generator.hpp"
 #include "validator_threshold_settings.hpp"
 
-namespace joda::ui {
+namespace joda::ui::gui {
 
 class ThresholdValidator : public Command
 {
@@ -55,4 +55,4 @@ private:
   std::unique_ptr<SettingLineEdit<float>> mHistThreshold;
 };
 
-}    // namespace joda::ui
+}    // namespace joda::ui::gui

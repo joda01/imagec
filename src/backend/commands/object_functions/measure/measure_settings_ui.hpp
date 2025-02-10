@@ -19,16 +19,16 @@
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
 
-#include "ui/container/command/command.hpp"
-#include "ui/container/setting/setting_base.hpp"
-#include "ui/container/setting/setting_combobox_multi.hpp"
-#include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
-#include "ui/helper/icon_generator.hpp"
-#include "ui/helper/layout_generator.hpp"
-#include "ui/helper/setting_generator.hpp"
+#include "ui/gui/container/command/command.hpp"
+#include "ui/gui/container/setting/setting_base.hpp"
+#include "ui/gui/container/setting/setting_combobox_multi.hpp"
+#include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
+#include "ui/gui/helper/icon_generator.hpp"
+#include "ui/gui/helper/layout_generator.hpp"
+#include "ui/gui/helper/setting_generator.hpp"
 #include "measure_settings.hpp"
 
-namespace joda::ui {
+namespace joda::ui::gui {
 
 class Measure : public Command
 {
@@ -98,4 +98,4 @@ private slots:
   }
 };
 
-}    // namespace joda::ui
+}    // namespace joda::ui::gui

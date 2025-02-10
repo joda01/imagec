@@ -23,6 +23,17 @@
 
 namespace joda::log {
 
+enum class LogLevel
+{
+  OFF     = -1,
+  ERROR   = 0,
+  WARNING = 1,
+  INFO    = 2,
+  DEBUG   = 3,
+  TRACE   = 4,
+  VERBOSE = 5
+};
+
 // Color codes for console formatting
 const std::string RESET_COLOR  = "\033[0m";
 const std::string RED_COLOR    = "\033[31m";
@@ -30,6 +41,13 @@ const std::string GREEN_COLOR  = "\033[32m";
 const std::string GRAY_COLOR   = "\033[37m";
 const std::string YELLOW_COLOR = "\033[33m";
 const std::string BLUE_COLOR   = "\033[34m";
+
+extern LogLevel mLogLevel;
+
+inline void setLogLevel(LogLevel logLevel)
+{
+  mLogLevel = logLevel;
+}
 
 inline std::string getCurrentDateTimeISO()
 {
@@ -44,24 +62,45 @@ inline std::string getCurrentDateTimeISO()
 
 inline void logError(const std::string &message)
 {
+  if(mLogLevel < LogLevel::ERROR) {
+    return;
+  }
   std::string currentDateTimeISO = getCurrentDateTimeISO();
   std::cout << RED_COLOR << "[ERR] " << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;
 }
 
 inline void logWarning(const std::string &message)
 {
+  if(mLogLevel < LogLevel::WARNING) {
+    return;
+  }
   std::string currentDateTimeISO = getCurrentDateTimeISO();
   std::cout << YELLOW_COLOR << "[WARN]" << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;
 }
 
 inline void logInfo(const std::string &message)
 {
+  if(mLogLevel < LogLevel::INFO) {
+    return;
+  }
   std::string currentDateTimeISO = getCurrentDateTimeISO();
   std::cout << BLUE_COLOR << "[INFO]" << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;
 }
 
+inline void logDebug(const std::string &message)
+{
+  if(mLogLevel < LogLevel::DEBUG) {
+    return;
+  }
+  std::string currentDateTimeISO = getCurrentDateTimeISO();
+  std::cout << GREEN_COLOR << "[DEBUG]" << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;
+}
+
 inline void logTrace(const std::string &message)
 {
+  if(mLogLevel < LogLevel::TRACE) {
+    return;
+  }
   std::string currentDateTimeISO = getCurrentDateTimeISO();
   std::cout << GRAY_COLOR << "[TRACE]" << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;
 }

@@ -12,7 +12,7 @@
 
 #include "ai_classifier_settings_ui.hpp"
 
-namespace joda::ui {
+namespace joda::ui::gui {
 
 ///
 /// \brief
@@ -218,4 +218,4 @@ void AiClassifier::refreshModels()
   mModelPath->addOptions(entries);
 }
 
-}    // namespace joda::ui
+}    // namespace joda::ui::gui

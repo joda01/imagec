@@ -16,14 +16,14 @@
 #include "backend/commands/command.hpp"
 #include "backend/commands/image_functions/image_cache/image_cache_settings.hpp"
 #include "backend/enums/enum_memory_idx.hpp"
-#include "ui/container/command/command.hpp"
-#include "ui/container/setting/setting_combobox.hpp"
-#include "ui/container/setting/setting_line_edit.hpp"
-#include "ui/helper/icon_generator.hpp"
-#include "ui/helper/layout_generator.hpp"
+#include "ui/gui/container/command/command.hpp"
+#include "ui/gui/container/setting/setting_combobox.hpp"
+#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/helper/icon_generator.hpp"
+#include "ui/gui/helper/layout_generator.hpp"
 #include "image_cache.hpp"
 
-namespace joda::ui {
+namespace joda::ui::gui {
 
 class ImageCache : public Command
 {
@@ -62,4 +62,4 @@ private:
   std::shared_ptr<SettingComboBox<enums::MemoryIdx::Enum>> mMemoryIdx;
 };
 
-}    // namespace joda::ui
+}    // namespace joda::ui::gui
