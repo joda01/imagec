@@ -12,6 +12,25 @@
 
 #pragma once
 
+#include <filesystem>
+
+namespace joda::ctrl {
+class Controller;
+};
+
 namespace joda::ui::terminal {
 
-}
+class Terminal
+{
+public:
+  /////////////////////////////////////////////////////
+  Terminal(ctrl::Controller *);
+  void startAnalyze(const std::filesystem::path &pathToSettingsFile);
+
+private:
+  /////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////
+  ctrl::Controller *mController;
+};
+
+}    // namespace joda::ui::terminal

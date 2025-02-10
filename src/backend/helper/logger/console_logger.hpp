@@ -93,7 +93,7 @@ inline void logDebug(const std::string &message)
     return;
   }
   std::string currentDateTimeISO = getCurrentDateTimeISO();
-  std::cout << GREEN_COLOR << "[DEBUG]" << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;
+  std::cout << GREEN_COLOR << "[DEBG]" << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;
 }
 
 inline void logTrace(const std::string &message)

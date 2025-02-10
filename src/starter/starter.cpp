@@ -20,6 +20,7 @@
 #include "backend/helper/system/system_resources.hpp"
 #include "controller/controller.hpp"
 #include "ui/gui/window_main/window_main.hpp"
+#include "ui/terminal/terminal.hpp"
 #include "version.h"
 
 void cleanup()
@@ -64,6 +65,7 @@ void Starter::exec(int argc, char *argv[])
   QCommandLineOption cliOption(QStringList() << "c"
                                              << "cli",
                                "Run in command-line mode.");
+
   parser.addOption(cliOption);
 
   // Add an option for CLI to accept a name
@@ -71,6 +73,13 @@ void Starter::exec(int argc, char *argv[])
                                                  << "logging",
                                    "Set logging level [off, error, warning, info, debug, trace]", "loglevel");
   parser.addOption(loggingOption);
+
+  // Add run option
+  QCommandLineOption runOption(QStringList() << "r"
+                                             << "run",
+                               "Start an analyze.", "settings file");
+  parser.addOption(runOption);
+
   parser.process(coreApp);
 
   // ===================================
@@ -79,14 +88,21 @@ void Starter::exec(int argc, char *argv[])
   if(parser.isSet(loggingOption)) {
     QString loglevel = parser.value(loggingOption);
     initLogger(loglevel.toStdString());
-  } else {
-    qDebug() << "Hello, World!";
   }
 
   // ===================================
   // Init application
   // ==================================
   initApplication();
+
+  // ===================================
+  // Run analyze
+  // ==================================
+  if(parser.isSet(runOption)) {
+    QString settingsFilePath = parser.value(runOption);
+    joda::ui::terminal::Terminal terminal(mController);
+    terminal.startAnalyze(std::filesystem::path(settingsFilePath.toStdString()));
+  }
 
   // ===================================
   // Start CLI or GUI mode
