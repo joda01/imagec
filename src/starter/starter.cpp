@@ -52,9 +52,9 @@ void Starter::exec(int argc, char *argv[])
 {
   Version::initVersion(std::string(argv[0]));
   // Use QCoreApplication initially to parse command-line arguments
-  QCoreApplication coreApp(argc, argv);
-  QCoreApplication::setApplicationName(Version::getProgamName().data());
-  QCoreApplication::setApplicationVersion(Version::getVersion().data());
+  QApplication app(argc, argv);
+  QApplication::setApplicationName(Version::getProgamName().data());
+  QApplication::setApplicationVersion(Version::getVersion().data());
 
   QCommandLineParser parser;
   parser.setApplicationDescription("ImageC high throughput image processing application.");
@@ -80,7 +80,7 @@ void Starter::exec(int argc, char *argv[])
                                "Start an analyze.", "settings file");
   parser.addOption(runOption);
 
-  parser.process(coreApp);
+  parser.process(app);
 
   // ===================================
   // Logger
@@ -111,8 +111,10 @@ void Starter::exec(int argc, char *argv[])
     qDebug() << "Running in Command-Line Mode";
     std::exit(0);    // Exit after CLI execution
   } else {
-    startUi(argc, argv);
+    startUi(app);
   }
+
+  QApplication::exec();
 }
 
 ///
@@ -181,12 +183,11 @@ void Starter::initApplication()
 /// \param[out]
 /// \return
 ///
-void Starter::startUi(int argc, char *argv[])
+void Starter::startUi(QApplication &app)
 {
   // ======================================
   // Start UI
   // ======================================
-  QApplication app(argc, argv);
   QFile fontFile(":/fonts/fonts/roboto/Roboto-Regular.ttf");
   if(fontFile.open(QIODevice::ReadOnly)) {
     QByteArray fontData = fontFile.readAll();
@@ -223,9 +224,8 @@ void Starter::startUi(int argc, char *argv[])
     )";
 
   app.setStyleSheet(stylesheet);
-  joda::ui::gui::WindowMain mainWindow(mController);
-  mainWindow.show();
-  auto ret = app.exec();
+  mWindowMain = new joda::ui::gui::WindowMain(mController);
+  mWindowMain->show();
 }
 
 ///

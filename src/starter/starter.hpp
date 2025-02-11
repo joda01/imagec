@@ -12,11 +12,17 @@
 
 #pragma once
 
+#include <qapplication.h>
 #include <string>
 
 namespace joda::ctrl {
 class Controller;
 };
+
+namespace joda::ui::gui {
+class WindowMain;
+
+}
 
 namespace joda::start {
 
@@ -30,10 +36,11 @@ private:
   /////////////////////////////////////////////////////
   void initLogger(const std::string &logLevel);
   void initApplication();
-  void startUi(int argc, char *argv[]);
+  void startUi(QApplication &app);
   void exitWithError(const std::string &what);
 
   ctrl::Controller *mController;
+  joda::ui::gui::WindowMain *mWindowMain;
 };
 
 }    // namespace joda::start
