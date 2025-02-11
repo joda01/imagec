@@ -85,8 +85,15 @@ inline auto generateAiModelClass(const QString &helpText, QWidget *parent) -> st
 {
   auto mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, helpText);
   mGrayScaleValue->setDefaultValue(0);
-  mGrayScaleValue->addOptions(
-      {{0, "CL 1", generateIcon("one-round")}, {1, "CL 2"}, {2, "CL 3"}, {3, "CL 4"}, {4, "CL 5"}, {5, "CL 6"}, {6, "CL 7"}, {7, "CL 8"}});
+  mGrayScaleValue->addOptions({{-1, "Unset", generateIcon("question-mark")},
+                               {0, "CL 1", generateIcon("one-round")},
+                               {1, "CL 2"},
+                               {2, "CL 3"},
+                               {3, "CL 4"},
+                               {4, "CL 5"},
+                               {5, "CL 6"},
+                               {6, "CL 7"},
+                               {7, "CL 8"}});
   mGrayScaleValue->setUnit("");
   mGrayScaleValue->setShortDescription("");
 

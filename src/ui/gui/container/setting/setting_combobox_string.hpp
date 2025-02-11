@@ -49,7 +49,7 @@ public:
     mComboBox->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     mComboBox->addAction(getIcon(), "");
 
-    connect(mComboBox, &QComboBox::currentIndexChanged, this, &SettingComboBoxString::onValueChanged);
+    connect(mComboBox, &QComboBox::currentTextChanged, this, &SettingComboBoxString::onValueChanged);
 
     return mComboBox;
   }

@@ -46,11 +46,13 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
       "Model settings", [] {}, false);
 
   mModelPath = SettingBase::create<SettingComboBoxString>(parent, {}, "Model path");
-  mModelPath->connectWithSetting(&settings.modelPath);
-  mModelPath->setValue(settings.modelPath);
-  mModelPath->setShortDescription("Path:");
   refreshModels();
-  connect(mModelPath.get(), &SettingBase::valueChanged, [this]() {
+
+  mModelPath->setValue(settings.modelPath);
+  mModelPath->connectWithSetting(&settings.modelPath);
+  mModelPath->setShortDescription("Path:");
+
+  auto updateModel = [this]() {
     if(!mModelPath->getValue().empty()) {
       try {
         auto info = joda::onnx::AiModelParser::parseResourceDescriptionFile(std::filesystem::path(mModelPath->getValue()));
@@ -67,8 +69,10 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
       } catch(...) {
       }
     }
-  });
+  };
 
+  connect(mModelPath.get(), &SettingBase::valueChanged, [&]() { updateModel(); });
+  updateModel();
   //
   //
   mNumberOdModelClasses = SettingBase::create<SettingSpinBox<int32_t>>(parent, generateIcon("deviation"), "Nr. of model classes");
