@@ -25,37 +25,32 @@ const std::string GRAY_COLOR   = "\033[37m";
 const std::string YELLOW_COLOR = "\033[33m";
 const std::string BLUE_COLOR   = "\033[34m";
 
-const int MAX_OUTPUT_LINES = 15;
-
-bool mWithBuffer   = true;
 LogLevel mLogLevel = LogLevel::DEBUG;
 std::mutex mWriteMutex;
-std::deque<std::string> outBuffer;
+float lastProgress = 0;
 
 void setLogLevel(LogLevel logLevel)
 {
   mLogLevel = logLevel;
 }
 
-void setConsoleLog(bool withBuffer)
-{
-  mWithBuffer = withBuffer;
-  if(withBuffer) {
-    // Clear the entire screen and move the cursor to the top-left
-    std::cout << "\033[2J\033[H";
-  } else {
-    std::cout << "\033[15;1H";
-  }
-}
-
 void printOrAddToBuffer(const std::string &tmp)
 {
-  if(mWithBuffer) {
-    std::lock_guard<std::mutex> lock(mWriteMutex);
-    outBuffer.emplace_back(tmp);
+  std::cout << tmp << std::endl;
+}
+
+std::string toPercentString(float ratio)
+{
+  auto percent = int(ratio * 100.0);
+  std::string percentString;
+  if(percent < 10) {
+    percentString = "  " + std::to_string(percent) + "%";
+  } else if(percent < 100) {
+    percentString = " " + std::to_string(percent) + "%";
   } else {
-    std::cout << tmp << std::endl;
+    percentString = std::to_string(percent) + "%";
   }
+  return percentString;
 }
 
 std::string getCurrentDateTimeISO()
@@ -119,72 +114,12 @@ void logTrace(const std::string &message)
   printOrAddToBuffer(tmp);
 }
 
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void updateTopLine(float progress, float total)
+void logProgress(float ratio, const std::string &message)
 {
-  std::lock_guard<std::mutex> lock(mWriteMutex);
-
-  // Save cursor position
-  std::cout << "\033[s";
-
-  // Move cursor to the top-left
-  std::cout << "\033[1;1H";
-
-  // Clear the first 4 lines (progress bar area)
-  for(int i = 0; i < 4; ++i) {
-    std::cout << "\033[K";    // Clear line
-    if(i < 3)
-      std::cout << "\n";
-  }
-
-  // Move cursor back to the top-left
-  std::cout << "\033[1;1H";
-
-  // Display the progress bar
-  int barWidth = 50;
-  float ratio  = static_cast<float>(progress) / total;
-  int pos      = static_cast<int>(barWidth * ratio);
-
-  std::cout << "Analyze running ...\n[";
-  for(int i = 0; i < barWidth; ++i) {
-    if(i < pos)
-      std::cout << "=";
-    else if(i == pos)
-      std::cout << ">";
-    else
-      std::cout << " ";
-  }
-  std::cout << "] " << int(ratio * 100.0) << " %\n";
-
-  std::cout << "\n";
-  std::cout << "\n";
-
-  // Clear the old output lines below the progress bar
-  for(int i = 0; i < MAX_OUTPUT_LINES; ++i) {
-    std::cout << "\033[K\n";
-  }
-
-  // Move cursor back to the start of output area (5th line)
-  std::cout << "\033[5;1H";
-
-  // Print the last 10 lines in reverse (newest first)
-  int cnt = 0;
-  for(auto it = outBuffer.rbegin(); it != outBuffer.rend(); ++it) {
-    std::cout << *it << "\n";
-    cnt++;
-    if(cnt >= MAX_OUTPUT_LINES) {
-      break;
-    }
-  }
-
-  // Restore cursor position for further outputs
-  std::cout << "\033[u" << std::flush;
+  lastProgress                   = ratio;
+  std::string currentDateTimeISO = getCurrentDateTimeISO();
+  std::string tmp                = GRAY_COLOR + "[" + toPercentString(ratio) + "]" + RESET_COLOR + "[" + currentDateTimeISO + "] " + message;
+  printOrAddToBuffer(tmp);
 }
 
 }    // namespace joda::log

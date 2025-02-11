@@ -82,16 +82,14 @@ void Starter::exec(int argc, char *argv[])
 
   parser.process(app);
 
-  bool terminalRunner = parser.isSet(runOption);
-
   // ===================================
   // Logger
   // ==================================
   if(parser.isSet(loggingOption)) {
     QString loglevel = parser.value(loggingOption);
-    initLogger(loglevel.toStdString(), terminalRunner);
+    initLogger(loglevel.toStdString());
   } else {
-    initLogger("info", terminalRunner);
+    initLogger("info");
   }
 
   // ===================================
@@ -126,7 +124,7 @@ void Starter::exec(int argc, char *argv[])
 ///             allowed inputs are: [off, error, warning, info, debug, trace]
 /// \author     Joachim Danmayr
 ///
-void Starter::initLogger(const std::string &logLevel, bool withBuffer)
+void Starter::initLogger(const std::string &logLevel)
 {
   if(logLevel == "off") {
     joda::log::setLogLevel(joda::log::LogLevel::OFF);
@@ -147,7 +145,6 @@ void Starter::initLogger(const std::string &logLevel, bool withBuffer)
   } else {
     exitWithError("Wrong parameter for loglevel!");
   }
-  log::setConsoleLog(withBuffer);
 }
 
 ///

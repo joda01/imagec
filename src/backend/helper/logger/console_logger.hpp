@@ -36,14 +36,12 @@ enum class LogLevel
 };
 
 extern void setLogLevel(LogLevel logLevel);
-extern void setConsoleLog(bool onOff);
-
 extern std::string getCurrentDateTimeISO();
 extern void logError(const std::string &message);
 extern void logWarning(const std::string &message);
 extern void logInfo(const std::string &message);
 extern void logDebug(const std::string &message);
 extern void logTrace(const std::string &message);
-extern void updateTopLine(float progress, float total);
+extern void logProgress(float progress, const std::string &message);
 
 }    // namespace joda::log

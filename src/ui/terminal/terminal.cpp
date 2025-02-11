@@ -59,7 +59,6 @@ void Terminal::startAnalyze(const std::filesystem::path &pathToSettingsFile)
   // ==========================
   // Start job
   // ==========================
-  joda::log::updateTopLine(0, 100);
   auto jobName = joda::helper::RandomNameGenerator::GetRandomName();
   mController->start(analyzeSettings, {}, jobName);
   joda::log::logInfo("Job >" + jobName + "< started!");
@@ -67,25 +66,29 @@ void Terminal::startAnalyze(const std::filesystem::path &pathToSettingsFile)
   // ==========================
   // Running
   // ==========================
-  int32_t totalTiles    = 0;
-  int32_t finishedTiles = 0;
+  float totalTiles    = 0;
+  float finishedTiles = 0;
   try {
     while(true) {
+      std::this_thread::sleep_for(2.5s);
+
       const auto &jobState = mController->getState();
       if(jobState.isFinished()) {
         break;
       }
 
-      finishedTiles = jobState.finishedTiles();
-      totalTiles    = jobState.totalTiles();
-      joda::log::updateTopLine(finishedTiles, totalTiles);
-      std::this_thread::sleep_for(1s);
+      finishedTiles = static_cast<float>(jobState.finishedTiles());
+      totalTiles    = static_cast<float>(jobState.totalTiles());
+      if(totalTiles > 0) {
+        joda::log::logProgress(finishedTiles / totalTiles, "Analyze running");
+      } else {
+        joda::log::logProgress(0, "Progress");
+      }
     }
   } catch(...) {
   }
+  joda::log::logProgress(1, "Completed");
   joda::log::logInfo("Job >" + jobName + "< finished!");
-  joda::log::updateTopLine(totalTiles, totalTiles);
-  joda::log::setConsoleLog(false);
 
   std::exit(0);
 }
