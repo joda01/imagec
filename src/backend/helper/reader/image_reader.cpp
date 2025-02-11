@@ -472,6 +472,10 @@ auto ImageReader::getOmeInformation(const std::filesystem::path &filename, uint1
     auto id = DurationCount::start("Get OEM");
     JNIEnv *myEnv;
     myJVM->AttachCurrentThread((void **) &myEnv, NULL);
+    if(!std::filesystem::exists(filename)) {
+      joda::log::logError("File >" + filename.string() + "<, does not exist!");
+      return {};
+    }
 
     jstring filePath = myEnv->NewStringUTF(filename.string().c_str());
     jstring result   = (jstring) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageProperties, filePath, static_cast<int>(series));

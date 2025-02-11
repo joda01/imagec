@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <string>
 #include "backend/enums/enums_classes.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/system/system_resources.hpp"
@@ -146,10 +147,10 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
 
   threads.totalRuns = imgNr * tileNr * pipelineNr;
 
-  std::cout << "Calculated threads " << std::to_string(imageInfo.optimalTileHeight) << "x" << std::to_string(imageInfo.optimalTileWidth) << " | "
-            << std::to_string((float) threads.ramPerImage / 1000000.0f) << " MB "
-            << " | " << std::to_string(threads.coresUsed) << std::endl;
+  /* joda::log::logInfo("Calculated threads " + std::to_string(imageInfo.optimalTileHeight) + "x" + std::to_string(imageInfo.optimalTileWidth) + " | "
+     + std::to_string((float) threads.ramPerImage / 1000000.0f) + " MB " + " | " + std::to_string(threads.coresUsed));*/
 
+  joda::log::logInfo("Number of CPU cores to use: " + std::to_string(threads.coresUsed));
   return threads;
 }
 
@@ -269,11 +270,14 @@ void Controller::start(const settings::AnalyzeSettings &settings, const joda::th
   if(mActThread.joinable()) {
     mActThread.join();
   }
+  setWorkingDirectory(settings.projectSettings.plates.begin()->plateId, settings.projectSettings.plates.begin()->imageFolder);
+  mWorkingDirectory.waitForFinished();
+
   mActProcessor.reset();
-  mActThread = std::thread([this, settings, jobName] {
-    mActProcessor = std::make_unique<processor::Processor>();
+  mActProcessor = std::make_unique<processor::Processor>();
+  mActThread    = std::thread([this, settings, jobName] {
     mActProcessor->execute(settings, jobName, calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles()),
-                           mWorkingDirectory);
+                              mWorkingDirectory);
   });
 }
 

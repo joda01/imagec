@@ -82,12 +82,16 @@ void Starter::exec(int argc, char *argv[])
 
   parser.process(app);
 
+  bool terminalRunner = parser.isSet(runOption);
+
   // ===================================
   // Logger
   // ==================================
   if(parser.isSet(loggingOption)) {
     QString loglevel = parser.value(loggingOption);
-    initLogger(loglevel.toStdString());
+    initLogger(loglevel.toStdString(), terminalRunner);
+  } else {
+    initLogger("info", terminalRunner);
   }
 
   // ===================================
@@ -122,7 +126,7 @@ void Starter::exec(int argc, char *argv[])
 ///             allowed inputs are: [off, error, warning, info, debug, trace]
 /// \author     Joachim Danmayr
 ///
-void Starter::initLogger(const std::string &logLevel)
+void Starter::initLogger(const std::string &logLevel, bool withBuffer)
 {
   if(logLevel == "off") {
     joda::log::setLogLevel(joda::log::LogLevel::OFF);
@@ -143,6 +147,7 @@ void Starter::initLogger(const std::string &logLevel)
   } else {
     exitWithError("Wrong parameter for loglevel!");
   }
+  log::setConsoleLog(withBuffer);
 }
 
 ///
@@ -162,9 +167,9 @@ void Starter::initApplication()
   int32_t availableRam   = std::ceil(static_cast<float>(systemRecourses.ramAvailable) / 1000000.0f);
   int32_t jvmReservedRam = std::ceil(static_cast<float>(systemRecourses.ramReservedForJVM) / 1000000.0f);
 
-  joda::log::logDebug("Total available RAM " + std::to_string(totalRam) + " MB.");
-  joda::log::logDebug("Usable RAM " + std::to_string(availableRam) + " MB.");
-  joda::log::logDebug("JVM reserved RAM " + std::to_string(jvmReservedRam) + " MB.");
+  joda::log::logInfo("Total available RAM " + std::to_string(totalRam) + " MB.");
+  joda::log::logInfo("Usable RAM " + std::to_string(availableRam) + " MB.");
+  joda::log::logInfo("JVM reserved RAM " + std::to_string(jvmReservedRam) + " MB.");
 
   joda::image::reader::ImageReader::init(systemRecourses.ramReservedForJVM);
 

@@ -34,6 +34,6 @@ public:
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
 
 private:
-  const settings::AiClassifierSettings &mSettings;
+  settings::AiClassifierSettings mSettings;
 };
 }    // namespace joda::cmd

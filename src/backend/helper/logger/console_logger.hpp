@@ -17,6 +17,7 @@
 #include <ctime>
 #include <iomanip>
 #include <iostream>
+#include <mutex>
 #include <ostream>
 #include <sstream>    // std::ostringstream
 #include <string>
@@ -34,75 +35,15 @@ enum class LogLevel
   VERBOSE = 5
 };
 
-// Color codes for console formatting
-const std::string RESET_COLOR  = "\033[0m";
-const std::string RED_COLOR    = "\033[31m";
-const std::string GREEN_COLOR  = "\033[32m";
-const std::string GRAY_COLOR   = "\033[37m";
-const std::string YELLOW_COLOR = "\033[33m";
-const std::string BLUE_COLOR   = "\033[34m";
+extern void setLogLevel(LogLevel logLevel);
+extern void setConsoleLog(bool onOff);
 
-extern LogLevel mLogLevel;
-
-inline void setLogLevel(LogLevel logLevel)
-{
-  mLogLevel = logLevel;
-}
-
-inline std::string getCurrentDateTimeISO()
-{
-  auto now                = std::chrono::system_clock::now();
-  std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
-  std::tm localTime       = *std::localtime(&currentTime);
-
-  std::ostringstream oss;
-  oss << std::put_time(&localTime, "%Y-%m-%dT%H:%M:%S");
-  return oss.str();
-}
-
-inline void logError(const std::string &message)
-{
-  if(mLogLevel < LogLevel::ERROR) {
-    return;
-  }
-  std::string currentDateTimeISO = getCurrentDateTimeISO();
-  std::cout << RED_COLOR << "[ERR] " << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;
-}
-
-inline void logWarning(const std::string &message)
-{
-  if(mLogLevel < LogLevel::WARNING) {
-    return;
-  }
-  std::string currentDateTimeISO = getCurrentDateTimeISO();
-  std::cout << YELLOW_COLOR << "[WARN]" << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;
-}
-
-inline void logInfo(const std::string &message)
-{
-  if(mLogLevel < LogLevel::INFO) {
-    return;
-  }
-  std::string currentDateTimeISO = getCurrentDateTimeISO();
-  std::cout << BLUE_COLOR << "[INFO]" << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;
-}
-
-inline void logDebug(const std::string &message)
-{
-  if(mLogLevel < LogLevel::DEBUG) {
-    return;
-  }
-  std::string currentDateTimeISO = getCurrentDateTimeISO();
-  std::cout << GREEN_COLOR << "[DEBG]" << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;
-}
-
-inline void logTrace(const std::string &message)
-{
-  if(mLogLevel < LogLevel::TRACE) {
-    return;
-  }
-  std::string currentDateTimeISO = getCurrentDateTimeISO();
-  std::cout << GRAY_COLOR << "[TRACE]" << RESET_COLOR << "[" << currentDateTimeISO << "] " << message << std::endl;
-}
+extern std::string getCurrentDateTimeISO();
+extern void logError(const std::string &message);
+extern void logWarning(const std::string &message);
+extern void logInfo(const std::string &message);
+extern void logDebug(const std::string &message);
+extern void logTrace(const std::string &message);
+extern void updateTopLine(float progress, float total);
 
 }    // namespace joda::log

@@ -194,7 +194,7 @@ void AiClassifier::updateInputFields(int32_t nrOfClasses, const settings::AiClas
 
 void AiClassifier::refreshModels()
 {
-  auto onnxModels = joda::onnx::AiModelParser::findAiModelFiles();
+  auto onnxModels = joda::ai::AiModelParser::findAiModelFiles();
   std::vector<SettingComboBoxString::ComboEntry> entries;
   entries.reserve(onnxModels.size() + 1);
   entries.emplace_back(SettingComboBoxString::ComboEntry{.key = "", .label = "Select model ..."});
@@ -208,7 +208,7 @@ void AiClassifier::updateModel()
 {
   if(!mModelPath->getValue().empty()) {
     try {
-      auto info = joda::onnx::AiModelParser::parseResourceDescriptionFile(std::filesystem::path(mModelPath->getValue()));
+      auto info = joda::ai::AiModelParser::parseResourceDescriptionFile(std::filesystem::path(mModelPath->getValue()));
       mModelDetails->setText(info.toString().data());
       mSettings.modelInputParameter = info.inputs.begin()->second;
       updateInputFields(info.classes.size(), info.modelParameter, info.inputs.begin()->second);

@@ -23,6 +23,7 @@
 #include "backend/commands/classification/ai_classifier/models/bioimage/ai_model_bioimage.hpp"
 #include "backend/commands/classification/ai_classifier/models/yolo/ai_model_yolo.hpp"
 #include "backend/enums/enum_objects.hpp"
+#include "backend/helper/ai_model_parser/ai_model_parser.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
 #include <opencv2/core/matx.hpp>
@@ -40,6 +41,11 @@ namespace joda::cmd {
 ///
 AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) : mSettings(settings)
 {
+  auto parsed = joda::ai::AiModelParser::parseResourceDescriptionFile(settings.modelPath);
+  if(parsed.inputs.empty()) {
+    THROW("Could not read model input parameter!");
+  }
+  mSettings.modelInputParameter = parsed.inputs.begin()->second;
 }
 
 void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNotUse, atom::ObjectList &result)

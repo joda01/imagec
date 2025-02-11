@@ -34,7 +34,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  void initLogger(const std::string &logLevel);
+  void initLogger(const std::string &logLevel, bool withBuffer);
   void initApplication();
   void startUi(QApplication &app);
   void exitWithError(const std::string &what);
