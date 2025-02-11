@@ -52,27 +52,7 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   mModelPath->connectWithSetting(&settings.modelPath);
   mModelPath->setShortDescription("Path:");
 
-  auto updateModel = [this]() {
-    if(!mModelPath->getValue().empty()) {
-      try {
-        auto info = joda::onnx::AiModelParser::parseResourceDescriptionFile(std::filesystem::path(mModelPath->getValue()));
-        mModelDetails->setText(info.toString().data());
-        mSettings.modelInputParameter = info.inputs.begin()->second;
-        updateInputFields(info.classes.size(), info.modelParameter, info.inputs.begin()->second);
-        /* removeAll();
-         mNumberOdModelClasses->setValue(info.classes.size());
-         int n = 0;
-         for(const auto &classs : info.classes) {
-           addFilter(classs, n, 1);
-           n++;
-         }*/
-      } catch(...) {
-      }
-    }
-  };
-
   connect(mModelPath.get(), &SettingBase::valueChanged, [&]() { updateModel(); });
-  updateModel();
   //
   //
   mNumberOdModelClasses = SettingBase::create<SettingSpinBox<int32_t>>(parent, generateIcon("deviation"), "Nr. of model classes");
@@ -196,6 +176,8 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
     mClassifyFilter.emplace_back(classifierSetting, *this, tab, cnt, parent);
     cnt++;
   }
+
+  updateModel();
 }
 
 void AiClassifier::updateInputFields(int32_t nrOfClasses, const settings::AiClassifierSettings::ModelParameters &model,
@@ -220,6 +202,26 @@ void AiClassifier::refreshModels()
     entries.emplace_back(SettingComboBoxString::ComboEntry{.key = model.modelPath.string(), .label = model.modelName.data()});
   }
   mModelPath->addOptions(entries);
+}
+
+void AiClassifier::updateModel()
+{
+  if(!mModelPath->getValue().empty()) {
+    try {
+      auto info = joda::onnx::AiModelParser::parseResourceDescriptionFile(std::filesystem::path(mModelPath->getValue()));
+      mModelDetails->setText(info.toString().data());
+      mSettings.modelInputParameter = info.inputs.begin()->second;
+      updateInputFields(info.classes.size(), info.modelParameter, info.inputs.begin()->second);
+      /* removeAll();
+       mNumberOdModelClasses->setValue(info.classes.size());
+       int n = 0;
+       for(const auto &classs : info.classes) {
+         addFilter(classs, n, 1);
+         n++;
+       }*/
+    } catch(...) {
+    }
+  }
 }
 
 }    // namespace joda::ui::gui
