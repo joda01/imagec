@@ -85,7 +85,7 @@ void Starter::exec(int argc, char *argv[])
   // Add run option
   QCommandLineOption runOption(QStringList() << "r"
                                              << "run",
-                               "Start an analyze.", "icproj file");
+                               "Start an analyze.", "*.icproj");
   parser.addOption(runOption);
 
   // Add path options
@@ -99,13 +99,33 @@ void Starter::exec(int argc, char *argv[])
   //
   QCommandLineOption exportData(QStringList() << "e"
                                               << "export",
-                                "Export data form a run.", "icdb file");
+                                "Export data form a run.", "*.icdb");
   parser.addOption(exportData);
 
   QCommandLineOption resultsOutput(QStringList() << "o"
                                                  << "output",
                                    "Path and filename to store the exported data.", "path/filename");
   parser.addOption(resultsOutput);
+
+  QCommandLineOption queryFilterOption(QStringList() << "q"
+                                                     << "filter",
+                                       "Path to query filter file", "*.ictemplexp");
+  parser.addOption(queryFilterOption);
+
+  QCommandLineOption exportType(QStringList() << "t"
+                                              << "export-type",
+                                "Export either R or XLSX (r, xlsx)", "type");
+  parser.addOption(exportType);
+
+  QCommandLineOption exportFormat(QStringList() << "f"
+                                                << "export-format",
+                                  "Export either list or heatmap (list, heatmap)", "format");
+  parser.addOption(exportFormat);
+
+  QCommandLineOption exportView(QStringList() << "w"
+                                              << "export-view",
+                                "Which view should be exported (plate, well, image)", "view");
+  parser.addOption(exportView);
 
   parser.process(app);
 

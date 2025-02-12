@@ -14,6 +14,7 @@
 #include <exception>
 #include <string>
 #include <thread>
+#include "backend/helper/database/plugins/filter.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/random_name_generator.hpp"
 #include "controller/controller.hpp"
@@ -122,37 +123,47 @@ void Terminal::startAnalyze(const std::filesystem::path &pathToSettingsFile, std
 /// \param[out]
 /// \return
 ///
-void Terminal::exportData(const std::filesystem::path &pathToDatabasefile, const std::filesystem::path &outputPath)
+void Terminal::exportData(const std::filesystem::path &pathToDatabasefile, const std::filesystem::path &outputPath,
+                          const std::filesystem::path &pathToQueryFilter, const std::string &type, const std::string &format, const std::string &view)
 {
-  std::thread([this, filePathOfSettingsFile, format] {
-    if(format == ExportFormat::XLSX) {
-      if(!mTable->isVisible()) {
-        joda::db::BatchExporter::startExportHeatmap(mActHeatmapData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
-                                                    mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
-                                                    filePathOfSettingsFile.toStdString());
-      } else {
-        joda::db::BatchExporter::startExportList(mActListData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
-                                                 mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
-                                                 filePathOfSettingsFile.toStdString());
-      }
-    } else {
-      db::StatsPerGroup::Grouping grouping = db::StatsPerGroup::Grouping::BY_PLATE;
-      switch(mNavigation) {
-        case Navigation::PLATE:
-          grouping = db::StatsPerGroup::Grouping::BY_PLATE;
-          break;
-        case Navigation::WELL:
-          grouping = db::StatsPerGroup::Grouping::BY_WELL;
-          break;
-        case Navigation::IMAGE:
-          grouping = db::StatsPerGroup::Grouping::BY_IMAGE;
-          break;
-      }
-      joda::db::RExporter::startExport(mFilter, grouping, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
-                                       mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
-                                       filePathOfSettingsFile.toStdString());
-    }
-  }).detach();
+  db::QueryFilter filter;
+
+  // ==========================
+  // Open settings file
+  // ==========================
+  try {
+    std::ifstream ifs(pathToQueryFilter.string());
+    filter = nlohmann::json::parse(ifs);
+    ifs.close();
+  } catch(const std::exception &ex) {
+    joda::log::logError("Could not load filter file >" + std::string(ex.what()) + "<!");
+    std::exit(1);
+  }
+
+  ctrl::ExportSettings::ExportType typeEnum;
+  if(type == "xlsx") {
+    typeEnum = ctrl::ExportSettings::ExportType::XLSX;
+  } else if(type == "r") {
+    typeEnum = ctrl::ExportSettings::ExportType::R;
+  }
+
+  ctrl::ExportSettings::ExportFormat formatEnum;
+  if(type == "list") {
+    formatEnum = ctrl::ExportSettings::ExportFormat::LIST;
+  } else if(type == "heatmap") {
+    formatEnum = ctrl::ExportSettings::ExportFormat::HEATMAP;
+  }
+
+  ctrl::ExportSettings::ExportView viewEnum;
+  if(type == "plate") {
+    viewEnum = ctrl::ExportSettings::ExportView::PLATE;
+  } else if(type == "well") {
+    viewEnum = ctrl::ExportSettings::ExportView::WELL;
+  } else if(type == "image") {
+    viewEnum = ctrl::ExportSettings::ExportView::IMAGE;
+  }
+
+  mController->exportData(pathToDatabasefile, filter, joda::ctrl::ExportSettings{formatEnum, typeEnum, viewEnum}, outputPath);
 }
 
 }    // namespace joda::ui::terminal
