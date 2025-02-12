@@ -23,13 +23,13 @@ namespace joda::db {
 /// \param[out]
 /// \return
 ///
-auto StatsPerImage::toTable(const QueryFilter &filter) -> QueryResult
+auto StatsPerImage::toTable(db::Database *database, const QueryFilter &filter) -> QueryResult
 {
   auto classesToExport = filter.getClassesToExport();
 
   for(const auto &[classs, statement] : classesToExport) {
     auto [sql, params] = toSqlTable(classs, filter.getFilter(), statement);
-    auto result        = filter.getAnalyzer()->select(sql, params);
+    auto result        = database->select(sql, params);
 
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());
@@ -80,13 +80,13 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
 /// \param[out]
 /// \return
 ///
-auto StatsPerImage::toHeatmap(const QueryFilter &filter) -> QueryResult
+auto StatsPerImage::toHeatmap(db::Database *database, const QueryFilter &filter) -> QueryResult
 {
   auto classesToExport = filter.getClassesToExport();
 
   int32_t tabIdx = 0;
   for(const auto &[classs, statement] : classesToExport) {
-    auto [result, imageInfo] = densityMap(classs, filter.getAnalyzer(), filter.getFilter(), statement);
+    auto [result, imageInfo] = densityMap(classs, database, filter.getFilter(), statement);
     size_t columnNr          = statement.getColSize();
     auto materializedResult  = result->Cast<duckdb::StreamQueryResult>().Materialize();
 

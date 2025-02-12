@@ -14,8 +14,8 @@ namespace joda::db {
 class StatsPerImage
 {
 public:
-  static auto toTable(const QueryFilter &filter) -> QueryResult;
-  static auto toHeatmap(const QueryFilter &filter) -> QueryResult;
+  static auto toTable(db::Database *database, const QueryFilter &filter) -> QueryResult;
+  static auto toHeatmap(db::Database *database, const QueryFilter &filter) -> QueryResult;
   static auto toSqlTable(const db::ResultingTable::QueryKey &classsAndClass, const QueryFilter::ObjectFilter &filter,
                          const PreparedStatement &channelFilter) -> std::pair<std::string, DbArgs_t>;
   static auto toSqlHeatmap(const db::ResultingTable::QueryKey &classsAndClass, const QueryFilter::ObjectFilter &filter,

@@ -27,10 +27,9 @@ public:
   /////////////////////////////////////////////////////
   Terminal(ctrl::Controller *);
   void startAnalyze(const std::filesystem::path &pathToSettingsFile, std::optional<std::string> &imagedInputFolder);
+  void exportData(const std::filesystem::path &pathToDatabasefile, const std::filesystem::path &outputPath);
 
 private:
-  /////////////////////////////////////////////////////
-  void printProgress();
   /////////////////////////////////////////////////////
   ctrl::Controller *mController;
 };

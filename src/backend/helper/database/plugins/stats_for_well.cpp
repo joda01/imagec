@@ -30,14 +30,13 @@ auto transformMatrix(const std::vector<std::vector<int32_t>> &wellImageOrder, in
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::toTable(const QueryFilter &filter, Grouping grouping) -> QueryResult
+auto StatsPerGroup::toTable(db::Database *database, const QueryFilter &filter, Grouping grouping) -> QueryResult
 {
   auto classesToExport = filter.getClassesToExport();
 
   for(const auto &[classs, statement] : classesToExport) {
-    auto materializedResult =
-        getData(classs, filter.getAnalyzer(), filter.getFilter(), statement, grouping)->Cast<duckdb::StreamQueryResult>().Materialize();
-    size_t columnNr = statement.getColSize();
+    auto materializedResult = getData(classs, database, filter.getFilter(), statement, grouping)->Cast<duckdb::StreamQueryResult>().Materialize();
+    size_t columnNr         = statement.getColSize();
 
     for(size_t row = 0; row < materializedResult->RowCount(); row++) {
       try {
@@ -73,7 +72,7 @@ auto StatsPerGroup::toTable(const QueryFilter &filter, Grouping grouping) -> Que
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> QueryResult
+auto StatsPerGroup::toHeatmap(db::Database *database, const QueryFilter &filter, Grouping grouping) -> QueryResult
 {
   auto classesToExport = filter.getClassesToExport();
   classesToExport.clearTables();
@@ -89,8 +88,7 @@ auto StatsPerGroup::toHeatmap(const QueryFilter &filter, Grouping grouping) -> Q
   }
 
   for(const auto &[classs, statement] : classesToExport) {
-    auto materializedResult =
-        getData(classs, filter.getAnalyzer(), filter.getFilter(), statement, grouping)->Cast<duckdb::StreamQueryResult>().Materialize();
+    auto materializedResult = getData(classs, database, filter.getFilter(), statement, grouping)->Cast<duckdb::StreamQueryResult>().Materialize();
 
     size_t columnNr = statement.getColSize();
 

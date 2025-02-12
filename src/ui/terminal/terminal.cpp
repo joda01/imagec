@@ -122,8 +122,37 @@ void Terminal::startAnalyze(const std::filesystem::path &pathToSettingsFile, std
 /// \param[out]
 /// \return
 ///
-void Terminal::printProgress()
+void Terminal::exportData(const std::filesystem::path &pathToDatabasefile, const std::filesystem::path &outputPath)
 {
+  std::thread([this, filePathOfSettingsFile, format] {
+    if(format == ExportFormat::XLSX) {
+      if(!mTable->isVisible()) {
+        joda::db::BatchExporter::startExportHeatmap(mActHeatmapData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
+                                                    mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
+                                                    filePathOfSettingsFile.toStdString());
+      } else {
+        joda::db::BatchExporter::startExportList(mActListData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
+                                                 mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
+                                                 filePathOfSettingsFile.toStdString());
+      }
+    } else {
+      db::StatsPerGroup::Grouping grouping = db::StatsPerGroup::Grouping::BY_PLATE;
+      switch(mNavigation) {
+        case Navigation::PLATE:
+          grouping = db::StatsPerGroup::Grouping::BY_PLATE;
+          break;
+        case Navigation::WELL:
+          grouping = db::StatsPerGroup::Grouping::BY_WELL;
+          break;
+        case Navigation::IMAGE:
+          grouping = db::StatsPerGroup::Grouping::BY_IMAGE;
+          break;
+      }
+      joda::db::RExporter::startExport(mFilter, grouping, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
+                                       mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
+                                       filePathOfSettingsFile.toStdString());
+    }
+  }).detach();
 }
 
 }    // namespace joda::ui::terminal

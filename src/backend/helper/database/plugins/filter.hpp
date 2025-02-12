@@ -153,10 +153,9 @@ public:
 
   explicit QueryFilter() = default;
 
-  void setFilter(db::Database *db, const ObjectFilter &filter)
+  void setFilter(const ObjectFilter &filter)
   {
-    mAnalyzer = db;
-    mFilter   = filter;
+    mFilter = filter;
   }
 
   bool addColumn(const ColumnIdx &colIdx, const ColumnKey &key, const ColumnName &names)
@@ -211,11 +210,6 @@ public:
 
   [[nodiscard]] auto getClassesToExport() const -> ResultingTable;
 
-  [[nodiscard]] auto getAnalyzer() const -> db::Database *
-  {
-    return mAnalyzer;
-  }
-
   [[nodiscard]] auto getFilter() const -> const ObjectFilter &
   {
     return mFilter;
@@ -228,7 +222,6 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  db::Database *mAnalyzer = nullptr;
   ObjectFilter mFilter;
   std::map<ColumnIdx, ColumnKey> mColumns;
 

@@ -27,6 +27,7 @@
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/database/plugins/filter.hpp"
 #include "backend/helper/table/table.hpp"
+#include "controller/controller.hpp"
 #include "heatmap/panel_heatmap.hpp"
 #include "ui/gui/container/panel_edit_base.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
@@ -90,12 +91,6 @@ private:
   /////////////////////////////////////////////////////
   static constexpr int32_t PREVIEW_BASE_SIZE = 450;
 
-  enum class ExportFormat
-  {
-    XLSX,
-    R
-  };
-
   /////////////////////////////////////////////////////
   void valueChangedEvent() override;
   void tableToQWidgetTable(const joda::table::Table &table);
@@ -108,7 +103,7 @@ private:
 
   /////////////////////////////////////////////////////
   void storeResultsTableSettingsToDatabase();
-  void onExportClicked(ExportFormat);
+  void onExportClicked(joda::ctrl::ExportSettings::ExportType);
   void saveTemplate();
   void loadTemplate();
 

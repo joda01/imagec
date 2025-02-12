@@ -223,11 +223,11 @@ void PanelResults::createBreadCrump(joda::ui::gui::helper::LayoutGenerator *tool
 
   auto *exportData = exportMenu->addAction(generateIcon("excel"), "Save as XLSX");
   exportData->setToolTip("Export XLSX");
-  connect(exportData, &QAction::triggered, [this]() { onExportClicked(ExportFormat::XLSX); });
+  connect(exportData, &QAction::triggered, [this]() { onExportClicked(joda::ctrl::ExportSettings::ExportType::XLSX); });
 
   auto *exportR = exportMenu->addAction(generateIcon("r-studio"), "Save as R");
   exportR->setToolTip("Export R");
-  connect(exportR, &QAction::triggered, [this]() { onExportClicked(ExportFormat::R); });
+  connect(exportR, &QAction::triggered, [this]() { onExportClicked(joda::ctrl::ExportSettings::ExportType::R); });
 
   auto *exports = new QAction(generateIcon("download"), "Export", toolbar);
   exports->setMenu(exportMenu);
@@ -316,13 +316,13 @@ void PanelResults::refreshView()
   const auto &size      = mWindowMain->getPanelResultsInfo()->getPlateSize();
   const auto &wellOrder = mWindowMain->getPanelResultsInfo()->getWellOrder();
 
-  mFilter.setFilter(mAnalyzer.get(), {.plateId            = 0,
-                                      .groupId            = mActGroupId,
-                                      .imageId            = mActImageId,
-                                      .plateRows          = static_cast<uint16_t>(size.height()),
-                                      .plateCols          = static_cast<uint16_t>(size.width()),
-                                      .densityMapAreaSize = mWindowMain->getPanelResultsInfo()->getDensityMapSize(),
-                                      .wellImageOrder     = wellOrder});
+  mFilter.setFilter({.plateId            = 0,
+                     .groupId            = mActGroupId,
+                     .imageId            = mActImageId,
+                     .plateRows          = static_cast<uint16_t>(size.height()),
+                     .plateCols          = static_cast<uint16_t>(size.width()),
+                     .densityMapAreaSize = mWindowMain->getPanelResultsInfo()->getDensityMapSize(),
+                     .wellImageOrder     = wellOrder});
 
   //
   //
@@ -337,28 +337,28 @@ void PanelResults::refreshView()
         case Navigation::PLATE:
           mBackButton->setEnabled(false);
           {
-            mActListData = joda::db::StatsPerGroup::toTable(mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
+            mActListData = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
             if(!mActListData.empty() && mActListData.at(0).getRows() == 1) {
               // If there are no groups, switch directly to well view
               mNavigation = Navigation::WELL;
               mActGroupId = static_cast<uint16_t>(mActListData.at(0).data(0, 0).getId());
               goto REFRESH_VIEW;
             }
-            mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
+            mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
           }
           break;
         case Navigation::WELL:
           mBackButton->setEnabled(true);
           {
-            mActListData    = joda::db::StatsPerGroup::toTable(mFilter, db::StatsPerGroup::Grouping::BY_WELL);
-            mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mFilter, db::StatsPerGroup::Grouping::BY_WELL);
+            mActListData    = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL);
+            mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL);
           }
           break;
         case Navigation::IMAGE:
           mBackButton->setEnabled(true);
           {
-            mActListData    = joda::db::StatsPerImage::toTable(mFilter);
-            mActHeatmapData = joda::db::StatsPerImage::toHeatmap(mFilter);
+            mActListData    = joda::db::StatsPerImage::toTable(mAnalyzer.get(), mFilter);
+            mActHeatmapData = joda::db::StatsPerImage::toHeatmap(mAnalyzer.get(), mFilter);
           }
           break;
       }
@@ -853,14 +853,14 @@ void PanelResults::onCellClicked(int rowSelected, int columnSelcted)
 /// \param[out]
 /// \return
 ///
-void PanelResults::onExportClicked(ExportFormat format)
+void PanelResults::onExportClicked(joda::ctrl::ExportSettings::ExportType format)
 {
   QString filePathOfSettingsFile;
   switch(format) {
-    case ExportFormat::XLSX:
+    case joda::ctrl::ExportSettings::ExportType::XLSX:
       filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save File", mDbFilePath.parent_path().string().data(), "Spreadsheet (*.xlsx)");
       break;
-    case ExportFormat::R:
+    case joda::ctrl::ExportSettings::ExportType::R:
       filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save File", mDbFilePath.parent_path().string().data(), "R-Script (*.r)");
       break;
   }
@@ -870,7 +870,7 @@ void PanelResults::onExportClicked(ExportFormat format)
   }
 
   std::thread([this, filePathOfSettingsFile, format] {
-    if(format == ExportFormat::XLSX) {
+    if(format == joda::ctrl::ExportSettings::ExportType::XLSX) {
       if(!mTable->isVisible()) {
         joda::db::BatchExporter::startExportHeatmap(mActHeatmapData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
                                                     mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
