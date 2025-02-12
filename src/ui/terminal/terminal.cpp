@@ -40,7 +40,7 @@ Terminal::Terminal(ctrl::Controller *controller) : mController(controller)
 /// \param[out]
 /// \return
 ///
-void Terminal::startAnalyze(const std::filesystem::path &pathToSettingsFile)
+void Terminal::startAnalyze(const std::filesystem::path &pathToSettingsFile, std::optional<std::string> &imagedInputFolder)
 {
   joda::settings::AnalyzeSettings analyzeSettings;
 
@@ -54,6 +54,24 @@ void Terminal::startAnalyze(const std::filesystem::path &pathToSettingsFile)
   } catch(const std::exception &ex) {
     joda::log::logError("Could not load settings file >" + std::string(ex.what()) + "<!");
     std::exit(1);
+  }
+
+  // ==========================
+  // Prepare and check settings
+  // ==========================
+  auto foundErrors = analyzeSettings.checkForErrors();
+  bool hasError    = false;
+  for(const auto &[pipeline, messages] : foundErrors) {
+    for(const auto &msg : messages) {
+      if(msg.severity == SettingParserLog::Severity::JODA_ERROR) {
+        hasError = true;
+      }
+      msg.print();
+    }
+  }
+  if(hasError) {
+    joda::log::logError("Configuration has errors!");
+    std::exit(0);
   }
 
   // ==========================
@@ -89,7 +107,6 @@ void Terminal::startAnalyze(const std::filesystem::path &pathToSettingsFile)
   }
   joda::log::logProgress(1, "Completed");
   joda::log::logInfo("Job >" + jobName + "< finished!");
-
   std::exit(0);
 }
 

@@ -13,6 +13,7 @@
 #pragma once
 
 #include <filesystem>
+#include <optional>
 
 namespace joda::ctrl {
 class Controller;
@@ -25,7 +26,7 @@ class Terminal
 public:
   /////////////////////////////////////////////////////
   Terminal(ctrl::Controller *);
-  void startAnalyze(const std::filesystem::path &pathToSettingsFile);
+  void startAnalyze(const std::filesystem::path &pathToSettingsFile, std::optional<std::string> &imagedInputFolder);
 
 private:
   /////////////////////////////////////////////////////

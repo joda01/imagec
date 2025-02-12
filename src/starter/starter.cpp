@@ -15,6 +15,7 @@
 #include <QCommandLineParser>
 #include <QCoreApplication>
 #include <QDebug>
+#include <optional>
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/system/system_resources.hpp"
@@ -65,20 +66,46 @@ void Starter::exec(int argc, char *argv[])
   QCommandLineOption cliOption(QStringList() << "c"
                                              << "cli",
                                "Run in command-line mode.");
-
   parser.addOption(cliOption);
+
+  //
+  // Common commands
+  //
 
   // Add an option for CLI to accept a name
   QCommandLineOption loggingOption(QStringList() << "l"
                                                  << "logging",
-                                   "Set logging level [off, error, warning, info, debug, trace]", "loglevel");
+                                   "Set logging level (error, warning, info, debug, trace).", "loglevel");
   parser.addOption(loggingOption);
+
+  //
+  // Run analyze commends
+  //
 
   // Add run option
   QCommandLineOption runOption(QStringList() << "r"
                                              << "run",
-                               "Start an analyze.", "settings file");
+                               "Start an analyze.", "icproj file");
   parser.addOption(runOption);
+
+  // Add path options
+  QCommandLineOption imagePathOption(QStringList() << "p"
+                                                   << "path",
+                                     "Path to images which should be analyzed.", "folder");
+  parser.addOption(imagePathOption);
+
+  //
+  // Export commands
+  //
+  QCommandLineOption exportData(QStringList() << "e"
+                                              << "export",
+                                "Export data form a run.", "icdb file");
+  parser.addOption(exportData);
+
+  QCommandLineOption resultsOutput(QStringList() << "o"
+                                                 << "output",
+                                   "Path and filename to store the exported data.", "path/filename");
+  parser.addOption(resultsOutput);
 
   parser.process(app);
 
@@ -101,9 +128,14 @@ void Starter::exec(int argc, char *argv[])
   // Run analyze
   // ==================================
   if(parser.isSet(runOption)) {
+    std::optional<std::string> imageInputPath = std::nullopt;
+    if(parser.isSet(imagePathOption)) {
+      imageInputPath = parser.value(runOption).toStdString();
+    }
+
     QString settingsFilePath = parser.value(runOption);
     joda::ui::terminal::Terminal terminal(mController);
-    terminal.startAnalyze(std::filesystem::path(settingsFilePath.toStdString()));
+    terminal.startAnalyze(std::filesystem::path(settingsFilePath.toStdString()), imageInputPath);
   }
 
   // ===================================
