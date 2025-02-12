@@ -74,6 +74,11 @@ void Terminal::startAnalyze(const std::filesystem::path &pathToSettingsFile, std
     std::exit(0);
   }
 
+  if(imagedInputFolder.has_value()) {
+    analyzeSettings.projectSettings.workingDirectory            = imagedInputFolder.value();
+    analyzeSettings.projectSettings.plates.begin()->imageFolder = imagedInputFolder.value();
+  }
+
   // ==========================
   // Start job
   // ==========================
