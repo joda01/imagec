@@ -62,12 +62,6 @@ void Starter::exec(int argc, char *argv[])
   parser.addHelpOption();
   parser.addVersionOption();
 
-  // Add a command-line option to trigger CLI mode
-  QCommandLineOption cliOption(QStringList() << "c"
-                                             << "cli",
-                               "Run in command-line mode.");
-  parser.addOption(cliOption);
-
   //
   // Common commands
   //
@@ -107,10 +101,10 @@ void Starter::exec(int argc, char *argv[])
                                    "Path and filename to store the exported data.", "path/filename");
   parser.addOption(resultsOutput);
 
-  QCommandLineOption queryFilterOption(QStringList() << "q"
-                                                     << "export-filter",
-                                       "Path to query filter file", "*.ictemplexp");
-  parser.addOption(queryFilterOption);
+  QCommandLineOption queryFilterTemplate(QStringList() << "c"
+                                                       << "export-columns",
+                                         "Path to column export template file.", "*.ictemplexp");
+  parser.addOption(queryFilterTemplate);
 
   QCommandLineOption exportType(QStringList() << "t"
                                               << "export-type",
@@ -126,6 +120,11 @@ void Starter::exec(int argc, char *argv[])
                                               << "export-view",
                                 "Which view should be exported (plate, well, image)", "view");
   parser.addOption(exportView);
+
+  QCommandLineOption exportFilter(QStringList() << "q"
+                                                << "export-filter",
+                                  "Plate, group and image to export [plate-id group-id image-id]", "filter");
+  parser.addOption(exportFilter);
 
   parser.process(app);
 
@@ -164,20 +163,15 @@ void Starter::exec(int argc, char *argv[])
   if(parser.isSet(exportData)) {
     joda::ui::terminal::Terminal terminal(mController);
     terminal.exportData(parser.value(exportData).toStdString(), parser.value(resultsOutput).toStdString(),
-                        parser.value(queryFilterOption).toStdString(), parser.value(exportType).toStdString(),
-                        parser.value(exportFormat).toStdString(), parser.value(exportView).toStdString());
+                        parser.value(queryFilterTemplate).toStdString(), parser.value(exportType).toStdString(),
+                        parser.value(exportFormat).toStdString(), parser.value(exportView).toStdString(), parser.value(exportFilter).toStdString());
     exit(0);
   }
 
   // ===================================
   // Start CLI or GUI mode
   // ==================================
-  if(parser.isSet(cliOption)) {
-    qDebug() << "Running in Command-Line Mode";
-    std::exit(0);    // Exit after CLI execution
-  } else {
-    startUi(app);
-  }
+  startUi(app);
 
   QApplication::exec();
 }

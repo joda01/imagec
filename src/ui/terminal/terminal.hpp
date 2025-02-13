@@ -28,7 +28,8 @@ public:
   Terminal(ctrl::Controller *);
   void startAnalyze(const std::filesystem::path &pathToSettingsFile, std::optional<std::string> &imagedInputFolder);
   void exportData(const std::filesystem::path &pathToDatabasefile, const std::filesystem::path &outputPath,
-                  const std::filesystem::path &pathToQueryFilter, const std::string &type, const std::string &format, const std::string &view);
+                  const std::filesystem::path &pathToQueryFilter, const std::string &type, const std::string &format, const std::string &view,
+                  const std::string &exportFilter);
 
 private:
   /////////////////////////////////////////////////////

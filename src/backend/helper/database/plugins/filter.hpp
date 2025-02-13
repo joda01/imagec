@@ -158,6 +158,13 @@ public:
     this->filter = filter;
   }
 
+  void setFilter(int32_t plateId, int32_t groupId, uint64_t imageId)
+  {
+    filter.plateId = plateId;
+    filter.groupId = groupId;
+    filter.imageId = imageId;
+  }
+
   bool addColumn(const ColumnIdx &colIdx, const ColumnKey &key, const ColumnName &names)
   {
     for(const auto &[_, colKey] : columns) {

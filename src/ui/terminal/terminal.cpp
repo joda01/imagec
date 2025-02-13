@@ -15,6 +15,7 @@
 #include <string>
 #include <thread>
 #include "backend/helper/database/plugins/filter.hpp"
+#include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/random_name_generator.hpp"
 #include "controller/controller.hpp"
@@ -124,7 +125,8 @@ void Terminal::startAnalyze(const std::filesystem::path &pathToSettingsFile, std
 /// \return
 ///
 void Terminal::exportData(const std::filesystem::path &pathToDatabasefile, const std::filesystem::path &outputPath,
-                          const std::filesystem::path &pathToQueryFilter, const std::string &type, const std::string &format, const std::string &view)
+                          const std::filesystem::path &pathToQueryFilter, const std::string &type, const std::string &format, const std::string &view,
+                          const std::string &exportFilter)
 {
   db::QueryFilter filter;
 
@@ -169,6 +171,23 @@ void Terminal::exportData(const std::filesystem::path &pathToDatabasefile, const
     viewEnum = ctrl::ExportSettings::ExportView::IMAGE;
   } else {
     joda::log::logError("Invalid export view!");
+    std::exit(1);
+  }
+
+  auto filterElements = joda::helper::split(exportFilter, {' '});
+  if(filterElements.size() != 3) {
+    joda::log::logError("Export filter in form [plate-id group-id image-id] must be given!");
+    std::exit(1);
+  }
+
+  try {
+    int32_t plateId  = std::stoi(filterElements[0]);
+    int32_t groupId  = std::stoi(filterElements[1]);
+    uint64_t imageId = std::stoull(filterElements[2]);
+
+    filter.setFilter(plateId, groupId, imageId);
+  } catch(const std::exception &e) {
+    joda::log::logError("Export filter in form [plate-id group-id image-id] of three numbers must be given!");
     std::exit(1);
   }
 
