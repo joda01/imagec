@@ -155,35 +155,35 @@ public:
 
   void setFilter(const ObjectFilter &filter)
   {
-    mFilter = filter;
+    this->filter = filter;
   }
 
   bool addColumn(const ColumnIdx &colIdx, const ColumnKey &key, const ColumnName &names)
   {
-    for(const auto &[_, colKey] : mColumns) {
+    for(const auto &[_, colKey] : columns) {
       if(colKey == key) {
         return false;
       }
     }
 
-    if(!mColumns.contains(colIdx)) {
-      mColumns.emplace(colIdx, key);
+    if(!columns.contains(colIdx)) {
+      columns.emplace(colIdx, key);
     } else {
-      mColumns[colIdx] = key;
+      columns[colIdx] = key;
     }
 
-    mColumns[colIdx].names = names;
+    columns[colIdx].names = names;
     return true;
   }
 
   void eraseColumn(const ColumnIdx colIdx)
   {
-    if(mColumns.contains(colIdx)) {
-      mColumns.erase(colIdx);
+    if(columns.contains(colIdx)) {
+      columns.erase(colIdx);
       std::map<ColumnIdx, ColumnKey> newColumns;
       bool startToReduce = false;
 
-      for(const auto &[col, _] : mColumns) {
+      for(const auto &[col, _] : columns) {
         auto colNew = col;
         if(colNew.colIdx > colIdx.colIdx) {
           startToReduce = true;
@@ -193,39 +193,39 @@ public:
         }
         newColumns.emplace(colNew, _);
       }
-      mColumns.clear();
-      mColumns = newColumns;
+      columns.clear();
+      columns = newColumns;
     }
   }
 
   [[nodiscard]] auto getColumn(const ColumnIdx &colIdx) const -> ColumnKey
   {
-    return mColumns.at(colIdx);
+    return columns.at(colIdx);
   }
 
   [[nodiscard]] bool containsColumn(const ColumnIdx &colIdx) const
   {
-    return mColumns.contains(colIdx);
+    return columns.contains(colIdx);
   }
 
   [[nodiscard]] auto getClassesToExport() const -> ResultingTable;
 
   [[nodiscard]] auto getFilter() const -> const ObjectFilter &
   {
-    return mFilter;
+    return filter;
   }
 
   [[nodiscard]] auto getColumns() const -> const std::map<ColumnIdx, ColumnKey> &
   {
-    return mColumns;
+    return columns;
   }
 
 private:
   /////////////////////////////////////////////////////
-  ObjectFilter mFilter;
-  std::map<ColumnIdx, ColumnKey> mColumns;
+  ObjectFilter filter;
+  std::map<ColumnIdx, ColumnKey> columns;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(QueryFilter, mColumns, mFilter);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(QueryFilter, columns, filter);
 };
 
 ///

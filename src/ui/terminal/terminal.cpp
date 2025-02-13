@@ -145,25 +145,36 @@ void Terminal::exportData(const std::filesystem::path &pathToDatabasefile, const
     typeEnum = ctrl::ExportSettings::ExportType::XLSX;
   } else if(type == "r") {
     typeEnum = ctrl::ExportSettings::ExportType::R;
+  } else {
+    joda::log::logError("Invalid export type!");
+    std::exit(1);
   }
 
   ctrl::ExportSettings::ExportFormat formatEnum;
-  if(type == "list") {
+  if(format == "list") {
     formatEnum = ctrl::ExportSettings::ExportFormat::LIST;
-  } else if(type == "heatmap") {
+  } else if(format == "heatmap") {
     formatEnum = ctrl::ExportSettings::ExportFormat::HEATMAP;
+  } else {
+    joda::log::logError("Invalid export format!");
+    std::exit(1);
   }
 
   ctrl::ExportSettings::ExportView viewEnum;
-  if(type == "plate") {
+  if(view == "plate") {
     viewEnum = ctrl::ExportSettings::ExportView::PLATE;
-  } else if(type == "well") {
+  } else if(view == "well") {
     viewEnum = ctrl::ExportSettings::ExportView::WELL;
-  } else if(type == "image") {
+  } else if(view == "image") {
     viewEnum = ctrl::ExportSettings::ExportView::IMAGE;
+  } else {
+    joda::log::logError("Invalid export view!");
+    std::exit(1);
   }
 
+  joda::log::logInfo("Export started!");
   mController->exportData(pathToDatabasefile, filter, joda::ctrl::ExportSettings{formatEnum, typeEnum, viewEnum}, outputPath);
+  joda::log::logInfo("Export finished!");
 }
 
 }    // namespace joda::ui::terminal

@@ -90,7 +90,7 @@ void Starter::exec(int argc, char *argv[])
 
   // Add path options
   QCommandLineOption imagePathOption(QStringList() << "p"
-                                                   << "path",
+                                                   << "run-path",
                                      "Path to images which should be analyzed.", "folder");
   parser.addOption(imagePathOption);
 
@@ -103,12 +103,12 @@ void Starter::exec(int argc, char *argv[])
   parser.addOption(exportData);
 
   QCommandLineOption resultsOutput(QStringList() << "o"
-                                                 << "output",
+                                                 << "export-output",
                                    "Path and filename to store the exported data.", "path/filename");
   parser.addOption(resultsOutput);
 
   QCommandLineOption queryFilterOption(QStringList() << "q"
-                                                     << "filter",
+                                                     << "export-filter",
                                        "Path to query filter file", "*.ictemplexp");
   parser.addOption(queryFilterOption);
 
@@ -156,6 +156,17 @@ void Starter::exec(int argc, char *argv[])
     QString settingsFilePath = parser.value(runOption);
     joda::ui::terminal::Terminal terminal(mController);
     terminal.startAnalyze(std::filesystem::path(settingsFilePath.toStdString()), imageInputPath);
+  }
+
+  // ===================================
+  // Export
+  // ==================================
+  if(parser.isSet(exportData)) {
+    joda::ui::terminal::Terminal terminal(mController);
+    terminal.exportData(parser.value(exportData).toStdString(), parser.value(resultsOutput).toStdString(),
+                        parser.value(queryFilterOption).toStdString(), parser.value(exportType).toStdString(),
+                        parser.value(exportFormat).toStdString(), parser.value(exportView).toStdString());
+    exit(0);
   }
 
   // ===================================
