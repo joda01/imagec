@@ -13,6 +13,7 @@
 
 #include "ai_classifier.hpp"
 #include <exception>
+#include <filesystem>
 #include <memory>
 #include <string>
 #include "backend/artifacts/roi/roi.hpp"
@@ -41,18 +42,24 @@ namespace joda::cmd {
 ///
 AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) : mSettings(settings)
 {
-  auto parsed = joda::ai::AiModelParser::parseResourceDescriptionFile(settings.modelPath);
-  if(parsed.inputs.empty()) {
-    THROW("Could not read model input parameter!");
-  }
-  mSettings.modelInputParameter = parsed.inputs.begin()->second;
 }
 
 void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNotUse, atom::ObjectList &result)
 {
+  auto parsed = joda::ai::AiModelParser::parseResourceDescriptionFile(mSettings.modelPath);
+  if(parsed.inputs.empty()) {
+    THROW("Could not read model input parameter!");
+  }
+  mSettings.modelInputParameter = parsed.inputs.begin()->second;
+
   if(mSettings.modelPath.empty()) {
     return;
   }
+  auto modelPath = std::filesystem::current_path() / std::filesystem::path(mSettings.modelPath);
+  if(!std::filesystem::exists(modelPath)) {
+    THROW("Could not open model >" + modelPath.string() + "<!");
+  }
+
   std::vector<joda::ai::AiModel::Result> segResult;
 
   auto params = joda::ai::AiFramework::InputParameters{
@@ -70,12 +77,12 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
       break;
 
     case settings::AiClassifierSettings::ModelFormat::ONNX: {
-      joda::ai::AiFrameworkOnnx onnxClassifier(mSettings.modelPath, params);
+      joda::ai::AiFrameworkOnnx onnxClassifier(modelPath.string(), params);
       prediction = onnxClassifier.predict(imageNotUse);
     } break;
 
     case settings::AiClassifierSettings::ModelFormat::TORCHSCRIPT: {
-      joda::ai::AiFrameworkPytorch torch(mSettings.modelPath, params);
+      joda::ai::AiFrameworkPytorch torch(modelPath.string(), params);
       prediction = torch.predict(imageNotUse);
     } break;
 

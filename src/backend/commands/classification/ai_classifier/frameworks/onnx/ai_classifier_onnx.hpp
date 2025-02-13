@@ -27,6 +27,6 @@ public:
 private:
   /////////////////////////////////////////////////////
   const InputParameters &mSettings;
-  const std::string &mModelPath;
+  const std::string mModelPath;
 };
 }    // namespace joda::ai
