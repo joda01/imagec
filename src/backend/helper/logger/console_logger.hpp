@@ -27,7 +27,7 @@ namespace joda::log {
 enum class LogLevel
 {
   OFF     = -1,
-  ERROR   = 0,
+  ERROR_  = 0,
   WARNING = 1,
   INFO    = 2,
   DEBUG   = 3,

@@ -66,7 +66,7 @@ std::string getCurrentDateTimeISO()
 
 void logError(const std::string &message)
 {
-  if(mLogLevel < LogLevel::ERROR) {
+  if(mLogLevel < LogLevel::ERROR_) {
     return;
   }
   std::string currentDateTimeISO = getCurrentDateTimeISO();

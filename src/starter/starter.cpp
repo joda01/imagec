@@ -186,7 +186,7 @@ void Starter::initLogger(const std::string &logLevel)
   if(logLevel == "off") {
     joda::log::setLogLevel(joda::log::LogLevel::OFF);
   } else if(logLevel == "error") {
-    joda::log::setLogLevel(joda::log::LogLevel::ERROR);
+    joda::log::setLogLevel(joda::log::LogLevel::ERROR_);
 
   } else if(logLevel == "warning") {
     joda::log::setLogLevel(joda::log::LogLevel::WARNING);
