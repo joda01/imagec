@@ -20,6 +20,7 @@
 #include "ui/gui/container/setting/setting_base.hpp"
 #include "ui/gui/container/setting/setting_combobox.hpp"
 #include "ui/gui/container/setting/setting_combobox_multi.hpp"
+#include "ui/gui/container/setting/setting_spinbox.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 
 namespace joda::ui::gui {
@@ -61,6 +62,16 @@ inline auto generateZProjection(bool withThis, QWidget *parent) -> std::unique_p
                              {enums::ZProjection::AVG_INTENSITY, "Avg'. intensity"}});
   }
   return zProjection;
+}
+
+inline auto generateStackIndexCombo(const QString &helpText, QWidget *parent) -> std::unique_ptr<SettingSpinBox<int32_t>>
+{
+  auto channelSpinbox = SettingBase::create<SettingSpinBox<int32_t>>(parent, {}, helpText);
+  channelSpinbox->setDefaultValue(0);
+  channelSpinbox->setMinMax(0, 65535);
+  channelSpinbox->setUnit("");
+  channelSpinbox->setShortDescription("");
+  return channelSpinbox;
 }
 
 inline auto generateThresholdClass(const QString &helpText, QWidget *parent) -> std::unique_ptr<SettingComboBox<int32_t>>

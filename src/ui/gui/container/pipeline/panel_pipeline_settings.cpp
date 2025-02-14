@@ -288,6 +288,12 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 
   //
   //
+  //
+  zStackIndex = generateStackIndexCombo("Z-Channel", windowMain);
+  zStackIndex->connectWithSetting(&mSettings.pipelineSetup.zStackIndex);
+
+  //
+  //
   defaultClassId = SettingBase::create<SettingComboBoxClassesOutN>(windowMain, generateIcon("circle"), "Class");
   defaultClassId->addOptions({
       {enums::ClassId::UNDEFINED, "Undefined"}, {enums::ClassId::C0, "Class C0"},   {enums::ClassId::C1, "Class C1"},
@@ -309,12 +315,13 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
   connect(pipelineName.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::metaChangedEvent);
   connect(cStackIndex.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   connect(zProjection.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
+  connect(zStackIndex.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   connect(defaultClassId.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
 
   {
     auto *col1 = tab->addVerticalPanel();
     col1->addGroup("Pipeline meta", {pipelineName.get()});
-    col1->addGroup("Pipeline input", {cStackIndex.get(), zProjection.get()});
+    col1->addGroup("Pipeline input", {cStackIndex.get(), zProjection.get(), zStackIndex.get()});
     col1->addGroup("Pipeline output", {defaultClassId.get()});
   }
 
