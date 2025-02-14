@@ -30,6 +30,8 @@
 #include "backend/commands/image_functions/color_filter/color_filter_settings_ui.hpp"
 #include "backend/commands/image_functions/edge_detection/edge_detection.hpp"
 #include "backend/commands/image_functions/edge_detection/edge_detection_settings_ui.hpp"
+#include "backend/commands/image_functions/fill_holes/fill_holes.hpp"
+#include "backend/commands/image_functions/fill_holes/fill_holes_settings_ui.hpp"
 #include "backend/commands/image_functions/image_cache/image_cache.hpp"
 #include "backend/commands/image_functions/image_cache/image_cache_settings_ui.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class.hpp"
@@ -312,6 +314,15 @@ private:
       } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
         return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::MorphologicalTransform, MorphologicalTransformSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<MorphologicalTransformSettings &>(step.$morphologicalTransform.value()), parent));
+      }
+    }
+
+    if(step.$fillHoles) {
+      if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
+        return std::make_unique<joda::cmd::Factory<joda::cmd::FillHoles, FillHolesSettings>>(step.$fillHoles.value());
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::FillHoles, FillHolesSettings>>(
+            const_cast<settings::PipelineStep &>(step), const_cast<FillHolesSettings &>(step.$fillHoles.value()), parent));
       }
     }
 

@@ -84,9 +84,7 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
         }
         cv::drawContours(mask, contours, i, cv::Scalar(255), cv::FILLED);
         // Remove inner holes from the mask
-        // if(mSettings.fillHoles) {
         cv::bitwise_and(mask, imagePart, mask);
-        //}
 
         //
         // Ready to classify -> First create a ROI object to get the measurements
