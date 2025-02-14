@@ -27,6 +27,11 @@ namespace joda::settings {
 struct ClassifierSettings : public SettingBase
 {
   //
+  // Wether fill holes or not
+  //
+  bool fillHoles = false;
+
+  //
   // Object classification based on gray scale value (default: modelClassId = 65535)
   //
   std::list<ObjectClass> modelClasses;
@@ -49,7 +54,7 @@ struct ClassifierSettings : public SettingBase
     return out;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassifierSettings, modelClasses);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassifierSettings, fillHoles, modelClasses);
 };
 
 }    // namespace joda::settings

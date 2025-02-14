@@ -43,6 +43,8 @@
 #include "backend/commands/image_functions/margin_crop/margin_crop_settings.hpp"
 #include "backend/commands/image_functions/median_substraction/median_substraction.hpp"
 #include "backend/commands/image_functions/median_substraction/median_substraction_settings_ui.hpp"
+#include "backend/commands/image_functions/morphological_transformation/morphological_transformation.hpp"
+#include "backend/commands/image_functions/morphological_transformation/morphological_transformation_settings_ui.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings_ui.hpp"
@@ -300,6 +302,16 @@ private:
       } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
         return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::ImageCache, ImageCacheSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<ImageCacheSettings &>(step.$imageToCache.value()), parent));
+      }
+    }
+
+    if(step.$morphologicalTransform) {
+      if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
+        return std::make_unique<joda::cmd::Factory<joda::cmd::MorphologicalTransform, MorphologicalTransformSettings>>(
+            step.$morphologicalTransform.value());
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::MorphologicalTransform, MorphologicalTransformSettings>>(
+            const_cast<settings::PipelineStep &>(step), const_cast<MorphologicalTransformSettings &>(step.$morphologicalTransform.value()), parent));
       }
     }
 

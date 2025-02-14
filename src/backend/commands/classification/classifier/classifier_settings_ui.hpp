@@ -172,6 +172,7 @@ private:
     }
 
     // std::unique_ptr<SettingComboBox<enums::ClasssIdIn>> mClasssOut;
+
     std::unique_ptr<SettingComboBoxClassesOut> mClassOutNoMatch;
     std::unique_ptr<SettingComboBox<int32_t>> mGrayScaleValue;
     QWidget *mParent;
