@@ -69,7 +69,7 @@ public:
     mShape->addOptions({
         {.key = joda::settings::MorphologicalTransformSettings::Shape::ELLIPSE, .label = "Ellipse", .icon = generateIcon("oval")},
         {.key = joda::settings::MorphologicalTransformSettings::Shape::RECTANGLE, .label = "Rectangle", .icon = generateIcon("rectangle")},
-        {.key = joda::settings::MorphologicalTransformSettings::Shape::CROSS, .label = "Cross", .icon = generateIcon("cross")},
+        {.key = joda::settings::MorphologicalTransformSettings::Shape::CROSS, .label = "Cross", .icon = generateIcon("star")},
     });
 
     mShape->setValue(settings.shape);

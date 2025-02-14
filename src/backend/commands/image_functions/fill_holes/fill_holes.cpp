@@ -32,10 +32,13 @@ FillHoles::FillHoles(const settings::FillHolesSettings &settings) : mSettings(se
 
 void FillHoles::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList & /*resultIn*/)
 {
+  cv::Mat binaryImage(image.size(), CV_8UC1);
+  image.convertTo(binaryImage, CV_8UC1, 255.0 / 65535.0);
+
   // Find contours on the inverted image
   std::vector<std::vector<cv::Point>> contours;
   std::vector<cv::Vec4i> hierarchy;
-  cv::findContours(image, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_SIMPLE);
+  cv::findContours(binaryImage, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_SIMPLE);
 
   // Draw each contour filled with white (255) on 'des'
   for(size_t i = 0; i < contours.size(); i++) {
@@ -49,8 +52,10 @@ void FillHoles::execute(processor::ProcessContext &context, cv::Mat &image, atom
     if(mSettings.function == settings::FillHolesSettings::Function::INNER && -1 == hierarchic) {
       continue;
     }
-    cv::drawContours(image, contours, static_cast<int>(i), cv::Scalar(255), cv::FILLED);
+    cv::drawContours(binaryImage, contours, static_cast<int>(i), cv::Scalar(255), cv::FILLED);
   }
+
+  binaryImage.convertTo(image, CV_16UC1, 257.0);
 }
 
 }    // namespace joda::cmd
