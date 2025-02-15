@@ -208,7 +208,11 @@ enums::ImageId PipelineInitializer::loadImageAndStoreToCache(const enums::PlaneI
   int32_t z = planeToLoad.zStack;
   int32_t t = planeToLoad.tStack;
 
-  if(zProjection != enums::ZProjection::NONE) {
+  if(zProjection == enums::ZProjection::TAKE_MIDDLE) {
+    z                      = static_cast<int32_t>(imageContext.nrOfZStacks / 2);
+    auto &planeToLoadEdit  = const_cast<enums::PlaneId &>(planeToLoad);
+    planeToLoadEdit.zStack = z;
+  } else if(zProjection != enums::ZProjection::NONE) {
     z = 0;
   }
 
@@ -222,7 +226,6 @@ enums::ImageId PipelineInitializer::loadImageAndStoreToCache(const enums::PlaneI
   //
   // Load from image file
   //
-
   auto loadEntireImage = [&imageContext, &planeToLoad, series = imageContext.series](int32_t z, int32_t c, int32_t t) {
     return joda::image::reader::ImageReader::loadEntireImage(
         imageContext.imagePath.string(), joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, series, 0, imageContext.imageMeta);
@@ -251,10 +254,10 @@ enums::ImageId PipelineInitializer::loadImageAndStoreToCache(const enums::PlaneI
   //
   // Do z -projection if activated
   //
-  if(zProjection != enums::ZProjection::NONE) {
+  if(zProjection != enums::ZProjection::NONE && zProjection != enums::ZProjection::TAKE_MIDDLE) {
     auto max = [&loadImage, &image, c, t](int zIdx) { image = cv::max(image, loadImage(zIdx, c, t)); };
     auto min = [&loadImage, &image, c, t](int zIdx) { image = cv::min(image, loadImage(zIdx, c, t)); };
-    auto avg = [&loadImage, &image, c, t](int zIdx) { image = cv::mean(image, loadImage(zIdx, c, t)); };
+    auto avg = [&loadImage, &image, c, t](int zIdx) { image = image + loadImage(zIdx, c, t); };
 
     std::function<void(int)> func;
 
@@ -274,6 +277,10 @@ enums::ImageId PipelineInitializer::loadImageAndStoreToCache(const enums::PlaneI
 
     for(uint32_t zIdx = 1; zIdx < imageContext.nrOfZStacks; zIdx++) {
       func(zIdx);
+    }
+    // Avg intensity projection
+    if(enums::ZProjection::AVG_INTENSITY == zProjection) {
+      image = image / imageContext.nrOfZStacks;
     }
   }
   DurationCount::stop(i);

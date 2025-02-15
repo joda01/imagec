@@ -54,12 +54,14 @@ inline auto generateZProjection(bool withThis, QWidget *parent) -> std::unique_p
                              {enums::ZProjection::NONE, "Single channel"},
                              {enums::ZProjection::MAX_INTENSITY, "Max. intensity"},
                              {enums::ZProjection::MIN_INTENSITY, "Min. intensity"},
-                             {enums::ZProjection::AVG_INTENSITY, "Avg'. intensity"}});
+                             {enums::ZProjection::AVG_INTENSITY, "Avg. intensity"},
+                             {enums::ZProjection::TAKE_MIDDLE, "Take middle"}});
   } else {
     zProjection->addOptions({{enums::ZProjection::NONE, "Single channel"},
                              {enums::ZProjection::MAX_INTENSITY, "Max. intensity"},
                              {enums::ZProjection::MIN_INTENSITY, "Min. intensity"},
-                             {enums::ZProjection::AVG_INTENSITY, "Avg'. intensity"}});
+                             {enums::ZProjection::AVG_INTENSITY, "Avg. intensity"},
+                             {enums::ZProjection::TAKE_MIDDLE, "Take middle"}});
   }
   return zProjection;
 }
