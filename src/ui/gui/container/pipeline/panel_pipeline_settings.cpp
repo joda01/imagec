@@ -294,7 +294,7 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 
   //
   //
-  defaultClassId = SettingBase::create<SettingComboBoxClassesOutN>(windowMain, generateIcon("circle"), "Class");
+  defaultClassId = SettingBase::create<SettingComboBoxClassesOutN>(windowMain, generateIcon("circle"), "Class", 10);
   defaultClassId->addOptions({
       {enums::ClassId::UNDEFINED, "Undefined"}, {enums::ClassId::C0, "Class C0"},   {enums::ClassId::C1, "Class C1"},
       {enums::ClassId::C2, "Class C2"},         {enums::ClassId::C3, "Class C3"},   {enums::ClassId::C4, "Class C4"},

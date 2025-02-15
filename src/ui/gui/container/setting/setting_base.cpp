@@ -211,7 +211,7 @@ void SettingBase::updateDisplayLabel()
 {
   auto txtTmp = (mShortDescription + mDisplayValue + " " + mUnit).trimmed();
   if(txtTmp.length() > mMaxTextLengthToDisplay) {
-    txtTmp.left(mMaxTextLengthToDisplay - 3) + "...";
+    txtTmp = txtTmp.left(mMaxTextLengthToDisplay - 3) + "...";
   }
   mDisplayLabel->setText(txtTmp);
 }
