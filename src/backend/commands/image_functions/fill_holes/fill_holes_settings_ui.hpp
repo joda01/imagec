@@ -46,15 +46,15 @@ public:
     //
     // Options
     //
-    mFunction = SettingBase::create<SettingComboBox<joda::settings::FillHolesSettings::Function>>(parent, {}, "Function");
+    mFunction = SettingBase::create<SettingComboBox<joda::settings::FillHolesSettings::HierarchyMode>>(parent, {}, "Function");
     mFunction->addOptions({
-        {.key = joda::settings::FillHolesSettings::Function::OUTER, .label = "Outer", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::FillHolesSettings::Function::INNER, .label = "Inner", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::FillHolesSettings::Function::INNER_AND_OUTHER, .label = "Inner & Outer", .icon = generateIcon("ampersand")},
+        {.key = joda::settings::FillHolesSettings::HierarchyMode::OUTER, .label = "Outer", .icon = generateIcon("ampersand")},
+        {.key = joda::settings::FillHolesSettings::HierarchyMode::INNER, .label = "Inner", .icon = generateIcon("ampersand")},
+        {.key = joda::settings::FillHolesSettings::HierarchyMode::INNER_AND_OUTER, .label = "Inner & Outer", .icon = generateIcon("ampersand")},
     });
 
-    mFunction->setValue(settings.function);
-    mFunction->connectWithSetting(&settings.function);
+    mFunction->setValue(settings.hierarchyMode);
+    mFunction->connectWithSetting(&settings.hierarchyMode);
 
     //
     //
@@ -66,7 +66,7 @@ private:
   QWidget *mParent;
 
   /////////////////////////////////////////////////////
-  std::unique_ptr<SettingComboBox<joda::settings::FillHolesSettings::Function>> mFunction;
+  std::unique_ptr<SettingComboBox<joda::settings::FillHolesSettings::HierarchyMode>> mFunction;
 
   /////////////////////////////////////////////////////
 

@@ -39,6 +39,29 @@ public:
   Classifier(joda::settings::PipelineStep &pipelineStep, settings::ClassifierSettings &settingsIn, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::OBJECT}}), mSettings(settingsIn), mParent(parent)
   {
+    this->mutableEditDialog()->setMinimumWidth(700);
+    this->mutableEditDialog()->setMinimumHeight(600);
+
+    auto *detectionSettings = addTab(
+        "Detection settings", [] {}, false);
+
+    //
+    // Options
+    //
+    mFunction = SettingBase::create<SettingComboBox<joda::settings::ClassifierSettings::HierarchyMode>>(parent, {}, "Function");
+    mFunction->addOptions({
+        {.key = joda::settings::ClassifierSettings::HierarchyMode::OUTER, .label = "Outer", .icon = generateIcon("ampersand")},
+        {.key = joda::settings::ClassifierSettings::HierarchyMode::INNER, .label = "Inner", .icon = generateIcon("ampersand")},
+        {.key = joda::settings::ClassifierSettings::HierarchyMode::INNER_AND_OUTER, .label = "Inner & Outer", .icon = generateIcon("ampersand")},
+    });
+
+    mFunction->setValue(settingsIn.hierarchyMode);
+    mFunction->connectWithSetting(&settingsIn.hierarchyMode);
+    auto *col = addSetting(detectionSettings, "Model settings", {{mFunction.get(), false, 0}});
+
+    //
+    // Filter settings
+    //
     if(settingsIn.modelClasses.empty()) {
       addFilter();
     }
@@ -239,6 +262,8 @@ private slots:
     mClassifyFilter.emplace_back(ret, *this, tab, mSettings.modelClasses.size(), mParent);
     updateDisplayText();
   }
+
+  std::unique_ptr<SettingComboBox<joda::settings::ClassifierSettings::HierarchyMode>> mFunction;
 };
 
 }    // namespace joda::ui::gui

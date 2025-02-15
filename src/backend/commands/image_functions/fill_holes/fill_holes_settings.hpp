@@ -27,17 +27,17 @@ namespace joda::settings {
 
 struct FillHolesSettings : public SettingBase
 {
-  enum class Function
+  enum class HierarchyMode
   {
-    INNER_AND_OUTHER,
     OUTER,
-    INNER
+    INNER,
+    INNER_AND_OUTER
   };
 
   //
   // Which to paint
   //
-  Function function = Function::OUTER;
+  HierarchyMode hierarchyMode = HierarchyMode::OUTER;
 
   /////////////////////////////////////////////////////
   void check() const
@@ -59,14 +59,14 @@ struct FillHolesSettings : public SettingBase
     return {};
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(FillHolesSettings, function);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(FillHolesSettings, hierarchyMode);
 };
 
-NLOHMANN_JSON_SERIALIZE_ENUM(FillHolesSettings::Function, {
-                                                              {FillHolesSettings::Function::INNER_AND_OUTHER, "InnerAndOuter"},
-                                                              {FillHolesSettings::Function::OUTER, "Outer"},
-                                                              {FillHolesSettings::Function::INNER, "Inner"},
+NLOHMANN_JSON_SERIALIZE_ENUM(FillHolesSettings::HierarchyMode, {
+                                                                   {FillHolesSettings::HierarchyMode::INNER_AND_OUTER, "InnerAndOuter"},
+                                                                   {FillHolesSettings::HierarchyMode::OUTER, "Outer"},
+                                                                   {FillHolesSettings::HierarchyMode::INNER, "Inner"},
 
-                                                          });
+                                                               });
 
 }    // namespace joda::settings

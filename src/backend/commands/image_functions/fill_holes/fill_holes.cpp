@@ -38,18 +38,19 @@ void FillHoles::execute(processor::ProcessContext &context, cv::Mat &image, atom
   // Find contours on the inverted image
   std::vector<std::vector<cv::Point>> contours;
   std::vector<cv::Vec4i> hierarchy;
-  cv::findContours(binaryImage, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_SIMPLE);
+  cv::findContours(binaryImage, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
 
   // Draw each contour filled with white (255) on 'des'
   for(size_t i = 0; i < contours.size(); i++) {
     // Do not paint a contour for elements inside an element.
     // In other words if there is a particle with a hole, ignore the hole.
     // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html
-    auto hierarchic = hierarchy[i][3];
-    if(mSettings.function == settings::FillHolesSettings::Function::OUTER && -1 != hierarchic) {
+    auto parent     = hierarchy[i][3];
+    auto firstChild = hierarchy[i][2];
+    if(mSettings.hierarchyMode == settings::FillHolesSettings::HierarchyMode::OUTER && -1 != parent) {
       continue;
     }
-    if(mSettings.function == settings::FillHolesSettings::Function::INNER && -1 == hierarchic) {
+    if(mSettings.hierarchyMode == settings::FillHolesSettings::HierarchyMode::INNER && firstChild > -1) {
       continue;
     }
     cv::drawContours(binaryImage, contours, static_cast<int>(i), cv::Scalar(255), cv::FILLED);
