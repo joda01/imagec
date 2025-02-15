@@ -245,7 +245,8 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
   }
 
   // Now reduce the graph
-  int depth = 0;
+  int32_t depth = 0;
+  int32_t index = 0;
   PipelineOrder_t finishedOrder;
 
   //
@@ -258,8 +259,10 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
     // Find the root nodes: Root nodes are nodes which have no dependency or only depends on itself
     //
     std::set<const settings::Pipeline *> toRemove;
-    for(const auto &node : depGraph) {
+    for(auto &node : depGraph) {
       if(node.isRootNode()) {
+        node.setPipelineIndex(index);
+        index++;
         finishedOrder[depth].emplace(node.getPipeline());
         toRemove.emplace(node.getPipeline());
       }
@@ -318,6 +321,11 @@ void DependencyGraph::printOrder(const PipelineOrder_t &finishedOrder)
     }
     std::cout << std::endl;
   }
+}
+
+void Node::setPipelineIndex(int32_t index)
+{
+  const_cast<settings::Pipeline *>(pipeline)->index = index;
 }
 
 }    // namespace joda::processor

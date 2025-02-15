@@ -24,6 +24,7 @@ struct PipelineContext
   joda::atom::ImagePlane actImagePlane;
   enums::ClassId defaultClassId;
   enums::ZProjection defaultZProjection;
+  int32_t pipelineIndex = 0;
 };
 
 }    // namespace joda::processor

@@ -29,6 +29,10 @@ class AnalyzeSettings;
 class ProjectImageSetup;
 }    // namespace joda::settings
 
+namespace joda::db {
+class QueryFilter;
+}
+
 namespace joda::ctrl {
 
 struct Preview
@@ -46,6 +50,31 @@ struct Preview
   int height;
   int width;
   std::string imageFileName;
+};
+
+struct ExportSettings
+{
+  enum class ExportType
+  {
+    XLSX,
+    R
+  };
+
+  enum class ExportFormat
+  {
+    LIST,
+    HEATMAP
+  };
+
+  enum class ExportView
+  {
+    PLATE,
+    WELL,
+    IMAGE
+  };
+  ExportFormat format;
+  ExportType type;
+  ExportView view;
 };
 
 ///
@@ -84,6 +113,11 @@ public:
   void stop();
   [[nodiscard]] auto getState() const -> const joda::processor::ProcessProgress &;
   [[nodiscard]] const processor::ProcessInformation &getJobInformation() const;
+
+  // EXPORT ///////////////////////////////////////
+
+  void exportData(const std::filesystem::path &pathToDbFile, const db::QueryFilter &filter, const ExportSettings &settings,
+                  const std::filesystem::path &outputFilePath);
 
 private:
   /////////////////////////////////////////////////////

@@ -20,17 +20,17 @@
 #include "backend/commands/object_functions/colocalization/colocalization_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
 
-#include "ui/container/command/command.hpp"
-#include "ui/container/setting/setting_combobox.hpp"
-#include "ui/container/setting/setting_combobox_classes_out.hpp"
-#include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
-#include "ui/container/setting/setting_line_edit.hpp"
-#include "ui/helper/icon_generator.hpp"
-#include "ui/helper/layout_generator.hpp"
-#include "ui/helper/setting_generator.hpp"
+#include "ui/gui/container/command/command.hpp"
+#include "ui/gui/container/setting/setting_combobox.hpp"
+#include "ui/gui/container/setting/setting_combobox_classes_out.hpp"
+#include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
+#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/helper/icon_generator.hpp"
+#include "ui/gui/helper/layout_generator.hpp"
+#include "ui/gui/helper/setting_generator.hpp"
 #include "colocalization_settings.hpp"
 
-namespace joda::ui {
+namespace joda::ui::gui {
 
 class Colocalization : public Command
 {
@@ -85,4 +85,4 @@ private:
   /////////////////////////////////////////////////////
 };
 
-}    // namespace joda::ui
+}    // namespace joda::ui::gui

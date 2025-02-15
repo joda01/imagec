@@ -12,6 +12,14 @@ namespace joda::settings {
 struct ImageCacheSettings : public SettingBase
 {
 public:
+  enum class Mode
+  {
+    STORE,
+    LOAD,
+  };
+
+  Mode mode = Mode::STORE;
+
   enums::MemoryIdx::Enum memoryId = enums::MemoryIdx::M0;
   std::string name;
 
@@ -30,7 +38,12 @@ public:
     return {memoryId};
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageCacheSettings, memoryId, name);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageCacheSettings, mode, memoryId, name);
 };
+
+NLOHMANN_JSON_SERIALIZE_ENUM(ImageCacheSettings::Mode, {
+                                                           {ImageCacheSettings::Mode::STORE, "Store"},
+                                                           {ImageCacheSettings::Mode::LOAD, "Load"},
+                                                       });
 
 }    // namespace joda::settings

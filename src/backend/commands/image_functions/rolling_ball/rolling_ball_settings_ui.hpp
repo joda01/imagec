@@ -13,13 +13,13 @@
 #pragma once
 
 #include <qwidget.h>
-#include "ui/container/command/command.hpp"
-#include "ui/container/setting/setting_combobox.hpp"
-#include "ui/container/setting/setting_line_edit.hpp"
-#include "ui/helper/icon_generator.hpp"
+#include "ui/gui/container/command/command.hpp"
+#include "ui/gui/container/setting/setting_combobox.hpp"
+#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/helper/icon_generator.hpp"
 #include "rolling_ball_settings.hpp"
 
-namespace joda::ui {
+namespace joda::ui::gui {
 
 class RollingBallBackground : public Command
 {
@@ -58,4 +58,4 @@ private:
   std::shared_ptr<SettingLineEdit<int>> mBallSize;
 };
 
-}    // namespace joda::ui
+}    // namespace joda::ui::gui

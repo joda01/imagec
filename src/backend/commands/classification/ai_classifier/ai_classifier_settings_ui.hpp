@@ -20,18 +20,18 @@
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/helper/ai_model_parser/ai_model_parser.hpp"
-#include "ui/container/command/command.hpp"
-#include "ui/container/setting/setting_combobox.hpp"
-#include "ui/container/setting/setting_combobox_classes_out.hpp"
-#include "ui/container/setting/setting_combobox_string.hpp"
-#include "ui/container/setting/setting_line_edit.hpp"
-#include "ui/container/setting/setting_spinbox.hpp"
-#include "ui/helper/icon_generator.hpp"
-#include "ui/helper/layout_generator.hpp"
-#include "ui/helper/setting_generator.hpp"
+#include "ui/gui/container/command/command.hpp"
+#include "ui/gui/container/setting/setting_combobox.hpp"
+#include "ui/gui/container/setting/setting_combobox_classes_out.hpp"
+#include "ui/gui/container/setting/setting_combobox_string.hpp"
+#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/container/setting/setting_spinbox.hpp"
+#include "ui/gui/helper/icon_generator.hpp"
+#include "ui/gui/helper/layout_generator.hpp"
+#include "ui/gui/helper/setting_generator.hpp"
 #include "ai_classifier_settings.hpp"
 
-namespace joda::ui {
+namespace joda::ui::gui {
 
 class AiClassifier : public Command
 {
@@ -153,6 +153,13 @@ private:
       zProjectionForIntensityFilter->setValue(classifyFilter.intensity.imageIn.zProjection);
       zProjectionForIntensityFilter->connectWithSetting(&classifyFilter.intensity.imageIn.zProjection);
 
+      //
+      //
+      //
+      zStackIndex = generateStackIndexCombo(true, "Z-Channel", parent);
+      zStackIndex->setValue(classifyFilter.intensity.imageIn.imagePlane.zStack);
+      zStackIndex->connectWithSetting(&classifyFilter.intensity.imageIn.imagePlane.zStack);
+
       /*outer.addSetting(tab, "Intensity filter",
                        {{cStackForIntensityFilter.get(), true},
                         {zProjectionForIntensityFilter.get(), true},
@@ -164,8 +171,8 @@ private:
     ~ClassifierFilter()
     {
       outer.removeSetting({mClassOutNoMatch.get(), mGrayScaleValue.get(), mClassOut.get(), mMinParticleSize.get(), mMaxParticleSize.get(),
-                           mMinCircularity.get(), cStackForIntensityFilter.get(), zProjectionForIntensityFilter.get(), mMinIntensity.get(),
-                           mMaxIntensity.get(), mProbabilityHandicap.get()});
+                           mMinCircularity.get(), cStackForIntensityFilter.get(), zProjectionForIntensityFilter.get(), zStackIndex.get(),
+                           mMinIntensity.get(), mMaxIntensity.get(), mProbabilityHandicap.get()});
     }
 
     // std::unique_ptr<SettingComboBox<enums::ClasssIdIn>> mClasssOut;
@@ -180,6 +187,7 @@ private:
 
     std::unique_ptr<SettingComboBox<int32_t>> cStackForIntensityFilter;
     std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjectionForIntensityFilter;
+    std::unique_ptr<SettingSpinBox<int32_t>> zStackIndex;
     std::unique_ptr<SettingLineEdit<int>> mMinIntensity;
     std::unique_ptr<SettingLineEdit<int>> mMaxIntensity;
 
@@ -243,6 +251,7 @@ private:
                          const settings::AiClassifierSettings::NetInputParameters &settings);
 
   void refreshModels();
+  void updateModel();
 private slots:
   void addFilter(const std::string &title, int32_t classId, float handicap)
   {
@@ -257,4 +266,4 @@ private slots:
   }
 };
 
-}    // namespace joda::ui
+}    // namespace joda::ui::gui

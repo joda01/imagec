@@ -36,7 +36,7 @@ public:
   {
     switch(mSetting.mode) {
       case joda::settings::EdgeDetectionSettings::Mode::CANNY:
-        cv::Canny(image, image, 100, 200, 3, false);
+        canny(image);
         break;
       case joda::settings::EdgeDetectionSettings::Mode::SOBEL:
         // cv::Sobel(image, image, CV_16UC1, 1, 1, K_SIZE);
@@ -52,6 +52,7 @@ private:
   /////////////////////////////////////////////////////
   static constexpr int K_SIZE = 3;
   void filter3x3(cv::Mat &image) const;
+  void canny(cv::Mat &image) const;
 
   /////////////////////////////////////////////////////
   const joda::settings::EdgeDetectionSettings &mSetting;

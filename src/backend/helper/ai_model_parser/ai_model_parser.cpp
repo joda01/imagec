@@ -24,7 +24,7 @@
 #include "backend/helper/rapidyaml/rapidyaml.hpp"
 #include <nlohmann/json_fwd.hpp>
 
-namespace joda::onnx {
+namespace joda::ai {
 
 ///
 /// \brief
@@ -642,4 +642,4 @@ std::string AiModelParser::Data::toString() const
   return out.str();
 }
 
-}    // namespace joda::onnx
+}    // namespace joda::ai

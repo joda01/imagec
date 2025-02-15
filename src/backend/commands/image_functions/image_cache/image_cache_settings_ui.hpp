@@ -16,20 +16,20 @@
 #include "backend/commands/command.hpp"
 #include "backend/commands/image_functions/image_cache/image_cache_settings.hpp"
 #include "backend/enums/enum_memory_idx.hpp"
-#include "ui/container/command/command.hpp"
-#include "ui/container/setting/setting_combobox.hpp"
-#include "ui/container/setting/setting_line_edit.hpp"
-#include "ui/helper/icon_generator.hpp"
-#include "ui/helper/layout_generator.hpp"
+#include "ui/gui/container/command/command.hpp"
+#include "ui/gui/container/setting/setting_combobox.hpp"
+#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/helper/icon_generator.hpp"
+#include "ui/gui/helper/layout_generator.hpp"
 #include "image_cache.hpp"
 
-namespace joda::ui {
+namespace joda::ui::gui {
 
 class ImageCache : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE = "Store image to cache";
+  inline static std::string TITLE = "Image cache";
   inline static std::string ICON  = "copy";
 
   ImageCache(joda::settings::PipelineStep &pipelineStep, settings::ImageCacheSettings &settings, QWidget *parent) :
@@ -54,12 +54,22 @@ public:
     mMemoryIdx->connectWithSetting(&settings.memoryId);
     mMemoryIdx->setShortDescription("Cache: ");
 
-    addSetting({{mMemoryIdx.get(), true, 0}});
+    mMode = SettingBase::create<SettingComboBox<settings::ImageCacheSettings::Mode>>(parent, generateIcon("matrix"), "Cache");
+    mMode->addOptions({
+        {settings::ImageCacheSettings::Mode::STORE, "Store"},
+        {settings::ImageCacheSettings::Mode::LOAD, "Load"},
+    });
+    mMode->setValue(settings.mode);
+    mMode->connectWithSetting(&settings.mode);
+    mMode->setShortDescription("");
+
+    addSetting({{mMemoryIdx.get(), true, 0}, {mMode.get(), true, 0}});
   }
 
 private:
   /////////////////////////////////////////////////////
   std::shared_ptr<SettingComboBox<enums::MemoryIdx::Enum>> mMemoryIdx;
+  std::shared_ptr<SettingComboBox<settings::ImageCacheSettings::Mode>> mMode;
 };
 
-}    // namespace joda::ui
+}    // namespace joda::ui::gui

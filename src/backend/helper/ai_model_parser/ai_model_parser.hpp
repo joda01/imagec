@@ -26,7 +26,7 @@
 #include <opencv2/gapi/infer/onnx.hpp>
 #include <opencv2/opencv.hpp>
 
-namespace joda::onnx {
+namespace joda::ai {
 
 namespace fs = std::filesystem;
 // using namespace ::onnx;
@@ -66,4 +66,4 @@ private:
   static inline std::mutex lookForMutex;
 };
 
-}    // namespace joda::onnx
+}    // namespace joda::ai

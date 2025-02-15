@@ -12,7 +12,7 @@
 
 #include "ai_classifier_settings_ui.hpp"
 
-namespace joda::ui {
+namespace joda::ui::gui {
 
 ///
 /// \brief
@@ -46,29 +46,13 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
       "Model settings", [] {}, false);
 
   mModelPath = SettingBase::create<SettingComboBoxString>(parent, {}, "Model path");
-  mModelPath->connectWithSetting(&settings.modelPath);
-  mModelPath->setValue(settings.modelPath);
-  mModelPath->setShortDescription("Path:");
   refreshModels();
-  connect(mModelPath.get(), &SettingBase::valueChanged, [this]() {
-    if(!mModelPath->getValue().empty()) {
-      try {
-        auto info = joda::onnx::AiModelParser::parseResourceDescriptionFile(std::filesystem::path(mModelPath->getValue()));
-        mModelDetails->setText(info.toString().data());
-        mSettings.modelInputParameter = info.inputs.begin()->second;
-        updateInputFields(info.classes.size(), info.modelParameter, info.inputs.begin()->second);
-        /* removeAll();
-         mNumberOdModelClasses->setValue(info.classes.size());
-         int n = 0;
-         for(const auto &classs : info.classes) {
-           addFilter(classs, n, 1);
-           n++;
-         }*/
-      } catch(...) {
-      }
-    }
-  });
 
+  mModelPath->setValue(settings.modelPath);
+  mModelPath->connectWithSetting(&settings.modelPath);
+  mModelPath->setShortDescription("Path:");
+
+  connect(mModelPath.get(), &SettingBase::valueChanged, [&]() { updateModel(); });
   //
   //
   mNumberOdModelClasses = SettingBase::create<SettingSpinBox<int32_t>>(parent, generateIcon("deviation"), "Nr. of model classes");
@@ -140,7 +124,7 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
       {joda::settings::AiClassifierSettings::ModelArchitecture::YOLO_V5, "Yolo v5", generateIcon("connect")},
       {joda::settings::AiClassifierSettings::ModelArchitecture::U_NET, "U-Net", generateIcon("u")},
       {joda::settings::AiClassifierSettings::ModelArchitecture::CYTO3, "Cyto3", generateIcon("cellpose")},
-      {joda::settings::AiClassifierSettings::ModelArchitecture::STAR_DIST, "StarDist", generateIcon("star")},
+      {joda::settings::AiClassifierSettings::ModelArchitecture::STAR_DIST, "StarDist", generateIcon("star-color")},
       //{joda::settings::AiClassifierSettings::ModelArchitecture::MASK_R_CNN, "Mask R-CNN", generateIcon("connect")}
   });
   mModelArchitecture->setValue(settings.modelParameter.modelArchitecture);
@@ -192,6 +176,8 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
     mClassifyFilter.emplace_back(classifierSetting, *this, tab, cnt, parent);
     cnt++;
   }
+
+  updateModel();
 }
 
 void AiClassifier::updateInputFields(int32_t nrOfClasses, const settings::AiClassifierSettings::ModelParameters &model,
@@ -208,7 +194,7 @@ void AiClassifier::updateInputFields(int32_t nrOfClasses, const settings::AiClas
 
 void AiClassifier::refreshModels()
 {
-  auto onnxModels = joda::onnx::AiModelParser::findAiModelFiles();
+  auto onnxModels = joda::ai::AiModelParser::findAiModelFiles();
   std::vector<SettingComboBoxString::ComboEntry> entries;
   entries.reserve(onnxModels.size() + 1);
   entries.emplace_back(SettingComboBoxString::ComboEntry{.key = "", .label = "Select model ..."});
@@ -218,4 +204,24 @@ void AiClassifier::refreshModels()
   mModelPath->addOptions(entries);
 }
 
-}    // namespace joda::ui
+void AiClassifier::updateModel()
+{
+  if(!mModelPath->getValue().empty()) {
+    try {
+      auto info = joda::ai::AiModelParser::parseResourceDescriptionFile(std::filesystem::path(mModelPath->getValue()));
+      mModelDetails->setText(info.toString().data());
+      mSettings.modelInputParameter = info.inputs.begin()->second;
+      updateInputFields(info.classes.size(), info.modelParameter, info.inputs.begin()->second);
+      /* removeAll();
+       mNumberOdModelClasses->setValue(info.classes.size());
+       int n = 0;
+       for(const auto &classs : info.classes) {
+         addFilter(classs, n, 1);
+         n++;
+       }*/
+    } catch(...) {
+    }
+  }
+}
+
+}    // namespace joda::ui::gui

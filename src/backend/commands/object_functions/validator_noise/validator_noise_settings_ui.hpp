@@ -16,16 +16,16 @@
 #include <cstdint>
 #include <string>
 #include "backend/commands/command.hpp"
-#include "ui/container/command/command.hpp"
-#include "ui/container/setting/setting_combobox.hpp"
-#include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
-#include "ui/container/setting/setting_line_edit.hpp"
-#include "ui/helper/icon_generator.hpp"
-#include "ui/helper/layout_generator.hpp"
-#include "ui/helper/setting_generator.hpp"
+#include "ui/gui/container/command/command.hpp"
+#include "ui/gui/container/setting/setting_combobox.hpp"
+#include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
+#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/helper/icon_generator.hpp"
+#include "ui/gui/helper/layout_generator.hpp"
+#include "ui/gui/helper/setting_generator.hpp"
 #include "validator_noise_settings.hpp"
 
-namespace joda::ui {
+namespace joda::ui::gui {
 
 class NoiseValidator : public Command
 {
@@ -60,4 +60,4 @@ private:
   std::unique_ptr<SettingLineEdit<uint32_t>> mMaxNrOfObjects;
 };
 
-}    // namespace joda::ui
+}    // namespace joda::ui::gui

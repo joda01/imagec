@@ -17,12 +17,22 @@
 #include <stdexcept>
 #include <string>
 #include "backend/enums/enums_classes.hpp"
+#include "backend/helper/database/database.hpp"
+#include "backend/helper/database/exporter/r/exporter_r.hpp"
+#include "backend/helper/database/exporter/xlsx/exporter.hpp"
+#include "backend/helper/database/plugins/control_image.hpp"
+#include "backend/helper/database/plugins/filter.hpp"
+#include "backend/helper/database/plugins/stats_for_image.hpp"
+#include "backend/helper/database/plugins/stats_for_well.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/system/system_resources.hpp"
+#include "backend/helper/table/table.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
+#include <nlohmann/json_fwd.hpp>
 
 namespace joda::ctrl {
 
@@ -146,10 +156,10 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
 
   threads.totalRuns = imgNr * tileNr * pipelineNr;
 
-  std::cout << "Calculated threads " << std::to_string(imageInfo.optimalTileHeight) << "x" << std::to_string(imageInfo.optimalTileWidth) << " | "
-            << std::to_string((float) threads.ramPerImage / 1000000.0f) << " MB "
-            << " | " << std::to_string(threads.coresUsed) << std::endl;
+  /* joda::log::logInfo("Calculated threads " + std::to_string(imageInfo.optimalTileHeight) + "x" + std::to_string(imageInfo.optimalTileWidth) + " | "
+     + std::to_string((float) threads.ramPerImage / 1000000.0f) + " MB " + " | " + std::to_string(threads.coresUsed));*/
 
+  joda::log::logInfo("Number of CPU cores to use: " + std::to_string(threads.coresUsed));
   return threads;
 }
 
@@ -269,11 +279,14 @@ void Controller::start(const settings::AnalyzeSettings &settings, const joda::th
   if(mActThread.joinable()) {
     mActThread.join();
   }
+  setWorkingDirectory(settings.projectSettings.plates.begin()->plateId, settings.projectSettings.plates.begin()->imageFolder);
+  mWorkingDirectory.waitForFinished();
+
   mActProcessor.reset();
-  mActThread = std::thread([this, settings, jobName] {
-    mActProcessor = std::make_unique<processor::Processor>();
+  mActProcessor = std::make_unique<processor::Processor>();
+  mActThread    = std::thread([this, settings, jobName] {
     mActProcessor->execute(settings, jobName, calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles()),
-                           mWorkingDirectory);
+                              mWorkingDirectory);
   });
 }
 
@@ -349,6 +362,67 @@ auto Controller::populateClassesFromImage(const joda::ome::OmeInfo &omeInfo, int
   }
 
   return classes;
+}
+
+///
+/// \brief  Export data
+/// \author
+/// \return
+///
+void Controller::exportData(const std::filesystem::path &pathToDbFile, const db::QueryFilter &filter, const ExportSettings &settings,
+                            const std::filesystem::path &outputFilePath)
+{
+  auto analyzer = std::make_unique<joda::db::Database>();
+  analyzer->openDatabase(std::filesystem::path(pathToDbFile.string()));
+
+  if(outputFilePath.empty()) {
+    return;
+  }
+
+  auto grouping = db::StatsPerGroup::Grouping::BY_IMAGE;
+  std::map<int32_t, joda::table::Table> dataToExport;
+  switch(settings.view) {
+    case ExportSettings::ExportView::PLATE: {
+      grouping = db::StatsPerGroup::Grouping::BY_PLATE;
+      if(ExportSettings::ExportFormat::LIST == settings.format) {
+        dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter, grouping);
+      } else {
+        dataToExport = joda::db::StatsPerGroup::toHeatmap(analyzer.get(), filter, grouping);
+      }
+    } break;
+    case ExportSettings::ExportView::WELL:
+      grouping = db::StatsPerGroup::Grouping::BY_WELL;
+      if(ExportSettings::ExportFormat::LIST == settings.format) {
+        dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter, grouping);
+      } else {
+        dataToExport = joda::db::StatsPerGroup::toHeatmap(analyzer.get(), filter, grouping);
+      }
+      break;
+    case ExportSettings::ExportView::IMAGE:
+      grouping = db::StatsPerGroup::Grouping::BY_IMAGE;
+      if(ExportSettings::ExportFormat::LIST == settings.format) {
+        dataToExport = joda::db::StatsPerImage::toTable(analyzer.get(), filter);
+      } else {
+        dataToExport = joda::db::StatsPerImage::toHeatmap(analyzer.get(), filter);
+      }
+      break;
+  }
+
+  auto experiment                           = analyzer->selectExperiment();
+  settings::AnalyzeSettings analyzeSettings = nlohmann::json::parse(experiment.analyzeSettingsJsonString);
+
+  if(settings.type == ExportSettings::ExportType::XLSX) {
+    if(ExportSettings::ExportFormat::HEATMAP == settings.format) {
+      joda::db::BatchExporter::startExportHeatmap(dataToExport, analyzeSettings, experiment.jobName, experiment.timestampStart,
+                                                  experiment.timestampFinish, outputFilePath.string());
+    } else {
+      joda::db::BatchExporter::startExportList(dataToExport, analyzeSettings, experiment.jobName, experiment.timestampStart,
+                                               experiment.timestampFinish, outputFilePath.string());
+    }
+  } else {
+    joda::db::RExporter::startExport(filter, grouping, analyzeSettings, experiment.jobName, experiment.timestampStart, experiment.timestampFinish,
+                                     outputFilePath.string());
+  }
 }
 
 }    // namespace joda::ctrl

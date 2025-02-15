@@ -30,6 +30,11 @@
 #include "backend/commands/image_functions/color_filter/color_filter_settings_ui.hpp"
 #include "backend/commands/image_functions/edge_detection/edge_detection.hpp"
 #include "backend/commands/image_functions/edge_detection/edge_detection_settings_ui.hpp"
+#include "backend/commands/image_functions/fill_holes/fill_holes.hpp"
+#include "backend/commands/image_functions/fill_holes/fill_holes_settings_ui.hpp"
+#include "backend/commands/image_functions/hough_transform/hough_transform.hpp"
+#include "backend/commands/image_functions/hough_transform/hough_transform_settings.hpp"
+#include "backend/commands/image_functions/hough_transform/hough_transform_settings_ui.hpp"
 #include "backend/commands/image_functions/image_cache/image_cache.hpp"
 #include "backend/commands/image_functions/image_cache/image_cache_settings_ui.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class.hpp"
@@ -43,6 +48,8 @@
 #include "backend/commands/image_functions/margin_crop/margin_crop_settings.hpp"
 #include "backend/commands/image_functions/median_substraction/median_substraction.hpp"
 #include "backend/commands/image_functions/median_substraction/median_substraction_settings_ui.hpp"
+#include "backend/commands/image_functions/morphological_transformation/morphological_transformation.hpp"
+#include "backend/commands/image_functions/morphological_transformation/morphological_transformation_settings_ui.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings_ui.hpp"
@@ -64,14 +71,14 @@
 #include "backend/commands/object_functions/validator_threshold/validator_threshold_settings_ui.hpp"
 #include "backend/commands/object_functions/voronoi_grid/voronoi_grid.hpp"
 #include "backend/commands/object_functions/voronoi_grid/voronoi_grid_settings_ui.hpp"
-#include "ui/container/command/command.hpp"
-#include "ui/container/command/factory.hpp"
+#include "ui/gui/container/command/command.hpp"
+#include "ui/gui/container/command/factory.hpp"
 #include "pipeline_step.hpp"
 
 namespace joda::settings {
 
 template <class T>
-concept command_t = std::is_base_of<joda::cmd::Command, T>::value || std::is_base_of<joda::ui::Command, T>::value;
+concept command_t = std::is_base_of<joda::cmd::Command, T>::value || std::is_base_of<joda::ui::gui::Command, T>::value;
 
 ///
 /// \class
@@ -83,7 +90,7 @@ class PipelineFactory
 {
 public:
   static std::unique_ptr<RET> generate(const settings::PipelineStep &step, QWidget *parent = nullptr)
-    requires std::is_base_of<joda::ui::Command, RET>::value
+    requires std::is_base_of<joda::ui::gui::Command, RET>::value
   {
     return generateIntern<RET>(step, parent);
   }
@@ -102,17 +109,17 @@ private:
     if(step.$blur) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::Blur, BlurSettings>>(step.$blur.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::move(std::make_unique<joda::ui::Factory<joda::ui::Blur, BlurSettings>>(const_cast<settings::PipelineStep &>(step),
-                                                                                           const_cast<BlurSettings &>(step.$blur.value()), parent));
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::Blur, BlurSettings>>(
+            const_cast<settings::PipelineStep &>(step), const_cast<BlurSettings &>(step.$blur.value()), parent));
       }
     }
 
     if(step.$colorFilter) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::ColorFilter, ColorFilterSettings>>(step.$colorFilter.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::move(std::make_unique<joda::ui::Factory<joda::ui::ColorFilter, ColorFilterSettings>>(
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::ColorFilter, ColorFilterSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<ColorFilterSettings &>(step.$colorFilter.value()), parent));
       }
     }
@@ -121,8 +128,8 @@ private:
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::IntensityTransformation, IntensityTransformationSettings>>(
             step.$intensityTransform.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::move(std::make_unique<joda::ui::Factory<joda::ui::IntensityTransformation, IntensityTransformationSettings>>(
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::IntensityTransformation, IntensityTransformationSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<IntensityTransformationSettings &>(step.$intensityTransform.value()), parent));
       }
     }
@@ -130,8 +137,8 @@ private:
     if(step.$saveImage) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::ImageSaver, ImageSaverSettings>>(step.$saveImage.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::make_unique<joda::ui::Factory<joda::ui::ImageSaver, ImageSaverSettings>>(
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::make_unique<joda::ui::gui::Factory<joda::ui::gui::ImageSaver, ImageSaverSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<ImageSaverSettings &>(step.$saveImage.value()), parent);
       }
     }
@@ -139,8 +146,8 @@ private:
     if(step.$threshold) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::Threshold, ThresholdSettings>>(step.$threshold.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::make_unique<joda::ui::Factory<joda::ui::Threshold, ThresholdSettings>>(
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::make_unique<joda::ui::gui::Factory<joda::ui::gui::Threshold, ThresholdSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<ThresholdSettings &>(step.$threshold.value()), parent);
       }
     }
@@ -148,8 +155,8 @@ private:
     if(step.$watershed) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::Watershed, WatershedSettings>>(step.$watershed.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::make_unique<joda::ui::Factory<joda::ui::Watershed, WatershedSettings>>(
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::make_unique<joda::ui::gui::Factory<joda::ui::gui::Watershed, WatershedSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<WatershedSettings &>(step.$watershed.value()), parent);
       }
     }
@@ -158,14 +165,14 @@ private:
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::ImageFromClass, ImageFromClassSettings>>(step.$imageFromClass.value());
       }
-    } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
+    } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
     }
 
     if(step.$classify) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::Classifier, ClassifierSettings>>(step.$classify.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::make_unique<joda::ui::Factory<joda::ui::Classifier, ClassifierSettings>>(
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::make_unique<joda::ui::gui::Factory<joda::ui::gui::Classifier, ClassifierSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<ClassifierSettings &>(step.$classify.value()), parent);
       }
     }
@@ -173,8 +180,8 @@ private:
     if(step.$aiClassify) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::AiClassifier, AiClassifierSettings>>(step.$aiClassify.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::make_unique<joda::ui::Factory<joda::ui::AiClassifier, AiClassifierSettings>>(
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::make_unique<joda::ui::gui::Factory<joda::ui::gui::AiClassifier, AiClassifierSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<AiClassifierSettings &>(step.$aiClassify.value()), parent);
       }
     }
@@ -182,8 +189,8 @@ private:
     if(step.$colocalization) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::Colocalization, ColocalizationSettings>>(step.$colocalization.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::move(std::make_unique<joda::ui::Factory<joda::ui::Colocalization, ColocalizationSettings>>(
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::Colocalization, ColocalizationSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<ColocalizationSettings &>(step.$colocalization.value()), parent));
       }
     }
@@ -191,17 +198,17 @@ private:
     if(step.$measure) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::Measure, MeasureSettings>>(step.$measure.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::make_unique<joda::ui::Factory<joda::ui::Measure, MeasureSettings>>(const_cast<settings::PipelineStep &>(step),
-                                                                                       const_cast<MeasureSettings &>(step.$measure.value()), parent);
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::make_unique<joda::ui::gui::Factory<joda::ui::gui::Measure, MeasureSettings>>(
+            const_cast<settings::PipelineStep &>(step), const_cast<MeasureSettings &>(step.$measure.value()), parent);
       }
     }
 
     if(step.$reclassify) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::Reclassify, ReclassifySettings>>(step.$reclassify.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::move(std::make_unique<joda::ui::Factory<joda::ui::Reclassify, ReclassifySettings>>(
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::Reclassify, ReclassifySettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<ReclassifySettings &>(step.$reclassify.value()), parent));
       }
     }
@@ -209,8 +216,8 @@ private:
     if(step.$rollingBall) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::RollingBallBackground, RollingBallSettings>>(step.$rollingBall.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::make_unique<joda::ui::Factory<joda::ui::RollingBallBackground, RollingBallSettings>>(
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::make_unique<joda::ui::gui::Factory<joda::ui::gui::RollingBallBackground, RollingBallSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<RollingBallSettings &>(step.$rollingBall.value()), parent);
       }
     }
@@ -218,8 +225,8 @@ private:
     if(step.$medianSubtract) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::MedianSubtraction, MedianSubtractSettings>>(step.$medianSubtract.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::make_unique<joda::ui::Factory<joda::ui::MedianSubtraction, MedianSubtractSettings>>(
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::make_unique<joda::ui::gui::Factory<joda::ui::gui::MedianSubtraction, MedianSubtractSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<MedianSubtractSettings &>(step.$medianSubtract.value()), parent);
       }
     }
@@ -227,8 +234,8 @@ private:
     if(step.$edgeDetection) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::EdgeDetection, EdgeDetectionSettings>>(step.$edgeDetection.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::move(std::make_unique<joda::ui::Factory<joda::ui::EdgeDetection, EdgeDetectionSettings>>(
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::EdgeDetection, EdgeDetectionSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<EdgeDetectionSettings &>(step.$edgeDetection.value()), parent));
       }
     }
@@ -236,15 +243,15 @@ private:
     if(step.$crop) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::MarginCrop, MarginCropSettings>>(step.$crop.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
       }
     }
 
     if(step.$voronoi) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::VoronoiGrid, VoronoiGridSettings>>(step.$voronoi.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::move(std::make_unique<joda::ui::Factory<joda::ui::VoronoiGrid, VoronoiGridSettings>>(
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::VoronoiGrid, VoronoiGridSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<VoronoiGridSettings &>(step.$voronoi.value()), parent));
       }
     }
@@ -252,8 +259,8 @@ private:
     if(step.$thresholdValidator) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::ThresholdValidator, ThresholdValidatorSettings>>(step.$thresholdValidator.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::move(std::make_unique<joda::ui::Factory<joda::ui::ThresholdValidator, ThresholdValidatorSettings>>(
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::ThresholdValidator, ThresholdValidatorSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<ThresholdValidatorSettings &>(step.$thresholdValidator.value()), parent));
       }
     }
@@ -261,8 +268,8 @@ private:
     if(step.$noiseValidator) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::NoiseValidator, NoiseValidatorSettings>>(step.$noiseValidator.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::move(std::make_unique<joda::ui::Factory<joda::ui::NoiseValidator, NoiseValidatorSettings>>(
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::NoiseValidator, NoiseValidatorSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<NoiseValidatorSettings &>(step.$noiseValidator.value()), parent));
       }
     }
@@ -270,8 +277,8 @@ private:
     if(step.$objectsToImage) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::ObjectsToImage, ObjectsToImageSettings>>(step.$objectsToImage.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::move(std::make_unique<joda::ui::Factory<joda::ui::ObjectsToImage, ObjectsToImageSettings>>(
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::ObjectsToImage, ObjectsToImageSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<ObjectsToImageSettings &>(step.$objectsToImage.value()), parent));
       }
     }
@@ -279,8 +286,8 @@ private:
     if(step.$objectTransform) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::ObjectTransform, ObjectTransformSettings>>(step.$objectTransform.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::move(std::make_unique<joda::ui::Factory<joda::ui::ObjectTransform, ObjectTransformSettings>>(
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::ObjectTransform, ObjectTransformSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<ObjectTransformSettings &>(step.$objectTransform.value()), parent));
       }
     }
@@ -288,8 +295,8 @@ private:
     if(step.$imageMath) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::ImageMath, ImageMathSettings>>(step.$imageMath.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::move(std::make_unique<joda::ui::Factory<joda::ui::ImageMath, ImageMathSettings>>(
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::ImageMath, ImageMathSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<ImageMathSettings &>(step.$imageMath.value()), parent));
       }
     }
@@ -297,9 +304,37 @@ private:
     if(step.$imageToCache) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
         return std::make_unique<joda::cmd::Factory<joda::cmd::ImageCache, ImageCacheSettings>>(step.$imageToCache.value());
-      } else if constexpr(std::is_base_of<joda::ui::Command, RET>::value) {
-        return std::move(std::make_unique<joda::ui::Factory<joda::ui::ImageCache, ImageCacheSettings>>(
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::ImageCache, ImageCacheSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<ImageCacheSettings &>(step.$imageToCache.value()), parent));
+      }
+    }
+
+    if(step.$morphologicalTransform) {
+      if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
+        return std::make_unique<joda::cmd::Factory<joda::cmd::MorphologicalTransform, MorphologicalTransformSettings>>(
+            step.$morphologicalTransform.value());
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::MorphologicalTransform, MorphologicalTransformSettings>>(
+            const_cast<settings::PipelineStep &>(step), const_cast<MorphologicalTransformSettings &>(step.$morphologicalTransform.value()), parent));
+      }
+    }
+
+    if(step.$fillHoles) {
+      if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
+        return std::make_unique<joda::cmd::Factory<joda::cmd::FillHoles, FillHolesSettings>>(step.$fillHoles.value());
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::FillHoles, FillHolesSettings>>(
+            const_cast<settings::PipelineStep &>(step), const_cast<FillHolesSettings &>(step.$fillHoles.value()), parent));
+      }
+    }
+
+    if(step.$houghTransform) {
+      if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
+        return std::make_unique<joda::cmd::Factory<joda::cmd::HoughTransform, HoughTransformSettings>>(step.$houghTransform.value());
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::HoughTransform, HoughTransformSettings>>(
+            const_cast<settings::PipelineStep &>(step), const_cast<HoughTransformSettings &>(step.$houghTransform.value()), parent));
       }
     }
 

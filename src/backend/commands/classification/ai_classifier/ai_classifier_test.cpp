@@ -28,7 +28,7 @@ TEST_CASE("ai::classifier::test::nucleus", "[ai_classifier]")
   aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 1});
   aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 2});
 
-  auto info                  = joda::onnx::AiModelParser::parseResourceDescriptionFile("models/nucleisegmentationboundarymodel_torchscript/rdf.yaml");
+  auto info                  = joda::ai::AiModelParser::parseResourceDescriptionFile("models/nucleisegmentationboundarymodel_torchscript/rdf.yaml");
   aiSets.modelParameter      = info.modelParameter;
   aiSets.modelInputParameter = info.inputs.begin()->second;
   aiSets.thresholds.maskThreshold  = 0.5;
@@ -73,9 +73,9 @@ TEST_CASE("ai::classifier::test::livecell", "[ai_classifier]")
   aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 4});
   aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 5});
 
-  auto info             = joda::onnx::AiModelParser::parseResourceDescriptionFile("models/livecellsegmentationboundarymodel_torchscript/rdf.yaml");
-  aiSets.modelParameter = info.modelParameter;
-  aiSets.modelInputParameter       = info.inputs.begin()->second;
+  auto info                  = joda::ai::AiModelParser::parseResourceDescriptionFile("models/livecellsegmentationboundarymodel_torchscript/rdf.yaml");
+  aiSets.modelParameter      = info.modelParameter;
+  aiSets.modelInputParameter = info.inputs.begin()->second;
   aiSets.thresholds.maskThreshold  = 0.5;
   aiSets.thresholds.classThreshold = 0.3;
 
@@ -127,8 +127,8 @@ TEST_CASE("ai::classifier::test::onnx", "[ai_classifier]")
   aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 0});
   aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 1});
 
-  auto info             = joda::onnx::AiModelParser::parseResourceDescriptionFile("models/university_of_sbg_cell_segmentation_v3/rdf.yaml");
-  aiSets.modelParameter = info.modelParameter;
+  auto info                         = joda::ai::AiModelParser::parseResourceDescriptionFile("models/university_of_sbg_cell_segmentation_v3/rdf.yaml");
+  aiSets.modelParameter             = info.modelParameter;
   aiSets.modelParameter.modelFormat = joda::settings::AiClassifierSettings::ModelFormat::ONNX;
   aiSets.modelInputParameter        = info.inputs.begin()->second;
 
@@ -168,8 +168,8 @@ TEST_CASE("ai::classifier::test::pytorch::yolo", "[ai_classifier]")
   aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 0});
   aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 1});
 
-  auto info             = joda::onnx::AiModelParser::parseResourceDescriptionFile("models/university_of_sbg_cell_segmentation_v3/rdf.yaml");
-  aiSets.modelParameter = info.modelParameter;
+  auto info                         = joda::ai::AiModelParser::parseResourceDescriptionFile("models/university_of_sbg_cell_segmentation_v3/rdf.yaml");
+  aiSets.modelParameter             = info.modelParameter;
   aiSets.modelParameter.modelFormat = joda::settings::AiClassifierSettings::ModelFormat::TORCHSCRIPT;
   aiSets.modelInputParameter        = info.inputs.begin()->second;
   joda::cmd::AiClassifier ai(aiSets);

@@ -18,8 +18,7 @@
 
 namespace joda::filesystem {
 
-DirectoryWatcher::DirectoryWatcher(const std::set<std::string> &supportedFileFormats) :
-    mSupportedFormats(supportedFileFormats)
+DirectoryWatcher::DirectoryWatcher(const std::set<std::string> &supportedFileFormats) : mSupportedFormats(supportedFileFormats)
 {
 }
 
@@ -54,6 +53,9 @@ void DirectoryWatcher::lookForImagesInFolderAndSubfolder()
 
   for(const auto &[group, workingDir] : mWorkingDirectory) {
     mListOfImagePaths[group].clear();
+    if(workingDir.empty()) {
+      continue;
+    }
     try {
       for(recursive_directory_iterator i(workingDir), end; i != end; ++i) {
         try {

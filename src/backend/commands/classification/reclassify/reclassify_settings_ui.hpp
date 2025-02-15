@@ -18,17 +18,17 @@
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
 
-#include "ui/container/command/command.hpp"
-#include "ui/container/setting/setting_base.hpp"
-#include "ui/container/setting/setting_combobox.hpp"
-#include "ui/container/setting/setting_combobox_classes_out.hpp"
-#include "ui/container/setting/setting_combobox_multi_classification_in.hpp"
-#include "ui/container/setting/setting_line_edit.hpp"
-#include "ui/helper/layout_generator.hpp"
-#include "ui/helper/setting_generator.hpp"
+#include "ui/gui/container/command/command.hpp"
+#include "ui/gui/container/setting/setting_base.hpp"
+#include "ui/gui/container/setting/setting_combobox.hpp"
+#include "ui/gui/container/setting/setting_combobox_classes_out.hpp"
+#include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
+#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/helper/layout_generator.hpp"
+#include "ui/gui/helper/setting_generator.hpp"
 #include "reclassify_settings.hpp"
 
-namespace joda::ui {
+namespace joda::ui::gui {
 
 class Reclassify : public Command
 {
@@ -114,9 +114,17 @@ public:
     zProjectionForIntensityFilter->setValue(settings.intensity.imageIn.zProjection);
     zProjectionForIntensityFilter->connectWithSetting(&settings.intensity.imageIn.zProjection);
 
+    //
+    //
+    //
+    zStackIndex = generateStackIndexCombo(true, "Z-Channel", parent);
+    zStackIndex->setValue(settings.intensity.imageIn.imagePlane.zStack);
+    zStackIndex->connectWithSetting(&settings.intensity.imageIn.imagePlane.zStack);
+
     addSetting(modelTab, "Intensity filter",
                {{cStackForIntensityFilter.get(), false, 0},
                 {zProjectionForIntensityFilter.get(), false, 0},
+                {zStackIndex.get(), false, 0},
                 {mMinIntensity.get(), false, 0},
                 {mMaxIntensity.get(), false, 0}},
                col2);
@@ -137,6 +145,7 @@ private:
 
   std::unique_ptr<SettingComboBox<int32_t>> cStackForIntensityFilter;
   std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjectionForIntensityFilter;
+  std::unique_ptr<SettingSpinBox<int32_t>> zStackIndex;
   std::unique_ptr<SettingLineEdit<int>> mMinIntensity;
   std::unique_ptr<SettingLineEdit<int>> mMaxIntensity;
 
@@ -145,4 +154,4 @@ private:
 private slots:
 };
 
-}    // namespace joda::ui
+}    // namespace joda::ui::gui

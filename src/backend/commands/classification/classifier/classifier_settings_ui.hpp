@@ -18,16 +18,16 @@
 #include "backend/commands/classification/classifier_filter.hpp"
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "ui/container/command/command.hpp"
-#include "ui/container/setting/setting_base.hpp"
-#include "ui/container/setting/setting_combobox.hpp"
-#include "ui/container/setting/setting_combobox_classes_out.hpp"
-#include "ui/container/setting/setting_line_edit.hpp"
-#include "ui/helper/layout_generator.hpp"
-#include "ui/helper/setting_generator.hpp"
+#include "ui/gui/container/command/command.hpp"
+#include "ui/gui/container/setting/setting_base.hpp"
+#include "ui/gui/container/setting/setting_combobox.hpp"
+#include "ui/gui/container/setting/setting_combobox_classes_out.hpp"
+#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/helper/layout_generator.hpp"
+#include "ui/gui/helper/setting_generator.hpp"
 #include "classifier_settings.hpp"
 
-namespace joda::ui {
+namespace joda::ui::gui {
 
 class Classifier : public Command
 {
@@ -39,6 +39,29 @@ public:
   Classifier(joda::settings::PipelineStep &pipelineStep, settings::ClassifierSettings &settingsIn, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::OBJECT}}), mSettings(settingsIn), mParent(parent)
   {
+    this->mutableEditDialog()->setMinimumWidth(600);
+    this->mutableEditDialog()->setMinimumHeight(400);
+
+    auto *detectionSettings = addTab(
+        "Detection settings", [] {}, false);
+
+    //
+    // Options
+    //
+    mFunction = SettingBase::create<SettingComboBox<joda::settings::ClassifierSettings::HierarchyMode>>(parent, {}, "Function");
+    mFunction->addOptions({
+        {.key = joda::settings::ClassifierSettings::HierarchyMode::OUTER, .label = "Outer", .icon = generateIcon("ampersand")},
+        {.key = joda::settings::ClassifierSettings::HierarchyMode::INNER, .label = "Inner", .icon = generateIcon("ampersand")},
+        {.key = joda::settings::ClassifierSettings::HierarchyMode::INNER_AND_OUTER, .label = "Inner & Outer", .icon = generateIcon("ampersand")},
+    });
+
+    mFunction->setValue(settingsIn.hierarchyMode);
+    mFunction->connectWithSetting(&settingsIn.hierarchyMode);
+    auto *col = addSetting(detectionSettings, "Model settings", {{mFunction.get(), true, 0}});
+
+    //
+    // Filter settings
+    //
     if(settingsIn.modelClasses.empty()) {
       addFilter();
     }
@@ -156,6 +179,13 @@ private:
       zProjectionForIntensityFilter->setValue(classifyFilter.intensity.imageIn.zProjection);
       zProjectionForIntensityFilter->connectWithSetting(&classifyFilter.intensity.imageIn.zProjection);
 
+      //
+      //
+      //
+      zStackIndex = generateStackIndexCombo(true, "Z-Channel", parent);
+      zStackIndex->setValue(classifyFilter.intensity.imageIn.imagePlane.zStack);
+      zStackIndex->connectWithSetting(&classifyFilter.intensity.imageIn.imagePlane.zStack);
+
       /*outer.addSetting(tab, "Intensity filter",
                        {{cStackForIntensityFilter.get(), true},
                         {zProjectionForIntensityFilter.get(), true},
@@ -167,11 +197,12 @@ private:
     ~ClassifierFilter()
     {
       outer.removeSetting({mClassOutNoMatch.get(), mGrayScaleValue.get(), mClassOut.get(), mMinParticleSize.get(), mMaxParticleSize.get(),
-                           mMinCircularity.get(), cStackForIntensityFilter.get(), zProjectionForIntensityFilter.get(), mMinIntensity.get(),
-                           mMaxIntensity.get()});
+                           mMinCircularity.get(), cStackForIntensityFilter.get(), zProjectionForIntensityFilter.get(), zStackIndex.get(),
+                           mMinIntensity.get(), mMaxIntensity.get()});
     }
 
     // std::unique_ptr<SettingComboBox<enums::ClasssIdIn>> mClasssOut;
+
     std::unique_ptr<SettingComboBoxClassesOut> mClassOutNoMatch;
     std::unique_ptr<SettingComboBox<int32_t>> mGrayScaleValue;
     QWidget *mParent;
@@ -183,6 +214,7 @@ private:
 
     std::unique_ptr<SettingComboBox<int32_t>> cStackForIntensityFilter;
     std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjectionForIntensityFilter;
+    std::unique_ptr<SettingSpinBox<int32_t>> zStackIndex;
     std::unique_ptr<SettingLineEdit<int>> mMinIntensity;
     std::unique_ptr<SettingLineEdit<int>> mMaxIntensity;
 
@@ -230,6 +262,8 @@ private slots:
     mClassifyFilter.emplace_back(ret, *this, tab, mSettings.modelClasses.size(), mParent);
     updateDisplayText();
   }
+
+  std::unique_ptr<SettingComboBox<joda::settings::ClassifierSettings::HierarchyMode>> mFunction;
 };
 
-}    // namespace joda::ui
+}    // namespace joda::ui::gui

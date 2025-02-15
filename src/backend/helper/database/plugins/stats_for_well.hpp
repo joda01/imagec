@@ -17,8 +17,8 @@ public:
     BY_IMAGE
   };
 
-  static auto toTable(const QueryFilter &filter, Grouping grouping) -> QueryResult;
-  static auto toHeatmap(const QueryFilter &filter, Grouping grouping) -> QueryResult;
+  static auto toTable(db::Database *database, const QueryFilter &filter, Grouping grouping) -> QueryResult;
+  static auto toHeatmap(db::Database *database, const QueryFilter &filter, Grouping grouping) -> QueryResult;
   static auto toSQL(const db::ResultingTable::QueryKey &classsAndClass, const QueryFilter::ObjectFilter &filter,
                     const PreparedStatement &channelFilter, Grouping grouping) -> std::pair<std::string, DbArgs_t>;
 

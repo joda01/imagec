@@ -17,6 +17,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include "backend/commands/classification/classifier/classifier_settings.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core.hpp>
@@ -72,37 +73,51 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
       // Do not paint a contour for elements inside an element.
       // In other words if there is a particle with a hole, ignore the hole.
       // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html
-      if(hierarchy[i][3] == -1) {
-        auto boundingBox  = cv::boundingRect(contour);
-        cv::Mat mask      = cv::Mat::zeros(boundingBox.size(), CV_8UC1);
-        cv::Mat imagePart = binaryImage(boundingBox).clone();
 
-        // Bring the contours box in the area of the bounding box
-        for(auto &point : contour) {
-          point.x = point.x - boundingBox.x;
-          point.y = point.y - boundingBox.y;
-        }
-        cv::drawContours(mask, contours, i, cv::Scalar(255), cv::FILLED);
-        // Remove inner holes from the mask
-        cv::bitwise_and(mask, imagePart, mask);
-
-        //
-        // Ready to classify -> First create a ROI object to get the measurements
-        //
-        joda::atom::ROI detectedRoi(
-            atom::ROI::RoiObjectId{.classId = context.getClassId(objectClass.outputClassNoMatch), .imagePlane = context.getActIterator()},
-            context.getAppliedMinThreshold(), boundingBox, mask, contour, context.getImageSize(), context.getOriginalImageSize(),
-            context.getActTile(), context.getTileSize());
-
-        for(const auto &filter : objectClass.filters) {
-          // If filter matches assign the new classs and class to the ROI
-          if(joda::settings::ClassifierFilter::doesFilterMatch(context, detectedRoi, filter.metrics, filter.intensity)) {
-            detectedRoi.changeClass(context.getClassId(filter.outputClass));
-            break;
-          }
-        }
-        result.push_back(detectedRoi);
+      // [Next, Previous, First_Child, Parent]
+      // Do not paint a contour for elements inside an element.
+      // In other words if there is a particle with a hole, ignore the hole.
+      // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html
+      auto parent     = hierarchy[i][3];
+      auto firstChild = hierarchy[i][2];
+      if(mSettings.hierarchyMode == settings::ClassifierSettings::HierarchyMode::OUTER && -1 != parent) {
+        i++;
+        continue;
       }
+      if(mSettings.hierarchyMode == settings::ClassifierSettings::HierarchyMode::INNER && firstChild > -1) {
+        i++;
+        continue;
+      }
+
+      auto boundingBox  = cv::boundingRect(contour);
+      cv::Mat mask      = cv::Mat::zeros(boundingBox.size(), CV_8UC1);
+      cv::Mat imagePart = binaryImage(boundingBox).clone();
+
+      // Bring the contours box in the area of the bounding box
+      for(auto &point : contour) {
+        point.x = point.x - boundingBox.x;
+        point.y = point.y - boundingBox.y;
+      }
+      cv::drawContours(mask, contours, i, cv::Scalar(255), cv::FILLED);
+      // Remove inner holes from the mask
+      cv::bitwise_and(mask, imagePart, mask);
+
+      //
+      // Ready to classify -> First create a ROI object to get the measurements
+      //
+      joda::atom::ROI detectedRoi(
+          atom::ROI::RoiObjectId{.classId = context.getClassId(objectClass.outputClassNoMatch), .imagePlane = context.getActIterator()},
+          context.getAppliedMinThreshold(), boundingBox, mask, contour, context.getImageSize(), context.getOriginalImageSize(), context.getActTile(),
+          context.getTileSize());
+
+      for(const auto &filter : objectClass.filters) {
+        // If filter matches assign the new classs and class to the ROI
+        if(joda::settings::ClassifierFilter::doesFilterMatch(context, detectedRoi, filter.metrics, filter.intensity)) {
+          detectedRoi.changeClass(context.getClassId(filter.outputClass));
+          break;
+        }
+      }
+      result.push_back(detectedRoi);
       i++;
     }
   }

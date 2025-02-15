@@ -40,7 +40,11 @@ ProcessContext::ProcessContext(GlobalContext &globalContext, PlateContext &plate
     }
 
     if(cacheId.zProjection == enums::ZProjection::$) {
-      cacheId.zProjection = pipelineContext.actImagePlane.getId().zProjection;
+      cacheId.zProjection       = pipelineContext.actImagePlane.getId().zProjection;
+      cacheId.imagePlane.zStack = getActIterator().zStack;
+    }
+    if(cacheId.imagePlane.zStack < 0) {
+      cacheId.imagePlane.zStack = getActIterator().zStack;
     }
 
     joda::processor::PipelineInitializer::loadImageAndStoreToCache(cacheId.imagePlane, cacheId.zProjection, pipelineContext.actImagePlane.tile, *this,

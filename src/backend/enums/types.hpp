@@ -73,7 +73,8 @@ enum class ZProjection
   NONE          = 0,
   MAX_INTENSITY = 1,
   MIN_INTENSITY = 2,
-  AVG_INTENSITY = 3
+  AVG_INTENSITY = 3,
+  TAKE_MIDDLE   = 4,
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ZProjection, {
@@ -82,6 +83,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ZProjection, {
                                               {ZProjection::MAX_INTENSITY, "MaxIntensity"},
                                               {ZProjection::MIN_INTENSITY, "MinIntensity"},
                                               {ZProjection::AVG_INTENSITY, "AvgIntensity"},
+                                              {ZProjection::TAKE_MIDDLE, "TakeMiddle"},
                                           });
 
 }    // namespace joda::enums

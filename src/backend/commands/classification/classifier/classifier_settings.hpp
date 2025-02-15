@@ -26,6 +26,18 @@ namespace joda::settings {
 
 struct ClassifierSettings : public SettingBase
 {
+  enum class HierarchyMode
+  {
+    OUTER,
+    INNER,
+    INNER_AND_OUTER
+  };
+
+  //
+  // Hierarchy Mode
+  //
+  HierarchyMode hierarchyMode = HierarchyMode::OUTER;
+
   //
   // Object classification based on gray scale value (default: modelClassId = 65535)
   //
@@ -49,7 +61,7 @@ struct ClassifierSettings : public SettingBase
     return out;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassifierSettings, modelClasses);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ClassifierSettings, hierarchyMode, modelClasses);
 };
 
 }    // namespace joda::settings
