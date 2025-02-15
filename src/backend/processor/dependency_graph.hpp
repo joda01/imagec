@@ -39,10 +39,12 @@ public:
     pipelinesProvidingMyDeps.emplace(dep);
   }
   bool isRootNode() const;
-  const settings::Pipeline *getPipeline() const
+  [[nodiscard]] const settings::Pipeline *getPipeline() const
   {
     return pipeline;
   }
+  void setPipelineIndex(int32_t index);
+
   void removePipeline(const std::set<const settings::Pipeline *> &pip)
   {
     for(const settings::Pipeline *toRemove : pip) {

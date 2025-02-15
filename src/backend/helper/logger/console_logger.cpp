@@ -25,7 +25,7 @@ const std::string GRAY_COLOR   = "\033[37m";
 const std::string YELLOW_COLOR = "\033[33m";
 const std::string BLUE_COLOR   = "\033[34m";
 
-LogLevel mLogLevel = LogLevel::DEBUG;
+LogLevel mLogLevel = LogLevel::TRACE;
 std::mutex mWriteMutex;
 float lastProgress = 0;
 

@@ -97,7 +97,8 @@ void PipelineInitializer::init(ImageContext &imageContextOut)
 /// \return
 ///
 void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &pipelineSetup, const enums::tile_t &tile,
-                                       const joda::enums::PlaneId &imagePartToLoad, joda::processor::ProcessContext &processContext) const
+                                       const joda::enums::PlaneId &imagePartToLoad, joda::processor::ProcessContext &processContext,
+                                       int32_t pipelineIndex) const
 {
   int32_t c = pipelineSetup.cStackIndex;
   int32_t z = pipelineSetup.zStackIndex;
@@ -184,7 +185,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   //
   // Write context
   //
-  processContext.initDefaultSettings(pipelineSetup.defaultClassId, zProjection);
+  processContext.initDefaultSettings(pipelineSetup.defaultClassId, zProjection, pipelineIndex);
 }
 
 ///

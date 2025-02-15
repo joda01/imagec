@@ -35,6 +35,10 @@ ObjectInputClassesExp Pipeline::getInputClasses() const
     for(const auto &classId : classesCmd) {
       auto classIdToSet = static_cast<joda::enums::ClassId>(classId);
 
+      if(classId >= enums::ClassIdIn::TEMP_01 && classId <= enums::ClassIdIn::TEMP_LAST) {
+        continue;
+      }
+
       if(classId == enums::ClassIdIn::$) {
         classIdToSet = pipelineSetup.defaultClassId;
       }
@@ -60,6 +64,9 @@ ObjectOutputClassesExp Pipeline::getOutputClasses() const
     const auto &classesCmd = command->getOutputClasses();
     for(const auto &classs : classesCmd) {
       auto classIdToSet = static_cast<joda::enums::ClassId>(classs);
+      if(classs >= enums::ClassIdIn::TEMP_01 && classs <= enums::ClassIdIn::TEMP_LAST) {
+        continue;
+      }
 
       if(classs == enums::ClassIdIn::$) {
         classIdToSet = pipelineSetup.defaultClassId;

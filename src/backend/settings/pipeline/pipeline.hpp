@@ -24,6 +24,7 @@ namespace joda::settings {
 class Pipeline
 {
 public:
+  int32_t index = 0;    // Pipeline index, this is temporary and must not be saved. The index is given during the dependency graph generation
   /////////////////////////////////////////////////////
   PipelineMeta meta;
   PipelineSettings pipelineSetup;

@@ -17,6 +17,7 @@
 #include <filesystem>
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include "backend/artifacts/image/image.hpp"
 #include "backend/artifacts/object_list/object_list.hpp"
@@ -58,10 +59,11 @@ class ProcessContext
 public:
   ProcessContext(GlobalContext &globalContext, PlateContext &plateContext, ImageContext &imageContext, IterationContext &iterationContext);
 
-  void initDefaultSettings(enums::ClassId classId, enums::ZProjection zProjection)
+  void initDefaultSettings(enums::ClassId classId, enums::ZProjection zProjection, int32_t pipelineIndex)
   {
     pipelineContext.defaultClassId     = classId;
     pipelineContext.defaultZProjection = zProjection;
+    pipelineContext.pipelineIndex      = pipelineIndex;
   }
 
   void setBinaryImage(uint16_t thresholdMin, uint16_t thresholdMax)
@@ -206,7 +208,21 @@ public:
 
   [[nodiscard]] enums::ClassId getClassId(enums::ClassIdIn in) const
   {
+    if(in >= enums::ClassIdIn::TEMP_01 && in <= enums::ClassIdIn::TEMP_LAST) {
+      return getTemporaryClassId(in);
+    }
+
     return in != enums::ClassIdIn::$ ? static_cast<enums::ClassId>(in) : pipelineContext.defaultClassId;
+  }
+
+  enums::ClassId getTemporaryClassId(enums::ClassIdIn in) const
+  {
+    if(in >= enums::ClassIdIn::TEMP_01 && in <= enums::ClassIdIn::TEMP_LAST) {
+      return static_cast<enums::ClassId>(static_cast<int32_t>(enums::ClassId::RESERVED_FOR_TEMP_START) +
+                                         (static_cast<int32_t>(in) - static_cast<int32_t>(enums::ClassIdIn::TEMP_01)) +
+                                         (pipelineContext.pipelineIndex * static_cast<int32_t>(enums::ClassIdIn::TEMP_LAST)));
+    }
+    throw std::invalid_argument("This is not a temporary class!");
   }
 
   [[nodiscard]] std::set<enums::ClassId> getClassId(std::set<enums::ClassIdIn> in) const

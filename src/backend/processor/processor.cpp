@@ -29,6 +29,7 @@
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/file_grouper/file_grouper.hpp"
 #include "backend/helper/helper.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/threading/threading.hpp"
 #include "backend/helper/threadpool/thread_pool.hpp"
@@ -161,7 +162,8 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                             //
                             ProcessContext context{globalContext, plateContext, imageContext, iterationContext};
                             imageLoader.initPipeline(pipeline->pipelineSetup, {tileX, tileY},
-                                                     {.tStack = tStack, .zStack = zStack, .cStack = pipeline->pipelineSetup.cStackIndex}, context);
+                                                     {.tStack = tStack, .zStack = zStack, .cStack = pipeline->pipelineSetup.cStackIndex}, context,
+                                                     pipeline->index);
                             auto planeId = context.getActImage().getId().imagePlane;
                             try {
                               if(pipeline->pipelineSetup.cStackIndex >= 0 && pipeline->pipelineSetup.cStackIndex < nrChannels) {
@@ -185,6 +187,13 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                               // Execute a pipeline step
                               step(context, context.getActImage().image, context.getActObjects());
                             }
+
+                            // Remove temporary objects from pipeline
+                            joda::log::logTrace("Pipeline >" + pipeline->meta.name + "< finished!");
+                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_01));
+                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_02));
+                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_03));
+                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_04));
                           };
 
                           if(poolSizeChannels > 1) {
@@ -201,6 +210,8 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                     }
 
                     // Iteration for all tiles finished
+
+                    // Insert objects to database
                     auto id = DurationCount::start("Insert");
                     try {
                       db.insertObjects(imageContext, iterationContext.getObjects());
@@ -357,7 +368,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
       //
       ProcessContext context{globalContext, plateContext, imageContext, iterationContext};
       imageLoader.initPipeline(pipeline->pipelineSetup, {tileX, tileY},
-                               {.tStack = tStack, .zStack = zStack, .cStack = pipeline->pipelineSetup.cStackIndex}, context);
+                               {.tStack = tStack, .zStack = zStack, .cStack = pipeline->pipelineSetup.cStackIndex}, context, pipeline->index);
       auto planeId = context.getActImage().getId().imagePlane;
 
       //
@@ -370,6 +381,11 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         }
         step(context, context.getActImage().image, context.getActObjects());
       }
+      // Remove temporary objects from pipeline
+      iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_01));
+      iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_02));
+      iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_03));
+      iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_04));
 
       //
       // The last step is the wanted pipeline
@@ -399,7 +415,11 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         //
         joda::settings::ImageSaverSettings saverSettings;
         saverSettings.classesIn.clear();
-        for(auto classs : classesToShow) {
+        for(enums::ClassIdIn classs : classesToShow) {
+          if(classs >= enums::ClassIdIn::TEMP_01 && classs <= enums::ClassIdIn::TEMP_LAST) {
+            /// \todo allow to show temp in preview
+            continue;
+          }
           if(classs == enums::ClassIdIn::$) {
             classs = static_cast<enums::ClassIdIn>(pipelineStart.pipelineSetup.defaultClassId);
           }

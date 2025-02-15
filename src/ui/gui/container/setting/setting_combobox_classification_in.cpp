@@ -69,9 +69,21 @@ void SettingComboBoxClassificationIn::outputClassesChanges()
     mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Default",
                        QVariant(toInt(enums::ClassIdIn::$)));
 
+    // Add Temp
+    mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 01",
+                       QVariant(toInt(enums::ClassIdIn::TEMP_01)));
+    mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 02",
+                       QVariant(toInt(enums::ClassIdIn::TEMP_02)));
+    mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 03",
+                       QVariant(toInt(enums::ClassIdIn::TEMP_03)));
+    mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 04",
+                       QVariant(toInt(enums::ClassIdIn::TEMP_04)));
+
     // Add undefined classs
     mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Undefined",
                        QVariant(toInt(enums::ClassIdIn::UNDEFINED)));
+
+    mComboBox->insertSeparator(mComboBox->count());
 
     auto classes = parent->getPanelClassification()->getClasses();
     std::map<std::string, std::multimap<std::string, enums::ClassId>> orderedClasses;

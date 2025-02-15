@@ -58,7 +58,7 @@ public:
                                                  joda::processor::ProcessContext &processContext, processor::ImageContext &imageContext);
 
   void initPipeline(const joda::settings::PipelineSettings &settings, const enums::tile_t &tile, const joda::enums::PlaneId &imagePartToLoad,
-                    ProcessContext &processStepOu) const;
+                    ProcessContext &processStepOu, int32_t pipelineIndex) const;
 
 private:
   /////////////////////////////////////////////////////

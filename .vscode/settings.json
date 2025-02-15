@@ -87,7 +87,8 @@
         "numbers": "cpp",
         "semaphore": "cpp",
         "shared_mutex": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "filesystem": "cpp"
     },
     "files.exclude": {
         ".gitignore": false,

@@ -126,15 +126,29 @@ public:
         orderedClasses[enums::getPrefixFromClassName(className.toStdString())].emplace(className.toStdString(), (CLASSID) id);
       }
 
+      if constexpr(std::same_as<CLASSID, enums::ClassIdIn>) {
+        // Add this classs
+        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Default",
+                           QVariant(toInt(enums::ClassIdIn::$)));
+
+        // Add Temp
+        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 01",
+                           QVariant(toInt(enums::ClassIdIn::TEMP_01)));
+        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 02",
+                           QVariant(toInt(enums::ClassIdIn::TEMP_02)));
+        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 03",
+                           QVariant(toInt(enums::ClassIdIn::TEMP_03)));
+        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 04",
+                           QVariant(toInt(enums::ClassIdIn::TEMP_04)));
+        mComboBox->insertSeparator(mComboBox->count());
+      }
       for(const auto &[prefix, group] : orderedClasses) {
         for(const auto &[className, id] : group) {
           QVariant variant;
           variant = QVariant(toInt(id));
           if constexpr(std::same_as<CLASSID, enums::ClassIdIn>) {
-            if(id == enums::ClassIdIn::$) {
-              // We want this to be the first
-              mComboBox->insertItem(0, generateIcon("circle"), className.data(), variant);
-            } else {
+            if(((enums::ClassIdIn) id != enums::ClassIdIn::$) &&
+               ((enums::ClassIdIn) id < enums::ClassIdIn::TEMP_01 || (enums::ClassIdIn) id > enums::ClassIdIn::TEMP_LAST)) {
               if(!SettingBase::getIcon().isNull()) {
                 mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), className.data(),
                                    variant);
@@ -143,13 +157,11 @@ public:
               }
             }
           } else {
-            if((enums::ClassIdIn) id != enums::ClassIdIn::$) {
-              if(!SettingBase::getIcon().isNull()) {
-                mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), className.data(),
-                                   variant);
-              } else {
-                mComboBox->addItem(generateIcon("circle"), className.data(), variant);
-              }
+            if(!SettingBase::getIcon().isNull()) {
+              mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), className.data(),
+                                 variant);
+            } else {
+              mComboBox->addItem(generateIcon("circle"), className.data(), variant);
             }
           }
         }

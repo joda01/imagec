@@ -135,7 +135,7 @@ void Starter::exec(int argc, char *argv[])
     QString loglevel = parser.value(loggingOption);
     initLogger(loglevel.toStdString());
   } else {
-    initLogger("info");
+    initLogger("trace");
   }
 
   // ===================================

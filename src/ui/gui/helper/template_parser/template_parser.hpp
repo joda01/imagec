@@ -47,9 +47,10 @@ public:
 
   enum class Category
   {
-    BASIC = 0,
-    EVA   = 1,
-    USER  = 2
+    BASIC        = 0,
+    EVA          = 1,
+    SEGMENTATION = 2,
+    USER         = 3
   };
 
   static void saveTemplate(const joda::settings::Pipeline &data, const std::filesystem::path &pathToStoreTemplateIn);
@@ -58,6 +59,7 @@ public:
 
   static auto findTemplates(const std::map<std::string, Category> &directories = {{"templates/basic", Category::BASIC},
                                                                                   {"templates/eva", Category::EVA},
+                                                                                  {"templates/segmentation", Category::SEGMENTATION},
                                                                                   {getUsersTemplateDirectory().string(), Category::USER}},
                             const std::string &endian = joda::fs::EXT_PIPELINE_TEMPLATE) -> std::map<Category, std::map<std::string, Data>>;
   static auto loadChannelFromTemplate(const std::filesystem::path &pathToTemplate) -> joda::settings::Pipeline;

@@ -39,8 +39,8 @@ public:
   Classifier(joda::settings::PipelineStep &pipelineStep, settings::ClassifierSettings &settingsIn, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::OBJECT}}), mSettings(settingsIn), mParent(parent)
   {
-    this->mutableEditDialog()->setMinimumWidth(700);
-    this->mutableEditDialog()->setMinimumHeight(600);
+    this->mutableEditDialog()->setMinimumWidth(600);
+    this->mutableEditDialog()->setMinimumHeight(400);
 
     auto *detectionSettings = addTab(
         "Detection settings", [] {}, false);
@@ -57,7 +57,7 @@ public:
 
     mFunction->setValue(settingsIn.hierarchyMode);
     mFunction->connectWithSetting(&settingsIn.hierarchyMode);
-    auto *col = addSetting(detectionSettings, "Model settings", {{mFunction.get(), false, 0}});
+    auto *col = addSetting(detectionSettings, "Model settings", {{mFunction.get(), true, 0}});
 
     //
     // Filter settings

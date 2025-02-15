@@ -37,7 +37,12 @@ public:
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
     joda::enums::ImageId id{.zProjection = enums::ZProjection::NONE, .imagePlane = {}, .memoryId = mSettings.memoryId};
-    context.storeImageToCache(id, context.getActImage().clone(image));
+
+    if(mSettings.mode == settings::ImageCacheSettings::Mode::STORE) {
+      context.storeImageToCache(id, context.getActImage().clone(image));
+    } else if(mSettings.mode == settings::ImageCacheSettings::Mode::LOAD) {
+      context.setActImage(context.loadImageFromCache(id));
+    }
   }
 
 private:

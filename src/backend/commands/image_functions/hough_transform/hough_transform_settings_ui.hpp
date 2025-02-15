@@ -41,15 +41,15 @@ public:
   HoughTransform(joda::settings::PipelineStep &pipelineStep, settings::HoughTransformSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::OBJECT}}), mParent(parent)
   {
-    auto *modelTab = addTab(
-        "Base", [] {}, false);
+    auto *tab = addTab(
+        "", [] {}, false);
 
     //
     // Options
     //
     mFunction = SettingBase::create<SettingComboBox<joda::settings::HoughTransformSettings::HughMode>>(parent, {}, "Mode");
     mFunction->addOptions({
-        {.key = joda::settings::HoughTransformSettings::HughMode::LINE_TRANSFORM, .label = "Line", .icon = generateIcon("line")},
+        //{.key = joda::settings::HoughTransformSettings::HughMode::LINE_TRANSFORM, .label = "Line", .icon = generateIcon("line")},
         {.key = joda::settings::HoughTransformSettings::HughMode::CIRCLE_TRANSFORM, .label = "Circle", .icon = generateIcon("circle")},
     });
 
@@ -59,7 +59,7 @@ public:
     //
     //
     //
-    mMinCircleDistance = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("light-min"), "Min. circle distance");
+    mMinCircleDistance = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("resize-horizontal"), "Min. circle distance");
     mMinCircleDistance->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mMinCircleDistance->setUnit("");
     mMinCircleDistance->setMinMax(0, INT32_MAX);
@@ -70,7 +70,7 @@ public:
     //
     //
     //
-    mMinCircleRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("light-min"), "Min. circle radius");
+    mMinCircleRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("radius"), "Min. circle radius");
     mMinCircleRadius->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mMinCircleRadius->setUnit("");
     mMinCircleRadius->setMinMax(0, INT32_MAX);
@@ -81,7 +81,7 @@ public:
     //
     //
     //
-    mMaxCircleRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("light-min"), "Max. circle radius");
+    mMaxCircleRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("radius"), "Max. circle radius");
     mMaxCircleRadius->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mMaxCircleRadius->setUnit("");
     mMaxCircleRadius->setMinMax(0, INT32_MAX);
@@ -92,7 +92,7 @@ public:
     //
     //
     //
-    mParam1 = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("light-min"), "Param 01");
+    mParam1 = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("light"), "Max. threshold of canny edge detector");
     mParam1->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mParam1->setUnit("");
     mParam1->setMinMax(0, INT32_MAX);
@@ -100,10 +100,15 @@ public:
     mParam1->connectWithSetting(&settings.param01);
     mParam1->setShortDescription("Min. ");
 
-    //
-    //
-    //
-    mParam2 = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("light-min"), "Param 02");
+    // @param param2 Second method-specific parameter. In case of #HOUGH_GRADIENT, it is the
+    // accumulator threshold for the circle centers at the detection stage. The smaller it is, the more
+    // false circles may be detected. Circles, corresponding to the larger accumulator values, will be
+    // returned first. In the case of #HOUGH_GRADIENT_ALT algorithm, this is the circle "perfectness" measure.
+    // The closer it to 1, the better shaped circles algorithm selects. In most cases 0.9 should be fine.
+    // If you want get better detection of small circles, you may decrease it to 0.85, 0.8 or even less.
+    // But then also try to limit the search range [minRadius, maxRadius] to avoid many false circles.
+    //     mParam2 =
+    mParam2 = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("circle-thin"), "Circle perfectness measure");
     mParam2->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mParam2->setUnit("");
     mParam2->setMinMax(0, INT32_MAX);
@@ -119,17 +124,17 @@ public:
     mClassOut->connectWithSetting(&settings.outputClass);
     mClassOut->setDisplayIconVisible(false);
 
+    addSetting(tab, "Input / Output", {{mFunction.get(), true, 0}, {mClassOut.get(), true, 0}});
+
     //
     //
-    addSetting(modelTab, {
-                             {mFunction.get(), true, 0},
-                             {mClassOut.get(), true, 0},
-                             {mMinCircleDistance.get(), false, 0},
-                             {mMinCircleRadius.get(), false, 0},
-                             {mMaxCircleRadius.get(), false, 0},
-                             {mParam1.get(), false, 0},
-                             {mParam2.get(), false, 0},
-                         });
+    addSetting(tab, {
+                        {mMinCircleDistance.get(), false, 0},
+                        {mMinCircleRadius.get(), false, 0},
+                        {mMaxCircleRadius.get(), false, 0},
+                        {mParam1.get(), false, 0},
+                        {mParam2.get(), false, 0},
+                    });
   }
 
 private:

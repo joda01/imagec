@@ -1,0 +1,93 @@
+{
+  "meta": {
+    "color": "#B91717",
+    "icon": "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAIJUlEQVR4nO1bXWxURRSeMaIYRIW2O7OlFg2osSBRKztntsWiUcSfGKWAUV9V/MUH6G41JlUTo/HfaPRBY/zX6IsBo0EtGFP23ooKCWqLxAfBFxVNbCFKpa05cxfsnTtz9+7eu2xJepKTbG7m3plz5vx+M0vIFE1R7ahhMScpuIlyeI4y2ES53E0Z/Em5HFHs/cZnm3AMSckb1TvHNDUuriNMrqUMtlEuxytiBl8RBveobx0zNCfTRDk8S5k8ULHgQd5PmXyGNMEcMnmpdRpJyXsph+EEBdcsQh4gTD5I5i8/kUwqasyeQznssC8eDlEOBcrlI4SLFYS1LSDN7bOU0pDxNz7jYgWOoRwcyuVoiGtsJ42LzyaTgni207rrTO4hTOYrMt05mSbCZDdlcq9FqUMkDdeTmhKH273dDezQbyQtbyMtLSfEngO/gfMw+bvJstQ8tRNemkz0bdIEsxOfr3FxHeXwrmnOo68Ersxe3/kRkoJbqj83rCnWD7olXEeOYsAbDkRnLq48ihtwVTDNwhCpF2dVd+KWlhMM0X4kmvDjtFu4rXlwH86BuyUvnME8OPuRc8IdwGc54TzUBYULI62FyasDlsDgWy+zVIuY7A74X0mzH6c5KKzOgbMrD+54JBbOYC7jrsR3y41DhEEXqQo1wRxVkflN/62wV9Zn++blhdsfWfAAO866jHtm2ByUy/c0Vxgm9UvSictPsbz1C7+PpFvrbePzwmnPC/fXyoX3OAfOvnzGvdS6sCaYHUiRTD6VfApi/qATlnq6Mu4leXBG4go/QQkHu6DQYV0fl3fqvUOyDRSTazUN77UVOWiyOeH+lpTwEy2hGwrzrcGZwc/+WCDvSkx+qrW0qrw10jiN5/MllCCcgjUwBgN0fzLS1y9JUy7HJnx4VNXpBuoWzg3VEn5Chui0B2lfcTZGUoLFV0BK3qhF2YI93ZWR6iq2AnfAtlTcdb+lihtiy08RxvKb1iOmccUiJ6o/f4hBbd2iHTOQ88JZmhPuhsiKkFsvsKz1US1WPRNfAUxheBOiv7kFxQovyuK7hWOJH+ob90d0gweNH+BypaaAj+MrgMNPfrNqW2Aap8rbCDtfar68cDZG+E6v8eUUnKdZ6+74CmDyD58CLK1uFP8PzeW+GqKkBQwaX0631msW8HsSCjjoU4Al/+eEO1xq4T0dW04uqYBs38wIgXDY+PL85SdqzdE/8RXAtWZjbsd007i8cIeSUEBPxj0lggv8VW0FUGxxKYfPAwqwHFhESoHCWVpqYqz7a+sCXF5MOXxngbvGSbqt2bhwcDZHMN0NJRUAzke1CYJNcBJl8ukScPQ2ZR0GQjAjYh6/3yq8cB6I8o0cuD3JpsHm9llFLN4m+LeEy/VkVuuptk8gkhNRAWjCGzHaY0xA9sy+9M4f5vXZ/vNNa6AcHiu/EOLtDXjQYBB8jHJ4BzHAaFrERghhrohKqJx/sK0AzxI1dGh1BIxP+urnIv9IUm1AyiSEsaqvgH7zYUi6rVlz3zHCZCp0wdTzeV34T71jq0ponCKMVS3hc8Lts7fDcJ/WtDnha01nl2ltLr7UGxdVzQvnjGoBIogxWvM/k7+UA4hQDGxaoBsgcztOIwkQlrwIYyUo/MGujLvEOiGDu8uDxLhcpQc8zP+hUqkci62xqhEQHd7v/YZnCZML9eH3QaEtKVAUM0YJvFIDReHJUFkoh61aunjNOtgzrxdD6wPv+PsFvU/w8EGnEMfn0aXCZZHva2sZCr9eU5dt1IUhXJxrFZ7DZrvgAUX0BpsllR47EckpJ9XlhLOClCIm7wpUqlyuC3+J6xCyPVpSJl+KLvwRft72PURyEMzAUlYdhwl3uMgD6hm4PbYixyD8NZTDv5olf1MyiFMGb2rFQi6krh4NXHjg2U5Sl52pOC2vowwGdXewgSaJEQofvIP0F2kAM2w+kSiXrk8BKXF5xJOgPUYwBMtoJvdoY58m1SJl9trOo9JT4tpI71Mm9/kUYAkYlMnv/b6VNcPRxqwCOyuX0DZHe0Mw4BUzWDp7a+UIT112pnEch6Eo4xTNzpwSiMRJEd4IwzyvQXNHdr4c4ZHQV/wxYNEMElcBs1pPTVwBjRedrspbrcLz+XxUs59IeIFJE6wxkguEXUFhsLoMFziOcDlXuR7Ca5g2MbakxCKvn4fHil1dCC4hv4kU8MyCwfbKgiAMGpskrxLbGykIqoCpleBlMQx5eT5Gv0K5fEUrHNYbBzK5MHARSqVBuQp9XjHufOAeHxwiPNNi/iZ0xbgq+1QyF6i5uCNyIcThhQp26Tnr98zAi40RkHFUV5fotbuG7Dy9DbZeO/UuRQWQ4RD+zGqerG2BxZ8PqgiPBRWTnygYCw81S4EZcYhyuUVbxOslUKPnjTdCJ5i9t/N236QMPtDe+5TUjNJws25uhAkR+g7uoEKQYKd3T1DxTuWbNp//f762gNWl5RWkdtQ6LYD9JwiIGK64+g5Y8a6hDV4/esSyl5Tlw5WQsZ2GQ6RBZslkIMrhVaMSkrAE7/raF4bvP04mDc3tmE6Z7AtGZhisBBY/QmnRTpncZQiWW22Hq7Ujrrqs3cY8zOCN6AcjRwLlW0G0WWWar8NOlmpLHE+HDJbwP/cr4CSdXaZuiGFJjIx9BD7zrqiZDlgO73xh8v/za74KWKaYEIfRip6o7g3upImJpV6ujyk8mnwKLiPHJnUcX/ynZ284HB7gUcrgy+JNshrn+aSIZc4s/k3lZdXM4N9cPf7bwxZgqzpX4LAmmZuZUzRFpAr0H8iMKO6FSFF0AAAAAElFTkSuQmCC",
+    "name": "Yeast cells brightfield",
+    "revision": "",
+    "uid": ""
+  },
+  "pipelineSetup": {
+    "cStackIndex": 1,
+    "defaultClassId": "4",
+    "source": "FromFile",
+    "tStackIndex": -1,
+    "zProjection": "AvgIntensity",
+    "zStackIndex": -1
+  },
+  "pipelineSteps": [
+    {
+      "$intensityTransform": {
+        "brightness": 0,
+        "contrast": 80.0,
+        "gamma": 0,
+        "mode": "Manual"
+      },
+      "disabled": false
+    },
+    {
+      "$blur": {
+        "kernelSize": 5,
+        "mode": "GaussianBlur",
+        "repeat": 1
+      },
+      "disabled": false
+    },
+    {
+      "$edgeDetection": {
+        "kernelSize": 3,
+        "mode": "Canny",
+        "thresholdMax": 60,
+        "thresholdMin": 5
+      },
+      "disabled": false
+    },
+    {
+      "$blur": {
+        "kernelSize": 3,
+        "mode": "Blur",
+        "repeat": 0
+      },
+      "disabled": false
+    },
+    {
+      "$threshold": {
+        "modelClasses": [
+          {
+            "mode": "Manual",
+            "modelClassId": 65535,
+            "thresholdMax": 65535,
+            "thresholdMin": 4000
+          }
+        ]
+      },
+      "disabled": false
+    },
+    {
+      "$houghTransform": {
+        "maxCircleRadius": 40,
+        "minCircleDistance": 30,
+        "minCircleRadius": 0,
+        "mode": "CircleTransform",
+        "outputClass": "M01",
+        "param01": 150.0,
+        "param02": 50.0
+      },
+      "disabled": false
+    },
+    {
+      "$voronoi": {
+        "excludeAreasAtTheEdge": false,
+        "excludeAreasWithoutPoint": false,
+        "inputClassesMask": [],
+        "inputClassesPoints": [
+          "M01"
+        ],
+        "maxAreaSize": -1,
+        "maxRadius": 30,
+        "minAreaSize": -1,
+        "outputClassVoronoi": "$"
+      },
+      "disabled": false
+    }
+  ]
+}

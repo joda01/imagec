@@ -29,7 +29,7 @@ class ImageCache : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE = "Store image to cache";
+  inline static std::string TITLE = "Image cache";
   inline static std::string ICON  = "copy";
 
   ImageCache(joda::settings::PipelineStep &pipelineStep, settings::ImageCacheSettings &settings, QWidget *parent) :
@@ -54,12 +54,22 @@ public:
     mMemoryIdx->connectWithSetting(&settings.memoryId);
     mMemoryIdx->setShortDescription("Cache: ");
 
-    addSetting({{mMemoryIdx.get(), true, 0}});
+    mMode = SettingBase::create<SettingComboBox<settings::ImageCacheSettings::Mode>>(parent, generateIcon("matrix"), "Cache");
+    mMode->addOptions({
+        {settings::ImageCacheSettings::Mode::STORE, "Store"},
+        {settings::ImageCacheSettings::Mode::LOAD, "Load"},
+    });
+    mMode->setValue(settings.mode);
+    mMode->connectWithSetting(&settings.mode);
+    mMode->setShortDescription("");
+
+    addSetting({{mMemoryIdx.get(), true, 0}, {mMode.get(), true, 0}});
   }
 
 private:
   /////////////////////////////////////////////////////
   std::shared_ptr<SettingComboBox<enums::MemoryIdx::Enum>> mMemoryIdx;
+  std::shared_ptr<SettingComboBox<settings::ImageCacheSettings::Mode>> mMode;
 };
 
 }    // namespace joda::ui::gui
