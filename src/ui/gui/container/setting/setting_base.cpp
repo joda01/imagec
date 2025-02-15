@@ -25,8 +25,8 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-SettingBase::SettingBase(QWidget *parent, const QIcon &icon, const QString &description) :
-    mParent((WindowMain *) parent), mIcon(icon), mDescription(description)
+SettingBase::SettingBase(QWidget *parent, const QIcon &icon, const QString &description, int32_t maxTextLengthToDisplay) :
+    mParent((WindowMain *) parent), mIcon(icon), mDescription(description), mMaxTextLengthToDisplay(maxTextLengthToDisplay)
 {
   setObjectName("SettingBase");
   createDisplayAbleWidget(icon, description);
@@ -209,7 +209,11 @@ QWidget *SettingBase::createDisplayAbleWidgetPlaceholder()
 ///
 void SettingBase::updateDisplayLabel()
 {
-  mDisplayLabel->setText((mShortDescription + mDisplayValue + " " + mUnit).trimmed());
+  auto txtTmp = (mShortDescription + mDisplayValue + " " + mUnit).trimmed();
+  if(txtTmp.length() > mMaxTextLengthToDisplay) {
+    txtTmp.left(mMaxTextLengthToDisplay - 3) + "...";
+  }
+  mDisplayLabel->setText(txtTmp);
 }
 
 ///

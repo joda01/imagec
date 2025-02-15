@@ -51,15 +51,15 @@ class SettingBase : public QWidget
 
 public:
   template <class T>
-  static std::unique_ptr<T> create(QWidget *parent, const QIcon &icon, const QString &description)
+  static std::unique_ptr<T> create(QWidget *parent, const QIcon &icon, const QString &description, int32_t maxTextLengthToDisplay = 100)
   {
-    auto instance = std::make_unique<T>(parent, icon, description);
+    auto instance = std::make_unique<T>(parent, icon, description, maxTextLengthToDisplay);
     instance->createEditableWidget();
     return instance;
   }
 
   /////////////////////////////////////////////////////
-  SettingBase(QWidget *parent, const QIcon &icon, const QString &description);
+  SettingBase(QWidget *parent, const QIcon &icon, const QString &description, int32_t maxTextLengthToDisplay = 100);
   ~SettingBase() = default;
   void blockAllSignals(bool);
   void setUnit(const QString &unit);
@@ -129,6 +129,7 @@ private:
   QString mDisplayValue;
   QString mUnit;
   QString mHelpFilePath;
+  int32_t mMaxTextLengthToDisplay = 0;
 
 private slots:
   void onHelpButtonClicked();

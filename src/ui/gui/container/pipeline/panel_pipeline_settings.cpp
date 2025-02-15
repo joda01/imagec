@@ -261,9 +261,9 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 {
   //
   //
-  pipelineName = SettingBase::create<SettingLineEdit<std::string>>(windowMain, generateIcon("header"), "Pipeline name");
+  pipelineName = SettingBase::create<SettingLineEdit<std::string>>(windowMain, generateIcon("header"), "Pipeline name", 15);
   pipelineName->setPlaceholderText("Name");
-  pipelineName->setMaxLength(15);
+  pipelineName->setMaxLength(30);
   pipelineName->connectWithSetting(&mSettings.meta.name);
 
   //
