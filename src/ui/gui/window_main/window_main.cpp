@@ -69,7 +69,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   setWindowTitle(Version::getTitle().data());
   createTopToolbar();
   createLeftToolbar();
-  setMinimumSize(1600, 800);
+  setMinimumSize(1500, 800);
   setObjectName("windowMain");
   setCentralWidget(createStackedWidget());
   showPanelStartPage();
