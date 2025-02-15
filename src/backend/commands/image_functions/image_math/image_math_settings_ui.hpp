@@ -86,6 +86,13 @@ public:
     zProjection->setValue(settings.inputImageSecond.zProjection);
     zProjection->connectWithSetting(&settings.inputImageSecond.zProjection);
 
+    //
+    //
+    //
+    zStackIndex = generateStackIndexCombo(true, "Z-Channel", parent);
+    zStackIndex->setValue(settings.inputImageSecond.imagePlane.zStack);
+    zStackIndex->connectWithSetting(&settings.inputImageSecond.imagePlane.zStack);
+
     mMemoryIdx = SettingBase::create<SettingComboBox<enums::MemoryIdx::Enum>>(parent, generateIcon("matrix"), "From cache");
     mMemoryIdx->addOptions({{enums::MemoryIdx::NONE, "None"},
                             {enums::MemoryIdx::M0, "M0"},
@@ -105,7 +112,8 @@ public:
 
     //
     //
-    addSetting(modelTab, "Input image channels", {{cStackIndex.get(), true, 0}, {zProjection.get(), true, 0}, {mMemoryIdx.get(), true, 0}});
+    addSetting(modelTab, "Input image channels",
+               {{cStackIndex.get(), true, 0}, {zProjection.get(), true, 0}, {zStackIndex.get(), false, 0}, {mMemoryIdx.get(), true, 0}});
   }
 
 private:
@@ -116,6 +124,7 @@ private:
   std::unique_ptr<SettingComboBox<joda::settings::ImageMathSettings::Function>> mFunction;
   std::unique_ptr<SettingComboBox<int32_t>> cStackIndex;
   std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjection;
+  std::unique_ptr<SettingSpinBox<int32_t>> zStackIndex;
   std::shared_ptr<SettingComboBox<enums::MemoryIdx::Enum>> mMemoryIdx;
 
   /////////////////////////////////////////////////////

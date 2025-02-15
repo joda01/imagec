@@ -156,6 +156,13 @@ private:
       zProjectionForIntensityFilter->setValue(classifyFilter.intensity.imageIn.zProjection);
       zProjectionForIntensityFilter->connectWithSetting(&classifyFilter.intensity.imageIn.zProjection);
 
+      //
+      //
+      //
+      zStackIndex = generateStackIndexCombo(true, "Z-Channel", parent);
+      zStackIndex->setValue(classifyFilter.intensity.imageIn.imagePlane.zStack);
+      zStackIndex->connectWithSetting(&classifyFilter.intensity.imageIn.imagePlane.zStack);
+
       /*outer.addSetting(tab, "Intensity filter",
                        {{cStackForIntensityFilter.get(), true},
                         {zProjectionForIntensityFilter.get(), true},
@@ -167,8 +174,8 @@ private:
     ~ClassifierFilter()
     {
       outer.removeSetting({mClassOutNoMatch.get(), mGrayScaleValue.get(), mClassOut.get(), mMinParticleSize.get(), mMaxParticleSize.get(),
-                           mMinCircularity.get(), cStackForIntensityFilter.get(), zProjectionForIntensityFilter.get(), mMinIntensity.get(),
-                           mMaxIntensity.get()});
+                           mMinCircularity.get(), cStackForIntensityFilter.get(), zProjectionForIntensityFilter.get(), zStackIndex.get(),
+                           mMinIntensity.get(), mMaxIntensity.get()});
     }
 
     // std::unique_ptr<SettingComboBox<enums::ClasssIdIn>> mClasssOut;
@@ -184,6 +191,7 @@ private:
 
     std::unique_ptr<SettingComboBox<int32_t>> cStackForIntensityFilter;
     std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjectionForIntensityFilter;
+    std::unique_ptr<SettingSpinBox<int32_t>> zStackIndex;
     std::unique_ptr<SettingLineEdit<int>> mMinIntensity;
     std::unique_ptr<SettingLineEdit<int>> mMaxIntensity;
 

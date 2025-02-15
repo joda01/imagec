@@ -14,7 +14,6 @@ struct ProjectImageSetup
   enum class ZStackHandling
   {
     EXACT_ONE,
-    INTENSITY_PROJECTION,
     EACH_ONE
   };
 
@@ -43,7 +42,7 @@ struct ProjectImageSetup
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageTileSettings, tileWidth, tileHeight);
   };
 
-  ZStackHandling zStackHandling = ZStackHandling::INTENSITY_PROJECTION;
+  ZStackHandling zStackHandling = ZStackHandling::EXACT_ONE;
   TStackHandling tStackHandling = TStackHandling::EACH_ONE;
 
   //
@@ -63,9 +62,8 @@ struct ProjectImageSetup
   }
 };
 
-NLOHMANN_JSON_SERIALIZE_ENUM(ProjectImageSetup::ZStackHandling, {{ProjectImageSetup::ZStackHandling::EXACT_ONE, "ExactOne"},
-                                                                 {ProjectImageSetup::ZStackHandling::EACH_ONE, "EachOne"},
-                                                                 {ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION, "IntensityProjection"}});
+NLOHMANN_JSON_SERIALIZE_ENUM(ProjectImageSetup::ZStackHandling,
+                             {{ProjectImageSetup::ZStackHandling::EXACT_ONE, "ExactOne"}, {ProjectImageSetup::ZStackHandling::EACH_ONE, "EachOne"}});
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ProjectImageSetup::TStackHandling, {
                                                                     {ProjectImageSetup::TStackHandling::EXACT_ONE, "ExactOne"},

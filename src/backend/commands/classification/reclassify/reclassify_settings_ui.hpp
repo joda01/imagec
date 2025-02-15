@@ -114,9 +114,17 @@ public:
     zProjectionForIntensityFilter->setValue(settings.intensity.imageIn.zProjection);
     zProjectionForIntensityFilter->connectWithSetting(&settings.intensity.imageIn.zProjection);
 
+    //
+    //
+    //
+    zStackIndex = generateStackIndexCombo(true, "Z-Channel", parent);
+    zStackIndex->setValue(settings.intensity.imageIn.imagePlane.zStack);
+    zStackIndex->connectWithSetting(&settings.intensity.imageIn.imagePlane.zStack);
+
     addSetting(modelTab, "Intensity filter",
                {{cStackForIntensityFilter.get(), false, 0},
                 {zProjectionForIntensityFilter.get(), false, 0},
+                {zStackIndex.get(), false, 0},
                 {mMinIntensity.get(), false, 0},
                 {mMaxIntensity.get(), false, 0}},
                col2);
@@ -137,6 +145,7 @@ private:
 
   std::unique_ptr<SettingComboBox<int32_t>> cStackForIntensityFilter;
   std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjectionForIntensityFilter;
+  std::unique_ptr<SettingSpinBox<int32_t>> zStackIndex;
   std::unique_ptr<SettingLineEdit<int>> mMinIntensity;
   std::unique_ptr<SettingLineEdit<int>> mMaxIntensity;
 

@@ -49,6 +49,8 @@ void PipelineInitializer::init(ImageContext &imageContextOut)
 {
   mImageContext              = &imageContextOut;
   mImageContext->nrOfZStacks = imageContextOut.imageMeta.getNrOfZStack(mSettings.series);
+  mTotalNrOfZChannels        = imageContextOut.imageMeta.getNrOfZStack(mSettings.series);
+  mTotalNrOfTChannels        = imageContextOut.imageMeta.getNrOfTStack(mSettings.series);
   mTotalNrOfChannels         = imageContextOut.imageMeta.getNrOfChannels(mSettings.series);
   mImageContext->series      = mSettings.series;
 
@@ -63,7 +65,6 @@ void PipelineInitializer::init(ImageContext &imageContextOut)
 
   switch(mSettings.zStackHandling) {
     case settings::ProjectImageSetup::ZStackHandling::EXACT_ONE:
-    case settings::ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION:
       mZStackToLoad = 1;
       break;
     case settings::ProjectImageSetup::ZStackHandling::EACH_ONE:
@@ -106,6 +107,9 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   imagePlaneOut.tile                    = tile;
   imagePlaneOut.series                  = mSettings.series;
 
+  auto zProjection =
+      mSettings.zStackHandling == settings::ProjectImageSetup::ZStackHandling::EACH_ONE ? enums::ZProjection::NONE : pipelineSetup.zProjection;
+
   switch(mSettings.tStackHandling) {
     case settings::ProjectImageSetup::TStackHandling::EXACT_ONE:
       t = pipelineSetup.tStackIndex;
@@ -119,18 +123,21 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
     case settings::ProjectImageSetup::ZStackHandling::EXACT_ONE:
       z = pipelineSetup.zStackIndex;
       break;
-    case settings::ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION:
-      z = 0;
-      break;
     case settings::ProjectImageSetup::ZStackHandling::EACH_ONE:
       z = imagePartToLoad.zStack;
       break;
   }
 
+  // If we do a z-projection start with zero
+  if(zProjection != enums::ZProjection::NONE) {
+    z = 0;
+  }
+  z = limitChannel(z, mTotalNrOfZChannels);
+  t = limitChannel(t, mTotalNrOfTChannels);
+  c = limitChannel(c, mTotalNrOfChannels);
+
   enums::PlaneId planeToLoad{.tStack = t, .zStack = z, .cStack = c};
 
-  auto zProjection = mSettings.zStackHandling == settings::ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION ? pipelineSetup.zProjection
-                                                                                                                   : enums::ZProjection::NONE;
   //
   // Start with blank image
   //
@@ -170,8 +177,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   } else if(joda::settings::PipelineSettings::Source::FROM_FILE == pipelineSetup.source) {
     processContext.setActImage(processContext.loadImageFromCache(loadImageAndStoreToCache(
         planeToLoad,
-        mSettings.zStackHandling == settings::ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION ? pipelineSetup.zProjection
-                                                                                                      : enums::ZProjection::NONE,
+        mSettings.zStackHandling == settings::ProjectImageSetup::ZStackHandling::EACH_ONE ? enums::ZProjection::NONE : pipelineSetup.zProjection,
         tile, processContext, *mImageContext)));
   }
 
@@ -201,6 +207,10 @@ enums::ImageId PipelineInitializer::loadImageAndStoreToCache(const enums::PlaneI
   int32_t c = planeToLoad.cStack;
   int32_t z = planeToLoad.zStack;
   int32_t t = planeToLoad.tStack;
+
+  if(zProjection != enums::ZProjection::NONE) {
+    z = 0;
+  }
 
   imagePlaneOut.setId(joda::enums::ImageId{zProjection, planeToLoad}, tile);
 
@@ -285,4 +295,23 @@ auto PipelineInitializer::getCompositeTileSize() const -> TileSize const
 {
   return {mSettings.imageTileSettings.tileWidth, mSettings.imageTileSettings.tileHeight};
 }
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+int32_t PipelineInitializer::limitChannel(int32_t wantedIndex, int32_t maxIndex)
+{
+  if(wantedIndex >= maxIndex) {
+    return maxIndex - 1;
+  }
+  if(wantedIndex < 0) {
+    return 0;
+  }
+  return wantedIndex;
+}
+
 }    // namespace joda::processor

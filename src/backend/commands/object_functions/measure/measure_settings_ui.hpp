@@ -51,9 +51,11 @@ public:
     cStackIndex = generateCStackCombo<SettingComboBoxMulti<int32_t>>("Image channel", parent);
     std::set<int32_t> cStacks;
     enums::ZProjection zProject = enums::ZProjection::NONE;
+    int32_t zStackIdx           = 0;
     for(const auto &cStack : settings.planesIn) {
       cStacks.emplace(cStack.imagePlane.cStack);
-      zProject = cStack.zProjection;
+      zProject  = cStack.zProjection;
+      zStackIdx = cStack.imagePlane.zStack;
     }
     cStackIndex->setValue(cStacks);
     connect(cStackIndex.get(), &SettingBase::valueChanged, this, &Measure::onCStackChanged);
@@ -66,10 +68,17 @@ public:
 
     //
     //
+    //
+    zStackIndex = generateStackIndexCombo(true, "Z-Channel", parent);
+    zStackIndex->setValue(zStackIdx);
+    connect(zStackIndex.get(), &SettingBase::valueChanged, this, &Measure::onCStackChanged);
+
+    //
+    //
     auto *tab = addTab(
         "Input class", [] {}, false);
     addSetting(tab, "Input classes", {{classesIn.get(), true, 0}});
-    addSetting(tab, "Input image channels", {{cStackIndex.get(), true, 0}, {zProjection.get(), true, 0}});
+    addSetting(tab, "Input image channels", {{cStackIndex.get(), true, 0}, {zProjection.get(), true, 0}, {zStackIndex.get(), false, 0}});
 
     // auto *addClassifier = addActionButton("Add class", "icons8-genealogy");
     //  connect(addClassifier, &QAction::triggered, this, &Classifier::addClassifier);
@@ -80,6 +89,7 @@ private:
   std::unique_ptr<SettingComboBoxMultiClassificationIn> classesIn;
   std::unique_ptr<SettingComboBoxMulti<int32_t>> cStackIndex;
   std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjection;
+  std::unique_ptr<SettingSpinBox<int32_t>> zStackIndex;
 
   settings::MeasureSettings &mSettings;
   QWidget *mParent;
@@ -92,6 +102,7 @@ private slots:
     for(const auto &cStack : cStacks) {
       enums::ImageId id;
       id.imagePlane.cStack = cStack;
+      id.imagePlane.zStack = zStackIndex->getValue();
       id.zProjection       = zProjection->getValue();
       mSettings.planesIn.emplace_back(id);
     }

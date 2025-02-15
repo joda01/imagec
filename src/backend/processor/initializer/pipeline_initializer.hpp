@@ -62,10 +62,15 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  static int32_t limitChannel(int32_t wantedIndex, int32_t maxIndex);
+
+  /////////////////////////////////////////////////////
   std::tuple<int32_t, int32_t> mNrOfTiles = {1, 1};
   uint32_t mTstackToLoad                  = 0;
   uint32_t mZStackToLoad                  = 0;
   int32_t mTotalNrOfChannels              = 0;
+  int32_t mTotalNrOfZChannels             = 0;
+  int32_t mTotalNrOfTChannels             = 0;
 
   /////////////////////////////////////////////////////
   const settings::ProjectImageSetup &mSettings;

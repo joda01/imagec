@@ -147,16 +147,15 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   // Stack handling
   //
   mStackHandlingZ = new QComboBox();
-  mStackHandlingZ->addItem("Intensity projection", static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::INTENSITY_PROJECTION));
   mStackHandlingZ->addItem("Each one", static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::EACH_ONE));
-  mStackHandlingZ->addItem("Exact one", static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::EXACT_ONE));
+  mStackHandlingZ->addItem("Defined by pipeline", static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::EXACT_ONE));
   formLayout->addRow(new QLabel(tr("Z-Stack:")), mStackHandlingZ);
   connect(mStackHandlingZ, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onSettingChanged);
 
   //
   mStackHandlingT = new QComboBox();
   mStackHandlingT->addItem("Each one", static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EACH_ONE));
-  mStackHandlingT->addItem("Exact one", static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EACH_ONE));
+  mStackHandlingT->addItem("Defined by pipeline", static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EXACT_ONE));
   connect(mStackHandlingT, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onSettingChanged);
   formLayout->addRow(new QLabel(tr("T-Stack:")), mStackHandlingT);
 

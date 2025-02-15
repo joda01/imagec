@@ -51,12 +51,12 @@ inline auto generateZProjection(bool withThis, QWidget *parent) -> std::unique_p
   auto zProjection = SettingBase::create<SettingComboBox<enums::ZProjection>>(parent, generateIcon("layer"), "Z-Projection");
   if(withThis) {
     zProjection->addOptions({{enums::ZProjection::$, "Default"},
-                             {enums::ZProjection::NONE, "Off"},
+                             {enums::ZProjection::NONE, "Single channel"},
                              {enums::ZProjection::MAX_INTENSITY, "Max. intensity"},
                              {enums::ZProjection::MIN_INTENSITY, "Min. intensity"},
                              {enums::ZProjection::AVG_INTENSITY, "Avg'. intensity"}});
   } else {
-    zProjection->addOptions({{enums::ZProjection::NONE, "Off"},
+    zProjection->addOptions({{enums::ZProjection::NONE, "Single channel"},
                              {enums::ZProjection::MAX_INTENSITY, "Max. intensity"},
                              {enums::ZProjection::MIN_INTENSITY, "Min. intensity"},
                              {enums::ZProjection::AVG_INTENSITY, "Avg'. intensity"}});
@@ -64,11 +64,12 @@ inline auto generateZProjection(bool withThis, QWidget *parent) -> std::unique_p
   return zProjection;
 }
 
-inline auto generateStackIndexCombo(const QString &helpText, QWidget *parent) -> std::unique_ptr<SettingSpinBox<int32_t>>
+inline auto generateStackIndexCombo(bool withThis, const QString &helpText, QWidget *parent) -> std::unique_ptr<SettingSpinBox<int32_t>>
 {
   auto channelSpinbox = SettingBase::create<SettingSpinBox<int32_t>>(parent, {}, helpText);
-  channelSpinbox->setDefaultValue(0);
-  channelSpinbox->setMinMax(0, 65535);
+  int32_t min         = withThis ? -1 : 0;
+  channelSpinbox->setDefaultValue(min);
+  channelSpinbox->setMinMax(min, 65535);
   channelSpinbox->setUnit("");
   channelSpinbox->setShortDescription("");
   return channelSpinbox;

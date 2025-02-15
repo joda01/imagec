@@ -289,7 +289,7 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
   //
   //
   //
-  zStackIndex = generateStackIndexCombo("Z-Channel", windowMain);
+  zStackIndex = generateStackIndexCombo(false, "Z-Channel", windowMain);
   zStackIndex->connectWithSetting(&mSettings.pipelineSetup.zStackIndex);
 
   //
