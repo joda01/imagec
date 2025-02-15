@@ -21,6 +21,7 @@
 #include "backend/commands/image_functions/color_filter/color_filter_settings.hpp"
 #include "backend/commands/image_functions/edge_detection/edge_detection_settings.hpp"
 #include "backend/commands/image_functions/fill_holes/fill_holes_settings.hpp"
+#include "backend/commands/image_functions/hough_transform/hough_transform_settings.hpp"
 #include "backend/commands/image_functions/image_cache/image_cache_settings.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class_settings.hpp"
 #include "backend/commands/image_functions/image_math/image_math_settings.hpp"
@@ -83,6 +84,7 @@ public:
   std::optional<ImageCacheSettings> $imageToCache                       = std::nullopt;
   std::optional<MorphologicalTransformSettings> $morphologicalTransform = std::nullopt;
   std::optional<FillHolesSettings> $fillHoles                           = std::nullopt;
+  std::optional<HoughTransformSettings> $houghTransform                 = std::nullopt;
 
   /////////////////////////////////////////////////////
   void operator()(processor::ProcessContext &context, cv::Mat &image, joda::atom::ObjectList &result) const;
@@ -92,7 +94,7 @@ public:
                                                        $aiClassify, $colocalization, $reclassify, $measure, $rollingBall, $medianSubtract,
                                                        $edgeDetection, $crop, $voronoi, $thresholdValidator, $noiseValidator, $intensityTransform,
                                                        $colorFilter, $objectsToImage, $imageMath, $objectTransform, $imageToCache,
-                                                       $morphologicalTransform, $fillHoles, disabled);
+                                                       $morphologicalTransform, $fillHoles, $houghTransform, disabled);
 };
 
 }    // namespace joda::settings

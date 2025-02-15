@@ -19,6 +19,14 @@
 
 namespace joda::cmd {
 
+void EdgeDetection::canny(cv::Mat &image) const
+{
+  cv::Mat binaryImage(image.size(), CV_8UC1);
+  image.convertTo(binaryImage, CV_8UC1, 255.0 / 65535.0);
+  cv::Canny(binaryImage, binaryImage, mSetting.thresholdMin, mSetting.thresholdMax, mSetting.kernelSize);
+  binaryImage.convertTo(image, CV_16UC1, 257.0);
+}
+
 void EdgeDetection::filter3x3(cv::Mat &image) const
 {
   int v1    = 0;

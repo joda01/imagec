@@ -32,6 +32,9 @@
 #include "backend/commands/image_functions/edge_detection/edge_detection_settings_ui.hpp"
 #include "backend/commands/image_functions/fill_holes/fill_holes.hpp"
 #include "backend/commands/image_functions/fill_holes/fill_holes_settings_ui.hpp"
+#include "backend/commands/image_functions/hough_transform/hough_transform.hpp"
+#include "backend/commands/image_functions/hough_transform/hough_transform_settings.hpp"
+#include "backend/commands/image_functions/hough_transform/hough_transform_settings_ui.hpp"
 #include "backend/commands/image_functions/image_cache/image_cache.hpp"
 #include "backend/commands/image_functions/image_cache/image_cache_settings_ui.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class.hpp"
@@ -323,6 +326,15 @@ private:
       } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
         return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::FillHoles, FillHolesSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<FillHolesSettings &>(step.$fillHoles.value()), parent));
+      }
+    }
+
+    if(step.$houghTransform) {
+      if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
+        return std::make_unique<joda::cmd::Factory<joda::cmd::HoughTransform, HoughTransformSettings>>(step.$houghTransform.value());
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::HoughTransform, HoughTransformSettings>>(
+            const_cast<settings::PipelineStep &>(step), const_cast<HoughTransformSettings &>(step.$houghTransform.value()), parent));
       }
     }
 

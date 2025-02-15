@@ -35,12 +35,9 @@ public:
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
     switch(mSetting.mode) {
-      case joda::settings::EdgeDetectionSettings::Mode::CANNY: {
-        cv::Mat binaryImage(image.size(), CV_8UC1);
-        image.convertTo(binaryImage, CV_8UC1, 255.0 / 65535.0);
-        cv::Canny(binaryImage, binaryImage, 50, 255, 3, false);
-        binaryImage.convertTo(image, CV_16UC1, 257.0);
-      } break;
+      case joda::settings::EdgeDetectionSettings::Mode::CANNY:
+        canny(image);
+        break;
       case joda::settings::EdgeDetectionSettings::Mode::SOBEL:
         // cv::Sobel(image, image, CV_16UC1, 1, 1, K_SIZE);
         filter3x3(image);
@@ -55,6 +52,7 @@ private:
   /////////////////////////////////////////////////////
   static constexpr int K_SIZE = 3;
   void filter3x3(cv::Mat &image) const;
+  void canny(cv::Mat &image) const;
 
   /////////////////////////////////////////////////////
   const joda::settings::EdgeDetectionSettings &mSetting;

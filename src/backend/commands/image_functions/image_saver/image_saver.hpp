@@ -162,7 +162,7 @@ private:
         }
 
         // Paint contour only for valid particles
-        cv::Scalar contourColor = hexToScalar(color);
+        cv::Scalar contourColor = hexToScalar("#000000");
         std::vector<std::vector<cv::Point>> contours;
         contours.push_back(roi.getContour());
         if(!contours.empty()) {

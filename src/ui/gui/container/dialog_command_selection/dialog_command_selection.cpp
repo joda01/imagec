@@ -19,6 +19,7 @@
 #include "backend/commands/image_functions/blur/blur_settings.hpp"
 #include "backend/commands/image_functions/blur/blur_settings_ui.hpp"
 #include "backend/commands/image_functions/fill_holes/fill_holes_settings.hpp"
+#include "backend/commands/image_functions/hough_transform/hough_transform_settings.hpp"
 #include "backend/commands/image_functions/image_math/image_math_settings.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/commands/image_functions/morphological_transformation/morphological_transformation_settings.hpp"
@@ -116,6 +117,7 @@ void DialogCommandSelection::addCommandsToTable(InOuts outOfStepBefore)
     inserted += addCommandToTable(settings::PipelineStep{.$watershed = settings::WatershedSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$morphologicalTransform = settings::MorphologicalTransformSettings{}}, outOfStepBefore);
     inserted += addCommandToTable(settings::PipelineStep{.$fillHoles = settings::FillHolesSettings{}}, outOfStepBefore);
+    inserted += addCommandToTable(settings::PipelineStep{.$houghTransform = settings::HoughTransformSettings{}}, outOfStepBefore);
 
     if(inserted > 0) {
       addTitleToTable("Binary image Processing", inserted);

@@ -52,6 +52,7 @@ enum class ClassIdIn : uint16_t
   C30       = 30,
   C31       = 31,
   C32       = 32,
+  TEMP      = 0xFFFC,
   NONE      = 0xFFFD,
   UNDEFINED = 0xFFFE,
   $         = 0xFFFF
