@@ -19,29 +19,20 @@
 #include "ui/gui/container/setting/setting_line_edit.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
-#include "edge_detection_settings.hpp"
+#include "edge_detection_canny_settings.hpp"
 
 namespace joda::ui::gui {
 
-class EdgeDetection : public Command
+class EdgeDetectionCanny : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE = "Edge detection";
+  inline static std::string TITLE = "Canny edge detection";
   inline static std::string ICON  = "triangle";
 
-  EdgeDetection(joda::settings::PipelineStep &pipelineStep, settings::EdgeDetectionSettings &settings, QWidget *parent) :
+  EdgeDetectionCanny(joda::settings::PipelineStep &pipelineStep, settings::EdgeDetectionCannySettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}})
   {
-    //
-    //
-    mEdgeDetectionMode =
-        SettingBase::create<SettingComboBox<settings::EdgeDetectionSettings::Mode>>(parent, generateIcon("triangle"), "Edge detection mode");
-    mEdgeDetectionMode->addOptions(
-        {{settings::EdgeDetectionSettings::Mode::SOBEL, "Sobel"}, {settings::EdgeDetectionSettings::Mode::CANNY, "Canny"}});
-    mEdgeDetectionMode->setValue(settings.mode);
-    mEdgeDetectionMode->connectWithSetting(&settings.mode);
-
     //
     //
     //
@@ -70,7 +61,6 @@ public:
     mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, generateIcon("matrix"), "Kernel size");
     mKernelSize->addOptions({{-1, "Off"},
                              {3, "3x3"},
-                             {4, "4x4"},
                              {5, "5x5"},
                              {7, "7x7"},
                              {9, "9x9"},
@@ -85,16 +75,11 @@ public:
     mKernelSize->connectWithSetting(&settings.kernelSize);
     mKernelSize->setShortDescription("Kernel: ");
 
-    addSetting({{mEdgeDetectionMode.get(), true, 0},
-                {mThresholdValueMin.get(), false, 0},
-                {mThresholdValueMax.get(), false, 0},
-                {mKernelSize.get(), true, 0}});
+    addSetting({{mKernelSize.get(), true, 0}, {mThresholdValueMin.get(), true, 0}, {mThresholdValueMax.get(), true, 0}});
   }
 
 private:
   /////////////////////////////////////////////////////
-  std::unique_ptr<SettingComboBox<settings::EdgeDetectionSettings::Mode>> mEdgeDetectionMode;
-
   std::shared_ptr<SettingLineEdit<uint16_t>> mThresholdValueMin;
   std::shared_ptr<SettingLineEdit<uint16_t>> mThresholdValueMax;
   std::shared_ptr<SettingComboBox<int>> mKernelSize;

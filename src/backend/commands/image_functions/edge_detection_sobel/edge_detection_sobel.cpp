@@ -14,20 +14,57 @@
 /// \ref       https://github.com/imagej/ImageJ/blob/master/ij/process/ShortProcessor.java
 ///
 
-#include "edge_detection.hpp"
+#include "edge_detection_sobel.hpp"
+#include "backend/commands/image_functions/edge_detection_sobel/edge_detection_sobel_settings.hpp"
 #include <opencv2/core/mat.hpp>
+#include <opencv2/imgproc.hpp>
 
 namespace joda::cmd {
 
-void EdgeDetection::canny(cv::Mat &image) const
+void EdgeDetectionSobel::sobel(cv::Mat &image) const
 {
-  cv::Mat binaryImage(image.size(), CV_8UC1);
-  image.convertTo(binaryImage, CV_8UC1, 255.0 / 65535.0);
-  cv::Canny(binaryImage, binaryImage, mSetting.thresholdMin, mSetting.thresholdMax, mSetting.kernelSize);
-  binaryImage.convertTo(image, CV_16UC1, 257.0);
+  // Compute Sobel derivatives in x and y directions.
+  // Using CV_16S as the output depth to capture negative gradients.
+  cv::Mat gradX;
+  cv::Mat gradY;
+  // int ddepth = CV_16S;
+  int ddepth = CV_16S;
+  int scale  = 1;
+  int delta  = 0;
+  if(mSetting.derivativeOrderX > 0) {
+    cv::Sobel(image, gradX, ddepth, mSetting.derivativeOrderX, 0, mSetting.kernelSize, scale, delta, cv::BORDER_DEFAULT);
+  }
+  if(mSetting.derivativeOrderY > 0) {
+    cv::Sobel(image, gradY, ddepth, 0, mSetting.derivativeOrderY, mSetting.kernelSize, scale, delta, cv::BORDER_DEFAULT);
+  }
+
+  cv::Mat edgeImage;
+  if(mSetting.weighFunction == settings::EdgeDetectionSobelSettings::WeightFunction::ABS) {
+    // ==========================================
+    // ABS Weight method
+    // ==========================================
+    cv::Mat absGradX;
+    cv::Mat absGradY;
+    // Compute absolute value without converting to 8-bit:
+    cv::absdiff(gradX, cv::Scalar::all(0), absGradX);
+    cv::absdiff(gradY, cv::Scalar::all(0), absGradY);
+    cv::addWeighted(absGradX, 0.5, absGradY, 0.5, 0, edgeImage);
+  } else if(mSetting.weighFunction == settings::EdgeDetectionSobelSettings::WeightFunction::MAGNITUDE) {
+    // ==========================================
+    // Magnitude method
+    // ==========================================
+    cv::Mat gradX_f;
+    cv::Mat gradY_f;
+    gradX.convertTo(gradX_f, CV_32F);
+    gradY.convertTo(gradY_f, CV_32F);
+    cv::magnitude(gradX_f, gradY_f, edgeImage);
+  }
+
+  // Convert result to 16-bit unsigned to maintain the 16-bit depth.
+  edgeImage.convertTo(image, CV_16UC1, 1);
 }
 
-void EdgeDetection::filter3x3(cv::Mat &image) const
+void EdgeDetectionSobel::filter3x3(cv::Mat &image) const
 {
   int v1    = 0;
   int v2    = 0;

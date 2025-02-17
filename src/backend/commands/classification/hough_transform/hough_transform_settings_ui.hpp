@@ -47,14 +47,14 @@ public:
     //
     // Options
     //
-    mFunction = SettingBase::create<SettingComboBox<joda::settings::HoughTransformSettings::HughMode>>(parent, {}, "Mode");
-    mFunction->addOptions({
+    mShape = SettingBase::create<SettingComboBox<joda::settings::HoughTransformSettings::Shape>>(parent, {}, "Shape");
+    mShape->addOptions({
         //{.key = joda::settings::HoughTransformSettings::HughMode::LINE_TRANSFORM, .label = "Line", .icon = generateIcon("line")},
-        {.key = joda::settings::HoughTransformSettings::HughMode::CIRCLE_TRANSFORM, .label = "Circle", .icon = generateIcon("circle")},
+        {.key = joda::settings::HoughTransformSettings::Shape::CIRCLE_TRANSFORM, .label = "Circle", .icon = generateIcon("circle")},
     });
 
-    mFunction->setValue(settings.mode);
-    mFunction->connectWithSetting(&settings.mode);
+    mShape->setValue(settings.shape);
+    mShape->connectWithSetting(&settings.shape);
 
     //
     //
@@ -63,8 +63,8 @@ public:
     mMinCircleDistance->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mMinCircleDistance->setUnit("");
     mMinCircleDistance->setMinMax(0, INT32_MAX);
-    mMinCircleDistance->setValue(settings.minCircleDistance);
-    mMinCircleDistance->connectWithSetting(&settings.minCircleDistance);
+    mMinCircleDistance->setValue(settings.circleProperties.minCircleDistance);
+    mMinCircleDistance->connectWithSetting(&settings.circleProperties.minCircleDistance);
     mMinCircleDistance->setShortDescription("Min. ");
 
     //
@@ -74,8 +74,8 @@ public:
     mMinCircleRadius->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mMinCircleRadius->setUnit("");
     mMinCircleRadius->setMinMax(0, INT32_MAX);
-    mMinCircleRadius->setValue(settings.minCircleRadius);
-    mMinCircleRadius->connectWithSetting(&settings.minCircleRadius);
+    mMinCircleRadius->setValue(settings.circleProperties.minCircleRadius);
+    mMinCircleRadius->connectWithSetting(&settings.circleProperties.minCircleRadius);
     mMinCircleRadius->setShortDescription("Min. ");
 
     //
@@ -85,8 +85,8 @@ public:
     mMaxCircleRadius->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mMaxCircleRadius->setUnit("");
     mMaxCircleRadius->setMinMax(0, INT32_MAX);
-    mMaxCircleRadius->setValue(settings.maxCircleRadius);
-    mMaxCircleRadius->connectWithSetting(&settings.maxCircleRadius);
+    mMaxCircleRadius->setValue(settings.circleProperties.maxCircleRadius);
+    mMaxCircleRadius->connectWithSetting(&settings.circleProperties.maxCircleRadius);
     mMaxCircleRadius->setShortDescription("Min. ");
 
     //
@@ -96,8 +96,8 @@ public:
     mParam1->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mParam1->setUnit("");
     mParam1->setMinMax(0, INT32_MAX);
-    mParam1->setValue(settings.param01);
-    mParam1->connectWithSetting(&settings.param01);
+    mParam1->setValue(settings.circleProperties.param01);
+    mParam1->connectWithSetting(&settings.circleProperties.param01);
     mParam1->setShortDescription("Min. ");
 
     // @param param2 Second method-specific parameter. In case of #HOUGH_GRADIENT, it is the
@@ -112,29 +112,30 @@ public:
     mParam2->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mParam2->setUnit("");
     mParam2->setMinMax(0, INT32_MAX);
-    mParam2->setValue(settings.param02);
-    mParam2->connectWithSetting(&settings.param02);
+    mParam2->setValue(settings.circleProperties.param02);
+    mParam2->connectWithSetting(&settings.circleProperties.param02);
     mParam2->setShortDescription("Min. ");
 
     //
     //
     //
-    mClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("circle"), "Match");
+    mClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("circle"), "Output class");
     mClassOut->setValue(settings.outputClass);
     mClassOut->connectWithSetting(&settings.outputClass);
     mClassOut->setDisplayIconVisible(false);
 
-    addSetting(tab, "Input / Output", {{mFunction.get(), true, 0}, {mClassOut.get(), true, 0}});
+    addSetting(tab, "Input / Output", {{mShape.get(), true, 0}, {mClassOut.get(), true, 0}});
 
     //
     //
-    addSetting(tab, {
-                        {mMinCircleDistance.get(), false, 0},
-                        {mMinCircleRadius.get(), false, 0},
-                        {mMaxCircleRadius.get(), false, 0},
-                        {mParam1.get(), false, 0},
-                        {mParam2.get(), false, 0},
-                    });
+    addSetting(tab, "Shape properties",
+               {
+                   {mMinCircleDistance.get(), false, 0},
+                   {mMinCircleRadius.get(), false, 0},
+                   {mMaxCircleRadius.get(), false, 0},
+                   {mParam1.get(), false, 0},
+                   {mParam2.get(), false, 0},
+               });
   }
 
 private:
@@ -143,7 +144,7 @@ private:
 
   /////////////////////////////////////////////////////
   std::unique_ptr<SettingComboBoxClassesOut> mClassOut;
-  std::unique_ptr<SettingComboBox<joda::settings::HoughTransformSettings::HughMode>> mFunction;
+  std::unique_ptr<SettingComboBox<joda::settings::HoughTransformSettings::Shape>> mShape;
   std::shared_ptr<SettingLineEdit<int32_t>> mMinCircleDistance;
   std::shared_ptr<SettingLineEdit<int32_t>> mMinCircleRadius;
   std::shared_ptr<SettingLineEdit<int32_t>> mMaxCircleRadius;

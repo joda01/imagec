@@ -146,6 +146,7 @@
     <file>icons/icons8-fill-color-48.png</file>
     <file>icons/icons8-six-24.png</file>
     <file>icons/icons8-circle-96.png</file>
+    <file>icons/icons8-upvote-downvote-16.png</file>
     <file>icons/icons8-scatter-plot-48.png</file>
     <file>icons/icons8-crop-48.png</file>
     <file>icons/icons8-sheets-96.png</file>
@@ -162,6 +163,7 @@
     <file>icons/icons8-length-16.png</file>
     <file>icons/icons8-deviation-48.png</file>
     <file>icons/icons8-brightness-16.png</file>
+    <file>icons/icons8-square-root-16.png</file>
     <file>icons/icons8-ratio-16.png</file>
     <file>icons/icons8-ampersand-96.png</file>
     <file>icons/icons8-metamorphose-48.png</file>
@@ -210,6 +212,7 @@
     <file>icons/icons8-name-48.png</file>
     <file>icons/icons8-error-96.png</file>
     <file>icons/icons8-header-16.png</file>
+    <file>icons/icons8-upvote-downvote-96.png</file>
     <file>icons/icons8-zero-24.png</file>
     <file>icons/icons8-resolution-48.png</file>
     <file>icons/icons8-address-48.png</file>
@@ -367,6 +370,7 @@
     <file>icons/icons8-error-48.png</file>
     <file>icons/icons8-original-size-48.png</file>
     <file>icons/icons8-pin-24.png</file>
+    <file>icons/icons8-upvote-downvote-24.png</file>
     <file>icons/icons8-r-studio-16.png</file>
     <file>icons/icons8-close-48.png</file>
     <file>icons/icons8-full-screen-96.png</file>
@@ -471,6 +475,7 @@
     <file>icons/icons8-remove-image-48.png</file>
     <file>icons/icons8-empty-tray-16.png</file>
     <file>icons/icons8-picture-in-picture-alternative-24.png</file>
+    <file>icons/icons8-square-root-48.png</file>
     <file>icons/icons8-arrow-down-24.png</file>
     <file>icons/icons8-venn-diagram-96.png</file>
     <file>icons/icons8-picture-in-picture-alternative-16.png</file>
@@ -515,6 +520,7 @@
     <file>icons/icons8-seven-16.png</file>
     <file>icons/icons8-z-coordinate-16.png</file>
     <file>icons/icons8-split-24.png</file>
+    <file>icons/icons8-upvote-downvote-48.png</file>
     <file>icons/icons8-layer-48.png</file>
     <file>icons/icons8-binary-code-96.png</file>
     <file>icons/icons8-invert-selection-96.png</file>
@@ -536,10 +542,12 @@
     <file>icons/icons8-project-management-96.png</file>
     <file>icons/icons8-aspect-ratio-48.png</file>
     <file>icons/icons8-full-screen-16.png</file>
+    <file>icons/icons8-square-root-24.png</file>
     <file>icons/icons8-seven-96.png</file>
     <file>icons/icons8-cellpose-96.png</file>
     <file>icons/icons8-equals-96.png</file>
     <file>icons/icons8-invert-selection-24.png</file>
+    <file>icons/icons8-square-root-96.png</file>
     <file>icons/icons8-warning-16.png</file>
     <file>icons/icons8-oval-16.png</file>
     <file>icons/icons8-invert-colors-16.png</file>

@@ -52,7 +52,6 @@ public:
         {.key = joda::settings::FillHolesSettings::HierarchyMode::INNER, .label = "Inner", .icon = generateIcon("ampersand")},
         {.key = joda::settings::FillHolesSettings::HierarchyMode::INNER_AND_OUTER, .label = "Inner & Outer", .icon = generateIcon("ampersand")},
     });
-
     mFunction->setValue(settings.hierarchyMode);
     mFunction->connectWithSetting(&settings.hierarchyMode);
 

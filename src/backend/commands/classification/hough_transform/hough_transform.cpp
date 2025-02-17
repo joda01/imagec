@@ -109,8 +109,8 @@ void HoughTransform::execute(processor::ProcessContext &context, cv::Mat &image,
    }*/
   {
     std::vector<cv::Vec3f> circles;
-    cv::HoughCircles(binaryImage, circles, cv::HOUGH_GRADIENT, 1.5, mSettings.minCircleDistance, mSettings.param01, mSettings.param02,
-                     mSettings.minCircleRadius, mSettings.maxCircleRadius);
+    cv::HoughCircles(binaryImage, circles, cv::HOUGH_GRADIENT, 1.5, mSettings.circleProperties.minCircleDistance, mSettings.circleProperties.param01,
+                     mSettings.circleProperties.param02, mSettings.circleProperties.minCircleRadius, mSettings.circleProperties.maxCircleRadius);
     binaryImage = cv::Mat::zeros(binaryImage.size(), CV_8UC1);
 
     for(size_t i = 0; i < circles.size(); i++) {

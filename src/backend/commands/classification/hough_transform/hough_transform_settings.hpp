@@ -27,10 +27,44 @@ namespace joda::settings {
 
 struct HoughTransformSettings : public SettingBase
 {
-  enum class HughMode
+  enum class Shape
   {
     LINE_TRANSFORM,
     CIRCLE_TRANSFORM
+  };
+
+  struct CircleProperties
+  {
+    //
+    //
+    //
+    int32_t minCircleDistance = 20;
+
+    //
+    //
+    //
+    int32_t minCircleRadius = 0;
+
+    //
+    //
+    //
+    int32_t maxCircleRadius = 60;
+
+    //
+    //
+    //
+    float param01 = 150;
+
+    //
+    //
+    //
+    float param02 = 50;
+
+    void check() const
+    {
+    }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(CircleProperties, minCircleDistance, minCircleRadius, maxCircleRadius, param01, param02);
   };
 
   enums::ClassIdIn outputClass = enums::ClassIdIn::$;
@@ -38,32 +72,12 @@ struct HoughTransformSettings : public SettingBase
   //
   //
   //
-  HughMode mode = HughMode::CIRCLE_TRANSFORM;
+  Shape shape = Shape::CIRCLE_TRANSFORM;
 
   //
   //
   //
-  int32_t minCircleDistance = 20;
-
-  //
-  //
-  //
-  int32_t minCircleRadius = 0;
-
-  //
-  //
-  //
-  int32_t maxCircleRadius = 60;
-
-  //
-  //
-  //
-  float param01 = 150;
-
-  //
-  //
-  //
-  float param02 = 50;
+  CircleProperties circleProperties = {};
 
   /////////////////////////////////////////////////////
   void check() const
@@ -85,14 +99,13 @@ struct HoughTransformSettings : public SettingBase
     return {};
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(HoughTransformSettings, outputClass, mode, minCircleDistance, minCircleRadius, maxCircleRadius,
-                                                       param01, param02);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(HoughTransformSettings, outputClass, shape, circleProperties);
 };
 
-NLOHMANN_JSON_SERIALIZE_ENUM(HoughTransformSettings::HughMode, {
-                                                                   {HoughTransformSettings::HughMode::LINE_TRANSFORM, "LineTransform"},
-                                                                   {HoughTransformSettings::HughMode::CIRCLE_TRANSFORM, "CircleTransform"},
+NLOHMANN_JSON_SERIALIZE_ENUM(HoughTransformSettings::Shape, {
+                                                                {HoughTransformSettings::Shape::LINE_TRANSFORM, "Line"},
+                                                                {HoughTransformSettings::Shape::CIRCLE_TRANSFORM, "Circle"},
 
-                                                               });
+                                                            });
 
 }    // namespace joda::settings

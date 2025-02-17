@@ -448,9 +448,7 @@ void WindowMain::openResultsSettings(const QString &filePath)
 void WindowMain::openProjectSettings(const QString &filePath)
 {
   try {
-    std::ifstream ifs(filePath.toStdString());
-    joda::settings::AnalyzeSettings analyzeSettings = nlohmann::json::parse(ifs);
-    ifs.close();
+    joda::settings::AnalyzeSettings analyzeSettings = joda::settings::Settings::openSettings(filePath.toStdString());
 
     // Assign temporary the newly loaded settings.
     // This is needed to avoid a hen and eg problem when loading the output classes which are needed for the pipelines.

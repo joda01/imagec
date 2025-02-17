@@ -17,10 +17,26 @@
 #include <string>
 
 #include "backend/enums/enums_file_endians.hpp"
+#include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/analze_settings.hpp"
 
 namespace joda::settings {
+
+auto Settings::openSettings(const std::filesystem::path &pathIn) -> joda::settings::AnalyzeSettings
+{
+  std::ifstream ifs(pathIn);
+  std::string wholeFile = std::string((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+  ifs.close();
+  migrateSettings(wholeFile);
+  joda::settings::AnalyzeSettings analyzeSettings = nlohmann::json::parse(wholeFile);
+  return analyzeSettings;
+}
+
+void Settings::migrateSettings(std::string &settings)
+{
+  helper::stringReplace(settings, "$edgeDetection", "$sobel");
+}
 
 void Settings::storeSettings(const std::filesystem::path &pathIn, const joda::settings::AnalyzeSettings &settings)
 {

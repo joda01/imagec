@@ -35,7 +35,6 @@ public:
     mMedianBackgroundSubtraction = SettingBase::create<SettingComboBox<int32_t>>(parent, generateIcon("baseline"), "Median background subtraction");
     mMedianBackgroundSubtraction->addOptions({{-1, "Off"},
                                               {3, "3x3"},
-                                              {4, "4x4"},
                                               {5, "5x5"},
                                               {7, "7x7"},
                                               {9, "9x9"},

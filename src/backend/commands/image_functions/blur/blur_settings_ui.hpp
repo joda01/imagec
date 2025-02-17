@@ -46,7 +46,6 @@ public:
     mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, generateIcon("matrix"), "Kernel size");
     mKernelSize->addOptions({{-1, "Off"},
                              {3, "3x3"},
-                             {4, "4x4"},
                              {5, "5x5"},
                              {7, "7x7"},
                              {9, "9x9"},
