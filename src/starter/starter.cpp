@@ -51,9 +51,13 @@ Starter::Starter()
 ///
 void Starter::exec(int argc, char *argv[])
 {
-  Version::initVersion(std::string(argv[0]));
   // Use QCoreApplication initially to parse command-line arguments
   QApplication app(argc, argv);
+
+  // ======================================
+  // Init application stuff
+  // ======================================
+  Version::initVersion(std::string(argv[0]));
   QApplication::setApplicationName(Version::getProgamName().data());
   QApplication::setApplicationVersion(Version::getVersion().data());
 
@@ -138,6 +142,17 @@ void Starter::exec(int argc, char *argv[])
     initLogger("trace");
   }
 
+  // ======================================
+  // Show splash screen
+  // ======================================
+  QSplashScreen *splash = nullptr;
+  if(!parser.isSet(runOption) && !parser.isSet(exportData)) {
+    QPixmap pixmap(":/icons/icons/icon.png");
+    splash = new QSplashScreen(pixmap);
+    splash->show();
+    QApplication::processEvents();
+  }
+
   // ===================================
   // Init application
   // ==================================
@@ -171,7 +186,7 @@ void Starter::exec(int argc, char *argv[])
   // ===================================
   // Start CLI or GUI mode
   // ==================================
-  startUi(app);
+  startUi(app, splash);
 
   QApplication::exec();
 }
@@ -242,7 +257,7 @@ void Starter::initApplication()
 /// \param[out]
 /// \return
 ///
-void Starter::startUi(QApplication &app)
+void Starter::startUi(QApplication &app, QSplashScreen *splashScreen)
 {
   // ======================================
   // Start UI
@@ -284,6 +299,7 @@ void Starter::startUi(QApplication &app)
 
   app.setStyleSheet(stylesheet);
   mWindowMain = new joda::ui::gui::WindowMain(mController);
+  splashScreen->finish(mWindowMain);    // Close the splash screen once done
   mWindowMain->show();
 }
 
