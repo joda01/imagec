@@ -19,6 +19,7 @@
 #include <qwidget.h>
 #include <memory>
 #include <thread>
+#include <vector>
 #include "../setting/setting_base.hpp"
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
@@ -28,6 +29,9 @@
 #include "ui/gui/helper/layout_generator.hpp"
 
 namespace joda::ui::gui {
+
+class DialogCommandSelection;
+
 enum class InOuts
 {
   ALL,
@@ -61,14 +65,15 @@ class Command : public QWidget
   Q_OBJECT
 public:
   /////////////////////////////////////////////////////
-  Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &description, const QString &icon, QWidget *parent,
-          InOut type);
+  Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &description, const std::vector<std::string> &tags,
+          const QString &icon, QWidget *parent, InOut type);
 
   helper::TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose, bool showCloseButton);
   void removeTab(int32_t idx);
   void removeAllTabsExceptFirst();
   void registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi);
-  void registerAddCommandButton(joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineSettingsUi, WindowMain *mainWindow);
+  void registerAddCommandButton(std::shared_ptr<DialogCommandSelection> &cmdDialog, joda::settings::Pipeline &settings,
+                                PanelPipelineSettings *pipelineSettingsUi, WindowMain *mainWindow);
   void setCommandBefore(std::shared_ptr<Command> commandBefore)
   {
     mCommandBefore = commandBefore;
@@ -153,6 +158,11 @@ public:
     return mTitle;
   }
 
+  const std::vector<std::string> &getTags()
+  {
+    return mTags;
+  }
+
   const QString &getDescription()
   {
     return mDescription;
@@ -212,6 +222,7 @@ private:
   std::vector<std::tuple<SettingBase *, bool, int32_t>> mSettings;
   const InOut mInOut;
   std::shared_ptr<Command> mCommandBefore = nullptr;
+  const std::vector<std::string> &mTags;
 };
 
 }    // namespace joda::ui::gui

@@ -19,6 +19,7 @@
 #include <cstddef>
 #include <string>
 #include <type_traits>
+#include <vector>
 #include "ui/gui/container/pipeline/add_command_button.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/window_main/window_main.hpp"
@@ -37,10 +38,11 @@ void WrapLabel::resizeEvent(QResizeEvent *event)
   QLabel::resizeEvent(event);
 }
 
-Command::Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &description, const QString &icon, QWidget *parent,
-                 InOut type) :
+Command::Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &description, const std::vector<std::string> &tags,
+                 const QString &icon, QWidget *parent, InOut type) :
     mPipelineStep(pipelineStep),
-    mParent(parent), mTitle(title), mDescription(description), mLayout(&mEditView, true, true, false), mDisplayViewLayout(this), mInOut(type)
+    mParent(parent), mTitle(title), mDescription(description), mTags(tags), mLayout(&mEditView, true, true, false), mDisplayViewLayout(this),
+    mInOut(type)
 {
   setContentsMargins(0, 0, 4, 0);
   mDisplayViewLayout.setContentsMargins(0, 0, 0, 0);
@@ -202,11 +204,12 @@ void Command::paintEvent(QPaintEvent *event)
 /// \param[out]
 /// \return
 ///
-void Command::registerAddCommandButton(joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineSettingsUi, WindowMain *mainWindow)
+void Command::registerAddCommandButton(std::shared_ptr<DialogCommandSelection> &cmdDialog, joda::settings::Pipeline &settings,
+                                       PanelPipelineSettings *pipelineSettingsUi, WindowMain *mainWindow)
 {
   // Add command button
   {
-    auto *cmdButton = new AddCommandButtonBase(settings, pipelineSettingsUi, &mPipelineStep, getInOut().out, mainWindow);
+    auto *cmdButton = new AddCommandButtonBase(cmdDialog, settings, pipelineSettingsUi, &mPipelineStep, getInOut().out, mainWindow);
     cmdButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     mDisplayViewLayout.addWidget(cmdButton, 2, 0, 1, 2);
   }

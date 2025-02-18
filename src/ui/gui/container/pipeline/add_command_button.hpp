@@ -32,8 +32,9 @@ class DialogCommandSelection;
 class AddCommandButtonBase : public QWidget
 {
 public:
-  AddCommandButtonBase(joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineStepSettingsUi,
-                       const settings::PipelineStep *pipelineStepBefore, InOuts outOfStepBefore, WindowMain *parent);
+  AddCommandButtonBase(std::shared_ptr<DialogCommandSelection> &dialogCommandSelection, joda::settings::Pipeline &settings,
+                       PanelPipelineSettings *pipelineStepSettingsUi, const settings::PipelineStep *pipelineStepBefore, InOuts outOfStepBefore,
+                       WindowMain *parent);
 
   void paintEvent(QPaintEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;
@@ -46,13 +47,13 @@ public slots:
 
 private:
   /////////////////////////////////////////////////////
+  std::shared_ptr<DialogCommandSelection> mDialogCommandSelection;
   WindowMain *mParent;
   bool mMouseEntered                                = false;
   const settings::PipelineStep *mPipelineStepBefore = nullptr;
   joda::settings::Pipeline &mSettings;
   PanelPipelineSettings *pipelineStepSettingsUi;
   InOuts mOutOfStepBefore;
-  DialogCommandSelection *mSelectionDialog = nullptr;
 };
 
 }    // namespace joda::ui::gui

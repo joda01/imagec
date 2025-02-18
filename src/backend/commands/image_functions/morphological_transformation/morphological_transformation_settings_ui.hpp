@@ -36,11 +36,12 @@ public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Morphological Transform";
   inline static std::string ICON              = "geometric-flowers";
-  inline static std::string DESCRIPTION       = "...";
-  inline static std::vector<std::string> TAGS = {};
+  inline static std::string DESCRIPTION       = "Simple operations based on the image shape.";
+  inline static std::vector<std::string> TAGS = {"transform", "morphological", "erosion",  "erode",   "dilation",  "dilate",
+                                                 "open",      "close",         "gradient", "top hat", "black hat", "hitmiss"};
 
   MorphologicalTransform(joda::settings::PipelineStep &pipelineStep, settings::MorphologicalTransformSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}}), mParent(parent)
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}}), mParent(parent)
   {
     auto *modelTab = addTab(
         "Base", [] {}, false);

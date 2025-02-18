@@ -38,11 +38,11 @@ public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Colocalization";
   inline static std::string ICON              = "venn-diagram";
-  inline static std::string DESCRIPTION       = "...";
-  inline static std::vector<std::string> TAGS = {};
+  inline static std::string DESCRIPTION       = "Calculates the overlapping are of two or more image channels.";
+  inline static std::vector<std::string> TAGS = {"colocalization", "object", "coloc"};
 
   Colocalization(joda::settings::PipelineStep &pipelineStep, settings::ColocalizationSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings),
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings),
       mParent(parent)
   {
     auto *modelTab = addTab(

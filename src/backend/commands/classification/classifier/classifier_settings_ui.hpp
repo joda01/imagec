@@ -35,11 +35,11 @@ public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Classifier";
   inline static std::string ICON              = "classify";
-  inline static std::string DESCRIPTION       = "...";
-  inline static std::vector<std::string> TAGS = {};
+  inline static std::string DESCRIPTION       = "Extract objects from a binary image.";
+  inline static std::vector<std::string> TAGS = {"classifier", "classify", "objects"};
 
   Classifier(joda::settings::PipelineStep &pipelineStep, settings::ClassifierSettings &settingsIn, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::OBJECT}}), mSettings(settingsIn),
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::BINARY}, {InOuts::OBJECT}}), mSettings(settingsIn),
       mParent(parent)
   {
     this->mutableEditDialog()->setMinimumWidth(600);

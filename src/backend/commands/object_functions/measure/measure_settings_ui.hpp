@@ -36,11 +36,11 @@ public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Measure";
   inline static std::string ICON              = "length";
-  inline static std::string DESCRIPTION       = "...";
-  inline static std::vector<std::string> TAGS = {};
+  inline static std::string DESCRIPTION       = "Measure the intensity of objects areas in an image channel.";
+  inline static std::vector<std::string> TAGS = {"intensity", "measure", "object"};
 
   Measure(joda::settings::PipelineStep &pipelineStep, settings::MeasureSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings),
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings),
       mParent(parent)
   {
     //

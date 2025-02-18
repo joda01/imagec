@@ -32,11 +32,11 @@ public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Threshold filter";
   inline static std::string ICON              = "filter";
-  inline static std::string DESCRIPTION       = "...";
-  inline static std::vector<std::string> TAGS = {};
+  inline static std::string DESCRIPTION       = "Exclude overexposed images from statistics.";
+  inline static std::vector<std::string> TAGS = {"filter", "threshold", "overexposed"};
 
   ThresholdValidator(joda::settings::PipelineStep &pipelineStep, settings::ThresholdValidatorSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}})
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}})
   {
     //
     //

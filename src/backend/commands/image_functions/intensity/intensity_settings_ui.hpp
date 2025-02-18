@@ -29,11 +29,11 @@ public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Intensity";
   inline static std::string ICON              = "brightness";
-  inline static std::string DESCRIPTION       = "...";
-  inline static std::vector<std::string> TAGS = {};
+  inline static std::string DESCRIPTION       = "Adjust image contrast and brightness";
+  inline static std::vector<std::string> TAGS = {"contrast", "brightness", "adjust"};
 
   IntensityTransformation(joda::settings::PipelineStep &pipelineStep, settings::IntensityTransformationSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::IMAGE}})
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::IMAGE}})
   {
     //
     //

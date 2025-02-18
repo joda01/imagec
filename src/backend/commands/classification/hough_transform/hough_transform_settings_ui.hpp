@@ -37,11 +37,11 @@ public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Hough transform";
   inline static std::string ICON              = "trigonometry";
-  inline static std::string DESCRIPTION       = "...";
-  inline static std::vector<std::string> TAGS = {};
+  inline static std::string DESCRIPTION       = "Feature extraction technique for lines and circled";
+  inline static std::vector<std::string> TAGS = {"classifier", "classify", "objects", "ai", "feature extraction", "pattern recognition"};
 
   HoughTransform(joda::settings::PipelineStep &pipelineStep, settings::HoughTransformSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::OBJECT}}), mParent(parent)
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::BINARY}, {InOuts::OBJECT}}), mParent(parent)
   {
     auto *tab = addTab(
         "", [] {}, false);

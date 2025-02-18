@@ -36,11 +36,11 @@ public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Fill holes";
   inline static std::string ICON              = "fill-color";
-  inline static std::string DESCRIPTION       = "...";
-  inline static std::vector<std::string> TAGS = {};
+  inline static std::string DESCRIPTION       = "Fill the holes within a binary image.";
+  inline static std::vector<std::string> TAGS = {"fill", "holes"};
 
   FillHoles(joda::settings::PipelineStep &pipelineStep, settings::FillHolesSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}}), mParent(parent)
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}}), mParent(parent)
   {
     auto *modelTab = addTab(
         "Base", [] {}, false);

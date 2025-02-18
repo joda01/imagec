@@ -28,11 +28,11 @@ public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Median subtraction";
   inline static std::string ICON              = "baseline";
-  inline static std::string DESCRIPTION       = "...";
-  inline static std::vector<std::string> TAGS = {};
+  inline static std::string DESCRIPTION       = "Supress image background.";
+  inline static std::vector<std::string> TAGS = {"noise reduction", "background subtraction", "noise"};
 
   MedianSubtraction(joda::settings::PipelineStep &pipelineStep, settings::MedianSubtractSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::IMAGE}})
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::IMAGE}})
   {
     mMedianBackgroundSubtraction = SettingBase::create<SettingComboBox<int32_t>>(parent, generateIcon("baseline"), "Median background subtraction");
     mMedianBackgroundSubtraction->addOptions({{-1, "Off"},

@@ -35,6 +35,7 @@
 #include "ui/gui/container/command/command.hpp"
 #include "ui/gui/container/command/factory.hpp"
 #include "ui/gui/container/container_base.hpp"
+#include "ui/gui/container/dialog_command_selection/dialog_command_selection.hpp"
 #include "ui/gui/container/setting/setting_combobox.hpp"
 #include "ui/gui/container/setting/setting_line_edit.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
@@ -95,8 +96,10 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 
     col2->addWidgetGroup("Pipeline steps", {scrollArea}, 300, 300);
 
+    mCommandSelectionDialog = std::make_shared<DialogCommandSelection>(mSettings, this, mWindowMain);
+
     // Allow to start with
-    mTopAddCommandButton = new AddCommandButtonBase(mSettings, this, nullptr, InOuts::ALL, mWindowMain);
+    mTopAddCommandButton = new AddCommandButtonBase(mCommandSelectionDialog, mSettings, this, nullptr, InOuts::ALL, mWindowMain);
     mPipelineSteps->addWidget(mTopAddCommandButton);
   }
 
@@ -146,7 +149,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::gui::Command> command, const settings::PipelineStep *pipelineStepBefore)
 {
   command->registerDeleteButton(this);
-  command->registerAddCommandButton(mSettings, this, mWindowMain);
+  command->registerAddCommandButton(mCommandSelectionDialog, mSettings, this, mWindowMain);
   if(mCommands.empty()) {
     command->setCommandBefore(nullptr);
   } else {
@@ -169,7 +172,7 @@ void PanelPipelineSettings::insertNewPipelineStep(int32_t posToInsert, std::uniq
                                                   const settings::PipelineStep *pipelineStepBefore)
 {
   command->registerDeleteButton(this);
-  command->registerAddCommandButton(mSettings, this, mWindowMain);
+  command->registerAddCommandButton(mCommandSelectionDialog, mSettings, this, mWindowMain);
   connect(command.get(), &joda::ui::gui::Command::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   int widgetPos = posToInsert + 1;    // Each second is a button
   mPipelineSteps->insertWidget(widgetPos, command.get());

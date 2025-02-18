@@ -36,11 +36,11 @@ public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Image math";
   inline static std::string ICON              = "ratio";
-  inline static std::string DESCRIPTION       = "...";
-  inline static std::vector<std::string> TAGS = {};
+  inline static std::string DESCRIPTION       = "Apply basic mathematical operations on one or two images.";
+  inline static std::vector<std::string> TAGS = {"invert", "math", "subtract", "add", "plus", "minus"};
 
   ImageMath(joda::settings::PipelineStep &pipelineStep, settings::ImageMathSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}}),
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}}),
       mParent(parent)
   {
     auto *modelTab = addTab(
