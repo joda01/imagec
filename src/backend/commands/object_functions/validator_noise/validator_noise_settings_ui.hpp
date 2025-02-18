@@ -31,9 +31,10 @@ class NoiseValidator : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE       = "Noise filter";
-  inline static std::string ICON        = "sort-by-price";
-  inline static std::string DESCRIPTION = "...";
+  inline static std::string TITLE             = "Noise filter";
+  inline static std::string ICON              = "sort-by-price";
+  inline static std::string DESCRIPTION       = "...";
+  inline static std::vector<std::string> TAGS = {};
 
   NoiseValidator(joda::settings::PipelineStep &pipelineStep, settings::NoiseValidatorSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}})

@@ -30,9 +30,10 @@ class ThresholdValidator : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE       = "Threshold filter";
-  inline static std::string ICON        = "filter";
-  inline static std::string DESCRIPTION = "...";
+  inline static std::string TITLE             = "Threshold filter";
+  inline static std::string ICON              = "filter";
+  inline static std::string DESCRIPTION       = "...";
+  inline static std::vector<std::string> TAGS = {};
 
   ThresholdValidator(joda::settings::PipelineStep &pipelineStep, settings::ThresholdValidatorSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}})

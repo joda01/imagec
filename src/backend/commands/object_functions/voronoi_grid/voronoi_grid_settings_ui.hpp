@@ -33,9 +33,10 @@ class VoronoiGrid : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE       = "Voronoi";
-  inline static std::string ICON        = "voronoi";
-  inline static std::string DESCRIPTION = "...";
+  inline static std::string TITLE             = "Voronoi";
+  inline static std::string ICON              = "voronoi";
+  inline static std::string DESCRIPTION       = "...";
+  inline static std::vector<std::string> TAGS = {};
 
   VoronoiGrid(joda::settings::PipelineStep &pipelineStep, settings::VoronoiGridSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}})

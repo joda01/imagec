@@ -13,6 +13,7 @@
 #include "dialog_command_selection.hpp"
 #include <qboxlayout.h>
 #include <qdialog.h>
+#include <qlineedit.h>
 #include <qtablewidget.h>
 #include <memory>
 #include <string>
@@ -47,6 +48,10 @@ DialogCommandSelection::DialogCommandSelection(joda::settings::Pipeline &setting
     mParent(parent), mPipelineStepBefore(pipelineStepBefore), mSettings(settings), pipelineStepSettingsUi(pipelineStepSettingsUi)
 {
   auto *layout = new QVBoxLayout();
+
+  mSearch = new QLineEdit();
+  mSearch->setPlaceholderText("Search...");
+  layout->addWidget(mSearch);
 
   mCommands = new QTableWidget();
   mCommands->setColumnCount(3);
@@ -218,10 +223,10 @@ int DialogCommandSelection::addCommandToTable(const settings::PipelineStep &step
     if(outOfStepBefore != InOuts::ALL && !cmd->getInOut().in.contains(outOfStepBefore)) {
       return 0;
     }
-    mCommandList.emplace_back(step);
+    mCommandList.emplace_back(CommandListEntry{step, cmd->getInOut(), cmd->getTitle(), cmd->getDescription()});
     int newRow = mCommands->rowCount();
     mCommands->insertRow(newRow);
-    QString text = cmd->getTitle() + "<br/><span style='color:gray;'>Line 2</span>";
+    QString text = cmd->getTitle() + "<br/><span style='color:gray;'>" + cmd->getDescription() + "</span>";
 
     // Set the icon in the first column
     auto *textIcon = new QLabel();
@@ -243,10 +248,27 @@ int DialogCommandSelection::addCommandToTable(const settings::PipelineStep &step
   return 0;
 }
 
+void DialogCommandSelection::filterCommands(const CommandTableFilter &filter)
+{
+  for(int32_t n = 0; n < mCommandList.size(); n++) {
+    const auto &command = mCommandList.at(n);
+    if(filter.outOfStepBefore != InOuts::ALL && !command.inOuts.in.contains(filter.outOfStepBefore)) {
+      continue;
+    }
+    if(command.name.contains(filter.searchText)) {
+      // Enable
+      mCommands->setRowHidden(n, false);
+    } else {
+      // Disable
+      mCommands->setRowHidden(n, true);
+    }
+  }
+}
+
 void DialogCommandSelection::addNewCommand(int commandListIdx)
 {
   if(mPipelineStepBefore == nullptr) {
-    auto inserted                               = mSettings.pipelineSteps.insert(mSettings.pipelineSteps.begin(), mCommandList[commandListIdx]);
+    auto inserted = mSettings.pipelineSteps.insert(mSettings.pipelineSteps.begin(), mCommandList[commandListIdx].pipelineStep);
     std::unique_ptr<joda::ui::gui::Command> cmd = joda::settings::PipelineFactory<joda::ui::gui::Command>::generate(*inserted, mParent);
     pipelineStepSettingsUi->insertNewPipelineStep(0, std::move(cmd), &*inserted);
     return;
@@ -256,7 +278,7 @@ void DialogCommandSelection::addNewCommand(int commandListIdx)
   for(auto it = mSettings.pipelineSteps.begin(); it != mSettings.pipelineSteps.end(); ++it) {
     posInserted++;
     if(&*it == mPipelineStepBefore) {
-      const auto &inserted                        = mSettings.pipelineSteps.insert(std::next(it), mCommandList[commandListIdx]);
+      const auto &inserted                        = mSettings.pipelineSteps.insert(std::next(it), mCommandList[commandListIdx].pipelineStep);
       std::unique_ptr<joda::ui::gui::Command> cmd = joda::settings::PipelineFactory<joda::ui::gui::Command>::generate(*inserted, mParent);
       pipelineStepSettingsUi->insertNewPipelineStep(posInserted, std::move(cmd), &*inserted);
       return;

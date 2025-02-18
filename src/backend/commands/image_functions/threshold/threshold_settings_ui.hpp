@@ -30,9 +30,10 @@ class Threshold : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE       = "Threshold";
-  inline static std::string ICON        = "grayscale";
-  inline static std::string DESCRIPTION = "...";
+  inline static std::string TITLE             = "Threshold";
+  inline static std::string ICON              = "grayscale";
+  inline static std::string DESCRIPTION       = "...";
+  inline static std::vector<std::string> TAGS = {};
 
   Threshold(joda::settings::PipelineStep &pipelineStep, settings::ThresholdSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::BINARY}}), mSettings(settings),

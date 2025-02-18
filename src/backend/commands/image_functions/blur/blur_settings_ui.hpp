@@ -27,9 +27,10 @@ class Blur : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE       = "Blur";
-  inline static std::string ICON        = "blur";
-  inline static std::string DESCRIPTION = "...";
+  inline static std::string TITLE             = "Blur";
+  inline static std::string ICON              = "blur";
+  inline static std::string DESCRIPTION       = "...";
+  inline static std::vector<std::string> TAGS = {};
 
   Blur(joda::settings::PipelineStep &pipelineStep, settings::BlurSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}})

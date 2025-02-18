@@ -27,9 +27,10 @@ class EdgeDetectionSobel : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE       = "Sobel edge detection";
-  inline static std::string ICON        = "triangle";
-  inline static std::string DESCRIPTION = "...";
+  inline static std::string TITLE             = "Sobel edge detection";
+  inline static std::string ICON              = "triangle";
+  inline static std::string DESCRIPTION       = "...";
+  inline static std::vector<std::string> TAGS = {};
 
   EdgeDetectionSobel(joda::settings::PipelineStep &pipelineStep, settings::EdgeDetectionSobelSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}})

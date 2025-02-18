@@ -36,9 +36,10 @@ class Colocalization : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE       = "Colocalization";
-  inline static std::string ICON        = "venn-diagram";
-  inline static std::string DESCRIPTION = "...";
+  inline static std::string TITLE             = "Colocalization";
+  inline static std::string ICON              = "venn-diagram";
+  inline static std::string DESCRIPTION       = "...";
+  inline static std::vector<std::string> TAGS = {};
 
   Colocalization(joda::settings::PipelineStep &pipelineStep, settings::ColocalizationSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings),

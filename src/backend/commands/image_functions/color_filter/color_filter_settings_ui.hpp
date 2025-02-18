@@ -30,9 +30,10 @@ class ColorFilter : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE       = "Color filter";
-  inline static std::string ICON        = "color";
-  inline static std::string DESCRIPTION = "...";
+  inline static std::string TITLE             = "Color filter";
+  inline static std::string ICON              = "color";
+  inline static std::string DESCRIPTION       = "...";
+  inline static std::vector<std::string> TAGS = {};
 
   ColorFilter(joda::settings::PipelineStep &pipelineStep, settings::ColorFilterSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::IMAGE}})

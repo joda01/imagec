@@ -44,16 +44,33 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  struct CommandTableFilter
+  {
+    QString searchText;
+    InOuts outOfStepBefore = InOuts::ALL;
+  };
+
+  struct CommandListEntry
+  {
+    settings::PipelineStep pipelineStep;
+    InOut inOuts;
+    QString name;
+    QString description;
+  };
+
+  /////////////////////////////////////////////////////
   void addNewCommand(int commandListIdx);
   void addTitleToTable(const std::string &title, int position);
   void addCommandsToTable(InOuts outOfStepBefore);
   int addCommandToTable(const settings::PipelineStep &step, InOuts outOfStepBefore);
+  void filterCommands(const CommandTableFilter &filter);
   std::unique_ptr<joda::ui::gui::Command> generateCommand(const settings::PipelineStep &step);
 
   /////////////////////////////////////////////////////
+  QLineEdit *mSearch;
   QTableWidget *mCommands;
   WindowMain *mParent;
-  std::vector<settings::PipelineStep> mCommandList;
+  std::vector<CommandListEntry> mCommandList;
   const settings::PipelineStep *mPipelineStepBefore = nullptr;
   joda::settings::Pipeline &mSettings;
   PanelPipelineSettings *pipelineStepSettingsUi;

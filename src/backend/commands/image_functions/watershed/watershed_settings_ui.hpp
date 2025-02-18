@@ -26,9 +26,10 @@ class Watershed : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE       = "Watershed";
-  inline static std::string ICON        = "split";
-  inline static std::string DESCRIPTION = "...";
+  inline static std::string TITLE             = "Watershed";
+  inline static std::string ICON              = "split";
+  inline static std::string DESCRIPTION       = "...";
+  inline static std::vector<std::string> TAGS = {};
 
   Watershed(joda::settings::PipelineStep &pipelineStep, settings::WatershedSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}})

@@ -34,9 +34,10 @@ class ObjectTransform : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE       = "Object transform";
-  inline static std::string ICON        = "resize";
-  inline static std::string DESCRIPTION = "...";
+  inline static std::string TITLE             = "Object transform";
+  inline static std::string ICON              = "resize";
+  inline static std::string DESCRIPTION       = "...";
+  inline static std::vector<std::string> TAGS = {};
 
   ObjectTransform(joda::settings::PipelineStep &pipelineStep, settings::ObjectTransformSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mParent(parent)

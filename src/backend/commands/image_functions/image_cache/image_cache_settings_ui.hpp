@@ -29,9 +29,10 @@ class ImageCache : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE       = "Image cache";
-  inline static std::string ICON        = "copy";
-  inline static std::string DESCRIPTION = "...";
+  inline static std::string TITLE             = "Image cache";
+  inline static std::string ICON              = "copy";
+  inline static std::string DESCRIPTION       = "...";
+  inline static std::vector<std::string> TAGS = {};
 
   ImageCache(joda::settings::PipelineStep &pipelineStep, settings::ImageCacheSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::IMAGE}})
