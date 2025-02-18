@@ -52,7 +52,7 @@ void AddCommandButtonBase::paintEvent(QPaintEvent *event)
 
 void AddCommandButtonBase::mousePressEvent(QMouseEvent *event)
 {
-  mDialogCommandSelection->show(mPipelineStepBefore, mOutOfStepBefore);
+  mDialogCommandSelection->show(mPipelineStepBefore, mOutOfStepBefore, &mSettings, pipelineStepSettingsUi);
 }
 
 void AddCommandButtonBase::enterEvent(QEnterEvent *event)

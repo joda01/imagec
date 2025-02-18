@@ -48,7 +48,7 @@ signals:
   void updatePreviewFinished();
 
 public:
-  PanelPipelineSettings(WindowMain *wm, joda::settings::Pipeline &settings);
+  PanelPipelineSettings(WindowMain *wm, joda::settings::Pipeline &settings, std::shared_ptr<DialogCommandSelection> &commandSelectionDialog);
   ~PanelPipelineSettings();
 
   void addPipelineStep(std::unique_ptr<joda::ui::gui::Command> command, const settings::PipelineStep *);

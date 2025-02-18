@@ -37,9 +37,10 @@ class DialogCommandSelection : public QDialog
 {
 public:
   /////////////////////////////////////////////////////
-  DialogCommandSelection(joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineStepSettingsUi, WindowMain *parent);
+  DialogCommandSelection(WindowMain *parent);
 
-  void show(const settings::PipelineStep *pipelineStepBefore, InOuts outOfStepBefore);
+  void show(const settings::PipelineStep *pipelineStepBefore, InOuts outOfStepBefore, joda::settings::Pipeline *settings,
+            PanelPipelineSettings *pipelineStepSettingsUi);
 
 private:
   enum class Group
@@ -89,8 +90,8 @@ private:
 
   WindowMain *mParent;
   const settings::PipelineStep *mPipelineStepBefore = nullptr;
-  joda::settings::Pipeline &mSettings;
-  PanelPipelineSettings *pipelineStepSettingsUi;
+  joda::settings::Pipeline *mSettings               = nullptr;
+  PanelPipelineSettings *mPipelineStepSettingsUi    = nullptr;
   InOuts mOutOfStepBefore;
 };
 

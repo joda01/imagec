@@ -42,10 +42,7 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-DialogCommandSelection::DialogCommandSelection(joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineStepSettingsUi,
-                                               WindowMain *parent) :
-    QDialog(parent),
-    mParent(parent), mSettings(settings), pipelineStepSettingsUi(pipelineStepSettingsUi)
+DialogCommandSelection::DialogCommandSelection(WindowMain *parent) : QDialog(parent), mParent(parent)
 {
   mSearch = new QLineEdit();
   mSearch->setPlaceholderText("Search...");
@@ -78,14 +75,18 @@ DialogCommandSelection::DialogCommandSelection(joda::settings::Pipeline &setting
     addNewCommand(idx);
     close();
   });
-  addCommandsToTable();
 
+  //
   auto *layout = new QVBoxLayout();
   layout->addWidget(mSearch);
   layout->addWidget(mCommands);
   setLayout(layout);
   setMinimumHeight(600);
   setMinimumWidth(500);
+
+  /// \todo Put this to a thread
+  addCommandsToTable();
+  // std::thread([this]() { addCommandsToTable(); }).detach();
 }
 
 ///
@@ -106,10 +107,13 @@ bool DialogCommandSelection::eventFilter(QObject *obj, QEvent *event)
   return QObject::eventFilter(obj, event);
 }
 
-void DialogCommandSelection::show(const settings::PipelineStep *pipelineStepBefore, InOuts outOfStepBefore)
+void DialogCommandSelection::show(const settings::PipelineStep *pipelineStepBefore, InOuts outOfStepBefore, joda::settings::Pipeline *settings,
+                                  PanelPipelineSettings *pipelineStepSettingsUi)
 {
-  mOutOfStepBefore    = outOfStepBefore;
-  mPipelineStepBefore = pipelineStepBefore;
+  mSettings               = settings;
+  mPipelineStepSettingsUi = pipelineStepSettingsUi;
+  mOutOfStepBefore        = outOfStepBefore;
+  mPipelineStepBefore     = pipelineStepBefore;
   filterCommands({mSearch->text(), outOfStepBefore});
   exec();
 }
@@ -124,6 +128,10 @@ void DialogCommandSelection::show(const settings::PipelineStep *pipelineStepBefo
 std::unique_ptr<joda::ui::gui::Command> DialogCommandSelection::generateCommand(const settings::PipelineStep &step)
 {
   return std::move(joda::settings::PipelineFactory<joda::ui::gui::Command>::generate(step, mParent));
+}
+
+void assignLabels()
+{
 }
 
 ///
@@ -228,8 +236,8 @@ int DialogCommandSelection::addCommandToTable(const settings::PipelineStep &step
         CommandListEntry{step, cmd->getInOut(), cmd->getTitle().toLower(), cmd->getDescription().toLower(), group, cmd->getTags()});
     int newRow = mCommands->rowCount();
     mCommandIndexMap.emplace(mCommandList.size() - 1, newRow);
-
     mCommands->insertRow(newRow);
+
     QString text = cmd->getTitle() + "<br/><span style='color:gray;'><i>" + cmd->getDescription() + "</i></span>";
 
     // Set the icon in the first column
@@ -291,21 +299,22 @@ void DialogCommandSelection::filterCommands(const CommandTableFilter &filter)
 
 void DialogCommandSelection::addNewCommand(int commandListIdx)
 {
-  if(mPipelineStepBefore == nullptr) {
-    auto inserted = mSettings.pipelineSteps.insert(mSettings.pipelineSteps.begin(), mCommandList[commandListIdx].pipelineStep);
+  if(mPipelineStepBefore == nullptr && mSettings != nullptr) {
+    auto inserted = mSettings->pipelineSteps.insert(mSettings->pipelineSteps.begin(), mCommandList[commandListIdx].pipelineStep);
     std::unique_ptr<joda::ui::gui::Command> cmd = joda::settings::PipelineFactory<joda::ui::gui::Command>::generate(*inserted, mParent);
-    pipelineStepSettingsUi->insertNewPipelineStep(0, std::move(cmd), &*inserted);
+    mPipelineStepSettingsUi->insertNewPipelineStep(0, std::move(cmd), &*inserted);
     return;
   }
-
-  int posInserted = 0;
-  for(auto it = mSettings.pipelineSteps.begin(); it != mSettings.pipelineSteps.end(); ++it) {
-    posInserted++;
-    if(&*it == mPipelineStepBefore) {
-      const auto &inserted                        = mSettings.pipelineSteps.insert(std::next(it), mCommandList[commandListIdx].pipelineStep);
-      std::unique_ptr<joda::ui::gui::Command> cmd = joda::settings::PipelineFactory<joda::ui::gui::Command>::generate(*inserted, mParent);
-      pipelineStepSettingsUi->insertNewPipelineStep(posInserted, std::move(cmd), &*inserted);
-      return;
+  if(mSettings != nullptr) {
+    int posInserted = 0;
+    for(auto it = mSettings->pipelineSteps.begin(); it != mSettings->pipelineSteps.end(); ++it) {
+      posInserted++;
+      if(&*it == mPipelineStepBefore) {
+        const auto &inserted                        = mSettings->pipelineSteps.insert(std::next(it), mCommandList[commandListIdx].pipelineStep);
+        std::unique_ptr<joda::ui::gui::Command> cmd = joda::settings::PipelineFactory<joda::ui::gui::Command>::generate(*inserted, mParent);
+        mPipelineStepSettingsUi->insertNewPipelineStep(posInserted, std::move(cmd), &*inserted);
+        return;
+      }
     }
   }
 }

@@ -58,8 +58,10 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pipeline &settings) :
-    QWidget(wm), mLayout(this, true), mWindowMain(wm), mSettings(settings)
+PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pipeline &settings,
+                                             std::shared_ptr<DialogCommandSelection> &commandSelectionDialog) :
+    QWidget(wm),
+    mLayout(this, true), mWindowMain(wm), mSettings(settings), mCommandSelectionDialog(commandSelectionDialog)
 {
   setObjectName("PanelPipelineSettings");
   auto *tab = mLayout.addTab(
@@ -95,8 +97,6 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     col2->addWidgetGroup("Pipeline steps", {scrollArea}, 300, 300);
-
-    mCommandSelectionDialog = std::make_shared<DialogCommandSelection>(mSettings, this, mWindowMain);
 
     // Allow to start with
     mTopAddCommandButton = new AddCommandButtonBase(mCommandSelectionDialog, mSettings, this, nullptr, InOuts::ALL, mWindowMain);
