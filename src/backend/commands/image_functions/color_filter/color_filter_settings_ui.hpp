@@ -30,11 +30,12 @@ class ColorFilter : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE = "Color filter";
-  inline static std::string ICON  = "color";
+  inline static std::string TITLE       = "Color filter";
+  inline static std::string ICON        = "color";
+  inline static std::string DESCRIPTION = "...";
 
   ColorFilter(joda::settings::PipelineStep &pipelineStep, settings::ColorFilterSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::IMAGE}})
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::IMAGE}})
   {
     if(settings.filter.empty()) {
       settings.filter.emplace_back(settings::ColorFilterSettings::Filter{});

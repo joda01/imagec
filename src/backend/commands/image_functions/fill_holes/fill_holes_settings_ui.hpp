@@ -34,11 +34,12 @@ class FillHoles : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE = "Fill holes";
-  inline static std::string ICON  = "fill-color";
+  inline static std::string TITLE       = "Fill holes";
+  inline static std::string ICON        = "fill-color";
+  inline static std::string DESCRIPTION = "...";
 
   FillHoles(joda::settings::PipelineStep &pipelineStep, settings::FillHolesSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}}), mParent(parent)
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}}), mParent(parent)
   {
     auto *modelTab = addTab(
         "Base", [] {}, false);

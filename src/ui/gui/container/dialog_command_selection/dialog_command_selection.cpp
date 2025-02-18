@@ -49,11 +49,21 @@ DialogCommandSelection::DialogCommandSelection(joda::settings::Pipeline &setting
   auto *layout = new QVBoxLayout();
 
   mCommands = new QTableWidget();
-  mCommands->setColumnCount(2);
+  mCommands->setColumnCount(3);
   mCommands->setColumnHidden(0, true);
-  mCommands->setHorizontalHeaderLabels({"", "Command"});
+  mCommands->setHorizontalHeaderLabels({"", "", "Command"});
   mCommands->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
   mCommands->verticalHeader()->setVisible(false);
+  mCommands->horizontalHeader()->setVisible(false);
+  mCommands->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
+  mCommands->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
+  mCommands->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
+  mCommands->setColumnWidth(1, 16);
+  mCommands->setShowGrid(false);
+  mCommands->setStyleSheet("QTableView::item { border-top: 0px solid black; border-bottom: 1px solid gray; }");
+  mCommands->verticalHeader()->setMinimumSectionSize(36);
+  mCommands->verticalHeader()->setDefaultSectionSize(36);
+  // mCommands.setsh
 
   connect(mCommands, &QTableWidget::cellDoubleClicked, [&](int row, int column) {
     // Open results
@@ -196,6 +206,8 @@ void DialogCommandSelection::addTitleToTable(const std::string &title, int posit
   auto *vectorIndex = new QTableWidgetItem();
   vectorIndex->setText("");
   mCommands->setItem(newRow, 0, vectorIndex);
+
+  mCommands->setSpan(newRow, 1, 1, 2);    // Starts at (row 0, column 0) and spans 1 row and 2 columns
 }
 
 int DialogCommandSelection::addCommandToTable(const settings::PipelineStep &step, InOuts outOfStepBefore)
@@ -209,10 +221,16 @@ int DialogCommandSelection::addCommandToTable(const settings::PipelineStep &step
     mCommandList.emplace_back(step);
     int newRow = mCommands->rowCount();
     mCommands->insertRow(newRow);
+    QString text = cmd->getTitle() + "<br/><span style='color:gray;'>Line 2</span>";
+
     // Set the icon in the first column
+    auto *textIcon = new QLabel();
+    textIcon->setText(text);
+    textIcon->setTextFormat(Qt::RichText);
+    mCommands->setCellWidget(newRow, 2, textIcon);
+
     auto *iconItem = new QTableWidgetItem();
     iconItem->setIcon(cmd->getIcon());
-    iconItem->setText(cmd->getTitle());
     iconItem->setFlags(iconItem->flags() & ~Qt::ItemIsEditable);
     mCommands->setItem(newRow, 1, iconItem);
 

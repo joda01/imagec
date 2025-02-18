@@ -27,11 +27,12 @@ class EdgeDetectionCanny : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE = "Canny edge detection";
-  inline static std::string ICON  = "triangle";
+  inline static std::string TITLE       = "Canny edge detection";
+  inline static std::string ICON        = "triangle";
+  inline static std::string DESCRIPTION = "...";
 
   EdgeDetectionCanny(joda::settings::PipelineStep &pipelineStep, settings::EdgeDetectionCannySettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}})
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}})
   {
     //
     //

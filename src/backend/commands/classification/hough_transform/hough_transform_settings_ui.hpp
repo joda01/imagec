@@ -35,11 +35,12 @@ class HoughTransform : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE = "Hough transform";
-  inline static std::string ICON  = "trigonometry";
+  inline static std::string TITLE       = "Hough transform";
+  inline static std::string ICON        = "trigonometry";
+  inline static std::string DESCRIPTION = "...";
 
   HoughTransform(joda::settings::PipelineStep &pipelineStep, settings::HoughTransformSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::OBJECT}}), mParent(parent)
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::OBJECT}}), mParent(parent)
   {
     auto *tab = addTab(
         "", [] {}, false);

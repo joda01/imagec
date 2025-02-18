@@ -34,11 +34,13 @@ class ImageMath : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE = "Image math";
-  inline static std::string ICON  = "ratio";
+  inline static std::string TITLE       = "Image math";
+  inline static std::string ICON        = "ratio";
+  inline static std::string DESCRIPTION = "...";
 
   ImageMath(joda::settings::PipelineStep &pipelineStep, settings::ImageMathSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}}), mParent(parent)
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}}),
+      mParent(parent)
   {
     auto *modelTab = addTab(
         "Base", [] {}, false);

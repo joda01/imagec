@@ -32,11 +32,12 @@ class ImageSaver : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE = "Save control image";
-  inline static std::string ICON  = "image";
+  inline static std::string TITLE       = "Save control image";
+  inline static std::string ICON        = "image";
+  inline static std::string DESCRIPTION = "...";
 
   ImageSaver(joda::settings::PipelineStep &pipelineStep, settings::ImageSaverSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings)
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings)
   {
     auto *tab = addTab(
         "", [] {}, false);

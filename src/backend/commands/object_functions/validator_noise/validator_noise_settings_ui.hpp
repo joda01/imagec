@@ -31,11 +31,12 @@ class NoiseValidator : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE = "Noise filter";
-  inline static std::string ICON  = "sort-by-price";
+  inline static std::string TITLE       = "Noise filter";
+  inline static std::string ICON        = "sort-by-price";
+  inline static std::string DESCRIPTION = "...";
 
   NoiseValidator(joda::settings::PipelineStep &pipelineStep, settings::NoiseValidatorSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}})
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}})
   {
     mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Input class");
     mClassesIn->setValue(settings.inputClasses);

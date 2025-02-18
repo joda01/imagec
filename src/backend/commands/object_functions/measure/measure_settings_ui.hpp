@@ -34,11 +34,13 @@ class Measure : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE = "Measure";
-  inline static std::string ICON  = "length";
+  inline static std::string TITLE       = "Measure";
+  inline static std::string ICON        = "length";
+  inline static std::string DESCRIPTION = "...";
 
   Measure(joda::settings::PipelineStep &pipelineStep, settings::MeasureSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings), mParent(parent)
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings),
+      mParent(parent)
   {
     //
     //

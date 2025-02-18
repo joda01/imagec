@@ -37,8 +37,9 @@ class AiClassifier : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE = "AI Classifier";
-  inline static std::string ICON  = "magic";
+  inline static std::string TITLE       = "AI Classifier";
+  inline static std::string ICON        = "magic";
+  inline static std::string DESCRIPTION = "...";
 
   AiClassifier(joda::settings::PipelineStep &pipelineStep, settings::AiClassifierSettings &settings, QWidget *parent);
 

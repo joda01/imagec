@@ -33,11 +33,13 @@ class Classifier : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE = "Classifier";
-  inline static std::string ICON  = "classify";
+  inline static std::string TITLE       = "Classifier";
+  inline static std::string ICON        = "classify";
+  inline static std::string DESCRIPTION = "...";
 
   Classifier(joda::settings::PipelineStep &pipelineStep, settings::ClassifierSettings &settingsIn, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::OBJECT}}), mSettings(settingsIn), mParent(parent)
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::OBJECT}}), mSettings(settingsIn),
+      mParent(parent)
   {
     this->mutableEditDialog()->setMinimumWidth(600);
     this->mutableEditDialog()->setMinimumHeight(400);

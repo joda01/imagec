@@ -61,7 +61,8 @@ class Command : public QWidget
   Q_OBJECT
 public:
   /////////////////////////////////////////////////////
-  Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &icon, QWidget *parent, InOut type);
+  Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &description, const QString &icon, QWidget *parent,
+          InOut type);
 
   helper::TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose, bool showCloseButton);
   void removeTab(int32_t idx);
@@ -152,6 +153,11 @@ public:
     return mTitle;
   }
 
+  const QString &getDescription()
+  {
+    return mDescription;
+  }
+
   const QIcon &getIcon()
   {
     return mIcon;
@@ -196,6 +202,7 @@ private:
   QAction *mDisabled;
   QWidget *mParent;
   QString mTitle;
+  QString mDescription;
   QIcon mIcon;
   QWidget mEditView;
   helper::LayoutGenerator mLayout;
