@@ -195,17 +195,13 @@ void Starter::exec(int argc, char *argv[])
     startUi(app, splash);
   }
 
-  std::cout << "Stop" << std::endl;
   QApplication::exec();
-  std::cout << "Stop 1" << std::endl;
 
   if(initFuture->joinable()) {
     initFuture->join();
   }
-  std::cout << "Stop 2" << std::endl;
 
   joda::image::reader::ImageReader::destroy();
-  std::cout << "Stop 3" << std::endl;
 }
 
 ///
@@ -258,7 +254,8 @@ auto Starter::initApplication() -> std::shared_ptr<std::thread>
   joda::log::logInfo("JVM reserved RAM " + std::to_string(jvmReservedRam) + " MB.");
 
   std::shared_ptr<std::thread> initJVMThread =
-      std::make_shared<std::thread>([ram = systemRecourses.ramReservedForJVM] { joda::image::reader::ImageReader::init(ram); });
+      std::make_shared<std::thread>([ram = systemRecourses.ramReservedForJVM] { /* joda::image::reader::ImageReader::init(ram); */ });
+  joda::image::reader::ImageReader::init(systemRecourses.ramReservedForJVM);
 
   // Register the cleanup function
   if(atexit(cleanup) != 0) {
