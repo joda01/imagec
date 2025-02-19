@@ -13,13 +13,14 @@
 #include "dialog_command_selection.hpp"
 #include <qboxlayout.h>
 #include <qdialog.h>
+#include <qlineedit.h>
 #include <qtablewidget.h>
 #include <memory>
 #include <string>
+#include "backend/commands/classification/hough_transform/hough_transform_settings.hpp"
 #include "backend/commands/image_functions/blur/blur_settings.hpp"
 #include "backend/commands/image_functions/blur/blur_settings_ui.hpp"
 #include "backend/commands/image_functions/fill_holes/fill_holes_settings.hpp"
-#include "backend/commands/image_functions/hough_transform/hough_transform_settings.hpp"
 #include "backend/commands/image_functions/image_math/image_math_settings.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/commands/image_functions/morphological_transformation/morphological_transformation_settings.hpp"
@@ -41,19 +42,30 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-DialogCommandSelection::DialogCommandSelection(joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineStepSettingsUi,
-                                               const settings::PipelineStep *pipelineStepBefore, InOuts outOfStepBefore, WindowMain *parent) :
-    QDialog(parent),
-    mParent(parent), mPipelineStepBefore(pipelineStepBefore), mSettings(settings), pipelineStepSettingsUi(pipelineStepSettingsUi)
+DialogCommandSelection::DialogCommandSelection(WindowMain *parent) : QDialog(parent), mParent(parent)
 {
-  auto *layout = new QVBoxLayout();
+  mSearch = new QLineEdit();
+  mSearch->setPlaceholderText("Search...");
+  connect(mSearch, &QLineEdit::textChanged, [this]() { filterCommands({mSearch->text(), mOutOfStepBefore}); });
 
   mCommands = new QTableWidget();
-  mCommands->setColumnCount(2);
+  mCommands->setColumnCount(3);
   mCommands->setColumnHidden(0, true);
-  mCommands->setHorizontalHeaderLabels({"", "Command"});
+  mCommands->setHorizontalHeaderLabels({"", "", "Command"});
   mCommands->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
   mCommands->verticalHeader()->setVisible(false);
+  mCommands->horizontalHeader()->setVisible(false);
+  mCommands->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
+  mCommands->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
+  mCommands->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
+  mCommands->setColumnWidth(1, 16);
+  mCommands->setShowGrid(false);
+  mCommands->setStyleSheet("QTableView::item { border-top: 0px solid black; border-bottom: 1px solid gray; }");
+  mCommands->verticalHeader()->setMinimumSectionSize(36);
+  mCommands->verticalHeader()->setDefaultSectionSize(36);
+  mCommands->installEventFilter(this);
+
+  // mCommands.setsh
 
   connect(mCommands, &QTableWidget::cellDoubleClicked, [&](int row, int column) {
     // Open results
@@ -64,11 +76,46 @@ DialogCommandSelection::DialogCommandSelection(joda::settings::Pipeline &setting
     close();
   });
 
+  //
+  auto *layout = new QVBoxLayout();
+  layout->addWidget(mSearch);
   layout->addWidget(mCommands);
-  addCommandsToTable(outOfStepBefore);
   setLayout(layout);
   setMinimumHeight(600);
   setMinimumWidth(500);
+
+  /// \todo Put this to a thread
+  addCommandsToTable();
+  // std::thread([this]() { addCommandsToTable(); }).detach();
+}
+
+///
+/// \brief      Start search when typing within the table
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+bool DialogCommandSelection::eventFilter(QObject *obj, QEvent *event)
+{
+  if(obj == mCommands && event->type() == QEvent::KeyPress) {
+    auto *keyEvent = static_cast<QKeyEvent *>(event);
+    mSearch->setText(keyEvent->text());
+    mSearch->setFocus();
+  }
+  // Standard event processing
+  return QObject::eventFilter(obj, event);
+}
+
+void DialogCommandSelection::show(const settings::PipelineStep *pipelineStepBefore, InOuts outOfStepBefore, joda::settings::Pipeline *settings,
+                                  PanelPipelineSettings *pipelineStepSettingsUi)
+{
+  mSettings               = settings;
+  mPipelineStepSettingsUi = pipelineStepSettingsUi;
+  mOutOfStepBefore        = outOfStepBefore;
+  mPipelineStepBefore     = pipelineStepBefore;
+  filterCommands({mSearch->text(), outOfStepBefore});
+  exec();
 }
 
 ///
@@ -83,6 +130,10 @@ std::unique_ptr<joda::ui::gui::Command> DialogCommandSelection::generateCommand(
   return std::move(joda::settings::PipelineFactory<joda::ui::gui::Command>::generate(step, mParent));
 }
 
+void assignLabels()
+{
+}
+
 ///
 /// \brief
 /// \author
@@ -90,96 +141,74 @@ std::unique_ptr<joda::ui::gui::Command> DialogCommandSelection::generateCommand(
 /// \param[out]
 /// \return
 ///
-void DialogCommandSelection::addCommandsToTable(InOuts outOfStepBefore)
+void DialogCommandSelection::addCommandsToTable()
 {
   mCommands->setRowCount(0);
   {
-    int inserted = 0;
-    inserted += addCommandToTable(settings::PipelineStep{.$colorFilter = settings::ColorFilterSettings{}}, outOfStepBefore);
-    inserted += addCommandToTable(settings::PipelineStep{.$crop = settings::MarginCropSettings{}}, outOfStepBefore);
-    inserted += addCommandToTable(settings::PipelineStep{.$blur = settings::BlurSettings{}}, outOfStepBefore);
-    inserted += addCommandToTable(settings::PipelineStep{.$intensityTransform = settings::IntensityTransformationSettings{}}, outOfStepBefore);
-    inserted += addCommandToTable(settings::PipelineStep{.$rollingBall = settings::RollingBallSettings{}}, outOfStepBefore);
-    inserted += addCommandToTable(settings::PipelineStep{.$medianSubtract = settings::MedianSubtractSettings{}}, outOfStepBefore);
-    inserted += addCommandToTable(settings::PipelineStep{.$edgeDetection = settings::EdgeDetectionSettings{}}, outOfStepBefore);
-    inserted += addCommandToTable(settings::PipelineStep{.$imageMath = settings::ImageMathSettings{}}, outOfStepBefore);
-    inserted += addCommandToTable(settings::PipelineStep{.$imageToCache = settings::ImageCacheSettings{}}, outOfStepBefore);
-
-    if(inserted > 0) {
-      // Only insert title if at least one element has been added
-      addTitleToTable("Image Processing", inserted);
-    }
+    addTitleToTable("Image Processing", Group::IMAGE_PROCESSING);
+    addCommandToTable(settings::PipelineStep{.$colorFilter = settings::ColorFilterSettings{}}, Group::IMAGE_PROCESSING);
+    addCommandToTable(settings::PipelineStep{.$crop = settings::MarginCropSettings{}}, Group::IMAGE_PROCESSING);
+    addCommandToTable(settings::PipelineStep{.$blur = settings::BlurSettings{}}, Group::IMAGE_PROCESSING);
+    addCommandToTable(settings::PipelineStep{.$intensityTransform = settings::IntensityTransformationSettings{}}, Group::IMAGE_PROCESSING);
+    addCommandToTable(settings::PipelineStep{.$rollingBall = settings::RollingBallSettings{}}, Group::IMAGE_PROCESSING);
+    addCommandToTable(settings::PipelineStep{.$medianSubtract = settings::MedianSubtractSettings{}}, Group::IMAGE_PROCESSING);
+    addCommandToTable(settings::PipelineStep{.$sobel = settings::EdgeDetectionSobelSettings{}}, Group::IMAGE_PROCESSING);
+    addCommandToTable(settings::PipelineStep{.$canny = settings::EdgeDetectionCannySettings{}}, Group::IMAGE_PROCESSING);
+    addCommandToTable(settings::PipelineStep{.$imageMath = settings::ImageMathSettings{}}, Group::IMAGE_PROCESSING);
+    addCommandToTable(settings::PipelineStep{.$imageToCache = settings::ImageCacheSettings{}}, Group::IMAGE_PROCESSING);
   }
 
   {
-    int inserted = 0;
-    inserted += addCommandToTable(settings::PipelineStep{.$threshold = settings::ThresholdSettings{}}, outOfStepBefore);
-    inserted += addCommandToTable(settings::PipelineStep{.$watershed = settings::WatershedSettings{}}, outOfStepBefore);
-    inserted += addCommandToTable(settings::PipelineStep{.$morphologicalTransform = settings::MorphologicalTransformSettings{}}, outOfStepBefore);
-    inserted += addCommandToTable(settings::PipelineStep{.$fillHoles = settings::FillHolesSettings{}}, outOfStepBefore);
-    inserted += addCommandToTable(settings::PipelineStep{.$houghTransform = settings::HoughTransformSettings{}}, outOfStepBefore);
-
-    if(inserted > 0) {
-      addTitleToTable("Binary image Processing", inserted);
-    }
+    addTitleToTable("Binary image Processing", Group::BINARY_IMAGE_PROCESSING);
+    addCommandToTable(settings::PipelineStep{.$threshold = settings::ThresholdSettings{}}, Group::BINARY_IMAGE_PROCESSING);
+    addCommandToTable(settings::PipelineStep{.$watershed = settings::WatershedSettings{}}, Group::BINARY_IMAGE_PROCESSING);
+    addCommandToTable(settings::PipelineStep{.$morphologicalTransform = settings::MorphologicalTransformSettings{}}, Group::BINARY_IMAGE_PROCESSING);
+    addCommandToTable(settings::PipelineStep{.$fillHoles = settings::FillHolesSettings{}}, Group::BINARY_IMAGE_PROCESSING);
   }
 
   {
     settings::ClassifierSettings defaultClassify;
     defaultClassify.modelClasses = {{.modelClassId = 65535}};
-    int inserted                 = 0;
-    inserted += addCommandToTable(settings::PipelineStep{.$classify = defaultClassify}, outOfStepBefore);
-    inserted += addCommandToTable(settings::PipelineStep{.$aiClassify = settings::AiClassifierSettings{}}, outOfStepBefore);
-    if(inserted > 0) {
-      addTitleToTable("Classification", inserted);
-    }
+    addTitleToTable("Classification", Group::CLASSIFICATION);
+    addCommandToTable(settings::PipelineStep{.$classify = defaultClassify}, Group::CLASSIFICATION);
+    addCommandToTable(settings::PipelineStep{.$aiClassify = settings::AiClassifierSettings{}}, Group::CLASSIFICATION);
+    addCommandToTable(settings::PipelineStep{.$houghTransform = settings::HoughTransformSettings{}}, Group::CLASSIFICATION);
   }
 
   {
-    int inserted = 0;
-    inserted += addCommandToTable(settings::PipelineStep{.$voronoi = settings::VoronoiGridSettings{}}, outOfStepBefore);
-    inserted += addCommandToTable(settings::PipelineStep{.$reclassify = settings::ReclassifySettings{}}, outOfStepBefore);
-    inserted += addCommandToTable(settings::PipelineStep{.$objectsToImage = settings::ObjectsToImageSettings{}}, outOfStepBefore);
-    inserted += addCommandToTable(settings::PipelineStep{.$objectTransform = settings::ObjectTransformSettings{}}, outOfStepBefore);
-    if(inserted > 0) {
-      addTitleToTable("Object Processing", inserted);
-    }
+    addTitleToTable("Object Processing", Group::OBJECT_PROCESSING);
+    addCommandToTable(settings::PipelineStep{.$voronoi = settings::VoronoiGridSettings{}}, Group::OBJECT_PROCESSING);
+    addCommandToTable(settings::PipelineStep{.$reclassify = settings::ReclassifySettings{}}, Group::OBJECT_PROCESSING);
+    addCommandToTable(settings::PipelineStep{.$objectsToImage = settings::ObjectsToImageSettings{}}, Group::OBJECT_PROCESSING);
+    addCommandToTable(settings::PipelineStep{.$objectTransform = settings::ObjectTransformSettings{}}, Group::OBJECT_PROCESSING);
   }
 
   {
-    int inserted = 0;
-    inserted += addCommandToTable(settings::PipelineStep{.$colocalization = settings::ColocalizationSettings{}}, outOfStepBefore);
-    inserted += addCommandToTable(settings::PipelineStep{.$measure = settings::MeasureSettings{}}, outOfStepBefore);
-    if(inserted > 0) {
-      addTitleToTable("Measurement", inserted);
-    }
+    addTitleToTable("Measurement", Group::MEASUREMENT);
+    addCommandToTable(settings::PipelineStep{.$colocalization = settings::ColocalizationSettings{}}, Group::MEASUREMENT);
+    addCommandToTable(settings::PipelineStep{.$measure = settings::MeasureSettings{}}, Group::MEASUREMENT);
   }
 
   {
-    int inserted = 0;
-    inserted += addCommandToTable(settings::PipelineStep{.$thresholdValidator = settings::ThresholdValidatorSettings{}}, outOfStepBefore);
-    inserted += addCommandToTable(settings::PipelineStep{.$noiseValidator = settings::NoiseValidatorSettings{}}, outOfStepBefore);
-    if(inserted > 0) {
-      addTitleToTable("Filtering", inserted);
-    }
+    addTitleToTable("Filtering", Group::FILTERING);
+    addCommandToTable(settings::PipelineStep{.$thresholdValidator = settings::ThresholdValidatorSettings{}}, Group::FILTERING);
+    addCommandToTable(settings::PipelineStep{.$noiseValidator = settings::NoiseValidatorSettings{}}, Group::FILTERING);
   }
 
   {
-    int inserted = 0;
-    inserted += addCommandToTable(settings::PipelineStep{.$saveImage = settings::ImageSaverSettings{}}, outOfStepBefore);
-    inserted += addCommandToTable(settings::PipelineStep{.$imageFromClass = settings::ImageFromClassSettings{}}, outOfStepBefore);
-    if(inserted > 0) {
-      addTitleToTable("Output", inserted);
-    }
+    addTitleToTable("Output", Group::OUTPUT);
+    addCommandToTable(settings::PipelineStep{.$saveImage = settings::ImageSaverSettings{}}, Group::OUTPUT);
+    addCommandToTable(settings::PipelineStep{.$imageFromClass = settings::ImageFromClassSettings{}}, Group::OUTPUT);
   }
 }
 
-void DialogCommandSelection::addTitleToTable(const std::string &title, int position)
+void DialogCommandSelection::addTitleToTable(const std::string &title, Group group)
 {
-  int newRow = mCommands->rowCount() - position;
+  int newRow = mCommands->rowCount();
   if(newRow < 0) {
     newRow = 0;
   }
+  mTitleINdex.emplace(group, newRow);
   mCommands->insertRow(newRow);
   auto *iconItem = new QTableWidgetItem();
   iconItem->setFlags(iconItem->flags() & ~Qt::ItemIsSelectable);
@@ -195,23 +224,30 @@ void DialogCommandSelection::addTitleToTable(const std::string &title, int posit
   auto *vectorIndex = new QTableWidgetItem();
   vectorIndex->setText("");
   mCommands->setItem(newRow, 0, vectorIndex);
+
+  mCommands->setSpan(newRow, 1, 1, 2);    // Starts at (row 0, column 0) and spans 1 row and 2 columns
 }
 
-int DialogCommandSelection::addCommandToTable(const settings::PipelineStep &step, InOuts outOfStepBefore)
+int DialogCommandSelection::addCommandToTable(const settings::PipelineStep &step, Group group)
 {
   std::unique_ptr<joda::ui::gui::Command> cmd = joda::settings::PipelineFactory<joda::ui::gui::Command>::generate(step, nullptr);
   if(cmd != nullptr) {
-    // Add only commands which are allowed to add
-    if(outOfStepBefore != InOuts::ALL && !cmd->getInOut().in.contains(outOfStepBefore)) {
-      return 0;
-    }
-    mCommandList.emplace_back(step);
+    mCommandList.emplace_back(
+        CommandListEntry{step, cmd->getInOut(), cmd->getTitle().toLower(), cmd->getDescription().toLower(), group, cmd->getTags()});
     int newRow = mCommands->rowCount();
+    mCommandIndexMap.emplace(mCommandList.size() - 1, newRow);
     mCommands->insertRow(newRow);
+
+    QString text = cmd->getTitle() + "<br/><span style='color:gray;'><i>" + cmd->getDescription() + "</i></span>";
+
     // Set the icon in the first column
+    auto *textIcon = new QLabel();
+    textIcon->setText(text);
+    textIcon->setTextFormat(Qt::RichText);
+    mCommands->setCellWidget(newRow, 2, textIcon);
+
     auto *iconItem = new QTableWidgetItem();
     iconItem->setIcon(cmd->getIcon());
-    iconItem->setText(cmd->getTitle());
     iconItem->setFlags(iconItem->flags() & ~Qt::ItemIsEditable);
     mCommands->setItem(newRow, 1, iconItem);
 
@@ -224,30 +260,63 @@ int DialogCommandSelection::addCommandToTable(const settings::PipelineStep &step
   return 0;
 }
 
-void DialogCommandSelection::addNewCommand(int commandListIdx)
+void DialogCommandSelection::filterCommands(const CommandTableFilter &filter)
 {
-  if(mPipelineStepBefore == nullptr) {
-    auto inserted                               = mSettings.pipelineSteps.insert(mSettings.pipelineSteps.begin(), mCommandList[commandListIdx]);
-    std::unique_ptr<joda::ui::gui::Command> cmd = joda::settings::PipelineFactory<joda::ui::gui::Command>::generate(*inserted, mParent);
-    pipelineStepSettingsUi->insertNewPipelineStep(0, std::move(cmd), &*inserted);
-    return;
+  auto searchTexts = filter.searchText.toLower();
+  std::set<Group> groups;
+  for(int32_t n = 0; n < mCommandList.size(); n++) {
+    const auto &command = mCommandList.at(n);
+    int32_t tableIndex  = mCommandIndexMap.at(n);
+    if(filter.outOfStepBefore != InOuts::ALL && !command.inOuts.in.contains(filter.outOfStepBefore)) {
+      mCommands->setRowHidden(tableIndex, true);
+    } else if(command.name.contains(searchTexts) || command.description.contains(searchTexts)) {
+      // Enable
+      groups.emplace(command.group);
+      mCommands->setRowHidden(tableIndex, false);
+    } else {
+      bool found = false;
+      for(const auto &tag : command.tags) {
+        QString sTag(tag.data());
+        if(sTag.contains(searchTexts)) {
+          found = true;
+          break;
+        }
+      }
+      // Disable
+      mCommands->setRowHidden(tableIndex, !found);
+    }
   }
 
-  int posInserted = 0;
-  for(auto it = mSettings.pipelineSteps.begin(); it != mSettings.pipelineSteps.end(); ++it) {
-    posInserted++;
-    if(&*it == mPipelineStepBefore) {
-      const auto &inserted                        = mSettings.pipelineSteps.insert(std::next(it), mCommandList[commandListIdx]);
-      std::unique_ptr<joda::ui::gui::Command> cmd = joda::settings::PipelineFactory<joda::ui::gui::Command>::generate(*inserted, mParent);
-      pipelineStepSettingsUi->insertNewPipelineStep(posInserted, std::move(cmd), &*inserted);
-      return;
+  for(int32_t n = 0; n < static_cast<int32_t>(Group::LAST_GROUP); n++) {
+    int32_t tableIndex = mTitleINdex.at(static_cast<Group>(n));
+    if(groups.contains(static_cast<Group>(n))) {
+      mCommands->setRowHidden(tableIndex, false);
+    } else {
+      mCommands->setRowHidden(tableIndex, true);
     }
   }
 }
 
-void DialogCommandSelection::setInOutBefore(InOuts inout)
+void DialogCommandSelection::addNewCommand(int commandListIdx)
 {
-  addCommandsToTable(inout);
+  if(mPipelineStepBefore == nullptr && mSettings != nullptr) {
+    auto inserted = mSettings->pipelineSteps.insert(mSettings->pipelineSteps.begin(), mCommandList[commandListIdx].pipelineStep);
+    std::unique_ptr<joda::ui::gui::Command> cmd = joda::settings::PipelineFactory<joda::ui::gui::Command>::generate(*inserted, mParent);
+    mPipelineStepSettingsUi->insertNewPipelineStep(0, std::move(cmd), &*inserted);
+    return;
+  }
+  if(mSettings != nullptr) {
+    int posInserted = 0;
+    for(auto it = mSettings->pipelineSteps.begin(); it != mSettings->pipelineSteps.end(); ++it) {
+      posInserted++;
+      if(&*it == mPipelineStepBefore) {
+        const auto &inserted                        = mSettings->pipelineSteps.insert(std::next(it), mCommandList[commandListIdx].pipelineStep);
+        std::unique_ptr<joda::ui::gui::Command> cmd = joda::settings::PipelineFactory<joda::ui::gui::Command>::generate(*inserted, mParent);
+        mPipelineStepSettingsUi->insertNewPipelineStep(posInserted, std::move(cmd), &*inserted);
+        return;
+      }
+    }
+  }
 }
 
 }    // namespace joda::ui::gui

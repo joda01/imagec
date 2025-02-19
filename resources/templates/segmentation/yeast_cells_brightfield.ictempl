@@ -33,9 +33,8 @@
       "disabled": false
     },
     {
-      "$edgeDetection": {
+      "$canny": {
         "kernelSize": 3,
-        "mode": "Canny",
         "thresholdMax": 60,
         "thresholdMin": 5
       },
@@ -64,13 +63,15 @@
     },
     {
       "$houghTransform": {
-        "maxCircleRadius": 40,
-        "minCircleDistance": 30,
-        "minCircleRadius": 0,
-        "mode": "CircleTransform",
+        "shape": "Circle",
         "outputClass": "M01",
-        "param01": 150.0,
-        "param02": 50.0
+        "circleProperties":{
+          "param01": 150.0,
+          "param02": 50.0,
+          "maxCircleRadius": 40,
+          "minCircleDistance": 30,
+          "minCircleRadius": 0
+        }
       },
       "disabled": false
     },

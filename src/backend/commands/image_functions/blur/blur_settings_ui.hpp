@@ -27,11 +27,13 @@ class Blur : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE = "Blur";
-  inline static std::string ICON  = "blur";
+  inline static std::string TITLE             = "Blur";
+  inline static std::string ICON              = "blur";
+  inline static std::string DESCRIPTION       = "Reduce noise within the image";
+  inline static std::vector<std::string> TAGS = {"blur", "gaussian", "noise reduction", "noise"};
 
   Blur(joda::settings::PipelineStep &pipelineStep, settings::BlurSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}})
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}})
   {
     //
     //
@@ -46,7 +48,6 @@ public:
     mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, generateIcon("matrix"), "Kernel size");
     mKernelSize->addOptions({{-1, "Off"},
                              {3, "3x3"},
-                             {4, "4x4"},
                              {5, "5x5"},
                              {7, "7x7"},
                              {9, "9x9"},

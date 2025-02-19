@@ -26,11 +26,13 @@ class Watershed : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE = "Watershed";
-  inline static std::string ICON  = "split";
+  inline static std::string TITLE             = "Watershed";
+  inline static std::string ICON              = "split";
+  inline static std::string DESCRIPTION       = "Trys to separate clustered objects.";
+  inline static std::vector<std::string> TAGS = {"watershed", "object separation", "separation"};
 
   Watershed(joda::settings::PipelineStep &pipelineStep, settings::WatershedSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}})
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}})
   {
     mFindTolerance = SettingBase::create<SettingComboBox<float>>(parent, generateIcon("split"), "Find tolerance");
     mFindTolerance->addOptions({

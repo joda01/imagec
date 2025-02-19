@@ -34,11 +34,14 @@ class Reclassify : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE = "Reclassify";
-  inline static std::string ICON  = "move-right";
+  inline static std::string TITLE             = "Reclassify";
+  inline static std::string ICON              = "move-right";
+  inline static std::string DESCRIPTION       = "Change the classification of objects based on different parameters.";
+  inline static std::vector<std::string> TAGS = {"classification", "reclassify", "colocalization", "coloc"};
 
   Reclassify(joda::settings::PipelineStep &pipelineStep, settings::ReclassifySettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings), mParent(parent)
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings),
+      mParent(parent)
   {
     auto *modelTab = addTab(
         "Base", [] {}, false);

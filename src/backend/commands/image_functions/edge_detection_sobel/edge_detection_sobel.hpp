@@ -1,5 +1,5 @@
 ///
-/// \file      edge_detection.hpp
+/// \file      edge_detection_sobel.hpp
 /// \author    Joachim Danmayr
 /// \date      2023-07-02
 ///
@@ -16,7 +16,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/opencv.hpp>
-#include "edge_detection_settings.hpp"
+#include "edge_detection_sobel_settings.hpp"
 
 namespace joda::cmd {
 
@@ -25,26 +25,19 @@ namespace joda::cmd {
 /// \author     Joachim Danmayr
 /// \brief      Base class for an image processing function
 ///
-class EdgeDetection : public Command
+class EdgeDetectionSobel : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  explicit EdgeDetection(const joda::settings::EdgeDetectionSettings &settings) : mSetting(settings)
+  explicit EdgeDetectionSobel(const joda::settings::EdgeDetectionSobelSettings &settings) : mSetting(settings)
   {
   }
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
-    switch(mSetting.mode) {
-      case joda::settings::EdgeDetectionSettings::Mode::CANNY:
-        canny(image);
-        break;
-      case joda::settings::EdgeDetectionSettings::Mode::SOBEL:
-        // cv::Sobel(image, image, CV_16UC1, 1, 1, K_SIZE);
-        filter3x3(image);
-        break;
-
-      default:
-        break;
+    if(mSetting.kernelSize > -1) {
+      sobel(image);
+    } else {
+      filter3x3(image);
     }
   }
 
@@ -52,10 +45,10 @@ private:
   /////////////////////////////////////////////////////
   static constexpr int K_SIZE = 3;
   void filter3x3(cv::Mat &image) const;
-  void canny(cv::Mat &image) const;
+  void sobel(cv::Mat &image) const;
 
   /////////////////////////////////////////////////////
-  const joda::settings::EdgeDetectionSettings &mSetting;
+  const joda::settings::EdgeDetectionSobelSettings &mSetting;
 };
 
 }    // namespace joda::cmd

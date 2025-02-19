@@ -18,6 +18,7 @@
 #include <qwidget.h>
 #include <QtWidgets>
 #include <memory>
+#include <mutex>
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 
@@ -27,6 +28,7 @@ namespace joda::ui::gui {
 
 class WindowMain;
 class PanelPipelineSettings;
+class DialogCommandSelection;
 
 ///
 /// \class
@@ -54,6 +56,7 @@ private:
   std::map<std::unique_ptr<PanelPipelineSettings>, void *> mChannels;    // The second value is the pointer to the array entry in the AnalyzeSettings
   WindowMain *mWindowMain;
   joda::settings::AnalyzeSettings &mAnalyzeSettings;
+  std::shared_ptr<DialogCommandSelection> mCommandSelectionDialog;
 
 private slots:
   void dropFinishedEvent();

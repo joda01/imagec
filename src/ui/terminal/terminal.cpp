@@ -18,6 +18,7 @@
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/random_name_generator.hpp"
+#include "backend/settings/settings.hpp"
 #include "controller/controller.hpp"
 
 namespace joda::ui::terminal {
@@ -50,9 +51,7 @@ void Terminal::startAnalyze(const std::filesystem::path &pathToSettingsFile, std
   // Open settings file
   // ==========================
   try {
-    std::ifstream ifs(pathToSettingsFile.string());
-    analyzeSettings = nlohmann::json::parse(ifs);
-    ifs.close();
+    analyzeSettings = joda::settings::Settings::openSettings(pathToSettingsFile);
   } catch(const std::exception &ex) {
     joda::log::logError("Could not load settings file >" + std::string(ex.what()) + "<!");
     std::exit(1);

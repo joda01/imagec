@@ -16,12 +16,13 @@
 #include <memory>
 #include "backend/commands/classification/ai_classifier/ai_classifier_settings.hpp"
 #include "backend/commands/classification/classifier/classifier_settings.hpp"
+#include "backend/commands/classification/hough_transform/hough_transform_settings.hpp"
 #include "backend/commands/classification/reclassify/reclassify_settings.hpp"
 #include "backend/commands/image_functions/blur/blur_settings.hpp"
 #include "backend/commands/image_functions/color_filter/color_filter_settings.hpp"
-#include "backend/commands/image_functions/edge_detection/edge_detection_settings.hpp"
+#include "backend/commands/image_functions/edge_detection_canny/edge_detection_canny_settings.hpp"
+#include "backend/commands/image_functions/edge_detection_sobel/edge_detection_sobel_settings.hpp"
 #include "backend/commands/image_functions/fill_holes/fill_holes_settings.hpp"
-#include "backend/commands/image_functions/hough_transform/hough_transform_settings.hpp"
 #include "backend/commands/image_functions/image_cache/image_cache_settings.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class_settings.hpp"
 #include "backend/commands/image_functions/image_math/image_math_settings.hpp"
@@ -72,7 +73,8 @@ public:
   std::optional<MeasureSettings> $measure                               = std::nullopt;
   std::optional<RollingBallSettings> $rollingBall                       = std::nullopt;
   std::optional<MedianSubtractSettings> $medianSubtract                 = std::nullopt;
-  std::optional<EdgeDetectionSettings> $edgeDetection                   = std::nullopt;
+  std::optional<EdgeDetectionSobelSettings> $sobel                      = std::nullopt;
+  std::optional<EdgeDetectionCannySettings> $canny                      = std::nullopt;
   std::optional<MarginCropSettings> $crop                               = std::nullopt;
   std::optional<VoronoiGridSettings> $voronoi                           = std::nullopt;
   std::optional<ThresholdValidatorSettings> $thresholdValidator         = std::nullopt;
@@ -91,8 +93,8 @@ public:
   void check() const;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineStep, $blur, $saveImage, $threshold, $watershed, $imageFromClass, $classify,
-                                                       $aiClassify, $colocalization, $reclassify, $measure, $rollingBall, $medianSubtract,
-                                                       $edgeDetection, $crop, $voronoi, $thresholdValidator, $noiseValidator, $intensityTransform,
+                                                       $aiClassify, $colocalization, $reclassify, $measure, $rollingBall, $medianSubtract, $sobel,
+                                                       $canny, $crop, $voronoi, $thresholdValidator, $noiseValidator, $intensityTransform,
                                                        $colorFilter, $objectsToImage, $imageMath, $objectTransform, $imageToCache,
                                                        $morphologicalTransform, $fillHoles, $houghTransform, disabled);
 };

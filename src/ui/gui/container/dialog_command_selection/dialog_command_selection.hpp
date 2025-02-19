@@ -37,26 +37,62 @@ class DialogCommandSelection : public QDialog
 {
 public:
   /////////////////////////////////////////////////////
-  DialogCommandSelection(joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineStepSettingsUi,
-                         const settings::PipelineStep *pipelineStepBefore, InOuts outOfStepBefore, WindowMain *parent);
+  DialogCommandSelection(WindowMain *parent);
 
-  void setInOutBefore(InOuts inout);
+  void show(const settings::PipelineStep *pipelineStepBefore, InOuts outOfStepBefore, joda::settings::Pipeline *settings,
+            PanelPipelineSettings *pipelineStepSettingsUi);
 
 private:
-  /////////////////////////////////////////////////////
-  void addNewCommand(int commandListIdx);
-  void addTitleToTable(const std::string &title, int position);
-  void addCommandsToTable(InOuts outOfStepBefore);
-  int addCommandToTable(const settings::PipelineStep &step, InOuts outOfStepBefore);
-  std::unique_ptr<joda::ui::gui::Command> generateCommand(const settings::PipelineStep &step);
+  enum class Group
+  {
+    IMAGE_PROCESSING        = 0,
+    BINARY_IMAGE_PROCESSING = 1,
+    CLASSIFICATION          = 2,
+    OBJECT_PROCESSING       = 3,
+    MEASUREMENT             = 4,
+    FILTERING               = 5,
+    OUTPUT                  = 6,
+    LAST_GROUP              = 7
+  };
 
   /////////////////////////////////////////////////////
+  struct CommandTableFilter
+  {
+    QString searchText;
+    InOuts outOfStepBefore = InOuts::ALL;
+  };
+
+  struct CommandListEntry
+  {
+    settings::PipelineStep pipelineStep;
+    InOut inOuts;
+    QString name;
+    QString description;
+    Group group;
+    std::vector<std::string> tags;
+  };
+
+  /////////////////////////////////////////////////////
+  void addNewCommand(int commandListIdx);
+  void addTitleToTable(const std::string &title, Group group);
+  void addCommandsToTable();
+  int addCommandToTable(const settings::PipelineStep &step, Group group);
+  void filterCommands(const CommandTableFilter &filter);
+  std::unique_ptr<joda::ui::gui::Command> generateCommand(const settings::PipelineStep &step);
+  bool eventFilter(QObject *obj, QEvent *event) override;
+
+  /////////////////////////////////////////////////////
+  QLineEdit *mSearch = nullptr;
   QTableWidget *mCommands;
+  std::vector<CommandListEntry> mCommandList;
+  std::map<int32_t, int32_t> mCommandIndexMap;    // Key is the array index of the command in the mCommandList vector, value the index in the table
+  std::map<Group, int32_t> mTitleINdex;           // Key is the group ID, value the index in the table
+
   WindowMain *mParent;
-  std::vector<settings::PipelineStep> mCommandList;
   const settings::PipelineStep *mPipelineStepBefore = nullptr;
-  joda::settings::Pipeline &mSettings;
-  PanelPipelineSettings *pipelineStepSettingsUi;
+  joda::settings::Pipeline *mSettings               = nullptr;
+  PanelPipelineSettings *mPipelineStepSettingsUi    = nullptr;
+  InOuts mOutOfStepBefore;
 };
 
 }    // namespace joda::ui::gui

@@ -18,6 +18,9 @@
 #include "backend/commands/classification/ai_classifier/ai_classifier_settings_ui.hpp"
 #include "backend/commands/classification/classifier/classifier.hpp"
 #include "backend/commands/classification/classifier/classifier_settings_ui.hpp"
+#include "backend/commands/classification/hough_transform/hough_transform.hpp"
+#include "backend/commands/classification/hough_transform/hough_transform_settings.hpp"
+#include "backend/commands/classification/hough_transform/hough_transform_settings_ui.hpp"
 #include "backend/commands/classification/reclassify/reclassify.hpp"
 #include "backend/commands/classification/reclassify/reclassify_settings.hpp"
 #include "backend/commands/classification/reclassify/reclassify_settings_ui.hpp"
@@ -28,13 +31,12 @@
 #include "backend/commands/image_functions/color_filter/color_filter.hpp"
 #include "backend/commands/image_functions/color_filter/color_filter_settings.hpp"
 #include "backend/commands/image_functions/color_filter/color_filter_settings_ui.hpp"
-#include "backend/commands/image_functions/edge_detection/edge_detection.hpp"
-#include "backend/commands/image_functions/edge_detection/edge_detection_settings_ui.hpp"
+#include "backend/commands/image_functions/edge_detection_canny/edge_detection_canny.hpp"
+#include "backend/commands/image_functions/edge_detection_canny/edge_detection_canny_settings_ui.hpp"
+#include "backend/commands/image_functions/edge_detection_sobel/edge_detection_sobel.hpp"
+#include "backend/commands/image_functions/edge_detection_sobel/edge_detection_sobel_settings_ui.hpp"
 #include "backend/commands/image_functions/fill_holes/fill_holes.hpp"
 #include "backend/commands/image_functions/fill_holes/fill_holes_settings_ui.hpp"
-#include "backend/commands/image_functions/hough_transform/hough_transform.hpp"
-#include "backend/commands/image_functions/hough_transform/hough_transform_settings.hpp"
-#include "backend/commands/image_functions/hough_transform/hough_transform_settings_ui.hpp"
 #include "backend/commands/image_functions/image_cache/image_cache.hpp"
 #include "backend/commands/image_functions/image_cache/image_cache_settings_ui.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class.hpp"
@@ -231,12 +233,21 @@ private:
       }
     }
 
-    if(step.$edgeDetection) {
+    if(step.$sobel) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
-        return std::make_unique<joda::cmd::Factory<joda::cmd::EdgeDetection, EdgeDetectionSettings>>(step.$edgeDetection.value());
+        return std::make_unique<joda::cmd::Factory<joda::cmd::EdgeDetectionSobel, EdgeDetectionSobelSettings>>(step.$sobel.value());
       } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
-        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::EdgeDetection, EdgeDetectionSettings>>(
-            const_cast<settings::PipelineStep &>(step), const_cast<EdgeDetectionSettings &>(step.$edgeDetection.value()), parent));
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::EdgeDetectionSobel, EdgeDetectionSobelSettings>>(
+            const_cast<settings::PipelineStep &>(step), const_cast<EdgeDetectionSobelSettings &>(step.$sobel.value()), parent));
+      }
+    }
+
+    if(step.$canny) {
+      if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
+        return std::make_unique<joda::cmd::Factory<joda::cmd::EdgeDetectionCanny, EdgeDetectionCannySettings>>(step.$canny.value());
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::EdgeDetectionCanny, EdgeDetectionCannySettings>>(
+            const_cast<settings::PipelineStep &>(step), const_cast<EdgeDetectionCannySettings &>(step.$canny.value()), parent));
       }
     }
 

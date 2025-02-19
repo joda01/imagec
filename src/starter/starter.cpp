@@ -15,6 +15,7 @@
 #include <QCommandLineParser>
 #include <QCoreApplication>
 #include <QDebug>
+#include <memory>
 #include <optional>
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/reader/image_reader.hpp"
@@ -26,7 +27,6 @@
 
 void cleanup()
 {
-  joda::image::reader::ImageReader::destroy();
 }
 
 namespace joda::start {
@@ -51,9 +51,13 @@ Starter::Starter()
 ///
 void Starter::exec(int argc, char *argv[])
 {
-  Version::initVersion(std::string(argv[0]));
   // Use QCoreApplication initially to parse command-line arguments
   QApplication app(argc, argv);
+
+  // ======================================
+  // Init application stuff
+  // ======================================
+  Version::initVersion(std::string(argv[0]));
   QApplication::setApplicationName(Version::getProgamName().data());
   QApplication::setApplicationVersion(Version::getVersion().data());
 
@@ -138,10 +142,27 @@ void Starter::exec(int argc, char *argv[])
     initLogger("trace");
   }
 
+  bool runGui = !parser.isSet(runOption) && !parser.isSet(exportData);
+  // ======================================
+  // Show splash screen
+  // ======================================
+  QSplashScreen *splash = nullptr;
+  // if(runGui) {
+  //   QPixmap pixmap(":/icons/icons/icon.png");
+  //   splash = new QSplashScreen(pixmap);
+  //   splash->show();
+  //   QApplication::processEvents();
+  // }
+
   // ===================================
   // Init application
   // ==================================
-  initApplication();
+  auto initFuture = initApplication();
+
+  if(!runGui) {
+    // If we ar not running in GUI mode we have to wait for the init finished before we can start.
+    initFuture->join();
+  }
 
   // ===================================
   // Run analyze
@@ -165,15 +186,22 @@ void Starter::exec(int argc, char *argv[])
     terminal.exportData(parser.value(exportData).toStdString(), parser.value(resultsOutput).toStdString(),
                         parser.value(queryFilterTemplate).toStdString(), parser.value(exportType).toStdString(),
                         parser.value(exportFormat).toStdString(), parser.value(exportView).toStdString(), parser.value(exportFilter).toStdString());
-    exit(0);
   }
 
   // ===================================
   // Start CLI or GUI mode
   // ==================================
-  startUi(app);
+  if(runGui) {
+    startUi(app, splash);
+  }
 
   QApplication::exec();
+
+  if(initFuture->joinable()) {
+    initFuture->join();
+  }
+
+  joda::image::reader::ImageReader::destroy();
 }
 
 ///
@@ -211,7 +239,7 @@ void Starter::initLogger(const std::string &logLevel)
 /// \param[out]
 /// \return
 ///
-void Starter::initApplication()
+auto Starter::initApplication() -> std::shared_ptr<std::thread>
 {
   // ======================================
   // Reserve system resources
@@ -225,6 +253,8 @@ void Starter::initApplication()
   joda::log::logInfo("Usable RAM " + std::to_string(availableRam) + " MB.");
   joda::log::logInfo("JVM reserved RAM " + std::to_string(jvmReservedRam) + " MB.");
 
+  std::shared_ptr<std::thread> initJVMThread =
+      std::make_shared<std::thread>([ram = systemRecourses.ramReservedForJVM] { /* joda::image::reader::ImageReader::init(ram); */ });
   joda::image::reader::ImageReader::init(systemRecourses.ramReservedForJVM);
 
   // Register the cleanup function
@@ -233,6 +263,7 @@ void Starter::initApplication()
     std::exit(1);    // Exit after CLI execution
   }
   mController = new joda::ctrl::Controller();
+  return initJVMThread;
 }
 
 ///
@@ -242,7 +273,7 @@ void Starter::initApplication()
 /// \param[out]
 /// \return
 ///
-void Starter::startUi(QApplication &app)
+void Starter::startUi(QApplication &app, QSplashScreen *splashScreen)
 {
   // ======================================
   // Start UI
@@ -284,6 +315,9 @@ void Starter::startUi(QApplication &app)
 
   app.setStyleSheet(stylesheet);
   mWindowMain = new joda::ui::gui::WindowMain(mController);
+  if(nullptr != splashScreen) {
+    splashScreen->finish(mWindowMain);    // Close the splash screen once done
+  }
   mWindowMain->show();
 }
 

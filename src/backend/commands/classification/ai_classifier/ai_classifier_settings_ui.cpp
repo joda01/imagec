@@ -22,7 +22,8 @@ namespace joda::ui::gui {
 /// \return
 ///
 AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings::AiClassifierSettings &settings, QWidget *parent) :
-    Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::OBJECT}}), mSettings(settings), mParent(parent)
+    Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::OBJECT}}), mSettings(settings),
+    mParent(parent)
 {
   this->mutableEditDialog()->setMinimumWidth(700);
   this->mutableEditDialog()->setMinimumHeight(600);

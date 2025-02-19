@@ -35,6 +35,7 @@ namespace joda::ui::gui {
 class WindowMain;
 class AddCommandButtonBase;
 class PanelClassification;
+class DialogCommandSelection;
 
 class PanelPipelineSettings : public QWidget, public ContainerBase
 {
@@ -47,7 +48,7 @@ signals:
   void updatePreviewFinished();
 
 public:
-  PanelPipelineSettings(WindowMain *wm, joda::settings::Pipeline &settings);
+  PanelPipelineSettings(WindowMain *wm, joda::settings::Pipeline &settings, std::shared_ptr<DialogCommandSelection> &commandSelectionDialog);
   ~PanelPipelineSettings();
 
   void addPipelineStep(std::unique_ptr<joda::ui::gui::Command> command, const settings::PipelineStep *);
@@ -105,6 +106,7 @@ private:
   bool mLoadingSettings                       = false;
   WindowMain *mWindowMain;
   AddCommandButtonBase *mTopAddCommandButton;
+  std::shared_ptr<DialogCommandSelection> mCommandSelectionDialog;
 
   // PIPELINE STEPS //////////////////////////////////////////////////
   QVBoxLayout *mPipelineSteps;

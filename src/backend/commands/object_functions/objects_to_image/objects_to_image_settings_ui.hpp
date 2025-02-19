@@ -35,11 +35,13 @@ class ObjectsToImage : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE = "Objects to binary image";
-  inline static std::string ICON  = "metamorphose";
+  inline static std::string TITLE             = "Objects to binary image";
+  inline static std::string ICON              = "metamorphose";
+  inline static std::string DESCRIPTION       = "Generates a binary image from a set of objects";
+  inline static std::vector<std::string> TAGS = {"binary", "transform", "objects"};
 
   ObjectsToImage(joda::settings::PipelineStep &pipelineStep, settings::ObjectsToImageSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::OBJECT}, InOuts::BINARY}), mParent(parent)
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, InOuts::BINARY}), mParent(parent)
   {
     auto *modelTab = addTab(
         "Base", [] {}, false);

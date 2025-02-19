@@ -342,9 +342,7 @@
       },
       "pipelineSteps": [
         {
-          "$edgeDetection": {
-            "mode": "Sobel"
-          },
+          "$sobel": {},
           "disabled": false
         },
         {

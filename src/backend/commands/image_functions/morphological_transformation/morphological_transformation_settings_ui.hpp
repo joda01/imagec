@@ -34,11 +34,14 @@ class MorphologicalTransform : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE = "Morphological Transform";
-  inline static std::string ICON  = "geometric-flowers";
+  inline static std::string TITLE             = "Morphological Transform";
+  inline static std::string ICON              = "geometric-flowers";
+  inline static std::string DESCRIPTION       = "Simple operations based on the image shape.";
+  inline static std::vector<std::string> TAGS = {"transform", "morphological", "erosion",  "erode",   "dilation",  "dilate",
+                                                 "open",      "close",         "gradient", "top hat", "black hat", "hitmiss"};
 
   MorphologicalTransform(joda::settings::PipelineStep &pipelineStep, settings::MorphologicalTransformSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}}), mParent(parent)
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}}), mParent(parent)
   {
     auto *modelTab = addTab(
         "Base", [] {}, false);
@@ -81,7 +84,6 @@ public:
     mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, generateIcon("matrix"), "Kernel size");
     mKernelSize->addOptions({{-1, "Off"},
                              {3, "3x3"},
-                             {4, "4x4"},
                              {5, "5x5"},
                              {7, "7x7"},
                              {9, "9x9"},

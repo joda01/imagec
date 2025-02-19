@@ -17,9 +17,12 @@
 #include <filesystem>
 #include <iterator>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
+#include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
+#include "ui/gui/container/dialog_command_selection/dialog_command_selection.hpp"
 #include "ui/gui/container/pipeline/panel_channel_overview.hpp"
 #include "ui/gui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/gui/helper/droppable_widget/droppable_widget.hpp"
@@ -52,6 +55,8 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
   setWidgetResizable(true);
 
   connect(mContentWidget, &DroppableWidget::dropFinished, this, &PanelPipeline::dropFinishedEvent);
+
+  mCommandSelectionDialog = std::make_shared<DialogCommandSelection>(mWindowMain);
 }
 
 ///
@@ -130,7 +135,7 @@ void PanelPipeline::addChannel(const joda::settings::Pipeline &settings)
 {
   mAnalyzeSettings.pipelines.push_back(joda::settings::Pipeline{});
   auto &newlyAdded = mAnalyzeSettings.pipelines.back();
-  auto panel1      = std::make_unique<PanelPipelineSettings>(mWindowMain, newlyAdded);
+  auto panel1      = std::make_unique<PanelPipelineSettings>(mWindowMain, newlyAdded, mCommandSelectionDialog);
   panel1->fromSettings(settings);
   panel1->toSettings();
   addElement(std::move(panel1), &newlyAdded);

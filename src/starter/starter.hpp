@@ -13,7 +13,10 @@
 #pragma once
 
 #include <qapplication.h>
+#include <qsplashscreen.h>
+#include <memory>
 #include <string>
+#include <thread>
 
 namespace joda::ctrl {
 class Controller;
@@ -35,8 +38,8 @@ public:
 private:
   /////////////////////////////////////////////////////
   void initLogger(const std::string &logLevel);
-  void initApplication();
-  void startUi(QApplication &app);
+  auto initApplication() -> std::shared_ptr<std::thread>;
+  void startUi(QApplication &app, QSplashScreen *splashScreen);
   void exitWithError(const std::string &what);
 
   ctrl::Controller *mController;
