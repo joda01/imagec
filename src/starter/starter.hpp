@@ -14,7 +14,9 @@
 
 #include <qapplication.h>
 #include <qsplashscreen.h>
+#include <memory>
 #include <string>
+#include <thread>
 
 namespace joda::ctrl {
 class Controller;
@@ -36,7 +38,7 @@ public:
 private:
   /////////////////////////////////////////////////////
   void initLogger(const std::string &logLevel);
-  void initApplication();
+  auto initApplication() -> std::shared_ptr<std::thread>;
   void startUi(QApplication &app, QSplashScreen *splashScreen);
   void exitWithError(const std::string &what);
 

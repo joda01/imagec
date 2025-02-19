@@ -163,24 +163,25 @@ void ImageReader::init(uint64_t reservedRamForVMInBytes)
       std::cout << "JAVA VM ERROR" << std::endl;
       mJVMInitialised = false;
     } else {
-      mJVMInitialised = true;
-
       mBioformatsClass = myGlobEnv->FindClass("BioFormatsWrapper");
       if(mBioformatsClass == NULL) {
         if(myGlobEnv->ExceptionOccurred()) {
           myGlobEnv->ExceptionDescribe();
         }
-        std::cout << "Error: Class not found!" << std::endl;
+        joda::log::logError("Could not found BioFormats class!");
+        exit(7);
       } else {
         mGetImageProperties = myGlobEnv->GetStaticMethodID(mBioformatsClass, "getImageProperties", "(Ljava/lang/String;I)Ljava/lang/String;");
         mReadImage          = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImage", "(Ljava/lang/String;IIIII)[B");
         mReadImageTile      = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImageTile", "(Ljava/lang/String;IIIIIIIII)[B");
         mGetImageInfo       = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImageInfo", "(Ljava/lang/String;II)[I");
+        joda::log::logTrace("JVM initialized!");
+        mJVMInitialised = true;
       }
     }
   } catch(const std::exception &ex) {
-    std::cout << "JAVA VM ERROR: " << ex.what() << std::endl;
-    mJVMInitialised = false;
+    joda::log::logError("JAVA VM ERROR " + std::string(ex.what()));
+    exit(7);
   }
 }
 

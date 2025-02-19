@@ -15,6 +15,7 @@
 #include <QCommandLineParser>
 #include <QCoreApplication>
 #include <QDebug>
+#include <memory>
 #include <optional>
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/reader/image_reader.hpp"
@@ -26,7 +27,6 @@
 
 void cleanup()
 {
-  joda::image::reader::ImageReader::destroy();
 }
 
 namespace joda::start {
@@ -142,21 +142,27 @@ void Starter::exec(int argc, char *argv[])
     initLogger("trace");
   }
 
+  bool runGui = !parser.isSet(runOption) && !parser.isSet(exportData);
   // ======================================
   // Show splash screen
   // ======================================
   QSplashScreen *splash = nullptr;
-  if(!parser.isSet(runOption) && !parser.isSet(exportData)) {
-    QPixmap pixmap(":/icons/icons/icon.png");
-    splash = new QSplashScreen(pixmap);
-    splash->show();
-    QApplication::processEvents();
-  }
+  // if(runGui) {
+  //   QPixmap pixmap(":/icons/icons/icon.png");
+  //   splash = new QSplashScreen(pixmap);
+  //   splash->show();
+  //   QApplication::processEvents();
+  // }
 
   // ===================================
   // Init application
   // ==================================
-  initApplication();
+  auto initFuture = initApplication();
+
+  if(!runGui) {
+    // If we ar not running in GUI mode we have to wait for the init finished before we can start.
+    initFuture->join();
+  }
 
   // ===================================
   // Run analyze
@@ -180,15 +186,26 @@ void Starter::exec(int argc, char *argv[])
     terminal.exportData(parser.value(exportData).toStdString(), parser.value(resultsOutput).toStdString(),
                         parser.value(queryFilterTemplate).toStdString(), parser.value(exportType).toStdString(),
                         parser.value(exportFormat).toStdString(), parser.value(exportView).toStdString(), parser.value(exportFilter).toStdString());
-    exit(0);
   }
 
   // ===================================
   // Start CLI or GUI mode
   // ==================================
-  startUi(app, splash);
+  if(runGui) {
+    startUi(app, splash);
+  }
 
+  std::cout << "Stop" << std::endl;
   QApplication::exec();
+  std::cout << "Stop 1" << std::endl;
+
+  if(initFuture->joinable()) {
+    initFuture->join();
+  }
+  std::cout << "Stop 2" << std::endl;
+
+  joda::image::reader::ImageReader::destroy();
+  std::cout << "Stop 3" << std::endl;
 }
 
 ///
@@ -226,7 +243,7 @@ void Starter::initLogger(const std::string &logLevel)
 /// \param[out]
 /// \return
 ///
-void Starter::initApplication()
+auto Starter::initApplication() -> std::shared_ptr<std::thread>
 {
   // ======================================
   // Reserve system resources
@@ -240,7 +257,8 @@ void Starter::initApplication()
   joda::log::logInfo("Usable RAM " + std::to_string(availableRam) + " MB.");
   joda::log::logInfo("JVM reserved RAM " + std::to_string(jvmReservedRam) + " MB.");
 
-  joda::image::reader::ImageReader::init(systemRecourses.ramReservedForJVM);
+  std::shared_ptr<std::thread> initJVMThread =
+      std::make_shared<std::thread>([ram = systemRecourses.ramReservedForJVM] { joda::image::reader::ImageReader::init(ram); });
 
   // Register the cleanup function
   if(atexit(cleanup) != 0) {
@@ -248,6 +266,7 @@ void Starter::initApplication()
     std::exit(1);    // Exit after CLI execution
   }
   mController = new joda::ctrl::Controller();
+  return initJVMThread;
 }
 
 ///
@@ -299,7 +318,9 @@ void Starter::startUi(QApplication &app, QSplashScreen *splashScreen)
 
   app.setStyleSheet(stylesheet);
   mWindowMain = new joda::ui::gui::WindowMain(mController);
-  splashScreen->finish(mWindowMain);    // Close the splash screen once done
+  if(nullptr != splashScreen) {
+    splashScreen->finish(mWindowMain);    // Close the splash screen once done
+  }
   mWindowMain->show();
 }
 
