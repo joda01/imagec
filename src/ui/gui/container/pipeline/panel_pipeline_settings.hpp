@@ -30,6 +30,8 @@
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/panel_preview.hpp"
 
+class PlaceholderTableWidget;
+
 namespace joda::ui::gui {
 
 class WindowMain;
@@ -89,6 +91,8 @@ private:
   void saveAsTemplate();
   void previewThread();
   void copyPipeline();
+  void updateHistory(const std::string &);
+  void loadHistory();
 
   /////////////////////////////////////////////////////
   helper::LayoutGenerator mLayout;
@@ -111,6 +115,9 @@ private:
   // PIPELINE STEPS //////////////////////////////////////////////////
   QVBoxLayout *mPipelineSteps;
   std::vector<std::shared_ptr<Command>> mCommands;
+
+  // History //////////////////////////////////////////////////
+  PlaceholderTableWidget *mHistory;
 
   /////////////////////////////////////////////////////
   int32_t mLastSelectedPreviewSize = 0;

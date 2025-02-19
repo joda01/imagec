@@ -19,6 +19,7 @@
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qpushbutton.h>
+#include <qtablewidget.h>
 #include <qwidget.h>
 #include <exception>
 #include <filesystem>
@@ -28,6 +29,7 @@
 #include <thread>
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
+#include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/processor/processor.hpp"
 #include "backend/settings/pipeline/pipeline_factory.hpp"
@@ -40,6 +42,7 @@
 #include "ui/gui/container/setting/setting_line_edit.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
+#include "ui/gui/helper/table_widget.hpp"
 #include "ui/gui/helper/template_parser/template_parser.hpp"
 #include "ui/gui/window_main/panel_classification.hpp"
 #include "ui/gui/window_main/panel_project_settings.hpp"
@@ -171,6 +174,8 @@ void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::gui::Comma
 void PanelPipelineSettings::insertNewPipelineStep(int32_t posToInsert, std::unique_ptr<joda::ui::gui::Command> command,
                                                   const settings::PipelineStep *pipelineStepBefore)
 {
+  updateHistory("Added: " + command->getTitle().toStdString());
+
   command->registerDeleteButton(this);
   command->registerAddCommandButton(mCommandSelectionDialog, mSettings, this, mWindowMain);
   connect(command.get(), &joda::ui::gui::Command::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
@@ -203,6 +208,7 @@ void PanelPipelineSettings::insertNewPipelineStep(int32_t posToInsert, std::uniq
 ///
 void PanelPipelineSettings::erasePipelineStep(const Command *toDelete)
 {
+  std::string deletedCommandTitle = toDelete->getTitle().toStdString();
   for(int index = 0; index < mPipelineSteps->count(); index++) {
     if(toDelete == mPipelineSteps->itemAt(index)->widget()) {
       // Delete command widget
@@ -246,6 +252,7 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete)
           }
         }
       }
+      updateHistory("Removed: " + deletedCommandTitle);
       updatePreview();
       mWindowMain->checkForSettingsChanged();
       return;
@@ -326,6 +333,36 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
     col1->addGroup("Pipeline meta", {pipelineName.get()});
     col1->addGroup("Pipeline input", {cStackIndex.get(), zProjection.get(), zStackIndex.get()});
     col1->addGroup("Pipeline output", {defaultClassId.get()});
+
+    mHistory = new PlaceholderTableWidget();
+    mHistory->setPlaceholderText("Change history");
+    mHistory->setColumnCount(1);
+    mHistory->setColumnHidden(0, false);
+    mHistory->setHorizontalHeaderLabels({"Timeline"});
+    mHistory->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    mHistory->verticalHeader()->setVisible(false);
+    mHistory->horizontalHeader()->setVisible(false);
+    mHistory->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
+    mHistory->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
+    mHistory->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
+    mHistory->setShowGrid(false);
+    mHistory->setFrameStyle(QFrame::NoFrame);
+    mHistory->setMaximumWidth(195);
+    mHistory->setColumnWidth(0, 195);
+    // Set transparent background using stylesheet
+    mHistory->setStyleSheet(
+        "QTableWidget {"
+        "   background-color: transparent;"
+        "}"
+        "QHeaderView::section {"
+        "   background-color: transparent;"
+        "   border: none;"
+        "}"
+        "QTableWidget::item {"
+        "   background-color: transparent;"
+        "   border: none;"
+        "}");
+    col1->addWidgetGroup("History", {mHistory}, 220, 220);
   }
 
   mOverview = new PanelChannelOverview(windowMain, this);
@@ -380,11 +417,60 @@ void PanelPipelineSettings::valueChangedEvent()
       qDebug() << "Could not identify sender!";
     }
     */
+  std::cout << "ADD" << std::endl;
+  updateHistory("Changed");
   updatePreview();
 
   QTimer::singleShot(100, this, [this]() {
     isBlocked = false;    // Unblock after 100ms
   });
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::updateHistory(const std::string &text)
+{
+  if(mSettings.createSnapShot(text)) {
+    mHistory->insertRow(0);
+
+    QString textTmp = QString(text.data()) + "<br/><span style='color:gray;'><i>" +
+                      joda::helper::timepointToIsoString(std::chrono::system_clock::now()).data() + "</i></span>";
+    // Set the icon in the first column
+    auto *textIcon = new QLabel();
+    textIcon->setText(textTmp);
+    textIcon->setTextFormat(Qt::RichText);
+    QFont font = textIcon->font();
+    font.setPixelSize(10);
+    textIcon->setFont(font);
+    mHistory->setCellWidget(0, 0, textIcon);
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::loadHistory()
+{
+  return;
+  const auto &history = mSettings.history;
+  mHistory->setRowCount(history.size());
+  int idx = 0;
+  for(const auto &[pipelineStep, title, time] : history) {
+    auto *iconItem = new QTableWidgetItem();
+    iconItem->setText(title.data());
+    iconItem->setFlags(iconItem->flags() & ~Qt::ItemIsEditable);
+    mHistory->setItem(idx, 0, iconItem);
+    idx++;
+  }
 }
 
 ///
@@ -657,6 +743,7 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   mLoadingSettings = false;
 
   updatePreview();
+  loadHistory();
 }
 
 ///
@@ -812,6 +899,7 @@ void PanelPipelineSettings::setActive(bool setActive)
   if(!mIsActiveShown && setActive) {
     mIsActiveShown = true;
     updatePreview();
+    loadHistory();
   }
   if(!setActive && mIsActiveShown) {
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
