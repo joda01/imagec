@@ -16,6 +16,7 @@
 #include <QtWidgets>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/helper/thread_safe_queue.hpp"
@@ -31,6 +32,10 @@
 #include "ui/gui/panel_preview.hpp"
 
 class PlaceholderTableWidget;
+
+namespace joda::settings {
+class PipelineHistoryEntry;
+};
 
 namespace joda::ui::gui {
 
@@ -93,6 +98,7 @@ private:
   void copyPipeline();
   void updateHistory(const std::string &);
   void loadHistory();
+  static auto generateHistoryEntry(const std::optional<joda::settings::PipelineHistoryEntry> &) -> QLabel *;
 
   /////////////////////////////////////////////////////
   helper::LayoutGenerator mLayout;

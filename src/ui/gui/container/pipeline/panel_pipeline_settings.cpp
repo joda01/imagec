@@ -349,6 +349,7 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
     mHistory->setFrameStyle(QFrame::NoFrame);
     mHistory->setMaximumWidth(195);
     mHistory->setColumnWidth(0, 195);
+    mHistory->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     // Set transparent background using stylesheet
     mHistory->setStyleSheet(
         "QTableWidget {"
@@ -435,19 +436,10 @@ void PanelPipelineSettings::valueChangedEvent()
 ///
 void PanelPipelineSettings::updateHistory(const std::string &text)
 {
-  if(mSettings.createSnapShot(text)) {
+  auto entry = mSettings.createSnapShot(text);
+  if(entry.has_value()) {
     mHistory->insertRow(0);
-
-    QString textTmp = QString(text.data()) + "<br/><span style='color:gray;'><i>" +
-                      joda::helper::timepointToIsoString(std::chrono::system_clock::now()).data() + "</i></span>";
-    // Set the icon in the first column
-    auto *textIcon = new QLabel();
-    textIcon->setText(textTmp);
-    textIcon->setTextFormat(Qt::RichText);
-    QFont font = textIcon->font();
-    font.setPixelSize(10);
-    textIcon->setFont(font);
-    mHistory->setCellWidget(0, 0, textIcon);
+    mHistory->setCellWidget(0, 0, generateHistoryEntry(entry));
   }
 }
 
@@ -464,13 +456,36 @@ void PanelPipelineSettings::loadHistory()
   const auto &history = mSettings.history;
   mHistory->setRowCount(history.size());
   int idx = 0;
-  for(const auto &[pipelineStep, title, time] : history) {
-    auto *iconItem = new QTableWidgetItem();
-    iconItem->setText(title.data());
-    iconItem->setFlags(iconItem->flags() & ~Qt::ItemIsEditable);
-    mHistory->setItem(idx, 0, iconItem);
+  for(const auto &step : history) {
+    mHistory->setCellWidget(idx, 0, generateHistoryEntry(step));
     idx++;
   }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto PanelPipelineSettings::generateHistoryEntry(const std::optional<joda::settings::PipelineHistoryEntry> &inData) -> QLabel *
+{
+  if(!inData.has_value()) {
+    return nullptr;
+  }
+  QString textTmp =
+      QString(inData->commitMessage.data()) + "<br/><span style='color:gray;'><i>" +
+      joda::helper::timepointToIsoString(std::chrono::high_resolution_clock::time_point(std::chrono::seconds(inData->timeStamp))).data() +
+      "</i></span>";
+  // Set the icon in the first column
+  auto *textIcon = new QLabel();
+  textIcon->setText(textTmp);
+  textIcon->setTextFormat(Qt::RichText);
+  QFont font = textIcon->font();
+  font.setPixelSize(10);
+  textIcon->setFont(font);
+  return textIcon;
 }
 
 ///

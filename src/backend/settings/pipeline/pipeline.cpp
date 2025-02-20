@@ -12,11 +12,35 @@
 
 #include "pipeline.hpp"
 #include <memory>
+#include <optional>
 #include <string>
 #include "backend/enums/enums_classes.hpp"
 #include "pipeline_factory.hpp"
 
 namespace joda::settings {
+
+///
+/// \brief      Create a snapshot of the actual pipeline steps
+/// \author     Joachim Danmayr
+///
+auto Pipeline::createSnapShot(const std::string &note) -> std::optional<PipelineHistoryEntry>
+{
+  if(pipelineSteps.empty() && history.empty()) {
+    return std::nullopt;
+  }
+  if(!history.empty()) {
+    nlohmann::json act  = pipelineSteps;
+    nlohmann::json last = history.at(0).pipelineSteps;
+    if(act.dump() == last.dump()) {
+      return std::nullopt;
+    }
+  }
+  auto entry = PipelineHistoryEntry{
+      this->pipelineSteps, note, "",
+      static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count())};
+  history.emplace(history.begin(), entry);
+  return entry;
+}
 
 ///
 /// \brief      Returns the input classes this pipeline is using

@@ -24,6 +24,39 @@
 
 namespace joda::settings {
 
+class PipelineHistoryEntry
+{
+public:
+  //
+  // The snap shotted pipeline steps
+  //
+  std::list<PipelineStep> pipelineSteps;
+
+  //
+  // Short comment to this snap shpt
+  //
+  std::string commitMessage;
+
+  //
+  // A tagged snap shot, else empty
+  //
+  std::string tagMessage;
+
+  //
+  // It ends at Sunday, February 7, 2106 6:28:16 AM
+  // If someone in the future reads this line of code:
+  // Sorry for that but the actual used JSON lib does not
+  // support serializing 64 bit integers.
+  //
+  uint32_t timeStamp;
+
+  void check() const
+  {
+  }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineHistoryEntry, pipelineSteps, commitMessage, tagMessage, timeStamp);
+};
+
 class Pipeline
 {
 public:
@@ -34,25 +67,9 @@ public:
   std::list<PipelineStep> pipelineSteps;
 
   //
-  // Store pipeline changes over time
+  // Changes of the pipeline steps over time
   //
-  std::vector<std::tuple<Pipeline, std::string, std::chrono::high_resolution_clock::time_point>> history;
-  bool createSnapShot(const std::string &note)
-  {
-    if(pipelineSteps.empty()) {
-      return false;
-    }
-    if(!history.empty()) {
-      nlohmann::json act  = *this;
-      nlohmann::json last = std::get<0>(history.at(0));
-      if(act.dump() == last.dump()) {
-        return false;
-      }
-    }
-    history.emplace(history.begin(), std::tuple<Pipeline, std::string, std::chrono::high_resolution_clock::time_point>{
-                                         *this, note, std::chrono::high_resolution_clock::now()});
-    return true;
-  }
+  std::vector<PipelineHistoryEntry> history;
 
   /////////////////////////////////////////////////////
   void check() const;
@@ -61,10 +78,11 @@ public:
   ObjectOutputClassesExp getOutputClasses() const;
   std::set<enums::MemoryIdx> getInputImageCache() const;
   std::set<enums::MemoryIdx> getOutputImageCache() const;
-
   enums::ClassId getOutputClass() const;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Pipeline, meta, pipelineSetup, pipelineSteps);
+  auto createSnapShot(const std::string &note) -> std::optional<PipelineHistoryEntry>;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Pipeline, meta, pipelineSetup, pipelineSteps, history);
 };
 
 }    // namespace joda::settings
