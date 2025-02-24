@@ -13,11 +13,14 @@
 #include "pipeline.hpp"
 #include <memory>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include "backend/enums/enums_classes.hpp"
 #include "pipeline_factory.hpp"
 
 namespace joda::settings {
+
+static const int32_t MAX_HISTORY_STEPS = 128;
 
 ///
 /// \brief      Create a snapshot of the actual pipeline steps
@@ -39,7 +42,29 @@ auto Pipeline::createSnapShot(const std::string &note) -> std::optional<Pipeline
       this->pipelineSteps, note, "",
       static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count())};
   history.emplace(history.begin(), entry);
+
+  // Limit to max. history steps
+  if(history.size() > MAX_HISTORY_STEPS) {
+    history.pop_back();
+  }
   return entry;
+}
+
+///
+/// \brief      Restore a snap shot
+/// \author     Joachim Danmayr
+///
+auto Pipeline::restoreSnapShot(int32_t idx) const -> Pipeline
+{
+  if(history.size() < idx) {
+    throw std::runtime_error("This history entry does not exist!");
+  }
+
+  Pipeline pip = *this;
+  pip.pipelineSteps.clear();
+  pip.pipelineSteps = history.at(idx).pipelineSteps;
+
+  return pip;
 }
 
 ///

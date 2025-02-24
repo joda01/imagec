@@ -206,7 +206,7 @@ void PanelPipelineSettings::insertNewPipelineStep(int32_t posToInsert, std::uniq
 /// \param[out]
 /// \return
 ///
-void PanelPipelineSettings::erasePipelineStep(const Command *toDelete)
+void PanelPipelineSettings::erasePipelineStep(const Command *toDelete, bool updateHistoryEntry)
 {
   std::string deletedCommandTitle = toDelete->getTitle().toStdString();
   for(int index = 0; index < mPipelineSteps->count(); index++) {
@@ -252,9 +252,11 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete)
           }
         }
       }
-      updateHistory("Removed: " + deletedCommandTitle);
-      updatePreview();
-      mWindowMain->checkForSettingsChanged();
+      if(updateHistoryEntry) {
+        updateHistory("Removed: " + deletedCommandTitle);
+        updatePreview();
+        mWindowMain->checkForSettingsChanged();
+      }
       return;
     }
   }
@@ -363,6 +365,9 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
         "   background-color: transparent;"
         "   border: none;"
         "}");
+
+    connect(mHistory, &QTableWidget::cellDoubleClicked, [&](int row, int column) { restoreHistory(row); });
+
     col1->addWidgetGroup("History", {mHistory}, 220, 220);
   }
 
@@ -418,7 +423,6 @@ void PanelPipelineSettings::valueChangedEvent()
       qDebug() << "Could not identify sender!";
     }
     */
-  std::cout << "ADD" << std::endl;
   updateHistory("Changed");
   updatePreview();
 
@@ -452,7 +456,6 @@ void PanelPipelineSettings::updateHistory(const std::string &text)
 ///
 void PanelPipelineSettings::loadHistory()
 {
-  return;
   const auto &history = mSettings.history;
   mHistory->setRowCount(history.size());
   int idx = 0;
@@ -460,6 +463,21 @@ void PanelPipelineSettings::loadHistory()
     mHistory->setCellWidget(idx, 0, generateHistoryEntry(step));
     idx++;
   }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::restoreHistory(int32_t index)
+{
+  clearPipeline();
+  auto data = mSettings.restoreSnapShot(index);
+  fromSettings(data);
+  // updateHistory("Restored: " + std::to_string(index));
 }
 
 ///
@@ -713,8 +731,10 @@ void PanelPipelineSettings::clearPipeline()
 {
   std::vector<std::shared_ptr<Command>> toDelete = mCommands;
   for(const std::shared_ptr<Command> &cmd : toDelete) {
-    erasePipelineStep(cmd.get());
+    erasePipelineStep(cmd.get(), false);
   }
+  updatePreview();
+  mWindowMain->checkForSettingsChanged();
 }
 
 ///
@@ -729,6 +749,7 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   mLoadingSettings        = true;
   mSettings.meta          = settings.meta;
   mSettings.pipelineSetup = settings.pipelineSetup;
+  mSettings.history       = settings.history;
 
   pipelineName->setValue(settings.meta.name);
   cStackIndex->setValue(settings.pipelineSetup.cStackIndex);

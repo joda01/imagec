@@ -60,7 +60,7 @@ public:
 
   void addPipelineStep(std::unique_ptr<joda::ui::gui::Command> command, const settings::PipelineStep *);
   void insertNewPipelineStep(int32_t posToInsert, std::unique_ptr<joda::ui::gui::Command> command, const settings::PipelineStep *pipelineStepBefore);
-  void erasePipelineStep(const Command *);
+  void erasePipelineStep(const Command *, bool updateHistory = true);
   void setActive(bool setActive) override;
   const joda::settings::Pipeline &getPipeline()
   {
@@ -98,6 +98,7 @@ private:
   void copyPipeline();
   void updateHistory(const std::string &);
   void loadHistory();
+  void restoreHistory(int32_t index);
   static auto generateHistoryEntry(const std::optional<joda::settings::PipelineHistoryEntry> &) -> QLabel *;
 
   /////////////////////////////////////////////////////

@@ -146,7 +146,7 @@ void Command::paintEvent(QPaintEvent *event)
     auto middle       = static_cast<float>(((width() - 1) - static_cast<float>(LINE_WIDTH) / 2.0));
     auto right        = static_cast<float>(width() - 1);
     auto heightStart  = 0.0f;
-    auto heightMiddle = static_cast<float>(heightToPaint / 3.0);
+    auto heightMiddle = 8;    // static_cast<float>(heightToPaint / 3.0);
     auto heightEnd    = static_cast<float>(heightToPaint);
     chevron << QPoint(left, heightStart)       // Top-left
             << QPoint(middle, heightMiddle)    // Top-middle
@@ -170,7 +170,7 @@ void Command::paintEvent(QPaintEvent *event)
     auto middle       = static_cast<float>(((width() - 1) - static_cast<float>(LINE_WIDTH) / 2.0));
     auto right        = static_cast<float>(width() - 1);
     auto heightStart  = heightToPaint;
-    auto heightMiddle = static_cast<float>(heightToPaint * 2) - (static_cast<float>(heightToPaint / 3.0));
+    auto heightMiddle = static_cast<float>(heightToPaint * 2) - 8;    // (static_cast<float>(heightToPaint / 3.0));
     auto heightEnd    = static_cast<float>(heightToPaint * 2);
     chevron << QPoint(left, heightStart)      // Top-left
             << QPoint(right, heightStart)     // Top-middle
