@@ -68,6 +68,18 @@ auto Pipeline::restoreSnapShot(int32_t idx) const -> Pipeline
 }
 
 ///
+/// \brief      Tagname
+/// \author     Joachim Danmayr
+///
+void Pipeline::tag(int32_t index, const std::string &tagName)
+{
+  if(history.size() < index) {
+    throw std::runtime_error("This history entry does not exist!");
+  }
+  history.at(index).tagMessage = tagName;
+}
+
+///
 /// \brief      Returns the input classes this pipeline is using
 /// \author     Joachim Danmayr
 ///

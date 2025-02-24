@@ -82,6 +82,7 @@ public:
 
   auto createSnapShot(const std::string &note) -> std::optional<PipelineHistoryEntry>;
   auto restoreSnapShot(int32_t idex) const -> Pipeline;
+  void tag(int32_t index, const std::string &tagName);
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Pipeline, meta, pipelineSetup, pipelineSteps, history);
 };
