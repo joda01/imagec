@@ -26,6 +26,7 @@ namespace joda::ui::gui {
 ///
 DialogHistory::DialogHistory(WindowMain *parent) : QDialog(parent), mWindowMain(parent)
 {
+  setWindowTitle("Change history");
   mHistory = new PlaceholderTableWidget();
   mHistory->setPlaceholderText("Change history");
   mHistory->setColumnCount(1);
