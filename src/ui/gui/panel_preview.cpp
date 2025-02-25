@@ -102,11 +102,14 @@ QWidget *PanelPreview::createToolBar()
   connect(zoomOut, &QPushButton::pressed, this, &PanelPreview::onZoomOutClicked);
   layout->addWidget(zoomOut);
 
-  QPushButton *openFullScreen = new QPushButton(generateIcon("external-link"), "");
-  openFullScreen->setObjectName("ToolButton");
-  openFullScreen->setToolTip("Full screen");
-  connect(openFullScreen, &QPushButton::pressed, this, &PanelPreview::onOpenFullScreenClickec);
-  layout->addWidget(openFullScreen);
+  mOpenFullScreenButton = new QPushButton(generateIcon("external-link"), "");
+  mOpenFullScreenButton->setCheckable(true);
+  mOpenFullScreenButton->setObjectName("ToolButton");
+  mOpenFullScreenButton->setToolTip("Full screen");
+  connect(mOpenFullScreenButton, &QPushButton::clicked, this, &PanelPreview::onOpenFullScreenClicked);
+  layout->addWidget(mOpenFullScreenButton);
+
+  connect(&mImageViewer, &DialogImageViewer::hidden, [this] { mOpenFullScreenButton->setChecked(false); });
 
   filled = new QPushButton(generateIcon("fill-color"), "");
   filled->setCheckable(true);
@@ -161,10 +164,14 @@ void PanelPreview::onFitImageToScreenSizeClicked()
   mPreviewLabel.fitImageToScreenSize();
 }
 
-void PanelPreview::onOpenFullScreenClickec()
+void PanelPreview::onOpenFullScreenClicked(bool checked)
 {
-  mImageViewer.show();
-  mImageViewer.fitImageToScreenSize();
+  if(checked) {
+    mImageViewer.show();
+    mImageViewer.fitImageToScreenSize();
+  } else {
+    mImageViewer.hide();
+  }
 }
 
 void PanelPreview::onTileClicked(int32_t tileX, int32_t tileY)

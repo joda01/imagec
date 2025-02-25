@@ -39,6 +39,7 @@ class PipelineHistoryEntry;
 
 namespace joda::ui::gui {
 
+class DialogHistory;
 class WindowMain;
 class AddCommandButtonBase;
 class PanelClassification;
@@ -63,6 +64,11 @@ public:
   void erasePipelineStep(const Command *, bool updateHistory = true);
   void setActive(bool setActive) override;
   const joda::settings::Pipeline &getPipeline()
+  {
+    return mSettings;
+  }
+
+  joda::settings::Pipeline &mutablePipeline()
   {
     return mSettings;
   }
@@ -96,10 +102,9 @@ private:
   void saveAsTemplate();
   void previewThread();
   void copyPipeline();
-  void updateHistory(const std::string &);
-  void loadHistory();
-  void restoreHistory(int32_t index);
-  static auto generateHistoryEntry(const std::optional<joda::settings::PipelineHistoryEntry> &) -> QLabel *;
+
+  // ACTIONS///////////////////////////////////////////////////
+  QAction *mHistoryAction;
 
   /////////////////////////////////////////////////////
   helper::LayoutGenerator mLayout;
@@ -110,6 +115,7 @@ private:
   std::unique_ptr<SettingComboBoxClassesOutN> defaultClassId;
 
   /////////////////////////////////////////////////////
+  DialogHistory *mDialogHistory;
   PanelPreview *mPreviewImage                 = nullptr;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
   bool mIsActiveShown                         = false;
@@ -122,9 +128,6 @@ private:
   // PIPELINE STEPS //////////////////////////////////////////////////
   QVBoxLayout *mPipelineSteps;
   std::vector<std::shared_ptr<Command>> mCommands;
-
-  // History //////////////////////////////////////////////////
-  PlaceholderTableWidget *mHistory;
 
   /////////////////////////////////////////////////////
   int32_t mLastSelectedPreviewSize = 0;

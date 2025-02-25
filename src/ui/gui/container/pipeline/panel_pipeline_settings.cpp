@@ -15,6 +15,7 @@
 #include <qaction.h>
 #include <qboxlayout.h>
 #include <qcombobox.h>
+#include <qdialog.h>
 #include <qgroupbox.h>
 #include <qlabel.h>
 #include <qlineedit.h>
@@ -38,6 +39,7 @@
 #include "ui/gui/container/command/factory.hpp"
 #include "ui/gui/container/container_base.hpp"
 #include "ui/gui/container/dialog_command_selection/dialog_command_selection.hpp"
+#include "ui/gui/container/pipeline/dialog_history.hpp"
 #include "ui/gui/container/setting/setting_combobox.hpp"
 #include "ui/gui/container/setting/setting_line_edit.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
@@ -49,6 +51,7 @@
 #include "ui/gui/window_main/window_main.hpp"
 #include <nlohmann/json_fwd.hpp>
 #include "add_command_button.hpp"
+#include "dialog_history.hpp"
 
 namespace joda::ui::gui {
 
@@ -70,6 +73,8 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   auto *tab = mLayout.addTab(
       "", [] {}, false);
   createSettings(tab, wm);
+
+  mDialogHistory = new DialogHistory(wm);
 
   {
     auto *col2 = tab->addVerticalPanel();
@@ -119,6 +124,19 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   }
 
   // Tool button
+  mHistoryAction = mLayout.addActionButton("History", generateIcon("history"));
+  mHistoryAction->setCheckable(true);
+  connect(mHistoryAction, &QAction::triggered, [this](bool checked) {
+    if(checked) {
+      this->mDialogHistory->show(this);
+    } else {
+      mDialogHistory->hide();
+    }
+  });
+  connect(mDialogHistory, &QDialog::finished, [this] { mHistoryAction->setChecked(false); });
+
+  mLayout.addSeparatorToTopToolbar();
+
   auto *openTemplate = mLayout.addActionButton("Open template", generateIcon("opened-folder"));
   connect(openTemplate, &QAction::triggered, [this] { this->openTemplate(); });
 
@@ -174,7 +192,7 @@ void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::gui::Comma
 void PanelPipelineSettings::insertNewPipelineStep(int32_t posToInsert, std::unique_ptr<joda::ui::gui::Command> command,
                                                   const settings::PipelineStep *pipelineStepBefore)
 {
-  updateHistory("Added: " + command->getTitle().toStdString());
+  mDialogHistory->updateHistory("Added: " + command->getTitle().toStdString());
 
   command->registerDeleteButton(this);
   command->registerAddCommandButton(mCommandSelectionDialog, mSettings, this, mWindowMain);
@@ -253,7 +271,7 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete, bool upda
         }
       }
       if(updateHistoryEntry) {
-        updateHistory("Removed: " + deletedCommandTitle);
+        mDialogHistory->updateHistory("Removed: " + deletedCommandTitle);
         updatePreview();
         mWindowMain->checkForSettingsChanged();
       }
@@ -335,40 +353,6 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
     col1->addGroup("Pipeline meta", {pipelineName.get()});
     col1->addGroup("Pipeline input", {cStackIndex.get(), zProjection.get(), zStackIndex.get()});
     col1->addGroup("Pipeline output", {defaultClassId.get()});
-
-    mHistory = new PlaceholderTableWidget();
-    mHistory->setPlaceholderText("Change history");
-    mHistory->setColumnCount(1);
-    mHistory->setColumnHidden(0, false);
-    mHistory->setHorizontalHeaderLabels({"Timeline"});
-    mHistory->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    mHistory->verticalHeader()->setVisible(false);
-    mHistory->horizontalHeader()->setVisible(false);
-    mHistory->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
-    mHistory->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
-    mHistory->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
-    mHistory->setShowGrid(false);
-    mHistory->setFrameStyle(QFrame::NoFrame);
-    mHistory->setMaximumWidth(195);
-    mHistory->setColumnWidth(0, 195);
-    mHistory->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    // Set transparent background using stylesheet
-    mHistory->setStyleSheet(
-        "QTableWidget {"
-        "   background-color: transparent;"
-        "}"
-        "QHeaderView::section {"
-        "   background-color: transparent;"
-        "   border: none;"
-        "}"
-        "QTableWidget::item {"
-        "   background-color: transparent;"
-        "   border: none;"
-        "}");
-
-    connect(mHistory, &QTableWidget::cellDoubleClicked, [&](int row, int column) { restoreHistory(row); });
-
-    col1->addWidgetGroup("History", {mHistory}, 220, 220);
   }
 
   mOverview = new PanelChannelOverview(windowMain, this);
@@ -423,87 +407,12 @@ void PanelPipelineSettings::valueChangedEvent()
       qDebug() << "Could not identify sender!";
     }
     */
-  updateHistory("Changed");
+  mDialogHistory->updateHistory("Changed");
   updatePreview();
 
   QTimer::singleShot(100, this, [this]() {
     isBlocked = false;    // Unblock after 100ms
   });
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelPipelineSettings::updateHistory(const std::string &text)
-{
-  auto entry = mSettings.createSnapShot(text);
-  if(entry.has_value()) {
-    mHistory->insertRow(0);
-    mHistory->setCellWidget(0, 0, generateHistoryEntry(entry));
-  }
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelPipelineSettings::loadHistory()
-{
-  const auto &history = mSettings.history;
-  mHistory->setRowCount(history.size());
-  int idx = 0;
-  for(const auto &step : history) {
-    mHistory->setCellWidget(idx, 0, generateHistoryEntry(step));
-    idx++;
-  }
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelPipelineSettings::restoreHistory(int32_t index)
-{
-  clearPipeline();
-  auto data = mSettings.restoreSnapShot(index);
-  fromSettings(data);
-  // updateHistory("Restored: " + std::to_string(index));
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-auto PanelPipelineSettings::generateHistoryEntry(const std::optional<joda::settings::PipelineHistoryEntry> &inData) -> QLabel *
-{
-  if(!inData.has_value()) {
-    return nullptr;
-  }
-  QString textTmp =
-      QString(inData->commitMessage.data()) + "<br/><span style='color:gray;'><i>" +
-      joda::helper::timepointToIsoString(std::chrono::high_resolution_clock::time_point(std::chrono::seconds(inData->timeStamp))).data() +
-      "</i></span>";
-  // Set the icon in the first column
-  auto *textIcon = new QLabel();
-  textIcon->setText(textTmp);
-  textIcon->setTextFormat(Qt::RichText);
-  QFont font = textIcon->font();
-  font.setPixelSize(10);
-  textIcon->setFont(font);
-  return textIcon;
 }
 
 ///
@@ -779,7 +688,7 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   mLoadingSettings = false;
 
   updatePreview();
-  loadHistory();
+  mDialogHistory->loadHistory();
 }
 
 ///
@@ -935,7 +844,7 @@ void PanelPipelineSettings::setActive(bool setActive)
   if(!mIsActiveShown && setActive) {
     mIsActiveShown = true;
     updatePreview();
-    loadHistory();
+    mDialogHistory->loadHistory();
   }
   if(!setActive && mIsActiveShown) {
     std::lock_guard<std::mutex> lock(mShutingDownMutex);

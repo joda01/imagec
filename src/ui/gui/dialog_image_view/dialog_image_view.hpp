@@ -61,8 +61,15 @@ public:
     mImageViewRight.setWaiting(waiting);
   }
 
+  void hideEvent(QHideEvent *event) override
+  {
+    QMainWindow::hideEvent(event);
+    emit hidden();
+  }
+
 signals:
   void tileClicked(int32_t tileX, int32_t tileY);
+  void hidden();
 
 public slots:
   void autoAdjustHistogram();
