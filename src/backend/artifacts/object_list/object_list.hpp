@@ -123,9 +123,10 @@ public:
                           const cv::Size &tileSize) const;
 
   void calcIntersection(ObjectList *objectList, joda::processor::ProcessContext &context, joda::settings::ReclassifySettings::Mode func,
-                        SpheralIndex *other, const std::set<joda::enums::ClassId> objectClassesMe,
-                        const std::set<joda::enums::ClassId> objectClassesOther, float minIntersecion, const settings::MetricsFilter &metrics,
-                        const settings::IntensityFilter &intensity, joda::enums::ClassId newClassOFIntersectingObject = joda::enums::ClassId::NONE);
+                        joda::settings::ReclassifySettings::HierarchyHandling hierarchyMode, SpheralIndex *other,
+                        const std::set<joda::enums::ClassId> objectClassesMe, const std::set<joda::enums::ClassId> objectClassesOther,
+                        float minIntersecion, const settings::MetricsFilter &metrics, const settings::IntensityFilter &intensity,
+                        joda::enums::ClassId newClassOFIntersectingObject = joda::enums::ClassId::NONE);
 
   auto begin() const
   {

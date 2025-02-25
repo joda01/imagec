@@ -188,7 +188,8 @@ void Database::createTables()
       " meas_box_height UINTEGER,"
       " meas_mask MAP(UINTEGER,BOOLEAN),"
       " meas_contour UINTEGER[],"
-      " meas_origin_object_id UBIGINT"
+      " meas_origin_object_id UBIGINT,"
+      " meas_parent_object_id UBIGINT"
       ");"
 
       "CREATE TABLE IF NOT EXISTS object_measurements ("
@@ -281,6 +282,7 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
       objects.Append<duckdb::Value>(contour);    // " meas_contour UINTEGER[]"
 
       objects.Append<uint64_t>(roi.getOriginObjectId());    // "	meas_origin_object_id UBIGINT"
+      objects.Append<uint64_t>(roi.getParentObjectId());    // "	meas_parent_object_id UBIGINT"
 
       objects.EndRow();
 

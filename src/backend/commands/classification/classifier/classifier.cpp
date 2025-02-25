@@ -113,7 +113,7 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
       for(const auto &filter : objectClass.filters) {
         // If filter matches assign the new classs and class to the ROI
         if(joda::settings::ClassifierFilter::doesFilterMatch(context, detectedRoi, filter.metrics, filter.intensity)) {
-          detectedRoi.changeClass(context.getClassId(filter.outputClass));
+          detectedRoi.changeClass(context.getClassId(filter.outputClass), 0);
           break;
         }
       }

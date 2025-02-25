@@ -60,11 +60,24 @@ public:
     mMode->setValue(settings.mode);
     mMode->connectWithSetting(&settings.mode);
 
+    mHierarchyMode = SettingBase::create<SettingComboBox<joda::settings::ReclassifySettings::HierarchyHandling>>(parent, {}, "Hierarchy mode");
+    mHierarchyMode->addOptions(
+        {{.key   = joda::settings::ReclassifySettings::HierarchyHandling::CREATE_TREE,
+          .label = "Reclassify Move",
+          .icon  = generateIcon("tree-structure")},
+         {.key   = joda::settings::ReclassifySettings::HierarchyHandling::KEEP_EXISTING,
+          .label = "Reclassify Copy",
+          .icon  = generateIcon("tree-structure")},
+         {.key = joda::settings::ReclassifySettings::HierarchyHandling::REMOVE, .label = "Reclassify Copy", .icon = generateIcon("tree-structure")}});
+    mHierarchyMode->setValue(settings.hierarchyMode);
+    mHierarchyMode->connectWithSetting(&settings.hierarchyMode);
+
     mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("circle"), "Reclassify to");
     mClassOutput->setValue(settings.newClassId);
     mClassOutput->connectWithSetting(&settings.newClassId);
 
-    addSetting(modelTab, "Input", {{mClassesIn.get(), true, 0}, {mMode.get(), true, 0}, {mClassOutput.get(), true, 0}});
+    addSetting(modelTab, "Input",
+               {{mClassesIn.get(), true, 0}, {mMode.get(), true, 0}, {mHierarchyMode.get(), false, 0}, {mClassOutput.get(), true, 0}});
 
     //
     // Intersection filter
@@ -141,6 +154,7 @@ private:
   /////////////////////////////////////////////////////
   std::unique_ptr<SettingComboBoxMultiClassificationIn> mClassesIn;
   std::unique_ptr<SettingComboBox<joda::settings::ReclassifySettings::Mode>> mMode;
+  std::unique_ptr<SettingComboBox<joda::settings::ReclassifySettings::HierarchyHandling>> mHierarchyMode;
   std::unique_ptr<SettingComboBoxClassesOut> mClassOutput;
 
   std::unique_ptr<SettingComboBoxMultiClassificationIn> mClassesIntersectWith;

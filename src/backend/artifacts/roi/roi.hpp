@@ -16,6 +16,7 @@
 #include <atomic>
 #include <bitset>
 #include <string>
+#include <utility>
 #include <vector>
 #include "../image/image.hpp"
 #include "backend/enums/enum_images.hpp"
@@ -84,17 +85,18 @@ public:
       mBoundingBoxTile(std::move(input.mBoundingBoxTile)), mBoundingBoxReal(std::move(input.mBoundingBoxReal)), mMask(std::move(input.mMask)),
       mMaskContours(std::move(input.mMaskContours)), mImageSize(std::move(input.mImageSize)), mOriginalImageSize(std::move(input.mOriginalImageSize)),
       mAreaSize(std::move(input.mAreaSize)), mPerimeter(std::move(input.mPerimeter)), mCircularity(std::move(input.mCircularity)),
-      intensity(std::move(input.intensity)), mOriginObjectId(std::move(input.mOriginObjectId)), mCentroid(std::move(input.mCentroid))
+      intensity(std::move(input.intensity)), mOriginObjectId(std::move(input.mOriginObjectId)), mCentroid(std::move(input.mCentroid)),
+      mParentObjectId(std::move(input.mParentObjectId))
   {
   }
 
   ROI(bool mIsNull, uint64_t mObjectId, RoiObjectId mId, Confidence confidence, Boxes mBoundingBoxTile, Boxes mBoundingBoxReal, cv::Mat mMask,
       std::vector<cv::Point> mMaskContours, cv::Size mImageSize, cv::Size originalImageSize, double mAreaSize, float mPerimeter, float mCircularity,
-      std::map<enums::ImageId, Intensity> intensity, uint64_t originObjectId, cv::Point centroid) :
+      std::map<enums::ImageId, Intensity> intensity, uint64_t originObjectId, cv::Point centroid, uint64_t parentObjectId) :
       mIsNull(mIsNull),
       mObjectId(mObjectId), mId(mId), confidence(confidence), mBoundingBoxTile(mBoundingBoxTile), mBoundingBoxReal(mBoundingBoxReal), mMask(mMask),
       mMaskContours(mMaskContours), mImageSize(mImageSize), mOriginalImageSize(originalImageSize), mAreaSize(mAreaSize), mPerimeter(mPerimeter),
-      mCircularity(mCircularity), intensity(intensity), mOriginObjectId(originObjectId), mCentroid(centroid)
+      mCircularity(mCircularity), intensity(intensity), mOriginObjectId(originObjectId), mCentroid(centroid), mParentObjectId(parentObjectId)
   {
   }
 
@@ -105,24 +107,40 @@ public:
 
   [[nodiscard]] ROI clone() const
   {
-    return {mIsNull,    mObjectId,          mId,       confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,           mMaskContours,
-            mImageSize, mOriginalImageSize, mAreaSize, mPerimeter, mCircularity,     intensity,        mOriginObjectId, mCentroid};
+    return {mIsNull,        mObjectId,          mId,       confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,           mMaskContours,
+            mImageSize,     mOriginalImageSize, mAreaSize, mPerimeter, mCircularity,     intensity,        mOriginObjectId, mCentroid,
+            mParentObjectId};
   }
 
-  [[nodiscard]] ROI clone(enums::ClassId newClassId) const
+  [[nodiscard]] ROI clone(enums::ClassId newClassId, uint64_t newParentObjectId) const
   {
-    return {mIsNull,         mObjectId,  {newClassId, mId.imagePlane}, confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,
-            mMaskContours,   mImageSize, mOriginalImageSize,           mAreaSize,  mPerimeter,       mCircularity,     intensity,
-            mOriginObjectId, mCentroid};
+    return {mIsNull,
+            mObjectId,
+            {newClassId, mId.imagePlane},
+            confidence,
+            mBoundingBoxTile,
+            mBoundingBoxReal,
+            mMask,
+            mMaskContours,
+            mImageSize,
+            mOriginalImageSize,
+            mAreaSize,
+            mPerimeter,
+            mCircularity,
+            intensity,
+            mOriginObjectId,
+            mCentroid,
+            newParentObjectId};
   }
 
   [[nodiscard]] ROI copy() const
   {
-    return {mIsNull,    mGlobalUniqueObjectId++, mId,       confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,     mMaskContours,
-            mImageSize, mOriginalImageSize,      mAreaSize, mPerimeter, mCircularity,     intensity,        mObjectId, mCentroid};
+    return {mIsNull,        mGlobalUniqueObjectId++, mId,       confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,     mMaskContours,
+            mImageSize,     mOriginalImageSize,      mAreaSize, mPerimeter, mCircularity,     intensity,        mObjectId, mCentroid,
+            mParentObjectId};
   }
 
-  [[nodiscard]] ROI copy(enums::ClassId newClassId) const
+  [[nodiscard]] ROI copy(enums::ClassId newClassId, uint64_t newParentObjectId) const
   {
     return {mIsNull,
             mGlobalUniqueObjectId++,
@@ -139,15 +157,17 @@ public:
             mCircularity,
             intensity,
             mObjectId,
-            mCentroid};
+            mCentroid,
+            newParentObjectId};
   }
 
   /// @brief  ATTENTION This method must not be used when the ROI is still added to the spheral index
   /// @param classId
-  void changeClass(enums::ClassId classId)
+  void changeClass(enums::ClassId classId, uint64_t newParentObjectId)
   {
-    auto &oId   = const_cast<RoiObjectId &>(mId);
-    oId.classId = classId;
+    auto &oId       = const_cast<RoiObjectId &>(mId);
+    oId.classId     = classId;
+    mParentObjectId = newParentObjectId;
   }
 
   [[nodiscard]] const RoiObjectId &getId() const
@@ -253,6 +273,16 @@ public:
     return mOriginObjectId;
   }
 
+  void setParentObjectId(uint64_t parentObjectId)
+  {
+    mParentObjectId = parentObjectId;
+  }
+
+  uint64_t getParentObjectId() const
+  {
+    return mParentObjectId;
+  }
+
   void resize(float scaleX, float scaleY);
 
 private:
@@ -287,11 +317,12 @@ private:
   float mPerimeter;      ///< Perimeter (boundary size) [px]
   float mCircularity;    ///< Circularity of the masking area [0-1]
   cv::Point mCentroid;
+  uint64_t mParentObjectId = 0;    // 0 if this object has no parent
 
   // Measurements ///////////////////////////////////////////////////
   std::map<enums::ImageId, Intensity> intensity;
-  uint64 mOriginObjectId = 0;
+  uint64_t mOriginObjectId = 0;
 
-  static inline std::atomic<uint64_t> mGlobalUniqueObjectId = 0;
+  static inline std::atomic<uint64_t> mGlobalUniqueObjectId = 1;
 };
 }    // namespace joda::atom

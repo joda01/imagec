@@ -47,9 +47,9 @@ void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const Sphe
 }
 
 void SpheralIndex::calcIntersection(ObjectList *objectList, joda::processor::ProcessContext &context, joda::settings::ReclassifySettings::Mode func,
-                                    SpheralIndex *other, const std::set<joda::enums::ClassId> objectClassesMe,
-                                    const std::set<joda::enums::ClassId> objectClassesOther, float minIntersecion,
-                                    const settings::MetricsFilter &metrics, const settings::IntensityFilter &intensity,
+                                    joda::settings::ReclassifySettings::HierarchyHandling hierarchyMode, SpheralIndex *other,
+                                    const std::set<joda::enums::ClassId> objectClassesMe, const std::set<joda::enums::ClassId> objectClassesOther,
+                                    float minIntersecion, const settings::MetricsFilter &metrics, const settings::IntensityFilter &intensity,
                                     joda::enums::ClassId newClassOFIntersectingObject)
 {
   std::set<ROI *> intersecting;
@@ -70,18 +70,31 @@ void SpheralIndex::calcIntersection(ObjectList *objectList, joda::processor::Pro
               if(!intersecting.contains(box1) && !roisToRemove.contains(box1)) {
                 if(box1->isIntersecting(*box2, minIntersecion)) {
                   intersecting.emplace(box1);
+                  uint64_t parentObjectId = 0;
+                  switch(hierarchyMode) {
+                    case settings::ReclassifySettings::HierarchyHandling::CREATE_TREE:
+                      parentObjectId = box2->getObjectId();
+                      break;
+                    case settings::ReclassifySettings::HierarchyHandling::KEEP_EXISTING:
+                      parentObjectId = box1->getParentObjectId();
+                      break;
+                    case settings::ReclassifySettings::HierarchyHandling::REMOVE:
+                      parentObjectId = 0;
+                      break;
+                  }
+
                   switch(func) {
                     case settings::ReclassifySettings::Mode::RECLASSIFY_MOVE:
                       if(settings::ClassifierFilter::doesFilterMatch(context, *box1, metrics, intensity)) {
                         // We have to reenter to organize correct in the map of objects
-                        auto newRoi = box1->clone(newClassOFIntersectingObject);
+                        auto newRoi = box1->clone(newClassOFIntersectingObject, parentObjectId);
                         roisToEnter.emplace_back(std::move(newRoi));
                         roisToRemove.emplace(box1);
                       }
                       break;
                     case settings::ReclassifySettings::Mode::RECLASSIFY_COPY: {
                       if(settings::ClassifierFilter::doesFilterMatch(context, *box1, metrics, intensity)) {
-                        auto newRoi = box1->copy(newClassOFIntersectingObject);
+                        auto newRoi = box1->copy(newClassOFIntersectingObject, parentObjectId);
                         roisToEnter.emplace_back(std::move(newRoi));    // Store the ROIs we want to enter
                       }
                     } break;
