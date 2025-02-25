@@ -48,6 +48,7 @@ private:
   db::QueryFilter *mFilter = nullptr;
 
   QComboBox *mClasssClassSelector;
+  QComboBox *mClasssIntersection;
   QComboBox *mMeasurementSelector;
   QComboBox *mStatsSelector;
   QComboBox *mCrossChannelStackC;

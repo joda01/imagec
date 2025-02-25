@@ -60,24 +60,11 @@ public:
     mMode->setValue(settings.mode);
     mMode->connectWithSetting(&settings.mode);
 
-    mHierarchyMode = SettingBase::create<SettingComboBox<joda::settings::ReclassifySettings::HierarchyHandling>>(parent, {}, "Hierarchy mode");
-    mHierarchyMode->addOptions(
-        {{.key   = joda::settings::ReclassifySettings::HierarchyHandling::CREATE_TREE,
-          .label = "Reclassify Move",
-          .icon  = generateIcon("tree-structure")},
-         {.key   = joda::settings::ReclassifySettings::HierarchyHandling::KEEP_EXISTING,
-          .label = "Reclassify Copy",
-          .icon  = generateIcon("tree-structure")},
-         {.key = joda::settings::ReclassifySettings::HierarchyHandling::REMOVE, .label = "Reclassify Copy", .icon = generateIcon("tree-structure")}});
-    mHierarchyMode->setValue(settings.hierarchyMode);
-    mHierarchyMode->connectWithSetting(&settings.hierarchyMode);
-
     mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("circle"), "Reclassify to");
     mClassOutput->setValue(settings.newClassId);
     mClassOutput->connectWithSetting(&settings.newClassId);
 
-    addSetting(modelTab, "Input",
-               {{mClassesIn.get(), true, 0}, {mMode.get(), true, 0}, {mHierarchyMode.get(), false, 0}, {mClassOutput.get(), true, 0}});
+    addSetting(modelTab, "Input", {{mClassesIn.get(), true, 0}, {mMode.get(), true, 0}, {mClassOutput.get(), true, 0}});
 
     //
     // Intersection filter
@@ -96,7 +83,21 @@ public:
     mMinIntersection->connectWithSetting(&settings.intersection.minIntersection);
     mMinIntersection->setShortDescription("Cls. ");
 
-    auto *col2 = addSetting(modelTab, "Intersect with", {{mClassesIntersectWith.get(), false, 0}, {mMinIntersection.get(), false, 0}});
+    mHierarchyMode = SettingBase::create<SettingComboBox<joda::settings::ReclassifySettings::HierarchyHandling>>(parent, {}, "Hierarchy mode");
+    mHierarchyMode->addOptions({{.key   = joda::settings::ReclassifySettings::HierarchyHandling::CREATE_TREE,
+                                 .label = "Create hierarchy tree",
+                                 .icon  = generateIcon("tree-structure")},
+                                {.key   = joda::settings::ReclassifySettings::HierarchyHandling::KEEP_EXISTING,
+                                 .label = "Keep existing tree",
+                                 .icon  = generateIcon("tree-structure")},
+                                {.key   = joda::settings::ReclassifySettings::HierarchyHandling::REMOVE,
+                                 .label = "Remove tree information",
+                                 .icon  = generateIcon("tree-structure")}});
+    mHierarchyMode->setValue(settings.hierarchyMode);
+    mHierarchyMode->connectWithSetting(&settings.hierarchyMode);
+
+    auto *col2 = addSetting(modelTab, "Intersect with",
+                            {{mClassesIntersectWith.get(), false, 0}, {mMinIntersection.get(), false, 0}, {mHierarchyMode.get(), false, 0}});
 
     //
     // Intensity filter

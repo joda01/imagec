@@ -64,6 +64,16 @@ DialogColumnSettings::DialogColumnSettings(db::QueryFilter *filter, QWidget *par
   mStatsSelector->addItem("CNT", (int32_t) joda::enums::Stats::CNT);
   vlayout->addRow("Statistics:", mStatsSelector);
 
+  //
+  //
+  //
+  mClasssIntersection = new QComboBox();
+  mClasssIntersection->setMinimumWidth(150);
+  // connect(mClasssIntersection, &QComboBox::currentIndexChanged, this, &DialogColumnSettings::onClassesChanged);
+  vlayout->addRow("Intersecting class:", mClasssIntersection);
+
+  //
+  //
   mCrossChannelStackC = new QComboBox();
   vlayout->addRow("Channel intensity:", mCrossChannelStackC);
 
@@ -131,6 +141,7 @@ void DialogColumnSettings::exec(int32_t selectedColumn)
     };
 
     select(mClasssClassSelector->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(colKey.classs)), mClasssClassSelector);
+    select(mClasssIntersection->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(colKey.intersectingChannel)), mClasssIntersection);
     onClassesChanged();
     select(mMeasurementSelector->findData(static_cast<int32_t>(colKey.measureChannel)), mMeasurementSelector);
     select(mStatsSelector->findData(static_cast<int32_t>(colKey.stats)), mStatsSelector);
@@ -145,18 +156,23 @@ void DialogColumnSettings::exec(int32_t selectedColumn)
   accept          = false;
   mSelectedColumn = selectedColumn;
   QDialog::exec();
+
+  //
+  // Create filter
+  //
   if(accept) {
     auto [classsName, className] = getClasssFromCombo();
 
-    mFilter->addColumn(
-        db::QueryFilter::ColumnIdx{.tabIdx = 0, .colIdx = selectedColumn},
-        db::QueryFilter::ColumnKey{.classs = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClasssClassSelector->currentData().toUInt()),
-                                   .measureChannel      = static_cast<enums::Measurement>(mMeasurementSelector->currentData().toInt()),
-                                   .stats               = static_cast<enums::Stats>(mStatsSelector->currentData().toInt()),
-                                   .crossChannelStacksC = mCrossChannelStackC->currentData().toInt(),
-                                   .zStack              = mZStack->value(),
-                                   .tStack              = mTStack->value()},
-        db::QueryFilter::ColumnName{.className = className});
+    mFilter->addColumn(db::QueryFilter::ColumnIdx{.tabIdx = 0, .colIdx = selectedColumn},
+                       db::QueryFilter::ColumnKey{
+                           .classs              = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClasssClassSelector->currentData().toUInt()),
+                           .measureChannel      = static_cast<enums::Measurement>(mMeasurementSelector->currentData().toInt()),
+                           .stats               = static_cast<enums::Stats>(mStatsSelector->currentData().toInt()),
+                           .crossChannelStacksC = mCrossChannelStackC->currentData().toInt(),
+                           .intersectingChannel = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClasssIntersection->currentData().toUInt()),
+                           .zStack              = mZStack->value(),
+                           .tStack              = mTStack->value()},
+                       db::QueryFilter::ColumnName{.className = className});
   }
 }
 
@@ -210,30 +226,39 @@ void DialogColumnSettings::updateClassesAndClasses(db::Database *database)
   {
     // Clusters/Class
     mClasssClassSelector->blockSignals(true);
+    mClasssIntersection->blockSignals(true);
     auto clusters = mDatabase->selectClasses();
     mClasssClassSelector->clear();
+    mClasssIntersection->clear();
 
     std::map<std::string, std::multimap<std::string, enums::ClassId>> orderedClasses;
     for(const auto &[classId, classsName] : clusters) {
       orderedClasses[enums::getPrefixFromClassName(classsName.name)].emplace(classsName.name, classId);
     }
 
+    mClasssIntersection->addItem("-", 0xFFFD);
+
     for(const auto &[prefix, group] : orderedClasses) {
       for(const auto &[className, id] : group) {
         QVariant variant;
         mClasssClassSelector->addItem(className.data(), SettingComboBoxMultiClassificationUnmanaged::toInt(id));
+        mClasssIntersection->addItem(className.data(), SettingComboBoxMultiClassificationUnmanaged::toInt(id));
       }
       mClasssClassSelector->insertSeparator(mClasssClassSelector->count());
+      mClasssIntersection->insertSeparator(mClasssClassSelector->count());
     }
     auto removeLastSeparator = [this]() {
-      int lastIndex = mClasssClassSelector->count() - 1;
+      int lastIndex          = mClasssClassSelector->count() - 1;
+      int lastIndexIntersect = mClasssIntersection->count() - 1;
       if(lastIndex >= 0) {
         mClasssClassSelector->removeItem(lastIndex);
+        mClasssIntersection->removeItem(lastIndexIntersect);
       }
     };
     removeLastSeparator();
 
     mClasssClassSelector->blockSignals(false);
+    mClasssIntersection->blockSignals(false);
   }
   {
     // Image channels
