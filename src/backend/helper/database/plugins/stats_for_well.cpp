@@ -142,6 +142,7 @@ auto StatsPerGroup::getData(const db::ResultingTable::QueryKey &classsAndClass, 
                             const PreparedStatement &channelFilter, Grouping grouping) -> std::unique_ptr<duckdb::QueryResult>
 {
   auto [sql, params] = toSQL(classsAndClass, filter, channelFilter, grouping);
+  std::cout << sql << std::endl;
 
   std::unique_ptr<duckdb::QueryResult> result = analyzer->select(sql, params);
   if(result->HasError()) {
@@ -160,26 +161,76 @@ auto StatsPerGroup::getData(const db::ResultingTable::QueryKey &classsAndClass, 
 auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, const QueryFilter::ObjectFilter &filter,
                           const PreparedStatement &channelFilter, Grouping grouping) -> std::pair<std::string, DbArgs_t>
 {
-  std::string sql =
-      "WITH imageGrouped as (\n"
-      "SELECT\n" +
-      channelFilter.createStatsQuery(false, false) +
-      "	ANY_VALUE(images_groups.group_id) as group_id,\n"
-      "	ANY_VALUE(images_groups.image_group_idx) as image_group_idx,\n"
-      "	ANY_VALUE(groups.pos_on_plate_x) as pos_on_plate_x,\n"
-      "	ANY_VALUE(groups.pos_on_plate_y) as pos_on_plate_y,\n"
-      "	ANY_VALUE(images.file_name) as file_name,\n"
-      "	ANY_VALUE(images.image_id) as image_id,\n"
-      "	MAX(images.validity) as validity\n"
-      "FROM\n"
-      "	objects t1\n" +
-      channelFilter.createStatsQueryJoins() +
-      "JOIN images_groups ON\n"
-      "	t1.image_id = images_groups.image_id\n"
-      "JOIN groups on\n"
-      "	images_groups.group_id = groups.group_id\n"
-      "JOIN images on\n"
-      "	t1.image_id = images.image_id\n";
+  auto [retValSum, retValCnt] = channelFilter.createIntersectionQuery();
+  std::string intersect;
+  std::string table = "objects";
+
+  if(!retValSum.empty()) {
+    table = "Intermediate";
+    intersect =
+        " WITH RECURSIVE AllDescendants AS (\n"
+        "  SELECT\n"
+        "    object_id,\n"
+        "    meas_parent_object_id,\n"
+        "    object_id AS root_id,\n"
+        "    class_id\n"
+        "  FROM objects\n"
+        "  UNION ALL\n"
+        "  SELECT\n"
+        "    t.object_id,\n"
+        "    t.meas_parent_object_id,\n"
+        "    ad.root_id,\n"
+        "    t.class_id\n"
+        "  FROM objects t\n"
+        "  JOIN AllDescendants ad\n"
+        "    ON t.meas_parent_object_id = ad.object_id\n"
+        "),\n"
+        "RootClasses AS (\n"
+        "  SELECT\n"
+        "    object_id AS root_id,\n"
+        "    class_id AS root_class_id\n"
+        "  FROM objects\n"
+        "),\n"
+        "DescendantCounts AS (\n"
+        "  SELECT\n"
+        "    ad.root_id,\n" +
+        retValSum +
+        "  FROM AllDescendants ad\n"
+        "  GROUP BY ad.root_id\n"
+        "),\n"
+        "Intermediate AS(\n"
+        "  SELECT\n"
+        "    t.*,\n" +
+        retValCnt +
+        "  FROM objects t\n"
+        "  LEFT JOIN DescendantCounts dc\n"
+        "    ON t.object_id = dc.root_id\n"
+        "  LEFT JOIN RootClasses rc\n"
+        "    ON t.object_id = rc.root_id\n"
+        "),\n";
+  } else {
+    intersect = "WITH ";
+  }
+  std::string sql = intersect +
+                    "imageGrouped as (\n"
+                    "SELECT\n" +
+                    channelFilter.createStatsQuery(false, false) +
+                    "	ANY_VALUE(images_groups.group_id) as group_id,\n"
+                    "	ANY_VALUE(images_groups.image_group_idx) as image_group_idx,\n"
+                    "	ANY_VALUE(groups.pos_on_plate_x) as pos_on_plate_x,\n"
+                    "	ANY_VALUE(groups.pos_on_plate_y) as pos_on_plate_y,\n"
+                    "	ANY_VALUE(images.file_name) as file_name,\n"
+                    "	ANY_VALUE(images.image_id) as image_id,\n"
+                    "	MAX(images.validity) as validity\n"
+                    "FROM\n"
+                    "	" +
+                    table + " t1\n" + channelFilter.createStatsQueryJoins() +
+                    "JOIN images_groups ON\n"
+                    "	t1.image_id = images_groups.image_id\n"
+                    "JOIN groups on\n"
+                    "	images_groups.group_id = groups.group_id\n"
+                    "JOIN images on\n"
+                    "	t1.image_id = images.image_id\n";
   if(grouping == Grouping::BY_WELL) {
     sql += "WHERE\n";
     sql += " t1.class_id=$1 AND images_groups.group_id=$2 AND stack_z=$3 AND stack_t=$4\n";

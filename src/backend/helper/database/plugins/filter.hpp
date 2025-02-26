@@ -257,6 +257,7 @@ public:
 
   std::string createStatsQuery(bool isOuter, bool excludeInvalid, std::optional<enums::Stats> overrideStats = std::nullopt) const;
   std::string createStatsQueryJoins() const;
+  std::tuple<std::string, std::string> createIntersectionQuery() const;
 
   void addColumn(QueryFilter::ColumnKey col)
   {
