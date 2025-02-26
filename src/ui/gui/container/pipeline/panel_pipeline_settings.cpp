@@ -134,8 +134,8 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     }
   });
   connect(mDialogHistory, &QDialog::finished, [this] { mHistoryAction->setChecked(false); });
-
-  mLayout.addSeparatorToTopToolbar();
+  mHistoryAction->setVisible(false);
+  // mLayout.addSeparatorToTopToolbar();
 
   auto *openTemplate = mLayout.addActionButton("Open template", generateIcon("opened-folder"));
   connect(openTemplate, &QAction::triggered, [this] { this->openTemplate(); });
