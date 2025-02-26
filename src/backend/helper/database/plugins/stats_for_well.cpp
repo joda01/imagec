@@ -141,9 +141,7 @@ auto StatsPerGroup::toHeatmap(db::Database *database, const QueryFilter &filter,
 auto StatsPerGroup::getData(const db::ResultingTable::QueryKey &classsAndClass, db::Database *analyzer, const QueryFilter::ObjectFilter &filter,
                             const PreparedStatement &channelFilter, Grouping grouping) -> std::unique_ptr<duckdb::QueryResult>
 {
-  auto [sql, params] = toSQL(classsAndClass, filter, channelFilter, grouping);
-  std::cout << sql << std::endl;
-
+  auto [sql, params]                          = toSQL(classsAndClass, filter, channelFilter, grouping);
   std::unique_ptr<duckdb::QueryResult> result = analyzer->select(sql, params);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());

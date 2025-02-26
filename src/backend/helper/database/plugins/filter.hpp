@@ -35,8 +35,10 @@ using QueryResult = std::map<int32_t, joda::table::Table>;
 
 enum MeasureType
 {
+  ID,
   OBJECT,
-  INTENSITY
+  INTENSITY,
+  INTERSECTION
 };
 
 inline MeasureType getType(enums::Measurement measure)
@@ -47,7 +49,6 @@ inline MeasureType getType(enums::Measurement measure)
     case enums::Measurement::INTENSITY_MIN:
     case enums::Measurement::INTENSITY_MAX:
       return MeasureType::INTENSITY;
-    case enums::Measurement::ORIGIN_OBJECT_ID:
     case enums::Measurement::CENTER_OF_MASS_X:
     case enums::Measurement::CENTER_OF_MASS_Y:
     case enums::Measurement::CONFIDENCE:
@@ -58,6 +59,12 @@ inline MeasureType getType(enums::Measurement measure)
     case enums::Measurement::BOUNDING_BOX_WIDTH:
     case enums::Measurement::BOUNDING_BOX_HEIGHT:
       return MeasureType::OBJECT;
+    case enums::Measurement::INTERSECTING:
+      return MeasureType::INTERSECTION;
+    case enums::Measurement::OBJECT_ID:
+    case enums::Measurement::ORIGIN_OBJECT_ID:
+    case enums::Measurement::PARENT_OBJECT_ID:
+      return MeasureType::ID;
   }
   return MeasureType::OBJECT;
 }
@@ -133,10 +140,13 @@ public:
         return names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "] " + "(C" + std::to_string(crossChannelStacksC) +
                ")" + stacks;
       }
-      if(intersectingChannel == joda::enums::ClassId::NONE) {
-        return names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "]" + stacks;
+      if(getType(measureChannel) == MeasureType::INTERSECTION) {
+        return "Intersection " + names.intersectingName + " in " + names.className + "[" + enums::toString(stats) + "]" + stacks;
       }
-      return names.className + "-" + names.intersectingName + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "]" + stacks;
+      if(getType(measureChannel) == MeasureType::ID) {
+        return names.className + "-" + toString(measureChannel) + "\n" + stacks;
+      }
+      return names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "]" + stacks;
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnKey, classs, measureChannel, stats, crossChannelStacksC, intersectingChannel, zStack, tStack,

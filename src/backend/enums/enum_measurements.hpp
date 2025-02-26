@@ -32,9 +32,12 @@ enum class Measurement
   INTENSITY_MAX,
   CENTER_OF_MASS_X,
   CENTER_OF_MASS_Y,
+  OBJECT_ID,
   ORIGIN_OBJECT_ID,
+  PARENT_OBJECT_ID,
   BOUNDING_BOX_WIDTH,
-  BOUNDING_BOX_HEIGHT
+  BOUNDING_BOX_HEIGHT,
+  INTERSECTING
 };
 
 enum class Stats
@@ -95,9 +98,14 @@ inline std::string toString(const Measurement &enumIn)
       return "x";
     case Measurement::CENTER_OF_MASS_Y:
       return "y";
+    case Measurement::OBJECT_ID:
+      return "Object ID";
     case Measurement::ORIGIN_OBJECT_ID:
       return "Origin object ID";
-      break;
+    case Measurement::PARENT_OBJECT_ID:
+      return "Parent object ID";
+    case Measurement::INTERSECTING:
+      return "Intersection";
   }
   return "";
 }

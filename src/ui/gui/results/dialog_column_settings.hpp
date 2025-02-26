@@ -40,6 +40,7 @@ public:
   auto getClasssFromCombo() const -> std::pair<std::string, std::string>;
 
 private:
+  void checkForIntersecting();
   /////////////////////////////////////////////////////
   int32_t mSelectedColumn = -1;
   bool accept             = false;
