@@ -42,12 +42,13 @@ public:
     enums::ClassIdIn inputClass = enums::ClassIdIn::$;
     Style style                 = Style::OUTLINED;
     bool paintBoundingBox       = false;
+    bool paintObjectId          = false;
 
     void check() const
     {
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(SaveClasss, inputClass, style, paintBoundingBox);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(SaveClasss, inputClass, style, paintBoundingBox, paintObjectId);
   };
 
   std::list<SaveClasss> classesIn = {{.inputClass = enums::ClassIdIn::$, .style = Style::OUTLINED, .paintBoundingBox = false}};

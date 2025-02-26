@@ -21,6 +21,7 @@
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core/mat.hpp>
+#include <opencv2/core/types.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
@@ -156,17 +157,25 @@ private:
           rectangle(imageOut, roi.getBoundingBoxTile(), areaColor, 1 * THICKNESS, cv::LINE_4);
         }
 
+        // Paint contour only for valid particles
+        cv::Scalar contourColor = hexToScalar(color);
+
         // Fill area
         if(settings.style == settings::ImageSaverSettings::Style::FILLED) {
+          contourColor = hexToScalar("#000000");
           imageOut(roi.getBoundingBoxTile()).setTo(areaColor, roi.getMask());
         }
 
-        // Paint contour only for valid particles
-        cv::Scalar contourColor = hexToScalar("#000000");
         std::vector<std::vector<cv::Point>> contours;
         contours.push_back(roi.getContour());
         if(!contours.empty()) {
           drawContours(imageOut(roi.getBoundingBoxTile()), contours, -1, contourColor, 1);
+        }
+
+        // Draw object ID
+        if(settings.paintObjectId) {
+          auto scale = getFontScaleFromHeight(cv::FONT_HERSHEY_SIMPLEX, 10);
+          cv::putText(imageOut, std::to_string(roi.getObjectId()), cv::Point(left, top), cv::FONT_HERSHEY_SIMPLEX, scale, areaColor);
         }
       }
     }
