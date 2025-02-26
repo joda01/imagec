@@ -147,10 +147,9 @@ auto DialogHistory::generateHistoryEntry(const std::optional<joda::settings::Pip
   if(!inData.has_value()) {
     return nullptr;
   }
-  QString textTmp =
-      QString(inData->commitMessage.data()) + "<br/><span style='color:gray;'><i>" +
-      joda::helper::timepointToIsoString(std::chrono::high_resolution_clock::time_point(std::chrono::seconds(inData->timeStamp))).data() +
-      "</i></span>";
+  QString textTmp = QString(inData->commitMessage.data()) + "<br/><span style='color:gray;'><i>" +
+                    joda::helper::timepointToIsoString(std::chrono::system_clock::time_point(std::chrono::seconds(inData->timeStamp))).data() +
+                    "</i></span>";
   // Set the icon in the first column
   auto *textIcon = new QLabel();
   textIcon->setText(textTmp);
