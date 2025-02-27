@@ -14,16 +14,18 @@
 
 #include <qdialog.h>
 #include <qlabel.h>
+#include "backend/enums/enum_history.hpp"
 #include "ui/gui/helper/table_widget.hpp"
 
 namespace joda::settings {
 class PipelineHistoryEntry;
-}
+}    // namespace joda::settings
 
 namespace joda::ui::gui {
 
 class WindowMain;
 class PanelPipelineSettings;
+class TimeHistoryEntry;
 
 ///
 /// \class      Dialog History
@@ -34,13 +36,13 @@ class DialogHistory : public QDialog
 {
 public:
   /////////////////////////////////////////////////////
-  DialogHistory(WindowMain *parent);
+  DialogHistory(WindowMain *parent, PanelPipelineSettings *panelPipelineSettings);
 
-  void show(PanelPipelineSettings *panelPipelineSettings);
-  void updateHistory(const std::string &);
+  void show();
+  void updateHistory(enums::HistoryCategory category, const std::string &);
   void loadHistory();
   void restoreHistory(int32_t index);
-  static auto generateHistoryEntry(const std::optional<joda::settings::PipelineHistoryEntry> &) -> QLabel *;
+  static auto generateHistoryEntry(const std::optional<joda::settings::PipelineHistoryEntry> &) -> TimeHistoryEntry *;
 
 private:
   /////////////////////////////////////////////////////

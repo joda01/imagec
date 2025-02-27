@@ -9,6 +9,7 @@
 #include <iostream>
 #include <regex>
 #include <sstream>
+#include <string>
 #include <unordered_set>
 
 namespace joda::helper {
@@ -121,6 +122,13 @@ inline std::string timepointToIsoString(const std::chrono::system_clock::time_po
   auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch()) % 1000;
   std::sprintf(buffer + 80, ".%03lldZ", static_cast<long long>(milliseconds.count()));
   return std::string(buffer);
+}
+
+inline std::string timepointToDelay(const std::chrono::system_clock::time_point &pastTime)
+{
+  std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+  auto duration                             = duration_cast<std::chrono::days>(now - pastTime);
+  return std::to_string(duration.count()) + " dys";
 }
 
 inline std::string getDurationAsString(const std::chrono::system_clock::time_point &t1, const std::chrono::system_clock::time_point &t2)

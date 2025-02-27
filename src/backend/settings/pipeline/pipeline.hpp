@@ -15,6 +15,7 @@
 
 #include <chrono>
 #include <tuple>
+#include "backend/enums/enum_history.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/processor/initializer/pipeline_settings.hpp"
 #include "backend/settings/pipeline/pipeline_meta.hpp"
@@ -27,6 +28,11 @@ namespace joda::settings {
 class PipelineHistoryEntry
 {
 public:
+  //
+  // Snapshot category
+  //
+  enums::HistoryCategory category = enums::HistoryCategory::OTHER;
+
   //
   // The snap shotted pipeline steps
   //
@@ -80,7 +86,7 @@ public:
   std::set<enums::MemoryIdx> getOutputImageCache() const;
   enums::ClassId getOutputClass() const;
 
-  auto createSnapShot(const std::string &note) -> std::optional<PipelineHistoryEntry>;
+  auto createSnapShot(enums::HistoryCategory category, const std::string &note) -> std::optional<PipelineHistoryEntry>;
   auto restoreSnapShot(int32_t idex) const -> Pipeline;
   void tag(int32_t index, const std::string &tagName);
 

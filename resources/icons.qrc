@@ -1,9 +1,11 @@
 <RCC>
 <qresource prefix="/icons">
     <file>icons/icons8-browse-page-16.png</file>
+    <file>icons/icons8-minus-simple-96.png</file>
     <file>icons/icons8-magic-16.png</file>
     <file>icons/icons8-light-24.png</file>
     <file>icons/icons8-number-48.png</file>
+    <file>icons/icons8-plus-simple-16.png</file>
     <file>icons/icons8-railroad-crossing-24.png</file>
     <file>icons/icons8-star-color-16.png</file>
     <file>icons/icons8-invert-colors-96.png</file>
@@ -38,10 +40,12 @@
     <file>icons/icons8-fill-color-16.png</file>
     <file>icons/icons8-light-min-16.png</file>
     <file>icons/icons8-copy-48.png</file>
+    <file>icons/icons8-minus-simple-16.png</file>
     <file>icons/icons8-asterisk-key-48.png</file>
     <file>icons/icons8-trigonometry-96.png</file>
     <file>icons/icons8-crosshair-24.png</file>
     <file>icons/icons8-project-management-24.png</file>
+    <file>icons/icons8-plus-simple-48.png</file>
     <file>icons/icons8-image-96.png</file>
     <file>icons/icons8-color-16.png</file>
     <file>icons/icons8-resize-48.png</file>
@@ -75,6 +79,7 @@
     <file>icons/icons8-eight-96.png</file>
     <file>icons/icons8-venn-diagram-48.png</file>
     <file>icons/icons8-open-parcel-24.png</file>
+    <file>icons/icons8-minus-simple-24.png</file>
     <file>icons/icons8-flow-many-96.png</file>
     <file>icons/icons8-delete-column-48.png</file>
     <file>icons/icons8-u-96.png</file>
@@ -120,6 +125,7 @@
     <file>icons/icons8-square-96.png</file>
     <file>icons/icons8-save-as-24.png</file>
     <file>icons/icons8-screensharing-48.png</file>
+    <file>icons/icons8-plus-simple-96.png</file>
     <file>icons/icons8-light-min-24.png</file>
     <file>icons/icons8-bubble-24.png</file>
     <file>icons/icons8-seven-24.png</file>
@@ -265,6 +271,7 @@
     <file>icons/icons8-project-setup-48.png</file>
     <file>icons/icons8-matrix-96.png</file>
     <file>icons/icons8-rename-48.png</file>
+    <file>icons/icons8-save-simple-48.png</file>
     <file>icons/icons8-add-file-24.png</file>
     <file>icons/icons8-triangle-24.png</file>
     <file>icons/icons8-save-as-16.png</file>
@@ -297,6 +304,7 @@
     <file>icons/icons8-save-24.png</file>
     <file>icons/icons8-split-16.png</file>
     <file>icons/icons8-resolution-16.png</file>
+    <file>icons/icons8-save-simple-16.png</file>
     <file>icons/icons8-baseline-96.png</file>
     <file>icons/icons8-normal-distribution-histogram-48.png</file>
     <file>icons/icons8-resize-horizontal-48.png</file>
@@ -447,6 +455,7 @@
     <file>icons/icons8-accept-16.png</file>
     <file>icons/icons8-hexagonal-pattern-48.png</file>
     <file>icons/icons8-arrow-24.png</file>
+    <file>icons/icons8-save-simple-96.png</file>
     <file>icons/icons8-qr-code-48.png</file>
     <file>icons/icons8-no-filling-24.png</file>
     <file>icons/icons8-open-parcel-48.png</file>
@@ -468,6 +477,7 @@
     <file>icons/icons8-favorite-16.png</file>
     <file>icons/icons8-onnx-96.png</file>
     <file>icons/icons8-layer-16.png</file>
+    <file>icons/icons8-plus-simple-24.png</file>
     <file>icons/icons8-height-16.png</file>
     <file>icons/icons8-delete-column-96.png</file>
     <file>icons/icons8-no-idea-24.png</file>
@@ -492,6 +502,7 @@
     <file>icons/icons8-file-16.png</file>
     <file>icons/icons8-infinity-24.png</file>
     <file>icons/icons8-channel-96.png</file>
+    <file>icons/icons8-minus-simple-48.png</file>
     <file>icons/icons8-images-folder-96.png</file>
     <file>icons/icons8-address-24.png</file>
     <file>icons/icons8-four-48.png</file>
@@ -546,6 +557,7 @@
     <file>icons/icons8-project-management-96.png</file>
     <file>icons/icons8-aspect-ratio-48.png</file>
     <file>icons/icons8-full-screen-16.png</file>
+    <file>icons/icons8-save-simple-24.png</file>
     <file>icons/icons8-square-root-24.png</file>
     <file>icons/icons8-seven-96.png</file>
     <file>icons/icons8-cellpose-96.png</file>

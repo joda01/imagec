@@ -74,7 +74,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
       "", [] {}, false);
   createSettings(tab, wm);
 
-  mDialogHistory = new DialogHistory(wm);
+  mDialogHistory = new DialogHistory(wm, this);
 
   {
     auto *col2 = tab->addVerticalPanel();
@@ -128,14 +128,13 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   mHistoryAction->setCheckable(true);
   connect(mHistoryAction, &QAction::triggered, [this](bool checked) {
     if(checked) {
-      this->mDialogHistory->show(this);
+      this->mDialogHistory->show();
     } else {
       mDialogHistory->hide();
     }
   });
   connect(mDialogHistory, &QDialog::finished, [this] { mHistoryAction->setChecked(false); });
-  mHistoryAction->setVisible(false);
-  // mLayout.addSeparatorToTopToolbar();
+  mLayout.addSeparatorToTopToolbar();
 
   auto *openTemplate = mLayout.addActionButton("Open template", generateIcon("opened-folder"));
   connect(openTemplate, &QAction::triggered, [this] { this->openTemplate(); });
@@ -192,7 +191,7 @@ void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::gui::Comma
 void PanelPipelineSettings::insertNewPipelineStep(int32_t posToInsert, std::unique_ptr<joda::ui::gui::Command> command,
                                                   const settings::PipelineStep *pipelineStepBefore)
 {
-  mDialogHistory->updateHistory("Added: " + command->getTitle().toStdString());
+  mDialogHistory->updateHistory(enums::HistoryCategory::ADDED, "Added: " + command->getTitle().toStdString());
 
   command->registerDeleteButton(this);
   command->registerAddCommandButton(mCommandSelectionDialog, mSettings, this, mWindowMain);
@@ -271,7 +270,7 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete, bool upda
         }
       }
       if(updateHistoryEntry) {
-        mDialogHistory->updateHistory("Removed: " + deletedCommandTitle);
+        mDialogHistory->updateHistory(enums::HistoryCategory::DELETED, "Removed: " + deletedCommandTitle);
         updatePreview();
         mWindowMain->checkForSettingsChanged();
       }
@@ -407,7 +406,7 @@ void PanelPipelineSettings::valueChangedEvent()
       qDebug() << "Could not identify sender!";
     }
     */
-  mDialogHistory->updateHistory("Changed");
+  mDialogHistory->updateHistory(enums::HistoryCategory::CHANGED, "Changed");
   updatePreview();
 
   QTimer::singleShot(100, this, [this]() {
