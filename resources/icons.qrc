@@ -123,6 +123,7 @@
     <file>icons/icons8-light-min-24.png</file>
     <file>icons/icons8-bubble-24.png</file>
     <file>icons/icons8-seven-24.png</file>
+    <file>icons/icons8-tree-structure-48.png</file>
     <file>icons/icons8-rectangle-96.png</file>
     <file>icons/icons8-magic-48.png</file>
     <file>icons/icons8-zoom-in-24.png</file>
@@ -144,6 +145,7 @@
     <file>icons/icons8-open-lock-96.png</file>
     <file>icons/icons8-pin-96.png</file>
     <file>icons/icons8-fill-color-48.png</file>
+    <file>icons/icons8-tree-structure-16.png</file>
     <file>icons/icons8-six-24.png</file>
     <file>icons/icons8-circle-96.png</file>
     <file>icons/icons8-upvote-downvote-16.png</file>
@@ -169,6 +171,7 @@
     <file>icons/icons8-metamorphose-48.png</file>
     <file>icons/icons8-inclination-96.png</file>
     <file>icons/icons8-clone-24.png</file>
+    <file>icons/icons8-history-24.png</file>
     <file>icons/icons8-warning-48.png</file>
     <file>icons/icons8-invisible-96.png</file>
     <file>icons/icons8-bubble-16.png</file>
@@ -412,6 +415,7 @@
     <file>icons/icons8-open-parcel-16.png</file>
     <file>icons/icons8-add-48.png</file>
     <file>icons/icons8-sort-by-price-96.png</file>
+    <file>icons/icons8-history-48.png</file>
     <file>icons/icons8-hexagon-48.png</file>
     <file>icons/icons8-ampersand-16.png</file>
     <file>icons/icons8-line-sin-16.png</file>
@@ -591,6 +595,7 @@
     <file>icons/icons8-pytorch-48.png</file>
     <file>icons/icons8-add-to-favorites-16.png</file>
     <file>icons/icons8-sort-by-price-24.png</file>
+    <file>icons/icons8-history-16.png</file>
     <file>icons/icons8-test-tube-24.png</file>
     <file>icons/icons8-image-16.png</file>
     <file>icons/icons8-radius-24.png</file>
@@ -627,6 +632,7 @@
     <file>icons/icons8-crosshair-16.png</file>
     <file>icons/icons8-number-24.png</file>
     <file>icons/icons8-popup-window-16.png</file>
+    <file>icons/icons8-tree-structure-24.png</file>
     <file>icons/icons8-favorite-folder-48.png</file>
     <file>icons/icons8-binary-code-24.png</file>
     <file>icons/icons8-transfer-96.png</file>
@@ -677,6 +683,7 @@
     <file>icons/icons8-remove-image-24.png</file>
     <file>icons/icons8-save-as-48.png</file>
     <file>icons/icons8-snap-background-to-white-16.png</file>
+    <file>icons/icons8-history-96.png</file>
     <file>icons/icons8-save-as-96.png</file>
     <file>icons/icons8-layer-mask-24.png</file>
     <file>icons/icons8-question-mark-24.png</file>
@@ -705,6 +712,7 @@
     <file>icons/icons8-line-sin-48.png</file>
     <file>icons/icons8-sort-by-price-16.png</file>
     <file>icons/evanalyzer_gray.png</file>
+    <file>icons/icons8-tree-structure-96.png</file>
     <file>icons/icons8-scatter-plot-16.png</file>
     <file>icons/icons8-close-16.png</file>
     <file>icons/icons8-error-red-96.png</file>

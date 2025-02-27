@@ -13,6 +13,7 @@
 #include "filter.hpp"
 #include <string>
 #include "backend/enums/enum_measurements.hpp"
+#include "backend/enums/enums_classes.hpp"
 
 namespace joda::db {
 
@@ -60,15 +61,51 @@ ResultingTable::ResultingTable(const QueryFilter *filter)
 /// \param[out]
 /// \return
 ///
+std::tuple<std::string, std::string> PreparedStatement::createIntersectionQuery() const
+{
+  std::string retValSum;
+  std::string retValCnt;
+
+  for(const auto &[_, column] : columns) {
+    if(getType(column.measureChannel) == MeasureType::INTERSECTION) {
+      std::string chStr = std::to_string(static_cast<int32_t>(column.intersectingChannel));
+      retValSum += "SUM(CASE WHEN ad.class_id = " + chStr + " THEN 1 ELSE 0 END) AS total_" + chStr + ",\n";
+      retValCnt += "(COALESCE(dc.total_" + chStr + ", 0) - CASE WHEN rc.root_class_id = " + chStr + " THEN 1 ELSE 0 END) AS recursive_child_count_" +
+                   chStr + ",\n";
+    }
+  }
+
+  auto removeSuffix = [](std::string &str) {
+    std::string target      = ",\n";
+    std::string replacement = "\n";
+    size_t pos              = str.rfind(target);    // Find the last occurrence of ",\n"
+    if(pos != std::string::npos && pos == str.length() - target.length()) {
+      str.replace(pos, target.length(), replacement);    // Replace ",\n" with "\n"
+    }
+  };
+
+  removeSuffix(retValSum);
+  removeSuffix(retValCnt);
+
+  return {retValSum, retValCnt};
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvalid, std::optional<enums::Stats> overrideStats) const
 {
   std::string channels;
   for(const auto &[_, column] : columns) {
-    auto createName = [&column = column, &isOuter]() -> std::string {
+    auto createName = [&column = column, &isOuter](enums::Stats stats) -> std::string {
       if(!isOuter) {
         return getMeasurement(column.measureChannel, false);
       } else {
-        return getMeasurement(column.measureChannel, true) + "_" + getStatsString(column.stats);
+        return getMeasurement(column.measureChannel, true) + "_" + getStatsString(stats);
       }
     };
 
@@ -89,17 +126,42 @@ std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvali
         meas_suffix = "_" + std::to_string(column.crossChannelStacksC);
       }
 
-      channels += getStatsString(stats) + "(" + injectCase(tablePrefix + createName() + meas_suffix) + ") as " +
+      channels += getStatsString(stats) + "(" + injectCase(tablePrefix + createName(column.stats) + meas_suffix) + ") as " +
                   getMeasurement(column.measureChannel, true) + "_" + getStatsString(column.stats) + "_" +
                   std::to_string(column.crossChannelStacksC) + ",\n";
 
+    } else if(getType(column.measureChannel) == MeasureType::INTERSECTION) {
+      std::string colName;
+      std::string chStr = std::to_string(static_cast<int32_t>(column.intersectingChannel));
+
+      if(!isOuter) {
+        colName = "recursive_child_count_" + chStr;
+      } else {
+        colName = " recursive_child_count_" + chStr + "_" + getStatsString(column.stats);
+      }
+
+      std::string tablePrefix = " t1.";
+      if(isOuter || column.measureChannel == enums::Measurement::COUNT) {
+        tablePrefix = " ";
+      }
+      channels += getStatsString(stats) + "(" + injectCase(tablePrefix + colName) + ") as " + "recursive_child_count_" + chStr + "_" +
+                  getStatsString(column.stats) + ",\n";
+
+    } else if(getType(column.measureChannel) == MeasureType::ID) {
+      std::string tablePrefix = " t1.";
+      if(isOuter || column.measureChannel == enums::Measurement::COUNT) {
+        tablePrefix = " ";
+      }
+      // We show the smallest object ID if we are in an overview mode
+      channels += getStatsString(enums::Stats::MIN) + "(" + injectCase(tablePrefix + createName(enums::Stats::MIN)) + ") as " +
+                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(enums::Stats::MIN) + ",\n";
     } else {
       std::string tablePrefix = " t1.";
       if(isOuter || column.measureChannel == enums::Measurement::COUNT) {
         tablePrefix = " ";
       }
-      channels += getStatsString(stats) + "(" + injectCase(tablePrefix + createName()) + ") as " + getMeasurement(column.measureChannel, true) + "_" +
-                  getStatsString(column.stats) + ",\n";
+      channels += getStatsString(stats) + "(" + injectCase(tablePrefix + createName(column.stats)) + ") as " +
+                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(column.stats) + ",\n";
     }
   }
 
@@ -198,9 +260,14 @@ std::string PreparedStatement::getMeasurement(enums::Measurement measure, bool t
       return "meas_box_width";
     case enums::Measurement::BOUNDING_BOX_HEIGHT:
       return "meas_box_height";
+    case enums::Measurement::OBJECT_ID:
+      return "object_id";
     case enums::Measurement::ORIGIN_OBJECT_ID:
       return "meas_origin_object_id";
-      break;
+    case enums::Measurement::PARENT_OBJECT_ID:
+      return "meas_parent_object_id";
+    case enums::Measurement::INTERSECTING:
+      return "recursive_child_count_";
   }
   if(textual) {
     return "none";

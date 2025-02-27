@@ -153,22 +153,22 @@ public:
     return mLayout.addActionButton(text, icon);
   }
 
-  const QString &getTitle()
+  const QString &getTitle() const
   {
     return mTitle;
   }
 
-  const std::vector<std::string> &getTags()
+  const std::vector<std::string> &getTags() const
   {
     return mTags;
   }
 
-  const QString &getDescription()
+  const QString &getDescription() const
   {
     return mDescription;
   }
 
-  const QIcon &getIcon()
+  const QIcon &getIcon() const
   {
     return mIcon;
   }

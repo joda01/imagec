@@ -35,8 +35,10 @@ using QueryResult = std::map<int32_t, joda::table::Table>;
 
 enum MeasureType
 {
+  ID,
   OBJECT,
-  INTENSITY
+  INTENSITY,
+  INTERSECTION
 };
 
 inline MeasureType getType(enums::Measurement measure)
@@ -47,7 +49,6 @@ inline MeasureType getType(enums::Measurement measure)
     case enums::Measurement::INTENSITY_MIN:
     case enums::Measurement::INTENSITY_MAX:
       return MeasureType::INTENSITY;
-    case enums::Measurement::ORIGIN_OBJECT_ID:
     case enums::Measurement::CENTER_OF_MASS_X:
     case enums::Measurement::CENTER_OF_MASS_Y:
     case enums::Measurement::CONFIDENCE:
@@ -58,6 +59,12 @@ inline MeasureType getType(enums::Measurement measure)
     case enums::Measurement::BOUNDING_BOX_WIDTH:
     case enums::Measurement::BOUNDING_BOX_HEIGHT:
       return MeasureType::OBJECT;
+    case enums::Measurement::INTERSECTING:
+      return MeasureType::INTERSECTION;
+    case enums::Measurement::OBJECT_ID:
+    case enums::Measurement::ORIGIN_OBJECT_ID:
+    case enums::Measurement::PARENT_OBJECT_ID:
+      return MeasureType::ID;
   }
   return MeasureType::OBJECT;
 }
@@ -82,31 +89,35 @@ public:
   {
     std::string crossChannelName;
     std::string className;
+    std::string intersectingName;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnName, crossChannelName, className);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnName, crossChannelName, className, intersectingName);
   };
 
   struct ColumnKey
   {
     joda::enums::ClassId classs;
-    enums::Measurement measureChannel = enums::Measurement::NONE;
-    enums::Stats stats                = enums::Stats::AVG;
-    int32_t crossChannelStacksC       = -1;
-    int32_t zStack                    = 0;
-    int32_t tStack                    = 0;
+    enums::Measurement measureChannel        = enums::Measurement::NONE;
+    enums::Stats stats                       = enums::Stats::AVG;
+    int32_t crossChannelStacksC              = -1;
+    joda::enums::ClassId intersectingChannel = joda::enums::ClassId::NONE;
+    int32_t zStack                           = 0;
+    int32_t tStack                           = 0;
 
     ColumnName names;
 
     bool operator<(const ColumnKey &input) const
     {
       auto toInt = [](const ColumnKey &in) {
-        uint32_t classClasss = static_cast<uint32_t>(in.classs);
-        auto measure         = static_cast<uint8_t>(in.measureChannel);
-        auto stat            = static_cast<uint8_t>(in.stats);
+        uint32_t classClasss         = static_cast<uint16_t>(in.classs);
+        uint32_t intersectingChannel = static_cast<uint16_t>(in.intersectingChannel);
+        auto measure                 = static_cast<uint8_t>(in.measureChannel);
+        auto stat                    = static_cast<uint8_t>(in.stats);
 
-        stdi::uint128_t erg =
-            (static_cast<stdi::uint128_t>(classClasss) << 96) | (static_cast<stdi::uint128_t>(in.crossChannelStacksC & 0xFFFF) << 80) |
-            (static_cast<stdi::uint128_t>(in.zStack) << 18) | (static_cast<stdi::uint128_t>(in.tStack) << 16) | (measure << 8) | (stat);
+        stdi::uint128_t erg = (static_cast<stdi::uint128_t>(intersectingChannel) << 112) | (static_cast<stdi::uint128_t>(classClasss) << 96) |
+                              (static_cast<stdi::uint128_t>(in.crossChannelStacksC & 0xFFFF) << 80) |
+                              (static_cast<stdi::uint128_t>(in.zStack) << 18) | (static_cast<stdi::uint128_t>(in.tStack) << 16) | (measure << 8) |
+                              (stat);
         return erg;
       };
 
@@ -117,7 +128,7 @@ public:
     {
       return classs == input.classs && static_cast<int32_t>(measureChannel) == static_cast<int32_t>(input.measureChannel) &&
              static_cast<int32_t>(stats) == static_cast<int32_t>(input.stats) && crossChannelStacksC == input.crossChannelStacksC &&
-             zStack == input.zStack && tStack == input.tStack;
+             intersectingChannel == input.intersectingChannel && zStack == input.zStack && tStack == input.tStack;
     }
 
     std::string createHeader() const
@@ -129,10 +140,17 @@ public:
         return names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "] " + "(C" + std::to_string(crossChannelStacksC) +
                ")" + stacks;
       }
+      if(getType(measureChannel) == MeasureType::INTERSECTION) {
+        return "Intersection " + names.intersectingName + " in " + names.className + "[" + enums::toString(stats) + "]" + stacks;
+      }
+      if(getType(measureChannel) == MeasureType::ID) {
+        return names.className + "-" + toString(measureChannel) + "\n" + stacks;
+      }
       return names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "]" + stacks;
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnKey, classs, measureChannel, stats, crossChannelStacksC, zStack, tStack, names);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnKey, classs, measureChannel, stats, crossChannelStacksC, intersectingChannel, zStack, tStack,
+                                                names);
   };
 
   struct ColumnIdx
@@ -249,6 +267,7 @@ public:
 
   std::string createStatsQuery(bool isOuter, bool excludeInvalid, std::optional<enums::Stats> overrideStats = std::nullopt) const;
   std::string createStatsQueryJoins() const;
+  std::tuple<std::string, std::string> createIntersectionQuery() const;
 
   void addColumn(QueryFilter::ColumnKey col)
   {

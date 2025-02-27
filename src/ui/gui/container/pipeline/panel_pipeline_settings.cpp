@@ -15,10 +15,12 @@
 #include <qaction.h>
 #include <qboxlayout.h>
 #include <qcombobox.h>
+#include <qdialog.h>
 #include <qgroupbox.h>
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qpushbutton.h>
+#include <qtablewidget.h>
 #include <qwidget.h>
 #include <exception>
 #include <filesystem>
@@ -28,6 +30,7 @@
 #include <thread>
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
+#include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/processor/processor.hpp"
 #include "backend/settings/pipeline/pipeline_factory.hpp"
@@ -36,16 +39,19 @@
 #include "ui/gui/container/command/factory.hpp"
 #include "ui/gui/container/container_base.hpp"
 #include "ui/gui/container/dialog_command_selection/dialog_command_selection.hpp"
+#include "ui/gui/container/pipeline/dialog_history.hpp"
 #include "ui/gui/container/setting/setting_combobox.hpp"
 #include "ui/gui/container/setting/setting_line_edit.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
+#include "ui/gui/helper/table_widget.hpp"
 #include "ui/gui/helper/template_parser/template_parser.hpp"
 #include "ui/gui/window_main/panel_classification.hpp"
 #include "ui/gui/window_main/panel_project_settings.hpp"
 #include "ui/gui/window_main/window_main.hpp"
 #include <nlohmann/json_fwd.hpp>
 #include "add_command_button.hpp"
+#include "dialog_history.hpp"
 
 namespace joda::ui::gui {
 
@@ -67,6 +73,8 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   auto *tab = mLayout.addTab(
       "", [] {}, false);
   createSettings(tab, wm);
+
+  mDialogHistory = new DialogHistory(wm);
 
   {
     auto *col2 = tab->addVerticalPanel();
@@ -116,6 +124,19 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   }
 
   // Tool button
+  mHistoryAction = mLayout.addActionButton("History", generateIcon("history"));
+  mHistoryAction->setCheckable(true);
+  connect(mHistoryAction, &QAction::triggered, [this](bool checked) {
+    if(checked) {
+      this->mDialogHistory->show(this);
+    } else {
+      mDialogHistory->hide();
+    }
+  });
+  connect(mDialogHistory, &QDialog::finished, [this] { mHistoryAction->setChecked(false); });
+  mHistoryAction->setVisible(false);
+  // mLayout.addSeparatorToTopToolbar();
+
   auto *openTemplate = mLayout.addActionButton("Open template", generateIcon("opened-folder"));
   connect(openTemplate, &QAction::triggered, [this] { this->openTemplate(); });
 
@@ -171,6 +192,8 @@ void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::gui::Comma
 void PanelPipelineSettings::insertNewPipelineStep(int32_t posToInsert, std::unique_ptr<joda::ui::gui::Command> command,
                                                   const settings::PipelineStep *pipelineStepBefore)
 {
+  mDialogHistory->updateHistory("Added: " + command->getTitle().toStdString());
+
   command->registerDeleteButton(this);
   command->registerAddCommandButton(mCommandSelectionDialog, mSettings, this, mWindowMain);
   connect(command.get(), &joda::ui::gui::Command::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
@@ -201,8 +224,9 @@ void PanelPipelineSettings::insertNewPipelineStep(int32_t posToInsert, std::uniq
 /// \param[out]
 /// \return
 ///
-void PanelPipelineSettings::erasePipelineStep(const Command *toDelete)
+void PanelPipelineSettings::erasePipelineStep(const Command *toDelete, bool updateHistoryEntry)
 {
+  std::string deletedCommandTitle = toDelete->getTitle().toStdString();
   for(int index = 0; index < mPipelineSteps->count(); index++) {
     if(toDelete == mPipelineSteps->itemAt(index)->widget()) {
       // Delete command widget
@@ -246,8 +270,11 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete)
           }
         }
       }
-      updatePreview();
-      mWindowMain->checkForSettingsChanged();
+      if(updateHistoryEntry) {
+        mDialogHistory->updateHistory("Removed: " + deletedCommandTitle);
+        updatePreview();
+        mWindowMain->checkForSettingsChanged();
+      }
       return;
     }
   }
@@ -380,6 +407,7 @@ void PanelPipelineSettings::valueChangedEvent()
       qDebug() << "Could not identify sender!";
     }
     */
+  mDialogHistory->updateHistory("Changed");
   updatePreview();
 
   QTimer::singleShot(100, this, [this]() {
@@ -612,8 +640,10 @@ void PanelPipelineSettings::clearPipeline()
 {
   std::vector<std::shared_ptr<Command>> toDelete = mCommands;
   for(const std::shared_ptr<Command> &cmd : toDelete) {
-    erasePipelineStep(cmd.get());
+    erasePipelineStep(cmd.get(), false);
   }
+  updatePreview();
+  mWindowMain->checkForSettingsChanged();
 }
 
 ///
@@ -628,6 +658,7 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   mLoadingSettings        = true;
   mSettings.meta          = settings.meta;
   mSettings.pipelineSetup = settings.pipelineSetup;
+  mSettings.history       = settings.history;
 
   pipelineName->setValue(settings.meta.name);
   cStackIndex->setValue(settings.pipelineSetup.cStackIndex);
@@ -657,6 +688,7 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   mLoadingSettings = false;
 
   updatePreview();
+  mDialogHistory->loadHistory();
 }
 
 ///
@@ -812,6 +844,7 @@ void PanelPipelineSettings::setActive(bool setActive)
   if(!mIsActiveShown && setActive) {
     mIsActiveShown = true;
     updatePreview();
+    mDialogHistory->loadHistory();
   }
   if(!setActive && mIsActiveShown) {
     std::lock_guard<std::mutex> lock(mShutingDownMutex);

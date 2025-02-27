@@ -83,7 +83,21 @@ public:
     mMinIntersection->connectWithSetting(&settings.intersection.minIntersection);
     mMinIntersection->setShortDescription("Cls. ");
 
-    auto *col2 = addSetting(modelTab, "Intersect with", {{mClassesIntersectWith.get(), false, 0}, {mMinIntersection.get(), false, 0}});
+    mHierarchyMode = SettingBase::create<SettingComboBox<joda::settings::ReclassifySettings::HierarchyHandling>>(parent, {}, "Hierarchy mode");
+    mHierarchyMode->addOptions({{.key   = joda::settings::ReclassifySettings::HierarchyHandling::CREATE_TREE,
+                                 .label = "Create hierarchy tree",
+                                 .icon  = generateIcon("tree-structure")},
+                                {.key   = joda::settings::ReclassifySettings::HierarchyHandling::KEEP_EXISTING,
+                                 .label = "Keep existing tree",
+                                 .icon  = generateIcon("tree-structure")},
+                                {.key   = joda::settings::ReclassifySettings::HierarchyHandling::REMOVE,
+                                 .label = "Remove tree information",
+                                 .icon  = generateIcon("tree-structure")}});
+    mHierarchyMode->setValue(settings.hierarchyMode);
+    mHierarchyMode->connectWithSetting(&settings.hierarchyMode);
+
+    auto *col2 = addSetting(modelTab, "Intersect with",
+                            {{mClassesIntersectWith.get(), false, 0}, {mMinIntersection.get(), false, 0}, {mHierarchyMode.get(), false, 0}});
 
     //
     // Intensity filter
@@ -141,6 +155,7 @@ private:
   /////////////////////////////////////////////////////
   std::unique_ptr<SettingComboBoxMultiClassificationIn> mClassesIn;
   std::unique_ptr<SettingComboBox<joda::settings::ReclassifySettings::Mode>> mMode;
+  std::unique_ptr<SettingComboBox<joda::settings::ReclassifySettings::HierarchyHandling>> mHierarchyMode;
   std::unique_ptr<SettingComboBoxClassesOut> mClassOutput;
 
   std::unique_ptr<SettingComboBoxMultiClassificationIn> mClassesIntersectWith;

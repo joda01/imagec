@@ -35,6 +35,13 @@ struct ReclassifySettings : public SettingBase
     RECLASSIFY_COPY,
   };
 
+  enum class HierarchyHandling
+  {
+    CREATE_TREE,      // If intersecting the intersecting object gets the object it intersects with as parent
+    KEEP_EXISTING,    // The object keeps its old hierarchy information.
+    REMOVE            // The hierarchy information of the object is removed.
+  };
+
   struct IntersectionFilter
   {
     //
@@ -61,6 +68,11 @@ struct ReclassifySettings : public SettingBase
   // What should happen when an intersection was found
   //
   Mode mode = Mode::RECLASSIFY_MOVE;
+
+  //
+  //
+  //
+  HierarchyHandling hierarchyMode = HierarchyHandling::CREATE_TREE;
 
   //
   // Objects to use for intersection calculation
@@ -117,12 +129,19 @@ struct ReclassifySettings : public SettingBase
     return out;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ReclassifySettings, mode, inputClasses, intersection, metrics, intensity, newClassId);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ReclassifySettings, mode, hierarchyMode, inputClasses, intersection, metrics, intensity,
+                                                       newClassId);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ReclassifySettings::Mode, {
                                                            {ReclassifySettings::Mode::RECLASSIFY_MOVE, "ReclassifyMove"},
                                                            {ReclassifySettings::Mode::RECLASSIFY_COPY, "ReclassifyCopy"},
                                                        });
+
+NLOHMANN_JSON_SERIALIZE_ENUM(ReclassifySettings::HierarchyHandling, {
+                                                                        {ReclassifySettings::HierarchyHandling::CREATE_TREE, "CreateTree"},
+                                                                        {ReclassifySettings::HierarchyHandling::KEEP_EXISTING, "KeepExisting"},
+                                                                        {ReclassifySettings::HierarchyHandling::REMOVE, "Remove"},
+                                                                    });
 
 }    // namespace joda::settings

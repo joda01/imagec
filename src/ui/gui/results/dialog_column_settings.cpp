@@ -28,7 +28,8 @@ namespace joda::ui::gui {
 
 DialogColumnSettings::DialogColumnSettings(db::QueryFilter *filter, QWidget *parent) : mFilter(filter), QDialog(parent)
 {
-  setMinimumWidth(300);
+  setWindowTitle("Add column");
+  setMinimumWidth(500);
   auto *vlayout = new QFormLayout();
 
   //
@@ -36,21 +37,6 @@ DialogColumnSettings::DialogColumnSettings(db::QueryFilter *filter, QWidget *par
   mClasssClassSelector->setMinimumWidth(150);
   connect(mClasssClassSelector, &QComboBox::currentIndexChanged, this, &DialogColumnSettings::onClassesChanged);
   vlayout->addRow("Classs:", mClasssClassSelector);
-
-  //
-  //
-  mMeasurementSelector = new QComboBox();
-  mMeasurementSelector->addItem("Count", (int32_t) joda::enums::Measurement::COUNT);
-  mMeasurementSelector->addItem("Confidence", (int32_t) joda::enums::Measurement::CONFIDENCE);
-  mMeasurementSelector->addItem("Area size", (int32_t) joda::enums::Measurement::AREA_SIZE);
-  mMeasurementSelector->addItem("Perimeter", (int32_t) joda::enums::Measurement::PERIMETER);
-  mMeasurementSelector->addItem("Circularity", (int32_t) joda::enums::Measurement::CIRCULARITY);
-  mMeasurementSelector->addItem("Origin object ID", (int32_t) joda::enums::Measurement::ORIGIN_OBJECT_ID);
-  mMeasurementSelector->addItem("Intensity sum.", (int32_t) joda::enums::Measurement::INTENSITY_SUM);
-  mMeasurementSelector->addItem("Intensity avg.", (int32_t) joda::enums::Measurement::INTENSITY_AVG);
-  mMeasurementSelector->addItem("Intensity min.", (int32_t) joda::enums::Measurement::INTENSITY_MIN);
-  mMeasurementSelector->addItem("Intensity max.", (int32_t) joda::enums::Measurement::INTENSITY_MAX);
-  vlayout->addRow("Measurement:", mMeasurementSelector);
 
   //
   //
@@ -64,6 +50,38 @@ DialogColumnSettings::DialogColumnSettings(db::QueryFilter *filter, QWidget *par
   mStatsSelector->addItem("CNT", (int32_t) joda::enums::Stats::CNT);
   vlayout->addRow("Statistics:", mStatsSelector);
 
+  //
+  //
+  mMeasurementSelector = new QComboBox();
+  mMeasurementSelector->addItem("Count", (int32_t) joda::enums::Measurement::COUNT);
+  mMeasurementSelector->addItem("Confidence", (int32_t) joda::enums::Measurement::CONFIDENCE);
+  mMeasurementSelector->addItem("Area size", (int32_t) joda::enums::Measurement::AREA_SIZE);
+  mMeasurementSelector->addItem("Perimeter", (int32_t) joda::enums::Measurement::PERIMETER);
+  mMeasurementSelector->addItem("Circularity", (int32_t) joda::enums::Measurement::CIRCULARITY);
+  mMeasurementSelector->insertSeparator(mMeasurementSelector->count());
+  mMeasurementSelector->addItem("Intensity sum.", (int32_t) joda::enums::Measurement::INTENSITY_SUM);
+  mMeasurementSelector->addItem("Intensity avg.", (int32_t) joda::enums::Measurement::INTENSITY_AVG);
+  mMeasurementSelector->addItem("Intensity min.", (int32_t) joda::enums::Measurement::INTENSITY_MIN);
+  mMeasurementSelector->addItem("Intensity max.", (int32_t) joda::enums::Measurement::INTENSITY_MAX);
+  mMeasurementSelector->insertSeparator(mMeasurementSelector->count());
+  mMeasurementSelector->addItem("Intersection", (int32_t) joda::enums::Measurement::INTERSECTING);
+  mMeasurementSelector->insertSeparator(mMeasurementSelector->count());
+  mMeasurementSelector->addItem("Object ID", (int32_t) joda::enums::Measurement::OBJECT_ID);
+  mMeasurementSelector->addItem("Origin object ID", (int32_t) joda::enums::Measurement::ORIGIN_OBJECT_ID);
+  mMeasurementSelector->addItem("Parent object ID", (int32_t) joda::enums::Measurement::PARENT_OBJECT_ID);
+
+  vlayout->addRow("Measurement:", mMeasurementSelector);
+
+  //
+  //
+  //
+  mClasssIntersection = new QComboBox();
+  mClasssIntersection->setMinimumWidth(150);
+  // connect(mClasssIntersection, &QComboBox::currentIndexChanged, this, &DialogColumnSettings::onClassesChanged);
+  vlayout->addRow("Intersection class:", mClasssIntersection);
+
+  //
+  //
   mCrossChannelStackC = new QComboBox();
   vlayout->addRow("Channel intensity:", mCrossChannelStackC);
 
@@ -106,8 +124,42 @@ DialogColumnSettings::DialogColumnSettings(db::QueryFilter *filter, QWidget *par
 
     vlayout->addWidget(mToolbarBottom);
   }
-
+  checkForIntersecting();
+  connect(mMeasurementSelector, &QComboBox::currentIndexChanged, [&]() { checkForIntersecting(); });
   setLayout(vlayout);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogColumnSettings::checkForIntersecting()
+{
+  if(mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::INTERSECTING) {
+    mClasssIntersection->setEnabled(false);
+  } else {
+    mClasssIntersection->setEnabled(true);
+  }
+
+  if(mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::INTENSITY_SUM &&
+     mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::INTENSITY_AVG &&
+     mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::INTENSITY_MIN &&
+     mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::INTENSITY_MAX) {
+    mCrossChannelStackC->setEnabled(false);
+  } else {
+    mCrossChannelStackC->setEnabled(true);
+  }
+
+  if(mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::OBJECT_ID &&
+     mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::ORIGIN_OBJECT_ID &&
+     mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::PARENT_OBJECT_ID) {
+    mStatsSelector->setEnabled(true);
+  } else {
+    mStatsSelector->setEnabled(false);
+  }
 }
 
 ///
@@ -131,6 +183,7 @@ void DialogColumnSettings::exec(int32_t selectedColumn)
     };
 
     select(mClasssClassSelector->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(colKey.classs)), mClasssClassSelector);
+    select(mClasssIntersection->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(colKey.intersectingChannel)), mClasssIntersection);
     onClassesChanged();
     select(mMeasurementSelector->findData(static_cast<int32_t>(colKey.measureChannel)), mMeasurementSelector);
     select(mStatsSelector->findData(static_cast<int32_t>(colKey.stats)), mStatsSelector);
@@ -145,18 +198,23 @@ void DialogColumnSettings::exec(int32_t selectedColumn)
   accept          = false;
   mSelectedColumn = selectedColumn;
   QDialog::exec();
-  if(accept) {
-    auto [classsName, className] = getClasssFromCombo();
 
-    mFilter->addColumn(
-        db::QueryFilter::ColumnIdx{.tabIdx = 0, .colIdx = selectedColumn},
-        db::QueryFilter::ColumnKey{.classs = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClasssClassSelector->currentData().toUInt()),
-                                   .measureChannel      = static_cast<enums::Measurement>(mMeasurementSelector->currentData().toInt()),
-                                   .stats               = static_cast<enums::Stats>(mStatsSelector->currentData().toInt()),
-                                   .crossChannelStacksC = mCrossChannelStackC->currentData().toInt(),
-                                   .zStack              = mZStack->value(),
-                                   .tStack              = mTStack->value()},
-        db::QueryFilter::ColumnName{.className = className});
+  //
+  // Create filter
+  //
+  if(accept) {
+    auto [className, intersectingName] = getClasssFromCombo();
+
+    mFilter->addColumn(db::QueryFilter::ColumnIdx{.tabIdx = 0, .colIdx = selectedColumn},
+                       db::QueryFilter::ColumnKey{
+                           .classs              = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClasssClassSelector->currentData().toUInt()),
+                           .measureChannel      = static_cast<enums::Measurement>(mMeasurementSelector->currentData().toInt()),
+                           .stats               = static_cast<enums::Stats>(mStatsSelector->currentData().toInt()),
+                           .crossChannelStacksC = mCrossChannelStackC->currentData().toInt(),
+                           .intersectingChannel = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClasssIntersection->currentData().toUInt()),
+                           .zStack              = mZStack->value(),
+                           .tStack              = mTStack->value()},
+                       db::QueryFilter::ColumnName{.className = className, .intersectingName = intersectingName});
   }
 }
 
@@ -210,8 +268,10 @@ void DialogColumnSettings::updateClassesAndClasses(db::Database *database)
   {
     // Clusters/Class
     mClasssClassSelector->blockSignals(true);
+    mClasssIntersection->blockSignals(true);
     auto clusters = mDatabase->selectClasses();
     mClasssClassSelector->clear();
+    mClasssIntersection->clear();
 
     std::map<std::string, std::multimap<std::string, enums::ClassId>> orderedClasses;
     for(const auto &[classId, classsName] : clusters) {
@@ -222,18 +282,23 @@ void DialogColumnSettings::updateClassesAndClasses(db::Database *database)
       for(const auto &[className, id] : group) {
         QVariant variant;
         mClasssClassSelector->addItem(className.data(), SettingComboBoxMultiClassificationUnmanaged::toInt(id));
+        mClasssIntersection->addItem(className.data(), SettingComboBoxMultiClassificationUnmanaged::toInt(id));
       }
       mClasssClassSelector->insertSeparator(mClasssClassSelector->count());
+      mClasssIntersection->insertSeparator(mClasssClassSelector->count());
     }
     auto removeLastSeparator = [this]() {
-      int lastIndex = mClasssClassSelector->count() - 1;
+      int lastIndex          = mClasssClassSelector->count() - 1;
+      int lastIndexIntersect = mClasssIntersection->count() - 1;
       if(lastIndex >= 0) {
         mClasssClassSelector->removeItem(lastIndex);
+        mClasssIntersection->removeItem(lastIndexIntersect);
       }
     };
     removeLastSeparator();
 
     mClasssClassSelector->blockSignals(false);
+    mClasssIntersection->blockSignals(false);
   }
   {
     // Image channels
@@ -257,8 +322,10 @@ void DialogColumnSettings::updateClassesAndClasses(db::Database *database)
 auto DialogColumnSettings::getClasssFromCombo() const -> std::pair<std::string, std::string>
 {
   QString className;
-  className = mClasssClassSelector->currentText();
-  return {className.toStdString(), className.toStdString()};
+  QString intersectingName;
+  className        = mClasssClassSelector->currentText();
+  intersectingName = mClasssIntersection->currentText();
+  return {className.toStdString(), intersectingName.toStdString()};
 }
 
 }    // namespace joda::ui::gui

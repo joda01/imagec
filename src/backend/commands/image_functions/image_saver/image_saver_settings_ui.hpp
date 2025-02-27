@@ -56,6 +56,20 @@ public:
 
       //
       //
+      boundingBox = SettingBase::create<SettingComboBox<bool>>(parent, {}, "Bounding box");
+      boundingBox->setDefaultValue(false);
+      boundingBox->addOptions({{.key = false, .label = "No bounding box", .icon = generateIcon("rectangle")},
+                               {.key = true, .label = "With bounding box", .icon = generateIcon("rectangle")}});
+
+      //
+      //
+      objectId = SettingBase::create<SettingComboBox<bool>>(parent, {}, "Object ID");
+      objectId->setDefaultValue(false);
+      objectId->addOptions({{.key = false, .label = "No object ID", .icon = generateIcon("number")},
+                            {.key = true, .label = "With object ID", .icon = generateIcon("number")}});
+
+      //
+      //
       mImageNamePrefix = SettingBase::create<SettingLineEdit<std::string>>(parent, generateIcon("rename"), "Image name prefix");
       mImageNamePrefix->setDefaultValue("control");
       mImageNamePrefix->setPlaceholderText("Name ...");
@@ -71,16 +85,20 @@ public:
       for(const auto &classs : settings.classesIn) {
         classesToSet.emplace(classs.inputClass);
         style->setValue(classs.style);
+        boundingBox->setValue(classs.paintBoundingBox);
+        objectId->setValue(classs.paintObjectId);
       }
 
       classesIn->setValue(classesToSet);
     }
 
-    addSetting(tab, "Input classes", {{classesIn.get(), true, 0}});
-    addSetting(tab, "Image name", {{mImageNamePrefix.get(), true, 0}, {style.get(), false, 0}});
+    addSetting(tab, "Input classes", {{classesIn.get(), true, 0}, {mImageNamePrefix.get(), true, 0}});
+    addSetting(tab, "Style", {{style.get(), false, 0}, {boundingBox.get(), false, 0}, {objectId.get(), false, 0}});
 
     connect(style.get(), &SettingBase::valueChanged, this, &ImageSaver::onChange);
     connect(classesIn.get(), &SettingBase::valueChanged, this, &ImageSaver::onChange);
+    connect(boundingBox.get(), &SettingBase::valueChanged, this, &ImageSaver::onChange);
+    connect(objectId.get(), &SettingBase::valueChanged, this, &ImageSaver::onChange);
   }
 
 private:
@@ -88,6 +106,8 @@ private:
   std::unique_ptr<SettingLineEdit<std::string>> mImageNamePrefix;
   std::unique_ptr<SettingComboBoxMultiClassificationIn> classesIn;
   std::unique_ptr<SettingComboBox<settings::ImageSaverSettings::Style>> style;
+  std::unique_ptr<SettingComboBox<bool>> boundingBox;
+  std::unique_ptr<SettingComboBox<bool>> objectId;
 
   settings::ImageSaverSettings &mSettings;
 
@@ -100,7 +120,8 @@ private:
       settings::ImageSaverSettings::SaveClasss classsObj;
       classsObj.inputClass       = classs;
       classsObj.style            = style->getValue();
-      classsObj.paintBoundingBox = false;
+      classsObj.paintBoundingBox = boundingBox->getValue();
+      classsObj.paintObjectId    = objectId->getValue();
       mSettings.classesIn.emplace_back(classsObj);
       colorIdx++;
     }

@@ -87,7 +87,7 @@ private slots:
   void onFitImageToScreenSizeClicked();
   void onZoomOutClicked();
   void onZoomInClicked();
-  void onOpenFullScreenClickec();
+  void onOpenFullScreenClicked(bool checked);
   void onTileClicked(int32_t tileX, int32_t tileY);
 
 private:
@@ -98,6 +98,9 @@ private:
   QPushButton *filled;
   QComboBox *mPreviewSize;
   std::unique_ptr<SettingComboBoxMultiClassificationIn> mClassesClassesToShow;
+
+  // BUTTONS ///////////////////////////////////////////////////
+  QPushButton *mOpenFullScreenButton;
 
   /////////////////////////////////////////////////////
   DialogImageViewer mImageViewer;

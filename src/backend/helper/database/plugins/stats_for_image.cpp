@@ -29,7 +29,8 @@ auto StatsPerImage::toTable(db::Database *database, const QueryFilter &filter) -
 
   for(const auto &[classs, statement] : classesToExport) {
     auto [sql, params] = toSqlTable(classs, filter.getFilter(), statement);
-    auto result        = database->select(sql, params);
+
+    auto result = database->select(sql, params);
 
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());
@@ -58,12 +59,62 @@ auto StatsPerImage::toTable(db::Database *database, const QueryFilter &filter) -
 auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClass, const QueryFilter::ObjectFilter &filter,
                                const PreparedStatement &channelFilter) -> std::pair<std::string, DbArgs_t>
 {
-  std::string sql = "SELECT\n" + channelFilter.createStatsQuery(false, false) +
+  auto [retValSum, retValCnt] = channelFilter.createIntersectionQuery();
+  std::string intersect;
+  std::string table = "objects";
+
+  if(!retValSum.empty()) {
+    table = "Intermediate";
+    intersect =
+        " WITH RECURSIVE AllDescendants AS (\n"
+        "  SELECT\n"
+        "    object_id,\n"
+        "    meas_parent_object_id,\n"
+        "    object_id AS root_id,\n"
+        "    class_id\n"
+        "  FROM objects\n"
+        "  UNION ALL\n"
+        "  SELECT\n"
+        "    t.object_id,\n"
+        "    t.meas_parent_object_id,\n"
+        "    ad.root_id,\n"
+        "    t.class_id\n"
+        "  FROM objects t\n"
+        "  JOIN AllDescendants ad\n"
+        "    ON t.meas_parent_object_id = ad.object_id\n"
+        "),\n"
+        "RootClasses AS (\n"
+        "  SELECT\n"
+        "    object_id AS root_id,\n"
+        "    class_id AS root_class_id\n"
+        "  FROM objects\n"
+        "),\n"
+        "DescendantCounts AS (\n"
+        "  SELECT\n"
+        "    ad.root_id,\n" +
+        retValSum +
+        "  FROM AllDescendants ad\n"
+        "  GROUP BY ad.root_id\n"
+        "),\n"
+        "Intermediate AS(\n"
+        "  SELECT\n"
+        "    t.*,\n" +
+        retValCnt +
+        "  FROM objects t\n"
+        "  LEFT JOIN DescendantCounts dc\n"
+        "    ON t.object_id = dc.root_id\n"
+        "  LEFT JOIN RootClasses rc\n"
+        "    ON t.object_id = rc.root_id\n"
+        ")\n";
+  } else {
+    intersect = "";
+  }
+  std::string sql = intersect + "SELECT\n" + channelFilter.createStatsQuery(false, false) +
                     "ANY_VALUE(t1.meas_center_x) as meas_center_x,\n"
                     "ANY_VALUE(t1.meas_center_y) as meas_center_y\n"
                     "FROM\n"
-                    "  objects t1\n" +
-                    channelFilter.createStatsQueryJoins() +
+                    "  " +
+                    table + " t1\n" + channelFilter.createStatsQueryJoins() +
                     "WHERE\n"
                     " t1.image_id=$1 AND t1.class_id=$2 AND stack_z=$3 AND stack_t=$4\n"
                     "GROUP BY t1.object_id\n"

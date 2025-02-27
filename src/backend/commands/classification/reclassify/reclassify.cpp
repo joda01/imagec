@@ -39,11 +39,11 @@ void Reclassify::execute(processor::ProcessContext &context, cv::Mat & /*image*/
         if(settings::ClassifierFilter::doesFilterMatch(context, roi, mSettings.metrics, mSettings.intensity)) {
           if(mSettings.mode == settings::ReclassifySettings::Mode::RECLASSIFY_MOVE) {
             // We have to reenter to organize correct in the map of objects
-            auto newRoi = roi.clone(context.getClassId(mSettings.newClassId));
+            auto newRoi = roi.clone(context.getClassId(mSettings.newClassId), roi.getParentObjectId());
             roisToEnter.emplace_back(std::move(newRoi));
             roisToRemove.emplace_back(&roi);
           } else if(mSettings.mode == settings::ReclassifySettings::Mode::RECLASSIFY_COPY) {
-            auto newRoi = roi.copy(context.getClassId(mSettings.newClassId));
+            auto newRoi = roi.copy(context.getClassId(mSettings.newClassId), roi.getParentObjectId());
             roisToEnter.emplace_back(std::move(newRoi));    // Store the ROIs we want to enter
           }
         }
@@ -61,9 +61,10 @@ void Reclassify::execute(processor::ProcessContext &context, cv::Mat & /*image*/
     } else {
       for(const auto &intersectWithClasssId : mSettings.intersection.inputClassesIntersectWith) {
         auto *intersectWith = context.loadObjectsFromCache()->at(context.getClassId(intersectWithClasssId)).get();
-        objectsInOut->calcIntersection(objectList, context, mSettings.mode, intersectWith, {context.getClassId(inputClassification)},
-                                       {context.getClassId(intersectWithClasssId)}, mSettings.intersection.minIntersection, mSettings.metrics,
-                                       mSettings.intensity, context.getClassId(mSettings.newClassId));
+        objectsInOut->calcIntersection(objectList, context, mSettings.mode, mSettings.hierarchyMode, intersectWith,
+                                       {context.getClassId(inputClassification)}, {context.getClassId(intersectWithClasssId)},
+                                       mSettings.intersection.minIntersection, mSettings.metrics, mSettings.intensity,
+                                       context.getClassId(mSettings.newClassId));
       }
     }
   }

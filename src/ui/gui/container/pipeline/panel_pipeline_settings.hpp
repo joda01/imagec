@@ -16,6 +16,7 @@
 #include <QtWidgets>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/helper/thread_safe_queue.hpp"
@@ -30,8 +31,15 @@
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/panel_preview.hpp"
 
+class PlaceholderTableWidget;
+
+namespace joda::settings {
+class PipelineHistoryEntry;
+};
+
 namespace joda::ui::gui {
 
+class DialogHistory;
 class WindowMain;
 class AddCommandButtonBase;
 class PanelClassification;
@@ -53,9 +61,14 @@ public:
 
   void addPipelineStep(std::unique_ptr<joda::ui::gui::Command> command, const settings::PipelineStep *);
   void insertNewPipelineStep(int32_t posToInsert, std::unique_ptr<joda::ui::gui::Command> command, const settings::PipelineStep *pipelineStepBefore);
-  void erasePipelineStep(const Command *);
+  void erasePipelineStep(const Command *, bool updateHistory = true);
   void setActive(bool setActive) override;
   const joda::settings::Pipeline &getPipeline()
+  {
+    return mSettings;
+  }
+
+  joda::settings::Pipeline &mutablePipeline()
   {
     return mSettings;
   }
@@ -90,6 +103,9 @@ private:
   void previewThread();
   void copyPipeline();
 
+  // ACTIONS///////////////////////////////////////////////////
+  QAction *mHistoryAction;
+
   /////////////////////////////////////////////////////
   helper::LayoutGenerator mLayout;
   std::unique_ptr<SettingLineEdit<std::string>> pipelineName;
@@ -99,6 +115,7 @@ private:
   std::unique_ptr<SettingComboBoxClassesOutN> defaultClassId;
 
   /////////////////////////////////////////////////////
+  DialogHistory *mDialogHistory;
   PanelPreview *mPreviewImage                 = nullptr;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
   bool mIsActiveShown                         = false;
