@@ -28,7 +28,7 @@ struct ProgramMeta final
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProgramMeta, imagecVersion);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProgramMeta, imagecVersion, buildTime);
 };
 
 }    // namespace joda::settings

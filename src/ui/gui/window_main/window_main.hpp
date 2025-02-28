@@ -56,7 +56,7 @@ public:
   ~WindowMain();
   bool showPanelStartPage();
   void showPanelPipelineSettingsEdit(PanelPipelineSettings *);
-  void openProjectSettings(const QString &filePath);
+  void openProjectSettings(const QString &filePath, bool openFromTemplate);
   void openResultsSettings(const QString &filePath);
 
   joda::ctrl::Controller *getController()
@@ -176,7 +176,10 @@ private:
   PanelPipeline *mPanelPipeline;
   PanelImages *mPanelImages;
   PanelResultsInfo *mPanelResultsInfo;
+
+  ////Pipeline/////////////////////////////////////////////////
   QPushButton *mStartAnalysis = nullptr;
+  QPushButton *mBookmarkButton;
 
   ////Stacked widget/////////////////////////////////////////////////
   QStackedWidget *mStackedWidget;

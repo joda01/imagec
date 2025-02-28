@@ -77,7 +77,7 @@ void RExporter::startExport(const db::QueryFilter &filter, db::StatsPerGroup::Gr
       analyzeSettings.projectSettings.address.firstName + " " + analyzeSettings.projectSettings.address.lastName +
       "\n"
       "# \\date  " +
-      helper::timepointToIsoString(timeStarted) + "\n" + "# \\version " + analyzeSettings.meta.imagecVersion +
+      helper::timepointToIsoString(timeStarted) + "\n" + "# \\version " + analyzeSettings.imagecMeta.imagecVersion +
       "\n"
       "\n"
       "# Be sure the duckdb package is installed. By executing the following line, the package will be installed.\n"

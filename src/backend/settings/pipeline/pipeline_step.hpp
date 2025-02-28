@@ -59,7 +59,18 @@ namespace joda::settings {
 struct PipelineStep
 {
 public:
-  bool disabled                                                         = false;
+  //
+  // Disabled pipeline steps are not executed
+  //
+  bool disabled = false;
+  //
+  // Locked pipeline steps can not be edited
+  //
+  bool locked = false;
+
+  //
+  // Exact one command to execute
+  //
   std::optional<BlurSettings> $blur                                     = std::nullopt;
   std::optional<ImageSaverSettings> $saveImage                          = std::nullopt;
   std::optional<IntensityTransformationSettings> $intensityTransform    = std::nullopt;
@@ -96,7 +107,7 @@ public:
                                                        $aiClassify, $colocalization, $reclassify, $measure, $rollingBall, $medianSubtract, $sobel,
                                                        $canny, $crop, $voronoi, $thresholdValidator, $noiseValidator, $intensityTransform,
                                                        $colorFilter, $objectsToImage, $imageMath, $objectTransform, $imageToCache,
-                                                       $morphologicalTransform, $fillHoles, $houghTransform, disabled);
+                                                       $morphologicalTransform, $fillHoles, $houghTransform, disabled, locked);
 };
 
 }    // namespace joda::settings

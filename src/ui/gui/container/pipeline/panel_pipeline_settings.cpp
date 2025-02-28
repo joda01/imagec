@@ -139,7 +139,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   auto *openTemplate = mLayout.addActionButton("Open template", generateIcon("opened-folder"));
   connect(openTemplate, &QAction::triggered, [this] { this->openTemplate(); });
 
-  auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", generateIcon("bookmark"));
+  auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", generateIcon("save"));
   connect(saveAsTemplateButton, &QAction::triggered, [this] { this->saveAsTemplate(); });
 
   auto *copyPipeline = mLayout.addActionButton("Copy pipeline", generateIcon("copy"));

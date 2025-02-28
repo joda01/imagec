@@ -16,8 +16,8 @@
 #include <vector>
 #include "backend/enums/enums_classes.hpp"
 #include "backend/global_enums.hpp"
-#include "backend/settings/pipeline/pipeline_meta.hpp"
 #include "backend/settings/setting.hpp"
+#include "backend/settings/settings_meta.hpp"
 #include "backend/settings/settings_types.hpp"
 #include <nlohmann/json.hpp>
 #include "experiment_settings.hpp"
@@ -33,7 +33,7 @@ struct Classification
   //
   // Name
   //
-  PipelineMeta meta;
+  SettingsMeta meta;
 
   //
   // Object classes used in this project

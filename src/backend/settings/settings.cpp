@@ -23,6 +23,13 @@
 
 namespace joda::settings {
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 auto Settings::openSettings(const std::filesystem::path &pathIn) -> joda::settings::AnalyzeSettings
 {
   std::ifstream ifs(pathIn);
@@ -33,15 +40,30 @@ auto Settings::openSettings(const std::filesystem::path &pathIn) -> joda::settin
   return analyzeSettings;
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void Settings::migrateSettings(std::string &settings)
 {
   helper::stringReplace(settings, "$edgeDetection", "$sobel");
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void Settings::storeSettings(const std::filesystem::path &pathIn, const joda::settings::AnalyzeSettings &settings)
 {
   std::string path = pathIn.string();
   if(!path.empty()) {
+    settings.meta.setModifiedAtDateToNow();
     nlohmann::json json = settings;
     removeNullValues(json);
 
@@ -60,6 +82,59 @@ void Settings::storeSettings(const std::filesystem::path &pathIn, const joda::se
   }
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Settings::storeSettingsTemplate(const std::filesystem::path &pathIn, joda::settings::AnalyzeSettings settings)
+{
+  std::string path = pathIn.string();
+  if(!path.empty()) {
+    // Set modified at
+    settings.meta.setModifiedAtDateToNow();
+
+    //
+    // Remove settings
+    //
+    settings.projectSettings.workingDirectory                = "";
+    settings.projectSettings.experimentSettings.experimentId = "";
+    settings.projectSettings.plates                          = {{}};
+    settings.projectSettings.address                         = {};
+    for(auto &pipeline : settings.pipelines) {
+      pipeline.meta.icon = "";
+    }
+
+    //
+    // Convert to json
+    //
+    nlohmann::json json = settings;
+    removeNullValues(json);
+
+    if(!path.ends_with(joda::fs::EXT_PROJECT_TEMPLATE)) {
+      path += joda::fs::EXT_PROJECT_TEMPLATE;
+    }
+    std::ofstream out(path);
+    if(!out.is_open()) {
+      throw std::runtime_error("Cannot open file >" + path + "< for writing! Do you have write permissions?");
+    }
+    out << json.dump(2);
+    if(out.bad()) {
+      throw std::runtime_error("Cannot write data! Do you have write permissions and enough space left on your disk?");
+    }
+    out.close();
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 std::string Settings::toString(const joda::settings::AnalyzeSettings &settings)
 {
   nlohmann::json json = settings;
@@ -68,6 +143,13 @@ std::string Settings::toString(const joda::settings::AnalyzeSettings &settings)
 }
 
 /// \todo How to check incomplete settings
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 bool Settings::isEqual(const joda::settings::AnalyzeSettings &settingsOld, const joda::settings::AnalyzeSettings &settingsNew)
 {
   try {

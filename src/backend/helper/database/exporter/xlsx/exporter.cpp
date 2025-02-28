@@ -354,8 +354,8 @@ void BatchExporter::createAnalyzeSettings(WorkBook &workbookSettings, const sett
   addElement("Duration at", joda::helper::getDurationAsString(timeStarted, timeFinished));
 
   addTitle("ImageC");
-  addElement("Version", settings.meta.imagecVersion);
-  addElement("Build", settings.meta.buildTime);
+  addElement("Version", settings.imagecMeta.imagecVersion);
+  addElement("Build", settings.imagecMeta.buildTime);
 
   addTitle("Classes");
   for(const auto &classs : settings.projectSettings.classification.classes) {

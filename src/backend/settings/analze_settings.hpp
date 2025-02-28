@@ -37,7 +37,8 @@ public:
   ProjectSettings projectSettings;
   ProjectImageSetup imageSetup;
   std::list<Pipeline> pipelines;
-  ProgramMeta meta;
+  ProgramMeta imagecMeta;
+  SettingsMeta meta;
 
   [[nodiscard]] const std::string &schema() const
   {
@@ -52,6 +53,6 @@ public:
 private:
   std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings.json";
   void check() const;
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, configSchema, projectSettings, imageSetup, pipelines, meta);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, configSchema, projectSettings, imageSetup, pipelines, imagecMeta);
 };
 }    // namespace joda::settings

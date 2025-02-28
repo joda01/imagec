@@ -224,11 +224,39 @@ void WindowMain::createLeftToolbar()
     mTemplateSelection = new QComboBox();
     innerLayout->addWidget(mTemplateSelection);
 
-    mStartAnalysis = new QPushButton(generateIcon("play"), "");
-    mStartAnalysis->setEnabled(false);
-    mStartAnalysis->setToolTip("Run pipeline!");
-    innerLayout->addWidget(mStartAnalysis);
+    //
+    // Save as template
+    //
+    {
+      auto *bookMarkMenu = new QMenu();
 
+      // Save template
+      auto *saveTemplate = bookMarkMenu->addAction(generateIcon("save"), "Save project template");
+      connect(saveTemplate, &QAction::triggered, [this]() {});
+
+      // Open template
+      auto *openTemplate = bookMarkMenu->addAction(generateIcon("open"), "Open project template");
+      connect(openTemplate, &QAction::triggered, [this]() {});
+
+      mBookmarkButton = new QPushButton(generateIcon("menu"), "");
+      mBookmarkButton->setMenu(bookMarkMenu);
+      mBookmarkButton->setToolTip("Menu");
+      innerLayout->addWidget(mBookmarkButton);
+    }
+
+    //
+    // Start button
+    //
+    {
+      mStartAnalysis = new QPushButton(generateIcon("play"), "");
+      mStartAnalysis->setEnabled(false);
+      mStartAnalysis->setToolTip("Run pipeline!");
+      innerLayout->addWidget(mStartAnalysis);
+    }
+
+    //
+    // Add layout
+    //
     innerLayout->setStretch(0, 1);
     layout->addLayout(innerLayout);
 
@@ -397,20 +425,25 @@ void WindowMain::onOpenClicked()
   QFileDialog::Options opt;
   opt.setFlag(QFileDialog::DontUseNativeDialog, false);
 
-  QString filePath = QFileDialog::getOpenFileName(
-      this, "Open File", folderToOpen,
-      "ImageC project or results files (*" + QString(joda::fs::EXT_PROJECT.data()) + " *" + QString(joda::fs::EXT_DATABASE.data()) +
-          ");;ImageC project files "
-          "(*" +
-          QString(joda::fs::EXT_PROJECT.data()) + ");;ImageC results files (*" + QString(joda::fs::EXT_DATABASE.data()) + ")",
-      nullptr, opt);
+  QString filePath =
+      QFileDialog::getOpenFileName(this, "Open File", folderToOpen,
+                                   "ImageC project, template or results files (*" + QString(joda::fs::EXT_PROJECT.data()) + " *" +
+                                       QString(joda::fs::EXT_PROJECT_TEMPLATE.data()) + " *" + QString(joda::fs::EXT_DATABASE.data()) +
+                                       ");;ImageC project files "
+                                       "(*" +
+                                       QString(joda::fs::EXT_PROJECT.data()) + ");;ImageC results files (*" + QString(joda::fs::EXT_DATABASE.data()) +
+                                       ");;ImageC template files (*" + QString(joda::fs::EXT_PROJECT_TEMPLATE.data()) + ")",
+                                   nullptr, opt);
 
   if(filePath.isEmpty()) {
     return;
   }
 
   if(filePath.endsWith(joda::fs::EXT_PROJECT.data())) {
-    openProjectSettings(filePath);
+    openProjectSettings(filePath, false);
+  }
+  if(filePath.endsWith(joda::fs::EXT_PROJECT_TEMPLATE.data())) {
+    openProjectSettings(filePath, true);
   }
   if(filePath.endsWith(joda::fs::EXT_DATABASE.data())) {
     openResultsSettings(filePath);
@@ -445,7 +478,7 @@ void WindowMain::openResultsSettings(const QString &filePath)
 /// \brief      Open project settings
 /// \author     Joachim Danmayr
 ///
-void WindowMain::openProjectSettings(const QString &filePath)
+void WindowMain::openProjectSettings(const QString &filePath, bool openFromTemplate)
 {
   try {
     joda::settings::AnalyzeSettings analyzeSettings = joda::settings::Settings::openSettings(filePath.toStdString());
@@ -470,8 +503,11 @@ void WindowMain::openProjectSettings(const QString &filePath)
 
     mActAnalyzeSettings = &mAnalyzeSettings;
     emit onOutputClassifierChanges();
-
-    mSelectedProjectSettingsFilePath = filePath.toStdString();
+    if(openFromTemplate) {
+      mSelectedProjectSettingsFilePath.clear();
+    } else {
+      mSelectedProjectSettingsFilePath = filePath.toStdString();
+    }
     checkForSettingsChanged();
     onSaveProject();
     showPanelStartPage();
@@ -542,26 +578,44 @@ void WindowMain::saveProject(std::filesystem::path filename, bool saveAs)
       if(!std::filesystem::exists(filePath)) {
         std::filesystem::create_directories(filePath);
       }
-      filePath                       = filePath / ("settings" + joda::fs::EXT_PROJECT);
-      QString filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(),
-                                                                    "ImageC project files (*" + QString(joda::fs::EXT_PROJECT.data()) + ")");
-      filename                       = filePathOfSettingsFile.toStdString();
+      filePath = filePath / ("settings" + joda::fs::EXT_PROJECT);
+      QString filePathOfSettingsFile =
+          QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(),
+                                       "ImageC project files (*" + QString(joda::fs::EXT_PROJECT.data()) + ");;ImageC project template (*" +
+                                           QString(joda::fs::EXT_PROJECT_TEMPLATE.data()) + ")");
+      filename = filePathOfSettingsFile.toStdString();
+    }
+    bool storeAsTemplate = false;
+    if(filename.string().ends_with(joda::fs::EXT_PROJECT_TEMPLATE.data())) {
+      storeAsTemplate = true;
     }
 
     if(!filename.empty()) {
-      if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld) || saveAs) {
-        for(const auto &[pip, _] : mPanelPipeline->getPipelineWidgets()) {
-          if(pip) {
-            std::cout << "Store A" << std::endl;
-
-            pip->pipelineSavedEvent();
+      if(!storeAsTemplate) {
+        //
+        // Store project
+        //
+        if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld) || saveAs) {
+          for(const auto &[pip, _] : mPanelPipeline->getPipelineWidgets()) {
+            if(pip) {
+              pip->pipelineSavedEvent();
+            }
           }
+          joda::settings::Settings::storeSettings(filename, mAnalyzeSettings);
         }
-        std::cout << "Store" << std::endl;
-        joda::settings::Settings::storeSettings(filename, mAnalyzeSettings);
+        mAnalyzeSettingsOld = mAnalyzeSettings;
+        checkForSettingsChanged();
+      } else {
+        //
+        // Store project as template
+        //
+        joda::settings::Settings::storeSettingsTemplate(filename, mAnalyzeSettings);
       }
-      mAnalyzeSettingsOld = mAnalyzeSettings;
-      checkForSettingsChanged();
+    }
+
+    if(!storeAsTemplate) {
+      mSelectedProjectSettingsFilePath = filename;
+      setWindowTitlePrefix(filename.filename().string().data());
     }
 
   } catch(const std::exception &ex) {
@@ -573,8 +627,6 @@ void WindowMain::saveProject(std::filesystem::path filename, bool saveAs)
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
   }
-  mSelectedProjectSettingsFilePath = filename;
-  setWindowTitlePrefix(filename.filename().string().data());
 }
 
 ///

@@ -18,8 +18,8 @@
 #include "backend/enums/enum_history.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/processor/initializer/pipeline_settings.hpp"
-#include "backend/settings/pipeline/pipeline_meta.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
+#include "backend/settings/settings_meta.hpp"
 #include "backend/settings/settings_types.hpp"
 #include <nlohmann/json_fwd.hpp>
 
@@ -68,7 +68,7 @@ class Pipeline
 public:
   int32_t index = 0;    // Pipeline index, this is temporary and must not be saved. The index is given during the dependency graph generation
   /////////////////////////////////////////////////////
-  PipelineMeta meta;
+  SettingsMeta meta;
   PipelineSettings pipelineSetup;
   std::list<PipelineStep> pipelineSteps;
 

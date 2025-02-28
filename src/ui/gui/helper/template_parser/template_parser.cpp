@@ -18,6 +18,7 @@
 #include <filesystem>
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
+#include "backend/settings/settings_meta.hpp"
 #include <nlohmann/json_fwd.hpp>
 
 namespace joda::templates {
@@ -31,7 +32,7 @@ namespace joda::templates {
 ///
 struct MetaFinder
 {
-  settings::PipelineMeta meta;
+  settings::SettingsMeta meta;
   std::string configSchema;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(MetaFinder, meta, configSchema);

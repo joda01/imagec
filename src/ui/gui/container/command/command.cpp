@@ -105,6 +105,32 @@ Command::Command(joda::settings::PipelineStep &pipelineStep, const QString &titl
   mEditDialog->setWindowTitle(title);
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Command::mousePressEvent(QMouseEvent *event)
+{
+  if(event->button() == Qt::LeftButton && !mPipelineStep.locked) {
+    openEditView();
+  }
+
+  // Locked elements can opened with a right click
+  if(event->button() == Qt::RightButton && mPipelineStep.locked) {
+    openEditView();
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void Command::paintEvent(QPaintEvent *event)
 {
   auto getColor = [](InOuts inouts) {
@@ -224,6 +250,9 @@ void Command::registerAddCommandButton(std::shared_ptr<DialogCommandSelection> &
 ///
 void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
 {
+  //
+  // Disabled button
+  //
   mDisabled = mLayout.addActionButton("Disable", generateIcon("invisible"));
   mDisabled->setCheckable(true);
   mDisabled->setChecked(mPipelineStep.disabled);
@@ -232,6 +261,20 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
     emit valueChanged();
   });
 
+  //
+  // Locked button
+  //
+  mLocked = mLayout.addActionButton("Locked", generateIcon("lock"));
+  mLocked->setCheckable(true);
+  mLocked->setChecked(mPipelineStep.locked);
+  connect(mLocked, &QAction::triggered, [this, pipelineSettingsUi](bool) {
+    setLocked(mLocked->isChecked());
+    emit valueChanged();
+  });
+
+  //
+  // Okay button
+  //
   auto *okayBottom = mLayout.addActionBottomButton("Okay", generateIcon("accept"));
   connect(okayBottom, &QAction::triggered, [this]() { mEditDialog->close(); });
 
@@ -252,7 +295,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
     pipelineSettingsUi->erasePipelineStep(this);
   });
 
-  setDisabled(mDisabled->isChecked());
+  setDisplayTextFont();
 }
 
 ///
@@ -264,9 +307,39 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
 ///
 void Command::setDisabled(bool disabled)
 {
-  if(disabled) {
+  mPipelineStep.disabled = disabled;
+  setDisplayTextFont();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Command::setLocked(bool locked)
+{
+  mPipelineStep.locked = locked;
+  setDisplayTextFont();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Command::setDisplayTextFont()
+{
+  if(mPipelineStep.disabled) {
     QFont font;
-    font.setItalic(true);
+    font.setStrikeOut(true);
+    mDisplayableText->setFont(font);
+    mDisplayableText->setStyleSheet("QLabel { color : #808080; }");
+  } else if(mPipelineStep.locked) {
+    QFont font;
     mDisplayableText->setFont(font);
     mDisplayableText->setStyleSheet("QLabel { color : #808080; }");
   } else {
@@ -276,7 +349,6 @@ void Command::setDisabled(bool disabled)
     mDisplayableText->setStyleSheet("QLabel { color: black; }");
   }
   mDisplayableText->repaint();
-  mPipelineStep.disabled = disabled;
 }
 
 ///
@@ -424,6 +496,7 @@ void Command::updateDisplayText()
     txt.chop(4);
   }
   txt += "</html>";
+
   mDisplayableText->setText(txt);
 }
 
