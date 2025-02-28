@@ -1,5 +1,6 @@
 #pragma once
 
+#include <bits/chrono.h>
 #include <opencv2/core/hal/interface.h>
 #include <array>
 #include <chrono>
@@ -127,8 +128,36 @@ inline std::string timepointToIsoString(const std::chrono::system_clock::time_po
 inline std::string timepointToDelay(const std::chrono::system_clock::time_point &pastTime)
 {
   std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-  auto duration                             = duration_cast<std::chrono::days>(now - pastTime);
-  return std::to_string(duration.count()) + " dys";
+  auto delta                                = now - pastTime;
+
+  auto duration   = duration_cast<std::chrono::seconds>(delta).count();
+  std::string pre = " sec";
+  if(duration >= 60) {
+    duration = duration_cast<std::chrono::minutes>(delta).count();
+    pre      = " min";
+    if(duration >= 60) {
+      duration = duration_cast<std::chrono::hours>(delta).count();
+      pre      = " hrs";
+      if(duration >= 24) {
+        duration = duration_cast<std::chrono::days>(delta).count();
+        pre      = " dys";
+        if(duration >= 7) {
+          duration = duration_cast<std::chrono::weeks>(delta).count();
+          pre      = " wks";
+          if(duration >= 4) {
+            duration = duration_cast<std::chrono::months>(delta).count();
+            pre      = " mos";
+            if(duration >= 12) {
+              duration = duration_cast<std::chrono::years>(delta).count();
+              pre      = " yrs";
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return std::to_string(duration) + pre;
 }
 
 inline std::string getDurationAsString(const std::chrono::system_clock::time_point &t1, const std::chrono::system_clock::time_point &t2)

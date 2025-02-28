@@ -34,7 +34,7 @@ auto Pipeline::createSnapShot(enums::HistoryCategory category, const std::string
   if(!history.empty()) {
     nlohmann::json act  = pipelineSteps;
     nlohmann::json last = history.at(0).pipelineSteps;
-    if(act.dump() == last.dump()) {
+    if(enums::HistoryCategory::SAVED != category && act.dump() == last.dump()) {
       return std::nullopt;
     }
   }

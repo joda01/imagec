@@ -55,9 +55,9 @@ protected:
     painter.drawText(textX, textY, mLeftText);
 
     // Right vertical line
-    painter.setPen(QPen(Qt::darkGray, 1));    // Black line with 2-pixel thickness
-    int x = width() - 8;                      // 10 pixels from the right
-    painter.drawLine(x, 0, x, height());      // Vertical line from top to bottom  }
+    // painter.setPen(QPen(Qt::darkGray, 1));    // Black line with 2-pixel thickness
+    // int x = width() - 8;                      // 10 pixels from the right
+    // painter.drawLine(x, 0, x, height());      // Vertical line from top to bottom  }
 
     // Set pen for right-aligned text (dark gray)
     painter.setPen(Qt::darkGray);

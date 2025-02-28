@@ -652,6 +652,18 @@ void PanelPipelineSettings::clearPipeline()
 /// \param[out]
 /// \return
 ///
+void PanelPipelineSettings::pipelineSavedEvent()
+{
+  mDialogHistory->updateHistory(enums::HistoryCategory::SAVED, "Saved");
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &settings)
 {
   mLoadingSettings        = true;
@@ -848,6 +860,9 @@ void PanelPipelineSettings::setActive(bool setActive)
   if(!setActive && mIsActiveShown) {
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
     mIsActiveShown = false;
+    mDialogHistory->hide();
+    mHistoryAction->setChecked(false);
+    mPreviewImage->hidePreviewImage();
     // Wait until preview render has been finished
     while(mPreviewInProgress) {
       std::this_thread::sleep_for(100ms);

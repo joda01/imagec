@@ -550,6 +550,14 @@ void WindowMain::saveProject(std::filesystem::path filename, bool saveAs)
 
     if(!filename.empty()) {
       if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld) || saveAs) {
+        for(const auto &[pip, _] : mPanelPipeline->getPipelineWidgets()) {
+          if(pip) {
+            std::cout << "Store A" << std::endl;
+
+            pip->pipelineSavedEvent();
+          }
+        }
+        std::cout << "Store" << std::endl;
         joda::settings::Settings::storeSettings(filename, mAnalyzeSettings);
       }
       mAnalyzeSettingsOld = mAnalyzeSettings;

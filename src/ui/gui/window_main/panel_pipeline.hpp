@@ -49,6 +49,10 @@ public:
   void addChannel(const joda::settings::Pipeline &settings);
   void addChannel(const QString &pathToSettings);
   void addChannel(const nlohmann::json &json);
+  auto getPipelineWidgets() -> std::map<std::unique_ptr<PanelPipelineSettings>, void *> &
+  {
+    return mChannels;
+  }
 
 private:
   /////////////////////////////////////////////////////

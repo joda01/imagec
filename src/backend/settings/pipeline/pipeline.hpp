@@ -60,7 +60,7 @@ public:
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineHistoryEntry, pipelineSteps, commitMessage, tagMessage, timeStamp);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineHistoryEntry, category, pipelineSteps, commitMessage, tagMessage, timeStamp);
 };
 
 class Pipeline
