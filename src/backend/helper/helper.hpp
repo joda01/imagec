@@ -1,6 +1,5 @@
 #pragma once
 
-#include <bits/chrono.h>
 #include <opencv2/core/hal/interface.h>
 #include <array>
 #include <chrono>
