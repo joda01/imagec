@@ -91,6 +91,7 @@ public:
   void toSettings() override;
   void fromSettings(const joda::settings::Pipeline &settings);
   void clearPipeline();
+  void pipelineSavedEvent();
 
 private:
   /////////////////////////////////////////////////////

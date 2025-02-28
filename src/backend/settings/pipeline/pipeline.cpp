@@ -26,7 +26,7 @@ static const int32_t MAX_HISTORY_STEPS = 128;
 /// \brief      Create a snapshot of the actual pipeline steps
 /// \author     Joachim Danmayr
 ///
-auto Pipeline::createSnapShot(const std::string &note) -> std::optional<PipelineHistoryEntry>
+auto Pipeline::createSnapShot(enums::HistoryCategory category, const std::string &note) -> std::optional<PipelineHistoryEntry>
 {
   if(pipelineSteps.empty() && history.empty()) {
     return std::nullopt;
@@ -34,12 +34,12 @@ auto Pipeline::createSnapShot(const std::string &note) -> std::optional<Pipeline
   if(!history.empty()) {
     nlohmann::json act  = pipelineSteps;
     nlohmann::json last = history.at(0).pipelineSteps;
-    if(act.dump() == last.dump()) {
+    if(enums::HistoryCategory::SAVED != category && act.dump() == last.dump()) {
       return std::nullopt;
     }
   }
   auto entry = PipelineHistoryEntry{
-      this->pipelineSteps, note, "",
+      category, this->pipelineSteps, note, "",
       static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count())};
   history.emplace(history.begin(), entry);
 

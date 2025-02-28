@@ -42,6 +42,11 @@ public:
 
     QMetaObject::invokeMethod(mPreviewInfo, "setText", Q_ARG(QString, info));
   }
+  void hidePreviewImage()
+  {
+    mImageViewer.hide();
+    mOpenFullScreenButton->setChecked(false);
+  }
   void resetImage(const QString &info)
   {
     mImageViewer.resetImage();
