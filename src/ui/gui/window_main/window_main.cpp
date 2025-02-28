@@ -509,7 +509,9 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
       mSelectedProjectSettingsFilePath = filePath.toStdString();
     }
     checkForSettingsChanged();
-    onSaveProject();
+    if(!openFromTemplate) {
+      onSaveProject();
+    }
     showPanelStartPage();
 
   } catch(const std::exception &ex) {
