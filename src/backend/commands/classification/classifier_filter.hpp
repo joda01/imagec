@@ -102,6 +102,7 @@ struct ClassifierFilter
 
   void check() const
   {
+    CHECK_ERROR(outputClass != enums::ClassIdIn::UNDEFINED, "Define a >match< class in classifier settings!");
   }
 
   static bool doesFilterMatch(joda::processor::ProcessContext &context, atom::ROI &roi, const MetricsFilter &metrics,
@@ -120,7 +121,7 @@ struct ObjectClass
   //
   // If no filter matches this class is assigned to the object
   //
-  enums::ClassIdIn outputClassNoMatch = enums::ClassIdIn::NONE;
+  enums::ClassIdIn outputClassNoMatch = enums::ClassIdIn::UNDEFINED;
 
   //
   // Grayscale or object class id from model
@@ -138,6 +139,7 @@ struct ObjectClass
   {
     CHECK_ERROR(!filters.empty(), "At least one classification filter must be given!");
     CHECK_ERROR(modelClassId >= 0, "A model class id >= 0 must be given for classification.");
+    CHECK_ERROR(outputClassNoMatch != enums::ClassIdIn::UNDEFINED, "Define a >no match< class in classifier settings!");
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectClass, filters, outputClassNoMatch, modelClassId, probabilityHandicap);

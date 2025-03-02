@@ -45,23 +45,6 @@ public:
     this->mutableEditDialog()->setMinimumWidth(600);
     this->mutableEditDialog()->setMinimumHeight(400);
 
-    auto *detectionSettings = addTab(
-        "Detection settings", [] {}, false);
-
-    //
-    // Options
-    //
-    mFunction = SettingBase::create<SettingComboBox<joda::settings::ClassifierSettings::HierarchyMode>>(parent, {}, "Function");
-    mFunction->addOptions({
-        {.key = joda::settings::ClassifierSettings::HierarchyMode::OUTER, .label = "Outer", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::ClassifierSettings::HierarchyMode::INNER, .label = "Inner", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::ClassifierSettings::HierarchyMode::INNER_AND_OUTER, .label = "Inner & Outer", .icon = generateIcon("ampersand")},
-    });
-
-    mFunction->setValue(settingsIn.hierarchyMode);
-    mFunction->connectWithSetting(&settingsIn.hierarchyMode);
-    auto *col = addSetting(detectionSettings, "Model settings", {{mFunction.get(), true, 0}});
-
     //
     // Filter settings
     //
@@ -76,6 +59,23 @@ public:
       mClassifyFilter.emplace_back(classifierSetting, *this, tab, cnt, parent);
       cnt++;
     }
+
+    //
+    // Options
+    //
+    auto *detectionSettings = addTab(
+        "Detection settings", [] {}, false);
+
+    mFunction = SettingBase::create<SettingComboBox<joda::settings::ClassifierSettings::HierarchyMode>>(parent, {}, "Function");
+    mFunction->addOptions({
+        {.key = joda::settings::ClassifierSettings::HierarchyMode::OUTER, .label = "Outer", .icon = generateIcon("ampersand")},
+        {.key = joda::settings::ClassifierSettings::HierarchyMode::INNER, .label = "Inner", .icon = generateIcon("ampersand")},
+        {.key = joda::settings::ClassifierSettings::HierarchyMode::INNER_AND_OUTER, .label = "Inner & Outer", .icon = generateIcon("ampersand")},
+    });
+
+    mFunction->setValue(settingsIn.hierarchyMode);
+    mFunction->connectWithSetting(&settingsIn.hierarchyMode);
+    auto *col = addSetting(detectionSettings, "Model settings", {{mFunction.get(), false, 0}});
 
     auto *addFilter = addActionButton("Add filter", generateIcon("add"));
     connect(addFilter, &QAction::triggered, this, &Classifier::addFilter);

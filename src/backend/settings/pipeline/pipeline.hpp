@@ -56,11 +56,12 @@ public:
   //
   uint32_t timeStamp;
 
-  void check() const
+  // We don't want to do a error check for the history
+  void getErrorLogRecursive(SettingParserLog_t &settingsParserLog) const
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineHistoryEntry, category, pipelineSteps, commitMessage, tagMessage, timeStamp);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineHistoryEntry, category, pipelineSteps, commitMessage, tagMessage, timeStamp);
 };
 
 class Pipeline

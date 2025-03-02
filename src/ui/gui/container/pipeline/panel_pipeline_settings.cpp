@@ -30,6 +30,7 @@
 #include <thread>
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
+#include "backend/enums/types.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/processor/processor.hpp"
@@ -344,8 +345,10 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
   connect(pipelineName.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::metaChangedEvent);
   connect(cStackIndex.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   connect(zProjection.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
+  connect(zProjection.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::onZProjectionChanged);
   connect(zStackIndex.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   connect(defaultClassId.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
+  onZProjectionChanged();
 
   {
     auto *col1 = tab->addVerticalPanel();
@@ -699,6 +702,7 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   mLoadingSettings = false;
 
   updatePreview();
+  onZProjectionChanged();
   mDialogHistory->loadHistory();
 }
 
@@ -765,6 +769,22 @@ void PanelPipelineSettings::deletePipeline()
 void PanelPipelineSettings::onClassificationNameChanged()
 {
   valueChangedEvent();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::onZProjectionChanged()
+{
+  if(zProjection->getValue() == enums::ZProjection::NONE) {
+    zStackIndex->getEditableWidget()->setVisible(true);
+  } else {
+    zStackIndex->getEditableWidget()->setVisible(false);
+  }
 }
 
 ///

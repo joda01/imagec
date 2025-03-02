@@ -631,6 +631,8 @@ void WindowMain::loadTemplates()
   mTemplateSelection->clear();
   mTemplateSelection->addItem("Add pipelines ...", "");
   mTemplateSelection->insertSeparator(mTemplateSelection->count());
+  mTemplateSelection->addItem(generateIcon("flow-many"), "Empty pipeline", "emptyChannel");
+  mTemplateSelection->insertSeparator(mTemplateSelection->count());
   std::string actCategory = "basic";
   size_t addedPerCategory = 0;
   for(const auto &[category, dataInCategory] : foundTemplates) {
