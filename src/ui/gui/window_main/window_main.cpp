@@ -97,8 +97,17 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   // Watch for new templates added
   //
   mTemplateDirWatcher.addPath(joda::templates::TemplateParser::getUsersTemplateDirectory().string().data());    // Replace with your desired path
-  QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::fileChanged, [&](const QString &path) { loadTemplates(); });
-  QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::directoryChanged, [&](const QString &path) { loadTemplates(); });
+  QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::fileChanged, [&](const QString &path) {
+    loadTemplates();
+    mPanelProjectSettings->loadTemplates();
+  });
+  QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::directoryChanged, [&](const QString &path) {
+    loadTemplates();
+    mPanelProjectSettings->loadTemplates();
+  });
+
+  loadTemplates();
+  mPanelProjectSettings->loadTemplates();
 
   //
   // Initial background tasks
@@ -225,26 +234,6 @@ void WindowMain::createLeftToolbar()
     innerLayout->addWidget(mTemplateSelection);
 
     //
-    // Save as template
-    //
-    {
-      auto *bookMarkMenu = new QMenu();
-
-      // Save template
-      auto *saveTemplate = bookMarkMenu->addAction(generateIcon("save"), "Save project template");
-      connect(saveTemplate, &QAction::triggered, [this]() {});
-
-      // Open template
-      auto *openTemplate = bookMarkMenu->addAction(generateIcon("open"), "Open project template");
-      connect(openTemplate, &QAction::triggered, [this]() {});
-
-      mBookmarkButton = new QPushButton(generateIcon("menu"), "");
-      mBookmarkButton->setMenu(bookMarkMenu);
-      mBookmarkButton->setToolTip("Menu");
-      innerLayout->addWidget(mBookmarkButton);
-    }
-
-    //
     // Start button
     //
     {
@@ -269,7 +258,6 @@ void WindowMain::createLeftToolbar()
 
     connect(mTemplateSelection, &QComboBox::currentIndexChanged, this, &WindowMain::onAddChannel);
     connect(mStartAnalysis, &QPushButton::clicked, this, &WindowMain::onStartClicked);
-    loadTemplates();
   }
 
   // Images Tab

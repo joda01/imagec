@@ -38,6 +38,8 @@ public:
   PanelProjectSettings(joda::settings::AnalyzeSettings &settings, WindowMain *parentWindow);
   void fromSettings(const joda::settings::AnalyzeSettings &settings);
   void toSettings();
+  void loadTemplates();
+
   [[nodiscard]] QString getJobName() const
   {
     if(mJobName->text().isEmpty()) {
@@ -77,6 +79,8 @@ signals:
 
 private:
   /////////////////////////////////////////////////////
+  bool askForChangeTemplateIndex();
+  /////////////////////////////////////////////////////
   joda::settings::AnalyzeSettings &mSettings;
   WindowMain *mParentWindow;
 
@@ -95,6 +99,8 @@ private:
   QComboBox *mStackHandlingT;
   QComboBox *mCompositeTileSize;
 
+  QComboBox *mTemplateSelection;
+  QPushButton *mTemplateBookmarkButton;
   QLineEdit *mWorkingDir;
   QLabel *mWellOrderMatrixLabel;
   QLineEdit *mWellOrderMatrix;
@@ -109,6 +115,7 @@ private slots:
   void applyRegex();
   void onOpenWorkingDirectoryClicked();
   void onSettingChanged();
+  void onOpenTemplate();
 };
 
 }    // namespace joda::ui::gui

@@ -95,6 +95,7 @@ void Settings::storeSettingsTemplate(const std::filesystem::path &pathIn, joda::
   if(!path.empty()) {
     // Set modified at
     settings.meta.setModifiedAtDateToNow();
+    settings.meta.name = settings.projectSettings.experimentSettings.experimentName;
 
     //
     // Remove settings

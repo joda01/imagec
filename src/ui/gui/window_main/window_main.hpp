@@ -179,7 +179,6 @@ private:
 
   ////Pipeline/////////////////////////////////////////////////
   QPushButton *mStartAnalysis = nullptr;
-  QPushButton *mBookmarkButton;
 
   ////Stacked widget/////////////////////////////////////////////////
   QStackedWidget *mStackedWidget;
