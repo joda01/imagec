@@ -32,7 +32,8 @@ template <ImageCStackCombo_t T>
 inline auto generateCStackCombo(const QString &helpText, QWidget *parent, const QString &thisText = "Default")
 {
   auto dropBox = SettingBase::create<T>(parent, generateIcon("channel"), helpText);
-  dropBox->addOptions({{-1, thisText, generateIcon("square")},
+  dropBox->addOptions({{-2, "Undefined", generateIcon("question-mark")},
+                       {-1, thisText, generateIcon("square")},
                        {0, "CH0", generateIcon("zero")},
                        {1, "CH1", generateIcon("one")},
                        {2, "CH2", generateIcon("2")},
