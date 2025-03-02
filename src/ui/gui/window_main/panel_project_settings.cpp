@@ -256,17 +256,13 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
 void PanelProjectSettings::loadTemplates()
 {
   auto foundTemplates = joda::templates::TemplateParser::findTemplates(
-      {{"templates/basic", joda::templates::TemplateParser::Category::BASIC},
-       {"templates/eva", joda::templates::TemplateParser::Category::EVA},
-       {"templates/segmentation", joda::templates::TemplateParser::Category::SEGMENTATION},
-       {joda::templates::TemplateParser::getUsersTemplateDirectory().string(), joda::templates::TemplateParser::Category::USER}},
-      joda::fs::EXT_PROJECT_TEMPLATE);
+      {"templates/projects", joda::templates::TemplateParser::getUsersTemplateDirectory().string()}, joda::fs::EXT_PROJECT_TEMPLATE);
 
   mTemplateSelection->clear();
   mTemplateSelection->addItem("Load template ...", "");
   mTemplateSelection->insertSeparator(mTemplateSelection->count());
-  joda::templates::TemplateParser::Category actCategory = joda::templates::TemplateParser::Category::BASIC;
-  size_t addedPerCategory                               = 0;
+  std::string actCategory = "basic";
+  size_t addedPerCategory = 0;
   for(const auto &[category, dataInCategory] : foundTemplates) {
     for(const auto &[_, data] : dataInCategory) {
       // Now the user templates start, add an addition separator

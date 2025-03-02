@@ -625,22 +625,22 @@ void WindowMain::saveProject(std::filesystem::path filename, bool saveAs)
 ///
 void WindowMain::loadTemplates()
 {
-  auto foundTemplates = joda::templates::TemplateParser::findTemplates();
+  auto foundTemplates = joda::templates::TemplateParser::findTemplates(
+      {"templates/pipelines", joda::templates::TemplateParser::getUsersTemplateDirectory().string()}, joda::fs::EXT_PIPELINE_TEMPLATE);
 
   mTemplateSelection->clear();
-  mTemplateSelection->addItem("Add pipeline ...", "");
+  mTemplateSelection->addItem("Add pipelines ...", "");
   mTemplateSelection->insertSeparator(mTemplateSelection->count());
-
-  mTemplateSelection->addItem(generateIcon("flow-many"), "Empty pipeline", "emptyChannel");
-
-  mTemplateSelection->insertSeparator(mTemplateSelection->count());
-  joda::templates::TemplateParser::Category actCategory = joda::templates::TemplateParser::Category::BASIC;
+  std::string actCategory = "basic";
+  size_t addedPerCategory = 0;
   for(const auto &[category, dataInCategory] : foundTemplates) {
     for(const auto &[_, data] : dataInCategory) {
       // Now the user templates start, add an addition separator
       if(category != actCategory) {
         actCategory = category;
-        mTemplateSelection->insertSeparator(mTemplateSelection->count());
+        if(addedPerCategory > 0) {
+          mTemplateSelection->insertSeparator(mTemplateSelection->count());
+        }
       }
       if(!data.icon.isNull()) {
         mTemplateSelection->addItem(QIcon(data.icon.scaled(28, 28)), data.title.data(), data.path.data());
@@ -648,6 +648,7 @@ void WindowMain::loadTemplates()
         mTemplateSelection->addItem(generateIcon("favorite"), data.title.data(), data.path.data());
       }
     }
+    addedPerCategory = dataInCategory.size();
   }
 }
 

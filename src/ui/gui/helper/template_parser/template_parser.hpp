@@ -37,6 +37,7 @@ namespace fs = std::filesystem;
 class TemplateParser
 {
 public:
+  using Group = std::string;
   struct Data
   {
     std::string title;
@@ -45,23 +46,12 @@ public:
     QPixmap icon;
   };
 
-  enum class Category
-  {
-    BASIC        = 0,
-    EVA          = 1,
-    SEGMENTATION = 2,
-    USER         = 3
-  };
-
   static void saveTemplate(const joda::settings::Pipeline &data, const std::filesystem::path &pathToStoreTemplateIn);
   static std::filesystem::path saveTemplate(nlohmann::json &, const std::filesystem::path &pathToStoreTemplateIn,
                                             const std::string &endian = joda::fs::EXT_PIPELINE_TEMPLATE);
 
-  static auto findTemplates(const std::map<std::string, Category> &directories = {{"templates/basic", Category::BASIC},
-                                                                                  {"templates/eva", Category::EVA},
-                                                                                  {"templates/segmentation", Category::SEGMENTATION},
-                                                                                  {getUsersTemplateDirectory().string(), Category::USER}},
-                            const std::string &endian = joda::fs::EXT_PIPELINE_TEMPLATE) -> std::map<Category, std::map<std::string, Data>>;
+  static auto findTemplates(const std::set<std::string> &directories, const std::string &endian = joda::fs::EXT_PIPELINE_TEMPLATE)
+      -> std::map<Group, std::map<std::string, Data>>;
   static auto loadChannelFromTemplate(const std::filesystem::path &pathToTemplate) -> joda::settings::Pipeline;
   static auto loadTemplate(const std::filesystem::path &pathToTemplate) -> nlohmann::json;
   static auto getUsersTemplateDirectory() -> std::filesystem::path;

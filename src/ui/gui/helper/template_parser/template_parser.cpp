@@ -38,11 +38,11 @@ struct MetaFinder
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(MetaFinder, meta, configSchema);
 };
 
-auto TemplateParser::findTemplates(const std::map<std::string, Category> &directories, const std::string &endian)
-    -> std::map<Category, std::map<std::string, Data>>
+auto TemplateParser::findTemplates(const std::set<std::string> &directories, const std::string &endian)
+    -> std::map<Group, std::map<std::string, Data>>
 {
-  std::map<Category, std::map<std::string, Data>> templates;
-  for(const auto &[directory, category] : directories) {
+  std::map<Group, std::map<std::string, Data>> templates;
+  for(const auto &directory : directories) {
     if(fs::exists(directory) && fs::is_directory(directory)) {
       for(const auto &entry : fs::recursive_directory_iterator(directory)) {
         if(entry.is_regular_file() && entry.path().extension().string() == endian) {
@@ -51,13 +51,14 @@ auto TemplateParser::findTemplates(const std::map<std::string, Category> &direct
             MetaFinder settings = nlohmann::json::parse(ifs);
             std::string name    = settings.meta.name + entry.path().filename().string();
             std::string title   = settings.meta.name;
+            std::string group   = settings.meta.group.value_or("user");
             if(!settings.meta.revision.empty()) {
               title += ":" + settings.meta.revision;
             }
-            if(category == Category::USER) {
+            if(group == "user") {
               title += " (" + entry.path().filename().string() + ")";
             }
-            templates[category].emplace(
+            templates[group].emplace(
                 name, Data{.title = title, .description = "", .path = entry.path().string(), .icon = base64ToQPixmap(settings.meta.icon)});
           } catch(const std::exception &ex) {
             std::cout << "Error " << ex.what() << std::endl;

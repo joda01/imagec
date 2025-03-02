@@ -20,6 +20,7 @@
 #include <exception>
 #include <string>
 #include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/file_parser/directory_iterator.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
@@ -366,21 +367,21 @@ void PanelClassification::onSettingChanged()
 void PanelClassification::loadTemplates()
 {
   auto foundTemplates = joda::templates::TemplateParser::findTemplates(
-      {{"templates/classification", joda::templates::TemplateParser::Category::BASIC},
-       {joda::templates::TemplateParser::getUsersTemplateDirectory().string(), joda::templates::TemplateParser::Category::USER}},
-      joda::fs::EXT_CLASS_CLASS_TEMPLATE);
+      {"templates/classification", joda::templates::TemplateParser::getUsersTemplateDirectory().string()}, joda::fs::EXT_CLASS_CLASS_TEMPLATE);
 
   mTemplateSelection->clear();
-  mTemplateSelection->addItem("User defined", "");
+  mTemplateSelection->addItem("Load template ...", "");
   mTemplateSelection->insertSeparator(mTemplateSelection->count());
-
-  joda::templates::TemplateParser::Category actCategory = joda::templates::TemplateParser::Category::BASIC;
+  std::string actCategory = "basic";
+  size_t addedPerCategory = 0;
   for(const auto &[category, dataInCategory] : foundTemplates) {
     for(const auto &[_, data] : dataInCategory) {
       // Now the user templates start, add an addition separator
       if(category != actCategory) {
         actCategory = category;
-        mTemplateSelection->insertSeparator(mTemplateSelection->count());
+        if(addedPerCategory > 0) {
+          mTemplateSelection->insertSeparator(mTemplateSelection->count());
+        }
       }
       if(!data.icon.isNull()) {
         mTemplateSelection->addItem(QIcon(data.icon.scaled(28, 28)), data.title.data(), data.path.data());
@@ -388,6 +389,7 @@ void PanelClassification::loadTemplates()
         mTemplateSelection->addItem(generateIcon("favorite"), data.title.data(), data.path.data());
       }
     }
+    addedPerCategory = dataInCategory.size();
   }
 }
 
