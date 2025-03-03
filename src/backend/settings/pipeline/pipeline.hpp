@@ -101,7 +101,8 @@ public:
   auto restoreSnapShot(int32_t idex) const -> Pipeline;
   void tag(int32_t index, const std::string &tagName);
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Pipeline, meta, pipelineSetup, pipelineSteps, disabled, locked, history);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED_CONDITIONAL_CHECK(Pipeline, disabled, meta, pipelineSetup, pipelineSteps, disabled, locked,
+                                                                         history);
 };
 
 }    // namespace joda::settings
