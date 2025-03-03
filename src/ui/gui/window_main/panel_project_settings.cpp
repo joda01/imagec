@@ -292,14 +292,14 @@ void PanelProjectSettings::onOpenTemplate()
   if(selection == "") {
   } else {
     if(!askForChangeTemplateIndex()) {
+      mParentWindow->checkForSettingsChanged();
+      mTemplateSelection->blockSignals(true);
+      mTemplateSelection->setCurrentIndex(0);
+      mTemplateSelection->blockSignals(false);
       return;
     }
     mParentWindow->openProjectSettings(selection, true);
   }
-  mParentWindow->checkForSettingsChanged();
-  mTemplateSelection->blockSignals(true);
-  mTemplateSelection->setCurrentIndex(0);
-  mTemplateSelection->blockSignals(false);
 }
 
 ///
