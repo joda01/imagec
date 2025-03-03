@@ -239,7 +239,7 @@ void SettingBase::createDisplayAbleWidget(const QIcon &icon, const QString &tool
   }
 
   // Create a QHBoxLayout to arrange the text and icon horizontally
-  QHBoxLayout *layout = new QHBoxLayout;
+  auto *layout = new QHBoxLayout;
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setSpacing(4);
   mDisplayable->setLayout(layout);
