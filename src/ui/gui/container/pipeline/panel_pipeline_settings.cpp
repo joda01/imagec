@@ -135,6 +135,20 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     }
   });
   connect(mDialogHistory, &QDialog::finished, [this] { mHistoryAction->setChecked(false); });
+
+  //
+  // Add disable button
+  //
+  mActionDisabled = mLayout.addActionButton("Disable pipeline", generateIcon("invisible"));
+  mActionDisabled->setCheckable(true);
+  connect(mActionDisabled, &QAction::triggered, [this](bool checked) {
+    mSettings.disabled = checked;
+    if(mOverview != nullptr) {
+      mOverview->update();
+    }
+  });
+  connect(mActionDisabled, &QAction::triggered, this, &PanelPipelineSettings::valueChangedEvent);
+
   mLayout.addSeparatorToTopToolbar();
 
   auto *openTemplate = mLayout.addActionButton("Open template", generateIcon("opened-folder"));
@@ -678,6 +692,7 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   cStackIndex->setValue(settings.pipelineSetup.cStackIndex);
   zProjection->setValue(settings.pipelineSetup.zProjection);
   defaultClassId->setValue(settings.pipelineSetup.defaultClassId);
+  mHistoryAction->setChecked(settings.disabled);
 
   //
   // Pipelinesteps
@@ -715,6 +730,7 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
 ///
 void PanelPipelineSettings::toSettings()
 {
+  mSettings.disabled                     = mActionDisabled->isChecked();
   mSettings.meta.name                    = pipelineName->getValue();
   mSettings.pipelineSetup.cStackIndex    = cStackIndex->getValue();
   mSettings.pipelineSetup.zProjection    = zProjection->getValue();

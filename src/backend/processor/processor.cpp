@@ -22,7 +22,6 @@
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_classes.hpp"
-
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/enums/enums_grouping.hpp"
 #include "backend/helper/database/database.hpp"
