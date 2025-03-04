@@ -14,6 +14,7 @@
 
 #include <qdialog.h>
 #include <qtablewidget.h>
+#include "backend/settings/analze_settings.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 
 class PlaceholderTableWidget;
@@ -25,6 +26,7 @@ class QueryFilter;
 namespace joda::ui::gui {
 
 class WindowMain;
+class DialogColumnSettings;
 
 ///
 /// \class
@@ -35,15 +37,20 @@ class DialogResultsTemplateGenerator : public QDialog
 {
 public:
   /////////////////////////////////////////////////////
-  DialogResultsTemplateGenerator(WindowMain *mainWindow, db::QueryFilter *filter);
+  DialogResultsTemplateGenerator(WindowMain *mainWindow, joda::settings::AnalyzeSettings *analyzeSettings);
+  int32_t exec() override;
 
 private:
   /////////////////////////////////////////////////////
+  void refreshView();
+
   WindowMain *mMainWindow;
-  db::QueryFilter *mFilter;
+  joda::settings::AnalyzeSettings *mAnalyzeSettings;
   helper::LayoutGenerator mLayout;
 
   PlaceholderTableWidget *mCommands;
+  DialogColumnSettings *mColumnEditDialog;
+  int32_t mSelectedTableRow = -1;
 };
 
 }    // namespace joda::ui::gui

@@ -21,6 +21,9 @@ namespace joda::db {
 class QueryFilter;
 class Database;
 };    // namespace joda::db
+namespace joda::settings {
+class AnalyzeSettings;
+}
 
 namespace joda::ui::gui {
 
@@ -37,6 +40,7 @@ public:
   DialogColumnSettings(db::QueryFilter *filter, QWidget *parent);
   void exec(int32_t selectedColumn);
   void updateClassesAndClasses(db::Database *);
+  void updateClassesAndClasses(const joda::settings::AnalyzeSettings &settings);
   auto getClasssFromCombo() const -> std::pair<std::string, std::string>;
 
 private:

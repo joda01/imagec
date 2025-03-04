@@ -21,6 +21,7 @@
 #include "backend/enums/types.hpp"
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/database/plugins/filter.hpp"
+#include "backend/settings/analze_settings.hpp"
 #include "ui/gui/container/setting/setting_combobox_multi_classification_unmanaged.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 
@@ -182,7 +183,7 @@ void DialogColumnSettings::exec(int32_t selectedColumn)
       }
     };
 
-    select(mClasssClassSelector->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(colKey.classs)), mClasssClassSelector);
+    select(mClasssClassSelector->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(colKey.classId)), mClasssClassSelector);
     select(mClasssIntersection->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(colKey.intersectingChannel)), mClasssIntersection);
     onClassesChanged();
     select(mMeasurementSelector->findData(static_cast<int32_t>(colKey.measureChannel)), mMeasurementSelector);
@@ -207,7 +208,7 @@ void DialogColumnSettings::exec(int32_t selectedColumn)
 
     mFilter->addColumn(db::QueryFilter::ColumnIdx{.tabIdx = 0, .colIdx = selectedColumn},
                        db::QueryFilter::ColumnKey{
-                           .classs              = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClasssClassSelector->currentData().toUInt()),
+                           .classId             = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClasssClassSelector->currentData().toUInt()),
                            .measureChannel      = static_cast<enums::Measurement>(mMeasurementSelector->currentData().toInt()),
                            .stats               = static_cast<enums::Stats>(mStatsSelector->currentData().toInt()),
                            .crossChannelStacksC = mCrossChannelStackC->currentData().toInt(),
@@ -307,6 +308,62 @@ void DialogColumnSettings::updateClassesAndClasses(db::Database *database)
     mCrossChannelStackC->clear();
     for(const auto &[channelId, channel] : imageChannels) {
       mCrossChannelStackC->addItem("CH" + QString::number(channelId) + " (" + QString(channel.name.data()) + ")", channelId);
+    }
+    mCrossChannelStackC->blockSignals(false);
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogColumnSettings::updateClassesAndClasses(const joda::settings::AnalyzeSettings &settings)
+{
+  {
+    // Clusters/Class
+    mClasssClassSelector->blockSignals(true);
+    mClasssIntersection->blockSignals(true);
+    auto clusters = settings.projectSettings.classification.classes;
+    mClasssClassSelector->clear();
+    mClasssIntersection->clear();
+
+    std::map<std::string, std::multimap<std::string, enums::ClassId>> orderedClasses;
+    for(const auto &classs : clusters) {
+      orderedClasses[enums::getPrefixFromClassName(classs.name)].emplace(classs.name, classs.classId);
+    }
+
+    for(const auto &[prefix, group] : orderedClasses) {
+      for(const auto &[className, id] : group) {
+        QVariant variant;
+        mClasssClassSelector->addItem(className.data(), SettingComboBoxMultiClassificationUnmanaged::toInt(id));
+        mClasssIntersection->addItem(className.data(), SettingComboBoxMultiClassificationUnmanaged::toInt(id));
+      }
+      mClasssClassSelector->insertSeparator(mClasssClassSelector->count());
+      mClasssIntersection->insertSeparator(mClasssClassSelector->count());
+    }
+    auto removeLastSeparator = [this]() {
+      int lastIndex          = mClasssClassSelector->count() - 1;
+      int lastIndexIntersect = mClasssIntersection->count() - 1;
+      if(lastIndex >= 0) {
+        mClasssClassSelector->removeItem(lastIndex);
+        mClasssIntersection->removeItem(lastIndexIntersect);
+      }
+    };
+    removeLastSeparator();
+
+    mClasssClassSelector->blockSignals(false);
+    mClasssIntersection->blockSignals(false);
+  }
+  {
+    // Image channels
+    mCrossChannelStackC->blockSignals(true);
+    auto imageChannels = std::map<int32_t, std::string>{{0, ""}, {1, ""}, {2, ""}, {3, ""}, {4, ""}, {5, ""}, {6, ""}, {7, ""}, {8, ""}, {9, ""}};
+    mCrossChannelStackC->clear();
+    for(const auto &[channelId, channelName] : imageChannels) {
+      mCrossChannelStackC->addItem("CH" + QString::number(channelId) + " (" + QString(channelName.data()) + ")", channelId);
     }
     mCrossChannelStackC->blockSignals(false);
   }

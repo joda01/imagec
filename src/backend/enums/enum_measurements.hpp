@@ -40,6 +40,25 @@ enum class Measurement
   INTERSECTING
 };
 
+NLOHMANN_JSON_SERIALIZE_ENUM(Measurement, {{Measurement::NONE, "None"},
+                                           {Measurement::COUNT, "Count"},
+                                           {Measurement::CONFIDENCE, "Confidence"},
+                                           {Measurement::AREA_SIZE, "AreaSize"},
+                                           {Measurement::PERIMETER, "Perimeter"},
+                                           {Measurement::CIRCULARITY, "Circularity"},
+                                           {Measurement::INTENSITY_SUM, "IntensitySum"},
+                                           {Measurement::INTENSITY_AVG, "IntensityAvg"},
+                                           {Measurement::INTENSITY_MIN, "IntensityMin"},
+                                           {Measurement::INTENSITY_MAX, "IntensityMax"},
+                                           {Measurement::CENTER_OF_MASS_X, "CenterOfMassX"},
+                                           {Measurement::CENTER_OF_MASS_Y, "CenterOfMassY"},
+                                           {Measurement::OBJECT_ID, "ObjectId"},
+                                           {Measurement::ORIGIN_OBJECT_ID, "OriginObjectId"},
+                                           {Measurement::PARENT_OBJECT_ID, "ParentObjectId"},
+                                           {Measurement::BOUNDING_BOX_WIDTH, "BoxWidth"},
+                                           {Measurement::BOUNDING_BOX_HEIGHT, "BoxHeight"},
+                                           {Measurement::INTERSECTING, "Intersecting"}});
+
 enum class Stats
 {
   OFF,
@@ -51,6 +70,15 @@ enum class Stats
   MEDIAN,
   STDDEV,
 };
+
+NLOHMANN_JSON_SERIALIZE_ENUM(Stats, {{Stats::OFF, "Off"},
+                                     {Stats::CNT, "Cnt"},
+                                     {Stats::AVG, "Avg"},
+                                     {Stats::MAX, "Max"},
+                                     {Stats::MIN, "Min"},
+                                     {Stats::SUM, "Sum"},
+                                     {Stats::MEDIAN, "Median"},
+                                     {Stats::STDDEV, "Stddev"}});
 
 inline std::string toString(const Stats &enumIn)
 {

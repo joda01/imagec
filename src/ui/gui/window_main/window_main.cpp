@@ -119,7 +119,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   //
   // Results template
   //
-  mResultsTemplate = new DialogResultsTemplateGenerator(this, nullptr);
+  mResultsTemplate = new DialogResultsTemplateGenerator(this, &mAnalyzeSettings);
 }
 
 WindowMain::~WindowMain()
@@ -411,8 +411,9 @@ void WindowMain::clearSettings()
   mPanelResultsInfo->clearHistory();
   mSelectedProjectSettingsFilePath.clear();
   mPanelPipeline->clear();
-  mAnalyzeSettings    = {};
-  mAnalyzeSettingsOld = {};
+  mAnalyzeSettings.resultsSettings = {};
+  mAnalyzeSettings                 = {};
+  mAnalyzeSettingsOld              = {};
   mAnalyzeSettings.pipelines.clear();
   mAnalyzeSettingsOld.pipelines.clear();
   mPanelProjectSettings->fromSettings({});
@@ -504,6 +505,7 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     mPanelProjectSettings->fromSettings(analyzeSettings);
     mPanelClassification->fromSettings(analyzeSettings.projectSettings.classification);
 
+    mAnalyzeSettings.resultsSettings                = analyzeSettings.resultsSettings;
     mAnalyzeSettings.projectSettings                = analyzeSettings.projectSettings;
     mAnalyzeSettings.projectSettings.classification = analyzeSettings.projectSettings.classification;
     mAnalyzeSettingsOld                             = mAnalyzeSettings;

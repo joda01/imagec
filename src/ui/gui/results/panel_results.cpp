@@ -316,13 +316,9 @@ void PanelResults::refreshView()
   const auto &size      = mWindowMain->getPanelResultsInfo()->getPlateSize();
   const auto &wellOrder = mWindowMain->getPanelResultsInfo()->getWellOrder();
 
-  mFilter.setFilter({.plateId            = 0,
-                     .groupId            = mActGroupId,
-                     .imageId            = mActImageId,
-                     .plateRows          = static_cast<uint16_t>(size.height()),
-                     .plateCols          = static_cast<uint16_t>(size.width()),
-                     .densityMapAreaSize = mWindowMain->getPanelResultsInfo()->getDensityMapSize(),
-                     .wellImageOrder     = wellOrder});
+  mFilter.setFilter(
+      {.plateId = 0, .groupId = mActGroupId, .imageId = mActImageId, .densityMapAreaSize = mWindowMain->getPanelResultsInfo()->getDensityMapSize()},
+      {.rows = static_cast<uint16_t>(size.height()), .cols = static_cast<uint16_t>(size.width()), .wellImageOrder = wellOrder});
 
   //
   //
@@ -585,8 +581,8 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   }
   auto *resPanel = getWindowMain()->getPanelResultsInfo();
   resPanel->setData(mSelectedDataSet);
-  resPanel->setWellOrder(mFilter.getFilter().wellImageOrder);
-  resPanel->setPlateSize({mFilter.getFilter().plateCols, mFilter.getFilter().plateRows});
+  resPanel->setWellOrder(mFilter.getPlateSetup().wellImageOrder);
+  resPanel->setPlateSize({mFilter.getPlateSetup().cols, mFilter.getPlateSetup().rows});
   resPanel->setDensityMapSize(mFilter.getFilter().densityMapAreaSize);
   mIsActive = true;
   refreshView();
@@ -953,8 +949,8 @@ void PanelResults::loadTemplate()
     mFilter        = json;
     auto *resPanel = getWindowMain()->getPanelResultsInfo();
     resPanel->setData(mSelectedDataSet);
-    resPanel->setWellOrder(mFilter.getFilter().wellImageOrder);
-    resPanel->setPlateSize({mFilter.getFilter().plateCols, mFilter.getFilter().plateRows});
+    resPanel->setWellOrder(mFilter.getPlateSetup().wellImageOrder);
+    resPanel->setPlateSize({mFilter.getPlateSetup().cols, mFilter.getPlateSetup().rows});
     resPanel->setDensityMapSize(mFilter.getFilter().densityMapAreaSize);
     refreshView();
   } catch(const std::exception &ex) {

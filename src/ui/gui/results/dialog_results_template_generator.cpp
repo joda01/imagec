@@ -12,8 +12,10 @@
 
 #include "dialog_results_template_generator.hpp"
 #include <qdialog.h>
+#include <qtablewidget.h>
 #include "backend/helper/database/plugins/filter.hpp"
 #include "ui/gui/helper/table_widget.hpp"
+#include "ui/gui/results/dialog_column_settings.hpp"
 #include "ui/gui/window_main/window_main.hpp"
 
 namespace joda::ui::gui {
@@ -25,39 +27,27 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-DialogResultsTemplateGenerator::DialogResultsTemplateGenerator(WindowMain *mainWindow, db::QueryFilter *filter) :
-    QDialog(mainWindow), mMainWindow(mainWindow), mFilter(filter), mLayout(this, true)
+DialogResultsTemplateGenerator::DialogResultsTemplateGenerator(WindowMain *mainWindow, joda::settings::AnalyzeSettings *analyzeSettings) :
+    QDialog(mainWindow), mMainWindow(mainWindow), mAnalyzeSettings(analyzeSettings), mLayout(this, false, true, false)
 {
-  //
-  // Action button
-  //
-  auto *mSaveAsTemplate = new QAction(generateIcon("add-to-favorites"), "Save as template");
-  mLayout.addItemToTopToolbar(mSaveAsTemplate);
-  // connect(mSaveAsTemplate, &QAction::triggered, this, &PanelEdit::onSaveAsTemplate);
-
-  auto *copyChannel = new QAction(generateIcon("copy"), "Copy channel");
-  mLayout.addItemToTopToolbar(copyChannel);
-  // connect(copyChannel, &QAction::triggered, this, &PanelEdit::onCopyChannel);
+  setWindowTitle("Results template");
+  setMinimumWidth(350);
+  setMinimumHeight(450);
 
   //
   // Table
   //
   mCommands = new PlaceholderTableWidget();
-  mCommands->setColumnCount(3);
-  mCommands->setColumnHidden(0, true);
-  mCommands->setHorizontalHeaderLabels({"", "", "Command"});
+  mCommands->setColumnCount(1);
+  mCommands->setHorizontalHeaderLabels({"Column"});
   mCommands->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-  mCommands->verticalHeader()->setVisible(false);
-  mCommands->horizontalHeader()->setVisible(false);
+  mCommands->verticalHeader()->setVisible(true);
+  mCommands->horizontalHeader()->setVisible(true);
   mCommands->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
   mCommands->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
-  mCommands->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
-  mCommands->setColumnWidth(1, 16);
-  mCommands->setShowGrid(false);
-  mCommands->setStyleSheet("QTableView::item { border-top: 0px solid black; border-bottom: 1px solid gray; }");
-  mCommands->verticalHeader()->setMinimumSectionSize(36);
-  mCommands->verticalHeader()->setDefaultSectionSize(36);
-  mCommands->installEventFilter(this);
+  mCommands->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+  connect(mCommands, &PlaceholderTableWidget::currentCellChanged,
+          [this](int currentRow, int currentColumn, int previousRow, int previousColumn) { mSelectedTableRow = currentRow; });
 
   // Middle layout
   auto *tab = mLayout.addTab(
@@ -66,6 +56,79 @@ DialogResultsTemplateGenerator::DialogResultsTemplateGenerator(WindowMain *mainW
   col->setContentsMargins(0, 0, 0, 0);
   col->setSpacing(0);
   col->addWidget(mCommands);
+
+  //
+  // Action button
+  //
+  auto *addColumn = new QAction(generateIcon("add-column"), "");
+  addColumn->setToolTip("Add column");
+  connect(addColumn, &QAction::triggered, [this]() {
+    mColumnEditDialog->exec(mCommands->rowCount());
+    refreshView();
+  });
+  mLayout.addItemToTopToolbar(addColumn);
+
+  auto *editColumn = new QAction(generateIcon("edit-column"), "");
+  editColumn->setToolTip("Edit column");
+  mLayout.addItemToTopToolbar(editColumn);
+  connect(editColumn, &QAction::triggered, [this]() {
+    if(mSelectedTableRow >= 0) {
+      mColumnEditDialog->exec(mSelectedTableRow);
+      refreshView();
+    }
+  });
+
+  auto *deleteColumn = new QAction(generateIcon("delete-column"), "");
+  deleteColumn->setToolTip("Delete column");
+  mLayout.addItemToTopToolbar(deleteColumn);
+  connect(deleteColumn, &QAction::triggered, [this]() {
+    if(mSelectedTableRow >= 0) {
+      mAnalyzeSettings->resultsSettings.resultsTableTemplate.eraseColumn({.tabIdx = 0, .colIdx = mSelectedTableRow});
+      refreshView();
+    }
+  });
+
+  //
+  // Add command dialog
+  //
+  mColumnEditDialog = new DialogColumnSettings(&mAnalyzeSettings->resultsSettings.resultsTableTemplate, this);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+int32_t DialogResultsTemplateGenerator::exec()
+{
+  refreshView();
+  mColumnEditDialog->updateClassesAndClasses(*mAnalyzeSettings);
+  return QDialog::exec();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogResultsTemplateGenerator::refreshView()
+{
+  const auto &columns = mAnalyzeSettings->resultsSettings.resultsTableTemplate.getColumns();
+  mCommands->setRowCount(columns.size());
+  for(const auto &[index, key] : columns) {
+    auto *item = mCommands->item(index.colIdx, 0);
+    if(item == nullptr) {
+      item = new QTableWidgetItem();
+      item->setText(key.createHeader().data());
+      mCommands->setItem(index.colIdx, 0, item);
+    } else {
+      item->setText(key.createHeader().data());
+    }
+  }
 }
 
 }    // namespace joda::ui::gui

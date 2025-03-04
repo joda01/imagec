@@ -81,10 +81,10 @@ auto StatsPerGroup::toHeatmap(db::Database *database, const QueryFilter &filter,
   int32_t sizeY = 0;
   std::map<int32_t, ImgPositionInWell> wellPos;
   if(grouping == Grouping::BY_WELL) {
-    wellPos = transformMatrix(filter.getFilter().wellImageOrder, sizeX, sizeY);
+    wellPos = transformMatrix(filter.getPlateSetup().wellImageOrder, sizeX, sizeY);
   } else {
-    sizeX = filter.getFilter().plateCols;
-    sizeY = filter.getFilter().plateRows;
+    sizeX = filter.getPlateSetup().cols;
+    sizeY = filter.getPlateSetup().rows;
   }
 
   for(const auto &[classs, statement] : classesToExport) {

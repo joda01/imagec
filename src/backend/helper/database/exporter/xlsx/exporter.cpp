@@ -384,7 +384,7 @@ void BatchExporter::createAnalyzeSettings(WorkBook &workbookSettings, const sett
     addTitle("Plate " + std::to_string(plate.plateId));
     addElement("Filename regex", plate.filenameRegex);
     addElement("Image folder", plate.imageFolder);
-    addElement("Well order", joda::settings::vectorToString(plate.wellImageOrder));
+    addElement("Well order", joda::settings::vectorToString(plate.plateSetup.wellImageOrder));
     nlohmann::json groupBy = static_cast<enums::GroupBy>(plate.groupBy);
     addElement("Group by", std::string(groupBy));
   }

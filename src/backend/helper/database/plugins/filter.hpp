@@ -22,6 +22,7 @@
 #include "backend/enums/bigtypes.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/helper/table/table.hpp"
+#include "backend/settings/project_settings/project_plate_setup.hpp"
 #include "backend/settings/setting.hpp"
 #include "backend/settings/settings_types.hpp"
 
@@ -74,15 +75,12 @@ class QueryFilter
 public:
   struct ObjectFilter
   {
-    uint8_t plateId                                  = 0;
-    uint16_t groupId                                 = 0;
-    uint64_t imageId                                 = 0;
-    uint16_t plateRows                               = 0;
-    uint16_t plateCols                               = 0;
-    uint32_t densityMapAreaSize                      = 4096;
-    std::vector<std::vector<int32_t>> wellImageOrder = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16}};
+    uint8_t plateId             = 0;
+    uint16_t groupId            = 0;
+    uint64_t imageId            = 0;
+    uint32_t densityMapAreaSize = 4096;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ObjectFilter, plateRows, plateCols, densityMapAreaSize, wellImageOrder);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ObjectFilter, densityMapAreaSize);
   };
 
   struct ColumnName
@@ -96,7 +94,7 @@ public:
 
   struct ColumnKey
   {
-    joda::enums::ClassId classs;
+    joda::enums::ClassId classId;
     enums::Measurement measureChannel        = enums::Measurement::NONE;
     enums::Stats stats                       = enums::Stats::AVG;
     int32_t crossChannelStacksC              = -1;
@@ -109,7 +107,7 @@ public:
     bool operator<(const ColumnKey &input) const
     {
       auto toInt = [](const ColumnKey &in) {
-        uint32_t classClasss         = static_cast<uint16_t>(in.classs);
+        uint32_t classClasss         = static_cast<uint16_t>(in.classId);
         uint32_t intersectingChannel = static_cast<uint16_t>(in.intersectingChannel);
         auto measure                 = static_cast<uint8_t>(in.measureChannel);
         auto stat                    = static_cast<uint8_t>(in.stats);
@@ -126,7 +124,7 @@ public:
 
     bool operator==(const ColumnKey &input) const
     {
-      return classs == input.classs && static_cast<int32_t>(measureChannel) == static_cast<int32_t>(input.measureChannel) &&
+      return classId == input.classId && static_cast<int32_t>(measureChannel) == static_cast<int32_t>(input.measureChannel) &&
              static_cast<int32_t>(stats) == static_cast<int32_t>(input.stats) && crossChannelStacksC == input.crossChannelStacksC &&
              intersectingChannel == input.intersectingChannel && zStack == input.zStack && tStack == input.tStack;
     }
@@ -149,7 +147,7 @@ public:
       return names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "]" + stacks;
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnKey, classs, measureChannel, stats, crossChannelStacksC, intersectingChannel, zStack, tStack,
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnKey, classId, measureChannel, stats, crossChannelStacksC, intersectingChannel, zStack, tStack,
                                                 names);
   };
 
@@ -171,9 +169,15 @@ public:
 
   explicit QueryFilter() = default;
 
-  void setFilter(const ObjectFilter &filter)
+  void setFilter(const ObjectFilter &filter, const joda::settings::PlateSetup &plateSetup)
   {
-    this->filter = filter;
+    this->filter     = filter;
+    this->plateSetup = plateSetup;
+  }
+
+  void setFilter(const joda::settings::PlateSetup &plateSetup)
+  {
+    this->plateSetup = plateSetup;
   }
 
   void setFilter(int32_t plateId, int32_t groupId, uint64_t imageId)
@@ -240,6 +244,11 @@ public:
     return filter;
   }
 
+  [[nodiscard]] auto getPlateSetup() const -> const joda::settings::PlateSetup &
+  {
+    return plateSetup;
+  }
+
   [[nodiscard]] auto getColumns() const -> const std::map<ColumnIdx, ColumnKey> &
   {
     return columns;
@@ -248,9 +257,10 @@ public:
 private:
   /////////////////////////////////////////////////////
   ObjectFilter filter;
+  joda::settings::PlateSetup plateSetup;
   std::map<ColumnIdx, ColumnKey> columns;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(QueryFilter, columns, filter);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(QueryFilter, columns, filter, plateSetup);
 };
 
 ///

@@ -40,7 +40,7 @@ ResultingTable::ResultingTable(const QueryFilter *filter)
 {
   std::map<int32_t, std::map<uint32_t, std::string>> tableHeaders;
   for(const auto &[colIdx, colKey] : filter->getColumns()) {
-    QueryKey qKey = {colKey.classs, colKey.zStack, colKey.tStack};
+    QueryKey qKey = {colKey.classId, colKey.zStack, colKey.tStack};
     if(!mClassesAndClasses.contains(qKey)) {
       mClassesAndClasses.emplace(qKey, PreparedStatement{colKey.names});
     }

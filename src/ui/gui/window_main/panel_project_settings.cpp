@@ -350,10 +350,10 @@ void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &s
   }
 
   {
-    mWellOrderMatrix->setText(joda::settings::vectorToString(settings.projectSettings.plates.begin()->wellImageOrder).data());
+    mWellOrderMatrix->setText(joda::settings::vectorToString(settings.projectSettings.plates.begin()->plateSetup.wellImageOrder).data());
   }
   {
-    auto val = settings.projectSettings.plates.begin()->rows * 100 + settings.projectSettings.plates.begin()->cols;
+    auto val = settings.projectSettings.plates.begin()->plateSetup.rows * 100 + settings.projectSettings.plates.begin()->plateSetup.cols;
     auto idx = mPlateSize->findData(val);
     if(idx >= 0) {
       mPlateSize->setCurrentIndex(idx);
@@ -420,21 +420,24 @@ void PanelProjectSettings::toSettings()
   mSettings.projectSettings.experimentSettings.notes = mNotes->toPlainText().toStdString();
   mSettings.projectSettings.address.firstName        = mScientistsFirstName->text().toStdString();
 
-  mSettings.projectSettings.plates.begin()->groupBy        = static_cast<joda::enums::GroupBy>(mGroupByComboBox->currentData().toInt());
-  mSettings.projectSettings.plates.begin()->filenameRegex  = mRegexToFindTheWellPosition->currentText().toStdString();
-  mSettings.projectSettings.plates.begin()->imageFolder    = mWorkingDir->text().toStdString();
-  mSettings.projectSettings.plates.begin()->wellImageOrder = joda::settings::stringToVector(mWellOrderMatrix->text().toStdString());
+  mSettings.projectSettings.plates.begin()->groupBy                   = static_cast<joda::enums::GroupBy>(mGroupByComboBox->currentData().toInt());
+  mSettings.projectSettings.plates.begin()->filenameRegex             = mRegexToFindTheWellPosition->currentText().toStdString();
+  mSettings.projectSettings.plates.begin()->imageFolder               = mWorkingDir->text().toStdString();
+  mSettings.projectSettings.plates.begin()->plateSetup.wellImageOrder = joda::settings::stringToVector(mWellOrderMatrix->text().toStdString());
 
-  auto value                                        = mPlateSize->currentData().toUInt();
-  mSettings.projectSettings.plates.begin()->rows    = value / 100;
-  mSettings.projectSettings.plates.begin()->cols    = value % 100;
-  mSettings.projectSettings.plates.begin()->plateId = 1;
+  auto value                                                = mPlateSize->currentData().toUInt();
+  mSettings.projectSettings.plates.begin()->plateSetup.rows = value / 100;
+  mSettings.projectSettings.plates.begin()->plateSetup.cols = value % 100;
+  mSettings.projectSettings.plates.begin()->plateId         = 1;
 
   mSettings.imageSetup.series         = static_cast<int32_t>(mImageSeries->currentData().toInt());
   mSettings.imageSetup.zStackHandling = static_cast<joda::settings::ProjectImageSetup::ZStackHandling>(mStackHandlingZ->currentData().toInt());
   mSettings.imageSetup.tStackHandling = static_cast<joda::settings::ProjectImageSetup::TStackHandling>(mStackHandlingT->currentData().toInt());
   mSettings.imageSetup.imageTileSettings.tileWidth  = static_cast<int32_t>(mCompositeTileSize->currentData().toInt());
   mSettings.imageSetup.imageTileSettings.tileHeight = static_cast<int32_t>(mCompositeTileSize->currentData().toInt());
+
+  // Sync to results settings
+  mSettings.resultsSettings.resultsTableTemplate.setFilter(mSettings.projectSettings.plates.begin()->plateSetup);
 
   mParentWindow->checkForSettingsChanged();
 }
