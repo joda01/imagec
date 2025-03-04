@@ -11,8 +11,10 @@
 ///
 
 #include "stats_for_image.hpp"
+#include <exception>
 #include <string>
 #include "backend/enums/enum_measurements.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 
 namespace joda::db {
 
@@ -206,21 +208,33 @@ auto StatsPerImage::densityMap(const db::ResultingTable::QueryKey &classsAndClas
     if(images->HasError()) {
       throw std::invalid_argument("S:" + images->GetError());
     }
+    try {
+      auto imageMaterialized = images->Cast<duckdb::StreamQueryResult>().Materialize();
+      if(!imageMaterialized->GetValue(1, 0).IsNull()) {
+        uint64_t imgWidth  = imageMaterialized->GetValue(1, 0).GetValue<uint64_t>();
+        uint64_t imgWeight = imageMaterialized->GetValue(2, 0).GetValue<uint64_t>();
+        controlImgPath     = imageMaterialized->GetValue(3, 0).GetValue<std::string>();
 
-    auto imageMaterialized = images->Cast<duckdb::StreamQueryResult>().Materialize();
-    uint64_t imgWidth      = imageMaterialized->GetValue(1, 0).GetValue<uint64_t>();
-    uint64_t imgWeight     = imageMaterialized->GetValue(2, 0).GetValue<uint64_t>();
-    controlImgPath         = imageMaterialized->GetValue(3, 0).GetValue<std::string>();
+        std::string linkToImage = controlImgPath;
+        helper::stringReplace(linkToImage, "${tile_id}", std::to_string(0));
 
-    std::string linkToImage = controlImgPath;
-    helper::stringReplace(linkToImage, "${tile_id}", std::to_string(0));
+        uint64_t width  = std::ceil(static_cast<float>(imgWidth) / static_cast<float>(filter.densityMapAreaSize));
+        uint64_t height = std::ceil(static_cast<float>(imgWeight) / static_cast<float>(filter.densityMapAreaSize));
 
-    uint64_t width  = std::ceil(static_cast<float>(imgWidth) / static_cast<float>(filter.densityMapAreaSize));
-    uint64_t height = std::ceil(static_cast<float>(imgWeight) / static_cast<float>(filter.densityMapAreaSize));
-
-    imgInfo.width          = width;
-    imgInfo.height         = height;
-    imgInfo.controlImgPath = linkToImage;
+        imgInfo.width          = width;
+        imgInfo.height         = height;
+        imgInfo.controlImgPath = linkToImage;
+      } else {
+        imgInfo.width          = 0;
+        imgInfo.height         = 0;
+        imgInfo.controlImgPath = "";
+      }
+    } catch(const std::exception &ex) {
+      joda::log::logWarning(ex.what());
+      imgInfo.width          = 0;
+      imgInfo.height         = 0;
+      imgInfo.controlImgPath = "";
+    }
   }
 
   auto [sql, params]                          = toSqlHeatmap(classsAndClass, filter, channelFilter);
