@@ -37,6 +37,7 @@ namespace joda::ui::gui {
 PanelClassification::PanelClassification(joda::settings::ProjectSettings &settings, WindowMain *windowMain) :
     mWindowMain(windowMain), mSettings(settings)
 {
+  createDialog();
   auto *layout = new QVBoxLayout();
 
   auto addSeparator = [&layout]() {
@@ -125,20 +126,16 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
 /// \param[out]
 /// \return
 ///
-void PanelClassification::openEditDialog(int row, int column)
+void PanelClassification::createDialog()
 {
-  auto *dialog = new QDialog(mWindowMain);
-  dialog->setWindowTitle("Class editor");
-  dialog->setMinimumWidth(300);
-  auto *layout = new QVBoxLayout();
-  auto *name   = new QLineEdit();
-  name->setPlaceholderText("e.g. cy5@spot");
-  name->setText(mClasses->item(row, COL_NAME)->text());
-  if(mIsLocked) {
-    name->setEnabled(false);
-  }
-  auto *colors = new ColorComboBox();
-  auto *model  = qobject_cast<QStandardItemModel *>(colors->model());
+  mEditDialog = new QDialog(mWindowMain);
+  mEditDialog->setWindowTitle("Class editor");
+  mEditDialog->setMinimumWidth(300);
+  auto *layout     = new QVBoxLayout();
+  mDialogClassName = new QLineEdit();
+  mDialogClassName->setPlaceholderText("e.g. cy5@spot");
+  mDialogColorCombo = new ColorComboBox();
+  auto *model       = qobject_cast<QStandardItemModel *>(mDialogColorCombo->model());
 
   // Set the custom delegate
   for(const auto &color : settings::COLORS) {
@@ -149,22 +146,12 @@ void PanelClassification::openEditDialog(int row, int column)
     model->appendRow(item);
   }
 
-  auto colorIdx = colors->findData(QColor(mClasses->item(row, COL_COLOR)->text()), Qt::BackgroundRole);
-  if(colorIdx >= 0) {
-    colors->setCurrentIndex(colorIdx);
-  }
-
   // Create buttons
   auto *okButton = new QPushButton("OK", this);
   okButton->setDefault(true);
-  connect(okButton, &QPushButton::pressed, [this, row, dialog, name, colors]() {
-    mClasses->item(row, COL_NAME)->setText(name->displayText());
-    mClasses->item(row, COL_COLOR)->setText(colors->currentText());
-    onSettingChanged();
-    dialog->close();
-  });
+  connect(okButton, &QPushButton::pressed, this, &PanelClassification::onOkayPressed);
   auto *cancelButton = new QPushButton("Cancel", this);
-  connect(cancelButton, &QPushButton::pressed, [&]() { dialog->close(); });
+  connect(cancelButton, &QPushButton::pressed, [&]() { mEditDialog->close(); });
 
   // Create a horizontal layout for the buttons
   auto *buttonLayout = new QHBoxLayout;
@@ -172,13 +159,50 @@ void PanelClassification::openEditDialog(int row, int column)
   buttonLayout->addWidget(cancelButton);
   buttonLayout->addWidget(okButton);
 
-  layout->addWidget(name);
-  layout->addWidget(colors);
+  layout->addWidget(mDialogClassName);
+  layout->addWidget(mDialogColorCombo);
   layout->addLayout(buttonLayout);
 
-  dialog->setLayout(layout);
+  mEditDialog->setLayout(layout);
+}
 
-  dialog->exec();
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::openEditDialog(int row, int column)
+{
+  mSelectedRow = row;
+  mDialogClassName->setText(mClasses->item(row, COL_NAME)->text());
+  auto colorIdx = mDialogColorCombo->findData(QColor(mClasses->item(row, COL_COLOR)->text()), Qt::BackgroundRole);
+  if(colorIdx >= 0) {
+    mDialogColorCombo->setCurrentIndex(colorIdx);
+  }
+  if(mIsLocked) {
+    mDialogClassName->setEnabled(false);
+  } else {
+    mDialogClassName->setEnabled(true);
+  }
+
+  mEditDialog->exec();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::onOkayPressed()
+{
+  mClasses->item(mSelectedRow, COL_NAME)->setText(mDialogClassName->displayText());
+  mClasses->item(mSelectedRow, COL_COLOR)->setText(mDialogColorCombo->currentText());
+  onSettingChanged();
+  mEditDialog->close();
 }
 
 ///
