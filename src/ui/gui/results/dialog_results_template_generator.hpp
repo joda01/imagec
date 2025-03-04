@@ -1,7 +1,7 @@
 ///
-/// \file      panel_pipeline_compile_log.hpp
+/// \file      dialog_results_template_generator.hpp
 /// \author    Joachim Danmayr
-/// \date      2024-09-11
+/// \date      2025-03-04
 ///
 /// \copyright Copyright 2019 Joachim Danmayr
 ///            All rights reserved! This file is subject
@@ -12,12 +12,14 @@
 
 #pragma once
 
+#include <qdialog.h>
 #include <qtablewidget.h>
-#include <qwidget.h>
-#include <mutex>
+#include "ui/gui/helper/layout_generator.hpp"
 
-namespace joda::settings {
-class AnalyzeSettings;
+class PlaceholderTableWidget;
+
+namespace joda::db {
+class QueryFilter;
 }
 
 namespace joda::ui::gui {
@@ -29,29 +31,19 @@ class WindowMain;
 /// \author
 /// \brief
 ///
-class PanelCompilerLog
+class DialogResultsTemplateGenerator : public QDialog
 {
 public:
   /////////////////////////////////////////////////////
-  PanelCompilerLog(WindowMain *parent);
-  void updateCompilerLog(const joda::settings::AnalyzeSettings &);
-  void showDialog();
-  void hideDialog();
-  int32_t getNumberOfErrors() const
-  {
-    return mNrOfErrors;
-  }
-  QDialog *getDialog()
-  {
-    return mDialog;
-  }
+  DialogResultsTemplateGenerator(WindowMain *mainWindow, db::QueryFilter *filter);
 
 private:
   /////////////////////////////////////////////////////
-  QTableWidget *mLogOutput;
-  QDialog *mDialog;
-  int32_t mNrOfErrors = 0;
-  std::mutex mWriteMutex;
+  WindowMain *mMainWindow;
+  db::QueryFilter *mFilter;
+  helper::LayoutGenerator mLayout;
+
+  PlaceholderTableWidget *mCommands;
 };
 
 }    // namespace joda::ui::gui

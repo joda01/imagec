@@ -41,6 +41,7 @@ namespace joda::ui::gui {
 
 class ContainerChannel;
 class PanelResults;
+class DialogResultsTemplateGenerator;
 
 ///
 /// \class
@@ -160,6 +161,7 @@ private:
   joda::ctrl::Controller *mController;
   QFileSystemWatcher mTemplateDirWatcher;
   PanelCompilerLog *mCompilerLog;
+  DialogResultsTemplateGenerator *mResultsTemplate;
 
   ////Project settings/////////////////////////////////////////////////
   joda ::settings::AnalyzeSettings *mActAnalyzeSettings = nullptr;
@@ -196,6 +198,7 @@ private:
   QAction *mSaveProjectAs           = nullptr;
   QAction *mShowInfoDialog          = nullptr;
   QAction *mStartAnalysisToolButton = nullptr;
+  QAction *mShowCompilerLog         = nullptr;
 
   ////Mutexes/////////////////////////////////////////////////
   std::mutex mCheckForSettingsChangedMutex;

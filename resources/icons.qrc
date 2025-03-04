@@ -68,6 +68,7 @@
     <file>icons/icons8-unavailable-48.png</file>
     <file>icons/icons8-project-setup-24.png</file>
     <file>icons/icons8-stacked-organizational-chart-96.png</file>
+    <file>icons/icons8-popup-48.png</file>
     <file>icons/icons8-delete-48.png</file>
     <file>icons/icons8-experiment-96.png</file>
     <file>icons/icons8-divide-horizontal-direction-48.png</file>
@@ -116,6 +117,7 @@
     <file>icons/icons8-creative-commons-zero-24.png</file>
     <file>icons/icons8-infinity-96.png</file>
     <file>icons/icons8-full-page-view-96.png</file>
+    <file>icons/icons8-popup-96.png</file>
     <file>icons/icons8-layer-mask-96.png</file>
     <file>icons/icons8-add-96.png</file>
     <file>icons/icons8-heat-map-16.png</file>
@@ -820,6 +822,7 @@
     <file>icons/icons8-square-number-16.png</file>
     <file>icons/icons8-blur-24.png</file>
     <file>icons/icons8-rename-24.png</file>
+    <file>icons/icons8-popup-16.png</file>
     <file>icons/icons8-height-96.png</file>
     <file>icons/icons8-r-24.png</file>
     <file>icons/icons8-flow-24.png</file>
@@ -842,6 +845,7 @@
     <file>icons/icons8-aspect-ratio-16.png</file>
     <file>icons/icons8-grayscale-24.png</file>
     <file>icons/icons8-split-96.png</file>
+    <file>icons/icons8-popup-24.png</file>
     <file>icons/icons8-edit-column-48.png</file>
     <file>icons/icons8-polygon-24.png</file>
 </qresource>

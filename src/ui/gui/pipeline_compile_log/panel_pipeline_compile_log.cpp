@@ -69,6 +69,18 @@ void PanelCompilerLog::showDialog()
 /// \param[out]
 /// \return
 ///
+void PanelCompilerLog::hideDialog()
+{
+  mDialog->hide();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelCompilerLog::updateCompilerLog(const joda::settings::AnalyzeSettings &settings)
 {
   std::lock_guard<std::mutex> lock(mWriteMutex);

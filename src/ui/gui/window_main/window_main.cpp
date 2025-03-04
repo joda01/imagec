@@ -14,6 +14,7 @@
 #include "window_main.hpp"
 #include <qboxlayout.h>
 #include <qcombobox.h>
+#include <qdialog.h>
 #include <qgridlayout.h>
 #include <qlabel.h>
 #include <qlayout.h>
@@ -50,6 +51,7 @@
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/template_parser/template_parser.hpp"
 #include "ui/gui/pipeline_compile_log/panel_pipeline_compile_log.hpp"
+#include "ui/gui/results/dialog_results_template_generator.hpp"
 #include "ui/gui/results/panel_results.hpp"
 #include "ui/gui/window_main/panel_image.hpp"
 #include "ui/gui/window_main/panel_pipeline.hpp"
@@ -113,6 +115,11 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   // Initial background tasks
   //
   std::thread([]() { joda::ai::AiModelParser::findAiModelFiles(); }).detach();
+
+  //
+  // Results template
+  //
+  mResultsTemplate = new DialogResultsTemplateGenerator(this, nullptr);
 }
 
 WindowMain::~WindowMain()
@@ -173,10 +180,26 @@ void WindowMain::createTopToolbar()
 
   toolbar->addSeparator();
 
-  auto *showCompileLog = new QAction(generateIcon("log"), "Compiler log", toolbar);
-  showCompileLog->setToolTip("CompileLog!");
-  connect(showCompileLog, &QAction::triggered, [this]() { mCompilerLog->showDialog(); });
-  toolbar->addAction(showCompileLog);
+  auto *showResultsTemplate = new QAction(generateIcon("table"), "Results template", toolbar);
+  showResultsTemplate->setToolTip("Results template!");
+  connect(showResultsTemplate, &QAction::triggered, [this]() { mResultsTemplate->exec(); });
+  toolbar->addAction(showResultsTemplate);
+
+  toolbar->addSeparator();
+
+  mShowCompilerLog = new QAction(generateIcon("popup"), "Compiler log", toolbar);
+  mShowCompilerLog->setToolTip("CompileLog!");
+  mShowCompilerLog->setCheckable(true);
+  connect(mShowCompilerLog, &QAction::triggered, [this](bool checked) {
+    if(checked) {
+      mCompilerLog->showDialog();
+    } else {
+      mCompilerLog->hideDialog();
+    }
+  });
+  connect(mCompilerLog->getDialog(), &QDialog::finished, [this] { mShowCompilerLog->setChecked(false); });
+
+  toolbar->addAction(mShowCompilerLog);
 
   mStartAnalysisToolButton = new QAction(generateIcon("play"), "Start analyze", toolbar);
   mStartAnalysisToolButton->setEnabled(false);
