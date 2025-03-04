@@ -633,7 +633,9 @@ std::string Database::startJob(const joda::settings::AnalyzeSettings &exp, const
   if(insertExperiment(exp.projectSettings.experimentSettings)) {
     insertClasses(exp.projectSettings.classification.classes);
   }
-  return insertJobAndPlates(exp, jobName);
+  std::string jobId = insertJobAndPlates(exp, jobName);
+  updateResultsTableSettings(jobId, nlohmann::json(exp.resultsSettings.resultsTableTemplate).dump());
+  return jobId;
 }
 
 ///
