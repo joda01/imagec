@@ -238,6 +238,12 @@ void WindowMain::createLeftToolbar()
     mTabWidget->addTab(mPanelProjectSettings, "Project");
   }
 
+  // Images Tab
+  {
+    mPanelImages = new PanelImages(this);
+    mTabWidget->addTab(mPanelImages, "Images");
+  }
+
   // Classification tab
   {
     mPanelClassification = new PanelClassification(mAnalyzeSettings.projectSettings, this);
@@ -281,12 +287,6 @@ void WindowMain::createLeftToolbar()
 
     connect(mTemplateSelection, &QComboBox::currentIndexChanged, this, &WindowMain::onAddChannel);
     connect(mStartAnalysis, &QPushButton::clicked, this, &WindowMain::onStartClicked);
-  }
-
-  // Images Tab
-  {
-    mPanelImages = new PanelImages(this);
-    mTabWidget->addTab(mPanelImages, "Images");
   }
 
   // Reportings tab
