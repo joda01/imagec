@@ -14,6 +14,7 @@
 
 #include <qdialog.h>
 #include <qtablewidget.h>
+#include <qwidget.h>
 #include "backend/settings/analze_settings.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 
@@ -33,12 +34,12 @@ class DialogColumnSettings;
 /// \author
 /// \brief
 ///
-class DialogResultsTemplateGenerator : public QDialog
+class DialogResultsTemplateGenerator : public QWidget
 {
 public:
   /////////////////////////////////////////////////////
   DialogResultsTemplateGenerator(WindowMain *mainWindow, joda::settings::AnalyzeSettings *analyzeSettings);
-  int32_t exec() override;
+  // int32_t exec() override;
 
 private:
   /////////////////////////////////////////////////////
@@ -46,8 +47,6 @@ private:
 
   WindowMain *mMainWindow;
   joda::settings::AnalyzeSettings *mAnalyzeSettings;
-  helper::LayoutGenerator mLayout;
-
   PlaceholderTableWidget *mCommands;
   DialogColumnSettings *mColumnEditDialog;
   int32_t mSelectedTableRow = -1;

@@ -115,11 +115,6 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   // Initial background tasks
   //
   std::thread([]() { joda::ai::AiModelParser::findAiModelFiles(); }).detach();
-
-  //
-  // Results template
-  //
-  mResultsTemplate = new DialogResultsTemplateGenerator(this, &mAnalyzeSettings);
 }
 
 WindowMain::~WindowMain()
@@ -180,10 +175,10 @@ void WindowMain::createTopToolbar()
 
   toolbar->addSeparator();
 
-  auto *showResultsTemplate = new QAction(generateIcon("table"), "Results template", toolbar);
-  showResultsTemplate->setToolTip("Results template!");
-  connect(showResultsTemplate, &QAction::triggered, [this]() { mResultsTemplate->exec(); });
-  toolbar->addAction(showResultsTemplate);
+  // auto *showResultsTemplate = new QAction(generateIcon("table"), "Results template", toolbar);
+  // showResultsTemplate->setToolTip("Results template!");
+  // connect(showResultsTemplate, &QAction::triggered, [this]() { mResultsTemplate->exec(); });
+  // toolbar->addAction(showResultsTemplate);
 
   toolbar->addSeparator();
 

@@ -27,6 +27,7 @@
 namespace joda::ui::gui {
 
 class WindowMain;
+class DialogResultsTemplateGenerator;
 
 ///
 /// \class
@@ -76,6 +77,7 @@ private:
   WindowMain *mWindowMain;
   PlaceholderTableWidget *mLastLoadedResults;
   PlaceholderTableWidget *mResultsProperties;
+  DialogResultsTemplateGenerator *mResultsTemplate;
   std::set<std::string> mAddedPaths;
 
   /////////////////////////////////////////////////////

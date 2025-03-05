@@ -18,6 +18,7 @@
 #include "backend/helper/file_parser/directory_iterator.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
+#include "ui/gui/results/dialog_results_template_generator.hpp"
 #include "ui/gui/results/panel_results.hpp"
 #include "ui/gui/window_main/window_main.hpp"
 
@@ -70,6 +71,11 @@ PanelResultsInfo::PanelResultsInfo(WindowMain *windowMain) : mWindowMain(windowM
     mResultsProperties->setAlternatingRowColors(true);
     mResultsProperties->setSelectionBehavior(QAbstractItemView::SelectRows);
     layout->addWidget(mResultsProperties);
+  }
+
+  {
+    mResultsTemplate = new DialogResultsTemplateGenerator(mWindowMain, &mWindowMain->mutableSettings());
+    layout->addWidget(mResultsTemplate);
   }
   addSeparator();
 

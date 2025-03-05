@@ -161,7 +161,6 @@ private:
   joda::ctrl::Controller *mController;
   QFileSystemWatcher mTemplateDirWatcher;
   PanelCompilerLog *mCompilerLog;
-  DialogResultsTemplateGenerator *mResultsTemplate;
 
   ////Project settings/////////////////////////////////////////////////
   joda ::settings::AnalyzeSettings *mActAnalyzeSettings = nullptr;

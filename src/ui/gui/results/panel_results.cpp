@@ -36,6 +36,7 @@
 #include <iostream>
 #include <memory>
 #include <random>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include "backend/enums/enum_measurements.hpp"
@@ -49,6 +50,7 @@
 #include "backend/helper/database/plugins/filter.hpp"
 #include "backend/helper/database/plugins/stats_for_image.hpp"
 #include "backend/helper/database/plugins/stats_for_well.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include "ui/gui/container/container_button.hpp"
 #include "ui/gui/container/container_label.hpp"
 #include "ui/gui/container/panel_edit_base.hpp"
@@ -574,8 +576,16 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   // Try to load settings if available
   try {
     if(mSelectedDataSet.analyzeMeta.has_value()) {
-      auto resultsSettings = mAnalyzer->selectResultsTableSettings(mSelectedDataSet.analyzeMeta->jobId);
-      mFilter              = nlohmann::json::parse(resultsSettings);
+      auto resultsSettings      = mAnalyzer->selectResultsTableSettings(mSelectedDataSet.analyzeMeta->jobId);
+      db::QueryFilter filterTmp = nlohmann::json::parse(resultsSettings);
+      const auto &t             = filterTmp.getColumns();
+      for(const auto &[idx, kex] : t) {
+        if(kex.measureChannel == enums::Measurement::NONE) {
+          joda::log::logWarning("This is a legacy setting!");
+          throw std::invalid_argument("This is a legacy setting!");
+        }
+      }
+      mFilter = filterTmp;
     }
   } catch(...) {
   }
