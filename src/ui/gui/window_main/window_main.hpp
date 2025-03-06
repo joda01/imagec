@@ -110,10 +110,7 @@ public:
     return mAnalyzeSettings;
   }
 
-  void setSideBarVisible(bool visible)
-  {
-    mSidebar->setVisible(visible);
-  }
+  void setSideBarVisible(bool visible);
 
   void setWindowTitlePrefix(const QString &txt);
   void checkForSettingsChanged();
@@ -163,6 +160,7 @@ private:
   static QString bytesToString(int64_t bytes);
 
   ////Common/////////////////////////////////////////////////
+  QToolBar *mTopToolBar;
   joda::ctrl::Controller *mController;
   QFileSystemWatcher mTemplateDirWatcher;
   PanelCompilerLog *mCompilerLog;

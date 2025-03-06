@@ -74,7 +74,7 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
 {
   // Drop downs
   createEditColumnDialog();
-  createBreadCrump(&layout());
+  createToolBar(&layout());
 
   //
   // Create Table
@@ -114,9 +114,24 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   QLayout *topInfoLayout = new QHBoxLayout();
   topInfoLayout->addWidget(new QLabel("Info label"));
 
+  //
+  // Breadcrump
+  //
+  QLayout *topBreadCrump = new QHBoxLayout();
+  topBreadCrump->addWidget(new QLabel("Plate/Well/Image"));
+
+  mBackButton = new QPushButton(generateIcon("arrow-left"), "");
+  mBackButton->setEnabled(false);
+  connect(mBackButton, &QPushButton::clicked, this, &PanelResults::onBackClicked);
+  topBreadCrump->addWidget(mBackButton);
+
+  //
+  // Add to layout
+  //
   col->setContentsMargins(0, 0, 0, 0);
   col->setSpacing(0);
   col->addLayout(topInfoLayout);
+  col->addLayout(topBreadCrump);
   col->addWidget(mHeatmap01);
   col->addWidget(mTable);
 
@@ -169,18 +184,8 @@ void PanelResults::setActive(bool active)
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelResults::createBreadCrump(joda::ui::gui::helper::LayoutGenerator *toolbar)
+void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar)
 {
-  //
-  //
-  // Back button
-  mBackButton = new QPushButton(generateIcon("arrow-left"), "");
-  mBackButton->setEnabled(false);
-  connect(mBackButton, &QPushButton::clicked, this, &PanelResults::onBackClicked);
-  toolbar->addItemToTopToolbar(mBackButton);
-
-  toolbar->addSeparatorToTopToolbar();
-
   //
   //
   //

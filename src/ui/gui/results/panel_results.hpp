@@ -23,7 +23,6 @@
 #include <memory>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
-
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/database/plugins/filter.hpp"
 #include "backend/helper/table/table.hpp"
@@ -112,7 +111,7 @@ private:
   std::filesystem::path mDbFilePath;
 
   // Breadcrumb///////////////////////////////////////////////////
-  void createBreadCrump(joda::ui::gui::helper::LayoutGenerator *);
+  void createToolBar(joda::ui::gui::helper::LayoutGenerator *);
   auto getClasssFromCombo() const -> std::pair<std::string, std::string>;
 
   QPushButton *mBackButton;
@@ -139,6 +138,8 @@ private:
   int32_t mSelectedTableRow    = -1;
 
   std::mutex mSelectMutex;
+
+  // TOOLBARS///////////////////////////////////////////////////
 
   /////////////////////////////////////////////////////
   ChartHeatMap *mHeatmap01;

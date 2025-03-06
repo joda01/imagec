@@ -145,44 +145,50 @@ void WindowMain::setWindowTitlePrefix(const QString &txt)
   }
 }
 
+void WindowMain::setSideBarVisible(bool visible)
+{
+  mSidebar->setVisible(visible);
+  mTopToolBar->setVisible(visible);
+}
+
 ///
 /// \brief
 /// \author     Joachim Danmayr
 ///
 void WindowMain::createTopToolbar()
 {
-  auto *toolbar = addToolBar("toolbar");
-  toolbar->setMovable(false);
+  mTopToolBar = addToolBar("toolbar");
+  mTopToolBar->setMovable(false);
 
-  mNewProjectButton = new QAction(generateIcon("file"), "New project", toolbar);
+  mNewProjectButton = new QAction(generateIcon("file"), "New project", mTopToolBar);
   connect(mNewProjectButton, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
-  toolbar->addAction(mNewProjectButton);
+  mTopToolBar->addAction(mNewProjectButton);
 
-  mOpenProjectButton = new QAction(generateIcon("opened-folder"), "Open project or results", toolbar);
+  mOpenProjectButton = new QAction(generateIcon("opened-folder"), "Open project or results", mTopToolBar);
   connect(mOpenProjectButton, &QAction::triggered, this, &WindowMain::onOpenClicked);
-  toolbar->addAction(mOpenProjectButton);
+  mTopToolBar->addAction(mOpenProjectButton);
 
-  mSaveProject = new QAction(generateIcon("save"), "Save", toolbar);
+  mSaveProject = new QAction(generateIcon("save"), "Save", mTopToolBar);
   mSaveProject->setToolTip("Save project!");
   mSaveProject->setEnabled(false);
   connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
-  toolbar->addAction(mSaveProject);
+  mTopToolBar->addAction(mSaveProject);
 
-  mSaveProjectAs = new QAction(generateIcon("save-as"), "Save as", toolbar);
+  mSaveProjectAs = new QAction(generateIcon("save-as"), "Save as", mTopToolBar);
   mSaveProjectAs->setToolTip("Save project as!");
   connect(mSaveProjectAs, &QAction::triggered, this, &WindowMain::onSaveProjectAs);
-  toolbar->addAction(mSaveProjectAs);
+  mTopToolBar->addAction(mSaveProjectAs);
 
-  toolbar->addSeparator();
+  mTopToolBar->addSeparator();
 
   // auto *showResultsTemplate = new QAction(generateIcon("table"), "Results template", toolbar);
   // showResultsTemplate->setToolTip("Results template!");
   // connect(showResultsTemplate, &QAction::triggered, [this]() { mResultsTemplate->exec(); });
   // toolbar->addAction(showResultsTemplate);
 
-  toolbar->addSeparator();
+  mTopToolBar->addSeparator();
 
-  mShowCompilerLog = new QAction(generateIcon("popup"), "Compiler log", toolbar);
+  mShowCompilerLog = new QAction(generateIcon("popup"), "Compiler log", mTopToolBar);
   mShowCompilerLog->setToolTip("CompileLog!");
   mShowCompilerLog->setCheckable(true);
   connect(mShowCompilerLog, &QAction::triggered, [this](bool checked) {
@@ -194,27 +200,27 @@ void WindowMain::createTopToolbar()
   });
   connect(mCompilerLog->getDialog(), &QDialog::finished, [this] { mShowCompilerLog->setChecked(false); });
 
-  toolbar->addAction(mShowCompilerLog);
+  mTopToolBar->addAction(mShowCompilerLog);
 
-  mStartAnalysisToolButton = new QAction(generateIcon("play"), "Start analyze", toolbar);
+  mStartAnalysisToolButton = new QAction(generateIcon("play"), "Start analyze", mTopToolBar);
   mStartAnalysisToolButton->setEnabled(false);
   mStartAnalysisToolButton->setToolTip("Run pipeline!");
   connect(mStartAnalysisToolButton, &QAction::triggered, this, &WindowMain::onStartClicked);
-  toolbar->addAction(mStartAnalysisToolButton);
+  mTopToolBar->addAction(mStartAnalysisToolButton);
 
   auto *spacerTop = new QWidget();
   spacerTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  toolbar->addWidget(spacerTop);
+  mTopToolBar->addWidget(spacerTop);
 
-  auto *helpButton = new QAction(generateIcon("help"), "Help", toolbar);
+  auto *helpButton = new QAction(generateIcon("help"), "Help", mTopToolBar);
   helpButton->setToolTip("Help");
   connect(helpButton, &QAction::triggered, this, &WindowMain::onShowHelpClicked);
-  toolbar->addAction(helpButton);
+  mTopToolBar->addAction(helpButton);
 
-  mShowInfoDialog = new QAction(generateIcon("info"), "Info", toolbar);
+  mShowInfoDialog = new QAction(generateIcon("info"), "Info", mTopToolBar);
   mShowInfoDialog->setToolTip("Info");
   connect(mShowInfoDialog, &QAction::triggered, this, &WindowMain::onShowInfoDialog);
-  toolbar->addAction(mShowInfoDialog);
+  mTopToolBar->addAction(mShowInfoDialog);
 }
 
 ///

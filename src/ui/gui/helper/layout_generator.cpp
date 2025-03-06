@@ -31,7 +31,7 @@ LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool wi
     mParent(parent)
 {
   auto *container = new QVBoxLayout(parent);
-  container->setContentsMargins(0, 0, 0, 0);
+  container->setContentsMargins(2, 0, 2, 0);
   container->setSpacing(0);
 
   if(withTopToolbar) {
