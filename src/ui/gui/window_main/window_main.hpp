@@ -110,6 +110,11 @@ public:
     return mAnalyzeSettings;
   }
 
+  void setSideBarVisible(bool visible)
+  {
+    mSidebar->setVisible(visible);
+  }
+
   void setWindowTitlePrefix(const QString &txt);
   void checkForSettingsChanged();
   auto getOutputClasses() -> std::set<joda::enums::ClassId>;

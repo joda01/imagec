@@ -84,9 +84,9 @@ LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool wi
 /// \param[out]
 /// \return
 ///
-TabWidget *LayoutGenerator::addTab(const QString &title, std::function<void()> beforeTabClose, bool showCloseButton)
+TabWidget *LayoutGenerator::addTab(const QString &title, std::function<void()> beforeTabClose, bool showCloseButton, int32_t topContentSpacing)
 {
-  auto *tab = new TabWidget(mDeleteButton != nullptr, std::move(beforeTabClose), this, mParent);
+  auto *tab = new TabWidget(topContentSpacing, mDeleteButton != nullptr, std::move(beforeTabClose), this, mParent);
   mTabWidget->addTab(tab, title);
   if(!showCloseButton) {
     mTabWidget->tabBar()->tabButton(mTabWidget->count() - 1, QTabBar::RightSide)->setVisible(false);
@@ -269,8 +269,10 @@ void VerticalPane ::addWidgetGroup(const std::vector<QWidget *> &elements, int m
 /// \param[out]
 /// \return
 ///
-TabWidget::TabWidget(bool hasBottomToolbar, std::function<void()> beforeTabClose, LayoutGenerator *layoutGenerator, QWidget *parent) :
-    beforeTabClose(std::move(beforeTabClose)), mLayoutGenerator(layoutGenerator), mParent(parent)
+TabWidget::TabWidget(int32_t topContentSpacing, bool hasBottomToolbar, std::function<void()> beforeTabClose, LayoutGenerator *layoutGenerator,
+                     QWidget *parent) :
+    beforeTabClose(std::move(beforeTabClose)),
+    mLayoutGenerator(layoutGenerator), mParent(parent)
 {
   setObjectName("scrollArea");
   setFrameStyle(0);
@@ -280,25 +282,24 @@ TabWidget::TabWidget(bool hasBottomToolbar, std::function<void()> beforeTabClose
   setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
 
   // Create a widget to hold the panels
-  auto *contentWidget = new QWidget;
-  contentWidget->setContentsMargins(0, SPACING, 0, 0);
-  contentWidget->setObjectName("contentOverview");
+  mContentWidget = new QWidget;
+  mContentWidget->setContentsMargins(0, topContentSpacing, 0, 0);
+  mContentWidget->setObjectName("contentOverview");
 
   // Create a horizontal layout for the panels
-  mainLayout = new QHBoxLayout(contentWidget);
-  mainLayout->setContentsMargins(0, 0, 0, 0);
+  mainLayout = new QHBoxLayout(mContentWidget);
   mainLayout->setSpacing(SPACING);    // Adjust this value as needed
   mainLayout->setAlignment(Qt::AlignLeft);
-  contentWidget->setLayout(mainLayout);
+  mContentWidget->setLayout(mainLayout);
 
   if(hasBottomToolbar) {
-    mainLayout->setContentsMargins(SPACING, 0, SPACING, 0);
+    mainLayout->setContentsMargins(topContentSpacing, 0, topContentSpacing, 0);
   } else {
-    mainLayout->setContentsMargins(SPACING, 0, SPACING, SPACING);
+    mainLayout->setContentsMargins(topContentSpacing, 0, topContentSpacing, topContentSpacing);
   }
-  contentWidget->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding);
+  mContentWidget->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding);
   setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding);
-  setWidget(contentWidget);
+  setWidget(mContentWidget);
   setWidgetResizable(true);
 }
 
@@ -325,6 +326,7 @@ void LayoutGenerator::onTabClosed(int idx)
 VerticalPane *TabWidget::addVerticalPanel()
 {
   auto *vboxLayout = new VerticalPane(mParent, mLayoutGenerator);
+  vboxLayout->setContentsMargins(0, 0, 0, 0);
   vboxLayout->setAlignment(Qt::AlignTop);
   mainLayout->addLayout(vboxLayout, 1);
   return vboxLayout;

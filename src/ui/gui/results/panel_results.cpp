@@ -94,7 +94,7 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
 
   // Middle layout
   auto *tab = layout().addTab(
-      "", [] {}, false);
+      "", [] {}, false, 0);
   auto *col  = tab->addVerticalPanel();
   mHeatmap01 = new ChartHeatMap(this);
   mHeatmap01->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -108,8 +108,15 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   });
   connect(this, &PanelResults::finishedLoading, this, &PanelResults::onFinishedLoading);
 
+  //
+  // Top infor widget
+  //
+  QLayout *topInfoLayout = new QHBoxLayout();
+  topInfoLayout->addWidget(new QLabel("Info label"));
+
   col->setContentsMargins(0, 0, 0, 0);
   col->setSpacing(0);
+  col->addLayout(topInfoLayout);
   col->addWidget(mHeatmap01);
   col->addWidget(mTable);
 
@@ -154,6 +161,7 @@ void PanelResults::setActive(bool active)
     mTable->setRowCount(0);
     mTable->setColumnCount(0);
     refreshView();
+    mWindowMain->setSideBarVisible(true);
   }
 }
 
@@ -595,6 +603,8 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   resPanel->setPlateSize({mFilter.getPlateSetup().cols, mFilter.getPlateSetup().rows});
   resPanel->setDensityMapSize(mFilter.getFilter().densityMapAreaSize);
   mIsActive = true;
+  mWindowMain->setSideBarVisible(false);
+
   refreshView();
 
   if(mSelectedDataSet.analyzeMeta.has_value()) {
@@ -712,7 +722,12 @@ void PanelResults::tableToQWidgetTable(const joda::table::Table &tableIn)
   mSelectedTable = tableIn;
   if(tableIn.getCols() > 0) {
     mTable->setColumnCount(tableIn.getCols());
-    mTable->setRowCount(tableIn.getRows());
+    if(tableIn.getRows() == 0) {
+      // We print at least one empty row
+      mTable->setRowCount(1);
+    } else {
+      mTable->setRowCount(tableIn.getRows());
+    }
 
   } else {
     mTable->setColumnCount(0);
