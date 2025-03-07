@@ -30,9 +30,22 @@ auto StatsPerImage::toTable(db::Database *database, const QueryFilter &filter) -
   auto classesToExport = filter.getClassesToExport();
 
   for(const auto &[classs, statement] : classesToExport) {
-    auto [sql, params] = toSqlTable(classs, filter.getFilter(), statement);
+    //
+    // This is used to align the objects for each class correct
+    //
+    std::map<uint64_t, int32_t> rowIndexes;    // <ID, rowIdx>
+    auto findMaxRowIdx = [&rowIndexes]() -> int32_t {
+      int32_t rowIdx = -1;
+      for(const auto &[_, row] : rowIndexes) {
+        if(row > rowIdx) {
+          rowIdx = row;
+        }
+      }
+      return rowIdx;
+    };
 
-    auto result = database->select(sql, params);
+    auto [sql, params] = toSqlTable(classs, filter.getFilter(), statement);
+    auto result        = database->select(sql, params);
 
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());
@@ -42,8 +55,24 @@ auto StatsPerImage::toTable(db::Database *database, const QueryFilter &filter) -
     for(size_t row = 0; row < materializedResult->RowCount(); row++) {
       for(int32_t colIdx = 0; colIdx < columnNr; colIdx++) {
         if(!materializedResult->GetValue(colIdx, row).IsNull()) {
+          uint32_t meas_center_x = materializedResult->GetValue(columnNr + 0, row).GetValue<uint32_t>();
+          uint32_t meas_center_y = materializedResult->GetValue(columnNr + 1, row).GetValue<uint32_t>();
+          uint64_t objectId      = materializedResult->GetValue(columnNr + 2, row).GetValue<uint64_t>();
+
+          // It could be that there are classes without data, but we have to keep the row order, else the data would be shown shifted and beside a
+          // wrong image
+          size_t rowIdx = row;
+          if(rowIndexes.contains(objectId)) {
+            rowIdx = rowIndexes.at(objectId);
+          } else {
+            rowIdx = findMaxRowIdx() + 1;
+            rowIndexes.emplace(objectId, rowIdx);
+          }
+
           double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
-          classesToExport.setData(classs, statement.getColNames(), row, colIdx, std::to_string(row), table::TableCell{value, 0, true, ""});
+
+          classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, std::to_string(rowIdx),
+                                  table::TableCell{value, objectId, true, ""});
         }
       }
     }
@@ -113,7 +142,8 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
   }
   std::string sql = intersect + "SELECT\n" + channelFilter.createStatsQuery(false, false) +
                     "ANY_VALUE(t1.meas_center_x) as meas_center_x,\n"
-                    "ANY_VALUE(t1.meas_center_y) as meas_center_y\n"
+                    "ANY_VALUE(t1.meas_center_y) as meas_center_y,\n"
+                    "ANY_VALUE(t1.object_id) as object_id\n"
                     "FROM\n"
                     "  " +
                     table + " t1\n" + channelFilter.createStatsQueryJoins() +

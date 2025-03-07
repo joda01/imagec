@@ -34,6 +34,18 @@ auto StatsPerGroup::toTable(db::Database *database, const QueryFilter &filter, G
 {
   auto classesToExport = filter.getClassesToExport();
 
+  std::map<uint64_t, int32_t> rowIndexes;    // <ID, rowIdx>
+
+  auto findMaxRowIdx = [&rowIndexes]() -> int32_t {
+    int32_t rowIdx = -1;
+    for(const auto &[_, row] : rowIndexes) {
+      if(row > rowIdx) {
+        rowIdx = row;
+      }
+    }
+    return rowIdx;
+  };
+
   for(const auto &[classs, statement] : classesToExport) {
     auto materializedResult = getData(classs, database, filter.getFilter(), statement, grouping)->Cast<duckdb::StreamQueryResult>().Materialize();
     size_t columnNr         = statement.getColSize();
@@ -50,11 +62,33 @@ auto StatsPerGroup::toTable(db::Database *database, const QueryFilter &filter, G
 
         for(int32_t colIdx = 0; colIdx < columnNr; colIdx++) {
           double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
+
           if(grouping == Grouping::BY_WELL) {
-            classesToExport.setData(classs, statement.getColNames(), row, colIdx, filename, table::TableCell{value, imageId, validity == 0, ""});
+            // It could be that there are classes without data, but we have to keep the row order, else the data would be shown shifted and beside a
+            // wrong image
+            size_t rowIdx = row;
+            if(rowIndexes.contains(imageId)) {
+              rowIdx = rowIndexes.at(imageId);
+            } else {
+              rowIdx = findMaxRowIdx() + 1;
+              rowIndexes.emplace(imageId, rowIdx);
+            }
+
+            ///
+            classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, filename, table::TableCell{value, imageId, validity == 0, ""});
           } else {
+            // It could be that there are classes without data, but we have to keep the row order, else the data would be shown shifted and beside a
+            // wrong image
+            size_t rowIdx = row;
+            if(rowIndexes.contains(groupId)) {
+              rowIdx = rowIndexes.at(groupId);
+            } else {
+              rowIdx = findMaxRowIdx() + 1;
+              rowIndexes.emplace(groupId, rowIdx);
+            }
+
             auto colC = std::string(1, ((char) (platePosY - 1) + 'A')) + std::to_string(platePosX);
-            classesToExport.setData(classs, statement.getColNames(), row, colIdx, colC, table::TableCell{value, groupId, validity == 0, ""});
+            classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, colC, table::TableCell{value, groupId, validity == 0, ""});
           }
         }
 
