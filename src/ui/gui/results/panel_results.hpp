@@ -98,6 +98,7 @@ private:
     };
 
     std::optional<db::AnalyzeMeta> analyzeMeta;
+    std::optional<db::GroupInfo> groupMeta;
     std::optional<db::ImageInfo> imageMeta;
     std::optional<Value> value;
     //  std::optional<results::db::PlateMeta> plateMeta;
@@ -113,9 +114,10 @@ private:
   void tableToHeatmap(const joda::table::Table &table);
   void paintEmptyHeatmap();
   void goHome();
-
   void refreshView();
+  void refreshBreadCrump();
   void copyTableToClipboard(QTableWidget *table);
+  void refreshActSelection();
 
   /////////////////////////////////////////////////////
   void storeResultsTableSettingsToDatabase();
@@ -128,10 +130,17 @@ private:
   std::filesystem::path mDbFilePath;
 
   // Breadcrumb///////////////////////////////////////////////////
+
+  QLabel *mSelectedRowInfo;
+  QLineEdit *mSelectedValue;
+
+  QPushButton *mBreadCrumpPlate;
+  QPushButton *mBreadCrumpWell;
+  QPushButton *mBreadCrumpImage;
+
+  // Toolbar///////////////////////////////////////////////////
   void createToolBar(joda::ui::gui::helper::LayoutGenerator *);
   auto getClasssFromCombo() const -> std::pair<std::string, std::string>;
-
-  QPushButton *mBackButton;
   QAction *mTableButton   = nullptr;
   QAction *mHeatmapButton = nullptr;
 

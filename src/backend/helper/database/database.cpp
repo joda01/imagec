@@ -916,6 +916,36 @@ auto Database::selectImageChannels() -> std::map<uint32_t, joda::ome::OmeInfo::C
 /// \param[out]
 /// \return
 ///
+auto Database::selectGroupInfo(uint64_t groupId) -> GroupInfo
+{
+  std::unique_ptr<duckdb::QueryResult> result = select(
+      "SELECT groups.name, groups.pos_on_plate_x, groups.pos_on_plate_y\n"
+      "FROM groups\n"
+      "WHERE groups.group_id = ?",
+      groupId);
+  if(result->HasError()) {
+    throw std::invalid_argument("selectGroupInfo:" + result->GetError());
+  }
+
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+
+  GroupInfo results;
+  if(materializedResult->RowCount() > 0) {
+    results.groupName = materializedResult->GetValue(0, 0).GetValue<std::string>();
+    results.posX      = materializedResult->GetValue(1, 0).GetValue<uint32_t>();
+    results.posY      = materializedResult->GetValue(2, 0).GetValue<uint32_t>();
+  }
+
+  return results;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
 {
   std::unique_ptr<duckdb::QueryResult> result = select(

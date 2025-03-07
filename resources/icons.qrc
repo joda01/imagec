@@ -544,6 +544,7 @@
     <file>icons/icons8-export-excel-24.png</file>
     <file>icons/icons8-full-screen-48.png</file>
     <file>icons/icons8-solar-cross-96.png</file>
+    <file>icons/icons8-home-24.png</file>
     <file>icons/icons8-matrix-48.png</file>
     <file>icons/icons8-qr-code-96.png</file>
     <file>icons/icons8-sheets-24.png</file>
@@ -608,6 +609,7 @@
     <file>icons/icons8-lock-48.png</file>
     <file>icons/icons8-pytorch-48.png</file>
     <file>icons/icons8-add-to-favorites-16.png</file>
+    <file>icons/icons8-home-96.png</file>
     <file>icons/icons8-sort-by-price-24.png</file>
     <file>icons/icons8-history-16.png</file>
     <file>icons/icons8-test-tube-24.png</file>
@@ -743,6 +745,7 @@
     <file>icons/icons8-sigma-16.png</file>
     <file>icons/icons8-invert-colors-24.png</file>
     <file>icons/icons8-arrow-48.png</file>
+    <file>icons/icons8-home-48.png</file>
     <file>icons/icons8-pytorch-96.png</file>
     <file>icons/icons8-width-24.png</file>
     <file>icons/icons8-flow-96.png</file>
@@ -811,6 +814,7 @@
     <file>icons/icons8-unavailable-16.png</file>
     <file>icons/icons8-length-48.png</file>
     <file>icons/icons8-select-none-96.png</file>
+    <file>icons/icons8-home-16.png</file>
     <file>icons/icons8-browse-page-96.png</file>
     <file>icons/icons8-invert-selection-48.png</file>
     <file>icons/icons8-popup-window-48.png</file>

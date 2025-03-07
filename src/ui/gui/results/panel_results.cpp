@@ -20,7 +20,9 @@
 #include <qdialog.h>
 #include <qevent.h>
 #include <qgridlayout.h>
+#include <qlabel.h>
 #include <qlayout.h>
+#include <qlineedit.h>
 #include <qnamespace.h>
 #include <qpushbutton.h>
 #include <qsize.h>
@@ -34,6 +36,7 @@
 #include <exception>
 #include <filesystem>
 #include <iostream>
+#include <locale>
 #include <memory>
 #include <random>
 #include <stdexcept>
@@ -109,29 +112,49 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   connect(this, &PanelResults::finishedLoading, this, &PanelResults::onFinishedLoading);
 
   //
+  // Breadcrump
+  //
+  auto *topBreadCrump = new QHBoxLayout();
+  {
+    mBreadCrumpPlate = new QPushButton(generateIcon("home"), "");
+    topBreadCrump->addWidget(mBreadCrumpPlate);
+    connect(mBreadCrumpPlate, &QPushButton::clicked, this, &PanelResults::onBackClicked);
+
+    mBreadCrumpWell = new QPushButton("Well (1)");
+    topBreadCrump->addWidget(mBreadCrumpWell);
+    connect(mBreadCrumpWell, &QPushButton::clicked, this, &PanelResults::onBackClicked);
+
+    mBreadCrumpImage = new QPushButton("Image (abcd.tif)");
+    topBreadCrump->addWidget(mBreadCrumpImage);
+    connect(mBreadCrumpImage, &QPushButton::clicked, this, &PanelResults::onBackClicked);
+
+    topBreadCrump->addStretch();
+  }
+
+  //
   // Top infor widget
   //
   QLayout *topInfoLayout = new QHBoxLayout();
-  topInfoLayout->addWidget(new QLabel("Info label"));
+  {
+    topInfoLayout->setSpacing(6);
+    mSelectedRowInfo = new QLabel();
+    mSelectedRowInfo->setMaximumWidth(250);
+    mSelectedRowInfo->setMinimumWidth(250);
 
-  //
-  // Breadcrump
-  //
-  QLayout *topBreadCrump = new QHBoxLayout();
-  topBreadCrump->addWidget(new QLabel("Plate/Well/Image"));
+    mSelectedValue = new QLineEdit();
+    mSelectedValue->setReadOnly(true);
 
-  mBackButton = new QPushButton(generateIcon("arrow-left"), "");
-  mBackButton->setEnabled(false);
-  connect(mBackButton, &QPushButton::clicked, this, &PanelResults::onBackClicked);
-  topBreadCrump->addWidget(mBackButton);
+    topInfoLayout->addWidget(mSelectedRowInfo);
+    topInfoLayout->addWidget(mSelectedValue);
+  }
 
   //
   // Add to layout
   //
-  col->setContentsMargins(0, 0, 0, 0);
-  col->setSpacing(0);
-  col->addLayout(topInfoLayout);
+  col->setContentsMargins(0, 6, 0, 0);
+  col->setSpacing(4);
   col->addLayout(topBreadCrump);
+  col->addLayout(topInfoLayout);
   col->addWidget(mHeatmap01);
   col->addWidget(mTable);
 
@@ -325,6 +348,37 @@ void PanelResults::storeResultsTableSettingsToDatabase()
 /// \param[out]
 /// \return
 ///
+void PanelResults::refreshBreadCrump()
+{
+  switch(mNavigation) {
+    case Navigation::PLATE:
+      mBreadCrumpWell->setVisible(false);
+      mBreadCrumpImage->setVisible(false);
+      break;
+    case Navigation::WELL:
+      mBreadCrumpWell->setVisible(true);
+      mBreadCrumpImage->setVisible(false);
+      if(mSelectedDataSet.groupMeta.has_value()) {
+        mBreadCrumpWell->setText(QString("Well ") + mSelectedDataSet.groupMeta->groupName.data());
+      }
+      break;
+    case Navigation::IMAGE:
+      mBreadCrumpWell->setVisible(true);
+      mBreadCrumpImage->setVisible(true);
+      if(mSelectedDataSet.imageMeta.has_value()) {
+        mBreadCrumpImage->setText(mSelectedDataSet.imageMeta->filename.data());
+      }
+      break;
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelResults::refreshView()
 {
   const auto &wellOrder = mFilter.getPlateSetup().wellImageOrder;
@@ -344,33 +398,28 @@ void PanelResults::refreshView()
       storeResultsTableSettingsToDatabase();
     REFRESH_VIEW:
       switch(mNavigation) {
-        case Navigation::PLATE:
-          mBackButton->setEnabled(false);
-          {
-            mActListData = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
-            if(!mActListData.empty() && mActListData.at(0).getRows() == 1) {
-              // If there are no groups, switch directly to well view
-              mNavigation = Navigation::WELL;
-              mActGroupId = static_cast<uint16_t>(mActListData.at(0).data(0, 0).getId());
-              goto REFRESH_VIEW;
-            }
-            mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
+        case Navigation::PLATE: {
+          mActListData = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
+          if(!mActListData.empty() && mActListData.at(0).getRows() == 1) {
+            // If there are no groups, switch directly to well view
+            mNavigation                = Navigation::WELL;
+            auto getID                 = mActListData.at(0).data(0, 0).getId();
+            mActGroupId                = static_cast<uint16_t>(getID);
+            mSelectedWellId            = getID;
+            mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(getID);
+
+            goto REFRESH_VIEW;
           }
-          break;
-        case Navigation::WELL:
-          mBackButton->setEnabled(true);
-          {
-            mActListData    = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL);
-            mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL);
-          }
-          break;
-        case Navigation::IMAGE:
-          mBackButton->setEnabled(true);
-          {
-            mActListData    = joda::db::StatsPerImage::toTable(mAnalyzer.get(), mFilter);
-            mActHeatmapData = joda::db::StatsPerImage::toHeatmap(mAnalyzer.get(), mFilter);
-          }
-          break;
+          mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
+        } break;
+        case Navigation::WELL: {
+          mActListData    = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL);
+          mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL);
+        } break;
+        case Navigation::IMAGE: {
+          mActListData    = joda::db::StatsPerImage::toTable(mAnalyzer.get(), mFilter);
+          mActHeatmapData = joda::db::StatsPerImage::toHeatmap(mAnalyzer.get(), mFilter);
+        } break;
       }
       if(mSelection.contains(mNavigation)) {
         auto col = mSelection[mNavigation].col;
@@ -406,6 +455,7 @@ void PanelResults::onFinishedLoading()
   } else {
     paintEmptyHeatmap();
   }
+  refreshBreadCrump();
   update();
   QApplication::restoreOverrideCursor();
 }
@@ -466,17 +516,21 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
 {
   switch(mNavigation) {
     case Navigation::PLATE: {
-      mSelectedWellId = value.getId();
-
-      //  auto groupId = value.getId();
-      //  auto [result, channel] =
-      //      mAnalyzer->getGroupInformation(mFilter.analyzeId, mFilter.plateId, mFilter.channelIdx, groupId);
-      //  mSelectedDataSet.groupMeta   = result;
-      //  mSelectedDataSet.channelMeta = channel;
+      mSelectedWellId            = value.getId();
+      mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(value.getId());
       mSelectedDataSet.imageMeta.reset();
       mMarkAsInvalid->setEnabled(false);
+
+      // Act data
+      auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
+                      mSelectedDataSet.groupMeta->groupName;
+      mSelectedRowInfo->setText(platePos.data());
+      mSelectedValue->setText(QString::number(value.getVal()));
     } break;
     case Navigation::WELL: {
+      if(!mSelectedDataSet.groupMeta.has_value()) {
+      }
+
       mSelectedImageId = value.getId();
 
       auto imageInfo             = mAnalyzer->selectImageInfo(value.getId());
@@ -490,6 +544,12 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       }
       mMarkAsInvalid->blockSignals(false);
       mMarkAsInvalid->setEnabled(true);
+
+      // Act data
+      auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
+                      mSelectedDataSet.groupMeta->groupName + "/" + imageInfo.filename;
+      mSelectedRowInfo->setText(platePos.data());
+      mSelectedValue->setText(QString::number(value.getVal()));
     }
 
     break;
@@ -498,6 +558,11 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       mMarkAsInvalid->setEnabled(false);
       mSelectedAreaPos.x = cellX;
       mSelectedAreaPos.y = cellY;
+
+      auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
+                      mSelectedDataSet.groupMeta->groupName + "/" + mSelectedDataSet.imageMeta->filename + "/Obj:" + std::to_string(value.getId());
+      mSelectedRowInfo->setText(platePos.data());
+      mSelectedValue->setText(QString::number(value.getVal()));
       break;
   }
 
@@ -824,6 +889,21 @@ void PanelResults::onTableCurrentCellChanged(int currentRow, int currentColumn, 
 /// \param[out]
 /// \return
 ///
+void PanelResults::onCellClicked(int rowSelected, int columnSelcted)
+{
+  // Update table
+  mSelection[mNavigation] = {rowSelected, columnSelcted};
+  auto selectedData       = mActListData.at(0).data(rowSelected, columnSelcted);
+  onElementSelected(columnSelcted, rowSelected, selectedData);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelResults::copyTableToClipboard(QTableWidget *table)
 {
   QStringList data;
@@ -846,21 +926,6 @@ void PanelResults::copyTableToClipboard(QTableWidget *table)
 
   QClipboard *clipboard = QApplication::clipboard();
   clipboard->setText(text);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::onCellClicked(int rowSelected, int columnSelcted)
-{
-  // Update table
-  mSelection[mNavigation] = {rowSelected, columnSelcted};
-  auto selectedData       = mActListData.at(0).data(rowSelected, columnSelcted);
-  onElementSelected(columnSelcted, rowSelected, selectedData);
 }
 
 ///
