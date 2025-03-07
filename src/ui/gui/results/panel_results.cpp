@@ -155,7 +155,6 @@ void PanelResults::setActive(bool active)
 {
   if(!active) {
     mIsActive = active;
-    getWindowMain()->getPanelResultsInfo()->setData({});
     mSelectedDataSet.analyzeMeta.reset();
     mSelectedDataSet.imageMeta.reset();
     mSelectedDataSet.value.reset();
@@ -328,12 +327,12 @@ void PanelResults::storeResultsTableSettingsToDatabase()
 ///
 void PanelResults::refreshView()
 {
-  const auto &size      = mWindowMain->getPanelResultsInfo()->getPlateSize();
-  const auto &wellOrder = mWindowMain->getPanelResultsInfo()->getWellOrder();
+  const auto &wellOrder = mFilter.getPlateSetup().wellImageOrder;
+  uint16_t rows         = mFilter.getPlateSetup().rows;
+  uint16_t cols         = mFilter.getPlateSetup().cols;
 
-  mFilter.setFilter(
-      {.plateId = 0, .groupId = mActGroupId, .imageId = mActImageId, .densityMapAreaSize = mWindowMain->getPanelResultsInfo()->getDensityMapSize()},
-      {.rows = static_cast<uint16_t>(size.height()), .cols = static_cast<uint16_t>(size.width()), .wellImageOrder = wellOrder});
+  mFilter.setFilter({.plateId = 0, .groupId = mActGroupId, .imageId = mActImageId, .densityMapAreaSize = mFilter.getFilter().densityMapAreaSize},
+                    {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder});
 
   //
   //
@@ -502,8 +501,7 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       break;
   }
 
-  mSelectedDataSet.value = PanelResultsInfo::DataSet::Value{.value = value.getVal()};
-  getWindowMain()->getPanelResultsInfo()->setData(mSelectedDataSet);
+  mSelectedDataSet.value = DataSet::Value{.value = value.getVal()};
 }
 
 ///
@@ -559,7 +557,6 @@ void PanelResults::onBackClicked()
   }
 
   refreshView();
-  getWindowMain()->getPanelResultsInfo()->setData(mSelectedDataSet);
 }
 
 void PanelResults::goHome()
@@ -568,7 +565,6 @@ void PanelResults::goHome()
   mSelectedDataSet.imageMeta.reset();
   mSelection.erase(Navigation::WELL);
   mSelection.erase(Navigation::IMAGE);
-  getWindowMain()->getPanelResultsInfo()->setData(mSelectedDataSet);
 }
 
 ///
@@ -603,11 +599,7 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   } catch(...) {
   }
   auto *resPanel = getWindowMain()->getPanelResultsInfo();
-  resPanel->setData(mSelectedDataSet);
-  resPanel->setWellOrder(mFilter.getPlateSetup().wellImageOrder);
-  resPanel->setPlateSize({mFilter.getPlateSetup().cols, mFilter.getPlateSetup().rows});
-  resPanel->setDensityMapSize(mFilter.getFilter().densityMapAreaSize);
-  mIsActive = true;
+  mIsActive      = true;
   mWindowMain->setSideBarVisible(false);
 
   refreshView();
@@ -674,10 +666,9 @@ void PanelResults::tableToHeatmap(const joda::table::Table &table)
 void PanelResults::paintEmptyHeatmap()
 {
   joda::table::Table table;
-  const auto &size      = mWindowMain->getPanelResultsInfo()->getPlateSize();
-  const auto &wellOrder = mWindowMain->getPanelResultsInfo()->getWellOrder();
-  uint16_t rows         = size.height();
-  uint16_t cols         = size.width();
+  const auto &wellOrder = mFilter.getPlateSetup().wellImageOrder;
+  uint16_t rows         = mFilter.getPlateSetup().rows;
+  uint16_t cols         = mFilter.getPlateSetup().cols;
   for(int row = 0; row < rows; row++) {
     table.getMutableRowHeader()[row] = "";
     for(int col = 0; col < cols; col++) {
@@ -978,10 +969,6 @@ void PanelResults::loadTemplate()
     auto json      = joda::templates::TemplateParser::loadTemplate(std::filesystem::path(pathToOpenFileFrom.toStdString()));
     mFilter        = json;
     auto *resPanel = getWindowMain()->getPanelResultsInfo();
-    resPanel->setData(mSelectedDataSet);
-    resPanel->setWellOrder(mFilter.getPlateSetup().wellImageOrder);
-    resPanel->setPlateSize({mFilter.getPlateSetup().cols, mFilter.getPlateSetup().rows});
-    resPanel->setDensityMapSize(mFilter.getFilter().densityMapAreaSize);
     refreshView();
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);

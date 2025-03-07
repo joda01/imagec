@@ -90,6 +90,23 @@ private:
   /////////////////////////////////////////////////////
   static constexpr int32_t PREVIEW_BASE_SIZE = 450;
 
+  struct DataSet
+  {
+    struct Value
+    {
+      double value = 0;
+    };
+
+    std::optional<db::AnalyzeMeta> analyzeMeta;
+    std::optional<db::ImageInfo> imageMeta;
+    std::optional<Value> value;
+    //  std::optional<results::db::PlateMeta> plateMeta;
+    //  std::optional<results::db::GroupMeta> groupMeta;
+    //  std::optional<results::db::ImageMeta> imageMeta;
+    //  std::optional<results::db::ChannelMeta> channelMeta;
+    //  std::optional<results::db::ImageChannelMeta> imageChannelMeta;
+  };
+
   /////////////////////////////////////////////////////
   void valueChangedEvent() override;
   void tableToQWidgetTable(const joda::table::Table &table);
@@ -145,7 +162,7 @@ private:
   ChartHeatMap *mHeatmap01;
   Navigation mNavigation = Navigation::PLATE;
   QAction *mMarkAsInvalid;
-  PanelResultsInfo::DataSet mSelectedDataSet;
+  DataSet mSelectedDataSet;
 
   /////////////////////////////////////////////////////
   uint16_t mActGroupId = 0;
