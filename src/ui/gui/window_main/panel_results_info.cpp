@@ -61,12 +61,11 @@ PanelResultsInfo::PanelResultsInfo(WindowMain *windowMain) : mWindowMain(windowM
 
     layout->addWidget(mLastLoadedResults);
   }
-
+  addSeparator();
   {
     mResultsTemplate = new PanelResultsTemplateGenerator(mWindowMain, &mWindowMain->mutableSettings());
     layout->addWidget(mResultsTemplate);
   }
-  addSeparator();
 
   setLayout(layout);
 }
