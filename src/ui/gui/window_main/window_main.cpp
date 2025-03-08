@@ -525,7 +525,7 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     }
     checkForSettingsChanged();
     if(!openFromTemplate) {
-      onSaveProject();
+      saveProject(mSelectedProjectSettingsFilePath, false, false);
     }
     showPanelStartPage();
 
@@ -586,7 +586,7 @@ void WindowMain::onSaveProjectAs()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::saveProject(std::filesystem::path filename, bool saveAs)
+void WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool createHistoryEntry)
 {
   try {
     if(filename.empty()) {
@@ -613,9 +613,11 @@ void WindowMain::saveProject(std::filesystem::path filename, bool saveAs)
         // Store project
         //
         if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld) || saveAs) {
-          for(const auto &[pip, _] : mPanelPipeline->getPipelineWidgets()) {
-            if(pip) {
-              pip->pipelineSavedEvent();
+          if(createHistoryEntry) {
+            for(const auto &[pip, _] : mPanelPipeline->getPipelineWidgets()) {
+              if(pip) {
+                pip->pipelineSavedEvent();
+              }
             }
           }
           joda::settings::Settings::storeSettings(filename, mAnalyzeSettings);
