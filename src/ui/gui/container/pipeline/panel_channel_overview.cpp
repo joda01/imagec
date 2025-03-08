@@ -87,12 +87,11 @@ void PanelChannelOverview::paintEvent(QPaintEvent *event)
   if((mParentContainer != nullptr) && (mParentContainer->mActionDisabled != nullptr) && mParentContainer->mActionDisabled->isChecked()) {
     painter.setBrush(Qt::red);
     QPen pen(Qt::red, 1);    // darkYellow, 5px width
+    painter.drawEllipse(0, height() / 2 - 3, 6, 6);
   } else {
     painter.setBrush(Qt::green);
     QPen pen(Qt::green, 1);    // darkYellow, 5px width
   }
-
-  painter.drawEllipse(0, height() / 2 - 3, 6, 6);
 }
 
 ///

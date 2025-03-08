@@ -231,12 +231,14 @@ void SettingBase::createDisplayAbleWidget(const QIcon &icon, const QString &tool
   mDisplayLabel     = new QLabel();
 
   // Set text for the label
-  mDisplayLabel->setToolTip(tooltip);
+  /// \todo the tooltip background is black whyever
+  // mDisplayLabel->setToolTip(tooltip);
 
   // Create a QPixmap for the icon (you may need to adjust the path)
   if(!icon.isNull()) {
     mDisplayLabelIcon->setPixmap(mIcon.pixmap(DISP_ICON_SIZE, DISP_ICON_SIZE));
-    mDisplayLabelIcon->setToolTip(tooltip);
+    /// \todo the tooltip background is black whyever
+    // mDisplayLabelIcon->setToolTip(tooltip);
   }
 
   // Create a QHBoxLayout to arrange the text and icon horizontally
