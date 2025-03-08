@@ -25,6 +25,7 @@
 #include "backend/commands/image_functions/image_math/image_math_settings.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/commands/image_functions/morphological_transformation/morphological_transformation_settings.hpp"
+#include "backend/commands/image_functions/rank_filter/rank_filter_settings.hpp"
 #include "backend/commands/image_functions/threshold/threshold_settings.hpp"
 #include "backend/commands/image_functions/watershed/watershed_settings.hpp"
 #include "backend/commands/object_functions/object_transform/object_transform_settings.hpp"
@@ -158,6 +159,7 @@ void DialogCommandSelection::addCommandsToTable()
     addCommandToTable(settings::PipelineStep{.$imageMath = settings::ImageMathSettings{}}, Group::IMAGE_PROCESSING);
     addCommandToTable(settings::PipelineStep{.$imageToCache = settings::ImageCacheSettings{}}, Group::IMAGE_PROCESSING);
     addCommandToTable(settings::PipelineStep{.$enhanceContrast = settings::EnhanceContrastSettings{}}, Group::IMAGE_PROCESSING);
+    addCommandToTable(settings::PipelineStep{.$rank = settings::RankFilterSettings{}}, Group::IMAGE_PROCESSING);
   }
 
   {

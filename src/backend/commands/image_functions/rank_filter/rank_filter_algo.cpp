@@ -1,5 +1,5 @@
 ///
-/// \file      rank_filter.cpp
+/// \file      rank_filter_algo.cpp
 /// \author    Joachim Danmayr
 /// \date      2023-02-20
 ///
@@ -13,13 +13,13 @@
 ///            https://github.com/imagej/ImageJ/blob/master/ij/plugin/filter/RankFilters.java
 ///
 
-#include "rank_filter.hpp"
+#include "rank_filter_algo.hpp"
 #include <opencv2/core/hal/interface.h>
 #include <cmath>
 #include <cstddef>
 #include <opencv2/core/types.hpp>
 
-namespace joda::cmd {
+namespace joda::algo {
 
 /** OPEN, CLOSE, TOPHAT need more than one run of the underlying filter */
 
@@ -67,8 +67,7 @@ void RankFilter::rank(cv::Mat &ip, double radius, int filterType, int whichOutli
  *        where the result of grayscale open/close is subtracted from the original.
  */
 
-void RankFilter::rank(cv::Mat &ip, double radius, int filterType, int whichOutliers, float threshold,
-                      bool lightBackground, bool dontSubtract)
+void RankFilter::rank(cv::Mat &ip, double radius, int filterType, int whichOutliers, float threshold, bool lightBackground, bool dontSubtract)
 {
   size_t lineRadiiLength = 0;
   auto lineRadii         = makeLineRadii(radius, lineRadiiLength);
@@ -80,7 +79,7 @@ void RankFilter::rank(cv::Mat &ip, double radius, int filterType, int whichOutli
   // }
   bool isInvertedLut       = false;
   float minMaxOutliersSign = filterType == MIN || filterType == OPEN ? -1.0f : 1.0f;    // open is minimum first
-  if(filterType == OUTLIERS) {    // sign is -1 for high outliers: compare number with minimum
+  if(filterType == OUTLIERS) {                                                          // sign is -1 for high outliers: compare number with minimum
     minMaxOutliersSign = (isInvertedLut == (whichOutliers == DARK_OUTLIERS)) ? -1.0f : 1.0f;
   }
 
@@ -143,8 +142,8 @@ void RankFilter::rank(cv::Mat &ip, double radius, int filterType, int whichOutli
 // 'nextY.get()' is set to a large negative number if the main thread has been interrupted (during preview) or ESC
 // pressed. 'nextY' must not be a class variable because it is also used with one thread (with stack parallelization)
 
-void RankFilter::doFiltering(cv::Mat &ip, std::shared_ptr<int> lineRadii, size_t lineRadiiLength, int filterType,
-                             float minMaxOutliersSign, float threshold, int &nextY)
+void RankFilter::doFiltering(cv::Mat &ip, std::shared_ptr<int> lineRadii, size_t lineRadiiLength, int filterType, float minMaxOutliersSign,
+                             float threshold, int &nextY)
 {
   int width = ip.cols;
   // Object pixels  = ip.getPixels();
@@ -158,8 +157,7 @@ void RankFilter::doFiltering(cv::Mat &ip, std::shared_ptr<int> lineRadii, size_t
   highestYinCache = std::max(0 - kHeight / 2, 0) - 1;    // this line+1 will be read into the cache first
 
   nextY = 0;    // first thread started should begin at roi.y
-  doFiltering(ip, lineRadii, lineRadiiLength, cache, cacheWidth * cacheHeight, cacheWidth, cacheHeight, filterType,
-              minMaxOutliersSign, threshold);
+  doFiltering(ip, lineRadii, lineRadiiLength, cache, cacheWidth * cacheHeight, cacheWidth, cacheHeight, filterType, minMaxOutliersSign, threshold);
 
   delete[] cache;
 }
@@ -187,9 +185,8 @@ void RankFilter::doFiltering(cv::Mat &ip, std::shared_ptr<int> lineRadii, size_t
 // For outliers, calculate the median only if the pixel deviates by more than the threshold
 // from any pixel in the area. Therfore min or max is calculated; this is a much faster
 // operation than the median.
-void RankFilter::doFiltering(cv::Mat &ip, std::shared_ptr<int> lineRadii, size_t lineRadiiLength, float *cache,
-                             size_t cacheLength, int cacheWidth, int cacheHeight, int filterType,
-                             float minMaxOutliersSign, float threshold)
+void RankFilter::doFiltering(cv::Mat &ip, std::shared_ptr<int> lineRadii, size_t lineRadiiLength, float *cache, size_t cacheLength, int cacheWidth,
+                             int cacheHeight, int filterType, float minMaxOutliersSign, float threshold)
 {
   int width  = ip.cols;
   int height = ip.rows;
@@ -241,15 +238,14 @@ void RankFilter::doFiltering(cv::Mat &ip, std::shared_ptr<int> lineRadii, size_t
 
     int yStartReading = y == 0 ? std::max(0 - kHeight / 2, 0) : y + kHeight / 2;
     for(int yNew = yStartReading; yNew <= y + kHeight / 2; yNew++) {    // only 1 line except at start
-      readLineToCacheOrPad(ip, width, height, 0, xminInside, widthInside, cache, cacheWidth, cacheHeight, padLeft,
-                           padRight, kHeight, yNew);
+      readLineToCacheOrPad(ip, width, height, 0, xminInside, widthInside, cache, cacheWidth, cacheHeight, padLeft, padRight, kHeight, yNew);
     }
 
-    int cacheLineP = cacheWidth * (y % cacheHeight) + kRadius;    // points to pixel (roi.x, y)
+    int cacheLineP = cacheWidth * (y % cacheHeight) + kRadius;                                           // points to pixel (roi.x, y)
     filterLine(values, width, cache, cachePointers, cachePointersLength, kNPoints, cacheLineP, ip, y,    // F I L T E R
-               sums, medianBuf1, medianBuf2, minMaxOutliersSign, maxValue, isFloat, filterType, smallKernel, sumFilter,
-               minOrMax, minOrMaxOrOutliers, threshold);
-    if(!isFloat) {    // Float images: data are written already during 'filterLine'
+               sums, medianBuf1, medianBuf2, minMaxOutliersSign, maxValue, isFloat, filterType, smallKernel, sumFilter, minOrMax, minOrMaxOrOutliers,
+               threshold);
+    if(!isFloat) {                                          // Float images: data are written already during 'filterLine'
       writeLineToPixels(values, ip, y * width, ip.cols);    // W R I T E
     }
   }    // while (true); loop over y (lines)
@@ -259,11 +255,10 @@ void RankFilter::doFiltering(cv::Mat &ip, std::shared_ptr<int> lineRadii, size_t
 
 // returns the minimum of the array, which may be modified concurrently, but not less than 0
 
-void RankFilter::filterLine(float *values, int width, float *cache, std::shared_ptr<int> cachePointers,
-                            size_t cachePointersLength, int kNPoints, int cacheLineP, cv::Mat &roi, int y, double *sums,
-                            float *medianBuf1, float *medianBuf2, float minMaxOutliersSign, float maxValue,
-                            bool isFloat, int filterType, bool smallKernel, bool sumFilter, bool minOrMax,
-                            bool minOrMaxOrOutliers, float threshold)
+void RankFilter::filterLine(float *values, int width, float *cache, std::shared_ptr<int> cachePointers, size_t cachePointersLength, int kNPoints,
+                            int cacheLineP, cv::Mat &roi, int y, double *sums, float *medianBuf1, float *medianBuf2, float minMaxOutliersSign,
+                            float maxValue, bool isFloat, int filterType, bool smallKernel, bool sumFilter, bool minOrMax, bool minOrMaxOrOutliers,
+                            float threshold)
 {
   int valuesP          = isFloat ? 0 + y * width : 0;
   float max            = 0.0f;
@@ -273,8 +268,7 @@ void RankFilter::filterLine(float *values, int width, float *cache, std::shared_
     if(fullCalculation) {
       fullCalculation = smallKernel;    // for small kernel, always use the full area, not incremental algorithm
       if(minOrMaxOrOutliers) {
-        max = getAreaMax(cache, x, cachePointers, cachePointersLength, 0, -std::numeric_limits<float>::max(),
-                         minMaxOutliersSign);
+        max = getAreaMax(cache, x, cachePointers, cachePointersLength, 0, -std::numeric_limits<float>::max(), minMaxOutliersSign);
       }
       if(minOrMax) {
         values[valuesP] = max * minMaxOutliersSign;
@@ -317,18 +311,15 @@ void RankFilter::filterLine(float *values, int width, float *cache, std::shared_
       }
     } else if(filterType == MEDIAN) {
       if(isFloat) {
-        median =
-            std::isnan(values[valuesP]) ? std::numeric_limits<float>::quiet_NaN() : values[valuesP];    // a first guess
-        median =
-            getNaNAwareMedian(cache, x, cachePointers, cachePointersLength, medianBuf1, medianBuf2, kNPoints, median);
+        median = std::isnan(values[valuesP]) ? std::numeric_limits<float>::quiet_NaN() : values[valuesP];    // a first guess
+        median = getNaNAwareMedian(cache, x, cachePointers, cachePointersLength, medianBuf1, medianBuf2, kNPoints, median);
       } else {
         median = getMedian(cache, x, cachePointers, cachePointersLength, medianBuf1, medianBuf2, kNPoints, median);
       }
       values[valuesP] = median;
     } else if(filterType == OUTLIERS) {
       float v = cache[cacheLineP + x];
-      if(v * minMaxOutliersSign + threshold <
-         max) {    // for low outliers: median can't be higher than max (minMaxOutliersSign is +1)
+      if(v * minMaxOutliersSign + threshold < max) {    // for low outliers: median can't be higher than max (minMaxOutliersSign is +1)
         median = getMedian(cache, x, cachePointers, cachePointersLength, medianBuf1, medianBuf2, kNPoints, median);
         if(v * minMaxOutliersSign + threshold < median * minMaxOutliersSign) {
           v = median;    // beyond threshold (below if minMaxOutliersSign=+1), replace outlier by median
@@ -337,8 +328,7 @@ void RankFilter::filterLine(float *values, int width, float *cache, std::shared_
       values[valuesP] = v;
     } else if(filterType == REMOVE_NAN) {    // float only; then 'values' is pixels array
       if(std::isnan(values[valuesP])) {
-        values[valuesP] =
-            getNaNAwareMedian(cache, x, cachePointers, cachePointersLength, medianBuf1, medianBuf2, kNPoints, median);
+        values[valuesP] = getNaNAwareMedian(cache, x, cachePointers, cachePointersLength, medianBuf1, medianBuf2, kNPoints, median);
       } else {
         median = values[valuesP];    // initial guess for the next point
       }
@@ -352,9 +342,8 @@ void RankFilter::filterLine(float *values, int width, float *cache, std::shared_
  *	more than one line (padding by duplicating the y=0 row).
  */
 
-void RankFilter::readLineToCacheOrPad(cv::Mat &pixels, int width, int height, int roiY, int xminInside, int widthInside,
-                                      float *cache, int cacheWidth, int cacheHeight, int padLeft, int padRight,
-                                      int kHeight, int y)
+void RankFilter::readLineToCacheOrPad(cv::Mat &pixels, int width, int height, int roiY, int xminInside, int widthInside, float *cache, int cacheWidth,
+                                      int cacheHeight, int padLeft, int padRight, int kHeight, int y)
 {
   int lineInCache = y % cacheHeight;
   if(y < height) {
@@ -368,18 +357,17 @@ void RankFilter::readLineToCacheOrPad(cv::Mat &pixels, int width, int height, in
     }
   } else {
     // System.arraycopy(cache, cacheWidth * ((height - 1) % cacheHeight), cache, lineInCache * cacheWidth, cacheWidth);
-    std::copy(cache + cacheWidth * ((height - 1) % cacheHeight),
-              cache + cacheWidth * ((height - 1) % cacheHeight) + cacheWidth, cache + lineInCache * cacheWidth);
+    std::copy(cache + cacheWidth * ((height - 1) % cacheHeight), cache + cacheWidth * ((height - 1) % cacheHeight) + cacheWidth,
+              cache + lineInCache * cacheWidth);
   }
 }
 
 /** Read a line into the cache (includes conversion to flaot). Pad with edge pixels in x if necessary */
 
-void RankFilter::readLineToCache(cv::Mat &pixels, int pixelLineP, int xminInside, int widthInside, float *cache,
-                                 int cacheLineP, int padLeft, int padRight)
+void RankFilter::readLineToCache(cv::Mat &pixels, int pixelLineP, int xminInside, int widthInside, float *cache, int cacheLineP, int padLeft,
+                                 int padRight)
 {
-  for(int pp = pixelLineP + xminInside, cp = cacheLineP + padLeft; pp < pixelLineP + xminInside + widthInside;
-      pp++, cp++) {
+  for(int pp = pixelLineP + xminInside, cp = cacheLineP + padLeft; pp < pixelLineP + xminInside + widthInside; pp++, cp++) {
     cache[cp] = pixels.at<uint16_t>(pp) & 0xffff;
   }
 
@@ -407,8 +395,7 @@ void RankFilter::writeLineToPixels(float *values, cv::Mat &pixels, int pixelP, i
  *	@param ignoreRight should be 0 for analyzing all data or 1 for leaving out the row at the right
  *	@param max should be -Float.MAX_VALUE or the smallest value the maximum can be */
 
-float RankFilter::getAreaMax(float *cache, int xCache0, std::shared_ptr<int> kernel, size_t kernelLength,
-                             int ignoreRight, float max, float sign)
+float RankFilter::getAreaMax(float *cache, int xCache0, std::shared_ptr<int> kernel, size_t kernelLength, int ignoreRight, float max, float sign)
 {
   for(int kk = 0; kk < kernelLength; kk++) {    // y within the cache stripe (we have 2 kernel pointers per cache line)
     for(int p = kernel.get()[kk++] + xCache0; p <= kernel.get()[kk] + xCache0 - ignoreRight; p++) {
@@ -424,15 +411,13 @@ float RankFilter::getAreaMax(float *cache, int xCache0, std::shared_ptr<int> ker
 /** Get max (or -min if sign=-1) at the right border inside or left border outside the kernel area.
  *	x between 0 and cacheWidth-1 */
 
-float RankFilter::getSideMax(float *cache, int xCache0, std::shared_ptr<int> kernel, size_t kernelLength, bool isRight,
-                             float sign)
+float RankFilter::getSideMax(float *cache, int xCache0, std::shared_ptr<int> kernel, size_t kernelLength, bool isRight, float sign)
 {
   float max = -std::numeric_limits<float>::max();
   if(!isRight) {
     xCache0--;
   }
-  for(int kk = isRight ? 1 : 0; kk < kernelLength;
-      kk += 2) {    // y within the cache stripe (we have 2 kernel pointers per cache line)
+  for(int kk = isRight ? 1 : 0; kk < kernelLength; kk += 2) {    // y within the cache stripe (we have 2 kernel pointers per cache line)
     float v = cache[xCache0 + kernel.get()[kk]] * sign;
     if(max < v) {
       max = v;
@@ -483,8 +468,8 @@ void RankFilter::addSideSums(float *cache, int xCache0, std::shared_ptr<int> ker
 /** Get median of values within kernel-sized neighborhood. Kernel size kNPoints should be odd.
  */
 
-float RankFilter::getMedian(float *cache, int xCache0, std::shared_ptr<int> kernel, size_t kernelLength,
-                            float *aboveBuf, float *belowBuf, int kNPoints, float guess)
+float RankFilter::getMedian(float *cache, int xCache0, std::shared_ptr<int> kernel, size_t kernelLength, float *aboveBuf, float *belowBuf,
+                            int kNPoints, float guess)
 {
   int nAbove = 0;
   int nBelow = 0;
@@ -514,8 +499,8 @@ float RankFilter::getMedian(float *cache, int xCache0, std::shared_ptr<int> kern
  *	NaN data values are ignored; the output is NaN only if there are only NaN values in the
  *	kernel-sized neighborhood */
 
-float RankFilter::getNaNAwareMedian(float *cache, int xCache0, std::shared_ptr<int> kernel, size_t kernelLength,
-                                    float *aboveBuf, float *belowBuf, int kNPoints, float guess)
+float RankFilter::getNaNAwareMedian(float *cache, int xCache0, std::shared_ptr<int> kernel, size_t kernelLength, float *aboveBuf, float *belowBuf,
+                                    int kNPoints, float guess)
 {
   int nAbove = 0;
   int nBelow = 0;
@@ -660,8 +645,7 @@ int RankFilter::kNPoints(int *lineRadii, size_t length)
 
 // cache pointers for a given kernel
 
-std::shared_ptr<int> RankFilter::makeCachePointers(int *lineRadii, size_t lineRadiiLength, int cacheWidth,
-                                                   size_t &length)
+std::shared_ptr<int> RankFilter::makeCachePointers(int *lineRadii, size_t lineRadiiLength, int cacheWidth, size_t &length)
 {
   int kRadius = this->kRadius(lineRadii, lineRadiiLength);
   int kHeight = this->kHeight(lineRadii, lineRadiiLength);
@@ -675,4 +659,4 @@ std::shared_ptr<int> RankFilter::makeCachePointers(int *lineRadii, size_t lineRa
   return cachePointers;
 }
 
-}    // namespace joda::cmd
+}    // namespace joda::algo

@@ -54,6 +54,9 @@
 #include "backend/commands/image_functions/median_substraction/median_substraction_settings_ui.hpp"
 #include "backend/commands/image_functions/morphological_transformation/morphological_transformation.hpp"
 #include "backend/commands/image_functions/morphological_transformation/morphological_transformation_settings_ui.hpp"
+#include "backend/commands/image_functions/rank_filter/rank_filter.hpp"
+#include "backend/commands/image_functions/rank_filter/rank_filter_settings.hpp"
+#include "backend/commands/image_functions/rank_filter/rank_filter_ui.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings_ui.hpp"
@@ -357,6 +360,15 @@ private:
       } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
         return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::EnhanceContrast, EnhanceContrastSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<EnhanceContrastSettings &>(step.$enhanceContrast.value()), parent));
+      }
+    }
+
+    if(step.$rank) {
+      if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
+        return std::make_unique<joda::cmd::Factory<joda::cmd::RankFilter, RankFilterSettings>>(step.$rank.value());
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::RankFilter, RankFilterSettings>>(
+            const_cast<settings::PipelineStep &>(step), const_cast<RankFilterSettings &>(step.$rank.value()), parent));
       }
     }
 

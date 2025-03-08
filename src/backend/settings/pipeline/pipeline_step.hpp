@@ -32,6 +32,7 @@
 #include "backend/commands/image_functions/margin_crop/margin_crop_settings.hpp"
 #include "backend/commands/image_functions/median_substraction/median_substraction_settings.hpp"
 #include "backend/commands/image_functions/morphological_transformation/morphological_transformation_settings.hpp"
+#include "backend/commands/image_functions/rank_filter/rank_filter_settings.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
 #include "backend/commands/image_functions/threshold/threshold_settings.hpp"
 #include "backend/commands/image_functions/watershed/watershed_settings.hpp"
@@ -100,6 +101,7 @@ public:
   std::optional<FillHolesSettings> $fillHoles                           = std::nullopt;
   std::optional<HoughTransformSettings> $houghTransform                 = std::nullopt;
   std::optional<EnhanceContrastSettings> $enhanceContrast               = std::nullopt;
+  std::optional<RankFilterSettings> $rank                               = std::nullopt;
 
   /////////////////////////////////////////////////////
   void operator()(processor::ProcessContext &context, cv::Mat &image, joda::atom::ObjectList &result) const;
@@ -109,7 +111,8 @@ public:
                                                        $aiClassify, $colocalization, $reclassify, $measure, $rollingBall, $medianSubtract, $sobel,
                                                        $canny, $crop, $voronoi, $thresholdValidator, $noiseValidator, $intensityTransform,
                                                        $colorFilter, $objectsToImage, $imageMath, $objectTransform, $imageToCache,
-                                                       $morphologicalTransform, $fillHoles, $houghTransform, $enhanceContrast, disabled, locked);
+                                                       $morphologicalTransform, $fillHoles, $houghTransform, $enhanceContrast, $rank, disabled,
+                                                       locked);
 };
 
 }    // namespace joda::settings
