@@ -290,7 +290,6 @@ void DialogImageViewer::imageUpdated()
 {
   mImageViewLeft.imageUpdated();
   mImageViewRight.imageUpdated();
-  autoAdjustHistogram();
 }
 
 ///
