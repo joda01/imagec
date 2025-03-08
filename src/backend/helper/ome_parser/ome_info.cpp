@@ -43,6 +43,8 @@ void OmeInfo::loadOmeInformationFromXMLString(const std::string &omeXML)
 {
   setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
 
+  // std::cout << omeXML << std::endl;
+
   pugi::xml_document doc;
   pugi::xml_parse_result result = doc.load_string(omeXML.c_str());
   if(!result) {
@@ -109,7 +111,9 @@ TRY_AGAIN:
 
   for(pugi::xml_node image = doc.child("OME").child(std::string(keyPrefix + "Image").data()); image != nullptr;
       image                = image.next_sibling(std::string(keyPrefix + "Image").data())) {
-    mImageInfo.emplace(series, ImageInfo{});
+    if(!mImageInfo.contains(series)) {
+      mImageInfo.emplace(series, ImageInfo{});
+    }
     auto &actImageInfo     = mImageInfo.at(series);
     actImageInfo.seriesIdx = series;
     series++;
@@ -130,7 +134,7 @@ TRY_AGAIN:
     // https://docs.openmicroscopy.org/ome-model/6.1.0/ome-tiff/specification.html
     // It is used to determine which plane is associated to which IFD (tiff directory) in the tiff
     //
-    actImageInfo.nrOfChannels = sizeC;
+    // actImageInfo.nrOfChannels = sizeC;
     union Order
     {
       uint32_t order = 0xFFFFFFFF;
