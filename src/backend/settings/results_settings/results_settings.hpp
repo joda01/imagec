@@ -244,6 +244,11 @@ public:
     return columns;
   }
 
+  [[nodiscard]] auto mutableColumns() -> std::map<ColumnIdx, ColumnKey> &
+  {
+    return columns;
+  }
+
   void check() const
   {
   }

@@ -44,6 +44,7 @@ public:
   void addResultsFileToHistory(const std::filesystem::path &dbFile, const std::string &jobName, const std::chrono::system_clock::time_point &time);
   void clearHistory();
   void fromSettings(const joda::settings::AnalyzeSettings &settings);
+  void refreshTableView();
 
 signals:
   void settingsChanged();

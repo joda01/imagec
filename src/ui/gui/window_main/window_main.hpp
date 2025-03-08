@@ -173,19 +173,19 @@ private:
   std::set<joda::enums::ClassId> mOutPutClassesOld;
 
   ////Left Toolbar/////////////////////////////////////////////////
-  QToolBar *mSidebar;
-  QTabWidget *mTabWidget;
-  PanelProjectSettings *mPanelProjectSettings;
-  PanelClassification *mPanelClassification;
-  PanelPipeline *mPanelPipeline;
-  PanelImages *mPanelImages;
-  PanelResultsInfo *mPanelResultsInfo;
+  QToolBar *mSidebar                          = nullptr;
+  QTabWidget *mTabWidget                      = nullptr;
+  PanelProjectSettings *mPanelProjectSettings = nullptr;
+  PanelClassification *mPanelClassification   = nullptr;
+  PanelPipeline *mPanelPipeline               = nullptr;
+  PanelImages *mPanelImages                   = nullptr;
+  PanelResultsInfo *mPanelResultsInfo         = nullptr;
 
   ////Pipeline/////////////////////////////////////////////////
   QPushButton *mStartAnalysis = nullptr;
 
   ////Stacked widget/////////////////////////////////////////////////
-  QStackedWidget *mStackedWidget;
+  QStackedWidget *mStackedWidget          = nullptr;
   Navigation mNavigation                  = Navigation::START_PAGE;
   PanelPipelineSettings *mSelectedChannel = nullptr;
   PanelResults *mPanelReporting           = nullptr;

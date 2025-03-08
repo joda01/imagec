@@ -17,6 +17,7 @@
 #include <qtablewidget.h>
 #include <qtoolbar.h>
 #include <qwidget.h>
+#include "backend/enums/enums_classes.hpp"
 #include "backend/helper/database/plugins/filter.hpp"
 #include "ui/gui/helper/table_widget.hpp"
 #include "ui/gui/results/dialog_column_settings.hpp"
@@ -125,10 +126,22 @@ PanelResultsTemplateGenerator::PanelResultsTemplateGenerator(WindowMain *mainWin
 ///
 void PanelResultsTemplateGenerator::refreshView()
 {
-  const auto &columns = mAnalyzeSettings->resultsSettings.getColumns();
+  auto getNameForClass = [this](const enums::ClassId &classId) -> std::string {
+    for(const auto &classs : mAnalyzeSettings->projectSettings.classification.classes) {
+      if(classs.classId == classId) {
+        return classs.name;
+      }
+    }
+    return "";
+  };
+
+  auto &columns = mAnalyzeSettings->resultsSettings.mutableColumns();
   mColumns->setRowCount(columns.size());
-  for(const auto &[index, key] : columns) {
-    auto *item = mColumns->item(index.colIdx, 0);
+  for(auto &[index, key] : columns) {
+    auto *item                 = mColumns->item(index.colIdx, 0);
+    key.names.className        = getNameForClass(key.classId);
+    key.names.intersectingName = getNameForClass(key.intersectingChannel);
+
     if(item == nullptr) {
       item = new QTableWidgetItem();
       item->setFlags(item->flags() & ~Qt::ItemIsEditable);

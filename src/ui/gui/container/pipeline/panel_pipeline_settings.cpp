@@ -124,6 +124,17 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     col4->addWidget(mPreviewImage);
   }
 
+  auto *openTemplate = mLayout.addActionButton("Open template", generateIcon("opened-folder"));
+  connect(openTemplate, &QAction::triggered, [this] { this->openTemplate(); });
+
+  auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", generateIcon("download"));
+  connect(saveAsTemplateButton, &QAction::triggered, [this] { this->saveAsTemplate(); });
+
+  auto *copyPipeline = mLayout.addActionButton("Copy pipeline", generateIcon("copy"));
+  connect(copyPipeline, &QAction::triggered, [this] { this->copyPipeline(); });
+
+  mLayout.addSeparatorToTopToolbar();
+
   // Tool button
   mHistoryAction = mLayout.addActionButton("History", generateIcon("history"));
   mHistoryAction->setCheckable(true);
@@ -148,17 +159,6 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     }
   });
   connect(mActionDisabled, &QAction::triggered, this, &PanelPipelineSettings::valueChangedEvent);
-
-  mLayout.addSeparatorToTopToolbar();
-
-  auto *openTemplate = mLayout.addActionButton("Open template", generateIcon("opened-folder"));
-  connect(openTemplate, &QAction::triggered, [this] { this->openTemplate(); });
-
-  auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", generateIcon("save"));
-  connect(saveAsTemplateButton, &QAction::triggered, [this] { this->saveAsTemplate(); });
-
-  auto *copyPipeline = mLayout.addActionButton("Copy pipeline", generateIcon("copy"));
-  connect(copyPipeline, &QAction::triggered, [this] { this->copyPipeline(); });
 
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);
   connect(this, &PanelPipelineSettings::updatePreviewFinished, this, &PanelPipelineSettings::onPreviewFinished);

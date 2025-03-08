@@ -101,6 +101,18 @@ void PanelResultsInfo::fromSettings(const joda::settings::AnalyzeSettings &setti
 /// \param[out]
 /// \return
 ///
+void PanelResultsInfo::refreshTableView()
+{
+  mResultsTemplate->refreshView();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelResultsInfo::clearHistory()
 {
   mLastLoadedResults->setRowCount(0);
