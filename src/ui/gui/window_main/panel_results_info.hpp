@@ -27,7 +27,7 @@
 namespace joda::ui::gui {
 
 class WindowMain;
-class DialogResultsTemplateGenerator;
+class PanelResultsTemplateGenerator;
 
 ///
 /// \class
@@ -43,6 +43,7 @@ public:
   explicit PanelResultsInfo(WindowMain *windowMain);
   void addResultsFileToHistory(const std::filesystem::path &dbFile, const std::string &jobName, const std::chrono::system_clock::time_point &time);
   void clearHistory();
+  void fromSettings(const joda::settings::AnalyzeSettings &settings);
 
 signals:
   void settingsChanged();
@@ -51,7 +52,7 @@ private:
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
   PlaceholderTableWidget *mLastLoadedResults;
-  DialogResultsTemplateGenerator *mResultsTemplate;
+  PanelResultsTemplateGenerator *mResultsTemplate;
   std::set<std::string> mAddedPaths;
 
 private slots:

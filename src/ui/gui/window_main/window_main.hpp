@@ -41,7 +41,7 @@ namespace joda::ui::gui {
 
 class ContainerChannel;
 class PanelResults;
-class DialogResultsTemplateGenerator;
+class PanelResultsTemplateGenerator;
 
 ///
 /// \class

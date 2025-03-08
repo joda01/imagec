@@ -10,7 +10,7 @@
 ///
 ///
 
-#include "dialog_results_template_generator.hpp"
+#include "panel_results_template_generator.hpp"
 #include <qboxlayout.h>
 #include <qdialog.h>
 #include <qpushbutton.h>
@@ -31,7 +31,7 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-DialogResultsTemplateGenerator::DialogResultsTemplateGenerator(WindowMain *mainWindow, joda::settings::AnalyzeSettings *analyzeSettings) :
+PanelResultsTemplateGenerator::PanelResultsTemplateGenerator(WindowMain *mainWindow, joda::settings::AnalyzeSettings *analyzeSettings) :
     QWidget(mainWindow), mMainWindow(mainWindow), mAnalyzeSettings(analyzeSettings)
 {
   auto *mainLayout = new QVBoxLayout();
@@ -43,16 +43,17 @@ DialogResultsTemplateGenerator::DialogResultsTemplateGenerator(WindowMain *mainW
   //
   auto *toolBar = new QHBoxLayout();
   toolBar->setContentsMargins(0, 0, 0, 0);
-  auto *addColumn = new QPushButton(generateIcon("add-column"), "");
+  auto *addColumn = new QPushButton(generateIcon("add-column"), "", this);
   addColumn->setToolTip("Add column");
   connect(addColumn, &QPushButton::pressed, [this]() {
     mColumnEditDialog->updateClassesAndClasses(*mAnalyzeSettings);
-    mColumnEditDialog->exec(mCommands->rowCount());
+    mColumnEditDialog->exec(mColumns->rowCount());
     refreshView();
+    mMainWindow->checkForSettingsChanged();
   });
   toolBar->addWidget(addColumn);
 
-  auto *editColumn = new QPushButton(generateIcon("edit-column"), "");
+  auto *editColumn = new QPushButton(generateIcon("edit-column"), "", this);
   editColumn->setToolTip("Edit column");
   toolBar->addWidget(editColumn);
   connect(editColumn, &QPushButton::pressed, [this]() {
@@ -60,37 +61,40 @@ DialogResultsTemplateGenerator::DialogResultsTemplateGenerator(WindowMain *mainW
       mColumnEditDialog->updateClassesAndClasses(*mAnalyzeSettings);
       mColumnEditDialog->exec(mSelectedTableRow);
       refreshView();
+      mMainWindow->checkForSettingsChanged();
     }
   });
 
-  auto *deleteColumn = new QPushButton(generateIcon("delete-column"), "");
+  auto *deleteColumn = new QPushButton(generateIcon("delete-column"), "", this);
   deleteColumn->setToolTip("Delete column");
   toolBar->addWidget(deleteColumn);
   connect(deleteColumn, &QPushButton::pressed, [this]() {
     if(mSelectedTableRow >= 0) {
       mAnalyzeSettings->resultsSettings.eraseColumn({.tabIdx = 0, .colIdx = mSelectedTableRow});
       refreshView();
+      mMainWindow->checkForSettingsChanged();
     }
   });
-  mainLayout->addLayout(toolBar);
 
   //
   // Table
   //
-  mCommands = new PlaceholderTableWidget();
-  mCommands->setColumnCount(1);
-  mCommands->setPlaceholderText("Add a column");
-  mCommands->setHorizontalHeaderLabels({"Column"});
-  mCommands->setAlternatingRowColors(true);
-  mCommands->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-  mCommands->verticalHeader()->setVisible(true);
-  mCommands->horizontalHeader()->setVisible(true);
-  mCommands->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
-  mCommands->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
-  mCommands->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-  connect(mCommands, &PlaceholderTableWidget::currentCellChanged,
+  mColumns = new PlaceholderTableWidget();
+  mColumns->setColumnCount(1);
+  mColumns->setPlaceholderText("Add a column");
+  mColumns->setHorizontalHeaderLabels({"Results column template"});
+  mColumns->setAlternatingRowColors(true);
+  mColumns->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+  mColumns->verticalHeader()->setVisible(true);
+  mColumns->horizontalHeader()->setVisible(true);
+  mColumns->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
+  mColumns->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
+  mColumns->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+  connect(mColumns, &PlaceholderTableWidget::currentCellChanged,
           [this](int currentRow, int currentColumn, int previousRow, int previousColumn) { mSelectedTableRow = currentRow; });
-  mainLayout->addWidget(mCommands);
+
+  mainLayout->addWidget(mColumns);
+  mainLayout->addLayout(toolBar);
 
   //
   // Add command dialog
@@ -105,7 +109,7 @@ DialogResultsTemplateGenerator::DialogResultsTemplateGenerator(WindowMain *mainW
 /// \param[out]
 /// \return
 ///
-// int32_t DialogResultsTemplateGenerator::exec()
+// int32_t PanelResultsTemplateGenerator::exec()
 //{
 //   refreshView();
 //   mColumnEditDialog->updateClassesAndClasses(*mAnalyzeSettings);
@@ -119,17 +123,17 @@ DialogResultsTemplateGenerator::DialogResultsTemplateGenerator(WindowMain *mainW
 /// \param[out]
 /// \return
 ///
-void DialogResultsTemplateGenerator::refreshView()
+void PanelResultsTemplateGenerator::refreshView()
 {
   const auto &columns = mAnalyzeSettings->resultsSettings.getColumns();
-  mCommands->setRowCount(columns.size());
+  mColumns->setRowCount(columns.size());
   for(const auto &[index, key] : columns) {
-    auto *item = mCommands->item(index.colIdx, 0);
+    auto *item = mColumns->item(index.colIdx, 0);
     if(item == nullptr) {
       item = new QTableWidgetItem();
       item->setFlags(item->flags() & ~Qt::ItemIsEditable);
       item->setText(key.createHeader().data());
-      mCommands->setItem(index.colIdx, 0, item);
+      mColumns->setItem(index.colIdx, 0, item);
     } else {
       item->setText(key.createHeader().data());
     }

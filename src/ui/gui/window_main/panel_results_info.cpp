@@ -18,9 +18,9 @@
 #include "backend/helper/file_parser/directory_iterator.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
-#include "ui/gui/results/dialog_results_template_generator.hpp"
 #include "ui/gui/results/panel_results.hpp"
 #include "ui/gui/window_main/window_main.hpp"
+#include "panel_results_template_generator.hpp"
 
 namespace joda::ui::gui {
 
@@ -63,7 +63,7 @@ PanelResultsInfo::PanelResultsInfo(WindowMain *windowMain) : mWindowMain(windowM
   }
 
   {
-    mResultsTemplate = new DialogResultsTemplateGenerator(mWindowMain, &mWindowMain->mutableSettings());
+    mResultsTemplate = new PanelResultsTemplateGenerator(mWindowMain, &mWindowMain->mutableSettings());
     layout->addWidget(mResultsTemplate);
   }
   addSeparator();
@@ -80,6 +80,19 @@ PanelResultsInfo::PanelResultsInfo(WindowMain *windowMain) : mWindowMain(windowM
 ///
 void PanelResultsInfo::filterResults()
 {
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResultsInfo::fromSettings(const joda::settings::AnalyzeSettings &settings)
+{
+  mWindowMain->mutableSettings().resultsSettings = settings.resultsSettings;
+  mResultsTemplate->refreshView();
 }
 
 ///

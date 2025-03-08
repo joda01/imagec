@@ -34,20 +34,18 @@ class DialogColumnSettings;
 /// \author
 /// \brief
 ///
-class DialogResultsTemplateGenerator : public QWidget
+class PanelResultsTemplateGenerator : public QWidget
 {
 public:
   /////////////////////////////////////////////////////
-  DialogResultsTemplateGenerator(WindowMain *mainWindow, joda::settings::AnalyzeSettings *analyzeSettings);
-  // int32_t exec() override;
+  PanelResultsTemplateGenerator(WindowMain *mainWindow, joda::settings::AnalyzeSettings *analyzeSettings);
+  void refreshView();
 
 private:
   /////////////////////////////////////////////////////
-  void refreshView();
-
   WindowMain *mMainWindow;
   joda::settings::AnalyzeSettings *mAnalyzeSettings;
-  PlaceholderTableWidget *mCommands;
+  PlaceholderTableWidget *mColumns;
   DialogColumnSettings *mColumnEditDialog;
   int32_t mSelectedTableRow = -1;
 };

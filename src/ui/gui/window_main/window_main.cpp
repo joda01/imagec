@@ -51,7 +51,6 @@
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/template_parser/template_parser.hpp"
 #include "ui/gui/pipeline_compile_log/panel_pipeline_compile_log.hpp"
-#include "ui/gui/results/dialog_results_template_generator.hpp"
 #include "ui/gui/results/panel_results.hpp"
 #include "ui/gui/window_main/panel_image.hpp"
 #include "ui/gui/window_main/panel_pipeline.hpp"
@@ -419,6 +418,7 @@ void WindowMain::clearSettings()
   mAnalyzeSettingsOld.pipelines.clear();
   mPanelProjectSettings->fromSettings({});
   mPanelClassification->fromSettings({});
+  mPanelResultsInfo->fromSettings({});
 }
 
 ///
@@ -503,6 +503,7 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     showPanelStartPage();
     clearSettings();
 
+    mPanelResultsInfo->fromSettings(analyzeSettings);
     mPanelProjectSettings->fromSettings(analyzeSettings);
     mPanelClassification->fromSettings(analyzeSettings.projectSettings.classification);
 
