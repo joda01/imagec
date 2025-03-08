@@ -72,7 +72,7 @@ private:
 
   /// DIALOG //////////////////////////////////////////////////
   QDialog *mEditDialog;
-  QLineEdit *mDialogClassName;
+  QComboBox *mDialogClassName;
   ColorComboBox *mDialogColorCombo;
   int32_t mSelectedRow = 0;
 

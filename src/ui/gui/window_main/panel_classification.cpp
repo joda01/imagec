@@ -132,8 +132,47 @@ void PanelClassification::createDialog()
   mEditDialog->setWindowTitle("Class editor");
   mEditDialog->setMinimumWidth(300);
   auto *layout     = new QVBoxLayout();
-  mDialogClassName = new QLineEdit();
+  mDialogClassName = new QComboBox();
+  mDialogClassName->setEditable(true);
   mDialogClassName->setPlaceholderText("e.g. cy5@spot");
+  //
+  // Predefined selections
+  //
+  mDialogClassName->addItem("cy3@spot", "cy3@spot");
+  mDialogClassName->addItem("cy3@ignore", "cy3@ignore");
+  mDialogClassName->addItem("cy3@background", "cy3@background");
+  mDialogClassName->addItem("cy5@spot", "cy5@spot");
+  mDialogClassName->addItem("cy5@ignore", "cy5@ignore");
+  mDialogClassName->addItem("cy5@background", "cy5@background");
+  mDialogClassName->addItem("cy7@spot", "cy7@spot");
+  mDialogClassName->addItem("cy7@ignore", "cy7@ignore");
+  mDialogClassName->addItem("cy7@background", "cy7@background");
+  mDialogClassName->addItem("gfp@spot", "gfp@spot");
+  mDialogClassName->addItem("gfp@ignore", "gfp@ignore");
+  mDialogClassName->addItem("gfp@background", "gfp@background");
+  mDialogClassName->addItem("fitc@spot", "fitc@spot");
+  mDialogClassName->addItem("fitc@ignore", "fitc@ignore");
+  mDialogClassName->addItem("fitc@background", "fitc@background");
+  mDialogClassName->insertSeparator(mDialogClassName->count());
+  mDialogClassName->addItem("tetraspeck@spot", "tetraspeck@spot");
+  mDialogClassName->addItem("tetraspeck@ignore", "tetraspeck@ignore");
+  mDialogClassName->addItem("tetraspeck@background", "tetraspeck@background");
+  mDialogClassName->insertSeparator(mDialogClassName->count());
+  mDialogClassName->addItem("dapi@nucleus", "dapi@nucleus");
+  mDialogClassName->addItem("dapi@nucleus-ignore", "dapi@nucleus-ignore");
+  mDialogClassName->addItem("dapi@background", "dapi@background");
+  mDialogClassName->insertSeparator(mDialogClassName->count());
+  mDialogClassName->addItem("brightfield@cell-area", "brightfield@cell-area");
+  mDialogClassName->addItem("brightfield@cell-area-ignore", "brightfield@cell-area-ignore");
+  mDialogClassName->addItem("brightfield@cell", "brightfield@cell");
+  mDialogClassName->addItem("brightfield@cell-ignore", "brightfield@cell-ignore");
+  mDialogClassName->addItem("brightfield@background", "brightfield@background");
+  mDialogClassName->insertSeparator(mDialogClassName->count());
+  mDialogClassName->addItem("coloc@c3c7", "coloc@c5c7");
+  mDialogClassName->addItem("coloc@c3c7-ignore", "coloc@c5c7-ignore");
+  mDialogClassName->addItem("coloc@c5c7", "coloc@c5c7");
+  mDialogClassName->addItem("coloc@c5c7-ignore", "coloc@c5c7-ignore");
+
   mDialogColorCombo = new ColorComboBox();
   auto *model       = qobject_cast<QStandardItemModel *>(mDialogColorCombo->model());
 
@@ -176,7 +215,7 @@ void PanelClassification::createDialog()
 void PanelClassification::openEditDialog(int row, int column)
 {
   mSelectedRow = row;
-  mDialogClassName->setText(mClasses->item(row, COL_NAME)->text());
+  mDialogClassName->setCurrentText(mClasses->item(row, COL_NAME)->text());
   auto colorIdx = mDialogColorCombo->findData(QColor(mClasses->item(row, COL_COLOR)->text()), Qt::BackgroundRole);
   if(colorIdx >= 0) {
     mDialogColorCombo->setCurrentIndex(colorIdx);
@@ -199,7 +238,7 @@ void PanelClassification::openEditDialog(int row, int column)
 ///
 void PanelClassification::onOkayPressed()
 {
-  mClasses->item(mSelectedRow, COL_NAME)->setText(mDialogClassName->displayText());
+  mClasses->item(mSelectedRow, COL_NAME)->setText(mDialogClassName->currentText());
   mClasses->item(mSelectedRow, COL_COLOR)->setText(mDialogColorCombo->currentText());
   onSettingChanged();
   mEditDialog->close();
