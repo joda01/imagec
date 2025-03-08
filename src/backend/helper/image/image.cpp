@@ -128,7 +128,7 @@ void Image::setBrightnessRange(uint16_t lowerValue, uint16_t upperValue, float h
 Image::AutoAdjustRet Image::autoAdjustBrightnessRange()
 {
   if(mImageOriginal != nullptr) {
-    if(mImageOriginal->empty()) {
+    if(mImageOriginal->empty() || mImageOriginal->channels() != 1) {
       return {};
     }
     // Compute the histogram
