@@ -198,6 +198,32 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   //
   auto *topBreadCrump = new QHBoxLayout();
   {
+    //
+    //
+    //
+    auto *grp    = new QButtonGroup();
+    mTableButton = new QPushButton(generateIcon("table"), "");
+    mTableButton->setCheckable(true);
+    mTableButton->setChecked(true);
+    grp->addButton(mTableButton);
+    topBreadCrump->addWidget(mTableButton);
+
+    mHeatmapButton = new QPushButton(generateIcon("heat-map"), "");
+    mHeatmapButton->setCheckable(true);
+    grp->addButton(mHeatmapButton);
+    topBreadCrump->addWidget(mHeatmapButton);
+
+    connect(mHeatmapButton, &QPushButton::clicked, [this](bool checked) {
+      if(checked) {
+        onShowHeatmap();
+      }
+    });
+    connect(mTableButton, &QPushButton::clicked, [this](bool checked) {
+      if(checked) {
+        onShowTable();
+      }
+    });
+
     mBreadCrumpPlate = new QPushButton(generateIcon("home"), "Plate");
     topBreadCrump->addWidget(mBreadCrumpPlate);
     connect(mBreadCrumpPlate, &QPushButton::clicked, [this]() { backTo(Navigation::PLATE); });
@@ -277,28 +303,36 @@ void PanelResults::setHeatmapVisible(bool visible)
 void PanelResults::setActive(bool active)
 {
   if(!active) {
-    mIsActive = active;
-    mSelectedDataSet.analyzeMeta.reset();
-    mSelectedDataSet.imageMeta.reset();
-    mSelectedDataSet.value.reset();
-    mAnalyzer.reset();
-
-    goHome();
-    mTableButton->blockSignals(true);
-    mHeatmapButton->blockSignals(true);
-
-    mHeatmapButton->setChecked(false);
-    mTableButton->setChecked(true);
-    mTable->setVisible(true);
-    setHeatmapVisible(false);
-
-    mTableButton->blockSignals(false);
-    mHeatmapButton->blockSignals(false);
-    mTable->setRowCount(0);
-    mTable->setColumnCount(0);
+    resetSettings();
     refreshView();
+    mIsActive = active;
     mWindowMain->setSideBarVisible(true);
   }
+}
+
+///
+/// \brief      Constructor
+/// \author     Joachim Danmayr
+///
+void PanelResults::resetSettings()
+{
+  mSelectedDataSet.analyzeMeta.reset();
+  mSelectedDataSet.imageMeta.reset();
+  mSelectedDataSet.value.reset();
+  mAnalyzer.reset();
+  goHome();
+  mTableButton->blockSignals(true);
+  mHeatmapButton->blockSignals(true);
+
+  mHeatmapButton->setChecked(false);
+  mTableButton->setChecked(true);
+  mTable->setVisible(true);
+  setHeatmapVisible(false);
+
+  mTableButton->blockSignals(false);
+  mHeatmapButton->blockSignals(false);
+  mTable->setRowCount(0);
+  mTable->setColumnCount(0);
 }
 
 ///
@@ -308,66 +342,44 @@ void PanelResults::setActive(bool active)
 void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar)
 {
   //
+  // Open
   //
-  //
-  auto *grp    = new QActionGroup(toolbar);
-  mTableButton = new QAction(generateIcon("table"), "");
-  mTableButton->setCheckable(true);
-  mTableButton->setChecked(true);
-  grp->addAction(mTableButton);
-  toolbar->addItemToTopToolbar(mTableButton);
-
-  mHeatmapButton = new QAction(generateIcon("heat-map"), "");
-  mHeatmapButton->setCheckable(true);
-  grp->addAction(mHeatmapButton);
-  toolbar->addItemToTopToolbar(mHeatmapButton);
-
-  connect(mHeatmapButton, &QAction::toggled, [this](bool checked) {
-    if(checked) {
-      onShowHeatmap();
-    }
-  });
-  connect(mTableButton, &QAction::toggled, [this](bool checked) {
-    if(checked) {
-      onShowTable();
-    }
-  });
-
-  toolbar->addSeparatorToTopToolbar();
-
-  //
-  // Bookmark
-  //
-  auto *bookmarkSubmenu = new QMenu("Bookmark Options");
-
-  auto *openBookmark = bookmarkSubmenu->addAction(generateIcon("favorite-folder"), "Open preset");
-  connect(openBookmark, &QAction::triggered, [this]() { loadTemplate(); });
-
-  auto *bookmark = new QAction(generateIcon("bookmark"), "Save table as preset", toolbar);
-  connect(bookmark, &QAction::triggered, [this]() { saveTemplate(); });
-  bookmark->setMenu(bookmarkSubmenu);
-  toolbar->addItemToTopToolbar(bookmark);
+  auto *openBookmark = new QAction(generateIcon("opened-folder"), "Open", toolbar);
+  connect(openBookmark, &QAction::triggered, [this]() { showOpenFileDialog(); });
+  toolbar->addItemToTopToolbar(openBookmark);
 
   //
   // Export buttons
   //
   auto *exportMenu = new QMenu("Export");
 
-  auto *copy = exportMenu->addAction(generateIcon("copy"), "Copy");
-  copy->setToolTip("Copy table");
-  connect(copy, &QAction::triggered, [this]() { copyTableToClipboard(mTable); });
-
   auto *exportData = exportMenu->addAction(generateIcon("excel"), "Save as XLSX");
   exportData->setToolTip("Export XLSX");
-  connect(exportData, &QAction::triggered, [this]() { onExportClicked(joda::ctrl::ExportSettings::ExportType::XLSX); });
+  connect(exportData, &QAction::triggered, [this]() { showFileSaveDialog("Excel 2007-365 (*.xlsx)"); });
 
   auto *exportR = exportMenu->addAction(generateIcon("r-studio"), "Save as R");
   exportR->setToolTip("Export R");
-  connect(exportR, &QAction::triggered, [this]() { onExportClicked(joda::ctrl::ExportSettings::ExportType::R); });
+  connect(exportR, &QAction::triggered, [this]() { showFileSaveDialog("R-Script (*.r)"); });
 
+  exportMenu->addSeparator();
+  auto *saveAsTemplate = exportMenu->addAction(generateIcon("bookmark"), "Save settings");
+  saveAsTemplate->setToolTip("Save settings as template");
+  connect(saveAsTemplate, &QAction::triggered,
+          [this]() { showFileSaveDialog("ImageC export template (*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")"); });
+
+  //
   auto *exports = new QAction(generateIcon("download"), "Export", toolbar);
+  connect(exports, &QAction::triggered, [this]() { showFileSaveDialog(); });
+
   exports->setMenu(exportMenu);
   toolbar->addItemToTopToolbar(exports);
+
+  //
+  // Copy button
+  //
+  auto *copyTable = new QAction(generateIcon("copy"), "Copy values", toolbar);
+  connect(copyTable, &QAction::triggered, [this]() { copyTableToClipboard(mTable); });
+  toolbar->addItemToTopToolbar(copyTable);
 
   toolbar->addSeparatorToTopToolbar();
 
@@ -449,7 +461,8 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpWell->setVisible(true);
       mBreadCrumpImage->setVisible(false);
       if(mSelectedDataSet.groupMeta.has_value()) {
-        auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX);
+        auto platePos =
+            "Well (" + std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + ")";
         mBreadCrumpWell->setText(platePos.data());
       }
       break;
@@ -457,7 +470,7 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpWell->setVisible(true);
       mBreadCrumpImage->setVisible(true);
       if(mSelectedDataSet.imageMeta.has_value()) {
-        mBreadCrumpImage->setText(mSelectedDataSet.imageMeta->filename.data());
+        mBreadCrumpImage->setText("Image (" + QString(mSelectedDataSet.imageMeta->filename.data()) + ")");
       }
       break;
   }
@@ -487,7 +500,7 @@ void PanelResults::refreshView()
   if(mIsActive && mAnalyzer && !mIsLoading) {
     mIsLoading = true;
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    std::thread([this] {
+    std::thread([this, rows, cols, wellOrder = wellOrder] {
       storeResultsTableSettingsToDatabase();
     REFRESH_VIEW:
       switch(mNavigation) {
@@ -500,7 +513,9 @@ void PanelResults::refreshView()
             mActGroupId                = static_cast<uint16_t>(getID);
             mSelectedWellId            = getID;
             mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(getID);
-
+            mFilter.setFilter({.plateId = 0, .groupId = mActGroupId, .imageId = mActImageId},
+                              {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
+                              {.densityMapAreaSize = static_cast<int32_t>(getDensityMapSize())});
             goto REFRESH_VIEW;
           }
           mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
@@ -521,8 +536,8 @@ void PanelResults::refreshView()
       } else {
         mTable->setCurrentCell(0, 0);
       }
-      emit finishedLoading();
       mIsLoading = false;
+      emit finishedLoading();
     }).detach();
   }
 }
@@ -733,6 +748,7 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   if(pathToDbFile.isEmpty()) {
     return;
   }
+  resetSettings();
   mDbFilePath = std::filesystem::path(pathToDbFile.toStdString());
   mAnalyzer   = std::make_unique<joda::db::Database>();
   mAnalyzer->openDatabase(std::filesystem::path(pathToDbFile.toStdString()));
@@ -761,8 +777,7 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
     }
   } catch(...) {
   }
-  auto *resPanel = getWindowMain()->getPanelResultsInfo();
-  mIsActive      = true;
+  mIsActive = true;
   mWindowMain->setSideBarVisible(false);
 
   refreshView();
@@ -1119,32 +1134,99 @@ void PanelResults::copyTableToClipboard(QTableWidget *table)
 /// \param[out]
 /// \return
 ///
-void PanelResults::onExportClicked(joda::ctrl::ExportSettings::ExportType format)
+void PanelResults::showOpenFileDialog()
 {
-  QString filePathOfSettingsFile;
-  switch(format) {
-    case joda::ctrl::ExportSettings::ExportType::XLSX:
-      filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save File", mDbFilePath.parent_path().string().data(), "Spreadsheet (*.xlsx)");
-      break;
-    case joda::ctrl::ExportSettings::ExportType::R:
-      filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save File", mDbFilePath.parent_path().string().data(), "R-Script (*.r)");
-      break;
+  std::filesystem::path filePath = mDbFilePath.parent_path();
+
+  QString filename = QFileDialog::getOpenFileName(this, "Open File", filePath.string().data(),
+                                                  "ImageC results or template files (*" + QString(joda::fs::EXT_DATABASE.data()) + " *" +
+                                                      QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ");;ImageC results files (*" +
+                                                      QString(joda::fs::EXT_DATABASE.data()) + ");;ImageC export template (*" +
+                                                      QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")");
+  // Select save option
+  if(filename.endsWith(joda::fs::EXT_DATABASE.data())) {
+    openFromFile(filename);
+  } else if(filename.endsWith(joda::fs::EXT_EXPORT_TEMPLATE.data())) {
+    loadTemplate(filename.toStdString());
+  }
+}
+
+///
+/// \brief      Export data
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::showFileSaveDialog(const QString &filter)
+{
+  QString templatePath = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+
+  auto getEndianFromFilter = [](const QString &filter) -> std::string {
+    std::string endian;
+    if(filter.contains("(*.xlsx)")) {
+      endian = ".xlsx";
+    } else if(filter.contains("(*.r)")) {
+      endian = ".r";
+    } else if(filter.contains("(*.csv)")) {
+      endian = ".csv";
+    } else if(filter.contains("(*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")")) {
+      endian = joda::fs::EXT_EXPORT_TEMPLATE;
+    } else {
+      return "";
+    }
+    return endian;
+  };
+  std::string defaultEndian = getEndianFromFilter(filter);
+
+  std::filesystem::path filePath = mDbFilePath.parent_path();
+  if(mSelectedDataSet.analyzeMeta.has_value()) {
+    filePath = filePath / (mSelectedDataSet.analyzeMeta->jobName + defaultEndian);
+  } else {
+    filePath = filePath / ("results" + defaultEndian);
   }
 
-  if(filePathOfSettingsFile.isEmpty()) {
+  QString selectedFilter;
+  QString filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(), filter, &selectedFilter);
+  std::string filename           = filePathOfSettingsFile.toStdString();
+  auto selectedEndian            = getEndianFromFilter(selectedFilter);
+  if(!filename.ends_with(selectedEndian)) {
+    filename += selectedEndian;
+  }
+
+  // Select save option
+  if(filename.ends_with(".xlsx")) {
+    saveData(filename, joda::ctrl::ExportSettings::ExportType::XLSX);
+  } else if(filename.ends_with(".r")) {
+    saveData(filename, joda::ctrl::ExportSettings::ExportType::R);
+  } else if(filename.ends_with(joda::fs::EXT_EXPORT_TEMPLATE)) {
+    saveTemplate(filename);
+  }
+}
+
+///
+/// \brief      Export data
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::saveData(const std::string &fileName, joda::ctrl::ExportSettings::ExportType format)
+{
+  if(fileName.empty()) {
     return;
   }
 
-  std::thread([this, filePathOfSettingsFile, format] {
+  std::thread([this, fileName, format] {
     if(format == joda::ctrl::ExportSettings::ExportType::XLSX) {
       if(!mTable->isVisible()) {
         joda::db::BatchExporter::startExportHeatmap(mActHeatmapData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
                                                     mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
-                                                    filePathOfSettingsFile.toStdString());
+                                                    fileName);
       } else {
         joda::db::BatchExporter::startExportList(mActListData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
                                                  mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
-                                                 filePathOfSettingsFile.toStdString());
+                                                 fileName);
       }
     } else {
       db::StatsPerGroup::Grouping grouping = db::StatsPerGroup::Grouping::BY_PLATE;
@@ -1160,11 +1242,10 @@ void PanelResults::onExportClicked(joda::ctrl::ExportSettings::ExportType format
           break;
       }
       joda::db::RExporter::startExport(mFilter, grouping, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
-                                       mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
-                                       filePathOfSettingsFile.toStdString());
+                                       mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish, fileName);
     }
 
-    QString folderPath = std::filesystem::path(filePathOfSettingsFile.toStdString()).parent_path().string().data();
+    QString folderPath = std::filesystem::path(fileName).parent_path().string().data();
     QDesktopServices::openUrl(QUrl("file:///" + folderPath));
   }).detach();
 }
@@ -1176,27 +1257,13 @@ void PanelResults::onExportClicked(joda::ctrl::ExportSettings::ExportType format
 /// \param[out]
 /// \return
 ///
-void PanelResults::saveTemplate()
+void PanelResults::saveTemplate(const std::string &fileName)
 {
-  QString templatePath      = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
-  QString pathToStoreFileIn = QFileDialog::getSaveFileName(this, "Save File", templatePath,
-                                                           "ImageC export template files (*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")");
-
-  if(pathToStoreFileIn.isEmpty()) {
-    return;
-  }
-  if(!pathToStoreFileIn.startsWith(templatePath)) {
-    joda::log::logError("Templates must be stored in >" + templatePath.toStdString() + "< directory.");
-    QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
-    messageBox.setWindowTitle("Could not save template!");
-    messageBox.setText("Templates must be stored in >" + templatePath + "< directory.");
-    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-    auto reply = messageBox.exec();
+  if(fileName.empty()) {
     return;
   }
   nlohmann::json json = mFilter;
-  joda::templates::TemplateParser::saveTemplate(json, std::filesystem::path(pathToStoreFileIn.toStdString()), joda::fs::EXT_EXPORT_TEMPLATE);
+  joda::templates::TemplateParser::saveTemplate(json, std::filesystem::path(fileName), joda::fs::EXT_EXPORT_TEMPLATE);
 }
 
 ///
@@ -1206,16 +1273,13 @@ void PanelResults::saveTemplate()
 /// \param[out]
 /// \return
 ///
-void PanelResults::loadTemplate()
+void PanelResults::loadTemplate(const std::string &pathToOpenFileFrom)
 {
-  QString templatePath       = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
-  QString pathToOpenFileFrom = QFileDialog::getOpenFileName(this, "Open File", templatePath,
-                                                            "ImageC export template files (*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")");
-  if(pathToOpenFileFrom.isEmpty()) {
+  if(pathToOpenFileFrom.empty()) {
     return;
   }
   try {
-    auto json      = joda::templates::TemplateParser::loadTemplate(std::filesystem::path(pathToOpenFileFrom.toStdString()));
+    auto json      = joda::templates::TemplateParser::loadTemplate(std::filesystem::path(pathToOpenFileFrom));
     mFilter        = json;
     auto *resPanel = getWindowMain()->getPanelResultsInfo();
     refreshView();

@@ -118,12 +118,16 @@ private:
   void refreshBreadCrump();
   void copyTableToClipboard(QTableWidget *table);
   void refreshActSelection();
+  void resetSettings();
 
   /////////////////////////////////////////////////////
   void storeResultsTableSettingsToDatabase();
-  void onExportClicked(joda::ctrl::ExportSettings::ExportType);
-  void saveTemplate();
-  void loadTemplate();
+  void showFileSaveDialog(const QString &filter = "Excel 2007-365 (*.xlsx);;Text CSV (*.csv);;R-Script (*.r);;ImageC export template (*" +
+                                                  QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")");
+  void saveData(const std::string &fileName, joda::ctrl::ExportSettings::ExportType);
+  void saveTemplate(const std::string &fileName);
+  void showOpenFileDialog();
+  void loadTemplate(const std::string &pathToOpenFileFrom);
   void backTo(Navigation backTo);
 
   auto getWellOrder() const -> std::vector<std::vector<int32_t>>;
@@ -149,8 +153,8 @@ private:
   // Toolbar///////////////////////////////////////////////////
   void createToolBar(joda::ui::gui::helper::LayoutGenerator *);
   auto getClasssFromCombo() const -> std::pair<std::string, std::string>;
-  QAction *mTableButton   = nullptr;
-  QAction *mHeatmapButton = nullptr;
+  QPushButton *mTableButton   = nullptr;
+  QPushButton *mHeatmapButton = nullptr;
 
   PanelPreview *mPreviewImage;
   // uint32_t mDensityMapSize = 200;
