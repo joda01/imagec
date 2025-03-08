@@ -148,7 +148,6 @@ private:
   PanelPreview *mPreviewImage;
   // uint32_t mDensityMapSize = 200;
   QComboBox *mColumn;
-  QAction *mColumnAction;
 
   /// COLUMN EDIT //////////////////////////////////////////////////
   void createEditColumnDialog();

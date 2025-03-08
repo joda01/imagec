@@ -116,7 +116,7 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   //
   auto *topBreadCrump = new QHBoxLayout();
   {
-    mBreadCrumpPlate = new QPushButton(generateIcon("home"), "");
+    mBreadCrumpPlate = new QPushButton(generateIcon("home"), "Plate");
     topBreadCrump->addWidget(mBreadCrumpPlate);
     connect(mBreadCrumpPlate, &QPushButton::clicked, [this]() { backTo(Navigation::PLATE); });
 
@@ -137,6 +137,13 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   QLayout *topInfoLayout = new QHBoxLayout();
   {
     topInfoLayout->setSpacing(6);
+
+    mColumn = new QComboBox();
+    mColumn->setMinimumWidth(150);
+    mColumn->setMinimumHeight(25);
+    mColumn->setVisible(false);
+    connect(mColumn, &QComboBox::currentIndexChanged, this, &PanelResults::onColumnComboChanged);
+
     mSelectedRowInfo = new QLabel();
     mSelectedRowInfo->setFrameShape(QFrame::StyledPanel);
     mSelectedRowInfo->setFrameShadow(QFrame::Plain);
@@ -148,6 +155,7 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
     mSelectedValue = new QLineEdit();
     mSelectedValue->setReadOnly(true);
 
+    topInfoLayout->addWidget(mColumn);
     topInfoLayout->addWidget(mSelectedRowInfo);
     topInfoLayout->addWidget(mSelectedValue);
   }
@@ -194,7 +202,7 @@ void PanelResults::setActive(bool active)
     mHeatmapButton->setChecked(false);
     mTableButton->setChecked(true);
     mTable->setVisible(true);
-    mColumnAction->setVisible(false);
+    mColumn->setVisible(false);
     mHeatmap01->setVisible(false);
 
     mTableButton->blockSignals(false);
@@ -317,15 +325,6 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   toolbar->addItemToTopToolbar(mMarkAsInvalid);
   mMarkAsInvalid->setEnabled(false);
   connect(mMarkAsInvalid, &QAction::triggered, this, &PanelResults::onMarkAsInvalidClicked);
-
-  //
-  // Column select
-  //
-  mColumn = new QComboBox();
-  mColumn->setMinimumWidth(150);
-  connect(mColumn, &QComboBox::currentIndexChanged, this, &PanelResults::onColumnComboChanged);
-  mColumnAction = toolbar->addItemToTopToolbar(mColumn);
-  mColumnAction->setVisible(false);
 }
 
 ///
@@ -689,7 +688,7 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
 void PanelResults::onShowTable()
 {
   mTable->setVisible(true);
-  mColumnAction->setVisible(false);
+  mColumn->setVisible(false);
   mHeatmap01->setVisible(false);
   refreshView();
 }
@@ -704,7 +703,7 @@ void PanelResults::onShowTable()
 void PanelResults::onShowHeatmap()
 {
   mTable->setVisible(false);
-  mColumnAction->setVisible(true);
+  mColumn->setVisible(true);
 
   mHeatmap01->setVisible(true);
   refreshView();
