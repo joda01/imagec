@@ -24,19 +24,7 @@ namespace joda::db {
 /// \param[out]
 /// \return
 ///
-auto joda::db::QueryFilter::getClassesToExport() const -> ResultingTable
-{
-  return ResultingTable{this};
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-ResultingTable::ResultingTable(const QueryFilter *filter)
+ResultingTable::ResultingTable(const settings::ResultsSettings *filter)
 {
   std::map<int32_t, std::map<uint32_t, std::string>> tableHeaders;
   for(const auto &[colIdx, colKey] : filter->getColumns()) {
@@ -67,7 +55,7 @@ std::tuple<std::string, std::string> PreparedStatement::createIntersectionQuery(
   std::string retValCnt;
 
   for(const auto &[_, column] : columns) {
-    if(getType(column.measureChannel) == MeasureType::INTERSECTION) {
+    if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::INTERSECTION) {
       std::string chStr = std::to_string(static_cast<int32_t>(column.intersectingChannel));
       retValSum += "SUM(CASE WHEN ad.class_id = " + chStr + " THEN 1 ELSE 0 END) AS total_" + chStr + ",\n";
       retValCnt += "(COALESCE(dc.total_" + chStr + ", 0) - CASE WHEN rc.root_class_id = " + chStr + " THEN 1 ELSE 0 END) AS recursive_child_count_" +
@@ -118,7 +106,7 @@ std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvali
       return columnToCalc;
     };
 
-    if(getType(column.measureChannel) == MeasureType::INTENSITY) {
+    if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::INTENSITY) {
       std::string tablePrefix = " tj" + std::to_string(column.crossChannelStacksC) + ".";
       std::string meas_suffix;
       if(isOuter) {
@@ -130,7 +118,7 @@ std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvali
                   getMeasurement(column.measureChannel, true) + "_" + getStatsString(column.stats) + "_" +
                   std::to_string(column.crossChannelStacksC) + ",\n";
 
-    } else if(getType(column.measureChannel) == MeasureType::INTERSECTION) {
+    } else if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::INTERSECTION) {
       std::string colName;
       std::string chStr = std::to_string(static_cast<int32_t>(column.intersectingChannel));
 
@@ -147,7 +135,7 @@ std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvali
       channels += getStatsString(stats) + "(" + injectCase(tablePrefix + colName) + ") as " + "recursive_child_count_" + chStr + "_" +
                   getStatsString(column.stats) + ",\n";
 
-    } else if(getType(column.measureChannel) == MeasureType::ID) {
+    } else if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::ID) {
       std::string tablePrefix = " t1.";
       if(isOuter || column.measureChannel == enums::Measurement::COUNT) {
         tablePrefix = " ";
@@ -180,7 +168,7 @@ std::string PreparedStatement::createStatsQueryJoins() const
   std::set<uint32_t> joindStacks;
   std::string joins;
   for(const auto &[_, column] : columns) {
-    if(getType(column.measureChannel) == MeasureType::INTENSITY) {
+    if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::INTENSITY) {
       if(!joindStacks.contains(column.crossChannelStacksC)) {
         std::string tableName = "tj" + std::to_string(column.crossChannelStacksC);
         joins += "LEFT JOIN object_measurements " + tableName + " ON\n   t1.object_id = " + tableName + ".object_id AND t1.image_id = " + tableName +

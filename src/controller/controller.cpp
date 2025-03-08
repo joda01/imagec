@@ -369,7 +369,7 @@ auto Controller::populateClassesFromImage(const joda::ome::OmeInfo &omeInfo, int
 /// \author
 /// \return
 ///
-void Controller::exportData(const std::filesystem::path &pathToDbFile, const db::QueryFilter &filter, const ExportSettings &settings,
+void Controller::exportData(const std::filesystem::path &pathToDbFile, const settings::ResultsSettings &filter, const ExportSettings &settings,
                             const std::filesystem::path &outputFilePath)
 {
   auto analyzer = std::make_unique<joda::db::Database>();

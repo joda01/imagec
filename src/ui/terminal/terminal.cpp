@@ -127,7 +127,7 @@ void Terminal::exportData(const std::filesystem::path &pathToDatabasefile, const
                           const std::filesystem::path &pathToQueryFilter, const std::string &type, const std::string &format, const std::string &view,
                           const std::string &exportFilter)
 {
-  db::QueryFilter filter;
+  settings::ResultsSettings filter;
 
   // ==========================
   // Open settings file

@@ -68,7 +68,7 @@ DialogResultsTemplateGenerator::DialogResultsTemplateGenerator(WindowMain *mainW
   toolBar->addWidget(deleteColumn);
   connect(deleteColumn, &QPushButton::pressed, [this]() {
     if(mSelectedTableRow >= 0) {
-      mAnalyzeSettings->resultsSettings.resultsTableTemplate.eraseColumn({.tabIdx = 0, .colIdx = mSelectedTableRow});
+      mAnalyzeSettings->resultsSettings.eraseColumn({.tabIdx = 0, .colIdx = mSelectedTableRow});
       refreshView();
     }
   });
@@ -95,7 +95,7 @@ DialogResultsTemplateGenerator::DialogResultsTemplateGenerator(WindowMain *mainW
   //
   // Add command dialog
   //
-  mColumnEditDialog = new DialogColumnSettings(&mAnalyzeSettings->resultsSettings.resultsTableTemplate, this);
+  mColumnEditDialog = new DialogColumnSettings(&mAnalyzeSettings->resultsSettings, this);
 }
 
 ///
@@ -121,7 +121,7 @@ DialogResultsTemplateGenerator::DialogResultsTemplateGenerator(WindowMain *mainW
 ///
 void DialogResultsTemplateGenerator::refreshView()
 {
-  const auto &columns = mAnalyzeSettings->resultsSettings.resultsTableTemplate.getColumns();
+  const auto &columns = mAnalyzeSettings->resultsSettings.getColumns();
   mCommands->setRowCount(columns.size());
   for(const auto &[index, key] : columns) {
     auto *item = mCommands->item(index.colIdx, 0);

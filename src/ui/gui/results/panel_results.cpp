@@ -61,6 +61,7 @@
 #include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
+#include "ui/gui/helper/widget_generator.hpp"
 #include "ui/gui/panel_preview.hpp"
 #include "ui/gui/window_main/panel_results_info.hpp"
 #include "ui/gui/window_main/window_main.hpp"
@@ -95,21 +96,102 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   connect(mTable, &QTableWidget::cellDoubleClicked, [this](int row, int column) { onOpenNextLevel(row, 0, mSelectedTable.data(row, 0)); });
   connect(mTable, &QTableWidget::cellClicked, this, &PanelResults::onCellClicked);
 
-  // Middle layout
-  auto *tab = layout().addTab(
-      "", [] {}, false, 0);
-  auto *col  = tab->addVerticalPanel();
-  mHeatmap01 = new ChartHeatMap(this);
-  mHeatmap01->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  connect(mHeatmap01, &ChartHeatMap::onElementClick, this, &PanelResults::onElementSelected);
-  connect(mHeatmap01, &ChartHeatMap::onDoubleClicked, this, &PanelResults::onOpenNextLevel);
-  connect(layout().getBackButton(), &QAction::triggered, [this] { mWindowMain->showPanelStartPage(); });
-  connect(getWindowMain()->getPanelResultsInfo(), &joda::ui::gui::PanelResultsInfo::settingsChanged, [this]() {
-    if(mIsActive) {
-      refreshView();
-    }
-  });
-  connect(this, &PanelResults::finishedLoading, this, &PanelResults::onFinishedLoading);
+  static const int32_t SELECTED_INFO_WIDTH   = 250;
+  static const int32_t SELECTED_INFO_SPACING = 6;
+  //
+  // Heatmap
+  //
+  {
+    mHeatmapContainer = new QHBoxLayout();
+    mHeatmapContainer->setContentsMargins(0, 0, 0, 0);
+    mHeatmapChart = new ChartHeatMap(this);
+    mHeatmapChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    connect(mHeatmapChart, &ChartHeatMap::onElementClick, this, &PanelResults::onElementSelected);
+    connect(mHeatmapChart, &ChartHeatMap::onDoubleClicked, this, &PanelResults::onOpenNextLevel);
+    connect(layout().getBackButton(), &QAction::triggered, [this] { mWindowMain->showPanelStartPage(); });
+    connect(getWindowMain()->getPanelResultsInfo(), &joda::ui::gui::PanelResultsInfo::settingsChanged, [this]() {
+      if(mIsActive) {
+        refreshView();
+      }
+    });
+    connect(this, &PanelResults::finishedLoading, this, &PanelResults::onFinishedLoading);
+
+    auto *heatmapSidebar = new QWidget();
+    heatmapSidebar->setContentsMargins(0, 0, SELECTED_INFO_SPACING, 0);
+    heatmapSidebar->setMaximumWidth(SELECTED_INFO_WIDTH + SELECTED_INFO_SPACING);
+    heatmapSidebar->setMinimumWidth(SELECTED_INFO_WIDTH + SELECTED_INFO_SPACING);
+    auto *formLayout = new QVBoxLayout;
+    formLayout->setContentsMargins(0, 0, 0, 0);
+    heatmapSidebar->setLayout(formLayout);
+
+    //
+    // Column selector
+    //
+    mColumn = new QComboBox();
+    connect(mColumn, &QComboBox::currentIndexChanged, this, &PanelResults::onColumnComboChanged);
+    formLayout->addWidget(mColumn);
+    formLayout->addLayout(std::get<2>(createHelpTextLabel("Table column to show", 0)));
+
+    //
+    // Well order matrix
+    //
+    mWellOrderMatrix = new QLineEdit("[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]");
+    formLayout->addWidget(mWellOrderMatrix);
+    formLayout->addLayout(std::get<2>(createHelpTextLabel("Well order matrix", 0)));
+    connect(mWellOrderMatrix, &QLineEdit::editingFinished, [this]() { refreshView(); });
+
+    //
+    // Plate size
+    //
+    mPlateSize = new QComboBox();
+    mPlateSize->addItem("1", 1);
+    mPlateSize->addItem("2 x 3", 203);
+    mPlateSize->addItem("3 x 4", 304);
+    mPlateSize->addItem("4 x 6", 406);
+    mPlateSize->addItem("6 x 8", 608);
+    mPlateSize->addItem("8 x 12", 812);
+    mPlateSize->addItem("16 x 24", 1624);
+    mPlateSize->addItem("32 x 48", 3248);
+    mPlateSize->addItem("48 x 72", 4872);
+    formLayout->addWidget(mPlateSize);
+    formLayout->addLayout(std::get<2>(createHelpTextLabel("Plate size", 0)));
+    connect(mPlateSize, &QComboBox::currentIndexChanged, [this](int32_t index) { refreshView(); });
+
+    //
+    // Density map
+    //
+    mDensityMapSize = new QComboBox();
+    mDensityMapSize->addItem("50", 50);
+    mDensityMapSize->addItem(std::to_string(4096 / 64).data(), 4096 / 64);
+    mDensityMapSize->addItem("100", 100);
+    mDensityMapSize->addItem(std::to_string(4096 / 32).data(), 4096 / 32);
+    mDensityMapSize->addItem("150", 150);
+    mDensityMapSize->addItem("200", 200);
+    mDensityMapSize->addItem("250", 250);
+    mDensityMapSize->addItem(std::to_string(4096 / 16).data(), 4096 / 16);
+    mDensityMapSize->addItem("300", 300);
+    mDensityMapSize->addItem("350", 350);
+    mDensityMapSize->addItem("400", 400);
+    mDensityMapSize->addItem("450", 450);
+    mDensityMapSize->addItem("450", 450);
+    mDensityMapSize->addItem(std::to_string(4096 / 8).data(), 4096 / 8);
+    mDensityMapSize->addItem("1000", 1000);
+    mDensityMapSize->addItem(std::to_string(4096 / 4).data(), 4096 / 4);
+    mDensityMapSize->addItem("2000", 2000);
+    mDensityMapSize->addItem(std::to_string(4096 / 2).data(), 4096 / 2);
+    mDensityMapSize->addItem("3000", 3000);
+    mDensityMapSize->addItem("4000", 4000);
+    mDensityMapSize->addItem(std::to_string(4096).data(), 4096);
+    mDensityMapSize->setCurrentIndex(mDensityMapSize->count() - 1);
+    connect(mDensityMapSize, &QComboBox::currentIndexChanged, [this](int32_t index) { refreshView(); });
+    formLayout->addWidget(mDensityMapSize);
+    formLayout->addLayout(std::get<2>(createHelpTextLabel("Density map size", 0)));
+
+    formLayout->addStretch();
+
+    mHeatmapContainer->addWidget(heatmapSidebar);
+    mHeatmapContainer->addWidget(mHeatmapChart);
+  }
 
   //
   // Breadcrump
@@ -136,26 +218,19 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   //
   QLayout *topInfoLayout = new QHBoxLayout();
   {
-    topInfoLayout->setSpacing(6);
-
-    mColumn = new QComboBox();
-    mColumn->setMinimumWidth(150);
-    mColumn->setMinimumHeight(25);
-    mColumn->setVisible(false);
-    connect(mColumn, &QComboBox::currentIndexChanged, this, &PanelResults::onColumnComboChanged);
+    topInfoLayout->setSpacing(SELECTED_INFO_SPACING);
 
     mSelectedRowInfo = new QLabel();
     mSelectedRowInfo->setFrameShape(QFrame::StyledPanel);
     mSelectedRowInfo->setFrameShadow(QFrame::Plain);
     mSelectedRowInfo->setLineWidth(1);
     mSelectedRowInfo->setToolTip("Well/Image/Object");
-    mSelectedRowInfo->setMaximumWidth(250);
-    mSelectedRowInfo->setMinimumWidth(250);
+    mSelectedRowInfo->setMaximumWidth(SELECTED_INFO_WIDTH);
+    mSelectedRowInfo->setMinimumWidth(SELECTED_INFO_WIDTH);
 
     mSelectedValue = new QLineEdit();
     mSelectedValue->setReadOnly(true);
 
-    topInfoLayout->addWidget(mColumn);
     topInfoLayout->addWidget(mSelectedRowInfo);
     topInfoLayout->addWidget(mSelectedValue);
   }
@@ -163,11 +238,14 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   //
   // Add to layout
   //
+  auto *tab = layout().addTab(
+      "", [] {}, false, 0);
+  auto *col = tab->addVerticalPanel();
   col->setContentsMargins(0, 6, 0, 0);
   col->setSpacing(4);
   col->addLayout(topBreadCrump);
   col->addLayout(topInfoLayout);
-  col->addWidget(mHeatmap01);
+  col->addLayout(mHeatmapContainer);
   col->addWidget(mTable);
 
   onShowTable();
@@ -180,6 +258,16 @@ PanelResults::~PanelResults()
 
 void PanelResults::valueChangedEvent()
 {
+}
+
+void PanelResults::setHeatmapVisible(bool visible)
+{
+  for(int i = 0; i < mHeatmapContainer->count(); ++i) {
+    QWidget *w = mHeatmapContainer->itemAt(i)->widget();
+    if(w) {
+      w->setVisible(visible);
+    }
+  }
 }
 
 ///
@@ -202,8 +290,7 @@ void PanelResults::setActive(bool active)
     mHeatmapButton->setChecked(false);
     mTableButton->setChecked(true);
     mTable->setVisible(true);
-    mColumn->setVisible(false);
-    mHeatmap01->setVisible(false);
+    setHeatmapVisible(false);
 
     mTableButton->blockSignals(false);
     mHeatmapButton->blockSignals(false);
@@ -385,12 +472,14 @@ void PanelResults::refreshBreadCrump()
 ///
 void PanelResults::refreshView()
 {
-  const auto &wellOrder = mFilter.getPlateSetup().wellImageOrder;
-  uint16_t rows         = mFilter.getPlateSetup().rows;
-  uint16_t cols         = mFilter.getPlateSetup().cols;
+  const auto &wellOrder = getWellOrder();
+  auto plateSize        = getPlateSize();
+  uint16_t rows         = plateSize.height();
+  uint16_t cols         = plateSize.width();
 
-  mFilter.setFilter({.plateId = 0, .groupId = mActGroupId, .imageId = mActImageId, .densityMapAreaSize = mFilter.getFilter().densityMapAreaSize},
-                    {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder});
+  mFilter.setFilter({.plateId = 0, .groupId = mActGroupId, .imageId = mActImageId},
+                    {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
+                    {.densityMapAreaSize = static_cast<int32_t>(getDensityMapSize())});
 
   //
   //
@@ -653,9 +742,10 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   // Try to load settings if available
   try {
     if(mSelectedDataSet.analyzeMeta.has_value()) {
-      auto resultsSettings      = mAnalyzer->selectResultsTableSettings(mSelectedDataSet.analyzeMeta->jobId);
-      db::QueryFilter filterTmp = nlohmann::json::parse(resultsSettings);
-      const auto &t             = filterTmp.getColumns();
+      auto resultsSettings                = mAnalyzer->selectResultsTableSettings(mSelectedDataSet.analyzeMeta->jobId);
+      settings::ResultsSettings filterTmp = nlohmann::json::parse(resultsSettings);
+
+      const auto &t = filterTmp.getColumns();
       for(const auto &[idx, kex] : t) {
         if(kex.measureChannel == enums::Measurement::NONE) {
           joda::log::logWarning("This is a legacy setting!");
@@ -663,6 +753,11 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
         }
       }
       mFilter = filterTmp;
+
+      const auto &plateSetup = mFilter.getPlateSetup();
+      setWellOrder(plateSetup.wellImageOrder);
+      setPlateSize({plateSetup.cols, plateSetup.rows});
+      setDensityMapSize(mFilter.getDensityMapSettings().densityMapAreaSize);
     }
   } catch(...) {
   }
@@ -685,11 +780,99 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
 /// \param[out]
 /// \return
 ///
+void PanelResults::setWellOrder(const std::vector<std::vector<int32_t>> &wellOrder)
+{
+  mWellOrderMatrix->blockSignals(true);
+  mWellOrderMatrix->setText(joda::settings::vectorToString(wellOrder).data());
+  mWellOrderMatrix->blockSignals(false);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::setPlateSize(const QSize &size)
+{
+  mPlateSize->blockSignals(true);
+  uint32_t plateSizeCoded = (size.height() * 100) + size.width();
+  auto idx                = mPlateSize->findData(plateSizeCoded);
+  if(idx >= 0) {
+    mPlateSize->setCurrentIndex(idx);
+  }
+  mPlateSize->blockSignals(false);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::setDensityMapSize(uint32_t densityMapSize)
+{
+  mDensityMapSize->blockSignals(true);
+  auto idx = mDensityMapSize->findData(densityMapSize);
+  if(idx >= 0) {
+    mDensityMapSize->setCurrentIndex(idx);
+  }
+  mDensityMapSize->blockSignals(false);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+[[nodiscard]] auto PanelResults::getWellOrder() const -> std::vector<std::vector<int32_t>>
+{
+  return joda::settings::stringToVector(mWellOrderMatrix->text().toStdString());
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+[[nodiscard]] auto PanelResults::getPlateSize() const -> QSize
+{
+  auto value = mPlateSize->currentData().toUInt();
+  QSize size;
+  size.setWidth(value % 100);
+  size.setHeight(value / 100);
+  return size;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+[[nodiscard]] auto PanelResults::getDensityMapSize() const -> uint32_t
+{
+  return mDensityMapSize->currentData().toUInt();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelResults::onShowTable()
 {
   mTable->setVisible(true);
-  mColumn->setVisible(false);
-  mHeatmap01->setVisible(false);
+  setHeatmapVisible(false);
   refreshView();
 }
 
@@ -703,9 +886,7 @@ void PanelResults::onShowTable()
 void PanelResults::onShowHeatmap()
 {
   mTable->setVisible(false);
-  mColumn->setVisible(true);
-
-  mHeatmap01->setVisible(true);
+  setHeatmapVisible(true);
   refreshView();
 }
 
@@ -717,8 +898,8 @@ void PanelResults::tableToHeatmap(const joda::table::Table &table)
 {
   if(mAnalyzer) {
     if(mSelectedTableColumn >= 0) {
-      mHeatmap01->setData(table, mNavigation == Navigation::PLATE ? ChartHeatMap::MatrixForm::CIRCLE : ChartHeatMap::MatrixForm::RECTANGLE,
-                          ChartHeatMap::PaintControlImage::NO, static_cast<int32_t>(mNavigation));
+      mHeatmapChart->setData(table, mNavigation == Navigation::PLATE ? ChartHeatMap::MatrixForm::CIRCLE : ChartHeatMap::MatrixForm::RECTANGLE,
+                             ChartHeatMap::PaintControlImage::NO, static_cast<int32_t>(mNavigation));
       return;
     }
   }
@@ -745,7 +926,7 @@ void PanelResults::paintEmptyHeatmap()
       table.setData(row, col, data);
     }
   }
-  mHeatmap01->setData(table, ChartHeatMap::MatrixForm::CIRCLE, ChartHeatMap::PaintControlImage::NO, static_cast<int32_t>(mNavigation));
+  mHeatmapChart->setData(table, ChartHeatMap::MatrixForm::CIRCLE, ChartHeatMap::PaintControlImage::NO, static_cast<int32_t>(mNavigation));
 }
 
 ///

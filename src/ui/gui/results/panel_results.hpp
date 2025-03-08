@@ -80,7 +80,7 @@ public:
 
   [[nodiscard]] const table::Table &getData() const
   {
-    return mHeatmap01->getData();
+    return mHeatmapChart->getData();
   }
 
 signals:
@@ -126,6 +126,13 @@ private:
   void loadTemplate();
   void backTo(Navigation backTo);
 
+  auto getWellOrder() const -> std::vector<std::vector<int32_t>>;
+  void setWellOrder(const std::vector<std::vector<int32_t>> &wellOrder);
+  void setPlateSize(const QSize &size);
+  auto getPlateSize() const -> QSize;
+  void setDensityMapSize(uint32_t densityMapSize);
+  auto getDensityMapSize() const -> uint32_t;
+
   WindowMain *mWindowMain;
   std::unique_ptr<joda::db::Database> mAnalyzer;
   std::filesystem::path mDbFilePath;
@@ -155,7 +162,7 @@ private:
   DialogColumnSettings *mColumnEditDialog;
 
   /////////////////////////////////////////////////////
-  db::QueryFilter mFilter;
+  settings::ResultsSettings mFilter;
   PlaceholderTableWidget *mTable;
   std::map<int32_t, joda::table::Table> mActListData;
   std::map<int32_t, joda::table::Table> mActHeatmapData;
@@ -168,10 +175,17 @@ private:
   // TOOLBARS///////////////////////////////////////////////////
 
   /////////////////////////////////////////////////////
-  ChartHeatMap *mHeatmap01;
+  void setHeatmapVisible(bool);
+  QHBoxLayout *mHeatmapContainer;
+  ChartHeatMap *mHeatmapChart;
   Navigation mNavigation = Navigation::PLATE;
   QAction *mMarkAsInvalid;
   DataSet mSelectedDataSet;
+
+  /// HEATMAP SIDEBAR//////////////////////////////////////////////////
+  QLineEdit *mWellOrderMatrix;
+  QComboBox *mPlateSize;
+  QComboBox *mDensityMapSize;
 
   /////////////////////////////////////////////////////
   uint16_t mActGroupId = 0;

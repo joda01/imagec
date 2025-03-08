@@ -437,7 +437,7 @@ void PanelProjectSettings::toSettings()
   mSettings.imageSetup.imageTileSettings.tileHeight = static_cast<int32_t>(mCompositeTileSize->currentData().toInt());
 
   // Sync to results settings
-  mSettings.resultsSettings.resultsTableTemplate.setFilter(mSettings.projectSettings.plates.begin()->plateSetup);
+  mSettings.resultsSettings.setFilter(mSettings.projectSettings.plates.begin()->plateSetup);
 
   mParentWindow->checkForSettingsChanged();
 }

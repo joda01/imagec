@@ -412,7 +412,7 @@ void WindowMain::clearSettings()
   mPanelResultsInfo->clearHistory();
   mSelectedProjectSettingsFilePath.clear();
   mPanelPipeline->clear();
-  mAnalyzeSettings.resultsSettings = {};
+  mAnalyzeSettings.resultsSettings = settings::ResultsSettings();
   mAnalyzeSettings                 = {};
   mAnalyzeSettingsOld              = {};
   mAnalyzeSettings.pipelines.clear();

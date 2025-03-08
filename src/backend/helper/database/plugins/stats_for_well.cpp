@@ -30,9 +30,9 @@ auto transformMatrix(const std::vector<std::vector<int32_t>> &wellImageOrder, in
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::toTable(db::Database *database, const QueryFilter &filter, Grouping grouping) -> QueryResult
+auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSettings &filter, Grouping grouping) -> QueryResult
 {
-  auto classesToExport = filter.getClassesToExport();
+  auto classesToExport = ResultingTable(&filter);
 
   std::map<uint64_t, int32_t> rowIndexes;    // <ID, rowIdx>
 
@@ -106,9 +106,9 @@ auto StatsPerGroup::toTable(db::Database *database, const QueryFilter &filter, G
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::toHeatmap(db::Database *database, const QueryFilter &filter, Grouping grouping) -> QueryResult
+auto StatsPerGroup::toHeatmap(db::Database *database, const settings::ResultsSettings &filter, Grouping grouping) -> QueryResult
 {
-  auto classesToExport = filter.getClassesToExport();
+  auto classesToExport = ResultingTable(&filter);
   classesToExport.clearTables();
 
   int32_t sizeX = 0;
@@ -172,8 +172,9 @@ auto StatsPerGroup::toHeatmap(db::Database *database, const QueryFilter &filter,
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::getData(const db::ResultingTable::QueryKey &classsAndClass, db::Database *analyzer, const QueryFilter::ObjectFilter &filter,
-                            const PreparedStatement &channelFilter, Grouping grouping) -> std::unique_ptr<duckdb::QueryResult>
+auto StatsPerGroup::getData(const db::ResultingTable::QueryKey &classsAndClass, db::Database *analyzer,
+                            const settings::ResultsSettings::ObjectFilter &filter, const PreparedStatement &channelFilter, Grouping grouping)
+    -> std::unique_ptr<duckdb::QueryResult>
 {
   auto [sql, params]                          = toSQL(classsAndClass, filter, channelFilter, grouping);
   std::unique_ptr<duckdb::QueryResult> result = analyzer->select(sql, params);
@@ -190,7 +191,7 @@ auto StatsPerGroup::getData(const db::ResultingTable::QueryKey &classsAndClass, 
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, const QueryFilter::ObjectFilter &filter,
+auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, const settings::ResultsSettings::ObjectFilter &filter,
                           const PreparedStatement &channelFilter, Grouping grouping) -> std::pair<std::string, DbArgs_t>
 {
   auto [retValSum, retValCnt] = channelFilter.createIntersectionQuery();

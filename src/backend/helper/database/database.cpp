@@ -634,7 +634,7 @@ std::string Database::startJob(const joda::settings::AnalyzeSettings &exp, const
     insertClasses(exp.projectSettings.classification.classes);
   }
   std::string jobId = insertJobAndPlates(exp, jobName);
-  updateResultsTableSettings(jobId, nlohmann::json(exp.resultsSettings.resultsTableTemplate).dump());
+  updateResultsTableSettings(jobId, nlohmann::json(exp.resultsSettings).dump());
   return jobId;
 }
 

@@ -27,7 +27,7 @@
 
 namespace joda::ui::gui {
 
-DialogColumnSettings::DialogColumnSettings(db::QueryFilter *filter, QWidget *parent) : mFilter(filter), QDialog(parent)
+DialogColumnSettings::DialogColumnSettings(settings::ResultsSettings *filter, QWidget *parent) : mFilter(filter), QDialog(parent)
 {
   setWindowTitle("Add column");
   setMinimumWidth(500);
@@ -114,7 +114,8 @@ DialogColumnSettings::DialogColumnSettings(db::QueryFilter *filter, QWidget *par
     auto *okayBottom = new QAction(generateIcon("accept"), "Accept", mToolbarBottom);
     connect(okayBottom, &QAction::triggered, [this]() {
       if(mCrossChannelStackC->count() == 0 &&
-         db::MeasureType::INTENSITY == db::getType(static_cast<enums::Measurement>(mMeasurementSelector->currentData().toInt()))) {
+         settings::ResultsSettings::MeasureType::INTENSITY ==
+             settings::ResultsSettings::getType(static_cast<enums::Measurement>(mMeasurementSelector->currentData().toInt()))) {
         return;
       }
 
@@ -206,8 +207,8 @@ void DialogColumnSettings::exec(int32_t selectedColumn)
   if(accept) {
     auto [className, intersectingName] = getClasssFromCombo();
 
-    mFilter->addColumn(db::QueryFilter::ColumnIdx{.tabIdx = 0, .colIdx = selectedColumn},
-                       db::QueryFilter::ColumnKey{
+    mFilter->addColumn(settings::ResultsSettings::ColumnIdx{.tabIdx = 0, .colIdx = selectedColumn},
+                       settings::ResultsSettings::ColumnKey{
                            .classId             = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClasssClassSelector->currentData().toUInt()),
                            .measureChannel      = static_cast<enums::Measurement>(mMeasurementSelector->currentData().toInt()),
                            .stats               = static_cast<enums::Stats>(mStatsSelector->currentData().toInt()),
@@ -215,7 +216,7 @@ void DialogColumnSettings::exec(int32_t selectedColumn)
                            .intersectingChannel = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClasssIntersection->currentData().toUInt()),
                            .zStack              = mZStack->value(),
                            .tStack              = mTStack->value()},
-                       db::QueryFilter::ColumnName{.className = className, .intersectingName = intersectingName});
+                       settings::ResultsSettings::ColumnName{.className = className, .intersectingName = intersectingName});
   }
 }
 
