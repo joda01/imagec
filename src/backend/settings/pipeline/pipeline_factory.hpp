@@ -35,6 +35,8 @@
 #include "backend/commands/image_functions/edge_detection_canny/edge_detection_canny_settings_ui.hpp"
 #include "backend/commands/image_functions/edge_detection_sobel/edge_detection_sobel.hpp"
 #include "backend/commands/image_functions/edge_detection_sobel/edge_detection_sobel_settings_ui.hpp"
+#include "backend/commands/image_functions/enhance_contrast/enhance_contrast.hpp"
+#include "backend/commands/image_functions/enhance_contrast/enhance_contrast_settings_ui.hpp"
 #include "backend/commands/image_functions/fill_holes/fill_holes.hpp"
 #include "backend/commands/image_functions/fill_holes/fill_holes_settings_ui.hpp"
 #include "backend/commands/image_functions/image_cache/image_cache.hpp"
@@ -346,6 +348,15 @@ private:
       } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
         return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::HoughTransform, HoughTransformSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<HoughTransformSettings &>(step.$houghTransform.value()), parent));
+      }
+    }
+
+    if(step.$enhanceContrast) {
+      if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
+        return std::make_unique<joda::cmd::Factory<joda::cmd::EnhanceContrast, EnhanceContrastSettings>>(step.$enhanceContrast.value());
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::EnhanceContrast, EnhanceContrastSettings>>(
+            const_cast<settings::PipelineStep &>(step), const_cast<EnhanceContrastSettings &>(step.$enhanceContrast.value()), parent));
       }
     }
 

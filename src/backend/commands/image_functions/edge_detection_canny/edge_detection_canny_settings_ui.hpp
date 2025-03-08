@@ -38,7 +38,7 @@ public:
     //
     //
     //
-    mThresholdValueMin = SettingBase::create<SettingLineEdit<uint16_t>>(parent, generateIcon("light-min"), "Min. threshold");
+    mThresholdValueMin = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("light-min"), "Min. threshold");
     mThresholdValueMin->setPlaceholderText("[0 - 255]");
     mThresholdValueMin->setUnit("");
     mThresholdValueMin->setMinMax(0, 255);
@@ -49,7 +49,7 @@ public:
     //
     //
     //
-    mThresholdValueMax = SettingBase::create<SettingLineEdit<uint16_t>>(parent, generateIcon("light"), "Max. threshold");
+    mThresholdValueMax = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("light"), "Max. threshold");
     mThresholdValueMax->setPlaceholderText("[0 - 255]");
     mThresholdValueMax->setUnit("");
     mThresholdValueMax->setMinMax(0, 255);
@@ -61,18 +61,7 @@ public:
     //
     //
     mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, generateIcon("matrix"), "Kernel size");
-    mKernelSize->addOptions({{-1, "Off"},
-                             {3, "3x3"},
-                             {5, "5x5"},
-                             {7, "7x7"},
-                             {9, "9x9"},
-                             {11, "11x11"},
-                             {13, "13x13"},
-                             {15, "15x15"},
-                             {17, "17x17"},
-                             {19, "19x19"},
-                             {21, "21x21"},
-                             {23, "23x23"}});
+    mKernelSize->addOptions({{3, "3x3"}, {5, "5x5"}, {7, "7x7"}});
     mKernelSize->setValue(settings.kernelSize);
     mKernelSize->connectWithSetting(&settings.kernelSize);
     mKernelSize->setShortDescription("Kernel: ");
@@ -82,8 +71,8 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  std::shared_ptr<SettingLineEdit<uint16_t>> mThresholdValueMin;
-  std::shared_ptr<SettingLineEdit<uint16_t>> mThresholdValueMax;
+  std::shared_ptr<SettingLineEdit<float>> mThresholdValueMin;
+  std::shared_ptr<SettingLineEdit<float>> mThresholdValueMax;
   std::shared_ptr<SettingComboBox<int>> mKernelSize;
 };
 
