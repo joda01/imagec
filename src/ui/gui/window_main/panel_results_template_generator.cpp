@@ -94,6 +94,16 @@ PanelResultsTemplateGenerator::PanelResultsTemplateGenerator(WindowMain *mainWin
   connect(mColumns, &PlaceholderTableWidget::currentCellChanged,
           [this](int currentRow, int currentColumn, int previousRow, int previousColumn) { mSelectedTableRow = currentRow; });
 
+  connect(mColumns, &PlaceholderTableWidget::cellDoubleClicked, [this](int row, int column) {
+    mSelectedTableRow = row;
+    if(mSelectedTableRow >= 0) {
+      mColumnEditDialog->updateClassesAndClasses(*mAnalyzeSettings);
+      mColumnEditDialog->exec(mSelectedTableRow);
+      refreshView();
+      mMainWindow->checkForSettingsChanged();
+    }
+  });
+
   mainLayout->addWidget(mColumns);
   mainLayout->addLayout(toolBar);
 
@@ -137,9 +147,14 @@ void PanelResultsTemplateGenerator::refreshView()
 
   auto &columns = mAnalyzeSettings->resultsSettings.mutableColumns();
   mColumns->setRowCount(columns.size());
+  std::set<int32_t> toRemove;
   for(auto &[index, key] : columns) {
-    auto *item                 = mColumns->item(index.colIdx, 0);
-    key.names.className        = getNameForClass(key.classId);
+    auto *item          = mColumns->item(index.colIdx, 0);
+    std::string nameTmp = getNameForClass(key.classId);
+    if(nameTmp.empty()) {
+      toRemove.emplace(index.colIdx);
+    }
+    key.names.className        = nameTmp;
     key.names.intersectingName = getNameForClass(key.intersectingChannel);
 
     if(item == nullptr) {
@@ -150,6 +165,15 @@ void PanelResultsTemplateGenerator::refreshView()
     } else {
       item->setText(key.createHeader().data());
     }
+  }
+
+  // Remove not existing classes
+  if(!toRemove.empty()) {
+    for(const auto idx : toRemove) {
+      mAnalyzeSettings->resultsSettings.eraseColumn({.tabIdx = 0, .colIdx = idx});
+    }
+    refreshView();
+    mMainWindow->checkForSettingsChanged();
   }
 }
 
