@@ -124,6 +124,7 @@ private:
   void onExportClicked(joda::ctrl::ExportSettings::ExportType);
   void saveTemplate();
   void loadTemplate();
+  void backTo(Navigation backTo);
 
   WindowMain *mWindowMain;
   std::unique_ptr<joda::db::Database> mAnalyzer;
@@ -199,7 +200,6 @@ public slots:
   void onElementSelected(int cellX, int cellY, table::TableCell value);
   void onOpenNextLevel(int cellX, int cellY, table::TableCell value);
   void onTableCurrentCellChanged(int currentRow, int currentColumn, int previousRow, int previousColumn);
-  void onBackClicked();
   void onExportImageClicked();
   void onShowTable();
   void onShowHeatmap();

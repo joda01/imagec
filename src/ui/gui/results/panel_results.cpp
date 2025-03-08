@@ -118,15 +118,15 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   {
     mBreadCrumpPlate = new QPushButton(generateIcon("home"), "");
     topBreadCrump->addWidget(mBreadCrumpPlate);
-    connect(mBreadCrumpPlate, &QPushButton::clicked, this, &PanelResults::onBackClicked);
+    connect(mBreadCrumpPlate, &QPushButton::clicked, [this]() { backTo(Navigation::PLATE); });
 
     mBreadCrumpWell = new QPushButton("Well (1)");
     topBreadCrump->addWidget(mBreadCrumpWell);
-    connect(mBreadCrumpWell, &QPushButton::clicked, this, &PanelResults::onBackClicked);
+    connect(mBreadCrumpWell, &QPushButton::clicked, [this]() { backTo(Navigation::WELL); });
 
     mBreadCrumpImage = new QPushButton("Image (abcd.tif)");
     topBreadCrump->addWidget(mBreadCrumpImage);
-    connect(mBreadCrumpImage, &QPushButton::clicked, this, &PanelResults::onBackClicked);
+    connect(mBreadCrumpImage, &QPushButton::clicked, [this]() { /*backTo(Navigation::IMAGE);*/ });
 
     topBreadCrump->addStretch();
   }
@@ -138,6 +138,10 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   {
     topInfoLayout->setSpacing(6);
     mSelectedRowInfo = new QLabel();
+    mSelectedRowInfo->setFrameShape(QFrame::StyledPanel);
+    mSelectedRowInfo->setFrameShadow(QFrame::Plain);
+    mSelectedRowInfo->setLineWidth(1);
+    mSelectedRowInfo->setToolTip("Well/Image/Object");
     mSelectedRowInfo->setMaximumWidth(250);
     mSelectedRowInfo->setMinimumWidth(250);
 
@@ -359,7 +363,8 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpWell->setVisible(true);
       mBreadCrumpImage->setVisible(false);
       if(mSelectedDataSet.groupMeta.has_value()) {
-        mBreadCrumpWell->setText(QString("Well ") + mSelectedDataSet.groupMeta->groupName.data());
+        auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX);
+        mBreadCrumpWell->setText(platePos.data());
       }
       break;
     case Navigation::IMAGE:
@@ -522,8 +527,7 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       mMarkAsInvalid->setEnabled(false);
 
       // Act data
-      auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
-                      mSelectedDataSet.groupMeta->groupName;
+      auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX);
       mSelectedRowInfo->setText(platePos.data());
       mSelectedValue->setText(QString::number(value.getVal()));
     } break;
@@ -547,7 +551,7 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
 
       // Act data
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
-                      mSelectedDataSet.groupMeta->groupName + "/" + imageInfo.filename;
+                      imageInfo.filename;
       mSelectedRowInfo->setText(platePos.data());
       mSelectedValue->setText(QString::number(value.getVal()));
     }
@@ -560,7 +564,7 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       mSelectedAreaPos.y = cellY;
 
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
-                      mSelectedDataSet.groupMeta->groupName + "/" + mSelectedDataSet.imageMeta->filename + "/Obj:" + std::to_string(value.getId());
+                      mSelectedDataSet.imageMeta->filename + "/" + std::to_string(value.getId());
       mSelectedRowInfo->setText(platePos.data());
       mSelectedValue->setText(QString::number(value.getVal()));
       break;
@@ -601,14 +605,14 @@ void PanelResults::onOpenNextLevel(int cellX, int cellY, table::TableCell value)
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelResults::onBackClicked()
+void PanelResults::backTo(Navigation backTo)
 {
-  int actMenu = static_cast<int>(mNavigation);
-  actMenu--;
-  if(actMenu >= 0) {
-    mNavigation = static_cast<Navigation>(actMenu);
-  }
-
+  // int actMenu = static_cast<int>(mNavigation);
+  // actMenu--;
+  // if(actMenu >= 0) {
+  //   mNavigation = static_cast<Navigation>(actMenu);
+  // }
+  mNavigation = backTo;
   switch(mNavigation) {
     case Navigation::PLATE:
       mSelectedDataSet.imageMeta.reset();
