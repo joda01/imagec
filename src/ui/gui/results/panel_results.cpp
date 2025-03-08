@@ -117,7 +117,7 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
     connect(this, &PanelResults::finishedLoading, this, &PanelResults::onFinishedLoading);
 
     auto *heatmapSidebar = new QWidget();
-    heatmapSidebar->setContentsMargins(0, 0, SELECTED_INFO_SPACING, 0);
+    heatmapSidebar->setContentsMargins(0, SELECTED_INFO_SPACING, SELECTED_INFO_SPACING, 0);
     heatmapSidebar->setMaximumWidth(SELECTED_INFO_WIDTH + SELECTED_INFO_SPACING);
     heatmapSidebar->setMinimumWidth(SELECTED_INFO_WIDTH + SELECTED_INFO_SPACING);
     auto *formLayout = new QVBoxLayout;
