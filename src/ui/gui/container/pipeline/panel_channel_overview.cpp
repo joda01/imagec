@@ -22,10 +22,10 @@
 
 namespace joda::ui::gui {
 
-PanelChannelOverview::PanelChannelOverview(WindowMain *wm, PanelPipelineSettings *parent) : mWindowMain(wm), mParentContainer(parent)
+PanelChannelOverview::PanelChannelOverview(WindowMain *wm, PanelPipelineSettings *parent) : QWidget(parent), mWindowMain(wm), mParentContainer(parent)
 {
   setObjectName("PanelChannelOverview");
-  setContentsMargins(4, 4, 4, 4);
+  setContentsMargins(8, 4, 4, 4);
   QGridLayout *layout = new QGridLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
   setLayout(layout);
@@ -36,7 +36,6 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm, PanelPipelineSettings
 
   // Add the functions
   // layout->addWidget(parent->mChannelName->getLabelWidget(), 0, 0, 1, 3);
-
   layout->addWidget(parent->pipelineName->getDisplayLabelWidget(), 0, 0);
   layout->addWidget(parent->defaultClassId->getDisplayLabelWidget(), 0, 1);
   layout->addWidget(parent->cStackIndex->getDisplayLabelWidget(), 0, 2);
@@ -69,17 +68,30 @@ void PanelChannelOverview::paintEvent(QPaintEvent *event)
 {
   QWidget::paintEvent(event);    // Call the base class paint event
 
+  //
+  // Paint the handle on the right handside which allows to drag the pipeline step
+  //
   QPainter painter(this);
-  // painter.fillRect(size().width() - HANDLE_WITH - 2, 4, HANDLE_WITH, height() - 8, Qt::darkGray);    // Draw the handle
-
   int x          = size().width() - HANDLE_WITH - 2;
-  int ovalHeight = (height() - 8 - 8) / 3;
+  int ovalHeight = 2;    //(height() - 8 - 8) / 3;
   painter.setBrush(Qt::lightGray);
   QPen pen(Qt::lightGray, 1);    // darkYellow, 5px width
   painter.setPen(pen);
   painter.drawEllipse(x, 4, ovalHeight, ovalHeight);
   painter.drawEllipse(x, ovalHeight + 8, ovalHeight, ovalHeight);
   painter.drawEllipse(x, ovalHeight * 2 + 8 + 4, ovalHeight, ovalHeight);
+
+  //
+  // Paint if disables
+  //
+  if((mParentContainer != nullptr) && (mParentContainer->mActionDisabled != nullptr) && mParentContainer->mActionDisabled->isChecked()) {
+    painter.setBrush(Qt::red);
+    QPen pen(Qt::red, 1);    // darkYellow, 5px width
+    painter.drawEllipse(0, height() / 2 - 3, 6, 6);
+  } else {
+    painter.setBrush(Qt::green);
+    QPen pen(Qt::green, 1);    // darkYellow, 5px width
+  }
 }
 
 ///

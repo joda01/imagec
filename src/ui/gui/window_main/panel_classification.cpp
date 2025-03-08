@@ -20,6 +20,7 @@
 #include <exception>
 #include <string>
 #include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/file_parser/directory_iterator.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
@@ -36,6 +37,7 @@ namespace joda::ui::gui {
 PanelClassification::PanelClassification(joda::settings::ProjectSettings &settings, WindowMain *windowMain) :
     mWindowMain(windowMain), mSettings(settings)
 {
+  createDialog();
   auto *layout = new QVBoxLayout();
 
   auto addSeparator = [&layout]() {
@@ -124,20 +126,55 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
 /// \param[out]
 /// \return
 ///
-void PanelClassification::openEditDialog(int row, int column)
+void PanelClassification::createDialog()
 {
-  auto *dialog = new QDialog(mWindowMain);
-  dialog->setWindowTitle("Class editor");
-  dialog->setMinimumWidth(300);
-  auto *layout = new QVBoxLayout();
-  auto *name   = new QLineEdit();
-  name->setPlaceholderText("e.g. cy5@spot");
-  name->setText(mClasses->item(row, COL_NAME)->text());
-  if(mIsLocked) {
-    name->setEnabled(false);
-  }
-  auto *colors = new ColorComboBox();
-  auto *model  = qobject_cast<QStandardItemModel *>(colors->model());
+  mEditDialog = new QDialog(mWindowMain);
+  mEditDialog->setWindowTitle("Class editor");
+  mEditDialog->setMinimumWidth(300);
+  auto *layout     = new QVBoxLayout();
+  mDialogClassName = new QComboBox();
+  mDialogClassName->setEditable(true);
+  mDialogClassName->setPlaceholderText("e.g. cy5@spot");
+  //
+  // Predefined selections
+  //
+  mDialogClassName->addItem("cy3@spot", "cy3@spot");
+  mDialogClassName->addItem("cy3@ignore", "cy3@ignore");
+  mDialogClassName->addItem("cy3@background", "cy3@background");
+  mDialogClassName->addItem("cy5@spot", "cy5@spot");
+  mDialogClassName->addItem("cy5@ignore", "cy5@ignore");
+  mDialogClassName->addItem("cy5@background", "cy5@background");
+  mDialogClassName->addItem("cy7@spot", "cy7@spot");
+  mDialogClassName->addItem("cy7@ignore", "cy7@ignore");
+  mDialogClassName->addItem("cy7@background", "cy7@background");
+  mDialogClassName->addItem("gfp@spot", "gfp@spot");
+  mDialogClassName->addItem("gfp@ignore", "gfp@ignore");
+  mDialogClassName->addItem("gfp@background", "gfp@background");
+  mDialogClassName->addItem("fitc@spot", "fitc@spot");
+  mDialogClassName->addItem("fitc@ignore", "fitc@ignore");
+  mDialogClassName->addItem("fitc@background", "fitc@background");
+  mDialogClassName->insertSeparator(mDialogClassName->count());
+  mDialogClassName->addItem("tetraspeck@spot", "tetraspeck@spot");
+  mDialogClassName->addItem("tetraspeck@ignore", "tetraspeck@ignore");
+  mDialogClassName->addItem("tetraspeck@background", "tetraspeck@background");
+  mDialogClassName->insertSeparator(mDialogClassName->count());
+  mDialogClassName->addItem("dapi@nucleus", "dapi@nucleus");
+  mDialogClassName->addItem("dapi@nucleus-ignore", "dapi@nucleus-ignore");
+  mDialogClassName->addItem("dapi@background", "dapi@background");
+  mDialogClassName->insertSeparator(mDialogClassName->count());
+  mDialogClassName->addItem("brightfield@cell-area", "brightfield@cell-area");
+  mDialogClassName->addItem("brightfield@cell-area-ignore", "brightfield@cell-area-ignore");
+  mDialogClassName->addItem("brightfield@cell", "brightfield@cell");
+  mDialogClassName->addItem("brightfield@cell-ignore", "brightfield@cell-ignore");
+  mDialogClassName->addItem("brightfield@background", "brightfield@background");
+  mDialogClassName->insertSeparator(mDialogClassName->count());
+  mDialogClassName->addItem("coloc@c3c7", "coloc@c5c7");
+  mDialogClassName->addItem("coloc@c3c7-ignore", "coloc@c5c7-ignore");
+  mDialogClassName->addItem("coloc@c5c7", "coloc@c5c7");
+  mDialogClassName->addItem("coloc@c5c7-ignore", "coloc@c5c7-ignore");
+
+  mDialogColorCombo = new ColorComboBox();
+  auto *model       = qobject_cast<QStandardItemModel *>(mDialogColorCombo->model());
 
   // Set the custom delegate
   for(const auto &color : settings::COLORS) {
@@ -148,22 +185,12 @@ void PanelClassification::openEditDialog(int row, int column)
     model->appendRow(item);
   }
 
-  auto colorIdx = colors->findData(QColor(mClasses->item(row, COL_COLOR)->text()), Qt::BackgroundRole);
-  if(colorIdx >= 0) {
-    colors->setCurrentIndex(colorIdx);
-  }
-
   // Create buttons
   auto *okButton = new QPushButton("OK", this);
   okButton->setDefault(true);
-  connect(okButton, &QPushButton::pressed, [this, row, dialog, name, colors]() {
-    mClasses->item(row, COL_NAME)->setText(name->displayText());
-    mClasses->item(row, COL_COLOR)->setText(colors->currentText());
-    onSettingChanged();
-    dialog->close();
-  });
+  connect(okButton, &QPushButton::pressed, this, &PanelClassification::onOkayPressed);
   auto *cancelButton = new QPushButton("Cancel", this);
-  connect(cancelButton, &QPushButton::pressed, [&]() { dialog->close(); });
+  connect(cancelButton, &QPushButton::pressed, [&]() { mEditDialog->close(); });
 
   // Create a horizontal layout for the buttons
   auto *buttonLayout = new QHBoxLayout;
@@ -171,13 +198,50 @@ void PanelClassification::openEditDialog(int row, int column)
   buttonLayout->addWidget(cancelButton);
   buttonLayout->addWidget(okButton);
 
-  layout->addWidget(name);
-  layout->addWidget(colors);
+  layout->addWidget(mDialogClassName);
+  layout->addWidget(mDialogColorCombo);
   layout->addLayout(buttonLayout);
 
-  dialog->setLayout(layout);
+  mEditDialog->setLayout(layout);
+}
 
-  dialog->exec();
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::openEditDialog(int row, int column)
+{
+  mSelectedRow = row;
+  mDialogClassName->setCurrentText(mClasses->item(row, COL_NAME)->text());
+  auto colorIdx = mDialogColorCombo->findData(QColor(mClasses->item(row, COL_COLOR)->text()), Qt::BackgroundRole);
+  if(colorIdx >= 0) {
+    mDialogColorCombo->setCurrentIndex(colorIdx);
+  }
+  if(mIsLocked) {
+    mDialogClassName->setEnabled(false);
+  } else {
+    mDialogClassName->setEnabled(true);
+  }
+
+  mEditDialog->exec();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::onOkayPressed()
+{
+  mClasses->item(mSelectedRow, COL_NAME)->setText(mDialogClassName->currentText());
+  mClasses->item(mSelectedRow, COL_COLOR)->setText(mDialogColorCombo->currentText());
+  onSettingChanged();
+  mEditDialog->close();
 }
 
 ///
@@ -314,6 +378,13 @@ void PanelClassification::toSettings()
     mSettings.classification.classes.emplace_back(joda::settings::Class{
         .classId = classId, .name = className.toStdString(), .color = classColor.toStdString(), .notes = classNotes.toStdString()});
   }
+
+  //
+  // Update the names in the columns
+  //
+  if(mWindowMain->getPanelResultsInfo() != nullptr) {
+    mWindowMain->getPanelResultsInfo()->refreshTableView();
+  }
 }
 
 ///
@@ -366,21 +437,21 @@ void PanelClassification::onSettingChanged()
 void PanelClassification::loadTemplates()
 {
   auto foundTemplates = joda::templates::TemplateParser::findTemplates(
-      {{"templates/classification", joda::templates::TemplateParser::Category::BASIC},
-       {joda::templates::TemplateParser::getUsersTemplateDirectory().string(), joda::templates::TemplateParser::Category::USER}},
-      joda::fs::EXT_CLASS_CLASS_TEMPLATE);
+      {"templates/classification", joda::templates::TemplateParser::getUsersTemplateDirectory().string()}, joda::fs::EXT_CLASS_CLASS_TEMPLATE);
 
   mTemplateSelection->clear();
-  mTemplateSelection->addItem("User defined", "");
+  mTemplateSelection->addItem("Load template ...", "");
   mTemplateSelection->insertSeparator(mTemplateSelection->count());
-
-  joda::templates::TemplateParser::Category actCategory = joda::templates::TemplateParser::Category::BASIC;
+  std::string actCategory = "basic";
+  size_t addedPerCategory = 0;
   for(const auto &[category, dataInCategory] : foundTemplates) {
     for(const auto &[_, data] : dataInCategory) {
       // Now the user templates start, add an addition separator
       if(category != actCategory) {
         actCategory = category;
-        mTemplateSelection->insertSeparator(mTemplateSelection->count());
+        if(addedPerCategory > 0) {
+          mTemplateSelection->insertSeparator(mTemplateSelection->count());
+        }
       }
       if(!data.icon.isNull()) {
         mTemplateSelection->addItem(QIcon(data.icon.scaled(28, 28)), data.title.data(), data.path.data());
@@ -388,6 +459,7 @@ void PanelClassification::loadTemplates()
         mTemplateSelection->addItem(generateIcon("favorite"), data.title.data(), data.path.data());
       }
     }
+    addedPerCategory = dataInCategory.size();
   }
 }
 

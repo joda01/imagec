@@ -14,6 +14,7 @@
 #include "setting_base.hpp"
 #include <iostream>
 #include "ui/gui/container/dialog_tooltip.hpp"
+#include "ui/gui/helper/widget_generator.hpp"
 #include "ui/gui/window_main/window_main.hpp"
 
 namespace joda::ui::gui {
@@ -230,16 +231,18 @@ void SettingBase::createDisplayAbleWidget(const QIcon &icon, const QString &tool
   mDisplayLabel     = new QLabel();
 
   // Set text for the label
-  mDisplayLabel->setToolTip(tooltip);
+  /// \todo the tooltip background is black whyever
+  // mDisplayLabel->setToolTip(tooltip);
 
   // Create a QPixmap for the icon (you may need to adjust the path)
   if(!icon.isNull()) {
     mDisplayLabelIcon->setPixmap(mIcon.pixmap(DISP_ICON_SIZE, DISP_ICON_SIZE));
-    mDisplayLabelIcon->setToolTip(tooltip);
+    /// \todo the tooltip background is black whyever
+    // mDisplayLabelIcon->setToolTip(tooltip);
   }
 
   // Create a QHBoxLayout to arrange the text and icon horizontally
-  QHBoxLayout *layout = new QHBoxLayout;
+  auto *layout = new QHBoxLayout;
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setSpacing(4);
   mDisplayable->setLayout(layout);
@@ -286,47 +289,10 @@ void SettingBase::createEditableWidget()
 ///
 void SettingBase::createHelperText(QVBoxLayout *layout, const QString &helpText)
 {
-  QHBoxLayout *hLayout = new QHBoxLayout();
-  hLayout->setContentsMargins(0, 0, 0, 0);
-  auto *helperText = new QLabel();
-  helperText->setObjectName("functionHelperText");
-  helperText->setText(helpText);
-  helperText->setContentsMargins(12, 0, 0, 0);
-  // Create a QFont instance
-  QFont font;
-  font.setPixelSize(12);
-  font.setItalic(true);
-  font.setBold(false);
-  font.setWeight(QFont::Light);
-  helperText->setFont(font);
-  helperText->setStyleSheet("QLabel#functionHelperText { color : #808080; }");
-  hLayout->addWidget(helperText);
-
-  // Info icon
-  mHelpButton = new QPushButton();
-  mHelpButton->setObjectName("helpButton");
-  mHelpButton->setStyleSheet(
-      "QPushButton#helpButton {"
-      "   background-color: rgba(0, 0, 0, 0);"
-      "   border: 0px solid rgb(111, 121, 123);"
-      "   color: rgb(0, 104, 117);"
-      "   padding: 2px 2px 0px 0px;"
-      "   margin: 0px 0px 0px 0px;"
-      "   border-radius: 4px;"
-      "   font-size: 8px;"
-      "   font-weight: normal;"
-      "   text-align: center;"
-      "   text-decoration: none;"
-      "   min-height: 0px;"
-      "}");
-  mHelpButton->setCursor(Qt::PointingHandCursor);
-  mHelpButton->setIconSize({HELP_ICON_SIZE, HELP_ICON_SIZE});
-  mHelpButton->setIcon(QIcon(":/icons/icons/icons8-info-48-fill.png"));
-  mHelpButton->setVisible(false);
+  auto [label, button, hLayout] = createHelpTextLabel(helpText);
+  mHelpButton                   = button;
   connect(mHelpButton, &QPushButton::clicked, this, &SettingBase::onHelpButtonClicked);
-  hLayout->addWidget(mHelpButton);
 
-  hLayout->addStretch(0);
   layout->addLayout(hLayout);
 }
 

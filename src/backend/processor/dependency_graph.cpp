@@ -157,6 +157,9 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
   // List all pipelines to process
   std::set<const settings::Pipeline *> pipelinesToAttache;
   for(const auto &pipelines : settings.pipelines) {
+    if(pipelines.disabled) {
+      continue;
+    }
     pipelinesToAttache.emplace(reinterpret_cast<const settings::Pipeline *>(&pipelines));
   }
 

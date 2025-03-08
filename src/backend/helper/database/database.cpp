@@ -633,7 +633,9 @@ std::string Database::startJob(const joda::settings::AnalyzeSettings &exp, const
   if(insertExperiment(exp.projectSettings.experimentSettings)) {
     insertClasses(exp.projectSettings.classification.classes);
   }
-  return insertJobAndPlates(exp, jobName);
+  std::string jobId = insertJobAndPlates(exp, jobName);
+  updateResultsTableSettings(jobId, nlohmann::json(exp.resultsSettings).dump());
+  return jobId;
 }
 
 ///
@@ -792,16 +794,16 @@ std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &
     for(const auto &plate : exp.projectSettings.plates) {
       nlohmann::json groupBy = plate.groupBy;
       platesDb.BeginRow();
-      platesDb.Append(jobId);                                                               //       " job_id UUID,"
-      platesDb.Append<uint16_t>(plate.plateId);                                             //       " plate_id USMALLINT,"
-      platesDb.Append<duckdb::string_t>(plate.name);                                        //       " name STRING,"
-      platesDb.Append<duckdb::string_t>(plate.notes);                                       //       " notes STRING,"
-      platesDb.Append<uint16_t>(plate.rows);                                                //       " rows USMALLINT,"
-      platesDb.Append<uint16_t>(plate.cols);                                                //       " cols USMALLINT,"
-      platesDb.Append<duckdb::string_t>(plate.imageFolder);                                 //       " image_folder STRING,"
-      platesDb.Append<duckdb::string_t>(settings::vectorToString(plate.wellImageOrder));    //       " well_image_order STRING,"
-      platesDb.Append<duckdb::string_t>(std::string(groupBy));                              //       " group_by STRING,"
-      platesDb.Append<duckdb::string_t>(plate.filenameRegex);                               //       " filename_regex STRING,"
+      platesDb.Append(jobId);                                                                          //       " job_id UUID,"
+      platesDb.Append<uint16_t>(plate.plateId);                                                        //       " plate_id USMALLINT,"
+      platesDb.Append<duckdb::string_t>(plate.name);                                                   //       " name STRING,"
+      platesDb.Append<duckdb::string_t>(plate.notes);                                                  //       " notes STRING,"
+      platesDb.Append<uint16_t>(plate.plateSetup.rows);                                                //       " rows USMALLINT,"
+      platesDb.Append<uint16_t>(plate.plateSetup.cols);                                                //       " cols USMALLINT,"
+      platesDb.Append<duckdb::string_t>(plate.imageFolder);                                            //       " image_folder STRING,"
+      platesDb.Append<duckdb::string_t>(settings::vectorToString(plate.plateSetup.wellImageOrder));    //       " well_image_order STRING,"
+      platesDb.Append<duckdb::string_t>(std::string(groupBy));                                         //       " group_by STRING,"
+      platesDb.Append<duckdb::string_t>(plate.filenameRegex);                                          //       " filename_regex STRING,"
       platesDb.EndRow();
     }
     platesDb.Close();
@@ -834,16 +836,16 @@ auto Database::selectPlates() -> std::map<uint16_t, joda::settings::Plate>
   std::map<uint16_t, joda::settings::Plate> results;
   for(size_t n = 0; n < materializedResult->RowCount(); n++) {
     joda::settings::Plate plate;
-    plate.plateId          = materializedResult->GetValue(0, n).GetValue<uint16_t>();
-    plate.name             = materializedResult->GetValue(1, n).GetValue<std::string>();
-    plate.notes            = materializedResult->GetValue(2, n).GetValue<std::string>();
-    plate.rows             = materializedResult->GetValue(3, n).GetValue<uint16_t>();
-    plate.cols             = materializedResult->GetValue(4, n).GetValue<uint16_t>();
-    plate.imageFolder      = materializedResult->GetValue(5, n).GetValue<std::string>();
-    plate.wellImageOrder   = joda::settings::stringToVector(materializedResult->GetValue(6, n).GetValue<std::string>());
-    nlohmann::json groupBy = materializedResult->GetValue(7, n).GetValue<std::string>();
-    plate.groupBy          = groupBy.template get<enums::GroupBy>();
-    plate.filenameRegex    = materializedResult->GetValue(8, n).GetValue<std::string>();
+    plate.plateId                   = materializedResult->GetValue(0, n).GetValue<uint16_t>();
+    plate.name                      = materializedResult->GetValue(1, n).GetValue<std::string>();
+    plate.notes                     = materializedResult->GetValue(2, n).GetValue<std::string>();
+    plate.plateSetup.rows           = materializedResult->GetValue(3, n).GetValue<uint16_t>();
+    plate.plateSetup.cols           = materializedResult->GetValue(4, n).GetValue<uint16_t>();
+    plate.imageFolder               = materializedResult->GetValue(5, n).GetValue<std::string>();
+    plate.plateSetup.wellImageOrder = joda::settings::stringToVector(materializedResult->GetValue(6, n).GetValue<std::string>());
+    nlohmann::json groupBy          = materializedResult->GetValue(7, n).GetValue<std::string>();
+    plate.groupBy                   = groupBy.template get<enums::GroupBy>();
+    plate.filenameRegex             = materializedResult->GetValue(8, n).GetValue<std::string>();
     results.try_emplace(plate.plateId, plate);
   }
 
@@ -902,6 +904,36 @@ auto Database::selectImageChannels() -> std::map<uint32_t, joda::ome::OmeInfo::C
     uint32_t cidx = materializedResult->GetValue(1, n).GetValue<uint32_t>();
     tmp.name      = materializedResult->GetValue(2, n).GetValue<std::string>();
     results.try_emplace(cidx, tmp);
+  }
+
+  return results;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Database::selectGroupInfo(uint64_t groupId) -> GroupInfo
+{
+  std::unique_ptr<duckdb::QueryResult> result = select(
+      "SELECT groups.name, groups.pos_on_plate_x, groups.pos_on_plate_y\n"
+      "FROM groups\n"
+      "WHERE groups.group_id = ?",
+      groupId);
+  if(result->HasError()) {
+    throw std::invalid_argument("selectGroupInfo:" + result->GetError());
+  }
+
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+
+  GroupInfo results;
+  if(materializedResult->RowCount() > 0) {
+    results.groupName = materializedResult->GetValue(0, 0).GetValue<std::string>();
+    results.posX      = materializedResult->GetValue(1, 0).GetValue<uint32_t>();
+    results.posY      = materializedResult->GetValue(2, 0).GetValue<uint32_t>();
   }
 
   return results;

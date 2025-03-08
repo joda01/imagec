@@ -23,7 +23,6 @@
 #include <memory>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
-
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/database/plugins/filter.hpp"
 #include "backend/helper/table/table.hpp"
@@ -81,7 +80,7 @@ public:
 
   [[nodiscard]] const table::Table &getData() const
   {
-    return mHeatmap01->getData();
+    return mHeatmapChart->getData();
   }
 
 signals:
@@ -91,38 +90,75 @@ private:
   /////////////////////////////////////////////////////
   static constexpr int32_t PREVIEW_BASE_SIZE = 450;
 
+  struct DataSet
+  {
+    struct Value
+    {
+      double value = 0;
+    };
+
+    std::optional<db::AnalyzeMeta> analyzeMeta;
+    std::optional<db::GroupInfo> groupMeta;
+    std::optional<db::ImageInfo> imageMeta;
+    std::optional<Value> value;
+    //  std::optional<results::db::PlateMeta> plateMeta;
+    //  std::optional<results::db::GroupMeta> groupMeta;
+    //  std::optional<results::db::ImageMeta> imageMeta;
+    //  std::optional<results::db::ChannelMeta> channelMeta;
+    //  std::optional<results::db::ImageChannelMeta> imageChannelMeta;
+  };
+
   /////////////////////////////////////////////////////
   void valueChangedEvent() override;
   void tableToQWidgetTable(const joda::table::Table &table);
   void tableToHeatmap(const joda::table::Table &table);
   void paintEmptyHeatmap();
   void goHome();
-
   void refreshView();
+  void refreshBreadCrump();
   void copyTableToClipboard(QTableWidget *table);
+  void refreshActSelection();
+  void resetSettings();
 
   /////////////////////////////////////////////////////
   void storeResultsTableSettingsToDatabase();
-  void onExportClicked(joda::ctrl::ExportSettings::ExportType);
-  void saveTemplate();
-  void loadTemplate();
+  void showFileSaveDialog(const QString &filter = "Excel 2007-365 (*.xlsx);;Text CSV (*.csv);;R-Script (*.r);;ImageC export template (*" +
+                                                  QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")");
+  void saveData(const std::string &fileName, joda::ctrl::ExportSettings::ExportType);
+  void saveTemplate(const std::string &fileName);
+  void showOpenFileDialog();
+  void loadTemplate(const std::string &pathToOpenFileFrom);
+  void backTo(Navigation backTo);
+
+  auto getWellOrder() const -> std::vector<std::vector<int32_t>>;
+  void setWellOrder(const std::vector<std::vector<int32_t>> &wellOrder);
+  void setPlateSize(const QSize &size);
+  auto getPlateSize() const -> QSize;
+  void setDensityMapSize(uint32_t densityMapSize);
+  auto getDensityMapSize() const -> uint32_t;
 
   WindowMain *mWindowMain;
   std::unique_ptr<joda::db::Database> mAnalyzer;
   std::filesystem::path mDbFilePath;
 
   // Breadcrumb///////////////////////////////////////////////////
-  void createBreadCrump(joda::ui::gui::helper::LayoutGenerator *);
-  auto getClasssFromCombo() const -> std::pair<std::string, std::string>;
 
-  QPushButton *mBackButton;
-  QAction *mTableButton   = nullptr;
-  QAction *mHeatmapButton = nullptr;
+  QLabel *mSelectedRowInfo;
+  QLineEdit *mSelectedValue;
+
+  QPushButton *mBreadCrumpPlate;
+  QPushButton *mBreadCrumpWell;
+  QPushButton *mBreadCrumpImage;
+
+  // Toolbar///////////////////////////////////////////////////
+  void createToolBar(joda::ui::gui::helper::LayoutGenerator *);
+  auto getClasssFromCombo() const -> std::pair<std::string, std::string>;
+  QPushButton *mTableButton   = nullptr;
+  QPushButton *mHeatmapButton = nullptr;
 
   PanelPreview *mPreviewImage;
   // uint32_t mDensityMapSize = 200;
   QComboBox *mColumn;
-  QAction *mColumnAction;
 
   /// COLUMN EDIT //////////////////////////////////////////////////
   void createEditColumnDialog();
@@ -130,7 +166,7 @@ private:
   DialogColumnSettings *mColumnEditDialog;
 
   /////////////////////////////////////////////////////
-  db::QueryFilter mFilter;
+  settings::ResultsSettings mFilter;
   PlaceholderTableWidget *mTable;
   std::map<int32_t, joda::table::Table> mActListData;
   std::map<int32_t, joda::table::Table> mActHeatmapData;
@@ -140,11 +176,20 @@ private:
 
   std::mutex mSelectMutex;
 
+  // TOOLBARS///////////////////////////////////////////////////
+
   /////////////////////////////////////////////////////
-  ChartHeatMap *mHeatmap01;
+  void setHeatmapVisible(bool);
+  QHBoxLayout *mHeatmapContainer;
+  ChartHeatMap *mHeatmapChart;
   Navigation mNavigation = Navigation::PLATE;
   QAction *mMarkAsInvalid;
-  PanelResultsInfo::DataSet mSelectedDataSet;
+  DataSet mSelectedDataSet;
+
+  /// HEATMAP SIDEBAR//////////////////////////////////////////////////
+  QLineEdit *mWellOrderMatrix;
+  QComboBox *mPlateSize;
+  QComboBox *mDensityMapSize;
 
   /////////////////////////////////////////////////////
   uint16_t mActGroupId = 0;
@@ -172,7 +217,6 @@ public slots:
   void onElementSelected(int cellX, int cellY, table::TableCell value);
   void onOpenNextLevel(int cellX, int cellY, table::TableCell value);
   void onTableCurrentCellChanged(int currentRow, int currentColumn, int previousRow, int previousColumn);
-  void onBackClicked();
   void onExportImageClicked();
   void onShowTable();
   void onShowHeatmap();

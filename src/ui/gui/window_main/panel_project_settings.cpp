@@ -14,6 +14,7 @@
 #include "panel_project_settings.hpp"
 #include <qcombobox.h>
 #include <string>
+#include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/file_grouper/file_grouper_types.hpp"
 #include "backend/helper/username.hpp"
 #include "backend/settings/project_settings/project_image_setup.hpp"
@@ -43,6 +44,34 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
     separator->setFrameShadow(QFrame::Sunken);
     formLayout->addRow(separator);
   };
+
+  //
+  // Project templates
+  //
+  {
+    auto *projectTemplate = new QHBoxLayout;
+    mTemplateSelection    = new QComboBox();
+    projectTemplate->addWidget(mTemplateSelection);
+
+    auto *bookMarkMenu = new QMenu();
+    // Save template
+    auto *saveTemplate = bookMarkMenu->addAction(generateIcon("save"), "Save project template");
+    connect(saveTemplate, &QAction::triggered, [this]() {});
+    // Open template
+    auto *openTemplate = bookMarkMenu->addAction(generateIcon("open"), "Open project template");
+    connect(openTemplate, &QAction::triggered, [this]() {});
+
+    mTemplateBookmarkButton = new QPushButton(generateIcon("menu"), "");
+    mTemplateBookmarkButton->setMenu(bookMarkMenu);
+    mTemplateBookmarkButton->setToolTip("Menu");
+
+    /// \todo implement save template
+    // projectTemplate->addWidget(mTemplateBookmarkButton);
+    projectTemplate->setStretch(0, 1);    // Make label take all available space
+    formLayout->addRow(new QLabel(tr("Project template:")), projectTemplate);
+    connect(mTemplateSelection, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onOpenTemplate);
+  }
+  addSeparator();
 
   //
   // Working directory
@@ -91,7 +120,8 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   mExperimentId = new QLineEdit;
   mExperimentId->addAction(generateIcon("binary-code"), QLineEdit::LeadingPosition);
   mExperimentId->setPlaceholderText("6fc87cc8-686e-4806-a78a-3f623c849cb7");
-  formLayout->addRow(new QLabel(tr("Experiment ID:")), mExperimentId);
+  /// \todo add for advanced mode
+  // formLayout->addRow(new QLabel(tr("Experiment ID:")), mExperimentId);
 
   //
   // Job name
@@ -220,6 +250,79 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
 }
 
 ///
+/// \brief      Templates loaded from templates folder
+/// \author     Joachim Danmayr
+///
+void PanelProjectSettings::loadTemplates()
+{
+  auto foundTemplates = joda::templates::TemplateParser::findTemplates(
+      {"templates/projects", joda::templates::TemplateParser::getUsersTemplateDirectory().string()}, joda::fs::EXT_PROJECT_TEMPLATE);
+
+  mTemplateSelection->clear();
+  mTemplateSelection->addItem("Load template ...", "");
+  mTemplateSelection->insertSeparator(mTemplateSelection->count());
+  std::string actCategory = "basic";
+  size_t addedPerCategory = 0;
+  for(const auto &[category, dataInCategory] : foundTemplates) {
+    for(const auto &[_, data] : dataInCategory) {
+      // Now the user templates start, add an addition separator
+      if(category != actCategory) {
+        actCategory = category;
+        if(addedPerCategory > 0) {
+          mTemplateSelection->insertSeparator(mTemplateSelection->count());
+        }
+      }
+      if(!data.icon.isNull()) {
+        mTemplateSelection->addItem(QIcon(data.icon.scaled(28, 28)), data.title.data(), data.path.data());
+      } else {
+        mTemplateSelection->addItem(generateIcon("favorite"), data.title.data(), data.path.data());
+      }
+    }
+    addedPerCategory = dataInCategory.size();
+  }
+}
+
+///
+/// \brief      Open template
+/// \author     Joachim Danmayr
+///
+void PanelProjectSettings::onOpenTemplate()
+{
+  auto selection = mTemplateSelection->currentData().toString();
+  if(selection == "") {
+  } else {
+    if(!askForChangeTemplateIndex()) {
+      mParentWindow->checkForSettingsChanged();
+      mTemplateSelection->blockSignals(true);
+      mTemplateSelection->setCurrentIndex(0);
+      mTemplateSelection->blockSignals(false);
+      return;
+    }
+    mParentWindow->openProjectSettings(selection, true);
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+bool PanelProjectSettings::askForChangeTemplateIndex()
+{
+  QMessageBox messageBox(mParentWindow);
+  messageBox.setIconPixmap(generateIcon("info-blue").pixmap(48, 48));
+  messageBox.setWindowTitle("Proceed?");
+  messageBox.setText("Actual taken settings will get lost! Load template?");
+  QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+  QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+  messageBox.setDefaultButton(noButton);
+  auto reply = messageBox.exec();
+  return messageBox.clickedButton() != noButton;
+}
+
+///
 /// \brief
 /// \author
 /// \param[in]
@@ -247,10 +350,10 @@ void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &s
   }
 
   {
-    mWellOrderMatrix->setText(joda::settings::vectorToString(settings.projectSettings.plates.begin()->wellImageOrder).data());
+    mWellOrderMatrix->setText(joda::settings::vectorToString(settings.projectSettings.plates.begin()->plateSetup.wellImageOrder).data());
   }
   {
-    auto val = settings.projectSettings.plates.begin()->rows * 100 + settings.projectSettings.plates.begin()->cols;
+    auto val = settings.projectSettings.plates.begin()->plateSetup.rows * 100 + settings.projectSettings.plates.begin()->plateSetup.cols;
     auto idx = mPlateSize->findData(val);
     if(idx >= 0) {
       mPlateSize->setCurrentIndex(idx);
@@ -317,21 +420,24 @@ void PanelProjectSettings::toSettings()
   mSettings.projectSettings.experimentSettings.notes = mNotes->toPlainText().toStdString();
   mSettings.projectSettings.address.firstName        = mScientistsFirstName->text().toStdString();
 
-  mSettings.projectSettings.plates.begin()->groupBy        = static_cast<joda::enums::GroupBy>(mGroupByComboBox->currentData().toInt());
-  mSettings.projectSettings.plates.begin()->filenameRegex  = mRegexToFindTheWellPosition->currentText().toStdString();
-  mSettings.projectSettings.plates.begin()->imageFolder    = mWorkingDir->text().toStdString();
-  mSettings.projectSettings.plates.begin()->wellImageOrder = joda::settings::stringToVector(mWellOrderMatrix->text().toStdString());
+  mSettings.projectSettings.plates.begin()->groupBy                   = static_cast<joda::enums::GroupBy>(mGroupByComboBox->currentData().toInt());
+  mSettings.projectSettings.plates.begin()->filenameRegex             = mRegexToFindTheWellPosition->currentText().toStdString();
+  mSettings.projectSettings.plates.begin()->imageFolder               = mWorkingDir->text().toStdString();
+  mSettings.projectSettings.plates.begin()->plateSetup.wellImageOrder = joda::settings::stringToVector(mWellOrderMatrix->text().toStdString());
 
-  auto value                                        = mPlateSize->currentData().toUInt();
-  mSettings.projectSettings.plates.begin()->rows    = value / 100;
-  mSettings.projectSettings.plates.begin()->cols    = value % 100;
-  mSettings.projectSettings.plates.begin()->plateId = 1;
+  auto value                                                = mPlateSize->currentData().toUInt();
+  mSettings.projectSettings.plates.begin()->plateSetup.rows = value / 100;
+  mSettings.projectSettings.plates.begin()->plateSetup.cols = value % 100;
+  mSettings.projectSettings.plates.begin()->plateId         = 1;
 
   mSettings.imageSetup.series         = static_cast<int32_t>(mImageSeries->currentData().toInt());
   mSettings.imageSetup.zStackHandling = static_cast<joda::settings::ProjectImageSetup::ZStackHandling>(mStackHandlingZ->currentData().toInt());
   mSettings.imageSetup.tStackHandling = static_cast<joda::settings::ProjectImageSetup::TStackHandling>(mStackHandlingT->currentData().toInt());
   mSettings.imageSetup.imageTileSettings.tileWidth  = static_cast<int32_t>(mCompositeTileSize->currentData().toInt());
   mSettings.imageSetup.imageTileSettings.tileHeight = static_cast<int32_t>(mCompositeTileSize->currentData().toInt());
+
+  // Sync to results settings
+  mSettings.resultsSettings.setFilter(mSettings.projectSettings.plates.begin()->plateSetup);
 
   mParentWindow->checkForSettingsChanged();
 }

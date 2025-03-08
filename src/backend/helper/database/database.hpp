@@ -43,6 +43,13 @@ struct AnalyzeMeta
   std::string analyzeSettingsJsonString;
 };
 
+struct GroupInfo
+{
+  std::string groupName;
+  uint32_t posX = 0;
+  uint32_t posY = 0;
+};
+
 struct ImageInfo
 {
   std::string filename;
@@ -89,6 +96,7 @@ public:
   auto selectImageChannels() -> std::map<uint32_t, joda::ome::OmeInfo::ChannelInfo>;
   auto selectClasses() -> std::map<enums::ClassId, joda::settings::Class>;
 
+  auto selectGroupInfo(uint64_t groupId) -> GroupInfo;
   auto selectImageInfo(uint64_t imageId) -> ImageInfo;
   auto selectImages() -> std::vector<ImageInfo>;
   auto selectMeasurementChannelsForClasss(enums::ClassId classId) -> std::set<int32_t>;

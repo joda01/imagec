@@ -354,8 +354,8 @@ void BatchExporter::createAnalyzeSettings(WorkBook &workbookSettings, const sett
   addElement("Duration at", joda::helper::getDurationAsString(timeStarted, timeFinished));
 
   addTitle("ImageC");
-  addElement("Version", settings.meta.imagecVersion);
-  addElement("Build", settings.meta.buildTime);
+  addElement("Version", settings.imagecMeta.imagecVersion);
+  addElement("Build", settings.imagecMeta.buildTime);
 
   addTitle("Classes");
   for(const auto &classs : settings.projectSettings.classification.classes) {
@@ -384,7 +384,7 @@ void BatchExporter::createAnalyzeSettings(WorkBook &workbookSettings, const sett
     addTitle("Plate " + std::to_string(plate.plateId));
     addElement("Filename regex", plate.filenameRegex);
     addElement("Image folder", plate.imageFolder);
-    addElement("Well order", joda::settings::vectorToString(plate.wellImageOrder));
+    addElement("Well order", joda::settings::vectorToString(plate.plateSetup.wellImageOrder));
     nlohmann::json groupBy = static_cast<enums::GroupBy>(plate.groupBy);
     addElement("Group by", std::string(groupBy));
   }

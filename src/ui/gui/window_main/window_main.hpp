@@ -41,6 +41,7 @@ namespace joda::ui::gui {
 
 class ContainerChannel;
 class PanelResults;
+class PanelResultsTemplateGenerator;
 
 ///
 /// \class
@@ -56,7 +57,7 @@ public:
   ~WindowMain();
   bool showPanelStartPage();
   void showPanelPipelineSettingsEdit(PanelPipelineSettings *);
-  void openProjectSettings(const QString &filePath);
+  void openProjectSettings(const QString &filePath, bool openFromTemplate);
   void openResultsSettings(const QString &filePath);
 
   joda::ctrl::Controller *getController()
@@ -109,6 +110,8 @@ public:
     return mAnalyzeSettings;
   }
 
+  void setSideBarVisible(bool visible);
+
   void setWindowTitlePrefix(const QString &txt);
   void checkForSettingsChanged();
   auto getOutputClasses() -> std::set<joda::enums::ClassId>;
@@ -146,7 +149,7 @@ private:
   void createLeftToolbar();
   void loadTemplates();
   void clearSettings();
-  void saveProject(std::filesystem::path filename, bool saveAs = false);
+  void saveProject(std::filesystem::path filename, bool saveAs = false, bool createHistoryEntry = true);
   void closeEvent(QCloseEvent *event) override;
 
   QWidget *createStackedWidget();
@@ -157,6 +160,7 @@ private:
   static QString bytesToString(int64_t bytes);
 
   ////Common/////////////////////////////////////////////////
+  QToolBar *mTopToolBar;
   joda::ctrl::Controller *mController;
   QFileSystemWatcher mTemplateDirWatcher;
   PanelCompilerLog *mCompilerLog;
@@ -169,17 +173,19 @@ private:
   std::set<joda::enums::ClassId> mOutPutClassesOld;
 
   ////Left Toolbar/////////////////////////////////////////////////
-  QToolBar *mSidebar;
-  QTabWidget *mTabWidget;
-  PanelProjectSettings *mPanelProjectSettings;
-  PanelClassification *mPanelClassification;
-  PanelPipeline *mPanelPipeline;
-  PanelImages *mPanelImages;
-  PanelResultsInfo *mPanelResultsInfo;
+  QToolBar *mSidebar                          = nullptr;
+  QTabWidget *mTabWidget                      = nullptr;
+  PanelProjectSettings *mPanelProjectSettings = nullptr;
+  PanelClassification *mPanelClassification   = nullptr;
+  PanelPipeline *mPanelPipeline               = nullptr;
+  PanelImages *mPanelImages                   = nullptr;
+  PanelResultsInfo *mPanelResultsInfo         = nullptr;
+
+  ////Pipeline/////////////////////////////////////////////////
   QPushButton *mStartAnalysis = nullptr;
 
   ////Stacked widget/////////////////////////////////////////////////
-  QStackedWidget *mStackedWidget;
+  QStackedWidget *mStackedWidget          = nullptr;
   Navigation mNavigation                  = Navigation::START_PAGE;
   PanelPipelineSettings *mSelectedChannel = nullptr;
   PanelResults *mPanelReporting           = nullptr;
@@ -194,6 +200,7 @@ private:
   QAction *mSaveProjectAs           = nullptr;
   QAction *mShowInfoDialog          = nullptr;
   QAction *mStartAnalysisToolButton = nullptr;
+  QAction *mShowCompilerLog         = nullptr;
 
   ////Mutexes/////////////////////////////////////////////////
   std::mutex mCheckForSettingsChangedMutex;

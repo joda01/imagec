@@ -16,11 +16,15 @@
 #include <qdialog.h>
 #include <qspinbox.h>
 #include <qtmetamacros.h>
+#include "backend/settings/results_settings/results_settings.hpp"
 
 namespace joda::db {
 class QueryFilter;
 class Database;
 };    // namespace joda::db
+namespace joda::settings {
+class AnalyzeSettings;
+}
 
 namespace joda::ui::gui {
 
@@ -34,9 +38,10 @@ class DialogColumnSettings : public QDialog
   Q_OBJECT
 public:
   /////////////////////////////////////////////////////
-  DialogColumnSettings(db::QueryFilter *filter, QWidget *parent);
+  DialogColumnSettings(settings::ResultsSettings *filter, QWidget *parent);
   void exec(int32_t selectedColumn);
   void updateClassesAndClasses(db::Database *);
+  void updateClassesAndClasses(const joda::settings::AnalyzeSettings &settings);
   auto getClasssFromCombo() const -> std::pair<std::string, std::string>;
 
 private:
@@ -45,8 +50,8 @@ private:
   int32_t mSelectedColumn = -1;
   bool accept             = false;
 
-  db::Database *mDatabase  = nullptr;
-  db::QueryFilter *mFilter = nullptr;
+  db::Database *mDatabase            = nullptr;
+  settings::ResultsSettings *mFilter = nullptr;
 
   QComboBox *mClasssClassSelector;
   QComboBox *mClasssIntersection;

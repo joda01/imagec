@@ -54,7 +54,7 @@ public:
   explicit LayoutGenerator(QWidget *parent, bool withDeleteButton = true, bool withTopToolbar = true, bool withBackButton = true,
                            bool withBottomToolbar = false);
 
-  TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose, bool showCloseButton);
+  TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose, bool showCloseButton, int32_t topContentSpacing = SPACING);
 
   void removeTab(int idx)
   {
@@ -158,7 +158,8 @@ class TabWidget : public QScrollArea
   Q_OBJECT
 
 public:
-  TabWidget(bool hasBottomToolbar, std::function<void()> beforeTabClose, LayoutGenerator *layoutGenerator, QWidget *parent);
+  TabWidget(int32_t topContentSpacing, bool hasBottomToolbar, std::function<void()> beforeTabClose, LayoutGenerator *layoutGenerator,
+            QWidget *parent);
   VerticalPane *addVerticalPanel();
   void beforeClose()
   {
@@ -167,6 +168,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  QWidget *mContentWidget;
   QHBoxLayout *mainLayout;
   LayoutGenerator *mLayoutGenerator;
   QWidget *mParent;

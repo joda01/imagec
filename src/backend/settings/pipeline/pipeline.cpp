@@ -20,7 +20,7 @@
 
 namespace joda::settings {
 
-static const int32_t MAX_HISTORY_STEPS = 128;
+static const int32_t MAX_HISTORY_STEPS = 64;
 
 ///
 /// \brief      Create a snapshot of the actual pipeline steps

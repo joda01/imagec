@@ -16,6 +16,7 @@
 #include <qboxlayout.h>
 #include <qdialog.h>
 #include <qicon.h>
+#include <qnamespace.h>
 #include <qwidget.h>
 #include <memory>
 #include <thread>
@@ -191,6 +192,16 @@ protected:
     mDisabled->setChecked(disabled);
   }
 
+  [[nodiscard]] bool isLocked() const
+  {
+    return mLocked->isChecked();
+  }
+
+  void setIsLocked(bool locked)
+  {
+    mLocked->setChecked(locked);
+  }
+
 private:
   /////////////////////////////////////////////////////
 
@@ -198,18 +209,16 @@ private:
   /// \brief      Constructor
   /// \author     Joachim Danmayr
   ///
-  void mousePressEvent(QMouseEvent *event) override
-  {
-    if(event->button() == Qt::LeftButton) {
-      openEditView();
-    }
-  }
+  void mousePressEvent(QMouseEvent *event) override;
   void setDisabled(bool);
+  void setLocked(bool);
   void paintEvent(QPaintEvent *event) override;
+  void setDisplayTextFont();
 
   /////////////////////////////////////////////////////
   joda::settings::PipelineStep &mPipelineStep;
   QAction *mDisabled;
+  QAction *mLocked;
   QWidget *mParent;
   QString mTitle;
   QString mDescription;

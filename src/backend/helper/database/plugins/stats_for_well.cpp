@@ -30,9 +30,21 @@ auto transformMatrix(const std::vector<std::vector<int32_t>> &wellImageOrder, in
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::toTable(db::Database *database, const QueryFilter &filter, Grouping grouping) -> QueryResult
+auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSettings &filter, Grouping grouping) -> QueryResult
 {
-  auto classesToExport = filter.getClassesToExport();
+  auto classesToExport = ResultingTable(&filter);
+
+  std::map<uint64_t, int32_t> rowIndexes;    // <ID, rowIdx>
+
+  auto findMaxRowIdx = [&rowIndexes]() -> int32_t {
+    int32_t rowIdx = -1;
+    for(const auto &[_, row] : rowIndexes) {
+      if(row > rowIdx) {
+        rowIdx = row;
+      }
+    }
+    return rowIdx;
+  };
 
   for(const auto &[classs, statement] : classesToExport) {
     auto materializedResult = getData(classs, database, filter.getFilter(), statement, grouping)->Cast<duckdb::StreamQueryResult>().Materialize();
@@ -50,11 +62,33 @@ auto StatsPerGroup::toTable(db::Database *database, const QueryFilter &filter, G
 
         for(int32_t colIdx = 0; colIdx < columnNr; colIdx++) {
           double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
+
           if(grouping == Grouping::BY_WELL) {
-            classesToExport.setData(classs, statement.getColNames(), row, colIdx, filename, table::TableCell{value, imageId, validity == 0, ""});
+            // It could be that there are classes without data, but we have to keep the row order, else the data would be shown shifted and beside a
+            // wrong image
+            size_t rowIdx = row;
+            if(rowIndexes.contains(imageId)) {
+              rowIdx = rowIndexes.at(imageId);
+            } else {
+              rowIdx = findMaxRowIdx() + 1;
+              rowIndexes.emplace(imageId, rowIdx);
+            }
+
+            ///
+            classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, filename, table::TableCell{value, imageId, validity == 0, ""});
           } else {
+            // It could be that there are classes without data, but we have to keep the row order, else the data would be shown shifted and beside a
+            // wrong image
+            size_t rowIdx = row;
+            if(rowIndexes.contains(groupId)) {
+              rowIdx = rowIndexes.at(groupId);
+            } else {
+              rowIdx = findMaxRowIdx() + 1;
+              rowIndexes.emplace(groupId, rowIdx);
+            }
+
             auto colC = std::string(1, ((char) (platePosY - 1) + 'A')) + std::to_string(platePosX);
-            classesToExport.setData(classs, statement.getColNames(), row, colIdx, colC, table::TableCell{value, groupId, validity == 0, ""});
+            classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, colC, table::TableCell{value, groupId, validity == 0, ""});
           }
         }
 
@@ -72,19 +106,19 @@ auto StatsPerGroup::toTable(db::Database *database, const QueryFilter &filter, G
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::toHeatmap(db::Database *database, const QueryFilter &filter, Grouping grouping) -> QueryResult
+auto StatsPerGroup::toHeatmap(db::Database *database, const settings::ResultsSettings &filter, Grouping grouping) -> QueryResult
 {
-  auto classesToExport = filter.getClassesToExport();
+  auto classesToExport = ResultingTable(&filter);
   classesToExport.clearTables();
 
   int32_t sizeX = 0;
   int32_t sizeY = 0;
   std::map<int32_t, ImgPositionInWell> wellPos;
   if(grouping == Grouping::BY_WELL) {
-    wellPos = transformMatrix(filter.getFilter().wellImageOrder, sizeX, sizeY);
+    wellPos = transformMatrix(filter.getPlateSetup().wellImageOrder, sizeX, sizeY);
   } else {
-    sizeX = filter.getFilter().plateCols;
-    sizeY = filter.getFilter().plateRows;
+    sizeX = filter.getPlateSetup().cols;
+    sizeY = filter.getPlateSetup().rows;
   }
 
   for(const auto &[classs, statement] : classesToExport) {
@@ -138,8 +172,9 @@ auto StatsPerGroup::toHeatmap(db::Database *database, const QueryFilter &filter,
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::getData(const db::ResultingTable::QueryKey &classsAndClass, db::Database *analyzer, const QueryFilter::ObjectFilter &filter,
-                            const PreparedStatement &channelFilter, Grouping grouping) -> std::unique_ptr<duckdb::QueryResult>
+auto StatsPerGroup::getData(const db::ResultingTable::QueryKey &classsAndClass, db::Database *analyzer,
+                            const settings::ResultsSettings::ObjectFilter &filter, const PreparedStatement &channelFilter, Grouping grouping)
+    -> std::unique_ptr<duckdb::QueryResult>
 {
   auto [sql, params]                          = toSQL(classsAndClass, filter, channelFilter, grouping);
   std::unique_ptr<duckdb::QueryResult> result = analyzer->select(sql, params);
@@ -156,7 +191,7 @@ auto StatsPerGroup::getData(const db::ResultingTable::QueryKey &classsAndClass, 
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, const QueryFilter::ObjectFilter &filter,
+auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, const settings::ResultsSettings::ObjectFilter &filter,
                           const PreparedStatement &channelFilter, Grouping grouping) -> std::pair<std::string, DbArgs_t>
 {
   auto [retValSum, retValCnt] = channelFilter.createIntersectionQuery();

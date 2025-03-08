@@ -16,6 +16,7 @@
 #include <string>
 #include <vector>
 #include "backend/enums/enums_grouping.hpp"
+#include "backend/settings/project_settings/project_plate_setup.hpp"
 #include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
@@ -70,25 +71,9 @@ struct Plate
   std::string notes;
 
   //
-  // Number of rows the plate has
-  //
-  uint32_t rows = 0;
-
-  //
-  // Number of cols the plate has
-  //
-  uint32_t cols = 0;
-
-  //
   // Folder where images for this plate are placed in
   //
   std::string imageFolder;
-
-  //
-  // Matrix of image numbers how the images are ordered in a map.
-  // First dimension of the vector are the rows, second the columns
-  //
-  std::vector<std::vector<int32_t>> wellImageOrder = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16}};
 
   //
   // Image grouping option [NONE, FOLDER, FILENAME]
@@ -101,13 +86,17 @@ struct Plate
   //
   std::string filenameRegex = "_((.)([0-9]+))_([0-9]+)";
 
+  //
+  // How the plate looks like
+  //
+  PlateSetup plateSetup;
+
   void check() const
   {
     CHECK_ERROR(!imageFolder.empty(), "Image folder must not be empty!");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Plate, plateId, name, notes, rows, cols, imageFolder, groupBy,
-                                                       filenameRegex, wellImageOrder);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Plate, plateId, name, notes, plateSetup, imageFolder, groupBy, filenameRegex);
 };
 
 }    // namespace joda::settings

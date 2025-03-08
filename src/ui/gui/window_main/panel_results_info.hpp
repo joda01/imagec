@@ -27,6 +27,7 @@
 namespace joda::ui::gui {
 
 class WindowMain;
+class PanelResultsTemplateGenerator;
 
 ///
 /// \class
@@ -38,35 +39,12 @@ class PanelResultsInfo : public QWidget
   Q_OBJECT
 
 public:
-  struct DataSet
-  {
-    struct Value
-    {
-      double value = 0;
-    };
-
-    std::optional<db::AnalyzeMeta> analyzeMeta;
-    std::optional<db::ImageInfo> imageMeta;
-    std::optional<Value> value;
-    //  std::optional<results::db::PlateMeta> plateMeta;
-    //  std::optional<results::db::GroupMeta> groupMeta;
-    //  std::optional<results::db::ImageMeta> imageMeta;
-    //  std::optional<results::db::ChannelMeta> channelMeta;
-    //  std::optional<results::db::ImageChannelMeta> imageChannelMeta;
-  };
-
   /////////////////////////////////////////////////////
   explicit PanelResultsInfo(WindowMain *windowMain);
-  void setData(const DataSet &);
-  [[nodiscard]] auto getWellOrder() const -> std::vector<std::vector<int32_t>>;
-  [[nodiscard]] auto getPlateSize() const -> QSize;
-  [[nodiscard]] auto getDensityMapSize() const -> uint32_t;
-  void setWellOrder(const std::vector<std::vector<int32_t>> &wellOrder);
-  void setPlateSize(const QSize &size);
-  void setDensityMapSize(uint32_t);
-
   void addResultsFileToHistory(const std::filesystem::path &dbFile, const std::string &jobName, const std::chrono::system_clock::time_point &time);
   void clearHistory();
+  void fromSettings(const joda::settings::AnalyzeSettings &settings);
+  void refreshTableView();
 
 signals:
   void settingsChanged();
@@ -75,13 +53,8 @@ private:
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
   PlaceholderTableWidget *mLastLoadedResults;
-  PlaceholderTableWidget *mResultsProperties;
+  PanelResultsTemplateGenerator *mResultsTemplate;
   std::set<std::string> mAddedPaths;
-
-  /////////////////////////////////////////////////////
-  QComboBox *mPlateSize;
-  QLineEdit *mWellOrderMatrix;
-  QComboBox *mDensityMapSize;
 
 private slots:
   void filterResults();

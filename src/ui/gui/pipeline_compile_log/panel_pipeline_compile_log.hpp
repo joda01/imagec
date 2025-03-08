@@ -36,9 +36,14 @@ public:
   PanelCompilerLog(WindowMain *parent);
   void updateCompilerLog(const joda::settings::AnalyzeSettings &);
   void showDialog();
+  void hideDialog();
   int32_t getNumberOfErrors() const
   {
     return mNrOfErrors;
+  }
+  QDialog *getDialog()
+  {
+    return mDialog;
   }
 
 private:

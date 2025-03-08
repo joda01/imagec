@@ -106,6 +106,7 @@ private:
 
   // ACTIONS///////////////////////////////////////////////////
   QAction *mHistoryAction;
+  QAction *mActionDisabled;
 
   /////////////////////////////////////////////////////
   helper::LayoutGenerator mLayout;
@@ -168,6 +169,7 @@ private slots:
   void closeWindow();
   void deletePipeline();
   void onClassificationNameChanged();
+  void onZProjectionChanged();
 };
 
 }    // namespace joda::ui::gui

@@ -28,13 +28,15 @@ namespace joda::db {
 /// \param[out]
 /// \return
 ///
-void RExporter::startExport(const db::QueryFilter &filter, db::StatsPerGroup::Grouping grouping, const settings::AnalyzeSettings &analyzeSettings,
-                            const std::string &jobName, std::chrono::system_clock::time_point timeStarted,
-                            std::chrono::system_clock::time_point timeFinished, std::string outputFileName)
+void RExporter::startExport(const settings::ResultsSettings &filter, db::StatsPerGroup::Grouping grouping,
+                            const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
+                            std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
+                            std::string outputFileName)
 {
   std::vector<std::string> sqlStatements;
-  int32_t loopCount = 0;
-  for(const auto &cc : filter.getClassesToExport()) {
+  int32_t loopCount    = 0;
+  auto classesToExport = ResultingTable(&filter);
+  for(const auto &cc : classesToExport) {
     auto createSQL = [&sqlStatements](const std::pair<std::string, DbArgs_t> &sqlData, int32_t loopCount) {
       std::string arguments;
       for(const auto &arg : sqlData.second) {
@@ -77,7 +79,7 @@ void RExporter::startExport(const db::QueryFilter &filter, db::StatsPerGroup::Gr
       analyzeSettings.projectSettings.address.firstName + " " + analyzeSettings.projectSettings.address.lastName +
       "\n"
       "# \\date  " +
-      helper::timepointToIsoString(timeStarted) + "\n" + "# \\version " + analyzeSettings.meta.imagecVersion +
+      helper::timepointToIsoString(timeStarted) + "\n" + "# \\version " + analyzeSettings.imagecMeta.imagecVersion +
       "\n"
       "\n"
       "# Be sure the duckdb package is installed. By executing the following line, the package will be installed.\n"

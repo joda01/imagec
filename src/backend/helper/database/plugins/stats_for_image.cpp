@@ -11,8 +11,10 @@
 ///
 
 #include "stats_for_image.hpp"
+#include <exception>
 #include <string>
 #include "backend/enums/enum_measurements.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 
 namespace joda::db {
 
@@ -23,14 +25,27 @@ namespace joda::db {
 /// \param[out]
 /// \return
 ///
-auto StatsPerImage::toTable(db::Database *database, const QueryFilter &filter) -> QueryResult
+auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSettings &filter) -> QueryResult
 {
-  auto classesToExport = filter.getClassesToExport();
+  auto classesToExport = ResultingTable(&filter);
 
   for(const auto &[classs, statement] : classesToExport) {
-    auto [sql, params] = toSqlTable(classs, filter.getFilter(), statement);
+    //
+    // This is used to align the objects for each class correct
+    //
+    std::map<uint64_t, int32_t> rowIndexes;    // <ID, rowIdx>
+    auto findMaxRowIdx = [&rowIndexes]() -> int32_t {
+      int32_t rowIdx = -1;
+      for(const auto &[_, row] : rowIndexes) {
+        if(row > rowIdx) {
+          rowIdx = row;
+        }
+      }
+      return rowIdx;
+    };
 
-    auto result = database->select(sql, params);
+    auto [sql, params] = toSqlTable(classs, filter.getFilter(), statement);
+    auto result        = database->select(sql, params);
 
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());
@@ -40,8 +55,24 @@ auto StatsPerImage::toTable(db::Database *database, const QueryFilter &filter) -
     for(size_t row = 0; row < materializedResult->RowCount(); row++) {
       for(int32_t colIdx = 0; colIdx < columnNr; colIdx++) {
         if(!materializedResult->GetValue(colIdx, row).IsNull()) {
+          uint32_t meas_center_x = materializedResult->GetValue(columnNr + 0, row).GetValue<uint32_t>();
+          uint32_t meas_center_y = materializedResult->GetValue(columnNr + 1, row).GetValue<uint32_t>();
+          uint64_t objectId      = materializedResult->GetValue(columnNr + 2, row).GetValue<uint64_t>();
+
+          // It could be that there are classes without data, but we have to keep the row order, else the data would be shown shifted and beside a
+          // wrong image
+          size_t rowIdx = row;
+          if(rowIndexes.contains(objectId)) {
+            rowIdx = rowIndexes.at(objectId);
+          } else {
+            rowIdx = findMaxRowIdx() + 1;
+            rowIndexes.emplace(objectId, rowIdx);
+          }
+
           double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
-          classesToExport.setData(classs, statement.getColNames(), row, colIdx, std::to_string(row), table::TableCell{value, 0, true, ""});
+
+          classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, std::to_string(rowIdx),
+                                  table::TableCell{value, objectId, true, ""});
         }
       }
     }
@@ -56,7 +87,7 @@ auto StatsPerImage::toTable(db::Database *database, const QueryFilter &filter) -
 /// \param[out]
 /// \return
 ///
-auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClass, const QueryFilter::ObjectFilter &filter,
+auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClass, const settings::ResultsSettings::ObjectFilter &filter,
                                const PreparedStatement &channelFilter) -> std::pair<std::string, DbArgs_t>
 {
   auto [retValSum, retValCnt] = channelFilter.createIntersectionQuery();
@@ -111,7 +142,8 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
   }
   std::string sql = intersect + "SELECT\n" + channelFilter.createStatsQuery(false, false) +
                     "ANY_VALUE(t1.meas_center_x) as meas_center_x,\n"
-                    "ANY_VALUE(t1.meas_center_y) as meas_center_y\n"
+                    "ANY_VALUE(t1.meas_center_y) as meas_center_y,\n"
+                    "ANY_VALUE(t1.object_id) as object_id\n"
                     "FROM\n"
                     "  " +
                     table + " t1\n" + channelFilter.createStatsQueryJoins() +
@@ -131,13 +163,13 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
 /// \param[out]
 /// \return
 ///
-auto StatsPerImage::toHeatmap(db::Database *database, const QueryFilter &filter) -> QueryResult
+auto StatsPerImage::toHeatmap(db::Database *database, const settings::ResultsSettings &filter) -> QueryResult
 {
-  auto classesToExport = filter.getClassesToExport();
+  auto classesToExport = ResultingTable(&filter);
 
   int32_t tabIdx = 0;
   for(const auto &[classs, statement] : classesToExport) {
-    auto [result, imageInfo] = densityMap(classs, database, filter.getFilter(), statement);
+    auto [result, imageInfo] = densityMap(classs, database, filter.getFilter(), filter.getDensityMapSettings(), statement);
     size_t columnNr          = statement.getColSize();
     auto materializedResult  = result->Cast<duckdb::StreamQueryResult>().Materialize();
 
@@ -161,8 +193,8 @@ auto StatsPerImage::toHeatmap(db::Database *database, const QueryFilter &filter)
             uint32_t rectangleX = materializedResult->GetValue(columnNr + 0, n).GetValue<double>();
             uint32_t rectangleY = materializedResult->GetValue(columnNr + 1, n).GetValue<double>();
 
-            uint32_t x = rectangleX / filter.getFilter().densityMapAreaSize;
-            uint32_t y = rectangleY / filter.getFilter().densityMapAreaSize;
+            uint32_t x = rectangleX / filter.getDensityMapSettings().densityMapAreaSize;
+            uint32_t y = rectangleY / filter.getDensityMapSettings().densityMapAreaSize;
 
             std::string linkToImage = imageInfo.controlImgPath;
             results.setData(y, x, table::TableCell{value, 0, true, linkToImage});
@@ -186,8 +218,10 @@ auto StatsPerImage::toHeatmap(db::Database *database, const QueryFilter &filter)
 /// \param[out]
 /// \return
 ///
-auto StatsPerImage::densityMap(const db::ResultingTable::QueryKey &classsAndClass, db::Database *analyzer, const QueryFilter::ObjectFilter &filter,
-                               const PreparedStatement &channelFilter) -> std::tuple<std::unique_ptr<duckdb::QueryResult>, ImgInfo>
+auto StatsPerImage::densityMap(const db::ResultingTable::QueryKey &classsAndClass, db::Database *analyzer,
+                               const settings::ResultsSettings::ObjectFilter &filter,
+                               const settings::ResultsSettings::DensityMapSettings &densityMapSettings, const PreparedStatement &channelFilter)
+    -> std::tuple<std::unique_ptr<duckdb::QueryResult>, ImgInfo>
 {
   std::string controlImgPath;
   ImgInfo imgInfo;
@@ -206,24 +240,36 @@ auto StatsPerImage::densityMap(const db::ResultingTable::QueryKey &classsAndClas
     if(images->HasError()) {
       throw std::invalid_argument("S:" + images->GetError());
     }
+    try {
+      auto imageMaterialized = images->Cast<duckdb::StreamQueryResult>().Materialize();
+      if(!imageMaterialized->GetValue(1, 0).IsNull()) {
+        uint64_t imgWidth  = imageMaterialized->GetValue(1, 0).GetValue<uint64_t>();
+        uint64_t imgWeight = imageMaterialized->GetValue(2, 0).GetValue<uint64_t>();
+        controlImgPath     = imageMaterialized->GetValue(3, 0).GetValue<std::string>();
 
-    auto imageMaterialized = images->Cast<duckdb::StreamQueryResult>().Materialize();
-    uint64_t imgWidth      = imageMaterialized->GetValue(1, 0).GetValue<uint64_t>();
-    uint64_t imgWeight     = imageMaterialized->GetValue(2, 0).GetValue<uint64_t>();
-    controlImgPath         = imageMaterialized->GetValue(3, 0).GetValue<std::string>();
+        std::string linkToImage = controlImgPath;
+        helper::stringReplace(linkToImage, "${tile_id}", std::to_string(0));
 
-    std::string linkToImage = controlImgPath;
-    helper::stringReplace(linkToImage, "${tile_id}", std::to_string(0));
+        uint64_t width  = std::ceil(static_cast<float>(imgWidth) / static_cast<float>(densityMapSettings.densityMapAreaSize));
+        uint64_t height = std::ceil(static_cast<float>(imgWeight) / static_cast<float>(densityMapSettings.densityMapAreaSize));
 
-    uint64_t width  = std::ceil(static_cast<float>(imgWidth) / static_cast<float>(filter.densityMapAreaSize));
-    uint64_t height = std::ceil(static_cast<float>(imgWeight) / static_cast<float>(filter.densityMapAreaSize));
-
-    imgInfo.width          = width;
-    imgInfo.height         = height;
-    imgInfo.controlImgPath = linkToImage;
+        imgInfo.width          = width;
+        imgInfo.height         = height;
+        imgInfo.controlImgPath = linkToImage;
+      } else {
+        imgInfo.width          = 0;
+        imgInfo.height         = 0;
+        imgInfo.controlImgPath = "";
+      }
+    } catch(const std::exception &ex) {
+      joda::log::logWarning(ex.what());
+      imgInfo.width          = 0;
+      imgInfo.height         = 0;
+      imgInfo.controlImgPath = "";
+    }
   }
 
-  auto [sql, params]                          = toSqlHeatmap(classsAndClass, filter, channelFilter);
+  auto [sql, params]                          = toSqlHeatmap(classsAndClass, filter, densityMapSettings, channelFilter);
   std::unique_ptr<duckdb::QueryResult> result = analyzer->select(sql, params);
 
   if(result->HasError()) {
@@ -240,8 +286,9 @@ auto StatsPerImage::densityMap(const db::ResultingTable::QueryKey &classsAndClas
 /// \param[out]
 /// \return
 ///
-auto StatsPerImage::toSqlHeatmap(const db::ResultingTable::QueryKey &classsAndClass, const QueryFilter::ObjectFilter &filter,
-                                 const PreparedStatement &channelFilter) -> std::pair<std::string, DbArgs_t>
+auto StatsPerImage::toSqlHeatmap(const db::ResultingTable::QueryKey &classsAndClass, const settings::ResultsSettings::ObjectFilter &filter,
+                                 const settings::ResultsSettings::DensityMapSettings &densityMapSettings, const PreparedStatement &channelFilter)
+    -> std::pair<std::string, DbArgs_t>
 {
   auto [innerSql, params] = toSqlTable(classsAndClass, filter, channelFilter);
   std::string sql         = "WITH innerTable AS (\n" + innerSql +
@@ -253,7 +300,7 @@ auto StatsPerImage::toSqlHeatmap(const db::ResultingTable::QueryKey &classsAndCl
                     "FROM innerTable\n"
                     "GROUP BY floor(meas_center_x / $5), floor(meas_center_y / $5)";
 
-  params.emplace_back(static_cast<double>(filter.densityMapAreaSize));
+  params.emplace_back(static_cast<double>(densityMapSettings.densityMapAreaSize));
   return {sql, params};
 }
 

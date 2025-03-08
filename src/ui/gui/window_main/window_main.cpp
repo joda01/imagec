@@ -14,6 +14,7 @@
 #include "window_main.hpp"
 #include <qboxlayout.h>
 #include <qcombobox.h>
+#include <qdialog.h>
 #include <qgridlayout.h>
 #include <qlabel.h>
 #include <qlayout.h>
@@ -97,8 +98,17 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   // Watch for new templates added
   //
   mTemplateDirWatcher.addPath(joda::templates::TemplateParser::getUsersTemplateDirectory().string().data());    // Replace with your desired path
-  QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::fileChanged, [&](const QString &path) { loadTemplates(); });
-  QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::directoryChanged, [&](const QString &path) { loadTemplates(); });
+  QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::fileChanged, [&](const QString &path) {
+    loadTemplates();
+    mPanelProjectSettings->loadTemplates();
+  });
+  QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::directoryChanged, [&](const QString &path) {
+    loadTemplates();
+    mPanelProjectSettings->loadTemplates();
+  });
+
+  loadTemplates();
+  mPanelProjectSettings->loadTemplates();
 
   //
   // Initial background tasks
@@ -134,60 +144,82 @@ void WindowMain::setWindowTitlePrefix(const QString &txt)
   }
 }
 
+void WindowMain::setSideBarVisible(bool visible)
+{
+  mSidebar->setVisible(visible);
+  mTopToolBar->setVisible(visible);
+}
+
 ///
 /// \brief
 /// \author     Joachim Danmayr
 ///
 void WindowMain::createTopToolbar()
 {
-  auto *toolbar = addToolBar("toolbar");
-  toolbar->setMovable(false);
+  mTopToolBar = addToolBar("toolbar");
+  mTopToolBar->setMovable(false);
 
-  mNewProjectButton = new QAction(generateIcon("file"), "New project", toolbar);
+  mNewProjectButton = new QAction(generateIcon("file"), "New project", mTopToolBar);
   connect(mNewProjectButton, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
-  toolbar->addAction(mNewProjectButton);
+  mTopToolBar->addAction(mNewProjectButton);
 
-  mOpenProjectButton = new QAction(generateIcon("opened-folder"), "Open project or results", toolbar);
+  mOpenProjectButton = new QAction(generateIcon("opened-folder"), "Open project or results", mTopToolBar);
   connect(mOpenProjectButton, &QAction::triggered, this, &WindowMain::onOpenClicked);
-  toolbar->addAction(mOpenProjectButton);
+  mTopToolBar->addAction(mOpenProjectButton);
 
-  mSaveProject = new QAction(generateIcon("save"), "Save", toolbar);
+  mSaveProject = new QAction(generateIcon("save"), "Save", mTopToolBar);
   mSaveProject->setToolTip("Save project!");
   mSaveProject->setEnabled(false);
   connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
-  toolbar->addAction(mSaveProject);
+  mTopToolBar->addAction(mSaveProject);
 
-  mSaveProjectAs = new QAction(generateIcon("save-as"), "Save as", toolbar);
+  mSaveProjectAs = new QAction(generateIcon("save-as"), "Save as", mTopToolBar);
   mSaveProjectAs->setToolTip("Save project as!");
   connect(mSaveProjectAs, &QAction::triggered, this, &WindowMain::onSaveProjectAs);
-  toolbar->addAction(mSaveProjectAs);
+  mTopToolBar->addAction(mSaveProjectAs);
 
-  toolbar->addSeparator();
+  mTopToolBar->addSeparator();
 
-  auto *showCompileLog = new QAction(generateIcon("log"), "Compiler log", toolbar);
-  showCompileLog->setToolTip("CompileLog!");
-  connect(showCompileLog, &QAction::triggered, [this]() { mCompilerLog->showDialog(); });
-  toolbar->addAction(showCompileLog);
+  // auto *showResultsTemplate = new QAction(generateIcon("table"), "Results template", toolbar);
+  // showResultsTemplate->setToolTip("Results template!");
+  // connect(showResultsTemplate, &QAction::triggered, [this]() { mResultsTemplate->exec(); });
+  // toolbar->addAction(showResultsTemplate);
 
-  mStartAnalysisToolButton = new QAction(generateIcon("play"), "Start analyze", toolbar);
+  mTopToolBar->addSeparator();
+
+  mShowCompilerLog = new QAction(generateIcon("popup"), "Compiler log", mTopToolBar);
+  mShowCompilerLog->setToolTip("CompileLog!");
+  mShowCompilerLog->setCheckable(true);
+  connect(mShowCompilerLog, &QAction::triggered, [this](bool checked) {
+    if(checked) {
+      mCompilerLog->showDialog();
+    } else {
+      mCompilerLog->hideDialog();
+    }
+  });
+  connect(mCompilerLog->getDialog(), &QDialog::finished, [this] { mShowCompilerLog->setChecked(false); });
+
+  mTopToolBar->addAction(mShowCompilerLog);
+
+  mStartAnalysisToolButton = new QAction(generateIcon("play"), "Start analyze", mTopToolBar);
   mStartAnalysisToolButton->setEnabled(false);
   mStartAnalysisToolButton->setToolTip("Run pipeline!");
   connect(mStartAnalysisToolButton, &QAction::triggered, this, &WindowMain::onStartClicked);
-  toolbar->addAction(mStartAnalysisToolButton);
+  mTopToolBar->addAction(mStartAnalysisToolButton);
 
   auto *spacerTop = new QWidget();
   spacerTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  toolbar->addWidget(spacerTop);
+  mTopToolBar->addWidget(spacerTop);
 
-  auto *helpButton = new QAction(generateIcon("help"), "Help", toolbar);
+  auto *helpButton = new QAction(generateIcon("help"), "Help", mTopToolBar);
   helpButton->setToolTip("Help");
   connect(helpButton, &QAction::triggered, this, &WindowMain::onShowHelpClicked);
-  toolbar->addAction(helpButton);
+  mTopToolBar->addAction(helpButton);
 
-  mShowInfoDialog = new QAction(generateIcon("info"), "Info", toolbar);
+  mShowInfoDialog = new QAction(generateIcon("info"), "Info", mTopToolBar);
   mShowInfoDialog->setToolTip("Info");
   connect(mShowInfoDialog, &QAction::triggered, this, &WindowMain::onShowInfoDialog);
-  toolbar->addAction(mShowInfoDialog);
+  mTopToolBar->addAction(mShowInfoDialog);
 }
 
 ///
@@ -204,6 +236,12 @@ void WindowMain::createLeftToolbar()
   {
     mPanelProjectSettings = new PanelProjectSettings(mAnalyzeSettings, this);
     mTabWidget->addTab(mPanelProjectSettings, "Project");
+  }
+
+  // Images Tab
+  {
+    mPanelImages = new PanelImages(this);
+    mTabWidget->addTab(mPanelImages, "Images");
   }
 
   // Classification tab
@@ -224,11 +262,19 @@ void WindowMain::createLeftToolbar()
     mTemplateSelection = new QComboBox();
     innerLayout->addWidget(mTemplateSelection);
 
-    mStartAnalysis = new QPushButton(generateIcon("play"), "");
-    mStartAnalysis->setEnabled(false);
-    mStartAnalysis->setToolTip("Run pipeline!");
-    innerLayout->addWidget(mStartAnalysis);
+    //
+    // Start button
+    //
+    {
+      mStartAnalysis = new QPushButton(generateIcon("play"), "");
+      mStartAnalysis->setEnabled(false);
+      mStartAnalysis->setToolTip("Run pipeline!");
+      innerLayout->addWidget(mStartAnalysis);
+    }
 
+    //
+    // Add layout
+    //
     innerLayout->setStretch(0, 1);
     layout->addLayout(innerLayout);
 
@@ -241,13 +287,6 @@ void WindowMain::createLeftToolbar()
 
     connect(mTemplateSelection, &QComboBox::currentIndexChanged, this, &WindowMain::onAddChannel);
     connect(mStartAnalysis, &QPushButton::clicked, this, &WindowMain::onStartClicked);
-    loadTemplates();
-  }
-
-  // Images Tab
-  {
-    mPanelImages = new PanelImages(this);
-    mTabWidget->addTab(mPanelImages, "Images");
   }
 
   // Reportings tab
@@ -372,12 +411,14 @@ void WindowMain::clearSettings()
   mPanelResultsInfo->clearHistory();
   mSelectedProjectSettingsFilePath.clear();
   mPanelPipeline->clear();
-  mAnalyzeSettings    = {};
-  mAnalyzeSettingsOld = {};
+  mAnalyzeSettings.resultsSettings = settings::ResultsSettings();
+  mAnalyzeSettings                 = {};
+  mAnalyzeSettingsOld              = {};
   mAnalyzeSettings.pipelines.clear();
   mAnalyzeSettingsOld.pipelines.clear();
   mPanelProjectSettings->fromSettings({});
   mPanelClassification->fromSettings({});
+  mPanelResultsInfo->fromSettings({});
 }
 
 ///
@@ -397,20 +438,25 @@ void WindowMain::onOpenClicked()
   QFileDialog::Options opt;
   opt.setFlag(QFileDialog::DontUseNativeDialog, false);
 
-  QString filePath = QFileDialog::getOpenFileName(
-      this, "Open File", folderToOpen,
-      "ImageC project or results files (*" + QString(joda::fs::EXT_PROJECT.data()) + " *" + QString(joda::fs::EXT_DATABASE.data()) +
-          ");;ImageC project files "
-          "(*" +
-          QString(joda::fs::EXT_PROJECT.data()) + ");;ImageC results files (*" + QString(joda::fs::EXT_DATABASE.data()) + ")",
-      nullptr, opt);
+  QString filePath =
+      QFileDialog::getOpenFileName(this, "Open File", folderToOpen,
+                                   "ImageC project, template or results files (*" + QString(joda::fs::EXT_PROJECT.data()) + " *" +
+                                       QString(joda::fs::EXT_PROJECT_TEMPLATE.data()) + " *" + QString(joda::fs::EXT_DATABASE.data()) +
+                                       ");;ImageC project files "
+                                       "(*" +
+                                       QString(joda::fs::EXT_PROJECT.data()) + ");;ImageC results files (*" + QString(joda::fs::EXT_DATABASE.data()) +
+                                       ");;ImageC template files (*" + QString(joda::fs::EXT_PROJECT_TEMPLATE.data()) + ")",
+                                   nullptr, opt);
 
   if(filePath.isEmpty()) {
     return;
   }
 
   if(filePath.endsWith(joda::fs::EXT_PROJECT.data())) {
-    openProjectSettings(filePath);
+    openProjectSettings(filePath, false);
+  }
+  if(filePath.endsWith(joda::fs::EXT_PROJECT_TEMPLATE.data())) {
+    openProjectSettings(filePath, true);
   }
   if(filePath.endsWith(joda::fs::EXT_DATABASE.data())) {
     openResultsSettings(filePath);
@@ -445,7 +491,7 @@ void WindowMain::openResultsSettings(const QString &filePath)
 /// \brief      Open project settings
 /// \author     Joachim Danmayr
 ///
-void WindowMain::openProjectSettings(const QString &filePath)
+void WindowMain::openProjectSettings(const QString &filePath, bool openFromTemplate)
 {
   try {
     joda::settings::AnalyzeSettings analyzeSettings = joda::settings::Settings::openSettings(filePath.toStdString());
@@ -457,9 +503,11 @@ void WindowMain::openProjectSettings(const QString &filePath)
     showPanelStartPage();
     clearSettings();
 
+    mPanelResultsInfo->fromSettings(analyzeSettings);
     mPanelProjectSettings->fromSettings(analyzeSettings);
     mPanelClassification->fromSettings(analyzeSettings.projectSettings.classification);
 
+    mAnalyzeSettings.resultsSettings                = analyzeSettings.resultsSettings;
     mAnalyzeSettings.projectSettings                = analyzeSettings.projectSettings;
     mAnalyzeSettings.projectSettings.classification = analyzeSettings.projectSettings.classification;
     mAnalyzeSettingsOld                             = mAnalyzeSettings;
@@ -470,10 +518,15 @@ void WindowMain::openProjectSettings(const QString &filePath)
 
     mActAnalyzeSettings = &mAnalyzeSettings;
     emit onOutputClassifierChanges();
-
-    mSelectedProjectSettingsFilePath = filePath.toStdString();
+    if(openFromTemplate) {
+      mSelectedProjectSettingsFilePath.clear();
+    } else {
+      mSelectedProjectSettingsFilePath = filePath.toStdString();
+    }
     checkForSettingsChanged();
-    onSaveProject();
+    if(!openFromTemplate) {
+      saveProject(mSelectedProjectSettingsFilePath, false, false);
+    }
     showPanelStartPage();
 
   } catch(const std::exception &ex) {
@@ -533,7 +586,7 @@ void WindowMain::onSaveProjectAs()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::saveProject(std::filesystem::path filename, bool saveAs)
+void WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool createHistoryEntry)
 {
   try {
     if(filename.empty()) {
@@ -542,26 +595,46 @@ void WindowMain::saveProject(std::filesystem::path filename, bool saveAs)
       if(!std::filesystem::exists(filePath)) {
         std::filesystem::create_directories(filePath);
       }
-      filePath                       = filePath / ("settings" + joda::fs::EXT_PROJECT);
-      QString filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(),
-                                                                    "ImageC project files (*" + QString(joda::fs::EXT_PROJECT.data()) + ")");
-      filename                       = filePathOfSettingsFile.toStdString();
+      filePath = filePath / ("settings" + joda::fs::EXT_PROJECT);
+      QString filePathOfSettingsFile =
+          QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(),
+                                       "ImageC project files (*" + QString(joda::fs::EXT_PROJECT.data()) + ");;ImageC project template (*" +
+                                           QString(joda::fs::EXT_PROJECT_TEMPLATE.data()) + ")");
+      filename = filePathOfSettingsFile.toStdString();
+    }
+    bool storeAsTemplate = false;
+    if(filename.string().ends_with(joda::fs::EXT_PROJECT_TEMPLATE.data())) {
+      storeAsTemplate = true;
     }
 
     if(!filename.empty()) {
-      if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld) || saveAs) {
-        for(const auto &[pip, _] : mPanelPipeline->getPipelineWidgets()) {
-          if(pip) {
-            std::cout << "Store A" << std::endl;
-
-            pip->pipelineSavedEvent();
+      if(!storeAsTemplate) {
+        //
+        // Store project
+        //
+        if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld) || saveAs) {
+          if(createHistoryEntry) {
+            for(const auto &[pip, _] : mPanelPipeline->getPipelineWidgets()) {
+              if(pip) {
+                pip->pipelineSavedEvent();
+              }
+            }
           }
+          joda::settings::Settings::storeSettings(filename, mAnalyzeSettings);
         }
-        std::cout << "Store" << std::endl;
-        joda::settings::Settings::storeSettings(filename, mAnalyzeSettings);
+        mAnalyzeSettingsOld = mAnalyzeSettings;
+        checkForSettingsChanged();
+      } else {
+        //
+        // Store project as template
+        //
+        joda::settings::Settings::storeSettingsTemplate(filename, mAnalyzeSettings);
       }
-      mAnalyzeSettingsOld = mAnalyzeSettings;
-      checkForSettingsChanged();
+    }
+
+    if(!storeAsTemplate) {
+      mSelectedProjectSettingsFilePath = filename;
+      setWindowTitlePrefix(filename.filename().string().data());
     }
 
   } catch(const std::exception &ex) {
@@ -573,8 +646,6 @@ void WindowMain::saveProject(std::filesystem::path filename, bool saveAs)
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
   }
-  mSelectedProjectSettingsFilePath = filename;
-  setWindowTitlePrefix(filename.filename().string().data());
 }
 
 ///
@@ -583,22 +654,24 @@ void WindowMain::saveProject(std::filesystem::path filename, bool saveAs)
 ///
 void WindowMain::loadTemplates()
 {
-  auto foundTemplates = joda::templates::TemplateParser::findTemplates();
+  auto foundTemplates = joda::templates::TemplateParser::findTemplates(
+      {"templates/pipelines", joda::templates::TemplateParser::getUsersTemplateDirectory().string()}, joda::fs::EXT_PIPELINE_TEMPLATE);
 
   mTemplateSelection->clear();
-  mTemplateSelection->addItem("Add pipeline ...", "");
+  mTemplateSelection->addItem("Add pipelines ...", "");
   mTemplateSelection->insertSeparator(mTemplateSelection->count());
-
   mTemplateSelection->addItem(generateIcon("flow-many"), "Empty pipeline", "emptyChannel");
-
   mTemplateSelection->insertSeparator(mTemplateSelection->count());
-  joda::templates::TemplateParser::Category actCategory = joda::templates::TemplateParser::Category::BASIC;
+  std::string actCategory = "basic";
+  size_t addedPerCategory = 0;
   for(const auto &[category, dataInCategory] : foundTemplates) {
     for(const auto &[_, data] : dataInCategory) {
       // Now the user templates start, add an addition separator
       if(category != actCategory) {
         actCategory = category;
-        mTemplateSelection->insertSeparator(mTemplateSelection->count());
+        if(addedPerCategory > 0) {
+          mTemplateSelection->insertSeparator(mTemplateSelection->count());
+        }
       }
       if(!data.icon.isNull()) {
         mTemplateSelection->addItem(QIcon(data.icon.scaled(28, 28)), data.title.data(), data.path.data());
@@ -606,6 +679,7 @@ void WindowMain::loadTemplates()
         mTemplateSelection->addItem(generateIcon("favorite"), data.title.data(), data.path.data());
       }
     }
+    addedPerCategory = dataInCategory.size();
   }
 }
 

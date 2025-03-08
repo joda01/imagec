@@ -18,8 +18,8 @@
 #include "backend/enums/enum_history.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/processor/initializer/pipeline_settings.hpp"
-#include "backend/settings/pipeline/pipeline_meta.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
+#include "backend/settings/settings_meta.hpp"
 #include "backend/settings/settings_types.hpp"
 #include <nlohmann/json_fwd.hpp>
 
@@ -56,11 +56,12 @@ public:
   //
   uint32_t timeStamp;
 
-  void check() const
+  // We don't want to do a error check for the history
+  void getErrorLogRecursive(SettingParserLog_t &settingsParserLog) const
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineHistoryEntry, category, pipelineSteps, commitMessage, tagMessage, timeStamp);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(PipelineHistoryEntry, category, pipelineSteps, commitMessage, tagMessage, timeStamp);
 };
 
 class Pipeline
@@ -68,9 +69,19 @@ class Pipeline
 public:
   int32_t index = 0;    // Pipeline index, this is temporary and must not be saved. The index is given during the dependency graph generation
   /////////////////////////////////////////////////////
-  PipelineMeta meta;
+  SettingsMeta meta;
   PipelineSettings pipelineSetup;
   std::list<PipelineStep> pipelineSteps;
+
+  //
+  // Disabled pipelines are not executed.
+  //
+  bool disabled = false;
+
+  //
+  // Locked pipelines can not be edited
+  //
+  bool locked = false;
 
   //
   // Changes of the pipeline steps over time
@@ -90,7 +101,8 @@ public:
   auto restoreSnapShot(int32_t idex) const -> Pipeline;
   void tag(int32_t index, const std::string &tagName);
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Pipeline, meta, pipelineSetup, pipelineSteps, history);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED_CONDITIONAL_CHECK(Pipeline, disabled, meta, pipelineSetup, pipelineSteps, disabled, locked,
+                                                                         history);
 };
 
 }    // namespace joda::settings

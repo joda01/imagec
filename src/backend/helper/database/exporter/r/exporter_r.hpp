@@ -21,9 +21,10 @@ namespace joda::db {
 class RExporter
 {
 public:
-  static void startExport(const db::QueryFilter &filter, db::StatsPerGroup::Grouping grouping, const settings::AnalyzeSettings &analyzeSettings,
-                          const std::string &jobName, std::chrono::system_clock::time_point timeStarted,
-                          std::chrono::system_clock::time_point timeFinished, std::string outputFileName);
+  static void startExport(const settings::ResultsSettings &filter, db::StatsPerGroup::Grouping grouping,
+                          const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
+                          std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
+                          std::string outputFileName);
 
 private:
 };

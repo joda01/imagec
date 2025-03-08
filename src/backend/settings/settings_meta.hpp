@@ -13,13 +13,17 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
-#include "../setting.hpp"
+#include <vector>
+#include "backend/helper/helper.hpp"
+#include "backend/helper/json_optional_parser_helper.hpp"
 #include <nlohmann/json.hpp>
+#include "setting.hpp"
 
 namespace joda::settings {
 
-struct PipelineMeta
+struct SettingsMeta
 {
   //
   // User defined name of the channel
@@ -47,11 +51,36 @@ struct PipelineMeta
   //
   std::string uid;
 
+  //
+  // Optional group
+  //
+  std::optional<std::string> group;
+
+  //
+  // Optional category
+  //
+  std::optional<std::string> category;
+
+  //
+  // Optional tags
+  //
+  std::vector<std::string> tags;
+
+  //
+  // Modified at date
+  //
+  mutable std::optional<std::string> modifiedAt = std::nullopt;
+
   void check() const
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineMeta, name, color, icon, revision, uid);
+  void setModifiedAtDateToNow() const
+  {
+    modifiedAt = helper::timepointToIsoString(std::chrono::system_clock::now());
+  }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(SettingsMeta, name, color, icon, revision, uid, modifiedAt, group, category, tags);
 };
 
 };    // namespace joda::settings

@@ -30,6 +30,7 @@
 #include <thread>
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
+#include "backend/enums/types.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/processor/processor.hpp"
@@ -123,6 +124,17 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     col4->addWidget(mPreviewImage);
   }
 
+  auto *openTemplate = mLayout.addActionButton("Open template", generateIcon("opened-folder"));
+  connect(openTemplate, &QAction::triggered, [this] { this->openTemplate(); });
+
+  auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", generateIcon("download"));
+  connect(saveAsTemplateButton, &QAction::triggered, [this] { this->saveAsTemplate(); });
+
+  auto *copyPipeline = mLayout.addActionButton("Copy pipeline", generateIcon("copy"));
+  connect(copyPipeline, &QAction::triggered, [this] { this->copyPipeline(); });
+
+  mLayout.addSeparatorToTopToolbar();
+
   // Tool button
   mHistoryAction = mLayout.addActionButton("History", generateIcon("history"));
   mHistoryAction->setCheckable(true);
@@ -134,16 +146,19 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     }
   });
   connect(mDialogHistory, &QDialog::finished, [this] { mHistoryAction->setChecked(false); });
-  mLayout.addSeparatorToTopToolbar();
 
-  auto *openTemplate = mLayout.addActionButton("Open template", generateIcon("opened-folder"));
-  connect(openTemplate, &QAction::triggered, [this] { this->openTemplate(); });
-
-  auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", generateIcon("bookmark"));
-  connect(saveAsTemplateButton, &QAction::triggered, [this] { this->saveAsTemplate(); });
-
-  auto *copyPipeline = mLayout.addActionButton("Copy pipeline", generateIcon("copy"));
-  connect(copyPipeline, &QAction::triggered, [this] { this->copyPipeline(); });
+  //
+  // Add disable button
+  //
+  mActionDisabled = mLayout.addActionButton("Disable pipeline", generateIcon("invisible"));
+  mActionDisabled->setCheckable(true);
+  connect(mActionDisabled, &QAction::triggered, [this](bool checked) {
+    mSettings.disabled = checked;
+    if(mOverview != nullptr) {
+      mOverview->update();
+    }
+  });
+  connect(mActionDisabled, &QAction::triggered, this, &PanelPipelineSettings::valueChangedEvent);
 
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);
   connect(this, &PanelPipelineSettings::updatePreviewFinished, this, &PanelPipelineSettings::onPreviewFinished);
@@ -344,8 +359,10 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
   connect(pipelineName.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::metaChangedEvent);
   connect(cStackIndex.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   connect(zProjection.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
+  connect(zProjection.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::onZProjectionChanged);
   connect(zStackIndex.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   connect(defaultClassId.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
+  onZProjectionChanged();
 
   {
     auto *col1 = tab->addVerticalPanel();
@@ -675,6 +692,7 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   cStackIndex->setValue(settings.pipelineSetup.cStackIndex);
   zProjection->setValue(settings.pipelineSetup.zProjection);
   defaultClassId->setValue(settings.pipelineSetup.defaultClassId);
+  mHistoryAction->setChecked(settings.disabled);
 
   //
   // Pipelinesteps
@@ -699,6 +717,7 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   mLoadingSettings = false;
 
   updatePreview();
+  onZProjectionChanged();
   mDialogHistory->loadHistory();
 }
 
@@ -711,6 +730,7 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
 ///
 void PanelPipelineSettings::toSettings()
 {
+  mSettings.disabled                     = mActionDisabled->isChecked();
   mSettings.meta.name                    = pipelineName->getValue();
   mSettings.pipelineSetup.cStackIndex    = cStackIndex->getValue();
   mSettings.pipelineSetup.zProjection    = zProjection->getValue();
@@ -765,6 +785,22 @@ void PanelPipelineSettings::deletePipeline()
 void PanelPipelineSettings::onClassificationNameChanged()
 {
   valueChangedEvent();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::onZProjectionChanged()
+{
+  if(zProjection->getValue() == enums::ZProjection::NONE) {
+    zStackIndex->getEditableWidget()->setVisible(true);
+  } else {
+    zStackIndex->getEditableWidget()->setVisible(false);
+  }
 }
 
 ///
