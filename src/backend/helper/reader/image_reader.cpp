@@ -14,6 +14,7 @@
 #include "image_reader.hpp"
 #include <jni.h>
 #include <stdio.h>
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <filesystem>
@@ -21,6 +22,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include "backend/commands/image_functions/resize/resize.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
@@ -283,7 +285,7 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &i
 /// \param[out]
 /// \return
 ///
-cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &imagePlane, uint16_t series, const joda::ome::OmeInfo &ome)
+cv::Mat ImageReader::loadThumbnail(const std::string &filename, Plane imagePlane, uint16_t series, const joda::ome::OmeInfo &ome)
 {
   const int32_t THUMBNAIL_SIZE = 1024;
 
@@ -294,12 +296,29 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &ima
       series = ome.getNrOfSeries() - 1;
     }
     // Find the pyramid with the best matching resolution for thumbnail creation
-    int32_t resolutionIdx                       = 0;
-    ome::OmeInfo::ImageInfo::Pyramid resolution = ome.getResolutionCount(series).at(0);
-    for(int idx = 0; idx < ome.getResolutionCount(series).size(); idx++) {
-      resolution = ome.getResolutionCount(series).at(idx);
-      if(resolution.imageWidth <= THUMBNAIL_SIZE || resolution.imageHeight <= THUMBNAIL_SIZE) {
-        resolutionIdx = idx;
+
+    auto lookForSmallestImage = [&ome](int32_t series) -> std::tuple<int32_t, ome::OmeInfo::ImageInfo::Pyramid> {
+      int32_t resolutionIdx                       = 0;
+      ome::OmeInfo::ImageInfo::Pyramid resolution = ome.getResolutionCount(series).at(0);
+      for(int idx = 0; idx < ome.getResolutionCount(series).size(); idx++) {
+        resolution = ome.getResolutionCount(series).at(idx);
+        if(resolution.imageWidth <= THUMBNAIL_SIZE || resolution.imageHeight <= THUMBNAIL_SIZE) {
+          resolutionIdx = idx;
+          break;
+        }
+      }
+      return {resolutionIdx, resolution};
+    };
+
+    int32_t resolutionIdx = 0;
+    uint16_t nrOfSeries   = ome.getNrOfSeries();
+    ome::OmeInfo::ImageInfo::Pyramid resolution;
+    // Look for a possible thumbnail
+    for(; series < nrOfSeries; series++) {
+      auto [resolutionIdxTmp, resolutionTmp] = lookForSmallestImage(series);
+      if(resolutionTmp.imageMemoryUsage < 838860800) {
+        resolution    = resolutionTmp;
+        resolutionIdx = resolutionIdxTmp;
         break;
       }
     }
@@ -322,6 +341,13 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, const Plane &ima
     int32_t rgbChannelCount = ome.getRGBchannelCount(series, resolutionIdx);
     bool isInterleaved      = ome.getIsInterleaved(series, resolutionIdx);
     bool isLittleEndian     = ome.getIsLittleEndian(series, resolutionIdx);
+
+    //
+    // Check if channel exists
+    //
+    imagePlane.c = std::min(imagePlane.c, ome.getNrOfChannels(series) - 1);
+    imagePlane.t = std::min(imagePlane.t, ome.getNrOfTStack(series) - 1);
+    imagePlane.z = std::min(imagePlane.z, ome.getNrOfZStack(series) - 1);
 
     //
     // Read image

@@ -41,7 +41,7 @@ public:
   static cv::Mat loadEntireImage(const std::string &filename, const Plane &imagePlane, uint16_t series, uint16_t resolutionIdx,
                                  const joda::ome::OmeInfo &ome);
 
-  static cv::Mat loadThumbnail(const std::string &filename, const Plane &directory, uint16_t series, const joda::ome::OmeInfo &ome);
+  static cv::Mat loadThumbnail(const std::string &filename, Plane directory, uint16_t series, const joda::ome::OmeInfo &ome);
 
   static auto getOmeInformation(const std::filesystem::path &filename, uint16_t series) -> joda::ome::OmeInfo;
   static void init(uint64_t reservedRamForVMInBytes);
