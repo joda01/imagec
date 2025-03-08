@@ -92,8 +92,8 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
     dividend = 2;
   }
 
-  uint32_t width  = size().width() / dividend - (spacing + X_LEFT_MARGIN);
-  uint32_t height = size().height() - (spacing + Y_TOP_MARING + 2 * LEGEND_HEIGHT);
+  float width  = size().width() / dividend - (spacing + X_LEFT_MARGIN);
+  float height = size().height() - (spacing + Y_TOP_MARING + 2 * LEGEND_HEIGHT);
 
   if(mMinMaxMode == HeatmapMinMax::AUTO) {
     auto [min, max]    = mData.getMinMax();
@@ -106,7 +106,8 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
   //   auto stddev     = mData.getStddev();
 
   if(mRows > 0 && mCols > 0) {
-    uint32_t rectWidth = std::min(width / mCols, height / mRows);
+    float rectWidth = std::min((float) width / (float) mCols, (float) height / (float) mRows);
+    float xOffset   = (width / 2.0) - (rectWidth * mCols + spacing + X_LEFT_MARGIN - 4) / 2.0;
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);    // Enable smooth edges
@@ -123,18 +124,18 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
     // Define rectangle properties
     uint32_t idx = 0;
     for(uint32_t x = 0; x < mCols; x++) {
-      uint32_t txtX = x * rectWidth + spacing + X_LEFT_MARGIN + rectWidth / 2 - 6;
+      float txtX = (x * rectWidth + spacing + X_LEFT_MARGIN + rectWidth / 2 - 6.0) + xOffset;
       painter.setPen(QPen(Qt::black, 1));
       painter.drawText(txtX, spacing * 4, QString::number(x + 1));
 
       for(uint32_t y = 0; y < mRows; y++) {
-        uint32_t txtY = y * rectWidth + rectWidth / 2 + spacing + Y_TOP_MARING;
+        float txtY = y * rectWidth + rectWidth / 2 + spacing + Y_TOP_MARING;
         painter.setPen(QPen(Qt::black, 1));
         char toPrint = y + 'A';
-        painter.drawText(spacing, txtY, std::string(1, toPrint).data());
+        painter.drawText(spacing + xOffset, txtY, std::string(1, toPrint).data());
 
-        uint32_t rectXPos = x * rectWidth + spacing + X_LEFT_MARGIN;
-        uint32_t rectYPos = y * rectWidth + spacing + Y_TOP_MARING;
+        float rectXPos = (x * rectWidth + spacing + X_LEFT_MARGIN) + xOffset;
+        float rectYPos = y * rectWidth + spacing + Y_TOP_MARING;
         QRectF rect(rectXPos + 2, rectYPos + 2, rectWidth - 4, rectWidth - 4);
         int cornerRadius = 10;
         QPainterPath path;
@@ -186,8 +187,8 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
 
         painter.drawPath(path);
 
-        const int32_t xReduce = rectWidth / 3;
-        const int32_t yReduce = rectWidth / 3;
+        const float xReduce = rectWidth / 3.0;
+        const float yReduce = rectWidth / 3.0;
         if(data.isNAN()) {
         } else {
           QString txtToPaint = formatDoubleScientific(value);
@@ -207,17 +208,18 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
             precision--;
           }
           // Calculate center coordinates for text placement within the rectangle
-          int textX = rect.center().x() - textRect.width() / 2;
-          int textY = rect.center().y() + textRect.height() / 2 - fontMetrics.descent();    // Adjust for descent
+          float textX = (rect.center().x() - textRect.width() / 2.0);
+          float textY = rect.center().y() + textRect.height() / 2.0 - fontMetrics.descent();    // Adjust for descent
           painter.drawText(textX, textY, txtToPaint);
 
           if(!data.isValid()) {
-            painter.drawLine(x * rectWidth + spacing + xReduce + X_LEFT_MARGIN, y * rectWidth + spacing + yReduce + Y_TOP_MARING,
-                             x * rectWidth + spacing + rectWidth - xReduce + X_LEFT_MARGIN,
+            painter.drawLine((x * rectWidth + spacing + xReduce + X_LEFT_MARGIN) + xOffset, y * rectWidth + spacing + yReduce + Y_TOP_MARING,
+                             (x * rectWidth + spacing + rectWidth - xReduce + X_LEFT_MARGIN) + xOffset,
                              y * rectWidth + spacing + rectWidth - yReduce + Y_TOP_MARING);
 
-            painter.drawLine(x * rectWidth + spacing + rectWidth - xReduce + X_LEFT_MARGIN, y * rectWidth + spacing + yReduce + Y_TOP_MARING,
-                             x * rectWidth + spacing + xReduce + X_LEFT_MARGIN, y * rectWidth + spacing + rectWidth - yReduce + Y_TOP_MARING);
+            painter.drawLine((x * rectWidth + spacing + rectWidth - xReduce + X_LEFT_MARGIN) + xOffset,
+                             y * rectWidth + spacing + yReduce + Y_TOP_MARING, (x * rectWidth + spacing + xReduce + X_LEFT_MARGIN) + xOffset,
+                             y * rectWidth + spacing + rectWidth - yReduce + Y_TOP_MARING);
           }
         }
         idx++;
@@ -229,17 +231,17 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
     //
     {
       painter.setPen(QPen(Qt::black, 1));
-      uint32_t xStart = spacing + X_LEFT_MARGIN;
-      uint32_t yStart = mRows * rectWidth + spacing + Y_TOP_MARING + 3 * spacing;
-      float length    = (mCols * rectWidth + spacing + X_LEFT_MARGIN) - xStart;
+      float xStart = (spacing + X_LEFT_MARGIN) + xOffset + 2;
+      float yStart = mRows * rectWidth + spacing + Y_TOP_MARING + 3.0 * spacing;
+      float length = (rectWidth * mCols);
       // painter.drawRect(xStart, yStart, length, LEGEND_HEIGHT);
 
-      uint32_t partWith = std::floor(length / static_cast<float>(mColorMap.size()));
-      int middle        = mColorMap.size() / 2;
+      float partWith = length / static_cast<float>(mColorMap.size());
+      int middle     = mColorMap.size() / 2.0;
       for(int n = 0; n < mColorMap.size(); n++) {
-        uint32_t startX = xStart + n * partWith;
-        float val       = (float) n / (float) mColorMap.size();
-        auto color      = mColorMap.upper_bound(val)->second;
+        float startX = xStart + (float) n * partWith;
+        float val    = (float) n / (float) mColorMap.size();
+        auto color   = mColorMap.upper_bound(val)->second;
         painter.setPen(QPen(Qt::black, 1));
         painter.setBrush(color);    // Change color as desired
         painter.drawRect(startX, yStart, partWith, LEGEND_COLOR_ROW_HEIGHT);
@@ -260,6 +262,7 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
         }
 
         if(n == mColorMap.size() - 1) {
+          // This is the last element
           if(mMinMaxMode == HeatmapMinMax::AUTO) {
             painter.setPen(QPen(Qt::black, 1));
           } else {
@@ -501,17 +504,19 @@ std::tuple<int32_t, Point> ChartHeatMap::getWellUnderMouse(QMouseEvent *event)
 
   int32_t newSelectedWellId = -1;
   Point newSelectedWell;
-  uint32_t width  = size().width() / dividend - (spacing + X_LEFT_MARGIN);
-  uint32_t height = size().height() - (spacing + Y_TOP_MARING + 2 * LEGEND_HEIGHT);
+  float width  = size().width() / dividend - (spacing + X_LEFT_MARGIN);
+  float height = size().height() - (spacing + Y_TOP_MARING + 2.0 * LEGEND_HEIGHT);
+
   auto [min, max] = mData.getMinMax();
   if(mRows > 0 && mCols > 0) {
-    uint32_t rectWidth = std::min(width / mCols, height / mRows);
-    uint32_t idx       = 0;
+    float rectWidth = std::min((float) width / (float) mCols, (float) height / (float) mRows);
+    float xOffset   = (width / 2.0) - (rectWidth * mCols + spacing + X_LEFT_MARGIN - 4) / 2.0;
+    uint32_t idx    = 0;
     for(uint32_t col = 0; col < mCols; col++) {
       for(uint32_t row = 0; row < mRows; row++) {
         uint32_t rectXPos = col * rectWidth + spacing + X_LEFT_MARGIN;
         uint32_t rectYPos = row * rectWidth + spacing + Y_TOP_MARING;
-        QRectF rect(rectXPos, rectYPos, rectWidth, rectWidth);
+        QRectF rect(rectXPos + xOffset, rectYPos, rectWidth, rectWidth);
         if(rect.contains(event->pos())) {
           newSelectedWellId = idx;
           newSelectedWell.x = row;

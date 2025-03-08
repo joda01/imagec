@@ -96,13 +96,13 @@ private:
   double showInputDialog(double defaultVal);
 
   /////////////////////////////////////////////////////
-  static inline const uint32_t spacing                       = 4;
-  static inline const uint32_t Y_TOP_MARING                  = 16;
-  static inline const uint32_t X_LEFT_MARGIN                 = 10;
-  static inline const uint32_t LEGEND_HEIGHT                 = 30;
-  static inline const uint32_t LEGEND_COLOR_ROW_HEIGHT       = 15;
-  static inline const uint32_t HEATMAP_FONT_SIZE             = 12;
-  static inline const uint32_t HEATMAP_COLOR_ROW_TEXT_HEIGHT = 25;
+  static inline const float spacing                       = 4.0;
+  static inline const float Y_TOP_MARING                  = 16;
+  static inline const float X_LEFT_MARGIN                 = 10;
+  static inline const float LEGEND_HEIGHT                 = 30;
+  static inline const float LEGEND_COLOR_ROW_HEIGHT       = 15;
+  static inline const float HEATMAP_FONT_SIZE             = 12;
+  static inline const float HEATMAP_COLOR_ROW_TEXT_HEIGHT = 25;
 
   PanelResults *mParent;
   MatrixForm mForm = MatrixForm::CIRCLE;
