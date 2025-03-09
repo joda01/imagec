@@ -41,6 +41,7 @@ public:
   void show();
   void updateHistory(enums::HistoryCategory category, const std::string &);
   void loadHistory();
+  void createTag();
   void restoreHistory(int32_t index);
   static auto generateHistoryEntry(const std::optional<joda::settings::PipelineHistoryEntry> &) -> TimeHistoryEntry *;
 

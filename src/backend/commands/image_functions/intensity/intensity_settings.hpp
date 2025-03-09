@@ -20,7 +20,7 @@ public:
   Mode mode = Mode::MANUAL;
 
   //
-  // Contrast in range of [1-3]
+  // Contrast in range of [1-256]
   //
   float contrast = 1;
   //
@@ -36,7 +36,7 @@ public:
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK_ERROR(contrast >= 1 && contrast <= 3, "Contrast value must be between [0-3]");
+    CHECK_ERROR(contrast >= 1 && contrast <= 256, "Contrast value must be between [0-256]");
     CHECK_ERROR(brightness >= -32768 && brightness <= 32767, "Brightness value must be between [-32768, +32767]");
   }
 

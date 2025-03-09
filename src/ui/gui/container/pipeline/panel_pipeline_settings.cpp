@@ -147,6 +147,12 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   });
   connect(mDialogHistory, &QDialog::finished, [this] { mHistoryAction->setChecked(false); });
 
+  auto *addTagAction = mLayout.addActionButton("Add tag", generateIcon("tag"));
+  addTagAction->setToolTip("Tag the actual settings in the history.");
+  connect(addTagAction, &QAction::triggered, [this]() { mDialogHistory->createTag(); });
+
+  mLayout.addSeparatorToTopToolbar();
+
   //
   // Add disable button
   //
@@ -481,20 +487,25 @@ void PanelPipelineSettings::updatePreview()
     mSelectedTileX           = 0;
     mSelectedTileY           = 0;
   }
+  try {
+    auto threadSettings = mWindowMain->getController()->calcOptimalThreadNumber(settingsTmp);
+    PreviewJob job{.settings       = settingsTmp,
+                   .controller     = mWindowMain->getController(),
+                   .previewPanel   = mPreviewImage,
+                   .selectedImage  = mWindowMain->getImagePanel()->getSelectedImage(),
+                   .pipelinePos    = cnt,
+                   .selectedTileX  = mSelectedTileX,
+                   .selectedTileY  = mSelectedTileY,
+                   .classes        = mWindowMain->getPanelClassification()->getClasses(),
+                   .classesToShow  = classesToShow,
+                   .threadSettings = threadSettings};
 
-  PreviewJob job{.settings      = settingsTmp,
-                 .controller    = mWindowMain->getController(),
-                 .previewPanel  = mPreviewImage,
-                 .selectedImage = mWindowMain->getImagePanel()->getSelectedImage(),
-                 .pipelinePos   = cnt,
-                 .selectedTileX = mSelectedTileX,
-                 .selectedTileY = mSelectedTileY,
-                 .classes       = mWindowMain->getPanelClassification()->getClasses(),
-                 .classesToShow = classesToShow};
-
-  std::lock_guard<std::mutex> lock(mCheckForEmptyMutex);
-  mPreviewQue.push(job);
-  log::logTrace("Add preview job!");
+    std::lock_guard<std::mutex> lock(mCheckForEmptyMutex);
+    mPreviewQue.push(job);
+    log::logTrace("Add preview job!");
+  } catch(...) {
+    // No image selected
+  }
 }
 
 ///
@@ -558,9 +569,8 @@ void PanelPipelineSettings::previewThread()
             if(myPipeline == nullptr) {
               continue;
             }
-
-            jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, *myPipeline, imgIndex, jobToDo.selectedTileX,
-                                        jobToDo.selectedTileY, previewResult, imgProps, jobToDo.classesToShow);
+            jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, jobToDo.threadSettings, *myPipeline, imgIndex,
+                                        jobToDo.selectedTileX, jobToDo.selectedTileY, previewResult, imgProps, jobToDo.classesToShow);
             // Create a QByteArray from the char array
             QString info = "<html>";
             auto classes = jobToDo.classes;

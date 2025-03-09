@@ -151,6 +151,7 @@ private:
     int32_t selectedTileY = 0;
     std::map<enums::ClassIdIn, QString> classes;
     settings::ObjectInputClasses classesToShow;
+    joda::thread::ThreadingSettings threadSettings;
   };
 
   bool mStopped = false;

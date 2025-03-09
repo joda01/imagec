@@ -41,7 +41,8 @@ public:
                                                  "open",      "close",         "gradient", "top hat", "black hat", "hitmiss"};
 
   MorphologicalTransform(joda::settings::PipelineStep &pipelineStep, settings::MorphologicalTransformSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}}), mParent(parent)
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}}),
+      mParent(parent)
   {
     auto *modelTab = addTab(
         "Base", [] {}, false);
@@ -100,7 +101,17 @@ public:
 
     //
     //
-    addSetting(modelTab, {{mFunction.get(), true, 0}, {mShape.get(), true, 0}, {mKernelSize.get(), true, 0}});
+    mIterations = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("diameter"), "Iterations [1-256]");
+    mIterations->setPlaceholderText("[1 - 256]");
+    mIterations->setUnit("x");
+    mIterations->setMinMax(-1, 256);
+    mIterations->setValue(settings.iterations);
+    mIterations->connectWithSetting(&settings.iterations);
+    mIterations->setShortDescription("Repeat ");
+
+    //
+    //
+    addSetting(modelTab, {{mFunction.get(), true, 0}, {mShape.get(), true, 0}, {mKernelSize.get(), true, 0}, {mIterations.get(), false, 0}});
   }
 
 private:
@@ -111,6 +122,7 @@ private:
   std::unique_ptr<SettingComboBox<joda::settings::MorphologicalTransformSettings::Function>> mFunction;
   std::unique_ptr<SettingComboBox<joda::settings::MorphologicalTransformSettings::Shape>> mShape;
   std::unique_ptr<SettingComboBox<int32_t>> mKernelSize;
+  std::unique_ptr<SettingLineEdit<int32_t>> mIterations;
 
   /////////////////////////////////////////////////////
 

@@ -39,6 +39,7 @@ enum class InOuts
   IMAGE,
   BINARY,
   OBJECT,
+  OUTPUT_EQUAL_TO_INPUT
 };
 
 struct InOut
@@ -99,6 +100,18 @@ public:
   [[nodiscard]] InOut getInOut() const
   {
     return mInOut;
+  }
+
+  [[nodiscard]] InOuts getResolvedInput() const
+  {
+    if(mCommandBefore != nullptr) {
+      auto outTmp = mCommandBefore->getInOut().out;
+      auto iter   = mInOut.in.find(outTmp);
+      if(iter != mInOut.in.end()) {
+        return *iter;
+      }
+    }
+    return *mInOut.in.begin();
   }
 
   void blockComponentSignals(bool bl)

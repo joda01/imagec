@@ -80,7 +80,7 @@ void MorphologicalTransform::execute(processor::ProcessContext &context, cv::Mat
   cv::Mat kernel = cv::getStructuringElement(mode, cv::Size(mSettings.kernelSize, mSettings.kernelSize));
 
   // Apply the morphological operation
-  cv::morphologyEx(image, image, function, kernel);
+  cv::morphologyEx(image, image, function, kernel, cv::Point(-1, -1), mSettings.iterations);
 }
 
 }    // namespace joda::cmd

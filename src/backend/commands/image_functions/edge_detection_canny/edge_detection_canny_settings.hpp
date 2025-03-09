@@ -19,12 +19,12 @@ public:
   //
   // Lower threshold for canny edge detection in range [0-255]
   //
-  uint16_t thresholdMin = 10;
+  float thresholdMin = 10;
 
   //
   // Upper threshold for canny edge detection in range [0-255]
   //
-  uint16_t thresholdMax = 150;
+  float thresholdMax = 150;
 
   /////////////////////////////////////////////////////
   void check() const

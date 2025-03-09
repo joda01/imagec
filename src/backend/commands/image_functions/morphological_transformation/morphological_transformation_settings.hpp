@@ -62,6 +62,11 @@ struct MorphologicalTransformSettings : public SettingBase
   //
   int32_t kernelSize = 3;
 
+  //
+  // Iterations
+  //
+  int32_t iterations = -1;
+
   /////////////////////////////////////////////////////
   void check() const
   {
@@ -82,7 +87,7 @@ struct MorphologicalTransformSettings : public SettingBase
     return {};
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MorphologicalTransformSettings, function, shape, kernelSize);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MorphologicalTransformSettings, function, shape, kernelSize, iterations);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(MorphologicalTransformSettings::Function, {

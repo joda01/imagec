@@ -99,7 +99,8 @@ public:
 
   auto createSnapShot(enums::HistoryCategory category, const std::string &note) -> std::optional<PipelineHistoryEntry>;
   auto restoreSnapShot(int32_t idex) const -> Pipeline;
-  void tag(int32_t index, const std::string &tagName);
+  void tag(const std::string &tagName, int32_t index = 0);
+  void clearHistory();
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED_CONDITIONAL_CHECK(Pipeline, disabled, meta, pipelineSetup, pipelineSteps, disabled, locked,
                                                                          history);

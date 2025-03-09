@@ -15,7 +15,7 @@
 
 #include "backend/commands/command.hpp"
 #include "backend/commands/factory.hpp"
-#include "backend/commands/image_functions/rank_filter/rank_filter.hpp"
+#include "backend/commands/image_functions/rank_filter/rank_filter_algo.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
 #include "median_substraction_settings.hpp"
@@ -40,8 +40,8 @@ public:
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
     auto medianBlurredImageOut = image.clone();
-    RankFilter rank;
-    rank.rank(medianBlurredImageOut, mSettings.kernelSize, RankFilter::MEDIAN);
+    algo::RankFilter rank;
+    rank.rank(medianBlurredImageOut, mSettings.kernelSize, algo::RankFilter::MEDIAN);
     image = image - medianBlurredImageOut;
   }
 
