@@ -69,33 +69,15 @@ void applyTable(cv::Mat &image, const std::array<int32_t, UINT16_MAX + 1> &lut)
 {
   int lineStart = 0;
   int lineEnd   = 0;
-  int v         = 0;
   for(int y = 0; y < image.rows; y++) {
     lineStart = y * image.cols;
     lineEnd   = lineStart + image.rows;
     for(int i = lineEnd; --i >= lineStart;) {
-      v                     = lut[image.at<uint16_t>(i) & 0xffff];
+      auto v                = lut[image.at<uint16_t>(i) & 0xffff];
       image.at<uint16_t>(i) = static_cast<uint16_t>(v);
     }
   }
   findMinAndMax(image);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-double getWeightedValue(cv::Mat &histogram, int i)
-{
-  bool classicEqualization = false;
-  int h                    = histogram.at<float>(i);
-  if(h < 2 || classicEqualization) {
-    return static_cast<double>(h);
-  }
-  return std::sqrt(static_cast<double>(h));
 }
 
 std::tuple<int32_t, int32_t> getMinAndMax(cv::Mat &ip, double saturated, cv::Mat &histogram)
@@ -164,29 +146,55 @@ void normalize(cv::Mat &ip, double min, double max)
 /// \param[out]
 /// \return
 ///
+double getWeightedValue(cv::Mat &histogram, int i)
+{
+  bool classicEqualization = false;
+  float h                  = histogram.at<float>(i);
+  if(h < 2 || classicEqualization) {
+    return static_cast<double>(h);
+  }
+  return std::sqrt(static_cast<double>(h));
+}
+
+///
+/// \brief         Changes the tone curves of images.
+///                It should bring up the detail in the flat regions of your image.
+///                Histogram Equalization can enhance meaningless detail and hide
+///                important but small high-contrast features. This method uses a
+///                similar algorithm, but uses the square root of the histogram
+///                values, so its effects are less extreme. Hold the alt key down
+///                to use the standard histogram equalization algorithm.
+///                This code was contributed by Richard Kirk (rak@cre.canon.co.uk).
+/// \author        Richard Kirk
+/// \author        Ported to C++ by Joachim Danmayr
+///
 void equalize(cv::Mat &ip, cv::Mat &histogram)
 {
   static constexpr uint16_t max   = UINT16_MAX;
   static constexpr uint16_t range = UINT16_MAX;
 
-  double sum;
-  sum = getWeightedValue(histogram, 0);
-  for(int i = 1; i < max; i++) {
-    sum += 2 * getWeightedValue(histogram, i);
+  double scale = 0;
+  {
+    double sum = getWeightedValue(histogram, 0);
+    for(int i = 1; i < max; i++) {
+      sum += 2 * getWeightedValue(histogram, i);
+    }
+    sum += getWeightedValue(histogram, max);
+    scale = range / sum;
   }
-  sum += getWeightedValue(histogram, max);
-  double scale = range / sum;
-  std::array<int32_t, range + 1> lut;
-  lut[0] = 0;
-  sum    = getWeightedValue(histogram, 0);
-  for(int i = 1; i < max; i++) {
-    double delta = getWeightedValue(histogram, i);
-    sum += delta;
-    lut[i] = static_cast<int>(std::round(sum * scale));
-    sum += delta;
+  {
+    double sum = getWeightedValue(histogram, 0);
+    std::array<int32_t, range + 1> lut;
+    lut[0] = 0;
+    for(int i = 1; i < max; i++) {
+      double delta = getWeightedValue(histogram, i);
+      sum += delta;
+      lut[i] = static_cast<int>(std::round(sum * scale));
+      sum += delta;
+    }
+    lut[max] = max;
+    applyTable(ip, lut);
   }
-  lut[max] = max;
-  applyTable(ip, lut);
 }
 
 ///
@@ -227,11 +235,6 @@ void EnhanceContrast::execute(processor::ProcessContext &context, cv::Mat &image
   bool accumulate        = false;
   cv::Mat hist;
   cv::calcHist(&image, 1, 0, cv::Mat(), hist, 1, &histSize, &histRange);    //, uniform, accumulate);
-  //// Normalize the histogram to [0, histImage.height()]
-  // hist.at<float>(0)    = 0;    // We don't want to display black
-  // double globalMaximum = 0;
-  // double globalMinimum = 0;
-  // cv::minMaxLoc(hist, &globalMinimum, &globalMaximum);
 
   //
   // Execute
