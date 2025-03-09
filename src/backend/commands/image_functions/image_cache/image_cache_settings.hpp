@@ -30,12 +30,18 @@ public:
 
   [[nodiscard]] std::set<enums::MemoryIdx::Enum> getInputImageCache() const override
   {
+    if(mode == Mode::LOAD) {
+      return {memoryId};
+    }
     return {};
   }
 
   [[nodiscard]] std::set<enums::MemoryIdx::Enum> getOutputImageCache() const override
   {
-    return {memoryId};
+    if(mode == Mode::STORE) {
+      return {memoryId};
+    }
+    return {};
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageCacheSettings, mode, memoryId, name);
