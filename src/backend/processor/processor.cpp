@@ -306,12 +306,17 @@ void Processor::listImages(const joda::settings::AnalyzeSettings &program, image
 /// \return
 ///
 auto Processor::generatePreview(const PreviewSettings &previewSettings, const settings::ProjectImageSetup &imageSetup,
-                                const settings::AnalyzeSettings &program, const settings::Pipeline &pipelineStart,
-                                const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX, int32_t tileY,
-                                bool generateThumb, const ome::OmeInfo &ome, const settings::ObjectInputClasses &classesToShow)
+                                const settings::AnalyzeSettings &program, const joda::thread::ThreadingSettings &threadingSettings,
+                                const settings::Pipeline &pipelineStart, const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack,
+                                int32_t tileX, int32_t tileY, bool generateThumb, const ome::OmeInfo &ome,
+                                const settings::ObjectInputClasses &classesToShow)
     -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>>
 {
-  auto ii = DurationCount::start("Generate preview");
+  auto ii = DurationCount::start("Generate preview with >" + std::to_string(threadingSettings.coresUsed) + "< threads.");
+
+  // Prepare thread pool
+  mGlobThreadPool.reset(threadingSettings.coresUsed);
+  auto poolSizeChannels = threadingSettings.coresUsed;
 
   //
   //  Resolve dependencies
@@ -357,99 +362,125 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
     }
   }
 
+  std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>> tmpResult;
+  bool finished = false;
+
   int executedSteps = 0;
-  int colorIdx      = 0;
   for(const auto &[order, pipelines] : pipelineOrder) {
-    for(const auto &pipeline : pipelines) {
+    BS::multi_future<void> pipelinesFutures;
+    for(const auto &pipelineToExecute : pipelines) {
       executedSteps++;
-      //
-      // Load the image imagePlane
-      //
-      ProcessContext context{globalContext, plateContext, imageContext, iterationContext};
-      imageLoader.initPipeline(pipeline->pipelineSetup, {tileX, tileY},
-                               {.tStack = tStack, .zStack = zStack, .cStack = pipeline->pipelineSetup.cStackIndex}, context, pipeline->index);
-      auto planeId = context.getActImage().getId().imagePlane;
-
-      //
-      // Execute the pipeline
-      //
-      for(const auto &step : pipeline->pipelineSteps) {
-        if(step.$saveImage.has_value()) {
-          // For preview do not execute image saver
-          continue;
-        }
-        step(context, context.getActImage().image, context.getActObjects());
+      if(executedSteps > totalRuns) {
+        continue;
       }
-      // Remove temporary objects from pipeline
-      iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_01));
-      iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_02));
-      iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_03));
-      iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_04));
 
-      //
-      // The last step is the wanted pipeline
-      //
-      if(executedSteps >= totalRuns) {
+      auto executePipeline = [&thumbThread, &thumb, &finished, &tmpResult, &previewSettings, &pipelineStart, &classesToShow, &totalRuns,
+                              pipeline = pipelineToExecute, this, &program, &globalContext, &plateContext, &pipelineOrder, imagePath, &imageContext,
+                              &imageLoader, tileX, tileY, pipelines = pipelines, &iterationContext, tStack, zStack, executedSteps]() -> void {
         //
-        // Count elements
+        // Load the image imagePlane
         //
-        std::map<joda::enums::ClassId, PreviewReturn> foundObjects;
-        {
-          for(auto const &[classs, objects] : context.getActObjects()) {
-            for(const auto &roi : *objects) {
-              joda::enums::ClassId key = static_cast<enums::ClassId>(roi.getClassId());
-              if(!foundObjects.contains(key)) {
-                foundObjects[key].count       = 0;
-                foundObjects[key].color       = "#000000";
-                foundObjects[key].wantedColor = globalContext.classes[key].color;
-                colorIdx++;
-              }
-              foundObjects[key].count++;
-            }
-          }
-        }
+        ProcessContext context{globalContext, plateContext, imageContext, iterationContext};
+        imageLoader.initPipeline(pipeline->pipelineSetup, {tileX, tileY},
+                                 {.tStack = tStack, .zStack = zStack, .cStack = pipeline->pipelineSetup.cStackIndex}, context, pipeline->index);
+        auto planeId = context.getActImage().getId().imagePlane;
 
         //
-        // Generate preview image
+        // Execute the pipeline
         //
-        joda::settings::ImageSaverSettings saverSettings;
-        saverSettings.classesIn.clear();
-        for(enums::ClassIdIn classs : classesToShow) {
-          if(classs >= enums::ClassIdIn::TEMP_01 && classs <= enums::ClassIdIn::TEMP_LAST) {
-            /// \todo allow to show temp in preview
+        for(const auto &step : pipeline->pipelineSteps) {
+          if(step.$saveImage.has_value()) {
+            // For preview do not execute image saver
             continue;
           }
-          if(classs == enums::ClassIdIn::$) {
-            classs = static_cast<enums::ClassIdIn>(pipelineStart.pipelineSetup.defaultClassId);
-          }
-
-          auto key = static_cast<enums::ClassId>(classs);
-          if(foundObjects.contains(key)) {
-            // Objects which are selected should be painted in color in the legend, not selected are black
-            foundObjects[key].color = foundObjects.at(key).wantedColor;
-
-            saverSettings.classesIn.emplace_back(
-                settings::ImageSaverSettings::SaveClasss{.inputClass = classs, .style = previewSettings.style, .paintBoundingBox = false});
-          }
+          step(context, context.getActImage().image, context.getActObjects());
         }
+        // Remove temporary objects from pipeline
+        iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_01));
+        iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_02));
+        iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_03));
+        iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_04));
 
-        saverSettings.canvas     = settings::ImageSaverSettings::Canvas::IMAGE_$;
-        saverSettings.planesIn   = enums::ImageId{.zProjection = enums::ZProjection::$};
-        saverSettings.outputSlot = settings::ImageSaverSettings::Output::IMAGE_$;
-        auto step                = settings::PipelineStep{.$saveImage = saverSettings};
-        auto saver               = joda::settings::PipelineFactory<joda::cmd::Command>::generate(step);
-        saver->execute(context, context.getActImage().image, context.getActObjects());
-        ///\warning #warning "Exception on thread destructor"
-        thumbThread.join();
-        DurationCount::stop(ii);
-        return {context.loadImageFromCache(joda::enums::ImageId{.zProjection = enums::ZProjection::$, .imagePlane = {}})->image,
-                context.getActImage().image, thumb, foundObjects};
+        //
+        // The last step is the wanted pipeline
+        //
+        if(executedSteps >= totalRuns) {
+          //
+          // Count elements
+          //
+          std::map<joda::enums::ClassId, PreviewReturn> foundObjects;
+          {
+            for(auto const &[classs, objects] : context.getActObjects()) {
+              for(const auto &roi : *objects) {
+                joda::enums::ClassId key = static_cast<enums::ClassId>(roi.getClassId());
+                if(!foundObjects.contains(key)) {
+                  foundObjects[key].count       = 0;
+                  foundObjects[key].color       = "#000000";
+                  foundObjects[key].wantedColor = globalContext.classes[key].color;
+                }
+                foundObjects[key].count++;
+              }
+            }
+          }
+
+          //
+          // Generate preview image
+          //
+          joda::settings::ImageSaverSettings saverSettings;
+          saverSettings.classesIn.clear();
+          for(enums::ClassIdIn classs : classesToShow) {
+            if(classs >= enums::ClassIdIn::TEMP_01 && classs <= enums::ClassIdIn::TEMP_LAST) {
+              /// \todo allow to show temp in preview
+              continue;
+            }
+            if(classs == enums::ClassIdIn::$) {
+              classs = static_cast<enums::ClassIdIn>(pipelineStart.pipelineSetup.defaultClassId);
+            }
+
+            auto key = static_cast<enums::ClassId>(classs);
+            if(foundObjects.contains(key)) {
+              // Objects which are selected should be painted in color in the legend, not selected are black
+              foundObjects[key].color = foundObjects.at(key).wantedColor;
+
+              saverSettings.classesIn.emplace_back(
+                  settings::ImageSaverSettings::SaveClasss{.inputClass = classs, .style = previewSettings.style, .paintBoundingBox = false});
+            }
+          }
+
+          saverSettings.canvas     = settings::ImageSaverSettings::Canvas::IMAGE_$;
+          saverSettings.planesIn   = enums::ImageId{.zProjection = enums::ZProjection::$};
+          saverSettings.outputSlot = settings::ImageSaverSettings::Output::IMAGE_$;
+          auto step                = settings::PipelineStep{.$saveImage = saverSettings};
+          auto saver               = joda::settings::PipelineFactory<joda::cmd::Command>::generate(step);
+          saver->execute(context, context.getActImage().image, context.getActObjects());
+          ///\warning #warning "Exception on thread destructor"
+          thumbThread.join();
+
+          tmpResult = {context.loadImageFromCache(joda::enums::ImageId{.zProjection = enums::ZProjection::$, .imagePlane = {}})->image,
+                       context.getActImage().image, thumb, foundObjects};
+          finished  = true;
+        }
+      };
+
+      if(poolSizeChannels > 1) {
+        pipelinesFutures.push_back(mGlobThreadPool.submit_task(executePipeline));
+      } else {
+        executePipeline();
       }
     }
+    if(poolSizeChannels > 1) {
+      pipelinesFutures.wait();
+    }
   }
-  thumbThread.join();
-  DurationCount::stop(ii);
-  return {{}, {}, {}, {}};
+
+  if(!finished) {
+    thumbThread.join();
+    DurationCount::stop(ii);
+    return {{}, {}, {}, {}};
+  } else {
+    DurationCount::stop(ii);
+    return tmpResult;
+  }
 }
 
 }    // namespace joda::processor

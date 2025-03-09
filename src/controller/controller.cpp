@@ -226,9 +226,9 @@ void Controller::registerImageLookupCallback(const std::function<void(joda::file
 // PREVIEW ///////////////////////////////////////////////////
 
 void Controller::preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
-                         const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline, const std::filesystem::path &imagePath,
-                         int32_t tileX, int32_t tileY, Preview &previewOut, const joda::ome::OmeInfo &ome,
-                         const settings::ObjectInputClasses &classesToShow)
+                         const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,
+                         const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY,
+                         Preview &previewOut, const joda::ome::OmeInfo &ome, const settings::ObjectInputClasses &classesToShow)
 {
   static std::filesystem::path lastImagePath;
   static int32_t lastImageChannel = -1;
@@ -243,8 +243,8 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
   }
 
   processor::Processor process;
-  auto [originalImg, previewImage, thumb, foundObjects] =
-      process.generatePreview(previewSettings, imageSetup, settings, pipeline, imagePath, 0, 0, tileX, tileY, generateThumb, ome, classesToShow);
+  auto [originalImg, previewImage, thumb, foundObjects] = process.generatePreview(previewSettings, imageSetup, settings, threadSettings, pipeline,
+                                                                                  imagePath, 0, 0, tileX, tileY, generateThumb, ome, classesToShow);
   previewOut.originalImage.setImage(std::move(originalImg));
   previewOut.previewImage.setImage(std::move(previewImage));
   if(generateThumb) {

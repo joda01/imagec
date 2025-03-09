@@ -104,8 +104,9 @@ public:
 
   // PREVIEW ///////////////////////////////////////////////////
   void preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
-               const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX,
-               int32_t tileY, Preview &previewOut, const joda::ome::OmeInfo &, const settings::ObjectInputClasses &classesToShow);
+               const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const settings::Pipeline &pipeline,
+               const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, Preview &previewOut, const joda::ome::OmeInfo &,
+               const settings::ObjectInputClasses &classesToShow);
   [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series) -> joda::ome::OmeInfo;
 
   // FLOW CONTROL ///////////////////////////////////////////////////

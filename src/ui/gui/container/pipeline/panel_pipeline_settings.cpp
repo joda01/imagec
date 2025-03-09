@@ -487,16 +487,17 @@ void PanelPipelineSettings::updatePreview()
     mSelectedTileX           = 0;
     mSelectedTileY           = 0;
   }
-
-  PreviewJob job{.settings      = settingsTmp,
-                 .controller    = mWindowMain->getController(),
-                 .previewPanel  = mPreviewImage,
-                 .selectedImage = mWindowMain->getImagePanel()->getSelectedImage(),
-                 .pipelinePos   = cnt,
-                 .selectedTileX = mSelectedTileX,
-                 .selectedTileY = mSelectedTileY,
-                 .classes       = mWindowMain->getPanelClassification()->getClasses(),
-                 .classesToShow = classesToShow};
+  auto threadSettings = mWindowMain->getController()->calcOptimalThreadNumber(settingsTmp);
+  PreviewJob job{.settings       = settingsTmp,
+                 .controller     = mWindowMain->getController(),
+                 .previewPanel   = mPreviewImage,
+                 .selectedImage  = mWindowMain->getImagePanel()->getSelectedImage(),
+                 .pipelinePos    = cnt,
+                 .selectedTileX  = mSelectedTileX,
+                 .selectedTileY  = mSelectedTileY,
+                 .classes        = mWindowMain->getPanelClassification()->getClasses(),
+                 .classesToShow  = classesToShow,
+                 .threadSettings = threadSettings};
 
   std::lock_guard<std::mutex> lock(mCheckForEmptyMutex);
   mPreviewQue.push(job);
@@ -564,9 +565,8 @@ void PanelPipelineSettings::previewThread()
             if(myPipeline == nullptr) {
               continue;
             }
-
-            jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, *myPipeline, imgIndex, jobToDo.selectedTileX,
-                                        jobToDo.selectedTileY, previewResult, imgProps, jobToDo.classesToShow);
+            jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, jobToDo.threadSettings, *myPipeline, imgIndex,
+                                        jobToDo.selectedTileX, jobToDo.selectedTileY, previewResult, imgProps, jobToDo.classesToShow);
             // Create a QByteArray from the char array
             QString info = "<html>";
             auto classes = jobToDo.classes;
