@@ -503,7 +503,6 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     showPanelStartPage();
     clearSettings();
 
-    mPanelResultsInfo->fromSettings(analyzeSettings);
     mPanelProjectSettings->fromSettings(analyzeSettings);
     mPanelClassification->fromSettings(analyzeSettings.projectSettings.classification);
 
@@ -517,6 +516,10 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     }
 
     mActAnalyzeSettings = &mAnalyzeSettings;
+
+    // This must be done at the end because the classes must be loaded before
+    mPanelResultsInfo->fromSettings(analyzeSettings);
+
     emit onOutputClassifierChanges();
     if(openFromTemplate) {
       mSelectedProjectSettingsFilePath.clear();

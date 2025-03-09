@@ -93,7 +93,7 @@ private:
   /////////////////////////////////////////////////////
   QDialog *mHistogramDialog;
 
-  void triggerPreviewUpdate();
+  void triggerPreviewUpdate(bool withUserHistoSettings);
 
 private slots:
   void onFitImageToScreenSizeClicked();

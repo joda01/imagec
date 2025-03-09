@@ -76,7 +76,7 @@ public:
     uint16_t histogramMaximum = 0;    // Index of the maximum
     uint16_t adjustIdx        = 0;    // Calculated "optimal" adjustment index
   };
-  AutoAdjustRet autoAdjustBrightnessRange();
+  void autoAdjustBrightnessRange();
 
 private:
   /////////////////////////////////////////////////////
@@ -84,6 +84,7 @@ private:
 
   /////////////////////////////////////////////////////
   [[nodiscard]] QPixmap encode(const cv::Mat *image) const;
+  std::array<int32_t, UINT16_MAX + 1> mLut;
 
   //// BRIGHTNESS /////////////////////////////////////////////////
   uint16_t mLowerValue       = 0;

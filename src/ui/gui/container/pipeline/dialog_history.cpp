@@ -194,7 +194,8 @@ void DialogHistory::restoreHistory(int32_t index)
 void DialogHistory::createTag()
 {
   QInputDialog inputDialog(mWindowMain);
-  inputDialog.setLabelText("Enter message:");
+  inputDialog.setWindowTitle("Create tag");
+  inputDialog.setLabelText("Tag name:");
   inputDialog.setInputMode(QInputDialog::TextInput);
   auto ret = inputDialog.exec();
   if(QInputDialog::Accepted == ret) {

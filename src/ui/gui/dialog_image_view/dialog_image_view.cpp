@@ -195,28 +195,8 @@ void DialogImageViewer::fitImageToScreenSize()
 ///
 void DialogImageViewer::autoAdjustHistogram()
 {
-  mSliderScaling->blockSignals(true);
-  mSlider->blockSignals(true);
-  mSliderHistogramOffset->blockSignals(true);
-
-  auto autoAdjustResult       = mPreviewImages.originalImage.autoAdjustBrightnessRange();
-  int32_t preferredLowerRange = autoAdjustResult.sigmaLower;
-  int32_t preferredUpperRange = autoAdjustResult.sigmaUpper;
-
-  mSliderScaling->setValue(1);
-
-  mSliderHistogramOffset->setValue(0);
-  mSliderHistogramOffset->setMaximum(0);
-  mSlider->setMinimum(mSliderHistogramOffset->value());
-  mSlider->setMaximum(mSliderHistogramOffset->value() + UINT16_MAX);
-  mSlider->setValue(autoAdjustResult.adjustIdx);
-
-  //
-  mSliderScaling->blockSignals(false);
-  mSlider->blockSignals(false);
-  mSliderHistogramOffset->blockSignals(false);
-
-  triggerPreviewUpdate();
+  mPreviewImages.originalImage.autoAdjustBrightnessRange();
+  triggerPreviewUpdate(false);
 }
 
 ///
@@ -236,7 +216,7 @@ void DialogImageViewer::onSliderMoved(int position)
   mSlider->setMaximum(mSliderHistogramOffset->value() + number);
   blockSignals(false);
 
-  triggerPreviewUpdate();
+  triggerPreviewUpdate(true);
 }
 
 ///
@@ -246,7 +226,7 @@ void DialogImageViewer::onSliderMoved(int position)
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::triggerPreviewUpdate()
+void DialogImageViewer::triggerPreviewUpdate(bool withUserHistoSettings)
 {
   if(mPreviewCounter == 0) {
     {
@@ -258,10 +238,12 @@ void DialogImageViewer::triggerPreviewUpdate()
         mPreviewThread->join();
       }
     }
-    mPreviewThread = std::make_unique<std::thread>([this] {
+    mPreviewThread = std::make_unique<std::thread>([this, withUserHistoSettings] {
       int previewCounter = 0;
       do {
-        mPreviewImages.originalImage.setBrightnessRange(0, mSlider->value(), mSliderScaling->value(), mSliderHistogramOffset->value());
+        if(withUserHistoSettings) {
+          mPreviewImages.originalImage.setBrightnessRange(0, mSlider->value(), mSliderScaling->value(), mSliderHistogramOffset->value());
+        }
         // mPreviewImages.thumbnail.setBrightnessRange(0, mSlider->value(), mSliderScaling->value(), mSliderHistogramOffset->value());
         mImageViewLeft.emitUpdateImage();
         std::this_thread::sleep_for(20ms);

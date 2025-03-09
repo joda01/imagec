@@ -29,6 +29,7 @@ public:
   /////////////////////////////////////////////////////
   EnhanceContrast(const settings::EnhanceContrastSettings &);
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
+  static auto equalize(cv::Mat &histogram) -> std::array<int32_t, UINT16_MAX + 1>;
 
 private:
   /////////////////////////////////////////////////////

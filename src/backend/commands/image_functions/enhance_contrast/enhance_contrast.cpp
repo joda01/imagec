@@ -168,7 +168,7 @@ double getWeightedValue(cv::Mat &histogram, int i)
 /// \author        Richard Kirk
 /// \author        Ported to C++ by Joachim Danmayr
 ///
-void equalize(cv::Mat &ip, cv::Mat &histogram)
+auto EnhanceContrast::equalize(cv::Mat &histogram) -> std::array<int32_t, UINT16_MAX + 1>
 {
   static constexpr uint16_t max   = UINT16_MAX;
   static constexpr uint16_t range = UINT16_MAX;
@@ -193,7 +193,7 @@ void equalize(cv::Mat &ip, cv::Mat &histogram)
       sum += delta;
     }
     lut[max] = max;
-    applyTable(ip, lut);
+    return lut;
   }
 }
 
@@ -240,7 +240,7 @@ void EnhanceContrast::execute(processor::ProcessContext &context, cv::Mat &image
   // Execute
   //
   if(mSettings.equalizeHistogram) {
-    equalize(image, hist);
+    applyTable(image, equalize(hist));
   } else {
     stretchHistogram(image, mSettings.saturatedPixels, hist, mSettings.normalize);
   }

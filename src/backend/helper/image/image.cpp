@@ -17,9 +17,11 @@
 #include <iostream>
 #include <mutex>
 #include <string>
+#include "backend/commands/image_functions/enhance_contrast/enhance_contrast.hpp"
 #include "backend/commands/image_functions/resize/resize.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
+#include <opencv2/core/types.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
@@ -77,25 +79,11 @@ QPixmap Image::getPixmap() const
       return {};
     }
 
-    // Create a lookup table for mapping pixel values
-    cv::Mat lookupTable(1, 65535, CV_16U);
-
-    for(int i = 0; i < 65535; ++i) {
-      if(i < mLowerValue) {
-        lookupTable.at<uint16_t>(i) = 0;
-      } else if(i > mUpperValue) {
-        lookupTable.at<uint16_t>(i) = 65535;
-      } else {
-        lookupTable.at<uint16_t>(i) = static_cast<uint16_t>((i - static_cast<float>(mLowerValue)) * 65535.0 /
-                                                            (static_cast<float>(mUpperValue) - static_cast<float>(mLowerValue)));
-      }
-    }
-
     // Apply the lookup table to the source image to get the destination image
     for(int y = 0; y < image.rows; ++y) {
       for(int x = 0; x < image.cols; ++x) {
         uint16_t pixelValue      = image.at<uint16_t>(y, x);
-        image.at<uint16_t>(y, x) = lookupTable.at<uint16_t>(pixelValue);
+        image.at<uint16_t>(y, x) = mLut[pixelValue];
       }
     }
     return encode(&image);
@@ -116,6 +104,18 @@ void Image::setBrightnessRange(uint16_t lowerValue, uint16_t upperValue, float h
   mUpperValue          = upperValue;
   mHistogramZoomFactor = histogramZoomFactor;
   mHistogramOffset     = histogramOffset;
+
+  // Create a lookup table for mapping pixel values
+  for(int i = 0; i < 65535; ++i) {
+    if(i < mLowerValue) {
+      mLut[i] = 0;
+    } else if(i > mUpperValue) {
+      mLut[i] = 65535;
+    } else {
+      mLut[i] = static_cast<uint16_t>((i - static_cast<float>(mLowerValue)) * 65535.0 /
+                                      (static_cast<float>(mUpperValue) - static_cast<float>(mLowerValue)));
+    }
+  }
 }
 
 ///
@@ -125,13 +125,12 @@ void Image::setBrightnessRange(uint16_t lowerValue, uint16_t upperValue, float h
 /// \param[out]
 /// \return
 ///
-Image::AutoAdjustRet Image::autoAdjustBrightnessRange()
+void Image::autoAdjustBrightnessRange()
 {
   if(mImageOriginal != nullptr) {
     if(mImageOriginal->empty() || mImageOriginal->channels() != 1) {
-      return {};
+      return;
     }
-    // Compute the histogram
     int histSize           = UINT16_MAX + 1;
     float range[]          = {0, UINT16_MAX + 1};
     const float *histRange = {range};
@@ -139,66 +138,8 @@ Image::AutoAdjustRet Image::autoAdjustBrightnessRange()
     bool accumulate        = false;
     cv::Mat hist;
     cv::calcHist(mImageOriginal, 1, 0, cv::Mat(), hist, 1, &histSize, &histRange);    //, uniform, accumulate);
-    // Normalize the histogram to [0, histImage.height()]
-    hist.at<float>(0) = 0;    // We don't want to display black
-
-    double globalMaximum = 0;
-    double globalMinimum = 0;
-
-    cv::minMaxLoc(hist, &globalMinimum, &globalMaximum);
-
-    double threshold = globalMaximum * (double) 0.7;
-    std::vector<int> maximaIndexs;
-    std::vector<float> maxima;
-    for(int idx = 1; idx < (histSize - 1); idx++) {
-      if(hist.at<float>(idx) > hist.at<float>(idx - 1) && hist.at<float>(idx) > hist.at<float>(idx + 1)) {
-        // Find all local maxima higher than 50% of the global maxima
-        if(hist.at<float>(idx) >= threshold) {
-          maximaIndexs.push_back(idx);              // Store the index of the maximum
-          maxima.push_back(hist.at<float>(idx));    // Store the index of the maximum
-        }
-      }
-    }
-    if(maximaIndexs.empty()) {
-      return {};
-    }
-    uint16_t histMaxIdx = maximaIndexs.at(maximaIndexs.size() - 1);
-    float histMax       = maxima.at(maxima.size() - 1);
-
-    auto findInIndex = [&histMaxIdx, &hist, &histSize, &histMax](uint16_t startIndex, int32_t stopIndex, const float sigma, bool upperLower,
-                                                                 uint16_t offset = 0) -> int32_t {
-      uint16_t histIdx = startIndex;
-      for(int idx = startIndex; idx < stopIndex; idx++) {
-        uint16_t histValue = hist.at<float>(idx);
-        if(upperLower) {
-          if(histValue < static_cast<float>(histMax) / sigma) {
-            histIdx = idx + offset;
-            break;
-          }
-        } else {
-          if(histValue > static_cast<float>(histMax) / sigma) {
-            histIdx = idx - offset;
-            break;
-          }
-        }
-      }
-      if(histIdx > 65535) {
-        histIdx = 65535;
-      }
-      if(histIdx < 0) {
-        histIdx = 0;
-      }
-      return histIdx;
-    };
-
-    uint16_t adjustedValue = findInIndex(histMaxIdx, (histSize - 1), 3.0, true, 5000);
-    uint16_t lowerBound    = findInIndex(0, histMaxIdx, 6.0, false);
-    uint16_t upperBound    = findInIndex(histMaxIdx, (histSize - 1), 6.0, true, 5000);
-
-    mUpperValue = adjustedValue;
-    return {lowerBound, upperBound, histMaxIdx, adjustedValue};
+    mLut = joda::cmd::EnhanceContrast::equalize(hist);
   }
-  return {};
 }
 
 ///
