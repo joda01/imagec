@@ -71,7 +71,7 @@ auto Pipeline::restoreSnapShot(int32_t idx) const -> Pipeline
 /// \brief      Tagname
 /// \author     Joachim Danmayr
 ///
-void Pipeline::tag(int32_t index, const std::string &tagName)
+void Pipeline::tag(const std::string &tagName, int32_t index)
 {
   if(history.size() < index) {
     throw std::runtime_error("This history entry does not exist!");

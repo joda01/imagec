@@ -4,6 +4,7 @@
     <file>icons/icons8-minus-simple-96.png</file>
     <file>icons/icons8-magic-16.png</file>
     <file>icons/icons8-light-24.png</file>
+    <file>icons/icons8-tag-16.png</file>
     <file>icons/icons8-number-48.png</file>
     <file>icons/icons8-plus-simple-16.png</file>
     <file>icons/icons8-railroad-crossing-24.png</file>
@@ -200,6 +201,7 @@
     <file>icons/icons8-triangle-48.png</file>
     <file>icons/icons8-favorite-folder-24.png</file>
     <file>icons/icons8-deviation-24.png</file>
+    <file>icons/icons8-tag-24.png</file>
     <file>icons/icons8-x-coordinate-16.png</file>
     <file>icons/icons8-mind-map-16.png</file>
     <file>icons/icons8-trigonometry-16.png</file>
@@ -369,6 +371,7 @@
     <file>icons/icons8-polygon-48.png</file>
     <file>icons/icons8-column-48.png</file>
     <file>icons/icons8-zoom-in-16.png</file>
+    <file>icons/icons8-rank-48.png</file>
     <file>icons/icons8-screensharing-96.png</file>
     <file>icons/icons8-experiment-16.png</file>
     <file>icons/icons8-zoom-in-96.png</file>
@@ -389,6 +392,7 @@
     <file>icons/icons8-full-screen-96.png</file>
     <file>icons/icons8-open-96.png</file>
     <file>icons/icons8-preview-48.png</file>
+    <file>icons/icons8-tag-48.png</file>
     <file>icons/icons8-log-96.png</file>
     <file>icons/icons8-question-mark-96.png</file>
     <file>icons/icons8-query-outer-join-right-48.png</file>
@@ -452,6 +456,7 @@
     <file>icons/icons8-equals-16.png</file>
     <file>icons/icons8-shutdown-96.png</file>
     <file>icons/icons8-light-48.png</file>
+    <file>icons/icons8-rank-96.png</file>
     <file>icons/icons8-delete-column-16.png</file>
     <file>icons/icons8-open-lock-24.png</file>
     <file>icons/icons8-accept-16.png</file>
@@ -531,6 +536,7 @@
     <file>icons/icons8-solar-cross-48.png</file>
     <file>icons/icons8-add-file-16.png</file>
     <file>icons/icons8-star-16.png</file>
+    <file>icons/icons8-rank-24.png</file>
     <file>icons/icons8-geometric-flowers-96.png</file>
     <file>icons/icons8-5-48.png</file>
     <file>icons/icons8-qr-code-24.png</file>
@@ -789,6 +795,7 @@
     <file>icons/icons8-warning-yellow-16.png</file>
     <file>icons/icons8-grayscale-48.png</file>
     <file>icons/icons8-export-excel-16.png</file>
+    <file>icons/icons8-rank-16.png</file>
     <file>icons/icons8-flow-many-16.png</file>
     <file>icons/icons8-add-16.png</file>
     <file>icons/icons8-add-file-48.png</file>
@@ -843,6 +850,7 @@
     <file>icons/icons8-genealogy-96.png</file>
     <file>icons/icons8-zoom-out-16.png</file>
     <file>icons/icons8-filter-96.png</file>
+    <file>icons/icons8-tag-96.png</file>
     <file>icons/icons8-hexagon-24.png</file>
     <file>icons/icons8-classify-96.png</file>
     <file>icons/icons8-one-96.png</file>

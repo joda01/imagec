@@ -16,6 +16,7 @@
 #include <qnamespace.h>
 #include <qpainter.h>
 #include <chrono>
+#include "backend/helper/logger/console_logger.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/window_main/window_main.hpp"
 #include "panel_pipeline_settings.hpp"
@@ -32,6 +33,12 @@ public:
       QWidget(parent),
       mIcon(icon), mLeftText(leftText), mTimeStamp(timestamp)
   {
+  }
+  void updateContent(const QIcon &icon, const QString &txt)
+  {
+    mIcon     = icon;
+    mLeftText = txt;
+    update();
   }
 
 protected:
@@ -184,6 +191,35 @@ void DialogHistory::restoreHistory(int32_t index)
 /// \param[out]
 /// \return
 ///
+void DialogHistory::createTag()
+{
+  QInputDialog inputDialog(mWindowMain);
+  inputDialog.setLabelText("Enter message:");
+  inputDialog.setInputMode(QInputDialog::TextInput);
+  auto ret = inputDialog.exec();
+  if(QInputDialog::Accepted == ret) {
+    QString text = inputDialog.textValue();
+    if(!text.isEmpty()) {
+      try {
+        mPanelPipeline->mutablePipeline().tag(text.toStdString());
+        ((TimeHistoryEntry *) mHistory->cellWidget(0, 0))->updateContent(generateIcon("tag"), text);
+        mHistory->update();
+        mHistory->viewport()->update();
+        mWindowMain->checkForSettingsChanged();
+      } catch(...) {
+        joda::log::logWarning("Could not create tag!");
+      }
+    }
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 auto DialogHistory::generateHistoryEntry(const std::optional<joda::settings::PipelineHistoryEntry> &inData) -> TimeHistoryEntry *
 {
   if(!inData.has_value()) {
@@ -191,26 +227,32 @@ auto DialogHistory::generateHistoryEntry(const std::optional<joda::settings::Pip
   }
 
   QIcon icon;
-  switch(inData->category) {
-    case enums::HistoryCategory::OTHER:
-      icon = generateIcon("circle");
-      break;
-    case enums::HistoryCategory::ADDED:
-      icon = generateIcon("plus-simple");
-      break;
-    case enums::HistoryCategory::DELETED:
-      icon = generateIcon("minus-simple");
-      break;
-    case enums::HistoryCategory::CHANGED:
-      icon = generateIcon("circle");
-      break;
-    case enums::HistoryCategory::SAVED:
-      icon = generateIcon("save-simple");
-      break;
+  QString text;
+  if(!inData->tagMessage.empty()) {
+    icon = generateIcon("tag");
+    text = inData->tagMessage.data();
+  } else {
+    text = inData->commitMessage.data();
+    switch(inData->category) {
+      case enums::HistoryCategory::OTHER:
+        icon = generateIcon("circle");
+        break;
+      case enums::HistoryCategory::ADDED:
+        icon = generateIcon("plus-simple");
+        break;
+      case enums::HistoryCategory::DELETED:
+        icon = generateIcon("minus-simple");
+        break;
+      case enums::HistoryCategory::CHANGED:
+        icon = generateIcon("circle");
+        break;
+      case enums::HistoryCategory::SAVED:
+        icon = generateIcon("save-simple");
+        break;
+    }
   }
   // Set the icon in the first column
-  auto *textIcon =
-      new TimeHistoryEntry(icon, inData->commitMessage.data(), std::chrono::system_clock::time_point(std::chrono::seconds(inData->timeStamp)));
+  auto *textIcon = new TimeHistoryEntry(icon, text, std::chrono::system_clock::time_point(std::chrono::seconds(inData->timeStamp)));
   return textIcon;
 }
 }    // namespace joda::ui::gui

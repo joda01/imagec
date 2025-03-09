@@ -147,6 +147,12 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   });
   connect(mDialogHistory, &QDialog::finished, [this] { mHistoryAction->setChecked(false); });
 
+  auto *addTagAction = mLayout.addActionButton("Add tag", generateIcon("tag"));
+  addTagAction->setToolTip("Tag the actual settings in the history.");
+  connect(addTagAction, &QAction::triggered, [this]() { mDialogHistory->createTag(); });
+
+  mLayout.addSeparatorToTopToolbar();
+
   //
   // Add disable button
   //
