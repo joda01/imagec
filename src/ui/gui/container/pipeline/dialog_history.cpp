@@ -15,6 +15,7 @@
 #include <qlabel.h>
 #include <qnamespace.h>
 #include <qpainter.h>
+#include <qtoolbar.h>
 #include <chrono>
 #include "backend/helper/logger/console_logger.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
@@ -107,8 +108,43 @@ DialogHistory::DialogHistory(WindowMain *parent, PanelPipelineSettings *panelPip
   mHistory->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   connect(mHistory, &QTableWidget::cellDoubleClicked, [&](int row, int column) { restoreHistory(row); });
 
+  //
+  // Toolbar
+  //
+  auto *toolBar = new QToolBar();
+
+  // Create a stretchable spacer
+  auto *spacer = new QWidget();
+  spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  toolBar->addWidget(spacer);    // This pushes everything after it to the right
+
+  auto *addTagAction = toolBar->addAction(generateIcon("tag"), "Add tag");
+  addTagAction->setToolTip("Tag the actual settings in the history.");
+  connect(addTagAction, &QAction::triggered, [this]() { createTag(); });
+
+  auto *clearHistory = toolBar->addAction(generateIcon("delete"), "Clear history");
+  clearHistory->setToolTip("Clear history without tags.");
+  connect(clearHistory, &QAction::triggered, [this]() {
+    QMessageBox messageBox(mWindowMain);
+    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setWindowTitle("Clear history?");
+    messageBox.setText("Clear history and keep tags?");
+    QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+    QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+    messageBox.setDefaultButton(noButton);
+    auto reply = messageBox.exec();
+    if(messageBox.clickedButton() == noButton) {
+      return;
+    }
+    mPanelPipeline->mutablePipeline().clearHistory();
+    loadHistory();
+    mWindowMain->checkForSettingsChanged();
+  });
+
   auto *layout = new QVBoxLayout();
+  layout->setContentsMargins(0, 0, 0, 0);
   layout->addWidget(mHistory);
+  layout->addWidget(toolBar);
   setLayout(layout);
   setMinimumHeight(600);
   setMinimumWidth(300);

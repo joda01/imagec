@@ -45,9 +45,29 @@ auto Pipeline::createSnapShot(enums::HistoryCategory category, const std::string
 
   // Limit to max. history steps
   if(history.size() > MAX_HISTORY_STEPS) {
-    history.pop_back();
+    int32_t n = 1;
+    // Find the oldest element which is not a tag
+    {
+      const auto &element = history.at(history.size() - n);
+      while(!element.tagMessage.empty() && ((history.size() - n) > 0)) {
+        n++;
+      }
+    }
+    const auto &elementToDelete = history.at(history.size() - n);
+    if(elementToDelete.tagMessage.empty()) {
+      history.erase(history.begin() + (history.size() - n));
+    }
   }
   return entry;
+}
+///
+/// \brief      Clear all elements except tags from the history
+/// \author     Joachim Danmayr
+///
+void Pipeline::clearHistory()
+{
+  history.erase(std::remove_if(history.begin(), history.end(), [](const PipelineHistoryEntry &item) { return item.tagMessage.empty(); }),
+                history.end());
 }
 
 ///
