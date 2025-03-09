@@ -68,7 +68,10 @@ Controller::~Controller()
 ///
 auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings) -> joda::thread::ThreadingSettings
 {
-  return calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles());
+  if(mWorkingDirectory.getNrOfFiles() > 0) {
+    return calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles());
+  }
+  return {};
 }
 
 ///

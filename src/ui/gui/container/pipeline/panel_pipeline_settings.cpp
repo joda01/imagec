@@ -487,21 +487,25 @@ void PanelPipelineSettings::updatePreview()
     mSelectedTileX           = 0;
     mSelectedTileY           = 0;
   }
-  auto threadSettings = mWindowMain->getController()->calcOptimalThreadNumber(settingsTmp);
-  PreviewJob job{.settings       = settingsTmp,
-                 .controller     = mWindowMain->getController(),
-                 .previewPanel   = mPreviewImage,
-                 .selectedImage  = mWindowMain->getImagePanel()->getSelectedImage(),
-                 .pipelinePos    = cnt,
-                 .selectedTileX  = mSelectedTileX,
-                 .selectedTileY  = mSelectedTileY,
-                 .classes        = mWindowMain->getPanelClassification()->getClasses(),
-                 .classesToShow  = classesToShow,
-                 .threadSettings = threadSettings};
+  try {
+    auto threadSettings = mWindowMain->getController()->calcOptimalThreadNumber(settingsTmp);
+    PreviewJob job{.settings       = settingsTmp,
+                   .controller     = mWindowMain->getController(),
+                   .previewPanel   = mPreviewImage,
+                   .selectedImage  = mWindowMain->getImagePanel()->getSelectedImage(),
+                   .pipelinePos    = cnt,
+                   .selectedTileX  = mSelectedTileX,
+                   .selectedTileY  = mSelectedTileY,
+                   .classes        = mWindowMain->getPanelClassification()->getClasses(),
+                   .classesToShow  = classesToShow,
+                   .threadSettings = threadSettings};
 
-  std::lock_guard<std::mutex> lock(mCheckForEmptyMutex);
-  mPreviewQue.push(job);
-  log::logTrace("Add preview job!");
+    std::lock_guard<std::mutex> lock(mCheckForEmptyMutex);
+    mPreviewQue.push(job);
+    log::logTrace("Add preview job!");
+  } catch(...) {
+    // No image selected
+  }
 }
 
 ///

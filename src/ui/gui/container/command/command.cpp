@@ -133,7 +133,7 @@ void Command::mousePressEvent(QMouseEvent *event)
 ///
 void Command::paintEvent(QPaintEvent *event)
 {
-  auto getColor = [](InOuts inouts) {
+  std::function<QColor(InOuts)> getColor = [&](InOuts inouts) -> QColor {
     switch(inouts) {
       case InOuts::ALL:
         return Qt::lightGray;
@@ -147,12 +147,17 @@ void Command::paintEvent(QPaintEvent *event)
     return Qt::lightGray;
   };
 
-  auto getColorSet = [&](std::set<InOuts> inouts) {
+  auto getColorSet = [&](std::set<InOuts> inouts) -> QColor {
     // Select the input color depending on the previous command output
     if(mCommandBefore != nullptr) {
-      if(inouts.contains(mCommandBefore->getInOut().out)) {
-        return getColor(mCommandBefore->getInOut().out);
-      }    // This command is not allowed
+      auto outTmp = mCommandBefore->getInOut().out;
+      if(outTmp == InOuts::OUTPUT_EQUAL_TO_INPUT) {
+        outTmp = mCommandBefore->getResolvedInput();
+      }
+      if(inouts.contains(outTmp)) {
+        return getColor(outTmp);
+      }
+      // This command is not allowed
       return Qt::red;
     }
     return getColor(*inouts.begin());
@@ -216,7 +221,12 @@ void Command::paintEvent(QPaintEvent *event)
     // painter.fillRect((width() - LINE_WIDTH), 0, LINE_WIDTH, heightToPaint, colorIn);
     paintTopPolygon(colorIn);
   }
-  auto colorOut = getColor(mInOut.out);
+  QColor colorOut;
+  if(mInOut.out == InOuts::OUTPUT_EQUAL_TO_INPUT) {
+    colorOut = getColorSet(mInOut.in);
+  } else {
+    colorOut = getColor(mInOut.out);
+  }
   if(colorOut != Qt::lightGray) {
     // painter.fillRect((width() - LINE_WIDTH), heightToPaint, LINE_WIDTH, heightToPaint, colorOut);
     paintBottomPolygon(colorOut);
