@@ -47,7 +47,7 @@ public:
 
     //
     //
-    mSaturatedPixels = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("diameter"), "Saturated pixels [0-1]");
+    mSaturatedPixels = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("percent"), "Saturated pixels [0-1]");
     mSaturatedPixels->setPlaceholderText("[0 - 1]");
     mSaturatedPixels->setUnit("%");
     mSaturatedPixels->setMinMax(0, 1);
@@ -60,8 +60,8 @@ public:
     //
     mNormalize = SettingBase::create<SettingComboBox<bool>>(parent, {}, "Normalize");
     mNormalize->addOptions({
-        {.key = false, .label = "Off", .icon = generateIcon("ampersand")},
-        {.key = true, .label = "On", .icon = generateIcon("ampersand")},
+        {.key = false, .label = "Off"},
+        {.key = true, .label = "On"},
     });
     mNormalize->setValue(settings.normalize);
     mNormalize->connectWithSetting(&settings.normalize);
@@ -71,8 +71,8 @@ public:
     //
     mEqualizeHistogram = SettingBase::create<SettingComboBox<bool>>(parent, {}, "Equalize histogram");
     mEqualizeHistogram->addOptions({
-        {.key = false, .label = "Off", .icon = generateIcon("ampersand")},
-        {.key = true, .label = "On", .icon = generateIcon("ampersand")},
+        {.key = false, .label = "Off"},
+        {.key = true, .label = "On"},
     });
     mEqualizeHistogram->setValue(settings.equalizeHistogram);
     mEqualizeHistogram->connectWithSetting(&settings.equalizeHistogram);

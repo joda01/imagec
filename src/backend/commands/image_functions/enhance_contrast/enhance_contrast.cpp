@@ -29,25 +29,23 @@ EnhanceContrast::EnhanceContrast(const settings::EnhanceContrastSettings &settin
 
 void setMinMax(cv::Mat &image, uint16_t min, uint16_t max)
 {
-  // Create a lookup table for mapping pixel values
-  cv::Mat lookupTable(1, 65535, CV_16U);
+  auto min2    = static_cast<float>(min);
+  auto max2    = static_cast<float>(max);
+  int maxValue = 65535;
+  double scale = 65535.0 / (max2 - min2 + 1);
+  int32_t value;
 
-  for(int i = 0; i < 65535; ++i) {
-    if(i < min) {
-      lookupTable.at<uint16_t>(i) = 0;
-    } else if(i > max) {
-      lookupTable.at<uint16_t>(i) = 65535;
-    } else {
-      lookupTable.at<uint16_t>(i) =
-          static_cast<uint16_t>((i - static_cast<float>(min)) * 65535.0 / (static_cast<float>(max) - static_cast<float>(min)));
-    }
-  }
-
-  // Apply the lookup table to the source image to get the destination image
   for(int y = 0; y < image.rows; ++y) {
     for(int x = 0; x < image.cols; ++x) {
-      uint16_t pixelValue      = image.at<uint16_t>(y, x);
-      image.at<uint16_t>(y, x) = lookupTable.at<uint16_t>(pixelValue);
+      value = (image.at<uint16_t>(y, x) & 0xffff) - min2;
+      if(value < 0) {
+        value = 0;
+      }
+      value = static_cast<int32_t>(static_cast<float>(value) * scale + 0.5);
+      if(value > maxValue) {
+        value = maxValue;
+      }
+      image.at<uint16_t>(y, x) = static_cast<uint16_t>(value);
     }
   }
 }
