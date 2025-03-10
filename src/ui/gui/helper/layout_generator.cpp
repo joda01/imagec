@@ -211,6 +211,9 @@ void VerticalPane::addGroup(const std::vector<SettingBase *> &elements, int minW
   group->setMaximumWidth(maxWidth);
   group->setMinimumWidth(minWidth);
   auto *layout = new QVBoxLayout;
+  group->setContentsMargins(0, 0, 0, 0);
+  layout->setContentsMargins(0, 0, 0, 0);
+
   for(const auto &element : elements) {
     layout->addWidget(element->getEditableWidget());
     connect(element, &SettingBase::valueChanged, layoutGenerator, &LayoutGenerator::onSettingChanged);

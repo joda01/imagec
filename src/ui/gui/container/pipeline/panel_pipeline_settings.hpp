@@ -28,6 +28,7 @@
 #include "ui/gui/container/setting/setting_combobox_classes_out.hpp"
 #include "ui/gui/container/setting/setting_line_edit.hpp"
 #include "ui/gui/container/setting/setting_spinbox.hpp"
+#include "ui/gui/container/setting/setting_text_edit.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/panel_preview.hpp"
 
@@ -111,6 +112,7 @@ private:
   /////////////////////////////////////////////////////
   helper::LayoutGenerator mLayout;
   std::unique_ptr<SettingLineEdit<std::string>> pipelineName;
+  std::unique_ptr<SettingTextEdit> pipelineNotes;
   std::unique_ptr<SettingComboBox<int32_t>> cStackIndex;
   std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjection;
   std::unique_ptr<SettingSpinBox<int32_t>> zStackIndex;

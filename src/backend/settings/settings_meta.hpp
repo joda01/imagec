@@ -31,6 +31,11 @@ struct SettingsMeta
   std::string name;
 
   //
+  // Some notes in markdown language
+  //
+  std::string notes;
+
+  //
   // Color of the channel
   // [#B91717]
   //
@@ -80,7 +85,7 @@ struct SettingsMeta
     modifiedAt = helper::timepointToIsoString(std::chrono::system_clock::now());
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(SettingsMeta, name, color, icon, revision, uid, modifiedAt, group, category, tags);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(SettingsMeta, name, notes, color, icon, revision, uid, modifiedAt, group, category, tags);
 };
 
 };    // namespace joda::settings

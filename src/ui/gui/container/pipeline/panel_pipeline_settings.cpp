@@ -362,7 +362,17 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
   defaultClassId->connectWithSetting(&mSettings.pipelineSetup.defaultClassId);
   defaultClassId->classsNamesChanged();
 
+  //
+  //
+  pipelineNotes = SettingBase::create<SettingTextEdit>(windowMain, generateIcon("header"), "", 15);
+  pipelineNotes->setPlaceholderText("Notes on the pipeline ...");
+  pipelineNotes->connectWithSetting(&mSettings.meta.notes);
+
+  //
+  // Connect signals
+  //
   connect(pipelineName.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::metaChangedEvent);
+  connect(pipelineNotes.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::metaChangedEvent);
   connect(cStackIndex.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   connect(zProjection.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   connect(zProjection.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::onZProjectionChanged);
@@ -375,6 +385,7 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
     col1->addGroup("Pipeline meta", {pipelineName.get()});
     col1->addGroup("Pipeline input", {cStackIndex.get(), zProjection.get(), zStackIndex.get()});
     col1->addGroup("Pipeline output", {defaultClassId.get()});
+    col1->addGroup({pipelineNotes.get()});
   }
 
   mOverview = new PanelChannelOverview(windowMain, this);
