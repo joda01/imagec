@@ -36,3 +36,7 @@ Start-Process -RedirectStandardOutput
 Add to path
 
 C:\Users\Joachim\.conan2\p\mingwf3629a0c4f698\p\bin
+
+
+    #cyclonedx-conan . --output sbom.spdx
+    #conan graph info . --profile conan/profile_win_mingw --format=html > graph.html

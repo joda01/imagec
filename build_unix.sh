@@ -1,33 +1,27 @@
 
-buildlibs(){
+initConan(){
     pip install conan --upgrade --break-system-packages
     conan profile detect --force
     conan remote remove conancenter
     conan remote add imageclibs https://imagec.org:4431/artifactory/api/conan/imageclibs
     conan remote login imageclibs reader
+}
+
+make(){
     conan install . --profile conan/profile_linux --output-folder=build --build=missing
-    #cyclonedx-conan . --output sbom.spdx
-    #conan graph info . --profile conan/profile_win_mingw --format=html > graph.html
+    cmake -S . -B ./build -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_TOOLCHAIN_FILE="./build/build/Release/generators/conan_toolchain.cmake"
 }
 
 build(){
-    #cd resources
-    #python3 get_icons.py
-    #cd ..
-    cd build
-    #cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
-    cmake --build . --config Release --target imagec --parallel 16
-    #cmake --build . --config Release --target tests --parallel 16
+    cmake --build ./build --config Release --target imagec --parallel 16
+    cmake --build ./build --config Release --target tests --parallel 16
+}
 
-
-    cd ..
-    
+pack(){
     rm -rf build/build/java
     rm -rf build/build/plugins
     rm -rf build/build/libs
     rm -rf build/build/lib
-
-
 
     cd build/build
     mkdir -p output
@@ -63,5 +57,45 @@ build(){
     cp -r ../../../../resources/models/*.onnx .
 }
 
-#buildlibs
-build
+clean() {
+    rm -rf ./build
+    rm -rf CMakeUserPresets
+}
+
+
+# Check for arguments
+if [ $# -eq 0 ]; then
+    echo "ImageC build script usage:"
+    echo "    [--init] Execute --init once after you initial setup the project."
+    echo "    [--make] Execute --make every time some external deps have been changed or added."
+    echo "    [--build] Execute --build every time something in code has been changed."
+    echo "    [--clean] To remove all build artifacts."
+    exit 1
+fi
+
+# Parse arguments
+for arg in "$@"; do
+    case $arg in
+        --init)
+            # Execute init conan once after you initial setup the project
+            initConan
+            ;;
+        --make)
+            # Execute make every time some external deps have been changed or added
+            make
+            ;;
+        --build)
+            # Execute build and pack every time something in code has been changed
+            build
+            pack
+            ;;
+        --clean)
+            clean
+            ;;
+        *)
+            echo "Unknown option: $arg"
+            echo "Usage: $0 [--init] [--make] [--build] [--clean]"
+            exit 1
+            ;;
+    esac
+done
