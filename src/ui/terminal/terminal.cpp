@@ -193,6 +193,7 @@ void Terminal::exportData(const std::filesystem::path &pathToDatabasefile, const
   joda::log::logInfo("Export started!");
   mController->exportData(pathToDatabasefile, filter, joda::ctrl::ExportSettings{formatEnum, typeEnum, viewEnum}, outputPath);
   joda::log::logInfo("Export finished!");
+  std::exit(0);
 }
 
 }    // namespace joda::ui::terminal
