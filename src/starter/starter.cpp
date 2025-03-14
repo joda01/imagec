@@ -170,7 +170,7 @@ void Starter::exec(int argc, char *argv[])
   if(parser.isSet(runOption)) {
     std::optional<std::string> imageInputPath = std::nullopt;
     if(parser.isSet(imagePathOption)) {
-      imageInputPath = parser.value(runOption).toStdString();
+      imageInputPath = parser.value(imagePathOption).toStdString();
     }
 
     QString settingsFilePath = parser.value(runOption);
