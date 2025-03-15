@@ -30,10 +30,11 @@ namespace joda::processor {
 class DependencyGraphKey
 {
 public:
-  DependencyGraphKey(joda::enums::ClassId in) : mKey(static_cast<uint64_t>(in))
+  // Since we start with zero to count we have to add +1
+  DependencyGraphKey(joda::enums::ClassId in) : mKey((static_cast<uint64_t>(in) + 1))
   {
   }
-  DependencyGraphKey(joda::enums::MemoryIdx in) : mKey(static_cast<stdi::uint128_t>(in) << 16)
+  DependencyGraphKey(joda::enums::MemoryIdx in) : mKey((static_cast<stdi::uint128_t>(in) + 1) << 16)
   {
   }
 

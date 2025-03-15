@@ -52,6 +52,16 @@ public:
     return result;
   }
 
+  uint128_t operator+(const uint64_t other) const
+  {
+    uint128_t result;
+    result.low = low + other;
+    if(result.low < low) {
+      result.high++;
+    }
+    return result;
+  }
+
   // Overload modulo operator
   uint128_t operator%(const uint32_t &divisor) const
   {
