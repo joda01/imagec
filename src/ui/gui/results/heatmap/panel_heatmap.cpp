@@ -316,7 +316,8 @@ void ChartHeatMap::drawChart(QPainter &painter, const QSize &size)
         }
         if(n == middle) {
           painter.setPen(QPen(Qt::black, 1));
-          painter.drawText(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE, formatDoubleScientific(avg));
+          auto rect = QRect(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE, partWith * 2, HEATMAP_COLOR_ROW_TEXT_HEIGHT);
+          painter.drawText(rect, Qt::AlignHCenter, formatDoubleScientific(avg));
         }
 
         if(n == mColorMap.size() - 1) {
@@ -328,7 +329,10 @@ void ChartHeatMap::drawChart(QPainter &painter, const QSize &size)
           }
           mHeatMapMinMax.textMaxPos =
               QRect(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE, partWith * 2, HEATMAP_COLOR_ROW_TEXT_HEIGHT);
-          painter.drawText(mHeatMapMinMax.textMaxPos, Qt::AlignRight, formatDoubleScientific(mHeatMapMinMax.max));
+
+          auto rect =
+              QRect(startX - 4 * partWith, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE, 5 * partWith, LEGEND_COLOR_ROW_HEIGHT);
+          painter.drawText(rect, Qt::AlignRight, formatDoubleScientific(mHeatMapMinMax.max));
         }
       }
       painter.setPen(QPen(Qt::black, 1));
