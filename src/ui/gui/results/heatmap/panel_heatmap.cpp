@@ -12,6 +12,7 @@
 ///
 
 #include "panel_heatmap.hpp"
+#include <QtSvg/qsvggenerator.h>
 #include <qaction.h>
 #include <qboxlayout.h>
 #include <qcombobox.h>
@@ -75,10 +76,51 @@ void ChartHeatMap::setData(const joda::table::Table &data, MatrixForm form, Pain
 }
 
 ///
+/// \brief      Export to SVG
+/// \author     Joachim Danmayr
+///
+void ChartHeatMap::exportToSVG(const QString &filePath)
+{
+  QSize size{2048, 2048};
+  QSvgGenerator generator;
+  generator.setFileName(filePath);
+  generator.setSize(size);    // Use widget size for SVG
+  generator.setViewBox(QRect(0, 0, size.width(), size.height()));
+  generator.setTitle("ImageC - Heatmap");
+  generator.setDescription("ImageC - Heatmap export");
+  QPainter svgPainter(&generator);
+  drawChart(svgPainter, size);    // Call the common drawing function
+}
+
+///
+/// \brief      Export to PNG
+/// \author     Joachim Danmayr
+///
+void ChartHeatMap::exportToPNG(const QString &filePath)
+{
+  QSize size{2048, 2048};
+  QImage image(size, QImage::Format_ARGB32);
+  image.fill(Qt::white);    // Set background color
+  QPainter imagePainter(&image);
+  drawChart(imagePainter, size);    // Call common drawing function
+  image.save(filePath, "PNG");      // Save as PNG
+}
+
+///
 /// \brief      Painter
 /// \author     Joachim Danmayr
 ///
 void ChartHeatMap::paintEvent(QPaintEvent *event)
+{
+  QPainter painter(this);
+  drawChart(painter, size());
+}
+
+///
+/// \brief      Draw chart
+/// \author     Joachim Danmayr
+///
+void ChartHeatMap::drawChart(QPainter &painter, const QSize &size)
 {
   // mData.print();
   //  Create a random device and use it to seed the random number generator
@@ -92,9 +134,34 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
     dividend = 2;
   }
 
-  float width  = size().width() / dividend - (spacing + X_LEFT_MARGIN);
-  float height = size().height() - (spacing + Y_TOP_MARING + 2 * LEGEND_HEIGHT);
+  float height = size.height() - (spacing + Y_TOP_MARING + 2 * LEGEND_HEIGHT);
 
+  //
+  // Define font
+  //
+  QFont fontHeader;
+  fontHeader.setPixelSize(height / 65);
+  fontHeader.setBold(false);
+  fontHeader.setFamily("Courier New");
+  painter.setFont(fontHeader);
+  QFontMetrics fm(fontHeader);
+  QRect headerMetrics = fm.boundingRect("A");
+  QString newControlImagePath;
+
+  //
+  // Define spacings
+  //
+  Y_TOP_MARING  = headerMetrics.height() + spacing * 2;
+  X_LEFT_MARGIN = headerMetrics.width() * 2 + spacing * 2;
+
+  //
+  // Canvas size
+  //
+  float width = size.width() / dividend - (spacing + X_LEFT_MARGIN);
+
+  //
+  // Store min/max
+  //
   if(mMinMaxMode == HeatmapMinMax::AUTO) {
     auto [min, max]    = mData.getMinMax();
     mHeatMapMinMax.min = min;
@@ -108,34 +175,25 @@ void ChartHeatMap::paintEvent(QPaintEvent *event)
   if(mRows > 0 && mCols > 0) {
     float rectWidth = std::min((float) width / (float) mCols, (float) height / (float) mRows);
     float xOffset   = (width / 2.0) - (rectWidth * mCols + spacing + X_LEFT_MARGIN - 4) / 2.0;
-
-    QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);    // Enable smooth edges
-
-    QFont fontHeader;
-    fontHeader.setPixelSize(HEATMAP_FONT_SIZE);
-    fontHeader.setBold(false);
-    fontHeader.setFamily("Courier New");
-    painter.setFont(fontHeader);
-    QFontMetrics fm(fontHeader);
-
-    QString newControlImagePath;
-
     // Define rectangle properties
     uint32_t idx = 0;
     for(uint32_t x = 0; x < mCols; x++) {
       float txtX = (x * rectWidth + spacing + X_LEFT_MARGIN + rectWidth / 2 - 6.0) + xOffset;
       painter.setPen(QPen(Qt::black, 1));
-      painter.drawText(txtX, spacing * 4, QString::number(x + 1));
+      painter.drawText(txtX, headerMetrics.height() + spacing, QString::number(x + 1));
 
       for(uint32_t y = 0; y < mRows; y++) {
-        float txtY = y * rectWidth + rectWidth / 2 + spacing + Y_TOP_MARING;
-        painter.setPen(QPen(Qt::black, 1));
-        char toPrint = y + 'A';
-        painter.drawText(spacing + xOffset, txtY, std::string(1, toPrint).data());
-
         float rectXPos = (x * rectWidth + spacing + X_LEFT_MARGIN) + xOffset;
         float rectYPos = y * rectWidth + spacing + Y_TOP_MARING;
+        painter.setPen(QPen(Qt::black, 1));
+        // Draw header left
+        if(x == 0) {
+          float txtY   = y * rectWidth + rectWidth / 2 + spacing + Y_TOP_MARING;
+          char toPrint = y + 'A';
+          painter.drawText(rectXPos - (headerMetrics.width() + spacing), txtY, std::string(1, toPrint).data());
+        }
+        // Draw rect
         QRectF rect(rectXPos + 2, rectYPos + 2, rectWidth - 4, rectWidth - 4);
         int cornerRadius = 10;
         QPainterPath path;

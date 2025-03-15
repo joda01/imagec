@@ -61,6 +61,8 @@ public:
   /////////////////////////////////////////////////////
   ChartHeatMap(PanelResults *parent);
   void setData(const joda::table::Table &, MatrixForm form, PaintControlImage paint, int32_t newHierarchy);
+  void exportToSVG(const QString &filePath);
+  void exportToPNG(const QString &filePath);
 
   [[nodiscard]] const table::Table &getData() const
   {
@@ -80,6 +82,7 @@ private:
   void mouseMoveEvent(QMouseEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;
   void mouseDoubleClickEvent(QMouseEvent *event) override;
+  void drawChart(QPainter &painter, const QSize &size);
 
   // Function to find the nearest element in the map to a given value x
   static std::pair<float, QColor> findNearest(std::map<float, QColor> &myMap, double target);
@@ -97,8 +100,8 @@ private:
 
   /////////////////////////////////////////////////////
   static inline const float spacing                       = 4.0;
-  static inline const float Y_TOP_MARING                  = 16;
-  static inline const float X_LEFT_MARGIN                 = 10;
+  float Y_TOP_MARING                                      = 16;
+  float X_LEFT_MARGIN                                     = 10;
   static inline const float LEGEND_HEIGHT                 = 30;
   static inline const float LEGEND_COLOR_ROW_HEIGHT       = 15;
   static inline const float HEATMAP_FONT_SIZE             = 12;

@@ -23,6 +23,7 @@
     <file>icons/icons8-oval-48.png</file>
     <file>icons/icons8-brightness-48.png</file>
     <file>icons/icons8-tensorflow-16.png</file>
+    <file>icons/icons8-image-file-24.png</file>
     <file>icons/icons8-black-and-white-24.png</file>
     <file>icons/icons8-pin-16.png</file>
     <file>icons/icons8-ruler-16.png</file>
@@ -233,6 +234,7 @@
     <file>icons/icons8-frames-16.png</file>
     <file>icons/icons8-radius-96.png</file>
     <file>icons/icons8-browse-page-48.png</file>
+    <file>icons/icons8-png-48.png</file>
     <file>icons/icons8-filter-24.png</file>
     <file>icons/icons8-brightness-24.png</file>
     <file>icons/icons8-move-right-24.png</file>
@@ -282,6 +284,7 @@
     <file>icons/icons8-snap-background-to-white-24.png</file>
     <file>icons/icons8-sigma-96.png</file>
     <file>icons/icons8-move-right-16.png</file>
+    <file>icons/icons8-image-file-16.png</file>
     <file>icons/icons8-equals-24.png</file>
     <file>icons/icons8-empty-tray-24.png</file>
     <file>icons/icons8-column-96.png</file>
@@ -510,6 +513,7 @@
     <file>icons/icons8-infinity-24.png</file>
     <file>icons/icons8-channel-96.png</file>
     <file>icons/icons8-minus-simple-48.png</file>
+    <file>icons/icons8-png-24.png</file>
     <file>icons/icons8-images-folder-96.png</file>
     <file>icons/icons8-address-24.png</file>
     <file>icons/icons8-four-48.png</file>
@@ -643,6 +647,7 @@
     <file>icons/icons8-depth-16.png</file>
     <file>icons/icons8-unavailable-24.png</file>
     <file>icons/icons8-info-blue-16.png</file>
+    <file>icons/icons8-png-16.png</file>
     <file>icons/icons8-browse-page-24.png</file>
     <file>icons/icons8-select-column-48.png</file>
     <file>icons/icons8-inclination-48.png</file>
@@ -673,6 +678,7 @@
     <file>icons/icons8-move-right-48.png</file>
     <file>icons/icons8-height-24.png</file>
     <file>icons/icons8-r-studio-24.png</file>
+    <file>icons/icons8-image-file-96.png</file>
     <file>icons/icons8-open-48.png</file>
     <file>icons/icons8-nine-48.png</file>
     <file>icons/icons8-polygon-16.png</file>
@@ -781,6 +787,7 @@
     <file>icons/icons8-histogram-24.png</file>
     <file>icons/icons8-hexagon-96.png</file>
     <file>icons/icons8-select-column-96.png</file>
+    <file>icons/icons8-png-96.png</file>
     <file>icons/icons8-arrow-up-24.png</file>
     <file>icons/icons8-export-excel-48.png</file>
     <file>icons/icons8-normal-distribution-histogram-24.png</file>
@@ -846,6 +853,7 @@
     <file>icons/icons8-refresh-16.png</file>
     <file>icons/icons8-question-mark-48.png</file>
     <file>icons/icons8-three-96.png</file>
+    <file>icons/icons8-image-file-48.png</file>
     <file>icons/icons8-save-96.png</file>
     <file>icons/icons8-genealogy-96.png</file>
     <file>icons/icons8-zoom-out-16.png</file>

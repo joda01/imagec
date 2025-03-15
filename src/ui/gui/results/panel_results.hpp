@@ -185,6 +185,8 @@ private:
   Navigation mNavigation = Navigation::PLATE;
   QAction *mMarkAsInvalid;
   DataSet mSelectedDataSet;
+  QAction *mExportSvg = nullptr;
+  QAction *mExportPng = nullptr;
 
   /// HEATMAP SIDEBAR//////////////////////////////////////////////////
   QLineEdit *mWellOrderMatrix;
