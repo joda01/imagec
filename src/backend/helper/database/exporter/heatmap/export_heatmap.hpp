@@ -27,6 +27,7 @@
 #include "backend/helper/database/plugins/stats_for_well.hpp"
 #include "backend/helper/table/table.hpp"
 #include "backend/settings/analze_settings.hpp"
+#include "export_heatmap_settings.hpp"
 #include "heatmap_color_generator.hpp"
 
 namespace joda::db {
@@ -34,33 +35,14 @@ namespace joda::db {
 class HeatmapExporter
 {
 public:
-  struct Settings
+  HeatmapExporter(joda::settings::DensityMapSettings &settings) : mSettings(settings)
   {
-    enum class MatrixForm
-    {
-      CIRCLE,
-      RECTANGLE
-    };
-
-    enum class PaintControlImage
-    {
-      NO,
-      YES
-    };
-
-    enum class HeatmapMinMax
-    {
-      AUTO,
-      MANUAL
-    };
-    MatrixForm mForm = MatrixForm::CIRCLE;
-    PaintControlImage mPaintCtrlImage;
-    HeatmapMinMax mMinMaxMode = HeatmapMinMax::AUTO;
-  };
-
-  HeatmapExporter() = default;
-  void setData(const joda::table::Table &data, Settings::MatrixForm form, Settings::PaintControlImage paint, int32_t newHierarchy);
-  void setMinMaxMode(Settings::HeatmapMinMax mode);
+  }
+  ~HeatmapExporter()
+  {
+  }
+  void setData(const joda::table::Table &data);
+  void setMinMaxMode(joda::settings::DensityMapSettings::HeatMapRangeMode mode);
   void setSelectedIndex(int32_t idx);
   void paint(QPainter &painter, const QSize &size, bool updatePosition = true) const;
   void exportToSVG(const QString &filePath) const;
@@ -80,13 +62,20 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  struct HeatMapMinMax
+  {
+    double min = 0;
+    double max = 0;
+  };
+
+  /////////////////////////////////////////////////////
   std::pair<float, QColor> findNearest(const std::map<float, QColor> &myMap, double target) const;
   QString formatDoubleScientific(double value, int precision = 3) const;
   void drawGaussianCurve(QPainter &painter, int startX, int startY, int height, int length) const;
   void drawLegend(QPainter &painter, float rectWidth, float xOffset, float X_LEFT_MARGIN, float Y_TOP_MARING, bool updatePosition) const;
   double calcValueOnGaussianCurve(double x, double avg, double sttdev) const;
-
   auto calcMargins(const QSize &size) const -> std::tuple<float, float, QRect, QFont>;
+  HeatMapMinMax getHeatmapMinMax() const;
 
   /////////////////////////////////////////////////////
   const float spacing                       = 4.0;
@@ -95,19 +84,13 @@ private:
   const float HEATMAP_FONT_SIZE             = 12;
   const float HEATMAP_COLOR_ROW_TEXT_HEIGHT = 25;
 
-  struct HeatMapMinMax
-  {
-    double min = 0;
-    double max = 0;
-  };
-
   struct LegendPosition
   {
     QRect textMinPos;
     QRect textMaxPos;
   };
 
-  HeatMapMinMax mHeatMapMinMax;
+  HeatMapMinMax mHeatMapMinMaxAuto;
   mutable LegendPosition mLegendPosition;
 
   // DATA TO PAINT//////////////////////
@@ -118,7 +101,7 @@ private:
   int32_t mSelectedIndex = -1;
 
   // DATA TO PAINT//////////////////////
-  Settings mSettings;
+  joda::settings::DensityMapSettings &mSettings;
   std::map<float, QColor> mColorMap{generateColorMap()};
 };
 

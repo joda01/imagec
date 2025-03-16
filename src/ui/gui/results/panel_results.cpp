@@ -48,6 +48,7 @@
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/database/exporter/heatmap/export_heatmap.hpp"
+#include "backend/helper/database/exporter/heatmap/export_heatmap_settings.hpp"
 #include "backend/helper/database/exporter/r/exporter_r.hpp"
 #include "backend/helper/database/exporter/xlsx/exporter.hpp"
 #include "backend/helper/database/plugins/control_image.hpp"
@@ -105,7 +106,7 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   {
     mHeatmapContainer = new QHBoxLayout();
     mHeatmapContainer->setContentsMargins(0, 0, 0, 0);
-    mHeatmapChart = new ChartHeatMap(this);
+    mHeatmapChart = new ChartHeatMap(this, mFilter);
     mHeatmapChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     connect(mHeatmapChart, &ChartHeatMap::onElementClick, this, &PanelResults::onElementSelected);
     connect(mHeatmapChart, &ChartHeatMap::onDoubleClicked, this, &PanelResults::onOpenNextLevel);
@@ -941,10 +942,7 @@ void PanelResults::tableToHeatmap(const joda::table::Table &table)
 {
   if(mAnalyzer) {
     if(mSelectedTableColumn >= 0) {
-      mHeatmapChart->setData(table,
-                             mNavigation == Navigation::PLATE ? joda::db::HeatmapExporter::Settings::MatrixForm::CIRCLE
-                                                              : joda::db::HeatmapExporter::Settings::MatrixForm::RECTANGLE,
-                             joda::db::HeatmapExporter::Settings::PaintControlImage::NO, static_cast<int32_t>(mNavigation));
+      mHeatmapChart->setData(table, static_cast<int32_t>(mNavigation));
       return;
     }
   }
@@ -971,8 +969,8 @@ void PanelResults::paintEmptyHeatmap()
       table.setData(row, col, data);
     }
   }
-  mHeatmapChart->setData(table, joda::db::HeatmapExporter::Settings::MatrixForm::CIRCLE, joda::db::HeatmapExporter::Settings::PaintControlImage::NO,
-                         static_cast<int32_t>(mNavigation));
+
+  mHeatmapChart->setData(table, static_cast<int32_t>(mNavigation));
 }
 
 ///

@@ -19,6 +19,7 @@
 #include <qwidget.h>
 #include "backend/helper/database/exporter/heatmap/export_heatmap.hpp"
 #include "backend/helper/table/table.hpp"
+#include "backend/settings/results_settings/results_settings.hpp"
 
 namespace joda::ui::gui {
 
@@ -35,9 +36,8 @@ class ChartHeatMap : public QWidget
 
 public:
   /////////////////////////////////////////////////////
-  ChartHeatMap(PanelResults *parent);
-  void setData(const joda::table::Table &, joda::db::HeatmapExporter::Settings::MatrixForm form,
-               joda::db::HeatmapExporter::Settings::PaintControlImage paint, int32_t newHierarchy);
+  ChartHeatMap(PanelResults *parent, joda::settings::ResultsSettings &);
+  void setData(const joda::table::Table &, int32_t newHierarchy);
 
   [[nodiscard]] const table::Table &getData() const
   {
@@ -78,5 +78,7 @@ private:
   db::HeatmapExporter mHeatmapPainter;
   PanelResults *mParent;
   bool mIsHovering = false;
+
+  joda::settings::ResultsSettings &mSettings;
 };
 }    // namespace joda::ui::gui

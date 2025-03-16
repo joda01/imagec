@@ -18,7 +18,7 @@ public:
   static auto toSqlTable(const db::ResultingTable::QueryKey &classsAndClass, const settings::ResultsSettings::ObjectFilter &filter,
                          const PreparedStatement &channelFilter) -> std::pair<std::string, DbArgs_t>;
   static auto toSqlHeatmap(const db::ResultingTable::QueryKey &classsAndClass, const settings::ResultsSettings::ObjectFilter &filter,
-                           const settings::ResultsSettings::DensityMapSettings &densityMapSettings, const PreparedStatement &channelFilter)
+                           const settings::DensityMapSettings &densityMapSettings, const PreparedStatement &channelFilter)
       -> std::pair<std::string, DbArgs_t>;
 
 private:
@@ -30,8 +30,7 @@ private:
   };
 
   static auto densityMap(const db::ResultingTable::QueryKey &classsAndClass, db::Database *analyzer,
-                         const settings::ResultsSettings::ObjectFilter &filter,
-                         const settings::ResultsSettings::DensityMapSettings &densityMapSettings, const PreparedStatement &channelFilter)
-      -> std::tuple<std::unique_ptr<duckdb::QueryResult>, ImgInfo>;
+                         const settings::ResultsSettings::ObjectFilter &filter, const settings::DensityMapSettings &densityMapSettings,
+                         const PreparedStatement &channelFilter) -> std::tuple<std::unique_ptr<duckdb::QueryResult>, ImgInfo>;
 };
 }    // namespace joda::db

@@ -15,6 +15,7 @@
 #include <qpainterpath.h>
 #include <QPainter>
 #include <random>
+#include "backend/helper/database/exporter/heatmap/export_heatmap_settings.hpp"
 
 namespace joda::db {
 
@@ -25,18 +26,17 @@ namespace joda::db {
 /// \param[out]
 /// \return
 ///
-void HeatmapExporter::setData(const joda::table::Table &data, Settings::MatrixForm form, Settings::PaintControlImage paint, int32_t newHierarchy)
+void HeatmapExporter::setData(const joda::table::Table &data)
 {
-  mData                     = data;
-  mRows                     = mData.getRows();
-  mCols                     = mData.getCols();
-  mSettings.mForm           = form;
-  mSettings.mPaintCtrlImage = Settings::PaintControlImage::NO;
+  mData = data;
+  mRows = mData.getRows();
+  mCols = mData.getCols();
+  // mSettings = settings;
 
-  if(mSettings.mMinMaxMode == Settings::HeatmapMinMax::AUTO) {
-    auto [min, max]    = mData.getMinMax();
-    mHeatMapMinMax.min = min;
-    mHeatMapMinMax.max = max;
+  if(mSettings.heatmapRangeMode == joda::settings::DensityMapSettings::HeatMapRangeMode::AUTO) {
+    auto [min, max]        = mData.getMinMax();
+    mHeatMapMinMaxAuto.min = min;
+    mHeatMapMinMaxAuto.max = max;
   }
 }
 
@@ -47,13 +47,13 @@ void HeatmapExporter::setData(const joda::table::Table &data, Settings::MatrixFo
 /// \param[out]
 /// \return
 ///
-void HeatmapExporter::setMinMaxMode(Settings::HeatmapMinMax mode)
+void HeatmapExporter::setMinMaxMode(joda::settings::DensityMapSettings::HeatMapRangeMode mode)
 {
-  mSettings.mMinMaxMode = mode;
-  if(mSettings.mMinMaxMode == Settings::HeatmapMinMax::AUTO) {
-    auto [min, max]    = mData.getMinMax();
-    mHeatMapMinMax.min = min;
-    mHeatMapMinMax.max = max;
+  mSettings.heatmapRangeMode = mode;
+  if(mSettings.heatmapRangeMode == joda::settings::DensityMapSettings::HeatMapRangeMode::AUTO) {
+    auto [min, max]        = mData.getMinMax();
+    mHeatMapMinMaxAuto.min = min;
+    mHeatMapMinMaxAuto.max = max;
   }
 }
 
@@ -66,7 +66,7 @@ void HeatmapExporter::setMinMaxMode(Settings::HeatmapMinMax mode)
 ///
 void HeatmapExporter::setHeatMapMin(float min)
 {
-  mHeatMapMinMax.min = min;
+  mSettings.heatmapRangeMin = min;
 }
 
 ///
@@ -78,7 +78,7 @@ void HeatmapExporter::setHeatMapMin(float min)
 ///
 void HeatmapExporter::setHeatMapMax(float max)
 {
-  mHeatMapMinMax.max = max;
+  mSettings.heatmapRangeMax = max;
 }
 
 ///
@@ -114,7 +114,11 @@ bool HeatmapExporter::isLegendMaxSectionCLicked(const QPoint &pos) const
 ///
 float HeatmapExporter::getHeatMapMin() const
 {
-  return mHeatMapMinMax.min;
+  if(mSettings.heatmapRangeMode == joda::settings::DensityMapSettings::HeatMapRangeMode::AUTO) {
+    return mHeatMapMinMaxAuto.min;
+  } else {
+    return mSettings.heatmapRangeMin;
+  }
 }
 
 ///
@@ -126,7 +130,11 @@ float HeatmapExporter::getHeatMapMin() const
 ///
 float HeatmapExporter::getHeatMapMax() const
 {
-  return mHeatMapMinMax.max;
+  if(mSettings.heatmapRangeMode == joda::settings::DensityMapSettings::HeatMapRangeMode::AUTO) {
+    return mHeatMapMinMaxAuto.max;
+  } else {
+    return mSettings.heatmapRangeMax;
+  }
 }
 
 ///
@@ -176,6 +184,23 @@ auto HeatmapExporter::calcMargins(const QSize &size) const -> std::tuple<float, 
 /// \param[out]
 /// \return
 ///
+HeatmapExporter::HeatMapMinMax HeatmapExporter::getHeatmapMinMax() const
+{
+  HeatMapMinMax heatmapMinMax = mHeatMapMinMaxAuto;
+  if(mSettings.heatmapRangeMode != joda::settings::DensityMapSettings::HeatMapRangeMode::AUTO) {
+    heatmapMinMax.min = mSettings.heatmapRangeMin;
+    heatmapMinMax.max = mSettings.heatmapRangeMax;
+  }
+  return heatmapMinMax;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void HeatmapExporter::paint(QPainter &painter, const QSize &size, bool updatePosition) const
 {
   // mData.print();
@@ -186,9 +211,6 @@ void HeatmapExporter::paint(QPainter &painter, const QSize &size, bool updatePos
   // Create a uniform real distribution to produce numbers in the range [0, 1)
   std::uniform_real_distribution<> dis(0.0, 1.0);
   double dividend = 1;
-  if(mSettings.mPaintCtrlImage == Settings::PaintControlImage::YES) {
-    dividend = 2;
-  }
 
   auto [X_LEFT_MARGIN, Y_TOP_MARING, headerMetrics, font] = calcMargins(size);
   painter.setFont(font);
@@ -225,11 +247,11 @@ void HeatmapExporter::paint(QPainter &painter, const QSize &size, bool updatePos
         int cornerRadius = 10;
         QPainterPath path;
         // path.addRoundedRect(rect, cornerRadius, cornerRadius);
-        switch(mSettings.mForm) {
-          case Settings::MatrixForm::CIRCLE:
+        switch(mSettings.form) {
+          case joda::settings::DensityMapSettings::ElementForm::CIRCLE:
             path.addEllipse(rect);
             break;
-          case Settings::MatrixForm::RECTANGLE:
+          case joda::settings::DensityMapSettings::ElementForm::RECTANGLE:
             path.addRect(rect);
             break;
         }
@@ -242,10 +264,11 @@ void HeatmapExporter::paint(QPainter &painter, const QSize &size, bool updatePos
           auto newControlImagePath = ctrl.data();
         }
 
-        double value   = data.getVal();
-        double statVal = (value - mHeatMapMinMax.min) / (mHeatMapMinMax.max - mHeatMapMinMax.min);
-        auto iter      = findNearest(mColorMap, statVal);
-        QColor color   = iter.second;
+        auto heatmapMinMax = getHeatmapMinMax();
+        double value       = data.getVal();
+        double statVal     = (value - heatmapMinMax.min) / (heatmapMinMax.max - heatmapMinMax.min);
+        auto iter          = findNearest(mColorMap, statVal);
+        QColor color       = iter.second;
 
         if(data.isNAN()) {
           color = QColor(255, 255, 255);
@@ -321,8 +344,9 @@ void HeatmapExporter::paint(QPainter &painter, const QSize &size, bool updatePos
 void HeatmapExporter::drawLegend(QPainter &painter, float rectWidth, float xOffset, float X_LEFT_MARGIN, float Y_TOP_MARING,
                                  bool updatePosition) const
 {
+  auto heatmapMinMax = getHeatmapMinMax();
   LegendPosition legendPosition;
-  auto avg = (mHeatMapMinMax.min + mHeatMapMinMax.max) / 2.0;
+  auto avg = (heatmapMinMax.min + heatmapMinMax.max) / 2.0;
 
   painter.setPen(QPen(Qt::black, 1));
   float xStart = (spacing + X_LEFT_MARGIN) + xOffset + 2;
@@ -341,14 +365,14 @@ void HeatmapExporter::drawLegend(QPainter &painter, float rectWidth, float xOffs
     painter.drawRect(startX, yStart, partWith, LEGEND_COLOR_ROW_HEIGHT);
 
     if(n == 0) {
-      if(mSettings.mMinMaxMode == Settings::HeatmapMinMax::AUTO) {
+      if(mSettings.heatmapRangeMode == joda::settings::DensityMapSettings::HeatMapRangeMode::AUTO) {
         painter.setPen(QPen(Qt::black, 1));
       } else {
         painter.setPen(QPen(Qt::red, 1));
       }
       legendPosition.textMinPos =
           QRect(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE, partWith * 2, HEATMAP_COLOR_ROW_TEXT_HEIGHT);
-      painter.drawText(legendPosition.textMinPos, Qt::AlignLeft, formatDoubleScientific(mHeatMapMinMax.min));
+      painter.drawText(legendPosition.textMinPos, Qt::AlignLeft, formatDoubleScientific(heatmapMinMax.min));
     }
     if(n == middle) {
       painter.setPen(QPen(Qt::black, 1));
@@ -358,7 +382,7 @@ void HeatmapExporter::drawLegend(QPainter &painter, float rectWidth, float xOffs
 
     if(n == mColorMap.size() - 1) {
       // This is the last element
-      if(mSettings.mMinMaxMode == Settings::HeatmapMinMax::AUTO) {
+      if(mSettings.heatmapRangeMode == joda::settings::DensityMapSettings::HeatMapRangeMode::AUTO) {
         painter.setPen(QPen(Qt::black, 1));
       } else {
         painter.setPen(QPen(Qt::red, 1));
@@ -367,7 +391,7 @@ void HeatmapExporter::drawLegend(QPainter &painter, float rectWidth, float xOffs
           QRect(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE, partWith * 2, HEATMAP_COLOR_ROW_TEXT_HEIGHT);
 
       auto rect = QRect(startX - 4 * partWith, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE, 5 * partWith, LEGEND_COLOR_ROW_HEIGHT);
-      painter.drawText(rect, Qt::AlignRight, formatDoubleScientific(mHeatMapMinMax.max));
+      painter.drawText(rect, Qt::AlignRight, formatDoubleScientific(heatmapMinMax.max));
     }
   }
   painter.setPen(QPen(Qt::black, 1));

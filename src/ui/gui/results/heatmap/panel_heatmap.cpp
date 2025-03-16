@@ -33,6 +33,7 @@
 #include <utility>
 #include "../panel_results.hpp"
 #include "backend/helper/database/exporter/heatmap/export_heatmap.hpp"
+#include "backend/helper/database/exporter/heatmap/export_heatmap_settings.hpp"
 #include "backend/helper/database/plugins/control_image.hpp"
 #include "backend/helper/database/plugins/stats_for_image.hpp"
 #include "backend/helper/database/plugins/stats_for_well.hpp"
@@ -48,16 +49,19 @@ namespace joda::ui::gui {
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-ChartHeatMap::ChartHeatMap(PanelResults *parent) : QWidget(parent), mParent(parent)
+ChartHeatMap::ChartHeatMap(PanelResults *parent, joda::settings::ResultsSettings &settings) :
+    QWidget(parent), mParent(parent), mHeatmapPainter(settings.mutableDensityMapSettings()), mSettings(settings)
 {
   setMinimumSize(parent->size());
   setMouseTracking(true);
 }
 
-void ChartHeatMap::setData(const joda::table::Table &data, db::HeatmapExporter::Settings::MatrixForm form,
-                           db::HeatmapExporter::Settings::PaintControlImage paint, int32_t newHierarchy)
+void ChartHeatMap::setData(const joda::table::Table &data, int32_t newHierarchy)
 {
-  mHeatmapPainter.setData(data, form, paint, newHierarchy);
+  mSettings.mutableDensityMapSettings().form = static_cast<PanelResults::Navigation>(newHierarchy) == PanelResults::Navigation::PLATE
+                                                   ? joda::settings::DensityMapSettings::ElementForm::CIRCLE
+                                                   : joda::settings::DensityMapSettings::ElementForm::RECTANGLE;
+  mHeatmapPainter.setData(data);
   if(mActHierarchy > newHierarchy) {
     // We navigate back
     mSelection[mActHierarchy].mSelectedWell = -1;
@@ -159,10 +163,10 @@ double ChartHeatMap::showInputDialog(double defaultVal)
 
   auto ret = inputDialog.exec();
   if(QInputDialog::Accepted == ret) {
-    mHeatmapPainter.setMinMaxMode(db::HeatmapExporter::Settings::HeatmapMinMax::MANUAL);
+    mHeatmapPainter.setMinMaxMode(settings::DensityMapSettings::HeatMapRangeMode::MANUAL);
     return inputDialog.doubleValue();
   }
-  mHeatmapPainter.setMinMaxMode(db::HeatmapExporter::Settings::HeatmapMinMax::AUTO);
+  mHeatmapPainter.setMinMaxMode(settings::DensityMapSettings::HeatMapRangeMode::AUTO);
   return defaultVal;
 }
 
