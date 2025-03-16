@@ -60,6 +60,9 @@ DialogColumnSettings::DialogColumnSettings(settings::ResultsSettings *filter, QW
   mMeasurementSelector->addItem("Perimeter", (int32_t) joda::enums::Measurement::PERIMETER);
   mMeasurementSelector->addItem("Circularity", (int32_t) joda::enums::Measurement::CIRCULARITY);
   mMeasurementSelector->insertSeparator(mMeasurementSelector->count());
+  mMeasurementSelector->addItem("Center of mass X", (int32_t) joda::enums::Measurement::CENTER_OF_MASS_X);
+  mMeasurementSelector->addItem("Center of mass Y", (int32_t) joda::enums::Measurement::CENTER_OF_MASS_Y);
+  mMeasurementSelector->insertSeparator(mMeasurementSelector->count());
   mMeasurementSelector->addItem("Intensity sum.", (int32_t) joda::enums::Measurement::INTENSITY_SUM);
   mMeasurementSelector->addItem("Intensity avg.", (int32_t) joda::enums::Measurement::INTENSITY_AVG);
   mMeasurementSelector->addItem("Intensity min.", (int32_t) joda::enums::Measurement::INTENSITY_MIN);
