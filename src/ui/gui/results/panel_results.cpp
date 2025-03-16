@@ -47,6 +47,7 @@
 
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/database/database.hpp"
+#include "backend/helper/database/exporter/heatmap/export_heatmap.hpp"
 #include "backend/helper/database/exporter/r/exporter_r.hpp"
 #include "backend/helper/database/exporter/xlsx/exporter.hpp"
 #include "backend/helper/database/plugins/control_image.hpp"
@@ -681,8 +682,8 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
     case Navigation::IMAGE:
       mSelectedTileId = value.getId();
       mMarkAsInvalid->setEnabled(false);
-      mSelectedAreaPos.x = cellX;
-      mSelectedAreaPos.y = cellY;
+      mSelectedAreaPos.setX(cellX);
+      mSelectedAreaPos.setY(cellY);
 
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
                       mSelectedDataSet.imageMeta->filename + "/" + std::to_string(value.getId());
@@ -940,8 +941,10 @@ void PanelResults::tableToHeatmap(const joda::table::Table &table)
 {
   if(mAnalyzer) {
     if(mSelectedTableColumn >= 0) {
-      mHeatmapChart->setData(table, mNavigation == Navigation::PLATE ? ChartHeatMap::MatrixForm::CIRCLE : ChartHeatMap::MatrixForm::RECTANGLE,
-                             ChartHeatMap::PaintControlImage::NO, static_cast<int32_t>(mNavigation));
+      mHeatmapChart->setData(table,
+                             mNavigation == Navigation::PLATE ? joda::db::HeatmapExporter::Settings::MatrixForm::CIRCLE
+                                                              : joda::db::HeatmapExporter::Settings::MatrixForm::RECTANGLE,
+                             joda::db::HeatmapExporter::Settings::PaintControlImage::NO, static_cast<int32_t>(mNavigation));
       return;
     }
   }
@@ -968,7 +971,8 @@ void PanelResults::paintEmptyHeatmap()
       table.setData(row, col, data);
     }
   }
-  mHeatmapChart->setData(table, ChartHeatMap::MatrixForm::CIRCLE, ChartHeatMap::PaintControlImage::NO, static_cast<int32_t>(mNavigation));
+  mHeatmapChart->setData(table, joda::db::HeatmapExporter::Settings::MatrixForm::CIRCLE, joda::db::HeatmapExporter::Settings::PaintControlImage::NO,
+                         static_cast<int32_t>(mNavigation));
 }
 
 ///

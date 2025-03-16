@@ -200,7 +200,7 @@ private:
   uint32_t mSelectedWellId;
   uint64_t mSelectedImageId;
   uint32_t mSelectedTileId;
-  Point mSelectedAreaPos;
+  QPoint mSelectedAreaPos;
 
   struct Selection
   {
