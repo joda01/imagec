@@ -214,7 +214,7 @@ void HeatmapExporter::paint(QPainter &painter, const QSize &size, bool updatePos
 
   auto [X_LEFT_MARGIN, Y_TOP_MARING, headerMetrics, font] = calcMargins(size);
   painter.setFont(font);
-  float height = size.height() - (spacing + Y_TOP_MARING + 2 * LEGEND_HEIGHT);
+  float height = size.height() - (spacing + Y_TOP_MARING + 2 * (LEGEND_COLOR_ROW_HEIGHT + headerMetrics.height() + spacing));
 
   //
   // Canvas size
@@ -330,7 +330,7 @@ void HeatmapExporter::paint(QPainter &painter, const QSize &size, bool updatePos
     //
     // Paint the legend
     //
-    drawLegend(painter, rectWidth, xOffset, X_LEFT_MARGIN, Y_TOP_MARING, updatePosition);
+    drawLegend(painter, rectWidth, xOffset, X_LEFT_MARGIN, Y_TOP_MARING, updatePosition, headerMetrics);
   }
 }
 
@@ -341,8 +341,8 @@ void HeatmapExporter::paint(QPainter &painter, const QSize &size, bool updatePos
 /// \param[out]
 /// \return
 ///
-void HeatmapExporter::drawLegend(QPainter &painter, float rectWidth, float xOffset, float X_LEFT_MARGIN, float Y_TOP_MARING,
-                                 bool updatePosition) const
+void HeatmapExporter::drawLegend(QPainter &painter, float rectWidth, float xOffset, float X_LEFT_MARGIN, float Y_TOP_MARING, bool updatePosition,
+                                 const QRect &headerMetrics) const
 {
   auto heatmapMinMax = getHeatmapMinMax();
   LegendPosition legendPosition;
@@ -371,12 +371,12 @@ void HeatmapExporter::drawLegend(QPainter &painter, float rectWidth, float xOffs
         painter.setPen(QPen(Qt::red, 1));
       }
       legendPosition.textMinPos =
-          QRect(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE, partWith * 2, HEATMAP_COLOR_ROW_TEXT_HEIGHT);
+          QRect(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + headerMetrics.height(), partWith * 2, headerMetrics.height());
       painter.drawText(legendPosition.textMinPos, Qt::AlignLeft, formatDoubleScientific(heatmapMinMax.min));
     }
     if(n == middle) {
       painter.setPen(QPen(Qt::black, 1));
-      auto rect = QRect(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE, partWith * 2, HEATMAP_COLOR_ROW_TEXT_HEIGHT);
+      auto rect = QRect(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + headerMetrics.height(), partWith * 2, headerMetrics.height());
       painter.drawText(rect, Qt::AlignHCenter, formatDoubleScientific(avg));
     }
 
@@ -388,15 +388,16 @@ void HeatmapExporter::drawLegend(QPainter &painter, float rectWidth, float xOffs
         painter.setPen(QPen(Qt::red, 1));
       }
       legendPosition.textMaxPos =
-          QRect(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE, partWith * 2, HEATMAP_COLOR_ROW_TEXT_HEIGHT);
+          QRect(startX, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + headerMetrics.height(), partWith * 2, headerMetrics.height());
 
-      auto rect = QRect(startX - 4 * partWith, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE, 5 * partWith, LEGEND_COLOR_ROW_HEIGHT);
+      auto rect =
+          QRect(startX - 4 * partWith, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + headerMetrics.height(), 5 * partWith, headerMetrics.height());
       painter.drawText(rect, Qt::AlignRight, formatDoubleScientific(heatmapMinMax.max));
     }
   }
   painter.setPen(QPen(Qt::black, 1));
-  drawGaussianCurve(painter, xStart, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE + HEATMAP_FONT_SIZE,
-                    LEGEND_COLOR_ROW_HEIGHT + spacing + HEATMAP_FONT_SIZE + HEATMAP_FONT_SIZE - 4, length);
+  drawGaussianCurve(painter, xStart, yStart + LEGEND_COLOR_ROW_HEIGHT + spacing + headerMetrics.height() + headerMetrics.height(),
+                    LEGEND_COLOR_ROW_HEIGHT + spacing + headerMetrics.height() + headerMetrics.height() - 4, length);
 
   if(updatePosition) {
     mLegendPosition = legendPosition;
@@ -493,7 +494,7 @@ std::tuple<int32_t, QPoint> HeatmapExporter::getWellAtPosition(const QPoint &pos
   int32_t newSelectedWellId = -1;
   QPoint newSelectedWell;
   float width  = size.width() / dividend - (spacing + X_LEFT_MARGIN);
-  float height = size.height() - (spacing + Y_TOP_MARING + 2.0 * LEGEND_HEIGHT);
+  float height = size.height() - (spacing + Y_TOP_MARING + 2.0 * (LEGEND_COLOR_ROW_HEIGHT + headerMetrics.height() + spacing));
 
   auto [min, max] = mData.getMinMax();
   if(mRows > 0 && mCols > 0) {

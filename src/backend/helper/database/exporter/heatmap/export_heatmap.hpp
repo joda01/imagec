@@ -72,17 +72,15 @@ private:
   std::pair<float, QColor> findNearest(const std::map<float, QColor> &myMap, double target) const;
   QString formatDoubleScientific(double value, int precision = 3) const;
   void drawGaussianCurve(QPainter &painter, int startX, int startY, int height, int length) const;
-  void drawLegend(QPainter &painter, float rectWidth, float xOffset, float X_LEFT_MARGIN, float Y_TOP_MARING, bool updatePosition) const;
+  void drawLegend(QPainter &painter, float rectWidth, float xOffset, float X_LEFT_MARGIN, float Y_TOP_MARING, bool updatePosition,
+                  const QRect &headerMetrics) const;
   double calcValueOnGaussianCurve(double x, double avg, double sttdev) const;
   auto calcMargins(const QSize &size) const -> std::tuple<float, float, QRect, QFont>;
   HeatMapMinMax getHeatmapMinMax() const;
 
   /////////////////////////////////////////////////////
-  const float spacing                       = 4.0;
-  const float LEGEND_HEIGHT                 = 30;
-  const float LEGEND_COLOR_ROW_HEIGHT       = 15;
-  const float HEATMAP_FONT_SIZE             = 12;
-  const float HEATMAP_COLOR_ROW_TEXT_HEIGHT = 25;
+  const float spacing                 = 4.0;
+  const float LEGEND_COLOR_ROW_HEIGHT = 15;
 
   struct LegendPosition
   {
