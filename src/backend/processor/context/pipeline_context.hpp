@@ -14,6 +14,7 @@
 
 #include <filesystem>
 #include "backend/artifacts/image/image.hpp"
+#include "backend/enums/enum_image_cache.hpp"
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enums_classes.hpp"
 
@@ -25,6 +26,7 @@ struct PipelineContext
   enums::ClassId defaultClassId;
   enums::ZProjection defaultZProjection;
   int32_t pipelineIndex = 0;
+  mutable enums::imageCache_t imageCache;
 };
 
 }    // namespace joda::processor

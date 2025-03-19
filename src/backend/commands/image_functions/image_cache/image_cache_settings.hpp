@@ -22,6 +22,7 @@ public:
 
   enums::MemoryIdx::Enum memoryId = enums::MemoryIdx::M0;
   std::string name;
+  enums::MemoryScope memoryScope = enums::MemoryScope::PIPELINE;
 
   /////////////////////////////////////////////////////
   void check() const
@@ -30,6 +31,9 @@ public:
 
   [[nodiscard]] std::set<enums::MemoryIdx::Enum> getInputImageCache() const override
   {
+    if(memoryScope == enums::MemoryScope::PIPELINE) {
+      return {};
+    }
     if(mode == Mode::LOAD) {
       return {memoryId};
     }
@@ -38,13 +42,16 @@ public:
 
   [[nodiscard]] std::set<enums::MemoryIdx::Enum> getOutputImageCache() const override
   {
+    if(memoryScope == enums::MemoryScope::PIPELINE) {
+      return {};
+    }
     if(mode == Mode::STORE) {
       return {memoryId};
     }
     return {};
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageCacheSettings, mode, memoryId, name);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageCacheSettings, mode, memoryScope, memoryId, name);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ImageCacheSettings::Mode, {

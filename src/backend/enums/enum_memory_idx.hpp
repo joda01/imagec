@@ -115,4 +115,15 @@ NLOHMANN_JSON_SERIALIZE_ENUM(MemoryIdx::Enum, {
                                                   {MemoryIdx::M15, "M15"},
                                               });
 
+enum class MemoryScope
+{
+  PIPELINE,
+  ITERATION
+};
+
+NLOHMANN_JSON_SERIALIZE_ENUM(MemoryScope, {
+                                              {MemoryScope::PIPELINE, "Pipeline"},
+                                              {MemoryScope::ITERATION, "Iteration"},
+                                          });
+
 }    // namespace joda::enums

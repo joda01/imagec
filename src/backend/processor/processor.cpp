@@ -456,9 +456,11 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
           ///\warning #warning "Exception on thread destructor"
           thumbThread.join();
 
-          tmpResult = {context.loadImageFromCache(joda::enums::ImageId{.zProjection = enums::ZProjection::$, .imagePlane = {}})->image,
-                       context.getActImage().image, thumb, foundObjects};
-          finished  = true;
+          tmpResult = {
+              context.loadImageFromCache(enums::MemoryScope::ITERATION, joda::enums::ImageId{.zProjection = enums::ZProjection::$, .imagePlane = {}})
+                  ->image,
+              context.getActImage().image, thumb, foundObjects};
+          finished = true;
         }
       };
 

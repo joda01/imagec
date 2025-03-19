@@ -25,15 +25,15 @@ ProcessContext::ProcessContext(GlobalContext &globalContext, PlateContext &plate
 {
 }
 
-[[nodiscard]] const joda::atom::ImagePlane *ProcessContext::loadImageFromCache(joda::enums::ImageId cacheId)
+[[nodiscard]] const joda::atom::ImagePlane *ProcessContext::loadImageFromCache(enums::MemoryScope scope, joda::enums::ImageId cacheId)
 {
   getCorrectIteration(cacheId.imagePlane);
 
   if(cacheId.memoryId != enums::MemoryIdx::NONE) {
-    if(!doesImageInCacheExist(cacheId)) {
+    if(!doesImageInCacheExist(scope, cacheId)) {
       throw std::invalid_argument("Image does not exist in cache!");
     }
-  } else if(!doesImageInCacheExist(cacheId)) {
+  } else if(!doesImageInCacheExist(scope, cacheId)) {
     // Load image to cache
     if(cacheId.zProjection == enums::ZProjection::UNDEFINED) {
       throw std::invalid_argument("Define image plane to load from!");
@@ -47,11 +47,14 @@ ProcessContext::ProcessContext(GlobalContext &globalContext, PlateContext &plate
       cacheId.imagePlane.zStack = getActIterator().zStack;
     }
 
-    joda::processor::PipelineInitializer::loadImageAndStoreToCache(cacheId.imagePlane, cacheId.zProjection, pipelineContext.actImagePlane.tile, *this,
-                                                                   imageContext);
+    joda::processor::PipelineInitializer::loadImageAndStoreToCache(scope, cacheId.imagePlane, cacheId.zProjection, pipelineContext.actImagePlane.tile,
+                                                                   *this, imageContext);
   }
-
-  return iterationContext.imageCache.at(getMemoryIdx(cacheId)).get();
+  if(scope == enums::MemoryScope::ITERATION) {
+    return iterationContext.imageCache.at(getMemoryIdx(cacheId)).get();
+  } else {
+    return pipelineContext.imageCache.at(getMemoryIdx(cacheId)).get();
+  }
 }
 
 }    // namespace joda::processor

@@ -29,9 +29,14 @@ ImageMath::ImageMath(const settings::ImageMathSettings &settings) : mSettings(se
 {
 }
 
-void ImageMath::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList & /*resultIn*/)
+void ImageMath::execute(processor::ProcessContext &context, cv::Mat &imageInOut, atom::ObjectList & /*resultIn*/)
 {
-  auto const *img2 = context.loadImageFromCache(mSettings.inputImageSecond);
+  auto const *img2 = &context.loadImageFromCache(enums::MemoryScope::ITERATION, mSettings.inputImageSecond)->image;
+  auto const *img1 = &imageInOut;
+  if(mSettings.operatorOrder == settings::ImageMathSettings::OperationOrder::BoA) {
+    img1 = img2;
+    img2 = &imageInOut;
+  }
 
   switch(mSettings.function) {
     case settings::ImageMathSettings::Function::INVERT:
