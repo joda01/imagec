@@ -190,11 +190,10 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::gui::Command> command, const settings::PipelineStep *pipelineStepBefore)
 {
   command->registerDeleteButton(this);
-  command->registerAddCommandButton(mCommandSelectionDialog, mSettings, this, mWindowMain);
   if(mCommands.empty()) {
-    command->setCommandBefore(nullptr);
+    command->registerAddCommandButton(nullptr, mCommandSelectionDialog, mSettings, this, mWindowMain);
   } else {
-    command->setCommandBefore(mCommands.at(mCommands.size() - 1));
+    command->registerAddCommandButton(mCommands.at(mCommands.size() - 1), mCommandSelectionDialog, mSettings, this, mWindowMain);
   }
   connect(command.get(), &joda::ui::gui::Command::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   mPipelineSteps->addWidget(command.get());
@@ -213,20 +212,22 @@ void PanelPipelineSettings::insertNewPipelineStep(int32_t posToInsert, std::uniq
                                                   const settings::PipelineStep *pipelineStepBefore)
 {
   mDialogHistory->updateHistory(enums::HistoryCategory::ADDED, "Added: " + command->getTitle().toStdString());
-
   command->registerDeleteButton(this);
-  command->registerAddCommandButton(mCommandSelectionDialog, mSettings, this, mWindowMain);
+
+  if(mCommands.empty()) {
+    command->registerAddCommandButton(nullptr, mCommandSelectionDialog, mSettings, this, mWindowMain);
+
+  } else if(posToInsert > 0) {
+    command->registerAddCommandButton(mCommands.at(posToInsert - 1), mCommandSelectionDialog, mSettings, this, mWindowMain);
+
+  } else {
+    command->registerAddCommandButton(nullptr, mCommandSelectionDialog, mSettings, this, mWindowMain);
+  }
+
   connect(command.get(), &joda::ui::gui::Command::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   int widgetPos = posToInsert + 1;    // Each second is a button
   mPipelineSteps->insertWidget(widgetPos, command.get());
 
-  if(mCommands.empty()) {
-    command->setCommandBefore(nullptr);
-  } else if(posToInsert > 0) {
-    command->setCommandBefore(mCommands.at(posToInsert - 1));
-  } else {
-    command->setCommandBefore(nullptr);
-  }
   mCommands.insert(mCommands.begin() + posToInsert, std::move(command));
 
   if((posToInsert + 1) < mCommands.size()) {

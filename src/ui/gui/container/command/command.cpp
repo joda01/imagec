@@ -240,20 +240,49 @@ void Command::paintEvent(QPaintEvent *event)
 /// \param[out]
 /// \return
 ///
-void Command::registerAddCommandButton(std::shared_ptr<DialogCommandSelection> &cmdDialog, joda::settings::Pipeline &settings,
-                                       PanelPipelineSettings *pipelineSettingsUi, WindowMain *mainWindow)
+InOuts Command::getOut() const
 {
-  // Add command button
-  {
-    auto outTmp = getInOut().out;
-    if(outTmp == InOuts::OUTPUT_EQUAL_TO_INPUT) {
-      outTmp = getResolvedInput();
+  auto outTmp = getInOut().out;
+  if(outTmp == InOuts::OUTPUT_EQUAL_TO_INPUT) {
+    if(mCommandBefore != nullptr) {
+      auto outTmp = mCommandBefore->getInOut().out;
+      if(outTmp == InOuts::OUTPUT_EQUAL_TO_INPUT) {
+        outTmp = mCommandBefore->getResolvedInput();
+      }
+      return outTmp;
     }
-
-    auto *cmdButton = new AddCommandButtonBase(cmdDialog, settings, pipelineSettingsUi, &mPipelineStep, outTmp, mainWindow);
-    cmdButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    mDisplayViewLayout.addWidget(cmdButton, 2, 0, 1, 2);
+    outTmp = *mInOut.in.begin();
   }
+  return outTmp;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Command::registerAddCommandButton(std::shared_ptr<Command> commandBefore, std::shared_ptr<DialogCommandSelection> &cmdDialog,
+                                       joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineSettingsUi, WindowMain *mainWindow)
+{
+  mCommandBefore = commandBefore;
+  mCmdButton     = new AddCommandButtonBase(cmdDialog, settings, pipelineSettingsUi, &mPipelineStep, getOut(), mainWindow);
+  mCmdButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  mDisplayViewLayout.addWidget(mCmdButton, 2, 0, 1, 2);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Command::setCommandBefore(std::shared_ptr<Command> commandBefore)
+{
+  mCommandBefore = commandBefore;
+  mCmdButton->setInOutBefore(getOut());
 }
 
 ///
