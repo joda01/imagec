@@ -84,7 +84,7 @@ public:
     mOperatorOrder->setValue(settings.operatorOrder);
     mOperatorOrder->connectWithSetting(&settings.operatorOrder);
 
-    addSetting(modelTab, "Function", {{mFunction.get(), true, 0}});
+    addSetting(modelTab, "Function", {{mFunction.get(), true, 0}, {mOperatorOrder.get(), false, 0}});
 
     //
     //
