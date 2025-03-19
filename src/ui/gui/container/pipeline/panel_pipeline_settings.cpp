@@ -592,7 +592,7 @@ void PanelPipelineSettings::previewThread()
               info += tmp;
             }
             if(previewResult.isOverExposed) {
-              QString tmp = "<span style=\"color: #750000;\">Image over exposed</span><br>";
+              QString tmp = "<span style=\"color: #750000;\">Image may be overexposed</span><br>";
               info += tmp;
             }
             if(previewResult.noiseDetected) {
