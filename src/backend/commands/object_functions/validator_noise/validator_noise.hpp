@@ -35,13 +35,13 @@ public:
         switch(mSettings.mode) {
           case settings::NoiseValidatorSettings::FilterMode::UNKNOWN:
           case settings::NoiseValidatorSettings::FilterMode::INVALIDATE_IMAGE:
-            context.setImageValidity(joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
+            context.setImageValidity(joda::enums::ChannelValidityEnum::POSSIBLE_NOISE);
             break;
           case settings::NoiseValidatorSettings::FilterMode::INVALIDATE_IMAGE_PLANE:
-            context.setImagePlaneValidity(joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
+            context.setImagePlaneValidity(joda::enums::ChannelValidityEnum::POSSIBLE_NOISE);
             break;
           case settings::NoiseValidatorSettings::FilterMode::INVALIDATE_IAMGE_PLANE_CLASS:
-            context.setImagePlaneClasssClasssValidity(classes, joda::enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
+            context.setImagePlaneClasssClasssValidity(classes, joda::enums::ChannelValidityEnum::POSSIBLE_NOISE);
             break;
         }
       };
