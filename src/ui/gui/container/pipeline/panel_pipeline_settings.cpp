@@ -596,7 +596,7 @@ void PanelPipelineSettings::previewThread()
               info += tmp;
             }
             if(previewResult.noiseDetected) {
-              QString tmp = "<span style=\"color: #750000;\">Image noisy</span><br>";
+              QString tmp = "<span style=\"color: #750000;\">Image may be noisy</span><br>";
               info += tmp;
             }
             info += "</html>";
