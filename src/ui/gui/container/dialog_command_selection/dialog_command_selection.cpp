@@ -271,7 +271,8 @@ void DialogCommandSelection::filterCommands(const CommandTableFilter &filter)
   for(int32_t n = 0; n < mCommandList.size(); n++) {
     const auto &command = mCommandList.at(n);
     int32_t tableIndex  = mCommandIndexMap.at(n);
-    if(filter.outOfStepBefore != InOuts::ALL && !command.inOuts.in.contains(filter.outOfStepBefore)) {
+    auto filterInOut    = filter.outOfStepBefore;
+    if(filter.outOfStepBefore != InOuts::ALL && !command.inOuts.in.contains(filterInOut)) {
       mCommands->setRowHidden(tableIndex, true);
     } else if(command.name.contains(searchTexts) || command.description.contains(searchTexts)) {
       // Enable

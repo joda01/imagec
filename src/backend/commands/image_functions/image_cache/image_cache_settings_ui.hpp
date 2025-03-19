@@ -36,7 +36,7 @@ public:
 
   ImageCache(joda::settings::PipelineStep &pipelineStep, settings::ImageCacheSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent,
-              {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::OUTPUT_EQUAL_TO_INPUT}})
+              {{InOuts::IMAGE, InOuts::BINARY, InOuts::OBJECT}, {InOuts::OUTPUT_EQUAL_TO_INPUT}})
   {
     //
     //

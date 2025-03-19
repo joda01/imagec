@@ -245,7 +245,12 @@ void Command::registerAddCommandButton(std::shared_ptr<DialogCommandSelection> &
 {
   // Add command button
   {
-    auto *cmdButton = new AddCommandButtonBase(cmdDialog, settings, pipelineSettingsUi, &mPipelineStep, getInOut().out, mainWindow);
+    auto outTmp = getInOut().out;
+    if(outTmp == InOuts::OUTPUT_EQUAL_TO_INPUT) {
+      outTmp = getResolvedInput();
+    }
+
+    auto *cmdButton = new AddCommandButtonBase(cmdDialog, settings, pipelineSettingsUi, &mPipelineStep, outTmp, mainWindow);
     cmdButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     mDisplayViewLayout.addWidget(cmdButton, 2, 0, 1, 2);
   }
