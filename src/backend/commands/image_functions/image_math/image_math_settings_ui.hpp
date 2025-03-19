@@ -76,6 +76,14 @@ public:
       }
     });
 
+    mOperatorOrder = SettingBase::create<SettingComboBox<joda::settings::ImageMathSettings::OperationOrder>>(parent, {}, "Operation order");
+    mOperatorOrder->addOptions(
+        {{.key = joda::settings::ImageMathSettings::OperationOrder::AoB, .label = "A o B", .icon = generateIcon("ampersand")},
+         {.key = joda::settings::ImageMathSettings::OperationOrder::BoA, .label = "B o A", .icon = generateIcon("ampersand")}});
+
+    mOperatorOrder->setValue(settings.operatorOrder);
+    mOperatorOrder->connectWithSetting(&settings.operatorOrder);
+
     addSetting(modelTab, "Function", {{mFunction.get(), true, 0}});
 
     //
@@ -126,6 +134,7 @@ private:
 
   /////////////////////////////////////////////////////
   std::unique_ptr<SettingComboBox<joda::settings::ImageMathSettings::Function>> mFunction;
+  std::unique_ptr<SettingComboBox<joda::settings::ImageMathSettings::OperationOrder>> mOperatorOrder;
   std::unique_ptr<SettingComboBox<int32_t>> cStackIndex;
   std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjection;
   std::unique_ptr<SettingSpinBox<int32_t>> zStackIndex;
