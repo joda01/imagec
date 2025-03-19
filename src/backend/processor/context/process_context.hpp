@@ -47,7 +47,7 @@ struct GlobalContext
   friend class ProcessContext;
 
   std::filesystem::path resultsOutputFolder;
-  db::Database database;
+  std::unique_ptr<db::DatabaseInterface> database;
   std::map<enums::ClassId, joda::settings::Class> classes;
 
 private:
@@ -178,21 +178,21 @@ public:
   {
     enums::ChannelValidity validity;
     validity.set(validityIn);
-    globalContext.database.setImageValidity(imageContext.imageId, validity);
+    globalContext.database->setImageValidity(imageContext.imageId, validity);
   }
 
   void setImagePlaneValidity(enums::ChannelValidityEnum validityIn)
   {
     enums::ChannelValidity validity;
     validity.set(validityIn);
-    globalContext.database.setImagePlaneValidity(imageContext.imageId, getActIterator(), validity);
+    globalContext.database->setImagePlaneValidity(imageContext.imageId, getActIterator(), validity);
   }
 
   void setImagePlaneClasssClasssValidity(enums::ClassIdIn classIn, enums::ChannelValidityEnum validityIn)
   {
     enums::ChannelValidity validity;
     validity.set(validityIn);
-    globalContext.database.setImagePlaneClasssClasssValidity(imageContext.imageId, getActIterator(), getClassId(classIn), validity);
+    globalContext.database->setImagePlaneClasssClasssValidity(imageContext.imageId, getActIterator(), getClassId(classIn), validity);
   }
 
   // void storeObjectsToCache(joda::enums::ObjectStoreId cacheId, const joda::atom::ObjectList &object) const

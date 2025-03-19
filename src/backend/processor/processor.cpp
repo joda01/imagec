@@ -95,7 +95,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
       const auto &images = allImages.getFilesListAt(plate.plateId);
 
       mProgress.setRunningPreparingPipeline();
-      auto imagesToProcess = db.prepareImages(plate.plateId, program.imageSetup.series, plate.groupBy, plate.filenameRegex, images, mGlobThreadPool);
+      auto imagesToProcess = db->prepareImages(plate.plateId, program.imageSetup.series, plate.groupBy, plate.filenameRegex, images, mGlobThreadPool);
       mProgress.setStateRunning();
 
       //
@@ -166,11 +166,11 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                             auto planeId = context.getActImage().getId().imagePlane;
                             try {
                               if(pipeline->pipelineSetup.cStackIndex >= 0 && pipeline->pipelineSetup.cStackIndex < nrChannels) {
-                                db.insertImagePlane(imageContext.imageId, planeId,
-                                                    imageContext.imageMeta.getChannelInfos(imageContext.series)
-                                                        .at(pipeline->pipelineSetup.cStackIndex)
-                                                        .planes.at(planeId.tStack)
-                                                        .at(planeId.zStack));
+                                db->insertImagePlane(imageContext.imageId, planeId,
+                                                     imageContext.imageMeta.getChannelInfos(imageContext.series)
+                                                         .at(pipeline->pipelineSetup.cStackIndex)
+                                                         .planes.at(planeId.tStack)
+                                                         .at(planeId.zStack));
                               }
                             } catch(const std::exception &ex) {
                               std::cout << "Insert Plane: " << ex.what() << std::endl;
@@ -213,7 +213,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                     // Insert objects to database
                     auto id = DurationCount::start("Insert");
                     try {
-                      db.insertObjects(imageContext, iterationContext.getObjects());
+                      db->insertObjects(imageContext, iterationContext.getObjects());
                     } catch(const std::exception &ex) {
                       std::cout << "Insert Obj: " << ex.what() << std::endl;
                     }
@@ -236,7 +236,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
           }
 
           // Image finished
-          db.setImageProcessed(imageContext.imageId);
+          db->setImageProcessed(imageContext.imageId);
           mProgress.incProcessedImages();
         };
 
@@ -252,7 +252,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
     }
 
     // Done
-    db.finishJob(jobId);
+    db->finishJob(jobId);
     mProgress.setStateFinished();
     DurationCount::printStats(allImages.getNrOfFiles(), mJobInformation.ouputFolder);
 
@@ -282,9 +282,9 @@ std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSett
   mJobInformation.ouputFolder      = globalContext.resultsOutputFolder;
   mJobInformation.jobName          = jobName;
   mJobInformation.timestampStarted = now;
-  auto &db                         = globalContext.database;
-  db.openDatabase(globalContext.resultsOutputFolder / ("results" + joda::fs::EXT_DATABASE));
-  return db.startJob(program, jobName);
+  globalContext.database           = std::make_unique<db::Database>();
+  globalContext.database->openDatabase(globalContext.resultsOutputFolder / ("results" + joda::fs::EXT_DATABASE));
+  return globalContext.database->startJob(program, jobName);
 }
 
 void Processor::listImages(const joda::settings::AnalyzeSettings &program, imagesList_t &allImages)
@@ -310,7 +310,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
                                 const settings::Pipeline &pipelineStart, const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack,
                                 int32_t tileX, int32_t tileY, bool generateThumb, const ome::OmeInfo &ome,
                                 const settings::ObjectInputClasses &classesToShow)
-    -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>>
+    -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>, enums::ChannelValidity>
 {
   auto ii = DurationCount::start("Generate preview with >" + std::to_string(threadingSettings.coresUsed) + "< threads.");
 
@@ -342,6 +342,9 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
   // Get image
   //
   GlobalContext globalContext;
+  globalContext.database = std::make_unique<db::PreviewDatabase>();
+  auto *db               = dynamic_cast<db::PreviewDatabase *>(globalContext.database.get());
+
   globalContext.classes.clear();
   for(const auto &elem : program.projectSettings.classification.classes) {
     globalContext.classes.emplace(elem.classId, elem);
@@ -362,7 +365,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
     }
   }
 
-  std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>> tmpResult;
+  std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>, enums::ChannelValidity> tmpResult;
   bool finished = false;
 
   int executedSteps = 0;
@@ -374,7 +377,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         continue;
       }
 
-      auto executePipeline = [&thumbThread, &thumb, &finished, &tmpResult, &previewSettings, &pipelineStart, &classesToShow, &totalRuns,
+      auto executePipeline = [&db, &thumbThread, &thumb, &finished, &tmpResult, &previewSettings, &pipelineStart, &classesToShow, &totalRuns,
                               pipeline = pipelineToExecute, this, &program, &globalContext, &plateContext, &pipelineOrder, imagePath, &imageContext,
                               &imageLoader, tileX, tileY, pipelines = pipelines, &iterationContext, tStack, zStack, executedSteps]() -> void {
         //
@@ -459,7 +462,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
           tmpResult = {
               context.loadImageFromCache(enums::MemoryScope::ITERATION, joda::enums::ImageId{.zProjection = enums::ZProjection::$, .imagePlane = {}})
                   ->image,
-              context.getActImage().image, thumb, foundObjects};
+              context.getActImage().image, thumb, foundObjects, db->getImageValidity()};
           finished = true;
         }
       };
@@ -478,7 +481,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
   if(!finished) {
     thumbThread.join();
     DurationCount::stop(ii);
-    return {{}, {}, {}, {}};
+    return {{}, {}, {}, {}, {}};
   } else {
     DurationCount::stop(ii);
     return tmpResult;

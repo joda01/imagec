@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <memory>
+#include <vector>
 #include "backend/enums/enums_classes.hpp"
 #include "backend/helper/file_parser/directory_iterator.hpp"
 #include "backend/helper/image/image.hpp"
@@ -50,6 +51,8 @@ struct Preview
   int height;
   int width;
   std::string imageFileName;
+  bool isOverExposed = false;
+  bool noiseDetected = false;
 };
 
 struct ExportSettings

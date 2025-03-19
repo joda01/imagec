@@ -30,38 +30,13 @@
 #include <duckdb/main/connection.hpp>
 #include <duckdb/main/database.hpp>
 #include <opencv2/core/types.hpp>
+#include "database_interface.hpp"
 
 namespace joda::db {
 
-struct AnalyzeMeta
-{
-  joda::settings::ExperimentSettings experiment;
-  std::chrono::system_clock::time_point timestampStart;
-  std::chrono::system_clock::time_point timestampFinish;
-  std::string jobName;
-  std::string jobId;
-  std::string analyzeSettingsJsonString;
-};
-
-struct GroupInfo
-{
-  std::string groupName;
-  uint32_t posX = 0;
-  uint32_t posY = 0;
-};
-
-struct ImageInfo
-{
-  std::string filename;
-  enums::ChannelValidity validity;
-  uint32_t width  = 0;
-  uint32_t height = 0;
-  std::string imageGroupName;
-};
-
 using DbArgs_t = std::vector<std::variant<std::string, uint16_t, uint32_t, uint64_t, double, int32_t>>;
 
-class Database
+class Database : public DatabaseInterface
 {
 public:
   Database()

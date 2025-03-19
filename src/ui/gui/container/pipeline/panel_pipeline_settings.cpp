@@ -591,6 +591,14 @@ void PanelPipelineSettings::previewThread()
                             (classes[static_cast<enums::ClassIdIn>(classId)] + "</span>: " + QString::number(count.count) + "<br>");
               info += tmp;
             }
+            if(previewResult.isOverExposed) {
+              QString tmp = "<span style=\"color: #750000;\">Image over exposed</span><br>";
+              info += tmp;
+            }
+            if(previewResult.noiseDetected) {
+              QString tmp = "<span style=\"color: #750000;\">Image noisy</span><br>";
+              info += tmp;
+            }
             info += "</html>";
             jobToDo.previewPanel->setThumbnailPosition(
                 PanelImageView::ThumbParameter{.nrOfTilesX          = tileNrX,
