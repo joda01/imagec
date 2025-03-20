@@ -85,7 +85,8 @@ private:
         }
       }
 
-      TRACE("Hist idx: " + std::to_string(maxIdx) + " | " + std::to_string(filterThreshold));
+      TRACE("Hist idx: " + std::to_string(imageThreshold.appliedMinThreshold) + " | " + std::to_string(maxIdx) + " | " +
+            std::to_string(filterThreshold));
     }
   }
 
