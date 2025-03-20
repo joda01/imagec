@@ -47,7 +47,7 @@ struct GlobalContext
   friend class ProcessContext;
 
   std::filesystem::path resultsOutputFolder;
-  db::Database database;
+  std::unique_ptr<db::DatabaseInterface> database;
   std::map<enums::ClassId, joda::settings::Class> classes;
 
 private:
@@ -129,23 +129,35 @@ public:
     return pipelineContext.actImagePlane.getId().imagePlane;
   }
 
-  [[nodiscard]] bool doesImageInCacheExist(joda::enums::ImageId cacheId) const
+  [[nodiscard]] bool doesImageInCacheExist(enums::MemoryScope scope, joda::enums::ImageId cacheId) const
   {
     getCorrectIteration(cacheId.imagePlane);
-    return iterationContext.imageCache.contains(getMemoryIdx(cacheId));
+    if(scope == enums::MemoryScope::ITERATION) {
+      return iterationContext.imageCache.contains(getMemoryIdx(cacheId));
+    } else {
+      return pipelineContext.imageCache.contains(getMemoryIdx(cacheId));
+    }
   }
 
-  joda::atom::ImagePlane *addImageToCache(joda::enums::ImageId cacheId, std::unique_ptr<joda::atom::ImagePlane> img)
+  joda::atom::ImagePlane *addImageToCache(enums::MemoryScope scope, joda::enums::ImageId cacheId, std::unique_ptr<joda::atom::ImagePlane> img)
   {
     getCorrectIteration(cacheId.imagePlane);
-    return iterationContext.imageCache.try_emplace(getMemoryIdx(cacheId), std::move(img)).first->second.get();
+    if(scope == enums::MemoryScope::ITERATION) {
+      return iterationContext.imageCache.try_emplace(getMemoryIdx(cacheId), std::move(img)).first->second.get();
+    } else {
+      return pipelineContext.imageCache.try_emplace(getMemoryIdx(cacheId), std::move(img)).first->second.get();
+    }
   }
 
-  [[nodiscard]] const joda::atom::ImagePlane *loadImageFromCache(joda::enums::ImageId cacheId);
-  void storeImageToCache(joda::enums::ImageId cacheId, const joda::atom::ImagePlane &image) const
+  [[nodiscard]] const joda::atom::ImagePlane *loadImageFromCache(enums::MemoryScope scope, joda::enums::ImageId cacheId);
+  void storeImageToCache(enums::MemoryScope scope, joda::enums::ImageId cacheId, const joda::atom::ImagePlane &image) const
   {
     getCorrectIteration(cacheId.imagePlane);
-    iterationContext.imageCache.try_emplace(getMemoryIdx(cacheId), ::std::make_unique<joda::atom::ImagePlane>(image));
+    if(scope == enums::MemoryScope::ITERATION) {
+      iterationContext.imageCache.try_emplace(getMemoryIdx(cacheId), ::std::make_unique<joda::atom::ImagePlane>(image));
+    } else {
+      pipelineContext.imageCache.try_emplace(getMemoryIdx(cacheId), ::std::make_unique<joda::atom::ImagePlane>(image));
+    }
   }
 
   [[nodiscard]] joda::atom::ObjectList *loadObjectsFromCache(joda::enums::ObjectStoreId cacheId = {}) const
@@ -166,21 +178,21 @@ public:
   {
     enums::ChannelValidity validity;
     validity.set(validityIn);
-    globalContext.database.setImageValidity(imageContext.imageId, validity);
+    globalContext.database->setImageValidity(imageContext.imageId, validity);
   }
 
   void setImagePlaneValidity(enums::ChannelValidityEnum validityIn)
   {
     enums::ChannelValidity validity;
     validity.set(validityIn);
-    globalContext.database.setImagePlaneValidity(imageContext.imageId, getActIterator(), validity);
+    globalContext.database->setImagePlaneValidity(imageContext.imageId, getActIterator(), validity);
   }
 
   void setImagePlaneClasssClasssValidity(enums::ClassIdIn classIn, enums::ChannelValidityEnum validityIn)
   {
     enums::ChannelValidity validity;
     validity.set(validityIn);
-    globalContext.database.setImagePlaneClasssClasssValidity(imageContext.imageId, getActIterator(), getClassId(classIn), validity);
+    globalContext.database->setImagePlaneClasssClasssValidity(imageContext.imageId, getActIterator(), getClassId(classIn), validity);
   }
 
   // void storeObjectsToCache(joda::enums::ObjectStoreId cacheId, const joda::atom::ObjectList &object) const

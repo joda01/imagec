@@ -185,6 +185,8 @@ private:
   Navigation mNavigation = Navigation::PLATE;
   QAction *mMarkAsInvalid;
   DataSet mSelectedDataSet;
+  QAction *mExportSvg = nullptr;
+  QAction *mExportPng = nullptr;
 
   /// HEATMAP SIDEBAR//////////////////////////////////////////////////
   QLineEdit *mWellOrderMatrix;
@@ -198,7 +200,7 @@ private:
   uint32_t mSelectedWellId;
   uint64_t mSelectedImageId;
   uint32_t mSelectedTileId;
-  Point mSelectedAreaPos;
+  QPoint mSelectedAreaPos;
 
   struct Selection
   {

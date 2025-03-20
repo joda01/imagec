@@ -219,9 +219,8 @@ auto StatsPerImage::toHeatmap(db::Database *database, const settings::ResultsSet
 /// \return
 ///
 auto StatsPerImage::densityMap(const db::ResultingTable::QueryKey &classsAndClass, db::Database *analyzer,
-                               const settings::ResultsSettings::ObjectFilter &filter,
-                               const settings::ResultsSettings::DensityMapSettings &densityMapSettings, const PreparedStatement &channelFilter)
-    -> std::tuple<std::unique_ptr<duckdb::QueryResult>, ImgInfo>
+                               const settings::ResultsSettings::ObjectFilter &filter, const settings::DensityMapSettings &densityMapSettings,
+                               const PreparedStatement &channelFilter) -> std::tuple<std::unique_ptr<duckdb::QueryResult>, ImgInfo>
 {
   std::string controlImgPath;
   ImgInfo imgInfo;
@@ -287,7 +286,7 @@ auto StatsPerImage::densityMap(const db::ResultingTable::QueryKey &classsAndClas
 /// \return
 ///
 auto StatsPerImage::toSqlHeatmap(const db::ResultingTable::QueryKey &classsAndClass, const settings::ResultsSettings::ObjectFilter &filter,
-                                 const settings::ResultsSettings::DensityMapSettings &densityMapSettings, const PreparedStatement &channelFilter)
+                                 const settings::DensityMapSettings &densityMapSettings, const PreparedStatement &channelFilter)
     -> std::pair<std::string, DbArgs_t>
 {
   auto [innerSql, params] = toSqlTable(classsAndClass, filter, channelFilter);

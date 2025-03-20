@@ -44,10 +44,21 @@ struct ImageMathSettings : public SettingBase
     DIFFERENCE_TYPE
   };
 
+  enum class OperationOrder
+  {
+    AoB,
+    BoA
+  };
+
   //
   // What should happen when an intersection was found
   //
   Function function = Function::INVERT;
+
+  //
+  // If either A-B or B-A should be calculated
+  //
+  OperationOrder operatorOrder = OperationOrder::AoB;
 
   //
   // Objects to calc the intersection with
@@ -77,7 +88,7 @@ struct ImageMathSettings : public SettingBase
     return {};
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageMathSettings, function, inputImageSecond);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageMathSettings, function, operatorOrder, inputImageSecond);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ImageMathSettings::Function, {
@@ -94,5 +105,11 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ImageMathSettings::Function, {
                                                               {ImageMathSettings::Function::AVERAGE, "Average"},
                                                               {ImageMathSettings::Function::DIFFERENCE_TYPE, "Difference"},
                                                           });
+
+NLOHMANN_JSON_SERIALIZE_ENUM(ImageMathSettings::OperationOrder, {
+                                                                    {ImageMathSettings::OperationOrder::AoB, "AoB"},
+                                                                    {ImageMathSettings::OperationOrder::BoA, "BoA"},
+
+                                                                });
 
 }    // namespace joda::settings

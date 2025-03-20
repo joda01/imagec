@@ -29,46 +29,51 @@ ImageMath::ImageMath(const settings::ImageMathSettings &settings) : mSettings(se
 {
 }
 
-void ImageMath::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList & /*resultIn*/)
+void ImageMath::execute(processor::ProcessContext &context, cv::Mat &imageInOut, atom::ObjectList & /*resultIn*/)
 {
-  auto const *img2 = context.loadImageFromCache(mSettings.inputImageSecond);
+  auto const *img2 = &context.loadImageFromCache(enums::MemoryScope::ITERATION, mSettings.inputImageSecond)->image;
+  auto const *img1 = &imageInOut;
+  if(mSettings.operatorOrder == settings::ImageMathSettings::OperationOrder::BoA) {
+    img1 = img2;
+    img2 = &imageInOut;
+  }
 
   switch(mSettings.function) {
     case settings::ImageMathSettings::Function::INVERT:
-      cv::bitwise_not(image, image);
+      cv::bitwise_not(*img1, *img1);
       break;
     case settings::ImageMathSettings::Function::AND:
-      cv::bitwise_and(image, img2->image, image);
+      cv::bitwise_and(*img1, *img2, imageInOut);
       break;
     case settings::ImageMathSettings::Function::OR:
-      cv::bitwise_or(image, img2->image, image);
+      cv::bitwise_or(*img1, *img2, imageInOut);
       break;
     case settings::ImageMathSettings::Function::XOR:
-      cv::bitwise_xor(image, img2->image, image);
+      cv::bitwise_xor(*img1, *img2, imageInOut);
       break;
     case settings::ImageMathSettings::Function::ADD:
-      cv::add(image, img2->image, image);
+      cv::add(*img1, *img2, imageInOut);
       break;
     case settings::ImageMathSettings::Function::SUBTRACT:
-      cv::subtract(image, img2->image, image);
+      cv::subtract(*img1, *img2, imageInOut);
       break;
     case settings::ImageMathSettings::Function::MULTIPLY:
-      cv::multiply(image, img2->image, image);
+      cv::multiply(*img1, *img2, imageInOut);
       break;
     case settings::ImageMathSettings::Function::DIVIDE:
-      cv::divide(image, img2->image, image);
+      cv::divide(*img1, *img2, imageInOut);
       break;
     case settings::ImageMathSettings::Function::MIN:
-      cv::min(image, img2->image, image);
+      cv::min(*img1, *img2, imageInOut);
       break;
     case settings::ImageMathSettings::Function::MAX:
-      cv::max(image, img2->image, image);
+      cv::max(*img1, *img2, imageInOut);
       break;
     case settings::ImageMathSettings::Function::AVERAGE:
-      image = (image + img2->image) / 2.0;
+      imageInOut = (*img1 + *img2) / 2.0;
       break;
     case settings::ImageMathSettings::Function::DIFFERENCE_TYPE:
-      image = cv::abs(image - img2->image);
+      imageInOut = cv::abs(*img1 - *img2);
       break;
     default:
       break;

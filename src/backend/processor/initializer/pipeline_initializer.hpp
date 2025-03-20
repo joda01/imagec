@@ -54,8 +54,9 @@ public:
 
   auto getCompositeTileSize() const -> TileSize const;
 
-  static enums::ImageId loadImageAndStoreToCache(const enums::PlaneId &planeToLoad, enums::ZProjection zProjection, const enums::tile_t &tile,
-                                                 joda::processor::ProcessContext &processContext, processor::ImageContext &imageContext);
+  static enums::ImageId loadImageAndStoreToCache(enums::MemoryScope scope, const enums::PlaneId &planeToLoad, enums::ZProjection zProjection,
+                                                 const enums::tile_t &tile, joda::processor::ProcessContext &processContext,
+                                                 processor::ImageContext &imageContext);
 
   void initPipeline(const joda::settings::PipelineSettings &settings, const enums::tile_t &tile, const joda::enums::PlaneId &imagePartToLoad,
                     ProcessContext &processStepOu, int32_t pipelineIndex) const;

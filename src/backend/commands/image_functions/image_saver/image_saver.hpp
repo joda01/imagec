@@ -79,7 +79,7 @@ public:
       cv::Mat &imageBackground = image;
       bool isRgb               = context.isRgb();
       if(mSettings.canvas == settings::ImageSaverSettings::Canvas::IMAGE_PLANE && mSettings.planesIn.has_value()) {
-        const auto *tmp = context.loadImageFromCache(mSettings.planesIn.value());
+        const auto *tmp = context.loadImageFromCache(enums::MemoryScope::ITERATION, mSettings.planesIn.value());
         imageBackground = tmp->image;
         isRgb           = tmp->isBinary();
       }

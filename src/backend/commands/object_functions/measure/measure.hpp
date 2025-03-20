@@ -30,7 +30,7 @@ public:
     auto &store = *context.loadObjectsFromCache();
     for(auto imageId : mSettings.planesIn) {
       joda::atom::ImagePlane rgbPlane;
-      auto const &image = *context.loadImageFromCache(imageId);
+      auto const &image = *context.loadImageFromCache(enums::MemoryScope::ITERATION, imageId);
       if(image.isRgb()) {
         /// \todo Allow to specify which grayscale calculation mode should be used
         rgbPlane       = image;

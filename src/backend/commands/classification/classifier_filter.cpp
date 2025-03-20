@@ -2,6 +2,7 @@
 
 #include "classifier_filter.hpp"
 #include <string>
+#include "backend/enums/enum_memory_idx.hpp"
 #include "backend/processor/context/process_context.hpp"
 
 namespace joda::settings {
@@ -10,7 +11,7 @@ bool ClassifierFilter::doesFilterMatch(joda::processor::ProcessContext &context,
                                        const IntensityFilter &intensity)
 {
   if((intensity.minIntensity >= 0 && intensity.maxIntensity >= 0)) {
-    const auto &cachedImage = context.loadImageFromCache(intensity.imageIn);
+    const auto &cachedImage = context.loadImageFromCache(enums::MemoryScope::ITERATION, intensity.imageIn);
     auto intensityMeasured  = roi.measureIntensityAndAdd(*cachedImage);
     if(intensityMeasured.intensityAvg < intensity.minIntensity || intensityMeasured.intensityAvg > intensity.maxIntensity) {
       // Intensity filter does not match

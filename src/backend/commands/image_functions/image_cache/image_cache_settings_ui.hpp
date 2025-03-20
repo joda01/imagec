@@ -36,7 +36,7 @@ public:
 
   ImageCache(joda::settings::PipelineStep &pipelineStep, settings::ImageCacheSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent,
-              {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::OUTPUT_EQUAL_TO_INPUT}})
+              {{InOuts::IMAGE, InOuts::BINARY, InOuts::OBJECT}, {InOuts::OUTPUT_EQUAL_TO_INPUT}})
   {
     //
     //
@@ -57,6 +57,12 @@ public:
     mMemoryIdx->connectWithSetting(&settings.memoryId);
     mMemoryIdx->setShortDescription("Cache: ");
 
+    mMemoryScope = SettingBase::create<SettingComboBox<enums::MemoryScope>>(parent, generateIcon("matrix"), "Storage scope");
+    mMemoryScope->addOptions({{enums::MemoryScope::PIPELINE, "Pipeline"}, {enums::MemoryScope::ITERATION, "Iteration"}});
+    mMemoryScope->setValue(settings.memoryScope);
+    mMemoryScope->connectWithSetting(&settings.memoryScope);
+    mMemoryScope->setShortDescription("");
+
     mMode = SettingBase::create<SettingComboBox<settings::ImageCacheSettings::Mode>>(parent, generateIcon("matrix"), "Cache");
     mMode->addOptions({
         {settings::ImageCacheSettings::Mode::STORE, "Store"},
@@ -66,12 +72,14 @@ public:
     mMode->connectWithSetting(&settings.mode);
     mMode->setShortDescription("");
 
-    addSetting({{mMemoryIdx.get(), true, 0}, {mMode.get(), true, 0}});
+    addSetting({{mMemoryIdx.get(), true, 0}, {mMemoryScope.get(), false, 0}, {mMode.get(), true, 0}});
   }
 
 private:
   /////////////////////////////////////////////////////
   std::shared_ptr<SettingComboBox<enums::MemoryIdx::Enum>> mMemoryIdx;
+  std::shared_ptr<SettingComboBox<enums::MemoryScope>> mMemoryScope;
+
   std::shared_ptr<SettingComboBox<settings::ImageCacheSettings::Mode>> mMode;
 };
 

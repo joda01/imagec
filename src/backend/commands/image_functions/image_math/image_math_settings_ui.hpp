@@ -40,7 +40,8 @@ public:
   inline static std::vector<std::string> TAGS = {"invert", "math", "subtract", "add", "plus", "minus"};
 
   ImageMath(joda::settings::PipelineStep &pipelineStep, settings::ImageMathSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}}),
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent,
+              {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::OUTPUT_EQUAL_TO_INPUT}}),
       mParent(parent)
   {
     auto *modelTab = addTab(
@@ -75,7 +76,15 @@ public:
       }
     });
 
-    addSetting(modelTab, "Function", {{mFunction.get(), true, 0}});
+    mOperatorOrder = SettingBase::create<SettingComboBox<joda::settings::ImageMathSettings::OperationOrder>>(parent, {}, "Operation order");
+    mOperatorOrder->addOptions(
+        {{.key = joda::settings::ImageMathSettings::OperationOrder::AoB, .label = "A o B", .icon = generateIcon("ampersand")},
+         {.key = joda::settings::ImageMathSettings::OperationOrder::BoA, .label = "B o A", .icon = generateIcon("ampersand")}});
+
+    mOperatorOrder->setValue(settings.operatorOrder);
+    mOperatorOrder->connectWithSetting(&settings.operatorOrder);
+
+    addSetting(modelTab, "Function", {{mFunction.get(), true, 0}, {mOperatorOrder.get(), false, 0}});
 
     //
     //
@@ -125,6 +134,7 @@ private:
 
   /////////////////////////////////////////////////////
   std::unique_ptr<SettingComboBox<joda::settings::ImageMathSettings::Function>> mFunction;
+  std::unique_ptr<SettingComboBox<joda::settings::ImageMathSettings::OperationOrder>> mOperatorOrder;
   std::unique_ptr<SettingComboBox<int32_t>> cStackIndex;
   std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjection;
   std::unique_ptr<SettingSpinBox<int32_t>> zStackIndex;

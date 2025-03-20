@@ -83,7 +83,7 @@ find_package( protobuf CONFIG REQUIRED )
 find_package( libxlsxwriter CONFIG REQUIRED)
 find_package( nlohmann_json CONFIG REQUIRED)
 find_package( DuckDB CONFIG REQUIRED)
-find_package( Qt6 REQUIRED COMPONENTS Core Gui Widgets )
+find_package( Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg)
 find_package( ONNX REQUIRED )
 find_package( ryml REQUIRED )
 
@@ -95,6 +95,7 @@ set(LIBS
   pugixml::pugixml
   Qt6::Widgets
   Qt6::Core
+  Qt6::Svg
   libxlsxwriter::libxlsxwriter
   duckdb::duckdb
   nlohmann_json::nlohmann_json

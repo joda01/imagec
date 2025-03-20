@@ -47,6 +47,8 @@
 
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/database/database.hpp"
+#include "backend/helper/database/exporter/heatmap/export_heatmap.hpp"
+#include "backend/helper/database/exporter/heatmap/export_heatmap_settings.hpp"
 #include "backend/helper/database/exporter/r/exporter_r.hpp"
 #include "backend/helper/database/exporter/xlsx/exporter.hpp"
 #include "backend/helper/database/plugins/control_image.hpp"
@@ -104,7 +106,7 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   {
     mHeatmapContainer = new QHBoxLayout();
     mHeatmapContainer->setContentsMargins(0, 0, 0, 0);
-    mHeatmapChart = new ChartHeatMap(this);
+    mHeatmapChart = new ChartHeatMap(this, mFilter);
     mHeatmapChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     connect(mHeatmapChart, &ChartHeatMap::onElementClick, this, &PanelResults::onElementSelected);
     connect(mHeatmapChart, &ChartHeatMap::onDoubleClicked, this, &PanelResults::onOpenNextLevel);
@@ -361,6 +363,16 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   exportR->setToolTip("Export R");
   connect(exportR, &QAction::triggered, [this]() { showFileSaveDialog("R-Script (*.r)"); });
 
+  mExportSvg = exportMenu->addAction(generateIcon("image-file"), "Save as SVG");
+  mExportSvg->setToolTip("Export SVG");
+  mExportSvg->setVisible(false);
+  connect(mExportSvg, &QAction::triggered, [this]() { showFileSaveDialog("SVG image (*.svg)"); });
+
+  mExportPng = exportMenu->addAction(generateIcon("png"), "Save as PNG");
+  mExportPng->setToolTip("Export PNG");
+  mExportPng->setVisible(false);
+  connect(mExportPng, &QAction::triggered, [this]() { showFileSaveDialog("PNG image (*.png)"); });
+
   exportMenu->addSeparator();
   auto *saveAsTemplate = exportMenu->addAction(generateIcon("bookmark"), "Save settings");
   saveAsTemplate->setToolTip("Save settings as template");
@@ -518,15 +530,23 @@ void PanelResults::refreshView()
                               {.densityMapAreaSize = static_cast<int32_t>(getDensityMapSize())});
             goto REFRESH_VIEW;
           }
-          mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
+          if(!mTable->isVisible()) {
+            mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
+          }
         } break;
         case Navigation::WELL: {
-          mActListData    = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL);
-          mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL);
+          if(mTable->isVisible()) {
+            mActListData = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL);
+          } else {
+            mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL);
+          }
         } break;
         case Navigation::IMAGE: {
-          mActListData    = joda::db::StatsPerImage::toTable(mAnalyzer.get(), mFilter);
-          mActHeatmapData = joda::db::StatsPerImage::toHeatmap(mAnalyzer.get(), mFilter);
+          if(mTable->isVisible()) {
+            mActListData = joda::db::StatsPerImage::toTable(mAnalyzer.get(), mFilter);
+          } else {
+            mActHeatmapData = joda::db::StatsPerImage::toHeatmap(mAnalyzer.get(), mFilter);
+          }
         } break;
       }
       if(mSelection.contains(mNavigation)) {
@@ -663,8 +683,8 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
     case Navigation::IMAGE:
       mSelectedTileId = value.getId();
       mMarkAsInvalid->setEnabled(false);
-      mSelectedAreaPos.x = cellX;
-      mSelectedAreaPos.y = cellY;
+      mSelectedAreaPos.setX(cellX);
+      mSelectedAreaPos.setY(cellY);
 
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
                       mSelectedDataSet.imageMeta->filename + "/" + std::to_string(value.getId());
@@ -886,6 +906,11 @@ void PanelResults::setDensityMapSize(uint32_t densityMapSize)
 ///
 void PanelResults::onShowTable()
 {
+  if(mExportSvg != nullptr) {
+    mExportSvg->setVisible(false);
+    mExportPng->setVisible(false);
+  }
+
   mTable->setVisible(true);
   setHeatmapVisible(false);
   refreshView();
@@ -900,6 +925,10 @@ void PanelResults::onShowTable()
 ///
 void PanelResults::onShowHeatmap()
 {
+  if(mExportSvg != nullptr) {
+    mExportSvg->setVisible(true);
+    mExportPng->setVisible(true);
+  }
   mTable->setVisible(false);
   setHeatmapVisible(true);
   refreshView();
@@ -913,8 +942,7 @@ void PanelResults::tableToHeatmap(const joda::table::Table &table)
 {
   if(mAnalyzer) {
     if(mSelectedTableColumn >= 0) {
-      mHeatmapChart->setData(table, mNavigation == Navigation::PLATE ? ChartHeatMap::MatrixForm::CIRCLE : ChartHeatMap::MatrixForm::RECTANGLE,
-                             ChartHeatMap::PaintControlImage::NO, static_cast<int32_t>(mNavigation));
+      mHeatmapChart->setData(table, static_cast<int32_t>(mNavigation));
       return;
     }
   }
@@ -941,7 +969,8 @@ void PanelResults::paintEmptyHeatmap()
       table.setData(row, col, data);
     }
   }
-  mHeatmapChart->setData(table, ChartHeatMap::MatrixForm::CIRCLE, ChartHeatMap::PaintControlImage::NO, static_cast<int32_t>(mNavigation));
+
+  mHeatmapChart->setData(table, static_cast<int32_t>(mNavigation));
 }
 
 ///
@@ -1170,6 +1199,10 @@ void PanelResults::showFileSaveDialog(const QString &filter)
       endian = ".r";
     } else if(filter.contains("(*.csv)")) {
       endian = ".csv";
+    } else if(filter.contains("(*.svg)")) {
+      endian = ".svg";
+    } else if(filter.contains("(*.png)")) {
+      endian = ".png";
     } else if(filter.contains("(*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")")) {
       endian = joda::fs::EXT_EXPORT_TEMPLATE;
     } else {
@@ -1199,6 +1232,10 @@ void PanelResults::showFileSaveDialog(const QString &filter)
     saveData(filename, joda::ctrl::ExportSettings::ExportType::XLSX);
   } else if(filename.ends_with(".r")) {
     saveData(filename, joda::ctrl::ExportSettings::ExportType::R);
+  } else if(filename.ends_with(".svg")) {
+    mHeatmapChart->exportToSVG(filename.data());
+  } else if(filename.ends_with(".png")) {
+    mHeatmapChart->exportToPNG(filename.data());
   } else if(filename.ends_with(joda::fs::EXT_EXPORT_TEMPLATE)) {
     saveTemplate(filename);
   }

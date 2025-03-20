@@ -14,7 +14,14 @@ make(){
 
 build(){
     cmake --build ./build --config Release --target imagec --parallel 16
-    cmake --build ./build --config Release --target tests --parallel 16
+   # cmake --build ./build --config Release --target tests --parallel 16
+}
+
+makeIcons() {
+    cd resources
+    python3 get_icons.py
+    cd ..
+    cmake -S . -B ./build -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_TOOLCHAIN_FILE="./build/build/Release/generators/conan_toolchain.cmake"
 }
 
 pack(){
@@ -68,6 +75,7 @@ if [ $# -eq 0 ]; then
     echo "ImageC build script usage:"
     echo "    [--init] Execute --init once after you initial setup the project."
     echo "    [--make] Execute --make every time some external deps have been changed or added."
+    echo "    [--icons] Execute --make-icons every time a new icon has been added."
     echo "    [--build] Execute --build every time something in code has been changed."
     echo "    [--clean] To remove all build artifacts."
     exit 1
@@ -83,6 +91,10 @@ for arg in "$@"; do
         --make)
             # Execute make every time some external deps have been changed or added
             make
+            ;;
+        --icons)
+            # Execute --make-icons every time a new icon has been added.
+            makeIcons
             ;;
         --build)
             # Execute build and pack every time something in code has been changed

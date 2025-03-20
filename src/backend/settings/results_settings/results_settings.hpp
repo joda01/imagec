@@ -14,6 +14,7 @@
 
 #include <string>
 #include "backend/enums/enum_measurements.hpp"
+#include "backend/helper/database/exporter/heatmap/export_heatmap_settings.hpp"
 #include "backend/settings/project_settings/project_plate_setup.hpp"
 #include "backend/settings/setting.hpp"
 
@@ -151,13 +152,6 @@ public:
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnIdx, tabIdx, colIdx);
   };
 
-  struct DensityMapSettings
-  {
-    int32_t densityMapAreaSize = 4096;
-
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(DensityMapSettings, densityMapAreaSize);
-  };
-
   explicit ResultsSettings() = default;
 
   void setFilter(const ObjectFilter &filter, const joda::settings::PlateSetup &plateSetup, const DensityMapSettings &densityMap)
@@ -263,6 +257,11 @@ public:
   }
 
   [[nodiscard]] auto getDensityMapSettings() const -> const DensityMapSettings &
+  {
+    return densityMapSettings;
+  }
+
+  [[nodiscard]] auto mutableDensityMapSettings() -> DensityMapSettings &
   {
     return densityMapSettings;
   }

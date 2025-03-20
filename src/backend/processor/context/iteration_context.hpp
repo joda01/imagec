@@ -14,10 +14,9 @@
 
 #include <filesystem>
 #include "backend/artifacts/object_list/object_list.hpp"
+#include "backend/enums/enum_image_cache.hpp"
 
 namespace joda::processor {
-
-using imageCache_t = std::map<enums::MemoryIdx, std::unique_ptr<joda::atom::ImagePlane>>;
 
 class PipelineInitializer;
 
@@ -25,7 +24,7 @@ struct IterationContext
 {
   friend class ProcessContext;
 
-  imageCache_t imageCache;
+  enums::imageCache_t imageCache;
 
 public:
   joda::atom::ObjectList &getObjects()

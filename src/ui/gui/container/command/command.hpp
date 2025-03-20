@@ -32,6 +32,7 @@
 namespace joda::ui::gui {
 
 class DialogCommandSelection;
+class AddCommandButtonBase;
 
 enum class InOuts
 {
@@ -74,13 +75,9 @@ public:
   void removeTab(int32_t idx);
   void removeAllTabsExceptFirst();
   void registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi);
-  void registerAddCommandButton(std::shared_ptr<DialogCommandSelection> &cmdDialog, joda::settings::Pipeline &settings,
-                                PanelPipelineSettings *pipelineSettingsUi, WindowMain *mainWindow);
-  void setCommandBefore(std::shared_ptr<Command> commandBefore)
-  {
-    mCommandBefore = commandBefore;
-  }
-
+  void registerAddCommandButton(std::shared_ptr<Command> commandBefore, std::shared_ptr<DialogCommandSelection> &cmdDialog,
+                                joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineSettingsUi, WindowMain *mainWindow);
+  void setCommandBefore(std::shared_ptr<Command> commandBefore);
   void addSetting(const std::vector<std::tuple<SettingBase *, bool, int32_t>> &settings, bool showCloseButton = false)
   {
     addSetting(addTab(
@@ -215,6 +212,8 @@ protected:
     mLocked->setChecked(locked);
   }
 
+  InOuts getOut() const;
+
 private:
   /////////////////////////////////////////////////////
 
@@ -245,6 +244,7 @@ private:
   const InOut mInOut;
   std::shared_ptr<Command> mCommandBefore = nullptr;
   const std::vector<std::string> &mTags;
+  AddCommandButtonBase *mCmdButton;
 };
 
 }    // namespace joda::ui::gui
