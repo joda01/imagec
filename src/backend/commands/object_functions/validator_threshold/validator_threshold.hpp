@@ -28,6 +28,7 @@ public:
 
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
+    applyHistogramFilter(context, image, result);
   }
 
 private:
