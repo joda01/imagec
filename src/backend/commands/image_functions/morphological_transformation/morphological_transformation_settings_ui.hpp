@@ -41,7 +41,8 @@ public:
                                                  "open",      "close",         "gradient", "top hat", "black hat", "hitmiss"};
 
   MorphologicalTransform(joda::settings::PipelineStep &pipelineStep, settings::MorphologicalTransformSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}}),
+      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent,
+              {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::OUTPUT_EQUAL_TO_INPUT}}),
       mParent(parent)
   {
     auto *modelTab = addTab(
