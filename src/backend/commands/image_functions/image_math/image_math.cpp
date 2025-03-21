@@ -12,9 +12,11 @@
 ///
 
 #include "image_math.hpp"
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <string>
 #include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/duration_count/duration_count.h"
@@ -60,9 +62,27 @@ void ImageMath::execute(processor::ProcessContext &context, cv::Mat &imageInOut,
     case settings::ImageMathSettings::Function::MULTIPLY:
       cv::multiply(*img1, *img2, imageInOut);
       break;
-    case settings::ImageMathSettings::Function::DIVIDE:
-      cv::divide(*img1, *img2, imageInOut);
+    case settings::ImageMathSettings::Function::DIVIDE: {
+      // Normalize if needed (optional, depends on expected output range)
+      double minVal;
+      double maxAbefore;
+      double maxBbefore;
+      cv::minMaxLoc(*img1, &minVal, &maxAbefore);
+      cv::minMaxLoc(*img2, &minVal, &maxBbefore);
+      maxAbefore = std::max(maxAbefore, maxBbefore);
+
+      cv::Mat imgA;
+      img1->convertTo(imgA, CV_32F);    // Normalize to [0,1]
+      cv::Mat imgB;
+      img2->convertTo(imgB, CV_32F);    // Normalize to [0,1]
+      cv::divide(imgA, imgB, imgB);
+
+      // Normalize if needed (optional, depends on expected output range)
+      double maxVal;
+      cv::minMaxLoc(imgB, &minVal, &maxVal);
+      imgB.convertTo(imageInOut, CV_16UC1, maxAbefore / maxVal);
       break;
+    }
     case settings::ImageMathSettings::Function::MIN:
       cv::min(*img1, *img2, imageInOut);
       break;
