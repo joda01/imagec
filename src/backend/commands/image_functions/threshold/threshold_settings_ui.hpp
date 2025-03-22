@@ -64,16 +64,27 @@ private:
       //
       //
       //
-      mThresholdAlgorithm = SettingBase::create<SettingComboBox<joda::settings::ThresholdSettings::Mode>>(parent, generateIcon("automatic-contrast"),
-                                                                                                          "Threshold algorithm");
-      mThresholdAlgorithm->addOptions({{joda::settings::ThresholdSettings::Mode::MANUAL, "Manual", generateIcon("contrast")},
-                                       {joda::settings::ThresholdSettings::Mode::LI, "Li"},
-                                       {joda::settings::ThresholdSettings::Mode::MIN_ERROR, "Min. error"},
-                                       {joda::settings::ThresholdSettings::Mode::TRIANGLE, "Triangle"},
-                                       {joda::settings::ThresholdSettings::Mode::MOMENTS, "Moments"},
-                                       {joda::settings::ThresholdSettings::Mode::OTSU, "Otsu"}});
-      mThresholdAlgorithm->setValue(settings.mode);
-      mThresholdAlgorithm->connectWithSetting(&settings.mode);
+      mThresholdAlgorithm = SettingBase::create<SettingComboBox<joda::settings::ThresholdSettings::Methods>>(
+          parent, generateIcon("automatic-contrast"), "Threshold algorithm");
+      mThresholdAlgorithm->addOptions({{joda::settings::ThresholdSettings::Methods::MANUAL, "Manual", generateIcon("contrast")},
+                                       {joda::settings::ThresholdSettings::Methods::LI, "Li"},
+                                       {joda::settings::ThresholdSettings::Methods::MIN_ERROR, "Min. error"},
+                                       {joda::settings::ThresholdSettings::Methods::TRIANGLE, "Triangle"},
+                                       {joda::settings::ThresholdSettings::Methods::MOMENTS, "Moments"},
+                                       {joda::settings::ThresholdSettings::Methods::OTSU, "Otsu"},
+                                       {joda::settings::ThresholdSettings::Methods::MEAN, "Mean"},
+                                       {joda::settings::ThresholdSettings::Methods::SHANBHAG, "Shanbhag"}});
+      mThresholdAlgorithm->setValue(settings.method);
+      mThresholdAlgorithm->connectWithSetting(&settings.method);
+
+      //
+      //
+      //
+      mGrayScaleValue = generateThresholdClass("Threshold class", parent);
+      mGrayScaleValue->setValue(settings.modelClassId);
+      mGrayScaleValue->connectWithSetting(&settings.modelClassId);
+
+      outer.addSetting(tab, "Algorithm", {{mThresholdAlgorithm.get(), true, index}, {mGrayScaleValue.get(), true, index}});
 
       //
       //
@@ -97,18 +108,11 @@ private:
       mThresholdValueMax->connectWithSetting(&settings.thresholdMax);
       mThresholdValueMax->setShortDescription("Max. ");
 
-      //
-      //
-      //
-      mGrayScaleValue = generateThresholdClass("Threshold class", parent);
-      mGrayScaleValue->setValue(settings.modelClassId);
-      mGrayScaleValue->connectWithSetting(&settings.modelClassId);
-
-      outer.addSetting(tab, "",
-                       {{mThresholdAlgorithm.get(), true, index},
-                        {mThresholdValueMin.get(), true, index},
-                        {mThresholdValueMax.get(), true, index},
-                        {mGrayScaleValue.get(), true, index}});
+      outer.addSetting(tab, "Settings",
+                       {
+                           {mThresholdValueMin.get(), true, index},
+                           {mThresholdValueMax.get(), false, index},
+                       });
     }
 
     ~ThresholdUi()
@@ -118,7 +122,7 @@ private:
 
     /////////////////////////////////////////////////////
     std::unique_ptr<SettingComboBox<int32_t>> mGrayScaleValue;
-    std::unique_ptr<SettingComboBox<joda::settings::ThresholdSettings::Mode>> mThresholdAlgorithm;
+    std::unique_ptr<SettingComboBox<joda::settings::ThresholdSettings::Methods>> mThresholdAlgorithm;
     std::shared_ptr<SettingLineEdit<uint16_t>> mThresholdValueMin;
     std::shared_ptr<SettingLineEdit<uint16_t>> mThresholdValueMax;
     settings::ThresholdSettings::Threshold &settings;

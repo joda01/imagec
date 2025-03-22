@@ -35,7 +35,7 @@ namespace joda::cmd {
 class ThresholdMoments final
 {
 public:
-  static uint16_t calcThresholdValue(cv::Mat &histogram)
+  static uint16_t calcThresholdValue(const cv::Mat &histogram)
   {
     double total = 0;
     double m0 = 1.0, m1 = 0.0, m2 = 0.0, m3 = 0.0, sum = 0.0, p0 = 0.0;

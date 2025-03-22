@@ -12,7 +12,7 @@ namespace joda::settings {
 struct ThresholdSettings : public SettingBase
 {
 public:
-  enum class Mode
+  enum class Methods
   {
     NONE,
     MANUAL,
@@ -39,7 +39,7 @@ public:
     // Which threshold algorithm should be used
     // [MANUAL, LI, MIN_ERROR, TRIANGLE]
     //
-    Mode mode = Mode::MANUAL;
+    Methods method = Methods::MANUAL;
 
     //
     // Minimum threshold value.
@@ -64,7 +64,7 @@ public:
       CHECK_ERROR(thresholdMax >= thresholdMin, "Threshold max must be higher than threshold min.");
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Threshold, mode, thresholdMin, thresholdMax, modelClassId);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Threshold, method, thresholdMin, thresholdMax, modelClassId);
   };
 
   std::list<Threshold> modelClasses;
@@ -76,22 +76,22 @@ public:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ThresholdSettings, modelClasses);
 };
 
-NLOHMANN_JSON_SERIALIZE_ENUM(ThresholdSettings::Mode, {{ThresholdSettings::Mode::NONE, ""},
-                                                       {ThresholdSettings::Mode::MANUAL, "Manual"},
-                                                       {ThresholdSettings::Mode::LI, "Li"},
-                                                       {ThresholdSettings::Mode::MIN_ERROR, "MinError"},
-                                                       {ThresholdSettings::Mode::TRIANGLE, "Triangle"},
-                                                       {ThresholdSettings::Mode::MOMENTS, "Moments"},
-                                                       {ThresholdSettings::Mode::HUANG, "Huang"},
-                                                       {ThresholdSettings::Mode::INTERMODES, "Intermodes"},
-                                                       {ThresholdSettings::Mode::ISODATA, "IsoData"},
-                                                       {ThresholdSettings::Mode::MAX_ENTROPY, "MaxEntropy"},
-                                                       {ThresholdSettings::Mode::MEAN, "Mean"},
-                                                       {ThresholdSettings::Mode::MINIMUM, "Minimum"},
-                                                       {ThresholdSettings::Mode::OTSU, "Otsu"},
-                                                       {ThresholdSettings::Mode::PERCENTILE, "Percentil"},
-                                                       {ThresholdSettings::Mode::RENYI_ENTROPY, "TenyiEntropy"},
-                                                       {ThresholdSettings::Mode::SHANBHAG, "Shanbhag"},
-                                                       {ThresholdSettings::Mode::YEN, "Yen"}})
+NLOHMANN_JSON_SERIALIZE_ENUM(ThresholdSettings::Methods, {{ThresholdSettings::Methods::NONE, ""},
+                                                          {ThresholdSettings::Methods::MANUAL, "Manual"},
+                                                          {ThresholdSettings::Methods::LI, "Li"},
+                                                          {ThresholdSettings::Methods::MIN_ERROR, "MinError"},
+                                                          {ThresholdSettings::Methods::TRIANGLE, "Triangle"},
+                                                          {ThresholdSettings::Methods::MOMENTS, "Moments"},
+                                                          {ThresholdSettings::Methods::HUANG, "Huang"},
+                                                          {ThresholdSettings::Methods::INTERMODES, "Intermodes"},
+                                                          {ThresholdSettings::Methods::ISODATA, "IsoData"},
+                                                          {ThresholdSettings::Methods::MAX_ENTROPY, "MaxEntropy"},
+                                                          {ThresholdSettings::Methods::MEAN, "Mean"},
+                                                          {ThresholdSettings::Methods::MINIMUM, "Minimum"},
+                                                          {ThresholdSettings::Methods::OTSU, "Otsu"},
+                                                          {ThresholdSettings::Methods::PERCENTILE, "Percentil"},
+                                                          {ThresholdSettings::Methods::RENYI_ENTROPY, "TenyiEntropy"},
+                                                          {ThresholdSettings::Methods::SHANBHAG, "Shanbhag"},
+                                                          {ThresholdSettings::Methods::YEN, "Yen"}})
 
 }    // namespace joda::settings
