@@ -25,6 +25,7 @@
 #include <thread>
 #include "backend/helper/image/image.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
+#include "histo_toolbar.hpp"
 
 namespace joda::ui::gui {
 
@@ -109,14 +110,22 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
 
   // Central images
   {
-    QGridLayout *centralLayout = new QGridLayout();
-    QWidget *centralWidget     = new QWidget();
+    auto *centralLayout      = new QGridLayout();
+    auto *centralWidget      = new QWidget();
+    auto *leftVerticalLayout = new QVBoxLayout();
+    mHistoToolbarLeft        = new HistoToolbar(static_cast<int32_t>(ImageView::LEFT), this, &mPreviewImages.originalImage);
     mImageViewLeft.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    centralLayout->addWidget(&mImageViewLeft, 0, 0);
+    leftVerticalLayout->addWidget(&mImageViewLeft);
+    leftVerticalLayout->addWidget(mHistoToolbarLeft);
+    centralLayout->addLayout(leftVerticalLayout, 0, 0);
     mImageViewLeft.resetImage();
 
+    auto *rightVerticalLayout = new QVBoxLayout();
+    mHistoToolbarRight        = new HistoToolbar(static_cast<int32_t>(ImageView::RIGHT), this, &mPreviewImages.previewImage);
     mImageViewRight.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    centralLayout->addWidget(&mImageViewRight, 0, 1);
+    rightVerticalLayout->addWidget(&mImageViewRight);
+    rightVerticalLayout->addWidget(mHistoToolbarRight);
+    centralLayout->addLayout(rightVerticalLayout, 0, 1);
     mImageViewRight.resetImage();
 
     // centralLayout->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -129,46 +138,6 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     connect(&mImageViewLeft, &PanelImageView::tileClicked, this, &DialogImageViewer::onTileClicked);
     connect(&mImageViewRight, &PanelImageView::tileClicked, this, &DialogImageViewer::onTileClicked);
   }
-
-  // Toolbar buttom
-  {
-    QToolBar *toolBar = new QToolBar();
-    toolBar->setMaximumHeight(32);
-
-    mSlider = new QSlider();
-    mSlider->setMinimum(1);
-    mSlider->setMaximum(UINT16_MAX);
-    mSlider->setValue(600);
-    mSlider->setOrientation(Qt::Orientation::Horizontal);
-    connect(mSlider, &QSlider::valueChanged, this, &DialogImageViewer::onSliderMoved);
-    toolBar->addWidget(mSlider);
-
-    QAction *fitToScreen = new QAction(generateIcon("automatic-contrast"), "");
-    fitToScreen->setObjectName("ToolButton");
-    fitToScreen->setToolTip("Auto adjust");
-    connect(fitToScreen, &QAction::triggered, this, &DialogImageViewer::autoAdjustHistogram);
-    toolBar->addAction(fitToScreen);
-
-    QAction *action1 = new QAction(generateIcon("normal-distribution-histogram"), "");
-    connect(action1, &QAction::triggered, this, &DialogImageViewer::onShowHistogramDialog);
-    toolBar->addAction(action1);
-
-    QAction *zoomIn = new QAction(generateIcon("zoom-in"), "");
-    zoomIn->setObjectName("ToolButton");
-    zoomIn->setToolTip("Zoom in");
-    connect(zoomIn, &QAction::triggered, this, &DialogImageViewer::onZoomHistogramInClicked);
-    toolBar->addAction(zoomIn);
-
-    QAction *zoomOut = new QAction(generateIcon("zoom-out"), "");
-    zoomOut->setObjectName("ToolButton");
-    zoomOut->setToolTip("Zoom out");
-    connect(zoomOut, &QAction::triggered, this, &DialogImageViewer::onZoomHistogramOutClicked);
-    toolBar->addAction(zoomOut);
-
-    addToolBar(Qt::ToolBarArea::BottomToolBarArea, toolBar);
-  }
-  createHistogramDialog();
-  onSliderMoved(0);
 }
 
 DialogImageViewer::~DialogImageViewer()
@@ -193,41 +162,12 @@ void DialogImageViewer::fitImageToScreenSize()
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::autoAdjustHistogram()
+void DialogImageViewer::triggerPreviewUpdate(ImageView view, bool withUserHistoSettings)
 {
-  mPreviewImages.originalImage.autoAdjustBrightnessRange();
-  triggerPreviewUpdate(false);
-}
+  if(mHistoToolbarLeft == nullptr || mHistoToolbarRight == nullptr) {
+    return;
+  }
 
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogImageViewer::onSliderMoved(int position)
-{
-  blockSignals(true);
-  int number = (float) UINT16_MAX / mSliderScaling->value();
-  int max    = UINT16_MAX - number;
-  mSliderHistogramOffset->setMaximum(max);
-  mSlider->setMinimum(mSliderHistogramOffset->value());
-  mSlider->setMaximum(mSliderHistogramOffset->value() + number);
-  blockSignals(false);
-
-  triggerPreviewUpdate(true);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogImageViewer::triggerPreviewUpdate(bool withUserHistoSettings)
-{
   if(mPreviewCounter == 0) {
     {
       std::lock_guard<std::mutex> lock(mPreviewMutex);
@@ -238,14 +178,29 @@ void DialogImageViewer::triggerPreviewUpdate(bool withUserHistoSettings)
         mPreviewThread->join();
       }
     }
-    mPreviewThread = std::make_unique<std::thread>([this, withUserHistoSettings] {
+    mPreviewThread = std::make_unique<std::thread>([this, withUserHistoSettings, view] {
       int previewCounter = 0;
       do {
         if(withUserHistoSettings) {
-          mPreviewImages.originalImage.setBrightnessRange(0, mSlider->value(), mSliderScaling->value(), mSliderHistogramOffset->value());
+          if(view == ImageView::LEFT) {
+            auto [value, scaling, offset] = mHistoToolbarLeft->getHistoSettings();
+            mPreviewImages.originalImage.setBrightnessRange(0, value, scaling, offset);
+            mImageViewLeft.emitUpdateImage();
+          }
+          if(view == ImageView::RIGHT) {
+            auto [value, scaling, offset] = mHistoToolbarRight->getHistoSettings();
+            mPreviewImages.previewImage.setBrightnessRange(0, value, scaling, offset);
+            mImageViewRight.emitUpdateImage();
+          }
+        } else {
+          if(view == ImageView::LEFT) {
+            mImageViewLeft.emitUpdateImage();
+          }
+          if(view == ImageView::RIGHT) {
+            mImageViewRight.emitUpdateImage();
+          }
         }
         // mPreviewImages.thumbnail.setBrightnessRange(0, mSlider->value(), mSliderScaling->value(), mSliderHistogramOffset->value());
-        mImageViewLeft.emitUpdateImage();
         std::this_thread::sleep_for(20ms);
         {
           std::lock_guard<std::mutex> lock(mPreviewMutex);
@@ -323,53 +278,6 @@ void DialogImageViewer::onRightViewChanged()
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::createHistogramDialog()
-{
-  mHistogramDialog = new QDialog(this);
-  mHistogramDialog->setWindowTitle("Histogram");
-  // mHistogramDialog->setModal(true);
-
-  QVBoxLayout *layoutMain = new QVBoxLayout();
-  // Tools
-  {
-    QHBoxLayout *layout = new QHBoxLayout();
-    mSliderScaling      = new QScrollBar(mHistogramDialog);
-    mSliderScaling->setMinimum(1);
-    mSliderScaling->setMaximum(UINT8_MAX);
-    mSliderScaling->setValue(1);
-    mSliderScaling->setOrientation(Qt::Orientation::Horizontal);
-    mSliderScaling->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    connect(mSliderScaling, &QSlider::valueChanged, this, &DialogImageViewer::onSliderMoved);
-
-    layout->addWidget(mSliderScaling);
-    layoutMain->addWidget(new QLabel("Histogram zoom"));
-    layoutMain->addLayout(layout);
-  }
-  {
-    QHBoxLayout *layout    = new QHBoxLayout();
-    mSliderHistogramOffset = new QScrollBar(mHistogramDialog);
-    mSliderHistogramOffset->setMinimum(0);
-    mSliderHistogramOffset->setMaximum(0);
-    mSliderHistogramOffset->setValue(0);
-    mSliderHistogramOffset->setOrientation(Qt::Orientation::Horizontal);
-    mSliderScaling->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    connect(mSliderHistogramOffset, &QScrollBar::valueChanged, this, &DialogImageViewer::onSliderMoved);
-
-    layout->addWidget(mSliderHistogramOffset);
-    layoutMain->addWidget(new QLabel("Histogram position"));
-    layoutMain->addLayout(layout);
-  }
-
-  mHistogramDialog->setLayout(layoutMain);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 void DialogImageViewer::onZoomInClicked()
 {
   mImageViewLeft.zoomImage(true);
@@ -397,20 +305,6 @@ void DialogImageViewer::onZoomOutClicked()
 void DialogImageViewer::onFitImageToScreenSizeClicked()
 {
   mImageViewLeft.fitImageToScreenSize();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogImageViewer::onShowHistogramDialog()
-{
-  if(!mHistogramDialog->isVisible()) {
-    mHistogramDialog->show();
-  }
 }
 
 ///
@@ -476,32 +370,6 @@ void DialogImageViewer::onShowCrossHandCursor(bool checked)
 {
   mImageViewLeft.setShowCrosshandCursor(checked);
   mImageViewRight.setShowCrosshandCursor(checked);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogImageViewer::onZoomHistogramOutClicked()
-{
-  auto value = mSliderScaling->value() - HISTOGRAM_ZOOM_STEP;
-  mSliderScaling->setValue(value);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogImageViewer::onZoomHistogramInClicked()
-{
-  auto value = mSliderScaling->value() + HISTOGRAM_ZOOM_STEP;
-  mSliderScaling->setValue(value);
 }
 
 ///

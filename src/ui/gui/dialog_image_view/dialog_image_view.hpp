@@ -8,7 +8,6 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-
 ///
 
 #pragma once
@@ -20,6 +19,8 @@
 #include "panel_image_view.hpp"
 
 namespace joda::ui::gui {
+
+class HistoToolbar;
 
 ///
 /// \class      DialogImageViewer
@@ -36,7 +37,6 @@ public:
   ~DialogImageViewer();
   void imageUpdated();
   void fitImageToScreenSize();
-  void createHistogramDialog();
   joda::ctrl::Preview &getPreviewObject()
   {
     return mPreviewImages;
@@ -66,22 +66,19 @@ public:
     QMainWindow::hideEvent(event);
     emit hidden();
   }
+  enum class ImageView
+  {
+    LEFT  = 0,
+    RIGHT = 1
+  };
+  void triggerPreviewUpdate(ImageView view, bool withUserHistoSettings);
 
 signals:
   void tileClicked(int32_t tileX, int32_t tileY);
   void hidden();
 
-public slots:
-  void autoAdjustHistogram();
-
 private:
   /////////////////////////////////////////////////////
-  static constexpr float HISTOGRAM_ZOOM_STEP = 25;
-
-  /////////////////////////////////////////////////////
-  QSlider *mSlider;
-  QScrollBar *mSliderScaling;
-  QScrollBar *mSliderHistogramOffset;
 
   joda::ctrl::Preview mPreviewImages;
   PanelImageView mImageViewLeft;
@@ -90,23 +87,18 @@ private:
   std::mutex mPreviewMutex;
   int mPreviewCounter = 0;
 
-  /////////////////////////////////////////////////////
-  QDialog *mHistogramDialog;
-
-  void triggerPreviewUpdate(bool withUserHistoSettings);
+  HistoToolbar *mHistoToolbarLeft  = nullptr;
+  HistoToolbar *mHistoToolbarRight = nullptr;
 
 private slots:
+  /////////////////////////////////////////////////////
   void onFitImageToScreenSizeClicked();
   void onZoomOutClicked();
   void onZoomInClicked();
   void onLeftViewChanged();
   void onRightViewChanged();
-  void onSliderMoved(int position);
-  void onShowHistogramDialog();
   void onSetSateToMove();
   void onSetStateToPaintRect();
-  void onZoomHistogramOutClicked();
-  void onZoomHistogramInClicked();
   void onShowPixelInfo(bool checked);
   void onShowThumbnailChanged(bool checked);
   void onShowCrossHandCursor(bool checked);

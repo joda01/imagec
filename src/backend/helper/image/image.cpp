@@ -13,6 +13,7 @@
 
 #include "image.hpp"
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <iostream>
 #include <mutex>
@@ -65,6 +66,11 @@ QPixmap Image::getPixmap() const
     std::cout << "Ups it is null" << std::endl;
     return {};
   }
+  if(mLowerValue > mUpperValue) {
+    std::cerr << "Minimum value must be less than maximum value." << std::endl;
+    return {};
+  }
+
   // 65535....65535
   // 3000 .......65535
   // PxlInImg....New
@@ -73,12 +79,6 @@ QPixmap Image::getPixmap() const
   cv::Mat image;
   if(depth == CV_16U) {
     image = mImageOriginal->clone();
-    // Ensure minVal is less than maxVal
-    if(mLowerValue > mUpperValue) {
-      std::cerr << "Minimum value must be less than maximum value." << std::endl;
-      return {};
-    }
-
     // Apply the lookup table to the source image to get the destination image
     for(int y = 0; y < image.rows; ++y) {
       for(int x = 0; x < image.cols; ++x) {
@@ -87,6 +87,26 @@ QPixmap Image::getPixmap() const
       }
     }
     return encode(&image);
+  } else if(CV_32F) {
+    /*  image = mImageOriginal->clone();
+
+      // Apply the lookup table to the source image to get the destination image
+      for(int y = 0; y < image.rows; ++y) {
+        for(int x = 0; x < image.cols; ++x) {
+          cv::Vec3b &pixel = image.at<cv::Vec3b>(y, x);
+
+          uint16_t pixelR = pixel[0] * 256;
+          uint16_t pixelG = pixel[1] * 256;
+          uint16_t pixelB = pixel[2] * 256;
+          pixelR          = mLut[pixelR] / 256.0;
+          pixelG          = mLut[pixelG] / 256.0;
+          pixelB          = mLut[pixelB] / 256.0;
+          pixel[0]        = pixelR;
+          pixel[1]        = pixelG;
+          pixel[2]        = pixelB;
+        }
+      }
+      return encode(&image);*/
   }
   return encode(mImageOriginal);
 }

@@ -84,7 +84,7 @@ private:
 
   /////////////////////////////////////////////////////
   [[nodiscard]] QPixmap encode(const cv::Mat *image) const;
-  std::array<int32_t, UINT16_MAX + 1> mLut;
+  std::array<int32_t, UINT16_MAX + 1> mLut = {};
 
   //// BRIGHTNESS /////////////////////////////////////////////////
   uint16_t mLowerValue       = 0;
