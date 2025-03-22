@@ -35,6 +35,7 @@
 #include "backend/commands/image_functions/rank_filter/rank_filter_settings.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
 #include "backend/commands/image_functions/threshold/threshold_settings.hpp"
+#include "backend/commands/image_functions/threshold_adaptive/threshold_adaptive_settings.hpp"
 #include "backend/commands/image_functions/watershed/watershed_settings.hpp"
 #include "backend/commands/object_functions/colocalization/colocalization_settings.hpp"
 #include "backend/commands/object_functions/measure/measure_settings.hpp"
@@ -77,6 +78,7 @@ public:
   std::optional<ImageSaverSettings> $saveImage                          = std::nullopt;
   std::optional<IntensityTransformationSettings> $intensityTransform    = std::nullopt;
   std::optional<ThresholdSettings> $threshold                           = std::nullopt;
+  std::optional<ThresholdAdaptiveSettings> $thresholdAdaptive           = std::nullopt;
   std::optional<WatershedSettings> $watershed                           = std::nullopt;
   std::optional<ImageFromClassSettings> $imageFromClass                 = std::nullopt;
   std::optional<ClassifierSettings> $classify                           = std::nullopt;
@@ -107,9 +109,9 @@ public:
   void operator()(processor::ProcessContext &context, cv::Mat &image, joda::atom::ObjectList &result) const;
   void check() const;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineStep, $blur, $saveImage, $threshold, $watershed, $imageFromClass, $classify,
-                                                       $aiClassify, $colocalization, $reclassify, $measure, $rollingBall, $medianSubtract, $sobel,
-                                                       $canny, $crop, $voronoi, $thresholdValidator, $noiseValidator, $intensityTransform,
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineStep, $blur, $saveImage, $threshold, $thresholdAdaptive, $watershed, $imageFromClass,
+                                                       $classify, $aiClassify, $colocalization, $reclassify, $measure, $rollingBall, $medianSubtract,
+                                                       $sobel, $canny, $crop, $voronoi, $thresholdValidator, $noiseValidator, $intensityTransform,
                                                        $colorFilter, $objectsToImage, $imageMath, $objectTransform, $imageToCache,
                                                        $morphologicalTransform, $fillHoles, $houghTransform, $enhanceContrast, $rank, disabled,
                                                        locked);

@@ -27,6 +27,7 @@
 #include "backend/commands/image_functions/morphological_transformation/morphological_transformation_settings.hpp"
 #include "backend/commands/image_functions/rank_filter/rank_filter_settings.hpp"
 #include "backend/commands/image_functions/threshold/threshold_settings.hpp"
+#include "backend/commands/image_functions/threshold_adaptive/threshold_adaptive_settings.hpp"
 #include "backend/commands/image_functions/watershed/watershed_settings.hpp"
 #include "backend/commands/object_functions/object_transform/object_transform_settings.hpp"
 #include "backend/commands/object_functions/validator_threshold/validator_threshold_settings.hpp"
@@ -165,6 +166,7 @@ void DialogCommandSelection::addCommandsToTable()
   {
     addTitleToTable("Binary image Processing", Group::BINARY_IMAGE_PROCESSING);
     addCommandToTable(settings::PipelineStep{.$threshold = settings::ThresholdSettings{}}, Group::BINARY_IMAGE_PROCESSING);
+    addCommandToTable(settings::PipelineStep{.$thresholdAdaptive = settings::ThresholdAdaptiveSettings{}}, Group::BINARY_IMAGE_PROCESSING);
     addCommandToTable(settings::PipelineStep{.$watershed = settings::WatershedSettings{}}, Group::BINARY_IMAGE_PROCESSING);
     addCommandToTable(settings::PipelineStep{.$morphologicalTransform = settings::MorphologicalTransformSettings{}}, Group::BINARY_IMAGE_PROCESSING);
     addCommandToTable(settings::PipelineStep{.$fillHoles = settings::FillHolesSettings{}}, Group::BINARY_IMAGE_PROCESSING);

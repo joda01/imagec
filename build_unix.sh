@@ -4,7 +4,7 @@ initConan(){
     conan profile detect --force
     conan remote remove conancenter
     conan remote add imageclibs https://imagec.org:4431/artifactory/api/conan/imageclibs
-    conan remote login imageclibs reader
+    conan remote login imageclibs admin
 }
 
 make(){
@@ -50,6 +50,7 @@ pack(){
     cp /root/.conan2/p/*/p/lib/libQt6XcbQpa.so.6 .
     cp /root/.conan2/p/*/p/lib/libQt6Svg.so.6 .
     cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 .
+    cp /usr/lib/x86_64-linux-gnu/libxcb-icccm.so .
     cd ..
     chmod +x imagec
     chmod +x imagec.sh
@@ -106,7 +107,7 @@ for arg in "$@"; do
             ;;
         *)
             echo "Unknown option: $arg"
-            echo "Usage: $0 [--init] [--make] [--build] [--clean]"
+            echo "Usage: $0 [--init] [--icons] [--make] [--build] [--clean]"
             exit 1
             ;;
     esac
