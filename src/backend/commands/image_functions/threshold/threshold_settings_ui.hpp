@@ -33,7 +33,7 @@ public:
   inline static std::string TITLE             = "Threshold";
   inline static std::string ICON              = "grayscale";
   inline static std::string DESCRIPTION       = "Converts a grayscale image to a binary image.";
-  inline static std::vector<std::string> TAGS = {"threshold", "background", "binary"};
+  inline static std::vector<std::string> TAGS = {"threshold", "background", "binary", "otsu", "li", "triangle", "shanbhag"};
 
   Threshold(joda::settings::PipelineStep &pipelineStep, settings::ThresholdSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::BINARY}}), mSettings(settings),
@@ -73,7 +73,15 @@ private:
                                        {joda::settings::ThresholdSettings::Methods::MOMENTS, "Moments"},
                                        {joda::settings::ThresholdSettings::Methods::OTSU, "Otsu"},
                                        {joda::settings::ThresholdSettings::Methods::MEAN, "Mean"},
-                                       {joda::settings::ThresholdSettings::Methods::SHANBHAG, "Shanbhag"}});
+                                       {joda::settings::ThresholdSettings::Methods::SHANBHAG, "Shanbhag"},
+                                       {joda::settings::ThresholdSettings::Methods::HUANG, "Huang"},
+                                       {joda::settings::ThresholdSettings::Methods::INTERMODES, "Intermodes"},
+                                       {joda::settings::ThresholdSettings::Methods::ISODATA, "ISO Data"},
+                                       {joda::settings::ThresholdSettings::Methods::MAX_ENTROPY, "Max. entropy"},
+                                       {joda::settings::ThresholdSettings::Methods::MINIMUM, "Minimum"},
+                                       {joda::settings::ThresholdSettings::Methods::PERCENTILE, "Percentile"},
+                                       {joda::settings::ThresholdSettings::Methods::RENYI_ENTROPY, "Renyi entropy"},
+                                       {joda::settings::ThresholdSettings::Methods::YEN, "Yen"}});
       mThresholdAlgorithm->setValue(settings.method);
       mThresholdAlgorithm->connectWithSetting(&settings.method);
 
@@ -108,16 +116,29 @@ private:
       mThresholdValueMax->connectWithSetting(&settings.thresholdMax);
       mThresholdValueMax->setShortDescription("Max. ");
 
+      //
+      //
+      //
+      mCValue = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("light"), "Auto contrast added const");
+      mCValue->setEmptyValue(0);
+      mCValue->setPlaceholderText("[-32000 - +32000]");
+      mCValue->setUnit("");
+      mCValue->setMinMax(-32000, 32000);
+      mCValue->setValue(settings.cValue);
+      mCValue->connectWithSetting(&settings.cValue);
+      mCValue->setShortDescription("C:");
+
       outer.addSetting(tab, "Settings",
                        {
                            {mThresholdValueMin.get(), true, index},
                            {mThresholdValueMax.get(), false, index},
+                           {mCValue.get(), false, index},
                        });
     }
 
     ~ThresholdUi()
     {
-      outer.removeSetting({mGrayScaleValue.get(), mThresholdAlgorithm.get(), mThresholdValueMin.get(), mThresholdValueMax.get()});
+      outer.removeSetting({mGrayScaleValue.get(), mThresholdAlgorithm.get(), mThresholdValueMin.get(), mThresholdValueMax.get(), mCValue.get()});
     }
 
     /////////////////////////////////////////////////////
@@ -125,6 +146,8 @@ private:
     std::unique_ptr<SettingComboBox<joda::settings::ThresholdSettings::Methods>> mThresholdAlgorithm;
     std::shared_ptr<SettingLineEdit<uint16_t>> mThresholdValueMin;
     std::shared_ptr<SettingLineEdit<uint16_t>> mThresholdValueMax;
+    std::unique_ptr<SettingLineEdit<int32_t>> mCValue;
+
     settings::ThresholdSettings::Threshold &settings;
     Threshold &outer;
   };

@@ -58,13 +58,18 @@ public:
     //
     int32_t modelClassId = UINT16_MAX;
 
+    //
+    // This factor is added to the calculated auto threshold
+    //
+    int32_t cValue = 0;
+
     /////////////////////////////////////////////////////
     void check() const
     {
       CHECK_ERROR(thresholdMax >= thresholdMin, "Threshold max must be higher than threshold min.");
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Threshold, method, thresholdMin, thresholdMax, modelClassId);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Threshold, method, thresholdMin, thresholdMax, modelClassId, cValue);
   };
 
   std::list<Threshold> modelClasses;

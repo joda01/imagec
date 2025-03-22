@@ -33,7 +33,7 @@ public:
   inline static std::string TITLE             = "Threshold adaptive";
   inline static std::string ICON              = "grayscale";
   inline static std::string DESCRIPTION       = "Converts a grayscale image to a binary image.";
-  inline static std::vector<std::string> TAGS = {"threshold", "background", "binary"};
+  inline static std::vector<std::string> TAGS = {"threshold", "background", "binary", "adaptive", "sauvola", "nitblack", "otsu", "phanskalar"};
 
   ThresholdAdaptive(joda::settings::PipelineStep &pipelineStep, settings::ThresholdAdaptiveSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::BINARY}}), mSettings(settings),

@@ -13,12 +13,32 @@
                 "[ai_classifier]"
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
+            "cwd": "/workspaces/imagec/build/build/output",
             "environment": [
                 {
                     "name": "CONFIG_ROOT",
                     "value": "/workspace/example-config"
-                }
+                },
+                {
+                    "name": "QT_QPA_PLATFORM_PLUGIN_PATH",
+                    "value": "/workspaces/imagec/build/build/output/plugins/platforms"
+                },
+                {
+                    "name": "QT_QPA_PLATFORM",
+                    "value": "xcb"
+                },
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "/workspaces/imagec/build/build/output/libs"
+                },
+                {
+                    "name": "QT_DEBUG_PLUGINS",
+                    "value": "1"
+                },
+                //{
+                //    "name": "DISPLAY",
+                //    "value": "1"
+                //}
             ],
             "externalConsole": false,
             "MIMode": "gdb",
