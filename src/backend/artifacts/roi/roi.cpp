@@ -345,7 +345,8 @@ ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
       int yM1 = y + yM1Base;
 
       bool mask1On = false;
-      if(xM1 >= 0 && yM1 >= 0) {
+      auto maskTmp = getMask();
+      if(xM1 >= 0 && yM1 >= 0 && xM1 < maskTmp.cols && yM1 < maskTmp.rows) {
         mask1On = getMask().at<uchar>(yM1, xM1) > 0;
       }
 
