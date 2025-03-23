@@ -139,6 +139,7 @@
     <file>icons/icons8-zoom-in-24.png</file>
     <file>icons/icons8-screenshot-96.png</file>
     <file>icons/icons8-ruler-48.png</file>
+    <file>icons/icons8-overlay-80.png</file>
     <file>icons/icons8-number-16.png</file>
     <file>icons/icons8-select-column-24.png</file>
     <file>icons/icons8-black-and-white-16.png</file>
@@ -254,6 +255,7 @@
     <file>icons/icons8-deviation-16.png</file>
     <file>icons/icons8-three-16.png</file>
     <file>icons/icons8-one-48.png</file>
+    <file>icons/icons8-overlay-16.png</file>
     <file>icons/icons8-query-inner-join-96.png</file>
     <file>icons/icons8-qr-code-16.png</file>
     <file>icons/icons8-automatic-contrast-16.png</file>
@@ -278,6 +280,7 @@
     <file>icons/icons8-project-setup-48.png</file>
     <file>icons/icons8-matrix-96.png</file>
     <file>icons/icons8-rename-48.png</file>
+    <file>icons/icons8-overlay-40.png</file>
     <file>icons/icons8-save-simple-48.png</file>
     <file>icons/icons8-add-file-24.png</file>
     <file>icons/icons8-triangle-24.png</file>
@@ -654,6 +657,7 @@
     <file>icons/icons8-info-blue-16.png</file>
     <file>icons/icons8-png-16.png</file>
     <file>icons/icons8-browse-page-24.png</file>
+    <file>icons/icons8-overlay-16-2.png</file>
     <file>icons/icons8-select-column-48.png</file>
     <file>icons/icons8-inclination-48.png</file>
     <file>icons/icons8-surface-16.png</file>

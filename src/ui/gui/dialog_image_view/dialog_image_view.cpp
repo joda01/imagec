@@ -39,8 +39,8 @@ using namespace std::chrono_literals;
 /// \return
 ///
 DialogImageViewer::DialogImageViewer(QWidget *parent) :
-    QMainWindow(parent), mImageViewLeft(mPreviewImages.originalImage, mPreviewImages.thumbnail, false, false),
-    mImageViewRight(mPreviewImages.previewImage, mPreviewImages.thumbnail, true, true)
+    QMainWindow(parent), mImageViewLeft(&mPreviewImages.originalImage, mPreviewImages.thumbnail, false, false),
+    mImageViewRight(&mPreviewImages.previewImage, mPreviewImages.thumbnail, true, true)
 {
   // setWindowFlags(windowFlags() | Qt::Window | Qt::WindowMaximizeButtonHint);
   setBaseSize(1200, 600);
@@ -105,6 +105,21 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     connect(showCrossHairCursor, &QAction::triggered, this, &DialogImageViewer::onShowCrossHandCursor);
     toolbarTop->addAction(showCrossHairCursor);
 
+    QAction *showOverlay = new QAction(generateIcon("overlay"), "");
+    showOverlay->setToolTip("Show overlay");
+    showOverlay->setCheckable(true);
+    showOverlay->setChecked(true);
+    connect(showOverlay, &QAction::triggered, [this](bool selected) {
+      if(selected) {
+        mImageViewRight.setImageReference(&mPreviewImages.previewImage);
+        mImageViewRight.setShowHistogram(false);
+      } else {
+        mImageViewRight.setImageReference(&mPreviewImages.editedImage);
+        mImageViewRight.setShowHistogram(true);
+      }
+    });
+    toolbarTop->addAction(showOverlay);
+
     addToolBar(Qt::ToolBarArea::TopToolBarArea, toolbarTop);
   }
 
@@ -121,7 +136,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     mImageViewLeft.resetImage();
 
     auto *rightVerticalLayout = new QVBoxLayout();
-    mHistoToolbarRight        = new HistoToolbar(static_cast<int32_t>(ImageView::RIGHT), this, &mPreviewImages.previewImage);
+    mHistoToolbarRight        = new HistoToolbar(static_cast<int32_t>(ImageView::RIGHT), this, &mPreviewImages.editedImage);
     mImageViewRight.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     rightVerticalLayout->addWidget(&mImageViewRight);
     rightVerticalLayout->addWidget(mHistoToolbarRight);
@@ -189,7 +204,7 @@ void DialogImageViewer::triggerPreviewUpdate(ImageView view, bool withUserHistoS
           }
           if(view == ImageView::RIGHT) {
             auto [value, scaling, offset] = mHistoToolbarRight->getHistoSettings();
-            mPreviewImages.previewImage.setBrightnessRange(0, value, scaling, offset);
+            mPreviewImages.editedImage.setBrightnessRange(0, value, scaling, offset);
             mImageViewRight.emitUpdateImage();
           }
         } else {

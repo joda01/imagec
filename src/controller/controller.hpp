@@ -47,6 +47,7 @@ struct Preview
   joda::image::Image thumbnail;
   joda::image::Image previewImage;
   joda::image::Image originalImage;
+  joda::image::Image editedImage;
   std::map<joda::enums::ClassId, PreviewCount> foundObjects;
   int height;
   int width;

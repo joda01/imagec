@@ -191,7 +191,7 @@ public:
                        const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,
                        const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX,
                        int32_t tileY, bool generateThumb, const ome::OmeInfo &ome, const settings::ObjectInputClasses &classesToShow)
-      -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>, enums::ChannelValidity>;
+      -> std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>, enums::ChannelValidity>;
 
 private:
   /////////////////////////////////////////////////////

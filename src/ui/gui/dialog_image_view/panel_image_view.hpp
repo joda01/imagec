@@ -70,7 +70,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  PanelImageView(const joda::image::Image &imageReference, const joda::image::Image &thumbnailImageReference, bool isEditedImage, bool withThumbnail,
+  PanelImageView(const joda::image::Image *imageReference, const joda::image::Image &thumbnailImageReference, bool isEditedImage, bool withThumbnail,
                  QWidget *parent = nullptr);
   void imageUpdated();
   void resetImage();
@@ -78,7 +78,7 @@ public:
   void zoomImage(bool inOut);
   const joda::image::Image &getImage()
   {
-    return mActPixmapOriginal;
+    return *mActPixmapOriginal;
   }
   void emitUpdateImage()
   {
@@ -93,11 +93,13 @@ public:
 
   void setState(State);
   void setShowThumbnail(bool);
+  void setShowHistogram(bool);
   void setShowPixelInfo(bool);
   void setShowCrosshandCursor(bool);
   void setThumbnailPosition(const ThumbParameter &);
   void setCursorPosition(const QPoint &pos);
   auto getCursorPosition() -> QPoint;
+  void setImageReference(const joda::image::Image *imageReference);
 
 signals:
   void updateImage();
@@ -134,8 +136,8 @@ private:
   const float PIXEL_INFO_RECT_HEIGHT = 40;
 
   /////////////////////////////////////////////////////
-  bool mPlaceholderImageSet = true;
-  const joda::image::Image &mActPixmapOriginal;
+  bool mPlaceholderImageSet                    = true;
+  const joda::image::Image *mActPixmapOriginal = nullptr;
   const joda::image::Image &mThumbnailImageReference;
   QGraphicsPixmapItem *mActPixmap = nullptr;
   QGraphicsScene *scene;
@@ -165,7 +167,7 @@ private:
   bool mShowThumbnail       = true;
   bool mShowPixelInfo       = true;
   bool mShowCrosshandCursor = false;
-  bool mIsEditedImage       = false;
+  bool mShowHistogram       = true;
 
   mutable std::mutex mImageResetMutex;
 
