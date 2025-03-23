@@ -277,8 +277,9 @@ void PanelImageView::paintEvent(QPaintEvent *event)
 
   // Get the viewport rectangle
   QRect viewportRect = viewport()->rect();
+  QPainter painter(viewport());
+
   if(mActPixmap == nullptr) {
-    QPainter painter(viewport());
     painter.setPen(QColor(0, 0, 0));      // Set the pen color to light blue
     painter.setBrush(QColor(0, 0, 0));    // Set the brush to no brush for transparent fill
     painter.drawRect(viewportRect);
@@ -296,7 +297,6 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   QRect viewPort(RECT_START_X + posX, RECT_START_Y + posY, actImageWith, actImageHeight);
 
   // Draw the rectangle
-  QPainter painter(viewport());
   painter.setPen(QColor(173, 216, 230));    // Set the pen color to light blue
   painter.setBrush(Qt::NoBrush);            // Set the brush to no brush for transparent fill
 
@@ -325,7 +325,6 @@ void PanelImageView::paintEvent(QPaintEvent *event)
 
   // Waiting banner
   if(mWaiting) {
-    QPainter painter(viewport());
     QRect overlay(0, viewportRect.height() / 2 - 10, viewportRect.width(), 20);
     painter.setPen(QColor(0, 0, 0));      // Set the pen color to light blue
     painter.setBrush(QColor(0, 0, 0));    // Set the brush to no brush for transparent fill
