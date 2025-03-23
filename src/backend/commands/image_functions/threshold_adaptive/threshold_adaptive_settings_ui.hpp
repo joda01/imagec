@@ -31,7 +31,7 @@ class ThresholdAdaptive : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Threshold adaptive";
-  inline static std::string ICON              = "grayscale";
+  inline static std::string ICON              = "layer-mask";
   inline static std::string DESCRIPTION       = "Converts a grayscale image to a binary image.";
   inline static std::vector<std::string> TAGS = {"threshold", "background", "binary", "adaptive", "sauvola", "nitblack", "otsu", "phanskalar"};
 
@@ -68,15 +68,17 @@ private:
       //
       mThresholdAdaptiveAlgorithm = SettingBase::create<SettingComboBox<joda::settings::ThresholdAdaptiveSettings::Methods>>(
           parent, generateIcon("automatic-contrast"), "ThresholdAdaptive algorithm");
-      mThresholdAdaptiveAlgorithm->addOptions({{joda::settings::ThresholdAdaptiveSettings::Methods::BERNSEN, "Bernsen", generateIcon("contrast")},
-                                               {joda::settings::ThresholdAdaptiveSettings::Methods::CONTRAST, "Contrast"},
-                                               {joda::settings::ThresholdAdaptiveSettings::Methods::MEAN, "Mean"},
-                                               {joda::settings::ThresholdAdaptiveSettings::Methods::MEDIAN, "Median"},
-                                               {joda::settings::ThresholdAdaptiveSettings::Methods::MID_GRAY, "Mid gray"},
-                                               {joda::settings::ThresholdAdaptiveSettings::Methods::NIBLACK, "Nitblack"},
-                                               {joda::settings::ThresholdAdaptiveSettings::Methods::OTSU, "Otsu"},
-                                               {joda::settings::ThresholdAdaptiveSettings::Methods::PHANSALKAR, "Phanskalar"},
-                                               {joda::settings::ThresholdAdaptiveSettings::Methods::SAUVOLA, "Sauvola"}});
+      mThresholdAdaptiveAlgorithm->addOptions({
+          {joda::settings::ThresholdAdaptiveSettings::Methods::BERNSEN, "Bernsen", generateIcon("contrast")},
+          {joda::settings::ThresholdAdaptiveSettings::Methods::CONTRAST, "Contrast"},
+          {joda::settings::ThresholdAdaptiveSettings::Methods::MEAN, "Mean"},
+          {joda::settings::ThresholdAdaptiveSettings::Methods::MEDIAN, "Median"},
+          // Implemented but slow {joda::settings::ThresholdAdaptiveSettings::Methods::OTSU, "Otsu"},
+          //{joda::settings::ThresholdAdaptiveSettings::Methods::MID_GRAY, "Mid gray"},
+          //{joda::settings::ThresholdAdaptiveSettings::Methods::NIBLACK, "Nitblack"},
+          //{joda::settings::ThresholdAdaptiveSettings::Methods::PHANSALKAR, "Phanskalar"},
+          //{joda::settings::ThresholdAdaptiveSettings::Methods::SAUVOLA, "Sauvola"}
+      });
       mThresholdAdaptiveAlgorithm->setValue(settings.method);
       mThresholdAdaptiveAlgorithm->connectWithSetting(&settings.method);
 

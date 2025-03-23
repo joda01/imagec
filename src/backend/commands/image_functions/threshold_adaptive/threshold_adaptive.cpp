@@ -11,6 +11,7 @@
 ///
 
 #include "threshold_adaptive.hpp"
+#include <string>
 #include "backend/commands/image_functions/rank_filter/rank_filter_algo.hpp"
 
 namespace joda::cmd {
@@ -210,6 +211,133 @@ void Median(cv::Mat &imp, int radius, double par1, double par2, int32_t c_value,
     outImg.at<uint16_t>(i) = ((int) (outImg.at<uint16_t>(i) & 0xffff) > (int) (ipMean.at<uint16_t>(i) - c_value)) ? object : backg;
   }
   imp = outImg;
+}
+
+cv::Mat calcHistogram(const cv::Mat &charImg)
+{
+  // Calculate the histogram of the image
+  int histSize           = UINT16_MAX + 1;    // Number of bins
+  float range[]          = {0, 65536};        // Pixel value range
+  const float *histRange = {range};
+  cv::Mat histogram;
+  cv::calcHist(&charImg, 1, 0, cv::Mat(), histogram, 1, &histSize, &histRange);
+  return histogram;
+}
+
+void Otsu(cv::Mat &imp, int radius, double par1, double par2, int32_t c_value, bool doIwhite)
+{
+  // Otsu's threshold algorithm
+  // M. Emre Celebi 6.15.2007, Fourier Library https://sourceforge.net/projects/fourier-ipal/
+  // ported to ImageJ plugin by G.Landini. Same algorithm as in Auto_Threshold, this time for local circular regions
+
+  cv::Mat data;
+  int w = imp.cols;
+  int h = imp.rows;
+  int position;
+  int radiusx2 = radius * 2;
+  cv::Mat pixelsOut(imp.size(), CV_16UC1);
+  uint16_t object;
+  uint16_t backg;
+
+  if(doIwhite) {
+    object = (uint16_t) 0xffff;
+    backg  = (uint16_t) 0;
+  } else {
+    object = (uint16_t) 0;
+    backg  = (uint16_t) 0xffff;
+  }
+
+  int ih;
+  int roiy;
+  static const int L = 65536;    // L is for 8bit images.
+  int threshold;
+  int num_pixels;
+  double total_mean;    // mean gray-level for the whole image
+  double bcv;
+  double term;            // between-class variance, scaling term
+  double max_bcv;         // max BCV
+  double cnh[65536];      // cumulative normalized histogram
+  double mean[65536];     // mean gray-level
+  double histo[65536];    // normalized histogram
+
+  // ip.setRoi(roi);
+  for(int y = 0; y < h; y++) {
+    roiy = y - radius;
+    for(int x = 0; x < w; x++) {
+      // Todo replace by OVAL
+      int roix = x - radius;
+      if(roix < 0) {
+        roix = 0;
+      }
+      if(roiy < 0) {
+        roiy = 0;
+      }
+      int radiusx2X = radius * 2;
+      int radiusx2Y = radius * 2;
+      if(roix + radiusx2 > w) {
+        radiusx2X = radiusx2X - (roix + radiusx2X - w);
+      }
+      if(roiy + radiusx2 > h) {
+        radiusx2Y = radiusx2Y - (roiy + radiusx2Y - h);
+      }
+
+      auto roi     = cv::Rect(roix, roiy, radiusx2X, radiusx2Y);
+      cv::Mat part = imp(roi);
+      // ip.setRoi(new OvalRoi(x-radius, roiy, radiusx2, radiusx2));
+      position = x + y * w;
+      data     = calcHistogram(part);
+
+      //----
+      // Calculate total numbre of pixels
+      num_pixels = 0;
+
+      for(ih = 0; ih < L; ih++) {
+        num_pixels = num_pixels + data.at<float>(ih);
+      }
+
+      term = 1.0 / (double) num_pixels;
+
+      // Calculate the normalized histogram
+      for(ih = 0; ih < L; ih++) {
+        histo[ih] = term * data.at<float>(ih);
+      }
+
+      // Calculate the cumulative normalized histogram
+      cnh[0] = histo[0];
+      for(ih = 1; ih < L; ih++) {
+        cnh[ih] = cnh[ih - 1] + histo[ih];
+      }
+
+      mean[0] = 0.0;
+
+      for(ih = 0 + 1; ih < L; ih++) {
+        mean[ih] = mean[ih - 1] + ih * histo[ih];
+      }
+
+      total_mean = mean[L - 1];
+
+      //	Calculate the BCV at each gray-level and find the threshold that maximizes it
+      threshold = 0;    // Integer.MIN_VALUE;
+      max_bcv   = 0.0;
+
+      for(ih = 0; ih < L; ih++) {
+        bcv = total_mean * cnh[ih] - mean[ih];
+        bcv *= bcv / (cnh[ih] * (1.0 - cnh[ih]));
+
+        if(max_bcv < bcv) {
+          max_bcv   = bcv;
+          threshold = ih;
+        }
+      }
+
+      // std::cout << "TH: " << std::to_string(threshold) << std::endl;
+      pixelsOut.at<uint16_t>(position) =
+          ((int) (imp.at<uint16_t>(position) & 0xffff) > threshold || (int) (imp.at<uint16_t>(position) & 0xffff) == 65535) ? object : backg;
+    }
+  }
+  for(position = 0; position < w * h; position++) {
+    imp.at<uint16_t>(position) = pixelsOut.at<uint16_t>(position);    // update with thresholded pixels
+  }
 }
 
 /*
@@ -586,9 +714,11 @@ void ThresholdAdaptive::autoThresholdAdaptive(const settings::ThresholdAdaptiveS
     case settings::ThresholdAdaptiveSettings::Methods::MEDIAN:
       Median(outImage, settings.kernelSize, settings.contrastThreshold, 0, settings.thresholdOffset, true);
       break;
+    case settings::ThresholdAdaptiveSettings::Methods::OTSU:
+      Otsu(outImage, settings.kernelSize, settings.contrastThreshold, 0, settings.thresholdOffset, true);
+      break;
     case settings::ThresholdAdaptiveSettings::Methods::MID_GRAY:
     case settings::ThresholdAdaptiveSettings::Methods::NIBLACK:
-    case settings::ThresholdAdaptiveSettings::Methods::OTSU:
     case settings::ThresholdAdaptiveSettings::Methods::PHANSALKAR:
     case settings::ThresholdAdaptiveSettings::Methods::SAUVOLA:
       break;
