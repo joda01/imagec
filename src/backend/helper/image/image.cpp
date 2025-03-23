@@ -95,6 +95,7 @@ QPixmap Image::getPixmap(const Image *combineWith) const
   int depth = type & CV_MAT_DEPTH_MASK;
   cv::Mat image;
 
+  // Take 2ms
   if(depth == CV_16U) {
     image = mImageOriginal->clone();
     for(int y = 0; y < image.rows; ++y) {
@@ -103,6 +104,7 @@ QPixmap Image::getPixmap(const Image *combineWith) const
         image.at<uint16_t>(y, x) = mLut[pixelValue];
       }
     }
+    // Takes 20ms
     if(combineWith != nullptr) {
       // Convert 16-bit grayscale to 8-bit grayscale
       image.convertTo(image, CV_8U, 255.0 / 65535.0);    // Normalize to 8-bit

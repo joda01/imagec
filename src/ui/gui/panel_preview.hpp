@@ -71,7 +71,7 @@ public:
 
   bool getFilledPreview() const
   {
-    return filled->isChecked();
+    return mImageViewer.fillOverlay();
   }
 
   auto getSelectedClassesAndClasses() const -> settings::ObjectInputClasses
@@ -100,7 +100,6 @@ private:
   WindowMain *mParent;
   QWidget *createToolBar();
   QLabel *mPreviewInfo;
-  QPushButton *filled;
   QComboBox *mPreviewSize;
   std::unique_ptr<SettingComboBoxMultiClassificationIn> mClassesClassesToShow;
 

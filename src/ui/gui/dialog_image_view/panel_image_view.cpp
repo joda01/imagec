@@ -97,7 +97,6 @@ void PanelImageView::resetImage()
 
 void PanelImageView::onUpdateImage()
 {
-  auto i    = DurationCount::start("onUpdateImage");
   auto *img = mActPixmapOriginal->getImage();
   if(img != nullptr) {
     auto pixmap = mActPixmapOriginal->getPixmap(nullptr);
@@ -120,7 +119,6 @@ void PanelImageView::onUpdateImage()
       emit onImageRepainted();
     }
   }
-  DurationCount::stop(i);
   scene->update();
   update();
 }
@@ -271,8 +269,6 @@ void PanelImageView::fitImageToScreenSize()
 ///
 void PanelImageView::paintEvent(QPaintEvent *event)
 {
-  std::cout << "Paint event" << std::endl;
-
   QGraphicsView::paintEvent(event);
 
   const float RECT_SIZE  = 80;
@@ -312,23 +308,19 @@ void PanelImageView::paintEvent(QPaintEvent *event)
 
   // Draw histogram
   if(mShowHistogram) {
-    auto i = DurationCount::start("Draw hsito");
+    // Takes 5ms
     drawHistogram(painter);
-    DurationCount::stop(i);
   }
 
   // Draw thumbnail
   if(mShowThumbnail && mWithThumbnail) {
-    auto i = DurationCount::start("Draw Thkb");
     drawThumbnail(painter);
-    DurationCount::stop(i);
   }
 
   // Draw pixelInfo
   if(mShowPixelInfo && mShowHistogram) {
-    auto i = DurationCount::start("Draw pixel info");
-    drawPixelInfo(painter, width(), height(), mPixelInfo);
-    DurationCount::stop(i);
+    // Takes 0.08ms
+    drawPixelInfo(painter, width(), height() - 20, mPixelInfo);
   }
 
   // Waiting banner
@@ -346,8 +338,7 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   //
   // Paint cross cursor
   //
-  auto i = DurationCount::start("Cursor");
-
+  // Takes 0.02 ms
   if(mShowCrosshandCursor) {
     // Set the color and pen thickness for the cross lines
     QPen pen(Qt::blue, 2);
@@ -374,7 +365,6 @@ void PanelImageView::paintEvent(QPaintEvent *event)
       }
     }
   }
-  DurationCount::stop(i);
 }
 
 ///
@@ -655,38 +645,35 @@ void PanelImageView::drawHistogram(QPainter &painter)
   if(depth == CV_16U) {
     if(!image->empty()) {
       // Place for the histogram
-      {
-        painter.setPen(QColor(0, 89, 179));    // Set the pen color to light blue
-        painter.setBrush(Qt::NoBrush);         // Set the brush to no brush for transparent fill
-        QRect rectangle(width() - RECT_START_X - RECT_WIDTH, height() - RECT_START_Y - RECT_HEIGHT, RECT_WIDTH,
-                        RECT_HEIGHT);    // Adjust the size as needed
-        // painter.drawRect(rectangle);
-      }
-
-      float histOffset = mActPixmapOriginal->getHistogramOffset();
-      float histZoom   = mActPixmapOriginal->getHitogramZoomFactor();
-
-      int number = (float) UINT16_MAX / histZoom;
-
-      float binWidth = (RECT_WIDTH / (float) number);
       QFont font;
       font.setPointSizeF(8);
       painter.setFont(font);
-
-      int markerPos = number / NR_OF_MARKERS;
       painter.setPen(QColor(0, 89, 179));    // Set the pen color to light blue
-      for(int i = 1; i < number; i++) {
-        float startX = ((float) width() - RECT_START_X - RECT_WIDTH) + (float) (i) *binWidth;
-        float startY = (float) height() - RECT_START_Y;
+      painter.setBrush(Qt::NoBrush);         // Set the brush to no brush for transparent fill
 
+      // Precalculation
+      float histOffset    = mActPixmapOriginal->getHistogramOffset();
+      float histZoom      = mActPixmapOriginal->getHitogramZoomFactor();
+      int number          = (float) UINT16_MAX / histZoom;
+      float binWidth      = (RECT_WIDTH / static_cast<float>(number));
+      int markerPos       = number / NR_OF_MARKERS;
+      const auto &hist    = mActPixmapOriginal->getHistogram();
+      int32_t compression = 1;
+
+      if(number > UINT16_MAX / 2) {
+        compression = 2;
+      }
+
+      for(int i = 1; i < number; i += compression) {
         int idx = i + histOffset;
         if(idx > UINT16_MAX) {
           idx = UINT16_MAX;
         }
-        const auto &hist = mActPixmapOriginal->getHistogram();
-        float histValue  = hist.at<float>(idx) * RECT_HEIGHT;
+        float startX    = (static_cast<float>(width()) - RECT_START_X - RECT_WIDTH) + static_cast<float>(i) * binWidth;
+        float startY    = static_cast<float>(height()) - RECT_START_Y;
+        float histValue = hist.at<float>(idx) * RECT_HEIGHT;
         painter.drawLine(startX, startY, startX, startY - histValue);
-        if(idx == mActPixmapOriginal->getUpperLevelContrast()) {
+        if(idx == mActPixmapOriginal->getUpperLevelContrast() || (compression != 1 && idx + 1 == mActPixmapOriginal->getUpperLevelContrast())) {
           painter.setPen(QColor(255, 0, 0));    // Set the pen color to red
           painter.drawText(QRect(startX - 50, startY, 100, 12), Qt::AlignHCenter, std::to_string(idx).data());
           painter.drawLine(startX, startY, startX, startY - RECT_HEIGHT);
@@ -695,9 +682,6 @@ void PanelImageView::drawHistogram(QPainter &painter)
         if(i == 1 || i % markerPos == 0) {
           painter.drawText(QRect(startX - 50, startY, 100, 12), Qt::AlignHCenter, std::to_string(idx).data());
         }
-
-        /* painter.drawLine(binWidth * (i - 1), RECT_HEIGHT - qRound(hist.at<float>(i - 1)), binWidth * i,
-                          RECT_HEIGHT - qRound(hist.at<float>(i)));*/
       }
     }
   }

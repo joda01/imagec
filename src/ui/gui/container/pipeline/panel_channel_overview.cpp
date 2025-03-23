@@ -72,14 +72,22 @@ void PanelChannelOverview::paintEvent(QPaintEvent *event)
   // Paint the handle on the right handside which allows to drag the pipeline step
   //
   QPainter painter(this);
-  int x          = size().width() - HANDLE_WITH - 2;
-  int ovalHeight = 2;    //(height() - 8 - 8) / 3;
-  painter.setBrush(Qt::lightGray);
-  QPen pen(Qt::lightGray, 1);    // darkYellow, 5px width
-  painter.setPen(pen);
-  painter.drawEllipse(x, 4, ovalHeight, ovalHeight);
-  painter.drawEllipse(x, ovalHeight + 8, ovalHeight, ovalHeight);
-  painter.drawEllipse(x, ovalHeight * 2 + 8 + 4, ovalHeight, ovalHeight);
+  painter.setRenderHint(QPainter::Antialiasing);
+
+  //
+  // Handel for movee
+  //
+  {
+    int x          = size().width() - HANDLE_WITH - 2;
+    int ovalHeight = 2;    //(height() - 8 - 8) / 3;
+    painter.setBrush(Qt::lightGray);
+    QPen pen(Qt::lightGray, 1);    // darkYellow, 5px width
+    painter.setPen(pen);
+    painter.drawEllipse(x, 4, ovalHeight, ovalHeight);
+    painter.drawEllipse(x, ovalHeight + 8, ovalHeight, ovalHeight);
+    painter.drawEllipse(x, ovalHeight * 2 + 8 + 4, ovalHeight, ovalHeight);
+  }
+  painter.setRenderHint(QPainter::Antialiasing);
 
   //
   // Paint if disables

@@ -24,6 +24,7 @@
 #include <string>
 #include <thread>
 #include "backend/helper/image/image.hpp"
+#include "ui/gui/dialog_image_view/panel_image_view.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "histo_toolbar.hpp"
 
@@ -38,9 +39,9 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-DialogImageViewer::DialogImageViewer(QWidget *parent) :
+DialogImageViewer::DialogImageViewer(QWidget *parent, PanelImageView *panelPreviewParent) :
     QMainWindow(parent), mImageViewLeft(&mPreviewImages.originalImage, &mPreviewImages.thumbnail, nullptr, false),
-    mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, true)
+    mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, true), mPanelPreviewParent(panelPreviewParent)
 {
   // setWindowFlags(windowFlags() | Qt::Window | Qt::WindowMaximizeButtonHint);
   setBaseSize(1200, 600);
@@ -48,6 +49,23 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
 
   {
     QToolBar *toolbarTop = new QToolBar();
+
+    QAction *pinToTop = new QAction(generateIcon("pin"), "");
+    pinToTop->setToolTip("Pin to stay on top");
+    pinToTop->setCheckable(true);
+    pinToTop->setChecked(false);
+    connect(pinToTop, &QAction::triggered, [this](bool checked) {
+      if(checked) {
+        setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
+        show();
+      } else {
+        setWindowFlags(windowFlags() & ~Qt::WindowStaysOnTopHint);
+        show();
+      }
+    });
+    toolbarTop->addAction(pinToTop);
+
+    toolbarTop->addSeparator();
 
     QAction *fitToScreen = new QAction(generateIcon("full-screen"), "");
     fitToScreen->setObjectName("ToolButton");
@@ -105,12 +123,20 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     connect(showCrossHairCursor, &QAction::triggered, this, &DialogImageViewer::onShowCrossHandCursor);
     toolbarTop->addAction(showCrossHairCursor);
 
+    toolbarTop->addSeparator();
+
     QAction *showOverlay = new QAction(generateIcon("overlay"), "");
     showOverlay->setToolTip("Show overlay");
     showOverlay->setCheckable(true);
     showOverlay->setChecked(true);
     connect(showOverlay, &QAction::triggered, [this](bool selected) { mImageViewRight.setShowOverlay(selected); });
     toolbarTop->addAction(showOverlay);
+
+    mFillOVerlay = new QAction(generateIcon("fill-color-office"), "");
+    mFillOVerlay->setToolTip("Filled");
+    mFillOVerlay->setCheckable(true);
+    connect(mFillOVerlay, &QAction::triggered, this, &DialogImageViewer::onSettingChanged);
+    toolbarTop->addAction(mFillOVerlay);
 
     addToolBar(Qt::ToolBarArea::TopToolBarArea, toolbarTop);
   }
@@ -220,6 +246,21 @@ void DialogImageViewer::triggerPreviewUpdate(ImageView view, bool withUserHistoS
   } else {
     std::lock_guard<std::mutex> lock(mPreviewMutex);
     mPreviewCounter++;
+  }
+}
+
+///
+/// \brief   Update the preview in the other window after focus lost
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::leaveEvent(QEvent *event)
+{
+  QMainWindow::leaveEvent(event);    // Call the base class handler if needed
+  if(mPanelPreviewParent != nullptr) {
+    mPanelPreviewParent->emitUpdateImage();
   }
 }
 

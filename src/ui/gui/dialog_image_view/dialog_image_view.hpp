@@ -21,6 +21,7 @@
 namespace joda::ui::gui {
 
 class HistoToolbar;
+class PanelPreview;
 
 ///
 /// \class      DialogImageViewer
@@ -33,7 +34,7 @@ class DialogImageViewer : public QMainWindow
 
 public:
   /////////////////////////////////////////////////////
-  DialogImageViewer(QWidget *parent);
+  DialogImageViewer(QWidget *parent, PanelImageView *panelPreviewParent);
   ~DialogImageViewer();
   void imageUpdated();
   void fitImageToScreenSize();
@@ -74,12 +75,22 @@ public:
   };
   void triggerPreviewUpdate(ImageView view, bool withUserHistoSettings);
 
+  bool fillOverlay() const
+  {
+    return mFillOVerlay->isChecked();
+  }
+
 signals:
   void tileClicked(int32_t tileX, int32_t tileY);
   void hidden();
+  void onSettingChanged();
 
 private:
   /////////////////////////////////////////////////////
+  void leaveEvent(QEvent *event) override;
+
+  /////////////////////////////////////////////////////
+  PanelImageView *mPanelPreviewParent = nullptr;
 
   joda::ctrl::Preview mPreviewImages;
   PanelImageView mImageViewLeft;
@@ -90,6 +101,9 @@ private:
 
   HistoToolbar *mHistoToolbarLeft  = nullptr;
   HistoToolbar *mHistoToolbarRight = nullptr;
+
+  // ACTIONS //////////////////////////////////////////////////
+  QAction *mFillOVerlay;
 
 private slots:
   /////////////////////////////////////////////////////

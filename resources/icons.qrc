@@ -107,6 +107,7 @@
     <file>icons/icons8-solar-cross-16.png</file>
     <file>icons/icons8-stacked-organizational-chart-48.png</file>
     <file>icons/icons8-refresh-48.png</file>
+    <file>icons/icons8-fill-color-office-30.png</file>
     <file>icons/icons8-metamorphose-24.png</file>
     <file>icons/icons8-info-blue-48.png</file>
     <file>icons/icons8-one-round-48.png</file>
@@ -122,6 +123,7 @@
     <file>icons/icons8-popup-96.png</file>
     <file>icons/icons8-layer-mask-96.png</file>
     <file>icons/icons8-add-96.png</file>
+    <file>icons/icons8-pin-office-80.png</file>
     <file>icons/icons8-heat-map-16.png</file>
     <file>icons/icons8-four-96.png</file>
     <file>icons/icons8-average-math-16.png</file>
@@ -328,6 +330,7 @@
     <file>icons/icons8-stacked-organizational-chart-24.png</file>
     <file>icons/icons8-screensharing-24.png</file>
     <file>icons/icons8-test-tube-16.png</file>
+    <file>icons/icons8-pin-office-30.png</file>
     <file>icons/icons8-error-red-16.png</file>
     <file>icons/icons8-genealogy-48.png</file>
     <file>icons/icons8-two-96.png</file>
@@ -335,6 +338,7 @@
     <file>icons/icons8-line-96.png</file>
     <file>icons/icons8-shutdown-24.png</file>
     <file>icons/icons8-star-96.png</file>
+    <file>icons/icons8-fill-color-office-80.png</file>
     <file>icons/icons8-one-round-24.png</file>
     <file>icons/icons8-two-24.png</file>
     <file>icons/icons8-picture-in-picture-alternative-96.png</file>
@@ -412,6 +416,7 @@
     <file>icons/icons8-pipeline-96.png</file>
     <file>icons/icons8-coordinate-system-48.png</file>
     <file>icons/icons8-onnx-16.png</file>
+    <file>icons/icons8-pin-office-16.png</file>
     <file>icons/icons8-rename-16.png</file>
     <file>icons/icons8-question-mark-16.png</file>
     <file>icons/icons8-baseline-48.png</file>
@@ -447,6 +452,7 @@
     <file>icons/icons8-no-image-16.png</file>
     <file>icons/icons8-connect-96.png</file>
     <file>icons/icons8-diameter-48.png</file>
+    <file>icons/icons8-fill-color-office-40.png</file>
     <file>icons/icons8-x-coordinate-48.png</file>
     <file>icons/icons8-circle-16.png</file>
     <file>icons/icons8-clone-16.png</file>
@@ -462,6 +468,7 @@
     <file>icons/icons8-infinity-16.png</file>
     <file>icons/icons8-square-48.png</file>
     <file>icons/icons8-y-coordinate-16.png</file>
+    <file>icons/icons8-fill-color-office-16.png</file>
     <file>icons/icons8-equals-16.png</file>
     <file>icons/icons8-shutdown-96.png</file>
     <file>icons/icons8-light-48.png</file>
@@ -486,6 +493,7 @@
     <file>icons/icons8-image-24.png</file>
     <file>icons/icons8-shutdown-16.png</file>
     <file>icons/icons8-favorite-folder-16.png</file>
+    <file>icons/icons8-pin-office-40.png</file>
     <file>icons/icons8-global-48.png</file>
     <file>icons/icons8-warning-yellow-96.png</file>
     <file>icons/icons8-edit-column-24.png</file>

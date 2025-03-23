@@ -37,7 +37,7 @@ public slots:
 
 private:
   /////////////////////////////////////////////////////
-  static constexpr float HISTOGRAM_ZOOM_STEP = 25;
+  static constexpr float HISTOGRAM_ZOOM_STEP = 1;
 
   /////////////////////////////////////////////////////
   DialogImageViewer *mParent;
