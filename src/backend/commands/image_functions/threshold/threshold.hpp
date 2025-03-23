@@ -68,7 +68,6 @@ public:
       cv::bitwise_and(thresholdImg, thresholdTmp, thresholdImg);
       thresholdImg.setTo(threshold.modelClassId, thresholdImg > 0);
       context.setBinaryImage(thresholdValMin, thresholdValMax);
-
       outputImage = cv::max(outputImage, thresholdImg);
     }
 

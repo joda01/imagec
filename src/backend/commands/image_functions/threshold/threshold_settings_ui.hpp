@@ -119,7 +119,7 @@ private:
       //
       //
       //
-      mCValue = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("light"), "Auto contrast added const");
+      mCValue = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("add"), "Auto contrast added const");
       mCValue->setEmptyValue(0);
       mCValue->setPlaceholderText("[-32000 - +32000]");
       mCValue->setUnit("");
