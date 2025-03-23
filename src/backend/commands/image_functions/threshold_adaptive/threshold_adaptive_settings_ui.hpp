@@ -30,7 +30,7 @@ class ThresholdAdaptive : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE             = "Threshold adaptive";
+  inline static std::string TITLE             = "Adaptive threshold (ALPHA)";
   inline static std::string ICON              = "layer-mask";
   inline static std::string DESCRIPTION       = "Converts a grayscale image to a binary image.";
   inline static std::vector<std::string> TAGS = {"threshold", "background", "binary", "adaptive", "sauvola", "nitblack", "otsu", "phanskalar"};
