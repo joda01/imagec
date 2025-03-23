@@ -51,6 +51,23 @@ void Image::setImage(const cv::Mat &&imageToDisplay)
   delete mImageOriginal;
   mImageOriginal = new cv::Mat(
       joda::image::func::Resizer::resizeWithAspectRatio(imageToDisplay, std::min(imageToDisplay.cols, WIDTH), std::min(imageToDisplay.rows, WIDTH)));
+  int type  = mImageOriginal->type();
+  int depth = type & CV_MAT_DEPTH_MASK;
+  if(depth == CV_16U) {
+    //
+    // Calc histogram
+    //
+    int histSize           = UINT16_MAX + 1;
+    float range[]          = {0, UINT16_MAX + 1};
+    const float *histRange = {range};
+    bool uniform           = true;
+    bool accumulate        = false;
+    cv::calcHist(mImageOriginal, 1, 0, cv::Mat(), mHistogram, 1, &histSize, &histRange);    //, uniform, accumulate);
+
+    // Normalize the histogram to [0, histImage.height()]
+    mHistogram.at<float>(0) = 0;    // We don't want to display black
+    cv::normalize(mHistogram, mHistogram, 0, 1, cv::NORM_MINMAX);
+  }
 }
 
 ///

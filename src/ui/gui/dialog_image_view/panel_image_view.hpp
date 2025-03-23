@@ -115,9 +115,9 @@ protected:
   void leaveEvent(QEvent *) override;
   void wheelEvent(QWheelEvent *event) override;
   void paintEvent(QPaintEvent *event) override;
-  void drawHistogram();
-  void drawThumbnail();
-  void drawPixelInfo(int32_t startX, int32_t startY, const PixelInfo &info);
+  void drawHistogram(QPainter &);
+  void drawThumbnail(QPainter &);
+  void drawPixelInfo(QPainter &, int32_t startX, int32_t startY, const PixelInfo &info);
 
   void getClickedTileInThumbnail(QMouseEvent *event);
   void getThumbnailAreaEntered(QMouseEvent *event);

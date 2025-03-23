@@ -120,7 +120,7 @@ void Command::mousePressEvent(QMouseEvent *event)
 
   // Breakpoints
   if(event->button() == Qt::RightButton) {
-    setIsBreakpoint(!isBreakpoint());
+    setBreakpoint(!isBreakpoint());
   }
 }
 

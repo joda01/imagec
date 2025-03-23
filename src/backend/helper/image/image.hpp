@@ -67,6 +67,11 @@ public:
     mImageOriginal = nullptr;
   }
 
+  auto getHistogram() const -> const cv::Mat &
+  {
+    return mHistogram;
+  }
+
   void setBrightnessRange(uint16_t lowerValue, uint16_t upperValue, float histogramZoomFactor, uint16_t histogramOffset);
 
   struct AutoAdjustRet
@@ -81,6 +86,7 @@ public:
 private:
   /////////////////////////////////////////////////////
   const int32_t WIDTH = 2048;
+  cv::Mat mHistogram;
 
   /////////////////////////////////////////////////////
   [[nodiscard]] QPixmap encode(const cv::Mat *image) const;
