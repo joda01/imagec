@@ -48,7 +48,8 @@ public:
   }
   void resetImage()
   {
-    mPreviewImages.previewImage.clear();
+    mPreviewImages.editedImage.clear();
+    mPreviewImages.overlay.clear();
     mPreviewImages.originalImage.clear();
     mPreviewImages.thumbnail.clear();
     //    mPreviewImages.detectionResult.reset();

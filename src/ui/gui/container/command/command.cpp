@@ -118,7 +118,22 @@ void Command::mousePressEvent(QMouseEvent *event)
     openEditView();
   }
 
-  // Locked elements can opened with a right click
+  // Breakpoints
+  if(event->button() == Qt::RightButton) {
+    setIsBreakpoint(!isBreakpoint());
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Command::mouseDoubleClickEvent(QMouseEvent *event)
+{
+  // Locked elements can opened with a right double click
   if(event->button() == Qt::RightButton && mPipelineStep.locked) {
     openEditView();
   }
@@ -317,6 +332,17 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   });
 
   //
+  // Breakpoint button
+  //
+  mBreakpoint = mLayout.addActionButton("Breakpoint", generateIcon("error"));
+  mBreakpoint->setCheckable(true);
+  mBreakpoint->setChecked(mPipelineStep.locked);
+  connect(mBreakpoint, &QAction::triggered, [this, pipelineSettingsUi](bool) {
+    setBreakpoint(mBreakpoint->isChecked());
+    emit valueChanged();
+  });
+
+  //
   // Okay button
   //
   auto *okayBottom = mLayout.addActionBottomButton("Okay", generateIcon("accept"));
@@ -375,6 +401,19 @@ void Command::setLocked(bool locked)
 /// \param[out]
 /// \return
 ///
+void Command::setBreakpoint(bool breakPoint)
+{
+  mPipelineStep.breakPoint = breakPoint;
+  setDisplayTextFont();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void Command::setDisplayTextFont()
 {
   if(mPipelineStep.disabled) {
@@ -386,6 +425,10 @@ void Command::setDisplayTextFont()
     QFont font;
     mDisplayableText->setFont(font);
     mDisplayableText->setStyleSheet("QLabel { color : #808080; }");
+  } else if(mPipelineStep.breakPoint) {
+    QFont font;
+    mDisplayableText->setFont(font);
+    mDisplayableText->setStyleSheet("QLabel { color : #FF0000; }");
   } else {
     QFont font;
     font.setItalic(false);

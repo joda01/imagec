@@ -60,7 +60,7 @@ void Image::setImage(const cv::Mat &&imageToDisplay)
 /// \param[out]
 /// \return
 ///
-QPixmap Image::getPixmap() const
+QPixmap Image::getPixmap(const Image *combineWith) const
 {
   if(mImageOriginal == nullptr) {
     std::cout << "Ups it is null" << std::endl;
@@ -77,36 +77,37 @@ QPixmap Image::getPixmap() const
   int type  = mImageOriginal->type();
   int depth = type & CV_MAT_DEPTH_MASK;
   cv::Mat image;
+
   if(depth == CV_16U) {
     image = mImageOriginal->clone();
-    // Apply the lookup table to the source image to get the destination image
     for(int y = 0; y < image.rows; ++y) {
       for(int x = 0; x < image.cols; ++x) {
         uint16_t pixelValue      = image.at<uint16_t>(y, x);
         image.at<uint16_t>(y, x) = mLut[pixelValue];
       }
     }
-    return encode(&image);
-  } else if(CV_32F) {
-    /*  image = mImageOriginal->clone();
+    if(combineWith != nullptr) {
+      // Convert 16-bit grayscale to 8-bit grayscale
+      image.convertTo(image, CV_8U, 255.0 / 65535.0);    // Normalize to 8-bit
+      cv::cvtColor(image, image, cv::COLOR_GRAY2BGR);
 
-      // Apply the lookup table to the source image to get the destination image
-      for(int y = 0; y < image.rows; ++y) {
-        for(int x = 0; x < image.cols; ++x) {
-          cv::Vec3b &pixel = image.at<cv::Vec3b>(y, x);
+      cv::Mat mask;
+      cv::Mat coloredImage = combineWith->mImageOriginal->clone();
+      cv::inRange(coloredImage, cv::Scalar(0, 0, 0), cv::Scalar(0, 0, 0), mask);
+      image.copyTo(coloredImage, mask);
+      return encode(&coloredImage);
 
-          uint16_t pixelR = pixel[0] * 256;
-          uint16_t pixelG = pixel[1] * 256;
-          uint16_t pixelB = pixel[2] * 256;
-          pixelR          = mLut[pixelR] / 256.0;
-          pixelG          = mLut[pixelG] / 256.0;
-          pixelB          = mLut[pixelB] / 256.0;
-          pixel[0]        = pixelR;
-          pixel[1]        = pixelG;
-          pixel[2]        = pixelB;
-        }
-      }
-      return encode(&image);*/
+    } else {
+      return encode(&image);
+    }
+  } else {
+    if(combineWith != nullptr) {
+      cv::Mat image = mImageOriginal->clone();
+      cv::bitwise_xor(image, *combineWith->mImageOriginal, image);
+      return encode(&image);
+    } else {
+      return encode(mImageOriginal);
+    }
   }
   return encode(mImageOriginal);
 }

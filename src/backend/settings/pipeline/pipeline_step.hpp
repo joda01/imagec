@@ -72,6 +72,11 @@ public:
   bool locked = false;
 
   //
+  // Stop at this point
+  //
+  bool breakPoint = false;
+
+  //
   // Exact one command to execute
   //
   std::optional<BlurSettings> $blur                                     = std::nullopt;

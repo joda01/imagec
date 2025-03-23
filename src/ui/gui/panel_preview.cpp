@@ -37,8 +37,8 @@ namespace joda::ui::gui {
 /// \author     Joachim Danmayr
 ///
 PanelPreview::PanelPreview(int width, int height, WindowMain *parent) :
-    mParent(parent), mImageViewer(parent),
-    mPreviewLabel(&mImageViewer.getPreviewObject().previewImage, mImageViewer.getPreviewObject().thumbnail, true, true)
+    mParent(parent), mImageViewer(parent), mPreviewLabel(&mImageViewer.getPreviewObject().editedImage, &mImageViewer.getPreviewObject().thumbnail,
+                                                         &mImageViewer.getPreviewObject().overlay, true)
 {
   mPreviewLabel.setMinimumWidth(width);
   mPreviewLabel.setMinimumHeight(height);

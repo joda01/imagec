@@ -212,6 +212,16 @@ protected:
     mLocked->setChecked(locked);
   }
 
+  void setIsBreakpoint(bool breakPoint)
+  {
+    mBreakpoint->setCheckable(breakPoint);
+  }
+
+  [[nodiscard]] bool isBreakpoint() const
+  {
+    return mBreakpoint->isChecked();
+  }
+
   InOuts getOut() const;
 
 private:
@@ -222,8 +232,10 @@ private:
   /// \author     Joachim Danmayr
   ///
   void mousePressEvent(QMouseEvent *event) override;
+  void mouseDoubleClickEvent(QMouseEvent *event) override;
   void setDisabled(bool);
   void setLocked(bool);
+  void setBreakpoint(bool);
   void paintEvent(QPaintEvent *event) override;
   void setDisplayTextFont();
 
@@ -231,6 +243,8 @@ private:
   joda::settings::PipelineStep &mPipelineStep;
   QAction *mDisabled;
   QAction *mLocked;
+  QAction *mBreakpoint;
+
   QWidget *mParent;
   QString mTitle;
   QString mDescription;

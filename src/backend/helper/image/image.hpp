@@ -46,7 +46,7 @@ public:
   {
     return mImageOriginal;
   }
-  [[nodiscard]] QPixmap getPixmap() const;
+  [[nodiscard]] QPixmap getPixmap(const Image *combineWith) const;
   [[nodiscard]] float getHitogramZoomFactor() const
   {
     return mHistogramZoomFactor;

@@ -29,11 +29,11 @@ namespace joda::ui::gui {
 ////////////////////////////////////////////////////////////////
 // Image view section
 //
-PanelImageView::PanelImageView(const joda::image::Image *imageReference, const joda::image::Image &thumbnailImageReference, bool isEditedImage,
-                               bool withThumbnail, QWidget *parent) :
+PanelImageView::PanelImageView(const joda::image::Image *imageReference, const joda::image::Image *thumbnailImageReference,
+                               const joda::image::Image *overlay, bool withThumbnail, QWidget *parent) :
     QGraphicsView(parent),
-    mActPixmapOriginal(imageReference), mThumbnailImageReference(thumbnailImageReference), scene(new QGraphicsScene(this)),
-    mShowHistogram(!isEditedImage), mWithThumbnail(withThumbnail)
+    mActPixmapOriginal(imageReference), mThumbnailImageReference(thumbnailImageReference), mOverlayImage(overlay), scene(new QGraphicsScene(this)),
+    mWithThumbnail(withThumbnail)
 {
   setScene(scene);
   setBackgroundBrush(QBrush(Qt::black));
@@ -77,7 +77,10 @@ void PanelImageView::setImageReference(const joda::image::Image *imageReference)
 
 void PanelImageView::imageUpdated()
 {
-  const_cast<joda::image::Image &>(mThumbnailImageReference).autoAdjustBrightnessRange();
+  if(mThumbnailImageReference == nullptr) {
+    return;
+  }
+  const_cast<joda::image::Image *>(mThumbnailImageReference)->autoAdjustBrightnessRange();
   emit updateImage();
 }
 
@@ -91,18 +94,15 @@ void PanelImageView::resetImage()
   emit updateImage();
 }
 
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 void PanelImageView::onUpdateImage()
 {
   auto *img = mActPixmapOriginal->getImage();
   if(img != nullptr) {
-    const auto pixmap = mActPixmapOriginal->getPixmap();
+    auto pixmap = mActPixmapOriginal->getPixmap(nullptr);
+    if(mOverlayImage != nullptr && mShowOverlay) {
+      pixmap = mActPixmapOriginal->getPixmap(mOverlayImage);
+    }
+
     scene->setSceneRect(pixmap.rect());
     if(nullptr == mActPixmap) {
       mActPixmap = scene->addPixmap(pixmap);
@@ -320,7 +320,7 @@ void PanelImageView::paintEvent(QPaintEvent *event)
     drawPixelInfo(width(), height(), mPixelInfo);
   }
 
-  // Overlay
+  // Waiting banner
   if(mWaiting) {
     QPainter painter(viewport());
     QRect overlay(0, viewportRect.height() / 2 - 10, viewportRect.width(), 20);
@@ -412,6 +412,9 @@ void PanelImageView::drawPixelInfo(int32_t startX, int32_t startY, const PixelIn
 ///
 void PanelImageView::drawThumbnail()
 {
+  if(mThumbnailImageReference == nullptr) {
+    return;
+  }
   if(mThumbnailParameter.nrOfTilesX <= 1 && mThumbnailParameter.nrOfTilesY <= 1) {
     return;
   }
@@ -423,7 +426,7 @@ void PanelImageView::drawThumbnail()
   }
 
   QPainter painter(viewport());
-  auto *img = mThumbnailImageReference.getImage();
+  auto *img = mThumbnailImageReference->getImage();
   if(img == nullptr) {
     return;
   }
@@ -452,7 +455,7 @@ void PanelImageView::drawThumbnail()
 
   QRect thumbRect(QPoint(width() - THUMB_RECT_START_X - rectWidth, THUMB_RECT_START_Y), QSize(newWidth,
                                                                                               newHeight));    // Adjust the size as needed
-  painter.drawPixmap(thumbRect, mThumbnailImageReference.getPixmap());
+  painter.drawPixmap(thumbRect, mThumbnailImageReference->getPixmap(nullptr));
 
   //
   // Draw bounding rect
@@ -720,6 +723,12 @@ void PanelImageView::setShowHistogram(bool showHistorgram)
 {
   mShowHistogram = showHistorgram;
   viewport()->update();
+}
+
+void PanelImageView::setShowOverlay(bool showOVerlay)
+{
+  mShowOverlay = showOVerlay;
+  emit updateImage();
 }
 
 void PanelImageView::setShowPixelInfo(bool show)

@@ -39,8 +39,8 @@ using namespace std::chrono_literals;
 /// \return
 ///
 DialogImageViewer::DialogImageViewer(QWidget *parent) :
-    QMainWindow(parent), mImageViewLeft(&mPreviewImages.originalImage, mPreviewImages.thumbnail, false, false),
-    mImageViewRight(&mPreviewImages.previewImage, mPreviewImages.thumbnail, true, true)
+    QMainWindow(parent), mImageViewLeft(&mPreviewImages.originalImage, &mPreviewImages.thumbnail, nullptr, false),
+    mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, true)
 {
   // setWindowFlags(windowFlags() | Qt::Window | Qt::WindowMaximizeButtonHint);
   setBaseSize(1200, 600);
@@ -109,15 +109,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     showOverlay->setToolTip("Show overlay");
     showOverlay->setCheckable(true);
     showOverlay->setChecked(true);
-    connect(showOverlay, &QAction::triggered, [this](bool selected) {
-      if(selected) {
-        mImageViewRight.setImageReference(&mPreviewImages.previewImage);
-        mImageViewRight.setShowHistogram(false);
-      } else {
-        mImageViewRight.setImageReference(&mPreviewImages.editedImage);
-        mImageViewRight.setShowHistogram(true);
-      }
-    });
+    connect(showOverlay, &QAction::triggered, [this](bool selected) { mImageViewRight.setShowOverlay(selected); });
     toolbarTop->addAction(showOverlay);
 
     addToolBar(Qt::ToolBarArea::TopToolBarArea, toolbarTop);
