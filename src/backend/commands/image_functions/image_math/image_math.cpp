@@ -76,6 +76,7 @@ void ImageMath::execute(processor::ProcessContext &context, cv::Mat &imageInOut,
       cv::Mat imgB;
       img2->convertTo(imgB, CV_32F);    // Normalize to [0,1]
       cv::divide(imgA, imgB, imgB);
+      imgB.setTo(0, imgB == std::numeric_limits<float>::infinity());
 
       // Normalize if needed (optional, depends on expected output range)
       double maxVal;
