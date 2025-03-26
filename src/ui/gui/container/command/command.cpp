@@ -118,8 +118,27 @@ void Command::mousePressEvent(QMouseEvent *event)
     openEditView();
   }
 
-  // Locked elements can opened with a right click
-  if(event->button() == Qt::RightButton && mPipelineStep.locked) {
+  // Breakpoints
+  if(event->button() == Qt::RightButton) {
+    mBreakpoint->blockSignals(true);
+    mBreakpoint->setChecked(!isBreakpoint());
+    setBreakpoint(mBreakpoint->isChecked());
+    emit valueChanged();
+    mBreakpoint->blockSignals(false);
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Command::mouseDoubleClickEvent(QMouseEvent *event)
+{
+  // Locked elements can opened with a right double click
+  if(event->button() == Qt::LeftButton && mPipelineStep.locked) {
     openEditView();
   }
 }
@@ -133,103 +152,121 @@ void Command::mousePressEvent(QMouseEvent *event)
 ///
 void Command::paintEvent(QPaintEvent *event)
 {
-  std::function<QColor(InOuts)> getColor = [&](InOuts inouts) -> QColor {
-    switch(inouts) {
-      case InOuts::ALL:
-        return Qt::lightGray;
-      case InOuts::IMAGE:
-        return Qt::darkGray;
-      case InOuts::BINARY:
-        return Qt::white;
-      case InOuts::OBJECT:
-        return Qt::green;
-    }
-    return Qt::lightGray;
-  };
-
-  auto getColorSet = [&](std::set<InOuts> inouts) -> QColor {
-    // Select the input color depending on the previous command output
-    if(mCommandBefore != nullptr) {
-      auto outTmp = mCommandBefore->getInOut().out;
-      if(outTmp == InOuts::OUTPUT_EQUAL_TO_INPUT) {
-        outTmp = mCommandBefore->getResolvedInput();
-      }
-      if(inouts.contains(outTmp)) {
-        return getColor(outTmp);
-      }
-      // This command is not allowed
-      return Qt::red;
-    }
-    return getColor(*inouts.begin());
-  };
-
   QPainter painter(this);
+  painter.setRenderHint(QPainter::Antialiasing);
+
   const int LINE_WIDTH = 6;
 
-  int heightToPaint    = std::ceil(static_cast<float>(height()) / 2.0);
-  auto paintTopPolygon = [&](const QColor &color) {
-    QPen pen(color, 1);    // Black pen with 3px width
-    painter.setPen(pen);
-    QBrush brush(color);    // Fill with blue color
-    painter.setBrush(brush);
-    QPolygon chevron;
-    auto left         = static_cast<float>(((width() - 1) - LINE_WIDTH));
-    auto middle       = static_cast<float>(((width() - 1) - static_cast<float>(LINE_WIDTH) / 2.0));
-    auto right        = static_cast<float>(width() - 1);
-    auto heightStart  = 0.0f;
-    auto heightMiddle = 8;    // static_cast<float>(heightToPaint / 3.0);
-    auto heightEnd    = static_cast<float>(heightToPaint);
-    chevron << QPoint(left, heightStart)       // Top-left
-            << QPoint(middle, heightMiddle)    // Top-middle
-            << QPoint(right, heightStart)      // Top-right
-            << QPoint(right, heightEnd)        // Bottom point
-            << QPoint(left, heightEnd)         // Bottom-left
-            << QPoint(left, heightStart);      // Return to middle
-
-    // Draw the chevron
-    painter.drawPolygon(chevron);
-  };
-
-  auto paintBottomPolygon = [&](const QColor &color) {
-    QPen pen(color, 1);    // Black pen with 3px width
-    painter.setPen(pen);
-    QBrush brush(color);    // Fill with blue color
-    painter.setBrush(brush);
-
-    QPolygon chevron;
-    auto left         = static_cast<float>(((width() - 1) - LINE_WIDTH));
-    auto middle       = static_cast<float>(((width() - 1) - static_cast<float>(LINE_WIDTH) / 2.0));
-    auto right        = static_cast<float>(width() - 1);
-    auto heightStart  = heightToPaint;
-    auto heightMiddle = static_cast<float>(heightToPaint * 2) - 8;    // (static_cast<float>(heightToPaint / 3.0));
-    auto heightEnd    = static_cast<float>(heightToPaint * 2);
-    chevron << QPoint(left, heightStart)      // Top-left
-            << QPoint(right, heightStart)     // Top-middle
-            << QPoint(right, heightMiddle)    // Top-right
-            << QPoint(middle, heightEnd)      // Bottom point
-            << QPoint(left, heightMiddle)     // Bottom-left
-            << QPoint(left, heightStart);     // Return to middle
-
-    // Draw the chevron
-    painter.drawPolygon(chevron);
-  };
-
-  QWidget::paintEvent(event);
-
-  auto colorIn = getColorSet(mInOut.in);
-  if(colorIn != Qt::lightGray) {
-    // painter.fillRect((width() - LINE_WIDTH), 0, LINE_WIDTH, heightToPaint, colorIn);
-    paintTopPolygon(colorIn);
+  //
+  // Paint the breakpoint
+  //
+  {
+    if(isBreakpoint()) {
+      painter.setBrush(Qt::red);
+      painter.setPen(Qt::red);
+      painter.drawEllipse(width() - LINE_WIDTH - 16, height() / 2 - 6, 8, 8);
+    }
   }
-  QColor colorOut;
-  if(mInOut.out == InOuts::OUTPUT_EQUAL_TO_INPUT) {
-    colorOut = getColorSet(mInOut.in);
-  } else {
-    colorOut = getColor(mInOut.out);
-  }
-  if(colorOut != Qt::lightGray) {
-    // painter.fillRect((width() - LINE_WIDTH), heightToPaint, LINE_WIDTH, heightToPaint, colorOut);
-    paintBottomPolygon(colorOut);
+
+  //
+  // Paint the arrow at the left
+  //
+  {
+    std::function<QColor(InOuts)> getColor = [&](InOuts inouts) -> QColor {
+      switch(inouts) {
+        case InOuts::ALL:
+          return Qt::lightGray;
+        case InOuts::IMAGE:
+          return Qt::darkGray;
+        case InOuts::BINARY:
+          return Qt::white;
+        case InOuts::OBJECT:
+          return Qt::green;
+      }
+      return Qt::lightGray;
+    };
+
+    auto getColorSet = [&](std::set<InOuts> inouts) -> QColor {
+      // Select the input color depending on the previous command output
+      if(mCommandBefore != nullptr) {
+        auto outTmp = mCommandBefore->getInOut().out;
+        if(outTmp == InOuts::OUTPUT_EQUAL_TO_INPUT) {
+          outTmp = mCommandBefore->getResolvedInput();
+        }
+        if(inouts.contains(outTmp)) {
+          return getColor(outTmp);
+        }
+        // This command is not allowed
+        return Qt::red;
+      }
+      return getColor(*inouts.begin());
+    };
+
+    int heightToPaint    = std::ceil(static_cast<float>(height()) / 2.0);
+    auto paintTopPolygon = [&](const QColor &color) {
+      QPen pen(color, 1);    // Black pen with 3px width
+      painter.setPen(pen);
+      QBrush brush(color);    // Fill with blue color
+      painter.setBrush(brush);
+      QPolygon chevron;
+      auto left         = static_cast<float>(((width() - 1) - LINE_WIDTH));
+      auto middle       = static_cast<float>(((width() - 1) - static_cast<float>(LINE_WIDTH) / 2.0));
+      auto right        = static_cast<float>(width() - 1);
+      auto heightStart  = 0.0f;
+      auto heightMiddle = 8;    // static_cast<float>(heightToPaint / 3.0);
+      auto heightEnd    = static_cast<float>(heightToPaint);
+      chevron << QPoint(left, heightStart)       // Top-left
+              << QPoint(middle, heightMiddle)    // Top-middle
+              << QPoint(right, heightStart)      // Top-right
+              << QPoint(right, heightEnd)        // Bottom point
+              << QPoint(left, heightEnd)         // Bottom-left
+              << QPoint(left, heightStart);      // Return to middle
+
+      // Draw the chevron
+      painter.drawPolygon(chevron);
+    };
+
+    auto paintBottomPolygon = [&](const QColor &color) {
+      QPen pen(color, 1);    // Black pen with 3px width
+      painter.setPen(pen);
+      QBrush brush(color);    // Fill with blue color
+      painter.setBrush(brush);
+
+      QPolygon chevron;
+      auto left         = static_cast<float>(((width() - 1) - LINE_WIDTH));
+      auto middle       = static_cast<float>(((width() - 1) - static_cast<float>(LINE_WIDTH) / 2.0));
+      auto right        = static_cast<float>(width() - 1);
+      auto heightStart  = heightToPaint;
+      auto heightMiddle = static_cast<float>(heightToPaint * 2) - 8;    // (static_cast<float>(heightToPaint / 3.0));
+      auto heightEnd    = static_cast<float>(heightToPaint * 2);
+      chevron << QPoint(left, heightStart)      // Top-left
+              << QPoint(right, heightStart)     // Top-middle
+              << QPoint(right, heightMiddle)    // Top-right
+              << QPoint(middle, heightEnd)      // Bottom point
+              << QPoint(left, heightMiddle)     // Bottom-left
+              << QPoint(left, heightStart);     // Return to middle
+
+      // Draw the chevron
+      painter.drawPolygon(chevron);
+    };
+
+    QWidget::paintEvent(event);
+
+    auto colorIn = getColorSet(mInOut.in);
+    if(colorIn != Qt::lightGray) {
+      // painter.fillRect((width() - LINE_WIDTH), 0, LINE_WIDTH, heightToPaint, colorIn);
+      paintTopPolygon(colorIn);
+    }
+    QColor colorOut;
+    if(mInOut.out == InOuts::OUTPUT_EQUAL_TO_INPUT) {
+      colorOut = getColorSet(mInOut.in);
+    } else {
+      colorOut = getColor(mInOut.out);
+    }
+    if(colorOut != Qt::lightGray) {
+      // painter.fillRect((width() - LINE_WIDTH), heightToPaint, LINE_WIDTH, heightToPaint, colorOut);
+      paintBottomPolygon(colorOut);
+    }
   }
 }
 
@@ -317,6 +354,18 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   });
 
   //
+  // Breakpoint button
+  //
+  mBreakpoint = mLayout.addActionButton("Breakpoint", generateIcon("error"));
+  mBreakpoint->setCheckable(true);
+  mBreakpoint->setChecked(mPipelineStep.locked);
+  mBreakpoint->setVisible(false);
+  connect(mBreakpoint, &QAction::triggered, [this, pipelineSettingsUi](bool) {
+    setBreakpoint(mBreakpoint->isChecked());
+    emit valueChanged();
+  });
+
+  //
   // Okay button
   //
   auto *okayBottom = mLayout.addActionBottomButton("Okay", generateIcon("accept"));
@@ -375,6 +424,19 @@ void Command::setLocked(bool locked)
 /// \param[out]
 /// \return
 ///
+void Command::setBreakpoint(bool breakPoint)
+{
+  mPipelineStep.breakPoint = breakPoint;
+  setDisplayTextFont();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void Command::setDisplayTextFont()
 {
   if(mPipelineStep.disabled) {
@@ -393,6 +455,7 @@ void Command::setDisplayTextFont()
     mDisplayableText->setStyleSheet("QLabel { color: black; }");
   }
   mDisplayableText->repaint();
+  update();
 }
 
 ///

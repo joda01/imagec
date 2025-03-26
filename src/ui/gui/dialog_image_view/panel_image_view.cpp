@@ -20,6 +20,7 @@
 #include <mutex>
 #include <ranges>
 #include <string>
+#include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/image/image.hpp"
 #include <opencv2/core/matx.hpp>
 #include <opencv2/imgproc.hpp>
@@ -29,11 +30,11 @@ namespace joda::ui::gui {
 ////////////////////////////////////////////////////////////////
 // Image view section
 //
-PanelImageView::PanelImageView(const joda::image::Image &imageReference, const joda::image::Image &thumbnailImageReference, bool isEditedImage,
-                               bool withThumbnail, QWidget *parent) :
+PanelImageView::PanelImageView(const joda::image::Image *imageReference, const joda::image::Image *thumbnailImageReference,
+                               const joda::image::Image *overlay, bool withThumbnail, QWidget *parent) :
     QGraphicsView(parent),
-    mActPixmapOriginal(imageReference), mThumbnailImageReference(thumbnailImageReference), scene(new QGraphicsScene(this)),
-    mIsEditedImage(isEditedImage), mWithThumbnail(withThumbnail)
+    mActPixmapOriginal(imageReference), mThumbnailImageReference(thumbnailImageReference), mOverlayImage(overlay), scene(new QGraphicsScene(this)),
+    mWithThumbnail(withThumbnail)
 {
   setScene(scene);
   setBackgroundBrush(QBrush(Qt::black));
@@ -69,9 +70,18 @@ void PanelImageView::setState(State state)
   emit updateImage();
 }
 
+void PanelImageView::setImageReference(const joda::image::Image *imageReference)
+{
+  mActPixmapOriginal = imageReference;
+  emit updateImage();
+}
+
 void PanelImageView::imageUpdated()
 {
-  const_cast<joda::image::Image &>(mThumbnailImageReference).autoAdjustBrightnessRange();
+  if(mThumbnailImageReference == nullptr) {
+    return;
+  }
+  const_cast<joda::image::Image *>(mThumbnailImageReference)->autoAdjustBrightnessRange();
   emit updateImage();
 }
 
@@ -85,18 +95,15 @@ void PanelImageView::resetImage()
   emit updateImage();
 }
 
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 void PanelImageView::onUpdateImage()
 {
-  auto *img = mActPixmapOriginal.getImage();
+  auto *img = mActPixmapOriginal->getImage();
   if(img != nullptr) {
-    const auto pixmap = mActPixmapOriginal.getPixmap();
+    auto pixmap = mActPixmapOriginal->getPixmap(nullptr);
+    if(mOverlayImage != nullptr && mShowOverlay) {
+      pixmap = mActPixmapOriginal->getPixmap(mOverlayImage);
+    }
+
     scene->setSceneRect(pixmap.rect());
     if(nullptr == mActPixmap) {
       mActPixmap = scene->addPixmap(pixmap);
@@ -270,8 +277,9 @@ void PanelImageView::paintEvent(QPaintEvent *event)
 
   // Get the viewport rectangle
   QRect viewportRect = viewport()->rect();
+  QPainter painter(viewport());
+
   if(mActPixmap == nullptr) {
-    QPainter painter(viewport());
     painter.setPen(QColor(0, 0, 0));      // Set the pen color to light blue
     painter.setBrush(QColor(0, 0, 0));    // Set the brush to no brush for transparent fill
     painter.drawRect(viewportRect);
@@ -289,7 +297,6 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   QRect viewPort(RECT_START_X + posX, RECT_START_Y + posY, actImageWith, actImageHeight);
 
   // Draw the rectangle
-  QPainter painter(viewport());
   painter.setPen(QColor(173, 216, 230));    // Set the pen color to light blue
   painter.setBrush(Qt::NoBrush);            // Set the brush to no brush for transparent fill
 
@@ -300,23 +307,24 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   }
 
   // Draw histogram
-  if(!mIsEditedImage) {
-    drawHistogram();
+  if(mShowHistogram) {
+    // Takes 5ms
+    drawHistogram(painter);
   }
 
   // Draw thumbnail
   if(mShowThumbnail && mWithThumbnail) {
-    drawThumbnail();
+    drawThumbnail(painter);
   }
 
   // Draw pixelInfo
-  if(mShowPixelInfo && !mIsEditedImage) {
-    drawPixelInfo(width(), height(), mPixelInfo);
+  if(mShowPixelInfo && mShowHistogram) {
+    // Takes 0.08ms
+    drawPixelInfo(painter, width(), height() - 20, mPixelInfo);
   }
 
-  // Overlay
+  // Waiting banner
   if(mWaiting) {
-    QPainter painter(viewport());
     QRect overlay(0, viewportRect.height() / 2 - 10, viewportRect.width(), 20);
     painter.setPen(QColor(0, 0, 0));      // Set the pen color to light blue
     painter.setBrush(QColor(0, 0, 0));    // Set the brush to no brush for transparent fill
@@ -329,8 +337,8 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   //
   // Paint cross cursor
   //
+  // Takes 0.02 ms
   if(mShowCrosshandCursor) {
-    QPainter painter(viewport());
     // Set the color and pen thickness for the cross lines
     QPen pen(Qt::blue, 2);
     painter.setPen(pen);
@@ -342,7 +350,7 @@ void PanelImageView::paintEvent(QPaintEvent *event)
       // Draw vertical line at cursor's X position
       painter.drawLine(mCrossCursorInfo.mCursorPos.x(), 0, mCrossCursorInfo.mCursorPos.x(), height());
 
-      if(!mIsEditedImage && mShowPixelInfo) {
+      if(mShowHistogram && mShowPixelInfo) {
         auto x = mCrossCursorInfo.mCursorPos.x();
         if(x < width() / 2) {
           // Switch the side
@@ -352,7 +360,7 @@ void PanelImageView::paintEvent(QPaintEvent *event)
         if(y < height() / 2) {
           y = y + PIXEL_INFO_RECT_HEIGHT + THUMB_RECT_START_Y * 2;
         }
-        drawPixelInfo(x, y, mCrossCursorInfo.pixelInfo);
+        drawPixelInfo(painter, x, y, mCrossCursorInfo.pixelInfo);
       }
     }
   }
@@ -366,14 +374,13 @@ void PanelImageView::paintEvent(QPaintEvent *event)
 /// \return
 ///
 
-void PanelImageView::drawPixelInfo(int32_t startX, int32_t startY, const PixelInfo &info)
+void PanelImageView::drawPixelInfo(QPainter &painter, int32_t startX, int32_t startY, const PixelInfo &info)
 {
   std::lock_guard<std::mutex> locked(mImageResetMutex);
-  const auto *image = mActPixmapOriginal.getImage();
+  const auto *image = mActPixmapOriginal->getImage();
   if(image == nullptr) {
     return;
   }
-  QPainter painter(viewport());
 
   QRect pixelInfoRect(QPoint(startX - THUMB_RECT_START_X - PIXEL_INFO_RECT_WIDTH, startY - THUMB_RECT_START_Y - PIXEL_INFO_RECT_HEIGHT),
                       QSize(PIXEL_INFO_RECT_WIDTH,
@@ -404,8 +411,11 @@ void PanelImageView::drawPixelInfo(int32_t startX, int32_t startY, const PixelIn
 /// \param[out]
 /// \return
 ///
-void PanelImageView::drawThumbnail()
+void PanelImageView::drawThumbnail(QPainter &painter)
 {
+  if(mThumbnailImageReference == nullptr) {
+    return;
+  }
   if(mThumbnailParameter.nrOfTilesX <= 1 && mThumbnailParameter.nrOfTilesY <= 1) {
     return;
   }
@@ -416,8 +426,7 @@ void PanelImageView::drawThumbnail()
     rectWidth  = THUMB_RECT_WIDTH_ZOOMED;
   }
 
-  QPainter painter(viewport());
-  auto *img = mThumbnailImageReference.getImage();
+  auto *img = mThumbnailImageReference->getImage();
   if(img == nullptr) {
     return;
   }
@@ -446,7 +455,7 @@ void PanelImageView::drawThumbnail()
 
   QRect thumbRect(QPoint(width() - THUMB_RECT_START_X - rectWidth, THUMB_RECT_START_Y), QSize(newWidth,
                                                                                               newHeight));    // Adjust the size as needed
-  painter.drawPixmap(thumbRect, mThumbnailImageReference.getPixmap());
+  painter.drawPixmap(thumbRect, mThumbnailImageReference->getPixmap(nullptr));
 
   //
   // Draw bounding rect
@@ -582,26 +591,26 @@ auto PanelImageView::fetchPixelInfoFromMousePosition(const QPoint &viewPos) cons
   PixelInfo pixelInfo;
   std::lock_guard<std::mutex> locked(mImageResetMutex);
   // Map the scene coordinates to image coordinates
-  if(mActPixmap != nullptr && mActPixmapOriginal.getImage() != nullptr) {
+  if(mActPixmap != nullptr && mActPixmapOriginal->getImage() != nullptr) {
     QPointF imagePos = mActPixmap->mapFromScene(scenePos);
     pixelInfo.posX   = imagePos.x();
     pixelInfo.posY   = imagePos.y();
 
-    int type  = mActPixmapOriginal.getImage()->type();
+    int type  = mActPixmapOriginal->getImage()->type();
     int depth = type & CV_MAT_DEPTH_MASK;
     cv::Mat image;
-    if(pixelInfo.posX >= 0 && pixelInfo.posX < mActPixmapOriginal.getImage()->cols && pixelInfo.posY >= 0 &&
-       pixelInfo.posY < mActPixmapOriginal.getImage()->rows) {
+    if(pixelInfo.posX >= 0 && pixelInfo.posX < mActPixmapOriginal->getImage()->cols && pixelInfo.posY >= 0 &&
+       pixelInfo.posY < mActPixmapOriginal->getImage()->rows) {
       if(depth == CV_16U) {
-        pixelInfo.grayScale = mActPixmapOriginal.getImage()->at<uint16_t>(pixelInfo.posY, pixelInfo.posX);
+        pixelInfo.grayScale = mActPixmapOriginal->getImage()->at<uint16_t>(pixelInfo.posY, pixelInfo.posX);
         pixelInfo.redVal    = -1;
         pixelInfo.greenVal  = -1;
         pixelInfo.blueVal   = -1;
       } else {
         pixelInfo.grayScale = -1;
-        pixelInfo.redVal    = mActPixmapOriginal.getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[2];
-        pixelInfo.greenVal  = mActPixmapOriginal.getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[1];
-        pixelInfo.blueVal   = mActPixmapOriginal.getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[0];
+        pixelInfo.redVal    = mActPixmapOriginal->getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[2];
+        pixelInfo.greenVal  = mActPixmapOriginal->getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[1];
+        pixelInfo.blueVal   = mActPixmapOriginal->getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[0];
         QColor color(pixelInfo.redVal, pixelInfo.greenVal, pixelInfo.blueVal);
         color.getHsv(&pixelInfo.hue, &pixelInfo.saturation, &pixelInfo.value);
       }
@@ -617,9 +626,9 @@ auto PanelImageView::fetchPixelInfoFromMousePosition(const QPoint &viewPos) cons
 /// \param[out]
 /// \return
 ///
-void PanelImageView::drawHistogram()
+void PanelImageView::drawHistogram(QPainter &painter)
 {
-  const auto *image = mActPixmapOriginal.getImage();
+  const auto *image = mActPixmapOriginal->getImage();
   if(image == nullptr) {
     return;
   }
@@ -634,67 +643,44 @@ void PanelImageView::drawHistogram()
   int depth = type & CV_MAT_DEPTH_MASK;
   if(depth == CV_16U) {
     if(!image->empty()) {
-      // Compute the histogram
-      int histSize           = UINT16_MAX + 1;
-      float range[]          = {0, UINT16_MAX + 1};
-      const float *histRange = {range};
-      bool uniform           = true;
-      bool accumulate        = false;
-      cv::Mat hist;
-      cv::calcHist(image, 1, 0, cv::Mat(), hist, 1, &histSize, &histRange);    //, uniform, accumulate);
-
-      // Normalize the histogram to [0, histImage.height()]
-      hist.at<float>(0) = 0;    // We don't want to display black
-      cv::normalize(hist, hist, 0, RECT_HEIGHT, cv::NORM_MINMAX);
-
-      // Draw the histogram
-
-      QPainter painter(viewport());
-
       // Place for the histogram
-      {
-        painter.setPen(QColor(0, 89, 179));    // Set the pen color to light blue
-        painter.setBrush(Qt::NoBrush);         // Set the brush to no brush for transparent fill
-        QRect rectangle(width() - RECT_START_X - RECT_WIDTH, height() - RECT_START_Y - RECT_HEIGHT, RECT_WIDTH,
-                        RECT_HEIGHT);    // Adjust the size as needed
-        // painter.drawRect(rectangle);
-      }
-
-      float histOffset = mActPixmapOriginal.getHistogramOffset();
-      float histZoom   = mActPixmapOriginal.getHitogramZoomFactor();
-
-      int number = (float) UINT16_MAX / histZoom;
-
-      float binWidth = (RECT_WIDTH / (float) number);
       QFont font;
       font.setPointSizeF(8);
       painter.setFont(font);
+      painter.setPen(QColor(0, 89, 179));    // Set the pen color to light blue
+      painter.setBrush(Qt::NoBrush);         // Set the brush to no brush for transparent fill
 
-      int markerPos = number / NR_OF_MARKERS;
+      // Precalculation
+      float histOffset    = mActPixmapOriginal->getHistogramOffset();
+      float histZoom      = mActPixmapOriginal->getHitogramZoomFactor();
+      int number          = (float) UINT16_MAX / histZoom;
+      float binWidth      = (RECT_WIDTH / static_cast<float>(number));
+      int markerPos       = number / NR_OF_MARKERS;
+      const auto &hist    = mActPixmapOriginal->getHistogram();
+      int32_t compression = 1;
 
-      for(int i = 1; i < number; i++) {
-        float startX = ((float) width() - RECT_START_X - RECT_WIDTH) + (float) (i) *binWidth;
-        float startY = (float) height() - RECT_START_Y;
+      if(number > UINT16_MAX / 2) {
+        compression = 2;
+      }
 
+      for(int i = 1; i < number; i += compression) {
         int idx = i + histOffset;
         if(idx > UINT16_MAX) {
           idx = UINT16_MAX;
         }
-        uint16_t histValue = hist.at<float>(idx);
-        painter.setPen(QColor(0, 89, 179));    // Set the pen color to light blue
+        float startX    = (static_cast<float>(width()) - RECT_START_X - RECT_WIDTH) + static_cast<float>(i) * binWidth;
+        float startY    = static_cast<float>(height()) - RECT_START_Y;
+        float histValue = hist.at<float>(idx) * RECT_HEIGHT;
         painter.drawLine(startX, startY, startX, startY - histValue);
-        if(idx == mActPixmapOriginal.getUpperLevelContrast()) {
-          painter.setPen(QColor(255, 0, 0));    // Set the pen color to light blue
+        if(idx == mActPixmapOriginal->getUpperLevelContrast() || (compression != 1 && idx + 1 == mActPixmapOriginal->getUpperLevelContrast())) {
+          painter.setPen(QColor(255, 0, 0));    // Set the pen color to red
           painter.drawText(QRect(startX - 50, startY, 100, 12), Qt::AlignHCenter, std::to_string(idx).data());
           painter.drawLine(startX, startY, startX, startY - RECT_HEIGHT);
+          painter.setPen(QColor(0, 89, 179));    // Set the pen color to light blue
         }
-        painter.setPen(QColor(0, 89, 179));    // Set the pen color to light blue
         if(i == 1 || i % markerPos == 0) {
           painter.drawText(QRect(startX - 50, startY, 100, 12), Qt::AlignHCenter, std::to_string(idx).data());
         }
-
-        /* painter.drawLine(binWidth * (i - 1), RECT_HEIGHT - qRound(hist.at<float>(i - 1)), binWidth * i,
-                          RECT_HEIGHT - qRound(hist.at<float>(i)));*/
       }
     }
   }
@@ -708,6 +694,18 @@ void PanelImageView::setShowThumbnail(bool showThumbnail)
 {
   mShowThumbnail = showThumbnail;
   viewport()->update();
+}
+
+void PanelImageView::setShowHistogram(bool showHistorgram)
+{
+  mShowHistogram = showHistorgram;
+  viewport()->update();
+}
+
+void PanelImageView::setShowOverlay(bool showOVerlay)
+{
+  mShowOverlay = showOVerlay;
+  emit updateImage();
 }
 
 void PanelImageView::setShowPixelInfo(bool show)

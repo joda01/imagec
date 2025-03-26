@@ -246,10 +246,11 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
   }
 
   processor::Processor process;
-  auto [originalImg, previewImage, thumb, foundObjects, validity] = process.generatePreview(
+  auto [originalImg, overlay, editedImageWithoutOverlay, thumb, foundObjects, validity] = process.generatePreview(
       previewSettings, imageSetup, settings, threadSettings, pipeline, imagePath, 0, 0, tileX, tileY, generateThumb, ome, classesToShow);
   previewOut.originalImage.setImage(std::move(originalImg));
-  previewOut.previewImage.setImage(std::move(previewImage));
+  previewOut.overlay.setImage(std::move(overlay));
+  previewOut.editedImage.setImage(std::move(editedImageWithoutOverlay));
   if(generateThumb) {
     previewOut.thumbnail.setImage(std::move(thumb));
   }

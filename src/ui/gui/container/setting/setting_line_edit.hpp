@@ -28,7 +28,25 @@ template <NumberOrString VALUE_T>
 class SettingLineEdit : public SettingBase
 {
 public:
-  using SettingBase::SettingBase;
+  SettingLineEdit(QWidget *parent, const QIcon &icon, const QString &description, int32_t maxTextLengthToDisplay = 100) :
+      SettingBase(parent, icon, description, maxTextLengthToDisplay)
+  {
+    if constexpr(std::same_as<VALUE_T, int>) {
+      mEmptyValue = -1;
+    }
+    if constexpr(std::same_as<VALUE_T, uint32_t>) {
+      mEmptyValue = 0;
+    }
+    if constexpr(std::same_as<VALUE_T, uint16_t>) {
+      mEmptyValue = 0;
+    }
+    if constexpr(std::same_as<VALUE_T, float>) {
+      mEmptyValue = -1;
+    }
+    if constexpr(std::same_as<VALUE_T, std::string>) {
+      mEmptyValue = "";
+    }
+  }
 
   QWidget *createInputObject() override
   {
@@ -111,7 +129,7 @@ public:
   {
     if constexpr(std::same_as<VALUE_T, int>) {
       if(mLineEdit->text().isEmpty()) {
-        return -1;
+        return mEmptyValue;
       }
       return mLineEdit->text().toInt();
     }
@@ -129,13 +147,18 @@ public:
     }
     if constexpr(std::same_as<VALUE_T, float>) {
       if(mLineEdit->text().isEmpty()) {
-        return -1;
+        return mEmptyValue;
       }
       return mLineEdit->text().toFloat();
     }
     if constexpr(std::same_as<VALUE_T, std::string>) {
       return mLineEdit->text().toStdString();
     }
+  }
+
+  void setEmptyValue(VALUE_T val)
+  {
+    mEmptyValue = val;
   }
 
   void setValue(VALUE_T value)
@@ -193,6 +216,7 @@ private:
   ClickableLineEdit *mLineEdit = nullptr;
   std::optional<VALUE_T> mDefaultValue;
   VALUE_T *mSetting = nullptr;
+  VALUE_T mEmptyValue;
 
 private slots:
   void onValueChanged()

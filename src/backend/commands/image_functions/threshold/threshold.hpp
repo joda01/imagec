@@ -17,7 +17,17 @@
 #include <algorithm>
 #include <cstdint>
 #include "backend/commands/command.hpp"
+#include "backend/commands/image_functions/threshold/threshold_huang.hpp"
+#include "backend/commands/image_functions/threshold/threshold_intermodes.hpp"
+#include "backend/commands/image_functions/threshold/threshold_isodata.hpp"
+#include "backend/commands/image_functions/threshold/threshold_max_entropy.hpp"
+#include "backend/commands/image_functions/threshold/threshold_mean.hpp"
+#include "backend/commands/image_functions/threshold/threshold_minimum.hpp"
+#include "backend/commands/image_functions/threshold/threshold_percentile.hpp"
+#include "backend/commands/image_functions/threshold/threshold_renyi_entropy.hpp"
 #include "backend/commands/image_functions/threshold/threshold_settings.hpp"
+#include "backend/commands/image_functions/threshold/threshold_shanbhag.hpp"
+#include "backend/commands/image_functions/threshold/threshold_yen.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
 #include <opencv2/core.hpp>
@@ -58,7 +68,6 @@ public:
       cv::bitwise_and(thresholdImg, thresholdTmp, thresholdImg);
       thresholdImg.setTo(threshold.modelClassId, thresholdImg > 0);
       context.setBinaryImage(thresholdValMin, thresholdValMax);
-
       outputImage = cv::max(outputImage, thresholdImg);
     }
 
@@ -69,32 +78,40 @@ private:
   /////////////////////////////////////////////////////
   [[nodiscard]] uint16_t calcThresholdValue(const settings::ThresholdSettings::Threshold &settings, cv::Mat &histogram) const
   {
-    switch(settings.mode) {
-      case settings::ThresholdSettings::Mode::NONE:
-      case settings::ThresholdSettings::Mode::MANUAL:
+    switch(settings.method) {
+      case settings::ThresholdSettings::Methods::NONE:
+      case settings::ThresholdSettings::Methods::MANUAL:
         return settings.thresholdMin;
-      case settings::ThresholdSettings::Mode::LI:
+      case settings::ThresholdSettings::Methods::LI:
         return ThresholdLi::calcThresholdValue(histogram);
-      case settings::ThresholdSettings::Mode::MIN_ERROR:
+      case settings::ThresholdSettings::Methods::MIN_ERROR:
         return ThresholdMinError::calcThresholdValue(histogram);
-      case settings::ThresholdSettings::Mode::TRIANGLE:
+      case settings::ThresholdSettings::Methods::TRIANGLE:
         return ThresholdTriangle::calcThresholdValue(histogram);
-      case settings::ThresholdSettings::Mode::MOMENTS:
+      case settings::ThresholdSettings::Methods::MOMENTS:
         return ThresholdMoments::calcThresholdValue(histogram);
-      case settings::ThresholdSettings::Mode::OTSU:
+      case settings::ThresholdSettings::Methods::OTSU:
         return ThresholdOtsu::calcThresholdValue(histogram);
-      case settings::ThresholdSettings::Mode::HUANG:
-      case settings::ThresholdSettings::Mode::INTERMODES:
-      case settings::ThresholdSettings::Mode::ISODATA:
-      case settings::ThresholdSettings::Mode::MAX_ENTROPY:
-      case settings::ThresholdSettings::Mode::MEAN:
-      case settings::ThresholdSettings::Mode::MINIMUM:
-      case settings::ThresholdSettings::Mode::PERCENTILE:
-      case settings::ThresholdSettings::Mode::RENYI_ENTROPY:
-      case settings::ThresholdSettings::Mode::SHANBHAG:
-      case settings::ThresholdSettings::Mode::YEN:
-        joda::log::logWarning("Selected threshold not supported!");
-        break;
+      case settings::ThresholdSettings::Methods::MEAN:
+        return ThresholdMean::calcThresholdValue(histogram);
+      case settings::ThresholdSettings::Methods::SHANBHAG:
+        return ThresholdShanbhag::calcThresholdValue(histogram);
+      case settings::ThresholdSettings::Methods::HUANG:
+        return ThresholdHuang::calcThresholdValue(histogram);
+      case settings::ThresholdSettings::Methods::INTERMODES:
+        return ThresholdIntermodes::calcThresholdValue(histogram);
+      case settings::ThresholdSettings::Methods::ISODATA:
+        return ThresholdIsoData::calcThresholdValue(histogram);
+      case settings::ThresholdSettings::Methods::MAX_ENTROPY:
+        return ThresholdMaxEntropy::calcThresholdValue(histogram);
+      case settings::ThresholdSettings::Methods::MINIMUM:
+        return ThresholdMinimum::calcThresholdValue(histogram);
+      case settings::ThresholdSettings::Methods::PERCENTILE:
+        return ThresholdPercentile::calcThresholdValue(histogram);
+      case settings::ThresholdSettings::Methods::RENYI_ENTROPY:
+        return ThresholdRenyiEntropy::calcThresholdValue(histogram);
+      case settings::ThresholdSettings::Methods::YEN:
+        return ThresholdYen::calcThresholdValue(histogram);
     }
     return settings.thresholdMin;
   }
@@ -135,8 +152,8 @@ private:
     // histogram.at<float>(0) = 0;
 
     uint16_t thresholdTempMin = settings.thresholdMin;
-    if(settings.mode != settings::ThresholdSettings::Mode::MANUAL && settings.mode != settings::ThresholdSettings::Mode::NONE) {
-      thresholdTempMin = scaleAndSetThreshold(0, calcThresholdValue(settings, histogram) + 1, min, max);
+    if(settings.method != settings::ThresholdSettings::Methods::MANUAL && settings.method != settings::ThresholdSettings::Methods::NONE) {
+      thresholdTempMin = scaleAndSetThreshold(0, calcThresholdValue(settings, histogram) + 1 + settings.cValue, min, max);
     }
 
     return {std::min(std::max(settings.thresholdMin, thresholdTempMin), settings.thresholdMax), settings.thresholdMax};

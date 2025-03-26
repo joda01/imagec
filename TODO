@@ -19,10 +19,12 @@ Linux:
 
 sudo apt install libxcb-cursor-dev
 sudo apt install libxcb-*
-
+apt-get install -y xserver-xorg xinit
 
 Start-Process -RedirectStandardOutput
 
+
+Host: xhost +local:docker
 
 
 

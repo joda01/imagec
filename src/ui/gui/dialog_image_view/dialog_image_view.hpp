@@ -8,7 +8,6 @@
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
 ///
-
 ///
 
 #pragma once
@@ -21,6 +20,9 @@
 
 namespace joda::ui::gui {
 
+class HistoToolbar;
+class PanelPreview;
+
 ///
 /// \class      DialogImageViewer
 /// \author     Joachim Danmayr
@@ -32,11 +34,10 @@ class DialogImageViewer : public QMainWindow
 
 public:
   /////////////////////////////////////////////////////
-  DialogImageViewer(QWidget *parent);
+  DialogImageViewer(QWidget *parent, PanelImageView *panelPreviewParent);
   ~DialogImageViewer();
   void imageUpdated();
   void fitImageToScreenSize();
-  void createHistogramDialog();
   joda::ctrl::Preview &getPreviewObject()
   {
     return mPreviewImages;
@@ -48,7 +49,8 @@ public:
   }
   void resetImage()
   {
-    mPreviewImages.previewImage.clear();
+    mPreviewImages.editedImage.clear();
+    mPreviewImages.overlay.clear();
     mPreviewImages.originalImage.clear();
     mPreviewImages.thumbnail.clear();
     //    mPreviewImages.detectionResult.reset();
@@ -66,22 +68,29 @@ public:
     QMainWindow::hideEvent(event);
     emit hidden();
   }
+  enum class ImageView
+  {
+    LEFT  = 0,
+    RIGHT = 1
+  };
+  void triggerPreviewUpdate(ImageView view, bool withUserHistoSettings);
+
+  bool fillOverlay() const
+  {
+    return mFillOVerlay->isChecked();
+  }
 
 signals:
   void tileClicked(int32_t tileX, int32_t tileY);
   void hidden();
-
-public slots:
-  void autoAdjustHistogram();
+  void onSettingChanged();
 
 private:
   /////////////////////////////////////////////////////
-  static constexpr float HISTOGRAM_ZOOM_STEP = 25;
+  void leaveEvent(QEvent *event) override;
 
   /////////////////////////////////////////////////////
-  QSlider *mSlider;
-  QScrollBar *mSliderScaling;
-  QScrollBar *mSliderHistogramOffset;
+  PanelImageView *mPanelPreviewParent = nullptr;
 
   joda::ctrl::Preview mPreviewImages;
   PanelImageView mImageViewLeft;
@@ -90,23 +99,21 @@ private:
   std::mutex mPreviewMutex;
   int mPreviewCounter = 0;
 
-  /////////////////////////////////////////////////////
-  QDialog *mHistogramDialog;
+  HistoToolbar *mHistoToolbarLeft  = nullptr;
+  HistoToolbar *mHistoToolbarRight = nullptr;
 
-  void triggerPreviewUpdate(bool withUserHistoSettings);
+  // ACTIONS //////////////////////////////////////////////////
+  QAction *mFillOVerlay;
 
 private slots:
+  /////////////////////////////////////////////////////
   void onFitImageToScreenSizeClicked();
   void onZoomOutClicked();
   void onZoomInClicked();
   void onLeftViewChanged();
   void onRightViewChanged();
-  void onSliderMoved(int position);
-  void onShowHistogramDialog();
   void onSetSateToMove();
   void onSetStateToPaintRect();
-  void onZoomHistogramOutClicked();
-  void onZoomHistogramInClicked();
   void onShowPixelInfo(bool checked);
   void onShowThumbnailChanged(bool checked);
   void onShowCrossHandCursor(bool checked);

@@ -37,8 +37,9 @@ namespace joda::ui::gui {
 /// \author     Joachim Danmayr
 ///
 PanelPreview::PanelPreview(int width, int height, WindowMain *parent) :
-    mParent(parent), mImageViewer(parent),
-    mPreviewLabel(mImageViewer.getPreviewObject().previewImage, mImageViewer.getPreviewObject().thumbnail, true, true)
+    mParent(parent), mImageViewer(parent, &mPreviewLabel),
+    mPreviewLabel(&mImageViewer.getPreviewObject().editedImage, &mImageViewer.getPreviewObject().thumbnail, &mImageViewer.getPreviewObject().overlay,
+                  true)
 {
   mPreviewLabel.setMinimumWidth(width);
   mPreviewLabel.setMinimumHeight(height);
@@ -59,6 +60,7 @@ PanelPreview::PanelPreview(int width, int height, WindowMain *parent) :
   hLayout->addStretch();
 
   connect(&mImageViewer, &DialogImageViewer::tileClicked, this, &PanelPreview::onTileClicked);
+  connect(&mImageViewer, &DialogImageViewer::onSettingChanged, this, &PanelPreview::onSettingChanged);
   connect(&mPreviewLabel, &PanelImageView::tileClicked, this, &PanelPreview::onTileClicked);
 }
 
@@ -110,13 +112,6 @@ QWidget *PanelPreview::createToolBar()
   layout->addWidget(mOpenFullScreenButton);
 
   connect(&mImageViewer, &DialogImageViewer::hidden, [this] { mOpenFullScreenButton->setChecked(false); });
-
-  filled = new QPushButton(generateIcon("fill-color"), "");
-  filled->setCheckable(true);
-  filled->setObjectName("ToolButton");
-  filled->setToolTip("Filled");
-  connect(filled, &QPushButton::toggled, this, &PanelPreview::onSettingChanged);
-  layout->addWidget(filled);
 
   //
   // Preview classes

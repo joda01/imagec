@@ -310,7 +310,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
                                 const settings::Pipeline &pipelineStart, const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack,
                                 int32_t tileX, int32_t tileY, bool generateThumb, const ome::OmeInfo &ome,
                                 const settings::ObjectInputClasses &classesToShow)
-    -> std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>, enums::ChannelValidity>
+    -> std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>, enums::ChannelValidity>
 {
   auto ii = DurationCount::start("Generate preview with >" + std::to_string(threadingSettings.coresUsed) + "< threads.");
 
@@ -365,7 +365,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
     }
   }
 
-  std::tuple<cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>, enums::ChannelValidity> tmpResult;
+  std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>, enums::ChannelValidity> tmpResult;
   bool finished = false;
 
   int executedSteps = 0;
@@ -381,6 +381,11 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
                               pipeline = pipelineToExecute, this, &program, &globalContext, &plateContext, &pipelineOrder, imagePath, &imageContext,
                               &imageLoader, tileX, tileY, pipelines = pipelines, &iterationContext, tStack, zStack, executedSteps]() -> void {
         //
+        // The last step is the wanted pipeline
+        //
+        bool previewPipeline = executedSteps >= totalRuns;
+
+        //
         // Load the image imagePlane
         //
         ProcessContext context{globalContext, plateContext, imageContext, iterationContext};
@@ -391,10 +396,16 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         //
         // Execute the pipeline
         //
+        cv::Mat editedImageAtBreakpoint;
         for(const auto &step : pipeline->pipelineSteps) {
           if(step.$saveImage.has_value()) {
             // For preview do not execute image saver
             continue;
+          }
+          // Breakpoints are only enabled in the preview pipeline
+          if(step.breakPoint && previewPipeline) {
+            editedImageAtBreakpoint = context.getActImage().image.clone();
+            // break;
           }
           step(context, context.getActImage().image, context.getActObjects());
         }
@@ -407,7 +418,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         //
         // The last step is the wanted pipeline
         //
-        if(executedSteps >= totalRuns) {
+        if(previewPipeline) {
           //
           // Count elements
           //
@@ -449,8 +460,11 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
                   settings::ImageSaverSettings::SaveClasss{.inputClass = classs, .style = previewSettings.style, .paintBoundingBox = false});
             }
           }
-
-          saverSettings.canvas     = settings::ImageSaverSettings::Canvas::IMAGE_$;
+          // No breakpoint was set, use the last image
+          if(editedImageAtBreakpoint.empty()) {
+            editedImageAtBreakpoint = context.getActImage().image.clone();
+          }
+          saverSettings.canvas     = settings::ImageSaverSettings::Canvas::BLACK;
           saverSettings.planesIn   = enums::ImageId{.zProjection = enums::ZProjection::$};
           saverSettings.outputSlot = settings::ImageSaverSettings::Output::IMAGE_$;
           auto step                = settings::PipelineStep{.$saveImage = saverSettings};
@@ -462,7 +476,11 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
           tmpResult = {
               context.loadImageFromCache(enums::MemoryScope::ITERATION, joda::enums::ImageId{.zProjection = enums::ZProjection::$, .imagePlane = {}})
                   ->image,
-              context.getActImage().image, thumb, foundObjects, db->getImageValidity()};
+              context.getActImage().image,
+              editedImageAtBreakpoint,
+              thumb,
+              foundObjects,
+              db->getImageValidity()};
           finished = true;
         }
       };
@@ -481,7 +499,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
   if(!finished) {
     thumbThread.join();
     DurationCount::stop(ii);
-    return {{}, {}, {}, {}, {}};
+    return {{}, {}, {}, {}, {}, {}};
   } else {
     DurationCount::stop(ii);
     return tmpResult;

@@ -13,6 +13,7 @@
 
 #include "image.hpp"
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <iostream>
 #include <mutex>
@@ -50,6 +51,23 @@ void Image::setImage(const cv::Mat &&imageToDisplay)
   delete mImageOriginal;
   mImageOriginal = new cv::Mat(
       joda::image::func::Resizer::resizeWithAspectRatio(imageToDisplay, std::min(imageToDisplay.cols, WIDTH), std::min(imageToDisplay.rows, WIDTH)));
+  int type  = mImageOriginal->type();
+  int depth = type & CV_MAT_DEPTH_MASK;
+  if(depth == CV_16U) {
+    //
+    // Calc histogram
+    //
+    int histSize           = UINT16_MAX + 1;
+    float range[]          = {0, UINT16_MAX + 1};
+    const float *histRange = {range};
+    bool uniform           = true;
+    bool accumulate        = false;
+    cv::calcHist(mImageOriginal, 1, 0, cv::Mat(), mHistogram, 1, &histSize, &histRange);    //, uniform, accumulate);
+
+    // Normalize the histogram to [0, histImage.height()]
+    mHistogram.at<float>(0) = 0;    // We don't want to display black
+    cv::normalize(mHistogram, mHistogram, 0, 1, cv::NORM_MINMAX);
+  }
 }
 
 ///
@@ -59,34 +77,56 @@ void Image::setImage(const cv::Mat &&imageToDisplay)
 /// \param[out]
 /// \return
 ///
-QPixmap Image::getPixmap() const
+QPixmap Image::getPixmap(const Image *combineWith) const
 {
   if(mImageOriginal == nullptr) {
     std::cout << "Ups it is null" << std::endl;
     return {};
   }
+  if(mLowerValue > mUpperValue) {
+    std::cerr << "Minimum value must be less than maximum value." << std::endl;
+    return {};
+  }
+
   // 65535....65535
   // 3000 .......65535
   // PxlInImg....New
   int type  = mImageOriginal->type();
   int depth = type & CV_MAT_DEPTH_MASK;
   cv::Mat image;
+
+  // Take 2ms
   if(depth == CV_16U) {
     image = mImageOriginal->clone();
-    // Ensure minVal is less than maxVal
-    if(mLowerValue > mUpperValue) {
-      std::cerr << "Minimum value must be less than maximum value." << std::endl;
-      return {};
-    }
-
-    // Apply the lookup table to the source image to get the destination image
     for(int y = 0; y < image.rows; ++y) {
       for(int x = 0; x < image.cols; ++x) {
         uint16_t pixelValue      = image.at<uint16_t>(y, x);
         image.at<uint16_t>(y, x) = mLut[pixelValue];
       }
     }
-    return encode(&image);
+    // Takes 20ms
+    if(combineWith != nullptr) {
+      // Convert 16-bit grayscale to 8-bit grayscale
+      image.convertTo(image, CV_8U, 255.0 / 65535.0);    // Normalize to 8-bit
+      cv::cvtColor(image, image, cv::COLOR_GRAY2BGR);
+
+      cv::Mat mask;
+      cv::Mat coloredImage = combineWith->mImageOriginal->clone();
+      cv::inRange(coloredImage, cv::Scalar(0, 0, 0), cv::Scalar(0, 0, 0), mask);
+      image.copyTo(coloredImage, mask);
+      return encode(&coloredImage);
+
+    } else {
+      return encode(&image);
+    }
+  } else {
+    if(combineWith != nullptr) {
+      cv::Mat image = mImageOriginal->clone();
+      cv::bitwise_xor(image, *combineWith->mImageOriginal, image);
+      return encode(&image);
+    } else {
+      return encode(mImageOriginal);
+    }
   }
   return encode(mImageOriginal);
 }

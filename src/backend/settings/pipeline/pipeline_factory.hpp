@@ -62,6 +62,8 @@
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings_ui.hpp"
 #include "backend/commands/image_functions/threshold/threshold.hpp"
 #include "backend/commands/image_functions/threshold/threshold_settings_ui.hpp"
+#include "backend/commands/image_functions/threshold_adaptive/threshold_adaptive.hpp"
+#include "backend/commands/image_functions/threshold_adaptive/threshold_adaptive_settings_ui.hpp"
 #include "backend/commands/image_functions/watershed/watershed.hpp"
 #include "backend/commands/image_functions/watershed/watershed_settings_ui.hpp"
 #include "backend/commands/object_functions/colocalization/colocalization.hpp"
@@ -156,6 +158,15 @@ private:
       } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
         return std::make_unique<joda::ui::gui::Factory<joda::ui::gui::Threshold, ThresholdSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<ThresholdSettings &>(step.$threshold.value()), parent);
+      }
+    }
+
+    if(step.$thresholdAdaptive) {
+      if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
+        return std::make_unique<joda::cmd::Factory<joda::cmd::ThresholdAdaptive, ThresholdAdaptiveSettings>>(step.$thresholdAdaptive.value());
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::make_unique<joda::ui::gui::Factory<joda::ui::gui::ThresholdAdaptive, ThresholdAdaptiveSettings>>(
+            const_cast<settings::PipelineStep &>(step), const_cast<ThresholdAdaptiveSettings &>(step.$thresholdAdaptive.value()), parent);
       }
     }
 

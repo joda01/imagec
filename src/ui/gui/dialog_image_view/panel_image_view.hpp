@@ -70,15 +70,15 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  PanelImageView(const joda::image::Image &imageReference, const joda::image::Image &thumbnailImageReference, bool isEditedImage, bool withThumbnail,
-                 QWidget *parent = nullptr);
+  PanelImageView(const joda::image::Image *imageReference, const joda::image::Image *thumbnailImageReference, const joda::image::Image *overlay,
+                 bool withThumbnail, QWidget *parent = nullptr);
   void imageUpdated();
   void resetImage();
   void fitImageToScreenSize();
   void zoomImage(bool inOut);
   const joda::image::Image &getImage()
   {
-    return mActPixmapOriginal;
+    return *mActPixmapOriginal;
   }
   void emitUpdateImage()
   {
@@ -93,11 +93,14 @@ public:
 
   void setState(State);
   void setShowThumbnail(bool);
+  void setShowHistogram(bool);
   void setShowPixelInfo(bool);
+  void setShowOverlay(bool);
   void setShowCrosshandCursor(bool);
   void setThumbnailPosition(const ThumbParameter &);
   void setCursorPosition(const QPoint &pos);
   auto getCursorPosition() -> QPoint;
+  void setImageReference(const joda::image::Image *imageReference);
 
 signals:
   void updateImage();
@@ -112,9 +115,9 @@ protected:
   void leaveEvent(QEvent *) override;
   void wheelEvent(QWheelEvent *event) override;
   void paintEvent(QPaintEvent *event) override;
-  void drawHistogram();
-  void drawThumbnail();
-  void drawPixelInfo(int32_t startX, int32_t startY, const PixelInfo &info);
+  void drawHistogram(QPainter &);
+  void drawThumbnail(QPainter &);
+  void drawPixelInfo(QPainter &, int32_t startX, int32_t startY, const PixelInfo &info);
 
   void getClickedTileInThumbnail(QMouseEvent *event);
   void getThumbnailAreaEntered(QMouseEvent *event);
@@ -134,10 +137,11 @@ private:
   const float PIXEL_INFO_RECT_HEIGHT = 40;
 
   /////////////////////////////////////////////////////
-  bool mPlaceholderImageSet = true;
-  const joda::image::Image &mActPixmapOriginal;
-  const joda::image::Image &mThumbnailImageReference;
-  QGraphicsPixmapItem *mActPixmap = nullptr;
+  bool mPlaceholderImageSet                          = true;
+  const joda::image::Image *mActPixmapOriginal       = nullptr;
+  const joda::image::Image *mOverlayImage            = nullptr;
+  const joda::image::Image *mThumbnailImageReference = nullptr;
+  QGraphicsPixmapItem *mActPixmap                    = nullptr;
   QGraphicsScene *scene;
   bool isDragging = false;
   QPoint lastPos;
@@ -165,7 +169,8 @@ private:
   bool mShowThumbnail       = true;
   bool mShowPixelInfo       = true;
   bool mShowCrosshandCursor = false;
-  bool mIsEditedImage       = false;
+  bool mShowHistogram       = true;
+  bool mShowOverlay         = true;
 
   mutable std::mutex mImageResetMutex;
 
