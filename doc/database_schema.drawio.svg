@@ -1,408 +1,536 @@
-<svg host="65bd71144e" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="1943px" height="1153px" viewBox="-0.5 -0.5 1943 1153" content="&lt;mxfile&gt;&lt;diagram id=&quot;Orz3DvuclM0eVTHakObr&quot; name=&quot;Page-1&quot;&gt;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&lt;/diagram&gt;&lt;/mxfile&gt;">
+<svg host="65bd71144e" xmlns="http://www.w3.org/2000/svg" style="background: transparent; background-color: transparent;" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="1202px" height="842px" viewBox="-0.5 -0.5 1202 842" content="&lt;mxfile&gt;&lt;diagram id=&quot;CI5Nns6VAcsKWrI4mPRb&quot; name=&quot;database_relations&quot;&gt;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&lt;/diagram&gt;&lt;/mxfile&gt;">
     <defs/>
     <g>
-        <path d="M 789 481 L 789 464.5 Q 789 451 775.5 451 L 602.5 451 Q 589 451 589 464.5 L 589 481" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="all"/>
-        <path d="M 589 481 L 589 567.5 Q 589 581 602.5 581 L 775.5 581 Q 789 581 789 567.5 L 789 481" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 589 481 L 789 481" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="688.5" y="471.5">
-                images
-            </text>
+        <g>
+            <path d="M 241 271 L 241 254.5 Q 241 241 227.5 241 L 14.5 241 Q 1 241 1 254.5 L 1 271" fill="#ffffff" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="all" style="fill: light-dark(#ffffff, var(--ge-dark-color, #121212)); stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 1 271 L 1 347.5 Q 1 361 14.5 361 L 227.5 361 Q 241 361 241 347.5 L 241 271" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 1 271 L 241 271" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
         </g>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="594.5" y="498.5">
-                +(PK)image_id: UHUGEINT
-            </text>
-            <text x="594.5" y="512.5">
-                + name
-            </text>
-            <text x="594.5" y="526.5">
-                + nrCStack
-            </text>
-            <text x="594.5" y="540.5">
-                + nrTStack
-            </text>
-            <text x="594.5" y="554.5">
-                + nrZStack
-            </text>
-            <text x="594.5" y="568.5">
-                + validity
-            </text>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-weight="bold" text-anchor="middle" font-size="14px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="120.5" y="261.5">
+                    experiment
+                </text>
+            </g>
         </g>
-        <path d="M 1662 181 L 1662 164.5 Q 1662 151 1648.5 151 L 1475.5 151 Q 1462 151 1462 164.5 L 1462 181" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1462 181 L 1462 417.5 Q 1462 431 1475.5 431 L 1648.5 431 Q 1662 431 1662 417.5 L 1662 181" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1462 181 L 1662 181" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="1561.5" y="171.5">
-                objects
-            </text>
+        <g>
+            <rect x="1" y="271" width="240" height="90" fill="none" stroke="none" pointer-events="all"/>
         </g>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="1467.5" y="198.5">
-                +image_id: UHUGEINT
-            </text>
-            <text x="1467.5" y="212.5">
-                +(PK) object_id: UINTEGER
-            </text>
-            <text x="1467.5" y="226.5">
-                +(PK) cluster_id
-            </text>
-            <text x="1467.5" y="240.5">
-                +(PK) class_id
-            </text>
-            <text x="1467.5" y="268.5">
-                +cStack
-            </text>
-            <text x="1467.5" y="282.5">
-                +zStack
-            </text>
-            <text x="1467.5" y="296.5">
-                +tStack
-            </text>
-            <text x="1467.5" y="310.5">
-                --------
-            </text>
-            <text x="1467.5" y="324.5">
-                + confidence
-            </text>
-            <text x="1467.5" y="338.5">
-                + boundingBox
-            </text>
-            <text x="1467.5" y="352.5">
-                + mask
-            </text>
-            <text x="1467.5" y="366.5">
-                + areaSize
-            </text>
-            <text x="1467.5" y="380.5">
-                + perimeter
-            </text>
-            <text x="1467.5" y="394.5">
-                + circulariry
-            </text>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-size="12px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="6.5" y="288.5">
+                    experiment_id         UUID (PK)
+                </text>
+                <text x="6.5" y="302.5">
+                    name                  STRING
+                </text>
+                <text x="6.5" y="316.5">
+                    notes                 STRING
+                </text>
+            </g>
         </g>
-        <path d="M 1942 131 L 1942 114.5 Q 1942 101 1928.5 101 L 1755.5 101 Q 1742 101 1742 114.5 L 1742 131" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1742 131 L 1742 267.5 Q 1742 281 1755.5 281 L 1928.5 281 Q 1942 281 1942 267.5 L 1942 131" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1742 131 L 1942 131" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="1841.5" y="121.5">
-                object_measurements
-            </text>
+        <g>
+            <path d="M 241 456 L 241 439.5 Q 241 426 227.5 426 L 14.5 426 Q 1 426 1 439.5 L 1 456" fill="#ffffff" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="all" style="fill: light-dark(#ffffff, var(--ge-dark-color, #121212)); stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 1 456 L 1 572.5 Q 1 586 14.5 586 L 227.5 586 Q 241 586 241 572.5 L 241 456" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 1 456 L 241 456" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
         </g>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="1747.5" y="148.5">
-                +(PK)image_id
-            </text>
-            <text x="1747.5" y="162.5">
-                +(PK,FK)object_id
-            </text>
-            <text x="1747.5" y="190.5">
-                +(PK)cStack_measuire
-            </text>
-            <text x="1747.5" y="204.5">
-                +(PK)zStack_measure
-            </text>
-            <text x="1747.5" y="218.5">
-                +(PK)tStack_measure
-            </text>
-            <text x="1747.5" y="232.5">
-                --------
-            </text>
-            <text x="1747.5" y="246.5">
-                + intensity
-            </text>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-weight="bold" text-anchor="middle" font-size="14px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="120.5" y="446.5">
+                    jobs
+                </text>
+            </g>
         </g>
-        <path d="M 1662 306 L 1682 306 Q 1692 306 1693.96 296.19 L 1710.04 215.81 Q 1712 206 1722 206 L 1742 206" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1734 210 L 1734 202 M 1742 202 L 1734 206 L 1742 210" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1072 241 L 1072 224.5 Q 1072 211 1058.5 211 L 885.5 211 Q 872 211 872 224.5 L 872 241" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 872 241 L 872 357.5 Q 872 371 885.5 371 L 1058.5 371 Q 1072 371 1072 357.5 L 1072 241" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 872 241 L 1072 241" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="971.5" y="231.5">
-                clusters
-            </text>
+        <g>
+            <rect x="1" y="456" width="240" height="130" fill="none" stroke="none" pointer-events="all"/>
         </g>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="877.5" y="258.5">
-                +cluster_id: UHUGEINT
-            </text>
-            <text x="877.5" y="272.5">
-                +name: TEXT
-            </text>
-            <text x="877.5" y="286.5">
-                +description: TEXT
-            </text>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-size="12px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="6.5" y="473.5">
+                    job_id                UUID (PK)
+                </text>
+                <text x="6.5" y="487.5">
+                    experiment_id         UUID (FK)
+                </text>
+                <text x="6.5" y="501.5">
+                    job_name              STRING
+                </text>
+                <text x="6.5" y="515.5">
+                    time_started          TIMESTAMP
+                </text>
+                <text x="6.5" y="529.5">
+                    time_finished         TIMESTAMP
+                </text>
+                <text x="6.5" y="543.5">
+                    settings              STRING
+                </text>
+            </g>
         </g>
-        <path d="M 1070 31 L 1070 14.5 Q 1070 1 1056.5 1 L 883.5 1 Q 870 1 870 14.5 L 870 31" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 870 31 L 870 117.5 Q 870 131 883.5 131 L 1056.5 131 Q 1070 131 1070 117.5 L 1070 31" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 870 31 L 1070 31" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="969.5" y="21.5">
-                classes
-            </text>
+        <g>
+            <path d="M 121 361 L 121 426" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 117 418 L 125 418 M 125 426 L 121 418 L 117 426" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
         </g>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="875.5" y="48.5">
-                +class_id: UHUGEINT
-            </text>
-            <text x="875.5" y="62.5">
-                +name: TEXT
-            </text>
-            <text x="875.5" y="76.5">
-                +description: TEXT
-            </text>
+        <g>
+            <path d="M 241 671 L 241 654.5 Q 241 641 227.5 641 L 14.5 641 Q 1 641 1 654.5 L 1 671" fill="#ffffff" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="all" style="fill: light-dark(#ffffff, var(--ge-dark-color, #121212)); stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 1 671 L 1 827.5 Q 1 841 14.5 841 L 227.5 841 Q 241 841 241 827.5 L 241 671" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 1 671 L 241 671" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
         </g>
-        <path d="M 1352 241 L 1352 224.5 Q 1352 211 1338.5 211 L 1165.5 211 Q 1152 211 1152 224.5 L 1152 241" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1152 241 L 1152 357.5 Q 1152 371 1165.5 371 L 1338.5 371 Q 1352 371 1352 357.5 L 1352 241" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1152 241 L 1352 241" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="1251.5" y="231.5">
-                classes_planes
-            </text>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-weight="bold" text-anchor="middle" font-size="14px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="120.5" y="661.5">
+                    plates
+                </text>
+            </g>
         </g>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="1157.5" y="258.5">
-                +image_id: UHUGEINT
-            </text>
-            <text x="1157.5" y="272.5">
-                +cluster_id: UHUGEINT
-            </text>
-            <text x="1157.5" y="286.5">
-                +cStack
-            </text>
-            <text x="1157.5" y="300.5">
-                +zStack
-            </text>
-            <text x="1157.5" y="314.5">
-                +tStack
-            </text>
-            <text x="1157.5" y="328.5">
-                +validity
-            </text>
+        <g>
+            <rect x="1" y="671" width="240" height="170" fill="none" stroke="none" pointer-events="all"/>
         </g>
-        <path d="M 1072 306 L 1092 306 Q 1102 306 1112 306 L 1117 306 Q 1122 306 1132 306 L 1152 306" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1144 310 L 1144 302 M 1152 302 L 1144 306 L 1152 310" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1069 481 L 1069 464.5 Q 1069 451 1055.5 451 L 882.5 451 Q 869 451 869 464.5 L 869 481" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 869 481 L 869 567.5 Q 869 581 882.5 581 L 1055.5 581 Q 1069 581 1069 567.5 L 1069 481" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 869 481 L 1069 481" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="968.5" y="471.5">
-                images_channels
-            </text>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-size="12px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="6.5" y="688.5">
+                    plate_id           USMALLINT(PK)
+                </text>
+                <text x="6.5" y="702.5">
+                    job_id             UUID (FK)
+                </text>
+                <text x="6.5" y="716.5">
+                    name               STRING
+                </text>
+                <text x="6.5" y="730.5">
+                    notes              STRING
+                </text>
+                <text x="6.5" y="744.5">
+                    rows               USMALLINT
+                </text>
+                <text x="6.5" y="758.5">
+                    cols               USMALLINT
+                </text>
+                <text x="6.5" y="772.5">
+                    image_folder       STRING
+                </text>
+                <text x="6.5" y="786.5">
+                    well_image_order   STRING
+                </text>
+                <text x="6.5" y="800.5">
+                    group_by           STRING
+                </text>
+                <text x="6.5" y="814.5">
+                    filename_regex     STRING
+                </text>
+            </g>
         </g>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="874.5" y="498.5">
-                +(PK)image_id: UHUGEINT
-            </text>
-            <text x="874.5" y="512.5">
-                +(PK)cStack: UHUGEINT
-            </text>
-            <text x="874.5" y="526.5">
-                +name
-            </text>
+        <g>
+            <path d="M 121 586 L 121 641" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 117 633 L 125 633 M 125 641 L 121 633 L 117 641" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
         </g>
-        <path d="M 789 531 L 809 531 Q 819 531 829 531 L 834 531 Q 839 531 849 531 L 869 531" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 861 535 L 861 527 M 869 527 L 861 531 L 869 535" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1069 631 L 1069 614.5 Q 1069 601 1055.5 601 L 882.5 601 Q 869 601 869 614.5 L 869 631" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 869 631 L 869 727.5 Q 869 741 882.5 741 L 1055.5 741 Q 1069 741 1069 727.5 L 1069 631" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 869 631 L 1069 631" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="968.5" y="621.5">
-                images_planes
-            </text>
+        <g>
+            <path d="M 561 271 L 561 254.5 Q 561 241 547.5 241 L 334.5 241 Q 321 241 321 254.5 L 321 271" fill="#ffffff" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="all" style="fill: light-dark(#ffffff, var(--ge-dark-color, #121212)); stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 321 271 L 321 347.5 Q 321 361 334.5 361 L 547.5 361 Q 561 361 561 347.5 L 561 271" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 321 271 L 561 271" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
         </g>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="874.5" y="648.5">
-                +(PK)image_id: UHUGEINT
-            </text>
-            <text x="874.5" y="662.5">
-                +cStack
-            </text>
-            <text x="874.5" y="676.5">
-                +zStack
-            </text>
-            <text x="874.5" y="690.5">
-                +tStack
-            </text>
-            <text x="874.5" y="704.5">
-                +validity
-            </text>
-            <text x="874.5" y="718.5">
-                +deltaT
-            </text>
-            <text x="874.5" y="732.5">
-                +expousureTime
-            </text>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-weight="bold" text-anchor="middle" font-size="14px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="440.5" y="261.5">
+                    classes
+                </text>
+            </g>
         </g>
-        <path d="M 789 531 L 809 531 Q 819 531 820.28 540.92 L 837.72 676.08 Q 839 686 849 686 L 869 686" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 861 690 L 861 682 M 869 682 L 861 686 L 869 690" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 789 801 L 789 784.5 Q 789 771 775.5 771 L 602.5 771 Q 589 771 589 784.5 L 589 801" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 589 801 L 589 917.5 Q 589 931 602.5 931 L 775.5 931 Q 789 931 789 917.5 L 789 801" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 589 801 L 789 801" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="688.5" y="791.5">
-                groups
-            </text>
+        <g>
+            <rect x="321" y="271" width="240" height="90" fill="none" stroke="none" pointer-events="all"/>
         </g>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="594.5" y="818.5">
-                +plate_id
-            </text>
-            <text x="594.5" y="832.5">
-                +group_id
-            </text>
-            <text x="594.5" y="846.5">
-                +name
-            </text>
-            <text x="594.5" y="860.5">
-                +notes
-            </text>
-            <text x="594.5" y="874.5">
-                +plate_pos_x
-            </text>
-            <text x="594.5" y="888.5">
-                +plate_pos_y
-            </text>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-size="12px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="326.5" y="288.5">
+                    class_id           USMALLINT(PK)
+                </text>
+                <text x="326.5" y="302.5">
+                    short_name         STRING
+                </text>
+                <text x="326.5" y="316.5">
+                    name               STRING
+                </text>
+                <text x="326.5" y="330.5">
+                    nots               STRING
+                </text>
+                <text x="326.5" y="344.5">
+                    color              STRING
+                </text>
+            </g>
         </g>
-        <path d="M 1069 801 L 1069 784.5 Q 1069 771 1055.5 771 L 882.5 771 Q 869 771 869 784.5 L 869 801" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 869 801 L 869 917.5 Q 869 931 882.5 931 L 1055.5 931 Q 1069 931 1069 917.5 L 1069 801" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 869 801 L 1069 801" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="968.5" y="791.5">
-                images_groups
-            </text>
+        <g>
+            <path d="M 561 91 L 561 74.5 Q 561 61 547.5 61 L 334.5 61 Q 321 61 321 74.5 L 321 91" fill="#ffffff" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="all" style="fill: light-dark(#ffffff, var(--ge-dark-color, #121212)); stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 321 91 L 321 167.5 Q 321 181 334.5 181 L 547.5 181 Q 561 181 561 167.5 L 561 91" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 321 91 L 561 91" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
         </g>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="874.5" y="818.5">
-                +plate_id
-            </text>
-            <text x="874.5" y="832.5">
-                +image_id
-            </text>
-            <text x="874.5" y="846.5">
-                +group_id
-            </text>
-            <text x="874.5" y="860.5">
-                +imageGroupIdx
-            </text>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-weight="bold" text-anchor="middle" font-size="14px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="440.5" y="81.5">
+                    clusters
+                </text>
+            </g>
         </g>
-        <path d="M 789 866 L 809 866 Q 819 866 829 866 L 834 866 Q 839 866 849 866 L 869 866" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 861 870 L 861 862 M 869 862 L 861 866 L 869 870" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 789 531 L 809 531 Q 819 531 819.66 540.98 L 838.34 823.52 Q 839 833.5 849 833.5 L 869 833.5" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 861 837.5 L 861 829.5 M 869 829.5 L 861 833.5 L 869 837.5" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 509 801 L 509 784.5 Q 509 771 495.5 771 L 322.5 771 Q 309 771 309 784.5 L 309 801" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 309 801 L 309 917.5 Q 309 931 322.5 931 L 495.5 931 Q 509 931 509 917.5 L 509 801" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 309 801 L 509 801" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="408.5" y="791.5">
-                plates
-            </text>
+        <g>
+            <rect x="321" y="91" width="240" height="90" fill="none" stroke="none" pointer-events="all"/>
         </g>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="314.5" y="818.5">
-                +plate_id
-            </text>
-            <text x="314.5" y="832.5">
-                +job_id
-            </text>
-            <text x="314.5" y="846.5">
-                +name
-            </text>
-            <text x="314.5" y="860.5">
-                +notes
-            </text>
-            <text x="314.5" y="874.5">
-                +rows
-            </text>
-            <text x="314.5" y="888.5">
-                +cols
-            </text>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-size="12px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="326.5" y="108.5">
+                    cluster_id         USMALLINT(PK)
+                </text>
+                <text x="326.5" y="122.5">
+                    short_name         STRING
+                </text>
+                <text x="326.5" y="136.5">
+                    name               STRING
+                </text>
+                <text x="326.5" y="150.5">
+                    nots               STRING
+                </text>
+                <text x="326.5" y="164.5">
+                    color              STRING
+                </text>
+            </g>
         </g>
-        <path d="M 509 866 L 529 866 Q 539 866 549 866 L 554 866 Q 559 866 569 866 L 589 866" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 581 870 L 581 862 M 589 862 L 581 866 L 589 870" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1352 306 L 1372 306 Q 1382 306 1392 306 L 1422 306 Q 1432 306 1442 306 L 1462 306" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1454 310 L 1454 302 M 1462 302 L 1454 306 L 1462 310" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1069 686 L 1089 686 Q 1099 686 1099.66 676.02 L 1121.34 348.48 Q 1122 338.5 1132 338.5 L 1152 338.5" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1144 342.5 L 1144 334.5 M 1152 334.5 L 1144 338.5 L 1152 342.5" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1070 81 L 1090 81 Q 1100 81 1108.98 85.4 L 1423.02 239.1 Q 1432 243.5 1442 243.5 L 1462 243.5" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1454 247.5 L 1454 239.5 M 1462 239.5 L 1454 243.5 L 1462 247.5" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1942 341 L 1942 324.5 Q 1942 311 1928.5 311 L 1755.5 311 Q 1742 311 1742 324.5 L 1742 341" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1742 341 L 1742 417.5 Q 1742 431 1755.5 431 L 1928.5 431 Q 1942 431 1942 417.5 L 1942 341" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1742 341 L 1942 341" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="1841.5" y="331.5">
-                object_intersections
-            </text>
+        <g>
+            <path d="M 561 431 L 561 414.5 Q 561 401 547.5 401 L 334.5 401 Q 321 401 321 414.5 L 321 431" fill="#ffffff" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="all" style="fill: light-dark(#ffffff, var(--ge-dark-color, #121212)); stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 321 431 L 321 587.5 Q 321 601 334.5 601 L 547.5 601 Q 561 601 561 587.5 L 561 431" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 321 431 L 561 431" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
         </g>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="1747.5" y="358.5">
-                +(PK)image_id
-            </text>
-            <text x="1747.5" y="372.5">
-                +(PK,FK)object_id
-            </text>
-            <text x="1747.5" y="400.5">
-                +(FK)object_id_intersect
-            </text>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-weight="bold" text-anchor="middle" font-size="14px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="440.5" y="421.5">
+                    images
+                </text>
+            </g>
         </g>
-        <path d="M 1662 306 L 1682 306 Q 1692 306 1694.43 315.7 L 1709.57 376.3 Q 1712 386 1722 386 L 1742 386" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1734 390 L 1734 382 M 1742 382 L 1734 386 L 1742 390" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 201 801 L 201 784.5 Q 201 771 187.5 771 L 14.5 771 Q 1 771 1 784.5 L 1 801" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1 801 L 1 917.5 Q 1 931 14.5 931 L 187.5 931 Q 201 931 201 917.5 L 201 801" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 1 801 L 201 801" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="100.5" y="791.5">
-                experiment
-            </text>
+        <g>
+            <rect x="321" y="431" width="240" height="170" fill="none" stroke="none" pointer-events="all"/>
         </g>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="6.5" y="818.5">
-                +experiment_id
-            </text>
-            <text x="6.5" y="832.5">
-                +name
-            </text>
-            <text x="6.5" y="846.5">
-                +notes
-            </text>
-            <text x="6.5" y="860.5">
-                +first_name
-            </text>
-            <text x="6.5" y="874.5">
-                +last_name
-            </text>
-            <text x="6.5" y="888.5">
-                +address
-            </text>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-size="12px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="326.5" y="448.5">
+                    image_id            UBIGINT(PK)
+                </text>
+                <text x="326.5" y="462.5">
+                    file_name           STRING
+                </text>
+                <text x="326.5" y="476.5">
+                    original_file_path  STRING
+                </text>
+                <text x="326.5" y="490.5">
+                    nr_of_c_stack       UINTEGER
+                </text>
+                <text x="326.5" y="504.5">
+                    nr_of_z_stack       UINTEGER
+                </text>
+                <text x="326.5" y="518.5">
+                    nr_of_t_stack       UINTEGER
+                </text>
+                <text x="326.5" y="532.5">
+                    width               UINTEGER
+                </text>
+                <text x="326.5" y="546.5">
+                    height              UINTEGER
+                </text>
+                <text x="326.5" y="560.5">
+                    validity            UBIGINT
+                </text>
+                <text x="326.5" y="574.5">
+                    processed           BOOLEAN
+                </text>
+            </g>
         </g>
-        <path d="M 201 866 L 221 866 Q 231 866 241 866 L 269 866 Q 279 866 289 866 L 309 866" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 301 870 L 301 862 M 309 862 L 301 866 L 309 870" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 509 1021 L 509 1004.5 Q 509 991 495.5 991 L 322.5 991 Q 309 991 309 1004.5 L 309 1021" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 309 1021 L 309 1137.5 Q 309 1151 322.5 1151 L 495.5 1151 Q 509 1151 509 1137.5 L 509 1021" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 309 1021 L 509 1021" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" text-anchor="middle" font-size="14px">
-            <text x="408.5" y="1011.5">
-                jobs
-            </text>
+        <g>
+            <path d="M 881 751 L 881 734.5 Q 881 721 867.5 721 L 654.5 721 Q 641 721 641 734.5 L 641 751" fill="#ffffff" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="all" style="fill: light-dark(#ffffff, var(--ge-dark-color, #121212)); stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 641 751 L 641 827.5 Q 641 841 654.5 841 L 867.5 841 Q 881 841 881 827.5 L 881 751" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 641 751 L 881 751" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
         </g>
-        <g fill="rgb(0, 0, 0)" font-family="Helvetica" pointer-events="none" font-size="12px">
-            <text x="314.5" y="1038.5">
-                +experiment_id
-            </text>
-            <text x="314.5" y="1052.5">
-                +job_id
-            </text>
-            <text x="314.5" y="1066.5">
-                +time_started
-            </text>
-            <text x="314.5" y="1080.5">
-                +time_finished
-            </text>
-            <text x="314.5" y="1094.5">
-                +settings_jsob
-            </text>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-weight="bold" text-anchor="middle" font-size="14px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="760.5" y="741.5">
+                    images_groups
+                </text>
+            </g>
         </g>
-        <path d="M 201 898.5 L 221 898.5 Q 231 898.5 233.48 908.19 L 276.52 1076.31 Q 279 1086 289 1086 L 309 1086" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
-        <path d="M 301 1090 L 301 1082 M 309 1082 L 301 1086 L 309 1090" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/>
+        <g>
+            <rect x="641" y="751" width="240" height="90" fill="none" stroke="none" pointer-events="all"/>
+        </g>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-size="12px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="646.5" y="768.5">
+                    group_id        USMALLINT(PK)
+                </text>
+                <text x="646.5" y="782.5">
+                    plate_id        USAMLLINT(PK,FK)
+                </text>
+                <text x="646.5" y="796.5">
+                    image_id        UBIGINT  (PK,FK)
+                </text>
+                <text x="646.5" y="810.5">
+                    image_group_idx UINTEGER
+                </text>
+            </g>
+        </g>
+        <g>
+            <path d="M 881 431 L 881 414.5 Q 881 401 867.5 401 L 654.5 401 Q 641 401 641 414.5 L 641 431" fill="#ffffff" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="all" style="fill: light-dark(#ffffff, var(--ge-dark-color, #121212)); stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 641 431 L 641 507.5 Q 641 521 654.5 521 L 867.5 521 Q 881 521 881 507.5 L 881 431" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 641 431 L 881 431" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+        </g>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-weight="bold" text-anchor="middle" font-size="14px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="760.5" y="421.5">
+                    images_channels
+                </text>
+            </g>
+        </g>
+        <g>
+            <rect x="641" y="431" width="240" height="90" fill="none" stroke="none" pointer-events="all"/>
+        </g>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-size="12px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="646.5" y="448.5">
+                    image_id        UBIGINT  (PK,FK)
+                </text>
+                <text x="646.5" y="462.5">
+                    stack_c         UINTEGER (PK)
+                </text>
+                <text x="646.5" y="476.5">
+                    channel_id      STRING
+                </text>
+                <text x="646.5" y="490.5">
+                    name            STRING
+                </text>
+            </g>
+        </g>
+        <g>
+            <path d="M 881 591 L 881 574.5 Q 881 561 867.5 561 L 654.5 561 Q 641 561 641 574.5 L 641 591" fill="#ffffff" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="all" style="fill: light-dark(#ffffff, var(--ge-dark-color, #121212)); stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 641 591 L 641 667.5 Q 641 681 654.5 681 L 867.5 681 Q 881 681 881 667.5 L 881 591" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 641 591 L 881 591" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+        </g>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-weight="bold" text-anchor="middle" font-size="14px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="760.5" y="581.5">
+                    images_planes
+                </text>
+            </g>
+        </g>
+        <g>
+            <rect x="641" y="591" width="240" height="90" fill="none" stroke="none" pointer-events="all"/>
+        </g>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-size="12px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="646.5" y="608.5">
+                    image_id        UBIGINT  (PK,FK)
+                </text>
+                <text x="646.5" y="622.5">
+                    stack_c         UINTEGER (PK,FK)
+                </text>
+                <text x="646.5" y="636.5">
+                    stack_z         UINTEGER (PK)
+                </text>
+                <text x="646.5" y="650.5">
+                    stack_t         UINTEGER (PK)
+                </text>
+                <text x="646.5" y="664.5">
+                    validity        UBIGINT
+                </text>
+            </g>
+        </g>
+        <g>
+            <path d="M 881 31 L 881 14.5 Q 881 1 867.5 1 L 654.5 1 Q 641 1 641 14.5 L 641 31" fill="#ffffff" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="all" style="fill: light-dark(#ffffff, var(--ge-dark-color, #121212)); stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 641 31 L 641 347.5 Q 641 361 654.5 361 L 867.5 361 Q 881 361 881 347.5 L 881 31" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 641 31 L 881 31" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+        </g>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-weight="bold" text-anchor="middle" font-size="14px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="760.5" y="21.5">
+                    objects
+                </text>
+            </g>
+        </g>
+        <g>
+            <rect x="641" y="31" width="240" height="330" fill="none" stroke="none" pointer-events="all"/>
+        </g>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-size="12px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="646.5" y="48.5">
+                    object_id         UBIGINT(PK)
+                </text>
+                <text x="646.5" y="62.5">
+                    image_id          UBIGINT(FK)
+                </text>
+                <text x="646.5" y="76.5">
+                    cluster_id        USMALLINT(FK)
+                </text>
+                <text x="646.5" y="90.5">
+                    class_id          USMALLINT(FK)
+                </text>
+                <text x="646.5" y="104.5">
+                    stack_c           UINTEGER (FK)
+                </text>
+                <text x="646.5" y="118.5">
+                    stack_z           UINTEGER
+                </text>
+                <text x="646.5" y="132.5">
+                    stack_t           UINTEGER
+                </text>
+                <text x="646.5" y="160.5">
+                    meas_confidence   FLOAT
+                </text>
+                <text x="646.5" y="174.5">
+                    meas_area_size    DOUBLE
+                </text>
+                <text x="646.5" y="188.5">
+                    meas_perimeter    FLOAT
+                </text>
+                <text x="646.5" y="202.5">
+                    meas_circularity  FLOAT
+                </text>
+                <text x="646.5" y="216.5">
+                    meas_center_x     UINTEGER
+                </text>
+                <text x="646.5" y="230.5">
+                    meas_center_y     UINTEGER
+                </text>
+                <text x="646.5" y="244.5">
+                    meas_center_z     UINTEGER
+                </text>
+                <text x="646.5" y="258.5">
+                    meas_box_with     UINTEGER
+                </text>
+                <text x="646.5" y="272.5">
+                    meas_box_height   UINTEGER
+                </text>
+                <text x="646.5" y="286.5">
+                    meas_box_depth    UINTEGER
+                </text>
+                <text x="646.5" y="300.5">
+                    meas_origin_object_id UBIGINT
+                </text>
+                <text x="646.5" y="314.5">
+                    meas_parent_object_id UBIGINT
+                </text>
+                <text x="646.5" y="328.5">
+                    meas_contour      UINTEGER[]
+                </text>
+                <text x="646.5" y="342.5">
+                    meas_mask   MAP(UINTGER,BOOLEAN)
+                </text>
+            </g>
+        </g>
+        <g>
+            <path d="M 1201 31 L 1201 14.5 Q 1201 1 1187.5 1 L 974.5 1 Q 961 1 961 14.5 L 961 31" fill="#ffffff" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="all" style="fill: light-dark(#ffffff, var(--ge-dark-color, #121212)); stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 961 31 L 961 187.5 Q 961 201 974.5 201 L 1187.5 201 Q 1201 201 1201 187.5 L 1201 31" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 961 31 L 1201 31" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+        </g>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-weight="bold" text-anchor="middle" font-size="14px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="1080.5" y="21.5">
+                    object_measurements
+                </text>
+            </g>
+        </g>
+        <g>
+            <rect x="961" y="31" width="240" height="170" fill="none" stroke="none" pointer-events="all"/>
+        </g>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-size="12px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="966.5" y="48.5">
+                    object_id         UBIGINT(PK)
+                </text>
+                <text x="966.5" y="62.5">
+                    image_id          UBIGINT(FK)
+                </text>
+                <text x="966.5" y="90.5">
+                    meas_stack_c      UINTEGER (FK)
+                </text>
+                <text x="966.5" y="104.5">
+                    meas_stack_z      UINTEGER
+                </text>
+                <text x="966.5" y="118.5">
+                    meas_stack_t      UINTEGER
+                </text>
+                <text x="966.5" y="132.5">
+                    meas_intensity_sum UBIGINT
+                </text>
+                <text x="966.5" y="146.5">
+                    meas_intensity_avg FLOAT
+                </text>
+                <text x="966.5" y="160.5">
+                    meas_intensity_min UINTEGER
+                </text>
+                <text x="966.5" y="174.5">
+                    meas_intensity_max UINTEGER
+                </text>
+            </g>
+        </g>
+        <g>
+            <path d="M 561 113.5 L 581 113.5 Q 591 113.5 601 113.5 L 606 113.5 Q 611 113.5 621 113.5 L 641 113.5" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 633 117.5 L 633 109.5 M 641 109.5 L 633 113.5 L 641 117.5" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+        </g>
+        <g>
+            <path d="M 561 293.5 L 581 293.5 Q 591 293.5 593.01 283.7 L 608.99 205.8 Q 611 196 621 196 L 641 196" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 633 200 L 633 192 M 641 192 L 633 196 L 641 200" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+        </g>
+        <g>
+            <path d="M 561 516 L 581 516 Q 591 516 591.84 506.04 L 610.16 288.46 Q 611 278.5 621 278.5 L 641 278.5" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 633 282.5 L 633 274.5 M 641 274.5 L 633 278.5 L 641 282.5" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+        </g>
+        <g>
+            <path d="M 561 516 L 581 516 Q 591 516 595.47 507.06 L 606.53 484.94 Q 611 476 621 476 L 641 476" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 633 480 L 633 472 M 641 472 L 633 476 L 641 480" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+        </g>
+        <g>
+            <path d="M 561 516 L 581 516 Q 591 516 593.01 525.8 L 608.99 603.7 Q 611 613.5 621 613.5 L 641 613.5" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 633 617.5 L 633 609.5 M 641 609.5 L 633 613.5 L 641 617.5" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+        </g>
+        <g>
+            <path d="M 561 516 L 581 516 Q 591 516 591.77 525.97 L 610.23 763.53 Q 611 773.5 621 773.5 L 641 773.5" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 633 777.5 L 633 769.5 M 641 769.5 L 633 773.5 L 641 777.5" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+        </g>
+        <g>
+            <path d="M 561 693.5 L 581 693.5 Q 591 693.5 592.92 703.31 L 609.08 786.19 Q 611 796 621 796 L 641 796" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 633 800 L 633 792 M 641 792 L 633 796 L 641 800" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+        </g>
+        <g>
+            <path d="M 241 798.5 L 261 798.5 Q 271 798.5 280.98 799.09 L 601.02 817.91 Q 611 818.5 621 818.5 L 641 818.5" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 633 822.5 L 633 814.5 M 641 814.5 L 633 818.5 L 641 822.5" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+        </g>
+        <g>
+            <path d="M 561 671 L 561 654.5 Q 561 641 547.5 641 L 334.5 641 Q 321 641 321 654.5 L 321 671" fill="#ffffff" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="all" style="fill: light-dark(#ffffff, var(--ge-dark-color, #121212)); stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 321 671 L 321 747.5 Q 321 761 334.5 761 L 547.5 761 Q 561 761 561 747.5 L 561 671" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 321 671 L 561 671" fill="none" stroke="#000000" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+        </g>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-weight="bold" text-anchor="middle" font-size="14px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <text x="440.5" y="661.5">
+                    groups
+                </text>
+            </g>
+        </g>
+        <g>
+            <rect x="321" y="671" width="240" height="90" fill="none" stroke="none" pointer-events="all"/>
+        </g>
+        <g>
+            <g fill="#000000" font-family="&quot;Courier New&quot;" font-size="12px" style="fill: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));">
+                <rect fill="#ffffff" stroke="none" x="327" y="679" width="232" height="59" stroke-width="0" style="fill: light-dark(#ffffff, var(--ge-dark-color, #121212));"/>
+                <text x="326.5" y="688.5">
+                    plate_id        USMALLINT(PK,FK)
+                </text>
+                <text x="326.5" y="702.5">
+                    group_id        USMALLINT(PK)
+                </text>
+                <text x="326.5" y="716.5">
+                    pos_on_plate_x  UINTEGER
+                </text>
+                <text x="326.5" y="730.5">
+                    pos_on_plate_y  UINTEGER
+                </text>
+            </g>
+        </g>
+        <g>
+            <path d="M 881 196 L 901 196 Q 911 196 913.43 186.3 L 928.57 125.7 Q 931 116 941 116 L 961 116" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+            <path d="M 953 120 L 953 112 M 961 112 L 953 116 L 961 120" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all" style="stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));"/>
+        </g>
     </g>
 </svg>
