@@ -4,11 +4,9 @@
 /// \date      2023-07-02
 ///
 /// \copyright Copyright 2019 Joachim Danmayr
-///            All rights reserved! This file is subject
-///            to the terms and conditions defined in file
-///            LICENSE.txt, which is part of this package.
-///
-
+///            This software is licensed for **non-commercial** use only.
+///            Educational, research, and personal use are permitted.
+///            For **Commercial** please contact the copyright owner.
 ///
 
 #pragma once
@@ -46,9 +44,8 @@ public:
     image.convertTo(image, CV_8UC1, 1.0F / 257.0F);
     auto floatEdm = joda::image::func::Edm::makeFloatEDM(image, 0, false);
     joda::image::func::MaximumFinder find;
-    auto maxIp =
-        find.findMaxima(floatEdm, mSettings.maximumFinderTolerance, joda::image::func::MaximumFinder::NO_THRESHOLD,
-                        joda::image::func::MaximumFinder::SEGMENTED, false, true);
+    auto maxIp = find.findMaxima(floatEdm, mSettings.maximumFinderTolerance, joda::image::func::MaximumFinder::NO_THRESHOLD,
+                                 joda::image::func::MaximumFinder::SEGMENTED, false, true);
     cv::bitwise_and(maxIp, image, image);
     image.convertTo(image, CV_16UC1, (float) UINT16_MAX / (float) UINT8_MAX);
   }

@@ -4,9 +4,10 @@
 /// \date      2024-08-18
 ///
 /// \copyright Copyright 2019 Joachim Danmayr
-///            All rights reserved! This file is subject
-///            to the terms and conditions defined in file
-///            LICENSE.txt, which is part of this package.
+///            This software is licensed for **non-commercial** use only.
+///            Educational, research, and personal use are permitted.
+///            For **Commercial** please contact the copyright owner.
+///
 ///
 ///
 
@@ -273,9 +274,7 @@ auto Controller::getImageProperties(const std::filesystem::path &image, int seri
   return joda::image::reader::ImageReader::getOmeInformation(image, series);
 }
 
-// FLOW CONTROL ///////////////////////////////////////////////////
-
-///
+// FLOW CONTROL ////////////////////////////////////////////////
 /// \brief
 /// \author
 /// \return
