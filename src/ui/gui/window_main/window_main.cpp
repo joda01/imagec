@@ -182,8 +182,7 @@ void WindowMain::createTopToolbar()
   // showResultsTemplate->setToolTip("Results template!");
   // connect(showResultsTemplate, &QAction::triggered, [this]() { mResultsTemplate->exec(); });
   // toolbar->addAction(showResultsTemplate);
-
-  mTopToolBar->addSeparator();
+  // mTopToolBar->addSeparator();
 
   mShowCompilerLog = new QAction(generateIcon("popup"), "Compiler log", mTopToolBar);
   mShowCompilerLog->setToolTip("CompileLog!");
@@ -860,20 +859,21 @@ void WindowMain::onShowInfoDialog()
   messageBox.setWindowTitle("Info");
   auto *mainLayout = new QVBoxLayout(&messageBox);
   //   mainLayout->setContentsMargins(28, 28, 28, 28);
-  QLabel *helpTextLabel = new QLabel("<p style=\"text-align: left;\"><strong>" + QString(Version::getProgamName().data()) + " " +
-                                     QString(Version::getVersion().data()) + " (" + QString(Version::getBuildTime().data()) +
-                                     ")</strong></p>"
-                                     "<p style=\"text-align: left;\"><em>Licensed under AGPL-3.0<br />Free for non commercial use."
-                                     "</em></p>"
-                                     "<p style=\"text-align: left;\"><strong>Many thanks</strong> for help in setting this project to Melanie "
-                                     "Schuerz</p>"
-                                     "<p style=\"text-align: left;\"><strong>Thank you very much for your help in training the AI "
-                                     "models</strong><br "
-                                     "/>Melanie Schuerz, Anna Mueller, Tanja Plank, Maria Jaritsch, Heloisa Melobenirschke, Patricia Hrasnova and "
-                                     "Ritesh Khanna</p>"
-                                     "<p style=\"text-align: left;\"><em>Icons from <a href=\"https://icons8.com/\">https://icons8.com/</a> and "
-                                     "Dominik Handl.<br /> Special thanks to Tanja Plank for the logo design.</em></p>"
-                                     "<p style=\"text-align: left;\">(c) 2022-2024 Joachim Danmayr</p>");
+  QLabel *helpTextLabel =
+      new QLabel("<p style=\"text-align: left;\"><strong>" + QString(Version::getProgamName().data()) + " " + QString(Version::getVersion().data()) +
+                 " (" + QString(Version::getBuildTime().data()) +
+                 ")</strong></p>"
+                 "<p style=\"text-align: left;\"><em>Licensed under AGPL-3.0 for non commercial<br />Free to use for non commercial."
+                 "</em></p>"
+                 "<p style=\"text-align: left;\"><strong>Many thanks</strong> for help in setting this project to Melanie "
+                 "Schuerz</p>"
+                 "<p style=\"text-align: left;\"><strong>Thank you very much for your help in training the AI "
+                 "models</strong><br "
+                 "/>Melanie Schuerz, Anna Mueller, Tanja Plank, Maria Jaritsch, Heloisa Melobenirschke, Patricia Hrasnova and "
+                 "Ritesh Khanna</p>"
+                 "<p style=\"text-align: left;\"><em>Icons from <a href=\"https://icons8.com/\">https://icons8.com/</a> and "
+                 "Dominik Handl.<br /> Special thanks to Tanja Plank for the logo design.</em></p>"
+                 "<p style=\"text-align: left;\">copyright 2022-2025 Joachim Danmayr</p>");
   helpTextLabel->setOpenExternalLinks(true);
   helpTextLabel->setWordWrap(true);
   QFont fontLineEdit;
