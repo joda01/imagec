@@ -4,11 +4,9 @@
 /// \date      2023-11-01
 ///
 /// \copyright Copyright 2019 Joachim Danmayr
-///            All rights reserved! This file is subject
-///            to the terms and conditions defined in file
-///            LICENSE.txt, which is part of this package.
-///
-
+///            This software is licensed for **non-commercial** use only.
+///            Educational, research, and personal use are permitted.
+///            For **Commercial** please contact the copyright owner.
 ///
 
 #pragma once
@@ -95,15 +93,12 @@ public:
     int32_t histoLength = histogram.total();
     while(threshold != Tprev) {
       // Calculate some statistics.
-      mu = B(histogram, threshold) / A(histogram, threshold);
-      nu = (B(histogram, histoLength - 1) - B(histogram, threshold)) /
-           (A(histogram, histoLength - 1) - A(histogram, threshold));
+      mu     = B(histogram, threshold) / A(histogram, threshold);
+      nu     = (B(histogram, histoLength - 1) - B(histogram, threshold)) / (A(histogram, histoLength - 1) - A(histogram, threshold));
       p      = A(histogram, threshold) / A(histogram, histoLength - 1);
       q      = (A(histogram, histoLength - 1) - A(histogram, threshold)) / A(histogram, histoLength - 1);
       sigma2 = C(histogram, threshold) / A(histogram, threshold) - (mu * mu);
-      tau2   = (C(histogram, histoLength - 1) - C(histogram, threshold)) /
-                 (A(histogram, histoLength - 1) - A(histogram, threshold)) -
-             (nu * nu);
+      tau2   = (C(histogram, histoLength - 1) - C(histogram, threshold)) / (A(histogram, histoLength - 1) - A(histogram, threshold)) - (nu * nu);
 
       // The terms of the quadratic equation to be solved.
       w0 = 1.0 / sigma2 - 1.0 / tau2;

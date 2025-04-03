@@ -7,9 +7,6 @@
 ///            All rights reserved! This file is subject
 ///            to the terms and conditions defined in file
 ///            LICENSE.txt, which is part of this package.
-///
-
-///
 
 #include "layout_generator.hpp"
 #include <qtabwidget.h>

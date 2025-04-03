@@ -21,7 +21,7 @@ The main goals were to improve performance, allow the processing of big tiffs an
 |[BioFormats support](https://github.com/ome/bioformats)    |x        |x          |
 |[OME-XML support](https://docs.openmicroscopy.org/)        |x        |x          |
 |XLSX report generation                                     |x        |x          |
-|Max. channels                                              |10       |5          |
+|Max. image channels                                        |10       |5          |
 |Max image size                                             |no limit |2GB        |
 |Support for big tiff                                       |x        |-          |
 |AI based object detection                                  |x        |-          |
@@ -67,6 +67,45 @@ This id is calculated by the `fnv1a` hash: `object.image_id = fnv1a(<ORIGINAL-IM
  valgrind --tool=massif --log-file="filename" ./build/build/tests "[pipeline_test_spots]"
  valgrind --gen-suppressions=all --tool=massif --log-file="filename" ./build/build/tests "[pipeline_test_nucleus]"
 
+#### Debug UI in docker
+
+Instal
+```
+apt-get install -y xserver-xorg xinit libxcb-cursor-dev libxcb-*
+```
+and execute 
+```
+xhost +local:docker
+```
+on your host machine
+
+#### Show console output in Windows
+
+Use Windows powershell and execute imagec with:
+```
+Start-Process -RedirectStandardOutput out.txt imagec.exe
+```
+
+#### Create dependency graph
+
+```
+conan graph info . --profile conan/profile_linux --format=html > graph.html
+```
+
+#### Suppress JNI segfault in gdb
+
+JNI generates some internal false positive segfaults which can be supressed for debugging.
+
+Execute one of the two following lines in `gdb`
+```
+handle SIGSEGV nostop noprint pass
+
+or
+
+handle SIGSEGV nostop print pass
+```
+
+
 
 ### Add new command
 
@@ -106,18 +145,119 @@ Execute `build_win.ps1`
 
 Many thank's to the authors of following open source libraries I used:
 
+<!---EXT-LIBS-->
+Title | Link | License
+------|------|--------
+ImageC/1.0-beta|https://imagec.org|['AGPL-3.0', 'imagec']
+qt/6.7.1|https://www.qt.io|LGPL-3.0-only
+zlib/1.3.1|https://zlib.net|Zlib
+openssl/3.3.2|https://github.com/openssl/openssl|Apache-2.0
+pcre2/10.42|https://www.pcre.org/|BSD-3-Clause
+bzip2/1.0.8|https://sourceware.org/bzip2|bzip2-1.0.8
+double-conversion/3.3.0|https://github.com/google/double-conversion|BSD-3-Clause
+freetype/2.13.2|https://www.freetype.org|FTL
+libpng/1.6.44|http://www.libpng.org|libpng-2.0
+brotli/1.1.0|https://github.com/google/brotli|['MIT']
+meson/1.3.2|https://github.com/mesonbuild/meson|Apache-2.0
+ninja/1.12.1|https://github.com/ninja-build/ninja|Apache-2.0
+pkgconf/2.1.0|https://git.sr.ht/~kaniini/pkgconf|ISC
+meson/1.2.2|https://github.com/mesonbuild/meson|Apache-2.0
+fontconfig/2.15.0|https://gitlab.freedesktop.org/fontconfig/fontconfig|MIT
+expat/2.6.3|https://github.com/libexpat/libexpat|MIT
+gperf/3.1|https://www.gnu.org/software/gperf|GPL-3.0-or-later
+meson/1.4.0|https://github.com/mesonbuild/meson|Apache-2.0
+icu/74.2|http://site.icu-project.org|Unicode-3.0
+harfbuzz/8.3.0|https://harfbuzz.github.io/|MIT
+xkbcommon/1.6.0|https://github.com/xkbcommon/libxkbcommon|MIT
+xkeyboard-config/system|https://www.freedesktop.org/wiki/Software/XKeyboardConfig/|MIT
+xorg/system|https://www.x.org/wiki/|MIT
+libxml2/2.13.4|https://gitlab.gnome.org/GNOME/libxml2/-/wikis/|MIT
+libiconv/1.17|https://www.gnu.org/software/libiconv/|LGPL-2.1-or-later
+wayland/1.22.0|https://wayland.freedesktop.org|MIT
+libffi/3.4.4|https://sourceware.org/libffi/|MIT
+bison/3.8.2|https://www.gnu.org/software/bison/|GPL-3.0-or-later
+m4/1.4.19|https://www.gnu.org/software/m4/|GPL-3.0-only
+flex/2.6.4|https://github.com/westes/flex|BSD-2-Clause
+wayland-protocols/1.33|https://gitlab.freedesktop.org/wayland/wayland-protocols|MIT
+meson/1.3.0|https://github.com/mesonbuild/meson|Apache-2.0
+opengl/system|https://www.opengl.org/|MIT
+md4c/0.4.8|https://github.com/mity/md4c|MIT
+cmake/3.30.5|https://github.com/Kitware/CMake|BSD-3-Clause
+pkgconf/2.2.0|https://git.sr.ht/~kaniini/pkgconf|ISC
+opencv/4.10.0|https://opencv.org|Apache-2.0
+eigen/3.4.0|http://eigen.tuxfamily.org|['MPL-2.0', 'LGPL-3.0-or-later']
+protobuf/3.21.12|https://github.com/protocolbuffers/protobuf|BSD-3-Clause
+ade/0.1.2d|https://github.com/opencv/ade|Apache-2.0
+libjpeg/9e|http://ijg.org|IJG
+openjpeg/2.5.2|https://github.com/uclouvain/openjpeg|BSD-2-Clause
+libtiff/4.6.0|http://www.simplesystems.org/libtiff|libtiff
+libdeflate/1.19|https://github.com/ebiggers/libdeflate|MIT
+xz_utils/5.4.5|https://tukaani.org/xz|['Unlicense', 'LGPL-2.1-or-later', 'GPL-2.0-or-later', 'GPL-3.0-or-later']
+jbig/20160605|https://github.com/ImageMagick/jbig|GPL-2.0
+zstd/1.5.5|https://github.com/facebook/zstd|BSD-3-Clause
+libwebp/1.3.2|https://chromium.googlesource.com/webm/libwebp|BSD-3-Clause
+quirc/1.2|https://github.com/dlbeer/quirc|ISC
+catch2/3.7.0|https://github.com/catchorg/Catch2|BSL-1.0
+pugixml/1.14|https://pugixml.org/|MIT
+nlohmann_json/3.11.3|https://github.com/nlohmann/json|MIT
+libxlsxwriter/1.1.8|https://github.com/jmcnamara/libxlsxwriter|BSD-2-Clause
+minizip/1.2.13|https://zlib.net|Zlib
+duckdb/1.1.0|https://github.com/cwida/duckdb|MIT
+onnx/1.17.0|https://github.com/onnx/onnx|Apache-2.0
+rapidyaml/0.7.1|https://github.com/biojppm/rapidyaml|['MIT']
+c4core/0.2.0|https://github.com/biojppm/c4core|['MIT']
+fast_float/6.1.0|https://github.com/fastfloat/fast_float|['Apache-2.0', 'MIT', 'BSL-1.0']
+onnxruntime/1.18.1|https://onnxruntime.ai|MIT
+abseil/20240116.1|https://github.com/abseil/abseil-cpp|Apache-2.0
+date/3.0.1|https://github.com/HowardHinnant/date|MIT
+libcurl/8.11.1|https://curl.se|curl
+libtool/2.4.7|https://www.gnu.org/software/libtool/|['GPL-2.0-or-later', 'GPL-3.0-or-later']
+automake/1.16.5|https://www.gnu.org/software/automake/|['GPL-2.0-or-later', 'GPL-3.0-or-later']
+autoconf/2.71|https://www.gnu.org/software/autoconf/|['GPL-2.0-or-later', 'GPL-3.0-or-later']
+gnu-config/cci.20210814|https://savannah.gnu.org/projects/config/|['GPL-3.0-or-later', 'autoconf-special-exception']
+re2/20231101|https://github.com/google/re2|BSD-3-Clause
+flatbuffers/23.5.26|http://google.github.io/flatbuffers|Apache-2.0
+boost/1.86.0|https://www.boost.org|BSL-1.0
+libbacktrace/cci.20240730|https://github.com/ianlancetaylor/libbacktrace|BSD-3-Clause
+b2/5.2.1|https://www.bfgroup.xyz/b2/|BSL-1.0
+safeint/3.0.28|https://github.com/dcleblanc/SafeInt|MIT
+ms-gsl/4.0.0|https://github.com/microsoft/GSL|MIT
+cpuinfo/cci.20231129|https://github.com/pytorch/cpuinfo|BSD-2-Clause
+nsync/1.26.0|https://github.com/google/nsync|Apache-2.0
+libtorch/2.4.0|https://pytorch.org|BSD-3-Clause
+fp16/cci.20210320|https://github.com/Maratyszcza/FP16|MIT
+psimd/cci.20200517|https://github.com/Maratyszcza/psimd|MIT
+fmt/10.2.1|https://github.com/fmtlib/fmt|MIT
+foxi/cci.20210217|https://github.com/houseroad/foxi|MIT
+cpp-httplib/0.18.0|https://github.com/yhirose/cpp-httplib|MIT
+sleef/3.6.1|https://sleef.org|BSL-1.0
+openmp/system|https://www.openmp.org/|MIT
+openblas/0.3.28|https://www.openblas.net|BSD-3-Clause
+fbgemm/0.8.0|https://github.com/pytorch/FBGEMM|BSD-3-Clause
+asmjit/cci.20240531|https://asmjit.com|Zlib
+fxdiv/cci.20200417|https://github.com/Maratyszcza/FXdiv|MIT
+xnnpack/cci.20240229|https://github.com/google/XNNPACK|BSD-3-Clause
+pthreadpool/cci.20231129|https://github.com/Maratyszcza/pthreadpool|BSD-2-Clause
+libnuma/2.0.16|https://github.com/numactl/numactl|LGPL-2.1-or-later
+cpython/3.12.7|https://www.python.org|Python-2.0
+mpdecimal/2.5.1|http://www.bytereef.org/mpdecimal|BSD-2-Clause
+util-linux-libuuid/2.39.2|https://github.com/util-linux/util-linux.git|BSD-3-Clause
+libxcrypt/4.4.36|https://github.com/besser82/libxcrypt|['LGPL-2.1-or-later']
+gdbm/1.23|https://www.gnu.org.ua/software/gdbm/gdbm.html|GPL-3.0-or-later
+sqlite3/3.45.2|https://www.sqlite.org|Unlicense
+tk/8.6.10|https://tcl.tk|TCL
+tcl/8.6.10|https://tcl.tk|TCL
+fontconfig/2.13.93|https://gitlab.freedesktop.org/fontconfig/fontconfig|MIT
+ncurses/6.4|https://www.gnu.org/software/ncurses|X11
+pkgconf/2.0.3|https://git.sr.ht/~kaniini/pkgconf|ISC
+tensorflow-lite/2.15.0|https://www.tensorflow.org/lite/guide|Apache-2.0
+farmhash/cci.20190513|https://github.com/google/farmhash|MIT
+fft/cci.20061228|http://www.kurims.kyoto-u.ac.jp/~ooura/fft.html|LicenseRef-LICENSE
+gemmlowp/cci.20210928|https://github.com/google/gemmlowp|Apache-2.0
+ruy/cci.20231129|https://github.com/google/ruy|Apache-2.0
+intel-neon2sse/cci.20210225|https://github.com/intel/ARM_NEON_2_x86_SSE|BSD-2-Clause
 
-Title                   | Link                                          | License
-------                  |-------                                        |--------
-nlohmann/json           |https://github.com/nlohmann/json.git           | MIT
-zeux/pugixml            |https://github.com/zeux/pugixml                | MIT
-protocolbuffers/protobuf|https://github.com/protocolbuffers/protobuf    | Google Inc.
-opencv/opencv           |https://github.com/opencv/opencv.git           | Apache-2.0
-qt6                     |https://code.qt.io/cgit/                       | LGPL-3.0
-jmcnamara/libxlsxwriter |https://github.com/jmcnamara/libxlsxwriter.git | FreeBSD
-duckdb/duckdb           |https://github.com/duckdb/duckdb               | MIT
-ome/bioformats          |https://github.com/ome/bioformats              | GPL-2.0
-microsoft/onnxruntime   |https://github.com/microsoft/onnxruntime       | MIT
+<!---EXT-LIBS-->
 
 Thank's to the authors of [imagej](https://github.com/imagej/imagej2) I ported some image processing algorithms from to C++.  
 ImageC is the follower of [evanalyzer](https://github.com/joda01/evanalyzer).
@@ -129,3 +269,15 @@ ImageC is the follower of [evanalyzer](https://github.com/joda01/evanalyzer).
 chmod +x imagec.app/Contents/MacOS/imagec
 xattr -dr com.apple.quarantine imagec.app
 open imagec.app
+
+---
+
+## LICENSE
+
+Copyright 2019-2025 Joachim Danmayr  
+
+Most parts of this software are licensed for **non-commercial** use only.
+Educational, research, and personal use are permitted.
+For **Commercial** please contact the copyright owner.
+
+Some parts are licensed under **AGPL-3.0**.

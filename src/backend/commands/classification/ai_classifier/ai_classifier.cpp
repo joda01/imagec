@@ -4,12 +4,11 @@
 /// \date      2023-02-26
 ///
 /// \copyright Copyright 2019 Joachim Danmayr
-///            All rights reserved! This file is subject
-///            to the terms and conditions defined in file
-///            LICENSE.txt, which is part of this package.
+///            This software is licensed for **non-commercial** use only.
+///            Educational, research, and personal use are permitted.
+///            For **Commercial** please contact the copyright owner.
 ///
-
-/// \link      https://github.com/UNeedCryDear/yolov5-seg-opencv-onnxruntime-cpp
+///\link       https :// github.com/UNeedCryDear/yolov5-seg-opencv-onnxruntime-cpp
 
 #include "ai_classifier.hpp"
 #include <exception>
@@ -33,7 +32,6 @@
 #include <opencv2/imgproc.hpp>
 
 namespace joda::cmd {
-
 ///
 /// \brief      Constructor
 /// \author     Joachim Danmayr
