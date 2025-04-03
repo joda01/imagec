@@ -5,10 +5,11 @@ from conan.tools.cmake import CMakeToolchain, CMakeDeps
 
 class ImageC(ConanFile):
     name = "ImageC"
-    version = "1.0"
-    license = "AGPL"
+    version = "1.0-beta"
+    license = ["AGPL-3.0","imagec"]
     author = "Joachim Danmayr <your.email@example.com>"
-    url = "https://github.com/your/repo"
+    url = "https://github.com/joda01/imagec"
+    homepage="https://imagec.org"
     description = "High throughput image analysis tool for bio science!"
     topics = ("conan", "image-processing", "science")
     settings = "os", "compiler", "build_type", "arch"
