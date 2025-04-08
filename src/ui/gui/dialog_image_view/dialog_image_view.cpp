@@ -57,10 +57,12 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
       setMinimumWidth(1200);    // Wider when floating
       setMinimumHeight(600);
       setMaximumWidth(10000);    // Remove max width cap
+      mCentralLayout->setDirection(QBoxLayout::LeftToRight);
     } else {
       setMaximumWidth(500);    // Restrict width when docked
       setMinimumHeight(0);
       setMinimumWidth(500);    // Restore min width when docked
+      mCentralLayout->setDirection(QBoxLayout::TopToBottom);
     }
   });
 
@@ -192,14 +194,14 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
 
   // Central images
   {
-    auto *centralLayout      = new QGridLayout();
+    mCentralLayout           = new QBoxLayout(QBoxLayout::TopToBottom);
     auto *centralWidget      = new QWidget();
     auto *leftVerticalLayout = new QVBoxLayout();
     mHistoToolbarLeft        = new HistoToolbar(static_cast<int32_t>(ImageView::LEFT), this, &mPreviewImages.originalImage);
     mImageViewLeft.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     leftVerticalLayout->addWidget(&mImageViewLeft);
     leftVerticalLayout->addWidget(mHistoToolbarLeft);
-    centralLayout->addLayout(leftVerticalLayout, 0, 0);
+    mCentralLayout->addLayout(leftVerticalLayout);
     mImageViewLeft.resetImage();
 
     auto *rightVerticalLayout = new QVBoxLayout();
@@ -207,12 +209,12 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     mImageViewRight.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     rightVerticalLayout->addWidget(&mImageViewRight);
     rightVerticalLayout->addWidget(mHistoToolbarRight);
-    centralLayout->addLayout(rightVerticalLayout, 0, 1);
+    mCentralLayout->addLayout(rightVerticalLayout);
     mImageViewRight.resetImage();
 
     // centralLayout->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    centralWidget->setLayout(centralLayout);
+    centralWidget->setLayout(mCentralLayout);
     layout->addWidget(centralWidget);
 
     connect(&mImageViewLeft, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onLeftViewChanged);

@@ -101,6 +101,7 @@ private:
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
   std::mutex mPreviewMutex;
   int mPreviewCounter = 0;
+  QBoxLayout *mCentralLayout;
 
   HistoToolbar *mHistoToolbarLeft  = nullptr;
   HistoToolbar *mHistoToolbarRight = nullptr;
