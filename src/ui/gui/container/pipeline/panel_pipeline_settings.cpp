@@ -66,7 +66,7 @@ using namespace std::chrono_literals;
 PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pipeline &settings,
                                              std::shared_ptr<DialogCommandSelection> &commandSelectionDialog) :
     QWidget(wm),
-    mLayout(this, true), mWindowMain(wm), mSettings(settings), mCommandSelectionDialog(commandSelectionDialog)
+    mLayout(this, false, true, true, false, wm), mWindowMain(wm), mSettings(settings), mCommandSelectionDialog(commandSelectionDialog)
 {
   setObjectName("PanelPipelineSettings");
   auto *tab = mLayout.addTab(
@@ -164,6 +164,12 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   });
   connect(mActionDisabled, &QAction::triggered, this, &PanelPipelineSettings::valueChangedEvent);
 
+  //
+  // Add delete button
+  //
+  auto *actionDeletePipeline = mLayout.addActionButton("Delete pipeline", generateSvgIcon("edit-delete"));
+  connect(actionDeletePipeline, &QAction::triggered, this, &PanelPipelineSettings::deletePipeline);
+
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);
   connect(this, &PanelPipelineSettings::updatePreviewFinished, this, &PanelPipelineSettings::onPreviewFinished);
   connect(mPreviewImage, &PanelPreview::tileClicked, this, &PanelPipelineSettings::onTileClicked);
@@ -171,7 +177,6 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   connect(wm->getImagePanel(), &PanelImages::imageSelectionChanged, this, &PanelPipelineSettings::updatePreview);
   connect(wm->getPanelProjectSettings(), &PanelProjectSettings::updateImagePreview, this, &PanelPipelineSettings::updatePreview);
   connect(mLayout.getBackButton(), &QAction::triggered, this, &PanelPipelineSettings::closeWindow);
-  connect(mLayout.getDeleteButton(), &QAction::triggered, this, &PanelPipelineSettings::deletePipeline);
   connect(wm->getPanelClassification(), &PanelClassification::settingsChanged, this, &PanelPipelineSettings::onClassificationNameChanged);
   onClassificationNameChanged();
 
@@ -310,7 +315,7 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 {
   //
   //
-  pipelineName = SettingBase::create<SettingLineEdit<std::string>>(windowMain, generateIcon("header"), "Pipeline name", 15);
+  pipelineName = SettingBase::create<SettingLineEdit<std::string>>(windowMain, generateSvgIcon("text-field"), "Pipeline name", 15);
   pipelineName->setPlaceholderText("Name");
   pipelineName->setMaxLength(30);
   pipelineName->connectWithSetting(&mSettings.meta.name);
@@ -343,7 +348,7 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 
   //
   //
-  defaultClassId = SettingBase::create<SettingComboBoxClassesOutN>(windowMain, generateIcon("circle"), "Class", 10);
+  defaultClassId = SettingBase::create<SettingComboBoxClassesOutN>(windowMain, generateSvgIcon("shapes"), "Output class", 10);
   defaultClassId->addOptions({
       {enums::ClassId::UNDEFINED, "Undefined"}, {enums::ClassId::C0, "Class C0"},   {enums::ClassId::C1, "Class C1"},
       {enums::ClassId::C2, "Class C2"},         {enums::ClassId::C3, "Class C3"},   {enums::ClassId::C4, "Class C4"},
@@ -381,9 +386,8 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 
   {
     auto *col1 = tab->addVerticalPanel();
-    col1->addGroup("Pipeline meta", {pipelineName.get()});
+    col1->addGroup("Pipeline", {pipelineName.get(), defaultClassId.get()});
     col1->addGroup("Pipeline input", {cStackIndex.get(), zProjection.get(), zStackIndex.get()});
-    col1->addGroup("Pipeline output", {defaultClassId.get()});
     col1->addGroup({pipelineNotes.get()});
   }
 
@@ -917,6 +921,7 @@ void PanelPipelineSettings::copyPipeline()
 void PanelPipelineSettings::setActive(bool setActive)
 {
   if(!mIsActiveShown && setActive) {
+    mLayout.showToolBar(true);
     mIsActiveShown = true;
     updatePreview();
     mDialogHistory->loadHistory();
@@ -924,6 +929,7 @@ void PanelPipelineSettings::setActive(bool setActive)
   if(!setActive && mIsActiveShown) {
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
     mIsActiveShown = false;
+    mLayout.showToolBar(false);
     mDialogHistory->hide();
     mHistoryAction->setChecked(false);
     mPreviewImage->hidePreviewImage();

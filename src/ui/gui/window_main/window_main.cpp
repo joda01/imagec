@@ -155,7 +155,6 @@ void WindowMain::setSideBarVisible(bool visible)
 void WindowMain::createTopToolbar()
 {
   mTopToolBar = addToolBar("File toolbar");
-  // mTopToolBar->setMovable(false);
 
   mNewProjectButton = new QAction(generateSvgIcon("folder-new"), "New project", mTopToolBar);
   connect(mNewProjectButton, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
