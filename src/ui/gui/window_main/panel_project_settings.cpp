@@ -79,7 +79,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   mWorkingDir->setPlaceholderText("Directory your images are placed in...");
   QHBoxLayout *workingDir = new QHBoxLayout;
   workingDir->addWidget(mWorkingDir);
-  QPushButton *openDir = new QPushButton(generateIcon("images-folder"), "");
+  QPushButton *openDir = new QPushButton(generateSvgIcon("image-tiff"), "");
   connect(openDir, &QPushButton::clicked, this, &PanelProjectSettings::onOpenWorkingDirectoryClicked);
   workingDir->addWidget(openDir);
   workingDir->setStretch(0, 1);    // Make label take all available space
@@ -91,7 +91,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   // Experiment name
   //
   mExperimentName = new QLineEdit;
-  mExperimentName->addAction(generateIcon("rename"), QLineEdit::LeadingPosition);
+  mExperimentName->addAction(generateSvgIcon("text-field"), QLineEdit::LeadingPosition);
   mExperimentName->setPlaceholderText("Experiment");
   formLayout->addRow(new QLabel(tr("Experiment name:")), mExperimentName);
 
@@ -99,7 +99,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   // Scientist
   //
   mScientistsFirstName = new QLineEdit;
-  mScientistsFirstName->addAction(generateIcon("name"), QLineEdit::LeadingPosition);
+  mScientistsFirstName->addAction(generateSvgIcon("im-user"), QLineEdit::LeadingPosition);
   formLayout->addRow(new QLabel(tr("Scientist:")), mScientistsFirstName);
   connect(mScientistsFirstName, &QLineEdit::editingFinished, this, &PanelProjectSettings::onSettingChanged);
   mScientistsFirstName->setPlaceholderText(joda::helper::getLoggedInUserName());
@@ -108,7 +108,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   // Organization
   //
   mAddressOrganisation = new QLineEdit;
-  mAddressOrganisation->addAction(generateIcon("address"), QLineEdit::LeadingPosition);
+  mAddressOrganisation->addAction(generateSvgIcon("map-globe"), QLineEdit::LeadingPosition);
   mAddressOrganisation->setPlaceholderText("University of Salzburg");
   formLayout->addRow(new QLabel(tr("Organization:")), mAddressOrganisation);
 

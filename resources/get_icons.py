@@ -19,28 +19,39 @@ def unzip_and_remove(folder_path):
         os.remove(zip_file_path)
         print(f"Unzipped and removed: {zip_file_path}")
 
-def list_png_files(folder_path):
+def list_files_files(folder_path, endian):
     # List all files in the directory
     files = os.listdir(folder_path)
     
     # Filter out files that end with .png
-    png_files = [file for file in files if file.endswith('.png')]
+    png_files = [file for file in files if file.endswith(endian)]
     
     return png_files
 
-def create_qresource_file(folder_path, output_file):
-    png_files = list_png_files(folder_path)
-    
-    with open(output_file, 'w') as f:
-        f.write('<RCC>\n<qresource prefix="/icons">\n')
+def create_qresource_file(folder_path, output_file, endian):
+    png_files = list_files_files(folder_path,endian)
+    subgroup = folder_path.replace("./","")
+    with open(output_file, 'a') as f:
+        f.write(f'<qresource prefix="/{subgroup}">\n')
         for file in png_files:
-            f.write(f'    <file>icons/{file}</file>\n')
-        f.write('</qresource>\n</RCC>')
+            f.write(f'    <file>{subgroup}/{file}</file>\n')
+        f.write('</qresource>\n')
 
 
 # Example usage
+output_file = './icons.qrc'
+if os.path.exists(output_file):
+    os.remove(output_file)
+
 folder_path = './icons'
 unzip_and_remove(folder_path)
-png_files = list_png_files(folder_path)
-output_file = './icons.qrc'
-create_qresource_file(folder_path, output_file)
+
+with open(output_file, 'a') as f:
+    f.write(f'<RCC>\n')
+create_qresource_file(folder_path, output_file, ".png")
+create_qresource_file("./icons-svg/16", output_file, ".svg")
+create_qresource_file("./icons-svg/22", output_file, ".svg")
+create_qresource_file("./icons-svg/32", output_file, ".svg")
+
+with open(output_file, 'a') as f:
+    f.write(f'</RCC>\n')

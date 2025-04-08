@@ -53,6 +53,8 @@ Starter::Starter()
 void Starter::exec(int argc, char *argv[])
 {
   // Use QCoreApplication initially to parse command-line arguments
+  QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+  QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
   QApplication app(argc, argv);
 
   // ======================================
@@ -287,6 +289,11 @@ void Starter::startUi(QApplication &app, QSplashScreen *splashScreen)
   } else {
     qWarning() << "Failed to load font file";
   }
+
+  // #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+  //   qputenv("QT_ENABLE_HIGHDPI_SCALING", "1");
+  //   QGuiApplication::setHighDpiScaleFactorRoundingPolicy(QetSettings::hdpiScaleFactorRoundingPolicy());
+  // #endif
 
   // QFont font("Roboto");
   // app.setFont(font);

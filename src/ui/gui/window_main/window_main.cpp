@@ -154,24 +154,24 @@ void WindowMain::setSideBarVisible(bool visible)
 ///
 void WindowMain::createTopToolbar()
 {
-  mTopToolBar = addToolBar("toolbar");
-  mTopToolBar->setMovable(false);
+  mTopToolBar = addToolBar("File toolbar");
+  // mTopToolBar->setMovable(false);
 
-  mNewProjectButton = new QAction(generateIcon("file"), "New project", mTopToolBar);
+  mNewProjectButton = new QAction(generateSvgIcon("folder-new"), "New project", mTopToolBar);
   connect(mNewProjectButton, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
   mTopToolBar->addAction(mNewProjectButton);
 
-  mOpenProjectButton = new QAction(generateIcon("opened-folder"), "Open project or results", mTopToolBar);
+  mOpenProjectButton = new QAction(generateSvgIcon("document-open-folder"), "Open project or results", mTopToolBar);
   connect(mOpenProjectButton, &QAction::triggered, this, &WindowMain::onOpenClicked);
   mTopToolBar->addAction(mOpenProjectButton);
 
-  mSaveProject = new QAction(generateIcon("save"), "Save", mTopToolBar);
+  mSaveProject = new QAction(generateSvgIcon("document-save"), "Save", mTopToolBar);
   mSaveProject->setToolTip("Save project!");
   mSaveProject->setEnabled(false);
   connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
   mTopToolBar->addAction(mSaveProject);
 
-  mSaveProjectAs = new QAction(generateIcon("save-as"), "Save as", mTopToolBar);
+  mSaveProjectAs = new QAction(generateSvgIcon("document-save-as"), "Save as", mTopToolBar);
   mSaveProjectAs->setToolTip("Save project as!");
   connect(mSaveProjectAs, &QAction::triggered, this, &WindowMain::onSaveProjectAs);
   mTopToolBar->addAction(mSaveProjectAs);
@@ -184,7 +184,7 @@ void WindowMain::createTopToolbar()
   // toolbar->addAction(showResultsTemplate);
   // mTopToolBar->addSeparator();
 
-  mShowCompilerLog = new QAction(generateIcon("popup"), "Compiler log", mTopToolBar);
+  mShowCompilerLog = new QAction(generateSvgIcon("text-x-changelog"), "Compiler log", mTopToolBar);
   mShowCompilerLog->setToolTip("CompileLog!");
   mShowCompilerLog->setCheckable(true);
   connect(mShowCompilerLog, &QAction::triggered, [this](bool checked) {
@@ -198,7 +198,7 @@ void WindowMain::createTopToolbar()
 
   mTopToolBar->addAction(mShowCompilerLog);
 
-  mStartAnalysisToolButton = new QAction(generateIcon("play"), "Start analyze", mTopToolBar);
+  mStartAnalysisToolButton = new QAction(generateSvgIcon("media-playback-start"), "Start analyze", mTopToolBar);
   mStartAnalysisToolButton->setEnabled(false);
   mStartAnalysisToolButton->setToolTip("Run pipeline!");
   connect(mStartAnalysisToolButton, &QAction::triggered, this, &WindowMain::onStartClicked);
@@ -208,12 +208,12 @@ void WindowMain::createTopToolbar()
   spacerTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   mTopToolBar->addWidget(spacerTop);
 
-  auto *helpButton = new QAction(generateIcon("help"), "Help", mTopToolBar);
+  auto *helpButton = new QAction(generateSvgIcon("help-contents"), "Help", mTopToolBar);
   helpButton->setToolTip("Help");
   connect(helpButton, &QAction::triggered, this, &WindowMain::onShowHelpClicked);
   mTopToolBar->addAction(helpButton);
 
-  mShowInfoDialog = new QAction(generateIcon("info"), "Info", mTopToolBar);
+  mShowInfoDialog = new QAction(generateSvgIcon("help-about"), "About", mTopToolBar);
   mShowInfoDialog->setToolTip("Info");
   connect(mShowInfoDialog, &QAction::triggered, this, &WindowMain::onShowInfoDialog);
   mTopToolBar->addAction(mShowInfoDialog);

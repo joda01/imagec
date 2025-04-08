@@ -122,19 +122,19 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     col4->addWidget(mPreviewImage);
   }
 
-  auto *openTemplate = mLayout.addActionButton("Open template", generateIcon("opened-folder"));
+  auto *openTemplate = mLayout.addActionButton("Open template", generateSvgIcon("document-open-folder"));
   connect(openTemplate, &QAction::triggered, [this] { this->openTemplate(); });
 
-  auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", generateIcon("download"));
+  auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", generateSvgIcon("document-save-as-template"));
   connect(saveAsTemplateButton, &QAction::triggered, [this] { this->saveAsTemplate(); });
 
-  auto *copyPipeline = mLayout.addActionButton("Copy pipeline", generateIcon("copy"));
+  auto *copyPipeline = mLayout.addActionButton("Copy pipeline", generateSvgIcon("edit-copy"));
   connect(copyPipeline, &QAction::triggered, [this] { this->copyPipeline(); });
 
   mLayout.addSeparatorToTopToolbar();
 
   // Tool button
-  mHistoryAction = mLayout.addActionButton("History", generateIcon("history"));
+  mHistoryAction = mLayout.addActionButton("History", generateSvgIcon("deep-history"));
   mHistoryAction->setCheckable(true);
   connect(mHistoryAction, &QAction::triggered, [this](bool checked) {
     if(checked) {
@@ -145,7 +145,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   });
   connect(mDialogHistory, &QDialog::finished, [this] { mHistoryAction->setChecked(false); });
 
-  auto *addTagAction = mLayout.addActionButton("Add tag", generateIcon("tag"));
+  auto *addTagAction = mLayout.addActionButton("Add tag", generateSvgIcon("tag"));
   addTagAction->setToolTip("Tag the actual settings in the history.");
   connect(addTagAction, &QAction::triggered, [this]() { mDialogHistory->createTag(); });
 
@@ -154,7 +154,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   //
   // Add disable button
   //
-  mActionDisabled = mLayout.addActionButton("Disable pipeline", generateIcon("invisible"));
+  mActionDisabled = mLayout.addActionButton("Disable pipeline", generateSvgIcon("view-hidden"));
   mActionDisabled->setCheckable(true);
   connect(mActionDisabled, &QAction::triggered, [this](bool checked) {
     mSettings.disabled = checked;

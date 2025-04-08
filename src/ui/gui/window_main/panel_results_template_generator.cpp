@@ -45,7 +45,7 @@ PanelResultsTemplateGenerator::PanelResultsTemplateGenerator(WindowMain *mainWin
   //
   auto *toolBar = new QHBoxLayout();
   toolBar->setContentsMargins(0, 0, 0, 0);
-  auto *addColumn = new QPushButton(generateIcon("add-column"), "", this);
+  auto *addColumn = new QPushButton(generateSvgIcon("edit-table-insert-column-right"), "", this);
   addColumn->setToolTip("Add column");
   connect(addColumn, &QPushButton::pressed, [this]() {
     mColumnEditDialog->updateClassesAndClasses(*mAnalyzeSettings);
@@ -55,7 +55,7 @@ PanelResultsTemplateGenerator::PanelResultsTemplateGenerator(WindowMain *mainWin
   });
   toolBar->addWidget(addColumn);
 
-  auto *editColumn = new QPushButton(generateIcon("edit-column"), "", this);
+  auto *editColumn = new QPushButton(generateSvgIcon("edit-table-cell-merge"), "", this);
   editColumn->setToolTip("Edit column");
   toolBar->addWidget(editColumn);
   connect(editColumn, &QPushButton::pressed, [this]() {
@@ -67,7 +67,7 @@ PanelResultsTemplateGenerator::PanelResultsTemplateGenerator(WindowMain *mainWin
     }
   });
 
-  auto *deleteColumn = new QPushButton(generateIcon("delete-column"), "", this);
+  auto *deleteColumn = new QPushButton(generateSvgIcon("edit-table-delete-column"), "", this);
   deleteColumn->setToolTip("Delete column");
   toolBar->addWidget(deleteColumn);
   connect(deleteColumn, &QPushButton::pressed, [this]() {
