@@ -28,7 +28,6 @@
 #include "heatmap/panel_heatmap.hpp"
 #include "ui/gui/container/panel_edit_base.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
-#include "ui/gui/panel_preview.hpp"
 #include "ui/gui/window_main/panel_results_info.hpp"
 
 namespace joda::ui::gui {
@@ -154,7 +153,6 @@ private:
   QPushButton *mTableButton   = nullptr;
   QPushButton *mHeatmapButton = nullptr;
 
-  PanelPreview *mPreviewImage;
   // uint32_t mDensityMapSize = 200;
   QComboBox *mColumn;
 

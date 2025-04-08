@@ -42,7 +42,6 @@
 #include <utility>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
-
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/database/exporter/heatmap/export_heatmap.hpp"
@@ -62,7 +61,6 @@
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/widget_generator.hpp"
-#include "ui/gui/panel_preview.hpp"
 #include "ui/gui/window_main/panel_results_info.hpp"
 #include "ui/gui/window_main/window_main.hpp"
 #include <nlohmann/json_fwd.hpp>

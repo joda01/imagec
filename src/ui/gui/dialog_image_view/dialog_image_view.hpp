@@ -17,27 +17,27 @@
 #include <qwindow.h>
 #include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"
+#include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
 #include "panel_image_view.hpp"
 
 namespace joda::ui::gui {
 
 class HistoToolbar;
-class PanelPreview;
 
 ///
 /// \class      DialogImageViewer
 /// \author     Joachim Danmayr
 /// \brief
 ///
-class DialogImageViewer : public QMainWindow
+class DialogImageViewer : public QDockWidget
 {
   Q_OBJECT
 
 public:
   /////////////////////////////////////////////////////
-  DialogImageViewer(QWidget *parent, PanelImageView *panelPreviewParent);
+  DialogImageViewer(QWidget *parent);
   ~DialogImageViewer();
-  void imageUpdated();
+  void imageUpdated(const QString &info);
   void fitImageToScreenSize();
   joda::ctrl::Preview &getPreviewObject()
   {
@@ -63,12 +63,16 @@ public:
     mImageViewLeft.setWaiting(waiting);
     mImageViewRight.setWaiting(waiting);
   }
-
-  void hideEvent(QHideEvent *event) override
+  int32_t getPreviewSize() const
   {
-    QMainWindow::hideEvent(event);
-    emit hidden();
+    return mPreviewSize->currentData().toInt();
   }
+
+  auto getSelectedClassesAndClasses() const -> settings::ObjectInputClasses
+  {
+    return mClassesClassesToShow->getValue();
+  }
+
   enum class ImageView
   {
     LEFT  = 0,
@@ -80,10 +84,10 @@ public:
   {
     return mFillOVerlay->isChecked();
   }
+  void closeEvent(QCloseEvent *event) override;
 
 signals:
   void tileClicked(int32_t tileX, int32_t tileY);
-  void hidden();
   void onSettingChanged();
 
 private:
@@ -91,8 +95,6 @@ private:
   void leaveEvent(QEvent *event) override;
 
   /////////////////////////////////////////////////////
-  PanelImageView *mPanelPreviewParent = nullptr;
-
   joda::ctrl::Preview mPreviewImages;
   PanelImageView mImageViewLeft;
   PanelImageView mImageViewRight;
@@ -105,6 +107,8 @@ private:
 
   // ACTIONS //////////////////////////////////////////////////
   QAction *mFillOVerlay;
+  QComboBox *mPreviewSize;
+  std::unique_ptr<SettingComboBoxMultiClassificationIn> mClassesClassesToShow;
 
 private slots:
   /////////////////////////////////////////////////////

@@ -13,10 +13,12 @@
 #include <qactiongroup.h>
 #include <qboxlayout.h>
 #include <qdialog.h>
+#include <qdockwidget.h>
 #include <qgridlayout.h>
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qslider.h>
+#include <qwidget.h>
 #include <cmath>
 #include <cstdint>
 #include <string>
@@ -37,13 +39,33 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-DialogImageViewer::DialogImageViewer(QWidget *parent, PanelImageView *panelPreviewParent) :
-    QMainWindow(parent), mImageViewLeft(&mPreviewImages.originalImage, &mPreviewImages.thumbnail, nullptr, false),
-    mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, true), mPanelPreviewParent(panelPreviewParent)
+DialogImageViewer::DialogImageViewer(QWidget *parent) :
+    QDockWidget(parent), mImageViewLeft(&mPreviewImages.originalImage, &mPreviewImages.thumbnail, nullptr, false),
+    mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, true)
 {
+  setWindowTitle("Preview");
   // setWindowFlags(windowFlags() | Qt::Window | Qt::WindowMaximizeButtonHint);
-  setBaseSize(1200, 600);
-  setMinimumSize(1200, 600);
+  setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+
+  // Set initial size constraints
+  setMaximumWidth(500);    // Max width when docked
+  setMinimumWidth(500);    // Min width even when docked
+
+  // Connect signal to detect docking/floating changes
+  connect(this, &QDockWidget::topLevelChanged, this, [=](bool floating) {
+    if(floating) {
+      setMinimumWidth(1200);    // Wider when floating
+      setMinimumHeight(600);
+      setMaximumWidth(10000);    // Remove max width cap
+    } else {
+      setMaximumWidth(500);    // Restrict width when docked
+      setMinimumHeight(0);
+      setMinimumWidth(500);    // Restore min width when docked
+    }
+  });
+
+  auto *mainContainer = new QWidget();
+  auto *layout        = new QVBoxLayout();
 
   {
     QToolBar *toolbarTop = new QToolBar();
@@ -61,9 +83,9 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, PanelImageView *panelPrevi
         show();
       }
     });
-    toolbarTop->addAction(pinToTop);
+    // toolbarTop->addAction(pinToTop);
 
-    toolbarTop->addSeparator();
+    // toolbarTop->addSeparator();
 
     QAction *fitToScreen = new QAction(generateIcon("full-screen"), "");
     fitToScreen->setObjectName("ToolButton");
@@ -136,7 +158,36 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, PanelImageView *panelPrevi
     connect(mFillOVerlay, &QAction::triggered, this, &DialogImageViewer::onSettingChanged);
     toolbarTop->addAction(mFillOVerlay);
 
-    addToolBar(Qt::ToolBarArea::TopToolBarArea, toolbarTop);
+    //
+    // Preview size
+    //
+    mPreviewSize = new QComboBox();
+    mPreviewSize->addItem("8192x8192", static_cast<int32_t>(8192));
+    mPreviewSize->addItem("4096x4096", static_cast<int32_t>(4096));
+    mPreviewSize->addItem("2048x2048", static_cast<int32_t>(2048));
+    mPreviewSize->addItem("1024x1024", static_cast<int32_t>(1024));
+    mPreviewSize->addItem("512x512", static_cast<int32_t>(512));
+    mPreviewSize->addItem("256x256", static_cast<int32_t>(256));
+    mPreviewSize->addItem("128x128", static_cast<int32_t>(128));
+    mPreviewSize->addItem("64x64", static_cast<int32_t>(64));
+    mPreviewSize->setCurrentIndex(mPreviewSize->findData(2048));
+    toolbarTop->addWidget(mPreviewSize);
+    connect(mPreviewSize, &QComboBox::currentIndexChanged, this, &DialogImageViewer::onSettingChanged);
+
+    //
+    // Classes to shoe
+    //
+    //
+    // Preview classes
+    //
+    mClassesClassesToShow = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Classes to paint");
+    mClassesClassesToShow->getInputObject()->setMaximumWidth(175);
+    mClassesClassesToShow->getInputObject()->setMinimumWidth(175);
+    mClassesClassesToShow->setValue(settings::ObjectInputClasses{enums::ClassIdIn::$});
+    toolbarTop->addWidget(mClassesClassesToShow->getInputObject());
+
+    layout->addWidget(toolbarTop);
+    // addToolBar(Qt::ToolBarArea::TopToolBarArea, toolbarTop);
   }
 
   // Central images
@@ -162,13 +213,17 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, PanelImageView *panelPrevi
     // centralLayout->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     centralWidget->setLayout(centralLayout);
-    setCentralWidget(centralWidget);
+    layout->addWidget(centralWidget);
 
     connect(&mImageViewLeft, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onLeftViewChanged);
     connect(&mImageViewRight, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onRightViewChanged);
     connect(&mImageViewLeft, &PanelImageView::tileClicked, this, &DialogImageViewer::onTileClicked);
     connect(&mImageViewRight, &PanelImageView::tileClicked, this, &DialogImageViewer::onTileClicked);
   }
+
+  // setLayout(layout);
+  mainContainer->setLayout(layout);
+  setWidget(mainContainer);
 }
 
 DialogImageViewer::~DialogImageViewer()
@@ -256,10 +311,7 @@ void DialogImageViewer::triggerPreviewUpdate(ImageView view, bool withUserHistoS
 ///
 void DialogImageViewer::leaveEvent(QEvent *event)
 {
-  QMainWindow::leaveEvent(event);    // Call the base class handler if needed
-  if(mPanelPreviewParent != nullptr) {
-    mPanelPreviewParent->emitUpdateImage();
-  }
+  QDockWidget::leaveEvent(event);    // Call the base class handler if needed
 }
 
 ///
@@ -269,7 +321,7 @@ void DialogImageViewer::leaveEvent(QEvent *event)
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::imageUpdated()
+void DialogImageViewer::imageUpdated(const QString &info)
 {
   mImageViewLeft.imageUpdated();
   mImageViewRight.imageUpdated();
@@ -428,6 +480,26 @@ void DialogImageViewer::onShowCrossHandCursor(bool checked)
 void DialogImageViewer::onTileClicked(int32_t tileX, int32_t tileY)
 {
   emit tileClicked(tileX, tileY);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::closeEvent(QCloseEvent *event)
+{
+  event->ignore();    // Block the default close behavior
+
+  // Optionally re-dock if floating
+  if(isFloating()) {
+    setFloating(false);
+  }
+
+  // Optionally just ensure it's visible again
+  show();
 }
 
 }    // namespace joda::ui::gui

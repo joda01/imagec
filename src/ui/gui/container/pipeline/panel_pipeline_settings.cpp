@@ -116,10 +116,11 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 
   {
     auto *col4    = tab->addVerticalPanel();
-    mPreviewImage = new PanelPreview(PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, mWindowMain);
+    mPreviewImage = new DialogImageViewer(mWindowMain);
     mPreviewImage->setContentsMargins(0, 0, 0, 0);
-    mPreviewImage->resetImage("");
-    col4->addWidget(mPreviewImage);
+    mPreviewImage->resetImage();
+    mPreviewImage->setVisible(false);
+    wm->addDockWidget(Qt::RightDockWidgetArea, mPreviewImage);
   }
 
   auto *openTemplate = mLayout.addActionButton("Open template", generateSvgIcon("document-open-folder"));
@@ -172,8 +173,8 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);
   connect(this, &PanelPipelineSettings::updatePreviewFinished, this, &PanelPipelineSettings::onPreviewFinished);
-  connect(mPreviewImage, &PanelPreview::tileClicked, this, &PanelPipelineSettings::onTileClicked);
-  connect(mPreviewImage, &PanelPreview::onSettingChanged, this, &PanelPipelineSettings::updatePreview);
+  connect(mPreviewImage, &DialogImageViewer::tileClicked, this, &PanelPipelineSettings::onTileClicked);
+  connect(mPreviewImage, &DialogImageViewer::onSettingChanged, this, &PanelPipelineSettings::updatePreview);
   connect(wm->getImagePanel(), &PanelImages::imageSelectionChanged, this, &PanelPipelineSettings::updatePreview);
   connect(wm->getPanelProjectSettings(), &PanelProjectSettings::updateImagePreview, this, &PanelPipelineSettings::updatePreview);
   connect(mLayout.getBackButton(), &QAction::triggered, this, &PanelPipelineSettings::closeWindow);
@@ -568,8 +569,8 @@ void PanelPipelineSettings::previewThread()
 
             auto &previewResult = jobToDo.previewPanel->getPreviewObject();
             processor::PreviewSettings prevSettings;
-            prevSettings.style = jobToDo.previewPanel->getFilledPreview() ? settings::ImageSaverSettings::Style::FILLED
-                                                                          : settings::ImageSaverSettings::Style::OUTLINED;
+            prevSettings.style =
+                jobToDo.previewPanel->fillOverlay() ? settings::ImageSaverSettings::Style::FILLED : settings::ImageSaverSettings::Style::OUTLINED;
 
             joda::settings::Pipeline *myPipeline = nullptr;
             int cnt                              = 0;
@@ -611,7 +612,7 @@ void PanelPipelineSettings::previewThread()
                                                .originalImageHeight = imageHeight,
                                                .selectedTileX       = jobToDo.selectedTileX,
                                                .selectedTileY       = jobToDo.selectedTileY});
-            jobToDo.previewPanel->updateImage(info);
+            jobToDo.previewPanel->imageUpdated(info);
 
           } catch(const std::exception &error) {
             // mPreviewImage->resetImage(error.what());
@@ -922,6 +923,8 @@ void PanelPipelineSettings::setActive(bool setActive)
 {
   if(!mIsActiveShown && setActive) {
     mLayout.showToolBar(true);
+    mPreviewImage->setVisible(true);
+
     mIsActiveShown = true;
     updatePreview();
     mDialogHistory->loadHistory();
@@ -930,14 +933,15 @@ void PanelPipelineSettings::setActive(bool setActive)
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
     mIsActiveShown = false;
     mLayout.showToolBar(false);
+
     mDialogHistory->hide();
     mHistoryAction->setChecked(false);
-    mPreviewImage->hidePreviewImage();
+    mPreviewImage->setVisible(false);
     // Wait until preview render has been finished
     while(mPreviewInProgress) {
       std::this_thread::sleep_for(100ms);
     }
-    mPreviewImage->resetImage("");
+    mPreviewImage->resetImage();
   }
 }
 
