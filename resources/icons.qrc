@@ -1900,6 +1900,7 @@
 </qresource>
 <qresource prefix="/icons-svg/22">
     <file>icons-svg/22/text_vert_kern.svg</file>
+    <file>icons-svg/22/input-touchpad-on.svg</file>
     <file>icons-svg/22/format-border-set-internal-vertical.svg</file>
     <file>icons-svg/22/view-financial-category-expense.svg</file>
     <file>icons-svg/22/document-save.svg</file>
@@ -1907,6 +1908,7 @@
     <file>icons-svg/22/state-fork.svg</file>
     <file>icons-svg/22/draw-circle.svg</file>
     <file>icons-svg/22/filename-divider.svg</file>
+    <file>icons-svg/22/input-touchpad.svg</file>
     <file>icons-svg/22/document-import.svg</file>
     <file>icons-svg/22/document-edit-sign-encrypt.svg</file>
     <file>icons-svg/22/snap-guideline.svg</file>
@@ -1915,15 +1917,21 @@
     <file>icons-svg/22/virtualbox-hdd.svg</file>
     <file>icons-svg/22/view-calendar-whatsnext.svg</file>
     <file>icons-svg/22/distribute-horizontal-equal.svg</file>
+    <file>icons-svg/22/network-mobile-20-hsdpa.svg</file>
     <file>icons-svg/22/format-text-code.svg</file>
     <file>icons-svg/22/format-text-bold.svg</file>
     <file>icons-svg/22/distribute-randomize.svg</file>
+    <file>icons-svg/22/data-error.svg</file>
+    <file>icons-svg/22/media-playback-paused.svg</file>
     <file>icons-svg/22/im-google.svg</file>
     <file>icons-svg/22/format-text-direction-ltr.svg</file>
+    <file>icons-svg/22/network-mobile-100-locked.svg</file>
+    <file>icons-svg/22/phone-battery.svg</file>
     <file>icons-svg/22/application-x-gettext-translation.svg</file>
     <file>icons-svg/22/align-horizontal-left.svg</file>
     <file>icons-svg/22/backgroundtool.svg</file>
     <file>icons-svg/22/insert-text-frame.svg</file>
+    <file>icons-svg/22/media-optical-recordable.svg</file>
     <file>icons-svg/22/smooth.svg</file>
     <file>icons-svg/22/image-x-vnd.trolltech.qpicture.svg</file>
     <file>icons-svg/22/go-up-skip.svg</file>
@@ -1939,12 +1947,15 @@
     <file>icons-svg/22/document-share.svg</file>
     <file>icons-svg/22/run-build-clean.svg</file>
     <file>icons-svg/22/application-x-godot-project.svg</file>
+    <file>icons-svg/22/network-mobile-100-hsupa-locked.svg</file>
+    <file>icons-svg/22/network-mobile-20-hsdpa-locked.svg</file>
     <file>icons-svg/22/format-text-uppercase.svg</file>
     <file>icons-svg/22/text_word_spacing.svg</file>
     <file>icons-svg/22/view-financial-account-liability.svg</file>
     <file>icons-svg/22/kdenlive-rolling.svg</file>
     <file>icons-svg/22/code-block.svg</file>
     <file>icons-svg/22/image-x-ico.svg</file>
+    <file>icons-svg/22/audio-volume-high-danger.svg</file>
     <file>icons-svg/22/distribute-horizontal-margin.svg</file>
     <file>icons-svg/22/audio-x-generic.svg</file>
     <file>icons-svg/22/application-x-openvpn-profile.svg</file>
@@ -1963,14 +1974,20 @@
     <file>icons-svg/22/application-epub+zip.svg</file>
     <file>icons-svg/22/gnumeric-format-thousand-separator.svg</file>
     <file>icons-svg/22/format-font-size-less.svg</file>
+    <file>icons-svg/22/folder-log.svg</file>
     <file>icons-svg/22/object-to-path.svg</file>
     <file>icons-svg/22/text-x-typst.svg</file>
     <file>icons-svg/22/mode1.svg</file>
     <file>icons-svg/22/application-vnd.snap.svg</file>
+    <file>icons-svg/22/ime-remind-on.svg</file>
+    <file>icons-svg/22/flightmode-on.svg</file>
+    <file>icons-svg/22/microphone-sensitivity-medium.svg</file>
     <file>icons-svg/22/insert-button.svg</file>
     <file>icons-svg/22/tab-new.svg</file>
     <file>icons-svg/22/system-shutdown-update.svg</file>
+    <file>icons-svg/22/haguichi-connecting-2.svg</file>
     <file>icons-svg/22/gnumeric-object-button.svg</file>
+    <file>icons-svg/22/folder-chart.svg</file>
     <file>icons-svg/22/transform-rotate.svg</file>
     <file>icons-svg/22/gnumeric-object-spinbutton.svg</file>
     <file>icons-svg/22/view-calendar-special-occasion.svg</file>
@@ -1981,39 +1998,63 @@
     <file>icons-svg/22/upindicator.svg</file>
     <file>icons-svg/22/image-x-xcf.svg</file>
     <file>icons-svg/22/document-export.svg</file>
+    <file>icons-svg/22/dialog-question.svg</file>
+    <file>icons-svg/22/battery-090-charging.svg</file>
     <file>icons-svg/22/document-edit-sign.svg</file>
+    <file>icons-svg/22/drive-harddisk.svg</file>
+    <file>icons-svg/22/network-mobile-80-hsupa-locked.svg</file>
     <file>icons-svg/22/image-x-generic.svg</file>
+    <file>icons-svg/22/network-mobile-20-edge.svg</file>
+    <file>icons-svg/22/network-mobile-80-gprs-locked.svg</file>
     <file>icons-svg/22/format-justify-left.svg</file>
     <file>icons-svg/22/sidebar-expand-right.svg</file>
+    <file>icons-svg/22/network-wireless-0-limited.svg</file>
     <file>icons-svg/22/item.svg</file>
     <file>icons-svg/22/resource-calendar-child.svg</file>
     <file>icons-svg/22/office-chart-bar-percentage.svg</file>
+    <file>icons-svg/22/folder-mac.svg</file>
+    <file>icons-svg/22/battery-000-charging-profile-performance.svg</file>
     <file>icons-svg/22/escape-direction-left.svg</file>
+    <file>icons-svg/22/rotation-locked-landscape.svg</file>
     <file>icons-svg/22/application-x-godot-resource.svg</file>
     <file>icons-svg/22/bwtonal.svg</file>
     <file>icons-svg/22/labplot-worksheet.svg</file>
     <file>icons-svg/22/object-order-front.svg</file>
     <file>icons-svg/22/feed-subscribe.svg</file>
+    <file>icons-svg/22/folder-presentation.svg</file>
     <file>icons-svg/22/text-x-haskell.svg</file>
     <file>icons-svg/22/folder-open-recent.svg</file>
+    <file>icons-svg/22/folder-docker.svg</file>
+    <file>icons-svg/22/network-mobile-0-hsdpa-locked.svg</file>
+    <file>icons-svg/22/network-mobile-0-edge.svg</file>
     <file>icons-svg/22/format-list-ordered.svg</file>
+    <file>icons-svg/22/touchpad_enabled.svg</file>
     <file>icons-svg/22/kdenlive-insert-rect.svg</file>
     <file>icons-svg/22/similarartists-amarok.svg</file>
     <file>icons-svg/22/labplot-shift-left-x.svg</file>
     <file>icons-svg/22/document-new.svg</file>
+    <file>icons-svg/22/folder-rpm-symbolic.svg</file>
+    <file>icons-svg/22/battery-070-profile-performance.svg</file>
+    <file>icons-svg/22/battery-010-profile-balanced.svg</file>
     <file>icons-svg/22/format-join-node.svg</file>
+    <file>icons-svg/22/user-trash-full.svg</file>
     <file>icons-svg/22/panel-fit-height.svg</file>
     <file>icons-svg/22/view-catalog.svg</file>
+    <file>icons-svg/22/network-wireless-40.svg</file>
     <file>icons-svg/22/snap-orthogonal.svg</file>
     <file>icons-svg/22/application-x-skg.svg</file>
     <file>icons-svg/22/kt-queue-manager.svg</file>
+    <file>icons-svg/22/audio-headset.svg</file>
     <file>icons-svg/22/music-note-16th.svg</file>
+    <file>icons-svg/22/fcitx-remind-inactive.svg</file>
     <file>icons-svg/22/view-financial-category-edit.svg</file>
     <file>icons-svg/22/database-change-key.svg</file>
+    <file>icons-svg/22/folder-crash.svg</file>
     <file>icons-svg/22/vcs-branch-delete.svg</file>
     <file>icons-svg/22/gnumeric-format-border-top-n-double-bottom.svg</file>
     <file>icons-svg/22/im-skype.svg</file>
     <file>icons-svg/22/format-justify-center.svg</file>
+    <file>icons-svg/22/folder-calculate.svg</file>
     <file>icons-svg/22/labplot-axis-horizontal.svg</file>
     <file>icons-svg/22/labplot-xy-curve.svg</file>
     <file>icons-svg/22/mode4.svg</file>
@@ -2026,12 +2067,18 @@
     <file>icons-svg/22/format-break-node.svg</file>
     <file>icons-svg/22/blurfx.svg</file>
     <file>icons-svg/22/circular-arrow-shape.svg</file>
+    <file>icons-svg/22/fcitx-shuangpin.svg</file>
     <file>icons-svg/22/draw-cuboid.svg</file>
+    <file>icons-svg/22/battery-000-profile-performance.svg</file>
+    <file>icons-svg/22/fcitx-wbpy.svg</file>
     <file>icons-svg/22/labplot-1x-zoom.svg</file>
     <file>icons-svg/22/document-print.svg</file>
     <file>icons-svg/22/filename-group-length.svg</file>
+    <file>icons-svg/22/network-mobile-0-hspa.svg</file>
+    <file>icons-svg/22/network-mobile-80-hsdpa-locked.svg</file>
     <file>icons-svg/22/tool_curve.svg</file>
     <file>icons-svg/22/color-picker-black.svg</file>
+    <file>icons-svg/22/battery-040-charging.svg</file>
     <file>icons-svg/22/zoom-fit-width.svg</file>
     <file>icons-svg/22/labplot-workbook.svg</file>
     <file>icons-svg/22/distribute-unclump.svg</file>
@@ -2039,31 +2086,41 @@
     <file>icons-svg/22/zoom-fit-height.svg</file>
     <file>icons-svg/22/zoom-1-to-2.svg</file>
     <file>icons-svg/22/text_rotation.svg</file>
+    <file>icons-svg/22/folder-podcast.svg</file>
     <file>icons-svg/22/path-reverse.svg</file>
     <file>icons-svg/22/distribute-horizontal-right.svg</file>
     <file>icons-svg/22/go-next.svg</file>
     <file>icons-svg/22/media-record.svg</file>
+    <file>icons-svg/22/input-keyboard-brightness.svg</file>
     <file>icons-svg/22/gnumeric-object-arrow.svg</file>
     <file>icons-svg/22/composition.svg</file>
     <file>icons-svg/22/resource-group-new.svg</file>
+    <file>icons-svg/22/multimedia-player-ipod-mini-blue.svg</file>
     <file>icons-svg/22/application-msonenote.svg</file>
     <file>icons-svg/22/skrooge_more.svg</file>
     <file>icons-svg/22/view-currency-list.svg</file>
     <file>icons-svg/22/go-next-skip.svg</file>
+    <file>icons-svg/22/network-wireless-80-limited.svg</file>
     <file>icons-svg/22/call-voicemail.svg</file>
     <file>icons-svg/22/stroke-cap-butt.svg</file>
+    <file>icons-svg/22/battery-010-charging.svg</file>
     <file>icons-svg/22/format-border-set-diagonal-bl-tr.svg</file>
     <file>icons-svg/22/download-later.svg</file>
     <file>icons-svg/22/format-border-set-diagonal-tl-br.svg</file>
     <file>icons-svg/22/object-flip-horizontal.svg</file>
     <file>icons-svg/22/text-rust.svg</file>
+    <file>icons-svg/22/network-mobile-20-edge-locked.svg</file>
     <file>icons-svg/22/overflow-menu.svg</file>
     <file>icons-svg/22/edit-clone.svg</file>
+    <file>icons-svg/22/folder-java.svg</file>
     <file>icons-svg/22/im-msn.svg</file>
     <file>icons-svg/22/quickopen-file.svg</file>
     <file>icons-svg/22/audio-x-wav.svg</file>
+    <file>icons-svg/22/ime-wubi.svg</file>
     <file>icons-svg/22/irc-channel-active.svg</file>
     <file>icons-svg/22/x-media-podcast.svg</file>
+    <file>icons-svg/22/media-optical-mixed-cd.svg</file>
+    <file>icons-svg/22/network-mobile-20-hsupa.svg</file>
     <file>icons-svg/22/gnumeric-format-percentage.svg</file>
     <file>icons-svg/22/go-parent-folder.svg</file>
     <file>icons-svg/22/edit-group.svg</file>
@@ -2071,18 +2128,24 @@
     <file>icons-svg/22/view-financial-account.svg</file>
     <file>icons-svg/22/view-certificate-sign.svg</file>
     <file>icons-svg/22/view-financial-category.svg</file>
+    <file>icons-svg/22/mic-off.svg</file>
     <file>icons-svg/22/color-mode-hue-shift-positive.svg</file>
     <file>icons-svg/22/font-disable.svg</file>
     <file>icons-svg/22/distribute-vertical-bottom.svg</file>
     <file>icons-svg/22/password-copy.svg</file>
+    <file>icons-svg/22/mail-folder-outbox.svg</file>
     <file>icons-svg/22/edit-image-face-detect.svg</file>
     <file>icons-svg/22/insert-endnote.svg</file>
     <file>icons-svg/22/stroke-join-miter.svg</file>
     <file>icons-svg/22/zoom-previous.svg</file>
+    <file>icons-svg/22/telegram-panel.svg</file>
     <file>icons-svg/22/vcs-stash.svg</file>
     <file>icons-svg/22/primarykey_constraint.svg</file>
+    <file>icons-svg/22/network-wireless-60-limited.svg</file>
     <file>icons-svg/22/view-financial-account-closed.svg</file>
+    <file>icons-svg/22/dropboxstatus-logo.svg</file>
     <file>icons-svg/22/kstars_cbound.svg</file>
+    <file>icons-svg/22/system-suspend-inhibited.svg</file>
     <file>icons-svg/22/view-barcode-qr.svg</file>
     <file>icons-svg/22/new-audio-alarm.svg</file>
     <file>icons-svg/22/shapes.svg</file>
@@ -2092,30 +2155,44 @@
     <file>icons-svg/22/gnumeric-protection-yes.svg</file>
     <file>icons-svg/22/linear.svg</file>
     <file>icons-svg/22/notification-empty.svg</file>
+    <file>icons-svg/22/folder-publicshare.svg</file>
     <file>icons-svg/22/stroke-cap-square.svg</file>
     <file>icons-svg/22/autocorrection.svg</file>
     <file>icons-svg/22/compass.svg</file>
     <file>icons-svg/22/snap.svg</file>
     <file>icons-svg/22/gnumeric-cells-merge.svg</file>
     <file>icons-svg/22/stroke-join-round.svg</file>
+    <file>icons-svg/22/network-mobile-40-lte-locked.svg</file>
+    <file>icons-svg/22/system-suspend-uninhibited.svg</file>
     <file>icons-svg/22/view-calendar-tasks.svg</file>
+    <file>icons-svg/22/tablet.svg</file>
     <file>icons-svg/22/page-4sides.svg</file>
+    <file>icons-svg/22/network-wireless-20-limited.svg</file>
+    <file>icons-svg/22/battery-040-profile-powersave.svg</file>
     <file>icons-svg/22/transform-shear-right.svg</file>
     <file>icons-svg/22/input-keyboard-virtual-show.svg</file>
     <file>icons-svg/22/object-ungroup.svg</file>
     <file>icons-svg/22/snap-bounding-box-midpoints.svg</file>
+    <file>icons-svg/22/network-mobile-100-hsdpa-locked.svg</file>
     <file>icons-svg/22/media-repeat-playlist-amarok.svg</file>
+    <file>icons-svg/22/battery-100-charging-profile-powersave.svg</file>
+    <file>icons-svg/22/network-wireless-connected-75.svg</file>
     <file>icons-svg/22/video-symbolic.svg</file>
     <file>icons-svg/22/kt-magnet.svg</file>
+    <file>icons-svg/22/fcitx-handwriting-active.svg</file>
     <file>icons-svg/22/media-playlist-play.svg</file>
     <file>icons-svg/22/snap-bounding-box-corners.svg</file>
+    <file>icons-svg/22/mail-unread-new.svg</file>
     <file>icons-svg/22/folder-edit-sign-encrypt.svg</file>
     <file>icons-svg/22/split.svg</file>
     <file>icons-svg/22/format-number-percent.svg</file>
     <file>icons-svg/22/view-calendar-list.svg</file>
+    <file>icons-svg/22/network-mobile-0-5g.svg</file>
     <file>icons-svg/22/draw-watercolor.svg</file>
+    <file>icons-svg/22/disk-quota-low.svg</file>
     <file>icons-svg/22/view-object-histogram-logarithmic.svg</file>
     <file>icons-svg/22/draw-halfcircle3.svg</file>
+    <file>icons-svg/22/state-download.svg</file>
     <file>icons-svg/22/gnumeric-object-checkbox.svg</file>
     <file>icons-svg/22/timeline-overwrite.svg</file>
     <file>icons-svg/22/skrooge_type.svg</file>
@@ -2123,47 +2200,60 @@
     <file>icons-svg/22/zoom-next.svg</file>
     <file>icons-svg/22/format-text-underline-squiggle.svg</file>
     <file>icons-svg/22/view-financial-account-reopen.svg</file>
+    <file>icons-svg/22/folder-temp.svg</file>
     <file>icons-svg/22/colors-luma.svg</file>
+    <file>icons-svg/22/network-wireless-connected-00.svg</file>
     <file>icons-svg/22/x-office-contact.svg</file>
     <file>icons-svg/22/text-field.svg</file>
     <file>icons-svg/22/snap-bounding-box-edges.svg</file>
     <file>icons-svg/22/node.svg</file>
     <file>icons-svg/22/gnumeric-link-url.svg</file>
+    <file>icons-svg/22/battery-050-charging.svg</file>
     <file>icons-svg/22/edit-table-cell-merge.svg</file>
     <file>icons-svg/22/blurimage.svg</file>
+    <file>icons-svg/22/fcitx-unikey.svg</file>
     <file>icons-svg/22/format-node-line.svg</file>
+    <file>icons-svg/22/network-mobile-20-5g-locked.svg</file>
     <file>icons-svg/22/document-preview-archive.svg</file>
     <file>icons-svg/22/text-x-csharp.svg</file>
     <file>icons-svg/22/office-chart-polar.svg</file>
+    <file>icons-svg/22/folder-desktop.svg</file>
     <file>icons-svg/22/message-rfc822.svg</file>
     <file>icons-svg/22/widget-alternatives.svg</file>
     <file>icons-svg/22/media-playlist-shuffle.svg</file>
+    <file>icons-svg/22/network-vpn.svg</file>
     <file>icons-svg/22/align-horizontal-right.svg</file>
     <file>icons-svg/22/kstars_deepsky.svg</file>
     <file>icons-svg/22/media-skip-backward.svg</file>
     <file>icons-svg/22/virtualbox-vmdk.svg</file>
     <file>icons-svg/22/list-add-font.svg</file>
+    <file>icons-svg/22/folder-locked.svg</file>
     <file>icons-svg/22/application-vnd.oasis.opendocument.text-template.svg</file>
     <file>icons-svg/22/roll.svg</file>
     <file>icons-svg/22/notifications.svg</file>
     <file>icons-svg/22/akonadiconsole.svg</file>
     <file>icons-svg/22/edit-text-frame-update.svg</file>
     <file>icons-svg/22/application-x-skgc.svg</file>
+    <file>icons-svg/22/network-mobile-60-gprs-locked.svg</file>
     <file>icons-svg/22/application-vnd.apple.pkpass.svg</file>
     <file>icons-svg/22/color-management.svg</file>
     <file>icons-svg/22/zoom-original.svg</file>
+    <file>icons-svg/22/fcitx-punc-active.svg</file>
     <file>icons-svg/22/system-suspend.svg</file>
     <file>icons-svg/22/application-xhtml+xml.svg</file>
     <file>icons-svg/22/keyframe-next.svg</file>
     <file>icons-svg/22/flashlight-on.svg</file>
+    <file>icons-svg/22/drive-harddisk-encrypted.svg</file>
     <file>icons-svg/22/draw-ellipse.svg</file>
     <file>icons-svg/22/category2parent.svg</file>
+    <file>icons-svg/22/input-keyboard.svg</file>
     <file>icons-svg/22/virtualbox-ova.svg</file>
     <file>icons-svg/22/path-clip-edit.svg</file>
     <file>icons-svg/22/view-financial-category-add.svg</file>
     <file>icons-svg/22/favorite-genres-amarok.svg</file>
     <file>icons-svg/22/vcs-remove-cvs-cervisia.svg</file>
     <file>icons-svg/22/expand-all.svg</file>
+    <file>icons-svg/22/mic-ready.svg</file>
     <file>icons-svg/22/tools-check-spelling.svg</file>
     <file>icons-svg/22/application-x-pem-key.svg</file>
     <file>icons-svg/22/application-menu.svg</file>
@@ -2171,6 +2261,7 @@
     <file>icons-svg/22/text_horz_kern.svg</file>
     <file>icons-svg/22/overflow-menu-right.svg</file>
     <file>icons-svg/22/skg-chart-bubble.svg</file>
+    <file>icons-svg/22/network-mobile-0-edge-locked.svg</file>
     <file>icons-svg/22/transform-scale-textbox-points.svg</file>
     <file>icons-svg/22/draw-triangle3.svg</file>
     <file>icons-svg/22/window-pin.svg</file>
@@ -2187,11 +2278,18 @@
     <file>icons-svg/22/zoom.svg</file>
     <file>icons-svg/22/text-x-kotlin.svg</file>
     <file>icons-svg/22/question.svg</file>
+    <file>icons-svg/22/call-outgoing.svg</file>
+    <file>icons-svg/22/folder-templates.svg</file>
     <file>icons-svg/22/show-path-outline.svg</file>
     <file>icons-svg/22/go-previous-skip.svg</file>
+    <file>icons-svg/22/battery-020-charging-profile-balanced.svg</file>
+    <file>icons-svg/22/folder-flatpak.svg</file>
     <file>icons-svg/22/smiley.svg</file>
     <file>icons-svg/22/snap-grid-guide-intersections.svg</file>
+    <file>icons-svg/22/network-mobile-40-5g.svg</file>
+    <file>icons-svg/22/folder-mail.svg</file>
     <file>icons-svg/22/im-invisible-user.svg</file>
+    <file>icons-svg/22/folder-grey.svg</file>
     <file>icons-svg/22/accept_signal.svg</file>
     <file>icons-svg/22/mail-mark-task.svg</file>
     <file>icons-svg/22/document-send.svg</file>
@@ -2201,34 +2299,59 @@
     <file>icons-svg/22/draw-eraser.svg</file>
     <file>icons-svg/22/bookmarks-bookmarked.svg</file>
     <file>icons-svg/22/input-mouse-click-left.svg</file>
+    <file>icons-svg/22/fcitx-quanpin-libpinyin.svg</file>
     <file>icons-svg/22/go-down.svg</file>
+    <file>icons-svg/22/network-mobile-40-locked.svg</file>
+    <file>icons-svg/22/network-wireless-40-limited.svg</file>
+    <file>icons-svg/22/folder-videos.svg</file>
     <file>icons-svg/22/filename-dash-amarok.svg</file>
     <file>icons-svg/22/page-3sides.svg</file>
     <file>icons-svg/22/draw-bezier-curves.svg</file>
     <file>icons-svg/22/gnumeric-font.svg</file>
+    <file>icons-svg/22/battery-050-charging-profile-balanced.svg</file>
     <file>icons-svg/22/im-kick-user.svg</file>
     <file>icons-svg/22/view-certificate-import.svg</file>
     <file>icons-svg/22/distribute-horizontal-center.svg</file>
+    <file>icons-svg/22/telegram-mute-panel.svg</file>
+    <file>icons-svg/22/mic-on.svg</file>
+    <file>icons-svg/22/task-process-3.svg</file>
     <file>icons-svg/22/align-horizontal-center.svg</file>
+    <file>icons-svg/22/battery-070-profile-powersave.svg</file>
+    <file>icons-svg/22/plasmavault_error.svg</file>
+    <file>icons-svg/22/network-flightmode-on.svg</file>
     <file>icons-svg/22/text-x-csrc.svg</file>
     <file>icons-svg/22/edit-clone-unlink.svg</file>
     <file>icons-svg/22/kr_mountman.svg</file>
+    <file>icons-svg/22/user-desktop.svg</file>
     <file>icons-svg/22/go-first.svg</file>
     <file>icons-svg/22/kdenlive-insert-unicode.svg</file>
     <file>icons-svg/22/exchange-positions-clockwise.svg</file>
+    <file>icons-svg/22/network-mobile-40-hspa-locked.svg</file>
+    <file>icons-svg/22/battery-070-charging.svg</file>
     <file>icons-svg/22/view-barcode-add.svg</file>
     <file>icons-svg/22/color-mode-invert-image.svg</file>
+    <file>icons-svg/22/ime-fullwidth.svg</file>
+    <file>icons-svg/22/network-mobile-0-hspa-locked.svg</file>
+    <file>icons-svg/22/ime-ziranma.svg</file>
+    <file>icons-svg/22/battery-080-charging-profile-powersave.svg</file>
+    <file>icons-svg/22/folder-paint.svg</file>
     <file>icons-svg/22/nextfuzzy.svg</file>
     <file>icons-svg/22/character-set.svg</file>
+    <file>icons-svg/22/network-mobile-40-edge.svg</file>
     <file>icons-svg/22/edit-delete-shred.svg</file>
     <file>icons-svg/22/application-x-rpm.svg</file>
+    <file>icons-svg/22/mail-folder-inbox.svg</file>
     <file>icons-svg/22/edit-select-none.svg</file>
+    <file>icons-svg/22/network-mobile-60-5g-locked.svg</file>
+    <file>icons-svg/22/network-mobile-80-edge-locked.svg</file>
     <file>icons-svg/22/application-x-msdownload.svg</file>
+    <file>icons-svg/22/konv_message.svg</file>
     <file>icons-svg/22/format-text-color.svg</file>
     <file>icons-svg/22/text-fortran.svg</file>
     <file>icons-svg/22/format-border-set-internal-horizontal.svg</file>
     <file>icons-svg/22/map-gnomonic.svg</file>
     <file>icons-svg/22/draw-star.svg</file>
+    <file>icons-svg/22/fcitx-fullwidth-active.svg</file>
     <file>icons-svg/22/escape-direction-down.svg</file>
     <file>icons-svg/22/labplot-2x-zoom.svg</file>
     <file>icons-svg/22/list-add-user.svg</file>
@@ -2238,16 +2361,28 @@
     <file>icons-svg/22/stateshape.svg</file>
     <file>icons-svg/22/kt-set-max-upload-speed.svg</file>
     <file>icons-svg/22/view-financial-account-investment.svg</file>
+    <file>icons-svg/22/battery-080-profile-balanced.svg</file>
+    <file>icons-svg/22/apport.svg</file>
     <file>icons-svg/22/preview-render-on.svg</file>
+    <file>icons-svg/22/ime-pinyin.svg</file>
+    <file>icons-svg/22/network-wireless-60-locked.svg</file>
+    <file>icons-svg/22/ime-punctuation-fullwidth.svg</file>
+    <file>icons-svg/22/folder-favorites.svg</file>
+    <file>icons-svg/22/battery-020-charging-profile-powersave.svg</file>
     <file>icons-svg/22/system-run.svg</file>
+    <file>icons-svg/22/fcitx-emoji.svg</file>
     <file>icons-svg/22/overexposure.svg</file>
     <file>icons-svg/22/delete-comment.svg</file>
     <file>icons-svg/22/edit-clear-locationbar-ltr.svg</file>
+    <file>icons-svg/22/battery-060-profile-powersave.svg</file>
     <file>icons-svg/22/page-2sides.svg</file>
     <file>icons-svg/22/video-x-theora+ogg.svg</file>
+    <file>icons-svg/22/network-mobile-100-umts.svg</file>
     <file>icons-svg/22/snap-nodes-cusp.svg</file>
+    <file>icons-svg/22/folder-windows.svg</file>
     <file>icons-svg/22/games-achievements.svg</file>
     <file>icons-svg/22/keyframe-record.svg</file>
+    <file>icons-svg/22/folder-table.svg</file>
     <file>icons-svg/22/errornext.svg</file>
     <file>icons-svg/22/view-financial-account-savings.svg</file>
     <file>icons-svg/22/application-x-lzop.svg</file>
@@ -2256,19 +2391,26 @@
     <file>icons-svg/22/system-log-out-rtl.svg</file>
     <file>icons-svg/22/kdenlive-select-texts.svg</file>
     <file>icons-svg/22/format-text-underline.svg</file>
+    <file>icons-svg/22/network-mobile-80-gprs.svg</file>
+    <file>icons-svg/22/auth-sim.svg</file>
     <file>icons-svg/22/view-calendar-time-spent.svg</file>
+    <file>icons-svg/22/network-mobile-60-edge-locked.svg</file>
     <file>icons-svg/22/call-start.svg</file>
     <file>icons-svg/22/edit-image-face-add.svg</file>
     <file>icons-svg/22/edit-copy-path.svg</file>
     <file>icons-svg/22/go-bottom.svg</file>
     <file>icons-svg/22/draw-text.svg</file>
+    <file>icons-svg/22/ime-libpinyin-shuangpin.svg</file>
     <file>icons-svg/22/globe.svg</file>
+    <file>icons-svg/22/network-mobile-available.svg</file>
     <file>icons-svg/22/list-add.svg</file>
     <file>icons-svg/22/system-suspend-hibernate.svg</file>
     <file>icons-svg/22/labplot-xy-plot-two-axes.svg</file>
     <file>icons-svg/22/document-print-direct.svg</file>
+    <file>icons-svg/22/input-keyboard-color.svg</file>
     <file>icons-svg/22/go-next-context.svg</file>
     <file>icons-svg/22/kmouth-phresebook-new.svg</file>
+    <file>icons-svg/22/network-mobile-60-edge.svg</file>
     <file>icons-svg/22/text-x-changelog.svg</file>
     <file>icons-svg/22/kontact-import-wizard.svg</file>
     <file>icons-svg/22/application-octet-stream.svg</file>
@@ -2276,30 +2418,46 @@
     <file>icons-svg/22/rss.svg</file>
     <file>icons-svg/22/format-justify-right.svg</file>
     <file>icons-svg/22/step_object_WeightForce.svg</file>
+    <file>icons-svg/22/fcitx-fullwidth-inactive.svg</file>
+    <file>icons-svg/22/network-mobile-100-hspa-locked.svg</file>
+    <file>icons-svg/22/battery-070-charging-profile-powersave.svg</file>
     <file>icons-svg/22/code-function.svg</file>
     <file>icons-svg/22/labplot-matrix-new.svg</file>
+    <file>icons-svg/22/network-limited.svg</file>
     <file>icons-svg/22/lensdistortion.svg</file>
     <file>icons-svg/22/application-x-javascript.svg</file>
+    <file>icons-svg/22/temperature-normal.svg</file>
     <file>icons-svg/22/edit-guides.svg</file>
+    <file>icons-svg/22/update-low.svg</file>
     <file>icons-svg/22/document-open-remote.svg</file>
     <file>icons-svg/22/input-mouse-click-middle.svg</file>
     <file>icons-svg/22/mail-tagged.svg</file>
     <file>icons-svg/22/transform-crop.svg</file>
+    <file>icons-svg/22/ime-chewing.svg</file>
+    <file>icons-svg/22/battery-050-profile-balanced.svg</file>
     <file>icons-svg/22/android-package-archive.svg</file>
     <file>icons-svg/22/edit-select.svg</file>
+    <file>icons-svg/22/ime-libpinyin-quanpin.svg</file>
     <file>icons-svg/22/distribute-vertical-equal.svg</file>
     <file>icons-svg/22/composite-track-on.svg</file>
+    <file>icons-svg/22/data-information.svg</file>
     <file>icons-svg/22/earthquake.svg</file>
     <file>icons-svg/22/application-x-deb.svg</file>
     <file>icons-svg/22/gnumeric-object-ellipse.svg</file>
     <file>icons-svg/22/kr_comparedirs.svg</file>
+    <file>icons-svg/22/ime-wubipinyin.svg</file>
     <file>icons-svg/22/application-x-cda.svg</file>
     <file>icons-svg/22/kdenlive-add-color-clip.svg</file>
+    <file>icons-svg/22/network-mobile-80-5g.svg</file>
     <file>icons-svg/22/view-calendar-journal.svg</file>
     <file>icons-svg/22/mail-mark-junk.svg</file>
+    <file>icons-svg/22/touchpad_disabled.svg</file>
+    <file>icons-svg/22/battery-profile-performance.svg</file>
     <file>icons-svg/22/path-effect-parameter-next.svg</file>
     <file>icons-svg/22/view-financial-transfer-reconcile.svg</file>
+    <file>icons-svg/22/network-wireless-disconnected.svg</file>
     <file>icons-svg/22/im-user.svg</file>
+    <file>icons-svg/22/network-mobile-20-umts.svg</file>
     <file>icons-svg/22/debug-step-instruction.svg</file>
     <file>icons-svg/22/distribute-vertical-page.svg</file>
     <file>icons-svg/22/format-precision-more.svg</file>
@@ -2307,39 +2465,61 @@
     <file>icons-svg/22/window-restore.svg</file>
     <file>icons-svg/22/go-last.svg</file>
     <file>icons-svg/22/debug-execute-from-cursor.svg</file>
+    <file>icons-svg/22/network-mobile-60-hsupa-locked.svg</file>
     <file>icons-svg/22/application-vnd.apple.pkpasses.svg</file>
+    <file>icons-svg/22/fcitx-chttrans-inactive.svg</file>
+    <file>icons-svg/22/network-wireless-connected-80.svg</file>
     <file>icons-svg/22/align-horizontal-baseline.svg</file>
     <file>icons-svg/22/view-financial-budget.svg</file>
     <file>icons-svg/22/format-text-italic.svg</file>
     <file>icons-svg/22/archive-remove.svg</file>
+    <file>icons-svg/22/battery-070-charging-profile-performance.svg</file>
+    <file>icons-svg/22/folder-black.svg</file>
     <file>icons-svg/22/text_subscript.svg</file>
     <file>icons-svg/22/mail-signed-verified.svg</file>
+    <file>icons-svg/22/media-flash-memory-stick.svg</file>
     <file>icons-svg/22/object-order-lower.svg</file>
+    <file>icons-svg/22/smartphone.svg</file>
     <file>icons-svg/22/gnumeric-protection-no.svg</file>
     <file>icons-svg/22/draw-square-inverted-corners.svg</file>
     <file>icons-svg/22/application-vnd.oasis.opendocument.formula-template.svg</file>
     <file>icons-svg/22/debug-execute-to-cursor.svg</file>
     <file>icons-svg/22/tools-rip-audio-cd.svg</file>
+    <file>icons-svg/22/audio-volume-low.svg</file>
+    <file>icons-svg/22/keyboard-enter.svg</file>
     <file>icons-svg/22/format-segment-curve.svg</file>
+    <file>icons-svg/22/state-ok.svg</file>
     <file>icons-svg/22/kr_syncbrowse_on.svg</file>
     <file>icons-svg/22/folder-sync.svg</file>
+    <file>icons-svg/22/network-mobile-80-hspa-locked.svg</file>
+    <file>icons-svg/22/folder-root.svg</file>
     <file>icons-svg/22/document-open-folder.svg</file>
     <file>icons-svg/22/kstars_mw.svg</file>
+    <file>icons-svg/22/audio-volume-muted.svg</file>
     <file>icons-svg/22/format-node-curve.svg</file>
+    <file>icons-svg/22/input-num-on.svg</file>
     <file>icons-svg/22/application-x-godot-scene.svg</file>
+    <file>icons-svg/22/battery-060-charging-profile-balanced.svg</file>
+    <file>icons-svg/22/fcitx-vk-inactive.svg</file>
     <file>icons-svg/22/office-chart-area.svg</file>
+    <file>icons-svg/22/redshift-status-day.svg</file>
     <file>icons-svg/22/vcs-update-cvs-cervisia.svg</file>
+    <file>icons-svg/22/camera-web.svg</file>
+    <file>icons-svg/22/network-mobile-80-umts-locked.svg</file>
+    <file>icons-svg/22/folder-snap.svg</file>
     <file>icons-svg/22/tag.svg</file>
     <file>icons-svg/22/video-x-generic.svg</file>
     <file>icons-svg/22/vcs-push.svg</file>
     <file>icons-svg/22/value-decrease.svg</file>
     <file>icons-svg/22/text-frame-unlink.svg</file>
+    <file>icons-svg/22/fcitx-googlepinyin.svg</file>
     <file>icons-svg/22/image-gif.svg</file>
     <file>icons-svg/22/text-x-install.svg</file>
     <file>icons-svg/22/view-pim-notes.svg</file>
     <file>icons-svg/22/kstars_indi.svg</file>
     <file>icons-svg/22/media-playlist-normal.svg</file>
     <file>icons-svg/22/draw-triangle4.svg</file>
+    <file>icons-svg/22/network-wireless-100-locked.svg</file>
     <file>icons-svg/22/transform-browse.svg</file>
     <file>icons-svg/22/view-group.svg</file>
     <file>icons-svg/22/application-x-rar.svg</file>
@@ -2347,29 +2527,40 @@
     <file>icons-svg/22/office-chart-bar.svg</file>
     <file>icons-svg/22/labplot-shift-up-y.svg</file>
     <file>icons-svg/22/filename-underscore-amarok.svg</file>
+    <file>icons-svg/22/network-wireless-100.svg</file>
     <file>icons-svg/22/typewriter.svg</file>
+    <file>icons-svg/22/fcitx-bopomofo.svg</file>
     <file>icons-svg/22/gnumeric-component-insert-shaped.svg</file>
     <file>icons-svg/22/application-x-ar.svg</file>
     <file>icons-svg/22/snap-nodes-center.svg</file>
     <file>icons-svg/22/view-sort.svg</file>
     <file>icons-svg/22/video-x-wmv.svg</file>
+    <file>icons-svg/22/battery-040.svg</file>
     <file>icons-svg/22/gnumeric-object-list.svg</file>
     <file>icons-svg/22/gnumeric-object-rectangle.svg</file>
     <file>icons-svg/22/object-rotate-right.svg</file>
     <file>icons-svg/22/backup.svg</file>
     <file>icons-svg/22/sqrt.svg</file>
+    <file>icons-svg/22/ime-quanpin.svg</file>
+    <file>icons-svg/22/fcitx-cangjie.svg</file>
     <file>icons-svg/22/view-financial-account-investment-security.svg</file>
+    <file>icons-svg/22/drive-removable-media.svg</file>
     <file>icons-svg/22/path-simplify.svg</file>
     <file>icons-svg/22/go-next-use.svg</file>
     <file>icons-svg/22/text-x-pascal.svg</file>
     <file>icons-svg/22/view-financial-account-checking.svg</file>
     <file>icons-svg/22/transform-shear-left.svg</file>
     <file>icons-svg/22/object-flip-vertical.svg</file>
+    <file>icons-svg/22/battery-080-charging-profile-performance.svg</file>
     <file>icons-svg/22/colors-chromared.svg</file>
+    <file>icons-svg/22/network-mobile-0-lte.svg</file>
     <file>icons-svg/22/window.svg</file>
     <file>icons-svg/22/view-split-top-bottom.svg</file>
+    <file>icons-svg/22/battery-030-charging-profile-powersave.svg</file>
     <file>icons-svg/22/sort-presence.svg</file>
     <file>icons-svg/22/edit-bomb.svg</file>
+    <file>icons-svg/22/battery-080-profile-performance.svg</file>
+    <file>icons-svg/22/battery-080-profile-powersave.svg</file>
     <file>icons-svg/22/system-switch-user.svg</file>
     <file>icons-svg/22/format-remove-node.svg</file>
     <file>icons-svg/22/distribute-horizontal.svg</file>
@@ -2387,33 +2578,47 @@
     <file>icons-svg/22/draw-arrow.svg</file>
     <file>icons-svg/22/edit-select-invert.svg</file>
     <file>icons-svg/22/minuet-intervals.svg</file>
+    <file>icons-svg/22/network-modem.svg</file>
+    <file>icons-svg/22/folder-godot.svg</file>
     <file>icons-svg/22/step_object_CircularMotor.svg</file>
     <file>icons-svg/22/escape-direction-right.svg</file>
     <file>icons-svg/22/gnumeric-row-size.svg</file>
+    <file>icons-svg/22/folder-blue.svg</file>
     <file>icons-svg/22/generalise.svg</file>
+    <file>icons-svg/22/folder-activities.svg</file>
     <file>icons-svg/22/media-eject.svg</file>
     <file>icons-svg/22/format-align-vertical-top.svg</file>
     <file>icons-svg/22/vcs-status-cvs-cervisia.svg</file>
     <file>icons-svg/22/view-sort-ascending-name.svg</file>
     <file>icons-svg/22/snap-angle.svg</file>
     <file>icons-svg/22/format-insert-node.svg</file>
+    <file>icons-svg/22/firewall-applet.svg</file>
     <file>icons-svg/22/labplot-worksheet-new.svg</file>
     <file>icons-svg/22/link.svg</file>
     <file>icons-svg/22/view-certificate-export-server.svg</file>
     <file>icons-svg/22/x-office-address-book.svg</file>
     <file>icons-svg/22/image-vnd.dwg.svg</file>
+    <file>icons-svg/22/video-card-inactive.svg</file>
     <file>icons-svg/22/transform-move-horizontal.svg</file>
+    <file>icons-svg/22/ime-rime.svg</file>
+    <file>icons-svg/22/folder-orange.svg</file>
     <file>icons-svg/22/snap-bounding-box-center.svg</file>
+    <file>icons-svg/22/video-display-brightness.svg</file>
+    <file>icons-svg/22/battery-030.svg</file>
     <file>icons-svg/22/filename-dot-amarok.svg</file>
     <file>icons-svg/22/menu_new_sep.svg</file>
     <file>icons-svg/22/view-media-playlist.svg</file>
     <file>icons-svg/22/sidebar-collapse-right.svg</file>
+    <file>icons-svg/22/audio-radio.svg</file>
     <file>icons-svg/22/keyframe-previous.svg</file>
     <file>icons-svg/22/application-x-java-archive.svg</file>
     <file>icons-svg/22/adjustlevels.svg</file>
     <file>icons-svg/22/chronometer-pause.svg</file>
     <file>icons-svg/22/amarok_change_language.svg</file>
+    <file>icons-svg/22/folder-green.svg</file>
+    <file>icons-svg/22/user-idle.svg</file>
     <file>icons-svg/22/application-x-cd-image.svg</file>
+    <file>icons-svg/22/network-mobile-100.svg</file>
     <file>icons-svg/22/filename-bpm-amarok.svg</file>
     <file>icons-svg/22/escape-direction-up.svg</file>
     <file>icons-svg/22/snap-node.svg</file>
@@ -2421,7 +2626,11 @@
     <file>icons-svg/22/bboxprev.svg</file>
     <file>icons-svg/22/waveform.svg</file>
     <file>icons-svg/22/view-financial-list.svg</file>
+    <file>icons-svg/22/fcitx-handwriting-inactive.svg</file>
     <file>icons-svg/22/message-partial.svg</file>
+    <file>icons-svg/22/battery-060.svg</file>
+    <file>icons-svg/22/ime-libpinyin-bopomofo.svg</file>
+    <file>icons-svg/22/update-high.svg</file>
     <file>icons-svg/22/format-text-subscript.svg</file>
     <file>icons-svg/22/flag-blue.svg</file>
     <file>icons-svg/22/boost.svg</file>
@@ -2429,6 +2638,9 @@
     <file>icons-svg/22/entry-new.svg</file>
     <file>icons-svg/22/application-vnd.visio.svg</file>
     <file>icons-svg/22/virtual-desktops.svg</file>
+    <file>icons-svg/22/kalarm-partdisabled.svg</file>
+    <file>icons-svg/22/folder-important-symbolic.svg</file>
+    <file>icons-svg/22/network-mobile-100-hspa.svg</file>
     <file>icons-svg/22/application-x-blender.svg</file>
     <file>icons-svg/22/kr_diskusage.svg</file>
     <file>icons-svg/22/labplot-xy-curve-segments.svg</file>
@@ -2437,82 +2649,126 @@
     <file>icons-svg/22/kstars_supernovae.svg</file>
     <file>icons-svg/22/format-border-set-left.svg</file>
     <file>icons-svg/22/view-unsplit-effect.svg</file>
+    <file>icons-svg/22/folder-java-symbolic.svg</file>
     <file>icons-svg/22/timeline-use-zone-off.svg</file>
     <file>icons-svg/22/text-x-markdown.svg</file>
     <file>icons-svg/22/edit-table-insert-column-left.svg</file>
     <file>icons-svg/22/go-top.svg</file>
     <file>icons-svg/22/kstars_clines.svg</file>
     <file>icons-svg/22/view-grid.svg</file>
+    <file>icons-svg/22/battery-090-charging-profile-performance.svg</file>
     <file>icons-svg/22/atmosphere.svg</file>
     <file>icons-svg/22/flower-shape.svg</file>
     <file>icons-svg/22/select-rectangular.svg</file>
     <file>icons-svg/22/user-group-properties.svg</file>
+    <file>icons-svg/22/task-process-4.svg</file>
     <file>icons-svg/22/view-calendar-timeline.svg</file>
     <file>icons-svg/22/transform-shear-down.svg</file>
     <file>icons-svg/22/application-x-kplato.svg</file>
+    <file>icons-svg/22/network-bluetooth-activated-locked.svg</file>
+    <file>icons-svg/22/video-television.svg</file>
+    <file>icons-svg/22/battery-050-profile-performance.svg</file>
     <file>icons-svg/22/x-office-document.svg</file>
     <file>icons-svg/22/view-financial-account-delete.svg</file>
     <file>icons-svg/22/edit-image-face-recognize.svg</file>
     <file>icons-svg/22/application-x-bzdvi.svg</file>
     <file>icons-svg/22/tool_elliptical_selection.svg</file>
     <file>icons-svg/22/text-vnd.abc.svg</file>
+    <file>icons-svg/22/network-mobile-40-hsdpa.svg</file>
     <file>icons-svg/22/tool-measure.svg</file>
+    <file>icons-svg/22/task-complete.svg</file>
     <file>icons-svg/22/trash-empty.svg</file>
+    <file>icons-svg/22/ime-bopomofo.svg</file>
     <file>icons-svg/22/edit-table-insert-row-above.svg</file>
+    <file>icons-svg/22/input-caps-on.svg</file>
     <file>icons-svg/22/layer-visible-on.svg</file>
     <file>icons-svg/22/edit-select-text.svg</file>
     <file>icons-svg/22/favorite.svg</file>
+    <file>icons-svg/22/network-wireless-80-locked.svg</file>
+    <file>icons-svg/22/battery-100-charging-profile-balanced.svg</file>
     <file>icons-svg/22/image-svg+xml-compressed.svg</file>
     <file>icons-svg/22/taxes-finances.svg</file>
     <file>icons-svg/22/application-vnd.appimage.svg</file>
+    <file>icons-svg/22/input-touchpad-off.svg</file>
     <file>icons-svg/22/office-chart-line-percentage.svg</file>
+    <file>icons-svg/22/temperature-cold.svg</file>
+    <file>icons-svg/22/battery-030-profile-performance.svg</file>
+    <file>icons-svg/22/network-wireless-connected-25.svg</file>
     <file>icons-svg/22/view-financial-account-credit-card-closed.svg</file>
     <file>icons-svg/22/text-x-authors.svg</file>
+    <file>icons-svg/22/network-mobile-100-edge.svg</file>
     <file>icons-svg/22/align-horizontal-top-out.svg</file>
     <file>icons-svg/22/upload-later.svg</file>
+    <file>icons-svg/22/fcitx-pinyin-libpinyin.svg</file>
     <file>icons-svg/22/filename-space-amarok.svg</file>
     <file>icons-svg/22/colorneg.svg</file>
     <file>icons-svg/22/application-x-apple-diskimage.svg</file>
+    <file>icons-svg/22/network-mobile-0-umts.svg</file>
+    <file>icons-svg/22/kdeconnect-tray.svg</file>
     <file>icons-svg/22/step_object_Spring.svg</file>
+    <file>icons-svg/22/folder-sound.svg</file>
     <file>icons-svg/22/application-pgp-signature.svg</file>
     <file>icons-svg/22/depth8to16.svg</file>
     <file>icons-svg/22/format-convert-to-path.svg</file>
+    <file>icons-svg/22/drive-multipartition.svg</file>
+    <file>icons-svg/22/fcitx-libkkc.svg</file>
     <file>icons-svg/22/system-user-prompt.svg</file>
+    <file>icons-svg/22/battery-profile-powersave.svg</file>
     <file>icons-svg/22/window-duplicate.svg</file>
     <file>icons-svg/22/network-connect.svg</file>
+    <file>icons-svg/22/network-wireless-on.svg</file>
     <file>icons-svg/22/draw-polyline.svg</file>
     <file>icons-svg/22/draw-triangle.svg</file>
+    <file>icons-svg/22/call-incoming.svg</file>
     <file>icons-svg/22/markasblank.svg</file>
     <file>icons-svg/22/gtk-select-font.svg</file>
     <file>icons-svg/22/gnumeric-column-size.svg</file>
+    <file>icons-svg/22/audio-headphones.svg</file>
     <file>icons-svg/22/depth16to8.svg</file>
+    <file>icons-svg/22/network-wireless-20-locked.svg</file>
+    <file>icons-svg/22/firewall-applet-error.svg</file>
     <file>icons-svg/22/insert-horizontal-rule.svg</file>
     <file>icons-svg/22/align-horizontal-right-to-anchor.svg</file>
     <file>icons-svg/22/color-mode-black-white.svg</file>
     <file>icons-svg/22/games-hint.svg</file>
+    <file>icons-svg/22/network-mobile-80-lte-locked.svg</file>
     <file>icons-svg/22/office-chart-polar-stacked.svg</file>
     <file>icons-svg/22/zoom-out.svg</file>
+    <file>icons-svg/22/ime-googlepinyin.svg</file>
+    <file>icons-svg/22/battery-100-profile-balanced.svg</file>
     <file>icons-svg/22/adjustcurves.svg</file>
     <file>icons-svg/22/amarok_cart_add.svg</file>
     <file>icons-svg/22/go-down-skip.svg</file>
+    <file>icons-svg/22/battery-030-profile-powersave.svg</file>
     <file>icons-svg/22/node-segment-line.svg</file>
     <file>icons-svg/22/precondition.svg</file>
+    <file>icons-svg/22/network-server-database.svg</file>
+    <file>icons-svg/22/state-offline.svg</file>
     <file>icons-svg/22/zoom-2-to-1.svg</file>
     <file>icons-svg/22/snap-page.svg</file>
     <file>icons-svg/22/filename-initial-amarok.svg</file>
     <file>icons-svg/22/document-properties.svg</file>
+    <file>icons-svg/22/network-mobile-100-lte.svg</file>
+    <file>icons-svg/22/microphone-sensitivity-muted.svg</file>
     <file>icons-svg/22/node-transform.svg</file>
     <file>icons-svg/22/map-mercator.svg</file>
+    <file>icons-svg/22/network-mobile-40-gprs-locked.svg</file>
     <file>icons-svg/22/antivignetting.svg</file>
+    <file>icons-svg/22/network-wired.svg</file>
     <file>icons-svg/22/text-x-tcl.svg</file>
     <file>icons-svg/22/application-x-executable.svg</file>
+    <file>icons-svg/22/computer-laptop.svg</file>
     <file>icons-svg/22/office-chart-line.svg</file>
     <file>icons-svg/22/format-text-direction-vertical.svg</file>
     <file>icons-svg/22/tools-wizard.svg</file>
     <file>icons-svg/22/kdenlive-slide.svg</file>
     <file>icons-svg/22/mode2.svg</file>
     <file>icons-svg/22/pathshape.svg</file>
+    <file>icons-svg/22/battery-060-charging.svg</file>
+    <file>icons-svg/22/network-mobile-80-lte.svg</file>
+    <file>icons-svg/22/network-mobile-40-umts.svg</file>
     <file>icons-svg/22/mail-attachment.svg</file>
+    <file>icons-svg/22/folder-games.svg</file>
     <file>icons-svg/22/media-skip-forward.svg</file>
     <file>icons-svg/22/keyframe-disable.svg</file>
     <file>icons-svg/22/view-time-schedule-calculus.svg</file>
@@ -2525,16 +2781,23 @@
     <file>icons-svg/22/align-vertical-top-to-anchor.svg</file>
     <file>icons-svg/22/dialog-scripts.svg</file>
     <file>icons-svg/22/wallet-open.svg</file>
+    <file>icons-svg/22/network-wireless-connected-50.svg</file>
     <file>icons-svg/22/align-horizontal-left-to-anchor.svg</file>
+    <file>icons-svg/22/network-mobile-60.svg</file>
     <file>icons-svg/22/view-sort-ascending.svg</file>
     <file>icons-svg/22/journal-new.svg</file>
+    <file>icons-svg/22/network-mobile-20-lte-locked.svg</file>
+    <file>icons-svg/22/folder-important.svg</file>
     <file>icons-svg/22/x-office-calendar.svg</file>
     <file>icons-svg/22/format-disconnect-node.svg</file>
+    <file>icons-svg/22/ime-handwriting-off.svg</file>
     <file>icons-svg/22/tab-new-background.svg</file>
     <file>icons-svg/22/document-swap.svg</file>
     <file>icons-svg/22/application-x-gzpostscript.svg</file>
     <file>icons-svg/22/snap-text-baseline.svg</file>
+    <file>icons-svg/22/battery-090-profile-performance.svg</file>
     <file>icons-svg/22/underexposure.svg</file>
+    <file>icons-svg/22/network-unavailable.svg</file>
     <file>icons-svg/22/debug-step-into-instruction.svg</file>
     <file>icons-svg/22/prevfuzzyuntrans.svg</file>
     <file>icons-svg/22/view-certificate-server-configure.svg</file>
@@ -2542,32 +2805,54 @@
     <file>icons-svg/22/application-vnd.ms-excel.template.macroenabled.12.svg</file>
     <file>icons-svg/22/project-development-new-template.svg</file>
     <file>icons-svg/22/keyframe-add.svg</file>
+    <file>icons-svg/22/fcitx-pinyin.svg</file>
+    <file>icons-svg/22/network-mobile-40.svg</file>
     <file>icons-svg/22/transform-scale.svg</file>
+    <file>icons-svg/22/battery-090-charging-profile-powersave.svg</file>
     <file>icons-svg/22/media-seek-forward.svg</file>
+    <file>icons-svg/22/folder-extension.svg</file>
     <file>icons-svg/22/gnumeric-object-scrollbar.svg</file>
     <file>icons-svg/22/redeyes.svg</file>
+    <file>icons-svg/22/battery-070-profile-balanced.svg</file>
     <file>icons-svg/22/kt-remove-feeds.svg</file>
+    <file>icons-svg/22/battery-100-profile-performance.svg</file>
+    <file>icons-svg/22/media-optical-data.svg</file>
     <file>icons-svg/22/view-form-action.svg</file>
     <file>icons-svg/22/media-track-show-active.svg</file>
     <file>icons-svg/22/xml-text-new.svg</file>
     <file>icons-svg/22/application-x-tzo.svg</file>
     <file>icons-svg/22/view-pages-facing.svg</file>
     <file>icons-svg/22/application-x-perl.svg</file>
+    <file>icons-svg/22/ime-handwriting-on.svg</file>
     <file>icons-svg/22/distribute-horizontal-left.svg</file>
+    <file>icons-svg/22/firewall-applet-shields_up.svg</file>
     <file>icons-svg/22/filmgrain.svg</file>
+    <file>icons-svg/22/battery-000-profile-balanced.svg</file>
     <file>icons-svg/22/format-connect-node.svg</file>
+    <file>icons-svg/22/network-wireless-100-limited.svg</file>
+    <file>icons-svg/22/network-mobile-60-hsdpa.svg</file>
+    <file>icons-svg/22/task-process-1.svg</file>
     <file>icons-svg/22/tools-rip-video-dvd.svg</file>
     <file>icons-svg/22/bordertool.svg</file>
+    <file>icons-svg/22/security-low.svg</file>
+    <file>icons-svg/22/folder-blender.svg</file>
+    <file>icons-svg/22/fcitx-kbd.svg</file>
+    <file>icons-svg/22/task-process-0.svg</file>
+    <file>icons-svg/22/battery-030-charging.svg</file>
+    <file>icons-svg/22/folder-tar.svg</file>
     <file>icons-svg/22/document-save-as.svg</file>
     <file>icons-svg/22/mode5.svg</file>
+    <file>icons-svg/22/network-mobile-20-hspa-locked.svg</file>
     <file>icons-svg/22/notification-active.svg</file>
     <file>icons-svg/22/zoom-out-x.svg</file>
     <file>icons-svg/22/copy-coordinates.svg</file>
     <file>icons-svg/22/code-class.svg</file>
     <file>icons-svg/22/tag-recents.svg</file>
+    <file>icons-svg/22/network-mobile-80-edge.svg</file>
     <file>icons-svg/22/kdenlive-add-clip.svg</file>
     <file>icons-svg/22/draw-halfcircle2.svg</file>
     <file>icons-svg/22/format-line-spacing-triple.svg</file>
+    <file>icons-svg/22/network-mobile-60-lte.svg</file>
     <file>icons-svg/22/color-picker.svg</file>
     <file>icons-svg/22/wallet-closed.svg</file>
     <file>icons-svg/22/choice-rhomb.svg</file>
@@ -2576,9 +2861,12 @@
     <file>icons-svg/22/skrooge_much_less.svg</file>
     <file>icons-svg/22/labplot-editgrid.svg</file>
     <file>icons-svg/22/username-copy.svg</file>
+    <file>icons-svg/22/security-medium.svg</file>
+    <file>icons-svg/22/network-mobile-60-hsdpa-locked.svg</file>
     <file>icons-svg/22/path-mask-edit.svg</file>
     <file>icons-svg/22/adjusthsl.svg</file>
     <file>icons-svg/22/gnumeric-data-slicer.svg</file>
+    <file>icons-svg/22/network-wired-activated-locked.svg</file>
     <file>icons-svg/22/kt-start-all.svg</file>
     <file>icons-svg/22/charcoaltool.svg</file>
     <file>icons-svg/22/debug-run-cursor.svg</file>
@@ -2586,83 +2874,121 @@
     <file>icons-svg/22/gnumeric-bucket.svg</file>
     <file>icons-svg/22/final_activity.svg</file>
     <file>icons-svg/22/im-gadugadu.svg</file>
+    <file>icons-svg/22/data-success.svg</file>
     <file>icons-svg/22/labplot-workbook-new.svg</file>
     <file>icons-svg/22/vcs-commit-cvs-cervisia.svg</file>
     <file>icons-svg/22/discrete.svg</file>
     <file>icons-svg/22/view-calendar-wedding-anniversary.svg</file>
     <file>icons-svg/22/dialog-xml-editor.svg</file>
     <file>icons-svg/22/standard-connector.svg</file>
+    <file>icons-svg/22/microphone-sensitivity-low.svg</file>
+    <file>icons-svg/22/ime-shuangpin.svg</file>
     <file>icons-svg/22/application-vnd.nokia.xml.qt.resource.svg</file>
     <file>icons-svg/22/view-certificate-export-secret.svg</file>
+    <file>icons-svg/22/network-mobile-0-5g-locked.svg</file>
+    <file>icons-svg/22/klipper-symbolic.svg</file>
     <file>icons-svg/22/view-calendar-month.svg</file>
     <file>icons-svg/22/document-save-all.svg</file>
+    <file>icons-svg/22/fcitx-anthy.svg</file>
     <file>icons-svg/22/format-node-corner.svg</file>
     <file>icons-svg/22/flash.svg</file>
+    <file>icons-svg/22/battery-060-charging-profile-powersave.svg</file>
     <file>icons-svg/22/zoom-in.svg</file>
     <file>icons-svg/22/escape-direction-all.svg</file>
     <file>icons-svg/22/step_object_LinearMotor.svg</file>
+    <file>icons-svg/22/ime-libpinyin-chewing.svg</file>
     <file>icons-svg/22/coordinate.svg</file>
     <file>icons-svg/22/view-calendar-upcoming-events.svg</file>
+    <file>icons-svg/22/battery-060-profile-balanced.svg</file>
+    <file>icons-svg/22/fcitx-quanpin.svg</file>
     <file>icons-svg/22/im-yahoo.svg</file>
+    <file>icons-svg/22/network-mobile-60-hspa.svg</file>
     <file>icons-svg/22/node-segment-curve.svg</file>
+    <file>icons-svg/22/network-mobile-40-5g-locked.svg</file>
+    <file>icons-svg/22/input-tablet.svg</file>
     <file>icons-svg/22/view-financial-transfer-reconciled.svg</file>
     <file>icons-svg/22/format-border-set-bottom.svg</file>
     <file>icons-svg/22/upload-media.svg</file>
+    <file>icons-svg/22/network-wired-available.svg</file>
+    <file>icons-svg/22/battery-090-charging-profile-balanced.svg</file>
     <file>icons-svg/22/edit-table-insert-column-right.svg</file>
+    <file>icons-svg/22/user-trash.svg</file>
     <file>icons-svg/22/edit-delete.svg</file>
     <file>icons-svg/22/snap-nodes-midpoint.svg</file>
     <file>icons-svg/22/im-youtube.svg</file>
+    <file>icons-svg/22/battery-000-charging-profile-powersave.svg</file>
     <file>icons-svg/22/kr_combine.svg</file>
     <file>icons-svg/22/view-task-child.svg</file>
     <file>icons-svg/22/application-x-rdata.svg</file>
     <file>icons-svg/22/text-x-patch.svg</file>
     <file>icons-svg/22/application-vnd.ms-publisher.svg</file>
+    <file>icons-svg/22/battery-050.svg</file>
     <file>icons-svg/22/map-flat.svg</file>
     <file>icons-svg/22/collapse-all.svg</file>
     <file>icons-svg/22/align-horizontal-right-out.svg</file>
+    <file>icons-svg/22/folder-trash.svg</file>
+    <file>icons-svg/22/network-mobile-20-lte.svg</file>
     <file>icons-svg/22/gnumeric-formulaguru.svg</file>
     <file>icons-svg/22/mail-forwarded.svg</file>
     <file>icons-svg/22/filename-and-amarok.svg</file>
     <file>icons-svg/22/format-border-set-right.svg</file>
     <file>icons-svg/22/gnumeric-format-precision-decrease.svg</file>
     <file>icons-svg/22/application-x-font-otf.svg</file>
+    <file>icons-svg/22/keyboard-caps-enabled.svg</file>
+    <file>icons-svg/22/folder-notes.svg</file>
     <file>icons-svg/22/sharpenimage.svg</file>
     <file>icons-svg/22/application-x-macbinary.svg</file>
     <file>icons-svg/22/application-x-gzip.svg</file>
     <file>icons-svg/22/application-x-designer.svg</file>
     <file>icons-svg/22/dialog-cancel.svg</file>
+    <file>icons-svg/22/kpackagekit-important.svg</file>
+    <file>icons-svg/22/fcitx-ziranma.svg</file>
+    <file>icons-svg/22/battery-030-profile-balanced.svg</file>
     <file>icons-svg/22/crosshairs.svg</file>
     <file>icons-svg/22/media-repeat-album-amarok.svg</file>
     <file>icons-svg/22/im-user-away.svg</file>
+    <file>icons-svg/22/battery-040-charging-profile-balanced.svg</file>
     <file>icons-svg/22/gnumeric-format-precision-increase.svg</file>
     <file>icons-svg/22/kdenlive-custom-effect.svg</file>
+    <file>icons-svg/22/battery-050-charging-profile-powersave.svg</file>
+    <file>icons-svg/22/folder-sign.svg</file>
+    <file>icons-svg/22/network-wireless-connected-100.svg</file>
     <file>icons-svg/22/keyframe-remove.svg</file>
+    <file>icons-svg/22/audio-ready.svg</file>
     <file>icons-svg/22/edit-find.svg</file>
     <file>icons-svg/22/application-x-marble.svg</file>
+    <file>icons-svg/22/folder-database.svg</file>
     <file>icons-svg/22/irc-operator.svg</file>
     <file>icons-svg/22/go-jump-declaration.svg</file>
     <file>icons-svg/22/view-split-left-right.svg</file>
     <file>icons-svg/22/application-x-font-ttf.svg</file>
     <file>icons-svg/22/draw-donut.svg</file>
+    <file>icons-svg/22/call-missed.svg</file>
     <file>icons-svg/22/prevfuzzy.svg</file>
     <file>icons-svg/22/edit-paste-in-place.svg</file>
     <file>icons-svg/22/kstars_stars.svg</file>
+    <file>icons-svg/22/battery-080-charging-profile-balanced.svg</file>
     <file>icons-svg/22/mail-replied.svg</file>
     <file>icons-svg/22/view-media-equalizer.svg</file>
     <file>icons-svg/22/skrooge_less.svg</file>
+    <file>icons-svg/22/network-wireless-hotspot.svg</file>
     <file>icons-svg/22/labplot-axis-vertical.svg</file>
     <file>icons-svg/22/irc-unvoice.svg</file>
     <file>icons-svg/22/insert-image.svg</file>
     <file>icons-svg/22/tools-media-optical-erase.svg</file>
     <file>icons-svg/22/preflight-verifier.svg</file>
+    <file>icons-svg/22/media-flash-sd-mmc.svg</file>
     <file>icons-svg/22/step_object_GravitationForce.svg</file>
+    <file>icons-svg/22/folder-network.svg</file>
     <file>icons-svg/22/application-xmind.svg</file>
     <file>icons-svg/22/insert-link.svg</file>
     <file>icons-svg/22/office-chart-line-stacked.svg</file>
+    <file>icons-svg/22/uninstall.svg</file>
     <file>icons-svg/22/gnumeric-object-combo.svg</file>
     <file>icons-svg/22/format-text-direction-horizontal.svg</file>
     <file>icons-svg/22/image-vnd.dgn.svg</file>
     <file>icons-svg/22/application-x-krita.svg</file>
+    <file>icons-svg/22/ime-sunpinyin.svg</file>
     <file>icons-svg/22/story-editor.svg</file>
     <file>icons-svg/22/kdenlive-split-audio.svg</file>
     <file>icons-svg/22/view-barcode.svg</file>
@@ -2675,12 +3001,19 @@
     <file>icons-svg/22/restoration.svg</file>
     <file>icons-svg/22/tag-new.svg</file>
     <file>icons-svg/22/application-postscript.svg</file>
+    <file>icons-svg/22/battery-060-profile-performance.svg</file>
+    <file>icons-svg/22/battery-100-profile-powersave.svg</file>
     <file>icons-svg/22/image-tiff.svg</file>
     <file>icons-svg/22/go-jump.svg</file>
     <file>icons-svg/22/whitebalance.svg</file>
     <file>icons-svg/22/news-subscribe.svg</file>
+    <file>icons-svg/22/update-none.svg</file>
+    <file>icons-svg/22/network-mobile-80-5g-locked.svg</file>
+    <file>icons-svg/22/input-keyboard-virtual-on.svg</file>
     <file>icons-svg/22/xml-node-duplicate.svg</file>
     <file>icons-svg/22/umbrello_diagram_deployment.svg</file>
+    <file>icons-svg/22/keyboard-caps-disabled.svg</file>
+    <file>icons-svg/22/data-warning.svg</file>
     <file>icons-svg/22/y-zoom-in.svg</file>
     <file>icons-svg/22/blur.svg</file>
     <file>icons-svg/22/category.svg</file>
@@ -2689,8 +3022,11 @@
     <file>icons-svg/22/align-horizontal-left-out.svg</file>
     <file>icons-svg/22/application-x-godot-shader.svg</file>
     <file>icons-svg/22/application-x-lyx.svg</file>
+    <file>icons-svg/22/telegram-attention-panel.svg</file>
     <file>icons-svg/22/object-rows.svg</file>
+    <file>icons-svg/22/folder-open.svg</file>
     <file>icons-svg/22/mail-signature-unknown.svg</file>
+    <file>icons-svg/22/network-rj45-female.svg</file>
     <file>icons-svg/22/bboxnext.svg</file>
     <file>icons-svg/22/virtualbox-ovf.svg</file>
     <file>icons-svg/22/format-precision-less.svg</file>
@@ -2699,12 +3035,17 @@
     <file>icons-svg/22/kt-chunks.svg</file>
     <file>icons-svg/22/artifact.svg</file>
     <file>icons-svg/22/view-visible.svg</file>
+    <file>icons-svg/22/battery-090-profile-powersave.svg</file>
     <file>icons-svg/22/application-pgp-encrypted.svg</file>
     <file>icons-svg/22/align-vertical-top.svg</file>
+    <file>icons-svg/22/battery-010.svg</file>
     <file>icons-svg/22/object-columns.svg</file>
     <file>icons-svg/22/drag-surface.svg</file>
     <file>icons-svg/22/edit-clear-history.svg</file>
+    <file>icons-svg/22/network-wireless-connected-40.svg</file>
     <file>icons-svg/22/zoom-fit-best.svg</file>
+    <file>icons-svg/22/media-playback-playing.svg</file>
+    <file>icons-svg/22/folder-rpm.svg</file>
     <file>icons-svg/22/application-vnd.oasis.opendocument.spreadsheet-template.svg</file>
     <file>icons-svg/22/application-msword.svg</file>
     <file>icons-svg/22/irc-channel-inactive.svg</file>
@@ -2713,6 +3054,7 @@
     <file>icons-svg/22/minuet-rhythms.svg</file>
     <file>icons-svg/22/torrents.svg</file>
     <file>icons-svg/22/application-x-kvtml.svg</file>
+    <file>icons-svg/22/network-wireless-acquiring.svg</file>
     <file>icons-svg/22/view-pages-overview.svg</file>
     <file>icons-svg/22/smiley-add.svg</file>
     <file>icons-svg/22/labplot-shift-down-y.svg</file>
@@ -2720,18 +3062,24 @@
     <file>icons-svg/22/zone-in.svg</file>
     <file>icons-svg/22/composite-track-off.svg</file>
     <file>icons-svg/22/application-x-kexiproject-shortcut.svg</file>
+    <file>icons-svg/22/network-bluetooth-activated.svg</file>
     <file>icons-svg/22/document-new-from-template.svg</file>
+    <file>icons-svg/22/network-wireless-0.svg</file>
     <file>icons-svg/22/tool-tweak.svg</file>
+    <file>icons-svg/22/smartphonetrusted.svg</file>
     <file>icons-svg/22/mail-meeting-request-reply.svg</file>
     <file>icons-svg/22/filename-discnumber-amarok.svg</file>
     <file>icons-svg/22/virtualbox-vbox-extpack.svg</file>
     <file>icons-svg/22/folder-stash.svg</file>
     <file>icons-svg/22/edit-cut.svg</file>
+    <file>icons-svg/22/network-mobile-20.svg</file>
     <file>icons-svg/22/application-x-audacity-project.svg</file>
     <file>icons-svg/22/office-chart-scatter.svg</file>
     <file>icons-svg/22/application-vnd.ms-infopath.svg</file>
+    <file>icons-svg/22/input-tvremote.svg</file>
     <file>icons-svg/22/labplot-editbreaklayout.svg</file>
     <file>icons-svg/22/edit-select-all.svg</file>
+    <file>icons-svg/22/fcitx-hangul.svg</file>
     <file>icons-svg/22/draw-halfcircle4.svg</file>
     <file>icons-svg/22/view-left-new.svg</file>
     <file>icons-svg/22/transform-move.svg</file>
@@ -2741,29 +3089,42 @@
     <file>icons-svg/22/distribute-vertical-top.svg</file>
     <file>icons-svg/22/application-x-java.svg</file>
     <file>icons-svg/22/show-node-handles.svg</file>
+    <file>icons-svg/22/folder-build.svg</file>
     <file>icons-svg/22/mail-invitation.svg</file>
     <file>icons-svg/22/gnumeric-autosum.svg</file>
     <file>icons-svg/22/view-file-columns.svg</file>
     <file>icons-svg/22/application-x-font-type1.svg</file>
     <file>icons-svg/22/text-x-c++src.svg</file>
+    <file>icons-svg/22/audio-on.svg</file>
     <file>icons-svg/22/object-height.svg</file>
+    <file>icons-svg/22/network-wired-activated-limited.svg</file>
     <file>icons-svg/22/format-border-set-top.svg</file>
+    <file>icons-svg/22/network-mobile-0-locked.svg</file>
     <file>icons-svg/22/application-x-plasma.svg</file>
     <file>icons-svg/22/debug-step-out.svg</file>
     <file>icons-svg/22/x-office-drawing.svg</file>
+    <file>icons-svg/22/battery-030-charging-profile-performance.svg</file>
     <file>icons-svg/22/color-picker-white.svg</file>
     <file>icons-svg/22/align-vertical-bottom-out.svg</file>
     <file>icons-svg/22/distribute-vertical-node.svg</file>
     <file>icons-svg/22/dependency.svg</file>
+    <file>icons-svg/22/network-mobile-80-locked.svg</file>
+    <file>icons-svg/22/kpackagekit-security.svg</file>
     <file>icons-svg/22/mail-mark-unread.svg</file>
+    <file>icons-svg/22/network-mobile-40-hsupa-locked.svg</file>
     <file>icons-svg/22/x-office-presentation.svg</file>
     <file>icons-svg/22/dfrac.svg</file>
+    <file>icons-svg/22/folder-blender-symbolic.svg</file>
+    <file>icons-svg/22/dropboxstatus-idle.svg</file>
     <file>icons-svg/22/archive-insert.svg</file>
     <file>icons-svg/22/application-x-bzip-compressed-tar.svg</file>
     <file>icons-svg/22/food.svg</file>
     <file>icons-svg/22/node-type-smooth.svg</file>
+    <file>icons-svg/22/haguichi-connecting-1.svg</file>
     <file>icons-svg/22/text_line_spacing.svg</file>
+    <file>icons-svg/22/network-mobile-0-gprs.svg</file>
     <file>icons-svg/22/kstars_hgrid.svg</file>
+    <file>icons-svg/22/network-bluetooth.svg</file>
     <file>icons-svg/22/document-decrypt.svg</file>
     <file>icons-svg/22/application-vnd.ms-excel.addin.macroenabled.12.svg</file>
     <file>icons-svg/22/image-x-psd.svg</file>
@@ -2775,14 +3136,21 @@
     <file>icons-svg/22/xml-node-delete.svg</file>
     <file>icons-svg/22/description.svg</file>
     <file>icons-svg/22/notification-progress-inactive.svg</file>
+    <file>icons-svg/22/network-mobile-40-hsupa.svg</file>
     <file>icons-svg/22/run-build-install.svg</file>
     <file>icons-svg/22/brightness-low.svg</file>
+    <file>icons-svg/22/folder-crash-symbolic.svg</file>
+    <file>icons-svg/22/camera-on.svg</file>
+    <file>icons-svg/22/dropboxstatus-x.svg</file>
     <file>icons-svg/22/view-preview.svg</file>
     <file>icons-svg/22/format-indent-more.svg</file>
     <file>icons-svg/22/favorite-favorited.svg</file>
+    <file>icons-svg/22/battery-020-charging.svg</file>
+    <file>icons-svg/22/network-wireless-connected-60.svg</file>
     <file>icons-svg/22/flag-black.svg</file>
     <file>icons-svg/22/xml-element-new.svg</file>
     <file>icons-svg/22/exchange-positions-zorder.svg</file>
+    <file>icons-svg/22/battery-040-charging-profile-performance.svg</file>
     <file>icons-svg/22/stickers.svg</file>
     <file>icons-svg/22/curve-connector.svg</file>
     <file>icons-svg/22/application-x-theme.svg</file>
@@ -2792,18 +3160,27 @@
     <file>icons-svg/22/application-x-root.svg</file>
     <file>icons-svg/22/align-vertical-top-out.svg</file>
     <file>icons-svg/22/input-mouse-click-right.svg</file>
+    <file>icons-svg/22/fcitx-bopomofo-libpinyin.svg</file>
     <file>icons-svg/22/application-exit.svg</file>
+    <file>icons-svg/22/audio-input-microphone.svg</file>
+    <file>icons-svg/22/folder-add.svg</file>
     <file>icons-svg/22/send_signal.svg</file>
     <file>icons-svg/22/lensautofix.svg</file>
+    <file>icons-svg/22/battery-010-profile-performance.svg</file>
+    <file>icons-svg/22/network-mobile-40-umts-locked.svg</file>
+    <file>icons-svg/22/fcitx-remind-active.svg</file>
+    <file>icons-svg/22/battery-000-profile-powersave.svg</file>
     <file>icons-svg/22/align-vertical-baseline.svg</file>
     <file>icons-svg/22/message-news.svg</file>
     <file>icons-svg/22/view-web-browser-dom-tree.svg</file>
     <file>icons-svg/22/view-time-schedule-child-insert.svg</file>
+    <file>icons-svg/22/camera-photo.svg</file>
     <file>icons-svg/22/vcs-merge.svg</file>
     <file>icons-svg/22/format-text-capitalize.svg</file>
     <file>icons-svg/22/view-financial-account-savings-closed.svg</file>
     <file>icons-svg/22/code-context.svg</file>
     <file>icons-svg/22/go-home.svg</file>
+    <file>icons-svg/22/drive-multidisk.svg</file>
     <file>icons-svg/22/image-x-tga.svg</file>
     <file>icons-svg/22/view-financial-account-investment-security-closed.svg</file>
     <file>icons-svg/22/quickopen-function.svg</file>
@@ -2812,16 +3189,20 @@
     <file>icons-svg/22/view-sort-descending.svg</file>
     <file>icons-svg/22/gnumeric-format-border-top-n-bottom.svg</file>
     <file>icons-svg/22/timeline-use-zone-on.svg</file>
+    <file>icons-svg/22/network-mobile-20-locked.svg</file>
     <file>icons-svg/22/input-keyboard-virtual-hide.svg</file>
     <file>icons-svg/22/im-user-busy.svg</file>
     <file>icons-svg/22/map-globe.svg</file>
     <file>icons-svg/22/repeat.svg</file>
     <file>icons-svg/22/text-x-script.svg</file>
+    <file>icons-svg/22/computer.svg</file>
     <file>icons-svg/22/view-financial-category-income.svg</file>
     <file>icons-svg/22/flag-yellow.svg</file>
     <file>icons-svg/22/im-qq.svg</file>
     <file>icons-svg/22/kdenlive-ripple.svg</file>
     <file>icons-svg/22/application-x-tarz.svg</file>
+    <file>icons-svg/22/battery-missing.svg</file>
+    <file>icons-svg/22/fcitx-shuangpin-libpinyin.svg</file>
     <file>icons-svg/22/gnumeric-link-internal.svg</file>
     <file>icons-svg/22/view-filter.svg</file>
     <file>icons-svg/22/system-log-out.svg</file>
@@ -2830,14 +3211,18 @@
     <file>icons-svg/22/games-solve.svg</file>
     <file>icons-svg/22/insert-table.svg</file>
     <file>icons-svg/22/application-x-smb-workgroup.svg</file>
+    <file>icons-svg/22/mail-message.svg</file>
     <file>icons-svg/22/perspective.svg</file>
     <file>icons-svg/22/paint-none.svg</file>
     <file>icons-svg/22/node-type-auto-smooth.svg</file>
     <file>icons-svg/22/system-shutdown.svg</file>
     <file>icons-svg/22/show-all-effects.svg</file>
     <file>icons-svg/22/minuet-chords.svg</file>
+    <file>icons-svg/22/folder-gdrive.svg</file>
     <file>icons-svg/22/application-vnd.oasis.opendocument.database.svg</file>
+    <file>icons-svg/22/fcitx-chttrans-active.svg</file>
     <file>icons-svg/22/gnumeric-pagesetup-hf-pages.svg</file>
+    <file>icons-svg/22/battery-020.svg</file>
     <file>icons-svg/22/application-x-desktop.svg</file>
     <file>icons-svg/22/format-text-symbol.svg</file>
     <file>icons-svg/22/view-financial-account-cash.svg</file>
@@ -2845,9 +3230,17 @@
     <file>icons-svg/22/format-border-set-external.svg</file>
     <file>icons-svg/22/open-link.svg</file>
     <file>icons-svg/22/format-border-set-all.svg</file>
+    <file>icons-svg/22/fcitx-chewing.svg</file>
+    <file>icons-svg/22/folder-brown.svg</file>
     <file>icons-svg/22/application-x-python-bytecode.svg</file>
     <file>icons-svg/22/labplot-xy-fourier-transform-curve.svg</file>
+    <file>icons-svg/22/network-flightmode-off.svg</file>
+    <file>icons-svg/22/network-wireless-20.svg</file>
+    <file>icons-svg/22/battery-010-charging-profile-powersave.svg</file>
     <file>icons-svg/22/view-calendar-agenda.svg</file>
+    <file>icons-svg/22/rotation-allowed.svg</file>
+    <file>icons-svg/22/uav-quadcopter.svg</file>
+    <file>icons-svg/22/folder-android-symbolic.svg</file>
     <file>icons-svg/22/application-x-arj.svg</file>
     <file>icons-svg/22/milestone.svg</file>
     <file>icons-svg/22/application-x-xliff.svg</file>
@@ -2858,16 +3251,24 @@
     <file>icons-svg/22/application-certificate.svg</file>
     <file>icons-svg/22/media-album-track.svg</file>
     <file>icons-svg/22/table.svg</file>
+    <file>icons-svg/22/input-keyboard-battery.svg</file>
     <file>icons-svg/22/irc-remove-operator.svg</file>
     <file>icons-svg/22/application-vnd.iccprofile.svg</file>
     <file>icons-svg/22/colors-chromablue.svg</file>
     <file>icons-svg/22/application-msword-template.svg</file>
     <file>icons-svg/22/format-indent-less.svg</file>
+    <file>icons-svg/22/audio-volume-high-warning.svg</file>
     <file>icons-svg/22/minuet-scales.svg</file>
     <file>icons-svg/22/distribute-vertical-margin.svg</file>
     <file>icons-svg/22/irc-voice.svg</file>
+    <file>icons-svg/22/kalarm-disabled.svg</file>
     <file>icons-svg/22/media-playback-start.svg</file>
+    <file>icons-svg/22/ime-cangjie.svg</file>
+    <file>icons-svg/22/ime-chinese-simplified.svg</file>
     <file>icons-svg/22/quickopen-class.svg</file>
+    <file>icons-svg/22/battery-ups.svg</file>
+    <file>icons-svg/22/network-wired-activated.svg</file>
+    <file>icons-svg/22/update-medium.svg</file>
     <file>icons-svg/22/labplot-editvlayout.svg</file>
     <file>icons-svg/22/view-object-histogram-linear.svg</file>
     <file>icons-svg/22/distribute-remove-overlaps.svg</file>
@@ -2877,41 +3278,65 @@
     <file>icons-svg/22/application-vnd.oasis.opendocument.formula.svg</file>
     <file>icons-svg/22/process-stop.svg</file>
     <file>icons-svg/22/quickopen.svg</file>
+    <file>icons-svg/22/folder-red.svg</file>
     <file>icons-svg/22/view-time-schedule-edit.svg</file>
+    <file>icons-svg/22/battery-060-charging-profile-performance.svg</file>
     <file>icons-svg/22/zone-out.svg</file>
+    <file>icons-svg/22/camera-video.svg</file>
+    <file>icons-svg/22/network-mobile-0.svg</file>
     <file>icons-svg/22/edit-copy.svg</file>
     <file>icons-svg/22/gnumeric-format-border-thick-outside.svg</file>
+    <file>icons-svg/22/folder-cyan.svg</file>
+    <file>icons-svg/22/network-wired-unavailable.svg</file>
+    <file>icons-svg/22/folder-drawing.svg</file>
     <file>icons-svg/22/edit-move.svg</file>
     <file>icons-svg/22/im-icq.svg</file>
     <file>icons-svg/22/office-chart-bar-stacked.svg</file>
+    <file>icons-svg/22/ime-libskk.svg</file>
     <file>icons-svg/22/video-webm.svg</file>
     <file>icons-svg/22/task-new.svg</file>
     <file>icons-svg/22/application-x-kexi-connectiondata.svg</file>
     <file>icons-svg/22/application-x-chm.svg</file>
+    <file>icons-svg/22/network-rj11-female.svg</file>
     <file>icons-svg/22/path-mode-polyline.svg</file>
     <file>icons-svg/22/channelmixer.svg</file>
     <file>icons-svg/22/view-calendar-week.svg</file>
+    <file>icons-svg/22/network-mobile-20-5g.svg</file>
     <file>icons-svg/22/project-development-close.svg</file>
+    <file>icons-svg/22/auth-sim-missing.svg</file>
     <file>icons-svg/22/insert-more-mark.svg</file>
     <file>icons-svg/22/notification-progress-active.svg</file>
     <file>icons-svg/22/text-wiki.svg</file>
     <file>icons-svg/22/view-time-schedule-baselined.svg</file>
     <file>icons-svg/22/format-line-spacing-normal.svg</file>
+    <file>icons-svg/22/network-mobile-0-gprs-locked.svg</file>
     <file>icons-svg/22/view-task.svg</file>
+    <file>icons-svg/22/rotation-locked-portrait.svg</file>
+    <file>icons-svg/22/network-mobile-100-5g-locked.svg</file>
     <file>icons-svg/22/gnumeric-format-border-top-n-thick-bottom.svg</file>
+    <file>icons-svg/22/folder-design.svg</file>
     <file>icons-svg/22/media-playback-pause.svg</file>
     <file>icons-svg/22/align-vertical-bottom.svg</file>
     <file>icons-svg/22/gtk-index.svg</file>
+    <file>icons-svg/22/network-workgroup.svg</file>
     <file>icons-svg/22/association.svg</file>
+    <file>icons-svg/22/folder-language.svg</file>
     <file>icons-svg/22/vcs-pull.svg</file>
     <file>icons-svg/22/application-json.svg</file>
     <file>icons-svg/22/system-reboot-update.svg</file>
+    <file>icons-svg/22/battery-040-profile-performance.svg</file>
     <file>icons-svg/22/transform-shear-up.svg</file>
+    <file>icons-svg/22/showinfo.svg</file>
     <file>icons-svg/22/media-mount.svg</file>
+    <file>icons-svg/22/process-working-symbolic.svg</file>
+    <file>icons-svg/22/redshift-status-on.svg</file>
     <file>icons-svg/22/draw-rectangle.svg</file>
     <file>icons-svg/22/mail-queue.svg</file>
+    <file>icons-svg/22/network-mobile-20-hsupa-locked.svg</file>
     <file>icons-svg/22/edit-select-lasso.svg</file>
+    <file>icons-svg/22/flightmode-off.svg</file>
     <file>icons-svg/22/project-open.svg</file>
+    <file>icons-svg/22/waveform-off.svg</file>
     <file>icons-svg/22/view-list-icons.svg</file>
     <file>icons-svg/22/go-previous.svg</file>
     <file>icons-svg/22/application-x-bzip.svg</file>
@@ -2919,7 +3344,10 @@
     <file>icons-svg/22/project-defaults.svg</file>
     <file>icons-svg/22/format-border-set-internal.svg</file>
     <file>icons-svg/22/preview-remove-all.svg</file>
+    <file>icons-svg/22/network-mobile-100-hsdpa.svg</file>
     <file>icons-svg/22/application-x-compressed-tar.svg</file>
+    <file>icons-svg/22/input-touchscreen-symbolic.svg</file>
+    <file>icons-svg/22/haguichi-disconnected.svg</file>
     <file>icons-svg/22/application-x-kmymoney.svg</file>
     <file>icons-svg/22/draw-number.svg</file>
     <file>icons-svg/22/games-highscores.svg</file>
@@ -2927,17 +3355,24 @@
     <file>icons-svg/22/view-form.svg</file>
     <file>icons-svg/22/timeline-extract.svg</file>
     <file>icons-svg/22/media-track-queue-amarok.svg</file>
+    <file>icons-svg/22/network-wireless-off.svg</file>
     <file>icons-svg/22/go-previous-use.svg</file>
     <file>icons-svg/22/speaker.svg</file>
+    <file>icons-svg/22/battery-040-charging-profile-powersave.svg</file>
+    <file>icons-svg/22/network-mobile-40-edge-locked.svg</file>
     <file>icons-svg/22/application-x-partial-download.svg</file>
     <file>icons-svg/22/insert-page-break.svg</file>
     <file>icons-svg/22/kdenlive-track_has_effect.svg</file>
     <file>icons-svg/22/application-x-arc.svg</file>
     <file>icons-svg/22/view-calendar-upcoming-days.svg</file>
+    <file>icons-svg/22/fcitx.svg</file>
     <file>icons-svg/22/text-x-r.svg</file>
+    <file>icons-svg/22/folder.svg</file>
     <file>icons-svg/22/archive-extract.svg</file>
+    <file>icons-svg/22/folder-yellow.svg</file>
     <file>icons-svg/22/flag-green.svg</file>
     <file>icons-svg/22/format-border-style.svg</file>
+    <file>icons-svg/22/network-wireless-bluetooth.svg</file>
     <file>icons-svg/22/text_superscript.svg</file>
     <file>icons-svg/22/filename-title-amarok.svg</file>
     <file>icons-svg/22/document-scan.svg</file>
@@ -2945,24 +3380,38 @@
     <file>icons-svg/22/anchor.svg</file>
     <file>icons-svg/22/tools-media-optical-burn-image.svg</file>
     <file>icons-svg/22/text-x-rpm-spec.svg</file>
+    <file>icons-svg/22/ime-punctuation-halfwidth.svg</file>
     <file>icons-svg/22/find-location.svg</file>
     <file>icons-svg/22/folder-new.svg</file>
     <file>icons-svg/22/trim-margins.svg</file>
+    <file>icons-svg/22/ime-emoji.svg</file>
     <file>icons-svg/22/x-kde-nsplugin-generated.svg</file>
     <file>icons-svg/22/window-unpin.svg</file>
+    <file>icons-svg/22/network-mobile-60-5g.svg</file>
     <file>icons-svg/22/nextfuzzyuntrans.svg</file>
+    <file>icons-svg/22/keyboard-spacebar.svg</file>
+    <file>icons-svg/22/media-playback-stopped.svg</file>
     <file>icons-svg/22/reverse.svg</file>
+    <file>icons-svg/22/battery-080-charging.svg</file>
+    <file>icons-svg/22/battery-010-charging-profile-performance.svg</file>
     <file>icons-svg/22/virtualbox-vbox.svg</file>
     <file>icons-svg/22/application-msoutlook.svg</file>
     <file>icons-svg/22/adjustrgb.svg</file>
     <file>icons-svg/22/warnprev.svg</file>
     <file>icons-svg/22/resource-calendar-insert.svg</file>
+    <file>icons-svg/22/network-mobile-100-umts-locked.svg</file>
     <file>icons-svg/22/fingerprint.svg</file>
+    <file>icons-svg/22/audio-card.svg</file>
     <file>icons-svg/22/raindrop.svg</file>
+    <file>icons-svg/22/battery-070-charging-profile-balanced.svg</file>
+    <file>icons-svg/22/battery-020-profile-balanced.svg</file>
+    <file>icons-svg/22/ime-hangul.svg</file>
     <file>icons-svg/22/object-order-back.svg</file>
     <file>icons-svg/22/bookmark-remove.svg</file>
     <file>icons-svg/22/format-text-strikethrough.svg</file>
+    <file>icons-svg/22/kpackagekit-inactive.svg</file>
     <file>icons-svg/22/text-x-python.svg</file>
+    <file>icons-svg/22/battery-040-profile-balanced.svg</file>
     <file>icons-svg/22/image-x-adobe-dng.svg</file>
     <file>icons-svg/22/edit-redo.svg</file>
     <file>icons-svg/22/go-up.svg</file>
@@ -2970,50 +3419,76 @@
     <file>icons-svg/22/dialog-messages.svg</file>
     <file>icons-svg/22/uniassociation.svg</file>
     <file>icons-svg/22/application-x-gdscript.svg</file>
+    <file>icons-svg/22/state-information.svg</file>
     <file>icons-svg/22/media-repeat-single.svg</file>
     <file>icons-svg/22/combined_fragment.svg</file>
     <file>icons-svg/22/edit-node.svg</file>
+    <file>icons-svg/22/folder-deb.svg</file>
     <file>icons-svg/22/go-previous-context.svg</file>
+    <file>icons-svg/22/security-high.svg</file>
     <file>icons-svg/22/snap-nodes-intersection.svg</file>
+    <file>icons-svg/22/network-mobile-40-hsdpa-locked.svg</file>
     <file>icons-svg/22/step_object_ChargedParticle.svg</file>
     <file>icons-svg/22/kr_syncbrowse_off.svg</file>
     <file>icons-svg/22/format-segment-line.svg</file>
     <file>icons-svg/22/mail-send.svg</file>
     <file>icons-svg/22/escape-direction-horizontal.svg</file>
+    <file>icons-svg/22/mail-unread.svg</file>
     <file>icons-svg/22/application-x-lzma-compressed-tar.svg</file>
     <file>icons-svg/22/view-financial-account-credit-card.svg</file>
+    <file>icons-svg/22/keyboard-caps-locked.svg</file>
     <file>icons-svg/22/love-amarok.svg</file>
     <file>icons-svg/22/text-x-hex.svg</file>
     <file>icons-svg/22/edit-paste.svg</file>
+    <file>icons-svg/22/network-mobile-60-locked.svg</file>
     <file>icons-svg/22/tools-media-optical-copy.svg</file>
+    <file>icons-svg/22/network-wireless-60.svg</file>
     <file>icons-svg/22/im-aim.svg</file>
     <file>icons-svg/22/labplot-matrix.svg</file>
+    <file>icons-svg/22/state-warning.svg</file>
+    <file>icons-svg/22/fcitx-punc-inactive.svg</file>
     <file>icons-svg/22/draw-polygon-star.svg</file>
+    <file>icons-svg/22/network-mobile-80-hsdpa.svg</file>
     <file>icons-svg/22/edit-table-delete-row.svg</file>
     <file>icons-svg/22/view-right-close.svg</file>
     <file>icons-svg/22/application-x-php.svg</file>
+    <file>icons-svg/22/fcitx-erbi.svg</file>
     <file>icons-svg/22/text-x-generic.svg</file>
+    <file>icons-svg/22/network-wireless-connected-20.svg</file>
     <file>icons-svg/22/document-encrypted.svg</file>
     <file>icons-svg/22/preview-remove-zone.svg</file>
+    <file>icons-svg/22/battery-100-charging-profile-performance.svg</file>
     <file>icons-svg/22/distribute-horizontal-page.svg</file>
     <file>icons-svg/22/messagebox_warning.svg</file>
+    <file>icons-svg/22/network-mobile-100-lte-locked.svg</file>
+    <file>icons-svg/22/camera-off.svg</file>
+    <file>icons-svg/22/network-bluetooth-inactive-symbolic.svg</file>
     <file>icons-svg/22/object-group.svg</file>
     <file>icons-svg/22/application-x-sharedlib.svg</file>
+    <file>icons-svg/22/disk-quota-high.svg</file>
     <file>icons-svg/22/image-jpeg.svg</file>
     <file>icons-svg/22/mail-encrypted-part.svg</file>
     <file>icons-svg/22/kdenlive-slip.svg</file>
     <file>icons-svg/22/mail-reply-all.svg</file>
     <file>icons-svg/22/swap-panels.svg</file>
+    <file>icons-svg/22/network-mobile-0-hsdpa.svg</file>
     <file>icons-svg/22/colors-chromagreen.svg</file>
     <file>icons-svg/22/virtualbox-vdi.svg</file>
     <file>icons-svg/22/overflow-menu-left.svg</file>
+    <file>icons-svg/22/network-mobile-100-5g.svg</file>
+    <file>icons-svg/22/network-mobile-100-gprs.svg</file>
+    <file>icons-svg/22/network-mobile-60-umts-locked.svg</file>
     <file>icons-svg/22/lines-connector.svg</file>
     <file>icons-svg/22/text-x-c++hdr.svg</file>
     <file>icons-svg/22/user-group-delete.svg</file>
     <file>icons-svg/22/transform-crop-and-resize.svg</file>
     <file>icons-svg/22/tools-media-optical-format.svg</file>
+    <file>icons-svg/22/ime-erbi.svg</file>
+    <file>icons-svg/22/battery-100-charging.svg</file>
     <file>icons-svg/22/align-vertical-center.svg</file>
+    <file>icons-svg/22/network-mobile-20-umts-locked.svg</file>
     <file>icons-svg/22/window-new.svg</file>
+    <file>icons-svg/22/folder-violet.svg</file>
     <file>icons-svg/22/view-pim-tasks-pending.svg</file>
     <file>icons-svg/22/media-seek-backward.svg</file>
     <file>icons-svg/22/office-chart-area-percentage.svg</file>
@@ -3035,26 +3510,34 @@
     <file>icons-svg/22/news-unsubscribe.svg</file>
     <file>icons-svg/22/text-x-po.svg</file>
     <file>icons-svg/22/mail-signed-full.svg</file>
+    <file>icons-svg/22/microphone-sensitivity-high.svg</file>
     <file>icons-svg/22/view-sidetree.svg</file>
     <file>icons-svg/22/edit-reset.svg</file>
     <file>icons-svg/22/prevuntranslated.svg</file>
     <file>icons-svg/22/debug-run.svg</file>
+    <file>icons-svg/22/battery-090.svg</file>
     <file>icons-svg/22/format-node-symmetric.svg</file>
     <file>icons-svg/22/games-config-board.svg</file>
     <file>icons-svg/22/view-institution.svg</file>
     <file>icons-svg/22/application-x-font-afm.svg</file>
+    <file>icons-svg/22/fcitx-chewing-libpinyin.svg</file>
     <file>icons-svg/22/color-mode-hue-shift-negative.svg</file>
+    <file>icons-svg/22/fcitx-libskk.svg</file>
     <file>icons-svg/22/kstars_solarsystem.svg</file>
     <file>icons-svg/22/chronometer.svg</file>
+    <file>icons-svg/22/keyboard-layout.svg</file>
     <file>icons-svg/22/tab-duplicate.svg</file>
+    <file>icons-svg/22/input-combo-on.svg</file>
     <file>icons-svg/22/insert-math-expression.svg</file>
     <file>icons-svg/22/view-financial-account-add.svg</file>
+    <file>icons-svg/22/audio-volume-medium.svg</file>
     <file>icons-svg/22/view-institution-edit.svg</file>
     <file>icons-svg/22/flashlight-off.svg</file>
     <file>icons-svg/22/office-chart-ring.svg</file>
     <file>icons-svg/22/zoom-in-x.svg</file>
     <file>icons-svg/22/draw-line.svg</file>
     <file>icons-svg/22/labplot-TeX-logo.svg</file>
+    <file>icons-svg/22/network-mobile-60-hsupa.svg</file>
     <file>icons-svg/22/activities.svg</file>
     <file>icons-svg/22/list-remove-user.svg</file>
     <file>icons-svg/22/format-text-superscript.svg</file>
@@ -3064,20 +3547,27 @@
     <file>icons-svg/22/filename-filetype-amarok.svg</file>
     <file>icons-svg/22/view-right-new.svg</file>
     <file>icons-svg/22/kstars_ekos.svg</file>
+    <file>icons-svg/22/battery-070.svg</file>
     <file>icons-svg/22/edit-table-insert-row-below.svg</file>
     <file>icons-svg/22/view-presentation.svg</file>
     <file>icons-svg/22/format-text-direction-rtl.svg</file>
     <file>icons-svg/22/application-x-font-bdf.svg</file>
+    <file>icons-svg/22/network-mobile-0-hsupa.svg</file>
     <file>icons-svg/22/preview-add-zone.svg</file>
     <file>icons-svg/22/noisereduction.svg</file>
     <file>icons-svg/22/format-border-set-none.svg</file>
     <file>icons-svg/22/text-x-tex.svg</file>
+    <file>icons-svg/22/input-mouse-battery.svg</file>
     <file>icons-svg/22/edit-image-face-show.svg</file>
     <file>icons-svg/22/mail-reply-sender.svg</file>
+    <file>icons-svg/22/network-mobile-80-hspa.svg</file>
     <file>icons-svg/22/stroke-cap-round.svg</file>
     <file>icons-svg/22/media-playlist-append.svg</file>
     <file>icons-svg/22/kmouth-phrasebook.svg</file>
+    <file>icons-svg/22/redshift-status-off.svg</file>
+    <file>icons-svg/22/battery-000-charging.svg</file>
     <file>icons-svg/22/edit-table-insert-row-under.svg</file>
+    <file>icons-svg/22/battery-090-profile-balanced.svg</file>
     <file>icons-svg/22/view-institution-delete.svg</file>
     <file>icons-svg/22/appointment-new.svg</file>
     <file>icons-svg/22/labplot-xy-plot-two-axes-centered-origin.svg</file>
@@ -3091,6 +3581,7 @@
     <file>icons-svg/22/text_letter_spacing.svg</file>
     <file>icons-svg/22/timeline-mode-overwrite.svg</file>
     <file>icons-svg/22/embosstool.svg</file>
+    <file>icons-svg/22/dialog-password.svg</file>
     <file>icons-svg/22/kdenlive-select-images.svg</file>
     <file>icons-svg/22/text-x-apport.svg</file>
     <file>icons-svg/22/kr_unselect.svg</file>
@@ -3102,7 +3593,9 @@
     <file>icons-svg/22/text-field-framed.svg</file>
     <file>icons-svg/22/document-edit.svg</file>
     <file>icons-svg/22/text-csv.svg</file>
+    <file>icons-svg/22/network-mobile-off.svg</file>
     <file>icons-svg/22/application-x-ms-dos-executable.svg</file>
+    <file>icons-svg/22/state-sync.svg</file>
     <file>icons-svg/22/kstars_horizon.svg</file>
     <file>icons-svg/22/step_object_SoftBody.svg</file>
     <file>icons-svg/22/texlion.svg</file>
@@ -3113,21 +3606,29 @@
     <file>icons-svg/22/tool-animator.svg</file>
     <file>icons-svg/22/podcast-amarok.svg</file>
     <file>icons-svg/22/format-text-blockquote.svg</file>
+    <file>icons-svg/22/battery-020-profile-powersave.svg</file>
     <file>icons-svg/22/mail-mark-unread-new.svg</file>
+    <file>icons-svg/22/network-mobile-100-hsupa.svg</file>
+    <file>icons-svg/22/folder-download.svg</file>
+    <file>icons-svg/22/battery-010-profile-powersave.svg</file>
     <file>icons-svg/22/license.svg</file>
     <file>icons-svg/22/format-add-node.svg</file>
     <file>icons-svg/22/check_constraint.svg</file>
     <file>icons-svg/22/kstars_grid.svg</file>
     <file>icons-svg/22/vcs-branch.svg</file>
     <file>icons-svg/22/im-ban-kick-user.svg</file>
+    <file>icons-svg/22/smartphonedisconnected.svg</file>
     <file>icons-svg/22/dashboard-show.svg</file>
     <file>icons-svg/22/mail-encrypted-full.svg</file>
     <file>icons-svg/22/application-vnd.ms-powerpoint.template.macroenabled.12.svg</file>
     <file>icons-svg/22/text-x-adasrc.svg</file>
+    <file>icons-svg/22/battery-010-charging-profile-balanced.svg</file>
     <file>icons-svg/22/object-rotate-left.svg</file>
     <file>icons-svg/22/mail-reply-list.svg</file>
     <file>icons-svg/22/exchange-positions.svg</file>
     <file>icons-svg/22/merge.svg</file>
+    <file>icons-svg/22/meeting-organizer.svg</file>
+    <file>icons-svg/22/camera-ready.svg</file>
     <file>icons-svg/22/configure.svg</file>
     <file>icons-svg/22/debug-step-over.svg</file>
     <file>icons-svg/22/text-html.svg</file>
@@ -3135,6 +3636,7 @@
     <file>icons-svg/22/align-horizontal-bottom-out.svg</file>
     <file>icons-svg/22/kdenlive-show-markers.svg</file>
     <file>icons-svg/22/mail-reply-custom.svg</file>
+    <file>icons-svg/22/network-mobile-40-lte.svg</file>
     <file>icons-svg/22/draw-connector.svg</file>
     <file>icons-svg/22/join.svg</file>
     <file>icons-svg/22/view-close.svg</file>
@@ -3150,42 +3652,60 @@
     <file>icons-svg/22/im-user-offline.svg</file>
     <file>icons-svg/22/exception.svg</file>
     <file>icons-svg/22/application-x-kdenlive.svg</file>
+    <file>icons-svg/22/dropboxstatus-busy.svg</file>
     <file>icons-svg/22/application-vnd.oasis.opendocument.chart.svg</file>
     <file>icons-svg/22/timeline-mode-insert.svg</file>
     <file>icons-svg/22/labplot-xy-fourier-filter-curve.svg</file>
     <file>icons-svg/22/view-calendar-birthday.svg</file>
     <file>icons-svg/22/format-align-vertical-center.svg</file>
+    <file>icons-svg/22/folder-git.svg</file>
+    <file>icons-svg/22/network-mobile-0-lte-locked.svg</file>
+    <file>icons-svg/22/folder-text.svg</file>
     <file>icons-svg/22/entity.svg</file>
     <file>icons-svg/22/view-split-effect.svg</file>
+    <file>icons-svg/22/battery-050-profile-powersave.svg</file>
     <file>icons-svg/22/distribute-graph-directed.svg</file>
     <file>icons-svg/22/edit-clear.svg</file>
     <file>icons-svg/22/timeline-lift.svg</file>
+    <file>icons-svg/22/task-process-2.svg</file>
     <file>icons-svg/22/im-identi.ca.svg</file>
     <file>icons-svg/22/application-x-ace.svg</file>
     <file>icons-svg/22/plugins.svg</file>
     <file>icons-svg/22/view-restore.svg</file>
     <file>icons-svg/22/document-revert.svg</file>
+    <file>icons-svg/22/folder-android.svg</file>
     <file>icons-svg/22/x-office-spreadsheet.svg</file>
     <file>icons-svg/22/view-table-of-contents-rtl.svg</file>
     <file>icons-svg/22/text-flow-into-frame.svg</file>
+    <file>icons-svg/22/network-mobile-40-gprs.svg</file>
+    <file>icons-svg/22/network-mobile-20-gprs.svg</file>
     <file>icons-svg/22/insert-table-of-contents.svg</file>
+    <file>icons-svg/22/flameshot-tray.svg</file>
     <file>icons-svg/22/window-close.svg</file>
+    <file>icons-svg/22/drive-harddisk-root.svg</file>
+    <file>icons-svg/22/disk-quota.svg</file>
     <file>icons-svg/22/object-order-raise.svg</file>
     <file>icons-svg/22/view-statistics.svg</file>
     <file>icons-svg/22/labplot-edithlayout.svg</file>
     <file>icons-svg/22/office-chart-pie.svg</file>
     <file>icons-svg/22/labplot-shift-right-x.svg</file>
     <file>icons-svg/22/view-financial-account-investment-closed.svg</file>
+    <file>icons-svg/22/smartphoneconnected.svg</file>
     <file>icons-svg/22/go-jump-definition.svg</file>
     <file>icons-svg/22/help-whatsthis.svg</file>
     <file>icons-svg/22/auto-type.svg</file>
+    <file>icons-svg/22/battery-000-charging-profile-balanced.svg</file>
+    <file>icons-svg/22/ime-chinese-traditional.svg</file>
+    <file>icons-svg/22/network-mobile-60-hspa-locked.svg</file>
     <file>icons-svg/22/view-certificate-export.svg</file>
     <file>icons-svg/22/junction.svg</file>
     <file>icons-svg/22/format-line-spacing-double.svg</file>
+    <file>icons-svg/22/auth-sim-locked.svg</file>
     <file>icons-svg/22/view-left-close.svg</file>
     <file>icons-svg/22/labplot-3x-zoom.svg</file>
     <file>icons-svg/22/format-justify-fill.svg</file>
     <file>icons-svg/22/document-replace.svg</file>
+    <file>icons-svg/22/battery-030-charging-profile-balanced.svg</file>
     <file>icons-svg/22/zoom-pixels.svg</file>
     <file>icons-svg/22/image-png.svg</file>
     <file>icons-svg/22/oilpaint.svg</file>
@@ -3194,21 +3714,29 @@
     <file>icons-svg/22/mail-signed-part.svg</file>
     <file>icons-svg/22/bookmark-new.svg</file>
     <file>icons-svg/22/texture.svg</file>
+    <file>icons-svg/22/input-dialpad.svg</file>
     <file>icons-svg/22/user-others.svg</file>
     <file>icons-svg/22/edit-undo.svg</file>
     <file>icons-svg/22/meeting-participant-no-response.svg</file>
+    <file>icons-svg/22/battery-020-profile-performance.svg</file>
     <file>icons-svg/22/mail-mark-notjunk.svg</file>
+    <file>icons-svg/22/ime-libpinyin-pinyin.svg</file>
     <file>icons-svg/22/aggregation.svg</file>
     <file>icons-svg/22/mail-forwarded-replied.svg</file>
+    <file>icons-svg/22/ime-remind-off.svg</file>
     <file>icons-svg/22/format-text-lowercase.svg</file>
+    <file>icons-svg/22/ime-anthy.svg</file>
+    <file>icons-svg/22/input-keyboard-virtual-off.svg</file>
     <file>icons-svg/22/edit-line-width.svg</file>
     <file>icons-svg/22/tag-edit.svg</file>
+    <file>icons-svg/22/network-mobile-0-hsupa-locked.svg</file>
     <file>icons-svg/22/view-certificate-add.svg</file>
     <file>icons-svg/22/unmarkasblank.svg</file>
     <file>icons-svg/22/step_object_CoulombForce.svg</file>
     <file>icons-svg/22/vcs-diff.svg</file>
     <file>icons-svg/22/run-build-install-root.svg</file>
     <file>icons-svg/22/fill-color.svg</file>
+    <file>icons-svg/22/ime-libkkc.svg</file>
     <file>icons-svg/22/hexagon-shape.svg</file>
     <file>icons-svg/22/call-stop.svg</file>
     <file>icons-svg/22/application-x-bittorrent.svg</file>
@@ -3220,26 +3748,42 @@
     <file>icons-svg/22/user-group-new.svg</file>
     <file>icons-svg/22/view-multiple-objects.svg</file>
     <file>icons-svg/22/application-x-ruby.svg</file>
+    <file>icons-svg/22/network-mobile-0-umts-locked.svg</file>
     <file>icons-svg/22/kt-add-feeds.svg</file>
     <file>icons-svg/22/realization.svg</file>
+    <file>icons-svg/22/network-mobile-100-edge-locked.svg</file>
+    <file>icons-svg/22/kpackagekit-updates.svg</file>
+    <file>icons-svg/22/battery-080.svg</file>
     <file>icons-svg/22/sidebar-collapse-left.svg</file>
     <file>icons-svg/22/vcs-commit.svg</file>
     <file>icons-svg/22/application-vnd.ms-access.svg</file>
+    <file>icons-svg/22/haguichi-connected.svg</file>
     <file>icons-svg/22/tools.svg</file>
+    <file>icons-svg/22/network-mobile-60-gprs.svg</file>
     <file>icons-svg/22/edit-table-delete-column.svg</file>
     <file>icons-svg/22/path-mode-polyline-paraxial.svg</file>
     <file>icons-svg/22/stroke-to-path.svg</file>
+    <file>icons-svg/22/network-wireless-0-locked.svg</file>
     <file>icons-svg/22/labplot-xy-equation-curve.svg</file>
     <file>icons-svg/22/view-financial-transfer-unreconciled.svg</file>
     <file>icons-svg/22/image-bmp.svg</file>
+    <file>icons-svg/22/transmission-tray-icon.svg</file>
     <file>icons-svg/22/view-financial-account-edit.svg</file>
     <file>icons-svg/22/audio-x-mpeg.svg</file>
     <file>icons-svg/22/document-open.svg</file>
     <file>icons-svg/22/application-vnd.flatpak.ref.svg</file>
+    <file>icons-svg/22/fcitx-wubi.svg</file>
     <file>icons-svg/22/distribute-vertical-baseline.svg</file>
     <file>icons-svg/22/draw-halfcircle1.svg</file>
+    <file>icons-svg/22/network-mobile-20-hspa.svg</file>
+    <file>icons-svg/22/fcitx-vk-active.svg</file>
     <file>icons-svg/22/mail-mark-important.svg</file>
     <file>icons-svg/22/view-sort-descending-name.svg</file>
+    <file>icons-svg/22/input-mouse.svg</file>
+    <file>icons-svg/22/fcitx-rime.svg</file>
+    <file>icons-svg/22/temperature-warm.svg</file>
+    <file>icons-svg/22/input-keyboard-virtual.svg</file>
+    <file>icons-svg/22/network-mobile-20-gprs-locked.svg</file>
     <file>icons-svg/22/text-unflow.svg</file>
     <file>icons-svg/22/key-enter.svg</file>
     <file>icons-svg/22/run-build-file.svg</file>
@@ -3247,27 +3791,42 @@
     <file>icons-svg/22/view-refresh.svg</file>
     <file>icons-svg/22/kmouth-phrase-new.svg</file>
     <file>icons-svg/22/document-edit-decrypt-verify.svg</file>
+    <file>icons-svg/22/battery-100.svg</file>
     <file>icons-svg/22/bookmarks.svg</file>
+    <file>icons-svg/22/folder-pictures.svg</file>
     <file>icons-svg/22/object-width.svg</file>
     <file>icons-svg/22/games-config-tiles.svg</file>
     <file>icons-svg/22/draw-triangle2.svg</file>
+    <file>icons-svg/22/folder-appimage.svg</file>
+    <file>icons-svg/22/network-mobile-80-umts.svg</file>
     <file>icons-svg/22/draw-highlight.svg</file>
+    <file>icons-svg/22/network-wireless-40-locked.svg</file>
     <file>icons-svg/22/address-book-new.svg</file>
     <file>icons-svg/22/edit-find-replace.svg</file>
+    <file>icons-svg/22/network-mobile-80-hsupa.svg</file>
     <file>icons-svg/22/video-mp4.svg</file>
     <file>icons-svg/22/tool-spray.svg</file>
+    <file>icons-svg/22/network-wireless-available.svg</file>
     <file>icons-svg/22/view-fullscreen.svg</file>
+    <file>icons-svg/22/audio-volume-high.svg</file>
+    <file>icons-svg/22/folder-magenta.svg</file>
+    <file>icons-svg/22/network-mobile-60-lte-locked.svg</file>
     <file>icons-svg/22/insert-footnote.svg</file>
     <file>icons-svg/22/application-x-fictionbook+xml.svg</file>
+    <file>icons-svg/22/state-error.svg</file>
     <file>icons-svg/22/view-financial-account-loan-closed.svg</file>
     <file>icons-svg/22/text-frame-link.svg</file>
     <file>icons-svg/22/show-menu.svg</file>
+    <file>icons-svg/22/network-mobile-100-gprs-locked.svg</file>
+    <file>icons-svg/22/battery-050-charging-profile-performance.svg</file>
     <file>icons-svg/22/draw-freehand.svg</file>
     <file>icons-svg/22/text-rtf.svg</file>
     <file>icons-svg/22/kstars_cnames.svg</file>
     <file>icons-svg/22/media-playlist-repeat.svg</file>
     <file>icons-svg/22/notification-disabled.svg</file>
     <file>icons-svg/22/mode3.svg</file>
+    <file>icons-svg/22/folder-podcast-symbolic.svg</file>
+    <file>icons-svg/22/ime-unikey.svg</file>
     <file>icons-svg/22/video-x-matroska.svg</file>
     <file>icons-svg/22/labplot-4x-zoom.svg</file>
     <file>icons-svg/22/boost-boosted.svg</file>
@@ -3275,6 +3834,8 @@
     <file>icons-svg/22/view-financial-account-close.svg</file>
     <file>icons-svg/22/draw-rectangle-rounded.svg</file>
     <file>icons-svg/22/show-offline.svg</file>
+    <file>icons-svg/22/disk-quota-critical.svg</file>
+    <file>icons-svg/22/fcitx-sunpinyin.svg</file>
     <file>icons-svg/22/nextuntranslated.svg</file>
     <file>icons-svg/22/view-time-schedule-insert.svg</file>
     <file>icons-svg/22/text-x-cmake.svg</file>
@@ -3284,15 +3845,19 @@
     <file>icons-svg/22/mail-receive.svg</file>
     <file>icons-svg/22/view-calendar.svg</file>
     <file>icons-svg/22/auto-transition.svg</file>
+    <file>icons-svg/22/network-mobile-80.svg</file>
     <file>icons-svg/22/format-list-unordered.svg</file>
     <file>icons-svg/22/document-save-as-template.svg</file>
     <file>icons-svg/22/run-build.svg</file>
+    <file>icons-svg/22/image-missing.svg</file>
     <file>icons-svg/22/labplot-5x-zoom.svg</file>
     <file>icons-svg/22/vcs-merge-request.svg</file>
     <file>icons-svg/22/font-enable.svg</file>
     <file>icons-svg/22/timeline-insert.svg</file>
+    <file>icons-svg/22/battery-000.svg</file>
     <file>icons-svg/22/code-variable.svg</file>
     <file>icons-svg/22/amarok_cart_remove.svg</file>
+    <file>icons-svg/22/network-mobile-60-umts.svg</file>
     <file>icons-svg/22/office-chart-line-forecast.svg</file>
     <file>icons-svg/22/games-difficult.svg</file>
     <file>icons-svg/22/meeting-participant-request-response.svg</file>
@@ -3301,19 +3866,28 @@
     <file>icons-svg/22/errorprev.svg</file>
     <file>icons-svg/22/mail-forward.svg</file>
     <file>icons-svg/22/remove-link.svg</file>
+    <file>icons-svg/22/ime-halfwidth.svg</file>
     <file>icons-svg/22/application-ogg.svg</file>
     <file>icons-svg/22/nroot.svg</file>
+    <file>icons-svg/22/network-wireless-80.svg</file>
     <file>icons-svg/22/kstars_satellites.svg</file>
     <file>icons-svg/22/gnumeric-pagesetup-hf-page.svg</file>
+    <file>icons-svg/22/state-pause.svg</file>
+    <file>icons-svg/22/battery-020-charging-profile-performance.svg</file>
+    <file>icons-svg/22/haguichi-connecting-3.svg</file>
+    <file>icons-svg/22/network-mobile-40-hspa.svg</file>
     <file>icons-svg/22/tab-detach.svg</file>
     <file>icons-svg/22/application-x-shockwave-flash.svg</file>
     <file>icons-svg/22/dialog-ok-apply.svg</file>
     <file>icons-svg/22/vcs-stash-pop.svg</file>
     <file>icons-svg/22/snap-intersection.svg</file>
     <file>icons-svg/22/formula.svg</file>
+    <file>icons-svg/22/folder-cloud.svg</file>
     <file>icons-svg/22/know.svg</file>
     <file>icons-svg/22/view-financial-account-asset-closed.svg</file>
+    <file>icons-svg/22/firewall-applet-panic.svg</file>
     <file>icons-svg/22/draw-triangle1.svg</file>
+    <file>icons-svg/22/video-off.svg</file>
 </qresource>
 <qresource prefix="/icons-svg/32">
     <file>icons-svg/32/document-save.svg</file>

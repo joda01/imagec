@@ -70,7 +70,7 @@ public:
   /////////////////////////////////////////////////////
   PanelImageView(const joda::image::Image *imageReference, const joda::image::Image *thumbnailImageReference, const joda::image::Image *overlay,
                  bool withThumbnail, QWidget *parent = nullptr);
-  void imageUpdated();
+  void imageUpdated(const QString &info);
   void resetImage();
   void fitImageToScreenSize();
   void zoomImage(bool inOut);
@@ -93,6 +93,7 @@ public:
   void setShowThumbnail(bool);
   void setShowHistogram(bool);
   void setShowPixelInfo(bool);
+  void setShowPipelineResults(bool);
   void setShowOverlay(bool);
   void setShowCrosshandCursor(bool);
   void setThumbnailPosition(const ThumbParameter &);
@@ -115,6 +116,7 @@ protected:
   void paintEvent(QPaintEvent *event) override;
   void drawHistogram(QPainter &);
   void drawThumbnail(QPainter &);
+  void drawPipelineResult(QPainter &);
   void drawPixelInfo(QPainter &, int32_t startX, int32_t startY, const PixelInfo &info);
 
   void getClickedTileInThumbnail(QMouseEvent *event);
@@ -134,6 +136,9 @@ private:
   const float PIXEL_INFO_RECT_WIDTH  = 150;
   const float PIXEL_INFO_RECT_HEIGHT = 40;
 
+  const float RESULTS_INFO_RECT_WIDTH  = 150;
+  const float RESULTS_INFO_RECT_HEIGHT = 150;
+
   /////////////////////////////////////////////////////
   bool mPlaceholderImageSet                          = true;
   const joda::image::Image *mActPixmapOriginal       = nullptr;
@@ -145,6 +150,7 @@ private:
   QPoint lastPos;
   State mState = State::MOVE;
   cv::Size mPixmapSize;
+  QString mPipelineResult;
 
   /////////////////////////////////////////////////////
   CrossCursorInfo mCrossCursorInfo;
@@ -169,6 +175,7 @@ private:
   bool mShowCrosshandCursor = false;
   bool mShowHistogram       = true;
   bool mShowOverlay         = true;
+  bool mShowPipelineResults = false;
 
   mutable std::mutex mImageResetMutex;
 

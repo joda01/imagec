@@ -10,6 +10,7 @@
 ///
 
 #include "dialog_image_view.hpp"
+#include <qaction.h>
 #include <qactiongroup.h>
 #include <qboxlayout.h>
 #include <qdialog.h>
@@ -40,10 +41,9 @@ using namespace std::chrono_literals;
 /// \return
 ///
 DialogImageViewer::DialogImageViewer(QWidget *parent) :
-    QDockWidget(parent), mImageViewLeft(&mPreviewImages.originalImage, &mPreviewImages.thumbnail, nullptr, false),
-    mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, true)
+    QDockWidget(parent), mImageViewLeft(&mPreviewImages.originalImage, &mPreviewImages.thumbnail, nullptr, true),
+    mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, false)
 {
-  setWindowTitle("Preview");
   // setWindowFlags(windowFlags() | Qt::Window | Qt::WindowMaximizeButtonHint);
   setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 
@@ -52,19 +52,23 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
   setMinimumWidth(500);    // Min width even when docked
 
   // Connect signal to detect docking/floating changes
-  connect(this, &QDockWidget::topLevelChanged, this, [=](bool floating) {
+  connect(this, &QDockWidget::topLevelChanged, this, [this](bool floating) {
     if(floating) {
       setMinimumWidth(1200);    // Wider when floating
       setMinimumHeight(600);
       setMaximumWidth(10000);    // Remove max width cap
       mCentralLayout->setDirection(QBoxLayout::LeftToRight);
+      setWindowTitle("Preview");
     } else {
       setMaximumWidth(500);    // Restrict width when docked
       setMinimumHeight(0);
       setMinimumWidth(500);    // Restore min width when docked
       mCentralLayout->setDirection(QBoxLayout::TopToBottom);
+      setWindowTitle("");
     }
   });
+
+  mImageViewRight.setShowPipelineResults(true);
 
   auto *mainContainer = new QWidget();
   auto *layout        = new QVBoxLayout();
@@ -89,26 +93,6 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
 
     // toolbarTop->addSeparator();
 
-    QAction *fitToScreen = new QAction(generateIcon("full-screen"), "");
-    fitToScreen->setObjectName("ToolButton");
-    fitToScreen->setToolTip("Fit image to screen");
-    connect(fitToScreen, &QAction::triggered, this, &DialogImageViewer::onFitImageToScreenSizeClicked);
-    toolbarTop->addAction(fitToScreen);
-
-    QAction *zoomIn = new QAction(generateIcon("zoom-in"), "");
-    zoomIn->setObjectName("ToolButton");
-    zoomIn->setToolTip("Zoom in");
-    connect(zoomIn, &QAction::triggered, this, &DialogImageViewer::onZoomInClicked);
-    toolbarTop->addAction(zoomIn);
-
-    QAction *zoomOut = new QAction(generateIcon("zoom-out"), "");
-    zoomOut->setObjectName("ToolButton");
-    zoomOut->setToolTip("Zoom out");
-    connect(zoomOut, &QAction::triggered, this, &DialogImageViewer::onZoomOutClicked);
-    toolbarTop->addAction(zoomOut);
-
-    toolbarTop->addSeparator();
-
     QActionGroup *buttonGroup = new QActionGroup(toolbarTop);
 
     QAction *action2 = new QAction(generateIcon("hand"), "");
@@ -116,7 +100,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     action2->setChecked(true);
     connect(action2, &QAction::triggered, this, &DialogImageViewer::onSetSateToMove);
     buttonGroup->addAction(action2);
-    toolbarTop->addAction(action2);
+    // toolbarTop->addAction(action2);
 
     QAction *paintRectangle = new QAction(generateIcon("rectangle"), "");
     paintRectangle->setCheckable(true);
@@ -124,21 +108,21 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     buttonGroup->addAction(paintRectangle);
     // toolbarTop->addAction(paintRectangle);
 
-    toolbarTop->addSeparator();
+    // toolbarTop->addSeparator();
 
-    QAction *showThumbnail = new QAction(generateIcon("picture-in-picture-alternative"), "");
+    QAction *showThumbnail = new QAction(generateSvgIcon("virtual-desktops"), "");
     showThumbnail->setCheckable(true);
     showThumbnail->setChecked(true);
     connect(showThumbnail, &QAction::triggered, this, &DialogImageViewer::onShowThumbnailChanged);
     toolbarTop->addAction(showThumbnail);
 
-    QAction *showPixelInfo = new QAction(generateIcon("abscissa"), "");
+    QAction *showPixelInfo = new QAction(generateSvgIcon("coordinate"), "");
     showPixelInfo->setCheckable(true);
     showPixelInfo->setChecked(true);
     connect(showPixelInfo, &QAction::triggered, this, &DialogImageViewer::onShowPixelInfo);
     toolbarTop->addAction(showPixelInfo);
 
-    QAction *showCrossHairCursor = new QAction(generateIcon("crosshair"), "");
+    QAction *showCrossHairCursor = new QAction(generateSvgIcon("crosshairs"), "");
     showCrossHairCursor->setToolTip("Right click to place a reference cursor.");
     showCrossHairCursor->setCheckable(true);
     showCrossHairCursor->setChecked(false);
@@ -147,45 +131,86 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
 
     toolbarTop->addSeparator();
 
-    QAction *showOverlay = new QAction(generateIcon("overlay"), "");
+    QAction *showOverlay = new QAction(generateSvgIcon("redeyes"), "");
     showOverlay->setToolTip("Show overlay");
     showOverlay->setCheckable(true);
     showOverlay->setChecked(true);
     connect(showOverlay, &QAction::triggered, [this](bool selected) { mImageViewRight.setShowOverlay(selected); });
     toolbarTop->addAction(showOverlay);
 
-    mFillOVerlay = new QAction(generateIcon("fill-color-office"), "");
+    mFillOVerlay = new QAction(generateSvgIcon("fill-color"), "");
     mFillOVerlay->setToolTip("Filled");
     mFillOVerlay->setCheckable(true);
     connect(mFillOVerlay, &QAction::triggered, this, &DialogImageViewer::onSettingChanged);
     toolbarTop->addAction(mFillOVerlay);
 
+    toolbarTop->addSeparator();
+
+    QAction *fitToScreen = new QAction(generateSvgIcon("zoom-fit-best"), "");
+    fitToScreen->setObjectName("ToolButton");
+    fitToScreen->setToolTip("Fit image to screen");
+    connect(fitToScreen, &QAction::triggered, this, &DialogImageViewer::onFitImageToScreenSizeClicked);
+    toolbarTop->addAction(fitToScreen);
+
+    QAction *zoomIn = new QAction(generateSvgIcon("zoom-in"), "");
+    zoomIn->setObjectName("ToolButton");
+    zoomIn->setToolTip("Zoom in");
+    connect(zoomIn, &QAction::triggered, this, &DialogImageViewer::onZoomInClicked);
+    toolbarTop->addAction(zoomIn);
+
+    QAction *zoomOut = new QAction(generateSvgIcon("zoom-out"), "");
+    zoomOut->setObjectName("ToolButton");
+    zoomOut->setToolTip("Zoom out");
+    connect(zoomOut, &QAction::triggered, this, &DialogImageViewer::onZoomOutClicked);
+    toolbarTop->addAction(zoomOut);
+
+    toolbarTop->addSeparator();
+
     //
     // Preview size
     //
-    mPreviewSize = new QComboBox();
-    mPreviewSize->addItem("8192x8192", static_cast<int32_t>(8192));
-    mPreviewSize->addItem("4096x4096", static_cast<int32_t>(4096));
-    mPreviewSize->addItem("2048x2048", static_cast<int32_t>(2048));
-    mPreviewSize->addItem("1024x1024", static_cast<int32_t>(1024));
-    mPreviewSize->addItem("512x512", static_cast<int32_t>(512));
-    mPreviewSize->addItem("256x256", static_cast<int32_t>(256));
-    mPreviewSize->addItem("128x128", static_cast<int32_t>(128));
-    mPreviewSize->addItem("64x64", static_cast<int32_t>(64));
-    mPreviewSize->setCurrentIndex(mPreviewSize->findData(2048));
-    toolbarTop->addWidget(mPreviewSize);
-    connect(mPreviewSize, &QComboBox::currentIndexChanged, this, &DialogImageViewer::onSettingChanged);
+    auto *resolutionMenu = new QMenu();
+    mPreviewSizeGroup    = new QActionGroup(toolbarTop);
+    auto *r8192          = resolutionMenu->addAction("8192x8192");
+    mPreviewSizeGroup->addAction(r8192);
+    r8192->setCheckable(true);
+    auto *r4096 = resolutionMenu->addAction("4096x4096");
+    mPreviewSizeGroup->addAction(r4096);
+    r4096->setCheckable(true);
+    auto *r2048 = resolutionMenu->addAction("2048x2048");
+    mPreviewSizeGroup->addAction(r2048);
+    r2048->setCheckable(true);
+    r2048->setChecked(true);
+    auto *r1024 = resolutionMenu->addAction("1024x1024");
+    mPreviewSizeGroup->addAction(r1024);
+    r1024->setCheckable(true);
+    auto *r512 = resolutionMenu->addAction("512x512");
+    mPreviewSizeGroup->addAction(r512);
+    r512->setCheckable(true);
+    auto *r256 = resolutionMenu->addAction("256x256");
+    mPreviewSizeGroup->addAction(r256);
+    r256->setCheckable(true);
+    auto *r128 = resolutionMenu->addAction("128x128");
+    mPreviewSizeGroup->addAction(r128);
+    r128->setCheckable(true);
+    auto *previewSize = new QAction(generateSvgIcon("computer"), "");
+    previewSize->setMenu(resolutionMenu);
+    toolbarTop->addAction(previewSize);
+    auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(previewSize));
+    btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
+    connect(mPreviewSizeGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingChanged);
 
-    //
-    // Classes to shoe
-    //
+    toolbarTop->addSeparator();
+
     //
     // Preview classes
     //
     mClassesClassesToShow = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Classes to paint");
-    mClassesClassesToShow->getInputObject()->setMaximumWidth(175);
-    mClassesClassesToShow->getInputObject()->setMinimumWidth(175);
+    mClassesClassesToShow->getInputObject()->setMaximumWidth(100);
+    mClassesClassesToShow->getInputObject()->setMinimumWidth(100);
     mClassesClassesToShow->setValue(settings::ObjectInputClasses{enums::ClassIdIn::$});
+    connect(mClassesClassesToShow.get(), &SettingBase::valueChanged, this, &DialogImageViewer::onSettingChanged);
+
     toolbarTop->addWidget(mClassesClassesToShow->getInputObject());
 
     layout->addWidget(toolbarTop);
@@ -325,8 +350,8 @@ void DialogImageViewer::leaveEvent(QEvent *event)
 ///
 void DialogImageViewer::imageUpdated(const QString &info)
 {
-  mImageViewLeft.imageUpdated();
-  mImageViewRight.imageUpdated();
+  mImageViewLeft.imageUpdated(info);
+  mImageViewRight.imageUpdated(info);
 }
 
 ///

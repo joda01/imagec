@@ -13,6 +13,7 @@
 #include <qcolor.h>
 #include <qnamespace.h>
 #include <qpixmap.h>
+#include <qstatictext.h>
 #include <cmath>
 #include <cstdint>
 #include <mutex>
@@ -74,11 +75,12 @@ void PanelImageView::setImageReference(const joda::image::Image *imageReference)
   emit updateImage();
 }
 
-void PanelImageView::imageUpdated()
+void PanelImageView::imageUpdated(const QString &info)
 {
   if(mThumbnailImageReference == nullptr) {
     return;
   }
+  mPipelineResult = info;
   const_cast<joda::image::Image *>(mThumbnailImageReference)->autoAdjustBrightnessRange();
   emit updateImage();
 }
@@ -253,7 +255,7 @@ void PanelImageView::zoomImage(bool inOut)
 void PanelImageView::fitImageToScreenSize()
 {
   resetTransform();
-  float zoomFactor = static_cast<float>(width()) / static_cast<float>(mPixmapSize.width);
+  float zoomFactor = static_cast<float>(std::min(width(), height())) / static_cast<float>(mPixmapSize.width);
   scale(zoomFactor, zoomFactor);
   emit onImageRepainted();
 }
@@ -276,6 +278,7 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   // Get the viewport rectangle
   QRect viewportRect = viewport()->rect();
   QPainter painter(viewport());
+  painter.setRenderHint(QPainter::Antialiasing);
 
   if(mActPixmap == nullptr) {
     painter.setPen(QColor(0, 0, 0));      // Set the pen color to light blue
@@ -319,6 +322,11 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   if(mShowPixelInfo && mShowHistogram) {
     // Takes 0.08ms
     drawPixelInfo(painter, width(), height() - 20, mPixelInfo);
+  }
+
+  // Draw pipeline result
+  if(mShowPipelineResults && !mWithThumbnail) {
+    drawPipelineResult(painter);
   }
 
   // Waiting banner
@@ -388,7 +396,10 @@ void PanelImageView::drawPixelInfo(QPainter &painter, int32_t startX, int32_t st
 
   QColor transparentBlack(0, 0, 0, 127);    // 127 is approximately 50% of 255 for alpha
   painter.setBrush(transparentBlack);       // Set the brush to no brush for transparent fill
-  painter.drawRect(pixelInfoRect);
+  QPainterPath path;
+  path.addRoundedRect(pixelInfoRect, 10, 10);
+  painter.fillPath(path, transparentBlack);
+  painter.drawPath(path);
 
   painter.setPen(QColor(255, 255, 255));    // Set the pen color to light blue
 
@@ -400,6 +411,43 @@ void PanelImageView::drawPixelInfo(QPainter &painter, int32_t startX, int32_t st
         QString("%1, %2\nH %3, S %4, V %5").arg(QString::number(info.posX)).arg(info.posY).arg(info.hue).arg(info.saturation).arg(info.value);
     painter.drawText(pixelInfoRect, Qt::AlignCenter, textToPrint);
   }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::drawPipelineResult(QPainter &painter)
+{
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
+  const auto *image = mActPixmapOriginal->getImage();
+  if(image == nullptr) {
+    return;
+  }
+  int32_t startY = 0;
+  QRect pixelInfoRect(QPoint(width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH, THUMB_RECT_START_Y),
+                      QSize(RESULTS_INFO_RECT_WIDTH,
+                            RESULTS_INFO_RECT_HEIGHT));    // Adjust the size as needed
+
+  painter.setPen(Qt::NoPen);    // Set the pen color to light blue
+
+  QColor transparentBlack(0, 0, 0, 127);    // 127 is approximately 50% of 255 for alpha
+  painter.setBrush(transparentBlack);       // Set the brush to no brush for transparent fill
+  QPainterPath path;
+  path.addRoundedRect(pixelInfoRect, 10, 10);
+  painter.fillPath(path, transparentBlack);
+  painter.drawPath(path);
+
+  painter.setPen(QColor(255, 255, 255));    // Set the pen color to light blue
+
+  QStaticText text(mPipelineResult);
+  QPoint pText = pixelInfoRect.topLeft();
+  pText.setX(pText.x() + THUMB_RECT_START_X);
+  pText.setY(pText.y() + THUMB_RECT_START_Y);
+  painter.drawStaticText(pText, text);
 }
 
 ///
@@ -709,6 +757,12 @@ void PanelImageView::setShowOverlay(bool showOVerlay)
 void PanelImageView::setShowPixelInfo(bool show)
 {
   mShowPixelInfo = show;
+  viewport()->update();
+}
+
+void PanelImageView::setShowPipelineResults(bool show)
+{
+  mShowPipelineResults = show;
   viewport()->update();
 }
 

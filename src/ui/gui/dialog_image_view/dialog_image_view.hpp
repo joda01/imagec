@@ -65,7 +65,13 @@ public:
   }
   int32_t getPreviewSize() const
   {
-    return mPreviewSize->currentData().toInt();
+    if(mPreviewSizeGroup != nullptr) {
+      auto *checked     = mPreviewSizeGroup->checkedAction();
+      QStringList parts = checked->text().split('x');
+      int width         = parts.value(0).toInt();
+      return width;
+    }
+    return 2048;
   }
 
   auto getSelectedClassesAndClasses() const -> settings::ObjectInputClasses
@@ -108,7 +114,7 @@ private:
 
   // ACTIONS //////////////////////////////////////////////////
   QAction *mFillOVerlay;
-  QComboBox *mPreviewSize;
+  QActionGroup *mPreviewSizeGroup;
   std::unique_ptr<SettingComboBoxMultiClassificationIn> mClassesClassesToShow;
 
 private slots:
