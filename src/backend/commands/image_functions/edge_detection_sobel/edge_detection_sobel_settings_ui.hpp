@@ -29,7 +29,7 @@ class EdgeDetectionSobel : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Sobel edge detection";
-  inline static std::string ICON              = "triangle";
+  inline static std::string ICON              = "draw-triangle3";
   inline static std::string DESCRIPTION       = "An edge detection algorithms which enhances the edges.";
   inline static std::vector<std::string> TAGS = {"edge detection"};
 

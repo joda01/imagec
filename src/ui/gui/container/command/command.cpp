@@ -62,7 +62,7 @@ Command::Command(joda::settings::PipelineStep &pipelineStep, const QString &titl
     headerWidget->setLayout(layout);
     auto *mDisplayLabelIcon = new QLabel();
     if(!icon.isEmpty()) {
-      mIcon = generateIcon(icon);
+      mIcon = generateSvgIcon(icon);
       mDisplayLabelIcon->setPixmap(mIcon.pixmap(16, 16));    // You can adjust the size of the icon as needed
       layout->addWidget(mDisplayLabelIcon);
     }
@@ -335,7 +335,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   //
   // Disabled button
   //
-  mDisabled = mLayout.addActionButton("Disable", generateIcon("invisible"));
+  mDisabled = mLayout.addActionButton("Disable", generateSvgIcon("view-hidden"));
   mDisabled->setCheckable(true);
   mDisabled->setChecked(mPipelineStep.disabled);
   connect(mDisabled, &QAction::triggered, [this, pipelineSettingsUi](bool) {
@@ -346,7 +346,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   //
   // Locked button
   //
-  mLocked = mLayout.addActionButton("Locked", generateIcon("lock"));
+  mLocked = mLayout.addActionButton("Locked", generateSvgIcon("folder-locked"));
   mLocked->setCheckable(true);
   mLocked->setChecked(mPipelineStep.locked);
   connect(mLocked, &QAction::triggered, [this, pipelineSettingsUi](bool) {
@@ -369,7 +369,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   //
   // Okay button
   //
-  auto *okayBottom = mLayout.addActionBottomButton("Okay", generateIcon("accept"));
+  auto *okayBottom = mLayout.addActionBottomButton("Okay", generateSvgIcon("dialog-ok-apply"));
   connect(okayBottom, &QAction::triggered, [this]() { mEditDialog->close(); });
 
   connect(mLayout.getDeleteButton(), &QAction::triggered, [this, pipelineSettingsUi]() {

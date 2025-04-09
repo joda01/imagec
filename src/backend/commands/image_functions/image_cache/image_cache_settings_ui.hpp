@@ -31,7 +31,7 @@ class ImageCache : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Image cache";
-  inline static std::string ICON              = "copy";
+  inline static std::string ICON              = "edit-copy";
   inline static std::string DESCRIPTION       = "Store or load an image to cache for later use.";
   inline static std::vector<std::string> TAGS = {"cache", "store", "load"};
 

@@ -32,7 +32,7 @@ class ColorFilter : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Color filter";
-  inline static std::string ICON              = "color";
+  inline static std::string ICON              = "color-management";
   inline static std::string DESCRIPTION       = "Convert the image to a grayscale applying the selected color filter.";
   inline static std::vector<std::string> TAGS = {};
 

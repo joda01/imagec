@@ -29,7 +29,7 @@ class EdgeDetectionCanny : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Canny edge detection";
-  inline static std::string ICON              = "triangle";
+  inline static std::string ICON              = "draw-triangle3";
   inline static std::string DESCRIPTION       = "An edge detection algorithm which extracts the found edges to a binary image.";
   inline static std::vector<std::string> TAGS = {"edge detection", "edge"};
 

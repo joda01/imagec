@@ -53,19 +53,19 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     auto *bookMarkMenu = new QMenu();
 
     // Populate from image
-    auto *populateFromImage = bookMarkMenu->addAction(generateIcon("double-down"), "Populate from image channels");
+    auto *populateFromImage = bookMarkMenu->addAction(generateSvgIcon("shapes"), "Populate from image channels");
     connect(populateFromImage, &QAction::triggered, [this]() { this->populateClassesFromImage(); });
 
     // New from template
-    auto *newTemplate = bookMarkMenu->addAction(generateIcon("add-file"), "New from template");
-    connect(newTemplate, &QAction::triggered, [this]() { this->newTemplate(); });
+    // auto *newTemplate = bookMarkMenu->addAction(generateIcon("add-file"), "New from template");
+    // connect(newTemplate, &QAction::triggered, [this]() { this->newTemplate(); });
 
     // Save template
-    auto *saveBookmark = bookMarkMenu->addAction(generateIcon("save"), "Save as new template");
+    auto *saveBookmark = bookMarkMenu->addAction(generateSvgIcon("document-save-as-template"), "Save as new template");
     connect(saveBookmark, &QAction::triggered, [this]() { saveAsNewTemplate(); });
 
     // Clear
-    auto *clearList = bookMarkMenu->addAction(generateIcon("delete"), "Clear");
+    auto *clearList = bookMarkMenu->addAction(generateSvgIcon("edit-delete"), "Clear");
     connect(clearList, &QAction::triggered, [this]() {
       if(this->askForChangeTemplateIndex()) {
         this->initTable();
@@ -73,9 +73,8 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
       }
     });
 
-    mBookmarkButton = new QPushButton(generateIcon("menu"), "");
+    mBookmarkButton = new QPushButton(generateSvgIcon("overflow-menu"), "");
     mBookmarkButton->setMenu(bookMarkMenu);
-    mBookmarkButton->setToolTip("Menu");
     templateSelection->addWidget(mBookmarkButton);
 
     templateSelection->setStretch(0, 1);
@@ -572,7 +571,8 @@ void PanelClassification::onloadPreset(int index)
           joda::templates::TemplateParser::loadTemplate(std::filesystem::path(mTemplateSelection->currentData().toString().toStdString()));
       mWindowMain->mutableSettings().projectSettings.classification = settings;
       fromSettings(settings);
-      updateTableLock(true);
+      /// \todo Do not support table lock
+      // updateTableLock(true);
     } catch(const std::exception &ex) {
     }
   }
