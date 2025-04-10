@@ -37,7 +37,7 @@ public:
   /////////////////////////////////////////////////////
   DialogImageViewer(QWidget *parent);
   ~DialogImageViewer();
-  void imageUpdated(const QString &info);
+  void imageUpdated(const ctrl::Preview::PreviewResults &info, const std::map<enums::ClassIdIn, QString> &classes);
   void fitImageToScreenSize();
   joda::ctrl::Preview &getPreviewObject()
   {

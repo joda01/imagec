@@ -11,6 +11,7 @@
 
 #include "panel_image_view.hpp"
 #include <qcolor.h>
+#include <qmessagebox.h>
 #include <qnamespace.h>
 #include <qpixmap.h>
 #include <qstatictext.h>
@@ -75,14 +76,62 @@ void PanelImageView::setImageReference(const joda::image::Image *imageReference)
   emit updateImage();
 }
 
-void PanelImageView::imageUpdated(const QString &info)
+void PanelImageView::imageUpdated(const ctrl::Preview::PreviewResults &previewResult, const std::map<enums::ClassIdIn, QString> &classes)
 {
   if(mThumbnailImageReference == nullptr) {
     return;
   }
-  mPipelineResult = info;
+  mClasses        = classes;
+  mPipelineResult = previewResult;
+
+  updatePipelineResultsCoordinates();
+  /////////////////////////////////////////////////////
   const_cast<joda::image::Image *>(mThumbnailImageReference)->autoAdjustBrightnessRange();
   emit updateImage();
+}
+
+void PanelImageView::updatePipelineResultsCoordinates()
+{
+  auto xOffset = width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH;
+  auto yOffset = THUMB_RECT_START_Y;
+  QRect pixelInfoRect(QPoint(xOffset, THUMB_RECT_START_Y), QSize(RESULTS_INFO_RECT_WIDTH,
+                                                                 RESULTS_INFO_RECT_HEIGHT));    // Adjust the size as needed
+
+  yOffset += THUMB_RECT_START_Y;
+  auto addToTextCoordinated = [this, &xOffset, &yOffset](const QString &tmp, enums::ClassId classId) -> int32_t {
+    QTextDocument doc;
+    doc.setHtml(tmp);
+    QSizeF size  = doc.size();
+    qreal width  = size.width();
+    qreal height = size.height();
+    height       = 16;
+
+    mClassesCoordinates.emplace_back(QRect(xOffset, yOffset, RESULTS_INFO_RECT_WIDTH, height), static_cast<enums::ClassIdIn>(classId));
+    return height;
+  };
+
+  mClassesCoordinates.clear();
+  /////////////////////////////////////////////////////
+  QString info = "<html>";
+  for(const auto &[classId, count] : mPipelineResult.foundObjects) {
+    QString tmp = "<span style=\"color: " + QString(count.color.data()) + ";\">" +
+                  (mClasses.at(static_cast<enums::ClassIdIn>(classId)) + "</span>: " + QString::number(count.count) + "<br>");
+
+    yOffset += addToTextCoordinated(tmp, classId);
+    info += tmp;
+  }
+  if(mPipelineResult.isOverExposed) {
+    QString tmp = "<span style=\"color: #750000;\">Image may be overexposed</span><br>";
+    yOffset += addToTextCoordinated(tmp, enums::ClassId::NONE);
+    info += tmp;
+  }
+  if(mPipelineResult.noiseDetected) {
+    QString tmp = "<span style=\"color: #750000;\">Image may be noisy</span><br>";
+    yOffset += addToTextCoordinated(tmp, enums::ClassId::NONE);
+    info += tmp;
+  }
+  info += "</html>";
+  mPipelineResultsHtmlText = info;
 }
 
 void PanelImageView::resetImage()
@@ -150,6 +199,10 @@ void PanelImageView::mouseMoveEvent(QMouseEvent *event)
   if(mShowPixelInfo) {
     mPixelInfo = fetchPixelInfoFromMousePosition(event->pos());
   }
+  if(mShowPipelineResults && !mWithThumbnail) {
+    getPreviewResultsAreaEntered(event);
+  }
+
   if(mShowCrosshandCursor) {
     mCrossCursorInfo.pixelInfo = fetchPixelInfoFromMousePosition(mCrossCursorInfo.mCursorPos);
   }
@@ -193,6 +246,12 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
     viewport()->update();
     emit onImageRepainted();
     return;
+  }
+
+  if(mShowPipelineResults && !mWithThumbnail) {
+    if(getPreviewResultsAreaClicked(event)) {
+      return;
+    }
   }
 
   if(event->button() == Qt::LeftButton) {
@@ -422,6 +481,8 @@ void PanelImageView::drawPixelInfo(QPainter &painter, int32_t startX, int32_t st
 ///
 void PanelImageView::drawPipelineResult(QPainter &painter)
 {
+  /// \todo this needs not beeing updated all the time
+  updatePipelineResultsCoordinates();
   std::lock_guard<std::mutex> locked(mImageResetMutex);
   const auto *image = mActPixmapOriginal->getImage();
   if(image == nullptr) {
@@ -443,7 +504,11 @@ void PanelImageView::drawPipelineResult(QPainter &painter)
 
   painter.setPen(QColor(255, 255, 255));    // Set the pen color to light blue
 
-  QStaticText text(mPipelineResult);
+  //
+  // Paint the results
+  //
+
+  QStaticText text(mPipelineResultsHtmlText);
   QPoint pText = pixelInfoRect.topLeft();
   pText.setX(pText.x() + THUMB_RECT_START_X);
   pText.setY(pText.y() + THUMB_RECT_START_Y);
@@ -621,6 +686,54 @@ void PanelImageView::setThumbnailPosition(const ThumbParameter &param)
 
 {
   mThumbnailParameter = param;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+bool PanelImageView::getPreviewResultsAreaEntered(QMouseEvent *event)
+{
+  auto pos = event->pos();
+
+  QRect pixelInfoRect(QPoint(width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH, THUMB_RECT_START_Y),
+                      QSize(RESULTS_INFO_RECT_WIDTH,
+                            RESULTS_INFO_RECT_HEIGHT));    // Adjust the size as needed
+
+  if(pixelInfoRect.contains(pos)) {
+    return true;
+  }
+  return false;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+bool PanelImageView::getPreviewResultsAreaClicked(QMouseEvent *event)
+{
+  auto pos = event->pos();
+
+  QRect pixelInfoRect(QPoint(width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH, THUMB_RECT_START_Y),
+                      QSize(RESULTS_INFO_RECT_WIDTH,
+                            RESULTS_INFO_RECT_HEIGHT));    // Adjust the size as needed
+
+  if(pixelInfoRect.contains(pos)) {
+    for(const auto &[classPos, classId] : mClassesCoordinates) {
+      if(classPos.contains(pos)) {
+        QMessageBox::information(this, "Information", "Clicked: " + QString::number((int32_t) classId));
+        break;
+      }
+    }
+    return true;
+  }
+  return false;
 }
 
 ///

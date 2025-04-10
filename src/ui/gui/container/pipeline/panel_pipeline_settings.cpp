@@ -587,22 +587,7 @@ void PanelPipelineSettings::previewThread()
             jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, jobToDo.threadSettings, *myPipeline, imgIndex,
                                         jobToDo.selectedTileX, jobToDo.selectedTileY, previewResult, imgProps, jobToDo.classesToShow);
             // Create a QByteArray from the char array
-            QString info = "<html>";
-            auto classes = jobToDo.classes;
-            for(const auto &[classId, count] : previewResult.foundObjects) {
-              QString tmp = "<span style=\"color: " + QString(count.color.data()) + ";\">" +
-                            (classes[static_cast<enums::ClassIdIn>(classId)] + "</span>: " + QString::number(count.count) + "<br>");
-              info += tmp;
-            }
-            if(previewResult.isOverExposed) {
-              QString tmp = "<span style=\"color: #750000;\">Image may be overexposed</span><br>";
-              info += tmp;
-            }
-            if(previewResult.noiseDetected) {
-              QString tmp = "<span style=\"color: #750000;\">Image may be noisy</span><br>";
-              info += tmp;
-            }
-            info += "</html>";
+
             jobToDo.previewPanel->setThumbnailPosition(
                 PanelImageView::ThumbParameter{.nrOfTilesX          = tileNrX,
                                                .nrOfTilesY          = tileNrY,
@@ -612,7 +597,7 @@ void PanelPipelineSettings::previewThread()
                                                .originalImageHeight = imageHeight,
                                                .selectedTileX       = jobToDo.selectedTileX,
                                                .selectedTileY       = jobToDo.selectedTileY});
-            jobToDo.previewPanel->imageUpdated(info);
+            jobToDo.previewPanel->imageUpdated(previewResult.results, jobToDo.classes);
 
           } catch(const std::exception &error) {
             // mPreviewImage->resetImage(error.what());

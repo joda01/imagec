@@ -255,13 +255,13 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
   if(generateThumb) {
     previewOut.thumbnail.setImage(std::move(thumb));
   }
-  previewOut.foundObjects.clear();
+  previewOut.results.foundObjects.clear();
   for(const auto &[key, val] : foundObjects) {
-    previewOut.foundObjects[key].color = val.color;
-    previewOut.foundObjects[key].count = val.count;
+    previewOut.results.foundObjects[key].color = val.color;
+    previewOut.results.foundObjects[key].count = val.count;
   }
-  previewOut.noiseDetected = validity.test(enums::ChannelValidityEnum::POSSIBLE_NOISE);
-  previewOut.isOverExposed = validity.test(enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
+  previewOut.results.noiseDetected = validity.test(enums::ChannelValidityEnum::POSSIBLE_NOISE);
+  previewOut.results.isOverExposed = validity.test(enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
 }
 
 ///

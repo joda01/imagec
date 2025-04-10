@@ -17,7 +17,9 @@
 #include <iostream>
 #include <mutex>
 #include <string>
+#include "backend/enums/enums_classes.hpp"
 #include "backend/helper/image/image.hpp"
+#include "controller/controller.hpp"
 #include <opencv2/core/types.hpp>
 
 namespace joda::ui::gui {
@@ -70,7 +72,8 @@ public:
   /////////////////////////////////////////////////////
   PanelImageView(const joda::image::Image *imageReference, const joda::image::Image *thumbnailImageReference, const joda::image::Image *overlay,
                  bool withThumbnail, QWidget *parent = nullptr);
-  void imageUpdated(const QString &info);
+
+  void imageUpdated(const ctrl::Preview::PreviewResults &info, const std::map<enums::ClassIdIn, QString> &classes);
   void resetImage();
   void fitImageToScreenSize();
   void zoomImage(bool inOut);
@@ -122,6 +125,10 @@ protected:
   void getClickedTileInThumbnail(QMouseEvent *event);
   void getThumbnailAreaEntered(QMouseEvent *event);
   auto fetchPixelInfoFromMousePosition(const QPoint &pos) const -> PixelInfo;
+  bool getPreviewResultsAreaEntered(QMouseEvent *event);
+  bool getPreviewResultsAreaClicked(QMouseEvent *event);
+
+  void updatePipelineResultsCoordinates();
 
 private:
   /////////////////////////////////////////////////////
@@ -150,7 +157,11 @@ private:
   QPoint lastPos;
   State mState = State::MOVE;
   cv::Size mPixmapSize;
-  QString mPipelineResult;
+  ctrl::Preview::PreviewResults mPipelineResult;
+  QString mPipelineResultsHtmlText;
+  settings::ObjectInputClasses mSelectedClasses;
+  std::vector<std::tuple<QRect, joda::enums::ClassIdIn>> mClassesCoordinates;
+  std::map<enums::ClassIdIn, QString> mClasses;
 
   /////////////////////////////////////////////////////
   CrossCursorInfo mCrossCursorInfo;

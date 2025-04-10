@@ -348,10 +348,10 @@ void DialogImageViewer::leaveEvent(QEvent *event)
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::imageUpdated(const QString &info)
+void DialogImageViewer::imageUpdated(const ctrl::Preview::PreviewResults &info, const std::map<enums::ClassIdIn, QString> &classes)
 {
-  mImageViewLeft.imageUpdated(info);
-  mImageViewRight.imageUpdated(info);
+  mImageViewLeft.imageUpdated(info, classes);
+  mImageViewRight.imageUpdated(info, classes);
 }
 
 ///
