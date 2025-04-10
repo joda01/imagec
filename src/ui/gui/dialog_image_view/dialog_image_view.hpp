@@ -76,7 +76,7 @@ public:
 
   auto getSelectedClassesAndClasses() const -> settings::ObjectInputClasses
   {
-    return mClassesClassesToShow->getValue();
+    return mImageViewRight.getSelectedClasses();
   }
 
   enum class ImageView
@@ -115,7 +115,6 @@ private:
   // ACTIONS //////////////////////////////////////////////////
   QAction *mFillOVerlay;
   QActionGroup *mPreviewSizeGroup;
-  std::unique_ptr<SettingComboBoxMultiClassificationIn> mClassesClassesToShow;
 
 private slots:
   /////////////////////////////////////////////////////

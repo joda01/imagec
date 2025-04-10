@@ -44,7 +44,8 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     QDockWidget(parent), mImageViewLeft(&mPreviewImages.originalImage, &mPreviewImages.thumbnail, nullptr, true),
     mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, false)
 {
-  // setWindowFlags(windowFlags() | Qt::Window | Qt::WindowMaximizeButtonHint);
+  setWindowTitle("Image view");
+  setVisible(false);
   setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 
   // Set initial size constraints
@@ -54,11 +55,12 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
   // Connect signal to detect docking/floating changes
   connect(this, &QDockWidget::topLevelChanged, this, [this](bool floating) {
     if(floating) {
-      setMinimumWidth(1200);    // Wider when floating
-      setMinimumHeight(600);
       setMaximumWidth(10000);    // Remove max width cap
+      setMinimumWidth(1200);     // Wider when floating
+      setMinimumHeight(600);
+      setMinimumHeight(600);
       mCentralLayout->setDirection(QBoxLayout::LeftToRight);
-      setWindowTitle("Preview");
+      resize(1200, 600);
     } else {
       setMaximumWidth(500);    // Restrict width when docked
       setMinimumHeight(0);
@@ -200,19 +202,6 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
     connect(mPreviewSizeGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingChanged);
 
-    toolbarTop->addSeparator();
-
-    //
-    // Preview classes
-    //
-    mClassesClassesToShow = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Classes to paint");
-    mClassesClassesToShow->getInputObject()->setMaximumWidth(100);
-    mClassesClassesToShow->getInputObject()->setMinimumWidth(100);
-    mClassesClassesToShow->setValue(settings::ObjectInputClasses{enums::ClassIdIn::$});
-    connect(mClassesClassesToShow.get(), &SettingBase::valueChanged, this, &DialogImageViewer::onSettingChanged);
-
-    toolbarTop->addWidget(mClassesClassesToShow->getInputObject());
-
     layout->addWidget(toolbarTop);
     // addToolBar(Qt::ToolBarArea::TopToolBarArea, toolbarTop);
   }
@@ -246,6 +235,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     connect(&mImageViewRight, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onRightViewChanged);
     connect(&mImageViewLeft, &PanelImageView::tileClicked, this, &DialogImageViewer::onTileClicked);
     connect(&mImageViewRight, &PanelImageView::tileClicked, this, &DialogImageViewer::onTileClicked);
+    connect(&mImageViewRight, &PanelImageView::classesToShowChanged, this, &DialogImageViewer::onSettingChanged);
   }
 
   // setLayout(layout);

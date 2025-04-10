@@ -103,8 +103,13 @@ public:
   void setCursorPosition(const QPoint &pos);
   auto getCursorPosition() -> QPoint;
   void setImageReference(const joda::image::Image *imageReference);
+  auto getSelectedClasses() const -> settings::ObjectInputClasses
+  {
+    return mSelectedClasses;
+  }
 
 signals:
+  void classesToShowChanged(const settings::ObjectInputClasses &selectedClasses);
   void updateImage();
   void onImageRepainted();
   void tileClicked(int32_t tileX, int32_t tileY);

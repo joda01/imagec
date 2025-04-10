@@ -114,7 +114,11 @@ void PanelImageView::updatePipelineResultsCoordinates()
   /////////////////////////////////////////////////////
   QString info = "<html>";
   for(const auto &[classId, count] : mPipelineResult.foundObjects) {
-    QString tmp = "<span style=\"color: " + QString(count.color.data()) + ";\">" +
+    QString prefix = "□ ";
+    if(mSelectedClasses.contains(static_cast<enums::ClassIdIn>(classId))) {
+      prefix = "▣ ";
+    }
+    QString tmp = prefix + "<span style=\"color: " + QString(count.color.data()) + ";\">" +
                   (mClasses.at(static_cast<enums::ClassIdIn>(classId)) + "</span>: " + QString::number(count.count) + "<br>");
 
     yOffset += addToTextCoordinated(tmp, classId);
@@ -727,7 +731,14 @@ bool PanelImageView::getPreviewResultsAreaClicked(QMouseEvent *event)
   if(pixelInfoRect.contains(pos)) {
     for(const auto &[classPos, classId] : mClassesCoordinates) {
       if(classPos.contains(pos)) {
-        QMessageBox::information(this, "Information", "Clicked: " + QString::number((int32_t) classId));
+        // QMessageBox::information(this, "Information", "Clicked: " + QString::number((int32_t) classId));
+        if(mSelectedClasses.contains(classId)) {
+          mSelectedClasses.erase(classId);
+        } else {
+          mSelectedClasses.emplace(classId);
+        }
+        viewport()->update();
+        emit classesToShowChanged(mSelectedClasses);
         break;
       }
     }

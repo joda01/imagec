@@ -117,9 +117,9 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   {
     auto *col4    = tab->addVerticalPanel();
     mPreviewImage = new DialogImageViewer(mWindowMain);
+    mPreviewImage->setVisible(false);
     mPreviewImage->setContentsMargins(0, 0, 0, 0);
     mPreviewImage->resetImage();
-    mPreviewImage->setVisible(false);
     wm->addDockWidget(Qt::RightDockWidgetArea, mPreviewImage);
   }
 
@@ -908,11 +908,10 @@ void PanelPipelineSettings::setActive(bool setActive)
 {
   if(!mIsActiveShown && setActive) {
     mLayout.showToolBar(true);
-    mPreviewImage->setVisible(true);
-
     mIsActiveShown = true;
     updatePreview();
     mDialogHistory->loadHistory();
+    mPreviewImage->setVisible(true);
   }
   if(!setActive && mIsActiveShown) {
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
