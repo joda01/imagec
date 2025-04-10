@@ -29,7 +29,7 @@ class Blur : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Blur";
-  inline static std::string ICON              = "colors-luma";
+  inline static std::string ICON              = "blurimage";
   inline static std::string DESCRIPTION       = "Reduce noise within the image";
   inline static std::vector<std::string> TAGS = {"blur", "gaussian", "noise reduction", "noise", "smooth"};
 

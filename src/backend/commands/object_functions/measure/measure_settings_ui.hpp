@@ -36,7 +36,7 @@ class Measure : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Measure";
-  inline static std::string ICON              = "length";
+  inline static std::string ICON              = "tool-measure";
   inline static std::string DESCRIPTION       = "Measure the intensity of objects areas in an image channel.";
   inline static std::vector<std::string> TAGS = {"intensity", "measure", "object"};
 

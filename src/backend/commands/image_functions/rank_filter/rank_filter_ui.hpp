@@ -27,7 +27,7 @@ class RankFilter : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Rank filter";
-  inline static std::string ICON              = "office-chart-bar-stacked";
+  inline static std::string ICON              = "view-statistics";
   inline static std::string DESCRIPTION       = "Each pixel is set to the minimum, maximum or median value of its neighborhood.";
   inline static std::vector<std::string> TAGS = {"rank", "filter", "maximum", "minimum", "median"};
 

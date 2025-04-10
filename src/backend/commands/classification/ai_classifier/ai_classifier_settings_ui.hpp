@@ -39,7 +39,7 @@ class AiClassifier : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "AI Classifier";
-  inline static std::string ICON              = "magic";
+  inline static std::string ICON              = "kstars_supernovae";    // application-dicom
   inline static std::string DESCRIPTION       = "Extract objects from an image using AI.";
   inline static std::vector<std::string> TAGS = {"classifier", "classify", "objects", "ai", "feature extraction", "pattern recognition"};
 

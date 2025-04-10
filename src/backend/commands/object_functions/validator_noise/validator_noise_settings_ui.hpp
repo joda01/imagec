@@ -33,7 +33,7 @@ class NoiseValidator : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Noise filter";
-  inline static std::string ICON              = "sort-by-price";
+  inline static std::string ICON              = "view-filter";
   inline static std::string DESCRIPTION       = "Exclude noise images from statistics.";
   inline static std::vector<std::string> TAGS = {"filter", "noise"};
 

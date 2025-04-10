@@ -35,7 +35,7 @@ class Classifier : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Classifier";
-  inline static std::string ICON              = "classify";
+  inline static std::string ICON              = "shapes";
   inline static std::string DESCRIPTION       = "Extract objects from a binary image.";
   inline static std::vector<std::string> TAGS = {"classifier", "classify", "objects"};
 

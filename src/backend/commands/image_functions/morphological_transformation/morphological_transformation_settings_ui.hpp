@@ -36,7 +36,7 @@ class MorphologicalTransform : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Morphological Transform";
-  inline static std::string ICON              = "geometric-flowers";
+  inline static std::string ICON              = "distribute-graph";
   inline static std::string DESCRIPTION       = "Simple operations based on the image shape.";
   inline static std::vector<std::string> TAGS = {"transform", "morphological", "erosion",  "erode",   "dilation",  "dilate",
                                                  "open",      "close",         "gradient", "top hat", "black hat", "hitmiss"};

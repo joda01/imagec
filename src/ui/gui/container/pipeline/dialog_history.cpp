@@ -119,11 +119,7 @@ DialogHistory::DialogHistory(WindowMain *parent, PanelPipelineSettings *panelPip
   spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   toolBar->addWidget(spacer);    // This pushes everything after it to the right
 
-  auto *addTagAction = toolBar->addAction(generateIcon("tag"), "Add tag");
-  addTagAction->setToolTip("Tag the actual settings in the history.");
-  connect(addTagAction, &QAction::triggered, [this]() { createTag(); });
-
-  auto *clearHistory = toolBar->addAction(generateIcon("delete"), "Clear history");
+  auto *clearHistory = toolBar->addAction(generateSvgIcon("edit-delete"), "Clear history");
   clearHistory->setToolTip("Clear history without tags.");
   connect(clearHistory, &QAction::triggered, [this]() {
     QMessageBox messageBox(mWindowMain);
@@ -141,6 +137,10 @@ DialogHistory::DialogHistory(WindowMain *parent, PanelPipelineSettings *panelPip
     loadHistory();
     mWindowMain->checkForSettingsChanged();
   });
+
+  auto *addTagAction = toolBar->addAction(generateSvgIcon("tag"), "Add tag");
+  addTagAction->setToolTip("Tag the actual settings in the history.");
+  connect(addTagAction, &QAction::triggered, [this]() { createTag(); });
 
   auto *layout = new QVBoxLayout();
   layout->setContentsMargins(0, 0, 0, 0);

@@ -184,7 +184,7 @@ void WindowMain::createTopToolbar()
   // toolbar->addAction(showResultsTemplate);
   // mTopToolBar->addSeparator();
 
-  mShowCompilerLog = new QAction(generateSvgIcon("text-x-changelog"), "Compiler log", mTopToolBar);
+  mShowCompilerLog = new QAction(generateSvgIcon("sort-presence"), "Compiler log", mTopToolBar);
   mShowCompilerLog->setToolTip("CompileLog!");
   mShowCompilerLog->setCheckable(true);
   connect(mShowCompilerLog, &QAction::triggered, [this](bool checked) {
@@ -208,10 +208,12 @@ void WindowMain::createTopToolbar()
   spacerTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   mTopToolBar->addWidget(spacerTop);
 
-  auto *helpButton = new QAction(generateSvgIcon("help-contents"), "Help", mTopToolBar);
-  helpButton->setToolTip("Help");
-  connect(helpButton, &QAction::triggered, this, &WindowMain::onShowHelpClicked);
-  mTopToolBar->addAction(helpButton);
+  // auto *helpButton = new QAction(generateSvgIcon("help-contents"), "Help", mTopToolBar);
+  // helpButton->setToolTip("Help");
+  // connect(helpButton, &QAction::triggered, this, &WindowMain::onShowHelpClicked);
+  // mTopToolBar->addAction(helpButton);
+
+  mTopToolBar->addSeparator();
 
   mShowInfoDialog = new QAction(generateSvgIcon("help-about"), "About", mTopToolBar);
   mShowInfoDialog->setToolTip("Info");
@@ -263,7 +265,7 @@ void WindowMain::createLeftToolbar()
     // Start button
     //
     {
-      mStartAnalysis = new QPushButton(generateIcon("play"), "");
+      mStartAnalysis = new QPushButton(generateSvgIcon("media-playback-start"), "");
       mStartAnalysis->setEnabled(false);
       mStartAnalysis->setToolTip("Run pipeline!");
       innerLayout->addWidget(mStartAnalysis);

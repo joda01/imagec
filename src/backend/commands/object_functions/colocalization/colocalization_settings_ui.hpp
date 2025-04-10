@@ -38,7 +38,7 @@ class Colocalization : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Colocalization";
-  inline static std::string ICON              = "venn-diagram";
+  inline static std::string ICON              = "bwtonal";
   inline static std::string DESCRIPTION       = "Calculates the overlapping are of two or more image channels.";
   inline static std::vector<std::string> TAGS = {"colocalization", "object", "coloc"};
 

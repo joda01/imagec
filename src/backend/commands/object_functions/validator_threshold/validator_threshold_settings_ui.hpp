@@ -32,7 +32,7 @@ class ThresholdValidator : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Threshold filter";
-  inline static std::string ICON              = "filter";
+  inline static std::string ICON              = "view-filter";
   inline static std::string DESCRIPTION       = "Exclude overexposed images from statistics.";
   inline static std::vector<std::string> TAGS = {"filter", "threshold", "overexposed"};
 

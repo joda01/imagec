@@ -123,7 +123,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
     wm->addDockWidget(Qt::RightDockWidgetArea, mPreviewImage);
   }
 
-  auto *openTemplate = mLayout.addActionButton("Open template", generateSvgIcon("document-open-folder"));
+  auto *openTemplate = mLayout.addActionButton("Open template", generateSvgIcon("project-development-new-template"));
   connect(openTemplate, &QAction::triggered, [this] { this->openTemplate(); });
 
   auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", generateSvgIcon("document-save-as-template"));

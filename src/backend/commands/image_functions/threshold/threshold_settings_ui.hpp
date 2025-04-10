@@ -32,7 +32,7 @@ class Threshold : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Threshold";
-  inline static std::string ICON              = "layer-mask";
+  inline static std::string ICON              = "edit-select-invert";
   inline static std::string DESCRIPTION       = "Converts a grayscale image to a binary image.";
   inline static std::vector<std::string> TAGS = {"threshold", "background", "binary", "otsu", "li", "triangle", "shanbhag"};
 

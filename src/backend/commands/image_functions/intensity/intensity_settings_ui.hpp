@@ -29,7 +29,7 @@ class IntensityTransformation : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Intensity";
-  inline static std::string ICON              = "brightness";
+  inline static std::string ICON              = "contrast";
   inline static std::string DESCRIPTION       = "Adjust image contrast and brightness";
   inline static std::vector<std::string> TAGS = {"contrast", "brightness", "adjust"};
 

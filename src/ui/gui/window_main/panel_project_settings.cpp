@@ -203,7 +203,8 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   //
   // Well order matrix
   //
-  mWellOrderMatrix      = new QLineEdit("[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]");
+  mWellOrderMatrix = new QLineEdit("[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]");
+  mWellOrderMatrix->addAction(generateSvgIcon("labplot-matrix"), QLineEdit::LeadingPosition);
   mWellOrderMatrixLabel = new QLabel(tr("Well order:"));
   formLayout->addRow(mWellOrderMatrixLabel, mWellOrderMatrix);
 

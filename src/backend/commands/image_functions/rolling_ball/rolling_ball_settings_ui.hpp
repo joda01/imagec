@@ -27,7 +27,7 @@ class RollingBallBackground : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Rolling ball";
-  inline static std::string ICON              = "blur";
+  inline static std::string ICON              = "kstars_horizon";    // blur
   inline static std::string DESCRIPTION       = "Remove image background.";
   inline static std::vector<std::string> TAGS = {"noise reduction", "background subtraction", "noise"};
 

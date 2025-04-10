@@ -36,7 +36,7 @@ class ObjectTransform : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Object transform";
-  inline static std::string ICON              = "resize";
+  inline static std::string ICON              = "transform-shear-right";
   inline static std::string DESCRIPTION       = "Change the object shape and or size";
   inline static std::vector<std::string> TAGS = {"transform", "scale"};
 

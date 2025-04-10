@@ -37,7 +37,7 @@ class HoughTransform : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Hough transform";
-  inline static std::string ICON              = "trigonometry";
+  inline static std::string ICON              = "draw-square-inverted-corners";
   inline static std::string DESCRIPTION       = "Feature extraction technique for lines and circled";
   inline static std::vector<std::string> TAGS = {"classifier", "classify", "objects", "ai", "feature extraction", "pattern recognition"};
 
