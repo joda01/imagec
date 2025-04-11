@@ -35,7 +35,7 @@ public:
   Watershed(joda::settings::PipelineStep &pipelineStep, settings::WatershedSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}})
   {
-    mFindTolerance = SettingBase::create<SettingComboBox<float>>(parent, generateIcon("split"), "Find tolerance");
+    mFindTolerance = SettingBase::create<SettingComboBox<float>>(parent, {}, "Find tolerance");
     mFindTolerance->addOptions({
         {0.5, "Default (0.5)"},
         {0.6, "0.6"},

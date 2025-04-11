@@ -73,9 +73,9 @@ public:
     //
     mShape = SettingBase::create<SettingComboBox<joda::settings::MorphologicalTransformSettings::Shape>>(parent, {}, "Shape");
     mShape->addOptions({
-        {.key = joda::settings::MorphologicalTransformSettings::Shape::ELLIPSE, .label = "Ellipse", .icon = generateSvgIcon("choice-round")},
-        {.key = joda::settings::MorphologicalTransformSettings::Shape::RECTANGLE, .label = "Rectangle", .icon = generateIcon("rectangle")},
-        {.key = joda::settings::MorphologicalTransformSettings::Shape::CROSS, .label = "Cross", .icon = generateIcon("star")},
+        {.key = joda::settings::MorphologicalTransformSettings::Shape::ELLIPSE, .label = "Ellipse", .icon = generateSvgIcon("draw-ellipse")},
+        {.key = joda::settings::MorphologicalTransformSettings::Shape::RECTANGLE, .label = "Rectangle", .icon = generateSvgIcon("draw-rectangle")},
+        {.key = joda::settings::MorphologicalTransformSettings::Shape::CROSS, .label = "Cross", .icon = generateSvgIcon("draw-cross")},
     });
 
     mShape->setValue(settings.shape);
@@ -84,7 +84,7 @@ public:
     //
     //
     //
-    mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, generateIcon("matrix"), "Kernel size");
+    mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, generateSvgIcon("labplot-matrix"), "Kernel size");
     mKernelSize->addOptions({{-1, "Off"},
                              {3, "3x3"},
                              {5, "5x5"},

@@ -61,7 +61,7 @@ public:
     //
     //
     //
-    mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, generateIcon("matrix"), "Kernel size");
+    mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, generateSvgIcon("labplot-matrix"), "Kernel size");
     mKernelSize->addOptions({{3, "3x3"}, {5, "5x5"}, {7, "7x7"}});
     mKernelSize->setValue(settings.kernelSize);
     mKernelSize->connectWithSetting(&settings.kernelSize);

@@ -46,7 +46,7 @@ public:
 
     //
     //
-    mMaxNrOfObjects = SettingBase::create<SettingLineEdit<uint32_t>>(parent, generateIcon("sort-by-price"), "Max. objects");
+    mMaxNrOfObjects = SettingBase::create<SettingLineEdit<uint32_t>>(parent, {}, "Max. objects");
     mMaxNrOfObjects->setDefaultValue(100000);
     mMaxNrOfObjects->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mMaxNrOfObjects->setUnit("");

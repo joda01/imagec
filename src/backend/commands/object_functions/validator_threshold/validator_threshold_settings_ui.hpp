@@ -41,7 +41,7 @@ public:
   {
     //
     //
-    mHistThreshold = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("filter"), "Hist. min threshold");
+    mHistThreshold = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Hist. min threshold");
     mHistThreshold->setDefaultValue(0.8);
     mHistThreshold->setPlaceholderText("[0 - 1]");
     mHistThreshold->setUnit("");

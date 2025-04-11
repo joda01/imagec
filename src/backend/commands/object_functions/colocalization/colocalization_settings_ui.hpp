@@ -49,7 +49,7 @@ public:
     auto *modelTab = addTab(
         "Base", [] {}, false);
 
-    mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("venn-diagram"), "Classes to coloc.");
+    mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, {}, "Classes to coloc.");
     mClassesIn->setValue(settings.inputClasses);
     mClassesIn->connectWithSetting(&settings.inputClasses);
 
@@ -64,7 +64,7 @@ public:
 
     //
     //
-    mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("query-inner-join"), "Min. intersection");
+    mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("format-number-percent"), "Min. intersection");
     mMinIntersection->setDefaultValue(0.1);
     mMinIntersection->setPlaceholderText("[0 - 1]");
     mMinIntersection->setUnit("%");

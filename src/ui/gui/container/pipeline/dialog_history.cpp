@@ -123,7 +123,7 @@ DialogHistory::DialogHistory(WindowMain *parent, PanelPipelineSettings *panelPip
   clearHistory->setToolTip("Clear history without tags.");
   connect(clearHistory, &QAction::triggered, [this]() {
     QMessageBox messageBox(mWindowMain);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
     messageBox.setWindowTitle("Clear history?");
     messageBox.setText("Clear history and keep tags?");
     QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
@@ -240,7 +240,7 @@ void DialogHistory::createTag()
     if(!text.isEmpty()) {
       try {
         mPanelPipeline->mutablePipeline().tag(text.toStdString());
-        ((TimeHistoryEntry *) mHistory->cellWidget(0, 0))->updateContent(generateIcon("tag"), text);
+        ((TimeHistoryEntry *) mHistory->cellWidget(0, 0))->updateContent(generateSvgIcon("tag"), text);
         mHistory->update();
         mHistory->viewport()->update();
         mWindowMain->checkForSettingsChanged();
@@ -267,7 +267,7 @@ auto DialogHistory::generateHistoryEntry(const std::optional<joda::settings::Pip
   QIcon icon;
   QString text;
   if(!inData->tagMessage.empty()) {
-    icon = generateIcon("tag");
+    icon = generateSvgIcon("tag");
     text = inData->tagMessage.data();
   } else {
     text = inData->commitMessage.data();

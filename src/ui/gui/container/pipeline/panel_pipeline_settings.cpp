@@ -369,7 +369,7 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 
   //
   //
-  pipelineNotes = SettingBase::create<SettingTextEdit>(windowMain, generateIcon("header"), "", 15);
+  pipelineNotes = SettingBase::create<SettingTextEdit>(windowMain, {}, "", 15);
   pipelineNotes->setPlaceholderText("Notes on the pipeline ...");
   pipelineNotes->connectWithSetting(&mSettings.meta.notes);
 
@@ -777,7 +777,7 @@ void PanelPipelineSettings::closeWindow()
 void PanelPipelineSettings::deletePipeline()
 {
   QMessageBox messageBox(mWindowMain);
-  messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+  messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
   messageBox.setWindowTitle("Delete pipeline?");
   messageBox.setText("Delete pipeline?");
   QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
@@ -845,7 +845,7 @@ void PanelPipelineSettings::openTemplate()
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(mWindowMain);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
     messageBox.setWindowTitle("Could not open template!");
     messageBox.setText("Could not open template, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
@@ -875,7 +875,7 @@ void PanelPipelineSettings::saveAsTemplate()
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(mWindowMain);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
     messageBox.setWindowTitle("Could not save template!");
     messageBox.setText("Could not save template, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);

@@ -48,7 +48,7 @@ public:
 
     //
     //
-    mSaturatedPixels = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("percent"), "Saturated pixels [0-1]");
+    mSaturatedPixels = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("gnumeric-format-percentage"), "Saturated pixels [0-1]");
     mSaturatedPixels->setPlaceholderText("[0 - 1]");
     mSaturatedPixels->setUnit("%");
     mSaturatedPixels->setMinMax(0, 1);

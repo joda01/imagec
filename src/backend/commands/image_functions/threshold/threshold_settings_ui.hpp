@@ -65,8 +65,7 @@ private:
       //
       //
       //
-      mThresholdAlgorithm = SettingBase::create<SettingComboBox<joda::settings::ThresholdSettings::Methods>>(
-          parent, generateIcon("automatic-contrast"), "Threshold algorithm");
+      mThresholdAlgorithm = SettingBase::create<SettingComboBox<joda::settings::ThresholdSettings::Methods>>(parent, {}, "Threshold algorithm");
       mThresholdAlgorithm->addOptions({{joda::settings::ThresholdSettings::Methods::MANUAL, "Manual", {}},
                                        {joda::settings::ThresholdSettings::Methods::LI, "Li"},
                                        {joda::settings::ThresholdSettings::Methods::MIN_ERROR, "Min. error"},

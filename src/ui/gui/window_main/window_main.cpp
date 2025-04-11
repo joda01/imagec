@@ -382,7 +382,7 @@ void WindowMain::onNewProjectClicked()
 {
   if(!mSelectedProjectSettingsFilePath.empty()) {
     QMessageBox messageBox(this);
-    auto icon = generateIcon("info-blue");
+    auto icon = generateSvgIcon("data-information");
     messageBox.setIconPixmap(icon.pixmap(42, 42));
     messageBox.setWindowTitle("Create new project?");
     messageBox.setText("Unsaved settings will get lost! Create new project?");
@@ -478,7 +478,7 @@ void WindowMain::openResultsSettings(const QString &filePath)
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
     messageBox.setWindowTitle("Could not load database!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
@@ -534,7 +534,7 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
     messageBox.setWindowTitle("Could not load settings!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
@@ -642,7 +642,7 @@ void WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
     messageBox.setWindowTitle("Could not save settings!");
     messageBox.setText("Could not save settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
@@ -662,7 +662,7 @@ void WindowMain::loadTemplates()
   mTemplateSelection->clear();
   mTemplateSelection->addItem("Add pipelines ...", "");
   mTemplateSelection->insertSeparator(mTemplateSelection->count());
-  mTemplateSelection->addItem(generateIcon("flow-many"), "Empty pipeline", "emptyChannel");
+  mTemplateSelection->addItem(generateSvgIcon("document-new"), "Empty pipeline", "emptyChannel");
   mTemplateSelection->insertSeparator(mTemplateSelection->count());
   std::string actCategory = "basic";
   size_t addedPerCategory = 0;
@@ -678,7 +678,7 @@ void WindowMain::loadTemplates()
       if(!data.icon.isNull()) {
         mTemplateSelection->addItem(QIcon(data.icon.scaled(28, 28)), data.title.data(), data.path.data());
       } else {
-        mTemplateSelection->addItem(generateIcon("favorite"), data.title.data(), data.path.data());
+        mTemplateSelection->addItem(generateSvgIcon("favorite"), data.title.data(), data.path.data());
       }
     }
     addedPerCategory = dataInCategory.size();
@@ -711,7 +711,7 @@ void WindowMain::onStartClicked()
     mPanelProjectSettings->generateNewJobName();
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateIcon("error-red").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-error").pixmap(48, 48));
     messageBox.setWindowTitle("Error in settings!");
     messageBox.setText(ex.what());
     messageBox.addButton(tr("Okay"), QMessageBox::YesRole);
@@ -808,7 +808,7 @@ void WindowMain::onRemoveChannelClicked()
 {
   if(mSelectedChannel != nullptr) {
     QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
     messageBox.setWindowTitle("Remove channel?");
     messageBox.setText("Do you want to remove the channel?");
     QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);

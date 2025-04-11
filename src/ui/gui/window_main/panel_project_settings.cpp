@@ -51,20 +51,6 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
     mTemplateSelection    = new QComboBox();
     projectTemplate->addWidget(mTemplateSelection);
 
-    auto *bookMarkMenu = new QMenu();
-    // Save template
-    auto *saveTemplate = bookMarkMenu->addAction(generateIcon("save"), "Save project template");
-    connect(saveTemplate, &QAction::triggered, [this]() {});
-    // Open template
-    auto *openTemplate = bookMarkMenu->addAction(generateIcon("open"), "Open project template");
-    connect(openTemplate, &QAction::triggered, [this]() {});
-
-    mTemplateBookmarkButton = new QPushButton(generateIcon("menu"), "");
-    mTemplateBookmarkButton->setMenu(bookMarkMenu);
-    mTemplateBookmarkButton->setToolTip("Menu");
-
-    /// \todo implement save template
-    // projectTemplate->addWidget(mTemplateBookmarkButton);
     projectTemplate->setStretch(0, 1);    // Make label take all available space
     formLayout->addRow(new QLabel(tr("Project template:")), projectTemplate);
     connect(mTemplateSelection, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onOpenTemplate);
@@ -108,7 +94,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   // Organization
   //
   mAddressOrganisation = new QLineEdit;
-  mAddressOrganisation->addAction(generateSvgIcon("map-globe"), QLineEdit::LeadingPosition);
+  mAddressOrganisation->addAction(generateSvgIcon("edit-paste-in-place"), QLineEdit::LeadingPosition);
   mAddressOrganisation->setPlaceholderText("University of Salzburg");
   formLayout->addRow(new QLabel(tr("Organization:")), mAddressOrganisation);
 
@@ -116,7 +102,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   // Experiment ID
   //
   mExperimentId = new QLineEdit;
-  mExperimentId->addAction(generateIcon("binary-code"), QLineEdit::LeadingPosition);
+  mExperimentId->addAction(generateSvgIcon("view-barcode-qr"), QLineEdit::LeadingPosition);
   mExperimentId->setPlaceholderText("6fc87cc8-686e-4806-a78a-3f623c849cb7");
   /// \todo add for advanced mode
   // formLayout->addRow(new QLabel(tr("Experiment ID:")), mExperimentId);
@@ -274,7 +260,7 @@ void PanelProjectSettings::loadTemplates()
       if(!data.icon.isNull()) {
         mTemplateSelection->addItem(QIcon(data.icon.scaled(28, 28)), data.title.data(), data.path.data());
       } else {
-        mTemplateSelection->addItem(generateIcon("favorite"), data.title.data(), data.path.data());
+        mTemplateSelection->addItem(generateSvgIcon("favorite"), data.title.data(), data.path.data());
       }
     }
     addedPerCategory = dataInCategory.size();
@@ -311,7 +297,7 @@ void PanelProjectSettings::onOpenTemplate()
 bool PanelProjectSettings::askForChangeTemplateIndex()
 {
   QMessageBox messageBox(mParentWindow);
-  messageBox.setIconPixmap(generateIcon("info-blue").pixmap(48, 48));
+  messageBox.setIconPixmap(generateSvgIcon("data-information").pixmap(48, 48));
   messageBox.setWindowTitle("Proceed?");
   messageBox.setText("Actual taken settings will get lost! Load template?");
   QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);

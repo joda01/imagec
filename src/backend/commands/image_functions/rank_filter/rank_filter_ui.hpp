@@ -36,7 +36,7 @@ public:
   {
     //
     //
-    mMode = SettingBase::create<SettingComboBox<joda::settings::RankFilterSettings::Mode>>(parent, generateIcon("bubble"), "Mode");
+    mMode = SettingBase::create<SettingComboBox<joda::settings::RankFilterSettings::Mode>>(parent, {}, "Mode");
     mMode->addOptions({{joda::settings::RankFilterSettings::Mode::MEAN, "Mean"},
                        {joda::settings::RankFilterSettings::Mode::MEDIAN, "Median"},
                        {joda::settings::RankFilterSettings::Mode::VARIANCE, "Variance"},

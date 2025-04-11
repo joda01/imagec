@@ -36,7 +36,8 @@ public:
   {
     //
     //
-    mBallType = SettingBase::create<SettingComboBox<joda::settings::RollingBallSettings::BallType>>(parent, generateIcon("bubble"), "Ball type");
+    mBallType =
+        SettingBase::create<SettingComboBox<joda::settings::RollingBallSettings::BallType>>(parent, generateSvgIcon("kstars_horizon"), "Ball type");
     mBallType->addOptions(
         {{joda::settings::RollingBallSettings::BallType::BALL, "Ball"}, {joda::settings::RollingBallSettings::BallType::PARABOLOID, "Paraboloid"}});
     mBallType->setValue(settings.ballType);

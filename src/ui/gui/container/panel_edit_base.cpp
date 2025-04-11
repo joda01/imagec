@@ -32,11 +32,11 @@ PanelEdit::PanelEdit(WindowMain *wm, ContainerBase *containerBase, bool withExtr
     mWindowMain(wm), mContainerBase(containerBase), mLayout(this, withExtraButtons)
 {
   if(withExtraButtons) {
-    auto *mSaveAsTemplate = new QAction(generateIcon("add-to-favorites"), "Save as template");
+    auto *mSaveAsTemplate = new QAction(generateSvgIcon("document-save-as-template"), "Save as template");
     mLayout.addItemToTopToolbar(mSaveAsTemplate);
     connect(mSaveAsTemplate, &QAction::triggered, this, &PanelEdit::onSaveAsTemplate);
 
-    auto *copyChannel = new QAction(generateIcon("copy"), "Copy channel");
+    auto *copyChannel = new QAction(generateSvgIcon("edit-copy"), "Copy channel");
     mLayout.addItemToTopToolbar(copyChannel);
     connect(copyChannel, &QAction::triggered, this, &PanelEdit::onCopyChannel);
   }
@@ -62,7 +62,7 @@ void PanelEdit::onSaveAsTemplate()
     if(!pathToStoreFileIn.startsWith(templatePath)) {
       joda::log::logError("Templates must be stored in >" + templatePath.toStdString() + "< directory.");
       QMessageBox messageBox(this);
-      messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+      messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
       messageBox.setWindowTitle("Could not save template!");
       messageBox.setText("Templates must be stored in >" + templatePath + "< directory.");
       messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);

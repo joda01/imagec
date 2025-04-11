@@ -105,7 +105,7 @@ public:
     zStackIndex->setValue(settings.inputImageSecond.imagePlane.zStack);
     zStackIndex->connectWithSetting(&settings.inputImageSecond.imagePlane.zStack);
 
-    mMemoryIdx = SettingBase::create<SettingComboBox<enums::MemoryIdx::Enum>>(parent, generateIcon("matrix"), "From cache");
+    mMemoryIdx = SettingBase::create<SettingComboBox<enums::MemoryIdx::Enum>>(parent, generateSvgIcon("labplot-matrix"), "From cache");
     mMemoryIdx->addOptions({{enums::MemoryIdx::NONE, "None"},
                             {enums::MemoryIdx::M0, "M0"},
                             {enums::MemoryIdx::M1, "M1"},

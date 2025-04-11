@@ -57,7 +57,7 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     connect(populateFromImage, &QAction::triggered, [this]() { this->populateClassesFromImage(); });
 
     // New from template
-    // auto *newTemplate = bookMarkMenu->addAction(generateIcon("add-file"), "New from template");
+    // auto *newTemplate = bookMarkMenu->addAction(generateSvgIcon("add-file"), "New from template");
     // connect(newTemplate, &QAction::triggered, [this]() { this->newTemplate(); });
 
     // Save template
@@ -325,7 +325,7 @@ void PanelClassification::updateTableLock(bool lock)
   mClasses->blockSignals(true);
 
   if(lock) {
-    mClasses->horizontalHeaderItem(COL_NAME)->setIcon(generateIcon("lock"));
+    mClasses->horizontalHeaderItem(COL_NAME)->setIcon(generateSvgIcon("folder-locked"));
 
   } else {
     mClasses->horizontalHeaderItem(COL_NAME)->setIcon({});
@@ -453,7 +453,7 @@ void PanelClassification::loadTemplates()
       if(!data.icon.isNull()) {
         mTemplateSelection->addItem(QIcon(data.icon.scaled(28, 28)), data.title.data(), data.path.data());
       } else {
-        mTemplateSelection->addItem(generateIcon("favorite"), data.title.data(), data.path.data());
+        mTemplateSelection->addItem(generateSvgIcon("favorite"), data.title.data(), data.path.data());
       }
     }
     addedPerCategory = dataInCategory.size();
@@ -479,7 +479,7 @@ void PanelClassification::saveAsNewTemplate()
   if(!pathToStoreFileIn.startsWith(templatePath)) {
     joda::log::logError("Templates must be stored in >" + templatePath.toStdString() + "< directory.");
     QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
     messageBox.setWindowTitle("Could not save template!");
     messageBox.setText("Templates must be stored in >" + templatePath + "< directory.");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
@@ -509,7 +509,7 @@ void PanelClassification::saveAsNewTemplate()
 bool PanelClassification::askForChangeTemplateIndex()
 {
   QMessageBox messageBox(mWindowMain);
-  messageBox.setIconPixmap(generateIcon("info-blue").pixmap(48, 48));
+  messageBox.setIconPixmap(generateSvgIcon("data-information").pixmap(48, 48));
   messageBox.setWindowTitle("Proceed?");
   messageBox.setText("Actual taken settings will get lost!");
   QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
@@ -591,7 +591,7 @@ void PanelClassification::populateClassesFromImage()
   if(path.empty()) {
     joda::log::logError("No images found! Please select a image directory first!");
     QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
     messageBox.setWindowTitle("Could not find any images!");
     messageBox.setText("No images found! Please select a image directory first!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);

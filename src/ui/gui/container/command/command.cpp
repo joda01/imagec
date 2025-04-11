@@ -357,7 +357,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   //
   // Breakpoint button
   //
-  mBreakpoint = mLayout.addActionButton("Breakpoint", generateIcon("error"));
+  mBreakpoint = mLayout.addActionButton("Breakpoint", generateSvgIcon("media-record"));
   mBreakpoint->setCheckable(true);
   mBreakpoint->setChecked(mPipelineStep.locked);
   mBreakpoint->setVisible(false);
@@ -374,7 +374,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
 
   connect(mLayout.getDeleteButton(), &QAction::triggered, [this, pipelineSettingsUi]() {
     QMessageBox messageBox(mParent);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
     messageBox.setWindowTitle("Delete command?");
     messageBox.setText("Delete command from pipeline?");
     QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);

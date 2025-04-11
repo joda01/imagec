@@ -78,7 +78,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
   {
     QToolBar *toolbarTop = new QToolBar();
 
-    QAction *pinToTop = new QAction(generateIcon("pin"), "");
+    QAction *pinToTop = new QAction(generateSvgIcon("window-pin"), "");
     pinToTop->setToolTip("Pin to stay on top");
     pinToTop->setCheckable(true);
     pinToTop->setChecked(false);
@@ -97,14 +97,14 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
 
     QActionGroup *buttonGroup = new QActionGroup(toolbarTop);
 
-    QAction *action2 = new QAction(generateIcon("hand"), "");
+    QAction *action2 = new QAction({}, "");
     action2->setCheckable(true);
     action2->setChecked(true);
     connect(action2, &QAction::triggered, this, &DialogImageViewer::onSetSateToMove);
     buttonGroup->addAction(action2);
     // toolbarTop->addAction(action2);
 
-    QAction *paintRectangle = new QAction(generateIcon("rectangle"), "");
+    QAction *paintRectangle = new QAction(generateSvgIcon("draw-rectangle"), "");
     paintRectangle->setCheckable(true);
     connect(paintRectangle, &QAction::triggered, this, &DialogImageViewer::onSetStateToPaintRect);
     buttonGroup->addAction(paintRectangle);

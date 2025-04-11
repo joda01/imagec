@@ -152,7 +152,7 @@ void PanelPipeline::addChannel(const QString &pathToSettings)
     addChannel(joda::templates::TemplateParser::loadChannelFromTemplate(std::filesystem::path(pathToSettings.toStdString())));
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
     messageBox.setWindowTitle("Could not load settings!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
@@ -173,7 +173,7 @@ void PanelPipeline::addChannel(const nlohmann::json &json)
     addChannel(joda::templates::TemplateParser::loadChannelFromTemplate(json));
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
     messageBox.setWindowTitle("Could not load settings!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
