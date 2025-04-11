@@ -17,6 +17,7 @@
 #include <qlabel.h>
 #include <qlayout.h>
 #include <qlineedit.h>
+#include <qmenu.h>
 #include <qobject.h>
 #include <qpushbutton.h>
 #include <qstackedwidget.h>
@@ -73,6 +74,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   setCentralWidget(createStackedWidget());
   showPanelStartPage();
   clearSettings();
+  statusBar();
 
   //
   // Watch for working directory changes
@@ -98,15 +100,15 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   mTemplateDirWatcher.addPath(joda::templates::TemplateParser::getUsersTemplateDirectory().string().data());    // Replace with your desired path
   QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::fileChanged, [&](const QString &path) {
     loadTemplates();
-    mPanelProjectSettings->loadTemplates();
+    loadProjectTemplates();
   });
   QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::directoryChanged, [&](const QString &path) {
     loadTemplates();
-    mPanelProjectSettings->loadTemplates();
+    loadProjectTemplates();
   });
 
   loadTemplates();
-  mPanelProjectSettings->loadTemplates();
+  loadProjectTemplates();
 
   //
   // Initial background tasks
@@ -157,7 +159,10 @@ void WindowMain::createTopToolbar()
   ////////////
   mTopToolBar = addToolBar("File toolbar");
 
+  mNewProjectMenu   = new QMenu();
   mNewProjectButton = new QAction(generateSvgIcon("folder-new"), "New project", mTopToolBar);
+  mNewProjectButton->setStatusTip("Create new project or create new from template");
+  mNewProjectButton->setMenu(mNewProjectMenu);
   connect(mNewProjectButton, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
   mTopToolBar->addAction(mNewProjectButton);
 
@@ -378,19 +383,28 @@ QWidget *WindowMain::createReportingWidget()
 /// \brief
 /// \author     Joachim Danmayr
 ///
+bool WindowMain::askForNewProject()
+{
+  QMessageBox messageBox(this);
+  auto icon = generateSvgIcon("data-information");
+  messageBox.setIconPixmap(icon.pixmap(42, 42));
+  messageBox.setWindowTitle("Create new project?");
+  messageBox.setText("Unsaved settings will get lost! Create new project?");
+  QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+  QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+  messageBox.setDefaultButton(noButton);
+  auto reply = messageBox.exec();
+  return messageBox.clickedButton() != noButton;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
 void WindowMain::onNewProjectClicked()
 {
   if(!mSelectedProjectSettingsFilePath.empty()) {
-    QMessageBox messageBox(this);
-    auto icon = generateSvgIcon("data-information");
-    messageBox.setIconPixmap(icon.pixmap(42, 42));
-    messageBox.setWindowTitle("Create new project?");
-    messageBox.setText("Unsaved settings will get lost! Create new project?");
-    QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
-    QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
-    messageBox.setDefaultButton(noButton);
-    auto reply = messageBox.exec();
-    if(messageBox.clickedButton() == noButton) {
+    if(!askForNewProject()) {
       return;
     }
   }
@@ -680,6 +694,46 @@ void WindowMain::loadTemplates()
       } else {
         mTemplateSelection->addItem(generateSvgIcon("favorite"), data.title.data(), data.path.data());
       }
+    }
+    addedPerCategory = dataInCategory.size();
+  }
+}
+
+///
+/// \brief      Templates loaded from templates folder
+/// \author     Joachim Danmayr
+///
+void WindowMain::loadProjectTemplates()
+{
+  auto foundTemplates = joda::templates::TemplateParser::findTemplates(
+      {"templates/projects", joda::templates::TemplateParser::getUsersTemplateDirectory().string()}, joda::fs::EXT_PROJECT_TEMPLATE);
+
+  mNewProjectMenu->clear();
+  std::string actCategory = "basic";
+  size_t addedPerCategory = 0;
+  for(const auto &[category, dataInCategory] : foundTemplates) {
+    for(const auto &[_, data] : dataInCategory) {
+      // Now the user templates start, add an addition separator
+      if(category != actCategory) {
+        actCategory = category;
+        if(addedPerCategory > 0) {
+          mNewProjectMenu->addSeparator();
+        }
+      }
+      QAction *action;
+      if(!data.icon.isNull()) {
+        action = mNewProjectMenu->addAction(QIcon(data.icon.scaled(28, 28)), data.title.data());
+
+      } else {
+        action = mNewProjectMenu->addAction(generateSvgIcon("favorite"), data.title.data());
+      }
+      connect(action, &QAction::triggered, this, [this, path = data.path.data()]() {
+        if(!askForNewProject()) {
+          return;
+        }
+        checkForSettingsChanged();
+        openProjectSettings(path, true);
+      });
     }
     addedPerCategory = dataInCategory.size();
   }

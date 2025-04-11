@@ -146,9 +146,11 @@ private:
   void createTopToolbar();
   void createLeftToolbar();
   void loadTemplates();
+  void loadProjectTemplates();
   void clearSettings();
   void saveProject(std::filesystem::path filename, bool saveAs = false, bool createHistoryEntry = true);
   void closeEvent(QCloseEvent *event) override;
+  bool askForNewProject();
 
   QWidget *createStackedWidget();
   QWidget *createStartPageWidget();
@@ -192,6 +194,7 @@ private:
   QComboBox *mTemplateSelection;
 
   ////ToolbarIcons/////////////////////////////////////////////////
+  QMenu *mNewProjectMenu            = nullptr;
   QAction *mNewProjectButton        = nullptr;
   QAction *mOpenProjectButton       = nullptr;
   QAction *mSaveProject             = nullptr;

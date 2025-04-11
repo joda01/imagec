@@ -16,7 +16,6 @@
 #include <set>
 #include "backend/enums/enum_memory_idx.hpp"
 #include "backend/enums/enums_classes.hpp"
-
 #include "backend/settings/settings_types.hpp"
 
 namespace joda::settings {
