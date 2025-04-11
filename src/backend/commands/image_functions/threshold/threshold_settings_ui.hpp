@@ -51,7 +51,7 @@ public:
       cnt++;
     }
 
-    auto *addFilter = addActionButton("Add threshold", generateIcon("add"));
+    auto *addFilter = addActionButton("Add threshold", generateSvgIcon("list-add"));
     connect(addFilter, &QAction::triggered, this, &Threshold::addFilter);
   }
 
@@ -67,7 +67,7 @@ private:
       //
       mThresholdAlgorithm = SettingBase::create<SettingComboBox<joda::settings::ThresholdSettings::Methods>>(
           parent, generateIcon("automatic-contrast"), "Threshold algorithm");
-      mThresholdAlgorithm->addOptions({{joda::settings::ThresholdSettings::Methods::MANUAL, "Manual", generateIcon("contrast")},
+      mThresholdAlgorithm->addOptions({{joda::settings::ThresholdSettings::Methods::MANUAL, "Manual", {}},
                                        {joda::settings::ThresholdSettings::Methods::LI, "Li"},
                                        {joda::settings::ThresholdSettings::Methods::MIN_ERROR, "Min. error"},
                                        {joda::settings::ThresholdSettings::Methods::TRIANGLE, "Triangle"},
@@ -98,7 +98,7 @@ private:
       //
       //
       //
-      mThresholdValueMin = SettingBase::create<SettingLineEdit<uint16_t>>(parent, generateIcon("light-min"), "Min. threshold");
+      mThresholdValueMin = SettingBase::create<SettingLineEdit<uint16_t>>(parent, generateSvgIcon("brightness-low"), "Min. threshold");
       mThresholdValueMin->setPlaceholderText("[0 - 65535]");
       mThresholdValueMin->setUnit("");
       mThresholdValueMin->setMinMax(0, 65535);
@@ -109,7 +109,7 @@ private:
       //
       //
       //
-      mThresholdValueMax = SettingBase::create<SettingLineEdit<uint16_t>>(parent, generateIcon("light"), "Max. threshold");
+      mThresholdValueMax = SettingBase::create<SettingLineEdit<uint16_t>>(parent, generateSvgIcon("brightness-high"), "Max. threshold");
       mThresholdValueMax->setPlaceholderText("[0 - 65535]");
       mThresholdValueMax->setUnit("");
       mThresholdValueMax->setMinMax(0, 65535);
@@ -120,7 +120,7 @@ private:
       //
       //
       //
-      mCValue = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("add"), "Auto contrast added const");
+      mCValue = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("list-add"), "Auto contrast added const");
       mCValue->setEmptyValue(0);
       mCValue->setPlaceholderText("[-32000 - +32000]");
       mCValue->setUnit("");

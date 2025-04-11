@@ -184,7 +184,7 @@ void WindowMain::createTopToolbar()
   // toolbar->addAction(showResultsTemplate);
   // mTopToolBar->addSeparator();
 
-  mShowCompilerLog = new QAction(generateSvgIcon("sort-presence"), "Compiler log", mTopToolBar);
+  mShowCompilerLog = new QAction(generateSvgIcon("show-all-effects"), "Compiler log", mTopToolBar);
   mShowCompilerLog->setToolTip("CompileLog!");
   mShowCompilerLog->setCheckable(true);
   connect(mShowCompilerLog, &QAction::triggered, [this](bool checked) {

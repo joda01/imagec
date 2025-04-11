@@ -46,7 +46,7 @@ public:
     {
       //
       //
-      classesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Classes to paint");
+      classesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, {}, "Classes to paint");
 
       //
       //

@@ -47,7 +47,7 @@ public:
 
     //
     //
-    mRadius = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("diameter"), "Radius [0-256]");
+    mRadius = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("skrooge_type"), "Radius [0-256]");
     mRadius->setPlaceholderText("[0 - 256]");
     mRadius->setUnit("px");
     mRadius->setMinMax(0, 256);

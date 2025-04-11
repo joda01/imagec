@@ -33,8 +33,8 @@ template <ImageCStackCombo_t T>
 inline auto generateCStackCombo(const QString &helpText, QWidget *parent, const QString &thisText = "Default")
 {
   auto dropBox = SettingBase::create<T>(parent, generateSvgIcon("irc-operator"), helpText);
-  dropBox->addOptions({{-2, "Undefined", generateSvgIcon("question")},
-                       {-1, thisText, generateSvgIcon("composite-track-off")},
+  dropBox->addOptions({{-2, "Undefined", generateSvgIcon("irc-operator")},
+                       {-1, thisText, generateSvgIcon("irc-operator")},
                        {0, "CH0", generateSvgIcon("irc-operator")},
                        {1, "CH1", generateSvgIcon("irc-operator")},
                        {2, "CH2", generateSvgIcon("irc-operator")},
@@ -83,14 +83,8 @@ inline auto generateThresholdClass(const QString &helpText, QWidget *parent) -> 
 {
   auto mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, helpText);
   mGrayScaleValue->setDefaultValue(65535);
-  mGrayScaleValue->addOptions({{65535, "TH 1", generateIcon("one-round")},
-                               {65534, "TH 2"},
-                               {65533, "TH 3"},
-                               {65532, "TH 4"},
-                               {65530, "TH 5"},
-                               {65529, "TH 6"},
-                               {65528, "TH 7"},
-                               {65527, "TH 8"}});
+  mGrayScaleValue->addOptions(
+      {{65535, "TH 1"}, {65534, "TH 2"}, {65533, "TH 3"}, {65532, "TH 4"}, {65530, "TH 5"}, {65529, "TH 6"}, {65528, "TH 7"}, {65527, "TH 8"}});
   mGrayScaleValue->setUnit("");
   mGrayScaleValue->setShortDescription("");
 
@@ -101,8 +95,8 @@ inline auto generateAiModelClass(const QString &helpText, QWidget *parent) -> st
 {
   auto mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, helpText);
   mGrayScaleValue->setDefaultValue(0);
-  mGrayScaleValue->addOptions({{-1, "Unset", generateIcon("question-mark")},
-                               {0, "CL 1", generateIcon("one-round")},
+  mGrayScaleValue->addOptions({{-1, "Unset", generateSvgIcon("question")},
+                               {0, "CL 1"},
                                {1, "CL 2"},
                                {2, "CL 3"},
                                {3, "CL 4"},

@@ -46,7 +46,7 @@ public:
     auto *modelTab = addTab(
         "Base", [] {}, false);
 
-    mInput = SettingBase::create<SettingComboBoxClassificationIn>(parent, generateIcon("circle"), "First operand");
+    mInput = SettingBase::create<SettingComboBoxClassificationIn>(parent, {}, "First operand");
     mInput->setValue(settings.inputClasses);
     mInput->connectWithSetting(&settings.inputClasses);
 
@@ -54,11 +54,11 @@ public:
     // Options
     //
     mFunction = SettingBase::create<SettingComboBox<joda::settings::ObjectTransformSettings::Function>>(parent, {}, "Function");
-    mFunction->addOptions({{.key = joda::settings::ObjectTransformSettings::Function::SCALE, .label = "Scale", .icon = generateIcon("ampersand")}});
+    mFunction->addOptions({{.key = joda::settings::ObjectTransformSettings::Function::SCALE, .label = "Scale", .icon = {}}});
     mFunction->setValue(settings.function);
     mFunction->connectWithSetting(&settings.function);
 
-    mScaleFactor = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("diameter"), "Scale factor [0-256]");
+    mScaleFactor = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("skrooge_type"), "Scale factor [0-256]");
     mScaleFactor->setPlaceholderText("[0 - 256]");
     mScaleFactor->setUnit("x");
     mScaleFactor->setMinMax(0, 256);

@@ -40,7 +40,7 @@ public:
   NoiseValidator(joda::settings::PipelineStep &pipelineStep, settings::NoiseValidatorSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}})
   {
-    mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Input class");
+    mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateSvgIcon("choice-round"), "Input class");
     mClassesIn->setValue(settings.inputClasses);
     mClassesIn->connectWithSetting(&settings.inputClasses);
 

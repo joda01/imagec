@@ -46,7 +46,7 @@ public:
   {
     //
     //
-    classesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Classes in");
+    classesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, {}, "Classes in");
     classesIn->setValue(settings.inputClasses);
     classesIn->connectWithSetting(&settings.inputClasses);
 

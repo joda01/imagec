@@ -39,7 +39,7 @@ public:
     //
     //
     //
-    mThresholdValueMin = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("light-min"), "Min. threshold");
+    mThresholdValueMin = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("brightness-low"), "Min. threshold");
     mThresholdValueMin->setPlaceholderText("[0 - 255]");
     mThresholdValueMin->setUnit("");
     mThresholdValueMin->setMinMax(0, 255);
@@ -50,7 +50,7 @@ public:
     //
     //
     //
-    mThresholdValueMax = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("light"), "Max. threshold");
+    mThresholdValueMax = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("brightness-high"), "Max. threshold");
     mThresholdValueMax->setPlaceholderText("[0 - 255]");
     mThresholdValueMax->setUnit("");
     mThresholdValueMax->setMinMax(0, 255);

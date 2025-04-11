@@ -54,15 +54,15 @@ public:
     //
     mFunction = SettingBase::create<SettingComboBox<joda::settings::MorphologicalTransformSettings::Function>>(parent, {}, "Function");
     mFunction->addOptions({
-        {.key = joda::settings::MorphologicalTransformSettings::Function::UNKNOWN, .label = "Unknown", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::MorphologicalTransformSettings::Function::ERODE, .label = "Erode", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::MorphologicalTransformSettings::Function::DILATE, .label = "Dilate", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::MorphologicalTransformSettings::Function::OPEN, .label = "Open", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::MorphologicalTransformSettings::Function::CLOSE, .label = "Close", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::MorphologicalTransformSettings::Function::GRADIENT, .label = "Gradient", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::MorphologicalTransformSettings::Function::TOPHAT, .label = "Top hat", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::MorphologicalTransformSettings::Function::BLACKHAT, .label = "Blak hat", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::MorphologicalTransformSettings::Function::HITMISS, .label = "Hitmiss", .icon = generateIcon("ampersand")},
+        {.key = joda::settings::MorphologicalTransformSettings::Function::UNKNOWN, .label = "Unknown", .icon = {}},
+        {.key = joda::settings::MorphologicalTransformSettings::Function::ERODE, .label = "Erode", .icon = {}},
+        {.key = joda::settings::MorphologicalTransformSettings::Function::DILATE, .label = "Dilate", .icon = {}},
+        {.key = joda::settings::MorphologicalTransformSettings::Function::OPEN, .label = "Open", .icon = {}},
+        {.key = joda::settings::MorphologicalTransformSettings::Function::CLOSE, .label = "Close", .icon = {}},
+        {.key = joda::settings::MorphologicalTransformSettings::Function::GRADIENT, .label = "Gradient", .icon = {}},
+        {.key = joda::settings::MorphologicalTransformSettings::Function::TOPHAT, .label = "Top hat", .icon = {}},
+        {.key = joda::settings::MorphologicalTransformSettings::Function::BLACKHAT, .label = "Blak hat", .icon = {}},
+        {.key = joda::settings::MorphologicalTransformSettings::Function::HITMISS, .label = "Hitmiss", .icon = {}},
     });
 
     mFunction->setValue(settings.function);
@@ -73,7 +73,7 @@ public:
     //
     mShape = SettingBase::create<SettingComboBox<joda::settings::MorphologicalTransformSettings::Shape>>(parent, {}, "Shape");
     mShape->addOptions({
-        {.key = joda::settings::MorphologicalTransformSettings::Shape::ELLIPSE, .label = "Ellipse", .icon = generateIcon("oval")},
+        {.key = joda::settings::MorphologicalTransformSettings::Shape::ELLIPSE, .label = "Ellipse", .icon = generateSvgIcon("choice-round")},
         {.key = joda::settings::MorphologicalTransformSettings::Shape::RECTANGLE, .label = "Rectangle", .icon = generateIcon("rectangle")},
         {.key = joda::settings::MorphologicalTransformSettings::Shape::CROSS, .label = "Cross", .icon = generateIcon("star")},
     });
@@ -103,7 +103,7 @@ public:
 
     //
     //
-    mIterations = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("diameter"), "Iterations [1-256]");
+    mIterations = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("skrooge_type"), "Iterations [1-256]");
     mIterations->setPlaceholderText("[1 - 256]");
     mIterations->setUnit("x");
     mIterations->setMinMax(-1, 256);

@@ -154,7 +154,7 @@ public:
                 mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), className.data(),
                                    variant);
               } else {
-                mComboBox->addItem(generateIcon("circle"), className.data(), variant);
+                mComboBox->addItem(className.data(), variant);
               }
             }
           } else {
@@ -162,7 +162,7 @@ public:
               mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), className.data(),
                                  variant);
             } else {
-              mComboBox->addItem(generateIcon("circle"), className.data(), variant);
+              mComboBox->addItem(className.data(), variant);
             }
           }
         }

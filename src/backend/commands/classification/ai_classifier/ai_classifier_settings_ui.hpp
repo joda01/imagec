@@ -66,7 +66,7 @@ private:
 
       //
       //
-      mMinParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("diameter"), "Min particle size");
+      mMinParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("skrooge_type"), "Min particle size");
       mMinParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
       mMinParticleSize->setUnit("px");
       mMinParticleSize->setMinMax(0, INT32_MAX);
@@ -75,7 +75,7 @@ private:
       mMinParticleSize->setShortDescription("Min. ");
       //
       //
-      mMaxParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("diameter"), "Max particle size");
+      mMaxParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("skrooge_type"), "Max particle size");
       mMaxParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
       mMaxParticleSize->setUnit("px");
       mMaxParticleSize->setMinMax(0, INT32_MAX);
@@ -85,7 +85,7 @@ private:
 
       //
       //
-      mMinCircularity = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("oval"), "Circularity [0-1]");
+      mMinCircularity = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("choice-round"), "Circularity [0-1]");
       mMinCircularity->setPlaceholderText("[0 - 1]");
       mMinCircularity->setUnit("%");
       mMinCircularity->setMinMax(0, 1);
@@ -101,14 +101,14 @@ private:
 
       //
       //
-      mClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("circle"), "Match");
+      mClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Match");
       mClassOut->setValue(classifyFilter.outputClass);
       mClassOut->connectWithSetting(&classifyFilter.outputClass);
       mClassOut->setDisplayIconVisible(false);
 
       //
       //
-      mClassOutNoMatch = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("railroad-crossing"), "No match");
+      mClassOutNoMatch = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "No match");
       mClassOutNoMatch->setValue(settings.outputClassNoMatch);
       mClassOutNoMatch->connectWithSetting(&settings.outputClassNoMatch);
 
@@ -127,7 +127,7 @@ private:
 
       //
       //
-      mMinIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("light-min"), "Min intensity");
+      mMinIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-low"), "Min intensity");
       mMinIntensity->setPlaceholderText("[0 - 65535]");
       mMinIntensity->setUnit("");
       mMinIntensity->setMinMax(0, INT32_MAX);
@@ -136,7 +136,7 @@ private:
       mMinIntensity->setShortDescription("Min. ");
       //
       //
-      mMaxIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("light"), "Max intensity");
+      mMaxIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-high"), "Max intensity");
       mMaxIntensity->setPlaceholderText("[0 - 65535]");
       mMaxIntensity->setUnit("");
       mMaxIntensity->setMinMax(0, INT32_MAX);

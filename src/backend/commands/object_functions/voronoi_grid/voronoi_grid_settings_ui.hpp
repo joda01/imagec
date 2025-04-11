@@ -89,7 +89,7 @@ public:
 
     //
     //
-    mMinAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("diameter"), "Min. area size");
+    mMinAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("skrooge_type"), "Min. area size");
     mMinAreaSize->setPlaceholderText("[0 - ]");
     mMinAreaSize->setUnit("px");
     mMinAreaSize->setMinMax(0, INT32_MAX);
@@ -99,7 +99,7 @@ public:
 
     //
     //
-    mMaxAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("diameter"), "Max. area size");
+    mMaxAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("skrooge_type"), "Max. area size");
     mMaxAreaSize->setPlaceholderText("[0 - ]");
     mMaxAreaSize->setUnit("px");
     mMaxAreaSize->setMinMax(0, INT32_MAX);

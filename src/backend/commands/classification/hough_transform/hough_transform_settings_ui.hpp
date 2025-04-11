@@ -52,8 +52,8 @@ public:
     //
     mShape = SettingBase::create<SettingComboBox<joda::settings::HoughTransformSettings::Shape>>(parent, {}, "Shape");
     mShape->addOptions({
-        //{.key = joda::settings::HoughTransformSettings::HughMode::LINE_TRANSFORM, .label = "Line", .icon = generateIcon("line")},
-        {.key = joda::settings::HoughTransformSettings::Shape::CIRCLE_TRANSFORM, .label = "Circle", .icon = generateIcon("circle")},
+        //{.key = joda::settings::HoughTransformSettings::HughMode::LINE_TRANSFORM, .label = "Line", .icon = generateSvgIcon("line")},
+        {.key = joda::settings::HoughTransformSettings::Shape::CIRCLE_TRANSFORM, .label = "Circle", .icon = generateSvgIcon("choice-round")},
     });
 
     mShape->setValue(settings.shape);
@@ -62,7 +62,8 @@ public:
     //
     //
     //
-    mMinCircleDistance = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("resize-horizontal"), "Min. circle distance");
+    mMinCircleDistance =
+        SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("distribute-horizontal-equal"), "Min. circle distance");
     mMinCircleDistance->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mMinCircleDistance->setUnit("");
     mMinCircleDistance->setMinMax(0, INT32_MAX);
@@ -73,7 +74,7 @@ public:
     //
     //
     //
-    mMinCircleRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("radius"), "Min. circle radius");
+    mMinCircleRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Min. circle radius");
     mMinCircleRadius->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mMinCircleRadius->setUnit("");
     mMinCircleRadius->setMinMax(0, INT32_MAX);
@@ -84,7 +85,7 @@ public:
     //
     //
     //
-    mMaxCircleRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("radius"), "Max. circle radius");
+    mMaxCircleRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Max. circle radius");
     mMaxCircleRadius->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mMaxCircleRadius->setUnit("");
     mMaxCircleRadius->setMinMax(0, INT32_MAX);
@@ -95,7 +96,7 @@ public:
     //
     //
     //
-    mParam1 = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("light"), "Max. threshold of canny edge detector");
+    mParam1 = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("brightness-high"), "Max. threshold of canny edge detector");
     mParam1->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mParam1->setUnit("");
     mParam1->setMinMax(0, INT32_MAX);
@@ -111,7 +112,7 @@ public:
     // If you want get better detection of small circles, you may decrease it to 0.85, 0.8 or even less.
     // But then also try to limit the search range [minRadius, maxRadius] to avoid many false circles.
     //     mParam2 =
-    mParam2 = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("circle-thin"), "Circle perfectness measure");
+    mParam2 = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("choice-round"), "Circle perfectness measure");
     mParam2->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mParam2->setUnit("");
     mParam2->setMinMax(0, INT32_MAX);
@@ -122,7 +123,7 @@ public:
     //
     //
     //
-    mClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("circle"), "Output class");
+    mClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Output class");
     mClassOut->setValue(settings.outputClass);
     mClassOut->connectWithSetting(&settings.outputClass);
     mClassOut->setDisplayIconVisible(false);

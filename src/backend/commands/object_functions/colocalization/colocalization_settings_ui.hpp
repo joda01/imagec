@@ -58,7 +58,7 @@ public:
     //
     //
     //
-    mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("circle"), "Output class");
+    mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, generateSvgIcon("choice-round"), "Output class");
     mClassOutput->setValue(settings.outputClass);
     mClassOutput->connectWithSetting(&settings.outputClass);
 

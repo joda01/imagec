@@ -116,7 +116,7 @@ private:
       //
       //
       //
-      mContrastThreshold = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("light"), "Contrast threshold");
+      mContrastThreshold = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-high"), "Contrast threshold");
       mContrastThreshold->setPlaceholderText("[0 - 65535]");
       mContrastThreshold->setUnit("");
       mContrastThreshold->setMinMax(0, 65535);
@@ -127,7 +127,7 @@ private:
       //
       //
       //
-      mThresholdOffset = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("light"), "Threshold offset");
+      mThresholdOffset = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-high"), "Threshold offset");
       mThresholdOffset->setPlaceholderText("[0 - 65535]");
       mThresholdOffset->setUnit("");
       mThresholdOffset->setMinMax(0, 65535);

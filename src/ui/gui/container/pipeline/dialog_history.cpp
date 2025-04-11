@@ -273,7 +273,7 @@ auto DialogHistory::generateHistoryEntry(const std::optional<joda::settings::Pip
     text = inData->commitMessage.data();
     switch(inData->category) {
       case enums::HistoryCategory::OTHER:
-        icon = generateIcon("circle");
+        icon = generateSvgIcon("choice-round");
         break;
       case enums::HistoryCategory::ADDED:
         icon = generateIcon("plus-simple");
@@ -282,7 +282,7 @@ auto DialogHistory::generateHistoryEntry(const std::optional<joda::settings::Pip
         icon = generateIcon("minus-simple");
         break;
       case enums::HistoryCategory::CHANGED:
-        icon = generateIcon("circle");
+        icon = generateSvgIcon("choice-round");
         break;
       case enums::HistoryCategory::SAVED:
         icon = generateIcon("save-simple");

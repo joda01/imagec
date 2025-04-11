@@ -51,9 +51,9 @@ public:
     //
     mFunction = SettingBase::create<SettingComboBox<joda::settings::FillHolesSettings::HierarchyMode>>(parent, {}, "Function");
     mFunction->addOptions({
-        {.key = joda::settings::FillHolesSettings::HierarchyMode::OUTER, .label = "Outer", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::FillHolesSettings::HierarchyMode::INNER, .label = "Inner", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::FillHolesSettings::HierarchyMode::INNER_AND_OUTER, .label = "Inner & Outer", .icon = generateIcon("ampersand")},
+        {.key = joda::settings::FillHolesSettings::HierarchyMode::OUTER, .label = "Outer", .icon = {}},
+        {.key = joda::settings::FillHolesSettings::HierarchyMode::INNER, .label = "Inner", .icon = {}},
+        {.key = joda::settings::FillHolesSettings::HierarchyMode::INNER_AND_OUTER, .label = "Inner & Outer", .icon = {}},
     });
     mFunction->setValue(settings.hierarchyMode);
     mFunction->connectWithSetting(&settings.hierarchyMode);
