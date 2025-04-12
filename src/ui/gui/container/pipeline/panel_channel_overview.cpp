@@ -23,7 +23,7 @@ namespace joda::ui::gui {
 PanelChannelOverview::PanelChannelOverview(WindowMain *wm, PanelPipelineSettings *parent) : QWidget(parent), mWindowMain(wm), mParentContainer(parent)
 {
   setObjectName("PanelChannelOverview");
-  setContentsMargins(8, 4, 4, 4);
+  setContentsMargins(8, 4, 8, 4);
   QGridLayout *layout = new QGridLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
   setLayout(layout);
@@ -64,8 +64,6 @@ PanelChannelOverview::PanelChannelOverview(WindowMain *wm, PanelPipelineSettings
 
 void PanelChannelOverview::paintEvent(QPaintEvent *event)
 {
-  QWidget::paintEvent(event);    // Call the base class paint event
-
   //
   // Paint the handle on the right handside which allows to drag the pipeline step
   //
@@ -76,7 +74,7 @@ void PanelChannelOverview::paintEvent(QPaintEvent *event)
   // Handel for movee
   //
   {
-    int x          = size().width() - HANDLE_WITH - 2;
+    int x          = width() - HANDLE_WITH;
     int ovalHeight = 2;    //(height() - 8 - 8) / 3;
     painter.setBrush(Qt::lightGray);
     QPen pen(Qt::lightGray, 1);    // darkYellow, 5px width
@@ -85,7 +83,6 @@ void PanelChannelOverview::paintEvent(QPaintEvent *event)
     painter.drawEllipse(x, ovalHeight + 8, ovalHeight, ovalHeight);
     painter.drawEllipse(x, ovalHeight * 2 + 8 + 4, ovalHeight, ovalHeight);
   }
-  painter.setRenderHint(QPainter::Antialiasing);
 
   //
   // Paint if disables
@@ -93,11 +90,13 @@ void PanelChannelOverview::paintEvent(QPaintEvent *event)
   if((mParentContainer != nullptr) && (mParentContainer->mActionDisabled != nullptr) && mParentContainer->mActionDisabled->isChecked()) {
     painter.setBrush(Qt::red);
     QPen pen(Qt::red, 1);    // darkYellow, 5px width
-    painter.drawEllipse(0, height() / 2 - 3, 6, 6);
+    painter.drawEllipse(2, height() / 2 - 3, 6, 6);
   } else {
     painter.setBrush(Qt::green);
     QPen pen(Qt::green, 1);    // darkYellow, 5px width
   }
+
+  QWidget::paintEvent(event);    // Call the base class paint event
 }
 
 ///

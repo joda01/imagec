@@ -79,7 +79,9 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
 
     // Create a widget to hold the panels
     mContentWidget = new DroppableWidget();
-    mContentWidget->setObjectName("contentOverview");
+    mContentWidget->setContentsMargins(0, 4, 0, 0);
+
+    mContentWidget->setObjectName("pipelineContent");
     mPipelineWidget->setWidget(mContentWidget);
     mPipelineWidget->setWidgetResizable(true);
 
