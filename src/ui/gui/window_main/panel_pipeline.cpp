@@ -52,15 +52,35 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     // New pipeline
     //
     auto *newPipeline = new QAction(generateSvgIcon("document-new"), "Add new pipeline");
+    newPipeline->setStatusTip("Add new pipeline or use predefined template");
     connect(newPipeline, &QAction::triggered, [this]() { addChannel(joda::settings::Pipeline{}); });
     mTemplatesMenu = new QMenu();
     newPipeline->setMenu(mTemplatesMenu);
     toolbar->addAction(newPipeline);
 
     //
+    // Open template
+    //
+    auto *openTemplate = new QAction(generateSvgIcon("folder-stash"), "Open template");
+    openTemplate->setStatusTip("Open pipeline from template");
+    connect(openTemplate, &QAction::triggered, [this]() {
+      QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+      QString filePathOfSettingsFile = QFileDialog::getOpenFileName(
+          this, "Open template", folderToOpen, "ImageC template files (*" + QString(joda::fs::EXT_PIPELINE_TEMPLATE.data()) + ")");
+      if(filePathOfSettingsFile.isEmpty()) {
+        return;
+      }
+
+      addChannel(filePathOfSettingsFile);
+    });
+    toolbar->addAction(openTemplate);
+
+    toolbar->addSeparator();
+    //
     // Start button
     //
     mActionStart = new QAction(generateSvgIcon("media-playback-start"), "Start analyzes");
+    mActionStart->setStatusTip("Start analyzes");
     mActionStart->setEnabled(false);
     connect(mActionStart, &QAction::triggered, windowMain, &WindowMain::onStartClicked);
     toolbar->addAction(mActionStart);
