@@ -342,9 +342,10 @@ void Controller::stop()
 auto Controller::populateClassesFromImage(const joda::ome::OmeInfo &omeInfo, int32_t series) -> joda::settings::Classification
 {
   const std::map<std::string, std::string> channelNameToColorMap = {
-      {"dapi", "#9933FF"},    {"dapi_mb", "#9933FF"}, {"cfp", "#33A1FF"}, {"dpss", "#3399FF"},  {"fitc", "#33CFFF"},
-      {"gfp", "#33CFFF"},     {"yfp", "#33FF88"},     {"cy3", "#FFCC33"}, {"tritc", "#FFCC33"}, {"rfp", "#FFCC33"},
-      {"mcherry", "#FF8C33"}, {"cy5", "#FF3366"},     {"cy7", "#ff3333"}, {"bf", "#FFFF33"},    {"brightfield", "#FFFF33"}};
+      {"dapi", "#9933FF"},    {"dapi_mb", "#9933FF"}, {"cfp", "#33A1FF"},     {"dpss", "#3399FF"},       {"fitc", "#33CFFF"},
+      {"fitc_mb", "#33CFFF"}, {"gfp", "#33CFFF"},     {"yfp", "#33FF88"},     {"cy3", "#FFCC33"},        {"cy3_mb", "#FFCC33"},
+      {"tritc", "#FFCC33"},   {"rfp", "#FFCC33"},     {"mcherry", "#FF8C33"}, {"cy5", "#FF3366"},        {"cy5_mb", "#FF3366"},
+      {"cy7", "#ff3333"},     {"cy7_mb", "#ff3333"},  {"bf", "#FFFF33"},      {"brightfield", "#FFFF33"}};
 
   joda::settings::Classification classes;
   auto channels           = omeInfo.getChannelInfos(series);
