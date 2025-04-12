@@ -427,7 +427,6 @@ void WindowMain::onOpenClicked()
   }
 
   QFileDialog::Options opt;
-  opt.setFlag(QFileDialog::DontUseNativeDialog, false);
 
   QString filePath =
       QFileDialog::getOpenFileName(this, "Open File", folderToOpen,

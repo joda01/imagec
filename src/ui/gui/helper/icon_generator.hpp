@@ -16,6 +16,7 @@
 #include <qapplication.h>
 #include <qicon.h>
 #include <qsize.h>
+#include <iostream>
 
 namespace joda::ui::gui {
 
@@ -46,6 +47,9 @@ inline QIcon generateSvgIcon(const QString &iconName)
   // QSvgRenderer svgRenderer( somesvgfile );
   // QPixmap pix( svgRenderer.defaultSize() );
   log.addPixmap(QPixmap(":/icons-svg/22/icons-svg/22/" + iconName + ".svg").scaled(22, 22));
+  if(log.isNull()) {
+    std::cout << "Null " << iconName.toStdString() << std::endl;
+  }
 
   return log;
 }

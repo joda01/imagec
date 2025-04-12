@@ -276,16 +276,16 @@ auto DialogHistory::generateHistoryEntry(const std::optional<joda::settings::Pip
         icon = generateSvgIcon("choice-round");
         break;
       case enums::HistoryCategory::ADDED:
-        icon = generateIcon("plus-simple");
+        icon = generateSvgIcon("list-add");
         break;
       case enums::HistoryCategory::DELETED:
-        icon = generateIcon("minus-simple");
+        icon = generateSvgIcon("edit-delete");
         break;
       case enums::HistoryCategory::CHANGED:
         icon = generateSvgIcon("choice-round");
         break;
       case enums::HistoryCategory::SAVED:
-        icon = generateIcon("save-simple");
+        icon = generateSvgIcon("document-save");
         break;
     }
   }

@@ -66,7 +66,7 @@ public:
     //
     //
     //
-    mRepeat = SettingBase::create<SettingComboBox<int32_t>>(parent, generateSvgIcon("generateSvgIcon"), "Repeat");
+    mRepeat = SettingBase::create<SettingComboBox<int32_t>>(parent, generateSvgIcon("media-playlist-repeat"), "Repeat");
     mRepeat->addOptions({{1, "x1"},
                          {2, "x2"},
                          {3, "x3"},
