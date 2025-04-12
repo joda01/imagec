@@ -72,7 +72,7 @@ namespace joda::ui::gui {
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullptr, false), mWindowMain(windowMain)
+PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullptr, false, windowMain), mWindowMain(windowMain)
 {
   // Drop downs
   createEditColumnDialog();
@@ -200,13 +200,13 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
     //
     //
     auto *grp    = new QButtonGroup();
-    mTableButton = new QPushButton(generateIcon("table"), "");
+    mTableButton = new QPushButton(generateSvgIcon("folder-table"), "");
     mTableButton->setCheckable(true);
     mTableButton->setChecked(true);
     grp->addButton(mTableButton);
     topBreadCrump->addWidget(mTableButton);
 
-    mHeatmapButton = new QPushButton(generateIcon("heat-map"), "");
+    mHeatmapButton = new QPushButton(generateSvgIcon("games-config-board"), "");
     mHeatmapButton->setCheckable(true);
     grp->addButton(mHeatmapButton);
     topBreadCrump->addWidget(mHeatmapButton);
@@ -222,7 +222,7 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
       }
     });
 
-    mBreadCrumpPlate = new QPushButton(generateIcon("home"), "Plate");
+    mBreadCrumpPlate = new QPushButton(generateSvgIcon("go-home"), "Plate");
     topBreadCrump->addWidget(mBreadCrumpPlate);
     connect(mBreadCrumpPlate, &QPushButton::clicked, [this]() { backTo(Navigation::PLATE); });
 
@@ -301,6 +301,7 @@ void PanelResults::setHeatmapVisible(bool visible)
 void PanelResults::setActive(bool active)
 {
   if(!active) {
+    showToolBar(false);
     resetSettings();
     refreshView();
     mIsActive = active;
@@ -342,7 +343,7 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   //
   // Open
   //
-  auto *openBookmark = new QAction(generateIcon("opened-folder"), "Open", toolbar);
+  auto *openBookmark = new QAction(generateSvgIcon("folder-open"), "Open", toolbar);
   connect(openBookmark, &QAction::triggered, [this]() { showOpenFileDialog(); });
   toolbar->addItemToTopToolbar(openBookmark);
 
@@ -350,33 +351,34 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   // Export buttons
   //
   auto *exportMenu = new QMenu("Export");
-
-  auto *exportData = exportMenu->addAction(generateIcon("excel"), "Save as XLSX");
+  // text-csv
+  auto *exportData = exportMenu->addAction(generateSvgIcon("x-office-spreadsheet"), "Save as XLSX");
   exportData->setToolTip("Export XLSX");
   connect(exportData, &QAction::triggered, [this]() { showFileSaveDialog("Excel 2007-365 (*.xlsx)"); });
 
-  auto *exportR = exportMenu->addAction(generateIcon("r-studio"), "Save as R");
+  auto *exportR = exportMenu->addAction(generateSvgIcon("text-x-r"), "Save as R");
   exportR->setToolTip("Export R");
   connect(exportR, &QAction::triggered, [this]() { showFileSaveDialog("R-Script (*.r)"); });
 
-  mExportSvg = exportMenu->addAction(generateIcon("image-file"), "Save as SVG");
+  mExportSvg = exportMenu->addAction(generateSvgIcon("image-x-generic"), "Save as SVG");
   mExportSvg->setToolTip("Export SVG");
   mExportSvg->setVisible(false);
   connect(mExportSvg, &QAction::triggered, [this]() { showFileSaveDialog("SVG image (*.svg)"); });
 
-  mExportPng = exportMenu->addAction(generateIcon("png"), "Save as PNG");
+  mExportPng = exportMenu->addAction(generateSvgIcon("image-png"), "Save as PNG");
   mExportPng->setToolTip("Export PNG");
   mExportPng->setVisible(false);
   connect(mExportPng, &QAction::triggered, [this]() { showFileSaveDialog("PNG image (*.png)"); });
 
   exportMenu->addSeparator();
-  auto *saveAsTemplate = exportMenu->addAction(generateIcon("bookmark"), "Save settings");
+  auto *saveAsTemplate = exportMenu->addAction(generateSvgIcon("document-save-as-template"), "Save settings");
   saveAsTemplate->setToolTip("Save settings as template");
   connect(saveAsTemplate, &QAction::triggered,
           [this]() { showFileSaveDialog("ImageC export template (*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")"); });
 
   //
-  auto *exports = new QAction(generateIcon("download"), "Export", toolbar);
+  auto *exports = new QAction(generateSvgIcon("folder-download"), "Export", toolbar);
+  exports->setStatusTip("Export table or heatmap to R or Excel");
   connect(exports, &QAction::triggered, [this]() { showFileSaveDialog(); });
 
   exports->setMenu(exportMenu);
@@ -385,8 +387,9 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   //
   // Copy button
   //
-  auto *copyTable = new QAction(generateIcon("copy"), "Copy values", toolbar);
+  auto *copyTable = new QAction(generateSvgIcon("edit-copy"), "Copy values", toolbar);
   connect(copyTable, &QAction::triggered, [this]() { copyTableToClipboard(mTable); });
+  copyTable->setStatusTip("Copy table to clipboard");
   toolbar->addItemToTopToolbar(copyTable);
 
   toolbar->addSeparatorToTopToolbar();
@@ -394,23 +397,13 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   //
   //
   //
-  auto *addColumn = new QAction(generateIcon("add-column"), "");
+  auto *addColumn = new QAction(generateSvgIcon("edit-table-insert-column-right"), "");
   addColumn->setToolTip("Add column");
   connect(addColumn, &QAction::triggered, [this]() { columnEdit(mTable->columnCount()); });
 
   toolbar->addItemToTopToolbar(addColumn);
 
-  auto *editColumn = new QAction(generateIcon("edit-column"), "");
-  editColumn->setToolTip("Edit column");
-  connect(editColumn, &QAction::triggered, [this]() {
-    if(mSelectedTableColumn >= 0) {
-      columnEdit(mSelectedTableColumn);
-    }
-  });
-
-  toolbar->addItemToTopToolbar(editColumn);
-
-  auto *deleteColumn = new QAction(generateIcon("delete-column"), "");
+  auto *deleteColumn = new QAction(generateSvgIcon("edit-table-delete-column"), "");
   deleteColumn->setToolTip("Delete column");
   connect(deleteColumn, &QAction::triggered, [this]() {
     if(mSelectedTableColumn >= 0) {
@@ -418,15 +411,26 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
       refreshView();
     }
   });
-
   toolbar->addItemToTopToolbar(deleteColumn);
+
+  auto *editColumn = new QAction(generateSvgIcon("document-edit"), "");
+  editColumn->setToolTip("Edit column");
+  connect(editColumn, &QAction::triggered, [this]() {
+    if(mSelectedTableColumn >= 0) {
+      columnEdit(mSelectedTableColumn);
+    }
+  });
+  toolbar->addItemToTopToolbar(editColumn);
 
   toolbar->addSeparatorToTopToolbar();
 
   //
   // Mark as invalid button
   //
-  mMarkAsInvalid = new QAction(generateIcon("unavailable"), "");
+  // edit-select-none
+  // paint-none
+  // video-off
+  mMarkAsInvalid = new QAction(generateSvgIcon("gnumeric-autofilter-delete"), "");
   mMarkAsInvalid->setToolTip("Exclude selected image from statistics");
   mMarkAsInvalid->setCheckable(true);
   toolbar->addItemToTopToolbar(mMarkAsInvalid);
@@ -764,6 +768,7 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   if(pathToDbFile.isEmpty()) {
     return;
   }
+  showToolBar(true);
   resetSettings();
   mDbFilePath = std::filesystem::path(pathToDbFile.toStdString());
   mAnalyzer   = std::make_unique<joda::db::Database>();
@@ -1317,7 +1322,7 @@ void PanelResults::loadTemplate(const std::string &pathToOpenFileFrom)
     refreshView();
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateIcon("error-red").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-error").pixmap(48, 48));
     messageBox.setWindowTitle("Error...");
     messageBox.setText("Error in opening template got >" + QString(ex.what()) + "<.");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);

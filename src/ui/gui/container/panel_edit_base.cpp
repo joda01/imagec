@@ -28,8 +28,8 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-PanelEdit::PanelEdit(WindowMain *wm, ContainerBase *containerBase, bool withExtraButtons) :
-    mWindowMain(wm), mContainerBase(containerBase), mLayout(this, withExtraButtons)
+PanelEdit::PanelEdit(WindowMain *wm, ContainerBase *containerBase, bool withExtraButtons, QMainWindow *toolbarParent) :
+    mWindowMain(wm), mContainerBase(containerBase), mLayout(this, withExtraButtons, true, true, false, toolbarParent)
 {
   if(withExtraButtons) {
     auto *mSaveAsTemplate = new QAction(generateSvgIcon("document-save-as-template"), "Save as template");

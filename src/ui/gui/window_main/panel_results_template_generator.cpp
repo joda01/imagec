@@ -55,7 +55,7 @@ PanelResultsTemplateGenerator::PanelResultsTemplateGenerator(WindowMain *mainWin
   });
   toolBar->addWidget(addColumn);
 
-  auto *editColumn = new QPushButton(generateSvgIcon("edit-table-cell-merge"), "", this);
+  auto *editColumn = new QPushButton(generateSvgIcon("document-edit"), "", this);
   editColumn->setToolTip("Edit column");
   toolBar->addWidget(editColumn);
   connect(editColumn, &QPushButton::pressed, [this]() {
