@@ -799,8 +799,7 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   refreshView();
 
   if(mSelectedDataSet.analyzeMeta.has_value()) {
-    getWindowMain()->getPanelResultsInfo()->addResultsFileToHistory(
-        std::filesystem::path(pathToDbFile.toStdString()), mSelectedDataSet.analyzeMeta->jobName, mSelectedDataSet.analyzeMeta->timestampStart);
+    getWindowMain()->addToLastLoadedResults(pathToDbFile, mSelectedDataSet.analyzeMeta->jobName.data());
   }
 }
 

@@ -9,57 +9,90 @@
 ///            For **Commercial** please contact the copyright owner.
 ///
 
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <ostream>
+#include <sstream>
 #include <vector>
+#include "backend/enums/enums_file_endians.hpp"
 #include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json.hpp>
+#include <nlohmann/json_fwd.hpp>
 #include "user_home_dir.hpp"
 
 namespace joda::user_settings {
 
 struct UserSettings
 {
-  void save() const
+public:
+  struct Entry
   {
-    auto userSettingsPath = getUserHomeDir() / "userSettings.json";
+    std::string path;
+    std::string title;
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Entry, path, title);
+  };
+
+  static void save()
+  {
+    std::filesystem::path userSettingsPath = getUserHomeDir() / "userSettings.json";
+    std::ofstream out(userSettingsPath);
+    if(!out.is_open()) {
+      throw std::runtime_error("Cannot open file >" + userSettingsPath.string() + "< for writing! Do you have write permissions?");
+    }
+    UserSettings set;
+    nlohmann::json json = set;
+    out << json.dump(2);
+    if(out.bad()) {
+      throw std::runtime_error("Cannot write data! Do you have write permissions and enough space left on your disk?");
+    }
+    out.close();
   }
-  void open()
+  static void open()
   {
-    auto userSettingsPath = getUserHomeDir() / "userSettings.json";
+    std::filesystem::path userSettingsPath = getUserHomeDir() / "userSettings.json";
+    std::ifstream ifs(userSettingsPath);
+    std::string wholeFile = std::string((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+    ifs.close();
+    UserSettings set;
+    set = nlohmann::json::parse(wholeFile);
   }
 
-  void addLastOpenedProject(const std::string &path)
+  static void addLastOpenedProject(const std::string &path)
   {
-    addToVector(lastOpenedProjects, path);
+    addToVector(lastOpenedProjects, {path, ""});
+    save();
   }
 
-  void addLastOpenedResult(const std::string &path)
+  static void addLastOpenedResult(const std::string &path, const std::string &title)
   {
-    addToVector(lastOpenedResults, path);
+    addToVector(lastOpenedResults, {path, title});
+    save();
   }
 
-  auto addLastOpenedProject() const -> const std::vector<std::string> &
+  [[nodiscard]] static auto getLastOpenedProject() -> const std::vector<Entry> &
   {
     return lastOpenedProjects;
   }
 
-  auto addLastOpenedResult() const -> const std::vector<std::string> &
+  [[nodiscard]] static auto getLastOpenedResult() -> const std::vector<Entry> &
   {
     return lastOpenedResults;
   }
 
 private:
-  static void addToVector(std::vector<std::string> &vec, const std::string &path)
+  static void addToVector(std::vector<Entry> &vec, const Entry &entry)
   {
-    vec.erase(std::remove_if(vec.begin(), vec.end(), [&](const std::string &s) { return s == path; }), vec.end());
-    vec.insert(vec.begin(), path);
+    vec.erase(std::remove_if(vec.begin(), vec.end(), [&](const Entry &s) { return s.path == entry.path; }), vec.end());
+    vec.insert(vec.begin(), entry);
     if(vec.size() > 6) {
       vec.resize(6);
     }
   }
 
   /////////////////////////////////////////////////////
-  std::vector<std::string> lastOpenedProjects;
-  std::vector<std::string> lastOpenedResults;
+  static inline std::vector<Entry> lastOpenedProjects;
+  static inline std::vector<Entry> lastOpenedResults;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(UserSettings, lastOpenedProjects, lastOpenedResults);
 };

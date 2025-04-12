@@ -108,8 +108,8 @@ public:
     return mAnalyzeSettings;
   }
 
+  void addToLastLoadedResults(const QString &path, const QString &jobName);
   void setSideBarVisible(bool visible);
-
   void setWindowTitlePrefix(const QString &txt);
   void checkForSettingsChanged();
   auto getOutputClasses() -> std::set<joda::enums::ClassId>;
@@ -147,6 +147,7 @@ private:
   void createLeftToolbar();
   void loadTemplates();
   void loadProjectTemplates();
+  void loadLastOpened();
   void clearSettings();
   void saveProject(std::filesystem::path filename, bool saveAs = false, bool createHistoryEntry = true);
   void closeEvent(QCloseEvent *event) override;
@@ -196,6 +197,7 @@ private:
   ////ToolbarIcons/////////////////////////////////////////////////
   QMenu *mNewProjectMenu            = nullptr;
   QAction *mNewProjectButton        = nullptr;
+  QMenu *mOpenProjectMenu           = nullptr;
   QAction *mOpenProjectButton       = nullptr;
   QAction *mSaveProject             = nullptr;
   QAction *mSaveProjectAs           = nullptr;

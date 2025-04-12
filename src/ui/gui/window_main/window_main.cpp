@@ -44,6 +44,7 @@
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "backend/settings/settings.hpp"
+#include "backend/user_settings/user_settings.hpp"
 #include "ui/gui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/gui/dialog_analyze_running.hpp"
 #include "ui/gui/dialog_shadow/dialog_shadow.h"
@@ -107,8 +108,16 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
     loadProjectTemplates();
   });
 
+  // Load user settings
+  try {
+    joda::user_settings::UserSettings::open();
+  } catch(const std::exception &ex) {
+    joda::log::logError("Could not open user settings! What: " + std::string(ex.what()));
+  }
+
   loadTemplates();
   loadProjectTemplates();
+  loadLastOpened();
 
   //
   // Initial background tasks
@@ -166,7 +175,10 @@ void WindowMain::createTopToolbar()
   connect(mNewProjectButton, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
   mTopToolBar->addAction(mNewProjectButton);
 
+  mOpenProjectMenu   = new QMenu();
   mOpenProjectButton = new QAction(generateSvgIcon("document-open-folder"), "Open project or results", mTopToolBar);
+  mOpenProjectButton->setStatusTip("Open existing project, template or results");
+  mOpenProjectButton->setMenu(mOpenProjectMenu);
   connect(mOpenProjectButton, &QAction::triggered, this, &WindowMain::onOpenClicked);
   mTopToolBar->addAction(mOpenProjectButton);
 
@@ -421,7 +433,6 @@ void WindowMain::onNewProjectClicked()
 ///
 void WindowMain::clearSettings()
 {
-  mPanelResultsInfo->clearHistory();
   mSelectedProjectSettingsFilePath.clear();
   mPanelPipeline->clear();
   mAnalyzeSettings.resultsSettings = settings::ResultsSettings();
@@ -504,6 +515,16 @@ void WindowMain::openResultsSettings(const QString &filePath)
 /// \brief      Open project settings
 /// \author     Joachim Danmayr
 ///
+void WindowMain::addToLastLoadedResults(const QString &path, const QString &jobName)
+{
+  joda::user_settings::UserSettings::addLastOpenedResult(path.toStdString(), jobName.toStdString());
+  loadLastOpened();
+}
+
+///
+/// \brief      Open project settings
+/// \author     Joachim Danmayr
+///
 void WindowMain::openProjectSettings(const QString &filePath, bool openFromTemplate)
 {
   try {
@@ -542,6 +563,8 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     checkForSettingsChanged();
     if(!openFromTemplate) {
       saveProject(mSelectedProjectSettingsFilePath, false, false);
+      joda::user_settings::UserSettings::addLastOpenedProject(filePath.toStdString());
+      loadLastOpened();
     }
     showPanelStartPage();
 
@@ -740,6 +763,25 @@ void WindowMain::loadProjectTemplates()
 }
 
 ///
+/// \brief      Load last opened files
+/// \author     Joachim Danmayr
+///
+void WindowMain::loadLastOpened()
+{
+  mOpenProjectMenu->clear();
+  mOpenProjectMenu->addSection("Projects");
+  for(const auto &path : joda::user_settings::UserSettings::getLastOpenedProject()) {
+    auto *action = mOpenProjectMenu->addAction(path.path.data());
+    connect(action, &QAction::triggered, this, [this, path = path.path.data()]() { openProjectSettings(path, false); });
+  }
+  mOpenProjectMenu->addSection("Results");
+  for(const auto &path : joda::user_settings::UserSettings::getLastOpenedResult()) {
+    auto *action = mOpenProjectMenu->addAction((path.path + " (" + path.title + ")").data());
+    connect(action, &QAction::triggered, this, [this, path = path.path.data()]() { openResultsSettings(path); });
+  }
+}
+
+///
 /// \brief
 /// \author     Joachim Danmayr
 ///
@@ -760,7 +802,7 @@ void WindowMain::onStartClicked()
     DialogAnalyzeRunning dialg(this, mAnalyzeSettings);
     dialg.exec();
     auto jobIinfo = getController()->getJobInformation();
-    mPanelResultsInfo->addResultsFileToHistory(jobIinfo.resultsFilePath, jobIinfo.jobName, jobIinfo.timestampStarted);
+    addToLastLoadedResults(jobIinfo.resultsFilePath.string().data(), jobIinfo.jobName.data());
     // Analysis finished -> generate new name
     mPanelProjectSettings->generateNewJobName();
   } catch(const std::exception &ex) {
