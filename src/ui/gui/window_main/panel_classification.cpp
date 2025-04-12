@@ -14,12 +14,14 @@
 #include <qboxlayout.h>
 #include <qcombobox.h>
 #include <qlineedit.h>
+#include <qmenu.h>
 #include <qpushbutton.h>
 #include <exception>
 #include <string>
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/file_parser/directory_iterator.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
@@ -38,50 +40,74 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
   createDialog();
   auto *layout = new QVBoxLayout();
 
-  auto addSeparator = [&layout]() {
-    auto *separator = new QFrame;
-    separator->setFrameShape(QFrame::HLine);
-    separator->setFrameShadow(QFrame::Sunken);
-    layout->addWidget(separator);
-  };
-
   {
-    auto *templateSelection = new QHBoxLayout();
-    mTemplateSelection      = new QComboBox();
-    templateSelection->addWidget(mTemplateSelection);
+    auto *toolbar = new QToolBar();
 
-    auto *bookMarkMenu = new QMenu();
+    //
+    // New from template
+    //
+    mTemplateMenu     = new QMenu();
+    auto *newPipeline = new QAction(generateSvgIcon("document-new"), "New from classification template");
+    connect(newPipeline, &QAction::triggered, [this]() {
+      QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+      QString filePathOfSettingsFile = QFileDialog::getOpenFileName(
+          this, "Open template", folderToOpen, "ImageC classification templates (*" + QString(joda::fs::EXT_CLASS_CLASS_TEMPLATE.data()) + ")");
+      if(filePathOfSettingsFile.isEmpty()) {
+        return;
+      }
+      this->openTemplate(filePathOfSettingsFile);
+    });
+    newPipeline->setStatusTip("New from classification template");
+    newPipeline->setMenu(mTemplateMenu);
+    toolbar->addAction(newPipeline);
 
+    //
     // Populate from image
-    auto *populateFromImage = bookMarkMenu->addAction(generateSvgIcon("shapes"), "Populate from image channels");
+    // object-ungroup
+    //
+    auto *populateFromImage = new QAction(generateSvgIcon("quickopen-file"), "Populate from image channels");
+    populateFromImage->setStatusTip("Populate classes from image channels");
+    toolbar->addAction(populateFromImage);
     connect(populateFromImage, &QAction::triggered, [this]() { this->populateClassesFromImage(); });
 
-    // New from template
-    // auto *newTemplate = bookMarkMenu->addAction(generateSvgIcon("add-file"), "New from template");
-    // connect(newTemplate, &QAction::triggered, [this]() { this->newTemplate(); });
+    //
+    // Open template
+    //
+    // auto *openTemplate = new QAction(generateSvgIcon("folder-stash"), "Open template");
+    // openTemplate->setStatusTip("Open classification settings from template");
+    // connect(openTemplate, &QAction::triggered, [this]() {
+    //  QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+    //  QString filePathOfSettingsFile = QFileDialog::getOpenFileName(
+    //      this, "Open template", folderToOpen, "ImageC classification templates (*" + QString(joda::fs::EXT_CLASS_CLASS_TEMPLATE.data()) + ")");
+    //  if(filePathOfSettingsFile.isEmpty()) {
+    //    return;
+    //  }
+    //  this->openTemplate(filePathOfSettingsFile);
+    //});
+    // toolbar->addAction(openTemplate);
 
-    // Save template
-    auto *saveBookmark = bookMarkMenu->addAction(generateSvgIcon("document-save-as-template"), "Save as new template");
-    connect(saveBookmark, &QAction::triggered, [this]() { saveAsNewTemplate(); });
+    //
+    // Save as template
+    //
+    auto *saveAsTemplate = new QAction(generateSvgIcon("document-save-as-template"), "Save as new template");
+    saveAsTemplate->setStatusTip("Save classification settings as template");
+    connect(saveAsTemplate, &QAction::triggered, [this]() { saveAsNewTemplate(); });
+    toolbar->addAction(saveAsTemplate);
 
+    toolbar->addSeparator();
     // Clear
-    auto *clearList = bookMarkMenu->addAction(generateSvgIcon("edit-delete"), "Clear");
+    auto *clearList = new QAction(generateSvgIcon("edit-delete"), "Clear");
+    clearList->setStatusTip("Clear classification list");
+    toolbar->addAction(clearList);
     connect(clearList, &QAction::triggered, [this]() {
       if(this->askForChangeTemplateIndex()) {
         this->initTable();
         this->newTemplate();
       }
     });
-
-    mBookmarkButton = new QPushButton(generateSvgIcon("overflow-menu"), "");
-    mBookmarkButton->setMenu(bookMarkMenu);
-    templateSelection->addWidget(mBookmarkButton);
-
-    templateSelection->setStretch(0, 1);
-    layout->addLayout(templateSelection);
+    layout->addWidget(toolbar);
 
     loadTemplates();
-    connect(mTemplateSelection, &QComboBox::currentIndexChanged, this, &PanelClassification::onloadPreset);
   }
 
   {
@@ -104,7 +130,6 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
 
     layout->addWidget(mClasses);
   }
-  addSeparator();
   setLayout(layout);
 
   initTable();
@@ -436,9 +461,7 @@ void PanelClassification::loadTemplates()
   auto foundTemplates = joda::templates::TemplateParser::findTemplates(
       {"templates/classification", joda::templates::TemplateParser::getUsersTemplateDirectory().string()}, joda::fs::EXT_CLASS_CLASS_TEMPLATE);
 
-  mTemplateSelection->clear();
-  mTemplateSelection->addItem("Load template ...", "");
-  mTemplateSelection->insertSeparator(mTemplateSelection->count());
+  mTemplateMenu->clear();
   std::string actCategory = "basic";
   size_t addedPerCategory = 0;
   for(const auto &[category, dataInCategory] : foundTemplates) {
@@ -447,14 +470,16 @@ void PanelClassification::loadTemplates()
       if(category != actCategory) {
         actCategory = category;
         if(addedPerCategory > 0) {
-          mTemplateSelection->insertSeparator(mTemplateSelection->count());
+          mTemplateMenu->addSeparator();
         }
       }
+      QAction *action;
       if(!data.icon.isNull()) {
-        mTemplateSelection->addItem(QIcon(data.icon.scaled(28, 28)), data.title.data(), data.path.data());
+        action = mTemplateMenu->addAction(QIcon(data.icon.scaled(28, 28)), data.title.data());
       } else {
-        mTemplateSelection->addItem(generateSvgIcon("favorite"), data.title.data(), data.path.data());
+        action = mTemplateMenu->addAction(generateSvgIcon("favorite"), data.title.data());
       }
+      connect(action, &QAction::triggered, [this, path = data.path]() { openTemplate(path.data()); });
     }
     addedPerCategory = dataInCategory.size();
   }
@@ -491,12 +516,6 @@ void PanelClassification::saveAsNewTemplate()
   auto storedFileName =
       joda::templates::TemplateParser::saveTemplate(json, std::filesystem::path(pathToStoreFileIn.toStdString()), joda::fs::EXT_CLASS_CLASS_TEMPLATE);
   loadTemplates();
-
-  auto idx = mTemplateSelection->findData(QString(storedFileName.string().data()));
-  if(idx > 0) {
-    mDontAsk = true;
-    mTemplateSelection->setCurrentIndex(idx);
-  }
 }
 
 ///
@@ -528,8 +547,6 @@ bool PanelClassification::askForChangeTemplateIndex()
 ///
 void PanelClassification::newTemplate()
 {
-  mActSelectedIndex = 0;
-  mTemplateSelection->setCurrentIndex(0);
   updateTableLock(false);
   mWindowMain->mutableSettings().projectSettings.classification.meta.revision = "";
   mWindowMain->mutableSettings().projectSettings.classification.meta.uid      = "";
@@ -545,36 +562,14 @@ void PanelClassification::newTemplate()
 /// \param[out]
 /// \return
 ///
-void PanelClassification::onloadPreset(int index)
+void PanelClassification::openTemplate(const QString &path)
 {
-  if(index == mActSelectedIndex) {
-    return;
-  }
-  auto selection = mTemplateSelection->currentData().toString();
-
-  if(selection == "") {
-    newTemplate();
-  } else {
-    if(mDontAsk) {
-      mDontAsk = false;
-    } else {
-      if(!askForChangeTemplateIndex()) {
-        mTemplateSelection->setCurrentIndex(mActSelectedIndex);    // Revert to previous selection
-        return;
-      }
-    }
-
-    mActSelectedIndex = index;
-
-    try {
-      joda::settings::Classification settings =
-          joda::templates::TemplateParser::loadTemplate(std::filesystem::path(mTemplateSelection->currentData().toString().toStdString()));
-      mWindowMain->mutableSettings().projectSettings.classification = settings;
-      fromSettings(settings);
-      /// \todo Do not support table lock
-      // updateTableLock(true);
-    } catch(const std::exception &ex) {
-    }
+  try {
+    joda::settings::Classification settings = joda::templates::TemplateParser::loadTemplate(std::filesystem::path(path.toStdString()));
+    mWindowMain->mutableSettings().projectSettings.classification = settings;
+    fromSettings(settings);
+  } catch(const std::exception &ex) {
+    joda::log::logWarning("Could not load template >" + path.toStdString() + "<. What: " + std::string(ex.what()));
   }
 }
 

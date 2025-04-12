@@ -682,12 +682,12 @@ void WindowMain::loadProjectTemplates()
       } else {
         action = mNewProjectMenu->addAction(generateSvgIcon("favorite"), data.title.data());
       }
-      connect(action, &QAction::triggered, this, [this, path = data.path.data()]() {
+      connect(action, &QAction::triggered, this, [this, path = data.path]() {
         if(!askForNewProject()) {
           return;
         }
         checkForSettingsChanged();
-        openProjectSettings(path, true);
+        openProjectSettings(path.data(), true);
       });
     }
     addedPerCategory = dataInCategory.size();
@@ -704,12 +704,12 @@ void WindowMain::loadLastOpened()
   mOpenProjectMenu->addSection("Projects");
   for(const auto &path : joda::user_settings::UserSettings::getLastOpenedProject()) {
     auto *action = mOpenProjectMenu->addAction(path.path.data());
-    connect(action, &QAction::triggered, this, [this, path = path.path.data()]() { openProjectSettings(path, false); });
+    connect(action, &QAction::triggered, this, [this, path = path.path]() { openProjectSettings(path.data(), false); });
   }
   mOpenProjectMenu->addSection("Results");
   for(const auto &path : joda::user_settings::UserSettings::getLastOpenedResult()) {
     auto *action = mOpenProjectMenu->addAction((path.path + " (" + path.title + ")").data());
-    connect(action, &QAction::triggered, this, [this, path = path.path.data()]() { openResultsSettings(path); });
+    connect(action, &QAction::triggered, this, [this, path = path.path]() { openResultsSettings(path.data()); });
   }
 }
 

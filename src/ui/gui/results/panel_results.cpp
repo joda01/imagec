@@ -206,7 +206,7 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
     grp->addButton(mTableButton);
     topBreadCrump->addWidget(mTableButton);
 
-    mHeatmapButton = new QPushButton(generateSvgIcon("games-config-board"), "");
+    mHeatmapButton = new QPushButton(generateSvgIcon("skg-chart-bubble"), "");
     mHeatmapButton->setCheckable(true);
     grp->addButton(mHeatmapButton);
     topBreadCrump->addWidget(mHeatmapButton);
