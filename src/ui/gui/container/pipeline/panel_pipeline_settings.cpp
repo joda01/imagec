@@ -124,18 +124,22 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   }
 
   auto *openTemplate = mLayout.addActionButton("Open template", generateSvgIcon("project-development-new-template"));
+  openTemplate->setStatusTip("Open pipeline from template");
   connect(openTemplate, &QAction::triggered, [this] { this->openTemplate(); });
 
   auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", generateSvgIcon("document-save-as-template"));
+  saveAsTemplateButton->setStatusTip("Save pipeline as template");
   connect(saveAsTemplateButton, &QAction::triggered, [this] { this->saveAsTemplate(); });
 
   auto *copyPipeline = mLayout.addActionButton("Copy pipeline", generateSvgIcon("edit-copy"));
+  copyPipeline->setStatusTip("Copy pipeline");
   connect(copyPipeline, &QAction::triggered, [this] { this->copyPipeline(); });
 
   mLayout.addSeparatorToTopToolbar();
 
   // Tool button
   mHistoryAction = mLayout.addActionButton("History", generateSvgIcon("deep-history"));
+  mHistoryAction->setStatusTip("Show/Hide pipeline edit history");
   mHistoryAction->setCheckable(true);
   connect(mHistoryAction, &QAction::triggered, [this](bool checked) {
     if(checked) {
@@ -147,6 +151,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   connect(mDialogHistory, &QDialog::finished, [this] { mHistoryAction->setChecked(false); });
 
   auto *addTagAction = mLayout.addActionButton("Add tag", generateSvgIcon("tag"));
+  addTagAction->setStatusTip("Tag actual pipeline settings");
   addTagAction->setToolTip("Tag the actual settings in the history.");
   connect(addTagAction, &QAction::triggered, [this]() { mDialogHistory->createTag(); });
 
@@ -156,6 +161,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   // Add disable button
   //
   mActionDisabled = mLayout.addActionButton("Disable pipeline", generateSvgIcon("view-hidden"));
+  mActionDisabled->setStatusTip("Temporary disable this pipeline");
   mActionDisabled->setCheckable(true);
   connect(mActionDisabled, &QAction::triggered, [this](bool checked) {
     mSettings.disabled = checked;
@@ -169,6 +175,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   // Add delete button
   //
   auto *actionDeletePipeline = mLayout.addActionButton("Delete pipeline", generateSvgIcon("edit-delete"));
+  actionDeletePipeline->setStatusTip("Delete pipeline");
   connect(actionDeletePipeline, &QAction::triggered, this, &PanelPipelineSettings::deletePipeline);
 
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);

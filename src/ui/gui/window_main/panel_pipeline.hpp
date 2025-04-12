@@ -33,7 +33,7 @@ class DialogCommandSelection;
 /// \author
 /// \brief
 ///
-class PanelPipeline : public QScrollArea
+class PanelPipeline : public QWidget
 {
   Q_OBJECT
 
@@ -43,6 +43,8 @@ public:
   void addElement(std::unique_ptr<PanelPipelineSettings> baseContainer, void *pointerToSettings);
   void erase(PanelPipelineSettings *toRemove);
   void clear();
+  void loadTemplates();
+  void setActionStartEnabled(bool);
 
   void addChannel(const joda::settings::Pipeline &settings);
   void addChannel(const QString &pathToSettings);
@@ -54,11 +56,19 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  void onAddChannel(const QString &path);
+
+  /////////////////////////////////////////////////////
   DroppableWidget *mContentWidget;
   std::map<std::unique_ptr<PanelPipelineSettings>, void *> mChannels;    // The second value is the pointer to the array entry in the AnalyzeSettings
   WindowMain *mWindowMain;
   joda::settings::AnalyzeSettings &mAnalyzeSettings;
   std::shared_ptr<DialogCommandSelection> mCommandSelectionDialog;
+
+  // ACTIONS///////////////////////////////////////////////////
+  QAction *mActionStart;
+  QMenu *mTemplatesMenu;
+  QScrollArea *mPipelineWidget;
 
 private slots:
   void dropFinishedEvent();

@@ -10,6 +10,10 @@
 ///
 
 #include "panel_pipeline.hpp"
+#include <qaction.h>
+#include <qcombobox.h>
+#include <qmenu.h>
+#include <qtoolbar.h>
 #include <qwidget.h>
 #include <cmath>
 #include <filesystem>
@@ -39,22 +43,92 @@ namespace joda::ui::gui {
 ///
 PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSettings &settings) : mWindowMain(windowMain), mAnalyzeSettings(settings)
 {
-  setFrameStyle(0);
-  setFrameShape(QFrame::NoFrame);
-  viewport()->setStyleSheet("background-color: transparent;");
-  setObjectName("scrollAreaOverview");
-  // setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-  setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  auto *layout = new QVBoxLayout();
 
-  // Create a widget to hold the panels
-  mContentWidget = new DroppableWidget();
-  mContentWidget->setObjectName("contentOverview");
-  setWidget(mContentWidget);
-  setWidgetResizable(true);
+  {
+    auto *toolbar = new QToolBar();
 
-  connect(mContentWidget, &DroppableWidget::dropFinished, this, &PanelPipeline::dropFinishedEvent);
+    //
+    // New pipeline
+    //
+    auto *newPipeline = new QAction(generateSvgIcon("document-new"), "Add new pipeline");
+    connect(newPipeline, &QAction::triggered, [this]() { addChannel(joda::settings::Pipeline{}); });
+    mTemplatesMenu = new QMenu();
+    newPipeline->setMenu(mTemplatesMenu);
+    toolbar->addAction(newPipeline);
 
-  mCommandSelectionDialog = std::make_shared<DialogCommandSelection>(mWindowMain);
+    //
+    // Start button
+    //
+    mActionStart = new QAction(generateSvgIcon("media-playback-start"), "Start analyzes");
+    mActionStart->setEnabled(false);
+    connect(mActionStart, &QAction::triggered, windowMain, &WindowMain::onStartClicked);
+    toolbar->addAction(mActionStart);
+
+    layout->addWidget(toolbar);
+  }
+
+  {
+    mPipelineWidget = new QScrollArea();
+    // mPipelineWidget->setFrameStyle(0);
+    mPipelineWidget->setFrameShape(QFrame::StyledPanel);
+    mPipelineWidget->viewport()->setStyleSheet("background-color: #FFFFFF");
+    mPipelineWidget->setObjectName("scrollAreaOverview");
+    // setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    mPipelineWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    // Create a widget to hold the panels
+    mContentWidget = new DroppableWidget();
+    mContentWidget->setObjectName("contentOverview");
+    mPipelineWidget->setWidget(mContentWidget);
+    mPipelineWidget->setWidgetResizable(true);
+
+    connect(mContentWidget, &DroppableWidget::dropFinished, this, &PanelPipeline::dropFinishedEvent);
+
+    mCommandSelectionDialog = std::make_shared<DialogCommandSelection>(mWindowMain);
+
+    layout->addWidget(mPipelineWidget);
+  }
+
+  setLayout(layout);
+}
+
+void PanelPipeline::setActionStartEnabled(bool enabled)
+{
+  mActionStart->setEnabled(enabled);
+}
+
+///
+/// \brief      Templates loaded from templates folder
+/// \author     Joachim Danmayr
+///
+void PanelPipeline::loadTemplates()
+{
+  auto foundTemplates = joda::templates::TemplateParser::findTemplates(
+      {"templates/pipelines", joda::templates::TemplateParser::getUsersTemplateDirectory().string()}, joda::fs::EXT_PIPELINE_TEMPLATE);
+
+  mTemplatesMenu->clear();
+  size_t addedPerCategory = 0;
+  std::string actCategory = "basic";
+  for(const auto &[category, dataInCategory] : foundTemplates) {
+    for(const auto &[_, data] : dataInCategory) {
+      // Now the user templates start, add an addition separator
+      if(category != actCategory) {
+        actCategory = category;
+        if(addedPerCategory > 0) {
+          mTemplatesMenu->addSeparator();
+        }
+      }
+      if(!data.icon.isNull()) {
+        auto *action = mTemplatesMenu->addAction(QIcon(data.icon.scaled(28, 28)), data.title.data());
+        connect(action, &QAction::triggered, [this, path = data.path.data()]() { onAddChannel(path); });
+      } else {
+        auto *action = mTemplatesMenu->addAction(generateSvgIcon("favorite"), data.title.data());
+        connect(action, &QAction::triggered, [this, path = data.path.data()]() { onAddChannel(path); });
+      }
+    }
+    addedPerCategory = dataInCategory.size();
+  }
 }
 
 ///
@@ -64,7 +138,19 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
 /// \param[out]
 /// \return
 ///
+void PanelPipeline::onAddChannel(const QString &path)
+{
+  addChannel(path);
+  mWindowMain->checkForSettingsChanged();
+}
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelPipeline::addElement(std::unique_ptr<PanelPipelineSettings> baseContainer, void *pointerToSettings)
 {
   mContentWidget->getLayout()->addWidget(baseContainer->getOverviewPanel());

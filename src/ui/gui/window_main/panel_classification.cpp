@@ -39,7 +39,7 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
   auto *layout = new QVBoxLayout();
 
   auto addSeparator = [&layout]() {
-    QFrame *separator = new QFrame;
+    auto *separator = new QFrame;
     separator->setFrameShape(QFrame::HLine);
     separator->setFrameShadow(QFrame::Sunken);
     layout->addWidget(separator);

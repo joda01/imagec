@@ -33,11 +33,11 @@ namespace joda::ui::gui {
 PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &settings, WindowMain *parentWindow) :
     mSettings(settings), mParentWindow(parentWindow)
 {
-  auto *layout            = new QVBoxLayout(this);
-  QFormLayout *formLayout = new QFormLayout;
+  auto *layout     = new QVBoxLayout(this);
+  auto *formLayout = new QFormLayout;
 
   auto addSeparator = [&formLayout]() {
-    QFrame *separator = new QFrame;
+    auto *separator = new QFrame;
     separator->setFrameShape(QFrame::HLine);
     separator->setFrameShadow(QFrame::Sunken);
     formLayout->addRow(separator);
@@ -49,9 +49,9 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   mWorkingDir = new QLineEdit();
   mWorkingDir->setReadOnly(true);
   mWorkingDir->setPlaceholderText("Directory your images are placed in...");
-  QHBoxLayout *workingDir = new QHBoxLayout;
+  auto *workingDir = new QHBoxLayout;
   workingDir->addWidget(mWorkingDir);
-  QPushButton *openDir = new QPushButton(generateSvgIcon("image-tiff"), "");
+  auto *openDir = new QPushButton(generateSvgIcon("image-tiff"), "");
   connect(openDir, &QPushButton::clicked, this, &PanelProjectSettings::onOpenWorkingDirectoryClicked);
   workingDir->addWidget(openDir);
   workingDir->setStretch(0, 1);    // Make label take all available space

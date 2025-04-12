@@ -83,14 +83,14 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   getController()->registerImageLookupCallback([this](joda::filesystem::State state) {
     if(state == joda::filesystem::State::FINISHED) {
       if(getController()->getNrOfFoundImages() > 0) {
-        mStartAnalysis->setEnabled(true);
+        mPanelPipeline->setActionStartEnabled(true);
         mStartAnalysisToolButton->setEnabled(true);
       } else {
-        mStartAnalysis->setEnabled(false);
+        mPanelPipeline->setActionStartEnabled(false);
         mStartAnalysisToolButton->setEnabled(false);
       }
     } else if(state == joda::filesystem::State::RUNNING) {
-      mStartAnalysis->setEnabled(false);
+      mPanelPipeline->setActionStartEnabled(false);
       mStartAnalysisToolButton->setEnabled(false);
     }
   });
@@ -100,11 +100,11 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   //
   mTemplateDirWatcher.addPath(joda::templates::TemplateParser::getUsersTemplateDirectory().string().data());    // Replace with your desired path
   QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::fileChanged, [&](const QString &path) {
-    loadTemplates();
+    mPanelPipeline->loadTemplates();
     loadProjectTemplates();
   });
   QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::directoryChanged, [&](const QString &path) {
-    loadTemplates();
+    mPanelPipeline->loadTemplates();
     loadProjectTemplates();
   });
 
@@ -115,7 +115,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
     joda::log::logError("Could not open user settings! What: " + std::string(ex.what()));
   }
 
-  loadTemplates();
+  mPanelPipeline->loadTemplates();
   loadProjectTemplates();
   loadLastOpened();
 
@@ -268,41 +268,8 @@ void WindowMain::createLeftToolbar()
 
   // Pipeline Tab
   {
-    auto *pipelineTab = new QWidget();
-    auto *layout      = new QVBoxLayout();
-
-    //
-    // Open template
-    //
-    auto *innerLayout  = new QHBoxLayout();
-    mTemplateSelection = new QComboBox();
-    innerLayout->addWidget(mTemplateSelection);
-
-    //
-    // Start button
-    //
-    {
-      mStartAnalysis = new QPushButton(generateSvgIcon("media-playback-start"), "");
-      mStartAnalysis->setEnabled(false);
-      mStartAnalysis->setToolTip("Run pipeline!");
-      innerLayout->addWidget(mStartAnalysis);
-    }
-
-    //
-    // Add layout
-    //
-    innerLayout->setStretch(0, 1);
-    layout->addLayout(innerLayout);
-
-    // Channel list
     mPanelPipeline = new PanelPipeline(this, mAnalyzeSettings);
-    layout->addWidget(mPanelPipeline);
-
-    pipelineTab->setLayout(layout);
-    mTabWidget->addTab(pipelineTab, "Pipelines");
-
-    connect(mTemplateSelection, &QComboBox::currentIndexChanged, this, &WindowMain::onAddChannel);
-    connect(mStartAnalysis, &QPushButton::clicked, this, &WindowMain::onStartClicked);
+    mTabWidget->addTab(mPanelPipeline, "Pipelines");
   }
 
   // Reportings tab
@@ -691,41 +658,6 @@ void WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
 /// \brief      Templates loaded from templates folder
 /// \author     Joachim Danmayr
 ///
-void WindowMain::loadTemplates()
-{
-  auto foundTemplates = joda::templates::TemplateParser::findTemplates(
-      {"templates/pipelines", joda::templates::TemplateParser::getUsersTemplateDirectory().string()}, joda::fs::EXT_PIPELINE_TEMPLATE);
-
-  mTemplateSelection->clear();
-  mTemplateSelection->addItem("Add pipelines ...", "");
-  mTemplateSelection->insertSeparator(mTemplateSelection->count());
-  mTemplateSelection->addItem(generateSvgIcon("document-new"), "Empty pipeline", "emptyChannel");
-  mTemplateSelection->insertSeparator(mTemplateSelection->count());
-  std::string actCategory = "basic";
-  size_t addedPerCategory = 0;
-  for(const auto &[category, dataInCategory] : foundTemplates) {
-    for(const auto &[_, data] : dataInCategory) {
-      // Now the user templates start, add an addition separator
-      if(category != actCategory) {
-        actCategory = category;
-        if(addedPerCategory > 0) {
-          mTemplateSelection->insertSeparator(mTemplateSelection->count());
-        }
-      }
-      if(!data.icon.isNull()) {
-        mTemplateSelection->addItem(QIcon(data.icon.scaled(28, 28)), data.title.data(), data.path.data());
-      } else {
-        mTemplateSelection->addItem(generateSvgIcon("favorite"), data.title.data(), data.path.data());
-      }
-    }
-    addedPerCategory = dataInCategory.size();
-  }
-}
-
-///
-/// \brief      Templates loaded from templates folder
-/// \author     Joachim Danmayr
-///
 void WindowMain::loadProjectTemplates()
 {
   auto foundTemplates = joda::templates::TemplateParser::findTemplates(
@@ -849,7 +781,6 @@ bool WindowMain::showPanelStartPage()
   mSidebar->setVisible(true);
   mSaveProject->setVisible(true);
   mSaveProject->setVisible(true);
-  mStartAnalysis->setVisible(true);
   mStartAnalysisToolButton->setVisible(true);
   mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::START_PAGE));
   if(nullptr != mPanelReporting) {
@@ -918,21 +849,6 @@ void WindowMain::onRemoveChannelClicked()
       mSelectedChannel = nullptr;
     }
   }
-}
-
-void WindowMain::onAddChannel()
-{
-  auto selection = mTemplateSelection->currentData().toString();
-  if(selection == "") {
-  } else if(selection == "emptyChannel") {
-    mPanelPipeline->addChannel(joda::settings::Pipeline{});
-  } else {
-    mPanelPipeline->addChannel(mTemplateSelection->currentData().toString());
-  }
-  checkForSettingsChanged();
-  mTemplateSelection->blockSignals(true);
-  mTemplateSelection->setCurrentIndex(0);
-  mTemplateSelection->blockSignals(false);
 }
 
 ///

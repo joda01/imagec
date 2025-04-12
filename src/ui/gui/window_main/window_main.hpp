@@ -145,7 +145,6 @@ private:
   /////////////////////////////////////////////////////
   void createTopToolbar();
   void createLeftToolbar();
-  void loadTemplates();
   void loadProjectTemplates();
   void loadLastOpened();
   void clearSettings();
@@ -182,17 +181,11 @@ private:
   PanelImages *mPanelImages                   = nullptr;
   PanelResultsInfo *mPanelResultsInfo         = nullptr;
 
-  ////Pipeline/////////////////////////////////////////////////
-  QPushButton *mStartAnalysis = nullptr;
-
   ////Stacked widget/////////////////////////////////////////////////
   QStackedWidget *mStackedWidget          = nullptr;
   Navigation mNavigation                  = Navigation::START_PAGE;
   PanelPipelineSettings *mSelectedChannel = nullptr;
   PanelResults *mPanelReporting           = nullptr;
-
-  ////Sidebar panels/////////////////////////////////////////////////
-  QComboBox *mTemplateSelection;
 
   ////ToolbarIcons/////////////////////////////////////////////////
   QMenu *mNewProjectMenu            = nullptr;
@@ -208,9 +201,8 @@ private:
   ////Mutexes/////////////////////////////////////////////////
   std::mutex mCheckForSettingsChangedMutex;
 
-private slots:
+public slots:
   void onNewProjectClicked();
-  void onAddChannel();
   void onSaveProject();
   void onSaveProjectAs();
   void onStartClicked();
