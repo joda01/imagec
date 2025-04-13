@@ -10,4 +10,9 @@
         <file>helptext/channel_type.json</file>
         <file>helptext/reporting_statistics.json</file>
     </qresource>
+
+    <qresource prefix="/other">
+        <file>other/open_source_libs.html</file>
+        <file>other/license.md</file>
+    </qresource>
 </RCC>

@@ -21,6 +21,7 @@
 #include <qobject.h>
 #include <qpushbutton.h>
 #include <qstackedwidget.h>
+#include <qtabwidget.h>
 #include <qwidget.h>
 #include <QAction>
 #include <QIcon>
@@ -40,6 +41,7 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/helper/random_name_generator.hpp"
+#include "backend/helper/system/system_resources.hpp"
 #include "backend/helper/username.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
@@ -868,9 +870,8 @@ void WindowMain::onShowHelpClicked()
 ///
 void WindowMain::onShowInfoDialog()
 {
-  DialogShadow messageBox(this);
-  messageBox.setWindowTitle("Info");
-  auto *mainLayout = new QVBoxLayout(&messageBox);
+  auto *about = new QDialog(this);
+  about->setWindowTitle("About ImageC");
   //   mainLayout->setContentsMargins(28, 28, 28, 28);
   QLabel *helpTextLabel =
       new QLabel("<p style=\"text-align: left;\"><strong>" + QString(Version::getProgamName().data()) + " " + QString(Version::getVersion().data()) +
@@ -889,17 +890,152 @@ void WindowMain::onShowInfoDialog()
                  "<p style=\"text-align: left;\">copyright 2022-2025 Joachim Danmayr</p>");
   helpTextLabel->setOpenExternalLinks(true);
   helpTextLabel->setWordWrap(true);
-  QFont fontLineEdit;
-  fontLineEdit.setPixelSize(16);
-  helpTextLabel->setFont(fontLineEdit);
-  mainLayout->addWidget(helpTextLabel);
-  mainLayout->addStretch();
-  mainLayout->invalidate();
-  mainLayout->activate();
-  helpTextLabel->adjustSize();
-  helpTextLabel->setMinimumHeight(helpTextLabel->height() + 56);
 
-  messageBox.exec();
+  auto *tab = new QTabWidget();
+  //
+  // About Tab
+  //
+  {
+    auto *widgetAbout = new QWidget();
+    auto *layoutAbout = new QVBoxLayout();
+    widgetAbout->setLayout(layoutAbout);
+    tab->addTab(widgetAbout, "About");
+    auto *labelAbout = new QLabel(
+        "ImageC is an application for high throughput image processing.<br/><br/>"
+        "2022-2025 Joachim Danmayr<br/><br/>"
+        "<a href=\"https://imagec.org/\">https://imagec.org/</a><br/><br/>"
+        "ALL RIGHTS RESERVED");
+    labelAbout->setOpenExternalLinks(true);
+    labelAbout->setAlignment(Qt::AlignCenter);
+    layoutAbout->addWidget(labelAbout);
+  }
+
+  //
+  // Contributors
+  //
+  {
+    auto *widgetAbout = new QWidget();
+    auto *layoutAbout = new QVBoxLayout();
+    layoutAbout->setAlignment(Qt::AlignCenter);
+    widgetAbout->setLayout(layoutAbout);
+    tab->addTab(widgetAbout, "Contributors");
+    auto *labelAbout = new QLabel(
+        "<u>Melanie Schuerz</u> : Coordination, AI-Training, Testing<br/><br/>"
+        "<u>Tanja Plank</u> : Logo design, AI-Training, Testing<br/><br/>"
+        "<u>Maria Jaritsch</u> : AI-Training, Testing<br/><br/>"
+        "<u>Heloisa Melobenirschke</u> : AI-Training<br/><br/>"
+        "<u>Patricia Hrasnova</u> : AI-Training, Testing<br/><br/>"
+        "<u>Joachim Danmayr</u> : Idea, Programming, Testing, Documentation<br/><br/>"
+        "<u>Manfred Seiwald</u> : Integration testing<br/><br/>");
+
+    labelAbout->setOpenExternalLinks(true);
+    labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    layoutAbout->addWidget(labelAbout);
+  }
+
+  //
+  // Version
+  //
+  {
+    auto *widgetAbout = new QWidget();
+    auto *layoutAbout = new QVBoxLayout();
+    layoutAbout->setAlignment(Qt::AlignCenter);
+    widgetAbout->setLayout(layoutAbout);
+    tab->addTab(widgetAbout, "Version");
+    auto *labelAbout = new QLabel("<h1>" + QString(Version::getProgamName().data()) + " " + QString(Version::getVersion().data()) +
+                                  "</h1>"
+                                  "CPU cores: " +
+                                  QString(std::to_string(joda::system::getNrOfCPUs()).data()) +
+                                  "<br/>"
+                                  "RAM Total: " +
+                                  QString::number((double) joda::system::getTotalSystemMemory() / 1000000.0, 'f', 2) +
+                                  "MB <br/>"
+                                  "RAM Available: " +
+                                  QString::number((double) joda::system::getAvailableSystemMemory() / 1000000.0, 'f', 2) + " MB <br/>");
+
+    labelAbout->setOpenExternalLinks(true);
+    labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    layoutAbout->addWidget(labelAbout);
+  }
+
+  //
+  // Packages
+  //
+  {
+    auto *widgetAbout = new QWidget();
+    auto *layoutAbout = new QVBoxLayout();
+    layoutAbout->setAlignment(Qt::AlignCenter);
+    widgetAbout->setLayout(layoutAbout);
+    tab->addTab(widgetAbout, "Open source");
+    QFile file(":/other/other/open_source_libs.html");
+    QString openSourceLibs;
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+      openSourceLibs = file.readAll();
+      file.close();
+    }
+    auto *labelAbout = new QTextBrowser();
+    labelAbout->setHtml(openSourceLibs);
+    labelAbout->setOpenExternalLinks(true);
+
+    labelAbout->setOpenExternalLinks(true);
+    labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    layoutAbout->addWidget(labelAbout);
+  }
+
+  //
+  // License
+  //
+  {
+    auto *widgetAbout = new QWidget();
+    auto *layoutAbout = new QVBoxLayout();
+    layoutAbout->setAlignment(Qt::AlignCenter);
+    widgetAbout->setLayout(layoutAbout);
+    tab->addTab(widgetAbout, "License");
+    QFile file(":/other/other/license.md");
+    QString openSourceLibs;
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+      openSourceLibs = file.readAll();
+      file.close();
+    }
+    auto *preamble = new QLabel(
+        "This software is free to use and licensed under AGPL V3 for <b>non commercial</b>!<br/>For usage in "
+        "commercial environment, please contact <a href= \"mailto:support@imagec.org\">support@imagec.org</a>.");
+    preamble->setOpenExternalLinks(true);
+    preamble->setAlignment(Qt::AlignCenter);
+    layoutAbout->addWidget(preamble);
+
+    auto *labelAbout = new QTextBrowser();
+    labelAbout->setMarkdown(openSourceLibs);
+    labelAbout->setOpenExternalLinks(true);
+    labelAbout->setOpenExternalLinks(true);
+    labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    layoutAbout->addWidget(labelAbout);
+  }
+
+  //
+  // Log
+  //
+  {
+    auto *widgetAbout = new QWidget();
+    auto *layoutAbout = new QVBoxLayout();
+    layoutAbout->setAlignment(Qt::AlignCenter);
+    widgetAbout->setLayout(layoutAbout);
+    tab->addTab(widgetAbout, "Log");
+    auto *labelAbout      = new QTextBrowser();
+    const auto &logBuffer = joda::log::getLogBuffer();
+    labelAbout->setHtml(joda::log::logBufferToHtml().data());
+    labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    layoutAbout->addWidget(labelAbout);
+  }
+
+  //
+  // Main layout
+  //
+  auto *mainLayout = new QVBoxLayout();
+  mainLayout->addWidget(tab);
+  about->setLayout(mainLayout);
+  about->resize(600, 400);
+  about->exec();
 }
 
 ///

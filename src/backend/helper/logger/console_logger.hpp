@@ -19,6 +19,7 @@
 #include <ostream>
 #include <sstream>    // std::ostringstream
 #include <string>
+#include <vector>
 
 namespace joda::log {
 
@@ -41,5 +42,7 @@ extern void logInfo(const std::string &message);
 extern void logDebug(const std::string &message);
 extern void logTrace(const std::string &message);
 extern void logProgress(float progress, const std::string &message);
+extern auto getLogBuffer() -> const std::vector<std::string> &;
+extern auto logBufferToHtml() -> std::string;
 
 }    // namespace joda::log
