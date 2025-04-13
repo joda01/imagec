@@ -40,39 +40,40 @@ PanelResultsTemplateGenerator::PanelResultsTemplateGenerator(WindowMain *mainWin
   mainLayout->setContentsMargins(0, 0, 0, 0);
   setContentsMargins(0, 0, 0, 0);
   this->setLayout(mainLayout);
+
   //
   // Action button
   //
-  auto *toolBar = new QHBoxLayout();
+  auto *toolBar = new QToolBar();
   toolBar->setContentsMargins(0, 0, 0, 0);
-  auto *addColumn = new QPushButton(generateIcon("add-column"), "", this);
+  auto *addColumn = new QAction(generateSvgIcon("edit-table-insert-column-right"), "", this);
   addColumn->setToolTip("Add column");
-  connect(addColumn, &QPushButton::pressed, [this]() {
+  connect(addColumn, &QAction::triggered, [this]() {
     mColumnEditDialog->updateClassesAndClasses(*mAnalyzeSettings);
     mColumnEditDialog->exec(mColumns->rowCount());
     refreshView();
     mMainWindow->checkForSettingsChanged();
   });
-  toolBar->addWidget(addColumn);
+  toolBar->addAction(addColumn);
 
-  auto *editColumn = new QPushButton(generateIcon("edit-column"), "", this);
-  editColumn->setToolTip("Edit column");
-  toolBar->addWidget(editColumn);
-  connect(editColumn, &QPushButton::pressed, [this]() {
+  auto *deleteColumn = new QAction(generateSvgIcon("edit-table-delete-column"), "", this);
+  deleteColumn->setToolTip("Delete column");
+  toolBar->addAction(deleteColumn);
+  connect(deleteColumn, &QAction::triggered, [this]() {
     if(mSelectedTableRow >= 0) {
-      mColumnEditDialog->updateClassesAndClasses(*mAnalyzeSettings);
-      mColumnEditDialog->exec(mSelectedTableRow);
+      mAnalyzeSettings->resultsSettings.eraseColumn({.tabIdx = 0, .colIdx = mSelectedTableRow});
       refreshView();
       mMainWindow->checkForSettingsChanged();
     }
   });
 
-  auto *deleteColumn = new QPushButton(generateIcon("delete-column"), "", this);
-  deleteColumn->setToolTip("Delete column");
-  toolBar->addWidget(deleteColumn);
-  connect(deleteColumn, &QPushButton::pressed, [this]() {
+  auto *editColumn = new QAction(generateSvgIcon("document-edit"), "", this);
+  editColumn->setToolTip("Edit column");
+  toolBar->addAction(editColumn);
+  connect(editColumn, &QAction::triggered, [this]() {
     if(mSelectedTableRow >= 0) {
-      mAnalyzeSettings->resultsSettings.eraseColumn({.tabIdx = 0, .colIdx = mSelectedTableRow});
+      mColumnEditDialog->updateClassesAndClasses(*mAnalyzeSettings);
+      mColumnEditDialog->exec(mSelectedTableRow);
       refreshView();
       mMainWindow->checkForSettingsChanged();
     }
@@ -88,7 +89,7 @@ PanelResultsTemplateGenerator::PanelResultsTemplateGenerator(WindowMain *mainWin
   mColumns->setAlternatingRowColors(true);
   mColumns->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
   mColumns->verticalHeader()->setVisible(true);
-  mColumns->horizontalHeader()->setVisible(true);
+  mColumns->horizontalHeader()->setVisible(false);
   mColumns->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
   mColumns->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
   mColumns->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
@@ -105,8 +106,8 @@ PanelResultsTemplateGenerator::PanelResultsTemplateGenerator(WindowMain *mainWin
     }
   });
 
+  mainLayout->addWidget(toolBar);
   mainLayout->addWidget(mColumns);
-  mainLayout->addLayout(toolBar);
 
   //
   // Add command dialog

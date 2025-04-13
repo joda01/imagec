@@ -33,20 +33,20 @@ class NoiseValidator : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Noise filter";
-  inline static std::string ICON              = "sort-by-price";
+  inline static std::string ICON              = "view-filter";
   inline static std::string DESCRIPTION       = "Exclude noise images from statistics.";
   inline static std::vector<std::string> TAGS = {"filter", "noise"};
 
   NoiseValidator(joda::settings::PipelineStep &pipelineStep, settings::NoiseValidatorSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}})
   {
-    mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Input class");
+    mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateSvgIcon("choice-round"), "Input class");
     mClassesIn->setValue(settings.inputClasses);
     mClassesIn->connectWithSetting(&settings.inputClasses);
 
     //
     //
-    mMaxNrOfObjects = SettingBase::create<SettingLineEdit<uint32_t>>(parent, generateIcon("sort-by-price"), "Max. objects");
+    mMaxNrOfObjects = SettingBase::create<SettingLineEdit<uint32_t>>(parent, {}, "Max. objects");
     mMaxNrOfObjects->setDefaultValue(100000);
     mMaxNrOfObjects->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mMaxNrOfObjects->setUnit("");

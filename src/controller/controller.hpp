@@ -47,12 +47,16 @@ struct Preview
   joda::image::Image editedImage;
   joda::image::Image overlay;
 
-  std::map<joda::enums::ClassId, PreviewCount> foundObjects;
+  struct PreviewResults
+  {
+    std::map<joda::enums::ClassId, PreviewCount> foundObjects;
+    bool isOverExposed = false;
+    bool noiseDetected = false;
+  } results;
+
   int height;
   int width;
   std::string imageFileName;
-  bool isOverExposed = false;
-  bool noiseDetected = false;
 };
 
 struct ExportSettings

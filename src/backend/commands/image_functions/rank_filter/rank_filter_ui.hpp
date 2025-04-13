@@ -27,7 +27,7 @@ class RankFilter : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Rank filter";
-  inline static std::string ICON              = "rank";
+  inline static std::string ICON              = "view-statistics";
   inline static std::string DESCRIPTION       = "Each pixel is set to the minimum, maximum or median value of its neighborhood.";
   inline static std::vector<std::string> TAGS = {"rank", "filter", "maximum", "minimum", "median"};
 
@@ -36,7 +36,7 @@ public:
   {
     //
     //
-    mMode = SettingBase::create<SettingComboBox<joda::settings::RankFilterSettings::Mode>>(parent, generateIcon("bubble"), "Mode");
+    mMode = SettingBase::create<SettingComboBox<joda::settings::RankFilterSettings::Mode>>(parent, {}, "Mode");
     mMode->addOptions({{joda::settings::RankFilterSettings::Mode::MEAN, "Mean"},
                        {joda::settings::RankFilterSettings::Mode::MEDIAN, "Median"},
                        {joda::settings::RankFilterSettings::Mode::VARIANCE, "Variance"},
@@ -47,7 +47,7 @@ public:
 
     //
     //
-    mRadius = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("diameter"), "Radius [0-256]");
+    mRadius = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("skrooge_type"), "Radius [0-256]");
     mRadius->setPlaceholderText("[0 - 256]");
     mRadius->setUnit("px");
     mRadius->setMinMax(0, 256);

@@ -33,25 +33,26 @@ HistoToolbar::HistoToolbar(int32_t leftOrRight, DialogImageViewer *parent, joda:
   connect(mSlider, &QSlider::valueChanged, this, &HistoToolbar::onSliderMoved);
   addWidget(mSlider);
 
-  QAction *fitToScreen = new QAction(generateIcon("automatic-contrast"), "");
+  QAction *fitToScreen = new QAction(generateSvgIcon("autocorrection"), "");
   fitToScreen->setObjectName("ToolButton");
-  fitToScreen->setToolTip("Auto adjust");
+  fitToScreen->setStatusTip("Auto set brightness and contrast");
   connect(fitToScreen, &QAction::triggered, this, &HistoToolbar::autoAdjustHistogram);
   addAction(fitToScreen);
 
-  QAction *action1 = new QAction(generateIcon("normal-distribution-histogram"), "");
+  QAction *action1 = new QAction(generateSvgIcon("office-chart-bar"), "");
+  action1->setStatusTip("Open histogram navigation");
   connect(action1, &QAction::triggered, this, &HistoToolbar::onShowHistogramDialog);
   addAction(action1);
 
-  QAction *zoomIn = new QAction(generateIcon("zoom-in"), "");
+  QAction *zoomIn = new QAction(generateSvgIcon("zoom-in-x"), "");
   zoomIn->setObjectName("ToolButton");
-  zoomIn->setToolTip("Zoom in");
+  zoomIn->setStatusTip("Zoom in histogram");
   connect(zoomIn, &QAction::triggered, this, &HistoToolbar::onZoomHistogramInClicked);
   addAction(zoomIn);
 
-  QAction *zoomOut = new QAction(generateIcon("zoom-out"), "");
+  QAction *zoomOut = new QAction(generateSvgIcon("zoom-out-x"), "");
   zoomOut->setObjectName("ToolButton");
-  zoomOut->setToolTip("Zoom out");
+  zoomOut->setStatusTip("Zoom out histogram");
   connect(zoomOut, &QAction::triggered, this, &HistoToolbar::onZoomHistogramOutClicked);
   addAction(zoomOut);
 

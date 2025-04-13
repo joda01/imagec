@@ -27,7 +27,7 @@ class RollingBallBackground : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Rolling ball";
-  inline static std::string ICON              = "bubble";
+  inline static std::string ICON              = "kstars_horizon";    // blur
   inline static std::string DESCRIPTION       = "Remove image background.";
   inline static std::vector<std::string> TAGS = {"noise reduction", "background subtraction", "noise"};
 
@@ -36,7 +36,8 @@ public:
   {
     //
     //
-    mBallType = SettingBase::create<SettingComboBox<joda::settings::RollingBallSettings::BallType>>(parent, generateIcon("bubble"), "Ball type");
+    mBallType =
+        SettingBase::create<SettingComboBox<joda::settings::RollingBallSettings::BallType>>(parent, generateSvgIcon("kstars_horizon"), "Ball type");
     mBallType->addOptions(
         {{joda::settings::RollingBallSettings::BallType::BALL, "Ball"}, {joda::settings::RollingBallSettings::BallType::PARABOLOID, "Paraboloid"}});
     mBallType->setValue(settings.ballType);
@@ -44,7 +45,7 @@ public:
 
     //
     //
-    mBallSize = SettingBase::create<SettingLineEdit<int>>(parent, generateIcon("diameter"), "Ball size [0-256]");
+    mBallSize = SettingBase::create<SettingLineEdit<int>>(parent, generateSvgIcon("skrooge_type"), "Ball size [0-256]");
     mBallSize->setPlaceholderText("[0 - 256]");
     mBallSize->setUnit("px");
     mBallSize->setMinMax(0, 256);

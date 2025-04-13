@@ -66,7 +66,7 @@ using namespace std::chrono_literals;
 PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pipeline &settings,
                                              std::shared_ptr<DialogCommandSelection> &commandSelectionDialog) :
     QWidget(wm),
-    mLayout(this, true), mWindowMain(wm), mSettings(settings), mCommandSelectionDialog(commandSelectionDialog)
+    mLayout(this, false, true, true, false, wm), mWindowMain(wm), mSettings(settings), mCommandSelectionDialog(commandSelectionDialog)
 {
   setObjectName("PanelPipelineSettings");
   auto *tab = mLayout.addTab(
@@ -116,25 +116,30 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 
   {
     auto *col4    = tab->addVerticalPanel();
-    mPreviewImage = new PanelPreview(PREVIEW_BASE_SIZE, PREVIEW_BASE_SIZE, mWindowMain);
+    mPreviewImage = new DialogImageViewer(mWindowMain);
+    mPreviewImage->setVisible(false);
     mPreviewImage->setContentsMargins(0, 0, 0, 0);
-    mPreviewImage->resetImage("");
-    col4->addWidget(mPreviewImage);
+    mPreviewImage->resetImage();
+    wm->addDockWidget(Qt::RightDockWidgetArea, mPreviewImage);
   }
 
-  auto *openTemplate = mLayout.addActionButton("Open template", generateIcon("opened-folder"));
+  auto *openTemplate = mLayout.addActionButton("Open template", generateSvgIcon("project-development-new-template"));
+  openTemplate->setStatusTip("Open pipeline from template");
   connect(openTemplate, &QAction::triggered, [this] { this->openTemplate(); });
 
-  auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", generateIcon("download"));
+  auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", generateSvgIcon("document-save-as-template"));
+  saveAsTemplateButton->setStatusTip("Save pipeline as template");
   connect(saveAsTemplateButton, &QAction::triggered, [this] { this->saveAsTemplate(); });
 
-  auto *copyPipeline = mLayout.addActionButton("Copy pipeline", generateIcon("copy"));
+  auto *copyPipeline = mLayout.addActionButton("Copy pipeline", generateSvgIcon("edit-copy"));
+  copyPipeline->setStatusTip("Copy pipeline");
   connect(copyPipeline, &QAction::triggered, [this] { this->copyPipeline(); });
 
   mLayout.addSeparatorToTopToolbar();
 
   // Tool button
-  mHistoryAction = mLayout.addActionButton("History", generateIcon("history"));
+  mHistoryAction = mLayout.addActionButton("History", generateSvgIcon("deep-history"));
+  mHistoryAction->setStatusTip("Show/Hide pipeline edit history");
   mHistoryAction->setCheckable(true);
   connect(mHistoryAction, &QAction::triggered, [this](bool checked) {
     if(checked) {
@@ -145,7 +150,8 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   });
   connect(mDialogHistory, &QDialog::finished, [this] { mHistoryAction->setChecked(false); });
 
-  auto *addTagAction = mLayout.addActionButton("Add tag", generateIcon("tag"));
+  auto *addTagAction = mLayout.addActionButton("Add tag", generateSvgIcon("tag"));
+  addTagAction->setStatusTip("Tag actual pipeline settings");
   addTagAction->setToolTip("Tag the actual settings in the history.");
   connect(addTagAction, &QAction::triggered, [this]() { mDialogHistory->createTag(); });
 
@@ -154,7 +160,8 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   //
   // Add disable button
   //
-  mActionDisabled = mLayout.addActionButton("Disable pipeline", generateIcon("invisible"));
+  mActionDisabled = mLayout.addActionButton("Disable pipeline", generateSvgIcon("view-hidden"));
+  mActionDisabled->setStatusTip("Temporary disable this pipeline");
   mActionDisabled->setCheckable(true);
   connect(mActionDisabled, &QAction::triggered, [this](bool checked) {
     mSettings.disabled = checked;
@@ -164,14 +171,20 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
   });
   connect(mActionDisabled, &QAction::triggered, this, &PanelPipelineSettings::valueChangedEvent);
 
+  //
+  // Add delete button
+  //
+  auto *actionDeletePipeline = mLayout.addActionButton("Delete pipeline", generateSvgIcon("edit-delete"));
+  actionDeletePipeline->setStatusTip("Delete pipeline");
+  connect(actionDeletePipeline, &QAction::triggered, this, &PanelPipelineSettings::deletePipeline);
+
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);
   connect(this, &PanelPipelineSettings::updatePreviewFinished, this, &PanelPipelineSettings::onPreviewFinished);
-  connect(mPreviewImage, &PanelPreview::tileClicked, this, &PanelPipelineSettings::onTileClicked);
-  connect(mPreviewImage, &PanelPreview::onSettingChanged, this, &PanelPipelineSettings::updatePreview);
+  connect(mPreviewImage, &DialogImageViewer::tileClicked, this, &PanelPipelineSettings::onTileClicked);
+  connect(mPreviewImage, &DialogImageViewer::onSettingChanged, this, &PanelPipelineSettings::updatePreview);
   connect(wm->getImagePanel(), &PanelImages::imageSelectionChanged, this, &PanelPipelineSettings::updatePreview);
   connect(wm->getPanelProjectSettings(), &PanelProjectSettings::updateImagePreview, this, &PanelPipelineSettings::updatePreview);
   connect(mLayout.getBackButton(), &QAction::triggered, this, &PanelPipelineSettings::closeWindow);
-  connect(mLayout.getDeleteButton(), &QAction::triggered, this, &PanelPipelineSettings::deletePipeline);
   connect(wm->getPanelClassification(), &PanelClassification::settingsChanged, this, &PanelPipelineSettings::onClassificationNameChanged);
   onClassificationNameChanged();
 
@@ -310,7 +323,7 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 {
   //
   //
-  pipelineName = SettingBase::create<SettingLineEdit<std::string>>(windowMain, generateIcon("header"), "Pipeline name", 15);
+  pipelineName = SettingBase::create<SettingLineEdit<std::string>>(windowMain, generateSvgIcon("text-field"), "Pipeline name", 15);
   pipelineName->setPlaceholderText("Name");
   pipelineName->setMaxLength(30);
   pipelineName->connectWithSetting(&mSettings.meta.name);
@@ -343,7 +356,7 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 
   //
   //
-  defaultClassId = SettingBase::create<SettingComboBoxClassesOutN>(windowMain, generateIcon("circle"), "Class", 10);
+  defaultClassId = SettingBase::create<SettingComboBoxClassesOutN>(windowMain, generateSvgIcon("shapes"), "Output class", 10);
   defaultClassId->addOptions({
       {enums::ClassId::UNDEFINED, "Undefined"}, {enums::ClassId::C0, "Class C0"},   {enums::ClassId::C1, "Class C1"},
       {enums::ClassId::C2, "Class C2"},         {enums::ClassId::C3, "Class C3"},   {enums::ClassId::C4, "Class C4"},
@@ -363,7 +376,7 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 
   //
   //
-  pipelineNotes = SettingBase::create<SettingTextEdit>(windowMain, generateIcon("header"), "", 15);
+  pipelineNotes = SettingBase::create<SettingTextEdit>(windowMain, {}, "", 15);
   pipelineNotes->setPlaceholderText("Notes on the pipeline ...");
   pipelineNotes->connectWithSetting(&mSettings.meta.notes);
 
@@ -381,9 +394,8 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 
   {
     auto *col1 = tab->addVerticalPanel();
-    col1->addGroup("Pipeline meta", {pipelineName.get()});
+    col1->addGroup("Pipeline", {pipelineName.get(), defaultClassId.get()});
     col1->addGroup("Pipeline input", {cStackIndex.get(), zProjection.get(), zStackIndex.get()});
-    col1->addGroup("Pipeline output", {defaultClassId.get()});
     col1->addGroup({pipelineNotes.get()});
   }
 
@@ -564,8 +576,8 @@ void PanelPipelineSettings::previewThread()
 
             auto &previewResult = jobToDo.previewPanel->getPreviewObject();
             processor::PreviewSettings prevSettings;
-            prevSettings.style = jobToDo.previewPanel->getFilledPreview() ? settings::ImageSaverSettings::Style::FILLED
-                                                                          : settings::ImageSaverSettings::Style::OUTLINED;
+            prevSettings.style =
+                jobToDo.previewPanel->fillOverlay() ? settings::ImageSaverSettings::Style::FILLED : settings::ImageSaverSettings::Style::OUTLINED;
 
             joda::settings::Pipeline *myPipeline = nullptr;
             int cnt                              = 0;
@@ -582,22 +594,7 @@ void PanelPipelineSettings::previewThread()
             jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, jobToDo.threadSettings, *myPipeline, imgIndex,
                                         jobToDo.selectedTileX, jobToDo.selectedTileY, previewResult, imgProps, jobToDo.classesToShow);
             // Create a QByteArray from the char array
-            QString info = "<html>";
-            auto classes = jobToDo.classes;
-            for(const auto &[classId, count] : previewResult.foundObjects) {
-              QString tmp = "<span style=\"color: " + QString(count.color.data()) + ";\">" +
-                            (classes[static_cast<enums::ClassIdIn>(classId)] + "</span>: " + QString::number(count.count) + "<br>");
-              info += tmp;
-            }
-            if(previewResult.isOverExposed) {
-              QString tmp = "<span style=\"color: #750000;\">Image may be overexposed</span><br>";
-              info += tmp;
-            }
-            if(previewResult.noiseDetected) {
-              QString tmp = "<span style=\"color: #750000;\">Image may be noisy</span><br>";
-              info += tmp;
-            }
-            info += "</html>";
+
             jobToDo.previewPanel->setThumbnailPosition(
                 PanelImageView::ThumbParameter{.nrOfTilesX          = tileNrX,
                                                .nrOfTilesY          = tileNrY,
@@ -607,7 +604,7 @@ void PanelPipelineSettings::previewThread()
                                                .originalImageHeight = imageHeight,
                                                .selectedTileX       = jobToDo.selectedTileX,
                                                .selectedTileY       = jobToDo.selectedTileY});
-            jobToDo.previewPanel->updateImage(info);
+            jobToDo.previewPanel->imageUpdated(previewResult.results, jobToDo.classes);
 
           } catch(const std::exception &error) {
             // mPreviewImage->resetImage(error.what());
@@ -787,7 +784,7 @@ void PanelPipelineSettings::closeWindow()
 void PanelPipelineSettings::deletePipeline()
 {
   QMessageBox messageBox(mWindowMain);
-  messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+  messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
   messageBox.setWindowTitle("Delete pipeline?");
   messageBox.setText("Delete pipeline?");
   QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
@@ -855,7 +852,7 @@ void PanelPipelineSettings::openTemplate()
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(mWindowMain);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
     messageBox.setWindowTitle("Could not open template!");
     messageBox.setText("Could not open template, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
@@ -885,7 +882,7 @@ void PanelPipelineSettings::saveAsTemplate()
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(mWindowMain);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
     messageBox.setWindowTitle("Could not save template!");
     messageBox.setText("Could not save template, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
@@ -917,21 +914,25 @@ void PanelPipelineSettings::copyPipeline()
 void PanelPipelineSettings::setActive(bool setActive)
 {
   if(!mIsActiveShown && setActive) {
+    mLayout.showToolBar(true);
     mIsActiveShown = true;
     updatePreview();
     mDialogHistory->loadHistory();
+    mPreviewImage->setVisible(true);
   }
   if(!setActive && mIsActiveShown) {
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
     mIsActiveShown = false;
+    mLayout.showToolBar(false);
+
     mDialogHistory->hide();
     mHistoryAction->setChecked(false);
-    mPreviewImage->hidePreviewImage();
+    mPreviewImage->setVisible(false);
     // Wait until preview render has been finished
     while(mPreviewInProgress) {
       std::this_thread::sleep_for(100ms);
     }
-    mPreviewImage->resetImage("");
+    mPreviewImage->resetImage();
   }
 }
 

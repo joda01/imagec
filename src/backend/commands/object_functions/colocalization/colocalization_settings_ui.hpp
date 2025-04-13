@@ -38,7 +38,7 @@ class Colocalization : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Colocalization";
-  inline static std::string ICON              = "venn-diagram";
+  inline static std::string ICON              = "bwtonal";
   inline static std::string DESCRIPTION       = "Calculates the overlapping are of two or more image channels.";
   inline static std::vector<std::string> TAGS = {"colocalization", "object", "coloc"};
 
@@ -49,7 +49,7 @@ public:
     auto *modelTab = addTab(
         "Base", [] {}, false);
 
-    mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("venn-diagram"), "Classes to coloc.");
+    mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, {}, "Classes to coloc.");
     mClassesIn->setValue(settings.inputClasses);
     mClassesIn->connectWithSetting(&settings.inputClasses);
 
@@ -58,13 +58,13 @@ public:
     //
     //
     //
-    mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("circle"), "Output class");
+    mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, generateSvgIcon("choice-round"), "Output class");
     mClassOutput->setValue(settings.outputClass);
     mClassOutput->connectWithSetting(&settings.outputClass);
 
     //
     //
-    mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("query-inner-join"), "Min. intersection");
+    mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("format-number-percent"), "Min. intersection");
     mMinIntersection->setDefaultValue(0.1);
     mMinIntersection->setPlaceholderText("[0 - 1]");
     mMinIntersection->setUnit("%");

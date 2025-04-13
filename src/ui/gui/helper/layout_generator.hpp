@@ -17,6 +17,7 @@
 #include <qlabel.h>
 #include <qlayout.h>
 #include <qlineedit.h>
+#include <qmainwindow.h>
 #include <qnamespace.h>
 #include <qprogressbar.h>
 #include <qpushbutton.h>
@@ -49,7 +50,7 @@ class LayoutGenerator : public QObject
 public:
   /////////////////////////////////////////////////////
   explicit LayoutGenerator(QWidget *parent, bool withDeleteButton = true, bool withTopToolbar = true, bool withBackButton = true,
-                           bool withBottomToolbar = false);
+                           bool withBottomToolbar = false, QMainWindow *toolbarParent = nullptr);
 
   TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose, bool showCloseButton, int32_t topContentSpacing = SPACING);
 
@@ -61,6 +62,11 @@ public:
   void onRemoveTab(int idx)
   {
     onTabClosed(idx);
+  }
+
+  void showToolBar(bool visible)
+  {
+    mToolbarTop->setVisible(visible);
   }
 
   int32_t getNrOfTabs() const
@@ -122,6 +128,7 @@ private:
   QAction *mBackButton         = nullptr;
   QAction *mDeleteButton       = nullptr;
   QTabWidget *mTabWidget;
+  QMainWindow *mToolbarWindow = nullptr;
 };
 
 ///

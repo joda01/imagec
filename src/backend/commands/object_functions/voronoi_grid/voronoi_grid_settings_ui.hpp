@@ -35,7 +35,7 @@ class VoronoiGrid : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Voronoi";
-  inline static std::string ICON              = "voronoi";
+  inline static std::string ICON              = "kstars_grid";
   inline static std::string DESCRIPTION       = "Partition a plane into regions close to each of a given set of objects";
   inline static std::vector<std::string> TAGS = {"voronoi", "grid", "delaunay", "triangulation", "tessellation"};
 
@@ -46,17 +46,17 @@ public:
         "", [] {}, false);
     //
     //
-    pointsClasss = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("initial-state"), "Centers");
+    pointsClasss = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateSvgIcon("snap-bounding-box-center"), "Centers");
     pointsClasss->setValue(settings.inputClassesPoints);
     pointsClasss->connectWithSetting(&settings.inputClassesPoints);
 
-    voronoiClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("voronoi"), "Output class");
+    voronoiClassOut = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Output class");
     voronoiClassOut->setValue(settings.outputClassVoronoi);
     voronoiClassOut->connectWithSetting(&settings.outputClassVoronoi);
 
     //
     //
-    mMaxRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("radius"), "Max. radius");
+    mMaxRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("snap-nodes-center"), "Max. radius");
     mMaxRadius->setPlaceholderText("[0 - ]");
     mMaxRadius->setUnit("px");
     mMaxRadius->setMinMax(0, INT32_MAX);
@@ -66,7 +66,7 @@ public:
 
     //
     //
-    maskingClasss = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("layer-mask"), "Masking classs (optional)");
+    maskingClasss = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, {}, "Masking classs (optional)");
     maskingClasss->setValue(settings.inputClassesMask);
     maskingClasss->connectWithSetting(&settings.inputClassesMask);
 
@@ -89,7 +89,7 @@ public:
 
     //
     //
-    mMinAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("diameter"), "Min. area size");
+    mMinAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("skrooge_type"), "Min. area size");
     mMinAreaSize->setPlaceholderText("[0 - ]");
     mMinAreaSize->setUnit("px");
     mMinAreaSize->setMinMax(0, INT32_MAX);
@@ -99,7 +99,7 @@ public:
 
     //
     //
-    mMaxAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("diameter"), "Max. area size");
+    mMaxAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("skrooge_type"), "Max. area size");
     mMaxAreaSize->setPlaceholderText("[0 - ]");
     mMaxAreaSize->setUnit("px");
     mMaxAreaSize->setMinMax(0, INT32_MAX);

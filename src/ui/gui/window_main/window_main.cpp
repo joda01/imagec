@@ -17,9 +17,11 @@
 #include <qlabel.h>
 #include <qlayout.h>
 #include <qlineedit.h>
+#include <qmenu.h>
 #include <qobject.h>
 #include <qpushbutton.h>
 #include <qstackedwidget.h>
+#include <qtabwidget.h>
 #include <qwidget.h>
 #include <QAction>
 #include <QIcon>
@@ -39,10 +41,12 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/helper/random_name_generator.hpp"
+#include "backend/helper/system/system_resources.hpp"
 #include "backend/helper/username.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "backend/settings/settings.hpp"
+#include "backend/user_settings/user_settings.hpp"
 #include "ui/gui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/gui/dialog_analyze_running.hpp"
 #include "ui/gui/dialog_shadow/dialog_shadow.h"
@@ -73,6 +77,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   setCentralWidget(createStackedWidget());
   showPanelStartPage();
   clearSettings();
+  statusBar();
 
   //
   // Watch for working directory changes
@@ -80,14 +85,14 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   getController()->registerImageLookupCallback([this](joda::filesystem::State state) {
     if(state == joda::filesystem::State::FINISHED) {
       if(getController()->getNrOfFoundImages() > 0) {
-        mStartAnalysis->setEnabled(true);
+        mPanelPipeline->setActionStartEnabled(true);
         mStartAnalysisToolButton->setEnabled(true);
       } else {
-        mStartAnalysis->setEnabled(false);
+        mPanelPipeline->setActionStartEnabled(false);
         mStartAnalysisToolButton->setEnabled(false);
       }
     } else if(state == joda::filesystem::State::RUNNING) {
-      mStartAnalysis->setEnabled(false);
+      mPanelPipeline->setActionStartEnabled(false);
       mStartAnalysisToolButton->setEnabled(false);
     }
   });
@@ -97,16 +102,24 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   //
   mTemplateDirWatcher.addPath(joda::templates::TemplateParser::getUsersTemplateDirectory().string().data());    // Replace with your desired path
   QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::fileChanged, [&](const QString &path) {
-    loadTemplates();
-    mPanelProjectSettings->loadTemplates();
+    mPanelPipeline->loadTemplates();
+    loadProjectTemplates();
   });
   QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::directoryChanged, [&](const QString &path) {
-    loadTemplates();
-    mPanelProjectSettings->loadTemplates();
+    mPanelPipeline->loadTemplates();
+    loadProjectTemplates();
   });
 
-  loadTemplates();
-  mPanelProjectSettings->loadTemplates();
+  // Load user settings
+  try {
+    joda::user_settings::UserSettings::open();
+  } catch(const std::exception &ex) {
+    joda::log::logError("Could not open user settings! What: " + std::string(ex.what()));
+  }
+
+  mPanelPipeline->loadTemplates();
+  loadProjectTemplates();
+  loadLastOpened();
 
   //
   // Initial background tasks
@@ -154,25 +167,31 @@ void WindowMain::setSideBarVisible(bool visible)
 ///
 void WindowMain::createTopToolbar()
 {
-  mTopToolBar = addToolBar("toolbar");
-  mTopToolBar->setMovable(false);
+  ////////////
+  mTopToolBar = addToolBar("File toolbar");
 
-  mNewProjectButton = new QAction(generateIcon("file"), "New project", mTopToolBar);
+  mNewProjectMenu   = new QMenu();
+  mNewProjectButton = new QAction(generateSvgIcon("folder-new"), "New project", mTopToolBar);
+  mNewProjectButton->setStatusTip("Create new project or create new from template");
+  mNewProjectButton->setMenu(mNewProjectMenu);
   connect(mNewProjectButton, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
   mTopToolBar->addAction(mNewProjectButton);
 
-  mOpenProjectButton = new QAction(generateIcon("opened-folder"), "Open project or results", mTopToolBar);
+  mOpenProjectMenu   = new QMenu();
+  mOpenProjectButton = new QAction(generateSvgIcon("document-open-folder"), "Open project or results", mTopToolBar);
+  mOpenProjectButton->setStatusTip("Open existing project, template or results");
+  mOpenProjectButton->setMenu(mOpenProjectMenu);
   connect(mOpenProjectButton, &QAction::triggered, this, &WindowMain::onOpenClicked);
   mTopToolBar->addAction(mOpenProjectButton);
 
-  mSaveProject = new QAction(generateIcon("save"), "Save", mTopToolBar);
-  mSaveProject->setToolTip("Save project!");
+  mSaveProject = new QAction(generateSvgIcon("document-save"), "Save", mTopToolBar);
+  mSaveProject->setStatusTip("Save project");
   mSaveProject->setEnabled(false);
   connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
   mTopToolBar->addAction(mSaveProject);
 
-  mSaveProjectAs = new QAction(generateIcon("save-as"), "Save as", mTopToolBar);
-  mSaveProjectAs->setToolTip("Save project as!");
+  mSaveProjectAs = new QAction(generateSvgIcon("document-save-as"), "Save as", mTopToolBar);
+  mSaveProjectAs->setStatusTip("Save project as new name");
   connect(mSaveProjectAs, &QAction::triggered, this, &WindowMain::onSaveProjectAs);
   mTopToolBar->addAction(mSaveProjectAs);
 
@@ -184,8 +203,8 @@ void WindowMain::createTopToolbar()
   // toolbar->addAction(showResultsTemplate);
   // mTopToolBar->addSeparator();
 
-  mShowCompilerLog = new QAction(generateIcon("popup"), "Compiler log", mTopToolBar);
-  mShowCompilerLog->setToolTip("CompileLog!");
+  mShowCompilerLog = new QAction(generateSvgIcon("show-all-effects"), "Compiler log", mTopToolBar);
+  mShowCompilerLog->setStatusTip("Show possible pipeline issues");
   mShowCompilerLog->setCheckable(true);
   connect(mShowCompilerLog, &QAction::triggered, [this](bool checked) {
     if(checked) {
@@ -198,7 +217,8 @@ void WindowMain::createTopToolbar()
 
   mTopToolBar->addAction(mShowCompilerLog);
 
-  mStartAnalysisToolButton = new QAction(generateIcon("play"), "Start analyze", mTopToolBar);
+  mStartAnalysisToolButton = new QAction(generateSvgIcon("media-playback-start"), "Start analyze", mTopToolBar);
+  mStartAnalysisToolButton->setStatusTip("Start analyze");
   mStartAnalysisToolButton->setEnabled(false);
   mStartAnalysisToolButton->setToolTip("Run pipeline!");
   connect(mStartAnalysisToolButton, &QAction::triggered, this, &WindowMain::onStartClicked);
@@ -208,12 +228,15 @@ void WindowMain::createTopToolbar()
   spacerTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   mTopToolBar->addWidget(spacerTop);
 
-  auto *helpButton = new QAction(generateIcon("help"), "Help", mTopToolBar);
-  helpButton->setToolTip("Help");
-  connect(helpButton, &QAction::triggered, this, &WindowMain::onShowHelpClicked);
-  mTopToolBar->addAction(helpButton);
+  // auto *helpButton = new QAction(generateSvgIcon("help-contents"), "Help", mTopToolBar);
+  // helpButton->setToolTip("Help");
+  // connect(helpButton, &QAction::triggered, this, &WindowMain::onShowHelpClicked);
+  // mTopToolBar->addAction(helpButton);
 
-  mShowInfoDialog = new QAction(generateIcon("info"), "Info", mTopToolBar);
+  mTopToolBar->addSeparator();
+
+  mShowInfoDialog = new QAction(generateSvgIcon("help-about"), "About", mTopToolBar);
+  mShowInfoDialog->setStatusTip("Open about dialog");
   mShowInfoDialog->setToolTip("Info");
   connect(mShowInfoDialog, &QAction::triggered, this, &WindowMain::onShowInfoDialog);
   mTopToolBar->addAction(mShowInfoDialog);
@@ -249,41 +272,8 @@ void WindowMain::createLeftToolbar()
 
   // Pipeline Tab
   {
-    auto *pipelineTab = new QWidget();
-    auto *layout      = new QVBoxLayout();
-
-    //
-    // Open template
-    //
-    auto *innerLayout  = new QHBoxLayout();
-    mTemplateSelection = new QComboBox();
-    innerLayout->addWidget(mTemplateSelection);
-
-    //
-    // Start button
-    //
-    {
-      mStartAnalysis = new QPushButton(generateIcon("play"), "");
-      mStartAnalysis->setEnabled(false);
-      mStartAnalysis->setToolTip("Run pipeline!");
-      innerLayout->addWidget(mStartAnalysis);
-    }
-
-    //
-    // Add layout
-    //
-    innerLayout->setStretch(0, 1);
-    layout->addLayout(innerLayout);
-
-    // Channel list
     mPanelPipeline = new PanelPipeline(this, mAnalyzeSettings);
-    layout->addWidget(mPanelPipeline);
-
-    pipelineTab->setLayout(layout);
-    mTabWidget->addTab(pipelineTab, "Pipelines");
-
-    connect(mTemplateSelection, &QComboBox::currentIndexChanged, this, &WindowMain::onAddChannel);
-    connect(mStartAnalysis, &QPushButton::clicked, this, &WindowMain::onStartClicked);
+    mTabWidget->addTab(mPanelPipeline, "Pipelines");
   }
 
   // Reportings tab
@@ -376,19 +366,28 @@ QWidget *WindowMain::createReportingWidget()
 /// \brief
 /// \author     Joachim Danmayr
 ///
+bool WindowMain::askForNewProject()
+{
+  QMessageBox messageBox(this);
+  auto icon = generateSvgIcon("data-information");
+  messageBox.setIconPixmap(icon.pixmap(42, 42));
+  messageBox.setWindowTitle("Create new project?");
+  messageBox.setText("Unsaved settings will get lost! Create new project?");
+  QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+  QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+  messageBox.setDefaultButton(noButton);
+  auto reply = messageBox.exec();
+  return messageBox.clickedButton() != noButton;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
 void WindowMain::onNewProjectClicked()
 {
   if(!mSelectedProjectSettingsFilePath.empty()) {
-    QMessageBox messageBox(this);
-    auto icon = generateIcon("info-blue");
-    messageBox.setIconPixmap(icon.pixmap(42, 42));
-    messageBox.setWindowTitle("Create new project?");
-    messageBox.setText("Unsaved settings will get lost! Create new project?");
-    QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
-    QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
-    messageBox.setDefaultButton(noButton);
-    auto reply = messageBox.exec();
-    if(messageBox.clickedButton() == noButton) {
+    if(!askForNewProject()) {
       return;
     }
   }
@@ -405,7 +404,6 @@ void WindowMain::onNewProjectClicked()
 ///
 void WindowMain::clearSettings()
 {
-  mPanelResultsInfo->clearHistory();
   mSelectedProjectSettingsFilePath.clear();
   mPanelPipeline->clear();
   mAnalyzeSettings.resultsSettings = settings::ResultsSettings();
@@ -433,7 +431,6 @@ void WindowMain::onOpenClicked()
   }
 
   QFileDialog::Options opt;
-  opt.setFlag(QFileDialog::DontUseNativeDialog, false);
 
   QString filePath =
       QFileDialog::getOpenFileName(this, "Open File", folderToOpen,
@@ -476,12 +473,22 @@ void WindowMain::openResultsSettings(const QString &filePath)
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
     messageBox.setWindowTitle("Could not load database!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
   }
+}
+
+///
+/// \brief      Open project settings
+/// \author     Joachim Danmayr
+///
+void WindowMain::addToLastLoadedResults(const QString &path, const QString &jobName)
+{
+  joda::user_settings::UserSettings::addLastOpenedResult(path.toStdString(), jobName.toStdString());
+  loadLastOpened();
 }
 
 ///
@@ -526,13 +533,15 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     checkForSettingsChanged();
     if(!openFromTemplate) {
       saveProject(mSelectedProjectSettingsFilePath, false, false);
+      joda::user_settings::UserSettings::addLastOpenedProject(filePath.toStdString());
+      loadLastOpened();
     }
     showPanelStartPage();
 
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
     messageBox.setWindowTitle("Could not load settings!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
@@ -640,7 +649,7 @@ void WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
     messageBox.setWindowTitle("Could not save settings!");
     messageBox.setText("Could not save settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
@@ -652,16 +661,12 @@ void WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
 /// \brief      Templates loaded from templates folder
 /// \author     Joachim Danmayr
 ///
-void WindowMain::loadTemplates()
+void WindowMain::loadProjectTemplates()
 {
   auto foundTemplates = joda::templates::TemplateParser::findTemplates(
-      {"templates/pipelines", joda::templates::TemplateParser::getUsersTemplateDirectory().string()}, joda::fs::EXT_PIPELINE_TEMPLATE);
+      {"templates/projects", joda::templates::TemplateParser::getUsersTemplateDirectory().string()}, joda::fs::EXT_PROJECT_TEMPLATE);
 
-  mTemplateSelection->clear();
-  mTemplateSelection->addItem("Add pipelines ...", "");
-  mTemplateSelection->insertSeparator(mTemplateSelection->count());
-  mTemplateSelection->addItem(generateIcon("flow-many"), "Empty pipeline", "emptyChannel");
-  mTemplateSelection->insertSeparator(mTemplateSelection->count());
+  mNewProjectMenu->clear();
   std::string actCategory = "basic";
   size_t addedPerCategory = 0;
   for(const auto &[category, dataInCategory] : foundTemplates) {
@@ -670,16 +675,44 @@ void WindowMain::loadTemplates()
       if(category != actCategory) {
         actCategory = category;
         if(addedPerCategory > 0) {
-          mTemplateSelection->insertSeparator(mTemplateSelection->count());
+          mNewProjectMenu->addSeparator();
         }
       }
+      QAction *action;
       if(!data.icon.isNull()) {
-        mTemplateSelection->addItem(QIcon(data.icon.scaled(28, 28)), data.title.data(), data.path.data());
+        action = mNewProjectMenu->addAction(QIcon(data.icon.scaled(28, 28)), data.title.data());
+
       } else {
-        mTemplateSelection->addItem(generateIcon("favorite"), data.title.data(), data.path.data());
+        action = mNewProjectMenu->addAction(generateSvgIcon("favorite"), data.title.data());
       }
+      connect(action, &QAction::triggered, this, [this, path = data.path]() {
+        if(!askForNewProject()) {
+          return;
+        }
+        checkForSettingsChanged();
+        openProjectSettings(path.data(), true);
+      });
     }
     addedPerCategory = dataInCategory.size();
+  }
+}
+
+///
+/// \brief      Load last opened files
+/// \author     Joachim Danmayr
+///
+void WindowMain::loadLastOpened()
+{
+  mOpenProjectMenu->clear();
+  mOpenProjectMenu->addSection("Projects");
+  for(const auto &path : joda::user_settings::UserSettings::getLastOpenedProject()) {
+    auto *action = mOpenProjectMenu->addAction(path.path.data());
+    connect(action, &QAction::triggered, this, [this, path = path.path]() { openProjectSettings(path.data(), false); });
+  }
+  mOpenProjectMenu->addSection("Results");
+  for(const auto &path : joda::user_settings::UserSettings::getLastOpenedResult()) {
+    auto *action = mOpenProjectMenu->addAction((path.path + " (" + path.title + ")").data());
+    connect(action, &QAction::triggered, this, [this, path = path.path]() { openResultsSettings(path.data()); });
   }
 }
 
@@ -704,12 +737,12 @@ void WindowMain::onStartClicked()
     DialogAnalyzeRunning dialg(this, mAnalyzeSettings);
     dialg.exec();
     auto jobIinfo = getController()->getJobInformation();
-    mPanelResultsInfo->addResultsFileToHistory(jobIinfo.resultsFilePath, jobIinfo.jobName, jobIinfo.timestampStarted);
+    addToLastLoadedResults(jobIinfo.resultsFilePath.string().data(), jobIinfo.jobName.data());
     // Analysis finished -> generate new name
     mPanelProjectSettings->generateNewJobName();
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateIcon("error-red").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-error").pixmap(48, 48));
     messageBox.setWindowTitle("Error in settings!");
     messageBox.setText(ex.what());
     messageBox.addButton(tr("Okay"), QMessageBox::YesRole);
@@ -751,7 +784,6 @@ bool WindowMain::showPanelStartPage()
   mSidebar->setVisible(true);
   mSaveProject->setVisible(true);
   mSaveProject->setVisible(true);
-  mStartAnalysis->setVisible(true);
   mStartAnalysisToolButton->setVisible(true);
   mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::START_PAGE));
   if(nullptr != mPanelReporting) {
@@ -806,7 +838,7 @@ void WindowMain::onRemoveChannelClicked()
 {
   if(mSelectedChannel != nullptr) {
     QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
     messageBox.setWindowTitle("Remove channel?");
     messageBox.setText("Do you want to remove the channel?");
     QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
@@ -820,21 +852,6 @@ void WindowMain::onRemoveChannelClicked()
       mSelectedChannel = nullptr;
     }
   }
-}
-
-void WindowMain::onAddChannel()
-{
-  auto selection = mTemplateSelection->currentData().toString();
-  if(selection == "") {
-  } else if(selection == "emptyChannel") {
-    mPanelPipeline->addChannel(joda::settings::Pipeline{});
-  } else {
-    mPanelPipeline->addChannel(mTemplateSelection->currentData().toString());
-  }
-  checkForSettingsChanged();
-  mTemplateSelection->blockSignals(true);
-  mTemplateSelection->setCurrentIndex(0);
-  mTemplateSelection->blockSignals(false);
 }
 
 ///
@@ -855,9 +872,8 @@ void WindowMain::onShowHelpClicked()
 ///
 void WindowMain::onShowInfoDialog()
 {
-  DialogShadow messageBox(this);
-  messageBox.setWindowTitle("Info");
-  auto *mainLayout = new QVBoxLayout(&messageBox);
+  auto *about = new QDialog(this);
+  about->setWindowTitle("About ImageC");
   //   mainLayout->setContentsMargins(28, 28, 28, 28);
   QLabel *helpTextLabel =
       new QLabel("<p style=\"text-align: left;\"><strong>" + QString(Version::getProgamName().data()) + " " + QString(Version::getVersion().data()) +
@@ -876,17 +892,171 @@ void WindowMain::onShowInfoDialog()
                  "<p style=\"text-align: left;\">copyright 2022-2025 Joachim Danmayr</p>");
   helpTextLabel->setOpenExternalLinks(true);
   helpTextLabel->setWordWrap(true);
-  QFont fontLineEdit;
-  fontLineEdit.setPixelSize(16);
-  helpTextLabel->setFont(fontLineEdit);
-  mainLayout->addWidget(helpTextLabel);
-  mainLayout->addStretch();
-  mainLayout->invalidate();
-  mainLayout->activate();
-  helpTextLabel->adjustSize();
-  helpTextLabel->setMinimumHeight(helpTextLabel->height() + 56);
 
-  messageBox.exec();
+  auto *tab = new QTabWidget();
+  //
+  // About Tab
+  //
+  {
+    auto *widgetAbout = new QWidget();
+    auto *layoutAbout = new QVBoxLayout();
+    widgetAbout->setLayout(layoutAbout);
+    tab->addTab(widgetAbout, "About");
+    auto *labelAbout = new QLabel("ImageC " + QString(Version::getVersion().data()) +
+                                  " is an application for high throughput image processing.<br/><br/>"
+                                  "2022-2025 Joachim Danmayr<br/><br/>"
+                                  "<a href=\"https://imagec.org/\">https://imagec.org/</a><br/><br/>"
+                                  "ALL RIGHTS RESERVED");
+    labelAbout->setOpenExternalLinks(true);
+    labelAbout->setAlignment(Qt::AlignCenter);
+    layoutAbout->addWidget(labelAbout);
+  }
+
+  //
+  // Contributors
+  //
+  {
+    auto *widgetAbout = new QWidget();
+    auto *layoutAbout = new QVBoxLayout();
+    layoutAbout->setAlignment(Qt::AlignCenter);
+    widgetAbout->setLayout(layoutAbout);
+    tab->addTab(widgetAbout, "Contributors");
+    auto *labelAbout = new QLabel(
+        "<u>Melanie Schuerz</u> : Coordination, AI-Training, Testing<br/><br/>"
+        "<u>Tanja Plank</u> : Logo design, AI-Training, Testing<br/><br/>"
+        "<u>Maria Jaritsch</u> : AI-Training, Testing<br/><br/>"
+        "<u>Heloisa Melobenirschke</u> : AI-Training<br/><br/>"
+        "<u>Patricia Hrasnova</u> : AI-Training, Testing<br/><br/>"
+        "<u>Joachim Danmayr</u> : Idea, Programming, Testing, Documentation<br/><br/>"
+        "<u>Manfred Seiwald</u> : Integration testing<br/><br/>");
+
+    labelAbout->setOpenExternalLinks(true);
+    labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    layoutAbout->addWidget(labelAbout);
+  }
+
+  //
+  // Version
+  //
+  {
+    auto *widgetAbout = new QWidget();
+    auto *layoutAbout = new QVBoxLayout();
+    layoutAbout->setAlignment(Qt::AlignCenter);
+    widgetAbout->setLayout(layoutAbout);
+    tab->addTab(widgetAbout, "Version");
+    auto *labelAbout = new QLabel("<b>" + QString(Version::getProgamName().data()) + " " + QString(Version::getVersion().data()) + "</b><br/>" +
+                                  QString(Version::getBuildTime().data()) + "<br/><br/>" +
+                                  "CPU cores: " + QString(std::to_string(joda::system::getNrOfCPUs()).data()) +
+                                  "<br/>"
+                                  "RAM Total: " +
+                                  QString::number((double) joda::system::getTotalSystemMemory() / 1000000.0, 'f', 2) +
+                                  "MB <br/>"
+                                  "RAM Available: " +
+                                  QString::number((double) joda::system::getAvailableSystemMemory() / 1000000.0, 'f', 2) + " MB <br/>");
+
+    labelAbout->setOpenExternalLinks(true);
+    labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    layoutAbout->addWidget(labelAbout);
+  }
+
+  //
+  // Open source
+  //
+  {
+    auto *widgetAbout = new QWidget();
+    auto *layoutAbout = new QVBoxLayout();
+    layoutAbout->setAlignment(Qt::AlignCenter);
+    widgetAbout->setLayout(layoutAbout);
+    tab->addTab(widgetAbout, "Libraries");
+    QFile file(":/other/other/open_source_libs.html");
+    QString openSourceLibs;
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+      openSourceLibs = file.readAll();
+      file.close();
+    }
+    auto *labelAbout = new QTextBrowser();
+    labelAbout->setHtml(openSourceLibs);
+    labelAbout->setOpenExternalLinks(true);
+
+    labelAbout->setOpenExternalLinks(true);
+    labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    layoutAbout->addWidget(labelAbout);
+  }
+
+  //
+  // 3rd party
+  //
+  {
+    auto *widgetAbout = new QWidget();
+    auto *layoutAbout = new QVBoxLayout();
+    layoutAbout->setAlignment(Qt::AlignCenter);
+    widgetAbout->setLayout(layoutAbout);
+    tab->addTab(widgetAbout, "3rd party");
+    auto *labelAbout = new QLabel();
+    QString others =
+        "<u>icons8</u> : Thanks to <a href=\"https://icons8.com/\">http://icon8.org</a> for providing some of the icons!<br/><br/>"
+        "<u>KDE project</u> : Thanks to the KDE project for providing the <a "
+        "href=\"https://develop.kde.org/frameworks/breeze-icons/\">Breeze</a> icon set!<br/><br/>";
+    labelAbout->setText(others);
+    labelAbout->setOpenExternalLinks(true);
+    labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    layoutAbout->addWidget(labelAbout);
+  }
+
+  //
+  // License
+  //
+  {
+    auto *widgetAbout = new QWidget();
+    auto *layoutAbout = new QVBoxLayout();
+    layoutAbout->setAlignment(Qt::AlignCenter);
+    widgetAbout->setLayout(layoutAbout);
+    tab->addTab(widgetAbout, "License");
+    QFile file(":/other/other/license.md");
+    QString openSourceLibs;
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+      openSourceLibs = file.readAll();
+      file.close();
+    }
+    auto *preamble = new QLabel(
+        "This software is free to use and licensed under AGPL V3 for <b>non commercial</b>!<br/>For usage in "
+        "commercial environment, please contact <a href= \"mailto:support@imagec.org\">support@imagec.org</a>.");
+    preamble->setOpenExternalLinks(true);
+    preamble->setAlignment(Qt::AlignCenter);
+    layoutAbout->addWidget(preamble);
+
+    auto *labelAbout = new QTextBrowser();
+    labelAbout->setMarkdown(openSourceLibs);
+    labelAbout->setOpenExternalLinks(true);
+    labelAbout->setOpenExternalLinks(true);
+    labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    layoutAbout->addWidget(labelAbout);
+  }
+
+  //
+  // Log
+  //
+  {
+    auto *widgetAbout = new QWidget();
+    auto *layoutAbout = new QVBoxLayout();
+    layoutAbout->setAlignment(Qt::AlignCenter);
+    widgetAbout->setLayout(layoutAbout);
+    tab->addTab(widgetAbout, "Log");
+    auto *labelAbout      = new QTextBrowser();
+    const auto &logBuffer = joda::log::getLogBuffer();
+    labelAbout->setHtml(joda::log::logBufferToHtml().data());
+    labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    layoutAbout->addWidget(labelAbout);
+  }
+
+  //
+  // Main layout
+  //
+  auto *mainLayout = new QVBoxLayout();
+  mainLayout->addWidget(tab);
+  about->setLayout(mainLayout);
+  about->resize(650, 550);
+  about->exec();
 }
 
 ///

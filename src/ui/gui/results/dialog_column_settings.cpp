@@ -109,13 +109,13 @@ DialogColumnSettings::DialogColumnSettings(settings::ResultsSettings *filter, QW
     auto *mSpaceBottomToolbar = mToolbarBottom->addWidget(spacerBottom);
 
     //
-    // auto *mDeleteButton = new QAction(generateIcon("delete"), "Delete", mToolbarBottom);
+    // auto *mDeleteButton = new QAction(generateSvgIcon("edit-delete"), "Delete", mToolbarBottom);
     // connect(mDeleteButton, &QAction::triggered, [this]() { close(); });
     // mToolbarBottom->addAction(mDeleteButton);
 
     //
 
-    auto *okayBottom = new QAction(generateIcon("accept"), "Accept", mToolbarBottom);
+    auto *okayBottom = new QAction(generateSvgIcon("dialog-ok-apply"), "Accept", mToolbarBottom);
     connect(okayBottom, &QAction::triggered, [this]() {
       if(mCrossChannelStackC->count() == 0 &&
          settings::ResultsSettings::MeasureType::INTENSITY ==

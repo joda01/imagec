@@ -16,7 +16,6 @@
 #include <filesystem>
 #include <stdexcept>
 #include <string>
-
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"

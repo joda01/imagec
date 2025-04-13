@@ -38,7 +38,6 @@
 #include "ui/gui/container/container_button.hpp"
 #include "ui/gui/container/container_label.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
-#include "ui/gui/panel_preview.hpp"
 #include "ui/gui/window_main/window_main.hpp"
 
 namespace joda::ui::gui {

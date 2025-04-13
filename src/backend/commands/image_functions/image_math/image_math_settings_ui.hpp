@@ -36,7 +36,7 @@ class ImageMath : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Image math";
-  inline static std::string ICON              = "ratio";
+  inline static std::string ICON              = "insert-math-expression";
   inline static std::string DESCRIPTION       = "Apply basic mathematical operations on one or two images.";
   inline static std::vector<std::string> TAGS = {"invert", "math", "subtract", "add", "plus", "minus"};
 
@@ -53,18 +53,18 @@ public:
     //
     mFunction = SettingBase::create<SettingComboBox<joda::settings::ImageMathSettings::Function>>(parent, {}, "Function");
     mFunction->addOptions({
-        {.key = joda::settings::ImageMathSettings::Function::INVERT, .label = "Invert", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::ImageMathSettings::Function::ADD, .label = "Add", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::ImageMathSettings::Function::SUBTRACT, .label = "Subtract", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::ImageMathSettings::Function::MULTIPLY, .label = "Multiply", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::ImageMathSettings::Function::DIVIDE, .label = "Divide", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::ImageMathSettings::Function::AND, .label = "AND", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::ImageMathSettings::Function::OR, .label = "OR", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::ImageMathSettings::Function::XOR, .label = "XOR", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::ImageMathSettings::Function::MIN, .label = "Min", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::ImageMathSettings::Function::MAX, .label = "Max", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::ImageMathSettings::Function::AVERAGE, .label = "Average", .icon = generateIcon("ampersand")},
-        {.key = joda::settings::ImageMathSettings::Function::DIFFERENCE_TYPE, .label = "Difference", .icon = generateIcon("ampersand")},
+        {.key = joda::settings::ImageMathSettings::Function::INVERT, .label = "Invert", .icon = {}},
+        {.key = joda::settings::ImageMathSettings::Function::ADD, .label = "Add", .icon = {}},
+        {.key = joda::settings::ImageMathSettings::Function::SUBTRACT, .label = "Subtract", .icon = {}},
+        {.key = joda::settings::ImageMathSettings::Function::MULTIPLY, .label = "Multiply", .icon = {}},
+        {.key = joda::settings::ImageMathSettings::Function::DIVIDE, .label = "Divide", .icon = {}},
+        {.key = joda::settings::ImageMathSettings::Function::AND, .label = "AND", .icon = {}},
+        {.key = joda::settings::ImageMathSettings::Function::OR, .label = "OR", .icon = {}},
+        {.key = joda::settings::ImageMathSettings::Function::XOR, .label = "XOR", .icon = {}},
+        {.key = joda::settings::ImageMathSettings::Function::MIN, .label = "Min", .icon = {}},
+        {.key = joda::settings::ImageMathSettings::Function::MAX, .label = "Max", .icon = {}},
+        {.key = joda::settings::ImageMathSettings::Function::AVERAGE, .label = "Average", .icon = {}},
+        {.key = joda::settings::ImageMathSettings::Function::DIFFERENCE_TYPE, .label = "Difference", .icon = {}},
     });
 
     mFunction->setValue(settings.function);
@@ -78,9 +78,8 @@ public:
     });
 
     mOperatorOrder = SettingBase::create<SettingComboBox<joda::settings::ImageMathSettings::OperationOrder>>(parent, {}, "Operation order");
-    mOperatorOrder->addOptions(
-        {{.key = joda::settings::ImageMathSettings::OperationOrder::AoB, .label = "A o B", .icon = generateIcon("ampersand")},
-         {.key = joda::settings::ImageMathSettings::OperationOrder::BoA, .label = "B o A", .icon = generateIcon("ampersand")}});
+    mOperatorOrder->addOptions({{.key = joda::settings::ImageMathSettings::OperationOrder::AoB, .label = "A o B", .icon = {}},
+                                {.key = joda::settings::ImageMathSettings::OperationOrder::BoA, .label = "B o A", .icon = {}}});
 
     mOperatorOrder->setValue(settings.operatorOrder);
     mOperatorOrder->connectWithSetting(&settings.operatorOrder);
@@ -106,7 +105,7 @@ public:
     zStackIndex->setValue(settings.inputImageSecond.imagePlane.zStack);
     zStackIndex->connectWithSetting(&settings.inputImageSecond.imagePlane.zStack);
 
-    mMemoryIdx = SettingBase::create<SettingComboBox<enums::MemoryIdx::Enum>>(parent, generateIcon("matrix"), "From cache");
+    mMemoryIdx = SettingBase::create<SettingComboBox<enums::MemoryIdx::Enum>>(parent, generateSvgIcon("labplot-matrix"), "From cache");
     mMemoryIdx->addOptions({{enums::MemoryIdx::NONE, "None"},
                             {enums::MemoryIdx::M0, "M0"},
                             {enums::MemoryIdx::M1, "M1"},

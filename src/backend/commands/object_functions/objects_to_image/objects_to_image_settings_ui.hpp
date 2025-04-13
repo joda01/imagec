@@ -37,7 +37,7 @@ class ObjectsToImage : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Objects to binary image";
-  inline static std::string ICON              = "metamorphose";
+  inline static std::string ICON              = "object-group";
   inline static std::string DESCRIPTION       = "Generates a binary image from a set of objects";
   inline static std::vector<std::string> TAGS = {"binary", "transform", "objects"};
 
@@ -47,11 +47,11 @@ public:
     auto *modelTab = addTab(
         "Base", [] {}, false);
 
-    mInputFirst = SettingBase::create<SettingComboBoxClassificationIn>(parent, generateIcon("circle"), "First operand");
+    mInputFirst = SettingBase::create<SettingComboBoxClassificationIn>(parent, {}, "First operand");
     mInputFirst->setValue(settings.inputClassesFirst);
     mInputFirst->connectWithSetting(&settings.inputClassesFirst);
 
-    mInoutSecond = SettingBase::create<SettingComboBoxClassificationIn>(parent, generateIcon("circle"), "Second operand");
+    mInoutSecond = SettingBase::create<SettingComboBoxClassificationIn>(parent, {}, "Second operand");
     mInoutSecond->setValue(settings.inputClassesSecond);
     mInoutSecond->connectWithSetting(&settings.inputClassesSecond);
 
@@ -59,12 +59,12 @@ public:
     // Options
     //
     mFunction = SettingBase::create<SettingComboBox<joda::settings::ObjectsToImageSettings::Function>>(parent, {}, "Function");
-    mFunction->addOptions({{.key = joda::settings::ObjectsToImageSettings::Function::NONE, .label = "NONE", .icon = generateIcon("ampersand")},
-                           {.key = joda::settings::ObjectsToImageSettings::Function::NOT, .label = "NOT", .icon = generateIcon("ampersand")},
-                           {.key = joda::settings::ObjectsToImageSettings::Function::AND, .label = "AND", .icon = generateIcon("ampersand")},
-                           {.key = joda::settings::ObjectsToImageSettings::Function::AND_NOT, .label = "AND-NOT", .icon = generateIcon("ampersand")},
-                           {.key = joda::settings::ObjectsToImageSettings::Function::OR, .label = "OR", .icon = generateIcon("ampersand")},
-                           {.key = joda::settings::ObjectsToImageSettings::Function::XOR, .label = "XOR", .icon = generateIcon("ampersand")}});
+    mFunction->addOptions({{.key = joda::settings::ObjectsToImageSettings::Function::NONE, .label = "NONE", .icon = {}},
+                           {.key = joda::settings::ObjectsToImageSettings::Function::NOT, .label = "NOT", .icon = {}},
+                           {.key = joda::settings::ObjectsToImageSettings::Function::AND, .label = "AND", .icon = {}},
+                           {.key = joda::settings::ObjectsToImageSettings::Function::AND_NOT, .label = "AND-NOT", .icon = {}},
+                           {.key = joda::settings::ObjectsToImageSettings::Function::OR, .label = "OR", .icon = {}},
+                           {.key = joda::settings::ObjectsToImageSettings::Function::XOR, .label = "XOR", .icon = {}}});
     mFunction->setValue(settings.function);
     mFunction->connectWithSetting(&settings.function);
     if(mFunction->getValue() != joda::settings::ObjectsToImageSettings::Function::NOT &&

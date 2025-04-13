@@ -34,7 +34,7 @@ class ImageSaver : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Save control image";
-  inline static std::string ICON              = "image";
+  inline static std::string ICON              = "image-png";
   inline static std::string DESCRIPTION       = "Save a control image to disk.";
   inline static std::vector<std::string> TAGS = {"save", "control image", "image"};
 
@@ -46,32 +46,32 @@ public:
     {
       //
       //
-      classesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Classes to paint");
+      classesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, {}, "Classes to paint");
 
       //
       //
       style = SettingBase::create<SettingComboBox<settings::ImageSaverSettings::Style>>(parent, {}, "Style");
       style->setDefaultValue(settings::ImageSaverSettings::Style::OUTLINED);
-      style->addOptions({{.key = settings::ImageSaverSettings::Style::OUTLINED, .label = "Outlined", .icon = generateIcon("no-filling")},
-                         {.key = settings::ImageSaverSettings::Style::FILLED, .label = "Filled", .icon = generateIcon("fill-color")}});
+      style->addOptions({{.key = settings::ImageSaverSettings::Style::OUTLINED, .label = "Outlined", .icon = generateSvgIcon("fill-color")},
+                         {.key = settings::ImageSaverSettings::Style::FILLED, .label = "Filled", .icon = generateSvgIcon("fill-color")}});
 
       //
       //
       boundingBox = SettingBase::create<SettingComboBox<bool>>(parent, {}, "Bounding box");
       boundingBox->setDefaultValue(false);
-      boundingBox->addOptions({{.key = false, .label = "No bounding box", .icon = generateIcon("rectangle")},
-                               {.key = true, .label = "With bounding box", .icon = generateIcon("rectangle")}});
+      boundingBox->addOptions({{.key = false, .label = "No bounding box", .icon = generateSvgIcon("select-rectangular")},
+                               {.key = true, .label = "With bounding box", .icon = generateSvgIcon("select-rectangular")}});
 
       //
       //
       objectId = SettingBase::create<SettingComboBox<bool>>(parent, {}, "Object ID");
       objectId->setDefaultValue(false);
-      objectId->addOptions({{.key = false, .label = "No object ID", .icon = generateIcon("number")},
-                            {.key = true, .label = "With object ID", .icon = generateIcon("number")}});
+      objectId->addOptions({{.key = false, .label = "No object ID", .icon = generateSvgIcon("irc-remove-operator")},
+                            {.key = true, .label = "With object ID", .icon = generateSvgIcon("irc-operator")}});
 
       //
       //
-      mImageNamePrefix = SettingBase::create<SettingLineEdit<std::string>>(parent, generateIcon("rename"), "Image name prefix");
+      mImageNamePrefix = SettingBase::create<SettingLineEdit<std::string>>(parent, generateSvgIcon("filename-initial-amarok"), "Image name prefix");
       mImageNamePrefix->setDefaultValue("control");
       mImageNamePrefix->setPlaceholderText("Name ...");
       mImageNamePrefix->setUnit("");

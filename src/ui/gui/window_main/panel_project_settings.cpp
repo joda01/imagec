@@ -33,43 +33,15 @@ namespace joda::ui::gui {
 PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &settings, WindowMain *parentWindow) :
     mSettings(settings), mParentWindow(parentWindow)
 {
-  auto *layout            = new QVBoxLayout(this);
-  QFormLayout *formLayout = new QFormLayout;
+  auto *layout     = new QVBoxLayout(this);
+  auto *formLayout = new QFormLayout;
 
   auto addSeparator = [&formLayout]() {
-    QFrame *separator = new QFrame;
+    auto *separator = new QFrame;
     separator->setFrameShape(QFrame::HLine);
     separator->setFrameShadow(QFrame::Sunken);
     formLayout->addRow(separator);
   };
-
-  //
-  // Project templates
-  //
-  {
-    auto *projectTemplate = new QHBoxLayout;
-    mTemplateSelection    = new QComboBox();
-    projectTemplate->addWidget(mTemplateSelection);
-
-    auto *bookMarkMenu = new QMenu();
-    // Save template
-    auto *saveTemplate = bookMarkMenu->addAction(generateIcon("save"), "Save project template");
-    connect(saveTemplate, &QAction::triggered, [this]() {});
-    // Open template
-    auto *openTemplate = bookMarkMenu->addAction(generateIcon("open"), "Open project template");
-    connect(openTemplate, &QAction::triggered, [this]() {});
-
-    mTemplateBookmarkButton = new QPushButton(generateIcon("menu"), "");
-    mTemplateBookmarkButton->setMenu(bookMarkMenu);
-    mTemplateBookmarkButton->setToolTip("Menu");
-
-    /// \todo implement save template
-    // projectTemplate->addWidget(mTemplateBookmarkButton);
-    projectTemplate->setStretch(0, 1);    // Make label take all available space
-    formLayout->addRow(new QLabel(tr("Project template:")), projectTemplate);
-    connect(mTemplateSelection, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onOpenTemplate);
-  }
-  addSeparator();
 
   //
   // Working directory
@@ -77,9 +49,9 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   mWorkingDir = new QLineEdit();
   mWorkingDir->setReadOnly(true);
   mWorkingDir->setPlaceholderText("Directory your images are placed in...");
-  QHBoxLayout *workingDir = new QHBoxLayout;
+  auto *workingDir = new QHBoxLayout;
   workingDir->addWidget(mWorkingDir);
-  QPushButton *openDir = new QPushButton(generateIcon("images-folder"), "");
+  auto *openDir = new QPushButton(generateSvgIcon("image-tiff"), "");
   connect(openDir, &QPushButton::clicked, this, &PanelProjectSettings::onOpenWorkingDirectoryClicked);
   workingDir->addWidget(openDir);
   workingDir->setStretch(0, 1);    // Make label take all available space
@@ -91,7 +63,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   // Experiment name
   //
   mExperimentName = new QLineEdit;
-  mExperimentName->addAction(generateIcon("rename"), QLineEdit::LeadingPosition);
+  mExperimentName->addAction(generateSvgIcon("text-field"), QLineEdit::LeadingPosition);
   mExperimentName->setPlaceholderText("Experiment");
   formLayout->addRow(new QLabel(tr("Experiment name:")), mExperimentName);
 
@@ -99,7 +71,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   // Scientist
   //
   mScientistsFirstName = new QLineEdit;
-  mScientistsFirstName->addAction(generateIcon("name"), QLineEdit::LeadingPosition);
+  mScientistsFirstName->addAction(generateSvgIcon("im-user"), QLineEdit::LeadingPosition);
   formLayout->addRow(new QLabel(tr("Scientist:")), mScientistsFirstName);
   connect(mScientistsFirstName, &QLineEdit::editingFinished, this, &PanelProjectSettings::onSettingChanged);
   mScientistsFirstName->setPlaceholderText(joda::helper::getLoggedInUserName());
@@ -108,7 +80,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   // Organization
   //
   mAddressOrganisation = new QLineEdit;
-  mAddressOrganisation->addAction(generateIcon("address"), QLineEdit::LeadingPosition);
+  mAddressOrganisation->addAction(generateSvgIcon("edit-paste-in-place"), QLineEdit::LeadingPosition);
   mAddressOrganisation->setPlaceholderText("University of Salzburg");
   formLayout->addRow(new QLabel(tr("Organization:")), mAddressOrganisation);
 
@@ -116,7 +88,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   // Experiment ID
   //
   mExperimentId = new QLineEdit;
-  mExperimentId->addAction(generateIcon("binary-code"), QLineEdit::LeadingPosition);
+  mExperimentId->addAction(generateSvgIcon("view-barcode-qr"), QLineEdit::LeadingPosition);
   mExperimentId->setPlaceholderText("6fc87cc8-686e-4806-a78a-3f623c849cb7");
   /// \todo add for advanced mode
   // formLayout->addRow(new QLabel(tr("Experiment ID:")), mExperimentId);
@@ -203,7 +175,8 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   //
   // Well order matrix
   //
-  mWellOrderMatrix      = new QLineEdit("[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]");
+  mWellOrderMatrix = new QLineEdit("[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]");
+  mWellOrderMatrix->addAction(generateSvgIcon("labplot-matrix"), QLineEdit::LeadingPosition);
   mWellOrderMatrixLabel = new QLabel(tr("Well order:"));
   formLayout->addRow(mWellOrderMatrixLabel, mWellOrderMatrix);
 
@@ -245,79 +218,6 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
 
   mPlateSize->setCurrentIndex(6);
   applyRegex();
-}
-
-///
-/// \brief      Templates loaded from templates folder
-/// \author     Joachim Danmayr
-///
-void PanelProjectSettings::loadTemplates()
-{
-  auto foundTemplates = joda::templates::TemplateParser::findTemplates(
-      {"templates/projects", joda::templates::TemplateParser::getUsersTemplateDirectory().string()}, joda::fs::EXT_PROJECT_TEMPLATE);
-
-  mTemplateSelection->clear();
-  mTemplateSelection->addItem("Load template ...", "");
-  mTemplateSelection->insertSeparator(mTemplateSelection->count());
-  std::string actCategory = "basic";
-  size_t addedPerCategory = 0;
-  for(const auto &[category, dataInCategory] : foundTemplates) {
-    for(const auto &[_, data] : dataInCategory) {
-      // Now the user templates start, add an addition separator
-      if(category != actCategory) {
-        actCategory = category;
-        if(addedPerCategory > 0) {
-          mTemplateSelection->insertSeparator(mTemplateSelection->count());
-        }
-      }
-      if(!data.icon.isNull()) {
-        mTemplateSelection->addItem(QIcon(data.icon.scaled(28, 28)), data.title.data(), data.path.data());
-      } else {
-        mTemplateSelection->addItem(generateIcon("favorite"), data.title.data(), data.path.data());
-      }
-    }
-    addedPerCategory = dataInCategory.size();
-  }
-}
-
-///
-/// \brief      Open template
-/// \author     Joachim Danmayr
-///
-void PanelProjectSettings::onOpenTemplate()
-{
-  auto selection = mTemplateSelection->currentData().toString();
-  if(selection == "") {
-  } else {
-    if(!askForChangeTemplateIndex()) {
-      mParentWindow->checkForSettingsChanged();
-      mTemplateSelection->blockSignals(true);
-      mTemplateSelection->setCurrentIndex(0);
-      mTemplateSelection->blockSignals(false);
-      return;
-    }
-    mParentWindow->openProjectSettings(selection, true);
-  }
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-bool PanelProjectSettings::askForChangeTemplateIndex()
-{
-  QMessageBox messageBox(mParentWindow);
-  messageBox.setIconPixmap(generateIcon("info-blue").pixmap(48, 48));
-  messageBox.setWindowTitle("Proceed?");
-  messageBox.setText("Actual taken settings will get lost! Load template?");
-  QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
-  QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
-  messageBox.setDefaultButton(noButton);
-  auto reply = messageBox.exec();
-  return messageBox.clickedButton() != noButton;
 }
 
 ///

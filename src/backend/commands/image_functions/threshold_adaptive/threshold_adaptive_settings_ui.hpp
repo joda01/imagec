@@ -32,7 +32,7 @@ class ThresholdAdaptive : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Adaptive threshold (ALPHA)";
-  inline static std::string ICON              = "layer-mask";
+  inline static std::string ICON              = "edit-select-invert";
   inline static std::string DESCRIPTION       = "Converts a grayscale image to a binary image.";
   inline static std::vector<std::string> TAGS = {"threshold", "background", "binary", "adaptive", "sauvola", "nitblack", "otsu", "phanskalar"};
 
@@ -51,7 +51,7 @@ public:
       cnt++;
     }
 
-    auto *addFilter = addActionButton("Add threshold", generateIcon("add"));
+    auto *addFilter = addActionButton("Add threshold", generateSvgIcon("list-add"));
     connect(addFilter, &QAction::triggered, this, &ThresholdAdaptive::addFilter);
   }
 
@@ -67,10 +67,10 @@ private:
       //
       //
       //
-      mThresholdAdaptiveAlgorithm = SettingBase::create<SettingComboBox<joda::settings::ThresholdAdaptiveSettings::Methods>>(
-          parent, generateIcon("automatic-contrast"), "ThresholdAdaptive algorithm");
+      mThresholdAdaptiveAlgorithm =
+          SettingBase::create<SettingComboBox<joda::settings::ThresholdAdaptiveSettings::Methods>>(parent, {}, "ThresholdAdaptive algorithm");
       mThresholdAdaptiveAlgorithm->addOptions({
-          {joda::settings::ThresholdAdaptiveSettings::Methods::BERNSEN, "Bernsen", generateIcon("contrast")},
+          {joda::settings::ThresholdAdaptiveSettings::Methods::BERNSEN, "Bernsen"},
           {joda::settings::ThresholdAdaptiveSettings::Methods::CONTRAST, "Contrast"},
           {joda::settings::ThresholdAdaptiveSettings::Methods::MEAN, "Mean"},
           {joda::settings::ThresholdAdaptiveSettings::Methods::MEDIAN, "Median"},
@@ -86,7 +86,7 @@ private:
       //
       //
       //
-      mKernelSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("matrix"), "Kernel size");
+      mKernelSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("labplot-matrix"), "Kernel size");
       // mKernelSize->addOptions({{-1, "Off"},
       //                          {3, "3x3"},
       //                          {5, "5x5"},
@@ -116,7 +116,7 @@ private:
       //
       //
       //
-      mContrastThreshold = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("light"), "Contrast threshold");
+      mContrastThreshold = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-high"), "Contrast threshold");
       mContrastThreshold->setPlaceholderText("[0 - 65535]");
       mContrastThreshold->setUnit("");
       mContrastThreshold->setMinMax(0, 65535);
@@ -127,7 +127,7 @@ private:
       //
       //
       //
-      mThresholdOffset = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("light"), "Threshold offset");
+      mThresholdOffset = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-high"), "Threshold offset");
       mThresholdOffset->setPlaceholderText("[0 - 65535]");
       mThresholdOffset->setUnit("");
       mThresholdOffset->setMinMax(0, 65535);

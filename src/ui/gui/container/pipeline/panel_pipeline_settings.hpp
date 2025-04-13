@@ -27,8 +27,8 @@
 #include "ui/gui/container/setting/setting_line_edit.hpp"
 #include "ui/gui/container/setting/setting_spinbox.hpp"
 #include "ui/gui/container/setting/setting_text_edit.hpp"
+#include "ui/gui/dialog_image_view/dialog_image_view.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
-#include "ui/gui/panel_preview.hpp"
 
 class PlaceholderTableWidget;
 
@@ -118,7 +118,7 @@ private:
 
   /////////////////////////////////////////////////////
   DialogHistory *mDialogHistory;
-  PanelPreview *mPreviewImage                 = nullptr;
+  DialogImageViewer *mPreviewImage            = nullptr;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
   bool mIsActiveShown                         = false;
   bool mPreviewInProgress                     = false;
@@ -144,7 +144,7 @@ private:
   {
     settings::AnalyzeSettings settings;
     joda::ctrl::Controller *controller;
-    PanelPreview *previewPanel;
+    DialogImageViewer *previewPanel;
     std::tuple<std::filesystem::path, int32_t, joda::ome::OmeInfo> selectedImage;
     int32_t pipelinePos;
     int32_t selectedTileX = 0;

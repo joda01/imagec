@@ -10,13 +10,16 @@
 ///
 
 #include "dialog_image_view.hpp"
+#include <qaction.h>
 #include <qactiongroup.h>
 #include <qboxlayout.h>
 #include <qdialog.h>
+#include <qdockwidget.h>
 #include <qgridlayout.h>
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qslider.h>
+#include <qwidget.h>
 #include <cmath>
 #include <cstdint>
 #include <string>
@@ -37,18 +40,44 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-DialogImageViewer::DialogImageViewer(QWidget *parent, PanelImageView *panelPreviewParent) :
-    QMainWindow(parent), mImageViewLeft(&mPreviewImages.originalImage, &mPreviewImages.thumbnail, nullptr, false),
-    mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, true), mPanelPreviewParent(panelPreviewParent)
+DialogImageViewer::DialogImageViewer(QWidget *parent) :
+    QDockWidget(parent), mImageViewLeft(&mPreviewImages.originalImage, &mPreviewImages.thumbnail, nullptr, true),
+    mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, false)
 {
-  // setWindowFlags(windowFlags() | Qt::Window | Qt::WindowMaximizeButtonHint);
-  setBaseSize(1200, 600);
-  setMinimumSize(1200, 600);
+  setWindowTitle("Image view");
+  setVisible(false);
+  setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+
+  // Set initial size constraints
+  setMaximumWidth(500);    // Max width when docked
+  setMinimumWidth(500);    // Min width even when docked
+
+  // Connect signal to detect docking/floating changes
+  connect(this, &QDockWidget::topLevelChanged, this, [this](bool floating) {
+    if(floating) {
+      setMaximumWidth(10000);    // Remove max width cap
+      setMinimumWidth(1200);     // Wider when floating
+      setMinimumHeight(600);
+      mCentralLayout->setDirection(QBoxLayout::LeftToRight);
+      resize(1300, 700);
+    } else {
+      setMaximumWidth(500);    // Restrict width when docked
+      setMinimumHeight(0);
+      setMinimumWidth(500);    // Restore min width when docked
+      mCentralLayout->setDirection(QBoxLayout::TopToBottom);
+      setWindowTitle("");
+    }
+  });
+
+  mImageViewRight.setShowPipelineResults(true);
+
+  auto *mainContainer = new QWidget();
+  auto *layout        = new QVBoxLayout();
 
   {
     QToolBar *toolbarTop = new QToolBar();
 
-    QAction *pinToTop = new QAction(generateIcon("pin"), "");
+    QAction *pinToTop = new QAction(generateSvgIcon("window-pin"), "");
     pinToTop->setToolTip("Pin to stay on top");
     pinToTop->setCheckable(true);
     pinToTop->setChecked(false);
@@ -61,61 +90,43 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, PanelImageView *panelPrevi
         show();
       }
     });
-    toolbarTop->addAction(pinToTop);
+    // toolbarTop->addAction(pinToTop);
 
-    toolbarTop->addSeparator();
-
-    QAction *fitToScreen = new QAction(generateIcon("full-screen"), "");
-    fitToScreen->setObjectName("ToolButton");
-    fitToScreen->setToolTip("Fit image to screen");
-    connect(fitToScreen, &QAction::triggered, this, &DialogImageViewer::onFitImageToScreenSizeClicked);
-    toolbarTop->addAction(fitToScreen);
-
-    QAction *zoomIn = new QAction(generateIcon("zoom-in"), "");
-    zoomIn->setObjectName("ToolButton");
-    zoomIn->setToolTip("Zoom in");
-    connect(zoomIn, &QAction::triggered, this, &DialogImageViewer::onZoomInClicked);
-    toolbarTop->addAction(zoomIn);
-
-    QAction *zoomOut = new QAction(generateIcon("zoom-out"), "");
-    zoomOut->setObjectName("ToolButton");
-    zoomOut->setToolTip("Zoom out");
-    connect(zoomOut, &QAction::triggered, this, &DialogImageViewer::onZoomOutClicked);
-    toolbarTop->addAction(zoomOut);
-
-    toolbarTop->addSeparator();
+    // toolbarTop->addSeparator();
 
     QActionGroup *buttonGroup = new QActionGroup(toolbarTop);
 
-    QAction *action2 = new QAction(generateIcon("hand"), "");
+    QAction *action2 = new QAction({}, "");
     action2->setCheckable(true);
     action2->setChecked(true);
     connect(action2, &QAction::triggered, this, &DialogImageViewer::onSetSateToMove);
     buttonGroup->addAction(action2);
-    toolbarTop->addAction(action2);
+    // toolbarTop->addAction(action2);
 
-    QAction *paintRectangle = new QAction(generateIcon("rectangle"), "");
+    QAction *paintRectangle = new QAction(generateSvgIcon("draw-rectangle"), "");
     paintRectangle->setCheckable(true);
     connect(paintRectangle, &QAction::triggered, this, &DialogImageViewer::onSetStateToPaintRect);
     buttonGroup->addAction(paintRectangle);
     // toolbarTop->addAction(paintRectangle);
 
-    toolbarTop->addSeparator();
+    // toolbarTop->addSeparator();
 
-    QAction *showThumbnail = new QAction(generateIcon("picture-in-picture-alternative"), "");
+    QAction *showThumbnail = new QAction(generateSvgIcon("virtual-desktops"), "");
+    showThumbnail->setStatusTip("Show/Hide image thumbnail");
     showThumbnail->setCheckable(true);
     showThumbnail->setChecked(true);
     connect(showThumbnail, &QAction::triggered, this, &DialogImageViewer::onShowThumbnailChanged);
     toolbarTop->addAction(showThumbnail);
 
-    QAction *showPixelInfo = new QAction(generateIcon("abscissa"), "");
+    QAction *showPixelInfo = new QAction(generateSvgIcon("coordinate"), "");
+    showPixelInfo->setStatusTip("Show/Hide pixel information");
     showPixelInfo->setCheckable(true);
     showPixelInfo->setChecked(true);
     connect(showPixelInfo, &QAction::triggered, this, &DialogImageViewer::onShowPixelInfo);
     toolbarTop->addAction(showPixelInfo);
 
-    QAction *showCrossHairCursor = new QAction(generateIcon("crosshair"), "");
-    showCrossHairCursor->setToolTip("Right click to place a reference cursor.");
+    QAction *showCrossHairCursor = new QAction(generateSvgIcon("crosshairs"), "");
+    showCrossHairCursor->setStatusTip("Show/Hide cross hair cursor (right click to place)");
     showCrossHairCursor->setCheckable(true);
     showCrossHairCursor->setChecked(false);
     connect(showCrossHairCursor, &QAction::triggered, this, &DialogImageViewer::onShowCrossHandCursor);
@@ -123,32 +134,90 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, PanelImageView *panelPrevi
 
     toolbarTop->addSeparator();
 
-    QAction *showOverlay = new QAction(generateIcon("overlay"), "");
-    showOverlay->setToolTip("Show overlay");
+    QAction *showOverlay = new QAction(generateSvgIcon("redeyes"), "");
+    showOverlay->setStatusTip("Show/Hide results as overlay");
     showOverlay->setCheckable(true);
     showOverlay->setChecked(true);
     connect(showOverlay, &QAction::triggered, [this](bool selected) { mImageViewRight.setShowOverlay(selected); });
     toolbarTop->addAction(showOverlay);
 
-    mFillOVerlay = new QAction(generateIcon("fill-color-office"), "");
-    mFillOVerlay->setToolTip("Filled");
+    mFillOVerlay = new QAction(generateSvgIcon("fill-color"), "");
+    mFillOVerlay->setStatusTip("Fill/Outline results overlay");
     mFillOVerlay->setCheckable(true);
     connect(mFillOVerlay, &QAction::triggered, this, &DialogImageViewer::onSettingChanged);
     toolbarTop->addAction(mFillOVerlay);
 
-    addToolBar(Qt::ToolBarArea::TopToolBarArea, toolbarTop);
+    toolbarTop->addSeparator();
+
+    QAction *fitToScreen = new QAction(generateSvgIcon("zoom-fit-best"), "");
+    fitToScreen->setStatusTip("Fit image to screen");
+    fitToScreen->setObjectName("ToolButton");
+    connect(fitToScreen, &QAction::triggered, this, &DialogImageViewer::onFitImageToScreenSizeClicked);
+    toolbarTop->addAction(fitToScreen);
+
+    QAction *zoomIn = new QAction(generateSvgIcon("zoom-in"), "");
+    zoomIn->setStatusTip("Zoom image in");
+    zoomIn->setObjectName("ToolButton");
+    connect(zoomIn, &QAction::triggered, this, &DialogImageViewer::onZoomInClicked);
+    toolbarTop->addAction(zoomIn);
+
+    QAction *zoomOut = new QAction(generateSvgIcon("zoom-out"), "");
+    zoomOut->setObjectName("ToolButton");
+    zoomIn->setStatusTip("Zoom image out");
+    connect(zoomOut, &QAction::triggered, this, &DialogImageViewer::onZoomOutClicked);
+    toolbarTop->addAction(zoomOut);
+
+    toolbarTop->addSeparator();
+
+    //
+    // Preview size
+    //
+    auto *resolutionMenu = new QMenu();
+    mPreviewSizeGroup    = new QActionGroup(toolbarTop);
+    auto *r8192          = resolutionMenu->addAction("8192x8192");
+    mPreviewSizeGroup->addAction(r8192);
+    r8192->setCheckable(true);
+    auto *r4096 = resolutionMenu->addAction("4096x4096");
+    mPreviewSizeGroup->addAction(r4096);
+    r4096->setCheckable(true);
+    auto *r2048 = resolutionMenu->addAction("2048x2048");
+    mPreviewSizeGroup->addAction(r2048);
+    r2048->setCheckable(true);
+    r2048->setChecked(true);
+    auto *r1024 = resolutionMenu->addAction("1024x1024");
+    mPreviewSizeGroup->addAction(r1024);
+    r1024->setCheckable(true);
+    auto *r512 = resolutionMenu->addAction("512x512");
+    mPreviewSizeGroup->addAction(r512);
+    r512->setCheckable(true);
+    auto *r256 = resolutionMenu->addAction("256x256");
+    mPreviewSizeGroup->addAction(r256);
+    r256->setCheckable(true);
+    auto *r128 = resolutionMenu->addAction("128x128");
+    mPreviewSizeGroup->addAction(r128);
+    r128->setCheckable(true);
+    auto *previewSize = new QAction(generateSvgIcon("computer"), "");
+    previewSize->setStatusTip("Set preview resolution");
+    previewSize->setMenu(resolutionMenu);
+    toolbarTop->addAction(previewSize);
+    auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(previewSize));
+    btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
+    connect(mPreviewSizeGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingChanged);
+
+    layout->addWidget(toolbarTop);
+    // addToolBar(Qt::ToolBarArea::TopToolBarArea, toolbarTop);
   }
 
   // Central images
   {
-    auto *centralLayout      = new QGridLayout();
+    mCentralLayout           = new QBoxLayout(QBoxLayout::TopToBottom);
     auto *centralWidget      = new QWidget();
     auto *leftVerticalLayout = new QVBoxLayout();
     mHistoToolbarLeft        = new HistoToolbar(static_cast<int32_t>(ImageView::LEFT), this, &mPreviewImages.originalImage);
     mImageViewLeft.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     leftVerticalLayout->addWidget(&mImageViewLeft);
     leftVerticalLayout->addWidget(mHistoToolbarLeft);
-    centralLayout->addLayout(leftVerticalLayout, 0, 0);
+    mCentralLayout->addLayout(leftVerticalLayout);
     mImageViewLeft.resetImage();
 
     auto *rightVerticalLayout = new QVBoxLayout();
@@ -156,19 +225,24 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, PanelImageView *panelPrevi
     mImageViewRight.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     rightVerticalLayout->addWidget(&mImageViewRight);
     rightVerticalLayout->addWidget(mHistoToolbarRight);
-    centralLayout->addLayout(rightVerticalLayout, 0, 1);
+    mCentralLayout->addLayout(rightVerticalLayout);
     mImageViewRight.resetImage();
 
     // centralLayout->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    centralWidget->setLayout(centralLayout);
-    setCentralWidget(centralWidget);
+    centralWidget->setLayout(mCentralLayout);
+    layout->addWidget(centralWidget);
 
     connect(&mImageViewLeft, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onLeftViewChanged);
     connect(&mImageViewRight, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onRightViewChanged);
     connect(&mImageViewLeft, &PanelImageView::tileClicked, this, &DialogImageViewer::onTileClicked);
     connect(&mImageViewRight, &PanelImageView::tileClicked, this, &DialogImageViewer::onTileClicked);
+    connect(&mImageViewRight, &PanelImageView::classesToShowChanged, this, &DialogImageViewer::onSettingChanged);
   }
+
+  // setLayout(layout);
+  mainContainer->setLayout(layout);
+  setWidget(mainContainer);
 }
 
 DialogImageViewer::~DialogImageViewer()
@@ -256,10 +330,7 @@ void DialogImageViewer::triggerPreviewUpdate(ImageView view, bool withUserHistoS
 ///
 void DialogImageViewer::leaveEvent(QEvent *event)
 {
-  QMainWindow::leaveEvent(event);    // Call the base class handler if needed
-  if(mPanelPreviewParent != nullptr) {
-    mPanelPreviewParent->emitUpdateImage();
-  }
+  QDockWidget::leaveEvent(event);    // Call the base class handler if needed
 }
 
 ///
@@ -269,10 +340,10 @@ void DialogImageViewer::leaveEvent(QEvent *event)
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::imageUpdated()
+void DialogImageViewer::imageUpdated(const ctrl::Preview::PreviewResults &info, const std::map<enums::ClassIdIn, QString> &classes)
 {
-  mImageViewLeft.imageUpdated();
-  mImageViewRight.imageUpdated();
+  mImageViewLeft.imageUpdated(info, classes);
+  mImageViewRight.imageUpdated(info, classes);
 }
 
 ///
@@ -428,6 +499,26 @@ void DialogImageViewer::onShowCrossHandCursor(bool checked)
 void DialogImageViewer::onTileClicked(int32_t tileX, int32_t tileY)
 {
   emit tileClicked(tileX, tileY);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::closeEvent(QCloseEvent *event)
+{
+  event->ignore();    // Block the default close behavior
+
+  // Optionally re-dock if floating
+  if(isFloating()) {
+    setFloating(false);
+  }
+
+  // Optionally just ensure it's visible again
+  show();
 }
 
 }    // namespace joda::ui::gui

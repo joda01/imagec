@@ -119,15 +119,11 @@ DialogHistory::DialogHistory(WindowMain *parent, PanelPipelineSettings *panelPip
   spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   toolBar->addWidget(spacer);    // This pushes everything after it to the right
 
-  auto *addTagAction = toolBar->addAction(generateIcon("tag"), "Add tag");
-  addTagAction->setToolTip("Tag the actual settings in the history.");
-  connect(addTagAction, &QAction::triggered, [this]() { createTag(); });
-
-  auto *clearHistory = toolBar->addAction(generateIcon("delete"), "Clear history");
+  auto *clearHistory = toolBar->addAction(generateSvgIcon("edit-delete"), "Clear history");
   clearHistory->setToolTip("Clear history without tags.");
   connect(clearHistory, &QAction::triggered, [this]() {
     QMessageBox messageBox(mWindowMain);
-    messageBox.setIconPixmap(generateIcon("warning-yellow").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
     messageBox.setWindowTitle("Clear history?");
     messageBox.setText("Clear history and keep tags?");
     QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
@@ -141,6 +137,10 @@ DialogHistory::DialogHistory(WindowMain *parent, PanelPipelineSettings *panelPip
     loadHistory();
     mWindowMain->checkForSettingsChanged();
   });
+
+  auto *addTagAction = toolBar->addAction(generateSvgIcon("tag"), "Add tag");
+  addTagAction->setToolTip("Tag the actual settings in the history.");
+  connect(addTagAction, &QAction::triggered, [this]() { createTag(); });
 
   auto *layout = new QVBoxLayout();
   layout->setContentsMargins(0, 0, 0, 0);
@@ -240,7 +240,7 @@ void DialogHistory::createTag()
     if(!text.isEmpty()) {
       try {
         mPanelPipeline->mutablePipeline().tag(text.toStdString());
-        ((TimeHistoryEntry *) mHistory->cellWidget(0, 0))->updateContent(generateIcon("tag"), text);
+        ((TimeHistoryEntry *) mHistory->cellWidget(0, 0))->updateContent(generateSvgIcon("tag"), text);
         mHistory->update();
         mHistory->viewport()->update();
         mWindowMain->checkForSettingsChanged();
@@ -267,25 +267,25 @@ auto DialogHistory::generateHistoryEntry(const std::optional<joda::settings::Pip
   QIcon icon;
   QString text;
   if(!inData->tagMessage.empty()) {
-    icon = generateIcon("tag");
+    icon = generateSvgIcon("tag");
     text = inData->tagMessage.data();
   } else {
     text = inData->commitMessage.data();
     switch(inData->category) {
       case enums::HistoryCategory::OTHER:
-        icon = generateIcon("circle");
+        icon = generateSvgIcon("choice-round");
         break;
       case enums::HistoryCategory::ADDED:
-        icon = generateIcon("plus-simple");
+        icon = generateSvgIcon("list-add");
         break;
       case enums::HistoryCategory::DELETED:
-        icon = generateIcon("minus-simple");
+        icon = generateSvgIcon("edit-delete");
         break;
       case enums::HistoryCategory::CHANGED:
-        icon = generateIcon("circle");
+        icon = generateSvgIcon("choice-round");
         break;
       case enums::HistoryCategory::SAVED:
-        icon = generateIcon("save-simple");
+        icon = generateSvgIcon("document-save");
         break;
     }
   }

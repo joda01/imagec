@@ -14,6 +14,8 @@
 #include "console_logger.hpp"
 #include <deque>
 #include <mutex>
+#include <regex>
+#include <unordered_map>
 #include <vector>
 
 namespace joda::log {
@@ -29,15 +31,114 @@ const std::string BLUE_COLOR   = "\033[34m";
 LogLevel mLogLevel = LogLevel::TRACE;
 std::mutex mWriteMutex;
 float lastProgress = 0;
+std::vector<std::string> logBuffer;
 
 void setLogLevel(LogLevel logLevel)
 {
   mLogLevel = logLevel;
 }
 
+auto getLogBuffer() -> const std::vector<std::string> &
+{
+  return logBuffer;
+}
+
+std::string escapeHtml(const std::string &text)
+{
+  std::string escaped;
+  for(char c : text) {
+    switch(c) {
+      case '\n':
+        escaped += "<br/>";
+        break;
+      case '&':
+        escaped += "&amp;";
+        break;
+      case '<':
+        escaped += "&lt;";
+        break;
+      case '>':
+        escaped += "&gt;";
+        break;
+      default:
+        escaped += c;
+        break;
+    }
+  }
+  return escaped;
+}
+
+std::string ansiToHtml(const std::string &input)
+{
+  std::unordered_map<int, std::string> ansiColorMap = {
+      {30, "#000000"},    // black
+      {31, "#ff0000"},    // red
+      {32, "#00ff00"},    // green
+      {33, "#ffff00"},    // yellow
+      {34, "#0000ff"},    // blue
+      {35, "#ff00ff"},    // magenta
+      {36, "#00ffff"},    // cyan
+      {37, "#a9a9a9"},    // gray
+                          // Add more as needed
+  };
+
+  std::string output;
+  std::regex ansiRegex("\033\\[(\\d+)m");
+  std::smatch match;
+  std::string::const_iterator searchStart(input.cbegin());
+  bool spanOpen = false;
+
+  while(std::regex_search(searchStart, input.cend(), match, ansiRegex)) {
+    std::string textBefore = std::string(searchStart, match[0].first);
+    output += escapeHtml(textBefore);    // escape HTML in plain text
+    int code = std::stoi(match[1]);
+
+    if(code == 0) {
+      if(spanOpen) {
+        output += "</span>";
+        spanOpen = false;
+      }
+    } else if(ansiColorMap.count(code)) {
+      if(spanOpen) {
+        output += "</span>";
+      }
+      output += "<span style=\"color:" + ansiColorMap[code] + ";\">";
+      spanOpen = true;
+    }
+
+    searchStart = match.suffix().first;
+  }
+
+  output += std::string(searchStart, input.cend());
+
+  if(spanOpen) {
+    output += "</span>";
+  }
+
+  return output;
+}
+
+auto logBufferToHtml() -> std::string
+{
+  auto joinWithNewlines = [](const std::vector<std::string> &lines) -> std::string {
+    std::ostringstream oss;
+    for(size_t i = 0; i < lines.size(); ++i) {
+      oss << lines[i];
+      if(i != lines.size() - 1) {
+        oss << "\n";
+      }
+    }
+    return oss.str();
+  };
+
+  std::string result = joinWithNewlines(logBuffer);
+  return ansiToHtml(result);
+}
+
 void printOrAddToBuffer(const std::string &tmp)
 {
   std::cout << tmp << std::endl;
+  logBuffer.emplace_back(tmp);
 }
 
 std::string toPercentString(float ratio)

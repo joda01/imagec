@@ -427,7 +427,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
                 joda::enums::ClassId key = static_cast<enums::ClassId>(roi.getClassId());
                 if(!foundObjects.contains(key)) {
                   foundObjects[key].count       = 0;
-                  foundObjects[key].color       = "#000000";
+                  foundObjects[key].color       = "#BFBFBF";
                   foundObjects[key].wantedColor = globalContext.classes[key].color;
                 }
                 foundObjects[key].count++;

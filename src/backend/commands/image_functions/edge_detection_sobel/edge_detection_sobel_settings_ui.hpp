@@ -29,7 +29,7 @@ class EdgeDetectionSobel : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Sobel edge detection";
-  inline static std::string ICON              = "triangle";
+  inline static std::string ICON              = "choice-rhomb";
   inline static std::string DESCRIPTION       = "An edge detection algorithms which enhances the edges.";
   inline static std::vector<std::string> TAGS = {"edge detection"};
 
@@ -39,7 +39,7 @@ public:
     //
     //
     //
-    mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, generateIcon("matrix"), "Kernel size");
+    mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, generateSvgIcon("labplot-matrix"), "Kernel size");
     mKernelSize->addOptions({{-1, "ImageJ"},
                              {3, "3x3"},
                              {5, "5x5"},
@@ -61,8 +61,8 @@ public:
     //
     mFunction = SettingBase::create<SettingComboBox<settings::EdgeDetectionSobelSettings::WeightFunction>>(parent, {}, "Weight function");
     mFunction->addOptions({
-        {.key = settings::EdgeDetectionSobelSettings::WeightFunction::MAGNITUDE, .label = "Magnitude", .icon = generateIcon("square-root")},
-        {.key = settings::EdgeDetectionSobelSettings::WeightFunction::ABS, .label = "Absolute value", .icon = generateIcon("upvote-downvote")},
+        {.key = settings::EdgeDetectionSobelSettings::WeightFunction::MAGNITUDE, .label = "Magnitude", .icon = generateSvgIcon("sqrt")},
+        {.key = settings::EdgeDetectionSobelSettings::WeightFunction::ABS, .label = "Absolute value", .icon = generateSvgIcon("filename-divider")},
     });
     mFunction->setValue(settings.weighFunction);
     mFunction->connectWithSetting(&settings.weighFunction);
@@ -70,7 +70,7 @@ public:
     //
     //
     //
-    mDerivativeOrderX = SettingBase::create<SettingLineEdit<uint16_t>>(parent, generateIcon("x-coordinate"), "Derivation order X");
+    mDerivativeOrderX = SettingBase::create<SettingLineEdit<uint16_t>>(parent, generateSvgIcon("labplot-axis-horizontal"), "Derivation order X");
     mDerivativeOrderX->setPlaceholderText("[0 - 255]");
     mDerivativeOrderX->setUnit("");
     mDerivativeOrderX->setMinMax(0, 255);
@@ -81,7 +81,7 @@ public:
     //
     //
     //
-    mDerivativeOrderY = SettingBase::create<SettingLineEdit<uint16_t>>(parent, generateIcon("y-coordinate"), "Derivation order Y");
+    mDerivativeOrderY = SettingBase::create<SettingLineEdit<uint16_t>>(parent, generateSvgIcon("labplot-axis-vertical"), "Derivation order Y");
     mDerivativeOrderY->setPlaceholderText("[0 - 255]");
     mDerivativeOrderY->setUnit("");
     mDerivativeOrderY->setMinMax(0, 255);

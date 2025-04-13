@@ -17,7 +17,9 @@
 #include <iostream>
 #include <mutex>
 #include <string>
+#include "backend/enums/enums_classes.hpp"
 #include "backend/helper/image/image.hpp"
+#include "controller/controller.hpp"
 #include <opencv2/core/types.hpp>
 
 namespace joda::ui::gui {
@@ -70,7 +72,8 @@ public:
   /////////////////////////////////////////////////////
   PanelImageView(const joda::image::Image *imageReference, const joda::image::Image *thumbnailImageReference, const joda::image::Image *overlay,
                  bool withThumbnail, QWidget *parent = nullptr);
-  void imageUpdated();
+
+  void imageUpdated(const ctrl::Preview::PreviewResults &info, const std::map<enums::ClassIdIn, QString> &classes);
   void resetImage();
   void fitImageToScreenSize();
   void zoomImage(bool inOut);
@@ -93,14 +96,20 @@ public:
   void setShowThumbnail(bool);
   void setShowHistogram(bool);
   void setShowPixelInfo(bool);
+  void setShowPipelineResults(bool);
   void setShowOverlay(bool);
   void setShowCrosshandCursor(bool);
   void setThumbnailPosition(const ThumbParameter &);
   void setCursorPosition(const QPoint &pos);
   auto getCursorPosition() -> QPoint;
   void setImageReference(const joda::image::Image *imageReference);
+  auto getSelectedClasses() const -> settings::ObjectInputClasses
+  {
+    return mSelectedClasses;
+  }
 
 signals:
+  void classesToShowChanged(const settings::ObjectInputClasses &selectedClasses);
   void updateImage();
   void onImageRepainted();
   void tileClicked(int32_t tileX, int32_t tileY);
@@ -115,11 +124,16 @@ protected:
   void paintEvent(QPaintEvent *event) override;
   void drawHistogram(QPainter &);
   void drawThumbnail(QPainter &);
+  void drawPipelineResult(QPainter &);
   void drawPixelInfo(QPainter &, int32_t startX, int32_t startY, const PixelInfo &info);
 
   void getClickedTileInThumbnail(QMouseEvent *event);
   void getThumbnailAreaEntered(QMouseEvent *event);
   auto fetchPixelInfoFromMousePosition(const QPoint &pos) const -> PixelInfo;
+  bool getPreviewResultsAreaEntered(QMouseEvent *event);
+  bool getPreviewResultsAreaClicked(QMouseEvent *event);
+
+  void updatePipelineResultsCoordinates();
 
 private:
   /////////////////////////////////////////////////////
@@ -134,6 +148,9 @@ private:
   const float PIXEL_INFO_RECT_WIDTH  = 150;
   const float PIXEL_INFO_RECT_HEIGHT = 40;
 
+  const float RESULTS_INFO_RECT_WIDTH  = 150;
+  const float RESULTS_INFO_RECT_HEIGHT = 150;
+
   /////////////////////////////////////////////////////
   bool mPlaceholderImageSet                          = true;
   const joda::image::Image *mActPixmapOriginal       = nullptr;
@@ -145,6 +162,11 @@ private:
   QPoint lastPos;
   State mState = State::MOVE;
   cv::Size mPixmapSize;
+  ctrl::Preview::PreviewResults mPipelineResult;
+  QString mPipelineResultsHtmlText;
+  settings::ObjectInputClasses mSelectedClasses;
+  std::vector<std::tuple<QRect, joda::enums::ClassIdIn>> mClassesCoordinates;
+  std::map<enums::ClassIdIn, QString> mClasses;
 
   /////////////////////////////////////////////////////
   CrossCursorInfo mCrossCursorInfo;
@@ -169,6 +191,7 @@ private:
   bool mShowCrosshandCursor = false;
   bool mShowHistogram       = true;
   bool mShowOverlay         = true;
+  bool mShowPipelineResults = false;
 
   mutable std::mutex mImageResetMutex;
 

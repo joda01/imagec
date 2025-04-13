@@ -61,6 +61,7 @@ private:
   void newTemplate();
   void saveAsNewTemplate();
   void openEditDialog(int row, int column);
+  void openTemplate(const QString &path);
   void populateClassesFromImage();
 
   /////////////////////////////////////////////////////
@@ -74,17 +75,16 @@ private:
   ColorComboBox *mDialogColorCombo;
   int32_t mSelectedRow = 0;
 
+  /// Actions //////////////////////////////////////////////////
+  QMenu *mTemplateMenu;
+
   /// TEMPLATE //////////////////////////////////////////////////
   bool askForChangeTemplateIndex();
-  int32_t mActSelectedIndex = 0;
-  bool mDontAsk             = false;
-  bool mIsLocked            = false;
-  QPushButton *mBookmarkButton;
-  QComboBox *mTemplateSelection;
+  bool mDontAsk  = false;
+  bool mIsLocked = false;
 
 private slots:
   void onSettingChanged();
-  void onloadPreset(int index);
   void onOkayPressed();
 };
 }    // namespace joda::ui::gui

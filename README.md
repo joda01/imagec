@@ -148,7 +148,6 @@ Many thank's to the authors of following open source libraries I used:
 <!---EXT-LIBS-->
 Title | Link | License
 ------|------|--------
-ImageC/1.0-beta|https://imagec.org|['AGPL-3.0', 'imagec']
 qt/6.7.1|https://www.qt.io|LGPL-3.0-only
 zlib/1.3.1|https://zlib.net|Zlib
 openssl/3.3.2|https://github.com/openssl/openssl|Apache-2.0
@@ -158,32 +157,18 @@ double-conversion/3.3.0|https://github.com/google/double-conversion|BSD-3-Clause
 freetype/2.13.2|https://www.freetype.org|FTL
 libpng/1.6.44|http://www.libpng.org|libpng-2.0
 brotli/1.1.0|https://github.com/google/brotli|['MIT']
-meson/1.3.2|https://github.com/mesonbuild/meson|Apache-2.0
-ninja/1.12.1|https://github.com/ninja-build/ninja|Apache-2.0
-pkgconf/2.1.0|https://git.sr.ht/~kaniini/pkgconf|ISC
-meson/1.2.2|https://github.com/mesonbuild/meson|Apache-2.0
 fontconfig/2.15.0|https://gitlab.freedesktop.org/fontconfig/fontconfig|MIT
 expat/2.6.3|https://github.com/libexpat/libexpat|MIT
-gperf/3.1|https://www.gnu.org/software/gperf|GPL-3.0-or-later
-meson/1.4.0|https://github.com/mesonbuild/meson|Apache-2.0
 icu/74.2|http://site.icu-project.org|Unicode-3.0
 harfbuzz/8.3.0|https://harfbuzz.github.io/|MIT
 xkbcommon/1.6.0|https://github.com/xkbcommon/libxkbcommon|MIT
-xkeyboard-config/system|https://www.freedesktop.org/wiki/Software/XKeyboardConfig/|MIT
 xorg/system|https://www.x.org/wiki/|MIT
 libxml2/2.13.4|https://gitlab.gnome.org/GNOME/libxml2/-/wikis/|MIT
 libiconv/1.17|https://www.gnu.org/software/libiconv/|LGPL-2.1-or-later
 wayland/1.22.0|https://wayland.freedesktop.org|MIT
 libffi/3.4.4|https://sourceware.org/libffi/|MIT
-bison/3.8.2|https://www.gnu.org/software/bison/|GPL-3.0-or-later
-m4/1.4.19|https://www.gnu.org/software/m4/|GPL-3.0-only
-flex/2.6.4|https://github.com/westes/flex|BSD-2-Clause
-wayland-protocols/1.33|https://gitlab.freedesktop.org/wayland/wayland-protocols|MIT
-meson/1.3.0|https://github.com/mesonbuild/meson|Apache-2.0
 opengl/system|https://www.opengl.org/|MIT
 md4c/0.4.8|https://github.com/mity/md4c|MIT
-cmake/3.30.5|https://github.com/Kitware/CMake|BSD-3-Clause
-pkgconf/2.2.0|https://git.sr.ht/~kaniini/pkgconf|ISC
 opencv/4.10.0|https://opencv.org|Apache-2.0
 eigen/3.4.0|http://eigen.tuxfamily.org|['MPL-2.0', 'LGPL-3.0-or-later']
 protobuf/3.21.12|https://github.com/protocolbuffers/protobuf|BSD-3-Clause
@@ -211,15 +196,10 @@ onnxruntime/1.18.1|https://onnxruntime.ai|MIT
 abseil/20240116.1|https://github.com/abseil/abseil-cpp|Apache-2.0
 date/3.0.1|https://github.com/HowardHinnant/date|MIT
 libcurl/8.11.1|https://curl.se|curl
-libtool/2.4.7|https://www.gnu.org/software/libtool/|['GPL-2.0-or-later', 'GPL-3.0-or-later']
-automake/1.16.5|https://www.gnu.org/software/automake/|['GPL-2.0-or-later', 'GPL-3.0-or-later']
-autoconf/2.71|https://www.gnu.org/software/autoconf/|['GPL-2.0-or-later', 'GPL-3.0-or-later']
-gnu-config/cci.20210814|https://savannah.gnu.org/projects/config/|['GPL-3.0-or-later', 'autoconf-special-exception']
 re2/20231101|https://github.com/google/re2|BSD-3-Clause
 flatbuffers/23.5.26|http://google.github.io/flatbuffers|Apache-2.0
 boost/1.86.0|https://www.boost.org|BSL-1.0
 libbacktrace/cci.20240730|https://github.com/ianlancetaylor/libbacktrace|BSD-3-Clause
-b2/5.2.1|https://www.bfgroup.xyz/b2/|BSL-1.0
 safeint/3.0.28|https://github.com/dcleblanc/SafeInt|MIT
 ms-gsl/4.0.0|https://github.com/microsoft/GSL|MIT
 cpuinfo/cci.20231129|https://github.com/pytorch/cpuinfo|BSD-2-Clause
@@ -228,10 +208,8 @@ libtorch/2.4.0|https://pytorch.org|BSD-3-Clause
 fp16/cci.20210320|https://github.com/Maratyszcza/FP16|MIT
 psimd/cci.20200517|https://github.com/Maratyszcza/psimd|MIT
 fmt/10.2.1|https://github.com/fmtlib/fmt|MIT
-foxi/cci.20210217|https://github.com/houseroad/foxi|MIT
 cpp-httplib/0.18.0|https://github.com/yhirose/cpp-httplib|MIT
 sleef/3.6.1|https://sleef.org|BSL-1.0
-openmp/system|https://www.openmp.org/|MIT
 openblas/0.3.28|https://www.openblas.net|BSD-3-Clause
 fbgemm/0.8.0|https://github.com/pytorch/FBGEMM|BSD-3-Clause
 asmjit/cci.20240531|https://asmjit.com|Zlib
@@ -239,17 +217,6 @@ fxdiv/cci.20200417|https://github.com/Maratyszcza/FXdiv|MIT
 xnnpack/cci.20240229|https://github.com/google/XNNPACK|BSD-3-Clause
 pthreadpool/cci.20231129|https://github.com/Maratyszcza/pthreadpool|BSD-2-Clause
 libnuma/2.0.16|https://github.com/numactl/numactl|LGPL-2.1-or-later
-cpython/3.12.7|https://www.python.org|Python-2.0
-mpdecimal/2.5.1|http://www.bytereef.org/mpdecimal|BSD-2-Clause
-util-linux-libuuid/2.39.2|https://github.com/util-linux/util-linux.git|BSD-3-Clause
-libxcrypt/4.4.36|https://github.com/besser82/libxcrypt|['LGPL-2.1-or-later']
-gdbm/1.23|https://www.gnu.org.ua/software/gdbm/gdbm.html|GPL-3.0-or-later
-sqlite3/3.45.2|https://www.sqlite.org|Unlicense
-tk/8.6.10|https://tcl.tk|TCL
-tcl/8.6.10|https://tcl.tk|TCL
-fontconfig/2.13.93|https://gitlab.freedesktop.org/fontconfig/fontconfig|MIT
-ncurses/6.4|https://www.gnu.org/software/ncurses|X11
-pkgconf/2.0.3|https://git.sr.ht/~kaniini/pkgconf|ISC
 tensorflow-lite/2.15.0|https://www.tensorflow.org/lite/guide|Apache-2.0
 farmhash/cci.20190513|https://github.com/google/farmhash|MIT
 fft/cci.20061228|http://www.kurims.kyoto-u.ac.jp/~ooura/fft.html|LicenseRef-LICENSE

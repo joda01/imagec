@@ -36,7 +36,7 @@ class EnhanceContrast : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Enhance contrast";
-  inline static std::string ICON              = "contrast";
+  inline static std::string ICON              = "lighttable";
   inline static std::string DESCRIPTION       = "Enhance the contrast of an image.";
   inline static std::vector<std::string> TAGS = {"contrast", "enhancement", "normalize", "equalize histogram"};
 
@@ -48,7 +48,7 @@ public:
 
     //
     //
-    mSaturatedPixels = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("percent"), "Saturated pixels [0-1]");
+    mSaturatedPixels = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("gnumeric-format-percentage"), "Saturated pixels [0-1]");
     mSaturatedPixels->setPlaceholderText("[0 - 1]");
     mSaturatedPixels->setUnit("%");
     mSaturatedPixels->setMinMax(0, 1);

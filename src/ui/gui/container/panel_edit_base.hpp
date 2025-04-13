@@ -32,11 +32,16 @@ class PanelEdit : public QWidget
 
 public:
   /////////////////////////////////////////////////////
-  explicit PanelEdit(WindowMain *wm, ContainerBase *containerBase = nullptr, bool withExtraButtons = true);
+  explicit PanelEdit(WindowMain *wm, ContainerBase *containerBase = nullptr, bool withExtraButtons = true, QMainWindow *toolbarParent = nullptr);
 
   WindowMain *getWindowMain()
   {
     return mWindowMain;
+  }
+
+  void showToolBar(bool visible)
+  {
+    mLayout.showToolBar(visible);
   }
 
 protected:

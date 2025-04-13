@@ -17,27 +17,27 @@
 #include <qwindow.h>
 #include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"
+#include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
 #include "panel_image_view.hpp"
 
 namespace joda::ui::gui {
 
 class HistoToolbar;
-class PanelPreview;
 
 ///
 /// \class      DialogImageViewer
 /// \author     Joachim Danmayr
 /// \brief
 ///
-class DialogImageViewer : public QMainWindow
+class DialogImageViewer : public QDockWidget
 {
   Q_OBJECT
 
 public:
   /////////////////////////////////////////////////////
-  DialogImageViewer(QWidget *parent, PanelImageView *panelPreviewParent);
+  DialogImageViewer(QWidget *parent);
   ~DialogImageViewer();
-  void imageUpdated();
+  void imageUpdated(const ctrl::Preview::PreviewResults &info, const std::map<enums::ClassIdIn, QString> &classes);
   void fitImageToScreenSize();
   joda::ctrl::Preview &getPreviewObject()
   {
@@ -63,12 +63,22 @@ public:
     mImageViewLeft.setWaiting(waiting);
     mImageViewRight.setWaiting(waiting);
   }
-
-  void hideEvent(QHideEvent *event) override
+  int32_t getPreviewSize() const
   {
-    QMainWindow::hideEvent(event);
-    emit hidden();
+    if(mPreviewSizeGroup != nullptr) {
+      auto *checked     = mPreviewSizeGroup->checkedAction();
+      QStringList parts = checked->text().split('x');
+      int width         = parts.value(0).toInt();
+      return width;
+    }
+    return 2048;
   }
+
+  auto getSelectedClassesAndClasses() const -> settings::ObjectInputClasses
+  {
+    return mImageViewRight.getSelectedClasses();
+  }
+
   enum class ImageView
   {
     LEFT  = 0,
@@ -80,10 +90,10 @@ public:
   {
     return mFillOVerlay->isChecked();
   }
+  void closeEvent(QCloseEvent *event) override;
 
 signals:
   void tileClicked(int32_t tileX, int32_t tileY);
-  void hidden();
   void onSettingChanged();
 
 private:
@@ -91,20 +101,20 @@ private:
   void leaveEvent(QEvent *event) override;
 
   /////////////////////////////////////////////////////
-  PanelImageView *mPanelPreviewParent = nullptr;
-
   joda::ctrl::Preview mPreviewImages;
   PanelImageView mImageViewLeft;
   PanelImageView mImageViewRight;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
   std::mutex mPreviewMutex;
   int mPreviewCounter = 0;
+  QBoxLayout *mCentralLayout;
 
   HistoToolbar *mHistoToolbarLeft  = nullptr;
   HistoToolbar *mHistoToolbarRight = nullptr;
 
   // ACTIONS //////////////////////////////////////////////////
   QAction *mFillOVerlay;
+  QActionGroup *mPreviewSizeGroup;
 
 private slots:
   /////////////////////////////////////////////////////

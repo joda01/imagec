@@ -29,7 +29,7 @@ class IntensityTransformation : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Intensity";
-  inline static std::string ICON              = "brightness";
+  inline static std::string ICON              = "contrast";
   inline static std::string DESCRIPTION       = "Adjust image contrast and brightness";
   inline static std::vector<std::string> TAGS = {"contrast", "brightness", "adjust"};
 
@@ -38,8 +38,7 @@ public:
   {
     //
     //
-    mIntensityMode =
-        SettingBase::create<SettingComboBox<settings::IntensityTransformationSettings::Mode>>(parent, generateIcon("mode"), "Correction mode");
+    mIntensityMode = SettingBase::create<SettingComboBox<settings::IntensityTransformationSettings::Mode>>(parent, {}, "Correction mode");
     mIntensityMode->addOptions({{settings::IntensityTransformationSettings::Mode::MANUAL, "Manual"},
                                 {settings::IntensityTransformationSettings::Mode::AUTOMATIC, "Automatic"}});
     mIntensityMode->setValue(settings.mode);
@@ -48,7 +47,7 @@ public:
     //
     //
     //
-    mContrast = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("contrast"), "Contrast");
+    mContrast = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("lighttable"), "Contrast");
     mContrast->setValue(settings.contrast);
     mContrast->connectWithSetting(&settings.contrast);
     mContrast->setPlaceholderText("[1-3]");
@@ -57,7 +56,7 @@ public:
     //
     //
     //
-    mBrightness = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("brightness"), "Brightness");
+    mBrightness = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-high"), "Brightness");
     mBrightness->setValue(settings.brightness);
     mBrightness->connectWithSetting(&settings.brightness);
     mBrightness->setPlaceholderText("[-32768, +32767]");
@@ -66,7 +65,7 @@ public:
     //
     //
     //
-    mGamma = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("matrix"), "Gamma");
+    mGamma = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("labplot-matrix"), "Gamma");
     mGamma->setValue(settings.gamma);
     mGamma->connectWithSetting(&settings.gamma);
     mGamma->setShortDescription("Gamma: ");

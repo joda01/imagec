@@ -36,7 +36,7 @@ class Reclassify : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Reclassify";
-  inline static std::string ICON              = "move-right";
+  inline static std::string ICON              = "exchange-positions-clockwise";
   inline static std::string DESCRIPTION       = "Change the classification of objects based on different parameters.";
   inline static std::vector<std::string> TAGS = {"classification", "reclassify", "colocalization", "coloc"};
 
@@ -50,18 +50,18 @@ public:
     //
     // Base settings
     //
-    mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("circle"), "Input (e.g. Spot)");
+    mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, {}, "Input (e.g. Spot)");
     mClassesIn->setValue(settings.inputClasses);
     mClassesIn->connectWithSetting(&settings.inputClasses);
 
     mMode = SettingBase::create<SettingComboBox<joda::settings::ReclassifySettings::Mode>>(parent, {}, "Mode");
     mMode->addOptions(
-        {{.key = joda::settings::ReclassifySettings::Mode::RECLASSIFY_MOVE, .label = "Reclassify Move", .icon = generateIcon("move-right")},
-         {.key = joda::settings::ReclassifySettings::Mode::RECLASSIFY_COPY, .label = "Reclassify Copy", .icon = generateIcon("query-inner-join")}});
+        {{.key = joda::settings::ReclassifySettings::Mode::RECLASSIFY_MOVE, .label = "Reclassify Move", .icon = generateSvgIcon("edit-move")},
+         {.key = joda::settings::ReclassifySettings::Mode::RECLASSIFY_COPY, .label = "Reclassify Copy", .icon = generateSvgIcon("edit-copy")}});
     mMode->setValue(settings.mode);
     mMode->connectWithSetting(&settings.mode);
 
-    mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, generateIcon("circle"), "Reclassify to");
+    mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Reclassify to");
     mClassOutput->setValue(settings.newClassId);
     mClassOutput->connectWithSetting(&settings.newClassId);
 
@@ -70,12 +70,11 @@ public:
     //
     // Intersection filter
     //
-    mClassesIntersectWith =
-        SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateIcon("query-outer-join-right"), "Intersect with (e.g. Tetraspeck)");
+    mClassesIntersectWith = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, {}, "Intersect with (e.g. Tetraspeck)");
     mClassesIntersectWith->setValue(settings.intersection.inputClassesIntersectWith);
     mClassesIntersectWith->connectWithSetting(&settings.intersection.inputClassesIntersectWith);
 
-    mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("query-inner-join"), "Min. intersection");
+    mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("format-number-percent"), "Min. intersection");
     mMinIntersection->setDefaultValue(0.1);
     mMinIntersection->setPlaceholderText("[0 - 1]");
     mMinIntersection->setUnit("%");
@@ -87,13 +86,13 @@ public:
     mHierarchyMode = SettingBase::create<SettingComboBox<joda::settings::ReclassifySettings::HierarchyHandling>>(parent, {}, "Hierarchy mode");
     mHierarchyMode->addOptions({{.key   = joda::settings::ReclassifySettings::HierarchyHandling::CREATE_TREE,
                                  .label = "Create hierarchy tree",
-                                 .icon  = generateIcon("tree-structure")},
+                                 .icon  = generateSvgIcon("view-list-tree")},
                                 {.key   = joda::settings::ReclassifySettings::HierarchyHandling::KEEP_EXISTING,
                                  .label = "Keep existing tree",
-                                 .icon  = generateIcon("tree-structure")},
+                                 .icon  = generateSvgIcon("view-list-tree")},
                                 {.key   = joda::settings::ReclassifySettings::HierarchyHandling::REMOVE,
                                  .label = "Remove tree information",
-                                 .icon  = generateIcon("tree-structure")}});
+                                 .icon  = generateSvgIcon("view-list-tree")}});
     mHierarchyMode->setValue(settings.hierarchyMode);
     mHierarchyMode->connectWithSetting(&settings.hierarchyMode);
 
@@ -103,7 +102,7 @@ public:
     //
     // Intensity filter
     //
-    mMinIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("light-min"), "Min intensity");
+    mMinIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-low"), "Min intensity");
     mMinIntensity->setPlaceholderText("[0 - 65535]");
     mMinIntensity->setUnit("");
     mMinIntensity->setMinMax(0, INT32_MAX);
@@ -112,7 +111,7 @@ public:
     mMinIntensity->setShortDescription("Min. ");
     //
     //
-    mMaxIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateIcon("light"), "Max intensity");
+    mMaxIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-high"), "Max intensity");
     mMaxIntensity->setPlaceholderText("[0 - 65535]");
     mMaxIntensity->setUnit("");
     mMaxIntensity->setMinMax(0, INT32_MAX);

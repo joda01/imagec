@@ -32,7 +32,7 @@ class ThresholdValidator : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Threshold filter";
-  inline static std::string ICON              = "filter";
+  inline static std::string ICON              = "view-filter";
   inline static std::string DESCRIPTION       = "Exclude overexposed images from statistics.";
   inline static std::vector<std::string> TAGS = {"filter", "threshold", "overexposed"};
 
@@ -41,7 +41,7 @@ public:
   {
     //
     //
-    mHistThreshold = SettingBase::create<SettingLineEdit<float>>(parent, generateIcon("filter"), "Hist. min threshold");
+    mHistThreshold = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Hist. min threshold");
     mHistThreshold->setDefaultValue(0.8);
     mHistThreshold->setPlaceholderText("[0 - 1]");
     mHistThreshold->setUnit("");

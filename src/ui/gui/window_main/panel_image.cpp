@@ -35,6 +35,7 @@ PanelImages::PanelImages(WindowMain *windowMain) : mWindowMain(windowMain)
     mImages->setPlaceholderText("Select a working directory");
     mImages->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     mImages->verticalHeader()->setVisible(false);
+    mImages->horizontalHeader()->setVisible(false);
     mImages->setHorizontalHeaderLabels({"Idx", "Images"});
     mImages->setAlternatingRowColors(true);
     mImages->setSelectionBehavior(QAbstractItemView::SelectRows);

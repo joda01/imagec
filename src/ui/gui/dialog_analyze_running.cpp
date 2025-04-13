@@ -68,7 +68,7 @@ DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain, const joda::s
   stopButton->setObjectName("ToolButton");
   stopButton->setEnabled(true);
 
-  QPushButton *openResultsFolder = new QPushButton(generateIcon("scatter-plot"), "", this);
+  QPushButton *openResultsFolder = new QPushButton(generateSvgIcon("open-link"), "", this);
   openResultsFolder->setObjectName("ToolButton");
   openResultsFolder->setToolTip("Open results folder");
 
@@ -195,7 +195,7 @@ void DialogAnalyzeRunning::onRefreshData()
     if(!mStopped) {
       QMessageBox messageBox(this);
       // Color red = #860000
-      messageBox.setIconPixmap(generateIcon("error-red").pixmap(48, 48));
+      messageBox.setIconPixmap(generateSvgIcon("data-error").pixmap(48, 48));
       messageBox.setWindowTitle("Error...");
       messageBox.setText("Error in execution got >" + QString(mWindowMain->getController()->getJobInformation().errorLog.data()) + "<.");
       messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);

@@ -32,7 +32,7 @@ class ColorFilter : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Color filter";
-  inline static std::string ICON              = "color";
+  inline static std::string ICON              = "color-management";
   inline static std::string DESCRIPTION       = "Convert the image to a grayscale applying the selected color filter.";
   inline static std::vector<std::string> TAGS = {};
 
@@ -45,14 +45,14 @@ public:
 
     //
     //
-    mTargetColor = SettingBase::create<SettingColorPicker>(parent, generateIcon("color"), "");
+    mTargetColor = SettingBase::create<SettingColorPicker>(parent, {}, "");
     mTargetColor->setValue({settings.filter.begin()->colorRangeFrom, settings.filter.begin()->colorRangeTo});
     mTargetColor->setShortDescription("Color: ");
 
     auto [mPointA, mPointB] = mTargetColor->getValue();
 
     auto createSpinBox = [&](const std::string &desc, uint32_t max, uint32_t value) -> std::shared_ptr<SettingSpinBox<uint32_t>> {
-      auto box = SettingBase::create<SettingSpinBox<uint32_t>>(parent, generateIcon(""), desc.data());
+      auto box = SettingBase::create<SettingSpinBox<uint32_t>>(parent, {}, desc.data());
       box->setMinMax(0, max);
       box->setValue(value);
       connect(box.get(), &SettingBase::valueChanged, this, &ColorFilter::spinnerToColorPicker);
@@ -72,8 +72,7 @@ public:
 
     //
     //
-    mGrayscaleMode = SettingBase::create<SettingComboBox<joda::settings::ColorFilterSettings::GrayscaleMode>>(parent, generateIcon("contrast"),
-                                                                                                              "Grayscale convert mode");
+    mGrayscaleMode = SettingBase::create<SettingComboBox<joda::settings::ColorFilterSettings::GrayscaleMode>>(parent, {}, "Grayscale convert mode");
     mGrayscaleMode->addOptions({{joda::settings::ColorFilterSettings::GrayscaleMode::LINEAR, "Linear"},
                                 {joda::settings::ColorFilterSettings::GrayscaleMode::HUMAN, "Human eye"}});
     mGrayscaleMode->setValue(settings.grayScaleConvertMode);
