@@ -198,6 +198,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     mPreviewSizeGroup->addAction(r128);
     r128->setCheckable(true);
     auto *previewSize = new QAction(generateSvgIcon("computer"), "");
+    previewSize->setStatusTip("Set preview resolution");
     previewSize->setMenu(resolutionMenu);
     toolbarTop->addAction(previewSize);
     auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(previewSize));
