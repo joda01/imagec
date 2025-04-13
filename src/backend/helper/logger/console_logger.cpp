@@ -43,6 +43,31 @@ auto getLogBuffer() -> const std::vector<std::string> &
   return logBuffer;
 }
 
+std::string escapeHtml(const std::string &text)
+{
+  std::string escaped;
+  for(char c : text) {
+    switch(c) {
+      case '\n':
+        escaped += "<br/>";
+        break;
+      case '&':
+        escaped += "&amp;";
+        break;
+      case '<':
+        escaped += "&lt;";
+        break;
+      case '>':
+        escaped += "&gt;";
+        break;
+      default:
+        escaped += c;
+        break;
+    }
+  }
+  return escaped;
+}
+
 std::string ansiToHtml(const std::string &input)
 {
   std::unordered_map<int, std::string> ansiColorMap = {
@@ -64,7 +89,8 @@ std::string ansiToHtml(const std::string &input)
   bool spanOpen = false;
 
   while(std::regex_search(searchStart, input.cend(), match, ansiRegex)) {
-    output += std::string(searchStart, match[0].first);    // Text before match
+    std::string textBefore = std::string(searchStart, match[0].first);
+    output += escapeHtml(textBefore);    // escape HTML in plain text
     int code = std::stoi(match[1]);
 
     if(code == 0) {
@@ -99,7 +125,7 @@ auto logBufferToHtml() -> std::string
     for(size_t i = 0; i < lines.size(); ++i) {
       oss << lines[i];
       if(i != lines.size() - 1) {
-        oss << "<br/>";
+        oss << "\n";
       }
     }
     return oss.str();

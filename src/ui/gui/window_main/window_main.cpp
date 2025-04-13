@@ -900,11 +900,11 @@ void WindowMain::onShowInfoDialog()
     auto *layoutAbout = new QVBoxLayout();
     widgetAbout->setLayout(layoutAbout);
     tab->addTab(widgetAbout, "About");
-    auto *labelAbout = new QLabel(
-        "ImageC is an application for high throughput image processing.<br/><br/>"
-        "2022-2025 Joachim Danmayr<br/><br/>"
-        "<a href=\"https://imagec.org/\">https://imagec.org/</a><br/><br/>"
-        "ALL RIGHTS RESERVED");
+    auto *labelAbout = new QLabel("ImageC " + QString(Version::getVersion().data()) +
+                                  " is an application for high throughput image processing.<br/><br/>"
+                                  "2022-2025 Joachim Danmayr<br/><br/>"
+                                  "<a href=\"https://imagec.org/\">https://imagec.org/</a><br/><br/>"
+                                  "ALL RIGHTS RESERVED");
     labelAbout->setOpenExternalLinks(true);
     labelAbout->setAlignment(Qt::AlignCenter);
     layoutAbout->addWidget(labelAbout);
@@ -942,10 +942,9 @@ void WindowMain::onShowInfoDialog()
     layoutAbout->setAlignment(Qt::AlignCenter);
     widgetAbout->setLayout(layoutAbout);
     tab->addTab(widgetAbout, "Version");
-    auto *labelAbout = new QLabel("<h1>" + QString(Version::getProgamName().data()) + " " + QString(Version::getVersion().data()) +
-                                  "</h1>"
-                                  "CPU cores: " +
-                                  QString(std::to_string(joda::system::getNrOfCPUs()).data()) +
+    auto *labelAbout = new QLabel("<b>" + QString(Version::getProgamName().data()) + " " + QString(Version::getVersion().data()) + "</b><br/>" +
+                                  QString(Version::getBuildTime().data()) + "<br/><br/>" +
+                                  "CPU cores: " + QString(std::to_string(joda::system::getNrOfCPUs()).data()) +
                                   "<br/>"
                                   "RAM Total: " +
                                   QString::number((double) joda::system::getTotalSystemMemory() / 1000000.0, 'f', 2) +
@@ -959,14 +958,14 @@ void WindowMain::onShowInfoDialog()
   }
 
   //
-  // Packages
+  // Open source
   //
   {
     auto *widgetAbout = new QWidget();
     auto *layoutAbout = new QVBoxLayout();
     layoutAbout->setAlignment(Qt::AlignCenter);
     widgetAbout->setLayout(layoutAbout);
-    tab->addTab(widgetAbout, "Open source");
+    tab->addTab(widgetAbout, "Libraries");
     QFile file(":/other/other/open_source_libs.html");
     QString openSourceLibs;
     if(file.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -977,6 +976,26 @@ void WindowMain::onShowInfoDialog()
     labelAbout->setHtml(openSourceLibs);
     labelAbout->setOpenExternalLinks(true);
 
+    labelAbout->setOpenExternalLinks(true);
+    labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    layoutAbout->addWidget(labelAbout);
+  }
+
+  //
+  // 3rd party
+  //
+  {
+    auto *widgetAbout = new QWidget();
+    auto *layoutAbout = new QVBoxLayout();
+    layoutAbout->setAlignment(Qt::AlignCenter);
+    widgetAbout->setLayout(layoutAbout);
+    tab->addTab(widgetAbout, "3rd party");
+    auto *labelAbout = new QLabel();
+    QString others =
+        "<u>icons8</u> : Thanks to <a href=\"https://icons8.com/\">http://icon8.org</a> for providing some of the icons!<br/><br/>"
+        "<u>KDE project</u> : Thanks to the KDE project for providing the <a "
+        "href=\"https://develop.kde.org/frameworks/breeze-icons/\">Breeze</a> icon set!<br/><br/>";
+    labelAbout->setText(others);
     labelAbout->setOpenExternalLinks(true);
     labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     layoutAbout->addWidget(labelAbout);
@@ -1034,7 +1053,7 @@ void WindowMain::onShowInfoDialog()
   auto *mainLayout = new QVBoxLayout();
   mainLayout->addWidget(tab);
   about->setLayout(mainLayout);
-  about->resize(600, 400);
+  about->resize(650, 550);
   about->exec();
 }
 
