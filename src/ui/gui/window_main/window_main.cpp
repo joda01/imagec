@@ -185,13 +185,13 @@ void WindowMain::createTopToolbar()
   mTopToolBar->addAction(mOpenProjectButton);
 
   mSaveProject = new QAction(generateSvgIcon("document-save"), "Save", mTopToolBar);
-  mSaveProject->setToolTip("Save project!");
+  mSaveProject->setStatusTip("Save project");
   mSaveProject->setEnabled(false);
   connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
   mTopToolBar->addAction(mSaveProject);
 
   mSaveProjectAs = new QAction(generateSvgIcon("document-save-as"), "Save as", mTopToolBar);
-  mSaveProjectAs->setToolTip("Save project as!");
+  mSaveProjectAs->setStatusTip("Save project as new name");
   connect(mSaveProjectAs, &QAction::triggered, this, &WindowMain::onSaveProjectAs);
   mTopToolBar->addAction(mSaveProjectAs);
 
@@ -204,7 +204,7 @@ void WindowMain::createTopToolbar()
   // mTopToolBar->addSeparator();
 
   mShowCompilerLog = new QAction(generateSvgIcon("show-all-effects"), "Compiler log", mTopToolBar);
-  mShowCompilerLog->setToolTip("CompileLog!");
+  mShowCompilerLog->setStatusTip("Show possible pipeline issues");
   mShowCompilerLog->setCheckable(true);
   connect(mShowCompilerLog, &QAction::triggered, [this](bool checked) {
     if(checked) {
@@ -218,6 +218,7 @@ void WindowMain::createTopToolbar()
   mTopToolBar->addAction(mShowCompilerLog);
 
   mStartAnalysisToolButton = new QAction(generateSvgIcon("media-playback-start"), "Start analyze", mTopToolBar);
+  mStartAnalysisToolButton->setStatusTip("Start analyze");
   mStartAnalysisToolButton->setEnabled(false);
   mStartAnalysisToolButton->setToolTip("Run pipeline!");
   connect(mStartAnalysisToolButton, &QAction::triggered, this, &WindowMain::onStartClicked);
@@ -235,6 +236,7 @@ void WindowMain::createTopToolbar()
   mTopToolBar->addSeparator();
 
   mShowInfoDialog = new QAction(generateSvgIcon("help-about"), "About", mTopToolBar);
+  mShowInfoDialog->setStatusTip("Open about dialog");
   mShowInfoDialog->setToolTip("Info");
   connect(mShowInfoDialog, &QAction::triggered, this, &WindowMain::onShowInfoDialog);
   mTopToolBar->addAction(mShowInfoDialog);

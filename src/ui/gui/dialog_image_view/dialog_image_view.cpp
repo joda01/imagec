@@ -113,19 +113,21 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     // toolbarTop->addSeparator();
 
     QAction *showThumbnail = new QAction(generateSvgIcon("virtual-desktops"), "");
+    showThumbnail->setStatusTip("Show/Hide image thumbnail");
     showThumbnail->setCheckable(true);
     showThumbnail->setChecked(true);
     connect(showThumbnail, &QAction::triggered, this, &DialogImageViewer::onShowThumbnailChanged);
     toolbarTop->addAction(showThumbnail);
 
     QAction *showPixelInfo = new QAction(generateSvgIcon("coordinate"), "");
+    showPixelInfo->setStatusTip("Show/Hide pixel information");
     showPixelInfo->setCheckable(true);
     showPixelInfo->setChecked(true);
     connect(showPixelInfo, &QAction::triggered, this, &DialogImageViewer::onShowPixelInfo);
     toolbarTop->addAction(showPixelInfo);
 
     QAction *showCrossHairCursor = new QAction(generateSvgIcon("crosshairs"), "");
-    showCrossHairCursor->setToolTip("Right click to place a reference cursor.");
+    showCrossHairCursor->setStatusTip("Show/Hide cross hair cursor (right click to place)");
     showCrossHairCursor->setCheckable(true);
     showCrossHairCursor->setChecked(false);
     connect(showCrossHairCursor, &QAction::triggered, this, &DialogImageViewer::onShowCrossHandCursor);
@@ -134,14 +136,14 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     toolbarTop->addSeparator();
 
     QAction *showOverlay = new QAction(generateSvgIcon("redeyes"), "");
-    showOverlay->setToolTip("Show overlay");
+    showOverlay->setStatusTip("Show/Hide results as overlay");
     showOverlay->setCheckable(true);
     showOverlay->setChecked(true);
     connect(showOverlay, &QAction::triggered, [this](bool selected) { mImageViewRight.setShowOverlay(selected); });
     toolbarTop->addAction(showOverlay);
 
     mFillOVerlay = new QAction(generateSvgIcon("fill-color"), "");
-    mFillOVerlay->setToolTip("Filled");
+    mFillOVerlay->setStatusTip("Fill/Outline results overlay");
     mFillOVerlay->setCheckable(true);
     connect(mFillOVerlay, &QAction::triggered, this, &DialogImageViewer::onSettingChanged);
     toolbarTop->addAction(mFillOVerlay);
@@ -149,20 +151,20 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     toolbarTop->addSeparator();
 
     QAction *fitToScreen = new QAction(generateSvgIcon("zoom-fit-best"), "");
+    fitToScreen->setStatusTip("Fit image to screen");
     fitToScreen->setObjectName("ToolButton");
-    fitToScreen->setToolTip("Fit image to screen");
     connect(fitToScreen, &QAction::triggered, this, &DialogImageViewer::onFitImageToScreenSizeClicked);
     toolbarTop->addAction(fitToScreen);
 
     QAction *zoomIn = new QAction(generateSvgIcon("zoom-in"), "");
+    zoomIn->setStatusTip("Zoom image in");
     zoomIn->setObjectName("ToolButton");
-    zoomIn->setToolTip("Zoom in");
     connect(zoomIn, &QAction::triggered, this, &DialogImageViewer::onZoomInClicked);
     toolbarTop->addAction(zoomIn);
 
     QAction *zoomOut = new QAction(generateSvgIcon("zoom-out"), "");
     zoomOut->setObjectName("ToolButton");
-    zoomOut->setToolTip("Zoom out");
+    zoomIn->setStatusTip("Zoom image out");
     connect(zoomOut, &QAction::triggered, this, &DialogImageViewer::onZoomOutClicked);
     toolbarTop->addAction(zoomOut);
 
