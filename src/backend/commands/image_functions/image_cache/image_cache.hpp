@@ -37,9 +37,9 @@ public:
     joda::enums::ImageId id{.zProjection = enums::ZProjection::NONE, .imagePlane = {}, .memoryId = mSettings.memoryId};
 
     if(mSettings.mode == settings::ImageCacheSettings::Mode::STORE) {
-      context.storeImageToCache(enums::MemoryScope::ITERATION, id, context.getActImage().clone(image));
+      context.storeImageToCache(mSettings.memoryScope, id, context.getActImage().clone(image));
     } else if(mSettings.mode == settings::ImageCacheSettings::Mode::LOAD) {
-      context.setActImage(context.loadImageFromCache(enums::MemoryScope::ITERATION, id));
+      context.setActImage(context.loadImageFromCache(mSettings.memoryScope, id));
     }
   }
 

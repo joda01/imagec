@@ -66,6 +66,11 @@ struct ImageMathSettings : public SettingBase
   //
   enums::ImageId inputImageSecond = {enums::ZProjection::$, {-1, -1, -1}};
 
+  //
+  //
+  //
+  enums::MemoryScope memoryScope = enums::MemoryScope::ITERATION;
+
   /////////////////////////////////////////////////////
   void check() const
   {
@@ -89,7 +94,7 @@ struct ImageMathSettings : public SettingBase
     return {};
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageMathSettings, function, operatorOrder, inputImageSecond);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageMathSettings, function, operatorOrder, inputImageSecond, memoryScope);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ImageMathSettings::Function, {

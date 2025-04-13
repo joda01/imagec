@@ -31,7 +31,7 @@ ImageMath::ImageMath(const settings::ImageMathSettings &settings) : mSettings(se
 
 void ImageMath::execute(processor::ProcessContext &context, cv::Mat &imageInOut, atom::ObjectList & /*resultIn*/)
 {
-  auto const *img2 = &context.loadImageFromCache(enums::MemoryScope::ITERATION, mSettings.inputImageSecond)->image;
+  auto const *img2 = &context.loadImageFromCache(mSettings.memoryScope, mSettings.inputImageSecond)->image;
   auto const *img1 = &imageInOut;
   if(mSettings.operatorOrder == settings::ImageMathSettings::OperationOrder::BoA) {
     img1 = img2;

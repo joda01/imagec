@@ -105,6 +105,18 @@ public:
     zStackIndex->setValue(settings.inputImageSecond.imagePlane.zStack);
     zStackIndex->connectWithSetting(&settings.inputImageSecond.imagePlane.zStack);
 
+    //
+    //
+    //
+    mMemoryScope = SettingBase::create<SettingComboBox<enums::MemoryScope>>(parent, generateSvgIcon("labplot-matrix"), "Storage scope");
+    mMemoryScope->addOptions({{enums::MemoryScope::PIPELINE, "Pipeline"}, {enums::MemoryScope::ITERATION, "Iteration"}});
+    mMemoryScope->setValue(settings.memoryScope);
+    mMemoryScope->connectWithSetting(&settings.memoryScope);
+    mMemoryScope->setShortDescription("");
+
+    //
+    //
+    //
     mMemoryIdx = SettingBase::create<SettingComboBox<enums::MemoryIdx::Enum>>(parent, generateSvgIcon("labplot-matrix"), "From cache");
     mMemoryIdx->addOptions({{enums::MemoryIdx::NONE, "None"},
                             {enums::MemoryIdx::M0, "M0"},
@@ -125,7 +137,11 @@ public:
     //
     //
     addSetting(modelTab, "Input image channels",
-               {{cStackIndex.get(), true, 0}, {zProjection.get(), true, 0}, {zStackIndex.get(), false, 0}, {mMemoryIdx.get(), true, 0}});
+               {{cStackIndex.get(), true, 0},
+                {zProjection.get(), true, 0},
+                {zStackIndex.get(), false, 0},
+                {mMemoryScope.get(), false, 0},
+                {mMemoryIdx.get(), true, 0}});
   }
 
 private:
@@ -139,6 +155,7 @@ private:
   std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjection;
   std::unique_ptr<SettingSpinBox<int32_t>> zStackIndex;
   std::shared_ptr<SettingComboBox<enums::MemoryIdx::Enum>> mMemoryIdx;
+  std::shared_ptr<SettingComboBox<enums::MemoryScope>> mMemoryScope;
 
   /////////////////////////////////////////////////////
 
