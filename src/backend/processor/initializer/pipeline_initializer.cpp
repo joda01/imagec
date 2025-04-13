@@ -259,7 +259,11 @@ enums::ImageId PipelineInitializer::loadImageAndStoreToCache(enums::MemoryScope 
   if(zProjection != enums::ZProjection::NONE && zProjection != enums::ZProjection::TAKE_MIDDLE) {
     auto max = [&loadImage, &image, c, t](int zIdx) { image = cv::max(image, loadImage(zIdx, c, t)); };
     auto min = [&loadImage, &image, c, t](int zIdx) { image = cv::min(image, loadImage(zIdx, c, t)); };
-    auto avg = [&loadImage, &image, c, t](int zIdx) { image = image + loadImage(zIdx, c, t); };
+    auto avg = [&loadImage, &image, c, t](int zIdx) {
+      auto tmp = loadImage(zIdx, c, t);
+      tmp.convertTo(tmp, CV_32SC1);
+      image = image + tmp;
+    };
 
     std::function<void(int)> func;
 
@@ -271,6 +275,7 @@ enums::ImageId PipelineInitializer::loadImageAndStoreToCache(enums::MemoryScope 
         func = min;
         break;
       case enums::ZProjection::AVG_INTENSITY:
+        image.convertTo(image, CV_32SC1);    // Need to scale up because we are adding a lot of images to avoid overflow
         func = avg;
         break;
       case enums::ZProjection::NONE:
@@ -283,6 +288,7 @@ enums::ImageId PipelineInitializer::loadImageAndStoreToCache(enums::MemoryScope 
     // Avg intensity projection
     if(enums::ZProjection::AVG_INTENSITY == zProjection) {
       image = image / imageContext.nrOfZStacks;
+      image.convertTo(image, CV_16UC1);    // no scaling
     }
   }
   DurationCount::stop(i);
