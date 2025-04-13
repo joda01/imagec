@@ -768,12 +768,11 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   if(pathToDbFile.isEmpty()) {
     return;
   }
-  showToolBar(true);
   resetSettings();
-  mDbFilePath = std::filesystem::path(pathToDbFile.toStdString());
-  mAnalyzer   = std::make_unique<joda::db::Database>();
+  mAnalyzer = std::make_unique<joda::db::Database>();
   mAnalyzer->openDatabase(std::filesystem::path(pathToDbFile.toStdString()));
-
+  mDbFilePath = std::filesystem::path(pathToDbFile.toStdString());
+  showToolBar(true);
   mSelectedDataSet.analyzeMeta = mAnalyzer->selectExperiment();
   mColumnEditDialog->updateClassesAndClasses(mAnalyzer.get());
   // Try to load settings if available
