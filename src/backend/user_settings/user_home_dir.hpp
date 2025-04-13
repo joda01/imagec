@@ -17,7 +17,7 @@ inline std::filesystem::path getUserHomeDir(const std::string &subPath = "")
   std::filesystem::path homeDir;
 #ifdef _WIN32
   if(subPath.empty()) {
-    homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path("imagec")
+    homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path("imagec");
   } else {
     homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path("imagec") /
               std::filesystem::path(subPath);
