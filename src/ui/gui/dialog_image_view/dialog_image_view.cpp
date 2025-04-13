@@ -58,9 +58,8 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
       setMaximumWidth(10000);    // Remove max width cap
       setMinimumWidth(1200);     // Wider when floating
       setMinimumHeight(600);
-      setMinimumHeight(600);
       mCentralLayout->setDirection(QBoxLayout::LeftToRight);
-      resize(1200, 600);
+      resize(1300, 700);
     } else {
       setMaximumWidth(500);    // Restrict width when docked
       setMinimumHeight(0);
