@@ -126,6 +126,7 @@ private slots:
   void onSetSateToMove();
   void onSetStateToPaintRect();
   void onShowPixelInfo(bool checked);
+  void onShowPipelineResults(bool checked);
   void onShowThumbnailChanged(bool checked);
   void onShowCrossHandCursor(bool checked);
   void onTileClicked(int32_t tileX, int32_t tileY);

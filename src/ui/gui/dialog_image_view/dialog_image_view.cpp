@@ -125,6 +125,13 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     connect(showPixelInfo, &QAction::triggered, this, &DialogImageViewer::onShowPixelInfo);
     toolbarTop->addAction(showPixelInfo);
 
+    QAction *showPipelineResults = new QAction(generateSvgIcon("sort-presence"), "");
+    showPipelineResults->setStatusTip("Show/Hide pipeline results");
+    showPipelineResults->setCheckable(true);
+    showPipelineResults->setChecked(true);
+    connect(showPipelineResults, &QAction::triggered, this, &DialogImageViewer::onShowPipelineResults);
+    toolbarTop->addAction(showPipelineResults);
+
     QAction *showCrossHairCursor = new QAction(generateSvgIcon("crosshairs"), "");
     showCrossHairCursor->setStatusTip("Show/Hide cross hair cursor (right click to place)");
     showCrossHairCursor->setCheckable(true);
@@ -487,6 +494,19 @@ void DialogImageViewer::onShowCrossHandCursor(bool checked)
 {
   mImageViewLeft.setShowCrosshandCursor(checked);
   mImageViewRight.setShowCrosshandCursor(checked);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::onShowPipelineResults(bool checked)
+{
+  // mImageViewLeft.setShowPipelineResults(checked);
+  mImageViewRight.setShowPipelineResults(checked);
 }
 
 ///
