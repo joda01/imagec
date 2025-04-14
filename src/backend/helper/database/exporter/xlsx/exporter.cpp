@@ -1,6 +1,7 @@
 
 
 #include "exporter.hpp"
+#include <xlsxwriter/worksheet.h>
 #include <cstddef>
 #include <string>
 #include "backend/enums/enum_measurements.hpp"
@@ -114,9 +115,17 @@ void BatchExporter::createList(const WorkBook &workbookSettings, std::pair<Pos, 
   for(int row = 0; row < data.getRows(); row++) {
     for(int col = 0; col < data.getCols(); col++) {
       if(data.data(row, col).isValid()) {
-        worksheet_write_number(sheet.second, row + 1 + xOffset, 1 + col, data.data(row, col).getVal(), workbookSettings.numberFormat);
+        if(data.data(row, col).isNAN()) {
+          worksheet_write_blank(sheet.second, row + 1 + xOffset, 1 + col, workbookSettings.numberFormat);
+        } else {
+          worksheet_write_number(sheet.second, row + 1 + xOffset, 1 + col, data.data(row, col).getVal(), workbookSettings.numberFormat);
+        }
       } else {
-        worksheet_write_number(sheet.second, row + 1 + xOffset, 1 + col, data.data(row, col).getVal(), workbookSettings.numberFormatInvalid);
+        if(data.data(row, col).isNAN()) {
+          worksheet_write_blank(sheet.second, row + 1 + xOffset, 1 + col, workbookSettings.numberFormatInvalid);
+        } else {
+          worksheet_write_number(sheet.second, row + 1 + xOffset, 1 + col, data.data(row, col).getVal(), workbookSettings.numberFormatInvalid);
+        }
       }
     }
   }
@@ -312,7 +321,11 @@ BatchExporter::Pos BatchExporter::paintHeatmap(const WorkBook &workbookSettings,
         format = workbookSettings.numberFormatInvalidScientific;
       }
       // Offset 2 because of title and plate numbering
-      worksheet_write_number(worksheet, ROW_OFFSET + row + rowOffset, 1 + col, table.data(row, col).getVal(), format);
+      if(table.data(row, col).isNAN()) {
+        worksheet_write_blank(worksheet, ROW_OFFSET + row + rowOffset, 1 + col, format);
+      } else {
+        worksheet_write_number(worksheet, ROW_OFFSET + row + rowOffset, 1 + col, table.data(row, col).getVal(), format);
+      }
     }
   }
 
