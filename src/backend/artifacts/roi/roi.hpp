@@ -159,7 +159,7 @@ public:
             newParentObjectId};
   }
 
-  /// @brief  ATTENTION This method must not be used when the ROI is still added to the spheral index
+  /// @brief  ATTENTION This method must be done befor the ROI is added to the spheral index
   /// @param classId
   void changeClass(enums::ClassId classId, uint64_t newParentObjectId)
   {
@@ -282,6 +282,19 @@ public:
   }
 
   void resize(float scaleX, float scaleY);
+  void addLinkedRoi(const ROI *linked)
+  {
+    mLinkedWith.emplace(linked);
+  }
+  auto getLinkedRois() const -> const std::set<const ROI *> &
+  {
+    return mLinkedWith;
+  }
+
+  void clearLinkedWith()
+  {
+    mLinkedWith.clear();
+  }
 
 private:
   /////////////////////////////////////////////////////
@@ -322,5 +335,6 @@ private:
   uint64_t mOriginObjectId = 0;
 
   static inline std::atomic<uint64_t> mGlobalUniqueObjectId = 1;
+  std::set<const ROI *> mLinkedWith;
 };
 }    // namespace joda::atom

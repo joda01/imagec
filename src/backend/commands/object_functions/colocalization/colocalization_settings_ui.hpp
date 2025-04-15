@@ -49,16 +49,64 @@ public:
     auto *modelTab = addTab(
         "Base", [] {}, false);
 
-    mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, {}, "Classes to coloc.");
-    mClassesIn->setValue(settings.inputClasses);
-    mClassesIn->connectWithSetting(&settings.inputClasses);
+    if(settings.inputClasses.size() < 4) {
+      settings.inputClasses.reserve(4);
+      settings.inputClasses.resize(4);
+    }
+    //=================================================
+    //
+    //
+    //
+    mClassesIn01 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Class to coloc.");
+    mClassesIn01->setValue(settings.inputClasses.at(0).inputClassId);
+    mClassesIn01->connectWithSetting(&settings.inputClasses.at(0).inputClassId);
 
-    addSetting(modelTab, "Input", {{mClassesIn.get(), true, 0}});
+    mNewClassesIn01 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Reclassify to if coloc.");
+    mNewClassesIn01->setValue(settings.inputClasses.at(0).newClassId);
+    mNewClassesIn01->connectWithSetting(&settings.inputClasses.at(0).newClassId);
+    auto *firstCol = addSetting(modelTab, "Input 1", {{mClassesIn01.get(), true, 0}, {mNewClassesIn01.get(), false, 0}});
 
     //
     //
     //
-    mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, generateSvgIcon("choice-round"), "Output class");
+    mClassesIn02 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Class to coloc.");
+    mClassesIn02->setValue(settings.inputClasses.at(0).inputClassId);
+    mClassesIn02->connectWithSetting(&settings.inputClasses.at(0).inputClassId);
+
+    mNewClassesIn02 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Reclassify to if coloc.");
+    mNewClassesIn02->setValue(settings.inputClasses.at(0).newClassId);
+    mNewClassesIn02->connectWithSetting(&settings.inputClasses.at(0).newClassId);
+    addSetting(modelTab, "Input 2", {{mClassesIn02.get(), true, 0}, {mNewClassesIn02.get(), false, 0}}, firstCol);
+
+    //
+    //
+    //
+    mClassesIn03 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Class to coloc.");
+    mClassesIn03->setValue(settings.inputClasses.at(0).inputClassId);
+    mClassesIn03->connectWithSetting(&settings.inputClasses.at(0).inputClassId);
+
+    mNewClassesIn03 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Reclassify to if coloc.");
+    mNewClassesIn03->setValue(settings.inputClasses.at(0).newClassId);
+    mNewClassesIn03->connectWithSetting(&settings.inputClasses.at(0).newClassId);
+    addSetting(modelTab, "Input 3", {{mClassesIn03.get(), true, 0}, {mNewClassesIn03.get(), false, 0}}, firstCol);
+
+    //
+    //
+    //
+    mClassesIn04 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Class to coloc.");
+    mClassesIn04->setValue(settings.inputClasses.at(0).inputClassId);
+    mClassesIn04->connectWithSetting(&settings.inputClasses.at(0).inputClassId);
+
+    mNewClassesIn04 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Reclassify to if coloc.");
+    mNewClassesIn04->setValue(settings.inputClasses.at(0).newClassId);
+    mNewClassesIn04->connectWithSetting(&settings.inputClasses.at(0).newClassId);
+    addSetting(modelTab, "Input 4", {{mClassesIn04.get(), true, 0}, {mNewClassesIn04.get(), false, 0}}, firstCol);
+
+    //=====================================================
+    //
+    //
+    //
+    mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, generateSvgIcon("choice-round"), "Coloc output class");
     mClassOutput->setValue(settings.outputClass);
     mClassOutput->connectWithSetting(&settings.outputClass);
 
@@ -73,7 +121,35 @@ public:
     mMinIntersection->connectWithSetting(&settings.minIntersection);
     mMinIntersection->setShortDescription("Cls. ");
 
-    auto *col = addSetting(modelTab, "Output", {{mClassOutput.get(), true, 0}, {mMinIntersection.get(), false, 0}});
+    //
+    //
+    //
+    mMode = SettingBase::create<SettingComboBox<joda::settings::ColocalizationSettings::Mode>>(parent, {}, "Mode");
+    mMode->addOptions(
+        {{.key = joda::settings::ColocalizationSettings::Mode::RECLASSIFY_MOVE, .label = "Reclassify Move", .icon = generateSvgIcon("edit-move")},
+         {.key = joda::settings::ColocalizationSettings::Mode::RECLASSIFY_COPY, .label = "Reclassify Copy", .icon = generateSvgIcon("edit-copy")}});
+    mMode->setValue(settings.mode);
+    mMode->connectWithSetting(&settings.mode);
+
+    //
+    //
+    //
+    mHierarchyMode = SettingBase::create<SettingComboBox<joda::settings::ColocalizationSettings::HierarchyHandling>>(parent, {}, "Hierarchy mode");
+    mHierarchyMode->addOptions({{.key   = joda::settings::ColocalizationSettings::HierarchyHandling::CREATE_TREE,
+                                 .label = "Create hierarchy tree",
+                                 .icon  = generateSvgIcon("view-list-tree")},
+                                {.key   = joda::settings::ColocalizationSettings::HierarchyHandling::KEEP_EXISTING,
+                                 .label = "Keep existing tree",
+                                 .icon  = generateSvgIcon("view-list-tree")},
+                                {.key   = joda::settings::ColocalizationSettings::HierarchyHandling::REMOVE,
+                                 .label = "Remove tree information",
+                                 .icon  = generateSvgIcon("view-list-tree")}});
+    mHierarchyMode->setValue(settings.hierarchyMode);
+    mHierarchyMode->connectWithSetting(&settings.hierarchyMode);
+
+    auto *col =
+        addSetting(modelTab, "Output",
+                   {{mClassOutput.get(), true, 0}, {mMinIntersection.get(), false, 0}, {mMode.get(), false, 0}, {mHierarchyMode.get(), false, 0}});
   }
 
 private:
@@ -84,7 +160,21 @@ private:
   /////////////////////////////////////////////////////
   std::unique_ptr<SettingComboBoxClassesOut> mClassOutput;
   std::unique_ptr<SettingLineEdit<float>> mMinIntersection;
-  std::unique_ptr<SettingComboBoxMultiClassificationIn> mClassesIn;
+
+  std::unique_ptr<SettingComboBoxClassesOut> mClassesIn01;
+  std::unique_ptr<SettingComboBoxClassesOut> mNewClassesIn01;
+
+  std::unique_ptr<SettingComboBoxClassesOut> mClassesIn02;
+  std::unique_ptr<SettingComboBoxClassesOut> mNewClassesIn02;
+
+  std::unique_ptr<SettingComboBoxClassesOut> mClassesIn03;
+  std::unique_ptr<SettingComboBoxClassesOut> mNewClassesIn03;
+
+  std::unique_ptr<SettingComboBoxClassesOut> mClassesIn04;
+  std::unique_ptr<SettingComboBoxClassesOut> mNewClassesIn04;
+
+  std::unique_ptr<SettingComboBox<joda::settings::ColocalizationSettings::Mode>> mMode;
+  std::unique_ptr<SettingComboBox<joda::settings::ColocalizationSettings::HierarchyHandling>> mHierarchyMode;
 
   /////////////////////////////////////////////////////
 };
