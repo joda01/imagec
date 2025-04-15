@@ -1071,7 +1071,11 @@ void PanelResults::tableToQWidgetTable(const joda::table::Table &tableIn)
       }
       if(item) {
         if(tableIn.getRows() > row && tableIn.getCols() > col) {
-          item->setText(QString::number((double) tableIn.data(row, col).getVal()));
+          if(tableIn.data(row, col).isNAN()) {
+            item->setText("-");
+          } else {
+            item->setText(QString::number((double) tableIn.data(row, col).getVal()));
+          }
           QFont font = item->font();
           font.setStrikeOut(!tableIn.data(row, col).isValid());
           item->setFont(font);

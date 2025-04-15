@@ -79,6 +79,17 @@ PanelResultsTemplateGenerator::PanelResultsTemplateGenerator(WindowMain *mainWin
     }
   });
 
+  toolBar->addSeparator();
+
+  auto *sortColumns = new QAction(generateSvgIcon("view-sort-ascending-name"), "", this);
+  sortColumns->setStatusTip("Sort columns");
+  toolBar->addAction(sortColumns);
+  connect(sortColumns, &QAction::triggered, [this]() {
+    mAnalyzeSettings->resultsSettings.sortColumns();
+    refreshView();
+    mMainWindow->checkForSettingsChanged();
+  });
+
   //
   // Table
   //
