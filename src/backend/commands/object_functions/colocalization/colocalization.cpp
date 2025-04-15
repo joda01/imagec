@@ -15,6 +15,7 @@
 #include "backend/artifacts/object_list/object_list.hpp"
 
 #include "backend/commands/object_functions/colocalization/colocalization_settings.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
@@ -28,7 +29,12 @@ Colocalization::Colocalization(const settings::ColocalizationSettings &settings)
 void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &resultIn)
 {
   const auto &classesToIntersect = mSettings.inputClasses;
-  size_t intersectCount          = classesToIntersect.size();
+  size_t intersectCount          = 0;
+  for(const auto &sect : classesToIntersect) {
+    if(sect.inputClassId != enums::ClassIdIn::UNDEFINED) {
+      intersectCount++;
+    }
+  }
   try {
     int idx = 0;
     auto it = classesToIntersect.begin();
@@ -60,6 +66,9 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
     ++idx;
 
     for(; it != classesToIntersect.end(); ++it) {
+      if(it->inputClassId == enums::ClassIdIn::UNDEFINED) {
+        continue;
+      }
       const auto *objects02 = context.loadObjectsFromCache()->at(context.getClassId(it->inputClassId)).get();
       working->calcColocalization(context.getActIterator(), objects02, resultTemp, objectClassesMe, {context.getClassId(it->inputClassId)},
                                   context.getClassId(mSettings.outputClass), mSettings.minIntersection, context.getActTile(), context.getTileSize());
@@ -102,18 +111,22 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
 
     std::vector<atom::ROI> roisToEnter;
     std::vector<const atom::ROI *> roisToRemove;
-    for(const auto &colocRois : *result) {
+    for(auto &colocRois : *result) {
       for(const auto &linked : colocRois.getLinkedRois()) {
-        if(mSettings.mode == settings::ColocalizationSettings::Mode::RECLASSIFY_MOVE) {
-          // We have to reenter to organize correct in the map of objects
-          auto newRoi = linked->clone(getNewClassIdForMyClassId(linked->getClassId()), colocRois.getObjectId());
-          roisToEnter.emplace_back(std::move(newRoi));
-          roisToRemove.emplace_back(linked);
-        } else if(mSettings.mode == settings::ColocalizationSettings::Mode::RECLASSIFY_COPY) {
-          auto newRoi = linked->copy(getNewClassIdForMyClassId(linked->getClassId()), colocRois.getObjectId());
-          roisToEnter.emplace_back(std::move(newRoi));    // Store the ROIs we want to enter
+        auto newClassId = getNewClassIdForMyClassId(linked->getClassId());
+        if(newClassId != enums::ClassId::UNDEFINED) {
+          if(mSettings.mode == settings::ColocalizationSettings::Mode::RECLASSIFY_MOVE) {
+            // We have to reenter to organize correct in the map of objects
+            auto newRoi = linked->clone(newClassId, colocRois.getObjectId());
+            roisToEnter.emplace_back(std::move(newRoi));
+            roisToRemove.emplace_back(linked);
+          } else if(mSettings.mode == settings::ColocalizationSettings::Mode::RECLASSIFY_COPY) {
+            auto newRoi = linked->copy(newClassId, colocRois.getObjectId());
+            roisToEnter.emplace_back(std::move(newRoi));    // Store the ROIs we want to enter
+          }
         }
       }
+      colocRois.clearLinkedWith();
     }
 
     // Enter the rois from the temp storage

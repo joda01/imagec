@@ -70,36 +70,36 @@ public:
     //
     //
     mClassesIn02 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Class to coloc.");
-    mClassesIn02->setValue(settings.inputClasses.at(0).inputClassId);
-    mClassesIn02->connectWithSetting(&settings.inputClasses.at(0).inputClassId);
+    mClassesIn02->setValue(settings.inputClasses.at(1).inputClassId);
+    mClassesIn02->connectWithSetting(&settings.inputClasses.at(1).inputClassId);
 
     mNewClassesIn02 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Reclassify to if coloc.");
-    mNewClassesIn02->setValue(settings.inputClasses.at(0).newClassId);
-    mNewClassesIn02->connectWithSetting(&settings.inputClasses.at(0).newClassId);
+    mNewClassesIn02->setValue(settings.inputClasses.at(1).newClassId);
+    mNewClassesIn02->connectWithSetting(&settings.inputClasses.at(1).newClassId);
     addSetting(modelTab, "Input 2", {{mClassesIn02.get(), true, 0}, {mNewClassesIn02.get(), false, 0}}, firstCol);
 
     //
     //
     //
     mClassesIn03 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Class to coloc.");
-    mClassesIn03->setValue(settings.inputClasses.at(0).inputClassId);
-    mClassesIn03->connectWithSetting(&settings.inputClasses.at(0).inputClassId);
+    mClassesIn03->setValue(settings.inputClasses.at(2).inputClassId);
+    mClassesIn03->connectWithSetting(&settings.inputClasses.at(2).inputClassId);
 
     mNewClassesIn03 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Reclassify to if coloc.");
-    mNewClassesIn03->setValue(settings.inputClasses.at(0).newClassId);
-    mNewClassesIn03->connectWithSetting(&settings.inputClasses.at(0).newClassId);
+    mNewClassesIn03->setValue(settings.inputClasses.at(2).newClassId);
+    mNewClassesIn03->connectWithSetting(&settings.inputClasses.at(2).newClassId);
     addSetting(modelTab, "Input 3", {{mClassesIn03.get(), true, 0}, {mNewClassesIn03.get(), false, 0}}, firstCol);
 
     //
     //
     //
     mClassesIn04 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Class to coloc.");
-    mClassesIn04->setValue(settings.inputClasses.at(0).inputClassId);
-    mClassesIn04->connectWithSetting(&settings.inputClasses.at(0).inputClassId);
+    mClassesIn04->setValue(settings.inputClasses.at(3).inputClassId);
+    mClassesIn04->connectWithSetting(&settings.inputClasses.at(3).inputClassId);
 
     mNewClassesIn04 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Reclassify to if coloc.");
-    mNewClassesIn04->setValue(settings.inputClasses.at(0).newClassId);
-    mNewClassesIn04->connectWithSetting(&settings.inputClasses.at(0).newClassId);
+    mNewClassesIn04->setValue(settings.inputClasses.at(3).newClassId);
+    mNewClassesIn04->connectWithSetting(&settings.inputClasses.at(3).newClassId);
     addSetting(modelTab, "Input 4", {{mClassesIn04.get(), true, 0}, {mNewClassesIn04.get(), false, 0}}, firstCol);
 
     //=====================================================
