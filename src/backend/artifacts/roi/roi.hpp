@@ -306,6 +306,10 @@ public:
   {
     mLinkedWith.emplace(linked);
   }
+  void addLinkedRoi(const std::set<const ROI *> &links)
+  {
+    mLinkedWith.insert(links.begin(), links.end());
+  }
   auto getLinkedRois() const -> const std::set<const ROI *> &
   {
     return mLinkedWith;
