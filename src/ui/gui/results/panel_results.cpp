@@ -408,6 +408,9 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   connect(deleteColumn, &QAction::triggered, [this]() {
     if(mSelectedTableColumn >= 0) {
       mFilter.eraseColumn({.tabIdx = 0, .colIdx = mSelectedTableColumn});
+      if(mAutoSort->isChecked()) {
+        mFilter.sortColumns();
+      }
       refreshView();
     }
   });
@@ -421,6 +424,20 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
     }
   });
   toolbar->addItemToTopToolbar(editColumn);
+
+  toolbar->addSeparatorToTopToolbar();
+
+  mAutoSort = new QAction(generateSvgIcon("view-sort-ascending-name"), "", this);
+  mAutoSort->setCheckable(true);
+  mAutoSort->setChecked(true);
+  mAutoSort->setStatusTip("Sort columns");
+  toolbar->addItemToTopToolbar(mAutoSort);
+  connect(mAutoSort, &QAction::triggered, [this]() {
+    if(mAutoSort->isChecked()) {
+      mFilter.sortColumns();
+      refreshView();
+    }
+  });
 
   toolbar->addSeparatorToTopToolbar();
 
@@ -994,6 +1011,9 @@ void PanelResults::createEditColumnDialog()
 void PanelResults::columnEdit(int32_t colIdx)
 {
   mColumnEditDialog->exec(colIdx);
+  if(mAutoSort->isChecked()) {
+    mFilter.sortColumns();
+  }
   refreshView();
 }
 
