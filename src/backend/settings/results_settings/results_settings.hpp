@@ -14,6 +14,7 @@
 #pragma once
 
 #include <string>
+#include <utility>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/helper/database/exporter/heatmap/export_heatmap_settings.hpp"
 #include "backend/settings/project_settings/project_plate_setup.hpp"
@@ -93,15 +94,15 @@ public:
     bool operator<(const ColumnKey &input) const
     {
       auto toInt = [](const ColumnKey &in) {
-        uint32_t classClasss         = static_cast<uint16_t>(in.classId);
-        uint32_t intersectingChannel = static_cast<uint16_t>(in.intersectingChannel);
-        auto measure                 = static_cast<uint8_t>(in.measureChannel);
-        auto stat                    = static_cast<uint8_t>(in.stats);
+        auto classClasss         = static_cast<uint16_t>(in.classId);
+        auto intersectingChannel = static_cast<uint16_t>(in.intersectingChannel);
+        auto measure             = static_cast<uint8_t>(in.measureChannel);
+        auto stat                = static_cast<uint8_t>(in.stats);
 
-        stdi::uint128_t erg = (static_cast<stdi::uint128_t>(intersectingChannel) << 112) | (static_cast<stdi::uint128_t>(classClasss) << 96) |
-                              (static_cast<stdi::uint128_t>(in.crossChannelStacksC & 0xFFFF) << 80) |
-                              (static_cast<stdi::uint128_t>(in.zStack) << 18) | (static_cast<stdi::uint128_t>(in.tStack) << 16) | (measure << 8) |
-                              (stat);
+        stdi::uint128_t erg = (static_cast<stdi::uint128_t>(classClasss) << 112) | (static_cast<stdi::uint128_t>(in.tStack) << 80) |
+                              (static_cast<stdi::uint128_t>(in.zStack) << 48) | (static_cast<stdi::uint128_t>(measure & 0xFF) << 40) |
+                              (static_cast<stdi::uint128_t>(stat) << 32) | (static_cast<stdi::uint128_t>(in.crossChannelStacksC & 0xFFFF) << 16) |
+                              (static_cast<stdi::uint128_t>(intersectingChannel) << 0);
         return erg;
       };
 
@@ -265,6 +266,26 @@ public:
   [[nodiscard]] auto mutableDensityMapSettings() -> DensityMapSettings &
   {
     return densityMapSettings;
+  }
+
+  void sortColumns()
+  {
+    std::vector<std::pair<ColumnIdx, ColumnKey>> data{columns.begin(), columns.end()};
+    // Sort based on MyStruct.value (i.e., second element in the tuple)
+    std::sort(data.begin(), data.end(),
+              [](const std::pair<ColumnIdx, ColumnKey> &a, const std::pair<ColumnIdx, ColumnKey> &b) { return std::get<1>(a) < std::get<1>(b); });
+
+    columns.clear();
+    int32_t colIdx = 0;
+    int32_t actTab = 0;
+    for(const auto &[colIdxAct, keyIdx] : data) {
+      if(actTab != colIdxAct.tabIdx) {
+        colIdx = 0;
+        actTab = colIdxAct.tabIdx;
+      }
+      columns.emplace(ColumnIdx{colIdxAct.tabIdx, colIdx}, keyIdx);
+      colIdx++;
+    }
   }
 
 private:

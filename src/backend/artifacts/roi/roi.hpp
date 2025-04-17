@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <atomic>
 #include <bitset>
 #include <string>
@@ -84,17 +85,19 @@ public:
       mMaskContours(std::move(input.mMaskContours)), mImageSize(std::move(input.mImageSize)), mOriginalImageSize(std::move(input.mOriginalImageSize)),
       mAreaSize(std::move(input.mAreaSize)), mPerimeter(std::move(input.mPerimeter)), mCircularity(std::move(input.mCircularity)),
       intensity(std::move(input.intensity)), mOriginObjectId(std::move(input.mOriginObjectId)), mCentroid(std::move(input.mCentroid)),
-      mParentObjectId(std::move(input.mParentObjectId))
+      mParentObjectId(std::move(input.mParentObjectId)), mLinkedWith(std::move(input.mLinkedWith))
   {
   }
 
   ROI(bool mIsNull, uint64_t mObjectId, RoiObjectId mId, Confidence confidence, Boxes mBoundingBoxTile, Boxes mBoundingBoxReal, cv::Mat mMask,
       std::vector<cv::Point> mMaskContours, cv::Size mImageSize, cv::Size originalImageSize, double mAreaSize, float mPerimeter, float mCircularity,
-      std::map<enums::ImageId, Intensity> intensity, uint64_t originObjectId, cv::Point centroid, uint64_t parentObjectId) :
+      std::map<enums::ImageId, Intensity> intensity, uint64_t originObjectId, cv::Point centroid, uint64_t parentObjectId,
+      const std::set<const ROI *> &linkedWith) :
       mIsNull(mIsNull),
       mObjectId(mObjectId), mId(mId), confidence(confidence), mBoundingBoxTile(mBoundingBoxTile), mBoundingBoxReal(mBoundingBoxReal), mMask(mMask),
       mMaskContours(mMaskContours), mImageSize(mImageSize), mOriginalImageSize(originalImageSize), mAreaSize(mAreaSize), mPerimeter(mPerimeter),
-      mCircularity(mCircularity), intensity(intensity), mOriginObjectId(originObjectId), mCentroid(centroid), mParentObjectId(parentObjectId)
+      mCircularity(mCircularity), intensity(intensity), mOriginObjectId(originObjectId), mCentroid(centroid), mParentObjectId(parentObjectId),
+      mLinkedWith(linkedWith)
   {
   }
 
@@ -105,9 +108,9 @@ public:
 
   [[nodiscard]] ROI clone() const
   {
-    return {mIsNull,        mObjectId,          mId,       confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,           mMaskContours,
-            mImageSize,     mOriginalImageSize, mAreaSize, mPerimeter, mCircularity,     intensity,        mOriginObjectId, mCentroid,
-            mParentObjectId};
+    return {mIsNull,         mObjectId,          mId,       confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,           mMaskContours,
+            mImageSize,      mOriginalImageSize, mAreaSize, mPerimeter, mCircularity,     intensity,        mOriginObjectId, mCentroid,
+            mParentObjectId, mLinkedWith};
   }
 
   [[nodiscard]] ROI clone(enums::ClassId newClassId, uint64_t newParentObjectId) const
@@ -128,14 +131,30 @@ public:
             intensity,
             mOriginObjectId,
             mCentroid,
-            newParentObjectId};
+            newParentObjectId,
+            mLinkedWith};
   }
 
   [[nodiscard]] ROI copy() const
   {
-    return {mIsNull,        mGlobalUniqueObjectId++, mId,       confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,     mMaskContours,
-            mImageSize,     mOriginalImageSize,      mAreaSize, mPerimeter, mCircularity,     intensity,        mObjectId, mCentroid,
-            mParentObjectId};
+    return {mIsNull,
+            mGlobalUniqueObjectId++,
+            mId,
+            confidence,
+            mBoundingBoxTile,
+            mBoundingBoxReal,
+            mMask,
+            mMaskContours,
+            mImageSize,
+            mOriginalImageSize,
+            mAreaSize,
+            mPerimeter,
+            mCircularity,
+            intensity,
+            mObjectId,
+            mCentroid,
+            mParentObjectId,
+            mLinkedWith};
   }
 
   [[nodiscard]] ROI copy(enums::ClassId newClassId, uint64_t newParentObjectId) const
@@ -156,10 +175,11 @@ public:
             intensity,
             mObjectId,
             mCentroid,
-            newParentObjectId};
+            newParentObjectId,
+            mLinkedWith};
   }
 
-  /// @brief  ATTENTION This method must not be used when the ROI is still added to the spheral index
+  /// @brief  ATTENTION This method must be done befor the ROI is added to the spheral index
   /// @param classId
   void changeClass(enums::ClassId classId, uint64_t newParentObjectId)
   {
@@ -282,6 +302,23 @@ public:
   }
 
   void resize(float scaleX, float scaleY);
+  void addLinkedRoi(const ROI *linked)
+  {
+    mLinkedWith.emplace(linked);
+  }
+  void addLinkedRoi(const std::set<const ROI *> &links)
+  {
+    mLinkedWith.insert(links.begin(), links.end());
+  }
+  auto getLinkedRois() const -> const std::set<const ROI *> &
+  {
+    return mLinkedWith;
+  }
+
+  void clearLinkedWith()
+  {
+    mLinkedWith.clear();
+  }
 
 private:
   /////////////////////////////////////////////////////
@@ -322,5 +359,6 @@ private:
   uint64_t mOriginObjectId = 0;
 
   static inline std::atomic<uint64_t> mGlobalUniqueObjectId = 1;
+  std::set<const ROI *> mLinkedWith;
 };
 }    // namespace joda::atom

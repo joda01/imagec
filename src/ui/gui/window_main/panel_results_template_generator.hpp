@@ -45,6 +45,7 @@ public:
 private:
   /////////////////////////////////////////////////////
   WindowMain *mMainWindow;
+  QAction *mAutoSort;
   joda::settings::AnalyzeSettings *mAnalyzeSettings;
   PlaceholderTableWidget *mColumns;
   DialogColumnSettings *mColumnEditDialog;

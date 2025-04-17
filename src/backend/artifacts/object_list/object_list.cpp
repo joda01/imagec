@@ -32,9 +32,14 @@ void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const Sphe
                   auto colocROI =
                       box1->calcIntersection(iterator, *box2, minIntersecion, tile, tileSize, objectClassIntersectingObjectsShouldBeAssignedTo);
                   if(!colocROI.isNull()) {
-                    result->push_back(std::move(colocROI));
                     intersecting.emplace(box1);
                     intersecting.emplace(box2);
+                    colocROI.addLinkedRoi(box1);
+                    colocROI.addLinkedRoi(box2);
+                    // Keep the links from a possible old round
+                    colocROI.addLinkedRoi(box1->getLinkedRois());
+                    colocROI.addLinkedRoi(box2->getLinkedRois());
+                    result->push_back(std::move(colocROI));
                   }
                 }
               }

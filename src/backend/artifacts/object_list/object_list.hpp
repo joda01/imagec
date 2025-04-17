@@ -206,6 +206,18 @@ public:
     at(roi.getClassId())->emplace(roi);
   }
 
+  void erase(const ROI *roi)
+  {
+    if(contains(roi->getClassId())) {
+      at(roi->getClassId())->erase(roi);
+    }
+  }
+
+  void erase(enums::ClassId classToErase)
+  {
+    std::map<enums::ClassId, std::unique_ptr<SpheralIndex>>::erase(classToErase);
+  }
+
   std::unique_ptr<SpheralIndex> &operator[](enums::ClassId classId)
   {
     if(!contains(classId)) {

@@ -21,8 +21,11 @@ namespace joda::enums {
 
 enum class Measurement
 {
-  NONE  = -1,
-  COUNT = 0,
+  NONE      = -1,
+  OBJECT_ID = 0,
+  ORIGIN_OBJECT_ID,
+  PARENT_OBJECT_ID,
+  COUNT,
   CONFIDENCE,
   AREA_SIZE,
   PERIMETER,
@@ -33,9 +36,6 @@ enum class Measurement
   INTENSITY_MAX,
   CENTER_OF_MASS_X,
   CENTER_OF_MASS_Y,
-  OBJECT_ID,
-  ORIGIN_OBJECT_ID,
-  PARENT_OBJECT_ID,
   BOUNDING_BOX_WIDTH,
   BOUNDING_BOX_HEIGHT,
   INTERSECTING

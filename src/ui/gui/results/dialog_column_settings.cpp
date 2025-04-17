@@ -42,18 +42,6 @@ DialogColumnSettings::DialogColumnSettings(settings::ResultsSettings *filter, QW
 
   //
   //
-  mStatsSelector = new QComboBox();
-  mStatsSelector->addItem("AVG", (int32_t) joda::enums::Stats::AVG);
-  mStatsSelector->addItem("MEDIAN", (int32_t) joda::enums::Stats::MEDIAN);
-  mStatsSelector->addItem("MIN", (int32_t) joda::enums::Stats::MIN);
-  mStatsSelector->addItem("MAX", (int32_t) joda::enums::Stats::MAX);
-  mStatsSelector->addItem("STDDEV", (int32_t) joda::enums::Stats::STDDEV);
-  mStatsSelector->addItem("SUM", (int32_t) joda::enums::Stats::SUM);
-  mStatsSelector->addItem("CNT", (int32_t) joda::enums::Stats::CNT);
-  vlayout->addRow("Statistics:", mStatsSelector);
-
-  //
-  //
   mMeasurementSelector = new QComboBox();
   mMeasurementSelector->addItem("Count", (int32_t) joda::enums::Measurement::COUNT);
   mMeasurementSelector->addItem("Confidence", (int32_t) joda::enums::Measurement::CONFIDENCE);
@@ -74,7 +62,6 @@ DialogColumnSettings::DialogColumnSettings(settings::ResultsSettings *filter, QW
   mMeasurementSelector->addItem("Object ID", (int32_t) joda::enums::Measurement::OBJECT_ID);
   mMeasurementSelector->addItem("Origin object ID", (int32_t) joda::enums::Measurement::ORIGIN_OBJECT_ID);
   mMeasurementSelector->addItem("Parent object ID", (int32_t) joda::enums::Measurement::PARENT_OBJECT_ID);
-
   vlayout->addRow("Measurement:", mMeasurementSelector);
 
   //
@@ -90,11 +77,27 @@ DialogColumnSettings::DialogColumnSettings(settings::ResultsSettings *filter, QW
   mCrossChannelStackC = new QComboBox();
   vlayout->addRow("Channel intensity:", mCrossChannelStackC);
 
+  //
+  //
+  mStatsSelector = new QComboBox();
+  mStatsSelector->addItem("AVG", (int32_t) joda::enums::Stats::AVG);
+  mStatsSelector->addItem("MEDIAN", (int32_t) joda::enums::Stats::MEDIAN);
+  mStatsSelector->addItem("MIN", (int32_t) joda::enums::Stats::MIN);
+  mStatsSelector->addItem("MAX", (int32_t) joda::enums::Stats::MAX);
+  mStatsSelector->addItem("STDDEV", (int32_t) joda::enums::Stats::STDDEV);
+  mStatsSelector->addItem("SUM", (int32_t) joda::enums::Stats::SUM);
+  mStatsSelector->addItem("CNT", (int32_t) joda::enums::Stats::CNT);
+  vlayout->addRow("Statistics:", mStatsSelector);
+
+  //
+  //
   mZStack = new QSpinBox();
   mZStack->setMinimum(0);
   mZStack->setValue(0);
   vlayout->addRow("Z-Stack:", mZStack);
 
+  //
+  //
   mTStack = new QSpinBox();
   mTStack->setMinimum(0);
   mTStack->setValue(0);
@@ -275,7 +278,9 @@ void DialogColumnSettings::updateClassesAndClasses(db::Database *database)
     // Clusters/Class
     mClasssClassSelector->blockSignals(true);
     mClasssIntersection->blockSignals(true);
-    auto clusters = mDatabase->selectClasses();
+    auto clusters          = mDatabase->selectClasses();
+    auto selectedClass     = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClasssClassSelector->currentData().toInt());
+    auto selectedIntersect = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClasssIntersection->currentData().toInt());
     mClasssClassSelector->clear();
     mClasssIntersection->clear();
 
@@ -303,16 +308,31 @@ void DialogColumnSettings::updateClassesAndClasses(db::Database *database)
     };
     removeLastSeparator();
 
+    auto foundIdx = mClasssClassSelector->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(selectedClass));
+    if(foundIdx >= 0) {
+      mClasssClassSelector->setCurrentIndex(foundIdx);
+    }
+
+    foundIdx = mClasssIntersection->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(selectedIntersect));
+    if(foundIdx >= 0) {
+      mClasssIntersection->setCurrentIndex(foundIdx);
+    }
+
     mClasssClassSelector->blockSignals(false);
     mClasssIntersection->blockSignals(false);
   }
   {
     // Image channels
     mCrossChannelStackC->blockSignals(true);
+    auto selectedCh    = mCrossChannelStackC->currentData().toInt();
     auto imageChannels = mDatabase->selectImageChannels();
     mCrossChannelStackC->clear();
     for(const auto &[channelId, channel] : imageChannels) {
       mCrossChannelStackC->addItem("CH" + QString::number(channelId) + " (" + QString(channel.name.data()) + ")", channelId);
+    }
+    auto foundIdx = mCrossChannelStackC->findData(selectedCh);
+    if(foundIdx >= 0) {
+      mCrossChannelStackC->setCurrentIndex(foundIdx);
     }
     mCrossChannelStackC->blockSignals(false);
   }
@@ -331,7 +351,9 @@ void DialogColumnSettings::updateClassesAndClasses(const joda::settings::Analyze
     // Clusters/Class
     mClasssClassSelector->blockSignals(true);
     mClasssIntersection->blockSignals(true);
-    auto clusters = settings.projectSettings.classification.classes;
+    auto clusters          = settings.projectSettings.classification.classes;
+    auto selectedClass     = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClasssClassSelector->currentData().toInt());
+    auto selectedIntersect = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClasssIntersection->currentData().toInt());
     mClasssClassSelector->clear();
     mClasssIntersection->clear();
 
@@ -359,17 +381,34 @@ void DialogColumnSettings::updateClassesAndClasses(const joda::settings::Analyze
     };
     removeLastSeparator();
 
+    auto foundIdx = mClasssClassSelector->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(selectedClass));
+    if(foundIdx >= 0) {
+      mClasssClassSelector->setCurrentIndex(foundIdx);
+    }
+
+    foundIdx = mClasssIntersection->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(selectedIntersect));
+    if(foundIdx >= 0) {
+      mClasssIntersection->setCurrentIndex(foundIdx);
+    }
+
     mClasssClassSelector->blockSignals(false);
     mClasssIntersection->blockSignals(false);
   }
   {
     // Image channels
     mCrossChannelStackC->blockSignals(true);
+    auto selectedCh = mCrossChannelStackC->currentData().toInt();
+
     auto imageChannels = std::map<int32_t, std::string>{{0, ""}, {1, ""}, {2, ""}, {3, ""}, {4, ""}, {5, ""}, {6, ""}, {7, ""}, {8, ""}, {9, ""}};
     mCrossChannelStackC->clear();
     for(const auto &[channelId, channelName] : imageChannels) {
       mCrossChannelStackC->addItem("CH" + QString::number(channelId) + " (" + QString(channelName.data()) + ")", channelId);
     }
+    auto foundIdx = mCrossChannelStackC->findData(selectedCh);
+    if(foundIdx >= 0) {
+      mCrossChannelStackC->setCurrentIndex(foundIdx);
+    }
+
     mCrossChannelStackC->blockSignals(false);
   }
 }

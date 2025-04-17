@@ -408,6 +408,9 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   connect(deleteColumn, &QAction::triggered, [this]() {
     if(mSelectedTableColumn >= 0) {
       mFilter.eraseColumn({.tabIdx = 0, .colIdx = mSelectedTableColumn});
+      if(mAutoSort->isChecked()) {
+        mFilter.sortColumns();
+      }
       refreshView();
     }
   });
@@ -421,6 +424,20 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
     }
   });
   toolbar->addItemToTopToolbar(editColumn);
+
+  toolbar->addSeparatorToTopToolbar();
+
+  mAutoSort = new QAction(generateSvgIcon("view-sort-ascending-name"), "", this);
+  mAutoSort->setCheckable(true);
+  mAutoSort->setChecked(true);
+  mAutoSort->setStatusTip("Sort columns");
+  toolbar->addItemToTopToolbar(mAutoSort);
+  connect(mAutoSort, &QAction::triggered, [this]() {
+    if(mAutoSort->isChecked()) {
+      mFilter.sortColumns();
+      refreshView();
+    }
+  });
 
   toolbar->addSeparatorToTopToolbar();
 
@@ -642,6 +659,7 @@ void PanelResults::onMarkAsInvalidClicked(bool isInvalid)
 ///
 void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell value)
 {
+  QString headerTxt = mTable->horizontalHeaderItem(cellX)->text();
   switch(mNavigation) {
     case Navigation::PLATE: {
       mSelectedWellId            = value.getId();
@@ -652,7 +670,6 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       // Act data
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX);
       mSelectedRowInfo->setText(platePos.data());
-      mSelectedValue->setText(QString::number(value.getVal()));
     } break;
     case Navigation::WELL: {
       if(!mSelectedDataSet.groupMeta.has_value()) {
@@ -676,7 +693,6 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
                       imageInfo.filename;
       mSelectedRowInfo->setText(platePos.data());
-      mSelectedValue->setText(QString::number(value.getVal()));
     }
 
     break;
@@ -689,10 +705,9 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
                       mSelectedDataSet.imageMeta->filename + "/" + std::to_string(value.getId());
       mSelectedRowInfo->setText(platePos.data());
-      mSelectedValue->setText(QString::number(value.getVal()));
       break;
   }
-
+  mSelectedValue->setText(QString::number(value.getVal()) + " | " + headerTxt);
   mSelectedDataSet.value = DataSet::Value{.value = value.getVal()};
 }
 
@@ -994,6 +1009,9 @@ void PanelResults::createEditColumnDialog()
 void PanelResults::columnEdit(int32_t colIdx)
 {
   mColumnEditDialog->exec(colIdx);
+  if(mAutoSort->isChecked()) {
+    mFilter.sortColumns();
+  }
   refreshView();
 }
 
@@ -1025,6 +1043,7 @@ void PanelResults::tableToQWidgetTable(const joda::table::Table &tableIn)
   auto createTableWidget = [](const QString &data) {
     auto *widget = new QTableWidgetItem(data);
     widget->setFlags(widget->flags() & ~Qt::ItemIsEditable);
+    widget->setStatusTip(data);
     return widget;
   };
 
@@ -1071,7 +1090,11 @@ void PanelResults::tableToQWidgetTable(const joda::table::Table &tableIn)
       }
       if(item) {
         if(tableIn.getRows() > row && tableIn.getCols() > col) {
-          item->setText(QString::number((double) tableIn.data(row, col).getVal()));
+          if(tableIn.data(row, col).isNAN()) {
+            item->setText("-");
+          } else {
+            item->setText(QString::number((double) tableIn.data(row, col).getVal()));
+          }
           QFont font = item->font();
           font.setStrikeOut(!tableIn.data(row, col).isValid());
           item->setFont(font);

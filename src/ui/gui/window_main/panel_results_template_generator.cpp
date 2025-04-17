@@ -51,6 +51,9 @@ PanelResultsTemplateGenerator::PanelResultsTemplateGenerator(WindowMain *mainWin
   connect(addColumn, &QAction::triggered, [this]() {
     mColumnEditDialog->updateClassesAndClasses(*mAnalyzeSettings);
     mColumnEditDialog->exec(mColumns->rowCount());
+    if(mAutoSort->isChecked()) {
+      mAnalyzeSettings->resultsSettings.sortColumns();
+    }
     refreshView();
     mMainWindow->checkForSettingsChanged();
   });
@@ -62,6 +65,9 @@ PanelResultsTemplateGenerator::PanelResultsTemplateGenerator(WindowMain *mainWin
   connect(deleteColumn, &QAction::triggered, [this]() {
     if(mSelectedTableRow >= 0) {
       mAnalyzeSettings->resultsSettings.eraseColumn({.tabIdx = 0, .colIdx = mSelectedTableRow});
+      if(mAutoSort->isChecked()) {
+        mAnalyzeSettings->resultsSettings.sortColumns();
+      }
       refreshView();
       mMainWindow->checkForSettingsChanged();
     }
@@ -74,6 +80,24 @@ PanelResultsTemplateGenerator::PanelResultsTemplateGenerator(WindowMain *mainWin
     if(mSelectedTableRow >= 0) {
       mColumnEditDialog->updateClassesAndClasses(*mAnalyzeSettings);
       mColumnEditDialog->exec(mSelectedTableRow);
+      if(mAutoSort->isChecked()) {
+        mAnalyzeSettings->resultsSettings.sortColumns();
+      }
+      refreshView();
+      mMainWindow->checkForSettingsChanged();
+    }
+  });
+
+  toolBar->addSeparator();
+
+  mAutoSort = new QAction(generateSvgIcon("view-sort-ascending-name"), "", this);
+  mAutoSort->setCheckable(true);
+  mAutoSort->setChecked(true);
+  mAutoSort->setStatusTip("Sort columns");
+  toolBar->addAction(mAutoSort);
+  connect(mAutoSort, &QAction::triggered, [this]() {
+    if(mAutoSort->isChecked()) {
+      mAnalyzeSettings->resultsSettings.sortColumns();
       refreshView();
       mMainWindow->checkForSettingsChanged();
     }
