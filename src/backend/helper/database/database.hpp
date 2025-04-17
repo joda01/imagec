@@ -92,10 +92,9 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  std::shared_ptr<duckdb::Connection> acquire() const
+  std::unique_ptr<duckdb::Connection> acquire() const
   {
-    std::shared_ptr<duckdb::Connection> connection = std::make_shared<duckdb::Connection>(*mDb);
-    return connection;
+    return std::make_unique<duckdb::Connection>(*mDb);
   }
 
   void createTables();
