@@ -659,6 +659,7 @@ void PanelResults::onMarkAsInvalidClicked(bool isInvalid)
 ///
 void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell value)
 {
+  QString headerTxt = mTable->horizontalHeaderItem(cellX)->text();
   switch(mNavigation) {
     case Navigation::PLATE: {
       mSelectedWellId            = value.getId();
@@ -669,7 +670,6 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       // Act data
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX);
       mSelectedRowInfo->setText(platePos.data());
-      mSelectedValue->setText(QString::number(value.getVal()));
     } break;
     case Navigation::WELL: {
       if(!mSelectedDataSet.groupMeta.has_value()) {
@@ -693,7 +693,6 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
                       imageInfo.filename;
       mSelectedRowInfo->setText(platePos.data());
-      mSelectedValue->setText(QString::number(value.getVal()));
     }
 
     break;
@@ -706,10 +705,9 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
                       mSelectedDataSet.imageMeta->filename + "/" + std::to_string(value.getId());
       mSelectedRowInfo->setText(platePos.data());
-      mSelectedValue->setText(QString::number(value.getVal()));
       break;
   }
-
+  mSelectedValue->setText(QString::number(value.getVal()) + " | " + headerTxt);
   mSelectedDataSet.value = DataSet::Value{.value = value.getVal()};
 }
 
@@ -1045,6 +1043,7 @@ void PanelResults::tableToQWidgetTable(const joda::table::Table &tableIn)
   auto createTableWidget = [](const QString &data) {
     auto *widget = new QTableWidgetItem(data);
     widget->setFlags(widget->flags() & ~Qt::ItemIsEditable);
+    widget->setStatusTip(data);
     return widget;
   };
 
