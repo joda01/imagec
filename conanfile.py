@@ -37,7 +37,7 @@ class ImageC(ConanFile):
         self.requires("pugixml/1.14")
         self.requires("nlohmann_json/3.11.3")
         self.requires("libxlsxwriter/1.1.8")
-        self.requires("duckdb/1.1.0")
+        self.requires("duckdb/1.1.3")
         self.requires("onnx/1.17.0", force=True)
         self.requires("rapidyaml/0.7.1")
         if self.options.get_safe("with_onnx"):
