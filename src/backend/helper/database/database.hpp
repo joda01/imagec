@@ -15,6 +15,7 @@
 
 #include <duckdb.h>
 #include <filesystem>
+#include <memory>
 #include <vector>
 #include "backend/enums/enum_validity.hpp"
 #include "backend/enums/enums_classes.hpp"
@@ -44,7 +45,8 @@ public:
   {
   }
   /////////////////////////////////////////////////////
-  void openDatabase(const std::filesystem::path &pathToDb);
+  void openDatabase(const std::filesystem::path &pathToDb) override;
+  void closeDatabase() override;
   std::string startJob(const joda::settings::AnalyzeSettings &, const std::string &jobName);
   void finishJob(const std::string &jobId);
 

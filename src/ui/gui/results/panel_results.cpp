@@ -318,6 +318,9 @@ void PanelResults::resetSettings()
   mSelectedDataSet.analyzeMeta.reset();
   mSelectedDataSet.imageMeta.reset();
   mSelectedDataSet.value.reset();
+  if(mAnalyzer) {
+    mAnalyzer->closeDatabase();
+  }
   mAnalyzer.reset();
   goHome();
   mTableButton->blockSignals(true);

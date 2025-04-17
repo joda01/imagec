@@ -57,6 +57,7 @@ public:
   DatabaseInterface() = default;
   /////////////////////////////////////////////////////
   virtual void openDatabase(const std::filesystem::path &pathToDb)                                  = 0;
+  virtual void closeDatabase()                                                                      = 0;
   virtual std::string startJob(const joda::settings::AnalyzeSettings &, const std::string &jobName) = 0;
   virtual void finishJob(const std::string &jobId)                                                  = 0;
 
@@ -86,6 +87,9 @@ class PreviewDatabase : public DatabaseInterface
 public:
   PreviewDatabase() = default;
   void openDatabase(const std::filesystem::path &pathToDb) override
+  {
+  }
+  void closeDatabase() override
   {
   }
   std::string startJob(const joda::settings::AnalyzeSettings &, const std::string &jobName) override

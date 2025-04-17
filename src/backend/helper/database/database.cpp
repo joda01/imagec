@@ -55,6 +55,11 @@ void Database::openDatabase(const std::filesystem::path &pathToDb)
   createTables();
 }
 
+void Database::closeDatabase()
+{
+  mDb.reset();
+}
+
 void Database::createTables()
 {
   // Command to create a table
