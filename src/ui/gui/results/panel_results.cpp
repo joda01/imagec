@@ -848,8 +848,11 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
       }
       mFilter = filterTmp;
 
-      // If filter is empty load default settings
-      if(mFilter.getColumns().empty()) {
+      try {
+        mFilterTemplate = nlohmann::json::parse(mAnalyzer->selectResultsTableTemplateSettings(mSelectedDataSet.analyzeMeta->jobId));
+      } catch(const std::exception &ex) {
+        joda::log::logWarning("Could not load results table template settings from database, use fallback! Got: " + std::string(ex.what()));
+
         if(mFilterTemplate.columns.empty()) {
           mFilterTemplate.columns = {
               {.measureChannels = {enums::Measurement::COUNT, enums::Measurement::INTERSECTING}, .stats = {enums::Stats::SUM, enums::Stats::AVG}},
@@ -857,6 +860,10 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
               {.measureChannels = {enums::Measurement::INTENSITY_AVG, enums::Measurement::INTENSITY_SUM},
                .stats           = {enums::Stats::SUM, enums::Stats::AVG}}};
         }
+      }
+
+      // If filter is empty load default settings
+      if(mFilter.getColumns().empty()) {
         mFilter = mFilterTemplate.toSettings(mAnalyzeSettingsMeta, selectedClasses);
       }
 

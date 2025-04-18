@@ -81,6 +81,7 @@ public:
 
   void updateResultsTableSettings(const std::string &jobId, const std::string &settings);
   auto selectResultsTableSettings(const std::string &jobId) -> std::string;
+  auto selectResultsTableTemplateSettings(const std::string &jobId) -> std::string;
   auto selectAnalyzeSettingsMeta(const std::string &jobId) -> std::string;
 
   template <typename... ARGS>
