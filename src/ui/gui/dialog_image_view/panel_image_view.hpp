@@ -149,7 +149,7 @@ private:
   const float PIXEL_INFO_RECT_HEIGHT = 40;
 
   const float RESULTS_INFO_RECT_WIDTH  = 150;
-  const float RESULTS_INFO_RECT_HEIGHT = 150;
+  const float RESULTS_INFO_RECT_HEIGHT = 250;
 
   /////////////////////////////////////////////////////
   bool mPlaceholderImageSet                          = true;
