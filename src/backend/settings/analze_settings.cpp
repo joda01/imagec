@@ -129,4 +129,76 @@ auto AnalyzeSettings::checkForErrors() const -> std::vector<std::pair<std::strin
   return errorOrderedByPipeline;
 }
 
+///
+/// \brief      Returns classes which may intersect with an other class
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto AnalyzeSettings::getPossibleIntersectingClasses() const -> std::map<enums::ClassId, std::set<enums::ClassId>>
+{
+  std::map<enums::ClassId, std::set<enums::ClassId>> possibleIntersection;
+  for(const auto &pipeline : pipelines) {
+    for(const auto &step : pipeline.pipelineSteps) {
+      if(step.$reclassify.has_value()) {
+        // step.$reclassify.value().inputClasses;
+        auto baseClassIds = step.$reclassify.value().intersection.inputClassesIntersectWith;
+        for(const auto baseClassId : baseClassIds) {
+          enums::ClassId classId;
+          if(baseClassId == enums::ClassIdIn::$) {
+            classId = pipeline.pipelineSetup.defaultClassId;
+          } else {
+            classId = static_cast<enums::ClassId>(baseClassId);
+          }
+          auto newClassIdTmp = step.$reclassify.value().newClassId;
+          enums::ClassId newClassId;
+          if(newClassIdTmp == enums::ClassIdIn::$) {
+            newClassId = pipeline.pipelineSetup.defaultClassId;
+          } else {
+            newClassId = static_cast<enums::ClassId>(newClassIdTmp);
+          }
+          possibleIntersection[classId].emplace(newClassId);
+        }
+      }
+    }
+  }
+  return possibleIntersection;
+}
+
+///
+/// \brief      Returns classes which may intersect with an other class
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto AnalyzeSettings::getImageChannelsUsedForMeasurement() const -> std::map<enums::ClassId, std::set<int32_t>>
+{
+  std::map<enums::ClassId, std::set<int32_t>> usedImageChannels;
+  for(const auto &pipeline : pipelines) {
+    for(const auto &step : pipeline.pipelineSteps) {
+      if(step.$measure.has_value()) {
+        // step.$reclassify.value().inputClasses;
+        for(const auto &imagePlane : step.$measure.value().planesIn) {
+          int32_t imageChannelTmp = imagePlane.imagePlane.cStack;
+          if(imageChannelTmp < 0) {
+            imageChannelTmp = pipeline.pipelineSetup.cStackIndex;
+          }
+          for(const auto baseClassId : step.$measure.value().inputClasses) {
+            enums::ClassId classId;
+            if(baseClassId == enums::ClassIdIn::$) {
+              classId = pipeline.pipelineSetup.defaultClassId;
+            } else {
+              classId = static_cast<enums::ClassId>(baseClassId);
+            }
+            usedImageChannels[classId].emplace(imageChannelTmp);
+          }
+        }
+      }
+    }
+  }
+  return usedImageChannels;
+}
+
 }    // namespace joda::settings

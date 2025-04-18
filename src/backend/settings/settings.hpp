@@ -10,7 +10,13 @@ namespace joda::settings {
 class Settings
 {
 public:
-  static std::string toString(const joda::settings::AnalyzeSettings &settings);
+  template <class T>
+  static std::string toString(const T &settings)
+  {
+    nlohmann::json json = settings;
+    removeNullValues(json);
+    return json.dump(2);
+  }
   static auto openSettings(const std::filesystem::path &pathIn) -> joda::settings::AnalyzeSettings;
   static void storeSettings(const std::filesystem::path &pathIn, const joda::settings::AnalyzeSettings &settings);
   static void storeSettingsTemplate(const std::filesystem::path &pathIn, joda::settings::AnalyzeSettings settings);

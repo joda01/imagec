@@ -39,7 +39,7 @@ namespace joda::ui::gui {
 
 class ContainerChannel;
 class PanelResults;
-class PanelResultsTemplateGenerator;
+class PanelResultsTableGenerator;
 
 ///
 /// \class

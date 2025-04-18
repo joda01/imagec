@@ -22,6 +22,7 @@
 #include <string>
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/settings/program/program_meta.hpp"
+#include "backend/settings/results_settings/results_template.hpp"
 #include "pipeline/pipeline.hpp"
 #include "project_settings/project_settings.hpp"
 #include "results_settings/results_settings.hpp"
@@ -35,6 +36,7 @@ class AnalyzeSettings final
 public:
   ProjectSettings projectSettings;
   ResultsSettings resultsSettings;
+  ResultsTemplate resultsTemplate;
   ProjectImageSetup imageSetup;
   std::list<Pipeline> pipelines;
   ProgramMeta imagecMeta;
@@ -47,13 +49,15 @@ public:
 
   std::set<joda::enums::ClassId> getOutputClasses() const;
   std::set<joda::enums::ClassId> getInputClasses() const;
+  auto getPossibleIntersectingClasses() const -> std::map<enums::ClassId, std::set<enums::ClassId>>;
+  auto getImageChannelsUsedForMeasurement() const -> std::map<enums::ClassId, std::set<int32_t>>;
 
   auto checkForErrors() const -> std::vector<std::pair<std::string, SettingParserLog_t>>;
 
 private:
   std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings.json";
   void check() const;
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, configSchema, projectSettings, resultsSettings, imageSetup, pipelines,
-                                                       imagecMeta, meta);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, configSchema, projectSettings, resultsSettings, resultsTemplate, imageSetup,
+                                                       pipelines, imagecMeta, meta);
 };
 }    // namespace joda::settings

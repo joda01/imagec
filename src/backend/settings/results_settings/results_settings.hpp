@@ -22,6 +22,25 @@
 
 namespace joda::settings {
 
+///
+/// \class      AnalyzeSettingsMeta
+/// \author     Joachim Danmayr
+/// \brief      Database interface to store some project meta settings needed for settings generation from template
+///
+struct AnalyzeSettingsMeta
+{
+  std::set<joda::enums::ClassId> outputClasses;
+  std::map<enums::ClassId, std::set<enums::ClassId>> intersectingClasses;
+  std::map<enums::ClassId, std::set<int32_t>> measuredChannels;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AnalyzeSettingsMeta, outputClasses, intersectingClasses, measuredChannels);
+};
+
+///
+/// \class      AnalyzeSettingsMeta
+/// \author     Joachim Danmayr
+/// \brief      Database interface to store table settings
+///
 class ResultsSettings
 {
 public:

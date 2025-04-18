@@ -25,7 +25,7 @@
 namespace joda::ui::gui {
 
 class WindowMain;
-class PanelResultsTemplateGenerator;
+class PanelResultsTableGenerator;
 
 ///
 /// \class
@@ -48,7 +48,7 @@ signals:
 private:
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
-  PanelResultsTemplateGenerator *mResultsTemplate;
+  PanelResultsTableGenerator *mResultsTemplate;
   std::set<std::string> mAddedPaths;
 
 private slots:

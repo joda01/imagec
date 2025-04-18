@@ -41,6 +41,18 @@ public:
     this->setModel(model);
   }
 
+  void addItem(const QString &atext, const QVariant &auserData)
+  {
+    int row             = model->rowCount();
+    QStandardItem *item = new QStandardItem();
+    item->setText(atext);
+    item->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
+    item->setData(Qt::Unchecked, Qt::CheckStateRole);
+    item->setData(auserData);
+    model->setItem(row, 0, item);
+    this->setModel(model);
+  }
+
   void clear()
   {
     model->clear();
