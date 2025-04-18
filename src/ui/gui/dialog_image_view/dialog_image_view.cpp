@@ -250,6 +250,9 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
   // setLayout(layout);
   mainContainer->setLayout(layout);
   setWidget(mainContainer);
+
+  // Init
+  triggerPreviewUpdate(ImageView::BOTH, true);
 }
 
 DialogImageViewer::~DialogImageViewer()
@@ -294,21 +297,21 @@ void DialogImageViewer::triggerPreviewUpdate(ImageView view, bool withUserHistoS
       int previewCounter = 0;
       do {
         if(withUserHistoSettings) {
-          if(view == ImageView::LEFT) {
+          if(view == ImageView::LEFT || view == ImageView::BOTH) {
             auto [value, scaling, offset] = mHistoToolbarLeft->getHistoSettings();
             mPreviewImages.originalImage.setBrightnessRange(0, value, scaling, offset);
             mImageViewLeft.emitUpdateImage();
           }
-          if(view == ImageView::RIGHT) {
+          if(view == ImageView::RIGHT || view == ImageView::BOTH) {
             auto [value, scaling, offset] = mHistoToolbarRight->getHistoSettings();
             mPreviewImages.editedImage.setBrightnessRange(0, value, scaling, offset);
             mImageViewRight.emitUpdateImage();
           }
         } else {
-          if(view == ImageView::LEFT) {
+          if(view == ImageView::LEFT || view == ImageView::BOTH) {
             mImageViewLeft.emitUpdateImage();
           }
-          if(view == ImageView::RIGHT) {
+          if(view == ImageView::RIGHT || view == ImageView::BOTH) {
             mImageViewRight.emitUpdateImage();
           }
         }

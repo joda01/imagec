@@ -35,6 +35,9 @@ namespace joda::image {
 ///
 Image::Image()
 {
+  for(int i = 0; i < 65536; ++i) {
+    mLut[i] = i;
+  }
 }
 
 ///
@@ -144,7 +147,7 @@ void Image::setBrightnessRange(uint16_t lowerValue, uint16_t upperValue, float h
   mHistogramOffset     = histogramOffset;
 
   // Create a lookup table for mapping pixel values
-  for(int i = 0; i < 65535; ++i) {
+  for(int i = 0; i < 65536; ++i) {
     if(i < mLowerValue) {
       mLut[i] = 0;
     } else if(i > mUpperValue) {
