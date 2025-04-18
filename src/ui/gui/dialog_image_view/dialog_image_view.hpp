@@ -82,7 +82,8 @@ public:
   enum class ImageView
   {
     LEFT  = 0,
-    RIGHT = 1
+    RIGHT = 1,
+    BOTH  = 2
   };
   void triggerPreviewUpdate(ImageView view, bool withUserHistoSettings);
 

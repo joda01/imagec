@@ -28,7 +28,7 @@ HistoToolbar::HistoToolbar(int32_t leftOrRight, DialogImageViewer *parent, joda:
   mSlider = new QSlider();
   mSlider->setMinimum(1);
   mSlider->setMaximum(UINT16_MAX);
-  mSlider->setValue(600);
+  mSlider->setValue(UINT16_MAX / 16);
   mSlider->setOrientation(Qt::Orientation::Horizontal);
   connect(mSlider, &QSlider::valueChanged, this, &HistoToolbar::onSliderMoved);
   addWidget(mSlider);
