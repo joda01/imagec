@@ -110,7 +110,7 @@ void Starter::exec(int argc, char *argv[])
 
   QCommandLineOption queryFilterTemplate(QStringList() << "c"
                                                        << "export-columns",
-                                         "Path to column export template file.", "*.ictemplexp");
+                                         "Path to results table settings file.", "*." + QString(joda::fs::EXT_RESULTS_TABLE_SETTINGS.data()) + "");
   parser.addOption(queryFilterTemplate);
 
   QCommandLineOption exportType(QStringList() << "t"

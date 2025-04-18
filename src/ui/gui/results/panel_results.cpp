@@ -53,6 +53,7 @@
 #include "backend/helper/database/plugins/stats_for_image.hpp"
 #include "backend/helper/database/plugins/stats_for_well.hpp"
 #include "backend/helper/logger/console_logger.hpp"
+#include "backend/settings/results_settings/results_settings.hpp"
 #include "ui/gui/container/container_button.hpp"
 #include "ui/gui/container/container_label.hpp"
 #include "ui/gui/container/panel_edit_base.hpp"
@@ -374,10 +375,10 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   connect(mExportPng, &QAction::triggered, [this]() { showFileSaveDialog("PNG image (*.png)"); });
 
   exportMenu->addSeparator();
-  auto *saveAsTemplate = exportMenu->addAction(generateSvgIcon("document-save-as-template"), "Save settings");
-  saveAsTemplate->setToolTip("Save settings as template");
+  auto *saveAsTemplate = exportMenu->addAction(generateSvgIcon("document-save-as-template"), "Save table settings");
+  saveAsTemplate->setWhatsThis("Save results table settings");
   connect(saveAsTemplate, &QAction::triggered,
-          [this]() { showFileSaveDialog("ImageC export template (*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")"); });
+          [this]() { showFileSaveDialog("ImageC results table settings (*" + QString(joda::fs::EXT_RESULTS_TABLE_SETTINGS.data()) + ")"); });
 
   //
   auto *exports = new QAction(generateSvgIcon("folder-download"), "Export", toolbar);
@@ -396,6 +397,22 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   toolbar->addItemToTopToolbar(copyTable);
 
   toolbar->addSeparatorToTopToolbar();
+
+  //
+  //
+  //
+  mTemplateMenu           = new QMenu();
+  auto *templateGenerator = new QAction(generateSvgIcon("document-new"), "", this);
+  templateGenerator->setStatusTip("Open table column generation wizard");
+  connect(templateGenerator, &QAction::triggered, [this]() {
+    if(mColumnTemplate->exec() == 0) {
+      mFilter = mFilterTemplate.toSettings(mAnalyzeSettingsMeta, mAnalyzer->selectClasses());
+      refreshView();
+    }
+    loadTemplates();
+  });
+  templateGenerator->setMenu(mTemplateMenu);
+  toolbar->addItemToTopToolbar(templateGenerator);
 
   //
   //
@@ -456,6 +473,8 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   toolbar->addItemToTopToolbar(mMarkAsInvalid);
   mMarkAsInvalid->setEnabled(false);
   connect(mMarkAsInvalid, &QAction::triggered, this, &PanelResults::onMarkAsInvalidClicked);
+
+  loadTemplates();
 }
 
 ///
@@ -796,6 +815,27 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   // Try to load settings if available
   try {
     if(mSelectedDataSet.analyzeMeta.has_value()) {
+      auto selectedClasses = mAnalyzer->selectClasses();
+      // auto imageChannels   = mAnalyzer->selectImageChannels();
+      try {
+        mAnalyzeSettingsMeta = nlohmann::json::parse(mAnalyzer->selectAnalyzeSettingsMeta(mSelectedDataSet.analyzeMeta->jobId));
+      } catch(const std::exception &ex) {
+        joda::log::logWarning("Could not load analyze settings meta from database, use fallback! Got: " + std::string(ex.what()));
+
+        std::set<joda::enums::ClassId> outClasses;
+        std::map<enums::ClassId, std::set<int32_t>> measureChannels;
+        std::map<enums::ClassId, std::set<enums::ClassId>> intersectingClasses;
+        for(const auto &cl : selectedClasses) {
+          outClasses.emplace(cl.first);
+          measureChannels[cl.first] = mAnalyzer->selectMeasurementChannelsForClasss(cl.first);
+        }
+        for(const auto &cl : selectedClasses) {
+          intersectingClasses[cl.first] = outClasses;
+        }
+
+        mAnalyzeSettingsMeta = {.outputClasses = outClasses, .intersectingClasses = intersectingClasses, .measuredChannels = measureChannels};
+      }
+
       auto resultsSettings                = mAnalyzer->selectResultsTableSettings(mSelectedDataSet.analyzeMeta->jobId);
       settings::ResultsSettings filterTmp = nlohmann::json::parse(resultsSettings);
 
@@ -807,6 +847,25 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
         }
       }
       mFilter = filterTmp;
+
+      try {
+        mFilterTemplate = nlohmann::json::parse(mAnalyzer->selectResultsTableTemplateSettings(mSelectedDataSet.analyzeMeta->jobId));
+      } catch(const std::exception &ex) {
+        joda::log::logWarning("Could not load results table template settings from database, use fallback! Got: " + std::string(ex.what()));
+
+        if(mFilterTemplate.columns.empty()) {
+          mFilterTemplate.columns = {
+              {.measureChannels = {enums::Measurement::COUNT, enums::Measurement::INTERSECTING}, .stats = {enums::Stats::SUM, enums::Stats::AVG}},
+              {.measureChannels = {enums::Measurement::AREA_SIZE}, .stats = {enums::Stats::SUM, enums::Stats::AVG}},
+              {.measureChannels = {enums::Measurement::INTENSITY_AVG, enums::Measurement::INTENSITY_SUM},
+               .stats           = {enums::Stats::SUM, enums::Stats::AVG}}};
+        }
+      }
+
+      // If filter is empty load default settings
+      if(mFilter.getColumns().empty()) {
+        mFilter = mFilterTemplate.toSettings(mAnalyzeSettingsMeta, selectedClasses);
+      }
 
       const auto &plateSetup = mFilter.getPlateSetup();
       setWellOrder(plateSetup.wellImageOrder);
@@ -1000,6 +1059,7 @@ void PanelResults::paintEmptyHeatmap()
 void PanelResults::createEditColumnDialog()
 {
   mColumnEditDialog = new DialogColumnSettings(&mFilter, mWindowMain);
+  mColumnTemplate   = new DialogColumnTemplate(&mFilterTemplate, mWindowMain);
 }
 
 ///
@@ -1194,14 +1254,17 @@ void PanelResults::showOpenFileDialog()
 
   QString filename = QFileDialog::getOpenFileName(this, "Open File", filePath.string().data(),
                                                   "ImageC results or template files (*" + QString(joda::fs::EXT_DATABASE.data()) + " *" +
-                                                      QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ");;ImageC results files (*" +
-                                                      QString(joda::fs::EXT_DATABASE.data()) + ");;ImageC export template (*" +
-                                                      QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")");
+                                                      QString(joda::fs::EXT_RESULTS_TABLE_SETTINGS.data()) + ");;ImageC results files (*" +
+                                                      QString(joda::fs::EXT_DATABASE.data()) + ");;ImageC results table settings (*" +
+                                                      QString(joda::fs::EXT_RESULTS_TABLE_SETTINGS.data()) + ");;ImageC results table template (*" +
+                                                      QString(joda::fs::EXT_RESULTS_TABLE_TEMPLATE.data()) + ")");
   // Select save option
   if(filename.endsWith(joda::fs::EXT_DATABASE.data())) {
     openFromFile(filename);
-  } else if(filename.endsWith(joda::fs::EXT_EXPORT_TEMPLATE.data())) {
-    loadTemplate(filename.toStdString());
+  } else if(filename.endsWith(joda::fs::EXT_RESULTS_TABLE_SETTINGS.data())) {
+    openTableSettings(filename.toStdString());
+  } else if(filename.endsWith(joda::fs::EXT_RESULTS_TABLE_TEMPLATE.data())) {
+    openTemplate(filename);
   }
 }
 
@@ -1228,8 +1291,8 @@ void PanelResults::showFileSaveDialog(const QString &filter)
       endian = ".svg";
     } else if(filter.contains("(*.png)")) {
       endian = ".png";
-    } else if(filter.contains("(*" + QString(joda::fs::EXT_EXPORT_TEMPLATE.data()) + ")")) {
-      endian = joda::fs::EXT_EXPORT_TEMPLATE;
+    } else if(filter.contains("(*" + QString(joda::fs::EXT_RESULTS_TABLE_SETTINGS.data()) + ")")) {
+      endian = joda::fs::EXT_RESULTS_TABLE_SETTINGS;
     } else {
       return "";
     }
@@ -1261,7 +1324,7 @@ void PanelResults::showFileSaveDialog(const QString &filter)
     mHeatmapChart->exportToSVG(filename.data());
   } else if(filename.ends_with(".png")) {
     mHeatmapChart->exportToPNG(filename.data());
-  } else if(filename.ends_with(joda::fs::EXT_EXPORT_TEMPLATE)) {
+  } else if(filename.ends_with(joda::fs::EXT_RESULTS_TABLE_SETTINGS)) {
     saveTemplate(filename);
   }
 }
@@ -1325,7 +1388,7 @@ void PanelResults::saveTemplate(const std::string &fileName)
     return;
   }
   nlohmann::json json = mFilter;
-  joda::templates::TemplateParser::saveTemplate(json, std::filesystem::path(fileName), joda::fs::EXT_EXPORT_TEMPLATE);
+  joda::templates::TemplateParser::saveTemplate(json, std::filesystem::path(fileName), joda::fs::EXT_RESULTS_TABLE_SETTINGS);
 }
 
 ///
@@ -1335,7 +1398,7 @@ void PanelResults::saveTemplate(const std::string &fileName)
 /// \param[out]
 /// \return
 ///
-void PanelResults::loadTemplate(const std::string &pathToOpenFileFrom)
+void PanelResults::openTableSettings(const std::string &pathToOpenFileFrom)
 {
   if(pathToOpenFileFrom.empty()) {
     return;
@@ -1352,6 +1415,61 @@ void PanelResults::loadTemplate(const std::string &pathToOpenFileFrom)
     messageBox.setText("Error in opening template got >" + QString(ex.what()) + "<.");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::loadTemplates()
+{
+  auto foundTemplates = joda::templates::TemplateParser::findTemplates(
+      {"templates/results", joda::templates::TemplateParser::getUsersTemplateDirectory().string()}, joda::fs::EXT_RESULTS_TABLE_TEMPLATE);
+
+  mTemplateMenu->clear();
+  std::string actCategory = "basic";
+  size_t addedPerCategory = 0;
+  for(const auto &[category, dataInCategory] : foundTemplates) {
+    for(const auto &[_, data] : dataInCategory) {
+      // Now the user templates start, add an addition separator
+      if(category != actCategory) {
+        actCategory = category;
+        if(addedPerCategory > 0) {
+          mTemplateMenu->addSeparator();
+        }
+      }
+      QAction *action;
+      if(!data.icon.isNull()) {
+        action = mTemplateMenu->addAction(QIcon(data.icon.scaled(28, 28)), data.title.data());
+      } else {
+        action = mTemplateMenu->addAction(generateSvgIcon("favorite"), data.title.data());
+      }
+      connect(action, &QAction::triggered, [this, path = data.path]() { openTemplate(path.data()); });
+    }
+    addedPerCategory = dataInCategory.size();
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::openTemplate(const QString &path)
+{
+  try {
+    joda::settings::ResultsTemplate settings = joda::templates::TemplateParser::loadTemplate(std::filesystem::path(path.toStdString()));
+    mFilterTemplate                          = settings;
+    mFilter                                  = settings.toSettings(mAnalyzeSettingsMeta, mAnalyzer->selectClasses());
+    refreshView();
+  } catch(const std::exception &ex) {
+    joda::log::logWarning("Could not load template >" + path.toStdString() + "<. What: " + std::string(ex.what()));
   }
 }
 

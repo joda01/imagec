@@ -29,26 +29,33 @@ namespace joda::ui::gui {
 
 class WindowMain;
 class DialogColumnSettings;
+class DialogColumnTemplate;
 
 ///
 /// \class
 /// \author
 /// \brief
 ///
-class PanelResultsTemplateGenerator : public QWidget
+class PanelResultsTableGenerator : public QWidget
 {
 public:
   /////////////////////////////////////////////////////
-  PanelResultsTemplateGenerator(WindowMain *mainWindow, joda::settings::AnalyzeSettings *analyzeSettings);
+  PanelResultsTableGenerator(WindowMain *mainWindow, joda::settings::AnalyzeSettings *analyzeSettings);
   void refreshView();
 
 private:
   /////////////////////////////////////////////////////
+  bool askForChangeTemplate();
+  void loadTemplates();
+  void openTemplate(const QString &path);
+  /////////////////////////////////////////////////////
   WindowMain *mMainWindow;
   QAction *mAutoSort;
+  QMenu *mTemplateMenu;
   joda::settings::AnalyzeSettings *mAnalyzeSettings;
   PlaceholderTableWidget *mColumns;
   DialogColumnSettings *mColumnEditDialog;
+  DialogColumnTemplate *mColumnTemplate;
   int32_t mSelectedTableRow = -1;
 };
 

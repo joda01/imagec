@@ -129,20 +129,6 @@ void Settings::storeSettingsTemplate(const std::filesystem::path &pathIn, joda::
   }
 }
 
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-std::string Settings::toString(const joda::settings::AnalyzeSettings &settings)
-{
-  nlohmann::json json = settings;
-  removeNullValues(json);
-  return json.dump(2);
-}
-
 /// \todo How to check incomplete settings
 ///
 /// \brief

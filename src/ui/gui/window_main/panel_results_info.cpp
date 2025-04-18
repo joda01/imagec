@@ -18,7 +18,7 @@
 #include "backend/settings/project_settings/project_plates.hpp"
 #include "ui/gui/results/panel_results.hpp"
 #include "ui/gui/window_main/window_main.hpp"
-#include "panel_results_template_generator.hpp"
+#include "panel_results_table_generator.hpp"
 
 namespace joda::ui::gui {
 
@@ -43,7 +43,7 @@ PanelResultsInfo::PanelResultsInfo(WindowMain *windowMain) : mWindowMain(windowM
 
   // addSeparator();
   {
-    mResultsTemplate = new PanelResultsTemplateGenerator(mWindowMain, &mWindowMain->mutableSettings());
+    mResultsTemplate = new PanelResultsTableGenerator(mWindowMain, &mWindowMain->mutableSettings());
     layout->addWidget(mResultsTemplate);
   }
 
