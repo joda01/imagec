@@ -251,7 +251,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
 
     // Done
     db->finishJob(jobId);
-    globalContext.database.reset();
+    globalContext.database->closeDatabase();
     mProgress.setStateFinished();
     DurationCount::printStats(allImages.getNrOfFiles(), mJobInformation.ouputFolder);
   } catch(const std::exception &ex) {
