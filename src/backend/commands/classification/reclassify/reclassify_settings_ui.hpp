@@ -38,7 +38,7 @@ public:
   inline static std::string TITLE             = "Reclassify";
   inline static std::string ICON              = "exchange-positions-clockwise";
   inline static std::string DESCRIPTION       = "Change the classification of objects based on different parameters.";
-  inline static std::vector<std::string> TAGS = {"classification", "reclassify", "colocalization", "coloc"};
+  inline static std::vector<std::string> TAGS = {"classification", "reclassify", "copy", "move", "incell", "is in"};
 
   Reclassify(joda::settings::PipelineStep &pipelineStep, settings::ReclassifySettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings),
@@ -83,6 +83,13 @@ public:
     mMinIntersection->connectWithSetting(&settings.intersection.minIntersection);
     mMinIntersection->setShortDescription("Cls. ");
 
+    mFilterLogic = SettingBase::create<SettingComboBox<joda::settings::ReclassifySettings::FilterLogic>>(parent, {}, "Filter logic");
+    mFilterLogic->addOptions(
+        {{.key = joda::settings::ReclassifySettings::FilterLogic::APPLY_IF_MATCH, .label = "Move/Copy if intersect", .icon = {}},
+         {.key = joda::settings::ReclassifySettings::FilterLogic::APPLY_IF_NOT_MATCH, .label = "Move/Copy if not intersect", .icon = {}}});
+    mFilterLogic->setValue(settings.intersection.filterLogic);
+    mFilterLogic->connectWithSetting(&settings.intersection.filterLogic);
+
     mHierarchyMode = SettingBase::create<SettingComboBox<joda::settings::ReclassifySettings::HierarchyHandling>>(parent, {}, "Hierarchy mode");
     mHierarchyMode->addOptions({{.key   = joda::settings::ReclassifySettings::HierarchyHandling::CREATE_TREE,
                                  .label = "Create hierarchy tree",
@@ -97,7 +104,10 @@ public:
     mHierarchyMode->connectWithSetting(&settings.hierarchyMode);
 
     auto *col2 = addSetting(modelTab, "Intersect with",
-                            {{mClassesIntersectWith.get(), false, 0}, {mMinIntersection.get(), false, 0}, {mHierarchyMode.get(), false, 0}});
+                            {{mClassesIntersectWith.get(), false, 0},
+                             {mMinIntersection.get(), false, 0},
+                             {mFilterLogic.get(), false, 0},
+                             {mHierarchyMode.get(), false, 0}});
 
     //
     // Intensity filter
@@ -160,6 +170,7 @@ private:
 
   std::unique_ptr<SettingComboBoxMultiClassificationIn> mClassesIntersectWith;
   std::unique_ptr<SettingLineEdit<float>> mMinIntersection;
+  std::unique_ptr<SettingComboBox<joda::settings::ReclassifySettings::FilterLogic>> mFilterLogic;
 
   std::unique_ptr<SettingComboBox<int32_t>> cStackForIntensityFilter;
   std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjectionForIntensityFilter;

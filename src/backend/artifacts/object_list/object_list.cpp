@@ -52,6 +52,7 @@ void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const Sphe
 }
 
 void SpheralIndex::calcIntersection(ObjectList *objectList, joda::processor::ProcessContext &context, joda::settings::ReclassifySettings::Mode func,
+                                    joda::settings::ReclassifySettings::FilterLogic filterLogic,
                                     joda::settings::ReclassifySettings::HierarchyHandling hierarchyMode, SpheralIndex *other,
                                     const std::set<joda::enums::ClassId> objectClassesMe, const std::set<joda::enums::ClassId> objectClassesOther,
                                     float minIntersecion, const settings::MetricsFilter &metrics, const settings::IntensityFilter &intensity,
@@ -73,7 +74,11 @@ void SpheralIndex::calcIntersection(ObjectList *objectList, joda::processor::Pro
             if(objectClassesOther.contains(box2->getClassId())) {
               // Each intersecting particle is only allowed to be counted once
               if(!intersecting.contains(box1) && !roisToRemove.contains(box1)) {
-                if(box1->isIntersecting(*box2, minIntersecion)) {
+                bool isIntersecting = box1->isIntersecting(*box2, minIntersecion);
+                if(filterLogic == joda::settings::ReclassifySettings::FilterLogic::APPLY_IF_NOT_MATCH) {
+                  isIntersecting = !isIntersecting;
+                }
+                if(isIntersecting) {
                   intersecting.emplace(box1);
                   uint64_t parentObjectId = 0;
                   switch(hierarchyMode) {
