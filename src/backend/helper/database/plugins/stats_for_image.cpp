@@ -40,16 +40,14 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
     return rowIdx;
   };
 
+  //
+  // This is used to align the objects for each class correct
+  //
   std::map<uint64_t, int32_t> rowIndexesParent;    // <ID, rowIdx>
-  bool arangeByParentObjectId = true;
   for(const auto &[classs, statement] : classesToExport) {
-    //
-    // This is used to align the objects for each class correct
-    //
-    std::map<uint64_t, int32_t> rowIndexes;    // <ID, rowIdx>
-
     auto [sql, params] = toSqlTable(classs, filter.getFilter(), statement);
     auto result        = database->select(sql, params);
+    std::map<uint64_t, int32_t> rowIndexes;    // <ID, rowIdx>
 
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());
@@ -67,21 +65,28 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
           // It could be that there are classes without data, but we have to keep the row order, else the data would be shown shifted and beside a
           // wrong image
           size_t rowIdx = row;
-          // uint64_t objectIdToMatch = parentObjectId == 0 ? objectId : parentObjectId;
-          if(rowIndexesParent.contains(parentObjectId) && arangeByParentObjectId) {
-            rowIdx = rowIndexesParent.at(parentObjectId);
-          } else {
-            if(rowIndexes.contains(objectId)) {
-              rowIdx = rowIndexes.at(objectId);
+          if(parentObjectId != 0) {
+            // We want to align with the object ID but it could be that the object ID is not available yet
+            if(rowIndexes.contains(parentObjectId)) {
+              rowIdx = rowIndexes.at(parentObjectId);
+            } else if(rowIndexesParent.contains(parentObjectId)) {
+              rowIdx = rowIndexesParent.at(parentObjectId);
             } else {
               rowIdx = findMaxRowIdx(rowIndexes) + 1;
               rowIndexes.emplace(objectId, rowIdx);
-              if(arangeByParentObjectId) {
-                rowIndexesParent.emplace(objectId, rowIdx);
-              }
+              rowIndexesParent.emplace(parentObjectId, rowIdx);
+            }
+          } else {
+            if(rowIndexes.contains(objectId)) {
+              rowIdx = rowIndexes.at(objectId);
+            } else if(rowIndexesParent.contains(objectId)) {
+              rowIdx = rowIndexesParent.at(objectId);
+            } else {
+              rowIdx = findMaxRowIdx(rowIndexes) + 1;
+              rowIndexes.emplace(objectId, rowIdx);
+              rowIndexesParent.emplace(objectId, rowIdx);
             }
           }
-
           double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
 
           classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, std::to_string(rowIdx),
