@@ -94,8 +94,8 @@ public:
     }
 
     return joda::settings::SettingsMeta{.name     = mName->text().toStdString(),
-                                        .notes    = mName->text().toStdString(),
-                                        .revision = mName->text().toStdString(),
+                                        .notes    = mNotes->text().toStdString(),
+                                        .revision = mVersion->text().toStdString(),
                                         .group    = mGroup->currentData().toString().toStdString(),
                                         .category = category,
                                         .tags     = convertToStdVector(mTags->text()),

@@ -20,8 +20,8 @@
     "group": "ev",
     "modifiedAt": "2025-04-19T20-58-40",
     "name": "EC count",
-    "notes": "EC count",
-    "revision": "EC count",
+    "notes": "",
+    "revision": "1.0",
     "tags": [
       "ev",
       "count"
