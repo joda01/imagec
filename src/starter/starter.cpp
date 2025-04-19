@@ -53,8 +53,8 @@ Starter::Starter()
 void Starter::exec(int argc, char *argv[])
 {
   // Use QCoreApplication initially to parse command-line arguments
-  QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-  QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+  // QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+  // QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
   QApplication app(argc, argv);
 
   // ======================================

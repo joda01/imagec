@@ -717,11 +717,11 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   mSettings.locked        = settings.locked;
 
   pipelineName->setValue(settings.meta.name);
+  pipelineNotes->setValue(settings.meta.notes);
   cStackIndex->setValue(settings.pipelineSetup.cStackIndex);
   zProjection->setValue(settings.pipelineSetup.zProjection);
   defaultClassId->setValue(settings.pipelineSetup.defaultClassId);
-  mHistoryAction->setChecked(settings.disabled);
-  mActionDisabled->setChecked(mSettings.disabled);
+  mActionDisabled->setChecked(settings.disabled);
 
   //
   // Pipelinesteps
