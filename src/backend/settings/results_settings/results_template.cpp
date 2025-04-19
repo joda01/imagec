@@ -62,61 +62,81 @@ auto ResultsTemplate::toSettings(const AnalyzeSettingsMeta &analyzeSettings, con
         continue;
       }
       for(const auto &measure : entry.measureChannels) {
-        for(auto stat : entry.stats) {
-          // For object ID we do not use any stats
-          auto addColumn = [&](enums::Stats stat, int32_t crossChannel, enums::ClassId intersecting, const std::string &channelName = "") {
-            if(!classes.contains(classId)) {
-              joda::log::logError("Class name for ID >" + std::to_string((int32_t) classId) + "<not found during table generation from template!");
+        auto addColumn = [&](enums::Stats stat, int32_t crossChannel, enums::ClassId intersecting, const std::string &channelName = "") {
+          if(!classes.contains(classId)) {
+            joda::log::logError("Class name for ID >" + std::to_string((int32_t) classId) + "<not found during table generation from template!");
+            return;
+          }
+          std::string intersectingName;
+          if(intersecting != enums::ClassId::UNDEFINED) {
+            if(!classes.contains(intersecting)) {
+              joda::log::logError("Intersecting class name for ID >" + std::to_string((int32_t) intersecting) +
+                                  "<not found during table generation from template!");
               return;
             }
-            std::string intersectingName;
-            if(intersecting != enums::ClassId::UNDEFINED) {
-              if(!classes.contains(intersecting)) {
-                joda::log::logError("Intersecting class name for ID >" + std::to_string((int32_t) intersecting) +
-                                    "<not found during table generation from template!");
-                return;
+            intersectingName = classes.at(intersecting).name;
+          }
+
+          settings.addColumn(ResultsSettings::ColumnIdx{.tabIdx = 0, .colIdx = colIdx},
+                             ResultsSettings::ColumnKey{.classId             = classId,
+                                                        .measureChannel      = measure,
+                                                        .stats               = stat,
+                                                        .crossChannelStacksC = crossChannel,
+                                                        .intersectingChannel = intersecting,
+                                                        .zStack              = 0,
+                                                        .tStack              = 0},
+                             ResultsSettings::ColumnName{
+                                 .crossChannelName = channelName, .className = classes.at(classId).name, .intersectingName = intersectingName});
+          colIdx++;
+        };
+
+        //
+        // For count only sum makes sense
+        //
+        if(measure == enums::Measurement::COUNT) {
+          addColumn(enums::Stats::SUM, -1, enums::ClassId::UNDEFINED);
+          continue;
+        }
+
+        //
+        // For object IDs stats does not make sense
+        //
+        if(measure == enums::Measurement::OBJECT_ID || measure == enums::Measurement::ORIGIN_OBJECT_ID ||
+           measure == enums::Measurement::PARENT_OBJECT_ID || measure == enums::Measurement::TRACKING_ID) {
+          addColumn(enums::Stats::OFF, -1, enums::ClassId::UNDEFINED);
+          continue;
+        }
+
+        //
+        // For intersecting only AVG and SUM makes sense
+        //
+        if(measure == enums::Measurement::INTERSECTING) {
+          // Add only those intersecting classes which appear in the pipeline
+          if(analyzeSettings.intersectingClasses.contains(classId)) {
+            for(const auto &intersectingClassId : analyzeSettings.intersectingClasses.at(classId)) {
+              if(intersectingClassId == enums::ClassId::UNDEFINED || intersectingClassId == enums::ClassId::NONE) {
+                continue;
               }
-              intersectingName = classes.at(intersecting).name;
+              if(entry.stats.contains(enums::Stats::AVG)) {
+                addColumn(enums::Stats::AVG, -1, intersectingClassId);
+              }
+              if(entry.stats.contains(enums::Stats::SUM)) {
+                addColumn(enums::Stats::SUM, -1, intersectingClassId);
+              }
             }
+          }
+          continue;
+        }
 
-            settings.addColumn(ResultsSettings::ColumnIdx{.tabIdx = 0, .colIdx = colIdx},
-                               ResultsSettings::ColumnKey{.classId             = classId,
-                                                          .measureChannel      = measure,
-                                                          .stats               = stat,
-                                                          .crossChannelStacksC = crossChannel,
-                                                          .intersectingChannel = intersecting,
-                                                          .zStack              = 0,
-                                                          .tStack              = 0},
-                               ResultsSettings::ColumnName{
-                                   .crossChannelName = channelName, .className = classes.at(classId).name, .intersectingName = intersectingName});
-            colIdx++;
-          };
-
-          if(measure == enums::Measurement::OBJECT_ID || measure == enums::Measurement::ORIGIN_OBJECT_ID ||
-             measure == enums::Measurement::PARENT_OBJECT_ID || measure == enums::Measurement::TRACKING_ID) {
-            stat = enums::Stats::OFF;
-            addColumn(enums::Stats::OFF, -1, enums::ClassId::UNDEFINED);
-            break;    // For object ID we are finished now
-          } else if(measure == enums::Measurement::INTENSITY_SUM || measure == enums::Measurement::INTENSITY_AVG ||
-                    measure == enums::Measurement::INTENSITY_MIN || measure == enums::Measurement::INTENSITY_MAX) {
+        for(auto stat : entry.stats) {
+          if(measure == enums::Measurement::INTENSITY_SUM || measure == enums::Measurement::INTENSITY_AVG ||
+             measure == enums::Measurement::INTENSITY_MIN || measure == enums::Measurement::INTENSITY_MAX) {
             // Iterate over cross channels
             if(analyzeSettings.measuredChannels.contains(classId)) {
               for(const auto &channelId : analyzeSettings.measuredChannels.at(classId)) {
                 addColumn(stat, channelId, enums::ClassId::UNDEFINED, "CH " + std::to_string(channelId));
               }
             }
-          } else if(measure == enums::Measurement::INTERSECTING) {
-            // Add only those intersecting classes which appear in the pipeline
-            if(analyzeSettings.intersectingClasses.contains(classId)) {
-              for(const auto &intersectingClassId : analyzeSettings.intersectingClasses.at(classId)) {
-                if(intersectingClassId == enums::ClassId::UNDEFINED || intersectingClassId == enums::ClassId::NONE) {
-                  continue;
-                }
-                addColumn(enums::Stats::CNT, -1, intersectingClassId);
-              }
-            }
-
-            break;    // We are finished, because for intersecting only count makes sense
           } else {
             addColumn(stat, -1, enums::ClassId::UNDEFINED);
           }
