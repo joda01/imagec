@@ -112,20 +112,26 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
     std::vector<atom::ROI> roisToEnter;
     std::vector<const atom::ROI *> roisToRemove;
     for(auto &colocRois : *result) {
+      uint64_t trackingID = atom::ROI::generateNewTrackingId();
+      colocRois.setTrackingId(trackingID);
       for(const auto &linked : colocRois.getLinkedRois()) {
         auto newClassId = getNewClassIdForMyClassId(linked->getClassId());
         if(newClassId != enums::ClassId::UNDEFINED) {
           if(mSettings.mode == settings::ColocalizationSettings::Mode::RECLASSIFY_MOVE) {
             // We have to reenter to organize correct in the map of objects
-            auto newRoi = linked->clone(newClassId, colocRois.getObjectId());
+            auto newRoi = linked->clone(newClassId, linked->getParentObjectId());
+            newRoi.setTrackingId(trackingID);
             roisToEnter.emplace_back(std::move(newRoi));
             roisToRemove.emplace_back(linked);
           } else if(mSettings.mode == settings::ColocalizationSettings::Mode::RECLASSIFY_COPY) {
-            auto newRoi = linked->copy(newClassId, colocRois.getObjectId());
+            auto newRoi = linked->copy(newClassId, linked->getParentObjectId());
+            /// \todo Should to origin EV also get the tracking ID or not?
+            newRoi.setTrackingId(trackingID);
             roisToEnter.emplace_back(std::move(newRoi));    // Store the ROIs we want to enter
           }
         }
       }
+
       colocRois.clearLinkedWith();
     }
 

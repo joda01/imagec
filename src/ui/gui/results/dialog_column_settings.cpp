@@ -62,6 +62,7 @@ DialogColumnSettings::DialogColumnSettings(settings::ResultsSettings *filter, QW
   mMeasurementSelector->addItem("Object ID", (int32_t) joda::enums::Measurement::OBJECT_ID);
   mMeasurementSelector->addItem("Origin object ID", (int32_t) joda::enums::Measurement::ORIGIN_OBJECT_ID);
   mMeasurementSelector->addItem("Parent object ID", (int32_t) joda::enums::Measurement::PARENT_OBJECT_ID);
+  mMeasurementSelector->addItem("Tracking ID", (int32_t) joda::enums::Measurement::TRACKING_ID);
   vlayout->addRow("Measurement:", mMeasurementSelector);
 
   //
@@ -164,6 +165,7 @@ void DialogColumnSettings::checkForIntersecting()
 
   if(mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::OBJECT_ID &&
      mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::ORIGIN_OBJECT_ID &&
+     mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::TRACKING_ID &&
      mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::PARENT_OBJECT_ID) {
     mStatsSelector->setEnabled(true);
   } else {

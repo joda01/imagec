@@ -103,4 +103,50 @@ void Table::setMeta(const Meta &meta)
   return {};
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+[[nodiscard]] void Table::arrangeByTrackingId()
+{
+  std::map<uint64_t, int32_t> trackingIdRowIdx;    // <TRACKING ID, ROW IDX>
+  std::map<uint64_t, int32_t> objectIdRowIdx;      // <OBJECT ID ID, ROW IDX>
+
+  int32_t trackingIdRow = 0;
+  std::map<int32_t, int32_t> objectIdRow;    // <COL ID, COL ROW IDX CNT>
+
+  for(const auto &[rowIdx, row] : mData) {
+    for(const auto &[colIdx, cell] : row) {
+      if(cell.getTrackingId() != 0) {
+        if(!trackingIdRowIdx.contains(cell.getTrackingId())) {
+          trackingIdRowIdx.emplace(cell.getTrackingId(), trackingIdRow);
+          trackingIdRow++;
+        }
+      } else {
+        if(!objectIdRowIdx.contains(cell.getId())) {
+          objectIdRowIdx.emplace(cell.getId(), objectIdRow[colIdx]);
+          objectIdRow[colIdx]++;
+        }
+      }
+    }
+  }
+
+  entry_t orderedTable;
+  for(const auto &[_, row] : mData) {
+    for(const auto &[colIdx, cell] : row) {
+      int32_t rowIdx = -1;
+      if(cell.getTrackingId() != 0) {
+        rowIdx = trackingIdRowIdx.at(cell.getTrackingId());
+      } else {
+        rowIdx = objectIdRowIdx.at(cell.getId());
+      }
+      orderedTable[rowIdx][colIdx] = cell;
+    }
+  }
+  mData = orderedTable;
+}
+
 }    // namespace joda::table

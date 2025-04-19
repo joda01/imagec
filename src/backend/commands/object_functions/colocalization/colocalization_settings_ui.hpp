@@ -134,22 +134,19 @@ public:
     //
     //
     //
-    mHierarchyMode = SettingBase::create<SettingComboBox<joda::settings::ColocalizationSettings::HierarchyHandling>>(parent, {}, "Hierarchy mode");
-    mHierarchyMode->addOptions({{.key   = joda::settings::ColocalizationSettings::HierarchyHandling::CREATE_TREE,
-                                 .label = "Create hierarchy tree",
-                                 .icon  = generateSvgIcon("view-list-tree")},
-                                {.key   = joda::settings::ColocalizationSettings::HierarchyHandling::KEEP_EXISTING,
-                                 .label = "Keep existing tree",
-                                 .icon  = generateSvgIcon("view-list-tree")},
-                                {.key   = joda::settings::ColocalizationSettings::HierarchyHandling::REMOVE,
-                                 .label = "Remove tree information",
-                                 .icon  = generateSvgIcon("view-list-tree")}});
-    mHierarchyMode->setValue(settings.hierarchyMode);
-    mHierarchyMode->connectWithSetting(&settings.hierarchyMode);
+    mTrackingMode = SettingBase::create<SettingComboBox<joda::settings::ColocalizationSettings::TrackingMode>>(parent, {}, "Tracking mode");
+    mTrackingMode->addOptions({{.key   = joda::settings::ColocalizationSettings::TrackingMode::OVERRIDE,
+                                .label = "Override existing tracking information",
+                                .icon  = generateSvgIcon("join")},
+                               /*{.key   = joda::settings::ColocalizationSettings::TrackingMode::KEEP_EXISTING,
+                                .label = "Keep existing tracking information",
+                                .icon  = generateSvgIcon("view-list-tree")}*/});
+    mTrackingMode->setValue(settings.trackingMode);
+    mTrackingMode->connectWithSetting(&settings.trackingMode);
 
     auto *col =
         addSetting(modelTab, "Output",
-                   {{mClassOutput.get(), true, 0}, {mMinIntersection.get(), false, 0}, {mMode.get(), false, 0}, {mHierarchyMode.get(), false, 0}});
+                   {{mClassOutput.get(), true, 0}, {mMinIntersection.get(), false, 0}, {mMode.get(), false, 0}, {mTrackingMode.get(), false, 0}});
   }
 
 private:
@@ -174,7 +171,7 @@ private:
   std::unique_ptr<SettingComboBoxClassesOut> mNewClassesIn04;
 
   std::unique_ptr<SettingComboBox<joda::settings::ColocalizationSettings::Mode>> mMode;
-  std::unique_ptr<SettingComboBox<joda::settings::ColocalizationSettings::HierarchyHandling>> mHierarchyMode;
+  std::unique_ptr<SettingComboBox<joda::settings::ColocalizationSettings::TrackingMode>> mTrackingMode;
 
   /////////////////////////////////////////////////////
 };

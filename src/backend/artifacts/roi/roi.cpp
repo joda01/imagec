@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iterator>
+#include <mutex>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -489,6 +490,33 @@ void ROI::resize(float scaleX, float scaleY)
   mPerimeter   = getTracedPerimeter(mMaskContours);
   mCircularity = calcCircularity();
   mCentroid    = calcCentroid(mMask);
+}
+
+///
+/// \brief      Assigns the linked object id of this ROI to all ROIS in the mLinkedWith list.
+///             If the linked object ID is zero a new one is generated.
+///             If a linked id is given as parameter this ID is used for the linked objects.
+///             The own linked object ID is not changed. Use the setLinkedObjectId to change the own
+/// \author     Joachim Danmayr
+/// \return
+///
+void ROI::assignTrackingIdToAllLinkedRois(uint64_t trackingIdForLinked)
+{
+  uint64_t trackingId = mTrackingId;
+  if(trackingIdForLinked != 0) {
+    trackingId = trackingIdForLinked;
+  }
+  if(trackingId == 0) {
+    static std::mutex assignMutex;
+    std::lock_guard<std::mutex> lock(assignMutex);
+    auto trackingId = generateNewTrackingId();
+    setTrackingId(trackingId);
+    trackingId = trackingId;
+  }
+
+  for(auto *roi : mLinkedWith) {
+    roi->setTrackingId(trackingId);
+  }
 }
 
 }    // namespace joda::atom

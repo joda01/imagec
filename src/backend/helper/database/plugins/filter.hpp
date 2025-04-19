@@ -191,6 +191,11 @@ public:
     return mResultingTable;
   }
 
+  auto mutableResult() -> std::map<int32_t, table::Table> &
+  {
+    return mResultingTable;
+  }
+
   void clearTables()
   {
     mResultingTable.clear();

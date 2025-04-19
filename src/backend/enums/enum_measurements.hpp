@@ -25,6 +25,7 @@ enum class Measurement
   OBJECT_ID = 0,
   ORIGIN_OBJECT_ID,
   PARENT_OBJECT_ID,
+  TRACKING_ID,
   COUNT,
   CONFIDENCE,
   AREA_SIZE,
@@ -56,6 +57,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(Measurement, {{Measurement::NONE, "None"},
                                            {Measurement::OBJECT_ID, "ObjectId"},
                                            {Measurement::ORIGIN_OBJECT_ID, "OriginObjectId"},
                                            {Measurement::PARENT_OBJECT_ID, "ParentObjectId"},
+                                           {Measurement::TRACKING_ID, "TrackingId"},
                                            {Measurement::BOUNDING_BOX_WIDTH, "BoxWidth"},
                                            {Measurement::BOUNDING_BOX_HEIGHT, "BoxHeight"},
                                            {Measurement::INTERSECTING, "Intersecting"}});
@@ -133,6 +135,8 @@ inline std::string toString(const Measurement &enumIn)
       return "Origin object ID";
     case Measurement::PARENT_OBJECT_ID:
       return "Parent object ID";
+    case Measurement::TRACKING_ID:
+      return "Tracking ID";
     case Measurement::INTERSECTING:
       return "Intersection";
   }

@@ -255,6 +255,8 @@ std::string PreparedStatement::getMeasurement(enums::Measurement measure, bool t
       return "meas_origin_object_id";
     case enums::Measurement::PARENT_OBJECT_ID:
       return "meas_parent_object_id";
+    case enums::Measurement::TRACKING_ID:
+      return "meas_tracking_id";
     case enums::Measurement::INTERSECTING:
       return "recursive_child_count_";
   }

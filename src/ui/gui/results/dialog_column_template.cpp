@@ -69,6 +69,7 @@ DialogColumnTemplate::DialogColumnTemplate(settings::ResultsTemplate *filter, QW
     col.mMeasurementSelector->addItem("Object ID", (int32_t) joda::enums::Measurement::OBJECT_ID);
     col.mMeasurementSelector->addItem("Origin object ID", (int32_t) joda::enums::Measurement::ORIGIN_OBJECT_ID);
     col.mMeasurementSelector->addItem("Parent object ID", (int32_t) joda::enums::Measurement::PARENT_OBJECT_ID);
+    col.mMeasurementSelector->addItem("Tracking ID", (int32_t) joda::enums::Measurement::TRACKING_ID);
     vlayout->addRow("Measurement:", col.mMeasurementSelector);
 
     //

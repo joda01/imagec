@@ -93,7 +93,7 @@ auto ResultsTemplate::toSettings(const AnalyzeSettingsMeta &analyzeSettings, con
           };
 
           if(measure == enums::Measurement::OBJECT_ID || measure == enums::Measurement::ORIGIN_OBJECT_ID ||
-             measure == enums::Measurement::PARENT_OBJECT_ID) {
+             measure == enums::Measurement::PARENT_OBJECT_ID || measure == enums::Measurement::TRACKING_ID) {
             stat = enums::Stats::OFF;
             addColumn(enums::Stats::OFF, -1, enums::ClassId::UNDEFINED);
             break;    // For object ID we are finished now

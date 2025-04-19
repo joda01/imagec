@@ -204,7 +204,9 @@ void Database::createTables()
       " meas_mask MAP(UINTEGER,BOOLEAN),"
       " meas_contour UINTEGER[],"
       " meas_origin_object_id UBIGINT,"
-      " meas_parent_object_id UBIGINT"
+      " meas_parent_object_id UBIGINT,"
+      " meas_tracking_id UBIGINT"    // Elements having the same linked_object_id represent the same element (e.g used for coloc or object
+                                     // tracking)
       ");"
 
       "CREATE TABLE IF NOT EXISTS object_measurements ("
@@ -298,6 +300,7 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
 
       objects.Append<uint64_t>(roi.getOriginObjectId());    // "	meas_origin_object_id UBIGINT"
       objects.Append<uint64_t>(roi.getParentObjectId());    // "	meas_parent_object_id UBIGINT"
+      objects.Append<uint64_t>(roi.getTrackingId());        // "	meas_tracking_id UBIGINT"
 
       objects.EndRow();
 

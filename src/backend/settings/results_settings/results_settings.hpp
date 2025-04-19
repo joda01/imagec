@@ -75,6 +75,7 @@ public:
       case enums::Measurement::OBJECT_ID:
       case enums::Measurement::ORIGIN_OBJECT_ID:
       case enums::Measurement::PARENT_OBJECT_ID:
+      case enums::Measurement::TRACKING_ID:
         return MeasureType::ID;
     }
     return MeasureType::OBJECT;

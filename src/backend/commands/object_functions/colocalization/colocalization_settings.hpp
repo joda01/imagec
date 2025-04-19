@@ -36,11 +36,10 @@ struct ColocalizationSettings : public SettingBase
     RECLASSIFY_COPY,
   };
 
-  enum class HierarchyHandling
+  enum class TrackingMode
   {
-    CREATE_TREE,      // If intersecting the intersecting object gets the object it intersects with as parent
-    KEEP_EXISTING,    // The object keeps its old hierarchy information.
-    REMOVE            // The hierarchy information of the object is removed.
+    KEEP_EXISTING,    // The object keeps its old linking information.
+    OVERRIDE          // The object starts with new linking information
   };
 
   struct InputOutputClasses
@@ -70,9 +69,9 @@ struct ColocalizationSettings : public SettingBase
   Mode mode = Mode::RECLASSIFY_MOVE;
 
   //
+  // Remove old linking information and override with new one or keep old on
   //
-  //
-  HierarchyHandling hierarchyMode = HierarchyHandling::CREATE_TREE;
+  TrackingMode trackingMode = TrackingMode::OVERRIDE;
 
   //
   // Classes to calculate the intersection with
@@ -120,7 +119,7 @@ struct ColocalizationSettings : public SettingBase
     return classes;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_EXTENDED(ColocalizationSettings, mode, hierarchyMode, inputClasses, minIntersection, outputClass);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ColocalizationSettings, mode, trackingMode, inputClasses, minIntersection, outputClass);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ColocalizationSettings::Mode, {
@@ -128,11 +127,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ColocalizationSettings::Mode, {
                                                                {ColocalizationSettings::Mode::RECLASSIFY_COPY, "ReclassifyCopy"},
                                                            });
 
-NLOHMANN_JSON_SERIALIZE_ENUM(ColocalizationSettings::HierarchyHandling,
-                             {
-                                 {ColocalizationSettings::HierarchyHandling::CREATE_TREE, "CreateTree"},
-                                 {ColocalizationSettings::HierarchyHandling::KEEP_EXISTING, "KeepExisting"},
-                                 {ColocalizationSettings::HierarchyHandling::REMOVE, "Remove"},
-                             });
+NLOHMANN_JSON_SERIALIZE_ENUM(ColocalizationSettings::TrackingMode, {{ColocalizationSettings::TrackingMode::OVERRIDE, "Override"},
+                                                                    {ColocalizationSettings::TrackingMode::KEEP_EXISTING, "KeepExisting"}});
 
 }    // namespace joda::settings

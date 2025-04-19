@@ -29,6 +29,11 @@ public:
   {
   }
 
+  TableCell(double val, uint64_t id, bool valid, uint64_t parentObjectId, uint64_t trackingId) :
+      value(val), id(id), validity(valid), parentId(parentObjectId), trackingId(trackingId)
+  {
+  }
+
   TableCell(double val, uint64_t id, bool valid, const std::string &linkToImage) : value(val), id(id), validity(valid), linkToImage(linkToImage)
   {
   }
@@ -45,6 +50,16 @@ public:
   [[nodiscard]] uint64_t getId() const
   {
     return id;
+  }
+
+  [[nodiscard]] uint64_t getParentId() const
+  {
+    return parentId;
+  }
+
+  [[nodiscard]] uint64_t getTrackingId() const
+  {
+    return trackingId;
   }
 
   [[nodiscard]] bool isValid() const
@@ -64,9 +79,11 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  double value  = std::numeric_limits<double>::quiet_NaN();
-  uint64_t id   = 0;
-  bool validity = true;
+  double value        = std::numeric_limits<double>::quiet_NaN();
+  uint64_t id         = 0;
+  uint64_t parentId   = 0;
+  uint64_t trackingId = 0;
+  bool validity       = true;
   std::filesystem::path linkToImage;
 };
 
@@ -84,6 +101,12 @@ public:
   struct Meta
   {
     std::string className;
+  };
+
+  enum class SortFields
+  {
+    OBJECT_ID,
+    TRACKING_ID
   };
 
   Table();
@@ -197,6 +220,8 @@ public:
   {
     return mMeta;
   }
+
+  void arrangeByTrackingId();
 
 private:
   /////////////////////////////////////////////////////
