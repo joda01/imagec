@@ -360,14 +360,6 @@ ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
         mask2On = maskB.at<uchar>(yM2, xM2) > 0;
       }
 
-      if(mask1On) {
-        result.nrOfPixelsMask1++;
-      }
-
-      if(mask2On) {
-        result.nrOfPixelsMask2++;
-      }
-
       if(mask1On && mask2On) {
         result.intersectedMask.at<uchar>(y, x) = 255;
         result.nrOfIntersectingPixels++;
@@ -375,9 +367,9 @@ ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
     }
   }
 
-  int smallestMask = std::min(result.nrOfPixelsMask1, result.nrOfPixelsMask2);
-  if(smallestMask > 0) {
-    result.intersectionArea = static_cast<float>(result.nrOfIntersectingPixels) / static_cast<float>(smallestMask);
+  int smallestArea = std::min(getAreaSize(), roi.getAreaSize());
+  if(smallestArea > 0) {
+    result.intersectionArea = static_cast<float>(result.nrOfIntersectingPixels) / static_cast<float>(smallestArea);
   }
 
   return result;
