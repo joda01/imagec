@@ -71,7 +71,7 @@ void PanelChannelOverview::paintEvent(QPaintEvent *event)
   painter.setRenderHint(QPainter::Antialiasing);
 
   //
-  // Handel for movee
+  // Handel for move
   //
   {
     int x          = width() - HANDLE_WITH;
@@ -90,7 +90,14 @@ void PanelChannelOverview::paintEvent(QPaintEvent *event)
   if((mParentContainer != nullptr) && (mParentContainer->mActionDisabled != nullptr) && mParentContainer->mActionDisabled->isChecked()) {
     painter.setBrush(Qt::red);
     QPen pen(Qt::red, 1);    // darkYellow, 5px width
-    painter.drawEllipse(2, height() / 2 - 3, 6, 6);
+    painter.setPen(pen);
+    // painter.drawEllipse(2, height() / 2 - 3, 6, 6);
+    int crossWith = 8;
+    int margin    = 2;
+    int marginTop = 8;
+    painter.drawLine(margin, marginTop, crossWith - margin, height() - marginTop);
+    painter.drawLine(crossWith - margin, marginTop, margin, height() - marginTop);
+
   } else {
     painter.setBrush(Qt::green);
     QPen pen(Qt::green, 1);    // darkYellow, 5px width
