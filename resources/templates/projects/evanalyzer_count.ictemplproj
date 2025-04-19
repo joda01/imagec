@@ -19,7 +19,7 @@
     "modifiedAt": "2025-04-19T19-26-16",
     "name": "EV count",
     "notes": "",
-    "revision": "1.0.0",
+    "revision": "1.0",
     "group": "ev",
     "tags": [
       "ev",
