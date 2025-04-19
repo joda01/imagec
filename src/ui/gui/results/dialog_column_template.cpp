@@ -186,10 +186,10 @@ auto DialogColumnTemplate::toTemplateSettings() const -> settings::ResultsTempla
   for(const auto &col : mColumns) {
     auto &colSet = templateSettings.columns.emplace_back(settings::ResultsTemplate::TemplateEntry{});
     for(const auto &checked : col.mMeasurementSelector->getCheckedItems()) {
-      colSet.measureChannels.emplace_back(static_cast<joda::enums::Measurement>(checked.first.toInt()));
+      colSet.measureChannels.emplace(static_cast<joda::enums::Measurement>(checked.first.toInt()));
     }
     for(const auto &checked : col.mStatsSelector->getCheckedItems()) {
-      colSet.stats.emplace_back(static_cast<joda::enums::Stats>(checked.first.toInt()));
+      colSet.stats.emplace(static_cast<joda::enums::Stats>(checked.first.toInt()));
     }
   }
   return templateSettings;
