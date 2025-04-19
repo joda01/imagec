@@ -65,8 +65,6 @@ public:
   struct IntersectingMask
   {
     uint32_t nrOfIntersectingPixels = 0;
-    uint32_t nrOfPixelsMask1        = 0;
-    uint32_t nrOfPixelsMask2        = 0;
     float intersectionArea          = 0;    // Interecting area in [0-1]
     cv::Rect intersectedRect;
     cv::Mat intersectedMask = {};
@@ -85,19 +83,19 @@ public:
       mMaskContours(std::move(input.mMaskContours)), mImageSize(std::move(input.mImageSize)), mOriginalImageSize(std::move(input.mOriginalImageSize)),
       mAreaSize(std::move(input.mAreaSize)), mPerimeter(std::move(input.mPerimeter)), mCircularity(std::move(input.mCircularity)),
       intensity(std::move(input.intensity)), mOriginObjectId(std::move(input.mOriginObjectId)), mCentroid(std::move(input.mCentroid)),
-      mParentObjectId(std::move(input.mParentObjectId)), mLinkedWith(std::move(input.mLinkedWith))
+      mParentObjectId(std::move(input.mParentObjectId)), mTrackingId(std::move(input.mTrackingId)), mLinkedWith(std::move(input.mLinkedWith))
   {
   }
 
   ROI(bool mIsNull, uint64_t mObjectId, RoiObjectId mId, Confidence confidence, Boxes mBoundingBoxTile, Boxes mBoundingBoxReal, cv::Mat mMask,
       std::vector<cv::Point> mMaskContours, cv::Size mImageSize, cv::Size originalImageSize, double mAreaSize, float mPerimeter, float mCircularity,
-      std::map<enums::ImageId, Intensity> intensity, uint64_t originObjectId, cv::Point centroid, uint64_t parentObjectId,
-      const std::set<const ROI *> &linkedWith) :
+      std::map<enums::ImageId, Intensity> intensity, uint64_t originObjectId, cv::Point centroid, uint64_t parentObjectId, uint64_t linkedObjectId,
+      const std::set<ROI *> &linkedWith) :
       mIsNull(mIsNull),
       mObjectId(mObjectId), mId(mId), confidence(confidence), mBoundingBoxTile(mBoundingBoxTile), mBoundingBoxReal(mBoundingBoxReal), mMask(mMask),
       mMaskContours(mMaskContours), mImageSize(mImageSize), mOriginalImageSize(originalImageSize), mAreaSize(mAreaSize), mPerimeter(mPerimeter),
       mCircularity(mCircularity), intensity(intensity), mOriginObjectId(originObjectId), mCentroid(centroid), mParentObjectId(parentObjectId),
-      mLinkedWith(linkedWith)
+      mTrackingId(linkedObjectId), mLinkedWith(linkedWith)
   {
   }
 
@@ -108,9 +106,9 @@ public:
 
   [[nodiscard]] ROI clone() const
   {
-    return {mIsNull,         mObjectId,          mId,       confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,           mMaskContours,
-            mImageSize,      mOriginalImageSize, mAreaSize, mPerimeter, mCircularity,     intensity,        mOriginObjectId, mCentroid,
-            mParentObjectId, mLinkedWith};
+    return {mIsNull,         mObjectId,          mId,        confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,           mMaskContours,
+            mImageSize,      mOriginalImageSize, mAreaSize,  mPerimeter, mCircularity,     intensity,        mOriginObjectId, mCentroid,
+            mParentObjectId, mTrackingId,        mLinkedWith};
   }
 
   [[nodiscard]] ROI clone(enums::ClassId newClassId, uint64_t newParentObjectId) const
@@ -132,6 +130,7 @@ public:
             mOriginObjectId,
             mCentroid,
             newParentObjectId,
+            mTrackingId,
             mLinkedWith};
   }
 
@@ -154,6 +153,7 @@ public:
             mObjectId,
             mCentroid,
             mParentObjectId,
+            mTrackingId,
             mLinkedWith};
   }
 
@@ -176,6 +176,7 @@ public:
             mObjectId,
             mCentroid,
             newParentObjectId,
+            mTrackingId,
             mLinkedWith};
   }
 
@@ -302,23 +303,41 @@ public:
   }
 
   void resize(float scaleX, float scaleY);
-  void addLinkedRoi(const ROI *linked)
+  void addLinkedRoi(ROI *linked)
   {
     mLinkedWith.emplace(linked);
   }
-  void addLinkedRoi(const std::set<const ROI *> &links)
+  void addLinkedRoi(const std::set<ROI *> &links)
   {
     mLinkedWith.insert(links.begin(), links.end());
   }
-  auto getLinkedRois() const -> const std::set<const ROI *> &
+  auto getLinkedRois() const -> const std::set<ROI *> &
   {
     return mLinkedWith;
   }
-
   void clearLinkedWith()
   {
     mLinkedWith.clear();
   }
+
+  uint64_t getTrackingId() const
+  {
+    return mTrackingId;
+  }
+
+  void setTrackingId(uint64_t trackingId)
+  {
+    mTrackingId = trackingId;
+  }
+
+  static uint64_t generateNewTrackingId()
+  {
+    uint64_t trackingID = mGlobalUniqueTrackingId;
+    mGlobalUniqueTrackingId++;
+    return trackingID;
+  }
+
+  void assignTrackingIdToAllLinkedRois(uint64_t trackingIdForLinked = 0);
 
 private:
   /////////////////////////////////////////////////////
@@ -353,12 +372,14 @@ private:
   float mCircularity;    ///< Circularity of the masking area [0-1]
   cv::Point mCentroid;
   uint64_t mParentObjectId = 0;    // 0 if this object has no parent
+  uint64_t mTrackingId     = 0;    // 0 if not linked with anything
 
   // Measurements ///////////////////////////////////////////////////
   std::map<enums::ImageId, Intensity> intensity;
   uint64_t mOriginObjectId = 0;
 
-  static inline std::atomic<uint64_t> mGlobalUniqueObjectId = 1;
-  std::set<const ROI *> mLinkedWith;
+  static inline std::atomic<uint64_t> mGlobalUniqueObjectId   = 1;
+  static inline std::atomic<uint64_t> mGlobalUniqueTrackingId = 1;
+  std::set<ROI *> mLinkedWith;    // Temporary object to store linked objects and create a linked object IF afterwards
 };
 }    // namespace joda::atom

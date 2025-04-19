@@ -40,6 +40,12 @@ struct ReclassifySettings : public SettingBase
     REMOVE            // The hierarchy information of the object is removed.
   };
 
+  enum class FilterLogic
+  {
+    APPLY_IF_MATCH,
+    APPLY_IF_NOT_MATCH
+  };
+
   struct IntersectionFilter
   {
     //
@@ -52,6 +58,11 @@ struct ReclassifySettings : public SettingBase
     //
     float minIntersection = 0.1F;
 
+    //
+    // Apply filter if intersecting or not intersecting
+    //
+    FilterLogic filterLogic = FilterLogic::APPLY_IF_MATCH;
+
     void check() const
     {
       /// \todo check that ouput is not equal to input
@@ -59,7 +70,7 @@ struct ReclassifySettings : public SettingBase
       CHECK_ERROR(minIntersection >= 0 && minIntersection <= 1, "Min intersection must be in range [0-1].");
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectionFilter, inputClassesIntersectWith, minIntersection);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(IntersectionFilter, inputClassesIntersectWith, minIntersection, filterLogic);
   };
 
   //

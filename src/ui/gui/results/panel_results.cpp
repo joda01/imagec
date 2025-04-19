@@ -541,9 +541,17 @@ void PanelResults::refreshView()
   uint16_t rows         = plateSize.height();
   uint16_t cols         = plateSize.width();
 
+  auto form = static_cast<PanelResults::Navigation>(mNavigation) == PanelResults::Navigation::PLATE
+                  ? joda::settings::DensityMapSettings::ElementForm::CIRCLE
+                  : joda::settings::DensityMapSettings::ElementForm::RECTANGLE;
+
   mFilter.setFilter({.plateId = 0, .groupId = mActGroupId, .imageId = mActImageId},
                     {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
-                    {.densityMapAreaSize = static_cast<int32_t>(getDensityMapSize())});
+                    {.form               = form,
+                     .heatmapRangeMode   = mFilter.getDensityMapSettings().heatmapRangeMode,
+                     .heatmapRangeMin    = mFilter.getDensityMapSettings().heatmapRangeMin,
+                     .heatmapRangeMax    = mFilter.getDensityMapSettings().heatmapRangeMax,
+                     .densityMapAreaSize = static_cast<int32_t>(getDensityMapSize())});
 
   //
   //

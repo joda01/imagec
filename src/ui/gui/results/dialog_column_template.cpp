@@ -69,6 +69,7 @@ DialogColumnTemplate::DialogColumnTemplate(settings::ResultsTemplate *filter, QW
     col.mMeasurementSelector->addItem("Object ID", (int32_t) joda::enums::Measurement::OBJECT_ID);
     col.mMeasurementSelector->addItem("Origin object ID", (int32_t) joda::enums::Measurement::ORIGIN_OBJECT_ID);
     col.mMeasurementSelector->addItem("Parent object ID", (int32_t) joda::enums::Measurement::PARENT_OBJECT_ID);
+    col.mMeasurementSelector->addItem("Tracking ID", (int32_t) joda::enums::Measurement::TRACKING_ID);
     vlayout->addRow("Measurement:", col.mMeasurementSelector);
 
     //
@@ -185,10 +186,10 @@ auto DialogColumnTemplate::toTemplateSettings() const -> settings::ResultsTempla
   for(const auto &col : mColumns) {
     auto &colSet = templateSettings.columns.emplace_back(settings::ResultsTemplate::TemplateEntry{});
     for(const auto &checked : col.mMeasurementSelector->getCheckedItems()) {
-      colSet.measureChannels.emplace_back(static_cast<joda::enums::Measurement>(checked.first.toInt()));
+      colSet.measureChannels.emplace(static_cast<joda::enums::Measurement>(checked.first.toInt()));
     }
     for(const auto &checked : col.mStatsSelector->getCheckedItems()) {
-      colSet.stats.emplace_back(static_cast<joda::enums::Stats>(checked.first.toInt()));
+      colSet.stats.emplace(static_cast<joda::enums::Stats>(checked.first.toInt()));
     }
   }
   return templateSettings;

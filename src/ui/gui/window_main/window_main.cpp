@@ -927,8 +927,9 @@ void WindowMain::onShowInfoDialog()
         "<u>Maria Jaritsch</u> : AI-Training, Testing<br/><br/>"
         "<u>Heloisa Melobenirschke</u> : AI-Training<br/><br/>"
         "<u>Patricia Hrasnova</u> : AI-Training, Testing<br/><br/>"
-        "<u>Joachim Danmayr</u> : Idea, Programming, Testing, Documentation<br/><br/>"
-        "<u>Manfred Seiwald</u> : Integration testing<br/><br/>");
+        "<u>Manfred Seiwald</u> : Integration testing<br/><br/>"
+        "<u>Anna Dlugosch</u> : Testing<br/><br/>"
+        "<u>Joachim Danmayr</u> : Idea, Programming, Testing, Documentation<br/><br/>");
 
     labelAbout->setOpenExternalLinks(true);
     labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);

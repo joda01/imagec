@@ -43,58 +43,35 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
   //
   // This is used to align the objects for each class correct
   //
-  std::map<uint64_t, int32_t> rowIndexesParent;    // <ID, rowIdx>
   for(const auto &[classs, statement] : classesToExport) {
     auto [sql, params] = toSqlTable(classs, filter.getFilter(), statement);
     auto result        = database->select(sql, params);
-    std::map<uint64_t, int32_t> rowIndexes;    // <ID, rowIdx>
 
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());
     }
     auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
     size_t columnNr         = statement.getColSize();
-    for(size_t row = 0; row < materializedResult->RowCount(); row++) {
+    for(int32_t rowIdx = 0; rowIdx < materializedResult->RowCount(); rowIdx++) {
       for(int32_t colIdx = 0; colIdx < columnNr; colIdx++) {
-        if(!materializedResult->GetValue(colIdx, row).IsNull()) {
-          uint32_t meas_center_x  = materializedResult->GetValue(columnNr + 0, row).GetValue<uint32_t>();
-          uint32_t meas_center_y  = materializedResult->GetValue(columnNr + 1, row).GetValue<uint32_t>();
-          uint64_t objectId       = materializedResult->GetValue(columnNr + 2, row).GetValue<uint64_t>();
-          uint64_t parentObjectId = materializedResult->GetValue(columnNr + 3, row).GetValue<uint64_t>();
-
-          // It could be that there are classes without data, but we have to keep the row order, else the data would be shown shifted and beside a
-          // wrong image
-          size_t rowIdx = row;
-          if(parentObjectId != 0) {
-            // We want to align with the object ID but it could be that the object ID is not available yet
-            if(rowIndexes.contains(parentObjectId)) {
-              rowIdx = rowIndexes.at(parentObjectId);
-            } else if(rowIndexesParent.contains(parentObjectId)) {
-              rowIdx = rowIndexesParent.at(parentObjectId);
-            } else {
-              rowIdx = findMaxRowIdx(rowIndexes) + 1;
-              rowIndexes.emplace(objectId, rowIdx);
-              rowIndexesParent.emplace(parentObjectId, rowIdx);
-            }
-          } else {
-            if(rowIndexes.contains(objectId)) {
-              rowIdx = rowIndexes.at(objectId);
-            } else if(rowIndexesParent.contains(objectId)) {
-              rowIdx = rowIndexesParent.at(objectId);
-            } else {
-              rowIdx = findMaxRowIdx(rowIndexes) + 1;
-              rowIndexes.emplace(objectId, rowIdx);
-              rowIndexesParent.emplace(objectId, rowIdx);
-            }
-          }
-          double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
+        if(!materializedResult->GetValue(colIdx, rowIdx).IsNull()) {
+          uint32_t meas_center_x  = materializedResult->GetValue(columnNr + 0, rowIdx).GetValue<uint32_t>();
+          uint32_t meas_center_y  = materializedResult->GetValue(columnNr + 1, rowIdx).GetValue<uint32_t>();
+          uint64_t objectId       = materializedResult->GetValue(columnNr + 2, rowIdx).GetValue<uint64_t>();
+          uint64_t parentObjectId = materializedResult->GetValue(columnNr + 3, rowIdx).GetValue<uint64_t>();
+          uint64_t trackingId     = materializedResult->GetValue(columnNr + 4, rowIdx).GetValue<uint64_t>();
+          double value            = materializedResult->GetValue(colIdx, rowIdx).GetValue<double>();
 
           classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, std::to_string(rowIdx),
-                                  table::TableCell{value, objectId, true, ""});
+                                  table::TableCell{value, objectId, true, parentObjectId, trackingId});
         }
       }
     }
   }
+  for(auto &[_, table] : classesToExport.mutableResult()) {
+    table.arrangeByTrackingId();
+  }
+
   return classesToExport.getResult();
 }
 
@@ -162,7 +139,8 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
                     "ANY_VALUE(t1.meas_center_x) as meas_center_x,\n"
                     "ANY_VALUE(t1.meas_center_y) as meas_center_y,\n"
                     "ANY_VALUE(t1.object_id) as object_id,\n"
-                    "ANY_VALUE(t1.meas_parent_object_id) as meas_parent_object_id\n"
+                    "ANY_VALUE(t1.meas_parent_object_id) as meas_parent_object_id,\n"
+                    "ANY_VALUE(t1.meas_tracking_id) as meas_tracking_id\n"
                     "FROM\n"
                     "  " +
                     table + " t1\n" + channelFilter.createStatsQueryJoins() +

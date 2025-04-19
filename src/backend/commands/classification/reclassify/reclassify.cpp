@@ -59,8 +59,8 @@ void Reclassify::execute(processor::ProcessContext &context, cv::Mat & /*image*/
     } else {
       for(const auto &intersectWithClasssId : mSettings.intersection.inputClassesIntersectWith) {
         auto *intersectWith = context.loadObjectsFromCache()->at(context.getClassId(intersectWithClasssId)).get();
-        objectsInOut->calcIntersection(objectList, context, mSettings.mode, mSettings.hierarchyMode, intersectWith,
-                                       {context.getClassId(inputClassification)}, {context.getClassId(intersectWithClasssId)},
+        objectsInOut->calcIntersection(objectList, context, mSettings.mode, mSettings.intersection.filterLogic, mSettings.hierarchyMode,
+                                       intersectWith, {context.getClassId(inputClassification)}, {context.getClassId(intersectWithClasssId)},
                                        mSettings.intersection.minIntersection, mSettings.metrics, mSettings.intensity,
                                        context.getClassId(mSettings.newClassId));
       }

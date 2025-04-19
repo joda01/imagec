@@ -33,8 +33,8 @@ struct ResultsTemplate
 {
   struct TemplateEntry
   {
-    std::vector<enums::Measurement> measureChannels;
-    std::vector<enums::Stats> stats;
+    std::set<enums::Measurement> measureChannels;
+    std::set<enums::Stats> stats;
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(TemplateEntry, measureChannels, stats);
 
