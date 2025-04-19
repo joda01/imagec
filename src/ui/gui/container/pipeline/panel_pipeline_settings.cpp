@@ -710,14 +710,18 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
 {
   mLoadingSettings        = true;
   mSettings.meta          = settings.meta;
+  mSettings.meta.notes    = settings.meta.notes;
   mSettings.pipelineSetup = settings.pipelineSetup;
   mSettings.history       = settings.history;
+  mSettings.disabled      = settings.disabled;
+  mSettings.locked        = settings.locked;
 
   pipelineName->setValue(settings.meta.name);
   cStackIndex->setValue(settings.pipelineSetup.cStackIndex);
   zProjection->setValue(settings.pipelineSetup.zProjection);
   defaultClassId->setValue(settings.pipelineSetup.defaultClassId);
   mHistoryAction->setChecked(settings.disabled);
+  mActionDisabled->setChecked(mSettings.disabled);
 
   //
   // Pipelinesteps
@@ -757,6 +761,7 @@ void PanelPipelineSettings::toSettings()
 {
   mSettings.disabled                     = mActionDisabled->isChecked();
   mSettings.meta.name                    = pipelineName->getValue();
+  mSettings.meta.notes                   = pipelineNotes->getValue();
   mSettings.pipelineSetup.cStackIndex    = cStackIndex->getValue();
   mSettings.pipelineSetup.zProjection    = zProjection->getValue();
   mSettings.pipelineSetup.defaultClassId = defaultClassId->getValue();
