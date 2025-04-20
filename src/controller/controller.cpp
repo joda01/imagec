@@ -375,7 +375,7 @@ auto Controller::populateClassesFromImage(const joda::ome::OmeInfo &omeInfo, int
 /// \author
 /// \return
 ///
-void Controller::exportData(const std::filesystem::path &pathToDbFile, const settings::ResultsSettings &filter, const ExportSettings &settings,
+void Controller::exportData(const std::filesystem::path &pathToDbFile, settings::ResultsSettings &filter, const ExportSettings &settings,
                             const std::filesystem::path &outputFilePath)
 {
   auto analyzer = std::make_unique<joda::db::Database>();
@@ -384,7 +384,16 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, const set
   if(outputFilePath.empty()) {
     return;
   }
+  uint64_t imageId = 0;
+  if(!settings.filter.imageFileName.empty()) {
+    imageId = analyzer->selectImageIdFromImageFileName(settings.filter.imageFileName);
+    if(imageId == 0) {
+      throw std::invalid_argument("Image with name >" + settings.filter.imageFileName + "< not found in database!");
+    }
+  }
+  filter.setFilter(settings.filter.plateId, settings.filter.groupId, imageId);
 
+  joda::log::logInfo("Export started!");
   auto grouping = db::StatsPerGroup::Grouping::BY_IMAGE;
   std::map<int32_t, joda::table::Table> dataToExport;
   switch(settings.view) {
@@ -429,6 +438,7 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, const set
     joda::db::RExporter::startExport(filter, grouping, analyzeSettings, experiment.jobName, experiment.timestampStart, experiment.timestampFinish,
                                      outputFilePath.string());
   }
+  joda::log::logInfo("Export finished!");
 }
 
 }    // namespace joda::ctrl
