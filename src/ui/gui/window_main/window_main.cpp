@@ -512,6 +512,7 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     mPanelClassification->fromSettings(analyzeSettings.projectSettings.classification);
 
     mAnalyzeSettings.resultsSettings                = analyzeSettings.resultsSettings;
+    mAnalyzeSettings.resultsTemplate                = analyzeSettings.resultsTemplate;
     mAnalyzeSettings.projectSettings                = analyzeSettings.projectSettings;
     mAnalyzeSettings.projectSettings.classification = analyzeSettings.projectSettings.classification;
     mAnalyzeSettingsOld                             = mAnalyzeSettings;
