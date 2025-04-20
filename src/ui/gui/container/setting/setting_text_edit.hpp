@@ -61,7 +61,7 @@ public:
   void reset() override
   {
     if(mDefaultValue.has_value()) {
-      mLineEdit->setText(mDefaultValue.value().data());
+      mLineEdit->setPlainText(mDefaultValue.value().data());
     }
   }
 
@@ -72,13 +72,13 @@ public:
 
   std::string getValue()
   {
-    return mLineEdit->toMarkdown().toStdString();
+    return mLineEdit->toPlainText().toStdString();
   }
 
   void setValue(std::string value)
   {
     mLineEdit->blockSignals(true);
-    mLineEdit->setText(value.data());
+    mLineEdit->setPlainText(value.data());
     onValueChanged();
     mLineEdit->blockSignals(false);
   }

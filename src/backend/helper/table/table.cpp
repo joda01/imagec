@@ -110,7 +110,7 @@ void Table::setMeta(const Meta &meta)
 /// \param[out]
 /// \return
 ///
-[[nodiscard]] void Table::arrangeByTrackingId()
+void Table::arrangeByTrackingId()
 {
   std::map<uint64_t, int32_t> trackingIdRowIdx;    // <TRACKING ID, ROW IDX>
   std::map<uint64_t, int32_t> objectIdRowIdx;      // <OBJECT ID ID, ROW IDX>

@@ -89,13 +89,13 @@ void Settings::storeSettings(const std::filesystem::path &pathIn, const joda::se
 /// \param[out]
 /// \return
 ///
-void Settings::storeSettingsTemplate(const std::filesystem::path &pathIn, joda::settings::AnalyzeSettings settings)
+void Settings::storeSettingsTemplate(const std::filesystem::path &pathIn, joda::settings::AnalyzeSettings settings, const SettingsMeta &settingsMeta)
 {
   std::string path = pathIn.string();
   if(!path.empty()) {
     // Set modified at
+    settings.meta = settingsMeta;
     settings.meta.setModifiedAtDateToNow();
-    settings.meta.name = settings.projectSettings.experimentSettings.experimentName;
 
     //
     // Remove settings

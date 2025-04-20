@@ -49,6 +49,7 @@
 #include "backend/user_settings/user_settings.hpp"
 #include "ui/gui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/gui/dialog_analyze_running.hpp"
+#include "ui/gui/dialog_save_project_template/dialog_save_project_template.hpp"
 #include "ui/gui/dialog_shadow/dialog_shadow.h"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/template_parser/template_parser.hpp"
@@ -511,6 +512,7 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     mPanelClassification->fromSettings(analyzeSettings.projectSettings.classification);
 
     mAnalyzeSettings.resultsSettings                = analyzeSettings.resultsSettings;
+    mAnalyzeSettings.resultsTemplate                = analyzeSettings.resultsTemplate;
     mAnalyzeSettings.projectSettings                = analyzeSettings.projectSettings;
     mAnalyzeSettings.projectSettings.classification = analyzeSettings.projectSettings.classification;
     mAnalyzeSettingsOld                             = mAnalyzeSettings;
@@ -637,7 +639,10 @@ void WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
         //
         // Store project as template
         //
-        joda::settings::Settings::storeSettingsTemplate(filename, mAnalyzeSettings);
+        auto *dialog = new DialogSaveProjectTemplate(this);
+        if(dialog->exec() != 0) {
+          joda::settings::Settings::storeSettingsTemplate(filename, mAnalyzeSettings, dialog->toSettingsMeta());
+        }
       }
     }
 

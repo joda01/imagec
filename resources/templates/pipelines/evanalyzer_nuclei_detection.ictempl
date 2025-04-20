@@ -35,7 +35,7 @@
         "modelClasses": [
           {
             "modelClassId": 65535,
-            "mode": "Triangle",
+            "method": "Triangle",
             "thresholdMax": 65535,
             "thresholdMin": 0
           }
@@ -76,7 +76,7 @@
               }
             ],
             "modelClassId": 65535,
-            "outputClassNoMatch": "$"
+            "outputClassNoMatch": "None"
           }
         ]
       },

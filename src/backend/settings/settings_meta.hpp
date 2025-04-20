@@ -70,6 +70,16 @@ struct SettingsMeta
   std::vector<std::string> tags;
 
   //
+  // Optional author
+  //
+  std::optional<std::string> author;
+
+  //
+  // Optional webpage
+  //
+  std::optional<std::string> webpage;
+
+  //
   // Modified at date
   //
   mutable std::optional<std::string> modifiedAt = std::nullopt;
@@ -83,7 +93,8 @@ struct SettingsMeta
     modifiedAt = helper::timepointToIsoString(std::chrono::system_clock::now());
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(SettingsMeta, name, notes, color, icon, revision, uid, modifiedAt, group, category, tags);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(SettingsMeta, name, notes, color, icon, revision, uid, modifiedAt, group, category, tags,
+                                                       author, webpage);
 };
 
 };    // namespace joda::settings

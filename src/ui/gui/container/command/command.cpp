@@ -359,7 +359,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   //
   mBreakpoint = mLayout.addActionButton("Breakpoint", generateSvgIcon("media-record"));
   mBreakpoint->setCheckable(true);
-  mBreakpoint->setChecked(mPipelineStep.locked);
+  mBreakpoint->setChecked(mPipelineStep.breakPoint);
   mBreakpoint->setVisible(false);
   connect(mBreakpoint, &QAction::triggered, [this, pipelineSettingsUi](bool) {
     setBreakpoint(mBreakpoint->isChecked());
