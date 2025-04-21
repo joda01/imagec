@@ -36,6 +36,7 @@
 #include <iostream>
 #include <locale>
 #include <memory>
+#include <mutex>
 #include <random>
 #include <stdexcept>
 #include <string>
@@ -88,12 +89,11 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   mTable->setColumnCount(0);
   mTable->verticalHeader()->setDefaultSectionSize(8);    // Set each row to 50 pixels height
 
-  connect(mTable, &QTableWidget::currentCellChanged, this, &PanelResults::onTableCurrentCellChanged);
   connect(mTable->verticalHeader(), &QHeaderView::sectionDoubleClicked,
           [this](int logicalIndex) { onOpenNextLevel(logicalIndex, 0, mSelectedTable.data(logicalIndex, 0)); });
-
   connect(mTable, &QTableWidget::cellDoubleClicked, [this](int row, int column) { onOpenNextLevel(row, 0, mSelectedTable.data(row, 0)); });
   connect(mTable, &QTableWidget::cellClicked, this, &PanelResults::onCellClicked);
+  connect(mTable, &QTableWidget::currentCellChanged, this, &PanelResults::onTableCurrentCellChanged);
 
   static const int32_t SELECTED_INFO_WIDTH   = 250;
   static const int32_t SELECTED_INFO_SPACING = 6;
@@ -105,7 +105,11 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
     mHeatmapContainer->setContentsMargins(0, 0, 0, 0);
     mHeatmapChart = new ChartHeatMap(this, mFilter);
     mHeatmapChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    connect(mHeatmapChart, &ChartHeatMap::onElementClick, this, &PanelResults::onElementSelected);
+    connect(mHeatmapChart, &ChartHeatMap::onElementClick, [this](int cellX, int cellY, table::TableCell value) {
+      std::lock_guard<std::mutex> lock(mLoadLock);
+      onElementSelected(cellX, cellY, value);
+    });
+
     connect(mHeatmapChart, &ChartHeatMap::onDoubleClicked, this, &PanelResults::onOpenNextLevel);
     connect(layout().getBackButton(), &QAction::triggered, [this] { mWindowMain->showPanelStartPage(); });
     connect(getWindowMain()->getPanelResultsInfo(), &joda::ui::gui::PanelResultsInfo::settingsChanged, [this]() {
@@ -560,6 +564,7 @@ void PanelResults::refreshView()
     mIsLoading = true;
     QApplication::setOverrideCursor(Qt::WaitCursor);
     std::thread([this, rows, cols, wellOrder = wellOrder] {
+      std::lock_guard<std::mutex> lock(mLoadLock);
       storeResultsTableSettingsToDatabase();
     REFRESH_VIEW:
       switch(mNavigation) {
@@ -689,6 +694,9 @@ void PanelResults::onMarkAsInvalidClicked(bool isInvalid)
 ///
 void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell value)
 {
+  if(cellX < 0 || cellY < 0) {
+    return;
+  }
   QString headerTxt = mTable->horizontalHeaderItem(cellX)->text();
   switch(mNavigation) {
     case Navigation::PLATE: {
@@ -1199,8 +1207,7 @@ void PanelResults::onColumnComboChanged()
 ///
 void PanelResults::onTableCurrentCellChanged(int currentRow, int currentColumn, int previousRow, int previousColumn)
 {
-  mSelectedTableColumn = currentColumn;
-  mSelectedTableRow    = currentRow;
+  onCellClicked(currentRow, currentColumn);
 }
 
 ///
@@ -1212,7 +1219,9 @@ void PanelResults::onTableCurrentCellChanged(int currentRow, int currentColumn, 
 ///
 void PanelResults::onCellClicked(int rowSelected, int columnSelcted)
 {
-  // Update table
+  std::lock_guard<std::mutex> lock(mLoadLock);
+  mSelectedTableColumn    = columnSelcted;
+  mSelectedTableRow       = rowSelected;
   mSelection[mNavigation] = {rowSelected, columnSelcted};
   auto selectedData       = mActListData.at(0).data(rowSelected, columnSelcted);
   onElementSelected(columnSelcted, rowSelected, selectedData);

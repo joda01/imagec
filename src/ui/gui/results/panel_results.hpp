@@ -19,6 +19,7 @@
 #include <qtoolbar.h>
 #include <qwidget.h>
 #include <memory>
+#include <mutex>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/helper/database/database.hpp"
@@ -214,6 +215,7 @@ private:
   };
 
   std::map<Navigation, Selection> mSelection;
+  std::mutex mLoadLock;
 
   bool mIsLoading = false;
   bool mIsActive  = false;
