@@ -879,25 +879,6 @@ void WindowMain::onShowInfoDialog()
 {
   auto *about = new QDialog(this);
   about->setWindowTitle("About ImageC");
-  //   mainLayout->setContentsMargins(28, 28, 28, 28);
-  QLabel *helpTextLabel =
-      new QLabel("<p style=\"text-align: left;\"><strong>" + QString(Version::getProgamName().data()) + " " + QString(Version::getVersion().data()) +
-                 " (" + QString(Version::getBuildTime().data()) +
-                 ")</strong></p>"
-                 "<p style=\"text-align: left;\"><em>Licensed under AGPL-3.0 for non commercial<br />Free to use for non commercial."
-                 "</em></p>"
-                 "<p style=\"text-align: left;\"><strong>Many thanks</strong> for help in setting this project to Melanie "
-                 "Schuerz</p>"
-                 "<p style=\"text-align: left;\"><strong>Thank you very much for your help in training the AI "
-                 "models</strong><br "
-                 "/>Melanie Schuerz, Anna Mueller, Tanja Plank, Maria Jaritsch, Heloisa Melobenirschke, Patricia Hrasnova and "
-                 "Ritesh Khanna</p>"
-                 "<p style=\"text-align: left;\"><em>Icons from <a href=\"https://icons8.com/\">https://icons8.com/</a> and "
-                 "Dominik Handl.<br /> Special thanks to Tanja Plank for the logo design.</em></p>"
-                 "<p style=\"text-align: left;\">copyright 2022-2025 Joachim Danmayr</p>");
-  helpTextLabel->setOpenExternalLinks(true);
-  helpTextLabel->setWordWrap(true);
-
   auto *tab = new QTabWidget();
   //
   // About Tab
@@ -909,7 +890,7 @@ void WindowMain::onShowInfoDialog()
     tab->addTab(widgetAbout, "About");
     auto *labelAbout = new QLabel("ImageC " + QString(Version::getVersion().data()) +
                                   " is an application for high throughput image processing.<br/><br/>"
-                                  "2022-2025 Joachim Danmayr<br/><br/>"
+                                  "Copyright 2019-2025 Joachim Danmayr<br/><br/>"
                                   "<a href=\"https://imagec.org/\">https://imagec.org/</a><br/><br/>"
                                   "ALL RIGHTS RESERVED");
     labelAbout->setOpenExternalLinks(true);
@@ -927,14 +908,14 @@ void WindowMain::onShowInfoDialog()
     widgetAbout->setLayout(layoutAbout);
     tab->addTab(widgetAbout, "Contributors");
     auto *labelAbout = new QLabel(
-        "<u>Melanie Schuerz</u> : Coordination, AI-Training, Testing<br/><br/>"
-        "<u>Tanja Plank</u> : Logo design, AI-Training, Testing<br/><br/>"
-        "<u>Maria Jaritsch</u> : AI-Training, Testing<br/><br/>"
+        "<u>Melanie Schuerz</u> : Coordination, Application testing, AI-Training<br/><br/>"
+        "<u>Tanja Plank</u> : Logo design, Application testing, AI-Training<br/><br/>"
+        "<u>Maria Jaritsch</u> : Application testing, AI-Training<br/><br/>"
+        "<u>Patricia Hrasnova</u> : Application testing, AI-Training<br/><br/>"
+        "<u>Anna Dlugosch</u> : Application testing<br/><br/>"
         "<u>Heloisa Melobenirschke</u> : AI-Training<br/><br/>"
-        "<u>Patricia Hrasnova</u> : AI-Training, Testing<br/><br/>"
         "<u>Manfred Seiwald</u> : Integration testing<br/><br/>"
-        "<u>Anna Dlugosch</u> : Testing<br/><br/>"
-        "<u>Joachim Danmayr</u> : Idea, Programming, Testing, Documentation<br/><br/>");
+        "<u>Joachim Danmayr</u> : Idea, Programming, Documentation, Testing<br/><br/>");
 
     labelAbout->setOpenExternalLinks(true);
     labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -1025,7 +1006,7 @@ void WindowMain::onShowInfoDialog()
       file.close();
     }
     auto *preamble = new QLabel(
-        "This software is free to use and licensed under AGPL V3 for <b>non commercial</b>!<br/>For usage in "
+        "(c) 2019-2025 Joachim Danmayr. Free to use and licensed under AGPL V3 for <b>non commercial</b>!<br/>For usage in "
         "commercial environment, please contact <a href= \"mailto:support@imagec.org\">support@imagec.org</a>.");
     preamble->setOpenExternalLinks(true);
     preamble->setAlignment(Qt::AlignCenter);
