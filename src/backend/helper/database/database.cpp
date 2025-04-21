@@ -1180,4 +1180,28 @@ auto Database::selectAnalyzeSettingsMeta(const std::string &jobId) -> std::strin
   return "";
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Database::selectImageIdFromImageFileName(const std::string &imageFileName) -> uint64_t
+{
+  {
+    std::unique_ptr<duckdb::QueryResult> resultJobs = select("SELECT image_id FROM images WHERE file_name = ?", imageFileName);
+    if(resultJobs->HasError()) {
+      throw std::invalid_argument(resultJobs->GetError());
+    }
+    auto materializedResult = resultJobs->Cast<duckdb::StreamQueryResult>().Materialize();
+    if(materializedResult->RowCount() > 0) {
+      {
+        return materializedResult->GetValue(0, 0).GetValue<uint64_t>();
+      }
+    }
+  }
+  return 0;
+}
+
 }    // namespace joda::db

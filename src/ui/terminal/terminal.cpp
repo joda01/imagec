@@ -162,38 +162,55 @@ void Terminal::exportData(const std::filesystem::path &pathToDatabasefile, const
     std::exit(1);
   }
 
+  auto filterElements = joda::helper::split(exportFilter, {' '});
+
   ctrl::ExportSettings::ExportView viewEnum;
   if(view == "plate") {
     viewEnum = ctrl::ExportSettings::ExportView::PLATE;
+    if(filterElements.size() < 1) {
+      joda::log::logError("Export filter in form [plate-id] must be given!");
+      std::exit(1);
+    }
   } else if(view == "well") {
     viewEnum = ctrl::ExportSettings::ExportView::WELL;
+    if(filterElements.size() < 2) {
+      joda::log::logError("Export filter in form [plate-id group-id] must be given!");
+      std::exit(1);
+    }
   } else if(view == "image") {
     viewEnum = ctrl::ExportSettings::ExportView::IMAGE;
+    if(filterElements.size() < 3) {
+      joda::log::logError("Export filter in form [plate-id group-id image-file-name] must be given!");
+      std::exit(1);
+    }
   } else {
     joda::log::logError("Invalid export view!");
     std::exit(1);
   }
 
-  auto filterElements = joda::helper::split(exportFilter, {' '});
-  if(filterElements.size() != 3) {
-    joda::log::logError("Export filter in form [plate-id group-id image-id] must be given!");
+  int32_t plateId = 0;
+  int32_t groupId = 0;
+  std::string imageFileName;
+  try {
+    plateId = std::stoi(filterElements[0]);
+    if(filterElements.size() > 1) {
+      groupId = std::stoi(filterElements[1]);
+    }
+    if(filterElements.size() > 2) {
+      imageFileName = filterElements[2];
+    }
+  } catch(const std::exception &e) {
+    joda::log::logError("Plate ID and Group ID must be a number between [0-65535].");
     std::exit(1);
   }
 
   try {
-    int32_t plateId  = std::stoi(filterElements[0]);
-    int32_t groupId  = std::stoi(filterElements[1]);
-    uint64_t imageId = std::stoull(filterElements[2]);
-
-    filter.setFilter(plateId, groupId, imageId);
-  } catch(const std::exception &e) {
-    joda::log::logError("Export filter in form [plate-id group-id image-id] of three numbers must be given!");
+    mController->exportData(pathToDatabasefile, filter, joda::ctrl::ExportSettings{formatEnum, typeEnum, viewEnum, {plateId, groupId, imageFileName}},
+                            outputPath);
+  } catch(const std::exception &ex) {
+    joda::log::logError(ex.what());
     std::exit(1);
   }
-
-  joda::log::logInfo("Export started!");
-  mController->exportData(pathToDatabasefile, filter, joda::ctrl::ExportSettings{formatEnum, typeEnum, viewEnum}, outputPath);
-  joda::log::logInfo("Export finished!");
   std::exit(0);
 }
 

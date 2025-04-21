@@ -61,6 +61,13 @@ struct Preview
 
 struct ExportSettings
 {
+  struct ExportFilter
+  {
+    int32_t plateId = 0;
+    int32_t groupId = 0;
+    std::string imageFileName;
+  };
+
   enum class ExportType
   {
     XLSX,
@@ -82,6 +89,7 @@ struct ExportSettings
   ExportFormat format;
   ExportType type;
   ExportView view;
+  ExportFilter filter;
 };
 
 ///
@@ -124,7 +132,7 @@ public:
 
   // EXPORT ///////////////////////////////////////
 
-  void exportData(const std::filesystem::path &pathToDbFile, const settings::ResultsSettings &filter, const ExportSettings &settings,
+  void exportData(const std::filesystem::path &pathToDbFile, settings::ResultsSettings &filter, const ExportSettings &settings,
                   const std::filesystem::path &outputFilePath);
 
 private:

@@ -83,6 +83,7 @@ public:
   auto selectResultsTableSettings(const std::string &jobId) -> std::string;
   auto selectResultsTableTemplateSettings(const std::string &jobId) -> std::string;
   auto selectAnalyzeSettingsMeta(const std::string &jobId) -> std::string;
+  auto selectImageIdFromImageFileName(const std::string &imageFileName) -> uint64_t;
 
   template <typename... ARGS>
   std::unique_ptr<duckdb::QueryResult> select(const std::string &query, ARGS... args)
