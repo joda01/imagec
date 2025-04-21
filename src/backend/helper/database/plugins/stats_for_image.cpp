@@ -59,8 +59,12 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
           uint32_t meas_center_y  = materializedResult->GetValue(columnNr + 1, rowIdx).GetValue<uint32_t>();
           uint64_t objectId       = materializedResult->GetValue(columnNr + 2, rowIdx).GetValue<uint64_t>();
           uint64_t parentObjectId = materializedResult->GetValue(columnNr + 3, rowIdx).GetValue<uint64_t>();
-          uint64_t trackingId     = materializedResult->GetValue(columnNr + 4, rowIdx).GetValue<uint64_t>();
-          double value            = materializedResult->GetValue(colIdx, rowIdx).GetValue<double>();
+          auto trackIdTmp         = materializedResult->GetValue(columnNr + 4, rowIdx);
+          uint64_t trackingId     = 0;
+          if(!trackIdTmp.IsNull()) {
+            trackingId = trackIdTmp.GetValue<uint64_t>();
+          }
+          double value = materializedResult->GetValue(colIdx, rowIdx).GetValue<double>();
 
           classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, std::to_string(rowIdx),
                                   table::TableCell{value, objectId, true, parentObjectId, trackingId});

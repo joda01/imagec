@@ -209,6 +209,9 @@ void Database::createTables()
                                      // tracking)
       ");"
 
+      "ALTER TABLE objects "
+      " ADD COLUMN IF NOT EXISTS meas_tracking_id UBIGINT;\n"
+
       "CREATE TABLE IF NOT EXISTS object_measurements ("
       "	image_id UBIGINT,"
       " object_id UBIGINT,"
