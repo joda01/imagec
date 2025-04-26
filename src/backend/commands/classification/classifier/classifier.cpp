@@ -78,11 +78,11 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
       // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html
       auto parent     = hierarchy[i][3];
       auto firstChild = hierarchy[i][2];
-      if(mSettings.hierarchyMode == settings::ClassifierSettings::HierarchyMode::OUTER && -1 != parent) {
+      if(mSettings.detectionHierarchy == settings::ClassifierSettings::HierarchyMode::OUTER && -1 != parent) {
         i++;
         continue;
       }
-      if(mSettings.hierarchyMode == settings::ClassifierSettings::HierarchyMode::INNER && firstChild > -1) {
+      if(mSettings.detectionHierarchy == settings::ClassifierSettings::HierarchyMode::INNER && firstChild > -1) {
         i++;
         continue;
       }
