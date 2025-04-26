@@ -67,15 +67,15 @@ public:
     auto *detectionSettings = addTab(
         "Detection settings", [] {}, false);
 
-    mFunction = SettingBase::create<SettingComboBox<joda::settings::ClassifierSettings::HierarchyMode>>(parent, {}, "Function");
+    mFunction = SettingBase::create<SettingComboBox<joda::settings::ClassifierSettings::HierarchyMode>>(parent, {}, "Detection hierarchy");
     mFunction->addOptions({
         {.key = joda::settings::ClassifierSettings::HierarchyMode::OUTER, .label = "Outer", .icon = {}},
         {.key = joda::settings::ClassifierSettings::HierarchyMode::INNER, .label = "Inner", .icon = {}},
         {.key = joda::settings::ClassifierSettings::HierarchyMode::INNER_AND_OUTER, .label = "Inner & Outer", .icon = {}},
     });
 
-    mFunction->setValue(settingsIn.hierarchyMode);
-    mFunction->connectWithSetting(&settingsIn.hierarchyMode);
+    mFunction->setValue(settingsIn.detectionHierarchy);
+    mFunction->connectWithSetting(&settingsIn.detectionHierarchy);
     auto *col = addSetting(detectionSettings, "Model settings", {{mFunction.get(), false, 0}});
 
     auto *addFilter = addActionButton("Add filter", generateSvgIcon("list-add"));

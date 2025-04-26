@@ -38,8 +38,11 @@ enum class State
 class DirectoryWatcher
 {
 public:
-  explicit DirectoryWatcher(const std::set<std::string> &supportedFileFormats = {".tif", ".tiff", ".btif", ".btiff", ".btf", ".jpg", ".jpeg", ".vsi",
-                                                                                 ".ics", ".czi", ".nd2"});
+  explicit DirectoryWatcher(const std::set<std::string> &supportedFileFormats = {
+                                ".tif", ".tiff", ".btif", ".btiff", ".btf", ".jpg", ".jpeg", ".vsi", ".ics", ".czi", ".nd2",
+                                ".lif", ".lei",  ".fli",  ".scn",   ".sxm", ".lim", ".oir",  ".top", ".stk", ".nd",  ".bip",
+                                ".fli", ".msr",  ".dm3",  ".dm4",   ".img", ".cr2", ".ch5",  ".dib", ".ims", ".pic", ".raw",
+                                ".1sc", ".std",  ".spc",  ".avi",   ".cif", ".sif", ".aim",  ".svs", ".arf", ".sld"});
   ~DirectoryWatcher()
   {
     stop();
