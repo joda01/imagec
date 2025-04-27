@@ -118,6 +118,17 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
     joda::log::logError("Could not open user settings! What: " + std::string(ex.what()));
   }
 
+  //
+  //
+  //
+  {
+    mPreviewImage = new DialogImageViewer(this);
+    mPreviewImage->setVisible(false);
+    mPreviewImage->setContentsMargins(0, 0, 0, 0);
+    mPreviewImage->resetImage();
+    addDockWidget(Qt::RightDockWidgetArea, mPreviewImage);
+  }
+
   mPanelPipeline->loadTemplates();
   loadProjectTemplates();
   loadLastOpened();

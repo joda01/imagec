@@ -63,10 +63,11 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pipeline &settings,
+PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, joda::settings::Pipeline &settings,
                                              std::shared_ptr<DialogCommandSelection> &commandSelectionDialog) :
     QWidget(wm),
-    mLayout(this, false, true, true, false, wm), mWindowMain(wm), mSettings(settings), mCommandSelectionDialog(commandSelectionDialog)
+    mLayout(this, false, true, true, false, wm), mPreviewImage(previewDock), mWindowMain(wm), mSettings(settings),
+    mCommandSelectionDialog(commandSelectionDialog)
 {
   setObjectName("PanelPipelineSettings");
   auto *tab = mLayout.addTab(
@@ -112,15 +113,6 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, joda::settings::Pip
 
   {
     auto *col3 = tab->addVerticalPanel();
-  }
-
-  {
-    auto *col4    = tab->addVerticalPanel();
-    mPreviewImage = new DialogImageViewer(mWindowMain);
-    mPreviewImage->setVisible(false);
-    mPreviewImage->setContentsMargins(0, 0, 0, 0);
-    mPreviewImage->resetImage();
-    wm->addDockWidget(Qt::RightDockWidgetArea, mPreviewImage);
   }
 
   auto *openTemplate = mLayout.addActionButton("Open template", generateSvgIcon("project-development-new-template"));
