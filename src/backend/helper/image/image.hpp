@@ -60,9 +60,10 @@ public:
   }
   void clear()
   {
-    delete mImageOriginal;
-
-    mImageOriginal = nullptr;
+    if(mImageOriginal != nullptr) {
+      delete mImageOriginal;
+      mImageOriginal = nullptr;
+    }
   }
 
   auto getHistogram() const -> const cv::Mat &
