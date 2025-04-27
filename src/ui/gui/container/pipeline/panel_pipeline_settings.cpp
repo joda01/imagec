@@ -410,7 +410,6 @@ PanelPipelineSettings::~PanelPipelineSettings()
       mPreviewThread->join();
     }
   }
-  delete mPreviewImage;
 }
 
 ///

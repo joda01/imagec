@@ -258,7 +258,7 @@ auto Starter::initApplication() -> std::shared_ptr<std::thread>
 
   std::shared_ptr<std::thread> initJVMThread =
       std::make_shared<std::thread>([ram = systemRecourses.ramReservedForJVM] { /* joda::image::reader::ImageReader::init(ram); */ });
-  joda::image::reader::ImageReader::init(systemRecourses.ramReservedForJVM);
+  joda::image::reader::ImageReader::init(systemRecourses.ramReservedForJVM);    // Costs ~50MB RAM
 
   // Register the cleanup function
   if(atexit(cleanup) != 0) {
