@@ -210,7 +210,13 @@ void Database::createTables()
       ");"
 
       "ALTER TABLE objects "
-      " ADD COLUMN IF NOT EXISTS meas_tracking_id UBIGINT;\n"
+      " ADD COLUMN IF NOT EXISTS meas_tracking_id UBIGINT DEFAULT 0;\n"
+
+      "ALTER TABLE objects "
+      " ADD COLUMN IF NOT EXISTS meas_origin_object_id UBIGINT DEFAULT 0;\n"
+
+      "ALTER TABLE objects "
+      " ADD COLUMN IF NOT EXISTS meas_parent_object_id UBIGINT DEFAULT 0;\n"
 
       "CREATE TABLE IF NOT EXISTS object_measurements ("
       "	image_id UBIGINT,"
