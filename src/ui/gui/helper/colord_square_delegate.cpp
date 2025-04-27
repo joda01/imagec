@@ -47,9 +47,7 @@ void ColoredSquareDelegate::paint(QPainter *painter, const QStyleOptionViewItem 
   squareRect.setHeight(8);
   squareRect.moveTop(opt.rect.y() + opt.rect.height() / 2 - 4);
   squareRect.moveLeft(opt.rect.left() + 5);
-  if(!index.data().toString().isEmpty()) {
-    painter->fillRect(squareRect, QColor(color));    // Change the color as needed
-  }
+  painter->fillRect(squareRect, QColor(color));    // Change the color as needed
 
   // Draw the text
   opt.rect.setLeft(squareRect.right() + 5);
