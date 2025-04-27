@@ -79,8 +79,8 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     //
     // Start button
     //
-    mActionStart = new QAction(generateSvgIcon("media-playback-start"), "Start analyzes");
-    mActionStart->setStatusTip("Start analyzes");
+    mActionStart = new QAction(generateSvgIcon("media-playback-start"), "Start analyze");
+    mActionStart->setStatusTip("Start analyze");
     mActionStart->setEnabled(false);
     connect(mActionStart, &QAction::triggered, windowMain, &WindowMain::onStartClicked);
     toolbar->addAction(mActionStart);

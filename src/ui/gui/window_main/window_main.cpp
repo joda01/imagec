@@ -232,7 +232,6 @@ void WindowMain::createTopToolbar()
   mStartAnalysisToolButton = new QAction(generateSvgIcon("media-playback-start"), "Start analyze", mTopToolBar);
   mStartAnalysisToolButton->setStatusTip("Start analyze");
   mStartAnalysisToolButton->setEnabled(false);
-  mStartAnalysisToolButton->setToolTip("Run pipeline!");
   connect(mStartAnalysisToolButton, &QAction::triggered, this, &WindowMain::onStartClicked);
   mTopToolBar->addAction(mStartAnalysisToolButton);
 
@@ -249,7 +248,6 @@ void WindowMain::createTopToolbar()
 
   mShowInfoDialog = new QAction(generateSvgIcon("help-about"), "About", mTopToolBar);
   mShowInfoDialog->setStatusTip("Open about dialog");
-  mShowInfoDialog->setToolTip("Info");
   connect(mShowInfoDialog, &QAction::triggered, this, &WindowMain::onShowInfoDialog);
   mTopToolBar->addAction(mShowInfoDialog);
 }

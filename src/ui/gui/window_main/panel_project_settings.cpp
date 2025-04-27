@@ -52,6 +52,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   auto *workingDir = new QHBoxLayout;
   workingDir->addWidget(mWorkingDir);
   auto *openDir = new QPushButton(generateSvgIcon("image-tiff"), "");
+  openDir->setStatusTip("Select image directory");
   connect(openDir, &QPushButton::clicked, this, &PanelProjectSettings::onOpenWorkingDirectoryClicked);
   workingDir->addWidget(openDir);
   workingDir->setStretch(0, 1);    // Make label take all available space

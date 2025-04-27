@@ -49,15 +49,15 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     mTemplateMenu     = new QMenu();
     auto *newPipeline = new QAction(generateSvgIcon("document-new"), "Add object class");
     connect(newPipeline, &QAction::triggered, [this]() { addClass(); });
-    newPipeline->setStatusTip("New from classification template");
+    newPipeline->setStatusTip("Add object class or load from template");
     newPipeline->setMenu(mTemplateMenu);
     toolbar->addAction(newPipeline);
 
     //
     // Open template
     //
-    auto *openTemplate = new QAction(generateSvgIcon("folder-stash"), "Open classification template");
-    openTemplate->setStatusTip("Open table template from file");
+    auto *openTemplate = new QAction(generateSvgIcon("folder-stash"), "Open object class template");
+    openTemplate->setStatusTip("Open object class template");
     connect(openTemplate, &QAction::triggered, [this]() {
       QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
       QString filePathOfSettingsFile = QFileDialog::getOpenFileName(
@@ -81,7 +81,7 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     //
     // Save as template
     //
-    auto *saveAsTemplate = new QAction(generateSvgIcon("document-save-as-template"), "Save as new template");
+    auto *saveAsTemplate = new QAction(generateSvgIcon("document-save-as-template"), "Save classification settings as template");
     saveAsTemplate->setStatusTip("Save classification settings as template");
     connect(saveAsTemplate, &QAction::triggered, [this]() { saveAsNewTemplate(); });
     toolbar->addAction(saveAsTemplate);
@@ -90,7 +90,7 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     //
     // Delete column
     //
-    auto *deleteColumn = new QAction(generateSvgIcon("edit-table-delete-column"), "", this);
+    auto *deleteColumn = new QAction(generateSvgIcon("edit-table-delete-column"), "Delete selected class", this);
     deleteColumn->setStatusTip("Delete selected class");
     toolbar->addAction(deleteColumn);
     connect(deleteColumn, &QAction::triggered, [this]() {
