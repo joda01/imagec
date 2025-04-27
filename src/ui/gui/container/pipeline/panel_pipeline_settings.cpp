@@ -382,7 +382,6 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
   connect(zProjection.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::onZProjectionChanged);
   connect(zStackIndex.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   connect(defaultClassId.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
-  onZProjectionChanged();
 
   {
     auto *col1 = tab->addVerticalPanel();
@@ -392,6 +391,9 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
   }
 
   mOverview = new PanelChannelOverview(windowMain, this);
+
+  // Widget must first be added to layout before changing the visibility
+  onZProjectionChanged();
 }
 
 ///
