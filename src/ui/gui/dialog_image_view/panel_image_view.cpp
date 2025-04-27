@@ -142,7 +142,12 @@ void PanelImageView::resetImage()
 {
   std::lock_guard<std::mutex> locked(mImageResetMutex);
   mPlaceholderImageSet = true;
-  delete mActPixmap;
+  for(QGraphicsItem *item : scene->items()) {
+    if(auto *pixmapItem = dynamic_cast<QGraphicsPixmapItem *>(item)) {
+      scene->removeItem(pixmapItem);
+      delete pixmapItem;
+    }
+  }
   mActPixmap = nullptr;
   fitImageToScreenSize();
   emit updateImage();

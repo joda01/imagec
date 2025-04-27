@@ -47,8 +47,18 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     // New from template
     //
     mTemplateMenu     = new QMenu();
-    auto *newPipeline = new QAction(generateSvgIcon("document-new"), "New from classification template");
-    connect(newPipeline, &QAction::triggered, [this]() {
+    auto *newPipeline = new QAction(generateSvgIcon("document-new"), "Add object class");
+    connect(newPipeline, &QAction::triggered, [this]() { addClass(); });
+    newPipeline->setStatusTip("Add object class or load from template");
+    newPipeline->setMenu(mTemplateMenu);
+    toolbar->addAction(newPipeline);
+
+    //
+    // Open template
+    //
+    auto *openTemplate = new QAction(generateSvgIcon("folder-stash"), "Open object class template");
+    openTemplate->setStatusTip("Open object class template");
+    connect(openTemplate, &QAction::triggered, [this]() {
       QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
       QString filePathOfSettingsFile = QFileDialog::getOpenFileName(
           this, "Open template", folderToOpen, "ImageC classification templates (*" + QString(joda::fs::EXT_CLASS_CLASS_TEMPLATE.data()) + ")");
@@ -57,9 +67,7 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
       }
       this->openTemplate(filePathOfSettingsFile);
     });
-    newPipeline->setStatusTip("New from classification template");
-    newPipeline->setMenu(mTemplateMenu);
-    toolbar->addAction(newPipeline);
+    toolbar->addAction(openTemplate);
 
     //
     // Populate from image
@@ -71,37 +79,39 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     connect(populateFromImage, &QAction::triggered, [this]() { this->populateClassesFromImage(); });
 
     //
-    // Open template
-    //
-    // auto *openTemplate = new QAction(generateSvgIcon("folder-stash"), "Open template");
-    // openTemplate->setStatusTip("Open classification settings from template");
-    // connect(openTemplate, &QAction::triggered, [this]() {
-    //  QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
-    //  QString filePathOfSettingsFile = QFileDialog::getOpenFileName(
-    //      this, "Open template", folderToOpen, "ImageC classification templates (*" + QString(joda::fs::EXT_CLASS_CLASS_TEMPLATE.data()) + ")");
-    //  if(filePathOfSettingsFile.isEmpty()) {
-    //    return;
-    //  }
-    //  this->openTemplate(filePathOfSettingsFile);
-    //});
-    // toolbar->addAction(openTemplate);
-
-    //
     // Save as template
     //
-    auto *saveAsTemplate = new QAction(generateSvgIcon("document-save-as-template"), "Save as new template");
+    auto *saveAsTemplate = new QAction(generateSvgIcon("document-save-as-template"), "Save classification settings as template");
     saveAsTemplate->setStatusTip("Save classification settings as template");
     connect(saveAsTemplate, &QAction::triggered, [this]() { saveAsNewTemplate(); });
     toolbar->addAction(saveAsTemplate);
-
     toolbar->addSeparator();
+
+    //
+    // Delete column
+    //
+    auto *deleteColumn = new QAction(generateSvgIcon("edit-table-delete-column"), "Delete selected class", this);
+    deleteColumn->setStatusTip("Delete selected class");
+    toolbar->addAction(deleteColumn);
+    connect(deleteColumn, &QAction::triggered, [this]() {
+      QList<QTableWidgetSelectionRange> ranges = mClasses->selectedRanges();
+      if(!ranges.isEmpty()) {
+        int selectedRow = ranges.first().topRow();
+        if(selectedRow >= 0) {
+          mClasses->removeRow(selectedRow);
+          onSettingChanged();
+        }
+      }
+    });
+
+    //
     // Clear
+    //
     auto *clearList = new QAction(generateSvgIcon("edit-delete"), "Clear");
     clearList->setStatusTip("Clear classification list");
     toolbar->addAction(clearList);
     connect(clearList, &QAction::triggered, [this]() {
       if(this->askForChangeTemplateIndex()) {
-        this->initTable();
         this->newTemplate();
       }
     });
@@ -111,7 +121,7 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
   }
 
   {
-    mClasses = new PlaceholderTableWidget(NR_OF_CLASSES, 5);
+    mClasses = new PlaceholderTableWidget(0, 5);
     mClasses->setPlaceholderText("Add a class");
     mClasses->verticalHeader()->setVisible(false);
     mClasses->setHorizontalHeaderLabels({"IdNr", "Id", "Class", "Color", "Notes"});
@@ -132,7 +142,6 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
   }
   setLayout(layout);
 
-  initTable();
   // connect(mClasses, &QTableWidget::itemChanged, [&](QTableWidgetItem *item) { onSettingChanged(); });
   connect(mClasses, &QTableWidget::cellDoubleClicked, [&](int row, int column) {
     if(column == COL_NAME) {
@@ -161,39 +170,39 @@ void PanelClassification::createDialog()
   // Predefined selections
   //
   mDialogClassName->addItem("cy3@spot", "cy3@spot");
-  mDialogClassName->addItem("cy3@ignore", "cy3@ignore");
+  mDialogClassName->addItem("cy3@none", "cy3@none");
   mDialogClassName->addItem("cy3@background", "cy3@background");
   mDialogClassName->addItem("cy5@spot", "cy5@spot");
-  mDialogClassName->addItem("cy5@ignore", "cy5@ignore");
+  mDialogClassName->addItem("cy5@none", "cy5@none");
   mDialogClassName->addItem("cy5@background", "cy5@background");
   mDialogClassName->addItem("cy7@spot", "cy7@spot");
-  mDialogClassName->addItem("cy7@ignore", "cy7@ignore");
+  mDialogClassName->addItem("cy7@none", "cy7@none");
   mDialogClassName->addItem("cy7@background", "cy7@background");
   mDialogClassName->addItem("gfp@spot", "gfp@spot");
-  mDialogClassName->addItem("gfp@ignore", "gfp@ignore");
+  mDialogClassName->addItem("gfp@none", "gfp@none");
   mDialogClassName->addItem("gfp@background", "gfp@background");
   mDialogClassName->addItem("fitc@spot", "fitc@spot");
-  mDialogClassName->addItem("fitc@ignore", "fitc@ignore");
+  mDialogClassName->addItem("fitc@none", "fitc@none");
   mDialogClassName->addItem("fitc@background", "fitc@background");
   mDialogClassName->insertSeparator(mDialogClassName->count());
   mDialogClassName->addItem("tetraspeck@spot", "tetraspeck@spot");
-  mDialogClassName->addItem("tetraspeck@ignore", "tetraspeck@ignore");
+  mDialogClassName->addItem("tetraspeck@none", "tetraspeck@none");
   mDialogClassName->addItem("tetraspeck@background", "tetraspeck@background");
   mDialogClassName->insertSeparator(mDialogClassName->count());
   mDialogClassName->addItem("dapi@nucleus", "dapi@nucleus");
-  mDialogClassName->addItem("dapi@nucleus-ignore", "dapi@nucleus-ignore");
+  mDialogClassName->addItem("dapi@nucleus-none", "dapi@nucleus-none");
   mDialogClassName->addItem("dapi@background", "dapi@background");
   mDialogClassName->insertSeparator(mDialogClassName->count());
   mDialogClassName->addItem("brightfield@cell-area", "brightfield@cell-area");
-  mDialogClassName->addItem("brightfield@cell-area-ignore", "brightfield@cell-area-ignore");
+  mDialogClassName->addItem("brightfield@cell-area-none", "brightfield@cell-area-none");
   mDialogClassName->addItem("brightfield@cell", "brightfield@cell");
-  mDialogClassName->addItem("brightfield@cell-ignore", "brightfield@cell-ignore");
+  mDialogClassName->addItem("brightfield@cell-none", "brightfield@cell-none");
   mDialogClassName->addItem("brightfield@background", "brightfield@background");
   mDialogClassName->insertSeparator(mDialogClassName->count());
-  mDialogClassName->addItem("coloc@c3c7", "coloc@c5c7");
-  mDialogClassName->addItem("coloc@c3c7-ignore", "coloc@c5c7-ignore");
-  mDialogClassName->addItem("coloc@c5c7", "coloc@c5c7");
-  mDialogClassName->addItem("coloc@c5c7-ignore", "coloc@c5c7-ignore");
+  mDialogClassName->addItem("coloc@cy3cy7", "coloc@cy5cy7");
+  mDialogClassName->addItem("coloc@cy3cy7-none", "coloc@cy5cy7-none");
+  mDialogClassName->addItem("coloc@cy5cy7", "coloc@c5c7");
+  mDialogClassName->addItem("coloc@cy5cy7-none", "coloc@cy5cy7-none");
 
   mDialogColorCombo = new ColorComboBox();
   auto *model       = qobject_cast<QStandardItemModel *>(mDialogColorCombo->model());
@@ -242,12 +251,7 @@ void PanelClassification::openEditDialog(int row, int column)
   if(colorIdx >= 0) {
     mDialogColorCombo->setCurrentIndex(colorIdx);
   }
-  if(mIsLocked) {
-    mDialogClassName->setEnabled(false);
-  } else {
-    mDialogClassName->setEnabled(true);
-  }
-
+  mDialogClassName->setEnabled(true);
   mEditDialog->exec();
 }
 
@@ -260,8 +264,36 @@ void PanelClassification::openEditDialog(int row, int column)
 ///
 void PanelClassification::onOkayPressed()
 {
-  mClasses->item(mSelectedRow, COL_NAME)->setText(mDialogClassName->currentText());
-  mClasses->item(mSelectedRow, COL_COLOR)->setText(mDialogColorCombo->currentText());
+  auto findNextFreeClassId = [this]() -> enums::ClassId {
+    std::set<enums::ClassId> classIds;
+    // Sort class IDs
+    for(const auto &actualClass : mSettings.classification.classes) {
+      classIds.emplace(actualClass.classId);
+    }
+
+    // Iterate over all classIds and find the first not used
+    enums::ClassId idx = enums::ClassId::C0;
+    for(const auto &classId : classIds) {
+      if(idx != classId) {
+        return idx;
+      }
+      if(static_cast<uint16_t>(idx) >= static_cast<uint16_t>(enums::ClassId::CMAX)) {
+        break;
+      }
+      idx = static_cast<enums::ClassId>(static_cast<uint16_t>(idx) + 1);
+    }
+    return idx;
+  };
+
+  if(mSelectedRow < 0) {
+    mClasses->setRowCount(mClasses->rowCount() + 1);
+    mSelectedRow         = mClasses->rowCount() - 1;
+    auto nextFreeClassId = findNextFreeClassId();
+    createTableItem(mSelectedRow, nextFreeClassId, mDialogClassName->currentText().toStdString(), mDialogColorCombo->currentText().toStdString(), "");
+  } else {
+    mClasses->item(mSelectedRow, COL_NAME)->setText(mDialogClassName->currentText());
+    mClasses->item(mSelectedRow, COL_COLOR)->setText(mDialogColorCombo->currentText());
+  }
   onSettingChanged();
   mEditDialog->close();
 }
@@ -273,34 +305,49 @@ void PanelClassification::onOkayPressed()
 /// \param[out]
 /// \return
 ///
-void PanelClassification::initTable()
+void PanelClassification::addClass()
 {
-  mClasses->blockSignals(true);
+  mSelectedRow = -1;
+  mDialogClassName->setCurrentText("");
+  int32_t newRowIdx = mClasses->rowCount() + 1;
+  auto colorIdx =
+      mDialogColorCombo->findData(QColor(QString(joda::settings::COLORS.at(newRowIdx % joda::settings::COLORS.size()).data())), Qt::BackgroundRole);
+  mDialogColorCombo->setCurrentIndex(colorIdx);
+  mEditDialog->exec();
+}
 
-  //
-  // Load classes
-  //
-  for(uint16_t classId = 0; classId < NR_OF_CLASSES; classId++) {
-    auto *index = new QTableWidgetItem(QString::number(classId));
-    index->setFlags(index->flags() & ~Qt::ItemIsEditable);
-    mClasses->setItem(classId, COL_ID, index);
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::createTableItem(int32_t rowIdx, enums::ClassId classId, const std::string &name, const std::string &color,
+                                          const std::string &notes)
+{
+  auto *index = new QTableWidgetItem(QString::number(static_cast<uint16_t>(classId)));
+  index->setFlags(index->flags() & ~Qt::ItemIsEditable);
+  mClasses->setItem(rowIdx, COL_ID, index);
 
-    nlohmann::json classIdStr = static_cast<enums::ClassId>(classId);
-    auto *itemEnum            = new QTableWidgetItem(QString(std::string(classIdStr).data()));
-    itemEnum->setFlags(itemEnum->flags() & ~Qt::ItemIsEditable);
-    mClasses->setItem(classId, COL_ID_ENUM, itemEnum);
+  nlohmann::json classIdStr = classId;
+  auto *itemEnum            = new QTableWidgetItem(QString(std::string(classIdStr).data()));
+  itemEnum->setFlags(itemEnum->flags() & ~Qt::ItemIsEditable);
+  mClasses->setItem(rowIdx, COL_ID_ENUM, itemEnum);
 
-    auto *item = new QTableWidgetItem(QString(""));
-    item->setFlags(itemEnum->flags() & ~Qt::ItemIsEditable);
-    mClasses->setItem(classId, COL_NAME, item);
+  auto *item = new QTableWidgetItem(QString(name.data()));
+  item->setFlags(itemEnum->flags() & ~Qt::ItemIsEditable);
+  mClasses->setItem(rowIdx, COL_NAME, item);
 
-    auto *itemColor = new QTableWidgetItem(QString(joda::settings::COLORS.at(classId % joda::settings::COLORS.size()).data()));
-    mClasses->setItem(classId, COL_COLOR, itemColor);
-
-    auto *itemNotes = new QTableWidgetItem(QString(""));
-    mClasses->setItem(classId, COL_NOTES, itemNotes);
+  auto calculatedColor = QString(color.data());
+  if(calculatedColor.isEmpty()) {
+    calculatedColor = QString(joda::settings::COLORS.at(rowIdx % joda::settings::COLORS.size()).data());
   }
-  mClasses->blockSignals(false);
+  auto *itemColor = new QTableWidgetItem(calculatedColor);
+  mClasses->setItem(rowIdx, COL_COLOR, itemColor);
+
+  auto *itemNotes = new QTableWidgetItem(QString(notes.data()));
+  mClasses->setItem(rowIdx, COL_NOTES, itemNotes);
 }
 
 ///
@@ -313,49 +360,18 @@ void PanelClassification::initTable()
 void PanelClassification::fromSettings(const joda::settings::Classification &settings)
 {
   mClasses->blockSignals(true);
-
-  initTable();
+  mClasses->setRowCount(settings.classes.size());
 
   //
   // Load classes
   //
+  int rowIdx = 0;
   for(const auto &classs : settings.classes) {
-    auto classId = static_cast<int32_t>(classs.classId);
-
-    nlohmann::json classIdStr = classs.classId;
-    mClasses->item(classId, COL_ID_ENUM)->setText(QString(std::string(classIdStr).data()));
-    mClasses->item(classId, COL_NAME)->setText(classs.name.data());
-    if(classs.color.empty()) {
-      mClasses->item(classId, COL_COLOR)->setText(QString(joda::settings::COLORS.at(classId % joda::settings::COLORS.size()).data()));
-    } else {
-      mClasses->item(classId, COL_COLOR)->setText(classs.color.data());
-    }
-    mClasses->item(classId, COL_NOTES)->setText(classs.notes.data());
+    createTableItem(rowIdx, classs.classId, classs.name, classs.color, classs.notes);
+    rowIdx++;
   }
 
   toSettings();
-  mClasses->blockSignals(false);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelClassification::updateTableLock(bool lock)
-{
-  mIsLocked = lock;
-  mClasses->blockSignals(true);
-
-  if(lock) {
-    mClasses->horizontalHeaderItem(COL_NAME)->setIcon(generateSvgIcon("folder-locked"));
-
-  } else {
-    mClasses->horizontalHeaderItem(COL_NAME)->setIcon({});
-  }
-
   mClasses->blockSignals(false);
 }
 
@@ -377,14 +393,9 @@ void PanelClassification::toSettings()
     if(item == nullptr) {
       continue;
     }
-    auto classId = static_cast<joda::enums::ClassId>(item->text().toInt());
-
-    QTableWidgetItem *itemName = mClasses->item(row, COL_NAME);
-    if(itemName == nullptr || itemName->text().isEmpty()) {
-      continue;
-    }
-    auto className = itemName->text();
-
+    auto classId                = static_cast<joda::enums::ClassId>(item->text().toInt());
+    QTableWidgetItem *itemName  = mClasses->item(row, COL_NAME);
+    auto className              = itemName->text();
     QTableWidgetItem *itemColor = mClasses->item(row, COL_COLOR);
     QString classColor;
     if(itemColor != nullptr && !itemColor->text().isEmpty()) {
@@ -547,12 +558,12 @@ bool PanelClassification::askForChangeTemplateIndex()
 ///
 void PanelClassification::newTemplate()
 {
-  updateTableLock(false);
   mWindowMain->mutableSettings().projectSettings.classification.meta.revision = "";
   mWindowMain->mutableSettings().projectSettings.classification.meta.uid      = "";
   mWindowMain->mutableSettings().projectSettings.classification.meta.icon     = "";
   mWindowMain->mutableSettings().projectSettings.classification.meta.name     = "";
   mWindowMain->mutableSettings().projectSettings.classification.meta.name     = "User defined";
+  mClasses->setRowCount(0);
 }
 
 ///

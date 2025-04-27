@@ -79,8 +79,8 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     //
     // Start button
     //
-    mActionStart = new QAction(generateSvgIcon("media-playback-start"), "Start analyzes");
-    mActionStart->setStatusTip("Start analyzes");
+    mActionStart = new QAction(generateSvgIcon("media-playback-start"), "Start analyze");
+    mActionStart->setStatusTip("Start analyze");
     mActionStart->setEnabled(false);
     connect(mActionStart, &QAction::triggered, windowMain, &WindowMain::onStartClicked);
     toolbar->addAction(mActionStart);
@@ -241,7 +241,7 @@ void PanelPipeline::addChannel(const joda::settings::Pipeline &settings)
 {
   mAnalyzeSettings.pipelines.push_back(joda::settings::Pipeline{});
   auto &newlyAdded = mAnalyzeSettings.pipelines.back();
-  auto panel1      = std::make_unique<PanelPipelineSettings>(mWindowMain, newlyAdded, mCommandSelectionDialog);
+  auto panel1      = std::make_unique<PanelPipelineSettings>(mWindowMain, mWindowMain->getPreviewDock(), newlyAdded, mCommandSelectionDialog);
   panel1->fromSettings(settings);
   panel1->toSettings();
   addElement(std::move(panel1), &newlyAdded);

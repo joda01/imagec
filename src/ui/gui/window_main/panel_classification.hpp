@@ -52,17 +52,16 @@ private:
   static constexpr int COL_COLOR   = 3;
   static constexpr int COL_NOTES   = 4;
 
-  static constexpr int NR_OF_CLASSES = 30;
   /////////////////////////////////////////////////////
   void createDialog();
-  void initTable();
   void loadTemplates();
-  void updateTableLock(bool lock);
   void newTemplate();
   void saveAsNewTemplate();
   void openEditDialog(int row, int column);
   void openTemplate(const QString &path);
   void populateClassesFromImage();
+  void addClass();
+  void createTableItem(int32_t rowIdx, enums::ClassId classId, const std::string &name, const std::string &color, const std::string &notes);
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
@@ -80,8 +79,7 @@ private:
 
   /// TEMPLATE //////////////////////////////////////////////////
   bool askForChangeTemplateIndex();
-  bool mDontAsk  = false;
-  bool mIsLocked = false;
+  bool mDontAsk = false;
 
 private slots:
   void onSettingChanged();

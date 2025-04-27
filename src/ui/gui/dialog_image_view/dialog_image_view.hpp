@@ -50,11 +50,11 @@ public:
   }
   void resetImage()
   {
+    mPreviewImages.thumbnail.clear();
+    mPreviewImages.originalImage.clear();
     mPreviewImages.editedImage.clear();
     mPreviewImages.overlay.clear();
-    mPreviewImages.originalImage.clear();
-    mPreviewImages.thumbnail.clear();
-    //    mPreviewImages.detectionResult.reset();
+    mPreviewImages.results.foundObjects.clear();
     mImageViewLeft.resetImage();
     mImageViewRight.resetImage();
   }

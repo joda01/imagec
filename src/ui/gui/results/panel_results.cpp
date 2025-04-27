@@ -697,7 +697,10 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
   if(cellX < 0 || cellY < 0) {
     return;
   }
-  QString headerTxt = mTable->horizontalHeaderItem(cellX)->text();
+  QString headerTxt = "-";
+  if(mTable->horizontalHeader()->count() > cellX) {
+    headerTxt = mTable->horizontalHeaderItem(cellX)->text();
+  }
   switch(mNavigation) {
     case Navigation::PLATE: {
       mSelectedWellId            = value.getId();

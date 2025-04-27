@@ -67,6 +67,9 @@ public:
                            {.key = joda::settings::ObjectsToImageSettings::Function::XOR, .label = "XOR", .icon = {}}});
     mFunction->setValue(settings.function);
     mFunction->connectWithSetting(&settings.function);
+
+    addSetting(modelTab, "Input", {{mInputFirst.get(), true, 0}, {mFunction.get(), true, 0}, {mInoutSecond.get(), true, 0}});
+
     if(mFunction->getValue() != joda::settings::ObjectsToImageSettings::Function::NOT &&
        mFunction->getValue() != joda::settings::ObjectsToImageSettings::Function::NONE) {
       mInoutSecond->getEditableWidget()->setVisible(true);
@@ -81,8 +84,6 @@ public:
         mInoutSecond->getEditableWidget()->setVisible(false);
       }
     });
-
-    addSetting(modelTab, "Input", {{mInputFirst.get(), true, 0}, {mFunction.get(), true, 0}, {mInoutSecond.get(), true, 0}});
   }
 
 private:

@@ -50,7 +50,7 @@ public:
     mContrast = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("lighttable"), "Contrast");
     mContrast->setValue(settings.contrast);
     mContrast->connectWithSetting(&settings.contrast);
-    mContrast->setPlaceholderText("[1-3]");
+    mContrast->setPlaceholderText("[1-65535]");
     mContrast->setShortDescription("Contrast: ");
 
     //

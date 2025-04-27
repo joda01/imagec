@@ -118,6 +118,17 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
     joda::log::logError("Could not open user settings! What: " + std::string(ex.what()));
   }
 
+  //
+  //
+  //
+  {
+    mPreviewImage = new DialogImageViewer(this);
+    mPreviewImage->setVisible(false);
+    mPreviewImage->setContentsMargins(0, 0, 0, 0);
+    mPreviewImage->resetImage();
+    addDockWidget(Qt::RightDockWidgetArea, mPreviewImage);
+  }
+
   mPanelPipeline->loadTemplates();
   loadProjectTemplates();
   loadLastOpened();
@@ -221,7 +232,6 @@ void WindowMain::createTopToolbar()
   mStartAnalysisToolButton = new QAction(generateSvgIcon("media-playback-start"), "Start analyze", mTopToolBar);
   mStartAnalysisToolButton->setStatusTip("Start analyze");
   mStartAnalysisToolButton->setEnabled(false);
-  mStartAnalysisToolButton->setToolTip("Run pipeline!");
   connect(mStartAnalysisToolButton, &QAction::triggered, this, &WindowMain::onStartClicked);
   mTopToolBar->addAction(mStartAnalysisToolButton);
 
@@ -238,7 +248,6 @@ void WindowMain::createTopToolbar()
 
   mShowInfoDialog = new QAction(generateSvgIcon("help-about"), "About", mTopToolBar);
   mShowInfoDialog->setStatusTip("Open about dialog");
-  mShowInfoDialog->setToolTip("Info");
   connect(mShowInfoDialog, &QAction::triggered, this, &WindowMain::onShowInfoDialog);
   mTopToolBar->addAction(mShowInfoDialog);
 }
