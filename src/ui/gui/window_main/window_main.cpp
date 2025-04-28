@@ -111,13 +111,6 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
     loadProjectTemplates();
   });
 
-  // Load user settings
-  try {
-    joda::user_settings::UserSettings::open();
-  } catch(const std::exception &ex) {
-    joda::log::logError("Could not open user settings! What: " + std::string(ex.what()));
-  }
-
   //
   //
   //

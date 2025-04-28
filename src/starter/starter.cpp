@@ -21,6 +21,7 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/system/system_resources.hpp"
+#include "backend/user_settings/user_settings.hpp"
 #include "controller/controller.hpp"
 #include "ui/gui/window_main/window_main.hpp"
 #include "ui/terminal/terminal.hpp"
@@ -64,6 +65,19 @@ void Starter::exec(int argc, char *argv[])
   QApplication::setApplicationName(Version::getProgamName().data());
   QApplication::setApplicationVersion(Version::getVersion().data());
 
+  // ======================================
+  // Load user settings
+  // ======================================
+  try {
+    joda::user_settings::UserSettings::open();
+    joda::log::logInfo("User settings loaded.");
+  } catch(const std::exception &ex) {
+    joda::log::logError("Could not open user settings! What: " + std::string(ex.what()));
+  }
+
+  // ======================================
+  // Init command line parser
+  // ======================================
   QCommandLineParser parser;
   parser.setApplicationDescription("ImageC high throughput image processing application.");
   parser.addHelpOption();
