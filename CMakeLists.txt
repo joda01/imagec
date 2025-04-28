@@ -86,6 +86,7 @@ find_package( DuckDB CONFIG REQUIRED)
 find_package( Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg)
 find_package( ONNX REQUIRED )
 find_package( ryml REQUIRED )
+find_package( OpenSSL REQUIRED )
 
 
 SET(DuckDB_USE_STATIC_LIBS TRUE)
@@ -101,6 +102,7 @@ set(LIBS
   nlohmann_json::nlohmann_json
   onnx::onnx
   ryml::ryml
+  openssl::openssl
 )
 
 if(WITH_ONNX)

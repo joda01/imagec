@@ -22,6 +22,7 @@
 #include <qpushbutton.h>
 #include <qstackedwidget.h>
 #include <qtabwidget.h>
+#include <qtoolbutton.h>
 #include <qwidget.h>
 #include <QAction>
 #include <QIcon>
@@ -132,13 +133,36 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   // Initial background tasks
   //
   std::thread([]() { joda::ai::AiModelParser::findAiModelFiles(); }).detach();
-  std::thread([updater]() {
+  std::thread([mainWindow = this, updater]() {
     joda::updater::Updater::Status status = joda::updater::Updater::Status::PENDING;
+    joda::updater::Updater::CheckForUpdateResponse response;
     do {
-      joda::updater::Updater::CheckForUpdateResponse response;
       status = updater->getCheckForUpdateResponse(response);
       std::this_thread::sleep_for(1s);
     } while(status == joda::updater::Updater::Status::PENDING);
+
+    QMetaObject::invokeMethod(
+        mainWindow,
+        [mainWindow, response]() {
+          auto *layout = new QHBoxLayout();
+          layout->setContentsMargins(4, 0, 0, 4);
+          auto *labelIcon = new QLabel();
+          labelIcon->setPixmap(generateSvgIcon("update-high").pixmap(16, 16));
+          labelIcon->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
+          layout->addWidget(labelIcon);
+          auto *label = new QLabel();
+          label->setText("ImageC update <b>" + QString(response.newVersion.data()) +
+                         "</b> available. To download, visit <a href=\"https://imagec.org/#download\">imagec.org</a>.");
+          label->setOpenExternalLinks(true);
+          label->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
+          layout->addWidget(label);
+          auto *widget = new QWidget();
+          widget->setContentsMargins(0, 0, 0, 0);
+          widget->setLayout(layout);
+
+          mainWindow->statusBar()->addWidget(widget);
+        },
+        Qt::QueuedConnection);
   }).detach();
 }
 
