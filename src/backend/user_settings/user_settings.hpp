@@ -9,6 +9,8 @@
 ///            For **Commercial** please contact the copyright owner.
 ///
 
+#pragma once
+
 #include <fstream>
 #include <iomanip>
 #include <iostream>

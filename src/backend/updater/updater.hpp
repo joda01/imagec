@@ -11,7 +11,8 @@
 
 #pragma once
 
-#include "backend/user_settings/user_settings.hpp"
+#include <memory>
+#include <thread>
 #include "version.h"
 
 namespace joda::updater {
@@ -32,6 +33,7 @@ public:
   };
   enum Status
   {
+    PENDING,
     UP_TO_DATE,
     NEWER_VERSION_AVAILABLE,
     UPDATE_SERVER_NOT_REACHABLE,
@@ -39,10 +41,15 @@ public:
 
   /////////////////////////////////////////////////////
   Updater();
-  auto checkForUpdates(CheckForUpdateResponse &response) -> Status;
+  ~Updater();
+  auto getCheckForUpdateResponse(CheckForUpdateResponse &response) -> Status;
+  void triggerCheckForUpdates();
 
 private:
   /////////////////////////////////////////////////////
+  Status mStatus = Status::PENDING;
+  CheckForUpdateResponse mResponse;
+  std::unique_ptr<std::thread> mThread;
 };
 
 }    // namespace joda::updater

@@ -46,6 +46,7 @@
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "backend/settings/settings.hpp"
+#include "backend/updater/updater.hpp"
 #include "backend/user_settings/user_settings.hpp"
 #include "ui/gui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/gui/dialog_analyze_running.hpp"
@@ -66,7 +67,8 @@ namespace joda::ui::gui {
 
 using namespace std::chrono_literals;
 
-WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(controller), mCompilerLog(new PanelCompilerLog(this))
+WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Updater *updater) :
+    mController(controller), mCompilerLog(new PanelCompilerLog(this))
 {
   const QIcon myIcon(":/icons/icons/icon.png");
   setWindowIcon(myIcon);
@@ -130,6 +132,14 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   // Initial background tasks
   //
   std::thread([]() { joda::ai::AiModelParser::findAiModelFiles(); }).detach();
+  std::thread([updater]() {
+    joda::updater::Updater::Status status = joda::updater::Updater::Status::PENDING;
+    do {
+      joda::updater::Updater::CheckForUpdateResponse response;
+      status = updater->getCheckForUpdateResponse(response);
+      std::this_thread::sleep_for(1s);
+    } while(status == joda::updater::Updater::Status::PENDING);
+  }).detach();
 }
 
 WindowMain::~WindowMain()
