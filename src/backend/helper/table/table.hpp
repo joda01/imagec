@@ -52,6 +52,11 @@ public:
     return id;
   }
 
+  void setId(uint64_t id)
+  {
+    this->id = id;
+  }
+
   [[nodiscard]] uint64_t getParentId() const
   {
     return parentId;
@@ -150,6 +155,11 @@ public:
     }
 
     mData[row][col] = data;
+  }
+
+  void setDataId(uint32_t row, uint32_t col, uint64_t id)
+  {
+    mData[row][col].setId(id);
   }
 
   [[nodiscard]] auto getMinMax() const -> std::tuple<double, double>

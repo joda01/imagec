@@ -59,40 +59,44 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
         auto filename    = materializedResult->GetValue(columnNr + 4, row).GetValue<std::string>();
         auto imageId     = materializedResult->GetValue(columnNr + 5, row).GetValue<uint64_t>();
         auto validity    = materializedResult->GetValue(columnNr + 6, row).GetValue<uint64_t>();
+        size_t rowIdx    = row;
+        std::string colC;
+        if(grouping == Grouping::BY_WELL) {
+          // It could be that there are classes without data, but we have to keep the row order, else the data would be shown shifted and beside a
+          // wrong image
+          if(rowIndexes.contains(imageId)) {
+            rowIdx = rowIndexes.at(imageId);
+          } else {
+            rowIdx = findMaxRowIdx() + 1;
+            rowIndexes.emplace(imageId, rowIdx);
+          }
+        } else {
+          // It could be that there are classes without data, but we have to keep the row order, else the data would be shown shifted and beside a
+          // wrong image
+          if(rowIndexes.contains(groupId)) {
+            rowIdx = rowIndexes.at(groupId);
+          } else {
+            rowIdx = findMaxRowIdx() + 1;
+            rowIndexes.emplace(groupId, rowIdx);
+          }
+          colC = std::string(1, ((char) (platePosY - 1) + 'A')) + std::to_string(platePosX);
+        }
+        if(grouping == Grouping::BY_WELL) {
+          classesToExport.setRowID(classs, statement.getColNames(), rowIdx, filename, imageId);
+        } else {
+          classesToExport.setRowID(classs, statement.getColNames(), rowIdx, colC, groupId);
+        }
 
         for(int32_t colIdx = 0; colIdx < columnNr; colIdx++) {
           double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
-
           if(grouping == Grouping::BY_WELL) {
-            // It could be that there are classes without data, but we have to keep the row order, else the data would be shown shifted and beside a
-            // wrong image
-            size_t rowIdx = row;
-            if(rowIndexes.contains(imageId)) {
-              rowIdx = rowIndexes.at(imageId);
-            } else {
-              rowIdx = findMaxRowIdx() + 1;
-              rowIndexes.emplace(imageId, rowIdx);
-            }
-
             ///
             classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, filename, table::TableCell{value, imageId, validity == 0, ""});
           } else {
-            // It could be that there are classes without data, but we have to keep the row order, else the data would be shown shifted and beside a
-            // wrong image
-            size_t rowIdx = row;
-            if(rowIndexes.contains(groupId)) {
-              rowIdx = rowIndexes.at(groupId);
-            } else {
-              rowIdx = findMaxRowIdx() + 1;
-              rowIndexes.emplace(groupId, rowIdx);
-            }
-
-            auto colC = std::string(1, ((char) (platePosY - 1) + 'A')) + std::to_string(platePosX);
             classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, colC, table::TableCell{value, groupId, validity == 0, ""});
           }
         }
-
-      } catch(const duckdb::InternalException &) {
+      } catch(const duckdb::InternalException &ex) {
       }
     }
   }

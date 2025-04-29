@@ -15,6 +15,7 @@
 #include <exception>
 #include <string>
 #include "backend/enums/enum_measurements.hpp"
+#include "backend/helper/database/database.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 
 namespace joda::db {
@@ -60,13 +61,14 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
           uint64_t objectId       = materializedResult->GetValue(columnNr + 2, rowIdx).GetValue<uint64_t>();
           uint64_t parentObjectId = materializedResult->GetValue(columnNr + 3, rowIdx).GetValue<uint64_t>();
           auto trackIdTmp         = materializedResult->GetValue(columnNr + 4, rowIdx);
+          auto filename           = materializedResult->GetValue(columnNr + 5, rowIdx).GetValue<std::string>();
           uint64_t trackingId     = 0;
           if(!trackIdTmp.IsNull()) {
             trackingId = trackIdTmp.GetValue<uint64_t>();
           }
           double value = materializedResult->GetValue(colIdx, rowIdx).GetValue<double>();
 
-          classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, std::to_string(rowIdx),
+          classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, filename,
                                   table::TableCell{value, objectId, true, parentObjectId, trackingId});
         }
       }
@@ -139,22 +141,40 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
   } else {
     intersect = "";
   }
+
+  std::string query = "(";
+  DbArgs_t args;
+  int i = 0;
+  for(auto imageId : filter.imageId) {
+    query += (i > 0 ? ", ?" : "?");
+    args.emplace_back(static_cast<uint64_t>(imageId));
+    i++;
+  }
+  query += ")";
+
   std::string sql = intersect + "SELECT\n" + channelFilter.createStatsQuery(false, false) +
                     "ANY_VALUE(t1.meas_center_x) as meas_center_x,\n"
                     "ANY_VALUE(t1.meas_center_y) as meas_center_y,\n"
                     "ANY_VALUE(t1.object_id) as object_id,\n"
                     "ANY_VALUE(t1.meas_parent_object_id) as meas_parent_object_id,\n"
-                    "ANY_VALUE(t1.meas_tracking_id) as meas_tracking_id\n"
+                    "ANY_VALUE(t1.meas_tracking_id) as meas_tracking_id,\n"
+                    "ANY_VALUE(images.file_name) as file_name\n"
                     "FROM\n"
                     "  " +
                     table + " t1\n" + channelFilter.createStatsQueryJoins() +
+                    "JOIN images on\n"
+                    "	t1.image_id = images.image_id\n"
                     "WHERE\n"
-                    " t1.image_id=$1 AND t1.class_id=$2 AND stack_z=$3 AND stack_t=$4\n"
+                    " t1.image_id IN" +
+                    query +
+                    " AND t1.class_id=? AND stack_z=? AND stack_t=?\n"
                     "GROUP BY t1.object_id\n"
-                    "ORDER BY t1.object_id";
-  return {sql,
-          {filter.imageId, static_cast<uint16_t>(classsAndClass.classs), static_cast<int32_t>(classsAndClass.zStack),
-           static_cast<int32_t>(classsAndClass.tStack)}};
+                    "ORDER BY file_name,t1.object_id";
+
+  DbArgs_t argsEnd = {static_cast<uint16_t>(classsAndClass.classs), static_cast<int32_t>(classsAndClass.zStack),
+                      static_cast<int32_t>(classsAndClass.tStack)};
+  args.insert(args.end(), argsEnd.begin(), argsEnd.end());
+  return {sql, args};
 }
 
 ///
@@ -227,16 +247,25 @@ auto StatsPerImage::densityMap(const db::ResultingTable::QueryKey &classsAndClas
   ImgInfo imgInfo;
 
   {
-    std::unique_ptr<duckdb::QueryResult> images = analyzer->select(
+    std::string query =
         "SELECT\n"
         "  images.image_id as image_id,\n"
         "  images.width as width,\n"
         "  images.height as height,\n"
         "  images.file_name as file_name\n"
         "FROM images\n"
-        "WHERE\n"
-        " image_id=$1",
-        static_cast<uint64_t>(filter.imageId));
+        "WHERE image_id IN (";
+
+    DbArgs_t args;
+    int i = 0;
+    for(auto imageId : filter.imageId) {
+      query += (i > 0 ? ", ?" : "?");
+      args.emplace_back(static_cast<uint64_t>(imageId));
+      i++;
+    }
+    query += ")";
+
+    std::unique_ptr<duckdb::QueryResult> images = analyzer->select(query, args);
     if(images->HasError()) {
       throw std::invalid_argument("S:" + images->GetError());
     }
@@ -291,14 +320,19 @@ auto StatsPerImage::toSqlHeatmap(const db::ResultingTable::QueryKey &classsAndCl
     -> std::pair<std::string, DbArgs_t>
 {
   auto [innerSql, params] = toSqlTable(classsAndClass, filter, channelFilter);
-  std::string sql         = "WITH innerTable AS (\n" + innerSql +
+  std::string placeHolder = "$" + std::to_string(filter.imageId.size() + 4);
+
+  std::string sql = "WITH innerTable AS (\n" + innerSql +
                     "\n)\n"
                     "SELECT\n" +
-                    channelFilter.createStatsQuery(true, false) +
-                    "floor(meas_center_x / $5) * $5 AS rectangle_x,\n"
-                    "floor(meas_center_y / $5) * $5 AS rectangle_y,\n"
+                    channelFilter.createStatsQuery(true, false) + "floor(meas_center_x / " + placeHolder + ") * " + placeHolder +
+                    " AS rectangle_x,\n"
+                    "floor(meas_center_y / " +
+                    placeHolder + ") * " + placeHolder +
+                    " AS rectangle_y,\n"
                     "FROM innerTable\n"
-                    "GROUP BY floor(meas_center_x / $5), floor(meas_center_y / $5)";
+                    "GROUP BY floor(meas_center_x / " +
+                    placeHolder + "), floor(meas_center_y / " + placeHolder + ")";
 
   params.emplace_back(static_cast<double>(densityMapSettings.densityMapAreaSize));
   return {sql, params};
