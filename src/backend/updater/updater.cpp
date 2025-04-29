@@ -51,6 +51,9 @@ Updater::~Updater()
 auto downloadVersionFile() -> std::string
 {
   httplib::Client cli("https://imagec.org:443");
+  cli.enable_server_certificate_verification(
+      false);    // We have problems using windows, therefore we disable it. It is no security issue since no data are transferred.
+  cli.enable_server_hostname_verification(false);
   auto res = cli.Get("/downloads/imagec-x64-linux-bundle.json");
   if(res && res->status == 200) {
     return res->body;

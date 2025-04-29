@@ -13,6 +13,8 @@
 #include <qaction.h>
 #include <qboxlayout.h>
 #include <qcombobox.h>
+#include <qgridlayout.h>
+#include <qlayoutitem.h>
 #include <qlineedit.h>
 #include <qmenu.h>
 #include <qpushbutton.h>
@@ -223,14 +225,64 @@ void PanelClassification::createDialog()
   auto *cancelButton = new QPushButton("Cancel", this);
   connect(cancelButton, &QPushButton::pressed, [&]() { mEditDialog->close(); });
 
+  //
+  // Grid Layout for the measurements
+  //
+  auto *measureLayout = new QGridLayout();
+  auto addMeasure     = [&](const QString &text, int32_t row, int32_t col) {
+    auto *button = new QPushButton(text);
+    button->setCheckable(true);
+    measureLayout->addWidget(button, row, col + 1);
+  };
+
+  auto addIcon = [&](const QString &icon, int32_t row) {
+    auto *label = new QLabel();
+    label->setPixmap(generateSvgIcon(icon).pixmap(16, 16));
+    measureLayout->addWidget(label, row, 0);
+  };
+
+  addIcon("format-precision-more", 0);
+  addMeasure("Count", 0, 0);
+  addMeasure("Intersection count", 0, 1);
+
+  addIcon("insert-horizontal-rule", 1);
+  addMeasure("Area size", 1, 0);
+  addMeasure("Perimeter", 1, 1);
+  addMeasure("Circularity", 1, 2);
+
+  addIcon("colorfx", 2);
+  addMeasure("Intensity min", 2, 0);
+  addMeasure("Intensity max", 2, 1);
+  addMeasure("Intensity avg", 2, 2);
+  addMeasure("Intensity sum", 3, 0);
+
+  addIcon("coordinates", 4);
+  addMeasure("Position", 4, 0);
+  addMeasure("Distance to surface min", 5, 0);
+  addMeasure("Distance to surface max", 5, 1);
+  addMeasure("Distance to center min", 6, 0);
+  addMeasure("Distance to center max", 6, 1);
+
+  addIcon("irc-remove-operator", 7);
+  addMeasure("Object ID", 7, 0);
+  addMeasure("Parent object ID", 7, 1);
+  addMeasure("Origin object ID", 7, 2);
+  addMeasure("Tracking ID", 8, 0);
+
+  //
   // Create a horizontal layout for the buttons
+  //
   auto *buttonLayout = new QHBoxLayout;
   buttonLayout->addStretch();
   buttonLayout->addWidget(cancelButton);
   buttonLayout->addWidget(okButton);
 
+  //
+  // Add to final layout
+  //
   layout->addWidget(mDialogClassName);
   layout->addWidget(mDialogColorCombo);
+  layout->addLayout(measureLayout);
   layout->addLayout(buttonLayout);
 
   mEditDialog->setLayout(layout);
