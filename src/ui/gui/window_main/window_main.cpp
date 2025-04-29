@@ -147,7 +147,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
             auto *layout = new QHBoxLayout();
             layout->setContentsMargins(4, 0, 0, 4);
             auto *labelIcon = new QLabel();
-            labelIcon->setPixmap(generateSvgIcon("update-low").pixmap(16, 16));
+            labelIcon->setPixmap(generateSvgIcon("update-high").pixmap(16, 16));
             labelIcon->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
             layout->addWidget(labelIcon);
             auto *label = new QLabel();

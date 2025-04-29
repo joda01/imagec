@@ -256,7 +256,7 @@ void PanelClassification::createDialog()
   addMeasure("Intensity avg", 2, 2);
   addMeasure("Intensity sum", 3, 0);
 
-  addIcon("coordinates", 4);
+  addIcon("coordinate", 4);
   addMeasure("Position", 4, 0);
   addMeasure("Distance to surface min", 5, 0);
   addMeasure("Distance to surface max", 5, 1);
@@ -282,7 +282,7 @@ void PanelClassification::createDialog()
   //
   layout->addWidget(mDialogClassName);
   layout->addWidget(mDialogColorCombo);
-  layout->addLayout(measureLayout);
+  // layout->addLayout(measureLayout);
   layout->addLayout(buttonLayout);
 
   mEditDialog->setLayout(layout);
