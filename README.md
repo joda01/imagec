@@ -150,7 +150,7 @@ Title | Link | License
 ------|------|--------
 qt/6.7.1|https://www.qt.io|LGPL-3.0-only
 zlib/1.3.1|https://zlib.net|Zlib
-openssl/3.3.2|https://github.com/openssl/openssl|Apache-2.0
+openssl/3.4.1|https://github.com/openssl/openssl|Apache-2.0
 pcre2/10.42|https://www.pcre.org/|BSD-3-Clause
 bzip2/1.0.8|https://sourceware.org/bzip2|bzip2-1.0.8
 double-conversion/3.3.0|https://github.com/google/double-conversion|BSD-3-Clause
@@ -187,7 +187,8 @@ pugixml/1.14|https://pugixml.org/|MIT
 nlohmann_json/3.11.3|https://github.com/nlohmann/json|MIT
 libxlsxwriter/1.1.8|https://github.com/jmcnamara/libxlsxwriter|BSD-2-Clause
 minizip/1.2.13|https://zlib.net|Zlib
-duckdb/1.1.0|https://github.com/cwida/duckdb|MIT
+duckdb/1.1.3|https://github.com/cwida/duckdb|MIT
+cpp-httplib/0.19.0|https://github.com/yhirose/cpp-httplib|MIT
 onnx/1.17.0|https://github.com/onnx/onnx|Apache-2.0
 rapidyaml/0.7.1|https://github.com/biojppm/rapidyaml|['MIT']
 c4core/0.2.0|https://github.com/biojppm/c4core|['MIT']
@@ -208,7 +209,6 @@ libtorch/2.4.0|https://pytorch.org|BSD-3-Clause
 fp16/cci.20210320|https://github.com/Maratyszcza/FP16|MIT
 psimd/cci.20200517|https://github.com/Maratyszcza/psimd|MIT
 fmt/10.2.1|https://github.com/fmtlib/fmt|MIT
-cpp-httplib/0.18.0|https://github.com/yhirose/cpp-httplib|MIT
 sleef/3.6.1|https://sleef.org|BSL-1.0
 openblas/0.3.28|https://www.openblas.net|BSD-3-Clause
 fbgemm/0.8.0|https://github.com/pytorch/FBGEMM|BSD-3-Clause

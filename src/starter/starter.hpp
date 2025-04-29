@@ -19,6 +19,10 @@
 #include <string>
 #include <thread>
 
+namespace joda::updater {
+class Updater;
+}
+
 namespace joda::ctrl {
 class Controller;
 };
@@ -40,7 +44,7 @@ private:
   /////////////////////////////////////////////////////
   void initLogger(const std::string &logLevel);
   auto initApplication() -> std::shared_ptr<std::thread>;
-  void startUi(QApplication &app, QSplashScreen *splashScreen);
+  void startUi(QApplication &app, QSplashScreen *splashScreen, joda::updater::Updater *updater);
   void exitWithError(const std::string &what);
 
   ctrl::Controller *mController;

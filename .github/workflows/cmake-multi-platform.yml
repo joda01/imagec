@@ -613,7 +613,7 @@ jobs:
             imagec-arm64-macos-bin.zip
       
       - name: Upload to imagec.org
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') && ${{ !github.event.release.prerelease }}
         env:
           SSH_KEY: ${{ secrets.SSH_KEY_IMAGEC }}
           SERVER_NAME : ${{ secrets.SERVER_NAME_IMAGEC }}

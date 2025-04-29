@@ -22,6 +22,7 @@
 #include <qpushbutton.h>
 #include <qstackedwidget.h>
 #include <qtabwidget.h>
+#include <qtoolbutton.h>
 #include <qwidget.h>
 #include <QAction>
 #include <QIcon>
@@ -46,6 +47,7 @@
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "backend/settings/settings.hpp"
+#include "backend/updater/updater.hpp"
 #include "backend/user_settings/user_settings.hpp"
 #include "ui/gui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/gui/dialog_analyze_running.hpp"
@@ -66,7 +68,8 @@ namespace joda::ui::gui {
 
 using namespace std::chrono_literals;
 
-WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(controller), mCompilerLog(new PanelCompilerLog(this))
+WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Updater *updater) :
+    mController(controller), mCompilerLog(new PanelCompilerLog(this))
 {
   const QIcon myIcon(":/icons/icons/icon.png");
   setWindowIcon(myIcon);
@@ -111,13 +114,6 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
     loadProjectTemplates();
   });
 
-  // Load user settings
-  try {
-    joda::user_settings::UserSettings::open();
-  } catch(const std::exception &ex) {
-    joda::log::logError("Could not open user settings! What: " + std::string(ex.what()));
-  }
-
   //
   //
   //
@@ -137,6 +133,41 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller) : mController(control
   // Initial background tasks
   //
   std::thread([]() { joda::ai::AiModelParser::findAiModelFiles(); }).detach();
+  std::thread([mainWindow = this, updater]() {
+    joda::updater::Updater::Status status = joda::updater::Updater::Status::PENDING;
+    joda::updater::Updater::CheckForUpdateResponse response;
+    do {
+      status = updater->getCheckForUpdateResponse(response);
+      std::this_thread::sleep_for(1s);
+    } while(status == joda::updater::Updater::Status::PENDING);
+    if(status == joda::updater::Updater::Status::NEWER_VERSION_AVAILABLE) {
+      QMetaObject::invokeMethod(
+          mainWindow,
+          [mainWindow, response]() {
+            auto *layout = new QHBoxLayout();
+            layout->setContentsMargins(4, 0, 0, 4);
+            auto *labelIcon = new QLabel();
+            labelIcon->setPixmap(generateSvgIcon("update-high").pixmap(16, 16));
+            labelIcon->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
+            layout->addWidget(labelIcon);
+            auto *label = new QLabel();
+            label->setText("ImageC update <b>" + QString(response.newVersion.data()) +
+                           "</b> available. To download, visit <a href=\"https://imagec.org/#download\">imagec.org</a>.");
+            label->setOpenExternalLinks(true);
+            label->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
+            layout->addWidget(label);
+            auto *widget = new QWidget();
+            widget->setContentsMargins(0, 0, 0, 0);
+            widget->setLayout(layout);
+
+            mainWindow->statusBar()->addWidget(widget);
+          },
+          Qt::QueuedConnection);
+    } else if(status == joda::updater::Updater::Status::UPDATE_SERVER_NOT_REACHABLE) {
+      QMetaObject::invokeMethod(
+          mainWindow, [mainWindow, response]() { mainWindow->statusBar()->showMessage("Could not check for updates!", 5000); }, Qt::QueuedConnection);
+    }
+  }).detach();
 }
 
 WindowMain::~WindowMain()

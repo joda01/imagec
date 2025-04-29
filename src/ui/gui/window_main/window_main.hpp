@@ -35,6 +35,10 @@
 #include <duckdb/function/table_function.hpp>
 #include <nlohmann/json_fwd.hpp>
 
+namespace joda::updater {
+class Updater;
+}
+
 namespace joda::ui::gui {
 
 class ContainerChannel;
@@ -51,7 +55,7 @@ class WindowMain : public QMainWindow
   Q_OBJECT
 
 public:
-  WindowMain(joda::ctrl::Controller *controller);
+  WindowMain(joda::ctrl::Controller *controller, joda::updater::Updater *updater);
   ~WindowMain();
   bool showPanelStartPage();
   void showPanelPipelineSettingsEdit(PanelPipelineSettings *);

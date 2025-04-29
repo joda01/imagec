@@ -21,6 +21,8 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/system/system_resources.hpp"
+#include "backend/updater/updater.hpp"
+#include "backend/user_settings/user_settings.hpp"
 #include "controller/controller.hpp"
 #include "ui/gui/window_main/window_main.hpp"
 #include "ui/terminal/terminal.hpp"
@@ -64,6 +66,25 @@ void Starter::exec(int argc, char *argv[])
   QApplication::setApplicationName(Version::getProgamName().data());
   QApplication::setApplicationVersion(Version::getVersion().data());
 
+  // ======================================
+  // Load user settings
+  // ======================================
+  try {
+    joda::user_settings::UserSettings::open();
+    joda::log::logInfo("User settings loaded.");
+  } catch(const std::exception &ex) {
+    joda::log::logError("Could not open user settings! What: " + std::string(ex.what()));
+  }
+
+  // ======================================
+  // Check for updates thread
+  // ======================================
+  joda::updater::Updater updater;
+  updater.triggerCheckForUpdates();
+
+  // ======================================
+  // Init command line parser
+  // ======================================
   QCommandLineParser parser;
   parser.setApplicationDescription("ImageC high throughput image processing application.");
   parser.addHelpOption();
@@ -195,7 +216,7 @@ void Starter::exec(int argc, char *argv[])
   // Start CLI or GUI mode
   // ==================================
   if(runGui) {
-    startUi(app, splash);
+    startUi(app, splash, &updater);
   }
 
   QApplication::exec();
@@ -276,7 +297,7 @@ auto Starter::initApplication() -> std::shared_ptr<std::thread>
 /// \param[out]
 /// \return
 ///
-void Starter::startUi(QApplication &app, QSplashScreen *splashScreen)
+void Starter::startUi(QApplication &app, QSplashScreen *splashScreen, joda::updater::Updater *updater)
 {
   // ======================================
   // Start UI
@@ -322,7 +343,7 @@ void Starter::startUi(QApplication &app, QSplashScreen *splashScreen)
     )";
 
   app.setStyleSheet(stylesheet);
-  mWindowMain = new joda::ui::gui::WindowMain(mController);
+  mWindowMain = new joda::ui::gui::WindowMain(mController, updater);
   if(nullptr != splashScreen) {
     splashScreen->finish(mWindowMain);    // Close the splash screen once done
   }
