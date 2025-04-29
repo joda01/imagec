@@ -316,14 +316,19 @@ auto StatsPerImage::toSqlHeatmap(const db::ResultingTable::QueryKey &classsAndCl
     -> std::pair<std::string, DbArgs_t>
 {
   auto [innerSql, params] = toSqlTable(classsAndClass, filter, channelFilter);
-  std::string sql         = "WITH innerTable AS (\n" + innerSql +
+  std::string placeHolder = "$" + std::to_string(filter.imageId.size() + 4);
+
+  std::string sql = "WITH innerTable AS (\n" + innerSql +
                     "\n)\n"
                     "SELECT\n" +
-                    channelFilter.createStatsQuery(true, false) +
-                    "floor(meas_center_x / $5) * $5 AS rectangle_x,\n"
-                    "floor(meas_center_y / $5) * $5 AS rectangle_y,\n"
+                    channelFilter.createStatsQuery(true, false) + "floor(meas_center_x / " + placeHolder + ") * " + placeHolder +
+                    " AS rectangle_x,\n"
+                    "floor(meas_center_y / " +
+                    placeHolder + ") * " + placeHolder +
+                    " AS rectangle_y,\n"
                     "FROM innerTable\n"
-                    "GROUP BY floor(meas_center_x / $5), floor(meas_center_y / $5)";
+                    "GROUP BY floor(meas_center_x / " +
+                    placeHolder + "), floor(meas_center_y / " + placeHolder + ")";
 
   params.emplace_back(static_cast<double>(densityMapSettings.densityMapAreaSize));
   return {sql, params};
