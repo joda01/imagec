@@ -59,9 +59,9 @@ auto downloadVersionFile() -> std::string
     return res->body;
   } else {
     if(res) {
-      joda::log::logWarning("Could not check for updates: HTTP error: " + std::to_string(static_cast<int32_t>(res->status)));
+      joda::log::logWarning("Could not check for updates, HTTP error: " + std::to_string(static_cast<int32_t>(res->status)));
     } else {
-      joda::log::logWarning("Could not check for updates: Request error: " + std::to_string(static_cast<int32_t>(res.error())));
+      joda::log::logWarning("Could not check for updates, Request error: " + std::to_string(static_cast<int32_t>(res.error())));
     }
   }
   return "";
@@ -83,7 +83,7 @@ void Updater::triggerCheckForUpdates()
     mThread->join();
   }
   mThread = std::make_unique<std::thread>([this]() {
-    joda::log::logInfo("Checking for updates ...");
+    joda::log::logInfo("Checking for updates.");
     mStatus                    = Updater::PENDING;
     std::string receivedString = downloadVersionFile();
     if(receivedString.empty()) {
@@ -107,11 +107,11 @@ void Updater::triggerCheckForUpdates()
           }
         } else {
           mStatus = Updater::UPDATE_SERVER_NOT_REACHABLE;
-          joda::log::logWarning("Could not check for updates: Wrong file format: Missing version field!");
+          joda::log::logWarning("Could not check for updates, wrong file format: Missing version field!");
         }
       } catch(const std::exception &ex) {
         mStatus = Updater::UPDATE_SERVER_NOT_REACHABLE;
-        joda::log::logWarning("Could not check for updates: Wrong file format: " + std::string(ex.what()));
+        joda::log::logWarning("Could not check for updates, wrong file format: " + std::string(ex.what()));
       }
     }
   });
