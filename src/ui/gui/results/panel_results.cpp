@@ -90,8 +90,8 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   mTable->verticalHeader()->setDefaultSectionSize(8);    // Set each row to 50 pixels height
 
   connect(mTable->verticalHeader(), &QHeaderView::sectionDoubleClicked,
-          [this](int logicalIndex) { onOpenNextLevel(logicalIndex, 0, mSelectedTable.data(logicalIndex, 0)); });
-  connect(mTable, &QTableWidget::cellDoubleClicked, [this](int row, int column) { onOpenNextLevel(row, 0, mSelectedTable.data(row, 0)); });
+          [this](int logicalIndex) { openNextLevel({mSelectedTable.data(logicalIndex, 0)}); });
+  connect(mTable, &QTableWidget::cellDoubleClicked, [this](int row, int column) { openNextLevel({mSelectedTable.data(row, 0)}); });
   connect(mTable, &QTableWidget::cellClicked, this, &PanelResults::onCellClicked);
   connect(mTable, &QTableWidget::currentCellChanged, this, &PanelResults::onTableCurrentCellChanged);
 
@@ -238,6 +238,21 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
     mBreadCrumpImage = new QPushButton("Image (abcd.tif)");
     topBreadCrump->addWidget(mBreadCrumpImage);
     connect(mBreadCrumpImage, &QPushButton::clicked, [this]() { /*backTo(Navigation::IMAGE);*/ });
+
+    // Open next level button
+    mOpenNextLevel = new QPushButton(generateSvgIcon("go-next"), "");
+    mOpenNextLevel->setStatusTip("Open selected wells/images");
+    topBreadCrump->addWidget(mOpenNextLevel);
+    connect(mOpenNextLevel, &QPushButton::clicked, [this]() {
+      QItemSelectionModel *selectionModel = mTable->selectionModel();
+      QModelIndexList selectedIndexes     = selectionModel->selectedIndexes();
+
+      std::vector<table::TableCell> selected;
+      for(const QModelIndex &index : selectedIndexes) {
+        selected.emplace_back(mSelectedTable.data(index.row(), 0));
+      }
+      openNextLevel(selected);
+    });
 
     topBreadCrump->addStretch();
   }
@@ -511,10 +526,12 @@ void PanelResults::refreshBreadCrump()
     case Navigation::PLATE:
       mBreadCrumpWell->setVisible(false);
       mBreadCrumpImage->setVisible(false);
+      mOpenNextLevel->setVisible(true);
       break;
     case Navigation::WELL:
       mBreadCrumpWell->setVisible(true);
       mBreadCrumpImage->setVisible(false);
+      mOpenNextLevel->setVisible(true);
       if(mSelectedDataSet.groupMeta.has_value()) {
         auto platePos =
             "Well (" + std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + ")";
@@ -524,9 +541,23 @@ void PanelResults::refreshBreadCrump()
     case Navigation::IMAGE:
       mBreadCrumpWell->setVisible(true);
       mBreadCrumpImage->setVisible(true);
+      mOpenNextLevel->setVisible(false);
+      std::string imageName;
       if(mSelectedDataSet.imageMeta.has_value()) {
-        mBreadCrumpImage->setText("Image (" + QString(mSelectedDataSet.imageMeta->filename.data()) + ")");
+        imageName = mSelectedDataSet.imageMeta->filename;
       }
+      if(mActImageId.size() > 1) {
+        imageName = "";
+        for(auto imageId : mActImageId) {
+          auto imageInfo = mAnalyzer->selectImageInfo(imageId);
+          imageName += imageInfo.filename + ",";
+        }
+        if(!imageName.empty()) {
+          imageName.erase(imageName.size() - 1);
+        }
+      }
+      mBreadCrumpImage->setText("Image (" + QString(imageName.data()) + ")");
+
       break;
   }
 }
@@ -758,6 +789,10 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
 ///
 void PanelResults::onOpenNextLevel(int cellX, int cellY, table::TableCell value)
 {
+  openNextLevel({value});
+}
+void PanelResults::openNextLevel(const std::vector<table::TableCell> &value)
+{
   int actMenu = static_cast<int>(mNavigation);
   actMenu++;
   if(actMenu <= 2) {
@@ -771,10 +806,16 @@ void PanelResults::onOpenNextLevel(int cellX, int cellY, table::TableCell value)
     case Navigation::PLATE:
       break;
     case Navigation::WELL:
-      mActGroupId = static_cast<uint16_t>(value.getId());
+      if(!value.empty()) {
+        mActGroupId = static_cast<uint16_t>(value.at(0).getId());
+      }
       break;
     case Navigation::IMAGE:
-      mActImageId = value.getId();
+      std::set<uint64_t> act;
+      for(const auto &row : value) {
+        act.emplace(row.getId());
+      }
+      mActImageId = act;
       break;
   }
   refreshView();

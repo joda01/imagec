@@ -85,7 +85,7 @@ public:
   {
     uint8_t plateId  = 0;
     uint16_t groupId = 0;
-    uint64_t imageId = 0;
+    std::set<uint64_t> imageId;
 
     // NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ObjectFilter);
   };
@@ -188,7 +188,7 @@ public:
     this->plateSetup = plateSetup;
   }
 
-  void setFilter(int32_t plateId, int32_t groupId, uint64_t imageId)
+  void setFilter(int32_t plateId, int32_t groupId, const std::set<uint64_t> &imageId)
   {
     filter.plateId = plateId;
     filter.groupId = groupId;

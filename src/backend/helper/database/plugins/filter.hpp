@@ -137,6 +137,20 @@ public:
     }
   }
 
+  void setRowID(const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, int32_t row, const std::string &rowName,
+                uint64_t rowId)
+  {
+    if(!mClassesAndClasses.contains(classsAndClass)) {
+      mClassesAndClasses.emplace(classsAndClass, PreparedStatement{colName});
+    }
+
+    for(auto [itr, element] : mTableMapping) {
+      mResultingTable.at(element.tabIdx).setRowName(row, rowName);
+      mResultingTable.at(element.tabIdx).setDataId(row, element.colIdx, rowId);
+      mResultingTable.at(element.tabIdx).setMeta({.className = colName.className});
+    }
+  }
+
   void setData(const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, int32_t dbColIx, int32_t row, int32_t col,
                const table::TableCell &tableCell, int32_t sizeX, int32_t sizeY, const std::string &header)
   {

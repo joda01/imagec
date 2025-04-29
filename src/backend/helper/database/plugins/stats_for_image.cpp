@@ -15,6 +15,7 @@
 #include <exception>
 #include <string>
 #include "backend/enums/enum_measurements.hpp"
+#include "backend/helper/database/database.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 
 namespace joda::db {
@@ -139,6 +140,17 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
   } else {
     intersect = "";
   }
+
+  std::string query = "(";
+  DbArgs_t args;
+  int i = 0;
+  for(auto imageId : filter.imageId) {
+    query += (i > 0 ? ", ?" : "?");
+    args.emplace_back(static_cast<uint64_t>(imageId));
+    i++;
+  }
+  query += ")";
+
   std::string sql = intersect + "SELECT\n" + channelFilter.createStatsQuery(false, false) +
                     "ANY_VALUE(t1.meas_center_x) as meas_center_x,\n"
                     "ANY_VALUE(t1.meas_center_y) as meas_center_y,\n"
@@ -149,12 +161,16 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
                     "  " +
                     table + " t1\n" + channelFilter.createStatsQueryJoins() +
                     "WHERE\n"
-                    " t1.image_id=$1 AND t1.class_id=$2 AND stack_z=$3 AND stack_t=$4\n"
+                    " t1.image_id IN" +
+                    query +
+                    " AND t1.class_id=? AND stack_z=? AND stack_t=?\n"
                     "GROUP BY t1.object_id\n"
                     "ORDER BY t1.object_id";
-  return {sql,
-          {filter.imageId, static_cast<uint16_t>(classsAndClass.classs), static_cast<int32_t>(classsAndClass.zStack),
-           static_cast<int32_t>(classsAndClass.tStack)}};
+
+  DbArgs_t argsEnd = {static_cast<uint16_t>(classsAndClass.classs), static_cast<int32_t>(classsAndClass.zStack),
+                      static_cast<int32_t>(classsAndClass.tStack)};
+  args.insert(args.end(), argsEnd.begin(), argsEnd.end());
+  return {sql, args};
 }
 
 ///
@@ -227,16 +243,25 @@ auto StatsPerImage::densityMap(const db::ResultingTable::QueryKey &classsAndClas
   ImgInfo imgInfo;
 
   {
-    std::unique_ptr<duckdb::QueryResult> images = analyzer->select(
+    std::string query =
         "SELECT\n"
         "  images.image_id as image_id,\n"
         "  images.width as width,\n"
         "  images.height as height,\n"
         "  images.file_name as file_name\n"
         "FROM images\n"
-        "WHERE\n"
-        " image_id=$1",
-        static_cast<uint64_t>(filter.imageId));
+        "WHERE image_id IN (";
+
+    DbArgs_t args;
+    int i = 0;
+    for(auto imageId : filter.imageId) {
+      query += (i > 0 ? ", ?" : "?");
+      args.emplace_back(static_cast<uint64_t>(imageId));
+      i++;
+    }
+    query += ")";
+
+    std::unique_ptr<duckdb::QueryResult> images = analyzer->select(query, args);
     if(images->HasError()) {
       throw std::invalid_argument("S:" + images->GetError());
     }

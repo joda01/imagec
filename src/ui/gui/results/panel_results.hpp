@@ -16,6 +16,7 @@
 #include <qcolormap.h>
 #include <qcombobox.h>
 #include <qmainwindow.h>
+#include <qpushbutton.h>
 #include <qtoolbar.h>
 #include <qwidget.h>
 #include <memory>
@@ -138,6 +139,7 @@ private:
   auto getPlateSize() const -> QSize;
   void setDensityMapSize(uint32_t densityMapSize);
   auto getDensityMapSize() const -> uint32_t;
+  void openNextLevel(const std::vector<table::TableCell> &selectedRows);
 
   WindowMain *mWindowMain;
   std::unique_ptr<joda::db::Database> mAnalyzer;
@@ -151,6 +153,7 @@ private:
   QPushButton *mBreadCrumpPlate;
   QPushButton *mBreadCrumpWell;
   QPushButton *mBreadCrumpImage;
+  QPushButton *mOpenNextLevel;
 
   // Toolbar///////////////////////////////////////////////////
   void createToolBar(joda::ui::gui::helper::LayoutGenerator *);
@@ -201,7 +204,7 @@ private:
 
   /////////////////////////////////////////////////////
   uint16_t mActGroupId = 0;
-  uint64_t mActImageId = 0;
+  std::set<uint64_t> mActImageId;
 
   uint32_t mSelectedWellId;
   uint64_t mSelectedImageId;
