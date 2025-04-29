@@ -667,6 +667,9 @@ void PanelResults::onFinishedLoading()
     paintEmptyHeatmap();
   }
   refreshBreadCrump();
+  auto col = mSelection[mNavigation].col;
+  auto row = mSelection[mNavigation].row;
+  onElementSelected(col, row, mSelectedTable.data(row, col));
   update();
   QApplication::restoreOverrideCursor();
 }
@@ -774,8 +777,12 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       mSelectedAreaPos.setX(cellX);
       mSelectedAreaPos.setY(cellY);
 
+      auto rowImageName = mSelectedDataSet.imageMeta->filename;
+      if(mActImageId.size() > 1) {
+        rowImageName = mSelectedTable.getRowHeader(cellY);
+      }
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
-                      mSelectedDataSet.imageMeta->filename + "/" + std::to_string(value.getId());
+                      rowImageName + "/" + std::to_string(value.getId());
       mSelectedRowInfo->setText(platePos.data());
       break;
   }
