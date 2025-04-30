@@ -65,7 +65,7 @@ static inline const std::vector<std::string> COLORS = {
 struct ResultsTemplate
 {
   enums::Measurement measureChannel = enums::Measurement::NONE;
-  std::vector<enums::Stats> stats;
+  std::set<enums::Stats> stats;
   // int32_t crossChannelStacksC              = -1;
   // joda::enums::ClassId intersectingChannel = joda::enums::ClassId::NONE;
   // int32_t zStack                           = 0;

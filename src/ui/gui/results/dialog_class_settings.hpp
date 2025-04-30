@@ -48,7 +48,8 @@ private:
   /////////////////////////////////////////////////////
   void fromSettings(const joda::settings::Class &);
   void toSettings(joda::settings::Class &);
-  std::map<enums::Measurement, std::pair<QPushButton *, std::vector<enums::Stats>>> mMeasurements;
+  std::map<enums::Measurement, std::pair<QAction *, std::map<enums::Stats, std::pair<QAction *, bool>>>>
+      mMeasurements;    ///< bool is the default setting of this stats for this measurement
 
   /////////////////////////////////////////////////////
   int32_t mOkayPressed = -1;

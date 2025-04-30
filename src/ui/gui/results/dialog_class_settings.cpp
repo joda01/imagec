@@ -10,11 +10,17 @@
 ///
 
 #include "dialog_class_settings.hpp"
+#include <qboxlayout.h>
+#include <qcheckbox.h>
 #include <qdialog.h>
 #include <qlabel.h>
+#include <qmenu.h>
+#include <qtoolbutton.h>
+#include <qwidgetaction.h>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
+#include "ui/gui/helper/showed_menu.hpp"
 
 namespace joda::ui::gui {
 
@@ -97,13 +103,42 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
   // Grid Layout for the measurements
   //
   auto *measureLayout = new QGridLayout();
-  auto addMeasure     = [&](const QString &text, int32_t row, int32_t col, enums::Measurement meas, const std::vector<enums::Stats> &stats) {
-    auto *button = new QPushButton(text);
+  auto addMeasure     = [&](const QString &text, int32_t row, int32_t col, enums::Measurement meas, const std::set<enums::Stats> &stats,
+                        const std::set<enums::Stats> &allowedStat) {
+    auto *menu = new QMenu();
+    std::map<enums::Stats, std::pair<QAction *, bool>> statsMenu;
+    auto addStats = [&](enums::Stats stat) {
+      auto *submenu = menu->addAction(enums::toString(stat).data());
+      submenu->setCheckable(true);
+      if(stats.contains(stat)) {
+        submenu->setChecked(true);
+      }
+      if(stat == enums::Stats::OFF) {
+        submenu->setVisible(false);
+      }
+      // Store menu and default setting
+      statsMenu.emplace(stat, std::pair<QAction *, bool>{submenu, stats.contains(stat)});
+    };
+    for(const auto stat : allowedStat) {
+      addStats(stat);
+    }
+
+    auto *button = new QAction(text);
+    if(menu->actions().size() > 1) {
+      button->setMenu(menu);
+    } else if(menu->actions().size() == 1) {
+      menu->actions().at(0)->setChecked(true);
+    }
     button->setCheckable(true);
-    button->setMaximumWidth(150);
-    button->setMinimumWidth(150);
-    measureLayout->addWidget(button, row, col + 1);
-    mMeasurements.emplace(meas, std::pair<QPushButton *, std::vector<enums::Stats>>{button, stats});
+
+    // Wrap it in a QToolButton
+    auto *toolButton = new QToolButton();
+    toolButton->setMaximumWidth(150);
+    toolButton->setMinimumWidth(150);
+    toolButton->setDefaultAction(button);    // This binds text, icon, and triggered slot
+
+    measureLayout->addWidget(toolButton, row, col + 1);
+    mMeasurements.emplace(meas, std::pair<QAction *, std::map<enums::Stats, std::pair<QAction *, bool>>>{button, statsMenu});
   };
 
   auto addIcon = [&](const QString &icon, int32_t row) {
@@ -120,32 +155,39 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
   };
 
   addIcon("format-precision-more", 0);
-  addMeasure("Count", 1, 0, enums::Measurement::COUNT, {enums::Stats::OFF});
-  addMeasure("Intersection count", 1, 1, enums::Measurement::INTERSECTING, {enums::Stats::OFF});
+  addMeasure("Count", 1, 0, enums::Measurement::COUNT, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Intersection count", 1, 1, enums::Measurement::INTERSECTING, {enums::Stats::OFF}, {enums::Stats::OFF});
 
   addIcon("insert-horizontal-rule", 2);
-  addMeasure("Area size", 3, 0, enums::Measurement::AREA_SIZE, {enums::Stats::AVG, enums::Stats::SUM});
-  addMeasure("Perimeter", 3, 1, enums::Measurement::PERIMETER, {enums::Stats::AVG});
-  addMeasure("Circularity", 3, 2, enums::Measurement::CIRCULARITY, {enums::Stats::AVG});
+  addMeasure("Area size", 3, 0, enums::Measurement::AREA_SIZE, {enums::Stats::AVG, enums::Stats::SUM},
+             {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
+  addMeasure("Perimeter", 3, 1, enums::Measurement::PERIMETER, {enums::Stats::AVG},
+             {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
+  addMeasure("Circularity", 3, 2, enums::Measurement::CIRCULARITY, {enums::Stats::AVG},
+             {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
 
   addIcon("brightness-high", 4);
-  addMeasure("Intensity min", 5, 0, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG, enums::Stats::SUM});
-  addMeasure("Intensity max", 5, 1, enums::Measurement::INTENSITY_MAX, {enums::Stats::AVG, enums::Stats::SUM});
-  addMeasure("Intensity avg", 5, 2, enums::Measurement::INTENSITY_AVG, {enums::Stats::AVG, enums::Stats::SUM});
-  addMeasure("Intensity sum", 6, 0, enums::Measurement::INTENSITY_SUM, {enums::Stats::AVG, enums::Stats::SUM});
+  addMeasure("Intensity min", 5, 0, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG, enums::Stats::SUM},
+             {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
+  addMeasure("Intensity max", 5, 1, enums::Measurement::INTENSITY_MAX, {enums::Stats::AVG, enums::Stats::SUM},
+             {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
+  addMeasure("Intensity avg", 5, 2, enums::Measurement::INTENSITY_AVG, {enums::Stats::AVG, enums::Stats::SUM},
+             {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
+  addMeasure("Intensity sum", 6, 0, enums::Measurement::INTENSITY_SUM, {enums::Stats::AVG, enums::Stats::SUM},
+             {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
 
   addIcon("coordinate", 7);
-  addMeasure("Position", 8, 0, enums::Measurement::CENTER_OF_MASS_X, {enums::Stats::OFF});
+  addMeasure("Position", 8, 0, enums::Measurement::CENTER_OF_MASS_X, {enums::Stats::OFF}, {enums::Stats::OFF});
   // addMeasure("Distance to surface min", 9, 0, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG, enums::Stats::SUM});
   // addMeasure("Distance to surface max", 9, 1, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG, enums::Stats::SUM});
   // addMeasure("Distance to center min", 10, 0, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG, enums::Stats::SUM});
   // addMeasure("Distance to center max", 10, 1, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG, enums::Stats::SUM});
 
   addIcon("irc-operator", 11);
-  addMeasure("Object ID", 12, 0, enums::Measurement::OBJECT_ID, {enums::Stats::OFF});
-  addMeasure("Parent object ID", 12, 1, enums::Measurement::PARENT_OBJECT_ID, {enums::Stats::OFF});
-  addMeasure("Origin object ID", 12, 2, enums::Measurement::ORIGIN_OBJECT_ID, {enums::Stats::OFF});
-  addMeasure("Tracking ID", 13, 0, enums::Measurement::TRACKING_ID, {enums::Stats::OFF});
+  addMeasure("Object ID", 12, 0, enums::Measurement::OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Parent object ID", 12, 1, enums::Measurement::PARENT_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Origin object ID", 12, 2, enums::Measurement::ORIGIN_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Tracking ID", 13, 0, enums::Measurement::TRACKING_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
 
   measureLayout->setColumnMinimumWidth(0, 24);
   measureLayout->setColumnStretch(0, 0);    // prevent stretching
@@ -218,11 +260,29 @@ void DialogClassSettings::fromSettings(const joda::settings::Class &classs)
 
   for(auto &[_, settings] : mMeasurements) {
     settings.first->setChecked(false);
+    for(auto &[_, stat] : settings.second) {
+      stat.first->setChecked(false);
+    }
   }
 
   for(const auto &measure : classs.defaultMeasurements) {
-    mMeasurements.at(measure.measureChannel).first->setChecked(true);
-    mMeasurements.at(measure.measureChannel).second = measure.stats;
+    if(mMeasurements.contains(measure.measureChannel)) {
+      mMeasurements.at(measure.measureChannel).first->setChecked(true);
+      for(const auto stat : measure.stats) {
+        mMeasurements.at(measure.measureChannel).second.at(stat).first->setChecked(true);
+      }
+    }
+  }
+
+  //
+  // Restore default settings for unchecked
+  //
+  for(auto &[_, settings] : mMeasurements) {
+    if(!settings.first->isChecked()) {
+      for(auto &[_, setting] : settings.second) {
+        setting.first->setChecked(setting.second);
+      }
+    }
   }
 }
 
@@ -241,10 +301,17 @@ void DialogClassSettings::toSettings(joda::settings::Class &classs)
 
   for(auto &[measure, settings] : mMeasurements) {
     if(settings.first->isChecked()) {
-      classs.defaultMeasurements.emplace_back(joda::settings::ResultsTemplate{.measureChannel = measure, .stats = settings.second});
+      std::set<enums::Stats> stats;
+      for(auto &[stat, setting] : settings.second) {
+        if(setting.first->isChecked()) {
+          stats.emplace(stat);
+        }
+      }
+
+      classs.defaultMeasurements.emplace_back(joda::settings::ResultsTemplate{.measureChannel = measure, .stats = stats});
       if(measure == enums::Measurement::CENTER_OF_MASS_X) {
         classs.defaultMeasurements.emplace_back(
-            joda::settings::ResultsTemplate{.measureChannel = enums::Measurement::CENTER_OF_MASS_Y, .stats = settings.second});
+            joda::settings::ResultsTemplate{.measureChannel = enums::Measurement::CENTER_OF_MASS_Y, .stats = stats});
       }
     }
   }

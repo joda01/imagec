@@ -282,6 +282,7 @@ void PanelClassification::toSettings()
     if(itemNotes != nullptr && !itemNotes->text().isEmpty()) {
       classNotes = itemNotes->text();
     }
+    classs.notes = classNotes.toStdString();
     row++;
   }
 }
