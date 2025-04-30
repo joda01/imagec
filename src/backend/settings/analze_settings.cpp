@@ -260,46 +260,48 @@ auto AnalyzeSettings::toResultsSettings() const -> ResultsSettings
           colIdx++;
         };
 
-        //
-        // For count only sum makes sense
-        //
-        if(measure.measureChannel == enums::Measurement::COUNT) {
-          addColumn(enums::Stats::SUM, -1, enums::ClassId::UNDEFINED);
-          continue;
-        }
-
-        //
-        // For object IDs stats does not make sense
-        //
-        if(measure.measureChannel == enums::Measurement::OBJECT_ID || measure.measureChannel == enums::Measurement::ORIGIN_OBJECT_ID ||
-           measure.measureChannel == enums::Measurement::PARENT_OBJECT_ID || measure.measureChannel == enums::Measurement::TRACKING_ID) {
-          addColumn(enums::Stats::OFF, -1, enums::ClassId::UNDEFINED);
-          continue;
-        }
-
-        //
-        // For intersecting only AVG and SUM makes sense
-        //
-        if(measure.measureChannel == enums::Measurement::INTERSECTING) {
-          // Add only those intersecting classes which appear in the pipeline
-          if(intersectingClasses.contains(classId)) {
-            for(const auto &intersectingClassId : intersectingClasses.at(classId)) {
-              addColumn(measure.stats, -1, intersectingClassId);
-            }
+        for(auto stats : measure.stats) {
+          //
+          // For count only sum makes sense
+          //
+          if(measure.measureChannel == enums::Measurement::COUNT) {
+            addColumn(enums::Stats::SUM, -1, enums::ClassId::UNDEFINED);
+            continue;
           }
-          continue;
-        }
 
-        if(measure.measureChannel == enums::Measurement::INTENSITY_SUM || measure.measureChannel == enums::Measurement::INTENSITY_AVG ||
-           measure.measureChannel == enums::Measurement::INTENSITY_MIN || measure.measureChannel == enums::Measurement::INTENSITY_MAX) {
-          // Iterate over cross channels
-          if(measuredChannels.contains(classId)) {
-            for(const auto &channelId : measuredChannels.at(classId)) {
-              addColumn(measure.stats, channelId, enums::ClassId::UNDEFINED, "CH " + std::to_string(channelId));
-            }
+          //
+          // For object IDs stats does not make sense
+          //
+          if(measure.measureChannel == enums::Measurement::OBJECT_ID || measure.measureChannel == enums::Measurement::ORIGIN_OBJECT_ID ||
+             measure.measureChannel == enums::Measurement::PARENT_OBJECT_ID || measure.measureChannel == enums::Measurement::TRACKING_ID) {
+            addColumn(enums::Stats::OFF, -1, enums::ClassId::UNDEFINED);
+            continue;
           }
-        } else {
-          addColumn(measure.stats, -1, enums::ClassId::UNDEFINED);
+
+          //
+          // For intersecting only AVG and SUM makes sense
+          //
+          if(measure.measureChannel == enums::Measurement::INTERSECTING) {
+            // Add only those intersecting classes which appear in the pipeline
+            if(intersectingClasses.contains(classId)) {
+              for(const auto &intersectingClassId : intersectingClasses.at(classId)) {
+                addColumn(stats, -1, intersectingClassId);
+              }
+            }
+            continue;
+          }
+
+          if(measure.measureChannel == enums::Measurement::INTENSITY_SUM || measure.measureChannel == enums::Measurement::INTENSITY_AVG ||
+             measure.measureChannel == enums::Measurement::INTENSITY_MIN || measure.measureChannel == enums::Measurement::INTENSITY_MAX) {
+            // Iterate over cross channels
+            if(measuredChannels.contains(classId)) {
+              for(const auto &channelId : measuredChannels.at(classId)) {
+                addColumn(stats, channelId, enums::ClassId::UNDEFINED, "CH " + std::to_string(channelId));
+              }
+            }
+          } else {
+            addColumn(stats, -1, enums::ClassId::UNDEFINED);
+          }
         }
       }
     }
