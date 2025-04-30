@@ -14,9 +14,6 @@
 #include <string>
 #include <utility>
 #include "backend/enums/enum_measurements.hpp"
-#include "backend/helper/database/exporter/heatmap/export_heatmap_settings.hpp"
-#include "backend/settings/project_settings/project_class.hpp"
-#include "backend/settings/project_settings/project_plate_setup.hpp"
 #include "backend/settings/setting.hpp"
 #include "results_settings.hpp"
 
@@ -31,28 +28,16 @@ class AnalyzeSettings;
 ///
 struct ResultsTemplate
 {
-  struct TemplateEntry
-  {
-    std::set<enums::Measurement> measureChannels;
-    std::set<enums::Stats> stats;
+  enums::Measurement measureChannel = enums::Measurement::NONE;
+  enums::Stats stats                = enums::Stats::AVG;
+  // int32_t crossChannelStacksC              = -1;
+  // joda::enums::ClassId intersectingChannel = joda::enums::ClassId::NONE;
+  // int32_t zStack                           = 0;
+  // int32_t tStack                           = 0;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(TemplateEntry, measureChannels, stats);
-
-    void check() const
-    {
-    }
-    // We don't want to do a error check for the history
-    void getErrorLogRecursive(SettingParserLog_t &settingsParserLog) const
-    {
-    }
-  };
-
-  std::vector<TemplateEntry> columns;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ResultsTemplate, columns);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ResultsTemplate, measureChannel, stats);
 
   auto toSettings(const AnalyzeSettings &analyzeSettings) -> ResultsSettings;
-  auto toSettings(const AnalyzeSettingsMeta &analyzeSettingsMeta, const std::map<enums::ClassId, joda::settings::Class> &classes) -> ResultsSettings;
 
   void check() const
   {

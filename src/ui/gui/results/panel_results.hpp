@@ -32,7 +32,8 @@
 #include "ui/gui/container/panel_edit_base.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/results/dialog_column_template.hpp"
-#include "ui/gui/window_main/panel_results_info.hpp"
+
+class PlaceholderTableWidget;
 
 namespace joda::ui::gui {
 class WindowMain;

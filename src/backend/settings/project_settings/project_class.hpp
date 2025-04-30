@@ -15,6 +15,7 @@
 #include <set>
 #include <vector>
 #include "backend/enums/enums_classes.hpp"
+#include "backend/settings/results_settings/results_template.hpp"
 #include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
@@ -75,11 +76,16 @@ struct Class
   //
   std::string notes;
 
+  //
+  // Default measurements for this class
+  //
+  std::vector<ResultsTemplate> defaultMeasurements;
+
   void check() const
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Class, classId, name, notes, color);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Class, classId, name, notes, color, defaultMeasurements);
 };
 
 }    // namespace joda::settings

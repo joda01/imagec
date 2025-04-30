@@ -37,7 +37,7 @@ struct AnalyzeSettingsMeta
 };
 
 ///
-/// \class      AnalyzeSettingsMeta
+/// \class      ResultsSettings
 /// \author     Joachim Danmayr
 /// \brief      Database interface to store table settings
 ///

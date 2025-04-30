@@ -62,8 +62,8 @@
 #include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
+#include "ui/gui/helper/table_widget.hpp"
 #include "ui/gui/helper/widget_generator.hpp"
-#include "ui/gui/window_main/panel_results_info.hpp"
 #include "ui/gui/window_main/window_main.hpp"
 #include <nlohmann/json_fwd.hpp>
 #include "dialog_column_settings.hpp"
@@ -112,11 +112,6 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
 
     connect(mHeatmapChart, &ChartHeatMap::onDoubleClicked, this, &PanelResults::onOpenNextLevel);
     connect(layout().getBackButton(), &QAction::triggered, [this] { mWindowMain->showPanelStartPage(); });
-    connect(getWindowMain()->getPanelResultsInfo(), &joda::ui::gui::PanelResultsInfo::settingsChanged, [this]() {
-      if(mIsActive) {
-        refreshView();
-      }
-    });
     connect(this, &PanelResults::finishedLoading, this, &PanelResults::onFinishedLoading);
 
     auto *heatmapSidebar = new QWidget();
