@@ -475,13 +475,6 @@ void PanelClassification::toSettings()
     mSettings.classification.classes.emplace_back(joda::settings::Class{
         .classId = classId, .name = className.toStdString(), .color = classColor.toStdString(), .notes = classNotes.toStdString()});
   }
-
-  //
-  // Update the names in the columns
-  //
-  if(mWindowMain->getPanelResultsInfo() != nullptr) {
-    mWindowMain->getPanelResultsInfo()->refreshTableView();
-  }
 }
 
 ///

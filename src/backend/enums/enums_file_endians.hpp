@@ -19,7 +19,6 @@ namespace joda::fs {
 
 static inline std::string EXT_DATABASE               = ".icdb";
 static inline std::string EXT_RESULTS_TABLE_SETTINGS = ".ictbl";
-static inline std::string EXT_RESULTS_TABLE_TEMPLATE = ".ictbltempl";
 static inline std::string EXT_PROJECT                = ".icproj";
 static inline std::string EXT_PROJECT_TEMPLATE       = ".ictemplproj";
 static inline std::string EXT_PIPELINE_TEMPLATE      = ".ictempl";

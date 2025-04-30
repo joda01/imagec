@@ -803,10 +803,7 @@ std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &
                    "settings_results_table) "
                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-#warning "Fill out results table"
-    // auto resultsTableSettings = nlohmann::json(exp.resultsSettings).dump();
-    std::string resultsTableSettings;
-
+    auto resultsTableSettings = exp.toResultsSettings();
     prepare->Execute(duckdb::Value::UUID(exp.projectSettings.experimentSettings.experimentId), jobId, jobName, std::string(Version::getVersion()),
                      duckdb::Value::TIMESTAMP(timestampStart), duckdb::Value::TIMESTAMP(nil), helper::base64Encode(settings::Settings::toString(exp)),
                      helper::base64Encode(settings::Settings::toString(resultsTableSettings)),

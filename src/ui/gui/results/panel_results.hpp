@@ -26,12 +26,10 @@
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/database/plugins/filter.hpp"
 #include "backend/helper/table/table.hpp"
-#include "backend/settings/results_settings/results_template.hpp"
 #include "controller/controller.hpp"
 #include "heatmap/panel_heatmap.hpp"
 #include "ui/gui/container/panel_edit_base.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
-#include "ui/gui/results/dialog_column_template.hpp"
 
 class PlaceholderTableWidget;
 
@@ -124,14 +122,9 @@ private:
 
   /////////////////////////////////////////////////////
   void storeResultsTableSettingsToDatabase();
-  void showFileSaveDialog(const QString &filter = "Excel 2007-365 (*.xlsx);;Text CSV (*.csv);;R-Script (*.r);;ImageC results table settings (*" +
-                                                  QString(joda::fs::EXT_RESULTS_TABLE_SETTINGS.data()) + ")");
+  void showFileSaveDialog(const QString &filter = "Excel 2007-365 (*.xlsx);;Text CSV (*.csv);;R-Script (*.r)");
   void saveData(const std::string &fileName, joda::ctrl::ExportSettings::ExportType);
-  void saveTemplate(const std::string &fileName);
   void showOpenFileDialog();
-  void loadTemplates();
-  void openTableSettings(const std::string &pathToOpenFileFrom);
-  void openTemplate(const QString &path);
   void backTo(Navigation backTo);
 
   auto getWellOrder() const -> std::vector<std::vector<int32_t>>;
@@ -169,12 +162,9 @@ private:
   void createEditColumnDialog();
   void columnEdit(int32_t colIdx);
   DialogColumnSettings *mColumnEditDialog;
-  DialogColumnTemplate *mColumnTemplate;
 
   /////////////////////////////////////////////////////
   settings::ResultsSettings mFilter;
-  settings::ResultsTemplate mFilterTemplate;
-  settings::AnalyzeSettingsMeta mAnalyzeSettingsMeta;
   PlaceholderTableWidget *mTable;
   std::map<int32_t, joda::table::Table> mActListData;
   std::map<int32_t, joda::table::Table> mActHeatmapData;
@@ -186,7 +176,6 @@ private:
 
   // TOOLBARS///////////////////////////////////////////////////
   QAction *mAutoSort;
-  QMenu *mTemplateMenu;
 
   /////////////////////////////////////////////////////
   void setHeatmapVisible(bool);
