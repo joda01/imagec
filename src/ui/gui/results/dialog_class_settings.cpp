@@ -34,7 +34,7 @@ namespace joda::ui::gui {
 DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
 {
   setWindowTitle("Class editor");
-  setMinimumWidth(300);
+  setFixedSize(550, 450);
   auto *layout     = new QVBoxLayout();
   mDialogClassName = new QComboBox();
   mDialogClassName->setEditable(true);
@@ -154,9 +154,9 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
     measureLayout->addWidget(separator, row, 1, 1, 3);
   };
 
-  addIcon("format-precision-more", 0);
+  // addIcon("format-precision-more", 0);
   addMeasure("Count", 1, 0, enums::Measurement::COUNT, {enums::Stats::OFF}, {enums::Stats::OFF});
-  addMeasure("Intersection count", 1, 1, enums::Measurement::INTERSECTING, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Nr. of intersecting objects", 1, 1, enums::Measurement::INTERSECTING, {enums::Stats::OFF}, {enums::Stats::OFF});
 
   addIcon("insert-horizontal-rule", 2);
   addMeasure("Area size", 3, 0, enums::Measurement::AREA_SIZE, {enums::Stats::AVG, enums::Stats::SUM},
@@ -200,11 +200,18 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
   buttonLayout->addWidget(cancelButton);
   buttonLayout->addWidget(okButton);
 
+  auto *separator = new QFrame;
+  separator->setFixedHeight(15);
+  separator->setFrameShape(QFrame::HLine);
+  separator->setFrameShadow(QFrame::Sunken);
+
   //
   // Add to final layout
   //
   layout->addWidget(mDialogClassName);
   layout->addWidget(mDialogColorCombo);
+  layout->addWidget(separator);
+  layout->addWidget(new QLabel("<b>Measurements:</b>"));
   layout->addLayout(measureLayout);
   layout->addLayout(buttonLayout);
 
