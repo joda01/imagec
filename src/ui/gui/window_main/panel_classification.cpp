@@ -232,42 +232,54 @@ void PanelClassification::createDialog()
   auto addMeasure     = [&](const QString &text, int32_t row, int32_t col) {
     auto *button = new QPushButton(text);
     button->setCheckable(true);
+    button->setMaximumWidth(150);
+    button->setMinimumWidth(150);
     measureLayout->addWidget(button, row, col + 1);
   };
 
   auto addIcon = [&](const QString &icon, int32_t row) {
     auto *label = new QLabel();
     label->setPixmap(generateSvgIcon(icon).pixmap(16, 16));
+    label->setMaximumWidth(22);
+    label->setMinimumWidth(22);
     measureLayout->addWidget(label, row, 0);
+
+    auto *separator = new QFrame;
+    separator->setFrameShape(QFrame::HLine);
+    separator->setFrameShadow(QFrame::Sunken);
+    measureLayout->addWidget(separator, row, 1, 1, 3);
   };
 
   addIcon("format-precision-more", 0);
-  addMeasure("Count", 0, 0);
-  addMeasure("Intersection count", 0, 1);
+  addMeasure("Count", 1, 0);
+  addMeasure("Intersection count", 1, 1);
 
-  addIcon("insert-horizontal-rule", 1);
-  addMeasure("Area size", 1, 0);
-  addMeasure("Perimeter", 1, 1);
-  addMeasure("Circularity", 1, 2);
+  addIcon("insert-horizontal-rule", 2);
+  addMeasure("Area size", 3, 0);
+  addMeasure("Perimeter", 3, 1);
+  addMeasure("Circularity", 3, 2);
 
-  addIcon("colorfx", 2);
-  addMeasure("Intensity min", 2, 0);
-  addMeasure("Intensity max", 2, 1);
-  addMeasure("Intensity avg", 2, 2);
-  addMeasure("Intensity sum", 3, 0);
+  addIcon("brightness-high", 4);
+  addMeasure("Intensity min", 5, 0);
+  addMeasure("Intensity max", 5, 1);
+  addMeasure("Intensity avg", 5, 2);
+  addMeasure("Intensity sum", 6, 0);
 
-  addIcon("coordinate", 4);
-  addMeasure("Position", 4, 0);
-  addMeasure("Distance to surface min", 5, 0);
-  addMeasure("Distance to surface max", 5, 1);
-  addMeasure("Distance to center min", 6, 0);
-  addMeasure("Distance to center max", 6, 1);
+  addIcon("coordinate", 7);
+  addMeasure("Position", 8, 0);
+  addMeasure("Distance to surface min", 9, 0);
+  addMeasure("Distance to surface max", 9, 1);
+  addMeasure("Distance to center min", 10, 0);
+  addMeasure("Distance to center max", 10, 1);
 
-  addIcon("irc-remove-operator", 7);
-  addMeasure("Object ID", 7, 0);
-  addMeasure("Parent object ID", 7, 1);
-  addMeasure("Origin object ID", 7, 2);
-  addMeasure("Tracking ID", 8, 0);
+  addIcon("irc-operator", 11);
+  addMeasure("Object ID", 12, 0);
+  addMeasure("Parent object ID", 12, 1);
+  addMeasure("Origin object ID", 12, 2);
+  addMeasure("Tracking ID", 13, 0);
+
+  measureLayout->setColumnMinimumWidth(0, 24);
+  measureLayout->setColumnStretch(0, 0);    // prevent stretching
 
   //
   // Create a horizontal layout for the buttons
@@ -282,7 +294,7 @@ void PanelClassification::createDialog()
   //
   layout->addWidget(mDialogClassName);
   layout->addWidget(mDialogColorCombo);
-  // layout->addLayout(measureLayout);
+  layout->addLayout(measureLayout);
   layout->addLayout(buttonLayout);
 
   mEditDialog->setLayout(layout);
