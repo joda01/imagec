@@ -147,14 +147,13 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
     measureLayout->addWidget(separator, row, 0, 1, 2);
   };
 
-  // addIcon("format-precision-more", 0);
-  addMeasure("Count", 1, 0, enums::Measurement::COUNT, {enums::Stats::OFF}, {enums::Stats::OFF});
-  addMeasure("Nr. of intersecting objects", 1, 1, enums::Measurement::INTERSECTING, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Count", 0, 0, enums::Measurement::COUNT, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Nr. of intersecting objects", 0, 1, enums::Measurement::INTERSECTING, {enums::Stats::OFF}, {enums::Stats::OFF});
 
-  addSeparator(2);
-  addMeasure("Area size", 3, 0, enums::Measurement::AREA_SIZE, {enums::Stats::AVG, enums::Stats::SUM},
+  addSeparator(1);
+  addMeasure("Area size", 2, 0, enums::Measurement::AREA_SIZE, {enums::Stats::AVG, enums::Stats::SUM},
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-  addMeasure("Perimeter", 3, 1, enums::Measurement::PERIMETER, {enums::Stats::AVG},
+  addMeasure("Perimeter", 2, 1, enums::Measurement::PERIMETER, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
   addMeasure("Circularity", 3, 0, enums::Measurement::CIRCULARITY, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});

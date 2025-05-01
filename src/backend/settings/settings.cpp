@@ -106,6 +106,7 @@ void Settings::storeSettingsTemplate(const std::filesystem::path &pathIn, joda::
     settings.projectSettings.address                         = {};
     for(auto &pipeline : settings.pipelines) {
       pipeline.meta.icon = "";
+      pipeline.history.clear();
     }
 
     //
