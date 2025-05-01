@@ -31,7 +31,6 @@
 #include "ui/gui/window_main/panel_image.hpp"
 #include "ui/gui/window_main/panel_pipeline.hpp"
 #include "ui/gui/window_main/panel_project_settings.hpp"
-#include "ui/gui/window_main/panel_results_info.hpp"
 #include <duckdb/function/table_function.hpp>
 #include <nlohmann/json_fwd.hpp>
 
@@ -75,11 +74,6 @@ public:
   [[nodiscard]] const PanelImages *getImagePanel() const
   {
     return mPanelImages;
-  }
-
-  [[nodiscard]] PanelResultsInfo *getPanelResultsInfo()
-  {
-    return mPanelResultsInfo;
   }
 
   [[nodiscard]] PanelPipeline *getPanelPipeline()
@@ -188,7 +182,6 @@ private:
   PanelClassification *mPanelClassification   = nullptr;
   PanelPipeline *mPanelPipeline               = nullptr;
   PanelImages *mPanelImages                   = nullptr;
-  PanelResultsInfo *mPanelResultsInfo         = nullptr;
 
   ////Right Dock/////////////////////////////////////////////////
   DialogImageViewer *mPreviewImage = nullptr;

@@ -51,7 +51,7 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     //
     // New pipeline
     //
-    auto *newPipeline = new QAction(generateSvgIcon("document-new"), "Add new pipeline");
+    auto *newPipeline = new QAction(generateSvgIcon("list-add"), "Add new pipeline");
     newPipeline->setStatusTip("Add new pipeline or use predefined template");
     connect(newPipeline, &QAction::triggered, [this]() { addChannel(joda::settings::Pipeline{}); });
     mTemplatesMenu = new QMenu();
@@ -61,7 +61,7 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     //
     // Open template
     //
-    auto *openTemplate = new QAction(generateSvgIcon("folder-stash"), "Open template");
+    auto *openTemplate = new QAction(generateSvgIcon("folder-open"), "Open template");
     openTemplate->setStatusTip("Open pipeline from template");
     connect(openTemplate, &QAction::triggered, [this]() {
       QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();

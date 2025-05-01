@@ -20,6 +20,7 @@
 #include "backend/settings/project_settings/project_settings.hpp"
 #include "ui/gui/helper/color_combo/color_combo.hpp"
 #include "ui/gui/helper/table_widget.hpp"
+#include "ui/gui/results/dialog_class_settings.hpp"
 
 namespace joda::ui::gui {
 
@@ -53,7 +54,6 @@ private:
   static constexpr int COL_NOTES   = 4;
 
   /////////////////////////////////////////////////////
-  void createDialog();
   void loadTemplates();
   void newTemplate();
   void saveAsNewTemplate();
@@ -69,20 +69,17 @@ private:
   PlaceholderTableWidget *mClasses;
 
   /// DIALOG //////////////////////////////////////////////////
-  QDialog *mEditDialog;
-  QComboBox *mDialogClassName;
-  ColorComboBox *mDialogColorCombo;
-  int32_t mSelectedRow = 0;
+  DialogClassSettings *mClassSettingsDialog;
 
   /// Actions //////////////////////////////////////////////////
   QMenu *mTemplateMenu;
 
   /// TEMPLATE //////////////////////////////////////////////////
   bool askForChangeTemplateIndex();
+  bool askForDeleteClass();
   bool mDontAsk = false;
 
 private slots:
   void onSettingChanged();
-  void onOkayPressed();
 };
 }    // namespace joda::ui::gui

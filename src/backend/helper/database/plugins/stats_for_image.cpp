@@ -27,8 +27,30 @@ namespace joda::db {
 /// \param[out]
 /// \return
 ///
-auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSettings &filter) -> QueryResult
+auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSettings &filterIn) -> QueryResult
 {
+  //
+  // Remove all stats but one per channel since one image level an average e.g. for just one object does not make sense
+  //
+  settings::ResultsSettings filter;
+  std::set<settings::ResultsSettings::ColumnKey> stillMeasured;
+  std::map<int32_t, int32_t> tabColIdx;
+  for(const auto &[_, key] : filterIn.getColumns()) {
+    settings::ResultsSettings::ColumnKey keyTmp = key;
+    keyTmp.stats                                = enums::Stats::OFF;
+    if(!stillMeasured.contains(keyTmp)) {
+      if(!tabColIdx.contains(_.tabIdx)) {
+        tabColIdx.emplace(_.tabIdx, 0);
+      } else {
+        tabColIdx[_.tabIdx]++;
+      }
+
+      filter.addColumn({_.tabIdx, tabColIdx[_.tabIdx]}, keyTmp, key.names);
+      stillMeasured.emplace(keyTmp);
+    }
+  }
+  filter.setFilter(filterIn.getFilter(), filterIn.getPlateSetup(), filterIn.getDensityMapSettings());
+
   auto classesToExport = ResultingTable(&filter);
 
   auto findMaxRowIdx = [](const std::map<uint64_t, int32_t> &rowIndexes) -> int32_t {
@@ -200,6 +222,7 @@ auto StatsPerImage::toHeatmap(db::Database *database, const settings::ResultsSet
         joda::table::Table &results = classesToExport.getTable(tabIdx);
         results.setTitle(statement.getColumnAt(colIdx).createHeader());
         results.setMeta({statement.getColNames().className});
+        results.setColHeader({{0, statement.getColumnAt(colIdx).createHeader()}});
 
         for(uint64_t row = 0; row < imageInfo.height; row++) {
           results.getMutableRowHeader()[row] = std::to_string(row + 1);
@@ -208,6 +231,7 @@ auto StatsPerImage::toHeatmap(db::Database *database, const settings::ResultsSet
             results.setData(row, col, table::TableCell{std::numeric_limits<double>::quiet_NaN(), 0, false, imageInfo.controlImgPath});
           }
         }
+
         for(size_t n = 0; n < materializedResult->RowCount(); n++) {
           try {
             double value        = materializedResult->GetValue(colIdx, n).GetValue<double>();

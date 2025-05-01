@@ -1,6 +1,6 @@
 #include "analze_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
-
+#include "backend/helper/logger/console_logger.hpp"
 #include "backend/processor/dependency_graph.hpp"
 
 namespace joda::settings {
@@ -199,6 +199,115 @@ auto AnalyzeSettings::getImageChannelsUsedForMeasurement() const -> std::map<enu
     }
   }
   return usedImageChannels;
+}
+
+///
+/// \brief      Generate results table settings based on template
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto AnalyzeSettings::toResultsSettings() const -> ResultsSettings
+{
+  std::map<enums::ClassId, std::string> classNames;
+  for(const auto &classs : projectSettings.classification.classes) {
+    classNames.emplace(classs.classId, classs.name);
+  }
+
+  auto outputClasses       = getOutputClasses();
+  auto intersectingClasses = getPossibleIntersectingClasses();
+  auto measuredChannels    = getImageChannelsUsedForMeasurement();
+
+  std::map<enums::ClassId, joda::settings::Class> classes;
+  for(const auto &cl : projectSettings.classification.classes) {
+    classes.emplace(cl.classId, cl);
+  }
+
+  ResultsSettings settings;
+  int32_t colIdx = 0;
+  for(const auto &entry : projectSettings.classification.classes) {
+    for(const auto &classId : outputClasses) {
+      if(classId == enums::ClassId::UNDEFINED || classId == enums::ClassId::NONE) {
+        continue;
+      }
+      for(const auto &measure : entry.defaultMeasurements) {
+        auto addColumn = [&](enums::Stats stat, int32_t crossChannel, enums::ClassId intersecting, const std::string &channelName = "") {
+          if(!classes.contains(classId)) {
+            joda::log::logError("Class name for ID >" + std::to_string((int32_t) classId) + "<not found during table generation from template!");
+            return;
+          }
+          std::string intersectingName;
+          if(intersecting != enums::ClassId::UNDEFINED) {
+            if(!classes.contains(intersecting)) {
+              joda::log::logError("Intersecting class name for ID >" + std::to_string((int32_t) intersecting) +
+                                  "<not found during table generation from template!");
+              return;
+            }
+            intersectingName = classes.at(intersecting).name;
+          }
+
+          settings.addColumn(ResultsSettings::ColumnIdx{.tabIdx = 0, .colIdx = colIdx},
+                             ResultsSettings::ColumnKey{.classId             = classId,
+                                                        .measureChannel      = measure.measureChannel,
+                                                        .stats               = stat,
+                                                        .crossChannelStacksC = crossChannel,
+                                                        .intersectingChannel = intersecting,
+                                                        .zStack              = 0,
+                                                        .tStack              = 0},
+                             ResultsSettings::ColumnName{
+                                 .crossChannelName = channelName, .className = classes.at(classId).name, .intersectingName = intersectingName});
+          colIdx++;
+        };
+
+        for(auto stats : measure.stats) {
+          //
+          // For count only sum makes sense
+          //
+          if(measure.measureChannel == enums::Measurement::COUNT) {
+            addColumn(enums::Stats::SUM, -1, enums::ClassId::UNDEFINED);
+            continue;
+          }
+
+          //
+          // For object IDs stats does not make sense
+          //
+          if(measure.measureChannel == enums::Measurement::OBJECT_ID || measure.measureChannel == enums::Measurement::ORIGIN_OBJECT_ID ||
+             measure.measureChannel == enums::Measurement::PARENT_OBJECT_ID || measure.measureChannel == enums::Measurement::TRACKING_ID) {
+            addColumn(enums::Stats::OFF, -1, enums::ClassId::UNDEFINED);
+            continue;
+          }
+
+          //
+          // For intersecting only AVG and SUM makes sense
+          //
+          if(measure.measureChannel == enums::Measurement::INTERSECTING) {
+            // Add only those intersecting classes which appear in the pipeline
+            if(intersectingClasses.contains(classId)) {
+              for(const auto &intersectingClassId : intersectingClasses.at(classId)) {
+                addColumn(stats, -1, intersectingClassId);
+              }
+            }
+            continue;
+          }
+
+          if(measure.measureChannel == enums::Measurement::INTENSITY_SUM || measure.measureChannel == enums::Measurement::INTENSITY_AVG ||
+             measure.measureChannel == enums::Measurement::INTENSITY_MIN || measure.measureChannel == enums::Measurement::INTENSITY_MAX) {
+            // Iterate over cross channels
+            if(measuredChannels.contains(classId)) {
+              for(const auto &channelId : measuredChannels.at(classId)) {
+                addColumn(stats, channelId, enums::ClassId::UNDEFINED, "CH " + std::to_string(channelId));
+              }
+            }
+          } else {
+            addColumn(stats, -1, enums::ClassId::UNDEFINED);
+          }
+        }
+      }
+    }
+  }
+  settings.sortColumns();
+  return settings;
 }
 
 }    // namespace joda::settings

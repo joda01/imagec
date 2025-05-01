@@ -51,7 +51,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   mWorkingDir->setPlaceholderText("Directory your images are placed in...");
   auto *workingDir = new QHBoxLayout;
   workingDir->addWidget(mWorkingDir);
-  auto *openDir = new QPushButton(generateSvgIcon("image-tiff"), "");
+  auto *openDir = new QPushButton(generateSvgIcon("image-jpeg"), "");
   openDir->setStatusTip("Select image directory");
   connect(openDir, &QPushButton::clicked, this, &PanelProjectSettings::onOpenWorkingDirectoryClicked);
   workingDir->addWidget(openDir);
@@ -334,9 +334,6 @@ void PanelProjectSettings::toSettings()
   mSettings.imageSetup.tStackHandling = static_cast<joda::settings::ProjectImageSetup::TStackHandling>(mStackHandlingT->currentData().toInt());
   mSettings.imageSetup.imageTileSettings.tileWidth  = static_cast<int32_t>(mCompositeTileSize->currentData().toInt());
   mSettings.imageSetup.imageTileSettings.tileHeight = static_cast<int32_t>(mCompositeTileSize->currentData().toInt());
-
-  // Sync to results settings
-  mSettings.resultsSettings.setFilter(mSettings.projectSettings.plates.begin()->plateSetup);
 
   mParentWindow->checkForSettingsChanged();
 }

@@ -14,6 +14,7 @@
 
 #include <set>
 #include <vector>
+#include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
@@ -38,11 +39,16 @@ static inline const std::vector<std::string> COLORS = {
     "#66FF33",    // - Lime Green
 
     // Yellow tones
+    "#5EFF00",    // - Green yellow
+    "#D2FF00",    // - Green yellow
     "#FFFF33",    // - Bright Yellow
+    "#F6FF00",    // - Yellow
     "#FFCC33",    // - Golden Yellow
 
     // Orange tones
+    "#FFD200",    // - Light orange
     "#FF8C33",    // - Deep Orange
+    "#FF9B00",    // - Deeper orange
     "#FF6F33",    // - Pumpkin Orange
     "#FF5733",    // - Vibrant Orange
     "#FF33FF",    // - Magenta
@@ -51,9 +57,35 @@ static inline const std::vector<std::string> COLORS = {
     "#FF3380",    // - Electric Pink
     "#FF3333",    // - Neon red
     "#FF3366",    // - Coral Red
+    "#640000",    // - Dark red
 
     // Gray
     "#BFBFBF"    // -Light gray
+};
+
+///
+/// \class      ResultsTemplate
+/// \author     Joachim Danmayr
+/// \brief      Template for results
+///
+struct ResultsTemplate
+{
+  enums::Measurement measureChannel = enums::Measurement::NONE;
+  std::set<enums::Stats> stats;
+  // int32_t crossChannelStacksC              = -1;
+  // joda::enums::ClassId intersectingChannel = joda::enums::ClassId::NONE;
+  // int32_t zStack                           = 0;
+  // int32_t tStack                           = 0;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ResultsTemplate, measureChannel, stats);
+
+  void check() const
+  {
+  }
+  // We don't want to do a error check for the history
+  void getErrorLogRecursive(SettingParserLog_t &settingsParserLog) const
+  {
+  }
 };
 
 struct Class
@@ -75,11 +107,16 @@ struct Class
   //
   std::string notes;
 
+  //
+  // Default measurements for this class
+  //
+  std::vector<ResultsTemplate> defaultMeasurements;
+
   void check() const
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Class, classId, name, notes, color);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Class, classId, name, notes, color, defaultMeasurements);
 };
 
 }    // namespace joda::settings

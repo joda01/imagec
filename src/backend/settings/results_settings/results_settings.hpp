@@ -37,7 +37,7 @@ struct AnalyzeSettingsMeta
 };
 
 ///
-/// \class      AnalyzeSettingsMeta
+/// \class      ResultsSettings
 /// \author     Joachim Danmayr
 /// \brief      Database interface to store table settings
 ///
@@ -141,17 +141,24 @@ public:
       std::map<uint32_t, std::string> columnHeaders;
       std::string stacks = "{Z" + std::to_string(zStack) + "/T" + std::to_string(tStack) + "}";
 
+      auto createStatsHeader = [](enums::Stats stats) -> std::string {
+        if(stats != enums::Stats::OFF) {
+          return "[" + enums::toString(stats) + "]";
+        }
+        return "";
+      };
+
       if(getType(measureChannel) == MeasureType::INTENSITY) {
-        return names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "] " + "(C" + std::to_string(crossChannelStacksC) +
-               ")" + stacks;
+        return names.className + "-" + toString(measureChannel) + createStatsHeader(stats) + " " + "(C" + std::to_string(crossChannelStacksC) + ")" +
+               stacks;
       }
       if(getType(measureChannel) == MeasureType::INTERSECTION) {
-        return "Intersection " + names.intersectingName + " in " + names.className + "[" + enums::toString(stats) + "]" + stacks;
+        return "Intersection " + names.intersectingName + " in " + names.className + createStatsHeader(stats) + stacks;
       }
       if(getType(measureChannel) == MeasureType::ID) {
         return names.className + "-" + toString(measureChannel) + "\n" + stacks;
       }
-      return names.className + "-" + toString(measureChannel) + "[" + enums::toString(stats) + "]" + stacks;
+      return names.className + "-" + toString(measureChannel) + createStatsHeader(stats) + stacks;
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnKey, classId, measureChannel, stats, crossChannelStacksC, intersectingChannel, zStack, tStack,

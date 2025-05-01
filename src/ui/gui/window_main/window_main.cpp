@@ -60,7 +60,6 @@
 #include "ui/gui/window_main/panel_image.hpp"
 #include "ui/gui/window_main/panel_pipeline.hpp"
 #include "ui/gui/window_main/panel_project_settings.hpp"
-#include "ui/gui/window_main/panel_results_info.hpp"
 #include "build_info.h"
 #include "version.h"
 
@@ -317,12 +316,6 @@ void WindowMain::createLeftToolbar()
     mTabWidget->addTab(mPanelPipeline, "Pipelines");
   }
 
-  // Reportings tab
-  {
-    mPanelResultsInfo = new PanelResultsInfo(this);
-    mTabWidget->addTab(mPanelResultsInfo, "Results");
-  }
-
   mSidebar->addWidget(mTabWidget);
   mSidebar->setMinimumWidth(LEFT_TOOLBAR_WIDTH);
   addToolBar(Qt::ToolBarArea::LeftToolBarArea, mSidebar);
@@ -447,14 +440,12 @@ void WindowMain::clearSettings()
 {
   mSelectedProjectSettingsFilePath.clear();
   mPanelPipeline->clear();
-  mAnalyzeSettings.resultsSettings = settings::ResultsSettings();
-  mAnalyzeSettings                 = {};
-  mAnalyzeSettingsOld              = {};
+  mAnalyzeSettings    = {};
+  mAnalyzeSettingsOld = {};
   mAnalyzeSettings.pipelines.clear();
   mAnalyzeSettingsOld.pipelines.clear();
   mPanelProjectSettings->fromSettings({});
   mPanelClassification->fromSettings({});
-  mPanelResultsInfo->fromSettings({});
 }
 
 ///
@@ -551,8 +542,6 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     mPanelProjectSettings->fromSettings(analyzeSettings);
     mPanelClassification->fromSettings(analyzeSettings.projectSettings.classification);
 
-    mAnalyzeSettings.resultsSettings                = analyzeSettings.resultsSettings;
-    mAnalyzeSettings.resultsTemplate                = analyzeSettings.resultsTemplate;
     mAnalyzeSettings.projectSettings                = analyzeSettings.projectSettings;
     mAnalyzeSettings.projectSettings.classification = analyzeSettings.projectSettings.classification;
     mAnalyzeSettingsOld                             = mAnalyzeSettings;
@@ -562,9 +551,6 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     }
 
     mActAnalyzeSettings = &mAnalyzeSettings;
-
-    // This must be done at the end because the classes must be loaded before
-    mPanelResultsInfo->fromSettings(analyzeSettings);
 
     emit onOutputClassifierChanges();
     if(openFromTemplate) {
