@@ -34,19 +34,22 @@ namespace joda::ui::gui {
 DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
 {
   setWindowTitle("Class editor");
-  setFixedSize(550, 500);
   auto *layout     = new QVBoxLayout();
   mDialogClassName = new QComboBox();
   mDialogClassName->setEditable(true);
   mDialogClassName->setPlaceholderText("e.g. cy5@spot");
+  mDialogClassName->lineEdit()->setPlaceholderText("Class name, e.g. cy5@spot");
   //
   // Predefined selections
   //
   mDialogClassName->addItem("cy3@spot", "cy3@spot");
+  mDialogClassName->addItem("cy3@spot-in-cell", "cy3@spot-in-cell");
   mDialogClassName->addItem("cy3@background", "cy3@background");
   mDialogClassName->addItem("cy5@spot", "cy5@spot");
+  mDialogClassName->addItem("cy5@spot-in-cell", "cy5@spot-in-cell");
   mDialogClassName->addItem("cy5@background", "cy5@background");
   mDialogClassName->addItem("cy7@spot", "cy7@spot");
+  mDialogClassName->addItem("cy7@spot-in-cell", "cy7@spot-in-cell");
   mDialogClassName->addItem("cy7@background", "cy7@background");
   mDialogClassName->addItem("gfp@spot", "gfp@spot");
   mDialogClassName->addItem("gfp@background", "gfp@background");
@@ -63,8 +66,15 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
   mDialogClassName->addItem("brightfield@cell", "brightfield@cell");
   mDialogClassName->addItem("brightfield@background", "brightfield@background");
   mDialogClassName->insertSeparator(mDialogClassName->count());
+  mDialogClassName->addItem("coloc@spots", "coloc@spots");
   mDialogClassName->addItem("coloc@cy3cy7", "coloc@cy5cy7");
-  mDialogClassName->addItem("coloc@cy5cy7", "coloc@c5c7");
+  mDialogClassName->addItem("coloc@cy5cy7", "coloc@cy5cy7");
+  mDialogClassName->addItem("coloc@cy3cy5", "coloc@cy3cy5");
+  mDialogClassName->addItem("coloc@cy3", "coloc@cy3");
+  mDialogClassName->addItem("coloc@cy5", "coloc@cy5");
+  mDialogClassName->addItem("coloc@cy7", "coloc@cy7");
+  mDialogClassName->addItem("coloc@fitc", "coloc@fitc");
+  mDialogClassName->addItem("coloc@gfp", "coloc@gfp");
 
   mDialogColorCombo = new ColorComboBox();
   auto *model       = qobject_cast<QStandardItemModel *>(mDialogColorCombo->model());
@@ -126,60 +136,51 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
     toolButton->setMinimumWidth(150);
     toolButton->setDefaultAction(button);    // This binds text, icon, and triggered slot
 
-    measureLayout->addWidget(toolButton, row, col + 1);
+    measureLayout->addWidget(toolButton, row, col);
     mMeasurements.emplace(meas, std::pair<QAction *, std::map<enums::Stats, std::pair<QAction *, bool>>>{button, statsMenu});
   };
 
-  auto addIcon = [&](const QString &icon, int32_t row) {
-    auto *label = new QLabel();
-    label->setPixmap(generateSvgIcon(icon).pixmap(16, 16));
-    label->setMaximumWidth(22);
-    label->setMinimumWidth(22);
-    measureLayout->addWidget(label, row, 0);
-
+  auto addSeparator = [&](int32_t row) {
     auto *separator = new QFrame;
     separator->setFrameShape(QFrame::HLine);
     separator->setFrameShadow(QFrame::Sunken);
-    measureLayout->addWidget(separator, row, 1, 1, 3);
+    measureLayout->addWidget(separator, row, 0, 1, 2);
   };
 
   // addIcon("format-precision-more", 0);
   addMeasure("Count", 1, 0, enums::Measurement::COUNT, {enums::Stats::OFF}, {enums::Stats::OFF});
   addMeasure("Nr. of intersecting objects", 1, 1, enums::Measurement::INTERSECTING, {enums::Stats::OFF}, {enums::Stats::OFF});
 
-  addIcon("insert-horizontal-rule", 2);
+  addSeparator(2);
   addMeasure("Area size", 3, 0, enums::Measurement::AREA_SIZE, {enums::Stats::AVG, enums::Stats::SUM},
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
   addMeasure("Perimeter", 3, 1, enums::Measurement::PERIMETER, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-  addMeasure("Circularity", 3, 2, enums::Measurement::CIRCULARITY, {enums::Stats::AVG},
+  addMeasure("Circularity", 3, 0, enums::Measurement::CIRCULARITY, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
 
-  addIcon("brightness-high", 4);
+  addSeparator(4);
   addMeasure("Intensity min", 5, 0, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG, enums::Stats::SUM},
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
   addMeasure("Intensity max", 5, 1, enums::Measurement::INTENSITY_MAX, {enums::Stats::AVG, enums::Stats::SUM},
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-  addMeasure("Intensity avg", 5, 2, enums::Measurement::INTENSITY_AVG, {enums::Stats::AVG, enums::Stats::SUM},
+  addMeasure("Intensity avg", 6, 0, enums::Measurement::INTENSITY_AVG, {enums::Stats::AVG, enums::Stats::SUM},
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-  addMeasure("Intensity sum", 6, 0, enums::Measurement::INTENSITY_SUM, {enums::Stats::AVG, enums::Stats::SUM},
+  addMeasure("Intensity sum", 6, 1, enums::Measurement::INTENSITY_SUM, {enums::Stats::AVG, enums::Stats::SUM},
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
 
-  addIcon("coordinate", 7);
+  addSeparator(7);
   addMeasure("Position", 8, 0, enums::Measurement::CENTER_OF_MASS_X, {enums::Stats::OFF}, {enums::Stats::OFF});
   // addMeasure("Distance to surface min", 9, 0, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG, enums::Stats::SUM});
   // addMeasure("Distance to surface max", 9, 1, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG, enums::Stats::SUM});
   // addMeasure("Distance to center min", 10, 0, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG, enums::Stats::SUM});
   // addMeasure("Distance to center max", 10, 1, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG, enums::Stats::SUM});
 
-  addIcon("irc-operator", 11);
-  addMeasure("Object ID", 12, 0, enums::Measurement::OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
-  addMeasure("Parent object ID", 12, 1, enums::Measurement::PARENT_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
-  addMeasure("Origin object ID", 12, 2, enums::Measurement::ORIGIN_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
-  addMeasure("Tracking ID", 13, 0, enums::Measurement::TRACKING_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
-
-  measureLayout->setColumnMinimumWidth(0, 24);
-  measureLayout->setColumnStretch(0, 0);    // prevent stretching
+  addSeparator(9);
+  addMeasure("Object ID", 10, 0, enums::Measurement::OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Parent object ID", 10, 1, enums::Measurement::PARENT_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Origin object ID", 11, 0, enums::Measurement::ORIGIN_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Tracking ID", 11, 1, enums::Measurement::TRACKING_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
 
   //
   // Create a horizontal layout for the buttons
@@ -189,19 +190,22 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
   buttonLayout->addWidget(cancelButton);
   buttonLayout->addWidget(okButton);
 
-  auto *separator = new QFrame;
-  separator->setFixedHeight(15);
-  separator->setFrameShape(QFrame::HLine);
-  separator->setFrameShadow(QFrame::Sunken);
-
+  auto addLayoutSeparator = [&]() {
+    auto *separator = new QFrame;
+    separator->setFixedHeight(15);
+    separator->setFrameShape(QFrame::HLine);
+    separator->setFrameShadow(QFrame::Sunken);
+    layout->addWidget(separator);
+  };
   //
   // Add to final layout
   //
   layout->addWidget(mDialogClassName);
   layout->addWidget(mDialogColorCombo);
-  layout->addWidget(separator);
+  addLayoutSeparator();
   layout->addWidget(new QLabel("<b>Measurements:</b>"));
   layout->addLayout(measureLayout);
+  addLayoutSeparator();
   layout->addLayout(buttonLayout);
 
   setLayout(layout);
