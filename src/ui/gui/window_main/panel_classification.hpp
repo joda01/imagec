@@ -76,6 +76,7 @@ private:
 
   /// TEMPLATE //////////////////////////////////////////////////
   bool askForChangeTemplateIndex();
+  bool askForDeleteClass();
   bool mDontAsk = false;
 
 private slots:

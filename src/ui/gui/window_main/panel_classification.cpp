@@ -104,11 +104,13 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
       if(!ranges.isEmpty()) {
         int selectedRow = ranges.first().topRow();
         if(selectedRow >= 0) {
-          mClasses->removeRow(selectedRow);
-          auto it = mSettings.classification.classes.begin();
-          std::advance(it, selectedRow);
-          mSettings.classification.classes.erase(it);
-          onSettingChanged();
+          if(askForDeleteClass()) {
+            mClasses->removeRow(selectedRow);
+            auto it = mSettings.classification.classes.begin();
+            std::advance(it, selectedRow);
+            mSettings.classification.classes.erase(it);
+            onSettingChanged();
+          }
         }
       }
     });
@@ -124,7 +126,7 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     //    this->newTemplate();
     //  }
     //});
-    // layout->addWidget(toolbar);
+    layout->addWidget(toolbar);
 
     loadTemplates();
   }
@@ -416,6 +418,26 @@ bool PanelClassification::askForChangeTemplateIndex()
   messageBox.setIconPixmap(generateSvgIcon("data-information").pixmap(48, 48));
   messageBox.setWindowTitle("Proceed?");
   messageBox.setText("Actual taken settings will get lost!");
+  QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+  QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+  messageBox.setDefaultButton(noButton);
+  auto reply = messageBox.exec();
+  return messageBox.clickedButton() != noButton;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+bool PanelClassification::askForDeleteClass()
+{
+  QMessageBox messageBox(mWindowMain);
+  messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
+  messageBox.setWindowTitle("Proceed?");
+  messageBox.setText("Remove selected class?");
   QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
   QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
   messageBox.setDefaultButton(noButton);
