@@ -200,6 +200,7 @@ auto StatsPerImage::toHeatmap(db::Database *database, const settings::ResultsSet
         joda::table::Table &results = classesToExport.getTable(tabIdx);
         results.setTitle(statement.getColumnAt(colIdx).createHeader());
         results.setMeta({statement.getColNames().className});
+        results.setColHeader({{0, statement.getColumnAt(colIdx).createHeader()}});
 
         for(uint64_t row = 0; row < imageInfo.height; row++) {
           results.getMutableRowHeader()[row] = std::to_string(row + 1);
@@ -208,6 +209,7 @@ auto StatsPerImage::toHeatmap(db::Database *database, const settings::ResultsSet
             results.setData(row, col, table::TableCell{std::numeric_limits<double>::quiet_NaN(), 0, false, imageInfo.controlImgPath});
           }
         }
+
         for(size_t n = 0; n < materializedResult->RowCount(); n++) {
           try {
             double value        = materializedResult->GetValue(colIdx, n).GetValue<double>();
