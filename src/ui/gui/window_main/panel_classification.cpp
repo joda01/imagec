@@ -131,7 +131,7 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
 
   {
     mClasses = new PlaceholderTableWidget(0, 5);
-    mClasses->setPlaceholderText("Add a class");
+    mClasses->setPlaceholderText("Press the + button to add a class or use the wizard.");
     mClasses->verticalHeader()->setVisible(false);
     mClasses->horizontalHeader()->setVisible(false);
     mClasses->setHorizontalHeaderLabels({"IdNr", "Id", "Class", "Color", "Notes"});
