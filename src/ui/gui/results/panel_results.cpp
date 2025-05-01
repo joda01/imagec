@@ -64,6 +64,7 @@
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/table_widget.hpp"
 #include "ui/gui/helper/widget_generator.hpp"
+#include "ui/gui/helper/word_wrap_header.hpp"
 #include "ui/gui/window_main/window_main.hpp"
 #include <nlohmann/json_fwd.hpp>
 #include "dialog_column_settings.hpp"
@@ -88,6 +89,7 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
   mTable->setRowCount(0);
   mTable->setColumnCount(0);
   mTable->verticalHeader()->setDefaultSectionSize(8);    // Set each row to 50 pixels height
+  mTable->setHorizontalHeader(new WordWrapHeader(Qt::Horizontal));
 
   connect(mTable->verticalHeader(), &QHeaderView::sectionDoubleClicked,
           [this](int logicalIndex) { openNextLevel({mSelectedTable.data(logicalIndex, 0)}); });
@@ -1138,7 +1140,6 @@ void PanelResults::tableToQWidgetTable(const joda::table::Table &tableIn)
 
     if(tableIn.getCols() > col) {
       QString headerText = tableIn.getColHeader(col).data();
-      headerText         = headerText.replace("[", "\n[");
       mTable->setHorizontalHeaderItem(col, createTableWidget(headerText));
 
     } else {
@@ -1237,10 +1238,10 @@ void PanelResults::copyTableToClipboard(QTableWidget *table)
     QStringList rowData;
     for(int col = 0; col < table->columnCount(); ++col) {
       if(row == 0) {
-        header << table->horizontalHeaderItem(col)->text().replace("\n", " ");
+        header << table->horizontalHeaderItem(col)->text();
       }
       if(col == 0) {
-        rowData << table->verticalHeaderItem(row)->text().replace("\n", " ");
+        rowData << table->verticalHeaderItem(row)->text();
       }
       rowData << table->item(row, col)->text();
     }
