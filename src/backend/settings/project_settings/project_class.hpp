@@ -39,11 +39,16 @@ static inline const std::vector<std::string> COLORS = {
     "#66FF33",    // - Lime Green
 
     // Yellow tones
+    "#5EFF00",    // - Green yellow
+    "#D2FF00",    // - Green yellow
     "#FFFF33",    // - Bright Yellow
+    "#F6FF00",    // - Yellow
     "#FFCC33",    // - Golden Yellow
 
     // Orange tones
+    "#FFD200",    // - Light orange
     "#FF8C33",    // - Deep Orange
+    "#FF9B00",    // - Deeper orange
     "#FF6F33",    // - Pumpkin Orange
     "#FF5733",    // - Vibrant Orange
     "#FF33FF",    // - Magenta
@@ -52,6 +57,7 @@ static inline const std::vector<std::string> COLORS = {
     "#FF3380",    // - Electric Pink
     "#FF3333",    // - Neon red
     "#FF3366",    // - Coral Red
+    "#640000",    // - Dark red
 
     // Gray
     "#BFBFBF"    // -Light gray

@@ -47,19 +47,38 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     auto *toolbar = new QToolBar();
 
     //
-    // New from template
+    // Add class
     //
     mTemplateMenu     = new QMenu();
-    auto *newPipeline = new QAction(generateSvgIcon("document-new"), "Add object class");
+    auto *newPipeline = new QAction(generateSvgIcon("list-add"), "Add object class");
     connect(newPipeline, &QAction::triggered, [this]() { addClass(); });
     newPipeline->setStatusTip("Add object class or load from template");
     newPipeline->setMenu(mTemplateMenu);
     toolbar->addAction(newPipeline);
 
     //
+    // Populate from image
+    // object-ungroup
+    //
+    auto *populateFromImage = new QAction(generateSvgIcon("tools-wizard"), "Populate from image channels");
+    populateFromImage->setStatusTip("Automatically populate classes from image channels");
+    toolbar->addAction(populateFromImage);
+    connect(populateFromImage, &QAction::triggered, [this]() { this->populateClassesFromImage(); });
+
+    toolbar->addSeparator();
+
+    //
+    // Save as template
+    //
+    auto *saveAsTemplate = new QAction(generateSvgIcon("document-save-as-template"), "Save classification settings as template");
+    saveAsTemplate->setStatusTip("Save classification settings as template");
+    connect(saveAsTemplate, &QAction::triggered, [this]() { saveAsNewTemplate(); });
+    toolbar->addAction(saveAsTemplate);
+
+    //
     // Open template
     //
-    auto *openTemplate = new QAction(generateSvgIcon("folder-stash"), "Open object class template");
+    auto *openTemplate = new QAction(generateSvgIcon("folder-open"), "Open object class template");
     openTemplate->setStatusTip("Open object class template");
     connect(openTemplate, &QAction::triggered, [this]() {
       QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
@@ -72,28 +91,12 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     });
     toolbar->addAction(openTemplate);
 
-    //
-    // Populate from image
-    // object-ungroup
-    //
-    auto *populateFromImage = new QAction(generateSvgIcon("quickopen-file"), "Populate from image channels");
-    populateFromImage->setStatusTip("Populate classes from image channels");
-    toolbar->addAction(populateFromImage);
-    connect(populateFromImage, &QAction::triggered, [this]() { this->populateClassesFromImage(); });
-
-    //
-    // Save as template
-    //
-    auto *saveAsTemplate = new QAction(generateSvgIcon("document-save-as-template"), "Save classification settings as template");
-    saveAsTemplate->setStatusTip("Save classification settings as template");
-    connect(saveAsTemplate, &QAction::triggered, [this]() { saveAsNewTemplate(); });
-    toolbar->addAction(saveAsTemplate);
     toolbar->addSeparator();
 
     //
     // Delete column
     //
-    auto *deleteColumn = new QAction(generateSvgIcon("edit-table-delete-column"), "Delete selected class", this);
+    auto *deleteColumn = new QAction(generateSvgIcon("edit-table-delete-row"), "Delete selected class", this);
     deleteColumn->setStatusTip("Delete selected class");
     toolbar->addAction(deleteColumn);
     connect(deleteColumn, &QAction::triggered, [this]() {
@@ -253,6 +256,7 @@ void PanelClassification::fromSettings(const joda::settings::Classification &set
 {
   mClasses->blockSignals(true);
   mClasses->setRowCount(settings.classes.size());
+  mSettings.classification = settings;
 
   //
   // Load classes
@@ -463,19 +467,20 @@ void PanelClassification::openTemplate(const QString &path)
 ///
 void PanelClassification::populateClassesFromImage()
 {
-  auto [path, series, omeInfo] = mWindowMain->getImagePanel()->getSelectedImageOrFirst();
-  if(path.empty()) {
-    joda::log::logError("No images found! Please select a image directory first!");
-    QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
-    messageBox.setWindowTitle("Could not find any images!");
-    messageBox.setText("No images found! Please select a image directory first!");
-    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-    auto reply = messageBox.exec();
-    return;
-  }
-  auto classes = mWindowMain->getController()->populateClassesFromImage(omeInfo, series);
   if(askForChangeTemplateIndex()) {
+    auto [path, series, omeInfo] = mWindowMain->getImagePanel()->getSelectedImageOrFirst();
+    if(path.empty()) {
+      joda::log::logError("No images found! Please select an image directory first!");
+      QMessageBox messageBox(this);
+      messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
+      messageBox.setWindowTitle("Could not find any images!");
+      messageBox.setText("No images found! Please select a image directory first!");
+      messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+      auto reply = messageBox.exec();
+      return;
+    }
+
+    auto classes = mWindowMain->getController()->populateClassesFromImage(omeInfo, series);
     fromSettings(classes);
     onSettingChanged();
   }

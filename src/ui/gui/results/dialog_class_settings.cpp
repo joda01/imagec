@@ -34,7 +34,7 @@ namespace joda::ui::gui {
 DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
 {
   setWindowTitle("Class editor");
-  setFixedSize(550, 450);
+  setFixedSize(550, 500);
   auto *layout     = new QVBoxLayout();
   mDialogClassName = new QComboBox();
   mDialogClassName->setEditable(true);
@@ -43,39 +43,28 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
   // Predefined selections
   //
   mDialogClassName->addItem("cy3@spot", "cy3@spot");
-  mDialogClassName->addItem("cy3@none", "cy3@none");
   mDialogClassName->addItem("cy3@background", "cy3@background");
   mDialogClassName->addItem("cy5@spot", "cy5@spot");
-  mDialogClassName->addItem("cy5@none", "cy5@none");
   mDialogClassName->addItem("cy5@background", "cy5@background");
   mDialogClassName->addItem("cy7@spot", "cy7@spot");
-  mDialogClassName->addItem("cy7@none", "cy7@none");
   mDialogClassName->addItem("cy7@background", "cy7@background");
   mDialogClassName->addItem("gfp@spot", "gfp@spot");
-  mDialogClassName->addItem("gfp@none", "gfp@none");
   mDialogClassName->addItem("gfp@background", "gfp@background");
   mDialogClassName->addItem("fitc@spot", "fitc@spot");
-  mDialogClassName->addItem("fitc@none", "fitc@none");
   mDialogClassName->addItem("fitc@background", "fitc@background");
   mDialogClassName->insertSeparator(mDialogClassName->count());
   mDialogClassName->addItem("tetraspeck@spot", "tetraspeck@spot");
-  mDialogClassName->addItem("tetraspeck@none", "tetraspeck@none");
   mDialogClassName->addItem("tetraspeck@background", "tetraspeck@background");
   mDialogClassName->insertSeparator(mDialogClassName->count());
   mDialogClassName->addItem("dapi@nucleus", "dapi@nucleus");
-  mDialogClassName->addItem("dapi@nucleus-none", "dapi@nucleus-none");
   mDialogClassName->addItem("dapi@background", "dapi@background");
   mDialogClassName->insertSeparator(mDialogClassName->count());
   mDialogClassName->addItem("brightfield@cell-area", "brightfield@cell-area");
-  mDialogClassName->addItem("brightfield@cell-area-none", "brightfield@cell-area-none");
   mDialogClassName->addItem("brightfield@cell", "brightfield@cell");
-  mDialogClassName->addItem("brightfield@cell-none", "brightfield@cell-none");
   mDialogClassName->addItem("brightfield@background", "brightfield@background");
   mDialogClassName->insertSeparator(mDialogClassName->count());
   mDialogClassName->addItem("coloc@cy3cy7", "coloc@cy5cy7");
-  mDialogClassName->addItem("coloc@cy3cy7-none", "coloc@cy5cy7-none");
   mDialogClassName->addItem("coloc@cy5cy7", "coloc@c5c7");
-  mDialogClassName->addItem("coloc@cy5cy7-none", "coloc@cy5cy7-none");
 
   mDialogColorCombo = new ColorComboBox();
   auto *model       = qobject_cast<QStandardItemModel *>(mDialogColorCombo->model());
