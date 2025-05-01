@@ -133,12 +133,14 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     mClasses = new PlaceholderTableWidget(0, 5);
     mClasses->setPlaceholderText("Add a class");
     mClasses->verticalHeader()->setVisible(false);
+    mClasses->horizontalHeader()->setVisible(false);
     mClasses->setHorizontalHeaderLabels({"IdNr", "Id", "Class", "Color", "Notes"});
     mClasses->setAlternatingRowColors(true);
     mClasses->setSelectionBehavior(QAbstractItemView::SelectRows);
     mClasses->setColumnHidden(COL_ID, true);
     mClasses->setColumnHidden(COL_ID_ENUM, true);
     mClasses->setColumnHidden(COL_COLOR, true);
+    mClasses->setColumnHidden(COL_NOTES, true);
     mClasses->setColumnWidth(COL_ID_ENUM, 10);
     mClasses->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
     mClasses->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
