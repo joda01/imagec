@@ -155,9 +155,6 @@ private:
   QPushButton *mTableButton   = nullptr;
   QPushButton *mHeatmapButton = nullptr;
 
-  // uint32_t mDensityMapSize = 200;
-  QComboBox *mColumn;
-
   /// COLUMN EDIT //////////////////////////////////////////////////
   void createEditColumnDialog();
   void columnEdit(int32_t colIdx);
@@ -188,6 +185,7 @@ private:
   QAction *mExportPng = nullptr;
 
   /// HEATMAP SIDEBAR//////////////////////////////////////////////////
+  QComboBox *mColumn;
   QLineEdit *mWellOrderMatrix;
   QComboBox *mPlateSize;
   QComboBox *mDensityMapSize;

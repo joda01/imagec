@@ -1020,6 +1020,25 @@ void PanelResults::onShowHeatmap()
 void PanelResults::tableToHeatmap(const joda::table::Table &table)
 {
   if(mAnalyzer) {
+    //
+    // Update heatmap column selector
+    //
+    mColumn->blockSignals(true);
+    auto actData = mColumn->currentData();
+    mColumn->clear();
+    for(const auto &[key, value] : mFilter.getColumns()) {
+      QString headerText = value.createHeader().data();
+      mColumn->addItem(headerText, key.colIdx);
+    }
+    auto idx = mColumn->findData(actData);
+    if(idx >= 0) {
+      mColumn->setCurrentIndex(idx);
+    }
+    mColumn->blockSignals(false);
+
+    //
+    //
+    //
     if(mSelectedTableColumn >= 0) {
       mHeatmapChart->setData(table, static_cast<int32_t>(mNavigation));
       return;
@@ -1112,9 +1131,6 @@ void PanelResults::tableToQWidgetTable(const joda::table::Table &tableIn)
     return widget;
   };
 
-  mColumn->blockSignals(true);
-  auto actData = mColumn->currentData();
-  mColumn->clear();
   // Header
   for(int col = 0; col < mTable->columnCount(); col++) {
     char txt      = col + 'A';
@@ -1122,20 +1138,13 @@ void PanelResults::tableToQWidgetTable(const joda::table::Table &tableIn)
 
     if(tableIn.getCols() > col) {
       QString headerText = tableIn.getColHeader(col).data();
-      mColumn->addItem(headerText, col);
-      headerText = headerText.replace("[", "\n[");
+      headerText         = headerText.replace("[", "\n[");
       mTable->setHorizontalHeaderItem(col, createTableWidget(headerText));
 
     } else {
       mTable->setHorizontalHeaderItem(col, createTableWidget(colCount));
-      mColumn->addItem(colCount, col);
     }
   }
-  auto idx = mColumn->findData(actData);
-  if(idx >= 0) {
-    mColumn->setCurrentIndex(idx);
-  }
-  mColumn->blockSignals(false);
 
   // Row
   for(int row = 0; row < mTable->rowCount(); row++) {
