@@ -2,6 +2,9 @@
 ![GitHub Release](https://img.shields.io/github/v/release/joda01/imagec)
 ![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/joda01/imagec/latest/total)
 ![GitHub License](https://img.shields.io/github/license/joda01/imagec)
+[![ImageC Docs](https://img.shields.io/badge/docs-available-brightgreen)](https://imagec.org/doc/)
+[![Image.sc Forum](https://img.shields.io/badge/Image.sc-Forum-blue)](https://forum.image.sc/tag/imagec/)
+
 
 
 # ImageC (EVAnalyzer 2)
