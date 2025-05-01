@@ -96,7 +96,7 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     //
     // Delete column
     //
-    auto *deleteColumn = new QAction(generateSvgIcon("edit-table-delete-row"), "Delete selected class", this);
+    auto *deleteColumn = new QAction(generateSvgIcon("edit-delete"), "Delete selected class", this);
     deleteColumn->setStatusTip("Delete selected class");
     toolbar->addAction(deleteColumn);
     connect(deleteColumn, &QAction::triggered, [this]() {
@@ -116,15 +116,15 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     //
     // Clear
     //
-    auto *clearList = new QAction(generateSvgIcon("edit-delete"), "Clear");
-    clearList->setStatusTip("Clear classification list");
-    toolbar->addAction(clearList);
-    connect(clearList, &QAction::triggered, [this]() {
-      if(this->askForChangeTemplateIndex()) {
-        this->newTemplate();
-      }
-    });
-    layout->addWidget(toolbar);
+    // auto *clearList = new QAction(generateSvgIcon("edit-delete"), "Clear");
+    // clearList->setStatusTip("Clear classification list");
+    // toolbar->addAction(clearList);
+    // connect(clearList, &QAction::triggered, [this]() {
+    //  if(this->askForChangeTemplateIndex()) {
+    //    this->newTemplate();
+    //  }
+    //});
+    // layout->addWidget(toolbar);
 
     loadTemplates();
   }
