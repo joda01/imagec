@@ -29,6 +29,7 @@
 #include "ui/gui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/gui/helper/droppable_widget/droppable_widget.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
+#include "ui/gui/helper/pipeline_overview_delegate.hpp"
 #include "ui/gui/helper/template_parser/template_parser.hpp"
 #include "ui/gui/window_main/window_main.hpp"
 
@@ -88,29 +89,26 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     layout->addWidget(toolbar);
   }
 
+  // Create a widget to hold the panels
   {
-    mPipelineWidget = new QScrollArea();
-    // mPipelineWidget->setFrameStyle(0);
-    mPipelineWidget->setFrameShape(QFrame::StyledPanel);
-    mPipelineWidget->viewport()->setStyleSheet("background-color: #FFFFFF");
-    mPipelineWidget->setObjectName("scrollAreaOverview");
-    // setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    mPipelineWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    mPipelineTable = new PlaceholderTableWidget(0, 1);
+    mPipelineTable->setPlaceholderText("Press the + button to add a pipeline.");
+    mPipelineTable->verticalHeader()->setVisible(false);
+    mPipelineTable->horizontalHeader()->setVisible(false);
+    mPipelineTable->setHorizontalHeaderLabels({"Pipeline"});
+    mPipelineTable->setAlternatingRowColors(true);
+    mPipelineTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    mPipelineTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 
-    // Create a widget to hold the panels
-    mContentWidget = new DroppableWidget();
-    mContentWidget->setContentsMargins(0, 4, 0, 0);
-
-    mContentWidget->setObjectName("pipelineContent");
-    mPipelineWidget->setWidget(mContentWidget);
-    mPipelineWidget->setWidgetResizable(true);
-
-    connect(mContentWidget, &DroppableWidget::dropFinished, this, &PanelPipeline::dropFinishedEvent);
-
-    mCommandSelectionDialog = std::make_shared<DialogCommandSelection>(mWindowMain);
-
-    layout->addWidget(mPipelineWidget);
+    // auto *delegate = new PipelineOverviewDelegate(mPipelineTable);
+    // mPipelineTable->setItemDelegateForColumn(0, delegate);    // Set the delegate for the desired column
   }
+
+  // connect(mContentWidget, &DroppableWidget::dropFinished, this, &PanelPipeline::dropFinishedEvent);
+
+  mCommandSelectionDialog = std::make_shared<DialogCommandSelection>(mWindowMain);
+
+  layout->addWidget(mPipelineTable);
 
   setLayout(layout);
 }
@@ -175,7 +173,10 @@ void PanelPipeline::onAddChannel(const QString &path)
 ///
 void PanelPipeline::addElement(std::unique_ptr<PanelPipelineSettings> baseContainer, void *pointerToSettings)
 {
-  mContentWidget->getLayout()->addWidget(baseContainer->getOverviewPanel());
+  auto newRow = mPipelineTable->rowCount();
+  mPipelineTable->insertRow(newRow);
+  mPipelineTable->setCellWidget(newRow, 0, baseContainer->getOverviewPanel());
+  // mContentWidget->getLayout()->addWidget(baseContainer->getOverviewPanel());
   mChannels.emplace(std::move(baseContainer), pointerToSettings);
 }
 
@@ -200,7 +201,14 @@ void PanelPipeline::erase(PanelPipelineSettings *toRemove)
 
       mAnalyzeSettings.pipelines.remove_if([&elementInSettings](const joda::settings::Pipeline &item) { return &item == elementInSettings; });
 
-      mContentWidget->getLayout()->removeWidget(toRemove->getOverviewPanel());
+      int32_t row = 0;
+      for(; row < mPipelineTable->rowCount(); row++) {
+        if(mPipelineTable->cellWidget(row, 0) == toRemove->getOverviewPanel()) {
+          break;
+        }
+      }
+
+      mPipelineTable->removeRow(row);
       toRemove->getOverviewPanel()->setParent(nullptr);
       mChannels.erase(it);
       mWindowMain->checkForSettingsChanged();
@@ -217,16 +225,7 @@ void PanelPipeline::erase(PanelPipelineSettings *toRemove)
 ///
 void PanelPipeline::clear()
 {
-  // Iterate through all items in the layout
-  while(QLayoutItem *item = mContentWidget->getLayout()->takeAt(0)) {
-    // Check if the item contains a widget
-    if(QWidget *widget = item->widget()) {
-      // Optionally, remove the widget from the layout and delete it
-      widget->setParent(nullptr);    // Remove widget from layout without deleting it
-      delete widget;                 // Delete the widget if you don't need it anymore
-    }
-    delete item;    // Delete the layout item
-  }
+  mPipelineTable->setRowCount(0);
   mChannels.clear();
 }
 
@@ -315,19 +314,20 @@ void PanelPipeline::dropFinishedEvent()
     // Splice the element at oldIt to before newIt
     myList.splice(newIt, myList, oldIt);
   };
+  /*
+    for(size_t i = 0; i < mContentWidget->getLayout()->count(); ++i) {
+      auto *toMove = mContentWidget->getLayout()->itemAt(i)->widget();
+      auto it = std::find_if(mChannels.begin(), mChannels.end(), [&toMove](std::pair<const std::unique_ptr<PanelPipelineSettings>, void *> &entry) {
+        return entry.first.get()->getOverviewPanel() == toMove;
+      });
 
-  for(size_t i = 0; i < mContentWidget->getLayout()->count(); ++i) {
-    auto *toMove = mContentWidget->getLayout()->itemAt(i)->widget();
-    auto it = std::find_if(mChannels.begin(), mChannels.end(), [&toMove](std::pair<const std::unique_ptr<PanelPipelineSettings>, void *> &entry) {
-      return entry.first.get()->getOverviewPanel() == toMove;
-    });
-
-    if(it != mChannels.end()) {
-      void *elementToMove = it->second;
-      moveElementToListPosition(mAnalyzeSettings.pipelines, elementToMove, i);
+      if(it != mChannels.end()) {
+        void *elementToMove = it->second;
+        moveElementToListPosition(mAnalyzeSettings.pipelines, elementToMove, i);
+      }
     }
-  }
-  mWindowMain->checkForSettingsChanged();
+    mWindowMain->checkForSettingsChanged();
+    */
 }
 
 }    // namespace joda::ui::gui
