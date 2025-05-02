@@ -382,6 +382,7 @@ void PanelPipeline::movePipelineToPosition(const QWidget *toMove, size_t fromPos
       mPipelineTable->setCellWidget(toRow, 0, toWidget);
       mPipelineTable->removeRow(fromRow);
     }
+    mPipelineTable->selectRow(toRow);
   };
 
   moveElementToListPosition(mAnalyzeSettings.pipelines, fromPos, newPos);
