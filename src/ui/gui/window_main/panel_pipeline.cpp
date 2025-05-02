@@ -86,6 +86,23 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     connect(mActionStart, &QAction::triggered, windowMain, &WindowMain::onStartClicked);
     toolbar->addAction(mActionStart);
 
+    toolbar->addSeparator();
+    //
+    // Move down
+    //
+    auto *moveDown = new QAction(generateSvgIcon("go-down"), "Move down");
+    moveDown->setStatusTip("Move selected pipeline down");
+    connect(moveDown, &QAction::triggered, this, &PanelPipeline::moveDown);
+    toolbar->addAction(moveDown);
+
+    //
+    // Move up
+    //
+    auto *moveUp = new QAction(generateSvgIcon("go-up"), "Move up");
+    moveUp->setStatusTip("Move selected pipeline up");
+    connect(moveUp, &QAction::triggered, this, &PanelPipeline::moveUp);
+    toolbar->addAction(moveUp);
+
     layout->addWidget(toolbar);
   }
 
@@ -103,8 +120,6 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     // auto *delegate = new PipelineOverviewDelegate(mPipelineTable);
     // mPipelineTable->setItemDelegateForColumn(0, delegate);    // Set the delegate for the desired column
   }
-
-  // connect(mContentWidget, &DroppableWidget::dropFinished, this, &PanelPipeline::dropFinishedEvent);
 
   mCommandSelectionDialog = std::make_shared<DialogCommandSelection>(mWindowMain);
 
@@ -295,7 +310,43 @@ void PanelPipeline::addChannel(const nlohmann::json &json)
 /// \param[out]
 /// \return
 ///
-void PanelPipeline::dropFinishedEvent()
+void PanelPipeline::moveUp()
+{
+  auto rowAct  = mPipelineTable->currentRow();
+  auto *widget = mPipelineTable->cellWidget(rowAct, 0);
+  auto newPos  = rowAct - 1;
+  if(newPos < 0) {
+    return;
+  }
+  movePipelineToPosition(widget, rowAct, newPos);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipeline::moveDown()
+{
+  auto rowAct  = mPipelineTable->currentRow();
+  auto *widget = mPipelineTable->cellWidget(rowAct, 0);
+  auto newPos  = rowAct + 1;
+  if(newPos >= mPipelineTable->rowCount()) {
+    return;
+  }
+  movePipelineToPosition(widget, rowAct, newPos);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipeline::movePipelineToPosition(const QWidget *toMove, size_t fromPos, size_t newPos)
 {
   auto moveElementToListPosition = [](std::list<joda::settings::Pipeline> &myList, void *elementToMove, size_t newPos) {
     size_t oldPos = 0;
@@ -314,20 +365,41 @@ void PanelPipeline::dropFinishedEvent()
     // Splice the element at oldIt to before newIt
     myList.splice(newIt, myList, oldIt);
   };
-  /*
-    for(size_t i = 0; i < mContentWidget->getLayout()->count(); ++i) {
-      auto *toMove = mContentWidget->getLayout()->itemAt(i)->widget();
-      auto it = std::find_if(mChannels.begin(), mChannels.end(), [&toMove](std::pair<const std::unique_ptr<PanelPipelineSettings>, void *> &entry) {
-        return entry.first.get()->getOverviewPanel() == toMove;
-      });
 
-      if(it != mChannels.end()) {
-        void *elementToMove = it->second;
-        moveElementToListPosition(mAnalyzeSettings.pipelines, elementToMove, i);
-      }
+  auto moveRow = [&](int fromRow, int toRow) {
+    if(fromRow == toRow || fromRow < 0 || toRow < 0 || fromRow >= mPipelineTable->rowCount() || toRow > mPipelineTable->rowCount()) {
+      return;    // invalid input
     }
-    mWindowMain->checkForSettingsChanged();
-    */
+
+    // Save items from the source row
+    QWidget *fromWidget = mPipelineTable->cellWidget(fromRow, 0);
+    QWidget *toWidget   = mPipelineTable->cellWidget(toRow, 0);
+    if(toRow < fromRow) {
+      mPipelineTable->insertRow(toRow);
+      mPipelineTable->setCellWidget(toRow, 0, fromWidget);
+      mPipelineTable->setCellWidget(fromRow, 0, toWidget);
+      mPipelineTable->removeRow(fromRow + 1);
+    } else {
+      mPipelineTable->insertRow(toRow + 1);
+      mPipelineTable->setCellWidget(toRow + 1, 0, fromWidget);
+      mPipelineTable->setCellWidget(toRow, 0, toWidget);
+      mPipelineTable->removeRow(fromRow);
+    }
+  };
+
+  auto it = std::find_if(mChannels.begin(), mChannels.end(), [&toMove](std::pair<const std::unique_ptr<PanelPipelineSettings>, void *> &entry) {
+    return entry.first.get()->getOverviewPanel() == toMove;
+  });
+  std::cout << "Move" << std::endl;
+  if(it != mChannels.end()) {
+    std::cout << "Move okay" << std::endl;
+
+    void *elementToMove = it->second;
+    moveElementToListPosition(mAnalyzeSettings.pipelines, elementToMove, newPos);
+    moveRow(fromPos, newPos);
+  }
+
+  mWindowMain->checkForSettingsChanged();
 }
 
 }    // namespace joda::ui::gui

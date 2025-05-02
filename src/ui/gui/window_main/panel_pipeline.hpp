@@ -58,6 +58,7 @@ public:
 private:
   /////////////////////////////////////////////////////
   void onAddChannel(const QString &path);
+  void movePipelineToPosition(const QWidget *widgetToMove, size_t fromPos, size_t newPos);
 
   /////////////////////////////////////////////////////
   PlaceholderTableWidget *mPipelineTable;
@@ -71,7 +72,8 @@ private:
   QMenu *mTemplatesMenu;
 
 private slots:
-  void dropFinishedEvent();
+  void moveUp();
+  void moveDown();
 };
 
 }    // namespace joda::ui::gui
