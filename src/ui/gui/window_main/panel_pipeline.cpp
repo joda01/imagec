@@ -348,22 +348,19 @@ void PanelPipeline::moveDown()
 ///
 void PanelPipeline::movePipelineToPosition(const QWidget *toMove, size_t fromPos, size_t newPos)
 {
-  auto moveElementToListPosition = [](std::list<joda::settings::Pipeline> &myList, void *elementToMove, size_t newPos) {
-    size_t oldPos = 0;
-    for(const auto &pip : myList) {
-      if(&pip == elementToMove) {
-        break;
-      }
-      oldPos++;
-    }
-    if(oldPos >= myList.size()) {
-      throw std::runtime_error("Cannot mve");
-    }
+  auto moveElementToListPosition = [](std::list<joda::settings::Pipeline> &myList, size_t oldPos, size_t newPos) {
     // Get iterators to the old and new positions
-    auto oldIt = std::next(myList.begin(), oldPos);
-    auto newIt = std::next(myList.begin(), newPos);
-    // Splice the element at oldIt to before newIt
-    myList.splice(newIt, myList, oldIt);
+    if(newPos > oldPos) {
+      auto oldIt = std::next(myList.begin(), newPos);
+      auto newIt = std::next(myList.begin(), oldPos);
+      // Splice the element at oldIt to before newIt
+      myList.splice(newIt, myList, oldIt);
+    } else {
+      auto oldIt = std::next(myList.begin(), oldPos);
+      auto newIt = std::next(myList.begin(), newPos);
+      // Splice the element at oldIt to before newIt
+      myList.splice(newIt, myList, oldIt);
+    }
   };
 
   auto moveRow = [&](int fromRow, int toRow) {
@@ -387,17 +384,8 @@ void PanelPipeline::movePipelineToPosition(const QWidget *toMove, size_t fromPos
     }
   };
 
-  auto it = std::find_if(mChannels.begin(), mChannels.end(), [&toMove](std::pair<const std::unique_ptr<PanelPipelineSettings>, void *> &entry) {
-    return entry.first.get()->getOverviewPanel() == toMove;
-  });
-  std::cout << "Move" << std::endl;
-  if(it != mChannels.end()) {
-    std::cout << "Move okay" << std::endl;
-
-    void *elementToMove = it->second;
-    moveElementToListPosition(mAnalyzeSettings.pipelines, elementToMove, newPos);
-    moveRow(fromPos, newPos);
-  }
+  moveElementToListPosition(mAnalyzeSettings.pipelines, fromPos, newPos);
+  moveRow(fromPos, newPos);
 
   mWindowMain->checkForSettingsChanged();
 }
