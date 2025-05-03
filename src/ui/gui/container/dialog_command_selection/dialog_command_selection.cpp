@@ -30,6 +30,7 @@
 #include "backend/commands/image_functions/threshold/threshold_settings.hpp"
 #include "backend/commands/image_functions/threshold_adaptive/threshold_adaptive_settings.hpp"
 #include "backend/commands/image_functions/watershed/watershed_settings.hpp"
+#include "backend/commands/object_functions/measure_distance/measure_distance_settings.hpp"
 #include "backend/commands/object_functions/object_transform/object_transform_settings.hpp"
 #include "backend/commands/object_functions/validator_threshold/validator_threshold_settings.hpp"
 #include "backend/commands/object_functions/voronoi_grid/voronoi_grid_settings.hpp"
@@ -194,6 +195,7 @@ void DialogCommandSelection::addCommandsToTable()
     addTitleToTable("Measurement", Group::MEASUREMENT);
     addCommandToTable(settings::PipelineStep{.$colocalization = settings::ColocalizationSettings{}}, Group::MEASUREMENT);
     addCommandToTable(settings::PipelineStep{.$measureIntensity = settings::MeasureIntensitySettings{}}, Group::MEASUREMENT);
+    addCommandToTable(settings::PipelineStep{.$measureDistance = settings::MeasureDistanceSettings{}}, Group::MEASUREMENT);
   }
 
   {
