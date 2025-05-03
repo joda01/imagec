@@ -59,22 +59,11 @@ public:
 
   struct Distance
   {
-    uint64_t objectIdDistanceTo         = 0;    ///< Object ID of the object the distance was calculated to.
     double distanceCentroidToCentroid   = 0;    ///< Euclid distance from centroid to centroid.
     double distanceCentroidToSurfaceMin = 0;    ///< Smallest euclid distance from centroid to surface.
     double distanceCentroidToSurfaceMax = 0;    ///< Highest euclid distance from centroid to surface.
     double distanceSurfaceToSurfaceMin  = 0;    ///< Smallest euclid distance from surface to surface.
     double distanceSurfaceToSurfaceMax  = 0;    ///< Highest euclid distance from surface to surface.
-
-    void print() const
-    {
-      std::cout << "OID: " << std::to_string(objectIdDistanceTo) << std::endl;
-      std::cout << "CTC: " << std::to_string(distanceCentroidToCentroid) << std::endl;
-      std::cout << "CTS: " << std::to_string(distanceCentroidToSurfaceMin) << std::endl;
-      std::cout << "CTS: " << std::to_string(distanceCentroidToSurfaceMax) << std::endl;
-      std::cout << "STS: " << std::to_string(distanceSurfaceToSurfaceMin) << std::endl;
-      std::cout << "STS: " << std::to_string(distanceSurfaceToSurfaceMax) << std::endl;
-    }
   };
 
   struct Intersecting

@@ -444,7 +444,7 @@ auto ROI::measureDistanceAndAdd(const ROI &secondRoi) -> Distance
   }
 
   distance.distanceCentroidToCentroid = cv::norm(getCentroidReal() - secondRoi.getCentroidReal());
-  distances[getObjectId()]            = distance;
+  distances[secondRoi.getObjectId()]  = distance;
   // distance.print();
   return distance;
 }

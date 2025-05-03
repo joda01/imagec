@@ -45,13 +45,13 @@ public:
   {
     //
     //
-    classesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, {}, "Classes in");
+    classesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, {}, "Distance from (e.g. spot-in-cell)");
     classesIn->setValue(settings.inputClasses);
     classesIn->connectWithSetting(&settings.inputClasses);
 
     //
     //
-    classesInSecond = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, {}, "Classes in");
+    classesInSecond = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, {}, "Distance to (e.g. cell, nucleus)");
     classesInSecond->setValue(settings.inputClassesSecond);
     classesInSecond->connectWithSetting(&settings.inputClassesSecond);
 
