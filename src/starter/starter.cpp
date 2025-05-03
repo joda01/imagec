@@ -334,12 +334,6 @@ void Starter::startUi(QApplication &app, QSplashScreen *splashScreen, joda::upda
         QPushButton {
             min-height: 26px;
         }
-        QWidget#PanelChannelOverview {
-          border-radius: 0px;
-          border-bottom: 1px solid rgb(170, 170, 170);
-          padding-top: 10px;
-          padding-bottom: 10px;
-        }
     )";
 
   app.setStyleSheet(stylesheet);

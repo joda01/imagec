@@ -21,6 +21,7 @@
 #include "backend/settings/pipeline/pipeline.hpp"
 
 class DroppableWidget;
+class PlaceholderTableWidget;
 
 namespace joda::ui::gui {
 
@@ -56,10 +57,12 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  [[nodiscard]] auto getSelectedPipeline() const -> PanelPipelineSettings *;
   void onAddChannel(const QString &path);
+  void movePipelineToPosition(const QWidget *widgetToMove, size_t fromPos, size_t newPos);
 
   /////////////////////////////////////////////////////
-  DroppableWidget *mContentWidget;
+  PlaceholderTableWidget *mPipelineTable;
   std::map<std::unique_ptr<PanelPipelineSettings>, void *> mChannels;    // The second value is the pointer to the array entry in the AnalyzeSettings
   WindowMain *mWindowMain;
   joda::settings::AnalyzeSettings &mAnalyzeSettings;
@@ -68,10 +71,11 @@ private:
   // ACTIONS///////////////////////////////////////////////////
   QAction *mActionStart;
   QMenu *mTemplatesMenu;
-  QScrollArea *mPipelineWidget;
 
 private slots:
-  void dropFinishedEvent();
+  void openSelectedPipeline();
+  void moveUp();
+  void moveDown();
 };
 
 }    // namespace joda::ui::gui

@@ -14,6 +14,7 @@
 #include <qgridlayout.h>
 #include <qlabel.h>
 #include <qlineedit.h>
+#include <qmessagebox.h>
 #include <qnamespace.h>
 #include "ui/gui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/gui/window_main/window_main.hpp"
@@ -71,20 +72,6 @@ void PanelChannelOverview::paintEvent(QPaintEvent *event)
   painter.setRenderHint(QPainter::Antialiasing);
 
   //
-  // Handel for move
-  //
-  {
-    int x          = width() - HANDLE_WITH;
-    int ovalHeight = 2;    //(height() - 8 - 8) / 3;
-    painter.setBrush(Qt::lightGray);
-    QPen pen(Qt::lightGray, 1);    // darkYellow, 5px width
-    painter.setPen(pen);
-    painter.drawEllipse(x, 4, ovalHeight, ovalHeight);
-    painter.drawEllipse(x, ovalHeight + 8, ovalHeight, ovalHeight);
-    painter.drawEllipse(x, ovalHeight * 2 + 8 + 4, ovalHeight, ovalHeight);
-  }
-
-  //
   // Paint if disables
   //
   if((mParentContainer != nullptr) && (mParentContainer->mActionDisabled != nullptr) && mParentContainer->mActionDisabled->isChecked()) {
@@ -106,49 +93,11 @@ void PanelChannelOverview::paintEvent(QPaintEvent *event)
   QWidget::paintEvent(event);    // Call the base class paint event
 }
 
-///
-/// \brief      Constructor
-/// \author     Joachim Danmayr
-///
-void PanelChannelOverview::mousePressEvent(QMouseEvent *event)
-{
-  if(event->button() == Qt::LeftButton && event->position().x() >= (size().width() - HANDLE_WITH - 2)) {
-    startDrag();
-  }
-
-  QWidget::mousePressEvent(event);
-}
-
 void PanelChannelOverview::mouseDoubleClickEvent(QMouseEvent *event)
 {
   if(event->button() == Qt::LeftButton) {
-    mWindowMain->showPanelPipelineSettingsEdit(mParentContainer);
+    QMessageBox::information(mWindowMain, "Hint...", "One click is enough to open ;)");
   }
-}
-
-void PanelChannelOverview::startDrag()
-{
-  QDrag *drag         = new QDrag(this);
-  QMimeData *mimeData = new QMimeData;
-  mimeData->setText(QString::number((qintptr) this));    // Store the widget's address as text
-  drag->setMimeData(mimeData);
-
-  // Create a pixmap for the drag image (optional, but recommended)
-  QPixmap pixmap(size());                     // Create a pixmap of the widget's size
-  pixmap.fill(QColor(200, 200, 200, 192));    // Fill it with gray
-
-  QPainter painter(&pixmap);
-  render(&painter);    // Render the widget onto the pixmap
-  painter.end();
-
-  // Calculate the offset between the mouse click and the widget's center
-  QPoint mousePosInWidget = mapFromGlobal(QCursor::pos());
-  QPoint offset           = mousePosInWidget - QPoint(width() / 2, height() / 2);
-
-  drag->setPixmap(pixmap);
-  drag->setHotSpot(QPoint(pixmap.width() / 2 + offset.x(), pixmap.height() / 2));    // Center the hotspot
-
-  drag->exec(Qt::CopyAction | Qt::MoveAction);
 }
 
 }    // namespace joda::ui::gui
