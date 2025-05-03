@@ -19,7 +19,6 @@
 #include "backend/commands/classification/classifier_filter.hpp"
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
-
 #include "ui/gui/container/command/command.hpp"
 #include "ui/gui/container/setting/setting_base.hpp"
 #include "ui/gui/container/setting/setting_combobox_multi.hpp"
@@ -27,20 +26,20 @@
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/setting_generator.hpp"
-#include "measure_settings.hpp"
+#include "measure_intensity_settings.hpp"
 
 namespace joda::ui::gui {
 
-class Measure : public Command
+class MeasureIntensity : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE             = "Measure";
+  inline static std::string TITLE             = "Measure intensity";
   inline static std::string ICON              = "tool-measure";
   inline static std::string DESCRIPTION       = "Measure the intensity of objects areas in an image channel.";
   inline static std::vector<std::string> TAGS = {"intensity", "measure", "object"};
 
-  Measure(joda::settings::PipelineStep &pipelineStep, settings::MeasureSettings &settings, QWidget *parent) :
+  MeasureIntensity(joda::settings::PipelineStep &pipelineStep, settings::MeasureIntensitySettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings),
       mParent(parent)
   {
@@ -62,20 +61,20 @@ public:
       zStackIdx = cStack.imagePlane.zStack;
     }
     cStackIndex->setValue(cStacks);
-    connect(cStackIndex.get(), &SettingBase::valueChanged, this, &Measure::onCStackChanged);
+    connect(cStackIndex.get(), &SettingBase::valueChanged, this, &MeasureIntensity::onCStackChanged);
 
     //
     //
     zProjection = generateZProjection(true, parent);
     zProjection->setValue(zProject);
-    connect(zProjection.get(), &SettingBase::valueChanged, this, &Measure::onCStackChanged);
+    connect(zProjection.get(), &SettingBase::valueChanged, this, &MeasureIntensity::onCStackChanged);
 
     //
     //
     //
     zStackIndex = generateStackIndexCombo(true, "Z-Channel", parent);
     zStackIndex->setValue(zStackIdx);
-    connect(zStackIndex.get(), &SettingBase::valueChanged, this, &Measure::onCStackChanged);
+    connect(zStackIndex.get(), &SettingBase::valueChanged, this, &MeasureIntensity::onCStackChanged);
 
     //
     //
@@ -95,7 +94,7 @@ private:
   std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjection;
   std::unique_ptr<SettingSpinBox<int32_t>> zStackIndex;
 
-  settings::MeasureSettings &mSettings;
+  settings::MeasureIntensitySettings &mSettings;
   QWidget *mParent;
 private slots:
 

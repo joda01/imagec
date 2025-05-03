@@ -178,14 +178,14 @@ auto AnalyzeSettings::getImageChannelsUsedForMeasurement() const -> std::map<enu
   std::map<enums::ClassId, std::set<int32_t>> usedImageChannels;
   for(const auto &pipeline : pipelines) {
     for(const auto &step : pipeline.pipelineSteps) {
-      if(step.$measure.has_value()) {
+      if(step.$measureIntensity.has_value()) {
         // step.$reclassify.value().inputClasses;
-        for(const auto &imagePlane : step.$measure.value().planesIn) {
+        for(const auto &imagePlane : step.$measureIntensity.value().planesIn) {
           int32_t imageChannelTmp = imagePlane.imagePlane.cStack;
           if(imageChannelTmp < 0) {
             imageChannelTmp = pipeline.pipelineSetup.cStackIndex;
           }
-          for(const auto baseClassId : step.$measure.value().inputClasses) {
+          for(const auto baseClassId : step.$measureIntensity.value().inputClasses) {
             enums::ClassId classId;
             if(baseClassId == enums::ClassIdIn::$) {
               classId = pipeline.pipelineSetup.defaultClassId;

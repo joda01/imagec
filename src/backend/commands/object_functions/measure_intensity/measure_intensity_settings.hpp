@@ -18,7 +18,6 @@
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_classes.hpp"
-
 #include "backend/enums/types.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/processor/initializer/pipeline_settings.hpp"
@@ -28,7 +27,7 @@
 
 namespace joda::settings {
 
-struct MeasureSettings : public SettingBase
+struct MeasureIntensitySettings : public SettingBase
 {
   //
   // Classes to calculate to measure for
@@ -55,7 +54,7 @@ struct MeasureSettings : public SettingBase
     return classes;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MeasureSettings, inputClasses, planesIn);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MeasureIntensitySettings, inputClasses, planesIn);
 };
 
 }    // namespace joda::settings

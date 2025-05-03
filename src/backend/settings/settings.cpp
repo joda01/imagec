@@ -50,6 +50,7 @@ auto Settings::openSettings(const std::filesystem::path &pathIn) -> joda::settin
 void Settings::migrateSettings(std::string &settings)
 {
   helper::stringReplace(settings, "$edgeDetection", "$sobel");
+  helper::stringReplace(settings, "\"$measure\"", "\"$measureIntensity\"");
 }
 
 ///
