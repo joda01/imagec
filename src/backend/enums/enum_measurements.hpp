@@ -35,32 +35,45 @@ enum class Measurement
   INTENSITY_AVG,
   INTENSITY_MIN,
   INTENSITY_MAX,
-  CENTER_OF_MASS_X,
-  CENTER_OF_MASS_Y,
+  CENTEROID_X,
+  CENTEROID_Y,
   BOUNDING_BOX_WIDTH,
   BOUNDING_BOX_HEIGHT,
-  INTERSECTING
+  INTERSECTING,
+  DISTANCE_CENTER_TO_CENTER,
+  DISTANCE_CENTER_TO_SURFACE_MIN,
+  DISTANCE_CENTER_TO_SURFACE_MAX,
+  DISTANCE_SURFACE_TO_SURFACE_MIN,
+  DISTANCE_SURFACE_TO_SURFACE_MAX,
+
 };
 
-NLOHMANN_JSON_SERIALIZE_ENUM(Measurement, {{Measurement::NONE, "None"},
-                                           {Measurement::COUNT, "Count"},
-                                           {Measurement::CONFIDENCE, "Confidence"},
-                                           {Measurement::AREA_SIZE, "AreaSize"},
-                                           {Measurement::PERIMETER, "Perimeter"},
-                                           {Measurement::CIRCULARITY, "Circularity"},
-                                           {Measurement::INTENSITY_SUM, "IntensitySum"},
-                                           {Measurement::INTENSITY_AVG, "IntensityAvg"},
-                                           {Measurement::INTENSITY_MIN, "IntensityMin"},
-                                           {Measurement::INTENSITY_MAX, "IntensityMax"},
-                                           {Measurement::CENTER_OF_MASS_X, "CenterOfMassX"},
-                                           {Measurement::CENTER_OF_MASS_Y, "CenterOfMassY"},
-                                           {Measurement::OBJECT_ID, "ObjectId"},
-                                           {Measurement::ORIGIN_OBJECT_ID, "OriginObjectId"},
-                                           {Measurement::PARENT_OBJECT_ID, "ParentObjectId"},
-                                           {Measurement::TRACKING_ID, "TrackingId"},
-                                           {Measurement::BOUNDING_BOX_WIDTH, "BoxWidth"},
-                                           {Measurement::BOUNDING_BOX_HEIGHT, "BoxHeight"},
-                                           {Measurement::INTERSECTING, "Intersecting"}});
+NLOHMANN_JSON_SERIALIZE_ENUM(Measurement, {
+                                              {Measurement::NONE, "None"},
+                                              {Measurement::COUNT, "Count"},
+                                              {Measurement::CONFIDENCE, "Confidence"},
+                                              {Measurement::AREA_SIZE, "AreaSize"},
+                                              {Measurement::PERIMETER, "Perimeter"},
+                                              {Measurement::CIRCULARITY, "Circularity"},
+                                              {Measurement::INTENSITY_SUM, "IntensitySum"},
+                                              {Measurement::INTENSITY_AVG, "IntensityAvg"},
+                                              {Measurement::INTENSITY_MIN, "IntensityMin"},
+                                              {Measurement::INTENSITY_MAX, "IntensityMax"},
+                                              {Measurement::CENTEROID_X, "CenteroidX"},
+                                              {Measurement::CENTEROID_Y, "CenteroidY"},
+                                              {Measurement::OBJECT_ID, "ObjectId"},
+                                              {Measurement::ORIGIN_OBJECT_ID, "OriginObjectId"},
+                                              {Measurement::PARENT_OBJECT_ID, "ParentObjectId"},
+                                              {Measurement::TRACKING_ID, "TrackingId"},
+                                              {Measurement::BOUNDING_BOX_WIDTH, "BoxWidth"},
+                                              {Measurement::BOUNDING_BOX_HEIGHT, "BoxHeight"},
+                                              {Measurement::INTERSECTING, "Intersecting"},
+                                              {Measurement::DISTANCE_CENTER_TO_CENTER, "DistanceCentroidToCentoid"},
+                                              {Measurement::DISTANCE_CENTER_TO_SURFACE_MIN, "DistanceCentroidToSurfaceMin"},
+                                              {Measurement::DISTANCE_CENTER_TO_SURFACE_MAX, "DistanceCentroidToSurfaceMax"},
+                                              {Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN, "DistanceSurfaceToSurfaceMin"},
+                                              {Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX, "DistanceSurfaceToSurfaceMax"},
+                                          });
 
 enum class Stats
 {
@@ -125,9 +138,9 @@ inline std::string toString(const Measurement &enumIn)
       return "Intensity min";
     case Measurement::INTENSITY_MAX:
       return "Intensity max";
-    case Measurement::CENTER_OF_MASS_X:
+    case Measurement::CENTEROID_X:
       return "x";
-    case Measurement::CENTER_OF_MASS_Y:
+    case Measurement::CENTEROID_Y:
       return "y";
     case Measurement::OBJECT_ID:
       return "Object ID";
@@ -139,6 +152,16 @@ inline std::string toString(const Measurement &enumIn)
       return "Tracking ID";
     case Measurement::INTERSECTING:
       return "Intersection";
+    case Measurement::DISTANCE_CENTER_TO_CENTER:
+      return "Dist. center-center";
+    case Measurement::DISTANCE_CENTER_TO_SURFACE_MIN:
+      return "Dist. center-surface min";
+    case Measurement::DISTANCE_CENTER_TO_SURFACE_MAX:
+      return "Dist. center-surface max";
+    case Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN:
+      return "Dist. surface-surface min";
+    case Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX:
+      return "Dist. surface-surface max";
   }
   return "";
 }

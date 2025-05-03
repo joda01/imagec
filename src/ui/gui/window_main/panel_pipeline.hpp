@@ -54,6 +54,7 @@ public:
   {
     return mChannels;
   }
+  void unselectPipeline();
 
 private:
   /////////////////////////////////////////////////////

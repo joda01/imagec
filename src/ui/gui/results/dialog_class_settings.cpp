@@ -169,17 +169,23 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
 
   addSeparator(7);
-  addMeasure("Position", 8, 0, enums::Measurement::CENTER_OF_MASS_X, {enums::Stats::OFF}, {enums::Stats::OFF});
-  // addMeasure("Distance to surface min", 9, 0, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG, enums::Stats::SUM});
-  // addMeasure("Distance to surface max", 9, 1, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG, enums::Stats::SUM});
-  // addMeasure("Distance to center min", 10, 0, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG, enums::Stats::SUM});
-  // addMeasure("Distance to center max", 10, 1, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG, enums::Stats::SUM});
+  addMeasure("Position", 8, 0, enums::Measurement::CENTEROID_X, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Distance to surface min", 8, 1, enums::Measurement::DISTANCE_CENTER_TO_CENTER, {enums::Stats::AVG},
+             {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
+  addMeasure("Distance to surface max", 9, 0, enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN, {enums::Stats::AVG},
+             {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
+  addMeasure("Distance to center min", 9, 1, enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX, {enums::Stats::AVG},
+             {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
+  addMeasure("Distance to center max", 10, 0, enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN, {enums::Stats::AVG},
+             {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
+  addMeasure("Distance to center max", 10, 1, enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX, {enums::Stats::AVG},
+             {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
 
-  addSeparator(9);
-  addMeasure("Object ID", 10, 0, enums::Measurement::OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
-  addMeasure("Parent object ID", 10, 1, enums::Measurement::PARENT_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
-  addMeasure("Origin object ID", 11, 0, enums::Measurement::ORIGIN_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
-  addMeasure("Tracking ID", 11, 1, enums::Measurement::TRACKING_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addSeparator(11);
+  addMeasure("Object ID", 12, 0, enums::Measurement::OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Parent object ID", 12, 1, enums::Measurement::PARENT_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Origin object ID", 13, 0, enums::Measurement::ORIGIN_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Tracking ID", 13, 1, enums::Measurement::TRACKING_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
 
   //
   // Create a horizontal layout for the buttons
@@ -308,9 +314,8 @@ void DialogClassSettings::toSettings(joda::settings::Class &classs)
       }
 
       classs.defaultMeasurements.emplace_back(joda::settings::ResultsTemplate{.measureChannel = measure, .stats = stats});
-      if(measure == enums::Measurement::CENTER_OF_MASS_X) {
-        classs.defaultMeasurements.emplace_back(
-            joda::settings::ResultsTemplate{.measureChannel = enums::Measurement::CENTER_OF_MASS_Y, .stats = stats});
+      if(measure == enums::Measurement::CENTEROID_X) {
+        classs.defaultMeasurements.emplace_back(joda::settings::ResultsTemplate{.measureChannel = enums::Measurement::CENTEROID_Y, .stats = stats});
       }
     }
   }

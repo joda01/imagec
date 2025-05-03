@@ -49,8 +49,8 @@ DialogColumnSettings::DialogColumnSettings(settings::ResultsSettings *filter, QW
   mMeasurementSelector->addItem("Perimeter", (int32_t) joda::enums::Measurement::PERIMETER);
   mMeasurementSelector->addItem("Circularity", (int32_t) joda::enums::Measurement::CIRCULARITY);
   mMeasurementSelector->insertSeparator(mMeasurementSelector->count());
-  mMeasurementSelector->addItem("Center of mass X", (int32_t) joda::enums::Measurement::CENTER_OF_MASS_X);
-  mMeasurementSelector->addItem("Center of mass Y", (int32_t) joda::enums::Measurement::CENTER_OF_MASS_Y);
+  mMeasurementSelector->addItem("Centroid X", (int32_t) joda::enums::Measurement::CENTEROID_X);
+  mMeasurementSelector->addItem("Centroid Y", (int32_t) joda::enums::Measurement::CENTEROID_Y);
   mMeasurementSelector->insertSeparator(mMeasurementSelector->count());
   mMeasurementSelector->addItem("Intensity sum.", (int32_t) joda::enums::Measurement::INTENSITY_SUM);
   mMeasurementSelector->addItem("Intensity avg.", (int32_t) joda::enums::Measurement::INTENSITY_AVG);
@@ -58,6 +58,11 @@ DialogColumnSettings::DialogColumnSettings(settings::ResultsSettings *filter, QW
   mMeasurementSelector->addItem("Intensity max.", (int32_t) joda::enums::Measurement::INTENSITY_MAX);
   mMeasurementSelector->insertSeparator(mMeasurementSelector->count());
   mMeasurementSelector->addItem("Intersection", (int32_t) joda::enums::Measurement::INTERSECTING);
+  mMeasurementSelector->addItem("Distance center to center", (int32_t) joda::enums::Measurement::DISTANCE_CENTER_TO_CENTER);
+  mMeasurementSelector->addItem("Distance center to surface min", (int32_t) joda::enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN);
+  mMeasurementSelector->addItem("Distance center to surface max", (int32_t) joda::enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX);
+  mMeasurementSelector->addItem("Distance surface to surface min", (int32_t) joda::enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN);
+  mMeasurementSelector->addItem("Distance surface to surface max", (int32_t) joda::enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX);
   mMeasurementSelector->insertSeparator(mMeasurementSelector->count());
   mMeasurementSelector->addItem("Object ID", (int32_t) joda::enums::Measurement::OBJECT_ID);
   mMeasurementSelector->addItem("Origin object ID", (int32_t) joda::enums::Measurement::ORIGIN_OBJECT_ID);
@@ -148,10 +153,15 @@ DialogColumnSettings::DialogColumnSettings(settings::ResultsSettings *filter, QW
 ///
 void DialogColumnSettings::checkForIntersecting()
 {
-  if(mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::INTERSECTING) {
-    mClasssIntersection->setEnabled(false);
-  } else {
+  if(mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::INTERSECTING ||
+     mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::DISTANCE_CENTER_TO_CENTER ||
+     mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN ||
+     mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX ||
+     mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN ||
+     mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX) {
     mClasssIntersection->setEnabled(true);
+  } else {
+    mClasssIntersection->setEnabled(false);
   }
 
   if(mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::INTENSITY_SUM &&

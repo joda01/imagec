@@ -230,6 +230,7 @@ void Database::createTables()
       "	image_id UBIGINT,"
       " object_id UBIGINT,"
       " meas_object_id UBIGINT,"
+      " meas_class_id USMALLINT,"    // We do this for performance reason to don't need a join in the query
       " meas_stack_c UINTEGER,"
       " meas_stack_z UINTEGER,"
       " meas_stack_t UINTEGER,"
@@ -347,23 +348,29 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
       // Distance
       //
       for(const auto &[measObjectId, distance] : roi.getDistances()) {
-        distance_measurements.BeginRow();
-        // Primary key
-        distance_measurements.Append<uint64_t>(imgContext.imageId);    //       "	image_id UBIGINT,"
-        distance_measurements.Append<uint64_t>(roi.getObjectId());     //       " object_id UBIGINT,"
-        distance_measurements.Append<uint64_t>(measObjectId);          //       " meas_object_id UBIGINT,"
+        try {
+          distance_measurements.BeginRow();
+          // Primary key
+          distance_measurements.Append<uint64_t>(imgContext.imageId);    //       "	image_id UBIGINT,"
+          distance_measurements.Append<uint64_t>(roi.getObjectId());     //       " object_id UBIGINT,"
+          distance_measurements.Append<uint64_t>(measObjectId);          //       " meas_object_id UBIGINT,"
+          distance_measurements.Append<uint16_t>(
+              static_cast<uint16_t>(objectsList.getObjectById(measObjectId)->getClassId()));    //       " meas_class_id USMALLINT,"
 
-        //  Data
-        distance_measurements.Append<uint32_t>(roi.getC());                             //       " meas_stack_c UINTEGER,"
-        distance_measurements.Append<uint32_t>(roi.getZ());                             //       " meas_stack_z UINTEGER,"
-        distance_measurements.Append<uint32_t>(roi.getT());                             //       " meas_stack_t UINTEGER,"
-        distance_measurements.Append<double>(distance.distanceCentroidToCentroid);      // meas_distance_center_to_center DOUBLE,"
-        distance_measurements.Append<double>(distance.distanceCentroidToSurfaceMin);    // meas_distance_center_to_surface_min DOUBLE,"
-        distance_measurements.Append<double>(distance.distanceCentroidToSurfaceMax);    // meas_distance_center_to_surface_max DOUBLE,"
-        distance_measurements.Append<double>(distance.distanceSurfaceToSurfaceMin);     // meas_distance_surface_to_surface_min DOUBLE,
-        distance_measurements.Append<double>(distance.distanceSurfaceToSurfaceMax);     // meas_distance_surface_to_surface_max DOUBLE"
+          //  Data
+          distance_measurements.Append<uint32_t>(roi.getC());                             //       " meas_stack_c UINTEGER,"
+          distance_measurements.Append<uint32_t>(roi.getZ());                             //       " meas_stack_z UINTEGER,"
+          distance_measurements.Append<uint32_t>(roi.getT());                             //       " meas_stack_t UINTEGER,"
+          distance_measurements.Append<double>(distance.distanceCentroidToCentroid);      // meas_distance_center_to_center DOUBLE,"
+          distance_measurements.Append<double>(distance.distanceCentroidToSurfaceMin);    // meas_distance_center_to_surface_min DOUBLE,"
+          distance_measurements.Append<double>(distance.distanceCentroidToSurfaceMax);    // meas_distance_center_to_surface_max DOUBLE,"
+          distance_measurements.Append<double>(distance.distanceSurfaceToSurfaceMin);     // meas_distance_surface_to_surface_min DOUBLE,
+          distance_measurements.Append<double>(distance.distanceSurfaceToSurfaceMax);     // meas_distance_surface_to_surface_max DOUBLE"
 
-        distance_measurements.EndRow();
+          distance_measurements.EndRow();
+        } catch(const std::exception &ex) {
+          joda::log::logError("Could not found object with ID >" + std::to_string(measObjectId) + "<");
+        }
       }
     }
   }

@@ -49,6 +49,7 @@ public:
     ID,
     OBJECT,
     INTENSITY,
+    DISTANCE,
     INTERSECTION
   };
 
@@ -60,8 +61,14 @@ public:
       case enums::Measurement::INTENSITY_MIN:
       case enums::Measurement::INTENSITY_MAX:
         return MeasureType::INTENSITY;
-      case enums::Measurement::CENTER_OF_MASS_X:
-      case enums::Measurement::CENTER_OF_MASS_Y:
+      case enums::Measurement::DISTANCE_CENTER_TO_CENTER:
+      case enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN:
+      case enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX:
+      case enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN:
+      case enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX:
+        return MeasureType::DISTANCE;
+      case enums::Measurement::CENTEROID_X:
+      case enums::Measurement::CENTEROID_Y:
       case enums::Measurement::CONFIDENCE:
       case enums::Measurement::AREA_SIZE:
       case enums::Measurement::PERIMETER:
@@ -158,6 +165,10 @@ public:
       if(getType(measureChannel) == MeasureType::ID) {
         return names.className + "-" + toString(measureChannel) + "\n" + stacks;
       }
+      if(getType(measureChannel) == MeasureType::DISTANCE) {
+        return names.className + " to " + names.intersectingName + "-" + toString(measureChannel) + createStatsHeader(stats) + stacks;
+      }
+
       return names.className + "-" + toString(measureChannel) + createStatsHeader(stats) + stacks;
     }
 

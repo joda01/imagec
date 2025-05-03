@@ -129,6 +129,17 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
 
   setLayout(layout);
 }
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipeline::unselectPipeline()
+{
+  mPipelineTable->clearSelection();
+}
 
 ///
 /// \brief

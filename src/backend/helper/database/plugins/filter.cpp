@@ -225,9 +225,9 @@ std::string PreparedStatement::getMeasurement(enums::Measurement measure, bool t
         return "counted";
       }
       return "1";
-    case enums::Measurement::CENTER_OF_MASS_X:
+    case enums::Measurement::CENTEROID_X:
       return "meas_center_x";
-    case enums::Measurement::CENTER_OF_MASS_Y:
+    case enums::Measurement::CENTEROID_Y:
       return "meas_center_y";
     case enums::Measurement::CONFIDENCE:
       return "meas_confidence";
@@ -259,6 +259,16 @@ std::string PreparedStatement::getMeasurement(enums::Measurement measure, bool t
       return "meas_tracking_id";
     case enums::Measurement::INTERSECTING:
       return "recursive_child_count_";
+    case enums::Measurement::DISTANCE_CENTER_TO_CENTER:
+      return "meas_distance_center_to_center";
+    case enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN:
+      return "meas_distance_center_to_surface_min";
+    case enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX:
+      return "meas_distance_center_to_surface_max";
+    case enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN:
+      return "meas_distance_surface_to_surface_min";
+    case enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX:
+      return "meas_distance_surface_to_surface_max";
   }
   if(textual) {
     return "none";

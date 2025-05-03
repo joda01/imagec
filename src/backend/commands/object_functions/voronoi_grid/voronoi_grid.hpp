@@ -48,7 +48,7 @@ public:
     cv::Size size = context.getImageSize();
     cv::Rect rect(0, 0, size.width, size.height);
     cv::Subdiv2D subdiv(rect);
-    atom::SpheralIndex voronoiPoints;
+    atom::SpheralIndexStandAlone voronoiPoints;
 
     for(const auto &inputPoints : mSettings.inputClassesPoints) {
       const auto *voronoiPointsTmp = context.loadObjectsFromCache()->at(context.getClassId(inputPoints)).get();
@@ -74,11 +74,9 @@ public:
      cv::imwrite("test.jpg", image);
      */
 
-    atom::SpheralIndex *response = objects[context.getClassId(mSettings.outputClassVoronoi)].get();
-
-    atom::SpheralIndex voronoiGrid;
+    atom::SpheralIndexStandAlone voronoiGrid;
     drawVoronoi(context, size, subdiv, mSettings.maxRadius, voronoiGrid);
-    applyFilter(context, voronoiGrid, voronoiPoints, *response, objects);
+    applyFilter(context, voronoiGrid, voronoiPoints, objects);
   }
 
   ///
@@ -87,7 +85,8 @@ public:
   /// \ref        https://learnopencv.com/delaunay-triangulation-and-voronoi-diagram-using-opencv-c-python/
   /// \param[in]   subdiv   Sub division points
   ///
-  void drawVoronoi(processor::ProcessContext &context, const cv::Size &imgSize, cv::Subdiv2D &subdiv, int circleSize, atom::SpheralIndex &result)
+  void drawVoronoi(processor::ProcessContext &context, const cv::Size &imgSize, cv::Subdiv2D &subdiv, int circleSize,
+                   atom::SpheralIndexStandAlone &result)
   {
     std::vector<std::vector<cv::Point2f>> facets;
     std::vector<cv::Point2f> centers;
@@ -144,7 +143,7 @@ public:
   }
 
   void applyFilter(processor::ProcessContext &context, const atom::SpheralIndex &voronoiGrid, const atom::SpheralIndex &voronoiPoints,
-                   atom::SpheralIndex &response, atom::ObjectList &objects);
+                   atom::ObjectList &objects);
 
   static bool doesAreaContainsPoint(const atom::ROI &voronoiArea, const atom::SpheralIndex &voronoiPoints, std::set<enums::ClassId> pointsClassIn)
   {

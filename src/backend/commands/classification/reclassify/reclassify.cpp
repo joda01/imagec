@@ -53,7 +53,7 @@ void Reclassify::execute(processor::ProcessContext &context, cv::Mat & /*image*/
 
       // Remove ROIs
       for(const auto *roi : roisToRemove) {
-        objectsInOut->erase(roi);
+        objectList->erase(roi);
       }
 
     } else {
