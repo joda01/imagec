@@ -24,14 +24,20 @@ class PanelChannelOverview : public QWidget
 public:
   /////////////////////////////////////////////////////
   PanelChannelOverview(WindowMain *, PanelPipelineSettings *);
+  [[nodiscard]] const PanelPipelineSettings *getParentContainer() const
+  {
+    return mParentContainer;
+  }
+  [[nodiscard]] PanelPipelineSettings *mutableParentContainer() const
+  {
+    return mParentContainer;
+  }
 
 private:
   /////////////////////////////////////////////////////
   static constexpr int32_t HANDLE_WITH = 8;
   /////////////////////////////////////////////////////
-  void startDrag();
   void paintEvent(QPaintEvent *event) override;
-  void mousePressEvent(QMouseEvent *event) override;
   void mouseDoubleClickEvent(QMouseEvent *event) override;
   PanelPipelineSettings *mParentContainer;
   WindowMain *mWindowMain;

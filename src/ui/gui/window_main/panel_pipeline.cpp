@@ -117,6 +117,8 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     mPipelineTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     mPipelineTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 
+    connect(mPipelineTable, &QTableWidget::itemSelectionChanged, [&]() { openSelectedPipeline(); });
+
     // auto *delegate = new PipelineOverviewDelegate(mPipelineTable);
     // mPipelineTable->setItemDelegateForColumn(0, delegate);    // Set the delegate for the desired column
   }
@@ -128,6 +130,47 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
   setLayout(layout);
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto PanelPipeline::getSelectedPipeline() const -> PanelPipelineSettings *
+{
+  int selectedRow = mPipelineTable->currentRow();
+
+  if(selectedRow >= 0) {
+    auto *item = ((PanelChannelOverview *) mPipelineTable->cellWidget(selectedRow, 0))->mutableParentContainer();
+    return item;
+  }
+
+  return nullptr;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipeline::openSelectedPipeline()
+{
+  auto *selected = getSelectedPipeline();
+  if(selected != nullptr) {
+    mWindowMain->showPanelPipelineSettingsEdit(selected);
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelPipeline::setActionStartEnabled(bool enabled)
 {
   mActionStart->setEnabled(enabled);
@@ -312,6 +355,7 @@ void PanelPipeline::addChannel(const nlohmann::json &json)
 ///
 void PanelPipeline::moveUp()
 {
+  mPipelineTable->blockSignals(true);
   auto rowAct  = mPipelineTable->currentRow();
   auto *widget = mPipelineTable->cellWidget(rowAct, 0);
   auto newPos  = rowAct - 1;
@@ -319,6 +363,7 @@ void PanelPipeline::moveUp()
     return;
   }
   movePipelineToPosition(widget, rowAct, newPos);
+  mPipelineTable->blockSignals(false);
 }
 
 ///
@@ -330,6 +375,7 @@ void PanelPipeline::moveUp()
 ///
 void PanelPipeline::moveDown()
 {
+  mPipelineTable->blockSignals(true);
   auto rowAct  = mPipelineTable->currentRow();
   auto *widget = mPipelineTable->cellWidget(rowAct, 0);
   auto newPos  = rowAct + 1;
@@ -337,6 +383,7 @@ void PanelPipeline::moveDown()
     return;
   }
   movePipelineToPosition(widget, rowAct, newPos);
+  mPipelineTable->blockSignals(false);
 }
 
 ///

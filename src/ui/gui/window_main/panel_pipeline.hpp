@@ -57,6 +57,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  [[nodiscard]] auto getSelectedPipeline() const -> PanelPipelineSettings *;
   void onAddChannel(const QString &path);
   void movePipelineToPosition(const QWidget *widgetToMove, size_t fromPos, size_t newPos);
 
@@ -72,6 +73,7 @@ private:
   QMenu *mTemplatesMenu;
 
 private slots:
+  void openSelectedPipeline();
   void moveUp();
   void moveDown();
 };
