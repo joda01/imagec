@@ -229,6 +229,7 @@ void Database::createTables()
       "CREATE TABLE IF NOT EXISTS distance_measurements ("
       "	image_id UBIGINT,"
       " object_id UBIGINT,"
+      " class_id USMALLINT,"    // Class ID of the foreign object. We store this to reduce the query complexity.
       " meas_object_id UBIGINT,"
       " meas_class_id USMALLINT,"    // We do this for performance reason to don't need a join in the query
       " meas_stack_c UINTEGER,"
@@ -351,9 +352,10 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
         try {
           distance_measurements.BeginRow();
           // Primary key
-          distance_measurements.Append<uint64_t>(imgContext.imageId);    //       "	image_id UBIGINT,"
-          distance_measurements.Append<uint64_t>(roi.getObjectId());     //       " object_id UBIGINT,"
-          distance_measurements.Append<uint64_t>(measObjectId);          //       " meas_object_id UBIGINT,"
+          distance_measurements.Append<uint64_t>(imgContext.imageId);                         //       "	image_id UBIGINT,"
+          distance_measurements.Append<uint64_t>(roi.getObjectId());                          //       " object_id UBIGINT,"
+          distance_measurements.Append<uint16_t>(static_cast<uint16_t>(roi.getClassId()));    //       " meas_class_id USMALLINT,"
+          distance_measurements.Append<uint64_t>(measObjectId);                               //       " meas_object_id UBIGINT,"
           distance_measurements.Append<uint16_t>(
               static_cast<uint16_t>(objectsList.getObjectById(measObjectId)->getClassId()));    //       " meas_class_id USMALLINT,"
 
