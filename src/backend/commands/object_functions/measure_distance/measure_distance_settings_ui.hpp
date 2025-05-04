@@ -21,8 +21,7 @@
 #include "backend/enums/enums_classes.hpp"
 #include "ui/gui/container/command/command.hpp"
 #include "ui/gui/container/setting/setting_base.hpp"
-#include "ui/gui/container/setting/setting_combobox_multi.hpp"
-#include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
+#include "ui/gui/container/setting/setting_combobox_classification_in.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/setting_generator.hpp"
@@ -45,13 +44,13 @@ public:
   {
     //
     //
-    classesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, {}, "Distance from (e.g. spot-in-cell)");
+    classesIn = SettingBase::create<SettingComboBoxClassificationIn>(parent, {}, "Distance from (e.g. spot-in-cell)");
     classesIn->setValue(settings.inputClasses);
     classesIn->connectWithSetting(&settings.inputClasses);
 
     //
     //
-    classesInSecond = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, {}, "Distance to (e.g. cell, nucleus)");
+    classesInSecond = SettingBase::create<SettingComboBoxClassificationIn>(parent, {}, "Distance to (e.g. cell, nucleus)");
     classesInSecond->setValue(settings.inputClassesSecond);
     classesInSecond->connectWithSetting(&settings.inputClassesSecond);
 
@@ -67,8 +66,8 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  std::unique_ptr<SettingComboBoxMultiClassificationIn> classesIn;
-  std::unique_ptr<SettingComboBoxMultiClassificationIn> classesInSecond;
+  std::unique_ptr<SettingComboBoxClassificationIn> classesIn;
+  std::unique_ptr<SettingComboBoxClassificationIn> classesInSecond;
 
   settings::MeasureDistanceSettings &mSettings;
   QWidget *mParent;

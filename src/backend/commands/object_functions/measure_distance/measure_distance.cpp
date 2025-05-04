@@ -24,24 +24,13 @@ void MeasureDistance::execute(processor::ProcessContext &context, cv::Mat & /*im
 {
   auto &store = *context.loadObjectsFromCache();
 
-  for(const auto &classIdIn : mSettings.inputClasses) {
-    if(!store.contains(context.getClassId(classIdIn))) {
-      continue;
-    }
-    for(const auto &classIdInSecond : mSettings.inputClassesSecond) {
-      if(!store.contains(context.getClassId(classIdInSecond))) {
-        continue;
-      }
+  auto *classsObjects       = store.at(context.getClassId(mSettings.inputClasses)).get();
+  auto *classsObjectsSecond = store.at(context.getClassId(mSettings.inputClassesSecond)).get();
 
-      auto *classsObjects       = store.at(context.getClassId(classIdIn)).get();
-      auto *classsObjectsSecond = store.at(context.getClassId(classIdInSecond)).get();
-
-      // Iterate over each object and calc the distance to each other
-      for(auto &object : *classsObjects) {
-        for(auto &objectSecond : *classsObjectsSecond) {
-          object.measureDistanceAndAdd(objectSecond);
-        }
-      }
+  // Iterate over each object and calc the distance to each other
+  for(auto &object : *classsObjects) {
+    for(auto &objectSecond : *classsObjectsSecond) {
+      object.measureDistanceAndAdd(objectSecond);
     }
   }
 }

@@ -119,7 +119,11 @@ public:
     bool operator<(const QueryKey &key) const
     {
       auto toUint128 = [](const QueryKey &key) -> stdi::uint128_t {
-        return stdi::uint128_t(static_cast<uint64>(key.classs) << 16 | static_cast<uint64>(key.distanceToClass),
+        if(key.distanceToClass == joda::enums::ClassId::NONE) {
+          // We want the none to be first this is neccessary for toHeatmap to keep the order the rows are queried
+          return stdi::uint128_t(static_cast<uint64>(key.classs), static_cast<uint64>(key.zStack) << 32 | static_cast<uint64>(key.tStack));
+        }
+        return stdi::uint128_t((static_cast<uint64>(key.distanceToClass) + 1) << 16 | static_cast<uint64>(key.classs),
                                static_cast<uint64>(key.zStack) << 32 | static_cast<uint64>(key.tStack));
       };
 
@@ -144,6 +148,17 @@ public:
       mResultingTable.at(element.tabIdx).setData(row, element.colIdx, tableCell);
       mResultingTable.at(element.tabIdx).setMeta({.className = colName.className});
     }
+  }
+
+  size_t getColIdxFromDbColIdx(const PreparedStatement &statement, size_t dbColIdx) const
+  {
+    size_t colIdx  = 0;
+    auto columnKey = statement.getColumnAt(dbColIdx);
+    for(auto [itr, rangeEnd] = mTableMapping.equal_range(columnKey); itr != rangeEnd; ++itr) {
+      auto &element = itr->second;
+      colIdx        = element.colIdx;
+    }
+    return colIdx;
   }
 
   void setRowID(const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, int32_t row, const std::string &rowName,

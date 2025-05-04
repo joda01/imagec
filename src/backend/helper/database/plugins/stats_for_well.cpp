@@ -30,8 +30,31 @@ auto transformMatrix(const std::vector<std::vector<int32_t>> &wellImageOrder, in
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSettings &filter, Grouping grouping) -> QueryResult
+auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSettings &filterIn, Grouping grouping) -> QueryResult
 {
+  //
+  // Remove object IDs, since they make no sense in an overview
+  //
+  settings::ResultsSettings filter;
+  std::map<int32_t, int32_t> tabColIdx;
+  for(const auto &[_, key] : filterIn.getColumns()) {
+    if(settings::ResultsSettings::getType(key.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE_ID ||
+       settings::ResultsSettings::getType(key.measureChannel) == settings::ResultsSettings::MeasureType::ID) {
+      continue;
+    }
+
+    if(!tabColIdx.contains(_.tabIdx)) {
+      tabColIdx.emplace(_.tabIdx, 0);
+    } else {
+      tabColIdx[_.tabIdx]++;
+    }
+    filter.addColumn({_.tabIdx, tabColIdx[_.tabIdx]}, key, key.names);
+  }
+  filter.setFilter(filterIn.getFilter(), filterIn.getPlateSetup(), filterIn.getDensityMapSettings());
+
+  //
+  // Generate exports
+  //
   auto classesToExport = ResultingTable(&filter);
 
   std::map<uint64_t, int32_t> rowIndexes;    // <ID, rowIdx>

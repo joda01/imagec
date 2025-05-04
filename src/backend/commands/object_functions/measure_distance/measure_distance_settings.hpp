@@ -32,12 +32,12 @@ struct MeasureDistanceSettings : public SettingBase
   //
   // Objects to calc the distance from
   //
-  ObjectInputClasses inputClasses;
+  ObjectInputClasss inputClasses;
 
   //
   // Objects to calc the distance to
   //
-  ObjectInputClasses inputClassesSecond;
+  ObjectInputClasss inputClassesSecond;
 
   /////////////////////////////////////////////////////
   void check() const
@@ -47,13 +47,9 @@ struct MeasureDistanceSettings : public SettingBase
   settings::ObjectInputClasses getInputClasses() const override
   {
     settings::ObjectInputClasses classes;
-    for(const auto &in : inputClasses) {
-      classes.emplace(in);
-    }
+    classes.emplace(inputClasses);
+    classes.emplace(inputClassesSecond);
 
-    for(const auto &in : inputClassesSecond) {
-      classes.emplace(in);
-    }
     return classes;
   }
 
