@@ -174,13 +174,13 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
   }
   query += ")";
 
-  std::string sql = intersect + "SELECT\n" + channelFilter.createStatsQuery(false, false) +
-                    "ANY_VALUE(t1.meas_center_x) as meas_center_x,\n"
-                    "ANY_VALUE(t1.meas_center_y) as meas_center_y,\n"
-                    "ANY_VALUE(t1.object_id) as object_id,\n"
-                    "ANY_VALUE(t1.meas_parent_object_id) as meas_parent_object_id,\n"
-                    "ANY_VALUE(t1.meas_tracking_id) as meas_tracking_id,\n"
-                    "ANY_VALUE(images.file_name) as file_name\n"
+  std::string sql = intersect + "SELECT\n" + channelFilter.createStatsQuery(false, false, "") +
+                    "(t1.meas_center_x) as meas_center_x,\n"
+                    "(t1.meas_center_y) as meas_center_y,\n"
+                    "(t1.object_id) as object_id,\n"
+                    "(t1.meas_parent_object_id) as meas_parent_object_id,\n"
+                    "(t1.meas_tracking_id) as meas_tracking_id,\n"
+                    "(images.file_name) as file_name\n"
                     "FROM\n"
                     "  " +
                     table + " t1\n" + channelFilter.createStatsQueryJoins() +
@@ -190,7 +190,6 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
                     " t1.image_id IN" +
                     query +
                     " AND t1.class_id=? AND stack_z=? AND stack_t=?\n"
-                    "GROUP BY t1.object_id\n"
                     "ORDER BY file_name,t1.object_id";
 
   DbArgs_t argsEnd = {static_cast<uint16_t>(classsAndClass.classs), static_cast<int32_t>(classsAndClass.zStack),

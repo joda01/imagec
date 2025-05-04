@@ -45,7 +45,8 @@ public:
   {
   }
 
-  std::string createStatsQuery(bool isOuter, bool excludeInvalid, std::optional<enums::Stats> overrideStats = std::nullopt) const;
+  std::string createStatsQuery(bool isOuter, bool excludeInvalid, const std::string &offValue = "ANY_VALUE",
+                               std::optional<enums::Stats> overrideStats = std::nullopt) const;
   std::string createStatsQueryJoins() const;
   std::tuple<std::string, std::string> createIntersectionQuery() const;
 
@@ -87,7 +88,7 @@ public:
 private:
   /////////////////////////////////////////////////////
   static std::string getMeasurement(enums::Measurement measure, bool textual);
-  static std::string getStatsString(enums::Stats stats);
+  static std::string getStatsString(enums::Stats stats, const std::string &offValue = "ANY_VALUE");
 
   /////////////////////////////////////////////////////
   std::map<int32_t, settings::ResultsSettings::ColumnKey> columns;

@@ -93,15 +93,16 @@ std::tuple<std::string, std::string> PreparedStatement::createIntersectionQuery(
 /// \param[out]
 /// \return
 ///
-std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvalid, std::optional<enums::Stats> overrideStats) const
+std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvalid, const std::string &offValue,
+                                                std::optional<enums::Stats> overrideStats) const
 {
   std::string channels;
   for(const auto &[_, column] : columns) {
-    auto createName = [&column = column, &isOuter](enums::Stats stats) -> std::string {
+    auto createName = [&column = column, &isOuter, &offValue](enums::Stats stats) -> std::string {
       if(!isOuter) {
         return getMeasurement(column.measureChannel, false);
       } else {
-        return getMeasurement(column.measureChannel, true) + "_" + getStatsString(stats);
+        return getMeasurement(column.measureChannel, true) + "_" + getStatsString(stats, offValue);
       }
     };
 
@@ -122,8 +123,8 @@ std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvali
         meas_suffix = "_" + std::to_string(column.crossChannelStacksC);
       }
 
-      channels += getStatsString(stats) + "(" + injectCase(tablePrefix + createName(column.stats) + meas_suffix) + ") as " +
-                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(column.stats) + "_" +
+      channels += getStatsString(stats, offValue) + "(" + injectCase(tablePrefix + createName(column.stats) + meas_suffix) + ") as " +
+                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(column.stats, offValue) + "_" +
                   std::to_string(column.crossChannelStacksC) + ",\n";
 
     } else if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::INTERSECTION) {
@@ -133,15 +134,15 @@ std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvali
       if(!isOuter) {
         colName = "recursive_child_count_" + chStr;
       } else {
-        colName = " recursive_child_count_" + chStr + "_" + getStatsString(column.stats);
+        colName = " recursive_child_count_" + chStr + "_" + getStatsString(column.stats, offValue);
       }
 
       std::string tablePrefix = " t1.";
       if(isOuter || column.measureChannel == enums::Measurement::COUNT) {
         tablePrefix = " ";
       }
-      channels += getStatsString(stats) + "(" + injectCase(tablePrefix + colName) + ") as " + "recursive_child_count_" + chStr + "_" +
-                  getStatsString(column.stats) + ",\n";
+      channels += getStatsString(stats, offValue) + "(" + injectCase(tablePrefix + colName) + ") as " + "recursive_child_count_" + chStr + "_" +
+                  getStatsString(column.stats, offValue) + ",\n";
 
     } else if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::ID) {
       std::string tablePrefix = " t1.";
@@ -149,22 +150,22 @@ std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvali
         tablePrefix = " ";
       }
       // We show the smallest object ID if we are in an overview mode
-      channels += getStatsString(enums::Stats::MIN) + "(" + injectCase(tablePrefix + createName(enums::Stats::MIN)) + ") as " +
-                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(enums::Stats::MIN) + ",\n";
+      channels += getStatsString(enums::Stats::MIN, offValue) + "(" + injectCase(tablePrefix + createName(enums::Stats::MIN)) + ") as " +
+                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(enums::Stats::MIN, offValue) + ",\n";
     } else if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE) {
       std::string tablePrefix = " td.";
       if(isOuter || column.measureChannel == enums::Measurement::COUNT) {
         tablePrefix = " ";
       }
-      channels += getStatsString(stats) + "(" + injectCase(tablePrefix + createName(column.stats)) + ") as " +
-                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(column.stats) + ",\n";
+      channels += getStatsString(stats, offValue) + "(" + injectCase(tablePrefix + createName(column.stats)) + ") as " +
+                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(column.stats, offValue) + ",\n";
     } else {
       std::string tablePrefix = " t1.";
       if(isOuter || column.measureChannel == enums::Measurement::COUNT) {
         tablePrefix = " ";
       }
-      channels += getStatsString(stats) + "(" + injectCase(tablePrefix + createName(column.stats)) + ") as " +
-                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(column.stats) + ",\n";
+      channels += getStatsString(stats, offValue) + "(" + injectCase(tablePrefix + createName(column.stats)) + ") as " +
+                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(column.stats, offValue) + ",\n";
     }
   }
 
@@ -212,7 +213,7 @@ std::string PreparedStatement::createStatsQueryJoins() const
   return joins;
 }
 
-std::string PreparedStatement::getStatsString(enums::Stats stats)
+std::string PreparedStatement::getStatsString(enums::Stats stats, const std::string &offValue)
 {
   std::string statsStr;
   switch(stats) {
@@ -238,7 +239,7 @@ std::string PreparedStatement::getStatsString(enums::Stats stats)
       statsStr = "COUNT";
       break;
     case enums::Stats::OFF:
-      statsStr = "ANY_VALUE";
+      statsStr = offValue;
       break;
   };
   return statsStr;

@@ -282,7 +282,7 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
       "SELECT\n";
 
   if(grouping == Grouping::BY_PLATE) {
-    sql += channelFilter.createStatsQuery(true, true, grouping == Grouping::BY_WELL ? enums::Stats::OFF : enums::Stats::AVG) +
+    sql += channelFilter.createStatsQuery(true, true, "ANY_VALUE", grouping == Grouping::BY_WELL ? enums::Stats::OFF : enums::Stats::AVG) +
            " ANY_VALUE(imageGrouped.group_id) as group_id,\n"
            " ANY_VALUE(imageGrouped.image_group_idx) as image_group_idx,\n"
            " ANY_VALUE(imageGrouped.pos_on_plate_x) as pos_on_plate_x,\n"
