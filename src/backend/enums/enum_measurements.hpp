@@ -40,6 +40,8 @@ enum class Measurement
   BOUNDING_BOX_WIDTH,
   BOUNDING_BOX_HEIGHT,
   INTERSECTING,
+  DISTANCE_FROM_OBJECT_ID,
+  DISTANCE_TO_OBJECT_ID,
   DISTANCE_CENTER_TO_CENTER,
   DISTANCE_CENTER_TO_SURFACE_MIN,
   DISTANCE_CENTER_TO_SURFACE_MAX,
@@ -68,6 +70,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(Measurement, {
                                               {Measurement::BOUNDING_BOX_WIDTH, "BoxWidth"},
                                               {Measurement::BOUNDING_BOX_HEIGHT, "BoxHeight"},
                                               {Measurement::INTERSECTING, "Intersecting"},
+                                              {Measurement::DISTANCE_FROM_OBJECT_ID, "DistanceFromObjectId"},
+                                              {Measurement::DISTANCE_TO_OBJECT_ID, "DistanceToObjectId"},
                                               {Measurement::DISTANCE_CENTER_TO_CENTER, "DistanceCentroidToCentoid"},
                                               {Measurement::DISTANCE_CENTER_TO_SURFACE_MIN, "DistanceCentroidToSurfaceMin"},
                                               {Measurement::DISTANCE_CENTER_TO_SURFACE_MAX, "DistanceCentroidToSurfaceMax"},
@@ -153,15 +157,19 @@ inline std::string toString(const Measurement &enumIn)
     case Measurement::INTERSECTING:
       return "Intersection";
     case Measurement::DISTANCE_CENTER_TO_CENTER:
-      return "Dist. center-center";
+      return "Distance center-center";
     case Measurement::DISTANCE_CENTER_TO_SURFACE_MIN:
-      return "Dist. center-surface min";
+      return "Distance center-surface min";
     case Measurement::DISTANCE_CENTER_TO_SURFACE_MAX:
-      return "Dist. center-surface max";
+      return "Distance center-surface max";
     case Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN:
-      return "Dist. surface-surface min";
+      return "Distance surface-surface min";
     case Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX:
-      return "Dist. surface-surface max";
+      return "Distance surface-surface max";
+    case Measurement::DISTANCE_FROM_OBJECT_ID:
+      return "Distance from object ID";
+    case Measurement::DISTANCE_TO_OBJECT_ID:
+      return "Distance to object ID";
   }
   return "";
 }

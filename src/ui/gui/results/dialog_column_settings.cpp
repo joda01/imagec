@@ -58,6 +58,8 @@ DialogColumnSettings::DialogColumnSettings(settings::ResultsSettings *filter, QW
   mMeasurementSelector->addItem("Intensity max.", (int32_t) joda::enums::Measurement::INTENSITY_MAX);
   mMeasurementSelector->insertSeparator(mMeasurementSelector->count());
   mMeasurementSelector->addItem("Intersection", (int32_t) joda::enums::Measurement::INTERSECTING);
+  mMeasurementSelector->addItem("Distance from object id", (int32_t) joda::enums::Measurement::DISTANCE_FROM_OBJECT_ID);
+  mMeasurementSelector->addItem("Distance to object id", (int32_t) joda::enums::Measurement::DISTANCE_TO_OBJECT_ID);
   mMeasurementSelector->addItem("Distance center to center", (int32_t) joda::enums::Measurement::DISTANCE_CENTER_TO_CENTER);
   mMeasurementSelector->addItem("Distance center to surface min", (int32_t) joda::enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN);
   mMeasurementSelector->addItem("Distance center to surface max", (int32_t) joda::enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX);
@@ -158,7 +160,11 @@ void DialogColumnSettings::checkForIntersecting()
      mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN ||
      mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX ||
      mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN ||
-     mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX) {
+     mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX ||
+     mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::DISTANCE_FROM_OBJECT_ID ||
+     mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::DISTANCE_TO_OBJECT_ID
+
+  ) {
     mClasssIntersection->setEnabled(true);
   } else {
     mClasssIntersection->setEnabled(false);
@@ -176,7 +182,11 @@ void DialogColumnSettings::checkForIntersecting()
   if(mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::OBJECT_ID &&
      mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::ORIGIN_OBJECT_ID &&
      mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::TRACKING_ID &&
-     mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::PARENT_OBJECT_ID) {
+     mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::PARENT_OBJECT_ID &&
+     mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::DISTANCE_FROM_OBJECT_ID &&
+     mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::DISTANCE_TO_OBJECT_ID
+
+  ) {
     mStatsSelector->setEnabled(true);
   } else {
     mStatsSelector->setEnabled(false);

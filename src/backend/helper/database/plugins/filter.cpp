@@ -30,7 +30,8 @@ ResultingTable::ResultingTable(const settings::ResultsSettings *filter)
   std::map<int32_t, std::map<uint32_t, std::string>> tableHeaders;
   for(const auto &[colIdx, colKey] : filter->getColumns()) {
     QueryKey qKey;
-    if(settings::ResultsSettings::getType(colKey.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE) {
+    if(settings::ResultsSettings::getType(colKey.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE ||
+       settings::ResultsSettings::getType(colKey.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE_ID) {
       // For distance measurement we have to create a separate statement for each distance from - distance to class combination
       // Distance from is the colKey.classId, distance to is the colKey.intersectingChannel
       qKey = {colKey.classId, colKey.zStack, colKey.tStack, colKey.intersectingChannel};
@@ -150,8 +151,16 @@ std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvali
         tablePrefix = " ";
       }
       // We show the smallest object ID if we are in an overview mode
-      channels += getStatsString(enums::Stats::MIN, offValue) + "(" + injectCase(tablePrefix + createName(enums::Stats::MIN)) + ") as " +
-                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(enums::Stats::MIN, offValue) + ",\n";
+      channels += getStatsString(enums::Stats::OFF, offValue) + "(" + injectCase(tablePrefix + createName(enums::Stats::OFF)) + ") as " +
+                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(enums::Stats::OFF, offValue) + ",\n";
+    } else if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE_ID) {
+      std::string tablePrefix = " td.";
+      if(isOuter || column.measureChannel == enums::Measurement::COUNT) {
+        tablePrefix = " ";
+      }
+      // We show the smallest object ID if we are in an overview mode
+      channels += getStatsString(enums::Stats::OFF, offValue) + "(" + injectCase(tablePrefix + createName(enums::Stats::OFF)) + ") as " +
+                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(enums::Stats::OFF, offValue) + ",\n";
     } else if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE) {
       std::string tablePrefix = " td.";
       if(isOuter || column.measureChannel == enums::Measurement::COUNT) {
@@ -196,7 +205,8 @@ std::string PreparedStatement::createStatsQueryJoins() const
         joindStacks.emplace(column.crossChannelStacksC);
       }
     }
-    if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE) {
+    if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE ||
+       settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE_ID) {
       if(!joindStacks.contains(column.crossChannelStacksC)) {
         std::string tableName = "td";
         std::string chStr     = std::to_string(static_cast<int32_t>(column.intersectingChannel));
@@ -297,6 +307,10 @@ std::string PreparedStatement::getMeasurement(enums::Measurement measure, bool t
       return "meas_distance_surface_to_surface_min";
     case enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX:
       return "meas_distance_surface_to_surface_max";
+    case enums::Measurement::DISTANCE_FROM_OBJECT_ID:
+      return "object_id";
+    case enums::Measurement::DISTANCE_TO_OBJECT_ID:
+      return "meas_object_id";
   }
   if(textual) {
     return "none";

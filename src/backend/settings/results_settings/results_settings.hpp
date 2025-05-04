@@ -50,6 +50,7 @@ public:
     OBJECT,
     INTENSITY,
     DISTANCE,
+    DISTANCE_ID,
     INTERSECTION
   };
 
@@ -67,6 +68,9 @@ public:
       case enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN:
       case enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX:
         return MeasureType::DISTANCE;
+      case enums::Measurement::DISTANCE_FROM_OBJECT_ID:
+      case enums::Measurement::DISTANCE_TO_OBJECT_ID:
+        return MeasureType::DISTANCE_ID;
       case enums::Measurement::CENTEROID_X:
       case enums::Measurement::CENTEROID_Y:
       case enums::Measurement::CONFIDENCE:
@@ -167,6 +171,9 @@ public:
       }
       if(getType(measureChannel) == MeasureType::DISTANCE) {
         return names.className + " to " + names.intersectingName + "-" + toString(measureChannel) + createStatsHeader(stats) + stacks;
+      }
+      if(getType(measureChannel) == MeasureType::DISTANCE_ID) {
+        return names.className + " to " + names.intersectingName + "-" + toString(measureChannel) + stacks;
       }
 
       return names.className + "-" + toString(measureChannel) + createStatsHeader(stats) + stacks;
