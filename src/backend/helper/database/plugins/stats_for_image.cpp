@@ -27,7 +27,8 @@ namespace joda::db {
 /// \param[out]
 /// \return
 ///
-auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSettings &filterIn) -> QueryResult
+auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSettings &filterIn, settings::ResultsSettings *resultingFilter)
+    -> QueryResult
 {
   //
   // Remove all stats but one per channel since one image level an average e.g. for just one object does not make sense
@@ -50,6 +51,9 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
     }
   }
   filter.setFilter(filterIn.getFilter(), filterIn.getPlateSetup(), filterIn.getDensityMapSettings());
+  if(resultingFilter != nullptr) {
+    *resultingFilter = filter;
+  }
 
   //
   // Generate exports
@@ -206,10 +210,6 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
                       static_cast<int32_t>(classsAndClass.tStack)};
   args.insert(args.end(), argsEnd.begin(), argsEnd.end());
 
-  std::cout << "-------------------" << std::endl;
-  std::cout << sql << std::endl;
-  std::cout << "-------------------" << std::endl;
-
   return {sql, args};
 }
 
@@ -220,8 +220,13 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
 /// \param[out]
 /// \return
 ///
-auto StatsPerImage::toHeatmap(db::Database *database, const settings::ResultsSettings &filter) -> QueryResult
+auto StatsPerImage::toHeatmap(db::Database *database, const settings::ResultsSettings &filter, settings::ResultsSettings *resultingFilter)
+    -> QueryResult
 {
+  if(resultingFilter != nullptr) {
+    *resultingFilter = filter;
+  }
+
   auto classesToExport = ResultingTable(&filter);
 
   // int32_t tabIdx = 0;

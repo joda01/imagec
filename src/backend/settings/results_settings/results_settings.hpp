@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include "backend/enums/enum_measurements.hpp"
@@ -258,6 +259,36 @@ public:
       columns.clear();
       columns = newColumns;
     }
+  }
+
+  void eraseColumn(const ColumnKey &colKey)
+  {
+    for(const auto &[colIdx, key] : columns) {
+      if(colKey == key) {
+        eraseColumn(colIdx);
+        break;
+      }
+    }
+  }
+
+  [[nodiscard]] auto getColumnIdx(const ColumnKey &colKey) const -> ColumnIdx
+  {
+    for(const auto &[colIdx, key] : columns) {
+      if(colKey == key) {
+        return colIdx;
+      }
+    }
+    throw std::out_of_range("Not found!");
+  }
+
+  [[nodiscard]] auto containsColumnIdx(const ColumnKey &colKey) const -> bool
+  {
+    for(const auto &[colIdx, key] : columns) {
+      if(colKey == key) {
+        return true;
+      }
+    }
+    return false;
   }
 
   [[nodiscard]] auto getColumn(const ColumnIdx &colIdx) const -> ColumnKey

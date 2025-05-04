@@ -30,7 +30,8 @@ auto transformMatrix(const std::vector<std::vector<int32_t>> &wellImageOrder, in
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSettings &filterIn, Grouping grouping) -> QueryResult
+auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSettings &filterIn, Grouping grouping,
+                            settings::ResultsSettings *resultingFilter) -> QueryResult
 {
   //
   // Remove object IDs, since they make no sense in an overview
@@ -51,6 +52,9 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
     filter.addColumn({_.tabIdx, tabColIdx[_.tabIdx]}, key, key.names);
   }
   filter.setFilter(filterIn.getFilter(), filterIn.getPlateSetup(), filterIn.getDensityMapSettings());
+  if(resultingFilter != nullptr) {
+    *resultingFilter = filter;
+  }
 
   //
   // Generate exports
@@ -133,8 +137,13 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
 /// \param[out]
 /// \return
 ///
-auto StatsPerGroup::toHeatmap(db::Database *database, const settings::ResultsSettings &filter, Grouping grouping) -> QueryResult
+auto StatsPerGroup::toHeatmap(db::Database *database, const settings::ResultsSettings &filter, Grouping grouping,
+                              settings::ResultsSettings *resultingFilter) -> QueryResult
 {
+  if(resultingFilter != nullptr) {
+    *resultingFilter = filter;
+  }
+
   auto classesToExport = ResultingTable(&filter);
   classesToExport.clearTables();
 
@@ -323,10 +332,6 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
   } else {
     sql += "ORDER BY file_name";
   }
-
-  std::cout << "-------------------" << std::endl;
-  std::cout << sql << std::endl;
-  std::cout << "-------------------" << std::endl;
 
   if(grouping == Grouping::BY_WELL) {
     return {sql,

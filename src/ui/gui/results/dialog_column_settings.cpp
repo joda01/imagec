@@ -200,34 +200,36 @@ void DialogColumnSettings::checkForIntersecting()
 /// \param[out]
 /// \return
 ///
-void DialogColumnSettings::exec(int32_t selectedColumn)
+void DialogColumnSettings::exec(const settings::ResultsSettings::ColumnKey &colKey, bool addNew)
 {
-  if(mFilter->containsColumn({.tabIdx = 0, .colIdx = selectedColumn})) {
-    mClasssClassSelector->blockSignals(true);
+  settings::ResultsSettings::ColumnIdx colIdx;
+  if(!addNew) {
+    if(mFilter->containsColumnIdx(colKey)) {
+      colIdx = mFilter->getColumnIdx(colKey);
+      mClasssClassSelector->blockSignals(true);
+      auto select = [](int idx, QComboBox *combo) {
+        if(idx >= 0) {
+          combo->setCurrentIndex(idx);
+        }
+      };
 
-    auto colKey = mFilter->getColumn({.tabIdx = 0, .colIdx = selectedColumn});
+      select(mClasssClassSelector->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(colKey.classId)), mClasssClassSelector);
+      select(mClasssIntersection->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(colKey.intersectingChannel)), mClasssIntersection);
+      onClassesChanged();
+      select(mMeasurementSelector->findData(static_cast<int32_t>(colKey.measureChannel)), mMeasurementSelector);
+      select(mStatsSelector->findData(static_cast<int32_t>(colKey.stats)), mStatsSelector);
+      select(mCrossChannelStackC->findData(colKey.crossChannelStacksC), mCrossChannelStackC);
 
-    auto select = [](int idx, QComboBox *combo) {
-      if(idx >= 0) {
-        combo->setCurrentIndex(idx);
-      }
-    };
+      mZStack->setValue(colKey.zStack);
+      mTStack->setValue(colKey.tStack);
 
-    select(mClasssClassSelector->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(colKey.classId)), mClasssClassSelector);
-    select(mClasssIntersection->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(colKey.intersectingChannel)), mClasssIntersection);
-    onClassesChanged();
-    select(mMeasurementSelector->findData(static_cast<int32_t>(colKey.measureChannel)), mMeasurementSelector);
-    select(mStatsSelector->findData(static_cast<int32_t>(colKey.stats)), mStatsSelector);
-    select(mCrossChannelStackC->findData(colKey.crossChannelStacksC), mCrossChannelStackC);
-
-    mZStack->setValue(colKey.zStack);
-    mTStack->setValue(colKey.tStack);
-
-    mClasssClassSelector->blockSignals(false);
+      mClasssClassSelector->blockSignals(false);
+    }
+  } else {
+    colIdx = {.tabIdx = 0, .colIdx = static_cast<int32_t>(mFilter->getColumns().size())};
   }
 
-  accept          = false;
-  mSelectedColumn = selectedColumn;
+  accept = false;
   QDialog::exec();
 
   //
@@ -236,7 +238,7 @@ void DialogColumnSettings::exec(int32_t selectedColumn)
   if(accept) {
     auto [className, intersectingName] = getClasssFromCombo();
 
-    mFilter->addColumn(settings::ResultsSettings::ColumnIdx{.tabIdx = 0, .colIdx = selectedColumn},
+    mFilter->addColumn(colIdx,
                        settings::ResultsSettings::ColumnKey{
                            .classId             = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClasssClassSelector->currentData().toUInt()),
                            .measureChannel      = static_cast<enums::Measurement>(mMeasurementSelector->currentData().toInt()),

@@ -415,31 +415,37 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   //
   auto *addColumn = new QAction(generateSvgIcon("edit-table-insert-column-right"), "");
   addColumn->setToolTip("Add column");
-  connect(addColumn, &QAction::triggered, [this]() { columnEdit(mTable->columnCount()); });
+  connect(addColumn, &QAction::triggered, [this]() { columnEdit(-1); });
 
   toolbar->addItemToTopToolbar(addColumn);
 
-  auto *deleteColumn = new QAction(generateSvgIcon("edit-table-delete-column"), "");
-  deleteColumn->setToolTip("Delete column");
-  connect(deleteColumn, &QAction::triggered, [this]() {
-    if(mSelectedTableColumn >= 0) {
-      mFilter.eraseColumn({.tabIdx = 0, .colIdx = mSelectedTableColumn});
+  mDeleteCol = new QAction(generateSvgIcon("edit-table-delete-column"), "");
+  mDeleteCol->setToolTip("Delete column");
+  connect(mDeleteCol, &QAction::triggered, [this]() {
+    if(mSelectedTableColumnIdx >= 0) {
+      auto colIdx = mActFilter.getColumn({.tabIdx = 0, .colIdx = mSelectedTableColumnIdx});
+      std::cout << "ColIdx class " << std::to_string((uint16_t) colIdx.classId) << " | " << std::to_string((uint16_t) colIdx.measureChannel)
+                << std::endl;
+      auto col = mFilter.getColumnIdx(colIdx);
+      std::cout << "ColIdx " << std::to_string((uint16_t) col.colIdx) << std::endl;
+
+      mFilter.eraseColumn(colIdx);
       if(mAutoSort->isChecked()) {
         mFilter.sortColumns();
       }
       refreshView();
     }
   });
-  toolbar->addItemToTopToolbar(deleteColumn);
+  toolbar->addItemToTopToolbar(mDeleteCol);
 
-  auto *editColumn = new QAction(generateSvgIcon("document-edit"), "");
-  editColumn->setToolTip("Edit column");
-  connect(editColumn, &QAction::triggered, [this]() {
-    if(mSelectedTableColumn >= 0) {
-      columnEdit(mSelectedTableColumn);
+  mEditCol = new QAction(generateSvgIcon("document-edit"), "");
+  mEditCol->setToolTip("Edit column");
+  connect(mEditCol, &QAction::triggered, [this]() {
+    if(mSelectedTableColumnIdx >= 0) {
+      columnEdit(mSelectedTableColumnIdx);
     }
   });
-  toolbar->addItemToTopToolbar(editColumn);
+  toolbar->addItemToTopToolbar(mEditCol);
 
   toolbar->addSeparatorToTopToolbar();
 
@@ -575,7 +581,7 @@ void PanelResults::refreshView()
     REFRESH_VIEW:
       switch(mNavigation) {
         case Navigation::PLATE: {
-          mActListData = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
+          mActListData = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE, &mActFilter);
           if(!mActListData.empty() && mActListData.at(0).getRows() == 1) {
             // If there are no groups, switch directly to well view
             mNavigation                = Navigation::WELL;
@@ -589,21 +595,21 @@ void PanelResults::refreshView()
             goto REFRESH_VIEW;
           }
           if(!mTable->isVisible()) {
-            mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE);
+            mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE, &mActFilter);
           }
         } break;
         case Navigation::WELL: {
           if(mTable->isVisible()) {
-            mActListData = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL);
+            mActListData = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL, &mActFilter);
           } else {
-            mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL);
+            mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL, &mActFilter);
           }
         } break;
         case Navigation::IMAGE: {
           if(mTable->isVisible()) {
-            mActListData = joda::db::StatsPerImage::toTable(mAnalyzer.get(), mFilter);
+            mActListData = joda::db::StatsPerImage::toTable(mAnalyzer.get(), mFilter, &mActFilter);
           } else {
-            mActHeatmapData = joda::db::StatsPerImage::toHeatmap(mAnalyzer.get(), mFilter);
+            mActHeatmapData = joda::db::StatsPerImage::toHeatmap(mAnalyzer.get(), mFilter, &mActFilter);
           }
         } break;
       }
@@ -718,6 +724,8 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(value.getId());
       mSelectedDataSet.imageMeta.reset();
       mMarkAsInvalid->setEnabled(false);
+      mDeleteCol->setEnabled(true);
+      mEditCol->setEnabled(true);
 
       // Act data
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX);
@@ -740,6 +748,8 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       }
       mMarkAsInvalid->blockSignals(false);
       mMarkAsInvalid->setEnabled(true);
+      mDeleteCol->setEnabled(true);
+      mEditCol->setEnabled(true);
 
       // Act data
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
@@ -751,6 +761,8 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
     case Navigation::IMAGE:
       mSelectedTileId = value.getId();
       mMarkAsInvalid->setEnabled(false);
+      mDeleteCol->setEnabled(false);
+      mEditCol->setEnabled(false);
       mSelectedAreaPos.setX(cellX);
       mSelectedAreaPos.setY(cellY);
 
@@ -1043,7 +1055,7 @@ void PanelResults::tableToHeatmap(const joda::table::Table &table)
     //
     //
     //
-    if(mSelectedTableColumn >= 0) {
+    if(mSelectedTableColumnIdx >= 0) {
       mHeatmapChart->setData(table, static_cast<int32_t>(mNavigation));
       return;
     }
@@ -1096,7 +1108,11 @@ void PanelResults::createEditColumnDialog()
 ///
 void PanelResults::columnEdit(int32_t colIdx)
 {
-  mColumnEditDialog->exec(colIdx);
+  if(colIdx >= 0) {
+    mColumnEditDialog->exec(mActFilter.getColumn({.tabIdx = 0, .colIdx = colIdx}), false);
+  } else {
+    mColumnEditDialog->exec({}, true);
+  }
   if(mAutoSort->isChecked()) {
     mFilter.sortColumns();
   }
@@ -1192,7 +1208,7 @@ void PanelResults::tableToQWidgetTable(const joda::table::Table &tableIn)
 ///
 void PanelResults::onColumnComboChanged()
 {
-  onTableCurrentCellChanged(mSelectedTableRow, mColumn->currentData().toInt(), mSelectedTableRow, mSelectedTableColumn);
+  onTableCurrentCellChanged(mSelectedTableRow, mColumn->currentData().toInt(), mSelectedTableRow, mSelectedTableColumnIdx);
   refreshView();
 }
 
@@ -1220,15 +1236,15 @@ void PanelResults::onCellClicked(int rowSelected, int columnSelcted)
   std::lock_guard<std::mutex> lock(mLoadLock);
   table::TableCell selectedData;
   if(mActListData.empty()) {
-    mSelectedTableColumn = -1;
-    mSelectedTableRow    = -1;
+    mSelectedTableColumnIdx = -1;
+    mSelectedTableRow       = -1;
   } else {
-    mSelectedTableColumn    = columnSelcted;
+    mSelectedTableColumnIdx = columnSelcted;
     mSelectedTableRow       = rowSelected;
     mSelection[mNavigation] = {rowSelected, columnSelcted};
     selectedData            = mActListData.at(0).data(rowSelected, columnSelcted);
   }
-  onElementSelected(mSelectedTableColumn, mSelectedTableRow, selectedData);
+  onElementSelected(mSelectedTableColumnIdx, mSelectedTableRow, selectedData);
 }
 
 ///
