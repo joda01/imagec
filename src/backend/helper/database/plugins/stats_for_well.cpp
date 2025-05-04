@@ -301,6 +301,9 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
     sql += "ORDER BY file_name";
   }
 
+  std::cout << "-------------------" << std::endl;
+  std::cout << sql << std::endl;
+
   if(grouping == Grouping::BY_WELL) {
     return {sql,
             {static_cast<uint16_t>(classsAndClass.classs), static_cast<uint16_t>(filter.groupId), static_cast<int32_t>(classsAndClass.zStack),

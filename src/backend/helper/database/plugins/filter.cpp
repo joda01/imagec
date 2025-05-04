@@ -144,6 +144,13 @@ std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvali
       // We show the smallest object ID if we are in an overview mode
       channels += getStatsString(enums::Stats::MIN) + "(" + injectCase(tablePrefix + createName(enums::Stats::MIN)) + ") as " +
                   getMeasurement(column.measureChannel, true) + "_" + getStatsString(enums::Stats::MIN) + ",\n";
+    } else if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE) {
+      std::string tablePrefix = " td.";
+      if(isOuter || column.measureChannel == enums::Measurement::COUNT) {
+        tablePrefix = " ";
+      }
+      channels += getStatsString(stats) + "(" + injectCase(tablePrefix + createName(column.stats)) + ") as " +
+                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(column.stats) + ",\n";
     } else {
       std::string tablePrefix = " t1.";
       if(isOuter || column.measureChannel == enums::Measurement::COUNT) {
@@ -166,6 +173,7 @@ std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvali
 ///
 std::string PreparedStatement::createStatsQueryJoins() const
 {
+  bool joinedDistance = false;
   std::set<uint32_t> joindStacks;
   std::string joins;
   for(const auto &[_, column] : columns) {
@@ -174,6 +182,18 @@ std::string PreparedStatement::createStatsQueryJoins() const
         std::string tableName = "tj" + std::to_string(column.crossChannelStacksC);
         joins += "LEFT JOIN object_measurements " + tableName + " ON\n   t1.object_id = " + tableName + ".object_id AND t1.image_id = " + tableName +
                  ".image_id  AND " + tableName + ".meas_stack_c = " + std::to_string(column.crossChannelStacksC) + " AND " + tableName +
+                 " .meas_stack_z = " + std::to_string(column.zStack) + " AND " + tableName + ".meas_stack_t = " + std::to_string(column.tStack) +
+                 "\n";
+
+        joindStacks.emplace(column.crossChannelStacksC);
+      }
+    }
+    if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE) {
+      if(!joindStacks.contains(column.crossChannelStacksC)) {
+        std::string tableName = "td";
+        std::string chStr     = std::to_string(static_cast<int32_t>(column.intersectingChannel));
+        joins += "LEFT JOIN distance_measurements " + tableName + " ON\n   t1.object_id = " + tableName +
+                 ".object_id AND t1.image_id = " + tableName + ".image_id  AND " + tableName + ".meas_class_id = " + chStr + " AND " + tableName +
                  " .meas_stack_z = " + std::to_string(column.zStack) + " AND " + tableName + ".meas_stack_t = " + std::to_string(column.tStack) +
                  "\n";
 
