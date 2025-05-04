@@ -704,6 +704,8 @@ void PanelResults::onMarkAsInvalidClicked(bool isInvalid)
 void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell value)
 {
   if(cellX < 0 || cellY < 0) {
+    mSelectedValue->setText("");
+    mSelectedRowInfo->setText("");
     return;
   }
   QString headerTxt = "-";
@@ -1216,11 +1218,17 @@ void PanelResults::onTableCurrentCellChanged(int currentRow, int currentColumn, 
 void PanelResults::onCellClicked(int rowSelected, int columnSelcted)
 {
   std::lock_guard<std::mutex> lock(mLoadLock);
-  mSelectedTableColumn    = columnSelcted;
-  mSelectedTableRow       = rowSelected;
-  mSelection[mNavigation] = {rowSelected, columnSelcted};
-  auto selectedData       = mActListData.at(0).data(rowSelected, columnSelcted);
-  onElementSelected(columnSelcted, rowSelected, selectedData);
+  table::TableCell selectedData;
+  if(mActListData.empty()) {
+    mSelectedTableColumn = -1;
+    mSelectedTableRow    = -1;
+  } else {
+    mSelectedTableColumn    = columnSelcted;
+    mSelectedTableRow       = rowSelected;
+    mSelection[mNavigation] = {rowSelected, columnSelcted};
+    selectedData            = mActListData.at(0).data(rowSelected, columnSelcted);
+  }
+  onElementSelected(mSelectedTableColumn, mSelectedTableRow, selectedData);
 }
 
 ///
