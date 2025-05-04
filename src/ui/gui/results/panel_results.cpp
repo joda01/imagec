@@ -424,11 +424,6 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   connect(mDeleteCol, &QAction::triggered, [this]() {
     if(mSelectedTableColumnIdx >= 0) {
       auto colIdx = mActFilter.getColumn({.tabIdx = 0, .colIdx = mSelectedTableColumnIdx});
-      std::cout << "ColIdx class " << std::to_string((uint16_t) colIdx.classId) << " | " << std::to_string((uint16_t) colIdx.measureChannel)
-                << std::endl;
-      auto col = mFilter.getColumnIdx(colIdx);
-      std::cout << "ColIdx " << std::to_string((uint16_t) col.colIdx) << std::endl;
-
       mFilter.eraseColumn(colIdx);
       if(mAutoSort->isChecked()) {
         mFilter.sortColumns();
