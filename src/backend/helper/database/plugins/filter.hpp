@@ -102,16 +102,24 @@ private:
 class ResultingTable
 {
 public:
+  ///
+  /// \struct     QueryKey
+  /// \author     Joachim Danmayr
+  /// \brief      Defines which queries can be done in one statement
+  ///             For each class a separate statement must be created
+  ///
   struct QueryKey
   {
     joda::enums::ClassId classs;
-    int32_t zStack = 0;
-    int32_t tStack = 0;
+    int32_t zStack                       = 0;
+    int32_t tStack                       = 0;
+    joda::enums::ClassId distanceToClass = joda::enums::ClassId::NONE;
 
     bool operator<(const QueryKey &key) const
     {
       auto toUint128 = [](const QueryKey &key) -> stdi::uint128_t {
-        return stdi::uint128_t(static_cast<uint64>(key.classs), static_cast<uint64>(key.zStack) << 32 | static_cast<uint64>(key.tStack));
+        return stdi::uint128_t(static_cast<uint64>(key.classs) << 16 | static_cast<uint64>(key.distanceToClass),
+                               static_cast<uint64>(key.zStack) << 32 | static_cast<uint64>(key.tStack));
       };
 
       return toUint128(*this) < toUint128(key);

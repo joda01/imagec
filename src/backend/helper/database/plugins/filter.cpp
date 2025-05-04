@@ -29,7 +29,14 @@ ResultingTable::ResultingTable(const settings::ResultsSettings *filter)
 {
   std::map<int32_t, std::map<uint32_t, std::string>> tableHeaders;
   for(const auto &[colIdx, colKey] : filter->getColumns()) {
-    QueryKey qKey = {colKey.classId, colKey.zStack, colKey.tStack};
+    QueryKey qKey;
+    if(settings::ResultsSettings::getType(colKey.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE) {
+      // For distance measurement we have to create a separate statement for each distance from - distance to class combination
+      // Distance from is the colKey.classId, distance to is the colKey.intersectingChannel
+      qKey = {colKey.classId, colKey.zStack, colKey.tStack, colKey.intersectingChannel};
+    } else {
+      qKey = {colKey.classId, colKey.zStack, colKey.tStack, joda::enums::ClassId::NONE};
+    }
     if(!mClassesAndClasses.contains(qKey)) {
       mClassesAndClasses.emplace(qKey, PreparedStatement{colKey.names});
     }

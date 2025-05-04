@@ -196,6 +196,11 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
   DbArgs_t argsEnd = {static_cast<uint16_t>(classsAndClass.classs), static_cast<int32_t>(classsAndClass.zStack),
                       static_cast<int32_t>(classsAndClass.tStack)};
   args.insert(args.end(), argsEnd.begin(), argsEnd.end());
+
+  std::cout << "-------------------" << std::endl;
+  std::cout << sql << std::endl;
+  std::cout << "-------------------" << std::endl;
+
   return {sql, args};
 }
 

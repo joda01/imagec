@@ -303,6 +303,7 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
 
   std::cout << "-------------------" << std::endl;
   std::cout << sql << std::endl;
+  std::cout << "-------------------" << std::endl;
 
   if(grouping == Grouping::BY_WELL) {
     return {sql,
