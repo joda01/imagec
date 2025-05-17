@@ -544,9 +544,15 @@ cv::Mat ImageReader::convertImageToMat(JNIEnv *myEnv, const jbyteArray &readImg,
     format = CV_8UC1;
   } else if(bitDepth == 8 && rgbChannelCount == 3 && isInterleaved) {
     format = CV_8UC3;
+  } else if(bitDepth == 8 && rgbChannelCount == 4 && isInterleaved) {
+    format = CV_8UC4;
   } else if(bitDepth == 8 && rgbChannelCount == 3 && !isInterleaved) {
     format    = CV_8UC1;
     heightTmp = imageHeight * 3;
+    widthTmp  = imageWidth;
+  } else if(bitDepth == 8 && rgbChannelCount == 4 && !isInterleaved) {
+    format    = CV_8UC1;
+    heightTmp = imageHeight * 4;
     widthTmp  = imageWidth;
   } else if(bitDepth == 8 && rgbChannelCount == 1 && !isInterleaved) {
     format    = CV_8UC1;
@@ -587,8 +593,14 @@ cv::Mat ImageReader::convertImageToMat(JNIEnv *myEnv, const jbyteArray &readImg,
     return image;
   }
 
+  // Interleaved RGB image
+  if(format == CV_8UC4) {
+    cvtColor(image, image, cv::COLOR_RGBA2BGR);
+    return image;
+  }
+
   // Planar RGB image
-  if(format == CV_8UC1 && rgbChannelCount == 3) {
+  if(format == CV_8UC1 && rgbChannelCount >= 3) {
     // Step 1: Split the non-interleaved matrix into separate R, G, B channels
     cv::Mat redChannel   = image(cv::Rect(0, 0, imageWidth, imageHeight));                  // First part (R)
     cv::Mat greenChannel = image(cv::Rect(0, imageHeight, imageWidth, imageHeight));        // Second part (G)
