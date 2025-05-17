@@ -120,6 +120,7 @@ struct ColocalizationSettings : public SettingBase
     for(const auto classs : inputClasses) {
       if(classs.inputClassId != enums::ClassIdIn::UNDEFINED) {
         classes.emplace(classs.newClassId);
+        classes.emplace(classs.newClassIdNotIntersecting);
       }
     }
     return classes;

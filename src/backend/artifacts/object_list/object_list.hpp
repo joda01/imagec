@@ -96,7 +96,7 @@ public:
                           const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
                           const std::set<joda::enums::ClassId> &objectClassesOther,
                           joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo, float minIntersecion, const enums::tile_t &tile,
-                          const cv::Size &tileSize, std::set<const atom::ROI *> *notIntersecting = nullptr) const;
+                          const cv::Size &tileSize) const;
 
   void calcIntersection(ObjectList *objectList, joda::processor::ProcessContext &context, joda::settings::ReclassifySettings::Mode func,
                         joda::settings::ReclassifySettings::FilterLogic filterLogic,
@@ -241,7 +241,7 @@ public:
     std::map<enums::ClassId, std::unique_ptr<SpheralIndex>>::erase(classToErase);
 
     for(auto it = objectsOrderedByObjectId.begin(); it != objectsOrderedByObjectId.end();) {
-      if(it->second->getClassId() == classToErase) {
+      if((it->second != nullptr) && it->second->getClassId() == classToErase) {
         it = objectsOrderedByObjectId.erase(it);    // erase returns the next valid iterator
       } else {
         ++it;

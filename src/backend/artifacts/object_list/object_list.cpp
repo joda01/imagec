@@ -13,7 +13,7 @@ void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const Sphe
                                       const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
                                       const std::set<joda::enums::ClassId> &objectClassesOther,
                                       joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo, float minIntersecion,
-                                      const enums::tile_t &tile, const cv::Size &tileSize, std::set<const atom::ROI *> *notIntersecting) const
+                                      const enums::tile_t &tile, const cv::Size &tileSize) const
 {
   std::set<uint64_t> intersecting;
   // Check for collisions between objects in grid1 and grid2
@@ -45,22 +45,6 @@ void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const Sphe
               }
             }
           }
-        }
-      }
-    }
-  }
-  if(nullptr != notIntersecting) {
-    for(const auto &box : *this) {
-      if((!objectClassesMe.has_value() || objectClassesMe->contains(box.getClassId()))) {
-        if(!intersecting.contains(box.getObjectId())) {
-          notIntersecting->emplace(&box);
-        }
-      }
-    }
-    for(const auto &box : *other) {
-      if(!intersecting.contains(box.getObjectId())) {
-        if(objectClassesOther.contains(box.getClassId())) {
-          notIntersecting->emplace(&box);
         }
       }
     }
