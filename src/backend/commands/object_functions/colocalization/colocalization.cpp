@@ -61,7 +61,7 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
     }
 
     std::optional<std::set<joda::enums::ClassId>> objectClassesMe = std::set<joda::enums::ClassId>{context.getClassId(it->inputClassId)};
-
+    std::set<const atom::ROI *> notIntersecting;
     ++it;
     ++idx;
 
@@ -71,7 +71,8 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
       }
       const auto *objects02 = context.loadObjectsFromCache()->at(context.getClassId(it->inputClassId)).get();
       working->calcColocalization(context.getActIterator(), objects02, resultTemp, objectClassesMe, {context.getClassId(it->inputClassId)},
-                                  context.getClassId(mSettings.outputClass), mSettings.minIntersection, context.getActTile(), context.getTileSize());
+                                  context.getClassId(mSettings.outputClass), mSettings.minIntersection, context.getActTile(), context.getTileSize(),
+                                  &notIntersecting);
       // In the second run, we have to ignore the object class filter of me, because this are still the filtered objects
       objectClassesMe.reset();
       idx++;
@@ -95,11 +96,10 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
     }
 
     //
-    // In the results we now have the intersecting ROIs.
+    // In the `result` we now have the intersecting ROIs.
     // In the next step we want to extract the origin objects and apply a reclassify copy/move.
     // The origin id of the new object is the coloc.
     //
-
     auto getNewClassIdForMyClassId = [&, this](enums::ClassId inClass) -> enums::ClassId {
       for(const auto &classs : mSettings.inputClasses) {
         if(context.getClassId(classs.inputClassId) == inClass) {
@@ -116,7 +116,7 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
       colocRois.setTrackingId(trackingID);
       for(const auto &linked : colocRois.getLinkedRois()) {
         auto newClassId = getNewClassIdForMyClassId(linked->getClassId());
-        if(newClassId != enums::ClassId::UNDEFINED) {
+        if(newClassId != enums::ClassId::UNDEFINED || newClassId != enums::ClassId::NONE) {
           if(mSettings.mode == settings::ColocalizationSettings::Mode::RECLASSIFY_MOVE) {
             // We have to reenter to organize correct in the map of objects
             auto newRoi = linked->clone(newClassId, linked->getParentObjectId());
@@ -133,6 +133,32 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
       }
 
       colocRois.clearLinkedWith();
+    }
+
+    //
+    // Move or copy not intersecting classes
+    //
+    auto getNewClassIdForMyNotIntersectingClassId = [&, this](enums::ClassId inClass) -> enums::ClassId {
+      for(const auto &classs : mSettings.inputClasses) {
+        if(context.getClassId(classs.inputClassId) == inClass) {
+          return context.getClassId(classs.newClassIdNotIntersecting);
+        }
+      }
+      return enums::ClassId::NONE;
+    };
+
+    for(const auto &roi : notIntersecting) {
+      auto newClassId = getNewClassIdForMyNotIntersectingClassId(roi->getClassId());
+      if(newClassId != enums::ClassId::UNDEFINED || newClassId != enums::ClassId::NONE) {
+        if(mSettings.mode == settings::ColocalizationSettings::Mode::RECLASSIFY_MOVE) {
+          auto newRoi = roi->clone(newClassId, roi->getParentObjectId());
+          roisToEnter.emplace_back(std::move(newRoi));
+          roisToRemove.emplace_back(roi);
+        } else if(mSettings.mode == settings::ColocalizationSettings::Mode::RECLASSIFY_COPY) {
+          auto newRoi = roi->copy(newClassId, roi->getParentObjectId());
+          roisToEnter.emplace_back(std::move(newRoi));    // Store the ROIs we want to enter
+        }
+      }
     }
 
     // Enter the rois from the temp storage

@@ -96,7 +96,7 @@ public:
                           const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
                           const std::set<joda::enums::ClassId> &objectClassesOther,
                           joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo, float minIntersecion, const enums::tile_t &tile,
-                          const cv::Size &tileSize) const;
+                          const cv::Size &tileSize, std::set<const atom::ROI *> *notIntersecting = nullptr) const;
 
   void calcIntersection(ObjectList *objectList, joda::processor::ProcessContext &context, joda::settings::ReclassifySettings::Mode func,
                         joda::settings::ReclassifySettings::FilterLogic filterLogic,
@@ -223,7 +223,8 @@ public:
       SpheralIndex idx{};
       operator[](roi.getClassId())->cloneFromOther(idx);
     }
-    auto &inserted                              = at(roi.getClassId())->emplace(roi);
+    auto &inserted = at(roi.getClassId())->emplace(roi);
+    std::lock_guard<std::mutex> lock(mInsertLock);
     objectsOrderedByObjectId[roi.getObjectId()] = &inserted;
   }
 
@@ -263,6 +264,7 @@ public:
   }
 
   std::map<uint64_t, const ROI *> objectsOrderedByObjectId;
+  std::mutex mInsertLock;
 };
 
 }    // namespace joda::atom

@@ -64,7 +64,13 @@ public:
     mNewClassesIn01 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Reclassify to if coloc.");
     mNewClassesIn01->setValue(settings.inputClasses.at(0).newClassId);
     mNewClassesIn01->connectWithSetting(&settings.inputClasses.at(0).newClassId);
-    auto *firstCol = addSetting(modelTab, "Input 1", {{mClassesIn01.get(), true, 0}, {mNewClassesIn01.get(), false, 0}});
+
+    mNewClassesInNot01 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Reclassify to if not coloc.");
+    mNewClassesInNot01->setValue(settings.inputClasses.at(0).newClassIdNotIntersecting);
+    mNewClassesInNot01->connectWithSetting(&settings.inputClasses.at(0).newClassIdNotIntersecting);
+
+    auto *firstCol =
+        addSetting(modelTab, "Input 1", {{mClassesIn01.get(), true, 0}, {mNewClassesIn01.get(), false, 0}, {mNewClassesInNot01.get(), false, 0}});
 
     //
     //
@@ -76,7 +82,13 @@ public:
     mNewClassesIn02 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Reclassify to if coloc.");
     mNewClassesIn02->setValue(settings.inputClasses.at(1).newClassId);
     mNewClassesIn02->connectWithSetting(&settings.inputClasses.at(1).newClassId);
-    addSetting(modelTab, "Input 2", {{mClassesIn02.get(), true, 0}, {mNewClassesIn02.get(), false, 0}}, firstCol);
+
+    mNewClassesInNot02 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Reclassify to if not coloc.");
+    mNewClassesInNot02->setValue(settings.inputClasses.at(1).newClassIdNotIntersecting);
+    mNewClassesInNot02->connectWithSetting(&settings.inputClasses.at(1).newClassIdNotIntersecting);
+
+    addSetting(modelTab, "Input 2", {{mClassesIn02.get(), true, 0}, {mNewClassesIn02.get(), false, 0}, {mNewClassesInNot02.get(), false, 0}},
+               firstCol);
 
     //
     //
@@ -88,7 +100,13 @@ public:
     mNewClassesIn03 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Reclassify to if coloc.");
     mNewClassesIn03->setValue(settings.inputClasses.at(2).newClassId);
     mNewClassesIn03->connectWithSetting(&settings.inputClasses.at(2).newClassId);
-    addSetting(modelTab, "Input 3", {{mClassesIn03.get(), true, 0}, {mNewClassesIn03.get(), false, 0}}, firstCol);
+
+    mNewClassesInNot03 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Reclassify to if not coloc.");
+    mNewClassesInNot03->setValue(settings.inputClasses.at(2).newClassIdNotIntersecting);
+    mNewClassesInNot03->connectWithSetting(&settings.inputClasses.at(2).newClassIdNotIntersecting);
+
+    addSetting(modelTab, "Input 3", {{mClassesIn03.get(), true, 0}, {mNewClassesIn03.get(), false, 0}, {mNewClassesInNot03.get(), false, 0}},
+               firstCol);
 
     //
     //
@@ -100,7 +118,13 @@ public:
     mNewClassesIn04 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Reclassify to if coloc.");
     mNewClassesIn04->setValue(settings.inputClasses.at(3).newClassId);
     mNewClassesIn04->connectWithSetting(&settings.inputClasses.at(3).newClassId);
-    addSetting(modelTab, "Input 4", {{mClassesIn04.get(), true, 0}, {mNewClassesIn04.get(), false, 0}}, firstCol);
+
+    mNewClassesInNot04 = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Reclassify to if not coloc.");
+    mNewClassesInNot04->setValue(settings.inputClasses.at(3).newClassIdNotIntersecting);
+    mNewClassesInNot04->connectWithSetting(&settings.inputClasses.at(3).newClassIdNotIntersecting);
+
+    addSetting(modelTab, "Input 4", {{mClassesIn04.get(), true, 0}, {mNewClassesIn04.get(), false, 0}, {mNewClassesInNot04.get(), false, 0}},
+               firstCol);
 
     //=====================================================
     //
@@ -160,15 +184,19 @@ private:
 
   std::unique_ptr<SettingComboBoxClassesOut> mClassesIn01;
   std::unique_ptr<SettingComboBoxClassesOut> mNewClassesIn01;
+  std::unique_ptr<SettingComboBoxClassesOut> mNewClassesInNot01;
 
   std::unique_ptr<SettingComboBoxClassesOut> mClassesIn02;
   std::unique_ptr<SettingComboBoxClassesOut> mNewClassesIn02;
+  std::unique_ptr<SettingComboBoxClassesOut> mNewClassesInNot02;
 
   std::unique_ptr<SettingComboBoxClassesOut> mClassesIn03;
   std::unique_ptr<SettingComboBoxClassesOut> mNewClassesIn03;
+  std::unique_ptr<SettingComboBoxClassesOut> mNewClassesInNot03;
 
   std::unique_ptr<SettingComboBoxClassesOut> mClassesIn04;
   std::unique_ptr<SettingComboBoxClassesOut> mNewClassesIn04;
+  std::unique_ptr<SettingComboBoxClassesOut> mNewClassesInNot04;
 
   std::unique_ptr<SettingComboBox<joda::settings::ColocalizationSettings::Mode>> mMode;
   std::unique_ptr<SettingComboBox<joda::settings::ColocalizationSettings::TrackingMode>> mTrackingMode;
