@@ -18,6 +18,7 @@
 #include <qlineedit.h>
 #include <qmenu.h>
 #include <qpushbutton.h>
+#include <qtablewidget.h>
 #include <exception>
 #include <string>
 #include "backend/enums/enums_classes.hpp"
@@ -90,6 +91,23 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
       this->openTemplate(filePathOfSettingsFile);
     });
     toolbar->addAction(openTemplate);
+
+    toolbar->addSeparator();
+    //
+    // Move down
+    //
+    auto *moveDown = new QAction(generateSvgIcon("go-down"), "Move down");
+    moveDown->setStatusTip("Move selected pipeline down");
+    connect(moveDown, &QAction::triggered, this, &PanelClassification::moveDown);
+    toolbar->addAction(moveDown);
+
+    //
+    // Move up
+    //
+    auto *moveUp = new QAction(generateSvgIcon("go-up"), "Move up");
+    moveUp->setStatusTip("Move selected pipeline up");
+    connect(moveUp, &QAction::triggered, this, &PanelClassification::moveUp);
+    toolbar->addAction(moveUp);
 
     toolbar->addSeparator();
 
@@ -508,6 +526,93 @@ void PanelClassification::populateClassesFromImage()
     fromSettings(classes);
     onSettingChanged();
   }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::moveUp()
+{
+  mClasses->blockSignals(true);
+  auto rowAct = mClasses->currentRow();
+  auto newPos = rowAct - 1;
+  if(newPos < 0) {
+    return;
+  }
+  moveClassToPosition(rowAct, newPos);
+  mClasses->blockSignals(false);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::moveDown()
+{
+  mClasses->blockSignals(true);
+  auto rowAct = mClasses->currentRow();
+  auto newPos = rowAct + 1;
+  if(newPos >= mClasses->rowCount()) {
+    return;
+  }
+  moveClassToPosition(rowAct, newPos);
+  mClasses->blockSignals(false);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::moveClassToPosition(size_t fromPos, size_t newPos)
+{
+  auto moveElementToListPosition = [](std::list<joda::settings::Class> &myList, size_t oldPos, size_t newPos) {
+    // Get iterators to the old and new positions
+    if(newPos > oldPos) {
+      auto oldIt = std::next(myList.begin(), newPos);
+      auto newIt = std::next(myList.begin(), oldPos);
+      // Splice the element at oldIt to before newIt
+      myList.splice(newIt, myList, oldIt);
+    } else {
+      auto oldIt = std::next(myList.begin(), oldPos);
+      auto newIt = std::next(myList.begin(), newPos);
+      // Splice the element at oldIt to before newIt
+      myList.splice(newIt, myList, oldIt);
+    }
+  };
+
+  auto moveRow = [&](int fromRow, int toRow) {
+    if(fromRow == toRow || fromRow < 0 || toRow < 0 || fromRow >= mClasses->rowCount() || toRow > mClasses->rowCount()) {
+      return;    // invalid input
+    }
+    mClasses->setUpdatesEnabled(false);
+
+    int columnCount = mClasses->columnCount();
+    for(int col = 0; col < columnCount; ++col) {
+      QTableWidgetItem *fromItem = mClasses->takeItem(fromRow, col);
+      QTableWidgetItem *toItem   = mClasses->takeItem(toRow, col);
+
+      mClasses->setItem(fromRow, col, toItem);
+      mClasses->setItem(toRow, col, fromItem);
+    }
+
+    mClasses->setUpdatesEnabled(true);
+    mClasses->selectRow(toRow);
+  };
+
+  moveElementToListPosition(mSettings.classification.classes, fromPos, newPos);
+  moveRow(fromPos, newPos);
+
+  mWindowMain->checkForSettingsChanged();
 }
 
 }    // namespace joda::ui::gui
