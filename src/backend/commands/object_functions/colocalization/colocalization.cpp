@@ -14,7 +14,6 @@
 #include <optional>
 #include <string>
 #include "backend/artifacts/object_list/object_list.hpp"
-
 #include "backend/commands/object_functions/colocalization/colocalization_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/global_enums.hpp"
@@ -125,7 +124,7 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
         for(const auto &linked : colocRois.getLinkedRois()) {
           intersecting.emplace(linked->getObjectId());
           auto newClassId = getNewClassIdForMyClassId(linked->getClassId());
-          if(newClassId != enums::ClassId::UNDEFINED && newClassId != enums::ClassId::NONE) {
+          if(newClassId != enums::ClassId::UNDEFINED) {
             if(mSettings.mode == settings::ColocalizationSettings::Mode::RECLASSIFY_MOVE) {
               // We have to reenter to organize correct in the map of objects
               auto newRoi = linked->clone(newClassId, linked->getParentObjectId());
@@ -165,7 +164,7 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
         for(const auto &roi : *objects) {
           if(!intersecting.contains(roi.getObjectId())) {
             auto newClassId = getNewClassIdForMyNotIntersectingClassId(roi.getClassId());
-            if(newClassId != enums::ClassId::UNDEFINED && newClassId != enums::ClassId::NONE) {
+            if(newClassId != enums::ClassId::UNDEFINED) {
               if(mSettings.mode == settings::ColocalizationSettings::Mode::RECLASSIFY_MOVE) {
                 auto newRoi = roi.clone(newClassId, roi.getParentObjectId());
                 roisToEnter.emplace_back(std::move(newRoi));

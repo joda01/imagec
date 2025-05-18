@@ -81,7 +81,7 @@ void SettingComboBoxClassificationIn::outputClassesChanges()
                        QVariant(toInt(enums::ClassIdIn::TEMP_04)));
 
     // Add undefined classs
-    mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Undefined",
+    mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Off",
                        QVariant(toInt(enums::ClassIdIn::UNDEFINED)));
 
     mComboBox->insertSeparator(mComboBox->count());
