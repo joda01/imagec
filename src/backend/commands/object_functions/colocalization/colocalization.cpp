@@ -66,7 +66,7 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
     ++idx;
 
     for(; it != classesToIntersect.end(); ++it) {
-      if(it->inputClassId == enums::ClassIdIn::UNDEFINED) {
+      if(it->inputClassId == enums::ClassIdIn::UNDEFINED || it->inputClassId == enums::ClassIdIn::NONE) {
         continue;
       }
       if(!context.loadObjectsFromCache()->contains(context.getClassId(it->inputClassId))) {
