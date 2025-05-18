@@ -69,14 +69,6 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     toolbar->addSeparator();
 
     //
-    // Save as template
-    //
-    auto *saveAsTemplate = new QAction(generateSvgIcon("document-save-as-template"), "Save classification settings as template");
-    saveAsTemplate->setStatusTip("Save classification settings as template");
-    connect(saveAsTemplate, &QAction::triggered, [this]() { saveAsNewTemplate(); });
-    toolbar->addAction(saveAsTemplate);
-
-    //
     // Open template
     //
     auto *openTemplate = new QAction(generateSvgIcon("folder-open"), "Open object class template");
@@ -91,6 +83,41 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
       this->openTemplate(filePathOfSettingsFile);
     });
     toolbar->addAction(openTemplate);
+
+    //
+    // Save as template
+    //
+    auto *saveAsTemplate = new QAction(generateSvgIcon("document-save-as-template"), "Save classification settings as template");
+    saveAsTemplate->setStatusTip("Save classification settings as template");
+    connect(saveAsTemplate, &QAction::triggered, [this]() { saveAsNewTemplate(); });
+    toolbar->addAction(saveAsTemplate);
+
+    //
+    // Copy selection
+    //
+    auto *copy = new QAction(generateSvgIcon("edit-copy"), "Copy selected class");
+    copy->setStatusTip("Copy selected class");
+    connect(copy, &QAction::triggered, [this]() {
+      QList<QTableWidgetSelectionRange> ranges = mClasses->selectedRanges();
+      if(!ranges.isEmpty()) {
+        int selectedRow = ranges.first().topRow();
+        if(selectedRow >= 0) {
+          auto actClass = mSettings.classification.classes.begin();
+          std::advance(actClass, selectedRow);
+
+          joda::settings::Class newClass;
+          newClass.classId             = findNextFreeClassId();
+          newClass.color               = actClass->color;
+          newClass.defaultMeasurements = actClass->defaultMeasurements;
+          newClass.name                = actClass->name + " (copy)";
+          newClass.notes               = actClass->notes;
+          mSettings.classification.classes.emplace_back(newClass);
+
+          onSettingChanged();
+        }
+      }
+    });
+    toolbar->addAction(copy);
 
     toolbar->addSeparator();
     //
@@ -204,33 +231,44 @@ void PanelClassification::openEditDialog(int row, int column)
 /// \param[out]
 /// \return
 ///
-void PanelClassification::addClass()
+auto PanelClassification::findNextFreeClassId() -> enums::ClassId
+{
+  std::set<enums::ClassId> classIds;
+  // Sort class IDs
+  for(const auto &actualClass : mSettings.classification.classes) {
+    classIds.emplace(actualClass.classId);
+  }
+  // Iterate over all classIds and find the first not used
+  enums::ClassId idx = enums::ClassId::C0;
+  for(const auto &classId : classIds) {
+    if(idx != classId) {
+      return idx;
+    }
+    if(static_cast<uint16_t>(idx) >= static_cast<uint16_t>(enums::ClassId::CMAX)) {
+      break;
+    }
+    idx = static_cast<enums::ClassId>(static_cast<uint16_t>(idx) + 1);
+  }
+  return idx;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::addClass(bool withUpdate)
 {
   joda::settings::Class newClass;
-  auto findNextFreeClassId = [this]() -> enums::ClassId {
-    std::set<enums::ClassId> classIds;
-    // Sort class IDs
-    for(const auto &actualClass : mSettings.classification.classes) {
-      classIds.emplace(actualClass.classId);
-    }
-    // Iterate over all classIds and find the first not used
-    enums::ClassId idx = enums::ClassId::C0;
-    for(const auto &classId : classIds) {
-      if(idx != classId) {
-        return idx;
-      }
-      if(static_cast<uint16_t>(idx) >= static_cast<uint16_t>(enums::ClassId::CMAX)) {
-        break;
-      }
-      idx = static_cast<enums::ClassId>(static_cast<uint16_t>(idx) + 1);
-    }
-    return idx;
-  };
   newClass.classId = findNextFreeClassId();
   if(mClassSettingsDialog->exec(newClass) == 0) {
     mSettings.classification.classes.emplace_back(newClass);
   }
-  onSettingChanged();
+  if(withUpdate) {
+    onSettingChanged();
+  }
 }
 
 ///
