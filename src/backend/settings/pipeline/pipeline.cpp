@@ -205,7 +205,7 @@ void Pipeline::check() const
       hasSaveImage = true;
     }
 
-    if(command.$measure.has_value()) {
+    if(command.$measureIntensity.has_value()) {
       hasMeasure = true;
     }
   }

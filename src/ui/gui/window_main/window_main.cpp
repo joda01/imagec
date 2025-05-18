@@ -810,6 +810,7 @@ void WindowMain::onBackClicked()
 ///
 bool WindowMain::showPanelStartPage()
 {
+  getPanelPipeline()->unselectPipeline();
   mNewProjectButton->setVisible(true);
   mOpenProjectButton->setVisible(true);
   mSidebar->setVisible(true);

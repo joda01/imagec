@@ -40,7 +40,7 @@ protected:
     QRect textRect = style()->subElementRect(QStyle::SE_HeaderLabel, &opt, this).adjusted(4, 2, -4, -2);
     painter->save();
     painter->translate(textRect.topLeft());
-    QRect clip(0, 0, textRect.width(), textRect.height());
+    QRect clip(0, 0, textRect.width(), textRect.height() + 40);
     doc.drawContents(painter, clip);
     painter->restore();
   }
@@ -53,6 +53,6 @@ protected:
     doc.setDefaultFont(font());
     doc.setHtml("<div align='center'>" + text.toHtmlEscaped() + "</div>");
     QSize size = doc.size().toSize();
-    return QSize(size.width() + 8, size.height() + 8);    // Add some padding
+    return QSize(size.width() + 8, size.height() + 40);    // Add some padding
   }
 };

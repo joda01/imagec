@@ -47,6 +47,7 @@ public:
   std::set<joda::enums::ClassId> getOutputClasses() const;
   std::set<joda::enums::ClassId> getInputClasses() const;
   auto getPossibleIntersectingClasses() const -> std::map<enums::ClassId, std::set<enums::ClassId>>;
+  auto getPossibleDistanceClasses() const -> std::map<enums::ClassId, std::set<enums::ClassId>>;
   auto getImageChannelsUsedForMeasurement() const -> std::map<enums::ClassId, std::set<int32_t>>;
 
   auto checkForErrors() const -> std::vector<std::pair<std::string, SettingParserLog_t>>;

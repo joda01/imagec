@@ -12,14 +12,14 @@
 #pragma once
 
 #include "backend/commands/command.hpp"
-#include "measure_settings.hpp"
+#include "measure_intensity_settings.hpp"
 
 namespace joda::cmd {
 
-class Measure : public cmd::Command
+class MeasureIntensity : public cmd::Command
 {
 public:
-  explicit Measure(const settings::MeasureSettings &settings) : mSettings(settings)
+  explicit MeasureIntensity(const settings::MeasureIntensitySettings &settings) : mSettings(settings)
   {
   }
 
@@ -61,6 +61,6 @@ public:
   }
 
 private:
-  const settings::MeasureSettings &mSettings;
+  const settings::MeasureIntensitySettings &mSettings;
 };
 }    // namespace joda::cmd

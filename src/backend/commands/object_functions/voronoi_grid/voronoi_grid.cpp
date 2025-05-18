@@ -16,15 +16,17 @@
 namespace joda::cmd {
 
 void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::SpheralIndex &voronoiGrid, const atom::SpheralIndex &voronoiPoints,
-                              atom::SpheralIndex &response, atom::ObjectList &objects)
+                              atom::ObjectList &objects)
 {
-  auto filterVoronoiAreas = [this, &context, &response, &voronoiPoints, &voronoiGrid](const atom::ROI *toIntersect) {
+  const atom::SpheralIndex *response = objects[context.getClassId(mSettings.outputClassVoronoi)].get();
+
+  auto filterVoronoiAreas = [this, &context, &response, &voronoiPoints, &voronoiGrid, &objects](const atom::ROI *toIntersect) {
     for(const atom::ROI &voronoiArea : voronoiGrid) {
       if(voronoiArea.getClassId() == context.getClassId(mSettings.outputClassVoronoi)) {
         //
         // Apply filter
         //
-        auto applyFilter = [this, &context, &response, &voronoiPoints, &voronoiGrid](atom::ROI &cutedVoronoiArea) {
+        auto applyFilter = [this, &context, &response, &voronoiPoints, &voronoiGrid, &objects](atom::ROI &cutedVoronoiArea) {
           //
           // Areas without point are filtered out
           //
@@ -55,7 +57,7 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
               return;
             }
           }
-          response.push_back(cutedVoronoiArea);
+          objects.push_back(cutedVoronoiArea);
         };
 
         //

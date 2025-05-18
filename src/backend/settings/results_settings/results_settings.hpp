@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include "backend/enums/enum_measurements.hpp"
@@ -49,6 +50,8 @@ public:
     ID,
     OBJECT,
     INTENSITY,
+    DISTANCE,
+    DISTANCE_ID,
     INTERSECTION
   };
 
@@ -60,8 +63,17 @@ public:
       case enums::Measurement::INTENSITY_MIN:
       case enums::Measurement::INTENSITY_MAX:
         return MeasureType::INTENSITY;
-      case enums::Measurement::CENTER_OF_MASS_X:
-      case enums::Measurement::CENTER_OF_MASS_Y:
+      case enums::Measurement::DISTANCE_CENTER_TO_CENTER:
+      case enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN:
+      case enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX:
+      case enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN:
+      case enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX:
+        return MeasureType::DISTANCE;
+      case enums::Measurement::DISTANCE_FROM_OBJECT_ID:
+      case enums::Measurement::DISTANCE_TO_OBJECT_ID:
+        return MeasureType::DISTANCE_ID;
+      case enums::Measurement::CENTEROID_X:
+      case enums::Measurement::CENTEROID_Y:
       case enums::Measurement::CONFIDENCE:
       case enums::Measurement::AREA_SIZE:
       case enums::Measurement::PERIMETER:
@@ -158,6 +170,13 @@ public:
       if(getType(measureChannel) == MeasureType::ID) {
         return names.className + "-" + toString(measureChannel) + "\n" + stacks;
       }
+      if(getType(measureChannel) == MeasureType::DISTANCE) {
+        return names.className + " to " + names.intersectingName + "-" + toString(measureChannel) + createStatsHeader(stats) + stacks;
+      }
+      if(getType(measureChannel) == MeasureType::DISTANCE_ID) {
+        return names.className + " to " + names.intersectingName + "-" + toString(measureChannel) + stacks;
+      }
+
       return names.className + "-" + toString(measureChannel) + createStatsHeader(stats) + stacks;
     }
 
@@ -240,6 +259,36 @@ public:
       columns.clear();
       columns = newColumns;
     }
+  }
+
+  void eraseColumn(const ColumnKey &colKey)
+  {
+    for(const auto &[colIdx, key] : columns) {
+      if(colKey == key) {
+        eraseColumn(colIdx);
+        break;
+      }
+    }
+  }
+
+  [[nodiscard]] auto getColumnIdx(const ColumnKey &colKey) const -> ColumnIdx
+  {
+    for(const auto &[colIdx, key] : columns) {
+      if(colKey == key) {
+        return colIdx;
+      }
+    }
+    throw std::out_of_range("Not found!");
+  }
+
+  [[nodiscard]] auto containsColumnIdx(const ColumnKey &colKey) const -> bool
+  {
+    for(const auto &[colIdx, key] : columns) {
+      if(colKey == key) {
+        return true;
+      }
+    }
+    return false;
   }
 
   [[nodiscard]] auto getColumn(const ColumnIdx &colIdx) const -> ColumnKey

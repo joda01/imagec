@@ -33,7 +33,7 @@ template <ImageCStackCombo_t T>
 inline auto generateCStackCombo(const QString &helpText, QWidget *parent, const QString &thisText = "Default")
 {
   auto dropBox = SettingBase::create<T>(parent, generateSvgIcon("irc-operator"), helpText);
-  dropBox->addOptions({{-2, "Undefined", generateSvgIcon("irc-operator")},
+  dropBox->addOptions({{-2, "Off", generateSvgIcon("irc-operator")},
                        {-1, thisText, generateSvgIcon("irc-operator")},
                        {0, "CH0", generateSvgIcon("irc-operator")},
                        {1, "CH1", generateSvgIcon("irc-operator")},

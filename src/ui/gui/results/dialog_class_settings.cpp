@@ -132,8 +132,8 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
 
     // Wrap it in a QToolButton
     auto *toolButton = new QToolButton();
-    toolButton->setMaximumWidth(150);
-    toolButton->setMinimumWidth(150);
+    toolButton->setMaximumWidth(250);
+    toolButton->setMinimumWidth(250);
     toolButton->setDefaultAction(button);    // This binds text, icon, and triggered slot
 
     measureLayout->addWidget(toolButton, row, col);
@@ -169,17 +169,23 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
 
   addSeparator(7);
-  addMeasure("Position", 8, 0, enums::Measurement::CENTER_OF_MASS_X, {enums::Stats::OFF}, {enums::Stats::OFF});
-  // addMeasure("Distance to surface min", 9, 0, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG, enums::Stats::SUM});
-  // addMeasure("Distance to surface max", 9, 1, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG, enums::Stats::SUM});
-  // addMeasure("Distance to center min", 10, 0, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG, enums::Stats::SUM});
-  // addMeasure("Distance to center max", 10, 1, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG, enums::Stats::SUM});
+  addMeasure("Position", 8, 0, enums::Measurement::CENTEROID_X, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Distance center to center", 8, 1, enums::Measurement::DISTANCE_CENTER_TO_CENTER, {enums::Stats::AVG},
+             {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
+  addMeasure("Distance center to surface max.", 9, 0, enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN, {enums::Stats::AVG},
+             {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
+  addMeasure("Distance center to center min.", 9, 1, enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX, {enums::Stats::AVG},
+             {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
+  addMeasure("Distance surface to surface max.", 10, 0, enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN, {enums::Stats::AVG},
+             {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
+  addMeasure("Distance surface to surface max.", 10, 1, enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX, {enums::Stats::AVG},
+             {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
 
-  addSeparator(9);
-  addMeasure("Object ID", 10, 0, enums::Measurement::OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
-  addMeasure("Parent object ID", 10, 1, enums::Measurement::PARENT_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
-  addMeasure("Origin object ID", 11, 0, enums::Measurement::ORIGIN_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
-  addMeasure("Tracking ID", 11, 1, enums::Measurement::TRACKING_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addSeparator(11);
+  addMeasure("Object ID", 12, 0, enums::Measurement::OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Parent object ID", 12, 1, enums::Measurement::PARENT_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Origin object ID", 13, 0, enums::Measurement::ORIGIN_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Tracking ID", 13, 1, enums::Measurement::TRACKING_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
 
   //
   // Create a horizontal layout for the buttons
@@ -297,6 +303,7 @@ void DialogClassSettings::toSettings(joda::settings::Class &classs)
   classs.name  = mDialogClassName->currentText().toStdString();
   classs.color = mDialogColorCombo->currentText().toStdString();
   classs.defaultMeasurements.clear();
+  std::set<enums::Measurement> stillAddedMeasurements;
 
   for(auto &[measure, settings] : mMeasurements) {
     if(settings.first->isChecked()) {
@@ -307,10 +314,31 @@ void DialogClassSettings::toSettings(joda::settings::Class &classs)
         }
       }
 
-      classs.defaultMeasurements.emplace_back(joda::settings::ResultsTemplate{.measureChannel = measure, .stats = stats});
-      if(measure == enums::Measurement::CENTER_OF_MASS_X) {
-        classs.defaultMeasurements.emplace_back(
-            joda::settings::ResultsTemplate{.measureChannel = enums::Measurement::CENTER_OF_MASS_Y, .stats = stats});
+      if(!stillAddedMeasurements.contains(measure)) {
+        classs.defaultMeasurements.emplace_back(joda::settings::ResultsTemplate{.measureChannel = measure, .stats = stats});
+        stillAddedMeasurements.emplace(measure);
+      }
+
+      if(measure == enums::Measurement::CENTEROID_X) {
+        if(!stillAddedMeasurements.contains(enums::Measurement::CENTEROID_Y)) {
+          classs.defaultMeasurements.emplace_back(joda::settings::ResultsTemplate{.measureChannel = enums::Measurement::CENTEROID_Y, .stats = stats});
+          stillAddedMeasurements.emplace(enums::Measurement::CENTEROID_Y);
+        }
+      }
+
+      if(measure == enums::Measurement::DISTANCE_CENTER_TO_CENTER || measure == enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN ||
+         measure == enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX || measure == enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN ||
+         measure == enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX) {
+        if(!stillAddedMeasurements.contains(enums::Measurement::DISTANCE_FROM_OBJECT_ID)) {
+          classs.defaultMeasurements.emplace_back(
+              joda::settings::ResultsTemplate{.measureChannel = enums::Measurement::DISTANCE_FROM_OBJECT_ID, .stats = {enums::Stats::OFF}});
+          stillAddedMeasurements.emplace(enums::Measurement::DISTANCE_FROM_OBJECT_ID);
+        }
+        if(!stillAddedMeasurements.contains(enums::Measurement::DISTANCE_TO_OBJECT_ID)) {
+          classs.defaultMeasurements.emplace_back(
+              joda::settings::ResultsTemplate{.measureChannel = enums::Measurement::DISTANCE_TO_OBJECT_ID, .stats = {enums::Stats::OFF}});
+          stillAddedMeasurements.emplace(enums::Measurement::DISTANCE_TO_OBJECT_ID);
+        }
       }
     }
   }

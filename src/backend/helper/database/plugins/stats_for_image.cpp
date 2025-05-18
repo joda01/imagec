@@ -27,7 +27,8 @@ namespace joda::db {
 /// \param[out]
 /// \return
 ///
-auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSettings &filterIn) -> QueryResult
+auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSettings &filterIn, settings::ResultsSettings *resultingFilter)
+    -> QueryResult
 {
   //
   // Remove all stats but one per channel since one image level an average e.g. for just one object does not make sense
@@ -50,7 +51,13 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
     }
   }
   filter.setFilter(filterIn.getFilter(), filterIn.getPlateSetup(), filterIn.getDensityMapSettings());
+  if(resultingFilter != nullptr) {
+    *resultingFilter = filter;
+  }
 
+  //
+  // Generate exports
+  //
   auto classesToExport = ResultingTable(&filter);
 
   auto findMaxRowIdx = [](const std::map<uint64_t, int32_t> &rowIndexes) -> int32_t {
@@ -67,7 +74,7 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
   // This is used to align the objects for each class correct
   //
   for(const auto &[classs, statement] : classesToExport) {
-    auto [sql, params] = toSqlTable(classs, filter.getFilter(), statement);
+    auto [sql, params] = toSqlTable(classs, filter.getFilter(), statement, "");
     auto result        = database->select(sql, params);
 
     if(result->HasError()) {
@@ -111,7 +118,7 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
 /// \return
 ///
 auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClass, const settings::ResultsSettings::ObjectFilter &filter,
-                               const PreparedStatement &channelFilter) -> std::pair<std::string, DbArgs_t>
+                               const PreparedStatement &channelFilter, const std::string &offValue) -> std::pair<std::string, DbArgs_t>
 {
   auto [retValSum, retValCnt] = channelFilter.createIntersectionQuery();
   std::string intersect;
@@ -174,13 +181,22 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
   }
   query += ")";
 
-  std::string sql = intersect + "SELECT\n" + channelFilter.createStatsQuery(false, false) +
-                    "ANY_VALUE(t1.meas_center_x) as meas_center_x,\n"
-                    "ANY_VALUE(t1.meas_center_y) as meas_center_y,\n"
-                    "ANY_VALUE(t1.object_id) as object_id,\n"
-                    "ANY_VALUE(t1.meas_parent_object_id) as meas_parent_object_id,\n"
-                    "ANY_VALUE(t1.meas_tracking_id) as meas_tracking_id,\n"
-                    "ANY_VALUE(images.file_name) as file_name\n"
+  std::string uniqueObjectId = offValue + "(t1.object_id) as object_id,\n";
+  if(offValue.empty()) {
+    if(classsAndClass.distanceToClass != joda::enums::ClassId::NONE) {
+      // For distance measurement it is special since the distance for one object to multiple other objects is measured
+      uniqueObjectId = "ROW_NUMBER() OVER (ORDER BY " + offValue + "(t1.object_id)) as object_id,\n";
+    }
+  }
+
+  std::string grouping;
+  if(!offValue.empty()) {
+    grouping = "GROUP BY t1.object_id\n";
+  }
+  std::string sql = intersect + "SELECT\n" + channelFilter.createStatsQuery(false, false, offValue) + offValue +
+                    "(t1.meas_center_x) as meas_center_x,\n" + offValue + "(t1.meas_center_y) as meas_center_y,\n" + uniqueObjectId + offValue +
+                    "(t1.meas_parent_object_id) as meas_parent_object_id,\n" + offValue + "(t1.meas_tracking_id) as meas_tracking_id,\n" + offValue +
+                    "(images.file_name) as file_name\n" +
                     "FROM\n"
                     "  " +
                     table + " t1\n" + channelFilter.createStatsQueryJoins() +
@@ -188,14 +204,12 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
                     "	t1.image_id = images.image_id\n"
                     "WHERE\n"
                     " t1.image_id IN" +
-                    query +
-                    " AND t1.class_id=? AND stack_z=? AND stack_t=?\n"
-                    "GROUP BY t1.object_id\n"
-                    "ORDER BY file_name,t1.object_id";
+                    query + " AND t1.class_id=? AND stack_z=? AND stack_t=?\n" + grouping + "ORDER BY file_name,object_id";
 
   DbArgs_t argsEnd = {static_cast<uint16_t>(classsAndClass.classs), static_cast<int32_t>(classsAndClass.zStack),
                       static_cast<int32_t>(classsAndClass.tStack)};
   args.insert(args.end(), argsEnd.begin(), argsEnd.end());
+
   return {sql, args};
 }
 
@@ -206,23 +220,31 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
 /// \param[out]
 /// \return
 ///
-auto StatsPerImage::toHeatmap(db::Database *database, const settings::ResultsSettings &filter) -> QueryResult
+auto StatsPerImage::toHeatmap(db::Database *database, const settings::ResultsSettings &filter, settings::ResultsSettings *resultingFilter)
+    -> QueryResult
 {
+  if(resultingFilter != nullptr) {
+    *resultingFilter = filter;
+  }
+
   auto classesToExport = ResultingTable(&filter);
 
-  int32_t tabIdx = 0;
+  // int32_t tabIdx = 0;
   for(const auto &[classs, statement] : classesToExport) {
     auto [result, imageInfo] = densityMap(classs, database, filter.getFilter(), filter.getDensityMapSettings(), statement);
     size_t columnNr          = statement.getColSize();
     auto materializedResult  = result->Cast<duckdb::StreamQueryResult>().Materialize();
 
-    for(size_t colIdx = 0; colIdx < columnNr; colIdx++) {
+    for(size_t dbColIdx = 0; dbColIdx < columnNr; dbColIdx++) {
+      auto tabIdx = classesToExport.getColIdxFromDbColIdx(statement, dbColIdx);
+
       auto generateHeatmap = [&columnNr, &tabIdx, &classesToExport, &filter, &materializedResult,
-                              imageInfo = imageInfo](int32_t colIdx, const PreparedStatement &statement) {
+                              imageInfo = imageInfo](int32_t dbColIdx, const PreparedStatement &statement) {
         joda::table::Table &results = classesToExport.getTable(tabIdx);
-        results.setTitle(statement.getColumnAt(colIdx).createHeader());
+
+        results.setTitle(statement.getColumnAt(dbColIdx).createHeader());
         results.setMeta({statement.getColNames().className});
-        results.setColHeader({{0, statement.getColumnAt(colIdx).createHeader()}});
+        results.setColHeader({{0, statement.getColumnAt(dbColIdx).createHeader()}});
 
         for(uint64_t row = 0; row < imageInfo.height; row++) {
           results.getMutableRowHeader()[row] = std::to_string(row + 1);
@@ -234,7 +256,7 @@ auto StatsPerImage::toHeatmap(db::Database *database, const settings::ResultsSet
 
         for(size_t n = 0; n < materializedResult->RowCount(); n++) {
           try {
-            double value        = materializedResult->GetValue(colIdx, n).GetValue<double>();
+            double value        = materializedResult->GetValue(dbColIdx, n).GetValue<double>();
             uint32_t rectangleX = materializedResult->GetValue(columnNr + 0, n).GetValue<double>();
             uint32_t rectangleY = materializedResult->GetValue(columnNr + 1, n).GetValue<double>();
 
@@ -245,12 +267,13 @@ auto StatsPerImage::toHeatmap(db::Database *database, const settings::ResultsSet
             results.setData(y, x, table::TableCell{value, 0, true, linkToImage});
 
           } catch(const duckdb::InternalException &ex) {
-            std::cout << "EX " << ex.what() << std::endl;
+            // std::cout << "EX " << ex.what() << std::endl;
           }
         }
       };
-      generateHeatmap(colIdx, statement);
-      tabIdx++;
+
+      generateHeatmap(dbColIdx, statement);
+      // tabIdx++;
     }
   }
   return classesToExport.getResult();

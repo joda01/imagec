@@ -36,7 +36,8 @@
 #include "backend/commands/image_functions/threshold_adaptive/threshold_adaptive_settings.hpp"
 #include "backend/commands/image_functions/watershed/watershed_settings.hpp"
 #include "backend/commands/object_functions/colocalization/colocalization_settings.hpp"
-#include "backend/commands/object_functions/measure/measure_settings.hpp"
+#include "backend/commands/object_functions/measure_distance/measure_distance_settings.hpp"
+#include "backend/commands/object_functions/measure_intensity/measure_intensity_settings.hpp"
 #include "backend/commands/object_functions/object_transform/object_transform_settings.hpp"
 #include "backend/commands/object_functions/objects_to_image/objects_to_image_settings.hpp"
 #include "backend/commands/object_functions/validator_noise/validator_noise_settings.hpp"
@@ -88,7 +89,8 @@ public:
   std::optional<AiClassifierSettings> $aiClassify                       = std::nullopt;
   std::optional<ColocalizationSettings> $colocalization                 = std::nullopt;
   std::optional<ReclassifySettings> $reclassify                         = std::nullopt;
-  std::optional<MeasureSettings> $measure                               = std::nullopt;
+  std::optional<MeasureIntensitySettings> $measureIntensity             = std::nullopt;
+  std::optional<MeasureDistanceSettings> $measureDistance               = std::nullopt;
   std::optional<RollingBallSettings> $rollingBall                       = std::nullopt;
   std::optional<MedianSubtractSettings> $medianSubtract                 = std::nullopt;
   std::optional<EdgeDetectionSobelSettings> $sobel                      = std::nullopt;
@@ -113,11 +115,11 @@ public:
   void check() const;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PipelineStep, $blur, $saveImage, $threshold, $thresholdAdaptive, $watershed, $imageFromClass,
-                                                       $classify, $aiClassify, $colocalization, $reclassify, $measure, $rollingBall, $medianSubtract,
-                                                       $sobel, $canny, $crop, $voronoi, $thresholdValidator, $noiseValidator, $intensityTransform,
-                                                       $colorFilter, $objectsToImage, $imageMath, $objectTransform, $imageToCache,
-                                                       $morphologicalTransform, $fillHoles, $houghTransform, $enhanceContrast, $rank, disabled,
-                                                       locked);
+                                                       $classify, $aiClassify, $colocalization, $reclassify, $measureIntensity, $measureDistance,
+                                                       $rollingBall, $medianSubtract, $sobel, $canny, $crop, $voronoi, $thresholdValidator,
+                                                       $noiseValidator, $intensityTransform, $colorFilter, $objectsToImage, $imageMath,
+                                                       $objectTransform, $imageToCache, $morphologicalTransform, $fillHoles, $houghTransform,
+                                                       $enhanceContrast, $rank, disabled, locked);
 };
 
 }    // namespace joda::settings

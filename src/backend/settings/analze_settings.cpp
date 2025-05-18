@@ -173,19 +173,53 @@ auto AnalyzeSettings::getPossibleIntersectingClasses() const -> std::map<enums::
 /// \param[out]
 /// \return
 ///
+auto AnalyzeSettings::getPossibleDistanceClasses() const -> std::map<enums::ClassId, std::set<enums::ClassId>>
+{
+  std::map<enums::ClassId, std::set<enums::ClassId>> possibleDistances;
+  for(const auto &pipeline : pipelines) {
+    for(const auto &step : pipeline.pipelineSteps) {
+      if(step.$measureDistance.has_value()) {
+        auto baseClassId = step.$measureDistance.value().inputClasses;
+        enums::ClassId classId;
+        if(baseClassId == enums::ClassIdIn::$) {
+          classId = pipeline.pipelineSetup.defaultClassId;
+        } else {
+          classId = static_cast<enums::ClassId>(baseClassId);
+        }
+        auto newClassIdTmp = step.$measureDistance.value().inputClassesSecond;
+        enums::ClassId newClassId;
+        if(newClassIdTmp == enums::ClassIdIn::$) {
+          newClassId = pipeline.pipelineSetup.defaultClassId;
+        } else {
+          newClassId = static_cast<enums::ClassId>(newClassIdTmp);
+        }
+        possibleDistances[classId].emplace(newClassId);
+      }
+    }
+  }
+  return possibleDistances;
+}
+
+///
+/// \brief      Returns classes which may intersect with an other class
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
 auto AnalyzeSettings::getImageChannelsUsedForMeasurement() const -> std::map<enums::ClassId, std::set<int32_t>>
 {
   std::map<enums::ClassId, std::set<int32_t>> usedImageChannels;
   for(const auto &pipeline : pipelines) {
     for(const auto &step : pipeline.pipelineSteps) {
-      if(step.$measure.has_value()) {
+      if(step.$measureIntensity.has_value()) {
         // step.$reclassify.value().inputClasses;
-        for(const auto &imagePlane : step.$measure.value().planesIn) {
+        for(const auto &imagePlane : step.$measureIntensity.value().planesIn) {
           int32_t imageChannelTmp = imagePlane.imagePlane.cStack;
           if(imageChannelTmp < 0) {
             imageChannelTmp = pipeline.pipelineSetup.cStackIndex;
           }
-          for(const auto baseClassId : step.$measure.value().inputClasses) {
+          for(const auto baseClassId : step.$measureIntensity.value().inputClasses) {
             enums::ClassId classId;
             if(baseClassId == enums::ClassIdIn::$) {
               classId = pipeline.pipelineSetup.defaultClassId;
@@ -218,6 +252,7 @@ auto AnalyzeSettings::toResultsSettings() const -> ResultsSettings
   auto outputClasses       = getOutputClasses();
   auto intersectingClasses = getPossibleIntersectingClasses();
   auto measuredChannels    = getImageChannelsUsedForMeasurement();
+  auto distanceFromClasses = getPossibleDistanceClasses();
 
   std::map<enums::ClassId, joda::settings::Class> classes;
   for(const auto &cl : projectSettings.classification.classes) {
@@ -291,6 +326,9 @@ auto AnalyzeSettings::toResultsSettings() const -> ResultsSettings
             continue;
           }
 
+          //
+          // Intensity
+          //
           if(measure.measureChannel == enums::Measurement::INTENSITY_SUM || measure.measureChannel == enums::Measurement::INTENSITY_AVG ||
              measure.measureChannel == enums::Measurement::INTENSITY_MIN || measure.measureChannel == enums::Measurement::INTENSITY_MAX) {
             // Iterate over cross channels
@@ -299,9 +337,34 @@ auto AnalyzeSettings::toResultsSettings() const -> ResultsSettings
                 addColumn(stats, channelId, enums::ClassId::UNDEFINED, "CH " + std::to_string(channelId));
               }
             }
-          } else {
-            addColumn(stats, -1, enums::ClassId::UNDEFINED);
+            continue;
           }
+
+          //
+          // Distance
+          //
+          if(measure.measureChannel == enums::Measurement::DISTANCE_CENTER_TO_CENTER ||
+             measure.measureChannel == enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX ||
+             measure.measureChannel == enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN ||
+             measure.measureChannel == enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX ||
+             measure.measureChannel == enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN ||
+             measure.measureChannel == enums::Measurement::DISTANCE_FROM_OBJECT_ID ||
+             measure.measureChannel == enums::Measurement::DISTANCE_TO_OBJECT_ID) {
+            // List of distance from classes which contains the distance to classes
+            if(distanceFromClasses.contains(classId)) {
+              for(const auto &intersectingClassId : distanceFromClasses.at(classId)) {
+                if(measure.measureChannel == enums::Measurement::DISTANCE_FROM_OBJECT_ID ||
+                   measure.measureChannel == enums::Measurement::DISTANCE_TO_OBJECT_ID) {
+                  addColumn(enums::Stats::OFF, -1, intersectingClassId);
+                } else {
+                  addColumn(stats, -1, intersectingClassId);
+                }
+              }
+            }
+            continue;
+          }
+
+          addColumn(stats, -1, enums::ClassId::UNDEFINED);
         }
       }
     }

@@ -224,6 +224,22 @@ void Database::createTables()
       " meas_intensity_avg float,"
       " meas_intensity_min UINTEGER,"
       " meas_intensity_max UINTEGER"
+      ");"
+
+      "CREATE TABLE IF NOT EXISTS distance_measurements ("
+      "	image_id UBIGINT,"
+      " object_id UBIGINT,"
+      " class_id USMALLINT,"    // Class ID of the foreign object. We store this to reduce the query complexity.
+      " meas_object_id UBIGINT,"
+      " meas_class_id USMALLINT,"    // We do this for performance reason to don't need a join in the query
+      " meas_stack_c UINTEGER,"
+      " meas_stack_z UINTEGER,"
+      " meas_stack_t UINTEGER,"
+      " meas_distance_center_to_center DOUBLE,"
+      " meas_distance_center_to_surface_min DOUBLE,"
+      " meas_distance_center_to_surface_max DOUBLE,"
+      " meas_distance_surface_to_surface_min DOUBLE,"
+      " meas_distance_surface_to_surface_max DOUBLE"
       ");";
 
   auto connection = acquire();
@@ -267,8 +283,9 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
 {
   auto connection = acquire();
   // connection->BeginTransaction();
-  auto objects             = duckdb::Appender(*connection, "objects");
-  auto object_measurements = duckdb::Appender(*connection, "object_measurements");
+  auto objects               = duckdb::Appender(*connection, "objects");
+  auto object_measurements   = duckdb::Appender(*connection, "object_measurements");
+  auto distance_measurements = duckdb::Appender(*connection, "distance_measurements");
 
   for(const auto &[_, obj] : objectsList) {
     for(const auto &roi : *obj) {
@@ -327,10 +344,41 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
         object_measurements.Append<uint32_t>(intensity.intensityMax);     //       " meas_intensity_max UINTEGER"
         object_measurements.EndRow();
       }
+
+      //
+      // Distance
+      //
+      for(const auto &[measObjectId, distance] : roi.getDistances()) {
+        try {
+          distance_measurements.BeginRow();
+          // Primary key
+          distance_measurements.Append<uint64_t>(imgContext.imageId);                         //       "	image_id UBIGINT,"
+          distance_measurements.Append<uint64_t>(roi.getObjectId());                          //       " object_id UBIGINT,"
+          distance_measurements.Append<uint16_t>(static_cast<uint16_t>(roi.getClassId()));    //       " meas_class_id USMALLINT,"
+          distance_measurements.Append<uint64_t>(measObjectId);                               //       " meas_object_id UBIGINT,"
+          distance_measurements.Append<uint16_t>(
+              static_cast<uint16_t>(objectsList.getObjectById(measObjectId)->getClassId()));    //       " meas_class_id USMALLINT,"
+
+          //  Data
+          distance_measurements.Append<uint32_t>(roi.getC());                             //       " meas_stack_c UINTEGER,"
+          distance_measurements.Append<uint32_t>(roi.getZ());                             //       " meas_stack_z UINTEGER,"
+          distance_measurements.Append<uint32_t>(roi.getT());                             //       " meas_stack_t UINTEGER,"
+          distance_measurements.Append<double>(distance.distanceCentroidToCentroid);      // meas_distance_center_to_center DOUBLE,"
+          distance_measurements.Append<double>(distance.distanceCentroidToSurfaceMin);    // meas_distance_center_to_surface_min DOUBLE,"
+          distance_measurements.Append<double>(distance.distanceCentroidToSurfaceMax);    // meas_distance_center_to_surface_max DOUBLE,"
+          distance_measurements.Append<double>(distance.distanceSurfaceToSurfaceMin);     // meas_distance_surface_to_surface_min DOUBLE,
+          distance_measurements.Append<double>(distance.distanceSurfaceToSurfaceMax);     // meas_distance_surface_to_surface_max DOUBLE"
+
+          distance_measurements.EndRow();
+        } catch(const std::exception &ex) {
+          joda::log::logError("Could not found object with ID >" + std::to_string(measObjectId) + "<");
+        }
+      }
     }
   }
   objects.Close();
   object_measurements.Close();
+  distance_measurements.Close();
 
   //
   // Statistics

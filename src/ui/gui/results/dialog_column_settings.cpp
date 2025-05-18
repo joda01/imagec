@@ -49,8 +49,8 @@ DialogColumnSettings::DialogColumnSettings(settings::ResultsSettings *filter, QW
   mMeasurementSelector->addItem("Perimeter", (int32_t) joda::enums::Measurement::PERIMETER);
   mMeasurementSelector->addItem("Circularity", (int32_t) joda::enums::Measurement::CIRCULARITY);
   mMeasurementSelector->insertSeparator(mMeasurementSelector->count());
-  mMeasurementSelector->addItem("Center of mass X", (int32_t) joda::enums::Measurement::CENTER_OF_MASS_X);
-  mMeasurementSelector->addItem("Center of mass Y", (int32_t) joda::enums::Measurement::CENTER_OF_MASS_Y);
+  mMeasurementSelector->addItem("Centroid X", (int32_t) joda::enums::Measurement::CENTEROID_X);
+  mMeasurementSelector->addItem("Centroid Y", (int32_t) joda::enums::Measurement::CENTEROID_Y);
   mMeasurementSelector->insertSeparator(mMeasurementSelector->count());
   mMeasurementSelector->addItem("Intensity sum.", (int32_t) joda::enums::Measurement::INTENSITY_SUM);
   mMeasurementSelector->addItem("Intensity avg.", (int32_t) joda::enums::Measurement::INTENSITY_AVG);
@@ -58,6 +58,13 @@ DialogColumnSettings::DialogColumnSettings(settings::ResultsSettings *filter, QW
   mMeasurementSelector->addItem("Intensity max.", (int32_t) joda::enums::Measurement::INTENSITY_MAX);
   mMeasurementSelector->insertSeparator(mMeasurementSelector->count());
   mMeasurementSelector->addItem("Intersection", (int32_t) joda::enums::Measurement::INTERSECTING);
+  mMeasurementSelector->addItem("Distance from object id", (int32_t) joda::enums::Measurement::DISTANCE_FROM_OBJECT_ID);
+  mMeasurementSelector->addItem("Distance to object id", (int32_t) joda::enums::Measurement::DISTANCE_TO_OBJECT_ID);
+  mMeasurementSelector->addItem("Distance center to center", (int32_t) joda::enums::Measurement::DISTANCE_CENTER_TO_CENTER);
+  mMeasurementSelector->addItem("Distance center to surface min", (int32_t) joda::enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN);
+  mMeasurementSelector->addItem("Distance center to surface max", (int32_t) joda::enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX);
+  mMeasurementSelector->addItem("Distance surface to surface min", (int32_t) joda::enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN);
+  mMeasurementSelector->addItem("Distance surface to surface max", (int32_t) joda::enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX);
   mMeasurementSelector->insertSeparator(mMeasurementSelector->count());
   mMeasurementSelector->addItem("Object ID", (int32_t) joda::enums::Measurement::OBJECT_ID);
   mMeasurementSelector->addItem("Origin object ID", (int32_t) joda::enums::Measurement::ORIGIN_OBJECT_ID);
@@ -148,10 +155,19 @@ DialogColumnSettings::DialogColumnSettings(settings::ResultsSettings *filter, QW
 ///
 void DialogColumnSettings::checkForIntersecting()
 {
-  if(mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::INTERSECTING) {
-    mClasssIntersection->setEnabled(false);
-  } else {
+  if(mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::INTERSECTING ||
+     mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::DISTANCE_CENTER_TO_CENTER ||
+     mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN ||
+     mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX ||
+     mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN ||
+     mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX ||
+     mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::DISTANCE_FROM_OBJECT_ID ||
+     mMeasurementSelector->currentData().toInt() == (int32_t) joda::enums::Measurement::DISTANCE_TO_OBJECT_ID
+
+  ) {
     mClasssIntersection->setEnabled(true);
+  } else {
+    mClasssIntersection->setEnabled(false);
   }
 
   if(mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::INTENSITY_SUM &&
@@ -166,7 +182,11 @@ void DialogColumnSettings::checkForIntersecting()
   if(mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::OBJECT_ID &&
      mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::ORIGIN_OBJECT_ID &&
      mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::TRACKING_ID &&
-     mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::PARENT_OBJECT_ID) {
+     mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::PARENT_OBJECT_ID &&
+     mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::DISTANCE_FROM_OBJECT_ID &&
+     mMeasurementSelector->currentData().toInt() != (int32_t) joda::enums::Measurement::DISTANCE_TO_OBJECT_ID
+
+  ) {
     mStatsSelector->setEnabled(true);
   } else {
     mStatsSelector->setEnabled(false);
@@ -180,34 +200,36 @@ void DialogColumnSettings::checkForIntersecting()
 /// \param[out]
 /// \return
 ///
-void DialogColumnSettings::exec(int32_t selectedColumn)
+void DialogColumnSettings::exec(const settings::ResultsSettings::ColumnKey &colKey, bool addNew)
 {
-  if(mFilter->containsColumn({.tabIdx = 0, .colIdx = selectedColumn})) {
-    mClasssClassSelector->blockSignals(true);
+  settings::ResultsSettings::ColumnIdx colIdx;
+  if(!addNew) {
+    if(mFilter->containsColumnIdx(colKey)) {
+      colIdx = mFilter->getColumnIdx(colKey);
+      mClasssClassSelector->blockSignals(true);
+      auto select = [](int idx, QComboBox *combo) {
+        if(idx >= 0) {
+          combo->setCurrentIndex(idx);
+        }
+      };
 
-    auto colKey = mFilter->getColumn({.tabIdx = 0, .colIdx = selectedColumn});
+      select(mClasssClassSelector->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(colKey.classId)), mClasssClassSelector);
+      select(mClasssIntersection->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(colKey.intersectingChannel)), mClasssIntersection);
+      onClassesChanged();
+      select(mMeasurementSelector->findData(static_cast<int32_t>(colKey.measureChannel)), mMeasurementSelector);
+      select(mStatsSelector->findData(static_cast<int32_t>(colKey.stats)), mStatsSelector);
+      select(mCrossChannelStackC->findData(colKey.crossChannelStacksC), mCrossChannelStackC);
 
-    auto select = [](int idx, QComboBox *combo) {
-      if(idx >= 0) {
-        combo->setCurrentIndex(idx);
-      }
-    };
+      mZStack->setValue(colKey.zStack);
+      mTStack->setValue(colKey.tStack);
 
-    select(mClasssClassSelector->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(colKey.classId)), mClasssClassSelector);
-    select(mClasssIntersection->findData(SettingComboBoxMultiClassificationUnmanaged::toInt(colKey.intersectingChannel)), mClasssIntersection);
-    onClassesChanged();
-    select(mMeasurementSelector->findData(static_cast<int32_t>(colKey.measureChannel)), mMeasurementSelector);
-    select(mStatsSelector->findData(static_cast<int32_t>(colKey.stats)), mStatsSelector);
-    select(mCrossChannelStackC->findData(colKey.crossChannelStacksC), mCrossChannelStackC);
-
-    mZStack->setValue(colKey.zStack);
-    mTStack->setValue(colKey.tStack);
-
-    mClasssClassSelector->blockSignals(false);
+      mClasssClassSelector->blockSignals(false);
+    }
+  } else {
+    colIdx = {.tabIdx = 0, .colIdx = static_cast<int32_t>(mFilter->getColumns().size())};
   }
 
-  accept          = false;
-  mSelectedColumn = selectedColumn;
+  accept = false;
   QDialog::exec();
 
   //
@@ -216,7 +238,7 @@ void DialogColumnSettings::exec(int32_t selectedColumn)
   if(accept) {
     auto [className, intersectingName] = getClasssFromCombo();
 
-    mFilter->addColumn(settings::ResultsSettings::ColumnIdx{.tabIdx = 0, .colIdx = selectedColumn},
+    mFilter->addColumn(colIdx,
                        settings::ResultsSettings::ColumnKey{
                            .classId             = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClasssClassSelector->currentData().toUInt()),
                            .measureChannel      = static_cast<enums::Measurement>(mMeasurementSelector->currentData().toInt()),

@@ -45,7 +45,8 @@ public:
   {
   }
 
-  std::string createStatsQuery(bool isOuter, bool excludeInvalid, std::optional<enums::Stats> overrideStats = std::nullopt) const;
+  std::string createStatsQuery(bool isOuter, bool excludeInvalid, const std::string &offValue = "ANY_VALUE",
+                               std::optional<enums::Stats> overrideStats = std::nullopt) const;
   std::string createStatsQueryJoins() const;
   std::tuple<std::string, std::string> createIntersectionQuery() const;
 
@@ -87,7 +88,7 @@ public:
 private:
   /////////////////////////////////////////////////////
   static std::string getMeasurement(enums::Measurement measure, bool textual);
-  static std::string getStatsString(enums::Stats stats);
+  static std::string getStatsString(enums::Stats stats, const std::string &offValue = "ANY_VALUE");
 
   /////////////////////////////////////////////////////
   std::map<int32_t, settings::ResultsSettings::ColumnKey> columns;
@@ -102,16 +103,28 @@ private:
 class ResultingTable
 {
 public:
+  ///
+  /// \struct     QueryKey
+  /// \author     Joachim Danmayr
+  /// \brief      Defines which queries can be done in one statement
+  ///             For each class a separate statement must be created
+  ///
   struct QueryKey
   {
     joda::enums::ClassId classs;
-    int32_t zStack = 0;
-    int32_t tStack = 0;
+    int32_t zStack                       = 0;
+    int32_t tStack                       = 0;
+    joda::enums::ClassId distanceToClass = joda::enums::ClassId::NONE;
 
     bool operator<(const QueryKey &key) const
     {
       auto toUint128 = [](const QueryKey &key) -> stdi::uint128_t {
-        return stdi::uint128_t(static_cast<uint64>(key.classs), static_cast<uint64>(key.zStack) << 32 | static_cast<uint64>(key.tStack));
+        if(key.distanceToClass == joda::enums::ClassId::NONE) {
+          // We want the none to be first this is neccessary for toHeatmap to keep the order the rows are queried
+          return stdi::uint128_t(static_cast<uint64>(key.classs), static_cast<uint64>(key.zStack) << 32 | static_cast<uint64>(key.tStack));
+        }
+        return stdi::uint128_t((static_cast<uint64>(key.distanceToClass) + 1) << 16 | static_cast<uint64>(key.classs),
+                               static_cast<uint64>(key.zStack) << 32 | static_cast<uint64>(key.tStack));
       };
 
       return toUint128(*this) < toUint128(key);
@@ -135,6 +148,17 @@ public:
       mResultingTable.at(element.tabIdx).setData(row, element.colIdx, tableCell);
       mResultingTable.at(element.tabIdx).setMeta({.className = colName.className});
     }
+  }
+
+  size_t getColIdxFromDbColIdx(const PreparedStatement &statement, size_t dbColIdx) const
+  {
+    size_t colIdx  = 0;
+    auto columnKey = statement.getColumnAt(dbColIdx);
+    for(auto [itr, rangeEnd] = mTableMapping.equal_range(columnKey); itr != rangeEnd; ++itr) {
+      auto &element = itr->second;
+      colIdx        = element.colIdx;
+    }
+    return colIdx;
   }
 
   void setRowID(const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, int32_t row, const std::string &rowName,

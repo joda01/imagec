@@ -37,6 +37,9 @@ struct PairHash
 
 class SpheralIndex
 {
+  friend class ObjectList;
+  friend class SpheralIndexStandAlone;
+
 public:
   /////////////////////////////////////////////////////
 
@@ -45,33 +48,6 @@ public:
   }
 
   void createBinaryImage(cv::Mat &img) const;
-
-  ROI &emplace(const ROI &box)
-  {
-    return insertIntoGrid(box);
-  }
-
-  ROI &push_back(const ROI &box)
-  {
-    return insertIntoGrid(box);
-  }
-
-  void erase(const ROI *eraseRoi)
-  {
-    mElements.remove_if([eraseRoi](const ROI &obj) { return &obj == eraseRoi; });
-    for(auto &[_, vec] : grid) {
-      int32_t vecSizeBefore = vec.size();
-      vec.erase(std::remove_if(vec.begin(), vec.end(), [eraseRoi](const ROI *obj) { return obj == eraseRoi; }), vec.end());
-      if(vec.size() < vecSizeBefore) {
-        // We removed something
-        if(vec.empty()) {
-          // If the vector is empty, we can remove the grid element form the spheral index
-          grid.erase(_);
-        }
-        break;
-      }
-    }
-  }
 
   bool empty() const
   {
@@ -150,6 +126,33 @@ public:
   }
 
 private:
+  ROI &emplace(const ROI &box)
+  {
+    return insertIntoGrid(box);
+  }
+
+  ROI &push_back(const ROI &box)
+  {
+    return insertIntoGrid(box);
+  }
+
+  void erase(const ROI *eraseRoi)
+  {
+    mElements.remove_if([eraseRoi](const ROI &obj) { return &obj == eraseRoi; });
+    for(auto &[_, vec] : grid) {
+      int32_t vecSizeBefore = vec.size();
+      vec.erase(std::remove_if(vec.begin(), vec.end(), [eraseRoi](const ROI *obj) { return obj == eraseRoi; }), vec.end());
+      if(vec.size() < vecSizeBefore) {
+        // We removed something
+        if(vec.empty()) {
+          // If the vector is empty, we can remove the grid element form the spheral index
+          grid.erase(_);
+        }
+        break;
+      }
+    }
+  }
+
   /////////////////////////////////////////////////////
   std::list<ROI> mElements;
   unordered_map<pair<int, int>, std::vector<ROI *>, PairHash> grid;
@@ -195,6 +198,22 @@ private:
   std::mutex mInsertLock;
 };
 
+class SpheralIndexStandAlone : public SpheralIndex
+{
+public:
+  using SpheralIndex::SpheralIndex;
+
+  ROI &emplace(const ROI &box)
+  {
+    return SpheralIndex::insertIntoGrid(box);
+  }
+
+  ROI &push_back(const ROI &box)
+  {
+    return SpheralIndex::insertIntoGrid(box);
+  }
+};
+
 class ObjectList : public std::map<enums::ClassId, std::unique_ptr<SpheralIndex>>
 {
 public:
@@ -204,7 +223,9 @@ public:
       SpheralIndex idx{};
       operator[](roi.getClassId())->cloneFromOther(idx);
     }
-    at(roi.getClassId())->emplace(roi);
+    auto &inserted = at(roi.getClassId())->emplace(roi);
+    std::lock_guard<std::mutex> lock(mInsertLock);
+    objectsOrderedByObjectId[roi.getObjectId()] = &inserted;
   }
 
   void erase(const ROI *roi)
@@ -212,11 +233,20 @@ public:
     if(contains(roi->getClassId())) {
       at(roi->getClassId())->erase(roi);
     }
+    objectsOrderedByObjectId.erase(roi->getObjectId());
   }
 
   void erase(enums::ClassId classToErase)
   {
     std::map<enums::ClassId, std::unique_ptr<SpheralIndex>>::erase(classToErase);
+
+    for(auto it = objectsOrderedByObjectId.begin(); it != objectsOrderedByObjectId.end();) {
+      if((it->second != nullptr) && it->second->getClassId() == classToErase) {
+        it = objectsOrderedByObjectId.erase(it);    // erase returns the next valid iterator
+      } else {
+        ++it;
+      }
+    }
   }
 
   std::unique_ptr<SpheralIndex> &operator[](enums::ClassId classId)
@@ -227,6 +257,14 @@ public:
     }
     return at(classId);
   }
+
+  const ROI *getObjectById(uint64_t objectId) const
+  {
+    return objectsOrderedByObjectId.at(objectId);
+  }
+
+  std::map<uint64_t, const ROI *> objectsOrderedByObjectId;
+  std::mutex mInsertLock;
 };
 
 }    // namespace joda::atom

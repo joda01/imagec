@@ -57,6 +57,15 @@ public:
     double intensityMax   = 0;    ///< Max intensity of the masking area
   };
 
+  struct Distance
+  {
+    double distanceCentroidToCentroid   = 0;    ///< Euclid distance from centroid to centroid.
+    double distanceCentroidToSurfaceMin = 0;    ///< Smallest euclid distance from centroid to surface.
+    double distanceCentroidToSurfaceMax = 0;    ///< Highest euclid distance from centroid to surface.
+    double distanceSurfaceToSurfaceMin  = 0;    ///< Smallest euclid distance from surface to surface.
+    double distanceSurfaceToSurfaceMax  = 0;    ///< Highest euclid distance from surface to surface.
+  };
+
   struct Intersecting
   {
     std::vector<RoiObjectId> roiValid;
@@ -265,6 +274,11 @@ public:
     return intensity;
   }
 
+  [[nodiscard]] const auto &getDistances() const
+  {
+    return distances;
+  }
+
   [[nodiscard]] double getAreaSize() const
   {
     return mAreaSize;
@@ -284,6 +298,7 @@ public:
                                      const cv::Size &tileSize, joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const;
 
   auto measureIntensityAndAdd(const joda::atom::ImagePlane &image) -> Intensity;
+  auto measureDistanceAndAdd(const ROI &secondRoi) -> Distance;
 
   [[nodiscard]] bool isIntersecting(const ROI &roi, float minIntersection) const;
 
@@ -376,6 +391,7 @@ private:
 
   // Measurements ///////////////////////////////////////////////////
   std::map<enums::ImageId, Intensity> intensity;
+  std::map<uint64_t, Distance> distances;    ///< Key is the ID of the object the distance was calculated to.
   uint64_t mOriginObjectId = 0;
 
   static inline std::atomic<uint64_t> mGlobalUniqueObjectId   = 1;

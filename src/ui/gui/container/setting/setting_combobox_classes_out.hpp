@@ -129,19 +129,10 @@ public:
 
       if constexpr(std::same_as<CLASSID, enums::ClassIdIn>) {
         // Add this classs
-        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Default",
-                           QVariant(toInt(enums::ClassIdIn::$)));
-
-        // Add Temp
-        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 01",
-                           QVariant(toInt(enums::ClassIdIn::TEMP_01)));
-        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 02",
-                           QVariant(toInt(enums::ClassIdIn::TEMP_02)));
-        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 03",
-                           QVariant(toInt(enums::ClassIdIn::TEMP_03)));
-        mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 04",
-                           QVariant(toInt(enums::ClassIdIn::TEMP_04)));
-        mComboBox->insertSeparator(mComboBox->count());
+        if(mWithDefault) {
+          mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Default",
+                             QVariant(toInt(enums::ClassIdIn::$)));
+        }
       }
       for(const auto &[prefix, group] : orderedClasses) {
         for(const auto &[className, id] : group) {
@@ -158,6 +149,13 @@ public:
               }
             }
           } else {
+            if(((enums::ClassIdIn) id >= enums::ClassIdIn::TEMP_01 && (enums::ClassIdIn) id < enums::ClassIdIn::TEMP_LAST) && !mWithMemory) {
+              continue;
+            }
+            if(((enums::ClassIdIn) id == enums::ClassIdIn::$) && !mWithDefault) {
+              continue;
+            }
+
             if(!SettingBase::getIcon().isNull()) {
               mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), className.data(),
                                  variant);
@@ -169,13 +167,28 @@ public:
         mComboBox->insertSeparator(mComboBox->count());
       }
 
-      auto removeLastSeparator = [this]() {
-        int lastIndex = mComboBox->count() - 1;
-        if(lastIndex >= 0) {
-          mComboBox->removeItem(lastIndex);
+      if constexpr(std::same_as<CLASSID, enums::ClassIdIn>) {
+        // Add Temp
+        if(mWithMemory) {
+          mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 01",
+                             QVariant(toInt(enums::ClassIdIn::TEMP_01)));
+          mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 02",
+                             QVariant(toInt(enums::ClassIdIn::TEMP_02)));
+          mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 03",
+                             QVariant(toInt(enums::ClassIdIn::TEMP_03)));
+          mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 04",
+                             QVariant(toInt(enums::ClassIdIn::TEMP_04)));
+          mComboBox->insertSeparator(mComboBox->count());
         }
-      };
-      removeLastSeparator();
+      } else {
+        auto removeLastSeparator = [this]() {
+          int lastIndex = mComboBox->count() - 1;
+          if(lastIndex >= 0) {
+            mComboBox->removeItem(lastIndex);
+          }
+        };
+        removeLastSeparator();
+      }
       auto idx = mComboBox->findData(toInt(actSelected));
       if(idx >= 0) {
         (mComboBox)->setCurrentIndex(idx);
@@ -224,11 +237,22 @@ public:
     }
   }
 
+  void setWithMemory(bool enable)
+  {
+    mWithMemory = enable;
+  }
+  void setWithDefault(bool enable)
+  {
+    mWithDefault = enable;
+  }
+
 private:
   /////////////////////////////////////////////////////
   std::optional<CLASSID> mDefaultValue;
   QComboBox *mComboBox;
   CLASSID *mSetting = nullptr;
+  bool mWithMemory  = true;
+  bool mWithDefault = true;
 
   static uint16_t toInt(const CLASSID &in)
   {

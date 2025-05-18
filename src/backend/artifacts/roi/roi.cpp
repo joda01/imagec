@@ -400,6 +400,56 @@ auto ROI::measureIntensityAndAdd(const joda::atom::ImagePlane &image) -> Intensi
 }
 
 ///
+/// \brief      Calculate the distance between the given object
+/// \author     Joachim Danmayr
+/// \param[in]  secondRoi  Object to calc the distance with
+/// \return     Calculated distances
+///
+auto ROI::measureDistanceAndAdd(const ROI &secondRoi) -> Distance
+{
+  Distance distance;
+
+  distance.distanceSurfaceToSurfaceMin  = std::numeric_limits<double>::max();
+  distance.distanceSurfaceToSurfaceMax  = 0;
+  distance.distanceCentroidToSurfaceMin = std::numeric_limits<double>::max();
+  distance.distanceCentroidToSurfaceMax = 0;
+
+  for(const auto &p2 : secondRoi.getContour()) {
+    auto p2Tmp = p2;
+    p2Tmp.x    = p2.x + secondRoi.getBoundingBoxReal().x;
+    p2Tmp.y    = p2.y + secondRoi.getBoundingBoxReal().y;
+
+    double distPointToSurface = cv::norm(cv::Point2f(getCentroidReal()) - cv::Point2f(p2Tmp));
+    if(distPointToSurface < distance.distanceCentroidToSurfaceMin) {
+      distance.distanceCentroidToSurfaceMin = distPointToSurface;
+    }
+    if(distPointToSurface > distance.distanceCentroidToSurfaceMax) {
+      distance.distanceCentroidToSurfaceMax = distPointToSurface;
+    }
+
+    for(const auto &p1 : getContour()) {
+      // Bring into the real scope
+      auto p1Tmp = p1;
+      p1Tmp.x    = p1.x + mBoundingBoxReal.x;
+      p1Tmp.y    = p1.y + mBoundingBoxReal.y;
+
+      double dist = cv::norm(p1Tmp - p2Tmp);
+      if(dist < distance.distanceSurfaceToSurfaceMin) {
+        distance.distanceSurfaceToSurfaceMin = dist;
+      }
+      if(dist > distance.distanceSurfaceToSurfaceMax) {
+        distance.distanceSurfaceToSurfaceMax = dist;
+      }
+    }
+  }
+
+  distance.distanceCentroidToCentroid = cv::norm(getCentroidReal() - secondRoi.getCentroidReal());
+  distances[secondRoi.getObjectId()]  = distance;
+  // distance.print();
+  return distance;
+}
+
+///
 /// \brief  Resizes the ROI based on the given scale factors
 /// \author Joachim Danmayr
 /// \todo   If there were still intensity measurements they are not valid any more for the new size what should happen?

@@ -37,8 +37,9 @@ void ColoredSquareDelegate::paint(QPainter *painter, const QStyleOptionViewItem 
   // painter->restore();
 
   QString color;
-  if(parent() != nullptr) {
-    color = ((QTableWidget *) parent())->item(index.row(), 3)->text();    // 3 is the column containg the color
+  auto *tbl = (QTableWidget *) parent();
+  if(parent() != nullptr && tbl->columnCount() > 3) {
+    color = tbl->item(index.row(), 3)->text();    // 3 is the column containg the color
   }
 
   // Draw the colored square

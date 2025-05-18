@@ -60,8 +60,10 @@ private:
   void openEditDialog(int row, int column);
   void openTemplate(const QString &path);
   void populateClassesFromImage();
-  void addClass();
+  void addClass(bool withUpdate = true);
   void createTableItem(int32_t rowIdx, enums::ClassId classId, const std::string &name, const std::string &color, const std::string &notes);
+  void moveClassToPosition(size_t fromPos, size_t newPos);
+  auto findNextFreeClassId() -> enums::ClassId;
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
@@ -81,5 +83,7 @@ private:
 
 private slots:
   void onSettingChanged();
+  void moveUp();
+  void moveDown();
 };
 }    // namespace joda::ui::gui

@@ -18,6 +18,7 @@
 #include <qlineedit.h>
 #include <qmenu.h>
 #include <qpushbutton.h>
+#include <qtablewidget.h>
 #include <exception>
 #include <string>
 #include "backend/enums/enums_classes.hpp"
@@ -68,14 +69,6 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     toolbar->addSeparator();
 
     //
-    // Save as template
-    //
-    auto *saveAsTemplate = new QAction(generateSvgIcon("document-save-as-template"), "Save classification settings as template");
-    saveAsTemplate->setStatusTip("Save classification settings as template");
-    connect(saveAsTemplate, &QAction::triggered, [this]() { saveAsNewTemplate(); });
-    toolbar->addAction(saveAsTemplate);
-
-    //
     // Open template
     //
     auto *openTemplate = new QAction(generateSvgIcon("folder-open"), "Open object class template");
@@ -91,7 +84,59 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     });
     toolbar->addAction(openTemplate);
 
+    //
+    // Save as template
+    //
+    auto *saveAsTemplate = new QAction(generateSvgIcon("document-save-as-template"), "Save classification settings as template");
+    saveAsTemplate->setStatusTip("Save classification settings as template");
+    connect(saveAsTemplate, &QAction::triggered, [this]() { saveAsNewTemplate(); });
+    toolbar->addAction(saveAsTemplate);
+
     toolbar->addSeparator();
+    //
+    // Move down
+    //
+    auto *moveDown = new QAction(generateSvgIcon("go-down"), "Move down");
+    moveDown->setStatusTip("Move selected pipeline down");
+    connect(moveDown, &QAction::triggered, this, &PanelClassification::moveDown);
+    toolbar->addAction(moveDown);
+
+    //
+    // Move up
+    //
+    auto *moveUp = new QAction(generateSvgIcon("go-up"), "Move up");
+    moveUp->setStatusTip("Move selected pipeline up");
+    connect(moveUp, &QAction::triggered, this, &PanelClassification::moveUp);
+    toolbar->addAction(moveUp);
+
+    toolbar->addSeparator();
+
+    //
+    // Copy selection
+    //
+    auto *copy = new QAction(generateSvgIcon("edit-copy"), "Copy selected class");
+    copy->setStatusTip("Copy selected class");
+    connect(copy, &QAction::triggered, [this]() {
+      QList<QTableWidgetSelectionRange> ranges = mClasses->selectedRanges();
+      if(!ranges.isEmpty()) {
+        int selectedRow = ranges.first().topRow();
+        if(selectedRow >= 0) {
+          auto actClass = mSettings.classification.classes.begin();
+          std::advance(actClass, selectedRow);
+
+          joda::settings::Class newClass;
+          newClass.classId             = findNextFreeClassId();
+          newClass.color               = actClass->color;
+          newClass.defaultMeasurements = actClass->defaultMeasurements;
+          newClass.name                = actClass->name + " (copy)";
+          newClass.notes               = actClass->notes;
+          mSettings.classification.classes.emplace_back(newClass);
+
+          onSettingChanged();
+        }
+      }
+    });
+    toolbar->addAction(copy);
 
     //
     // Delete column
@@ -186,33 +231,44 @@ void PanelClassification::openEditDialog(int row, int column)
 /// \param[out]
 /// \return
 ///
-void PanelClassification::addClass()
+auto PanelClassification::findNextFreeClassId() -> enums::ClassId
+{
+  std::set<enums::ClassId> classIds;
+  // Sort class IDs
+  for(const auto &actualClass : mSettings.classification.classes) {
+    classIds.emplace(actualClass.classId);
+  }
+  // Iterate over all classIds and find the first not used
+  enums::ClassId idx = enums::ClassId::C0;
+  for(const auto &classId : classIds) {
+    if(idx != classId) {
+      return idx;
+    }
+    if(static_cast<uint16_t>(idx) >= static_cast<uint16_t>(enums::ClassId::CMAX)) {
+      break;
+    }
+    idx = static_cast<enums::ClassId>(static_cast<uint16_t>(idx) + 1);
+  }
+  return idx;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::addClass(bool withUpdate)
 {
   joda::settings::Class newClass;
-  auto findNextFreeClassId = [this]() -> enums::ClassId {
-    std::set<enums::ClassId> classIds;
-    // Sort class IDs
-    for(const auto &actualClass : mSettings.classification.classes) {
-      classIds.emplace(actualClass.classId);
-    }
-    // Iterate over all classIds and find the first not used
-    enums::ClassId idx = enums::ClassId::C0;
-    for(const auto &classId : classIds) {
-      if(idx != classId) {
-        return idx;
-      }
-      if(static_cast<uint16_t>(idx) >= static_cast<uint16_t>(enums::ClassId::CMAX)) {
-        break;
-      }
-      idx = static_cast<enums::ClassId>(static_cast<uint16_t>(idx) + 1);
-    }
-    return idx;
-  };
   newClass.classId = findNextFreeClassId();
   if(mClassSettingsDialog->exec(newClass) == 0) {
     mSettings.classification.classes.emplace_back(newClass);
   }
-  onSettingChanged();
+  if(withUpdate) {
+    onSettingChanged();
+  }
 }
 
 ///
@@ -308,7 +364,7 @@ void PanelClassification::toSettings()
 
   classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::$), QString("Default"));
   classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::NONE), QString("None"));
-  classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::UNDEFINED), QString("Undefined"));
+  classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::UNDEFINED), QString("Off"));
   classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::TEMP_01), QString("Memory 01"));
   classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::TEMP_02), QString("Memory 02"));
   classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::TEMP_03), QString("Memory 03"));
@@ -508,6 +564,93 @@ void PanelClassification::populateClassesFromImage()
     fromSettings(classes);
     onSettingChanged();
   }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::moveUp()
+{
+  mClasses->blockSignals(true);
+  auto rowAct = mClasses->currentRow();
+  auto newPos = rowAct - 1;
+  if(newPos < 0) {
+    return;
+  }
+  moveClassToPosition(rowAct, newPos);
+  mClasses->blockSignals(false);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::moveDown()
+{
+  mClasses->blockSignals(true);
+  auto rowAct = mClasses->currentRow();
+  auto newPos = rowAct + 1;
+  if(newPos >= mClasses->rowCount()) {
+    return;
+  }
+  moveClassToPosition(rowAct, newPos);
+  mClasses->blockSignals(false);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::moveClassToPosition(size_t fromPos, size_t newPos)
+{
+  auto moveElementToListPosition = [](std::list<joda::settings::Class> &myList, size_t oldPos, size_t newPos) {
+    // Get iterators to the old and new positions
+    if(newPos > oldPos) {
+      auto oldIt = std::next(myList.begin(), newPos);
+      auto newIt = std::next(myList.begin(), oldPos);
+      // Splice the element at oldIt to before newIt
+      myList.splice(newIt, myList, oldIt);
+    } else {
+      auto oldIt = std::next(myList.begin(), oldPos);
+      auto newIt = std::next(myList.begin(), newPos);
+      // Splice the element at oldIt to before newIt
+      myList.splice(newIt, myList, oldIt);
+    }
+  };
+
+  auto moveRow = [&](int fromRow, int toRow) {
+    if(fromRow == toRow || fromRow < 0 || toRow < 0 || fromRow >= mClasses->rowCount() || toRow > mClasses->rowCount()) {
+      return;    // invalid input
+    }
+    mClasses->setUpdatesEnabled(false);
+
+    int columnCount = mClasses->columnCount();
+    for(int col = 0; col < columnCount; ++col) {
+      QTableWidgetItem *fromItem = mClasses->takeItem(fromRow, col);
+      QTableWidgetItem *toItem   = mClasses->takeItem(toRow, col);
+
+      mClasses->setItem(fromRow, col, toItem);
+      mClasses->setItem(toRow, col, fromItem);
+    }
+
+    mClasses->setUpdatesEnabled(true);
+    mClasses->selectRow(toRow);
+  };
+
+  moveElementToListPosition(mSettings.classification.classes, fromPos, newPos);
+  moveRow(fromPos, newPos);
+
+  mWindowMain->checkForSettingsChanged();
 }
 
 }    // namespace joda::ui::gui

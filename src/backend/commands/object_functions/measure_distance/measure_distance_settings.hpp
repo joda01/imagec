@@ -18,7 +18,6 @@
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_classes.hpp"
-
 #include "backend/enums/types.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/processor/initializer/pipeline_settings.hpp"
@@ -28,34 +27,33 @@
 
 namespace joda::settings {
 
-struct MeasureSettings : public SettingBase
+struct MeasureDistanceSettings : public SettingBase
 {
   //
-  // Classes to calculate to measure for
+  // Objects to calc the distance from
   //
-  ObjectInputClasses inputClasses = {{}};
+  ObjectInputClasss inputClasses;
 
   //
-  // Image planes on which a measurement should be applied
+  // Objects to calc the distance to
   //
-  std::list<enums::ImageId> planesIn = {{}};
+  ObjectInputClasss inputClassesSecond;
 
   /////////////////////////////////////////////////////
   void check() const
   {
-    CHECK_ERROR(!planesIn.empty(), "At least one image plane must be given for measurement.");
   }
 
   settings::ObjectInputClasses getInputClasses() const override
   {
     settings::ObjectInputClasses classes;
-    for(const auto &in : inputClasses) {
-      classes.emplace(in);
-    }
+    classes.emplace(inputClasses);
+    classes.emplace(inputClassesSecond);
+
     return classes;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MeasureSettings, inputClasses, planesIn);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MeasureDistanceSettings, inputClasses, inputClassesSecond);
 };
 
 }    // namespace joda::settings

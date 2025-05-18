@@ -40,7 +40,7 @@ class DialogColumnSettings : public QDialog
 public:
   /////////////////////////////////////////////////////
   DialogColumnSettings(settings::ResultsSettings *filter, QWidget *parent);
-  void exec(int32_t selectedColumn);
+  void exec(const settings::ResultsSettings::ColumnKey &colKey, bool addNew);
   void updateClassesAndClasses(db::Database *);
   void updateClassesAndClasses(const joda::settings::AnalyzeSettings &settings);
   auto getClasssFromCombo() const -> std::pair<std::string, std::string>;
@@ -48,8 +48,7 @@ public:
 private:
   void checkForIntersecting();
   /////////////////////////////////////////////////////
-  int32_t mSelectedColumn = -1;
-  bool accept             = false;
+  bool accept = false;
 
   db::Database *mDatabase            = nullptr;
   settings::ResultsSettings *mFilter = nullptr;

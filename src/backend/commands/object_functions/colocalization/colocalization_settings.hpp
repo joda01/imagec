@@ -48,10 +48,16 @@ struct ColocalizationSettings : public SettingBase
     // This is the origin element
     //
     enums::ClassIdIn inputClassId = enums::ClassIdIn::UNDEFINED;
+
     //
-    // In case of reclassification this is the new class ID for intersecting elements
+    // This is the new class ID for intersecting elements
     //
     enums::ClassIdIn newClassId = enums::ClassIdIn::UNDEFINED;
+
+    //
+    // This is the new class ID for not intersecting elements
+    //
+    enums::ClassIdIn newClassIdNotIntersecting = enums::ClassIdIn::NONE;
 
     void check() const
     {
@@ -60,13 +66,13 @@ struct ColocalizationSettings : public SettingBase
       }
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_EXTENDED(InputOutputClasses, inputClassId, newClassId);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(InputOutputClasses, inputClassId, newClassId, newClassIdNotIntersecting);
   };
 
   //
   // What should happen when an intersection was found
   //
-  Mode mode = Mode::RECLASSIFY_MOVE;
+  Mode mode = Mode::RECLASSIFY_COPY;
 
   //
   // Remove old linking information and override with new one or keep old on
@@ -114,6 +120,7 @@ struct ColocalizationSettings : public SettingBase
     for(const auto classs : inputClasses) {
       if(classs.inputClassId != enums::ClassIdIn::UNDEFINED) {
         classes.emplace(classs.newClassId);
+        classes.emplace(classs.newClassIdNotIntersecting);
       }
     }
     return classes;

@@ -29,7 +29,15 @@ ResultingTable::ResultingTable(const settings::ResultsSettings *filter)
 {
   std::map<int32_t, std::map<uint32_t, std::string>> tableHeaders;
   for(const auto &[colIdx, colKey] : filter->getColumns()) {
-    QueryKey qKey = {colKey.classId, colKey.zStack, colKey.tStack};
+    QueryKey qKey;
+    if(settings::ResultsSettings::getType(colKey.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE ||
+       settings::ResultsSettings::getType(colKey.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE_ID) {
+      // For distance measurement we have to create a separate statement for each distance from - distance to class combination
+      // Distance from is the colKey.classId, distance to is the colKey.intersectingChannel
+      qKey = {colKey.classId, colKey.zStack, colKey.tStack, colKey.intersectingChannel};
+    } else {
+      qKey = {colKey.classId, colKey.zStack, colKey.tStack, joda::enums::ClassId::NONE};
+    }
     if(!mClassesAndClasses.contains(qKey)) {
       mClassesAndClasses.emplace(qKey, PreparedStatement{colKey.names});
     }
@@ -86,15 +94,16 @@ std::tuple<std::string, std::string> PreparedStatement::createIntersectionQuery(
 /// \param[out]
 /// \return
 ///
-std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvalid, std::optional<enums::Stats> overrideStats) const
+std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvalid, const std::string &offValue,
+                                                std::optional<enums::Stats> overrideStats) const
 {
   std::string channels;
   for(const auto &[_, column] : columns) {
-    auto createName = [&column = column, &isOuter](enums::Stats stats) -> std::string {
+    auto createName = [&column = column, &isOuter, &offValue](enums::Stats stats) -> std::string {
       if(!isOuter) {
         return getMeasurement(column.measureChannel, false);
       } else {
-        return getMeasurement(column.measureChannel, true) + "_" + getStatsString(stats);
+        return getMeasurement(column.measureChannel, true) + "_" + getStatsString(stats, offValue);
       }
     };
 
@@ -115,8 +124,8 @@ std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvali
         meas_suffix = "_" + std::to_string(column.crossChannelStacksC);
       }
 
-      channels += getStatsString(stats) + "(" + injectCase(tablePrefix + createName(column.stats) + meas_suffix) + ") as " +
-                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(column.stats) + "_" +
+      channels += getStatsString(stats, offValue) + "(" + injectCase(tablePrefix + createName(column.stats) + meas_suffix) + ") as " +
+                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(column.stats, offValue) + "_" +
                   std::to_string(column.crossChannelStacksC) + ",\n";
 
     } else if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::INTERSECTION) {
@@ -126,15 +135,15 @@ std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvali
       if(!isOuter) {
         colName = "recursive_child_count_" + chStr;
       } else {
-        colName = " recursive_child_count_" + chStr + "_" + getStatsString(column.stats);
+        colName = " recursive_child_count_" + chStr + "_" + getStatsString(column.stats, offValue);
       }
 
       std::string tablePrefix = " t1.";
       if(isOuter || column.measureChannel == enums::Measurement::COUNT) {
         tablePrefix = " ";
       }
-      channels += getStatsString(stats) + "(" + injectCase(tablePrefix + colName) + ") as " + "recursive_child_count_" + chStr + "_" +
-                  getStatsString(column.stats) + ",\n";
+      channels += getStatsString(stats, offValue) + "(" + injectCase(tablePrefix + colName) + ") as " + "recursive_child_count_" + chStr + "_" +
+                  getStatsString(column.stats, offValue) + ",\n";
 
     } else if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::ID) {
       std::string tablePrefix = " t1.";
@@ -142,15 +151,30 @@ std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvali
         tablePrefix = " ";
       }
       // We show the smallest object ID if we are in an overview mode
-      channels += getStatsString(enums::Stats::MIN) + "(" + injectCase(tablePrefix + createName(enums::Stats::MIN)) + ") as " +
-                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(enums::Stats::MIN) + ",\n";
+      channels += getStatsString(enums::Stats::OFF, offValue) + "(" + injectCase(tablePrefix + createName(enums::Stats::OFF)) + ") as " +
+                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(enums::Stats::OFF, offValue) + ",\n";
+    } else if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE_ID) {
+      std::string tablePrefix = " td.";
+      if(isOuter || column.measureChannel == enums::Measurement::COUNT) {
+        tablePrefix = " ";
+      }
+      // We show the smallest object ID if we are in an overview mode
+      channels += getStatsString(enums::Stats::OFF, offValue) + "(" + injectCase(tablePrefix + createName(enums::Stats::OFF)) + ") as " +
+                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(enums::Stats::OFF, offValue) + ",\n";
+    } else if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE) {
+      std::string tablePrefix = " td.";
+      if(isOuter || column.measureChannel == enums::Measurement::COUNT) {
+        tablePrefix = " ";
+      }
+      channels += getStatsString(stats, offValue) + "(" + injectCase(tablePrefix + createName(column.stats)) + ") as " +
+                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(column.stats, offValue) + ",\n";
     } else {
       std::string tablePrefix = " t1.";
       if(isOuter || column.measureChannel == enums::Measurement::COUNT) {
         tablePrefix = " ";
       }
-      channels += getStatsString(stats) + "(" + injectCase(tablePrefix + createName(column.stats)) + ") as " +
-                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(column.stats) + ",\n";
+      channels += getStatsString(stats, offValue) + "(" + injectCase(tablePrefix + createName(column.stats)) + ") as " +
+                  getMeasurement(column.measureChannel, true) + "_" + getStatsString(column.stats, offValue) + ",\n";
     }
   }
 
@@ -166,6 +190,7 @@ std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvali
 ///
 std::string PreparedStatement::createStatsQueryJoins() const
 {
+  bool joinedDistance = false;
   std::set<uint32_t> joindStacks;
   std::string joins;
   for(const auto &[_, column] : columns) {
@@ -180,12 +205,25 @@ std::string PreparedStatement::createStatsQueryJoins() const
         joindStacks.emplace(column.crossChannelStacksC);
       }
     }
+    if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE ||
+       settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE_ID) {
+      if(!joindStacks.contains(column.crossChannelStacksC)) {
+        std::string tableName = "td";
+        std::string chStr     = std::to_string(static_cast<int32_t>(column.intersectingChannel));
+        joins += "LEFT JOIN distance_measurements " + tableName + " ON\n   t1.object_id = " + tableName +
+                 ".object_id AND t1.image_id = " + tableName + ".image_id  AND " + tableName + ".meas_class_id = " + chStr + " AND " + tableName +
+                 " .meas_stack_z = " + std::to_string(column.zStack) + " AND " + tableName + ".meas_stack_t = " + std::to_string(column.tStack) +
+                 "\n";
+
+        joindStacks.emplace(column.crossChannelStacksC);
+      }
+    }
   }
 
   return joins;
 }
 
-std::string PreparedStatement::getStatsString(enums::Stats stats)
+std::string PreparedStatement::getStatsString(enums::Stats stats, const std::string &offValue)
 {
   std::string statsStr;
   switch(stats) {
@@ -211,7 +249,7 @@ std::string PreparedStatement::getStatsString(enums::Stats stats)
       statsStr = "COUNT";
       break;
     case enums::Stats::OFF:
-      statsStr = "ANY_VALUE";
+      statsStr = offValue;
       break;
   };
   return statsStr;
@@ -225,9 +263,9 @@ std::string PreparedStatement::getMeasurement(enums::Measurement measure, bool t
         return "counted";
       }
       return "1";
-    case enums::Measurement::CENTER_OF_MASS_X:
+    case enums::Measurement::CENTEROID_X:
       return "meas_center_x";
-    case enums::Measurement::CENTER_OF_MASS_Y:
+    case enums::Measurement::CENTEROID_Y:
       return "meas_center_y";
     case enums::Measurement::CONFIDENCE:
       return "meas_confidence";
@@ -259,6 +297,20 @@ std::string PreparedStatement::getMeasurement(enums::Measurement measure, bool t
       return "meas_tracking_id";
     case enums::Measurement::INTERSECTING:
       return "recursive_child_count_";
+    case enums::Measurement::DISTANCE_CENTER_TO_CENTER:
+      return "meas_distance_center_to_center";
+    case enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN:
+      return "meas_distance_center_to_surface_min";
+    case enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX:
+      return "meas_distance_center_to_surface_max";
+    case enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN:
+      return "meas_distance_surface_to_surface_min";
+    case enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX:
+      return "meas_distance_surface_to_surface_max";
+    case enums::Measurement::DISTANCE_FROM_OBJECT_ID:
+      return "object_id";
+    case enums::Measurement::DISTANCE_TO_OBJECT_ID:
+      return "meas_object_id";
   }
   if(textual) {
     return "none";

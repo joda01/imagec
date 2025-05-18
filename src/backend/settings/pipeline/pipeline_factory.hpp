@@ -69,8 +69,10 @@
 #include "backend/commands/image_functions/watershed/watershed_settings_ui.hpp"
 #include "backend/commands/object_functions/colocalization/colocalization.hpp"
 #include "backend/commands/object_functions/colocalization/colocalization_settings_ui.hpp"
-#include "backend/commands/object_functions/measure/measure.hpp"
-#include "backend/commands/object_functions/measure/measure_settings_ui.hpp"
+#include "backend/commands/object_functions/measure_distance/measure_distance.hpp"
+#include "backend/commands/object_functions/measure_distance/measure_distance_settings_ui.hpp"
+#include "backend/commands/object_functions/measure_intensity/measure_intensity.hpp"
+#include "backend/commands/object_functions/measure_intensity/measure_intensity_settings_ui.hpp"
 #include "backend/commands/object_functions/object_transform/object_transform.hpp"
 #include "backend/commands/object_functions/object_transform/object_transform_settings_ui.hpp"
 #include "backend/commands/object_functions/objects_to_image/objects_to_image.hpp"
@@ -214,12 +216,21 @@ private:
       }
     }
 
-    if(step.$measure) {
+    if(step.$measureIntensity) {
       if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
-        return std::make_unique<joda::cmd::Factory<joda::cmd::Measure, MeasureSettings>>(step.$measure.value());
+        return std::make_unique<joda::cmd::Factory<joda::cmd::MeasureIntensity, MeasureIntensitySettings>>(step.$measureIntensity.value());
       } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
-        return std::make_unique<joda::ui::gui::Factory<joda::ui::gui::Measure, MeasureSettings>>(
-            const_cast<settings::PipelineStep &>(step), const_cast<MeasureSettings &>(step.$measure.value()), parent);
+        return std::make_unique<joda::ui::gui::Factory<joda::ui::gui::MeasureIntensity, MeasureIntensitySettings>>(
+            const_cast<settings::PipelineStep &>(step), const_cast<MeasureIntensitySettings &>(step.$measureIntensity.value()), parent);
+      }
+    }
+
+    if(step.$measureDistance) {
+      if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
+        return std::make_unique<joda::cmd::Factory<joda::cmd::MeasureDistance, MeasureDistanceSettings>>(step.$measureDistance.value());
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::make_unique<joda::ui::gui::Factory<joda::ui::gui::MeasureDistance, MeasureDistanceSettings>>(
+            const_cast<settings::PipelineStep &>(step), const_cast<MeasureDistanceSettings &>(step.$measureDistance.value()), parent);
       }
     }
 

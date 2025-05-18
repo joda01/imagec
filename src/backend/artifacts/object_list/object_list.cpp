@@ -4,6 +4,7 @@
 #include <exception>
 #include <list>
 #include <memory>
+#include "backend/artifacts/roi/roi.hpp"
 #include "backend/commands/classification/classifier_filter.hpp"
 
 namespace joda::atom {
@@ -14,8 +15,7 @@ void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const Sphe
                                       joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo, float minIntersecion,
                                       const enums::tile_t &tile, const cv::Size &tileSize) const
 {
-  std::set<ROI *> intersecting;
-
+  std::set<uint64_t> intersecting;
   // Check for collisions between objects in grid1 and grid2
   for(const auto &cell : grid) {
     const auto &boxes1 = cell.second;
@@ -27,13 +27,13 @@ void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const Sphe
           for(const auto &box2 : boxes2) {
             if(objectClassesOther.contains(box2->getClassId())) {
               // Each intersecting particle is only allowed to be counted once
-              if(!intersecting.contains(box1) && !intersecting.contains(box2)) {
+              if(!intersecting.contains(box1->getObjectId()) && !intersecting.contains(box2->getObjectId())) {
                 if(isCollision(box1, box2)) {
                   auto colocROI =
                       box1->calcIntersection(iterator, *box2, minIntersecion, tile, tileSize, objectClassIntersectingObjectsShouldBeAssignedTo);
                   if(!colocROI.isNull()) {
-                    intersecting.emplace(box1);
-                    intersecting.emplace(box2);
+                    intersecting.emplace(box1->getObjectId());
+                    intersecting.emplace(box2->getObjectId());
                     colocROI.addLinkedRoi(box1);
                     colocROI.addLinkedRoi(box2);
                     // Keep the links from a possible old round
