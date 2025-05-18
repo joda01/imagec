@@ -92,6 +92,25 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
     connect(saveAsTemplate, &QAction::triggered, [this]() { saveAsNewTemplate(); });
     toolbar->addAction(saveAsTemplate);
 
+    toolbar->addSeparator();
+    //
+    // Move down
+    //
+    auto *moveDown = new QAction(generateSvgIcon("go-down"), "Move down");
+    moveDown->setStatusTip("Move selected pipeline down");
+    connect(moveDown, &QAction::triggered, this, &PanelClassification::moveDown);
+    toolbar->addAction(moveDown);
+
+    //
+    // Move up
+    //
+    auto *moveUp = new QAction(generateSvgIcon("go-up"), "Move up");
+    moveUp->setStatusTip("Move selected pipeline up");
+    connect(moveUp, &QAction::triggered, this, &PanelClassification::moveUp);
+    toolbar->addAction(moveUp);
+
+    toolbar->addSeparator();
+
     //
     // Copy selection
     //
@@ -118,25 +137,6 @@ PanelClassification::PanelClassification(joda::settings::ProjectSettings &settin
       }
     });
     toolbar->addAction(copy);
-
-    toolbar->addSeparator();
-    //
-    // Move down
-    //
-    auto *moveDown = new QAction(generateSvgIcon("go-down"), "Move down");
-    moveDown->setStatusTip("Move selected pipeline down");
-    connect(moveDown, &QAction::triggered, this, &PanelClassification::moveDown);
-    toolbar->addAction(moveDown);
-
-    //
-    // Move up
-    //
-    auto *moveUp = new QAction(generateSvgIcon("go-up"), "Move up");
-    moveUp->setStatusTip("Move selected pipeline up");
-    connect(moveUp, &QAction::triggered, this, &PanelClassification::moveUp);
-    toolbar->addAction(moveUp);
-
-    toolbar->addSeparator();
 
     //
     // Delete column
