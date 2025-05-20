@@ -29,9 +29,20 @@ namespace joda::ui::gui {
 class DialogOpenTemplate : public QDialog
 {
 public:
+  enum ReturnCode
+  {
+    CANCEL,
+    EMPTY_PROJECT,
+    OPEN_TEMPLATE,
+    OPEN_PROJECT,
+    OPEN_RESULTS,
+    OPEN_FILE_DIALOG,
+
+  };
+
   /////////////////////////////////////////////////////
   explicit DialogOpenTemplate(const std::set<std::string> &directories, const std::string &endian, QWidget *parent = nullptr);
-  QString show();
+  std::pair<ReturnCode, QString> show();
   void loadTemplates();
 
 private:
@@ -48,13 +59,17 @@ private:
   void addTitleToTable(const std::string &title, const std::string &category);
   bool eventFilter(QObject *obj, QEvent *event) override;
   void filterCommands(const TemplateTableFilter &filter);
+  void loadLastOpened();
 
   /////////////////////////////////////////////////////
   const std::set<std::string> mDirectories;
   const std::string mEndian;
 
+  QMenu *mOpenProjectMenu;
   QLineEdit *mSearch = nullptr;
   QTableWidget *mTableTemplates;
+
+  ReturnCode mReturnCode = ReturnCode::CANCEL;
   QString mSelectedTemplatePath;
 
   std::vector<joda::templates::TemplateParser::Data> mTemplateList;

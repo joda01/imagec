@@ -171,6 +171,8 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
           mainWindow, [mainWindow, response]() { mainWindow->statusBar()->showMessage("Could not check for updates!", 5000); }, Qt::QueuedConnection);
     }
   }).detach();
+
+  mSaveProject->setEnabled(false);
 }
 
 WindowMain::~WindowMain()
@@ -216,16 +218,11 @@ void WindowMain::createTopToolbar()
   ////////////
   mTopToolBar = addToolBar("File toolbar");
 
-  mNewProjectButton = new QAction(generateSvgIcon("document-new-from-template"), "New project", mTopToolBar);
-  mNewProjectButton->setStatusTip("Create new project or create new from template");
-  connect(mNewProjectButton, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
-  mTopToolBar->addAction(mNewProjectButton);
-
   mOpenProjectMenu   = new QMenu();
-  mOpenProjectButton = new QAction(generateSvgIcon("document-open-folder"), "Open project or results", mTopToolBar);
+  mOpenProjectButton = new QAction(generateSvgIcon("document-open-folder"), "Create new project or open project, templates or results", mTopToolBar);
   mOpenProjectButton->setStatusTip("Open existing project, template or results");
   mOpenProjectButton->setMenu(mOpenProjectMenu);
-  connect(mOpenProjectButton, &QAction::triggered, this, &WindowMain::onOpenClicked);
+  connect(mOpenProjectButton, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
   mTopToolBar->addAction(mOpenProjectButton);
 
   mSaveProject = new QAction(generateSvgIcon("document-save"), "Save", mTopToolBar);
@@ -432,8 +429,16 @@ WindowMain::AskEnum WindowMain::askForNewProject()
 ///
 void WindowMain::onNewProjectClicked()
 {
-  auto selectedTemplate = mDialogOpenProjectTemplates->show();
-  if(selectedTemplate.isEmpty()) {
+  auto [mode, selectedTemplate] = mDialogOpenProjectTemplates->show();
+  if(mode == DialogOpenTemplate::ReturnCode::CANCEL) {
+    return;
+  }
+  if(mode == DialogOpenTemplate::ReturnCode::OPEN_FILE_DIALOG) {
+    onOpenClicked();
+    return;
+  }
+  if(mode == DialogOpenTemplate::ReturnCode::OPEN_RESULTS) {
+    openResultsSettings(selectedTemplate);
     return;
   }
   if(mSaveProject->isEnabled()) {
@@ -451,13 +456,17 @@ void WindowMain::onNewProjectClicked()
     }
   }
   showPanelStartPage();
-
-  if(selectedTemplate == "empty") {
+  if(mode == DialogOpenTemplate::ReturnCode::EMPTY_PROJECT) {
     clearSettings();
     checkForSettingsChanged();
   } else {
     checkForSettingsChanged();
-    openProjectSettings(selectedTemplate, true);
+    if(mode == DialogOpenTemplate::ReturnCode::OPEN_PROJECT) {
+      openProjectSettings(selectedTemplate, false);
+    }
+    if(mode == DialogOpenTemplate::ReturnCode::OPEN_TEMPLATE) {
+      openProjectSettings(selectedTemplate, true);
+    }
   }
 }
 
@@ -814,7 +823,6 @@ void WindowMain::onBackClicked()
 bool WindowMain::showPanelStartPage()
 {
   getPanelPipeline()->unselectPipeline();
-  mNewProjectButton->setVisible(true);
   mOpenProjectButton->setVisible(true);
   mSidebar->setVisible(true);
   mSaveProject->setVisible(true);

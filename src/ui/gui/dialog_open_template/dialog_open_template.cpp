@@ -13,8 +13,11 @@
 #include <qevent.h>
 #include <qheaderview.h>
 #include <qlabel.h>
+#include <qmenu.h>
 #include <qpushbutton.h>
+#include <qtoolbutton.h>
 #include <QKeyEvent>
+#include "backend/user_settings/user_settings.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/template_parser/template_parser.hpp"
 
@@ -48,6 +51,7 @@ DialogOpenTemplate::DialogOpenTemplate(const std::set<std::string> &directories,
   connect(mTableTemplates, &QTableWidget::cellDoubleClicked, [&](int row, int column) {
     auto idx              = mTableTemplates->item(row, 0)->text().toInt();
     mSelectedTemplatePath = mTemplateList.at(idx).path.data();
+    mReturnCode           = ReturnCode::OPEN_TEMPLATE;
     close();
   });
 
@@ -60,15 +64,33 @@ DialogOpenTemplate::DialogOpenTemplate(const std::set<std::string> &directories,
       auto row              = selectedItems.first()->row();
       auto idx              = mTableTemplates->item(row, 0)->text().toInt();
       mSelectedTemplatePath = mTemplateList.at(idx).path.data();
+      mReturnCode           = ReturnCode::OPEN_TEMPLATE;
       close();
     }
   });
   auto *cancelButton = new QPushButton("Cancel", this);
   connect(cancelButton, &QPushButton::pressed, [&]() {
+    mReturnCode = ReturnCode::CANCEL;
     mSelectedTemplatePath.clear();
     close();
   });
+
+  // Open button
+  mOpenProjectMenu = new QMenu();
+  auto *openButton = new QToolButton(this);
+  connect(openButton, &QToolButton::clicked, [&]() {
+    mReturnCode = ReturnCode::OPEN_FILE_DIALOG;
+    close();
+  });
+  openButton->setText("Open file");
+  openButton->setPopupMode(QToolButton::MenuButtonPopup);    // <- Shows a split button with an arrow
+  openButton->setMenu(mOpenProjectMenu);
+  openButton->setSizePolicy(okButton->sizePolicy());
+  openButton->setFont(okButton->font());
+  openButton->setMinimumHeight(okButton->sizeHint().height());
+
   auto *buttonLayout = new QHBoxLayout;
+  buttonLayout->addWidget(openButton);
   buttonLayout->addStretch();
   buttonLayout->addWidget(cancelButton);
   buttonLayout->addWidget(okButton);
@@ -84,6 +106,33 @@ DialogOpenTemplate::DialogOpenTemplate(const std::set<std::string> &directories,
   setMinimumWidth(500);
 
   loadTemplates();
+}
+
+///
+/// \brief      Load last opened files
+/// \author     Joachim Danmayr
+///
+void DialogOpenTemplate::loadLastOpened()
+{
+  mOpenProjectMenu->clear();
+  mOpenProjectMenu->addSection("Projects");
+  for(const auto &path : joda::user_settings::UserSettings::getLastOpenedProject()) {
+    auto *action = mOpenProjectMenu->addAction(path.path.data());
+    connect(action, &QAction::triggered, this, [this, path = path.path]() {
+      mSelectedTemplatePath = path.data();
+      mReturnCode           = ReturnCode::OPEN_PROJECT;
+      close();
+    });
+  }
+  mOpenProjectMenu->addSection("Results");
+  for(const auto &path : joda::user_settings::UserSettings::getLastOpenedResult()) {
+    auto *action = mOpenProjectMenu->addAction((path.path + " (" + path.title + ")").data());
+    connect(action, &QAction::triggered, this, [this, path = path.path]() {
+      mSelectedTemplatePath = path.data();
+      mReturnCode           = ReturnCode::OPEN_RESULTS;
+      close();
+    });
+  }
 }
 
 ///
@@ -104,12 +153,29 @@ bool DialogOpenTemplate::eventFilter(QObject *obj, QEvent *event)
   return QObject::eventFilter(obj, event);
 }
 
-QString DialogOpenTemplate::show()
+std::pair<DialogOpenTemplate::ReturnCode, QString> DialogOpenTemplate::show()
 {
+  loadLastOpened();
   mSelectedTemplatePath.clear();
   filterCommands({mSearch->text()});
   exec();
-  return mSelectedTemplatePath;
+
+  if(mReturnCode != ReturnCode::CANCEL) {
+    if(mSelectedTemplatePath.endsWith(joda::fs::EXT_PROJECT.data())) {
+      mReturnCode = ReturnCode::OPEN_PROJECT;
+    }
+    if(mSelectedTemplatePath.endsWith(joda::fs::EXT_PROJECT_TEMPLATE.data())) {
+      mReturnCode = ReturnCode::OPEN_TEMPLATE;
+    }
+    if(mSelectedTemplatePath.endsWith(joda::fs::EXT_DATABASE.data())) {
+      mReturnCode = ReturnCode::OPEN_RESULTS;
+    }
+    if(mSelectedTemplatePath == "empty") {
+      mReturnCode = ReturnCode::EMPTY_PROJECT;
+    }
+  }
+
+  return {mReturnCode, mSelectedTemplatePath};
 }
 
 ///

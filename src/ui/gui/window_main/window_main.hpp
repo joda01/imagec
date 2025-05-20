@@ -201,7 +201,6 @@ private:
   PanelResults *mPanelReporting           = nullptr;
 
   ////ToolbarIcons/////////////////////////////////////////////////
-  QAction *mNewProjectButton        = nullptr;
   QMenu *mOpenProjectMenu           = nullptr;
   QAction *mOpenProjectButton       = nullptr;
   QAction *mSaveProject             = nullptr;
