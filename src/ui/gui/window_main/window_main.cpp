@@ -216,7 +216,7 @@ void WindowMain::createTopToolbar()
   ////////////
   mTopToolBar = addToolBar("File toolbar");
 
-  mNewProjectButton = new QAction(generateSvgIcon("folder-new"), "New project", mTopToolBar);
+  mNewProjectButton = new QAction(generateSvgIcon("document-new-from-template"), "New project", mTopToolBar);
   mNewProjectButton->setStatusTip("Create new project or create new from template");
   connect(mNewProjectButton, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
   mTopToolBar->addAction(mNewProjectButton);
@@ -402,18 +402,28 @@ QWidget *WindowMain::createReportingWidget()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-bool WindowMain::askForNewProject()
+WindowMain::AskEnum WindowMain::askForNewProject()
 {
   QMessageBox messageBox(this);
   auto icon = generateSvgIcon("data-information");
   messageBox.setIconPixmap(icon.pixmap(42, 42));
   messageBox.setWindowTitle("Create new project?");
-  messageBox.setText("Unsaved settings will get lost! Create new project?");
-  QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
-  QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
-  messageBox.setDefaultButton(noButton);
+  messageBox.setText("Save settings and create new project?");
+  QPushButton *yesButton    = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+  QPushButton *noButton     = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+  QPushButton *cancelButton = messageBox.addButton(tr("Cancel"), QMessageBox::RejectRole);
+  messageBox.setDefaultButton(yesButton);
   auto reply = messageBox.exec();
-  return messageBox.clickedButton() != noButton;
+  if(messageBox.clickedButton() == noButton) {
+    return AskEnum::no;
+  }
+  if(messageBox.clickedButton() == yesButton) {
+    return AskEnum::yes;
+  }
+  if(messageBox.clickedButton() == cancelButton) {
+    return AskEnum::cancel;
+  }
+  return AskEnum::cancel;
 }
 
 ///
@@ -426,9 +436,18 @@ void WindowMain::onNewProjectClicked()
   if(selectedTemplate.isEmpty()) {
     return;
   }
-  if(!mSelectedProjectSettingsFilePath.empty()) {
-    if(!askForNewProject()) {
+  if(mSaveProject->isEnabled()) {
+    auto ret = askForNewProject();
+    if(ret == AskEnum::cancel) {
       return;
+    }
+    if(ret == AskEnum::yes) {
+      if(!saveProject(mSelectedProjectSettingsFilePath)) {
+        // If save was not successful return
+        return;
+      }
+    } else if(ret == AskEnum::no) {
+      // Just continue
     }
   }
   showPanelStartPage();
@@ -440,7 +459,6 @@ void WindowMain::onNewProjectClicked()
     checkForSettingsChanged();
     openProjectSettings(selectedTemplate, true);
   }
-  setWindowTitlePrefix("Unsaved*");
 }
 
 ///
@@ -598,6 +616,11 @@ void WindowMain::checkForSettingsChanged()
   if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
     // Not equal
     mSaveProject->setEnabled(true);
+    if(mSelectedProjectSettingsFilePath.empty()) {
+      setWindowTitlePrefix("Untitled*");
+    } else {
+      setWindowTitlePrefix(QString((mSelectedProjectSettingsFilePath.filename().string() + "*").data()));
+    }
     /// \todo check if all updates still work
     auto actClasses = getOutputClasses();
 
@@ -608,6 +631,11 @@ void WindowMain::checkForSettingsChanged()
   } else {
     // Equal
     mSaveProject->setEnabled(false);
+    if(mSelectedProjectSettingsFilePath.empty()) {
+      setWindowTitlePrefix("Untitled");
+    } else {
+      setWindowTitlePrefix(mSelectedProjectSettingsFilePath.filename().string().data());
+    }
   }
   mCompilerLog->updateCompilerLog(mAnalyzeSettings);
 }
@@ -634,8 +662,9 @@ void WindowMain::onSaveProjectAs()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool createHistoryEntry)
+bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool createHistoryEntry)
 {
+  bool okay = false;
   try {
     if(filename.empty()) {
       std::filesystem::path filePath(mAnalyzeSettings.projectSettings.workingDirectory);
@@ -687,8 +716,10 @@ void WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
       mSelectedProjectSettingsFilePath = filename;
       setWindowTitlePrefix(filename.filename().string().data());
     }
+    okay = true;
 
   } catch(const std::exception &ex) {
+    okay = false;
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);
     messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
@@ -697,6 +728,7 @@ void WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
   }
+  return okay;
 }
 
 ///

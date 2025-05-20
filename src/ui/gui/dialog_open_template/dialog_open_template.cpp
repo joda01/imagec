@@ -124,7 +124,7 @@ void DialogOpenTemplate::loadTemplates()
 
   addTemplateToTable({.group       = "",
                       .title       = "Empty project",
-                      .description = "Create an empty new project",
+                      .description = "Create a new, empty project.",
                       .path        = "empty",
                       .icon        = generateSvgIcon("document-new").pixmap(16, 16)},
                      "");
@@ -230,6 +230,9 @@ void DialogOpenTemplate::filterCommands(const TemplateTableFilter &filter)
         }
       }
       // Disable
+      if(found) {
+        groups.emplace(command.group);
+      }
       mTableTemplates->setRowHidden(tableIndex, !found);
     }
   }

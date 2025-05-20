@@ -126,6 +126,13 @@ signals:
   void onOutputClassifierChanges();
 
 private:
+  enum class AskEnum
+  {
+    yes,
+    no,
+    cancel
+  };
+
   /////////////////////////////////////////////////////
   static constexpr int32_t LEFT_TOOLBAR_WIDTH = 400;    // 365
 
@@ -151,9 +158,9 @@ private:
   void createLeftToolbar();
   void loadLastOpened();
   void clearSettings();
-  void saveProject(std::filesystem::path filename, bool saveAs = false, bool createHistoryEntry = true);
+  bool saveProject(std::filesystem::path filename, bool saveAs = false, bool createHistoryEntry = true);
   void closeEvent(QCloseEvent *event) override;
-  bool askForNewProject();
+  AskEnum askForNewProject();
 
   QWidget *createStackedWidget();
   QWidget *createStartPageWidget();
