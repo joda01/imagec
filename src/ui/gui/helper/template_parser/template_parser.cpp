@@ -49,16 +49,19 @@ auto TemplateParser::findTemplates(const std::set<std::string> &directories, con
             MetaFinder settings = nlohmann::json::parse(ifs);
             std::string name    = settings.meta.name + entry.path().filename().string();
             std::string title   = settings.meta.name;
-            std::string group   = settings.meta.group.value_or("user");
+            std::string group   = settings.meta.group.value_or("Userdefined");
             if(!settings.meta.revision.empty()) {
               title += ":" + settings.meta.revision;
             }
-            if(group == "user") {
+            if(group == "Userdefined") {
               title += " (" + entry.path().filename().string() + ")";
             }
-            templates[group].emplace(
-                name,
-                Data{.group = group, .title = title, .description = "", .path = entry.path().string(), .icon = base64ToQPixmap(settings.meta.icon)});
+            templates[group].emplace(name, Data{.group       = group,
+                                                .title       = title,
+                                                .description = settings.meta.notes,
+                                                .path        = entry.path().string(),
+                                                .tags        = settings.meta.tags,
+                                                .icon        = base64ToQPixmap(settings.meta.icon)});
           } catch(const std::exception &ex) {
             std::cout << "Error " << ex.what() << std::endl;
           }

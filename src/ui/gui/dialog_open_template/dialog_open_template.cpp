@@ -98,21 +98,16 @@ void DialogOpenTemplate::loadTemplates()
 
   mTableTemplates->setRowCount(0);
 
-  std::string actCategory = "basic";
-  size_t addedPerCategory = 0;
-  for(const auto &[category, dataInCategory] : foundTemplates) {
+  std::string actGroup = "basic";
+  for(const auto &[_, dataInCategory] : foundTemplates) {
     for(const auto &[_, data] : dataInCategory) {
       // Now the user templates start, add an addition separator
-      if(category != actCategory) {
-        actCategory = category;
-        if(addedPerCategory > 0) {
-          addTitleToTable(category, category);
-        }
+      if(actGroup != data.group) {
+        actGroup = data.group;
+        addTitleToTable(data.group, data.group);
       }
-
-      addTemplateToTable(data, category);
+      addTemplateToTable(data, data.group);
     }
-    addedPerCategory = dataInCategory.size();
   }
 }
 
@@ -149,7 +144,12 @@ int DialogOpenTemplate::addTemplateToTable(const joda::templates::TemplateParser
   mTemplateMap.emplace(mTemplateList.size() - 1, newRow);
   mTableTemplates->insertRow(newRow);
 
-  QString text = QString(data.title.data()) + "<br/><span style='color:gray;'><i>" + QString(data.description.data()) + "</i></span>";
+  QString text;
+  if(!data.description.empty()) {
+    text = QString(data.title.data()) + "<br/><span style='color:gray;'><i>" + QString(data.description.data()) + "</i></span>";
+  } else {
+    text = QString(data.title.data());
+  }
 
   // Set the icon in the first column
   auto *textIcon = new QLabel();
@@ -177,18 +177,17 @@ int DialogOpenTemplate::addTemplateToTable(const joda::templates::TemplateParser
 
 void DialogOpenTemplate::filterCommands(const TemplateTableFilter &filter)
 {
-  return;
   auto searchTexts = filter.searchText.toLower();
-  std::set<std::string> categories;
+  std::set<std::string> groups;
   for(int32_t n = 0; n < mTemplateList.size(); n++) {
     const auto &command = mTemplateList.at(n);
     int32_t tableIndex  = mTemplateMap.at(n);
     auto filterCategory = filter.category.toStdString();
-    if(command.group == filterCategory || filterCategory.empty()) {
+    if(command.group == filterCategory && !filterCategory.empty()) {
       mTableTemplates->setRowHidden(tableIndex, true);
     } else if(QString(command.title.data()).contains(searchTexts) || QString(command.description.data()).contains(searchTexts)) {
       // Enable
-      categories.emplace(command.group);
+      groups.emplace(command.group);
       mTableTemplates->setRowHidden(tableIndex, false);
     } else {
       bool found = false;
@@ -204,12 +203,11 @@ void DialogOpenTemplate::filterCommands(const TemplateTableFilter &filter)
     }
   }
 
-  for(const auto &cat : categories) {
-    int32_t tableIndex = mTitleINdex.at(cat);
-    if(categories.contains(cat)) {
-      mTableTemplates->setRowHidden(tableIndex, false);
+  for(const auto &[groupToShow, idx] : mTitleINdex) {
+    if(groups.contains(groupToShow)) {
+      mTableTemplates->setRowHidden(idx, false);
     } else {
-      mTableTemplates->setRowHidden(tableIndex, true);
+      mTableTemplates->setRowHidden(idx, true);
     }
   }
 }

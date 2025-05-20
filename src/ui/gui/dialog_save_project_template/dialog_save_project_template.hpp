@@ -46,8 +46,8 @@ public:
     mNotes           = new QLineEdit;
     mVersion         = new QLineEdit;
     mGroup           = new QComboBox;
-    mGroup->addItem("EV field", "ev");
-    mGroup->addItem("Other", "other");
+    mGroup->addItem("EVAnalyzer", "EVAnalyzer");
+    mGroup->addItem("Userdefined", "Userdefined");
     mCategory = new QLineEdit;
     mTags     = new QLineEdit;
     mTags->setPlaceholderText("tag1;tag2");
