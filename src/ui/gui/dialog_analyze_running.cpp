@@ -64,6 +64,11 @@ DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain, const joda::s
   closeButton               = new QPushButton("Close", this);
   closeButton->setObjectName("ToolButton");
   closeButton->setEnabled(false);
+
+  closeAndOpenButton = new QPushButton("Open results", this);
+  closeAndOpenButton->setObjectName("ToolButton");
+  closeAndOpenButton->setEnabled(false);
+
   stopButton = new QPushButton("Stop", this);
   stopButton->setObjectName("ToolButton");
   stopButton->setEnabled(true);
@@ -73,6 +78,7 @@ DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain, const joda::s
   openResultsFolder->setToolTip("Open results folder");
 
   connect(closeButton, &QPushButton::clicked, this, &DialogAnalyzeRunning::onCloseClicked);
+  connect(closeAndOpenButton, &QPushButton::clicked, this, &DialogAnalyzeRunning::onCloseAndOpenClicked);
   connect(stopButton, &QPushButton::clicked, this, &DialogAnalyzeRunning::onStopClicked);
   connect(openResultsFolder, &QPushButton::clicked, this, &DialogAnalyzeRunning::onOpenResultsFolderClicked);
 
@@ -81,6 +87,7 @@ DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain, const joda::s
   buttonLayout->addStretch();
   buttonLayout->addWidget(stopButton);
   buttonLayout->addWidget(closeButton);
+  buttonLayout->addWidget(closeAndOpenButton);
   mainLayout->addLayout(buttonLayout);
 
   setWindowTitle("Progress Dialog");
@@ -105,6 +112,16 @@ void DialogAnalyzeRunning::onCloseClicked()
   if(mRefreshThread && mRefreshThread->joinable()) {
     mRefreshThread->join();
   }
+  close();
+}
+
+void DialogAnalyzeRunning::onCloseAndOpenClicked()
+{
+  mStopping = true;
+  if(mRefreshThread && mRefreshThread->joinable()) {
+    mRefreshThread->join();
+  }
+  mWindowMain->openResultsSettings(mWindowMain->getController()->getJobInformation().resultsFilePath.string().data());
   close();
 }
 
@@ -178,6 +195,7 @@ void DialogAnalyzeRunning::onRefreshData()
 
   } else if(actState == joda::processor::ProcessState::FINISHED) {
     closeButton->setEnabled(true);
+    closeAndOpenButton->setEnabled(true);
     stopButton->setEnabled(false);
     mStopped = true;
     progressBar->setRange(0, 100);
@@ -187,6 +205,7 @@ void DialogAnalyzeRunning::onRefreshData()
     progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Finished ...";
   } else if(actState == joda::processor::ProcessState::FINISHED_WITH_ERROR) {
     closeButton->setEnabled(true);
+    closeAndOpenButton->setEnabled(true);
     stopButton->setEnabled(false);
     progressBar->setRange(0, 100);
     progressBar->setMaximum(100);

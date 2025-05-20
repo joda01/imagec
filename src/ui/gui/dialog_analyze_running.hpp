@@ -48,6 +48,7 @@ private:
   QLabel *mProgressText;
   QProgressBar *progressBar;
   QPushButton *closeButton;
+  QPushButton *closeAndOpenButton;
   QPushButton *stopButton;
   WindowMain *mWindowMain;
 
@@ -55,6 +56,7 @@ private:
 
 private slots:
   void onStopClicked();
+  void onCloseAndOpenClicked();
   void onCloseClicked();
   void onRefreshData();
   void onOpenResultsFolderClicked();
