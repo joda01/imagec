@@ -989,14 +989,14 @@ void WindowMain::onShowInfoDialog()
     widgetAbout->setLayout(layoutAbout);
     tab->addTab(widgetAbout, "Contributors");
     auto *labelAbout = new QLabel(
-        "<u>Melanie Schuerz</u> : Coordination, Application testing, AI-Training<br/><br/>"
-        "<u>Tanja Plank</u> : Logo design, Application testing, AI-Training<br/><br/>"
-        "<u>Maria Jaritsch</u> : Application testing, AI-Training<br/><br/>"
-        "<u>Patricia Hrasnova</u> : Application testing, AI-Training<br/><br/>"
-        "<u>Anna Dlugosch</u> : Application testing<br/><br/>"
-        "<u>Heloisa Melobenirschke</u> : AI-Training<br/><br/>"
-        "<u>Manfred Seiwald</u> : Integration testing<br/><br/>"
-        "<u>Joachim Danmayr</u> : Idea, Programming, Documentation, Testing<br/><br/>");
+        "<u>Joachim Danmayr</u> : Creator, Programming, Documentation, Testing<br/><br/>"
+        "<u>Melanie Schuerz</u> : Co-Creator, Conceptualization, Testing, AI-Training<br/><br/>"
+        "<u>Tanja Plank</u> : Logo design, Testing, AI-Training<br/><br/>"
+        "<u>Maria Jaritsch</u> : Testing, AI-Training<br/><br/>"
+        "<u>Patricia Hrasnova</u> : Testing, AI-Training<br/><br/>"
+        "<u>Anna Dlugosch</u> : Testing<br/><br/>"
+        "<u>Heloisa Melo Benirschke</u> : AI-Training<br/><br/>"
+        "<u>Manfred Seiwald</u> : Integration testing<br/><br/>");
 
     labelAbout->setOpenExternalLinks(true);
     labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
