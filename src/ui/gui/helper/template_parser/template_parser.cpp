@@ -57,7 +57,8 @@ auto TemplateParser::findTemplates(const std::set<std::string> &directories, con
               title += " (" + entry.path().filename().string() + ")";
             }
             templates[group].emplace(
-                name, Data{.title = title, .description = "", .path = entry.path().string(), .icon = base64ToQPixmap(settings.meta.icon)});
+                name,
+                Data{.group = group, .title = title, .description = "", .path = entry.path().string(), .icon = base64ToQPixmap(settings.meta.icon)});
           } catch(const std::exception &ex) {
             std::cout << "Error " << ex.what() << std::endl;
           }

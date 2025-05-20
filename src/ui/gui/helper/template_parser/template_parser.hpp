@@ -20,6 +20,7 @@
 #include <optional>
 #include <regex>
 #include <string>
+#include <vector>
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include <nlohmann/json.hpp>
@@ -38,9 +39,11 @@ public:
   using Group = std::string;
   struct Data
   {
+    Group group;
     std::string title;
     std::string description;
     std::string path;
+    std::vector<std::string> tags;
     QPixmap icon;
   };
 

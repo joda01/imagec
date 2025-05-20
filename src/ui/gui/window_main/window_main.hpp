@@ -43,6 +43,7 @@ namespace joda::ui::gui {
 class ContainerChannel;
 class PanelResults;
 class PanelResultsTableGenerator;
+class DialogOpenTemplate;
 
 ///
 /// \class
@@ -148,7 +149,6 @@ private:
   /////////////////////////////////////////////////////
   void createTopToolbar();
   void createLeftToolbar();
-  void loadProjectTemplates();
   void loadLastOpened();
   void clearSettings();
   void saveProject(std::filesystem::path filename, bool saveAs = false, bool createHistoryEntry = true);
@@ -167,6 +167,7 @@ private:
   joda::ctrl::Controller *mController;
   QFileSystemWatcher mTemplateDirWatcher;
   PanelCompilerLog *mCompilerLog;
+  DialogOpenTemplate *mDialogOpenProjectTemplates;
 
   ////Project settings/////////////////////////////////////////////////
   joda ::settings::AnalyzeSettings *mActAnalyzeSettings = nullptr;
@@ -193,7 +194,6 @@ private:
   PanelResults *mPanelReporting           = nullptr;
 
   ////ToolbarIcons/////////////////////////////////////////////////
-  QMenu *mNewProjectMenu            = nullptr;
   QAction *mNewProjectButton        = nullptr;
   QMenu *mOpenProjectMenu           = nullptr;
   QAction *mOpenProjectButton       = nullptr;

@@ -51,6 +51,7 @@
 #include "backend/user_settings/user_settings.hpp"
 #include "ui/gui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/gui/dialog_analyze_running.hpp"
+#include "ui/gui/dialog_open_template/dialog_open_template.hpp"
 #include "ui/gui/dialog_save_project_template/dialog_save_project_template.hpp"
 #include "ui/gui/dialog_shadow/dialog_shadow.h"
 #include "ui/gui/helper/icon_generator.hpp"
@@ -82,6 +83,9 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   clearSettings();
   statusBar();
 
+  mDialogOpenProjectTemplates = new DialogOpenTemplate({"templates/projects", joda::templates::TemplateParser::getUsersTemplateDirectory().string()},
+                                                       joda::fs::EXT_PROJECT_TEMPLATE, this);
+
   //
   // Watch for working directory changes
   //
@@ -106,11 +110,11 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   mTemplateDirWatcher.addPath(joda::templates::TemplateParser::getUsersTemplateDirectory().string().data());    // Replace with your desired path
   QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::fileChanged, [&](const QString &path) {
     mPanelPipeline->loadTemplates();
-    loadProjectTemplates();
+    mDialogOpenProjectTemplates->loadTemplates();
   });
   QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::directoryChanged, [&](const QString &path) {
     mPanelPipeline->loadTemplates();
-    loadProjectTemplates();
+    mDialogOpenProjectTemplates->loadTemplates();
   });
 
   //
@@ -125,7 +129,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   }
 
   mPanelPipeline->loadTemplates();
-  loadProjectTemplates();
+  mDialogOpenProjectTemplates->loadTemplates();
   loadLastOpened();
 
   //
@@ -212,10 +216,8 @@ void WindowMain::createTopToolbar()
   ////////////
   mTopToolBar = addToolBar("File toolbar");
 
-  mNewProjectMenu   = new QMenu();
   mNewProjectButton = new QAction(generateSvgIcon("folder-new"), "New project", mTopToolBar);
   mNewProjectButton->setStatusTip("Create new project or create new from template");
-  mNewProjectButton->setMenu(mNewProjectMenu);
   connect(mNewProjectButton, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
   mTopToolBar->addAction(mNewProjectButton);
 
@@ -420,6 +422,7 @@ bool WindowMain::askForNewProject()
 ///
 void WindowMain::onNewProjectClicked()
 {
+  mDialogOpenProjectTemplates->show();
   if(!mSelectedProjectSettingsFilePath.empty()) {
     if(!askForNewProject()) {
       return;
@@ -685,46 +688,6 @@ void WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
     messageBox.setText("Could not save settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
-  }
-}
-
-///
-/// \brief      Templates loaded from templates folder
-/// \author     Joachim Danmayr
-///
-void WindowMain::loadProjectTemplates()
-{
-  auto foundTemplates = joda::templates::TemplateParser::findTemplates(
-      {"templates/projects", joda::templates::TemplateParser::getUsersTemplateDirectory().string()}, joda::fs::EXT_PROJECT_TEMPLATE);
-
-  mNewProjectMenu->clear();
-  std::string actCategory = "basic";
-  size_t addedPerCategory = 0;
-  for(const auto &[category, dataInCategory] : foundTemplates) {
-    for(const auto &[_, data] : dataInCategory) {
-      // Now the user templates start, add an addition separator
-      if(category != actCategory) {
-        actCategory = category;
-        if(addedPerCategory > 0) {
-          mNewProjectMenu->addSeparator();
-        }
-      }
-      QAction *action;
-      if(!data.icon.isNull()) {
-        action = mNewProjectMenu->addAction(QIcon(data.icon.scaled(28, 28)), data.title.data());
-
-      } else {
-        action = mNewProjectMenu->addAction(generateSvgIcon("favorite"), data.title.data());
-      }
-      connect(action, &QAction::triggered, this, [this, path = data.path]() {
-        if(!askForNewProject()) {
-          return;
-        }
-        checkForSettingsChanged();
-        openProjectSettings(path.data(), true);
-      });
-    }
-    addedPerCategory = dataInCategory.size();
   }
 }
 
