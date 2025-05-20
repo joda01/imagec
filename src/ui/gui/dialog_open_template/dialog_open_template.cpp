@@ -13,6 +13,7 @@
 #include <qevent.h>
 #include <qheaderview.h>
 #include <qlabel.h>
+#include <qpushbutton.h>
 #include <QKeyEvent>
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/template_parser/template_parser.hpp"
@@ -44,19 +45,40 @@ DialogOpenTemplate::DialogOpenTemplate(const std::set<std::string> &directories,
   mTableTemplates->verticalHeader()->setDefaultSectionSize(36);
   mTableTemplates->installEventFilter(this);
 
-  // mTableTemplates.setsh
-
   connect(mTableTemplates, &QTableWidget::cellDoubleClicked, [&](int row, int column) {
-    auto idx = mTableTemplates->item(row, 0)->text().toInt();
-    // addNewCommand(idx);
-    // TODO open template
+    auto idx              = mTableTemplates->item(row, 0)->text().toInt();
+    mSelectedTemplatePath = mTemplateList.at(idx).path.data();
     close();
   });
+
+  // Create buttons
+  auto *okButton = new QPushButton("OK", this);
+  okButton->setDefault(true);
+  connect(okButton, &QPushButton::pressed, [&]() {
+    QList<QTableWidgetItem *> selectedItems = mTableTemplates->selectedItems();
+    if(!selectedItems.isEmpty()) {
+      auto row              = selectedItems.first()->row();
+      auto idx              = mTableTemplates->item(row, 0)->text().toInt();
+      mSelectedTemplatePath = mTemplateList.at(idx).path.data();
+      close();
+    }
+  });
+  auto *cancelButton = new QPushButton("Cancel", this);
+  connect(cancelButton, &QPushButton::pressed, [&]() {
+    mSelectedTemplatePath.clear();
+    close();
+  });
+  auto *buttonLayout = new QHBoxLayout;
+  buttonLayout->addStretch();
+  buttonLayout->addWidget(cancelButton);
+  buttonLayout->addWidget(okButton);
 
   //
   auto *layout = new QVBoxLayout();
   layout->addWidget(mSearch);
   layout->addWidget(mTableTemplates);
+  layout->addLayout(buttonLayout);
+
   setLayout(layout);
   setMinimumHeight(600);
   setMinimumWidth(500);
@@ -82,10 +104,12 @@ bool DialogOpenTemplate::eventFilter(QObject *obj, QEvent *event)
   return QObject::eventFilter(obj, event);
 }
 
-void DialogOpenTemplate::show()
+QString DialogOpenTemplate::show()
 {
+  mSelectedTemplatePath.clear();
   filterCommands({mSearch->text()});
   exec();
+  return mSelectedTemplatePath;
 }
 
 ///
@@ -97,6 +121,13 @@ void DialogOpenTemplate::loadTemplates()
   auto foundTemplates = joda::templates::TemplateParser::findTemplates(mDirectories, mEndian);
 
   mTableTemplates->setRowCount(0);
+
+  addTemplateToTable({.group       = "",
+                      .title       = "New project",
+                      .description = "Create empty new project",
+                      .path        = "empty",
+                      .icon        = generateSvgIcon("document-new").pixmap(16, 16)},
+                     "");
 
   std::string actGroup = "basic";
   for(const auto &[_, dataInCategory] : foundTemplates) {
@@ -160,7 +191,6 @@ int DialogOpenTemplate::addTemplateToTable(const joda::templates::TemplateParser
   QIcon icon;
   if(!data.icon.isNull()) {
     icon = QIcon(data.icon.scaled(28, 28));
-
   } else {
     icon = generateSvgIcon("favorite");
   }
@@ -185,7 +215,8 @@ void DialogOpenTemplate::filterCommands(const TemplateTableFilter &filter)
     auto filterCategory = filter.category.toStdString();
     if(command.group == filterCategory && !filterCategory.empty()) {
       mTableTemplates->setRowHidden(tableIndex, true);
-    } else if(QString(command.title.data()).contains(searchTexts) || QString(command.description.data()).contains(searchTexts)) {
+    } else if(QString(command.title.data()).contains(searchTexts) || QString(command.description.data()).contains(searchTexts) ||
+              command.path == "empty") {
       // Enable
       groups.emplace(command.group);
       mTableTemplates->setRowHidden(tableIndex, false);

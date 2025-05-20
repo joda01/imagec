@@ -31,7 +31,7 @@ class DialogOpenTemplate : public QDialog
 public:
   /////////////////////////////////////////////////////
   explicit DialogOpenTemplate(const std::set<std::string> &directories, const std::string &endian, QWidget *parent = nullptr);
-  void show();
+  QString show();
   void loadTemplates();
 
 private:
@@ -55,6 +55,7 @@ private:
 
   QLineEdit *mSearch = nullptr;
   QTableWidget *mTableTemplates;
+  QString mSelectedTemplatePath;
 
   std::vector<joda::templates::TemplateParser::Data> mTemplateList;
   std::map<int32_t, int32_t> mTemplateMap;       // Key is the array index of the command in the mCommandList vector, value the index in the table

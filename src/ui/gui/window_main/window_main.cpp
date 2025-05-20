@@ -422,17 +422,25 @@ bool WindowMain::askForNewProject()
 ///
 void WindowMain::onNewProjectClicked()
 {
-  mDialogOpenProjectTemplates->show();
+  auto selectedTemplate = mDialogOpenProjectTemplates->show();
+  if(selectedTemplate.isEmpty()) {
+    return;
+  }
   if(!mSelectedProjectSettingsFilePath.empty()) {
     if(!askForNewProject()) {
       return;
     }
   }
-
   showPanelStartPage();
-  clearSettings();
-  checkForSettingsChanged();
-  onSaveProject();
+
+  if(selectedTemplate == "empty") {
+    clearSettings();
+    checkForSettingsChanged();
+    onSaveProject();
+  } else {
+    checkForSettingsChanged();
+    openProjectSettings(selectedTemplate, true);
+  }
 }
 
 ///
