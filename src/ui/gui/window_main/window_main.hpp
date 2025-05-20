@@ -168,7 +168,6 @@ private:
   QWidget *createReportingWidget();
 
   static QString bytesToString(int64_t bytes);
-
   ////Common/////////////////////////////////////////////////
   QToolBar *mTopToolBar;
   joda::ctrl::Controller *mController;

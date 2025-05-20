@@ -68,6 +68,38 @@ namespace joda::ui::gui {
 
 using namespace std::chrono_literals;
 
+class DimOverlay : public QWidget
+{
+public:
+  DimOverlay(QWidget *parent = nullptr) : QWidget(parent)
+  {
+    setAttribute(Qt::WA_DeleteOnClose);
+    setAttribute(Qt::WA_TransparentForMouseEvents);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::Tool);
+    setWindowModality(Qt::ApplicationModal);
+
+    // Capture and blur a screenshot of the parent window
+    QPixmap snap = parent->grab();
+    QImage img   = snap.toImage();
+
+    // Apply a basic blur (can be replaced with something more powerful)
+    QImage blurred = img.scaled(img.size() / 8).scaled(img.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+    QPixmap dimmed(img.size());
+    dimmed.fill(Qt::transparent);
+    QPainter p(&dimmed);
+    p.drawImage(0, 0, blurred);
+    p.fillRect(dimmed.rect(), QColor(0, 0, 0, 128));    // Dim overlay
+    p.end();
+
+    // Show the dimmed, blurred background
+    QLabel *bg = new QLabel(this);
+    bg->setPixmap(dimmed);
+    bg->setScaledContents(true);
+    bg->setGeometry(this->rect());
+  }
+};
+
 WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Updater *updater) :
     mController(controller), mCompilerLog(new PanelCompilerLog(this))
 {
@@ -173,6 +205,8 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   }).detach();
 
   mSaveProject->setEnabled(false);
+
+  QTimer::singleShot(0, this, SLOT(onNewProjectClicked();));
 }
 
 WindowMain::~WindowMain()
@@ -429,7 +463,16 @@ WindowMain::AskEnum WindowMain::askForNewProject()
 ///
 void WindowMain::onNewProjectClicked()
 {
+  // Create the dimming overlay
+  QWidget *dimOverlay = new QWidget(this);
+  dimOverlay->setStyleSheet("background-color: rgba(0, 0, 0, 128);");
+  dimOverlay->setGeometry(this->rect());
+  dimOverlay->setAttribute(Qt::WA_TransparentForMouseEvents);
+  dimOverlay->show();
+
   auto [mode, selectedTemplate] = mDialogOpenProjectTemplates->show();
+  dimOverlay->deleteLater();
+
   if(mode == DialogOpenTemplate::ReturnCode::CANCEL) {
     return;
   }

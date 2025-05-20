@@ -82,6 +82,17 @@ public:
     return lastOpenedResults;
   }
 
+  [[nodiscard]] static auto getShowNewProjectDialogOnStartUp() -> bool
+  {
+    return showNewProjectDialogOnStartup;
+  }
+
+  static auto setShowNewProjectDialogOnStartUp(bool show) -> void
+  {
+    showNewProjectDialogOnStartup = show;
+    save();
+  }
+
 private:
   static void addToVector(std::vector<Entry> &vec, const Entry &entry)
   {
@@ -95,8 +106,9 @@ private:
   /////////////////////////////////////////////////////
   static inline std::vector<Entry> lastOpenedProjects;
   static inline std::vector<Entry> lastOpenedResults;
+  static inline bool showNewProjectDialogOnStartup = true;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(UserSettings, lastOpenedProjects, lastOpenedResults);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(UserSettings, lastOpenedProjects, lastOpenedResults, showNewProjectDialogOnStartup);
 };
 
 }    // namespace joda::user_settings
