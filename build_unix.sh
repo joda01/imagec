@@ -33,6 +33,7 @@ pack(){
     cd build/build
     mkdir -p output
     cd output
+    rm -rf ./templates/
     mkdir -p ./plugins
     mkdir -p ./models
     mkdir -p ./lib

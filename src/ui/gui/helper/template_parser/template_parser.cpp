@@ -47,7 +47,7 @@ auto TemplateParser::findTemplates(const std::set<std::string> &directories, con
           std::ifstream ifs(entry.path().string());
           try {
             MetaFinder settings = nlohmann::json::parse(ifs);
-            std::string name    = settings.meta.name + entry.path().filename().string();
+            std::string name    = entry.path().filename().string() + settings.meta.name;
             std::string title   = settings.meta.name;
             std::string group   = settings.meta.group.value_or("Userdefined");
             if(!settings.meta.revision.empty()) {
