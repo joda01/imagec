@@ -464,7 +464,7 @@ WindowMain::AskEnum WindowMain::askForNewProject()
 void WindowMain::onNewProjectClicked()
 {
   // Create the dimming overlay
-  QWidget *dimOverlay = new QWidget(this);
+  auto *dimOverlay = new QWidget(this);
   dimOverlay->setStyleSheet("background-color: rgba(0, 0, 0, 128);");
   dimOverlay->setGeometry(this->rect());
   dimOverlay->setAttribute(Qt::WA_TransparentForMouseEvents);
