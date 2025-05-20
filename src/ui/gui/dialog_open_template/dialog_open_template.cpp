@@ -123,8 +123,8 @@ void DialogOpenTemplate::loadTemplates()
   mTableTemplates->setRowCount(0);
 
   addTemplateToTable({.group       = "",
-                      .title       = "New project",
-                      .description = "Create empty new project",
+                      .title       = "Empty project",
+                      .description = "Create an empty new project",
                       .path        = "empty",
                       .icon        = generateSvgIcon("document-new").pixmap(16, 16)},
                      "");

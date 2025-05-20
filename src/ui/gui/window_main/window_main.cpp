@@ -436,11 +436,11 @@ void WindowMain::onNewProjectClicked()
   if(selectedTemplate == "empty") {
     clearSettings();
     checkForSettingsChanged();
-    onSaveProject();
   } else {
     checkForSettingsChanged();
     openProjectSettings(selectedTemplate, true);
   }
+  setWindowTitlePrefix("Unsaved*");
 }
 
 ///
