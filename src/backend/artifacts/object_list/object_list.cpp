@@ -69,52 +69,60 @@ void SpheralIndex::calcIntersection(ObjectList *objectList, joda::processor::Pro
     if(box2Iterator != other->grid.end()) {
       auto &boxes2 = box2Iterator->second;
       for(auto *box1 : boxes1) {
+        auto applyCopyOrMove = [&](uint64_t box2ObjectId) {
+          intersecting.emplace(box1);
+          uint64_t parentObjectId = 0;
+          switch(hierarchyMode) {
+            case settings::ReclassifySettings::HierarchyHandling::CREATE_TREE:
+              parentObjectId = box2ObjectId;
+              break;
+            case settings::ReclassifySettings::HierarchyHandling::KEEP_EXISTING:
+              parentObjectId = box1->getParentObjectId();
+              break;
+            case settings::ReclassifySettings::HierarchyHandling::REMOVE:
+              parentObjectId = 0;
+              break;
+          }
+
+          switch(func) {
+            case settings::ReclassifySettings::Mode::RECLASSIFY_MOVE:
+              if(settings::ClassifierFilter::doesFilterMatch(context, *box1, metrics, intensity)) {
+                // We have to reenter to organize correct in the map of objects
+                auto newRoi = box1->clone(newClassOFIntersectingObject, parentObjectId);
+                roisToEnter.emplace_back(std::move(newRoi));
+                roisToRemove.emplace(box1);
+              }
+              break;
+            case settings::ReclassifySettings::Mode::RECLASSIFY_COPY: {
+              if(settings::ClassifierFilter::doesFilterMatch(context, *box1, metrics, intensity)) {
+                auto newRoi = box1->copy(newClassOFIntersectingObject, parentObjectId);
+                roisToEnter.emplace_back(std::move(newRoi));    // Store the ROIs we want to enter
+              }
+            } break;
+            case settings::ReclassifySettings::Mode::UNKNOWN:
+              break;
+          }
+        };
+        bool isIntersecting = false;
         if((objectClassesMe.contains(box1->getClassId()))) {
           for(auto *box2 : boxes2) {
             if(objectClassesOther.contains(box2->getClassId())) {
               // Each intersecting particle is only allowed to be counted once
+              isIntersecting = box1->isIntersecting(*box2, minIntersecion);
               if(!intersecting.contains(box1) && !roisToRemove.contains(box1)) {
-                bool isIntersecting = box1->isIntersecting(*box2, minIntersecion);
-                if(filterLogic == joda::settings::ReclassifySettings::FilterLogic::APPLY_IF_NOT_MATCH) {
-                  isIntersecting = !isIntersecting;
-                }
-                if(isIntersecting) {
-                  intersecting.emplace(box1);
-                  uint64_t parentObjectId = 0;
-                  switch(hierarchyMode) {
-                    case settings::ReclassifySettings::HierarchyHandling::CREATE_TREE:
-                      parentObjectId = box2->getObjectId();
-                      break;
-                    case settings::ReclassifySettings::HierarchyHandling::KEEP_EXISTING:
-                      parentObjectId = box1->getParentObjectId();
-                      break;
-                    case settings::ReclassifySettings::HierarchyHandling::REMOVE:
-                      parentObjectId = 0;
-                      break;
-                  }
-
-                  switch(func) {
-                    case settings::ReclassifySettings::Mode::RECLASSIFY_MOVE:
-                      if(settings::ClassifierFilter::doesFilterMatch(context, *box1, metrics, intensity)) {
-                        // We have to reenter to organize correct in the map of objects
-                        auto newRoi = box1->clone(newClassOFIntersectingObject, parentObjectId);
-                        roisToEnter.emplace_back(std::move(newRoi));
-                        roisToRemove.emplace(box1);
-                      }
-                      break;
-                    case settings::ReclassifySettings::Mode::RECLASSIFY_COPY: {
-                      if(settings::ClassifierFilter::doesFilterMatch(context, *box1, metrics, intensity)) {
-                        auto newRoi = box1->copy(newClassOFIntersectingObject, parentObjectId);
-                        roisToEnter.emplace_back(std::move(newRoi));    // Store the ROIs we want to enter
-                      }
-                    } break;
-                    case settings::ReclassifySettings::Mode::UNKNOWN:
-                      break;
-                  }
+                if(isIntersecting && filterLogic == joda::settings::ReclassifySettings::FilterLogic::APPLY_IF_MATCH) {
+                  applyCopyOrMove(box2->getObjectId());
+                  // break;
                 }
               }
             }
           }
+        }
+
+        // If not intersecing do something
+        if(!isIntersecting && filterLogic == joda::settings::ReclassifySettings::FilterLogic::APPLY_IF_NOT_MATCH) {
+          // Create tree is not possible for not interecting
+          applyCopyOrMove(box1->getParentObjectId());
         }
       }
     }
