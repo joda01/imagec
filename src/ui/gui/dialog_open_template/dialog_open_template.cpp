@@ -102,7 +102,7 @@ DialogOpenTemplate::DialogOpenTemplate(const std::set<std::string> &directories,
   layout->addLayout(buttonLayout);
 
   setLayout(layout);
-  setMinimumHeight(600);
+  setMinimumHeight(500);
   setMinimumWidth(500);
 
   loadTemplates();

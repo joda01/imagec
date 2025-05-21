@@ -138,9 +138,16 @@ void Command::mousePressEvent(QMouseEvent *event)
 ///
 void Command::mouseDoubleClickEvent(QMouseEvent *event)
 {
-  // Locked elements can opened with a right double click
   if(event->button() == Qt::LeftButton && mPipelineStep.locked) {
-    openEditView();
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::warning(mParent,                                                              // Parent widget
+                                 "Locked",                                                             // Title of the dialog
+                                 "This command is locked! Would you like to proceed with editing?",    // Message text
+                                 QMessageBox::Yes | QMessageBox::No);
+
+    if(reply == QMessageBox::Yes) {
+      openEditView();
+    }
   }
 }
 
