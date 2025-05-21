@@ -160,6 +160,10 @@ DialogHistory::DialogHistory(WindowMain *parent, PanelPipelineSettings *panelPip
 ///
 void DialogHistory::show()
 {
+  if(mPanelPipeline == nullptr) {
+    return;
+  }
+  updateSelection();
   QDialog::show();
 }
 
@@ -180,6 +184,7 @@ void DialogHistory::updateHistory(enums::HistoryCategory category, const std::st
     mHistory->insertRow(0);
     mHistory->setCellWidget(0, 0, generateHistoryEntry(entry));
   }
+  updateSelection();
 }
 
 ///
@@ -194,7 +199,7 @@ void DialogHistory::loadHistory()
   if(mPanelPipeline == nullptr) {
     return;
   }
-  const auto &history = mPanelPipeline->mutablePipeline().history;
+  const auto &history = mPanelPipeline->mutablePipeline().getHistory();
   mHistory->setRowCount(history.size());
   int idx = 0;
   for(const auto &step : history) {
@@ -215,9 +220,50 @@ void DialogHistory::restoreHistory(int32_t index)
   if(mPanelPipeline == nullptr) {
     return;
   }
-  mPanelPipeline->clearPipeline();
-  auto data = mPanelPipeline->mutablePipeline().restoreSnapShot(index);
-  mPanelPipeline->fromSettings(data);
+  try {
+    auto data = mPanelPipeline->mutablePipeline().restoreSnapShot(index);
+    mPanelPipeline->clearPipeline();
+    mPanelPipeline->fromSettings(data);
+    updateSelection();
+  } catch(...) {
+  }
+  // updateHistory("Restored: " + std::to_string(index));
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogHistory::updateSelection()
+{
+  auto idx = mPanelPipeline->mutablePipeline().getHistoryIndex();
+  if(mHistory->rowCount() > idx) {
+    mHistory->selectRow(idx);
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogHistory::undo()
+{
+  if(mPanelPipeline == nullptr) {
+    return;
+  }
+  try {
+    auto data = mPanelPipeline->mutablePipeline().undo();
+    mPanelPipeline->clearPipeline();
+    mPanelPipeline->fromSettings(data);
+    updateSelection();
+  } catch(...) {
+  }
   // updateHistory("Restored: " + std::to_string(index));
 }
 

@@ -51,6 +51,7 @@
 #include "backend/user_settings/user_settings.hpp"
 #include "ui/gui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/gui/dialog_analyze_running.hpp"
+#include "ui/gui/dialog_open_template/dialog_open_template.hpp"
 #include "ui/gui/dialog_save_project_template/dialog_save_project_template.hpp"
 #include "ui/gui/dialog_shadow/dialog_shadow.h"
 #include "ui/gui/helper/icon_generator.hpp"
@@ -67,6 +68,38 @@ namespace joda::ui::gui {
 
 using namespace std::chrono_literals;
 
+class DimOverlay : public QWidget
+{
+public:
+  DimOverlay(QWidget *parent = nullptr) : QWidget(parent)
+  {
+    setAttribute(Qt::WA_DeleteOnClose);
+    setAttribute(Qt::WA_TransparentForMouseEvents);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::Tool);
+    setWindowModality(Qt::ApplicationModal);
+
+    // Capture and blur a screenshot of the parent window
+    QPixmap snap = parent->grab();
+    QImage img   = snap.toImage();
+
+    // Apply a basic blur (can be replaced with something more powerful)
+    QImage blurred = img.scaled(img.size() / 8).scaled(img.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+    QPixmap dimmed(img.size());
+    dimmed.fill(Qt::transparent);
+    QPainter p(&dimmed);
+    p.drawImage(0, 0, blurred);
+    p.fillRect(dimmed.rect(), QColor(0, 0, 0, 128));    // Dim overlay
+    p.end();
+
+    // Show the dimmed, blurred background
+    QLabel *bg = new QLabel(this);
+    bg->setPixmap(dimmed);
+    bg->setScaledContents(true);
+    bg->setGeometry(this->rect());
+  }
+};
+
 WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Updater *updater) :
     mController(controller), mCompilerLog(new PanelCompilerLog(this))
 {
@@ -81,6 +114,9 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   showPanelStartPage();
   clearSettings();
   statusBar();
+
+  mDialogOpenProjectTemplates = new DialogOpenTemplate({"templates/projects", joda::templates::TemplateParser::getUsersTemplateDirectory().string()},
+                                                       joda::fs::EXT_PROJECT_TEMPLATE, this);
 
   //
   // Watch for working directory changes
@@ -106,11 +142,11 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   mTemplateDirWatcher.addPath(joda::templates::TemplateParser::getUsersTemplateDirectory().string().data());    // Replace with your desired path
   QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::fileChanged, [&](const QString &path) {
     mPanelPipeline->loadTemplates();
-    loadProjectTemplates();
+    mDialogOpenProjectTemplates->loadTemplates();
   });
   QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::directoryChanged, [&](const QString &path) {
     mPanelPipeline->loadTemplates();
-    loadProjectTemplates();
+    mDialogOpenProjectTemplates->loadTemplates();
   });
 
   //
@@ -125,7 +161,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   }
 
   mPanelPipeline->loadTemplates();
-  loadProjectTemplates();
+  mDialogOpenProjectTemplates->loadTemplates();
   loadLastOpened();
 
   //
@@ -167,6 +203,10 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
           mainWindow, [mainWindow, response]() { mainWindow->statusBar()->showMessage("Could not check for updates!", 5000); }, Qt::QueuedConnection);
     }
   }).detach();
+
+  mSaveProject->setEnabled(false);
+
+  QTimer::singleShot(0, this, SLOT(onNewProjectClicked();));
 }
 
 WindowMain::~WindowMain()
@@ -212,18 +252,11 @@ void WindowMain::createTopToolbar()
   ////////////
   mTopToolBar = addToolBar("File toolbar");
 
-  mNewProjectMenu   = new QMenu();
-  mNewProjectButton = new QAction(generateSvgIcon("folder-new"), "New project", mTopToolBar);
-  mNewProjectButton->setStatusTip("Create new project or create new from template");
-  mNewProjectButton->setMenu(mNewProjectMenu);
-  connect(mNewProjectButton, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
-  mTopToolBar->addAction(mNewProjectButton);
-
   mOpenProjectMenu   = new QMenu();
-  mOpenProjectButton = new QAction(generateSvgIcon("document-open-folder"), "Open project or results", mTopToolBar);
+  mOpenProjectButton = new QAction(generateSvgIcon("document-open-folder"), "Create new project or open project, templates or results", mTopToolBar);
   mOpenProjectButton->setStatusTip("Open existing project, template or results");
   mOpenProjectButton->setMenu(mOpenProjectMenu);
-  connect(mOpenProjectButton, &QAction::triggered, this, &WindowMain::onOpenClicked);
+  connect(mOpenProjectButton, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
   mTopToolBar->addAction(mOpenProjectButton);
 
   mSaveProject = new QAction(generateSvgIcon("document-save"), "Save", mTopToolBar);
@@ -400,18 +433,28 @@ QWidget *WindowMain::createReportingWidget()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-bool WindowMain::askForNewProject()
+WindowMain::AskEnum WindowMain::askForNewProject()
 {
   QMessageBox messageBox(this);
   auto icon = generateSvgIcon("data-information");
   messageBox.setIconPixmap(icon.pixmap(42, 42));
   messageBox.setWindowTitle("Create new project?");
-  messageBox.setText("Unsaved settings will get lost! Create new project?");
-  QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
-  QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
-  messageBox.setDefaultButton(noButton);
+  messageBox.setText("Save settings and create new project?");
+  QPushButton *yesButton    = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+  QPushButton *noButton     = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+  QPushButton *cancelButton = messageBox.addButton(tr("Cancel"), QMessageBox::RejectRole);
+  messageBox.setDefaultButton(yesButton);
   auto reply = messageBox.exec();
-  return messageBox.clickedButton() != noButton;
+  if(messageBox.clickedButton() == noButton) {
+    return AskEnum::no;
+  }
+  if(messageBox.clickedButton() == yesButton) {
+    return AskEnum::yes;
+  }
+  if(messageBox.clickedButton() == cancelButton) {
+    return AskEnum::cancel;
+  }
+  return AskEnum::cancel;
 }
 
 ///
@@ -420,16 +463,54 @@ bool WindowMain::askForNewProject()
 ///
 void WindowMain::onNewProjectClicked()
 {
-  if(!mSelectedProjectSettingsFilePath.empty()) {
-    if(!askForNewProject()) {
+  // Create the dimming overlay
+  auto *dimOverlay = new QWidget(this);
+  dimOverlay->setStyleSheet("background-color: rgba(0, 0, 0, 128);");
+  dimOverlay->setGeometry(this->rect());
+  dimOverlay->setAttribute(Qt::WA_TransparentForMouseEvents);
+  dimOverlay->show();
+
+  auto [mode, selectedTemplate] = mDialogOpenProjectTemplates->show();
+  dimOverlay->deleteLater();
+
+  if(mode == DialogOpenTemplate::ReturnCode::CANCEL) {
+    return;
+  }
+  if(mode == DialogOpenTemplate::ReturnCode::OPEN_FILE_DIALOG) {
+    onOpenClicked();
+    return;
+  }
+  if(mode == DialogOpenTemplate::ReturnCode::OPEN_RESULTS) {
+    openResultsSettings(selectedTemplate);
+    return;
+  }
+  if(mSaveProject->isEnabled()) {
+    auto ret = askForNewProject();
+    if(ret == AskEnum::cancel) {
       return;
     }
+    if(ret == AskEnum::yes) {
+      if(!saveProject(mSelectedProjectSettingsFilePath)) {
+        // If save was not successful return
+        return;
+      }
+    } else if(ret == AskEnum::no) {
+      // Just continue
+    }
   }
-
   showPanelStartPage();
-  clearSettings();
-  checkForSettingsChanged();
-  onSaveProject();
+  if(mode == DialogOpenTemplate::ReturnCode::EMPTY_PROJECT) {
+    clearSettings();
+    checkForSettingsChanged();
+  } else {
+    checkForSettingsChanged();
+    if(mode == DialogOpenTemplate::ReturnCode::OPEN_PROJECT) {
+      openProjectSettings(selectedTemplate, false);
+    }
+    if(mode == DialogOpenTemplate::ReturnCode::OPEN_TEMPLATE) {
+      openProjectSettings(selectedTemplate, true);
+    }
+  }
 }
 
 ///
@@ -587,6 +668,11 @@ void WindowMain::checkForSettingsChanged()
   if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
     // Not equal
     mSaveProject->setEnabled(true);
+    if(mSelectedProjectSettingsFilePath.empty()) {
+      setWindowTitlePrefix("Untitled*");
+    } else {
+      setWindowTitlePrefix(QString((mSelectedProjectSettingsFilePath.filename().string() + "*").data()));
+    }
     /// \todo check if all updates still work
     auto actClasses = getOutputClasses();
 
@@ -597,6 +683,11 @@ void WindowMain::checkForSettingsChanged()
   } else {
     // Equal
     mSaveProject->setEnabled(false);
+    if(mSelectedProjectSettingsFilePath.empty()) {
+      setWindowTitlePrefix("Untitled");
+    } else {
+      setWindowTitlePrefix(mSelectedProjectSettingsFilePath.filename().string().data());
+    }
   }
   mCompilerLog->updateCompilerLog(mAnalyzeSettings);
 }
@@ -623,8 +714,9 @@ void WindowMain::onSaveProjectAs()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool createHistoryEntry)
+bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool createHistoryEntry)
 {
+  bool okay = false;
   try {
     if(filename.empty()) {
       std::filesystem::path filePath(mAnalyzeSettings.projectSettings.workingDirectory);
@@ -676,8 +768,10 @@ void WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
       mSelectedProjectSettingsFilePath = filename;
       setWindowTitlePrefix(filename.filename().string().data());
     }
+    okay = true;
 
   } catch(const std::exception &ex) {
+    okay = false;
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);
     messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
@@ -686,46 +780,7 @@ void WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
   }
-}
-
-///
-/// \brief      Templates loaded from templates folder
-/// \author     Joachim Danmayr
-///
-void WindowMain::loadProjectTemplates()
-{
-  auto foundTemplates = joda::templates::TemplateParser::findTemplates(
-      {"templates/projects", joda::templates::TemplateParser::getUsersTemplateDirectory().string()}, joda::fs::EXT_PROJECT_TEMPLATE);
-
-  mNewProjectMenu->clear();
-  std::string actCategory = "basic";
-  size_t addedPerCategory = 0;
-  for(const auto &[category, dataInCategory] : foundTemplates) {
-    for(const auto &[_, data] : dataInCategory) {
-      // Now the user templates start, add an addition separator
-      if(category != actCategory) {
-        actCategory = category;
-        if(addedPerCategory > 0) {
-          mNewProjectMenu->addSeparator();
-        }
-      }
-      QAction *action;
-      if(!data.icon.isNull()) {
-        action = mNewProjectMenu->addAction(QIcon(data.icon.scaled(28, 28)), data.title.data());
-
-      } else {
-        action = mNewProjectMenu->addAction(generateSvgIcon("favorite"), data.title.data());
-      }
-      connect(action, &QAction::triggered, this, [this, path = data.path]() {
-        if(!askForNewProject()) {
-          return;
-        }
-        checkForSettingsChanged();
-        openProjectSettings(path.data(), true);
-      });
-    }
-    addedPerCategory = dataInCategory.size();
-  }
+  return okay;
 }
 
 ///
@@ -811,7 +866,6 @@ void WindowMain::onBackClicked()
 bool WindowMain::showPanelStartPage()
 {
   getPanelPipeline()->unselectPipeline();
-  mNewProjectButton->setVisible(true);
   mOpenProjectButton->setVisible(true);
   mSidebar->setVisible(true);
   mSaveProject->setVisible(true);
@@ -935,14 +989,14 @@ void WindowMain::onShowInfoDialog()
     widgetAbout->setLayout(layoutAbout);
     tab->addTab(widgetAbout, "Contributors");
     auto *labelAbout = new QLabel(
-        "<u>Melanie Schuerz</u> : Coordination, Application testing, AI-Training<br/><br/>"
-        "<u>Tanja Plank</u> : Logo design, Application testing, AI-Training<br/><br/>"
-        "<u>Maria Jaritsch</u> : Application testing, AI-Training<br/><br/>"
-        "<u>Patricia Hrasnova</u> : Application testing, AI-Training<br/><br/>"
-        "<u>Anna Dlugosch</u> : Application testing<br/><br/>"
-        "<u>Heloisa Melobenirschke</u> : AI-Training<br/><br/>"
-        "<u>Manfred Seiwald</u> : Integration testing<br/><br/>"
-        "<u>Joachim Danmayr</u> : Idea, Programming, Documentation, Testing<br/><br/>");
+        "<u>Joachim Danmayr</u> : Creator, Programming, Documentation, Testing<br/><br/>"
+        "<u>Melanie Schuerz</u> : Co-Creator, Conceptualization, Testing, AI-Training<br/><br/>"
+        "<u>Tanja Plank</u> : Logo design, Testing, AI-Training<br/><br/>"
+        "<u>Maria Jaritsch</u> : Testing, AI-Training<br/><br/>"
+        "<u>Patricia Hrasnova</u> : Testing, AI-Training<br/><br/>"
+        "<u>Anna Dlugosch</u> : Testing<br/><br/>"
+        "<u>Heloisa Melo Benirschke</u> : AI-Training<br/><br/>"
+        "<u>Manfred Seiwald</u> : Integration testing<br/><br/>");
 
     labelAbout->setOpenExternalLinks(true);
     labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);

@@ -43,6 +43,7 @@ namespace joda::ui::gui {
 class ContainerChannel;
 class PanelResults;
 class PanelResultsTableGenerator;
+class DialogOpenTemplate;
 
 ///
 /// \class
@@ -125,6 +126,13 @@ signals:
   void onOutputClassifierChanges();
 
 private:
+  enum class AskEnum
+  {
+    yes,
+    no,
+    cancel
+  };
+
   /////////////////////////////////////////////////////
   static constexpr int32_t LEFT_TOOLBAR_WIDTH = 400;    // 365
 
@@ -148,12 +156,11 @@ private:
   /////////////////////////////////////////////////////
   void createTopToolbar();
   void createLeftToolbar();
-  void loadProjectTemplates();
   void loadLastOpened();
   void clearSettings();
-  void saveProject(std::filesystem::path filename, bool saveAs = false, bool createHistoryEntry = true);
+  bool saveProject(std::filesystem::path filename, bool saveAs = false, bool createHistoryEntry = true);
   void closeEvent(QCloseEvent *event) override;
-  bool askForNewProject();
+  AskEnum askForNewProject();
 
   QWidget *createStackedWidget();
   QWidget *createStartPageWidget();
@@ -161,12 +168,12 @@ private:
   QWidget *createReportingWidget();
 
   static QString bytesToString(int64_t bytes);
-
   ////Common/////////////////////////////////////////////////
   QToolBar *mTopToolBar;
   joda::ctrl::Controller *mController;
   QFileSystemWatcher mTemplateDirWatcher;
   PanelCompilerLog *mCompilerLog;
+  DialogOpenTemplate *mDialogOpenProjectTemplates;
 
   ////Project settings/////////////////////////////////////////////////
   joda ::settings::AnalyzeSettings *mActAnalyzeSettings = nullptr;
@@ -193,8 +200,6 @@ private:
   PanelResults *mPanelReporting           = nullptr;
 
   ////ToolbarIcons/////////////////////////////////////////////////
-  QMenu *mNewProjectMenu            = nullptr;
-  QAction *mNewProjectButton        = nullptr;
   QMenu *mOpenProjectMenu           = nullptr;
   QAction *mOpenProjectButton       = nullptr;
   QAction *mSaveProject             = nullptr;

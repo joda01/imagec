@@ -43,7 +43,7 @@ public:
 
   static std::string getTitle()
   {
-    return "EVAnalyzer2";
+    return "ImageC";
   }
 
   static std::string getSubtitle()

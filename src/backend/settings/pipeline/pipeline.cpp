@@ -59,6 +59,7 @@ auto Pipeline::createSnapShot(enums::HistoryCategory category, const std::string
       history.erase(history.begin() + (history.size() - n));
     }
   }
+  actHistoryIndex = 0;
   return entry;
 }
 ///
@@ -67,8 +68,22 @@ auto Pipeline::createSnapShot(enums::HistoryCategory category, const std::string
 ///
 void Pipeline::clearHistory()
 {
+  actHistoryIndex = 0;
   history.erase(std::remove_if(history.begin(), history.end(), [](const PipelineHistoryEntry &item) { return item.tagMessage.empty(); }),
                 history.end());
+  if(history.empty()) {
+    history.emplace_back(PipelineHistoryEntry{.commitMessage = "Created"});
+  }
+}
+
+///
+/// \brief      Clear all elements except tags from the history
+/// \author     Joachim Danmayr
+///
+void Pipeline::eraseHistory()
+{
+  actHistoryIndex = 0;
+  history.clear();
 }
 
 ///
@@ -83,9 +98,18 @@ auto Pipeline::restoreSnapShot(int32_t idx) const -> Pipeline
 
   Pipeline pip = *this;
   pip.pipelineSteps.clear();
-  pip.pipelineSteps = history.at(idx).pipelineSteps;
-
+  pip.pipelineSteps   = history.at(idx).pipelineSteps;
+  pip.actHistoryIndex = idx;
   return pip;
+}
+
+///
+/// \brief      Restore a snap shot
+/// \author     Joachim Danmayr
+///
+auto Pipeline::undo() const -> Pipeline
+{
+  return restoreSnapShot(actHistoryIndex + 1);
 }
 
 ///

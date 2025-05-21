@@ -81,11 +81,6 @@ public:
   //
   bool locked = false;
 
-  //
-  // Changes of the pipeline steps over time
-  //
-  std::vector<PipelineHistoryEntry> history;
-
   /////////////////////////////////////////////////////
   void check() const;
 
@@ -97,11 +92,36 @@ public:
 
   auto createSnapShot(enums::HistoryCategory category, const std::string &note) -> std::optional<PipelineHistoryEntry>;
   auto restoreSnapShot(int32_t idex) const -> Pipeline;
+  auto undo() const -> Pipeline;
   void tag(const std::string &tagName, int32_t index = 0);
   void clearHistory();
+  void eraseHistory();
+  auto getHistory() const -> const std::vector<PipelineHistoryEntry> &
+  {
+    return history;
+  }
+  void setHistory(const std::vector<PipelineHistoryEntry> &in, int32_t idx, const Pipeline &initialPipeline)
+  {
+    history         = in;
+    actHistoryIndex = idx;
+    if(history.empty()) {
+      history.emplace_back(PipelineHistoryEntry{.pipelineSteps = initialPipeline.pipelineSteps, .commitMessage = "Created"});
+    }
+  }
+  auto getHistoryIndex() const
+  {
+    return actHistoryIndex;
+  }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED_CONDITIONAL_CHECK(Pipeline, disabled, meta, pipelineSetup, pipelineSteps, disabled, locked,
-                                                                         history);
+                                                                         actHistoryIndex, history);
+
+private:
+  //
+  // Changes of the pipeline steps over time
+  //
+  std::vector<PipelineHistoryEntry> history{{.commitMessage = "Created"}};
+  int32_t actHistoryIndex = 0;
 };
 
 }    // namespace joda::settings

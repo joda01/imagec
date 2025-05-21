@@ -130,6 +130,14 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   mLayout.addSeparatorToTopToolbar();
 
   // Tool button
+  mUndoAction = mLayout.addActionButton("Undo", generateSvgIcon("edit-undo"));
+  mUndoAction->setEnabled(false);
+  mUndoAction->setStatusTip("Undo last setting");
+  connect(mUndoAction, &QAction::triggered, [this]() {
+    this->mDialogHistory->undo();
+    mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
+  });
+
   mHistoryAction = mLayout.addActionButton("History", generateSvgIcon("deep-history"));
   mHistoryAction->setStatusTip("Show/Hide pipeline edit history");
   mHistoryAction->setCheckable(true);
@@ -215,6 +223,7 @@ void PanelPipelineSettings::insertNewPipelineStep(int32_t posToInsert, std::uniq
                                                   const settings::PipelineStep *pipelineStepBefore)
 {
   mDialogHistory->updateHistory(enums::HistoryCategory::ADDED, "Added: " + command->getTitle().toStdString());
+  mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
   command->registerDeleteButton(this);
 
   if(mCommands.empty()) {
@@ -296,6 +305,7 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete, bool upda
       }
       if(updateHistoryEntry) {
         mDialogHistory->updateHistory(enums::HistoryCategory::DELETED, "Removed: " + deletedCommandTitle);
+        mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
         updatePreview();
         mWindowMain->checkForSettingsChanged();
       }
@@ -438,16 +448,19 @@ void PanelPipelineSettings::valueChangedEvent()
   }
 
   isBlocked = true;
-  /*
-    QObject *senderObject = sender();    // Get the signal's origin
-    if(senderObject) {
-      qDebug() << "Signal received from:" << senderObject->objectName();
-      senderObject->dumpObjectInfo();
-    } else {
-      qDebug() << "Could not identify sender!";
-    }
-    */
-  mDialogHistory->updateHistory(enums::HistoryCategory::CHANGED, "Changed");
+
+  /* QObject *senderObject = sender();    // Get the signal's origin
+   if(senderObject) {
+     qDebug() << "Signal received from:" << senderObject->objectName();
+     senderObject->dumpObjectInfo();
+   } else {
+     qDebug() << "Could not identify sender!";
+   }*/
+
+  if(!mLoadingSettings) {
+    mDialogHistory->updateHistory(enums::HistoryCategory::CHANGED, "Changed");
+  }
+  mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
   updatePreview();
 
   QTimer::singleShot(100, this, [this]() {
@@ -693,6 +706,7 @@ void PanelPipelineSettings::clearPipeline()
 void PanelPipelineSettings::pipelineSavedEvent()
 {
   mDialogHistory->updateHistory(enums::HistoryCategory::SAVED, "Saved");
+  mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
 }
 
 ///
@@ -708,9 +722,9 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   mSettings.meta          = settings.meta;
   mSettings.meta.notes    = settings.meta.notes;
   mSettings.pipelineSetup = settings.pipelineSetup;
-  mSettings.history       = settings.history;
-  mSettings.disabled      = settings.disabled;
-  mSettings.locked        = settings.locked;
+  mSettings.setHistory(settings.getHistory(), settings.getHistoryIndex(), settings);
+  mSettings.disabled = settings.disabled;
+  mSettings.locked   = settings.locked;
 
   pipelineName->setValue(settings.meta.name);
   pipelineNotes->setValue(settings.meta.notes);
@@ -739,11 +753,13 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
       mTopAddCommandButton->setInOutBefore(InOuts::ALL);
     }
   }
-  mLoadingSettings = false;
+
+  QTimer::singleShot(500, this, [this]() { mLoadingSettings = false; });
 
   updatePreview();
   onZProjectionChanged();
   mDialogHistory->loadHistory();
+  mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
 }
 
 ///
@@ -919,6 +935,7 @@ void PanelPipelineSettings::setActive(bool setActive)
     mIsActiveShown = true;
     updatePreview();
     mDialogHistory->loadHistory();
+    mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
     mPreviewImage->setVisible(true);
   }
   if(!setActive && mIsActiveShown) {
