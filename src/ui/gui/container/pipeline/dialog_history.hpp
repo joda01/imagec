@@ -43,10 +43,14 @@ public:
   void updateHistory(enums::HistoryCategory category, const std::string &);
   void loadHistory();
   void createTag();
-  void restoreHistory(int32_t index);
+  void undo();
   static auto generateHistoryEntry(const std::optional<joda::settings::PipelineHistoryEntry> &) -> TimeHistoryEntry *;
 
 private:
+  /////////////////////////////////////////////////////
+  void updateSelection();
+  void restoreHistory(int32_t index);
+
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain               = nullptr;
   PanelPipelineSettings *mPanelPipeline = nullptr;

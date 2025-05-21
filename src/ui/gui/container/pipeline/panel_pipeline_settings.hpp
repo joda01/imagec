@@ -105,6 +105,7 @@ private:
   void copyPipeline();
 
   // ACTIONS///////////////////////////////////////////////////
+  QAction *mUndoAction;
   QAction *mHistoryAction;
   QAction *mActionDisabled;
 
