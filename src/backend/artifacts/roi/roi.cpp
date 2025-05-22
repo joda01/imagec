@@ -335,16 +335,16 @@ ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
   }
   result.intersectedMask = cv::Mat::zeros(result.intersectedRect.height, result.intersectedRect.width, CV_8UC1);
 
-  const int32_t xM1Base = (result.intersectedRect.x - getBoundingBoxTile().x);
-  const int32_t yM1Base = (result.intersectedRect.y - getBoundingBoxTile().y);
-  const int32_t xM2Base = (result.intersectedRect.x - roi.getBoundingBoxTile().x);
-  const int32_t yM2Base = (result.intersectedRect.y - roi.getBoundingBoxTile().y);
+  const int32_t xM1Base = getBoundingBoxTile().x;
+  const int32_t yM1Base = getBoundingBoxTile().y;
+  const int32_t xM2Base = roi.getBoundingBoxTile().x;
+  const int32_t yM2Base = roi.getBoundingBoxTile().y;
 
   // Iterate through the pixels in the intersection and set them in the new mask
-  for(int y = 0; y < result.intersectedRect.height; ++y) {
-    for(int x = 0; x < result.intersectedRect.width; ++x) {
-      int xM1 = x + xM1Base;
-      int yM1 = y + yM1Base;
+  for(int y = result.intersectedRect.y; y < result.intersectedRect.y + result.intersectedRect.height; ++y) {
+    for(int x = result.intersectedRect.x; x < result.intersectedRect.x + result.intersectedRect.width; ++x) {
+      int xM1 = x - xM1Base;
+      int yM1 = y - yM1Base;
 
       bool mask1On = false;
       auto maskTmp = getMask();
@@ -352,8 +352,8 @@ ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
         mask1On = getMask().at<uchar>(yM1, xM1) > 0;
       }
 
-      int xM2           = x + xM2Base;
-      int yM2           = y + yM2Base;
+      int xM2           = x - xM2Base;
+      int yM2           = y - yM2Base;
       bool mask2On      = false;
       const auto &maskB = roi.getMask();
       if(xM2 >= 0 && yM2 >= 0 && yM2 < maskB.rows && xM2 < maskB.cols) {
@@ -361,7 +361,7 @@ ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
       }
 
       if(mask1On && mask2On) {
-        result.intersectedMask.at<uchar>(y, x) = 255;
+        result.intersectedMask.at<uchar>(y - result.intersectedRect.y, x - result.intersectedRect.x) = 255;
         result.nrOfIntersectingPixels++;
       }
     }
