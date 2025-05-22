@@ -60,7 +60,9 @@ public:
     mFunction = SettingBase::create<SettingComboBox<joda::settings::ObjectTransformSettings::Function>>(parent, {}, "Function");
     mFunction->addOptions(
         {{.key = joda::settings::ObjectTransformSettings::Function::SCALE, .label = "Scale (factor=scale)", .icon = {}},
-         {.key = joda::settings::ObjectTransformSettings::Function::DRAW_CIRCLE, .label = "Draw circle (factor=radius)", .icon = {}}});
+         {.key = joda::settings::ObjectTransformSettings::Function::SNAP_AREA, .label = "Snap area (factor=snap area size)", .icon = {}},
+         {.key = joda::settings::ObjectTransformSettings::Function::MIN_CIRCLE, .label = "Min. circle (factor=min radius)", .icon = {}},
+         {.key = joda::settings::ObjectTransformSettings::Function::EXACT_CIRCLE, .label = "Draw circle (factor=radius)", .icon = {}}});
     mFunction->setValue(settings.function);
     mFunction->connectWithSetting(&settings.function);
 
@@ -68,8 +70,8 @@ public:
     mScaleFactor->setPlaceholderText("[0 - 65535]");
     mScaleFactor->setUnit("x");
     mScaleFactor->setMinMax(0, 65535);
-    mScaleFactor->setValue(settings.scaleFactor);
-    mScaleFactor->connectWithSetting(&settings.scaleFactor);
+    mScaleFactor->setValue(settings.factor);
+    mScaleFactor->connectWithSetting(&settings.factor);
     mScaleFactor->setShortDescription("Scale ");
 
     addSetting(modelTab, "Input", {{mInput.get(), true, 0}, {mOutput.get(), true, 0}, {mFunction.get(), true, 0}, {mScaleFactor.get(), false, 0}});

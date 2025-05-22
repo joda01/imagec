@@ -38,19 +38,43 @@ void ObjectTransform::execute(processor::ProcessContext &context, cv::Mat &image
     switch(mSettings.function) {
       case settings::ObjectTransformSettings::Function::SCALE: {
         if(inputClass == outputClass) {
-          roi.resize(mSettings.scaleFactor, mSettings.scaleFactor);
+          roi.resize(mSettings.factor, mSettings.factor);
         } else {
           auto newRoi = roi.copy(outputClass, roi.getParentObjectId());
-          newRoi.resize(mSettings.scaleFactor, mSettings.scaleFactor);
+          newRoi.resize(mSettings.factor, mSettings.factor);
           resultIn.push_back(newRoi);
         }
       } break;
-      case settings::ObjectTransformSettings::Function::DRAW_CIRCLE: {
+      case settings::ObjectTransformSettings::Function::EXACT_CIRCLE: {
         if(inputClass == outputClass) {
-          roi.drawCircle(mSettings.scaleFactor);
+          roi.drawCircle(mSettings.factor);
         } else {
           auto newRoi = roi.copy(outputClass, roi.getParentObjectId());
-          newRoi.drawCircle(mSettings.scaleFactor);
+          newRoi.drawCircle(mSettings.factor);
+          resultIn.push_back(newRoi);
+        }
+      } break;
+      case settings::ObjectTransformSettings::Function::MIN_CIRCLE: {
+        float areaLength = std::max(roi.getBoundingBoxTile().width, roi.getBoundingBoxTile().height);
+        if(areaLength < mSettings.factor) {
+          areaLength = mSettings.factor;
+        }
+        if(inputClass == outputClass) {
+          roi.drawCircle(areaLength);
+        } else {
+          auto newRoi = roi.copy(outputClass, roi.getParentObjectId());
+          newRoi.drawCircle(areaLength);
+          resultIn.push_back(newRoi);
+        }
+      } break;
+      case settings::ObjectTransformSettings::Function::SNAP_AREA: {
+        float areaLength = std::max(roi.getBoundingBoxTile().width, roi.getBoundingBoxTile().height);
+        areaLength += mSettings.factor;
+        if(inputClass == outputClass) {
+          roi.drawCircle(areaLength);
+        } else {
+          auto newRoi = roi.copy(outputClass, roi.getParentObjectId());
+          newRoi.drawCircle(areaLength);
           resultIn.push_back(newRoi);
         }
       } break;

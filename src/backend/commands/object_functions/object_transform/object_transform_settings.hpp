@@ -31,7 +31,9 @@ struct ObjectTransformSettings : public SettingBase
   {
     UNKNOWN,
     SCALE,
-    DRAW_CIRCLE
+    SNAP_AREA,      // Use the object size and paint a circle with object_size+factor around it.
+    MIN_CIRCLE,     // Paint a circle around the object with at least this radius. If the object is bigger, the object size is used.
+    EXACT_CIRCLE    // Paint a circle with exact the given radius.
   };
 
   //
@@ -52,7 +54,7 @@ struct ObjectTransformSettings : public SettingBase
   //
   // Factor
   //
-  float scaleFactor = 1;
+  float factor = 1;
 
   /////////////////////////////////////////////////////
   void check() const
@@ -74,11 +76,15 @@ struct ObjectTransformSettings : public SettingBase
     return out;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectTransformSettings, function, inputClasses, outputClasses, scaleFactor);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectTransformSettings, function, inputClasses, outputClasses, factor);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ObjectTransformSettings::Function, {
                                                                     {ObjectTransformSettings::Function::SCALE, "Scale"},
+                                                                    {ObjectTransformSettings::Function::SNAP_AREA, "SnapArea"},
+                                                                    {ObjectTransformSettings::Function::MIN_CIRCLE, "CircleMin"},
+                                                                    {ObjectTransformSettings::Function::EXACT_CIRCLE, "Circle"},
+
                                                                 });
 
 }    // namespace joda::settings
