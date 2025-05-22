@@ -318,6 +318,7 @@ public:
   }
 
   void resize(float scaleX, float scaleY);
+  void drawCircle(float radius);
   void addLinkedRoi(ROI *linked)
   {
     mLinkedWith.emplace(linked);

@@ -30,7 +30,8 @@ struct ObjectTransformSettings : public SettingBase
   enum class Function
   {
     UNKNOWN,
-    SCALE
+    SCALE,
+    DRAW_CIRCLE
   };
 
   //
@@ -41,7 +42,12 @@ struct ObjectTransformSettings : public SettingBase
   //
   // Objects to use for intersection calculation
   //
-  ObjectInputClasss inputClasses;
+  ObjectInputClasss inputClasses = enums::ClassIdIn::$;
+
+  //
+  // Objects to use for intersection calculation
+  //
+  ObjectInputClasss outputClasses = enums::ClassIdIn::$;
 
   //
   // Factor
@@ -64,10 +70,11 @@ struct ObjectTransformSettings : public SettingBase
   [[nodiscard]] ObjectOutputClasses getOutputClasses() const override
   {
     ObjectOutputClasses out;
+    out.emplace(outputClasses);
     return out;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectTransformSettings, function, inputClasses, scaleFactor);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectTransformSettings, function, inputClasses, outputClasses, scaleFactor);
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ObjectTransformSettings::Function, {

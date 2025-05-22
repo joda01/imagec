@@ -46,27 +46,33 @@ public:
     auto *modelTab = addTab(
         "Base", [] {}, false);
 
-    mInput = SettingBase::create<SettingComboBoxClassificationIn>(parent, {}, "First operand");
+    mInput = SettingBase::create<SettingComboBoxClassificationIn>(parent, {}, "Input class");
     mInput->setValue(settings.inputClasses);
     mInput->connectWithSetting(&settings.inputClasses);
+
+    mOutput = SettingBase::create<SettingComboBoxClassificationIn>(parent, {}, "Output class");
+    mOutput->setValue(settings.outputClasses);
+    mOutput->connectWithSetting(&settings.outputClasses);
 
     //
     // Options
     //
     mFunction = SettingBase::create<SettingComboBox<joda::settings::ObjectTransformSettings::Function>>(parent, {}, "Function");
-    mFunction->addOptions({{.key = joda::settings::ObjectTransformSettings::Function::SCALE, .label = "Scale", .icon = {}}});
+    mFunction->addOptions(
+        {{.key = joda::settings::ObjectTransformSettings::Function::SCALE, .label = "Scale (factor=scale)", .icon = {}},
+         {.key = joda::settings::ObjectTransformSettings::Function::DRAW_CIRCLE, .label = "Draw circle (factor=radius)", .icon = {}}});
     mFunction->setValue(settings.function);
     mFunction->connectWithSetting(&settings.function);
 
-    mScaleFactor = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("skrooge_type"), "Scale factor [0-256]");
-    mScaleFactor->setPlaceholderText("[0 - 256]");
+    mScaleFactor = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("skrooge_type"), "Factor [0-65535]");
+    mScaleFactor->setPlaceholderText("[0 - 65535]");
     mScaleFactor->setUnit("x");
-    mScaleFactor->setMinMax(0, 256);
+    mScaleFactor->setMinMax(0, 65535);
     mScaleFactor->setValue(settings.scaleFactor);
     mScaleFactor->connectWithSetting(&settings.scaleFactor);
     mScaleFactor->setShortDescription("Scale ");
 
-    addSetting(modelTab, "Input", {{mInput.get(), true, 0}, {mFunction.get(), true, 0}, {mScaleFactor.get(), true, 0}});
+    addSetting(modelTab, "Input", {{mInput.get(), true, 0}, {mOutput.get(), true, 0}, {mFunction.get(), true, 0}, {mScaleFactor.get(), false, 0}});
   }
 
 private:
@@ -76,6 +82,7 @@ private:
   /////////////////////////////////////////////////////
   std::unique_ptr<SettingComboBox<joda::settings::ObjectTransformSettings::Function>> mFunction;
   std::unique_ptr<SettingComboBoxClassificationIn> mInput;
+  std::unique_ptr<SettingComboBoxClassificationIn> mOutput;
   std::shared_ptr<SettingLineEdit<float>> mScaleFactor;
 
   /////////////////////////////////////////////////////

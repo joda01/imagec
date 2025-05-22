@@ -28,15 +28,32 @@ ObjectTransform::ObjectTransform(const settings::ObjectTransformSettings &settin
 {
 }
 
-void ObjectTransform::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList & /*resultIn*/)
+void ObjectTransform::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &resultIn)
 {
-  auto &operand01 = context.loadObjectsFromCache()->at(context.getClassId(mSettings.inputClasses));
+  auto inputClass  = context.getClassId(mSettings.inputClasses);
+  auto outputClass = context.getClassId(mSettings.outputClasses);
+  auto &operand01  = context.loadObjectsFromCache()->at(inputClass);
 
   for(auto &roi : *operand01) {
     switch(mSettings.function) {
-      case settings::ObjectTransformSettings::Function::SCALE:
-        roi.resize(mSettings.scaleFactor, mSettings.scaleFactor);
-        break;
+      case settings::ObjectTransformSettings::Function::SCALE: {
+        if(inputClass == outputClass) {
+          roi.resize(mSettings.scaleFactor, mSettings.scaleFactor);
+        } else {
+          auto newRoi = roi.copy(outputClass, roi.getParentObjectId());
+          newRoi.resize(mSettings.scaleFactor, mSettings.scaleFactor);
+          resultIn.push_back(newRoi);
+        }
+      } break;
+      case settings::ObjectTransformSettings::Function::DRAW_CIRCLE: {
+        if(inputClass == outputClass) {
+          roi.drawCircle(mSettings.scaleFactor);
+        } else {
+          auto newRoi = roi.copy(outputClass, roi.getParentObjectId());
+          newRoi.drawCircle(mSettings.scaleFactor);
+          resultIn.push_back(newRoi);
+        }
+      } break;
     }
   }
 }
