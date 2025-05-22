@@ -449,6 +449,31 @@ auto ROI::measureDistanceAndAdd(const ROI &secondRoi) -> Distance
   return distance;
 }
 
+cv::Mat shiftMask(const cv::Mat &mask, int offsetX, int offsetY)
+{
+  // Create an output mask filled with zeros (same type and size as input)
+  cv::Mat shifted = cv::Mat::zeros(mask.size(), mask.type());
+
+  // Determine source and destination ROIs based on offset
+  int srcX   = std::max(0, -offsetX);
+  int srcY   = std::max(0, -offsetY);
+  int dstX   = std::max(0, offsetX);
+  int dstY   = std::max(0, offsetY);
+  int width  = mask.cols - std::abs(offsetX);
+  int height = mask.rows - std::abs(offsetY);
+
+  // Ensure width and height are valid
+  if(width > 0 && height > 0) {
+    // Define source and destination ROIs
+    cv::Rect srcRoi(srcX, srcY, width, height);
+    cv::Rect dstRoi(dstX, dstY, width, height);
+    // Copy ROI from source to destination
+    mask(srcRoi).copyTo(shifted(dstRoi));
+  }
+
+  return shifted;
+}
+
 ///
 /// \brief  Resizes the ROI based on the given scale factors
 /// \author Joachim Danmayr
@@ -476,23 +501,28 @@ void ROI::resize(float scaleX, float scaleY)
   auto oldCentroid = mCentroid;
   auto newCentroid = calcCentroid(mMask);
 
-  auto scaleBoundingBox = [&](Boxes &box, const cv::Size &imgSize) {
-    int32_t widthDif  = newCentroid.x - oldCentroid.x;
-    int32_t heightDif = newCentroid.y - oldCentroid.y;
+  auto scaleBoundingBox = [&](Boxes &box, const cv::Size &imgSize) -> std::pair<int32_t, int32_t> {
+    std::pair<int32_t, int32_t> centroidOffset = {0, 0};
+    int32_t widthDif                           = newCentroid.x - oldCentroid.x;
+    int32_t heightDif                          = newCentroid.y - oldCentroid.y;
 
     int32_t moveX = std::ceil(static_cast<float>(widthDif) / 1.0);
     int32_t moveY = std::ceil(static_cast<float>(heightDif) / 1.0);
 
     box.x = box.x - moveX;
     if(box.x < 0) {
-      box.x = 0;
+      box.width            = box.width + box.x;
+      centroidOffset.first = box.x;
+      box.x                = 0;
     }
     if(box.x > imgSize.width) {
       box.x = imgSize.width;
     }
     box.y = box.y - moveY;
     if(box.y < 0) {
-      box.y = 0;
+      box.height            = box.height + box.y;
+      centroidOffset.second = box.y;
+      box.y                 = 0;
     }
     if(box.y > imgSize.height) {
       box.y = imgSize.height;
@@ -507,11 +537,14 @@ void ROI::resize(float scaleX, float scaleY)
     if((box.y + box.height) > imgSize.height) {
       box.height = box.height - ((box.y + box.height) - imgSize.height);
     }
+    return centroidOffset;
   };
-  scaleBoundingBox(mBoundingBoxTile, mImageSize);
+  auto centroidOffset = scaleBoundingBox(mBoundingBoxTile, mImageSize);
   scaleBoundingBox(mBoundingBoxReal, mOriginalImageSize);
 
   cv::Rect crop(0, 0, mBoundingBoxTile.width, mBoundingBoxTile.height);
+  mMask = shiftMask(mMask, centroidOffset.first, centroidOffset.second);
+
   mMask = mMask(crop).clone();
 
   std::vector<std::vector<cv::Point>> contours;
@@ -561,23 +594,28 @@ void ROI::drawCircle(float radius)
   auto oldCentroid = mCentroid;
   auto newCentroid = calcCentroid(mMask);
 
-  auto scaleBoundingBox = [&](Boxes &box, const cv::Size &imgSize) {
-    int32_t widthDif  = newCentroid.x - oldCentroid.x;
-    int32_t heightDif = newCentroid.y - oldCentroid.y;
+  auto scaleBoundingBox = [&](Boxes &box, const cv::Size &imgSize) -> std::pair<int32_t, int32_t> {
+    std::pair<int32_t, int32_t> centroidOffset = {0, 0};
+    int32_t widthDif                           = newCentroid.x - oldCentroid.x;
+    int32_t heightDif                          = newCentroid.y - oldCentroid.y;
 
     int32_t moveX = std::ceil(static_cast<float>(widthDif) / 1.0);
     int32_t moveY = std::ceil(static_cast<float>(heightDif) / 1.0);
 
     box.x = box.x - moveX;
     if(box.x < 0) {
-      box.x = 0;
+      box.width            = box.width + box.x;
+      centroidOffset.first = box.x;
+      box.x                = 0;
     }
     if(box.x > imgSize.width) {
       box.x = imgSize.width;
     }
     box.y = box.y - moveY;
     if(box.y < 0) {
-      box.y = 0;
+      box.height            = box.height + box.y;
+      centroidOffset.second = box.y;
+      box.y                 = 0;
     }
     if(box.y > imgSize.height) {
       box.y = imgSize.height;
@@ -592,13 +630,14 @@ void ROI::drawCircle(float radius)
     if((box.y + box.height) > imgSize.height) {
       box.height = box.height - ((box.y + box.height) - imgSize.height);
     }
+    return centroidOffset;
   };
-  scaleBoundingBox(mBoundingBoxTile, mImageSize);
+  auto centroidOffset = scaleBoundingBox(mBoundingBoxTile, mImageSize);
   scaleBoundingBox(mBoundingBoxReal, mOriginalImageSize);
 
   // Circle parameters
   mMask = 0;
-  cv::Point center(newCentroid.x, newCentroid.y);    // Center of the circle
+  cv::Point center(newCentroid.x + centroidOffset.first, newCentroid.y + centroidOffset.second);    // Center of the circle
   cv::circle(mMask, center, radius, cv::Scalar{255}, -1);
 
   // Crop
