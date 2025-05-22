@@ -107,8 +107,11 @@ void SpheralIndex::calcIntersection(ObjectList *objectList, joda::processor::Pro
         if((objectClassesMe.contains(box1->getClassId()))) {
           for(auto *box2 : boxes2) {
             if(objectClassesOther.contains(box2->getClassId())) {
-              // Each intersecting particle is only allowed to be counted once
               isIntersecting = box1->isIntersecting(*box2, minIntersecion);
+              if(isIntersecting && filterLogic == joda::settings::ReclassifySettings::FilterLogic::APPLY_IF_NOT_MATCH) {
+                break;
+              }
+              // Each intersecting particle is only allowed to be counted once
               if(!intersecting.contains(box1) && !roisToRemove.contains(box1)) {
                 if(isIntersecting && filterLogic == joda::settings::ReclassifySettings::FilterLogic::APPLY_IF_MATCH) {
                   applyCopyOrMove(box2->getObjectId());
