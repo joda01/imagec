@@ -60,7 +60,7 @@ struct PipelineSettings
 
   void check() const
   {
-    CHECK_ERROR((defaultClassId != enums::ClassId::UNDEFINED && defaultClassId != enums::ClassId::NONE), "Define a class for the pipeline!");
+    CHECK_ERROR((defaultClassId != enums::ClassId::UNDEFINED), "Define a class for the pipeline!");
     CHECK_ERROR(cStackIndex > -2, "Select an image channel!");
     if(source == Source::FROM_FILE) {
       // CHECK_ERROR(cStackIndex >= 0, "Define which image channel >cStackIndex< should be loaded.");
