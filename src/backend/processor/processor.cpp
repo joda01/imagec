@@ -454,8 +454,8 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
               // Objects which are selected should be painted in color in the legend, not selected are black
               foundObjects[key].color = foundObjects.at(key).wantedColor;
 
-              saverSettings.classesIn.emplace_back(
-                  settings::ImageSaverSettings::SaveClasss{.inputClass = classs, .style = previewSettings.style, .paintBoundingBox = false});
+              saverSettings.classesIn.emplace_back(settings::ImageSaverSettings::SaveClasss{
+                  .inputClass = classs, .style = previewSettings.style, .paintBoundingBox = false, .paintObjectId = true});
             }
           }
           // No breakpoint was set, use the last image
