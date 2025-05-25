@@ -60,6 +60,7 @@
 #include "ui/gui/container/panel_edit_base.hpp"
 #include "ui/gui/container/setting/setting_combobox_classification_unmanaged.hpp"
 #include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
+#include "ui/gui/dialog_image_view/dialog_image_view.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/table_widget.hpp"
@@ -75,7 +76,8 @@ namespace joda::ui::gui {
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullptr, false, windowMain), mWindowMain(windowMain)
+PanelResults::PanelResults(WindowMain *windowMain, DialogImageViewer *imageView) :
+    PanelEdit(windowMain, nullptr, false, windowMain), mWindowMain(windowMain), mPreviewImage(imageView)
 {
   // Drop downs
   createEditColumnDialog();
@@ -503,11 +505,15 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpWell->setVisible(false);
       mBreadCrumpImage->setVisible(false);
       mOpenNextLevel->setVisible(true);
+      mPreviewImage->setVisible(false);
+      mPreviewImage->resetImage();
       break;
     case Navigation::WELL:
       mBreadCrumpWell->setVisible(true);
       mBreadCrumpImage->setVisible(false);
       mOpenNextLevel->setVisible(true);
+      mPreviewImage->setVisible(false);
+      mPreviewImage->resetImage();
       if(mSelectedDataSet.groupMeta.has_value()) {
         auto platePos =
             "Well (" + std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + ")";
@@ -518,9 +524,15 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpWell->setVisible(true);
       mBreadCrumpImage->setVisible(true);
       mOpenNextLevel->setVisible(false);
+      mPreviewImage->setVisible(true);
+
+      //
       std::string imageName;
       if(mSelectedDataSet.imageMeta.has_value()) {
         imageName = mSelectedDataSet.imageMeta->filename;
+
+        auto path = mSelectedDataSet.imageMeta->imageFilePath;
+        loadPreview(std::filesystem::path("/workspaces/imagec/tmp/Anna Images/D2_02.vsi"));
       }
       if(mActImageId.size() > 1) {
         imageName = "";
@@ -535,6 +547,58 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpImage->setText("Image (" + QString(imageName.data()) + ")");
 
       break;
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::loadPreview(const std::filesystem::path &imagePath)
+{
+  auto previewSize = 2048;
+  // auto previewSize                     = mPreviewImage->getPreviewSize();
+  static auto mLastSelectedPreviewSize = 0;
+  int32_t mSelectedTileX               = 0;
+  int32_t mSelectedTileY               = 0;
+  if(mLastSelectedPreviewSize != previewSize) {
+    mLastSelectedPreviewSize = previewSize;
+    mSelectedTileX           = 0;
+    mSelectedTileY           = 0;
+  }
+  try {
+    int32_t series     = 0;
+    int32_t resolution = 0;
+
+    auto &previewResult = mPreviewImage->getPreviewObject();
+    joda::ctrl::Controller::loadImage(imagePath, series, joda::image::reader::ImageReader::Plane{.z = 0, .c = 0, .t = 0},
+                                      joda::ome::TileToLoad{mSelectedTileX, mSelectedTileY, previewSize, previewSize}, previewResult, mImgProps);
+    auto imgWidth    = mImgProps.getImageInfo(series).resolutions.at(0).imageWidth;
+    auto imageHeight = mImgProps.getImageInfo(series).resolutions.at(0).imageHeight;
+    if(imgWidth > previewSize || imageHeight > previewSize) {
+      previewSize = previewSize;
+      previewSize = previewSize;
+    } else {
+      previewSize = imgWidth;
+      previewSize = imageHeight;
+    }
+    auto [tileNrX, tileNrY] = mImgProps.getImageInfo(series).resolutions.at(resolution).getNrOfTiles(previewSize, previewSize);
+
+    mPreviewImage->setThumbnailPosition(PanelImageView::ThumbParameter{.nrOfTilesX          = tileNrX,
+                                                                       .nrOfTilesY          = tileNrY,
+                                                                       .tileWidth           = previewSize,
+                                                                       .tileHeight          = previewSize,
+                                                                       .originalImageWidth  = imgWidth,
+                                                                       .originalImageHeight = imageHeight,
+                                                                       .selectedTileX       = mSelectedTileX,
+                                                                       .selectedTileY       = mSelectedTileY});
+    mPreviewImage->imageUpdated(previewResult.results, {});
+  } catch(const std::exception &ex) {
+    // No image selected
+    joda::log::logError("Preview error: " + std::string(ex.what()));
   }
 }
 

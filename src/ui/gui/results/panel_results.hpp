@@ -19,6 +19,7 @@
 #include <qpushbutton.h>
 #include <qtoolbar.h>
 #include <qwidget.h>
+#include <filesystem>
 #include <memory>
 #include <mutex>
 #include "backend/enums/enum_measurements.hpp"
@@ -40,6 +41,7 @@ class WindowMain;
 namespace joda::ui::gui {
 
 class DialogColumnSettings;
+class DialogImageViewer;
 
 ///
 /// \class      PanelResults
@@ -59,7 +61,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  PanelResults(WindowMain *win);
+  PanelResults(WindowMain *win, DialogImageViewer *);
   ~PanelResults();
   void openFromFile(const QString &pathToDbFile);
   void setActive(bool);
@@ -192,6 +194,11 @@ private:
   QLineEdit *mWellOrderMatrix;
   QComboBox *mPlateSize;
   QComboBox *mDensityMapSize;
+
+  /// IMAGE DOCK //////////////////////////////////////////////
+  void loadPreview(const std::filesystem::path &);
+  DialogImageViewer *mPreviewImage;
+  joda::ome::OmeInfo mImgProps;
 
   /////////////////////////////////////////////////////
   uint16_t mActGroupId = 0;

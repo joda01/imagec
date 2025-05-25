@@ -1022,7 +1022,7 @@ auto Database::selectGroupInfo(uint64_t groupId) -> GroupInfo
 auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
 {
   std::unique_ptr<duckdb::QueryResult> result = select(
-      "SELECT images.file_name, images.validity, images.width, images.height, groups.name "
+      "SELECT images.file_name, images.original_file_path, images.validity, images.width, images.height, groups.name "
       "FROM images "
       "JOIN images_groups ON "
       "     images.image_id = images_groups.image_id "
@@ -1039,10 +1039,11 @@ auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
   ImageInfo results;
   if(materializedResult->RowCount() > 0) {
     results.filename       = materializedResult->GetValue(0, 0).GetValue<std::string>();
-    results.validity       = materializedResult->GetValue(1, 0).GetValue<uint64_t>();
-    results.width          = materializedResult->GetValue(2, 0).GetValue<uint32_t>();
-    results.height         = materializedResult->GetValue(3, 0).GetValue<uint32_t>();
-    results.imageGroupName = materializedResult->GetValue(4, 0).GetValue<std::string>();
+    results.imageFilePath  = materializedResult->GetValue(1, 0).GetValue<std::string>();
+    results.validity       = materializedResult->GetValue(2, 0).GetValue<uint64_t>();
+    results.width          = materializedResult->GetValue(3, 0).GetValue<uint32_t>();
+    results.height         = materializedResult->GetValue(4, 0).GetValue<uint32_t>();
+    results.imageGroupName = materializedResult->GetValue(5, 0).GetValue<std::string>();
   }
 
   return results;
@@ -1058,7 +1059,7 @@ auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
 auto Database::selectImages() -> std::vector<ImageInfo>
 {
   std::unique_ptr<duckdb::QueryResult> result = select(
-      "SELECT images.file_name, images.validity, images.width, images.height, groups.name "
+      "SELECT images.file_name,images.original_file_path,images.validity, images.width, images.height, groups.name "
       "FROM images "
       "JOIN images_groups ON "
       "     images.image_id = images_groups.image_id "
@@ -1074,10 +1075,11 @@ auto Database::selectImages() -> std::vector<ImageInfo>
   for(int n = 0; n < materializedResult->RowCount(); n++) {
     ImageInfo info;
     info.filename       = materializedResult->GetValue(0, n).GetValue<std::string>();
-    info.validity       = materializedResult->GetValue(1, n).GetValue<uint64_t>();
-    info.width          = materializedResult->GetValue(2, n).GetValue<uint32_t>();
-    info.height         = materializedResult->GetValue(3, n).GetValue<uint32_t>();
-    info.imageGroupName = materializedResult->GetValue(4, n).GetValue<std::string>();
+    info.imageFilePath  = materializedResult->GetValue(1, 0).GetValue<std::string>();
+    info.validity       = materializedResult->GetValue(2, n).GetValue<uint64_t>();
+    info.width          = materializedResult->GetValue(3, n).GetValue<uint32_t>();
+    info.height         = materializedResult->GetValue(4, n).GetValue<uint32_t>();
+    info.imageGroupName = materializedResult->GetValue(5, n).GetValue<std::string>();
     results.push_back(info);
   }
 

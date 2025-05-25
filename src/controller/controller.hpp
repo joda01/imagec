@@ -19,6 +19,7 @@
 #include "backend/helper/file_parser/directory_iterator.hpp"
 #include "backend/helper/image/image.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
+#include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/system/system_resources.hpp"
 #include "backend/helper/threading/threading.hpp"
 #include "backend/processor/processor.hpp"
@@ -123,6 +124,9 @@ public:
                const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, Preview &previewOut, const joda::ome::OmeInfo &,
                const settings::ObjectInputClasses &classesToShow);
   [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series) -> joda::ome::OmeInfo;
+
+  static auto loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
+                        const joda::ome::TileToLoad &tileLoad, Preview &previewOut, joda::ome::OmeInfo &omeOut) -> void;
 
   // FLOW CONTROL ///////////////////////////////////////////////////
   void start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const std::string &jobName);

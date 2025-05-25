@@ -114,8 +114,8 @@ private:
   HistoToolbar *mHistoToolbarRight = nullptr;
 
   // ACTIONS //////////////////////////////////////////////////
-  QAction *mFillOVerlay;
-  QActionGroup *mPreviewSizeGroup;
+  QAction *mFillOVerlay           = nullptr;
+  QActionGroup *mPreviewSizeGroup = nullptr;
 
 private slots:
   /////////////////////////////////////////////////////

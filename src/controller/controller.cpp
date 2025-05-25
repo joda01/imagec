@@ -270,6 +270,36 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
 /// \author
 /// \return
 ///
+auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
+                           const joda::ome::TileToLoad &tileLoad, Preview &previewOut, joda::ome::OmeInfo &omeOut) -> void
+{
+  static std::filesystem::path lastImagePath;
+  static int32_t lastImageChannel = -1;
+  static int32_t lastImageSeries  = -1;
+  bool generateThumb              = false;
+  omeOut                          = joda::image::reader::ImageReader::getOmeInformation(imagePath, series);
+  if(imagePath != lastImagePath || previewOut.thumbnail.empty() || lastImageChannel != imagePlane.c || lastImageSeries != series) {
+    lastImageSeries  = series;
+    lastImagePath    = imagePath;
+    generateThumb    = true;
+    lastImageChannel = imagePlane.c;
+  }
+
+  auto originalImg = joda::image::reader::ImageReader::loadImageTile(imagePath.string(), imagePlane, series, 0, tileLoad, omeOut);
+  previewOut.originalImage.setImage(std::move(originalImg));
+  // previewOut.overlay.setImage(std::move(originalImg1));
+  if(generateThumb) {
+    auto thumb = joda::image::reader::ImageReader::loadThumbnail(imagePath.string(), imagePlane, series, omeOut);
+    previewOut.thumbnail.setImage(std::move(thumb));
+  }
+  previewOut.results.foundObjects.clear();
+}
+
+///
+/// \brief
+/// \author
+/// \return
+///
 auto Controller::getImageProperties(const std::filesystem::path &image, int series) -> joda::ome::OmeInfo
 {
   return joda::image::reader::ImageReader::getOmeInformation(image, series);
