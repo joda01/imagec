@@ -575,7 +575,8 @@ void PanelResults::loadPreview(const std::filesystem::path &imagePath)
 
     auto &previewResult = mPreviewImage->getPreviewObject();
     joda::ctrl::Controller::loadImage(imagePath, series, joda::image::reader::ImageReader::Plane{.z = 0, .c = 0, .t = 0},
-                                      joda::ome::TileToLoad{mSelectedTileX, mSelectedTileY, previewSize, previewSize}, previewResult, mImgProps);
+                                      joda::ome::TileToLoad{mSelectedTileX, mSelectedTileY, previewSize, previewSize}, previewResult, mImgProps, 200,
+                                      200);
     auto imgWidth    = mImgProps.getImageInfo(series).resolutions.at(0).imageWidth;
     auto imageHeight = mImgProps.getImageInfo(series).resolutions.at(0).imageHeight;
     if(imgWidth > previewSize || imageHeight > previewSize) {

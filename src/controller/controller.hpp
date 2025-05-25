@@ -126,7 +126,8 @@ public:
   [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series) -> joda::ome::OmeInfo;
 
   static auto loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
-                        const joda::ome::TileToLoad &tileLoad, Preview &previewOut, joda::ome::OmeInfo &omeOut) -> void;
+                        const joda::ome::TileToLoad &tileLoad, Preview &previewOut, joda::ome::OmeInfo &omeOut, int32_t markerX, int32_t markerY)
+      -> void;
 
   // FLOW CONTROL ///////////////////////////////////////////////////
   void start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const std::string &jobName);

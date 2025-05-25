@@ -17,6 +17,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/helper/database/database.hpp"
@@ -35,6 +36,7 @@
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
 #include <nlohmann/json_fwd.hpp>
+#include <opencv2/core/mat.hpp>
 
 namespace joda::ctrl {
 
@@ -271,7 +273,8 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
 /// \return
 ///
 auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
-                           const joda::ome::TileToLoad &tileLoad, Preview &previewOut, joda::ome::OmeInfo &omeOut) -> void
+                           const joda::ome::TileToLoad &tileLoad, Preview &previewOut, joda::ome::OmeInfo &omeOut, int32_t markerX, int32_t markerY)
+    -> void
 {
   static std::filesystem::path lastImagePath;
   static int32_t lastImageChannel = -1;
@@ -286,8 +289,27 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
   }
 
   auto originalImg = joda::image::reader::ImageReader::loadImageTile(imagePath.string(), imagePlane, series, 0, tileLoad, omeOut);
+  cv::Mat overlay  = cv::Mat::zeros(originalImg.rows, originalImg.cols, CV_8UC3);
+
+  //
+  // Generate overlay
+  //
+  auto drawCrosshair = [](cv::Mat &image, int x, int y, int size = 10, cv::Scalar color = cv::Scalar(0, 255, 0), int thickness = 2) {
+    // Draw horizontal line across full width
+    cv::line(image, cv::Point(0, y), cv::Point(image.cols - 1, y), color, thickness);
+
+    // Draw vertical line across full height
+    cv::line(image, cv::Point(x, 0), cv::Point(x, image.rows - 1), color, thickness);
+  };
+  drawCrosshair(overlay, markerX, markerY);
+
+  //
+  // Set original image
+  //
+  auto editedImage = originalImg.clone();
   previewOut.originalImage.setImage(std::move(originalImg));
-  // previewOut.overlay.setImage(std::move(originalImg1));
+  previewOut.overlay.setImage(std::move(overlay));
+  previewOut.editedImage.setImage(std::move(editedImage));
   if(generateThumb) {
     auto thumb = joda::image::reader::ImageReader::loadThumbnail(imagePath.string(), imagePlane, series, omeOut);
     previewOut.thumbnail.setImage(std::move(thumb));
