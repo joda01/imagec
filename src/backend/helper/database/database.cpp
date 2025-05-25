@@ -1093,6 +1093,42 @@ auto Database::selectImages() -> std::vector<ImageInfo>
 /// \param[out]
 /// \return
 ///
+auto Database::selectObjectInfo(uint64_t objectId) -> ObjectInfo
+{
+  std::unique_ptr<duckdb::QueryResult> result = select(
+      "SELECT stack_c, stack_z, stack_t, meas_center_x, meas_center_y, meas_box_x, meas_box_y, meas_box_width, meas_box_height\n"
+      "FROM objects "
+      "WHERE object_id = ?",
+      objectId);
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+
+  ObjectInfo results;
+  if(materializedResult->RowCount() > 0) {
+    results.stackC        = materializedResult->GetValue(0, 0).GetValue<uint32_t>();
+    results.stackZ        = materializedResult->GetValue(1, 0).GetValue<uint32_t>();
+    results.stackZ        = materializedResult->GetValue(2, 0).GetValue<uint32_t>();
+    results.measCenterX   = materializedResult->GetValue(3, 0).GetValue<uint32_t>();
+    results.measCenterY   = materializedResult->GetValue(4, 0).GetValue<uint32_t>();
+    results.measBoxX      = materializedResult->GetValue(5, 0).GetValue<uint32_t>();
+    results.measBoxY      = materializedResult->GetValue(6, 0).GetValue<uint32_t>();
+    results.measBoxWidth  = materializedResult->GetValue(7, 0).GetValue<uint32_t>();
+    results.measBoxHeight = materializedResult->GetValue(8, 0).GetValue<uint32_t>();
+  }
+
+  return results;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 auto Database::selectClasses() -> std::map<enums::ClassId, joda::settings::Class>
 {
   std::unique_ptr<duckdb::QueryResult> result = select("SELECT class_id, name FROM classes");

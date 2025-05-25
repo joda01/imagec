@@ -45,6 +45,7 @@
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/database/database.hpp"
+#include "backend/helper/database/database_interface.hpp"
 #include "backend/helper/database/exporter/heatmap/export_heatmap.hpp"
 #include "backend/helper/database/exporter/heatmap/export_heatmap_settings.hpp"
 #include "backend/helper/database/exporter/r/exporter_r.hpp"
@@ -532,7 +533,7 @@ void PanelResults::refreshBreadCrump()
         imageName = mSelectedDataSet.imageMeta->filename;
 
         auto path = mSelectedDataSet.imageMeta->imageFilePath;
-        loadPreview(std::filesystem::path("/workspaces/imagec/tmp/Anna Images/D2_02.vsi"));
+        loadPreview(std::filesystem::path("/workspaces/imagec/tmp/Anna Images/D2_02.vsi"), -1);
       }
       if(mActImageId.size() > 1) {
         imageName = "";
@@ -557,7 +558,7 @@ void PanelResults::refreshBreadCrump()
 /// \param[out]
 /// \return
 ///
-void PanelResults::loadPreview(const std::filesystem::path &imagePath)
+void PanelResults::loadPreview(const std::filesystem::path &imagePath, int64_t objectId)
 {
   auto previewSize = 2048;
   // auto previewSize                     = mPreviewImage->getPreviewSize();
@@ -570,13 +571,18 @@ void PanelResults::loadPreview(const std::filesystem::path &imagePath)
     mSelectedTileY           = 0;
   }
   try {
+    db::ObjectInfo objectInfo;
+    if(objectId >= 0) {
+      objectInfo = mAnalyzer->selectObjectInfo(objectId);
+    }
+
     int32_t series     = 0;
     int32_t resolution = 0;
 
     auto &previewResult = mPreviewImage->getPreviewObject();
     joda::ctrl::Controller::loadImage(imagePath, series, joda::image::reader::ImageReader::Plane{.z = 0, .c = 0, .t = 0},
-                                      joda::ome::TileToLoad{mSelectedTileX, mSelectedTileY, previewSize, previewSize}, previewResult, mImgProps, 200,
-                                      200);
+                                      joda::ome::TileToLoad{mSelectedTileX, mSelectedTileY, previewSize, previewSize}, previewResult, mImgProps,
+                                      objectInfo);
     auto imgWidth    = mImgProps.getImageInfo(series).resolutions.at(0).imageWidth;
     auto imageHeight = mImgProps.getImageInfo(series).resolutions.at(0).imageHeight;
     if(imgWidth > previewSize || imageHeight > previewSize) {
@@ -833,6 +839,8 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
                       rowImageName + "/" + std::to_string(value.getId());
       mSelectedRowInfo->setText(platePos.data());
+
+      loadPreview(std::filesystem::path("/workspaces/imagec/tmp/Anna Images/D2_02.vsi"), mSelectedTileId);
       break;
   }
   mSelectedValue->setText(QString::number(value.getVal()) + " | " + headerTxt);

@@ -196,7 +196,7 @@ private:
   QComboBox *mDensityMapSize;
 
   /// IMAGE DOCK //////////////////////////////////////////////
-  void loadPreview(const std::filesystem::path &);
+  void loadPreview(const std::filesystem::path &, int64_t objectId);
   DialogImageViewer *mPreviewImage;
   joda::ome::OmeInfo mImgProps;
 

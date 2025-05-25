@@ -37,6 +37,7 @@
 #include "backend/settings/project_settings/project_class.hpp"
 #include <nlohmann/json_fwd.hpp>
 #include <opencv2/core/mat.hpp>
+#include <opencv2/core/types.hpp>
 
 namespace joda::ctrl {
 
@@ -273,7 +274,7 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
 /// \return
 ///
 auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
-                           const joda::ome::TileToLoad &tileLoad, Preview &previewOut, joda::ome::OmeInfo &omeOut, int32_t markerX, int32_t markerY)
+                           const joda::ome::TileToLoad &tileLoad, Preview &previewOut, joda::ome::OmeInfo &omeOut, const db::ObjectInfo &objInfo)
     -> void
 {
   static std::filesystem::path lastImagePath;
@@ -294,14 +295,17 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
   //
   // Generate overlay
   //
-  auto drawCrosshair = [](cv::Mat &image, int x, int y, int size = 10, cv::Scalar color = cv::Scalar(0, 255, 0), int thickness = 2) {
-    // Draw horizontal line across full width
-    cv::line(image, cv::Point(0, y), cv::Point(image.cols - 1, y), color, thickness);
+  auto drawCrosshair = [&](cv::Mat &image, const db::ObjectInfo &objInfo, cv::Scalar color = cv::Scalar(0, 255, 0), int thickness = 1) {
+    // Crosshair
+    cv::line(image, cv::Point(0, objInfo.measCenterY), cv::Point(image.cols - 1, objInfo.measCenterY), color, thickness);
+    cv::line(image, cv::Point(objInfo.measCenterX, 0), cv::Point(objInfo.measCenterX, image.rows - 1), color, thickness);
 
-    // Draw vertical line across full height
-    cv::line(image, cv::Point(x, 0), cv::Point(x, image.rows - 1), color, thickness);
+    // Bounding box
+    cv::Point topLeft(objInfo.measBoxX, objInfo.measBoxY);
+    cv::Point bottomRight(objInfo.measBoxX + objInfo.measBoxWidth, objInfo.measBoxY + objInfo.measBoxHeight);
+    cv::rectangle(image, topLeft, bottomRight, color, thickness);
   };
-  drawCrosshair(overlay, markerX, markerY);
+  drawCrosshair(overlay, objInfo);
 
   //
   // Set original image

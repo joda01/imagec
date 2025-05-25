@@ -52,6 +52,19 @@ struct ImageInfo
   std::string imageGroupName;
 };
 
+struct ObjectInfo
+{
+  uint32_t stackC;
+  uint32_t stackZ;
+  uint32_t stackT;
+  uint32_t measCenterX;
+  uint32_t measCenterY;
+  uint32_t measBoxX;
+  uint32_t measBoxY;
+  uint32_t measBoxWidth;
+  uint32_t measBoxHeight;
+};
+
 class DatabaseInterface
 {
 public:

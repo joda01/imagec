@@ -76,6 +76,7 @@ public:
 
   auto selectGroupInfo(uint64_t groupId) -> GroupInfo;
   auto selectImageInfo(uint64_t imageId) -> ImageInfo;
+  auto selectObjectInfo(uint64_t objectId) -> ObjectInfo;
   auto selectImages() -> std::vector<ImageInfo>;
   auto selectMeasurementChannelsForClasss(enums::ClassId classId) -> std::set<int32_t>;
 
