@@ -77,12 +77,18 @@ namespace joda::ui::gui {
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-PanelResults::PanelResults(WindowMain *windowMain, DialogImageViewer *imageView) :
-    PanelEdit(windowMain, nullptr, false, windowMain), mWindowMain(windowMain), mPreviewImage(imageView)
+PanelResults::PanelResults(WindowMain *windowMain) :
+    PanelEdit(windowMain, nullptr, false, windowMain), mWindowMain(windowMain), mPreviewImage(new DialogImageViewer(windowMain))
 {
   // Drop downs
   createEditColumnDialog();
   createToolBar(&layout());
+
+  // Add to dock
+  mPreviewImage->setPreviewImageSizeVisble(false);
+  mPreviewImage->setPipelineResultsButtonVisible(false);
+  mPreviewImage->setVisible(false);
+  mWindowMain->addDockWidget(Qt::RightDockWidgetArea, mPreviewImage);
 
   //
   // Create Table
@@ -560,17 +566,14 @@ void PanelResults::refreshBreadCrump()
 ///
 void PanelResults::loadPreview(const std::filesystem::path &imagePath, int64_t objectId)
 {
-  auto previewSize = 2048;
-  // auto previewSize                     = mPreviewImage->getPreviewSize();
-  static auto mLastSelectedPreviewSize = 0;
-  int32_t mSelectedTileX               = 0;
-  int32_t mSelectedTileY               = 0;
-  if(mLastSelectedPreviewSize != previewSize) {
-    mLastSelectedPreviewSize = previewSize;
-    mSelectedTileX           = 0;
-    mSelectedTileY           = 0;
-  }
+  int32_t mSelectedTileX = 0;
+  int32_t mSelectedTileY = 0;
   try {
+    if(!mSelectedDataSet.analyzeMeta.has_value()) {
+      return;
+    }
+    int32_t tileWidth  = mSelectedDataSet.analyzeMeta->tileWidth;
+    int32_t tileHeight = mSelectedDataSet.analyzeMeta->tileHeight;
     db::ObjectInfo objectInfo;
     if(objectId >= 0) {
       objectInfo = mAnalyzer->selectObjectInfo(objectId);
@@ -581,23 +584,23 @@ void PanelResults::loadPreview(const std::filesystem::path &imagePath, int64_t o
 
     auto &previewResult = mPreviewImage->getPreviewObject();
     joda::ctrl::Controller::loadImage(imagePath, series, joda::image::reader::ImageReader::Plane{.z = 0, .c = 0, .t = 0},
-                                      joda::ome::TileToLoad{mSelectedTileX, mSelectedTileY, previewSize, previewSize}, previewResult, mImgProps,
+                                      joda::ome::TileToLoad{mSelectedTileX, mSelectedTileY, tileWidth, tileHeight}, previewResult, mImgProps,
                                       objectInfo);
     auto imgWidth    = mImgProps.getImageInfo(series).resolutions.at(0).imageWidth;
     auto imageHeight = mImgProps.getImageInfo(series).resolutions.at(0).imageHeight;
-    if(imgWidth > previewSize || imageHeight > previewSize) {
-      previewSize = previewSize;
-      previewSize = previewSize;
+    if(imgWidth > tileWidth || imageHeight > tileHeight) {
+      tileWidth  = tileWidth;
+      tileHeight = tileHeight;
     } else {
-      previewSize = imgWidth;
-      previewSize = imageHeight;
+      tileWidth  = imgWidth;
+      tileHeight = imageHeight;
     }
-    auto [tileNrX, tileNrY] = mImgProps.getImageInfo(series).resolutions.at(resolution).getNrOfTiles(previewSize, previewSize);
+    auto [tileNrX, tileNrY] = mImgProps.getImageInfo(series).resolutions.at(resolution).getNrOfTiles(tileWidth, tileHeight);
 
     mPreviewImage->setThumbnailPosition(PanelImageView::ThumbParameter{.nrOfTilesX          = tileNrX,
                                                                        .nrOfTilesY          = tileNrY,
-                                                                       .tileWidth           = previewSize,
-                                                                       .tileHeight          = previewSize,
+                                                                       .tileWidth           = tileWidth,
+                                                                       .tileHeight          = tileHeight,
                                                                        .originalImageWidth  = imgWidth,
                                                                        .originalImageHeight = imageHeight,
                                                                        .selectedTileX       = mSelectedTileX,

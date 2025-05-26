@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <qaction.h>
 #include <qdialog.h>
 #include <qwindow.h>
 #include "backend/helper/image/image.hpp"
@@ -93,6 +94,21 @@ public:
   }
   void closeEvent(QCloseEvent *event) override;
 
+  void setPipelineResultsButtonVisible(bool show)
+  {
+    showPipelineResults->setChecked(show);
+    showPipelineResults->setVisible(show);
+    mImageViewRight.setShowPipelineResults(show);
+  }
+
+  void setPreviewImageSizeVisble(bool show)
+  {
+    previewSize->setVisible(show);
+  }
+
+  void centerTo(uint32_t x, uint32_t y);
+  void setCrossHairCursorPosition(uint32_t x, uint32_t y);
+
 signals:
   void tileClicked(int32_t tileX, int32_t tileY);
   void onSettingChanged();
@@ -116,6 +132,8 @@ private:
   // ACTIONS //////////////////////////////////////////////////
   QAction *mFillOVerlay           = nullptr;
   QActionGroup *mPreviewSizeGroup = nullptr;
+  QAction *showPipelineResults    = nullptr;
+  QAction *previewSize            = nullptr;
 
 private slots:
   /////////////////////////////////////////////////////

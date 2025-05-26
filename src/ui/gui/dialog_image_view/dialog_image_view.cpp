@@ -125,7 +125,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     connect(showPixelInfo, &QAction::triggered, this, &DialogImageViewer::onShowPixelInfo);
     toolbarTop->addAction(showPixelInfo);
 
-    QAction *showPipelineResults = new QAction(generateSvgIcon("sort-presence"), "");
+    showPipelineResults = new QAction(generateSvgIcon("sort-presence"), "");
     showPipelineResults->setStatusTip("Show/Hide pipeline results");
     showPipelineResults->setCheckable(true);
     showPipelineResults->setChecked(true);
@@ -203,7 +203,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     auto *r128 = resolutionMenu->addAction("128x128");
     mPreviewSizeGroup->addAction(r128);
     r128->setCheckable(true);
-    auto *previewSize = new QAction(generateSvgIcon("computer"), "");
+    previewSize = new QAction(generateSvgIcon("computer"), "");
     previewSize->setStatusTip("Set preview resolution");
     previewSize->setMenu(resolutionMenu);
     toolbarTop->addAction(previewSize);
@@ -542,6 +542,28 @@ void DialogImageViewer::closeEvent(QCloseEvent *event)
 
   // Optionally just ensure it's visible again
   show();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::centerTo(uint32_t x, uint32_t y)
+{
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::setCrossHairCursorPosition(uint32_t x, uint32_t y)
+{
 }
 
 }    // namespace joda::ui::gui

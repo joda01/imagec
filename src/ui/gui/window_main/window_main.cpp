@@ -426,7 +426,7 @@ QWidget *WindowMain::createStartPageWidget()
 ///
 QWidget *WindowMain::createReportingWidget()
 {
-  mPanelReporting = new PanelResults(this, mPreviewImage);
+  mPanelReporting = new PanelResults(this);
   return mPanelReporting;
 }
 

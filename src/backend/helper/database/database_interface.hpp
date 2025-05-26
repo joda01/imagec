@@ -33,6 +33,8 @@ struct AnalyzeMeta
   std::string jobName;
   std::string jobId;
   std::string analyzeSettingsJsonString;
+  uint32_t tileWidth  = 0;    // Tile width selected for analysis.
+  uint32_t tileHeight = 0;    // Tile height selected for analysis.
 };
 
 struct GroupInfo

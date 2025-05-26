@@ -61,7 +61,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  PanelResults(WindowMain *win, DialogImageViewer *);
+  PanelResults(WindowMain *win);
   ~PanelResults();
   void openFromFile(const QString &pathToDbFile);
   void setActive(bool);
