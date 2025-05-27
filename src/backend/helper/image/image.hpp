@@ -12,6 +12,7 @@
 #pragma once
 
 #include <qpixmap.h>
+#include <qpoint.h>
 #include <cstdint>
 #include <vector>
 #include <opencv2/core/mat.hpp>
@@ -81,6 +82,19 @@ public:
     uint16_t adjustIdx        = 0;    // Calculated "optimal" adjustment index
   };
   void autoAdjustBrightnessRange();
+  auto getOriginalImageSize() const -> const QSize &
+  {
+    return mOriginalImageSize;
+  }
+
+  auto getPreviewImageSize() const -> QSize
+  {
+    if(mImageOriginal != nullptr) {
+      return {mImageOriginal->cols, mImageOriginal->rows};
+    } else {
+      return {};
+    }
+  }
 
 private:
   /////////////////////////////////////////////////////
@@ -96,6 +110,7 @@ private:
   uint16_t mUpperValue       = UINT16_MAX;
   float mHistogramZoomFactor = 1;
   float mHistogramOffset     = 0;
+  QSize mOriginalImageSize;
 
   //// IMAGE /////////////////////////////////////////////////
   cv::Mat *mImageOriginal = nullptr;

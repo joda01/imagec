@@ -14,6 +14,7 @@
 #include <qmessagebox.h>
 #include <qnamespace.h>
 #include <qpixmap.h>
+#include <qsize.h>
 #include <qstatictext.h>
 #include <cmath>
 #include <cstdint>
@@ -905,12 +906,52 @@ void PanelImageView::setShowCrosshandCursor(bool show)
 void PanelImageView::setCursorPosition(const QPoint &pos)
 {
   mCrossCursorInfo.mCursorPos = pos;
-  mCrossCursorInfo.pixelInfo  = fetchPixelInfoFromMousePosition(pos);
+  mCrossCursorInfo.pixelInfo  = fetchPixelInfoFromMousePosition(mCrossCursorInfo.mCursorPos);
   viewport()->update();
 }
 auto PanelImageView::getCursorPosition() -> QPoint
 {
   return mCrossCursorInfo.mCursorPos;
+}
+
+void PanelImageView::setCursorPositionFromOriginalImageCoordinates(const QPoint &pos)
+{
+  setCursorPosition(imageCoordinatesToPreviewCoordinates(pos));
+}
+
+auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QPoint &imageCoordinates) -> QPoint
+{
+  double imgX = imageCoordinates.x();
+  double imgY = imageCoordinates.y();
+
+  if(mActPixmap != nullptr) {
+    QRectF sceneRect = mActPixmap->sceneBoundingRect();
+    QRect viewRect   = mapFromScene(sceneRect).boundingRect();
+    std::cout << "--------------------" << std::endl;
+
+    auto originalImageSize = mActPixmapOriginal->getOriginalImageSize();
+    auto previewImageSize  = mActPixmapOriginal->getPreviewImageSize();
+    auto viewPortImageSize = QSize{viewRect.width(), viewRect.height()};
+
+    qDebug() << "Displayed image size in view:" << viewRect.size();
+    qDebug() << "Displayed image size in view X:" << viewRect.x();
+    qDebug() << "Displayed image size in view Y:" << viewRect.y();
+    qDebug() << "Viewport image size in view:" << viewPortImageSize;
+    qDebug() << "Original image size in view:" << originalImageSize;
+
+    double factorX = static_cast<double>(viewPortImageSize.width()) / static_cast<double>(originalImageSize.width());
+    double factorY = static_cast<double>(viewPortImageSize.height()) / static_cast<double>(originalImageSize.height());
+
+    imgX *= factorX;
+    imgY *= factorY;
+
+    imgX += viewRect.x();
+    imgY += viewRect.y();
+
+    qDebug() << "Coordinates " << std::to_string(imgX) << " | " << std::to_string(imgY);
+    std::cout << "--------------------" << std::endl;
+  }
+  return {(int32_t) imgX, (int32_t) imgY};
 }
 
 }    // namespace joda::ui::gui

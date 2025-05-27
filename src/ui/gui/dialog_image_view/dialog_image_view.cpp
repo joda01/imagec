@@ -551,7 +551,7 @@ void DialogImageViewer::closeEvent(QCloseEvent *event)
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::centerTo(uint32_t x, uint32_t y)
+void DialogImageViewer::centerTo(int32_t x, int32_t y)
 {
 }
 
@@ -562,8 +562,13 @@ void DialogImageViewer::centerTo(uint32_t x, uint32_t y)
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::setCrossHairCursorPosition(uint32_t x, uint32_t y)
+void DialogImageViewer::setCrossHairCursorPosition(int32_t x, int32_t y)
 {
+  // mImageViewLeft.setShowCrosshandCursor(true);
+  // mImageViewRight.setShowCrosshandCursor(true);
+
+  mImageViewLeft.setCursorPositionFromOriginalImageCoordinates(QPoint{x, y});
+  mImageViewRight.setCursorPositionFromOriginalImageCoordinates(QPoint{x, y});
 }
 
 }    // namespace joda::ui::gui

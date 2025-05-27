@@ -101,6 +101,7 @@ public:
   void setShowCrosshandCursor(bool);
   void setThumbnailPosition(const ThumbParameter &);
   void setCursorPosition(const QPoint &pos);
+  void setCursorPositionFromOriginalImageCoordinates(const QPoint &pos);
   auto getCursorPosition() -> QPoint;
   void setImageReference(const joda::image::Image *imageReference);
   auto getSelectedClasses() const -> settings::ObjectInputClasses
@@ -134,6 +135,7 @@ protected:
   bool getPreviewResultsAreaClicked(QMouseEvent *event);
 
   void updatePipelineResultsCoordinates();
+  auto imageCoordinatesToPreviewCoordinates(const QPoint &imageCoordinates) -> QPoint;
 
 private:
   /////////////////////////////////////////////////////

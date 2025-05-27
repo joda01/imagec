@@ -106,8 +106,8 @@ public:
     previewSize->setVisible(show);
   }
 
-  void centerTo(uint32_t x, uint32_t y);
-  void setCrossHairCursorPosition(uint32_t x, uint32_t y);
+  void centerTo(int32_t x, int32_t y);
+  void setCrossHairCursorPosition(int32_t x, int32_t y);
 
 signals:
   void tileClicked(int32_t tileX, int32_t tileY);
