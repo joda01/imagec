@@ -106,6 +106,13 @@ public:
     previewSize->setVisible(show);
   }
 
+  void setShowCrossHairCursor(bool show)
+  {
+    showCrossHairCursor->setChecked(show);
+    mImageViewLeft.setShowCrosshandCursor(show);
+    mImageViewRight.setShowCrosshandCursor(show);
+  }
+
   void setCrossHairCursorPositionAndCenter(int32_t x, int32_t y);
 
 signals:

@@ -88,6 +88,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   mPreviewImage->setPreviewImageSizeVisble(false);
   mPreviewImage->setPipelineResultsButtonVisible(false);
   mPreviewImage->setVisible(false);
+  mPreviewImage->setShowCrossHairCursor(true);
   mWindowMain->addDockWidget(Qt::RightDockWidgetArea, mPreviewImage);
 
   //
@@ -596,18 +597,16 @@ void PanelResults::loadPreview(const std::filesystem::path &imagePath, int64_t o
     int32_t series     = 0;
     int32_t resolution = 0;
 
-    std::cout << std::to_string(objectInfo.measCenterX) << "x" << std::to_string(objectInfo.measCenterY) << std::endl;
-
     int32_t tileXNr = objectInfo.measCenterX / tileWidth;
     int32_t tileYNr = objectInfo.measCenterY / tileHeight;
 
     objectInfo.measCenterX = objectInfo.measCenterX - tileXNr * tileWidth;
     objectInfo.measCenterY = objectInfo.measCenterY - tileYNr * tileHeight;
-
-    std::cout << std::to_string(tileXNr) << "x" << std::to_string(tileYNr) << std::endl;
-
-    auto &previewResult = mPreviewImage->getPreviewObject();
-    joda::ctrl::Controller::loadImage(imagePath, series, joda::image::reader::ImageReader::Plane{.z = 0, .c = 0, .t = 0},
+    auto &previewResult    = mPreviewImage->getPreviewObject();
+    joda::ctrl::Controller::loadImage(imagePath, series,
+                                      joda::image::reader::ImageReader::Plane{.z = static_cast<int32_t>(objectInfo.stackZ),
+                                                                              .c = static_cast<int32_t>(objectInfo.stackC),
+                                                                              .t = static_cast<int32_t>(objectInfo.stackT)},
                                       joda::ome::TileToLoad{tileXNr, tileYNr, tileWidth, tileHeight}, previewResult, mImgProps, objectInfo);
     auto imgWidth    = mImgProps.getImageInfo(series).resolutions.at(0).imageWidth;
     auto imageHeight = mImgProps.getImageInfo(series).resolutions.at(0).imageHeight;

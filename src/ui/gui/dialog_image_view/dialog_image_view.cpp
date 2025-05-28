@@ -557,9 +557,6 @@ void DialogImageViewer::closeEvent(QCloseEvent *event)
 ///
 void DialogImageViewer::setCrossHairCursorPositionAndCenter(int32_t x, int32_t y)
 {
-  showCrossHairCursor->setChecked(true);
-  mImageViewLeft.setShowCrosshandCursor(true);
-  mImageViewRight.setShowCrosshandCursor(true);
   mImageViewLeft.setLockCrosshandCursor(true);
   mImageViewRight.setLockCrosshandCursor(true);
   mImageViewLeft.setCursorPositionFromOriginalImageCoordinatesAndCenter(QPoint{x, y});

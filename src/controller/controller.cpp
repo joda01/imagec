@@ -300,9 +300,13 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
     // cv::line(image, cv::Point(0, objInfo.measCenterY), cv::Point(image.cols - 1, objInfo.measCenterY), color, thickness);
     // cv::line(image, cv::Point(objInfo.measCenterX, 0), cv::Point(objInfo.measCenterX, image.rows - 1), color, thickness);
 
+    // Bring in the context of the tile
+    int32_t boxX = objInfo.measBoxX - tileLoad.tileX * tileLoad.tileWidth;
+    int32_t boxY = objInfo.measBoxY - tileLoad.tileY * tileLoad.tileHeight;
+
     // Bounding box
-    cv::Point topLeft(objInfo.measBoxX, objInfo.measBoxY);
-    cv::Point bottomRight(objInfo.measBoxX + objInfo.measBoxWidth, objInfo.measBoxY + objInfo.measBoxHeight);
+    cv::Point topLeft(boxX, boxY);
+    cv::Point bottomRight(boxX + objInfo.measBoxWidth, boxY + objInfo.measBoxHeight);
     cv::rectangle(image, topLeft, bottomRight, color, thickness);
   };
   drawCrosshair(overlay, objInfo);
