@@ -199,6 +199,8 @@ private:
   void loadPreview(const std::filesystem::path &, int64_t objectId);
   DialogImageViewer *mPreviewImage;
   joda::ome::OmeInfo mImgProps;
+  int32_t mSelectedTileX = 0;
+  int32_t mSelectedTileY = 0;
 
   /////////////////////////////////////////////////////
   uint16_t mActGroupId = 0;
@@ -232,6 +234,7 @@ public slots:
   void onShowHeatmap();
   void onCellClicked(int row, int column);
   void onColumnComboChanged();
+  void onTileClicked(int32_t tileX, int32_t tileY);
 };
 
 }    // namespace joda::ui::gui

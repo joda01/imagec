@@ -94,6 +94,7 @@ public:
 
   void setState(State);
   void setShowThumbnail(bool);
+  void setEnableThumbnail(bool);
   void setShowHistogram(bool);
   void setShowPixelInfo(bool);
   void setShowPipelineResults(bool);
@@ -188,7 +189,7 @@ private:
   bool mThumbnailAreaEntered = false;
 
   /////////////////////////////////////////////////////
-  const bool mWithThumbnail;
+  bool mWithThumbnail;
   bool mWaiting             = false;
   bool mShowThumbnail       = true;
   bool mShowPixelInfo       = true;

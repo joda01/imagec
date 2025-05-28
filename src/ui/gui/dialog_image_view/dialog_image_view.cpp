@@ -228,6 +228,8 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
       leftVerticalLayout->addWidget(mHistoToolbarLeft);
       mCentralLayout->addLayout(leftVerticalLayout);
       mImageViewLeft.resetImage();
+    } else {
+      mImageViewRight.setEnableThumbnail(true);
     }
 
     auto *rightVerticalLayout = new QVBoxLayout();

@@ -877,6 +877,11 @@ void PanelImageView::setShowThumbnail(bool showThumbnail)
   viewport()->update();
 }
 
+void PanelImageView::setEnableThumbnail(bool enable)
+{
+  mWithThumbnail = enable;
+}
+
 void PanelImageView::setShowHistogram(bool showHistorgram)
 {
   mShowHistogram = showHistorgram;

@@ -300,6 +300,8 @@ PanelResults::PanelResults(WindowMain *windowMain) :
 
   onShowTable();
   refreshView();
+
+  connect(mPreviewImage, &DialogImageViewer::tileClicked, this, &PanelResults::onTileClicked);
 }
 
 PanelResults::~PanelResults()
@@ -539,7 +541,7 @@ void PanelResults::refreshBreadCrump()
         imageName = mSelectedDataSet.imageMeta->filename;
 
         auto path = mSelectedDataSet.imageMeta->imageFilePath;
-        loadPreview(std::filesystem::path("/workspaces/imagec/tmp/Anna Images/D2_02.vsi"), -1);
+        loadPreview(std::filesystem::path("/workspaces/imagec/tmp/Histo/overview/GMEV 60 min_01.vsi"), -1);
       }
       if(mActImageId.size() > 1) {
         imageName = "";
@@ -564,10 +566,22 @@ void PanelResults::refreshBreadCrump()
 /// \param[out]
 /// \return
 ///
+void PanelResults::onTileClicked(int32_t tileX, int32_t tileY)
+{
+  mSelectedTileX = tileX;
+  mSelectedTileY = tileY;
+  loadPreview(std::filesystem::path("/workspaces/imagec/tmp/Histo/overview/GMEV 60 min_01.vsi"), mSelectedTileId);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelResults::loadPreview(const std::filesystem::path &imagePath, int64_t objectId)
 {
-  int32_t mSelectedTileX = 0;
-  int32_t mSelectedTileY = 0;
   try {
     if(!mSelectedDataSet.analyzeMeta.has_value()) {
       return;
@@ -582,10 +596,19 @@ void PanelResults::loadPreview(const std::filesystem::path &imagePath, int64_t o
     int32_t series     = 0;
     int32_t resolution = 0;
 
+    std::cout << std::to_string(objectInfo.measCenterX) << "x" << std::to_string(objectInfo.measCenterY) << std::endl;
+
+    int32_t tileXNr = objectInfo.measCenterX / tileWidth;
+    int32_t tileYNr = objectInfo.measCenterY / tileHeight;
+
+    objectInfo.measCenterX = objectInfo.measCenterX - tileXNr * tileWidth;
+    objectInfo.measCenterY = objectInfo.measCenterY - tileYNr * tileHeight;
+
+    std::cout << std::to_string(tileXNr) << "x" << std::to_string(tileYNr) << std::endl;
+
     auto &previewResult = mPreviewImage->getPreviewObject();
     joda::ctrl::Controller::loadImage(imagePath, series, joda::image::reader::ImageReader::Plane{.z = 0, .c = 0, .t = 0},
-                                      joda::ome::TileToLoad{mSelectedTileX, mSelectedTileY, tileWidth, tileHeight}, previewResult, mImgProps,
-                                      objectInfo);
+                                      joda::ome::TileToLoad{tileXNr, tileYNr, tileWidth, tileHeight}, previewResult, mImgProps, objectInfo);
     auto imgWidth    = mImgProps.getImageInfo(series).resolutions.at(0).imageWidth;
     auto imageHeight = mImgProps.getImageInfo(series).resolutions.at(0).imageHeight;
     if(imgWidth > tileWidth || imageHeight > tileHeight) {
@@ -604,8 +627,8 @@ void PanelResults::loadPreview(const std::filesystem::path &imagePath, int64_t o
                                                                        .tileHeight          = tileHeight,
                                                                        .originalImageWidth  = imgWidth,
                                                                        .originalImageHeight = imageHeight,
-                                                                       .selectedTileX       = mSelectedTileX,
-                                                                       .selectedTileY       = mSelectedTileY});
+                                                                       .selectedTileX       = tileXNr,
+                                                                       .selectedTileY       = tileYNr});
     mPreviewImage->imageUpdated(previewResult.results, {});
   } catch(const std::exception &ex) {
     // No image selected
@@ -844,7 +867,7 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
                       rowImageName + "/" + std::to_string(value.getId());
       mSelectedRowInfo->setText(platePos.data());
 
-      loadPreview(std::filesystem::path("/workspaces/imagec/tmp/Anna Images/D2_02.vsi"), mSelectedTileId);
+      loadPreview(std::filesystem::path("/workspaces/imagec/tmp/Histo/overview/GMEV 60 min_01.vsi"), mSelectedTileId);
       break;
   }
   mSelectedValue->setText(QString::number(value.getVal()) + " | " + headerTxt);
