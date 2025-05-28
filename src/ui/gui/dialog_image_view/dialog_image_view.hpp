@@ -36,7 +36,7 @@ class DialogImageViewer : public QDockWidget
 
 public:
   /////////////////////////////////////////////////////
-  DialogImageViewer(QWidget *parent);
+  DialogImageViewer(QWidget *parent, bool showOriginalImage = true);
   ~DialogImageViewer();
   void imageUpdated(const ctrl::Preview::PreviewResults &info, const std::map<enums::ClassIdIn, QString> &classes);
   void fitImageToScreenSize();

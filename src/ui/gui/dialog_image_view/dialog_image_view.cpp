@@ -40,7 +40,7 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-DialogImageViewer::DialogImageViewer(QWidget *parent) :
+DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
     QDockWidget(parent), mImageViewLeft(&mPreviewImages.originalImage, &mPreviewImages.thumbnail, nullptr, true),
     mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, false)
 {
@@ -217,15 +217,18 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
 
   // Central images
   {
-    mCentralLayout           = new QBoxLayout(QBoxLayout::TopToBottom);
-    auto *centralWidget      = new QWidget();
-    auto *leftVerticalLayout = new QVBoxLayout();
-    mHistoToolbarLeft        = new HistoToolbar(static_cast<int32_t>(ImageView::LEFT), this, &mPreviewImages.originalImage);
-    mImageViewLeft.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    leftVerticalLayout->addWidget(&mImageViewLeft);
-    leftVerticalLayout->addWidget(mHistoToolbarLeft);
-    mCentralLayout->addLayout(leftVerticalLayout);
-    mImageViewLeft.resetImage();
+    mCentralLayout      = new QBoxLayout(QBoxLayout::TopToBottom);
+    auto *centralWidget = new QWidget();
+
+    if(showOriginalImage) {
+      auto *leftVerticalLayout = new QVBoxLayout();
+      mHistoToolbarLeft        = new HistoToolbar(static_cast<int32_t>(ImageView::LEFT), this, &mPreviewImages.originalImage);
+      mImageViewLeft.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+      leftVerticalLayout->addWidget(&mImageViewLeft);
+      leftVerticalLayout->addWidget(mHistoToolbarLeft);
+      mCentralLayout->addLayout(leftVerticalLayout);
+      mImageViewLeft.resetImage();
+    }
 
     auto *rightVerticalLayout = new QVBoxLayout();
     mHistoToolbarRight        = new HistoToolbar(static_cast<int32_t>(ImageView::RIGHT), this, &mPreviewImages.editedImage);
@@ -240,9 +243,12 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     centralWidget->setLayout(mCentralLayout);
     layout->addWidget(centralWidget);
 
-    connect(&mImageViewLeft, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onLeftViewChanged);
+    if(showOriginalImage) {
+      connect(&mImageViewLeft, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onLeftViewChanged);
+      connect(&mImageViewLeft, &PanelImageView::tileClicked, this, &DialogImageViewer::onTileClicked);
+    }
+
     connect(&mImageViewRight, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onRightViewChanged);
-    connect(&mImageViewLeft, &PanelImageView::tileClicked, this, &DialogImageViewer::onTileClicked);
     connect(&mImageViewRight, &PanelImageView::tileClicked, this, &DialogImageViewer::onTileClicked);
     connect(&mImageViewRight, &PanelImageView::classesToShowChanged, this, &DialogImageViewer::onSettingChanged);
   }
@@ -279,10 +285,6 @@ void DialogImageViewer::fitImageToScreenSize()
 ///
 void DialogImageViewer::triggerPreviewUpdate(ImageView view, bool withUserHistoSettings)
 {
-  if(mHistoToolbarLeft == nullptr || mHistoToolbarRight == nullptr) {
-    return;
-  }
-
   if(mPreviewCounter == 0) {
     {
       std::lock_guard<std::mutex> lock(mPreviewMutex);
@@ -297,12 +299,12 @@ void DialogImageViewer::triggerPreviewUpdate(ImageView view, bool withUserHistoS
       int previewCounter = 0;
       do {
         if(withUserHistoSettings) {
-          if(view == ImageView::LEFT || view == ImageView::BOTH) {
+          if(nullptr != mHistoToolbarLeft && (view == ImageView::LEFT || view == ImageView::BOTH)) {
             auto [value, scaling, offset] = mHistoToolbarLeft->getHistoSettings();
             mPreviewImages.originalImage.setBrightnessRange(0, value, scaling, offset);
             mImageViewLeft.emitUpdateImage();
           }
-          if(view == ImageView::RIGHT || view == ImageView::BOTH) {
+          if(nullptr != mHistoToolbarRight && (view == ImageView::RIGHT || view == ImageView::BOTH)) {
             auto [value, scaling, offset] = mHistoToolbarRight->getHistoSettings();
             mPreviewImages.editedImage.setBrightnessRange(0, value, scaling, offset);
             mImageViewRight.emitUpdateImage();
@@ -407,7 +409,7 @@ void DialogImageViewer::onRightViewChanged()
 ///
 void DialogImageViewer::onZoomInClicked()
 {
-  mImageViewLeft.zoomImage(true);
+  mImageViewRight.zoomImage(true);
 }
 
 ///
@@ -419,7 +421,7 @@ void DialogImageViewer::onZoomInClicked()
 ///
 void DialogImageViewer::onZoomOutClicked()
 {
-  mImageViewLeft.zoomImage(false);
+  mImageViewRight.zoomImage(false);
 }
 
 ///
@@ -431,7 +433,7 @@ void DialogImageViewer::onZoomOutClicked()
 ///
 void DialogImageViewer::onFitImageToScreenSizeClicked()
 {
-  mImageViewLeft.fitImageToScreenSize();
+  mImageViewRight.fitImageToScreenSize();
 }
 
 ///

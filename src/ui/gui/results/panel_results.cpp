@@ -78,7 +78,7 @@ namespace joda::ui::gui {
 /// \author     Joachim Danmayr
 ///
 PanelResults::PanelResults(WindowMain *windowMain) :
-    PanelEdit(windowMain, nullptr, false, windowMain), mWindowMain(windowMain), mPreviewImage(new DialogImageViewer(windowMain))
+    PanelEdit(windowMain, nullptr, false, windowMain), mWindowMain(windowMain), mPreviewImage(new DialogImageViewer(windowMain, false))
 {
   // Drop downs
   createEditColumnDialog();
