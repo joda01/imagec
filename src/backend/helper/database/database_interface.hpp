@@ -56,15 +56,15 @@ struct ImageInfo
 
 struct ObjectInfo
 {
-  uint32_t stackC;
-  uint32_t stackZ;
-  uint32_t stackT;
-  uint32_t measCenterX;
-  uint32_t measCenterY;
-  uint32_t measBoxX;
-  uint32_t measBoxY;
-  uint32_t measBoxWidth;
-  uint32_t measBoxHeight;
+  uint32_t stackC        = 0;
+  uint32_t stackZ        = 0;
+  uint32_t stackT        = 0;
+  uint32_t measCenterX   = 0;
+  uint32_t measCenterY   = 0;
+  uint32_t measBoxX      = 0;
+  uint32_t measBoxY      = 0;
+  uint32_t measBoxWidth  = 0;
+  uint32_t measBoxHeight = 0;
 };
 
 class DatabaseInterface

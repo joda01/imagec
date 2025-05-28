@@ -201,6 +201,7 @@ private:
   joda::ome::OmeInfo mImgProps;
   int32_t mSelectedTileX = 0;
   int32_t mSelectedTileY = 0;
+  std::mutex mGeneratePreviewMutex;
 
   /////////////////////////////////////////////////////
   uint16_t mActGroupId = 0;

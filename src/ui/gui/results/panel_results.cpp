@@ -25,6 +25,7 @@
 #include <qpushbutton.h>
 #include <qsize.h>
 #include <qtablewidget.h>
+#include <qthread.h>
 #include <qtoolbar.h>
 #include <qwidget.h>
 #include <QPainter>
@@ -583,56 +584,68 @@ void PanelResults::onTileClicked(int32_t tileX, int32_t tileY)
 ///
 void PanelResults::loadPreview(const std::filesystem::path &imagePath, int64_t objectId)
 {
-  try {
-    if(!mSelectedDataSet.analyzeMeta.has_value()) {
-      return;
+  std::cout << "Load preview" << std::endl;
+  QTimer::singleShot(0, this, [this, objectId, imagePath = imagePath]() {
+    std::cout << "Start" << std::endl;
+    mLoadLock.lock();
+    std::cout << imagePath.string() << " | " << std::to_string(objectId) << std::endl;
+
+    try {
+      if(!mSelectedDataSet.analyzeMeta.has_value()) {
+        mLoadLock.unlock();
+        return;
+      }
+
+      mPreviewImage->setWaiting(true);
+      int32_t tileWidth  = mSelectedDataSet.analyzeMeta->tileWidth;
+      int32_t tileHeight = mSelectedDataSet.analyzeMeta->tileHeight;
+      db::ObjectInfo objectInfo;
+      if(objectId >= 0) {
+        objectInfo = mAnalyzer->selectObjectInfo(objectId);
+      }
+
+      int32_t series     = 0;
+      int32_t resolution = 0;
+
+      int32_t tileXNr = objectInfo.measCenterX / tileWidth;
+      int32_t tileYNr = objectInfo.measCenterY / tileHeight;
+
+      objectInfo.measCenterX = objectInfo.measCenterX - tileXNr * tileWidth;
+      objectInfo.measCenterY = objectInfo.measCenterY - tileYNr * tileHeight;
+      auto &previewResult    = mPreviewImage->getPreviewObject();
+      joda::ctrl::Controller::loadImage(imagePath, series,
+                                        joda::image::reader::ImageReader::Plane{.z = static_cast<int32_t>(objectInfo.stackZ),
+                                                                                .c = static_cast<int32_t>(objectInfo.stackC),
+                                                                                .t = static_cast<int32_t>(objectInfo.stackT)},
+                                        joda::ome::TileToLoad{tileXNr, tileYNr, tileWidth, tileHeight}, previewResult, mImgProps, objectInfo);
+      auto imgWidth    = mImgProps.getImageInfo(series).resolutions.at(0).imageWidth;
+      auto imageHeight = mImgProps.getImageInfo(series).resolutions.at(0).imageHeight;
+      if(imgWidth > tileWidth || imageHeight > tileHeight) {
+        tileWidth  = tileWidth;
+        tileHeight = tileHeight;
+      } else {
+        tileWidth  = imgWidth;
+        tileHeight = imageHeight;
+      }
+      auto [tileNrX, tileNrY] = mImgProps.getImageInfo(series).resolutions.at(resolution).getNrOfTiles(tileWidth, tileHeight);
+
+      mPreviewImage->setCrossHairCursorPositionAndCenter(objectInfo.measCenterX, objectInfo.measCenterY);
+      mPreviewImage->setThumbnailPosition(PanelImageView::ThumbParameter{.nrOfTilesX          = tileNrX,
+                                                                         .nrOfTilesY          = tileNrY,
+                                                                         .tileWidth           = tileWidth,
+                                                                         .tileHeight          = tileHeight,
+                                                                         .originalImageWidth  = imgWidth,
+                                                                         .originalImageHeight = imageHeight,
+                                                                         .selectedTileX       = tileXNr,
+                                                                         .selectedTileY       = tileYNr});
+      mPreviewImage->imageUpdated(previewResult.results, {});
+    } catch(const std::exception &ex) {
+      // No image selected
+      joda::log::logError("Preview error: " + std::string(ex.what()));
     }
-    int32_t tileWidth  = mSelectedDataSet.analyzeMeta->tileWidth;
-    int32_t tileHeight = mSelectedDataSet.analyzeMeta->tileHeight;
-    db::ObjectInfo objectInfo;
-    if(objectId >= 0) {
-      objectInfo = mAnalyzer->selectObjectInfo(objectId);
-    }
-
-    int32_t series     = 0;
-    int32_t resolution = 0;
-
-    int32_t tileXNr = objectInfo.measCenterX / tileWidth;
-    int32_t tileYNr = objectInfo.measCenterY / tileHeight;
-
-    objectInfo.measCenterX = objectInfo.measCenterX - tileXNr * tileWidth;
-    objectInfo.measCenterY = objectInfo.measCenterY - tileYNr * tileHeight;
-    auto &previewResult    = mPreviewImage->getPreviewObject();
-    joda::ctrl::Controller::loadImage(imagePath, series,
-                                      joda::image::reader::ImageReader::Plane{.z = static_cast<int32_t>(objectInfo.stackZ),
-                                                                              .c = static_cast<int32_t>(objectInfo.stackC),
-                                                                              .t = static_cast<int32_t>(objectInfo.stackT)},
-                                      joda::ome::TileToLoad{tileXNr, tileYNr, tileWidth, tileHeight}, previewResult, mImgProps, objectInfo);
-    auto imgWidth    = mImgProps.getImageInfo(series).resolutions.at(0).imageWidth;
-    auto imageHeight = mImgProps.getImageInfo(series).resolutions.at(0).imageHeight;
-    if(imgWidth > tileWidth || imageHeight > tileHeight) {
-      tileWidth  = tileWidth;
-      tileHeight = tileHeight;
-    } else {
-      tileWidth  = imgWidth;
-      tileHeight = imageHeight;
-    }
-    auto [tileNrX, tileNrY] = mImgProps.getImageInfo(series).resolutions.at(resolution).getNrOfTiles(tileWidth, tileHeight);
-
-    mPreviewImage->setCrossHairCursorPositionAndCenter(objectInfo.measCenterX, objectInfo.measCenterY);
-    mPreviewImage->setThumbnailPosition(PanelImageView::ThumbParameter{.nrOfTilesX          = tileNrX,
-                                                                       .nrOfTilesY          = tileNrY,
-                                                                       .tileWidth           = tileWidth,
-                                                                       .tileHeight          = tileHeight,
-                                                                       .originalImageWidth  = imgWidth,
-                                                                       .originalImageHeight = imageHeight,
-                                                                       .selectedTileX       = tileXNr,
-                                                                       .selectedTileY       = tileYNr});
-    mPreviewImage->imageUpdated(previewResult.results, {});
-  } catch(const std::exception &ex) {
-    // No image selected
-    joda::log::logError("Preview error: " + std::string(ex.what()));
-  }
+    mLoadLock.unlock();
+    mPreviewImage->setWaiting(false);
+  });
 }
 
 ///
