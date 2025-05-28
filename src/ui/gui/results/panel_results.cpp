@@ -597,7 +597,7 @@ void PanelResults::loadPreview(const std::filesystem::path &imagePath, int64_t o
     }
     auto [tileNrX, tileNrY] = mImgProps.getImageInfo(series).resolutions.at(resolution).getNrOfTiles(tileWidth, tileHeight);
 
-    mPreviewImage->setCrossHairCursorPosition(objectInfo.measCenterX, objectInfo.measCenterY);
+    mPreviewImage->setCrossHairCursorPositionAndCenter(objectInfo.measCenterX, objectInfo.measCenterY);
     mPreviewImage->setThumbnailPosition(PanelImageView::ThumbParameter{.nrOfTilesX          = tileNrX,
                                                                        .nrOfTilesY          = tileNrY,
                                                                        .tileWidth           = tileWidth,

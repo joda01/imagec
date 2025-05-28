@@ -106,8 +106,7 @@ public:
     previewSize->setVisible(show);
   }
 
-  void centerTo(int32_t x, int32_t y);
-  void setCrossHairCursorPosition(int32_t x, int32_t y);
+  void setCrossHairCursorPositionAndCenter(int32_t x, int32_t y);
 
 signals:
   void tileClicked(int32_t tileX, int32_t tileY);
@@ -134,6 +133,7 @@ private:
   QActionGroup *mPreviewSizeGroup = nullptr;
   QAction *showPipelineResults    = nullptr;
   QAction *previewSize            = nullptr;
+  QAction *showCrossHairCursor    = nullptr;
 
 private slots:
   /////////////////////////////////////////////////////

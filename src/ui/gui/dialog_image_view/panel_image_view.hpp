@@ -99,9 +99,10 @@ public:
   void setShowPipelineResults(bool);
   void setShowOverlay(bool);
   void setShowCrosshandCursor(bool);
+  void setLockCrosshandCursor(bool);
   void setThumbnailPosition(const ThumbParameter &);
   void setCursorPosition(const QPoint &pos);
-  void setCursorPositionFromOriginalImageCoordinates(const QPoint &pos);
+  void setCursorPositionFromOriginalImageCoordinatesAndCenter(const QPoint &pos);
   auto getCursorPosition() -> QPoint;
   void setImageReference(const joda::image::Image *imageReference);
   auto getSelectedClasses() const -> settings::ObjectInputClasses
@@ -172,6 +173,7 @@ private:
 
   /////////////////////////////////////////////////////
   CrossCursorInfo mCrossCursorInfo;
+  QPoint mLastCrossHairCursorPos;
 
   /////////////////////////////////////////////////////
   ThumbParameter mThumbnailParameter;
@@ -191,6 +193,7 @@ private:
   bool mShowThumbnail       = true;
   bool mShowPixelInfo       = true;
   bool mShowCrosshandCursor = false;
+  bool mLockCrosshandCursor = false;
   bool mShowHistogram       = true;
   bool mShowOverlay         = true;
   bool mShowPipelineResults = false;

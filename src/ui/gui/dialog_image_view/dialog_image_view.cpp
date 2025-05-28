@@ -132,7 +132,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     connect(showPipelineResults, &QAction::triggered, this, &DialogImageViewer::onShowPipelineResults);
     toolbarTop->addAction(showPipelineResults);
 
-    QAction *showCrossHairCursor = new QAction(generateSvgIcon("crosshairs"), "");
+    showCrossHairCursor = new QAction(generateSvgIcon("crosshairs"), "");
     showCrossHairCursor->setStatusTip("Show/Hide cross hair cursor (right click to place)");
     showCrossHairCursor->setCheckable(true);
     showCrossHairCursor->setChecked(false);
@@ -551,24 +551,15 @@ void DialogImageViewer::closeEvent(QCloseEvent *event)
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::centerTo(int32_t x, int32_t y)
+void DialogImageViewer::setCrossHairCursorPositionAndCenter(int32_t x, int32_t y)
 {
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogImageViewer::setCrossHairCursorPosition(int32_t x, int32_t y)
-{
-  // mImageViewLeft.setShowCrosshandCursor(true);
-  // mImageViewRight.setShowCrosshandCursor(true);
-
-  mImageViewLeft.setCursorPositionFromOriginalImageCoordinates(QPoint{x, y});
-  mImageViewRight.setCursorPositionFromOriginalImageCoordinates(QPoint{x, y});
+  showCrossHairCursor->setChecked(true);
+  mImageViewLeft.setShowCrosshandCursor(true);
+  mImageViewRight.setShowCrosshandCursor(true);
+  mImageViewLeft.setLockCrosshandCursor(true);
+  mImageViewRight.setLockCrosshandCursor(true);
+  mImageViewLeft.setCursorPositionFromOriginalImageCoordinatesAndCenter(QPoint{x, y});
+  mImageViewRight.setCursorPositionFromOriginalImageCoordinatesAndCenter(QPoint{x, y});
 }
 
 }    // namespace joda::ui::gui

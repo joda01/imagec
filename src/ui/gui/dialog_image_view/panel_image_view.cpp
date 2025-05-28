@@ -414,6 +414,11 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   //
   // Takes 0.02 ms
   if(mShowCrosshandCursor) {
+    if(mLockCrosshandCursor) {
+      mCrossCursorInfo.mCursorPos = imageCoordinatesToPreviewCoordinates(mLastCrossHairCursorPos);
+      mCrossCursorInfo.pixelInfo  = fetchPixelInfoFromMousePosition(mCrossCursorInfo.mCursorPos);
+    }
+
     // Set the color and pen thickness for the cross lines
     QPen pen(Qt::blue, 2);
     painter.setPen(pen);
@@ -903,6 +908,11 @@ void PanelImageView::setShowCrosshandCursor(bool show)
   viewport()->update();
 }
 
+void PanelImageView::setLockCrosshandCursor(bool lock)
+{
+  mLockCrosshandCursor = lock;
+}
+
 void PanelImageView::setCursorPosition(const QPoint &pos)
 {
   mCrossCursorInfo.mCursorPos = pos;
@@ -914,9 +924,20 @@ auto PanelImageView::getCursorPosition() -> QPoint
   return mCrossCursorInfo.mCursorPos;
 }
 
-void PanelImageView::setCursorPositionFromOriginalImageCoordinates(const QPoint &pos)
+void PanelImageView::setCursorPositionFromOriginalImageCoordinatesAndCenter(const QPoint &pos)
 {
-  setCursorPosition(imageCoordinatesToPreviewCoordinates(pos));
+  if(mActPixmap != nullptr) {
+    mLastCrossHairCursorPos = pos;
+    auto originalPos        = imageCoordinatesToPreviewCoordinates(pos);
+
+    // Center viewport to the crosshair cursor center
+    auto scrollX = originalPos.x() - viewport()->size().width() / 2;
+    auto scrollY = originalPos.y() - viewport()->size().height() / 2;
+    verticalScrollBar()->setValue(verticalScrollBar()->value() + scrollY);
+    horizontalScrollBar()->setValue(horizontalScrollBar()->value() + scrollX);
+
+    setCursorPosition(originalPos);
+  }
 }
 
 auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QPoint &imageCoordinates) -> QPoint
@@ -927,17 +948,10 @@ auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QPoint &imageCoo
   if(mActPixmap != nullptr) {
     QRectF sceneRect = mActPixmap->sceneBoundingRect();
     QRect viewRect   = mapFromScene(sceneRect).boundingRect();
-    std::cout << "--------------------" << std::endl;
 
     auto originalImageSize = mActPixmapOriginal->getOriginalImageSize();
     auto previewImageSize  = mActPixmapOriginal->getPreviewImageSize();
     auto viewPortImageSize = QSize{viewRect.width(), viewRect.height()};
-
-    qDebug() << "Displayed image size in view:" << viewRect.size();
-    qDebug() << "Displayed image size in view X:" << viewRect.x();
-    qDebug() << "Displayed image size in view Y:" << viewRect.y();
-    qDebug() << "Viewport image size in view:" << viewPortImageSize;
-    qDebug() << "Original image size in view:" << originalImageSize;
 
     double factorX = static_cast<double>(viewPortImageSize.width()) / static_cast<double>(originalImageSize.width());
     double factorY = static_cast<double>(viewPortImageSize.height()) / static_cast<double>(originalImageSize.height());
@@ -947,9 +961,6 @@ auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QPoint &imageCoo
 
     imgX += viewRect.x();
     imgY += viewRect.y();
-
-    qDebug() << "Coordinates " << std::to_string(imgX) << " | " << std::to_string(imgY);
-    std::cout << "--------------------" << std::endl;
   }
   return {(int32_t) imgX, (int32_t) imgY};
 }

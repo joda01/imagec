@@ -297,8 +297,8 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
   //
   auto drawCrosshair = [&](cv::Mat &image, const db::ObjectInfo &objInfo, cv::Scalar color = cv::Scalar(0, 255, 0), int thickness = 1) {
     // Crosshair
-    cv::line(image, cv::Point(0, objInfo.measCenterY), cv::Point(image.cols - 1, objInfo.measCenterY), color, thickness);
-    cv::line(image, cv::Point(objInfo.measCenterX, 0), cv::Point(objInfo.measCenterX, image.rows - 1), color, thickness);
+    // cv::line(image, cv::Point(0, objInfo.measCenterY), cv::Point(image.cols - 1, objInfo.measCenterY), color, thickness);
+    // cv::line(image, cv::Point(objInfo.measCenterX, 0), cv::Point(objInfo.measCenterX, image.rows - 1), color, thickness);
 
     // Bounding box
     cv::Point topLeft(objInfo.measBoxX, objInfo.measBoxY);
