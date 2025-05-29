@@ -45,6 +45,7 @@
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_file_endians.hpp"
+#include "backend/enums/types.hpp"
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/database/database_interface.hpp"
 #include "backend/helper/database/exporter/heatmap/export_heatmap.hpp"
@@ -686,11 +687,17 @@ void PanelResults::loadPreview()
       int32_t tileYNr        = objectInfo.measCenterY / tileHeight;
 
       auto &previewResult = mPreviewImage->getPreviewObject();
+
+      auto log = std::to_string(tileXNr) + "," + std::to_string(tileYNr) + "," + std::to_string(tileWidth) + "," + std::to_string(tileHeight) + "," +
+                 std::to_string(objectInfo.stackC);
+      joda::log::logTrace("Preview for image >" + imagePath.string() + "< " + log);
+
       joda::ctrl::Controller::loadImage(imagePath, series,
                                         joda::image::reader::ImageReader::Plane{.z = static_cast<int32_t>(objectInfo.stackZ),
                                                                                 .c = static_cast<int32_t>(objectInfo.stackC),
                                                                                 .t = static_cast<int32_t>(objectInfo.stackT)},
-                                        joda::ome::TileToLoad{tileXNr, tileYNr, tileWidth, tileHeight}, previewResult, mImgProps, objectInfo);
+                                        joda::ome::TileToLoad{tileXNr, tileYNr, tileWidth, tileHeight}, previewResult, mImgProps, objectInfo,
+                                        enums::ZProjection::MAX_INTENSITY);
       auto imgWidth    = mImgProps.getImageInfo(series).resolutions.at(0).imageWidth;
       auto imageHeight = mImgProps.getImageInfo(series).resolutions.at(0).imageHeight;
       if(imgWidth > tileWidth || imageHeight > tileHeight) {

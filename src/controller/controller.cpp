@@ -274,8 +274,8 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
 /// \return
 ///
 auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
-                           const joda::ome::TileToLoad &tileLoad, Preview &previewOut, joda::ome::OmeInfo &omeOut, const db::ObjectInfo &objInfo)
-    -> void
+                           const joda::ome::TileToLoad &tileLoad, Preview &previewOut, joda::ome::OmeInfo &omeOut, const db::ObjectInfo &objInfo,
+                           enums::ZProjection zProjection) -> void
 {
   static std::filesystem::path lastImagePath;
   static joda::image::reader::ImageReader::Plane lastImagePlane = {-1, -1, -1};
@@ -298,8 +298,55 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
     omeOut = joda::image::reader::ImageReader::getOmeInformation(imagePath, series);
   }
   if(loadImage) {
-    auto originalImg = joda::image::reader::ImageReader::loadImageTile(imagePath.string(), imagePlane, series, 0, tileLoad, omeOut);
-    previewOut.editedImage.setImage(std::move(originalImg));
+    auto loadImageTile = [&tileLoad, series, &omeOut, &imagePath](int32_t z, int32_t c, int32_t t) {
+      return joda::image::reader::ImageReader::loadImageTile(imagePath, joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, series, 0,
+                                                             tileLoad, omeOut);
+    };
+
+    //
+    // Do z -projection if activated
+    //
+    int32_t c  = imagePlane.c;
+    int32_t z  = imagePlane.z;
+    int32_t t  = imagePlane.t;
+    auto image = loadImageTile(z, c, t);
+    if(zProjection != enums::ZProjection::NONE && zProjection != enums::ZProjection::TAKE_MIDDLE) {
+      auto max = [&loadImageTile, &image, c, t](int zIdx) { image = cv::max(image, loadImageTile(zIdx, c, t)); };
+      auto min = [&loadImageTile, &image, c, t](int zIdx) { image = cv::min(image, loadImageTile(zIdx, c, t)); };
+      auto avg = [&loadImageTile, &image, c, t](int zIdx) {
+        auto tmp = loadImageTile(zIdx, c, t);
+        tmp.convertTo(tmp, CV_32SC1);
+        image = image + tmp;
+      };
+
+      std::function<void(int)> func;
+
+      switch(zProjection) {
+        case enums::ZProjection::MAX_INTENSITY:
+          func = max;
+          break;
+        case enums::ZProjection::MIN_INTENSITY:
+          func = min;
+          break;
+        case enums::ZProjection::AVG_INTENSITY:
+          image.convertTo(image, CV_32SC1);    // Need to scale up because we are adding a lot of images to avoid overflow
+          func = avg;
+          break;
+        case enums::ZProjection::NONE:
+          break;
+      }
+
+      for(uint32_t zIdx = 1; zIdx < omeOut.getNrOfZStack(series); zIdx++) {
+        func(zIdx);
+      }
+      // Avg intensity projection
+      if(enums::ZProjection::AVG_INTENSITY == zProjection) {
+        image = image / omeOut.getNrOfZStack(series);
+        image.convertTo(image, CV_16UC1);    // no scaling
+      }
+    }
+
+    previewOut.editedImage.setImage(std::move(image));
   }
 
   if(generateThumb) {
