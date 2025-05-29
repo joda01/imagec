@@ -40,7 +40,7 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-DialogImageViewer::DialogImageViewer(QWidget *parent) :
+DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
     QDockWidget(parent), mImageViewLeft(&mPreviewImages.originalImage, &mPreviewImages.thumbnail, nullptr, true),
     mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, false)
 {
@@ -118,21 +118,21 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     connect(showThumbnail, &QAction::triggered, this, &DialogImageViewer::onShowThumbnailChanged);
     toolbarTop->addAction(showThumbnail);
 
-    QAction *showPixelInfo = new QAction(generateSvgIcon("coordinate"), "");
+    showPixelInfo = new QAction(generateSvgIcon("coordinate"), "");
     showPixelInfo->setStatusTip("Show/Hide pixel information");
     showPixelInfo->setCheckable(true);
     showPixelInfo->setChecked(true);
     connect(showPixelInfo, &QAction::triggered, this, &DialogImageViewer::onShowPixelInfo);
     toolbarTop->addAction(showPixelInfo);
 
-    QAction *showPipelineResults = new QAction(generateSvgIcon("sort-presence"), "");
+    showPipelineResults = new QAction(generateSvgIcon("sort-presence"), "");
     showPipelineResults->setStatusTip("Show/Hide pipeline results");
     showPipelineResults->setCheckable(true);
     showPipelineResults->setChecked(true);
     connect(showPipelineResults, &QAction::triggered, this, &DialogImageViewer::onShowPipelineResults);
     toolbarTop->addAction(showPipelineResults);
 
-    QAction *showCrossHairCursor = new QAction(generateSvgIcon("crosshairs"), "");
+    showCrossHairCursor = new QAction(generateSvgIcon("crosshairs"), "");
     showCrossHairCursor->setStatusTip("Show/Hide cross hair cursor (right click to place)");
     showCrossHairCursor->setCheckable(true);
     showCrossHairCursor->setChecked(false);
@@ -141,7 +141,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
 
     toolbarTop->addSeparator();
 
-    QAction *showOverlay = new QAction(generateSvgIcon("redeyes"), "");
+    showOverlay = new QAction(generateSvgIcon("redeyes"), "");
     showOverlay->setStatusTip("Show/Hide results as overlay");
     showOverlay->setCheckable(true);
     showOverlay->setChecked(true);
@@ -179,37 +179,71 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     //
     // Preview size
     //
-    auto *resolutionMenu = new QMenu();
-    mPreviewSizeGroup    = new QActionGroup(toolbarTop);
-    auto *r8192          = resolutionMenu->addAction("8192x8192");
-    mPreviewSizeGroup->addAction(r8192);
-    r8192->setCheckable(true);
-    auto *r4096 = resolutionMenu->addAction("4096x4096");
-    mPreviewSizeGroup->addAction(r4096);
-    r4096->setCheckable(true);
-    auto *r2048 = resolutionMenu->addAction("2048x2048");
-    mPreviewSizeGroup->addAction(r2048);
-    r2048->setCheckable(true);
-    r2048->setChecked(true);
-    auto *r1024 = resolutionMenu->addAction("1024x1024");
-    mPreviewSizeGroup->addAction(r1024);
-    r1024->setCheckable(true);
-    auto *r512 = resolutionMenu->addAction("512x512");
-    mPreviewSizeGroup->addAction(r512);
-    r512->setCheckable(true);
-    auto *r256 = resolutionMenu->addAction("256x256");
-    mPreviewSizeGroup->addAction(r256);
-    r256->setCheckable(true);
-    auto *r128 = resolutionMenu->addAction("128x128");
-    mPreviewSizeGroup->addAction(r128);
-    r128->setCheckable(true);
-    auto *previewSize = new QAction(generateSvgIcon("computer"), "");
-    previewSize->setStatusTip("Set preview resolution");
-    previewSize->setMenu(resolutionMenu);
-    toolbarTop->addAction(previewSize);
-    auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(previewSize));
-    btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
-    connect(mPreviewSizeGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingChanged);
+    {
+      auto *resolutionMenu = new QMenu();
+      mPreviewSizeGroup    = new QActionGroup(toolbarTop);
+      auto *r8192          = resolutionMenu->addAction("8192x8192");
+      mPreviewSizeGroup->addAction(r8192);
+      r8192->setCheckable(true);
+      auto *r4096 = resolutionMenu->addAction("4096x4096");
+      mPreviewSizeGroup->addAction(r4096);
+      r4096->setCheckable(true);
+      auto *r2048 = resolutionMenu->addAction("2048x2048");
+      mPreviewSizeGroup->addAction(r2048);
+      r2048->setCheckable(true);
+      r2048->setChecked(true);
+      auto *r1024 = resolutionMenu->addAction("1024x1024");
+      mPreviewSizeGroup->addAction(r1024);
+      r1024->setCheckable(true);
+      auto *r512 = resolutionMenu->addAction("512x512");
+      mPreviewSizeGroup->addAction(r512);
+      r512->setCheckable(true);
+      auto *r256 = resolutionMenu->addAction("256x256");
+      mPreviewSizeGroup->addAction(r256);
+      r256->setCheckable(true);
+      auto *r128 = resolutionMenu->addAction("128x128");
+      mPreviewSizeGroup->addAction(r128);
+      r128->setCheckable(true);
+      previewSize = new QAction(generateSvgIcon("computer"), "");
+      previewSize->setStatusTip("Set preview resolution");
+      previewSize->setMenu(resolutionMenu);
+      toolbarTop->addAction(previewSize);
+      auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(previewSize));
+      btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
+      connect(mPreviewSizeGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingChanged);
+    }
+
+    //
+    // z-Projection
+    //
+    {
+      auto *zProjectionMenu    = new QMenu();
+      mZProjectionGroup        = new QActionGroup(toolbarTop);
+      mSingleChannelProjection = zProjectionMenu->addAction("Single channel");
+      mZProjectionGroup->addAction(mSingleChannelProjection);
+      mSingleChannelProjection->setCheckable(true);
+      mMaxIntensityProjection = zProjectionMenu->addAction("Max. intensity");
+      mZProjectionGroup->addAction(mMaxIntensityProjection);
+      mMaxIntensityProjection->setCheckable(true);
+      mMaxIntensityProjection->setChecked(true);
+      mMinIntensityProjection = zProjectionMenu->addAction("Min. intensity");
+      mZProjectionGroup->addAction(mMinIntensityProjection);
+      mMinIntensityProjection->setCheckable(true);
+      mAvgIntensity = zProjectionMenu->addAction("Avg. intensity");
+      mZProjectionGroup->addAction(mAvgIntensity);
+      mAvgIntensity->setCheckable(true);
+      mTakeTheMiddleProjection = zProjectionMenu->addAction("Take the middle");
+      mZProjectionGroup->addAction(mTakeTheMiddleProjection);
+      mTakeTheMiddleProjection->setCheckable(true);
+      mZProjectionAction = new QAction(generateSvgIcon("layer-visible-on"), "");
+      mZProjectionAction->setStatusTip("z-projection options");
+      mZProjectionAction->setMenu(zProjectionMenu);
+      toolbarTop->addAction(mZProjectionAction);
+      auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(mZProjectionAction));
+      btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
+      connect(mZProjectionGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingChanged);
+      mZProjectionAction->setVisible(false);
+    }
 
     layout->addWidget(toolbarTop);
     // addToolBar(Qt::ToolBarArea::TopToolBarArea, toolbarTop);
@@ -217,15 +251,20 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
 
   // Central images
   {
-    mCentralLayout           = new QBoxLayout(QBoxLayout::TopToBottom);
-    auto *centralWidget      = new QWidget();
-    auto *leftVerticalLayout = new QVBoxLayout();
-    mHistoToolbarLeft        = new HistoToolbar(static_cast<int32_t>(ImageView::LEFT), this, &mPreviewImages.originalImage);
-    mImageViewLeft.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    leftVerticalLayout->addWidget(&mImageViewLeft);
-    leftVerticalLayout->addWidget(mHistoToolbarLeft);
-    mCentralLayout->addLayout(leftVerticalLayout);
-    mImageViewLeft.resetImage();
+    mCentralLayout      = new QBoxLayout(QBoxLayout::TopToBottom);
+    auto *centralWidget = new QWidget();
+
+    if(showOriginalImage) {
+      auto *leftVerticalLayout = new QVBoxLayout();
+      mHistoToolbarLeft        = new HistoToolbar(static_cast<int32_t>(ImageView::LEFT), this, &mPreviewImages.originalImage);
+      mImageViewLeft.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+      leftVerticalLayout->addWidget(&mImageViewLeft);
+      leftVerticalLayout->addWidget(mHistoToolbarLeft);
+      mCentralLayout->addLayout(leftVerticalLayout);
+      mImageViewLeft.resetImage();
+    } else {
+      mImageViewRight.setEnableThumbnail(true);
+    }
 
     auto *rightVerticalLayout = new QVBoxLayout();
     mHistoToolbarRight        = new HistoToolbar(static_cast<int32_t>(ImageView::RIGHT), this, &mPreviewImages.editedImage);
@@ -240,9 +279,12 @@ DialogImageViewer::DialogImageViewer(QWidget *parent) :
     centralWidget->setLayout(mCentralLayout);
     layout->addWidget(centralWidget);
 
-    connect(&mImageViewLeft, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onLeftViewChanged);
+    if(showOriginalImage) {
+      connect(&mImageViewLeft, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onLeftViewChanged);
+      connect(&mImageViewLeft, &PanelImageView::tileClicked, this, &DialogImageViewer::onTileClicked);
+    }
+
     connect(&mImageViewRight, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onRightViewChanged);
-    connect(&mImageViewLeft, &PanelImageView::tileClicked, this, &DialogImageViewer::onTileClicked);
     connect(&mImageViewRight, &PanelImageView::tileClicked, this, &DialogImageViewer::onTileClicked);
     connect(&mImageViewRight, &PanelImageView::classesToShowChanged, this, &DialogImageViewer::onSettingChanged);
   }
@@ -279,10 +321,6 @@ void DialogImageViewer::fitImageToScreenSize()
 ///
 void DialogImageViewer::triggerPreviewUpdate(ImageView view, bool withUserHistoSettings)
 {
-  if(mHistoToolbarLeft == nullptr || mHistoToolbarRight == nullptr) {
-    return;
-  }
-
   if(mPreviewCounter == 0) {
     {
       std::lock_guard<std::mutex> lock(mPreviewMutex);
@@ -297,12 +335,12 @@ void DialogImageViewer::triggerPreviewUpdate(ImageView view, bool withUserHistoS
       int previewCounter = 0;
       do {
         if(withUserHistoSettings) {
-          if(view == ImageView::LEFT || view == ImageView::BOTH) {
+          if(nullptr != mHistoToolbarLeft && (view == ImageView::LEFT || view == ImageView::BOTH)) {
             auto [value, scaling, offset] = mHistoToolbarLeft->getHistoSettings();
             mPreviewImages.originalImage.setBrightnessRange(0, value, scaling, offset);
             mImageViewLeft.emitUpdateImage();
           }
-          if(view == ImageView::RIGHT || view == ImageView::BOTH) {
+          if(nullptr != mHistoToolbarRight && (view == ImageView::RIGHT || view == ImageView::BOTH)) {
             auto [value, scaling, offset] = mHistoToolbarRight->getHistoSettings();
             mPreviewImages.editedImage.setBrightnessRange(0, value, scaling, offset);
             mImageViewRight.emitUpdateImage();
@@ -407,7 +445,7 @@ void DialogImageViewer::onRightViewChanged()
 ///
 void DialogImageViewer::onZoomInClicked()
 {
-  mImageViewLeft.zoomImage(true);
+  mImageViewRight.zoomImage(true);
 }
 
 ///
@@ -419,7 +457,7 @@ void DialogImageViewer::onZoomInClicked()
 ///
 void DialogImageViewer::onZoomOutClicked()
 {
-  mImageViewLeft.zoomImage(false);
+  mImageViewRight.zoomImage(false);
 }
 
 ///
@@ -431,7 +469,7 @@ void DialogImageViewer::onZoomOutClicked()
 ///
 void DialogImageViewer::onFitImageToScreenSizeClicked()
 {
-  mImageViewLeft.fitImageToScreenSize();
+  mImageViewRight.fitImageToScreenSize();
 }
 
 ///
@@ -542,6 +580,21 @@ void DialogImageViewer::closeEvent(QCloseEvent *event)
 
   // Optionally just ensure it's visible again
   show();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::setCrossHairCursorPositionAndCenter(const QRect &boundingRect)
+{
+  mImageViewLeft.setLockCrosshandCursor(true);
+  mImageViewRight.setLockCrosshandCursor(true);
+  mImageViewLeft.setCursorPositionFromOriginalImageCoordinatesAndCenter(boundingRect);
+  mImageViewRight.setCursorPositionFromOriginalImageCoordinatesAndCenter(boundingRect);
 }
 
 }    // namespace joda::ui::gui

@@ -49,6 +49,7 @@ Image::Image()
 ///
 void Image::setImage(const cv::Mat &&imageToDisplay)
 {
+  mOriginalImageSize = {imageToDisplay.cols, imageToDisplay.rows};
   delete mImageOriginal;
   mImageOriginal = new cv::Mat(
       joda::image::func::Resizer::resizeWithAspectRatio(imageToDisplay, std::min(imageToDisplay.cols, WIDTH), std::min(imageToDisplay.rows, WIDTH)));

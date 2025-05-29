@@ -31,6 +31,11 @@ public:
     int z = 0;
     int c = 0;
     int t = 0;
+
+    bool operator==(const Plane &plane) const
+    {
+      return z == plane.z && c == plane.c && t == plane.t;
+    }
   };
 
   /////////////////////////////////////////////////////

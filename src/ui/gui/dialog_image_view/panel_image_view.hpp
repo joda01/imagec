@@ -94,13 +94,16 @@ public:
 
   void setState(State);
   void setShowThumbnail(bool);
+  void setEnableThumbnail(bool);
   void setShowHistogram(bool);
   void setShowPixelInfo(bool);
   void setShowPipelineResults(bool);
   void setShowOverlay(bool);
   void setShowCrosshandCursor(bool);
+  void setLockCrosshandCursor(bool);
   void setThumbnailPosition(const ThumbParameter &);
   void setCursorPosition(const QPoint &pos);
+  void setCursorPositionFromOriginalImageCoordinatesAndCenter(const QRect &boundingRect);
   auto getCursorPosition() -> QPoint;
   void setImageReference(const joda::image::Image *imageReference);
   auto getSelectedClasses() const -> settings::ObjectInputClasses
@@ -125,6 +128,7 @@ protected:
   void drawHistogram(QPainter &);
   void drawThumbnail(QPainter &);
   void drawPipelineResult(QPainter &);
+  void drawCrossHairCursor(QPainter &);
   void drawPixelInfo(QPainter &, int32_t startX, int32_t startY, const PixelInfo &info);
 
   void getClickedTileInThumbnail(QMouseEvent *event);
@@ -134,6 +138,8 @@ protected:
   bool getPreviewResultsAreaClicked(QMouseEvent *event);
 
   void updatePipelineResultsCoordinates();
+  auto imageCoordinatesToPreviewCoordinates(const QPoint &imageCoordinates) -> QPoint;
+  auto imageCoordinatesToPreviewCoordinates(const QRect &imageCoordinates) -> QRect;
 
 private:
   /////////////////////////////////////////////////////
@@ -170,6 +176,7 @@ private:
 
   /////////////////////////////////////////////////////
   CrossCursorInfo mCrossCursorInfo;
+  QRect mLastCrossHairCursorPos = {0, 0, 0, 0};
 
   /////////////////////////////////////////////////////
   ThumbParameter mThumbnailParameter;
@@ -184,11 +191,12 @@ private:
   bool mThumbnailAreaEntered = false;
 
   /////////////////////////////////////////////////////
-  const bool mWithThumbnail;
+  bool mWithThumbnail;
   bool mWaiting             = false;
   bool mShowThumbnail       = true;
   bool mShowPixelInfo       = true;
   bool mShowCrosshandCursor = false;
+  bool mLockCrosshandCursor = false;
   bool mShowHistogram       = true;
   bool mShowOverlay         = true;
   bool mShowPipelineResults = false;

@@ -129,6 +129,23 @@ private:
   static inline cv::Scalar RED    = cv::Scalar(0, 0, 255);
   static inline cv::Scalar GREEN  = cv::Scalar(0, 255, 0);
 
+  std::string toBase36(unsigned long long num)
+  {
+    return std::to_string(num);
+    const char *digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    if(num == 0)
+      return "0";
+
+    std::string result;
+    while(num > 0) {
+      result += digits[num % 36];
+      num /= 36;
+    }
+
+    std::reverse(result.begin(), result.end());
+    return result;
+  }
+
   /////////////////////////////////////////////////////
   void drawObject(processor::ProcessContext &context, const settings::ImageSaverSettings::SaveClasss &settings, const atom::ROI &roi,
                   cv::Mat &imageOut)
@@ -172,8 +189,14 @@ private:
 
         // Draw object ID
         if(settings.paintObjectId) {
-          auto scale = getFontScaleFromHeight(cv::FONT_HERSHEY_SIMPLEX, 10);
-          cv::putText(imageOut, std::to_string(roi.getObjectId()), cv::Point(left, top), cv::FONT_HERSHEY_SIMPLEX, scale, areaColor);
+          auto scale   = getFontScaleFromHeight(cv::FONT_HERSHEY_PLAIN, 12);
+          int baseline = 0;
+          auto tSize   = cv::getTextSize(toBase36(roi.getObjectId()), cv::FONT_HERSHEY_PLAIN, 1, 0, &baseline);
+
+          if(left + tSize.width > imageOut.cols) {
+            left = left - tSize.width;
+          }
+          cv::putText(imageOut, toBase36(roi.getObjectId()), cv::Point(left, top), cv::FONT_HERSHEY_PLAIN, 1, areaColor, 0);
         }
       }
     }

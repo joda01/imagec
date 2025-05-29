@@ -17,8 +17,10 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
+#include "backend/enums/types.hpp"
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/database/exporter/r/exporter_r.hpp"
 #include "backend/helper/database/exporter/xlsx/exporter.hpp"
@@ -35,6 +37,8 @@
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
 #include <nlohmann/json_fwd.hpp>
+#include <opencv2/core/mat.hpp>
+#include <opencv2/core/types.hpp>
 
 namespace joda::ctrl {
 
@@ -263,6 +267,114 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
   }
   previewOut.results.noiseDetected = validity.test(enums::ChannelValidityEnum::POSSIBLE_NOISE);
   previewOut.results.isOverExposed = validity.test(enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
+}
+
+///
+/// \brief
+/// \author
+/// \return
+///
+auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
+                           const joda::ome::TileToLoad &tileLoad, Preview &previewOut, joda::ome::OmeInfo &omeOut, const db::ObjectInfo &objInfo,
+                           enums::ZProjection zProjection) -> void
+{
+  static std::filesystem::path lastImagePath;
+  static joda::image::reader::ImageReader::Plane lastImagePlane = {-1, -1, -1};
+  static joda::ome::TileToLoad lastImageTile                    = {-1};
+  static int32_t lastImageSeries                                = -1;
+  static enums::ZProjection lastZProjection                     = enums::ZProjection::UNDEFINED;
+  bool generateThumb                                            = false;
+  bool loadImage                                                = false;
+
+  if(imagePath != lastImagePath || previewOut.thumbnail.empty() || lastImagePlane != imagePlane || lastImageTile != tileLoad ||
+     lastImageSeries != series || zProjection != lastZProjection) {
+    lastImageSeries = series;
+    lastImagePath   = imagePath;
+    generateThumb   = true;
+    loadImage       = true;
+    lastImagePlane  = imagePlane;
+    lastImageTile   = tileLoad;
+    lastZProjection = zProjection;
+  }
+
+  if(loadImage || generateThumb) {
+    omeOut = joda::image::reader::ImageReader::getOmeInformation(imagePath, series);
+  }
+  if(loadImage) {
+    auto loadImageTile = [&tileLoad, series, &omeOut, &imagePath](int32_t z, int32_t c, int32_t t) {
+      return joda::image::reader::ImageReader::loadImageTile(imagePath.string(), joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t},
+                                                             series, 0, tileLoad, omeOut);
+    };
+
+    //
+    // Do z -projection if activated
+    //
+    int32_t c  = imagePlane.c;
+    int32_t z  = imagePlane.z;
+    int32_t t  = imagePlane.t;
+    auto image = loadImageTile(z, c, t);
+    if(zProjection != enums::ZProjection::NONE && zProjection != enums::ZProjection::TAKE_MIDDLE) {
+      auto max = [&loadImageTile, &image, c, t](int zIdx) { image = cv::max(image, loadImageTile(zIdx, c, t)); };
+      auto min = [&loadImageTile, &image, c, t](int zIdx) { image = cv::min(image, loadImageTile(zIdx, c, t)); };
+      auto avg = [&loadImageTile, &image, c, t](int zIdx) {
+        auto tmp = loadImageTile(zIdx, c, t);
+        tmp.convertTo(tmp, CV_32SC1);
+        image = image + tmp;
+      };
+
+      std::function<void(int)> func;
+
+      switch(zProjection) {
+        case enums::ZProjection::MAX_INTENSITY:
+          func = max;
+          break;
+        case enums::ZProjection::MIN_INTENSITY:
+          func = min;
+          break;
+        case enums::ZProjection::AVG_INTENSITY:
+          image.convertTo(image, CV_32SC1);    // Need to scale up because we are adding a lot of images to avoid overflow
+          func = avg;
+          break;
+        case enums::ZProjection::NONE:
+          break;
+      }
+
+      for(uint32_t zIdx = 1; zIdx < omeOut.getNrOfZStack(series); zIdx++) {
+        func(zIdx);
+      }
+      // Avg intensity projection
+      if(enums::ZProjection::AVG_INTENSITY == zProjection) {
+        image = image / omeOut.getNrOfZStack(series);
+        image.convertTo(image, CV_16UC1);    // no scaling
+      }
+    }
+
+    previewOut.editedImage.setImage(std::move(image));
+  }
+
+  if(generateThumb) {
+    auto thumb = joda::image::reader::ImageReader::loadThumbnail(imagePath.string(), imagePlane, series, omeOut);
+    previewOut.thumbnail.setImage(std::move(thumb));
+  }
+
+  //
+  // Generate overlay
+  //
+  cv::Mat overlay =
+      cv::Mat::zeros(previewOut.editedImage.getOriginalImageSize().height(), previewOut.editedImage.getOriginalImageSize().width(), CV_8UC3);
+  auto drawCrosshair = [&](cv::Mat &image, const db::ObjectInfo &objInfo, cv::Scalar color = cv::Scalar(0, 255, 0), int thickness = 1) {
+    // Bring in the context of the tile
+    int32_t boxX = objInfo.measBoxX - tileLoad.tileX * tileLoad.tileWidth;
+    int32_t boxY = objInfo.measBoxY - tileLoad.tileY * tileLoad.tileHeight;
+
+    // Bounding box
+    cv::Point topLeft(boxX, boxY);
+    cv::Point bottomRight(boxX + objInfo.measBoxWidth, boxY + objInfo.measBoxHeight);
+    cv::rectangle(image, topLeft, bottomRight, color, thickness);
+  };
+  drawCrosshair(overlay, objInfo);
+  previewOut.overlay.setImage(std::move(overlay));
+  previewOut.results.foundObjects.clear();
 }
 
 ///

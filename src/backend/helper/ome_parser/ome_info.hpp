@@ -38,6 +38,11 @@ struct TileToLoad
   int32_t tileY      = 0;
   int32_t tileWidth  = 256;
   int32_t tileHeight = 256;
+
+  bool operator==(const TileToLoad &tile) const
+  {
+    return tileX == tile.tileX && tileY == tile.tileY && tileWidth == tile.tileWidth && tileHeight == tile.tileHeight;
+  }
 };
 
 ///

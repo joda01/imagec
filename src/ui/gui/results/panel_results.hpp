@@ -19,6 +19,7 @@
 #include <qpushbutton.h>
 #include <qtoolbar.h>
 #include <qwidget.h>
+#include <filesystem>
 #include <memory>
 #include <mutex>
 #include "backend/enums/enum_measurements.hpp"
@@ -40,6 +41,7 @@ class WindowMain;
 namespace joda::ui::gui {
 
 class DialogColumnSettings;
+class DialogImageViewer;
 
 ///
 /// \class      PanelResults
@@ -101,6 +103,7 @@ private:
     std::optional<db::GroupInfo> groupMeta;
     std::optional<db::ImageInfo> imageMeta;
     std::optional<Value> value;
+    std::optional<db::ObjectInfo> objectInfo;
     //  std::optional<results::db::PlateMeta> plateMeta;
     //  std::optional<results::db::GroupMeta> groupMeta;
     //  std::optional<results::db::ImageMeta> imageMeta;
@@ -193,6 +196,16 @@ private:
   QComboBox *mPlateSize;
   QComboBox *mDensityMapSize;
 
+  /// IMAGE DOCK //////////////////////////////////////////////
+  void loadPreview();
+  bool showSelectWorkingDir(const QString &path);
+  std::filesystem::path mImageWorkingDirectory;
+  DialogImageViewer *mPreviewImage;
+  joda::ome::OmeInfo mImgProps;
+  int32_t mSelectedTileX = 0;
+  int32_t mSelectedTileY = 0;
+  std::mutex mGeneratePreviewMutex;
+
   /////////////////////////////////////////////////////
   uint16_t mActGroupId = 0;
   std::set<uint64_t> mActImageId;
@@ -225,6 +238,7 @@ public slots:
   void onShowHeatmap();
   void onCellClicked(int row, int column);
   void onColumnComboChanged();
+  void onTileClicked(int32_t tileX, int32_t tileY);
 };
 
 }    // namespace joda::ui::gui

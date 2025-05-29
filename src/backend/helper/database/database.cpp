@@ -15,12 +15,12 @@
 #include <duckdb.h>
 #include <chrono>
 #include <exception>
+#include <filesystem>
 #include <mutex>
 #include <stdexcept>
 #include <string>
 #include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/enums/enums_classes.hpp"
-
 #include "backend/enums/enums_grouping.hpp"
 #include "backend/helper/base64.hpp"
 #include "backend/helper/duration_count/duration_count.h"
@@ -82,6 +82,9 @@ void Database::createTables()
       " settings TEXT,"
       " settings_results_table TEXT,"
       " settings_results_table_default TEXT,"
+      " settings_tile_width UINTEGER,"
+      " settings_tile_height UINTEGER,"
+      " settings_image_series UINTEGER,"
       " PRIMARY KEY (job_id),"
       " FOREIGN KEY(experiment_id) REFERENCES experiment(experiment_id)"
       ");"
@@ -91,6 +94,15 @@ void Database::createTables()
 
       "ALTER TABLE jobs "
       " ADD COLUMN IF NOT EXISTS settings_results_table_default TEXT;\n"
+
+      "ALTER TABLE jobs "
+      " ADD COLUMN IF NOT EXISTS settings_tile_width UINTEGER DEFAULT 4096;\n"
+
+      "ALTER TABLE jobs "
+      " ADD COLUMN IF NOT EXISTS settings_tile_height UINTEGER DEFAULT 4096;\n"
+
+      "ALTER TABLE jobs "
+      " ADD COLUMN IF NOT EXISTS settings_image_series UINTEGER DEFAULT 0;\n"
 
       "CREATE TABLE IF NOT EXISTS plates ("
       " job_id UUID,"
@@ -130,6 +142,7 @@ void Database::createTables()
       " image_id UBIGINT,"
       " file_name TEXT,"
       " original_file_path TEXT,"
+      " relative_file_path TEXT,"
       " nr_of_c_stacks UINTEGER,"
       " nr_of_z_stacks UINTEGER,"
       " nr_of_t_stacks UINTEGER,"
@@ -246,6 +259,36 @@ void Database::createTables()
   auto result     = connection->Query(create_table_sql);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
+  }
+
+  //
+  // Do some migrations
+  //
+  /// \todo Add relative file path -> This is legacy and cen be removed in further releases
+  {
+    std::string query =
+        "SELECT COUNT(*) FROM information_schema.columns "
+        "WHERE table_name = 'images' AND column_name = 'relative_file_path';";
+    auto con    = acquire();
+    auto result = con->Query(query);
+    if(result->GetValue<int64_t>(0, 0) <= 0) {
+      std::string alter_sql = "ALTER TABLE images ADD COLUMN relative_file_path TEXT DEFAULT '';";
+      con->Query(alter_sql);
+      {
+        auto plate = selectPlates();
+        if(!plate.empty()) {
+          auto images           = selectImages();
+          auto workingDirectory = std::filesystem::path(plate.begin()->second.imageFolder);
+          for(const auto &image : images) {
+            auto originalFilePath = std::filesystem::path(image.imageFilePath);
+            auto relativePath     = std::filesystem::relative(originalFilePath, workingDirectory);
+            std::string alter_sql =
+                "UPDATE images SET relative_file_path = '" + relativePath.string() + "' WHERE original_file_path='" + originalFilePath.string() + "'";
+            con->Query(alter_sql);
+          }
+        }
+      }
+    }
   }
 }
 
@@ -390,8 +433,8 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
 }
 
 auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
-                             const std::vector<std::filesystem::path> &imagePaths, BS::thread_pool &globalThreadPool)
-    -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>
+                             const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
+                             BS::thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>
 {
   std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> imagesToProcess;
   joda::grp::FileGrouper grouper(groupBy, filenameRegex);
@@ -412,7 +455,7 @@ auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy gro
 
   for(const auto &imagePath : imagePaths) {
     auto prepareImage = [&groups, &grouper, &addedGroups, &imagesToProcess, &images, &images_groups, &images_channels, &insertMutex, &series, plateId,
-                         imagePath]() {
+                         imagePath, &imagesBasePath]() {
       auto ome         = joda::image::reader::ImageReader::getOmeInformation(imagePath, series);
       uint64_t imageId = joda::helper::fnv1a(imagePath.string());
       auto groupInfo   = grouper.getGroupForFilename(imagePath);
@@ -437,10 +480,12 @@ auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy gro
 
         // Image
         {
+          auto relativePath = std::filesystem::relative(imagePath, imagesBasePath);
           images.BeginRow();
           images.Append<uint64_t>(imageId);                                  //       " image_id UBIGINT,"
           images.Append<duckdb::string_t>(imagePath.filename().string());    //       " file_name TEXT,"
           images.Append<duckdb::string_t>(imagePath.string());               //       " original_file_path TEXT
+          images.Append<duckdb::string_t>(relativePath.string());            //       " relative_file_path TEXT
           images.Append<uint32_t>(ome.getNrOfChannels(series));              //       " nr_of_c_stacks UINTEGER
           images.Append<uint32_t>(ome.getNrOfZStack(series));                //       " nr_of_z_stacks UINTEGER
           images.Append<uint32_t>(ome.getNrOfTStack(series));                //       " nr_of_t_stacks UINTEGER
@@ -769,6 +814,9 @@ auto Database::selectExperiment() -> AnalyzeMeta
   std::string settingsString;
   std::string jobName;
   std::string jobId;
+  uint32_t tileWidth  = 0;
+  uint32_t tileHeight = 0;
+  uint32_t series     = 0;
 
   {
     std::unique_ptr<duckdb::QueryResult> result = select("SELECT experiment_id,name,notes FROM experiment");
@@ -785,8 +833,9 @@ auto Database::selectExperiment() -> AnalyzeMeta
   }
 
   {
-    std::unique_ptr<duckdb::QueryResult> resultJobs =
-        select("SELECT time_started,time_finished,settings,job_name,job_id FROM jobs ORDER BY time_started");
+    std::unique_ptr<duckdb::QueryResult> resultJobs = select(
+        "SELECT time_started,time_finished,settings,job_name,job_id,settings_tile_width,settings_tile_height,settings_image_series FROM jobs ORDER "
+        "BY time_started");
     if(resultJobs->HasError()) {
       throw std::invalid_argument(resultJobs->GetError());
     }
@@ -814,6 +863,10 @@ auto Database::selectExperiment() -> AnalyzeMeta
       {
         jobId = materializedResult->GetValue(4, 0).GetValue<std::string>();
       }
+
+      tileWidth  = materializedResult->GetValue(5, 0).GetValue<uint32_t>();
+      tileHeight = materializedResult->GetValue(6, 0).GetValue<uint32_t>();
+      series     = materializedResult->GetValue(7, 0).GetValue<uint32_t>();
     }
   }
 
@@ -822,7 +875,10 @@ auto Database::selectExperiment() -> AnalyzeMeta
           .timestampFinish           = timestampFinish,
           .jobName                   = jobName,
           .jobId                     = jobId,
-          .analyzeSettingsJsonString = settingsString};
+          .analyzeSettingsJsonString = settingsString,
+          .tileWidth                 = tileWidth,
+          .tileHeight                = tileHeight,
+          .series                    = series};
 }
 
 ///
@@ -848,14 +904,15 @@ std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &
     duckdb::timestamp_t nil = {};
     auto prepare            = connection->Prepare(
         "INSERT INTO jobs (experiment_id, job_id, job_name,imagec_version, time_started, time_finished, settings, settings_results_table_default, "
-                   "settings_results_table) "
-                   "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                   "settings_results_table, settings_tile_width, settings_tile_height, settings_image_series) "
+                   "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     auto resultsTableSettings = exp.toResultsSettings();
     prepare->Execute(duckdb::Value::UUID(exp.projectSettings.experimentSettings.experimentId), jobId, jobName, std::string(Version::getVersion()),
                      duckdb::Value::TIMESTAMP(timestampStart), duckdb::Value::TIMESTAMP(nil), helper::base64Encode(settings::Settings::toString(exp)),
                      helper::base64Encode(settings::Settings::toString(resultsTableSettings)),
-                     helper::base64Encode(settings::Settings::toString(resultsTableSettings)));
+                     helper::base64Encode(settings::Settings::toString(resultsTableSettings)), exp.imageSetup.imageTileSettings.tileWidth,
+                     exp.imageSetup.imageTileSettings.tileHeight, exp.imageSetup.series);
   } catch(const std::exception &ex) {
     connection->Rollback();
     throw std::runtime_error(ex.what());
@@ -1022,7 +1079,7 @@ auto Database::selectGroupInfo(uint64_t groupId) -> GroupInfo
 auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
 {
   std::unique_ptr<duckdb::QueryResult> result = select(
-      "SELECT images.file_name, images.validity, images.width, images.height, groups.name "
+      "SELECT images.file_name, images.original_file_path,images.relative_file_path, images.validity, images.width, images.height, groups.name "
       "FROM images "
       "JOIN images_groups ON "
       "     images.image_id = images_groups.image_id "
@@ -1038,11 +1095,14 @@ auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
 
   ImageInfo results;
   if(materializedResult->RowCount() > 0) {
-    results.filename       = materializedResult->GetValue(0, 0).GetValue<std::string>();
-    results.validity       = materializedResult->GetValue(1, 0).GetValue<uint64_t>();
-    results.width          = materializedResult->GetValue(2, 0).GetValue<uint32_t>();
-    results.height         = materializedResult->GetValue(3, 0).GetValue<uint32_t>();
-    results.imageGroupName = materializedResult->GetValue(4, 0).GetValue<std::string>();
+    results.filename         = materializedResult->GetValue(0, 0).GetValue<std::string>();
+    results.imageFilePath    = materializedResult->GetValue(1, 0).GetValue<std::string>();
+    results.imageFilePathRel = materializedResult->GetValue(2, 0).GetValue<std::string>();
+    results.validity         = materializedResult->GetValue(3, 0).GetValue<uint64_t>();
+    results.width            = materializedResult->GetValue(4, 0).GetValue<uint32_t>();
+    results.height           = materializedResult->GetValue(5, 0).GetValue<uint32_t>();
+    results.imageGroupName   = materializedResult->GetValue(6, 0).GetValue<std::string>();
+    results.imageId          = imageId;
   }
 
   return results;
@@ -1058,7 +1118,7 @@ auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
 auto Database::selectImages() -> std::vector<ImageInfo>
 {
   std::unique_ptr<duckdb::QueryResult> result = select(
-      "SELECT images.file_name, images.validity, images.width, images.height, groups.name "
+      "SELECT images.file_name,images.original_file_path,images.relative_file_path,images.validity, images.width, images.height, groups.name "
       "FROM images "
       "JOIN images_groups ON "
       "     images.image_id = images_groups.image_id "
@@ -1073,12 +1133,51 @@ auto Database::selectImages() -> std::vector<ImageInfo>
   std::vector<ImageInfo> results;
   for(int n = 0; n < materializedResult->RowCount(); n++) {
     ImageInfo info;
-    info.filename       = materializedResult->GetValue(0, n).GetValue<std::string>();
-    info.validity       = materializedResult->GetValue(1, n).GetValue<uint64_t>();
-    info.width          = materializedResult->GetValue(2, n).GetValue<uint32_t>();
-    info.height         = materializedResult->GetValue(3, n).GetValue<uint32_t>();
-    info.imageGroupName = materializedResult->GetValue(4, n).GetValue<std::string>();
+    info.filename         = materializedResult->GetValue(0, n).GetValue<std::string>();
+    info.imageFilePath    = materializedResult->GetValue(1, n).GetValue<std::string>();
+    info.imageFilePathRel = materializedResult->GetValue(2, n).GetValue<std::string>();
+    info.validity         = materializedResult->GetValue(3, n).GetValue<uint64_t>();
+    info.width            = materializedResult->GetValue(4, n).GetValue<uint32_t>();
+    info.height           = materializedResult->GetValue(5, n).GetValue<uint32_t>();
+    info.imageGroupName   = materializedResult->GetValue(6, n).GetValue<std::string>();
     results.push_back(info);
+  }
+
+  return results;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Database::selectObjectInfo(uint64_t objectId) -> ObjectInfo
+{
+  std::unique_ptr<duckdb::QueryResult> result = select(
+      "SELECT stack_c, stack_z, stack_t, meas_center_x, meas_center_y, meas_box_x, meas_box_y, meas_box_width, meas_box_height, image_id\n"
+      "FROM objects "
+      "WHERE object_id = ?",
+      objectId);
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+
+  ObjectInfo results;
+  if(materializedResult->RowCount() > 0) {
+    results.stackC        = materializedResult->GetValue(0, 0).GetValue<uint32_t>();
+    results.stackZ        = materializedResult->GetValue(1, 0).GetValue<uint32_t>();
+    results.stackZ        = materializedResult->GetValue(2, 0).GetValue<uint32_t>();
+    results.measCenterX   = materializedResult->GetValue(3, 0).GetValue<uint32_t>();
+    results.measCenterY   = materializedResult->GetValue(4, 0).GetValue<uint32_t>();
+    results.measBoxX      = materializedResult->GetValue(5, 0).GetValue<uint32_t>();
+    results.measBoxY      = materializedResult->GetValue(6, 0).GetValue<uint32_t>();
+    results.measBoxWidth  = materializedResult->GetValue(7, 0).GetValue<uint32_t>();
+    results.measBoxHeight = materializedResult->GetValue(8, 0).GetValue<uint32_t>();
+    results.imageId       = materializedResult->GetValue(9, 0).GetValue<uint64_t>();
   }
 
   return results;

@@ -33,6 +33,9 @@ struct AnalyzeMeta
   std::string jobName;
   std::string jobId;
   std::string analyzeSettingsJsonString;
+  uint32_t tileWidth  = 0;    // Tile width selected for analysis.
+  uint32_t tileHeight = 0;    // Tile height selected for analysis.
+  uint32_t series     = 0;    // Image series used for analysis.
 };
 
 struct GroupInfo
@@ -45,10 +48,27 @@ struct GroupInfo
 struct ImageInfo
 {
   std::string filename;
+  std::string imageFilePath;
+  std::string imageFilePathRel;
   enums::ChannelValidity validity;
   uint32_t width  = 0;
   uint32_t height = 0;
   std::string imageGroupName;
+  uint64_t imageId;
+};
+
+struct ObjectInfo
+{
+  uint32_t stackC        = 0;
+  uint32_t stackZ        = 0;
+  uint32_t stackT        = 0;
+  uint32_t measCenterX   = 0;
+  uint32_t measCenterY   = 0;
+  uint32_t measBoxX      = 0;
+  uint32_t measBoxY      = 0;
+  uint32_t measBoxWidth  = 0;
+  uint32_t measBoxHeight = 0;
+  uint64_t imageId       = 0;
 };
 
 class DatabaseInterface
@@ -62,9 +82,9 @@ public:
   virtual void finishJob(const std::string &jobId)                                                  = 0;
 
   virtual auto prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
-                             const std::vector<std::filesystem::path> &imagePaths, BS::thread_pool &globalThreadPool)
-      -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> = 0;
-  virtual void setImageProcessed(uint64_t)                                            = 0;
+                             const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
+                             BS::thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> = 0;
+  virtual void setImageProcessed(uint64_t)                                                                                                      = 0;
 
   virtual void insertImagePlane(uint64_t imageId, const enums::PlaneId &, const ome::OmeInfo::ImagePlane &) = 0;
 
@@ -101,8 +121,8 @@ public:
   }
 
   auto prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
-                     const std::vector<std::filesystem::path> &imagePaths, BS::thread_pool &globalThreadPool)
-      -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> override
+                     const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
+                     BS::thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> override
   {
     return {};
   }

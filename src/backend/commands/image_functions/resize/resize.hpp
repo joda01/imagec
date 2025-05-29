@@ -54,7 +54,7 @@ public:
 
     // Resize image
     cv::Mat resized;
-    cv::resize(src, resized, cv::Size(newWidth, newHeight));
+    cv::resize(src, resized, cv::Size(newWidth, newHeight), cv::INTER_AREA);
     return resized;
   }
 

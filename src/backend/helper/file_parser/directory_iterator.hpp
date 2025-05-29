@@ -117,6 +117,15 @@ public:
   }
 
   ///
+  /// \brief      Returns list of found files
+  /// \author     Joachim Danmayr
+  ///
+  [[nodiscard]] auto getDirectoryAt(uint8_t group) const -> std::filesystem::path
+  {
+    return mWorkingDirectory.at(group);
+  }
+
+  ///
   /// \brief     Get number of found files
   /// \author    Joachim Danmayr
   ///

@@ -25,6 +25,7 @@
 #include <qpushbutton.h>
 #include <qsize.h>
 #include <qtablewidget.h>
+#include <qthread.h>
 #include <qtoolbar.h>
 #include <qwidget.h>
 #include <QPainter>
@@ -44,7 +45,9 @@
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_file_endians.hpp"
+#include "backend/enums/types.hpp"
 #include "backend/helper/database/database.hpp"
+#include "backend/helper/database/database_interface.hpp"
 #include "backend/helper/database/exporter/heatmap/export_heatmap.hpp"
 #include "backend/helper/database/exporter/heatmap/export_heatmap_settings.hpp"
 #include "backend/helper/database/exporter/r/exporter_r.hpp"
@@ -60,6 +63,7 @@
 #include "ui/gui/container/panel_edit_base.hpp"
 #include "ui/gui/container/setting/setting_combobox_classification_unmanaged.hpp"
 #include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
+#include "ui/gui/dialog_image_view/dialog_image_view.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/table_widget.hpp"
@@ -75,11 +79,22 @@ namespace joda::ui::gui {
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullptr, false, windowMain), mWindowMain(windowMain)
+PanelResults::PanelResults(WindowMain *windowMain) :
+    PanelEdit(windowMain, nullptr, false, windowMain), mWindowMain(windowMain), mPreviewImage(new DialogImageViewer(windowMain, false))
 {
   // Drop downs
   createEditColumnDialog();
   createToolBar(&layout());
+
+  // Add to dock
+  mPreviewImage->setPreviewImageSizeVisble(false);
+  mPreviewImage->setPipelineResultsButtonVisible(false);
+  mPreviewImage->setVisible(false);
+  mPreviewImage->setShowCrossHairCursor(true);
+  mPreviewImage->setShowPixelInfo(false);
+  mPreviewImage->setShowOverlay(false);
+  mPreviewImage->setZProjectionButtonVisible(true);
+  mWindowMain->addDockWidget(Qt::RightDockWidgetArea, mPreviewImage);
 
   //
   // Create Table
@@ -291,6 +306,9 @@ PanelResults::PanelResults(WindowMain *windowMain) : PanelEdit(windowMain, nullp
 
   onShowTable();
   refreshView();
+
+  connect(mPreviewImage, &DialogImageViewer::tileClicked, this, &PanelResults::onTileClicked);
+  connect(mPreviewImage, &DialogImageViewer::onSettingChanged, [this] { loadPreview(); });
 }
 
 PanelResults::~PanelResults()
@@ -319,6 +337,8 @@ void PanelResults::setActive(bool active)
 {
   if(!active) {
     showToolBar(false);
+    mPreviewImage->setVisible(false);
+    mPreviewImage->resetImage();
     resetSettings();
     refreshView();
     mIsActive = active;
@@ -503,11 +523,15 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpWell->setVisible(false);
       mBreadCrumpImage->setVisible(false);
       mOpenNextLevel->setVisible(true);
+      mPreviewImage->setVisible(false);
+      mPreviewImage->resetImage();
       break;
     case Navigation::WELL:
       mBreadCrumpWell->setVisible(true);
       mBreadCrumpImage->setVisible(false);
       mOpenNextLevel->setVisible(true);
+      mPreviewImage->setVisible(false);
+      mPreviewImage->resetImage();
       if(mSelectedDataSet.groupMeta.has_value()) {
         auto platePos =
             "Well (" + std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + ")";
@@ -518,6 +542,11 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpWell->setVisible(true);
       mBreadCrumpImage->setVisible(true);
       mOpenNextLevel->setVisible(false);
+      if(!mImageWorkingDirectory.empty()) {
+        mPreviewImage->setVisible(true);
+      }
+
+      //
       std::string imageName;
       if(mSelectedDataSet.imageMeta.has_value()) {
         imageName = mSelectedDataSet.imageMeta->filename;
@@ -536,6 +565,172 @@ void PanelResults::refreshBreadCrump()
 
       break;
   }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::onTileClicked(int32_t tileX, int32_t tileY)
+{
+  // Do nothing
+  // mSelectedTileX = tileX;
+  // mSelectedTileY = tileY;
+  loadPreview();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+bool PanelResults::showSelectWorkingDir(const QString &path)
+{
+  QFileDialog dialog(mWindowMain);
+  dialog.setWindowTitle("Select images Directory");
+  dialog.setFileMode(QFileDialog::Directory);
+  dialog.setOption(QFileDialog::ShowDirsOnly, true);
+  if(dialog.exec() == QDialog::Accepted) {
+    mImageWorkingDirectory = std::filesystem::path(dialog.selectedFiles().first().toStdString());
+    return true;
+  } else {
+    return false;
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::loadPreview()
+{
+  if(!mGeneratePreviewMutex.try_lock()) {
+    return;
+  }
+
+  if(mImageWorkingDirectory.empty()) {
+    // No working directory selected. Make the image preview invisible
+    mPreviewImage->setVisible(false);
+    mGeneratePreviewMutex.unlock();
+    return;
+  }
+  if(!mSelectedDataSet.analyzeMeta.has_value()) {
+    mGeneratePreviewMutex.unlock();
+    return;
+  }
+  // From relative file path
+  std::filesystem::path imagePathRel = std::filesystem::path(mSelectedDataSet.imageMeta->imageFilePathRel);
+  auto imagePath                     = mImageWorkingDirectory / imagePathRel;
+  bool showDialog                    = !std::filesystem::exists(imagePath);
+  if(std::filesystem::is_directory(imagePath)) {
+    mGeneratePreviewMutex.unlock();
+    return;
+  }
+
+  while(showDialog) {
+    QMessageBox msgBox(mWindowMain);
+    msgBox.setWindowTitle("Image not found");
+    msgBox.setText("Image >" + QString(mSelectedDataSet.imageMeta->filename.data()) +
+                   "< not found. Would you like to select the folder in which the images are located??");
+    msgBox.setIcon(QMessageBox::Question);
+
+    // Create custom buttons
+    QPushButton *cancelButton       = msgBox.addButton("Cancel", QMessageBox::RejectRole);
+    QPushButton *selectFolderButton = msgBox.addButton("Select Folder", QMessageBox::AcceptRole);
+    QPushButton *dontAskAgainButton = msgBox.addButton("Don't Ask Again", QMessageBox::DestructiveRole);
+
+    // Execute the message box
+    msgBox.exec();
+
+    // Determine which button was clicked
+    if(msgBox.clickedButton() == cancelButton) {
+      mGeneratePreviewMutex.unlock();
+      return;
+    } else if(msgBox.clickedButton() == selectFolderButton) {
+      if(showSelectWorkingDir(mImageWorkingDirectory.string().data())) {
+        imagePath  = mImageWorkingDirectory / imagePathRel;
+        showDialog = !std::filesystem::exists(imagePath);
+      } else {
+        if(mImageWorkingDirectory.empty()) {
+          mPreviewImage->setVisible(false);
+        }
+        mGeneratePreviewMutex.unlock();
+        return;
+      }
+    } else if(msgBox.clickedButton() == dontAskAgainButton) {
+      mPreviewImage->setVisible(false);
+      mImageWorkingDirectory.clear();
+      mGeneratePreviewMutex.unlock();
+      return;
+    }
+  }
+
+  mGeneratePreviewMutex.unlock();
+  QTimer::singleShot(0, this, [this, imagePath = imagePath]() {
+    mLoadLock.lock();
+    try {
+      mPreviewImage->setWaiting(true);
+      int32_t tileWidth  = mSelectedDataSet.analyzeMeta->tileWidth;
+      int32_t tileHeight = mSelectedDataSet.analyzeMeta->tileHeight;
+
+      int32_t series     = mSelectedDataSet.analyzeMeta->series;
+      int32_t resolution = 0;
+
+      const auto &objectInfo = mSelectedDataSet.objectInfo.value();
+      int32_t tileXNr        = objectInfo.measCenterX / tileWidth;
+      int32_t tileYNr        = objectInfo.measCenterY / tileHeight;
+
+      auto &previewResult = mPreviewImage->getPreviewObject();
+
+      auto log = std::to_string(tileXNr) + "," + std::to_string(tileYNr) + "," + std::to_string(tileWidth) + "," + std::to_string(tileHeight) + "," +
+                 std::to_string(objectInfo.stackC);
+      joda::log::logTrace("Preview for image >" + imagePath.string() + "< " + log);
+
+      joda::ctrl::Controller::loadImage(imagePath, series,
+                                        joda::image::reader::ImageReader::Plane{.z = static_cast<int32_t>(objectInfo.stackZ),
+                                                                                .c = static_cast<int32_t>(objectInfo.stackC),
+                                                                                .t = static_cast<int32_t>(objectInfo.stackT)},
+                                        joda::ome::TileToLoad{tileXNr, tileYNr, tileWidth, tileHeight}, previewResult, mImgProps, objectInfo,
+                                        mPreviewImage->getSelectedZProjection());
+      auto imgWidth    = mImgProps.getImageInfo(series).resolutions.at(0).imageWidth;
+      auto imageHeight = mImgProps.getImageInfo(series).resolutions.at(0).imageHeight;
+      if(imgWidth > tileWidth || imageHeight > tileHeight) {
+        tileWidth  = tileWidth;
+        tileHeight = tileHeight;
+      } else {
+        tileWidth  = imgWidth;
+        tileHeight = imageHeight;
+      }
+      auto [tileNrX, tileNrY] = mImgProps.getImageInfo(series).resolutions.at(resolution).getNrOfTiles(tileWidth, tileHeight);
+
+      auto measBoxX = objectInfo.measBoxX - tileXNr * tileWidth;
+      auto measBoxY = objectInfo.measBoxY - tileYNr * tileHeight;
+      QRect boungingBox{(int32_t) measBoxX, (int32_t) measBoxY, (int32_t) objectInfo.measBoxWidth, (int32_t) objectInfo.measBoxHeight};
+      mPreviewImage->setCrossHairCursorPositionAndCenter(boungingBox);
+      mPreviewImage->setThumbnailPosition(PanelImageView::ThumbParameter{.nrOfTilesX          = tileNrX,
+                                                                         .nrOfTilesY          = tileNrY,
+                                                                         .tileWidth           = tileWidth,
+                                                                         .tileHeight          = tileHeight,
+                                                                         .originalImageWidth  = imgWidth,
+                                                                         .originalImageHeight = imageHeight,
+                                                                         .selectedTileX       = tileXNr,
+                                                                         .selectedTileY       = tileYNr});
+      mPreviewImage->imageUpdated(previewResult.results, {});
+    } catch(const std::exception &ex) {
+      // No image selected
+      joda::log::logError("Preview error: " + std::string(ex.what()));
+    }
+    mLoadLock.unlock();
+    mPreviewImage->setWaiting(false);
+  });
 }
 
 ///
@@ -718,6 +913,7 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       mSelectedWellId            = value.getId();
       mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(value.getId());
       mSelectedDataSet.imageMeta.reset();
+      mSelectedDataSet.objectInfo.reset();
       mMarkAsInvalid->setEnabled(false);
       mDeleteCol->setEnabled(true);
       mEditCol->setEnabled(true);
@@ -731,6 +927,7 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       }
 
       mSelectedImageId = value.getId();
+      mSelectedDataSet.objectInfo.reset();
 
       auto imageInfo             = mAnalyzer->selectImageInfo(value.getId());
       mSelectedDataSet.imageMeta = imageInfo;
@@ -761,6 +958,13 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       mSelectedAreaPos.setX(cellX);
       mSelectedAreaPos.setY(cellY);
 
+      if(mSelectedTileId >= 0) {
+        mSelectedDataSet.objectInfo = mAnalyzer->selectObjectInfo(mSelectedTileId);
+        if(mSelectedDataSet.imageMeta->imageId != mSelectedDataSet.objectInfo->imageId) {
+          mSelectedDataSet.imageMeta = mAnalyzer->selectImageInfo(mSelectedDataSet.objectInfo->imageId);
+        }
+      }
+
       auto rowImageName = mSelectedDataSet.imageMeta->filename;
       if(mActImageId.size() > 1) {
         rowImageName = mSelectedTable.getRowHeader(cellY);
@@ -768,6 +972,8 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
                       rowImageName + "/" + std::to_string(value.getId());
       mSelectedRowInfo->setText(platePos.data());
+
+      loadPreview();
       break;
   }
   mSelectedValue->setText(QString::number(value.getVal()) + " | " + headerTxt);
@@ -860,6 +1066,11 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   mAnalyzer = std::make_unique<joda::db::Database>();
   mAnalyzer->openDatabase(std::filesystem::path(pathToDbFile.toStdString()));
   mDbFilePath = std::filesystem::path(pathToDbFile.toStdString());
+
+  // We assume the images to be in the folder ../../../<IMAGES>
+  // If not the user will be asked to select the image working directory.
+  mImageWorkingDirectory = mDbFilePath.parent_path().parent_path().parent_path();
+
   showToolBar(true);
   mSelectedDataSet.analyzeMeta = mAnalyzer->selectExperiment();
   mColumnEditDialog->updateClassesAndClasses(mAnalyzer.get());

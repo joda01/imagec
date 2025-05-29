@@ -110,6 +110,18 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   createLeftToolbar();
   setMinimumSize(1500, 800);
   setObjectName("windowMain");
+
+  //
+  //
+  //
+  {
+    mPreviewImage = new DialogImageViewer(this);
+    mPreviewImage->setVisible(false);
+    mPreviewImage->setContentsMargins(0, 0, 0, 0);
+    mPreviewImage->resetImage();
+    addDockWidget(Qt::RightDockWidgetArea, mPreviewImage);
+  }
+
   setCentralWidget(createStackedWidget());
   showPanelStartPage();
   clearSettings();
@@ -148,17 +160,6 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
     mPanelPipeline->loadTemplates();
     mDialogOpenProjectTemplates->loadTemplates();
   });
-
-  //
-  //
-  //
-  {
-    mPreviewImage = new DialogImageViewer(this);
-    mPreviewImage->setVisible(false);
-    mPreviewImage->setContentsMargins(0, 0, 0, 0);
-    mPreviewImage->resetImage();
-    addDockWidget(Qt::RightDockWidgetArea, mPreviewImage);
-  }
 
   mPanelPipeline->loadTemplates();
   mDialogOpenProjectTemplates->loadTemplates();

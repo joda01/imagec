@@ -93,7 +93,8 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
       const auto &images = allImages.getFilesListAt(plate.plateId);
 
       mProgress.setRunningPreparingPipeline();
-      auto imagesToProcess = db->prepareImages(plate.plateId, program.imageSetup.series, plate.groupBy, plate.filenameRegex, images, mGlobThreadPool);
+      auto imagesToProcess = db->prepareImages(plate.plateId, program.imageSetup.series, plate.groupBy, plate.filenameRegex, images,
+                                               allImages.getDirectoryAt(plate.plateId), mGlobThreadPool);
       mProgress.setStateRunning();
 
       //
@@ -454,8 +455,8 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
               // Objects which are selected should be painted in color in the legend, not selected are black
               foundObjects[key].color = foundObjects.at(key).wantedColor;
 
-              saverSettings.classesIn.emplace_back(
-                  settings::ImageSaverSettings::SaveClasss{.inputClass = classs, .style = previewSettings.style, .paintBoundingBox = false});
+              saverSettings.classesIn.emplace_back(settings::ImageSaverSettings::SaveClasss{
+                  .inputClass = classs, .style = previewSettings.style, .paintBoundingBox = false, .paintObjectId = false});
             }
           }
           // No breakpoint was set, use the last image

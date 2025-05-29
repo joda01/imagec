@@ -51,8 +51,8 @@ public:
   void finishJob(const std::string &jobId);
 
   auto prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
-                     const std::vector<std::filesystem::path> &imagePaths, BS::thread_pool &globalThreadPool)
-      -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>;
+                     const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
+                     BS::thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>;
   void setImageProcessed(uint64_t);
 
   void insertGroup(uint16_t plateId, const joda::grp::GroupInformation &groupInfo);
@@ -76,6 +76,7 @@ public:
 
   auto selectGroupInfo(uint64_t groupId) -> GroupInfo;
   auto selectImageInfo(uint64_t imageId) -> ImageInfo;
+  auto selectObjectInfo(uint64_t objectId) -> ObjectInfo;
   auto selectImages() -> std::vector<ImageInfo>;
   auto selectMeasurementChannelsForClasss(enums::ClassId classId) -> std::set<int32_t>;
 
