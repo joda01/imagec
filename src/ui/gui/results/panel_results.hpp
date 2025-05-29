@@ -197,6 +197,7 @@ private:
 
   /// IMAGE DOCK //////////////////////////////////////////////
   void loadPreview();
+  bool showSelectWorkingDir(const QString &path);
   std::filesystem::path mImageWorkingDirectory;
   DialogImageViewer *mPreviewImage;
   joda::ome::OmeInfo mImgProps;

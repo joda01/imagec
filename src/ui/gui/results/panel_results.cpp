@@ -545,7 +545,6 @@ void PanelResults::refreshBreadCrump()
       std::string imageName;
       if(mSelectedDataSet.imageMeta.has_value()) {
         imageName = mSelectedDataSet.imageMeta->filename;
-        loadPreview();
       }
       if(mActImageId.size() > 1) {
         imageName = "";
@@ -585,19 +584,86 @@ void PanelResults::onTileClicked(int32_t tileX, int32_t tileY)
 /// \param[out]
 /// \return
 ///
+bool PanelResults::showSelectWorkingDir(const QString &path)
+{
+  QFileDialog dialog(mWindowMain);
+  dialog.setWindowTitle("Select images Directory");
+  dialog.setFileMode(QFileDialog::Directory);
+  dialog.setOption(QFileDialog::ShowDirsOnly, true);
+  if(dialog.exec() == QDialog::Accepted) {
+    mImageWorkingDirectory = std::filesystem::path(dialog.selectedFiles().first().toStdString());
+    return true;
+  } else {
+    return false;
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelResults::loadPreview()
 {
+  if(!mGeneratePreviewMutex.try_lock()) {
+    return;
+  }
+
   if(mImageWorkingDirectory.empty()) {
     // No working directory selected. Make the image preview invisible
     mPreviewImage->setVisible(false);
+    mGeneratePreviewMutex.unlock();
     return;
   }
   if(!mSelectedDataSet.analyzeMeta.has_value()) {
+    mGeneratePreviewMutex.unlock();
     return;
   }
   // From relative file path
   std::filesystem::path imagePathRel = std::filesystem::path(mSelectedDataSet.imageMeta->imageFilePathRel);
   auto imagePath                     = mImageWorkingDirectory / imagePathRel;
+  bool showDialog                    = !std::filesystem::exists(imagePath);
+  while(showDialog) {
+    QMessageBox msgBox(mWindowMain);
+    msgBox.setWindowTitle("Image not found");
+    msgBox.setText("Image >" + QString(mSelectedDataSet.imageMeta->filename.data()) +
+                   "< not found. Would you like to select the folder in which the images are located??");
+    msgBox.setIcon(QMessageBox::Question);
+
+    // Create custom buttons
+    QPushButton *cancelButton       = msgBox.addButton("Cancel", QMessageBox::RejectRole);
+    QPushButton *selectFolderButton = msgBox.addButton("Select Folder", QMessageBox::AcceptRole);
+    QPushButton *dontAskAgainButton = msgBox.addButton("Don't Ask Again", QMessageBox::DestructiveRole);
+
+    // Execute the message box
+    msgBox.exec();
+
+    // Determine which button was clicked
+    if(msgBox.clickedButton() == cancelButton) {
+      mGeneratePreviewMutex.unlock();
+      return;
+    } else if(msgBox.clickedButton() == selectFolderButton) {
+      if(showSelectWorkingDir(mImageWorkingDirectory.string().data())) {
+        imagePath  = mImageWorkingDirectory / imagePathRel;
+        showDialog = !std::filesystem::exists(imagePath);
+      } else {
+        if(mImageWorkingDirectory.empty()) {
+          mPreviewImage->setVisible(false);
+        }
+        mGeneratePreviewMutex.unlock();
+        return;
+      }
+    } else if(msgBox.clickedButton() == dontAskAgainButton) {
+      mPreviewImage->setVisible(false);
+      mImageWorkingDirectory.clear();
+      mGeneratePreviewMutex.unlock();
+      return;
+    }
+  }
+
+  mGeneratePreviewMutex.unlock();
   QTimer::singleShot(0, this, [this, objectId = mSelectedTileId, imagePath = imagePath]() {
     mLoadLock.lock();
     std::cout << imagePath.string() << " | " << std::to_string(objectId) << std::endl;
