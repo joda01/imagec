@@ -302,8 +302,8 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
   }
   if(loadImage) {
     auto loadImageTile = [&tileLoad, series, &omeOut, &imagePath](int32_t z, int32_t c, int32_t t) {
-      return joda::image::reader::ImageReader::loadImageTile(imagePath, joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, series, 0,
-                                                             tileLoad, omeOut);
+      return joda::image::reader::ImageReader::loadImageTile(imagePath.string(), joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t},
+                                                             series, 0, tileLoad, omeOut);
     };
 
     //
