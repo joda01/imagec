@@ -278,28 +278,41 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
     -> void
 {
   static std::filesystem::path lastImagePath;
-  static int32_t lastImageChannel = -1;
-  static int32_t lastImageSeries  = -1;
-  bool generateThumb              = false;
-  omeOut                          = joda::image::reader::ImageReader::getOmeInformation(imagePath, series);
-  if(imagePath != lastImagePath || previewOut.thumbnail.empty() || lastImageChannel != imagePlane.c || lastImageSeries != series) {
-    lastImageSeries  = series;
-    lastImagePath    = imagePath;
-    generateThumb    = true;
-    lastImageChannel = imagePlane.c;
+  static joda::image::reader::ImageReader::Plane lastImagePlane = {-1, -1, -1};
+  static joda::ome::TileToLoad lastImageTile                    = {-1};
+  static int32_t lastImageSeries                                = -1;
+  bool generateThumb                                            = false;
+  bool loadImage                                                = false;
+
+  if(imagePath != lastImagePath || previewOut.thumbnail.empty() || lastImagePlane != imagePlane || lastImageTile != tileLoad ||
+     lastImageSeries != series) {
+    lastImageSeries = series;
+    lastImagePath   = imagePath;
+    generateThumb   = true;
+    loadImage       = true;
+    lastImagePlane  = imagePlane;
+    lastImageTile   = tileLoad;
   }
 
-  auto originalImg = joda::image::reader::ImageReader::loadImageTile(imagePath.string(), imagePlane, series, 0, tileLoad, omeOut);
-  cv::Mat overlay  = cv::Mat::zeros(originalImg.rows, originalImg.cols, CV_8UC3);
+  if(loadImage || generateThumb) {
+    omeOut = joda::image::reader::ImageReader::getOmeInformation(imagePath, series);
+  }
+  if(loadImage) {
+    auto originalImg = joda::image::reader::ImageReader::loadImageTile(imagePath.string(), imagePlane, series, 0, tileLoad, omeOut);
+    previewOut.editedImage.setImage(std::move(originalImg));
+  }
+
+  if(generateThumb) {
+    auto thumb = joda::image::reader::ImageReader::loadThumbnail(imagePath.string(), imagePlane, series, omeOut);
+    previewOut.thumbnail.setImage(std::move(thumb));
+  }
 
   //
   // Generate overlay
   //
+  cv::Mat overlay =
+      cv::Mat::zeros(previewOut.editedImage.getOriginalImageSize().height(), previewOut.editedImage.getOriginalImageSize().width(), CV_8UC3);
   auto drawCrosshair = [&](cv::Mat &image, const db::ObjectInfo &objInfo, cv::Scalar color = cv::Scalar(0, 255, 0), int thickness = 1) {
-    // Crosshair
-    // cv::line(image, cv::Point(0, objInfo.measCenterY), cv::Point(image.cols - 1, objInfo.measCenterY), color, thickness);
-    // cv::line(image, cv::Point(objInfo.measCenterX, 0), cv::Point(objInfo.measCenterX, image.rows - 1), color, thickness);
-
     // Bring in the context of the tile
     int32_t boxX = objInfo.measBoxX - tileLoad.tileX * tileLoad.tileWidth;
     int32_t boxY = objInfo.measBoxY - tileLoad.tileY * tileLoad.tileHeight;
@@ -310,18 +323,7 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
     cv::rectangle(image, topLeft, bottomRight, color, thickness);
   };
   drawCrosshair(overlay, objInfo);
-
-  //
-  // Set original image
-  //
-  auto editedImage = originalImg.clone();
-  previewOut.originalImage.setImage(std::move(originalImg));
   previewOut.overlay.setImage(std::move(overlay));
-  previewOut.editedImage.setImage(std::move(editedImage));
-  if(generateThumb) {
-    auto thumb = joda::image::reader::ImageReader::loadThumbnail(imagePath.string(), imagePlane, series, omeOut);
-    previewOut.thumbnail.setImage(std::move(thumb));
-  }
   previewOut.results.foundObjects.clear();
 }
 

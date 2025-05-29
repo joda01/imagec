@@ -93,7 +93,8 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
       const auto &images = allImages.getFilesListAt(plate.plateId);
 
       mProgress.setRunningPreparingPipeline();
-      auto imagesToProcess = db->prepareImages(plate.plateId, program.imageSetup.series, plate.groupBy, plate.filenameRegex, images, mGlobThreadPool);
+      auto imagesToProcess = db->prepareImages(plate.plateId, program.imageSetup.series, plate.groupBy, plate.filenameRegex, images,
+                                               allImages.getDirectoryAt(plate.plateId), mGlobThreadPool);
       mProgress.setStateRunning();
 
       //

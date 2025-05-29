@@ -15,6 +15,7 @@
 #include <duckdb.h>
 #include <chrono>
 #include <exception>
+#include <filesystem>
 #include <mutex>
 #include <stdexcept>
 #include <string>
@@ -138,6 +139,7 @@ void Database::createTables()
       " image_id UBIGINT,"
       " file_name TEXT,"
       " original_file_path TEXT,"
+      " relative_file_path TEXT,"
       " nr_of_c_stacks UINTEGER,"
       " nr_of_z_stacks UINTEGER,"
       " nr_of_t_stacks UINTEGER,"
@@ -254,6 +256,39 @@ void Database::createTables()
   auto result     = connection->Query(create_table_sql);
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
+  }
+
+  //
+  // Do some migrations
+  //
+  /// \todo Add relative file path -> This is legacy and cen be removed in further releases
+  {
+    std::string query =
+        "SELECT COUNT(*) FROM information_schema.columns "
+        "WHERE table_name = 'images' AND column_name = 'relative_file_path';";
+    auto con    = acquire();
+    auto result = con->Query(query);
+    if(result->GetValue<int64_t>(0, 0) <= 0) {
+      std::string alter_sql = "ALTER TABLE images ADD COLUMN relative_file_path TEXT DEFAULT '';";
+      con->Query(alter_sql);
+    }
+
+    {
+      auto plate = selectPlates();
+      if(!plate.empty()) {
+        auto images           = selectImages();
+        auto workingDirectory = std::filesystem::path(plate.begin()->second.imageFolder);
+        for(const auto &image : images) {
+          auto originalFilePath = std::filesystem::path(image.imageFilePath);
+          auto relativePath     = std::filesystem::relative(originalFilePath, workingDirectory);
+          std::cout << "Migrate " << originalFilePath.string() << std::endl;
+
+          std::string alter_sql =
+              "UPDATE images SET relative_file_path = '" + relativePath.string() + "' WHERE original_file_path='" + originalFilePath.string() + "'";
+          con->Query(alter_sql);
+        }
+      }
+    }
   }
 }
 
@@ -398,8 +433,8 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
 }
 
 auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
-                             const std::vector<std::filesystem::path> &imagePaths, BS::thread_pool &globalThreadPool)
-    -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>
+                             const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
+                             BS::thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>
 {
   std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> imagesToProcess;
   joda::grp::FileGrouper grouper(groupBy, filenameRegex);
@@ -420,7 +455,7 @@ auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy gro
 
   for(const auto &imagePath : imagePaths) {
     auto prepareImage = [&groups, &grouper, &addedGroups, &imagesToProcess, &images, &images_groups, &images_channels, &insertMutex, &series, plateId,
-                         imagePath]() {
+                         imagePath, &imagesBasePath]() {
       auto ome         = joda::image::reader::ImageReader::getOmeInformation(imagePath, series);
       uint64_t imageId = joda::helper::fnv1a(imagePath.string());
       auto groupInfo   = grouper.getGroupForFilename(imagePath);
@@ -445,10 +480,12 @@ auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy gro
 
         // Image
         {
+          auto relativePath = std::filesystem::relative(imagePath, imagesBasePath);
           images.BeginRow();
           images.Append<uint64_t>(imageId);                                  //       " image_id UBIGINT,"
           images.Append<duckdb::string_t>(imagePath.filename().string());    //       " file_name TEXT,"
           images.Append<duckdb::string_t>(imagePath.string());               //       " original_file_path TEXT
+          images.Append<duckdb::string_t>(relativePath.string());            //       " relative_file_path TEXT
           images.Append<uint32_t>(ome.getNrOfChannels(series));              //       " nr_of_c_stacks UINTEGER
           images.Append<uint32_t>(ome.getNrOfZStack(series));                //       " nr_of_z_stacks UINTEGER
           images.Append<uint32_t>(ome.getNrOfTStack(series));                //       " nr_of_t_stacks UINTEGER
@@ -1038,7 +1075,7 @@ auto Database::selectGroupInfo(uint64_t groupId) -> GroupInfo
 auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
 {
   std::unique_ptr<duckdb::QueryResult> result = select(
-      "SELECT images.file_name, images.original_file_path, images.validity, images.width, images.height, groups.name "
+      "SELECT images.file_name, images.original_file_path,images.relative_file_path, images.validity, images.width, images.height, groups.name "
       "FROM images "
       "JOIN images_groups ON "
       "     images.image_id = images_groups.image_id "
@@ -1054,12 +1091,13 @@ auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
 
   ImageInfo results;
   if(materializedResult->RowCount() > 0) {
-    results.filename       = materializedResult->GetValue(0, 0).GetValue<std::string>();
-    results.imageFilePath  = materializedResult->GetValue(1, 0).GetValue<std::string>();
-    results.validity       = materializedResult->GetValue(2, 0).GetValue<uint64_t>();
-    results.width          = materializedResult->GetValue(3, 0).GetValue<uint32_t>();
-    results.height         = materializedResult->GetValue(4, 0).GetValue<uint32_t>();
-    results.imageGroupName = materializedResult->GetValue(5, 0).GetValue<std::string>();
+    results.filename         = materializedResult->GetValue(0, 0).GetValue<std::string>();
+    results.imageFilePath    = materializedResult->GetValue(1, 0).GetValue<std::string>();
+    results.imageFilePathRel = materializedResult->GetValue(2, 0).GetValue<std::string>();
+    results.validity         = materializedResult->GetValue(3, 0).GetValue<uint64_t>();
+    results.width            = materializedResult->GetValue(4, 0).GetValue<uint32_t>();
+    results.height           = materializedResult->GetValue(5, 0).GetValue<uint32_t>();
+    results.imageGroupName   = materializedResult->GetValue(6, 0).GetValue<std::string>();
   }
 
   return results;
@@ -1075,7 +1113,7 @@ auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
 auto Database::selectImages() -> std::vector<ImageInfo>
 {
   std::unique_ptr<duckdb::QueryResult> result = select(
-      "SELECT images.file_name,images.original_file_path,images.validity, images.width, images.height, groups.name "
+      "SELECT images.file_name,images.original_file_path,images.relative_file_path,images.validity, images.width, images.height, groups.name "
       "FROM images "
       "JOIN images_groups ON "
       "     images.image_id = images_groups.image_id "
@@ -1090,12 +1128,13 @@ auto Database::selectImages() -> std::vector<ImageInfo>
   std::vector<ImageInfo> results;
   for(int n = 0; n < materializedResult->RowCount(); n++) {
     ImageInfo info;
-    info.filename       = materializedResult->GetValue(0, n).GetValue<std::string>();
-    info.imageFilePath  = materializedResult->GetValue(1, 0).GetValue<std::string>();
-    info.validity       = materializedResult->GetValue(2, n).GetValue<uint64_t>();
-    info.width          = materializedResult->GetValue(3, n).GetValue<uint32_t>();
-    info.height         = materializedResult->GetValue(4, n).GetValue<uint32_t>();
-    info.imageGroupName = materializedResult->GetValue(5, n).GetValue<std::string>();
+    info.filename         = materializedResult->GetValue(0, n).GetValue<std::string>();
+    info.imageFilePath    = materializedResult->GetValue(1, n).GetValue<std::string>();
+    info.imageFilePathRel = materializedResult->GetValue(2, n).GetValue<std::string>();
+    info.validity         = materializedResult->GetValue(3, n).GetValue<uint64_t>();
+    info.width            = materializedResult->GetValue(4, n).GetValue<uint32_t>();
+    info.height           = materializedResult->GetValue(5, n).GetValue<uint32_t>();
+    info.imageGroupName   = materializedResult->GetValue(6, n).GetValue<std::string>();
     results.push_back(info);
   }
 

@@ -332,6 +332,8 @@ void PanelResults::setActive(bool active)
 {
   if(!active) {
     showToolBar(false);
+    mPreviewImage->setVisible(false);
+    mPreviewImage->resetImage();
     resetSettings();
     refreshView();
     mIsActive = active;
@@ -535,15 +537,15 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpWell->setVisible(true);
       mBreadCrumpImage->setVisible(true);
       mOpenNextLevel->setVisible(false);
-      mPreviewImage->setVisible(true);
+      if(!mImageWorkingDirectory.empty()) {
+        mPreviewImage->setVisible(true);
+      }
 
       //
       std::string imageName;
       if(mSelectedDataSet.imageMeta.has_value()) {
         imageName = mSelectedDataSet.imageMeta->filename;
-
-        auto path = mSelectedDataSet.imageMeta->imageFilePath;
-        loadPreview(std::filesystem::path("/workspaces/imagec/tmp/Histo/overview/GMEV 60 min_01.vsi"), -1);
+        loadPreview();
       }
       if(mActImageId.size() > 1) {
         imageName = "";
@@ -570,9 +572,10 @@ void PanelResults::refreshBreadCrump()
 ///
 void PanelResults::onTileClicked(int32_t tileX, int32_t tileY)
 {
-  mSelectedTileX = tileX;
-  mSelectedTileY = tileY;
-  loadPreview(std::filesystem::path("/workspaces/imagec/tmp/Histo/overview/GMEV 60 min_01.vsi"), mSelectedTileId);
+  // Do nothing
+  // mSelectedTileX = tileX;
+  // mSelectedTileY = tileY;
+  // loadPreview(std::filesystem::path("/workspaces/imagec/tmp/Histo/overview/GMEV 60 min_01.vsi"), mSelectedTileId);
 }
 
 ///
@@ -582,20 +585,23 @@ void PanelResults::onTileClicked(int32_t tileX, int32_t tileY)
 /// \param[out]
 /// \return
 ///
-void PanelResults::loadPreview(const std::filesystem::path &imagePath, int64_t objectId)
+void PanelResults::loadPreview()
 {
-  std::cout << "Load preview" << std::endl;
-  QTimer::singleShot(0, this, [this, objectId, imagePath = imagePath]() {
-    std::cout << "Start" << std::endl;
+  if(mImageWorkingDirectory.empty()) {
+    // No working directory selected. Make the image preview invisible
+    mPreviewImage->setVisible(false);
+    return;
+  }
+  if(!mSelectedDataSet.analyzeMeta.has_value()) {
+    return;
+  }
+  // From relative file path
+  std::filesystem::path imagePathRel = std::filesystem::path(mSelectedDataSet.imageMeta->imageFilePathRel);
+  auto imagePath                     = mImageWorkingDirectory / imagePathRel;
+  QTimer::singleShot(0, this, [this, objectId = mSelectedTileId, imagePath = imagePath]() {
     mLoadLock.lock();
     std::cout << imagePath.string() << " | " << std::to_string(objectId) << std::endl;
-
     try {
-      if(!mSelectedDataSet.analyzeMeta.has_value()) {
-        mLoadLock.unlock();
-        return;
-      }
-
       mPreviewImage->setWaiting(true);
       int32_t tileWidth  = mSelectedDataSet.analyzeMeta->tileWidth;
       int32_t tileHeight = mSelectedDataSet.analyzeMeta->tileHeight;
@@ -879,7 +885,7 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
                       rowImageName + "/" + std::to_string(value.getId());
       mSelectedRowInfo->setText(platePos.data());
 
-      loadPreview(std::filesystem::path("/workspaces/imagec/tmp/Histo/overview/GMEV 60 min_01.vsi"), mSelectedTileId);
+      loadPreview();
       break;
   }
   mSelectedValue->setText(QString::number(value.getVal()) + " | " + headerTxt);
@@ -972,6 +978,11 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   mAnalyzer = std::make_unique<joda::db::Database>();
   mAnalyzer->openDatabase(std::filesystem::path(pathToDbFile.toStdString()));
   mDbFilePath = std::filesystem::path(pathToDbFile.toStdString());
+
+  // We assume the images to be in the folder ../../../<IMAGES>
+  // If not the user will be asked to select the image working directory.
+  mImageWorkingDirectory = mDbFilePath.parent_path().parent_path().parent_path();
+
   showToolBar(true);
   mSelectedDataSet.analyzeMeta = mAnalyzer->selectExperiment();
   mColumnEditDialog->updateClassesAndClasses(mAnalyzer.get());
