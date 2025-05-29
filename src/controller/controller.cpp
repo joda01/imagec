@@ -20,6 +20,7 @@
 #include <utility>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
+#include "backend/enums/types.hpp"
 #include "backend/helper/database/database.hpp"
 #include "backend/helper/database/exporter/r/exporter_r.hpp"
 #include "backend/helper/database/exporter/xlsx/exporter.hpp"
@@ -281,17 +282,19 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
   static joda::image::reader::ImageReader::Plane lastImagePlane = {-1, -1, -1};
   static joda::ome::TileToLoad lastImageTile                    = {-1};
   static int32_t lastImageSeries                                = -1;
+  static enums::ZProjection lastZProjection                     = enums::ZProjection::UNDEFINED;
   bool generateThumb                                            = false;
   bool loadImage                                                = false;
 
   if(imagePath != lastImagePath || previewOut.thumbnail.empty() || lastImagePlane != imagePlane || lastImageTile != tileLoad ||
-     lastImageSeries != series) {
+     lastImageSeries != series || zProjection != lastZProjection) {
     lastImageSeries = series;
     lastImagePath   = imagePath;
     generateThumb   = true;
     loadImage       = true;
     lastImagePlane  = imagePlane;
     lastImageTile   = tileLoad;
+    lastZProjection = zProjection;
   }
 
   if(loadImage || generateThumb) {

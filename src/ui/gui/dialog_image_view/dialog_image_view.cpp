@@ -179,37 +179,71 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
     //
     // Preview size
     //
-    auto *resolutionMenu = new QMenu();
-    mPreviewSizeGroup    = new QActionGroup(toolbarTop);
-    auto *r8192          = resolutionMenu->addAction("8192x8192");
-    mPreviewSizeGroup->addAction(r8192);
-    r8192->setCheckable(true);
-    auto *r4096 = resolutionMenu->addAction("4096x4096");
-    mPreviewSizeGroup->addAction(r4096);
-    r4096->setCheckable(true);
-    auto *r2048 = resolutionMenu->addAction("2048x2048");
-    mPreviewSizeGroup->addAction(r2048);
-    r2048->setCheckable(true);
-    r2048->setChecked(true);
-    auto *r1024 = resolutionMenu->addAction("1024x1024");
-    mPreviewSizeGroup->addAction(r1024);
-    r1024->setCheckable(true);
-    auto *r512 = resolutionMenu->addAction("512x512");
-    mPreviewSizeGroup->addAction(r512);
-    r512->setCheckable(true);
-    auto *r256 = resolutionMenu->addAction("256x256");
-    mPreviewSizeGroup->addAction(r256);
-    r256->setCheckable(true);
-    auto *r128 = resolutionMenu->addAction("128x128");
-    mPreviewSizeGroup->addAction(r128);
-    r128->setCheckable(true);
-    previewSize = new QAction(generateSvgIcon("computer"), "");
-    previewSize->setStatusTip("Set preview resolution");
-    previewSize->setMenu(resolutionMenu);
-    toolbarTop->addAction(previewSize);
-    auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(previewSize));
-    btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
-    connect(mPreviewSizeGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingChanged);
+    {
+      auto *resolutionMenu = new QMenu();
+      mPreviewSizeGroup    = new QActionGroup(toolbarTop);
+      auto *r8192          = resolutionMenu->addAction("8192x8192");
+      mPreviewSizeGroup->addAction(r8192);
+      r8192->setCheckable(true);
+      auto *r4096 = resolutionMenu->addAction("4096x4096");
+      mPreviewSizeGroup->addAction(r4096);
+      r4096->setCheckable(true);
+      auto *r2048 = resolutionMenu->addAction("2048x2048");
+      mPreviewSizeGroup->addAction(r2048);
+      r2048->setCheckable(true);
+      r2048->setChecked(true);
+      auto *r1024 = resolutionMenu->addAction("1024x1024");
+      mPreviewSizeGroup->addAction(r1024);
+      r1024->setCheckable(true);
+      auto *r512 = resolutionMenu->addAction("512x512");
+      mPreviewSizeGroup->addAction(r512);
+      r512->setCheckable(true);
+      auto *r256 = resolutionMenu->addAction("256x256");
+      mPreviewSizeGroup->addAction(r256);
+      r256->setCheckable(true);
+      auto *r128 = resolutionMenu->addAction("128x128");
+      mPreviewSizeGroup->addAction(r128);
+      r128->setCheckable(true);
+      previewSize = new QAction(generateSvgIcon("computer"), "");
+      previewSize->setStatusTip("Set preview resolution");
+      previewSize->setMenu(resolutionMenu);
+      toolbarTop->addAction(previewSize);
+      auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(previewSize));
+      btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
+      connect(mPreviewSizeGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingChanged);
+    }
+
+    //
+    // z-Projection
+    //
+    {
+      auto *zProjectionMenu    = new QMenu();
+      mZProjectionGroup        = new QActionGroup(toolbarTop);
+      mSingleChannelProjection = zProjectionMenu->addAction("Single channel");
+      mZProjectionGroup->addAction(mSingleChannelProjection);
+      mSingleChannelProjection->setCheckable(true);
+      mMaxIntensityProjection = zProjectionMenu->addAction("Max. intensity");
+      mZProjectionGroup->addAction(mMaxIntensityProjection);
+      mMaxIntensityProjection->setCheckable(true);
+      mMaxIntensityProjection->setChecked(true);
+      mMinIntensityProjection = zProjectionMenu->addAction("Min. intensity");
+      mZProjectionGroup->addAction(mMinIntensityProjection);
+      mMinIntensityProjection->setCheckable(true);
+      mAvgIntensity = zProjectionMenu->addAction("Avg. intensity");
+      mZProjectionGroup->addAction(mAvgIntensity);
+      mAvgIntensity->setCheckable(true);
+      mTakeTheMiddleProjection = zProjectionMenu->addAction("Take the middle");
+      mZProjectionGroup->addAction(mTakeTheMiddleProjection);
+      mTakeTheMiddleProjection->setCheckable(true);
+      mZProjectionAction = new QAction(generateSvgIcon("layer-visible-on"), "");
+      mZProjectionAction->setStatusTip("z-projection options");
+      mZProjectionAction->setMenu(zProjectionMenu);
+      toolbarTop->addAction(mZProjectionAction);
+      auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(mZProjectionAction));
+      btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
+      connect(mZProjectionGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingChanged);
+      mZProjectionAction->setVisible(false);
+    }
 
     layout->addWidget(toolbarTop);
     // addToolBar(Qt::ToolBarArea::TopToolBarArea, toolbarTop);

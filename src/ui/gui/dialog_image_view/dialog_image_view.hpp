@@ -16,6 +16,7 @@
 #include <qaction.h>
 #include <qdialog.h>
 #include <qwindow.h>
+#include "backend/enums/types.hpp"
 #include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"
 #include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
@@ -75,6 +76,29 @@ public:
     return 2048;
   }
 
+  auto getSelectedZProjection() const -> enums::ZProjection
+  {
+    if(mZProjectionGroup != nullptr) {
+      auto *checked = mZProjectionGroup->checkedAction();
+      if(checked == mSingleChannelProjection) {
+        return enums::ZProjection::NONE;
+      }
+      if(checked == mMaxIntensityProjection) {
+        return enums::ZProjection::MAX_INTENSITY;
+      }
+      if(checked == mMinIntensityProjection) {
+        return enums::ZProjection::MIN_INTENSITY;
+      }
+      if(checked == mAvgIntensity) {
+        return enums::ZProjection::AVG_INTENSITY;
+      }
+      if(checked == mTakeTheMiddleProjection) {
+        return enums::ZProjection::TAKE_MIDDLE;
+      }
+    }
+    return enums::ZProjection::MAX_INTENSITY;
+  }
+
   auto getSelectedClassesAndClasses() const -> settings::ObjectInputClasses
   {
     return mImageViewRight.getSelectedClasses();
@@ -99,6 +123,11 @@ public:
     showPipelineResults->setChecked(show);
     showPipelineResults->setVisible(show);
     mImageViewRight.setShowPipelineResults(show);
+  }
+
+  void setZProjectionButtonVisible(bool show)
+  {
+    mZProjectionAction->setVisible(show);
   }
 
   void setPreviewImageSizeVisble(bool show)
@@ -156,6 +185,14 @@ private:
   QAction *showCrossHairCursor    = nullptr;
   QAction *showPixelInfo          = nullptr;
   QAction *showOverlay            = nullptr;
+
+  QAction *mZProjectionAction       = nullptr;
+  QActionGroup *mZProjectionGroup   = nullptr;
+  QAction *mSingleChannelProjection = nullptr;
+  QAction *mMaxIntensityProjection  = nullptr;
+  QAction *mMinIntensityProjection  = nullptr;
+  QAction *mAvgIntensity            = nullptr;
+  QAction *mTakeTheMiddleProjection = nullptr;
 
 private slots:
   /////////////////////////////////////////////////////

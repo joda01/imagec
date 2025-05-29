@@ -93,6 +93,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   mPreviewImage->setShowCrossHairCursor(true);
   mPreviewImage->setShowPixelInfo(false);
   mPreviewImage->setShowOverlay(false);
+  mPreviewImage->setZProjectionButtonVisible(true);
   mWindowMain->addDockWidget(Qt::RightDockWidgetArea, mPreviewImage);
 
   //
@@ -307,6 +308,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   refreshView();
 
   connect(mPreviewImage, &DialogImageViewer::tileClicked, this, &PanelResults::onTileClicked);
+  connect(mPreviewImage, &DialogImageViewer::onSettingChanged, [this] { loadPreview(); });
 }
 
 PanelResults::~PanelResults()
@@ -697,7 +699,7 @@ void PanelResults::loadPreview()
                                                                                 .c = static_cast<int32_t>(objectInfo.stackC),
                                                                                 .t = static_cast<int32_t>(objectInfo.stackT)},
                                         joda::ome::TileToLoad{tileXNr, tileYNr, tileWidth, tileHeight}, previewResult, mImgProps, objectInfo,
-                                        enums::ZProjection::MAX_INTENSITY);
+                                        mPreviewImage->getSelectedZProjection());
       auto imgWidth    = mImgProps.getImageInfo(series).resolutions.at(0).imageWidth;
       auto imageHeight = mImgProps.getImageInfo(series).resolutions.at(0).imageHeight;
       if(imgWidth > tileWidth || imageHeight > tileHeight) {
