@@ -90,6 +90,8 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   mPreviewImage->setPipelineResultsButtonVisible(false);
   mPreviewImage->setVisible(false);
   mPreviewImage->setShowCrossHairCursor(true);
+  mPreviewImage->setShowPixelInfo(false);
+  mPreviewImage->setShowOverlay(false);
   mWindowMain->addDockWidget(Qt::RightDockWidgetArea, mPreviewImage);
 
   //
@@ -666,7 +668,6 @@ void PanelResults::loadPreview()
   mGeneratePreviewMutex.unlock();
   QTimer::singleShot(0, this, [this, objectId = mSelectedTileId, imagePath = imagePath]() {
     mLoadLock.lock();
-    std::cout << imagePath.string() << " | " << std::to_string(objectId) << std::endl;
     try {
       mPreviewImage->setWaiting(true);
       int32_t tileWidth  = mSelectedDataSet.analyzeMeta->tileWidth;
@@ -682,9 +683,7 @@ void PanelResults::loadPreview()
       int32_t tileXNr = objectInfo.measCenterX / tileWidth;
       int32_t tileYNr = objectInfo.measCenterY / tileHeight;
 
-      objectInfo.measCenterX = objectInfo.measCenterX - tileXNr * tileWidth;
-      objectInfo.measCenterY = objectInfo.measCenterY - tileYNr * tileHeight;
-      auto &previewResult    = mPreviewImage->getPreviewObject();
+      auto &previewResult = mPreviewImage->getPreviewObject();
       joda::ctrl::Controller::loadImage(imagePath, series,
                                         joda::image::reader::ImageReader::Plane{.z = static_cast<int32_t>(objectInfo.stackZ),
                                                                                 .c = static_cast<int32_t>(objectInfo.stackC),
@@ -701,7 +700,11 @@ void PanelResults::loadPreview()
       }
       auto [tileNrX, tileNrY] = mImgProps.getImageInfo(series).resolutions.at(resolution).getNrOfTiles(tileWidth, tileHeight);
 
-      mPreviewImage->setCrossHairCursorPositionAndCenter(objectInfo.measCenterX, objectInfo.measCenterY);
+      objectInfo.measBoxX = objectInfo.measBoxX - tileXNr * tileWidth;
+      objectInfo.measBoxY = objectInfo.measBoxY - tileYNr * tileHeight;
+      QRect boungingBox{(int32_t) objectInfo.measBoxX, (int32_t) objectInfo.measBoxY, (int32_t) objectInfo.measBoxWidth,
+                        (int32_t) objectInfo.measBoxHeight};
+      mPreviewImage->setCrossHairCursorPositionAndCenter(boungingBox);
       mPreviewImage->setThumbnailPosition(PanelImageView::ThumbParameter{.nrOfTilesX          = tileNrX,
                                                                          .nrOfTilesY          = tileNrY,
                                                                          .tileWidth           = tileWidth,

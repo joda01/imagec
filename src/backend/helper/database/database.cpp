@@ -274,21 +274,18 @@ void Database::createTables()
     if(result->GetValue<int64_t>(0, 0) <= 0) {
       std::string alter_sql = "ALTER TABLE images ADD COLUMN relative_file_path TEXT DEFAULT '';";
       con->Query(alter_sql);
-    }
-
-    {
-      auto plate = selectPlates();
-      if(!plate.empty()) {
-        auto images           = selectImages();
-        auto workingDirectory = std::filesystem::path(plate.begin()->second.imageFolder);
-        for(const auto &image : images) {
-          auto originalFilePath = std::filesystem::path(image.imageFilePath);
-          auto relativePath     = std::filesystem::relative(originalFilePath, workingDirectory);
-          std::cout << "Migrate " << originalFilePath.string() << std::endl;
-
-          std::string alter_sql =
-              "UPDATE images SET relative_file_path = '" + relativePath.string() + "' WHERE original_file_path='" + originalFilePath.string() + "'";
-          con->Query(alter_sql);
+      {
+        auto plate = selectPlates();
+        if(!plate.empty()) {
+          auto images           = selectImages();
+          auto workingDirectory = std::filesystem::path(plate.begin()->second.imageFolder);
+          for(const auto &image : images) {
+            auto originalFilePath = std::filesystem::path(image.imageFilePath);
+            auto relativePath     = std::filesystem::relative(originalFilePath, workingDirectory);
+            std::string alter_sql =
+                "UPDATE images SET relative_file_path = '" + relativePath.string() + "' WHERE original_file_path='" + originalFilePath.string() + "'";
+            con->Query(alter_sql);
+          }
         }
       }
     }

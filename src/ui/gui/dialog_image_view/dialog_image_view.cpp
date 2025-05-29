@@ -118,7 +118,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
     connect(showThumbnail, &QAction::triggered, this, &DialogImageViewer::onShowThumbnailChanged);
     toolbarTop->addAction(showThumbnail);
 
-    QAction *showPixelInfo = new QAction(generateSvgIcon("coordinate"), "");
+    showPixelInfo = new QAction(generateSvgIcon("coordinate"), "");
     showPixelInfo->setStatusTip("Show/Hide pixel information");
     showPixelInfo->setCheckable(true);
     showPixelInfo->setChecked(true);
@@ -141,7 +141,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
 
     toolbarTop->addSeparator();
 
-    QAction *showOverlay = new QAction(generateSvgIcon("redeyes"), "");
+    showOverlay = new QAction(generateSvgIcon("redeyes"), "");
     showOverlay->setStatusTip("Show/Hide results as overlay");
     showOverlay->setCheckable(true);
     showOverlay->setChecked(true);
@@ -555,12 +555,12 @@ void DialogImageViewer::closeEvent(QCloseEvent *event)
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::setCrossHairCursorPositionAndCenter(int32_t x, int32_t y)
+void DialogImageViewer::setCrossHairCursorPositionAndCenter(const QRect &boundingRect)
 {
   mImageViewLeft.setLockCrosshandCursor(true);
   mImageViewRight.setLockCrosshandCursor(true);
-  mImageViewLeft.setCursorPositionFromOriginalImageCoordinatesAndCenter(QPoint{x, y});
-  mImageViewRight.setCursorPositionFromOriginalImageCoordinatesAndCenter(QPoint{x, y});
+  mImageViewLeft.setCursorPositionFromOriginalImageCoordinatesAndCenter(boundingRect);
+  mImageViewRight.setCursorPositionFromOriginalImageCoordinatesAndCenter(boundingRect);
 }
 
 }    // namespace joda::ui::gui

@@ -414,34 +414,64 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   //
   // Takes 0.02 ms
   if(mShowCrosshandCursor) {
-    if(mLockCrosshandCursor) {
-      mCrossCursorInfo.mCursorPos = imageCoordinatesToPreviewCoordinates(mLastCrossHairCursorPos);
-      mCrossCursorInfo.pixelInfo  = fetchPixelInfoFromMousePosition(mCrossCursorInfo.mCursorPos);
-    }
+    drawCrossHairCursor(painter);
+  }
+}
 
-    // Set the color and pen thickness for the cross lines
-    QPen pen(Qt::blue, 2);
-    painter.setPen(pen);
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::drawCrossHairCursor(QPainter &painter)
+{
+  if(mLockCrosshandCursor) {
+    QPoint pos{mLastCrossHairCursorPos.x(), mLastCrossHairCursorPos.y()};
+    mCrossCursorInfo.mCursorPos = imageCoordinatesToPreviewCoordinates(pos);
+    mCrossCursorInfo.pixelInfo  = fetchPixelInfoFromMousePosition(mCrossCursorInfo.mCursorPos);
+  }
 
-    if(mCrossCursorInfo.mCursorPos.x() != -1 && mCrossCursorInfo.mCursorPos.y() != -1) {
+  // Set the color and pen thickness for the cross lines
+  QPen pen(QColor(0, 255, 0), 1);
+  painter.setPen(pen);
+
+  if(mCrossCursorInfo.mCursorPos.x() != -1 && mCrossCursorInfo.mCursorPos.y() != -1) {
+    if(mLastCrossHairCursorPos.width() > 0 && mLastCrossHairCursorPos.height() > 0) {
+      auto rect = imageCoordinatesToPreviewCoordinates(mLastCrossHairCursorPos);
       // Draw horizontal line at cursor's Y position
-      painter.drawLine(0, mCrossCursorInfo.mCursorPos.y(), width(), mCrossCursorInfo.mCursorPos.y());
+      auto stopX  = rect.x();
+      auto startX = rect.x() + rect.width();
+      auto yVal   = rect.y() + rect.width() / 2;
+      painter.drawLine(0, yVal, stopX, yVal);
+      painter.drawLine(startX, yVal, width(), yVal);
 
       // Draw vertical line at cursor's X position
-      painter.drawLine(mCrossCursorInfo.mCursorPos.x(), 0, mCrossCursorInfo.mCursorPos.x(), height());
+      auto stopY  = rect.y();
+      auto startY = rect.y() + rect.height();
+      auto xVal   = rect.x() + rect.height() / 2;
+      painter.drawLine(xVal, 0, xVal, stopY);
+      painter.drawLine(xVal, startY, xVal, height());
 
-      if(mShowHistogram && mShowPixelInfo) {
-        auto x = mCrossCursorInfo.mCursorPos.x();
-        if(x < width() / 2) {
-          // Switch the side
-          x = x + PIXEL_INFO_RECT_WIDTH + THUMB_RECT_START_X * 2;
-        }
-        auto y = mCrossCursorInfo.mCursorPos.y();
-        if(y < height() / 2) {
-          y = y + PIXEL_INFO_RECT_HEIGHT + THUMB_RECT_START_Y * 2;
-        }
-        drawPixelInfo(painter, x, y, mCrossCursorInfo.pixelInfo);
+    } else {
+      // Draw horizontal line at cursor's Y position
+      painter.drawLine(0, mCrossCursorInfo.mCursorPos.y(), width(), mCrossCursorInfo.mCursorPos.y());
+      // Draw vertical line at cursor's X position
+      painter.drawLine(mCrossCursorInfo.mCursorPos.x(), 0, mCrossCursorInfo.mCursorPos.x(), height());
+    }
+
+    if(mShowHistogram && mShowPixelInfo) {
+      auto x = mCrossCursorInfo.mCursorPos.x();
+      if(x < width() / 2) {
+        // Switch the side
+        x = x + PIXEL_INFO_RECT_WIDTH + THUMB_RECT_START_X * 2;
       }
+      auto y = mCrossCursorInfo.mCursorPos.y();
+      if(y < height() / 2) {
+        y = y + PIXEL_INFO_RECT_HEIGHT + THUMB_RECT_START_Y * 2;
+      }
+      drawPixelInfo(painter, x, y, mCrossCursorInfo.pixelInfo);
     }
   }
 }
@@ -453,7 +483,6 @@ void PanelImageView::paintEvent(QPaintEvent *event)
 /// \param[out]
 /// \return
 ///
-
 void PanelImageView::drawPixelInfo(QPainter &painter, int32_t startX, int32_t startY, const PixelInfo &info)
 {
   std::lock_guard<std::mutex> locked(mImageResetMutex);
@@ -929,11 +958,12 @@ auto PanelImageView::getCursorPosition() -> QPoint
   return mCrossCursorInfo.mCursorPos;
 }
 
-void PanelImageView::setCursorPositionFromOriginalImageCoordinatesAndCenter(const QPoint &pos)
+void PanelImageView::setCursorPositionFromOriginalImageCoordinatesAndCenter(const QRect &boundingRect)
 {
   if(mActPixmap != nullptr) {
-    mLastCrossHairCursorPos = pos;
-    auto originalPos        = imageCoordinatesToPreviewCoordinates(pos);
+    mLastCrossHairCursorPos = boundingRect;
+    QPoint pos{boundingRect.x(), boundingRect.y()};
+    auto originalPos = imageCoordinatesToPreviewCoordinates(pos);
 
     // Center viewport to the crosshair cursor center
     auto scrollX = originalPos.x() - viewport()->size().width() / 2;
@@ -968,6 +998,37 @@ auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QPoint &imageCoo
     imgY += viewRect.y();
   }
   return {(int32_t) imgX, (int32_t) imgY};
+}
+
+auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QRect &imageCoordinates) -> QRect
+{
+  double imgX = imageCoordinates.x();
+  double imgY = imageCoordinates.y();
+
+  double width  = imageCoordinates.width();
+  double height = imageCoordinates.height();
+
+  if(mActPixmap != nullptr) {
+    QRectF sceneRect = mActPixmap->sceneBoundingRect();
+    QRect viewRect   = mapFromScene(sceneRect).boundingRect();
+
+    auto originalImageSize = mActPixmapOriginal->getOriginalImageSize();
+    auto previewImageSize  = mActPixmapOriginal->getPreviewImageSize();
+    auto viewPortImageSize = QSize{viewRect.width(), viewRect.height()};
+
+    double factorX = static_cast<double>(viewPortImageSize.width()) / static_cast<double>(originalImageSize.width());
+    double factorY = static_cast<double>(viewPortImageSize.height()) / static_cast<double>(originalImageSize.height());
+
+    imgX *= factorX;
+    imgY *= factorY;
+
+    imgX += viewRect.x();
+    imgY += viewRect.y();
+
+    width *= factorX;
+    height *= factorY;
+  }
+  return {(int32_t) imgX, (int32_t) imgY, (int32_t) width, (int32_t) height};
 }
 
 }    // namespace joda::ui::gui

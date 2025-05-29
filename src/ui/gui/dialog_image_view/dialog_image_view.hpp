@@ -113,7 +113,20 @@ public:
     mImageViewRight.setShowCrosshandCursor(show);
   }
 
-  void setCrossHairCursorPositionAndCenter(int32_t x, int32_t y);
+  void setShowOverlay(bool show)
+  {
+    showOverlay->setChecked(show);
+    mImageViewRight.setShowOverlay(show);
+  }
+
+  void setShowPixelInfo(bool show)
+  {
+    showPixelInfo->setChecked(show);
+    mImageViewLeft.setShowPixelInfo(show);
+    mImageViewRight.setShowPixelInfo(show);
+  }
+
+  void setCrossHairCursorPositionAndCenter(const QRect &boundingRect);
 
 signals:
   void tileClicked(int32_t tileX, int32_t tileY);
@@ -141,6 +154,8 @@ private:
   QAction *showPipelineResults    = nullptr;
   QAction *previewSize            = nullptr;
   QAction *showCrossHairCursor    = nullptr;
+  QAction *showPixelInfo          = nullptr;
+  QAction *showOverlay            = nullptr;
 
 private slots:
   /////////////////////////////////////////////////////

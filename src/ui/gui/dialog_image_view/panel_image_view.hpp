@@ -103,7 +103,7 @@ public:
   void setLockCrosshandCursor(bool);
   void setThumbnailPosition(const ThumbParameter &);
   void setCursorPosition(const QPoint &pos);
-  void setCursorPositionFromOriginalImageCoordinatesAndCenter(const QPoint &pos);
+  void setCursorPositionFromOriginalImageCoordinatesAndCenter(const QRect &boundingRect);
   auto getCursorPosition() -> QPoint;
   void setImageReference(const joda::image::Image *imageReference);
   auto getSelectedClasses() const -> settings::ObjectInputClasses
@@ -128,6 +128,7 @@ protected:
   void drawHistogram(QPainter &);
   void drawThumbnail(QPainter &);
   void drawPipelineResult(QPainter &);
+  void drawCrossHairCursor(QPainter &);
   void drawPixelInfo(QPainter &, int32_t startX, int32_t startY, const PixelInfo &info);
 
   void getClickedTileInThumbnail(QMouseEvent *event);
@@ -138,6 +139,7 @@ protected:
 
   void updatePipelineResultsCoordinates();
   auto imageCoordinatesToPreviewCoordinates(const QPoint &imageCoordinates) -> QPoint;
+  auto imageCoordinatesToPreviewCoordinates(const QRect &imageCoordinates) -> QRect;
 
 private:
   /////////////////////////////////////////////////////
@@ -174,7 +176,7 @@ private:
 
   /////////////////////////////////////////////////////
   CrossCursorInfo mCrossCursorInfo;
-  QPoint mLastCrossHairCursorPos;
+  QRect mLastCrossHairCursorPos = {0, 0, 0, 0};
 
   /////////////////////////////////////////////////////
   ThumbParameter mThumbnailParameter;
