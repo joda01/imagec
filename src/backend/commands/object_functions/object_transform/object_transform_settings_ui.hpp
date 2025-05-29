@@ -50,7 +50,7 @@ public:
     mInput->setValue(settings.inputClasses);
     mInput->connectWithSetting(&settings.inputClasses);
 
-    mOutput = SettingBase::create<SettingComboBoxClassificationIn>(parent, {}, "Output class");
+    mOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, {}, "Output class");
     mOutput->setValue(settings.outputClasses);
     mOutput->connectWithSetting(&settings.outputClasses);
 
@@ -84,7 +84,7 @@ private:
   /////////////////////////////////////////////////////
   std::unique_ptr<SettingComboBox<joda::settings::ObjectTransformSettings::Function>> mFunction;
   std::unique_ptr<SettingComboBoxClassificationIn> mInput;
-  std::unique_ptr<SettingComboBoxClassificationIn> mOutput;
+  std::unique_ptr<SettingComboBoxClassesOut> mOutput;
   std::shared_ptr<SettingLineEdit<float>> mScaleFactor;
 
   /////////////////////////////////////////////////////

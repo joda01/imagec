@@ -456,7 +456,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
               foundObjects[key].color = foundObjects.at(key).wantedColor;
 
               saverSettings.classesIn.emplace_back(settings::ImageSaverSettings::SaveClasss{
-                  .inputClass = classs, .style = previewSettings.style, .paintBoundingBox = false, .paintObjectId = true});
+                  .inputClass = classs, .style = previewSettings.style, .paintBoundingBox = false, .paintObjectId = false});
             }
           }
           // No breakpoint was set, use the last image
