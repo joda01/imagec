@@ -610,7 +610,7 @@ void PanelResults::loadPreview()
         objectInfo = mAnalyzer->selectObjectInfo(objectId);
       }
 
-      int32_t series     = 0;
+      int32_t series     = mSelectedDataSet.analyzeMeta->series;
       int32_t resolution = 0;
 
       int32_t tileXNr = objectInfo.measCenterX / tileWidth;

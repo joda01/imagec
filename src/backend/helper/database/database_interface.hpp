@@ -35,6 +35,7 @@ struct AnalyzeMeta
   std::string analyzeSettingsJsonString;
   uint32_t tileWidth  = 0;    // Tile width selected for analysis.
   uint32_t tileHeight = 0;    // Tile height selected for analysis.
+  uint32_t series     = 0;    // Image series used for analysis.
 };
 
 struct GroupInfo
