@@ -54,6 +54,7 @@ struct ImageInfo
   uint32_t width  = 0;
   uint32_t height = 0;
   std::string imageGroupName;
+  uint64_t imageId;
 };
 
 struct ObjectInfo
@@ -67,6 +68,7 @@ struct ObjectInfo
   uint32_t measBoxY      = 0;
   uint32_t measBoxWidth  = 0;
   uint32_t measBoxHeight = 0;
+  uint64_t imageId       = 0;
 };
 
 class DatabaseInterface

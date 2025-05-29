@@ -1102,6 +1102,7 @@ auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
     results.width            = materializedResult->GetValue(4, 0).GetValue<uint32_t>();
     results.height           = materializedResult->GetValue(5, 0).GetValue<uint32_t>();
     results.imageGroupName   = materializedResult->GetValue(6, 0).GetValue<std::string>();
+    results.imageId          = imageId;
   }
 
   return results;
@@ -1155,7 +1156,7 @@ auto Database::selectImages() -> std::vector<ImageInfo>
 auto Database::selectObjectInfo(uint64_t objectId) -> ObjectInfo
 {
   std::unique_ptr<duckdb::QueryResult> result = select(
-      "SELECT stack_c, stack_z, stack_t, meas_center_x, meas_center_y, meas_box_x, meas_box_y, meas_box_width, meas_box_height\n"
+      "SELECT stack_c, stack_z, stack_t, meas_center_x, meas_center_y, meas_box_x, meas_box_y, meas_box_width, meas_box_height, image_id\n"
       "FROM objects "
       "WHERE object_id = ?",
       objectId);
@@ -1176,6 +1177,7 @@ auto Database::selectObjectInfo(uint64_t objectId) -> ObjectInfo
     results.measBoxY      = materializedResult->GetValue(6, 0).GetValue<uint32_t>();
     results.measBoxWidth  = materializedResult->GetValue(7, 0).GetValue<uint32_t>();
     results.measBoxHeight = materializedResult->GetValue(8, 0).GetValue<uint32_t>();
+    results.imageId       = materializedResult->GetValue(9, 0).GetValue<uint64_t>();
   }
 
   return results;

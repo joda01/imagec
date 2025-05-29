@@ -103,6 +103,7 @@ private:
     std::optional<db::GroupInfo> groupMeta;
     std::optional<db::ImageInfo> imageMeta;
     std::optional<Value> value;
+    std::optional<db::ObjectInfo> objectInfo;
     //  std::optional<results::db::PlateMeta> plateMeta;
     //  std::optional<results::db::GroupMeta> groupMeta;
     //  std::optional<results::db::ImageMeta> imageMeta;

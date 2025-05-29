@@ -576,7 +576,7 @@ void PanelResults::onTileClicked(int32_t tileX, int32_t tileY)
   // Do nothing
   // mSelectedTileX = tileX;
   // mSelectedTileY = tileY;
-  // loadPreview(std::filesystem::path("/workspaces/imagec/tmp/Histo/overview/GMEV 60 min_01.vsi"), mSelectedTileId);
+  loadPreview();
 }
 
 ///
@@ -627,6 +627,11 @@ void PanelResults::loadPreview()
   std::filesystem::path imagePathRel = std::filesystem::path(mSelectedDataSet.imageMeta->imageFilePathRel);
   auto imagePath                     = mImageWorkingDirectory / imagePathRel;
   bool showDialog                    = !std::filesystem::exists(imagePath);
+  if(std::filesystem::is_directory(imagePath)) {
+    mGeneratePreviewMutex.unlock();
+    return;
+  }
+
   while(showDialog) {
     QMessageBox msgBox(mWindowMain);
     msgBox.setWindowTitle("Image not found");
@@ -666,22 +671,19 @@ void PanelResults::loadPreview()
   }
 
   mGeneratePreviewMutex.unlock();
-  QTimer::singleShot(0, this, [this, objectId = mSelectedTileId, imagePath = imagePath]() {
+  QTimer::singleShot(0, this, [this, imagePath = imagePath]() {
     mLoadLock.lock();
     try {
       mPreviewImage->setWaiting(true);
       int32_t tileWidth  = mSelectedDataSet.analyzeMeta->tileWidth;
       int32_t tileHeight = mSelectedDataSet.analyzeMeta->tileHeight;
-      db::ObjectInfo objectInfo;
-      if(objectId >= 0) {
-        objectInfo = mAnalyzer->selectObjectInfo(objectId);
-      }
 
       int32_t series     = mSelectedDataSet.analyzeMeta->series;
       int32_t resolution = 0;
 
-      int32_t tileXNr = objectInfo.measCenterX / tileWidth;
-      int32_t tileYNr = objectInfo.measCenterY / tileHeight;
+      const auto &objectInfo = mSelectedDataSet.objectInfo.value();
+      int32_t tileXNr        = objectInfo.measCenterX / tileWidth;
+      int32_t tileYNr        = objectInfo.measCenterY / tileHeight;
 
       auto &previewResult = mPreviewImage->getPreviewObject();
       joda::ctrl::Controller::loadImage(imagePath, series,
@@ -700,10 +702,9 @@ void PanelResults::loadPreview()
       }
       auto [tileNrX, tileNrY] = mImgProps.getImageInfo(series).resolutions.at(resolution).getNrOfTiles(tileWidth, tileHeight);
 
-      objectInfo.measBoxX = objectInfo.measBoxX - tileXNr * tileWidth;
-      objectInfo.measBoxY = objectInfo.measBoxY - tileYNr * tileHeight;
-      QRect boungingBox{(int32_t) objectInfo.measBoxX, (int32_t) objectInfo.measBoxY, (int32_t) objectInfo.measBoxWidth,
-                        (int32_t) objectInfo.measBoxHeight};
+      auto measBoxX = objectInfo.measBoxX - tileXNr * tileWidth;
+      auto measBoxY = objectInfo.measBoxY - tileYNr * tileHeight;
+      QRect boungingBox{(int32_t) measBoxX, (int32_t) measBoxY, (int32_t) objectInfo.measBoxWidth, (int32_t) objectInfo.measBoxHeight};
       mPreviewImage->setCrossHairCursorPositionAndCenter(boungingBox);
       mPreviewImage->setThumbnailPosition(PanelImageView::ThumbParameter{.nrOfTilesX          = tileNrX,
                                                                          .nrOfTilesY          = tileNrY,
@@ -903,6 +904,7 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       mSelectedWellId            = value.getId();
       mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(value.getId());
       mSelectedDataSet.imageMeta.reset();
+      mSelectedDataSet.objectInfo.reset();
       mMarkAsInvalid->setEnabled(false);
       mDeleteCol->setEnabled(true);
       mEditCol->setEnabled(true);
@@ -916,6 +918,7 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       }
 
       mSelectedImageId = value.getId();
+      mSelectedDataSet.objectInfo.reset();
 
       auto imageInfo             = mAnalyzer->selectImageInfo(value.getId());
       mSelectedDataSet.imageMeta = imageInfo;
@@ -945,6 +948,13 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       mEditCol->setEnabled(false);
       mSelectedAreaPos.setX(cellX);
       mSelectedAreaPos.setY(cellY);
+
+      if(mSelectedTileId >= 0) {
+        mSelectedDataSet.objectInfo = mAnalyzer->selectObjectInfo(mSelectedTileId);
+        if(mSelectedDataSet.imageMeta->imageId != mSelectedDataSet.objectInfo->imageId) {
+          mSelectedDataSet.imageMeta = mAnalyzer->selectImageInfo(mSelectedDataSet.objectInfo->imageId);
+        }
+      }
 
       auto rowImageName = mSelectedDataSet.imageMeta->filename;
       if(mActImageId.size() > 1) {
