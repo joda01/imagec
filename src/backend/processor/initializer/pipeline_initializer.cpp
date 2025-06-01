@@ -45,19 +45,23 @@ PipelineInitializer::PipelineInitializer(const settings::ProjectImageSetup &sett
 
 void PipelineInitializer::init(ImageContext &imageContextOut)
 {
-  mImageContext              = &imageContextOut;
-  mImageContext->nrOfZStacks = imageContextOut.imageMeta.getNrOfZStack(mSettings.series);
-  mTotalNrOfZChannels        = imageContextOut.imageMeta.getNrOfZStack(mSettings.series);
-  mTotalNrOfTChannels        = imageContextOut.imageMeta.getNrOfTStack(mSettings.series);
-  mTotalNrOfChannels         = imageContextOut.imageMeta.getNrOfChannels(mSettings.series);
-  mImageContext->series      = mSettings.series;
+  mImageContext         = &imageContextOut;
+  mImageContext->series = mSettings.series;
+  if(mSettings.series >= imageContextOut.imageMeta.getNrOfSeries()) {
+    mImageContext->series = static_cast<int32_t>(imageContextOut.imageMeta.getNrOfSeries()) - 1;
+  }
+  mSelectedSeries            = mImageContext->series;
+  mImageContext->nrOfZStacks = imageContextOut.imageMeta.getNrOfZStack(mImageContext->series);
+  mTotalNrOfZChannels        = imageContextOut.imageMeta.getNrOfZStack(mImageContext->series);
+  mTotalNrOfTChannels        = imageContextOut.imageMeta.getNrOfTStack(mImageContext->series);
+  mTotalNrOfChannels         = imageContextOut.imageMeta.getNrOfChannels(mImageContext->series);
 
   switch(mSettings.tStackHandling) {
     case settings::ProjectImageSetup::TStackHandling::EXACT_ONE:
       mTstackToLoad = 1;
       break;
     case settings::ProjectImageSetup::TStackHandling::EACH_ONE:
-      mTstackToLoad = imageContextOut.imageMeta.getNrOfTStack(mSettings.series);
+      mTstackToLoad = imageContextOut.imageMeta.getNrOfTStack(mImageContext->series);
       break;
   }
 
@@ -66,13 +70,13 @@ void PipelineInitializer::init(ImageContext &imageContextOut)
       mZStackToLoad = 1;
       break;
     case settings::ProjectImageSetup::ZStackHandling::EACH_ONE:
-      mZStackToLoad = imageContextOut.imageMeta.getNrOfZStack(mSettings.series);
+      mZStackToLoad = imageContextOut.imageMeta.getNrOfZStack(mImageContext->series);
       break;
   }
 
   // Load image in tiles if too big
-  const auto &imageInfo = imageContextOut.imageMeta.getImageInfo(mSettings.series).resolutions.at(0);
-  auto imageSize        = imageContextOut.imageMeta.getSize(mSettings.series);
+  const auto &imageInfo = imageContextOut.imageMeta.getImageInfo(mImageContext->series).resolutions.at(0);
+  auto imageSize        = imageContextOut.imageMeta.getSize(mImageContext->series);
 
   if(std::get<0>(imageSize) > getCompositeTileSize().width || std::get<1>(imageSize) > getCompositeTileSize().height) {
     mNrOfTiles               = imageInfo.getNrOfTiles(getCompositeTileSize().width, getCompositeTileSize().height);
@@ -104,7 +108,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
 
   joda::atom::ImagePlane &imagePlaneOut = processContext.getActImage();
   imagePlaneOut.tile                    = tile;
-  imagePlaneOut.series                  = mSettings.series;
+  imagePlaneOut.series                  = mSelectedSeries;
 
   auto zProjection =
       mSettings.zStackHandling == settings::ProjectImageSetup::ZStackHandling::EACH_ONE ? enums::ZProjection::NONE : pipelineSetup.zProjection;
@@ -141,8 +145,8 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   // Start with blank image
   //
   if(joda::settings::PipelineSettings::Source::BLANK == pipelineSetup.source || c < 0 || c >= mTotalNrOfChannels) {
-    auto imageHeight = mImageContext->imageMeta.getImageInfo(mSettings.series).resolutions.at(0).imageHeight;
-    auto imageWidth  = mImageContext->imageMeta.getImageInfo(mSettings.series).resolutions.at(0).imageWidth;
+    auto imageHeight = mImageContext->imageMeta.getImageInfo(imagePlaneOut.series).resolutions.at(0).imageHeight;
+    auto imageWidth  = mImageContext->imageMeta.getImageInfo(imagePlaneOut.series).resolutions.at(0).imageWidth;
 
     if(mImageContext->loadImageInTiles) {
       int32_t offsetX         = std::get<0>(tile) * getCompositeTileSize().width;

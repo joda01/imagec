@@ -70,6 +70,7 @@ private:
   int32_t mTotalNrOfChannels              = 0;
   int32_t mTotalNrOfZChannels             = 0;
   int32_t mTotalNrOfTChannels             = 0;
+  int32_t mSelectedSeries                 = 0;
 
   /////////////////////////////////////////////////////
   const settings::ProjectImageSetup &mSettings;
