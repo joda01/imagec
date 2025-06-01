@@ -100,17 +100,7 @@ public:
     return mInOut;
   }
 
-  [[nodiscard]] InOuts getResolvedInput() const
-  {
-    if(mCommandBefore != nullptr) {
-      auto outTmp = mCommandBefore->getInOut().out;
-      auto iter   = mInOut.in.find(outTmp);
-      if(iter != mInOut.in.end()) {
-        return *iter;
-      }
-    }
-    return *mInOut.in.begin();
-  }
+  [[nodiscard]] InOuts getResolvedInput() const;
 
   void blockComponentSignals(bool bl)
   {
@@ -224,6 +214,11 @@ protected:
   }
 
   InOuts getOut() const;
+
+  std::shared_ptr<Command> getCommandBefore() const
+  {
+    return mCommandBefore;
+  }
 
 private:
   /////////////////////////////////////////////////////

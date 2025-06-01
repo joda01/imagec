@@ -151,6 +151,28 @@ void Command::mouseDoubleClickEvent(QMouseEvent *event)
   }
 }
 
+[[nodiscard]] InOuts Command::getResolvedInput() const
+{
+  if(mCommandBefore != nullptr) {
+    auto commandBeforeBefore = mCommandBefore;
+    auto outTmp              = commandBeforeBefore->getInOut().out;
+    while(outTmp == InOuts::OUTPUT_EQUAL_TO_INPUT && commandBeforeBefore != nullptr) {
+      commandBeforeBefore = commandBeforeBefore->getCommandBefore();
+      if(commandBeforeBefore != nullptr) {
+        outTmp = commandBeforeBefore->getInOut().out;
+      } else {
+        break;
+      }
+    }
+
+    auto iter = mInOut.in.find(outTmp);
+    if(iter != mInOut.in.end()) {
+      return *iter;
+    }
+  }
+  return *mInOut.in.begin();
+}
+
 ///
 /// \brief
 /// \author
@@ -199,7 +221,15 @@ void Command::paintEvent(QPaintEvent *event)
       if(mCommandBefore != nullptr) {
         auto outTmp = mCommandBefore->getInOut().out;
         if(outTmp == InOuts::OUTPUT_EQUAL_TO_INPUT) {
-          outTmp = mCommandBefore->getResolvedInput();
+          auto commandBeforeBefore = mCommandBefore;
+          outTmp                   = commandBeforeBefore->getResolvedInput();
+          while(outTmp == InOuts::OUTPUT_EQUAL_TO_INPUT && commandBeforeBefore != nullptr) {
+            commandBeforeBefore = commandBeforeBefore->getCommandBefore();
+            if(commandBeforeBefore == nullptr) {
+              break;
+            }
+            outTmp = commandBeforeBefore->getResolvedInput();
+          }
         }
         if(inouts.contains(outTmp)) {
           return getColor(outTmp);
