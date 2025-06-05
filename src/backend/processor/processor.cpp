@@ -192,6 +192,13 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                             iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_02));
                             iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_03));
                             iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_04));
+                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_05));
+                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_06));
+                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_07));
+                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_08));
+                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_09));
+                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_10));
+                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_11));
                           };
 
                           if(poolSizeChannels > 1) {
@@ -413,6 +420,13 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_02));
         iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_03));
         iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_04));
+        iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_05));
+        iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_06));
+        iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_07));
+        iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_08));
+        iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_09));
+        iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_10));
+        iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_11));
 
         //
         // The last step is the wanted pipeline

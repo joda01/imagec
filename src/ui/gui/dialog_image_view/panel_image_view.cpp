@@ -96,7 +96,8 @@ void PanelImageView::updatePipelineResultsCoordinates()
   auto xOffset = width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH;
   auto yOffset = THUMB_RECT_START_Y;
   QRect pixelInfoRect(QPoint(xOffset, THUMB_RECT_START_Y), QSize(RESULTS_INFO_RECT_WIDTH,
-                                                                 RESULTS_INFO_RECT_HEIGHT));    // Adjust the size as needed
+                                                                 height() - PIXEL_INFO_RECT_HEIGHT - THUMB_RECT_START_Y - PIXEL_INFO_RECT_HEIGHT -
+                                                                     THUMB_RECT_START_Y));    // Adjust the size as needed
 
   yOffset += THUMB_RECT_START_Y;
   auto addToTextCoordinated = [this, &xOffset, &yOffset](const QString &tmp, enums::ClassId classId) -> int32_t {
@@ -533,9 +534,10 @@ void PanelImageView::drawPipelineResult(QPainter &painter)
     return;
   }
   int32_t startY = 0;
-  QRect pixelInfoRect(QPoint(width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH, THUMB_RECT_START_Y),
-                      QSize(RESULTS_INFO_RECT_WIDTH,
-                            RESULTS_INFO_RECT_HEIGHT));    // Adjust the size as needed
+  QRect pixelInfoRect(
+      QPoint(width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH, THUMB_RECT_START_Y),
+      QSize(RESULTS_INFO_RECT_WIDTH,
+            height() - PIXEL_INFO_RECT_HEIGHT - THUMB_RECT_START_Y - PIXEL_INFO_RECT_HEIGHT - THUMB_RECT_START_Y));    // Adjust the size as needed
 
   painter.setPen(Qt::NoPen);    // Set the pen color to light blue
 
@@ -743,9 +745,10 @@ bool PanelImageView::getPreviewResultsAreaEntered(QMouseEvent *event)
 {
   auto pos = event->pos();
 
-  QRect pixelInfoRect(QPoint(width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH, THUMB_RECT_START_Y),
-                      QSize(RESULTS_INFO_RECT_WIDTH,
-                            RESULTS_INFO_RECT_HEIGHT));    // Adjust the size as needed
+  QRect pixelInfoRect(
+      QPoint(width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH, THUMB_RECT_START_Y),
+      QSize(RESULTS_INFO_RECT_WIDTH,
+            height() - PIXEL_INFO_RECT_HEIGHT - THUMB_RECT_START_Y - PIXEL_INFO_RECT_HEIGHT - THUMB_RECT_START_Y));    // Adjust the size as needed
 
   if(pixelInfoRect.contains(pos)) {
     return true;
@@ -764,9 +767,10 @@ bool PanelImageView::getPreviewResultsAreaClicked(QMouseEvent *event)
 {
   auto pos = event->pos();
 
-  QRect pixelInfoRect(QPoint(width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH, THUMB_RECT_START_Y),
-                      QSize(RESULTS_INFO_RECT_WIDTH,
-                            RESULTS_INFO_RECT_HEIGHT));    // Adjust the size as needed
+  QRect pixelInfoRect(
+      QPoint(width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH, THUMB_RECT_START_Y),
+      QSize(RESULTS_INFO_RECT_WIDTH,
+            height() - PIXEL_INFO_RECT_HEIGHT - THUMB_RECT_START_Y - PIXEL_INFO_RECT_HEIGHT - THUMB_RECT_START_Y));    // Adjust the size as needed
 
   if(pixelInfoRect.contains(pos)) {
     for(const auto &[classPos, classId] : mClassesCoordinates) {
