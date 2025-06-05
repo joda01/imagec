@@ -79,6 +79,16 @@ void SettingComboBoxMultiClassificationIn::outputClassesChanges()
                        QVariant(toInt(enums::ClassIdIn::TEMP_03)));
     mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 04",
                        QVariant(toInt(enums::ClassIdIn::TEMP_04)));
+    mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 05",
+                       QVariant(toInt(enums::ClassIdIn::TEMP_05)));
+    mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 06",
+                       QVariant(toInt(enums::ClassIdIn::TEMP_06)));
+    mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 07",
+                       QVariant(toInt(enums::ClassIdIn::TEMP_07)));
+    mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 08",
+                       QVariant(toInt(enums::ClassIdIn::TEMP_08)));
+    mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), "Memory 09",
+                       QVariant(toInt(enums::ClassIdIn::TEMP_09)));
     mComboBox->insertSeparator(mComboBox->count());
 
     auto classes = parent->getPanelClassification()->getClasses();

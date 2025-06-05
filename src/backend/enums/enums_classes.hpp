@@ -75,7 +75,14 @@ enum class ClassIdIn : uint16_t
   TEMP_02   = 0xFFF1,
   TEMP_03   = 0xFFF2,
   TEMP_04   = 0xFFF3,
-  TEMP_LAST = 0xFFF4,
+  TEMP_05   = 0xFFF4,
+  TEMP_06   = 0xFFF5,
+  TEMP_07   = 0xFFF6,
+  TEMP_08   = 0xFFF7,
+  TEMP_09   = 0xFFF8,
+  TEMP_10   = 0xFFF9,
+  TEMP_11   = 0xFFFA,
+  TEMP_LAST = 0xFFFB,
   NONE      = 0xFFFD,
   UNDEFINED = 0xFFFE,
   $         = 0xFFFF
@@ -208,7 +215,10 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ClassIdIn, {
                                             {ClassIdIn::C47, "47"},      {ClassIdIn::C48, "48"},
                                             {ClassIdIn::C49, "49"},      {ClassIdIn::TEMP_01, "M01"},
                                             {ClassIdIn::TEMP_02, "M02"}, {ClassIdIn::TEMP_03, "M03"},
-                                            {ClassIdIn::TEMP_04, "M04"},
+                                            {ClassIdIn::TEMP_04, "M04"}, {ClassIdIn::TEMP_05, "M05"},
+                                            {ClassIdIn::TEMP_06, "M06"}, {ClassIdIn::TEMP_07, "M07"},
+                                            {ClassIdIn::TEMP_08, "M08"}, {ClassIdIn::TEMP_09, "M09"},
+                                            {ClassIdIn::TEMP_10, "M10"}, {ClassIdIn::TEMP_11, "M11"},
                                         });
 
 }    // namespace joda::enums

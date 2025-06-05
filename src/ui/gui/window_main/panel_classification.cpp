@@ -369,6 +369,11 @@ void PanelClassification::toSettings()
   classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::TEMP_02), QString("Memory 02"));
   classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::TEMP_03), QString("Memory 03"));
   classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::TEMP_04), QString("Memory 04"));
+  classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::TEMP_05), QString("Memory 05"));
+  classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::TEMP_06), QString("Memory 06"));
+  classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::TEMP_07), QString("Memory 07"));
+  classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::TEMP_08), QString("Memory 08"));
+  classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::TEMP_09), QString("Memory 09"));
 
   for(const auto &classs : mSettings.classification.classes) {
     classes.emplace(static_cast<enums::ClassIdIn>(classs.classId), QString(classs.name.data()));
