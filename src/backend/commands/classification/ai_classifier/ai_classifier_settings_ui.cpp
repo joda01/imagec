@@ -85,6 +85,7 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   mNetWidth->setValue(settings.modelInputParameter.spaceX);
   mNetWidth->connectWithSetting(&settings.modelInputParameter.spaceX);
   mNetWidth->setShortDescription("Width:");
+  mNetWidth->getEditableWidget()->setEnabled(false);
 
   mNetHeight = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Input height of the model");
   mNetHeight->setPlaceholderText("[0 - 2,147,483,647]");
@@ -93,6 +94,7 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   mNetHeight->setValue(settings.modelInputParameter.spaceY);
   mNetHeight->connectWithSetting(&settings.modelInputParameter.spaceY);
   mNetHeight->setShortDescription("Height:");
+  mNetHeight->getEditableWidget()->setEnabled(false);
 
   mChannels = SettingBase::create<SettingComboBox<joda::settings::AiClassifierSettings::NetChannels>>(parent, {}, "Input channels of the model");
   mChannels->setDefaultValue(joda::settings::AiClassifierSettings::NetChannels::GRAYSCALE);
@@ -101,6 +103,7 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   mChannels->setValue(settings.modelInputParameter.channels);
   mChannels->connectWithSetting(&settings.modelInputParameter.channels);
   mChannels->setShortDescription("Channels:");
+  mChannels->getEditableWidget()->setEnabled(false);
 
   //
   //
@@ -134,11 +137,22 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   mModelArchitecture->setValue(settings.modelParameter.modelArchitecture);
   mModelArchitecture->connectWithSetting(&settings.modelParameter.modelArchitecture);
   mModelArchitecture->setShortDescription("Architecture:");
+  connect(mModelArchitecture.get(), &SettingBase::valueChanged, [this]() {
+    if(mModelArchitecture->getValue() == joda::settings::AiClassifierSettings::ModelArchitecture::YOLO_V5) {
+      mMaskThreshold->setValue(0.8);
+    } else if(mModelArchitecture->getValue() == joda::settings::AiClassifierSettings::ModelArchitecture::U_NET ||
+              mModelArchitecture->getValue() == joda::settings::AiClassifierSettings::ModelArchitecture::STAR_DIST) {
+      mMaskThreshold->setValue(0.96);
+    } else {
+      mMaskThreshold->setValue(0.8);
+    }
+  });
 
   //
   //
   //
-  mClassThreshold = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("format-number-percent"), "Class threshold (0.5)");
+  mClassThreshold =
+      SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("format-number-percent"), "Class threshold. Default: Yolo: 0.5");
   mClassThreshold->setPlaceholderText("[0 - 1]");
   mClassThreshold->setUnit("");
   mClassThreshold->setMinMax(0, 1);
@@ -148,7 +162,8 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   //
   //
   //
-  mMaskThreshold = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("format-number-percent"), "Mask threshold (0.8)");
+  mMaskThreshold =
+      SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("format-number-percent"), "Mask threshold. Default: U-Net 0.96, Yolo: 0.8");
   mMaskThreshold->setPlaceholderText("[0 - 1");
   mMaskThreshold->setUnit("");
   mMaskThreshold->setMinMax(0, 1);
