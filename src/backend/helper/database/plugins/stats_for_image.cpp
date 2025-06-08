@@ -76,7 +76,6 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
   for(const auto &[classs, statement] : classesToExport) {
     auto [sql, params] = toSqlTable(classs, filter.getFilter(), statement, "");
     auto result        = database->select(sql, params);
-
     if(result->HasError()) {
       throw std::invalid_argument(result->GetError());
     }
@@ -88,17 +87,17 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
           uint32_t meas_center_x  = materializedResult->GetValue(columnNr + 0, rowIdx).GetValue<uint32_t>();
           uint32_t meas_center_y  = materializedResult->GetValue(columnNr + 1, rowIdx).GetValue<uint32_t>();
           uint64_t objectId       = materializedResult->GetValue(columnNr + 2, rowIdx).GetValue<uint64_t>();
-          uint64_t parentObjectId = materializedResult->GetValue(columnNr + 3, rowIdx).GetValue<uint64_t>();
-          auto trackIdTmp         = materializedResult->GetValue(columnNr + 4, rowIdx);
-          auto filename           = materializedResult->GetValue(columnNr + 5, rowIdx).GetValue<std::string>();
+          uint64_t objectIdReal   = materializedResult->GetValue(columnNr + 3, rowIdx).GetValue<uint64_t>();
+          uint64_t parentObjectId = materializedResult->GetValue(columnNr + 4, rowIdx).GetValue<uint64_t>();
+          auto trackIdTmp         = materializedResult->GetValue(columnNr + 5, rowIdx);
+          auto filename           = materializedResult->GetValue(columnNr + 6, rowIdx).GetValue<std::string>();
           uint64_t trackingId     = 0;
           if(!trackIdTmp.IsNull()) {
             trackingId = trackIdTmp.GetValue<uint64_t>();
           }
           double value = materializedResult->GetValue(colIdx, rowIdx).GetValue<double>();
-
           classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, filename,
-                                  table::TableCell{value, objectId, true, parentObjectId, trackingId});
+                                  table::TableCell{value, objectId, objectIdReal, true, parentObjectId, trackingId});
         }
       }
     }
@@ -195,8 +194,8 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
   }
   std::string sql = intersect + "SELECT\n" + channelFilter.createStatsQuery(false, false, offValue) + offValue +
                     "(t1.meas_center_x) as meas_center_x,\n" + offValue + "(t1.meas_center_y) as meas_center_y,\n" + uniqueObjectId + offValue +
-                    "(t1.meas_parent_object_id) as meas_parent_object_id,\n" + offValue + "(t1.meas_tracking_id) as meas_tracking_id,\n" + offValue +
-                    "(images.file_name) as file_name\n" +
+                    "(t1.object_id) as object_id_real,\n" + "(t1.meas_parent_object_id) as meas_parent_object_id,\n" + offValue +
+                    "(t1.meas_tracking_id) as meas_tracking_id,\n" + offValue + "(images.file_name) as file_name\n" +
                     "FROM\n"
                     "  " +
                     table + " t1\n" + channelFilter.createStatsQueryJoins() +
@@ -250,7 +249,7 @@ auto StatsPerImage::toHeatmap(db::Database *database, const settings::ResultsSet
           results.getMutableRowHeader()[row] = std::to_string(row + 1);
           for(uint64_t col = 0; col < imageInfo.width; col++) {
             results.getMutableColHeader()[col] = std::to_string(col + 1);
-            results.setData(row, col, table::TableCell{std::numeric_limits<double>::quiet_NaN(), 0, false, imageInfo.controlImgPath});
+            results.setData(row, col, table::TableCell{std::numeric_limits<double>::quiet_NaN(), 0, 0, false, imageInfo.controlImgPath});
           }
         }
 
@@ -264,7 +263,7 @@ auto StatsPerImage::toHeatmap(db::Database *database, const settings::ResultsSet
             uint32_t y = rectangleY / filter.getDensityMapSettings().densityMapAreaSize;
 
             std::string linkToImage = imageInfo.controlImgPath;
-            results.setData(y, x, table::TableCell{value, 0, true, linkToImage});
+            results.setData(y, x, table::TableCell{value, 0, 0, true, linkToImage});
 
           } catch(const duckdb::InternalException &ex) {
             // std::cout << "EX " << ex.what() << std::endl;

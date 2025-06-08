@@ -194,7 +194,7 @@ public:
           mResultingTable[element.colIdx].getMutableRowHeader()[row] = std::string(1, toWrt);
           for(uint8_t col = 0; col < sizeX; col++) {
             mResultingTable[element.colIdx].getMutableColHeader()[col] = std::to_string(col + 1);
-            mResultingTable[element.colIdx].setData(row, col, table::TableCell{std::numeric_limits<double>::quiet_NaN(), 0, true, ""});
+            mResultingTable[element.colIdx].setData(row, col, table::TableCell{std::numeric_limits<double>::quiet_NaN(), 0, 0, true, ""});
           }
         }
       }
