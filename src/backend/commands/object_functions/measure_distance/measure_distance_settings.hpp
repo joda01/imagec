@@ -30,7 +30,9 @@ namespace joda::settings {
 enum class DistanceMeasureConditions
 {
   ALL,
-  ONLY_CHILDREN
+  INTERSECTING,      // If objects are intersecting, calc the distance.
+  SAME_PARENT_ID,    // If the objects have the same parent ID, calc the distance.
+  IS_TO_PARENT_OF    // If the to object is the parent of the from object
 };
 
 struct MeasureDistanceSettings : public SettingBase
@@ -74,7 +76,9 @@ struct MeasureDistanceSettings : public SettingBase
 
 NLOHMANN_JSON_SERIALIZE_ENUM(DistanceMeasureConditions, {
                                                             {DistanceMeasureConditions::ALL, "All"},
-                                                            {DistanceMeasureConditions::ONLY_CHILDREN, "OnlyChildren"},
+                                                            {DistanceMeasureConditions::INTERSECTING, "Intersecting"},
+                                                            {DistanceMeasureConditions::SAME_PARENT_ID, "SameParentId"},
+                                                            {DistanceMeasureConditions::IS_TO_PARENT_OF, "ToParentOfFrom"},
                                                         });
 
 }    // namespace joda::settings

@@ -151,7 +151,7 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
   addMeasure("Nr. of intersecting objects", 0, 1, enums::Measurement::INTERSECTING, {enums::Stats::OFF}, {enums::Stats::OFF});
 
   addSeparator(1);
-  addMeasure("Area size", 2, 0, enums::Measurement::AREA_SIZE, {enums::Stats::AVG, enums::Stats::SUM},
+  addMeasure("Area size", 2, 0, enums::Measurement::AREA_SIZE, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
   addMeasure("Perimeter", 2, 1, enums::Measurement::PERIMETER, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
@@ -159,33 +159,35 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
 
   addSeparator(4);
-  addMeasure("Intensity min", 5, 0, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG, enums::Stats::SUM},
+  addMeasure("Intensity min", 5, 0, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-  addMeasure("Intensity max", 5, 1, enums::Measurement::INTENSITY_MAX, {enums::Stats::AVG, enums::Stats::SUM},
+  addMeasure("Intensity max", 5, 1, enums::Measurement::INTENSITY_MAX, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-  addMeasure("Intensity avg", 6, 0, enums::Measurement::INTENSITY_AVG, {enums::Stats::AVG, enums::Stats::SUM},
+  addMeasure("Intensity avg", 6, 0, enums::Measurement::INTENSITY_AVG, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-  addMeasure("Intensity sum", 6, 1, enums::Measurement::INTENSITY_SUM, {enums::Stats::AVG, enums::Stats::SUM},
+  addMeasure("Intensity sum", 6, 1, enums::Measurement::INTENSITY_SUM, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
 
   addSeparator(7);
   addMeasure("Position", 8, 0, enums::Measurement::CENTEROID_X, {enums::Stats::OFF}, {enums::Stats::OFF});
-  addMeasure("Distance center to center", 8, 1, enums::Measurement::DISTANCE_CENTER_TO_CENTER, {enums::Stats::AVG},
+
+  addSeparator(9);
+  addMeasure("Distance center to center", 10, 0, enums::Measurement::DISTANCE_CENTER_TO_CENTER, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-  addMeasure("Distance center to surface max.", 9, 0, enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN, {enums::Stats::AVG},
+  addMeasure("Distance center to surface max.", 11, 0, enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-  addMeasure("Distance center to center min.", 9, 1, enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX, {enums::Stats::AVG},
+  addMeasure("Distance center to center min.", 11, 1, enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-  addMeasure("Distance surface to surface max.", 10, 0, enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN, {enums::Stats::AVG},
+  addMeasure("Distance surface to surface max.", 12, 0, enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-  addMeasure("Distance surface to surface max.", 10, 1, enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX, {enums::Stats::AVG},
+  addMeasure("Distance surface to surface max.", 12, 1, enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
 
-  addSeparator(11);
-  addMeasure("Object ID", 12, 0, enums::Measurement::OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
-  addMeasure("Parent object ID", 12, 1, enums::Measurement::PARENT_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
-  addMeasure("Origin object ID", 13, 0, enums::Measurement::ORIGIN_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
-  addMeasure("Tracking ID", 13, 1, enums::Measurement::TRACKING_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addSeparator(13);
+  addMeasure("Object ID", 14, 0, enums::Measurement::OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Parent object ID", 14, 1, enums::Measurement::PARENT_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Origin object ID", 15, 0, enums::Measurement::ORIGIN_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Tracking ID", 15, 1, enums::Measurement::TRACKING_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
 
   //
   // Create a horizontal layout for the buttons

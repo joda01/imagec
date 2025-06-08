@@ -58,8 +58,10 @@ public:
     //
     mCondition =
         SettingBase::create<SettingComboBox<joda::settings::DistanceMeasureConditions>>(parent, generateSvgIcon("kstars_horizon"), "Condition");
-    mCondition->addOptions(
-        {{joda::settings::DistanceMeasureConditions::ALL, "All"}, {joda::settings::DistanceMeasureConditions::ONLY_CHILDREN, "Only for children"}});
+    mCondition->addOptions({{joda::settings::DistanceMeasureConditions::ALL, "All"},
+                            {joda::settings::DistanceMeasureConditions::INTERSECTING, "Intersecting objects"},
+                            {joda::settings::DistanceMeasureConditions::SAME_PARENT_ID, "Objects with same parent ID"},
+                            {joda::settings::DistanceMeasureConditions::IS_TO_PARENT_OF, R"(If "To" object is parent of "From" object)"}});
     mCondition->setValue(settings.condition);
     mCondition->connectWithSetting(&settings.condition);
 

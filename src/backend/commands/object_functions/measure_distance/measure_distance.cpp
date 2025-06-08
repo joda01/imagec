@@ -31,8 +31,20 @@ void MeasureDistance::execute(processor::ProcessContext &context, cv::Mat & /*im
   // Iterate over each object and calc the distance to each other
   for(auto &objectFrom : *classsObjectFrom) {
     for(auto &objectTo : *classsObjectsTo) {
-      if(mSettings.condition == settings::DistanceMeasureConditions::ALL || objectFrom.isIntersecting(objectTo, mSettings.minIntersection)) {
+      if(mSettings.condition == settings::DistanceMeasureConditions::ALL) {
         objectFrom.measureDistanceAndAdd(objectTo);
+      } else if(mSettings.condition == settings::DistanceMeasureConditions::INTERSECTING) {
+        if(objectFrom.isIntersecting(objectTo, mSettings.minIntersection)) {
+          objectFrom.measureDistanceAndAdd(objectTo);
+        }
+      } else if(mSettings.condition == settings::DistanceMeasureConditions::SAME_PARENT_ID) {
+        if(objectFrom.getParentObjectId() == objectTo.getParentObjectId()) {
+          objectFrom.measureDistanceAndAdd(objectTo);
+        }
+      } else if(mSettings.condition == settings::DistanceMeasureConditions::IS_TO_PARENT_OF) {
+        if(objectTo.getObjectId() == objectFrom.getParentObjectId()) {
+          objectFrom.measureDistanceAndAdd(objectTo);
+        }
       }
     }
   }
