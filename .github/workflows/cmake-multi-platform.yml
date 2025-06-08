@@ -523,7 +523,6 @@ jobs:
       - build-linux
       - build-macos
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/') && ${{ !github.event.release.prerelease }}
     steps:
 
       - uses: actions/download-artifact@v4
@@ -545,6 +544,7 @@ jobs:
           path: imagec-x64-win
 
       - name: Rename files through architecture
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
           chmod +x imagec-x64-linux/imagec
           chmod +x imagec-x64-linux/imagec.sh
@@ -601,8 +601,8 @@ jobs:
           echo "$json_string_macos" > imagec-arm64-macos-bundle.json
 
       - name: Upload Additional Files
-        if: startsWith(github.ref, 'refs/tags/') && ${{ !github.event.release.prerelease }}
         uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           generate_release_notes: true
           files: |
@@ -614,7 +614,7 @@ jobs:
             imagec-arm64-macos-bin.zip
       
       - name: Upload to imagec.org
-        if: startsWith(github.ref, 'refs/tags/') && ${{ !github.event.release.prerelease }}
+        if: startsWith(github.ref, 'refs/tags/')
         env:
           SSH_KEY: ${{ secrets.SSH_KEY_IMAGEC }}
           SERVER_NAME : ${{ secrets.SERVER_NAME_IMAGEC }}

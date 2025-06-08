@@ -118,9 +118,11 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
           double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
           if(grouping == Grouping::BY_WELL) {
             ///
-            classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, filename, table::TableCell{value, imageId, validity == 0, ""});
+            classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, filename,
+                                    table::TableCell{value, imageId, imageId, validity == 0, ""});
           } else {
-            classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, colC, table::TableCell{value, groupId, validity == 0, ""});
+            classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, colC,
+                                    table::TableCell{value, groupId, groupId, validity == 0, ""});
           }
         }
       } catch(const duckdb::InternalException &ex) {
@@ -186,11 +188,13 @@ auto StatsPerGroup::toHeatmap(db::Database *database, const settings::ResultsSet
         for(size_t col = 0; col < columnNr; col++) {
           double value = materializedResult->GetValue(col, row).GetValue<double>();
           if(grouping == Grouping::BY_WELL) {
-            classesToExport.setData(classs, statement.getColNames(), col, pos.y, pos.x, table::TableCell{value, imageId, validity == 0, filename},
-                                    sizeX, sizeY, statement.getColumnAt(col).createHeader());
+            classesToExport.setData(classs, statement.getColNames(), col, pos.y, pos.x,
+                                    table::TableCell{value, imageId, imageId, validity == 0, filename}, sizeX, sizeY,
+                                    statement.getColumnAt(col).createHeader());
           } else {
-            classesToExport.setData(classs, statement.getColNames(), col, pos.y, pos.x, table::TableCell{value, groupId, validity == 0, filename},
-                                    sizeX, sizeY, statement.getColumnAt(col).createHeader());
+            classesToExport.setData(classs, statement.getColNames(), col, pos.y, pos.x,
+                                    table::TableCell{value, groupId, groupId, validity == 0, filename}, sizeX, sizeY,
+                                    statement.getColumnAt(col).createHeader());
           }
         }
 

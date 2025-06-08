@@ -27,17 +27,35 @@
 
 namespace joda::settings {
 
+enum class DistanceMeasureConditions
+{
+  ALL,
+  INTERSECTING,      // If objects are intersecting, calc the distance.
+  SAME_PARENT_ID,    // If the objects have the same parent ID, calc the distance.
+  IS_TO_PARENT_OF    // If the to object is the parent of the from object
+};
+
 struct MeasureDistanceSettings : public SettingBase
 {
   //
   // Objects to calc the distance from
   //
-  ObjectInputClasss inputClasses;
+  ObjectInputClasss inputClassFrom;
 
   //
   // Objects to calc the distance to
   //
-  ObjectInputClasss inputClassesSecond;
+  ObjectInputClasss inputClassTo;
+
+  //
+  // Condition for measuring the distance
+  //
+  DistanceMeasureConditions condition = DistanceMeasureConditions::ALL;
+
+  //
+  // Minimum intersection in [0-1]
+  //
+  float minIntersection = 0.1F;
 
   /////////////////////////////////////////////////////
   void check() const
@@ -47,13 +65,20 @@ struct MeasureDistanceSettings : public SettingBase
   settings::ObjectInputClasses getInputClasses() const override
   {
     settings::ObjectInputClasses classes;
-    classes.emplace(inputClasses);
-    classes.emplace(inputClassesSecond);
+    classes.emplace(inputClassFrom);
+    classes.emplace(inputClassTo);
 
     return classes;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MeasureDistanceSettings, inputClasses, inputClassesSecond);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MeasureDistanceSettings, inputClassFrom, inputClassTo, condition, minIntersection);
 };
+
+NLOHMANN_JSON_SERIALIZE_ENUM(DistanceMeasureConditions, {
+                                                            {DistanceMeasureConditions::ALL, "All"},
+                                                            {DistanceMeasureConditions::INTERSECTING, "Intersecting"},
+                                                            {DistanceMeasureConditions::SAME_PARENT_ID, "SameParentId"},
+                                                            {DistanceMeasureConditions::IS_TO_PARENT_OF, "ToParentOfFrom"},
+                                                        });
 
 }    // namespace joda::settings

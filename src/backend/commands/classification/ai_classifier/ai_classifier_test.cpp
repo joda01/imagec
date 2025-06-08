@@ -76,8 +76,7 @@ TEST_CASE("ai::classifier::test::livecell", "[ai_classifier]")
   auto info                  = joda::ai::AiModelParser::parseResourceDescriptionFile("models/livecellsegmentationboundarymodel_torchscript/rdf.yaml");
   aiSets.modelParameter      = info.modelParameter;
   aiSets.modelInputParameter = info.inputs.begin()->second;
-  aiSets.thresholds.maskThreshold  = 0.5;
-  aiSets.thresholds.classThreshold = 0.3;
+  aiSets.thresholds.maskThreshold = 0.96;
 
   joda::cmd::AiClassifier ai(aiSets);
   joda::atom::ObjectList result;
@@ -93,11 +92,11 @@ TEST_CASE("ai::classifier::test::livecell", "[ai_classifier]")
   ai.execute(context, img, result);
   joda::settings::ImageSaverSettings imageSaver;
   imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{
-      .inputClass = joda::enums::ClassIdIn::C0, .style = joda::settings::ImageSaverSettings::Style::OUTLINED, .paintBoundingBox = false});
+      .inputClass = joda::enums::ClassIdIn::C0, .style = joda::settings::ImageSaverSettings::Style::FILLED, .paintBoundingBox = false});
   imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{
-      .inputClass = joda::enums::ClassIdIn::C1, .style = joda::settings::ImageSaverSettings::Style::OUTLINED, .paintBoundingBox = false});
+      .inputClass = joda::enums::ClassIdIn::C1, .style = joda::settings::ImageSaverSettings::Style::FILLED, .paintBoundingBox = false});
   imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C2,
-                                                                                   .style = joda::settings::ImageSaverSettings::Style::OUTLINED});
+                                                                                   .style      = joda::settings::ImageSaverSettings::Style::FILLED});
   imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C3,
                                                                                    .style      = joda::settings::ImageSaverSettings::Style::FILLED});
   imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C4,
@@ -109,7 +108,7 @@ TEST_CASE("ai::classifier::test::livecell", "[ai_classifier]")
   imgSaver.execute(context, img, result);
 
   CHECK(result.size() == 1);
-  CHECK(result.begin()->second->size() == 405);
+  CHECK(result.begin()->second->size() == 121);
 }
 
 ///

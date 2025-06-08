@@ -56,8 +56,6 @@ auto AiModelBioImage::processPrediction(const cv::Mat &inputImage, const at::IVa
   at::Tensor maskTensor    = tensorCpu[0][CHANNEL_MASK].clone().contiguous();       // [height, width]
   at::Tensor contourTensor = tensorCpu[0][CHANNEL_CONTOUR].clone().contiguous();    // [height, width]
 
-  // Convert to OpenCV Mat
-
   // ===============================
   // 1. Convert mask to cv::mat
   // ===============================
@@ -71,16 +69,11 @@ auto AiModelBioImage::processPrediction(const cv::Mat &inputImage, const at::IVa
   cv::threshold(mask, binaryMask, mSettings.maskThreshold, 1.0, cv::THRESH_BINARY);
   binaryMask.convertTo(binaryMask, CV_8U, 255);
 
-  cv::Mat binaryContourMask;
-  cv::threshold(contourMask, binaryContourMask, mSettings.contourThreshold, 1.0, cv::THRESH_BINARY);
-  binaryContourMask.convertTo(binaryContourMask, CV_8U, 255);
-
-  // --- Step 2.1. Thin the contour mask using erosion ---
-  // Use a small elliptical kernel to erode the contours.
-  cv::Mat contourThin;
-  cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(2, 2));
-  cv::erode(binaryContourMask, binaryContourMask, kernel);
-  cv::bitwise_xor(binaryMask, binaryContourMask, binaryMask);
+  // cv::Mat binaryContourMask;
+  // cv::threshold(contourMask, binaryContourMask, mSettings.contourThreshold, 1.0, cv::THRESH_BINARY);
+  // binaryContourMask.convertTo(binaryContourMask, CV_8U, 255);
+  //// --- Step 2.1. Thin the contour mask using erosion ---
+  // cv::subtract(binaryMask, binaryContourMask, binaryMask);    // Clamps values to 0
 
   //
   // ===============================

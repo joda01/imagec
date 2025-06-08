@@ -29,16 +29,18 @@ public:
   {
   }
 
-  TableCell(double val, uint64_t id, bool valid, uint64_t parentObjectId, uint64_t trackingId) :
-      value(val), id(id), validity(valid), parentId(parentObjectId), trackingId(trackingId)
+  TableCell(double val, uint64_t id, uint64_t objectIdReal, bool valid, uint64_t parentObjectId, uint64_t trackingId) :
+      value(val), id(id), objectId(objectIdReal), validity(valid), parentId(parentObjectId), trackingId(trackingId)
   {
   }
 
-  TableCell(double val, uint64_t id, bool valid, const std::string &linkToImage) : value(val), id(id), validity(valid), linkToImage(linkToImage)
+  TableCell(double val, uint64_t id, uint64_t objectIdReal, bool valid, const std::string &linkToImage) :
+      value(val), id(id), objectId(objectIdReal), validity(valid), linkToImage(linkToImage)
   {
   }
 
-  TableCell(double val, uint64_t id, const std::string &linkToImage) : value(val), id(id), linkToImage(linkToImage)
+  TableCell(double val, uint64_t id, uint64_t objectIdReal, const std::string &linkToImage) :
+      value(val), id(id), objectId(objectIdReal), linkToImage(linkToImage)
   {
   }
 
@@ -50,6 +52,11 @@ public:
   [[nodiscard]] uint64_t getId() const
   {
     return id;
+  }
+
+  [[nodiscard]] uint64_t getObjectId() const
+  {
+    return objectId;
   }
 
   void setId(uint64_t id)
@@ -86,6 +93,7 @@ private:
   /////////////////////////////////////////////////////
   double value        = std::numeric_limits<double>::quiet_NaN();
   uint64_t id         = 0;
+  uint64_t objectId   = 0;
   uint64_t parentId   = 0;
   uint64_t trackingId = 0;
   bool validity       = true;

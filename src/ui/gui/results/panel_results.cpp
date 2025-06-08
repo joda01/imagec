@@ -951,7 +951,7 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
 
     break;
     case Navigation::IMAGE:
-      mSelectedTileId = value.getId();
+      mSelectedTileId = value.getObjectId();
       mMarkAsInvalid->setEnabled(false);
       mDeleteCol->setEnabled(false);
       mEditCol->setEnabled(false);
@@ -970,7 +970,7 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
         rowImageName = mSelectedTable.getRowHeader(cellY);
       }
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
-                      rowImageName + "/" + std::to_string(value.getId());
+                      rowImageName + "/" + std::to_string(value.getObjectId());
       mSelectedRowInfo->setText(platePos.data());
 
       loadPreview();
@@ -1010,7 +1010,7 @@ void PanelResults::openNextLevel(const std::vector<table::TableCell> &value)
     case Navigation::IMAGE:
       std::set<uint64_t> act;
       for(const auto &row : value) {
-        act.emplace(row.getId());
+        act.emplace(row.getObjectId());
       }
       mActImageId = act;
       break;

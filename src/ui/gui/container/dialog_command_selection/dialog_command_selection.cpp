@@ -195,7 +195,7 @@ void DialogCommandSelection::addCommandsToTable()
     addTitleToTable("Measurement", Group::MEASUREMENT);
     addCommandToTable(settings::PipelineStep{.$colocalization = settings::ColocalizationSettings{}}, Group::MEASUREMENT);
     addCommandToTable(settings::PipelineStep{.$measureIntensity = settings::MeasureIntensitySettings{}}, Group::MEASUREMENT);
-    // addCommandToTable(settings::PipelineStep{.$measureDistance = settings::MeasureDistanceSettings{}}, Group::MEASUREMENT);
+    addCommandToTable(settings::PipelineStep{.$measureDistance = settings::MeasureDistanceSettings{}}, Group::MEASUREMENT);
   }
 
   {
