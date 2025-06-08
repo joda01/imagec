@@ -45,20 +45,29 @@ public:
     //
     //
     classesIn = SettingBase::create<SettingComboBoxClassificationIn>(parent, {}, "Distance from (e.g. spot-in-cell)");
-    classesIn->setValue(settings.inputClasses);
-    classesIn->connectWithSetting(&settings.inputClasses);
+    classesIn->setValue(settings.inputClassFrom);
+    classesIn->connectWithSetting(&settings.inputClassFrom);
 
     //
     //
     classesInSecond = SettingBase::create<SettingComboBoxClassificationIn>(parent, {}, "Distance to (e.g. cell, nucleus)");
-    classesInSecond->setValue(settings.inputClassesSecond);
-    classesInSecond->connectWithSetting(&settings.inputClassesSecond);
+    classesInSecond->setValue(settings.inputClassTo);
+    classesInSecond->connectWithSetting(&settings.inputClassTo);
+
+    //
+    //
+    mCondition =
+        SettingBase::create<SettingComboBox<joda::settings::DistanceMeasureConditions>>(parent, generateSvgIcon("kstars_horizon"), "Condition");
+    mCondition->addOptions(
+        {{joda::settings::DistanceMeasureConditions::ALL, "All"}, {joda::settings::DistanceMeasureConditions::ONLY_CHILDREN, "Only for children"}});
+    mCondition->setValue(settings.condition);
+    mCondition->connectWithSetting(&settings.condition);
 
     //
     //
     auto *tab = addTab(
         "Input class", [] {}, false);
-    addSetting(tab, "Input classes", {{classesIn.get(), true, 0}, {classesInSecond.get(), true, 0}});
+    addSetting(tab, "Input classes", {{classesIn.get(), true, 0}, {classesInSecond.get(), true, 0}, {mCondition.get(), true, 0}});
 
     // auto *addClassifier = addActionButton("Add class", "icons8-genealogy");
     //  connect(addClassifier, &QAction::triggered, this, &Classifier::addClassifier);
@@ -68,6 +77,7 @@ private:
   /////////////////////////////////////////////////////
   std::unique_ptr<SettingComboBoxClassificationIn> classesIn;
   std::unique_ptr<SettingComboBoxClassificationIn> classesInSecond;
+  std::unique_ptr<SettingComboBox<joda::settings::DistanceMeasureConditions>> mCondition;
 
   settings::MeasureDistanceSettings &mSettings;
   QWidget *mParent;

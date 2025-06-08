@@ -27,17 +27,33 @@
 
 namespace joda::settings {
 
+enum class DistanceMeasureConditions
+{
+  ALL,
+  ONLY_CHILDREN
+};
+
 struct MeasureDistanceSettings : public SettingBase
 {
   //
   // Objects to calc the distance from
   //
-  ObjectInputClasss inputClasses;
+  ObjectInputClasss inputClassFrom;
 
   //
   // Objects to calc the distance to
   //
-  ObjectInputClasss inputClassesSecond;
+  ObjectInputClasss inputClassTo;
+
+  //
+  // Condition for measuring the distance
+  //
+  DistanceMeasureConditions condition = DistanceMeasureConditions::ALL;
+
+  //
+  // Minimum intersection in [0-1]
+  //
+  float minIntersection = 0.1F;
 
   /////////////////////////////////////////////////////
   void check() const
@@ -47,13 +63,18 @@ struct MeasureDistanceSettings : public SettingBase
   settings::ObjectInputClasses getInputClasses() const override
   {
     settings::ObjectInputClasses classes;
-    classes.emplace(inputClasses);
-    classes.emplace(inputClassesSecond);
+    classes.emplace(inputClassFrom);
+    classes.emplace(inputClassTo);
 
     return classes;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MeasureDistanceSettings, inputClasses, inputClassesSecond);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MeasureDistanceSettings, inputClassFrom, inputClassTo, condition, minIntersection);
 };
+
+NLOHMANN_JSON_SERIALIZE_ENUM(DistanceMeasureConditions, {
+                                                            {DistanceMeasureConditions::ALL, "All"},
+                                                            {DistanceMeasureConditions::ONLY_CHILDREN, "OnlyChildren"},
+                                                        });
 
 }    // namespace joda::settings

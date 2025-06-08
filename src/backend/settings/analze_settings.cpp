@@ -179,14 +179,14 @@ auto AnalyzeSettings::getPossibleDistanceClasses() const -> std::map<enums::Clas
   for(const auto &pipeline : pipelines) {
     for(const auto &step : pipeline.pipelineSteps) {
       if(step.$measureDistance.has_value()) {
-        auto baseClassId = step.$measureDistance.value().inputClasses;
+        auto baseClassId = step.$measureDistance.value().inputClassFrom;
         enums::ClassId classId;
         if(baseClassId == enums::ClassIdIn::$) {
           classId = pipeline.pipelineSetup.defaultClassId;
         } else {
           classId = static_cast<enums::ClassId>(baseClassId);
         }
-        auto newClassIdTmp = step.$measureDistance.value().inputClassesSecond;
+        auto newClassIdTmp = step.$measureDistance.value().inputClassTo;
         enums::ClassId newClassId;
         if(newClassIdTmp == enums::ClassIdIn::$) {
           newClassId = pipeline.pipelineSetup.defaultClassId;
