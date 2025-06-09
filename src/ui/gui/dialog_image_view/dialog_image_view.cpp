@@ -18,7 +18,9 @@
 #include <qgridlayout.h>
 #include <qlabel.h>
 #include <qlineedit.h>
+#include <qmenu.h>
 #include <qslider.h>
+#include <qspinbox.h>
 #include <qwidget.h>
 #include <cmath>
 #include <cstdint>
@@ -75,9 +77,9 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
   auto *layout        = new QVBoxLayout();
 
   {
-    QToolBar *toolbarTop = new QToolBar();
+    auto *toolbarTop = new QToolBar();
 
-    QAction *pinToTop = new QAction(generateSvgIcon("window-pin"), "");
+    auto *pinToTop = new QAction(generateSvgIcon("window-pin"), "");
     pinToTop->setToolTip("Pin to stay on top");
     pinToTop->setCheckable(true);
     pinToTop->setChecked(false);
@@ -253,6 +255,8 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
   {
     mCentralLayout      = new QBoxLayout(QBoxLayout::TopToBottom);
     auto *centralWidget = new QWidget();
+    mCentralLayout->setContentsMargins(0, 0, 0, 0);
+    centralWidget->setContentsMargins(0, 0, 0, 0);
 
     if(showOriginalImage) {
       auto *leftVerticalLayout = new QVBoxLayout();
@@ -289,12 +293,117 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
     connect(&mImageViewRight, &PanelImageView::classesToShowChanged, this, &DialogImageViewer::onSettingChanged);
   }
 
+  // Bottom toolbar
+  {
+    mSpinnerActTimeStack = new QSpinBox();
+    mSpinnerActTimeStack->setValue(0);
+    connect(mSpinnerActTimeStack, &QSpinBox::valueChanged, [this] { emit onSettingChanged(); });
+
+    auto *bottomToolBar = new QToolBar();
+
+    auto *skipBackward = new QAction(generateSvgIcon("media-skip-backward"), "");
+    connect(skipBackward, &QAction::triggered, [this] {
+      mSpinnerActTimeStack->blockSignals(true);
+      mSpinnerActTimeStack->setValue(0);
+      mSpinnerActTimeStack->blockSignals(false);
+      emit onSettingChanged();
+    });
+    bottomToolBar->addAction(skipBackward);
+
+    auto *seekBackward = new QAction(generateSvgIcon("media-seek-backward"), "");
+    connect(seekBackward, &QAction::triggered, [this] {
+      if(mSpinnerActTimeStack->value() > 0) {
+        mSpinnerActTimeStack->blockSignals(true);
+        mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() - 1);
+        mSpinnerActTimeStack->blockSignals(false);
+      }
+      emit onSettingChanged();
+    });
+    bottomToolBar->addAction(seekBackward);
+
+    // ==========================================================
+    // ==========================================================
+
+    mPlaybackSpeedSelector     = new QMenu();
+    mPlaybackspeedGroup        = new QActionGroup(mPlaybackSpeedSelector);
+    auto addPlaybackSpeedLamda = [this](QAction *action, int32_t timeMs, bool checked = false) {
+      mPlaybackspeedGroup->addAction(action);
+      action->setCheckable(true);
+      action->setChecked(checked);
+      connect(action, &QAction::triggered, [timeMs, this]() {
+        mPlaybackSpeed = timeMs;
+        if(mActionPlay->isChecked()) {
+          mPlayTimer->stop();
+          mPlayTimer->start(mPlaybackSpeed);
+        }
+      });
+    };
+
+    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("25 Hz"), 40);
+    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("20 Hz"), 50);
+    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("10 Hz"), 100);
+    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("5 Hz"), 200);
+    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("4 Hz"), 250);
+    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("3 Hz"), 333);
+    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("2 Hz"), 500);
+    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("1 Hz"), 1000, true);
+    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("0.5 Hz"), 2000);
+
+    mActionPlay = new QAction(generateSvgIcon("media-playback-start"), "");
+    mActionPlay->setMenu(mPlaybackSpeedSelector);
+    mActionPlay->setCheckable(true);
+    connect(mActionPlay, &QAction::triggered, [this](bool selected) {
+      if(selected) {
+        mPlayTimer->start(mPlaybackSpeed);
+      } else {
+        mPlayTimer->stop();
+      }
+    });
+    bottomToolBar->addAction(mActionPlay);
+
+    mActionStop = new QAction(generateSvgIcon("media-playback-stop"), "");
+    connect(mActionStop, &QAction::triggered, [this] {
+      mActionPlay->setChecked(false);
+      mPlayTimer->stop();
+    });
+    bottomToolBar->addAction(mActionStop);
+
+    auto *seekForward = new QAction(generateSvgIcon("media-seek-forward"), "");
+    connect(seekForward, &QAction::triggered, [this] {
+      if(mSpinnerActTimeStack->value() < getMaxTimeStacks()) {
+        mSpinnerActTimeStack->blockSignals(true);
+        mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() + 1);
+        mSpinnerActTimeStack->blockSignals(false);
+      }
+      emit onSettingChanged();
+    });
+    bottomToolBar->addAction(seekForward);
+    bottomToolBar->addWidget(mSpinnerActTimeStack);
+
+    layout->addWidget(bottomToolBar);
+  }
+
   // setLayout(layout);
   mainContainer->setLayout(layout);
   setWidget(mainContainer);
 
   // Init
   triggerPreviewUpdate(ImageView::BOTH, true);
+
+  // Video timer
+  mPlayTimer = new QTimer();
+  QObject::connect(mPlayTimer, &QTimer::timeout, [&] {
+    if(mSpinnerActTimeStack->value() < getMaxTimeStacks()) {
+      mSpinnerActTimeStack->blockSignals(true);
+      mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() + 1);
+      mSpinnerActTimeStack->blockSignals(false);
+    } else {
+      mSpinnerActTimeStack->blockSignals(true);
+      mSpinnerActTimeStack->setValue(0);
+      mSpinnerActTimeStack->blockSignals(false);
+    }
+    emit onSettingChanged();
+  });
 }
 
 DialogImageViewer::~DialogImageViewer()
@@ -390,6 +499,7 @@ void DialogImageViewer::leaveEvent(QEvent *event)
 ///
 void DialogImageViewer::imageUpdated(const ctrl::Preview::PreviewResults &info, const std::map<enums::ClassIdIn, QString> &classes)
 {
+  mSpinnerActTimeStack->setMaximum(getMaxTimeStacks());
   mImageViewLeft.imageUpdated(info, classes);
   mImageViewRight.imageUpdated(info, classes);
 }

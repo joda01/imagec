@@ -519,7 +519,8 @@ void PanelPipelineSettings::updatePreview()
     mSelectedTileY           = 0;
   }
   try {
-    auto threadSettings = mWindowMain->getController()->calcOptimalThreadNumber(settingsTmp);
+    auto threadSettings =
+        mWindowMain->getController()->calcOptimalThreadNumber(settingsTmp, std::get<2>(mWindowMain->getImagePanel()->getSelectedImage()));
     PreviewJob job{.settings       = settingsTmp,
                    .controller     = mWindowMain->getController(),
                    .previewPanel   = mPreviewImage,
@@ -527,6 +528,7 @@ void PanelPipelineSettings::updatePreview()
                    .pipelinePos    = cnt,
                    .selectedTileX  = mSelectedTileX,
                    .selectedTileY  = mSelectedTileY,
+                   .timeStack      = mPreviewImage->getActualTimeStackPosition(),
                    .classes        = mWindowMain->getPanelClassification()->getClasses(),
                    .classesToShow  = classesToShow,
                    .threadSettings = threadSettings};
@@ -552,12 +554,17 @@ void PanelPipelineSettings::previewThread()
     try {
     next:
       // Wait until there is at least one job in the queue
+      // mCheckForEmptyMutex.lock();
       auto jobToDo = mPreviewQue.pop();
+      bool isEmpty = mPreviewQue.isEmpty();
+      // mCheckForEmptyMutex.unlock();
+
       // Process only the last element in the que
-      if(!mPreviewQue.isEmpty()) {
-        std::this_thread::sleep_for(1000ms);
+      if(!isEmpty) {
+        std::this_thread::sleep_for(10ms);
         goto next;
       }
+
       mPreviewInProgress = true;
       emit updatePreviewStarted();
       if(nullptr != jobToDo.previewPanel && mIsActiveShown) {
@@ -601,7 +608,8 @@ void PanelPipelineSettings::previewThread()
               continue;
             }
             jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, jobToDo.threadSettings, *myPipeline, imgIndex,
-                                        jobToDo.selectedTileX, jobToDo.selectedTileY, previewResult, imgProps, jobToDo.classesToShow);
+                                        jobToDo.selectedTileX, jobToDo.selectedTileY, jobToDo.timeStack, previewResult, imgProps,
+                                        jobToDo.classesToShow);
             // Create a QByteArray from the char array
 
             jobToDo.previewPanel->setThumbnailPosition(
@@ -623,8 +631,7 @@ void PanelPipelineSettings::previewThread()
       }
 
       {
-        std::lock_guard<std::mutex> lock(mCheckForEmptyMutex);
-        if(mPreviewQue.isEmpty()) {
+        if(isEmpty) {
           mPreviewInProgress = false;
           emit updatePreviewFinished();
         }

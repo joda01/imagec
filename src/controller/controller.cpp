@@ -15,6 +15,7 @@
 #include <exception>
 #include <filesystem>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -72,10 +73,11 @@ Controller::~Controller()
 /// \author
 /// \return
 ///
-auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings) -> joda::thread::ThreadingSettings
+auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::optional<joda::ome::OmeInfo> &imageOmeInfo)
+    -> joda::thread::ThreadingSettings
 {
   if(mWorkingDirectory.getNrOfFiles() > 0) {
-    return calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles());
+    return calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles(), imageOmeInfo);
   }
   return {};
 }
@@ -85,12 +87,17 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
 /// \author
 /// \return
 ///
-auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::filesystem::path &file, int nrOfFiles)
-    -> joda::thread::ThreadingSettings
+auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::filesystem::path &file, int nrOfFiles,
+                                         const std::optional<joda::ome::OmeInfo> &imageOmeInfo) -> joda::thread::ThreadingSettings
 {
   joda::thread::ThreadingSettings threads;
 
-  auto ome             = getImageProperties(file, settings.imageSetup.series);
+  joda::ome::OmeInfo ome;
+  if(!imageOmeInfo.has_value()) {
+    ome = getImageProperties(file, settings.imageSetup.series);
+  } else {
+    ome = imageOmeInfo.value();
+  }
   int64_t imgNr        = nrOfFiles;
   int64_t tileNr       = 1;
   int64_t pipelineNr   = settings.pipelines.size();
@@ -236,7 +243,7 @@ void Controller::registerImageLookupCallback(const std::function<void(joda::file
 
 void Controller::preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
                          const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,
-                         const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY,
+                         const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, int32_t tStack,
                          Preview &previewOut, const joda::ome::OmeInfo &ome, const settings::ObjectInputClasses &classesToShow)
 {
   static std::filesystem::path lastImagePath;
@@ -253,7 +260,7 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
 
   processor::Processor process;
   auto [originalImg, overlay, editedImageWithoutOverlay, thumb, foundObjects, validity] = process.generatePreview(
-      previewSettings, imageSetup, settings, threadSettings, pipeline, imagePath, 0, 0, tileX, tileY, generateThumb, ome, classesToShow);
+      previewSettings, imageSetup, settings, threadSettings, pipeline, imagePath, tStack, 0, tileX, tileY, generateThumb, ome, classesToShow);
   previewOut.originalImage.setImage(std::move(originalImg));
   previewOut.overlay.setImage(std::move(overlay));
   previewOut.editedImage.setImage(std::move(editedImageWithoutOverlay));
@@ -267,6 +274,7 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
   }
   previewOut.results.noiseDetected = validity.test(enums::ChannelValidityEnum::POSSIBLE_NOISE);
   previewOut.results.isOverExposed = validity.test(enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
+  previewOut.tStacks               = ome.getNrOfTStack(imageSetup.series);
 }
 
 ///
@@ -375,6 +383,7 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
   drawCrosshair(overlay, objInfo);
   previewOut.overlay.setImage(std::move(overlay));
   previewOut.results.foundObjects.clear();
+  previewOut.tStacks = omeOut.getNrOfTStack(series);
 }
 
 ///
@@ -403,7 +412,8 @@ void Controller::start(const settings::AnalyzeSettings &settings, const joda::th
   mActProcessor.reset();
   mActProcessor = std::make_unique<processor::Processor>();
   mActThread    = std::thread([this, settings, jobName] {
-    mActProcessor->execute(settings, jobName, calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles()),
+    mActProcessor->execute(settings, jobName,
+                              calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles(), std::nullopt),
                               mWorkingDirectory);
   });
 }

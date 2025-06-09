@@ -133,7 +133,7 @@ void DialogAnalyzeRunning::onOpenResultsFolderClicked()
 
 void DialogAnalyzeRunning::refreshThread()
 {
-  auto threadSettings = mWindowMain->getController()->calcOptimalThreadNumber(mSettings);
+  auto threadSettings = mWindowMain->getController()->calcOptimalThreadNumber(mSettings, std::nullopt);
   // mWindowMain->getController()->reset();
   mWindowMain->getController()->start(mSettings, threadSettings, mWindowMain->getJobName().toStdString());
   mStartedTime = std::chrono::system_clock::now();

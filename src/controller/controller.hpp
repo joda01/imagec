@@ -58,6 +58,7 @@ struct Preview
 
   int height;
   int width;
+  int tStacks = 1;    // Nr. of t stacks the image has.
   std::string imageFileName;
 };
 
@@ -107,9 +108,10 @@ public:
 
   // SYSTEM ///////////////////////////////////////////////////
   static auto getSystemResources() -> joda::system::SystemResources;
-  static auto calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::filesystem::path &file, int nrOfFiles)
+  static auto calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::filesystem::path &file, int nrOfFiles,
+                                      const std::optional<joda::ome::OmeInfo> &imageOmeInfo) -> joda::thread::ThreadingSettings;
+  auto calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::optional<joda::ome::OmeInfo> &imageOmeInfo)
       -> joda::thread::ThreadingSettings;
-  auto calcOptimalThreadNumber(const settings::AnalyzeSettings &settings) -> joda::thread::ThreadingSettings;
   // FILES ///////////////////////////////////////////////////
   auto getNrOfFoundImages() -> uint32_t;
   auto getListOfFoundImages() -> const std::map<uint8_t, std::vector<std::filesystem::path>> &;
@@ -122,7 +124,7 @@ public:
   // PREVIEW ///////////////////////////////////////////////////
   void preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
                const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const settings::Pipeline &pipeline,
-               const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, Preview &previewOut, const joda::ome::OmeInfo &,
+               const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, int32_t tStack, Preview &previewOut, const joda::ome::OmeInfo &,
                const settings::ObjectInputClasses &classesToShow);
   [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series) -> joda::ome::OmeInfo;
 

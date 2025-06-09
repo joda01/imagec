@@ -62,6 +62,10 @@ public:
   }
   void setWaiting(bool waiting)
   {
+    // Don't show waiting dialog if video is running for a better view.
+    if(mActionPlay->isChecked()) {
+      return;
+    }
     mImageViewLeft.setWaiting(waiting);
     mImageViewRight.setWaiting(waiting);
   }
@@ -155,6 +159,16 @@ public:
     mImageViewRight.setShowPixelInfo(show);
   }
 
+  int32_t getActualTimeStackPosition() const
+  {
+    return mSpinnerActTimeStack->value();
+  }
+
+  int32_t getMaxTimeStacks() const
+  {
+    return mPreviewImages.tStacks;
+  }
+
   void setCrossHairCursorPositionAndCenter(const QRect &boundingRect);
 
 signals:
@@ -193,6 +207,15 @@ private:
   QAction *mMinIntensityProjection  = nullptr;
   QAction *mAvgIntensity            = nullptr;
   QAction *mTakeTheMiddleProjection = nullptr;
+
+  // T-STACK //////////////////////////////////////////////////
+  int32_t mPlaybackSpeed = 1000;
+  QActionGroup *mPlaybackspeedGroup;
+  QMenu *mPlaybackSpeedSelector;
+  QTimer *mPlayTimer;
+  QAction *mActionPlay;
+  QAction *mActionStop;
+  QSpinBox *mSpinnerActTimeStack;
 
 private slots:
   /////////////////////////////////////////////////////

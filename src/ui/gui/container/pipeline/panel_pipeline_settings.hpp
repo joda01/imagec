@@ -151,6 +151,7 @@ private:
     int32_t pipelinePos;
     int32_t selectedTileX = 0;
     int32_t selectedTileY = 0;
+    int32_t timeStack     = 0;
     std::map<enums::ClassIdIn, QString> classes;
     settings::ObjectInputClasses classesToShow;
     joda::thread::ThreadingSettings threadSettings;
