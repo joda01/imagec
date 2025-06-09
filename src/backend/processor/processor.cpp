@@ -115,7 +115,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
           auto nrzSTack         = imageLoader.getNrOfZStacksToProcess();
           auto nrChannels       = omeInfo.getNrOfChannels(imageContext.series);
 
-          mProgress.setTotalNrOfTiles(mProgress.totalImages() * tilesX * tilesY);
+          mProgress.setTotalNrOfTiles(mProgress.totalImages() * tilesX * tilesY * nrtStack);
           BS::multi_future<void> tilesFutures;
 
           for(int tileX = 0; tileX < tilesX; tileX++) {
@@ -225,9 +225,11 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                     }
                     DurationCount::stop(id);
                   }
+
+                  // Time frame finished
+                  mProgress.incProcessedTiles();
                 }
                 // Tile finished
-                mProgress.incProcessedTiles();
               };
 
               if(poolSizeTiles > 1) {
