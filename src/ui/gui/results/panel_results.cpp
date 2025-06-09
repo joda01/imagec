@@ -308,7 +308,13 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   refreshView();
 
   connect(mPreviewImage, &DialogImageViewer::tileClicked, this, &PanelResults::onTileClicked);
-  connect(mPreviewImage, &DialogImageViewer::onSettingChanged, [this] { loadPreview(); });
+  connect(mPreviewImage, &DialogImageViewer::onSettingChanged, [this] {
+    if(mFilter.getFilter().tStack != mPreviewImage->getActualTimeStackPosition()) {
+      // If t stack has been changed, reload the results with the new t-stack
+      refreshView();
+    }
+    loadPreview();
+  });
 }
 
 PanelResults::~PanelResults()
@@ -751,7 +757,7 @@ void PanelResults::refreshView()
                   ? joda::settings::DensityMapSettings::ElementForm::CIRCLE
                   : joda::settings::DensityMapSettings::ElementForm::RECTANGLE;
 
-  mFilter.setFilter({.plateId = 0, .groupId = mActGroupId, .imageId = mActImageId},
+  mFilter.setFilter({.plateId = 0, .groupId = mActGroupId, .imageId = mActImageId, .tStack = mPreviewImage->getActualTimeStackPosition()},
                     {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
                     {.form               = form,
                      .heatmapRangeMode   = mFilter.getDensityMapSettings().heatmapRangeMode,
@@ -779,7 +785,7 @@ void PanelResults::refreshView()
             mActGroupId                = static_cast<uint16_t>(getID);
             mSelectedWellId            = getID;
             mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(getID);
-            mFilter.setFilter({.plateId = 0, .groupId = mActGroupId, .imageId = mActImageId},
+            mFilter.setFilter({.plateId = 0, .groupId = mActGroupId, .imageId = mActImageId, .tStack = mPreviewImage->getActualTimeStackPosition()},
                               {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
                               {.densityMapAreaSize = static_cast<int32_t>(getDensityMapSize())});
             goto REFRESH_VIEW;

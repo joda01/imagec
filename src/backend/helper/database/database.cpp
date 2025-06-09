@@ -1170,7 +1170,7 @@ auto Database::selectObjectInfo(uint64_t objectId) -> ObjectInfo
   if(materializedResult->RowCount() > 0) {
     results.stackC        = materializedResult->GetValue(0, 0).GetValue<uint32_t>();
     results.stackZ        = materializedResult->GetValue(1, 0).GetValue<uint32_t>();
-    results.stackZ        = materializedResult->GetValue(2, 0).GetValue<uint32_t>();
+    results.stackT        = materializedResult->GetValue(2, 0).GetValue<uint32_t>();
     results.measCenterX   = materializedResult->GetValue(3, 0).GetValue<uint32_t>();
     results.measCenterY   = materializedResult->GetValue(4, 0).GetValue<uint32_t>();
     results.measBoxX      = materializedResult->GetValue(5, 0).GetValue<uint32_t>();

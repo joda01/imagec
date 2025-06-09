@@ -104,13 +104,6 @@ DialogColumnSettings::DialogColumnSettings(settings::ResultsSettings *filter, QW
   mZStack->setValue(0);
   vlayout->addRow("Z-Stack:", mZStack);
 
-  //
-  //
-  mTStack = new QSpinBox();
-  mTStack->setMinimum(0);
-  mTStack->setValue(0);
-  vlayout->addRow("T-Stack:", mTStack);
-
   {
     auto *mToolbarBottom = new QToolBar();
     mToolbarBottom->setContentsMargins(0, 0, 0, 0);
@@ -221,7 +214,6 @@ void DialogColumnSettings::exec(const settings::ResultsSettings::ColumnKey &colK
       select(mCrossChannelStackC->findData(colKey.crossChannelStacksC), mCrossChannelStackC);
 
       mZStack->setValue(colKey.zStack);
-      mTStack->setValue(colKey.tStack);
 
       mClasssClassSelector->blockSignals(false);
     }
@@ -245,8 +237,7 @@ void DialogColumnSettings::exec(const settings::ResultsSettings::ColumnKey &colK
                            .stats               = static_cast<enums::Stats>(mStatsSelector->currentData().toInt()),
                            .crossChannelStacksC = mCrossChannelStackC->currentData().toInt(),
                            .intersectingChannel = SettingComboBoxMultiClassificationUnmanaged::fromInt(mClasssIntersection->currentData().toUInt()),
-                           .zStack              = mZStack->value(),
-                           .tStack              = mTStack->value()},
+                           .zStack              = mZStack->value()},
                        settings::ResultsSettings::ColumnName{.className = className, .intersectingName = intersectingName});
   }
 }

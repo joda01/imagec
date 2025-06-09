@@ -59,7 +59,6 @@ private:
   QComboBox *mStatsSelector;
   QComboBox *mCrossChannelStackC;
   QSpinBox *mZStack;
-  QSpinBox *mTStack;
 
 private slots:
   void onClassesChanged();

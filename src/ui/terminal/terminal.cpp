@@ -180,7 +180,7 @@ void Terminal::exportData(const std::filesystem::path &pathToDatabasefile, const
   } else if(view == "image") {
     viewEnum = ctrl::ExportSettings::ExportView::IMAGE;
     if(filterElements.size() < 3) {
-      joda::log::logError("Export filter in form [plate-id group-id image-file-name] must be given!");
+      joda::log::logError("Export filter in form [t-stack, plate-id group-id image-file-name] must be given!");
       std::exit(1);
     }
   } else {
@@ -188,16 +188,18 @@ void Terminal::exportData(const std::filesystem::path &pathToDatabasefile, const
     std::exit(1);
   }
 
+  int32_t tStack  = 0;
   int32_t plateId = 0;
   int32_t groupId = 0;
   std::string imageFileName;
   try {
-    plateId = std::stoi(filterElements[0]);
-    if(filterElements.size() > 1) {
-      groupId = std::stoi(filterElements[1]);
-    }
+    tStack  = std::stoi(filterElements[0]);
+    plateId = std::stoi(filterElements[1]);
     if(filterElements.size() > 2) {
-      imageFileName = filterElements[2];
+      groupId = std::stoi(filterElements[2]);
+    }
+    if(filterElements.size() > 3) {
+      imageFileName = filterElements[3];
     }
   } catch(const std::exception &e) {
     joda::log::logError("Plate ID and Group ID must be a number between [0-65535].");
@@ -205,8 +207,8 @@ void Terminal::exportData(const std::filesystem::path &pathToDatabasefile, const
   }
 
   try {
-    mController->exportData(pathToDatabasefile, filter, joda::ctrl::ExportSettings{formatEnum, typeEnum, viewEnum, {plateId, groupId, imageFileName}},
-                            outputPath);
+    mController->exportData(pathToDatabasefile, filter,
+                            joda::ctrl::ExportSettings{formatEnum, typeEnum, viewEnum, {plateId, groupId, tStack, imageFileName}}, outputPath);
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     std::exit(1);

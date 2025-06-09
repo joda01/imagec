@@ -25,7 +25,7 @@ namespace joda::db {
 /// \param[out]
 /// \return
 ///
-ResultingTable::ResultingTable(const settings::ResultsSettings *filter)
+ResultingTable::ResultingTable(const settings::ResultsSettings *filter) : mFilter(filter)
 {
   std::map<int32_t, std::map<uint32_t, std::string>> tableHeaders;
   for(const auto &[colIdx, colKey] : filter->getColumns()) {
@@ -34,12 +34,12 @@ ResultingTable::ResultingTable(const settings::ResultsSettings *filter)
        settings::ResultsSettings::getType(colKey.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE_ID) {
       // For distance measurement we have to create a separate statement for each distance from - distance to class combination
       // Distance from is the colKey.classId, distance to is the colKey.intersectingChannel
-      qKey = {colKey.classId, colKey.zStack, colKey.tStack, colKey.intersectingChannel};
+      qKey = {colKey.classId, colKey.zStack, filter->getFilter().tStack, colKey.intersectingChannel};
     } else {
-      qKey = {colKey.classId, colKey.zStack, colKey.tStack, joda::enums::ClassId::NONE};
+      qKey = {colKey.classId, colKey.zStack, filter->getFilter().tStack, joda::enums::ClassId::NONE};
     }
     if(!mClassesAndClasses.contains(qKey)) {
-      mClassesAndClasses.emplace(qKey, PreparedStatement{colKey.names});
+      mClassesAndClasses.emplace(qKey, PreparedStatement{colKey.names, filter});
     }
     mClassesAndClasses.at(qKey).addColumn(colKey);
     mTableMapping.emplace(colKey, colIdx);
@@ -199,8 +199,8 @@ std::string PreparedStatement::createStatsQueryJoins() const
         std::string tableName = "tj" + std::to_string(column.crossChannelStacksC);
         joins += "LEFT JOIN object_measurements " + tableName + " ON\n   t1.object_id = " + tableName + ".object_id AND t1.image_id = " + tableName +
                  ".image_id  AND " + tableName + ".meas_stack_c = " + std::to_string(column.crossChannelStacksC) + " AND " + tableName +
-                 " .meas_stack_z = " + std::to_string(column.zStack) + " AND " + tableName + ".meas_stack_t = " + std::to_string(column.tStack) +
-                 "\n";
+                 " .meas_stack_z = " + std::to_string(column.zStack) + " AND " + tableName +
+                 ".meas_stack_t = " + std::to_string(mFilter->getFilter().tStack) + "\n";
 
         joindStacks.emplace(column.crossChannelStacksC);
       }
@@ -212,8 +212,8 @@ std::string PreparedStatement::createStatsQueryJoins() const
         std::string chStr     = std::to_string(static_cast<int32_t>(column.intersectingChannel));
         joins += "LEFT JOIN distance_measurements " + tableName + " ON\n   t1.object_id = " + tableName +
                  ".object_id AND t1.image_id = " + tableName + ".image_id  AND " + tableName + ".meas_class_id = " + chStr + " AND " + tableName +
-                 " .meas_stack_z = " + std::to_string(column.zStack) + " AND " + tableName + ".meas_stack_t = " + std::to_string(column.tStack) +
-                 "\n";
+                 " .meas_stack_z = " + std::to_string(column.zStack) + " AND " + tableName +
+                 ".meas_stack_t = " + std::to_string(mFilter->getFilter().tStack) + "\n";
 
         joindStacks.emplace(column.crossChannelStacksC);
       }

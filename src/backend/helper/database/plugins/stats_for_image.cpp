@@ -194,7 +194,7 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
   }
   std::string sql = intersect + "SELECT\n" + channelFilter.createStatsQuery(false, false, offValue) + offValue +
                     "(t1.meas_center_x) as meas_center_x,\n" + offValue + "(t1.meas_center_y) as meas_center_y,\n" + uniqueObjectId + offValue +
-                    "(t1.object_id) as object_id_real,\n" + "(t1.meas_parent_object_id) as meas_parent_object_id,\n" + offValue +
+                    "(t1.object_id) as object_id_real,\n" + offValue + "(t1.meas_parent_object_id) as meas_parent_object_id,\n" + offValue +
                     "(t1.meas_tracking_id) as meas_tracking_id,\n" + offValue + "(images.file_name) as file_name\n" +
                     "FROM\n"
                     "  " +

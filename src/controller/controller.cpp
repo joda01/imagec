@@ -544,7 +544,7 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, settings:
       throw std::invalid_argument("Image with name >" + settings.filter.imageFileName + "< not found in database!");
     }
   }
-  filter.setFilter(settings.filter.plateId, settings.filter.groupId, {imageId});
+  filter.setFilter(settings.filter.plateId, settings.filter.groupId, settings.filter.tStack, {imageId});
 
   joda::log::logInfo("Export started!");
   auto grouping = db::StatsPerGroup::Grouping::BY_IMAGE;

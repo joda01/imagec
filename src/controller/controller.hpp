@@ -68,6 +68,7 @@ struct ExportSettings
   {
     int32_t plateId = 0;
     int32_t groupId = 0;
+    int32_t tStack  = 0;
     std::string imageFileName;
   };
 

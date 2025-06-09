@@ -41,7 +41,8 @@ using QueryResult = std::map<int32_t, joda::table::Table>;
 class PreparedStatement
 {
 public:
-  PreparedStatement(settings::ResultsSettings::ColumnName names) : mColNames(std::move(names))
+  PreparedStatement(settings::ResultsSettings::ColumnName names, const settings::ResultsSettings *filter) :
+      mColNames(std::move(names)), mFilter(filter)
   {
   }
 
@@ -93,6 +94,7 @@ private:
   /////////////////////////////////////////////////////
   std::map<int32_t, settings::ResultsSettings::ColumnKey> columns;
   settings::ResultsSettings::ColumnName mColNames;
+  const settings::ResultsSettings *mFilter;
 };
 
 ///
@@ -137,7 +139,7 @@ public:
                const std::string &rowName, const table::TableCell &tableCell)
   {
     if(!mClassesAndClasses.contains(classsAndClass)) {
-      mClassesAndClasses.emplace(classsAndClass, PreparedStatement{colName});
+      mClassesAndClasses.emplace(classsAndClass, PreparedStatement{colName, mFilter});
     }
     const PreparedStatement &prep = mClassesAndClasses.at(classsAndClass);
     auto columnKey                = prep.getColumnAt(dbColIx);
@@ -165,7 +167,7 @@ public:
                 uint64_t rowId)
   {
     if(!mClassesAndClasses.contains(classsAndClass)) {
-      mClassesAndClasses.emplace(classsAndClass, PreparedStatement{colName});
+      mClassesAndClasses.emplace(classsAndClass, PreparedStatement{colName, mFilter});
     }
 
     for(auto [itr, element] : mTableMapping) {
@@ -179,7 +181,7 @@ public:
                const table::TableCell &tableCell, int32_t sizeX, int32_t sizeY, const std::string &header)
   {
     if(!mClassesAndClasses.contains(classsAndClass)) {
-      mClassesAndClasses.emplace(classsAndClass, PreparedStatement{colName});
+      mClassesAndClasses.emplace(classsAndClass, PreparedStatement{colName, mFilter});
     }
     const PreparedStatement &prep = mClassesAndClasses.at(classsAndClass);
     auto columnKey                = prep.getColumnAt(dbColIx);
@@ -244,6 +246,7 @@ private:
   std::map<int32_t, table::Table> mResultingTable;
   std::map<QueryKey, PreparedStatement> mClassesAndClasses;
   std::multimap<settings::ResultsSettings::ColumnKey, settings::ResultsSettings::ColumnIdx> mTableMapping;
+  const settings::ResultsSettings *mFilter;
 };
 
 }    // namespace joda::db
