@@ -37,7 +37,7 @@ class DialogImageViewer : public QDockWidget
 
 public:
   /////////////////////////////////////////////////////
-  DialogImageViewer(QWidget *parent, bool showOriginalImage = true);
+  DialogImageViewer(QWidget *parent, bool showOriginalImage = true, QMainWindow *toolbarParent = nullptr);
   ~DialogImageViewer();
   void imageUpdated(const ctrl::Preview::PreviewResults &info, const std::map<enums::ClassIdIn, QString> &classes);
   void fitImageToScreenSize();
@@ -171,6 +171,11 @@ public:
 
   void setCrossHairCursorPositionAndCenter(const QRect &boundingRect);
 
+  void setPlayBackToolbarVisible(bool visible)
+  {
+    mPlaybackToolbar->setVisible(visible);
+  }
+
 signals:
   void tileClicked(int32_t tileX, int32_t tileY);
   void onSettingChanged();
@@ -209,6 +214,7 @@ private:
   QAction *mTakeTheMiddleProjection = nullptr;
 
   // T-STACK //////////////////////////////////////////////////
+  QToolBar *mPlaybackToolbar;
   int32_t mPlaybackSpeed = 1000;
   QActionGroup *mPlaybackspeedGroup;
   QMenu *mPlaybackSpeedSelector;

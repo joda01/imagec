@@ -80,7 +80,7 @@ namespace joda::ui::gui {
 /// \author     Joachim Danmayr
 ///
 PanelResults::PanelResults(WindowMain *windowMain) :
-    PanelEdit(windowMain, nullptr, false, windowMain), mWindowMain(windowMain), mPreviewImage(new DialogImageViewer(windowMain, false))
+    PanelEdit(windowMain, nullptr, false, windowMain), mWindowMain(windowMain), mPreviewImage(new DialogImageViewer(windowMain, false, windowMain))
 {
   // Drop downs
   createEditColumnDialog();
@@ -343,6 +343,7 @@ void PanelResults::setActive(bool active)
 {
   if(!active) {
     showToolBar(false);
+    mPreviewImage->setPlayBackToolbarVisible(false);
     mPreviewImage->setVisible(false);
     mPreviewImage->resetImage();
     resetSettings();
@@ -628,7 +629,7 @@ void PanelResults::loadPreview()
     mGeneratePreviewMutex.unlock();
     return;
   }
-  if(!mSelectedDataSet.analyzeMeta.has_value()) {
+  if(!mSelectedDataSet.analyzeMeta.has_value() || !mSelectedDataSet.imageMeta.has_value() || !mSelectedDataSet.objectInfo.has_value()) {
     mGeneratePreviewMutex.unlock();
     return;
   }
@@ -1078,6 +1079,7 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   mImageWorkingDirectory = mDbFilePath.parent_path().parent_path().parent_path();
 
   showToolBar(true);
+  mPreviewImage->setPlayBackToolbarVisible(true);
   mSelectedDataSet.analyzeMeta = mAnalyzer->selectExperiment();
   mColumnEditDialog->updateClassesAndClasses(mAnalyzer.get());
   // Try to load settings if available

@@ -42,7 +42,7 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
+DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QMainWindow *toolbarParent) :
     QDockWidget(parent), mImageViewLeft(&mPreviewImages.originalImage, &mPreviewImages.thumbnail, nullptr, true),
     mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, false)
 {
@@ -299,7 +299,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
     mSpinnerActTimeStack->setValue(0);
     connect(mSpinnerActTimeStack, &QSpinBox::valueChanged, [this] { emit onSettingChanged(); });
 
-    auto *bottomToolBar = new QToolBar();
+    mPlaybackToolbar = new QToolBar();
 
     auto *skipBackward = new QAction(generateSvgIcon("media-skip-backward"), "");
     connect(skipBackward, &QAction::triggered, [this] {
@@ -308,7 +308,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
       mSpinnerActTimeStack->blockSignals(false);
       emit onSettingChanged();
     });
-    bottomToolBar->addAction(skipBackward);
+    mPlaybackToolbar->addAction(skipBackward);
 
     auto *seekBackward = new QAction(generateSvgIcon("media-seek-backward"), "");
     connect(seekBackward, &QAction::triggered, [this] {
@@ -319,7 +319,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
       }
       emit onSettingChanged();
     });
-    bottomToolBar->addAction(seekBackward);
+    mPlaybackToolbar->addAction(seekBackward);
 
     // ==========================================================
     // ==========================================================
@@ -359,14 +359,14 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
         mPlayTimer->stop();
       }
     });
-    bottomToolBar->addAction(mActionPlay);
+    mPlaybackToolbar->addAction(mActionPlay);
 
     mActionStop = new QAction(generateSvgIcon("media-playback-stop"), "");
     connect(mActionStop, &QAction::triggered, [this] {
       mActionPlay->setChecked(false);
       mPlayTimer->stop();
     });
-    bottomToolBar->addAction(mActionStop);
+    mPlaybackToolbar->addAction(mActionStop);
 
     auto *seekForward = new QAction(generateSvgIcon("media-seek-forward"), "");
     connect(seekForward, &QAction::triggered, [this] {
@@ -377,10 +377,15 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
       }
       emit onSettingChanged();
     });
-    bottomToolBar->addAction(seekForward);
-    bottomToolBar->addWidget(mSpinnerActTimeStack);
+    mPlaybackToolbar->addAction(seekForward);
+    mPlaybackToolbar->addWidget(mSpinnerActTimeStack);
 
-    layout->addWidget(bottomToolBar);
+    if(toolbarParent == nullptr) {
+      layout->addWidget(mPlaybackToolbar);
+    } else {
+      mPlaybackToolbar->setVisible(false);
+      toolbarParent->addToolBar(mPlaybackToolbar);
+    }
   }
 
   // setLayout(layout);
