@@ -384,7 +384,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QM
       layout->addWidget(mPlaybackToolbar);
     } else {
       mPlaybackToolbar->setVisible(false);
-      toolbarParent->addToolBar(mPlaybackToolbar);
+      toolbarParent->addToolBar(Qt::ToolBarArea::BottomToolBarArea, mPlaybackToolbar);
     }
   }
 

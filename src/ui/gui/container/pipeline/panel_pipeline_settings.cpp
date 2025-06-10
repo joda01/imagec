@@ -358,6 +358,12 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 
   //
   //
+  //
+  tStackIndex = generateStackIndexCombo(false, "T-Channel", windowMain);
+  tStackIndex->connectWithSetting(&mSettings.pipelineSetup.tStackIndex);
+
+  //
+  //
   defaultClassId = SettingBase::create<SettingComboBoxClassesOutN>(windowMain, generateSvgIcon("shapes"), "Output class", 10);
   defaultClassId->setWithMemory(false);
   defaultClassId->setWithDefault(false);
@@ -394,12 +400,13 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
   connect(zProjection.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   connect(zProjection.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::onZProjectionChanged);
   connect(zStackIndex.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
+  connect(tStackIndex.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   connect(defaultClassId.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
 
   {
     auto *col1 = tab->addVerticalPanel();
     col1->addGroup("Pipeline", {pipelineName.get(), defaultClassId.get()});
-    col1->addGroup("Pipeline input", {cStackIndex.get(), zProjection.get(), zStackIndex.get()});
+    col1->addGroup("Pipeline input", {cStackIndex.get(), zProjection.get(), zStackIndex.get(), tStackIndex.get()});
     col1->addGroup({pipelineNotes.get()});
   }
 
