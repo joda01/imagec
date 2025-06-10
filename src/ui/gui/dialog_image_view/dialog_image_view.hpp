@@ -16,6 +16,7 @@
 #include <qaction.h>
 #include <qdialog.h>
 #include <qwindow.h>
+#include <optional>
 #include "backend/enums/types.hpp"
 #include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"
@@ -166,7 +167,20 @@ public:
 
   int32_t getMaxTimeStacks() const
   {
+    if(mMaxTimeStacks.has_value()) {
+      return mMaxTimeStacks.value();
+    }
     return mPreviewImages.tStacks;
+  }
+
+  void setMaxTimeStacks(int32_t tStackNr)
+  {
+    mMaxTimeStacks = tStackNr;
+  }
+
+  void resetMaxtimeStacks()
+  {
+    mMaxTimeStacks.reset();
   }
 
   void setCrossHairCursorPositionAndCenter(const QRect &boundingRect);
@@ -214,6 +228,7 @@ private:
   QAction *mTakeTheMiddleProjection = nullptr;
 
   // T-STACK //////////////////////////////////////////////////
+  std::optional<int32_t> mMaxTimeStacks = std::nullopt;
   QToolBar *mPlaybackToolbar;
   int32_t mPlaybackSpeed = 1000;
   QActionGroup *mPlaybackspeedGroup;

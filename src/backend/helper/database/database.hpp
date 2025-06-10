@@ -72,6 +72,8 @@ public:
   auto selectExperiment() -> AnalyzeMeta;
   auto selectPlates() -> std::map<uint16_t, joda::settings::Plate>;
   auto selectImageChannels() -> std::map<uint32_t, joda::ome::OmeInfo::ChannelInfo>;
+  auto selectNrOfTimeStacks() -> int32_t;
+
   auto selectClasses() -> std::map<enums::ClassId, joda::settings::Class>;
 
   auto selectGroupInfo(uint64_t groupId) -> GroupInfo;

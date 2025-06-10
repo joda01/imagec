@@ -1046,6 +1046,28 @@ auto Database::selectImageChannels() -> std::map<uint32_t, joda::ome::OmeInfo::C
 /// \param[out]
 /// \return
 ///
+auto Database::selectNrOfTimeStacks() -> int32_t
+{
+  std::unique_ptr<duckdb::QueryResult> result = select("SELECT MAX(nr_of_t_Stacks) FROM images");
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+  if(materializedResult->RowCount() > 0) {
+    return materializedResult->GetValue(0, 0).GetValue<uint32_t>();
+  }
+
+  return 0;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 auto Database::selectGroupInfo(uint64_t groupId) -> GroupInfo
 {
   std::unique_ptr<duckdb::QueryResult> result = select(

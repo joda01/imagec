@@ -532,6 +532,7 @@ void PanelResults::refreshBreadCrump()
       mOpenNextLevel->setVisible(true);
       mPreviewImage->setVisible(false);
       mPreviewImage->resetImage();
+      mPreviewImage->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
       break;
     case Navigation::WELL:
       mBreadCrumpWell->setVisible(true);
@@ -539,6 +540,7 @@ void PanelResults::refreshBreadCrump()
       mOpenNextLevel->setVisible(true);
       mPreviewImage->setVisible(false);
       mPreviewImage->resetImage();
+      mPreviewImage->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
       if(mSelectedDataSet.groupMeta.has_value()) {
         auto platePos =
             "Well (" + std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + ")";
@@ -549,6 +551,7 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpWell->setVisible(true);
       mBreadCrumpImage->setVisible(true);
       mOpenNextLevel->setVisible(false);
+      mPreviewImage->resetMaxtimeStacks();
       if(!mImageWorkingDirectory.empty()) {
         mPreviewImage->setVisible(true);
       }
