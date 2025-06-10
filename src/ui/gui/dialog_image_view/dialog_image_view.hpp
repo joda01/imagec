@@ -206,6 +206,7 @@ private:
   std::mutex mPreviewMutex;
   int mPreviewCounter = 0;
   QBoxLayout *mCentralLayout;
+  QVBoxLayout *mMainLayout;
 
   HistoToolbar *mHistoToolbarLeft  = nullptr;
   HistoToolbar *mHistoToolbarRight = nullptr;
@@ -237,6 +238,7 @@ private:
   QAction *mActionPlay;
   QAction *mActionStop;
   QSpinBox *mSpinnerActTimeStack;
+  QMainWindow *mWindowMain = nullptr;
 
 private slots:
   /////////////////////////////////////////////////////

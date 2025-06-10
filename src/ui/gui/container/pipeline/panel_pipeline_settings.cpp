@@ -946,6 +946,7 @@ void PanelPipelineSettings::setActive(bool setActive)
 {
   if(!mIsActiveShown && setActive) {
     mLayout.showToolBar(true);
+    mPreviewImage->setPlayBackToolbarVisible(true);
     mIsActiveShown = true;
     updatePreview();
     mDialogHistory->loadHistory();
@@ -956,6 +957,7 @@ void PanelPipelineSettings::setActive(bool setActive)
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
     mIsActiveShown = false;
     mLayout.showToolBar(false);
+    mPreviewImage->setPlayBackToolbarVisible(false);
 
     mDialogHistory->hide();
     mHistoryAction->setChecked(false);

@@ -44,7 +44,7 @@ using namespace std::chrono_literals;
 ///
 DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QMainWindow *toolbarParent) :
     QDockWidget(parent), mImageViewLeft(&mPreviewImages.originalImage, &mPreviewImages.thumbnail, nullptr, true),
-    mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, false)
+    mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, false), mWindowMain(toolbarParent)
 {
   setWindowTitle("Image view");
   setVisible(false);
@@ -54,27 +54,10 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QM
   setMaximumWidth(500);    // Max width when docked
   setMinimumWidth(500);    // Min width even when docked
 
-  // Connect signal to detect docking/floating changes
-  connect(this, &QDockWidget::topLevelChanged, this, [this](bool floating) {
-    if(floating) {
-      setMaximumWidth(10000);    // Remove max width cap
-      setMinimumWidth(1200);     // Wider when floating
-      setMinimumHeight(600);
-      mCentralLayout->setDirection(QBoxLayout::LeftToRight);
-      resize(1300, 700);
-    } else {
-      setMaximumWidth(500);    // Restrict width when docked
-      setMinimumHeight(0);
-      setMinimumWidth(500);    // Restore min width when docked
-      mCentralLayout->setDirection(QBoxLayout::TopToBottom);
-      setWindowTitle("");
-    }
-  });
-
   mImageViewRight.setShowPipelineResults(true);
 
   auto *mainContainer = new QWidget();
-  auto *layout        = new QVBoxLayout();
+  mMainLayout         = new QVBoxLayout();
 
   {
     auto *toolbarTop = new QToolBar();
@@ -247,7 +230,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QM
       mZProjectionAction->setVisible(false);
     }
 
-    layout->addWidget(toolbarTop);
+    mMainLayout->addWidget(toolbarTop);
     // addToolBar(Qt::ToolBarArea::TopToolBarArea, toolbarTop);
   }
 
@@ -281,7 +264,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QM
     // centralLayout->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     centralWidget->setLayout(mCentralLayout);
-    layout->addWidget(centralWidget);
+    mMainLayout->addWidget(centralWidget);
 
     if(showOriginalImage) {
       connect(&mImageViewLeft, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onLeftViewChanged);
@@ -299,8 +282,15 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QM
     mSpinnerActTimeStack->setValue(0);
     connect(mSpinnerActTimeStack, &QSpinBox::valueChanged, [this] { emit onSettingChanged(); });
 
-    mPlaybackToolbar = new QToolBar();
+    // Create spacer widgets
+    auto *leftSpacer = new QWidget;
+    leftSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
+    auto *rightSpacer = new QWidget;
+    rightSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+    mPlaybackToolbar = new QToolBar();
+    mPlaybackToolbar->addWidget(leftSpacer);
     auto *skipBackward = new QAction(generateSvgIcon("media-skip-backward"), "");
     connect(skipBackward, &QAction::triggered, [this] {
       mSpinnerActTimeStack->blockSignals(true);
@@ -359,6 +349,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QM
         mPlayTimer->stop();
       }
     });
+
     mPlaybackToolbar->addAction(mActionPlay);
 
     mActionStop = new QAction(generateSvgIcon("media-playback-stop"), "");
@@ -379,9 +370,10 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QM
     });
     mPlaybackToolbar->addAction(seekForward);
     mPlaybackToolbar->addWidget(mSpinnerActTimeStack);
+    mPlaybackToolbar->addWidget(rightSpacer);
 
     if(toolbarParent == nullptr) {
-      layout->addWidget(mPlaybackToolbar);
+      mMainLayout->addWidget(mPlaybackToolbar);
     } else {
       mPlaybackToolbar->setVisible(false);
       toolbarParent->addToolBar(Qt::ToolBarArea::BottomToolBarArea, mPlaybackToolbar);
@@ -389,7 +381,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QM
   }
 
   // setLayout(layout);
-  mainContainer->setLayout(layout);
+  mainContainer->setLayout(mMainLayout);
   setWidget(mainContainer);
 
   // Init
@@ -408,6 +400,36 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QM
       mSpinnerActTimeStack->blockSignals(false);
     }
     emit onSettingChanged();
+  });
+
+  // Connect signal to detect docking/floating changes
+  connect(this, &QDockWidget::topLevelChanged, this, [this](bool floating) {
+    if(floating) {
+      setMaximumWidth(10000);    // Remove max width cap
+      setMinimumWidth(1200);     // Wider when floating
+      setMinimumHeight(600);
+      mCentralLayout->setDirection(QBoxLayout::LeftToRight);
+      resize(1300, 700);
+
+      if(mWindowMain != nullptr) {
+        mWindowMain->removeToolBar(mPlaybackToolbar);
+        mMainLayout->addWidget(mPlaybackToolbar);
+        mPlaybackToolbar->show();
+      }
+
+    } else {
+      setMaximumWidth(500);    // Restrict width when docked
+      setMinimumHeight(0);
+      setMinimumWidth(500);    // Restore min width when docked
+      mCentralLayout->setDirection(QBoxLayout::TopToBottom);
+      setWindowTitle("");
+
+      if(mWindowMain != nullptr) {
+        mMainLayout->removeWidget(mPlaybackToolbar);
+        mWindowMain->addToolBar(Qt::ToolBarArea::BottomToolBarArea, mPlaybackToolbar);
+        mPlaybackToolbar->show();
+      }
+    }
   });
 }
 

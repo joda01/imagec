@@ -531,6 +531,7 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpImage->setVisible(false);
       mOpenNextLevel->setVisible(true);
       mPreviewImage->setVisible(false);
+      mPreviewImage->setFloating(false);
       mPreviewImage->resetImage();
       mPreviewImage->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
       break;
@@ -539,6 +540,7 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpImage->setVisible(false);
       mOpenNextLevel->setVisible(true);
       mPreviewImage->setVisible(false);
+      mPreviewImage->setFloating(false);
       mPreviewImage->resetImage();
       mPreviewImage->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
       if(mSelectedDataSet.groupMeta.has_value()) {

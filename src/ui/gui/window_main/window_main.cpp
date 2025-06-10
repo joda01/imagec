@@ -115,7 +115,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   //
   //
   {
-    mPreviewImage = new DialogImageViewer(this);
+    mPreviewImage = new DialogImageViewer(this, true, this);
     mPreviewImage->setVisible(false);
     mPreviewImage->setContentsMargins(0, 0, 0, 0);
     mPreviewImage->resetImage();
