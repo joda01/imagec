@@ -187,7 +187,8 @@ public:
 
   void setPlayBackToolbarVisible(bool visible)
   {
-    mPlaybackToolbar->setVisible(visible);
+    mPlaybackToolbarVisible = visible;
+    updatePlaybackToolbarVisible();
   }
 
 signals:
@@ -197,6 +198,17 @@ signals:
 private:
   /////////////////////////////////////////////////////
   void leaveEvent(QEvent *event) override;
+  void updatePlaybackToolbarVisible()
+  {
+    if(getMaxTimeStacks() > 1) {
+      mPlaybackToolbar->setVisible(mPlaybackToolbarVisible);
+    } else {
+      mPlaybackToolbar->setVisible(false);
+    }
+    if(getActualTimeStackPosition() >= getMaxTimeStacks()) {
+      mSpinnerActTimeStack->setValue(0);
+    }
+  }
 
   /////////////////////////////////////////////////////
   joda::ctrl::Preview mPreviewImages;
@@ -238,7 +250,8 @@ private:
   QAction *mActionPlay;
   QAction *mActionStop;
   QSpinBox *mSpinnerActTimeStack;
-  QMainWindow *mWindowMain = nullptr;
+  QMainWindow *mWindowMain     = nullptr;
+  bool mPlaybackToolbarVisible = false;
 
 private slots:
   /////////////////////////////////////////////////////

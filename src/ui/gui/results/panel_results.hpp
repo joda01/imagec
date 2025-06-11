@@ -200,7 +200,7 @@ private:
   void loadPreview();
   bool showSelectWorkingDir(const QString &path);
   std::filesystem::path mImageWorkingDirectory;
-  DialogImageViewer *mPreviewImage;
+  DialogImageViewer *mPreviewImage = nullptr;
   joda::ome::OmeInfo mImgProps;
   int32_t mSelectedTileX = 0;
   int32_t mSelectedTileY = 0;

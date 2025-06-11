@@ -554,8 +554,10 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpImage->setVisible(true);
       mOpenNextLevel->setVisible(false);
       mPreviewImage->resetMaxtimeStacks();
-      if(!mImageWorkingDirectory.empty()) {
+      if(!mImageWorkingDirectory.empty() && mTable->isVisible()) {
         mPreviewImage->setVisible(true);
+      } else {
+        mPreviewImage->setVisible(false);
       }
 
       //
@@ -1083,8 +1085,6 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   // If not the user will be asked to select the image working directory.
   mImageWorkingDirectory = mDbFilePath.parent_path().parent_path().parent_path();
 
-  showToolBar(true);
-  mPreviewImage->setPlayBackToolbarVisible(true);
   mSelectedDataSet.analyzeMeta = mAnalyzer->selectExperiment();
   mColumnEditDialog->updateClassesAndClasses(mAnalyzer.get());
   // Try to load settings if available
@@ -1112,6 +1112,9 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
     }
   } catch(...) {
   }
+  showToolBar(true);
+  mPreviewImage->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
+  mPreviewImage->setPlayBackToolbarVisible(true);
   mIsActive = true;
   mWindowMain->setSideBarVisible(false);
 

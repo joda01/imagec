@@ -351,6 +351,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QM
     });
 
     mPlaybackToolbar->addAction(mActionPlay);
+    mPlaybackToolbar->addWidget(mSpinnerActTimeStack);
 
     mActionStop = new QAction(generateSvgIcon("media-playback-stop"), "");
     connect(mActionStop, &QAction::triggered, [this] {
@@ -369,7 +370,6 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QM
       emit onSettingChanged();
     });
     mPlaybackToolbar->addAction(seekForward);
-    mPlaybackToolbar->addWidget(mSpinnerActTimeStack);
     mPlaybackToolbar->addWidget(rightSpacer);
 
     if(toolbarParent == nullptr) {
@@ -526,6 +526,7 @@ void DialogImageViewer::leaveEvent(QEvent *event)
 ///
 void DialogImageViewer::imageUpdated(const ctrl::Preview::PreviewResults &info, const std::map<enums::ClassIdIn, QString> &classes)
 {
+  updatePlaybackToolbarVisible();
   mSpinnerActTimeStack->setMaximum(getMaxTimeStacks());
   mImageViewLeft.imageUpdated(info, classes);
   mImageViewRight.imageUpdated(info, classes);
