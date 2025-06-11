@@ -765,7 +765,10 @@ void PanelResults::refreshView()
                   ? joda::settings::DensityMapSettings::ElementForm::CIRCLE
                   : joda::settings::DensityMapSettings::ElementForm::RECTANGLE;
 
-  mFilter.setFilter({.plateId = 0, .groupId = mActGroupId, .imageId = mActImageId, .tStack = mPreviewImage->getActualTimeStackPosition()},
+  mFilter.setFilter({.plateId = 0,
+                     .groupId = static_cast<uint16_t>(mActGroupId.highBytes()),
+                     .imageId = mActImageId,
+                     .tStack  = mPreviewImage->getActualTimeStackPosition()},
                     {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
                     {.form               = form,
                      .heatmapRangeMode   = mFilter.getDensityMapSettings().heatmapRangeMode,
@@ -790,10 +793,13 @@ void PanelResults::refreshView()
             // If there are no groups, switch directly to well view
             mNavigation                = Navigation::WELL;
             auto getID                 = mActListData.at(0).data(0, 0).getId();
-            mActGroupId                = static_cast<uint16_t>(getID);
+            mActGroupId                = getID;
             mSelectedWellId            = getID;
-            mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(getID);
-            mFilter.setFilter({.plateId = 0, .groupId = mActGroupId, .imageId = mActImageId, .tStack = mPreviewImage->getActualTimeStackPosition()},
+            mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(getID.highBytes());
+            mFilter.setFilter({.plateId = 0,
+                               .groupId = static_cast<uint16_t>(mActGroupId.highBytes()),
+                               .imageId = mActImageId,
+                               .tStack  = mPreviewImage->getActualTimeStackPosition()},
                               {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
                               {.densityMapAreaSize = static_cast<int32_t>(getDensityMapSize())});
             goto REFRESH_VIEW;
@@ -898,11 +904,11 @@ void PanelResults::onMarkAsInvalidClicked(bool isInvalid)
   if(isInvalid) {
     enums::ChannelValidity val;
     val.set(enums::ChannelValidityEnum::MANUAL_OUT_SORTED);
-    mAnalyzer->setImageValidity(mSelectedImageId, val);
+    mAnalyzer->setImageValidity(mSelectedImageId.highBytes(), val);
   } else {
     enums::ChannelValidity val;
     val.set(enums::ChannelValidityEnum::MANUAL_OUT_SORTED);
-    mAnalyzer->unsetImageValidity(mSelectedImageId, val);
+    mAnalyzer->unsetImageValidity(mSelectedImageId.highBytes(), val);
   }
   refreshView();
 }
@@ -925,7 +931,7 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
   switch(mNavigation) {
     case Navigation::PLATE: {
       mSelectedWellId            = value.getId();
-      mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(value.getId());
+      mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(value.getId().highBytes());
       mSelectedDataSet.imageMeta.reset();
       mSelectedDataSet.objectInfo.reset();
       mMarkAsInvalid->setEnabled(false);
@@ -943,7 +949,7 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       mSelectedImageId = value.getId();
       mSelectedDataSet.objectInfo.reset();
 
-      auto imageInfo             = mAnalyzer->selectImageInfo(value.getId());
+      auto imageInfo             = mAnalyzer->selectImageInfo(value.getId().highBytes());
       mSelectedDataSet.imageMeta = imageInfo;
       mMarkAsInvalid->blockSignals(true);
 
@@ -1018,7 +1024,7 @@ void PanelResults::openNextLevel(const std::vector<table::TableCell> &value)
       break;
     case Navigation::WELL:
       if(!value.empty()) {
-        mActGroupId = static_cast<uint16_t>(value.at(0).getId());
+        mActGroupId = value.at(0).getId();
       }
       break;
     case Navigation::IMAGE:

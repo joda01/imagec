@@ -17,9 +17,12 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "backend/enums/bigtypes.hpp"
 #include "backend/helper/helper.hpp"
 
 namespace joda::table {
+
+using namespace joda::stdi;
 
 class TableCell
 {
@@ -29,17 +32,17 @@ public:
   {
   }
 
-  TableCell(double val, uint64_t id, uint64_t objectIdReal, bool valid, uint64_t parentObjectId, uint64_t trackingId) :
+  TableCell(double val, uint128_t id, uint64_t objectIdReal, bool valid, uint64_t parentObjectId, uint64_t trackingId) :
       value(val), id(id), objectId(objectIdReal), validity(valid), parentId(parentObjectId), trackingId(trackingId)
   {
   }
 
-  TableCell(double val, uint64_t id, uint64_t objectIdReal, bool valid, const std::string &linkToImage) :
+  TableCell(double val, uint128_t id, uint64_t objectIdReal, bool valid, const std::string &linkToImage) :
       value(val), id(id), objectId(objectIdReal), validity(valid), linkToImage(linkToImage)
   {
   }
 
-  TableCell(double val, uint64_t id, uint64_t objectIdReal, const std::string &linkToImage) :
+  TableCell(double val, uint128_t id, uint64_t objectIdReal, const std::string &linkToImage) :
       value(val), id(id), objectId(objectIdReal), linkToImage(linkToImage)
   {
   }
@@ -49,7 +52,7 @@ public:
     return value;
   }
 
-  [[nodiscard]] uint64_t getId() const
+  [[nodiscard]] uint128_t getId() const
   {
     return id;
   }
@@ -59,7 +62,7 @@ public:
     return objectId;
   }
 
-  void setId(uint64_t id)
+  void setId(uint128_t id)
   {
     this->id = id;
   }
@@ -92,7 +95,7 @@ public:
 private:
   /////////////////////////////////////////////////////
   double value        = std::numeric_limits<double>::quiet_NaN();
-  uint64_t id         = 0;
+  uint128_t id        = {0, 0};
   uint64_t objectId   = 0;
   uint64_t parentId   = 0;
   uint64_t trackingId = 0;
@@ -165,7 +168,7 @@ public:
     mData[row][col] = data;
   }
 
-  void setDataId(uint32_t row, uint32_t col, uint64_t id)
+  void setDataId(uint32_t row, uint32_t col, uint128_t id)
   {
     mData[row][col].setId(id);
   }

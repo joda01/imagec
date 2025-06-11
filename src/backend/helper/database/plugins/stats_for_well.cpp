@@ -86,6 +86,7 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
         auto filename    = materializedResult->GetValue(columnNr + 4, row).GetValue<std::string>();
         auto imageId     = materializedResult->GetValue(columnNr + 5, row).GetValue<uint64_t>();
         auto validity    = materializedResult->GetValue(columnNr + 6, row).GetValue<uint64_t>();
+        auto tStack      = materializedResult->GetValue(columnNr + 7, row).GetValue<uint32_t>();
         size_t rowIdx    = row;
         std::string colC;
         if(grouping == Grouping::BY_WELL) {
@@ -108,6 +109,7 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
           }
           colC = std::string(1, ((char) (platePosY - 1) + 'A')) + std::to_string(platePosX);
         }
+
         if(grouping == Grouping::BY_WELL) {
           classesToExport.setRowID(classs, statement.getColNames(), rowIdx, filename, imageId);
         } else {
@@ -119,10 +121,10 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
           if(grouping == Grouping::BY_WELL) {
             ///
             classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, filename,
-                                    table::TableCell{value, imageId, imageId, validity == 0, ""});
+                                    table::TableCell{value, {imageId, tStack}, imageId, validity == 0, ""});
           } else {
             classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, colC,
-                                    table::TableCell{value, groupId, groupId, validity == 0, ""});
+                                    table::TableCell{value, {groupId, tStack}, groupId, validity == 0, ""});
           }
         }
       } catch(const duckdb::InternalException &ex) {
@@ -173,6 +175,8 @@ auto StatsPerGroup::toHeatmap(db::Database *database, const settings::ResultsSet
         auto filename    = materializedResult->GetValue(columnNr + 4, row).GetValue<std::string>();
         auto imageId     = materializedResult->GetValue(columnNr + 5, row).GetValue<uint64_t>();
         auto validity    = materializedResult->GetValue(columnNr + 6, row).GetValue<uint64_t>();
+        auto tStack      = materializedResult->GetValue(columnNr + 7, row).GetValue<uint32_t>();
+
         ImgPositionInWell pos;
         if(grouping == Grouping::BY_WELL) {
           pos = wellPos[imgGroupIdx];
@@ -189,11 +193,11 @@ auto StatsPerGroup::toHeatmap(db::Database *database, const settings::ResultsSet
           double value = materializedResult->GetValue(col, row).GetValue<double>();
           if(grouping == Grouping::BY_WELL) {
             classesToExport.setData(classs, statement.getColNames(), col, pos.y, pos.x,
-                                    table::TableCell{value, imageId, imageId, validity == 0, filename}, sizeX, sizeY,
+                                    table::TableCell{value, {imageId, tStack}, imageId, validity == 0, filename}, sizeX, sizeY,
                                     statement.getColumnAt(col).createHeader());
           } else {
             classesToExport.setData(classs, statement.getColNames(), col, pos.y, pos.x,
-                                    table::TableCell{value, groupId, groupId, validity == 0, filename}, sizeX, sizeY,
+                                    table::TableCell{value, {groupId, tStack}, groupId, validity == 0, filename}, sizeX, sizeY,
                                     statement.getColumnAt(col).createHeader());
           }
         }
@@ -294,7 +298,8 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
                     "	ANY_VALUE(groups.pos_on_plate_y) as pos_on_plate_y,\n"
                     "	ANY_VALUE(images.file_name) as file_name,\n"
                     "	ANY_VALUE(images.image_id) as image_id,\n"
-                    "	MAX(images.validity) as validity\n"
+                    "	MAX(images.validity) as validity,\n"
+                    "	ANY_VALUE(t1.stack_t) as stack_t_real\n"
                     "FROM\n"
                     "	" +
                     table + " t1\n" + channelFilter.createStatsQueryJoins() +
@@ -325,7 +330,8 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
            " ANY_VALUE(imageGrouped.pos_on_plate_y) as pos_on_plate_y,\n"
            " ANY_VALUE(imageGrouped.file_name) as file_name,\n"
            " ANY_VALUE(imageGrouped.image_id) as image_id,\n"
-           " MAX(imageGrouped.validity) as validity\n";
+           " MAX(imageGrouped.validity) as validity,\n"
+           " ANY_VALUE(imageGrouped.stack_t_real) as stack_t_real\n";
   } else {
     sql += "*";
   }

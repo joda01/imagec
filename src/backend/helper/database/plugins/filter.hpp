@@ -172,7 +172,8 @@ public:
 
     for(auto [itr, element] : mTableMapping) {
       mResultingTable.at(element.tabIdx).setRowName(row, rowName);
-      mResultingTable.at(element.tabIdx).setDataId(row, element.colIdx, rowId);
+#warning "Missing t stack?"
+      mResultingTable.at(element.tabIdx).setDataId(row, element.colIdx, {rowId, 0});
       mResultingTable.at(element.tabIdx).setMeta({.className = colName.className});
     }
   }
@@ -196,7 +197,7 @@ public:
           mResultingTable[element.colIdx].getMutableRowHeader()[row] = std::string(1, toWrt);
           for(uint8_t col = 0; col < sizeX; col++) {
             mResultingTable[element.colIdx].getMutableColHeader()[col] = std::to_string(col + 1);
-            mResultingTable[element.colIdx].setData(row, col, table::TableCell{std::numeric_limits<double>::quiet_NaN(), 0, 0, true, ""});
+            mResultingTable[element.colIdx].setData(row, col, table::TableCell{std::numeric_limits<double>::quiet_NaN(), {0, 0}, 0, true, ""});
           }
         }
       }

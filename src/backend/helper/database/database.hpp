@@ -14,6 +14,7 @@
 #pragma once
 
 #include <duckdb.h>
+#include <exception>
 #include <filesystem>
 #include <memory>
 #include <vector>
@@ -89,9 +90,13 @@ public:
   template <typename... ARGS>
   std::unique_ptr<duckdb::QueryResult> select(const std::string &query, ARGS... args)
   {
-    auto connection = acquire();
-    auto prep       = connection->Prepare(query);
-    return prep->Execute(std::forward<ARGS>(args)...);
+    try {
+      auto connection = acquire();
+      auto prep       = connection->Prepare(query);
+      return prep->Execute(std::forward<ARGS>(args)...);
+    } catch(const std::exception &err) {
+      std::cout << "Error in: " << query << ". with: " << err.what() << std::endl;
+    }
   }
 
   std::unique_ptr<duckdb::QueryResult> select(const std::string &query, const DbArgs_t &args);

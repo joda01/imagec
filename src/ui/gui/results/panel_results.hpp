@@ -70,12 +70,12 @@ public:
     return mNavigation;
   }
 
-  [[nodiscard]] uint16_t getSelectedGroup() const
+  [[nodiscard]] stdi::uint128_t getSelectedGroup() const
   {
     return mActGroupId;
   }
 
-  [[nodiscard]] uint64_t getSelectedImage() const
+  [[nodiscard]] stdi::uint128_t getSelectedImage() const
   {
     return mSelectedImageId;
   }
@@ -207,11 +207,11 @@ private:
   std::mutex mGeneratePreviewMutex;
 
   /////////////////////////////////////////////////////
-  uint16_t mActGroupId = 0;
+  stdi::uint128_t mActGroupId = {0, 0};
   std::set<uint64_t> mActImageId;
 
-  uint32_t mSelectedWellId;
-  uint64_t mSelectedImageId;
+  stdi::uint128_t mSelectedWellId;
+  stdi::uint128_t mSelectedImageId;
   uint32_t mSelectedTileId;
   QPoint mSelectedAreaPos;
 
