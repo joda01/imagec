@@ -95,10 +95,17 @@ public:
 
   struct ObjectFilter
   {
+    enum class TStackHandling
+    {
+      SLICE,
+      INDIVIDUAL
+    };
+
     uint8_t plateId  = 0;
     uint16_t groupId = 0;
     std::set<uint64_t> imageId;
-    int32_t tStack = 0;
+    int32_t tStack                = 0;
+    TStackHandling tStackHandling = TStackHandling::SLICE;
 
     // NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ObjectFilter);
   };

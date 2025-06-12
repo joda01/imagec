@@ -2,7 +2,9 @@
 
 #include "stats_for_well.hpp"
 #include <cstddef>
+#include <stdexcept>
 #include <string>
+#include "backend/enums/bigtypes.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/helper/database/plugins/filter.hpp"
 #include "backend/helper/table/table.hpp"
@@ -61,7 +63,7 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
   //
   auto classesToExport = ResultingTable(&filter);
 
-  std::map<uint64_t, int32_t> rowIndexes;    // <ID, rowIdx>
+  std::map<stdi::uint128_t, int32_t> rowIndexes;    // <ID, rowIdx>
 
   auto findMaxRowIdx = [&rowIndexes]() -> int32_t {
     int32_t rowIdx = -1;
@@ -92,20 +94,20 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
         if(grouping == Grouping::BY_WELL) {
           // It could be that there are classes without data, but we have to keep the row order, else the data would be shown shifted and beside a
           // wrong image
-          if(rowIndexes.contains(imageId)) {
-            rowIdx = rowIndexes.at(imageId);
+          if(rowIndexes.contains({imageId, tStack})) {
+            rowIdx = rowIndexes.at({imageId, tStack});
           } else {
             rowIdx = findMaxRowIdx() + 1;
-            rowIndexes.emplace(imageId, rowIdx);
+            rowIndexes.emplace(stdi::uint128_t{imageId, tStack}, rowIdx);
           }
         } else {
           // It could be that there are classes without data, but we have to keep the row order, else the data would be shown shifted and beside a
           // wrong image
-          if(rowIndexes.contains(groupId)) {
-            rowIdx = rowIndexes.at(groupId);
+          if(rowIndexes.contains({groupId, tStack})) {
+            rowIdx = rowIndexes.at({groupId, tStack});
           } else {
             rowIdx = findMaxRowIdx() + 1;
-            rowIndexes.emplace(groupId, rowIdx);
+            rowIndexes.emplace(stdi::uint128_t{groupId, tStack}, rowIdx);
           }
           colC = std::string(1, ((char) (platePosY - 1) + 'A')) + std::to_string(platePosX);
         }
@@ -156,7 +158,7 @@ auto StatsPerGroup::toHeatmap(db::Database *database, const settings::ResultsSet
 
   int32_t sizeX = 0;
   int32_t sizeY = 0;
-  std::map<int32_t, ImgPositionInWell> wellPos;
+  std::map<int32_t, ImgPositionInWell> wellPos;    // For each t stack
   if(grouping == Grouping::BY_WELL) {
     wellPos = transformMatrix(filter.getPlateSetup().wellImageOrder, sizeX, sizeY);
   } else {
@@ -179,7 +181,9 @@ auto StatsPerGroup::toHeatmap(db::Database *database, const settings::ResultsSet
         auto imageId     = materializedResult->GetValue(columnNr + 5, row).GetValue<uint64_t>();
         auto validity    = materializedResult->GetValue(columnNr + 6, row).GetValue<uint64_t>();
         auto tStack      = materializedResult->GetValue(columnNr + 7, row).GetValue<uint32_t>();
-
+        if(tStack != filter.getFilter().tStack) {
+          continue;
+        }
         ImgPositionInWell pos;
         if(grouping == Grouping::BY_WELL) {
           pos = wellPos[imgGroupIdx];
@@ -312,18 +316,36 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
                     "	images_groups.group_id = groups.group_id\n"
                     "JOIN images on\n"
                     "	t1.image_id = images.image_id\n";
-  if(grouping == Grouping::BY_WELL) {
-    sql += "WHERE\n";
-    sql += " t1.class_id=$1 AND images_groups.group_id=$2 AND stack_z=$3 AND stack_t=$4\n";
-  } else {
-    sql += "WHERE\n";
-    sql += " t1.class_id=$1 AND stack_z=$2 AND stack_t=$3\n";
+
+  // Select exact one T-Stack
+  if(filter.tStackHandling == settings::ResultsSettings::ObjectFilter::TStackHandling::INDIVIDUAL) {
+    if(grouping == Grouping::BY_WELL) {
+      sql += "WHERE\n";
+      sql += " t1.class_id=$1 AND images_groups.group_id=$2 AND stack_z=$3 AND stack_t=$4\n";
+    } else {
+      sql += "WHERE\n";
+      sql += " t1.class_id=$1 AND stack_z=$2 AND stack_t=$3\n";
+    }
+    sql +=
+        "GROUP BY\n"
+        "	t1.image_id\n"
+        ")\n"
+        "SELECT\n";
+  } else if(filter.tStackHandling == settings::ResultsSettings::ObjectFilter::TStackHandling::SLICE) {
+    if(grouping == Grouping::BY_WELL) {
+      sql += "WHERE\n";
+      sql += " t1.class_id=$1 AND images_groups.group_id=$2 AND stack_z=$3\n";
+    } else {
+      sql += "WHERE\n";
+      sql += " t1.class_id=$1 AND stack_z=$2\n";
+    }
+
+    sql +=
+        "GROUP BY\n"
+        "	t1.image_id, t1.stack_t\n"
+        ")\n"
+        "SELECT\n";
   }
-  sql +=
-      "GROUP BY\n"
-      "	t1.image_id\n"
-      ")\n"
-      "SELECT\n";
 
   if(grouping == Grouping::BY_PLATE) {
     sql += channelFilter.createStatsQuery(true, true, "ANY_VALUE", grouping == Grouping::BY_WELL ? enums::Stats::OFF : enums::Stats::AVG) +
@@ -339,20 +361,39 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
     sql += "*";
   }
   sql += "FROM imageGrouped\n";
-  if(grouping == Grouping::BY_PLATE) {
-    sql += "GROUP BY group_id\n";
-    sql += "ORDER BY pos_on_plate_y, pos_on_plate_x\n";
-  } else {
-    sql += "ORDER BY file_name";
+
+  if(filter.tStackHandling == settings::ResultsSettings::ObjectFilter::TStackHandling::INDIVIDUAL) {
+    if(grouping == Grouping::BY_PLATE) {
+      sql += "GROUP BY group_id\n";
+      sql += "ORDER BY pos_on_plate_y, pos_on_plate_x\n";
+    } else {
+      sql += "ORDER BY file_name";
+    }
+  } else if(filter.tStackHandling == settings::ResultsSettings::ObjectFilter::TStackHandling::SLICE) {
+    if(grouping == Grouping::BY_PLATE) {
+      sql += "GROUP BY group_id,stack_t_real\n";
+      sql += "ORDER BY pos_on_plate_y, pos_on_plate_x,stack_t_real\n";
+    } else {
+      sql += "ORDER BY file_name,stack_t_real";
+    }
   }
 
-  if(grouping == Grouping::BY_WELL) {
+  if(filter.tStackHandling == settings::ResultsSettings::ObjectFilter::TStackHandling::INDIVIDUAL) {
+    if(grouping == Grouping::BY_WELL) {
+      return {sql,
+              {static_cast<uint16_t>(classsAndClass.classs), static_cast<uint16_t>(filter.groupId), static_cast<int32_t>(classsAndClass.zStack),
+               static_cast<int32_t>(classsAndClass.tStack)}};
+    }
     return {sql,
-            {static_cast<uint16_t>(classsAndClass.classs), static_cast<uint16_t>(filter.groupId), static_cast<int32_t>(classsAndClass.zStack),
-             static_cast<int32_t>(classsAndClass.tStack)}};
+            {static_cast<uint16_t>(classsAndClass.classs), static_cast<int32_t>(classsAndClass.zStack), static_cast<int32_t>(classsAndClass.tStack)}};
+  } else if(filter.tStackHandling == settings::ResultsSettings::ObjectFilter::TStackHandling::SLICE) {
+    if(grouping == Grouping::BY_WELL) {
+      return {sql,
+              {static_cast<uint16_t>(classsAndClass.classs), static_cast<uint16_t>(filter.groupId), static_cast<int32_t>(classsAndClass.zStack)}};
+    }
+    return {sql, {static_cast<uint16_t>(classsAndClass.classs), static_cast<int32_t>(classsAndClass.zStack)}};
   }
-  return {sql,
-          {static_cast<uint16_t>(classsAndClass.classs), static_cast<int32_t>(classsAndClass.zStack), static_cast<int32_t>(classsAndClass.tStack)}};
+  throw std::invalid_argument("Unknow t-Stack handling");
 }
 
 ///
