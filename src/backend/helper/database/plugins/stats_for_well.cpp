@@ -110,9 +110,12 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
           colC = std::string(1, ((char) (platePosY - 1) + 'A')) + std::to_string(platePosX);
         }
 
+        std::string fileNameTmp;
         if(grouping == Grouping::BY_WELL) {
-          classesToExport.setRowID(classs, statement.getColNames(), rowIdx, filename, imageId);
+          fileNameTmp = "t=" + std::to_string(tStack) + " " + filename;
+          classesToExport.setRowID(classs, statement.getColNames(), rowIdx, fileNameTmp, imageId);
         } else {
+          fileNameTmp = "t=" + std::to_string(tStack) + " " + colC;
           classesToExport.setRowID(classs, statement.getColNames(), rowIdx, colC, groupId);
         }
 
@@ -120,10 +123,10 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
           double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
           if(grouping == Grouping::BY_WELL) {
             ///
-            classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, filename,
+            classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
                                     table::TableCell{value, {imageId, tStack}, imageId, validity == 0, ""});
           } else {
-            classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, colC,
+            classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
                                     table::TableCell{value, {groupId, tStack}, groupId, validity == 0, ""});
           }
         }

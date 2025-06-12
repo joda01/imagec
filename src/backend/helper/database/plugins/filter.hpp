@@ -145,9 +145,8 @@ public:
     auto columnKey                = prep.getColumnAt(dbColIx);
 
     for(auto [itr, rangeEnd] = mTableMapping.equal_range(columnKey); itr != rangeEnd; ++itr) {
-      auto &element   = itr->second;
-      auto rowNameTmp = "t=" + std::to_string(mFilter->getFilter().tStack) + " " + rowName;
-      mResultingTable.at(element.tabIdx).setRowName(row, rowNameTmp);
+      auto &element = itr->second;
+      mResultingTable.at(element.tabIdx).setRowName(row, rowName);
       mResultingTable.at(element.tabIdx).setData(row, element.colIdx, tableCell);
       mResultingTable.at(element.tabIdx).setMeta({.className = colName.className});
     }
@@ -172,8 +171,7 @@ public:
     }
 
     for(auto [itr, element] : mTableMapping) {
-      auto rowNameTmp = "t=" + std::to_string(mFilter->getFilter().tStack) + " " + rowName;
-      mResultingTable.at(element.tabIdx).setRowName(row, rowNameTmp);
+      mResultingTable.at(element.tabIdx).setRowName(row, rowName);
       mResultingTable.at(element.tabIdx).setDataId(row, element.colIdx, {rowId, 0});
       mResultingTable.at(element.tabIdx).setMeta({.className = colName.className});
     }
