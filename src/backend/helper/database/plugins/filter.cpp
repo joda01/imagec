@@ -27,7 +27,7 @@ namespace joda::db {
 ///
 ResultingTable::ResultingTable(const settings::ResultsSettings *filter) : mFilter(filter)
 {
-  std::map<int32_t, std::map<uint32_t, std::string>> tableHeaders;
+  std::map<uint32_t, std::string> tableHeaders;
   for(const auto &[colIdx, colKey] : filter->getColumns()) {
     QueryKey qKey;
     if(settings::ResultsSettings::getType(colKey.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE ||
@@ -43,12 +43,10 @@ ResultingTable::ResultingTable(const settings::ResultsSettings *filter) : mFilte
     }
     mClassesAndClasses.at(qKey).addColumn(colKey);
     mTableMapping.emplace(colKey, colIdx);
-    tableHeaders[colIdx.tabIdx].emplace(colIdx.colIdx, colKey.createHeader());
+    tableHeaders.emplace(colIdx.colIdx, colKey.createHeader());
   }
 
-  for(const auto &[tabIdx, header] : tableHeaders) {
-    mResultingTable[mFilter->getFilter().tStack][tabIdx].setColHeader(header);
-  }
+  mResultingTable.setColHeader(tableHeaders);
 }
 
 ///

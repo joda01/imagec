@@ -27,23 +27,31 @@ using namespace joda::stdi;
 class TableCell
 {
 public:
+  struct MetaData
+  {
+    uint64_t objectIdGroup  = 0;    // Elements with the same object ID group should be printed side by side
+    uint64_t objectId       = 0;    // The original object id
+    uint64_t parentObjectId = 0;
+    uint64_t trackingId     = 0;
+    bool isValid            = true;
+    uint32_t tStack         = 0;
+    uint32_t zStack         = 0;
+    uint32_t cStack         = 0;
+  };
+
+  struct Grouping
+  {
+    uint64_t groupIdx = 0;
+    uint32_t posX     = 0;
+    uint32_t posY     = 0;
+  };
+
   /////////////////////////////////////////////////////
   TableCell()
   {
   }
 
-  TableCell(double val, uint128_t id, uint64_t objectIdReal, bool valid, uint64_t parentObjectId, uint64_t trackingId) :
-      value(val), id(id), objectId(objectIdReal), validity(valid), parentId(parentObjectId), trackingId(trackingId)
-  {
-  }
-
-  TableCell(double val, uint128_t id, uint64_t objectIdReal, bool valid, const std::string &linkToImage) :
-      value(val), id(id), objectId(objectIdReal), validity(valid), linkToImage(linkToImage)
-  {
-  }
-
-  TableCell(double val, uint128_t id, uint64_t objectIdReal, const std::string &linkToImage) :
-      value(val), id(id), objectId(objectIdReal), linkToImage(linkToImage)
+  TableCell(double val, const MetaData &meta, const Grouping &grouping) : value(val), mMetaData(meta), mGrouping(grouping)
   {
   }
 
@@ -52,39 +60,34 @@ public:
     return value;
   }
 
-  [[nodiscard]] uint128_t getId() const
+  [[nodiscard]] uint64_t getId() const
   {
-    return id;
+    return mMetaData.objectIdGroup;
   }
 
   [[nodiscard]] uint64_t getObjectId() const
   {
-    return objectId;
+    return mMetaData.objectId;
   }
 
-  void setId(uint128_t id)
+  void setId(uint64_t id)
   {
-    this->id = id;
+    mMetaData.objectIdGroup = id;
   }
 
   [[nodiscard]] uint64_t getParentId() const
   {
-    return parentId;
+    return mMetaData.parentObjectId;
   }
 
   [[nodiscard]] uint64_t getTrackingId() const
   {
-    return trackingId;
+    return mMetaData.trackingId;
   }
 
   [[nodiscard]] bool isValid() const
   {
-    return validity;
-  }
-
-  [[nodiscard]] const std::filesystem::path &getControlImagePath() const
-  {
-    return linkToImage;
+    return mMetaData.isValid;
   }
 
   [[nodiscard]] bool isNAN() const
@@ -94,13 +97,9 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  double value        = std::numeric_limits<double>::quiet_NaN();
-  uint128_t id        = {0, 0};
-  uint64_t objectId   = 0;
-  uint64_t parentId   = 0;
-  uint64_t trackingId = 0;
-  bool validity       = true;
-  std::filesystem::path linkToImage;
+  double value = std::numeric_limits<double>::quiet_NaN();
+  MetaData mMetaData;
+  Grouping mGrouping;
 };
 
 using entry_t = std::map<uint32_t, std::map<uint32_t, TableCell>>;
@@ -168,7 +167,7 @@ public:
     mData[row][col] = data;
   }
 
-  void setDataId(uint32_t row, uint32_t col, uint128_t id)
+  void setDataId(uint32_t row, uint32_t col, uint64_t id)
   {
     mData[row][col].setId(id);
   }
@@ -240,6 +239,12 @@ public:
   [[nodiscard]] const Meta &getMeta() const
   {
     return mMeta;
+  }
+
+  void clear();
+  bool empty() const
+  {
+    return getRows() == 0;
   }
 
   void arrangeByTrackingId();

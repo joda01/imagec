@@ -20,6 +20,7 @@
 #include <qtoolbar.h>
 #include <qwidget.h>
 #include <Q3DSurface>
+#include <cstdint>
 #include <filesystem>
 #include <memory>
 #include <mutex>
@@ -71,12 +72,12 @@ public:
     return mNavigation;
   }
 
-  [[nodiscard]] stdi::uint128_t getSelectedGroup() const
+  [[nodiscard]] uint64_t getSelectedGroup() const
   {
     return mActGroupId;
   }
 
-  [[nodiscard]] stdi::uint128_t getSelectedImage() const
+  [[nodiscard]] uint64_t getSelectedImage() const
   {
     return mSelectedImageId;
   }
@@ -169,8 +170,6 @@ private:
   settings::ResultsSettings mActFilter;
   PlaceholderTableWidget *mTable;
   db::QueryResult mActListData;
-  db::QueryResult mActHeatmapData;
-  table::Table mSelectedTable;
   int32_t mSelectedTableColumnIdx = -1;
   int32_t mSelectedTableRow       = -1;
 
@@ -208,11 +207,11 @@ private:
   std::mutex mGeneratePreviewMutex;
 
   /////////////////////////////////////////////////////
-  stdi::uint128_t mActGroupId = {0, 0};
+  uint64 mActGroupId = 0;
   std::set<uint64_t> mActImageId;
 
-  stdi::uint128_t mSelectedWellId;
-  stdi::uint128_t mSelectedImageId;
+  uint64_t mSelectedWellId;
+  uint64_t mSelectedImageId;
   uint32_t mSelectedTileId;
   QPoint mSelectedAreaPos;
 

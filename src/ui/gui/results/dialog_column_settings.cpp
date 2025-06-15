@@ -218,7 +218,7 @@ void DialogColumnSettings::exec(const settings::ResultsSettings::ColumnKey &colK
       mClasssClassSelector->blockSignals(false);
     }
   } else {
-    colIdx = {.tabIdx = 0, .colIdx = static_cast<int32_t>(mFilter->getColumns().size())};
+    colIdx = {.colIdx = static_cast<int32_t>(mFilter->getColumns().size())};
   }
 
   accept = false;

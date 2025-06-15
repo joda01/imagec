@@ -548,30 +548,30 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, settings:
 
   joda::log::logInfo("Export started!");
   auto grouping = db::StatsPerGroup::Grouping::BY_IMAGE;
-  std::map<int32_t, joda::table::Table> dataToExport;
+  joda::table::Table dataToExport;
   switch(settings.view) {
     case ExportSettings::ExportView::PLATE: {
       grouping = db::StatsPerGroup::Grouping::BY_PLATE;
       if(ExportSettings::ExportFormat::LIST == settings.format) {
-        dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter, grouping).at(settings.filter.tStack);
+        dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter, grouping);
       } else {
-        dataToExport = joda::db::StatsPerGroup::toHeatmap(analyzer.get(), filter, grouping).at(settings.filter.tStack);
+        // dataToExport = joda::db::StatsPerGroup::toHeatmap(analyzer.get(), filter, grouping).at(settings.filter.tStack);
       }
     } break;
     case ExportSettings::ExportView::WELL:
       grouping = db::StatsPerGroup::Grouping::BY_WELL;
       if(ExportSettings::ExportFormat::LIST == settings.format) {
-        dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter, grouping).at(settings.filter.tStack);
+        dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter, grouping);
       } else {
-        dataToExport = joda::db::StatsPerGroup::toHeatmap(analyzer.get(), filter, grouping).at(settings.filter.tStack);
+        // dataToExport = joda::db::StatsPerGroup::toHeatmap(analyzer.get(), filter, grouping).at(settings.filter.tStack);
       }
       break;
     case ExportSettings::ExportView::IMAGE:
       grouping = db::StatsPerGroup::Grouping::BY_IMAGE;
       if(ExportSettings::ExportFormat::LIST == settings.format) {
-        dataToExport = joda::db::StatsPerImage::toTable(analyzer.get(), filter).at(settings.filter.tStack);
+        dataToExport = joda::db::StatsPerImage::toTable(analyzer.get(), filter);
       } else {
-        dataToExport = joda::db::StatsPerImage::toHeatmap(analyzer.get(), filter).at(settings.filter.tStack);
+        // dataToExport = joda::db::StatsPerImage::toHeatmap(analyzer.get(), filter).at(settings.filter.tStack);
       }
       break;
   }
@@ -581,8 +581,8 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, settings:
 
   if(settings.type == ExportSettings::ExportType::XLSX) {
     if(ExportSettings::ExportFormat::HEATMAP == settings.format) {
-      joda::db::BatchExporter::startExportHeatmap(dataToExport, analyzeSettings, experiment.jobName, experiment.timestampStart,
-                                                  experiment.timestampFinish, outputFilePath.string());
+      /*  joda::db::BatchExporter::startExportHeatmap(dataToExport, analyzeSettings, experiment.jobName, experiment.timestampStart,
+                                                    experiment.timestampFinish, outputFilePath.string());*/
     } else {
       joda::db::BatchExporter::startExportList(dataToExport, analyzeSettings, experiment.jobName, experiment.timestampStart,
                                                experiment.timestampFinish, outputFilePath.string());

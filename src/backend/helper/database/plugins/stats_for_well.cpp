@@ -39,19 +39,14 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
   // Remove object IDs, since they make no sense in an overview
   //
   settings::ResultsSettings filter;
-  std::map<int32_t, int32_t> tabColIdx;
+  int32_t colIdx = 0;
   for(const auto &[_, key] : filterIn.getColumns()) {
     if(settings::ResultsSettings::getType(key.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE_ID ||
        settings::ResultsSettings::getType(key.measureChannel) == settings::ResultsSettings::MeasureType::ID) {
       continue;
     }
-
-    if(!tabColIdx.contains(_.tabIdx)) {
-      tabColIdx.emplace(_.tabIdx, 0);
-    } else {
-      tabColIdx[_.tabIdx]++;
-    }
-    filter.addColumn({_.tabIdx, tabColIdx[_.tabIdx]}, key, key.names);
+    filter.addColumn({colIdx}, key, key.names);
+    colIdx++;
   }
   filter.setFilter(filterIn.getFilter(), filterIn.getPlateSetup(), filterIn.getDensityMapSettings());
   if(resultingFilter != nullptr) {
@@ -115,103 +110,46 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
         std::string fileNameTmp;
         if(grouping == Grouping::BY_WELL) {
           fileNameTmp = "t=" + std::to_string(tStack) + " " + filename;
-          classesToExport.setRowID(tStack, classs, statement.getColNames(), rowIdx, fileNameTmp, imageId);
+          classesToExport.setRowID(classs, statement.getColNames(), rowIdx, fileNameTmp, imageId);
         } else {
           fileNameTmp = "t=" + std::to_string(tStack) + " " + colC;
-          classesToExport.setRowID(tStack, classs, statement.getColNames(), rowIdx, colC, groupId);
+          classesToExport.setRowID(classs, statement.getColNames(), rowIdx, colC, groupId);
         }
 
         for(int32_t colIdx = 0; colIdx < columnNr; colIdx++) {
           double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
           if(grouping == Grouping::BY_WELL) {
             ///
-            classesToExport.setData(tStack, classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
-                                    table::TableCell{value, {imageId, tStack}, imageId, validity == 0, ""});
+            classesToExport.setData(
+                classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
+                table::TableCell{value,
+                                 table::TableCell::MetaData{.objectIdGroup  = imageId,
+                                                            .objectId       = imageId,
+                                                            .parentObjectId = 0,
+                                                            .trackingId     = 0,
+                                                            .isValid        = validity == 0,
+                                                            .tStack         = tStack,
+                                                            .zStack         = 0,
+                                                            .cStack         = 0},
+                                 table::TableCell::Grouping{.groupIdx = static_cast<uint64_t>(imgGroupIdx), .posX = platePosX, .posY = platePosY}});
           } else {
-            classesToExport.setData(tStack, classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
-                                    table::TableCell{value, {groupId, tStack}, groupId, validity == 0, ""});
+            classesToExport.setData(
+                classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
+                table::TableCell{value,
+                                 table::TableCell::MetaData{.objectIdGroup  = groupId,
+                                                            .objectId       = groupId,
+                                                            .parentObjectId = 0,
+                                                            .trackingId     = 0,
+                                                            .isValid        = validity == 0,
+                                                            .tStack         = tStack,
+                                                            .zStack         = 0,
+                                                            .cStack         = 0},
+                                 table::TableCell::Grouping{.groupIdx = static_cast<uint64_t>((static_cast<uint64_t>(platePosX) << 32) | platePosY),
+                                                            .posX     = platePosX,
+                                                            .posY     = platePosY}});
           }
         }
       } catch(const duckdb::InternalException &ex) {
-      }
-    }
-  }
-  return classesToExport.getResult();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-auto StatsPerGroup::toHeatmap(db::Database *database, const settings::ResultsSettings &filter, Grouping grouping,
-                              settings::ResultsSettings *resultingFilter) -> QueryResult
-{
-  if(resultingFilter != nullptr) {
-    *resultingFilter = filter;
-  }
-
-  auto classesToExport = ResultingTable(&filter);
-  classesToExport.clearTables();
-
-  int32_t sizeX = 0;
-  int32_t sizeY = 0;
-  std::map<uint32_t, std::map<int32_t, ImgPositionInWell>> wellPos;    // For each t stack
-
-  if(grouping != Grouping::BY_WELL) {
-    sizeX = filter.getPlateSetup().cols;
-    sizeY = filter.getPlateSetup().rows;
-  }
-
-  for(const auto &[classs, statement] : classesToExport) {
-    auto materializedResult = getData(classs, database, filter.getFilter(), statement, grouping)->Cast<duckdb::StreamQueryResult>().Materialize();
-
-    size_t columnNr = statement.getColSize();
-
-    for(size_t row = 0; row < materializedResult->RowCount(); row++) {
-      try {
-        auto groupId     = materializedResult->GetValue(columnNr + 0, row).GetValue<uint16_t>();
-        auto imgGroupIdx = materializedResult->GetValue(columnNr + 1, row).GetValue<uint32_t>();
-        auto platePosX   = materializedResult->GetValue(columnNr + 2, row).GetValue<uint32_t>();
-        auto platePosY   = materializedResult->GetValue(columnNr + 3, row).GetValue<uint32_t>();
-        auto filename    = materializedResult->GetValue(columnNr + 4, row).GetValue<std::string>();
-        auto imageId     = materializedResult->GetValue(columnNr + 5, row).GetValue<uint64_t>();
-        auto validity    = materializedResult->GetValue(columnNr + 6, row).GetValue<uint64_t>();
-        auto tStack      = materializedResult->GetValue(columnNr + 7, row).GetValue<uint32_t>();
-
-        if(!wellPos.contains(tStack)) {
-          if(grouping == Grouping::BY_WELL) {
-            wellPos[tStack] = transformMatrix(filter.getPlateSetup().wellImageOrder, sizeX, sizeY);
-          }
-        }
-        std::map<uint32_t, ImgPositionInWell> pos;
-        if(grouping == Grouping::BY_WELL) {
-          pos[tStack] = wellPos[tStack][imgGroupIdx];
-        } else {
-          if(platePosX > 0) {
-            pos[tStack].x = --platePosX;
-          }
-          if(platePosY > 0) {
-            pos[tStack].y = --platePosY;
-          }
-        }
-
-        for(size_t col = 0; col < columnNr; col++) {
-          double value = materializedResult->GetValue(col, row).GetValue<double>();
-          if(grouping == Grouping::BY_WELL) {
-            classesToExport.setData(tStack, classs, statement.getColNames(), col, pos[tStack].y, pos[tStack].x,
-                                    table::TableCell{value, {imageId, tStack}, imageId, validity == 0, filename}, sizeX, sizeY,
-                                    statement.getColumnAt(col).createHeader());
-          } else {
-            classesToExport.setData(tStack, classs, statement.getColNames(), col, pos[tStack].y, pos[tStack].x,
-                                    table::TableCell{value, {groupId, tStack}, groupId, validity == 0, filename}, sizeX, sizeY,
-                                    statement.getColumnAt(col).createHeader());
-          }
-        }
-
-      } catch(const duckdb::InternalException &) {
       }
     }
   }

@@ -31,7 +31,7 @@ class Database;
 class PreparedStatement;
 class ResultingTable;
 
-using QueryResult = std::map<int32_t, std::map<int32_t, joda::table::Table>>;    // <time-stack,tab-index,table>
+using QueryResult = joda::table::Table;    // <time-stack,tab-index,table>
 
 ///
 /// \class
@@ -135,7 +135,7 @@ public:
 
   explicit ResultingTable(const settings::ResultsSettings *);
 
-  void setData(int32_t timeFrame, const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, int32_t row, int32_t dbColIx,
+  void setData(const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, int32_t row, int32_t dbColIx,
                const std::string &rowName, const table::TableCell &tableCell)
   {
     if(!mClassesAndClasses.contains(classsAndClass)) {
@@ -146,9 +146,9 @@ public:
 
     for(auto [itr, rangeEnd] = mTableMapping.equal_range(columnKey); itr != rangeEnd; ++itr) {
       auto &element = itr->second;
-      mResultingTable[timeFrame][element.tabIdx].setRowName(row, rowName);
-      mResultingTable[timeFrame][element.tabIdx].setData(row, element.colIdx, tableCell);
-      mResultingTable[timeFrame][element.tabIdx].setMeta({.className = colName.className});
+      mResultingTable.setRowName(row, rowName);
+      mResultingTable.setData(row, element.colIdx, tableCell);
+      mResultingTable.setMeta({.className = colName.className});
     }
   }
 
@@ -163,58 +163,23 @@ public:
     return colIdx;
   }
 
-  void setRowID(int32_t timeFrame, const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, int32_t row,
-                const std::string &rowName, uint64_t rowId)
+  void setRowID(const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, int32_t row, const std::string &rowName,
+                uint64_t rowId)
   {
     if(!mClassesAndClasses.contains(classsAndClass)) {
       mClassesAndClasses.emplace(classsAndClass, PreparedStatement{colName, mFilter});
     }
 
     for(auto [itr, element] : mTableMapping) {
-      mResultingTable[timeFrame][element.tabIdx].setRowName(row, rowName);
-      mResultingTable[timeFrame][element.tabIdx].setDataId(row, element.colIdx, {rowId, 0});
-      mResultingTable[timeFrame][element.tabIdx].setMeta({.className = colName.className});
+      mResultingTable.setRowName(row, rowName);
+      mResultingTable.setDataId(row, element.colIdx, rowId);
+      mResultingTable.setMeta({.className = colName.className});
     }
   }
 
-  void setData(int32_t timeFrame, const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, int32_t dbColIx, int32_t row,
-               int32_t col, const table::TableCell &tableCell, int32_t sizeX, int32_t sizeY, const std::string &header)
+  auto getTable() -> table::Table &
   {
-    if(!mClassesAndClasses.contains(classsAndClass)) {
-      mClassesAndClasses.emplace(classsAndClass, PreparedStatement{colName, mFilter});
-    }
-    const PreparedStatement &prep = mClassesAndClasses.at(classsAndClass);
-    auto columnKey                = prep.getColumnAt(dbColIx);
-
-    for(auto [itr, rangeEnd] = mTableMapping.equal_range(columnKey); itr != rangeEnd; ++itr) {
-      auto &element = itr->second;
-      if(!mResultingTable.contains(element.colIdx)) {
-        // Prepare heatmap table
-        mResultingTable[timeFrame][element.colIdx].setTitle(header);
-        for(uint8_t row = 0; row < sizeY; row++) {
-          char toWrt                                                            = row + 'A';
-          mResultingTable[timeFrame][element.colIdx].getMutableRowHeader()[row] = std::string(1, toWrt);
-          for(uint8_t col = 0; col < sizeX; col++) {
-            mResultingTable[timeFrame][element.colIdx].getMutableColHeader()[col] = std::to_string(col + 1);
-            mResultingTable[timeFrame][element.colIdx].setData(row, col,
-                                                               table::TableCell{std::numeric_limits<double>::quiet_NaN(), {0, 0}, 0, true, ""});
-          }
-        }
-      }
-
-      mResultingTable[timeFrame][element.colIdx].setData(row, col, tableCell);
-      mResultingTable[timeFrame][element.colIdx].setMeta({.className = colName.className});
-    }
-  }
-
-  auto getTable(int32_t timeFrame, int32_t tabIdx) -> table::Table &
-  {
-    return mResultingTable[timeFrame][tabIdx];
-  }
-
-  auto containsTable(int32_t tabIdx) -> bool
-  {
-    return mResultingTable.contains(tabIdx);
+    return mResultingTable;
   }
 
   auto begin()

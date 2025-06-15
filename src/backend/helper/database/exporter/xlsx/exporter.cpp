@@ -56,9 +56,9 @@ void BatchExporter::startExportHeatmap(const std::map<int32_t, joda::table::Tabl
 /// \param[out]
 /// \return
 ///
-void BatchExporter::startExportList(const std::map<int32_t, joda::table::Table> &data, const settings::AnalyzeSettings &analyzeSettings,
-                                    const std::string &jobName, std::chrono::system_clock::time_point timeStarted,
-                                    std::chrono::system_clock::time_point timeFinished, const std::string &outputFileName)
+void BatchExporter::startExportList(const joda::table::Table &data, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
+                                    std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
+                                    const std::string &outputFileName)
 {
   setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
   auto workbookSettings = createWorkBook(outputFileName);
@@ -67,13 +67,11 @@ void BatchExporter::startExportList(const std::map<int32_t, joda::table::Table> 
 
   std::map<std::string, std::pair<Pos, lxw_worksheet *>> sheets;
 
-  for(const auto &[tbIdx, table] : data) {
-    std::string sheetName = "Sheet_" + std::to_string(tbIdx);
-    if(!sheets.contains(sheetName)) {
-      sheets.emplace(sheetName, std::pair<Pos, lxw_worksheet *>{Pos{}, workbook_add_worksheet(workbookSettings.workbook, sheetName.data())});
-    }
-    createList(workbookSettings, sheets.at(sheetName), table);
+  std::string sheetName = "Sheet_" + std::to_string(0);
+  if(!sheets.contains(sheetName)) {
+    sheets.emplace(sheetName, std::pair<Pos, lxw_worksheet *>{Pos{}, workbook_add_worksheet(workbookSettings.workbook, sheetName.data())});
   }
+  createList(workbookSettings, sheets.at(sheetName), data);
 
   workbook_close(workbookSettings.workbook);
 }

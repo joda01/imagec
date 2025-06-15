@@ -192,18 +192,17 @@ public:
 
   struct ColumnIdx
   {
-    int32_t tabIdx = 0;
     int32_t colIdx = 0;
     bool operator<(const ColumnIdx &input) const
     {
       auto toInt = [](const ColumnIdx &in) -> uint64_t {
-        uint64_t erg = (static_cast<uint64_t>(in.tabIdx) << 32) | (static_cast<uint64_t>(in.colIdx));
+        uint64_t erg = (static_cast<uint64_t>(in.colIdx));
         return erg;
       };
       return toInt(*this) < toInt(input);
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnIdx, tabIdx, colIdx);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnIdx, colIdx);
   };
 
   explicit ResultsSettings() = default;
@@ -258,7 +257,7 @@ public:
         if(colNew.colIdx > colIdx.colIdx) {
           startToReduce = true;
         }
-        if(startToReduce && colIdx.tabIdx == col.tabIdx) {
+        if(startToReduce) {
           colNew.colIdx--;
         }
         newColumns.emplace(colNew, _);
@@ -360,13 +359,8 @@ public:
 
     columns.clear();
     int32_t colIdx = 0;
-    int32_t actTab = 0;
     for(const auto &[colIdxAct, keyIdx] : data) {
-      if(actTab != colIdxAct.tabIdx) {
-        colIdx = 0;
-        actTab = colIdxAct.tabIdx;
-      }
-      columns.emplace(ColumnIdx{colIdxAct.tabIdx, colIdx}, keyIdx);
+      columns.emplace(ColumnIdx{colIdx}, keyIdx);
       colIdx++;
     }
   }
