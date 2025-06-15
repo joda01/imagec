@@ -47,7 +47,7 @@ ResultingTable::ResultingTable(const settings::ResultsSettings *filter) : mFilte
   }
 
   for(const auto &[tabIdx, header] : tableHeaders) {
-    mResultingTable[tabIdx].setColHeader(header);
+    mResultingTable[mFilter->getFilter().tStack][tabIdx].setColHeader(header);
   }
 }
 

@@ -531,6 +531,7 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpImage->setVisible(false);
       mOpenNextLevel->setVisible(true);
       mPreviewImage->setVisible(false);
+      mPreviewImage->setPlayBackToolbarVisible(false);
       mPreviewImage->setFloating(false);
       mPreviewImage->resetImage();
       mPreviewImage->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
@@ -540,6 +541,7 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpImage->setVisible(false);
       mOpenNextLevel->setVisible(true);
       mPreviewImage->setVisible(false);
+      mPreviewImage->setPlayBackToolbarVisible(false);
       mPreviewImage->setFloating(false);
       mPreviewImage->resetImage();
       mPreviewImage->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
@@ -559,6 +561,7 @@ void PanelResults::refreshBreadCrump()
       } else {
         mPreviewImage->setVisible(false);
       }
+      mPreviewImage->setPlayBackToolbarVisible(true);
 
       //
       std::string imageName;
@@ -789,10 +792,10 @@ void PanelResults::refreshView()
       switch(mNavigation) {
         case Navigation::PLATE: {
           mActListData = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE, &mActFilter);
-          if(!mActListData.empty() && mActListData.at(0).getRows() == 1) {
+          if(!mActListData.empty() && mActListData.begin()->second.at(0).getRows() == 1) {
             // If there are no groups, switch directly to well view
             mNavigation                = Navigation::WELL;
-            auto getID                 = mActListData.at(0).data(0, 0).getId();
+            auto getID                 = mActListData.begin()->second.at(0).data(0, 0).getId();
             mActGroupId                = getID;
             mSelectedWellId            = getID;
             mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(getID.highBytes());
@@ -811,6 +814,7 @@ void PanelResults::refreshView()
         case Navigation::WELL: {
           if(mTable->isVisible()) {
             mActListData = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL, &mActFilter);
+
           } else {
             mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL, &mActFilter);
           }
@@ -846,14 +850,14 @@ void PanelResults::refreshView()
 void PanelResults::onFinishedLoading()
 {
   if(!mActListData.empty()) {
-    tableToQWidgetTable(mActListData[0]);
+    tableToQWidgetTable(mActListData);
   } else {
     mTable->setRowCount(0);
     mTable->setColumnCount(0);
   }
 
   if(!mActHeatmapData.empty() && mActHeatmapData.contains(mColumn->currentData().toInt())) {
-    tableToHeatmap(mActHeatmapData[mColumn->currentData().toInt()]);
+    tableToHeatmap(mActHeatmapData);
   } else {
     paintEmptyHeatmap();
   }
@@ -1120,7 +1124,6 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   }
   showToolBar(true);
   mPreviewImage->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
-  mPreviewImage->setPlayBackToolbarVisible(true);
   mIsActive = true;
   mWindowMain->setSideBarVisible(false);
 
@@ -1261,7 +1264,9 @@ void PanelResults::onShowHeatmap()
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelResults::tableToHeatmap(const joda::table::Table &table)
+
+//  // mActHeatmapData.at(mPreviewImage->getActualTimeStackPosition()).at(mColumn->currentData().toInt())
+void PanelResults::tableToHeatmap(const db::QueryResult &table)
 {
   if(mAnalyzer) {
     //
@@ -1284,7 +1289,7 @@ void PanelResults::tableToHeatmap(const joda::table::Table &table)
     //
     //
     if(mSelectedTableColumnIdx >= 0) {
-      mHeatmapChart->setData(table, static_cast<int32_t>(mNavigation));
+      // mHeatmapChart->setData(table, static_cast<int32_t>(mNavigation));
       return;
     }
   }
@@ -1354,19 +1359,27 @@ void PanelResults::columnEdit(int32_t colIdx)
 /// \param[out]
 /// \return
 ///
-void PanelResults::tableToQWidgetTable(const joda::table::Table &tableIn)
+void PanelResults::tableToQWidgetTable(const db::QueryResult &tableIn)
 {
   std::lock_guard<std::mutex> lock(mSelectMutex);
-  mSelectedTable = tableIn;
-  if(tableIn.getCols() > 0) {
-    mTable->setColumnCount(tableIn.getCols());
-    if(tableIn.getRows() == 0) {
+  // mSelectedTable = tableIn;
+
+  int32_t tblCol  = 0;
+  int32_t tblRows = 0;
+  for(const auto &[_, tStack] : tableIn) {
+    if(tStack.at(0).getCols() > tblCol) {
+      tblCol = tStack.at(0).getCols();
+    }
+    tblRows += tStack.at(0).getRows();
+  }
+  if(tblCol > 0) {
+    mTable->setColumnCount(tableIn.begin()->second.at(0).getCols());
+    if(tblRows == 0) {
       // We print at least one empty row
       mTable->setRowCount(1);
     } else {
-      mTable->setRowCount(tableIn.getRows());
+      mTable->setRowCount(tblRows);
     }
-
   } else {
     mTable->setColumnCount(0);
     mTable->setRowCount(0);
@@ -1384,8 +1397,8 @@ void PanelResults::tableToQWidgetTable(const joda::table::Table &tableIn)
     char txt      = col + 'A';
     auto colCount = QString(std::string(1, txt).data());
 
-    if(tableIn.getCols() > col) {
-      QString headerText = tableIn.getColHeader(col).data();
+    if(tblCol > col) {
+      QString headerText = tableIn.begin()->second.at(0).getColHeader(col).data();
       mTable->setHorizontalHeaderItem(col, createTableWidget(headerText));
 
     } else {
@@ -1394,34 +1407,42 @@ void PanelResults::tableToQWidgetTable(const joda::table::Table &tableIn)
   }
 
   // Row
-  for(int row = 0; row < mTable->rowCount(); row++) {
-    if(tableIn.getRows() > row) {
-      mTable->setVerticalHeaderItem(row, createTableWidget(tableIn.getRowHeader(row).data()));
-    } else {
-      mTable->setVerticalHeaderItem(row, createTableWidget(QString(std::to_string(row).data())));
+  int32_t rowIdx = 0;
+  for(const auto &[_, tStack] : tableIn) {
+    for(int row = 0; row < tStack.at(0).getRows(); row++) {
+      if(tblRows > row) {
+        mTable->setVerticalHeaderItem(rowIdx, createTableWidget(tStack.at(0).getRowHeader(row).data()));
+      } else {
+        mTable->setVerticalHeaderItem(rowIdx, createTableWidget(QString(std::to_string(row).data())));
+      }
+      rowIdx++;
     }
   }
 
   for(int col = 0; col < mTable->columnCount(); col++) {
-    for(int row = 0; row < mTable->rowCount(); row++) {
-      QTableWidgetItem *item = mTable->item(row, col);
-      if(item == nullptr) {
-        item = createTableWidget(" ");
-        mTable->setItem(row, col, item);
-      }
-      if(item) {
-        if(tableIn.getRows() > row && tableIn.getCols() > col) {
-          if(tableIn.data(row, col).isNAN()) {
-            item->setText("-");
-          } else {
-            item->setText(QString::number((double) tableIn.data(row, col).getVal()));
-          }
-          QFont font = item->font();
-          font.setStrikeOut(!tableIn.data(row, col).isValid());
-          item->setFont(font);
-        } else {
-          item->setText(" ");
+    rowIdx = 0;
+    for(const auto &[_, tStack] : tableIn) {
+      for(int row = 0; row < tStack.at(0).getRows(); row++) {
+        QTableWidgetItem *item = mTable->item(rowIdx, col);
+        if(item == nullptr) {
+          item = createTableWidget(" ");
+          mTable->setItem(row, col, item);
         }
+        if(item) {
+          if(tStack.at(0).getRows() > row && tblCol > col) {
+            if(tStack.at(0).data(row, col).isNAN()) {
+              item->setText("-");
+            } else {
+              item->setText(QString::number((double) tStack.at(0).data(row, col).getVal()));
+            }
+            QFont font = item->font();
+            font.setStrikeOut(!tStack.at(0).data(row, col).isValid());
+            item->setFont(font);
+          } else {
+            item->setText(" ");
+          }
+        }
+        rowIdx++;
       }
     }
   }
@@ -1470,7 +1491,8 @@ void PanelResults::onCellClicked(int rowSelected, int columnSelcted)
     mSelectedTableColumnIdx = columnSelcted;
     mSelectedTableRow       = rowSelected;
     mSelection[mNavigation] = {rowSelected, columnSelcted};
-    selectedData            = mActListData.at(0).data(rowSelected, columnSelcted);
+#warning "No selection"
+    // selectedData            = mActListData.at(0).data(rowSelected, columnSelcted);
   }
   onElementSelected(mSelectedTableColumnIdx, mSelectedTableRow, selectedData);
 }
@@ -1591,6 +1613,7 @@ void PanelResults::showFileSaveDialog(const QString &filter)
 ///
 void PanelResults::saveData(const std::string &fileName, joda::ctrl::ExportSettings::ExportType format)
 {
+  /*
   if(fileName.empty()) {
     return;
   }
@@ -1625,7 +1648,9 @@ void PanelResults::saveData(const std::string &fileName, joda::ctrl::ExportSetti
 
     QString folderPath = std::filesystem::path(fileName).parent_path().string().data();
     QDesktopServices::openUrl(QUrl("file:///" + folderPath));
+
   }).detach();
+  */
 }
 
 }    // namespace joda::ui::gui

@@ -46,6 +46,7 @@ pack(){
     cp ../../../resources/launcher/imagec.sh imagec.sh
     cd lib
     cp /root/.conan2/p/*/p/lib/libQt6Core.so.6 .
+    cp /root/.conan2/p/*/p/lib/libQt6Network.so.6 .
     cp /root/.conan2/p/*/p/lib/libQt6Gui.so.6 .
     cp /root/.conan2/p/*/p/lib/libQt6Widgets.so.6 .
     cp /root/.conan2/p/*/p/lib/libQt6XcbQpa.so.6 .

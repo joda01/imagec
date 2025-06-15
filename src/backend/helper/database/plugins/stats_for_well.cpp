@@ -115,20 +115,20 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
         std::string fileNameTmp;
         if(grouping == Grouping::BY_WELL) {
           fileNameTmp = "t=" + std::to_string(tStack) + " " + filename;
-          classesToExport.setRowID(classs, statement.getColNames(), rowIdx, fileNameTmp, imageId);
+          classesToExport.setRowID(tStack, classs, statement.getColNames(), rowIdx, fileNameTmp, imageId);
         } else {
           fileNameTmp = "t=" + std::to_string(tStack) + " " + colC;
-          classesToExport.setRowID(classs, statement.getColNames(), rowIdx, colC, groupId);
+          classesToExport.setRowID(tStack, classs, statement.getColNames(), rowIdx, colC, groupId);
         }
 
         for(int32_t colIdx = 0; colIdx < columnNr; colIdx++) {
           double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
           if(grouping == Grouping::BY_WELL) {
             ///
-            classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
+            classesToExport.setData(tStack, classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
                                     table::TableCell{value, {imageId, tStack}, imageId, validity == 0, ""});
           } else {
-            classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
+            classesToExport.setData(tStack, classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
                                     table::TableCell{value, {groupId, tStack}, groupId, validity == 0, ""});
           }
         }
@@ -158,10 +158,9 @@ auto StatsPerGroup::toHeatmap(db::Database *database, const settings::ResultsSet
 
   int32_t sizeX = 0;
   int32_t sizeY = 0;
-  std::map<int32_t, ImgPositionInWell> wellPos;    // For each t stack
-  if(grouping == Grouping::BY_WELL) {
-    wellPos = transformMatrix(filter.getPlateSetup().wellImageOrder, sizeX, sizeY);
-  } else {
+  std::map<uint32_t, std::map<int32_t, ImgPositionInWell>> wellPos;    // For each t stack
+
+  if(grouping != Grouping::BY_WELL) {
     sizeX = filter.getPlateSetup().cols;
     sizeY = filter.getPlateSetup().rows;
   }
@@ -181,29 +180,32 @@ auto StatsPerGroup::toHeatmap(db::Database *database, const settings::ResultsSet
         auto imageId     = materializedResult->GetValue(columnNr + 5, row).GetValue<uint64_t>();
         auto validity    = materializedResult->GetValue(columnNr + 6, row).GetValue<uint64_t>();
         auto tStack      = materializedResult->GetValue(columnNr + 7, row).GetValue<uint32_t>();
-        if(tStack != filter.getFilter().tStack) {
-          continue;
+
+        if(!wellPos.contains(tStack)) {
+          if(grouping == Grouping::BY_WELL) {
+            wellPos[tStack] = transformMatrix(filter.getPlateSetup().wellImageOrder, sizeX, sizeY);
+          }
         }
-        ImgPositionInWell pos;
+        std::map<uint32_t, ImgPositionInWell> pos;
         if(grouping == Grouping::BY_WELL) {
-          pos = wellPos[imgGroupIdx];
+          pos[tStack] = wellPos[tStack][imgGroupIdx];
         } else {
           if(platePosX > 0) {
-            pos.x = --platePosX;
+            pos[tStack].x = --platePosX;
           }
           if(platePosY > 0) {
-            pos.y = --platePosY;
+            pos[tStack].y = --platePosY;
           }
         }
 
         for(size_t col = 0; col < columnNr; col++) {
           double value = materializedResult->GetValue(col, row).GetValue<double>();
           if(grouping == Grouping::BY_WELL) {
-            classesToExport.setData(classs, statement.getColNames(), col, pos.y, pos.x,
+            classesToExport.setData(tStack, classs, statement.getColNames(), col, pos[tStack].y, pos[tStack].x,
                                     table::TableCell{value, {imageId, tStack}, imageId, validity == 0, filename}, sizeX, sizeY,
                                     statement.getColumnAt(col).createHeader());
           } else {
-            classesToExport.setData(classs, statement.getColNames(), col, pos.y, pos.x,
+            classesToExport.setData(tStack, classs, statement.getColNames(), col, pos[tStack].y, pos[tStack].x,
                                     table::TableCell{value, {groupId, tStack}, groupId, validity == 0, filename}, sizeX, sizeY,
                                     statement.getColumnAt(col).createHeader());
           }

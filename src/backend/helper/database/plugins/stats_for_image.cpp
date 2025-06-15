@@ -97,14 +97,16 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
             trackingId = trackIdTmp.GetValue<uint64_t>();
           }
           double value = materializedResult->GetValue(colIdx, rowIdx).GetValue<double>();
-          classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, "t=" + std::to_string(tStack) + " " + filename,
+          classesToExport.setData(tStack, classs, statement.getColNames(), rowIdx, colIdx, "t=" + std::to_string(tStack) + " " + filename,
                                   table::TableCell{value, {objectId, tStack}, objectIdReal, true, parentObjectId, trackingId});
         }
       }
     }
   }
-  for(auto &[_, table] : classesToExport.mutableResult()) {
-    table.arrangeByTrackingId();
+  for(auto &[_, tableInTime] : classesToExport.mutableResult()) {
+    for(auto &[_, table] : tableInTime) {
+      table.arrangeByTrackingId();
+    }
   }
 
   return classesToExport.getResult();
@@ -241,7 +243,7 @@ auto StatsPerImage::toHeatmap(db::Database *database, const settings::ResultsSet
 
       auto generateHeatmap = [&columnNr, &tabIdx, &classesToExport, &filter, &materializedResult,
                               imageInfo = imageInfo](int32_t dbColIdx, const PreparedStatement &statement) {
-        joda::table::Table &results = classesToExport.getTable(tabIdx);
+        joda::table::Table &results = classesToExport.getTable(filter.getFilter().tStack, tabIdx);
 
         results.setTitle(statement.getColumnAt(dbColIdx).createHeader());
         results.setMeta({statement.getColNames().className});

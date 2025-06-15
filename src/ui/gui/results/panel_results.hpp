@@ -19,6 +19,7 @@
 #include <qpushbutton.h>
 #include <qtoolbar.h>
 #include <qwidget.h>
+#include <Q3DSurface>
 #include <filesystem>
 #include <memory>
 #include <mutex>
@@ -113,8 +114,8 @@ private:
 
   /////////////////////////////////////////////////////
   void valueChangedEvent() override;
-  void tableToQWidgetTable(const joda::table::Table &table);
-  void tableToHeatmap(const joda::table::Table &table);
+  void tableToQWidgetTable(const db::QueryResult &table);
+  void tableToHeatmap(const db::QueryResult &table);
   void paintEmptyHeatmap();
   void goHome();
   void refreshView();
@@ -167,8 +168,8 @@ private:
   settings::ResultsSettings mFilter;
   settings::ResultsSettings mActFilter;
   PlaceholderTableWidget *mTable;
-  std::map<int32_t, joda::table::Table> mActListData;
-  std::map<int32_t, joda::table::Table> mActHeatmapData;
+  db::QueryResult mActListData;
+  db::QueryResult mActHeatmapData;
   table::Table mSelectedTable;
   int32_t mSelectedTableColumnIdx = -1;
   int32_t mSelectedTableRow       = -1;
