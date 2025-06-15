@@ -83,10 +83,11 @@ find_package( protobuf CONFIG REQUIRED )
 find_package( libxlsxwriter CONFIG REQUIRED)
 find_package( nlohmann_json CONFIG REQUIRED)
 find_package( DuckDB CONFIG REQUIRED)
-find_package( Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg DataVisualization)
+find_package( Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg Opengl OpenGLWidgets)
 find_package( ONNX REQUIRED )
 find_package( ryml REQUIRED )
 find_package( OpenSSL REQUIRED )
+find_package( Matplot++ REQUIRED )
 
 
 SET(DuckDB_USE_STATIC_LIBS TRUE)
@@ -97,13 +98,15 @@ set(LIBS
   Qt6::Widgets
   Qt6::Core
   Qt6::Svg
-  Qt6::DataVisualization
+  Qt6::OpenGL
+  Qt6::OpenGLWidgets
   libxlsxwriter::libxlsxwriter
   duckdb::duckdb
   nlohmann_json::nlohmann_json
   onnx::onnx
   ryml::ryml
   openssl::openssl
+  Matplot++::matplot
 )
 
 if(WITH_ONNX)

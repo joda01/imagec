@@ -11,7 +11,6 @@
 
 #pragma once
 
-#include <q3dsurface.h>
 #include <qaction.h>
 #include <qboxlayout.h>
 #include <qcolormap.h>
@@ -20,8 +19,6 @@
 #include <qpushbutton.h>
 #include <qtoolbar.h>
 #include <qwidget.h>
-#include <Q3DSurface>
-#include <QtDataVisualization>
 #include <cstdint>
 #include <filesystem>
 #include <memory>
@@ -46,6 +43,7 @@ namespace joda::ui::gui {
 
 class DialogColumnSettings;
 class DialogImageViewer;
+class QtBackend;
 
 ///
 /// \class      PanelResults
@@ -184,13 +182,8 @@ private:
 
   /////////////////////////////////////////////////////
   void setHeatmapVisible(bool);
-  Q3DSurface *mGraph;
-  QHeightMapSurfaceDataProxy *m_heightMapProxy;
-  QSurfaceDataProxy *m_sqrtSinProxy;
-  QSurface3DSeries *m_heightMapSeries;
-  QSurface3DSeries *m_sqrtSinSeries;
+  std::shared_ptr<QtBackend> mGraphContainer;
 
-  QWidget *mGraphContainer;
   QHBoxLayout *mHeatmapContainer;
   ChartHeatMap *mHeatmapChart;
   Navigation mNavigation = Navigation::PLATE;

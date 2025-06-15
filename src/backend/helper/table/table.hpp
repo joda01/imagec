@@ -95,6 +95,21 @@ public:
     return std::isnan(value);
   }
 
+  uint32_t getPosX() const
+  {
+    return mGrouping.posX;
+  }
+
+  uint32_t getPosY() const
+  {
+    return mGrouping.posY;
+  }
+
+  uint32_t getStackT() const
+  {
+    return mMetaData.tStack;
+  }
+
 private:
   /////////////////////////////////////////////////////
   double value = std::numeric_limits<double>::quiet_NaN();
