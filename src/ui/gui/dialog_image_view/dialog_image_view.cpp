@@ -18,7 +18,9 @@
 #include <qgridlayout.h>
 #include <qlabel.h>
 #include <qlineedit.h>
+#include <qmenu.h>
 #include <qslider.h>
+#include <qspinbox.h>
 #include <qwidget.h>
 #include <cmath>
 #include <cstdint>
@@ -40,9 +42,9 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
+DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QMainWindow *toolbarParent) :
     QDockWidget(parent), mImageViewLeft(&mPreviewImages.originalImage, &mPreviewImages.thumbnail, nullptr, true),
-    mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, false)
+    mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, false), mWindowMain(toolbarParent)
 {
   setWindowTitle("Image view");
   setVisible(false);
@@ -52,32 +54,15 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
   setMaximumWidth(500);    // Max width when docked
   setMinimumWidth(500);    // Min width even when docked
 
-  // Connect signal to detect docking/floating changes
-  connect(this, &QDockWidget::topLevelChanged, this, [this](bool floating) {
-    if(floating) {
-      setMaximumWidth(10000);    // Remove max width cap
-      setMinimumWidth(1200);     // Wider when floating
-      setMinimumHeight(600);
-      mCentralLayout->setDirection(QBoxLayout::LeftToRight);
-      resize(1300, 700);
-    } else {
-      setMaximumWidth(500);    // Restrict width when docked
-      setMinimumHeight(0);
-      setMinimumWidth(500);    // Restore min width when docked
-      mCentralLayout->setDirection(QBoxLayout::TopToBottom);
-      setWindowTitle("");
-    }
-  });
-
   mImageViewRight.setShowPipelineResults(true);
 
   auto *mainContainer = new QWidget();
-  auto *layout        = new QVBoxLayout();
+  mMainLayout         = new QVBoxLayout();
 
   {
-    QToolBar *toolbarTop = new QToolBar();
+    auto *toolbarTop = new QToolBar();
 
-    QAction *pinToTop = new QAction(generateSvgIcon("window-pin"), "");
+    auto *pinToTop = new QAction(generateSvgIcon("window-pin"), "");
     pinToTop->setToolTip("Pin to stay on top");
     pinToTop->setCheckable(true);
     pinToTop->setChecked(false);
@@ -245,7 +230,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
       mZProjectionAction->setVisible(false);
     }
 
-    layout->addWidget(toolbarTop);
+    mMainLayout->addWidget(toolbarTop);
     // addToolBar(Qt::ToolBarArea::TopToolBarArea, toolbarTop);
   }
 
@@ -253,6 +238,8 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
   {
     mCentralLayout      = new QBoxLayout(QBoxLayout::TopToBottom);
     auto *centralWidget = new QWidget();
+    mCentralLayout->setContentsMargins(0, 0, 0, 0);
+    centralWidget->setContentsMargins(0, 0, 0, 0);
 
     if(showOriginalImage) {
       auto *leftVerticalLayout = new QVBoxLayout();
@@ -277,7 +264,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
     // centralLayout->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     centralWidget->setLayout(mCentralLayout);
-    layout->addWidget(centralWidget);
+    mMainLayout->addWidget(centralWidget);
 
     if(showOriginalImage) {
       connect(&mImageViewLeft, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onLeftViewChanged);
@@ -289,12 +276,161 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage) :
     connect(&mImageViewRight, &PanelImageView::classesToShowChanged, this, &DialogImageViewer::onSettingChanged);
   }
 
+  // Bottom toolbar
+  {
+    mSpinnerActTimeStack = new QSpinBox();
+    mSpinnerActTimeStack->setValue(0);
+    connect(mSpinnerActTimeStack, &QSpinBox::valueChanged, [this] { emit onSettingChanged(); });
+
+    // Create spacer widgets
+    auto *leftSpacer = new QWidget;
+    leftSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+    auto *rightSpacer = new QWidget;
+    rightSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+    mPlaybackToolbar = new QToolBar();
+    mPlaybackToolbar->addWidget(leftSpacer);
+    auto *skipBackward = new QAction(generateSvgIcon("media-skip-backward"), "");
+    connect(skipBackward, &QAction::triggered, [this] {
+      mSpinnerActTimeStack->blockSignals(true);
+      mSpinnerActTimeStack->setValue(0);
+      mSpinnerActTimeStack->blockSignals(false);
+      emit onSettingChanged();
+    });
+    mPlaybackToolbar->addAction(skipBackward);
+
+    auto *seekBackward = new QAction(generateSvgIcon("media-seek-backward"), "");
+    connect(seekBackward, &QAction::triggered, [this] {
+      if(mSpinnerActTimeStack->value() > 0) {
+        mSpinnerActTimeStack->blockSignals(true);
+        mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() - 1);
+        mSpinnerActTimeStack->blockSignals(false);
+      }
+      emit onSettingChanged();
+    });
+    mPlaybackToolbar->addAction(seekBackward);
+
+    // ==========================================================
+    // ==========================================================
+
+    mPlaybackSpeedSelector     = new QMenu();
+    mPlaybackspeedGroup        = new QActionGroup(mPlaybackSpeedSelector);
+    auto addPlaybackSpeedLamda = [this](QAction *action, int32_t timeMs, bool checked = false) {
+      mPlaybackspeedGroup->addAction(action);
+      action->setCheckable(true);
+      action->setChecked(checked);
+      connect(action, &QAction::triggered, [timeMs, this]() {
+        mPlaybackSpeed = timeMs;
+        if(mActionPlay->isChecked()) {
+          mPlayTimer->stop();
+          mPlayTimer->start(mPlaybackSpeed);
+        }
+      });
+    };
+
+    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("25 Hz"), 40);
+    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("20 Hz"), 50);
+    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("10 Hz"), 100);
+    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("5 Hz"), 200);
+    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("4 Hz"), 250);
+    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("3 Hz"), 333);
+    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("2 Hz"), 500);
+    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("1 Hz"), 1000, true);
+    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("0.5 Hz"), 2000);
+
+    mActionPlay = new QAction(generateSvgIcon("media-playback-start"), "");
+    mActionPlay->setMenu(mPlaybackSpeedSelector);
+    mActionPlay->setCheckable(true);
+    connect(mActionPlay, &QAction::triggered, [this](bool selected) {
+      if(selected) {
+        mPlayTimer->start(mPlaybackSpeed);
+      } else {
+        mPlayTimer->stop();
+      }
+    });
+
+    mPlaybackToolbar->addAction(mActionPlay);
+    mPlaybackToolbar->addWidget(mSpinnerActTimeStack);
+
+    mActionStop = new QAction(generateSvgIcon("media-playback-stop"), "");
+    connect(mActionStop, &QAction::triggered, [this] {
+      mActionPlay->setChecked(false);
+      mPlayTimer->stop();
+    });
+    mPlaybackToolbar->addAction(mActionStop);
+
+    auto *seekForward = new QAction(generateSvgIcon("media-seek-forward"), "");
+    connect(seekForward, &QAction::triggered, [this] {
+      if(mSpinnerActTimeStack->value() < getMaxTimeStacks()) {
+        mSpinnerActTimeStack->blockSignals(true);
+        mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() + 1);
+        mSpinnerActTimeStack->blockSignals(false);
+      }
+      emit onSettingChanged();
+    });
+    mPlaybackToolbar->addAction(seekForward);
+    mPlaybackToolbar->addWidget(rightSpacer);
+
+    if(toolbarParent == nullptr) {
+      mMainLayout->addWidget(mPlaybackToolbar);
+    } else {
+      mPlaybackToolbar->setVisible(false);
+      toolbarParent->addToolBar(Qt::ToolBarArea::BottomToolBarArea, mPlaybackToolbar);
+    }
+  }
+
   // setLayout(layout);
-  mainContainer->setLayout(layout);
+  mainContainer->setLayout(mMainLayout);
   setWidget(mainContainer);
 
   // Init
   triggerPreviewUpdate(ImageView::BOTH, true);
+
+  // Video timer
+  mPlayTimer = new QTimer();
+  QObject::connect(mPlayTimer, &QTimer::timeout, [&] {
+    if(mSpinnerActTimeStack->value() < getMaxTimeStacks()) {
+      mSpinnerActTimeStack->blockSignals(true);
+      mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() + 1);
+      mSpinnerActTimeStack->blockSignals(false);
+    } else {
+      mSpinnerActTimeStack->blockSignals(true);
+      mSpinnerActTimeStack->setValue(0);
+      mSpinnerActTimeStack->blockSignals(false);
+    }
+    emit onSettingChanged();
+  });
+
+  // Connect signal to detect docking/floating changes
+  connect(this, &QDockWidget::topLevelChanged, this, [this](bool floating) {
+    if(floating) {
+      setMaximumWidth(10000);    // Remove max width cap
+      setMinimumWidth(1200);     // Wider when floating
+      setMinimumHeight(600);
+      mCentralLayout->setDirection(QBoxLayout::LeftToRight);
+      resize(1300, 700);
+
+      if(mWindowMain != nullptr) {
+        mWindowMain->removeToolBar(mPlaybackToolbar);
+        mMainLayout->addWidget(mPlaybackToolbar);
+        mPlaybackToolbar->show();
+      }
+
+    } else {
+      setMaximumWidth(500);    // Restrict width when docked
+      setMinimumHeight(0);
+      setMinimumWidth(500);    // Restore min width when docked
+      mCentralLayout->setDirection(QBoxLayout::TopToBottom);
+      setWindowTitle("");
+
+      if(mWindowMain != nullptr) {
+        mMainLayout->removeWidget(mPlaybackToolbar);
+        mWindowMain->addToolBar(Qt::ToolBarArea::BottomToolBarArea, mPlaybackToolbar);
+        mPlaybackToolbar->show();
+      }
+    }
+  });
 }
 
 DialogImageViewer::~DialogImageViewer()
@@ -390,6 +526,8 @@ void DialogImageViewer::leaveEvent(QEvent *event)
 ///
 void DialogImageViewer::imageUpdated(const ctrl::Preview::PreviewResults &info, const std::map<enums::ClassIdIn, QString> &classes)
 {
+  updatePlaybackToolbarVisible();
+  mSpinnerActTimeStack->setMaximum(getMaxTimeStacks());
   mImageViewLeft.imageUpdated(info, classes);
   mImageViewRight.imageUpdated(info, classes);
 }

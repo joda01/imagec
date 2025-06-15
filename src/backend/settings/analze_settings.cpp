@@ -282,14 +282,13 @@ auto AnalyzeSettings::toResultsSettings() const -> ResultsSettings
             intersectingName = classes.at(intersecting).name;
           }
 
-          settings.addColumn(ResultsSettings::ColumnIdx{.tabIdx = 0, .colIdx = colIdx},
+          settings.addColumn(ResultsSettings::ColumnIdx{.colIdx = colIdx},
                              ResultsSettings::ColumnKey{.classId             = classId,
                                                         .measureChannel      = measure.measureChannel,
                                                         .stats               = stat,
                                                         .crossChannelStacksC = crossChannel,
                                                         .intersectingChannel = intersecting,
-                                                        .zStack              = 0,
-                                                        .tStack              = 0},
+                                                        .zStack              = 0},
                              ResultsSettings::ColumnName{
                                  .crossChannelName = channelName, .className = classes.at(classId).name, .intersectingName = intersectingName});
           colIdx++;

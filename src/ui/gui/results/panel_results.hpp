@@ -19,6 +19,7 @@
 #include <qpushbutton.h>
 #include <qtoolbar.h>
 #include <qwidget.h>
+#include <cstdint>
 #include <filesystem>
 #include <memory>
 #include <mutex>
@@ -42,6 +43,7 @@ namespace joda::ui::gui {
 
 class DialogColumnSettings;
 class DialogImageViewer;
+class QtBackend;
 
 ///
 /// \class      PanelResults
@@ -70,7 +72,7 @@ public:
     return mNavigation;
   }
 
-  [[nodiscard]] uint16_t getSelectedGroup() const
+  [[nodiscard]] uint64_t getSelectedGroup() const
   {
     return mActGroupId;
   }
@@ -113,8 +115,8 @@ private:
 
   /////////////////////////////////////////////////////
   void valueChangedEvent() override;
-  void tableToQWidgetTable(const joda::table::Table &table);
-  void tableToHeatmap(const joda::table::Table &table);
+  void tableToQWidgetTable(const db::QueryResult &table);
+  void tableToHeatmap(const db::QueryResult &table);
   void paintEmptyHeatmap();
   void goHome();
   void refreshView();
@@ -167,9 +169,7 @@ private:
   settings::ResultsSettings mFilter;
   settings::ResultsSettings mActFilter;
   PlaceholderTableWidget *mTable;
-  std::map<int32_t, joda::table::Table> mActListData;
-  std::map<int32_t, joda::table::Table> mActHeatmapData;
-  table::Table mSelectedTable;
+  db::QueryResult mActListData;
   int32_t mSelectedTableColumnIdx = -1;
   int32_t mSelectedTableRow       = -1;
 
@@ -182,6 +182,8 @@ private:
 
   /////////////////////////////////////////////////////
   void setHeatmapVisible(bool);
+  std::shared_ptr<QtBackend> mGraphContainer;
+
   QHBoxLayout *mHeatmapContainer;
   ChartHeatMap *mHeatmapChart;
   Navigation mNavigation = Navigation::PLATE;
@@ -200,17 +202,17 @@ private:
   void loadPreview();
   bool showSelectWorkingDir(const QString &path);
   std::filesystem::path mImageWorkingDirectory;
-  DialogImageViewer *mPreviewImage;
+  DialogImageViewer *mPreviewImage = nullptr;
   joda::ome::OmeInfo mImgProps;
   int32_t mSelectedTileX = 0;
   int32_t mSelectedTileY = 0;
   std::mutex mGeneratePreviewMutex;
 
   /////////////////////////////////////////////////////
-  uint16_t mActGroupId = 0;
+  uint64 mActGroupId = 0;
   std::set<uint64_t> mActImageId;
 
-  uint32_t mSelectedWellId;
+  uint64_t mSelectedWellId;
   uint64_t mSelectedImageId;
   uint32_t mSelectedTileId;
   QPoint mSelectedAreaPos;

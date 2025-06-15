@@ -115,7 +115,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
           auto nrzSTack         = imageLoader.getNrOfZStacksToProcess();
           auto nrChannels       = omeInfo.getNrOfChannels(imageContext.series);
 
-          mProgress.setTotalNrOfTiles(mProgress.totalImages() * tilesX * tilesY);
+          mProgress.setTotalNrOfTiles(mProgress.totalImages() * tilesX * tilesY * nrtStack);
           BS::multi_future<void> tilesFutures;
 
           for(int tileX = 0; tileX < tilesX; tileX++) {
@@ -130,7 +130,17 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
               auto analyzeTile = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db, imagePath = imagePath, nrtStack, nrzSTack,
                                   nrChannels, &imageContext, &imageLoader, tileX, tileY, &poolSizeChannels]() {
                 // Start of the image specific function
-                for(int tStack = 0; tStack < nrtStack; tStack++) {
+                int32_t tStackStart = 0;
+                auto tStackEnd      = static_cast<int32_t>(nrtStack);
+                if(program.imageSetup.tStackSettings.startFrame > nrtStack) {
+                  tStackStart = static_cast<int32_t>(nrtStack);
+                } else {
+                  tStackStart = program.imageSetup.tStackSettings.startFrame;
+                }
+                if(program.imageSetup.tStackSettings.endFrame >= 0 && program.imageSetup.tStackSettings.endFrame <= nrtStack) {
+                  tStackEnd = program.imageSetup.tStackSettings.endFrame;
+                }
+                for(int tStack = tStackStart; tStack < tStackEnd; tStack++) {
                   if(mProgress.isStopping()) {
                     break;
                   }
@@ -225,9 +235,11 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                     }
                     DurationCount::stop(id);
                   }
+
+                  // Time frame finished
+                  mProgress.incProcessedTiles();
                 }
                 // Tile finished
-                mProgress.incProcessedTiles();
               };
 
               if(poolSizeTiles > 1) {

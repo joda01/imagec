@@ -86,6 +86,18 @@ void Table::setMeta(const Meta &meta)
   mMeta = meta;
 }
 
+void Table::clear()
+{
+  mData.clear();
+  mColHeader.clear();
+  mRowHeader.clear();
+  mNrOfCols = 0;
+  mTitle.clear();
+  mMeta = {};
+  mMin  = std::numeric_limits<double>::max();
+  mMax  = std::numeric_limits<double>::min();
+}
+
 ///
 /// \brief
 /// \author

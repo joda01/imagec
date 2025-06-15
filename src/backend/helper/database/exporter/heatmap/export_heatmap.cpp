@@ -259,8 +259,8 @@ void HeatmapExporter::paint(QPainter &painter, const QSize &size, bool updatePos
 
         // Generate a random number
         // double random_number = dis(gen);
-        auto data = mData.data(y, x);
-        auto ctrl = data.getControlImagePath().string();
+        auto data        = mData.data(y, x);
+        std::string ctrl = "";    // data.getControlImagePath().string();
         if(!ctrl.empty()) {
           auto newControlImagePath = ctrl.data();
         }

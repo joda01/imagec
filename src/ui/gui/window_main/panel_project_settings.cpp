@@ -11,6 +11,7 @@
 
 #include "panel_project_settings.hpp"
 #include <qcombobox.h>
+#include <qlineedit.h>
 #include <string>
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/file_grouper/file_grouper_types.hpp"
@@ -160,6 +161,15 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   connect(mStackHandlingT, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onSettingChanged);
   formLayout->addRow(new QLabel(tr("T-Stack:")), mStackHandlingT);
 
+  auto *tStackRangeLayout = new QHBoxLayout;
+  mTStackFrameStart       = new QLineEdit();
+  mTStackFrameStart->setStatusTip("Time frame to start (0 to -1).");
+  mTStackFrameEnd = new QLineEdit();
+  mTStackFrameEnd->setStatusTip("Time frame to stop (-1 = last time frame).");
+  tStackRangeLayout->addWidget(mTStackFrameStart);
+  tStackRangeLayout->addWidget(mTStackFrameEnd);
+  formLayout->addRow(new QLabel(tr("T-Range:")), tStackRangeLayout);
+
   //
   mCompositeTileSize = new QComboBox();
   mCompositeTileSize->addItem("8192x8192 (~134 MB)", static_cast<int32_t>(8192));
@@ -276,6 +286,10 @@ void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &s
     }
   }
   {
+    mTStackFrameStart->setText(QString::number(settings.imageSetup.tStackSettings.startFrame));
+    mTStackFrameEnd->setText(QString::number(settings.imageSetup.tStackSettings.endFrame));
+  }
+  {
     auto idx = mStackHandlingT->findData(static_cast<int>(settings.imageSetup.tStackHandling));
     if(idx >= 0) {
       mStackHandlingT->setCurrentIndex(idx);
@@ -335,6 +349,8 @@ void PanelProjectSettings::toSettings()
   mSettings.imageSetup.imageTileSettings.tileWidth  = static_cast<int32_t>(mCompositeTileSize->currentData().toInt());
   mSettings.imageSetup.imageTileSettings.tileHeight = static_cast<int32_t>(mCompositeTileSize->currentData().toInt());
 
+  mSettings.imageSetup.tStackSettings.startFrame = mTStackFrameStart->text().toInt();
+  mSettings.imageSetup.tStackSettings.endFrame   = mTStackFrameEnd->text().toInt();
   mParentWindow->checkForSettingsChanged();
 }
 

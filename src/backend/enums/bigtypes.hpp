@@ -203,6 +203,11 @@ public:
     return {high | other.high, low | other.low};
   }
 
+  [[nodiscard]] uint64_t highBytes() const
+  {
+    return high;
+  }
+
 private:
   uint64_t high = 0;
   uint64_t low  = 0;

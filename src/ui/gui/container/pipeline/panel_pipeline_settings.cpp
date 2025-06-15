@@ -358,6 +358,12 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
 
   //
   //
+  //
+  tStackIndex = generateStackIndexCombo(false, "T-Channel", windowMain);
+  tStackIndex->connectWithSetting(&mSettings.pipelineSetup.tStackIndex);
+
+  //
+  //
   defaultClassId = SettingBase::create<SettingComboBoxClassesOutN>(windowMain, generateSvgIcon("shapes"), "Output class", 10);
   defaultClassId->setWithMemory(false);
   defaultClassId->setWithDefault(false);
@@ -394,12 +400,13 @@ void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *w
   connect(zProjection.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   connect(zProjection.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::onZProjectionChanged);
   connect(zStackIndex.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
+  connect(tStackIndex.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   connect(defaultClassId.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
 
   {
     auto *col1 = tab->addVerticalPanel();
     col1->addGroup("Pipeline", {pipelineName.get(), defaultClassId.get()});
-    col1->addGroup("Pipeline input", {cStackIndex.get(), zProjection.get(), zStackIndex.get()});
+    col1->addGroup("Pipeline input", {cStackIndex.get(), zProjection.get(), zStackIndex.get(), tStackIndex.get()});
     col1->addGroup({pipelineNotes.get()});
   }
 
@@ -519,7 +526,8 @@ void PanelPipelineSettings::updatePreview()
     mSelectedTileY           = 0;
   }
   try {
-    auto threadSettings = mWindowMain->getController()->calcOptimalThreadNumber(settingsTmp);
+    auto threadSettings =
+        mWindowMain->getController()->calcOptimalThreadNumber(settingsTmp, std::get<2>(mWindowMain->getImagePanel()->getSelectedImage()));
     PreviewJob job{.settings       = settingsTmp,
                    .controller     = mWindowMain->getController(),
                    .previewPanel   = mPreviewImage,
@@ -527,6 +535,7 @@ void PanelPipelineSettings::updatePreview()
                    .pipelinePos    = cnt,
                    .selectedTileX  = mSelectedTileX,
                    .selectedTileY  = mSelectedTileY,
+                   .timeStack      = mPreviewImage->getActualTimeStackPosition(),
                    .classes        = mWindowMain->getPanelClassification()->getClasses(),
                    .classesToShow  = classesToShow,
                    .threadSettings = threadSettings};
@@ -552,12 +561,17 @@ void PanelPipelineSettings::previewThread()
     try {
     next:
       // Wait until there is at least one job in the queue
+      // mCheckForEmptyMutex.lock();
       auto jobToDo = mPreviewQue.pop();
+      bool isEmpty = mPreviewQue.isEmpty();
+      // mCheckForEmptyMutex.unlock();
+
       // Process only the last element in the que
-      if(!mPreviewQue.isEmpty()) {
-        std::this_thread::sleep_for(1000ms);
+      if(!isEmpty) {
+        std::this_thread::sleep_for(10ms);
         goto next;
       }
+
       mPreviewInProgress = true;
       emit updatePreviewStarted();
       if(nullptr != jobToDo.previewPanel && mIsActiveShown) {
@@ -601,7 +615,8 @@ void PanelPipelineSettings::previewThread()
               continue;
             }
             jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, jobToDo.threadSettings, *myPipeline, imgIndex,
-                                        jobToDo.selectedTileX, jobToDo.selectedTileY, previewResult, imgProps, jobToDo.classesToShow);
+                                        jobToDo.selectedTileX, jobToDo.selectedTileY, jobToDo.timeStack, previewResult, imgProps,
+                                        jobToDo.classesToShow);
             // Create a QByteArray from the char array
 
             jobToDo.previewPanel->setThumbnailPosition(
@@ -623,8 +638,7 @@ void PanelPipelineSettings::previewThread()
       }
 
       {
-        std::lock_guard<std::mutex> lock(mCheckForEmptyMutex);
-        if(mPreviewQue.isEmpty()) {
+        if(isEmpty) {
           mPreviewInProgress = false;
           emit updatePreviewFinished();
         }
@@ -932,6 +946,7 @@ void PanelPipelineSettings::setActive(bool setActive)
 {
   if(!mIsActiveShown && setActive) {
     mLayout.showToolBar(true);
+    mPreviewImage->setPlayBackToolbarVisible(true);
     mIsActiveShown = true;
     updatePreview();
     mDialogHistory->loadHistory();
@@ -942,6 +957,7 @@ void PanelPipelineSettings::setActive(bool setActive)
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
     mIsActiveShown = false;
     mLayout.showToolBar(false);
+    mPreviewImage->setPlayBackToolbarVisible(false);
 
     mDialogHistory->hide();
     mHistoryAction->setChecked(false);

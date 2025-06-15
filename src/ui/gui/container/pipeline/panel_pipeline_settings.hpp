@@ -116,6 +116,7 @@ private:
   std::unique_ptr<SettingComboBox<int32_t>> cStackIndex;
   std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjection;
   std::unique_ptr<SettingSpinBox<int32_t>> zStackIndex;
+  std::unique_ptr<SettingSpinBox<int32_t>> tStackIndex;
   std::unique_ptr<SettingComboBoxClassesOutN> defaultClassId;
 
   /////////////////////////////////////////////////////
@@ -151,6 +152,7 @@ private:
     int32_t pipelinePos;
     int32_t selectedTileX = 0;
     int32_t selectedTileY = 0;
+    int32_t timeStack     = 0;
     std::map<enums::ClassIdIn, QString> classes;
     settings::ObjectInputClasses classesToShow;
     joda::thread::ThreadingSettings threadSettings;

@@ -95,9 +95,17 @@ public:
 
   struct ObjectFilter
   {
+    enum class TStackHandling
+    {
+      SLICE,
+      INDIVIDUAL
+    };
+
     uint8_t plateId  = 0;
     uint16_t groupId = 0;
     std::set<uint64_t> imageId;
+    int32_t tStack                = 0;
+    TStackHandling tStackHandling = TStackHandling::SLICE;
 
     // NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ObjectFilter);
   };
@@ -119,7 +127,6 @@ public:
     int32_t crossChannelStacksC              = -1;
     joda::enums::ClassId intersectingChannel = joda::enums::ClassId::NONE;
     int32_t zStack                           = 0;
-    int32_t tStack                           = 0;
 
     ColumnName names;
 
@@ -131,7 +138,7 @@ public:
         auto measure             = static_cast<uint8_t>(in.measureChannel);
         auto stat                = static_cast<uint8_t>(in.stats);
 
-        stdi::uint128_t erg = (static_cast<stdi::uint128_t>(classClasss) << 112) | (static_cast<stdi::uint128_t>(in.tStack) << 80) |
+        stdi::uint128_t erg = (static_cast<stdi::uint128_t>(classClasss) << 112) | (static_cast<stdi::uint128_t>(0) << 80) |
                               (static_cast<stdi::uint128_t>(in.zStack) << 48) | (static_cast<stdi::uint128_t>(measure & 0xFF) << 40) |
                               (static_cast<stdi::uint128_t>(stat) << 32) | (static_cast<stdi::uint128_t>(in.crossChannelStacksC & 0xFFFF) << 16) |
                               (static_cast<stdi::uint128_t>(intersectingChannel) << 0);
@@ -145,13 +152,13 @@ public:
     {
       return classId == input.classId && static_cast<int32_t>(measureChannel) == static_cast<int32_t>(input.measureChannel) &&
              static_cast<int32_t>(stats) == static_cast<int32_t>(input.stats) && crossChannelStacksC == input.crossChannelStacksC &&
-             intersectingChannel == input.intersectingChannel && zStack == input.zStack && tStack == input.tStack;
+             intersectingChannel == input.intersectingChannel && zStack == input.zStack;
     }
 
     std::string createHeader() const
     {
       std::map<uint32_t, std::string> columnHeaders;
-      std::string stacks = "{Z" + std::to_string(zStack) + "/T" + std::to_string(tStack) + "}";
+      std::string stacks = "{Z" + std::to_string(zStack) + "}";
 
       auto createStatsHeader = [](enums::Stats stats) -> std::string {
         if(stats != enums::Stats::OFF) {
@@ -180,24 +187,22 @@ public:
       return names.className + "-" + toString(measureChannel) + createStatsHeader(stats) + stacks;
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnKey, classId, measureChannel, stats, crossChannelStacksC, intersectingChannel, zStack, tStack,
-                                                names);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnKey, classId, measureChannel, stats, crossChannelStacksC, intersectingChannel, zStack, names);
   };
 
   struct ColumnIdx
   {
-    int32_t tabIdx = 0;
     int32_t colIdx = 0;
     bool operator<(const ColumnIdx &input) const
     {
       auto toInt = [](const ColumnIdx &in) -> uint64_t {
-        uint64_t erg = (static_cast<uint64_t>(in.tabIdx) << 32) | (static_cast<uint64_t>(in.colIdx));
+        uint64_t erg = (static_cast<uint64_t>(in.colIdx));
         return erg;
       };
       return toInt(*this) < toInt(input);
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnIdx, tabIdx, colIdx);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnIdx, colIdx);
   };
 
   explicit ResultsSettings() = default;
@@ -214,11 +219,12 @@ public:
     this->plateSetup = plateSetup;
   }
 
-  void setFilter(int32_t plateId, int32_t groupId, const std::set<uint64_t> &imageId)
+  void setFilter(int32_t plateId, int32_t groupId, int32_t tStack, const std::set<uint64_t> &imageId)
   {
     filter.plateId = plateId;
     filter.groupId = groupId;
     filter.imageId = imageId;
+    filter.tStack  = tStack;
   }
 
   bool addColumn(const ColumnIdx &colIdx, const ColumnKey &key, const ColumnName &names)
@@ -251,7 +257,7 @@ public:
         if(colNew.colIdx > colIdx.colIdx) {
           startToReduce = true;
         }
-        if(startToReduce && colIdx.tabIdx == col.tabIdx) {
+        if(startToReduce) {
           colNew.colIdx--;
         }
         newColumns.emplace(colNew, _);
@@ -353,13 +359,8 @@ public:
 
     columns.clear();
     int32_t colIdx = 0;
-    int32_t actTab = 0;
     for(const auto &[colIdxAct, keyIdx] : data) {
-      if(actTab != colIdxAct.tabIdx) {
-        colIdx = 0;
-        actTab = colIdxAct.tabIdx;
-      }
-      columns.emplace(ColumnIdx{colIdxAct.tabIdx, colIdx}, keyIdx);
+      columns.emplace(ColumnIdx{colIdx}, keyIdx);
       colIdx++;
     }
   }
