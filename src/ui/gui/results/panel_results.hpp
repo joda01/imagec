@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include <q3dsurface.h>
 #include <qaction.h>
 #include <qboxlayout.h>
 #include <qcolormap.h>
@@ -20,6 +21,7 @@
 #include <qtoolbar.h>
 #include <qwidget.h>
 #include <Q3DSurface>
+#include <QtDataVisualization>
 #include <cstdint>
 #include <filesystem>
 #include <memory>
@@ -182,6 +184,13 @@ private:
 
   /////////////////////////////////////////////////////
   void setHeatmapVisible(bool);
+  Q3DSurface *mGraph;
+  QHeightMapSurfaceDataProxy *m_heightMapProxy;
+  QSurfaceDataProxy *m_sqrtSinProxy;
+  QSurface3DSeries *m_heightMapSeries;
+  QSurface3DSeries *m_sqrtSinSeries;
+
+  QWidget *mGraphContainer;
   QHBoxLayout *mHeatmapContainer;
   ChartHeatMap *mHeatmapChart;
   Navigation mNavigation = Navigation::PLATE;

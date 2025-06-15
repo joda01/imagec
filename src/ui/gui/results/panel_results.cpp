@@ -10,6 +10,7 @@
 ///
 
 #include "panel_results.hpp"
+#include <q3dsurface.h>
 #include <qaction.h>
 #include <qactiongroup.h>
 #include <qboxlayout.h>
@@ -291,6 +292,66 @@ PanelResults::PanelResults(WindowMain *windowMain) :
     topInfoLayout->addWidget(mSelectedValue);
   }
 
+  {
+    mGraph          = new Q3DSurface();
+    mGraphContainer = QWidget::createWindowContainer(mGraph);
+    mGraphContainer->setMinimumSize(800, 600);
+    mGraphContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    mGraphContainer->setVisible(false);
+    mGraphContainer->setFocusPolicy(Qt::StrongFocus);    // Important for keyboard + mouse interaction
+
+    //
+    //
+    // Create the data proxy and series
+    QSurfaceDataProxy *proxy = new QSurfaceDataProxy();
+    QSurface3DSeries *series = new QSurface3DSeries(proxy);
+    mGraph->addSeries(series);
+
+    // Fill the data
+    {
+      int rows                     = 50;
+      int cols                     = 50;
+      QSurfaceDataArray *dataArray = new QSurfaceDataArray;
+      dataArray->reserve(rows);
+
+      float xMin = -5.0f, xMax = 5.0f;
+      float yMin = -5.0f, yMax = 5.0f;
+      float dx = (xMax - xMin) / float(cols - 1);
+      float dy = (yMax - yMin) / float(rows - 1);
+
+      for(int i = 0; i < rows; ++i) {
+        QSurfaceDataRow *row = new QSurfaceDataRow(cols);
+        float y              = yMin + i * dy;
+        for(int j = 0; j < cols; ++j) {
+          float x = xMin + j * dx;
+          float z = std::sin(x) * std::cos(y);    // Height function
+          (*row)[j].setPosition(QVector3D(x, z, y));
+        }
+        dataArray->append(row);
+      }
+
+      proxy->resetArray(dataArray);
+    }
+
+    mGraph->activeTheme()->setType(Q3DTheme::ThemeQt);
+    mGraph->setShadowQuality(QAbstract3DGraph::ShadowQualityNone);
+    mGraph->scene()->activeCamera()->setCameraPreset(Q3DCamera::CameraPresetIsometricRight);
+
+    {
+      QLinearGradient gr;
+      gr.setColorAt(0.0, Qt::black);
+      gr.setColorAt(0.33, Qt::blue);
+      gr.setColorAt(0.67, Qt::red);
+      gr.setColorAt(1.0, Qt::yellow);
+
+      mGraph->seriesList().at(0)->setBaseGradient(gr);
+      mGraph->seriesList().at(0)->setColorStyle(Q3DTheme::ColorStyleRangeGradient);
+    }
+
+    //
+    //
+  }
+
   //
   // Add to layout
   //
@@ -302,6 +363,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   col->addLayout(topBreadCrump);
   col->addLayout(topInfoLayout);
   col->addLayout(mHeatmapContainer);
+  col->addWidget(mGraphContainer);
   col->addWidget(mTable);
 
   onShowTable();
@@ -327,6 +389,9 @@ void PanelResults::valueChangedEvent()
 
 void PanelResults::setHeatmapVisible(bool visible)
 {
+  mGraphContainer->setVisible(visible);
+
+  visible = false;
   for(int i = 0; i < mHeatmapContainer->count(); ++i) {
     QWidget *w = mHeatmapContainer->itemAt(i)->widget();
     if(w) {
@@ -1266,7 +1331,7 @@ void PanelResults::tableToHeatmap(const db::QueryResult &table)
     //
     //
     if(mSelectedTableColumnIdx >= 0) {
-      // mHeatmapChart->setData(table, static_cast<int32_t>(mNavigation));
+      mHeatmapChart->setData(table, static_cast<int32_t>(mNavigation));
       return;
     }
   }
