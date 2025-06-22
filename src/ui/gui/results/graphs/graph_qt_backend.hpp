@@ -33,10 +33,11 @@ public:
   QtBackend(const std::string &terminal, QWidget *parent);
   virtual ~QtBackend();
 
+  /////////////////////////////////////////////////////
   void paintEvent(QPaintEvent *event) override;
+  void mouseMoveEvent(QMouseEvent *event) override;
 
   /////////////////////////////////////////////////////
-
   bool is_interactive() override;
   const std::string &output() override;
   const std::string &output_format() override;
@@ -146,6 +147,8 @@ private:
   // For Graph rendering
   QSvgRenderer *svgRenderer = nullptr;
 
+  /////////////////////////////////////////////////////
+  QRectF targetRect;
   std::mutex mPaintMutex;
 };
 }    // namespace joda::ui::gui

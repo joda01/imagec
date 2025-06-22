@@ -50,7 +50,6 @@ auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t 
 
   // Generate a plot with matplot++
   auto fig = matplot::figure_no_backend(true);    // create figure but don't show a window
-
   fig->backend(backend);
   auto ax = fig->current_axes();
 
@@ -69,7 +68,9 @@ auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t 
       std::ostringstream oss;
       oss << std::fixed << std::setprecision(2) << data[i][j];
       // Add text at cell center with formatted number
-      ax->text(j + 1, i + 1, oss.str())->font_size(5).alignment(matplot::labels::alignment::center).tag("myTag1" + std::to_string(i));
+      auto tx = ax->text(j + 1, i + 1, oss.str());
+      tx->font_size(5);
+      tx->alignment(matplot::labels::alignment::center);
     }
   }
 

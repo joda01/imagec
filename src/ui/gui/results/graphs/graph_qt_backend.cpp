@@ -14,6 +14,7 @@
 #include <matplot/util/common.h>
 #include <matplot/util/popen.h>
 #include <QFile>
+#include <QMouseEvent>
 #include <QOpenGLFunctions>
 #include <QPainter>
 #include <cstdlib>
@@ -64,10 +65,38 @@ void QtBackend::paintEvent(QPaintEvent *event)
     scaledSize.scale(widgetSize, Qt::KeepAspectRatio);
 
     // Center the SVG in the widget
-    QRectF targetRect((widgetSize.width() - scaledSize.width()) / 2.0, (widgetSize.height() - scaledSize.height()) / 2.0, scaledSize.width(),
-                      scaledSize.height());
+    targetRect = QRectF((widgetSize.width() - scaledSize.width()) / 2.0, (widgetSize.height() - scaledSize.height()) / 2.0, scaledSize.width(),
+                        scaledSize.height());
 
     svgRenderer->render(&painter, targetRect);
+
+    QPen redPen(Qt::red);
+    redPen.setWidth(2);    // Optional: set line width
+    painter.setPen(redPen);
+
+    float offsetX = (targetRect.width() / 7.7);
+    float offsetY = (targetRect.height() / 13.3);
+
+    float width  = ((targetRect.width() - 2.05 * offsetX) / 10);
+    float height = ((targetRect.height() - 2.5 * offsetY) / 10);
+    for(float col = 0; col < 10; col++) {
+      for(float row = 0; row < 10; row++) {
+        float startY = offsetY + targetRect.y() + col * height;
+        painter.drawRect(QRectF(offsetX + targetRect.x() + row * width, startY, width, height));
+      }
+    }
+  }
+}
+
+void QtBackend::mouseMoveEvent(QMouseEvent *event)
+{
+  QWidget::mouseMoveEvent(event);
+
+  QPoint pos = event->pos();
+
+  if(pos.x() >= targetRect.x() && pos.y() >= targetRect.y() && pos.x() <= targetRect.width() + targetRect.x() &&
+     pos.y() <= targetRect.height() + targetRect.y()) {
+    return;
   }
 }
 
@@ -122,6 +151,8 @@ QtBackend::QtBackend(const std::string &terminal, QWidget *parent) : QWidget(par
     std::cerr << pipe_.error() << std::endl;
     std::cerr << "Please install gnuplot 5.2.6+: http://www.gnuplot.info" << std::endl;
   }
+
+  setMouseTracking(true);    // <--- This line is crucial
 }
 
 QtBackend::~QtBackend()
