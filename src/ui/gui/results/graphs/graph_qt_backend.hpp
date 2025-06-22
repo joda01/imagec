@@ -15,6 +15,7 @@
 #include <matplot/backend/gnuplot.h>
 #include <qopenglfunctions_3_3_core.h>
 #include <qopenglversionfunctions.h>
+#include <qpoint.h>
 #include <qtmetamacros.h>
 #include <qwidget.h>
 #include <QOpenGLFunctions>
@@ -35,7 +36,7 @@ public:
 
   /////////////////////////////////////////////////////
   void paintEvent(QPaintEvent *event) override;
-  void mouseMoveEvent(QMouseEvent *event) override;
+  void mousePressEvent(QMouseEvent *event) override;
   void setNrOfRowsAndCols(int32_t rows, int32_t cols)
   {
     mRows = rows;
@@ -157,5 +158,6 @@ private:
   std::mutex mPaintMutex;
   int32_t mRows = 0;
   int32_t mCols = 0;
+  std::vector<std::pair<QRectF, QPoint>> mRects;
 };
 }    // namespace joda::ui::gui

@@ -13,6 +13,7 @@
 #include <matplot/backend/gnuplot.h>
 #include <matplot/util/common.h>
 #include <matplot/util/popen.h>
+#include <qnamespace.h>
 #include <QFile>
 #include <QMouseEvent>
 #include <QOpenGLFunctions>
@@ -22,6 +23,7 @@
 #include <iostream>
 #include <mutex>
 #include <regex>
+#include <string>
 #include <thread>
 
 #include "backend/helper/logger/console_logger.hpp"
@@ -73,32 +75,35 @@ void QtBackend::paintEvent(QPaintEvent *event)
     //
     // This is a grid used for mouse events
     //
-    QPen redPen(Qt::red);
-    redPen.setWidth(2);    // Optional: set line width
+    QPen redPen(Qt::darkGray);
+    redPen.setWidth(1);               // Optional: set line width
+    redPen.setStyle(Qt::DashLine);    // <-- Make it dashed
     painter.setPen(redPen);
     float offsetX = (targetRect.width() / 7.7);
     float offsetY = (targetRect.height() / 13.3);
     float width   = ((targetRect.width() - 2.05 * offsetX) / mCols);
     float height  = ((targetRect.height() - 2.5 * offsetY) / mRows);
+    mRects.clear();
     for(float col = 0; col < mCols; col++) {
       for(float row = 0; row < mRows; row++) {
         float startY = offsetY + targetRect.y() + row * height;
         float startX = offsetX + targetRect.x() + col * width;
-        painter.drawRect(QRectF(startX, startY, width, height));
+        auto rect    = QRectF(startX, startY, width, height);
+        mRects.push_back({rect, QPoint{static_cast<int>(row), static_cast<int>(col)}});
+        painter.drawRect(rect);
       }
     }
   }
 }
 
-void QtBackend::mouseMoveEvent(QMouseEvent *event)
+void QtBackend::mousePressEvent(QMouseEvent *event)
 {
   QWidget::mouseMoveEvent(event);
-
   QPoint pos = event->pos();
-
-  if(pos.x() >= targetRect.x() && pos.y() >= targetRect.y() && pos.x() <= targetRect.width() + targetRect.x() &&
-     pos.y() <= targetRect.height() + targetRect.y()) {
-    return;
+  for(const auto &[rect, pt] : mRects) {
+    if(rect.contains(pos)) {
+      std::cout << "Pressed " << std::to_string(pt.x()) << "|" << std::to_string(pt.y()) << std::endl;
+    }
   }
 }
 
