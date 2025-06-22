@@ -337,26 +337,37 @@ bool QtBackend::render_data()
   auto start = std::chrono::steady_clock::now();
   std::filesystem::path svgFile(output());
   do {
-    if(std::chrono::steady_clock::now() - start > 2s) {
+    std::this_thread::sleep_for(25ms);
+    if(std::chrono::steady_clock::now() - start > 5s) {
       joda::log::logWarning("Could not plot graph: Timeout");
       return false;    // timeout expired
     }
     if(std::filesystem::exists(svgFile)) {
+      auto size = std::filesystem::file_size(svgFile);
+      if(size <= 0) {
+        continue;
+      }
       std::lock_guard<std::mutex> lock(mPaintMutex);
       delete svgRenderer;
       QFile file(svgFile.string().data());
       if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         joda::log::logDebug("Could not open graph file. Retry ...");
+        file.close();
         continue;
       }
       QByteArray fileData = file.readAll();
-      svgRenderer         = new QSvgRenderer(fileData, this);
+      if(!fileData.contains("</svg>")) {
+        file.close();
+        continue;
+      }
+      joda::log::logDebug("Read file");
+
+      svgRenderer = new QSvgRenderer(fileData, this);
       file.close();
       update();
       std::filesystem::remove(svgFile);
       break;
     }
-    std::this_thread::sleep_for(25ms);
   } while(true);
 
   return okay;
