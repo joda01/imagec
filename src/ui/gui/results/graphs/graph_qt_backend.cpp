@@ -90,7 +90,7 @@ void QtBackend::paintEvent(QPaintEvent *event)
         float startX = offsetX + targetRect.x() + col * width;
         auto rect    = QRectF(startX, startY, width, height);
         mRects.push_back({rect, QPoint{static_cast<int>(row), static_cast<int>(col)}});
-        painter.drawRect(rect);
+        // painter.drawRect(rect);
       }
     }
   }
