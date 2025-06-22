@@ -850,7 +850,7 @@ void PanelResults::onFinishedLoading()
 {
   tableToQWidgetTable(mActListData);
   tableToHeatmap(mActListData);
-  preparePlateSurface(mActListData, 10, 10, mGraphContainer);
+  preparePlateSurface(mActListData, 16, 24, mGraphContainer);
 
   refreshBreadCrump();
   auto col = mSelection[mNavigation].col;

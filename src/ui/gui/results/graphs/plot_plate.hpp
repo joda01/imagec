@@ -23,7 +23,7 @@ namespace joda::ui::gui {
 
 auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t cols, std::shared_ptr<QtBackend> backend)
 {
-  std::vector<std::vector<double>> data(cols, std::vector<double>(rows, 0.0));
+  std::vector<std::vector<double>> data(rows, std::vector<double>(cols, 0.0));
   std::vector<std::string> xLabels;
   std::vector<std::string> yLabels;
 
@@ -43,14 +43,17 @@ auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t 
     uint32_t posX   = table.data(tblRow, 0).getPosX();
     uint32_t posY   = table.data(tblRow, 0).getPosY();
     uint32_t tStack = table.data(tblRow, 0).getStackT();
-    if(tStack == 0) {
-      data[posX - 1][posY - 1] = val;
+    if(tStack == 0 && data.size() >= posY) {
+      if(data[posY - 1].size() >= posX) {
+        data[posY - 1][posX - 1] = val;
+      }
     }
   }
 
   // Generate a plot with matplot++
   auto fig = matplot::figure_no_backend(true);    // create figure but don't show a window
   fig->backend(backend);
+  backend->setNrOfRowsAndCols(rows, cols);
   auto ax = fig->current_axes();
 
   ax->x_axis().ticklabels(xLabels).label_font_size(8);

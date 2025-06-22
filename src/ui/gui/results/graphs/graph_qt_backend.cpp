@@ -70,19 +70,21 @@ void QtBackend::paintEvent(QPaintEvent *event)
 
     svgRenderer->render(&painter, targetRect);
 
+    //
+    // This is a grid used for mouse events
+    //
     QPen redPen(Qt::red);
     redPen.setWidth(2);    // Optional: set line width
     painter.setPen(redPen);
-
     float offsetX = (targetRect.width() / 7.7);
     float offsetY = (targetRect.height() / 13.3);
-
-    float width  = ((targetRect.width() - 2.05 * offsetX) / 10);
-    float height = ((targetRect.height() - 2.5 * offsetY) / 10);
-    for(float col = 0; col < 10; col++) {
-      for(float row = 0; row < 10; row++) {
-        float startY = offsetY + targetRect.y() + col * height;
-        painter.drawRect(QRectF(offsetX + targetRect.x() + row * width, startY, width, height));
+    float width   = ((targetRect.width() - 2.05 * offsetX) / mCols);
+    float height  = ((targetRect.height() - 2.5 * offsetY) / mRows);
+    for(float col = 0; col < mCols; col++) {
+      for(float row = 0; row < mRows; row++) {
+        float startY = offsetY + targetRect.y() + row * height;
+        float startX = offsetX + targetRect.x() + col * width;
+        painter.drawRect(QRectF(startX, startY, width, height));
       }
     }
   }

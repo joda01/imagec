@@ -36,6 +36,11 @@ public:
   /////////////////////////////////////////////////////
   void paintEvent(QPaintEvent *event) override;
   void mouseMoveEvent(QMouseEvent *event) override;
+  void setNrOfRowsAndCols(int32_t rows, int32_t cols)
+  {
+    mRows = rows;
+    mCols = cols;
+  }
 
   /////////////////////////////////////////////////////
   bool is_interactive() override;
@@ -150,5 +155,7 @@ private:
   /////////////////////////////////////////////////////
   QRectF targetRect;
   std::mutex mPaintMutex;
+  int32_t mRows = 0;
+  int32_t mCols = 0;
 };
 }    // namespace joda::ui::gui
