@@ -12,6 +12,7 @@
 #pragma once
 
 #include <matplot/backend/backend_interface.h>
+#include <matplot/backend/gnuplot.h>
 #include <qopenglfunctions_3_3_core.h>
 #include <qopenglversionfunctions.h>
 #include <qtmetamacros.h>
@@ -23,201 +24,117 @@
 
 namespace joda::ui::gui {
 
-class QtBackend : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core, public matplot::backend::backend_interface
+class QtBackend : public QWidget, public matplot::backend::gnuplot
 {
   Q_OBJECT
 public:
-  QtBackend()
-  {
-    // setFixedSize(500, 500);
-  }
-
-  ~QtBackend();
+  QtBackend(const std::string &terminal, QWidget *parent);
+  virtual ~QtBackend();
 
   bool is_interactive() override;
-
-  void create_shaders();
-
-  /// \brief If non-interactive, get the file where we should output
-  /// our data
   const std::string &output() override;
-
-  /// \brief If non-interactive, get the format in which we should
-  /// output our data
   const std::string &output_format() override;
-
-  /// \brief If non-interactive, set the file where we should output
-  /// our data This function can use the file extension to
-  /// automatically set the output format
   bool output(const std::string &filename) override;
-  /// \brief If non-interactive, set the file and the file format for
-  /// outputting data
   bool output(const std::string &filename, const std::string &file_format) override;
-  /// Get the current width
-  /// The user might have changed the image width manually.
-  /// Matplot++ needs to be aware of that.
   unsigned int width() override;
-
-  /// \brief Get height
   unsigned int height() override;
-
-  /// \brief Set width
-  /// For when the user programmatically sets the width
-  void width(unsigned int new_width) override;
-  /// \brief Set height
-  void height(unsigned int new_height) override;
-  /// \brief Get the current position_x (for interactive backends)
-  /// The user might have changed the image position_x manually.
-  /// Matplot++ needs to be aware of that.
   unsigned int position_x() override;
-  /// \brief Get position_y (for interactive backends)
   unsigned int position_y() override;
-  /// \brief Set position_x (for interactive backends)
-  /// For when the user programmatically sets the position_x
   void position_x(unsigned int new_position_x) override;
-  /// \brief Set position_y (for interactive backends)
   void position_y(unsigned int new_position_y) override;
-  /// \brief Set window title
-  void window_title(const std::string &title)
-  {
-    setWindowTitle(title.data());
-  }
-
-  /// \brief Get window title
-  virtual std::string window_title()
-  {
-    return windowTitle().toStdString();
-  }
-
-  /// \brief Tell the backend we are about to draw a new image
-  /// The backend might reject starting this new image
-  /// For instance, the user already closed the window
-  /// and there's no point in feeding commands to the backend
-  bool new_frame();
-  /// \brief Tell the backend this new image is over
-  /// The backend is free to plot whatever it's been
-  /// buffering
-  /// \return True if everything is ok
+  void width(unsigned int new_width) override;
+  void height(unsigned int new_height) override;
+  bool new_frame() override;
   bool render_data() override;
-
-  /// \brief Tell the backend to wait for user interaction
-  /// Until then, the backend should block execution if possible
-  /// Figures use this in the show function
-  void show(matplot::figure_type *) override;
-
-  /// \brief True if the user requested to close the window
-  /// This function allows the backend to send a signal
-  /// indicating the user has asked to close the window
-  bool should_close() override;
-
-  /// \brief True if the backend supports fonts
-  /// We can avoid some commands if it doesn't
   bool supports_fonts() override;
 
-  /// Public functions you need to override to create a new
-  /// backend based on vertices, such as OpenGL, Agg, etc...
-  /// These functions are likely to change as we come up
-  /// with concrete implementations based on vertices.
-  /// \see
-  /// https://github.com/matplotlib/matplotlib/blob/master/src/_backend_agg.h
-  /// \see https://github.com/ocornut/imgui/tree/master/examples
 public:
-  /// \brief Draws background on the image
-  virtual void draw_background(const std::array<float, 4> &color);
+  bool consumes_gnuplot_commands() override;
+  void run_command(const std::string &command) override;
+  void include_comment(const std::string &comment) override;
 
-  /// \brief Draws rectangle on the image
-  virtual void draw_rectangle(const double x1, const double x2, const double y1, const double y2, const std::array<float, 4> &color);
+  public /* gnuplot pipe functions */:
+  /// We "render the data" by flushing the commands
+  bool flush_commands();
 
-  /// \brief Draw a path on the image
-  /// Many backends will require the path to be floats
-  /// but Matplot++ words with doubles, so it's up to
-  /// the backend to implement this conversion however
-  /// it seems more efficient
-  virtual void draw_path(const std::vector<double> &x, const std::vector<double> &y, const std::array<float, 4> &color);
+  /// Identify the default terminal type in the system
+  static std::string default_terminal_type();
+  static bool terminal_is_available(std::string_view);
+  static std::tuple<int, int, int> gnuplot_version();
+  static bool terminal_has_title_option(const std::string &t);
+  static bool terminal_has_size_option(const std::string &t);
+  static bool terminal_has_position_option(const std::string &t);
+  static bool terminal_has_enhanced_option(const std::string &t);
+  static bool terminal_has_color_option(const std::string &t);
+  static bool terminal_has_font_option(const std::string &t);
 
-  /// \brief Draw markers on the image
-  virtual void draw_markers(const std::vector<double> &x, const std::vector<double> &y, const std::vector<double> &z = {});
+public: /* gnuplot pipe constexprs */
+  // True if the windows persist after closing the program
+  // False by default because this is VERY annoying in
+  // some repetitive tasks involving lots of plots
+  // You can change the default here or run the command
+  // set terminal "name" persist
+  static constexpr bool windows_should_persist_by_default = false;
 
-  /// \brief Draw text on the image
-  virtual void draw_text(const std::vector<double> &x, const std::vector<double> &y, const std::vector<double> &z = {});
+  // True if we should wait at least 5 seconds after the last
+  // flush to close gnuplot
+  static constexpr bool dont_let_it_close_too_fast = false;
 
-  /// \brief Draw image matrix on the image
-  virtual void draw_image(const std::vector<std::vector<double>> &x, const std::vector<std::vector<double>> &y,
-                          const std::vector<std::vector<double>> &z = {});
+  // True if we allow to use the mouse interactively in the window
+  // Most of the time, this is just annoying when we scroll without
+  // meaning to It is very very hard to use the mouse properly
+  // http://www.gnuplot.info/files/gpReadMouseTest.c
+  static constexpr bool allow_using_mouse = true;
 
-  /// \brief Draw rectangle on the image
-  virtual void draw_triangle(const std::vector<double> &x, const std::vector<double> &y, const std::vector<double> &z = {});
+#if defined(MATPLOT_TRACE_GNUPLOT_COMMANDS) && !defined(MATPLOT_BUILD_FOR_DOCUMENTATION_IMAGES)
+  static constexpr bool trace_commands = true;
+#else
+  static constexpr bool trace_commands = false;
+#endif
 
-  /// We can certainly include more functions here, such as
-  /// draw_mesh, draw_rectangle, etc...
-  /// However, these functions should have a default implementation
-  /// that would recur to more primitive functions.
-  /// For instance, draw_rectangle should have a default
-  /// implementation to draw a rectangle based on two calls to
-  /// draw_triangle (for filled rectangles) or an implementation based
-  /// on draw_path (for unfilled rectangles). Otherwise, it would be
-  /// very expensive to start a new backend. These function should be
-  /// complementary functions that would be used to improve
-  /// performance on existing backends.
-
-  /// Public functions you need to override only if your backend
-  /// is based on gnuplot
-  /// If not, just leave it as it is and the default implementations
-  /// should do just fine.
-public:
-  /// \brief If true, this backend does not work by consuming vertices
-  /// Most functions above will be ignored.
-  /// The figure object will send gnuplot commands to this backend
-  /// instead of vertices.
-  /// The default implementation returns false.
-  bool consumes_gnuplot_commands()
+  static constexpr size_t pipe_capacity_worst_case = BUFSIZ;
+  /// File formats for figures and properties of terminals
+  static constexpr std::array<std::pair<std::string_view, std::string_view>, 33> extension_terminal()
   {
-    return false;
+    return std::array<std::pair<std::string_view, std::string_view>, 33>{
+        std::pair{".html", "canvas"}, std::pair{".cgm", "cgm"}, std::pair{".txt", "dumb"}, std::pair{".md", "dumb"}, std::pair{".dxf", "dxf"},
+        std::pair{".emf", "emf"},
+        // std::pair{".emtex", "emtex"},
+        std::pair{".eps", "postscript"}, std::pair{".eps", "epscairo"}, std::pair{".eps", "epslatex"}, std::pair{".gif", "gif"},
+        std::pair{".hpgl", "hpgl"}, std::pair{".jpeg", "jpeg"}, std::pair{".jpg", "jpeg"}, std::pair{".tex", "epslatex"}, std::pair{".mf", "mf"},
+        std::pair{".mp", "mp"}, std::pair{".pcl5", "pcl5"}, std::pair{".pdf", "pdf"}, std::pair{".pdf", "pdfcairo"}, std::pair{".png", "pngcairo"},
+        std::pair{".png", "png"}, std::pair{".tex", "pslatex"}, std::pair{".tex", "context"}, std::pair{".tex", "texdraw"}, std::pair{".tex", "tikz"},
+        // std::pair{".tex", "eepic"},
+        // std::pair{".tex", "tpic"},
+        std::pair{".pstex", "pstex"}, std::pair{".pstricks", "pstricks"},
+        // std::pair{".qms", "qms"},
+        std::pair{".sixel", "sixelgd"}, std::pair{".svg", "svg"}, std::pair{".tek40xx", "tek40xx"}, std::pair{".tek410x", "tek410x"},
+        // std::pair{".tgif", "tgif"},
+        std::pair{".tkcanvas", "tkcanvas"},
+        // std::pair{".tpic", "tpic"},
+        std::pair{".vttek", "vttek"}};
   }
-
-signals:
-  void resizeEvent(int w, int h);
 
 private:
-  void initializeGL() override
-  {
-    initializeOpenGLFunctions();
-    create_shaders();
-  }
-  void resizeGL(int w, int h) override
-  {
-    glViewport(0, 0, w, h);
-    emit resizeEvent(w, h);
-  }
-  void paintGL() override;
-  void paintRectGL(const double x1, const double x2, const double y1, const double y2, const std::array<float, 4> &color);
-  void paintPathGL(const std::vector<double> &x, const std::vector<double> &y, const std::array<float, 4> &color);
+  // Process pipe to gnuplot
+  opipe pipe_;
 
-  static constexpr unsigned int default_screen_width  = 560;
-  static constexpr unsigned int default_screen_height = 420;
+  // How many bytes we put in the pipe
+  size_t bytes_in_pipe_{0};
 
-  unsigned int draw_2d_single_color_shader_program_;
-  int n_vertex_attributes_available_;
-  unsigned int height_{default_screen_height};
-  unsigned int width_{default_screen_width};
+  // Current gnuplot terminal we should
+  std::string terminal_{"qt"};
 
-  struct DrawRectangle
-  {
-    double x1 = 0;
-    double x2 = 0;
-    double y1 = 0;
-    double y2 = 0;
-    std::array<float, 4> color;
-  };
-  std::vector<DrawRectangle> mRects;
+  // Position and size
+  std::array<unsigned, 4> position_{680, 558, 560, 420};
 
-  struct DrawPath
-  {
-    const std::vector<double> x;
-    const std::vector<double> y;
-    const std::array<float, 4> color;
-  };
-  std::vector<DrawPath> mPaths;
-  std::array<float, 4> mBackground;
+  // Time we last flush, to avoid flushing results too fast
+  std::chrono::high_resolution_clock::time_point last_flush_;
+
+  // File output, if non-interactive
+  std::string output_{};
+
+  // Whether we should include comments in the commands
+  bool include_comments_ = trace_commands;
 };
 }    // namespace joda::ui::gui

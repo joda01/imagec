@@ -9,6 +9,7 @@
 ///            For **Commercial** please contact the copyright owner.
 ///
 
+#include <matplot/core/figure_registry.h>
 #include <matplot/freestanding/plot.h>
 #include <matplot/matplot.h>
 #include <qlabel.h>
@@ -28,7 +29,8 @@ auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t 
   }
 
   // Generate a plot with matplot++
-  auto fig = matplot::figure(true);    // create figure but don't show a window
+  auto fig = matplot::figure_no_backend(true);    // create figure but don't show a window
+
   fig->backend(backend);
   auto ax = fig->current_axes();
   ax->plot({1, 2, 3, 4}, {1, 4, 9, 16});

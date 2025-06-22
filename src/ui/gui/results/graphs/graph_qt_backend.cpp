@@ -10,539 +10,451 @@
 ///
 
 #include "graph_qt_backend.hpp"
+#include <matplot/backend/gnuplot.h>
+#include <matplot/util/common.h>
+#include <matplot/util/popen.h>
 #include <QOpenGLFunctions>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
+#include <regex>
+#include <thread>
+
+#ifdef __has_include
+#if __has_include(<filesystem>)
+#include <filesystem>
+#else
+#define CXX_NO_FILESYSTEM
+#endif
+#else
+#define CXX_NO_FILESYSTEM
+#endif
+
+#ifdef MATPLOT_HAS_FBUFSIZE
+
+#include <stdio_ext.h>
+
+static size_t gnuplot_pipe_capacity(FILE *f)
+{
+  size_t sz = __fbufsize(f);
+  return sz != 0 ? sz : matplot::backend::QtBackend::pipe_capacity_worst_case;
+}
+
+#else
 
 namespace joda::ui::gui {
 
+//
+// Created by Alan Freitas on 26/08/20.
+//
+
+static size_t gnuplot_pipe_capacity(FILE *)
+{
+  return matplot::backend::gnuplot::pipe_capacity_worst_case;
+}
+
+#endif    // MATPLOT_HAS_FBUFSIZE
+
+bool QtBackend::consumes_gnuplot_commands()
+{
+  return true;
+}
+
+QtBackend::QtBackend(QWidget *parent) : QWidget(parent)
+{
+  // 1st option: terminal in GNUTERM environment variable
+#if defined(_MSC_VER)
+  char *environment_terminal;
+  size_t len;
+  errno_t err          = _dupenv_s(&environment_terminal, &len, "GNUTERM");
+  const bool env_found = err == 0 && environment_terminal != nullptr;
+#else
+  char *environment_terminal = std::getenv("GNUTERM");
+  bool env_found             = environment_terminal != nullptr;
+#endif
+  if(env_found) {
+    if(terminal_is_available(environment_terminal)) {
+      terminal_ = environment_terminal;
+    }
+#if defined(_WIN32) || defined(_WIN64) || defined(__MINGW32__)
+  } else if(terminal_is_available("wxt")) {
+    // 2nd option: wxt on windows, even if not default
+    terminal_ = "wxt";
+#endif
+  } else if(terminal_is_available("qt")) {
+    // 3rd option: qt
+    terminal_ = "qt";
+  } else {
+    // 4rd option: default terminal type
+    terminal_ = default_terminal_type();
+  }
+
+  // Open the gnuplot pipe_
+  int perr;
+  if constexpr(windows_should_persist_by_default) {
+    perr = pipe_.open("gnuplot --persist");
+  } else {
+    perr = pipe_.open("gnuplot");
+  }
+
+  // Check if everything is OK
+  if(perr != 0 || !pipe_.opened()) {
+    std::cerr << "Opening the gnuplot failed: ";
+    std::cerr << pipe_.error() << std::endl;
+    std::cerr << "Please install gnuplot 5.2.6+: http://www.gnuplot.info" << std::endl;
+  }
+}
+
 QtBackend::~QtBackend()
 {
+  if constexpr(dont_let_it_close_too_fast) {
+    auto time_since_last_flush = std::chrono::high_resolution_clock::now() - last_flush_;
+    if(time_since_last_flush < std::chrono::seconds(5)) {
+      std::this_thread::sleep_for(std::chrono::seconds(5) - time_since_last_flush);
+    }
+  }
+  flush_commands();
+  run_command("exit");
+  flush_commands();
 }
 
-void QtBackend::create_shaders()
-{
-  // Create shaders
-  const char *draw_2d_single_color_vertex_shader_source =
-      "#version 330 core\n"
-      "layout (location = 0) in vec2 aPos;\n"
-      "uniform float windowHeight;\n"
-      "uniform float windowWidth;\n"
-      //"out vec4 vertexColor;\n"
-      "void main()\n"
-      "{\n"
-      "   gl_Position = vec4((aPos.x/windowWidth)*2-1, (aPos.y/windowHeight)*2-1, 0.0, 1.0);"
-      //"   vertexColor = aColor;\n"
-      "}\0";
-  unsigned int draw_2d_single_color_vertex_shader;
-  draw_2d_single_color_vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(draw_2d_single_color_vertex_shader, 1, &draw_2d_single_color_vertex_shader_source, NULL);
-  glCompileShader(draw_2d_single_color_vertex_shader);
-  int success;
-  char info_log[512];
-  glGetShaderiv(draw_2d_single_color_vertex_shader, GL_COMPILE_STATUS, &success);
-  if(!success) {
-    glGetShaderInfoLog(draw_2d_single_color_vertex_shader, 512, NULL, info_log);
-    throw std::runtime_error(std::string("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n") + info_log);
-  }
-
-  // create and compile fragment shader
-  const char *draw_2d_single_color_fragment_shader_source =
-      "#version 330 core\n"
-      "out vec4 FragColor;\n"
-      "\n"
-      "uniform vec4 ourColor;\n"
-      "\n"
-      "void main()\n"
-      "{\n"
-      "    FragColor = ourColor;\n"
-      "}";
-  unsigned int draw_2d_single_color_fragment_shader;
-  draw_2d_single_color_fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(draw_2d_single_color_fragment_shader, 1, &draw_2d_single_color_fragment_shader_source, NULL);
-  glCompileShader(draw_2d_single_color_fragment_shader);
-  glGetShaderiv(draw_2d_single_color_fragment_shader, GL_COMPILE_STATUS, &success);
-  if(!success) {
-    glGetShaderInfoLog(draw_2d_single_color_fragment_shader, 512, NULL, info_log);
-    throw std::runtime_error(std::string("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n") + info_log);
-  }
-
-  // Link shaders into shader program
-  draw_2d_single_color_shader_program_ = glCreateProgram();
-  glAttachShader(draw_2d_single_color_shader_program_, draw_2d_single_color_vertex_shader);
-  glAttachShader(draw_2d_single_color_shader_program_, draw_2d_single_color_fragment_shader);
-  glLinkProgram(draw_2d_single_color_shader_program_);
-  // check if linking was successful
-  glGetProgramiv(draw_2d_single_color_shader_program_, GL_LINK_STATUS, &success);
-  if(!success) {
-    glGetProgramInfoLog(draw_2d_single_color_shader_program_, 512, NULL, info_log);
-    throw std::runtime_error(std::string("ERROR::SHADER_PROGRAM::LINKING_FAILED\n") + info_log);
-  }
-
-  // Delete the shader objects
-  glDeleteShader(draw_2d_single_color_vertex_shader);
-  glDeleteShader(draw_2d_single_color_fragment_shader);
-
-  //        glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &n_vertex_attributes_available_);
-  //        std::cout << "Maximum number of vertex attributes supported: " << n_vertex_attributes_available_ << std::endl;
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
 bool QtBackend::is_interactive()
 {
-  return true;
+  return output_.empty();
 }
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
 const std::string &QtBackend::output()
 {
-  throw std::logic_error("output not implemented yet");
+  return output_;
 }
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
 const std::string &QtBackend::output_format()
 {
-  throw std::logic_error("output_format not implemented yet");
+  return terminal_;
 }
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
+#ifdef STRING_VIEW_CONSTEXPR_BUG
+#define SV_CONSTEXPR
+#else
+#define SV_CONSTEXPR constexpr
+#endif
+
 bool QtBackend::output(const std::string &filename)
 {
-  throw std::logic_error("output not implemented yet");
+  if(filename.empty()) {
+    output_   = filename;
+    terminal_ = default_terminal_type();
+    return true;
+  }
+
+  // look at the extension
+#ifndef CXX_NO_FILESYSTEM
+  namespace fs = std::filesystem;
+  fs::path p{filename};
+  std::string ext = p.extension().string();
+#else
+  std::string ext            = filename.substr(filename.find_last_of('.'));
+#endif
+
+  // check terminal for that extension
+  SV_CONSTEXPR auto exts = extension_terminal();
+  auto it                = std::find_if(exts.begin(), exts.end(), [&](const auto &e) { return e.first == ext; });
+
+  // if there is a terminal
+  if(it != exts.end()) {
+    // terminal name is the file format
+    output(filename, std::string(it->second));
+    return true;
+  } else {
+    // set file format to dumb
+    std::cerr << "No gnuplot terminal for " << ext << " files" << std::endl;
+    std::cerr << "Setting terminal to \"dumb\"" << std::endl;
+    output(filename, "dumb");
+    return false;
+  }
 }
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-bool QtBackend::output(const std::string &filename, const std::string &file_format)
+bool QtBackend::output(const std::string &filename, const std::string &format)
 {
-  throw std::logic_error("output not implemented yet");
-}
+  // If filename is empty - format should be interactive
+  // We don't check extension_terminal because that's only
+  // for non-interactive terminal
+  if(filename.empty()) {
+    output_   = filename;
+    terminal_ = format;
+    return true;
+  }
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-unsigned int QtBackend::width()
-{
-  return QOpenGLWidget::width();
-}
+  // Check if file format is valid
+  SV_CONSTEXPR auto exts = extension_terminal();
+  auto it                = std::find_if(exts.begin(), exts.end(), [&](const auto &e) { return e.second == format; });
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-unsigned int QtBackend::height()
-{
-  return QOpenGLWidget::height();
-}
+  if(it == exts.end()) {
+    std::cerr << format << " format does not exist for gnuplot backend" << std::endl;
+    return false;
+  }
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void QtBackend::width(unsigned int new_width)
-{
-  throw std::logic_error("width not implemented yet");
-}
+  // Create file if it does not exist
+#ifndef CXX_NO_FILESYSTEM
+  namespace fs = std::filesystem;
+  fs::path p{filename};
+  if(!p.parent_path().empty() && !fs::exists(p.parent_path())) {
+    fs::create_directory(p.parent_path());
+    if(!fs::exists(p.parent_path())) {
+      std::cerr << "Could not find or create " << p.parent_path() << std::endl;
+      return false;
+    }
+  }
+#endif
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void QtBackend::height(unsigned int new_height)
-{
-  throw std::logic_error("height not implemented yet");
-}
+  output_   = filename;
+  terminal_ = format;
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-unsigned int QtBackend::position_x()
-{
-  throw std::logic_error("position_x not implemented yet");
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-unsigned int QtBackend::position_y()
-{
-  throw std::logic_error("position_y not implemented yet");
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void QtBackend::position_x(unsigned int new_position_x)
-{
-  throw std::logic_error("position_x not implemented yet");
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void QtBackend::position_y(unsigned int new_position_y)
-{
-  throw std::logic_error("position_y not implemented yet");
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-bool QtBackend::new_frame()
-{
-  mRects.clear();
-  mPaths.clear();
-  return isVisible();
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-bool QtBackend::render_data()
-{
-  update();
+  // Append extension if needed
+#ifndef CXX_NO_FILESYSTEM
+  std::string ext = p.extension().string();
+#else
+  std::string ext            = filename.substr(filename.find_last_of('.'));
+#endif
+  if(ext.empty()) {
+    output_ += it->first;
+  }
   return true;
 }
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-bool QtBackend::should_close()
+unsigned int QtBackend::width()
 {
-  return false;
+  return position_[2];
 }
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void QtBackend::paintGL()
+unsigned int QtBackend::height()
 {
-  // draw_background
-  glClearColor(mBackground[1], mBackground[2], mBackground[3], 1.f - mBackground[0]);
-  glClear(GL_COLOR_BUFFER_BIT);
+  return position_[3];
+}
 
-  for(const auto &rect : mRects) {
-    paintRectGL(rect.x1, rect.x2, rect.y1, rect.y2, rect.color);
+void QtBackend::width(unsigned int new_width)
+{
+  position_[2] = new_width;
+  if(terminal_has_position_option(terminal_)) {
+    run_command("set terminal " + terminal_ + " position " + matplot::num2str(position_[0]) + "," + matplot::num2str(position_[1]));
   }
-  for(const auto &path : mPaths) {
-    paintPathGL(path.x, path.y, path.color);
+  if(terminal_ == "dumb") {
+    run_command("set terminal dumb " + matplot::num2str(position_[2]) + " " + matplot::num2str(position_[3]));
+  } else {
+    if(terminal_has_size_option(terminal_)) {
+      run_command("set terminal " + terminal_ + " size " + matplot::num2str(position_[2]) + "," + matplot::num2str(position_[3]));
+    }
   }
 }
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void QtBackend::paintRectGL(const double x1, const double x2, const double y1, const double y2, const std::array<float, 4> &color)
+void QtBackend::height(unsigned int new_height)
 {
-  // Create and bind vertex array object
-  unsigned int VAO;
-  glGenVertexArrays(1, &VAO);
-  glBindVertexArray(VAO);
-
-  // Copy vertex data into the buffer's memory
-  std::vector<float> vertices = {
-      // x, y, z, r, g, b
-      static_cast<float>(x2), static_cast<float>(y2),    // top right
-      static_cast<float>(x2), static_cast<float>(y1),    // bottom right
-      static_cast<float>(x1), static_cast<float>(y1),    // bottom left
-      static_cast<float>(x1), static_cast<float>(y2)     // top left
-  };
-
-  // Create and bind vertex buffer object
-  unsigned int VBO;
-  glGenBuffers(1, &VBO);
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_DYNAMIC_DRAW);
-
-  std::vector<unsigned int> indices = {
-      // note that we start from 0!
-      0, 1, 3,    // first triangle
-      1, 2, 3     // second triangle
-  };
-
-  // Element buffer
-  unsigned int EBO;
-  glGenBuffers(1, &EBO);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_DYNAMIC_DRAW);
-
-  // Set the vertex attributes pointers
-  int vertex_attribute_location = 0;
-  size_t stride                 = 2 * sizeof(float);
-  glVertexAttribPointer(vertex_attribute_location, 2, GL_FLOAT, GL_FALSE, static_cast<GLsizei>(stride), (void *) 0);
-  glEnableVertexAttribArray(0);
-
-  // Set the color attribute pointers
-  // int color_attribute_location = 1;
-  // glVertexAttribPointer(color_attribute_location, 3, GL_FLOAT, GL_FALSE, stride, (void *)(3*sizeof(float)));
-  // glEnableVertexAttribArray(1);
-
-  // Activate our shader program
-  glUseProgram(draw_2d_single_color_shader_program_);
-
-  // Set window size
-  int windowHeightLocation = glGetUniformLocation(draw_2d_single_color_shader_program_, "windowHeight");
-  if(windowHeightLocation == -1) {
-    throw std::runtime_error("can't find uniform location");
+  position_[3] = new_height;
+  if(terminal_has_position_option(terminal_)) {
+    run_command("set terminal " + terminal_ + " position " + matplot::num2str(position_[0]) + "," + matplot::num2str(position_[1]));
   }
-  glUniform1f(windowHeightLocation, static_cast<float>(height()));
-
-  int windowWidthLocation = glGetUniformLocation(draw_2d_single_color_shader_program_, "windowWidth");
-  if(windowWidthLocation == -1) {
-    throw std::runtime_error("can't find uniform location");
+  if(terminal_ == "dumb") {
+    run_command("set terminal dumb " + matplot::num2str(position_[2]) + " " + matplot::num2str(position_[3]));
+  } else {
+    if(terminal_has_size_option(terminal_)) {
+      run_command("set terminal " + terminal_ + " size " + matplot::num2str(position_[2]) + "," + matplot::num2str(position_[3]));
+    }
   }
-  glUniform1f(windowWidthLocation, static_cast<float>(width()));
-
-  // Set color
-  int vertexColorLocation = glGetUniformLocation(draw_2d_single_color_shader_program_, "ourColor");
-  if(vertexColorLocation == -1) {
-    throw std::runtime_error("can't find uniform location");
-  }
-  glUniform4f(vertexColorLocation, color[1], color[2], color[3], 1.f - color[0]);
-
-  // Bind element buffer
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  glBindVertexArray(VAO);
-  glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, nullptr);
-
-  // Unbind our vertex array
-  glBindVertexArray(0);
-
-  glDeleteBuffers(1, &EBO);
-  glDeleteVertexArrays(1, &VAO);
-  glDeleteBuffers(1, &VBO);
 }
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void QtBackend::paintPathGL(const std::vector<double> &x, const std::vector<double> &y, const std::array<float, 4> &color)
+unsigned int QtBackend::position_x()
 {
-  // Copy vertex data into the buffer's memory
-  std::vector<float> vertices;
-  for(size_t i = 0; i < x.size(); ++i) {
-    vertices.emplace_back(static_cast<float>(x[i]));
-    vertices.emplace_back(static_cast<float>(y[i]));
-  }
-
-  // Create and bind vertex array object
-  unsigned int VAO;
-  glGenVertexArrays(1, &VAO);
-  glBindVertexArray(VAO);
-
-  // Create and bind vertex buffer object
-  unsigned int VBO;
-  glGenBuffers(1, &VBO);
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_DYNAMIC_DRAW);
-
-  // Set the vertex attributes pointers
-  int vertex_attribute_location = 0;
-  size_t stride                 = 2 * sizeof(float);
-  glVertexAttribPointer(vertex_attribute_location, 2, GL_FLOAT, GL_FALSE, static_cast<GLsizei>(stride), (void *) 0);
-  glEnableVertexAttribArray(0);
-
-  // Activate our shader program
-  glUseProgram(draw_2d_single_color_shader_program_);
-
-  // Set window size
-  int windowHeightLocation = glGetUniformLocation(draw_2d_single_color_shader_program_, "windowHeight");
-  if(windowHeightLocation == -1) {
-    throw std::runtime_error("can't find uniform location");
-  }
-  glUniform1f(windowHeightLocation, static_cast<float>(height()));
-
-  int windowWidthLocation = glGetUniformLocation(draw_2d_single_color_shader_program_, "windowWidth");
-  if(windowWidthLocation == -1) {
-    throw std::runtime_error("can't find uniform location");
-  }
-  glUniform1f(windowWidthLocation, static_cast<float>(width()));
-
-  // Set color
-  int vertexColorLocation = glGetUniformLocation(draw_2d_single_color_shader_program_, "ourColor");
-  if(vertexColorLocation == -1) {
-    throw std::runtime_error("can't find uniform location");
-  }
-  glUniform4f(vertexColorLocation, color[1], color[2], color[3], 1.f - color[0]);
-
-  // Bind element buffer
-  glBindVertexArray(VAO);
-  glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(x.size()));
-
-  // Unbind our vertex array
-  glBindVertexArray(0);
-
-  glDeleteVertexArrays(1, &VAO);
-  glDeleteBuffers(1, &VBO);
+  return position_[0];
 }
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void QtBackend::draw_rectangle(const double x1, const double x2, const double y1, const double y2, const std::array<float, 4> &color)
+unsigned int QtBackend::position_y()
 {
-  mRects.push_back(DrawRectangle{x1, x2, y1, y2, color});
+  return position_[1];
 }
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void QtBackend::draw_background(const std::array<float, 4> &color)
+void QtBackend::position_x(unsigned int new_position_x)
 {
-  mBackground = color;
+  position_[0] = new_position_x;
+  if(terminal_has_position_option(terminal_)) {
+    run_command("set terminal " + terminal_ + " position " + matplot::num2str(position_[0]) + "," + matplot::num2str(position_[1]));
+  }
+  if(terminal_has_size_option(terminal_)) {
+    run_command("set terminal " + terminal_ + " size " + matplot::num2str(position_[2]) + "," + matplot::num2str(position_[3]));
+  }
 }
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void QtBackend::show(class matplot::figure_type *f)
+void QtBackend::position_y(unsigned int new_position_y)
 {
-  backend_interface::show(f);
+  position_[1] = new_position_y;
+  if(terminal_has_position_option(terminal_)) {
+    run_command("set terminal " + terminal_ + " position " + matplot::num2str(position_[0]) + "," + matplot::num2str(position_[1]));
+  }
+  if(terminal_has_size_option(terminal_)) {
+    run_command("set terminal " + terminal_ + " size " + matplot::num2str(position_[2]) + "," + matplot::num2str(position_[3]));
+  }
 }
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
+bool QtBackend::new_frame()
+{
+  // always accept starting a new frame
+  return true;
+}
+
+bool QtBackend::render_data()
+{
+  return flush_commands();
+}
+
+bool QtBackend::flush_commands()
+{
+  if constexpr(dont_let_it_close_too_fast) {
+    last_flush_ = std::chrono::high_resolution_clock::now();
+  }
+  pipe_.flush("\n");
+  if constexpr(trace_commands) {
+    std::cout << "\n\n\n\n" << std::endl;
+  }
+  return true;
+}
+
 bool QtBackend::supports_fonts()
 {
-  return false;
+  return terminal_has_font_option(terminal_);
 }
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void QtBackend::draw_path(const std::vector<double> &x, const std::vector<double> &y, const std::array<float, 4> &color)
+void QtBackend::run_command(const std::string &command)
 {
-  mPaths.push_back({x, y, color});
+  if(!pipe_.opened()) {
+    return;
+  }
+  size_t pipe_capacity = gnuplot_pipe_capacity(pipe_.file());
+  if(command.size() + bytes_in_pipe_ > pipe_capacity) {
+    flush_commands();
+    bytes_in_pipe_ = 0;
+  }
+  if(!command.empty()) {
+    pipe_.write(command);
+  }
+  // proc_write(&pipe_, "; ");
+  pipe_.write("\n");
+  bytes_in_pipe_ += command.size();
+  if constexpr(trace_commands) {
+    std::cout << command << std::endl;
+  }
 }
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void QtBackend::draw_markers(const std::vector<double> &x, const std::vector<double> &y, const std::vector<double> &z)
+void QtBackend::include_comment(const std::string &comment)
 {
-  throw std::logic_error("draw_markers not implemented yet");
+  if(include_comments_) {
+    run_command("# " + comment);
+  }
 }
 
-void QtBackend::draw_text(const std::vector<double> &x, const std::vector<double> &y, const std::vector<double> &z)
+std::string QtBackend::default_terminal_type()
 {
-  throw std::logic_error("draw_text not implemented yet");
+  static std::string terminal_type;
+  const bool dont_know_term_type = terminal_type.empty();
+  if(dont_know_term_type) {
+    terminal_type                        = matplot::run_and_get_output("gnuplot -e \"show terminal\" 2>&1");
+    terminal_type                        = std::regex_replace(terminal_type, std::regex("[^]*terminal type is ([^ ]+)[^]*"), "$1");
+    const bool still_dont_know_term_type = terminal_type.empty();
+    if(still_dont_know_term_type) {
+      terminal_type = "qt";
+    }
+  }
+  return terminal_type;
 }
 
-void QtBackend::draw_image(const std::vector<std::vector<double>> &x, const std::vector<std::vector<double>> &y,
-                           const std::vector<std::vector<double>> &z)
+bool QtBackend::terminal_is_available(std::string_view term)
 {
-  throw std::logic_error("draw_image not implemented yet");
+  std::string msg = matplot::run_and_get_output("gnuplot -e \"set terminal " + std::string(term.data()) + "\" 2>&1");
+  return msg.empty();
 }
 
-void QtBackend::draw_triangle(const std::vector<double> &x, const std::vector<double> &y, const std::vector<double> &z)
+std::tuple<int, int, int> QtBackend::gnuplot_version()
 {
-  throw std::logic_error("draw_triangle not implemented yet");
+  static std::tuple<int, int, int> version{0, 0, 0};
+  const bool dont_know_gnuplot_version_yet = version == std::tuple<int, int, int>({0, 0, 0});
+  if(dont_know_gnuplot_version_yet) {
+    std::string version_str   = matplot::run_and_get_output("gnuplot --version 2>&1");
+    std::string version_major = std::regex_replace(version_str, std::regex("[^]*gnuplot (\\d+)\\.\\d+ patchlevel \\d+ *"), "$1");
+    std::string version_minor = std::regex_replace(version_str, std::regex("[^]*gnuplot \\d+\\.(\\d+) patchlevel \\d+ *"), "$1");
+    std::string version_patch = std::regex_replace(version_str, std::regex("[^]*gnuplot \\d+\\.\\d+ patchlevel (\\d+) *"), "$1");
+    try {
+      std::get<0>(version) = std::stoi(version_major);
+    } catch(...) {
+      std::get<0>(version) = 0;
+    }
+    try {
+      std::get<1>(version) = std::stoi(version_minor);
+    } catch(...) {
+      std::get<1>(version) = 0;
+    }
+    try {
+      std::get<2>(version) = std::stoi(version_patch);
+    } catch(...) {
+      std::get<2>(version) = 0;
+    }
+    const bool still_dont_know_gnuplot_version = version == std::tuple<int, int, int>({0, 0, 0});
+    if(still_dont_know_gnuplot_version) {
+      // assume it's 5.2.6 by convention
+      version = std::tuple<int, int, int>({5, 2, 6});
+    }
+  }
+  return version;
+}
+
+bool QtBackend::terminal_has_title_option(const std::string &t)
+{
+  SV_CONSTEXPR std::string_view whitelist[] = {"qt", "aqua", "caca", "canvas", "windows", "wxt", "x11"};
+  return std::find(std::begin(whitelist), std::end(whitelist), t) != std::end(whitelist);
+}
+
+bool QtBackend::terminal_has_size_option(const std::string &t)
+{
+  // Terminals that have the size option *in the way we expect it to work*
+  // This includes only the size option with {width, height} and not
+  // the size option for cropping or scaling
+  SV_CONSTEXPR std::string_view whitelist[] = {"qt",  "aqua", "caca",     "canvas",  "eepic",    "emf",     "gif", "jpeg",
+                                               "pbm", "png",  "pngcairo", "sixelgd", "tkcanvas", "windows", "wxt", "svg"};
+  return std::find(std::begin(whitelist), std::end(whitelist), t) != std::end(whitelist);
+}
+
+bool QtBackend::terminal_has_position_option(const std::string &t)
+{
+  SV_CONSTEXPR std::string_view whitelist[] = {"qt", "windows", "wxt"};
+  return std::find(std::begin(whitelist), std::end(whitelist), t) != std::end(whitelist);
+}
+
+bool QtBackend::terminal_has_enhanced_option(const std::string &t)
+{
+  SV_CONSTEXPR std::string_view whitelist[] = {"canvas",   "postscript", "qt",      "aqua",     "caca", "canvas", "dumb",     "emf",
+                                               "enhanced", "jpeg",       "pdf",     "pdfcairo", "pm",   "png",    "pngcairo", "postscript",
+                                               "sixelgd",  "tkcanvas",   "windows", "wxt",      "x11",  "ext",    "wxt"};
+  return std::find(std::begin(whitelist), std::end(whitelist), t) != std::end(whitelist);
+}
+
+bool QtBackend::terminal_has_color_option(const std::string &t)
+{
+  SV_CONSTEXPR std::string_view whitelist[] = {"postscript", "aifm",     "caca",       "cairolatex", "context", "corel", "eepic",  "emf",
+                                               "epscairo",   "epslatex", "fig",        "lua tikz",   "mif",     "mp",    "pbm",    "pdf",
+                                               "pdfcairo",   "pngcairo", "postscript", "pslatex",    "pstex",   "tgif",  "windows"};
+  return std::find(std::begin(whitelist), std::end(whitelist), t) != std::end(whitelist);
+}
+
+bool QtBackend::terminal_has_font_option(const std::string &t)
+{
+  // This includes terminals that don't have the font option
+  // and terminals for which we want to use only the default fonts
+  // We prefer a blacklist because it's better to get a warning
+  // in a false positive than remove the fonts in a false negative.
+  SV_CONSTEXPR std::string_view blacklist[] = {
+      "dxf",      "eepic",    "emtex",    "hpgl",  "latex",   "mf",     "pcl5",     "pslatex", "pstex",   "pstricks", "qms",   "tek40xx",
+      "tek410x",  "texdraw",  "tkcanvas", "vttek", "xterm",   "jpeg",   "dumb",     "tpic",    "sixelgd", "png",      "lua",   "jpeg",
+      "epscairo", "epslatex", "canvas",   "dumb",  "dxy800a", "emxvga", "pdfcairo", "cgi",     "gif",     "gpic",     "grass", "hp2623a",
+      "hp2648",   "hp500c",   "hpgl",     "pcl5",  "hpljii",  "hppj",   "imagen",   "linux",   "lua",     "lua tikz", "mf",    "mif",
+      "mp",       "pbm",      "pm",       "qms",   "regis",   "svga",   "texdraw",  "tikz",    "tpic",    "vgagl",    "vws",   "pdf"};
+  return std::find(std::begin(blacklist), std::end(blacklist), t) == std::end(blacklist);
 }
 
 }    // namespace joda::ui::gui
