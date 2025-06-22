@@ -13,12 +13,17 @@
 #include <matplot/backend/gnuplot.h>
 #include <matplot/util/common.h>
 #include <matplot/util/popen.h>
+#include <QFile>
 #include <QOpenGLFunctions>
+#include <QPainter>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <mutex>
 #include <regex>
 #include <thread>
+
+#include "backend/helper/logger/console_logger.hpp"
 
 #ifdef __has_include
 #if __has_include(<filesystem>)
@@ -44,6 +49,30 @@ static size_t gnuplot_pipe_capacity(FILE *f)
 
 namespace joda::ui::gui {
 
+void QtBackend::paintEvent(QPaintEvent *event)
+{
+  QWidget::paintEvent(event);
+  std::lock_guard<std::mutex> lock(mPaintMutex);
+  if((svgRenderer != nullptr) && svgRenderer->isValid()) {
+    QPainter painter(this);
+
+    QSizeF svgSize    = svgRenderer->defaultSize();    // original SVG size
+    QSizeF widgetSize = size();
+
+    // Calculate scaled size preserving aspect ratio
+    QSizeF scaledSize = svgSize;
+    scaledSize.scale(widgetSize, Qt::KeepAspectRatio);
+
+    // Center the SVG in the widget
+    QRectF targetRect((widgetSize.width() - scaledSize.width()) / 2.0, (widgetSize.height() - scaledSize.height()) / 2.0, scaledSize.width(),
+                      scaledSize.height());
+
+    svgRenderer->render(&painter, targetRect);
+  }
+}
+
+////////////////////////////////////////////////////////
+
 //
 // Created by Alan Freitas on 26/08/20.
 //
@@ -60,21 +89,11 @@ bool QtBackend::consumes_gnuplot_commands()
   return true;
 }
 
-QtBackend::QtBackend(QWidget *parent) : QWidget(parent)
+QtBackend::QtBackend(const std::string &terminal, QWidget *parent) : QWidget(parent)
 {
-  // 1st option: terminal in GNUTERM environment variable
-#if defined(_MSC_VER)
-  char *environment_terminal;
-  size_t len;
-  errno_t err          = _dupenv_s(&environment_terminal, &len, "GNUTERM");
-  const bool env_found = err == 0 && environment_terminal != nullptr;
-#else
-  char *environment_terminal = std::getenv("GNUTERM");
-  bool env_found             = environment_terminal != nullptr;
-#endif
-  if(env_found) {
-    if(terminal_is_available(environment_terminal)) {
-      terminal_ = environment_terminal;
+  if(!terminal.empty()) {
+    if(terminal_is_available(terminal)) {
+      terminal_ = terminal;
     }
 #if defined(_WIN32) || defined(_WIN64) || defined(__MINGW32__)
   } else if(terminal_is_available("wxt")) {
@@ -113,6 +132,13 @@ QtBackend::~QtBackend()
       std::this_thread::sleep_for(std::chrono::seconds(5) - time_since_last_flush);
     }
   }
+
+  // Remove temp files
+  std::filesystem::path svgFile(output());
+  if(std::filesystem::exists(svgFile)) {
+    std::filesystem::remove(svgFile);
+  }
+
   flush_commands();
   run_command("exit");
   flush_commands();
@@ -153,7 +179,7 @@ bool QtBackend::output(const std::string &filename)
   fs::path p{filename};
   std::string ext = p.extension().string();
 #else
-  std::string ext            = filename.substr(filename.find_last_of('.'));
+  std::string ext = filename.substr(filename.find_last_of('.'));
 #endif
 
   // check terminal for that extension
@@ -214,7 +240,7 @@ bool QtBackend::output(const std::string &filename, const std::string &format)
 #ifndef CXX_NO_FILESYSTEM
   std::string ext = p.extension().string();
 #else
-  std::string ext            = filename.substr(filename.find_last_of('.'));
+  std::string ext = filename.substr(filename.find_last_of('.'));
 #endif
   if(ext.empty()) {
     output_ += it->first;
@@ -302,7 +328,38 @@ bool QtBackend::new_frame()
 
 bool QtBackend::render_data()
 {
-  return flush_commands();
+  using namespace std::chrono_literals;
+  bool okay = flush_commands();
+
+  //
+  // We plot the graph to svg and then plot this svg in our qt widget
+  //
+  auto start = std::chrono::steady_clock::now();
+  std::filesystem::path svgFile(output());
+  do {
+    if(std::chrono::steady_clock::now() - start > 2s) {
+      joda::log::logWarning("Could not plot graph: Timeout");
+      return false;    // timeout expired
+    }
+    if(std::filesystem::exists(svgFile)) {
+      std::lock_guard<std::mutex> lock(mPaintMutex);
+      delete svgRenderer;
+      QFile file(svgFile.string().data());
+      if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        joda::log::logDebug("Could not open graph file. Retry ...");
+        continue;
+      }
+      QByteArray fileData = file.readAll();
+      svgRenderer         = new QSvgRenderer(fileData, this);
+      file.close();
+      update();
+      std::filesystem::remove(svgFile);
+      break;
+    }
+    std::this_thread::sleep_for(25ms);
+  } while(true);
+
+  return okay;
 }
 
 bool QtBackend::flush_commands()

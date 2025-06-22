@@ -292,7 +292,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
     topInfoLayout->addWidget(mSelectedValue);
   }
 
-  mGraphContainer = std::make_shared<QtBackend>(this);
+  mGraphContainer = std::make_shared<QtBackend>("svg", this);
   mGraphContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   // connect(mGraphContainer.get(), &QtBackend::resizeEvent, [this]() { preparePlateSurface(mActListData, 10, 10, mGraphContainer); });
 

@@ -19,7 +19,9 @@
 #include <qwidget.h>
 #include <QOpenGLFunctions>
 #include <QOpenGLWidget>
+#include <QSvgRenderer>
 #include <iostream>
+#include <mutex>
 #include <vector>
 
 namespace joda::ui::gui {
@@ -30,6 +32,10 @@ class QtBackend : public QWidget, public matplot::backend::gnuplot
 public:
   QtBackend(const std::string &terminal, QWidget *parent);
   virtual ~QtBackend();
+
+  void paintEvent(QPaintEvent *event) override;
+
+  /////////////////////////////////////////////////////
 
   bool is_interactive() override;
   const std::string &output() override;
@@ -136,5 +142,10 @@ private:
 
   // Whether we should include comments in the commands
   bool include_comments_ = trace_commands;
+
+  // For Graph rendering
+  QSvgRenderer *svgRenderer = nullptr;
+
+  std::mutex mPaintMutex;
 };
 }    // namespace joda::ui::gui

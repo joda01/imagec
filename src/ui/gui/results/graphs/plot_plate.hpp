@@ -33,17 +33,15 @@ auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t 
 
   fig->backend(backend);
   auto ax = fig->current_axes();
-  ax->plot({1, 2, 3, 4}, {1, 4, 9, 16});
+  ax->plot({1, 2, 3, 4, 5}, {1, 4, 9, 16, 5});
   ax->title("Simple Plot");
   ax->xlabel("X");
   ax->ylabel("Y");
 
-  fig->draw();
-
-  // Convert to QImage
-  // QImage qimg(img.data(), fig->width(), fig->height(), QImage::Format_RGBA8888);
-  // graphContainer->setPixmap(QPixmap::fromImage(qimg));
-  // graphContainer->show();
+  // fig->draw();
+  std::filesystem::path tempDir = std::filesystem::temp_directory_path();
+  tempDir                       = tempDir / "imagec_temp_graph.svg";
+  fig->save(tempDir.string());
 }
 
 }    // namespace joda::ui::gui
