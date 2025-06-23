@@ -128,7 +128,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
       std::lock_guard<std::mutex> lock(mLoadLock);
       auto found = mPositionMapping.find(Pos{(uint32_t) col, (uint32_t) row});
       if(found != mPositionMapping.end()) {
-        int selectedCol  = 0;
+        int selectedCol  = mColumn->currentData().toInt();
         auto selectedRow = found->second;
         auto value       = mActListData.data(selectedRow, selectedCol);
         onElementSelected(selectedCol, selectedRow, value);
@@ -140,7 +140,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
 
       auto found = mPositionMapping.find(Pos{(uint32_t) col, (uint32_t) row});
       if(found != mPositionMapping.end()) {
-        int selectedCol  = 0;
+        int selectedCol  = mColumn->currentData().toInt();
         auto selectedRow = found->second;
         auto value       = mActListData.data(selectedRow, selectedCol);
         onOpenNextLevel(selectedCol, selectedRow, value);
@@ -220,6 +220,85 @@ PanelResults::PanelResults(WindowMain *windowMain) :
     connect(mDensityMapSize, &QComboBox::currentIndexChanged, [this](int32_t index) { refreshView(); });
     formLayout->addWidget(mDensityMapSize);
     formLayout->addLayout(std::get<2>(createHelpTextLabel("Density map size", 0)));
+
+    //
+    // Color map
+    //
+    static const std::vector<std::pair<QString, ColormapName>> items = {{"Accent", ColormapName::ACCENT},
+                                                                        {"Blues", ColormapName::BLUES},
+                                                                        {"BrBG", ColormapName::BRBG},
+                                                                        {"BuGn", ColormapName::BUGN},
+                                                                        {"BuPu", ColormapName::BUPU},
+                                                                        {"ChromaJS", ColormapName::CHROMAJS},
+                                                                        {"Dark2", ColormapName::DARK2},
+                                                                        {"GnBu", ColormapName::GNBU},
+                                                                        {"GnPu", ColormapName::GNPU},
+                                                                        {"Greens", ColormapName::GREENS},
+                                                                        {"Greys", ColormapName::GREYS},
+                                                                        {"Inferno", ColormapName::INFERNO},
+                                                                        {"Jet", ColormapName::JET},
+                                                                        {"Turbo", ColormapName::TURBO},
+                                                                        {"Magma", ColormapName::MAGMA},
+                                                                        {"Oranges", ColormapName::ORANGES},
+                                                                        {"OrRd", ColormapName::ORRD},
+                                                                        {"Paired", ColormapName::PAIRED},
+                                                                        {"Parula", ColormapName::PARULA},
+                                                                        {"Pastel1", ColormapName::PASTEL1},
+                                                                        {"Pastel2", ColormapName::PASTEL2},
+                                                                        {"PiYG", ColormapName::PIYG},
+                                                                        {"Plasma", ColormapName::PLASMA},
+                                                                        {"PRGn", ColormapName::PRGN},
+                                                                        {"PuBu", ColormapName::PUBU},
+                                                                        {"PuBuGn", ColormapName::PUBUGN},
+                                                                        {"PuOr", ColormapName::PUOR},
+                                                                        {"PuRd", ColormapName::PURD},
+                                                                        {"Purples", ColormapName::PURPLES},
+                                                                        {"RdBu", ColormapName::RDBU},
+                                                                        {"BuRd", ColormapName::BURD},
+                                                                        {"RdGy", ColormapName::RDGY},
+                                                                        {"RdPu", ColormapName::RDPU},
+                                                                        {"RdYlBu", ColormapName::RDYLBU},
+                                                                        {"RdYlGn", ColormapName::RDYLGN},
+                                                                        {"Reds", ColormapName::REDS},
+                                                                        {"Sand", ColormapName::SAND},
+                                                                        {"Set1", ColormapName::SET1},
+                                                                        {"Set2", ColormapName::SET2},
+                                                                        {"Set3", ColormapName::SET3},
+                                                                        {"Spectral", ColormapName::SPECTRAL},
+                                                                        {"Viridis", ColormapName::VIRIDIS},
+                                                                        {"WhYlRd", ColormapName::WHYLRD},
+                                                                        {"YlGn", ColormapName::YLGN},
+                                                                        {"YlGnBu", ColormapName::YLGNBU},
+                                                                        {"YlOrBr", ColormapName::YLORBR},
+                                                                        {"YlOrRd", ColormapName::YLORRD},
+                                                                        {"YlRd", ColormapName::YLRD},
+                                                                        {"HSV", ColormapName::HSV},
+                                                                        {"Hot", ColormapName::HOT},
+                                                                        {"Cool", ColormapName::COOL},
+                                                                        {"Spring", ColormapName::SPRING},
+                                                                        {"Summer", ColormapName::SUMMER},
+                                                                        {"Autumn", ColormapName::AUTUMN},
+                                                                        {"Winter", ColormapName::WINTER},
+                                                                        {"Gray", ColormapName::GRAY},
+                                                                        {"Bone", ColormapName::BONE},
+                                                                        {"Copper", ColormapName::COPPER},
+                                                                        {"Pink", ColormapName::PINK},
+                                                                        {"Lines", ColormapName::LINES},
+                                                                        {"Colorcube", ColormapName::COLORCUBE},
+                                                                        {"Prism", ColormapName::PRISM},
+                                                                        {"Flag", ColormapName::FLAG},
+                                                                        {"White", ColormapName::WHITE},
+                                                                        {"Default Map", ColormapName::DEFAULT_MAP},
+                                                                        {"Default Colors Map", ColormapName::DEFAULT_COLORS_MAP}};
+
+    mColorMaps = new QComboBox();
+    for(const auto &[label, value] : items) {
+      mColorMaps->addItem(label, static_cast<int>(value));
+    }
+    mColorMaps->setCurrentIndex(30);
+    connect(mColorMaps, &QComboBox::currentIndexChanged, [this](int32_t index) { refreshView(); });
+    formLayout->addWidget(mColorMaps);
+    formLayout->addLayout(std::get<2>(createHelpTextLabel("Colormap", 0)));
 
     formLayout->addStretch();
     mGraphDockWidget->setWidget(sidebarWidget);
@@ -874,7 +953,9 @@ void PanelResults::onFinishedLoading()
 
       break;
   }
-  mPositionMapping = preparePlateSurface(mActListData, rows, cols, mGraphContainer);
+  mPositionMapping =
+      preparePlateSurface(mActListData, rows, cols, mColumn->currentData().toInt(),
+                          PlotPlateSettings{.colorMap = static_cast<ColormapName>(mColorMaps->currentData().toInt())}, mGraphContainer);
 
   refreshBreadCrump();
   auto col = mSelection[mNavigation].col;

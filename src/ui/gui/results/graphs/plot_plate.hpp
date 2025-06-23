@@ -36,6 +36,82 @@ struct Pos
   };
 };
 
-auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t cols, std::shared_ptr<QtBackend> backend) -> std::map<Pos, int32_t>;
+enum class ColormapName
+{
+  ACCENT,
+  BLUES,
+  BRBG,
+  BUGN,
+  BUPU,
+  CHROMAJS,
+  DARK2,
+  GNBU,
+  GNPU,
+  GREENS,
+  GREYS,
+  INFERNO,
+  JET,
+  TURBO,
+  MAGMA,
+  ORANGES,
+  ORRD,
+  PAIRED,
+  PARULA,
+  PASTEL1,
+  PASTEL2,
+  PIYG,
+  PLASMA,
+  PRGN,
+  PUBU,
+  PUBUGN,
+  PUOR,
+  PURD,
+  PURPLES,
+  RDBU,
+  BURD,
+  RDGY,
+  RDPU,
+  RDYLBU,
+  RDYLGN,
+  REDS,
+  SAND,
+  SET1,
+  SET2,
+  SET3,
+  SPECTRAL,
+  VIRIDIS,
+  WHYLRD,
+  YLGN,
+  YLGNBU,
+  YLORBR,
+  YLORRD,
+  YLRD,
+  HSV,
+  HOT,
+  COOL,
+  SPRING,
+  SUMMER,
+  AUTUMN,
+  WINTER,
+  GRAY,
+  BONE,
+  COPPER,
+  PINK,
+  LINES,
+  COLORCUBE,
+  PRISM,
+  FLAG,
+  WHITE,
+  DEFAULT_MAP,
+  DEFAULT_COLORS_MAP
+};
+
+struct PlotPlateSettings
+{
+  ColormapName colorMap = ColormapName::BLUES;
+};
+
+auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t cols, int32_t colToDisplay, const PlotPlateSettings &settings,
+                         std::shared_ptr<QtBackend> backend) -> std::map<Pos, int32_t>;
 
 }    // namespace joda::ui::gui

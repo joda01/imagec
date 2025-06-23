@@ -192,6 +192,7 @@ private:
   QLineEdit *mWellOrderMatrix;
   QComboBox *mPlateSize;
   QComboBox *mDensityMapSize;
+  QComboBox *mColorMaps;
 
   /// IMAGE DOCK //////////////////////////////////////////////
   void loadPreview();
