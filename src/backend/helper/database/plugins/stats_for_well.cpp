@@ -136,6 +136,9 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
             ImgPositionInWell pos;
             if(wellPos.contains(static_cast<int32_t>(imgGroupIdx))) {
               pos = wellPos[static_cast<int32_t>(imgGroupIdx)];
+            } else {
+              pos.x = 1;
+              pos.y = 1;
             }
             classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
                                     table::TableCell{value,
@@ -381,7 +384,7 @@ auto transformMatrix(const std::vector<std::vector<int32_t>> &wellImageOrder, in
   for(int y = 0; y < wellImageOrder.size(); y++) {
     for(int x = 0; x < wellImageOrder[y].size(); x++) {
       auto imgNr = wellImageOrder[y][x];
-      ret[imgNr] = ImgPositionInWell{.img = imgNr, .x = x, .y = y};
+      ret[imgNr] = ImgPositionInWell{.img = imgNr, .x = x + 1, .y = y + 1};    // We start with 1 not with zero
       if(x > sizeX) {
         sizeX = x;
       }

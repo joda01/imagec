@@ -185,6 +185,7 @@ private:
 
   /// GRAPH //////////////////////////////////////////////////
   void setHeatmapVisible(bool);
+  QDockWidget *mGraphDockWidget;
   std::shared_ptr<QtBackend> mGraphContainer;
   std::map<Pos, int32_t> mPositionMapping;
   QComboBox *mColumn;

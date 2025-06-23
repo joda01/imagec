@@ -16,6 +16,7 @@
 #include <qbuttongroup.h>
 #include <qcombobox.h>
 #include <qdialog.h>
+#include <qdockwidget.h>
 #include <qevent.h>
 #include <qgridlayout.h>
 #include <qlabel.h>
@@ -148,13 +149,14 @@ PanelResults::PanelResults(WindowMain *windowMain) :
     connect(layout().getBackButton(), &QAction::triggered, [this] { mWindowMain->showPanelStartPage(); });
     connect(this, &PanelResults::finishedLoading, this, &PanelResults::onFinishedLoading);
 
-    auto *heatmapSidebar = new QWidget();
-    heatmapSidebar->setContentsMargins(0, SELECTED_INFO_SPACING, SELECTED_INFO_SPACING, 0);
-    heatmapSidebar->setMaximumWidth(SELECTED_INFO_WIDTH + SELECTED_INFO_SPACING);
-    heatmapSidebar->setMinimumWidth(SELECTED_INFO_WIDTH + SELECTED_INFO_SPACING);
-    auto *formLayout = new QVBoxLayout;
-    formLayout->setContentsMargins(0, 0, 0, 0);
-    heatmapSidebar->setLayout(formLayout);
+    //
+    // Graph dock widget
+    //
+    mGraphDockWidget = new QDockWidget();
+
+    auto *sidebarWidget = new QWidget();
+    auto *formLayout    = new QVBoxLayout;
+    sidebarWidget->setLayout(formLayout);
 
     //
     // Column selector
@@ -220,6 +222,9 @@ PanelResults::PanelResults(WindowMain *windowMain) :
     formLayout->addLayout(std::get<2>(createHelpTextLabel("Density map size", 0)));
 
     formLayout->addStretch();
+    mGraphDockWidget->setWidget(sidebarWidget);
+    mGraphDockWidget->setVisible(false);
+    mWindowMain->addDockWidget(Qt::DockWidgetArea::RightDockWidgetArea, mGraphDockWidget);
   }
 
   //
@@ -355,6 +360,7 @@ void PanelResults::setActive(bool active)
     mPreviewImage->setPlayBackToolbarVisible(false);
     mPreviewImage->setVisible(false);
     mPreviewImage->resetImage();
+    mGraphDockWidget->setVisible(false);
     resetSettings();
     refreshView();
     mIsActive = active;
@@ -1247,6 +1253,7 @@ void PanelResults::onShowTable()
   }
 
   mTable->setVisible(true);
+  mGraphDockWidget->setVisible(false);
   setHeatmapVisible(false);
   refreshView();
 }
@@ -1265,6 +1272,7 @@ void PanelResults::onShowHeatmap()
     mExportPng->setVisible(true);
   }
   mTable->setVisible(false);
+  mGraphDockWidget->setVisible(true);
   setHeatmapVisible(true);
   refreshView();
 }

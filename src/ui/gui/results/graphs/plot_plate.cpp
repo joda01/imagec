@@ -5,6 +5,20 @@
 
 namespace joda::ui::gui {
 
+std::string numberToExcelColumn(int number)
+{
+  std::string result;
+
+  while(number > 0) {
+    number--;    // Excel columns are 1-based, but internally it's 0-based
+    char ch = 'A' + (number % 26);
+    result  = ch + result;
+    number /= 26;
+  }
+
+  return result;
+}
+
 auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t cols, std::shared_ptr<QtBackend> backend) -> std::map<Pos, int32_t>
 {
   std::vector<std::vector<double>> data(rows, std::vector<double>(cols, 0.0));
@@ -12,15 +26,12 @@ auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t 
   std::vector<std::string> yLabels;
   std::map<Pos, int32_t> posToRowMap;
 
-  xLabels.reserve(cols);
   for(int x = 0; x < cols; x++) {
     xLabels.emplace_back(std::to_string(x + 1));
   }
 
-  yLabels.reserve(rows);
   for(int y = 0; y < rows; y++) {
-    char toPrint = y + 'A';
-    yLabels.emplace_back(std::string(1, toPrint));
+    yLabels.emplace_back(numberToExcelColumn(y + 1));
   }
 
   for(int32_t tblRow = 0; tblRow < table.getRows(); tblRow++) {
