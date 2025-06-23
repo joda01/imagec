@@ -9,6 +9,8 @@
 ///            For **Commercial** please contact the copyright owner.
 ///
 
+#pragma once
+
 #include <matplot/core/figure_registry.h>
 #include <matplot/freestanding/plot.h>
 #include <matplot/matplot.h>
@@ -21,65 +23,19 @@
 
 namespace joda::ui::gui {
 
-auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t cols, std::shared_ptr<QtBackend> backend)
+struct Pos
 {
-  std::vector<std::vector<double>> data(rows, std::vector<double>(cols, 0.0));
-  std::vector<std::string> xLabels;
-  std::vector<std::string> yLabels;
+  uint32_t posX = 0;
+  uint32_t posY = 0;
 
-  xLabels.reserve(cols);
-  for(int x = 0; x < cols; x++) {
-    xLabels.emplace_back(std::to_string(x + 1));
-  }
+  bool operator<(const Pos &in) const
+  {
+    uint64_t tmp  = static_cast<uint64_t>(posX) << 32 | posY;
+    uint64_t tmp2 = static_cast<uint64_t>(in.posX) << 32 | in.posY;
+    return tmp < tmp2;
+  };
+};
 
-  yLabels.reserve(rows);
-  for(int y = 0; y < rows; y++) {
-    char toPrint = y + 'A';
-    yLabels.emplace_back(std::string(1, toPrint));
-  }
-
-  for(int32_t tblRow = 0; tblRow < table.getRows(); tblRow++) {
-    double val      = table.data(tblRow, 0).getVal();
-    uint32_t posX   = table.data(tblRow, 0).getPosX();
-    uint32_t posY   = table.data(tblRow, 0).getPosY();
-    uint32_t tStack = table.data(tblRow, 0).getStackT();
-    if(tStack == 0 && data.size() >= posY) {
-      if(data[posY - 1].size() >= posX) {
-        data[posY - 1][posX - 1] = val;
-      }
-    }
-  }
-
-  // Generate a plot with matplot++
-  auto fig = matplot::figure_no_backend(true);    // create figure but don't show a window
-  fig->backend(backend);
-  backend->setNrOfRowsAndCols(rows, cols);
-  auto ax = fig->current_axes();
-
-  ax->x_axis().ticklabels(xLabels).label_font_size(8);
-  ax->y_axis().ticklabels(yLabels).label_font_size(8);
-  ax->font_size(9);
-
-  auto h = ax->heatmap(data);
-  // h->normalization(matplot::matrix::color_normalization::columns);
-  ax->colormap(matplot::palette::default_map());
-
-  h->always_hide_labels(true);
-  for(size_t i = 0; i < data.size(); ++i) {
-    for(size_t j = 0; j < data[i].size(); ++j) {
-      // Format number with fixed 2 decimals
-      std::ostringstream oss;
-      oss << std::fixed << std::setprecision(2) << data[i][j];
-      // Add text at cell center with formatted number
-      auto tx = ax->text(j + 1, i + 1, oss.str());
-      tx->font_size(5);
-      tx->alignment(matplot::labels::alignment::center);
-    }
-  }
-
-  std::filesystem::path tempDir = std::filesystem::temp_directory_path();
-  tempDir                       = tempDir / "imagec_temp_graph.svg";
-  fig->save(tempDir.string());
-}
+auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t cols, std::shared_ptr<QtBackend> backend) -> std::map<Pos, int32_t>;
 
 }    // namespace joda::ui::gui

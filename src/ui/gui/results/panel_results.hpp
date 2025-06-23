@@ -29,6 +29,7 @@
 #include "backend/helper/database/plugins/filter.hpp"
 #include "backend/helper/table/table.hpp"
 #include "controller/controller.hpp"
+#include "graphs/plot_plate.hpp"
 #include "heatmap/panel_heatmap.hpp"
 #include "ui/gui/container/panel_edit_base.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
@@ -80,11 +81,6 @@ public:
   [[nodiscard]] uint64_t getSelectedImage() const
   {
     return mSelectedImageId;
-  }
-
-  [[nodiscard]] const table::Table &getData() const
-  {
-    return mHeatmapChart->getData();
   }
 
 signals:
@@ -180,19 +176,17 @@ private:
   QAction *mDeleteCol;
   QAction *mEditCol;
 
-  /////////////////////////////////////////////////////
-  void setHeatmapVisible(bool);
-  std::shared_ptr<QtBackend> mGraphContainer;
-
-  QHBoxLayout *mHeatmapContainer;
-  ChartHeatMap *mHeatmapChart;
+  /// NAVIGATION//////////////////////////////////////////////////
   Navigation mNavigation = Navigation::PLATE;
   QAction *mMarkAsInvalid;
   DataSet mSelectedDataSet;
   QAction *mExportSvg = nullptr;
   QAction *mExportPng = nullptr;
 
-  /// HEATMAP SIDEBAR//////////////////////////////////////////////////
+  /// GRAPH //////////////////////////////////////////////////
+  void setHeatmapVisible(bool);
+  std::shared_ptr<QtBackend> mGraphContainer;
+  std::map<Pos, int32_t> mPositionMapping;
   QComboBox *mColumn;
   QLineEdit *mWellOrderMatrix;
   QComboBox *mPlateSize;

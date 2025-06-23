@@ -30,6 +30,7 @@ namespace joda::ui::gui {
 class QtBackend : public QWidget, public matplot::backend::gnuplot
 {
   Q_OBJECT
+
 public:
   QtBackend(const std::string &terminal, QWidget *parent);
   virtual ~QtBackend();
@@ -37,12 +38,18 @@ public:
   /////////////////////////////////////////////////////
   void paintEvent(QPaintEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;
+  void mouseDoubleClickEvent(QMouseEvent *event) override;
   void setNrOfRowsAndCols(int32_t rows, int32_t cols)
   {
     mRows = rows;
     mCols = cols;
   }
 
+signals:
+  void onGraphClicked(int row, int col);
+  void onGraphDoubleClicked(int row, int col);
+
+public:
   /////////////////////////////////////////////////////
   bool is_interactive() override;
   const std::string &output() override;
@@ -66,7 +73,6 @@ public:
   void run_command(const std::string &command) override;
   void include_comment(const std::string &comment) override;
 
-  public /* gnuplot pipe functions */:
   /// We "render the data" by flushing the commands
   bool flush_commands();
 
@@ -159,5 +165,6 @@ private:
   int32_t mRows = 0;
   int32_t mCols = 0;
   std::vector<std::pair<QRectF, QPoint>> mRects;
+  int32_t mSelectedIndex = -1;
 };
 }    // namespace joda::ui::gui

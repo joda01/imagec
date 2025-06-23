@@ -52,6 +52,13 @@ static size_t gnuplot_pipe_capacity(FILE *f)
 
 namespace joda::ui::gui {
 
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void QtBackend::paintEvent(QPaintEvent *event)
 {
   QWidget::paintEvent(event);
@@ -75,35 +82,75 @@ void QtBackend::paintEvent(QPaintEvent *event)
     //
     // This is a grid used for mouse events
     //
-    QPen redPen(Qt::darkGray);
-    redPen.setWidth(1);               // Optional: set line width
-    redPen.setStyle(Qt::DashLine);    // <-- Make it dashed
+    QPen redPen(Qt::red);
+    redPen.setWidth(1);                // Optional: set line width
+    redPen.setStyle(Qt::SolidLine);    // <-- Make it dashed
     painter.setPen(redPen);
     float offsetX = (targetRect.width() / 7.7);
     float offsetY = (targetRect.height() / 13.3);
     float width   = ((targetRect.width() - 2.05 * offsetX) / mCols);
     float height  = ((targetRect.height() - 2.5 * offsetY) / mRows);
     mRects.clear();
+    int idx = 0;
     for(float col = 0; col < mCols; col++) {
       for(float row = 0; row < mRows; row++) {
         float startY = offsetY + targetRect.y() + row * height;
         float startX = offsetX + targetRect.x() + col * width;
         auto rect    = QRectF(startX, startY, width, height);
-        mRects.push_back({rect, QPoint{static_cast<int>(row), static_cast<int>(col)}});
-        // painter.drawRect(rect);
+        mRects.push_back({rect, QPoint{static_cast<int>(col), static_cast<int>(row)}});
+        if(mSelectedIndex == idx) {
+          QRect tmp(rect.x() + 2, rect.y() + 2, rect.width() - 4, rect.height() - 4);
+          painter.drawRect(tmp);
+        }
+        idx++;
       }
     }
   }
 }
 
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void QtBackend::mousePressEvent(QMouseEvent *event)
 {
   QWidget::mouseMoveEvent(event);
   QPoint pos = event->pos();
+  int idx    = 0;
   for(const auto &[rect, pt] : mRects) {
     if(rect.contains(pos)) {
-      std::cout << "Pressed " << std::to_string(pt.x()) << "|" << std::to_string(pt.y()) << std::endl;
+      emit onGraphClicked(pt.y(), pt.x());
+      mSelectedIndex = idx;
+      update();
+      return;
     }
+    idx++;
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void QtBackend::mouseDoubleClickEvent(QMouseEvent *event)
+{
+  QWidget::mouseDoubleClickEvent(event);
+  QPoint pos = event->pos();
+  int idx    = 0;
+  for(const auto &[rect, pt] : mRects) {
+    if(rect.contains(pos)) {
+      emit onGraphDoubleClicked(pt.y(), pt.x());
+      mSelectedIndex = idx;
+      update();
+      return;
+    }
+    idx++;
   }
 }
 
@@ -398,7 +445,6 @@ bool QtBackend::render_data()
         file.close();
         continue;
       }
-      joda::log::logDebug("Read file");
 
       svgRenderer = new QSvgRenderer(fileData, this);
       file.close();

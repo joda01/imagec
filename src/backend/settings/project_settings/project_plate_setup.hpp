@@ -39,6 +39,24 @@ struct PlateSetup
   //
   std::vector<std::vector<int32_t>> wellImageOrder = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16}};
 
+  std::pair<int32_t, int32_t> getRowsAndColsOfWell() const
+  {
+    int32_t sizeY = wellImageOrder.size();
+    int32_t sizeX = 0;
+
+    for(int y = 0; y < wellImageOrder.size(); y++) {
+      for(int x = 0; x < wellImageOrder[y].size(); x++) {
+        auto imgNr = wellImageOrder[y][x];
+        if(x > sizeX) {
+          sizeX = x;
+        }
+      }
+    }
+    sizeX++;    // Because we start with zro to count
+
+    return {sizeY, sizeX};
+  }
+
   void check() const
   {
   }

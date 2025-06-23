@@ -54,6 +54,19 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
   }
 
   //
+  // Prepare for Image to well place assignment
+  //
+  int32_t sizeX = 0;
+  int32_t sizeY = 0;
+  std::map<int32_t, ImgPositionInWell> wellPos;
+  if(grouping == Grouping::BY_WELL) {
+    wellPos = transformMatrix(filter.getPlateSetup().wellImageOrder, sizeX, sizeY);
+  } else {
+    sizeX = filter.getPlateSetup().cols;
+    sizeY = filter.getPlateSetup().rows;
+  }
+
+  //
   // Generate exports
   //
   auto classesToExport = ResultingTable(&filter);
@@ -120,18 +133,23 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
           double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
           if(grouping == Grouping::BY_WELL) {
             ///
-            classesToExport.setData(
-                classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
-                table::TableCell{value,
-                                 table::TableCell::MetaData{.objectIdGroup  = imageId,
-                                                            .objectId       = imageId,
-                                                            .parentObjectId = 0,
-                                                            .trackingId     = 0,
-                                                            .isValid        = validity == 0,
-                                                            .tStack         = tStack,
-                                                            .zStack         = 0,
-                                                            .cStack         = 0},
-                                 table::TableCell::Grouping{.groupIdx = static_cast<uint64_t>(imgGroupIdx), .posX = platePosX, .posY = platePosY}});
+            ImgPositionInWell pos;
+            if(wellPos.contains(static_cast<int32_t>(imgGroupIdx))) {
+              pos = wellPos[static_cast<int32_t>(imgGroupIdx)];
+            }
+            classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
+                                    table::TableCell{value,
+                                                     table::TableCell::MetaData{.objectIdGroup  = imageId,
+                                                                                .objectId       = imageId,
+                                                                                .parentObjectId = 0,
+                                                                                .trackingId     = 0,
+                                                                                .isValid        = validity == 0,
+                                                                                .tStack         = tStack,
+                                                                                .zStack         = 0,
+                                                                                .cStack         = 0},
+                                                     table::TableCell::Grouping{.groupIdx = static_cast<uint64_t>(imgGroupIdx),
+                                                                                .posX     = static_cast<uint32_t>(pos.x),
+                                                                                .posY     = static_cast<uint32_t>(pos.y)}});
           } else {
             classesToExport.setData(
                 classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,

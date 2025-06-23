@@ -69,6 +69,7 @@
 #include "ui/gui/helper/table_widget.hpp"
 #include "ui/gui/helper/widget_generator.hpp"
 #include "ui/gui/helper/word_wrap_header.hpp"
+#include "ui/gui/results/graphs/graph_qt_backend.hpp"
 #include "ui/gui/results/graphs/plot_plate.hpp"
 #include "ui/gui/window_main/window_main.hpp"
 #include <nlohmann/json_fwd.hpp>
@@ -116,19 +117,34 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   static const int32_t SELECTED_INFO_WIDTH   = 250;
   static const int32_t SELECTED_INFO_SPACING = 6;
   //
-  // Heatmap
+  // Graph
   //
   {
-    mHeatmapContainer = new QHBoxLayout();
-    mHeatmapContainer->setContentsMargins(0, 0, 0, 0);
-    mHeatmapChart = new ChartHeatMap(this, mFilter);
-    mHeatmapChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    connect(mHeatmapChart, &ChartHeatMap::onElementClick, [this](int cellX, int cellY, table::TableCell value) {
+    mGraphContainer = std::make_shared<QtBackend>("svg", this);
+    mGraphContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    connect(mGraphContainer.get(), &QtBackend::onGraphClicked, [this](int row, int col) {
       std::lock_guard<std::mutex> lock(mLoadLock);
-      onElementSelected(cellX, cellY, value);
+      auto found = mPositionMapping.find(Pos{(uint32_t) col, (uint32_t) row});
+      if(found != mPositionMapping.end()) {
+        int selectedCol  = 0;
+        auto selectedRow = found->second;
+        auto value       = mActListData.data(selectedRow, selectedCol);
+        onElementSelected(selectedCol, selectedRow, value);
+      }
     });
 
-    connect(mHeatmapChart, &ChartHeatMap::onDoubleClicked, this, &PanelResults::onOpenNextLevel);
+    connect(mGraphContainer.get(), &QtBackend::onGraphDoubleClicked, [this](int row, int col) {
+      std::lock_guard<std::mutex> lock(mLoadLock);
+
+      auto found = mPositionMapping.find(Pos{(uint32_t) col, (uint32_t) row});
+      if(found != mPositionMapping.end()) {
+        int selectedCol  = 0;
+        auto selectedRow = found->second;
+        auto value       = mActListData.data(selectedRow, selectedCol);
+        onOpenNextLevel(selectedCol, selectedRow, value);
+      }
+    });
     connect(layout().getBackButton(), &QAction::triggered, [this] { mWindowMain->showPanelStartPage(); });
     connect(this, &PanelResults::finishedLoading, this, &PanelResults::onFinishedLoading);
 
@@ -204,9 +220,6 @@ PanelResults::PanelResults(WindowMain *windowMain) :
     formLayout->addLayout(std::get<2>(createHelpTextLabel("Density map size", 0)));
 
     formLayout->addStretch();
-
-    mHeatmapContainer->addWidget(heatmapSidebar);
-    mHeatmapContainer->addWidget(mHeatmapChart);
   }
 
   //
@@ -292,10 +305,6 @@ PanelResults::PanelResults(WindowMain *windowMain) :
     topInfoLayout->addWidget(mSelectedValue);
   }
 
-  mGraphContainer = std::make_shared<QtBackend>("svg", this);
-  mGraphContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  // connect(mGraphContainer.get(), &QtBackend::resizeEvent, [this]() { preparePlateSurface(mActListData, 10, 10, mGraphContainer); });
-
   //
   // Add to layout
   //
@@ -306,7 +315,6 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   col->setSpacing(4);
   col->addLayout(topBreadCrump);
   col->addLayout(topInfoLayout);
-  col->addLayout(mHeatmapContainer);
   col->addWidget(mGraphContainer.get());
   col->addWidget(mTable);
 
@@ -334,17 +342,6 @@ void PanelResults::valueChangedEvent()
 void PanelResults::setHeatmapVisible(bool visible)
 {
   mGraphContainer->setVisible(visible);
-  if(visible) {
-    //   mGraphContainer->init();
-  }
-
-  visible = false;
-  for(int i = 0; i < mHeatmapContainer->count(); ++i) {
-    QWidget *w = mHeatmapContainer->itemAt(i)->widget();
-    if(w) {
-      w->setVisible(visible);
-    }
-  }
 }
 
 ///
@@ -850,7 +847,28 @@ void PanelResults::onFinishedLoading()
 {
   tableToQWidgetTable(mActListData);
   tableToHeatmap(mActListData);
-  preparePlateSurface(mActListData, 16, 24, mGraphContainer);
+  int32_t cols = mFilter.getPlateSetup().cols;
+  int32_t rows = mFilter.getPlateSetup().rows;
+  switch(mNavigation) {
+    case Navigation::PLATE:
+      break;
+    case Navigation::WELL:
+      rows = mFilter.getPlateSetup().getRowsAndColsOfWell().first;
+      cols = mFilter.getPlateSetup().getRowsAndColsOfWell().second;
+      break;
+    case Navigation::IMAGE:
+      auto mSize = mFilter.getDensityMapSettings().densityMapAreaSize;
+      if(mSelectedDataSet.imageMeta.has_value()) {
+        rows = static_cast<int32_t>(mSelectedDataSet.imageMeta->height) / mSize;
+        cols = static_cast<int32_t>(mSelectedDataSet.imageMeta->width) / mSize;
+      } else {
+        rows = 1;
+        cols = 1;
+      }
+
+      break;
+  }
+  mPositionMapping = preparePlateSurface(mActListData, rows, cols, mGraphContainer);
 
   refreshBreadCrump();
   auto col = mSelection[mNavigation].col;
@@ -1275,14 +1293,6 @@ void PanelResults::tableToHeatmap(const db::QueryResult &table)
       mColumn->setCurrentIndex(idx);
     }
     mColumn->blockSignals(false);
-
-    //
-    //
-    //
-    if(mSelectedTableColumnIdx >= 0) {
-      mHeatmapChart->setData(table, static_cast<int32_t>(mNavigation));
-      return;
-    }
   }
 }
 
@@ -1307,8 +1317,6 @@ void PanelResults::paintEmptyHeatmap()
       table.setData(row, col, data);
     }
   }
-
-  mHeatmapChart->setData(table, static_cast<int32_t>(mNavigation));
 }
 
 ///
@@ -1571,9 +1579,9 @@ void PanelResults::showFileSaveDialog(const QString &filter)
   } else if(filename.ends_with(".r")) {
     saveData(filename, joda::ctrl::ExportSettings::ExportType::R);
   } else if(filename.ends_with(".svg")) {
-    mHeatmapChart->exportToSVG(filename.data());
+    // mHeatmapChart->exportToSVG(filename.data());
   } else if(filename.ends_with(".png")) {
-    mHeatmapChart->exportToPNG(filename.data());
+    // mHeatmapChart->exportToPNG(filename.data());
   }
 }
 

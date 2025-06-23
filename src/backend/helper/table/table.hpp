@@ -105,6 +105,11 @@ public:
     return mGrouping.posY;
   }
 
+  uint64_t getGroupId() const
+  {
+    return mGrouping.groupIdx;
+  }
+
   uint32_t getStackT() const
   {
     return mMetaData.tStack;
