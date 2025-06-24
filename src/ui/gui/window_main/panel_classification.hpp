@@ -37,7 +37,7 @@ class PanelClassification : public QWidget
 
 public:
   /////////////////////////////////////////////////////
-  explicit PanelClassification(joda::settings::ProjectSettings &settings, WindowMain *windowMain);
+  explicit PanelClassification(joda::settings::Classification &settings, WindowMain *windowMain);
   void fromSettings(const joda::settings::Classification &settings);
   void toSettings();
   [[nodiscard]] auto getClasses() const -> std::map<enums::ClassIdIn, QString>;
@@ -67,7 +67,7 @@ private:
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
-  joda::settings::ProjectSettings &mSettings;
+  joda::settings::Classification &mSettings;
   PlaceholderTableWidget *mClasses;
 
   /// DIALOG //////////////////////////////////////////////////

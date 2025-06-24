@@ -340,7 +340,7 @@ void WindowMain::createLeftToolbar()
 
   // Classification tab
   {
-    mPanelClassification = new PanelClassification(mAnalyzeSettings.projectSettings, this);
+    mPanelClassification = new PanelClassification(mAnalyzeSettings.projectSettings.classification, this);
     mTabWidget->addTab(mPanelClassification, "Classification");
   }
 
