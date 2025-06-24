@@ -1402,7 +1402,8 @@ void PanelResults::paintEmptyHeatmap()
   for(int row = 0; row < rows; row++) {
     table.getMutableRowHeader()[row] = "";
     for(int col = 0; col < cols; col++) {
-      table.getMutableColHeader()[col] = "";
+#warning "What shall we do"
+      // table.getMutableColHeader()[col] = "";
       table::TableCell data;
       table.setData(row, col, data);
     }

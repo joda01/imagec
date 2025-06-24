@@ -19,6 +19,7 @@
 #include <vector>
 #include "backend/enums/bigtypes.hpp"
 #include "backend/helper/helper.hpp"
+#include "backend/settings/results_settings/results_settings.hpp"
 
 namespace joda::table {
 
@@ -147,14 +148,14 @@ public:
   Table();
   void setTitle(const std::string &title);
   void setMeta(const Meta &);
-  void setColHeader(const std::map<uint32_t, std::string> &);
+  void setColHeader(const std::map<uint32_t, settings::ResultsSettings::ColumnKey> &);
   void setRowHeader(const std::map<uint32_t, std::string> &);
   void setRowName(uint32_t row, const std::string &data);
   auto getMutableRowHeader() -> std::map<uint32_t, std::string> &
   {
     return mRowHeader;
   }
-  auto getMutableColHeader() -> std::map<uint32_t, std::string> &
+  auto getMutableColHeader() -> std::map<uint32_t, settings::ResultsSettings::ColumnKey> &
   {
     return mColHeader;
   }
@@ -169,7 +170,7 @@ public:
   [[nodiscard]] auto getColHeader(uint32_t idx) const -> std::string
   {
     if(mColHeader.contains(idx)) {
-      return mColHeader.at(idx);
+      return mColHeader.at(idx).createHeader();
     }
     return "";
   }
@@ -275,7 +276,7 @@ private:
   double mMin = std::numeric_limits<double>::max();
   double mMax = std::numeric_limits<double>::min();
 
-  std::map<uint32_t, std::string> mColHeader;
+  std::map<uint32_t, settings::ResultsSettings::ColumnKey> mColHeader;
   std::map<uint32_t, std::string> mRowHeader;
   uint32_t mNrOfCols = 0;
   std::string mTitle;

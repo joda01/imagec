@@ -38,7 +38,7 @@ void Table::print()
   std::cout << "O";
   int n = 0;
   for(unsigned long colWidth : colWidths) {
-    cout << right << setw(colWidth + 2) << mColHeader[n];
+    cout << right << setw(colWidth + 2) << mColHeader[n].createHeader();
     n++;
   }
   cout << endl;
@@ -62,7 +62,7 @@ void Table::print()
   }
 }
 
-void Table::setColHeader(const std::map<uint32_t, std::string> &data)
+void Table::setColHeader(const std::map<uint32_t, settings::ResultsSettings::ColumnKey> &data)
 {
   mColHeader = data;
 }
