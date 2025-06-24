@@ -155,6 +155,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
     mGraphDockWidget = new QDockWidget();
     mGraphDockWidget->setMaximumWidth(300);    // Max width when docked
     mGraphDockWidget->setMinimumWidth(300);    // Min width even when docked
+    mGraphDockWidget->setWindowTitle("Graph settings");
 
     auto *sidebarWidget = new QWidget();
     auto *formLayout    = new QVBoxLayout;
@@ -1040,8 +1041,6 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       mSelectedDataSet.imageMeta.reset();
       mSelectedDataSet.objectInfo.reset();
       mMarkAsInvalid->setEnabled(false);
-      mDeleteCol->setEnabled(true);
-      mEditCol->setEnabled(true);
 
       // Act data
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX);
@@ -1065,8 +1064,6 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       }
       mMarkAsInvalid->blockSignals(false);
       mMarkAsInvalid->setEnabled(true);
-      mDeleteCol->setEnabled(true);
-      mEditCol->setEnabled(true);
 
       // Act data
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
@@ -1078,8 +1075,6 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
     case Navigation::IMAGE:
       mSelectedTileId = value.getObjectId();
       mMarkAsInvalid->setEnabled(false);
-      mDeleteCol->setEnabled(false);
-      mEditCol->setEnabled(false);
       mSelectedAreaPos.setX(cellX);
       mSelectedAreaPos.setY(cellY);
 
@@ -1359,6 +1354,7 @@ void PanelResults::onShowHeatmap()
   }
   mTable->setVisible(false);
   mGraphDockWidget->setVisible(true);
+  mPreviewImage->setVisible(false);
   setHeatmapVisible(true);
   refreshView();
 }
