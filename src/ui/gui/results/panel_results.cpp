@@ -153,6 +153,8 @@ PanelResults::PanelResults(WindowMain *windowMain) :
     // Graph dock widget
     //
     mGraphDockWidget = new QDockWidget();
+    mGraphDockWidget->setMaximumWidth(300);    // Max width when docked
+    mGraphDockWidget->setMinimumWidth(300);    // Min width even when docked
 
     auto *sidebarWidget = new QWidget();
     auto *formLayout    = new QVBoxLayout;
@@ -955,6 +957,7 @@ void PanelResults::onFinishedLoading()
 
       break;
   }
+
   mPositionMapping = preparePlateSurface(
       mActListData, rows, cols, mColumn->currentData().toInt(),
       PlotPlateSettings{.colorMap = static_cast<ColormapName>(mColorMaps->currentData().toInt()), .densityMapSize = densityMapSize}, mGraphContainer);
