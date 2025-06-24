@@ -31,6 +31,10 @@ std::string numberToExcelColumn(int number)
 auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t cols, int32_t colToDisplay, const PlotPlateSettings &settings,
                          std::shared_ptr<QtBackend> backend) -> std::map<Pos, int32_t>
 {
+  if(rows > 50 && cols > 50) {
+    return {};
+  }
+
   std::vector<std::vector<double>> data(rows, std::vector<double>(cols, std::numeric_limits<double>::quiet_NaN()));
   std::vector<std::string> xLabels;
   std::vector<std::string> yLabels;
@@ -47,32 +51,61 @@ auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t 
   double mMin = std::numeric_limits<double>::max();
   double mMax = std::numeric_limits<double>::min();
 
+  struct Element
+  {
+    double val  = 0;
+    int32_t cnt = 0;
+    int32_t tblRow;
+  };
+
+  std::map<Pos, Element> densityMapVal;
+
   for(int32_t tblRow = 0; tblRow < table.getRows(); tblRow++) {
     double val       = table.data(tblRow, colToDisplay).getVal();
     uint32_t posX    = table.data(tblRow, colToDisplay).getPosX();
     uint32_t posY    = table.data(tblRow, colToDisplay).getPosY();
     uint32_t tStack  = table.data(tblRow, colToDisplay).getStackT();
     uint64_t groupId = table.data(tblRow, colToDisplay).getGroupId();
-
-    if(tStack == 0 && data.size() >= posY && posY > 0) {
-      if(data[posY - 1].size() >= posX && posX > 0) {
-        data[posY - 1][posX - 1] = val;
-        posToRowMap.emplace(Pos{posX - 1, posY - 1}, tblRow);
+    if(tStack == 0 && val == val && table.data(tblRow, colToDisplay).isValid()) {
+      posX--;    // The maps start counting at 1
+      posY--;    // The maps start counting at 1
+      if(settings.densityMapSize > 0) {
+        posX = posX / settings.densityMapSize;
+        posY = posY / settings.densityMapSize;
       }
+
+      densityMapVal[{posX, posY}].val += val;
+      densityMapVal[{posX, posY}].cnt++;
+      densityMapVal[{posX, posY}].tblRow = tblRow;
     }
+  }
 
-    if(val == val && table.data(tblRow, colToDisplay).isValid()) {
-      if(val < mMin) {
-        mMin = val;
-      }
-      if(val > mMax) {
-        mMax = val;
+  //
+  // Calc mean and forward to vector
+  //
+  for(const auto &mapEntry : densityMapVal) {
+    double val     = mapEntry.second.val / static_cast<double>(mapEntry.second.cnt);
+    uint32_t posY  = mapEntry.first.posY;
+    uint32_t posX  = mapEntry.first.posX;
+    int32_t tblRow = mapEntry.second.tblRow;
+    if(data.size() > posY && posY >= 0) {
+      if(data[posY].size() > posX && posX >= 0) {
+        data[posY][posX] = val;
+        posToRowMap.emplace(Pos{posX, posY}, tblRow);
+
+        if(val < mMin) {
+          mMin = val;
+        }
+        if(val > mMax) {
+          mMax = val;
+        }
       }
     }
   }
 
   // Generate a plot with matplot++
   auto fig = matplot::figure_no_backend(true);    // create figure but don't show a window
+
   fig->backend(backend);
   backend->setNrOfRowsAndCols(rows, cols);
   auto ax = fig->current_axes();
@@ -82,7 +115,11 @@ auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t 
   ax->font_size(9);
 
   auto h = ax->heatmap(data);
-  ax->color_box_range(mMin, mMax);
+
+  std::cout << "min " << std::to_string(mMin) << " max " << std::to_string(mMax) << std::endl;
+  if(mMax > mMin) {
+    ax->color_box_range(mMin, mMax);
+  }
   set_colormap_from_enum(ax, settings.colorMap);
 
   h->always_hide_labels(true);

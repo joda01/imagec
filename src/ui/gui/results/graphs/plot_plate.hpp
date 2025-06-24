@@ -108,7 +108,8 @@ enum class ColormapName
 
 struct PlotPlateSettings
 {
-  ColormapName colorMap = ColormapName::BLUES;
+  ColormapName colorMap  = ColormapName::BLUES;
+  int32_t densityMapSize = -1;
 };
 
 auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t cols, int32_t colToDisplay, const PlotPlateSettings &settings,

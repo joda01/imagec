@@ -932,8 +932,9 @@ void PanelResults::onFinishedLoading()
 {
   tableToQWidgetTable(mActListData);
   tableToHeatmap(mActListData);
-  int32_t cols = mFilter.getPlateSetup().cols;
-  int32_t rows = mFilter.getPlateSetup().rows;
+  int32_t cols           = mFilter.getPlateSetup().cols;
+  int32_t rows           = mFilter.getPlateSetup().rows;
+  int32_t densityMapSize = -1;
   switch(mNavigation) {
     case Navigation::PLATE:
       break;
@@ -942,20 +943,21 @@ void PanelResults::onFinishedLoading()
       cols = mFilter.getPlateSetup().getRowsAndColsOfWell().second;
       break;
     case Navigation::IMAGE:
-      auto mSize = mFilter.getDensityMapSettings().densityMapAreaSize;
+      densityMapSize = mFilter.getDensityMapSettings().densityMapAreaSize;
       if(mSelectedDataSet.imageMeta.has_value()) {
-        rows = static_cast<int32_t>(mSelectedDataSet.imageMeta->height) / mSize;
-        cols = static_cast<int32_t>(mSelectedDataSet.imageMeta->width) / mSize;
+        rows = static_cast<int32_t>(std::ceil((float) mSelectedDataSet.imageMeta->height / (float) densityMapSize));
+        cols = static_cast<int32_t>(std::ceil((float) mSelectedDataSet.imageMeta->width / (float) densityMapSize));
       } else {
-        rows = 1;
-        cols = 1;
+        rows           = 1;
+        cols           = 1;
+        densityMapSize = -1;
       }
 
       break;
   }
-  mPositionMapping =
-      preparePlateSurface(mActListData, rows, cols, mColumn->currentData().toInt(),
-                          PlotPlateSettings{.colorMap = static_cast<ColormapName>(mColorMaps->currentData().toInt())}, mGraphContainer);
+  mPositionMapping = preparePlateSurface(
+      mActListData, rows, cols, mColumn->currentData().toInt(),
+      PlotPlateSettings{.colorMap = static_cast<ColormapName>(mColorMaps->currentData().toInt()), .densityMapSize = densityMapSize}, mGraphContainer);
 
   refreshBreadCrump();
   auto col = mSelection[mNavigation].col;

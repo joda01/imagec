@@ -30,7 +30,6 @@
 #include "backend/helper/table/table.hpp"
 #include "controller/controller.hpp"
 #include "graphs/plot_plate.hpp"
-#include "heatmap/panel_heatmap.hpp"
 #include "ui/gui/container/panel_edit_base.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 
