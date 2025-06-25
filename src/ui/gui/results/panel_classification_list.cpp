@@ -47,8 +47,11 @@ PanelClassificationList::PanelClassificationList(WindowMain *windowMain, setting
 {
   setWindowTitle("Column settings");
   mClassSettingsDialog = new DialogClassSettings(windowMain);
-  auto *centralWidget  = new QWidget();
-  auto *layout         = new QVBoxLayout();
+  mClassSettingsDialog->setEditable(false);
+  auto *centralWidget = new QWidget();
+  centralWidget->setContentsMargins(0, 0, 0, 0);
+  auto *layout = new QVBoxLayout();
+  layout->setContentsMargins(0, 2, 0, 0);
   centralWidget->setLayout(layout);
 
   {
@@ -149,7 +152,7 @@ void PanelClassificationList::createTableItem(int32_t rowIdx, enums::ClassId cla
 void PanelClassificationList::setDatabase(joda::db::Database *database)
 {
   mDatabase = database;
-  loadClasses();
+  fromSettings();
 }
 
 ///
@@ -159,7 +162,7 @@ void PanelClassificationList::setDatabase(joda::db::Database *database)
 /// \param[out]
 /// \return
 ///
-void PanelClassificationList::loadClasses()
+void PanelClassificationList::fromSettings()
 {
   if(mDatabase == nullptr) {
     mClasses->setRowCount(0);

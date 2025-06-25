@@ -68,6 +68,11 @@ public:
   void setImagePlaneValidity(uint64_t imageId, const enums::PlaneId &, enums::ChannelValidity validity);
   void setImagePlaneClasssClasssValidity(uint64_t imageId, const enums::PlaneId &, enums::ClassId classId, enums::ChannelValidity validity);
 
+  void setAnalyzeSettingsCache(const std::string &jobID, const std::set<enums::ClassId> &outputClasses,
+                               const std::map<enums::ClassId, std::set<int32_t>> &measureChannels,
+                               const std::map<enums::ClassId, std::set<enums::ClassId>> &intersectingChannels,
+                               const std::map<enums::ClassId, std::set<enums::ClassId>> &distanceChannels);
+
   void insertObjects(const joda::processor::ImageContext &, const joda::atom::ObjectList &);
 
   auto selectExperiment() -> AnalyzeMeta;
@@ -82,8 +87,9 @@ public:
   auto selectObjectInfo(uint64_t objectId) -> ObjectInfo;
   auto selectImages() -> std::vector<ImageInfo>;
   auto selectMeasurementChannelsForClasss(enums::ClassId classId) -> std::set<int32_t>;
-  auto selectMeasurementChannelsForClasses() -> std::map<enums::ClassId, std::set<int32_t>>;
+
   auto selectOutputClasses() -> std::set<enums::ClassId>;
+  auto selectMeasurementChannelsForClasses() -> std::map<enums::ClassId, std::set<int32_t>>;
   auto selectIntersectingClassForClasses() -> std::map<enums::ClassId, std::set<enums::ClassId>>;
   auto selectDistanceClassForClasses() -> std::map<enums::ClassId, std::set<enums::ClassId>>;
 

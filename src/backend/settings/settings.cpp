@@ -205,24 +205,23 @@ auto Settings::toResultsSettings(const ResultSettingsInput &settingsIn) -> Resul
       colIdx++;
     };
     for(const auto &measure : entry.defaultMeasurements) {
+      //
+      // For count only sum makes sense
+      //
+      if(measure.measureChannel == enums::Measurement::COUNT) {
+        addColumn(entry.classId, measure.measureChannel, enums::Stats::SUM, -1, enums::ClassId::UNDEFINED);
+        continue;
+      }
+
+      //
+      // For object IDs stats does not make sense
+      //
+      if(measure.measureChannel == enums::Measurement::OBJECT_ID || measure.measureChannel == enums::Measurement::ORIGIN_OBJECT_ID ||
+         measure.measureChannel == enums::Measurement::PARENT_OBJECT_ID || measure.measureChannel == enums::Measurement::TRACKING_ID) {
+        addColumn(entry.classId, measure.measureChannel, enums::Stats::OFF, -1, enums::ClassId::UNDEFINED);
+        continue;
+      }
       for(auto stats : measure.stats) {
-        //
-        // For count only sum makes sense
-        //
-        if(measure.measureChannel == enums::Measurement::COUNT) {
-          addColumn(entry.classId, measure.measureChannel, enums::Stats::SUM, -1, enums::ClassId::UNDEFINED);
-          continue;
-        }
-
-        //
-        // For object IDs stats does not make sense
-        //
-        if(measure.measureChannel == enums::Measurement::OBJECT_ID || measure.measureChannel == enums::Measurement::ORIGIN_OBJECT_ID ||
-           measure.measureChannel == enums::Measurement::PARENT_OBJECT_ID || measure.measureChannel == enums::Measurement::TRACKING_ID) {
-          addColumn(entry.classId, measure.measureChannel, enums::Stats::OFF, -1, enums::ClassId::UNDEFINED);
-          continue;
-        }
-
         addColumn(entry.classId, measure.measureChannel, stats, -1, enums::ClassId::UNDEFINED);
       }
     }

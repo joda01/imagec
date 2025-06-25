@@ -48,6 +48,7 @@ public:
   /////////////////////////////////////////////////////
   explicit PanelClassificationList(WindowMain *windowMain, settings::ResultsSettings *resultsSettings);
   void setDatabase(joda::db::Database *database);
+  void fromSettings();
 
 signals:
   void settingsChanged();
@@ -61,7 +62,6 @@ private:
   static constexpr int COL_NOTES   = 4;
 
   /////////////////////////////////////////////////////
-  void loadClasses();
   void openEditDialog(int row, int column);
   void createTableItem(int32_t rowIdx, enums::ClassId classId, const std::string &name, const std::string &color, const std::string &notes);
 

@@ -119,7 +119,6 @@ auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t 
 
   auto h = ax->heatmap(data);
 
-  std::cout << "min " << std::to_string(mMin) << " max " << std::to_string(mMax) << std::endl;
   if(mMax > mMin) {
     ax->color_box_range(mMin, mMax);
   }

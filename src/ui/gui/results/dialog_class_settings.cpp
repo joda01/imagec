@@ -225,6 +225,19 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
 /// \param[out]
 /// \return
 ///
+void DialogClassSettings::setEditable(bool editable)
+{
+  mDialogClassName->setEnabled(editable);
+  mDialogColorCombo->setEnabled(editable);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void DialogClassSettings::onOkayPressed()
 {
   mOkayPressed = 0;

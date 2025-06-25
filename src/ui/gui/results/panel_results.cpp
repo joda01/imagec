@@ -547,9 +547,25 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   //
   //
   //
+  mClassSelector = new QAction(generateSvgIcon("sidebar-expand-left"), "");
+  mClassSelector->setCheckable(true);
+  mClassSelector->setChecked(true);
+  mClassSelector->setToolTip("Class selector");
+  connect(mClassSelector, &QAction::triggered, [this](bool checked) {
+    if(checked) {
+      mClassificationList->setVisible(true);
+    } else {
+      mClassificationList->setVisible(false);
+    }
+  });
+  toolbar->addItemToTopToolbar(mClassSelector);
+
   auto *addColumn = new QAction(generateSvgIcon("edit-table-insert-column-right"), "");
   addColumn->setToolTip("Add column");
-  connect(addColumn, &QAction::triggered, [this]() { columnEdit(-1); });
+  connect(addColumn, &QAction::triggered, [this]() {
+    columnEdit(-1);
+    mClassificationList->fromSettings();
+  });
 
   toolbar->addItemToTopToolbar(addColumn);
 
@@ -563,6 +579,7 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
         mFilter.sortColumns();
       }
       refreshView();
+      mClassificationList->fromSettings();
     }
   });
   toolbar->addItemToTopToolbar(mDeleteCol);
@@ -587,6 +604,7 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
     if(mAutoSort->isChecked()) {
       mFilter.sortColumns();
       refreshView();
+      mClassificationList->fromSettings();
     }
   });
 
@@ -1233,7 +1251,14 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   mIsActive = true;
   mWindowMain->setSideBarVisible(false);
   mClassificationList->setDatabase(mAnalyzer.get());
-  mClassificationList->setVisible(true);
+  if(mClassSelector->isChecked()) {
+    mClassificationList->setVisible(true);
+  }
+  connect(mClassificationList, &QDockWidget::visibilityChanged, [&](bool visible) {
+    if(!visible) {
+      mClassSelector->setChecked(false);
+    }
+  });
 
   refreshView();
 
@@ -1386,7 +1411,7 @@ void PanelResults::tableToHeatmap(const db::QueryResult &table)
     mColumn->blockSignals(true);
     auto actData = mColumn->currentData();
     mColumn->clear();
-    for(const auto &[key, value] : mFilter.getColumns()) {
+    for(const auto &[key, value] : mActFilter.getColumns()) {
       QString headerText = value.createHeader().data();
       mColumn->addItem(headerText, key.colIdx);
     }

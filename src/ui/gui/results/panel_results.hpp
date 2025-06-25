@@ -173,6 +173,7 @@ private:
 
   // TOOLBARS///////////////////////////////////////////////////
   QAction *mAutoSort;
+  QAction *mClassSelector;
   QAction *mDeleteCol;
   QAction *mEditCol;
 

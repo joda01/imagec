@@ -253,6 +253,16 @@ void Database::createTables()
       " meas_distance_center_to_surface_max DOUBLE,"
       " meas_distance_surface_to_surface_min DOUBLE,"
       " meas_distance_surface_to_surface_max DOUBLE"
+      ");"
+
+      "CREATE TABLE IF NOT EXISTS cache_analyze_settings ("
+      " job_id UUID,"
+      " output_classes INTEGER[],"                             // A list of output channels
+      " measured_channels MAP<INTEGER, LIST<INTEGER>>,"        // A map with key is a channel id and value is an array of image channels
+      " intersecting_channels MAP<INTEGER, LIST<INTEGER>>,"    // A map with key is a channel id and value is an array of channel ids which
+                                                               // intersects with this channel
+      " distance_from_classes MAP<INTEGER, LIST<INTEGER>>"     // A map with key is a channel id and value is an array of channel ids which
+                                                               // measures the distance to this channel
       ");";
 
   auto connection = acquire();
@@ -718,6 +728,89 @@ void Database::setImagePlaneClasssClasssValidity(uint64_t imageId, const enums::
       "ON CONFLICT DO UPDATE SET validity = validity | ?",
       imageId, static_cast<uint16_t>(classId), planeId.cStack, planeId.zStack, planeId.tStack, static_cast<uint64_t>(validity.to_ullong()),
       static_cast<uint64_t>(validity.to_ullong()));
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+}
+
+///
+/// \brief
+/// \author    Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Database::setAnalyzeSettingsCache(const std::string &jobID, const std::set<enums::ClassId> &outputClasses,
+                                       const std::map<enums::ClassId, std::set<int32_t>> &measureChannels,
+                                       const std::map<enums::ClassId, std::set<enums::ClassId>> &intersectingChannels,
+                                       const std::map<enums::ClassId, std::set<enums::ClassId>> &distanceChannels)
+{
+  //
+  //
+  //
+  duckdb::vector<duckdb::Value> flattenPoints;
+  for(const auto &id : outputClasses) {
+    flattenPoints.emplace_back(static_cast<int32_t>(id));
+  }
+  auto outputClassesList = duckdb::Value::LIST(duckdb::LogicalType(duckdb::LogicalTypeId::INTEGER), flattenPoints);
+
+  //
+  //
+  //
+  duckdb::vector<duckdb::Value> classesForImg;
+  duckdb::vector<duckdb::Value> valuesImgChannels;
+  for(const auto &[classID, channels] : measureChannels) {
+    classesForImg.emplace_back(static_cast<int32_t>(classID));
+    duckdb::vector<duckdb::Value> channelsInt{channels.begin(), channels.end()};
+    valuesImgChannels.emplace_back(duckdb::Value::LIST(duckdb::LogicalType(duckdb::LogicalTypeId::INTEGER), channelsInt));
+  }
+  duckdb::LogicalType listTypeImgChannel = duckdb::LogicalType::LIST(duckdb::LogicalType::INTEGER);
+  auto measuredChannelsMap =
+      duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::INTEGER), listTypeImgChannel, classesForImg, valuesImgChannels);
+
+  //
+  //
+  //
+  duckdb::vector<duckdb::Value> classesForIntersection;
+  duckdb::vector<duckdb::Value> classesIntersecting;
+  for(const auto &[classID, classIntersect] : intersectingChannels) {
+    classesForIntersection.emplace_back(static_cast<int32_t>(classID));
+    duckdb::vector<duckdb::Value> channelsInt;
+    for(const auto &id : classIntersect) {
+      channelsInt.emplace_back(static_cast<int32_t>(id));
+    }
+    classesIntersecting.emplace_back(duckdb::Value::LIST(duckdb::LogicalType(duckdb::LogicalTypeId::INTEGER), channelsInt));
+  }
+  duckdb::LogicalType listTypeIntersectingClass = duckdb::LogicalType::LIST(duckdb::LogicalType::INTEGER);
+  auto intersectingChannelsMap =
+      duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::INTEGER), listTypeIntersectingClass, classesForIntersection, classesIntersecting);
+
+  //
+  //
+  //
+  duckdb::vector<duckdb::Value> classesForDistance;
+  duckdb::vector<duckdb::Value> classesDistances;
+  for(const auto &[classID, classIntersect] : distanceChannels) {
+    classesForDistance.emplace_back(static_cast<int32_t>(classID));
+    duckdb::vector<duckdb::Value> channelsInt;
+    for(const auto &id : classIntersect) {
+      channelsInt.emplace_back(static_cast<int32_t>(id));
+    }
+    classesDistances.emplace_back(duckdb::Value::LIST(duckdb::LogicalType(duckdb::LogicalTypeId::INTEGER), channelsInt));
+  }
+
+  duckdb::LogicalType listTypeDistanceToClass = duckdb::LogicalType::LIST(duckdb::LogicalType::INTEGER);
+  auto distanceFromClassMap =
+      duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::INTEGER), listTypeDistanceToClass, classesForDistance, classesDistances);
+
+  //
+  //
+  //
+  std::unique_ptr<duckdb::QueryResult> result = select(
+      "INSERT INTO cache_analyze_settings (job_id, output_classes, measured_channels, intersecting_channels, distance_from_classes) VALUES (?, ?, ?, "
+      "?, ?) ",
+      duckdb::Value::UUID(jobID), outputClassesList, measuredChannelsMap, intersectingChannelsMap, distanceFromClassMap);
+
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
