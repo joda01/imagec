@@ -1214,7 +1214,7 @@ auto Database::selectObjectInfo(uint64_t objectId) -> ObjectInfo
 ///
 auto Database::selectClasses() -> std::map<enums::ClassId, joda::settings::Class>
 {
-  std::unique_ptr<duckdb::QueryResult> result = select("SELECT class_id, name FROM classes");
+  std::unique_ptr<duckdb::QueryResult> result = select("SELECT class_id, name, notes, color FROM classes");
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
@@ -1226,6 +1226,8 @@ auto Database::selectClasses() -> std::map<enums::ClassId, joda::settings::Class
     joda::settings::Class tmp;
     tmp.classId = static_cast<enums::ClassId>(materializedResult->GetValue(0, n).GetValue<uint16_t>());
     tmp.name    = materializedResult->GetValue(1, n).GetValue<std::string>();
+    tmp.notes   = materializedResult->GetValue(2, n).GetValue<std::string>();
+    tmp.color   = materializedResult->GetValue(3, n).GetValue<std::string>();
     results.try_emplace(tmp.classId, tmp);
   }
 

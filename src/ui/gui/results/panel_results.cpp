@@ -72,6 +72,7 @@
 #include "ui/gui/helper/word_wrap_header.hpp"
 #include "ui/gui/results/graphs/graph_qt_backend.hpp"
 #include "ui/gui/results/graphs/plot_plate.hpp"
+#include "ui/gui/results/panel_classification_list.hpp"
 #include "ui/gui/window_main/window_main.hpp"
 #include <nlohmann/json_fwd.hpp>
 #include "dialog_column_settings.hpp"
@@ -309,6 +310,13 @@ PanelResults::PanelResults(WindowMain *windowMain) :
     mWindowMain->addDockWidget(Qt::DockWidgetArea::RightDockWidgetArea, mGraphDockWidget);
   }
 
+  // CLASSIFICATION
+  {
+    mClassificationList = new PanelClassificationList(mWindowMain);
+    mClassificationList->setVisible(false);
+    mWindowMain->addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, mClassificationList);
+  }
+
   //
   // Breadcrump
   //
@@ -443,6 +451,7 @@ void PanelResults::setActive(bool active)
     mPreviewImage->setVisible(false);
     mPreviewImage->resetImage();
     mGraphDockWidget->setVisible(false);
+    mClassificationList->setVisible(false);
     resetSettings();
     refreshView();
     mIsActive = active;
@@ -1222,6 +1231,8 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   mPreviewImage->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
   mIsActive = true;
   mWindowMain->setSideBarVisible(false);
+  mClassificationList->setDatabase(mAnalyzer.get());
+  mClassificationList->setVisible(true);
 
   refreshView();
 

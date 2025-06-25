@@ -44,6 +44,7 @@ namespace joda::ui::gui {
 class DialogColumnSettings;
 class DialogImageViewer;
 class QtBackend;
+class PanelClassificationList;
 
 ///
 /// \class      PanelResults
@@ -202,6 +203,9 @@ private:
   int32_t mSelectedTileX = 0;
   int32_t mSelectedTileY = 0;
   std::mutex mGeneratePreviewMutex;
+
+  /// CLASSES DOCK ////////////////////////////////////////////
+  PanelClassificationList *mClassificationList;
 
   /////////////////////////////////////////////////////
   uint64 mActGroupId = 0;
