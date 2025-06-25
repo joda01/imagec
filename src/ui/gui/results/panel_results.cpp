@@ -312,9 +312,10 @@ PanelResults::PanelResults(WindowMain *windowMain) :
 
   // CLASSIFICATION
   {
-    mClassificationList = new PanelClassificationList(mWindowMain);
+    mClassificationList = new PanelClassificationList(mWindowMain, &mFilter);
     mClassificationList->setVisible(false);
     mWindowMain->addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, mClassificationList);
+    connect(mClassificationList, &PanelClassificationList::settingsChanged, [this]() { refreshView(); });
   }
 
   //

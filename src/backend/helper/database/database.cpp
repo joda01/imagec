@@ -1267,6 +1267,113 @@ auto Database::selectMeasurementChannelsForClasss(enums::ClassId classId) -> std
 /// \param[out]
 /// \return
 ///
+auto Database::selectMeasurementChannelsForClasses() -> std::map<enums::ClassId, std::set<int32_t>>
+{
+  std::map<enums::ClassId, std::set<int32_t>> channels;
+  std::unique_ptr<duckdb::QueryResult> result = select(
+      "SELECT class_id,object_measurements.meas_stack_c FROM objects\n"
+      "JOIN object_measurements ON objects.object_id = object_measurements.object_id AND objects.image_id = object_measurements.image_id\n"
+      "GROUP BY object_measurements.meas_stack_c,class_id;");
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+    enums::ClassId classID = ((enums::ClassId) materializedResult->GetValue(0, n).GetValue<uint16_t>());
+    auto channelId         = (int32_t) materializedResult->GetValue(1, n).GetValue<uint32_t>();
+    channels[classID].emplace(channelId);
+  }
+  return channels;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Database::selectOutputClasses() -> std::set<enums::ClassId>
+{
+  std::set<enums::ClassId> channels;
+  std::unique_ptr<duckdb::QueryResult> result = select(
+      "SELECT class_id FROM objects\n"
+      "GROUP BY class_id;");
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+    enums::ClassId classID = ((enums::ClassId) materializedResult->GetValue(0, n).GetValue<uint16_t>());
+    channels.emplace(classID);
+  }
+  return channels;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Database::selectIntersectingClassForClasses() -> std::map<enums::ClassId, std::set<enums::ClassId>>
+{
+  std::map<enums::ClassId, std::set<enums::ClassId>> channels;
+  std::unique_ptr<duckdb::QueryResult> result = select(
+      "SELECT DISTINCT \n"
+      "parent.class_id AS class_id,\n"
+      "child.class_id AS child_class_id\n"
+      "FROM \n"
+      "    objects AS parent\n"
+      "JOIN \n"
+      "    objects AS child\n"
+      "ON \n"
+      "    child.meas_parent_object_id = parent.object_id;");
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+    auto classID   = ((enums::ClassId) materializedResult->GetValue(0, n).GetValue<uint16_t>());
+    auto channelId = (enums::ClassId) materializedResult->GetValue(1, n).GetValue<uint16_t>();
+    channels[classID].emplace(channelId);
+  }
+  return channels;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Database::selectDistanceClassForClasses() -> std::map<enums::ClassId, std::set<enums::ClassId>>
+{
+  std::map<enums::ClassId, std::set<enums::ClassId>> channels;
+  std::unique_ptr<duckdb::QueryResult> result = select(
+      "SELECT class_id,meas_class_id FROM distance_measurements\n"
+      "GROUP BY class_id,meas_class_id;");
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+    auto classID   = ((enums::ClassId) materializedResult->GetValue(0, n).GetValue<uint16_t>());
+    auto channelId = (enums::ClassId) materializedResult->GetValue(1, n).GetValue<uint16_t>();
+    channels[classID].emplace(channelId);
+  }
+  return channels;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void Database::updateResultsTableSettings(const std::string &jobId, const std::string &settings)
 {
   auto timestampFinished =

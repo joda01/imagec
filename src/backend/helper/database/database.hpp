@@ -82,6 +82,10 @@ public:
   auto selectObjectInfo(uint64_t objectId) -> ObjectInfo;
   auto selectImages() -> std::vector<ImageInfo>;
   auto selectMeasurementChannelsForClasss(enums::ClassId classId) -> std::set<int32_t>;
+  auto selectMeasurementChannelsForClasses() -> std::map<enums::ClassId, std::set<int32_t>>;
+  auto selectOutputClasses() -> std::set<enums::ClassId>;
+  auto selectIntersectingClassForClasses() -> std::map<enums::ClassId, std::set<enums::ClassId>>;
+  auto selectDistanceClassForClasses() -> std::map<enums::ClassId, std::set<enums::ClassId>>;
 
   void updateResultsTableSettings(const std::string &jobId, const std::string &settings);
   auto selectResultsTableSettings(const std::string &jobId) -> std::string;

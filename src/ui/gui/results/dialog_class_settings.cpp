@@ -276,7 +276,10 @@ void DialogClassSettings::fromSettings(const joda::settings::Class &classs)
     if(mMeasurements.contains(measure.measureChannel)) {
       mMeasurements.at(measure.measureChannel).first->setChecked(true);
       for(const auto stat : measure.stats) {
-        mMeasurements.at(measure.measureChannel).second.at(stat).first->setChecked(true);
+        try {
+          mMeasurements.at(measure.measureChannel).second.at(stat).first->setChecked(true);
+        } catch(...) {
+        }
       }
     }
   }

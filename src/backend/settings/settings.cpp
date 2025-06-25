@@ -16,6 +16,9 @@
 #include <filesystem>
 #include <stdexcept>
 #include <string>
+#include <vector>
+#include "backend/enums/enum_measurements.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
@@ -150,6 +153,142 @@ bool Settings::isEqual(const joda::settings::AnalyzeSettings &settingsOld, const
     joda::log::logError("Cannot compare: " + std::string(ex.what()));
   }
   return false;
+}
+
+///
+/// \brief      Generate results table settings based on template
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Settings::toResultsSettings(const ResultSettingsInput &settingsIn) -> ResultsSettings
+{
+  std::map<enums::ClassId, std::string> classNames;
+  for(const auto &classs : settingsIn.classes) {
+    classNames.emplace(classs.classId, classs.name);
+  }
+
+  std::map<enums::ClassId, joda::settings::Class> classes;
+  for(const auto &cl : settingsIn.classes) {
+    classes.emplace(cl.classId, cl);
+  }
+
+  ResultsSettings settings;
+  int32_t colIdx = 0;
+  for(const auto &entry : settingsIn.classes) {
+    auto addColumn = [&](enums::ClassId classId, enums::Measurement measureChannel, enums::Stats stat, int32_t crossChannel,
+                         enums::ClassId intersecting, const std::string &channelName = "") {
+      if(!classes.contains(classId)) {
+        joda::log::logError("Class name for ID >" + std::to_string((int32_t) classId) + "<not found during table generation from template!");
+        return;
+      }
+      std::string intersectingName;
+      if(intersecting != enums::ClassId::UNDEFINED) {
+        if(!classes.contains(intersecting)) {
+          joda::log::logError("Intersecting class name for ID >" + std::to_string((int32_t) intersecting) +
+                              "<not found during table generation from template!");
+          return;
+        }
+        intersectingName = classes.at(intersecting).name;
+      }
+
+      settings.addColumn(
+          ResultsSettings::ColumnIdx{.colIdx = colIdx},
+          ResultsSettings::ColumnKey{.classId             = classId,
+                                     .measureChannel      = measureChannel,
+                                     .stats               = stat,
+                                     .crossChannelStacksC = crossChannel,
+                                     .intersectingChannel = intersecting,
+                                     .zStack              = 0},
+          ResultsSettings::ColumnName{.crossChannelName = channelName, .className = classes.at(classId).name, .intersectingName = intersectingName});
+      colIdx++;
+    };
+    for(const auto &measure : entry.defaultMeasurements) {
+      for(auto stats : measure.stats) {
+        //
+        // For count only sum makes sense
+        //
+        if(measure.measureChannel == enums::Measurement::COUNT) {
+          addColumn(entry.classId, measure.measureChannel, enums::Stats::SUM, -1, enums::ClassId::UNDEFINED);
+          continue;
+        }
+
+        //
+        // For object IDs stats does not make sense
+        //
+        if(measure.measureChannel == enums::Measurement::OBJECT_ID || measure.measureChannel == enums::Measurement::ORIGIN_OBJECT_ID ||
+           measure.measureChannel == enums::Measurement::PARENT_OBJECT_ID || measure.measureChannel == enums::Measurement::TRACKING_ID) {
+          addColumn(entry.classId, measure.measureChannel, enums::Stats::OFF, -1, enums::ClassId::UNDEFINED);
+          continue;
+        }
+
+        addColumn(entry.classId, measure.measureChannel, stats, -1, enums::ClassId::UNDEFINED);
+      }
+    }
+
+    for(const auto &classId : settingsIn.outputClasses) {
+      if(classId == enums::ClassId::UNDEFINED || classId == enums::ClassId::NONE) {
+        continue;
+      }
+      for(const auto &measure : entry.defaultMeasurements) {
+        for(auto stats : measure.stats) {
+          //
+          // For intersecting only AVG and SUM makes sense
+          //
+          if(measure.measureChannel == enums::Measurement::INTERSECTING) {
+            // Add only those intersecting classes which appear in the pipeline
+            if(settingsIn.intersectingClasses.contains(classId)) {
+              for(const auto &intersectingClassId : settingsIn.intersectingClasses.at(classId)) {
+                addColumn(classId, measure.measureChannel, stats, -1, intersectingClassId);
+              }
+            }
+            continue;
+          }
+
+          //
+          // Intensity
+          //
+          if(measure.measureChannel == enums::Measurement::INTENSITY_SUM || measure.measureChannel == enums::Measurement::INTENSITY_AVG ||
+             measure.measureChannel == enums::Measurement::INTENSITY_MIN || measure.measureChannel == enums::Measurement::INTENSITY_MAX) {
+            // Iterate over cross channels
+            if(settingsIn.measuredChannels.contains(classId)) {
+              for(const auto &channelId : settingsIn.measuredChannels.at(classId)) {
+                addColumn(classId, measure.measureChannel, stats, channelId, enums::ClassId::UNDEFINED, "CH " + std::to_string(channelId));
+              }
+            }
+            continue;
+          }
+
+          //
+          // Distance
+          //
+          if(measure.measureChannel == enums::Measurement::DISTANCE_CENTER_TO_CENTER ||
+             measure.measureChannel == enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX ||
+             measure.measureChannel == enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN ||
+             measure.measureChannel == enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX ||
+             measure.measureChannel == enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN ||
+             measure.measureChannel == enums::Measurement::DISTANCE_FROM_OBJECT_ID ||
+             measure.measureChannel == enums::Measurement::DISTANCE_TO_OBJECT_ID) {
+            // List of distance from classes which contains the distance to classes
+            if(settingsIn.distanceFromClasses.contains(classId)) {
+              for(const auto &intersectingClassId : settingsIn.distanceFromClasses.at(classId)) {
+                if(measure.measureChannel == enums::Measurement::DISTANCE_FROM_OBJECT_ID ||
+                   measure.measureChannel == enums::Measurement::DISTANCE_TO_OBJECT_ID) {
+                  addColumn(classId, measure.measureChannel, enums::Stats::OFF, -1, intersectingClassId);
+                } else {
+                  addColumn(classId, measure.measureChannel, stats, -1, intersectingClassId);
+                }
+              }
+            }
+            continue;
+          }
+        }
+      }
+    }
+  }
+  settings.sortColumns();
+  return settings;
 }
 
 }    // namespace joda::settings

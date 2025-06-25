@@ -22,6 +22,7 @@
 #include <qwidget.h>
 #include <exception>
 #include <string>
+#include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/file_parser/directory_iterator.hpp"
@@ -30,6 +31,7 @@
 #include "backend/settings/project_settings/project_class.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
+#include "backend/settings/settings.hpp"
 #include "ui/gui/helper/color_combo/color_combo.hpp"
 #include "ui/gui/helper/colord_square_delegate.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
@@ -40,7 +42,8 @@
 
 namespace joda::ui::gui {
 
-PanelClassificationList::PanelClassificationList(WindowMain *windowMain) : mWindowMain(windowMain)
+PanelClassificationList::PanelClassificationList(WindowMain *windowMain, settings::ResultsSettings *settings) :
+    mWindowMain(windowMain), mResultsSettings(settings)
 {
   setWindowTitle("Column settings");
   mClassSettingsDialog = new DialogClassSettings(windowMain);
@@ -162,12 +165,37 @@ void PanelClassificationList::loadClasses()
     mClasses->setRowCount(0);
     return;
   }
+  mClassesList.clear();
   auto classes = mDatabase->selectClasses();
   mClasses->setRowCount(classes.size());
   int32_t rowIdx = 0;
+
+  auto cols = mResultsSettings->getColumns();
+
+  auto loadSettingsForClass = [&](const enums::ClassId classs) -> std::vector<settings::ResultsTemplate> {
+    std::map<enums::Measurement, settings::ResultsTemplate> retValTmp;
+    for(const auto &col : cols) {
+      if(col.second.classId == classs) {
+        auto &edit          = retValTmp[col.second.measureChannel];
+        edit.measureChannel = col.second.measureChannel;
+        edit.stats.emplace(col.second.stats);
+      }
+    }
+
+    std::vector<settings::ResultsTemplate> retVal;
+    retVal.reserve(retValTmp.size());
+    for(const auto &[_, val] : retValTmp) {
+      retVal.emplace_back(val);
+    }
+
+    return retVal;
+  };
+
   for(const auto &[id, classs] : classes) {
     createTableItem(rowIdx, id, classs.name, classs.color, classs.notes);
-    mClassesList.emplace_back(classs);
+    joda::settings::Class classTmp = classs;
+    classTmp.defaultMeasurements   = loadSettingsForClass(id);
+    mClassesList.emplace_back(classTmp);
     rowIdx++;
   }
 }
@@ -181,6 +209,13 @@ void PanelClassificationList::loadClasses()
 ///
 void PanelClassificationList::onSettingChanged()
 {
+  *mResultsSettings = joda::settings::Settings::toResultsSettings(
+      joda::settings::Settings::ResultSettingsInput{.classes             = {mClassesList.begin(), mClassesList.end()},
+                                                    .outputClasses       = mDatabase->selectOutputClasses(),
+                                                    .intersectingClasses = mDatabase->selectIntersectingClassForClasses(),
+                                                    .measuredChannels    = mDatabase->selectMeasurementChannelsForClasses(),
+                                                    .distanceFromClasses = mDatabase->selectDistanceClassForClasses()});
+  emit settingsChanged();
 }
 
 }    // namespace joda::ui::gui

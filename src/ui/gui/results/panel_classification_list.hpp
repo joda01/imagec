@@ -28,8 +28,11 @@ namespace joda::db {
 class Database;
 }
 
-namespace joda::ui::gui {
+namespace joda::settings {
+class ResultsSettings;
+}
 
+namespace joda::ui::gui {
 class WindowMain;
 
 ///
@@ -43,8 +46,9 @@ class PanelClassificationList : public QDockWidget
 
 public:
   /////////////////////////////////////////////////////
-  explicit PanelClassificationList(WindowMain *windowMain);
+  explicit PanelClassificationList(WindowMain *windowMain, settings::ResultsSettings *resultsSettings);
   void setDatabase(joda::db::Database *database);
+
 signals:
   void settingsChanged();
 
@@ -63,14 +67,14 @@ private:
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
+  settings::ResultsSettings *mResultsSettings;
   joda::db::Database *mDatabase = nullptr;
   PlaceholderTableWidget *mClasses;
-  std::vector<joda::settings::Class> mClassesList;
+  std::list<joda::settings::Class> mClassesList;
 
   /// DIALOG //////////////////////////////////////////////////
   DialogClassSettings *mClassSettingsDialog;
 
-private slots:
   void onSettingChanged();
 };
 }    // namespace joda::ui::gui
