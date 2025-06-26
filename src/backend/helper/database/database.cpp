@@ -40,6 +40,7 @@
 #include "backend/settings/settings.hpp"
 #include <duckdb/common/types.hpp>
 #include <duckdb/common/types/string_type.hpp>
+#include <duckdb/common/types/uuid.hpp>
 #include <duckdb/common/types/value.hpp>
 #include <duckdb/common/types/vector.hpp>
 #include <duckdb/common/vector.hpp>
@@ -365,7 +366,9 @@ void Database::createTables()
       /// \todo Store analyze cache settings
       {
         auto data = selectExperiment();
-        createAnalyzeSettingsCache(data.jobId);
+        if(!data.jobId.empty()) {
+          createAnalyzeSettingsCache(data.jobId);
+        }
       }
       joda::log::logInfo("Finished migration.");
     }
@@ -818,7 +821,7 @@ void Database::setImagePlaneClasssClasssValidity(uint64_t imageId, const enums::
 /// \param[out]
 /// \return
 ///
-void Database::setAnalyzeSettingsCache(const std::string &jobID, const std::set<enums::ClassId> &outputClasses,
+void Database::setAnalyzeSettingsCache(const std::string &jobIdStr, const std::set<enums::ClassId> &outputClasses,
                                        const std::map<enums::ClassId, std::set<int32_t>> &measureChannels,
                                        const std::map<enums::ClassId, std::set<enums::ClassId>> &intersectingChannels,
                                        const std::map<enums::ClassId, std::set<enums::ClassId>> &distanceChannels)
@@ -884,10 +887,12 @@ void Database::setAnalyzeSettingsCache(const std::string &jobID, const std::set<
   //
   //
   //
+  auto jobId = duckdb::Value::UUID(jobIdStr);
+
   std::unique_ptr<duckdb::QueryResult> result = select(
       "INSERT INTO cache_analyze_settings (job_id, output_classes, measured_channels, intersecting_channels, distance_from_classes) VALUES (?, ?, ?, "
       "?, ?) ",
-      duckdb::Value::UUID(jobID), outputClassesList, measuredChannelsMap, intersectingChannelsMap, distanceFromClassMap);
+      jobId, outputClassesList, measuredChannelsMap, intersectingChannelsMap, distanceFromClassMap);
 
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
@@ -1088,7 +1093,7 @@ auto Database::selectExperiment() -> AnalyzeMeta
 
     auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
     if(materializedResult->RowCount() > 0) {
-      exp.experimentId   = materializedResult->GetValue(0, 0).GetValue<std::string>();
+      exp.experimentId   = duckdb::UUID::ToString(materializedResult->GetValue(0, 0).GetValue<duckdb::hugeint_t>());
       exp.experimentName = materializedResult->GetValue(1, 0).GetValue<std::string>();
       exp.notes          = materializedResult->GetValue(2, 0).GetValue<std::string>();
     }
@@ -1123,7 +1128,7 @@ auto Database::selectExperiment() -> AnalyzeMeta
       }
 
       {
-        jobId = materializedResult->GetValue(4, 0).GetValue<std::string>();
+        jobId = duckdb::UUID::ToString(materializedResult->GetValue(4, 0).GetValue<duckdb::hugeint_t>());
       }
 
       tileWidth  = materializedResult->GetValue(5, 0).GetValue<uint32_t>();

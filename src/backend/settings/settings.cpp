@@ -221,8 +221,22 @@ auto Settings::toResultsSettings(const ResultSettingsInput &settingsIn) -> Resul
         addColumn(entry.classId, measure.measureChannel, enums::Stats::OFF, -1, enums::ClassId::UNDEFINED);
         continue;
       }
+
+      //
+      // For coordinates stats does not make sense
+      //
+      if(measure.measureChannel == enums::Measurement::CENTEROID_X || measure.measureChannel == enums::Measurement::CENTEROID_Y ||
+         measure.measureChannel == enums::Measurement::BOUNDING_BOX_WIDTH || measure.measureChannel == enums::Measurement::BOUNDING_BOX_HEIGHT) {
+        addColumn(entry.classId, measure.measureChannel, enums::Stats::OFF, -1, enums::ClassId::UNDEFINED);
+        continue;
+      }
+
       for(auto stats : measure.stats) {
-        addColumn(entry.classId, measure.measureChannel, stats, -1, enums::ClassId::UNDEFINED);
+        if(measure.measureChannel == enums::Measurement::CONFIDENCE || measure.measureChannel == enums::Measurement::AREA_SIZE ||
+           measure.measureChannel == enums::Measurement::PERIMETER || measure.measureChannel == enums::Measurement::CIRCULARITY) {
+          addColumn(entry.classId, measure.measureChannel, stats, -1, enums::ClassId::UNDEFINED);
+          continue;
+        }
       }
     }
 
