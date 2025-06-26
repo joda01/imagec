@@ -547,7 +547,7 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   //
   //
   //
-  mClassSelector = new QAction(generateSvgIcon("sidebar-expand-left"), "");
+  mClassSelector = new QAction(generateSvgIcon("edit-table-insert-column-right"), "");
   mClassSelector->setCheckable(true);
   mClassSelector->setChecked(true);
   mClassSelector->setToolTip("Class selector");
@@ -559,40 +559,40 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
     }
   });
   toolbar->addItemToTopToolbar(mClassSelector);
-
-  auto *addColumn = new QAction(generateSvgIcon("edit-table-insert-column-right"), "");
-  addColumn->setToolTip("Add column");
-  connect(addColumn, &QAction::triggered, [this]() {
-    columnEdit(-1);
-    mClassificationList->fromSettings();
-  });
-
-  toolbar->addItemToTopToolbar(addColumn);
-
-  mDeleteCol = new QAction(generateSvgIcon("edit-table-delete-column"), "");
-  mDeleteCol->setToolTip("Delete column");
-  connect(mDeleteCol, &QAction::triggered, [this]() {
-    if(mSelectedTableColumnIdx >= 0) {
-      auto colIdx = mActFilter.getColumn({.colIdx = mSelectedTableColumnIdx});
-      mFilter.eraseColumn(colIdx);
-      if(mAutoSort->isChecked()) {
-        mFilter.sortColumns();
-      }
-      refreshView();
+  /*
+    auto *addColumn = new QAction(generateSvgIcon("edit-table-insert-column-right"), "");
+    addColumn->setToolTip("Add column");
+    connect(addColumn, &QAction::triggered, [this]() {
+      columnEdit(-1);
       mClassificationList->fromSettings();
-    }
-  });
-  toolbar->addItemToTopToolbar(mDeleteCol);
+    });
 
-  mEditCol = new QAction(generateSvgIcon("document-edit"), "");
-  mEditCol->setToolTip("Edit column");
-  connect(mEditCol, &QAction::triggered, [this]() {
-    if(mSelectedTableColumnIdx >= 0) {
-      columnEdit(mSelectedTableColumnIdx);
-    }
-  });
-  toolbar->addItemToTopToolbar(mEditCol);
+    toolbar->addItemToTopToolbar(addColumn);
 
+    mDeleteCol = new QAction(generateSvgIcon("edit-table-delete-column"), "");
+    mDeleteCol->setToolTip("Delete column");
+    connect(mDeleteCol, &QAction::triggered, [this]() {
+      if(mSelectedTableColumnIdx >= 0) {
+        auto colIdx = mActFilter.getColumn({.colIdx = mSelectedTableColumnIdx});
+        mFilter.eraseColumn(colIdx);
+        if(mAutoSort->isChecked()) {
+          mFilter.sortColumns();
+        }
+        refreshView();
+        mClassificationList->fromSettings();
+      }
+    });
+    toolbar->addItemToTopToolbar(mDeleteCol);
+
+    mEditCol = new QAction(generateSvgIcon("document-edit"), "");
+    mEditCol->setToolTip("Edit column");
+    connect(mEditCol, &QAction::triggered, [this]() {
+      if(mSelectedTableColumnIdx >= 0) {
+        columnEdit(mSelectedTableColumnIdx);
+      }
+    });
+    toolbar->addItemToTopToolbar(mEditCol);
+  */
   toolbar->addSeparatorToTopToolbar();
 
   mAutoSort = new QAction(generateSvgIcon("view-sort-ascending-name"), "", this);
@@ -909,6 +909,8 @@ void PanelResults::refreshView()
     mIsLoading = true;
     QApplication::setOverrideCursor(Qt::WaitCursor);
     std::thread([this, rows, cols, wellOrder = wellOrder] {
+      joda::log::logTrace("Start refreshing view ...");
+
       std::lock_guard<std::mutex> lock(mLoadLock);
       storeResultsTableSettingsToDatabase();
     REFRESH_VIEW:
@@ -947,6 +949,8 @@ void PanelResults::refreshView()
         mTable->setCurrentCell(0, 0);
       }
       mIsLoading = false;
+      joda::log::logTrace("Finished refresh view.");
+
       emit finishedLoading();
     }).detach();
   }

@@ -42,10 +42,32 @@
 #include <duckdb/common/types/string_type.hpp>
 #include <duckdb/common/types/value.hpp>
 #include <duckdb/common/types/vector.hpp>
+#include <duckdb/common/vector.hpp>
 #include <duckdb/main/appender.hpp>
 #include <nlohmann/json_fwd.hpp>
 
 namespace joda::db {
+
+template <class KEY, class VALUE>
+auto duckdbMapToMap(auto &materializedResult) -> std::map<KEY, std::set<VALUE>>
+{
+  std::map<KEY, std::set<VALUE>> channels;
+
+  if(materializedResult->RowCount() > 0) {
+    duckdb::Value value = materializedResult->GetValue(0, 0);
+    auto children       = duckdb::MapValue::GetChildren(value);
+    for(int n = 0; n < children.size(); n++) {
+      auto tuple   = duckdb::ListValue::GetChildren(children[n]);    // LIST<INT32>
+      auto key     = tuple[0].GetValue<int32_t>();
+      auto values  = duckdb::ListValue::GetChildren(tuple[1]);
+      auto &toEdit = channels[static_cast<KEY>(key)];
+      for(int m = 0; m < values.size(); m++) {
+        toEdit.emplace(static_cast<VALUE>(values[m].GetValue<int32_t>()));
+      }
+    }
+  }
+  return channels;
+}
 
 /////////////////////////////////////////////////////
 void Database::openDatabase(const std::filesystem::path &pathToDb)
@@ -214,8 +236,8 @@ void Database::createTables()
       " meas_contour UINTEGER[],"
       " meas_origin_object_id UBIGINT,"
       " meas_parent_object_id UBIGINT,"
-      " meas_tracking_id UBIGINT"    // Elements having the same linked_object_id represent the same element (e.g used for coloc or object
-                                     // tracking)
+      " meas_parent_class_id USMALLINT DEFAULT NULL,"    // Class ID of the parent object
+      " meas_tracking_id UBIGINT"    // Elements having the same linked_object_id represent the same element (e.g used for coloc or object tracking)
       ");"
 
       "ALTER TABLE objects "
@@ -226,6 +248,9 @@ void Database::createTables()
 
       "ALTER TABLE objects "
       " ADD COLUMN IF NOT EXISTS meas_parent_object_id UBIGINT DEFAULT 0;\n"
+
+      "ALTER TABLE objects "
+      " ADD COLUMN IF NOT EXISTS meas_parent_class_id USMALLINT DEFAULT NULL;\n"
 
       "CREATE TABLE IF NOT EXISTS object_measurements ("
       "	image_id UBIGINT,"
@@ -257,12 +282,12 @@ void Database::createTables()
 
       "CREATE TABLE IF NOT EXISTS cache_analyze_settings ("
       " job_id UUID,"
-      " output_classes INTEGER[],"                             // A list of output channels
-      " measured_channels MAP<INTEGER, LIST<INTEGER>>,"        // A map with key is a channel id and value is an array of image channels
-      " intersecting_channels MAP<INTEGER, LIST<INTEGER>>,"    // A map with key is a channel id and value is an array of channel ids which
-                                                               // intersects with this channel
-      " distance_from_classes MAP<INTEGER, LIST<INTEGER>>"     // A map with key is a channel id and value is an array of channel ids which
-                                                               // measures the distance to this channel
+      " output_classes INTEGER[],"                         // A list of output channels
+      " measured_channels MAP(INTEGER, INTEGER[]),"        // A map with key is a channel id and value is an array of image channels
+      " intersecting_channels MAP(INTEGER, INTEGER[]),"    // A map with key is a channel id and value is an array of channel ids which
+                                                           // intersects with this channel
+      " distance_from_classes MAP(INTEGER, INTEGER[])"     // A map with key is a channel id and value is an array of channel ids which
+                                                           // measures the distance to this channel
       ");";
 
   auto connection = acquire();
@@ -298,6 +323,51 @@ void Database::createTables()
           }
         }
       }
+    }
+  }
+
+  //
+  {
+    std::unique_ptr<duckdb::QueryResult> result = select("SELECT job_id FROM cache_analyze_settings\n");
+    if(result->HasError()) {
+      throw std::invalid_argument(result->GetError());
+    }
+    auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+    if(materializedResult->RowCount() <= 0) {
+      joda::log::logInfo("Start migration: Create analyze settings cache ...");
+
+      /// \todo Fill the parent object class id
+      {
+        std::unique_ptr<duckdb::QueryResult> result = select("SELECT class_id,object_id, meas_parent_object_id FROM objects\n");
+        if(result->HasError()) {
+          throw std::invalid_argument(result->GetError());
+        }
+        auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+        std::map<uint64_t, enums::ClassId> objectIdClassMapping;
+        std::vector<std::pair<uint64_t, uint64_t>> parentIdObjectIdMapping;
+
+        for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+          auto classID        = (static_cast<enums::ClassId>(materializedResult->GetValue(0, n).GetValue<uint16_t>()));
+          auto objectId       = materializedResult->GetValue(1, n).GetValue<uint64_t>();
+          auto parentObjectId = materializedResult->GetValue(2, n).GetValue<uint64_t>();
+          objectIdClassMapping.emplace(objectId, classID);
+          parentIdObjectIdMapping.emplace_back(parentObjectId, objectId);
+        }
+
+        for(const auto &[parentObjectId, objectId] : parentIdObjectIdMapping) {
+          if(parentObjectId > 0) {
+            std::unique_ptr<duckdb::QueryResult> result = select("UPDATE objects SET meas_parent_class_id=? WHERE object_id=?\n",
+                                                                 static_cast<uint16_t>(objectIdClassMapping.at(parentObjectId)), objectId);
+          }
+        }
+      }
+
+      /// \todo Store analyze cache settings
+      {
+        auto data = selectExperiment();
+        createAnalyzeSettingsCache(data.jobId);
+      }
+      joda::log::logInfo("Finished migration.");
     }
   }
 }
@@ -375,7 +445,13 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
 
       objects.Append<uint64_t>(roi.getOriginObjectId());    // "	meas_origin_object_id UBIGINT"
       objects.Append<uint64_t>(roi.getParentObjectId());    // "	meas_parent_object_id UBIGINT"
-      objects.Append<uint64_t>(roi.getTrackingId());        // "	meas_tracking_id UBIGINT"
+      if(roi.getParentObjectId() > 0 && objectsList.containsObjectById(roi.getParentObjectId())) {
+        objects.Append<uint16_t>(
+            static_cast<uint16_t>(objectsList.getObjectById(roi.getParentObjectId())->getClassId()));    // "	meas_parent_class_id USMALLINT"
+      } else {
+        objects.AppendDefault();    // No parent
+      }
+      objects.Append<uint64_t>(roi.getTrackingId());    // "	meas_tracking_id UBIGINT"
 
       objects.EndRow();
 
@@ -734,7 +810,9 @@ void Database::setImagePlaneClasssClasssValidity(uint64_t imageId, const enums::
 }
 
 ///
-/// \brief
+/// \brief     We store the possible class outputs from the pipeline in a database cache
+///            This information is needed for result generation to know how which outputs,
+///            clocs, measures and distances are available.
 /// \author    Joachim Danmayr
 /// \param[in]
 /// \param[out]
@@ -823,6 +901,94 @@ void Database::setAnalyzeSettingsCache(const std::string &jobID, const std::set<
 /// \param[out]
 /// \return
 ///
+void Database::createAnalyzeSettingsCache(const std::string &jobId)
+{
+  auto selectOutputClasses = [this]() -> std::set<enums::ClassId> {
+    std::set<enums::ClassId> channels;
+    std::unique_ptr<duckdb::QueryResult> result = select(
+        "SELECT class_id FROM objects\n"
+        "GROUP BY class_id;");
+    if(result->HasError()) {
+      throw std::invalid_argument(result->GetError());
+    }
+    auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+    for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+      enums::ClassId classID = ((enums::ClassId) materializedResult->GetValue(0, n).GetValue<uint16_t>());
+      channels.emplace(classID);
+    }
+    return channels;
+  };
+
+  auto selectMeasurementChannelsForClasses = [this]() -> std::map<enums::ClassId, std::set<int32_t>> {
+    std::map<enums::ClassId, std::set<int32_t>> channels;
+    std::unique_ptr<duckdb::QueryResult> result = select(
+        "SELECT class_id,object_measurements.meas_stack_c FROM objects\n"
+        "JOIN object_measurements ON objects.object_id = object_measurements.object_id AND objects.image_id = object_measurements.image_id\n"
+        "GROUP BY object_measurements.meas_stack_c,class_id;");
+    if(result->HasError()) {
+      throw std::invalid_argument(result->GetError());
+    }
+    auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+    for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+      enums::ClassId classID = ((enums::ClassId) materializedResult->GetValue(0, n).GetValue<uint16_t>());
+      auto channelId         = (int32_t) materializedResult->GetValue(1, n).GetValue<uint32_t>();
+      channels[classID].emplace(channelId);
+    }
+    return channels;
+  };
+
+  auto selectIntersectingClassForClasses = [this]() -> std::map<enums::ClassId, std::set<enums::ClassId>> {
+    std::map<enums::ClassId, std::set<enums::ClassId>> channels;
+    std::unique_ptr<duckdb::QueryResult> result = select(
+        "SELECT DISTINCT \n"
+        "parent.class_id AS class_id,\n"
+        "child.class_id AS child_class_id\n"
+        "FROM \n"
+        "    objects AS parent\n"
+        "JOIN \n"
+        "    objects AS child\n"
+        "ON \n"
+        "    child.meas_parent_object_id = parent.object_id;");
+    if(result->HasError()) {
+      throw std::invalid_argument(result->GetError());
+    }
+    auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+    for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+      auto classID   = ((enums::ClassId) materializedResult->GetValue(0, n).GetValue<uint16_t>());
+      auto channelId = (enums::ClassId) materializedResult->GetValue(1, n).GetValue<uint16_t>();
+      channels[classID].emplace(channelId);
+    }
+    return channels;
+  };
+
+  auto selectDistanceClassForClasses = [this]() -> std::map<enums::ClassId, std::set<enums::ClassId>> {
+    std::map<enums::ClassId, std::set<enums::ClassId>> channels;
+    std::unique_ptr<duckdb::QueryResult> result = select(
+        "SELECT class_id,meas_class_id FROM distance_measurements\n"
+        "GROUP BY class_id,meas_class_id;");
+    if(result->HasError()) {
+      throw std::invalid_argument(result->GetError());
+    }
+    auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+    for(size_t n = 0; n < materializedResult->RowCount(); n++) {
+      auto classID   = ((enums::ClassId) materializedResult->GetValue(0, n).GetValue<uint16_t>());
+      auto channelId = (enums::ClassId) materializedResult->GetValue(1, n).GetValue<uint16_t>();
+      channels[classID].emplace(channelId);
+    }
+    return channels;
+  };
+
+  setAnalyzeSettingsCache(jobId, selectOutputClasses(), selectMeasurementChannelsForClasses(), selectIntersectingClassForClasses(),
+                          selectDistanceClassForClasses());
+}
+
+///
+/// \brief
+/// \author    Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void Database::insetImageToGroup(uint16_t plateId, uint64_t imageId, uint16_t imageIdx, const joda::grp::GroupInformation &groupInfo)
 {
   auto connection = acquire();
@@ -843,6 +1009,9 @@ std::string Database::startJob(const joda::settings::AnalyzeSettings &exp, const
     insertClasses(exp.projectSettings.classification.classes);
   }
   std::string jobId = insertJobAndPlates(exp, jobName);
+
+  setAnalyzeSettingsCache(jobId, exp.getOutputClasses(), exp.getImageChannelsUsedForMeasurement(), exp.getPossibleIntersectingClasses(),
+                          exp.getPossibleDistanceClasses());
   return jobId;
 }
 
@@ -1334,49 +1503,15 @@ auto Database::selectClasses() -> std::map<enums::ClassId, joda::settings::Class
 /// \param[out]
 /// \return
 ///
-auto Database::selectMeasurementChannelsForClasss(enums::ClassId classId) -> std::set<int32_t>
-{
-  std::set<int32_t> channels;
-  std::unique_ptr<duckdb::QueryResult> result = select(
-      "  SELECT object_measurements.meas_stack_c FROM objects"
-      "  JOIN object_measurements ON objects.object_id = object_measurements.object_id AND objects.image_id = object_measurements.image_id\n"
-      "   WHERE  class_id = ? "
-      "   GROUP BY object_measurements.meas_stack_c",
-      (uint16_t) classId);
-  if(result->HasError()) {
-    throw std::invalid_argument(result->GetError());
-  }
-  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
-  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-    channels.emplace((int32_t) materializedResult->GetValue(0, n).GetValue<uint32_t>());
-  }
-  return channels;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 auto Database::selectMeasurementChannelsForClasses() -> std::map<enums::ClassId, std::set<int32_t>>
 {
   std::map<enums::ClassId, std::set<int32_t>> channels;
-  std::unique_ptr<duckdb::QueryResult> result = select(
-      "SELECT class_id,object_measurements.meas_stack_c FROM objects\n"
-      "JOIN object_measurements ON objects.object_id = object_measurements.object_id AND objects.image_id = object_measurements.image_id\n"
-      "GROUP BY object_measurements.meas_stack_c,class_id;");
+  std::unique_ptr<duckdb::QueryResult> result = select("SELECT measured_channels FROM cache_analyze_settings\n");
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
   auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
-  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-    enums::ClassId classID = ((enums::ClassId) materializedResult->GetValue(0, n).GetValue<uint16_t>());
-    auto channelId         = (int32_t) materializedResult->GetValue(1, n).GetValue<uint32_t>();
-    channels[classID].emplace(channelId);
-  }
-  return channels;
+  return duckdbMapToMap<enums::ClassId, int32_t>(materializedResult);
 }
 
 ///
@@ -1389,16 +1524,17 @@ auto Database::selectMeasurementChannelsForClasses() -> std::map<enums::ClassId,
 auto Database::selectOutputClasses() -> std::set<enums::ClassId>
 {
   std::set<enums::ClassId> channels;
-  std::unique_ptr<duckdb::QueryResult> result = select(
-      "SELECT class_id FROM objects\n"
-      "GROUP BY class_id;");
+  std::unique_ptr<duckdb::QueryResult> result = select("SELECT output_classes FROM cache_analyze_settings\n");
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
   auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
-  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-    enums::ClassId classID = ((enums::ClassId) materializedResult->GetValue(0, n).GetValue<uint16_t>());
-    channels.emplace(classID);
+  if(materializedResult->RowCount() > 0) {
+    duckdb::Value value = materializedResult->GetValue(0, 0);
+    auto children       = duckdb::MapValue::GetChildren(value);
+    for(int n = 0; n < children.size(); n++) {
+      channels.emplace(static_cast<enums::ClassId>(children[n].GetValue<int32_t>()));
+    }
   }
   return channels;
 }
@@ -1413,26 +1549,12 @@ auto Database::selectOutputClasses() -> std::set<enums::ClassId>
 auto Database::selectIntersectingClassForClasses() -> std::map<enums::ClassId, std::set<enums::ClassId>>
 {
   std::map<enums::ClassId, std::set<enums::ClassId>> channels;
-  std::unique_ptr<duckdb::QueryResult> result = select(
-      "SELECT DISTINCT \n"
-      "parent.class_id AS class_id,\n"
-      "child.class_id AS child_class_id\n"
-      "FROM \n"
-      "    objects AS parent\n"
-      "JOIN \n"
-      "    objects AS child\n"
-      "ON \n"
-      "    child.meas_parent_object_id = parent.object_id;");
+  std::unique_ptr<duckdb::QueryResult> result = select("SELECT intersecting_channels FROM cache_analyze_settings\n");
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
   auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
-  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-    auto classID   = ((enums::ClassId) materializedResult->GetValue(0, n).GetValue<uint16_t>());
-    auto channelId = (enums::ClassId) materializedResult->GetValue(1, n).GetValue<uint16_t>();
-    channels[classID].emplace(channelId);
-  }
-  return channels;
+  return duckdbMapToMap<enums::ClassId, enums::ClassId>(materializedResult);
 }
 
 ///
@@ -1445,19 +1567,12 @@ auto Database::selectIntersectingClassForClasses() -> std::map<enums::ClassId, s
 auto Database::selectDistanceClassForClasses() -> std::map<enums::ClassId, std::set<enums::ClassId>>
 {
   std::map<enums::ClassId, std::set<enums::ClassId>> channels;
-  std::unique_ptr<duckdb::QueryResult> result = select(
-      "SELECT class_id,meas_class_id FROM distance_measurements\n"
-      "GROUP BY class_id,meas_class_id;");
+  std::unique_ptr<duckdb::QueryResult> result = select("SELECT distance_from_classes FROM cache_analyze_settings\n");
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
   auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
-  for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-    auto classID   = ((enums::ClassId) materializedResult->GetValue(0, n).GetValue<uint16_t>());
-    auto channelId = (enums::ClassId) materializedResult->GetValue(1, n).GetValue<uint16_t>();
-    channels[classID].emplace(channelId);
-  }
-  return channels;
+  return duckdbMapToMap<enums::ClassId, enums::ClassId>(materializedResult);
 }
 
 ///

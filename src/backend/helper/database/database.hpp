@@ -86,7 +86,6 @@ public:
   auto selectImageInfo(uint64_t imageId) -> ImageInfo;
   auto selectObjectInfo(uint64_t objectId) -> ObjectInfo;
   auto selectImages() -> std::vector<ImageInfo>;
-  auto selectMeasurementChannelsForClasss(enums::ClassId classId) -> std::set<int32_t>;
 
   auto selectOutputClasses() -> std::set<enums::ClassId>;
   auto selectMeasurementChannelsForClasses() -> std::map<enums::ClassId, std::set<int32_t>>;
@@ -120,6 +119,7 @@ private:
   void insertClasses(const std::list<settings::Class> &);
   void insertGroup();
   void flatten(const std::vector<cv::Point> &, duckdb::vector<duckdb::Value> &);
+  void createAnalyzeSettingsCache(const std::string &jobId);
 
   /////////////////////////////////////////////////////
   std::unique_ptr<duckdb::DBConfig> mDbCfg;

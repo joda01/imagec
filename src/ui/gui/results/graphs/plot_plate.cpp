@@ -31,6 +31,9 @@ std::string numberToExcelColumn(int number)
 auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t cols, int32_t colToDisplay, const PlotPlateSettings &settings,
                          std::shared_ptr<QtBackend> backend) -> std::map<Pos, int32_t>
 {
+  if(rows == 0) {
+    return {};
+  }
   int32_t densityMapSize = settings.densityMapSize;
   if(rows > 50 && cols > 50) {
     densityMapSize = settings.densityMapSize * rows / 50;

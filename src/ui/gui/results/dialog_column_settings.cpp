@@ -262,7 +262,7 @@ void DialogColumnSettings::onClassesChanged()
   {
     auto imageChannels  = mDatabase->selectImageChannels();
     auto currentChannel = mCrossChannelStackC->currentData().toInt();
-    auto channels       = mDatabase->selectMeasurementChannelsForClasss(static_cast<enums::ClassId>(classsSelected));
+    auto channels       = mDatabase->selectMeasurementChannelsForClasses()[static_cast<enums::ClassId>(classsSelected)];
     mCrossChannelStackC->blockSignals(true);
     mCrossChannelStackC->clear();
     for(const auto channelId : channels) {
