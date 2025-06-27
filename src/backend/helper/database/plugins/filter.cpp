@@ -125,9 +125,11 @@ std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvali
                   std::to_string(column.crossChannelStacksC) + ",\n";
 
     } else if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::INTERSECTION) {
-      offValue = "AVG";    // For intersecting the OFF value should be AVG
       std::string colName;
       std::string chStr = std::to_string(static_cast<int32_t>(column.intersectingChannel));
+      if(offValue == "ANY_VALUE") {
+        offValue = "AVG";    // For intersecting the OFF value should be AVG. This is leghacy and can be removed
+      }
 
       if(!isOuter) {
         colName = "recursive_child_count_" + chStr;
@@ -185,7 +187,7 @@ std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvali
 /// \param[out]
 /// \return
 ///
-std::string PreparedStatement::createStatsQueryJoins() const
+std::string PreparedStatement::createStatsQueryJoins(bool isImage) const
 {
   bool joinedDistance = false;
   std::set<uint32_t> joindStacks;
@@ -221,7 +223,12 @@ std::string PreparedStatement::createStatsQueryJoins() const
     if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::INTERSECTION) {
       if(!intersectionJoin) {
         intersectionJoin = true;
-        joins += "LEFT JOIN TblIntersecting ti on ti.image_id = t1.image_id\n";
+        joins += "LEFT JOIN TblIntersecting ti on ti.image_id = t1.image_id";
+        if(isImage) {
+          joins += " AND ti.object_id = t1.object_id\n";
+        } else {
+          joins += "\n";
+        }
       }
     }
   }

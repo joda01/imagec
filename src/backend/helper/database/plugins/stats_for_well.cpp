@@ -236,8 +236,8 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
                     "	MAX(images.validity) as validity,\n"
                     "	ANY_VALUE(t1.stack_t) as stack_t_real\n"
                     "FROM objects t1\n" +
-                    channelFilter.createStatsQueryJoins() +
-                    "JOIN images_groups ON\n"
+                    channelFilter.createStatsQueryJoins(false) +
+                    " JOIN images_groups ON\n"
                     "	t1.image_id = images_groups.image_id\n"
                     "JOIN groups on\n"
                     "	images_groups.group_id = groups.group_id\n"
@@ -304,12 +304,6 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
       sql += "ORDER BY file_name,stack_t_real";
     }
   }
-
-  std::cout << "--------------" << std::endl;
-  std::cout << sql << std::endl;
-  std::cout << "\n\n " << std::to_string(static_cast<uint16_t>(classsAndClass.classs)) << "  | "
-            << std::to_string(static_cast<uint16_t>(filter.groupId)) << std::endl;
-  std::cout << "--------------" << std::endl;
 
   if(filter.tStackHandling == settings::ResultsSettings::ObjectFilter::TStackHandling::INDIVIDUAL) {
     if(grouping == Grouping::BY_WELL) {
