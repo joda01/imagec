@@ -208,50 +208,17 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
 {
   auto [retValSum, retValCnt] = channelFilter.createIntersectionQuery();
   std::string intersect;
-  std::string table = "objects";
 
   if(!retValSum.empty()) {
-    table = "Intermediate";
     intersect =
-        " WITH RECURSIVE AllDescendants AS (\n"
+        " WITH TblIntersecting as (\n"
         "  SELECT\n"
-        "    object_id,\n"
-        "    meas_parent_object_id,\n"
-        "    object_id AS root_id,\n"
-        "    class_id\n"
-        "  FROM objects\n"
-        "  UNION ALL\n"
-        "  SELECT\n"
-        "    t.object_id,\n"
-        "    t.meas_parent_object_id,\n"
-        "    ad.root_id,\n"
-        "    t.class_id\n"
-        "  FROM objects t\n"
-        "  JOIN AllDescendants ad\n"
-        "    ON t.meas_parent_object_id = ad.object_id\n"
-        "),\n"
-        "RootClasses AS (\n"
-        "  SELECT\n"
-        "    object_id AS root_id,\n"
-        "    class_id AS root_class_id\n"
-        "  FROM objects\n"
-        "),\n"
-        "DescendantCounts AS (\n"
-        "  SELECT\n"
-        "    ad.root_id,\n" +
+        "  ad.image_id,\n" +
         retValSum +
-        "  FROM AllDescendants ad\n"
-        "  GROUP BY ad.root_id\n"
-        "),\n"
-        "Intermediate AS(\n"
-        "  SELECT\n"
-        "    t.*,\n" +
-        retValCnt +
-        "  FROM objects t\n"
-        "  LEFT JOIN DescendantCounts dc\n"
-        "    ON t.object_id = dc.root_id\n"
-        "  LEFT JOIN RootClasses rc\n"
-        "    ON t.object_id = rc.root_id\n"
+        "  FROM objects ad,\n"
+        "  WHERE ad.meas_parent_class_id=" +
+        std::to_string(static_cast<uint16_t>(classsAndClass.classs)) +
+        "  GROUP BY ad.image_id, ad.class_id, ad.meas_parent_object_id, ad.meas_parent_class_id\n"
         "),\n";
   } else {
     intersect = "WITH ";
@@ -268,9 +235,8 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
                     "	ANY_VALUE(images.image_id) as image_id,\n"
                     "	MAX(images.validity) as validity,\n"
                     "	ANY_VALUE(t1.stack_t) as stack_t_real\n"
-                    "FROM\n"
-                    "	" +
-                    table + " t1\n" + channelFilter.createStatsQueryJoins() +
+                    "FROM objects t1\n" +
+                    channelFilter.createStatsQueryJoins() +
                     "JOIN images_groups ON\n"
                     "	t1.image_id = images_groups.image_id\n"
                     "JOIN groups on\n"
@@ -338,6 +304,12 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
       sql += "ORDER BY file_name,stack_t_real";
     }
   }
+
+  std::cout << "--------------" << std::endl;
+  std::cout << sql << std::endl;
+  std::cout << "\n\n " << std::to_string(static_cast<uint16_t>(classsAndClass.classs)) << "  | "
+            << std::to_string(static_cast<uint16_t>(filter.groupId)) << std::endl;
+  std::cout << "--------------" << std::endl;
 
   if(filter.tStackHandling == settings::ResultsSettings::ObjectFilter::TStackHandling::INDIVIDUAL) {
     if(grouping == Grouping::BY_WELL) {

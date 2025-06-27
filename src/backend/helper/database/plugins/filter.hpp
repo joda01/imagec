@@ -46,7 +46,7 @@ public:
   {
   }
 
-  std::string createStatsQuery(bool isOuter, bool excludeInvalid, const std::string &offValue = "ANY_VALUE",
+  std::string createStatsQuery(bool isOuter, bool excludeInvalid, std::string offValue = "ANY_VALUE",
                                std::optional<enums::Stats> overrideStats = std::nullopt) const;
   std::string createStatsQueryJoins() const;
   std::tuple<std::string, std::string> createIntersectionQuery() const;

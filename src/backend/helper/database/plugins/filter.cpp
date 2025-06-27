@@ -64,9 +64,7 @@ std::tuple<std::string, std::string> PreparedStatement::createIntersectionQuery(
   for(const auto &[_, column] : columns) {
     if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::INTERSECTION) {
       std::string chStr = std::to_string(static_cast<int32_t>(column.intersectingChannel));
-      retValSum += "SUM(CASE WHEN ad.class_id = " + chStr + " THEN 1 ELSE 0 END) AS total_" + chStr + ",\n";
-      retValCnt += "(COALESCE(dc.total_" + chStr + ", 0) - CASE WHEN rc.root_class_id = " + chStr + " THEN 1 ELSE 0 END) AS recursive_child_count_" +
-                   chStr + ",\n";
+      retValSum += "SUM(CASE WHEN ad.class_id = " + chStr + " THEN 1 ELSE NULL END) AS recursive_child_count_" + chStr + ",\n";
     }
   }
 
@@ -92,7 +90,7 @@ std::tuple<std::string, std::string> PreparedStatement::createIntersectionQuery(
 /// \param[out]
 /// \return
 ///
-std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvalid, const std::string &offValue,
+std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvalid, std::string offValue,
                                                 std::optional<enums::Stats> overrideStats) const
 {
   std::string channels;
@@ -127,6 +125,7 @@ std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvali
                   std::to_string(column.crossChannelStacksC) + ",\n";
 
     } else if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::INTERSECTION) {
+      offValue = "AVG";    // For intersecting the OFF value should be AVG
       std::string colName;
       std::string chStr = std::to_string(static_cast<int32_t>(column.intersectingChannel));
 
@@ -136,7 +135,7 @@ std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvali
         colName = " recursive_child_count_" + chStr + "_" + getStatsString(column.stats, offValue);
       }
 
-      std::string tablePrefix = " t1.";
+      std::string tablePrefix = " ti.";
       if(isOuter || column.measureChannel == enums::Measurement::COUNT) {
         tablePrefix = " ";
       }
@@ -190,7 +189,9 @@ std::string PreparedStatement::createStatsQueryJoins() const
 {
   bool joinedDistance = false;
   std::set<uint32_t> joindStacks;
+  std::set<enums::ClassId> joindDistanceStacks;
   std::string joins;
+  bool intersectionJoin = false;
   for(const auto &[_, column] : columns) {
     if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::INTENSITY) {
       if(!joindStacks.contains(column.crossChannelStacksC)) {
@@ -205,7 +206,7 @@ std::string PreparedStatement::createStatsQueryJoins() const
     }
     if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE ||
        settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE_ID) {
-      if(!joindStacks.contains(column.crossChannelStacksC)) {
+      if(!joindDistanceStacks.contains(column.intersectingChannel)) {
         std::string tableName = "td";
         std::string chStr     = std::to_string(static_cast<int32_t>(column.intersectingChannel));
         joins += "LEFT JOIN distance_measurements " + tableName + " ON\n   t1.object_id = " + tableName +
@@ -213,7 +214,14 @@ std::string PreparedStatement::createStatsQueryJoins() const
                  " .meas_stack_z = " + std::to_string(column.zStack) + " AND " + tableName +
                  ".meas_stack_t = " + std::to_string(mFilter->getFilter().tStack) + "\n";
 
-        joindStacks.emplace(column.crossChannelStacksC);
+        joindDistanceStacks.emplace(column.intersectingChannel);
+      }
+    }
+
+    if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::INTERSECTION) {
+      if(!intersectionJoin) {
+        intersectionJoin = true;
+        joins += "LEFT JOIN TblIntersecting ti on ti.image_id = t1.image_id\n";
       }
     }
   }

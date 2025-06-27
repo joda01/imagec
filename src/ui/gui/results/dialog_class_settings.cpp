@@ -148,7 +148,7 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
   };
 
   addMeasure("Count", 0, 0, enums::Measurement::COUNT, {enums::Stats::OFF}, {enums::Stats::OFF});
-  addMeasure("Nr. of intersecting objects", 0, 1, enums::Measurement::INTERSECTING, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Nr. of intersecting objects", 0, 1, enums::Measurement::INTERSECTING, {enums::Stats::AVG}, {enums::Stats::AVG, enums::Stats::SUM});
 
   addSeparator(1);
   addMeasure("Area size", 2, 0, enums::Measurement::AREA_SIZE, {enums::Stats::AVG},
