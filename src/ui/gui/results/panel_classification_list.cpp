@@ -46,6 +46,7 @@ PanelClassificationList::PanelClassificationList(WindowMain *windowMain, setting
     mWindowMain(windowMain), mResultsSettings(settings)
 {
   setWindowTitle("Column settings");
+  setFeatures(features() & ~QDockWidget::DockWidgetClosable);
   mClassSettingsDialog = new DialogClassSettings(windowMain);
   mClassSettingsDialog->setEditable(false);
   auto *centralWidget = new QWidget();

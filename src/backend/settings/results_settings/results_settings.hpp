@@ -119,6 +119,21 @@ public:
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnName, crossChannelName, className, intersectingName);
   };
 
+  struct ColumnIdx
+  {
+    int32_t colIdx = 0;
+    bool operator<(const ColumnIdx &input) const
+    {
+      auto toInt = [](const ColumnIdx &in) -> uint64_t {
+        uint64_t erg = (static_cast<uint64_t>(in.colIdx));
+        return erg;
+      };
+      return toInt(*this) < toInt(input);
+    }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnIdx, colIdx);
+  };
+
   struct ColumnKey
   {
     joda::enums::ClassId classId;
@@ -188,21 +203,6 @@ public:
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnKey, classId, measureChannel, stats, crossChannelStacksC, intersectingChannel, zStack, names);
-  };
-
-  struct ColumnIdx
-  {
-    int32_t colIdx = 0;
-    bool operator<(const ColumnIdx &input) const
-    {
-      auto toInt = [](const ColumnIdx &in) -> uint64_t {
-        uint64_t erg = (static_cast<uint64_t>(in.colIdx));
-        return erg;
-      };
-      return toInt(*this) < toInt(input);
-    }
-
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnIdx, colIdx);
   };
 
   explicit ResultsSettings() = default;

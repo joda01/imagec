@@ -235,7 +235,6 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
   layout->addWidget(mDialogClassName);
   layout->addWidget(mDialogColorCombo);
   addLayoutSeparator();
-  layout->addWidget(new QLabel("<b>Measurement</b>"));
   layout->addLayout(measureLayout);
   addLayoutSeparator();
   layout->addLayout(buttonLayout);

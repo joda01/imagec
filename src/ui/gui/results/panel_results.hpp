@@ -45,6 +45,7 @@ class DialogColumnSettings;
 class DialogImageViewer;
 class QtBackend;
 class PanelClassificationList;
+class PanelGraphSettings;
 
 ///
 /// \class      PanelResults
@@ -128,12 +129,6 @@ private:
   void showOpenFileDialog();
   void backTo(Navigation backTo);
 
-  auto getWellOrder() const -> std::vector<std::vector<int32_t>>;
-  void setWellOrder(const std::vector<std::vector<int32_t>> &wellOrder);
-  void setPlateSize(const QSize &size);
-  auto getPlateSize() const -> QSize;
-  void setDensityMapSize(uint32_t densityMapSize);
-  auto getDensityMapSize() const -> uint32_t;
   void openNextLevel(const std::vector<table::TableCell> &selectedRows);
 
   WindowMain *mWindowMain;
@@ -186,27 +181,22 @@ private:
 
   /// GRAPH //////////////////////////////////////////////////
   void setHeatmapVisible(bool);
-  QDockWidget *mGraphDockWidget;
+  PanelGraphSettings *mDockWidgetGraphSettings;
   std::shared_ptr<QtBackend> mGraphContainer;
   std::map<Pos, int32_t> mPositionMapping;
-  QComboBox *mColumn;
-  QLineEdit *mWellOrderMatrix;
-  QComboBox *mPlateSize;
-  QComboBox *mDensityMapSize;
-  QComboBox *mColorMaps;
 
   /// IMAGE DOCK //////////////////////////////////////////////
   void loadPreview();
   bool showSelectWorkingDir(const QString &path);
   std::filesystem::path mImageWorkingDirectory;
-  DialogImageViewer *mPreviewImage = nullptr;
+  DialogImageViewer *mDockWidgetImagePreview = nullptr;
   joda::ome::OmeInfo mImgProps;
   int32_t mSelectedTileX = 0;
   int32_t mSelectedTileY = 0;
   std::mutex mGeneratePreviewMutex;
 
   /// CLASSES DOCK ////////////////////////////////////////////
-  PanelClassificationList *mClassificationList;
+  PanelClassificationList *mDockWidgetClassList;
 
   /////////////////////////////////////////////////////
   uint64 mActGroupId = 0;
