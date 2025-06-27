@@ -112,7 +112,7 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
     }
   }
 
-  classesToExport.mutableResult().arrangeByTrackingId();
+  // classesToExport.mutableResult().arrangeByTrackingId();
 
   return classesToExport.getResult();
 }

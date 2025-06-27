@@ -46,6 +46,7 @@ class DialogImageViewer;
 class QtBackend;
 class PanelClassificationList;
 class PanelGraphSettings;
+class Dashboard;
 
 ///
 /// \class      PanelResults
@@ -112,13 +113,11 @@ private:
 
   /////////////////////////////////////////////////////
   void valueChangedEvent() override;
-  void tableToQWidgetTable(const db::QueryResult &table);
   void tableToHeatmap(const db::QueryResult &table);
   void paintEmptyHeatmap();
   void goHome();
   void refreshView();
   void refreshBreadCrump();
-  void copyTableToClipboard(QTableWidget *table);
   void refreshActSelection();
   void resetSettings();
 
@@ -156,14 +155,10 @@ private:
   void columnEdit(int32_t colIdx);
   DialogColumnSettings *mColumnEditDialog;
 
-  /////////////////////////////////////////////////////
+  // FILTER ///////////////////////////////////////////////////
   settings::ResultsSettings mFilter;
   settings::ResultsSettings mActFilter;
-  PlaceholderTableWidget *mTable;
   db::QueryResult mActListData;
-  int32_t mSelectedTableColumnIdx = -1;
-  int32_t mSelectedTableRow       = -1;
-
   std::mutex mSelectMutex;
 
   // TOOLBARS///////////////////////////////////////////////////
@@ -178,6 +173,9 @@ private:
   DataSet mSelectedDataSet;
   QAction *mExportSvg = nullptr;
   QAction *mExportPng = nullptr;
+
+  /// DASHBOARD ///////////////////////////////////////
+  Dashboard *mDashboard;
 
   /// GRAPH //////////////////////////////////////////////////
   void setHeatmapVisible(bool);
@@ -222,13 +220,11 @@ private:
 public slots:
   void onFinishedLoading();
   void onMarkAsInvalidClicked(bool);
-  void onElementSelected(int cellX, int cellY, table::TableCell value);
+  void onElementSelected(int cellX, int cellY, table::TableCell value, const QString &description);
   void onOpenNextLevel(int cellX, int cellY, table::TableCell value);
-  void onTableCurrentCellChanged(int currentRow, int currentColumn, int previousRow, int previousColumn);
   void onExportImageClicked();
   void onShowTable();
   void onShowHeatmap();
-  void onCellClicked(int row, int column);
   void onColumnComboChanged();
   void onTileClicked(int32_t tileX, int32_t tileY);
 };

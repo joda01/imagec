@@ -21,50 +21,11 @@ Table::Table()
 {
 }
 
-void Table::print()
-{
-  using namespace std;
-  // Find maximum column width for each inner map
-  std::vector<unsigned long> colWidths(mData.begin()->second.size());    // Initialize with inner map size
-  for(const auto &outerPair : mData) {
-    int innerIdx = 0;
-    for(const auto &innerPair : outerPair.second) {
-      colWidths[innerIdx] = max(colWidths[innerIdx], (unsigned long) to_string(innerPair.second.getVal()).size());
-      innerIdx++;
-    }
-  }
-
-  // Print header row with proper formatting
-  std::cout << "O";
-  int n = 0;
-  for(unsigned long colWidth : colWidths) {
-    cout << right << setw(colWidth + 2) << mColHeader[n].createHeader();
-    n++;
-  }
-  cout << endl;
-
-  // Print separator row
-  cout << string(10, '-') << right;    // Adjust width as needed
-  for(unsigned long width : colWidths) {
-    cout << setw(width + 4) << '-' << right;
-  }
-  cout << endl;
-
-  // Print data rows with alignment and precision
-  for(const auto &outerPair : mData) {
-    cout << mRowHeader[outerPair.first];
-    for(const auto &innerPair : outerPair.second) {
-      if(colWidths.size() > innerPair.first) {
-        cout << right << setw(colWidths[innerPair.first] + 2) << fixed << setprecision(4) << innerPair.second.getVal();
-      }
-    }
-    cout << endl;
-  }
-}
-
 void Table::setColHeader(const std::map<uint32_t, settings::ResultsSettings::ColumnKey> &data)
 {
-  mColHeader = data;
+  for(const auto &[colIDx, key] : data) {
+    mDataColOrganized[colIDx].colSettings = key;
+  }
 }
 void Table::setRowHeader(const std::map<uint32_t, std::string> &data)
 {
@@ -88,10 +49,10 @@ void Table::setMeta(const Meta &meta)
 
 void Table::clear()
 {
-  mData.clear();
-  mColHeader.clear();
+  mDataColOrganized.clear();
   mRowHeader.clear();
   mNrOfCols = 0;
+  mNrOfRows = 0;
   mTitle.clear();
   mMeta = {};
   mMin  = std::numeric_limits<double>::max();
@@ -107,9 +68,9 @@ void Table::clear()
 ///
 [[nodiscard]] TableCell Table::data(uint32_t row, uint32_t col) const
 {
-  if(mData.contains(row)) {
-    if(mData.at(row).contains(col)) {
-      return mData.at(row).at(col);
+  if(mDataColOrganized.contains(col)) {
+    if(mDataColOrganized.at(col).rows.contains(row)) {
+      return mDataColOrganized.at(col).rows.at(row);
     }
   }
   return {};
@@ -130,8 +91,8 @@ void Table::arrangeByTrackingId()
   int32_t trackingIdRow = 0;
   std::map<int32_t, int32_t> objectIdRow;    // <COL ID, COL ROW IDX CNT>
 
-  for(const auto &[rowIdx, row] : mData) {
-    for(const auto &[colIdx, cell] : row) {
+  for(const auto &[colIdx, col] : mDataColOrganized) {
+    for(const auto &[rowIdx, cell] : col.rows) {
       if(cell.getTrackingId() != 0) {
         if(!trackingIdRowIdx.contains(cell.getTrackingId())) {
           trackingIdRowIdx.emplace(cell.getTrackingId(), trackingIdRow);
@@ -147,18 +108,18 @@ void Table::arrangeByTrackingId()
   }
 
   entry_t orderedTable;
-  for(const auto &[_, row] : mData) {
-    for(const auto &[colIdx, cell] : row) {
+  for(const auto &[colIdx, col] : mDataColOrganized) {
+    for(const auto &[_, cell] : col.rows) {
       int32_t rowIdx = -1;
       if(cell.getTrackingId() != 0) {
         rowIdx = trackingIdRowIdx.at(cell.getTrackingId());
       } else {
         rowIdx = objectIdRowIdx.at(cell.getId());
       }
-      orderedTable[rowIdx][colIdx] = cell;
+      orderedTable[colIdx].rows[rowIdx] = cell;
     }
   }
-  mData = orderedTable;
+  mDataColOrganized = orderedTable;
 }
 
 }    // namespace joda::table

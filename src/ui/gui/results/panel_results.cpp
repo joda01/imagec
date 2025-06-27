@@ -69,7 +69,7 @@
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/table_widget.hpp"
 #include "ui/gui/helper/widget_generator.hpp"
-#include "ui/gui/helper/word_wrap_header.hpp"
+#include "ui/gui/results/dashboard/dashboard.hpp"
 #include "ui/gui/results/graphs/graph_qt_backend.hpp"
 #include "ui/gui/results/graphs/plot_plate.hpp"
 #include "ui/gui/results/panel_classification_list.hpp"
@@ -102,22 +102,6 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   mDockWidgetImagePreview->setZProjectionButtonVisible(true);
   mWindowMain->addDockWidget(Qt::RightDockWidgetArea, mDockWidgetImagePreview);
 
-  //
-  // Create Table
-  //
-  mTable = new PlaceholderTableWidget();
-  mTable->setPlaceholderText("Click >Add column< to start.");
-  mTable->setRowCount(0);
-  mTable->setColumnCount(0);
-  mTable->verticalHeader()->setDefaultSectionSize(8);    // Set each row to 50 pixels height
-  mTable->setHorizontalHeader(new WordWrapHeader(Qt::Horizontal));
-
-  connect(mTable->verticalHeader(), &QHeaderView::sectionDoubleClicked,
-          [this](int logicalIndex) { openNextLevel({mActListData.data(logicalIndex, 0)}); });
-  connect(mTable, &QTableWidget::cellDoubleClicked, [this](int row, int column) { openNextLevel({mActListData.data(row, 0)}); });
-  connect(mTable, &QTableWidget::cellClicked, this, &PanelResults::onCellClicked);
-  connect(mTable, &QTableWidget::currentCellChanged, this, &PanelResults::onTableCurrentCellChanged);
-
   static const int32_t SELECTED_INFO_WIDTH   = 250;
   static const int32_t SELECTED_INFO_SPACING = 6;
   //
@@ -135,7 +119,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
         int selectedCol  = mDockWidgetGraphSettings->getSelectedColumn();
         auto selectedRow = found->second;
         auto value       = mActListData.data(selectedRow, selectedCol);
-        onElementSelected(selectedCol, selectedRow, value);
+        onElementSelected(selectedCol, selectedRow, value, "TT");
       }
     });
 
@@ -223,14 +207,11 @@ PanelResults::PanelResults(WindowMain *windowMain) :
     mOpenNextLevel->setStatusTip("Open selected wells/images");
     topBreadCrump->addWidget(mOpenNextLevel);
     connect(mOpenNextLevel, &QPushButton::clicked, [this]() {
-      QItemSelectionModel *selectionModel = mTable->selectionModel();
-      QModelIndexList selectedIndexes     = selectionModel->selectedIndexes();
-
-      std::vector<table::TableCell> selected;
-      for(const QModelIndex &index : selectedIndexes) {
-        selected.emplace_back(mActListData.data(index.row(), 0));
-      }
-      openNextLevel(selected);
+      // std::vector<table::TableCell> selected;
+      // for(const QModelIndex &index : selectedIndexes) {
+      //   selected.emplace_back(mActListData.data(index.row(), 0));
+      // }
+      // openNextLevel(selected);
     });
 
     topBreadCrump->addStretch();
@@ -259,6 +240,13 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   }
 
   //
+  // Dashboard
+  //
+  {
+    mDashboard = new Dashboard();
+  }
+
+  //
   // Add to layout
   //
   auto *tab = layout().addTab(
@@ -269,7 +257,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   col->addLayout(topBreadCrump);
   col->addLayout(topInfoLayout);
   col->addWidget(mGraphContainer.get());
-  col->addWidget(mTable);
+  col->addWidget(mDashboard);
 
   onShowTable();
   refreshView();
@@ -336,13 +324,12 @@ void PanelResults::resetSettings()
 
   mHeatmapButton->setChecked(false);
   mTableButton->setChecked(true);
-  mTable->setVisible(true);
+  mDashboard->setVisible(true);
+  mDashboard->reset();
   setHeatmapVisible(false);
 
   mTableButton->blockSignals(false);
   mHeatmapButton->blockSignals(false);
-  mTable->setRowCount(0);
-  mTable->setColumnCount(0);
 }
 
 ///
@@ -395,7 +382,7 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   // Copy button
   //
   auto *copyTable = new QAction(generateSvgIcon("edit-copy"), "Copy values", toolbar);
-  connect(copyTable, &QAction::triggered, [this]() { copyTableToClipboard(mTable); });
+  connect(copyTable, &QAction::triggered, [this]() { mDashboard->copyToClipboard(); });
   copyTable->setStatusTip("Copy table to clipboard");
   toolbar->addItemToTopToolbar(copyTable);
 
@@ -539,7 +526,7 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpImage->setVisible(true);
       mOpenNextLevel->setVisible(false);
       mDockWidgetImagePreview->resetMaxtimeStacks();
-      if(!mImageWorkingDirectory.empty() && mTable->isVisible()) {
+      if(!mImageWorkingDirectory.empty() && mDashboard->isVisible()) {
         mDockWidgetImagePreview->setVisible(true);
       } else {
         mDockWidgetImagePreview->setVisible(false);
@@ -801,13 +788,6 @@ void PanelResults::refreshView()
           mActListData = joda::db::StatsPerImage::toTable(mAnalyzer.get(), mFilter, &mActFilter);
         } break;
       }
-      if(mSelection.contains(mNavigation)) {
-        auto col = mSelection[mNavigation].col;
-        auto row = mSelection[mNavigation].row;
-        mTable->setCurrentCell(row, col);
-      } else {
-        mTable->setCurrentCell(0, 0);
-      }
       mIsLoading = false;
       joda::log::logTrace("Finished refresh view.");
 
@@ -825,7 +805,7 @@ void PanelResults::refreshView()
 ///
 void PanelResults::onFinishedLoading()
 {
-  tableToQWidgetTable(mActListData);
+  mDashboard->tableToQWidgetTable(mActListData);
   tableToHeatmap(mActListData);
   int32_t cols           = mFilter.getPlateSetup().cols;
   int32_t rows           = mFilter.getPlateSetup().rows;
@@ -858,7 +838,7 @@ void PanelResults::onFinishedLoading()
   refreshBreadCrump();
   auto col = mSelection[mNavigation].col;
   auto row = mSelection[mNavigation].row;
-  onElementSelected(col, row, mActListData.data(row, col));
+  onElementSelected(col, row, mActListData.data(row, col), "Description");
   update();
   QApplication::restoreOverrideCursor();
 }
@@ -915,16 +895,12 @@ void PanelResults::onMarkAsInvalidClicked(bool isInvalid)
 /// \brief      An element has been selected
 /// \author     Joachim Danmayr
 ///
-void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell value)
+void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell value, const QString &headerTxt)
 {
   if(cellX < 0 || cellY < 0) {
     mSelectedValue->setText("");
     mSelectedRowInfo->setText("");
     return;
-  }
-  QString headerTxt = "-";
-  if(mTable->horizontalHeader()->count() > cellX) {
-    headerTxt = mTable->horizontalHeaderItem(cellX)->text();
   }
   switch(mNavigation) {
     case Navigation::PLATE: {
@@ -1139,7 +1115,7 @@ void PanelResults::onShowTable()
     mExportPng->setVisible(false);
   }
 
-  mTable->setVisible(true);
+  mDashboard->setVisible(true);
   mDockWidgetGraphSettings->setVisible(false);
   setHeatmapVisible(false);
   refreshView();
@@ -1158,7 +1134,7 @@ void PanelResults::onShowHeatmap()
     mExportSvg->setVisible(true);
     mExportPng->setVisible(true);
   }
-  mTable->setVisible(false);
+  mDashboard->setVisible(false);
   mDockWidgetGraphSettings->setVisible(true);
   mDockWidgetGraphSettings->raise();    // Make it the active tab
   mDockWidgetImagePreview->setVisible(false);
@@ -1241,155 +1217,9 @@ void PanelResults::columnEdit(int32_t colIdx)
 /// \param[out]
 /// \return
 ///
-void PanelResults::tableToQWidgetTable(const joda::table::Table &tableIn)
-{
-  std::lock_guard<std::mutex> lock(mSelectMutex);
-
-  if(tableIn.getCols() > 0) {
-    mTable->setColumnCount(tableIn.getCols());
-    if(tableIn.getRows() == 0) {
-      // We print at least one empty row
-      mTable->setRowCount(1);
-    } else {
-      mTable->setRowCount(tableIn.getRows());
-    }
-
-  } else {
-    mTable->setColumnCount(0);
-    mTable->setRowCount(0);
-  }
-
-  auto createTableWidget = [](const QString &data) {
-    auto *widget = new QTableWidgetItem(data);
-    widget->setFlags(widget->flags() & ~Qt::ItemIsEditable);
-    widget->setStatusTip(data);
-    return widget;
-  };
-
-  // Header
-  for(int col = 0; col < mTable->columnCount(); col++) {
-    char txt      = col + 'A';
-    auto colCount = QString(std::string(1, txt).data());
-
-    if(tableIn.getCols() > col) {
-      QString headerText = tableIn.getColHeader(col).data();
-      mTable->setHorizontalHeaderItem(col, createTableWidget(headerText));
-
-    } else {
-      mTable->setHorizontalHeaderItem(col, createTableWidget(colCount));
-    }
-  }
-
-  // Row
-  for(int row = 0; row < mTable->rowCount(); row++) {
-    if(tableIn.getRows() > row) {
-      mTable->setVerticalHeaderItem(row, createTableWidget(tableIn.getRowHeader(row).data()));
-    } else {
-      mTable->setVerticalHeaderItem(row, createTableWidget(QString(std::to_string(row).data())));
-    }
-  }
-
-  for(int col = 0; col < mTable->columnCount(); col++) {
-    for(int row = 0; row < mTable->rowCount(); row++) {
-      QTableWidgetItem *item = mTable->item(row, col);
-      if(item == nullptr) {
-        item = createTableWidget(" ");
-        mTable->setItem(row, col, item);
-      }
-      if(item) {
-        if(tableIn.getRows() > row && tableIn.getCols() > col) {
-          if(tableIn.data(row, col).isNAN()) {
-            item->setText("-");
-          } else {
-            item->setText(QString::number((double) tableIn.data(row, col).getVal()));
-          }
-          QFont font = item->font();
-          font.setStrikeOut(!tableIn.data(row, col).isValid());
-          item->setFont(font);
-        } else {
-          item->setText(" ");
-        }
-      }
-    }
-  }
-}
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 void PanelResults::onColumnComboChanged()
 {
-  onTableCurrentCellChanged(mSelectedTableRow, mDockWidgetGraphSettings->getSelectedColumn(), mSelectedTableRow, mSelectedTableColumnIdx);
   refreshView();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::onTableCurrentCellChanged(int currentRow, int currentColumn, int previousRow, int previousColumn)
-{
-  onCellClicked(currentRow, currentColumn);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::onCellClicked(int rowSelected, int columnSelcted)
-{
-  std::lock_guard<std::mutex> lock(mLoadLock);
-  table::TableCell selectedData;
-  if(mActListData.empty()) {
-    mSelectedTableColumnIdx = -1;
-    mSelectedTableRow       = -1;
-  } else {
-    mSelectedTableColumnIdx = columnSelcted;
-    mSelectedTableRow       = rowSelected;
-    mSelection[mNavigation] = {rowSelected, columnSelcted};
-    selectedData            = mActListData.data(rowSelected, columnSelcted);
-  }
-  onElementSelected(mSelectedTableColumnIdx, mSelectedTableRow, selectedData);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::copyTableToClipboard(QTableWidget *table)
-{
-  QStringList data;
-  QStringList header;
-  for(int row = 0; row < table->rowCount(); ++row) {
-    QStringList rowData;
-    for(int col = 0; col < table->columnCount(); ++col) {
-      if(row == 0) {
-        header << table->horizontalHeaderItem(col)->text();
-      }
-      if(col == 0) {
-        rowData << table->verticalHeaderItem(row)->text();
-      }
-      rowData << table->item(row, col)->text();
-    }
-    data << rowData.join("\t");    // Join row data with tabs for better readability
-  }
-
-  QString text = "\t" + header.join("\t") + "\n" + data.join("\n");    // Join rows with newlines
-
-  QClipboard *clipboard = QApplication::clipboard();
-  clipboard->setText(text);
 }
 
 ///

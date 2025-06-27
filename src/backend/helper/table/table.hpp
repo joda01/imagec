@@ -123,7 +123,16 @@ private:
   Grouping mGrouping;
 };
 
-using entry_t = std::map<uint32_t, std::map<uint32_t, TableCell>>;
+using colRows_t = std::map<uint32_t, TableCell>;    // This is a column with its rows
+
+struct TableColumn
+{
+  colRows_t rows;
+  settings::ResultsSettings::ColumnKey colSettings;
+  std::string title;
+};
+
+using entry_t = std::map<uint32_t, TableColumn>;    // These are the different columns
 
 ///
 /// \class      Table
@@ -155,9 +164,14 @@ public:
   {
     return mRowHeader;
   }
-  auto getMutableColHeader() -> std::map<uint32_t, settings::ResultsSettings::ColumnKey> &
+  auto getMutableColHeader() -> entry_t &
   {
-    return mColHeader;
+    return mDataColOrganized;
+  }
+
+  auto columns() const -> const entry_t &
+  {
+    return mDataColOrganized;
   }
 
   [[nodiscard]] auto getRowHeader(uint32_t idx) const -> std::string
@@ -169,13 +183,12 @@ public:
   }
   [[nodiscard]] auto getColHeader(uint32_t idx) const -> std::string
   {
-    if(mColHeader.contains(idx)) {
-      return mColHeader.at(idx).createHeader();
+    if(mDataColOrganized.contains(idx)) {
+      return mDataColOrganized.at(idx).colSettings.createHeader();
     }
     return "";
   }
 
-  void print();
   [[nodiscard]] TableCell data(uint32_t row, uint32_t col) const;
 
   void setData(uint32_t row, uint32_t col, const TableCell &data)
@@ -185,12 +198,12 @@ public:
       mMax = std::max(mMax, data.getVal());
     }
 
-    mData[row][col] = data;
+    mDataColOrganized[col].rows[row] = data;
   }
 
   void setDataId(uint32_t row, uint32_t col, uint64_t id)
   {
-    mData[row][col].setId(id);
+    mDataColOrganized[col].rows[row].setId(id);
   }
 
   [[nodiscard]] auto getMinMax() const -> std::tuple<double, double>
@@ -236,7 +249,7 @@ public:
 
   [[nodiscard]] uint32_t getRows() const
   {
-    return mData.size();
+    return std::max(mNrOfRows, getRowHeaderSize());
   }
   [[nodiscard]] uint32_t getCols() const
   {
@@ -249,7 +262,7 @@ public:
   }
   [[nodiscard]] uint32_t getColHeaderSize() const
   {
-    return mColHeader.size();
+    return mDataColOrganized.size();
   }
 
   [[nodiscard]] std::string getTitle() const
@@ -272,13 +285,13 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  entry_t mData;    // <ROW, <COL, DATA>>
+  entry_t mDataColOrganized;    // <ROW, <COL, DATA>>
   double mMin = std::numeric_limits<double>::max();
   double mMax = std::numeric_limits<double>::min();
 
-  std::map<uint32_t, settings::ResultsSettings::ColumnKey> mColHeader;
   std::map<uint32_t, std::string> mRowHeader;
   uint32_t mNrOfCols = 0;
+  uint32_t mNrOfRows = 0;
   std::string mTitle;
   Meta mMeta;
 };
