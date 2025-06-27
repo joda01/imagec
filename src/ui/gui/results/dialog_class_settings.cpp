@@ -102,8 +102,9 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
   // Grid Layout for the measurements
   //
   auto *measureLayout = new QGridLayout();
-  auto addMeasure     = [&](const QString &text, int32_t row, int32_t col, enums::Measurement meas, const std::set<enums::Stats> &stats,
-                        const std::set<enums::Stats> &allowedStat) {
+  int32_t row         = 0;
+  auto addMeasure     = [&](const QString &text, const QString &description, enums::Measurement meas, const std::set<enums::Stats> &stats,
+                        const std::set<enums::Stats> &allowedStat, int32_t rowSpan = 1) {
     auto *menu = new QMenu();
     std::map<enums::Stats, std::pair<QAction *, bool>> statsMenu;
     auto addStats = [&](enums::Stats stat) {
@@ -136,58 +137,82 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
     toolButton->setMinimumWidth(250);
     toolButton->setDefaultAction(button);    // This binds text, icon, and triggered slot
 
-    measureLayout->addWidget(toolButton, row, col);
+    if(!description.isEmpty()) {
+      auto *help = new QLabel(description);
+      help->setMaximumWidth(300);
+      help->setMinimumWidth(300);
+      help->setWordWrap(true);
+      measureLayout->addWidget(help, row, 0, rowSpan, 1);
+    }
+    measureLayout->addWidget(toolButton, row, 1, 1, 1);
     mMeasurements.emplace(meas, std::pair<QAction *, std::map<enums::Stats, std::pair<QAction *, bool>>>{button, statsMenu});
+    row++;
   };
 
-  auto addSeparator = [&](int32_t row) {
+  auto addSeparator = [&]() {
     auto *separator = new QFrame;
     separator->setFrameShape(QFrame::HLine);
     separator->setFrameShadow(QFrame::Sunken);
     measureLayout->addWidget(separator, row, 0, 1, 2);
+    row++;
   };
 
-  addMeasure("Count", 0, 0, enums::Measurement::COUNT, {enums::Stats::OFF}, {enums::Stats::OFF});
-  addMeasure("Nr. of intersecting objects", 0, 1, enums::Measurement::INTERSECTING, {enums::Stats::AVG}, {enums::Stats::AVG, enums::Stats::SUM});
+  addMeasure("Count", "Number of objects of this class:", enums::Measurement::COUNT, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Intersecting objects", "Number of objects intersecting with objects of this class determined by the <b>Reclassify</b> command.",
+             enums::Measurement::INTERSECTING, {enums::Stats::AVG}, {enums::Stats::AVG, enums::Stats::SUM});
 
-  addSeparator(1);
-  addMeasure("Area size", 2, 0, enums::Measurement::AREA_SIZE, {enums::Stats::AVG},
+  addSeparator();
+  addMeasure("Area size", "Area size of the objects of this class:", enums::Measurement::AREA_SIZE, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-  addMeasure("Perimeter", 2, 1, enums::Measurement::PERIMETER, {enums::Stats::AVG},
+  addMeasure("Perimeter", "Perimeter size of the objects of this class:", enums::Measurement::PERIMETER, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-  addMeasure("Circularity", 3, 0, enums::Measurement::CIRCULARITY, {enums::Stats::AVG},
-             {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-
-  addSeparator(4);
-  addMeasure("Intensity min", 5, 0, enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG},
-             {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-  addMeasure("Intensity max", 5, 1, enums::Measurement::INTENSITY_MAX, {enums::Stats::AVG},
-             {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-  addMeasure("Intensity avg", 6, 0, enums::Measurement::INTENSITY_AVG, {enums::Stats::AVG},
-             {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-  addMeasure("Intensity sum", 6, 1, enums::Measurement::INTENSITY_SUM, {enums::Stats::AVG},
+  addMeasure("Circularity", "Circularity [0-1] size of the objects of this class:", enums::Measurement::CIRCULARITY, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
 
-  addSeparator(7);
-  addMeasure("Position", 8, 0, enums::Measurement::CENTEROID_X, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addSeparator();
+  addMeasure("Intensity min",
+             "The measured min/max/sum or avg intensity of the signals measured within an object. Measurement is always done in the unprocessed "
+             "image using the image channel [CH0, CH1, ...]"
+             "specified in the <b>Measure intensity</b> command.",
+             enums::Measurement::INTENSITY_MIN, {enums::Stats::AVG},
+             {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV}, 4);
+  addMeasure("Intensity max", "", enums::Measurement::INTENSITY_MAX, {enums::Stats::AVG},
+             {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
+  addMeasure("Intensity avg", "", enums::Measurement::INTENSITY_AVG, {enums::Stats::AVG},
+             {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
+  addMeasure("Intensity sum", "", enums::Measurement::INTENSITY_SUM, {enums::Stats::AVG},
+             {enums::Stats::AVG, enums::Stats::SUM, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
 
-  addSeparator(9);
-  addMeasure("Distance center to center", 10, 0, enums::Measurement::DISTANCE_CENTER_TO_CENTER, {enums::Stats::AVG},
+  addSeparator();
+  addMeasure("Position", "The [x,y] position of the object in the image.", enums::Measurement::CENTEROID_X, {enums::Stats::OFF}, {enums::Stats::OFF});
+
+  addSeparator();
+  addMeasure("Distance center to center",
+             "The distance measured from the objects of this class to the objects specified in the <b>Measure distance</b> command. For distance "
+             "measurement the centroid of both objects is used.",
+             enums::Measurement::DISTANCE_CENTER_TO_CENTER, {enums::Stats::AVG},
+             {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV}, 5);
+
+  addMeasure("Distance center to center min.", "", enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-  addMeasure("Distance center to surface max.", 11, 0, enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN, {enums::Stats::AVG},
+  addMeasure("Distance center to surface max.", "", enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-  addMeasure("Distance center to center min.", 11, 1, enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX, {enums::Stats::AVG},
+  addMeasure("Distance surface to surface min.", "", enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-  addMeasure("Distance surface to surface max.", 12, 0, enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN, {enums::Stats::AVG},
-             {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
-  addMeasure("Distance surface to surface max.", 12, 1, enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX, {enums::Stats::AVG},
+  addMeasure("Distance surface to surface max.", "", enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
 
-  addSeparator(13);
-  addMeasure("Object ID", 14, 0, enums::Measurement::OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
-  addMeasure("Parent object ID", 14, 1, enums::Measurement::PARENT_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
-  addMeasure("Origin object ID", 15, 0, enums::Measurement::ORIGIN_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
-  addMeasure("Tracking ID", 15, 1, enums::Measurement::TRACKING_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addSeparator();
+  addMeasure("Object ID", "A unique ID which identifies the object.", enums::Measurement::OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Parent object ID",
+             "The object ID of the object with which this object is intersecting, as determined by the <b>Reclassify</b> command.",
+             enums::Measurement::PARENT_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Origin object ID", "If the <b>Reclassify Copy</b> option was used, this is the object ID of the object that was copied.",
+             enums::Measurement::ORIGIN_OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+  addMeasure("Tracking ID",
+             "The same tracking ID is assigned to all objects that are identified as the same instance by either the <b>Colocalization</b> or "
+             "<b>Tracking</b> command.",
+             enums::Measurement::TRACKING_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
 
   //
   // Create a horizontal layout for the buttons
@@ -210,7 +235,7 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
   layout->addWidget(mDialogClassName);
   layout->addWidget(mDialogColorCombo);
   addLayoutSeparator();
-  layout->addWidget(new QLabel("<b>Measurements:</b>"));
+  layout->addWidget(new QLabel("<b>Measurement</b>"));
   layout->addLayout(measureLayout);
   addLayoutSeparator();
   layout->addLayout(buttonLayout);
