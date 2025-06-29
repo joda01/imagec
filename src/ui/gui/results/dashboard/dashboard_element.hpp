@@ -17,6 +17,10 @@
 #include "backend/helper/table/table.hpp"
 #include "ui/gui/helper/table_widget.hpp"
 
+namespace joda::table {
+class TableCell;
+}
+
 namespace joda::ui::gui {
 
 ///
@@ -36,6 +40,10 @@ public:
   void copyTableToClipboard() const;
   void reset();
 
+signals:
+  void cellSelected(const joda::table::TableCell *);
+  void cellDoubleClicked(const joda::table::TableCell *);
+
 private:
   /////////////////////////////////////////////////////
   void setHeader(const QString &);
@@ -43,10 +51,10 @@ private:
   /////////////////////////////////////////////////////
   QLabel *mHeaderLabel;
   PlaceholderTableWidget *mTable;
+  std::map<uint32_t, std::map<uint32_t, const joda::table::TableCell *>> mTableCells;
 
 public slots:
   /////////////////////////////////////////////////////
-  void onTableCurrentCellChanged(int currentRow, int currentColumn, int previousRow, int previousColumn);
   void onCellClicked(int row, int column);
 };
 

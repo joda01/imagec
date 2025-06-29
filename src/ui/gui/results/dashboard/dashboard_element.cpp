@@ -13,6 +13,7 @@
 #include <qcolor.h>
 #include <qlabel.h>
 #include <qnamespace.h>
+#include <qtmetamacros.h>
 #include <qwidget.h>
 #include "backend/helper/base32.hpp"
 #include "ui/gui/helper/html_delegate.hpp"
@@ -47,12 +48,9 @@ DashboardElement::DashboardElement(QWidget *widget) : QMdiSubWindow(widget)
     mTable->horizontalHeader()->setMinimumSectionSize(120);
     mTable->horizontalHeader()->setDefaultSectionSize(120);
     mTable->setItemDelegate(new HtmlDelegate(mTable));
-
-    // connect(mTable->verticalHeader(), &QHeaderView::sectionDoubleClicked,
-    //         [this](int logicalIndex) { openNextLevel({mActListData.data(logicalIndex, 0)}); });
-    // connect(mTable, &QTableWidget::cellDoubleClicked, [this](int row, int column) { openNextLevel({mActListData.data(row, 0)}); });
-    connect(mTable, &QTableWidget::cellClicked, this, &DashboardElement::onCellClicked);
-    connect(mTable, &QTableWidget::currentCellChanged, this, &DashboardElement::onTableCurrentCellChanged);
+    connect(mTable, &QTableWidget::cellDoubleClicked, [this](int row, int column) { emit cellDoubleClicked(mTableCells[column][row]); });
+    connect(mTable, &QTableWidget::cellClicked, [this](int row, int column) { emit cellSelected(mTableCells[column][row]); });
+    connect(mTable, &QTableWidget::currentCellChanged, [this](int row, int column) { emit cellSelected(mTableCells[column][row]); });
     layout->addWidget(mTable);
   }
   setWidget(centralWidget);
@@ -192,7 +190,8 @@ void DashboardElement::setData(const QString &description, const std::vector<con
         // =========================================
         // Add data
         // =========================================
-        QTableWidgetItem *item = mTable->item(row, colTbl);
+        QTableWidgetItem *item   = mTable->item(row, colTbl);
+        mTableCells[colTbl][row] = &rowData;
         if(item == nullptr) {
           item = createTableWidget("");
           mTable->setItem(row, colTbl, item);
@@ -332,18 +331,6 @@ void DashboardElement::onCellClicked(int rowSelected, int columnSelcted)
     selectedData            = mActListData.data(rowSelected, columnSelcted);
   }*/
   // onElementSelected(mSelectedTableColumnIdx, mSelectedTableRow, selectedData);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DashboardElement::onTableCurrentCellChanged(int currentRow, int currentColumn, int previousRow, int previousColumn)
-{
-  onCellClicked(currentRow, currentColumn);
 }
 
 ///
