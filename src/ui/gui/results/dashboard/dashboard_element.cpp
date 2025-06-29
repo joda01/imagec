@@ -107,7 +107,8 @@ void DashboardElement::setData(const QString &description, const std::vector<con
     int32_t alternate = 0;
     QColor bgColor    = mTable->palette().color(QPalette::Base);
     for(const auto &colData : cols) {
-      QString headerText = colData->colSettings.createHtmlHeader(false).data();
+      QString headerText =
+          colData->colSettings.createHtmlHeader(settings::ResultsSettings::ColumnKey::HeaderStyle::ONLY_STATS_CONTAINS_INTERSECTING).data();
       mTable->setHorizontalHeaderItem(colTbl, createTableWidget(headerText));
       int row = 0;
       for(const auto &[_, rowData] : colData->rows) {
@@ -182,7 +183,8 @@ void DashboardElement::setData(const QString &description, const std::vector<con
   //
   //
   if(nullptr != intersectingColl) {
-    QString headerText = intersectingColl->colSettings.createHtmlHeader(false).data();
+    QString headerText =
+        intersectingColl->colSettings.createHtmlHeader(settings::ResultsSettings::ColumnKey::HeaderStyle::ONLY_STATS_IN_INTERSECTING).data();
     mTable->setHorizontalHeaderItem(0, createTableWidget(headerText));
     for(const auto &[_, rowData] : intersectingColl->rows) {
       if(rowData.getObjectId() == 0 || !startOfNewParent.contains(rowData.getObjectId())) {

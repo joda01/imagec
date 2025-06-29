@@ -171,7 +171,14 @@ public:
     }
 
     std::string createHeader() const;
-    std::string createHtmlHeader(bool withClassName) const;
+
+    enum class HeaderStyle
+    {
+      FULL,
+      ONLY_STATS_IN_INTERSECTING,
+      ONLY_STATS_CONTAINS_INTERSECTING
+    };
+    std::string createHtmlHeader(HeaderStyle style) const;
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnKey, classId, measureChannel, stats, crossChannelStacksC, intersectingChannel, zStack, names);
   };

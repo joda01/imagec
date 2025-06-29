@@ -59,7 +59,7 @@ std::string ResultsSettings::ColumnKey::createHeader() const
 /// \param[out]
 /// \return
 ///
-std::string ResultsSettings::ColumnKey::createHtmlHeader(bool withClassName) const
+std::string ResultsSettings::ColumnKey::createHtmlHeader(HeaderStyle style) const
 {
   std::map<uint32_t, std::string> columnHeaders;
   std::string stacks = "{Z" + std::to_string(zStack) + "}";
@@ -72,7 +72,7 @@ std::string ResultsSettings::ColumnKey::createHtmlHeader(bool withClassName) con
   };
 
   std::string className = "<b>" + names.className + "</b><br>";
-  if(!withClassName) {
+  if(style != HeaderStyle::FULL) {
     className = "";
   }
 
@@ -80,10 +80,12 @@ std::string ResultsSettings::ColumnKey::createHtmlHeader(bool withClassName) con
     return className + toString(measureChannel) + " " + createStatsHeader(stats) + " " + "(C" + std::to_string(crossChannelStacksC) + ")" + stacks;
   }
   if(getType(measureChannel) == MeasureType::INTERSECTION) {
-    if(withClassName) {
+    if(style == HeaderStyle::FULL) {
       return "<b>" + names.intersectingName + "</b><br>in<br><b>" + names.className + "</b><br>" + createStatsHeader(stats) + "<br>" + stacks;
-    } else {
-      return "Nr. in " + names.className + "</b> " + createStatsHeader(stats) + "<br>" + stacks;
+    } else if(style == HeaderStyle::ONLY_STATS_IN_INTERSECTING) {
+      return "Counted in " + names.className + "</b> " + createStatsHeader(stats) + "<br>" + stacks;
+    } else if(style == HeaderStyle::ONLY_STATS_CONTAINS_INTERSECTING) {
+      return "Contains number of " + names.intersectingName + "</b> " + createStatsHeader(stats) + "<br>" + stacks;
     }
   }
   if(getType(measureChannel) == MeasureType::ID) {
