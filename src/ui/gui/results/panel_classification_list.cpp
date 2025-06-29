@@ -54,6 +54,7 @@ PanelClassificationList::PanelClassificationList(WindowMain *windowMain, setting
   auto *layout = new QVBoxLayout();
   layout->setContentsMargins(0, 2, 0, 0);
   centralWidget->setLayout(layout);
+  setMaximumWidth(250);
 
   {
     auto *toolbar = new QToolBar();

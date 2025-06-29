@@ -44,7 +44,7 @@ PanelGraphSettings::PanelGraphSettings(WindowMain *windowMain) : mWindowMain(win
   auto *layout = new QVBoxLayout();
   layout->setContentsMargins(0, 2, 0, 0);
   centralWidget->setLayout(layout);
-
+  setMaximumWidth(250);
   {
     auto *toolbar = new QToolBar();
 
@@ -59,7 +59,7 @@ PanelGraphSettings::PanelGraphSettings(WindowMain *windowMain) : mWindowMain(win
     //
     mColumn = new QComboBox();
     connect(mColumn, &QComboBox::currentIndexChanged, [this]() { emit settingsChanged(); });
-    formLayout->addRow("Table column to show:", mColumn);
+    formLayout->addRow("Column:", mColumn);
 
     //
     // Well order matrix

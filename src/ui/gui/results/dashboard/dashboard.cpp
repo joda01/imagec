@@ -19,6 +19,7 @@
 #include "backend/helper/table/table.hpp"
 #include "ui/gui/helper/word_wrap_header.hpp"
 #include "ui/gui/results/dashboard/dashboard_element.hpp"
+#include "ui/gui/window_main/window_main.hpp"
 
 namespace joda::ui::gui {
 
@@ -29,7 +30,7 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-Dashboard::Dashboard()
+Dashboard::Dashboard(WindowMain *mainWindow) : mMainWindow(mainWindow)
 {
   // setViewMode(QMdiArea::TabbedView);
   setTabsMovable(true);
@@ -55,8 +56,9 @@ void Dashboard::reset()
 /// \param[out]
 /// \return
 ///
-void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn)
+void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn, bool isImageView)
 {
+  mMidiWindows.clear();
   clearLayout();
 
   struct Entry
@@ -91,10 +93,11 @@ void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn)
     }
   }
 
-  auto createDashboards = [this](const std::map<enums::ClassId, Entry> &entries) {
-    for(const auto &[_, dashData] : entries) {
+  auto createDashboards = [this, &isImageView](const std::map<enums::ClassId, Entry> &entries) {
+    for(const auto &[classId, dashData] : entries) {
       auto *element01 = new DashboardElement(this);
-      element01->setData(dashData.colName.data(), dashData.cols, dashData.intersectingCol);
+      mMidiWindows.emplace(classId, element01);
+      element01->setData(dashData.colName.data(), dashData.cols, isImageView, dashData.intersectingCol);
       element01->show();
     }
   };
@@ -114,6 +117,12 @@ void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn)
 ///
 void Dashboard::copyToClipboard() const
 {
+  for(const auto &[_, subWindow] : mMidiWindows) {
+    if(subWindow == activeSubWindow()) {
+      subWindow->copyTableToClipboard();
+      mMainWindow->statusBar()->showMessage("Copied >" + subWindow->windowTitle() + "< data to clipboard", 5000);
+    }
+  }
 }
 
 ///

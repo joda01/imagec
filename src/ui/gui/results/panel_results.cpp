@@ -243,7 +243,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   // Dashboard
   //
   {
-    mDashboard = new Dashboard();
+    mDashboard = new Dashboard(windowMain);
   }
 
   //
@@ -439,20 +439,7 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
     toolbar->addItemToTopToolbar(mEditCol);
   */
   toolbar->addSeparatorToTopToolbar();
-
-  mAutoSort = new QAction(generateSvgIcon("view-sort-ascending-name"), "", this);
-  mAutoSort->setCheckable(true);
-  mAutoSort->setChecked(true);
-  mAutoSort->setStatusTip("Sort columns");
-  toolbar->addItemToTopToolbar(mAutoSort);
-  connect(mAutoSort, &QAction::triggered, [this]() {
-    if(mAutoSort->isChecked()) {
-      mFilter.sortColumns();
-      refreshView();
-      mDockWidgetClassList->fromSettings();
-    }
-  });
-
+  mFilter.sortColumns();
   toolbar->addSeparatorToTopToolbar();
 
   //
@@ -805,7 +792,7 @@ void PanelResults::refreshView()
 ///
 void PanelResults::onFinishedLoading()
 {
-  mDashboard->tableToQWidgetTable(mActListData);
+  mDashboard->tableToQWidgetTable(mActListData, mNavigation == Navigation::IMAGE);
   tableToHeatmap(mActListData);
   int32_t cols           = mFilter.getPlateSetup().cols;
   int32_t rows           = mFilter.getPlateSetup().rows;
@@ -1203,9 +1190,8 @@ void PanelResults::columnEdit(int32_t colIdx)
   } else {
     mColumnEditDialog->exec({}, true);
   }
-  if(mAutoSort->isChecked()) {
-    mFilter.sortColumns();
-  }
+  mFilter.sortColumns();
+
   refreshView();
 }
 

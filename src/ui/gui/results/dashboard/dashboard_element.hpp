@@ -31,7 +31,8 @@ class DashboardElement : public QMdiSubWindow
 public:
   /////////////////////////////////////////////////////
   DashboardElement(QWidget *widget);
-  void setData(const QString &description, const std::vector<const table::TableColumn *> &cols, const table::TableColumn *intersectingColl = nullptr);
+  void setData(const QString &description, const std::vector<const table::TableColumn *> &cols, bool isImageView,
+               const table::TableColumn *intersectingColl = nullptr);
   void copyTableToClipboard() const;
   void reset();
 
