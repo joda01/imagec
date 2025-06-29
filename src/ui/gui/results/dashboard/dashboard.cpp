@@ -69,7 +69,7 @@ void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn)
   std::map<enums::ClassId, Entry> dashboards;
   std::map<enums::ClassId, Entry> intersecting;
 
-  for(const auto &[key, col] : tableIn.columns()) {
+  for(const auto &[_, col] : tableIn.columns()) {
     if(col.colSettings.measureChannel == enums::Measurement::INTERSECTING) {
       auto &work           = intersecting[col.colSettings.intersectingChannel];
       work.intersectingCol = &col;
@@ -77,7 +77,8 @@ void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn)
     }
   }
 
-  for(const auto &[key, col] : tableIn.columns()) {
+  for(const auto &[_, col] : tableIn.columns()) {
+    std::cout << col.colSettings.createHeader() << std::endl;
     // Put the parents of the intersecting to the
     if(intersecting.contains(col.colSettings.classId)) {
       auto &ed   = intersecting[col.colSettings.classId];

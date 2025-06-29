@@ -13,6 +13,7 @@
 #include <qcolor.h>
 #include <qnamespace.h>
 #include <qwidget.h>
+#include "ui/gui/helper/html_delegate.hpp"
 #include "ui/gui/helper/word_wrap_header.hpp"
 
 namespace joda::ui::gui {
@@ -33,6 +34,7 @@ DashboardElement::DashboardElement(QWidget *widget) : QMdiSubWindow(widget)
   mTable->setColumnCount(0);
   mTable->verticalHeader()->setDefaultSectionSize(8);    // Set each row to 50 pixels height
   mTable->setHorizontalHeader(new WordWrapHeader(Qt::Horizontal));
+  mTable->setItemDelegate(new HtmlDelegate(mTable));
 
   // connect(mTable->verticalHeader(), &QHeaderView::sectionDoubleClicked,
   //         [this](int logicalIndex) { openNextLevel({mActListData.data(logicalIndex, 0)}); });
@@ -48,7 +50,11 @@ void DashboardElement::setData(const QString &description, const std::vector<con
                                const table::TableColumn *intersectingColl)
 {
   setWindowTitle(description);
-  mTable->setColumnCount(cols.size());
+  int32_t colCount = cols.size();
+  if(intersectingColl != nullptr) {
+    colCount++;
+  }
+  mTable->setColumnCount(colCount);
   mTable->setRowCount(0);
 
   auto createTableWidget = [](const QString &data) {
@@ -72,29 +78,33 @@ void DashboardElement::setData(const QString &description, const std::vector<con
 
   // Header
   {
-    int col           = intersectingColl == nullptr ? 0 : 1;    // We start with 1 because at 0 we pout the intersecting objects
+    int colTbl        = intersectingColl == nullptr ? 0 : 1;    // We start with 1 because at 0 we pout the intersecting objects
     int32_t alternate = 0;
-    QColor bgColor    = Qt::white;
+    QColor bgColor    = mTable->palette().color(QPalette::Base);
     for(const auto &colData : cols) {
-      char txt           = col + 'A';
+      char txt           = colTbl + 'A';
       auto colCount      = QString(std::string(1, txt).data());
       QString headerText = colData->colSettings.createHeader().data();
-      mTable->setHorizontalHeaderItem(col, createTableWidget(headerText));
+      mTable->setHorizontalHeaderItem(colTbl, createTableWidget(headerText));
       int row = 0;
       for(const auto &[_, rowData] : colData->rows) {
         if(mTable->rowCount() < (row + 1)) {
           mTable->setRowCount(row + 1);
         }
-        if(!startOfNewParent.contains(rowData.getParentId())) {
+        auto key = rowData.getParentId();
+        if(key == 0) {
+          key = rowData.getObjectId();
+        }
+        if(!startOfNewParent.contains(key)) {
           if(alternate % 2 != 0) {
-            bgColor = Qt::lightGray;
+            bgColor = mTable->palette().color(QPalette::AlternateBase);
           } else {
-            bgColor = Qt::white;
+            bgColor = mTable->palette().color(QPalette::Base);
           }
           alternate++;
-          startOfNewParent[rowData.getParentId()] = {row, bgColor};
+          startOfNewParent[key] = {row, bgColor};
         } else {
-          bgColor = startOfNewParent.at(rowData.getParentId()).bgColor;
+          bgColor = startOfNewParent.at(key).bgColor;
         }
 
         // Cleanup possible old data
@@ -104,10 +114,10 @@ void DashboardElement::setData(const QString &description, const std::vector<con
         }
 
         mTable->setVerticalHeaderItem(row, createTableWidget(std::to_string(row).data()));
-        QTableWidgetItem *item = mTable->item(row, col);
+        QTableWidgetItem *item = mTable->item(row, colTbl);
         if(item == nullptr) {
           item = createTableWidget(" ");
-          mTable->setItem(row, col, item);
+          mTable->setItem(row, colTbl, item);
         }
 
         if(item != nullptr) {
@@ -115,8 +125,8 @@ void DashboardElement::setData(const QString &description, const std::vector<con
             item->setText("-");
             item->setBackground(QBrush(QColor(bgColor)));
           } else {
-            item->setText(QString::number((double) rowData.getVal()) + " | Par: " + QString::number(rowData.getParentId()) +
-                          " Obj: " + QString::number(rowData.getObjectId()));
+            item->setText(QString::number((double) rowData.getVal()) + "<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " +
+                          QString::number(rowData.getObjectId()) + " ⬆ " + QString::number(rowData.getParentId()) + "</i><span>");
             item->setBackground(QBrush(QColor(bgColor)));
           }
           QFont font = item->font();
@@ -125,7 +135,7 @@ void DashboardElement::setData(const QString &description, const std::vector<con
         }
         row++;
       }
-      col++;
+      colTbl++;
     }
   }
   //
@@ -161,8 +171,8 @@ void DashboardElement::setData(const QString &description, const std::vector<con
           item->setBackground(QBrush(QColor(bgColor)));
 
         } else {
-          item->setText(QString::number((double) rowData.getVal()) + "Par: " + QString::number(rowData.getParentId()) +
-                        " Obj: " + QString::number(rowData.getObjectId()));
+          item->setText(QString::number((double) rowData.getVal()) + "<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " +
+                        QString::number(rowData.getObjectId()) + " ⬆ " + QString::number(rowData.getParentId()) + "</i><span>");
         }
         QFont font = item->font();
         font.setStrikeOut(!rowData.isValid());
