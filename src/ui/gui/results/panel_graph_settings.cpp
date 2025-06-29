@@ -45,6 +45,8 @@ PanelGraphSettings::PanelGraphSettings(WindowMain *windowMain) : mWindowMain(win
   layout->setContentsMargins(0, 2, 0, 0);
   centralWidget->setLayout(layout);
   setMaximumWidth(250);
+  setMinimumWidth(250);
+
   {
     auto *toolbar = new QToolBar();
 
