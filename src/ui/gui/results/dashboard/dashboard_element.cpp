@@ -14,6 +14,7 @@
 #include <qlabel.h>
 #include <qnamespace.h>
 #include <qwidget.h>
+#include "backend/helper/base32.hpp"
 #include "ui/gui/helper/html_delegate.hpp"
 #include "ui/gui/helper/html_header.hpp"
 
@@ -79,7 +80,7 @@ void DashboardElement::setData(const QString &description, const std::vector<con
   if(intersectingColl != nullptr) {
     colCount++;
   }
-  mTable->setColumnCount(colCount);
+  mTable->setColumnCount(colCount + 1);    // +1 because we add the object ID at the first column
   mTable->setRowCount(0);
 
   auto createTableWidget = [](const QString &data) {
@@ -101,9 +102,13 @@ void DashboardElement::setData(const QString &description, const std::vector<con
   };
   std::map<uint64_t, RowInfo> startOfNewParent;    // Key is the parent_id and value the row where this parent started
 
-  // Header
+  // We add a column with the object ID as first column
+  const int32_t COL_IDX_OBJECT_ID    = 0;
+  const int32_t COL_IDX_INTERSECTING = 1;
+
+  // Data
   {
-    int colTbl        = intersectingColl == nullptr ? 0 : 1;    // We start with 1 because at 0 we pout the intersecting objects
+    int colTbl        = intersectingColl == nullptr ? 1 : 2;    // We start with 2 because at 1 we put the intersecting objects
     int32_t alternate = 0;
     QColor bgColor    = mTable->palette().color(QPalette::Base);
     for(const auto &colData : cols) {
@@ -135,16 +140,48 @@ void DashboardElement::setData(const QString &description, const std::vector<con
           bgColor = startOfNewParent.at(key).bgColor;
         }
 
-        // Cleanup possible old data
-        if(intersectingColl != nullptr && mTable->item(row, 0) != nullptr) {
-          mTable->item(row, 0)->setText("");
-          mTable->item(row, 0)->setBackground(QBrush(QColor(Qt::white)));
+        // =========================================
+        // Parent object ID
+        // =========================================
+        if(intersectingColl != nullptr) {
+          QTableWidgetItem *intersectingItem = mTable->item(row, COL_IDX_INTERSECTING);
+          if(intersectingItem == nullptr) {
+            intersectingItem = createTableWidget("");
+            mTable->setItem(row, COL_IDX_INTERSECTING, intersectingItem);
+          }
+          if(intersectingItem != nullptr) {
+            // QString::number((double) rowData.getVal())
+            intersectingItem->setText(
+                QString(joda::helper::toBase32(rowData.getParentId()).data()) +
+                "<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " + QString(joda::helper::toBase32(rowData.getObjectId()).data()) + " ⬆ " +
+                QString(joda::helper::toBase32(rowData.getParentId()).data()) + "</i><span>");
+            intersectingItem->setBackground(QBrush(QColor(bgColor)));
+          }
         }
-
         // Vertical header
         if(!rowData.isNAN()) {
           mTable->setVerticalHeaderItem(row, createTableWidget(rowData.getRowName().data()));
         }
+
+        // =========================================
+        // Add object ID
+        // =========================================
+        mTable->setHorizontalHeaderItem(COL_IDX_OBJECT_ID, createTableWidget("Object ID 🗝"));
+        QTableWidgetItem *itemObjId = mTable->item(row, COL_IDX_OBJECT_ID);
+        if(itemObjId == nullptr) {
+          itemObjId = createTableWidget("");
+          mTable->setItem(row, COL_IDX_OBJECT_ID, itemObjId);
+        }
+        if(itemObjId != nullptr) {
+          itemObjId->setText(QString(joda::helper::toBase32(rowData.getObjectId()).data()) +
+                             "<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " + QString(joda::helper::toBase32(rowData.getObjectId()).data()) +
+                             " ⬆ " + QString(joda::helper::toBase32(rowData.getParentId()).data()) + "</i><span>");
+          itemObjId->setBackground(bgColor);
+        }
+
+        // =========================================
+        // Add data
+        // =========================================
         QTableWidgetItem *item = mTable->item(row, colTbl);
         if(item == nullptr) {
           item = createTableWidget("");
@@ -153,12 +190,13 @@ void DashboardElement::setData(const QString &description, const std::vector<con
 
         if(item != nullptr) {
           if(rowData.isNAN()) {
-            item->setText("-<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " + QString::number(rowData.getObjectId()) + " ⬆ " +
-                          QString::number(rowData.getParentId()) + "</i><span>");
+            item->setText("-<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " + QString(joda::helper::toBase32(rowData.getObjectId()).data()) +
+                          " ⬆ " + QString(joda::helper::toBase32(rowData.getParentId()).data()) + "</i><span>");
             item->setBackground(QBrush(QColor(bgColor)));
           } else {
-            item->setText(QString::number((double) rowData.getVal()) + "<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " +
-                          QString::number(rowData.getObjectId()) + " ⬆ " + QString::number(rowData.getParentId()) + "</i><span>");
+            item->setText(QString::number((double) rowData.getVal()) +
+                          "<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " + QString(joda::helper::toBase32(rowData.getObjectId()).data()) +
+                          " ⬆ " + QString(joda::helper::toBase32(rowData.getParentId()).data()) + "</i><span>");
             item->setBackground(QBrush(QColor(bgColor)));
           }
           QFont font = item->font();
@@ -182,21 +220,23 @@ void DashboardElement::setData(const QString &description, const std::vector<con
   //              |par=2
   //
   //
+
   if(nullptr != intersectingColl) {
     QString headerText =
         intersectingColl->colSettings.createHtmlHeader(settings::ResultsSettings::ColumnKey::HeaderStyle::ONLY_STATS_IN_INTERSECTING).data();
-    mTable->setHorizontalHeaderItem(0, createTableWidget(headerText));
-    for(const auto &[_, rowData] : intersectingColl->rows) {
+    mTable->setHorizontalHeaderItem(COL_IDX_INTERSECTING, createTableWidget(headerText));
+
+    /*for(const auto &[_, rowData] : intersectingColl->rows) {
       if(rowData.getObjectId() == 0 || !startOfNewParent.contains(rowData.getObjectId())) {
         continue;
       }
 
       auto [row, bgColor] = startOfNewParent.at(rowData.getObjectId());
       // mTable->setVerticalHeaderItem(row, createTableWidget(std::to_string(row).data()));
-      QTableWidgetItem *item = mTable->item(row, 0);
+      QTableWidgetItem *item = mTable->item(row, COL_IDX_INTERSECTING);
       if(item == nullptr) {
         item = createTableWidget(" ");
-        mTable->setItem(row, 0, item);
+        mTable->setItem(row, COL_IDX_INTERSECTING, item);
       }
       if(item != nullptr) {
         if(rowData.isNAN()) {
@@ -205,7 +245,8 @@ void DashboardElement::setData(const QString &description, const std::vector<con
           item->setBackground(QBrush(QColor(bgColor)));
 
         } else {
-          item->setText(QString::number((double) rowData.getVal()) + "<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " +
+          // QString::number((double) rowData.getVal())
+          item->setText(QString::number(rowData.getObjectId()) + "<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " +
                         QString::number(rowData.getObjectId()) + " ⬆ " + QString::number(rowData.getParentId()) + "</i><span>");
         }
         QFont font = item->font();
@@ -213,7 +254,7 @@ void DashboardElement::setData(const QString &description, const std::vector<con
         item->setFont(font);
         item->setBackground(QBrush(QColor(bgColor)));
       }
-    }
+    }*/
   }
 
   adjustSize();
