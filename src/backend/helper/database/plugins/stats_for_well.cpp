@@ -149,7 +149,8 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
                                                                                 .isValid        = validity == 0,
                                                                                 .tStack         = tStack,
                                                                                 .zStack         = 0,
-                                                                                .cStack         = 0},
+                                                                                .cStack         = 0,
+                                                                                .rowName        = fileNameTmp},
                                                      table::TableCell::Grouping{.groupIdx = static_cast<uint64_t>(imgGroupIdx),
                                                                                 .posX     = static_cast<uint32_t>(pos.x),
                                                                                 .posY     = static_cast<uint32_t>(pos.y)}});
@@ -164,7 +165,8 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
                                                             .isValid        = validity == 0,
                                                             .tStack         = tStack,
                                                             .zStack         = 0,
-                                                            .cStack         = 0},
+                                                            .cStack         = 0,
+                                                            .rowName        = fileNameTmp},
                                  table::TableCell::Grouping{.groupIdx = static_cast<uint64_t>((static_cast<uint64_t>(platePosX) << 32) | platePosY),
                                                             .posX     = platePosX,
                                                             .posY     = platePosY}});

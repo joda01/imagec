@@ -102,7 +102,8 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
                                                                               .isValid        = true,
                                                                               .tStack         = tStack,
                                                                               .zStack         = 0,
-                                                                              .cStack         = 0},
+                                                                              .cStack         = 0,
+                                                                              .rowName        = fileNameTmp},
                                                    table::TableCell::Grouping{.groupIdx = static_cast<uint64_t>(
                                                                                   (static_cast<uint64_t>(meas_center_x) << 32) | meas_center_y),
                                                                               .posX = meas_center_x,

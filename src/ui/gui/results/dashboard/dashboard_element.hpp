@@ -37,6 +37,10 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  void setHeader(const QString &);
+
+  /////////////////////////////////////////////////////
+  QLabel *mHeaderLabel;
   PlaceholderTableWidget *mTable;
 
 public slots:

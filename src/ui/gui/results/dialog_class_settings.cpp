@@ -202,7 +202,8 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
   addMeasure("Distance surface to surface max.", "", enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX, {enums::Stats::AVG},
              {enums::Stats::AVG, enums::Stats::MIN, enums::Stats::MAX, enums::Stats::MEDIAN, enums::Stats::STDDEV});
 
-  addSeparator();
+  /*
+             addSeparator();
   addMeasure("Object ID", "A unique ID which identifies the object.", enums::Measurement::OBJECT_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
   addMeasure("Parent object ID",
              "The object ID of the object with which this object is intersecting, as determined by the <b>Reclassify</b> command.",
@@ -213,6 +214,8 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
              "The same tracking ID is assigned to all objects that are identified as the same instance by either the <b>Colocalization</b> or "
              "<b>Tracking</b> command.",
              enums::Measurement::TRACKING_ID, {enums::Stats::OFF}, {enums::Stats::OFF});
+
+*/
 
   //
   // Create a horizontal layout for the buttons

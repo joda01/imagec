@@ -38,6 +38,7 @@ public:
     uint32_t tStack         = 0;
     uint32_t zStack         = 0;
     uint32_t cStack         = 0;
+    std::string rowName;
   };
 
   struct Grouping
@@ -116,6 +117,11 @@ public:
     return mMetaData.tStack;
   }
 
+  const std::string &getRowName() const
+  {
+    return mMetaData.rowName;
+  }
+
 private:
   /////////////////////////////////////////////////////
   double value = std::numeric_limits<double>::quiet_NaN();
@@ -143,61 +149,20 @@ class Table
 {
 public:
   /////////////////////////////////////////////////////
-  struct Meta
-  {
-    std::string className;
-  };
-
-  enum class SortFields
-  {
-    OBJECT_ID,
-    TRACKING_ID
-  };
+  void setColHeader(const std::map<uint32_t, settings::ResultsSettings::ColumnKey> &);
 
   Table();
   void setTitle(const std::string &title);
-  void setMeta(const Meta &);
-  void setColHeader(const std::map<uint32_t, settings::ResultsSettings::ColumnKey> &);
-  void setRowHeader(const std::map<uint32_t, std::string> &);
-  void setRowName(uint32_t row, const std::string &data);
-  auto getMutableRowHeader() -> std::map<uint32_t, std::string> &
-  {
-    return mRowHeader;
-  }
-  auto getMutableColHeader() -> entry_t &
-  {
-    return mDataColOrganized;
-  }
 
   auto columns() const -> const entry_t &
   {
     return mDataColOrganized;
   }
 
-  [[nodiscard]] auto getRowHeader(uint32_t idx) const -> std::string
-  {
-    if(mRowHeader.contains(idx)) {
-      return mRowHeader.at(idx);
-    }
-    return "";
-  }
-  [[nodiscard]] auto getColHeader(uint32_t idx) const -> std::string
-  {
-    if(mDataColOrganized.contains(idx)) {
-      return mDataColOrganized.at(idx).colSettings.createHeader();
-    }
-    return "";
-  }
-
   [[nodiscard]] TableCell data(uint32_t row, uint32_t col) const;
 
   void setData(uint32_t row, uint32_t col, const TableCell &data)
   {
-    if(data.isValid()) {
-      mMin = std::min(mMin, data.getVal());
-      mMax = std::max(mMax, data.getVal());
-    }
-
     mDataColOrganized[col].rows[row] = data;
   }
 
@@ -205,95 +170,45 @@ public:
   {
     mDataColOrganized[col].rows[row].setId(id);
   }
-
-  [[nodiscard]] auto getMinMax() const -> std::tuple<double, double>
+  [[nodiscard]] uint32_t getNrOfRows() const
   {
-    return {mMin, mMax};
-  }
-
-  [[nodiscard]] auto getAvg(double *sizeOut = nullptr) const -> double
-  {
-    double sum  = 0.0;
-    double size = 0;
-    for(int row = 0; row < getRows(); row++) {
-      for(int col = 0; col < getCols(); col++) {
-        if(data(row, col).isValid() && !data(row, col).isNAN()) {
-          sum += data(row, col).getVal();
-          size++;
-        }
+    uint32_t nr = 0;
+    for(const auto &col : mDataColOrganized) {
+      if(col.second.rows.size() > nr) {
+        nr = col.second.rows.size();
       }
     }
-    if(sizeOut != nullptr) {
-      *sizeOut = size;
-    }
-    return sum / size;
+    return nr;
   }
 
-  [[nodiscard]] auto getStddev() const -> double
-  {
-    double size    = 0;
-    double average = getAvg(&size);
-    if(size <= 1) {
-      return 0.0;    // Handle case of empty or single-element array
-    }
-    double variance = 0.0;
-    for(int row = 0; row < getRows(); row++) {
-      for(int col = 0; col < getCols(); col++) {
-        if(data(row, col).isValid() && !data(row, col).isNAN()) {
-          variance += pow(data(row, col).getVal() - average, 2);
-        }
-      }
-    }
-    return sqrt(variance / (size - 1));    // Use unbiased sample standard deviation
-  }
-
-  [[nodiscard]] uint32_t getRows() const
-  {
-    return std::max(mNrOfRows, getRowHeaderSize());
-  }
-  [[nodiscard]] uint32_t getCols() const
-  {
-    return std::max(mNrOfCols, getColHeaderSize());
-  }
-
-  [[nodiscard]] uint32_t getRowHeaderSize() const
-  {
-    return mRowHeader.size();
-  }
-  [[nodiscard]] uint32_t getColHeaderSize() const
+  [[nodiscard]] uint32_t getNrOfCols() const
   {
     return mDataColOrganized.size();
   }
 
-  [[nodiscard]] std::string getTitle() const
+  const std::string &getColHeader(int32_t col) const
+  {
+    return mDataColOrganized.at(col).title;
+  }
+
+  const std::string &getRowHeader(int32_t row) const
+  {
+    return mDataColOrganized.begin()->second.rows.at(row).getRowName();
+  }
+
+  const std::string &getTitle() const
   {
     return mTitle;
   }
 
-  [[nodiscard]] const Meta &getMeta() const
-  {
-    return mMeta;
-  }
-
   void clear();
-  bool empty() const
-  {
-    return getRows() == 0;
-  }
-
   void arrangeByTrackingId();
+  std::pair<double, double> getMinMax(int column) const;
 
 private:
   /////////////////////////////////////////////////////
   entry_t mDataColOrganized;    // <ROW, <COL, DATA>>
-  double mMin = std::numeric_limits<double>::max();
-  double mMax = std::numeric_limits<double>::min();
-
-  std::map<uint32_t, std::string> mRowHeader;
-  uint32_t mNrOfCols = 0;
-  uint32_t mNrOfRows = 0;
   std::string mTitle;
-  Meta mMeta;
 };
 
 }    // namespace joda::table

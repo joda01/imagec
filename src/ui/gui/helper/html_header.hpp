@@ -1,3 +1,4 @@
+
 ///
 /// \file      word_wrap_header.hpp
 /// \author    Joachim Danmayr
@@ -16,10 +17,10 @@
 #include <QStyleOptionHeader>
 #include <QTextDocument>
 
-class WordWrapHeader : public QHeaderView
+class HtmlHeaderView : public QHeaderView
 {
 public:
-  WordWrapHeader(Qt::Orientation orientation, QWidget *parent = nullptr) : QHeaderView(orientation, parent)
+  HtmlHeaderView(Qt::Orientation orientation, QWidget *parent = nullptr) : QHeaderView(orientation, parent)
   {
     setDefaultAlignment(Qt::AlignCenter);
   }
@@ -33,11 +34,11 @@ protected:
 
     QStyleOptionHeader opt;
     initStyleOption(&opt);
-    opt.rect     = rect;
-    opt.section  = logicalIndex;
-    auto txtTmp  = model()->headerData(logicalIndex, orientation(), Qt::DisplayRole).toString();
-    opt.text     = "";
-    opt.position = QStyleOptionHeader::Middle;
+    opt.rect       = rect;
+    opt.section    = logicalIndex;
+    QString txtTmp = model()->headerData(logicalIndex, orientation(), Qt::DisplayRole).toString();
+    opt.text       = "";
+    opt.position   = QStyleOptionHeader::Middle;
 
     // Draw the native header background and border
     style()->drawControl(QStyle::CE_Header, &opt, painter, this);
@@ -47,7 +48,7 @@ protected:
     doc.setDefaultTextOption(QTextOption(Qt::AlignCenter));
     doc.setTextWidth(rect.width() - 8);    // Padding
     // doc.setDefaultFont(opt.font);
-    doc.setHtml("<div align='center'>" + txtTmp.toHtmlEscaped() + "</div>");
+    doc.setHtml("<div align='center'>" + txtTmp + "</div>");
 
     // Determine where to draw the text
     QRect textRect = style()->subElementRect(QStyle::SE_HeaderLabel, &opt, this).adjusted(4, 2, -4, -2);
@@ -62,9 +63,9 @@ protected:
   {
     QString text = model()->headerData(logicalIndex, orientation(), Qt::DisplayRole).toString();
     QTextDocument doc;
-    // doc.setTextWidth(150);    // Example max width
+    // doc.setTextWidth(200);    // Example max width
     doc.setDefaultFont(font());
-    doc.setHtml("<div align='center'>" + text.toHtmlEscaped() + "</div>");
+    doc.setHtml("<div align='center'>" + text + "</div>");
     QSize size = doc.size().toSize();
     return QSize(size.width() + 8, size.height() + 40);    // Add some padding
   }

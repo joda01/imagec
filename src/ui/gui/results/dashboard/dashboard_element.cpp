@@ -11,10 +11,11 @@
 
 #include "dashboard_element.hpp"
 #include <qcolor.h>
+#include <qlabel.h>
 #include <qnamespace.h>
 #include <qwidget.h>
 #include "ui/gui/helper/html_delegate.hpp"
-#include "ui/gui/helper/word_wrap_header.hpp"
+#include "ui/gui/helper/html_header.hpp"
 
 namespace joda::ui::gui {
 
@@ -26,30 +27,54 @@ DashboardElement::DashboardElement(QWidget *widget) : QMdiSubWindow(widget)
 
   auto *centralWidget = new QWidget(this);
   auto *layout        = new QVBoxLayout(centralWidget);
-  layout->setContentsMargins(0, 0, 0, 0);
+  layout->setContentsMargins(0, 4, 0, 0);
 
-  mTable = new PlaceholderTableWidget(centralWidget);
-  mTable->setPlaceholderText("Click >Add column< to start.");
-  mTable->setRowCount(0);
-  mTable->setColumnCount(0);
-  mTable->verticalHeader()->setDefaultSectionSize(8);    // Set each row to 50 pixels height
-  mTable->setHorizontalHeader(new WordWrapHeader(Qt::Horizontal));
-  mTable->setItemDelegate(new HtmlDelegate(mTable));
+  // Header
+  {
+    mHeaderLabel = new QLabel();
+    layout->addWidget(mHeaderLabel);
+  }
 
-  // connect(mTable->verticalHeader(), &QHeaderView::sectionDoubleClicked,
-  //         [this](int logicalIndex) { openNextLevel({mActListData.data(logicalIndex, 0)}); });
-  // connect(mTable, &QTableWidget::cellDoubleClicked, [this](int row, int column) { openNextLevel({mActListData.data(row, 0)}); });
-  connect(mTable, &QTableWidget::cellClicked, this, &DashboardElement::onCellClicked);
-  connect(mTable, &QTableWidget::currentCellChanged, this, &DashboardElement::onTableCurrentCellChanged);
+  // Table
+  {
+    mTable = new PlaceholderTableWidget(centralWidget);
+    mTable->setPlaceholderText("Click >Add column< to start.");
+    mTable->setRowCount(0);
+    mTable->setColumnCount(0);
+    mTable->verticalHeader()->setDefaultSectionSize(8);    // Set each row to 50 pixels height
+    mTable->setHorizontalHeader(new HtmlHeaderView(Qt::Horizontal));
+    mTable->horizontalHeader()->setMinimumSectionSize(120);
+    mTable->horizontalHeader()->setDefaultSectionSize(120);
+    mTable->setItemDelegate(new HtmlDelegate(mTable));
 
-  layout->addWidget(mTable);
+    // connect(mTable->verticalHeader(), &QHeaderView::sectionDoubleClicked,
+    //         [this](int logicalIndex) { openNextLevel({mActListData.data(logicalIndex, 0)}); });
+    // connect(mTable, &QTableWidget::cellDoubleClicked, [this](int row, int column) { openNextLevel({mActListData.data(row, 0)}); });
+    connect(mTable, &QTableWidget::cellClicked, this, &DashboardElement::onCellClicked);
+    connect(mTable, &QTableWidget::currentCellChanged, this, &DashboardElement::onTableCurrentCellChanged);
+    layout->addWidget(mTable);
+  }
   setWidget(centralWidget);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DashboardElement::setHeader(const QString &text)
+{
+  mHeaderLabel->setText("<b>" + text + "</b>");
 }
 
 void DashboardElement::setData(const QString &description, const std::vector<const table::TableColumn *> &cols,
                                const table::TableColumn *intersectingColl)
 {
   setWindowTitle(description);
+  setHeader(description);
+
   int32_t colCount = cols.size();
   if(intersectingColl != nullptr) {
     colCount++;
@@ -82,12 +107,14 @@ void DashboardElement::setData(const QString &description, const std::vector<con
     int32_t alternate = 0;
     QColor bgColor    = mTable->palette().color(QPalette::Base);
     for(const auto &colData : cols) {
-      char txt           = colTbl + 'A';
-      auto colCount      = QString(std::string(1, txt).data());
-      QString headerText = colData->colSettings.createHeader().data();
+      QString headerText = colData->colSettings.createHtmlHeader(false).data();
       mTable->setHorizontalHeaderItem(colTbl, createTableWidget(headerText));
       int row = 0;
       for(const auto &[_, rowData] : colData->rows) {
+        if(rowData.getObjectId() == 0) {
+          continue;
+        }
+
         if(mTable->rowCount() < (row + 1)) {
           mTable->setRowCount(row + 1);
         }
@@ -113,16 +140,20 @@ void DashboardElement::setData(const QString &description, const std::vector<con
           mTable->item(row, 0)->setBackground(QBrush(QColor(Qt::white)));
         }
 
-        mTable->setVerticalHeaderItem(row, createTableWidget(std::to_string(row).data()));
+        // Vertical header
+        if(!rowData.isNAN()) {
+          mTable->setVerticalHeaderItem(row, createTableWidget(rowData.getRowName().data()));
+        }
         QTableWidgetItem *item = mTable->item(row, colTbl);
         if(item == nullptr) {
-          item = createTableWidget(" ");
+          item = createTableWidget("");
           mTable->setItem(row, colTbl, item);
         }
 
         if(item != nullptr) {
           if(rowData.isNAN()) {
-            item->setText("-");
+            item->setText("-<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " + QString::number(rowData.getObjectId()) + " ⬆ " +
+                          QString::number(rowData.getParentId()) + "</i><span>");
             item->setBackground(QBrush(QColor(bgColor)));
           } else {
             item->setText(QString::number((double) rowData.getVal()) + "<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " +
@@ -151,15 +182,15 @@ void DashboardElement::setData(const QString &description, const std::vector<con
   //
   //
   if(nullptr != intersectingColl) {
-    QString headerText = intersectingColl->colSettings.createHeader().data();
+    QString headerText = intersectingColl->colSettings.createHtmlHeader(false).data();
     mTable->setHorizontalHeaderItem(0, createTableWidget(headerText));
     for(const auto &[_, rowData] : intersectingColl->rows) {
-      if(!startOfNewParent.contains(rowData.getObjectId())) {
+      if(rowData.getObjectId() == 0 || !startOfNewParent.contains(rowData.getObjectId())) {
         continue;
       }
 
       auto [row, bgColor] = startOfNewParent.at(rowData.getObjectId());
-      mTable->setVerticalHeaderItem(row, createTableWidget(std::to_string(row).data()));
+      // mTable->setVerticalHeaderItem(row, createTableWidget(std::to_string(row).data()));
       QTableWidgetItem *item = mTable->item(row, 0);
       if(item == nullptr) {
         item = createTableWidget(" ");
@@ -167,7 +198,8 @@ void DashboardElement::setData(const QString &description, const std::vector<con
       }
       if(item != nullptr) {
         if(rowData.isNAN()) {
-          item->setText("-");
+          item->setText("-<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " + QString::number(rowData.getObjectId()) + " ⬆ " +
+                        QString::number(rowData.getParentId()) + "</i><span>");
           item->setBackground(QBrush(QColor(bgColor)));
 
         } else {

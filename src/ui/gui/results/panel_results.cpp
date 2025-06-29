@@ -764,7 +764,7 @@ void PanelResults::refreshView()
       switch(mNavigation) {
         case Navigation::PLATE: {
           mActListData = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE, &mActFilter);
-          if(mActListData.getRows() == 1) {
+          if(mActListData.getNrOfRows() == 1) {
             // If there are no groups, switch directly to well view
             mNavigation                = Navigation::WELL;
             auto getID                 = mActListData.data(0, 0).getId();
@@ -1168,7 +1168,6 @@ void PanelResults::paintEmptyHeatmap()
   uint16_t rows         = mFilter.getPlateSetup().rows;
   uint16_t cols         = mFilter.getPlateSetup().cols;
   for(int row = 0; row < rows; row++) {
-    table.getMutableRowHeader()[row] = "";
     for(int col = 0; col < cols; col++) {
 #warning "What shall we do"
       // table.getMutableColHeader()[col] = "";

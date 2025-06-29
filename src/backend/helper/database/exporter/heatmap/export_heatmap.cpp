@@ -30,12 +30,12 @@ namespace joda::db {
 void HeatmapExporter::setData(const joda::table::Table &data)
 {
   mData = data;
-  mRows = mData.getRows();
-  mCols = mData.getCols();
+  mRows = mData.getNrOfRows();
+  mCols = mData.getNrOfCols();
   // mSettings = settings;
 
   if(mSettings.heatmapRangeMode == joda::settings::DensityMapSettings::HeatMapRangeMode::AUTO) {
-    auto [min, max]        = mData.getMinMax();
+    auto [min, max]        = mData.getMinMax(0);
     mHeatMapMinMaxAuto.min = min;
     mHeatMapMinMaxAuto.max = max;
   }
@@ -52,7 +52,7 @@ void HeatmapExporter::setMinMaxMode(joda::settings::DensityMapSettings::HeatMapR
 {
   mSettings.heatmapRangeMode = mode;
   if(mSettings.heatmapRangeMode == joda::settings::DensityMapSettings::HeatMapRangeMode::AUTO) {
-    auto [min, max]        = mData.getMinMax();
+    auto [min, max]        = mData.getMinMax(0);
     mHeatMapMinMaxAuto.min = min;
     mHeatMapMinMaxAuto.max = max;
   }
@@ -497,7 +497,7 @@ std::tuple<int32_t, QPoint> HeatmapExporter::getWellAtPosition(const QPoint &pos
   float width  = size.width() / dividend - (spacing + X_LEFT_MARGIN);
   float height = size.height() - (spacing + Y_TOP_MARING + 2.0 * (LEGEND_COLOR_ROW_HEIGHT + headerMetrics.height() + spacing));
 
-  auto [min, max] = mData.getMinMax();
+  auto [min, max] = mData.getMinMax(0);
   if(mRows > 0 && mCols > 0) {
     float rectWidth = std::min((float) width / (float) mCols, (float) height / (float) mRows);
     float xOffset   = (width / 2.0) - (rectWidth * mCols + spacing + X_LEFT_MARGIN - 4) / 2.0;

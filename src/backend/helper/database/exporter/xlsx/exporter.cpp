@@ -34,7 +34,7 @@ void BatchExporter::startExportHeatmap(const std::map<int32_t, joda::table::Tabl
   std::map<std::string, std::pair<Pos, lxw_worksheet *>> sheets;
 
   for(const auto &[_, table] : data) {
-    std::string name = table.getMeta().className;    /// \todo Was cluster
+    std::string name = "";
     // Max. sheet name length = 31 because of excel limitation
     if(name.size() > 30) {
       name = name.substr(0, 30);
@@ -85,7 +85,7 @@ void BatchExporter::startExportList(const joda::table::Table &data, const settin
 ///
 void BatchExporter::createHeatmap(const WorkBook &workbookSettings, std::pair<Pos, lxw_worksheet *> &sheet, const table::Table &data)
 {
-  paintPlateBorder(sheet.second, data.getRows(), data.getCols(), sheet.first.row, workbookSettings.header, workbookSettings.merge_format,
+  paintPlateBorder(sheet.second, data.getNrOfRows(), data.getNrOfCols(), sheet.first.row, workbookSettings.header, workbookSettings.merge_format,
                    workbookSettings.numberFormat, data.getTitle());
   sheet.first = paintHeatmap(workbookSettings, sheet.second, data, sheet.first.row);
   sheet.first.row += 2;
@@ -102,16 +102,16 @@ void BatchExporter::createList(const WorkBook &workbookSettings, std::pair<Pos, 
 {
   int xOffset = sheet.first.col;
 
-  for(int n = 0; n < data.getColHeaderSize(); n++) {
+  for(int n = 0; n < data.getNrOfCols(); n++) {
     worksheet_write_string(sheet.second, 0, n + 1 + xOffset, data.getColHeader(n).data(), workbookSettings.header);
   }
 
-  for(int n = 0; n < data.getRowHeaderSize(); n++) {
+  for(int n = 0; n < data.getNrOfRows(); n++) {
     worksheet_write_string(sheet.second, n + 1 + xOffset, 0, data.getRowHeader(n).data(), workbookSettings.header);
   }
 
-  for(int row = 0; row < data.getRows(); row++) {
-    for(int col = 0; col < data.getCols(); col++) {
+  for(int row = 0; row < data.getNrOfRows(); row++) {
+    for(int col = 0; col < data.getNrOfCols(); col++) {
       if(data.data(row, col).isValid()) {
         if(data.data(row, col).isNAN()) {
           worksheet_write_blank(sheet.second, row + 1 + xOffset, 1 + col, workbookSettings.numberFormat);
@@ -128,7 +128,7 @@ void BatchExporter::createList(const WorkBook &workbookSettings, std::pair<Pos, 
     }
   }
 
-  sheet.first.col = xOffset + data.getCols();
+  sheet.first.col = xOffset + data.getNrOfCols();
 }
 
 ///
@@ -312,8 +312,8 @@ BatchExporter::Pos BatchExporter::paintHeatmap(const WorkBook &workbookSettings,
 {
   const int32_t ROW_OFFSET = 2;
 
-  for(int row = 0; row < table.getRows(); row++) {
-    for(int col = 0; col < table.getCols(); col++) {
+  for(int row = 0; row < table.getNrOfRows(); row++) {
+    for(int col = 0; col < table.getNrOfCols(); col++) {
       auto *format = workbookSettings.numberFormatScientific;
       if(!table.data(row, col).isValid()) {
         format = workbookSettings.numberFormatInvalidScientific;
@@ -327,7 +327,7 @@ BatchExporter::Pos BatchExporter::paintHeatmap(const WorkBook &workbookSettings,
     }
   }
 
-  return BatchExporter::Pos{.row = table.getRows() + rowOffset + ROW_OFFSET, .col = table.getCols()};
+  return BatchExporter::Pos{.row = table.getNrOfRows() + rowOffset + ROW_OFFSET, .col = table.getNrOfCols()};
 }
 
 ///

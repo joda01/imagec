@@ -146,9 +146,7 @@ public:
 
     for(auto [itr, rangeEnd] = mTableMapping.equal_range(columnKey); itr != rangeEnd; ++itr) {
       auto &element = itr->second;
-      mResultingTable.setRowName(row, rowName);
       mResultingTable.setData(row, element.colIdx, tableCell);
-      mResultingTable.setMeta({.className = colName.className});
     }
   }
 
@@ -171,9 +169,7 @@ public:
     }
 
     for(auto [itr, element] : mTableMapping) {
-      mResultingTable.setRowName(row, rowName);
       mResultingTable.setDataId(row, element.colIdx, rowId);
-      mResultingTable.setMeta({.className = colName.className});
     }
   }
 

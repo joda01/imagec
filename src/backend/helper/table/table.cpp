@@ -20,43 +20,20 @@ namespace joda::table {
 Table::Table()
 {
 }
-
 void Table::setColHeader(const std::map<uint32_t, settings::ResultsSettings::ColumnKey> &data)
 {
   for(const auto &[colIDx, key] : data) {
     mDataColOrganized[colIDx].colSettings = key;
   }
 }
-void Table::setRowHeader(const std::map<uint32_t, std::string> &data)
-{
-  mRowHeader = data;
-}
-
-void Table::setRowName(uint32_t row, const std::string &data)
-{
-  mRowHeader[row] = data;
-}
-
 void Table::setTitle(const std::string &title)
 {
   mTitle = title;
 }
 
-void Table::setMeta(const Meta &meta)
-{
-  mMeta = meta;
-}
-
 void Table::clear()
 {
   mDataColOrganized.clear();
-  mRowHeader.clear();
-  mNrOfCols = 0;
-  mNrOfRows = 0;
-  mTitle.clear();
-  mMeta = {};
-  mMin  = std::numeric_limits<double>::max();
-  mMax  = std::numeric_limits<double>::min();
 }
 
 ///
@@ -83,43 +60,22 @@ void Table::clear()
 /// \param[out]
 /// \return
 ///
-void Table::arrangeByTrackingId()
+std::pair<double, double> Table::getMinMax(int column) const
 {
-  std::map<uint64_t, int32_t> trackingIdRowIdx;    // <TRACKING ID, ROW IDX>
-  std::map<uint64_t, int32_t> objectIdRowIdx;      // <OBJECT ID ID, ROW IDX>
-
-  int32_t trackingIdRow = 0;
-  std::map<int32_t, int32_t> objectIdRow;    // <COL ID, COL ROW IDX CNT>
-
-  for(const auto &[colIdx, col] : mDataColOrganized) {
-    for(const auto &[rowIdx, cell] : col.rows) {
-      if(cell.getTrackingId() != 0) {
-        if(!trackingIdRowIdx.contains(cell.getTrackingId())) {
-          trackingIdRowIdx.emplace(cell.getTrackingId(), trackingIdRow);
-          trackingIdRow++;
-        }
-      } else {
-        if(!objectIdRowIdx.contains(cell.getId())) {
-          objectIdRowIdx.emplace(cell.getId(), objectIdRow[colIdx]);
-          objectIdRow[colIdx]++;
-        }
+  double min = std::numeric_limits<double>::max();
+  double max = std::numeric_limits<double>::min();
+  auto &col  = mDataColOrganized.at(column);
+  for(const auto &[_, row] : col.rows) {
+    if(!row.isNAN() && row.isValid()) {
+      if(row.getVal() < min) {
+        min = row.getVal();
+      }
+      if(row.getVal() > max) {
+        max = row.getVal();
       }
     }
   }
-
-  entry_t orderedTable;
-  for(const auto &[colIdx, col] : mDataColOrganized) {
-    for(const auto &[_, cell] : col.rows) {
-      int32_t rowIdx = -1;
-      if(cell.getTrackingId() != 0) {
-        rowIdx = trackingIdRowIdx.at(cell.getTrackingId());
-      } else {
-        rowIdx = objectIdRowIdx.at(cell.getId());
-      }
-      orderedTable[colIdx].rows[rowIdx] = cell;
-    }
-  }
-  mDataColOrganized = orderedTable;
+  return {min, max};
 }
 
 }    // namespace joda::table

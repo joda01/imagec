@@ -170,37 +170,8 @@ public:
              intersectingChannel == input.intersectingChannel && zStack == input.zStack;
     }
 
-    std::string createHeader() const
-    {
-      std::map<uint32_t, std::string> columnHeaders;
-      std::string stacks = "{Z" + std::to_string(zStack) + "}";
-
-      auto createStatsHeader = [](enums::Stats stats) -> std::string {
-        if(stats != enums::Stats::OFF) {
-          return "[" + enums::toString(stats) + "]";
-        }
-        return "";
-      };
-
-      if(getType(measureChannel) == MeasureType::INTENSITY) {
-        return names.className + "-" + toString(measureChannel) + createStatsHeader(stats) + " " + "(C" + std::to_string(crossChannelStacksC) + ")" +
-               stacks;
-      }
-      if(getType(measureChannel) == MeasureType::INTERSECTION) {
-        return "Intersection " + names.intersectingName + " in " + names.className + createStatsHeader(stats) + stacks;
-      }
-      if(getType(measureChannel) == MeasureType::ID) {
-        return names.className + "-" + toString(measureChannel) + "\n" + stacks;
-      }
-      if(getType(measureChannel) == MeasureType::DISTANCE) {
-        return names.className + " to " + names.intersectingName + "-" + toString(measureChannel) + createStatsHeader(stats) + stacks;
-      }
-      if(getType(measureChannel) == MeasureType::DISTANCE_ID) {
-        return names.className + " to " + names.intersectingName + "-" + toString(measureChannel) + stacks;
-      }
-
-      return names.className + "-" + toString(measureChannel) + createStatsHeader(stats) + stacks;
-    }
+    std::string createHeader() const;
+    std::string createHtmlHeader(bool withClassName) const;
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnKey, classId, measureChannel, stats, crossChannelStacksC, intersectingChannel, zStack, names);
   };

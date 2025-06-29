@@ -66,7 +66,7 @@ auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t 
 
   std::map<Pos, Element> densityMapVal;
 
-  for(int32_t tblRow = 0; tblRow < table.getRows(); tblRow++) {
+  for(int32_t tblRow = 0; tblRow < table.getNrOfRows(); tblRow++) {
     double val       = table.data(tblRow, colToDisplay).getVal();
     uint32_t posX    = table.data(tblRow, colToDisplay).getPosX();
     uint32_t posY    = table.data(tblRow, colToDisplay).getPosY();
