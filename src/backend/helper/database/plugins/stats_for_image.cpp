@@ -182,7 +182,7 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
                     "WHERE\n"
                     " t1.image_id IN" +
                     query + " AND t1.class_id=$" + std::to_string(i + 1) + " AND stack_z=$" + std::to_string(i + 2) + " AND stack_t=$" +
-                    std::to_string(i + 3) + "\n" + grouping + "ORDER BY file_name,object_id,stack_t_real";
+                    std::to_string(i + 3) + "\n" + grouping + "ORDER BY file_name, meas_parent_object_id, object_id,stack_t_real";
   DbArgs_t argsEnd = {static_cast<uint16_t>(classsAndClass.classs), static_cast<int32_t>(classsAndClass.zStack),
                       static_cast<int32_t>(classsAndClass.tStack)};
   args.insert(args.end(), argsEnd.begin(), argsEnd.end());

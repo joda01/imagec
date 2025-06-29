@@ -62,24 +62,44 @@ void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn)
   struct Entry
   {
     std::string colName;
-    std::map<uint32_t, const table::TableColumn *> cols;
+    const table::TableColumn *intersectingCol = nullptr;
+    std::vector<const table::TableColumn *> cols;
   };
 
   std::map<enums::ClassId, Entry> dashboards;
+  std::map<enums::ClassId, Entry> intersecting;
 
   for(const auto &[key, col] : tableIn.columns()) {
-    auto &ed   = dashboards[col.colSettings.classId];
-    ed.colName = col.colSettings.names.className;
-    ed.cols.emplace(key, &col);
+    if(col.colSettings.measureChannel == enums::Measurement::INTERSECTING) {
+      auto &work           = intersecting[col.colSettings.intersectingChannel];
+      work.intersectingCol = &col;
+      work.colName         = col.colSettings.names.intersectingName;
+    }
   }
 
-  int32_t row = 0;
-  for(const auto &[_, dashData] : dashboards) {
-    auto *element01 = new DashboardElement(this);
-    element01->setData(dashData.colName.data(), dashData.cols);
-    element01->show();
-    row++;
+  for(const auto &[key, col] : tableIn.columns()) {
+    // Put the parents of the intersecting to the
+    if(intersecting.contains(col.colSettings.classId)) {
+      auto &ed   = intersecting[col.colSettings.classId];
+      ed.colName = col.colSettings.names.className;
+      ed.cols.emplace_back(&col);
+    } else {
+      auto &ed   = dashboards[col.colSettings.classId];
+      ed.colName = col.colSettings.names.className;
+      ed.cols.emplace_back(&col);
+    }
   }
+
+  auto createDashboards = [this](const std::map<enums::ClassId, Entry> &entries) {
+    for(const auto &[_, dashData] : entries) {
+      auto *element01 = new DashboardElement(this);
+      element01->setData(dashData.colName.data(), dashData.cols, dashData.intersectingCol);
+      element01->show();
+    }
+  };
+
+  createDashboards(dashboards);
+  createDashboards(intersecting);
 
   tileSubWindows();
 }

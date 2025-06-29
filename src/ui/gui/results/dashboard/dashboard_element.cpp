@@ -10,6 +10,7 @@
 ///
 
 #include "dashboard_element.hpp"
+#include <qcolor.h>
 #include <qnamespace.h>
 #include <qwidget.h>
 #include "ui/gui/helper/word_wrap_header.hpp"
@@ -43,7 +44,8 @@ DashboardElement::DashboardElement(QWidget *widget) : QMdiSubWindow(widget)
   setWidget(centralWidget);
 }
 
-void DashboardElement::setData(const QString &description, const std::map<uint32_t, const table::TableColumn *> &cols)
+void DashboardElement::setData(const QString &description, const std::vector<const table::TableColumn *> &cols,
+                               const table::TableColumn *intersectingColl)
 {
   setWindowTitle(description);
   mTable->setColumnCount(cols.size());
@@ -56,40 +58,118 @@ void DashboardElement::setData(const QString &description, const std::map<uint32
     return widget;
   };
 
-  // Header
-  int col = 0;
-  for(const auto &colData : cols) {
-    char txt           = col + 'A';
-    auto colCount      = QString(std::string(1, txt).data());
-    QString headerText = colData.second->colSettings.createHeader().data();
-    mTable->setHorizontalHeaderItem(col, createTableWidget(headerText));
+  //
+  // We can assume that the data are ordered by image_id, parent_object_id, objects_id, t_stack.
+  // We want to align first by parent_object_id and afterwards by object_id.
+  // Imagine that the parent_object_id is not unique!
+  //
+  struct RowInfo
+  {
+    int32_t startingRow = 0;
+    QColor bgColor;
+  };
+  std::map<uint64_t, RowInfo> startOfNewParent;    // Key is the parent_id and value the row where this parent started
 
-    int row = 0;
-    for(const auto &[_, rowData] : colData.second->rows) {
-      if(mTable->rowCount() < (row + 1)) {
-        mTable->setRowCount(row + 1);
+  // Header
+  {
+    int col           = intersectingColl == nullptr ? 0 : 1;    // We start with 1 because at 0 we pout the intersecting objects
+    int32_t alternate = 0;
+    QColor bgColor    = Qt::white;
+    for(const auto &colData : cols) {
+      char txt           = col + 'A';
+      auto colCount      = QString(std::string(1, txt).data());
+      QString headerText = colData->colSettings.createHeader().data();
+      mTable->setHorizontalHeaderItem(col, createTableWidget(headerText));
+      int row = 0;
+      for(const auto &[_, rowData] : colData->rows) {
+        if(mTable->rowCount() < (row + 1)) {
+          mTable->setRowCount(row + 1);
+        }
+        if(!startOfNewParent.contains(rowData.getParentId())) {
+          if(alternate % 2 != 0) {
+            bgColor = Qt::lightGray;
+          } else {
+            bgColor = Qt::white;
+          }
+          alternate++;
+          startOfNewParent[rowData.getParentId()] = {row, bgColor};
+        } else {
+          bgColor = startOfNewParent.at(rowData.getParentId()).bgColor;
+        }
+
+        // Cleanup possible old data
+        if(intersectingColl != nullptr && mTable->item(row, 0) != nullptr) {
+          mTable->item(row, 0)->setText("");
+          mTable->item(row, 0)->setBackground(QBrush(QColor(Qt::white)));
+        }
+
+        mTable->setVerticalHeaderItem(row, createTableWidget(std::to_string(row).data()));
+        QTableWidgetItem *item = mTable->item(row, col);
+        if(item == nullptr) {
+          item = createTableWidget(" ");
+          mTable->setItem(row, col, item);
+        }
+
+        if(item != nullptr) {
+          if(rowData.isNAN()) {
+            item->setText("-");
+            item->setBackground(QBrush(QColor(bgColor)));
+          } else {
+            item->setText(QString::number((double) rowData.getVal()) + " | Par: " + QString::number(rowData.getParentId()) +
+                          " Obj: " + QString::number(rowData.getObjectId()));
+            item->setBackground(QBrush(QColor(bgColor)));
+          }
+          QFont font = item->font();
+          font.setStrikeOut(!rowData.isValid());
+          item->setFont(font);
+        }
+        row++;
+      }
+      col++;
+    }
+  }
+  //
+  // Now put intersecting class the resulting table looks like that
+  //
+  //  Intersect   |  Data
+  // -------------|------------
+  // obj=1        |par=1
+  //              |par=1
+  //              |par=1
+  // obj=2        |par=2
+  //              |par=2
+  //
+  //
+  if(nullptr != intersectingColl) {
+    QString headerText = intersectingColl->colSettings.createHeader().data();
+    mTable->setHorizontalHeaderItem(0, createTableWidget(headerText));
+    for(const auto &[_, rowData] : intersectingColl->rows) {
+      if(!startOfNewParent.contains(rowData.getObjectId())) {
+        continue;
       }
 
+      auto [row, bgColor] = startOfNewParent.at(rowData.getObjectId());
       mTable->setVerticalHeaderItem(row, createTableWidget(std::to_string(row).data()));
-
-      QTableWidgetItem *item = mTable->item(row, col);
+      QTableWidgetItem *item = mTable->item(row, 0);
       if(item == nullptr) {
         item = createTableWidget(" ");
-        mTable->setItem(row, col, item);
+        mTable->setItem(row, 0, item);
       }
       if(item != nullptr) {
         if(rowData.isNAN()) {
           item->setText("-");
+          item->setBackground(QBrush(QColor(bgColor)));
+
         } else {
-          item->setText(QString::number((double) rowData.getVal()));
+          item->setText(QString::number((double) rowData.getVal()) + "Par: " + QString::number(rowData.getParentId()) +
+                        " Obj: " + QString::number(rowData.getObjectId()));
         }
         QFont font = item->font();
         font.setStrikeOut(!rowData.isValid());
         item->setFont(font);
+        item->setBackground(QBrush(QColor(bgColor)));
       }
-      row++;
     }
-    col++;
   }
 
   adjustSize();
