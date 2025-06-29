@@ -78,37 +78,39 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
     size_t columnNr         = statement.getColSize();
     for(int32_t rowIdx = 0; rowIdx < materializedResult->RowCount(); rowIdx++) {
       for(int32_t colIdx = 0; colIdx < columnNr; colIdx++) {
-        if(!materializedResult->GetValue(colIdx, rowIdx).IsNull()) {
-          uint32_t meas_center_x  = materializedResult->GetValue(columnNr + 0, rowIdx).GetValue<uint32_t>();
-          uint32_t meas_center_y  = materializedResult->GetValue(columnNr + 1, rowIdx).GetValue<uint32_t>();
-          uint64_t objectId       = materializedResult->GetValue(columnNr + 2, rowIdx).GetValue<uint64_t>();
-          uint64_t objectIdReal   = materializedResult->GetValue(columnNr + 3, rowIdx).GetValue<uint64_t>();
-          uint64_t parentObjectId = materializedResult->GetValue(columnNr + 4, rowIdx).GetValue<uint64_t>();
-          auto trackIdTmp         = materializedResult->GetValue(columnNr + 5, rowIdx);
-          auto filename           = materializedResult->GetValue(columnNr + 6, rowIdx).GetValue<std::string>();
-          auto tStack             = materializedResult->GetValue(columnNr + 7, rowIdx).GetValue<uint32_t>();
-          uint64_t trackingId     = 0;
-          if(!trackIdTmp.IsNull()) {
-            trackingId = trackIdTmp.GetValue<uint64_t>();
-          }
-          double value            = materializedResult->GetValue(colIdx, rowIdx).GetValue<double>();
-          std::string fileNameTmp = "t=" + std::to_string(tStack) + " " + filename;
-          classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
-                                  table::TableCell{value,
-                                                   table::TableCell::MetaData{.objectIdGroup  = objectId,
-                                                                              .objectId       = objectIdReal,
-                                                                              .parentObjectId = parentObjectId,
-                                                                              .trackingId     = trackingId,
-                                                                              .isValid        = true,
-                                                                              .tStack         = tStack,
-                                                                              .zStack         = 0,
-                                                                              .cStack         = 0,
-                                                                              .rowName        = fileNameTmp},
-                                                   table::TableCell::Grouping{.groupIdx = static_cast<uint64_t>(
-                                                                                  (static_cast<uint64_t>(meas_center_x) << 32) | meas_center_y),
-                                                                              .posX = meas_center_x,
-                                                                              .posY = meas_center_y}});
+        uint32_t meas_center_x  = materializedResult->GetValue(columnNr + 0, rowIdx).GetValue<uint32_t>();
+        uint32_t meas_center_y  = materializedResult->GetValue(columnNr + 1, rowIdx).GetValue<uint32_t>();
+        uint64_t objectId       = materializedResult->GetValue(columnNr + 2, rowIdx).GetValue<uint64_t>();
+        uint64_t objectIdReal   = materializedResult->GetValue(columnNr + 3, rowIdx).GetValue<uint64_t>();
+        uint64_t parentObjectId = materializedResult->GetValue(columnNr + 4, rowIdx).GetValue<uint64_t>();
+        auto trackIdTmp         = materializedResult->GetValue(columnNr + 5, rowIdx);
+        auto filename           = materializedResult->GetValue(columnNr + 6, rowIdx).GetValue<std::string>();
+        auto tStack             = materializedResult->GetValue(columnNr + 7, rowIdx).GetValue<uint32_t>();
+        uint64_t trackingId     = 0;
+        if(!trackIdTmp.IsNull()) {
+          trackingId = trackIdTmp.GetValue<uint64_t>();
         }
+        /// \todo think about if 0 is always the best choice
+        double value = 0;
+        if(!materializedResult->GetValue(colIdx, rowIdx).IsNull()) {
+          value = materializedResult->GetValue(colIdx, rowIdx).GetValue<double>();
+        }
+        std::string fileNameTmp = "t=" + std::to_string(tStack) + " " + filename;
+        classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
+                                table::TableCell{value,
+                                                 table::TableCell::MetaData{.objectIdGroup  = objectId,
+                                                                            .objectId       = objectIdReal,
+                                                                            .parentObjectId = parentObjectId,
+                                                                            .trackingId     = trackingId,
+                                                                            .isValid        = true,
+                                                                            .tStack         = tStack,
+                                                                            .zStack         = 0,
+                                                                            .cStack         = 0,
+                                                                            .rowName        = fileNameTmp},
+                                                 table::TableCell::Grouping{
+                                                     .groupIdx = static_cast<uint64_t>((static_cast<uint64_t>(meas_center_x) << 32) | meas_center_y),
+                                                     .posX     = meas_center_x,
+                                                     .posY     = meas_center_y}});
       }
     }
   }

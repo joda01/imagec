@@ -83,7 +83,7 @@ std::string ResultsSettings::ColumnKey::createHtmlHeader(HeaderStyle style) cons
     if(style == HeaderStyle::FULL) {
       return "<b>" + names.intersectingName + "</b><br>in<br><b>" + names.className + "</b><br>" + createStatsHeader(stats) + "<br>" + stacks;
     } else if(style == HeaderStyle::ONLY_STATS_IN_INTERSECTING) {
-      return "Counted in " + names.className + "</b> " + createStatsHeader(stats) + "<br>" + stacks;
+      return "Number counted in " + names.className + "</b> " + createStatsHeader(stats) + "<br>" + stacks;
     } else if(style == HeaderStyle::ONLY_STATS_CONTAINS_INTERSECTING) {
       return "Contains number of " + names.intersectingName + "</b> " + createStatsHeader(stats) + "<br>" + stacks;
     }

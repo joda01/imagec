@@ -64,7 +64,7 @@ std::tuple<std::string, std::string> PreparedStatement::createIntersectionQuery(
   for(const auto &[_, column] : columns) {
     if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::INTERSECTION) {
       std::string chStr = std::to_string(static_cast<int32_t>(column.intersectingChannel));
-      retValSum += "SUM(CASE WHEN ad.class_id = " + chStr + " THEN 1 ELSE NULL END) AS recursive_child_count_" + chStr + ",\n";
+      retValSum += "SUM(CASE WHEN ad.class_id = " + chStr + " THEN 1 ELSE 0 END) AS recursive_child_count_" + chStr + ",\n";
     }
   }
 
