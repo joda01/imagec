@@ -162,8 +162,13 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   //
   // Breadcrump
   //
-  auto *topBreadCrump = new QHBoxLayout();
+  auto *topBreadCrump = new QWidget();
   {
+    auto *topBreadCrumpLayout = new QHBoxLayout();
+    topBreadCrump->setLayout(topBreadCrumpLayout);
+    topBreadCrump->setContentsMargins(0, 0, 0, 0);
+    topBreadCrumpLayout->setContentsMargins(0, 0, 0, 0);
+
     //
     //
     //
@@ -172,12 +177,12 @@ PanelResults::PanelResults(WindowMain *windowMain) :
     mTableButton->setCheckable(true);
     mTableButton->setChecked(true);
     grp->addButton(mTableButton);
-    topBreadCrump->addWidget(mTableButton);
+    topBreadCrumpLayout->addWidget(mTableButton);
 
     mHeatmapButton = new QPushButton(generateSvgIcon("skg-chart-bubble"), "");
     mHeatmapButton->setCheckable(true);
     grp->addButton(mHeatmapButton);
-    topBreadCrump->addWidget(mHeatmapButton);
+    topBreadCrumpLayout->addWidget(mHeatmapButton);
 
     connect(mHeatmapButton, &QPushButton::clicked, [this](bool checked) {
       if(checked) {
@@ -191,21 +196,21 @@ PanelResults::PanelResults(WindowMain *windowMain) :
     });
 
     mBreadCrumpPlate = new QPushButton(generateSvgIcon("go-home"), "Plate");
-    topBreadCrump->addWidget(mBreadCrumpPlate);
+    topBreadCrumpLayout->addWidget(mBreadCrumpPlate);
     connect(mBreadCrumpPlate, &QPushButton::clicked, [this]() { backTo(Navigation::PLATE); });
 
     mBreadCrumpWell = new QPushButton("Well (1)");
-    topBreadCrump->addWidget(mBreadCrumpWell);
+    topBreadCrumpLayout->addWidget(mBreadCrumpWell);
     connect(mBreadCrumpWell, &QPushButton::clicked, [this]() { backTo(Navigation::WELL); });
 
     mBreadCrumpImage = new QPushButton("Image (abcd.tif)");
-    topBreadCrump->addWidget(mBreadCrumpImage);
+    topBreadCrumpLayout->addWidget(mBreadCrumpImage);
     connect(mBreadCrumpImage, &QPushButton::clicked, [this]() { /*backTo(Navigation::IMAGE);*/ });
 
     // Open next level button
     mOpenNextLevel = new QPushButton(generateSvgIcon("go-next"), "");
     mOpenNextLevel->setStatusTip("Open selected wells/images");
-    topBreadCrump->addWidget(mOpenNextLevel);
+    topBreadCrumpLayout->addWidget(mOpenNextLevel);
     connect(mOpenNextLevel, &QPushButton::clicked, [this]() {
       // std::vector<table::TableCell> selected;
       // for(const QModelIndex &index : selectedIndexes) {
@@ -214,15 +219,20 @@ PanelResults::PanelResults(WindowMain *windowMain) :
       // openNextLevel(selected);
     });
 
-    topBreadCrump->addStretch();
+    topBreadCrumpLayout->addStretch();
+    topBreadCrump->setSizePolicy(QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Minimum);
   }
 
   //
   // Top infor widget
   //
-  QLayout *topInfoLayout = new QHBoxLayout();
+  auto *topInfo = new QWidget();
   {
+    QLayout *topInfoLayout = new QHBoxLayout();
+    topInfo->setLayout(topInfoLayout);
     topInfoLayout->setSpacing(SELECTED_INFO_SPACING);
+    topInfoLayout->setContentsMargins(0, 0, 0, 0);
+    topInfoLayout->setContentsMargins(0, 0, 0, 0);
 
     mSelectedRowInfo = new QLabel();
     mSelectedRowInfo->setFrameShape(QFrame::StyledPanel);
@@ -237,6 +247,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
 
     topInfoLayout->addWidget(mSelectedRowInfo);
     topInfoLayout->addWidget(mSelectedValue);
+    topInfo->setSizePolicy(QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Minimum);
   }
 
   //
@@ -254,8 +265,8 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   auto *col = tab->addVerticalPanel();
   col->setContentsMargins(0, 6, 0, 0);
   col->setSpacing(4);
-  col->addLayout(topBreadCrump);
-  col->addLayout(topInfoLayout);
+  col->addWidget(topBreadCrump);
+  col->addWidget(topInfo);
   col->addWidget(mGraphContainer.get());
   col->addWidget(mDashboard);
 
