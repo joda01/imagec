@@ -19,6 +19,7 @@
 #include "backend/helper/table/table.hpp"
 #include "ui/gui/helper/word_wrap_header.hpp"
 #include "ui/gui/results/dashboard/dashboard_element.hpp"
+#include "ui/gui/results/panel_results.hpp"
 #include "ui/gui/window_main/window_main.hpp"
 
 namespace joda::ui::gui {
@@ -30,7 +31,7 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-Dashboard::Dashboard(WindowMain *mainWindow) : mMainWindow(mainWindow)
+Dashboard::Dashboard(PanelResults *panelResults, WindowMain *mainWindow) : mPanelResults(panelResults), mMainWindow(mainWindow)
 {
   // setViewMode(QMdiArea::TabbedView);
   setTabsMovable(true);
@@ -99,6 +100,9 @@ void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn, bool isIm
       mMidiWindows.emplace(classId, element01);
       element01->setData(dashData.colName.data(), dashData.cols, isImageView, dashData.intersectingCol);
       element01->show();
+      connect(element01, &DashboardElement::cellSelected,
+              [this](joda::table::TableCell cell) { mPanelResults->setSelectedElement(cell.getPosX(), cell.getPosY(), cell); });
+      connect(element01, &DashboardElement::cellDoubleClicked, [this](joda::table::TableCell cell) { mPanelResults->openNextLevel({cell}); });
     }
   };
 

@@ -48,9 +48,21 @@ DashboardElement::DashboardElement(QWidget *widget) : QMdiSubWindow(widget)
     mTable->horizontalHeader()->setMinimumSectionSize(120);
     mTable->horizontalHeader()->setDefaultSectionSize(120);
     mTable->setItemDelegate(new HtmlDelegate(mTable));
-    connect(mTable, &QTableWidget::cellDoubleClicked, [this](int row, int column) { emit cellDoubleClicked(mTableCells[column][row]); });
-    connect(mTable, &QTableWidget::cellClicked, [this](int row, int column) { emit cellSelected(mTableCells[column][row]); });
-    connect(mTable, &QTableWidget::currentCellChanged, [this](int row, int column) { emit cellSelected(mTableCells[column][row]); });
+    connect(mTable, &QTableWidget::cellDoubleClicked, [this](int row, int column) {
+      if(mTableCells.contains(column) && mTableCells.at(column).contains(row)) {
+        emit cellDoubleClicked(*mTableCells[column][row]);
+      }
+    });
+    connect(mTable, &QTableWidget::cellClicked, [this](int row, int column) {
+      if(mTableCells.contains(column) && mTableCells.at(column).contains(row)) {
+        emit cellSelected(*mTableCells[column][row]);
+      }
+    });
+    connect(mTable, &QTableWidget::currentCellChanged, [this](int row, int column) {
+      if(mTableCells.contains(column) && mTableCells.at(column).contains(row)) {
+        emit cellSelected(*mTableCells[column][row]);
+      }
+    });
     layout->addWidget(mTable);
   }
   setWidget(centralWidget);
@@ -90,6 +102,8 @@ void DashboardElement::setData(const QString &description, const std::vector<con
     widget->setStatusTip(data);
     return widget;
   };
+
+  mTableCells.clear();
 
   //
   // We can assume that the data are ordered by image_id, parent_object_id, objects_id, t_stack.

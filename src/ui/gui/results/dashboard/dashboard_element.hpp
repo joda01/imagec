@@ -41,8 +41,8 @@ public:
   void reset();
 
 signals:
-  void cellSelected(const joda::table::TableCell *);
-  void cellDoubleClicked(const joda::table::TableCell *);
+  void cellSelected(joda::table::TableCell);
+  void cellDoubleClicked(joda::table::TableCell);
 
 private:
   /////////////////////////////////////////////////////

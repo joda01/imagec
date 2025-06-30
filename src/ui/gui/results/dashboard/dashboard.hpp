@@ -25,6 +25,7 @@ namespace joda::ui::gui {
 
 class DashboardElement;
 class WindowMain;
+class PanelResults;
 
 class Dashboard : public QMdiArea
 {
@@ -32,7 +33,7 @@ class Dashboard : public QMdiArea
 
 public:
   /////////////////////////////////////////////////////
-  Dashboard(WindowMain *mainWindow);
+  Dashboard(PanelResults *panelResults, WindowMain *mainWindow);
   void reset();
   void tableToQWidgetTable(const joda::table::Table &tableIn, bool isImageView);
   void copyToClipboard() const;
@@ -43,6 +44,7 @@ private:
   void clearLayout();
 
   /////////////////////////////////////////////////////
+  PanelResults *mPanelResults;
   WindowMain *mMainWindow;
   int32_t mSelectedTableColumnIdx = -1;
   int32_t mSelectedTableRow       = -1;

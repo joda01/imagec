@@ -85,6 +85,9 @@ public:
     return mSelectedImageId;
   }
 
+  void setSelectedElement(int cellX, int cellY, table::TableCell value);
+  void openNextLevel(const std::vector<table::TableCell> &selectedRows);
+
 signals:
   void finishedLoading();
 
@@ -127,8 +130,6 @@ private:
   void saveData(const std::string &fileName, joda::ctrl::ExportSettings::ExportType);
   void showOpenFileDialog();
   void backTo(Navigation backTo);
-
-  void openNextLevel(const std::vector<table::TableCell> &selectedRows);
 
   WindowMain *mWindowMain;
   std::unique_ptr<joda::db::Database> mAnalyzer;
@@ -219,13 +220,10 @@ private:
 public slots:
   void onFinishedLoading();
   void onMarkAsInvalidClicked(bool);
-  void onElementSelected(int cellX, int cellY, table::TableCell value, const QString &description);
-  void onOpenNextLevel(int cellX, int cellY, table::TableCell value);
   void onExportImageClicked();
   void onShowTable();
   void onShowHeatmap();
   void onColumnComboChanged();
-  void onTileClicked(int32_t tileX, int32_t tileY);
 };
 
 }    // namespace joda::ui::gui

@@ -119,7 +119,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
         int selectedCol  = mDockWidgetGraphSettings->getSelectedColumn();
         auto selectedRow = found->second;
         auto value       = mActListData.data(selectedRow, selectedCol);
-        onElementSelected(selectedCol, selectedRow, value, "TT");
+        setSelectedElement(selectedCol, selectedRow, value);
       }
     });
 
@@ -131,7 +131,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
         int selectedCol  = mDockWidgetGraphSettings->getSelectedColumn();
         auto selectedRow = found->second;
         auto value       = mActListData.data(selectedRow, selectedCol);
-        onOpenNextLevel(selectedCol, selectedRow, value);
+        openNextLevel({value});
       }
     });
     connect(layout().getBackButton(), &QAction::triggered, [this] { mWindowMain->showPanelStartPage(); });
@@ -254,7 +254,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   // Dashboard
   //
   {
-    mDashboard = new Dashboard(windowMain);
+    mDashboard = new Dashboard(this, windowMain);
   }
 
   //
@@ -273,7 +273,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   onShowTable();
   refreshView();
 
-  connect(mDockWidgetImagePreview, &DialogImageViewer::tileClicked, this, &PanelResults::onTileClicked);
+  connect(mDockWidgetImagePreview, &DialogImageViewer::tileClicked, [this] { loadPreview(); });
   connect(mDockWidgetImagePreview, &DialogImageViewer::onSettingChanged, [this] {
     if(mFilter.getFilter().tStack != mDockWidgetImagePreview->getActualTimeStackPosition()) {
       // If t stack has been changed, reload the results with the new t-stack
@@ -559,21 +559,6 @@ void PanelResults::refreshBreadCrump()
 /// \param[out]
 /// \return
 ///
-void PanelResults::onTileClicked(int32_t tileX, int32_t tileY)
-{
-  // Do nothing
-  // mSelectedTileX = tileX;
-  // mSelectedTileY = tileY;
-  loadPreview();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 bool PanelResults::showSelectWorkingDir(const QString &path)
 {
   QFileDialog dialog(mWindowMain);
@@ -754,41 +739,44 @@ void PanelResults::refreshView()
     mIsLoading = true;
     QApplication::setOverrideCursor(Qt::WaitCursor);
     std::thread([this, rows, cols, wellOrder = wellOrder] {
-      joda::log::logTrace("Start refreshing view ...");
+      try {
+        joda::log::logTrace("Start refreshing view ...");
 
-      std::lock_guard<std::mutex> lock(mLoadLock);
-      storeResultsTableSettingsToDatabase();
-    REFRESH_VIEW:
-      switch(mNavigation) {
-        case Navigation::PLATE: {
-          mActListData = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE, &mActFilter);
-          if(mActListData.getNrOfRows() == 1) {
-            // If there are no groups, switch directly to well view
-            mNavigation                = Navigation::WELL;
-            auto getID                 = mActListData.data(0, 0).getId();
-            mActGroupId                = getID;
-            mSelectedWellId            = getID;
-            mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(getID);
-            mFilter.setFilter({.plateId = 0,
-                               .groupId = static_cast<uint16_t>(mActGroupId),
-                               .imageId = mActImageId,
-                               .tStack  = mDockWidgetImagePreview->getActualTimeStackPosition()},
-                              {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
-                              {.densityMapAreaSize = static_cast<int32_t>(mDockWidgetGraphSettings->getDensityMapSize())});
-            goto REFRESH_VIEW;
-          }
+        std::lock_guard<std::mutex> lock(mLoadLock);
+        storeResultsTableSettingsToDatabase();
+      REFRESH_VIEW:
+        switch(mNavigation) {
+          case Navigation::PLATE: {
+            mActListData = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE, &mActFilter);
+            if(mActListData.getNrOfRows() == 1) {
+              // If there are no groups, switch directly to well view
+              mNavigation                = Navigation::WELL;
+              auto getID                 = mActListData.data(0, 0).getId();
+              mActGroupId                = getID;
+              mSelectedWellId            = getID;
+              mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(getID);
+              mFilter.setFilter({.plateId = 0,
+                                 .groupId = static_cast<uint16_t>(mActGroupId),
+                                 .imageId = mActImageId,
+                                 .tStack  = mDockWidgetImagePreview->getActualTimeStackPosition()},
+                                {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
+                                {.densityMapAreaSize = static_cast<int32_t>(mDockWidgetGraphSettings->getDensityMapSize())});
+              goto REFRESH_VIEW;
+            }
 
-        } break;
-        case Navigation::WELL: {
-          mActListData = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL, &mActFilter);
-        } break;
-        case Navigation::IMAGE: {
-          mActListData = joda::db::StatsPerImage::toTable(mAnalyzer.get(), mFilter, &mActFilter);
-        } break;
+          } break;
+          case Navigation::WELL: {
+            mActListData = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL, &mActFilter);
+          } break;
+          case Navigation::IMAGE: {
+            mActListData = joda::db::StatsPerImage::toTable(mAnalyzer.get(), mFilter, &mActFilter);
+          } break;
+        }
+        mIsLoading = false;
+        joda::log::logTrace("Finished refresh view.");
+      } catch(const std::exception &ex) {
+        joda::log::logError(ex.what());
       }
-      mIsLoading = false;
-      joda::log::logTrace("Finished refresh view.");
-
       emit finishedLoading();
     }).detach();
   }
@@ -836,7 +824,7 @@ void PanelResults::onFinishedLoading()
   refreshBreadCrump();
   auto col = mSelection[mNavigation].col;
   auto row = mSelection[mNavigation].row;
-  onElementSelected(col, row, mActListData.data(row, col), "Description");
+  setSelectedElement(col, row, mActListData.data(row, col));
   update();
   QApplication::restoreOverrideCursor();
 }
@@ -893,7 +881,7 @@ void PanelResults::onMarkAsInvalidClicked(bool isInvalid)
 /// \brief      An element has been selected
 /// \author     Joachim Danmayr
 ///
-void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell value, const QString &headerTxt)
+void PanelResults::setSelectedElement(int cellX, int cellY, table::TableCell value)
 {
   if(cellX < 0 || cellY < 0) {
     mSelectedValue->setText("");
@@ -962,7 +950,8 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       loadPreview();
       break;
   }
-  mSelectedValue->setText(QString::number(value.getVal()) + " | " + headerTxt);
+  // QString headerTxt =  " | " + ;
+  mSelectedValue->setText(QString::number(value.getVal()));
   mSelectedDataSet.value = DataSet::Value{.value = value.getVal()};
 }
 
@@ -970,10 +959,6 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
 /// \brief      Open the next deeper level form the element with given id
 /// \author     Joachim Danmayr
 ///
-void PanelResults::onOpenNextLevel(int cellX, int cellY, table::TableCell value)
-{
-  openNextLevel({value});
-}
 void PanelResults::openNextLevel(const std::vector<table::TableCell> &value)
 {
   int actMenu = static_cast<int>(mNavigation);
