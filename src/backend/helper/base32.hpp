@@ -16,8 +16,7 @@
 namespace joda::helper {
 std::string toBase32(uint64_t number)
 {
-  // const std::string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-  const std::string alphabet = "0123456789ABCDEFGHJKMNPRSTUVWXYZ";    //+7 to get 40 (-.*#;=!)
+  const std::string alphabet = "ABCDEFGHJKMNPQRSTUVWXYZ123456789";
   std::string result;
 
   // Convert number to base32 string (no padding yet)
@@ -28,7 +27,7 @@ std::string toBase32(uint64_t number)
   }
 
   if(result.empty()) {
-    result = "0";    // zero
+    result = alphabet[0];    // zero
   }
 
   // Calculate padding length to nearest multiple of 3
@@ -37,7 +36,7 @@ std::string toBase32(uint64_t number)
 
   // Pad with 'A' (which means 0) to left to reach padded_len
   while(result.length() < padded_len) {
-    result.insert(result.begin(), '0');
+    result.insert(result.begin(), alphabet[0]);
   }
 
   // Insert '-' after every 3 digits

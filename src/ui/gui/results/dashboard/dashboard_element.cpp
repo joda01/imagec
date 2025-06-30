@@ -177,6 +177,7 @@ void DashboardElement::setData(const QString &description, const std::vector<con
               intersectingItem->setBackground(QBrush(QColor(bgColor)));
             }
           }
+          // Table cell assignment below
         }
         // Vertical header
         if(!rowData.isNAN()) {
@@ -200,6 +201,7 @@ void DashboardElement::setData(const QString &description, const std::vector<con
                 QString(joda::helper::toBase32(rowData.getParentId()).data()) + "</i><span>");
             itemObjId->setBackground(bgColor);
           }
+          mTableCells[COL_IDX_OBJECT_ID][row] = &rowData;
         }
         // =========================================
         // Add data
@@ -249,35 +251,19 @@ void DashboardElement::setData(const QString &description, const std::vector<con
         intersectingColl->colSettings.createHtmlHeader(settings::ResultsSettings::ColumnKey::HeaderStyle::ONLY_STATS_IN_INTERSECTING).data();
     mTable->setHorizontalHeaderItem(COL_IDX_INTERSECTING, createTableWidget(headerText));
 
-    /*for(const auto &[_, rowData] : intersectingColl->rows) {
+    for(const auto &[_, rowData] : intersectingColl->rows) {
       if(rowData.getObjectId() == 0 || !startOfNewParent.contains(rowData.getObjectId())) {
         continue;
       }
 
       auto [row, bgColor] = startOfNewParent.at(rowData.getObjectId());
-      // mTable->setVerticalHeaderItem(row, createTableWidget(std::to_string(row).data()));
-      QTableWidgetItem *item = mTable->item(row, COL_IDX_INTERSECTING);
-      if(item == nullptr) {
-        item = createTableWidget(" ");
-        mTable->setItem(row, COL_IDX_INTERSECTING, item);
+      // We link to the parent. So if the users clicks on this cell, he gets the information about the parent object
+      // rowData.getVal() contains the number of elements we have to fill
+      for(int n = 0; n < rowData.getVal(); n++) {
+        int32_t rowTemp                            = row + n;
+        mTableCells[COL_IDX_INTERSECTING][rowTemp] = &rowData;
       }
-      if(item != nullptr) {
-        if(rowData.isNAN()) {
-          item->setText("-<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " + QString::number(rowData.getObjectId()) + " ⬆ " +
-                        QString::number(rowData.getParentId()) + "</i><span>");
-          item->setBackground(QBrush(QColor(bgColor)));
-
-        } else {
-          // QString::number((double) rowData.getVal())
-          item->setText(QString::number(rowData.getObjectId()) + "<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " +
-                        QString::number(rowData.getObjectId()) + " ⬆ " + QString::number(rowData.getParentId()) + "</i><span>");
-        }
-        QFont font = item->font();
-        font.setStrikeOut(!rowData.isValid());
-        item->setFont(font);
-        item->setBackground(QBrush(QColor(bgColor)));
-      }
-    }*/
+    }
   }
 
   adjustSize();
