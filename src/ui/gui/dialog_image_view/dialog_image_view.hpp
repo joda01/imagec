@@ -16,6 +16,7 @@
 #include <qaction.h>
 #include <qdialog.h>
 #include <qwindow.h>
+#include <optional>
 #include "backend/enums/types.hpp"
 #include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"
@@ -37,7 +38,7 @@ class DialogImageViewer : public QDockWidget
 
 public:
   /////////////////////////////////////////////////////
-  DialogImageViewer(QWidget *parent, bool showOriginalImage = true);
+  DialogImageViewer(QWidget *parent, bool showOriginalImage = true, QMainWindow *toolbarParent = nullptr);
   ~DialogImageViewer();
   void imageUpdated(const ctrl::Preview::PreviewResults &info, const std::map<enums::ClassIdIn, QString> &classes);
   void fitImageToScreenSize();
@@ -62,6 +63,10 @@ public:
   }
   void setWaiting(bool waiting)
   {
+    // Don't show waiting dialog if video is running for a better view.
+    if(mActionPlay->isChecked()) {
+      return;
+    }
     mImageViewLeft.setWaiting(waiting);
     mImageViewRight.setWaiting(waiting);
   }
@@ -155,7 +160,36 @@ public:
     mImageViewRight.setShowPixelInfo(show);
   }
 
+  int32_t getActualTimeStackPosition() const
+  {
+    return mSpinnerActTimeStack->value();
+  }
+
+  int32_t getMaxTimeStacks() const
+  {
+    if(mMaxTimeStacks.has_value()) {
+      return mMaxTimeStacks.value();
+    }
+    return mPreviewImages.tStacks;
+  }
+
+  void setMaxTimeStacks(int32_t tStackNr)
+  {
+    mMaxTimeStacks = tStackNr;
+  }
+
+  void resetMaxtimeStacks()
+  {
+    mMaxTimeStacks.reset();
+  }
+
   void setCrossHairCursorPositionAndCenter(const QRect &boundingRect);
+
+  void setPlayBackToolbarVisible(bool visible)
+  {
+    mPlaybackToolbarVisible = visible;
+    updatePlaybackToolbarVisible();
+  }
 
 signals:
   void tileClicked(int32_t tileX, int32_t tileY);
@@ -164,6 +198,17 @@ signals:
 private:
   /////////////////////////////////////////////////////
   void leaveEvent(QEvent *event) override;
+  void updatePlaybackToolbarVisible()
+  {
+    if(getMaxTimeStacks() > 1) {
+      mPlaybackToolbar->setVisible(mPlaybackToolbarVisible);
+    } else {
+      mPlaybackToolbar->setVisible(false);
+    }
+    if(getActualTimeStackPosition() >= getMaxTimeStacks()) {
+      mSpinnerActTimeStack->setValue(0);
+    }
+  }
 
   /////////////////////////////////////////////////////
   joda::ctrl::Preview mPreviewImages;
@@ -173,6 +218,7 @@ private:
   std::mutex mPreviewMutex;
   int mPreviewCounter = 0;
   QBoxLayout *mCentralLayout;
+  QVBoxLayout *mMainLayout;
 
   HistoToolbar *mHistoToolbarLeft  = nullptr;
   HistoToolbar *mHistoToolbarRight = nullptr;
@@ -193,6 +239,19 @@ private:
   QAction *mMinIntensityProjection  = nullptr;
   QAction *mAvgIntensity            = nullptr;
   QAction *mTakeTheMiddleProjection = nullptr;
+
+  // T-STACK //////////////////////////////////////////////////
+  std::optional<int32_t> mMaxTimeStacks = std::nullopt;
+  QToolBar *mPlaybackToolbar;
+  int32_t mPlaybackSpeed = 1000;
+  QActionGroup *mPlaybackspeedGroup;
+  QMenu *mPlaybackSpeedSelector;
+  QTimer *mPlayTimer;
+  QAction *mActionPlay;
+  QAction *mActionStop;
+  QSpinBox *mSpinnerActTimeStack;
+  QMainWindow *mWindowMain     = nullptr;
+  bool mPlaybackToolbarVisible = false;
 
 private slots:
   /////////////////////////////////////////////////////

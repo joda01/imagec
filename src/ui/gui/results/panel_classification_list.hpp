@@ -12,18 +12,27 @@
 #pragma once
 
 #include <qcombobox.h>
+#include <qdockwidget.h>
 #include <qwidget.h>
 #include <QtWidgets>
 #include <filesystem>
 #include <optional>
 #include <utility>
+#include "backend/settings/project_settings/project_class.hpp"
 #include "backend/settings/project_settings/project_settings.hpp"
 #include "ui/gui/helper/color_combo/color_combo.hpp"
 #include "ui/gui/helper/table_widget.hpp"
 #include "ui/gui/results/dialog_class_settings.hpp"
 
-namespace joda::ui::gui {
+namespace joda::db {
+class Database;
+}
 
+namespace joda::settings {
+class ResultsSettings;
+}
+
+namespace joda::ui::gui {
 class WindowMain;
 
 ///
@@ -31,16 +40,15 @@ class WindowMain;
 /// \author
 /// \brief
 ///
-class PanelClassification : public QWidget
+class PanelClassificationList : public QDockWidget
 {
   Q_OBJECT
 
 public:
   /////////////////////////////////////////////////////
-  explicit PanelClassification(joda::settings::Classification &settings, WindowMain *windowMain);
-  void fromSettings(const joda::settings::Classification &settings);
-  void toSettings();
-  [[nodiscard]] auto getClasses() const -> std::map<enums::ClassIdIn, QString>;
+  explicit PanelClassificationList(WindowMain *windowMain, settings::ResultsSettings *resultsSettings);
+  void setDatabase(joda::db::Database *database);
+  void fromSettings();
 
 signals:
   void settingsChanged();
@@ -54,36 +62,19 @@ private:
   static constexpr int COL_NOTES   = 4;
 
   /////////////////////////////////////////////////////
-  void loadTemplates();
-  void newTemplate();
-  void saveAsNewTemplate();
   void openEditDialog(int row, int column);
-  void openTemplate(const QString &path);
-  void populateClassesFromImage();
-  void addClass(bool withUpdate = true);
   void createTableItem(int32_t rowIdx, enums::ClassId classId, const std::string &name, const std::string &color, const std::string &notes);
-  void moveClassToPosition(size_t fromPos, size_t newPos);
-  auto findNextFreeClassId() -> enums::ClassId;
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
-  joda::settings::Classification &mSettings;
+  settings::ResultsSettings *mResultsSettings;
+  joda::db::Database *mDatabase = nullptr;
   PlaceholderTableWidget *mClasses;
+  std::list<joda::settings::Class> mClassesList;
 
   /// DIALOG //////////////////////////////////////////////////
   DialogClassSettings *mClassSettingsDialog;
 
-  /// Actions //////////////////////////////////////////////////
-  QMenu *mTemplateMenu;
-
-  /// TEMPLATE //////////////////////////////////////////////////
-  bool askForChangeTemplateIndex();
-  bool askForDeleteClass();
-  bool mDontAsk = false;
-
-private slots:
   void onSettingChanged();
-  void moveUp();
-  void moveDown();
 };
 }    // namespace joda::ui::gui

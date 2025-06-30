@@ -15,13 +15,8 @@ class StatsPerImage
 public:
   static auto toTable(db::Database *database, const settings::ResultsSettings &filter, settings::ResultsSettings *resultingFilter = nullptr)
       -> QueryResult;
-  static auto toHeatmap(db::Database *database, const settings::ResultsSettings &filter, settings::ResultsSettings *resultingFilter = nullptr)
-      -> QueryResult;
   static auto toSqlTable(const db::ResultingTable::QueryKey &classsAndClass, const settings::ResultsSettings::ObjectFilter &filter,
                          const PreparedStatement &channelFilter, const std::string &offValue = "ANY_VALUE") -> std::pair<std::string, DbArgs_t>;
-  static auto toSqlHeatmap(const db::ResultingTable::QueryKey &classsAndClass, const settings::ResultsSettings::ObjectFilter &filter,
-                           const settings::DensityMapSettings &densityMapSettings, const PreparedStatement &channelFilter)
-      -> std::pair<std::string, DbArgs_t>;
 
 private:
   struct ImgInfo

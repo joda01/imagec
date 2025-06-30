@@ -115,7 +115,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   //
   //
   {
-    mPreviewImage = new DialogImageViewer(this);
+    mPreviewImage = new DialogImageViewer(this, true, this);
     mPreviewImage->setVisible(false);
     mPreviewImage->setContentsMargins(0, 0, 0, 0);
     mPreviewImage->resetImage();
@@ -340,7 +340,7 @@ void WindowMain::createLeftToolbar()
 
   // Classification tab
   {
-    mPanelClassification = new PanelClassification(mAnalyzeSettings.projectSettings, this);
+    mPanelClassification = new PanelClassification(mAnalyzeSettings.projectSettings.classification, this);
     mTabWidget->addTab(mPanelClassification, "Classification");
   }
 

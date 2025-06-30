@@ -31,7 +31,7 @@ class Database;
 class PreparedStatement;
 class ResultingTable;
 
-using QueryResult = std::map<int32_t, joda::table::Table>;
+using QueryResult = joda::table::Table;    // <time-stack,tab-index,table>
 
 ///
 /// \class
@@ -41,13 +41,14 @@ using QueryResult = std::map<int32_t, joda::table::Table>;
 class PreparedStatement
 {
 public:
-  PreparedStatement(settings::ResultsSettings::ColumnName names) : mColNames(std::move(names))
+  PreparedStatement(settings::ResultsSettings::ColumnName names, const settings::ResultsSettings *filter) :
+      mColNames(std::move(names)), mFilter(filter)
   {
   }
 
-  std::string createStatsQuery(bool isOuter, bool excludeInvalid, const std::string &offValue = "ANY_VALUE",
+  std::string createStatsQuery(bool isOuter, bool excludeInvalid, std::string offValue = "ANY_VALUE",
                                std::optional<enums::Stats> overrideStats = std::nullopt) const;
-  std::string createStatsQueryJoins() const;
+  std::string createStatsQueryJoins(bool isImage = false) const;
   std::tuple<std::string, std::string> createIntersectionQuery() const;
 
   void addColumn(settings::ResultsSettings::ColumnKey col)
@@ -93,6 +94,7 @@ private:
   /////////////////////////////////////////////////////
   std::map<int32_t, settings::ResultsSettings::ColumnKey> columns;
   settings::ResultsSettings::ColumnName mColNames;
+  const settings::ResultsSettings *mFilter;
 };
 
 ///
@@ -137,16 +139,14 @@ public:
                const std::string &rowName, const table::TableCell &tableCell)
   {
     if(!mClassesAndClasses.contains(classsAndClass)) {
-      mClassesAndClasses.emplace(classsAndClass, PreparedStatement{colName});
+      mClassesAndClasses.emplace(classsAndClass, PreparedStatement{colName, mFilter});
     }
     const PreparedStatement &prep = mClassesAndClasses.at(classsAndClass);
     auto columnKey                = prep.getColumnAt(dbColIx);
 
     for(auto [itr, rangeEnd] = mTableMapping.equal_range(columnKey); itr != rangeEnd; ++itr) {
       auto &element = itr->second;
-      mResultingTable.at(element.tabIdx).setRowName(row, rowName);
-      mResultingTable.at(element.tabIdx).setData(row, element.colIdx, tableCell);
-      mResultingTable.at(element.tabIdx).setMeta({.className = colName.className});
+      mResultingTable.setData(row, element.colIdx, tableCell);
     }
   }
 
@@ -165,53 +165,17 @@ public:
                 uint64_t rowId)
   {
     if(!mClassesAndClasses.contains(classsAndClass)) {
-      mClassesAndClasses.emplace(classsAndClass, PreparedStatement{colName});
+      mClassesAndClasses.emplace(classsAndClass, PreparedStatement{colName, mFilter});
     }
 
     for(auto [itr, element] : mTableMapping) {
-      mResultingTable.at(element.tabIdx).setRowName(row, rowName);
-      mResultingTable.at(element.tabIdx).setDataId(row, element.colIdx, rowId);
-      mResultingTable.at(element.tabIdx).setMeta({.className = colName.className});
+      mResultingTable.setDataId(row, element.colIdx, rowId);
     }
   }
 
-  void setData(const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, int32_t dbColIx, int32_t row, int32_t col,
-               const table::TableCell &tableCell, int32_t sizeX, int32_t sizeY, const std::string &header)
+  auto getTable() -> table::Table &
   {
-    if(!mClassesAndClasses.contains(classsAndClass)) {
-      mClassesAndClasses.emplace(classsAndClass, PreparedStatement{colName});
-    }
-    const PreparedStatement &prep = mClassesAndClasses.at(classsAndClass);
-    auto columnKey                = prep.getColumnAt(dbColIx);
-
-    for(auto [itr, rangeEnd] = mTableMapping.equal_range(columnKey); itr != rangeEnd; ++itr) {
-      auto &element = itr->second;
-      if(!mResultingTable.contains(element.colIdx)) {
-        // Prepare heatmap table
-        mResultingTable[element.colIdx].setTitle(header);
-        for(uint8_t row = 0; row < sizeY; row++) {
-          char toWrt                                                 = row + 'A';
-          mResultingTable[element.colIdx].getMutableRowHeader()[row] = std::string(1, toWrt);
-          for(uint8_t col = 0; col < sizeX; col++) {
-            mResultingTable[element.colIdx].getMutableColHeader()[col] = std::to_string(col + 1);
-            mResultingTable[element.colIdx].setData(row, col, table::TableCell{std::numeric_limits<double>::quiet_NaN(), 0, 0, true, ""});
-          }
-        }
-      }
-
-      mResultingTable[element.colIdx].setData(row, col, tableCell);
-      mResultingTable[element.colIdx].setMeta({.className = colName.className});
-    }
-  }
-
-  auto getTable(int32_t tabIdx) -> table::Table &
-  {
-    return mResultingTable[tabIdx];
-  }
-
-  auto containsTable(int32_t tabIdx) -> bool
-  {
-    return mResultingTable.contains(tabIdx);
+    return mResultingTable;
   }
 
   auto begin()
@@ -224,12 +188,12 @@ public:
     return mClassesAndClasses.end();
   }
 
-  auto getResult() -> const std::map<int32_t, table::Table> &
+  auto getResult() -> const QueryResult &
   {
     return mResultingTable;
   }
 
-  auto mutableResult() -> std::map<int32_t, table::Table> &
+  auto mutableResult() -> QueryResult &
   {
     return mResultingTable;
   }
@@ -241,9 +205,10 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  std::map<int32_t, table::Table> mResultingTable;
+  QueryResult mResultingTable;
   std::map<QueryKey, PreparedStatement> mClassesAndClasses;
   std::multimap<settings::ResultsSettings::ColumnKey, settings::ResultsSettings::ColumnIdx> mTableMapping;
+  const settings::ResultsSettings *mFilter;
 };
 
 }    // namespace joda::db

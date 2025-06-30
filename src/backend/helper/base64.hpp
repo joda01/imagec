@@ -25,6 +25,9 @@ static const std::string base64_chars =
 
 inline std::string base64Encode(const std::string &in)
 {
+  if(in.empty()) {
+    return "";
+  }
   std::string out;
   int val  = 0;
   int valb = -6;
@@ -47,6 +50,9 @@ inline std::string base64Encode(const std::string &in)
 
 inline std::string base64Decode(const std::string &in)
 {
+  if(in.empty()) {
+    return "";
+  }
   std::string out;
   std::vector<int> T(256, -1);
   for(int i = 0; i < 64; i++) {

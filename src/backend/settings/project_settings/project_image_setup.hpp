@@ -42,8 +42,29 @@ struct ProjectImageSetup
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ImageTileSettings, tileWidth, tileHeight);
   };
 
+  struct TStackSettings
+  {
+    //
+    // T-stack range start time point
+    //
+    int32_t startFrame = 0;
+
+    //
+    // T-stack range end time point. -1 means all
+    //
+    int32_t endFrame = -1;
+
+    void check() const
+    {
+    }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(TStackSettings, startFrame, endFrame);
+  };
+
   ZStackHandling zStackHandling = ZStackHandling::EXACT_ONE;
   TStackHandling tStackHandling = TStackHandling::EACH_ONE;
+
+  TStackSettings tStackSettings = {};
 
   //
   // If the image is too big too load at once to RAM it is loaded in tiles
@@ -55,7 +76,7 @@ struct ProjectImageSetup
   //
   int32_t series = 0;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectImageSetup, zStackHandling, tStackHandling, imageTileSettings, series);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectImageSetup, zStackHandling, tStackHandling, imageTileSettings, series, tStackSettings);
 
   void check() const
   {

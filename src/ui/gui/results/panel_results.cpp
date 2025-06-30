@@ -16,6 +16,7 @@
 #include <qbuttongroup.h>
 #include <qcombobox.h>
 #include <qdialog.h>
+#include <qdockwidget.h>
 #include <qevent.h>
 #include <qgridlayout.h>
 #include <qlabel.h>
@@ -68,7 +69,11 @@
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/table_widget.hpp"
 #include "ui/gui/helper/widget_generator.hpp"
-#include "ui/gui/helper/word_wrap_header.hpp"
+#include "ui/gui/results/dashboard/dashboard.hpp"
+#include "ui/gui/results/graphs/graph_qt_backend.hpp"
+#include "ui/gui/results/graphs/plot_plate.hpp"
+#include "ui/gui/results/panel_classification_list.hpp"
+#include "ui/gui/results/panel_graph_settings.hpp"
 #include "ui/gui/window_main/window_main.hpp"
 #include <nlohmann/json_fwd.hpp>
 #include "dialog_column_settings.hpp"
@@ -80,139 +85,90 @@ namespace joda::ui::gui {
 /// \author     Joachim Danmayr
 ///
 PanelResults::PanelResults(WindowMain *windowMain) :
-    PanelEdit(windowMain, nullptr, false, windowMain), mWindowMain(windowMain), mPreviewImage(new DialogImageViewer(windowMain, false))
+    PanelEdit(windowMain, nullptr, false, windowMain), mWindowMain(windowMain),
+    mDockWidgetImagePreview(new DialogImageViewer(windowMain, false, windowMain))
 {
   // Drop downs
   createEditColumnDialog();
   createToolBar(&layout());
 
   // Add to dock
-  mPreviewImage->setPreviewImageSizeVisble(false);
-  mPreviewImage->setPipelineResultsButtonVisible(false);
-  mPreviewImage->setVisible(false);
-  mPreviewImage->setShowCrossHairCursor(true);
-  mPreviewImage->setShowPixelInfo(false);
-  mPreviewImage->setShowOverlay(false);
-  mPreviewImage->setZProjectionButtonVisible(true);
-  mWindowMain->addDockWidget(Qt::RightDockWidgetArea, mPreviewImage);
-
-  //
-  // Create Table
-  //
-  mTable = new PlaceholderTableWidget();
-  mTable->setPlaceholderText("Click >Add column< to start.");
-  mTable->setRowCount(0);
-  mTable->setColumnCount(0);
-  mTable->verticalHeader()->setDefaultSectionSize(8);    // Set each row to 50 pixels height
-  mTable->setHorizontalHeader(new WordWrapHeader(Qt::Horizontal));
-
-  connect(mTable->verticalHeader(), &QHeaderView::sectionDoubleClicked,
-          [this](int logicalIndex) { openNextLevel({mSelectedTable.data(logicalIndex, 0)}); });
-  connect(mTable, &QTableWidget::cellDoubleClicked, [this](int row, int column) { openNextLevel({mSelectedTable.data(row, 0)}); });
-  connect(mTable, &QTableWidget::cellClicked, this, &PanelResults::onCellClicked);
-  connect(mTable, &QTableWidget::currentCellChanged, this, &PanelResults::onTableCurrentCellChanged);
+  mDockWidgetImagePreview->setPreviewImageSizeVisble(false);
+  mDockWidgetImagePreview->setPipelineResultsButtonVisible(false);
+  mDockWidgetImagePreview->setVisible(false);
+  mDockWidgetImagePreview->setShowCrossHairCursor(true);
+  mDockWidgetImagePreview->setShowPixelInfo(false);
+  mDockWidgetImagePreview->setShowOverlay(false);
+  mDockWidgetImagePreview->setZProjectionButtonVisible(true);
+  mWindowMain->addDockWidget(Qt::RightDockWidgetArea, mDockWidgetImagePreview);
 
   static const int32_t SELECTED_INFO_WIDTH   = 250;
   static const int32_t SELECTED_INFO_SPACING = 6;
   //
-  // Heatmap
+  // Graph
   //
   {
-    mHeatmapContainer = new QHBoxLayout();
-    mHeatmapContainer->setContentsMargins(0, 0, 0, 0);
-    mHeatmapChart = new ChartHeatMap(this, mFilter);
-    mHeatmapChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    connect(mHeatmapChart, &ChartHeatMap::onElementClick, [this](int cellX, int cellY, table::TableCell value) {
+    mDockWidgetGraphSettings = new PanelGraphSettings(mWindowMain);
+    mGraphContainer          = std::make_shared<QtBackend>("svg", this);
+    mGraphContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    connect(mGraphContainer.get(), &QtBackend::onGraphClicked, [this](int row, int col) {
       std::lock_guard<std::mutex> lock(mLoadLock);
-      onElementSelected(cellX, cellY, value);
+      auto found = mPositionMapping.find(Pos{(uint32_t) col, (uint32_t) row});
+      if(found != mPositionMapping.end()) {
+        int selectedCol  = mDockWidgetGraphSettings->getSelectedColumn();
+        auto selectedRow = found->second;
+        auto value       = mActListData.data(selectedRow, selectedCol);
+        setSelectedElement(selectedCol, selectedRow, value);
+      }
     });
 
-    connect(mHeatmapChart, &ChartHeatMap::onDoubleClicked, this, &PanelResults::onOpenNextLevel);
+    connect(mGraphContainer.get(), &QtBackend::onGraphDoubleClicked, [this](int row, int col) {
+      std::lock_guard<std::mutex> lock(mLoadLock);
+
+      auto found = mPositionMapping.find(Pos{(uint32_t) col, (uint32_t) row});
+      if(found != mPositionMapping.end()) {
+        int selectedCol  = mDockWidgetGraphSettings->getSelectedColumn();
+        auto selectedRow = found->second;
+        auto value       = mActListData.data(selectedRow, selectedCol);
+        openNextLevel({value});
+      }
+    });
     connect(layout().getBackButton(), &QAction::triggered, [this] { mWindowMain->showPanelStartPage(); });
     connect(this, &PanelResults::finishedLoading, this, &PanelResults::onFinishedLoading);
+    connect(mDockWidgetGraphSettings, &PanelGraphSettings::settingsChanged, [this]() { onColumnComboChanged(); });
 
-    auto *heatmapSidebar = new QWidget();
-    heatmapSidebar->setContentsMargins(0, SELECTED_INFO_SPACING, SELECTED_INFO_SPACING, 0);
-    heatmapSidebar->setMaximumWidth(SELECTED_INFO_WIDTH + SELECTED_INFO_SPACING);
-    heatmapSidebar->setMinimumWidth(SELECTED_INFO_WIDTH + SELECTED_INFO_SPACING);
-    auto *formLayout = new QVBoxLayout;
-    formLayout->setContentsMargins(0, 0, 0, 0);
-    heatmapSidebar->setLayout(formLayout);
+    mWindowMain->addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, mDockWidgetGraphSettings);
+  }
 
-    //
-    // Column selector
-    //
-    mColumn = new QComboBox();
-    connect(mColumn, &QComboBox::currentIndexChanged, this, &PanelResults::onColumnComboChanged);
-    formLayout->addWidget(mColumn);
-    formLayout->addLayout(std::get<2>(createHelpTextLabel("Table column to show", 0)));
+  // CLASSIFICATION
+  {
+    mDockWidgetClassList = new PanelClassificationList(mWindowMain, &mFilter);
+    mDockWidgetClassList->setVisible(false);
+    connect(mDockWidgetClassList, &PanelClassificationList::settingsChanged, [this]() { refreshView(); });
+    connect(mDockWidgetClassList, &QDockWidget::visibilityChanged, [&](bool visible) {
+      if(!visible) {
+        mClassSelector->setChecked(false);
+      } else {
+        mClassSelector->setChecked(true);
+      }
+    });
 
-    //
-    // Well order matrix
-    //
-    mWellOrderMatrix = new QLineEdit("[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]");
-    formLayout->addWidget(mWellOrderMatrix);
-    formLayout->addLayout(std::get<2>(createHelpTextLabel("Well order matrix", 0)));
-    connect(mWellOrderMatrix, &QLineEdit::editingFinished, [this]() { refreshView(); });
+    mWindowMain->addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, mDockWidgetClassList);
 
-    //
-    // Plate size
-    //
-    mPlateSize = new QComboBox();
-    mPlateSize->addItem("1", 1);
-    mPlateSize->addItem("2 x 3", 203);
-    mPlateSize->addItem("3 x 4", 304);
-    mPlateSize->addItem("4 x 6", 406);
-    mPlateSize->addItem("6 x 8", 608);
-    mPlateSize->addItem("8 x 12", 812);
-    mPlateSize->addItem("16 x 24", 1624);
-    mPlateSize->addItem("32 x 48", 3248);
-    mPlateSize->addItem("48 x 72", 4872);
-    formLayout->addWidget(mPlateSize);
-    formLayout->addLayout(std::get<2>(createHelpTextLabel("Plate size", 0)));
-    connect(mPlateSize, &QComboBox::currentIndexChanged, [this](int32_t index) { refreshView(); });
-
-    //
-    // Density map
-    //
-    mDensityMapSize = new QComboBox();
-    mDensityMapSize->addItem("50", 50);
-    mDensityMapSize->addItem(std::to_string(4096 / 64).data(), 4096 / 64);
-    mDensityMapSize->addItem("100", 100);
-    mDensityMapSize->addItem(std::to_string(4096 / 32).data(), 4096 / 32);
-    mDensityMapSize->addItem("150", 150);
-    mDensityMapSize->addItem("200", 200);
-    mDensityMapSize->addItem("250", 250);
-    mDensityMapSize->addItem(std::to_string(4096 / 16).data(), 4096 / 16);
-    mDensityMapSize->addItem("300", 300);
-    mDensityMapSize->addItem("350", 350);
-    mDensityMapSize->addItem("400", 400);
-    mDensityMapSize->addItem("450", 450);
-    mDensityMapSize->addItem("450", 450);
-    mDensityMapSize->addItem(std::to_string(4096 / 8).data(), 4096 / 8);
-    mDensityMapSize->addItem("1000", 1000);
-    mDensityMapSize->addItem(std::to_string(4096 / 4).data(), 4096 / 4);
-    mDensityMapSize->addItem("2000", 2000);
-    mDensityMapSize->addItem(std::to_string(4096 / 2).data(), 4096 / 2);
-    mDensityMapSize->addItem("3000", 3000);
-    mDensityMapSize->addItem("4000", 4000);
-    mDensityMapSize->addItem(std::to_string(4096).data(), 4096);
-    mDensityMapSize->setCurrentIndex(mDensityMapSize->count() - 1);
-    connect(mDensityMapSize, &QComboBox::currentIndexChanged, [this](int32_t index) { refreshView(); });
-    formLayout->addWidget(mDensityMapSize);
-    formLayout->addLayout(std::get<2>(createHelpTextLabel("Density map size", 0)));
-
-    formLayout->addStretch();
-
-    mHeatmapContainer->addWidget(heatmapSidebar);
-    mHeatmapContainer->addWidget(mHeatmapChart);
+    mWindowMain->tabifyDockWidget(mDockWidgetClassList, mDockWidgetGraphSettings);
   }
 
   //
   // Breadcrump
   //
-  auto *topBreadCrump = new QHBoxLayout();
+  auto *topBreadCrump = new QWidget();
   {
+    auto *topBreadCrumpLayout = new QHBoxLayout();
+    topBreadCrump->setLayout(topBreadCrumpLayout);
+    topBreadCrump->setContentsMargins(0, 0, 0, 0);
+    topBreadCrumpLayout->setContentsMargins(0, 0, 0, 0);
+
     //
     //
     //
@@ -221,12 +177,12 @@ PanelResults::PanelResults(WindowMain *windowMain) :
     mTableButton->setCheckable(true);
     mTableButton->setChecked(true);
     grp->addButton(mTableButton);
-    topBreadCrump->addWidget(mTableButton);
+    topBreadCrumpLayout->addWidget(mTableButton);
 
     mHeatmapButton = new QPushButton(generateSvgIcon("skg-chart-bubble"), "");
     mHeatmapButton->setCheckable(true);
     grp->addButton(mHeatmapButton);
-    topBreadCrump->addWidget(mHeatmapButton);
+    topBreadCrumpLayout->addWidget(mHeatmapButton);
 
     connect(mHeatmapButton, &QPushButton::clicked, [this](bool checked) {
       if(checked) {
@@ -240,41 +196,43 @@ PanelResults::PanelResults(WindowMain *windowMain) :
     });
 
     mBreadCrumpPlate = new QPushButton(generateSvgIcon("go-home"), "Plate");
-    topBreadCrump->addWidget(mBreadCrumpPlate);
+    topBreadCrumpLayout->addWidget(mBreadCrumpPlate);
     connect(mBreadCrumpPlate, &QPushButton::clicked, [this]() { backTo(Navigation::PLATE); });
 
     mBreadCrumpWell = new QPushButton("Well (1)");
-    topBreadCrump->addWidget(mBreadCrumpWell);
+    topBreadCrumpLayout->addWidget(mBreadCrumpWell);
     connect(mBreadCrumpWell, &QPushButton::clicked, [this]() { backTo(Navigation::WELL); });
 
     mBreadCrumpImage = new QPushButton("Image (abcd.tif)");
-    topBreadCrump->addWidget(mBreadCrumpImage);
+    topBreadCrumpLayout->addWidget(mBreadCrumpImage);
     connect(mBreadCrumpImage, &QPushButton::clicked, [this]() { /*backTo(Navigation::IMAGE);*/ });
 
     // Open next level button
     mOpenNextLevel = new QPushButton(generateSvgIcon("go-next"), "");
     mOpenNextLevel->setStatusTip("Open selected wells/images");
-    topBreadCrump->addWidget(mOpenNextLevel);
+    topBreadCrumpLayout->addWidget(mOpenNextLevel);
     connect(mOpenNextLevel, &QPushButton::clicked, [this]() {
-      QItemSelectionModel *selectionModel = mTable->selectionModel();
-      QModelIndexList selectedIndexes     = selectionModel->selectedIndexes();
-
-      std::vector<table::TableCell> selected;
-      for(const QModelIndex &index : selectedIndexes) {
-        selected.emplace_back(mSelectedTable.data(index.row(), 0));
-      }
-      openNextLevel(selected);
+      // std::vector<table::TableCell> selected;
+      // for(const QModelIndex &index : selectedIndexes) {
+      //   selected.emplace_back(mActListData.data(index.row(), 0));
+      // }
+      // openNextLevel(selected);
     });
 
-    topBreadCrump->addStretch();
+    topBreadCrumpLayout->addStretch();
+    topBreadCrump->setSizePolicy(QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Minimum);
   }
 
   //
   // Top infor widget
   //
-  QLayout *topInfoLayout = new QHBoxLayout();
+  auto *topInfo = new QWidget();
   {
+    QLayout *topInfoLayout = new QHBoxLayout();
+    topInfo->setLayout(topInfoLayout);
     topInfoLayout->setSpacing(SELECTED_INFO_SPACING);
+    topInfoLayout->setContentsMargins(0, 0, 0, 0);
+    topInfoLayout->setContentsMargins(0, 0, 0, 0);
 
     mSelectedRowInfo = new QLabel();
     mSelectedRowInfo->setFrameShape(QFrame::StyledPanel);
@@ -289,6 +247,14 @@ PanelResults::PanelResults(WindowMain *windowMain) :
 
     topInfoLayout->addWidget(mSelectedRowInfo);
     topInfoLayout->addWidget(mSelectedValue);
+    topInfo->setSizePolicy(QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Minimum);
+  }
+
+  //
+  // Dashboard
+  //
+  {
+    mDashboard = new Dashboard(this, windowMain);
   }
 
   //
@@ -299,16 +265,22 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   auto *col = tab->addVerticalPanel();
   col->setContentsMargins(0, 6, 0, 0);
   col->setSpacing(4);
-  col->addLayout(topBreadCrump);
-  col->addLayout(topInfoLayout);
-  col->addLayout(mHeatmapContainer);
-  col->addWidget(mTable);
+  col->addWidget(topBreadCrump);
+  col->addWidget(topInfo);
+  col->addWidget(mGraphContainer.get());
+  col->addWidget(mDashboard);
 
   onShowTable();
   refreshView();
 
-  connect(mPreviewImage, &DialogImageViewer::tileClicked, this, &PanelResults::onTileClicked);
-  connect(mPreviewImage, &DialogImageViewer::onSettingChanged, [this] { loadPreview(); });
+  connect(mDockWidgetImagePreview, &DialogImageViewer::tileClicked, [this] { loadPreview(); });
+  connect(mDockWidgetImagePreview, &DialogImageViewer::onSettingChanged, [this] {
+    if(mFilter.getFilter().tStack != mDockWidgetImagePreview->getActualTimeStackPosition()) {
+      // If t stack has been changed, reload the results with the new t-stack
+      refreshView();
+    }
+    loadPreview();
+  });
 }
 
 PanelResults::~PanelResults()
@@ -321,12 +293,7 @@ void PanelResults::valueChangedEvent()
 
 void PanelResults::setHeatmapVisible(bool visible)
 {
-  for(int i = 0; i < mHeatmapContainer->count(); ++i) {
-    QWidget *w = mHeatmapContainer->itemAt(i)->widget();
-    if(w) {
-      w->setVisible(visible);
-    }
-  }
+  mGraphContainer->setVisible(visible);
 }
 
 ///
@@ -337,8 +304,11 @@ void PanelResults::setActive(bool active)
 {
   if(!active) {
     showToolBar(false);
-    mPreviewImage->setVisible(false);
-    mPreviewImage->resetImage();
+    mDockWidgetImagePreview->setPlayBackToolbarVisible(false);
+    mDockWidgetImagePreview->setVisible(false);
+    mDockWidgetImagePreview->resetImage();
+    mDockWidgetGraphSettings->setVisible(false);
+    mDockWidgetClassList->setVisible(false);
     resetSettings();
     refreshView();
     mIsActive = active;
@@ -365,13 +335,12 @@ void PanelResults::resetSettings()
 
   mHeatmapButton->setChecked(false);
   mTableButton->setChecked(true);
-  mTable->setVisible(true);
+  mDashboard->setVisible(true);
+  mDashboard->reset();
   setHeatmapVisible(false);
 
   mTableButton->blockSignals(false);
   mHeatmapButton->blockSignals(false);
-  mTable->setRowCount(0);
-  mTable->setColumnCount(0);
 }
 
 ///
@@ -424,7 +393,7 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   // Copy button
   //
   auto *copyTable = new QAction(generateSvgIcon("edit-copy"), "Copy values", toolbar);
-  connect(copyTable, &QAction::triggered, [this]() { copyTableToClipboard(mTable); });
+  connect(copyTable, &QAction::triggered, [this]() { mDashboard->copyToClipboard(); });
   copyTable->setStatusTip("Copy table to clipboard");
   toolbar->addItemToTopToolbar(copyTable);
 
@@ -433,49 +402,55 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   //
   //
   //
-  auto *addColumn = new QAction(generateSvgIcon("edit-table-insert-column-right"), "");
-  addColumn->setToolTip("Add column");
-  connect(addColumn, &QAction::triggered, [this]() { columnEdit(-1); });
+  mClassSelector = new QAction(generateSvgIcon("edit-table-insert-column-right"), "");
+  mClassSelector->setCheckable(true);
+  mClassSelector->setChecked(true);
+  mClassSelector->setToolTip("Class selector");
+  connect(mClassSelector, &QAction::triggered, [this](bool checked) {
+    if(checked) {
+      mDockWidgetClassList->setVisible(true);
+      mDockWidgetClassList->raise();    // Bring the dock widget to front
+    } else {
+      mDockWidgetClassList->setVisible(false);
+    }
+  });
+  toolbar->addItemToTopToolbar(mClassSelector);
+  /*
+    auto *addColumn = new QAction(generateSvgIcon("edit-table-insert-column-right"), "");
+    addColumn->setToolTip("Add column");
+    connect(addColumn, &QAction::triggered, [this]() {
+      columnEdit(-1);
+      mDockWidgetClassList->fromSettings();
+    });
 
-  toolbar->addItemToTopToolbar(addColumn);
+    toolbar->addItemToTopToolbar(addColumn);
 
-  mDeleteCol = new QAction(generateSvgIcon("edit-table-delete-column"), "");
-  mDeleteCol->setToolTip("Delete column");
-  connect(mDeleteCol, &QAction::triggered, [this]() {
-    if(mSelectedTableColumnIdx >= 0) {
-      auto colIdx = mActFilter.getColumn({.tabIdx = 0, .colIdx = mSelectedTableColumnIdx});
-      mFilter.eraseColumn(colIdx);
-      if(mAutoSort->isChecked()) {
-        mFilter.sortColumns();
+    mDeleteCol = new QAction(generateSvgIcon("edit-table-delete-column"), "");
+    mDeleteCol->setToolTip("Delete column");
+    connect(mDeleteCol, &QAction::triggered, [this]() {
+      if(mSelectedTableColumnIdx >= 0) {
+        auto colIdx = mActFilter.getColumn({.colIdx = mSelectedTableColumnIdx});
+        mFilter.eraseColumn(colIdx);
+        if(mAutoSort->isChecked()) {
+          mFilter.sortColumns();
+        }
+        refreshView();
+        mDockWidgetClassList->fromSettings();
       }
-      refreshView();
-    }
-  });
-  toolbar->addItemToTopToolbar(mDeleteCol);
+    });
+    toolbar->addItemToTopToolbar(mDeleteCol);
 
-  mEditCol = new QAction(generateSvgIcon("document-edit"), "");
-  mEditCol->setToolTip("Edit column");
-  connect(mEditCol, &QAction::triggered, [this]() {
-    if(mSelectedTableColumnIdx >= 0) {
-      columnEdit(mSelectedTableColumnIdx);
-    }
-  });
-  toolbar->addItemToTopToolbar(mEditCol);
-
+    mEditCol = new QAction(generateSvgIcon("document-edit"), "");
+    mEditCol->setToolTip("Edit column");
+    connect(mEditCol, &QAction::triggered, [this]() {
+      if(mSelectedTableColumnIdx >= 0) {
+        columnEdit(mSelectedTableColumnIdx);
+      }
+    });
+    toolbar->addItemToTopToolbar(mEditCol);
+  */
   toolbar->addSeparatorToTopToolbar();
-
-  mAutoSort = new QAction(generateSvgIcon("view-sort-ascending-name"), "", this);
-  mAutoSort->setCheckable(true);
-  mAutoSort->setChecked(true);
-  mAutoSort->setStatusTip("Sort columns");
-  toolbar->addItemToTopToolbar(mAutoSort);
-  connect(mAutoSort, &QAction::triggered, [this]() {
-    if(mAutoSort->isChecked()) {
-      mFilter.sortColumns();
-      refreshView();
-    }
-  });
-
+  mFilter.sortColumns();
   toolbar->addSeparatorToTopToolbar();
 
   //
@@ -523,15 +498,21 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpWell->setVisible(false);
       mBreadCrumpImage->setVisible(false);
       mOpenNextLevel->setVisible(true);
-      mPreviewImage->setVisible(false);
-      mPreviewImage->resetImage();
+      mDockWidgetImagePreview->setVisible(false);
+      mDockWidgetImagePreview->setPlayBackToolbarVisible(false);
+      mDockWidgetImagePreview->setFloating(false);
+      mDockWidgetImagePreview->resetImage();
+      mDockWidgetImagePreview->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
       break;
     case Navigation::WELL:
       mBreadCrumpWell->setVisible(true);
       mBreadCrumpImage->setVisible(false);
       mOpenNextLevel->setVisible(true);
-      mPreviewImage->setVisible(false);
-      mPreviewImage->resetImage();
+      mDockWidgetImagePreview->setVisible(false);
+      mDockWidgetImagePreview->setPlayBackToolbarVisible(false);
+      mDockWidgetImagePreview->setFloating(false);
+      mDockWidgetImagePreview->resetImage();
+      mDockWidgetImagePreview->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
       if(mSelectedDataSet.groupMeta.has_value()) {
         auto platePos =
             "Well (" + std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + ")";
@@ -542,9 +523,13 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpWell->setVisible(true);
       mBreadCrumpImage->setVisible(true);
       mOpenNextLevel->setVisible(false);
-      if(!mImageWorkingDirectory.empty()) {
-        mPreviewImage->setVisible(true);
+      mDockWidgetImagePreview->resetMaxtimeStacks();
+      if(!mImageWorkingDirectory.empty() && mDashboard->isVisible()) {
+        mDockWidgetImagePreview->setVisible(true);
+      } else {
+        mDockWidgetImagePreview->setVisible(false);
       }
+      mDockWidgetImagePreview->setPlayBackToolbarVisible(true);
 
       //
       std::string imageName;
@@ -565,21 +550,6 @@ void PanelResults::refreshBreadCrump()
 
       break;
   }
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::onTileClicked(int32_t tileX, int32_t tileY)
-{
-  // Do nothing
-  // mSelectedTileX = tileX;
-  // mSelectedTileY = tileY;
-  loadPreview();
 }
 
 ///
@@ -618,11 +588,11 @@ void PanelResults::loadPreview()
 
   if(mImageWorkingDirectory.empty()) {
     // No working directory selected. Make the image preview invisible
-    mPreviewImage->setVisible(false);
+    mDockWidgetImagePreview->setVisible(false);
     mGeneratePreviewMutex.unlock();
     return;
   }
-  if(!mSelectedDataSet.analyzeMeta.has_value()) {
+  if(!mSelectedDataSet.analyzeMeta.has_value() || !mSelectedDataSet.imageMeta.has_value() || !mSelectedDataSet.objectInfo.has_value()) {
     mGeneratePreviewMutex.unlock();
     return;
   }
@@ -660,13 +630,13 @@ void PanelResults::loadPreview()
         showDialog = !std::filesystem::exists(imagePath);
       } else {
         if(mImageWorkingDirectory.empty()) {
-          mPreviewImage->setVisible(false);
+          mDockWidgetImagePreview->setVisible(false);
         }
         mGeneratePreviewMutex.unlock();
         return;
       }
     } else if(msgBox.clickedButton() == dontAskAgainButton) {
-      mPreviewImage->setVisible(false);
+      mDockWidgetImagePreview->setVisible(false);
       mImageWorkingDirectory.clear();
       mGeneratePreviewMutex.unlock();
       return;
@@ -677,7 +647,7 @@ void PanelResults::loadPreview()
   QTimer::singleShot(0, this, [this, imagePath = imagePath]() {
     mLoadLock.lock();
     try {
-      mPreviewImage->setWaiting(true);
+      mDockWidgetImagePreview->setWaiting(true);
       int32_t tileWidth  = mSelectedDataSet.analyzeMeta->tileWidth;
       int32_t tileHeight = mSelectedDataSet.analyzeMeta->tileHeight;
 
@@ -688,7 +658,7 @@ void PanelResults::loadPreview()
       int32_t tileXNr        = objectInfo.measCenterX / tileWidth;
       int32_t tileYNr        = objectInfo.measCenterY / tileHeight;
 
-      auto &previewResult = mPreviewImage->getPreviewObject();
+      auto &previewResult = mDockWidgetImagePreview->getPreviewObject();
 
       auto log = std::to_string(tileXNr) + "," + std::to_string(tileYNr) + "," + std::to_string(tileWidth) + "," + std::to_string(tileHeight) + "," +
                  std::to_string(objectInfo.stackC);
@@ -699,7 +669,7 @@ void PanelResults::loadPreview()
                                                                                 .c = static_cast<int32_t>(objectInfo.stackC),
                                                                                 .t = static_cast<int32_t>(objectInfo.stackT)},
                                         joda::ome::TileToLoad{tileXNr, tileYNr, tileWidth, tileHeight}, previewResult, mImgProps, objectInfo,
-                                        mPreviewImage->getSelectedZProjection());
+                                        mDockWidgetImagePreview->getSelectedZProjection());
       auto imgWidth    = mImgProps.getImageInfo(series).resolutions.at(0).imageWidth;
       auto imageHeight = mImgProps.getImageInfo(series).resolutions.at(0).imageHeight;
       if(imgWidth > tileWidth || imageHeight > tileHeight) {
@@ -714,22 +684,22 @@ void PanelResults::loadPreview()
       auto measBoxX = objectInfo.measBoxX - tileXNr * tileWidth;
       auto measBoxY = objectInfo.measBoxY - tileYNr * tileHeight;
       QRect boungingBox{(int32_t) measBoxX, (int32_t) measBoxY, (int32_t) objectInfo.measBoxWidth, (int32_t) objectInfo.measBoxHeight};
-      mPreviewImage->setCrossHairCursorPositionAndCenter(boungingBox);
-      mPreviewImage->setThumbnailPosition(PanelImageView::ThumbParameter{.nrOfTilesX          = tileNrX,
-                                                                         .nrOfTilesY          = tileNrY,
-                                                                         .tileWidth           = tileWidth,
-                                                                         .tileHeight          = tileHeight,
-                                                                         .originalImageWidth  = imgWidth,
-                                                                         .originalImageHeight = imageHeight,
-                                                                         .selectedTileX       = tileXNr,
-                                                                         .selectedTileY       = tileYNr});
-      mPreviewImage->imageUpdated(previewResult.results, {});
+      mDockWidgetImagePreview->setCrossHairCursorPositionAndCenter(boungingBox);
+      mDockWidgetImagePreview->setThumbnailPosition(PanelImageView::ThumbParameter{.nrOfTilesX          = tileNrX,
+                                                                                   .nrOfTilesY          = tileNrY,
+                                                                                   .tileWidth           = tileWidth,
+                                                                                   .tileHeight          = tileHeight,
+                                                                                   .originalImageWidth  = imgWidth,
+                                                                                   .originalImageHeight = imageHeight,
+                                                                                   .selectedTileX       = tileXNr,
+                                                                                   .selectedTileY       = tileYNr});
+      mDockWidgetImagePreview->imageUpdated(previewResult.results, {});
     } catch(const std::exception &ex) {
       // No image selected
       joda::log::logError("Preview error: " + std::string(ex.what()));
     }
     mLoadLock.unlock();
-    mPreviewImage->setWaiting(false);
+    mDockWidgetImagePreview->setWaiting(false);
   });
 }
 
@@ -742,8 +712,8 @@ void PanelResults::loadPreview()
 ///
 void PanelResults::refreshView()
 {
-  const auto &wellOrder = getWellOrder();
-  auto plateSize        = getPlateSize();
+  const auto &wellOrder = mDockWidgetGraphSettings->getWellOrder();
+  auto plateSize        = mDockWidgetGraphSettings->getPlateSize();
   uint16_t rows         = plateSize.height();
   uint16_t cols         = plateSize.width();
 
@@ -751,13 +721,16 @@ void PanelResults::refreshView()
                   ? joda::settings::DensityMapSettings::ElementForm::CIRCLE
                   : joda::settings::DensityMapSettings::ElementForm::RECTANGLE;
 
-  mFilter.setFilter({.plateId = 0, .groupId = mActGroupId, .imageId = mActImageId},
+  mFilter.setFilter({.plateId = 0,
+                     .groupId = static_cast<uint16_t>(mActGroupId),
+                     .imageId = mActImageId,
+                     .tStack  = mDockWidgetImagePreview->getActualTimeStackPosition()},
                     {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
                     {.form               = form,
                      .heatmapRangeMode   = mFilter.getDensityMapSettings().heatmapRangeMode,
                      .heatmapRangeMin    = mFilter.getDensityMapSettings().heatmapRangeMin,
                      .heatmapRangeMax    = mFilter.getDensityMapSettings().heatmapRangeMax,
-                     .densityMapAreaSize = static_cast<int32_t>(getDensityMapSize())});
+                     .densityMapAreaSize = static_cast<int32_t>(mDockWidgetGraphSettings->getDensityMapSize())});
 
   //
   //
@@ -766,51 +739,44 @@ void PanelResults::refreshView()
     mIsLoading = true;
     QApplication::setOverrideCursor(Qt::WaitCursor);
     std::thread([this, rows, cols, wellOrder = wellOrder] {
-      std::lock_guard<std::mutex> lock(mLoadLock);
-      storeResultsTableSettingsToDatabase();
-    REFRESH_VIEW:
-      switch(mNavigation) {
-        case Navigation::PLATE: {
-          mActListData = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE, &mActFilter);
-          if(!mActListData.empty() && mActListData.at(0).getRows() == 1) {
-            // If there are no groups, switch directly to well view
-            mNavigation                = Navigation::WELL;
-            auto getID                 = mActListData.at(0).data(0, 0).getId();
-            mActGroupId                = static_cast<uint16_t>(getID);
-            mSelectedWellId            = getID;
-            mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(getID);
-            mFilter.setFilter({.plateId = 0, .groupId = mActGroupId, .imageId = mActImageId},
-                              {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
-                              {.densityMapAreaSize = static_cast<int32_t>(getDensityMapSize())});
-            goto REFRESH_VIEW;
-          }
-          if(!mTable->isVisible()) {
-            mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE, &mActFilter);
-          }
-        } break;
-        case Navigation::WELL: {
-          if(mTable->isVisible()) {
+      try {
+        joda::log::logTrace("Start refreshing view ...");
+
+        std::lock_guard<std::mutex> lock(mLoadLock);
+        storeResultsTableSettingsToDatabase();
+      REFRESH_VIEW:
+        switch(mNavigation) {
+          case Navigation::PLATE: {
+            mActListData = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE, &mActFilter);
+            if(mActListData.getNrOfRows() == 1) {
+              // If there are no groups, switch directly to well view
+              mNavigation                = Navigation::WELL;
+              auto getID                 = mActListData.data(0, 0).getId();
+              mActGroupId                = getID;
+              mSelectedWellId            = getID;
+              mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(getID);
+              mFilter.setFilter({.plateId = 0,
+                                 .groupId = static_cast<uint16_t>(mActGroupId),
+                                 .imageId = mActImageId,
+                                 .tStack  = mDockWidgetImagePreview->getActualTimeStackPosition()},
+                                {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
+                                {.densityMapAreaSize = static_cast<int32_t>(mDockWidgetGraphSettings->getDensityMapSize())});
+              goto REFRESH_VIEW;
+            }
+
+          } break;
+          case Navigation::WELL: {
             mActListData = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL, &mActFilter);
-          } else {
-            mActHeatmapData = joda::db::StatsPerGroup::toHeatmap(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL, &mActFilter);
-          }
-        } break;
-        case Navigation::IMAGE: {
-          if(mTable->isVisible()) {
+          } break;
+          case Navigation::IMAGE: {
             mActListData = joda::db::StatsPerImage::toTable(mAnalyzer.get(), mFilter, &mActFilter);
-          } else {
-            mActHeatmapData = joda::db::StatsPerImage::toHeatmap(mAnalyzer.get(), mFilter, &mActFilter);
-          }
-        } break;
+          } break;
+        }
+        mIsLoading = false;
+        joda::log::logTrace("Finished refresh view.");
+      } catch(const std::exception &ex) {
+        joda::log::logError(ex.what());
       }
-      if(mSelection.contains(mNavigation)) {
-        auto col = mSelection[mNavigation].col;
-        auto row = mSelection[mNavigation].row;
-        mTable->setCurrentCell(row, col);
-      } else {
-        mTable->setCurrentCell(0, 0);
-      }
-      mIsLoading = false;
       emit finishedLoading();
     }).detach();
   }
@@ -825,22 +791,40 @@ void PanelResults::refreshView()
 ///
 void PanelResults::onFinishedLoading()
 {
-  if(!mActListData.empty()) {
-    tableToQWidgetTable(mActListData[0]);
-  } else {
-    mTable->setRowCount(0);
-    mTable->setColumnCount(0);
+  mDashboard->tableToQWidgetTable(mActListData, mNavigation == Navigation::IMAGE);
+  tableToHeatmap(mActListData);
+  int32_t cols           = mFilter.getPlateSetup().cols;
+  int32_t rows           = mFilter.getPlateSetup().rows;
+  int32_t densityMapSize = -1;
+  switch(mNavigation) {
+    case Navigation::PLATE:
+      break;
+    case Navigation::WELL:
+      rows = mFilter.getPlateSetup().getRowsAndColsOfWell().first;
+      cols = mFilter.getPlateSetup().getRowsAndColsOfWell().second;
+      break;
+    case Navigation::IMAGE:
+      densityMapSize = mFilter.getDensityMapSettings().densityMapAreaSize;
+      if(mSelectedDataSet.imageMeta.has_value()) {
+        rows = static_cast<int32_t>(std::ceil((float) mSelectedDataSet.imageMeta->height / (float) densityMapSize));
+        cols = static_cast<int32_t>(std::ceil((float) mSelectedDataSet.imageMeta->width / (float) densityMapSize));
+      } else {
+        rows           = 1;
+        cols           = 1;
+        densityMapSize = -1;
+      }
+
+      break;
   }
 
-  if(!mActHeatmapData.empty() && mActHeatmapData.contains(mColumn->currentData().toInt())) {
-    tableToHeatmap(mActHeatmapData[mColumn->currentData().toInt()]);
-  } else {
-    paintEmptyHeatmap();
-  }
+  mPositionMapping = preparePlateSurface(
+      mActListData, rows, cols, mDockWidgetGraphSettings->getSelectedColumn(),
+      PlotPlateSettings{.colorMap = mDockWidgetGraphSettings->getSelectedColorMap(), .densityMapSize = densityMapSize}, mGraphContainer);
+
   refreshBreadCrump();
   auto col = mSelection[mNavigation].col;
   auto row = mSelection[mNavigation].row;
-  onElementSelected(col, row, mSelectedTable.data(row, col));
+  setSelectedElement(col, row, mActListData.data(row, col));
   update();
   QApplication::restoreOverrideCursor();
 }
@@ -897,16 +881,12 @@ void PanelResults::onMarkAsInvalidClicked(bool isInvalid)
 /// \brief      An element has been selected
 /// \author     Joachim Danmayr
 ///
-void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell value)
+void PanelResults::setSelectedElement(int cellX, int cellY, table::TableCell value)
 {
   if(cellX < 0 || cellY < 0) {
     mSelectedValue->setText("");
     mSelectedRowInfo->setText("");
     return;
-  }
-  QString headerTxt = "-";
-  if(mTable->horizontalHeader()->count() > cellX) {
-    headerTxt = mTable->horizontalHeaderItem(cellX)->text();
   }
   switch(mNavigation) {
     case Navigation::PLATE: {
@@ -915,8 +895,6 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       mSelectedDataSet.imageMeta.reset();
       mSelectedDataSet.objectInfo.reset();
       mMarkAsInvalid->setEnabled(false);
-      mDeleteCol->setEnabled(true);
-      mEditCol->setEnabled(true);
 
       // Act data
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX);
@@ -940,8 +918,6 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       }
       mMarkAsInvalid->blockSignals(false);
       mMarkAsInvalid->setEnabled(true);
-      mDeleteCol->setEnabled(true);
-      mEditCol->setEnabled(true);
 
       // Act data
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
@@ -953,8 +929,6 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
     case Navigation::IMAGE:
       mSelectedTileId = value.getObjectId();
       mMarkAsInvalid->setEnabled(false);
-      mDeleteCol->setEnabled(false);
-      mEditCol->setEnabled(false);
       mSelectedAreaPos.setX(cellX);
       mSelectedAreaPos.setY(cellY);
 
@@ -967,7 +941,7 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
 
       auto rowImageName = mSelectedDataSet.imageMeta->filename;
       if(mActImageId.size() > 1) {
-        rowImageName = mSelectedTable.getRowHeader(cellY);
+        rowImageName = mActListData.getRowHeader(cellY);
       }
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
                       rowImageName + "/" + std::to_string(value.getObjectId());
@@ -976,7 +950,8 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
       loadPreview();
       break;
   }
-  mSelectedValue->setText(QString::number(value.getVal()) + " | " + headerTxt);
+  // QString headerTxt =  " | " + ;
+  mSelectedValue->setText(QString::number(value.getVal()));
   mSelectedDataSet.value = DataSet::Value{.value = value.getVal()};
 }
 
@@ -984,10 +959,6 @@ void PanelResults::onElementSelected(int cellX, int cellY, table::TableCell valu
 /// \brief      Open the next deeper level form the element with given id
 /// \author     Joachim Danmayr
 ///
-void PanelResults::onOpenNextLevel(int cellX, int cellY, table::TableCell value)
-{
-  openNextLevel({value});
-}
 void PanelResults::openNextLevel(const std::vector<table::TableCell> &value)
 {
   int actMenu = static_cast<int>(mNavigation);
@@ -1004,7 +975,7 @@ void PanelResults::openNextLevel(const std::vector<table::TableCell> &value)
       break;
     case Navigation::WELL:
       if(!value.empty()) {
-        mActGroupId = static_cast<uint16_t>(value.at(0).getId());
+        mActGroupId = value.at(0).getId();
       }
       break;
     case Navigation::IMAGE:
@@ -1071,7 +1042,6 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   // If not the user will be asked to select the image working directory.
   mImageWorkingDirectory = mDbFilePath.parent_path().parent_path().parent_path();
 
-  showToolBar(true);
   mSelectedDataSet.analyzeMeta = mAnalyzer->selectExperiment();
   mColumnEditDialog->updateClassesAndClasses(mAnalyzer.get());
   // Try to load settings if available
@@ -1093,109 +1063,25 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
       mFilter = filterTmp;
 
       const auto &plateSetup = mFilter.getPlateSetup();
-      setWellOrder(plateSetup.wellImageOrder);
-      setPlateSize({plateSetup.cols, plateSetup.rows});
-      setDensityMapSize(mFilter.getDensityMapSettings().densityMapAreaSize);
+      mDockWidgetGraphSettings->fromSettings(plateSetup.wellImageOrder, {plateSetup.cols, plateSetup.rows},
+                                             mFilter.getDensityMapSettings().densityMapAreaSize);
     }
   } catch(...) {
   }
+  showToolBar(true);
+  mDockWidgetImagePreview->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
   mIsActive = true;
   mWindowMain->setSideBarVisible(false);
+  mDockWidgetClassList->setDatabase(mAnalyzer.get());
+  if(mClassSelector->isChecked()) {
+    mDockWidgetClassList->setVisible(true);
+  }
 
   refreshView();
 
   if(mSelectedDataSet.analyzeMeta.has_value()) {
     getWindowMain()->addToLastLoadedResults(pathToDbFile, mSelectedDataSet.analyzeMeta->jobName.data());
   }
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::setWellOrder(const std::vector<std::vector<int32_t>> &wellOrder)
-{
-  mWellOrderMatrix->blockSignals(true);
-  mWellOrderMatrix->setText(joda::settings::vectorToString(wellOrder).data());
-  mWellOrderMatrix->blockSignals(false);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::setPlateSize(const QSize &size)
-{
-  mPlateSize->blockSignals(true);
-  uint32_t plateSizeCoded = (size.height() * 100) + size.width();
-  auto idx                = mPlateSize->findData(plateSizeCoded);
-  if(idx >= 0) {
-    mPlateSize->setCurrentIndex(idx);
-  }
-  mPlateSize->blockSignals(false);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::setDensityMapSize(uint32_t densityMapSize)
-{
-  mDensityMapSize->blockSignals(true);
-  auto idx = mDensityMapSize->findData(densityMapSize);
-  if(idx >= 0) {
-    mDensityMapSize->setCurrentIndex(idx);
-  }
-  mDensityMapSize->blockSignals(false);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-[[nodiscard]] auto PanelResults::getWellOrder() const -> std::vector<std::vector<int32_t>>
-{
-  return joda::settings::stringToVector(mWellOrderMatrix->text().toStdString());
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-[[nodiscard]] auto PanelResults::getPlateSize() const -> QSize
-{
-  auto value = mPlateSize->currentData().toUInt();
-  QSize size;
-  size.setWidth(value % 100);
-  size.setHeight(value / 100);
-  return size;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-[[nodiscard]] auto PanelResults::getDensityMapSize() const -> uint32_t
-{
-  return mDensityMapSize->currentData().toUInt();
 }
 
 ///
@@ -1212,7 +1098,8 @@ void PanelResults::onShowTable()
     mExportPng->setVisible(false);
   }
 
-  mTable->setVisible(true);
+  mDashboard->setVisible(true);
+  mDockWidgetGraphSettings->setVisible(false);
   setHeatmapVisible(false);
   refreshView();
 }
@@ -1230,7 +1117,10 @@ void PanelResults::onShowHeatmap()
     mExportSvg->setVisible(true);
     mExportPng->setVisible(true);
   }
-  mTable->setVisible(false);
+  mDashboard->setVisible(false);
+  mDockWidgetGraphSettings->setVisible(true);
+  mDockWidgetGraphSettings->raise();    // Make it the active tab
+  mDockWidgetImagePreview->setVisible(false);
   setHeatmapVisible(true);
   refreshView();
 }
@@ -1239,35 +1129,14 @@ void PanelResults::onShowHeatmap()
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelResults::tableToHeatmap(const joda::table::Table &table)
+
+//  // mActHeatmapData.at(mDockWidgetImagePreview->getActualTimeStackPosition()).at(mColumn->currentData().toInt())
+void PanelResults::tableToHeatmap(const db::QueryResult &table)
 {
   if(mAnalyzer) {
-    //
-    // Update heatmap column selector
-    //
-    mColumn->blockSignals(true);
-    auto actData = mColumn->currentData();
-    mColumn->clear();
-    for(const auto &[key, value] : mFilter.getColumns()) {
-      QString headerText = value.createHeader().data();
-      mColumn->addItem(headerText, key.colIdx);
-    }
-    auto idx = mColumn->findData(actData);
-    if(idx >= 0) {
-      mColumn->setCurrentIndex(idx);
-    }
-    mColumn->blockSignals(false);
-
-    //
-    //
-    //
-    if(mSelectedTableColumnIdx >= 0) {
-      mHeatmapChart->setData(table, static_cast<int32_t>(mNavigation));
-      return;
-    }
+    mDockWidgetGraphSettings->setColumns(mActFilter.getColumns());
   }
 }
-
 ///
 /// \brief
 /// \author
@@ -1282,15 +1151,13 @@ void PanelResults::paintEmptyHeatmap()
   uint16_t rows         = mFilter.getPlateSetup().rows;
   uint16_t cols         = mFilter.getPlateSetup().cols;
   for(int row = 0; row < rows; row++) {
-    table.getMutableRowHeader()[row] = "";
     for(int col = 0; col < cols; col++) {
-      table.getMutableColHeader()[col] = "";
+#warning "What shall we do"
+      // table.getMutableColHeader()[col] = "";
       table::TableCell data;
       table.setData(row, col, data);
     }
   }
-
-  mHeatmapChart->setData(table, static_cast<int32_t>(mNavigation));
 }
 
 ///
@@ -1315,94 +1182,13 @@ void PanelResults::createEditColumnDialog()
 void PanelResults::columnEdit(int32_t colIdx)
 {
   if(colIdx >= 0) {
-    mColumnEditDialog->exec(mActFilter.getColumn({.tabIdx = 0, .colIdx = colIdx}), false);
+    mColumnEditDialog->exec(mActFilter.getColumn({.colIdx = colIdx}), false);
   } else {
     mColumnEditDialog->exec({}, true);
   }
-  if(mAutoSort->isChecked()) {
-    mFilter.sortColumns();
-  }
+  mFilter.sortColumns();
+
   refreshView();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::tableToQWidgetTable(const joda::table::Table &tableIn)
-{
-  std::lock_guard<std::mutex> lock(mSelectMutex);
-  mSelectedTable = tableIn;
-  if(tableIn.getCols() > 0) {
-    mTable->setColumnCount(tableIn.getCols());
-    if(tableIn.getRows() == 0) {
-      // We print at least one empty row
-      mTable->setRowCount(1);
-    } else {
-      mTable->setRowCount(tableIn.getRows());
-    }
-
-  } else {
-    mTable->setColumnCount(0);
-    mTable->setRowCount(0);
-  }
-
-  auto createTableWidget = [](const QString &data) {
-    auto *widget = new QTableWidgetItem(data);
-    widget->setFlags(widget->flags() & ~Qt::ItemIsEditable);
-    widget->setStatusTip(data);
-    return widget;
-  };
-
-  // Header
-  for(int col = 0; col < mTable->columnCount(); col++) {
-    char txt      = col + 'A';
-    auto colCount = QString(std::string(1, txt).data());
-
-    if(tableIn.getCols() > col) {
-      QString headerText = tableIn.getColHeader(col).data();
-      mTable->setHorizontalHeaderItem(col, createTableWidget(headerText));
-
-    } else {
-      mTable->setHorizontalHeaderItem(col, createTableWidget(colCount));
-    }
-  }
-
-  // Row
-  for(int row = 0; row < mTable->rowCount(); row++) {
-    if(tableIn.getRows() > row) {
-      mTable->setVerticalHeaderItem(row, createTableWidget(tableIn.getRowHeader(row).data()));
-    } else {
-      mTable->setVerticalHeaderItem(row, createTableWidget(QString(std::to_string(row).data())));
-    }
-  }
-
-  for(int col = 0; col < mTable->columnCount(); col++) {
-    for(int row = 0; row < mTable->rowCount(); row++) {
-      QTableWidgetItem *item = mTable->item(row, col);
-      if(item == nullptr) {
-        item = createTableWidget(" ");
-        mTable->setItem(row, col, item);
-      }
-      if(item) {
-        if(tableIn.getRows() > row && tableIn.getCols() > col) {
-          if(tableIn.data(row, col).isNAN()) {
-            item->setText("-");
-          } else {
-            item->setText(QString::number((double) tableIn.data(row, col).getVal()));
-          }
-          QFont font = item->font();
-          font.setStrikeOut(!tableIn.data(row, col).isValid());
-          item->setFont(font);
-        } else {
-          item->setText(" ");
-        }
-      }
-    }
-  }
 }
 
 ///
@@ -1414,74 +1200,7 @@ void PanelResults::tableToQWidgetTable(const joda::table::Table &tableIn)
 ///
 void PanelResults::onColumnComboChanged()
 {
-  onTableCurrentCellChanged(mSelectedTableRow, mColumn->currentData().toInt(), mSelectedTableRow, mSelectedTableColumnIdx);
   refreshView();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::onTableCurrentCellChanged(int currentRow, int currentColumn, int previousRow, int previousColumn)
-{
-  onCellClicked(currentRow, currentColumn);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::onCellClicked(int rowSelected, int columnSelcted)
-{
-  std::lock_guard<std::mutex> lock(mLoadLock);
-  table::TableCell selectedData;
-  if(mActListData.empty()) {
-    mSelectedTableColumnIdx = -1;
-    mSelectedTableRow       = -1;
-  } else {
-    mSelectedTableColumnIdx = columnSelcted;
-    mSelectedTableRow       = rowSelected;
-    mSelection[mNavigation] = {rowSelected, columnSelcted};
-    selectedData            = mActListData.at(0).data(rowSelected, columnSelcted);
-  }
-  onElementSelected(mSelectedTableColumnIdx, mSelectedTableRow, selectedData);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::copyTableToClipboard(QTableWidget *table)
-{
-  QStringList data;
-  QStringList header;
-  for(int row = 0; row < table->rowCount(); ++row) {
-    QStringList rowData;
-    for(int col = 0; col < table->columnCount(); ++col) {
-      if(row == 0) {
-        header << table->horizontalHeaderItem(col)->text();
-      }
-      if(col == 0) {
-        rowData << table->verticalHeaderItem(row)->text();
-      }
-      rowData << table->item(row, col)->text();
-    }
-    data << rowData.join("\t");    // Join row data with tabs for better readability
-  }
-
-  QString text = "\t" + header.join("\t") + "\n" + data.join("\n");    // Join rows with newlines
-
-  QClipboard *clipboard = QApplication::clipboard();
-  clipboard->setText(text);
 }
 
 ///
@@ -1554,9 +1273,9 @@ void PanelResults::showFileSaveDialog(const QString &filter)
   } else if(filename.ends_with(".r")) {
     saveData(filename, joda::ctrl::ExportSettings::ExportType::R);
   } else if(filename.ends_with(".svg")) {
-    mHeatmapChart->exportToSVG(filename.data());
+    // mHeatmapChart->exportToSVG(filename.data());
   } else if(filename.ends_with(".png")) {
-    mHeatmapChart->exportToPNG(filename.data());
+    // mHeatmapChart->exportToPNG(filename.data());
   }
 }
 
@@ -1569,6 +1288,7 @@ void PanelResults::showFileSaveDialog(const QString &filter)
 ///
 void PanelResults::saveData(const std::string &fileName, joda::ctrl::ExportSettings::ExportType format)
 {
+  /*
   if(fileName.empty()) {
     return;
   }
@@ -1603,7 +1323,9 @@ void PanelResults::saveData(const std::string &fileName, joda::ctrl::ExportSetti
 
     QString folderPath = std::filesystem::path(fileName).parent_path().string().data();
     QDesktopServices::openUrl(QUrl("file:///" + folderPath));
+
   }).detach();
+  */
 }
 
 }    // namespace joda::ui::gui

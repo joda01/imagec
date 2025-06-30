@@ -19,6 +19,7 @@
 #include <qpushbutton.h>
 #include <qtoolbar.h>
 #include <qwidget.h>
+#include <cstdint>
 #include <filesystem>
 #include <memory>
 #include <mutex>
@@ -28,7 +29,7 @@
 #include "backend/helper/database/plugins/filter.hpp"
 #include "backend/helper/table/table.hpp"
 #include "controller/controller.hpp"
-#include "heatmap/panel_heatmap.hpp"
+#include "graphs/plot_plate.hpp"
 #include "ui/gui/container/panel_edit_base.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 
@@ -42,6 +43,10 @@ namespace joda::ui::gui {
 
 class DialogColumnSettings;
 class DialogImageViewer;
+class QtBackend;
+class PanelClassificationList;
+class PanelGraphSettings;
+class Dashboard;
 
 ///
 /// \class      PanelResults
@@ -70,7 +75,7 @@ public:
     return mNavigation;
   }
 
-  [[nodiscard]] uint16_t getSelectedGroup() const
+  [[nodiscard]] uint64_t getSelectedGroup() const
   {
     return mActGroupId;
   }
@@ -80,10 +85,8 @@ public:
     return mSelectedImageId;
   }
 
-  [[nodiscard]] const table::Table &getData() const
-  {
-    return mHeatmapChart->getData();
-  }
+  void setSelectedElement(int cellX, int cellY, table::TableCell value);
+  void openNextLevel(const std::vector<table::TableCell> &selectedRows);
 
 signals:
   void finishedLoading();
@@ -113,13 +116,11 @@ private:
 
   /////////////////////////////////////////////////////
   void valueChangedEvent() override;
-  void tableToQWidgetTable(const joda::table::Table &table);
-  void tableToHeatmap(const joda::table::Table &table);
+  void tableToHeatmap(const db::QueryResult &table);
   void paintEmptyHeatmap();
   void goHome();
   void refreshView();
   void refreshBreadCrump();
-  void copyTableToClipboard(QTableWidget *table);
   void refreshActSelection();
   void resetSettings();
 
@@ -129,14 +130,6 @@ private:
   void saveData(const std::string &fileName, joda::ctrl::ExportSettings::ExportType);
   void showOpenFileDialog();
   void backTo(Navigation backTo);
-
-  auto getWellOrder() const -> std::vector<std::vector<int32_t>>;
-  void setWellOrder(const std::vector<std::vector<int32_t>> &wellOrder);
-  void setPlateSize(const QSize &size);
-  auto getPlateSize() const -> QSize;
-  void setDensityMapSize(uint32_t densityMapSize);
-  auto getDensityMapSize() const -> uint32_t;
-  void openNextLevel(const std::vector<table::TableCell> &selectedRows);
 
   WindowMain *mWindowMain;
   std::unique_ptr<joda::db::Database> mAnalyzer;
@@ -163,54 +156,51 @@ private:
   void columnEdit(int32_t colIdx);
   DialogColumnSettings *mColumnEditDialog;
 
-  /////////////////////////////////////////////////////
+  // FILTER ///////////////////////////////////////////////////
   settings::ResultsSettings mFilter;
   settings::ResultsSettings mActFilter;
-  PlaceholderTableWidget *mTable;
-  std::map<int32_t, joda::table::Table> mActListData;
-  std::map<int32_t, joda::table::Table> mActHeatmapData;
-  table::Table mSelectedTable;
-  int32_t mSelectedTableColumnIdx = -1;
-  int32_t mSelectedTableRow       = -1;
-
+  db::QueryResult mActListData;
   std::mutex mSelectMutex;
 
   // TOOLBARS///////////////////////////////////////////////////
-  QAction *mAutoSort;
+  QAction *mClassSelector;
   QAction *mDeleteCol;
   QAction *mEditCol;
 
-  /////////////////////////////////////////////////////
-  void setHeatmapVisible(bool);
-  QHBoxLayout *mHeatmapContainer;
-  ChartHeatMap *mHeatmapChart;
+  /// NAVIGATION//////////////////////////////////////////////////
   Navigation mNavigation = Navigation::PLATE;
   QAction *mMarkAsInvalid;
   DataSet mSelectedDataSet;
   QAction *mExportSvg = nullptr;
   QAction *mExportPng = nullptr;
 
-  /// HEATMAP SIDEBAR//////////////////////////////////////////////////
-  QComboBox *mColumn;
-  QLineEdit *mWellOrderMatrix;
-  QComboBox *mPlateSize;
-  QComboBox *mDensityMapSize;
+  /// DASHBOARD ///////////////////////////////////////
+  Dashboard *mDashboard;
+
+  /// GRAPH //////////////////////////////////////////////////
+  void setHeatmapVisible(bool);
+  PanelGraphSettings *mDockWidgetGraphSettings;
+  std::shared_ptr<QtBackend> mGraphContainer;
+  std::map<Pos, int32_t> mPositionMapping;
 
   /// IMAGE DOCK //////////////////////////////////////////////
   void loadPreview();
   bool showSelectWorkingDir(const QString &path);
   std::filesystem::path mImageWorkingDirectory;
-  DialogImageViewer *mPreviewImage;
+  DialogImageViewer *mDockWidgetImagePreview = nullptr;
   joda::ome::OmeInfo mImgProps;
   int32_t mSelectedTileX = 0;
   int32_t mSelectedTileY = 0;
   std::mutex mGeneratePreviewMutex;
 
+  /// CLASSES DOCK ////////////////////////////////////////////
+  PanelClassificationList *mDockWidgetClassList;
+
   /////////////////////////////////////////////////////
-  uint16_t mActGroupId = 0;
+  uint64 mActGroupId = 0;
   std::set<uint64_t> mActImageId;
 
-  uint32_t mSelectedWellId;
+  uint64_t mSelectedWellId;
   uint64_t mSelectedImageId;
   uint32_t mSelectedTileId;
   QPoint mSelectedAreaPos;
@@ -230,15 +220,10 @@ private:
 public slots:
   void onFinishedLoading();
   void onMarkAsInvalidClicked(bool);
-  void onElementSelected(int cellX, int cellY, table::TableCell value);
-  void onOpenNextLevel(int cellX, int cellY, table::TableCell value);
-  void onTableCurrentCellChanged(int currentRow, int currentColumn, int previousRow, int previousColumn);
   void onExportImageClicked();
   void onShowTable();
   void onShowHeatmap();
-  void onCellClicked(int row, int column);
   void onColumnComboChanged();
-  void onTileClicked(int32_t tileX, int32_t tileY);
 };
 
 }    // namespace joda::ui::gui

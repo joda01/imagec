@@ -263,6 +263,11 @@ public:
     return objectsOrderedByObjectId.at(objectId);
   }
 
+  const bool containsObjectById(uint64_t objectId) const
+  {
+    return objectsOrderedByObjectId.contains(objectId);
+  }
+
   std::map<uint64_t, const ROI *> objectsOrderedByObjectId;
   std::mutex mInsertLock;
 };

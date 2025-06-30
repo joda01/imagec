@@ -14,6 +14,7 @@
 #pragma once
 
 #include <duckdb.h>
+#include <exception>
 #include <filesystem>
 #include <memory>
 #include <vector>
@@ -67,18 +68,29 @@ public:
   void setImagePlaneValidity(uint64_t imageId, const enums::PlaneId &, enums::ChannelValidity validity);
   void setImagePlaneClasssClasssValidity(uint64_t imageId, const enums::PlaneId &, enums::ClassId classId, enums::ChannelValidity validity);
 
+  void setAnalyzeSettingsCache(const std::string &jobID, const std::set<enums::ClassId> &outputClasses,
+                               const std::map<enums::ClassId, std::set<int32_t>> &measureChannels,
+                               const std::map<enums::ClassId, std::set<enums::ClassId>> &intersectingChannels,
+                               const std::map<enums::ClassId, std::set<enums::ClassId>> &distanceChannels);
+
   void insertObjects(const joda::processor::ImageContext &, const joda::atom::ObjectList &);
 
   auto selectExperiment() -> AnalyzeMeta;
   auto selectPlates() -> std::map<uint16_t, joda::settings::Plate>;
   auto selectImageChannels() -> std::map<uint32_t, joda::ome::OmeInfo::ChannelInfo>;
+  auto selectNrOfTimeStacks() -> int32_t;
+
   auto selectClasses() -> std::map<enums::ClassId, joda::settings::Class>;
 
   auto selectGroupInfo(uint64_t groupId) -> GroupInfo;
   auto selectImageInfo(uint64_t imageId) -> ImageInfo;
   auto selectObjectInfo(uint64_t objectId) -> ObjectInfo;
   auto selectImages() -> std::vector<ImageInfo>;
-  auto selectMeasurementChannelsForClasss(enums::ClassId classId) -> std::set<int32_t>;
+
+  auto selectOutputClasses() -> std::set<enums::ClassId>;
+  auto selectMeasurementChannelsForClasses() -> std::map<enums::ClassId, std::set<int32_t>>;
+  auto selectIntersectingClassForClasses() -> std::map<enums::ClassId, std::set<enums::ClassId>>;
+  auto selectDistanceClassForClasses() -> std::map<enums::ClassId, std::set<enums::ClassId>>;
 
   void updateResultsTableSettings(const std::string &jobId, const std::string &settings);
   auto selectResultsTableSettings(const std::string &jobId) -> std::string;
@@ -107,6 +119,7 @@ private:
   void insertClasses(const std::list<settings::Class> &);
   void insertGroup();
   void flatten(const std::vector<cv::Point> &, duckdb::vector<duckdb::Value> &);
+  void createAnalyzeSettingsCache(const std::string &jobId);
 
   /////////////////////////////////////////////////////
   std::unique_ptr<duckdb::DBConfig> mDbCfg;
