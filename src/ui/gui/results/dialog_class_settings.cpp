@@ -367,21 +367,6 @@ void DialogClassSettings::toSettings(joda::settings::Class &classs)
           stillAddedMeasurements.emplace(enums::Measurement::CENTEROID_Y);
         }
       }
-
-      if(measure == enums::Measurement::DISTANCE_CENTER_TO_CENTER || measure == enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN ||
-         measure == enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX || measure == enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN ||
-         measure == enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX) {
-        if(!stillAddedMeasurements.contains(enums::Measurement::DISTANCE_FROM_OBJECT_ID)) {
-          classs.defaultMeasurements.emplace_back(
-              joda::settings::ResultsTemplate{.measureChannel = enums::Measurement::DISTANCE_FROM_OBJECT_ID, .stats = {enums::Stats::OFF}});
-          stillAddedMeasurements.emplace(enums::Measurement::DISTANCE_FROM_OBJECT_ID);
-        }
-        if(!stillAddedMeasurements.contains(enums::Measurement::DISTANCE_TO_OBJECT_ID)) {
-          classs.defaultMeasurements.emplace_back(
-              joda::settings::ResultsTemplate{.measureChannel = enums::Measurement::DISTANCE_TO_OBJECT_ID, .stats = {enums::Stats::OFF}});
-          stillAddedMeasurements.emplace(enums::Measurement::DISTANCE_TO_OBJECT_ID);
-        }
-      }
     }
   }
 }

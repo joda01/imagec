@@ -86,6 +86,9 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
         auto trackIdTmp         = materializedResult->GetValue(columnNr + 5, rowIdx);
         auto filename           = materializedResult->GetValue(columnNr + 6, rowIdx).GetValue<std::string>();
         auto tStack             = materializedResult->GetValue(columnNr + 7, rowIdx).GetValue<uint32_t>();
+        auto cStack             = materializedResult->GetValue(columnNr + 8, rowIdx).GetValue<uint32_t>();
+        auto zStack             = materializedResult->GetValue(columnNr + 9, rowIdx).GetValue<uint32_t>();
+        auto distanceToObjectId = materializedResult->GetValue(columnNr + 10, rowIdx).GetValue<uint64_t>();
         uint64_t trackingId     = 0;
         if(!trackIdTmp.IsNull()) {
           trackingId = trackIdTmp.GetValue<uint64_t>();
@@ -98,15 +101,16 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
         std::string fileNameTmp = "t=" + std::to_string(tStack) + " " + filename;
         classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
                                 table::TableCell{value,
-                                                 table::TableCell::MetaData{.objectIdGroup  = objectId,
-                                                                            .objectId       = objectIdReal,
-                                                                            .parentObjectId = parentObjectId,
-                                                                            .trackingId     = trackingId,
-                                                                            .isValid        = true,
-                                                                            .tStack         = tStack,
-                                                                            .zStack         = 0,
-                                                                            .cStack         = 0,
-                                                                            .rowName        = fileNameTmp},
+                                                 table::TableCell::MetaData{.objectIdGroup      = objectId,
+                                                                            .objectId           = objectIdReal,
+                                                                            .parentObjectId     = parentObjectId,
+                                                                            .trackingId         = trackingId,
+                                                                            .distanceToObjectId = distanceToObjectId,
+                                                                            .isValid            = true,
+                                                                            .tStack             = tStack,
+                                                                            .zStack             = zStack,
+                                                                            .cStack             = cStack,
+                                                                            .rowName            = fileNameTmp},
                                                  table::TableCell::Grouping{
                                                      .groupIdx = static_cast<uint64_t>((static_cast<uint64_t>(meas_center_x) << 32) | meas_center_y),
                                                      .posX     = meas_center_x,
@@ -173,13 +177,17 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
   if(!offValue.empty()) {
     grouping = "GROUP BY t1.object_id\n";
   }
-  std::string sql = intersect + "SELECT\n" + channelFilter.createStatsQuery(false, false, offValue) + offValue +
+  PreparedStatement::JoinResults joinResults;
+  std::string join         = channelFilter.createStatsQueryJoins(true, &joinResults);
+  std::string distanceToId = joinResults.containsDistance ? "(td.meas_object_id) as distance_to_id" : "0 as distance_to_id";
+  std::string sql          = intersect + "SELECT\n" + channelFilter.createStatsQuery(false, false, offValue) + offValue +
                     "(t1.meas_center_x) as meas_center_x,\n" + offValue + "(t1.meas_center_y) as meas_center_y,\n" + uniqueObjectId + offValue +
                     "(t1.object_id) as object_id_real,\n" + offValue + "(t1.meas_parent_object_id) as meas_parent_object_id,\n" + offValue +
                     "(t1.meas_tracking_id) as meas_tracking_id,\n" + offValue + "(images.file_name) as file_name,\n" + offValue +
-                    "(t1.stack_t) as stack_t_real\n"
+                    "(t1.stack_t) as stack_t_real, (t1.stack_c) as stack_c_real, (t1.stack_z) as stack_z_real, " + distanceToId +
+                    "\n"
                     "FROM objects t1\n" +
-                    channelFilter.createStatsQueryJoins(true) +
+                    join +
                     "JOIN images on\n"
                     "	t1.image_id = images.image_id\n"
                     "WHERE\n"

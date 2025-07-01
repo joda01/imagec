@@ -92,7 +92,7 @@ std::string ResultsSettings::ColumnKey::createHtmlHeader(HeaderStyle style) cons
     return className + toString(measureChannel) + "\n" + stacks;
   }
   if(getType(measureChannel) == MeasureType::DISTANCE) {
-    return className + " to " + names.intersectingName + "-" + toString(measureChannel) + createStatsHeader(stats) + stacks;
+    return className + toString(measureChannel) + " to <br><b>" + names.intersectingName + "</b>" + createStatsHeader(stats) + "<br>" + stacks;
   }
   if(getType(measureChannel) == MeasureType::DISTANCE_ID) {
     return className + " to " + names.intersectingName + "-" + toString(measureChannel) + stacks;

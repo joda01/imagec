@@ -30,14 +30,15 @@ class TableCell
 public:
   struct MetaData
   {
-    uint64_t objectIdGroup  = 0;    // Elements with the same object ID group should be printed side by side
-    uint64_t objectId       = 0;    // The original object id
-    uint64_t parentObjectId = 0;
-    uint64_t trackingId     = 0;
-    bool isValid            = true;
-    uint32_t tStack         = 0;
-    uint32_t zStack         = 0;
-    uint32_t cStack         = 0;
+    uint64_t objectIdGroup      = 0;    // Elements with the same object ID group should be printed side by side
+    uint64_t objectId           = 0;    // The original object id
+    uint64_t parentObjectId     = 0;
+    uint64_t trackingId         = 0;
+    uint64_t distanceToObjectId = 0;
+    bool isValid                = true;
+    uint32_t tStack             = 0;
+    uint32_t zStack             = 0;
+    uint32_t cStack             = 0;
     std::string rowName;
   };
 
@@ -85,6 +86,11 @@ public:
   [[nodiscard]] uint64_t getTrackingId() const
   {
     return mMetaData.trackingId;
+  }
+
+  [[nodiscard]] uint64_t getDistanceToObjectId() const
+  {
+    return mMetaData.distanceToObjectId;
   }
 
   [[nodiscard]] bool isValid() const

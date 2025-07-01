@@ -45,10 +45,15 @@ public:
       mColNames(std::move(names)), mFilter(filter)
   {
   }
-
+  struct JoinResults
+  {
+    bool containsDistance     = false;
+    bool containsIntensity    = false;
+    bool containsIntersection = false;
+  };
   std::string createStatsQuery(bool isOuter, bool excludeInvalid, std::string offValue = "ANY_VALUE",
                                std::optional<enums::Stats> overrideStats = std::nullopt) const;
-  std::string createStatsQueryJoins(bool isImage = false) const;
+  std::string createStatsQueryJoins(bool isImage = false, JoinResults *results = nullptr) const;
   std::tuple<std::string, std::string> createIntersectionQuery() const;
 
   void addColumn(settings::ResultsSettings::ColumnKey col)

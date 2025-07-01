@@ -187,7 +187,7 @@ std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvali
 /// \param[out]
 /// \return
 ///
-std::string PreparedStatement::createStatsQueryJoins(bool isImage) const
+std::string PreparedStatement::createStatsQueryJoins(bool isImage, JoinResults *results) const
 {
   bool joinedDistance = false;
   std::set<uint32_t> joindStacks;
@@ -204,6 +204,9 @@ std::string PreparedStatement::createStatsQueryJoins(bool isImage) const
                  ".meas_stack_t = " + std::to_string(mFilter->getFilter().tStack) + "\n";
 
         joindStacks.emplace(column.crossChannelStacksC);
+        if(nullptr != results) {
+          results->containsIntensity = true;
+        }
       }
     }
     if(settings::ResultsSettings::getType(column.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE ||
@@ -217,6 +220,9 @@ std::string PreparedStatement::createStatsQueryJoins(bool isImage) const
                  ".meas_stack_t = " + std::to_string(mFilter->getFilter().tStack) + "\n";
 
         joindDistanceStacks.emplace(column.intersectingChannel);
+        if(nullptr != results) {
+          results->containsDistance = true;
+        }
       }
     }
 
@@ -228,6 +234,9 @@ std::string PreparedStatement::createStatsQueryJoins(bool isImage) const
           joins += " AND ti.object_id = t1.object_id\n";
         } else {
           joins += "\n";
+        }
+        if(nullptr != results) {
+          results->containsIntersection = true;
         }
       }
     }

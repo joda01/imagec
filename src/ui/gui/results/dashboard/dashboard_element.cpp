@@ -121,6 +121,13 @@ void DashboardElement::setData(const QString &description, const std::vector<con
   const int32_t COL_IDX_OBJECT_ID    = 0;
   const int32_t COL_IDX_INTERSECTING = 1;
 
+  auto generateMetaFooter = [](const table::TableCell &rowData) {
+    return "<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " + QString(joda::helper::toBase32(rowData.getObjectId()).data()) + " ⬆ " +
+           QString(joda::helper::toBase32(rowData.getParentId()).data()) + "<br> ↔ " +
+           QString(joda::helper::toBase32(rowData.getDistanceToObjectId()).data()) + " ⚯ " +
+           QString(joda::helper::toBase32(rowData.getTrackingId()).data()) + "</i><span>";
+  };
+
   // Data
   {
     int colTbl = intersectingColl == nullptr ? 1 : 2;    // We start with 2 because at 1 we put the intersecting objects
@@ -170,10 +177,7 @@ void DashboardElement::setData(const QString &description, const std::vector<con
             }
             if(intersectingItem != nullptr) {
               // QString::number((double) rowData.getVal())
-              intersectingItem->setText(
-                  QString(joda::helper::toBase32(rowData.getParentId()).data()) +
-                  "<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " + QString(joda::helper::toBase32(rowData.getObjectId()).data()) + " ⬆ " +
-                  QString(joda::helper::toBase32(rowData.getParentId()).data()) + "</i><span>");
+              intersectingItem->setText(QString(joda::helper::toBase32(rowData.getParentId()).data()) + generateMetaFooter(rowData));
               intersectingItem->setBackground(QBrush(QColor(bgColor)));
             }
           }
@@ -195,10 +199,7 @@ void DashboardElement::setData(const QString &description, const std::vector<con
             mTable->setItem(row, COL_IDX_OBJECT_ID, itemObjId);
           }
           if(itemObjId != nullptr) {
-            itemObjId->setText(
-                QString(joda::helper::toBase32(rowData.getObjectId()).data()) +
-                "<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " + QString(joda::helper::toBase32(rowData.getObjectId()).data()) + " ⬆ " +
-                QString(joda::helper::toBase32(rowData.getParentId()).data()) + "</i><span>");
+            itemObjId->setText(QString(joda::helper::toBase32(rowData.getObjectId()).data()) + generateMetaFooter(rowData));
             itemObjId->setBackground(bgColor);
           }
           mTableCells[COL_IDX_OBJECT_ID][row] = &rowData;
@@ -215,13 +216,10 @@ void DashboardElement::setData(const QString &description, const std::vector<con
 
         if(item != nullptr) {
           if(rowData.isNAN()) {
-            item->setText("-<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " + QString(joda::helper::toBase32(rowData.getObjectId()).data()) +
-                          " ⬆ " + QString(joda::helper::toBase32(rowData.getParentId()).data()) + "</i><span>");
+            item->setText("-" + generateMetaFooter(rowData));
             item->setBackground(QBrush(QColor(bgColor)));
           } else {
-            item->setText(QString::number((double) rowData.getVal()) +
-                          "<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " + QString(joda::helper::toBase32(rowData.getObjectId()).data()) +
-                          " ⬆ " + QString(joda::helper::toBase32(rowData.getParentId()).data()) + "</i><span>");
+            item->setText(QString::number((double) rowData.getVal()) + generateMetaFooter(rowData));
             item->setBackground(QBrush(QColor(bgColor)));
           }
           QFont font = item->font();

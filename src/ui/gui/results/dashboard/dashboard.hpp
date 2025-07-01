@@ -48,7 +48,7 @@ private:
   WindowMain *mMainWindow;
   int32_t mSelectedTableColumnIdx = -1;
   int32_t mSelectedTableRow       = -1;
-  std::map<enums::ClassId, DashboardElement *> mMidiWindows;
+  std::map<uint32_t, DashboardElement *> mMidiWindows;
 };
 
 }    // namespace joda::ui::gui

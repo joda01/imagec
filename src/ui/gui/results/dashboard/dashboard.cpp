@@ -69,32 +69,44 @@ void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn, bool isIm
     std::vector<const table::TableColumn *> cols;
   };
 
-  std::map<enums::ClassId, Entry> dashboards;
-  std::map<enums::ClassId, Entry> intersecting;
+  std::map<uint32_t, Entry> dashboards;
+  std::map<uint32_t, Entry> intersecting;
+  std::map<uint32_t, Entry> distance;
+
+  auto isDistance = [](enums::Measurement measure) {
+    return measure == enums::Measurement::DISTANCE_CENTER_TO_CENTER || measure == enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX ||
+           measure == enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MIN || measure == enums::Measurement::DISTANCE_FROM_OBJECT_ID ||
+           measure == enums::Measurement::DISTANCE_TO_OBJECT_ID || measure == enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX ||
+           measure == enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN;
+  };
 
   for(const auto &[_, col] : tableIn.columns()) {
     if(col.colSettings.measureChannel == enums::Measurement::INTERSECTING) {
-      auto &work           = intersecting[col.colSettings.intersectingChannel];
+      auto &work           = intersecting[static_cast<uint32_t>(col.colSettings.intersectingChannel)];
       work.intersectingCol = &col;
       work.colName         = col.colSettings.names.intersectingName;
     }
   }
 
   for(const auto &[_, col] : tableIn.columns()) {
-    std::cout << col.colSettings.createHeader() << std::endl;
-    // Put the parents of the intersecting to the
-    if(intersecting.contains(col.colSettings.classId)) {
-      auto &ed   = intersecting[col.colSettings.classId];
+    // This is a distance measurement. We create a own dashboard for each distance measure if we are in image view
+    if(isDistance(col.colSettings.measureChannel) && isImageView) {
+      uint32_t key = (static_cast<uint16_t>(col.colSettings.classId) << 16) | static_cast<uint16_t>(col.colSettings.intersectingChannel);
+      auto &ed     = distance[key];
+      ed.colName   = "Distance " + col.colSettings.names.className + " to " + col.colSettings.names.intersectingName;
+      ed.cols.emplace_back(&col);
+    } else if(intersecting.contains(static_cast<uint32_t>(col.colSettings.classId))) {
+      auto &ed   = intersecting[static_cast<uint32_t>(col.colSettings.classId)];
       ed.colName = col.colSettings.names.className;
       ed.cols.emplace_back(&col);
     } else {
-      auto &ed   = dashboards[col.colSettings.classId];
+      auto &ed   = dashboards[static_cast<uint32_t>(col.colSettings.classId)];
       ed.colName = col.colSettings.names.className;
       ed.cols.emplace_back(&col);
     }
   }
 
-  auto createDashboards = [this, &isImageView](const std::map<enums::ClassId, Entry> &entries) {
+  auto createDashboards = [this, &isImageView](const std::map<uint32_t, Entry> &entries) {
     for(const auto &[classId, dashData] : entries) {
       auto *element01 = new DashboardElement(this);
       mMidiWindows.emplace(classId, element01);
@@ -108,6 +120,7 @@ void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn, bool isIm
 
   createDashboards(dashboards);
   createDashboards(intersecting);
+  createDashboards(distance);
 
   tileSubWindows();
 }
