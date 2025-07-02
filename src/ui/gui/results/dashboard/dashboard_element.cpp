@@ -15,6 +15,7 @@
 #include <qnamespace.h>
 #include <qtmetamacros.h>
 #include <qwidget.h>
+#include <string>
 #include "backend/helper/base32.hpp"
 #include "ui/gui/helper/html_delegate.hpp"
 #include "ui/gui/helper/html_header.hpp"
@@ -86,14 +87,6 @@ void DashboardElement::setData(const QString &description, const std::vector<con
   setWindowTitle(description);
   setHeader(description);
 
-  int32_t colCount = cols.size();
-  if(intersectingColl != nullptr && isImageView && !isColoc) {
-    colCount++;
-  }
-  if(isImageView) {
-    colCount++;    // +1 because we add the object ID at the first column
-  }
-  mTable->setColumnCount(colCount);
   mTable->setRowCount(0);
 
   auto createTableWidget = [](const QString &data) {
@@ -120,7 +113,7 @@ void DashboardElement::setData(const QString &description, const std::vector<con
   int32_t highestRow = 0;
 
   // We add a column with the object ID as first column
-  const int32_t COL_IDX_OBJECT_ID    = 0;
+  int32_t COL_IDX_OBJECT_ID          = 0;
   const int32_t COL_IDX_INTERSECTING = 1;
 
   auto generateMetaFooter = [](const table::TableCell &rowData) {
@@ -135,15 +128,29 @@ void DashboardElement::setData(const QString &description, const std::vector<con
 
   // Data
   {
-    int colTbl = (intersectingColl == nullptr || isColoc) ? 1 : 2;    // We start with 2 because at 1 we put the intersecting objects
-    if(!isImageView) {
-      colTbl = 0;    // In plate and well view we do not show IDs because it does not make sense.
-    }
     int32_t alternate = 0;
     QColor bgColor    = mTable->palette().color(QPalette::Base);
+
+    settings::ResultsSettings::ColumnKey actColumnKey;
+    bool addObjectId = false;
+    auto colTableTmp = 0;
+    std::cout << "----" << std::endl;
     for(const auto &colData : cols) {
+      if(actColumnKey.classId != colData->colSettings.classId && isImageView) {
+        // Add the object ID again
+        actColumnKey      = colData->colSettings;
+        COL_IDX_OBJECT_ID = colTableTmp;
+        addObjectId       = true;
+        if(intersectingColl != nullptr && colTableTmp == 0) {
+          colTableTmp += 2;    // We put the parent object id in the second column
+        } else {
+          colTableTmp++;
+        }
+      }
+      mTable->setColumnCount(colTableTmp + 1);
+
       QString headerText = colData->colSettings.createHtmlHeader(headerStyle).data();
-      mTable->setHorizontalHeaderItem(colTbl, createTableWidget(headerText));
+      mTable->setHorizontalHeaderItem(colTableTmp, createTableWidget(headerText));
       int row = 0;
       for(const auto &[_, rowData] : colData->rows) {
         if(rowData.getObjectId() == 0) {
@@ -200,6 +207,29 @@ void DashboardElement::setData(const QString &description, const std::vector<con
         }
 
         // =========================================
+        // Add object ID
+        // =========================================
+        if(isImageView) {
+          mTable->setHorizontalHeaderItem(COL_IDX_OBJECT_ID,
+                                          createTableWidget("<b>" + QString(actColumnKey.names.className.data()) + "</b><br>Object ID 🗝"));
+          QTableWidgetItem *itemObjId = mTable->item(rowToPlace, COL_IDX_OBJECT_ID);
+          if(itemObjId == nullptr) {
+            itemObjId = createTableWidget("");
+            mTable->setItem(rowToPlace, COL_IDX_OBJECT_ID, itemObjId);
+          }
+          if(itemObjId != nullptr) {
+            itemObjId->setText(QString(joda::helper::toBase32(rowData.getObjectId()).data()) + generateMetaFooter(rowData));
+            if(bgColor == mTable->palette().color(QPalette::Base)) {
+              itemObjId->setBackground(QColor("#ADD8E6"));    // We use a bluish value to better find the borders of a class
+
+            } else {
+              itemObjId->setBackground(QColor("#87CEEB"));
+            }
+          }
+          mTableCells[COL_IDX_OBJECT_ID][rowToPlace] = &rowData;
+        }
+
+        // =========================================
         // Parent object ID
         // =========================================
         if(isImageView) {
@@ -223,29 +253,13 @@ void DashboardElement::setData(const QString &description, const std::vector<con
         }
 
         // =========================================
-        // Add object ID
-        // =========================================
-        if(isImageView) {
-          mTable->setHorizontalHeaderItem(COL_IDX_OBJECT_ID, createTableWidget("Object ID 🗝"));
-          QTableWidgetItem *itemObjId = mTable->item(rowToPlace, COL_IDX_OBJECT_ID);
-          if(itemObjId == nullptr) {
-            itemObjId = createTableWidget("");
-            mTable->setItem(rowToPlace, COL_IDX_OBJECT_ID, itemObjId);
-          }
-          if(itemObjId != nullptr) {
-            itemObjId->setText(QString(joda::helper::toBase32(rowData.getObjectId()).data()) + generateMetaFooter(rowData));
-            itemObjId->setBackground(bgColor);
-          }
-          mTableCells[COL_IDX_OBJECT_ID][rowToPlace] = &rowData;
-        }
-        // =========================================
         // Add data
         // =========================================
-        QTableWidgetItem *item          = mTable->item(rowToPlace, colTbl);
-        mTableCells[colTbl][rowToPlace] = &rowData;
+        QTableWidgetItem *item               = mTable->item(rowToPlace, colTableTmp);
+        mTableCells[colTableTmp][rowToPlace] = &rowData;
         if(item == nullptr) {
           item = createTableWidget("");
-          mTable->setItem(rowToPlace, colTbl, item);
+          mTable->setItem(rowToPlace, colTableTmp, item);
         }
 
         if(item != nullptr) {
@@ -262,7 +276,8 @@ void DashboardElement::setData(const QString &description, const std::vector<con
         }
         row++;
       }
-      colTbl++;
+      //  addObjectId = false;
+      colTableTmp++;
     }
   }
   //
