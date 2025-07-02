@@ -57,7 +57,8 @@ void Dashboard::reset()
 /// \param[out]
 /// \return
 ///
-void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn, bool isImageView)
+void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn, const std::set<std::set<enums::ClassId>> &classesWithSameTrackingId,
+                                    bool isImageView)
 {
   mMidiWindows.clear();
   clearLayout();
@@ -69,9 +70,12 @@ void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn, bool isIm
     std::vector<const table::TableColumn *> cols;
   };
 
+  std::map<std::set<enums::ClassId>, uint32_t> classesWithSameTrackingIdMappingTable;
+
   std::map<uint32_t, Entry> dashboards;
   std::map<uint32_t, Entry> intersecting;
   std::map<uint32_t, Entry> distance;
+  std::map<uint32_t, Entry> colocalizing;
 
   auto isDistance = [](enums::Measurement measure) {
     return measure == enums::Measurement::DISTANCE_CENTER_TO_CENTER || measure == enums::Measurement::DISTANCE_CENTER_TO_SURFACE_MAX ||
@@ -80,14 +84,37 @@ void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn, bool isIm
            measure == enums::Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN;
   };
 
+  // ========================================
+  // First find the intersecting classes
+  // ========================================
+  uint32_t mapIdIdx = 0;
   for(const auto &[_, col] : tableIn.columns()) {
     if(col.colSettings.measureChannel == enums::Measurement::INTERSECTING) {
       auto &work           = intersecting[static_cast<uint32_t>(col.colSettings.intersectingChannel)];
       work.intersectingCol = &col;
       work.colName         = col.colSettings.names.intersectingName;
     }
+
+    // Group the colocalizing classes (those with at least one common tracking id) to one table
+    for(const auto &colcGroup : classesWithSameTrackingId) {
+      if(colcGroup.contains(col.colSettings.classId)) {
+        uint32_t mapId = 0;
+        if(classesWithSameTrackingIdMappingTable.contains(colcGroup)) {
+          mapId = classesWithSameTrackingIdMappingTable.at(colcGroup);
+        } else {
+          classesWithSameTrackingIdMappingTable.emplace(colcGroup, mapIdIdx);
+          mapIdIdx++;
+        }
+        auto &work = colocalizing[mapIdIdx];
+        work.cols.emplace_back(&col);
+        work.colName = col.colSettings.names.className;
+      }
+    }
   }
 
+  // ========================================
+  // Now create te other dashboard columns
+  // ========================================
   for(const auto &[_, col] : tableIn.columns()) {
     // This is a distance measurement. We create a own dashboard for each distance measure if we are in image view
     if(isDistance(col.colSettings.measureChannel) && isImageView) {
@@ -106,11 +133,14 @@ void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn, bool isIm
     }
   }
 
-  auto createDashboards = [this, &isImageView](const std::map<uint32_t, Entry> &entries) {
+  // ========================================
+  // Lamda function to create the dashboard
+  // ========================================
+  auto createDashboards = [this, &isImageView](const std::map<uint32_t, Entry> &entries, bool isColoc) {
     for(const auto &[classId, dashData] : entries) {
       auto *element01 = new DashboardElement(this);
       mMidiWindows.emplace(classId, element01);
-      element01->setData(dashData.colName.data(), dashData.cols, isImageView, dashData.intersectingCol);
+      element01->setData(dashData.colName.data(), dashData.cols, isImageView, isColoc, dashData.intersectingCol);
       element01->show();
       connect(element01, &DashboardElement::cellSelected,
               [this](joda::table::TableCell cell) { mPanelResults->setSelectedElement(cell.getPosX(), cell.getPosY(), cell); });
@@ -118,9 +148,10 @@ void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn, bool isIm
     }
   };
 
-  createDashboards(dashboards);
-  createDashboards(intersecting);
-  createDashboards(distance);
+  createDashboards(dashboards, false);
+  createDashboards(intersecting, false);
+  createDashboards(distance, false);
+  createDashboards(colocalizing, true);
 
   tileSubWindows();
 }

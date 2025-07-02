@@ -91,6 +91,7 @@ public:
   auto selectMeasurementChannelsForClasses() -> std::map<enums::ClassId, std::set<int32_t>>;
   auto selectIntersectingClassForClasses() -> std::map<enums::ClassId, std::set<enums::ClassId>>;
   auto selectDistanceClassForClasses() -> std::map<enums::ClassId, std::set<enums::ClassId>>;
+  auto selectColocalizingClasses() -> std::set<std::set<enums::ClassId>>;
 
   void updateResultsTableSettings(const std::string &jobId, const std::string &settings);
   auto selectResultsTableSettings(const std::string &jobId) -> std::string;

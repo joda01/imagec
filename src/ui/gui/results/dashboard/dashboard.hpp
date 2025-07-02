@@ -14,6 +14,7 @@
 #include <qmdiarea.h>
 #include <qtmetamacros.h>
 #include <qwidget.h>
+#include <set>
 #include "backend/enums/enums_classes.hpp"
 #include "ui/gui/helper/table_widget.hpp"
 
@@ -35,7 +36,7 @@ public:
   /////////////////////////////////////////////////////
   Dashboard(PanelResults *panelResults, WindowMain *mainWindow);
   void reset();
-  void tableToQWidgetTable(const joda::table::Table &tableIn, bool isImageView);
+  void tableToQWidgetTable(const joda::table::Table &tableIn, const std::set<std::set<enums::ClassId>> &classesWithSameTrackingId, bool isImageView);
   void copyToClipboard() const;
 
 private:

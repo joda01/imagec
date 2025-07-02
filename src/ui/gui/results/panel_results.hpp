@@ -176,6 +176,7 @@ private:
 
   /// DASHBOARD ///////////////////////////////////////
   Dashboard *mDashboard;
+  std::set<std::set<enums::ClassId>> mTmpColocClasses;    // This is just for caching
 
   /// GRAPH //////////////////////////////////////////////////
   void setHeatmapVisible(bool);

@@ -80,14 +80,14 @@ void DashboardElement::setHeader(const QString &text)
   mHeaderLabel->setText("<b>" + text + "</b>");
 }
 
-void DashboardElement::setData(const QString &description, const std::vector<const table::TableColumn *> &cols, bool isImageView,
+void DashboardElement::setData(const QString &description, const std::vector<const table::TableColumn *> &cols, bool isImageView, bool isColoc,
                                const table::TableColumn *intersectingColl)
 {
   setWindowTitle(description);
   setHeader(description);
 
   int32_t colCount = cols.size();
-  if(intersectingColl != nullptr && isImageView) {
+  if(intersectingColl != nullptr && isImageView && !isColoc) {
     colCount++;
   }
   if(isImageView) {
@@ -115,7 +115,9 @@ void DashboardElement::setData(const QString &description, const std::vector<con
     int32_t startingRow = 0;
     QColor bgColor;
   };
-  std::map<uint64_t, RowInfo> startOfNewParent;    // Key is the parent_id and value the row where this parent started
+  std::map<uint64_t, RowInfo> startOfNewParent;     // Key is the parent_id and value the row where this parent started
+  std::map<uint64_t, RowInfo> trackingIdMapping;    // Key is the tracking_id and value the row where this tracking_id was first placed
+  int32_t highestRow = 0;
 
   // We add a column with the object ID as first column
   const int32_t COL_IDX_OBJECT_ID    = 0;
@@ -128,49 +130,81 @@ void DashboardElement::setData(const QString &description, const std::vector<con
            QString(joda::helper::toBase32(rowData.getTrackingId()).data()) + "</i><span>";
   };
 
+  auto headerStyle = isColoc ? settings::ResultsSettings::ColumnKey::HeaderStyle::FULL
+                             : settings::ResultsSettings::ColumnKey::HeaderStyle::ONLY_STATS_CONTAINS_INTERSECTING;
+
   // Data
   {
-    int colTbl = intersectingColl == nullptr ? 1 : 2;    // We start with 2 because at 1 we put the intersecting objects
+    int colTbl = (intersectingColl == nullptr || isColoc) ? 1 : 2;    // We start with 2 because at 1 we put the intersecting objects
     if(!isImageView) {
       colTbl = 0;    // In plate and well view we do not show IDs because it does not make sense.
     }
     int32_t alternate = 0;
     QColor bgColor    = mTable->palette().color(QPalette::Base);
     for(const auto &colData : cols) {
-      QString headerText =
-          colData->colSettings.createHtmlHeader(settings::ResultsSettings::ColumnKey::HeaderStyle::ONLY_STATS_CONTAINS_INTERSECTING).data();
+      QString headerText = colData->colSettings.createHtmlHeader(headerStyle).data();
       mTable->setHorizontalHeaderItem(colTbl, createTableWidget(headerText));
       int row = 0;
       for(const auto &[_, rowData] : colData->rows) {
         if(rowData.getObjectId() == 0) {
           continue;
         }
-
         if(mTable->rowCount() < (row + 1)) {
           mTable->setRowCount(row + 1);
         }
-        auto key = rowData.getParentId();
-        if(key == 0) {
-          key = rowData.getObjectId();
-        }
-        if(!startOfNewParent.contains(key)) {
-          if(alternate % 2 != 0) {
-            bgColor = mTable->palette().color(QPalette::AlternateBase);
-          } else {
-            bgColor = mTable->palette().color(QPalette::Base);
+
+        // =====================================
+        // Row to place in case of coloc
+        // =====================================
+        int32_t rowToPlace = row;
+        if(isColoc && isImageView) {
+          if(rowData.getTrackingId() == 0) {
+            // This should not happen, but if we continue
+            continue;
           }
-          alternate++;
-          startOfNewParent[key] = {row, bgColor};
-        } else {
-          bgColor = startOfNewParent.at(key).bgColor;
+
+          if(trackingIdMapping.contains(rowData.getTrackingId())) {
+            rowToPlace = trackingIdMapping.at(rowData.getTrackingId()).startingRow;
+            bgColor    = trackingIdMapping.at(rowData.getTrackingId()).bgColor;
+          } else {
+            if(alternate % 2 != 0) {
+              bgColor = mTable->palette().color(QPalette::AlternateBase);
+            } else {
+              bgColor = mTable->palette().color(QPalette::Base);
+            }
+            trackingIdMapping.emplace(rowData.getTrackingId(), RowInfo{highestRow, bgColor});
+            highestRow++;
+            alternate++;
+          }
+        }
+
+        // =====================================
+        // Alternating row color
+        // =====================================
+        if(!isColoc) {
+          auto key = rowData.getParentId();
+          if(key == 0) {
+            key = rowData.getObjectId();
+          }
+          if(!startOfNewParent.contains(key)) {
+            if(alternate % 2 != 0) {
+              bgColor = mTable->palette().color(QPalette::AlternateBase);
+            } else {
+              bgColor = mTable->palette().color(QPalette::Base);
+            }
+            alternate++;
+            startOfNewParent[key] = {rowToPlace, bgColor};
+          } else {
+            bgColor = startOfNewParent.at(key).bgColor;
+          }
         }
 
         // =========================================
         // Parent object ID
         // =========================================
         if(isImageView) {
-          if(intersectingColl != nullptr) {
-            QTableWidgetItem *intersectingItem = mTable->item(row, COL_IDX_INTERSECTING);
+          if(intersectingColl != nullptr && !isColoc) {
+            QTableWidgetItem *intersectingItem = mTable->item(rowToPlace, COL_IDX_INTERSECTING);
             if(intersectingItem == nullptr) {
               intersectingItem = createTableWidget("");
               mTable->setItem(row, COL_IDX_INTERSECTING, intersectingItem);
@@ -185,7 +219,7 @@ void DashboardElement::setData(const QString &description, const std::vector<con
         }
         // Vertical header
         if(!rowData.isNAN()) {
-          mTable->setVerticalHeaderItem(row, createTableWidget(rowData.getRowName().data()));
+          mTable->setVerticalHeaderItem(rowToPlace, createTableWidget(rowData.getRowName().data()));
         }
 
         // =========================================
@@ -193,25 +227,25 @@ void DashboardElement::setData(const QString &description, const std::vector<con
         // =========================================
         if(isImageView) {
           mTable->setHorizontalHeaderItem(COL_IDX_OBJECT_ID, createTableWidget("Object ID 🗝"));
-          QTableWidgetItem *itemObjId = mTable->item(row, COL_IDX_OBJECT_ID);
+          QTableWidgetItem *itemObjId = mTable->item(rowToPlace, COL_IDX_OBJECT_ID);
           if(itemObjId == nullptr) {
             itemObjId = createTableWidget("");
-            mTable->setItem(row, COL_IDX_OBJECT_ID, itemObjId);
+            mTable->setItem(rowToPlace, COL_IDX_OBJECT_ID, itemObjId);
           }
           if(itemObjId != nullptr) {
             itemObjId->setText(QString(joda::helper::toBase32(rowData.getObjectId()).data()) + generateMetaFooter(rowData));
             itemObjId->setBackground(bgColor);
           }
-          mTableCells[COL_IDX_OBJECT_ID][row] = &rowData;
+          mTableCells[COL_IDX_OBJECT_ID][rowToPlace] = &rowData;
         }
         // =========================================
         // Add data
         // =========================================
-        QTableWidgetItem *item   = mTable->item(row, colTbl);
-        mTableCells[colTbl][row] = &rowData;
+        QTableWidgetItem *item          = mTable->item(rowToPlace, colTbl);
+        mTableCells[colTbl][rowToPlace] = &rowData;
         if(item == nullptr) {
           item = createTableWidget("");
-          mTable->setItem(row, colTbl, item);
+          mTable->setItem(rowToPlace, colTbl, item);
         }
 
         if(item != nullptr) {
@@ -244,7 +278,7 @@ void DashboardElement::setData(const QString &description, const std::vector<con
   //
   //
 
-  if(nullptr != intersectingColl && isImageView) {
+  if(nullptr != intersectingColl && isImageView && !isColoc) {
     QString headerText =
         intersectingColl->colSettings.createHtmlHeader(settings::ResultsSettings::ColumnKey::HeaderStyle::ONLY_STATS_IN_INTERSECTING).data();
     mTable->setHorizontalHeaderItem(COL_IDX_INTERSECTING, createTableWidget(headerText));

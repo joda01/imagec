@@ -1581,6 +1581,40 @@ auto Database::selectDistanceClassForClasses() -> std::map<enums::ClassId, std::
 }
 
 ///
+/// \brief    Select those classes which have at least one time the same tracking id
+/// \todo     Cache the result
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Database::selectColocalizingClasses() -> std::set<std::set<enums::ClassId>>
+{
+  std::map<enums::ClassId, std::set<enums::ClassId>> channels;
+  std::unique_ptr<duckdb::QueryResult> result = select(
+      "SELECT DISTINCT STRING_AGG(class_id::text,',') as elements FROM objects\n"
+      "WHERE meas_tracking_id !=0\n"
+      "GROUP BY meas_tracking_id");
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+
+  std::set<std::set<enums::ClassId>> ret;
+  for(int32_t row = 0; row < materializedResult->RowCount(); row++) {
+    auto listOfClasses = materializedResult->GetValue(0, row).GetValue<std::string>();
+    auto classesStr    = joda::helper::split(listOfClasses, {','});
+    std::set<enums::ClassId> classesHavingCommonTrackingId;
+    for(const auto &classStr : classesStr) {
+      int32_t classsNr = std::stoi(classStr);
+      classesHavingCommonTrackingId.emplace(static_cast<enums::ClassId>(classsNr));
+    }
+    ret.emplace(classesHavingCommonTrackingId);
+  }
+  return ret;
+}
+
+///
 /// \brief
 /// \author
 /// \param[in]

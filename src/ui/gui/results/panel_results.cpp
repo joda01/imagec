@@ -791,7 +791,7 @@ void PanelResults::refreshView()
 ///
 void PanelResults::onFinishedLoading()
 {
-  mDashboard->tableToQWidgetTable(mActListData, mNavigation == Navigation::IMAGE);
+  mDashboard->tableToQWidgetTable(mActListData, mTmpColocClasses, mNavigation == Navigation::IMAGE);
   tableToHeatmap(mActListData);
   int32_t cols           = mFilter.getPlateSetup().cols;
   int32_t rows           = mFilter.getPlateSetup().rows;
@@ -1068,8 +1068,12 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
     }
   } catch(...) {
   }
-  showToolBar(true);
+  // Load stuff
+  mTmpColocClasses = mAnalyzer->selectColocalizingClasses();
   mDockWidgetImagePreview->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
+
+  // Make visible
+  showToolBar(true);
   mIsActive = true;
   mWindowMain->setSideBarVisible(false);
   mDockWidgetClassList->setDatabase(mAnalyzer.get());
