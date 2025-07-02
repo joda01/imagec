@@ -126,6 +126,9 @@ void DashboardElement::setData(const QString &description, const std::vector<con
   auto headerStyle = isColoc ? settings::ResultsSettings::ColumnKey::HeaderStyle::FULL
                              : settings::ResultsSettings::ColumnKey::HeaderStyle::ONLY_STATS_CONTAINS_INTERSECTING;
 
+  const auto LIGHT_BLUE = QColor("#ADD8E6");
+  const auto DARK_BLUE  = QColor("#87CEEB");
+
   // Data
   {
     int32_t alternate = 0;
@@ -134,7 +137,6 @@ void DashboardElement::setData(const QString &description, const std::vector<con
     settings::ResultsSettings::ColumnKey actColumnKey;
     bool addObjectId = false;
     auto colTableTmp = 0;
-    std::cout << "----" << std::endl;
     for(const auto &colData : cols) {
       if(actColumnKey.classId != colData->colSettings.classId && isImageView) {
         // Add the object ID again
@@ -210,8 +212,11 @@ void DashboardElement::setData(const QString &description, const std::vector<con
         // Add object ID
         // =========================================
         if(isImageView) {
-          mTable->setHorizontalHeaderItem(COL_IDX_OBJECT_ID,
-                                          createTableWidget("<b>" + QString(actColumnKey.names.className.data()) + "</b><br>Object ID 🗝"));
+          QString headerNameObj = "<b>" + QString(actColumnKey.names.className.data()) + "</b><br>";
+          if(headerStyle != settings::ResultsSettings::ColumnKey::HeaderStyle::FULL) {
+            headerNameObj.clear();
+          }
+          mTable->setHorizontalHeaderItem(COL_IDX_OBJECT_ID, createTableWidget(headerNameObj + "Object ID 🗝"));
           QTableWidgetItem *itemObjId = mTable->item(rowToPlace, COL_IDX_OBJECT_ID);
           if(itemObjId == nullptr) {
             itemObjId = createTableWidget("");
@@ -220,10 +225,10 @@ void DashboardElement::setData(const QString &description, const std::vector<con
           if(itemObjId != nullptr) {
             itemObjId->setText(QString(joda::helper::toBase32(rowData.getObjectId()).data()) + generateMetaFooter(rowData));
             if(bgColor == mTable->palette().color(QPalette::Base)) {
-              itemObjId->setBackground(QColor("#ADD8E6"));    // We use a bluish value to better find the borders of a class
+              itemObjId->setBackground(LIGHT_BLUE);    // We use a bluish value to better find the borders of a class
 
             } else {
-              itemObjId->setBackground(QColor("#87CEEB"));
+              itemObjId->setBackground(DARK_BLUE);
             }
           }
           mTableCells[COL_IDX_OBJECT_ID][rowToPlace] = &rowData;
