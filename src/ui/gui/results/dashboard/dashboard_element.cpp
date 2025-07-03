@@ -24,7 +24,7 @@ namespace joda::ui::gui {
 
 DashboardElement::DashboardElement(QWidget *widget) : QMdiSubWindow(widget)
 {
-  setAttribute(Qt::WA_DeleteOnClose);
+  // setAttribute(Qt::WA_DeleteOnClose);
   setWindowFlags(Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowFullscreenButtonHint | Qt::WindowMinimizeButtonHint |
                  Qt::WindowMaximizeButtonHint);    // No close button
 
@@ -88,6 +88,7 @@ void DashboardElement::setData(const QString &description, const std::vector<con
   setHeader(description);
 
   mTable->setRowCount(0);
+  mTableCells.clear();
 
   auto createTableWidget = [](const QString &data) {
     auto *widget = new QTableWidgetItem(data);
@@ -95,8 +96,6 @@ void DashboardElement::setData(const QString &description, const std::vector<con
     widget->setStatusTip(data);
     return widget;
   };
-
-  mTableCells.clear();
 
   //
   // We can assume that the data are ordered by image_id, parent_object_id, objects_id, t_stack.
@@ -318,7 +317,7 @@ void DashboardElement::setData(const QString &description, const std::vector<con
     }
   }
 
-  adjustSize();
+  // adjustSize();
 }
 
 ///
@@ -392,10 +391,11 @@ void DashboardElement::onCellClicked(int rowSelected, int columnSelcted)
 /// \param[out]
 /// \return
 ///
-void DashboardElement::reset()
+void DashboardElement::resetData()
 {
   mTable->setRowCount(0);
   mTable->setColumnCount(0);
+  mTable->clear();
 }
 
 }    // namespace joda::ui::gui

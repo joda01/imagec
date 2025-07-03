@@ -137,40 +137,42 @@ void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn, const std
   auto createDashboards = [this, &isImageView, &availableCols](const std::map<uint32_t, Entry> &entries, DashboardType dashboardType) {
     for(const auto &[key, dashData] : entries) {
       auto midiKey = MidiWindowKey{dashboardType, key};
-
       DashboardElement *element01;
       if(mMidiWindows.contains(midiKey)) {
         element01 = mMidiWindows.at(midiKey);
+        if(element01->isHidden()) {
+          element01->show();
+        }
       } else {
         element01 = new DashboardElement(this);
+        mMidiWindows.emplace(midiKey, element01);
+        connect(element01, &DashboardElement::cellSelected,
+                [this](joda::table::TableCell cell) { mPanelResults->setSelectedElement(cell.getPosX(), cell.getPosY(), cell); });
+        connect(element01, &DashboardElement::cellDoubleClicked, [this](joda::table::TableCell cell) { mPanelResults->openNextLevel({cell}); });
+        element01->show();
+        element01->adjustSize();
       }
       availableCols.emplace(midiKey);
-      mMidiWindows.emplace(midiKey, element01);
       element01->setData(dashData.colName.data(), dashData.cols, isImageView, dashboardType == DashboardType::COLOC, dashData.intersectingCol);
-      element01->show();
-      connect(element01, &DashboardElement::cellSelected,
-              [this](joda::table::TableCell cell) { mPanelResults->setSelectedElement(cell.getPosX(), cell.getPosY(), cell); });
-      connect(element01, &DashboardElement::cellDoubleClicked, [this](joda::table::TableCell cell) { mPanelResults->openNextLevel({cell}); });
     }
   };
 
+  QMdiSubWindow *focusedWindow = activeSubWindow();
   createDashboards(dashboards, DashboardType::NORMAL);
   createDashboards(intersecting, DashboardType::INTERSECTION);
   createDashboards(distance, DashboardType::DISTANCE);
   createDashboards(colocalizing, DashboardType::COLOC);
+  setActiveSubWindow(focusedWindow);    // Restore focus
 
   // ========================================
   // Remove not used midi windows
   // ========================================
   for(auto &[key, window] : mMidiWindows) {
     if(!availableCols.contains(key)) {
-      window->close();
-      delete window;
-      mMidiWindows.erase(key);
+      window->resetData();
+      window->hide();
     }
   }
-
-  tileSubWindows();
 }
 
 ///
