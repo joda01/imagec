@@ -42,6 +42,7 @@
 #include <random>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <utility>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
@@ -644,7 +645,7 @@ void PanelResults::loadPreview()
   }
 
   mGeneratePreviewMutex.unlock();
-  QTimer::singleShot(0, this, [this, imagePath = imagePath]() {
+  std::thread([this, imagePath = imagePath]() {
     mLoadLock.lock();
     try {
       mDockWidgetImagePreview->setWaiting(true);
@@ -700,7 +701,7 @@ void PanelResults::loadPreview()
     }
     mLoadLock.unlock();
     mDockWidgetImagePreview->setWaiting(false);
-  });
+  }).detach();
 }
 
 ///
@@ -822,9 +823,6 @@ void PanelResults::onFinishedLoading()
       PlotPlateSettings{.colorMap = mDockWidgetGraphSettings->getSelectedColorMap(), .densityMapSize = densityMapSize}, mGraphContainer);
 
   refreshBreadCrump();
-  auto col = mSelection[mNavigation].col;
-  auto row = mSelection[mNavigation].row;
-  setSelectedElement(col, row, mActListData.data(row, col));
   update();
   QApplication::restoreOverrideCursor();
 }

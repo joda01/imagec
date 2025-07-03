@@ -54,11 +54,11 @@ DashboardElement::DashboardElement(QWidget *widget) : QMdiSubWindow(widget)
         emit cellDoubleClicked(*mTableCells[column][row]);
       }
     });
-    connect(mTable, &QTableWidget::cellClicked, [this](int row, int column) {
-      if(mTableCells.contains(column) && mTableCells.at(column).contains(row)) {
-        emit cellSelected(*mTableCells[column][row]);
-      }
-    });
+    // connect(mTable, &QTableWidget::cellClicked, [this](int row, int column) {
+    //   if(mTableCells.contains(column) && mTableCells.at(column).contains(row)) {
+    //     emit cellSelected(*mTableCells[column][row]);
+    //   }
+    // });
     connect(mTable, &QTableWidget::currentCellChanged, [this](int row, int column) {
       if(mTableCells.contains(column) && mTableCells.at(column).contains(row)) {
         emit cellSelected(*mTableCells[column][row]);
