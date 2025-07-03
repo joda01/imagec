@@ -60,9 +60,6 @@ void Dashboard::reset()
 void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn, const std::set<std::set<enums::ClassId>> &classesWithSameTrackingId,
                                     bool isImageView)
 {
-  mMidiWindows.clear();
-  clearLayout();
-
   struct Entry
   {
     std::string colName;
@@ -136,11 +133,20 @@ void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn, const std
   // ========================================
   // Lamda function to create the dashboard
   // ========================================
-  auto createDashboards = [this, &isImageView](const std::map<uint32_t, Entry> &entries, bool isColoc) {
-    for(const auto &[classId, dashData] : entries) {
-      auto *element01 = new DashboardElement(this);
-      mMidiWindows.emplace(classId, element01);
-      element01->setData(dashData.colName.data(), dashData.cols, isImageView, isColoc, dashData.intersectingCol);
+  std::set<MidiWindowKey> availableCols;
+  auto createDashboards = [this, &isImageView, &availableCols](const std::map<uint32_t, Entry> &entries, DashboardType dashboardType) {
+    for(const auto &[key, dashData] : entries) {
+      auto midiKey = MidiWindowKey{dashboardType, key};
+
+      DashboardElement *element01;
+      if(mMidiWindows.contains(midiKey)) {
+        element01 = mMidiWindows.at(midiKey);
+      } else {
+        element01 = new DashboardElement(this);
+      }
+      availableCols.emplace(midiKey);
+      mMidiWindows.emplace(midiKey, element01);
+      element01->setData(dashData.colName.data(), dashData.cols, isImageView, dashboardType == DashboardType::COLOC, dashData.intersectingCol);
       element01->show();
       connect(element01, &DashboardElement::cellSelected,
               [this](joda::table::TableCell cell) { mPanelResults->setSelectedElement(cell.getPosX(), cell.getPosY(), cell); });
@@ -148,10 +154,21 @@ void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn, const std
     }
   };
 
-  createDashboards(dashboards, false);
-  createDashboards(intersecting, false);
-  createDashboards(distance, false);
-  createDashboards(colocalizing, true);
+  createDashboards(dashboards, DashboardType::NORMAL);
+  createDashboards(intersecting, DashboardType::INTERSECTION);
+  createDashboards(distance, DashboardType::DISTANCE);
+  createDashboards(colocalizing, DashboardType::COLOC);
+
+  // ========================================
+  // Remove not used midi windows
+  // ========================================
+  for(auto &[key, window] : mMidiWindows) {
+    if(!availableCols.contains(key)) {
+      window->close();
+      delete window;
+      mMidiWindows.erase(key);
+    }
+  }
 
   tileSubWindows();
 }

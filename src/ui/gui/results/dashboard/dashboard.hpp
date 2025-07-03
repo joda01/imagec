@@ -40,16 +40,35 @@ public:
   void copyToClipboard() const;
 
 private:
+  enum class DashboardType
+  {
+    UNKNOWN,
+    NORMAL,
+    INTERSECTION,
+    DISTANCE,
+    COLOC
+  };
+
   /////////////////////////////////////////////////////
   void copyTableToClipboard(QTableWidget *table) const;
   void clearLayout();
+
+  struct MidiWindowKey
+  {
+    DashboardType type = DashboardType::UNKNOWN;
+    uint32_t key       = 0;
+    bool operator<(const MidiWindowKey &in) const
+    {
+      return ((static_cast<uint64_t>(type) << 32) | key) < ((static_cast<uint64_t>(in.type) << 32) | in.key);
+    }
+  };
 
   /////////////////////////////////////////////////////
   PanelResults *mPanelResults;
   WindowMain *mMainWindow;
   int32_t mSelectedTableColumnIdx = -1;
   int32_t mSelectedTableRow       = -1;
-  std::map<uint32_t, DashboardElement *> mMidiWindows;
+  std::map<MidiWindowKey, DashboardElement *> mMidiWindows;
 };
 
 }    // namespace joda::ui::gui
