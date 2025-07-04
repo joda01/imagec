@@ -12,8 +12,10 @@
 #pragma once
 
 #include <qmdisubwindow.h>
+#include <qtablewidget.h>
 #include <qtmetamacros.h>
 #include <qwidget.h>
+#include "backend/database/exporter/exportable.hpp"
 #include "backend/helper/table/table.hpp"
 #include "ui/gui/helper/table_widget.hpp"
 
@@ -28,7 +30,7 @@ namespace joda::ui::gui {
 /// \author     Joachim Danmayr
 /// \brief
 ///
-class DashboardElement : public QMdiSubWindow
+class DashboardElement : public QMdiSubWindow, public exporter::Exportable
 {
   Q_OBJECT
 
@@ -39,6 +41,8 @@ public:
                const table::TableColumn *intersectingColl = nullptr);
   void copyTableToClipboard() const;
   void resetData();
+  const std::string &getTitle() const override;
+  auto getTable() const -> const QTableWidget & override;
 
 signals:
   void cellSelected(joda::table::TableCell);
@@ -49,6 +53,7 @@ private:
   void setHeader(const QString &);
 
   /////////////////////////////////////////////////////
+  std::string mTitle;
   QLabel *mHeaderLabel;
   PlaceholderTableWidget *mTable;
   std::map<uint32_t, std::map<uint32_t, const joda::table::TableCell *>> mTableCells;

@@ -76,8 +76,33 @@ DashboardElement::DashboardElement(QWidget *widget) : QMdiSubWindow(widget)
 /// \param[out]
 /// \return
 ///
+const std::string &DashboardElement::getTitle() const
+{
+  return mTitle;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto DashboardElement::getTable() const -> const QTableWidget &
+{
+  return *mTable;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void DashboardElement::setHeader(const QString &text)
 {
+  mTitle = text.toStdString();
   mHeaderLabel->setText("<b>" + text + "</b>");
 }
 

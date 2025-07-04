@@ -17,11 +17,11 @@
 #include <qcombobox.h>
 #include <qdialog.h>
 #include <qspinbox.h>
+#include "backend/database/database.hpp"
+#include "backend/database/plugins/filter.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/types.hpp"
-#include "backend/helper/database/database.hpp"
-#include "backend/helper/database/plugins/filter.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "ui/gui/container/setting/setting_combobox_multi_classification_unmanaged.hpp"
 #include "ui/gui/helper/icon_generator.hpp"

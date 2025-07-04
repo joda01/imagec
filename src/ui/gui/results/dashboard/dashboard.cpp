@@ -206,6 +206,23 @@ void Dashboard::clearLayout()
   }
 }
 
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Dashboard::getExportables() const -> std::vector<const exporter::Exportable *>
+{
+  std::vector<const exporter::Exportable *> retVal;
+
+  for(const auto &[_, dashb] : mMidiWindows) {
+    retVal.emplace_back(dashb);
+  }
+  return retVal;
+}
+
 /*
 
   if(mTable->horizontalHeader()->count() > cellX) {

@@ -17,12 +17,12 @@
 #include <thread>
 #include "backend/commands/image_functions/image_saver/image_saver.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
+#include "backend/database/database.hpp"
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/enums/enums_grouping.hpp"
-#include "backend/helper/database/database.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/file_grouper/file_grouper.hpp"
 #include "backend/helper/helper.hpp"

@@ -22,6 +22,7 @@
 #include <string>
 #include "backend/artifacts/image/image.hpp"
 #include "backend/artifacts/object_list/object_list.hpp"
+#include "backend/database/database.hpp"
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_memory_idx.hpp"
 #include "backend/enums/enum_objects.hpp"
@@ -29,7 +30,6 @@
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/global_enums.hpp"
-#include "backend/helper/database/database.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/processor/context/plate_context.hpp"
 #include "backend/settings/project_settings/project_class.hpp"

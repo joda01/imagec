@@ -17,9 +17,9 @@
 #include <string>
 #include <utility>
 #include "backend/enums/enum_measurements.hpp"
-#include "backend/helper/database/exporter/heatmap/export_heatmap_settings.hpp"
 #include "backend/settings/project_settings/project_plate_setup.hpp"
 #include "backend/settings/setting.hpp"
+#include "heatmap_settings.hpp"
 
 namespace joda::settings {
 

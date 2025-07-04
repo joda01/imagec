@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include "../database.hpp"
-#include "backend/helper/database/plugins/filter.hpp"
+#include "backend/database/plugins/filter.hpp"
 #include "backend/helper/table/table.hpp"
 
 namespace joda::db {

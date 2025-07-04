@@ -15,6 +15,8 @@
 #include <qtmetamacros.h>
 #include <qwidget.h>
 #include <set>
+#include <vector>
+#include "backend/database/exporter/exportable.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "ui/gui/helper/table_widget.hpp"
 
@@ -38,6 +40,7 @@ public:
   void reset();
   void tableToQWidgetTable(const joda::table::Table &tableIn, const std::set<std::set<enums::ClassId>> &classesWithSameTrackingId, bool isImageView);
   void copyToClipboard() const;
+  auto getExportables() const -> std::vector<const exporter::Exportable *>;
 
 private:
   enum class DashboardType

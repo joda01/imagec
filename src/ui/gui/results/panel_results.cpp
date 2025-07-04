@@ -36,6 +36,7 @@
 #include <exception>
 #include <filesystem>
 #include <iostream>
+#include <iterator>
 #include <locale>
 #include <memory>
 #include <mutex>
@@ -44,21 +45,20 @@
 #include <string>
 #include <thread>
 #include <utility>
+#include "backend/commands/classification/ai_classifier/ai_classifier_settings.hpp"
+#include "backend/database/database.hpp"
+#include "backend/database/database_interface.hpp"
+#include "backend/database/exporter/r/exporter_r.hpp"
+#include "backend/database/exporter/xlsx/exporter_xlsx.hpp"
+#include "backend/database/plugins/filter.hpp"
+#include "backend/database/plugins/stats_for_image.hpp"
+#include "backend/database/plugins/stats_for_well.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/enums/types.hpp"
-#include "backend/helper/database/database.hpp"
-#include "backend/helper/database/database_interface.hpp"
-#include "backend/helper/database/exporter/heatmap/export_heatmap.hpp"
-#include "backend/helper/database/exporter/heatmap/export_heatmap_settings.hpp"
-#include "backend/helper/database/exporter/r/exporter_r.hpp"
-#include "backend/helper/database/exporter/xlsx/exporter.hpp"
-#include "backend/helper/database/plugins/control_image.hpp"
-#include "backend/helper/database/plugins/filter.hpp"
-#include "backend/helper/database/plugins/stats_for_image.hpp"
-#include "backend/helper/database/plugins/stats_for_well.hpp"
 #include "backend/helper/logger/console_logger.hpp"
+#include "backend/settings/analze_settings.hpp"
 #include "backend/settings/results_settings/results_settings.hpp"
 #include "ui/gui/container/container_button.hpp"
 #include "ui/gui/container/container_label.hpp"
@@ -366,7 +366,7 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   exportData->setToolTip("Export XLSX");
   connect(exportData, &QAction::triggered, [this]() { showFileSaveDialog("Excel 2007-365 (*.xlsx)"); });
 
-  auto *exportR = exportMenu->addAction(generateSvgIcon("text-x-r"), "Save as R");
+  auto *exportR = exportMenu->addAction(generateSvgIcon("text-x-r"), "Save for R");
   exportR->setToolTip("Export R");
   connect(exportR, &QAction::triggered, [this]() { showFileSaveDialog("R-Script (*.r)"); });
 
@@ -1290,44 +1290,37 @@ void PanelResults::showFileSaveDialog(const QString &filter)
 ///
 void PanelResults::saveData(const std::string &fileName, joda::ctrl::ExportSettings::ExportType format)
 {
-  /*
   if(fileName.empty()) {
     return;
   }
 
   std::thread([this, fileName, format] {
+    joda::settings::AnalyzeSettings settings;
+    try {
+      settings = nlohmann::json::parse(mSelectedDataSet.analyzeMeta->analyzeSettingsJsonString);
+    } catch(const std::exception &ex) {
+      joda::log::logWarning("Could not parse settings from database. Reason: " + std::string(ex.what()));
+    }
+
     if(format == joda::ctrl::ExportSettings::ExportType::XLSX) {
-      if(!mTable->isVisible()) {
-        joda::db::BatchExporter::startExportHeatmap(mActHeatmapData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
+      if(mGraphContainer->isVisible()) {
+        // Export heatmap
+        /*joda::exporter::xlsx::Exporter::startExport(mActHeatmapData, settings, mSelectedDataSet.analyzeMeta->jobName,
+                                                    mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
+                                                    fileName);*/
+      } else {
+        joda::exporter::xlsx::Exporter::startExport(mDashboard->getExportables(), settings, mSelectedDataSet.analyzeMeta->jobName,
                                                     mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
                                                     fileName);
-      } else {
-        joda::db::BatchExporter::startExportList(mActListData, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
-                                                 mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
-                                                 fileName);
       }
     } else {
-      db::StatsPerGroup::Grouping grouping = db::StatsPerGroup::Grouping::BY_PLATE;
-      switch(mNavigation) {
-        case Navigation::PLATE:
-          grouping = db::StatsPerGroup::Grouping::BY_PLATE;
-          break;
-        case Navigation::WELL:
-          grouping = db::StatsPerGroup::Grouping::BY_WELL;
-          break;
-        case Navigation::IMAGE:
-          grouping = db::StatsPerGroup::Grouping::BY_IMAGE;
-          break;
-      }
-      joda::db::RExporter::startExport(mFilter, grouping, mWindowMain->getSettings(), mSelectedDataSet.analyzeMeta->jobName,
-                                       mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish, fileName);
+      joda::exporter::r::Exporter::startExport(mDashboard->getExportables(), settings, mSelectedDataSet.analyzeMeta->jobName,
+                                               mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish, fileName);
     }
 
     QString folderPath = std::filesystem::path(fileName).parent_path().string().data();
     QDesktopServices::openUrl(QUrl("file:///" + folderPath));
-
   }).detach();
-  */
 }
 
 }    // namespace joda::ui::gui

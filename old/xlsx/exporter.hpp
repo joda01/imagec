@@ -19,10 +19,9 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "backend/database/database.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
-
-#include "backend/helper/database/database.hpp"
 #include "backend/helper/table/table.hpp"
 #include "backend/settings/analze_settings.hpp"
 

@@ -23,10 +23,10 @@
 #include <filesystem>
 #include <memory>
 #include <mutex>
+#include "backend/database/database.hpp"
+#include "backend/database/plugins/filter.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "backend/helper/database/database.hpp"
-#include "backend/helper/database/plugins/filter.hpp"
 #include "backend/helper/table/table.hpp"
 #include "controller/controller.hpp"
 #include "graphs/plot_plate.hpp"

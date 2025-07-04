@@ -19,16 +19,13 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include "backend/database/database.hpp"
+#include "backend/database/plugins/filter.hpp"
+#include "backend/database/plugins/stats_for_image.hpp"
+#include "backend/database/plugins/stats_for_well.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/types.hpp"
-#include "backend/helper/database/database.hpp"
-#include "backend/helper/database/exporter/r/exporter_r.hpp"
-#include "backend/helper/database/exporter/xlsx/exporter.hpp"
-#include "backend/helper/database/plugins/control_image.hpp"
-#include "backend/helper/database/plugins/filter.hpp"
-#include "backend/helper/database/plugins/stats_for_image.hpp"
-#include "backend/helper/database/plugins/stats_for_well.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/helper/reader/image_reader.hpp"
@@ -531,6 +528,7 @@ auto Controller::populateClassesFromImage(const joda::ome::OmeInfo &omeInfo, int
 void Controller::exportData(const std::filesystem::path &pathToDbFile, settings::ResultsSettings &filter, const ExportSettings &settings,
                             const std::filesystem::path &outputFilePath)
 {
+  /*
   auto analyzer = std::make_unique<joda::db::Database>();
   analyzer->openDatabase(std::filesystem::path(pathToDbFile.string()));
 
@@ -581,17 +579,22 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, settings:
 
   if(settings.type == ExportSettings::ExportType::XLSX) {
     if(ExportSettings::ExportFormat::HEATMAP == settings.format) {
-      /*  joda::db::BatchExporter::startExportHeatmap(dataToExport, analyzeSettings, experiment.jobName, experiment.timestampStart,
-                                                    experiment.timestampFinish, outputFilePath.string());*/
-    } else {
-      joda::db::BatchExporter::startExportList(dataToExport, analyzeSettings, experiment.jobName, experiment.timestampStart,
-                                               experiment.timestampFinish, outputFilePath.string());
-    }
-  } else {
-    joda::db::RExporter::startExport(filter, grouping, analyzeSettings, experiment.jobName, experiment.timestampStart, experiment.timestampFinish,
-                                     outputFilePath.string());
-  }
-  joda::log::logInfo("Export finished!");
+        joda::db::BatchExporter::startExportHeatmap(dataToExport, analyzeSettings, experiment.jobName, experiment.timestampStart,
+                                                    experiment.timestampFinish, outputFilePath.string());
+}
+else
+{
+  joda::db::BatchExporter::startExportList(dataToExport, analyzeSettings, experiment.jobName, experiment.timestampStart, experiment.timestampFinish,
+                                           outputFilePath.string());
+}
+}
+else
+{
+  joda::db::RExporter::startExport(filter, grouping, analyzeSettings, experiment.jobName, experiment.timestampStart, experiment.timestampFinish,
+                                   outputFilePath.string());
+}
+joda::log::logInfo("Export finished!");
+*/
 }
 
 }    // namespace joda::ctrl

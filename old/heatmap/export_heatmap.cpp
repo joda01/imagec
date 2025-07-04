@@ -16,7 +16,7 @@
 #include <qpainterpath.h>
 #include <QPainter>
 #include <random>
-#include "backend/helper/database/exporter/heatmap/export_heatmap_settings.hpp"
+#include "backend/database/exporter/heatmap/export_heatmap_settings.hpp"
 
 namespace joda::db {
 

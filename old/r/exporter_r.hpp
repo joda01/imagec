@@ -10,9 +10,9 @@
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 
-#include "backend/helper/database/database.hpp"
-#include "backend/helper/database/plugins/filter.hpp"
-#include "backend/helper/database/plugins/stats_for_well.hpp"
+#include "backend/database/database.hpp"
+#include "backend/database/plugins/filter.hpp"
+#include "backend/database/plugins/stats_for_well.hpp"
 #include "backend/helper/table/table.hpp"
 #include "backend/settings/analze_settings.hpp"
 
