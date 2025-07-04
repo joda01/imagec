@@ -110,7 +110,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   //
   {
     mDockWidgetGraphSettings = new PanelGraphSettings(mWindowMain);
-    mGraphContainer          = std::make_shared<QtBackend>("svg", this);
+    mGraphContainer          = std::make_shared<QtBackend>(this);
     mGraphContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     connect(mGraphContainer.get(), &QtBackend::onGraphClicked, [this](int row, int col) {
@@ -818,10 +818,9 @@ void PanelResults::onFinishedLoading()
       break;
   }
 
-  mPositionMapping = preparePlateSurface(
-      mActListData, rows, cols, mDockWidgetGraphSettings->getSelectedColumn(),
-      PlotPlateSettings{.colorMap = mDockWidgetGraphSettings->getSelectedColorMap(), .densityMapSize = densityMapSize}, mGraphContainer);
-
+  auto data = preparePlateSurface(mActListData, rows, cols, mDockWidgetGraphSettings->getSelectedColumn(),
+                                  PlotPlateSettings{.densityMapSize = densityMapSize}, mGraphContainer);
+  mGraphContainer->setNrOfRowsAndCols(rows, cols, data);
   refreshBreadCrump();
   update();
   QApplication::restoreOverrideCursor();

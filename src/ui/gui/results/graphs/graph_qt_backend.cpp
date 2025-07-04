@@ -10,6 +10,7 @@
 ///
 
 #include "graph_qt_backend.hpp"
+#include <qcustomplot.h>
 #include <qevent.h>
 #include <QFile>
 #include <QPainter>
@@ -19,18 +20,92 @@
 
 namespace joda::ui::gui {
 
-QtBackend::QtBackend(const std::string &terminal, QWidget *parent) : QWidget(parent), matplot::backend::gnuplot()
+QtBackend::QtBackend(QWidget *parent) : QCustomPlot(parent), mColorMap(new QCPColorMap(xAxis, yAxis))
 {
   setMouseTracking(true);    // <--- This line is crucial
 }
 
 QtBackend::~QtBackend()
 {
-  // Remove temp files
-  std::filesystem::path svgFile(output());
-  if(std::filesystem::exists(svgFile)) {
-    std::filesystem::remove(svgFile);
+}
+
+void QtBackend::setNrOfRowsAndCols(int32_t rows, int32_t cols, const std::vector<std::vector<double>> &data)
+{
+  std::cout << "REplot" << std::endl;
+  mRows        = rows;
+  mCols        = cols;
+  const int nx = cols;
+  const int ny = rows;
+
+  // Data for heatmap
+
+  // Create color map
+  mColorMap->data()->clear();
+  mColorMap->data()->setSize(nx, ny);    // nx x ny cells
+  mColorMap->data()->setRange(QCPRange(0, nx), QCPRange(0, ny));
+  mColorMap->setGradient(QCPColorGradient::gpJet);
+  mColorMap->setInterpolate(false);    // disables smooth interpolation — colors jump at cell edges
+
+  // Fill color map data
+  for(int x = 0; x < nx; ++x) {
+    for(int y = 0; y < ny; ++y) {
+      mColorMap->data()->setCell(x, y, data[x][y]);
+    }
   }
+
+  // Set axis ranges to fit the map
+  xAxis->setRange(0, nx);
+  yAxis->setRange(0, ny);
+
+  // Invert y axis so origin is bottom-left
+  yAxis->setRangeReversed(true);
+  clearItems();
+  // Add labels in each cell
+  for(int x = 0; x < nx; ++x) {
+    for(int y = 0; y < ny; ++y) {
+      QCPItemText *textLabel = new QCPItemText(this);
+      textLabel->setPositionAlignment(Qt::AlignCenter);
+      textLabel->position->setCoords(x + 0.5, y + 0.5);    // center of cell
+      textLabel->setText(QString::number(data[x][y]));
+      textLabel->setFont(QFont(font().family(), 12));
+      textLabel->setColor(Qt::black);
+    }
+  }
+
+  // =========================================
+  // PLot grid
+  // ==========================================
+  {
+    /*
+    double xMin = mColorMap->data()->keyRange().lower;
+    double xMax = mColorMap->data()->keyRange().upper;
+    double yMin = mColorMap->data()->valueRange().lower;
+    double yMax = mColorMap->data()->valueRange().upper;
+
+    int nx = mColorMap->data()->keySize();
+    int ny = mColorMap->data()->valueSize();
+
+    double dx = (xMax - xMin) / nx;
+    double dy = (yMax - yMin) / ny;
+
+    // Draw vertical grid lines
+    for(int i = 0; i <= nx; ++i) {
+      double x   = xMin + i * dx;
+      auto *line = new QCPItemLine(this);
+      line->setPositions(QVector2D(x, yMin), QVector2D(x, yMax));
+    }
+
+    // Draw horizontal grid lines
+    for(int j = 0; j <= ny; ++j) {
+      double y = yMin + j * dy;
+      addItem(new QCPItemLine(this))->setPositions(QVector2D(xMin, y), QVector2D(xMax, y));
+    }
+      */
+  }
+
+  mColorMap->rescaleDataRange();
+  rescaleAxes();
+  replot();
 }
 
 ///
@@ -42,7 +117,7 @@ QtBackend::~QtBackend()
 ///
 void QtBackend::paintEvent(QPaintEvent *event)
 {
-  QWidget::paintEvent(event);
+  QCustomPlot::paintEvent(event);
   std::lock_guard<std::mutex> lock(mPaintMutex);
   if((svgRenderer != nullptr) && svgRenderer->isValid()) {
     QPainter painter(this);
@@ -133,59 +208,6 @@ void QtBackend::mouseDoubleClickEvent(QMouseEvent *event)
     }
     idx++;
   }
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-bool QtBackend::render_data()
-{
-  using namespace std::chrono_literals;
-  bool okay = flush_commands();
-
-  //
-  // We plot the graph to svg and then plot this svg in our qt widget
-  //
-  auto start = std::chrono::steady_clock::now();
-  std::filesystem::path svgFile(output());
-  do {
-    std::this_thread::sleep_for(25ms);
-    if(std::chrono::steady_clock::now() - start > 5s) {
-      joda::log::logWarning("Could not plot graph: Timeout");
-      return false;    // timeout expired
-    }
-    if(std::filesystem::exists(svgFile)) {
-      auto size = std::filesystem::file_size(svgFile);
-      if(size <= 0) {
-        continue;
-      }
-      std::lock_guard<std::mutex> lock(mPaintMutex);
-      delete svgRenderer;
-      QFile file(svgFile.string().data());
-      if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        joda::log::logDebug("Could not open graph file. Retry ...");
-        file.close();
-        continue;
-      }
-      QByteArray fileData = file.readAll();
-      if(!fileData.contains("</svg>")) {
-        file.close();
-        continue;
-      }
-
-      svgRenderer = new QSvgRenderer(fileData, this);
-      file.close();
-      update();
-      std::filesystem::remove(svgFile);
-      break;
-    }
-  } while(true);
-
-  return okay;
 }
 
 }    // namespace joda::ui::gui

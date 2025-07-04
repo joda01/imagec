@@ -87,7 +87,7 @@ find_package( Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg)
 find_package( ONNX REQUIRED )
 find_package( ryml REQUIRED )
 find_package( OpenSSL REQUIRED )
-find_package( Matplot++ REQUIRED )
+find_package( QCustomPlot REQUIRED )
 
 
 SET(DuckDB_USE_STATIC_LIBS TRUE)
@@ -106,7 +106,7 @@ set(LIBS
   onnx::onnx
   ryml::ryml
   openssl::openssl
-  Matplot++::matplot
+  qcustomplot::qcustomplot
 )
 
 if(WITH_ONNX)
