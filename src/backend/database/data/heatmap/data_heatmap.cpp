@@ -46,10 +46,10 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
     return {};
   }
   int32_t densityMapSize = settings.densityMapSize;
-  if(rows > 50 && cols > 50) {
-    densityMapSize = settings.densityMapSize * rows / 50;
-    rows           = 50;
-    cols           = 50;
+  if(rows > 100 || cols > 100) {
+    densityMapSize = settings.densityMapSize * rows / 100;
+    rows           = 100;
+    cols           = 100;
   }
 
   std::vector<std::string> xLabels;

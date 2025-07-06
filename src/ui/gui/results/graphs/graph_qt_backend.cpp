@@ -47,8 +47,13 @@ QtBackend::~QtBackend()
 /// \param[out]
 /// \return
 ///
-void QtBackend::updateGraph(const joda::table::Table &&data)
+void QtBackend::updateGraph(const joda::table::Table &&data, bool isImageView)
 {
+  if(isImageView) {
+    mHeatmap->setGapsBetweenBoxes(1);
+  } else {
+    mHeatmap->setGapsBetweenBoxes(4);
+  }
   mHeatmap->setData(std::move(data));
   update();
 }

@@ -36,7 +36,7 @@ public:
   QtBackend(QWidget *parent);
   ~QtBackend() override;
   /////////////////////////////////////////////////////
-  void updateGraph(const joda::table::Table &&data);
+  void updateGraph(const joda::table::Table &&data, bool isImageView);
 
 signals:
   void onGraphClicked(joda::table::TableCell);

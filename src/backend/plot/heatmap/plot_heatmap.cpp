@@ -44,7 +44,12 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
   mRectWidth    = rectSize;
   mRectHeight   = rectSize;
 
-  cv::Mat plotArea(rectSize * nrRows, rectSize * nrCols, CV_8UC3, mBackgroundColor);
+  auto matSizRowsTmp = static_cast<int32_t>(rectSize * nrRows);
+  auto matSizColsTmp = static_cast<int32_t>(rectSize * nrCols);
+  if(matSizColsTmp <= 0 || matSizRowsTmp <= 0) {
+    return {};
+  }
+  cv::Mat plotArea(matSizRowsTmp, matSizColsTmp, CV_8UC3, mBackgroundColor);
 
   auto [min, max] = mData.getMinMax();
 
@@ -67,29 +72,36 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
       auto y2      = static_cast<int32_t>(static_cast<double>(row) * mRectHeight + mRectHeight);
       double color = ((val - min) * 255) / max;
 
+      int32_t borderPlace = 1;
+      if(mRectWidth <= 25) {
+        borderPlace = 0;    // No borders for small rects
+      }
+
       // Plot area
       if(mShape == Shape::RECTANGLE) {
-        cv::rectangle(plotArea, {x1 + 1 + mGap, y1 + 1 + mGap}, {x2 - 1 - mGap, y2 - 1 - mGap}, mapValueToColor(val, min, max, colorLUT), cv::FILLED);
+        cv::rectangle(plotArea, {x1 + borderPlace + mGap, y1 + borderPlace + mGap}, {x2 - borderPlace - mGap, y2 - borderPlace - mGap},
+                      mapValueToColor(val, min, max, colorLUT), cv::FILLED);
       } else {
-        cv::ellipse(plotArea, cv::Point((x1 + x2) / 2, (y1 + y2) / 2),               // Center
-                    cv::Size((x2 - x1) / 2 - 1 - mGap, (y2 - y1) / 2 - 1 - mGap),    // Axes (radiusX, radiusY)
-                    0,                                                               // Angle of rotation
-                    0, 360,                                                          // Start and end angle (full ellipse)
-                    mapValueToColor(val, min, max, colorLUT),                        // Color
+        cv::ellipse(plotArea, cv::Point((x1 + x2) / 2, (y1 + y2) / 2),                                   // Center
+                    cv::Size((x2 - x1) / 2 - borderPlace - mGap, (y2 - y1) / 2 - borderPlace - mGap),    // Axes (radiusX, radiusY)
+                    0,                                                                                   // Angle of rotation
+                    0, 360,                                                                              // Start and end angle (full ellipse)
+                    mapValueToColor(val, min, max, colorLUT),                                            // Color
                     cv::FILLED, cv::LINE_AA);
       }
       // Plot border
-      auto borderColor = cv::Scalar{0, 0, 0};
-
-      if(mShape == Shape::RECTANGLE) {
-        cv::rectangle(plotArea, {x1 + mGap, y1 + mGap}, {x2 - mGap, y2 - mGap}, borderColor, 1, cv::LINE_4);
-      } else {
-        cv::ellipse(plotArea, cv::Point((x1 + x2) / 2, (y1 + y2) / 2),       // Center
-                    cv::Size((x2 - x1) / 2 - mGap, (y2 - y1) / 2 - mGap),    // Axes (radiusX, radiusY)
-                    0,                                                       // Angle of rotation
-                    0, 360,                                                  // Start and end angle (full ellipse)
-                    borderColor,                                             // Color
-                    1, cv::LINE_AA);
+      if(mRectWidth > 25) {
+        auto borderColor = cv::Scalar{0, 0, 0};
+        if(mShape == Shape::RECTANGLE) {
+          cv::rectangle(plotArea, {x1 + mGap, y1 + mGap}, {x2 - mGap, y2 - mGap}, borderColor, 1, cv::LINE_4);
+        } else {
+          cv::ellipse(plotArea, cv::Point((x1 + x2) / 2, (y1 + y2) / 2),       // Center
+                      cv::Size((x2 - x1) / 2 - mGap, (y2 - y1) / 2 - mGap),    // Axes (radiusX, radiusY)
+                      0,                                                       // Angle of rotation
+                      0, 360,                                                  // Start and end angle (full ellipse)
+                      borderColor,                                             // Color
+                      1, cv::LINE_AA);
+        }
       }
 
       // Plot labels
@@ -202,7 +214,12 @@ auto Heatmap::getCellFromCoordinates(double x, double y) const -> std::optional<
   auto row        = static_cast<int32_t>(y / mRectHeight);
   auto col        = static_cast<int32_t>(x / mRectWidth);
   if(row >= 0 && row < nrRows && col >= 0 && col < nrCols) {
-    return std::tuple<Cell, joda::table::TableCell>{Cell{col, row}, *mData.data(row, col)};
+    auto data = mData.data(row, col);
+    if(data != nullptr) {
+      return std::tuple<Cell, joda::table::TableCell>{Cell{col, row}, *mData.data(row, col)};
+    } else {
+      return std::tuple<Cell, joda::table::TableCell>{Cell{col, row}, {}};
+    }
   }
 
   return std::nullopt;

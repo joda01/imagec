@@ -841,7 +841,7 @@ void PanelResults::onFinishedLoading()
   mDockWidgetGraphSettings->setColumns(mActFilter.getColumns());
   auto data = joda::db::data::convertToHeatmap(mActListData.get(), rows, cols, mDockWidgetGraphSettings->getSelectedColumn(),
                                                joda::db::data::PlotPlateSettings{.densityMapSize = densityMapSize});
-  mGraphContainer->updateGraph(std::move(data));
+  mGraphContainer->updateGraph(std::move(data), mNavigation == Navigation::IMAGE);
 
   // ===============================================
   // Refresh
