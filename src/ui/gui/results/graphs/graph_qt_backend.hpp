@@ -21,8 +21,15 @@
 #include <QOpenGLWidget>
 #include <QSvgRenderer>
 #include <iostream>
+#include <memory>
 #include <mutex>
 #include <vector>
+#include "backend/helper/image/image.hpp"
+#include "backend/helper/table/table.hpp"
+
+namespace joda::plot {
+class Heatmap;
+}    // namespace joda::plot
 
 namespace joda::ui::gui {
 
@@ -96,46 +103,32 @@ enum class ColormapName
   DEFAULT_COLORS_MAP
 };
 
-struct Pos
-{
-  uint32_t posX = 0;
-  uint32_t posY = 0;
-
-  bool operator<(const Pos &in) const
-  {
-    uint64_t tmp  = static_cast<uint64_t>(posX) << 32 | posY;
-    uint64_t tmp2 = static_cast<uint64_t>(in.posX) << 32 | in.posY;
-    return tmp < tmp2;
-  };
-};
-
-class QtBackend : public QCustomPlot
+class QtBackend : public QWidget
 {
   Q_OBJECT
 
 public:
   QtBackend(QWidget *parent);
   ~QtBackend() override;
-
   /////////////////////////////////////////////////////
-  void paintEvent(QPaintEvent *event) override;
-  void mousePressEvent(QMouseEvent *event) override;
-  void mouseDoubleClickEvent(QMouseEvent *event) override;
-  void setNrOfRowsAndCols(int32_t rows, int32_t cols, const std::vector<std::vector<double>> &data);
+  void updateGraph(const joda::table::Table &&data);
 
 signals:
-  void onGraphClicked(int row, int col);
-  void onGraphDoubleClicked(int row, int col);
+  void onGraphClicked(joda::table::TableCell);
+  void onGraphDoubleClicked(joda::table::TableCell);
 
 private:
   /////////////////////////////////////////////////////
-  QCPColorMap *mColorMap;
-  QSvgRenderer *svgRenderer = nullptr;
-  QRectF targetRect;
+  void mousePressEvent(QMouseEvent *event) override;
+  void mouseDoubleClickEvent(QMouseEvent *event) override;
+  void paintEvent(QPaintEvent *event) override;
+
+  /////////////////////////////////////////////////////
   std::mutex mPaintMutex;
   int32_t mRows = 0;
   int32_t mCols = 0;
-  std::vector<std::pair<QRectF, QPoint>> mRects;
-  int32_t mSelectedIndex = -1;
+  std::unique_ptr<joda::plot::Heatmap> mHeatmap;
+  QPoint mPixmapTopLeft;
+  QSize mPixmapSize;
 };
 }    // namespace joda::ui::gui

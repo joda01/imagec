@@ -47,12 +47,16 @@ Image::Image()
 /// \param[out]
 /// \return
 ///
-void Image::setImage(const cv::Mat &&imageToDisplay)
+void Image::setImage(const cv::Mat &&imageToDisplay, int32_t rescale)
 {
   mOriginalImageSize = {imageToDisplay.cols, imageToDisplay.rows};
-  delete mImageOriginal;
-  mImageOriginal = new cv::Mat(
-      joda::image::func::Resizer::resizeWithAspectRatio(imageToDisplay, std::min(imageToDisplay.cols, WIDTH), std::min(imageToDisplay.rows, WIDTH)));
+  if(rescale > 0) {
+    delete mImageOriginal;
+    mImageOriginal = new cv::Mat(joda::image::func::Resizer::resizeWithAspectRatio(imageToDisplay, std::min(imageToDisplay.cols, rescale),
+                                                                                   std::min(imageToDisplay.rows, rescale)));
+  } else {
+    mImageOriginal = &imageToDisplay;
+  }
   int type  = mImageOriginal->type();
   int depth = type & CV_MAT_DEPTH_MASK;
   if(depth == CV_16U) {

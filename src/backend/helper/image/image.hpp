@@ -33,7 +33,7 @@ public:
   {
     clear();
   }
-  void setImage(const cv::Mat &&imageToDisplay);
+  void setImage(const cv::Mat &&imageToDisplay, int32_t rescale = 2048);
   bool empty()
   {
     if(mImageOriginal != nullptr) {
@@ -98,7 +98,6 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  const int32_t WIDTH = 2048;
   cv::Mat mHistogram;
 
   /////////////////////////////////////////////////////
@@ -113,7 +112,7 @@ private:
   QSize mOriginalImageSize;
 
   //// IMAGE /////////////////////////////////////////////////
-  cv::Mat *mImageOriginal = nullptr;
+  const cv::Mat *mImageOriginal = nullptr;
 };
 
 }    // namespace joda::image

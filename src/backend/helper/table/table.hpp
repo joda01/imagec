@@ -35,7 +35,7 @@ public:
     uint64_t parentObjectId     = 0;
     uint64_t trackingId         = 0;
     uint64_t distanceToObjectId = 0;
-    bool isValid                = true;
+    bool isValid                = false;
     uint32_t tStack             = 0;
     uint32_t zStack             = 0;
     uint32_t cStack             = 0;
@@ -159,6 +159,7 @@ public:
 
   Table();
   void setTitle(const std::string &title);
+  void init(int32_t cols, int32_t rows);
 
   auto columns() const -> const entry_t &
   {
@@ -178,10 +179,16 @@ public:
   }
   [[nodiscard]] uint32_t getNrOfRows() const
   {
+    if(mDataColOrganized.empty()) {
+      return 0;
+    }
     uint32_t nr = 0;
     for(const auto &col : mDataColOrganized) {
-      if(col.second.rows.size() > nr) {
-        nr = col.second.rows.size();
+      if(!col.second.rows.empty()) {
+        auto tmp = std::prev(col.second.rows.end())->first + 1;
+        if(tmp > nr) {
+          nr = tmp;
+        }
       }
     }
     return nr;
@@ -189,7 +196,10 @@ public:
 
   [[nodiscard]] uint32_t getNrOfCols() const
   {
-    return mDataColOrganized.size();
+    if(mDataColOrganized.empty()) {
+      return 0;
+    }
+    return std::prev(mDataColOrganized.end())->first + 1;
   }
 
   const std::string &getColHeader(int32_t col) const
@@ -210,6 +220,7 @@ public:
   void clear();
   void arrangeByTrackingId();
   std::pair<double, double> getMinMax(int column) const;
+  std::pair<double, double> getMinMax() const;
 
 private:
   /////////////////////////////////////////////////////

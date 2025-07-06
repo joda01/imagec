@@ -3,6 +3,7 @@
 #include <opencv2/core/hal/interface.h>
 #include <exception>
 #include <filesystem>
+#include <optional>
 #include <random>
 #include <sstream>
 #include <string>
@@ -37,7 +38,8 @@ SCENARIO("pipeline:test:heatmap", "[processor]")
   workingdirs.setWorkingDirectory(0, settings.projectSettings.plates.begin()->imageFolder);
   workingdirs.waitForFinished();
   processor.execute(settings, "test",
-                    joda::ctrl::Controller::calcOptimalThreadNumber(settings, workingdirs.gitFirstFile(), workingdirs.getNrOfFiles()), workingdirs);
+                    joda::ctrl::Controller::calcOptimalThreadNumber(settings, workingdirs.gitFirstFile(), workingdirs.getNrOfFiles(), std::nullopt),
+                    workingdirs);
 }
 
 }    // namespace joda::test

@@ -10,6 +10,7 @@
 ///
 
 #include "table.hpp"
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -29,6 +30,20 @@ void Table::setColHeader(const std::map<uint32_t, settings::ResultsSettings::Col
 void Table::setTitle(const std::string &title)
 {
   mTitle = title;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Table::init(int32_t cols, int32_t rows)
+{
+  if(cols > 0 && rows > 0) {
+    setData(rows - 1, cols - 1, {std::numeric_limits<double>::quiet_NaN(), {.isValid = false}, {}});
+  }
 }
 
 void Table::clear()
@@ -72,6 +87,25 @@ std::pair<double, double> Table::getMinMax(int column) const
       }
       if(row.getVal() > max) {
         max = row.getVal();
+      }
+    }
+  }
+  return {min, max};
+}
+
+std::pair<double, double> Table::getMinMax() const
+{
+  double min = std::numeric_limits<double>::max();
+  double max = std::numeric_limits<double>::min();
+  for(const auto &[_, col] : mDataColOrganized) {
+    for(const auto &[_, row] : col.rows) {
+      if(!row.isNAN() && row.isValid()) {
+        if(row.getVal() < min) {
+          min = row.getVal();
+        }
+        if(row.getVal() > max) {
+          max = row.getVal();
+        }
       }
     }
   }

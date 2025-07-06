@@ -146,8 +146,7 @@ void Dashboard::tableToQWidgetTable(const joda::table::Table &tableIn, const std
       } else {
         element01 = new DashboardElement(this);
         mMidiWindows.emplace(midiKey, element01);
-        connect(element01, &DashboardElement::cellSelected,
-                [this](joda::table::TableCell cell) { mPanelResults->setSelectedElement(cell.getPosX(), cell.getPosY(), cell); });
+        connect(element01, &DashboardElement::cellSelected, [this](joda::table::TableCell cell) { mPanelResults->setSelectedElement(cell); });
         connect(element01, &DashboardElement::cellDoubleClicked, [this](joda::table::TableCell cell) { mPanelResults->openNextLevel({cell}); });
         element01->show();
         element01->adjustSize();

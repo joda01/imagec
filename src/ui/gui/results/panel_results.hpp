@@ -85,7 +85,7 @@ public:
     return mSelectedImageId;
   }
 
-  void setSelectedElement(int cellX, int cellY, table::TableCell value);
+  void setSelectedElement(table::TableCell value);
   void openNextLevel(const std::vector<table::TableCell> &selectedRows);
 
 signals:
@@ -182,7 +182,6 @@ private:
   void setHeatmapVisible(bool);
   PanelGraphSettings *mDockWidgetGraphSettings;
   std::shared_ptr<QtBackend> mGraphContainer;
-  std::map<Pos, int32_t> mPositionMapping;
 
   /// IMAGE DOCK //////////////////////////////////////////////
   void loadPreview();
@@ -204,7 +203,6 @@ private:
   uint64_t mSelectedWellId;
   uint64_t mSelectedImageId;
   uint32_t mSelectedTileId;
-  QPoint mSelectedAreaPos;
 
   struct Selection
   {

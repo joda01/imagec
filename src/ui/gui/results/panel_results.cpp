@@ -57,6 +57,7 @@
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/enums/types.hpp"
+#include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/results_settings/results_settings.hpp"
@@ -113,27 +114,15 @@ PanelResults::PanelResults(WindowMain *windowMain) :
     mGraphContainer          = std::make_shared<QtBackend>(this);
     mGraphContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    connect(mGraphContainer.get(), &QtBackend::onGraphClicked, [this](int row, int col) {
+    connect(mGraphContainer.get(), &QtBackend::onGraphClicked, [this](joda::table::TableCell cell) {
       std::lock_guard<std::mutex> lock(mLoadLock);
-      auto found = mPositionMapping.find(Pos{(uint32_t) col, (uint32_t) row});
-      if(found != mPositionMapping.end()) {
-        int selectedCol  = mDockWidgetGraphSettings->getSelectedColumn();
-        auto selectedRow = found->second;
-        auto value       = mActListData.data(selectedRow, selectedCol);
-        setSelectedElement(selectedCol, selectedRow, value);
-      }
+      setSelectedElement(cell);
     });
 
-    connect(mGraphContainer.get(), &QtBackend::onGraphDoubleClicked, [this](int row, int col) {
+    connect(mGraphContainer.get(), &QtBackend::onGraphDoubleClicked, [this](joda::table::TableCell cell) {
       std::lock_guard<std::mutex> lock(mLoadLock);
 
-      auto found = mPositionMapping.find(Pos{(uint32_t) col, (uint32_t) row});
-      if(found != mPositionMapping.end()) {
-        int selectedCol  = mDockWidgetGraphSettings->getSelectedColumn();
-        auto selectedRow = found->second;
-        auto value       = mActListData.data(selectedRow, selectedCol);
-        openNextLevel({value});
-      }
+      openNextLevel({cell});
     });
     connect(layout().getBackButton(), &QAction::triggered, [this] { mWindowMain->showPanelStartPage(); });
     connect(this, &PanelResults::finishedLoading, this, &PanelResults::onFinishedLoading);
@@ -792,7 +781,10 @@ void PanelResults::refreshView()
 ///
 void PanelResults::onFinishedLoading()
 {
+  auto i = DurationCount::start("tbl");
   mDashboard->tableToQWidgetTable(mActListData, mTmpColocClasses, mNavigation == Navigation::IMAGE);
+  DurationCount::stop(i);
+
   tableToHeatmap(mActListData);
   int32_t cols           = mFilter.getPlateSetup().cols;
   int32_t rows           = mFilter.getPlateSetup().rows;
@@ -819,8 +811,9 @@ void PanelResults::onFinishedLoading()
   }
 
   auto data = preparePlateSurface(mActListData, rows, cols, mDockWidgetGraphSettings->getSelectedColumn(),
-                                  PlotPlateSettings{.densityMapSize = densityMapSize}, mGraphContainer);
-  mGraphContainer->setNrOfRowsAndCols(rows, cols, data);
+                                  PlotPlateSettings{.densityMapSize = densityMapSize});
+  mGraphContainer->updateGraph(std::move(data));
+
   refreshBreadCrump();
   update();
   QApplication::restoreOverrideCursor();
@@ -878,13 +871,8 @@ void PanelResults::onMarkAsInvalidClicked(bool isInvalid)
 /// \brief      An element has been selected
 /// \author     Joachim Danmayr
 ///
-void PanelResults::setSelectedElement(int cellX, int cellY, table::TableCell value)
+void PanelResults::setSelectedElement(table::TableCell value)
 {
-  if(cellX < 0 || cellY < 0) {
-    mSelectedValue->setText("");
-    mSelectedRowInfo->setText("");
-    return;
-  }
   switch(mNavigation) {
     case Navigation::PLATE: {
       mSelectedWellId            = value.getId();
@@ -926,8 +914,6 @@ void PanelResults::setSelectedElement(int cellX, int cellY, table::TableCell val
     case Navigation::IMAGE:
       mSelectedTileId = value.getObjectId();
       mMarkAsInvalid->setEnabled(false);
-      mSelectedAreaPos.setX(cellX);
-      mSelectedAreaPos.setY(cellY);
 
       if(mSelectedTileId >= 0) {
         mSelectedDataSet.objectInfo = mAnalyzer->selectObjectInfo(mSelectedTileId);
@@ -938,7 +924,7 @@ void PanelResults::setSelectedElement(int cellX, int cellY, table::TableCell val
 
       auto rowImageName = mSelectedDataSet.imageMeta->filename;
       if(mActImageId.size() > 1) {
-        rowImageName = mActListData.getRowHeader(cellY);
+        rowImageName = value.getRowName();
       }
       auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
                       rowImageName + "/" + std::to_string(value.getObjectId());

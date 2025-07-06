@@ -24,7 +24,7 @@ struct PlotPlateSettings
   int32_t densityMapSize = -1;
 };
 
-auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t cols, int32_t colToDisplay, const PlotPlateSettings &settings,
-                         std::shared_ptr<QtBackend> backend) -> std::vector<std::vector<double>>;
+auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t cols, int32_t colToDisplay, const PlotPlateSettings &settings)
+    -> joda::table::Table;
 
 }    // namespace joda::ui::gui
