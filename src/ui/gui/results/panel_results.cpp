@@ -405,6 +405,19 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
     }
   });
   toolbar->addItemToTopToolbar(mClassSelector);
+
+  toolbar->addSeparatorToTopToolbar();
+
+  auto *cascade = new QAction(generateSvgIcon("window-duplicate"), "");
+  cascade->setToolTip("Cascade windows");
+  connect(cascade, &QAction::triggered, [this]() { mDashboard->cascadeSubWindows(); });
+  toolbar->addItemToTopToolbar(cascade);
+
+  auto *tileWindows = new QAction(generateSvgIcon("view-group"), "");
+  tileWindows->setToolTip("Tile windows");
+  connect(tileWindows, &QAction::triggered, [this]() { mDashboard->tileSubWindows(); });
+  toolbar->addItemToTopToolbar(tileWindows);
+
   /*
     auto *addColumn = new QAction(generateSvgIcon("edit-table-insert-column-right"), "");
     addColumn->setToolTip("Add column");
@@ -439,7 +452,6 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
     });
     toolbar->addItemToTopToolbar(mEditCol);
   */
-  toolbar->addSeparatorToTopToolbar();
   mFilter.sortColumns();
   toolbar->addSeparatorToTopToolbar();
 
