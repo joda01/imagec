@@ -43,6 +43,8 @@ public:
                            bool isImageView);
   void copyToClipboard() const;
   auto getExportables() const -> std::vector<const exporter::Exportable *>;
+  void minimizeSubWindows();
+  void restoreSubWindows();
 
 private:
   enum class DashboardType

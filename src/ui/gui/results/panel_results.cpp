@@ -418,6 +418,16 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   connect(tileWindows, &QAction::triggered, [this]() { mDashboard->tileSubWindows(); });
   toolbar->addItemToTopToolbar(tileWindows);
 
+  auto *minimizeAll = new QAction(generateSvgIcon("user-desktop"), "");
+  minimizeAll->setToolTip("Minimize windows");
+  connect(minimizeAll, &QAction::triggered, [this]() { mDashboard->minimizeSubWindows(); });
+  toolbar->addItemToTopToolbar(minimizeAll);
+
+  auto *restoreAll = new QAction(generateSvgIcon("window"), "");
+  restoreAll->setToolTip("Restore windows");
+  connect(restoreAll, &QAction::triggered, [this]() { mDashboard->restoreSubWindows(); });
+  toolbar->addItemToTopToolbar(restoreAll);
+
   /*
     auto *addColumn = new QAction(generateSvgIcon("edit-table-insert-column-right"), "");
     addColumn->setToolTip("Add column");

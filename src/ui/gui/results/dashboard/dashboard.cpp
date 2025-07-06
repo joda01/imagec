@@ -96,11 +96,36 @@ void Dashboard::tableToQWidgetTable(const std::shared_ptr<joda::table::Table> ta
   if(mFirstOpen) {
     mFirstOpen = false;
     cascadeSubWindows();
-    // QList<QMdiSubWindow *> subwindows = subWindowList();
-    // for(QMdiSubWindow *subWin : subwindows) {
-    //   // subWin->showMinimized();
-    //   subWin->adjustSize();
-    // }
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Dashboard::minimizeSubWindows()
+{
+  QList<QMdiSubWindow *> subwindows = subWindowList();
+  for(QMdiSubWindow *subWin : subwindows) {
+    subWin->showMinimized();
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Dashboard::restoreSubWindows()
+{
+  QList<QMdiSubWindow *> subwindows = subWindowList();
+  for(QMdiSubWindow *subWin : subwindows) {
+    subWin->showNormal();
   }
 }
 
