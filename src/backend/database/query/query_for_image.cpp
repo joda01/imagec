@@ -11,12 +11,12 @@
 ///
 ///
 
+#include "query_for_image.hpp"
 #include <exception>
 #include <string>
 #include "backend/database/database.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/helper/logger/console_logger.hpp"
-#include "query_for_image.hpp"
 
 namespace joda::db {
 
