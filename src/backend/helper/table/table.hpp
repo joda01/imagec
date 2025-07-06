@@ -17,8 +17,11 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <variant>
 #include <vector>
 #include "backend/enums/bigtypes.hpp"
+#include "backend/enums/enum_measurements.hpp"
+#include "backend/helper/base32.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/settings/results_settings/results_settings.hpp"
 
@@ -92,6 +95,23 @@ public:
 
   [[nodiscard]] double getVal() const
   {
+    return value;
+  }
+
+  [[nodiscard]] std::variant<std::string, double> getValAsVariant(enums::Measurement meas) const
+  {
+    if(meas == enums::Measurement::OBJECT_ID) {
+      return helper::toBase32(getObjectId());
+    }
+    if(meas == enums::Measurement::PARENT_OBJECT_ID) {
+      return helper::toBase32(getParentId());
+    }
+    if(meas == enums::Measurement::TRACKING_ID) {
+      return helper::toBase32(getTrackingId());
+    }
+    if(meas == enums::Measurement::DISTANCE_TO_OBJECT_ID) {
+      return helper::toBase32(getDistanceToObjectId());
+    }
     return value;
   }
 

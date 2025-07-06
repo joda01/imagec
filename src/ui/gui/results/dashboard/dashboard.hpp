@@ -57,11 +57,13 @@ private:
   /////////////////////////////////////////////////////
   void copyTableToClipboard(QTableWidget *table) const;
   void clearLayout();
+  void paintEvent(QPaintEvent *event) override;
 
   /////////////////////////////////////////////////////
   PanelResults *mPanelResults;
   WindowMain *mMainWindow;
   std::map<joda::db::data::Dashboard::TabWindowKey, DashboardElement *> mMidiWindows;
+  bool mFirstOpen = true;
 };
 
 }    // namespace joda::ui::gui

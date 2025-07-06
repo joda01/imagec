@@ -51,6 +51,11 @@ private:
   /////////////////////////////////////////////////////
   void setHeader(const QString &);
 
+  void closeEvent(QCloseEvent *event)
+  {
+    event->ignore();    // Prevent closing
+  }
+
   /////////////////////////////////////////////////////
   std::string mTitle;
   QLabel *mHeaderLabel;

@@ -41,7 +41,7 @@ std::string ResultsSettings::ColumnKey::createHeader() const
     return "Nr. of " + names.intersectingName + " in " + names.className + createStatsHeader(stats) + stacks;
   }
   if(getType(measureChannel) == MeasureType::ID) {
-    return names.className + "-" + toString(measureChannel) + "\n" + stacks;
+    return names.className + "-" + toString(measureChannel) + " " + stacks;
   }
   if(getType(measureChannel) == MeasureType::DISTANCE) {
     return names.className + " to " + names.intersectingName + "-" + toString(measureChannel) + createStatsHeader(stats) + stacks;

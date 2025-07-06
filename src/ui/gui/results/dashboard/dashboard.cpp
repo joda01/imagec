@@ -92,6 +92,16 @@ void Dashboard::tableToQWidgetTable(const std::shared_ptr<joda::table::Table> ta
       window->hide();
     }
   }
+
+  if(mFirstOpen) {
+    mFirstOpen = false;
+    cascadeSubWindows();
+    // QList<QMdiSubWindow *> subwindows = subWindowList();
+    // for(QMdiSubWindow *subWin : subwindows) {
+    //   // subWin->showMinimized();
+    //   subWin->adjustSize();
+    // }
+  }
 }
 
 ///
@@ -152,6 +162,46 @@ auto Dashboard::getExportables() const -> std::vector<const exporter::Exportable
 void Dashboard::reset()
 {
   mMidiWindows.clear();
+  mFirstOpen = true;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Dashboard::paintEvent(QPaintEvent *event)
+{
+  QMdiArea::paintEvent(event);
+
+  // Check if all subwindows are minimized
+  bool allMinimized   = true;
+  const auto &windows = subWindowList();
+  if(windows.isEmpty()) {
+    return;
+  }
+
+  for(QMdiSubWindow *sub : windows) {
+    if(!(sub->windowState() & Qt::WindowMinimized)) {
+      allMinimized = false;
+      break;
+    }
+  }
+
+  if(allMinimized) {
+    QPainter painter(this);
+    QString message = "Open a result window by clicking on the tab bar of a window.";
+    QFont font      = painter.font();
+    font.setPointSize(14);
+    font.setBold(true);
+    painter.setFont(font);
+    painter.setPen(Qt::gray);
+
+    QRect rect = this->viewport()->rect();    // Use viewport to avoid scrollbars
+    painter.drawText(rect, Qt::AlignCenter, message);
+  }
 }
 
 }    // namespace joda::ui::gui

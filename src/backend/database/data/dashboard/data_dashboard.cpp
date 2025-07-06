@@ -82,7 +82,7 @@ auto Dashboard::convert(const std::shared_ptr<joda::table::Table> tableIn, const
         }
         auto &work = colocalizing[mapIdIdx];
         work.cols.emplace_back(&col);
-        work.colName = col.colSettings.names.className;
+        work.colName = "Colocalization: " + col.colSettings.names.className;
       }
     }
   }
@@ -95,7 +95,7 @@ auto Dashboard::convert(const std::shared_ptr<joda::table::Table> tableIn, const
     if(isDistance(col.colSettings.measureChannel) && isImageView) {
       uint32_t key = (static_cast<uint16_t>(col.colSettings.classId) << 16) | static_cast<uint16_t>(col.colSettings.intersectingChannel);
       auto &ed     = distance[key];
-      ed.colName   = "Distance " + col.colSettings.names.className + " to " + col.colSettings.names.intersectingName;
+      ed.colName   = "Distance: " + col.colSettings.names.className + " to " + col.colSettings.names.intersectingName;
       ed.cols.emplace_back(&col);
     } else if(intersecting.contains(static_cast<uint32_t>(col.colSettings.classId))) {
       auto &ed   = intersecting[static_cast<uint32_t>(col.colSettings.classId)];

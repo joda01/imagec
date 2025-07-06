@@ -26,14 +26,10 @@ namespace joda::ui::gui {
 
 DashboardElement::DashboardElement(QWidget *widget) : QMdiSubWindow(widget)
 {
-  // setAttribute(Qt::WA_DeleteOnClose);
-  setWindowFlags(Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowFullscreenButtonHint | Qt::WindowMinimizeButtonHint |
-                 Qt::WindowMaximizeButtonHint);    // No close button
-
   auto *centralWidget = new QWidget(this);
   auto *layout        = new QVBoxLayout(centralWidget);
   layout->setContentsMargins(0, 4, 0, 0);
-
+  setMinimumWidth(500);
   // Header
   {
     mHeaderLabel = new QLabel();
@@ -141,7 +137,13 @@ void DashboardElement::copyTableToClipboard() const
       }
       const auto tmp = mTable->data(row, col);
       if(tmp != nullptr) {
-        auto txtTemp = QString::number(tmp->getVal());
+        auto val = tmp->getValAsVariant(mTable->getColHeader(col).measureChannel);
+        QString txtTemp;
+        if(std::holds_alternative<std::string>(val)) {
+          txtTemp = std::get<std::string>(val).data();
+        } else {
+          txtTemp = QString::number(std::get<double>(val));
+        }
         rowData << txtTemp;
       } else {
         rowData << "";
