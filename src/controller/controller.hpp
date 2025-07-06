@@ -15,6 +15,7 @@
 #include <filesystem>
 #include <memory>
 #include <vector>
+#include "backend/database/exporter/xlsx/exporter_xlsx.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/file_parser/directory_iterator.hpp"
@@ -62,40 +63,6 @@ struct Preview
   std::string imageFileName;
 };
 
-struct ExportSettings
-{
-  struct ExportFilter
-  {
-    int32_t plateId = 0;
-    int32_t groupId = 0;
-    int32_t tStack  = 0;
-    std::string imageFileName;
-  };
-
-  enum class ExportType
-  {
-    XLSX,
-    R
-  };
-
-  enum class ExportFormat
-  {
-    LIST,
-    HEATMAP
-  };
-
-  enum class ExportView
-  {
-    PLATE,
-    WELL,
-    IMAGE
-  };
-  ExportFormat format;
-  ExportType type;
-  ExportView view;
-  ExportFilter filter;
-};
-
 ///
 /// \class      Controller
 /// \author     Joachim Danmayr
@@ -141,7 +108,7 @@ public:
 
   // EXPORT ///////////////////////////////////////
 
-  void exportData(const std::filesystem::path &pathToDbFile, settings::ResultsSettings &filter, const ExportSettings &settings,
+  void exportData(const std::filesystem::path &pathToDbFile, settings::ResultsSettings &filter, const joda::exporter::xlsx::ExportSettings &settings,
                   const std::filesystem::path &outputFilePath);
 
 private:

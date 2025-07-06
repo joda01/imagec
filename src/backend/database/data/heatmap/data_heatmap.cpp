@@ -39,8 +39,8 @@ std::string numberToExcelColumn(int number)
 /// \param[out]
 /// \return
 ///
-auto convertToHeatmap(const std::shared_ptr<joda::table::Table> table, int32_t rows, int32_t cols, int32_t colToDisplay,
-                      const PlotPlateSettings &settings) -> joda::table::Table
+auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t cols, int32_t colToDisplay, const PlotPlateSettings &settings)
+    -> joda::table::Table
 {
   if(rows == 0) {
     return {};
@@ -114,7 +114,7 @@ auto convertToHeatmap(const std::shared_ptr<joda::table::Table> table, int32_t r
       int32_t tblRow = mapEntry.second.tblRow;
       if(posX >= 0) {
         if(posY >= 0) {
-          data.setData(posX, posY, {val, {.isValid = true}, {}});
+          data.setData(posY, posX, {val, {.isValid = true}, {}});
 
           if(val < mMin) {
             mMin = val;

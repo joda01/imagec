@@ -93,7 +93,7 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
       }
 
       // Plot labels
-      if(mPlotLabels) {
+      if(mPlotLabels && mRectWidth > 50) {
         cv::Rect rect(x1, y1, mRectWidth, mRectHeight);
         std::ostringstream oss;
         oss << std::fixed << std::setprecision(mPrecision) << val;

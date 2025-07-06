@@ -65,8 +65,12 @@ void QtBackend::paintEvent(QPaintEvent *event)
   QWidget::paintEvent(event);
   std::lock_guard<std::mutex> lock(mPaintMutex);
   // auto sizeToDraw = std::min(width(), height());
-
-  auto graph = mHeatmap->plot({width(), height()});
+  auto withTmp   = width();
+  auto heightTmp = height();
+  if(heightTmp <= 0 || withTmp <= 0) {
+    return;
+  }
+  auto graph = mHeatmap->plot({withTmp, heightTmp});
   QPainter painter(this);
   auto pixmap = QPixmap::fromImage(QImage(graph.data, graph.cols, graph.rows, static_cast<uint32_t>(graph.step), QImage::Format_RGB888).rgbSwapped());
   int x       = (width() - pixmap.width()) / 2;

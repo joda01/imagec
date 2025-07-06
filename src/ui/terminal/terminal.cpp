@@ -142,21 +142,21 @@ void Terminal::exportData(const std::filesystem::path &pathToDatabasefile, const
     std::exit(1);
   }
 
-  ctrl::ExportSettings::ExportType typeEnum;
+  exporter::xlsx::ExportSettings::ExportSettings::ExportType typeEnum;
   if(type == "xlsx") {
-    typeEnum = ctrl::ExportSettings::ExportType::XLSX;
+    typeEnum = exporter::xlsx::ExportSettings::ExportSettings::ExportType::XLSX;
   } else if(type == "r") {
-    typeEnum = ctrl::ExportSettings::ExportType::R;
+    typeEnum = exporter::xlsx::ExportSettings::ExportType::R;
   } else {
     joda::log::logError("Invalid export type!");
     std::exit(1);
   }
 
-  ctrl::ExportSettings::ExportFormat formatEnum;
+  exporter::xlsx::ExportSettings::ExportFormat formatEnum;
   if(format == "list") {
-    formatEnum = ctrl::ExportSettings::ExportFormat::LIST;
+    formatEnum = exporter::xlsx::ExportSettings::ExportFormat::LIST;
   } else if(format == "heatmap") {
-    formatEnum = ctrl::ExportSettings::ExportFormat::HEATMAP;
+    formatEnum = exporter::xlsx::ExportSettings::ExportFormat::HEATMAP;
   } else {
     joda::log::logError("Invalid export format!");
     std::exit(1);
@@ -164,21 +164,21 @@ void Terminal::exportData(const std::filesystem::path &pathToDatabasefile, const
 
   auto filterElements = joda::helper::split(exportFilter, {' '});
 
-  ctrl::ExportSettings::ExportView viewEnum;
+  exporter::xlsx::ExportSettings::ExportView viewEnum;
   if(view == "plate") {
-    viewEnum = ctrl::ExportSettings::ExportView::PLATE;
+    viewEnum = exporter::xlsx::ExportSettings::ExportView::PLATE;
     if(filterElements.size() < 1) {
       joda::log::logError("Export filter in form [plate-id] must be given!");
       std::exit(1);
     }
   } else if(view == "well") {
-    viewEnum = ctrl::ExportSettings::ExportView::WELL;
+    viewEnum = exporter::xlsx::ExportSettings::ExportView::WELL;
     if(filterElements.size() < 2) {
       joda::log::logError("Export filter in form [plate-id group-id] must be given!");
       std::exit(1);
     }
   } else if(view == "image") {
-    viewEnum = ctrl::ExportSettings::ExportView::IMAGE;
+    viewEnum = exporter::xlsx::ExportSettings::ExportView::IMAGE;
     if(filterElements.size() < 3) {
       joda::log::logError("Export filter in form [t-stack, plate-id group-id image-file-name] must be given!");
       std::exit(1);
@@ -208,7 +208,8 @@ void Terminal::exportData(const std::filesystem::path &pathToDatabasefile, const
 
   try {
     mController->exportData(pathToDatabasefile, filter,
-                            joda::ctrl::ExportSettings{formatEnum, typeEnum, viewEnum, {plateId, groupId, tStack, imageFileName}}, outputPath);
+                            joda::exporter::xlsx::ExportSettings{formatEnum, typeEnum, viewEnum, {plateId, groupId, tStack, imageFileName}},
+                            outputPath);
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     std::exit(1);

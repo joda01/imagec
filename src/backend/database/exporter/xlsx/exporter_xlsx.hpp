@@ -12,10 +12,45 @@
 #pragma once
 
 #include <vector>
+#include "../../data/heatmap/data_heatmap.hpp"
 #include "../exportable.hpp"
 #include "backend/settings/analze_settings.hpp"
 
 namespace joda::exporter::xlsx {
+
+struct ExportSettings
+{
+  struct ExportFilter
+  {
+    int32_t plateId = 0;
+    int32_t groupId = 0;
+    int32_t tStack  = 0;
+    std::string imageFileName;
+  };
+
+  enum class ExportType
+  {
+    XLSX,
+    R
+  };
+
+  enum class ExportFormat
+  {
+    LIST,
+    HEATMAP
+  };
+
+  enum class ExportView
+  {
+    PLATE,
+    WELL,
+    IMAGE
+  };
+  ExportFormat format;
+  ExportType type;
+  ExportView view;
+  ExportFilter filter;
+};
 
 ///
 /// \class
@@ -29,6 +64,12 @@ public:
   static void startExport(const std::vector<const Exportable *> &data, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
                           std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
                           const std::string &outputFileName);
+
+  static void startHeatmapExport(const std::vector<const Exportable *> &data, const settings::AnalyzeSettings &analyzeSettings,
+                                 const std::string &jobName, std::chrono::system_clock::time_point timeStarted,
+                                 std::chrono::system_clock::time_point timeFinished, const std::string &outputFileName,
+                                 const settings::ResultsSettings &filterSettings, ExportSettings::ExportView view, int32_t imageHeight,
+                                 int32_t imageWidth);
 
 private:
   /////////////////////////////////////////////////////

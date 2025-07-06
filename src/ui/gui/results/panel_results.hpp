@@ -115,8 +115,6 @@ private:
 
   /////////////////////////////////////////////////////
   void valueChangedEvent() override;
-  void tableToHeatmap(const std::shared_ptr<joda::table::Table> table);
-  void paintEmptyHeatmap();
   void goHome();
   void refreshView();
   void refreshBreadCrump();
@@ -126,7 +124,7 @@ private:
   /////////////////////////////////////////////////////
   void storeResultsTableSettingsToDatabase();
   void showFileSaveDialog(const QString &filter = "Excel 2007-365 (*.xlsx);;Text CSV (*.csv);;R-Script (*.r)");
-  void saveData(const std::string &fileName, joda::ctrl::ExportSettings::ExportType);
+  void saveData(const std::string &fileName, joda::exporter::xlsx::ExportSettings::ExportType);
   void showOpenFileDialog();
   void backTo(Navigation backTo);
 

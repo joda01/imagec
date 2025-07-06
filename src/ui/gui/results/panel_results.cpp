@@ -202,6 +202,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
     mOpenNextLevel->setStatusTip("Open selected wells/images");
     topBreadCrumpLayout->addWidget(mOpenNextLevel);
     connect(mOpenNextLevel, &QPushButton::clicked, [this]() {
+#warning "Must be implemented"
       // std::vector<table::TableCell> selected;
       // for(const QModelIndex &index : selectedIndexes) {
       //   selected.emplace_back(mActListData.data(index.row(), 0));
@@ -676,12 +677,12 @@ void PanelResults::loadPreview()
                  std::to_string(objectInfo.stackC);
       joda::log::logTrace("Preview for image >" + imagePath.string() + "< " + log);
 
-      joda::ctrl::Controller::loadImage(imagePath, series,
-                                        joda::image::reader::ImageReader::Plane{.z = static_cast<int32_t>(objectInfo.stackZ),
-                                                                                .c = static_cast<int32_t>(objectInfo.stackC),
-                                                                                .t = static_cast<int32_t>(objectInfo.stackT)},
-                                        joda::ome::TileToLoad{tileXNr, tileYNr, tileWidth, tileHeight}, previewResult, mImgProps, objectInfo,
-                                        mDockWidgetImagePreview->getSelectedZProjection());
+      ctrl::Controller::loadImage(imagePath, series,
+                                  joda::image::reader::ImageReader::Plane{.z = static_cast<int32_t>(objectInfo.stackZ),
+                                                                          .c = static_cast<int32_t>(objectInfo.stackC),
+                                                                          .t = static_cast<int32_t>(objectInfo.stackT)},
+                                  joda::ome::TileToLoad{tileXNr, tileYNr, tileWidth, tileHeight}, previewResult, mImgProps, objectInfo,
+                                  mDockWidgetImagePreview->getSelectedZProjection());
       auto imgWidth    = mImgProps.getImageInfo(series).resolutions.at(0).imageWidth;
       auto imageHeight = mImgProps.getImageInfo(series).resolutions.at(0).imageHeight;
       if(imgWidth > tileWidth || imageHeight > tileHeight) {
@@ -805,11 +806,14 @@ void PanelResults::refreshView()
 ///
 void PanelResults::onFinishedLoading()
 {
-  auto i = DurationCount::start("tbl");
+  // ===============================================
+  // Data
+  // ===============================================
   mDashboard->tableToQWidgetTable(mActListData, mTmpColocClasses, mNavigation == Navigation::IMAGE);
-  DurationCount::stop(i);
 
-  tableToHeatmap(mActListData);
+  // ===============================================
+  // Heatmap
+  // ===============================================
   int32_t cols           = mFilter.getPlateSetup().cols;
   int32_t rows           = mFilter.getPlateSetup().rows;
   int32_t densityMapSize = -1;
@@ -834,10 +838,14 @@ void PanelResults::onFinishedLoading()
       break;
   }
 
-  auto data = joda::db::data::convertToHeatmap(mActListData, rows, cols, mDockWidgetGraphSettings->getSelectedColumn(),
+  mDockWidgetGraphSettings->setColumns(mActFilter.getColumns());
+  auto data = joda::db::data::convertToHeatmap(mActListData.get(), rows, cols, mDockWidgetGraphSettings->getSelectedColumn(),
                                                joda::db::data::PlotPlateSettings{.densityMapSize = densityMapSize});
   mGraphContainer->updateGraph(std::move(data));
 
+  // ===============================================
+  // Refresh
+  // ===============================================
   refreshBreadCrump();
   update();
   QApplication::restoreOverrideCursor();
@@ -1137,41 +1145,6 @@ void PanelResults::onShowHeatmap()
 }
 
 ///
-/// \brief      Constructor
-/// \author     Joachim Danmayr
-///
-
-//  // mActHeatmapData.at(mDockWidgetImagePreview->getActualTimeStackPosition()).at(mColumn->currentData().toInt())
-void PanelResults::tableToHeatmap(const std::shared_ptr<joda::table::Table> table)
-{
-  if(mAnalyzer) {
-    mDockWidgetGraphSettings->setColumns(mActFilter.getColumns());
-  }
-}
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::paintEmptyHeatmap()
-{
-  joda::table::Table table;
-  const auto &wellOrder = mFilter.getPlateSetup().wellImageOrder;
-  uint16_t rows         = mFilter.getPlateSetup().rows;
-  uint16_t cols         = mFilter.getPlateSetup().cols;
-  for(int row = 0; row < rows; row++) {
-    for(int col = 0; col < cols; col++) {
-#warning "What shall we do"
-      // table.getMutableColHeader()[col] = "";
-      table::TableCell data;
-      table.setData(row, col, data);
-    }
-  }
-}
-
-///
 /// \brief
 /// \author
 /// \param[in]
@@ -1280,9 +1253,9 @@ void PanelResults::showFileSaveDialog(const QString &filter)
 
   // Select save option
   if(filename.ends_with(".xlsx")) {
-    saveData(filename, joda::ctrl::ExportSettings::ExportType::XLSX);
+    saveData(filename, joda::exporter::xlsx::ExportSettings::ExportType::XLSX);
   } else if(filename.ends_with(".r")) {
-    saveData(filename, joda::ctrl::ExportSettings::ExportType::R);
+    saveData(filename, joda::exporter::xlsx::ExportSettings::ExportType::R);
   } else if(filename.ends_with(".svg")) {
     // mHeatmapChart->exportToSVG(filename.data());
   } else if(filename.ends_with(".png")) {
@@ -1297,7 +1270,7 @@ void PanelResults::showFileSaveDialog(const QString &filter)
 /// \param[out]
 /// \return
 ///
-void PanelResults::saveData(const std::string &fileName, joda::ctrl::ExportSettings::ExportType format)
+void PanelResults::saveData(const std::string &fileName, joda::exporter::xlsx::ExportSettings::ExportType format)
 {
   if(fileName.empty()) {
     return;
@@ -1311,12 +1284,29 @@ void PanelResults::saveData(const std::string &fileName, joda::ctrl::ExportSetti
       joda::log::logWarning("Could not parse settings from database. Reason: " + std::string(ex.what()));
     }
 
-    if(format == joda::ctrl::ExportSettings::ExportType::XLSX) {
+    if(format == joda::exporter::xlsx::ExportSettings::ExportType::XLSX) {
       if(mGraphContainer->isVisible()) {
         // Export heatmap
-        /*joda::exporter::xlsx::Exporter::startExport(mActHeatmapData, settings, mSelectedDataSet.analyzeMeta->jobName,
-                                                    mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
-                                                    fileName);*/
+        int32_t imgWidth                                      = 0;
+        int32_t imgHeight                                     = 0;
+        joda::exporter::xlsx::ExportSettings::ExportView view = joda::exporter::xlsx::ExportSettings::ExportView::PLATE;
+        switch(mNavigation) {
+          case Navigation::PLATE:
+            break;
+          case Navigation::WELL:
+            view = joda::exporter::xlsx::ExportSettings::ExportView::WELL;
+            break;
+          case Navigation::IMAGE:
+            view      = joda::exporter::xlsx::ExportSettings::ExportView::IMAGE;
+            imgHeight = mSelectedDataSet.imageMeta->height;
+            imgWidth  = mSelectedDataSet.imageMeta->width;
+            break;
+        }
+
+        joda::exporter::xlsx::Exporter::startHeatmapExport(
+            mDashboard->getExportables(), settings, mSelectedDataSet.analyzeMeta->jobName, mSelectedDataSet.analyzeMeta->timestampStart,
+            mSelectedDataSet.analyzeMeta->timestampFinish, fileName, mActFilter, view, imgHeight, imgWidth);
+
       } else {
         joda::exporter::xlsx::Exporter::startExport(mDashboard->getExportables(), settings, mSelectedDataSet.analyzeMeta->jobName,
                                                     mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
