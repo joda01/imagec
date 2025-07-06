@@ -24,6 +24,7 @@ class TableCell;
 }
 
 namespace joda::ui::gui {
+class TableModel;
 
 ///
 /// \class
@@ -37,12 +38,10 @@ class DashboardElement : public QMdiSubWindow, public exporter::Exportable
 public:
   /////////////////////////////////////////////////////
   DashboardElement(QWidget *widget);
-  void setData(const QString &description, const std::vector<const table::TableColumn *> &cols, bool isImageView, bool isColoc,
-               const table::TableColumn *intersectingColl = nullptr);
+  void setData(const std::shared_ptr<joda::table::Table> table);
   void copyTableToClipboard() const;
-  void resetData();
   const std::string &getTitle() const override;
-  auto getTable() const -> const QTableWidget & override;
+  auto getTable() const -> const joda::table::Table & override;
 
 signals:
   void cellSelected(joda::table::TableCell);
@@ -55,12 +54,9 @@ private:
   /////////////////////////////////////////////////////
   std::string mTitle;
   QLabel *mHeaderLabel;
-  PlaceholderTableWidget *mTable;
-  std::map<uint32_t, std::map<uint32_t, const joda::table::TableCell *>> mTableCells;
-
-public slots:
-  /////////////////////////////////////////////////////
-  void onCellClicked(int row, int column);
+  QTableView *mTableView;
+  TableModel *mTableModel;
+  std::shared_ptr<joda::table::Table> mTable;
 };
 
 }    // namespace joda::ui::gui

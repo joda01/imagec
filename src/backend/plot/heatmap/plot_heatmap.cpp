@@ -55,7 +55,12 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
   // =========================================
   for(int32_t col = 0; col < nrCols; col++) {
     for(int32_t row = 0; row < nrRows; row++) {
-      auto val     = mData.data(row, col).getVal();
+      const auto &tmpData = mData.data(row, col);
+      double val          = std::numeric_limits<double>::quiet_NaN();
+      if(tmpData != nullptr) {
+        val = mData.data(row, col)->getVal();
+      }
+
       auto x1      = static_cast<int32_t>(static_cast<double>(col) * mRectWidth);
       auto y1      = static_cast<int32_t>(static_cast<double>(row) * mRectHeight);
       auto x2      = static_cast<int32_t>(static_cast<double>(col) * mRectWidth + mRectWidth);
@@ -197,7 +202,7 @@ auto Heatmap::getCellFromCoordinates(double x, double y) const -> std::optional<
   auto row        = static_cast<int32_t>(y / mRectHeight);
   auto col        = static_cast<int32_t>(x / mRectWidth);
   if(row >= 0 && row < nrRows && col >= 0 && col < nrCols) {
-    return std::tuple<Cell, joda::table::TableCell>{Cell{col, row}, mData.data(row, col)};
+    return std::tuple<Cell, joda::table::TableCell>{Cell{col, row}, *mData.data(row, col)};
   }
 
   return std::nullopt;

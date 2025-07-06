@@ -14,7 +14,7 @@
 #include <string>
 
 namespace joda::helper {
-std::string toBase32(uint64_t number)
+inline std::string toBase32(uint64_t number)
 {
   const std::string alphabet = "ABCDEFGHJKMNPQRSTUVWXYZ123456789";
   std::string result;

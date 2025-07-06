@@ -14,13 +14,14 @@
 #include <qtablewidget.h>
 #include <xlsxwriter/workbook.h>
 #include <string>
+#include "backend/helper/table/table.hpp"
 
 namespace joda::exporter {
 
 class Exportable
 {
 public:
-  [[nodiscard]] virtual const std::string &getTitle() const           = 0;
-  [[nodiscard]] virtual auto getTable() const -> const QTableWidget & = 0;
+  [[nodiscard]] virtual const std::string &getTitle() const                 = 0;
+  [[nodiscard]] virtual auto getTable() const -> const joda::table::Table & = 0;
 };
 }    // namespace joda::exporter

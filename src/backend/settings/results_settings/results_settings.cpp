@@ -10,6 +10,7 @@
 ///
 
 #include "results_settings.hpp"
+#include "backend/enums/enum_measurements.hpp"
 
 namespace joda::settings {
 
@@ -82,14 +83,19 @@ std::string ResultsSettings::ColumnKey::createHtmlHeader(HeaderStyle style) cons
   if(getType(measureChannel) == MeasureType::INTERSECTION) {
     if(style == HeaderStyle::FULL) {
       return "<b>" + names.intersectingName + "</b><br>in<br><b>" + names.className + "</b><br>" + createStatsHeader(stats) + "<br>" + stacks;
-    } else if(style == HeaderStyle::ONLY_STATS_IN_INTERSECTING) {
-      return "Parent object ID ⬆<br><b>" + names.className + "</b><br>" + stacks;
-    } else if(style == HeaderStyle::ONLY_STATS_CONTAINS_INTERSECTING) {
+    } else {
       return "Number of intersecting<br><b>" + names.intersectingName + "</b> " + createStatsHeader(stats) + "<br>" + stacks;
     }
   }
+  if(measureChannel == enums::Measurement::PARENT_OBJECT_ID) {
+    return "Parent object ID ⬆<br><b>" + names.className + "</b><br>" + stacks;
+  }
+  if(measureChannel == enums::Measurement::OBJECT_ID) {
+    return className + "Object ID 🗝<br>" + stacks;
+  }
+
   if(getType(measureChannel) == MeasureType::ID) {
-    return className + toString(measureChannel) + "\n" + stacks;
+    return className + toString(measureChannel) + "<br>" + stacks;
   }
   if(getType(measureChannel) == MeasureType::DISTANCE) {
     return className + toString(measureChannel) + " to <br><b>" + names.intersectingName + "</b>" + createStatsHeader(stats) + "<br>" + stacks;

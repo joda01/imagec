@@ -15,6 +15,7 @@
 #include <cmath>
 #include <filesystem>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 #include "backend/enums/bigtypes.hpp"
@@ -49,9 +50,40 @@ public:
     uint32_t posY     = 0;
   };
 
+  struct Formating
+  {
+    enum class Color
+    {
+      BASE_0,
+      ALTERNATE_0,
+      BASE_1,
+      ALTERNATE_1
+    };
+    Color bgColor         = Color::BASE_0;
+    bool isObjectId       = false;
+    bool isParentObjectId = false;
+    bool isTrackingId     = false;
+  };
+
   /////////////////////////////////////////////////////
   TableCell()
   {
+  }
+
+  TableCell(const TableCell &other)
+  {
+    value       = other.value;
+    mMetaData   = other.mMetaData;
+    mGrouping   = other.mGrouping;
+    mFormatting = other.mFormatting;
+  }
+
+  TableCell(const std::shared_ptr<TableCell> &other)
+  {
+    value       = other->value;
+    mMetaData   = other->mMetaData;
+    mGrouping   = other->mGrouping;
+    mFormatting = other->mFormatting;
   }
 
   TableCell(double val, const MetaData &meta, const Grouping &grouping) : value(val), mMetaData(meta), mGrouping(grouping)
@@ -128,14 +160,40 @@ public:
     return mMetaData.rowName;
   }
 
+  void setBackgroundColor(Formating::Color color)
+  {
+    mFormatting.bgColor = color;
+  }
+
+  void setIsObjectIdCell(bool enable)
+  {
+    mFormatting.isObjectId = enable;
+  }
+
+  void setIsParentObjectIdCell(bool enable)
+  {
+    mFormatting.isParentObjectId = enable;
+  }
+
+  void setIsTrackinIdCell(bool enable)
+  {
+    mFormatting.isTrackingId = enable;
+  }
+
+  auto getFormatting() const -> const Formating &
+  {
+    return mFormatting;
+  }
+
 private:
   /////////////////////////////////////////////////////
   double value = std::numeric_limits<double>::quiet_NaN();
   MetaData mMetaData;
   Grouping mGrouping;
+  Formating mFormatting;
 };
 
-using colRows_t = std::map<uint32_t, TableCell>;    // This is a column with its rows
+using colRows_t = std::map<uint32_t, std::shared_ptr<TableCell>>;    // This is a column with its rows
 
 struct TableColumn
 {
@@ -156,6 +214,7 @@ class Table
 public:
   /////////////////////////////////////////////////////
   void setColHeader(const std::map<uint32_t, settings::ResultsSettings::ColumnKey> &);
+  void setColHeader(uint32_t colIdx, const settings::ResultsSettings::ColumnKey &data);
 
   Table();
   void setTitle(const std::string &title);
@@ -166,16 +225,24 @@ public:
     return mDataColOrganized;
   }
 
-  [[nodiscard]] TableCell data(uint32_t row, uint32_t col) const;
+  [[nodiscard]] std::shared_ptr<TableCell> data(uint32_t row, uint32_t col) const;
 
-  void setData(uint32_t row, uint32_t col, const TableCell &data)
+  void setData(uint32_t row, uint32_t col, const std::shared_ptr<TableCell> &data)
   {
     mDataColOrganized[col].rows[row] = data;
   }
 
+  void setData(uint32_t row, uint32_t col, const TableCell &data)
+  {
+    mDataColOrganized[col].rows[row] = std::make_shared<TableCell>(data);
+  }
+
   void setDataId(uint32_t row, uint32_t col, uint64_t id)
   {
-    mDataColOrganized[col].rows[row].setId(id);
+    if(mDataColOrganized[col].rows[row] == nullptr) {
+      mDataColOrganized[col].rows[row] = std::make_shared<TableCell>();
+    }
+    mDataColOrganized[col].rows[row]->setId(id);
   }
   [[nodiscard]] uint32_t getNrOfRows() const
   {
@@ -202,14 +269,28 @@ public:
     return std::prev(mDataColOrganized.end())->first + 1;
   }
 
-  const std::string &getColHeader(int32_t col) const
+  const settings::ResultsSettings::ColumnKey &getColHeader(int32_t col) const
   {
-    return mDataColOrganized.at(col).title;
+    if(!mDataColOrganized.contains(col)) {
+      static settings::ResultsSettings::ColumnKey ret;
+      return ret;
+    }
+    return mDataColOrganized.at(col).colSettings;
   }
 
   const std::string &getRowHeader(int32_t row) const
   {
-    return mDataColOrganized.begin()->second.rows.at(row).getRowName();
+    static std::string ret;
+    if(mDataColOrganized.empty()) {
+      return ret;
+    }
+    if(!mDataColOrganized.begin()->second.rows.contains(row)) {
+      return ret;
+    }
+    if(mDataColOrganized.begin()->second.rows.at(row) == nullptr) {
+      return ret;
+    }
+    return mDataColOrganized.begin()->second.rows.at(row)->getRowName();
   }
 
   const std::string &getTitle() const

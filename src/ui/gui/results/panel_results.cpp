@@ -46,13 +46,14 @@
 #include <thread>
 #include <utility>
 #include "backend/commands/classification/ai_classifier/ai_classifier_settings.hpp"
+#include "backend/database/data/heatmap/data_heatmap.hpp"
 #include "backend/database/database.hpp"
 #include "backend/database/database_interface.hpp"
 #include "backend/database/exporter/r/exporter_r.hpp"
 #include "backend/database/exporter/xlsx/exporter_xlsx.hpp"
-#include "backend/database/plugins/filter.hpp"
-#include "backend/database/plugins/stats_for_image.hpp"
-#include "backend/database/plugins/stats_for_well.hpp"
+#include "backend/database/query/filter.hpp"
+#include "backend/database/query/query_for_image.hpp"
+#include "backend/database/query/query_for_well.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_file_endians.hpp"
@@ -61,6 +62,7 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/results_settings/results_settings.hpp"
+#include "graphs/graph_qt_backend.hpp"
 #include "ui/gui/container/container_button.hpp"
 #include "ui/gui/container/container_label.hpp"
 #include "ui/gui/container/panel_edit_base.hpp"
@@ -72,8 +74,6 @@
 #include "ui/gui/helper/table_widget.hpp"
 #include "ui/gui/helper/widget_generator.hpp"
 #include "ui/gui/results/dashboard/dashboard.hpp"
-#include "ui/gui/results/graphs/graph_qt_backend.hpp"
-#include "ui/gui/results/graphs/plot_plate.hpp"
 #include "ui/gui/results/panel_classification_list.hpp"
 #include "ui/gui/results/panel_graph_settings.hpp"
 #include "ui/gui/window_main/window_main.hpp"
@@ -737,11 +737,12 @@ void PanelResults::refreshView()
       REFRESH_VIEW:
         switch(mNavigation) {
           case Navigation::PLATE: {
-            mActListData = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE, &mActFilter);
-            if(mActListData.getNrOfRows() == 1) {
+            mActListData = std::make_shared<db::QueryResult>(
+                joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_PLATE, &mActFilter));
+            if(mActListData->getNrOfRows() == 1) {
               // If there are no groups, switch directly to well view
               mNavigation                = Navigation::WELL;
-              auto getID                 = mActListData.data(0, 0).getId();
+              auto getID                 = mActListData->data(0, 0)->getId();
               mActGroupId                = getID;
               mSelectedWellId            = getID;
               mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(getID);
@@ -756,10 +757,11 @@ void PanelResults::refreshView()
 
           } break;
           case Navigation::WELL: {
-            mActListData = joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL, &mActFilter);
+            mActListData = std::make_shared<db::QueryResult>(
+                joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL, &mActFilter));
           } break;
           case Navigation::IMAGE: {
-            mActListData = joda::db::StatsPerImage::toTable(mAnalyzer.get(), mFilter, &mActFilter);
+            mActListData = std::make_shared<db::QueryResult>(joda::db::StatsPerImage::toTable(mAnalyzer.get(), mFilter, &mActFilter));
           } break;
         }
         mIsLoading = false;
@@ -810,8 +812,8 @@ void PanelResults::onFinishedLoading()
       break;
   }
 
-  auto data = preparePlateSurface(mActListData, rows, cols, mDockWidgetGraphSettings->getSelectedColumn(),
-                                  PlotPlateSettings{.densityMapSize = densityMapSize});
+  auto data = joda::db::data::convertToHeatmap(mActListData, rows, cols, mDockWidgetGraphSettings->getSelectedColumn(),
+                                               joda::db::data::PlotPlateSettings{.densityMapSize = densityMapSize});
   mGraphContainer->updateGraph(std::move(data));
 
   refreshBreadCrump();
@@ -1118,7 +1120,7 @@ void PanelResults::onShowHeatmap()
 ///
 
 //  // mActHeatmapData.at(mDockWidgetImagePreview->getActualTimeStackPosition()).at(mColumn->currentData().toInt())
-void PanelResults::tableToHeatmap(const db::QueryResult &table)
+void PanelResults::tableToHeatmap(const std::shared_ptr<joda::table::Table> table)
 {
   if(mAnalyzer) {
     mDockWidgetGraphSettings->setColumns(mActFilter.getColumns());

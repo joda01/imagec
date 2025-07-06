@@ -40,7 +40,6 @@ class ImageC(ConanFile):
         self.requires("duckdb/1.1.3")
         self.requires("cpp-httplib/0.19.0", force=True)
         self.requires("openssl/3.4.1")
-        self.requires("qcustomplot/2.1.1")
         self.requires("onnx/1.17.0", force=True)
         self.requires("rapidyaml/0.7.1")
         if self.options.get_safe("with_onnx"):

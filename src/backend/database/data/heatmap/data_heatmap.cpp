@@ -1,9 +1,9 @@
 
 
-#include "plot_plate.hpp"
+#include "data_heatmap.hpp"
 #include <string>
 
-namespace joda::ui::gui {
+namespace joda::db::data {
 
 struct Pos
 {
@@ -39,8 +39,8 @@ std::string numberToExcelColumn(int number)
 /// \param[out]
 /// \return
 ///
-auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t cols, int32_t colToDisplay, const PlotPlateSettings &settings)
-    -> joda::table::Table
+auto convertToHeatmap(const std::shared_ptr<joda::table::Table> table, int32_t rows, int32_t cols, int32_t colToDisplay,
+                      const PlotPlateSettings &settings) -> joda::table::Table
 {
   if(rows == 0) {
     return {};
@@ -77,20 +77,23 @@ auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t 
   joda::table::Table data;
   data.init(cols, rows);
 
-  for(int32_t tblRow = 0; tblRow < table.getNrOfRows(); tblRow++) {
-    auto cellData    = table.data(tblRow, colToDisplay);
-    uint32_t posX    = table.data(tblRow, colToDisplay).getPosX();
-    uint32_t posY    = table.data(tblRow, colToDisplay).getPosY();
-    uint32_t tStack  = table.data(tblRow, colToDisplay).getStackT();
-    uint64_t groupId = table.data(tblRow, colToDisplay).getGroupId();
+  for(int32_t tblRow = 0; tblRow < table->getNrOfRows(); tblRow++) {
+    auto cellData = table->data(tblRow, colToDisplay);
+    if(cellData == nullptr) {
+      continue;
+    }
+    uint32_t posX    = cellData->getPosX();
+    uint32_t posY    = cellData->getPosY();
+    uint32_t tStack  = cellData->getStackT();
+    uint64_t groupId = cellData->getGroupId();
     if(tStack == 0) {
       posX--;    // The maps start counting at 1
       posY--;    // The maps start counting at 1
       if(densityMapSize > 0) {
-        if(!cellData.isNAN() && cellData.isValid()) {
+        if(!cellData->isNAN() && cellData->isValid()) {
           posX = posX / densityMapSize;
           posY = posY / densityMapSize;
-          densityMapVal[{posX, posY}].val += cellData.getVal();
+          densityMapVal[{posX, posY}].val += cellData->getVal();
           densityMapVal[{posX, posY}].cnt++;
           densityMapVal[{posX, posY}].tblRow = tblRow;
         }
@@ -127,4 +130,4 @@ auto preparePlateSurface(const joda::table::Table &table, int32_t rows, int32_t 
   return data;
 }
 
-}    // namespace joda::ui::gui
+}    // namespace joda::db::data

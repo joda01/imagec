@@ -22,7 +22,11 @@
 
 namespace joda::db {
 class Database;
+namespace data {
+enum class ColormapName;
+
 }
+}    // namespace joda::db
 
 namespace joda::settings {
 class ResultsSettings;
@@ -30,7 +34,6 @@ class ResultsSettings;
 
 namespace joda::ui::gui {
 class WindowMain;
-enum class ColormapName;
 
 ///
 /// \class
@@ -48,7 +51,7 @@ public:
   {
     return mColumn->currentData().toInt();
   }
-  ColormapName getSelectedColorMap() const;
+  joda::db::data::ColormapName getSelectedColorMap() const;
   void setColumns(const std::map<joda::settings::ResultsSettings::ColumnIdx, joda::settings::ResultsSettings::ColumnKey> &);
 
   auto getWellOrder() const -> std::vector<std::vector<int32_t>>;

@@ -22,8 +22,8 @@
 #include <tuple>
 #include <vector>
 #include "backend/database/database.hpp"
-#include "backend/database/plugins/filter.hpp"
-#include "backend/database/plugins/stats_for_well.hpp"
+#include "backend/database/query/filter.hpp"
+#include "backend/database/query/query_for_well.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/helper/table/table.hpp"

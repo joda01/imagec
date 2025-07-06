@@ -70,42 +70,25 @@ void Exporter::writeWorkSheet(const Exporter::WorkBook &workbookSettings, const 
   // Write table header
   //
   const auto &table = data->getTable();
-  for(int n = 0; n < table.columnCount(); n++) {
-    worksheet_write_string(worksheet, 0, n + 1, table.horizontalHeaderItem(n)->text().replace("<br>", " ").replace("<b>", "").toStdString().data(),
-                           workbookSettings.header);
+  for(int n = 0; n < table.getNrOfCols(); n++) {
+    worksheet_write_string(worksheet, 0, n + 1, table.getColHeader(n).createHeader().data(), workbookSettings.header);
   }
 
-  for(int n = 0; n < table.rowCount(); n++) {
-    worksheet_write_string(worksheet, n + 1, 0, table.verticalHeaderItem(n)->text().replace("<br>", " ").replace("<b>", "").toStdString().data(),
-                           workbookSettings.header);
+  for(int n = 0; n < table.getNrOfRows(); n++) {
+    worksheet_write_string(worksheet, n + 1, 0, table.getColHeader(n).createHeader().data(), workbookSettings.header);
   }
 
-  auto getNumberFromText = [](const QString &text) -> std::variant<std::string, double> {
-    auto txtTemp = text;
-    auto index   = txtTemp.indexOf("<br>");
-    if(index != -1) {
-      txtTemp = txtTemp.left(index);
-    }
-    bool okay = true;
-    auto val  = txtTemp.toDouble(&okay);
-    if(okay) {
-      return val;
-    } else {
-      return txtTemp.toStdString();
-    }
-  };
-
-  for(int row = 0; row < table.rowCount(); row++) {
-    for(int col = 0; col < table.columnCount(); col++) {
-      const auto &item = table.item(row, col);
+  for(int row = 0; row < table.getNrOfRows(); row++) {
+    for(int col = 0; col < table.getNrOfCols(); col++) {
+      const auto &item = table.data(row, col);
       if(item == nullptr) {
         worksheet_write_blank(worksheet, row + 1, 1 + col, workbookSettings.numberFormatInvalid);
       } else {
-        auto data = getNumberFromText(item->text());
-        if(std::holds_alternative<std::string>(data)) {
-          worksheet_write_string(worksheet, row + 1, 1 + col, std::get<std::string>(data).data(), workbookSettings.idFormat);
+        auto data = item->getVal();
+        if(data != data) {
+          worksheet_write_string(worksheet, row + 1, 1 + col, "", workbookSettings.idFormat);
         } else {
-          worksheet_write_number(worksheet, row + 1, 1 + col, std::get<double>(data), workbookSettings.numberFormat);
+          worksheet_write_number(worksheet, row + 1, 1 + col, data, workbookSettings.numberFormat);
         }
       }
     }

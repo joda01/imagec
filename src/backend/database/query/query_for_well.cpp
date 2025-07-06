@@ -1,10 +1,10 @@
 
 
-#include "stats_for_well.hpp"
+#include "query_for_well.hpp"
 #include <cstddef>
 #include <stdexcept>
 #include <string>
-#include "backend/database/plugins/filter.hpp"
+#include "backend/database/query/filter.hpp"
 #include "backend/enums/bigtypes.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/helper/table/table.hpp"

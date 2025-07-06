@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <string>
 #include "../database.hpp"
-#include "backend/database/plugins/filter.hpp"
+#include "backend/database/query/filter.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/helper/table/table.hpp"

@@ -10,7 +10,6 @@
 ///
 
 #include "graph_qt_backend.hpp"
-#include <qcustomplot.h>
 #include <qevent.h>
 #include <QFile>
 #include <QPainter>

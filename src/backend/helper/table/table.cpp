@@ -15,6 +15,7 @@
 #include <iostream>
 #include <limits>
 #include <map>
+#include <memory>
 
 namespace joda::table {
 
@@ -27,6 +28,12 @@ void Table::setColHeader(const std::map<uint32_t, settings::ResultsSettings::Col
     mDataColOrganized[colIDx].colSettings = key;
   }
 }
+
+void Table::setColHeader(uint32_t colIdx, const settings::ResultsSettings::ColumnKey &data)
+{
+  mDataColOrganized[colIdx].colSettings = data;
+}
+
 void Table::setTitle(const std::string &title)
 {
   mTitle = title;
@@ -58,14 +65,14 @@ void Table::clear()
 /// \param[out]
 /// \return
 ///
-[[nodiscard]] TableCell Table::data(uint32_t row, uint32_t col) const
+[[nodiscard]] std::shared_ptr<TableCell> Table::data(uint32_t row, uint32_t col) const
 {
   if(mDataColOrganized.contains(col)) {
     if(mDataColOrganized.at(col).rows.contains(row)) {
       return mDataColOrganized.at(col).rows.at(row);
     }
   }
-  return {};
+  return nullptr;
 }
 
 ///
@@ -81,12 +88,12 @@ std::pair<double, double> Table::getMinMax(int column) const
   double max = std::numeric_limits<double>::min();
   auto &col  = mDataColOrganized.at(column);
   for(const auto &[_, row] : col.rows) {
-    if(!row.isNAN() && row.isValid()) {
-      if(row.getVal() < min) {
-        min = row.getVal();
+    if(!row->isNAN() && row->isValid()) {
+      if(row->getVal() < min) {
+        min = row->getVal();
       }
-      if(row.getVal() > max) {
-        max = row.getVal();
+      if(row->getVal() > max) {
+        max = row->getVal();
       }
     }
   }
@@ -99,12 +106,12 @@ std::pair<double, double> Table::getMinMax() const
   double max = std::numeric_limits<double>::min();
   for(const auto &[_, col] : mDataColOrganized) {
     for(const auto &[_, row] : col.rows) {
-      if(!row.isNAN() && row.isValid()) {
-        if(row.getVal() < min) {
-          min = row.getVal();
+      if(!row->isNAN() && row->isValid()) {
+        if(row->getVal() < min) {
+          min = row->getVal();
         }
-        if(row.getVal() > max) {
-          max = row.getVal();
+        if(row->getVal() > max) {
+          max = row->getVal();
         }
       }
     }

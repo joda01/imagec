@@ -15,9 +15,9 @@
 #include <iostream>
 #include <ostream>
 #include <string>
-#include "backend/database/plugins/filter.hpp"
-#include "backend/database/plugins/stats_for_image.hpp"
-#include "backend/database/plugins/stats_for_well.hpp"
+#include "backend/database/query/filter.hpp"
+#include "backend/database/query/query_for_image.hpp"
+#include "backend/database/query/query_for_well.hpp"
 #include "backend/helper/helper.hpp"
 
 namespace joda::db {

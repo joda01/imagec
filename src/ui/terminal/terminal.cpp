@@ -15,7 +15,7 @@
 #include <exception>
 #include <string>
 #include <thread>
-#include "backend/database/plugins/filter.hpp"
+#include "backend/database/query/filter.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/random_name_generator.hpp"

@@ -175,8 +175,7 @@ public:
     enum class HeaderStyle
     {
       FULL,
-      ONLY_STATS_IN_INTERSECTING,
-      ONLY_STATS_CONTAINS_INTERSECTING
+      WITHOUT_OWN_NAME,
     };
     std::string createHtmlHeader(HeaderStyle style) const;
 

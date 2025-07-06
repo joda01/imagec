@@ -24,12 +24,11 @@
 #include <memory>
 #include <mutex>
 #include "backend/database/database.hpp"
-#include "backend/database/plugins/filter.hpp"
+#include "backend/database/query/filter.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/helper/table/table.hpp"
 #include "controller/controller.hpp"
-#include "graphs/plot_plate.hpp"
 #include "ui/gui/container/panel_edit_base.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 
@@ -116,7 +115,7 @@ private:
 
   /////////////////////////////////////////////////////
   void valueChangedEvent() override;
-  void tableToHeatmap(const db::QueryResult &table);
+  void tableToHeatmap(const std::shared_ptr<joda::table::Table> table);
   void paintEmptyHeatmap();
   void goHome();
   void refreshView();
@@ -159,7 +158,7 @@ private:
   // FILTER ///////////////////////////////////////////////////
   settings::ResultsSettings mFilter;
   settings::ResultsSettings mActFilter;
-  db::QueryResult mActListData;
+  std::shared_ptr<db::QueryResult> mActListData;
   std::mutex mSelectMutex;
 
   // TOOLBARS///////////////////////////////////////////////////

@@ -11,14 +11,9 @@
 
 #pragma once
 
-#include <qcustomplot.h>
-#include <qopenglfunctions_3_3_core.h>
-#include <qopenglversionfunctions.h>
 #include <qpoint.h>
 #include <qtmetamacros.h>
 #include <qwidget.h>
-#include <QOpenGLFunctions>
-#include <QOpenGLWidget>
 #include <QSvgRenderer>
 #include <iostream>
 #include <memory>
@@ -32,76 +27,6 @@ class Heatmap;
 }    // namespace joda::plot
 
 namespace joda::ui::gui {
-
-enum class ColormapName
-{
-  ACCENT,
-  BLUES,
-  BRBG,
-  BUGN,
-  BUPU,
-  CHROMAJS,
-  DARK2,
-  GNBU,
-  GNPU,
-  GREENS,
-  GREYS,
-  INFERNO,
-  JET,
-  TURBO,
-  MAGMA,
-  ORANGES,
-  ORRD,
-  PAIRED,
-  PARULA,
-  PASTEL1,
-  PASTEL2,
-  PIYG,
-  PLASMA,
-  PRGN,
-  PUBU,
-  PUBUGN,
-  PUOR,
-  PURD,
-  PURPLES,
-  RDBU,
-  BURD,
-  RDGY,
-  RDPU,
-  RDYLBU,
-  RDYLGN,
-  REDS,
-  SAND,
-  SET1,
-  SET2,
-  SET3,
-  SPECTRAL,
-  VIRIDIS,
-  WHYLRD,
-  YLGN,
-  YLGNBU,
-  YLORBR,
-  YLORRD,
-  YLRD,
-  HSV,
-  HOT,
-  COOL,
-  SPRING,
-  SUMMER,
-  AUTUMN,
-  WINTER,
-  GRAY,
-  BONE,
-  COPPER,
-  PINK,
-  LINES,
-  COLORCUBE,
-  PRISM,
-  FLAG,
-  WHITE,
-  DEFAULT_MAP,
-  DEFAULT_COLORS_MAP
-};
 
 class QtBackend : public QWidget
 {

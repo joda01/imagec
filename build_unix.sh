@@ -46,14 +46,11 @@ pack(){
     cp -r ../../../resources/gnuplot_linux_x86 ./gnuplot
     cp ../../../resources/launcher/imagec.sh imagec.sh
     cd lib
-    cp /root/.conan2/p/*/p/lib/libQt6OpenGLWidgets.so.6 .
-    cp /root/.conan2/p/*/p/lib/libQt6OpenGL.so.6 .
     cp /root/.conan2/p/*/p/lib/libQt6Core.so.6 .
     cp /root/.conan2/p/*/p/lib/libQt6Gui.so.6 .
     cp /root/.conan2/p/*/p/lib/libQt6Widgets.so.6 .
     cp /root/.conan2/p/*/p/lib/libQt6XcbQpa.so.6 .
     cp /root/.conan2/p/*/p/lib/libQt6Svg.so.6 .
-    cp /root/.conan2/p/*/p/lib/libQt6PrintSupport.so.6 .
     cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 .
     cp /usr/lib/x86_64-linux-gnu/libxcb-icccm.so .
     cd ..
