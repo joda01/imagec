@@ -118,7 +118,7 @@ auto Dashboard::convert(const std::shared_ptr<joda::table::Table> tableIn, const
       if(!tabs.contains(midiKey)) {
         tabs[midiKey] = std::make_shared<joda::table::Table>();
       }
-      auto element01 = tabs[midiKey];
+      auto element01 = tabs.at(midiKey);
       setData(element01, dashData.colName, dashData.cols, isImageView, dashboardType == DashboardType::COLOC, dashData.intersectingCol);
     }
   };

@@ -42,6 +42,7 @@ public:
   auto plot(const Size &size) -> cv::Mat override;
   void setBackgroundColor(const cv::Vec3b &);
   void setData(const joda::table::Table &&data) override;
+  auto getData() const -> const joda::table::Table &;
   void setPlotLabels(bool);
   void setPrecision(int32_t);
   void setHighlightCell(const Cell &);

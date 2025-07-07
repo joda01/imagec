@@ -141,7 +141,6 @@ void Dashboard::copyToClipboard() const
   for(const auto &[_, subWindow] : mMidiWindows) {
     if(subWindow == activeSubWindow()) {
       subWindow->copyTableToClipboard();
-      mMainWindow->statusBar()->showMessage("Copied >" + subWindow->windowTitle() + "< data to clipboard", 5000);
     }
   }
 }

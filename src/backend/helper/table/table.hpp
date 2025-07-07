@@ -181,6 +181,11 @@ public:
     return mMetaData.rowName;
   }
 
+  void setRowName(const std::string &rowName)
+  {
+    mMetaData.rowName = rowName;
+  }
+
   void setBackgroundColor(Formating::Color color)
   {
     mFormatting.bgColor = color;
@@ -247,6 +252,11 @@ public:
     return mDataColOrganized;
   }
 
+  auto mutableColumns() -> entry_t &
+  {
+    return mDataColOrganized;
+  }
+
   [[nodiscard]] std::shared_ptr<TableCell> data(uint32_t row, uint32_t col) const;
 
   void setData(uint32_t row, uint32_t col, const std::shared_ptr<TableCell> &data)
@@ -298,6 +308,15 @@ public:
       return ret;
     }
     return mDataColOrganized.at(col).colSettings;
+  }
+
+  const std::string &getColHeaderTitle(int32_t col) const
+  {
+    if(!mDataColOrganized.contains(col)) {
+      static std::string ret;
+      return ret;
+    }
+    return mDataColOrganized.at(col).title;
   }
 
   const std::string &getRowHeader(int32_t row) const

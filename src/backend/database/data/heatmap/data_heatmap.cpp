@@ -1,7 +1,9 @@
 
 
 #include "data_heatmap.hpp"
+#include <memory>
 #include <string>
+#include "backend/helper/table/table.hpp"
 
 namespace joda::db::data {
 
@@ -52,17 +54,6 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
     cols           = 100;
   }
 
-  std::vector<std::string> xLabels;
-  std::vector<std::string> yLabels;
-
-  for(int x = 0; x < cols; x++) {
-    xLabels.emplace_back(std::to_string(x + 1));
-  }
-
-  for(int y = 0; y < rows; y++) {
-    yLabels.emplace_back(numberToExcelColumn(y + 1));
-  }
-
   double mMin = std::numeric_limits<double>::max();
   double mMax = std::numeric_limits<double>::min();
 
@@ -77,6 +68,17 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
   joda::table::Table data;
   data.init(cols, rows);
 
+  for(int x = 0; x < cols; x++) {
+    data.mutableColumns()[x].title = std::to_string(x + 1);
+  }
+
+  for(int y = 0; y < rows; y++) {
+    if(nullptr == data.data(y, 0)) {
+      data.setData(y, 0, std::make_shared<joda::table::TableCell>());
+    }
+    data.data(y, 0)->setRowName(numberToExcelColumn(y + 1));
+  }
+
   for(int32_t tblRow = 0; tblRow < table->getNrOfRows(); tblRow++) {
     auto cellData = table->data(tblRow, colToDisplay);
     if(cellData == nullptr) {
@@ -86,6 +88,8 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
     uint32_t posY    = cellData->getPosY();
     uint32_t tStack  = cellData->getStackT();
     uint64_t groupId = cellData->getGroupId();
+    cellData->setRowName(numberToExcelColumn(posY));
+
 #warning "Handle t stack"
     if(tStack == 0) {
       posX--;    // The maps start counting at 1

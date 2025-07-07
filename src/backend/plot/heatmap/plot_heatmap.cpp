@@ -251,6 +251,18 @@ void Heatmap::setData(const joda::table::Table &&data)
 /// \param[out]
 /// \return
 ///
+auto Heatmap::getData() const -> const joda::table::Table &
+{
+  return mData;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void Heatmap::setPlotLabels(bool label)
 {
   mPlotLabels = label;

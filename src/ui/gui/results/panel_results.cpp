@@ -62,7 +62,7 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/results_settings/results_settings.hpp"
-#include "graphs/graph_qt_backend.hpp"
+#include "graphs/heatmap_widget.hpp"
 #include "ui/gui/container/container_button.hpp"
 #include "ui/gui/container/container_label.hpp"
 #include "ui/gui/container/panel_edit_base.hpp"
@@ -111,15 +111,15 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   //
   {
     mDockWidgetGraphSettings = new PanelGraphSettings(mWindowMain);
-    mGraphContainer          = std::make_shared<QtBackend>(this);
+    mGraphContainer          = std::make_shared<HeatmapWidget>(this);
     mGraphContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    connect(mGraphContainer.get(), &QtBackend::onGraphClicked, [this](joda::table::TableCell cell) {
+    connect(mGraphContainer.get(), &HeatmapWidget::onGraphClicked, [this](joda::table::TableCell cell) {
       std::lock_guard<std::mutex> lock(mLoadLock);
       setSelectedElement(cell);
     });
 
-    connect(mGraphContainer.get(), &QtBackend::onGraphDoubleClicked, [this](joda::table::TableCell cell) {
+    connect(mGraphContainer.get(), &HeatmapWidget::onGraphDoubleClicked, [this](joda::table::TableCell cell) {
       std::lock_guard<std::mutex> lock(mLoadLock);
 
       openNextLevel({cell});
@@ -356,15 +356,16 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   exportR->setToolTip("Export R");
   connect(exportR, &QAction::triggered, [this]() { showFileSaveDialog("R-Script (*.r)"); });
 
-  mExportSvg = exportMenu->addAction(generateSvgIcon("image-x-generic"), "Save as SVG");
-  mExportSvg->setToolTip("Export SVG");
-  mExportSvg->setVisible(false);
-  connect(mExportSvg, &QAction::triggered, [this]() { showFileSaveDialog("SVG image (*.svg)"); });
-
   mExportPng = exportMenu->addAction(generateSvgIcon("image-png"), "Save as PNG");
   mExportPng->setToolTip("Export PNG");
   mExportPng->setVisible(false);
   connect(mExportPng, &QAction::triggered, [this]() { showFileSaveDialog("PNG image (*.png)"); });
+
+  mExportSvg = exportMenu->addAction(generateSvgIcon("image-x-generic"), "Save as SVG");
+  mExportSvg->setToolTip("Export SVG");
+  mExportSvg->setVisible(false);
+  mExportSvg->setEnabled(false);
+  connect(mExportSvg, &QAction::triggered, [this]() { showFileSaveDialog("SVG image (*.svg)"); });
 
   exportMenu->addSeparator();
 
@@ -382,7 +383,13 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   // Copy button
   //
   auto *copyTable = new QAction(generateSvgIcon("edit-copy"), "Copy values", toolbar);
-  connect(copyTable, &QAction::triggered, [this]() { mDashboard->copyToClipboard(); });
+  connect(copyTable, &QAction::triggered, [this]() {
+    if(mGraphContainer->isVisible()) {
+      mGraphContainer->copyToClipboard();
+    } else {
+      mDashboard->copyToClipboard();
+    }
+  });
   copyTable->setStatusTip("Copy table to clipboard");
   toolbar->addItemToTopToolbar(copyTable);
 
@@ -1257,7 +1264,9 @@ void PanelResults::showFileSaveDialog(const QString &filter)
   } else if(filename.ends_with(".svg")) {
     // mHeatmapChart->exportToSVG(filename.data());
   } else if(filename.ends_with(".png")) {
-    // mHeatmapChart->exportToPNG(filename.data());
+    auto path = std::filesystem::path(filename);
+    mGraphContainer->exportToPNG(path);
+    QDesktopServices::openUrl(QUrl("file:///" + QString(path.parent_path().string().data())));
   }
 }
 

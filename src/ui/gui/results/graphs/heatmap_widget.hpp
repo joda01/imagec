@@ -1,5 +1,5 @@
 ///
-/// \file      graph_qt_backend.hpp
+/// \file      heatmap_widget.hpp
 /// \author    Joachim Danmayr
 /// \date      2025-06-15
 ///
@@ -15,6 +15,7 @@
 #include <qtmetamacros.h>
 #include <qwidget.h>
 #include <QSvgRenderer>
+#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -28,15 +29,17 @@ class Heatmap;
 
 namespace joda::ui::gui {
 
-class QtBackend : public QWidget
+class HeatmapWidget : public QWidget
 {
   Q_OBJECT
 
 public:
-  QtBackend(QWidget *parent);
-  ~QtBackend() override;
+  HeatmapWidget(QWidget *parent);
+  ~HeatmapWidget() override;
   /////////////////////////////////////////////////////
   void updateGraph(const joda::table::Table &&data, bool isImageView);
+  void exportToPNG(const std::filesystem::path &) const;
+  void copyToClipboard() const;
 
 signals:
   void onGraphClicked(joda::table::TableCell);

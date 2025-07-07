@@ -42,7 +42,7 @@ namespace joda::ui::gui {
 
 class DialogColumnSettings;
 class DialogImageViewer;
-class QtBackend;
+class HeatmapWidget;
 class PanelClassificationList;
 class PanelGraphSettings;
 class Dashboard;
@@ -181,7 +181,7 @@ private:
   /// GRAPH //////////////////////////////////////////////////
   void setHeatmapVisible(bool);
   PanelGraphSettings *mDockWidgetGraphSettings;
-  std::shared_ptr<QtBackend> mGraphContainer;
+  std::shared_ptr<HeatmapWidget> mGraphContainer;
 
   /// IMAGE DOCK //////////////////////////////////////////////
   void loadPreview();
