@@ -48,10 +48,8 @@ void Exporter::startExport(const std::vector<const Exportable *> &data, const se
 /// \param[out]
 /// \return
 ///
-void Exporter::writeWorkSheet(const Exporter::WorkBook &workbookSettings, const Exportable *data, int32_t index)
+std::string Exporter::prepareSheetName(std::string name)
 {
-  std::string name = data->getTitle();
-  // Max. sheet name length = 31 because of excel limitation
   if(name.size() > 28) {
     name = name.substr(0, 28);
   }
@@ -59,6 +57,19 @@ void Exporter::writeWorkSheet(const Exporter::WorkBook &workbookSettings, const 
                             [](char c) { return !std::isalnum(static_cast<unsigned char>(c)) && static_cast<unsigned char>(c) != ' '; }),
              name.end());
   helper::stringReplace(name, " ", "_");
+  return name;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Exporter::writeWorkSheet(const Exporter::WorkBook &workbookSettings, const Exportable *data, int32_t index)
+{
+  std::string name = prepareSheetName(data->getTitle());
   name += "_" + std::to_string(index);
   auto *worksheet = workbook_add_worksheet(workbookSettings.workbook, name.data());
   if(worksheet == nullptr) {

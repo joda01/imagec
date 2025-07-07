@@ -90,11 +90,24 @@ private:
     lxw_format *numberFormatInvalidScientific;
   };
 
+  struct Pos
+  {
+    uint32_t row = 0;
+    uint32_t col = 0;
+  };
+
   /////////////////////////////////////////////////////
   static WorkBook createWorkBook(std::string outputFileName);
   static void createAnalyzeSettings(WorkBook &workbookSettings, const settings::AnalyzeSettings &settings, const std::string &jobName,
                                     std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished);
   static void writeWorkSheet(const Exporter::WorkBook &, const Exportable *, int32_t index);
+
+  static std::string prepareSheetName(std::string);
+
+  static Pos paintHeatmap(const WorkBook &workbookSettings, lxw_worksheet *worksheet, const joda::table::Table &table, uint32_t rowOffset);
+
+  static void paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset, lxw_format *header, lxw_format *numberFormat,
+                               lxw_format *mergeFormat, const std::string &title);
 };
 
 }    // namespace joda::exporter::xlsx
