@@ -68,9 +68,9 @@ void HeatmapWidget::copyToClipboard() const
   const auto &table = mHeatmap->getData();
   QStringList data;
   QStringList header;
-  for(int row = 0; row < table.getNrOfRows(); ++row) {
+  for(int row = 0; row < table.getNrOfRows(); row++) {
     QStringList rowData;
-    for(int col = 0; col < table.getNrOfCols(); ++col) {
+    for(int col = 0; col < table.getNrOfCols(); col++) {
       if(row == 0) {
         header << table.getColHeaderTitle(col).data();
       }

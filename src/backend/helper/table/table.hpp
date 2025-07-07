@@ -98,6 +98,10 @@ public:
   {
     return value;
   }
+  void setVal(double val)
+  {
+    value = val;
+  }
 
   [[nodiscard]] std::variant<std::string, double> getValAsVariant(enums::Measurement meas) const
   {

@@ -2,6 +2,7 @@
 
 #include "data_heatmap.hpp"
 #include <memory>
+#include <optional>
 #include <string>
 #include "backend/helper/table/table.hpp"
 
@@ -41,8 +42,8 @@ std::string numberToExcelColumn(int number)
 /// \param[out]
 /// \return
 ///
-auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t cols, int32_t colToDisplay, const PlotPlateSettings &settings)
-    -> joda::table::Table
+auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t cols, int32_t colToDisplay, int32_t tStackIn,
+                      const PlotPlateSettings &settings) -> joda::table::Table
 {
   if(rows == 0) {
     return {};
@@ -79,6 +80,7 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
     data.data(y, 0)->setRowName(numberToExcelColumn(y + 1));
   }
 
+  std::optional<joda::table::TableCell> cellTmp;    // Needed for the density map
   for(int32_t tblRow = 0; tblRow < table->getNrOfRows(); tblRow++) {
     auto cellData = table->data(tblRow, colToDisplay);
     if(cellData == nullptr) {
@@ -89,13 +91,14 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
     uint32_t tStack  = cellData->getStackT();
     uint64_t groupId = cellData->getGroupId();
     cellData->setRowName(numberToExcelColumn(posY));
-
-#warning "Handle t stack"
-    if(tStack == 0) {
+    if(tStack == tStackIn) {
       posX--;    // The maps start counting at 1
       posY--;    // The maps start counting at 1
       if(densityMapSize > 0) {
         if(!cellData->isNAN() && cellData->isValid()) {
+          if(!cellTmp.has_value()) {
+            cellTmp.emplace(cellData);
+          }
           posX = posX / densityMapSize;
           posY = posY / densityMapSize;
           densityMapVal[{posX, posY}].val += cellData->getVal();
@@ -119,7 +122,11 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
       int32_t tblRow = mapEntry.second.tblRow;
       if(posX >= 0) {
         if(posY >= 0) {
-          data.setData(posY, posX, {val, {.isValid = true}, {}});
+          if(cellTmp.has_value()) {
+            cellTmp->setRowName(numberToExcelColumn(posY + 1));
+            cellTmp->setVal(val);
+            data.setData(posY, posX, cellTmp.value());
+          }
 
           if(val < mMin) {
             mMin = val;

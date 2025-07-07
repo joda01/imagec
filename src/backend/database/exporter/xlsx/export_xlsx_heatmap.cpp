@@ -70,8 +70,8 @@ void Exporter::startHeatmapExport(const std::vector<const Exportable *> &data, c
 
     for(const auto &col : columns.second) {
       joda::table::Table tmpTable({*col});
-      auto dataHeatmap =
-          joda::db::data::convertToHeatmap(&tmpTable, rows, cols, 0, joda::db::data::PlotPlateSettings{.densityMapSize = densityMapSize});
+      auto dataHeatmap = joda::db::data::convertToHeatmap(&tmpTable, rows, cols, 0, filterSettings.getFilter().tStack,
+                                                          joda::db::data::PlotPlateSettings{.densityMapSize = densityMapSize});
       if(dataHeatmap.getNrOfRows() <= 0 || dataHeatmap.getNrOfCols() <= 0) {
         continue;
       }

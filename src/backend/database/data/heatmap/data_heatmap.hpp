@@ -93,7 +93,7 @@ struct PlotPlateSettings
   int32_t densityMapSize = -1;
 };
 
-auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t cols, int32_t colToDisplay, const PlotPlateSettings &settings)
-    -> joda::table::Table;
+auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t cols, int32_t colToDisplay, int32_t tStack,
+                      const PlotPlateSettings &settings) -> joda::table::Table;
 
 }    // namespace joda::db::data
