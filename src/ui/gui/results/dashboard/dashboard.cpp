@@ -229,4 +229,16 @@ void Dashboard::paintEvent(QPaintEvent *event)
   }
 }
 
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Dashboard::getSelectedRows() const -> std::vector<joda::table::TableCell>
+{
+  return ((DashboardElement *) activeSubWindow())->getSelectedRows();
+}
+
 }    // namespace joda::ui::gui

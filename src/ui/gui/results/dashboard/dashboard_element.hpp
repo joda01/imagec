@@ -42,6 +42,7 @@ public:
   void copyTableToClipboard() const;
   const std::string &getTitle() const override;
   auto getTable() const -> const joda::table::Table & override;
+  auto getSelectedRows() const -> std::vector<joda::table::TableCell>;
 
 signals:
   void cellSelected(joda::table::TableCell);

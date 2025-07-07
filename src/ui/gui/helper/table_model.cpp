@@ -140,4 +140,16 @@ void TableModel::setData(const std::shared_ptr<joda::table::Table> table)
   endResetModel();
 }
 
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto TableModel::getCell(int row, int col) -> const std::shared_ptr<joda::table::TableCell>
+{
+  return mTable->data(row, col);
+}
+
 }    // namespace joda::ui::gui

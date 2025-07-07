@@ -19,6 +19,7 @@
 #include "backend/database/data/dashboard/data_dashboard.hpp"
 #include "backend/database/exporter/exportable.hpp"
 #include "backend/enums/enums_classes.hpp"
+#include "backend/helper/table/table.hpp"
 #include "ui/gui/helper/table_widget.hpp"
 
 namespace joda::table {
@@ -45,6 +46,7 @@ public:
   auto getExportables() const -> std::vector<const exporter::Exportable *>;
   void minimizeSubWindows();
   void restoreSubWindows();
+  auto getSelectedRows() const -> std::vector<joda::table::TableCell>;
 
 private:
   enum class DashboardType

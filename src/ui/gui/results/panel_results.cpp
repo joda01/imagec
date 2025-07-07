@@ -201,14 +201,10 @@ PanelResults::PanelResults(WindowMain *windowMain) :
     mOpenNextLevel = new QPushButton(generateSvgIcon("go-next"), "");
     mOpenNextLevel->setStatusTip("Open selected wells/images");
     topBreadCrumpLayout->addWidget(mOpenNextLevel);
-    connect(mOpenNextLevel, &QPushButton::clicked, [this]() {
-#warning "Must be implemented"
-      // std::vector<table::TableCell> selected;
-      // for(const QModelIndex &index : selectedIndexes) {
-      //   selected.emplace_back(mActListData.data(index.row(), 0));
-      // }
-      // openNextLevel(selected);
-    });
+    connect(mOpenNextLevel, &QPushButton::clicked, [this]() { openNextLevel(mDashboard->getSelectedRows()); });
+
+    mBreadCrumpInfoText = new QLabel();
+    topBreadCrumpLayout->addWidget(mBreadCrumpInfoText);
 
     topBreadCrumpLayout->addStretch();
     topBreadCrump->setSizePolicy(QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Minimum);
@@ -373,12 +369,14 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   exportMenu->addSeparator();
 
   //
-  auto *exports = new QAction(generateSvgIcon("folder-download"), "Export", toolbar);
-  exports->setStatusTip("Export table or heatmap to R or Excel");
-  connect(exports, &QAction::triggered, [this]() { showFileSaveDialog(); });
+  mExports = new QAction(generateSvgIcon("folder-download"), "Export", toolbar);
+  mExports->setStatusTip("Export table or heatmap to R or Excel");
+  connect(mExports, &QAction::triggered, [this]() { showFileSaveDialog(); });
 
-  exports->setMenu(exportMenu);
-  toolbar->addItemToTopToolbar(exports);
+  mExports->setMenu(exportMenu);
+  toolbar->addItemToTopToolbar(mExports);
+
+  connect(this, &PanelResults::finishedExport, this, &PanelResults::onFinishedExport);
 
   //
   // Copy button
@@ -1276,6 +1274,8 @@ void PanelResults::saveData(const std::string &fileName, joda::exporter::xlsx::E
     return;
   }
 
+  mExports->setEnabled(false);
+  mBreadCrumpInfoText->setText("Export running ...");
   std::thread([this, fileName, format] {
     joda::settings::AnalyzeSettings settings;
     try {
@@ -1319,7 +1319,21 @@ void PanelResults::saveData(const std::string &fileName, joda::exporter::xlsx::E
 
     QString folderPath = std::filesystem::path(fileName).parent_path().string().data();
     QDesktopServices::openUrl(QUrl("file:///" + folderPath));
+    emit finishedExport();
   }).detach();
+}
+
+///
+/// \brief      Export data
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::onFinishedExport()
+{
+  mExports->setEnabled(true);
+  mBreadCrumpInfoText->setText("");
 }
 
 }    // namespace joda::ui::gui

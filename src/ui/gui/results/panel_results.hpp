@@ -89,6 +89,7 @@ public:
 
 signals:
   void finishedLoading();
+  void finishedExport();
 
 private:
   /////////////////////////////////////////////////////
@@ -141,6 +142,7 @@ private:
   QPushButton *mBreadCrumpWell;
   QPushButton *mBreadCrumpImage;
   QPushButton *mOpenNextLevel;
+  QLabel *mBreadCrumpInfoText;
 
   // Toolbar///////////////////////////////////////////////////
   void createToolBar(joda::ui::gui::helper::LayoutGenerator *);
@@ -168,6 +170,7 @@ private:
   Navigation mNavigation = Navigation::PLATE;
   QAction *mMarkAsInvalid;
   DataSet mSelectedDataSet;
+  QAction *mExports   = nullptr;
   QAction *mExportSvg = nullptr;
   QAction *mExportPng = nullptr;
 
@@ -214,6 +217,7 @@ private:
   bool mIsActive  = false;
 
 public slots:
+  void onFinishedExport();
   void onFinishedLoading();
   void onMarkAsInvalidClicked(bool);
   void onExportImageClicked();
