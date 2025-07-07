@@ -86,6 +86,7 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
     uint32_t posY    = cellData->getPosY();
     uint32_t tStack  = cellData->getStackT();
     uint64_t groupId = cellData->getGroupId();
+#warning "Handle t stack"
     if(tStack == 0) {
       posX--;    // The maps start counting at 1
       posY--;    // The maps start counting at 1

@@ -19,6 +19,7 @@
 #include <string>
 #include <variant>
 #include <vector>
+#include "backend/database/exporter/exportable.hpp"
 #include "backend/enums/bigtypes.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/helper/base32.hpp"
@@ -229,7 +230,7 @@ using entry_t = std::map<uint32_t, TableColumn>;    // These are the different c
 /// \author     Joachim Danmayr
 /// \brief
 ///
-class Table
+class Table : public joda::exporter::Exportable
 {
 public:
   /////////////////////////////////////////////////////
@@ -237,6 +238,7 @@ public:
   void setColHeader(uint32_t colIdx, const settings::ResultsSettings::ColumnKey &data);
 
   Table();
+  Table(const std::vector<TableColumn> &);
   void setTitle(const std::string &title);
   void init(int32_t cols, int32_t rows);
 
@@ -313,9 +315,14 @@ public:
     return mDataColOrganized.begin()->second.rows.at(row)->getRowName();
   }
 
-  const std::string &getTitle() const
+  [[nodiscard]] const std::string &getTitle() const override
   {
     return mTitle;
+  }
+
+  [[nodiscard]] const joda::table::Table &getTable() const override
+  {
+    return *this;
   }
 
   void clear();

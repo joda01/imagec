@@ -12,8 +12,10 @@
 #include <xlsxwriter/worksheet.h>
 #include <string>
 #include <variant>
+#include "backend/enums/enums_classes.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
+#include "backend/helper/table/table.hpp"
 #include "controller/controller.hpp"
 #include "exporter_xlsx.hpp"
 
@@ -47,24 +49,36 @@ void Exporter::startHeatmapExport(const std::vector<const Exportable *> &data, c
 
       break;
   }
-  int idx = 0;
+
+  auto colNr = filterSettings.getColumns().size();
+
+  std::map<enums::ClassId, std::pair<std::string, std::vector<const table::TableColumn *>>> sortedTables;
   for(const auto &tbl : data) {
+    for(int n = 0; n < colNr; n++) {
+      auto &tmp = sortedTables[tbl->getTable().getColHeader(n).classId];
+      tmp.first = tbl->getTable().columns().at(n).colSettings.names.className;
+      tmp.second.emplace_back(&tbl->getTable().columns().at(n));
+    }
+  }
+
+  int idx = 0;
+  for(const auto &[clasId, columns] : sortedTables) {
     Pos pos;
-    auto colNr = filterSettings.getColumns().size();
-    auto name  = prepareSheetName(tbl->getTable().getTitle());
+    auto name = prepareSheetName(columns.first);
     name += "_" + std::to_string(idx);
     auto *worksheet = workbook_add_worksheet(workbookSettings.workbook, name.data());
 
-    for(int n = 0; n < colNr; n++) {
+    for(const auto &col : columns.second) {
+      joda::table::Table tmpTable({*col});
       auto dataHeatmap =
-          joda::db::data::convertToHeatmap(&tbl->getTable(), rows, cols, n, joda::db::data::PlotPlateSettings{.densityMapSize = densityMapSize});
+          joda::db::data::convertToHeatmap(&tmpTable, rows, cols, 0, joda::db::data::PlotPlateSettings{.densityMapSize = densityMapSize});
+      if(dataHeatmap.getNrOfRows() <= 0 || dataHeatmap.getNrOfCols() <= 0) {
+        continue;
+      }
 
       paintPlateBorder(worksheet, dataHeatmap.getNrOfRows(), dataHeatmap.getNrOfCols(), pos.row, workbookSettings.header,
-                       workbookSettings.numberFormat, workbookSettings.merge_format, tbl->getTable().getColHeader(n).createHeader());
-
+                       workbookSettings.numberFormat, workbookSettings.merge_format, col->colSettings.createHeader());
       pos = paintHeatmap(workbookSettings, worksheet, dataHeatmap, pos.row);
-
-      // No write the heatmap to XLSX
     }
     idx++;
   }

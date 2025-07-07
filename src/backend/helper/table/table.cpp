@@ -22,6 +22,14 @@ namespace joda::table {
 Table::Table()
 {
 }
+
+Table::Table(const std::vector<TableColumn> &input)
+{
+  for(int n = 0; n < input.size(); n++) {
+    mDataColOrganized.emplace(n, input.at(n));
+  }
+}
+
 void Table::setColHeader(const std::map<uint32_t, settings::ResultsSettings::ColumnKey> &data)
 {
   for(const auto &[colIDx, key] : data) {

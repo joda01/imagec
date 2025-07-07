@@ -14,7 +14,10 @@
 #include <qtablewidget.h>
 #include <xlsxwriter/workbook.h>
 #include <string>
-#include "backend/helper/table/table.hpp"
+
+namespace joda::table {
+class Table;
+}
 
 namespace joda::exporter {
 

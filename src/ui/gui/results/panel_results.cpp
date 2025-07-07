@@ -1304,7 +1304,7 @@ void PanelResults::saveData(const std::string &fileName, joda::exporter::xlsx::E
         }
 
         joda::exporter::xlsx::Exporter::startHeatmapExport(
-            mDashboard->getExportables(), settings, mSelectedDataSet.analyzeMeta->jobName, mSelectedDataSet.analyzeMeta->timestampStart,
+            {mActListData.get()}, settings, mSelectedDataSet.analyzeMeta->jobName, mSelectedDataSet.analyzeMeta->timestampStart,
             mSelectedDataSet.analyzeMeta->timestampFinish, fileName, mActFilter, view, imgHeight, imgWidth);
 
       } else {

@@ -62,8 +62,10 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
     for(int32_t row = 0; row < nrRows; row++) {
       const auto &tmpData = mData.data(row, col);
       double val          = std::numeric_limits<double>::quiet_NaN();
+      bool isValid        = false;
       if(tmpData != nullptr) {
-        val = mData.data(row, col)->getVal();
+        val     = tmpData->getVal();
+        isValid = tmpData->isValid();
       }
 
       auto x1      = static_cast<int32_t>(static_cast<double>(col) * mRectWidth);
@@ -110,6 +112,11 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
         std::ostringstream oss;
         oss << std::fixed << std::setprecision(mPrecision) << val;
         PlotBase::drawCenteredText(plotArea, oss.str(), rect, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1);
+      }
+
+      // Cross out if not valid
+      if(!isValid && val == val) {
+        cv::line(plotArea, {x1, y1}, {x2, y2}, cv::Scalar(0, 0, 255), 2);    // thickness = 2
       }
     }
   }
