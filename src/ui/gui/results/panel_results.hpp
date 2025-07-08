@@ -121,6 +121,7 @@ private:
   void refreshBreadCrump();
   void refreshActSelection();
   void resetSettings();
+  void loadLastOpened();
 
   /////////////////////////////////////////////////////
   void storeResultsTableSettingsToDatabase();
@@ -132,6 +133,7 @@ private:
   WindowMain *mWindowMain;
   std::unique_ptr<joda::db::Database> mAnalyzer;
   std::filesystem::path mDbFilePath;
+  QMenu *mOpenProjectMenu = nullptr;
 
   // Breadcrumb///////////////////////////////////////////////////
 

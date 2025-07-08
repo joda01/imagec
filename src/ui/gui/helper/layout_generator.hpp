@@ -103,6 +103,11 @@ public:
     return mBackButton;
   }
 
+  auto mutableTopToolbar() -> QToolBar *
+  {
+    return mToolbarTop;
+  }
+
   void addSeparatorToTopToolbar();
   void addItemToBottomToolbar(QAction *widget);
   QAction *addItemToTopToolbar(QWidget *);

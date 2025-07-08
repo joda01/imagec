@@ -62,6 +62,7 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/results_settings/results_settings.hpp"
+#include "backend/user_settings/user_settings.hpp"
 #include "graphs/heatmap_widget.hpp"
 #include "ui/gui/container/container_button.hpp"
 #include "ui/gui/container/container_label.hpp"
@@ -341,9 +342,12 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   //
   // Open
   //
-  auto *openBookmark = new QAction(generateSvgIcon("folder-open"), "Open", toolbar);
-  connect(openBookmark, &QAction::triggered, [this]() { showOpenFileDialog(); });
-  toolbar->addItemToTopToolbar(openBookmark);
+  mOpenProjectMenu   = new QMenu();
+  auto *openDatabase = new QAction(generateSvgIcon("folder-open"), "Open", toolbar);
+  openDatabase->setStatusTip("Open results file");
+  openDatabase->setMenu(mOpenProjectMenu);
+  connect(openDatabase, &QAction::triggered, [this]() { showOpenFileDialog(); });
+  toolbar->addItemToTopToolbar(openDatabase);
 
   //
   // Export buttons
@@ -434,25 +438,33 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
 
   toolbar->addSeparatorToTopToolbar();
 
-  auto *cascade = new QAction(generateSvgIcon("window-duplicate"), "");
-  cascade->setToolTip("Cascade windows");
+  QMenu *windowMenu = new QMenu();
+  auto *cascade     = new QAction(generateSvgIcon("window-duplicate"), "Cascade");
+  cascade->setStatusTip("Cascade windows");
   connect(cascade, &QAction::triggered, [this]() { mDashboard->cascadeSubWindows(); });
-  toolbar->addItemToTopToolbar(cascade);
+  windowMenu->addAction(cascade);
 
-  auto *tileWindows = new QAction(generateSvgIcon("view-group"), "");
-  tileWindows->setToolTip("Tile windows");
+  auto *tileWindows = new QAction(generateSvgIcon("view-group"), "Tile");
+  tileWindows->setStatusTip("Tile windows");
   connect(tileWindows, &QAction::triggered, [this]() { mDashboard->tileSubWindows(); });
-  toolbar->addItemToTopToolbar(tileWindows);
+  windowMenu->addAction(tileWindows);
 
-  auto *minimizeAll = new QAction(generateSvgIcon("user-desktop"), "");
-  minimizeAll->setToolTip("Minimize windows");
+  auto *minimizeAll = new QAction(generateSvgIcon("user-desktop"), "Minimize");
+  minimizeAll->setStatusTip("Minimize windows");
   connect(minimizeAll, &QAction::triggered, [this]() { mDashboard->minimizeSubWindows(); });
-  toolbar->addItemToTopToolbar(minimizeAll);
+  windowMenu->addAction(minimizeAll);
 
-  auto *restoreAll = new QAction(generateSvgIcon("window"), "");
-  restoreAll->setToolTip("Restore windows");
+  auto *restoreAll = new QAction(generateSvgIcon("window"), "Restore");
+  restoreAll->setStatusTip("Restore windows");
   connect(restoreAll, &QAction::triggered, [this]() { mDashboard->restoreSubWindows(); });
-  toolbar->addItemToTopToolbar(restoreAll);
+  windowMenu->addAction(restoreAll);
+
+  auto *windowSettings = new QAction(generateSvgIcon("window"), "");
+  windowSettings->setStatusTip("Window arrangement settings.");
+  windowSettings->setMenu(windowMenu);
+  toolbar->addItemToTopToolbar(windowSettings);
+  auto *btn = qobject_cast<QToolButton *>(toolbar->mutableTopToolbar()->widgetForAction(windowSettings));
+  btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
 
   /*
     auto *addColumn = new QAction(generateSvgIcon("edit-table-insert-column-right"), "");
@@ -503,6 +515,20 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   toolbar->addItemToTopToolbar(mMarkAsInvalid);
   mMarkAsInvalid->setEnabled(false);
   connect(mMarkAsInvalid, &QAction::triggered, this, &PanelResults::onMarkAsInvalidClicked);
+}
+
+///
+/// \brief      Load last opened files
+/// \author     Joachim Danmayr
+///
+void PanelResults::loadLastOpened()
+{
+  mOpenProjectMenu->clear();
+  mOpenProjectMenu->addSection("Results");
+  for(const auto &path : joda::user_settings::UserSettings::getLastOpenedResult()) {
+    auto *action = mOpenProjectMenu->addAction((path.path + " (" + path.title + ")").data());
+    connect(action, &QAction::triggered, this, [this, path = path.path]() { openFromFile(path.data()); });
+  }
 }
 
 ///
@@ -1101,7 +1127,14 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   mTmpColocClasses = mAnalyzer->selectColocalizingClasses();
   mDockWidgetImagePreview->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
 
+  // Store last opened
+  if(mSelectedDataSet.analyzeMeta.has_value()) {
+    getWindowMain()->addToLastLoadedResults(pathToDbFile, mSelectedDataSet.analyzeMeta->jobName.data());
+  }
+  loadLastOpened();
+
   // Make visible
+
   showToolBar(true);
   mIsActive = true;
   mWindowMain->setSideBarVisible(false);
@@ -1111,10 +1144,6 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   }
 
   refreshView();
-
-  if(mSelectedDataSet.analyzeMeta.has_value()) {
-    getWindowMain()->addToLastLoadedResults(pathToDbFile, mSelectedDataSet.analyzeMeta->jobName.data());
-  }
 }
 
 ///
