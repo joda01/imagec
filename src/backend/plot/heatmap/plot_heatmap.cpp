@@ -38,8 +38,12 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
   // =========================================
   // Calc rect with
   // =========================================
-  mSize         = size;
-  mRectWidth    = static_cast<double>(size.width) / nrCols;
+  mSize = size;
+  if(mLegendPosition != LegendPosition::OFF) {
+    mRectWidth = static_cast<double>(size.width - LEGEND_WIDTH) / nrCols;
+  } else {
+    mRectWidth = static_cast<double>(size.width) / nrCols;
+  }
   mRectHeight   = static_cast<double>(size.height) / nrRows;
   auto rectSize = std::min(mRectWidth, mRectHeight);
   mRectWidth    = rectSize;
