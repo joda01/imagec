@@ -41,6 +41,27 @@ void PlotBase::drawCenteredText(cv::Mat &image, const std::string &text, const c
 /// \param[out]
 /// \return
 ///
+void PlotBase::drawLeftAlignedText(cv::Mat &image, const std::string &text, const cv::Rect &rect, int fontFace, double fontScale, int thickness,
+                                   const cv::Scalar &textColor)
+{
+  int baseline      = 0;
+  cv::Size textSize = cv::getTextSize(text, fontFace, fontScale, thickness, &baseline);
+
+  // Compute centered origin
+  int x = rect.x;
+  int y = rect.y + (rect.height + textSize.height) / 2;
+
+  // Draw text
+  cv::putText(image, text, cv::Point(x, y), fontFace, fontScale, textColor, thickness, cv::LINE_AA);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
 cv::Mat PlotBase::buildColorLUT(ColormapName colorMap)
 {
   int colormapType = cv::COLORMAP_VIRIDIS;
@@ -185,13 +206,13 @@ cv::Mat PlotBase::buildColorLUT(ColormapName colorMap)
 /// \param[out]
 /// \return
 ///
-cv::Vec3b PlotBase::mapValueToColor(float value, float vmin, float vmax, const cv::Mat &colorLUT)
+cv::Vec3b PlotBase::mapValueToColor(double value, double vmin, double vmax, const cv::Mat &colorLUT)
 {
   if(value != value) {
     return {255, 255, 255};
   }
   // Normalize value to 0–255 index range
-  float clamped = std::max(vmin, std::min(vmax, value));
+  double clamped = std::max(vmin, std::min(vmax, value));
   if(vmax - vmin == 0) {
     return {255, 255, 255};
   }

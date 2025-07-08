@@ -111,9 +111,11 @@ public:
   virtual void setData(const joda::table::Table &&data) = 0;
 
   static cv::Mat buildColorLUT(ColormapName colorMap);
-  static cv::Vec3b mapValueToColor(float value, float vmin, float vmax, const cv::Mat &colorLUT);
+  static cv::Vec3b mapValueToColor(double value, double vmin, double vmax, const cv::Mat &colorLUT);
   static void drawCenteredText(cv::Mat &image, const std::string &text, const cv::Rect &rect, int fontFace = cv::FONT_HERSHEY_SIMPLEX,
                                double fontScale = 1.0, int thickness = 2, const cv::Scalar &textColor = cv::Scalar(0, 0, 0));
+  static void drawLeftAlignedText(cv::Mat &image, const std::string &text, const cv::Rect &rect, int fontFace = cv::FONT_HERSHEY_SIMPLEX,
+                                  double fontScale = 1.0, int thickness = 2, const cv::Scalar &textColor = cv::Scalar(0, 0, 0));
 };
 
 }    // namespace joda::plot

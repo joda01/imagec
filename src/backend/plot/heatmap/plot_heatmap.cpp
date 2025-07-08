@@ -11,6 +11,7 @@
 
 #include "plot_heatmap.hpp"
 #include <algorithm>
+#include <cstdint>
 #include <iomanip>
 #include <optional>
 #include <sstream>
@@ -49,9 +50,18 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
   if(matSizColsTmp <= 0 || matSizRowsTmp <= 0) {
     return {};
   }
-  cv::Mat plotArea(matSizRowsTmp, matSizColsTmp, CV_8UC3, mBackgroundColor);
+  int32_t plotWidth = matSizColsTmp;
+  if(mLegendPosition != LegendPosition::OFF) {
+    plotWidth += LEGEND_WIDTH;
+  }
+  cv::Mat plotArea(matSizRowsTmp, plotWidth, CV_8UC3, mBackgroundColor);
 
-  auto [min, max] = mData.getMinMax();
+  ColorMappingRange colorMapRange = mColorMapRange;
+  if(mColorMapMode == ColorMappingMode::AUTO) {
+    auto [min, max]   = mData.getMinMax();
+    colorMapRange.min = min;
+    colorMapRange.max = max;
+  }
 
   cv::Mat colorLUT = buildColorLUT(mColorMap);
 
@@ -68,11 +78,10 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
         isValid = tmpData->isValid();
       }
 
-      auto x1      = static_cast<int32_t>(static_cast<double>(col) * mRectWidth);
-      auto y1      = static_cast<int32_t>(static_cast<double>(row) * mRectHeight);
-      auto x2      = static_cast<int32_t>(static_cast<double>(col) * mRectWidth + mRectWidth);
-      auto y2      = static_cast<int32_t>(static_cast<double>(row) * mRectHeight + mRectHeight);
-      double color = ((val - min) * 255) / max;
+      auto x1 = static_cast<int32_t>(static_cast<double>(col) * mRectWidth);
+      auto y1 = static_cast<int32_t>(static_cast<double>(row) * mRectHeight);
+      auto x2 = static_cast<int32_t>(static_cast<double>(col) * mRectWidth + mRectWidth);
+      auto y2 = static_cast<int32_t>(static_cast<double>(row) * mRectHeight + mRectHeight);
 
       int32_t borderPlace = 1;
       if(mRectWidth <= 25) {
@@ -82,13 +91,13 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
       // Plot area
       if(mShape == Shape::RECTANGLE) {
         cv::rectangle(plotArea, {x1 + borderPlace + mGap, y1 + borderPlace + mGap}, {x2 - borderPlace - mGap, y2 - borderPlace - mGap},
-                      mapValueToColor(val, min, max, colorLUT), cv::FILLED);
+                      mapValueToColor(val, colorMapRange.min, colorMapRange.max, colorLUT), cv::FILLED);
       } else {
         cv::ellipse(plotArea, cv::Point((x1 + x2) / 2, (y1 + y2) / 2),                                   // Center
                     cv::Size((x2 - x1) / 2 - borderPlace - mGap, (y2 - y1) / 2 - borderPlace - mGap),    // Axes (radiusX, radiusY)
                     0,                                                                                   // Angle of rotation
                     0, 360,                                                                              // Start and end angle (full ellipse)
-                    mapValueToColor(val, min, max, colorLUT),                                            // Color
+                    mapValueToColor(val, colorMapRange.min, colorMapRange.max, colorLUT),                // Color
                     cv::FILLED, cv::LINE_AA);
       }
       // Plot border
@@ -144,7 +153,71 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
     }
   }
 
+  if(mLegendPosition != LegendPosition::OFF) {
+    plotLegend(colorMapRange, colorLUT, plotArea);
+  }
   return plotArea;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Heatmap::plotLegend(const ColorMappingRange &range, const cv::Mat &colorLUT, cv::Mat &plotArea) const
+{
+  static const int32_t COLOR_STRIP_WITH = 50;
+  int32_t startX                        = plotArea.cols - LEGEND_WIDTH + COLOR_STRIP_WITH;
+  int32_t startY                        = 0;
+  double rectHeight                     = (double) plotArea.rows / (double) UINT8_MAX;
+
+  for(int32_t idx = 0; idx < UINT8_MAX; idx++) {
+    auto color = colorLUT.at<cv::Vec3b>(0, idx);
+
+    cv::rectangle(plotArea, {startX, (int32_t) (startY + idx * rectHeight)},
+                  {startX + COLOR_STRIP_WITH, (int32_t) (startY + rectHeight + idx * rectHeight)}, color, cv::FILLED);
+
+    if(idx == 0 || idx == UINT8_MAX - 1 || idx == UINT8_MAX / 2) {
+      auto y = startY + idx * rectHeight;
+      if(y + 30 >= plotArea.rows) {
+        y = plotArea.rows - 45;
+      }
+      if(idx == UINT8_MAX - 1) {
+        idx = UINT8_MAX;
+      }
+      double value = ((double) idx * ((double) range.max - (double) range.min)) / (double) UINT8_MAX + (double) range.min;
+      cv::Rect rect(startX + COLOR_STRIP_WITH + 4, y, 100, 30);
+      std::ostringstream oss;
+      oss << std::fixed << std::setprecision(mPrecision) << value;
+      PlotBase::drawLeftAlignedText(plotArea, oss.str(), rect, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1);
+    }
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Heatmap::setColorMappingMode(ColorMappingMode mode)
+{
+  mColorMapMode = mode;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Heatmap::setColorMappingRange(ColorMappingRange range)
+{
+  mColorMapRange = range;
 }
 
 ///
@@ -157,6 +230,18 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
 void Heatmap::setBackgroundColor(const cv::Vec3b &bg)
 {
   mBackgroundColor = bg;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Heatmap::setLegendPosition(LegendPosition position)
+{
+  mLegendPosition = position;
 }
 
 ///

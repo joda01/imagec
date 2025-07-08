@@ -16,7 +16,7 @@ TEST_CASE("plot::test:heatmap", "[plot::test:heatmap]")
   joda::table::Table data;
   for(int x = 0; x < 10; x++) {
     for(int y = 0; y < 10; y++) {
-      data.setData(y, x, joda::table::TableCell{(double) x + y, {}, {}});
+      data.setData(y, x, joda::table::TableCell{(double) x + y, {.isValid = true}, {}});
     }
   }
 

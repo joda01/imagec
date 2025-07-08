@@ -38,10 +38,34 @@ public:
     OVAL
   };
 
+  enum class LegendPosition
+  {
+    OFF,
+    LEFT,
+    RIGHT,
+    TOP,
+    BOTTOM
+  };
+
+  enum class ColorMappingMode
+  {
+    AUTO,
+    MANUAL
+  };
+
+  struct ColorMappingRange
+  {
+    double min = 0;
+    double max = 0;
+  };
+
   /////////////////////////////////////////////////////
   auto plot(const Size &size) -> cv::Mat override;
   void setBackgroundColor(const cv::Vec3b &);
+  void setLegendPosition(LegendPosition position);
   void setColorMap(ColormapName colorMap);
+  void setColorMappingMode(ColorMappingMode);
+  void setColorMappingRange(ColorMappingRange);
   void setData(const joda::table::Table &&data) override;
   auto getData() const -> const joda::table::Table &;
   void setPlotLabels(bool);
@@ -54,13 +78,20 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  static const int32_t LEGEND_WIDTH = 200;
+  void plotLegend(const ColorMappingRange &range, const cv::Mat &colorLut, cv::Mat &) const;
+
+  /////////////////////////////////////////////////////
   joda::table::Table mData;
-  cv::Vec3b mBackgroundColor = {0, 0, 0};
-  bool mPlotLabels           = false;
-  int32_t mPrecision         = 0;
-  int32_t mGap               = 0;
-  Shape mShape               = Shape::RECTANGLE;
-  ColormapName mColorMap     = ColormapName::VIRIDIS;
+  cv::Vec3b mBackgroundColor     = {0, 0, 0};
+  bool mPlotLabels               = false;
+  int32_t mPrecision             = 0;
+  int32_t mGap                   = 0;
+  Shape mShape                   = Shape::RECTANGLE;
+  ColormapName mColorMap         = ColormapName::VIRIDIS;
+  ColorMappingMode mColorMapMode = ColorMappingMode::AUTO;
+  ColorMappingRange mColorMapRange;
+  LegendPosition mLegendPosition = LegendPosition::LEFT;
 
   // TEMP ///////////////////////////////////////////////////
   std::optional<Cell> mHighLight;
