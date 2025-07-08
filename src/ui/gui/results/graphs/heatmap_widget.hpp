@@ -38,7 +38,7 @@ public:
   HeatmapWidget(QWidget *parent);
   ~HeatmapWidget() override;
   /////////////////////////////////////////////////////
-  void updateGraph(const joda::table::Table &&data, joda::plot::ColormapName colorMap, bool isImageView);
+  void updateGraph(const joda::table::Table &&data, joda::plot::ColormapName colorMap, bool isPlateView, bool isImageView);
   void exportToPNG(const std::filesystem::path &) const;
   void copyToClipboard() const;
 
