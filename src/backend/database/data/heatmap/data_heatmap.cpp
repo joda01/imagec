@@ -92,6 +92,9 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
     uint64_t groupId = cellData->getGroupId();
     cellData->setRowName(numberToExcelColumn(posY));
     if(tStack == tStackIn) {
+      if(posX <= 0 || posY <= 0) {
+        continue;
+      }
       posX--;    // The maps start counting at 1
       posY--;    // The maps start counting at 1
       if(densityMapSize > 0) {
