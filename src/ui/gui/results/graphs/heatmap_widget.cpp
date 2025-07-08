@@ -24,6 +24,7 @@
 #include "backend/helper/image/image.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/plot/heatmap/plot_heatmap.hpp"
+#include "backend/plot/plot_base.hpp"
 
 namespace joda::ui::gui {
 
@@ -109,7 +110,8 @@ void HeatmapWidget::copyToClipboard() const
 /// \param[out]
 /// \return
 ///
-void HeatmapWidget::updateGraph(const joda::table::Table &&data, joda::plot::ColormapName colorMap, bool isPlateView, bool isImageView)
+void HeatmapWidget::updateGraph(const joda::table::Table &&data, joda::plot::ColormapName colorMap, joda::plot::ColorMappingMode mode,
+                                const joda::plot::ColorMappingRange &range, bool isPlateView, bool isImageView)
 {
   if(isImageView) {
     mHeatmap->setGapsBetweenBoxes(1);
@@ -121,9 +123,23 @@ void HeatmapWidget::updateGraph(const joda::table::Table &&data, joda::plot::Col
   } else {
     mHeatmap->setShape(joda::plot::Heatmap::Shape::RECTANGLE);
   }
+  mHeatmap->setColorMappingMode(mode);
+  mHeatmap->setColorMappingRange(range);
   mHeatmap->setColorMap(colorMap);
   mHeatmap->setData(std::move(data));
   update();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto HeatmapWidget::getColorMapRange() const -> joda::plot::ColorMappingRange
+{
+  return mHeatmap->getColorMapRange();
 }
 
 ///

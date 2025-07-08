@@ -15,6 +15,7 @@
 #include "backend/helper/table/table.hpp"
 #include "backend/plot/plot_base.hpp"
 #include <opencv2/core/mat.hpp>
+
 namespace joda::plot {
 
 ///
@@ -38,27 +39,6 @@ public:
     OVAL
   };
 
-  enum class LegendPosition
-  {
-    OFF,
-    LEFT,
-    RIGHT,
-    TOP,
-    BOTTOM
-  };
-
-  enum class ColorMappingMode
-  {
-    AUTO,
-    MANUAL
-  };
-
-  struct ColorMappingRange
-  {
-    double min = 0;
-    double max = 0;
-  };
-
   /////////////////////////////////////////////////////
   auto plot(const Size &size) -> cv::Mat override;
   void setBackgroundColor(const cv::Vec3b &);
@@ -75,6 +55,7 @@ public:
   void setShape(Shape);
   void setGapsBetweenBoxes(int32_t);
   [[nodiscard]] auto getCellFromCoordinates(double x, double y) const -> std::optional<std::tuple<Cell, joda::table::TableCell>>;
+  auto getColorMapRange() const -> const ColorMappingRange;
 
 private:
   /////////////////////////////////////////////////////

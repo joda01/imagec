@@ -880,8 +880,10 @@ void PanelResults::onFinishedLoading()
   mDockWidgetGraphSettings->setColumns(mActFilter.getColumns());
   auto data = joda::db::data::convertToHeatmap(mActListData.get(), rows, cols, mDockWidgetGraphSettings->getSelectedColumn(),
                                                mFilter.getFilter().tStack, joda::db::data::PlotPlateSettings{.densityMapSize = densityMapSize});
-  mGraphContainer->updateGraph(std::move(data), mDockWidgetGraphSettings->getSelectedColorMap(), mNavigation == Navigation::PLATE,
-                               mNavigation == Navigation::IMAGE);
+
+  mGraphContainer->updateGraph(std::move(data), mDockWidgetGraphSettings->getSelectedColorMap(), mDockWidgetGraphSettings->getColorMapRangeSetting(),
+                               mDockWidgetGraphSettings->getColorMapRange(), mNavigation == Navigation::PLATE, mNavigation == Navigation::IMAGE);
+  mDockWidgetGraphSettings->setColorMapRange(mGraphContainer->getColorMapRange());
 
   // ===============================================
   // Refresh

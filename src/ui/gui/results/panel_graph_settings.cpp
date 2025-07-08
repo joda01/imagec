@@ -28,6 +28,7 @@
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/file_parser/directory_iterator.hpp"
 #include "backend/helper/logger/console_logger.hpp"
+#include "backend/plot/heatmap/plot_heatmap.hpp"
 #include "backend/plot/plot_base.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/settings.hpp"
@@ -47,8 +48,8 @@ PanelGraphSettings::PanelGraphSettings(WindowMain *windowMain) : mWindowMain(win
   auto *layout = new QVBoxLayout();
   layout->setContentsMargins(0, 2, 0, 0);
   centralWidget->setLayout(layout);
-  setMaximumWidth(250);
-  setMinimumWidth(250);
+  setMaximumWidth(350);
+  setMinimumWidth(350);
 
   {
     auto *toolbar = new QToolBar();
@@ -205,9 +206,45 @@ PanelGraphSettings::PanelGraphSettings(WindowMain *windowMain) : mWindowMain(win
     }
     connect(mColorMaps, &QComboBox::currentIndexChanged, [this](int32_t index) { emit settingsChanged(); });
     formLayout->addRow("Colormap:", mColorMaps);
+
+    //
+    // Color map range settings
+    //
+    mColormapRangeSettings = new QComboBox();
+    mColormapRangeSettings->addItem("Automatic", static_cast<int>(joda::plot::ColorMappingMode::AUTO));
+    mColormapRangeSettings->addItem("Manual", static_cast<int>(joda::plot::ColorMappingMode::MANUAL));
+    connect(mColormapRangeSettings, &QComboBox::currentIndexChanged, [this](int32_t index) {
+      if(getColorMapRangeSetting() == joda::plot::ColorMappingMode::AUTO) {
+        mColorMapMinValue->setEnabled(false);
+        mColorMapMaxValue->setEnabled(false);
+      } else {
+        mColorMapMinValue->setEnabled(true);
+        mColorMapMaxValue->setEnabled(true);
+      }
+
+      emit settingsChanged();
+    });
+    formLayout->addRow("Color range option:", mColormapRangeSettings);
+
+    //
+    // Color map range
+    //
+    auto *colorMapRangeLayout = new QHBoxLayout;
+    mColorMapMinValue         = new QLineEdit();
+    mColorMapMinValue->setStatusTip("Color map min value.");
+    mColorMapMaxValue = new QLineEdit();
+    mColorMapMaxValue->setStatusTip("Color map max value.");
+    colorMapRangeLayout->addWidget(mColorMapMinValue);
+    colorMapRangeLayout->addWidget(mColorMapMaxValue);
+    formLayout->addRow(new QLabel(tr("Color range:")), colorMapRangeLayout);
+    mColorMapMinValue->setEnabled(false);
+    mColorMapMaxValue->setEnabled(false);
     formLayout->setContentsMargins(2, 0, 0, 0);
     layout->addLayout(formLayout);
     layout->addStretch();
+
+    connect(mColorMapMinValue, &QLineEdit::editingFinished, [this]() { emit settingsChanged(); });
+    connect(mColorMapMaxValue, &QLineEdit::editingFinished, [this]() { emit settingsChanged(); });
   }
 
   setWidget(centralWidget);
@@ -223,6 +260,46 @@ PanelGraphSettings::PanelGraphSettings(WindowMain *windowMain) : mWindowMain(win
 joda::plot::ColormapName PanelGraphSettings::getSelectedColorMap() const
 {
   return static_cast<joda::plot::ColormapName>(mColorMaps->currentData().toInt());
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto PanelGraphSettings::getColorMapRange() const -> joda::plot::ColorMappingRange
+{
+  return {mColorMapMinValue->text().toDouble(), mColorMapMaxValue->text().toDouble()};
+}
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelGraphSettings::setColorMapRange(const joda::plot::ColorMappingRange &range)
+{
+  mColorMapMinValue->blockSignals(true);
+  mColorMapMaxValue->blockSignals(true);
+  mColorMapMinValue->setText(QString::number(range.min));
+  mColorMapMaxValue->setText(QString::number(range.max));
+  mColorMapMinValue->blockSignals(false);
+  mColorMapMaxValue->blockSignals(false);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto PanelGraphSettings::getColorMapRangeSetting() const -> joda::plot::ColorMappingMode
+{
+  return static_cast<joda::plot::ColorMappingMode>(mColormapRangeSettings->currentData().toInt());
 }
 
 ///

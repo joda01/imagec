@@ -60,12 +60,7 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
   }
   cv::Mat plotArea(matSizRowsTmp, plotWidth, CV_8UC3, mBackgroundColor);
 
-  ColorMappingRange colorMapRange = mColorMapRange;
-  if(mColorMapMode == ColorMappingMode::AUTO) {
-    auto [min, max]   = mData.getMinMax();
-    colorMapRange.min = min;
-    colorMapRange.max = max;
-  }
+  auto colorMapRangeAct = getColorMapRange();
 
   cv::Mat colorLUT = buildColorLUT(mColorMap);
 
@@ -95,13 +90,13 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
       // Plot area
       if(mShape == Shape::RECTANGLE) {
         cv::rectangle(plotArea, {x1 + borderPlace + mGap, y1 + borderPlace + mGap}, {x2 - borderPlace - mGap, y2 - borderPlace - mGap},
-                      mapValueToColor(val, colorMapRange.min, colorMapRange.max, colorLUT), cv::FILLED);
+                      mapValueToColor(val, colorMapRangeAct.min, colorMapRangeAct.max, colorLUT), cv::FILLED);
       } else {
         cv::ellipse(plotArea, cv::Point((x1 + x2) / 2, (y1 + y2) / 2),                                   // Center
                     cv::Size((x2 - x1) / 2 - borderPlace - mGap, (y2 - y1) / 2 - borderPlace - mGap),    // Axes (radiusX, radiusY)
                     0,                                                                                   // Angle of rotation
                     0, 360,                                                                              // Start and end angle (full ellipse)
-                    mapValueToColor(val, colorMapRange.min, colorMapRange.max, colorLUT),                // Color
+                    mapValueToColor(val, colorMapRangeAct.min, colorMapRangeAct.max, colorLUT),          // Color
                     cv::FILLED, cv::LINE_AA);
       }
       // Plot border
@@ -158,7 +153,7 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
   }
 
   if(mLegendPosition != LegendPosition::OFF) {
-    plotLegend(colorMapRange, colorLUT, plotArea);
+    plotLegend(colorMapRangeAct, colorLUT, plotArea);
   }
   return plotArea;
 }
@@ -222,6 +217,23 @@ void Heatmap::setColorMappingMode(ColorMappingMode mode)
 void Heatmap::setColorMappingRange(ColorMappingRange range)
 {
   mColorMapRange = range;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Heatmap::getColorMapRange() const -> const ColorMappingRange
+{
+  if(mColorMapMode == ColorMappingMode::AUTO) {
+    auto [min, max] = mData.getMinMax();
+    return {min, max};
+  } else {
+    return mColorMapRange;
+  }
 }
 
 ///

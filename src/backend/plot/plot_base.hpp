@@ -17,6 +17,27 @@
 
 namespace joda::plot {
 
+enum class LegendPosition
+{
+  OFF,
+  LEFT,
+  RIGHT,
+  TOP,
+  BOTTOM
+};
+
+enum class ColorMappingMode
+{
+  AUTO,
+  MANUAL
+};
+
+struct ColorMappingRange
+{
+  double min = 0;
+  double max = 0;
+};
+
 enum class ColormapName
 {
   ACCENT,
