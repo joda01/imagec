@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <optional>
 #include <utility>
+#include "backend/plot/plot_base.hpp"
 #include "backend/settings/results_settings/results_settings.hpp"
 
 namespace joda::db {
@@ -51,13 +52,12 @@ public:
   {
     return mColumn->currentData().toInt();
   }
-  joda::db::data::ColormapName getSelectedColorMap() const;
+  joda::plot::ColormapName getSelectedColorMap() const;
   void setColumns(const std::map<joda::settings::ResultsSettings::ColumnIdx, joda::settings::ResultsSettings::ColumnKey> &);
 
   auto getWellOrder() const -> std::vector<std::vector<int32_t>>;
   auto getPlateSize() const -> QSize;
   auto getDensityMapSize() const -> uint32_t;
-
   void fromSettings(const std::vector<std::vector<int32_t>> &wellOrder, const QSize &plateSize, uint32_t densityMapSize);
 
 signals:

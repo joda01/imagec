@@ -880,7 +880,7 @@ void PanelResults::onFinishedLoading()
   mDockWidgetGraphSettings->setColumns(mActFilter.getColumns());
   auto data = joda::db::data::convertToHeatmap(mActListData.get(), rows, cols, mDockWidgetGraphSettings->getSelectedColumn(),
                                                mFilter.getFilter().tStack, joda::db::data::PlotPlateSettings{.densityMapSize = densityMapSize});
-  mGraphContainer->updateGraph(std::move(data), mNavigation == Navigation::IMAGE);
+  mGraphContainer->updateGraph(std::move(data), mDockWidgetGraphSettings->getSelectedColorMap(), mNavigation == Navigation::IMAGE);
 
   // ===============================================
   // Refresh
@@ -888,36 +888,6 @@ void PanelResults::onFinishedLoading()
   refreshBreadCrump();
   update();
   QApplication::restoreOverrideCursor();
-}
-
-///
-/// \brief      Export image
-/// \author     Joachim Danmayr
-///
-void PanelResults::onExportImageClicked()
-{
-  /*
-  cv::Rect rectangle;
-  rectangle.x      = mSelectedAreaPos.y * mFilter.densityMapAreaSize;    // Images are mirrored in the coordinates
-  rectangle.y      = mSelectedAreaPos.x * mFilter.densityMapAreaSize;    // Images are mirrored in the coordinates
-  rectangle.width  = mFilter.densityMapAreaSize;
-  rectangle.height = mFilter.densityMapAreaSize;
-
-  auto retImage = joda::results::analyze::plugins::ControlImage::getControlImage(
-      *mAnalyzer, mActImageId, mFilter.channelIdx, mSelectedTileId, rectangle);
-
-  QString filePath =
-      QFileDialog::getSaveFileName(this, "Save File", mAnalyzer->getBasePath().string().data(), "PNG Files (*.png)");
-  if(filePath.isEmpty()) {
-    return;
-  }
-  if(!filePath.endsWith(".png")) {
-    filePath += ".png";
-  }
-  bool isSuccess = cv::imwrite(filePath.toStdString(), retImage);
-
-  QDesktopServices::openUrl(QUrl("file:///" + filePath));
-  */
 }
 
 ///
@@ -1024,7 +994,6 @@ void PanelResults::openNextLevel(const std::vector<table::TableCell> &value)
     mNavigation = static_cast<Navigation>(actMenu);
   } else {
     // An area has been selected within an image -> trigger an export
-    onExportImageClicked();
     return;
   }
   switch(mNavigation) {

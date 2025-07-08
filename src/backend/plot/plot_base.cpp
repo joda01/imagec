@@ -41,8 +41,133 @@ void PlotBase::drawCenteredText(cv::Mat &image, const std::string &text, const c
 /// \param[out]
 /// \return
 ///
-cv::Mat PlotBase::buildColorLUT(int colormapType)
+cv::Mat PlotBase::buildColorLUT(ColormapName colorMap)
 {
+  int colormapType = cv::COLORMAP_VIRIDIS;
+
+  switch(colorMap) {
+    case ColormapName::INFERNO:
+      colormapType = cv::COLORMAP_INFERNO;
+      break;
+    case ColormapName::JET:
+      colormapType = cv::COLORMAP_JET;
+      break;
+    case ColormapName::TURBO:
+      colormapType = cv::COLORMAP_TURBO;
+      break;
+    case ColormapName::MAGMA:
+      colormapType = cv::COLORMAP_MAGMA;
+      break;
+    case ColormapName::PARULA:
+      colormapType = cv::COLORMAP_PARULA;
+      break;
+    case ColormapName::PLASMA:
+      colormapType = cv::COLORMAP_PLASMA;
+      break;
+    case ColormapName::VIRIDIS:
+      colormapType = cv::COLORMAP_VIRIDIS;
+      break;
+    case ColormapName::HSV:
+      colormapType = cv::COLORMAP_HSV;
+      break;
+    case ColormapName::HOT:
+      colormapType = cv::COLORMAP_HOT;
+      break;
+    case ColormapName::COOL:
+      colormapType = cv::COLORMAP_COOL;
+      break;
+    case ColormapName::SPRING:
+      colormapType = cv::COLORMAP_SPRING;
+      break;
+    case ColormapName::SUMMER:
+      colormapType = cv::COLORMAP_SUMMER;
+      break;
+    case ColormapName::AUTUMN:
+      colormapType = cv::COLORMAP_AUTUMN;
+      break;
+    case ColormapName::WINTER:
+      colormapType = cv::COLORMAP_WINTER;
+      break;
+    case ColormapName::BONE:
+      colormapType = cv::COLORMAP_BONE;
+      break;
+    case ColormapName::PINK:
+      colormapType = cv::COLORMAP_PINK;
+      break;
+    case ColormapName::RAINBOW:
+      colormapType = cv::COLORMAP_RAINBOW;
+      break;
+    case ColormapName::OCEAN:
+      colormapType = cv::COLORMAP_OCEAN;
+      break;
+    case ColormapName::COLORMAP_CIVIDIS:
+      colormapType = cv::COLORMAP_CIVIDIS;
+      break;
+    case ColormapName::COLORMAP_TWILIGHT:
+      colormapType = cv::COLORMAP_TWILIGHT;
+      break;
+    case ColormapName::COLORMAP_TWILIGHT_SHIFTED:
+      colormapType = cv::COLORMAP_TWILIGHT_SHIFTED;
+
+      break;
+    case ColormapName::COLORMAP_DEEPGREEN:
+      colormapType = cv::COLORMAP_DEEPGREEN;
+      break;
+
+    case ColormapName::ACCENT:
+    case ColormapName::BLUES:
+    case ColormapName::BRBG:
+    case ColormapName::BUGN:
+    case ColormapName::BUPU:
+    case ColormapName::CHROMAJS:
+    case ColormapName::DARK2:
+    case ColormapName::GNBU:
+    case ColormapName::GNPU:
+    case ColormapName::GREENS:
+    case ColormapName::GREYS:
+    case ColormapName::ORANGES:
+    case ColormapName::ORRD:
+    case ColormapName::PAIRED:
+    case ColormapName::PASTEL1:
+    case ColormapName::PASTEL2:
+    case ColormapName::PIYG:
+
+    case ColormapName::PRGN:
+    case ColormapName::PUBU:
+    case ColormapName::PUBUGN:
+    case ColormapName::PUOR:
+    case ColormapName::PURD:
+    case ColormapName::PURPLES:
+    case ColormapName::RDBU:
+    case ColormapName::BURD:
+    case ColormapName::RDGY:
+    case ColormapName::RDPU:
+    case ColormapName::RDYLBU:
+    case ColormapName::RDYLGN:
+    case ColormapName::REDS:
+    case ColormapName::SAND:
+    case ColormapName::SET1:
+    case ColormapName::SET2:
+    case ColormapName::SET3:
+    case ColormapName::SPECTRAL:
+    case ColormapName::WHYLRD:
+    case ColormapName::YLGN:
+    case ColormapName::YLGNBU:
+    case ColormapName::YLORBR:
+    case ColormapName::YLORRD:
+    case ColormapName::YLRD:
+    case ColormapName::GRAY:
+    case ColormapName::COPPER:
+    case ColormapName::LINES:
+    case ColormapName::COLORCUBE:
+    case ColormapName::PRISM:
+    case ColormapName::FLAG:
+    case ColormapName::WHITE:
+    case ColormapName::DEFAULT_MAP:
+    case ColormapName::DEFAULT_COLORS_MAP:
+      break;
+  }
+
   cv::Mat lut(1, 256, CV_8UC1);    // grayscale ramp 0..255
   for(int i = 0; i < 256; ++i)
     lut.at<uchar>(0, i) = static_cast<uchar>(i);

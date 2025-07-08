@@ -28,6 +28,7 @@
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/file_parser/directory_iterator.hpp"
 #include "backend/helper/logger/console_logger.hpp"
+#include "backend/plot/plot_base.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/settings.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
@@ -120,79 +121,88 @@ PanelGraphSettings::PanelGraphSettings(WindowMain *windowMain) : mWindowMain(win
     //
     // Color map
     //
-    static const std::vector<std::pair<QString, joda::db::data::ColormapName>> items = {
-        {"Accent", joda::db::data::ColormapName::ACCENT},
-        {"Blues", joda::db::data::ColormapName::BLUES},
-        {"BrBG", joda::db::data::ColormapName::BRBG},
-        {"BuGn", joda::db::data::ColormapName::BUGN},
-        {"BuPu", joda::db::data::ColormapName::BUPU},
-        {"ChromaJS", joda::db::data::ColormapName::CHROMAJS},
-        {"Dark2", joda::db::data::ColormapName::DARK2},
-        {"GnBu", joda::db::data::ColormapName::GNBU},
-        {"GnPu", joda::db::data::ColormapName::GNPU},
-        {"Greens", joda::db::data::ColormapName::GREENS},
-        {"Greys", joda::db::data::ColormapName::GREYS},
-        {"Inferno", joda::db::data::ColormapName::INFERNO},
-        {"Jet", joda::db::data::ColormapName::JET},
-        {"Turbo", joda::db::data::ColormapName::TURBO},
-        {"Magma", joda::db::data::ColormapName::MAGMA},
-        {"Oranges", joda::db::data::ColormapName::ORANGES},
-        {"OrRd", joda::db::data::ColormapName::ORRD},
-        {"Paired", joda::db::data::ColormapName::PAIRED},
-        {"Parula", joda::db::data::ColormapName::PARULA},
-        {"Pastel1", joda::db::data::ColormapName::PASTEL1},
-        {"Pastel2", joda::db::data::ColormapName::PASTEL2},
-        {"PiYG", joda::db::data::ColormapName::PIYG},
-        {"Plasma", joda::db::data::ColormapName::PLASMA},
-        {"PRGn", joda::db::data::ColormapName::PRGN},
-        {"PuBu", joda::db::data::ColormapName::PUBU},
-        {"PuBuGn", joda::db::data::ColormapName::PUBUGN},
-        {"PuOr", joda::db::data::ColormapName::PUOR},
-        {"PuRd", joda::db::data::ColormapName::PURD},
-        {"Purples", joda::db::data::ColormapName::PURPLES},
-        {"RdBu", joda::db::data::ColormapName::RDBU},
-        {"BuRd", joda::db::data::ColormapName::BURD},
-        {"RdGy", joda::db::data::ColormapName::RDGY},
-        {"RdPu", joda::db::data::ColormapName::RDPU},
-        {"RdYlBu", joda::db::data::ColormapName::RDYLBU},
-        {"RdYlGn", joda::db::data::ColormapName::RDYLGN},
-        {"Reds", joda::db::data::ColormapName::REDS},
-        {"Sand", joda::db::data::ColormapName::SAND},
-        {"Set1", joda::db::data::ColormapName::SET1},
-        {"Set2", joda::db::data::ColormapName::SET2},
-        {"Set3", joda::db::data::ColormapName::SET3},
-        {"Spectral", joda::db::data::ColormapName::SPECTRAL},
-        {"Viridis", joda::db::data::ColormapName::VIRIDIS},
-        {"WhYlRd", joda::db::data::ColormapName::WHYLRD},
-        {"YlGn", joda::db::data::ColormapName::YLGN},
-        {"YlGnBu", joda::db::data::ColormapName::YLGNBU},
-        {"YlOrBr", joda::db::data::ColormapName::YLORBR},
-        {"YlOrRd", joda::db::data::ColormapName::YLORRD},
-        {"YlRd", joda::db::data::ColormapName::YLRD},
-        {"HSV", joda::db::data::ColormapName::HSV},
-        {"Hot", joda::db::data::ColormapName::HOT},
-        {"Cool", joda::db::data::ColormapName::COOL},
-        {"Spring", joda::db::data::ColormapName::SPRING},
-        {"Summer", joda::db::data::ColormapName::SUMMER},
-        {"Autumn", joda::db::data::ColormapName::AUTUMN},
-        {"Winter", joda::db::data::ColormapName::WINTER},
-        {"Gray", joda::db::data::ColormapName::GRAY},
-        {"Bone", joda::db::data::ColormapName::BONE},
-        {"Copper", joda::db::data::ColormapName::COPPER},
-        {"Pink", joda::db::data::ColormapName::PINK},
-        {"Lines", joda::db::data::ColormapName::LINES},
-        {"Colorcube", joda::db::data::ColormapName::COLORCUBE},
-        {"Prism", joda::db::data::ColormapName::PRISM},
-        {"Flag", joda::db::data::ColormapName::FLAG},
-        {"White", joda::db::data::ColormapName::WHITE},
-        {"Default Map", joda::db::data::ColormapName::DEFAULT_MAP},
-        {"Default Colors Map", joda::db::data::ColormapName::DEFAULT_COLORS_MAP}};
+    static const std::vector<std::pair<QString, joda::plot::ColormapName>> items = {
+        // {"Accent", joda::plot::ColormapName::ACCENT},
+        // {"Blues", joda::plot::ColormapName::BLUES},
+        // {"BrBG", joda::plot::ColormapName::BRBG},
+        // {"BuGn", joda::plot::ColormapName::BUGN},
+        // {"BuPu", joda::plot::ColormapName::BUPU},
+        // {"ChromaJS", joda::plot::ColormapName::CHROMAJS},
+        // {"Dark2", joda::plot::ColormapName::DARK2},
+        // {"GnBu", joda::plot::ColormapName::GNBU},
+        // {"GnPu", joda::plot::ColormapName::GNPU},
+        // {"Greens", joda::plot::ColormapName::GREENS},
+        // {"Greys", joda::plot::ColormapName::GREYS},
+        {"Inferno", joda::plot::ColormapName::INFERNO},    //
+        {"Jet", joda::plot::ColormapName::JET},            //
+        {"Turbo", joda::plot::ColormapName::TURBO},        //
+        {"Magma", joda::plot::ColormapName::MAGMA},        //
+        //{"Oranges", joda::plot::ColormapName::ORANGES},
+        //{"OrRd", joda::plot::ColormapName::ORRD},
+        //{"Paired", joda::plot::ColormapName::PAIRED},
+        {"Parula", joda::plot::ColormapName::PARULA},
+        //{"Pastel1", joda::plot::ColormapName::PASTEL1},
+        //{"Pastel2", joda::plot::ColormapName::PASTEL2},
+        //{"PiYG", joda::plot::ColormapName::PIYG},
+        {"Plasma", joda::plot::ColormapName::PLASMA},
+        //{"PRGn", joda::plot::ColormapName::PRGN},
+        //{"PuBu", joda::plot::ColormapName::PUBU},
+        //{"PuBuGn", joda::plot::ColormapName::PUBUGN},
+        //{"PuOr", joda::plot::ColormapName::PUOR},
+        //{"PuRd", joda::plot::ColormapName::PURD},
+        //{"Purples", joda::plot::ColormapName::PURPLES},
+        //{"RdBu", joda::plot::ColormapName::RDBU},
+        //{"BuRd", joda::plot::ColormapName::BURD},
+        //{"RdGy", joda::plot::ColormapName::RDGY},
+        //{"RdPu", joda::plot::ColormapName::RDPU},
+        //{"RdYlBu", joda::plot::ColormapName::RDYLBU},
+        //{"RdYlGn", joda::plot::ColormapName::RDYLGN},
+        //{"Reds", joda::plot::ColormapName::REDS},
+        //{"Sand", joda::plot::ColormapName::SAND},
+        //{"Set1", joda::plot::ColormapName::SET1},
+        //{"Set2", joda::plot::ColormapName::SET2},
+        //{"Set3", joda::plot::ColormapName::SET3},
+        //{"Spectral", joda::plot::ColormapName::SPECTRAL},
+        {"Viridis", joda::plot::ColormapName::VIRIDIS},
+        //{"WhYlRd", joda::plot::ColormapName::WHYLRD},
+        //{"YlGn", joda::plot::ColormapName::YLGN},
+        //{"YlGnBu", joda::plot::ColormapName::YLGNBU},
+        //{"YlOrBr", joda::plot::ColormapName::YLORBR},
+        //{"YlOrRd", joda::plot::ColormapName::YLORRD},
+        //{"YlRd", joda::plot::ColormapName::YLRD},
+        {"HSV", joda::plot::ColormapName::HSV},          //
+        {"Hot", joda::plot::ColormapName::HOT},          //
+        {"Cool", joda::plot::ColormapName::COOL},        //
+        {"Spring", joda::plot::ColormapName::SPRING},    //
+        {"Summer", joda::plot::ColormapName::SUMMER},    //
+        {"Autumn", joda::plot::ColormapName::AUTUMN},    //
+        {"Winter", joda::plot::ColormapName::WINTER},    //
+        //{"Gray", joda::plot::ColormapName::GRAY},
+        {"Bone", joda::plot::ColormapName::BONE},
+        //{"Copper", joda::plot::ColormapName::COPPER},
+        {"Pink", joda::plot::ColormapName::PINK},
+        //{"Lines", joda::plot::ColormapName::LINES},
+        //{"Colorcube", joda::plot::ColormapName::COLORCUBE},
+        //{"Prism", joda::plot::ColormapName::PRISM},
+        //{"Flag", joda::plot::ColormapName::FLAG},
+        //{"White", joda::plot::ColormapName::WHITE},
+        {"Rainbow", joda::plot::ColormapName::RAINBOW},                                 //
+        {"Ocean", joda::plot::ColormapName::OCEAN},                                     //
+        {"Cividis", joda::plot::ColormapName::COLORMAP_CIVIDIS},                        //
+        {"Twighlight", joda::plot::ColormapName::COLORMAP_TWILIGHT},                    //
+        {"Twighlight shifted", joda::plot::ColormapName::COLORMAP_TWILIGHT_SHIFTED},    //
+        {"Deepgreen", joda::plot::ColormapName::COLORMAP_DEEPGREEN},                    //
+                                                                                        //{"Default Map", joda::plot::ColormapName::DEFAULT_MAP},
+        //{"Default Colors Map", joda::plot::ColormapName::DEFAULT_COLORS_MAP}
+    };
 
     mColorMaps = new QComboBox();
     for(const auto &[label, value] : items) {
       mColorMaps->addItem(label, static_cast<int>(value));
+      if(value == joda::plot::ColormapName::COLORMAP_TWILIGHT) {
+        mColorMaps->setCurrentIndex(mColorMaps->count() - 1);
+      }
     }
-    mColorMaps->setCurrentIndex(30);
     connect(mColorMaps, &QComboBox::currentIndexChanged, [this](int32_t index) { emit settingsChanged(); });
     formLayout->addRow("Colormap:", mColorMaps);
     formLayout->setContentsMargins(2, 0, 0, 0);
@@ -210,9 +220,9 @@ PanelGraphSettings::PanelGraphSettings(WindowMain *windowMain) : mWindowMain(win
 /// \param[out]
 /// \return
 ///
-joda::db::data::ColormapName PanelGraphSettings::getSelectedColorMap() const
+joda::plot::ColormapName PanelGraphSettings::getSelectedColorMap() const
 {
-  return static_cast<joda::db::data::ColormapName>(mColorMaps->currentData().toInt());
+  return static_cast<joda::plot::ColormapName>(mColorMaps->currentData().toInt());
 }
 
 ///

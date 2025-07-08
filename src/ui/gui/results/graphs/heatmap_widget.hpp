@@ -22,6 +22,7 @@
 #include <vector>
 #include "backend/helper/image/image.hpp"
 #include "backend/helper/table/table.hpp"
+#include "backend/plot/plot_base.hpp"
 
 namespace joda::plot {
 class Heatmap;
@@ -37,7 +38,7 @@ public:
   HeatmapWidget(QWidget *parent);
   ~HeatmapWidget() override;
   /////////////////////////////////////////////////////
-  void updateGraph(const joda::table::Table &&data, bool isImageView);
+  void updateGraph(const joda::table::Table &&data, joda::plot::ColormapName colorMap, bool isImageView);
   void exportToPNG(const std::filesystem::path &) const;
   void copyToClipboard() const;
 

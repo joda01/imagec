@@ -109,13 +109,14 @@ void HeatmapWidget::copyToClipboard() const
 /// \param[out]
 /// \return
 ///
-void HeatmapWidget::updateGraph(const joda::table::Table &&data, bool isImageView)
+void HeatmapWidget::updateGraph(const joda::table::Table &&data, joda::plot::ColormapName colorMap, bool isImageView)
 {
   if(isImageView) {
     mHeatmap->setGapsBetweenBoxes(1);
   } else {
     mHeatmap->setGapsBetweenBoxes(4);
   }
+  mHeatmap->setColorMap(colorMap);
   mHeatmap->setData(std::move(data));
   update();
 }

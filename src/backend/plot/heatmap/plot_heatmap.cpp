@@ -53,7 +53,7 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
 
   auto [min, max] = mData.getMinMax();
 
-  cv::Mat colorLUT = buildColorLUT(cv::COLORMAP_VIRIDIS);
+  cv::Mat colorLUT = buildColorLUT(mColorMap);
 
   // =========================================
   // Plot data
@@ -157,6 +157,18 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
 void Heatmap::setBackgroundColor(const cv::Vec3b &bg)
 {
   mBackgroundColor = bg;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Heatmap::setColorMap(ColormapName colorMap)
+{
+  mColorMap = colorMap;
 }
 
 ///

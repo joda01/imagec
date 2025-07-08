@@ -41,6 +41,7 @@ public:
   /////////////////////////////////////////////////////
   auto plot(const Size &size) -> cv::Mat override;
   void setBackgroundColor(const cv::Vec3b &);
+  void setColorMap(ColormapName colorMap);
   void setData(const joda::table::Table &&data) override;
   auto getData() const -> const joda::table::Table &;
   void setPlotLabels(bool);
@@ -59,6 +60,7 @@ private:
   int32_t mPrecision         = 0;
   int32_t mGap               = 0;
   Shape mShape               = Shape::RECTANGLE;
+  ColormapName mColorMap     = ColormapName::VIRIDIS;
 
   // TEMP ///////////////////////////////////////////////////
   std::optional<Cell> mHighLight;

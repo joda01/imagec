@@ -221,7 +221,6 @@ public slots:
   void onFinishedExport();
   void onFinishedLoading();
   void onMarkAsInvalidClicked(bool);
-  void onExportImageClicked();
   void onShowTable();
   void onShowHeatmap();
   void onColumnComboChanged();
