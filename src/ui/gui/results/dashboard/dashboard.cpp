@@ -152,20 +152,6 @@ void Dashboard::copyToClipboard() const
 /// \param[out]
 /// \return
 ///
-void Dashboard::clearLayout()
-{
-  for(QMdiSubWindow *sub : subWindowList()) {
-    sub->close();    // Emits closeEvent, windows get deleted if WA_DeleteOnClose is set
-  }
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
 auto Dashboard::getExportables() const -> std::vector<const exporter::Exportable *>
 {
   std::vector<const exporter::Exportable *> retVal;
@@ -185,6 +171,10 @@ auto Dashboard::getExportables() const -> std::vector<const exporter::Exportable
 ///
 void Dashboard::reset()
 {
+  for(QMdiSubWindow *sub : subWindowList()) {
+    sub->close();    // Emits closeEvent, windows get deleted if WA_DeleteOnClose is set
+    delete sub;
+  }
   mMidiWindows.clear();
   mFirstOpen = true;
 }

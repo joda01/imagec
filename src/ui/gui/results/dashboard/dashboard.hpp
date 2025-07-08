@@ -60,7 +60,6 @@ private:
 
   /////////////////////////////////////////////////////
   void copyTableToClipboard(QTableWidget *table) const;
-  void clearLayout();
   void paintEvent(QPaintEvent *event) override;
 
   /////////////////////////////////////////////////////
