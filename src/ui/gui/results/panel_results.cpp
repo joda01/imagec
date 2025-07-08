@@ -292,12 +292,13 @@ void PanelResults::setActive(bool active)
   if(!active) {
     showToolBar(false);
     mDockWidgetImagePreview->setPlayBackToolbarVisible(false);
+    mShowPreview->setEnabled(true);
     mDockWidgetImagePreview->setVisible(false);
     mDockWidgetImagePreview->resetImage();
     mDockWidgetGraphSettings->setVisible(false);
     mDockWidgetClassList->setVisible(false);
     resetSettings();
-    refreshView();
+    // refreshView();
     mIsActive = active;
     mWindowMain->setSideBarVisible(true);
   }
@@ -309,6 +310,7 @@ void PanelResults::setActive(bool active)
 ///
 void PanelResults::resetSettings()
 {
+  std::lock_guard<std::mutex> lock(mLoadLock);
   mSelectedDataSet.analyzeMeta.reset();
   mSelectedDataSet.imageMeta.reset();
   mSelectedDataSet.value.reset();
@@ -411,6 +413,24 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
     }
   });
   toolbar->addItemToTopToolbar(mClassSelector);
+
+  //
+  // Show preview action
+  //
+  mShowPreview = new QAction(generateSvgIcon("sidebar-expand-right"), "");
+  mShowPreview->setCheckable(true);
+  mShowPreview->setChecked(true);
+  mShowPreview->setToolTip("Show preview");
+  connect(mShowPreview, &QAction::triggered, [this](bool checked) {
+    if(checked) {
+      if(mNavigation == Navigation::IMAGE && !mImageWorkingDirectory.empty()) {
+        mDockWidgetImagePreview->setVisible(true);
+      }
+    } else {
+      mDockWidgetImagePreview->setVisible(false);
+    }
+  });
+  toolbar->addItemToTopToolbar(mShowPreview);
 
   toolbar->addSeparatorToTopToolbar();
 
@@ -516,6 +536,7 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpWell->setVisible(false);
       mBreadCrumpImage->setVisible(false);
       mOpenNextLevel->setVisible(true);
+      mShowPreview->setEnabled(false);
       mDockWidgetImagePreview->setVisible(false);
       mDockWidgetImagePreview->setPlayBackToolbarVisible(false);
       mDockWidgetImagePreview->setFloating(false);
@@ -526,6 +547,7 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpWell->setVisible(true);
       mBreadCrumpImage->setVisible(false);
       mOpenNextLevel->setVisible(true);
+      mShowPreview->setEnabled(false);
       mDockWidgetImagePreview->setVisible(false);
       mDockWidgetImagePreview->setPlayBackToolbarVisible(false);
       mDockWidgetImagePreview->setFloating(false);
@@ -543,8 +565,11 @@ void PanelResults::refreshBreadCrump()
       mOpenNextLevel->setVisible(false);
       mDockWidgetImagePreview->resetMaxtimeStacks();
       if(!mImageWorkingDirectory.empty() && mDashboard->isVisible()) {
-        mDockWidgetImagePreview->setVisible(true);
+        mShowPreview->setEnabled(true);
+        mDockWidgetImagePreview->setVisible(mShowPreview->isChecked());
       } else {
+        mShowPreview->setChecked(false);
+        mShowPreview->setEnabled(false);
         mDockWidgetImagePreview->setVisible(false);
       }
       mDockWidgetImagePreview->setPlayBackToolbarVisible(true);
@@ -606,6 +631,8 @@ void PanelResults::loadPreview()
 
   if(mImageWorkingDirectory.empty()) {
     // No working directory selected. Make the image preview invisible
+    mShowPreview->setEnabled(false);
+    mShowPreview->setChecked(false);
     mDockWidgetImagePreview->setVisible(false);
     mGeneratePreviewMutex.unlock();
     return;
@@ -648,12 +675,16 @@ void PanelResults::loadPreview()
         showDialog = !std::filesystem::exists(imagePath);
       } else {
         if(mImageWorkingDirectory.empty()) {
+          mShowPreview->setEnabled(false);
+          mShowPreview->setChecked(false);
           mDockWidgetImagePreview->setVisible(false);
         }
         mGeneratePreviewMutex.unlock();
         return;
       }
     } else if(msgBox.clickedButton() == dontAskAgainButton) {
+      mShowPreview->setEnabled(false);
+      mShowPreview->setChecked(false);
       mDockWidgetImagePreview->setVisible(false);
       mImageWorkingDirectory.clear();
       mGeneratePreviewMutex.unlock();
@@ -761,6 +792,9 @@ void PanelResults::refreshView()
         joda::log::logTrace("Start refreshing view ...");
 
         std::lock_guard<std::mutex> lock(mLoadLock);
+        if(!mAnalyzer) {
+          return;
+        }
         storeResultsTableSettingsToDatabase();
       REFRESH_VIEW:
         switch(mNavigation) {
@@ -910,6 +944,9 @@ void PanelResults::onMarkAsInvalidClicked(bool isInvalid)
 ///
 void PanelResults::setSelectedElement(table::TableCell value)
 {
+  if(!mAnalyzer) {
+    return;
+  }
   switch(mNavigation) {
     case Navigation::PLATE: {
       mSelectedWellId            = value.getId();

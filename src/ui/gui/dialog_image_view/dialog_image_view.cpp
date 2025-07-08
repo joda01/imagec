@@ -46,7 +46,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QM
     QDockWidget(parent), mImageViewLeft(&mPreviewImages.originalImage, &mPreviewImages.thumbnail, nullptr, true),
     mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, false), mWindowMain(toolbarParent)
 {
-  setWindowTitle("Image view");
+  setWindowTitle("Preview");
   setVisible(false);
   setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 
@@ -422,7 +422,6 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QM
       setMinimumHeight(0);
       setMinimumWidth(500);    // Restore min width when docked
       mCentralLayout->setDirection(QBoxLayout::TopToBottom);
-      setWindowTitle("");
 
       if(mWindowMain != nullptr) {
         mMainLayout->removeWidget(mPlaybackToolbar);
