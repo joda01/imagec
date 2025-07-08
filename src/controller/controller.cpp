@@ -19,7 +19,10 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include "backend/database/data/dashboard/data_dashboard.hpp"
 #include "backend/database/database.hpp"
+#include "backend/database/exporter/r/exporter_r.hpp"
+#include "backend/database/exporter/xlsx/exporter_xlsx.hpp"
 #include "backend/database/query/filter.hpp"
 #include "backend/database/query/query_for_image.hpp"
 #include "backend/database/query/query_for_well.hpp"
@@ -528,7 +531,6 @@ auto Controller::populateClassesFromImage(const joda::ome::OmeInfo &omeInfo, int
 void Controller::exportData(const std::filesystem::path &pathToDbFile, settings::ResultsSettings &filter,
                             const joda::exporter::xlsx::ExportSettings &settings, const std::filesystem::path &outputFilePath)
 {
-  /*
   auto analyzer = std::make_unique<joda::db::Database>();
   analyzer->openDatabase(std::filesystem::path(pathToDbFile.string()));
 
@@ -547,54 +549,60 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, settings:
   joda::log::logInfo("Export started!");
   auto grouping = db::StatsPerGroup::Grouping::BY_IMAGE;
   joda::table::Table dataToExport;
+  int32_t imgWidth  = 0;
+  int32_t imgHeight = 0;
   switch(settings.view) {
-    case ExportSettings::ExportView::PLATE: {
-      grouping = db::StatsPerGroup::Grouping::BY_PLATE;
-      if(ExportSettings::ExportFormat::LIST == settings.format) {
-        dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter, grouping);
-      } else {
-        // dataToExport = joda::db::StatsPerGroup::toHeatmap(analyzer.get(), filter, grouping).at(settings.filter.tStack);
-      }
+    case exporter::xlsx::ExportSettings::ExportView::PLATE: {
+      grouping     = db::StatsPerGroup::Grouping::BY_PLATE;
+      dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter, grouping);
     } break;
-    case ExportSettings::ExportView::WELL:
-      grouping = db::StatsPerGroup::Grouping::BY_WELL;
-      if(ExportSettings::ExportFormat::LIST == settings.format) {
-        dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter, grouping);
-      } else {
-        // dataToExport = joda::db::StatsPerGroup::toHeatmap(analyzer.get(), filter, grouping).at(settings.filter.tStack);
-      }
+    case exporter::xlsx::ExportSettings::ExportView::WELL:
+      grouping     = db::StatsPerGroup::Grouping::BY_WELL;
+      dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter, grouping);
       break;
-    case ExportSettings::ExportView::IMAGE:
-      grouping = db::StatsPerGroup::Grouping::BY_IMAGE;
-      if(ExportSettings::ExportFormat::LIST == settings.format) {
-        dataToExport = joda::db::StatsPerImage::toTable(analyzer.get(), filter);
-      } else {
-        // dataToExport = joda::db::StatsPerImage::toHeatmap(analyzer.get(), filter).at(settings.filter.tStack);
-      }
+    case exporter::xlsx::ExportSettings::ExportView::IMAGE:
+      auto image   = analyzer->selectImageInfo(imageId);
+      imgWidth     = image.width;
+      imgHeight    = image.height;
+      grouping     = db::StatsPerGroup::Grouping::BY_IMAGE;
+      dataToExport = joda::db::StatsPerImage::toTable(analyzer.get(), filter);
       break;
   }
 
   auto experiment                           = analyzer->selectExperiment();
   settings::AnalyzeSettings analyzeSettings = nlohmann::json::parse(experiment.analyzeSettingsJsonString);
 
-  if(settings.type == ExportSettings::ExportType::XLSX) {
-    if(ExportSettings::ExportFormat::HEATMAP == settings.format) {
-        joda::db::BatchExporter::startExportHeatmap(dataToExport, analyzeSettings, experiment.jobName, experiment.timestampStart,
-                                                    experiment.timestampFinish, outputFilePath.string());
-}
-else
-{
-  joda::db::BatchExporter::startExportList(dataToExport, analyzeSettings, experiment.jobName, experiment.timestampStart, experiment.timestampFinish,
-                                           outputFilePath.string());
-}
-}
-else
-{
-  joda::db::RExporter::startExport(filter, grouping, analyzeSettings, experiment.jobName, experiment.timestampStart, experiment.timestampFinish,
-                                   outputFilePath.string());
-}
-joda::log::logInfo("Export finished!");
-*/
+  if(settings.type == exporter::xlsx::ExportSettings::ExportType::XLSX) {
+    if(exporter::xlsx::ExportSettings::ExportFormat::LIST == settings.format) {
+      joda::db::data::Dashboard dashboard;
+      auto colocClasses    = analyzer->selectColocalizingClasses();
+      auto tmp             = std::shared_ptr<joda::table::Table>(&dataToExport, [](joda::table::Table *) { /* no delete */ });
+      auto retValDashboard = dashboard.convert(tmp, colocClasses, settings.view == exporter::xlsx::ExportSettings::ExportView::IMAGE);
+      std::vector<const exporter::Exportable *> retVal;
+      for(const auto &[_, data] : retValDashboard) {
+        retVal.emplace_back(data.get());
+      }
+      joda::exporter::xlsx::Exporter::startExport(retVal, analyzeSettings, experiment.jobName, experiment.timestampStart, experiment.timestampFinish,
+                                                  outputFilePath.string());
+
+    } else if(exporter::xlsx::ExportSettings::ExportFormat::HEATMAP == settings.format) {
+      joda::exporter::xlsx::Exporter::startHeatmapExport({&dataToExport}, analyzeSettings, experiment.jobName, experiment.timestampStart,
+                                                         experiment.timestampFinish, outputFilePath.string(), filter, settings.view, imgHeight,
+                                                         imgWidth);
+    }
+  } else {
+    joda::db::data::Dashboard dashboard;
+    auto colocClasses    = analyzer->selectColocalizingClasses();
+    auto tmp             = std::shared_ptr<joda::table::Table>(&dataToExport, [](joda::table::Table *) { /* no delete */ });
+    auto retValDashboard = dashboard.convert(tmp, colocClasses, settings.view == exporter::xlsx::ExportSettings::ExportView::IMAGE);
+    std::vector<const exporter::Exportable *> retVal;
+    for(const auto &[_, data] : retValDashboard) {
+      retVal.emplace_back(data.get());
+    }
+    joda::exporter::r::Exporter::startExport(retVal, analyzeSettings, experiment.jobName, experiment.timestampStart, experiment.timestampFinish,
+                                             outputFilePath.string());
+  }
+  joda::log::logInfo("Export finished!");
 }
 
 }    // namespace joda::ctrl
