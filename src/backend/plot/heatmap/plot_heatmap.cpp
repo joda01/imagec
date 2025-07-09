@@ -117,9 +117,7 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
       // Plot labels
       if(mPlotLabels && mRectWidth > 50) {
         cv::Rect rect(x1, y1, mRectWidth, mRectHeight);
-        std::ostringstream oss;
-        oss << std::fixed << std::setprecision(mPrecision) << val;
-        PlotBase::drawCenteredText(plotArea, oss.str(), rect, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1);
+        PlotBase::drawCenteredText(plotArea, doubleToString(val, mPrecision), rect, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1);
       }
 
       // Cross out if not valid
@@ -188,9 +186,7 @@ void Heatmap::plotLegend(const ColorMappingRange &range, const cv::Mat &colorLUT
         idx = UINT8_MAX;
       }
       cv::Rect rect(startX + COLOR_STRIP_WITH + 4, y, 100, 30);
-      std::ostringstream oss;
-      oss << std::fixed << std::setprecision(mPrecision) << value;
-      PlotBase::drawLeftAlignedText(plotArea, oss.str(), rect, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1);
+      PlotBase::drawLeftAlignedText(plotArea, doubleToString(value, mPrecision), rect, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1);
     }
   }
 }

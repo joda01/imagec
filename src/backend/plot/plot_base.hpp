@@ -137,6 +137,7 @@ public:
                                double fontScale = 1.0, int thickness = 2, const cv::Scalar &textColor = cv::Scalar(0, 0, 0));
   static void drawLeftAlignedText(cv::Mat &image, const std::string &text, const cv::Rect &rect, int fontFace = cv::FONT_HERSHEY_SIMPLEX,
                                   double fontScale = 1.0, int thickness = 2, const cv::Scalar &textColor = cv::Scalar(0, 0, 0));
+  static std::string doubleToString(double value, int32_t precision);
 };
 
 }    // namespace joda::plot

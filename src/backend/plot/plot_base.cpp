@@ -20,6 +20,31 @@ namespace joda::plot {
 /// \param[out]
 /// \return
 ///
+std::string PlotBase::doubleToString(double value, int32_t precision)
+{
+  std::ostringstream oss;
+
+  // Absolute value for comparison
+  double abs_val = std::abs(value);
+
+  // Use scientific notation if |value| >= 1e5 or |value| < 1e-4 but not zero
+  if((abs_val >= 1e4 || (abs_val > 0 && abs_val < 1e-4))) {
+    oss << std::scientific << std::setprecision(precision);
+  } else {
+    oss << std::fixed << std::setprecision(precision);
+  }
+
+  oss << value;
+  return oss.str();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PlotBase::drawCenteredText(cv::Mat &image, const std::string &text, const cv::Rect &rect, int fontFace, double fontScale, int thickness,
                                 const cv::Scalar &textColor)
 {
