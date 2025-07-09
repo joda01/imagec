@@ -4,6 +4,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include "backend/enums/enum_measurements.hpp"
 #include "backend/helper/table/table.hpp"
 
 namespace joda::db::data {
@@ -98,8 +99,14 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
           if(!cellTmp.has_value()) {
             cellTmp.emplace(cellData);
           }
-          posX = posX / densityMapSize;
-          posY = posY / densityMapSize;
+          posX = std::round((double) posX / (double) densityMapSize);
+          posY = std::round((double) posY / (double) densityMapSize);
+          if(posX >= cols) {
+            posX = cols - 1;
+          }
+          if(posY >= rows) {
+            posY = rows - 1;
+          }
           densityMapVal[{posX, posY}].val += cellData->getVal();
           densityMapVal[{posX, posY}].cnt++;
           densityMapVal[{posX, posY}].tblRow = tblRow;
@@ -115,7 +122,11 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
   //
   if(densityMapSize > 0) {
     for(const auto &[pos, value] : densityMapVal) {
-      double val     = value.val / static_cast<double>(value.cnt);
+      double val = value.val;
+      if(table->columns().at(colToDisplay).colSettings.measureChannel != enums::Measurement::COUNT) {
+        // Only calculate an average if not counting
+        val /= static_cast<double>(value.cnt);
+      }
       uint32_t posY  = pos.posY;
       uint32_t posX  = pos.posX;
       int32_t tblRow = value.tblRow;

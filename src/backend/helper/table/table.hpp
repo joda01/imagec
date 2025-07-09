@@ -157,7 +157,7 @@ public:
 
   [[nodiscard]] bool isNAN() const
   {
-    return std::isnan(value);
+    return std::isnan(value) || std::isinf(value);
   }
 
   uint32_t getPosX() const
