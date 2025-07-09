@@ -60,6 +60,7 @@ QVariant TableModel::headerData(int section, Qt::Orientation orientation, int ro
   if(role != Qt::DisplayRole) {
     return {};
   }
+
   if(orientation == Qt::Orientation::Horizontal) {
     return QString(mTable->getColHeader(section).createHtmlHeader(joda::settings::ResultsSettings::ColumnKey::HeaderStyle::FULL).data());
   }

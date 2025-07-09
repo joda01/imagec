@@ -55,9 +55,6 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
     cols           = 100;
   }
 
-  double mMin = std::numeric_limits<double>::max();
-  double mMax = std::numeric_limits<double>::min();
-
   struct Element
   {
     double val  = 0;
@@ -82,7 +79,7 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
 
   std::optional<joda::table::TableCell> cellTmp;    // Needed for the density map
   for(int32_t tblRow = 0; tblRow < table->getNrOfRows(); tblRow++) {
-    auto cellData = table->data(tblRow, colToDisplay);
+    auto cellData = std::make_shared<joda::table::TableCell>(table->data(tblRow, colToDisplay));
     if(cellData == nullptr) {
       continue;
     }
@@ -118,24 +115,17 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
   // Calc mean and forward to vector
   //
   if(densityMapSize > 0) {
-    for(const auto &mapEntry : densityMapVal) {
-      double val     = mapEntry.second.val / static_cast<double>(mapEntry.second.cnt);
-      uint32_t posY  = mapEntry.first.posY;
-      uint32_t posX  = mapEntry.first.posX;
-      int32_t tblRow = mapEntry.second.tblRow;
+    for(const auto &[pos, value] : densityMapVal) {
+      double val     = value.val / static_cast<double>(value.cnt);
+      uint32_t posY  = pos.posY;
+      uint32_t posX  = pos.posX;
+      int32_t tblRow = value.tblRow;
       if(posX >= 0) {
         if(posY >= 0) {
           if(cellTmp.has_value()) {
             cellTmp->setRowName(numberToExcelColumn(posY + 1));
             cellTmp->setVal(val);
             data.setData(posY, posX, cellTmp.value());
-          }
-
-          if(val < mMin) {
-            mMin = val;
-          }
-          if(val > mMax) {
-            mMax = val;
           }
         }
       }
