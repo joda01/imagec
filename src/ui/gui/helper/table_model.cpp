@@ -13,6 +13,7 @@
 #include <qbrush.h>
 #include <qnamespace.h>
 #include <qtableview.h>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include "backend/enums/enum_measurements.hpp"
@@ -110,7 +111,7 @@ QVariant TableModel::data(const QModelIndex &index, int role) const
     return {};
   }
 
-  auto generateMetaFooter = [](const table::TableCell &rowData) -> QString {
+  auto generateMetaFooter = [](const std::shared_ptr<const joda::table::TableCell> &rowData) -> QString {
     return "";
     /*return "<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " + QString(joda::helper::toBase32(rowData.getObjectId()).data()) + " ⬆ " +
            QString(joda::helper::toBase32(rowData.getParentId()).data()) + "<br> ↔ " +
@@ -148,7 +149,7 @@ void TableModel::setData(const std::shared_ptr<joda::table::Table> table)
 /// \param[out]
 /// \return
 ///
-auto TableModel::getCell(int row, int col) -> const std::shared_ptr<joda::table::TableCell>
+auto TableModel::getCell(int row, int col) -> const std::shared_ptr<const joda::table::TableCell>
 {
   return mTable->data(row, col);
 }

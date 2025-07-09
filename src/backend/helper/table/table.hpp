@@ -82,7 +82,7 @@ public:
     mFormatting = other.mFormatting;
   }
 
-  TableCell(const std::shared_ptr<TableCell> &other)
+  TableCell(const std::shared_ptr<const TableCell> &other)
   {
     value       = other->value;
     mMetaData   = other->mMetaData;
@@ -261,7 +261,8 @@ public:
     return mDataColOrganized;
   }
 
-  [[nodiscard]] std::shared_ptr<TableCell> data(uint32_t row, uint32_t col) const;
+  [[nodiscard]] std::shared_ptr<const TableCell> data(uint32_t row, uint32_t col) const;
+  [[nodiscard]] std::shared_ptr<TableCell> mutableData(uint32_t row, uint32_t col);
 
   void setData(uint32_t row, uint32_t col, const std::shared_ptr<TableCell> &data)
   {

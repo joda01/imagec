@@ -73,7 +73,24 @@ void Table::clear()
 /// \param[out]
 /// \return
 ///
-[[nodiscard]] std::shared_ptr<TableCell> Table::data(uint32_t row, uint32_t col) const
+[[nodiscard]] std::shared_ptr<const TableCell> Table::data(uint32_t row, uint32_t col) const
+{
+  if(mDataColOrganized.contains(col)) {
+    if(mDataColOrganized.at(col).rows.contains(row)) {
+      return mDataColOrganized.at(col).rows.at(row);
+    }
+  }
+  return nullptr;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+[[nodiscard]] std::shared_ptr<TableCell> Table::mutableData(uint32_t row, uint32_t col)
 {
   if(mDataColOrganized.contains(col)) {
     if(mDataColOrganized.at(col).rows.contains(row)) {
