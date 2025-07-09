@@ -173,20 +173,20 @@ void Heatmap::plotLegend(const ColorMappingRange &range, const cv::Mat &colorLUT
   double rectHeight                     = (double) plotArea.rows / (double) UINT8_MAX;
 
   for(int32_t idx = 0; idx < UINT8_MAX; idx++) {
-    auto color = colorLUT.at<cv::Vec3b>(0, idx);
-
+    int32_t colorIdx = UINT8_MAX - idx;
+    auto color       = colorLUT.at<cv::Vec3b>(0, colorIdx);
+    double value     = ((double) colorIdx * ((double) range.max - (double) range.min)) / (double) UINT8_MAX + (double) range.min;
     cv::rectangle(plotArea, {startX, (int32_t) (startY + idx * rectHeight)},
                   {startX + COLOR_STRIP_WITH, (int32_t) (startY + rectHeight + idx * rectHeight)}, color, cv::FILLED);
 
     if(idx == 0 || idx == UINT8_MAX - 1 || idx == UINT8_MAX / 2) {
       auto y = startY + idx * rectHeight;
-      if(y + 30 >= plotArea.rows) {
-        y = plotArea.rows - 45;
+      if(y + 25 >= plotArea.rows) {
+        y = plotArea.rows - 33;
       }
       if(idx == UINT8_MAX - 1) {
         idx = UINT8_MAX;
       }
-      double value = ((double) idx * ((double) range.max - (double) range.min)) / (double) UINT8_MAX + (double) range.min;
       cv::Rect rect(startX + COLOR_STRIP_WITH + 4, y, 100, 30);
       std::ostringstream oss;
       oss << std::fixed << std::setprecision(mPrecision) << value;
