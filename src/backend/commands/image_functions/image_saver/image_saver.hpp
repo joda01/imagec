@@ -17,6 +17,7 @@
 #include "backend/artifacts/roi/roi.hpp"
 #include "backend/commands/command.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
+#include "backend/helper/base32.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
@@ -129,23 +130,6 @@ private:
   static inline cv::Scalar RED    = cv::Scalar(0, 0, 255);
   static inline cv::Scalar GREEN  = cv::Scalar(0, 255, 0);
 
-  std::string toBase36(unsigned long long num)
-  {
-    return std::to_string(num);
-    const char *digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    if(num == 0)
-      return "0";
-
-    std::string result;
-    while(num > 0) {
-      result += digits[num % 36];
-      num /= 36;
-    }
-
-    std::reverse(result.begin(), result.end());
-    return result;
-  }
-
   /////////////////////////////////////////////////////
   void drawObject(processor::ProcessContext &context, const settings::ImageSaverSettings::SaveClasss &settings, const atom::ROI &roi,
                   cv::Mat &imageOut)
@@ -191,12 +175,12 @@ private:
         if(settings.paintObjectId) {
           auto scale   = getFontScaleFromHeight(cv::FONT_HERSHEY_PLAIN, 12);
           int baseline = 0;
-          auto tSize   = cv::getTextSize(toBase36(roi.getObjectId()), cv::FONT_HERSHEY_PLAIN, 1, 0, &baseline);
+          auto tSize   = cv::getTextSize(helper::toBase32(roi.getObjectId()), cv::FONT_HERSHEY_PLAIN, 1, 0, &baseline);
 
           if(left + tSize.width > imageOut.cols) {
             left = left - tSize.width;
           }
-          cv::putText(imageOut, toBase36(roi.getObjectId()), cv::Point(left, top), cv::FONT_HERSHEY_PLAIN, 1, areaColor, 0);
+          cv::putText(imageOut, helper::toBase32(roi.getObjectId()), cv::Point(left, top), cv::FONT_HERSHEY_PLAIN, 1, areaColor, 0);
         }
       }
     }
