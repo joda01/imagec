@@ -62,7 +62,8 @@ public:
         {{.key = joda::settings::ObjectTransformSettings::Function::SCALE, .label = "Scale (factor=scale)", .icon = {}},
          {.key = joda::settings::ObjectTransformSettings::Function::SNAP_AREA, .label = "Snap area (factor=snap area size)", .icon = {}},
          {.key = joda::settings::ObjectTransformSettings::Function::MIN_CIRCLE, .label = "Min. circle (factor=min radius)", .icon = {}},
-         {.key = joda::settings::ObjectTransformSettings::Function::EXACT_CIRCLE, .label = "Draw circle (factor=radius)", .icon = {}}});
+         {.key = joda::settings::ObjectTransformSettings::Function::EXACT_CIRCLE, .label = "Draw circle (factor=radius)", .icon = {}},
+         {.key = joda::settings::ObjectTransformSettings::Function::FIT_ELLIPSE, .label = "Fit ellipse (factor=scale)", .icon = {}}});
     mFunction->setValue(settings.function);
     mFunction->connectWithSetting(&settings.function);
 

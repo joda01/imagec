@@ -665,6 +665,112 @@ void ROI::drawCircle(float radius)
 }
 
 ///
+/// \brief  Resizes the ROI based on the given scale factors
+/// \author Joachim Danmayr
+/// \todo   If there were still intensity measurements they are not valid any more for the new size what should happen?
+///
+void ROI::fitEllipse()
+{
+  if(mIsNull || mBoundingBoxReal.width <= 0 || mBoundingBoxReal.height <= 0) {
+    return;
+  }
+
+  cv::RotatedRect ellipseBox;
+  if(mMaskContours.size() >= 5) {    // fitEllipse needs at least 5 points
+    ellipseBox = cv::fitEllipse(mMaskContours);
+  } else {
+    float radius = std::max(getBoundingBoxTile().width, getBoundingBoxTile().height);
+    drawCircle(radius);
+    return;
+  }
+
+  // Compute the new size
+  cv::Size newSize(static_cast<int>(ellipseBox.boundingRect().width), static_cast<int>(ellipseBox.boundingRect().height));
+  if(newSize.height <= 0) {
+    newSize.height = 1;
+  }
+  if(newSize.width <= 0) {
+    newSize.width = 1;
+  }
+
+  // Resize the image
+  cv::Mat scaledImage = cv::Mat::zeros(newSize, CV_8UC1);
+  cv::resize(mMask, scaledImage, newSize);
+  mMask = scaledImage;
+
+  auto oldCentroid = mCentroid;
+  auto newCentroid = ellipseBox.center;    // calcCentroid(mMask);
+
+  auto scaleBoundingBox = [&](Boxes &box, const cv::Size &imgSize) -> std::pair<int32_t, int32_t> {
+    std::pair<int32_t, int32_t> centroidOffset = {0, 0};
+    int32_t widthDif                           = newCentroid.x - oldCentroid.x;
+    int32_t heightDif                          = newCentroid.y - oldCentroid.y;
+
+    int32_t moveX = std::ceil(static_cast<float>(widthDif) / 1.0);
+    int32_t moveY = std::ceil(static_cast<float>(heightDif) / 1.0);
+
+    box.x = box.x - moveX;
+    if(box.x < 0) {
+      box.width            = box.width + box.x;
+      centroidOffset.first = box.x;
+      box.x                = 0;
+    }
+    if(box.x > imgSize.width) {
+      box.x = imgSize.width;
+    }
+    box.y = box.y - moveY;
+    if(box.y < 0) {
+      box.height            = box.height + box.y;
+      centroidOffset.second = box.y;
+      box.y                 = 0;
+    }
+    if(box.y > imgSize.height) {
+      box.y = imgSize.height;
+    }
+
+    box.width = newSize.width;
+    if((box.x + box.width) > imgSize.width) {
+      box.width = box.width - ((box.x + box.width) - imgSize.width);
+    }
+
+    box.height = newSize.height;
+    if((box.y + box.height) > imgSize.height) {
+      box.height = box.height - ((box.y + box.height) - imgSize.height);
+    }
+    return centroidOffset;
+  };
+  auto centroidOffset = scaleBoundingBox(mBoundingBoxTile, mImageSize);
+  scaleBoundingBox(mBoundingBoxReal, mOriginalImageSize);
+
+  // Circle parameters
+  mMask = 0;
+  cv::ellipse(mMask, ellipseBox, cv::Scalar{255}, -1);
+
+  // Crop
+  cv::Rect crop(0, 0, mBoundingBoxTile.width, mBoundingBoxTile.height);
+  mMask = mMask(crop).clone();
+
+  std::vector<std::vector<cv::Point>> contours;
+  std::vector<cv::Vec4i> hierarchy;
+  cv::findContours(mMask, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
+
+  if(!contours.empty()) {
+    for(int i = 0; i < contours.size(); i++) {
+      // Do not paint a contour for elements inside an element.
+      // In other words if there is a particle with a hole, ignore the hole.
+      // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html
+      if(hierarchy[i][3] == -1) {
+        mMaskContours = contours[i];
+      }
+    }
+  }
+  mAreaSize    = static_cast<double>(calcAreaSize());
+  mPerimeter   = getTracedPerimeter(mMaskContours);
+  mCircularity = calcCircularity();
+  mCentroid    = calcCentroid(mMask);
+}
+
+///
 /// \brief      Assigns the linked object id of this ROI to all ROIS in the mLinkedWith list.
 ///             If the linked object ID is zero a new one is generated.
 ///             If a linked id is given as parameter this ID is used for the linked objects.

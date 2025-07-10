@@ -319,6 +319,7 @@ public:
 
   void resize(float scaleX, float scaleY);
   void drawCircle(float radius);
+  void fitEllipse();
   void addLinkedRoi(ROI *linked)
   {
     mLinkedWith.emplace(linked);
