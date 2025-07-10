@@ -45,7 +45,6 @@ DialogOpenTemplate::DialogOpenTemplate(const std::set<std::string> &directories,
   mTableTemplates->setShowGrid(false);
   mTableTemplates->setStyleSheet("QTableView::item { border-top: 0px solid black; border-bottom: 1px solid gray; }");
   mTableTemplates->verticalHeader()->setMinimumSectionSize(36);
-  mTableTemplates->verticalHeader()->setDefaultSectionSize(36);
   mTableTemplates->installEventFilter(this);
 
   connect(mTableTemplates, &QTableWidget::cellDoubleClicked, [&](int row, int column) {
@@ -194,6 +193,7 @@ void DialogOpenTemplate::loadTemplates()
                       .path        = "empty",
                       .icon        = generateSvgIcon("document-new").pixmap(16, 16)},
                      "");
+  mTableTemplates->setRowHeight(0, 35);
 
   std::string actGroup = "basic";
   for(const auto &[_, dataInCategory] : foundTemplates) {
@@ -242,10 +242,20 @@ int DialogOpenTemplate::addTemplateToTable(const joda::templates::TemplateParser
   mTableTemplates->insertRow(newRow);
 
   QString text;
+  QString author       = "<i><span style='color:gray;'>" + QString(data.author.value_or("").data()) + "</span></i>";
+  QString organization = "<i><span style='color:gray;'>" + QString(data.organization.value_or("").data()) + "</span></i>";
+
   if(!data.description.empty()) {
     text = QString(data.title.data()) + "<br/><span style='color:gray;'><i>" + QString(data.description.data()) + "</i></span>";
   } else {
     text = QString(data.title.data());
+  }
+  if(!data.author.value_or("").empty() && !data.organization.value_or("").empty()) {
+    text += "<br>" + author + ", " + organization;
+  } else if(!data.author.value_or("").empty()) {
+    text += "<br>" + author;
+  } else if(!data.organization.value_or("").empty()) {
+    text += "<br>" + organization;
   }
 
   // Set the icon in the first column
@@ -268,6 +278,8 @@ int DialogOpenTemplate::addTemplateToTable(const joda::templates::TemplateParser
   auto *vectorIndex = new QTableWidgetItem();
   vectorIndex->setText(std::to_string(mTemplateList.size() - 1).data());
   mTableTemplates->setItem(newRow, 0, vectorIndex);
+  mTableTemplates->setRowHeight(newRow, 55);
+
   return 1;
 }
 

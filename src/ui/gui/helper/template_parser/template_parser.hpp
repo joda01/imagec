@@ -45,6 +45,8 @@ public:
     std::string path;
     std::vector<std::string> tags;
     QPixmap icon;
+    std::optional<std::string> author;
+    std::optional<std::string> organization;
   };
 
   static void saveTemplate(const joda::settings::Pipeline &data, const std::filesystem::path &pathToStoreTemplateIn);

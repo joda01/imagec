@@ -33,6 +33,7 @@ public:
   QLineEdit *mCategory;
   QLineEdit *mTags;
   QLineEdit *mAuthor;
+  QLineEdit *mOrganization;
 
   explicit DialogSaveProjectTemplate(QWidget *parent = nullptr) : QDialog(parent)
   {
@@ -51,7 +52,8 @@ public:
     mCategory = new QLineEdit;
     mTags     = new QLineEdit;
     mTags->setPlaceholderText("tag1;tag2");
-    mAuthor = new QLineEdit;
+    mAuthor       = new QLineEdit;
+    mOrganization = new QLineEdit;
 
     formLayout->addRow("Name:", mName);
     formLayout->addRow("Notes:", mNotes);
@@ -60,6 +62,7 @@ public:
     formLayout->addRow("Category:", mCategory);
     formLayout->addRow("Tags:", mTags);
     formLayout->addRow("Author:", mAuthor);
+    formLayout->addRow("Organization:", mOrganization);
 
     mainLayout->addLayout(formLayout);
 
@@ -93,13 +96,19 @@ public:
       author = mAuthor->text().toStdString();
     }
 
-    return joda::settings::SettingsMeta{.name     = mName->text().toStdString(),
-                                        .notes    = mNotes->text().toStdString(),
-                                        .revision = mVersion->text().toStdString(),
-                                        .group    = mGroup->currentData().toString().toStdString(),
-                                        .category = category,
-                                        .tags     = convertToStdVector(mTags->text()),
-                                        .author   = author};
+    std::optional<std::string> organization;
+    if(!mOrganization->text().isEmpty()) {
+      organization = mOrganization->text().toStdString();
+    }
+
+    return joda::settings::SettingsMeta{.name         = mName->text().toStdString(),
+                                        .notes        = mNotes->text().toStdString(),
+                                        .revision     = mVersion->text().toStdString(),
+                                        .group        = mGroup->currentData().toString().toStdString(),
+                                        .category     = category,
+                                        .tags         = convertToStdVector(mTags->text()),
+                                        .author       = author,
+                                        .organization = organization};
   }
 };
 

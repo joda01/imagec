@@ -56,12 +56,14 @@ auto TemplateParser::findTemplates(const std::set<std::string> &directories, con
             if(group == "Userdefined") {
               title += " (" + entry.path().filename().string() + ")";
             }
-            templates[group].emplace(name, Data{.group       = group,
-                                                .title       = title,
-                                                .description = settings.meta.notes,
-                                                .path        = entry.path().string(),
-                                                .tags        = settings.meta.tags,
-                                                .icon        = base64ToQPixmap(settings.meta.icon)});
+            templates[group].emplace(name, Data{.group        = group,
+                                                .title        = title,
+                                                .description  = settings.meta.notes,
+                                                .path         = entry.path().string(),
+                                                .tags         = settings.meta.tags,
+                                                .icon         = base64ToQPixmap(settings.meta.icon),
+                                                .author       = settings.meta.author,
+                                                .organization = settings.meta.organization});
           } catch(const std::exception &ex) {
             std::cout << "Error " << ex.what() << std::endl;
           }
