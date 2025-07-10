@@ -384,7 +384,7 @@ private:
 
   const cv::Size mImageSize;
   const cv::Size mOriginalImageSize;
-  double mAreaSize;      ///< size of the masking area [px^2 / px^3]
+  double mAreaSize;      ///< size of the masking area [px^2 ]
   float mPerimeter;      ///< Perimeter (boundary size) [px]
   float mCircularity;    ///< Circularity of the masking area [0-1]
   cv::Point mCentroid;

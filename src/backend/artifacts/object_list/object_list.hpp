@@ -126,12 +126,12 @@ public:
   }
 
 private:
-  ROI &emplace(const ROI &box)
+  const ROI &emplace(const ROI &box)
   {
     return insertIntoGrid(box);
   }
 
-  ROI &push_back(const ROI &box)
+  const ROI &push_back(const ROI &box)
   {
     return insertIntoGrid(box);
   }
@@ -158,8 +158,15 @@ private:
   unordered_map<pair<int, int>, std::vector<ROI *>, PairHash> grid;
   int mCellSize;
 
-  ROI &insertIntoGrid(const ROI &boxIn)
+  const ROI &insertIntoGrid(const ROI &boxIn)
   {
+    // If class id is none, do not enter the ROI
+    if(boxIn.getClassId() == enums::ClassId::NONE) {
+      return boxIn;
+    }
+    /// \todo generate an object ID
+
+    //
     ROI cloned       = boxIn.clone();
     const auto &rect = cloned.getBoundingBoxTile();
     int min_x        = rect.x;
@@ -203,12 +210,12 @@ class SpheralIndexStandAlone : public SpheralIndex
 public:
   using SpheralIndex::SpheralIndex;
 
-  ROI &emplace(const ROI &box)
+  const ROI &emplace(const ROI &box)
   {
     return SpheralIndex::insertIntoGrid(box);
   }
 
-  ROI &push_back(const ROI &box)
+  const ROI &push_back(const ROI &box)
   {
     return SpheralIndex::insertIntoGrid(box);
   }
@@ -223,9 +230,11 @@ public:
       SpheralIndex idx{};
       operator[](roi.getClassId())->cloneFromOther(idx);
     }
-    auto &inserted = at(roi.getClassId())->emplace(roi);
-    std::lock_guard<std::mutex> lock(mInsertLock);
-    objectsOrderedByObjectId[roi.getObjectId()] = &inserted;
+    const auto &inserted = at(roi.getClassId())->emplace(roi);
+    if(inserted.getClassId() != enums::ClassId::NONE && 0 != inserted.getObjectId()) {
+      std::lock_guard<std::mutex> lock(mInsertLock);
+      objectsOrderedByObjectId[inserted.getObjectId()] = &inserted;
+    }
   }
 
   void erase(const ROI *roi)
