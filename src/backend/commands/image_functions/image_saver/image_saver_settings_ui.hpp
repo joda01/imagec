@@ -50,6 +50,17 @@ public:
 
       //
       //
+      canvas = SettingBase::create<SettingComboBox<settings::ImageSaverSettings::Canvas>>(parent, {}, "Canvas");
+      canvas->setDefaultValue(settings::ImageSaverSettings::Canvas::IMAGE_$);
+      canvas->addOptions(
+          {{.key = settings::ImageSaverSettings::Canvas::IMAGE_$, .label = "Image", .icon = generateSvgIcon("color-mode-invert-image")},
+           {.key = settings::ImageSaverSettings::Canvas::WHITE, .label = "White", .icon = generateSvgIcon("color-mode-invert-image")},
+           {.key = settings::ImageSaverSettings::Canvas::BLACK, .label = "Black", .icon = generateSvgIcon("color-mode-invert-image")}});
+      canvas->setValue(settings.canvas);
+      canvas->connectWithSetting(&settings.canvas);
+
+      //
+      //
       style = SettingBase::create<SettingComboBox<settings::ImageSaverSettings::Style>>(parent, {}, "Style");
       style->setDefaultValue(settings::ImageSaverSettings::Style::OUTLINED);
       style->addOptions({{.key = settings::ImageSaverSettings::Style::OUTLINED, .label = "Outlined", .icon = generateSvgIcon("fill-color")},
@@ -94,7 +105,7 @@ public:
     }
 
     addSetting(tab, "Input classes", {{classesIn.get(), true, 0}, {mImageNamePrefix.get(), true, 0}});
-    addSetting(tab, "Style", {{style.get(), false, 0}, {boundingBox.get(), false, 0}, {objectId.get(), false, 0}});
+    addSetting(tab, "Style", {{canvas.get(), false, 0}, {style.get(), false, 0}, {boundingBox.get(), false, 0}, {objectId.get(), false, 0}});
 
     connect(style.get(), &SettingBase::valueChanged, this, &ImageSaver::onChange);
     connect(classesIn.get(), &SettingBase::valueChanged, this, &ImageSaver::onChange);
@@ -107,6 +118,7 @@ private:
   std::unique_ptr<SettingLineEdit<std::string>> mImageNamePrefix;
   std::unique_ptr<SettingComboBoxMultiClassificationIn> classesIn;
   std::unique_ptr<SettingComboBox<settings::ImageSaverSettings::Style>> style;
+  std::unique_ptr<SettingComboBox<settings::ImageSaverSettings::Canvas>> canvas;
   std::unique_ptr<SettingComboBox<bool>> boundingBox;
   std::unique_ptr<SettingComboBox<bool>> objectId;
 
