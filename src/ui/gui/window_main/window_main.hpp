@@ -134,7 +134,7 @@ private:
   };
 
   /////////////////////////////////////////////////////
-  static constexpr int32_t LEFT_TOOLBAR_WIDTH = 400;    // 365
+  static constexpr int32_t LEFT_TOOLBAR_WIDTH = 350;    // 365
 
   /////////////////////////////////////////////////////
   enum class Navigation
