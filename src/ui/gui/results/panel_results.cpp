@@ -269,10 +269,19 @@ PanelResults::PanelResults(WindowMain *windowMain) :
     }
     loadPreview();
   });
+
+  mPreviewThread = std::make_unique<std::thread>(&PanelResults::previewThread, this);
 }
 
 PanelResults::~PanelResults()
 {
+  mStopped = true;
+  mPreviewQue.stop();
+  if(mPreviewThread != nullptr) {
+    if(mPreviewThread->joinable()) {
+      mPreviewThread->join();
+    }
+  }
 }
 
 void PanelResults::valueChangedEvent()
@@ -649,6 +658,70 @@ bool PanelResults::showSelectWorkingDir(const QString &path)
 /// \param[out]
 /// \return
 ///
+void PanelResults::previewThread()
+{
+  while(!mStopped) {
+    auto previewData = mPreviewQue.pop();
+
+    auto &previewResult = mDockWidgetImagePreview->getPreviewObject();
+
+    try {
+      mDockWidgetImagePreview->setWaiting(true);
+      int32_t tileWidth      = previewData.analyzeMeta.tileWidth;
+      int32_t tileHeight     = previewData.analyzeMeta.tileHeight;
+      int32_t series         = previewData.analyzeMeta.series;
+      const auto &objectInfo = previewData.objectInfo;
+      int32_t tileXNr        = objectInfo.measCenterX / tileWidth;
+      int32_t tileYNr        = objectInfo.measCenterY / tileHeight;
+      int32_t resolution     = 0;
+
+      ctrl::Controller::loadImage(previewData.imagePath, series,
+                                  joda::image::reader::ImageReader::Plane{.z = static_cast<int32_t>(objectInfo.stackZ),
+                                                                          .c = static_cast<int32_t>(objectInfo.stackC),
+                                                                          .t = static_cast<int32_t>(objectInfo.stackT)},
+                                  joda::ome::TileToLoad{tileXNr, tileYNr, tileWidth, tileHeight}, previewResult, mImgProps, objectInfo,
+                                  mDockWidgetImagePreview->getSelectedZProjection());
+
+      auto imgWidth    = mImgProps.getImageInfo(series).resolutions.at(0).imageWidth;
+      auto imageHeight = mImgProps.getImageInfo(series).resolutions.at(0).imageHeight;
+      if(imgWidth > tileWidth || imageHeight > tileHeight) {
+        tileWidth  = tileWidth;
+        tileHeight = tileHeight;
+      } else {
+        tileWidth  = imgWidth;
+        tileHeight = imageHeight;
+      }
+      auto [tileNrX, tileNrY] = mImgProps.getImageInfo(series).resolutions.at(resolution).getNrOfTiles(tileWidth, tileHeight);
+
+      auto measBoxX = objectInfo.measBoxX - tileXNr * tileWidth;
+      auto measBoxY = objectInfo.measBoxY - tileYNr * tileHeight;
+      QRect boungingBox{(int32_t) measBoxX, (int32_t) measBoxY, (int32_t) objectInfo.measBoxWidth, (int32_t) objectInfo.measBoxHeight};
+      mDockWidgetImagePreview->setCrossHairCursorPositionAndCenter(boungingBox);
+      mDockWidgetImagePreview->setThumbnailPosition(PanelImageView::ThumbParameter{.nrOfTilesX          = tileNrX,
+                                                                                   .nrOfTilesY          = tileNrY,
+                                                                                   .tileWidth           = tileWidth,
+                                                                                   .tileHeight          = tileHeight,
+                                                                                   .originalImageWidth  = imgWidth,
+                                                                                   .originalImageHeight = imageHeight,
+                                                                                   .selectedTileX       = tileXNr,
+                                                                                   .selectedTileY       = tileYNr});
+      mDockWidgetImagePreview->imageUpdated(previewResult.results, {});
+
+    } catch(const std::exception &ex) {
+      // No image selected
+      joda::log::logError("Preview error: " + std::string(ex.what()));
+    }
+    mDockWidgetImagePreview->setWaiting(false);
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelResults::loadPreview()
 {
   if(!mGeneratePreviewMutex.try_lock()) {
@@ -718,64 +791,11 @@ void PanelResults::loadPreview()
     }
   }
 
+  mPreviewQue.push({.imagePath   = imagePath,
+                    .analyzeMeta = mSelectedDataSet.analyzeMeta.value(),
+                    .imageMeta   = mSelectedDataSet.imageMeta.value(),
+                    .objectInfo  = mSelectedDataSet.objectInfo.value()});
   mGeneratePreviewMutex.unlock();
-  std::thread([this, imagePath = imagePath]() {
-    mLoadLock.lock();
-    try {
-      mDockWidgetImagePreview->setWaiting(true);
-      int32_t tileWidth  = mSelectedDataSet.analyzeMeta->tileWidth;
-      int32_t tileHeight = mSelectedDataSet.analyzeMeta->tileHeight;
-
-      int32_t series     = mSelectedDataSet.analyzeMeta->series;
-      int32_t resolution = 0;
-
-      const auto &objectInfo = mSelectedDataSet.objectInfo.value();
-      int32_t tileXNr        = objectInfo.measCenterX / tileWidth;
-      int32_t tileYNr        = objectInfo.measCenterY / tileHeight;
-
-      auto &previewResult = mDockWidgetImagePreview->getPreviewObject();
-
-      auto log = std::to_string(tileXNr) + "," + std::to_string(tileYNr) + "," + std::to_string(tileWidth) + "," + std::to_string(tileHeight) + "," +
-                 std::to_string(objectInfo.stackC);
-      joda::log::logTrace("Preview for image >" + imagePath.string() + "< " + log);
-
-      ctrl::Controller::loadImage(imagePath, series,
-                                  joda::image::reader::ImageReader::Plane{.z = static_cast<int32_t>(objectInfo.stackZ),
-                                                                          .c = static_cast<int32_t>(objectInfo.stackC),
-                                                                          .t = static_cast<int32_t>(objectInfo.stackT)},
-                                  joda::ome::TileToLoad{tileXNr, tileYNr, tileWidth, tileHeight}, previewResult, mImgProps, objectInfo,
-                                  mDockWidgetImagePreview->getSelectedZProjection());
-      auto imgWidth    = mImgProps.getImageInfo(series).resolutions.at(0).imageWidth;
-      auto imageHeight = mImgProps.getImageInfo(series).resolutions.at(0).imageHeight;
-      if(imgWidth > tileWidth || imageHeight > tileHeight) {
-        tileWidth  = tileWidth;
-        tileHeight = tileHeight;
-      } else {
-        tileWidth  = imgWidth;
-        tileHeight = imageHeight;
-      }
-      auto [tileNrX, tileNrY] = mImgProps.getImageInfo(series).resolutions.at(resolution).getNrOfTiles(tileWidth, tileHeight);
-
-      auto measBoxX = objectInfo.measBoxX - tileXNr * tileWidth;
-      auto measBoxY = objectInfo.measBoxY - tileYNr * tileHeight;
-      QRect boungingBox{(int32_t) measBoxX, (int32_t) measBoxY, (int32_t) objectInfo.measBoxWidth, (int32_t) objectInfo.measBoxHeight};
-      mDockWidgetImagePreview->setCrossHairCursorPositionAndCenter(boungingBox);
-      mDockWidgetImagePreview->setThumbnailPosition(PanelImageView::ThumbParameter{.nrOfTilesX          = tileNrX,
-                                                                                   .nrOfTilesY          = tileNrY,
-                                                                                   .tileWidth           = tileWidth,
-                                                                                   .tileHeight          = tileHeight,
-                                                                                   .originalImageWidth  = imgWidth,
-                                                                                   .originalImageHeight = imageHeight,
-                                                                                   .selectedTileX       = tileXNr,
-                                                                                   .selectedTileY       = tileYNr});
-      mDockWidgetImagePreview->imageUpdated(previewResult.results, {});
-    } catch(const std::exception &ex) {
-      // No image selected
-      joda::log::logError("Preview error: " + std::string(ex.what()));
-    }
-    mLoadLock.unlock();
-    mDockWidgetImagePreview->setWaiting(false);
-  }).detach();
 }
 
 ///

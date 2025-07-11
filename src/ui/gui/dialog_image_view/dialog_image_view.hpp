@@ -46,6 +46,10 @@ public:
   {
     return mPreviewImages;
   }
+  joda::ctrl::Preview *getPreviewObjectPtr()
+  {
+    return &mPreviewImages;
+  }
   void setThumbnailPosition(const PanelImageView::ThumbParameter &param)
   {
     mImageViewLeft.setThumbnailPosition(param);

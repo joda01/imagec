@@ -4,6 +4,8 @@
 /// \date      2024-10-04
 ///
 
+#pragma once
+
 // C++ implementation of the above approach
 #include <condition_variable>
 #include <iostream>

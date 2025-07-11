@@ -28,6 +28,7 @@
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/helper/table/table.hpp"
+#include "backend/helper/thread_safe_queue.hpp"
 #include "controller/controller.hpp"
 #include "ui/gui/container/panel_edit_base.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
@@ -199,10 +200,23 @@ private:
   /// CLASSES DOCK ////////////////////////////////////////////
   PanelClassificationList *mDockWidgetClassList;
 
+  /// PREVIEW /////////////////////////////////////////////////
+  struct PreviewData
+  {
+    std::filesystem::path imagePath;
+    db::AnalyzeMeta analyzeMeta;
+    db::ImageInfo imageMeta;
+    db::ObjectInfo objectInfo;
+  };
+  joda::TSQueue<PreviewData> mPreviewQue;
+
+  void previewThread();
+  std::unique_ptr<std::thread> mPreviewThread;
+
   /////////////////////////////////////////////////////
   uint64 mActGroupId = 0;
   std::set<uint64_t> mActImageId;
-
+  bool mStopped = false;
   uint64_t mSelectedWellId;
   uint64_t mSelectedImageId;
   uint32_t mSelectedTileId;
