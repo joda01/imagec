@@ -12,6 +12,7 @@
 #pragma once
 
 #include <qcombobox.h>
+#include <qtableview.h>
 #include <qtmetamacros.h>
 #include <qwidget.h>
 #include <QtWidgets>
@@ -28,6 +29,7 @@ namespace joda::ui::gui {
 class WindowMain;
 class PanelPipelineSettings;
 class DialogCommandSelection;
+class TableModelPipeline;
 
 ///
 /// \class
@@ -41,7 +43,7 @@ class PanelPipeline : public QWidget
 public:
   /////////////////////////////////////////////////////
   explicit PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSettings &settings);
-  void addElement(std::unique_ptr<PanelPipelineSettings> baseContainer, void *pointerToSettings);
+  void addElement(std::unique_ptr<PanelPipelineSettings> baseContainer);
   void erase(PanelPipelineSettings *toRemove);
   void clear();
   void loadTemplates();
@@ -50,7 +52,7 @@ public:
   void addChannel(const joda::settings::Pipeline &settings);
   void addChannel(const QString &pathToSettings);
   void addChannel(const nlohmann::json &json);
-  auto getPipelineWidgets() -> std::map<std::unique_ptr<PanelPipelineSettings>, void *> &
+  auto getPipelineWidgets() -> std::set<std::unique_ptr<PanelPipelineSettings>> &
   {
     return mChannels;
   }
@@ -58,13 +60,13 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  [[nodiscard]] auto getSelectedPipeline() const -> PanelPipelineSettings *;
   void onAddChannel(const QString &path);
-  void movePipelineToPosition(const QWidget *widgetToMove, size_t fromPos, size_t newPos);
+  void movePipelineToPosition(size_t fromPos, size_t newPos);
 
   /////////////////////////////////////////////////////
-  PlaceholderTableWidget *mPipelineTable;
-  std::map<std::unique_ptr<PanelPipelineSettings>, void *> mChannels;    // The second value is the pointer to the array entry in the AnalyzeSettings
+  QTableView *mPipelineTable;
+  TableModelPipeline *mTableModel;
+  std::set<std::unique_ptr<PanelPipelineSettings>> mChannels;    // The second value is the pointer to the array entry in the AnalyzeSettings
   WindowMain *mWindowMain;
   joda::settings::AnalyzeSettings &mAnalyzeSettings;
   std::shared_ptr<DialogCommandSelection> mCommandSelectionDialog;
@@ -74,7 +76,8 @@ private:
   QMenu *mTemplatesMenu;
 
 private slots:
-  void openSelectedPipeline();
+  void openSelectedPipeline(const QModelIndex &current, const QModelIndex &previous);
+  void openSelectedPipelineSettings(const QModelIndex &current);
   void moveUp();
   void moveDown();
 };

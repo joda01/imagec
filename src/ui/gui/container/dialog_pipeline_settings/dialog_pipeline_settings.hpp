@@ -1,0 +1,63 @@
+///
+/// \file      dialog_pipeline_settings.hpp
+/// \author    Joachim Danmayr
+/// \date      2025-07-11
+///
+/// \copyright Copyright 2019 Joachim Danmayr
+///            This software is licensed for **non-commercial** use only.
+///            Educational, research, and personal use are permitted.
+///            For **Commercial** please contact the copyright owner.
+///
+
+#pragma once
+
+#include <qcombobox.h>
+#include <qdialog.h>
+#include <qlineedit.h>
+#include <qtextedit.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
+#include "backend/enums/types.hpp"
+#include "backend/processor/initializer/pipeline_settings.hpp"
+#include "ui/gui/container/setting/setting_combobox_classes_out.hpp"
+#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/container/setting/setting_spinbox.hpp"
+#include "ui/gui/container/setting/setting_text_edit.hpp"
+
+namespace joda::ui::gui {
+
+class WindowMain;
+
+///
+/// \class
+/// \author     Joachim Danmayr
+/// \brief
+///
+class DialogPipelineSettings : public QDialog
+{
+  Q_OBJECT
+
+public:
+  /////////////////////////////////////////////////////
+  DialogPipelineSettings(joda::settings::PipelineSettings &settings, WindowMain *parent);
+
+private:
+  void fromSettings();
+  void toSettings();
+
+  /////////////////////////////////////////////////////
+  joda::settings::PipelineSettings &mSettings;
+
+  QLineEdit *mPipelineName;
+  QTextEdit *mPipelineNotes;
+  QLineEdit *mCStackIndex;
+  QComboBox *zProjection;
+  QLineEdit *zStackIndex;
+  QLineEdit *tStackIndex;
+  QComboBox *defaultClassId;
+
+private slots:
+  /////////////////////////////////////////////////////
+  void onZProjectionChanged();
+};
+}    // namespace joda::ui::gui

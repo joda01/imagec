@@ -50,10 +50,6 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QM
   setVisible(false);
   setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 
-  // Set initial size constraints
-  setMaximumWidth(500);    // Max width when docked
-  setMinimumWidth(500);    // Min width even when docked
-
   mImageViewRight.setShowPipelineResults(true);
 
   auto *mainContainer = new QWidget();
@@ -405,12 +401,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QM
   // Connect signal to detect docking/floating changes
   connect(this, &QDockWidget::topLevelChanged, this, [this](bool floating) {
     if(floating) {
-      setMaximumWidth(10000);    // Remove max width cap
-      setMinimumWidth(1200);     // Wider when floating
-      setMinimumHeight(600);
       mCentralLayout->setDirection(QBoxLayout::LeftToRight);
-      resize(1300, 700);
-
       if(mWindowMain != nullptr) {
         mWindowMain->removeToolBar(mPlaybackToolbar);
         mMainLayout->addWidget(mPlaybackToolbar);
@@ -418,9 +409,6 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QM
       }
 
     } else {
-      setMaximumWidth(500);    // Restrict width when docked
-      setMinimumHeight(0);
-      setMinimumWidth(500);    // Restore min width when docked
       mCentralLayout->setDirection(QBoxLayout::TopToBottom);
 
       if(mWindowMain != nullptr) {

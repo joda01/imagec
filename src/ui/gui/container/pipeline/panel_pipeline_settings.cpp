@@ -38,6 +38,7 @@
 #include "ui/gui/container/command/factory.hpp"
 #include "ui/gui/container/container_base.hpp"
 #include "ui/gui/container/dialog_command_selection/dialog_command_selection.hpp"
+#include "ui/gui/container/dialog_pipeline_settings/dialog_pipeline_settings.hpp"
 #include "ui/gui/container/pipeline/dialog_history.hpp"
 #include "ui/gui/container/setting/setting_combobox.hpp"
 #include "ui/gui/container/setting/setting_line_edit.hpp"
@@ -72,8 +73,6 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   setObjectName("PanelPipelineSettings");
   auto *tab = mLayout.addTab(
       "", [] {}, false);
-  createSettings(tab, wm);
-
   mDialogHistory = new DialogHistory(wm, this);
 
   {
@@ -163,12 +162,6 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   mActionDisabled = mLayout.addActionButton("Disable pipeline", generateSvgIcon("view-hidden"));
   mActionDisabled->setStatusTip("Temporary disable this pipeline");
   mActionDisabled->setCheckable(true);
-  connect(mActionDisabled, &QAction::triggered, [this](bool checked) {
-    mSettings.disabled = checked;
-    if(mOverview != nullptr) {
-      mOverview->update();
-    }
-  });
   connect(mActionDisabled, &QAction::triggered, this, &PanelPipelineSettings::valueChangedEvent);
 
   //
@@ -189,6 +182,19 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   onClassificationNameChanged();
 
   mPreviewThread = std::make_unique<std::thread>(&PanelPipelineSettings::previewThread, this);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::openPipelineSettings()
+{
+  auto *dialog = new DialogPipelineSettings(mSettings.pipelineSetup, mWindowMain);
+  dialog->exec();
 }
 
 ///
@@ -312,108 +318,6 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete, bool upda
       return;
     }
   }
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelPipelineSettings::createSettings(helper::TabWidget *tab, WindowMain *windowMain)
-{
-  //
-  //
-  pipelineName = SettingBase::create<SettingLineEdit<std::string>>(windowMain, generateSvgIcon("text-field"), "Pipeline name", 15);
-  pipelineName->setPlaceholderText("Name");
-  pipelineName->setMaxLength(30);
-  pipelineName->connectWithSetting(&mSettings.meta.name);
-
-  //
-  //
-  cStackIndex = generateCStackCombo<SettingComboBox<int32_t>>("Image channel", windowMain, "Empty");
-  cStackIndex->setDefaultValue(-1);
-  cStackIndex->connectWithSetting(&mSettings.pipelineSetup.cStackIndex);
-  connect(cStackIndex.get(), &SettingBase::valueChanged, [this]() {
-    if(nullptr != mTopAddCommandButton) {
-      if(cStackIndex->getValue() == -1) {
-        mTopAddCommandButton->setInOutBefore(InOuts::ALL);
-      } else {
-        mTopAddCommandButton->setInOutBefore(InOuts::ALL);
-      }
-    }
-  });
-
-  //
-  //
-  zProjection = generateZProjection(false, windowMain);
-  zProjection->connectWithSetting(&mSettings.pipelineSetup.zProjection);
-
-  //
-  //
-  //
-  zStackIndex = generateStackIndexCombo(false, "Z-Channel", windowMain);
-  zStackIndex->connectWithSetting(&mSettings.pipelineSetup.zStackIndex);
-
-  //
-  //
-  //
-  tStackIndex = generateStackIndexCombo(false, "T-Channel", windowMain);
-  tStackIndex->connectWithSetting(&mSettings.pipelineSetup.tStackIndex);
-
-  //
-  //
-  defaultClassId = SettingBase::create<SettingComboBoxClassesOutN>(windowMain, generateSvgIcon("shapes"), "Output class", 10);
-  defaultClassId->setWithMemory(false);
-  defaultClassId->setWithDefault(false);
-  defaultClassId->classsNamesChanged();
-  defaultClassId->addOptions({
-      {enums::ClassId::UNDEFINED, "Undefined"}, {enums::ClassId::C0, "Class C0"},   {enums::ClassId::C1, "Class C1"},
-      {enums::ClassId::C2, "Class C2"},         {enums::ClassId::C3, "Class C3"},   {enums::ClassId::C4, "Class C4"},
-      {enums::ClassId::C5, "Class C5"},         {enums::ClassId::C6, "Class C6"},   {enums::ClassId::C7, "Class C7"},
-      {enums::ClassId::C8, "Class C8"},         {enums::ClassId::C9, "Class C9"},   {enums::ClassId::C10, "Class C10"},
-      {enums::ClassId::C11, "Class C11"},       {enums::ClassId::C12, "Class C12"}, {enums::ClassId::C13, "Class C13"},
-      {enums::ClassId::C14, "Class C14"},       {enums::ClassId::C15, "Class C15"}, {enums::ClassId::C16, "Class C16"},
-      {enums::ClassId::C17, "Class C17"},       {enums::ClassId::C18, "Class C18"}, {enums::ClassId::C19, "Class C19"},
-      {enums::ClassId::C20, "Class C20"},       {enums::ClassId::C21, "Class C21"}, {enums::ClassId::C22, "Class C22"},
-      {enums::ClassId::C23, "Class C23"},       {enums::ClassId::C24, "Class C24"}, {enums::ClassId::C25, "Class C25"},
-      {enums::ClassId::C26, "Class C26"},       {enums::ClassId::C27, "Class C27"}, {enums::ClassId::C28, "Class C28"},
-      {enums::ClassId::C29, "Class C29"},       {enums::ClassId::C30, "Class C30"}, {enums::ClassId::C31, "Class C31"},
-      {enums::ClassId::C32, "Class C32"},
-  });
-  defaultClassId->connectWithSetting(&mSettings.pipelineSetup.defaultClassId);
-  defaultClassId->classsNamesChanged();
-
-  //
-  //
-  pipelineNotes = SettingBase::create<SettingTextEdit>(windowMain, {}, "", 15);
-  pipelineNotes->setPlaceholderText("Notes on the pipeline ...");
-  pipelineNotes->connectWithSetting(&mSettings.meta.notes);
-
-  //
-  // Connect signals
-  //
-  connect(pipelineName.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::metaChangedEvent);
-  connect(pipelineNotes.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::metaChangedEvent);
-  connect(cStackIndex.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
-  connect(zProjection.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
-  connect(zProjection.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::onZProjectionChanged);
-  connect(zStackIndex.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
-  connect(tStackIndex.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
-  connect(defaultClassId.get(), &joda::ui::gui::SettingBase::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
-
-  {
-    auto *col1 = tab->addVerticalPanel();
-    col1->addGroup("Pipeline", {pipelineName.get(), defaultClassId.get()});
-    col1->addGroup("Pipeline input", {cStackIndex.get(), zProjection.get(), zStackIndex.get(), tStackIndex.get()});
-    col1->addGroup({pipelineNotes.get()});
-  }
-
-  mOverview = new PanelChannelOverview(windowMain, this);
-
-  // Widget must first be added to layout before changing the visibility
-  onZProjectionChanged();
 }
 
 ///
@@ -740,11 +644,6 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   mSettings.disabled = settings.disabled;
   mSettings.locked   = settings.locked;
 
-  pipelineName->setValue(settings.meta.name);
-  pipelineNotes->setValue(settings.meta.notes);
-  cStackIndex->setValue(settings.pipelineSetup.cStackIndex);
-  zProjection->setValue(settings.pipelineSetup.zProjection);
-  defaultClassId->setValue(settings.pipelineSetup.defaultClassId);
   mActionDisabled->setChecked(settings.disabled);
 
   //
@@ -761,7 +660,7 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   }
 
   if(nullptr != mTopAddCommandButton) {
-    if(cStackIndex->getValue() == -1) {
+    if(settings.pipelineSetup.cStackIndex == -1) {
       mTopAddCommandButton->setInOutBefore(InOuts::ALL);
     } else {
       mTopAddCommandButton->setInOutBefore(InOuts::ALL);
@@ -771,7 +670,6 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   QTimer::singleShot(500, this, [this]() { mLoadingSettings = false; });
 
   updatePreview();
-  onZProjectionChanged();
   mDialogHistory->loadHistory();
   mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
 }
@@ -785,12 +683,7 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
 ///
 void PanelPipelineSettings::toSettings()
 {
-  mSettings.disabled                     = mActionDisabled->isChecked();
-  mSettings.meta.name                    = pipelineName->getValue();
-  mSettings.meta.notes                   = pipelineNotes->getValue();
-  mSettings.pipelineSetup.cStackIndex    = cStackIndex->getValue();
-  mSettings.pipelineSetup.zProjection    = zProjection->getValue();
-  mSettings.pipelineSetup.defaultClassId = defaultClassId->getValue();
+  mSettings.disabled = mActionDisabled->isChecked();
 }
 
 ///
@@ -841,22 +734,6 @@ void PanelPipelineSettings::deletePipeline()
 void PanelPipelineSettings::onClassificationNameChanged()
 {
   valueChangedEvent();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelPipelineSettings::onZProjectionChanged()
-{
-  if(zProjection->getValue() == enums::ZProjection::NONE) {
-    zStackIndex->getEditableWidget()->setVisible(true);
-  } else {
-    zStackIndex->getEditableWidget()->setVisible(false);
-  }
 }
 
 ///

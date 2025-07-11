@@ -115,7 +115,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   //
   //
   {
-    mPreviewImage = new DialogImageViewer(this, true, this);
+    mPreviewImage = new DialogImageViewer(this, false, this);
     mPreviewImage->setVisible(false);
     mPreviewImage->setContentsMargins(0, 0, 0, 0);
     mPreviewImage->resetImage();
@@ -744,7 +744,7 @@ bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
         //
         if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld) || saveAs) {
           if(createHistoryEntry) {
-            for(const auto &[pip, _] : mPanelPipeline->getPipelineWidgets()) {
+            for(const auto &pip : mPanelPipeline->getPipelineWidgets()) {
               if(pip) {
                 pip->pipelineSavedEvent();
               }

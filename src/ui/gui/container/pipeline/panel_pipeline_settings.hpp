@@ -21,7 +21,6 @@
 #include "backend/settings/analze_settings.hpp"
 #include "ui/gui/container/command/command.hpp"
 #include "ui/gui/container/container_base.hpp"
-#include "ui/gui/container/pipeline/panel_channel_overview.hpp"
 #include "ui/gui/container/setting/setting_combobox.hpp"
 #include "ui/gui/container/setting/setting_combobox_classes_out.hpp"
 #include "ui/gui/container/setting/setting_line_edit.hpp"
@@ -73,11 +72,6 @@ public:
     return mSettings;
   }
 
-  QWidget *getOverviewPanel() override
-  {
-    return mOverview;
-  }
-
   QWidget *getEditPanel() override
   {
     return this;
@@ -92,13 +86,13 @@ public:
   void fromSettings(const joda::settings::Pipeline &settings);
   void clearPipeline();
   void pipelineSavedEvent();
+  void openPipelineSettings();
 
 private:
   /////////////////////////////////////////////////////
   static constexpr int32_t PREVIEW_BASE_SIZE = 450;
 
   /////////////////////////////////////////////////////
-  void createSettings(helper::TabWidget *, WindowMain *windowMain);
   void openTemplate();
   void saveAsTemplate();
   void previewThread();
@@ -111,13 +105,6 @@ private:
 
   /////////////////////////////////////////////////////
   helper::LayoutGenerator mLayout;
-  std::unique_ptr<SettingLineEdit<std::string>> pipelineName;
-  std::unique_ptr<SettingTextEdit> pipelineNotes;
-  std::unique_ptr<SettingComboBox<int32_t>> cStackIndex;
-  std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjection;
-  std::unique_ptr<SettingSpinBox<int32_t>> zStackIndex;
-  std::unique_ptr<SettingSpinBox<int32_t>> tStackIndex;
-  std::unique_ptr<SettingComboBoxClassesOutN> defaultClassId;
 
   /////////////////////////////////////////////////////
   DialogHistory *mDialogHistory;
@@ -138,9 +125,6 @@ private:
   int32_t mLastSelectedPreviewSize = 0;
   int32_t mSelectedTileX           = 0;
   int32_t mSelectedTileY           = 0;
-
-  // joda::ctrl::Preview mPreviewObject;
-  PanelChannelOverview *mOverview;
   joda::settings::Pipeline &mSettings;
 
   struct PreviewJob
@@ -174,7 +158,6 @@ private slots:
   void closeWindow();
   void deletePipeline();
   void onClassificationNameChanged();
-  void onZProjectionChanged();
 };
 
 }    // namespace joda::ui::gui

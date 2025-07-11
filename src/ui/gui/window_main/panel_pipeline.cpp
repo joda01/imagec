@@ -25,9 +25,11 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "ui/gui/container/dialog_command_selection/dialog_command_selection.hpp"
-#include "ui/gui/container/pipeline/panel_channel_overview.hpp"
 #include "ui/gui/container/pipeline/panel_pipeline_settings.hpp"
+#include "ui/gui/container/pipeline/table_model_pipeline.hpp"
 #include "ui/gui/helper/droppable_widget/droppable_widget.hpp"
+#include "ui/gui/helper/html_delegate.hpp"
+#include "ui/gui/helper/html_header.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/pipeline_overview_delegate.hpp"
 #include "ui/gui/helper/template_parser/template_parser.hpp"
@@ -108,19 +110,21 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
 
   // Create a widget to hold the panels
   {
-    mPipelineTable = new PlaceholderTableWidget(0, 1);
-    mPipelineTable->setPlaceholderText("Press the + button to add a pipeline.");
+    mPipelineTable = new QTableView(this);
+    mPipelineTable->setHorizontalHeader(new HtmlHeaderView(Qt::Horizontal));
+    mPipelineTable->setItemDelegate(new HtmlDelegate(mPipelineTable));
     mPipelineTable->verticalHeader()->setVisible(false);
     mPipelineTable->horizontalHeader()->setVisible(false);
-    mPipelineTable->setHorizontalHeaderLabels({"Pipeline"});
     mPipelineTable->setAlternatingRowColors(true);
     mPipelineTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-    mPipelineTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    mPipelineTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    mTableModel = new TableModelPipeline(mPipelineTable);
+    mTableModel->setData(&settings.pipelines);
+    mPipelineTable->setModel(mTableModel);
+    connect(mPipelineTable->selectionModel(), &QItemSelectionModel::currentChanged,
+            [&](const QModelIndex &current, const QModelIndex &previous) { openSelectedPipeline(current, previous); });
 
-    connect(mPipelineTable, &QTableWidget::itemSelectionChanged, [&]() { openSelectedPipeline(); });
-
-    // auto *delegate = new PipelineOverviewDelegate(mPipelineTable);
-    // mPipelineTable->setItemDelegateForColumn(0, delegate);    // Set the delegate for the desired column
+    connect(mPipelineTable, &QTableView::doubleClicked, [this](const QModelIndex &index) { openSelectedPipelineSettings(index); });
   }
 
   mCommandSelectionDialog = std::make_shared<DialogCommandSelection>(mWindowMain);
@@ -148,16 +152,16 @@ void PanelPipeline::unselectPipeline()
 /// \param[out]
 /// \return
 ///
-auto PanelPipeline::getSelectedPipeline() const -> PanelPipelineSettings *
+void PanelPipeline::openSelectedPipeline(const QModelIndex &current, const QModelIndex &previous)
 {
-  int selectedRow = mPipelineTable->currentRow();
-
+  auto selectedRow = current.row();
   if(selectedRow >= 0) {
-    auto *item = ((PanelChannelOverview *) mPipelineTable->cellWidget(selectedRow, 0))->mutableParentContainer();
-    return item;
+    for(const auto &pipeline : mChannels) {
+      if(&pipeline->mutablePipeline() == mTableModel->getCell(selectedRow)) {
+        mWindowMain->showPanelPipelineSettingsEdit(pipeline.get());
+      }
+    }
   }
-
-  return nullptr;
 }
 
 ///
@@ -167,11 +171,16 @@ auto PanelPipeline::getSelectedPipeline() const -> PanelPipelineSettings *
 /// \param[out]
 /// \return
 ///
-void PanelPipeline::openSelectedPipeline()
+void PanelPipeline::openSelectedPipelineSettings(const QModelIndex &current)
 {
-  auto *selected = getSelectedPipeline();
-  if(selected != nullptr) {
-    mWindowMain->showPanelPipelineSettingsEdit(selected);
+  auto selectedRow = current.row();
+  if(selectedRow >= 0) {
+    for(const auto &pipeline : mChannels) {
+      if(&pipeline->mutablePipeline() == mTableModel->getCell(selectedRow)) {
+        pipeline->openPipelineSettings();
+        return;
+      }
+    }
   }
 }
 
@@ -240,13 +249,10 @@ void PanelPipeline::onAddChannel(const QString &path)
 /// \param[out]
 /// \return
 ///
-void PanelPipeline::addElement(std::unique_ptr<PanelPipelineSettings> baseContainer, void *pointerToSettings)
+void PanelPipeline::addElement(std::unique_ptr<PanelPipelineSettings> baseContainer)
 {
-  auto newRow = mPipelineTable->rowCount();
-  mPipelineTable->insertRow(newRow);
-  mPipelineTable->setCellWidget(newRow, 0, baseContainer->getOverviewPanel());
-  // mContentWidget->getLayout()->addWidget(baseContainer->getOverviewPanel());
-  mChannels.emplace(std::move(baseContainer), pointerToSettings);
+  mChannels.emplace(std::move(baseContainer));
+  mTableModel->refresh();
 }
 
 ///
@@ -261,27 +267,16 @@ void PanelPipeline::erase(PanelPipelineSettings *toRemove)
   if(toRemove != nullptr) {
     toRemove->setActive(false);
     // Find the iterator to the element using the pointer
-    auto it = std::find_if(mChannels.begin(), mChannels.end(), [&toRemove](std::pair<const std::unique_ptr<PanelPipelineSettings>, void *> &entry) {
-      return entry.first.get() == toRemove;
-    });
+    auto it = std::find_if(mChannels.begin(), mChannels.end(),
+                           [&toRemove](const std::unique_ptr<PanelPipelineSettings> &entry) { return entry.get() == toRemove; });
 
     if(it != mChannels.end()) {
-      void *elementInSettings = it->second;
-
+      void *elementInSettings = &it->get()->mutablePipeline();
       mAnalyzeSettings.pipelines.remove_if([&elementInSettings](const joda::settings::Pipeline &item) { return &item == elementInSettings; });
-
-      int32_t row = 0;
-      for(; row < mPipelineTable->rowCount(); row++) {
-        if(mPipelineTable->cellWidget(row, 0) == toRemove->getOverviewPanel()) {
-          break;
-        }
-      }
-
-      mPipelineTable->removeRow(row);
-      toRemove->getOverviewPanel()->setParent(nullptr);
       mChannels.erase(it);
       mWindowMain->checkForSettingsChanged();
     }
+    mTableModel->refresh();
   }
 }
 
@@ -294,8 +289,8 @@ void PanelPipeline::erase(PanelPipelineSettings *toRemove)
 ///
 void PanelPipeline::clear()
 {
-  mPipelineTable->setRowCount(0);
   mChannels.clear();
+  mTableModel->refresh();
 }
 
 ///
@@ -312,7 +307,7 @@ void PanelPipeline::addChannel(const joda::settings::Pipeline &settings)
   auto panel1      = std::make_unique<PanelPipelineSettings>(mWindowMain, mWindowMain->getPreviewDock(), newlyAdded, mCommandSelectionDialog);
   panel1->fromSettings(settings);
   panel1->toSettings();
-  addElement(std::move(panel1), &newlyAdded);
+  addElement(std::move(panel1));
 }
 
 ///
@@ -366,15 +361,19 @@ void PanelPipeline::addChannel(const nlohmann::json &json)
 ///
 void PanelPipeline::moveUp()
 {
-  mPipelineTable->blockSignals(true);
-  auto rowAct  = mPipelineTable->currentRow();
-  auto *widget = mPipelineTable->cellWidget(rowAct, 0);
-  auto newPos  = rowAct - 1;
-  if(newPos < 0) {
-    return;
+  QItemSelectionModel *selectionModel = mPipelineTable->selectionModel();
+  if(selectionModel->hasSelection()) {
+    QModelIndex index = selectionModel->selectedRows().first();
+
+    mPipelineTable->blockSignals(true);
+    auto rowAct = index.row();
+    auto newPos = rowAct - 1;
+    if(newPos < 0) {
+      return;
+    }
+    movePipelineToPosition(rowAct, newPos);
+    mPipelineTable->blockSignals(false);
   }
-  movePipelineToPosition(widget, rowAct, newPos);
-  mPipelineTable->blockSignals(false);
 }
 
 ///
@@ -386,15 +385,18 @@ void PanelPipeline::moveUp()
 ///
 void PanelPipeline::moveDown()
 {
-  mPipelineTable->blockSignals(true);
-  auto rowAct  = mPipelineTable->currentRow();
-  auto *widget = mPipelineTable->cellWidget(rowAct, 0);
-  auto newPos  = rowAct + 1;
-  if(newPos >= mPipelineTable->rowCount()) {
-    return;
+  QItemSelectionModel *selectionModel = mPipelineTable->selectionModel();
+  if(selectionModel->hasSelection()) {
+    QModelIndex index = selectionModel->selectedRows().first();
+    mPipelineTable->blockSignals(true);
+    auto rowAct = index.row();
+    auto newPos = rowAct + 1;
+    if(newPos >= mTableModel->rowCount()) {
+      return;
+    }
+    movePipelineToPosition(rowAct, newPos);
+    mPipelineTable->blockSignals(false);
   }
-  movePipelineToPosition(widget, rowAct, newPos);
-  mPipelineTable->blockSignals(false);
 }
 
 ///
@@ -404,7 +406,7 @@ void PanelPipeline::moveDown()
 /// \param[out]
 /// \return
 ///
-void PanelPipeline::movePipelineToPosition(const QWidget *toMove, size_t fromPos, size_t newPos)
+void PanelPipeline::movePipelineToPosition(size_t fromPos, size_t newPos)
 {
   auto moveElementToListPosition = [](std::list<joda::settings::Pipeline> &myList, size_t oldPos, size_t newPos) {
     // Get iterators to the old and new positions
@@ -421,32 +423,9 @@ void PanelPipeline::movePipelineToPosition(const QWidget *toMove, size_t fromPos
     }
   };
 
-  auto moveRow = [&](int fromRow, int toRow) {
-    if(fromRow == toRow || fromRow < 0 || toRow < 0 || fromRow >= mPipelineTable->rowCount() || toRow > mPipelineTable->rowCount()) {
-      return;    // invalid input
-    }
-
-    // Save items from the source row
-    QWidget *fromWidget = mPipelineTable->cellWidget(fromRow, 0);
-    QWidget *toWidget   = mPipelineTable->cellWidget(toRow, 0);
-    if(toRow < fromRow) {
-      mPipelineTable->insertRow(toRow);
-      mPipelineTable->setCellWidget(toRow, 0, fromWidget);
-      mPipelineTable->setCellWidget(fromRow, 0, toWidget);
-      mPipelineTable->removeRow(fromRow + 1);
-    } else {
-      mPipelineTable->insertRow(toRow + 1);
-      mPipelineTable->setCellWidget(toRow + 1, 0, fromWidget);
-      mPipelineTable->setCellWidget(toRow, 0, toWidget);
-      mPipelineTable->removeRow(fromRow);
-    }
-    mPipelineTable->selectRow(toRow);
-  };
-
   moveElementToListPosition(mAnalyzeSettings.pipelines, fromPos, newPos);
-  moveRow(fromPos, newPos);
-
   mWindowMain->checkForSettingsChanged();
+  mTableModel->refresh();
 }
 
 }    // namespace joda::ui::gui

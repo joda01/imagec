@@ -210,7 +210,7 @@ void PanelImageView::mouseMoveEvent(QMouseEvent *event)
   if(mShowPixelInfo) {
     mPixelInfo = fetchPixelInfoFromMousePosition(event->pos());
   }
-  if(mShowPipelineResults && !mWithThumbnail) {
+  if(mShowPipelineResults) {
     getPreviewResultsAreaEntered(event);
   }
 
@@ -259,7 +259,7 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
     return;
   }
 
-  if(mShowPipelineResults && !mWithThumbnail) {
+  if(mShowPipelineResults) {
     if(getPreviewResultsAreaClicked(event)) {
       return;
     }
@@ -395,7 +395,7 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   }
 
   // Draw pipeline result
-  if(mShowPipelineResults && !mWithThumbnail) {
+  if(mShowPipelineResults) {
     drawPipelineResult(painter);
   }
 
