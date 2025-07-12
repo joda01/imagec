@@ -78,6 +78,14 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     });
     toolbar->addAction(openTemplate);
 
+    //
+    // Save template
+    //
+    auto *saveAsTemplateButton = new QAction(generateSvgIcon("document-save-as-template"), "Save as template");
+    saveAsTemplateButton->setStatusTip("Save pipeline as template");
+    connect(saveAsTemplateButton, &QAction::triggered, [this]() { this->saveAsTemplate(); });
+    toolbar->addAction(saveAsTemplateButton);
+
     toolbar->addSeparator();
     //
     // Start button
@@ -104,6 +112,42 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     moveUp->setStatusTip("Move selected pipeline up");
     connect(moveUp, &QAction::triggered, this, &PanelPipeline::moveUp);
     toolbar->addAction(moveUp);
+
+    toolbar->addSeparator();
+
+    //
+    // Copy selection
+    //
+    auto *copy = new QAction(generateSvgIcon("edit-copy"), "Copy selected pipeline");
+    copy->setStatusTip("Copy selected pipeline");
+    connect(copy, &QAction::triggered, [this]() {
+      joda::settings::Pipeline copiedPipeline = getSelectedPipeline()->mutablePipeline();
+      copiedPipeline.meta.name += " (copy)";
+      addChannel(copiedPipeline);
+    });
+    toolbar->addAction(copy);
+
+    //
+    // Delete column
+    //
+    auto *deleteColumn = new QAction(generateSvgIcon("edit-delete"), "Delete selected pipeline", this);
+    deleteColumn->setStatusTip("Delete selected pipeline");
+    toolbar->addAction(deleteColumn);
+    connect(deleteColumn, &QAction::triggered, [this]() {
+      QMessageBox messageBox(mWindowMain);
+      messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
+      messageBox.setWindowTitle("Delete pipeline?");
+      messageBox.setText("Delete pipeline?");
+      QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+      QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+      messageBox.setDefaultButton(noButton);
+      auto reply = messageBox.exec();
+      if(messageBox.clickedButton() == noButton) {
+        return;
+      }
+      mWindowMain->showPanelStartPage();
+      erase(getSelectedPipeline());
+    });
 
     layout->addWidget(toolbar);
   }
@@ -182,6 +226,24 @@ void PanelPipeline::openSelectedPipelineSettings(const QModelIndex &current)
       }
     }
   }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto PanelPipeline::getSelectedPipeline() -> PanelPipelineSettings *
+{
+  auto row = mPipelineTable->selectionModel()->currentIndex().row();
+  for(const auto &pipeline : mChannels) {
+    if(&pipeline->mutablePipeline() == mTableModel->getCell(row)) {
+      return pipeline.get();
+    }
+  }
+  return nullptr;
 }
 
 ///
@@ -426,6 +488,36 @@ void PanelPipeline::movePipelineToPosition(size_t fromPos, size_t newPos)
   moveElementToListPosition(mAnalyzeSettings.pipelines, fromPos, newPos);
   mWindowMain->checkForSettingsChanged();
   mTableModel->refresh();
+}
+
+///
+/// \brief      Save as template
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipeline::saveAsTemplate()
+{
+  QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+  QString filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save template", folderToOpen,
+                                                                "ImageC template files (*" + QString(joda::fs::EXT_PIPELINE_TEMPLATE.data()) + ")");
+  if(filePathOfSettingsFile.isEmpty()) {
+    return;
+  }
+
+  try {
+    nlohmann::json templateJson = getSelectedPipeline()->mutablePipeline();
+    joda::templates::TemplateParser::saveTemplate(templateJson, std::filesystem::path(filePathOfSettingsFile.toStdString()));
+  } catch(const std::exception &ex) {
+    joda::log::logError(ex.what());
+    QMessageBox messageBox(mWindowMain);
+    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
+    messageBox.setWindowTitle("Could not save template!");
+    messageBox.setText("Could not save template, got error >" + QString(ex.what()) + "<!");
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
+  }
 }
 
 }    // namespace joda::ui::gui

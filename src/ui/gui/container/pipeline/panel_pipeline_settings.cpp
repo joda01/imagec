@@ -114,20 +114,6 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
     auto *col3 = tab->addVerticalPanel();
   }
 
-  auto *openTemplate = mLayout.addActionButton("Open template", generateSvgIcon("project-development-new-template"));
-  openTemplate->setStatusTip("Open pipeline from template");
-  connect(openTemplate, &QAction::triggered, [this] { this->openTemplate(); });
-
-  auto *saveAsTemplateButton = mLayout.addActionButton("Save as template", generateSvgIcon("document-save-as-template"));
-  saveAsTemplateButton->setStatusTip("Save pipeline as template");
-  connect(saveAsTemplateButton, &QAction::triggered, [this] { this->saveAsTemplate(); });
-
-  auto *copyPipeline = mLayout.addActionButton("Copy pipeline", generateSvgIcon("edit-copy"));
-  copyPipeline->setStatusTip("Copy pipeline");
-  connect(copyPipeline, &QAction::triggered, [this] { this->copyPipeline(); });
-
-  mLayout.addSeparatorToTopToolbar();
-
   // Tool button
   mUndoAction = mLayout.addActionButton("Undo", generateSvgIcon("edit-undo"));
   mUndoAction->setEnabled(false);
@@ -163,13 +149,6 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   mActionDisabled->setStatusTip("Temporary disable this pipeline");
   mActionDisabled->setCheckable(true);
   connect(mActionDisabled, &QAction::triggered, this, &PanelPipelineSettings::valueChangedEvent);
-
-  //
-  // Add delete button
-  //
-  auto *actionDeletePipeline = mLayout.addActionButton("Delete pipeline", generateSvgIcon("edit-delete"));
-  actionDeletePipeline->setStatusTip("Delete pipeline");
-  connect(actionDeletePipeline, &QAction::triggered, this, &PanelPipelineSettings::deletePipeline);
 
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);
   connect(this, &PanelPipelineSettings::updatePreviewFinished, this, &PanelPipelineSettings::onPreviewFinished);
@@ -699,31 +678,6 @@ void PanelPipelineSettings::closeWindow()
 }
 
 ///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelPipelineSettings::deletePipeline()
-{
-  QMessageBox messageBox(mWindowMain);
-  messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
-  messageBox.setWindowTitle("Delete pipeline?");
-  messageBox.setText("Delete pipeline?");
-  QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
-  QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
-  messageBox.setDefaultButton(noButton);
-  auto reply = messageBox.exec();
-  if(messageBox.clickedButton() == noButton) {
-    return;
-  }
-
-  mWindowMain->showPanelStartPage();
-  mWindowMain->getPanelPipeline()->erase(this);
-}
-
-///
 /// \brief        Names in the classification has been changed, update all commands using
 ///               Class or Classs with the new name
 /// \author
@@ -734,82 +688,6 @@ void PanelPipelineSettings::deletePipeline()
 void PanelPipelineSettings::onClassificationNameChanged()
 {
   valueChangedEvent();
-}
-
-///
-/// \brief      Open template
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelPipelineSettings::openTemplate()
-{
-  QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
-  QString filePathOfSettingsFile = QFileDialog::getOpenFileName(this, "Open template", folderToOpen,
-                                                                "ImageC template files (*" + QString(joda::fs::EXT_PIPELINE_TEMPLATE.data()) + ")");
-  if(filePathOfSettingsFile.isEmpty()) {
-    return;
-  }
-
-  try {
-    nlohmann::json templateJson = mSettings;
-    auto loadedChannelSettings  = joda::templates::TemplateParser::loadTemplate(std::filesystem::path(filePathOfSettingsFile.toStdString()));
-    clearPipeline();
-    fromSettings(loadedChannelSettings);
-  } catch(const std::exception &ex) {
-    joda::log::logError(ex.what());
-    QMessageBox messageBox(mWindowMain);
-    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
-    messageBox.setWindowTitle("Could not open template!");
-    messageBox.setText("Could not open template, got error >" + QString(ex.what()) + "<!");
-    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-    auto reply = messageBox.exec();
-  }
-}
-
-///
-/// \brief      Save as template
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelPipelineSettings::saveAsTemplate()
-{
-  QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
-  QString filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save template", folderToOpen,
-                                                                "ImageC template files (*" + QString(joda::fs::EXT_PIPELINE_TEMPLATE.data()) + ")");
-  if(filePathOfSettingsFile.isEmpty()) {
-    return;
-  }
-
-  try {
-    nlohmann::json templateJson = mSettings;
-    joda::templates::TemplateParser::saveTemplate(templateJson, std::filesystem::path(filePathOfSettingsFile.toStdString()));
-  } catch(const std::exception &ex) {
-    joda::log::logError(ex.what());
-    QMessageBox messageBox(mWindowMain);
-    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
-    messageBox.setWindowTitle("Could not save template!");
-    messageBox.setText("Could not save template, got error >" + QString(ex.what()) + "<!");
-    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-    auto reply = messageBox.exec();
-  }
-}
-
-///
-/// \brief      Copy pipeline
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelPipelineSettings::copyPipeline()
-{
-  joda::settings::Pipeline copiedPipeline = mSettings;
-  copiedPipeline.meta.name += " (copy)";
-  mWindowMain->getPanelPipeline()->addChannel(copiedPipeline);
 }
 
 ///

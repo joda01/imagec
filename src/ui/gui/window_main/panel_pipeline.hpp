@@ -46,6 +46,7 @@ public:
   void addElement(std::unique_ptr<PanelPipelineSettings> baseContainer);
   void erase(PanelPipelineSettings *toRemove);
   void clear();
+  void saveAsTemplate();
   void loadTemplates();
   void setActionStartEnabled(bool);
 
@@ -57,6 +58,7 @@ public:
     return mChannels;
   }
   void unselectPipeline();
+  auto getSelectedPipeline() -> PanelPipelineSettings *;
 
 private:
   /////////////////////////////////////////////////////

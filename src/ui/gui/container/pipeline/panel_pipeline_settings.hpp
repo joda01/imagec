@@ -93,10 +93,7 @@ private:
   static constexpr int32_t PREVIEW_BASE_SIZE = 450;
 
   /////////////////////////////////////////////////////
-  void openTemplate();
-  void saveAsTemplate();
   void previewThread();
-  void copyPipeline();
 
   // ACTIONS///////////////////////////////////////////////////
   QAction *mUndoAction;
@@ -156,7 +153,6 @@ private slots:
   void valueChangedEvent();
   void metaChangedEvent();
   void closeWindow();
-  void deletePipeline();
   void onClassificationNameChanged();
 };
 
