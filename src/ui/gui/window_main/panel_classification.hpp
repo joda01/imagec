@@ -52,6 +52,7 @@ private:
   static constexpr int COL_NAME    = 2;
   static constexpr int COL_COLOR   = 3;
   static constexpr int COL_NOTES   = 4;
+  static constexpr int COL_HIDDEN  = 5;
 
   /////////////////////////////////////////////////////
   void loadTemplates();
@@ -64,6 +65,8 @@ private:
   void createTableItem(int32_t rowIdx, enums::ClassId classId, const std::string &name, const std::string &color, const std::string &notes);
   void moveClassToPosition(size_t fromPos, size_t newPos);
   auto findNextFreeClassId() -> enums::ClassId;
+  void setIsHidden(int32_t row);
+  bool getIsHidden(int32_t row) const;
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;

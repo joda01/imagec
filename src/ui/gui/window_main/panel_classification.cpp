@@ -161,6 +161,14 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
       }
     });
 
+    // toolbar->addSeparator();
+
+    auto *hideClass = new QAction(generateSvgIcon("view-hidden"), "Hide class from preview", this);
+    hideClass->setStatusTip("Temporary disable this pipeline");
+    hideClass->setCheckable(true);
+    // toolbar->addAction(hideClass);
+    connect(hideClass, &QAction::triggered, [](bool checked) {});
+
     //
     // Clear
     //
@@ -178,19 +186,20 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
   }
 
   {
-    mClasses = new PlaceholderTableWidget(0, 5);
+    mClasses = new PlaceholderTableWidget(0, 6);
     mClasses->setFrameStyle(QFrame::NoFrame);
     mClasses->setShowGrid(false);
     mClasses->setPlaceholderText("Press the + button to add a class or use the wizard.");
     mClasses->verticalHeader()->setVisible(false);
     mClasses->horizontalHeader()->setVisible(true);
-    mClasses->setHorizontalHeaderLabels({"IdNr", "Id", "Classes", "Color", "Notes"});
+    mClasses->setHorizontalHeaderLabels({"IdNr", "Id", "Classes", "Color", "Notes", "Hidden"});
     mClasses->setAlternatingRowColors(true);
     mClasses->setSelectionBehavior(QAbstractItemView::SelectRows);
     mClasses->setColumnHidden(COL_ID, true);
     mClasses->setColumnHidden(COL_ID_ENUM, true);
     mClasses->setColumnHidden(COL_COLOR, true);
     mClasses->setColumnHidden(COL_NOTES, true);
+    mClasses->setColumnHidden(COL_HIDDEN, true);
     mClasses->setColumnWidth(COL_ID_ENUM, 10);
     mClasses->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
     mClasses->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
@@ -209,6 +218,34 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
       openEditDialog(row, column);
     }
   });
+
+  connect(mClasses, &QTableWidget::currentCellChanged, [&](int currentRow, int currentColumn, int previousRow, int previousColumn) {
+
+  });
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::setIsHidden(int32_t row)
+{
+  auto *isHiddenCell = mClasses->item(row, COL_HIDDEN);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+bool PanelClassification::getIsHidden(int32_t row) const
+{
+  return false;
 }
 
 ///

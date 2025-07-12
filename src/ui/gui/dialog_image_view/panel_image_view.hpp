@@ -154,6 +154,7 @@ private:
   const float PIXEL_INFO_RECT_WIDTH  = 150;
   const float PIXEL_INFO_RECT_HEIGHT = 40;
 
+  const float RESULTS_INFO_START_Y    = THUMB_RECT_START_Y + THUMB_RECT_HEIGHT_ZOOMED + 10;
   const float RESULTS_INFO_RECT_WIDTH = 150;
   // const float RESULTS_INFO_RECT_HEIGHT = 250;
 

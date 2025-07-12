@@ -94,12 +94,12 @@ void PanelImageView::imageUpdated(const ctrl::Preview::PreviewResults &previewRe
 void PanelImageView::updatePipelineResultsCoordinates()
 {
   auto xOffset = width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH;
-  auto yOffset = THUMB_RECT_START_Y;
-  QRect pixelInfoRect(QPoint(xOffset, THUMB_RECT_START_Y), QSize(RESULTS_INFO_RECT_WIDTH,
-                                                                 height() - PIXEL_INFO_RECT_HEIGHT - THUMB_RECT_START_Y - PIXEL_INFO_RECT_HEIGHT -
-                                                                     THUMB_RECT_START_Y));    // Adjust the size as needed
+  auto yOffset = RESULTS_INFO_START_Y;
+  QRect pixelInfoRect(QPoint(xOffset, RESULTS_INFO_START_Y),
+                      QSize(RESULTS_INFO_RECT_WIDTH,
+                            height() - 2 * PIXEL_INFO_RECT_HEIGHT - RESULTS_INFO_START_Y));    // Adjust the size as needed
 
-  yOffset += THUMB_RECT_START_Y;
+  yOffset += 10;
   auto addToTextCoordinated = [this, &xOffset, &yOffset](const QString &tmp, enums::ClassId classId) -> int32_t {
     QTextDocument doc;
     doc.setHtml(tmp);
@@ -534,10 +534,9 @@ void PanelImageView::drawPipelineResult(QPainter &painter)
     return;
   }
   int32_t startY = 0;
-  QRect pixelInfoRect(
-      QPoint(width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH, THUMB_RECT_START_Y),
-      QSize(RESULTS_INFO_RECT_WIDTH,
-            height() - PIXEL_INFO_RECT_HEIGHT - THUMB_RECT_START_Y - PIXEL_INFO_RECT_HEIGHT - THUMB_RECT_START_Y));    // Adjust the size as needed
+  QRect pixelInfoRect(QPoint(width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH, RESULTS_INFO_START_Y),
+                      QSize(RESULTS_INFO_RECT_WIDTH,
+                            height() - 2 * PIXEL_INFO_RECT_HEIGHT - RESULTS_INFO_START_Y));    // Adjust the size as needed
 
   painter.setPen(Qt::NoPen);    // Set the pen color to light blue
 
@@ -553,12 +552,63 @@ void PanelImageView::drawPipelineResult(QPainter &painter)
   //
   // Paint the results
   //
-
   QStaticText text(mPipelineResultsHtmlText);
   QPoint pText = pixelInfoRect.topLeft();
   pText.setX(pText.x() + THUMB_RECT_START_X);
   pText.setY(pText.y() + THUMB_RECT_START_Y);
   painter.drawStaticText(pText, text);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+bool PanelImageView::getPreviewResultsAreaEntered(QMouseEvent *event)
+{
+  auto pos = event->pos();
+
+  QRect pixelInfoRect(QPoint(width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH, RESULTS_INFO_START_Y),
+                      QSize(RESULTS_INFO_RECT_WIDTH,
+                            height() - 2 * PIXEL_INFO_RECT_HEIGHT - RESULTS_INFO_START_Y));    // Adjust the size as needed
+
+  return pixelInfoRect.contains(pos);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+bool PanelImageView::getPreviewResultsAreaClicked(QMouseEvent *event)
+{
+  auto pos = event->pos();
+
+  QRect pixelInfoRect(QPoint(width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH, RESULTS_INFO_START_Y),
+                      QSize(RESULTS_INFO_RECT_WIDTH,
+                            height() - 2 * PIXEL_INFO_RECT_HEIGHT - RESULTS_INFO_START_Y));    // Adjust the size as needed
+
+  if(pixelInfoRect.contains(pos)) {
+    for(const auto &[classPos, classId] : mClassesCoordinates) {
+      if(classPos.contains(pos)) {
+        // QMessageBox::information(this, "Information", "Clicked: " + QString::number((int32_t) classId));
+        if(mSelectedClasses.contains(classId)) {
+          mSelectedClasses.erase(classId);
+        } else {
+          mSelectedClasses.emplace(classId);
+        }
+        viewport()->update();
+        emit classesToShowChanged(mSelectedClasses);
+        break;
+      }
+    }
+    return true;
+  }
+  return false;
 }
 
 ///
@@ -732,63 +782,6 @@ void PanelImageView::setThumbnailPosition(const ThumbParameter &param)
 
 {
   mThumbnailParameter = param;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-bool PanelImageView::getPreviewResultsAreaEntered(QMouseEvent *event)
-{
-  auto pos = event->pos();
-
-  QRect pixelInfoRect(
-      QPoint(width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH, THUMB_RECT_START_Y),
-      QSize(RESULTS_INFO_RECT_WIDTH,
-            height() - PIXEL_INFO_RECT_HEIGHT - THUMB_RECT_START_Y - PIXEL_INFO_RECT_HEIGHT - THUMB_RECT_START_Y));    // Adjust the size as needed
-
-  if(pixelInfoRect.contains(pos)) {
-    return true;
-  }
-  return false;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-bool PanelImageView::getPreviewResultsAreaClicked(QMouseEvent *event)
-{
-  auto pos = event->pos();
-
-  QRect pixelInfoRect(
-      QPoint(width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH, THUMB_RECT_START_Y),
-      QSize(RESULTS_INFO_RECT_WIDTH,
-            height() - PIXEL_INFO_RECT_HEIGHT - THUMB_RECT_START_Y - PIXEL_INFO_RECT_HEIGHT - THUMB_RECT_START_Y));    // Adjust the size as needed
-
-  if(pixelInfoRect.contains(pos)) {
-    for(const auto &[classPos, classId] : mClassesCoordinates) {
-      if(classPos.contains(pos)) {
-        // QMessageBox::information(this, "Information", "Clicked: " + QString::number((int32_t) classId));
-        if(mSelectedClasses.contains(classId)) {
-          mSelectedClasses.erase(classId);
-        } else {
-          mSelectedClasses.emplace(classId);
-        }
-        viewport()->update();
-        emit classesToShowChanged(mSelectedClasses);
-        break;
-      }
-    }
-    return true;
-  }
-  return false;
 }
 
 ///
