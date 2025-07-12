@@ -159,9 +159,9 @@ void PanelImageView::onUpdateImage()
 {
   auto *img = mActPixmapOriginal->getImage();
   if(img != nullptr) {
-    auto pixmap = mActPixmapOriginal->getPixmap(nullptr);
+    auto pixmap = mActPixmapOriginal->getPixmap({nullptr});
     if(mOverlayImage != nullptr && mShowOverlay) {
-      pixmap = mActPixmapOriginal->getPixmap(mOverlayImage);
+      pixmap = mActPixmapOriginal->getPixmap({mOverlayImage, 0.5});
     }
 
     scene->setSceneRect(pixmap.rect());
@@ -662,7 +662,7 @@ void PanelImageView::drawThumbnail(QPainter &painter)
 
   QRect thumbRect(QPoint(width() - THUMB_RECT_START_X - rectWidth, THUMB_RECT_START_Y), QSize(newWidth,
                                                                                               newHeight));    // Adjust the size as needed
-  painter.drawPixmap(thumbRect, mThumbnailImageReference->getPixmap(nullptr));
+  painter.drawPixmap(thumbRect, mThumbnailImageReference->getPixmap({nullptr}));
 
   //
   // Draw bounding rect

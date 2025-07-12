@@ -83,7 +83,7 @@ void Image::setImage(const cv::Mat &&imageToDisplay, int32_t rescale)
 /// \param[out]
 /// \return
 ///
-QPixmap Image::getPixmap(const Image *combineWith) const
+QPixmap Image::getPixmap(const Overlay &overlay) const
 {
   if(mImageOriginal == nullptr) {
     std::cout << "Ups it is null" << std::endl;
@@ -111,24 +111,29 @@ QPixmap Image::getPixmap(const Image *combineWith) const
       }
     }
     // Takes 20ms
-    if(combineWith != nullptr) {
+    if(overlay.combineWith != nullptr) {
       // Convert 16-bit grayscale to 8-bit grayscale
       image.convertTo(image, CV_8U, 255.0 / 65535.0);    // Normalize to 8-bit
       cv::cvtColor(image, image, cv::COLOR_GRAY2BGR);
 
       cv::Mat mask;
-      cv::Mat coloredImage = combineWith->mImageOriginal->clone();
-      cv::inRange(coloredImage, cv::Scalar(0, 0, 0), cv::Scalar(0, 0, 0), mask);
-      image.copyTo(coloredImage, mask);
+      cv::Mat coloredImage = overlay.combineWith->mImageOriginal->clone();
+
+      double alpha = overlay.opaque;
+      double beta  = 1.0;    // transparency for background
+      cv::addWeighted(coloredImage, alpha, image, beta, 0.0, coloredImage);
+
+      // cv::inRange(coloredImage, cv::Scalar(0, 0, 0), cv::Scalar(0, 0, 0), mask);
+      // image.copyTo(coloredImage, mask);
       return encode(&coloredImage);
 
     } else {
       return encode(&image);
     }
   } else {
-    if(combineWith != nullptr) {
+    if(overlay.combineWith != nullptr) {
       cv::Mat image = mImageOriginal->clone();
-      cv::bitwise_xor(image, *combineWith->mImageOriginal, image);
+      cv::bitwise_xor(image, *overlay.combineWith->mImageOriginal, image);
       return encode(&image);
     } else {
       return encode(mImageOriginal);

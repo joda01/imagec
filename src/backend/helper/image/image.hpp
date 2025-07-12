@@ -45,7 +45,12 @@ public:
   {
     return mImageOriginal;
   }
-  [[nodiscard]] QPixmap getPixmap(const Image *combineWith) const;
+  struct Overlay
+  {
+    const Image *combineWith = nullptr;
+    float opaque             = 0.3;
+  };
+  [[nodiscard]] QPixmap getPixmap(const Overlay &) const;
   [[nodiscard]] float getHitogramZoomFactor() const
   {
     return mHistogramZoomFactor;
