@@ -103,7 +103,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
     contentWidget->setLayout(mPipelineSteps);
     scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    col2->addWidgetGroup("Pipeline steps", {scrollArea}, 300, 300);
+    col2->addWidgetGroup({scrollArea}, 300, 300);
 
     // Allow to start with
     mTopAddCommandButton = new AddCommandButtonBase(mCommandSelectionDialog, mSettings, this, nullptr, InOuts::ALL, mWindowMain);
