@@ -43,6 +43,7 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
 {
   mClassSettingsDialog = new DialogClassSettings(windowMain);
   auto *layout         = new QVBoxLayout();
+  layout->setContentsMargins(0, 0, 0, 0);
 
   {
     auto *toolbar = new QToolBar();
@@ -178,10 +179,12 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
 
   {
     mClasses = new PlaceholderTableWidget(0, 5);
+    mClasses->setFrameStyle(QFrame::NoFrame);
+    mClasses->setShowGrid(false);
     mClasses->setPlaceholderText("Press the + button to add a class or use the wizard.");
     mClasses->verticalHeader()->setVisible(false);
-    mClasses->horizontalHeader()->setVisible(false);
-    mClasses->setHorizontalHeaderLabels({"IdNr", "Id", "Class", "Color", "Notes"});
+    mClasses->horizontalHeader()->setVisible(true);
+    mClasses->setHorizontalHeaderLabels({"IdNr", "Id", "Classes", "Color", "Notes"});
     mClasses->setAlternatingRowColors(true);
     mClasses->setSelectionBehavior(QAbstractItemView::SelectRows);
     mClasses->setColumnHidden(COL_ID, true);

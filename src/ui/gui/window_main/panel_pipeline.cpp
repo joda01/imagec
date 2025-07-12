@@ -157,7 +157,7 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
   {
     mPipelineTable = new QTableView(this);
     mPipelineTable->setFrameStyle(QFrame::NoFrame);
-    mPipelineTable->setShowGrid(false);    // No cell grid lines
+    mPipelineTable->setShowGrid(false);
     mPipelineTable->setItemDelegate(new HtmlDelegate(mPipelineTable));
     mPipelineTable->verticalHeader()->setVisible(false);
     mPipelineTable->horizontalHeader()->setVisible(true);

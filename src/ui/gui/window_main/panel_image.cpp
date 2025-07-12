@@ -23,7 +23,7 @@ namespace joda::ui::gui {
 PanelImages::PanelImages(WindowMain *windowMain) : mWindowMain(windowMain)
 {
   auto *layout = new QVBoxLayout();
-  // layout->setContentsMargins(0, 0, 0, 0);
+  layout->setContentsMargins(0, 0, 0, 0);
   {
     mSearchField = new QLineEdit();
     mSearchField->setPlaceholderText("Search ...");
@@ -33,33 +33,34 @@ PanelImages::PanelImages(WindowMain *windowMain) : mWindowMain(windowMain)
 
   {
     mImages = new PlaceholderTableWidget(0, 2);
+    mImages->setFrameStyle(QFrame::NoFrame);
+    mImages->setShowGrid(false);
     mImages->setPlaceholderText("Select a working directory");
     mImages->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     mImages->verticalHeader()->setVisible(false);
-    mImages->horizontalHeader()->setVisible(false);
+    mImages->horizontalHeader()->setVisible(true);
     mImages->setHorizontalHeaderLabels({"Idx", "Images"});
     mImages->setAlternatingRowColors(true);
     mImages->setSelectionBehavior(QAbstractItemView::SelectRows);
     mImages->setColumnHidden(0, true);
-    mImages->setMaximumHeight(150);
-
     connect(mImages, &QTableWidget::itemSelectionChanged, [&]() { updateImageMeta(); });
-
-    layout->addWidget(mImages);
+    layout->addWidget(mImages, 1);
   }
 
   {
     mImageMeta = new PlaceholderTableWidget(0, 2);
+    mImageMeta->setFrameStyle(QFrame::NoFrame);
+    mImageMeta->setShowGrid(false);
     mImageMeta->setPlaceholderText("Select an image");
     mImageMeta->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     mImageMeta->verticalHeader()->setVisible(false);
-    mImageMeta->horizontalHeader()->setVisible(false);
-    mImageMeta->setHorizontalHeaderLabels({"Name"});
+    mImageMeta->horizontalHeader()->setVisible(true);
+    mImageMeta->setHorizontalHeaderLabels({"Image properties"});
     mImageMeta->setAlternatingRowColors(false);
     mImageMeta->setSelectionBehavior(QAbstractItemView::SelectRows);
     mImageMeta->setItemDelegate(new HtmlDelegate(mImageMeta));
     mImageMeta->setColumnHidden(1, true);
-    layout->addWidget(mImageMeta);
+    layout->addWidget(mImageMeta, 4);
   }
 
   setLayout(layout);
