@@ -71,10 +71,10 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
     mCommandSelectionDialog(commandSelectionDialog)
 {
   setObjectName("PanelPipelineSettings");
+  setContentsMargins(0, 0, 0, 0);
   auto *tab = mLayout.addTab(
       "", [] {}, false);
   mDialogHistory = new DialogHistory(wm, this);
-
   {
     auto *col2 = tab->addVerticalPanel();
 
@@ -84,7 +84,6 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
     scrollArea->setFrameShape(QFrame::NoFrame);
     scrollArea->viewport()->setStyleSheet("background-color: transparent;");
     scrollArea->setObjectName("scrollAreaOverview");
-    // setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     // Create a widget to hold the panels
@@ -103,15 +102,11 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
     contentWidget->setLayout(mPipelineSteps);
     scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    col2->addWidgetGroup({scrollArea}, 300, 300);
+    col2->addWidgetGroup({scrollArea}, 300, 30000);
 
     // Allow to start with
     mTopAddCommandButton = new AddCommandButtonBase(mCommandSelectionDialog, mSettings, this, nullptr, InOuts::ALL, mWindowMain);
     mPipelineSteps->addWidget(mTopAddCommandButton);
-  }
-
-  {
-    auto *col3 = tab->addVerticalPanel();
   }
 
   // Tool button
@@ -161,6 +156,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   onClassificationNameChanged();
 
   mPreviewThread = std::make_unique<std::thread>(&PanelPipelineSettings::previewThread, this);
+  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
 ///
@@ -514,7 +510,6 @@ void PanelPipelineSettings::previewThread()
             jobToDo.previewPanel->imageUpdated(previewResult.results, jobToDo.classes);
 
           } catch(const std::exception &error) {
-            // mPreviewImage->resetImage(error.what());
             joda::log::logError("Preview error: " + std::string(error.what()));
           }
         }
@@ -701,27 +696,21 @@ void PanelPipelineSettings::setActive(bool setActive)
 {
   if(!mIsActiveShown && setActive) {
     mLayout.showToolBar(true);
-    mPreviewImage->setPlayBackToolbarVisible(true);
     mIsActiveShown = true;
     updatePreview();
     mDialogHistory->loadHistory();
     mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
-    mPreviewImage->setVisible(true);
   }
   if(!setActive && mIsActiveShown) {
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
     mIsActiveShown = false;
     mLayout.showToolBar(false);
-    mPreviewImage->setPlayBackToolbarVisible(false);
-
     mDialogHistory->hide();
     mHistoryAction->setChecked(false);
-    mPreviewImage->setVisible(false);
     // Wait until preview render has been finished
     while(mPreviewInProgress) {
       std::this_thread::sleep_for(100ms);
     }
-    mPreviewImage->resetImage();
   }
 }
 

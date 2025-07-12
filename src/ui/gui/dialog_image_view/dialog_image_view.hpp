@@ -32,13 +32,13 @@ class HistoToolbar;
 /// \author     Joachim Danmayr
 /// \brief
 ///
-class DialogImageViewer : public QDockWidget
+class DialogImageViewer : public QWidget
 {
   Q_OBJECT
 
 public:
   /////////////////////////////////////////////////////
-  DialogImageViewer(QWidget *parent, bool showOriginalImage = true, QMainWindow *toolbarParent = nullptr);
+  DialogImageViewer(QWidget *parent, bool showOriginalImage = true, QToolBar *toolbarParent = nullptr);
   ~DialogImageViewer();
   void imageUpdated(const ctrl::Preview::PreviewResults &info, const std::map<enums::ClassIdIn, QString> &classes);
   void fitImageToScreenSize();
@@ -125,7 +125,6 @@ public:
   {
     return mFillOVerlay->isChecked();
   }
-  void closeEvent(QCloseEvent *event) override;
 
   void setPipelineResultsButtonVisible(bool show)
   {
@@ -201,7 +200,6 @@ signals:
 
 private:
   /////////////////////////////////////////////////////
-  void leaveEvent(QEvent *event) override;
   void updatePlaybackToolbarVisible()
   {
     if(getMaxTimeStacks() > 1) {
@@ -254,7 +252,6 @@ private:
   QAction *mActionPlay;
   QAction *mActionStop;
   QSpinBox *mSpinnerActTimeStack;
-  QMainWindow *mWindowMain     = nullptr;
   bool mPlaybackToolbarVisible = false;
 
 private slots:

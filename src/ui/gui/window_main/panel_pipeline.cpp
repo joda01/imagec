@@ -46,7 +46,8 @@ namespace joda::ui::gui {
 ///
 PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSettings &settings) : mWindowMain(windowMain), mAnalyzeSettings(settings)
 {
-  auto *layout = new QVBoxLayout();
+  mMainLayout = new QVBoxLayout();
+  mMainLayout->setContentsMargins(0, 0, 0, 0);
 
   {
     auto *toolbar = new QToolBar();
@@ -149,33 +150,35 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
       erase(getSelectedPipeline());
     });
 
-    layout->addWidget(toolbar);
+    mMainLayout->addWidget(toolbar);
   }
 
   // Create a widget to hold the panels
   {
     mPipelineTable = new QTableView(this);
-    mPipelineTable->setHorizontalHeader(new HtmlHeaderView(Qt::Horizontal));
+    mPipelineTable->setFrameStyle(QFrame::NoFrame);
+    mPipelineTable->setShowGrid(false);    // No cell grid lines
     mPipelineTable->setItemDelegate(new HtmlDelegate(mPipelineTable));
     mPipelineTable->verticalHeader()->setVisible(false);
-    mPipelineTable->horizontalHeader()->setVisible(false);
+    mPipelineTable->horizontalHeader()->setVisible(true);
     mPipelineTable->setAlternatingRowColors(true);
     mPipelineTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     mPipelineTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     mTableModel = new TableModelPipeline(mPipelineTable);
     mTableModel->setData(&settings.pipelines);
     mPipelineTable->setModel(mTableModel);
+
     connect(mPipelineTable->selectionModel(), &QItemSelectionModel::currentChanged,
             [&](const QModelIndex &current, const QModelIndex &previous) { openSelectedPipeline(current, previous); });
-
+    connect(mPipelineTable, &QTableView::clicked, [this](const QModelIndex &index) { openSelectedPipeline(index, index); });
     connect(mPipelineTable, &QTableView::doubleClicked, [this](const QModelIndex &index) { openSelectedPipelineSettings(index); });
   }
 
   mCommandSelectionDialog = std::make_shared<DialogCommandSelection>(mWindowMain);
 
-  layout->addWidget(mPipelineTable);
+  mMainLayout->addWidget(mPipelineTable, 1);
 
-  setLayout(layout);
+  setLayout(mMainLayout);
 }
 ///
 /// \brief
@@ -198,11 +201,38 @@ void PanelPipeline::unselectPipeline()
 ///
 void PanelPipeline::openSelectedPipeline(const QModelIndex &current, const QModelIndex &previous)
 {
+  //
+  // Add new one
+  //
   auto selectedRow = current.row();
   if(selectedRow >= 0) {
-    for(const auto &pipeline : mChannels) {
+    for(auto &pipeline : mChannels) {
       if(&pipeline->mutablePipeline() == mTableModel->getCell(selectedRow)) {
-        mWindowMain->showPanelPipelineSettingsEdit(pipeline.get());
+        if(mActivePipeline == pipeline.get()) {
+          // Pipeline is still open
+          return;
+        }
+        //
+        // Remove old pipeline form the layout
+        //
+        int count = mMainLayout->count();
+        if(count > 2) {
+          if(mActivePipeline != nullptr) {
+            mActivePipeline->setActive(false);
+          }
+          QLayoutItem *item = mMainLayout->takeAt(count - 1);
+          if(item != nullptr) {
+            QWidget *widget = item->widget();
+            if(widget != nullptr) {
+              widget->setParent(nullptr);    // Detach from layout and parent
+            }
+            delete item;    // Delete the layout item wrapper (not the widget!)
+          }
+        }
+
+        pipeline->setActive(true);
+        mActivePipeline = pipeline.get();
+        mMainLayout->addWidget(pipeline.get(), 4);
       }
     }
   }

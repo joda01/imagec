@@ -21,6 +21,7 @@
 #include <qmenu.h>
 #include <qslider.h>
 #include <qspinbox.h>
+#include <qtoolbar.h>
 #include <qwidget.h>
 #include <cmath>
 #include <cstdint>
@@ -42,21 +43,24 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QMainWindow *toolbarParent) :
-    QDockWidget(parent), mImageViewLeft(&mPreviewImages.originalImage, &mPreviewImages.thumbnail, nullptr, true),
-    mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, false), mWindowMain(toolbarParent)
+DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QToolBar *toolbarParent) :
+    QWidget(parent), mImageViewLeft(&mPreviewImages.originalImage, &mPreviewImages.thumbnail, nullptr, true),
+    mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, false)
 {
   setWindowTitle("Preview");
   setVisible(false);
-  setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+  setContentsMargins(0, 0, 0, 0);
 
   mImageViewRight.setShowPipelineResults(true);
-
-  auto *mainContainer = new QWidget();
-  mMainLayout         = new QVBoxLayout();
-
+  mMainLayout = new QVBoxLayout();
+  mMainLayout->setContentsMargins(0, 0, 0, 0);
   {
-    auto *toolbarTop = new QToolBar();
+    QToolBar *toolbarTop;
+    if(toolbarParent == nullptr) {
+      toolbarTop = new QToolBar();
+    } else {
+      toolbarTop = toolbarParent;
+    }
 
     auto *pinToTop = new QAction(generateSvgIcon("window-pin"), "");
     pinToTop->setToolTip("Pin to stay on top");
@@ -71,28 +75,21 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QM
         show();
       }
     });
-    // toolbarTop->addAction(pinToTop);
 
-    // toolbarTop->addSeparator();
+    auto *buttonGroup = new QActionGroup(toolbarTop);
 
-    QActionGroup *buttonGroup = new QActionGroup(toolbarTop);
-
-    QAction *action2 = new QAction({}, "");
+    auto *action2 = new QAction({}, "");
     action2->setCheckable(true);
     action2->setChecked(true);
     connect(action2, &QAction::triggered, this, &DialogImageViewer::onSetSateToMove);
     buttonGroup->addAction(action2);
-    // toolbarTop->addAction(action2);
 
-    QAction *paintRectangle = new QAction(generateSvgIcon("draw-rectangle"), "");
+    auto *paintRectangle = new QAction(generateSvgIcon("draw-rectangle"), "");
     paintRectangle->setCheckable(true);
     connect(paintRectangle, &QAction::triggered, this, &DialogImageViewer::onSetStateToPaintRect);
     buttonGroup->addAction(paintRectangle);
-    // toolbarTop->addAction(paintRectangle);
 
-    // toolbarTop->addSeparator();
-
-    QAction *showThumbnail = new QAction(generateSvgIcon("virtual-desktops"), "");
+    auto *showThumbnail = new QAction(generateSvgIcon("virtual-desktops"), "");
     showThumbnail->setStatusTip("Show/Hide image thumbnail");
     showThumbnail->setCheckable(true);
     showThumbnail->setChecked(true);
@@ -226,8 +223,9 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QM
       mZProjectionAction->setVisible(false);
     }
 
-    mMainLayout->addWidget(toolbarTop);
-    // addToolBar(Qt::ToolBarArea::TopToolBarArea, toolbarTop);
+    if(toolbarParent == nullptr) {
+      mMainLayout->addWidget(toolbarTop);
+    }
   }
 
   // Central images
@@ -367,18 +365,11 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QM
     });
     mPlaybackToolbar->addAction(seekForward);
     mPlaybackToolbar->addWidget(rightSpacer);
-
-    if(toolbarParent == nullptr) {
-      mMainLayout->addWidget(mPlaybackToolbar);
-    } else {
-      mPlaybackToolbar->setVisible(false);
-      toolbarParent->addToolBar(Qt::ToolBarArea::BottomToolBarArea, mPlaybackToolbar);
-    }
+    mMainLayout->addWidget(mPlaybackToolbar);
   }
 
   // setLayout(layout);
-  mainContainer->setLayout(mMainLayout);
-  setWidget(mainContainer);
+  setLayout(mMainLayout);
 
   // Init
   triggerPreviewUpdate(ImageView::BOTH, true);
@@ -396,27 +387,6 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QM
       mSpinnerActTimeStack->blockSignals(false);
     }
     emit onSettingChanged();
-  });
-
-  // Connect signal to detect docking/floating changes
-  connect(this, &QDockWidget::topLevelChanged, this, [this](bool floating) {
-    if(floating) {
-      mCentralLayout->setDirection(QBoxLayout::LeftToRight);
-      if(mWindowMain != nullptr) {
-        mWindowMain->removeToolBar(mPlaybackToolbar);
-        mMainLayout->addWidget(mPlaybackToolbar);
-        mPlaybackToolbar->show();
-      }
-
-    } else {
-      mCentralLayout->setDirection(QBoxLayout::TopToBottom);
-
-      if(mWindowMain != nullptr) {
-        mMainLayout->removeWidget(mPlaybackToolbar);
-        mWindowMain->addToolBar(Qt::ToolBarArea::BottomToolBarArea, mPlaybackToolbar);
-        mPlaybackToolbar->show();
-      }
-    }
   });
 }
 
@@ -490,18 +460,6 @@ void DialogImageViewer::triggerPreviewUpdate(ImageView view, bool withUserHistoS
     std::lock_guard<std::mutex> lock(mPreviewMutex);
     mPreviewCounter++;
   }
-}
-
-///
-/// \brief   Update the preview in the other window after focus lost
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogImageViewer::leaveEvent(QEvent *event)
-{
-  QDockWidget::leaveEvent(event);    // Call the base class handler if needed
 }
 
 ///
@@ -685,26 +643,6 @@ void DialogImageViewer::onShowPipelineResults(bool checked)
 void DialogImageViewer::onTileClicked(int32_t tileX, int32_t tileY)
 {
   emit tileClicked(tileX, tileY);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogImageViewer::closeEvent(QCloseEvent *event)
-{
-  event->ignore();    // Block the default close behavior
-
-  // Optionally re-dock if floating
-  if(isFloating()) {
-    setFloating(false);
-  }
-
-  // Optionally just ensure it's visible again
-  show();
 }
 
 ///

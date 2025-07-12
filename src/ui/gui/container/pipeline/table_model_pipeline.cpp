@@ -66,7 +66,7 @@ QVariant TableModelPipeline::headerData(int section, Qt::Orientation orientation
   if(role != Qt::DisplayRole) {
     return {};
   }
-  return {};
+  return {"Pipelines"};
 }
 
 ///

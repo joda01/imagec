@@ -72,6 +72,10 @@ private:
   WindowMain *mWindowMain;
   joda::settings::AnalyzeSettings &mAnalyzeSettings;
   std::shared_ptr<DialogCommandSelection> mCommandSelectionDialog;
+  PanelPipelineSettings *mActivePipeline;
+
+  // LAYOUT //////////////////////////////////////////////////
+  QVBoxLayout *mMainLayout;
 
   // ACTIONS///////////////////////////////////////////////////
   QAction *mActionStart;

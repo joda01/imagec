@@ -112,14 +112,35 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   setObjectName("windowMain");
 
   //
-  //
+  // Preview image area
   //
   {
-    mPreviewImage = new DialogImageViewer(this, false, this);
+    mTopToolBar->addSeparator();
+    mPreviewImage = new DialogImageViewer(this, false, mTopToolBar);
     mPreviewImage->setVisible(false);
-    mPreviewImage->setContentsMargins(0, 0, 0, 0);
     mPreviewImage->resetImage();
-    addDockWidget(Qt::RightDockWidgetArea, mPreviewImage);
+    // addDockWidget(Qt::RightDockWidgetArea, mPreviewImage);
+  }
+
+  //
+  // Add info button at the end
+  //
+  {
+    auto *spacerTop = new QWidget();
+    spacerTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    mTopToolBar->addWidget(spacerTop);
+
+    // auto *helpButton = new QAction(generateSvgIcon("help-contents"), "Help", mTopToolBar);
+    // helpButton->setToolTip("Help");
+    // connect(helpButton, &QAction::triggered, this, &WindowMain::onShowHelpClicked);
+    // mTopToolBar->addAction(helpButton);
+
+    mTopToolBar->addSeparator();
+
+    mShowInfoDialog = new QAction(generateSvgIcon("help-about"), "About", mTopToolBar);
+    mShowInfoDialog->setStatusTip("Open about dialog");
+    connect(mShowInfoDialog, &QAction::triggered, this, &WindowMain::onShowInfoDialog);
+    mTopToolBar->addAction(mShowInfoDialog);
   }
 
   setCentralWidget(createStackedWidget());
@@ -298,22 +319,6 @@ void WindowMain::createTopToolbar()
   mStartAnalysisToolButton->setEnabled(false);
   connect(mStartAnalysisToolButton, &QAction::triggered, this, &WindowMain::onStartClicked);
   mTopToolBar->addAction(mStartAnalysisToolButton);
-
-  auto *spacerTop = new QWidget();
-  spacerTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  mTopToolBar->addWidget(spacerTop);
-
-  // auto *helpButton = new QAction(generateSvgIcon("help-contents"), "Help", mTopToolBar);
-  // helpButton->setToolTip("Help");
-  // connect(helpButton, &QAction::triggered, this, &WindowMain::onShowHelpClicked);
-  // mTopToolBar->addAction(helpButton);
-
-  mTopToolBar->addSeparator();
-
-  mShowInfoDialog = new QAction(generateSvgIcon("help-about"), "About", mTopToolBar);
-  mShowInfoDialog->setStatusTip("Open about dialog");
-  connect(mShowInfoDialog, &QAction::triggered, this, &WindowMain::onShowInfoDialog);
-  mTopToolBar->addAction(mShowInfoDialog);
 }
 
 ///
@@ -364,7 +369,6 @@ QWidget *WindowMain::createStackedWidget()
   mStackedWidget = new QStackedWidget();
   mStackedWidget->setObjectName("stackedWidget");
   mStackedWidget->addWidget(createStartPageWidget());
-  mStackedWidget->addWidget(createChannelWidget());
   mStackedWidget->addWidget(createReportingWidget());
   return mStackedWidget;
 }
@@ -384,7 +388,8 @@ QWidget *WindowMain::createChannelWidget()
 ///
 QWidget *WindowMain::createStartPageWidget()
 {
-  auto *layout = new QVBoxLayout(); /*this*/
+  /*
+  auto *layout = new QVBoxLayout();
   layout->setContentsMargins(16, 16, 16, 16);
   layout->setSpacing(8);
   layout->setAlignment(Qt::AlignTop);
@@ -418,6 +423,8 @@ QWidget *WindowMain::createStartPageWidget()
   startScreenWidget->setMaximumWidth(300);
   startScreenWidget->setLayout(layout);
   return startScreenWidget;
+*/
+  return mPreviewImage;
 }
 
 ///
@@ -846,10 +853,6 @@ void WindowMain::onBackClicked()
   switch(mNavigation) {
     case Navigation::START_PAGE:
       break;
-    case Navigation::CHANNEL_EDIT:
-      showPanelStartPage();
-      checkForSettingsChanged();
-      break;
     case Navigation::REPORTING:
       if(showPanelStartPage()) {
         if(mPanelReporting != nullptr) {
@@ -877,68 +880,9 @@ bool WindowMain::showPanelStartPage()
     mPanelReporting->setActive(false);
   }
 
-  if(mSelectedChannel != nullptr) {
-    mSelectedChannel->toSettings();
-    mSelectedChannel->setActive(false);
-    mSelectedChannel = nullptr;
-  }
-
   mNavigation = Navigation::START_PAGE;
 
   return true;
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
-void WindowMain::showPanelPipelineSettingsEdit(PanelPipelineSettings *selectedChannel)
-{
-  if(mNavigation == Navigation::REPORTING) {
-    QMessageBox messageBox(this);
-    auto *icon = new QIcon(":/icons/icons/icons8-info-50-blue.png");
-    messageBox.setIconPixmap(icon->pixmap(42, 42));
-    messageBox.setWindowTitle("Info");
-    messageBox.setText("Please close results view first!");
-    messageBox.addButton(tr("Okay"), QMessageBox::YesRole);
-    messageBox.exec();
-    return;
-  }
-  onBackClicked();
-  mSelectedChannel = selectedChannel;
-  selectedChannel->setActive(true);
-
-  if(mStackedWidget->count() == 3) {
-    mStackedWidget->removeWidget(mStackedWidget->widget(static_cast<int32_t>(Navigation::CHANNEL_EDIT)));
-  }
-  mStackedWidget->insertWidget(static_cast<int32_t>(Navigation::CHANNEL_EDIT), selectedChannel->getEditPanel());
-  mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::CHANNEL_EDIT));
-
-  mNavigation = Navigation::CHANNEL_EDIT;
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
-void WindowMain::onRemoveChannelClicked()
-{
-  if(mSelectedChannel != nullptr) {
-    QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
-    messageBox.setWindowTitle("Remove channel?");
-    messageBox.setText("Do you want to remove the channel?");
-    QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
-    QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
-    messageBox.setDefaultButton(noButton);
-    auto reply = messageBox.exec();
-    if(messageBox.clickedButton() == yesButton) {
-      auto *selectedChanel = mSelectedChannel;
-      showPanelStartPage();
-      mPanelPipeline->erase(selectedChanel);
-      mSelectedChannel = nullptr;
-    }
-  }
 }
 
 ///

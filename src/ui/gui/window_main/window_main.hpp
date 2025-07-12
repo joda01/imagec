@@ -58,7 +58,6 @@ public:
   WindowMain(joda::ctrl::Controller *controller, joda::updater::Updater *updater);
   ~WindowMain();
   bool showPanelStartPage();
-  void showPanelPipelineSettingsEdit(PanelPipelineSettings *);
   void openProjectSettings(const QString &filePath, bool openFromTemplate);
   void openResultsSettings(const QString &filePath);
 
@@ -120,7 +119,6 @@ public:
 
 public slots:
   void onBackClicked();
-  void onRemoveChannelClicked();
 
 signals:
   void onOutputClassifierChanges();
@@ -139,9 +137,8 @@ private:
   /////////////////////////////////////////////////////
   enum class Navigation
   {
-    START_PAGE   = 0,
-    CHANNEL_EDIT = 1,
-    REPORTING    = 2
+    START_PAGE = 0,
+    REPORTING  = 1
   };
 
   enum class Tabs
@@ -194,10 +191,9 @@ private:
   DialogImageViewer *mPreviewImage = nullptr;
 
   ////Stacked widget/////////////////////////////////////////////////
-  QStackedWidget *mStackedWidget          = nullptr;
-  Navigation mNavigation                  = Navigation::START_PAGE;
-  PanelPipelineSettings *mSelectedChannel = nullptr;
-  PanelResults *mPanelReporting           = nullptr;
+  QStackedWidget *mStackedWidget = nullptr;
+  Navigation mNavigation         = Navigation::START_PAGE;
+  PanelResults *mPanelReporting  = nullptr;
 
   ////ToolbarIcons/////////////////////////////////////////////////
   QMenu *mOpenProjectMenu           = nullptr;

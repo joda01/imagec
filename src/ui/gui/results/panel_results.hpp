@@ -42,7 +42,7 @@ class WindowMain;
 namespace joda::ui::gui {
 
 class DialogColumnSettings;
-class DialogImageViewer;
+class ImageViewDockWidget;
 class HeatmapWidget;
 class PanelClassificationList;
 class PanelGraphSettings;
@@ -191,7 +191,7 @@ private:
   void loadPreview();
   bool showSelectWorkingDir(const QString &path);
   std::filesystem::path mImageWorkingDirectory;
-  DialogImageViewer *mDockWidgetImagePreview = nullptr;
+  ImageViewDockWidget *mDockWidgetImagePreview = nullptr;
   joda::ome::OmeInfo mImgProps;
   int32_t mSelectedTileX = 0;
   int32_t mSelectedTileY = 0;
