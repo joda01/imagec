@@ -21,8 +21,11 @@
 #include <mutex>
 #include <ranges>
 #include <string>
+#include <utility>
+#include "backend/enums/types.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/image/image.hpp"
+#include "controller/controller.hpp"
 #include <opencv2/core/matx.hpp>
 #include <opencv2/imgproc.hpp>
 
@@ -31,11 +34,15 @@ namespace joda::ui::gui {
 ////////////////////////////////////////////////////////////////
 // Image view section
 //
-PanelImageView::PanelImageView(const joda::image::Image *imageReference, const joda::image::Image *thumbnailImageReference,
-                               const joda::image::Image *overlay, bool withThumbnail, QWidget *parent) :
-    QGraphicsView(parent),
-    mActPixmapOriginal(imageReference), mThumbnailImageReference(thumbnailImageReference), mOverlayImage(overlay), scene(new QGraphicsScene(this)),
-    mWithThumbnail(withThumbnail)
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+PanelImageView::PanelImageView(QWidget *parent) : QGraphicsView(parent), scene(new QGraphicsScene(this))
 {
   setScene(scene);
   setBackgroundBrush(QBrush(Qt::black));
@@ -56,90 +63,116 @@ PanelImageView::PanelImageView(const joda::image::Image *imageReference, const j
   connect(this, &PanelImageView::updateImage, this, &PanelImageView::onUpdateImage);
 }
 
-void PanelImageView::setState(State state)
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo)
 {
-  mState = state;
-  switch(mState) {
-    case MOVE:
-      viewport()->setCursor(QCursor(Qt::PointingHandCursor));
-      break;
-    case PAINT:
-      viewport()->setCursor(QCursor(Qt::CrossCursor));
-      break;
+  setWaiting(true);
+  if(omeInfo != nullptr) {
+    joda::ctrl::Controller::loadImage(imagePath, mSeries, mPlane, mTile, mPreviewImages, omeInfo, enums::ZProjection::AVG_INTENSITY);
+    mOmeInfo = *omeInfo;
+  } else {
+    joda::ctrl::Controller::loadImage(imagePath, mSeries, mPlane, mTile, mPreviewImages, mOmeInfo, enums::ZProjection::AVG_INTENSITY);
   }
+  mLastPath = imagePath;
+  mPreviewImages.editedImage.autoAdjustBrightnessRange();
+  mPreviewImages.thumbnail.autoAdjustBrightnessRange();
+  setWaiting(false);
 
   emit updateImage();
 }
 
-void PanelImageView::setImageReference(const joda::image::Image *imageReference)
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::setOverlay(const joda::image::Image &&overlay)
 {
-  mActPixmapOriginal = imageReference;
+  mPreviewImages.overlay.setImage(std::move(*overlay.getImage()));
   emit updateImage();
 }
 
-void PanelImageView::imageUpdated(const ctrl::Preview::PreviewResults &previewResult, const std::map<enums::ClassIdIn, QString> &classes)
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::repaintImage()
 {
-  if(mThumbnailImageReference == nullptr) {
+  if(mLastPath.empty()) {
     return;
   }
-  mClasses        = classes;
-  mPipelineResult = previewResult;
+  joda::ctrl::Controller::loadImage(mLastPath, mSeries, mPlane, mTile, mPreviewImages, &mOmeInfo, enums::ZProjection::AVG_INTENSITY);
 
-  updatePipelineResultsCoordinates();
-  /////////////////////////////////////////////////////
-  const_cast<joda::image::Image *>(mThumbnailImageReference)->autoAdjustBrightnessRange();
   emit updateImage();
 }
 
-void PanelImageView::updatePipelineResultsCoordinates()
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::setZprojection(enums::ZProjection projection)
 {
-  auto xOffset = width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH;
-  auto yOffset = RESULTS_INFO_START_Y;
-  QRect pixelInfoRect(QPoint(xOffset, RESULTS_INFO_START_Y),
-                      QSize(RESULTS_INFO_RECT_WIDTH,
-                            height() - 2 * PIXEL_INFO_RECT_HEIGHT - RESULTS_INFO_START_Y));    // Adjust the size as needed
-
-  yOffset += 10;
-  auto addToTextCoordinated = [this, &xOffset, &yOffset](const QString &tmp, enums::ClassId classId) -> int32_t {
-    QTextDocument doc;
-    doc.setHtml(tmp);
-    QSizeF size  = doc.size();
-    qreal width  = size.width();
-    qreal height = size.height();
-    height       = 16;
-
-    mClassesCoordinates.emplace_back(QRect(xOffset, yOffset, RESULTS_INFO_RECT_WIDTH, height), static_cast<enums::ClassIdIn>(classId));
-    return height;
-  };
-
-  mClassesCoordinates.clear();
-  /////////////////////////////////////////////////////
-  QString info = "<html>";
-  for(const auto &[classId, count] : mPipelineResult.foundObjects) {
-    QString prefix = "□ ";
-    if(mSelectedClasses.contains(static_cast<enums::ClassIdIn>(classId))) {
-      prefix = "▣ ";
-    }
-    QString tmp = prefix + "<span style=\"color: " + QString(count.color.data()) + ";\">" +
-                  (mClasses.at(static_cast<enums::ClassIdIn>(classId)) + "</span>: " + QString::number(count.count) + "<br>");
-
-    yOffset += addToTextCoordinated(tmp, classId);
-    info += tmp;
-  }
-  if(mPipelineResult.isOverExposed) {
-    QString tmp = "<span style=\"color: #750000;\">Image may be overexposed</span><br>";
-    yOffset += addToTextCoordinated(tmp, enums::ClassId::NONE);
-    info += tmp;
-  }
-  if(mPipelineResult.noiseDetected) {
-    QString tmp = "<span style=\"color: #750000;\">Image may be noisy</span><br>";
-    yOffset += addToTextCoordinated(tmp, enums::ClassId::NONE);
-    info += tmp;
-  }
-  info += "</html>";
-  mPipelineResultsHtmlText = info;
+  mZprojection = projection;
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::setSeries(int32_t series)
+{
+  mSeries = series;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::setImagePlane(const joda::image::reader::ImageReader::Plane &plane)
+{
+  mPlane = plane;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::setImageTile(int32_t tileWith, int32_t tileHeight)
+{
+  mTile.tileWidth  = tileWith;
+  mTile.tileHeight = tileHeight;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::resetImage()
 {
   std::lock_guard<std::mutex> locked(mImageResetMutex);
@@ -157,11 +190,11 @@ void PanelImageView::resetImage()
 
 void PanelImageView::onUpdateImage()
 {
-  auto *img = mActPixmapOriginal->getImage();
+  auto *img = mPreviewImages.editedImage.getImage();
   if(img != nullptr) {
-    auto pixmap = mActPixmapOriginal->getPixmap({nullptr});
-    if(mOverlayImage != nullptr && mShowOverlay) {
-      pixmap = mActPixmapOriginal->getPixmap({mOverlayImage, 0.5});
+    auto pixmap = mPreviewImages.editedImage.getPixmap({nullptr});
+    if(!mPreviewImages.overlay.empty() && mShowOverlay && mPreviewImages.overlay.getImage()->size == mPreviewImages.editedImage.getImage()->size) {
+      pixmap = mPreviewImages.editedImage.getPixmap({.combineWith = &mPreviewImages.overlay, .opaque = 0.5});
     }
 
     scene->setSceneRect(pixmap.rect());
@@ -204,14 +237,11 @@ void PanelImageView::mouseMoveEvent(QMouseEvent *event)
     lastPos = event->pos();
     emit onImageRepainted();
   }
-  if(mShowThumbnail && mWithThumbnail) {
+  if(mShowThumbnail) {
     getThumbnailAreaEntered(event);
   }
   if(mShowPixelInfo) {
     mPixelInfo = fetchPixelInfoFromMousePosition(event->pos());
-  }
-  if(mShowPipelineResults) {
-    getPreviewResultsAreaEntered(event);
   }
 
   if(mShowCrosshandCursor) {
@@ -259,12 +289,6 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
     return;
   }
 
-  if(mShowPipelineResults) {
-    if(getPreviewResultsAreaClicked(event)) {
-      return;
-    }
-  }
-
   if(event->button() == Qt::LeftButton) {
     // Start dragging
     if(cursor() != Qt::ClosedHandCursor) {
@@ -274,7 +298,7 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
 
     isDragging = true;
     lastPos    = event->pos();
-    if(mShowThumbnail && mWithThumbnail) {
+    if(mShowThumbnail) {
       getClickedTileInThumbnail(event);
     }
   }
@@ -384,7 +408,7 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   }
 
   // Draw thumbnail
-  if(mShowThumbnail && mWithThumbnail) {
+  if(mShowThumbnail) {
     drawThumbnail(painter);
   }
 
@@ -392,11 +416,6 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   if(mShowPixelInfo && mShowHistogram) {
     // Takes 0.08ms
     drawPixelInfo(painter, width(), height() - 20, mPixelInfo);
-  }
-
-  // Draw pipeline result
-  if(mShowPipelineResults) {
-    drawPipelineResult(painter);
   }
 
   // Waiting banner
@@ -487,7 +506,7 @@ void PanelImageView::drawCrossHairCursor(QPainter &painter)
 void PanelImageView::drawPixelInfo(QPainter &painter, int32_t startX, int32_t startY, const PixelInfo &info)
 {
   std::lock_guard<std::mutex> locked(mImageResetMutex);
-  const auto *image = mActPixmapOriginal->getImage();
+  const auto *image = mPreviewImages.editedImage.getImage();
   if(image == nullptr) {
     return;
   }
@@ -524,106 +543,15 @@ void PanelImageView::drawPixelInfo(QPainter &painter, int32_t startX, int32_t st
 /// \param[out]
 /// \return
 ///
-void PanelImageView::drawPipelineResult(QPainter &painter)
-{
-  /// \todo this needs not beeing updated all the time
-  updatePipelineResultsCoordinates();
-  std::lock_guard<std::mutex> locked(mImageResetMutex);
-  const auto *image = mActPixmapOriginal->getImage();
-  if(image == nullptr) {
-    return;
-  }
-  int32_t startY = 0;
-  QRect pixelInfoRect(QPoint(width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH, RESULTS_INFO_START_Y),
-                      QSize(RESULTS_INFO_RECT_WIDTH,
-                            height() - 2 * PIXEL_INFO_RECT_HEIGHT - RESULTS_INFO_START_Y));    // Adjust the size as needed
-
-  painter.setPen(Qt::NoPen);    // Set the pen color to light blue
-
-  QColor transparentBlack(0, 0, 0, 127);    // 127 is approximately 50% of 255 for alpha
-  painter.setBrush(transparentBlack);       // Set the brush to no brush for transparent fill
-  QPainterPath path;
-  path.addRoundedRect(pixelInfoRect, 10, 10);
-  painter.fillPath(path, transparentBlack);
-  painter.drawPath(path);
-
-  painter.setPen(QColor(255, 255, 255));    // Set the pen color to light blue
-
-  //
-  // Paint the results
-  //
-  QStaticText text(mPipelineResultsHtmlText);
-  QPoint pText = pixelInfoRect.topLeft();
-  pText.setX(pText.x() + THUMB_RECT_START_X);
-  pText.setY(pText.y() + THUMB_RECT_START_Y);
-  painter.drawStaticText(pText, text);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-bool PanelImageView::getPreviewResultsAreaEntered(QMouseEvent *event)
-{
-  auto pos = event->pos();
-
-  QRect pixelInfoRect(QPoint(width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH, RESULTS_INFO_START_Y),
-                      QSize(RESULTS_INFO_RECT_WIDTH,
-                            height() - 2 * PIXEL_INFO_RECT_HEIGHT - RESULTS_INFO_START_Y));    // Adjust the size as needed
-
-  return pixelInfoRect.contains(pos);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-bool PanelImageView::getPreviewResultsAreaClicked(QMouseEvent *event)
-{
-  auto pos = event->pos();
-
-  QRect pixelInfoRect(QPoint(width() - THUMB_RECT_START_X - RESULTS_INFO_RECT_WIDTH, RESULTS_INFO_START_Y),
-                      QSize(RESULTS_INFO_RECT_WIDTH,
-                            height() - 2 * PIXEL_INFO_RECT_HEIGHT - RESULTS_INFO_START_Y));    // Adjust the size as needed
-
-  if(pixelInfoRect.contains(pos)) {
-    for(const auto &[classPos, classId] : mClassesCoordinates) {
-      if(classPos.contains(pos)) {
-        // QMessageBox::information(this, "Information", "Clicked: " + QString::number((int32_t) classId));
-        if(mSelectedClasses.contains(classId)) {
-          mSelectedClasses.erase(classId);
-        } else {
-          mSelectedClasses.emplace(classId);
-        }
-        viewport()->update();
-        emit classesToShowChanged(mSelectedClasses);
-        break;
-      }
-    }
-    return true;
-  }
-  return false;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 void PanelImageView::drawThumbnail(QPainter &painter)
 {
-  if(mThumbnailImageReference == nullptr) {
+  if(mPreviewImages.thumbnail.empty() || mOmeInfo.getNrOfSeries() < mSeries) {
     return;
   }
-  if(mThumbnailParameter.nrOfTilesX <= 1 && mThumbnailParameter.nrOfTilesY <= 1) {
+
+  auto [nrOfTilesX, nrOfTilesY] = mOmeInfo.getResolutionCount(mSeries).at(0).getNrOfTiles(mTile.tileWidth, mTile.tileHeight);
+
+  if(nrOfTilesX <= 1 && nrOfTilesY <= 1) {
     return;
   }
   float rectHeight = THUMB_RECT_HEIGHT_NORMAL;
@@ -633,7 +561,7 @@ void PanelImageView::drawThumbnail(QPainter &painter)
     rectWidth  = THUMB_RECT_WIDTH_ZOOMED;
   }
 
-  auto *img = mThumbnailImageReference->getImage();
+  auto *img = mPreviewImages.thumbnail.getImage();
   if(img == nullptr) {
     return;
   }
@@ -662,7 +590,7 @@ void PanelImageView::drawThumbnail(QPainter &painter)
 
   QRect thumbRect(QPoint(width() - THUMB_RECT_START_X - rectWidth, THUMB_RECT_START_Y), QSize(newWidth,
                                                                                               newHeight));    // Adjust the size as needed
-  painter.drawPixmap(thumbRect, mThumbnailImageReference->getPixmap({nullptr}));
+  painter.drawPixmap(thumbRect, mPreviewImages.thumbnail.getPixmap({nullptr}));
 
   //
   // Draw bounding rect
@@ -682,15 +610,16 @@ void PanelImageView::drawThumbnail(QPainter &painter)
   // float tileRectWidth  = newWidth / mNrOfTilesX;
   // float tileRectHeight = newHeight / mNrOfTilesY;
 
-  mTileRectWidthScaled =
-      std::ceil(static_cast<float>(mThumbnailParameter.tileWidth) * (float) newWidth / (float) mThumbnailParameter.originalImageWidth);
-  mTileRectHeightScaled =
-      std::ceil(static_cast<float>(mThumbnailParameter.tileHeight) * (float) newHeight / (float) mThumbnailParameter.originalImageHeight);
+  auto originalImageWidth  = mOmeInfo.getResolutionCount(mSeries).at(0).imageWidth;
+  auto originalImageHeight = mOmeInfo.getResolutionCount(mSeries).at(0).imageHeight;
 
-  for(int y = 0; y < mThumbnailParameter.nrOfTilesY; y++) {
-    for(int x = 0; x < mThumbnailParameter.nrOfTilesX; x++) {
+  mTileRectWidthScaled  = std::ceil(static_cast<float>(mTile.tileWidth) * (float) newWidth / (float) originalImageWidth);
+  mTileRectHeightScaled = std::ceil(static_cast<float>(mTile.tileHeight) * (float) newHeight / (float) originalImageHeight);
+
+  for(int y = 0; y < nrOfTilesY; y++) {
+    for(int x = 0; x < nrOfTilesX; x++) {
       bool isSelected = false;
-      if(x == mThumbnailParameter.selectedTileX && y == mThumbnailParameter.selectedTileY) {
+      if(x == mTile.tileX && y == mTile.tileY) {
         painter.setBrush(QColor(173, 216, 230));    // Set the brush to no brush for transparent fill
         isSelected = true;
       } else {
@@ -730,16 +659,18 @@ void PanelImageView::drawThumbnail(QPainter &painter)
 ///
 void PanelImageView::getClickedTileInThumbnail(QMouseEvent *event)
 {
-  for(int y = 0; y < mThumbnailParameter.nrOfTilesY; y++) {
-    for(int x = 0; x < mThumbnailParameter.nrOfTilesX; x++) {
+  auto [nrOfTilesX, nrOfTilesY] = mOmeInfo.getResolutionCount(mSeries).at(0).getNrOfTiles(mTile.tileWidth, mTile.tileHeight);
+
+  for(int y = 0; y < nrOfTilesY; y++) {
+    for(int x = 0; x < nrOfTilesX; x++) {
       int xOffset = x * mTileRectWidthScaled;
       int yOffset = y * mTileRectHeightScaled;
 
       QRect rectangle(QPoint(width() - THUMB_RECT_START_X - mThumbRectWidth + xOffset, THUMB_RECT_START_Y + yOffset),
                       QSize(mTileRectWidthScaled, mTileRectHeightScaled));
       if(rectangle.contains(event->pos())) {
-        mThumbnailParameter.selectedTileX = x;
-        mThumbnailParameter.selectedTileY = y;
+        mTile.tileX = x;
+        mTile.tileY = y;
         scene->update();
         update();
         emit tileClicked(x, y);
@@ -747,6 +678,54 @@ void PanelImageView::getClickedTileInThumbnail(QMouseEvent *event)
       }
     }
   }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto PanelImageView::getSelectedTile() -> std::pair<int32_t, int32_t>
+{
+  return {mTile.tileX, mTile.tileY};
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+int32_t PanelImageView::getNrOfTstacks()
+{
+  return mOmeInfo.getNrOfTStack(mSeries);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+int32_t PanelImageView::getNrOfCstacks()
+{
+  return mOmeInfo.getNrOfChannels(mSeries);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+int32_t PanelImageView::getNrOfZstacks()
+{
+  return mOmeInfo.getNrOfZStack(mSeries);
 }
 
 ///
@@ -778,12 +757,6 @@ void PanelImageView::getThumbnailAreaEntered(QMouseEvent *event)
   }
 }
 
-void PanelImageView::setThumbnailPosition(const ThumbParameter &param)
-
-{
-  mThumbnailParameter = param;
-}
-
 ///
 /// \brief
 /// \author
@@ -798,26 +771,26 @@ auto PanelImageView::fetchPixelInfoFromMousePosition(const QPoint &viewPos) cons
   PixelInfo pixelInfo;
   std::lock_guard<std::mutex> locked(mImageResetMutex);
   // Map the scene coordinates to image coordinates
-  if(mActPixmap != nullptr && mActPixmapOriginal->getImage() != nullptr) {
+  if(mActPixmap != nullptr && mPreviewImages.editedImage.getImage() != nullptr) {
     QPointF imagePos = mActPixmap->mapFromScene(scenePos);
     pixelInfo.posX   = imagePos.x();
     pixelInfo.posY   = imagePos.y();
 
-    int type  = mActPixmapOriginal->getImage()->type();
+    int type  = mPreviewImages.editedImage.getImage()->type();
     int depth = type & CV_MAT_DEPTH_MASK;
     cv::Mat image;
-    if(pixelInfo.posX >= 0 && pixelInfo.posX < mActPixmapOriginal->getImage()->cols && pixelInfo.posY >= 0 &&
-       pixelInfo.posY < mActPixmapOriginal->getImage()->rows) {
+    if(pixelInfo.posX >= 0 && pixelInfo.posX < mPreviewImages.editedImage.getImage()->cols && pixelInfo.posY >= 0 &&
+       pixelInfo.posY < mPreviewImages.editedImage.getImage()->rows) {
       if(depth == CV_16U) {
-        pixelInfo.grayScale = mActPixmapOriginal->getImage()->at<uint16_t>(pixelInfo.posY, pixelInfo.posX);
+        pixelInfo.grayScale = mPreviewImages.editedImage.getImage()->at<uint16_t>(pixelInfo.posY, pixelInfo.posX);
         pixelInfo.redVal    = -1;
         pixelInfo.greenVal  = -1;
         pixelInfo.blueVal   = -1;
       } else {
         pixelInfo.grayScale = -1;
-        pixelInfo.redVal    = mActPixmapOriginal->getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[2];
-        pixelInfo.greenVal  = mActPixmapOriginal->getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[1];
-        pixelInfo.blueVal   = mActPixmapOriginal->getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[0];
+        pixelInfo.redVal    = mPreviewImages.editedImage.getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[2];
+        pixelInfo.greenVal  = mPreviewImages.editedImage.getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[1];
+        pixelInfo.blueVal   = mPreviewImages.editedImage.getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[0];
         QColor color(pixelInfo.redVal, pixelInfo.greenVal, pixelInfo.blueVal);
         color.getHsv(&pixelInfo.hue, &pixelInfo.saturation, &pixelInfo.value);
       }
@@ -835,7 +808,7 @@ auto PanelImageView::fetchPixelInfoFromMousePosition(const QPoint &viewPos) cons
 ///
 void PanelImageView::drawHistogram(QPainter &painter)
 {
-  const auto *image = mActPixmapOriginal->getImage();
+  const auto *image = mPreviewImages.editedImage.getImage();
   if(image == nullptr) {
     return;
   }
@@ -848,7 +821,7 @@ void PanelImageView::drawHistogram(QPainter &painter)
 
   int type  = image->type();
   int depth = type & CV_MAT_DEPTH_MASK;
-  if(depth == CV_16U) {
+  if(depth == CV_16U && 1 == image->channels()) {
     if(!image->empty()) {
       // Place for the histogram
       QFont font;
@@ -858,12 +831,12 @@ void PanelImageView::drawHistogram(QPainter &painter)
       painter.setBrush(Qt::NoBrush);         // Set the brush to no brush for transparent fill
 
       // Precalculation
-      float histOffset    = mActPixmapOriginal->getHistogramOffset();
-      float histZoom      = mActPixmapOriginal->getHitogramZoomFactor();
+      float histOffset    = mPreviewImages.editedImage.getHistogramOffset();
+      float histZoom      = mPreviewImages.editedImage.getHitogramZoomFactor();
       int number          = (float) UINT16_MAX / histZoom;
       float binWidth      = (RECT_WIDTH / static_cast<float>(number));
       int markerPos       = number / NR_OF_MARKERS;
-      const auto &hist    = mActPixmapOriginal->getHistogram();
+      const auto &hist    = mPreviewImages.editedImage.getHistogram();
       int32_t compression = 1;
 
       if(number > UINT16_MAX / 2) {
@@ -879,7 +852,8 @@ void PanelImageView::drawHistogram(QPainter &painter)
         float startY    = static_cast<float>(height()) - RECT_START_Y;
         float histValue = hist.at<float>(idx) * RECT_HEIGHT;
         painter.drawLine(startX, startY, startX, startY - histValue);
-        if(idx == mActPixmapOriginal->getUpperLevelContrast() || (compression != 1 && idx + 1 == mActPixmapOriginal->getUpperLevelContrast())) {
+        if(idx == mPreviewImages.editedImage.getUpperLevelContrast() ||
+           (compression != 1 && idx + 1 == mPreviewImages.editedImage.getUpperLevelContrast())) {
           painter.setPen(QColor(255, 0, 0));    // Set the pen color to red
           painter.drawText(QRect(startX - 50, startY, 100, 12), Qt::AlignHCenter, std::to_string(idx).data());
           painter.drawLine(startX, startY, startX, startY - RECT_HEIGHT);
@@ -893,45 +867,76 @@ void PanelImageView::drawHistogram(QPainter &painter)
   }
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::leaveEvent(QEvent *)
 {
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::setShowThumbnail(bool showThumbnail)
 {
   mShowThumbnail = showThumbnail;
   viewport()->update();
 }
 
-void PanelImageView::setEnableThumbnail(bool enable)
-{
-  mWithThumbnail = enable;
-}
-
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::setShowHistogram(bool showHistorgram)
 {
   mShowHistogram = showHistorgram;
   viewport()->update();
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::setShowOverlay(bool showOVerlay)
 {
   mShowOverlay = showOVerlay;
   emit updateImage();
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::setShowPixelInfo(bool show)
 {
   mShowPixelInfo = show;
   viewport()->update();
 }
 
-void PanelImageView::setShowPipelineResults(bool show)
-{
-  mShowPipelineResults = show;
-  viewport()->update();
-}
-
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::setShowCrosshandCursor(bool show)
 {
   mShowCrosshandCursor       = show;
@@ -939,22 +944,51 @@ void PanelImageView::setShowCrosshandCursor(bool show)
   viewport()->update();
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::setLockCrosshandCursor(bool lock)
 {
   mLockCrosshandCursor = lock;
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::setCursorPosition(const QPoint &pos)
 {
   mCrossCursorInfo.mCursorPos = pos;
   mCrossCursorInfo.pixelInfo  = fetchPixelInfoFromMousePosition(mCrossCursorInfo.mCursorPos);
   viewport()->update();
 }
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 auto PanelImageView::getCursorPosition() -> QPoint
 {
   return mCrossCursorInfo.mCursorPos;
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::setCursorPositionFromOriginalImageCoordinatesAndCenter(const QRect &boundingRect)
 {
   if(mActPixmap != nullptr) {
@@ -972,6 +1006,13 @@ void PanelImageView::setCursorPositionFromOriginalImageCoordinatesAndCenter(cons
   }
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QPoint &imageCoordinates) -> QPoint
 {
   double imgX = imageCoordinates.x();
@@ -981,8 +1022,8 @@ auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QPoint &imageCoo
     QRectF sceneRect = mActPixmap->sceneBoundingRect();
     QRect viewRect   = mapFromScene(sceneRect).boundingRect();
 
-    auto originalImageSize = mActPixmapOriginal->getOriginalImageSize();
-    auto previewImageSize  = mActPixmapOriginal->getPreviewImageSize();
+    auto originalImageSize = mPreviewImages.editedImage.getOriginalImageSize();
+    auto previewImageSize  = mPreviewImages.editedImage.getPreviewImageSize();
     auto viewPortImageSize = QSize{viewRect.width(), viewRect.height()};
 
     double factorX = static_cast<double>(viewPortImageSize.width()) / static_cast<double>(originalImageSize.width());
@@ -997,6 +1038,13 @@ auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QPoint &imageCoo
   return {(int32_t) imgX, (int32_t) imgY};
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QRect &imageCoordinates) -> QRect
 {
   double imgX = imageCoordinates.x();
@@ -1009,8 +1057,8 @@ auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QRect &imageCoor
     QRectF sceneRect = mActPixmap->sceneBoundingRect();
     QRect viewRect   = mapFromScene(sceneRect).boundingRect();
 
-    auto originalImageSize = mActPixmapOriginal->getOriginalImageSize();
-    auto previewImageSize  = mActPixmapOriginal->getPreviewImageSize();
+    auto originalImageSize = mPreviewImages.editedImage.getOriginalImageSize();
+    auto previewImageSize  = mPreviewImages.editedImage.getPreviewImageSize();
     auto viewPortImageSize = QSize{viewRect.width(), viewRect.height()};
 
     double factorX = static_cast<double>(viewPortImageSize.width()) / static_cast<double>(originalImageSize.width());
@@ -1026,6 +1074,20 @@ auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QRect &imageCoor
     height *= factorY;
   }
   return {(int32_t) imgX, (int32_t) imgY, (int32_t) width, (int32_t) height};
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::setWaiting(bool waiting)
+{
+  mWaiting = waiting;
+  update();
+  viewport()->update();
 }
 
 }    // namespace joda::ui::gui

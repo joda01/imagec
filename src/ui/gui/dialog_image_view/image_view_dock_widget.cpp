@@ -25,7 +25,7 @@ namespace joda::ui::gui {
 ImageViewDockWidget::ImageViewDockWidget(QMainWindow *windowMMain) : mWindowMain(windowMMain)
 {
   setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-  mImageViewWidget = new DialogImageViewer(windowMMain, false, nullptr);
+  mImageViewWidget = new DialogImageViewer(windowMMain, nullptr);
   setWidget(mImageViewWidget);
 }
 

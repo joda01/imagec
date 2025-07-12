@@ -20,6 +20,7 @@
 #include "backend/commands/image_functions/resize/resize.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
+#include <opencv2/core/matx.hpp>
 #include <opencv2/core/types.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
@@ -59,7 +60,7 @@ void Image::setImage(const cv::Mat &&imageToDisplay, int32_t rescale)
   }
   int type  = mImageOriginal->type();
   int depth = type & CV_MAT_DEPTH_MASK;
-  if(depth == CV_16U) {
+  if(depth == CV_16U && 1 == mImageOriginal->channels()) {
     //
     // Calc histogram
     //
@@ -113,27 +114,44 @@ QPixmap Image::getPixmap(const Overlay &overlay) const
     // Takes 20ms
     if(overlay.combineWith != nullptr) {
       // Convert 16-bit grayscale to 8-bit grayscale
-      image.convertTo(image, CV_8U, 255.0 / 65535.0);    // Normalize to 8-bit
+      image.convertTo(image, CV_8UC3, 255.0 / 65535.0);    // Normalize to 8-bit
       cv::cvtColor(image, image, cv::COLOR_GRAY2BGR);
 
-      cv::Mat mask;
+      // Add transparent effect
       cv::Mat coloredImage = overlay.combineWith->mImageOriginal->clone();
+      int numPixels        = image.rows * image.cols;
+      for(int64_t n = 0; n < numPixels; n++) {
+        auto &original = image.at<cv::Vec3b>(n);
+        auto &mask     = coloredImage.at<cv::Vec3b>(n);
+        if(mask == cv::Vec3b{0, 0, 0}) {
+          mask = original;
+        } else {
+          for(int c = 0; c < 3; ++c) {
+            mask[c] = static_cast<uchar>(static_cast<float>(mask[c]) * overlay.opaque + static_cast<float>(original[c]) * (1.0f - overlay.opaque));
+          }
+        }
+      }
 
-      double alpha = overlay.opaque;
-      double beta  = 1.0;    // transparency for background
-      cv::addWeighted(coloredImage, alpha, image, beta, 0.0, coloredImage);
-
-      // cv::inRange(coloredImage, cv::Scalar(0, 0, 0), cv::Scalar(0, 0, 0), mask);
-      // image.copyTo(coloredImage, mask);
       return encode(&coloredImage);
-
     } else {
       return encode(&image);
     }
   } else {
     if(overlay.combineWith != nullptr) {
       cv::Mat image = mImageOriginal->clone();
-      cv::bitwise_xor(image, *overlay.combineWith->mImageOriginal, image);
+      int numPixels = image.rows * image.cols;
+      for(int64_t n = 0; n < numPixels; n++) {
+        auto &original = image.at<cv::Vec3b>(n);
+        auto &mask     = overlay.combineWith->mImageOriginal->at<cv::Vec3b>(n);
+        if(mask == cv::Vec3b{0, 0, 0}) {
+          original = original;
+        } else {
+          for(int c = 0; c < 3; ++c) {
+            original[c] =
+                static_cast<uchar>(static_cast<float>(mask[c]) * overlay.opaque + static_cast<float>(original[c]) * (1.0f - overlay.opaque));
+          }
+        }
+      }
       return encode(&image);
     } else {
       return encode(mImageOriginal);

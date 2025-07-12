@@ -116,9 +116,8 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   //
   {
     mTopToolBar->addSeparator();
-    mPreviewImage = new DialogImageViewer(this, false, mTopToolBar);
+    mPreviewImage = new DialogImageViewer(this, mTopToolBar);
     mPreviewImage->setVisible(false);
-    mPreviewImage->resetImage();
     // addDockWidget(Qt::RightDockWidgetArea, mPreviewImage);
   }
 
@@ -576,6 +575,15 @@ void WindowMain::onOpenClicked()
   if(filePath.endsWith(joda::fs::EXT_DATABASE.data())) {
     openResultsSettings(filePath);
   }
+}
+
+///
+/// \brief      Open an image
+/// \author     Joachim Danmayr
+///
+void WindowMain::openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo)
+{
+  mPreviewImage->getImagePanel()->openImage(imagePath, omeInfo);
 }
 
 ///

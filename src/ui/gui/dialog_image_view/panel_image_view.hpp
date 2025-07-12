@@ -14,10 +14,13 @@
 #include <qlabel.h>
 #include <qwidget.h>
 #include <QtWidgets>
+#include <filesystem>
 #include <iostream>
 #include <mutex>
 #include <string>
+#include <utility>
 #include "backend/enums/enums_classes.hpp"
+#include "backend/enums/types.hpp"
 #include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"
 #include <opencv2/core/types.hpp>
@@ -32,24 +35,6 @@ class PanelImageView : public QGraphicsView
 {
   Q_OBJECT
 public:
-  enum State
-  {
-    MOVE,
-    PAINT
-  };
-
-  struct ThumbParameter
-  {
-    int32_t nrOfTilesX          = 0;
-    int32_t nrOfTilesY          = 0;
-    int32_t tileWidth           = 0;
-    int32_t tileHeight          = 0;
-    int32_t originalImageWidth  = 0;
-    int32_t originalImageHeight = 0;
-    int32_t selectedTileX       = 0;
-    int32_t selectedTileY       = 0;
-  };
-
   struct PixelInfo
   {
     int32_t posX       = 0;
@@ -70,54 +55,42 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  PanelImageView(const joda::image::Image *imageReference, const joda::image::Image *thumbnailImageReference, const joda::image::Image *overlay,
-                 bool withThumbnail, QWidget *parent = nullptr);
-
-  void imageUpdated(const ctrl::Preview::PreviewResults &info, const std::map<enums::ClassIdIn, QString> &classes);
+  PanelImageView(QWidget *parent = nullptr);
+  void openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo = nullptr);
+  void setOverlay(const joda::image::Image &&overlay);
+  void repaintImage();
   void resetImage();
   void fitImageToScreenSize();
   void zoomImage(bool inOut);
-  const joda::image::Image &getImage()
-  {
-    return *mActPixmapOriginal;
-  }
-  void emitUpdateImage()
-  {
-    emit updateImage();
-  }
-  void setWaiting(bool waiting)
-  {
-    mWaiting = waiting;
-    update();
-    viewport()->update();
-  }
-
-  void setState(State);
+  void setWaiting(bool waiting);
   void setShowThumbnail(bool);
-  void setEnableThumbnail(bool);
   void setShowHistogram(bool);
   void setShowPixelInfo(bool);
-  void setShowPipelineResults(bool);
   void setShowOverlay(bool);
   void setShowCrosshandCursor(bool);
   void setLockCrosshandCursor(bool);
-  void setThumbnailPosition(const ThumbParameter &);
   void setCursorPosition(const QPoint &pos);
   void setCursorPositionFromOriginalImageCoordinatesAndCenter(const QRect &boundingRect);
   auto getCursorPosition() -> QPoint;
-  void setImageReference(const joda::image::Image *imageReference);
-  auto getSelectedClasses() const -> settings::ObjectInputClasses
-  {
-    return mSelectedClasses;
-  }
+  auto getSelectedTile() -> std::pair<int32_t, int32_t>;
+  int32_t getNrOfTstacks();
+  int32_t getNrOfCstacks();
+  int32_t getNrOfZstacks();
+
+  // INFORMATION NEEDED FROM EXTERNAL ///////////////////////////////////////////////////
+  void setZprojection(enums::ZProjection);
+  void setSeries(int32_t);
+  void setImagePlane(const joda::image::reader::ImageReader::Plane &);
+  void setImageTile(int32_t tileWith, int32_t tileHeight);
 
 signals:
+  /////////////////////////////////////////////////////
   void classesToShowChanged(const settings::ObjectInputClasses &selectedClasses);
   void updateImage();
   void onImageRepainted();
   void tileClicked(int32_t tileX, int32_t tileY);
 
-protected:
+private:
   /////////////////////////////////////////////////////
   void mousePressEvent(QMouseEvent *event) override;
   void mouseMoveEvent(QMouseEvent *event) override;
@@ -127,17 +100,11 @@ protected:
   void paintEvent(QPaintEvent *event) override;
   void drawHistogram(QPainter &);
   void drawThumbnail(QPainter &);
-  void drawPipelineResult(QPainter &);
   void drawCrossHairCursor(QPainter &);
   void drawPixelInfo(QPainter &, int32_t startX, int32_t startY, const PixelInfo &info);
-
   void getClickedTileInThumbnail(QMouseEvent *event);
   void getThumbnailAreaEntered(QMouseEvent *event);
   auto fetchPixelInfoFromMousePosition(const QPoint &pos) const -> PixelInfo;
-  bool getPreviewResultsAreaEntered(QMouseEvent *event);
-  bool getPreviewResultsAreaClicked(QMouseEvent *event);
-
-  void updatePipelineResultsCoordinates();
   auto imageCoordinatesToPreviewCoordinates(const QPoint &imageCoordinates) -> QPoint;
   auto imageCoordinatesToPreviewCoordinates(const QRect &imageCoordinates) -> QRect;
 
@@ -154,35 +121,32 @@ private:
   const float PIXEL_INFO_RECT_WIDTH  = 150;
   const float PIXEL_INFO_RECT_HEIGHT = 40;
 
-  const float RESULTS_INFO_START_Y    = THUMB_RECT_START_Y + THUMB_RECT_HEIGHT_ZOOMED + 10;
-  const float RESULTS_INFO_RECT_WIDTH = 150;
-  // const float RESULTS_INFO_RECT_HEIGHT = 250;
+  // IMAGE ///////////////////////////////////////////////////
+  bool mPlaceholderImageSet = true;
+  std::filesystem::path mLastPath;
+  joda::ome::OmeInfo mOmeInfo;
+  joda::ctrl::Preview mPreviewImages;
+  joda::image::reader::ImageReader::Plane mPlane;
+  joda::ome::TileToLoad mTile;
+  enums::ZProjection mZprojection;
+  int32_t mSeries = 0;
 
-  /////////////////////////////////////////////////////
-  bool mPlaceholderImageSet                          = true;
-  const joda::image::Image *mActPixmapOriginal       = nullptr;
-  const joda::image::Image *mOverlayImage            = nullptr;
-  const joda::image::Image *mThumbnailImageReference = nullptr;
-  QGraphicsPixmapItem *mActPixmap                    = nullptr;
+  // WIDGET ///////////////////////////////////////////////////
+  QGraphicsPixmapItem *mActPixmap = nullptr;
   QGraphicsScene *scene;
+
+  // MOVE IMAGE ///////////////////////////////////////////////////
   bool isDragging = false;
   QPoint lastPos;
-  State mState = State::MOVE;
   cv::Size mPixmapSize;
-  ctrl::Preview::PreviewResults mPipelineResult;
-  QString mPipelineResultsHtmlText;
-  settings::ObjectInputClasses mSelectedClasses;
-  std::vector<std::tuple<QRect, joda::enums::ClassIdIn>> mClassesCoordinates;
-  std::map<enums::ClassIdIn, QString> mClasses;
 
-  /////////////////////////////////////////////////////
+  // IMAGE INFO ///////////////////////////////////////////////////
   CrossCursorInfo mCrossCursorInfo;
   QRect mLastCrossHairCursorPos = {0, 0, 0, 0};
 
   /////////////////////////////////////////////////////
-  ThumbParameter mThumbnailParameter;
+  // ThumbParameter mThumbnailParameter;
   PixelInfo mPixelInfo;
-
   uint32_t mThumbRectWidth      = 0;
   uint32_t mThumbRectHeight     = 0;
   int32_t mTileRectWidthScaled  = 0;
@@ -192,7 +156,6 @@ private:
   bool mThumbnailAreaEntered = false;
 
   /////////////////////////////////////////////////////
-  bool mWithThumbnail;
   bool mWaiting             = false;
   bool mShowThumbnail       = true;
   bool mShowPixelInfo       = true;
@@ -200,7 +163,6 @@ private:
   bool mLockCrosshandCursor = false;
   bool mShowHistogram       = true;
   bool mShowOverlay         = true;
-  bool mShowPipelineResults = false;
 
   mutable std::mutex mImageResetMutex;
 

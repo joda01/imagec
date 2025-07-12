@@ -147,8 +147,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
 
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);
   connect(this, &PanelPipelineSettings::updatePreviewFinished, this, &PanelPipelineSettings::onPreviewFinished);
-  connect(mPreviewImage, &DialogImageViewer::tileClicked, this, &PanelPipelineSettings::onTileClicked);
-  connect(mPreviewImage, &DialogImageViewer::onSettingChanged, this, &PanelPipelineSettings::updatePreview);
+  connect(mPreviewImage, &DialogImageViewer::settingChanged, this, &PanelPipelineSettings::updatePreview);
   connect(wm->getImagePanel(), &PanelImages::imageSelectionChanged, this, &PanelPipelineSettings::updatePreview);
   connect(wm->getPanelProjectSettings(), &PanelProjectSettings::updateImagePreview, this, &PanelPipelineSettings::updatePreview);
   connect(mLayout.getBackButton(), &QAction::triggered, this, &PanelPipelineSettings::closeWindow);
@@ -396,15 +395,13 @@ void PanelPipelineSettings::updatePreview()
   settings::AnalyzeSettings settingsTmp = mWindowMain->getSettings();
 
   auto previewSize                                    = mPreviewImage->getPreviewSize();
-  auto classesToShow                                  = mPreviewImage->getSelectedClassesAndClasses();
   settingsTmp.imageSetup.imageTileSettings.tileWidth  = previewSize;
   settingsTmp.imageSetup.imageTileSettings.tileHeight = previewSize;
   if(mLastSelectedPreviewSize != previewSize) {
     mLastSelectedPreviewSize = previewSize;
-    mSelectedTileX           = 0;
-    mSelectedTileY           = 0;
   }
   try {
+    auto [selectedTileX, selectedTileY] = mPreviewImage->getImagePanel()->getSelectedTile();
     auto threadSettings =
         mWindowMain->getController()->calcOptimalThreadNumber(settingsTmp, std::get<2>(mWindowMain->getImagePanel()->getSelectedImage()));
     PreviewJob job{.settings       = settingsTmp,
@@ -412,11 +409,11 @@ void PanelPipelineSettings::updatePreview()
                    .previewPanel   = mPreviewImage,
                    .selectedImage  = mWindowMain->getImagePanel()->getSelectedImage(),
                    .pipelinePos    = cnt,
-                   .selectedTileX  = mSelectedTileX,
-                   .selectedTileY  = mSelectedTileY,
-                   .timeStack      = mPreviewImage->getActualTimeStackPosition(),
+                   .selectedTileX  = selectedTileX,
+                   .selectedTileY  = selectedTileY,
+                   .timeStack      = mPreviewImage->getSelectedTimeStack(),
                    .classes        = mWindowMain->getPanelClassification()->getClasses(),
-                   .classesToShow  = classesToShow,
+                   .classesToShow  = {},
                    .threadSettings = threadSettings};
 
     std::lock_guard<std::mutex> lock(mCheckForEmptyMutex);
@@ -476,10 +473,10 @@ void PanelPipelineSettings::previewThread()
 
             auto [tileNrX, tileNrY] = imgProps.getImageInfo(series).resolutions.at(resolution).getNrOfTiles(tileSize.tileWidth, tileSize.tileHeight);
 
-            auto &previewResult = jobToDo.previewPanel->getPreviewObject();
+            joda::ctrl::Preview previewResult;
             processor::PreviewSettings prevSettings;
             prevSettings.style =
-                jobToDo.previewPanel->fillOverlay() ? settings::ImageSaverSettings::Style::FILLED : settings::ImageSaverSettings::Style::OUTLINED;
+                jobToDo.previewPanel->getFillOverlay() ? settings::ImageSaverSettings::Style::FILLED : settings::ImageSaverSettings::Style::OUTLINED;
 
             joda::settings::Pipeline *myPipeline = nullptr;
             int cnt                              = 0;
@@ -496,18 +493,8 @@ void PanelPipelineSettings::previewThread()
             jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, jobToDo.threadSettings, *myPipeline, imgIndex,
                                         jobToDo.selectedTileX, jobToDo.selectedTileY, jobToDo.timeStack, previewResult, imgProps,
                                         jobToDo.classesToShow);
-            // Create a QByteArray from the char array
 
-            jobToDo.previewPanel->setThumbnailPosition(
-                PanelImageView::ThumbParameter{.nrOfTilesX          = tileNrX,
-                                               .nrOfTilesY          = tileNrY,
-                                               .tileWidth           = jobToDo.settings.imageSetup.imageTileSettings.tileWidth,
-                                               .tileHeight          = jobToDo.settings.imageSetup.imageTileSettings.tileHeight,
-                                               .originalImageWidth  = imgWidth,
-                                               .originalImageHeight = imageHeight,
-                                               .selectedTileX       = jobToDo.selectedTileX,
-                                               .selectedTileY       = jobToDo.selectedTileY});
-            jobToDo.previewPanel->imageUpdated(previewResult.results, jobToDo.classes);
+            jobToDo.previewPanel->getImagePanel()->setOverlay(std::move(previewResult.overlay));
 
           } catch(const std::exception &error) {
             joda::log::logError("Preview error: " + std::string(error.what()));
@@ -527,20 +514,6 @@ void PanelPipelineSettings::previewThread()
 
   mPreviewInProgress = false;
   emit updatePreviewFinished();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelPipelineSettings::onTileClicked(int32_t tileX, int32_t tileY)
-{
-  mSelectedTileX = tileX;
-  mSelectedTileY = tileY;
-  updatePreview();
 }
 
 ///

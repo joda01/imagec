@@ -96,13 +96,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   createToolBar(&layout());
 
   // Add to dock
-  mDockWidgetImagePreview->getImageWidget()->setPreviewImageSizeVisble(false);
-  mDockWidgetImagePreview->getImageWidget()->setPipelineResultsButtonVisible(false);
   mDockWidgetImagePreview->getImageWidget()->setVisible(false);
-  mDockWidgetImagePreview->getImageWidget()->setShowCrossHairCursor(true);
-  mDockWidgetImagePreview->getImageWidget()->setShowPixelInfo(false);
-  mDockWidgetImagePreview->getImageWidget()->setShowOverlay(false);
-  mDockWidgetImagePreview->getImageWidget()->setZProjectionButtonVisible(true);
   mWindowMain->addDockWidget(Qt::RightDockWidgetArea, mDockWidgetImagePreview);
 
   static const int32_t SELECTED_INFO_WIDTH   = 250;
@@ -261,9 +255,8 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   onShowTable();
   refreshView();
 
-  connect(mDockWidgetImagePreview->getImageWidget(), &DialogImageViewer::tileClicked, [this] { loadPreview(); });
-  connect(mDockWidgetImagePreview->getImageWidget(), &DialogImageViewer::onSettingChanged, [this] {
-    if(mFilter.getFilter().tStack != mDockWidgetImagePreview->getImageWidget()->getActualTimeStackPosition()) {
+  connect(mDockWidgetImagePreview->getImageWidget(), &DialogImageViewer::settingChanged, [this] {
+    if(mFilter.getFilter().tStack != mDockWidgetImagePreview->getImageWidget()->getSelectedTimeStack()) {
       // If t stack has been changed, reload the results with the new t-stack
       refreshView();
     }
@@ -301,10 +294,8 @@ void PanelResults::setActive(bool active)
 {
   if(!active) {
     showToolBar(false);
-    mDockWidgetImagePreview->getImageWidget()->setPlayBackToolbarVisible(false);
     mShowPreview->setEnabled(true);
     mDockWidgetImagePreview->setVisible(false);
-    mDockWidgetImagePreview->getImageWidget()->resetImage();
     mDockWidgetGraphSettings->setVisible(false);
     mDockWidgetClassList->setVisible(false);
     resetSettings();
@@ -573,10 +564,7 @@ void PanelResults::refreshBreadCrump()
       mOpenNextLevel->setVisible(true);
       mShowPreview->setEnabled(false);
       mDockWidgetImagePreview->setVisible(false);
-      mDockWidgetImagePreview->getImageWidget()->setPlayBackToolbarVisible(false);
       mDockWidgetImagePreview->setFloating(false);
-      mDockWidgetImagePreview->getImageWidget()->resetImage();
-      mDockWidgetImagePreview->getImageWidget()->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
       break;
     case Navigation::WELL:
       mBreadCrumpWell->setVisible(true);
@@ -584,10 +572,7 @@ void PanelResults::refreshBreadCrump()
       mOpenNextLevel->setVisible(true);
       mShowPreview->setEnabled(false);
       mDockWidgetImagePreview->setVisible(false);
-      mDockWidgetImagePreview->getImageWidget()->setPlayBackToolbarVisible(false);
       mDockWidgetImagePreview->setFloating(false);
-      mDockWidgetImagePreview->getImageWidget()->resetImage();
-      mDockWidgetImagePreview->getImageWidget()->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
       if(mSelectedDataSet.groupMeta.has_value()) {
         auto platePos =
             "Well (" + std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + ")";
@@ -598,7 +583,6 @@ void PanelResults::refreshBreadCrump()
       mBreadCrumpWell->setVisible(true);
       mBreadCrumpImage->setVisible(true);
       mOpenNextLevel->setVisible(false);
-      mDockWidgetImagePreview->getImageWidget()->resetMaxtimeStacks();
       if(!mImageWorkingDirectory.empty() && mDashboard->isVisible()) {
         mShowPreview->setEnabled(true);
         mDockWidgetImagePreview->setVisible(mShowPreview->isChecked());
@@ -607,7 +591,6 @@ void PanelResults::refreshBreadCrump()
         mShowPreview->setEnabled(false);
         mDockWidgetImagePreview->setVisible(false);
       }
-      mDockWidgetImagePreview->getImageWidget()->setPlayBackToolbarVisible(true);
 
       //
       std::string imageName;
@@ -648,70 +631,6 @@ bool PanelResults::showSelectWorkingDir(const QString &path)
     return true;
   } else {
     return false;
-  }
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::previewThread()
-{
-  while(!mStopped) {
-    auto previewData = mPreviewQue.pop();
-
-    auto &previewResult = mDockWidgetImagePreview->getImageWidget()->getPreviewObject();
-
-    try {
-      mDockWidgetImagePreview->getImageWidget()->setWaiting(true);
-      int32_t tileWidth      = previewData.analyzeMeta.tileWidth;
-      int32_t tileHeight     = previewData.analyzeMeta.tileHeight;
-      int32_t series         = previewData.analyzeMeta.series;
-      const auto &objectInfo = previewData.objectInfo;
-      int32_t tileXNr        = objectInfo.measCenterX / tileWidth;
-      int32_t tileYNr        = objectInfo.measCenterY / tileHeight;
-      int32_t resolution     = 0;
-
-      ctrl::Controller::loadImage(previewData.imagePath, series,
-                                  joda::image::reader::ImageReader::Plane{.z = static_cast<int32_t>(objectInfo.stackZ),
-                                                                          .c = static_cast<int32_t>(objectInfo.stackC),
-                                                                          .t = static_cast<int32_t>(objectInfo.stackT)},
-                                  joda::ome::TileToLoad{tileXNr, tileYNr, tileWidth, tileHeight}, previewResult, mImgProps, objectInfo,
-                                  mDockWidgetImagePreview->getImageWidget()->getSelectedZProjection());
-
-      auto imgWidth    = mImgProps.getImageInfo(series).resolutions.at(0).imageWidth;
-      auto imageHeight = mImgProps.getImageInfo(series).resolutions.at(0).imageHeight;
-      if(imgWidth > tileWidth || imageHeight > tileHeight) {
-        tileWidth  = tileWidth;
-        tileHeight = tileHeight;
-      } else {
-        tileWidth  = imgWidth;
-        tileHeight = imageHeight;
-      }
-      auto [tileNrX, tileNrY] = mImgProps.getImageInfo(series).resolutions.at(resolution).getNrOfTiles(tileWidth, tileHeight);
-
-      auto measBoxX = objectInfo.measBoxX - tileXNr * tileWidth;
-      auto measBoxY = objectInfo.measBoxY - tileYNr * tileHeight;
-      QRect boungingBox{(int32_t) measBoxX, (int32_t) measBoxY, (int32_t) objectInfo.measBoxWidth, (int32_t) objectInfo.measBoxHeight};
-      mDockWidgetImagePreview->getImageWidget()->setCrossHairCursorPositionAndCenter(boungingBox);
-      mDockWidgetImagePreview->getImageWidget()->setThumbnailPosition(PanelImageView::ThumbParameter{.nrOfTilesX          = tileNrX,
-                                                                                                     .nrOfTilesY          = tileNrY,
-                                                                                                     .tileWidth           = tileWidth,
-                                                                                                     .tileHeight          = tileHeight,
-                                                                                                     .originalImageWidth  = imgWidth,
-                                                                                                     .originalImageHeight = imageHeight,
-                                                                                                     .selectedTileX       = tileXNr,
-                                                                                                     .selectedTileY       = tileYNr});
-      mDockWidgetImagePreview->getImageWidget()->imageUpdated(previewResult.results, {});
-
-    } catch(const std::exception &ex) {
-      // No image selected
-      joda::log::logError("Preview error: " + std::string(ex.what()));
-    }
-    mDockWidgetImagePreview->getImageWidget()->setWaiting(false);
   }
 }
 
@@ -805,6 +724,59 @@ void PanelResults::loadPreview()
 /// \param[out]
 /// \return
 ///
+void PanelResults::previewThread()
+{
+  while(!mStopped) {
+    auto previewData = mPreviewQue.pop();
+
+    try {
+      mDockWidgetImagePreview->getImageWidget()->setWaiting(true);
+      // int32_t tileWidth      = previewData.analyzeMeta.tileWidth;
+      // int32_t tileHeight     = previewData.analyzeMeta.tileHeight;
+      // uint32_t series        = previewData.analyzeMeta.series;
+      // const auto &objectInfo = previewData.objectInfo;
+      // int32_t tileXNr        = objectInfo.measCenterX / tileWidth;
+      // int32_t tileYNr        = objectInfo.measCenterY / tileHeight;
+      // int32_t resolution     = 0;
+      // joda::image::reader::ImageReader::Plane{
+      //    .z = static_cast<int32_t>(objectInfo.stackZ), .c = static_cast<int32_t>(objectInfo.stackC), .t = static_cast<int32_t>(objectInfo.stackT)};
+
+      mDockWidgetImagePreview->getImageWidget()->getImagePanel()->openImage(previewData.imagePath);
+
+      // Set cursor position
+      /*
+      auto imgWidth    = mImgProps.getImageInfo(series).resolutions.at(0).imageWidth;
+      auto imageHeight = mImgProps.getImageInfo(series).resolutions.at(0).imageHeight;
+      if(imgWidth > tileWidth || imageHeight > tileHeight) {
+        tileWidth  = tileWidth;
+        tileHeight = tileHeight;
+      } else {
+        tileWidth  = imgWidth;
+        tileHeight = imageHeight;
+      }
+      auto [tileNrX, tileNrY] = mImgProps.getImageInfo(series).resolutions.at(resolution).getNrOfTiles(tileWidth, tileHeight);
+
+      auto measBoxX = objectInfo.measBoxX - tileXNr * tileWidth;
+      auto measBoxY = objectInfo.measBoxY - tileYNr * tileHeight;
+      QRect boungingBox{(int32_t) measBoxX, (int32_t) measBoxY, (int32_t) objectInfo.measBoxWidth, (int32_t) objectInfo.measBoxHeight};
+      mDockWidgetImagePreview->getImageWidget()->setCrossHairCursorPositionAndCenter(boungingBox);
+      */
+
+    } catch(const std::exception &ex) {
+      // No image selected
+      joda::log::logError("Preview error: " + std::string(ex.what()));
+    }
+    mDockWidgetImagePreview->getImageWidget()->setWaiting(false);
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelResults::refreshView()
 {
   const auto &wellOrder = mDockWidgetGraphSettings->getWellOrder();
@@ -819,7 +791,7 @@ void PanelResults::refreshView()
   mFilter.setFilter({.plateId = 0,
                      .groupId = static_cast<uint16_t>(mActGroupId),
                      .imageId = mActImageId,
-                     .tStack  = mDockWidgetImagePreview->getImageWidget()->getActualTimeStackPosition()},
+                     .tStack  = mDockWidgetImagePreview->getImageWidget()->getSelectedTimeStack()},
                     {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
                     {.form               = form,
                      .heatmapRangeMode   = mFilter.getDensityMapSettings().heatmapRangeMode,
@@ -857,7 +829,7 @@ void PanelResults::refreshView()
               mFilter.setFilter({.plateId = 0,
                                  .groupId = static_cast<uint16_t>(mActGroupId),
                                  .imageId = mActImageId,
-                                 .tStack  = mDockWidgetImagePreview->getImageWidget()->getActualTimeStackPosition()},
+                                 .tStack  = mDockWidgetImagePreview->getImageWidget()->getSelectedTimeStack()},
                                 {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
                                 {.densityMapAreaSize = static_cast<int32_t>(mDockWidgetGraphSettings->getDensityMapSize())});
               goto REFRESH_VIEW;
@@ -1145,7 +1117,6 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   }
   // Load stuff
   mTmpColocClasses = mAnalyzer->selectColocalizingClasses();
-  mDockWidgetImagePreview->getImageWidget()->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
 
   // Store last opened
   if(mSelectedDataSet.analyzeMeta.has_value()) {

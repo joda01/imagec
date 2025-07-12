@@ -444,6 +444,8 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         // The last step is the wanted pipeline
         //
         if(previewPipeline) {
+          joda::settings::ImageSaverSettings saverSettings;
+          saverSettings.classesIn.clear();
           //
           // Count elements
           //
@@ -451,11 +453,23 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
           {
             for(auto const &[classs, objects] : context.getActObjects()) {
               for(const auto &roi : *objects) {
-                joda::enums::ClassId key = static_cast<enums::ClassId>(roi.getClassId());
+                auto key = roi.getClassId();
                 if(!foundObjects.contains(key)) {
                   foundObjects[key].count       = 0;
                   foundObjects[key].color       = "#BFBFBF";
                   foundObjects[key].wantedColor = globalContext.classes[key].color;
+
+                  //
+                  // Show all if no class was selected
+                  //
+                  if(classesToShow.empty()) {
+                    foundObjects[key].color = foundObjects.at(key).wantedColor;
+                    saverSettings.classesIn.emplace_back(
+                        settings::ImageSaverSettings::SaveClasss{.inputClass       = static_cast<enums::ClassIdIn>(roi.getClassId()),
+                                                                 .style            = previewSettings.style,
+                                                                 .paintBoundingBox = false,
+                                                                 .paintObjectId    = false});
+                  }
                 }
                 foundObjects[key].count++;
               }
@@ -465,8 +479,6 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
           //
           // Generate preview image
           //
-          joda::settings::ImageSaverSettings saverSettings;
-          saverSettings.classesIn.clear();
           for(enums::ClassIdIn classs : classesToShow) {
             if(classs >= enums::ClassIdIn::TEMP_01 && classs <= enums::ClassIdIn::TEMP_LAST) {
               /// \todo allow to show temp in preview
@@ -485,6 +497,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
                   .inputClass = classs, .style = previewSettings.style, .paintBoundingBox = false, .paintObjectId = false});
             }
           }
+
           // No breakpoint was set, use the last image
           if(editedImageAtBreakpoint.empty()) {
             editedImageAtBreakpoint = context.getActImage().image.clone();

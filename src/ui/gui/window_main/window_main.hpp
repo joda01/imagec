@@ -60,6 +60,7 @@ public:
   bool showPanelStartPage();
   void openProjectSettings(const QString &filePath, bool openFromTemplate);
   void openResultsSettings(const QString &filePath);
+  void openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo);
 
   joda::ctrl::Controller *getController()
   {

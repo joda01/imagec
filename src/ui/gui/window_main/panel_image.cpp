@@ -193,9 +193,13 @@ void PanelImages::updateImageMeta()
   QList<QTableWidgetItem *> selectedItems = mImages->selectedItems();
   if(!selectedItems.isEmpty()) {
     auto [imagePath, series, _] = getSelectedImage();
+    mOmeFromActSelectedImage    = mWindowMain->getController()->getImageProperties(imagePath, series);
 
-    mOmeFromActSelectedImage = mWindowMain->getController()->getImageProperties(imagePath, series);
-    auto tileSize            = mWindowMain->getSettings().imageSetup.imageTileSettings;
+    // Open image
+    mWindowMain->openImage(imagePath, &mOmeFromActSelectedImage);
+
+    // Load meta data
+    auto tileSize = mWindowMain->getSettings().imageSetup.imageTileSettings;
 
     mImageMeta->clearContents();
     mImageMeta->setRowCount(20 + mOmeFromActSelectedImage.getNrOfSeries() * 20);

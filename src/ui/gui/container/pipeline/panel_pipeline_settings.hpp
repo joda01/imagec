@@ -120,8 +120,6 @@ private:
 
   /////////////////////////////////////////////////////
   int32_t mLastSelectedPreviewSize = 0;
-  int32_t mSelectedTileX           = 0;
-  int32_t mSelectedTileY           = 0;
   joda::settings::Pipeline &mSettings;
 
   struct PreviewJob
@@ -147,7 +145,6 @@ private:
 private slots:
   /////////////////////////////////////////////////////
   void updatePreview();
-  void onTileClicked(int32_t tileX, int32_t tileY);
   void onPreviewStarted();
   void onPreviewFinished();
   void valueChangedEvent();

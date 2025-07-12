@@ -31,9 +31,12 @@ class HistoToolbar : public QToolBar
   Q_OBJECT
 
 public:
-  HistoToolbar(int32_t leftOrRight, DialogImageViewer *parent, joda::image::Image *image);
+  /////////////////////////////////////////////////////
+  HistoToolbar(DialogImageViewer *parent, joda::image::Image *image);
   auto getHistoSettings() const -> std::tuple<float, float, float>;
+
 public slots:
+  /////////////////////////////////////////////////////
   void autoAdjustHistogram();
 
 private:
@@ -48,7 +51,6 @@ private:
   QScrollBar *mSliderHistogramOffset;
   void createHistogramDialog();
   QDialog *mHistogramDialog;
-  int32_t mLeftOrRight = 0;
 
 private slots:
   /////////////////////////////////////////////////////

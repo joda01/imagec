@@ -20,8 +20,7 @@
 
 namespace joda::ui::gui {
 
-HistoToolbar::HistoToolbar(int32_t leftOrRight, DialogImageViewer *parent, joda::image::Image *image) :
-    mLeftOrRight(leftOrRight), mParent(parent), mImage(image)
+HistoToolbar::HistoToolbar(DialogImageViewer *parent, joda::image::Image *image) : mParent(parent), mImage(image)
 {
   setMaximumHeight(32);
 
@@ -136,8 +135,6 @@ void HistoToolbar::onSliderMoved(int position)
   mSlider->setMinimum(mSliderHistogramOffset->value());
   mSlider->setMaximum(mSliderHistogramOffset->value() + number);
   blockSignals(false);
-
-  mParent->triggerPreviewUpdate(static_cast<DialogImageViewer::ImageView>(mLeftOrRight), true);
 }
 
 ///
@@ -190,7 +187,6 @@ void HistoToolbar::onShowHistogramDialog()
 void HistoToolbar::autoAdjustHistogram()
 {
   mImage->autoAdjustBrightnessRange();
-  mParent->triggerPreviewUpdate(static_cast<DialogImageViewer::ImageView>(mLeftOrRight), false);
 }
 
 }    // namespace joda::ui::gui

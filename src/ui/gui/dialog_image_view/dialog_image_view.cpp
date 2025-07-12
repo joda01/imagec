@@ -43,15 +43,12 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QToolBar *toolbarParent) :
-    QWidget(parent), mImageViewLeft(&mPreviewImages.originalImage, &mPreviewImages.thumbnail, nullptr, true),
-    mImageViewRight(&mPreviewImages.editedImage, &mPreviewImages.thumbnail, &mPreviewImages.overlay, false)
+DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) : QWidget(parent), mImageViewRight(parent)
 {
   setWindowTitle("Preview");
   setVisible(false);
   setContentsMargins(0, 0, 0, 0);
 
-  mImageViewRight.setShowPipelineResults(true);
   mMainLayout = new QVBoxLayout();
   mMainLayout->setContentsMargins(0, 0, 0, 0);
   {
@@ -81,12 +78,10 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QT
     auto *action2 = new QAction({}, "");
     action2->setCheckable(true);
     action2->setChecked(true);
-    connect(action2, &QAction::triggered, this, &DialogImageViewer::onSetSateToMove);
     buttonGroup->addAction(action2);
 
     auto *paintRectangle = new QAction(generateSvgIcon("draw-rectangle"), "");
     paintRectangle->setCheckable(true);
-    connect(paintRectangle, &QAction::triggered, this, &DialogImageViewer::onSetStateToPaintRect);
     buttonGroup->addAction(paintRectangle);
 
     auto *showThumbnail = new QAction(generateSvgIcon("virtual-desktops"), "");
@@ -102,13 +97,6 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QT
     showPixelInfo->setChecked(true);
     connect(showPixelInfo, &QAction::triggered, this, &DialogImageViewer::onShowPixelInfo);
     toolbarTop->addAction(showPixelInfo);
-
-    showPipelineResults = new QAction(generateSvgIcon("sort-presence"), "");
-    showPipelineResults->setStatusTip("Show/Hide pipeline results");
-    showPipelineResults->setCheckable(true);
-    showPipelineResults->setChecked(true);
-    connect(showPipelineResults, &QAction::triggered, this, &DialogImageViewer::onShowPipelineResults);
-    toolbarTop->addAction(showPipelineResults);
 
     showCrossHairCursor = new QAction(generateSvgIcon("crosshairs"), "");
     showCrossHairCursor->setStatusTip("Show/Hide cross hair cursor (right click to place)");
@@ -129,7 +117,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QT
     mFillOVerlay = new QAction(generateSvgIcon("fill-color"), "");
     mFillOVerlay->setStatusTip("Fill/Outline results overlay");
     mFillOVerlay->setCheckable(true);
-    connect(mFillOVerlay, &QAction::triggered, this, &DialogImageViewer::onSettingChanged);
+    connect(mFillOVerlay, &QAction::triggered, this, &DialogImageViewer::onSettingsChanged);
     toolbarTop->addAction(mFillOVerlay);
 
     toolbarTop->addSeparator();
@@ -188,7 +176,53 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QT
       toolbarTop->addAction(previewSize);
       auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(previewSize));
       btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
-      connect(mPreviewSizeGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingChanged);
+      connect(mPreviewSizeGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingsChanged);
+    }
+
+    //
+    // Image channel
+    //
+    {
+      auto *channelMenu      = new QMenu();
+      mImageChannelMenuGroup = new QActionGroup(toolbarTop);
+      auto *r8192            = channelMenu->addAction("CH0");
+      mImageChannelMenuGroup->addAction(r8192);
+      r8192->setCheckable(true);
+      r8192->setChecked(true);
+      auto *r4096 = channelMenu->addAction("CH1");
+      mImageChannelMenuGroup->addAction(r4096);
+      r4096->setCheckable(true);
+      auto *r2048 = channelMenu->addAction("CH2");
+      mImageChannelMenuGroup->addAction(r2048);
+      r2048->setCheckable(true);
+      auto *r1024 = channelMenu->addAction("CH3");
+      mImageChannelMenuGroup->addAction(r1024);
+      r1024->setCheckable(true);
+      auto *r512 = channelMenu->addAction("CH4");
+      mImageChannelMenuGroup->addAction(r512);
+      r512->setCheckable(true);
+      auto *r256 = channelMenu->addAction("CH5");
+      mImageChannelMenuGroup->addAction(r256);
+      r256->setCheckable(true);
+      auto *r128 = channelMenu->addAction("CH6");
+      mImageChannelMenuGroup->addAction(r128);
+      r128->setCheckable(true);
+      auto *r7 = channelMenu->addAction("CH7");
+      mImageChannelMenuGroup->addAction(r7);
+      r128->setCheckable(true);
+      auto *r8 = channelMenu->addAction("CH8");
+      mImageChannelMenuGroup->addAction(r8);
+      r128->setCheckable(true);
+      auto *r9 = channelMenu->addAction("CH9");
+      mImageChannelMenuGroup->addAction(r9);
+      r128->setCheckable(true);
+      previewSize = new QAction(generateSvgIcon("irc-operator"), "");
+      previewSize->setStatusTip("Image channel to show");
+      previewSize->setMenu(channelMenu);
+      toolbarTop->addAction(previewSize);
+      auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(previewSize));
+      btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
+      connect(mImageChannelMenuGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingsChanged);
     }
 
     //
@@ -219,7 +253,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QT
       toolbarTop->addAction(mZProjectionAction);
       auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(mZProjectionAction));
       btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
-      connect(mZProjectionGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingChanged);
+      connect(mZProjectionGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingsChanged);
       mZProjectionAction->setVisible(false);
     }
 
@@ -234,24 +268,9 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QT
     auto *centralWidget = new QWidget();
     mCentralLayout->setContentsMargins(0, 0, 0, 0);
     centralWidget->setContentsMargins(0, 0, 0, 0);
-
-    if(showOriginalImage) {
-      auto *leftVerticalLayout = new QVBoxLayout();
-      mHistoToolbarLeft        = new HistoToolbar(static_cast<int32_t>(ImageView::LEFT), this, &mPreviewImages.originalImage);
-      mImageViewLeft.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-      leftVerticalLayout->addWidget(&mImageViewLeft);
-      leftVerticalLayout->addWidget(mHistoToolbarLeft);
-      mCentralLayout->addLayout(leftVerticalLayout);
-      mImageViewLeft.resetImage();
-    } else {
-      mImageViewRight.setEnableThumbnail(true);
-    }
-
     auto *rightVerticalLayout = new QVBoxLayout();
-    mHistoToolbarRight        = new HistoToolbar(static_cast<int32_t>(ImageView::RIGHT), this, &mPreviewImages.editedImage);
     mImageViewRight.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     rightVerticalLayout->addWidget(&mImageViewRight);
-    rightVerticalLayout->addWidget(mHistoToolbarRight);
     mCentralLayout->addLayout(rightVerticalLayout);
     mImageViewRight.resetImage();
 
@@ -260,21 +279,15 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QT
     centralWidget->setLayout(mCentralLayout);
     mMainLayout->addWidget(centralWidget);
 
-    if(showOriginalImage) {
-      connect(&mImageViewLeft, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onLeftViewChanged);
-      connect(&mImageViewLeft, &PanelImageView::tileClicked, this, &DialogImageViewer::onTileClicked);
-    }
-
-    connect(&mImageViewRight, &PanelImageView::onImageRepainted, this, &DialogImageViewer::onRightViewChanged);
-    connect(&mImageViewRight, &PanelImageView::tileClicked, this, &DialogImageViewer::onTileClicked);
-    connect(&mImageViewRight, &PanelImageView::classesToShowChanged, this, &DialogImageViewer::onSettingChanged);
+    connect(&mImageViewRight, &PanelImageView::tileClicked, this, &DialogImageViewer::onSettingsChanged);
+    connect(&mImageViewRight, &PanelImageView::classesToShowChanged, this, &DialogImageViewer::onSettingsChanged);
   }
 
   // Bottom toolbar
   {
     mSpinnerActTimeStack = new QSpinBox();
     mSpinnerActTimeStack->setValue(0);
-    connect(mSpinnerActTimeStack, &QSpinBox::valueChanged, [this] { emit onSettingChanged(); });
+    connect(mSpinnerActTimeStack, &QSpinBox::valueChanged, [this] { onSettingsChanged(); });
 
     // Create spacer widgets
     auto *leftSpacer = new QWidget;
@@ -290,7 +303,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QT
       mSpinnerActTimeStack->blockSignals(true);
       mSpinnerActTimeStack->setValue(0);
       mSpinnerActTimeStack->blockSignals(false);
-      emit onSettingChanged();
+      emit settingChanged();
     });
     mPlaybackToolbar->addAction(skipBackward);
 
@@ -301,11 +314,10 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QT
         mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() - 1);
         mSpinnerActTimeStack->blockSignals(false);
       }
-      emit onSettingChanged();
+      emit settingChanged();
     });
     mPlaybackToolbar->addAction(seekBackward);
 
-    // ==========================================================
     // ==========================================================
 
     mPlaybackSpeedSelector     = new QMenu();
@@ -356,12 +368,12 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QT
 
     auto *seekForward = new QAction(generateSvgIcon("media-seek-forward"), "");
     connect(seekForward, &QAction::triggered, [this] {
-      if(mSpinnerActTimeStack->value() < getMaxTimeStacks()) {
+      if(mSpinnerActTimeStack->value() < mImageViewRight.getNrOfTstacks()) {
         mSpinnerActTimeStack->blockSignals(true);
         mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() + 1);
         mSpinnerActTimeStack->blockSignals(false);
       }
-      emit onSettingChanged();
+      emit settingChanged();
     });
     mPlaybackToolbar->addAction(seekForward);
     mPlaybackToolbar->addWidget(rightSpacer);
@@ -371,13 +383,10 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QT
   // setLayout(layout);
   setLayout(mMainLayout);
 
-  // Init
-  triggerPreviewUpdate(ImageView::BOTH, true);
-
   // Video timer
   mPlayTimer = new QTimer();
   QObject::connect(mPlayTimer, &QTimer::timeout, [&] {
-    if(mSpinnerActTimeStack->value() < getMaxTimeStacks()) {
+    if(mSpinnerActTimeStack->value() < mImageViewRight.getNrOfTstacks()) {
       mSpinnerActTimeStack->blockSignals(true);
       mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() + 1);
       mSpinnerActTimeStack->blockSignals(false);
@@ -386,23 +395,21 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, bool showOriginalImage, QT
       mSpinnerActTimeStack->setValue(0);
       mSpinnerActTimeStack->blockSignals(false);
     }
-    emit onSettingChanged();
+    emit settingChanged();
   });
+
+  onSettingsChanged();
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 DialogImageViewer::~DialogImageViewer()
 {
-  if(mPreviewThread != nullptr) {
-    if(mPreviewThread->joinable()) {
-      mPreviewThread->join();
-    }
-  }
-}
-
-void DialogImageViewer::fitImageToScreenSize()
-{
-  mImageViewLeft.fitImageToScreenSize();
-  mImageViewRight.fitImageToScreenSize();
 }
 
 ///
@@ -412,54 +419,9 @@ void DialogImageViewer::fitImageToScreenSize()
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::triggerPreviewUpdate(ImageView view, bool withUserHistoSettings)
+auto DialogImageViewer::getImagePanel() -> PanelImageView *
 {
-  if(mPreviewCounter == 0) {
-    {
-      std::lock_guard<std::mutex> lock(mPreviewMutex);
-      mPreviewCounter++;
-    }
-    if(mPreviewThread != nullptr) {
-      if(mPreviewThread->joinable()) {
-        mPreviewThread->join();
-      }
-    }
-    mPreviewThread = std::make_unique<std::thread>([this, withUserHistoSettings, view] {
-      int previewCounter = 0;
-      do {
-        if(withUserHistoSettings) {
-          if(nullptr != mHistoToolbarLeft && (view == ImageView::LEFT || view == ImageView::BOTH)) {
-            auto [value, scaling, offset] = mHistoToolbarLeft->getHistoSettings();
-            mPreviewImages.originalImage.setBrightnessRange(0, value, scaling, offset);
-            mImageViewLeft.emitUpdateImage();
-          }
-          if(nullptr != mHistoToolbarRight && (view == ImageView::RIGHT || view == ImageView::BOTH)) {
-            auto [value, scaling, offset] = mHistoToolbarRight->getHistoSettings();
-            mPreviewImages.editedImage.setBrightnessRange(0, value, scaling, offset);
-            mImageViewRight.emitUpdateImage();
-          }
-        } else {
-          if(view == ImageView::LEFT || view == ImageView::BOTH) {
-            mImageViewLeft.emitUpdateImage();
-          }
-          if(view == ImageView::RIGHT || view == ImageView::BOTH) {
-            mImageViewRight.emitUpdateImage();
-          }
-        }
-        // mPreviewImages.thumbnail.setBrightnessRange(0, mSlider->value(), mSliderScaling->value(), mSliderHistogramOffset->value());
-        std::this_thread::sleep_for(20ms);
-        {
-          std::lock_guard<std::mutex> lock(mPreviewMutex);
-          previewCounter = mPreviewCounter;
-          previewCounter--;
-          mPreviewCounter = previewCounter;
-        }
-      } while(previewCounter > 0);
-    });
-  } else {
-    std::lock_guard<std::mutex> lock(mPreviewMutex);
-    mPreviewCounter++;
-  }
+  return &mImageViewRight;
 }
 
 ///
@@ -469,54 +431,15 @@ void DialogImageViewer::triggerPreviewUpdate(ImageView view, bool withUserHistoS
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::imageUpdated(const ctrl::Preview::PreviewResults &info, const std::map<enums::ClassIdIn, QString> &classes)
+void DialogImageViewer::onSettingsChanged()
 {
-  updatePlaybackToolbarVisible();
-  mSpinnerActTimeStack->setMaximum(getMaxTimeStacks());
-  mImageViewLeft.imageUpdated(info, classes);
-  mImageViewRight.imageUpdated(info, classes);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogImageViewer::onLeftViewChanged()
-{
-  mImageViewRight.blockSignals(true);
-  mImageViewLeft.blockSignals(true);
-
-  mImageViewRight.setCursorPosition(mImageViewLeft.getCursorPosition());
-  mImageViewRight.setTransform(mImageViewLeft.transform());
-  mImageViewRight.horizontalScrollBar()->setValue(mImageViewLeft.horizontalScrollBar()->value());
-  mImageViewRight.verticalScrollBar()->setValue(mImageViewLeft.verticalScrollBar()->value());
-
-  mImageViewRight.blockSignals(false);
-  mImageViewLeft.blockSignals(false);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogImageViewer::onRightViewChanged()
-{
-  mImageViewRight.blockSignals(true);
-  mImageViewLeft.blockSignals(true);
-
-  mImageViewLeft.setCursorPosition(mImageViewRight.getCursorPosition());
-  mImageViewLeft.setTransform(mImageViewRight.transform());
-  mImageViewLeft.horizontalScrollBar()->setValue(mImageViewRight.horizontalScrollBar()->value());
-  mImageViewLeft.verticalScrollBar()->setValue(mImageViewRight.verticalScrollBar()->value());
-
-  mImageViewRight.blockSignals(false);
-  mImageViewLeft.blockSignals(false);
+  auto tileSize = getPreviewSize();
+  mImageViewRight.setZprojection(getSelectedZProjection());
+  mImageViewRight.setImagePlane({.z = 0, .c = getSelectedImageChannel(), .t = mSpinnerActTimeStack->value()});
+  mImageViewRight.setImageTile(tileSize, tileSize);
+  mImageViewRight.setSeries(0);
+  mImageViewRight.repaintImage();
+  emit settingChanged();
 }
 
 ///
@@ -562,35 +485,8 @@ void DialogImageViewer::onFitImageToScreenSizeClicked()
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::onSetSateToMove()
-{
-  mImageViewLeft.setState(PanelImageView::State::MOVE);
-  mImageViewRight.setState(PanelImageView::State::MOVE);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogImageViewer::onSetStateToPaintRect()
-{
-  mImageViewLeft.setState(PanelImageView::State::PAINT);
-  mImageViewRight.setState(PanelImageView::State::PAINT);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 void DialogImageViewer::onShowThumbnailChanged(bool checked)
 {
-  mImageViewLeft.setShowThumbnail(checked);
   mImageViewRight.setShowThumbnail(checked);
 }
 
@@ -603,7 +499,6 @@ void DialogImageViewer::onShowThumbnailChanged(bool checked)
 ///
 void DialogImageViewer::onShowPixelInfo(bool checked)
 {
-  mImageViewLeft.setShowPixelInfo(checked);
   mImageViewRight.setShowPixelInfo(checked);
 }
 
@@ -616,7 +511,6 @@ void DialogImageViewer::onShowPixelInfo(bool checked)
 ///
 void DialogImageViewer::onShowCrossHandCursor(bool checked)
 {
-  mImageViewLeft.setShowCrosshandCursor(checked);
   mImageViewRight.setShowCrosshandCursor(checked);
 }
 
@@ -627,10 +521,27 @@ void DialogImageViewer::onShowCrossHandCursor(bool checked)
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::onShowPipelineResults(bool checked)
+auto DialogImageViewer::getSelectedZProjection() const -> enums::ZProjection
 {
-  // mImageViewLeft.setShowPipelineResults(checked);
-  mImageViewRight.setShowPipelineResults(checked);
+  if(mZProjectionGroup != nullptr) {
+    auto *checked = mZProjectionGroup->checkedAction();
+    if(checked == mSingleChannelProjection) {
+      return enums::ZProjection::NONE;
+    }
+    if(checked == mMaxIntensityProjection) {
+      return enums::ZProjection::MAX_INTENSITY;
+    }
+    if(checked == mMinIntensityProjection) {
+      return enums::ZProjection::MIN_INTENSITY;
+    }
+    if(checked == mAvgIntensity) {
+      return enums::ZProjection::AVG_INTENSITY;
+    }
+    if(checked == mTakeTheMiddleProjection) {
+      return enums::ZProjection::TAKE_MIDDLE;
+    }
+  }
+  return enums::ZProjection::MAX_INTENSITY;
 }
 
 ///
@@ -640,9 +551,15 @@ void DialogImageViewer::onShowPipelineResults(bool checked)
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::onTileClicked(int32_t tileX, int32_t tileY)
+int32_t DialogImageViewer::getPreviewSize() const
 {
-  emit tileClicked(tileX, tileY);
+  if(mPreviewSizeGroup != nullptr) {
+    auto *checked     = mPreviewSizeGroup->checkedAction();
+    QStringList parts = checked->text().split('x');
+    int width         = parts.value(0).toInt();
+    return width;
+  }
+  return 2048;
 }
 
 ///
@@ -652,12 +569,55 @@ void DialogImageViewer::onTileClicked(int32_t tileX, int32_t tileY)
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::setCrossHairCursorPositionAndCenter(const QRect &boundingRect)
+int32_t DialogImageViewer::getSelectedImageChannel() const
 {
-  mImageViewLeft.setLockCrosshandCursor(true);
-  mImageViewRight.setLockCrosshandCursor(true);
-  mImageViewLeft.setCursorPositionFromOriginalImageCoordinatesAndCenter(boundingRect);
-  mImageViewRight.setCursorPositionFromOriginalImageCoordinatesAndCenter(boundingRect);
+  if(mImageChannelMenuGroup != nullptr) {
+    auto *checked     = mImageChannelMenuGroup->checkedAction();
+    QStringList parts = checked->text().split("CH");
+    int channel       = parts.value(1).toInt();
+    return channel;
+  }
+  return 0;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+int32_t DialogImageViewer::getSelectedTimeStack() const
+{
+  return mSpinnerActTimeStack->value();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::setWaiting(bool waiting)
+{
+  // Don't show waiting dialog if video is running for a better view.
+  if(mActionPlay->isChecked()) {
+    return;
+  }
+  mImageViewRight.setWaiting(waiting);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+bool DialogImageViewer::getFillOverlay() const
+{
+  return mFillOVerlay->isChecked();
 }
 
 }    // namespace joda::ui::gui
