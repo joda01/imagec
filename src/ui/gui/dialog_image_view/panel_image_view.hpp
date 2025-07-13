@@ -58,6 +58,7 @@ public:
   PanelImageView(QWidget *parent = nullptr);
   void openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo = nullptr);
   void setOverlay(const joda::image::Image &&overlay);
+  void clearOverlay();
   void repaintImage();
   void resetImage();
   void fitImageToScreenSize();

@@ -64,6 +64,8 @@ private:
   void onAddChannel(const QString &path);
   void movePipelineToPosition(size_t fromPos, size_t newPos);
   void openSelectedPipelineSettings(int32_t selectedRow);
+  void removePipelineWidget();
+
   /////////////////////////////////////////////////////
   QTableView *mPipelineTable;
   TableModelPipeline *mTableModel;

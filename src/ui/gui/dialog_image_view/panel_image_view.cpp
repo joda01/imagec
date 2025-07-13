@@ -107,6 +107,19 @@ void PanelImageView::setOverlay(const joda::image::Image &&overlay)
 /// \param[out]
 /// \return
 ///
+void PanelImageView::clearOverlay()
+{
+  mPreviewImages.overlay.clear();
+  emit updateImage();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::repaintImage()
 {
   if(mLastPath.empty()) {

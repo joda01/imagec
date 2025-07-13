@@ -678,6 +678,7 @@ void PanelPipelineSettings::setActive(bool setActive)
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
     mIsActiveShown = false;
     mLayout.showToolBar(false);
+    mPreviewImage->getImagePanel()->clearOverlay();
     mDialogHistory->hide();
     mHistoryAction->setChecked(false);
     // Wait until preview render has been finished

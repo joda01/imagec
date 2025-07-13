@@ -181,6 +181,36 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
 void PanelPipeline::unselectPipeline()
 {
   mPipelineTable->clearSelection();
+  removePipelineWidget();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipeline::removePipelineWidget()
+{
+  //
+  // Remove old pipeline form the layout
+  //
+  int count = mMainLayout->count();
+  if(count > 2) {
+    if(mActivePipeline != nullptr) {
+      mActivePipeline->setActive(false);
+      mActivePipeline = nullptr;
+    }
+    QLayoutItem *item = mMainLayout->takeAt(count - 1);
+    if(item != nullptr) {
+      QWidget *widget = item->widget();
+      if(widget != nullptr) {
+        widget->setParent(nullptr);    // Detach from layout and parent
+      }
+      delete item;    // Delete the layout item wrapper (not the widget!)
+    }
+  }
 }
 
 ///
@@ -203,24 +233,7 @@ void PanelPipeline::openSelectedPipeline(const QModelIndex &current, const QMode
           // Pipeline is still open
           return;
         }
-        //
-        // Remove old pipeline form the layout
-        //
-        int count = mMainLayout->count();
-        if(count > 2) {
-          if(mActivePipeline != nullptr) {
-            mActivePipeline->setActive(false);
-          }
-          QLayoutItem *item = mMainLayout->takeAt(count - 1);
-          if(item != nullptr) {
-            QWidget *widget = item->widget();
-            if(widget != nullptr) {
-              widget->setParent(nullptr);    // Detach from layout and parent
-            }
-            delete item;    // Delete the layout item wrapper (not the widget!)
-          }
-        }
-
+        removePipelineWidget();
         pipeline->setActive(true);
         mActivePipeline = pipeline.get();
         mMainLayout->addWidget(pipeline.get(), 4);
