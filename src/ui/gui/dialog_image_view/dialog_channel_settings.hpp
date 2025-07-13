@@ -16,6 +16,7 @@
 #include <qdialog.h>
 #include <qscrollbar.h>
 #include <qslider.h>
+#include <qspinbox.h>
 #include <qtmetamacros.h>
 #include <qtoolbar.h>
 #include <qwindow.h>
@@ -43,8 +44,8 @@ private:
   PanelImageView *mImagePanel = nullptr;
   PanelHistogram *mHistogramPanel;
 
-  QSlider *mSliderOffset;
-  QSlider *mSliderHistogramZoom;
+  QSpinBox *mSliderDisplayLower;
+  QSpinBox *mSliderDisplayUpper;
   QSlider *mSliderHistogramMin;
   QSlider *mSliderHistogramMax;
 };

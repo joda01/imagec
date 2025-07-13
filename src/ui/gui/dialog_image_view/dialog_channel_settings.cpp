@@ -14,6 +14,7 @@
 #include "dialog_channel_settings.hpp"
 #include <qboxlayout.h>
 #include <qlabel.h>
+#include <qpushbutton.h>
 #include <qslider.h>
 #include <qtoolbar.h>
 #include "ui/gui/dialog_image_view/dialog_image_view.hpp"
@@ -43,40 +44,72 @@ DialogChannelSettings::DialogChannelSettings(PanelImageView *imagePanel, QWidget
   //
   // Add sliders
   //
-  mSliderOffset = new QSlider();
-  mSliderOffset->setOrientation(Qt::Orientation::Horizontal);
-  mSliderOffset->setMinimum(0);
-  mSliderOffset->setMaximum(UINT16_MAX);
-  mSliderOffset->setValue(imagePanel->mutableImage()->getHistogramOffset());
-  layout->addRow("Offset", mSliderOffset);
-
-  mSliderHistogramZoom = new QSlider();
-  mSliderHistogramZoom->setOrientation(Qt::Orientation::Horizontal);
-  mSliderHistogramZoom->setMinimum(1);
-  mSliderHistogramZoom->setMaximum(UINT8_MAX);
-  mSliderHistogramZoom->setValue(imagePanel->mutableImage()->getHitogramZoomFactor());
-  layout->addRow("Zoom", mSliderHistogramZoom);
-
   mSliderHistogramMin = new QSlider();
   mSliderHistogramMin->setOrientation(Qt::Orientation::Horizontal);
-  mSliderHistogramMin->setMinimum(1);
-  mSliderHistogramMin->setMaximum(UINT16_MAX);
+  mSliderHistogramMin->setMinimum(imagePanel->mutableImage()->getHistogramDisplayAreaLower());
+  mSliderHistogramMin->setMaximum(imagePanel->mutableImage()->getHistogramDisplayAreaUpper());
   mSliderHistogramMin->setValue(imagePanel->mutableImage()->getLowerLevelContrast());
   layout->addRow("Min", mSliderHistogramMin);
 
   mSliderHistogramMax = new QSlider();
   mSliderHistogramMax->setOrientation(Qt::Orientation::Horizontal);
-  mSliderHistogramMax->setMinimum(1);
-  mSliderHistogramMax->setMaximum(UINT16_MAX);
+  mSliderHistogramMax->setMinimum(imagePanel->mutableImage()->getHistogramDisplayAreaLower());
+  mSliderHistogramMax->setMaximum(imagePanel->mutableImage()->getHistogramDisplayAreaUpper());
   mSliderHistogramMax->setValue(imagePanel->mutableImage()->getUpperLevelContrast());
   layout->addRow("Max", mSliderHistogramMax);
 
-  connect(mSliderOffset, &QScrollBar::valueChanged, [this] { applyHistogramSettingsToImage(); });
-  connect(mSliderHistogramZoom, &QScrollBar::valueChanged, [this] { applyHistogramSettingsToImage(); });
+  //
+  // Axis range
+  //
+  mSliderDisplayLower = new QSpinBox();
+  mSliderDisplayLower->setMinimum(0);
+  mSliderDisplayLower->setMaximum(UINT16_MAX);
+  mSliderDisplayLower->setValue(imagePanel->mutableImage()->getHistogramDisplayAreaLower());
+
+  mSliderDisplayUpper = new QSpinBox();
+  mSliderDisplayUpper->setMinimum(1);
+  mSliderDisplayUpper->setMaximum(UINT16_MAX);
+  mSliderDisplayUpper->setValue(imagePanel->mutableImage()->getHistogramDisplayAreaUpper());
+
+  auto *rangeLayout = new QHBoxLayout();
+  rangeLayout->addWidget(mSliderDisplayLower);
+  rangeLayout->addWidget(mSliderDisplayUpper);
+  layout->addRow("Axis range", rangeLayout);
+
+  auto *autoAdjust = new QPushButton("Auto");
+  connect(autoAdjust, &QPushButton::pressed, [this]() {
+    mImagePanel->mutableImage()->autoAdjustBrightnessRange();
+    mHistogramPanel->update();
+    mImagePanel->repaintImage();
+  });
+  layout->addRow(autoAdjust);
+
+  connect(mSliderDisplayLower, &QSpinBox::editingFinished, [this] { applyHistogramSettingsToImage(); });
+  connect(mSliderDisplayUpper, &QSpinBox::editingFinished, [this] { applyHistogramSettingsToImage(); });
   connect(mSliderHistogramMin, &QScrollBar::valueChanged, [this] { applyHistogramSettingsToImage(); });
   connect(mSliderHistogramMax, &QScrollBar::valueChanged, [this] { applyHistogramSettingsToImage(); });
 
-  connect(imagePanel, &PanelImageView::updateImage, [this] { mHistogramPanel->update(); });
+  connect(imagePanel, &PanelImageView::updateImage, [this] {
+    mSliderDisplayLower->blockSignals(true);
+    mSliderDisplayUpper->blockSignals(true);
+    mSliderHistogramMin->blockSignals(true);
+    mSliderHistogramMax->blockSignals(true);
+
+    mSliderHistogramMax->setMinimum(mImagePanel->mutableImage()->getHistogramDisplayAreaLower());
+    mSliderHistogramMax->setMaximum(mImagePanel->mutableImage()->getHistogramDisplayAreaUpper());
+
+    mSliderDisplayLower->setValue(mImagePanel->mutableImage()->getHistogramDisplayAreaLower());
+    mSliderDisplayUpper->setValue(mImagePanel->mutableImage()->getHistogramDisplayAreaUpper());
+    mSliderHistogramMin->setValue(mImagePanel->mutableImage()->getLowerLevelContrast());
+    mSliderHistogramMax->setValue(mImagePanel->mutableImage()->getUpperLevelContrast());
+
+    mHistogramPanel->update();
+
+    mSliderDisplayLower->blockSignals(false);
+    mSliderDisplayUpper->blockSignals(false);
+    mSliderHistogramMin->blockSignals(false);
+    mSliderHistogramMax->blockSignals(false);
+  });
 
   setLayout(layout);
 }
@@ -90,8 +123,8 @@ DialogChannelSettings::DialogChannelSettings(PanelImageView *imagePanel, QWidget
 ///
 void DialogChannelSettings::applyHistogramSettingsToImage()
 {
-  mImagePanel->mutableImage()->setBrightnessRange(mSliderHistogramMin->value(), mSliderHistogramMax->value(), mSliderHistogramZoom->value(),
-                                                  mSliderOffset->value());
+  mImagePanel->mutableImage()->setBrightnessRange(mSliderHistogramMin->value(), mSliderHistogramMax->value(), mSliderDisplayLower->value(),
+                                                  mSliderDisplayUpper->value());
   mHistogramPanel->update();
   mImagePanel->repaintImage();
 }

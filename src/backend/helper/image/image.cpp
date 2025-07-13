@@ -167,12 +167,25 @@ QPixmap Image::getPixmap(const Overlay &overlay) const
 /// \param[out]
 /// \return
 ///
-void Image::setBrightnessRange(uint16_t lowerValue, uint16_t upperValue, float histogramZoomFactor, uint16_t histogramOffset)
+void Image::setBrightnessRange(int32_t lowerValue, int32_t upperValue, int32_t displayAreaLower, int32_t displayAreaUpper)
 {
-  mLowerValue          = lowerValue;
-  mUpperValue          = upperValue;
-  mHistogramZoomFactor = histogramZoomFactor;
-  mHistogramOffset     = histogramOffset;
+  if(lowerValue > upperValue) {
+    lowerValue = upperValue;
+  }
+  if(displayAreaLower < 0) {
+    displayAreaLower = 0;
+  }
+  if(displayAreaUpper > UINT16_MAX) {
+    displayAreaUpper = UINT16_MAX;
+  }
+  if(displayAreaLower > displayAreaUpper) {
+    displayAreaLower = displayAreaUpper;
+  }
+
+  mLowerValue       = lowerValue;
+  mUpperValue       = upperValue;
+  mDisplayAreaLower = displayAreaLower;
+  mDisplayAreaUpper = displayAreaUpper;
 
   // Create a lookup table for mapping pixel values
   for(int i = 0; i < 65536; ++i) {
@@ -207,7 +220,25 @@ void Image::autoAdjustBrightnessRange()
     bool accumulate        = false;
     cv::Mat hist;
     cv::calcHist(mImageOriginal, 1, 0, cv::Mat(), hist, 1, &histSize, &histRange);    //, uniform, accumulate);
-    mLut = joda::cmd::EnhanceContrast::equalize(hist);
+    auto lut = joda::cmd::EnhanceContrast::equalize(hist);
+
+    int32_t lowerIdx = 0;
+    for(int lower = 0; lower < UINT16_MAX; lower++) {
+      if(lut[lower] > 0) {
+        lowerIdx = lower;
+        break;
+      }
+    }
+
+    int32_t upperIdx = UINT16_MAX;
+
+    for(int upper = UINT16_MAX - 1; upper >= 0; upper--) {
+      if(lut[upper] < UINT16_MAX) {
+        upperIdx = upper;
+        break;
+      }
+    }
+    setBrightnessRange(lowerIdx, upperIdx, lowerIdx - 256, upperIdx + 256);
   }
 }
 

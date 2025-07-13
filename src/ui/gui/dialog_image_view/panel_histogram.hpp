@@ -32,6 +32,7 @@ private:
   /////////////////////////////////////////////////////
   void paintEvent(QPaintEvent *event) override;
   void drawHistogram(QPainter &);
+  void mouseMoveEvent(QMouseEvent *event) override;
 
   /////////////////////////////////////////////////////
   joda::image::Image *mImage;

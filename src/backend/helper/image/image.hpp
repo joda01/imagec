@@ -51,13 +51,14 @@ public:
     float opaque             = 0.3;
   };
   [[nodiscard]] QPixmap getPixmap(const Overlay &) const;
-  [[nodiscard]] float getHitogramZoomFactor() const
+
+  [[nodiscard]] uint16_t getHistogramDisplayAreaLower() const
   {
-    return mHistogramZoomFactor;
+    return mDisplayAreaLower;
   }
-  [[nodiscard]] float getHistogramOffset() const
+  [[nodiscard]] uint16_t getHistogramDisplayAreaUpper() const
   {
-    return mHistogramOffset;
+    return mDisplayAreaUpper;
   }
 
   [[nodiscard]] uint16_t getUpperLevelContrast() const
@@ -82,7 +83,7 @@ public:
     return mHistogram;
   }
 
-  void setBrightnessRange(uint16_t lowerValue, uint16_t upperValue, float histogramZoomFactor, uint16_t histogramOffset);
+  void setBrightnessRange(int32_t lowerValue, int32_t upperValue, int32_t displayAreaLower, int32_t displayAreaUpper);
 
   struct AutoAdjustRet
   {
@@ -117,8 +118,8 @@ private:
   //// BRIGHTNESS /////////////////////////////////////////////////
   uint16_t mLowerValue       = 0;
   uint16_t mUpperValue       = UINT16_MAX;
-  float mHistogramZoomFactor = 1;
-  float mHistogramOffset     = 0;
+  uint16_t mDisplayAreaLower = 0;
+  uint16_t mDisplayAreaUpper = 0;
   QSize mOriginalImageSize;
 
   //// IMAGE /////////////////////////////////////////////////

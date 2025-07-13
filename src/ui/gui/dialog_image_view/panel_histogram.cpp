@@ -76,9 +76,9 @@ void PanelHistogram::drawHistogram(QPainter &painter)
       painter.setBrush(Qt::NoBrush);         // Set the brush to no brush for transparent fill
 
       // Precalculation
-      float histOffset    = mImage->getHistogramOffset();
-      float histZoom      = mImage->getHitogramZoomFactor();
-      int number          = (float) UINT16_MAX / histZoom;
+      // float histOffset    = mImage->getHistogramOffset();
+      // float histZoom      = mImage->getHitogramZoomFactor();
+      int number          = mImage->getHistogramDisplayAreaUpper() - mImage->getHistogramDisplayAreaLower();
       float binWidth      = (RECT_WIDTH / static_cast<float>(number));
       int markerPos       = number / NR_OF_MARKERS;
       const auto &hist    = mImage->getHistogram();
@@ -89,7 +89,7 @@ void PanelHistogram::drawHistogram(QPainter &painter)
       }
       auto rectHeight = height() - RECT_START_Y;
       for(int i = 1; i < number; i += compression) {
-        int idx = i + histOffset;
+        int idx = i + mImage->getHistogramDisplayAreaLower();
         if(idx > UINT16_MAX) {
           idx = UINT16_MAX;
         }
@@ -120,6 +120,18 @@ void PanelHistogram::drawHistogram(QPainter &painter)
       }
     }
   }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelHistogram::mouseMoveEvent(QMouseEvent *event)
+{
+  QWidget::mouseMoveEvent(event);
 }
 
 }    // namespace joda::ui::gui
