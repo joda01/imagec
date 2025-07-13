@@ -120,6 +120,25 @@ void PanelImageView::setOverlay(const joda::image::Image &&overlay)
 /// \param[out]
 /// \return
 ///
+void PanelImageView::serOverlayOpaque(float opaque)
+{
+  if(opaque > 1) {
+    opaque = 1;
+  }
+  if(opaque < 0) {
+    opaque = 0;
+  }
+  mOpaque = opaque;
+  emit updateImage();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::clearOverlay()
 {
   mPreviewImages.overlay.clear();
@@ -232,7 +251,7 @@ void PanelImageView::onUpdateImage()
   if(img != nullptr) {
     auto pixmap = mPreviewImages.editedImage.getPixmap({nullptr});
     if(!mPreviewImages.overlay.empty() && mShowOverlay && mPreviewImages.overlay.getImage()->size == mPreviewImages.editedImage.getImage()->size) {
-      pixmap = mPreviewImages.editedImage.getPixmap({.combineWith = &mPreviewImages.overlay, .opaque = 0.5});
+      pixmap = mPreviewImages.editedImage.getPixmap({.combineWith = &mPreviewImages.overlay, .opaque = mOpaque});
     }
 
     scene->setSceneRect(pixmap.rect());

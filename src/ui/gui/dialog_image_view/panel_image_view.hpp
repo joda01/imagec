@@ -58,6 +58,7 @@ public:
   PanelImageView(QWidget *parent = nullptr);
   void openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo = nullptr);
   void setOverlay(const joda::image::Image &&overlay);
+  void serOverlayOpaque(float opaque);
   void clearOverlay();
   void reloadImage();
   void repaintImage();
@@ -127,6 +128,7 @@ private:
   std::filesystem::path mLastPath;
   joda::ome::OmeInfo mOmeInfo;
   joda::ctrl::Preview mPreviewImages;
+  float mOpaque = 0.5;
   joda::image::reader::ImageReader::Plane mPlane;
   joda::ome::TileToLoad mTile;
   enums::ZProjection mZprojection;

@@ -77,6 +77,7 @@ private:
   QAction *mMinIntensityProjection     = nullptr;
   QAction *mAvgIntensity               = nullptr;
   QAction *mTakeTheMiddleProjection    = nullptr;
+  QSlider *mOverlayOpaque              = nullptr;
 
   // T-STACK //////////////////////////////////////////////////
   std::optional<int32_t> mMaxTimeStacks = std::nullopt;

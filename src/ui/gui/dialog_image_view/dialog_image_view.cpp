@@ -120,6 +120,15 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
     connect(mFillOVerlay, &QAction::triggered, this, &DialogImageViewer::onSettingsChanged);
     toolbarTop->addAction(mFillOVerlay);
 
+    mOverlayOpaque = new QSlider();
+    mOverlayOpaque->setOrientation(Qt::Orientation::Horizontal);
+    mOverlayOpaque->setMinimum(0);
+    mOverlayOpaque->setMaximum(100);
+    mOverlayOpaque->setValue(50);
+    connect(mOverlayOpaque, &QSlider::valueChanged,
+            [this] { mImageViewRight.serOverlayOpaque(static_cast<float>(mOverlayOpaque->value()) / 100.0F); });
+    toolbarTop->addWidget(mOverlayOpaque);
+
     toolbarTop->addSeparator();
 
     QAction *fitToScreen = new QAction(generateSvgIcon("zoom-fit-best"), "");
