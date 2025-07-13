@@ -48,9 +48,8 @@ public:
   void clear();
   void saveAsTemplate();
   void loadTemplates();
-  void setActionStartEnabled(bool);
 
-  void addChannel(const joda::settings::Pipeline &settings);
+  void addChannel(joda::settings::Pipeline settings);
   void addChannel(const QString &pathToSettings);
   void addChannel(const nlohmann::json &json);
   auto getPipelineWidgets() -> std::set<std::unique_ptr<PanelPipelineSettings>> &
@@ -64,7 +63,7 @@ private:
   /////////////////////////////////////////////////////
   void onAddChannel(const QString &path);
   void movePipelineToPosition(size_t fromPos, size_t newPos);
-
+  void openSelectedPipelineSettings(int32_t selectedRow);
   /////////////////////////////////////////////////////
   QTableView *mPipelineTable;
   TableModelPipeline *mTableModel;
@@ -78,7 +77,6 @@ private:
   QVBoxLayout *mMainLayout;
 
   // ACTIONS///////////////////////////////////////////////////
-  QAction *mActionStart;
   QMenu *mTemplatesMenu;
 
 private slots:

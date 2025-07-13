@@ -25,6 +25,7 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "ui/gui/container/dialog_command_selection/dialog_command_selection.hpp"
+#include "ui/gui/container/dialog_pipeline_settings/dialog_pipeline_settings.hpp"
 #include "ui/gui/container/pipeline/panel_pipeline_settings.hpp"
 #include "ui/gui/container/pipeline/table_model_pipeline.hpp"
 #include "ui/gui/helper/droppable_widget/droppable_widget.hpp"
@@ -86,16 +87,6 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     saveAsTemplateButton->setStatusTip("Save pipeline as template");
     connect(saveAsTemplateButton, &QAction::triggered, [this]() { this->saveAsTemplate(); });
     toolbar->addAction(saveAsTemplateButton);
-
-    toolbar->addSeparator();
-    //
-    // Start button
-    //
-    mActionStart = new QAction(generateSvgIcon("media-playback-start"), "Start analyze");
-    mActionStart->setStatusTip("Start analyze");
-    mActionStart->setEnabled(false);
-    connect(mActionStart, &QAction::triggered, windowMain, &WindowMain::onStartClicked);
-    toolbar->addAction(mActionStart);
 
     toolbar->addSeparator();
     //
@@ -164,7 +155,7 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     mPipelineTable->setAlternatingRowColors(true);
     mPipelineTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     mPipelineTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    mTableModel = new TableModelPipeline(mPipelineTable);
+    mTableModel = new TableModelPipeline(mAnalyzeSettings.projectSettings.classification, mPipelineTable);
     mTableModel->setData(&settings.pipelines);
     mPipelineTable->setModel(mTableModel);
 
@@ -247,7 +238,18 @@ void PanelPipeline::openSelectedPipeline(const QModelIndex &current, const QMode
 ///
 void PanelPipeline::openSelectedPipelineSettings(const QModelIndex &current)
 {
-  auto selectedRow = current.row();
+  openSelectedPipelineSettings(current.row());
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipeline::openSelectedPipelineSettings(int32_t selectedRow)
+{
   if(selectedRow >= 0) {
     for(const auto &pipeline : mChannels) {
       if(&pipeline->mutablePipeline() == mTableModel->getCell(selectedRow)) {
@@ -274,18 +276,6 @@ auto PanelPipeline::getSelectedPipeline() -> PanelPipelineSettings *
     }
   }
   return nullptr;
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelPipeline::setActionStartEnabled(bool enabled)
-{
-  mActionStart->setEnabled(enabled);
 }
 
 ///
@@ -392,8 +382,14 @@ void PanelPipeline::clear()
 /// \param[out]
 /// \return
 ///
-void PanelPipeline::addChannel(const joda::settings::Pipeline &settings)
+void PanelPipeline::addChannel(joda::settings::Pipeline settings)
 {
+  if(settings.pipelineSetup.cStackIndex == -2) {
+    auto *dialog = new DialogPipelineSettings(mWindowMain->getSettings().projectSettings.classification, settings, mWindowMain);
+    if(dialog->exec() == QDialog::Rejected) {
+      return;
+    }
+  }
   mAnalyzeSettings.pipelines.push_back(joda::settings::Pipeline{});
   auto &newlyAdded = mAnalyzeSettings.pipelines.back();
   auto panel1      = std::make_unique<PanelPipelineSettings>(mWindowMain, mWindowMain->getPreviewDock(), newlyAdded, mCommandSelectionDialog);

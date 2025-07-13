@@ -13,6 +13,7 @@
 #include <qbrush.h>
 #include <qnamespace.h>
 #include <qtableview.h>
+#include <QFile>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -23,11 +24,24 @@
 
 namespace joda::ui::gui {
 
-TableModelPipeline::TableModelPipeline(QObject *parent) : QAbstractTableModel(parent)
+TableModelPipeline::TableModelPipeline(const joda::settings::Classification &classSettings, QObject *parent) :
+    QAbstractTableModel(parent), mClassSettings(classSettings)
 {
   if(parent == nullptr) {
     throw std::runtime_error("Parent must not be empty and of type QTableView.");
   }
+
+  auto loadSvg = [](const QString &name) -> QString {
+    QFile file(":/icons-svg/22/icons-svg/22/" + name + ".svg");    // or use a file path
+    if(file.open(QIODevice::ReadOnly)) {
+      QByteArray imageData = file.readAll();
+      return QString::fromLatin1(imageData.toBase64());
+    }
+    return "";
+  };
+
+  base64IconName = loadSvg("text-field");
+  base64IconHash = loadSvg("irc-operator");
 }
 
 void TableModelPipeline::setData(std::list<joda::settings::Pipeline> *pipelines)
@@ -92,7 +106,36 @@ QVariant TableModelPipeline::data(const QModelIndex &index, int role) const
   if(role == Qt::DisplayRole) {
     auto it = mPipelines->begin();
     std::advance(it, index.row());
-    return QString(it->meta.name.data());
+
+    QString html = R"(
+    <table width="100%">
+      <tr>
+        <td align="left">
+          <img src="data:image/png;base64,%1" width="22" height="22"/>
+        </td>
+        <td width="150" align="left" valign="middle" text-align: left;">
+          %2
+        </td>
+        <td align="left">
+          <img src="data:image/png;base64,%3" width="22" height="22"/>
+        </td>
+        <td width="150" align="left" valign="middle" text-align: left;">
+           %4 / %5
+        </td>
+      </tr>
+    </table>
+    )";
+
+    QString imgChannel = QString::number(it->pipelineSetup.cStackIndex);
+    if(it->pipelineSetup.cStackIndex < 0) {
+      imgChannel = "None";
+    }
+    html = html.arg(base64IconName)
+               .arg(QString(it->meta.name.data()))
+               .arg(base64IconHash)
+               .arg(QString(mClassSettings.getClassFromId(it->pipelineSetup.defaultClassId).name.data()))
+               .arg(imgChannel);
+    return html;
   }
   return {};
 }

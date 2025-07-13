@@ -13,6 +13,7 @@
 #include "backend/helper/table/table.hpp"
 #include "backend/processor/initializer/pipeline_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
+#include "backend/settings/project_settings/project_classification.hpp"
 
 namespace joda::ui::gui {
 
@@ -26,7 +27,8 @@ class TableModelPipeline : public QAbstractTableModel
   Q_OBJECT
 
 public:
-  TableModelPipeline(QObject *parent = nullptr);
+  /////////////////////////////////////////////////////
+  TableModelPipeline(const joda::settings::Classification &, QObject *parent = nullptr);
   void setData(std::list<joda::settings::Pipeline> *pipelines);
   auto getCell(int row) -> joda::settings::Pipeline *;
   int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -37,6 +39,9 @@ public:
 
 private:
   std::list<joda::settings::Pipeline> *mPipelines = nullptr;
+  const joda::settings::Classification &mClassSettings;
+  QString base64IconName;
+  QString base64IconHash;
 };
 
 }    // namespace joda::ui::gui

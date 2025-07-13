@@ -167,7 +167,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
 ///
 void PanelPipelineSettings::openPipelineSettings()
 {
-  auto *dialog = new DialogPipelineSettings(mSettings.pipelineSetup, mWindowMain);
+  auto *dialog = new DialogPipelineSettings(mWindowMain->getSettings().projectSettings.classification, mSettings, mWindowMain);
   dialog->exec();
 }
 

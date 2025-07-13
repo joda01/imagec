@@ -156,14 +156,11 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   getController()->registerImageLookupCallback([this](joda::filesystem::State state) {
     if(state == joda::filesystem::State::FINISHED) {
       if(getController()->getNrOfFoundImages() > 0) {
-        mPanelPipeline->setActionStartEnabled(true);
         mStartAnalysisToolButton->setEnabled(true);
       } else {
-        mPanelPipeline->setActionStartEnabled(false);
         mStartAnalysisToolButton->setEnabled(false);
       }
     } else if(state == joda::filesystem::State::RUNNING) {
-      mPanelPipeline->setActionStartEnabled(false);
       mStartAnalysisToolButton->setEnabled(false);
     }
   });

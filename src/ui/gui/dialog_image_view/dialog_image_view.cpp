@@ -254,7 +254,6 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
       auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(mZProjectionAction));
       btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
       connect(mZProjectionGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingsChanged);
-      mZProjectionAction->setVisible(false);
     }
 
     if(toolbarParent == nullptr) {

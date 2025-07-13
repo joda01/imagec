@@ -18,7 +18,8 @@
 #include <qtmetamacros.h>
 #include <qwidget.h>
 #include "backend/enums/types.hpp"
-#include "backend/processor/initializer/pipeline_settings.hpp"
+#include "backend/settings/pipeline/pipeline.hpp"
+#include "backend/settings/project_settings/project_classification.hpp"
 #include "ui/gui/container/setting/setting_combobox_classes_out.hpp"
 #include "ui/gui/container/setting/setting_line_edit.hpp"
 #include "ui/gui/container/setting/setting_spinbox.hpp"
@@ -39,18 +40,21 @@ class DialogPipelineSettings : public QDialog
 
 public:
   /////////////////////////////////////////////////////
-  DialogPipelineSettings(joda::settings::PipelineSettings &settings, WindowMain *parent);
+  DialogPipelineSettings(const joda::settings::Classification &classes, joda::settings::Pipeline &settings, WindowMain *parent);
 
 private:
+  void accept() override;
   void fromSettings();
   void toSettings();
 
   /////////////////////////////////////////////////////
-  joda::settings::PipelineSettings &mSettings;
+  joda::settings::Pipeline &mSettings;
 
   QLineEdit *mPipelineName;
   QTextEdit *mPipelineNotes;
-  QLineEdit *mCStackIndex;
+
+  QComboBox *mClass;
+  QComboBox *mCStackIndex;
   QComboBox *zProjection;
   QLineEdit *zStackIndex;
   QLineEdit *tStackIndex;

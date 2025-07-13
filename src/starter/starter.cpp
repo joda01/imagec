@@ -290,6 +290,21 @@ auto Starter::initApplication() -> std::shared_ptr<std::thread>
   return initJVMThread;
 }
 
+class NoIconStyle : public QProxyStyle
+{
+public:
+  using QProxyStyle::QProxyStyle;
+
+  QIcon standardIcon(StandardPixmap sp, const QStyleOption *option = nullptr, const QWidget *widget = nullptr) const override
+  {
+    // Return empty icon only for button box standard buttons
+    if(widget && qobject_cast<const QDialogButtonBox *>(widget->parentWidget())) {
+      return QIcon();
+    }
+    return QProxyStyle::standardIcon(sp, option, widget);
+  }
+};
+
 ///
 /// \brief
 /// \author
@@ -320,6 +335,7 @@ void Starter::startUi(QApplication &app, QSplashScreen *splashScreen, joda::upda
   // app.setFont(font);
 
   QApplication::setStyle("Fusion");
+  QApplication::setStyle(new NoIconStyle(QApplication::style()));
 
   QString stylesheet = R"(
         QLineEdit {
