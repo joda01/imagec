@@ -140,6 +140,7 @@ void DialogPipelineSettings::accept()
   mSettings.pipelineSetup.zStackIndex    = zStack;
   mSettings.pipelineSetup.tStackIndex    = tStack;
   mSettings.pipelineSetup.defaultClassId = (enums::ClassId) mClass->currentData().toInt();
+  mSettings.pipelineSetup.zProjection    = (enums::ZProjection) zProjection->currentData().toInt();
 
   QDialog::accept();
 }
@@ -196,39 +197,6 @@ void DialogPipelineSettings::fromSettings()
   }
 
   mPipelineNotes->setText(mSettings.meta.notes.data());
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogPipelineSettings::toSettings()
-{
-  // mSettings.disabled                     = mActionDisabled->isChecked();
-  // mSettings.meta.name                    = pipelineName->getValue();
-  // mSettings.meta.notes                   = pipelineNotes->getValue();
-  // mSettings.pipelineSetup.cStackIndex    = cStackIndex->getValue();
-  // mSettings.pipelineSetup.zProjection    = zProjection->getValue();
-  // mSettings.pipelineSetup.defaultClassId = defaultClassId->getValue();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogPipelineSettings::onZProjectionChanged()
-{
-  // if(zProjection->getValue() == enums::ZProjection::NONE) {
-  //   zStackIndex->getEditableWidget()->setVisible(true);
-  // } else {
-  //   zStackIndex->getEditableWidget()->setVisible(false);
-  // }
 }
 
 }    // namespace joda::ui::gui

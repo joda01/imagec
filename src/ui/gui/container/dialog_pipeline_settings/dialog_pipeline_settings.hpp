@@ -45,7 +45,6 @@ public:
 private:
   void accept() override;
   void fromSettings();
-  void toSettings();
 
   /////////////////////////////////////////////////////
   joda::settings::Pipeline &mSettings;
@@ -59,9 +58,5 @@ private:
   QLineEdit *zStackIndex;
   QLineEdit *tStackIndex;
   QComboBox *defaultClassId;
-
-private slots:
-  /////////////////////////////////////////////////////
-  void onZProjectionChanged();
 };
 }    // namespace joda::ui::gui
