@@ -64,6 +64,11 @@ public:
   {
     return mUpperValue;
   }
+
+  [[nodiscard]] uint16_t getLowerLevelContrast() const
+  {
+    return mLowerValue;
+  }
   void clear()
   {
     if(mImageOriginal != nullptr) {

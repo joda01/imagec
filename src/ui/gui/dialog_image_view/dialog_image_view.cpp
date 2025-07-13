@@ -28,9 +28,9 @@
 #include <string>
 #include <thread>
 #include "backend/helper/image/image.hpp"
+#include "ui/gui/dialog_image_view/dialog_channel_settings.hpp"
 #include "ui/gui/dialog_image_view/panel_image_view.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
-#include "histo_toolbar.hpp"
 
 namespace joda::ui::gui {
 
@@ -139,6 +139,15 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
     zoomIn->setStatusTip("Zoom image out");
     connect(zoomOut, &QAction::triggered, this, &DialogImageViewer::onZoomOutClicked);
     toolbarTop->addAction(zoomOut);
+
+    QAction *histogram = new QAction(generateSvgIcon("view-object-histogram-linear"), "");
+    histogram->setObjectName("ToolButton");
+    histogram->setStatusTip("Histogram");
+    connect(histogram, &QAction::triggered, [this] {
+      auto *dialog = new DialogChannelSettings(&mImageViewRight, this);
+      dialog->show();
+    });
+    toolbarTop->addAction(histogram);
 
     toolbarTop->addSeparator();
 
@@ -437,7 +446,7 @@ void DialogImageViewer::onSettingsChanged()
   mImageViewRight.setImagePlane({.z = 0, .c = getSelectedImageChannel(), .t = mSpinnerActTimeStack->value()});
   mImageViewRight.setImageTile(tileSize, tileSize);
   mImageViewRight.setSeries(0);
-  mImageViewRight.repaintImage();
+  mImageViewRight.reloadImage();
   emit settingChanged();
 }
 

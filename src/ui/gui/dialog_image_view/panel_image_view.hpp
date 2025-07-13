@@ -59,13 +59,13 @@ public:
   void openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo = nullptr);
   void setOverlay(const joda::image::Image &&overlay);
   void clearOverlay();
+  void reloadImage();
   void repaintImage();
   void resetImage();
   void fitImageToScreenSize();
   void zoomImage(bool inOut);
   void setWaiting(bool waiting);
   void setShowThumbnail(bool);
-  void setShowHistogram(bool);
   void setShowPixelInfo(bool);
   void setShowOverlay(bool);
   void setShowCrosshandCursor(bool);
@@ -83,6 +83,7 @@ public:
   void setSeries(int32_t);
   void setImagePlane(const joda::image::reader::ImageReader::Plane &);
   void setImageTile(int32_t tileWith, int32_t tileHeight);
+  auto mutableImage() -> joda::image::Image *;
 
 signals:
   /////////////////////////////////////////////////////
@@ -99,7 +100,6 @@ private:
   void leaveEvent(QEvent *) override;
   void wheelEvent(QWheelEvent *event) override;
   void paintEvent(QPaintEvent *event) override;
-  void drawHistogram(QPainter &);
   void drawThumbnail(QPainter &);
   void drawCrossHairCursor(QPainter &);
   void drawPixelInfo(QPainter &, int32_t startX, int32_t startY, const PixelInfo &info);
@@ -162,7 +162,6 @@ private:
   bool mShowPixelInfo       = true;
   bool mShowCrosshandCursor = false;
   bool mLockCrosshandCursor = false;
-  bool mShowHistogram       = true;
   bool mShowOverlay         = true;
 
   mutable std::mutex mImageResetMutex;

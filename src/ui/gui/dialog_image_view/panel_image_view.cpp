@@ -73,6 +73,7 @@ PanelImageView::PanelImageView(QWidget *parent) : QGraphicsView(parent), scene(n
 void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo)
 {
   setWaiting(true);
+  clearOverlay();
   if(omeInfo != nullptr) {
     joda::ctrl::Controller::loadImage(imagePath, mSeries, mPlane, mTile, mPreviewImages, omeInfo, enums::ZProjection::AVG_INTENSITY);
     mOmeInfo = *omeInfo;
@@ -85,6 +86,18 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
   setWaiting(false);
 
   emit updateImage();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto PanelImageView::mutableImage() -> joda::image::Image *
+{
+  return &mPreviewImages.editedImage;
 }
 
 ///
@@ -120,13 +133,25 @@ void PanelImageView::clearOverlay()
 /// \param[out]
 /// \return
 ///
-void PanelImageView::repaintImage()
+void PanelImageView::reloadImage()
 {
   if(mLastPath.empty()) {
     return;
   }
   joda::ctrl::Controller::loadImage(mLastPath, mSeries, mPlane, mTile, mPreviewImages, &mOmeInfo, enums::ZProjection::AVG_INTENSITY);
 
+  emit updateImage();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::repaintImage()
+{
   emit updateImage();
 }
 
@@ -414,19 +439,13 @@ void PanelImageView::paintEvent(QPaintEvent *event)
     painter.drawRect(viewPort);
   }
 
-  // Draw histogram
-  if(mShowHistogram) {
-    // Takes 5ms
-    drawHistogram(painter);
-  }
-
   // Draw thumbnail
   if(mShowThumbnail) {
     drawThumbnail(painter);
   }
 
   // Draw pixelInfo
-  if(mShowPixelInfo && mShowHistogram) {
+  if(mShowPixelInfo) {
     // Takes 0.08ms
     drawPixelInfo(painter, width(), height() - 20, mPixelInfo);
   }
@@ -494,7 +513,7 @@ void PanelImageView::drawCrossHairCursor(QPainter &painter)
       painter.drawLine(mCrossCursorInfo.mCursorPos.x(), 0, mCrossCursorInfo.mCursorPos.x(), height());
     }
 
-    if(mShowHistogram && mShowPixelInfo) {
+    if(mShowPixelInfo) {
       auto x = mCrossCursorInfo.mCursorPos.x();
       if(x < width() / 2) {
         // Switch the side
@@ -819,74 +838,6 @@ auto PanelImageView::fetchPixelInfoFromMousePosition(const QPoint &viewPos) cons
 /// \param[out]
 /// \return
 ///
-void PanelImageView::drawHistogram(QPainter &painter)
-{
-  const auto *image = mPreviewImages.editedImage.getImage();
-  if(image == nullptr) {
-    return;
-  }
-
-  const float RECT_START_X  = 10;
-  const float RECT_START_Y  = 12;
-  const float RECT_HEIGHT   = 80;
-  const float NR_OF_MARKERS = 8;
-  float RECT_WIDTH          = static_cast<float>(width()) - (RECT_START_X * 2);
-
-  int type  = image->type();
-  int depth = type & CV_MAT_DEPTH_MASK;
-  if(depth == CV_16U && 1 == image->channels()) {
-    if(!image->empty()) {
-      // Place for the histogram
-      QFont font;
-      font.setPointSizeF(8);
-      painter.setFont(font);
-      painter.setPen(QColor(0, 89, 179));    // Set the pen color to light blue
-      painter.setBrush(Qt::NoBrush);         // Set the brush to no brush for transparent fill
-
-      // Precalculation
-      float histOffset    = mPreviewImages.editedImage.getHistogramOffset();
-      float histZoom      = mPreviewImages.editedImage.getHitogramZoomFactor();
-      int number          = (float) UINT16_MAX / histZoom;
-      float binWidth      = (RECT_WIDTH / static_cast<float>(number));
-      int markerPos       = number / NR_OF_MARKERS;
-      const auto &hist    = mPreviewImages.editedImage.getHistogram();
-      int32_t compression = 1;
-
-      if(number > UINT16_MAX / 2) {
-        compression = 2;
-      }
-
-      for(int i = 1; i < number; i += compression) {
-        int idx = i + histOffset;
-        if(idx > UINT16_MAX) {
-          idx = UINT16_MAX;
-        }
-        float startX    = (static_cast<float>(width()) - RECT_START_X - RECT_WIDTH) + static_cast<float>(i) * binWidth;
-        float startY    = static_cast<float>(height()) - RECT_START_Y;
-        float histValue = hist.at<float>(idx) * RECT_HEIGHT;
-        painter.drawLine(startX, startY, startX, startY - histValue);
-        if(idx == mPreviewImages.editedImage.getUpperLevelContrast() ||
-           (compression != 1 && idx + 1 == mPreviewImages.editedImage.getUpperLevelContrast())) {
-          painter.setPen(QColor(255, 0, 0));    // Set the pen color to red
-          painter.drawText(QRect(startX - 50, startY, 100, 12), Qt::AlignHCenter, std::to_string(idx).data());
-          painter.drawLine(startX, startY, startX, startY - RECT_HEIGHT);
-          painter.setPen(QColor(0, 89, 179));    // Set the pen color to light blue
-        }
-        if(i == 1 || i % markerPos == 0) {
-          painter.drawText(QRect(startX - 50, startY, 100, 12), Qt::AlignHCenter, std::to_string(idx).data());
-        }
-      }
-    }
-  }
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 void PanelImageView::leaveEvent(QEvent *)
 {
 }
@@ -901,19 +852,6 @@ void PanelImageView::leaveEvent(QEvent *)
 void PanelImageView::setShowThumbnail(bool showThumbnail)
 {
   mShowThumbnail = showThumbnail;
-  viewport()->update();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelImageView::setShowHistogram(bool showHistorgram)
-{
-  mShowHistogram = showHistorgram;
   viewport()->update();
 }
 

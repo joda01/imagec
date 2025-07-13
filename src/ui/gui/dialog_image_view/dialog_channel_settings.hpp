@@ -25,39 +25,28 @@
 namespace joda::ui::gui {
 
 class DialogImageViewer;
+class PanelHistogram;
+class PanelImageView;
 
-class HistoToolbar : public QToolBar
+class DialogChannelSettings : public QDialog
 {
   Q_OBJECT
 
 public:
   /////////////////////////////////////////////////////
-  HistoToolbar(DialogImageViewer *parent, joda::image::Image *image);
-  auto getHistoSettings() const -> std::tuple<float, float, float>;
-
-public slots:
-  /////////////////////////////////////////////////////
-  void autoAdjustHistogram();
+  DialogChannelSettings(PanelImageView *image, QWidget *parent);
 
 private:
   /////////////////////////////////////////////////////
-  static constexpr float HISTOGRAM_ZOOM_STEP = 1;
-
+  void applyHistogramSettingsToImage();
   /////////////////////////////////////////////////////
-  DialogImageViewer *mParent;
-  joda::image::Image *mImage = nullptr;
-  QSlider *mSlider;
-  QScrollBar *mSliderScaling;
-  QScrollBar *mSliderHistogramOffset;
-  void createHistogramDialog();
-  QDialog *mHistogramDialog;
+  PanelImageView *mImagePanel = nullptr;
+  PanelHistogram *mHistogramPanel;
 
-private slots:
-  /////////////////////////////////////////////////////
-  void onZoomHistogramOutClicked();
-  void onZoomHistogramInClicked();
-  void onSliderMoved(int position);
-  void onShowHistogramDialog();
+  QSlider *mSliderOffset;
+  QSlider *mSliderHistogramZoom;
+  QSlider *mSliderHistogramMin;
+  QSlider *mSliderHistogramMax;
 };
 
 }    // namespace joda::ui::gui
