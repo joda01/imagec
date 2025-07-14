@@ -19,6 +19,7 @@
 #include <qlineedit.h>
 #include <qpushbutton.h>
 #include <qtablewidget.h>
+#include <qtoolbar.h>
 #include <qwidget.h>
 #include <exception>
 #include <filesystem>
@@ -67,17 +68,18 @@ using namespace std::chrono_literals;
 PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, joda::settings::Pipeline &settings,
                                              std::shared_ptr<DialogCommandSelection> &commandSelectionDialog) :
     QWidget(wm),
-    mLayout(this, false, true, true, false, wm), mPreviewImage(previewDock), mWindowMain(wm), mSettings(settings),
-    mCommandSelectionDialog(commandSelectionDialog)
+    mPreviewImage(previewDock), mWindowMain(wm), mSettings(settings), mCommandSelectionDialog(commandSelectionDialog)
 {
   setObjectName("PanelPipelineSettings");
   setContentsMargins(0, 0, 0, 0);
-  auto *tab = mLayout.addTab(
-      "", [] {}, false);
+
+  mLayout  = new QVBoxLayout();
+  mToolbar = new QToolBar();
+  mToolbar->setVisible(false);
+  wm->addToolBar(Qt::ToolBarArea::RightToolBarArea, mToolbar);
+
   mDialogHistory = new DialogHistory(wm, this);
   {
-    auto *col2 = tab->addVerticalPanel();
-
     auto *scrollArea = new QScrollArea();
     scrollArea->setContentsMargins(0, 0, 0, 0);
     scrollArea->setFrameStyle(0);
@@ -102,7 +104,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
     contentWidget->setLayout(mPipelineSteps);
     scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    col2->addWidgetGroup({scrollArea}, 300, 30000);
+    mLayout->addWidget(scrollArea);
 
     // Allow to start with
     mTopAddCommandButton = new AddCommandButtonBase(mCommandSelectionDialog, mSettings, this, nullptr, InOuts::ALL, mWindowMain);
@@ -110,7 +112,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   }
 
   // Tool button
-  mUndoAction = mLayout.addActionButton("Undo", generateSvgIcon("edit-undo"));
+  mUndoAction = mToolbar->addAction(generateSvgIcon("edit-undo"), "Undo");
   mUndoAction->setEnabled(false);
   mUndoAction->setStatusTip("Undo last setting");
   connect(mUndoAction, &QAction::triggered, [this]() {
@@ -118,7 +120,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
     mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
   });
 
-  mHistoryAction = mLayout.addActionButton("History", generateSvgIcon("deep-history"));
+  mHistoryAction = mToolbar->addAction(generateSvgIcon("deep-history"), "History");
   mHistoryAction->setStatusTip("Show/Hide pipeline edit history");
   mHistoryAction->setCheckable(true);
   connect(mHistoryAction, &QAction::triggered, [this](bool checked) {
@@ -130,27 +132,35 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   });
   connect(mDialogHistory, &QDialog::finished, [this] { mHistoryAction->setChecked(false); });
 
-  auto *addTagAction = mLayout.addActionButton("Add tag", generateSvgIcon("tag"));
+  auto *addTagAction = mToolbar->addAction(generateSvgIcon("tag"), "Add tag");
   addTagAction->setStatusTip("Tag actual pipeline settings");
   addTagAction->setToolTip("Tag the actual settings in the history.");
   connect(addTagAction, &QAction::triggered, [this]() { mDialogHistory->createTag(); });
 
-  mLayout.addSeparatorToTopToolbar();
+  mToolbar->addSeparator();
 
   //
   // Add disable button
   //
-  mActionDisabled = mLayout.addActionButton("Disable pipeline", generateSvgIcon("view-hidden"));
+  mActionDisabled = mToolbar->addAction(generateSvgIcon("view-hidden"), "Disable pipeline");
   mActionDisabled->setStatusTip("Temporary disable this pipeline");
   mActionDisabled->setCheckable(true);
   connect(mActionDisabled, &QAction::triggered, this, &PanelPipelineSettings::valueChangedEvent);
+
+  //
+  // Close button
+  //
+  auto *closePipeline = mToolbar->addAction(generateSvgIcon("window-close"), "Close pipeline editor");
+  closePipeline->setStatusTip("Close pipeline editor");
+
+  setLayout(mLayout);
 
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);
   connect(this, &PanelPipelineSettings::updatePreviewFinished, this, &PanelPipelineSettings::onPreviewFinished);
   connect(mPreviewImage, &DialogImageViewer::settingChanged, this, &PanelPipelineSettings::updatePreview);
   connect(wm->getImagePanel(), &PanelImages::imageSelectionChanged, this, &PanelPipelineSettings::updatePreview);
   connect(wm->getPanelProjectSettings(), &PanelProjectSettings::updateImagePreview, this, &PanelPipelineSettings::updatePreview);
-  connect(mLayout.getBackButton(), &QAction::triggered, this, &PanelPipelineSettings::closeWindow);
+  connect(closePipeline, &QAction::triggered, this, &PanelPipelineSettings::closeWindow);
   connect(wm->getPanelClassification(), &PanelClassification::settingsChanged, this, &PanelPipelineSettings::onClassificationNameChanged);
   onClassificationNameChanged();
 
@@ -670,7 +680,7 @@ void PanelPipelineSettings::onClassificationNameChanged()
 void PanelPipelineSettings::setActive(bool setActive)
 {
   if(!mIsActiveShown && setActive) {
-    mLayout.showToolBar(true);
+    mToolbar->setVisible(true);
     mIsActiveShown = true;
     updatePreview();
     mDialogHistory->loadHistory();
@@ -679,7 +689,7 @@ void PanelPipelineSettings::setActive(bool setActive)
   if(!setActive && mIsActiveShown) {
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
     mIsActiveShown = false;
-    mLayout.showToolBar(false);
+    mToolbar->setVisible(false);
     mPreviewImage->getImagePanel()->clearOverlay();
     mDialogHistory->hide();
     mHistoryAction->setChecked(false);

@@ -125,31 +125,32 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
     mOverlayOpaque->setMinimum(0);
     mOverlayOpaque->setMaximum(100);
     mOverlayOpaque->setValue(50);
+    mOverlayOpaque->setMaximumWidth(100);
     connect(mOverlayOpaque, &QSlider::valueChanged,
             [this] { mImageViewRight.serOverlayOpaque(static_cast<float>(mOverlayOpaque->value()) / 100.0F); });
     toolbarTop->addWidget(mOverlayOpaque);
 
     toolbarTop->addSeparator();
 
-    QAction *fitToScreen = new QAction(generateSvgIcon("zoom-fit-best"), "");
+    auto *fitToScreen = new QAction(generateSvgIcon("zoom-fit-best"), "");
     fitToScreen->setStatusTip("Fit image to screen");
     fitToScreen->setObjectName("ToolButton");
     connect(fitToScreen, &QAction::triggered, this, &DialogImageViewer::onFitImageToScreenSizeClicked);
     toolbarTop->addAction(fitToScreen);
 
-    QAction *zoomIn = new QAction(generateSvgIcon("zoom-in"), "");
+    auto *zoomIn = new QAction(generateSvgIcon("zoom-in"), "");
     zoomIn->setStatusTip("Zoom image in");
     zoomIn->setObjectName("ToolButton");
     connect(zoomIn, &QAction::triggered, this, &DialogImageViewer::onZoomInClicked);
     toolbarTop->addAction(zoomIn);
 
-    QAction *zoomOut = new QAction(generateSvgIcon("zoom-out"), "");
+    auto *zoomOut = new QAction(generateSvgIcon("zoom-out"), "");
     zoomOut->setObjectName("ToolButton");
     zoomIn->setStatusTip("Zoom image out");
     connect(zoomOut, &QAction::triggered, this, &DialogImageViewer::onZoomOutClicked);
     toolbarTop->addAction(zoomOut);
 
-    QAction *histogram = new QAction(generateSvgIcon("view-object-histogram-linear"), "");
+    auto *histogram = new QAction(generateSvgIcon("view-object-histogram-linear"), "");
     histogram->setObjectName("ToolButton");
     histogram->setStatusTip("Histogram");
     connect(histogram, &QAction::triggered, [this] {

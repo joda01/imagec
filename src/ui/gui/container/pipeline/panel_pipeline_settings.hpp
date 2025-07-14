@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include <qboxlayout.h>
+#include <qtoolbar.h>
 #include <QtWidgets>
 #include <memory>
 #include <mutex>
@@ -101,7 +103,8 @@ private:
   QAction *mActionDisabled;
 
   /////////////////////////////////////////////////////
-  helper::LayoutGenerator mLayout;
+  QToolBar *mToolbar;
+  QVBoxLayout *mLayout;
 
   /////////////////////////////////////////////////////
   DialogHistory *mDialogHistory;
