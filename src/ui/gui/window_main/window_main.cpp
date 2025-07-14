@@ -257,7 +257,9 @@ void WindowMain::setWindowTitlePrefix(const QString &txt)
 
 void WindowMain::setSideBarVisible(bool visible)
 {
-  mSidebar->setVisible(visible);
+  for(auto *dock : mDockWidgets) {
+    dock->setVisible(visible);
+  }
   mTopToolBar->setVisible(visible);
 }
 
@@ -323,37 +325,53 @@ void WindowMain::createTopToolbar()
 ///
 void WindowMain::createLeftToolbar()
 {
-  mSidebar = new QToolBar(this);
-  mSidebar->setMovable(false);
-  mTabWidget = new QTabWidget(mSidebar);
+  QDockWidget *firstDock = nullptr;
+
+  auto createDock = [this, &firstDock](const QString &title, QWidget *panel) -> QDockWidget * {
+    auto *dock = new QDockWidget(this);
+    dock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable /*DockWidgetClosable*/);
+
+    panel->setMinimumWidth(LEFT_TOOLBAR_WIDTH);
+    panel->setParent(dock);
+    dock->setWidget(panel);
+    dock->setWindowTitle(title);
+    mDockWidgets.push_back(dock);
+
+    addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, dock);
+    if(firstDock != nullptr) {
+      tabifyDockWidget(firstDock, dock);
+    } else {
+      firstDock = dock;
+    }
+    return dock;
+  };
+  setTabPosition(Qt::DockWidgetArea::LeftDockWidgetArea, QTabWidget::TabPosition::North);
 
   // Experiment Settings
   {
     mPanelProjectSettings = new PanelProjectSettings(mAnalyzeSettings, this);
-    mTabWidget->addTab(mPanelProjectSettings, "Project");
+    createDock("Project", mPanelProjectSettings);
   }
 
   // Images Tab
   {
     mPanelImages = new PanelImages(this);
-    mTabWidget->addTab(mPanelImages, "Images");
+    createDock("Images", mPanelImages);
   }
 
   // Classification tab
   {
     mPanelClassification = new PanelClassification(mAnalyzeSettings.projectSettings.classification, this);
-    mTabWidget->addTab(mPanelClassification, "Classification");
+    createDock("Classification", mPanelClassification);
   }
 
   // Pipeline Tab
   {
     mPanelPipeline = new PanelPipeline(this, mAnalyzeSettings);
-    mTabWidget->addTab(mPanelPipeline, "Pipelines");
+    createDock("Pipelines", mPanelPipeline);
   }
 
-  mSidebar->addWidget(mTabWidget);
-  mSidebar->setMinimumWidth(LEFT_TOOLBAR_WIDTH);
-  addToolBar(Qt::ToolBarArea::LeftToolBarArea, mSidebar);
+  firstDock->raise();    // Make project tab visible
 }
 
 ///
@@ -595,7 +613,6 @@ void WindowMain::openResultsSettings(const QString &filePath)
     mPanelReporting->openFromFile(filePath);
     mStackedWidget->setCurrentIndex(static_cast<int32_t>(Navigation::REPORTING));
     mNavigation = Navigation::REPORTING;
-    mTabWidget->setCurrentIndex((int) Tabs::RESULTS);
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);
@@ -876,7 +893,8 @@ bool WindowMain::showPanelStartPage()
 {
   getPanelPipeline()->unselectPipeline();
   mOpenProjectButton->setVisible(true);
-  mSidebar->setVisible(true);
+  // mSidebar->setVisible(true);
+  setSideBarVisible(true);
   mSaveProject->setVisible(true);
   mSaveProject->setVisible(true);
   mStartAnalysisToolButton->setVisible(true);

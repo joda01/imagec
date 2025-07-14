@@ -12,6 +12,7 @@
 #pragma once
 
 #include <qcombobox.h>
+#include <qdockwidget.h>
 #include <qwidget.h>
 #include <QtWidgets>
 #include <filesystem>
@@ -148,7 +149,6 @@ private:
     CLASSIFICATION   = 1,
     PIPELINES        = 2,
     IMAGES           = 3,
-    RESULTS          = 4
   };
 
   /////////////////////////////////////////////////////
@@ -181,8 +181,8 @@ private:
   std::set<joda::enums::ClassId> mOutPutClassesOld;
 
   ////Left Toolbar/////////////////////////////////////////////////
-  QToolBar *mSidebar                          = nullptr;
-  QTabWidget *mTabWidget                      = nullptr;
+  std::vector<QDockWidget *> mDockWidgets;
+
   PanelProjectSettings *mPanelProjectSettings = nullptr;
   PanelClassification *mPanelClassification   = nullptr;
   PanelPipeline *mPanelPipeline               = nullptr;
