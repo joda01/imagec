@@ -335,11 +335,10 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
     //
     // Do z -projection if activated
     //
-    int32_t c   = imagePlane.c;
-    int32_t z   = imagePlane.z;
-    int32_t t   = imagePlane.t;
-    auto image  = loadImageTile(z, c, t);
-    zProjection = enums::ZProjection::NONE;
+    int32_t c  = imagePlane.c;
+    int32_t z  = imagePlane.z;
+    int32_t t  = imagePlane.t;
+    auto image = loadImageTile(z, c, t);
 
     if(zProjection != enums::ZProjection::NONE && zProjection != enums::ZProjection::TAKE_MIDDLE) {
       auto max = [&loadImageTile, &image, c, t](int zIdx) { image = cv::max(image, loadImageTile(zIdx, c, t)); };

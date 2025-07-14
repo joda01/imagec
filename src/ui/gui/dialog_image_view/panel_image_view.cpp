@@ -75,10 +75,10 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
   setWaiting(true);
   clearOverlay();
   if(omeInfo != nullptr) {
-    joda::ctrl::Controller::loadImage(imagePath, mSeries, mPlane, mTile, mPreviewImages, omeInfo, enums::ZProjection::AVG_INTENSITY);
+    joda::ctrl::Controller::loadImage(imagePath, mSeries, mPlane, mTile, mPreviewImages, omeInfo, mZprojection);
     mOmeInfo = *omeInfo;
   } else {
-    joda::ctrl::Controller::loadImage(imagePath, mSeries, mPlane, mTile, mPreviewImages, mOmeInfo, enums::ZProjection::AVG_INTENSITY);
+    joda::ctrl::Controller::loadImage(imagePath, mSeries, mPlane, mTile, mPreviewImages, mOmeInfo, mZprojection);
   }
   mLastPath = imagePath;
   mPreviewImages.editedImage.autoAdjustBrightnessRange();
@@ -157,7 +157,7 @@ void PanelImageView::reloadImage()
   if(mLastPath.empty()) {
     return;
   }
-  joda::ctrl::Controller::loadImage(mLastPath, mSeries, mPlane, mTile, mPreviewImages, &mOmeInfo, enums::ZProjection::AVG_INTENSITY);
+  joda::ctrl::Controller::loadImage(mLastPath, mSeries, mPlane, mTile, mPreviewImages, &mOmeInfo, mZprojection);
 
   emit updateImage();
 }
