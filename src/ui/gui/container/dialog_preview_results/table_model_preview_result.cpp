@@ -47,6 +47,7 @@ TableModelPreviewResult::TableModelPreviewResult(const joda::settings::Classific
 void TableModelPreviewResult::setData(const joda::ctrl::Preview::PreviewResults *results)
 {
   mPreviewResult = results;
+  refresh();
 }
 
 int TableModelPreviewResult::rowCount(const QModelIndex &parent) const
@@ -109,35 +110,15 @@ QVariant TableModelPreviewResult::data(const QModelIndex &index, int role) const
     return {};
   }
 
+  auto it = mPreviewResult->foundObjects.begin();
+  std::advance(it, index.row());
+
+  if(role == Qt::UserRole) {
+    return QColor(it->second.color.data());
+  }
+
   if(role == Qt::DisplayRole) {
-    auto it = mPreviewResult->foundObjects.begin();
-    std::advance(it, index.row());
-
-    QString html = R"(
-    <table width="100%">
-      <tr>
-        <td align="left">
-          <img src="data:image/png;base64,%1" width="22" height="22"/>
-        </td>
-        <td width="150" align="left" valign="middle" text-align: left;">
-          %2
-        </td>
-        <td align="left">
-          <img src="data:image/png;base64,%3" width="22" height="22"/>
-        </td>
-        <td width="150" align="left" valign="middle" text-align: left;">
-           %4 / %5
-        </td>
-      </tr>
-    </table>
-    )";
-
-    html = html.arg(base64IconName)
-               .arg(QString::number(it->second.count))
-               .arg(base64IconHash)
-               .arg(QString(mClassSettings.getClassFromId(it->first).name.data()))
-               .arg("");
-    return html;
+    return QString(mClassSettings.getClassFromId(it->first).name.data()) + " (" + QString::number(it->second.count) + ")";
   }
   return {};
 }

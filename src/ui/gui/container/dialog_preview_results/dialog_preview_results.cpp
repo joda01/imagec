@@ -13,6 +13,7 @@
 #include <qboxlayout.h>
 #include <qdialog.h>
 #include <qformlayout.h>
+#include <qwidget.h>
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
@@ -20,6 +21,7 @@
 #include "ui/gui/helper/html_delegate.hpp"
 #include "ui/gui/helper/setting_generator.hpp"
 #include "ui/gui/window_main/window_main.hpp"
+#include "tabel_item_delegate_preview_Result.hpp"
 #include "table_model_preview_result.hpp"
 
 namespace joda::ui::gui {
@@ -31,29 +33,36 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-DialogPreviewResults::DialogPreviewResults(const joda::settings::Classification &classes, const joda::ctrl::Preview::PreviewResults *results,
-                                           WindowMain *windowMain) :
-    QDialog(windowMain)
+DialogPreviewResults::DialogPreviewResults(const joda::settings::Classification &classes, WindowMain *windowMain) : QDockWidget(windowMain)
 {
   setWindowTitle("Preview results");
-  setMinimumSize(100, 400);
-  auto *layout = new QVBoxLayout();
+  setMinimumWidth(150);
 
+  auto *mainWidget = new QWidget();
+  auto *layout     = new QVBoxLayout();
+  mainWidget->setContentsMargins(0, 0, 0, 0);
+  layout->setContentsMargins(0, 0, 0, 0);
   mResultsTable = new QTableView(this);
   mResultsTable->setFrameStyle(QFrame::NoFrame);
   mResultsTable->setShowGrid(false);
-  mResultsTable->setItemDelegate(new HtmlDelegate(mResultsTable));
+  mResultsTable->setItemDelegate(new ColorSquareDelegate(mResultsTable));
   mResultsTable->verticalHeader()->setVisible(false);
   mResultsTable->horizontalHeader()->setVisible(false);
   mResultsTable->setAlternatingRowColors(true);
   mResultsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
   mResultsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
   mTableModel = new TableModelPreviewResult(classes, mResultsTable);
-  mTableModel->setData(results);
   mResultsTable->setModel(mTableModel);
-
   layout->addWidget(mResultsTable);
-  setLayout(layout);
+  mainWidget->setLayout(layout);
+  setWidget(mainWidget);
+}
+
+void DialogPreviewResults::setResults(const joda::ctrl::Preview::PreviewResults *results)
+{
+  if(mTableModel != nullptr) {
+    mTableModel->setData(results);
+  }
 }
 
 void DialogPreviewResults::refresh()

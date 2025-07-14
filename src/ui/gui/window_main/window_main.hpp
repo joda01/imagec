@@ -113,6 +113,11 @@ public:
     return mPreviewImage;
   }
 
+  auto getPreviewResultsDock() -> DialogPreviewResults *
+  {
+    return mPreviewResultsDialog;
+  }
+
   void addToLastLoadedResults(const QString &path, const QString &jobName);
   void setSideBarVisible(bool visible);
   void setWindowTitlePrefix(const QString &txt);
@@ -189,7 +194,8 @@ private:
   PanelImages *mPanelImages                   = nullptr;
 
   ////Right Dock/////////////////////////////////////////////////
-  DialogImageViewer *mPreviewImage = nullptr;
+  DialogImageViewer *mPreviewImage            = nullptr;
+  DialogPreviewResults *mPreviewResultsDialog = nullptr;
 
   ////Stacked widget/////////////////////////////////////////////////
   QStackedWidget *mStackedWidget = nullptr;

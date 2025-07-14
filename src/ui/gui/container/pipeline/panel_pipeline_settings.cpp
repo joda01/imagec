@@ -65,10 +65,11 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, joda::settings::Pipeline &settings,
-                                             std::shared_ptr<DialogCommandSelection> &commandSelectionDialog) :
+PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, DialogPreviewResults *previewResults,
+                                             joda::settings::Pipeline &settings, std::shared_ptr<DialogCommandSelection> &commandSelectionDialog) :
     QWidget(wm),
-    mPreviewImage(previewDock), mWindowMain(wm), mSettings(settings), mCommandSelectionDialog(commandSelectionDialog)
+    mPreviewResultsDialog(previewResults), mPreviewImage(previewDock), mWindowMain(wm), mSettings(settings),
+    mCommandSelectionDialog(commandSelectionDialog)
 {
   setObjectName("PanelPipelineSettings");
   setContentsMargins(0, 0, 0, 0);
@@ -76,7 +77,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   mLayout  = new QVBoxLayout();
   mToolbar = new QToolBar();
   mToolbar->setVisible(false);
-  wm->addToolBar(Qt::ToolBarArea::RightToolBarArea, mToolbar);
+  wm->addToolBar(Qt::ToolBarArea::TopToolBarArea, mToolbar);
 
   mDialogHistory = new DialogHistory(wm, this);
   {
@@ -156,8 +157,6 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   //
   // Preview dialog
   //
-  mPreviewResultsDialog = new DialogPreviewResults(mWindowMain->getSettings().projectSettings.classification, &mPreviewResults, mWindowMain);
-
   setLayout(mLayout);
 
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);
@@ -690,7 +689,7 @@ void PanelPipelineSettings::onClassificationNameChanged()
 void PanelPipelineSettings::setActive(bool setActive)
 {
   if(!mIsActiveShown && setActive) {
-    mPreviewResultsDialog->show();
+    mPreviewResultsDialog->setResults(&mPreviewResults);
     mToolbar->setVisible(true);
     mIsActiveShown = true;
     updatePreview();
@@ -700,7 +699,6 @@ void PanelPipelineSettings::setActive(bool setActive)
   if(!setActive && mIsActiveShown) {
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
     mIsActiveShown = false;
-    mPreviewResultsDialog->hide();
     mToolbar->setVisible(false);
     mPreviewImage->getImagePanel()->clearOverlay();
     mDialogHistory->hide();

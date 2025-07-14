@@ -37,14 +37,14 @@ class TableModelPreviewResult;
 /// \author     Joachim Danmayr
 /// \brief
 ///
-class DialogPreviewResults : public QDialog
+class DialogPreviewResults : public QDockWidget
 {
   Q_OBJECT
 
 public:
   /////////////////////////////////////////////////////
-  DialogPreviewResults(const joda::settings::Classification &classes, const joda::ctrl::Preview::PreviewResults *results, WindowMain *windowMain);
-  void setResults(const joda::ctrl::Preview::PreviewResults &);
+  DialogPreviewResults(const joda::settings::Classification &classes, WindowMain *windowMain);
+  void setResults(const joda::ctrl::Preview::PreviewResults *results);
   void refresh();
 
 private:

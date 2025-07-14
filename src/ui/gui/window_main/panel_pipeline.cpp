@@ -49,10 +49,9 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
 {
   mMainLayout = new QVBoxLayout();
   mMainLayout->setContentsMargins(0, 0, 0, 0);
+  auto *toolbar = new QToolBar();
 
   {
-    auto *toolbar = new QToolBar();
-
     //
     // New pipeline
     //
@@ -140,8 +139,6 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
       mWindowMain->showPanelStartPage();
       erase(getSelectedPipeline());
     });
-
-    mMainLayout->addWidget(toolbar);
   }
 
   // Create a widget to hold the panels
@@ -167,6 +164,7 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
 
   mCommandSelectionDialog = std::make_shared<DialogCommandSelection>(mWindowMain);
 
+  mMainLayout->addWidget(toolbar);
   mMainLayout->addWidget(mPipelineTable, 1);
 
   setLayout(mMainLayout);
@@ -405,7 +403,8 @@ void PanelPipeline::addChannel(joda::settings::Pipeline settings)
   }
   mAnalyzeSettings.pipelines.push_back(joda::settings::Pipeline{});
   auto &newlyAdded = mAnalyzeSettings.pipelines.back();
-  auto panel1      = std::make_unique<PanelPipelineSettings>(mWindowMain, mWindowMain->getPreviewDock(), newlyAdded, mCommandSelectionDialog);
+  auto panel1 = std::make_unique<PanelPipelineSettings>(mWindowMain, mWindowMain->getPreviewDock(), mWindowMain->getPreviewResultsDock(), newlyAdded,
+                                                        mCommandSelectionDialog);
   panel1->fromSettings(settings);
   panel1->toSettings();
   addElement(std::move(panel1));

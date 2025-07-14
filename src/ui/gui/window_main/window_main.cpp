@@ -122,13 +122,17 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   }
 
   //
+  // PReview results
+  //
+  {
+    mPreviewResultsDialog = new DialogPreviewResults(getSettings().projectSettings.classification, this);
+    addDockWidget(Qt::DockWidgetArea::RightDockWidgetArea, mPreviewResultsDialog);
+  }
+
+  //
   // Add info button at the end
   //
   {
-    auto *spacerTop = new QWidget();
-    spacerTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    mTopToolBar->addWidget(spacerTop);
-
     // auto *helpButton = new QAction(generateSvgIcon("help-contents"), "Help", mTopToolBar);
     // helpButton->setToolTip("Help");
     // connect(helpButton, &QAction::triggered, this, &WindowMain::onShowHelpClicked);

@@ -58,7 +58,7 @@ signals:
   void updatePreviewFinished();
 
 public:
-  PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, joda::settings::Pipeline &settings,
+  PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, DialogPreviewResults *previewResults, joda::settings::Pipeline &settings,
                         std::shared_ptr<DialogCommandSelection> &commandSelectionDialog);
   ~PanelPipelineSettings();
 
