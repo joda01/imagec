@@ -327,17 +327,18 @@ void WindowMain::createLeftToolbar()
 {
   QDockWidget *firstDock = nullptr;
 
-  auto createDock = [this, &firstDock](const QString &title, QWidget *panel) -> QDockWidget * {
+  auto createDock = [this, &firstDock](const QString &title, QWidget *panel, Qt::DockWidgetArea area = Qt::DockWidgetArea::LeftDockWidgetArea,
+                                       int32_t size = LEFT_TOOLBAR_WIDTH) -> QDockWidget * {
     auto *dock = new QDockWidget(this);
     dock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable /*DockWidgetClosable*/);
 
-    panel->setMinimumWidth(LEFT_TOOLBAR_WIDTH);
+    panel->setMinimumWidth(size);
     panel->setParent(dock);
     dock->setWidget(panel);
     dock->setWindowTitle(title);
     mDockWidgets.push_back(dock);
 
-    addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, dock);
+    addDockWidget(area, dock);
     if(firstDock != nullptr) {
       tabifyDockWidget(firstDock, dock);
     } else {
