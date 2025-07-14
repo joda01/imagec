@@ -153,6 +153,11 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   auto *closePipeline = mToolbar->addAction(generateSvgIcon("window-close"), "Close pipeline editor");
   closePipeline->setStatusTip("Close pipeline editor");
 
+  //
+  // Preview dialog
+  //
+  mPreviewResultsDialog = new DialogPreviewResults(mWindowMain->getSettings().projectSettings.classification, &mPreviewResults, mWindowMain);
+
   setLayout(mLayout);
 
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);
@@ -485,7 +490,6 @@ void PanelPipelineSettings::previewThread()
 
             auto [tileNrX, tileNrY] = imgProps.getImageInfo(series).resolutions.at(resolution).getNrOfTiles(tileSize.tileWidth, tileSize.tileHeight);
 
-            joda::ctrl::Preview previewResult;
             processor::PreviewSettings prevSettings;
             prevSettings.style =
                 jobToDo.previewPanel->getFillOverlay() ? settings::ImageSaverSettings::Style::FILLED : settings::ImageSaverSettings::Style::OUTLINED;
@@ -502,11 +506,13 @@ void PanelPipelineSettings::previewThread()
             if(myPipeline == nullptr) {
               continue;
             }
+            joda::ctrl::Preview previewResult;
             jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, jobToDo.threadSettings, *myPipeline, imgIndex,
                                         jobToDo.selectedTileX, jobToDo.selectedTileY, jobToDo.timeStack, previewResult, imgProps,
                                         jobToDo.classesToShow);
 
             jobToDo.previewPanel->getImagePanel()->setOverlay(std::move(previewResult.overlay));
+            mPreviewResults = std::move(previewResult.results);
 
           } catch(const std::exception &error) {
             joda::log::logError("Preview error: " + std::string(error.what()));
@@ -553,6 +559,10 @@ void PanelPipelineSettings::onPreviewFinished()
 {
   if(nullptr != mPreviewImage) {
     mPreviewImage->setWaiting(false);
+  }
+
+  if(nullptr != mPreviewResultsDialog) {
+    mPreviewResultsDialog->refresh();
   }
 }
 
@@ -680,6 +690,7 @@ void PanelPipelineSettings::onClassificationNameChanged()
 void PanelPipelineSettings::setActive(bool setActive)
 {
   if(!mIsActiveShown && setActive) {
+    mPreviewResultsDialog->show();
     mToolbar->setVisible(true);
     mIsActiveShown = true;
     updatePreview();
@@ -689,6 +700,7 @@ void PanelPipelineSettings::setActive(bool setActive)
   if(!setActive && mIsActiveShown) {
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
     mIsActiveShown = false;
+    mPreviewResultsDialog->hide();
     mToolbar->setVisible(false);
     mPreviewImage->getImagePanel()->clearOverlay();
     mDialogHistory->hide();

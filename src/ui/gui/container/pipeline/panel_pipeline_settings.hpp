@@ -23,6 +23,7 @@
 #include "backend/settings/analze_settings.hpp"
 #include "ui/gui/container/command/command.hpp"
 #include "ui/gui/container/container_base.hpp"
+#include "ui/gui/container/dialog_preview_results/dialog_preview_results.hpp"
 #include "ui/gui/container/setting/setting_combobox.hpp"
 #include "ui/gui/container/setting/setting_combobox_classes_out.hpp"
 #include "ui/gui/container/setting/setting_line_edit.hpp"
@@ -44,6 +45,7 @@ class WindowMain;
 class AddCommandButtonBase;
 class PanelClassification;
 class DialogCommandSelection;
+class DialogPreviewResults;
 
 class PanelPipelineSettings : public QWidget, public ContainerBase
 {
@@ -124,6 +126,8 @@ private:
   /////////////////////////////////////////////////////
   int32_t mLastSelectedPreviewSize = 0;
   joda::settings::Pipeline &mSettings;
+  joda::ctrl::Preview::PreviewResults mPreviewResults;
+  DialogPreviewResults *mPreviewResultsDialog;
 
   struct PreviewJob
   {
