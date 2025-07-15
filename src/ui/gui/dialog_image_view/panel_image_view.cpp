@@ -189,6 +189,18 @@ void PanelImageView::repaintImage()
 /// \param[out]
 /// \return
 ///
+void PanelImageView::repaintViewport()
+{
+  viewport()->update();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::setZprojection(enums::ZProjection projection)
 {
   mZprojection = projection;
@@ -980,11 +992,33 @@ auto PanelImageView::getCursorPosition() -> QPoint
 /// \param[out]
 /// \return
 ///
-void PanelImageView::setCursorPositionFromOriginalImageCoordinatesAndCenter(const QRect &boundingRect)
+void PanelImageView::setCursorPositionFromOriginalImageCoordinatesAndCenter(const QRect &boundingBox)
 {
+  ////////////////
+
+  auto imgWidth    = mOmeInfo.getImageInfo(mSeries).resolutions.at(0).imageWidth;
+  auto imageHeight = mOmeInfo.getImageInfo(mSeries).resolutions.at(0).imageHeight;
+  auto tileWidth   = mTile.tileWidth;
+  auto tileHeight  = mTile.tileHeight;
+  if(imgWidth > mTile.tileWidth || imageHeight > mTile.tileHeight) {
+    tileWidth  = mTile.tileWidth;
+    tileHeight = mTile.tileHeight;
+  } else {
+    tileWidth  = imgWidth;
+    tileHeight = imageHeight;
+  }
+  auto [tileNrX, tileNrY] = mOmeInfo.getImageInfo(mSeries).resolutions.at(0 /*resolution*/).getNrOfTiles(tileWidth, tileHeight);
+
+  auto measBoxX = boundingBox.x() - mTile.tileX * tileWidth;
+  auto measBoxY = boundingBox.y() - mTile.tileY * tileHeight;
+  QRect cursorBox{(int32_t) measBoxX, (int32_t) measBoxY, (int32_t) boundingBox.width(), (int32_t) boundingBox.height()};
+
+  //////////////////////
   if(mActPixmap != nullptr) {
-    mLastCrossHairCursorPos = boundingRect;
-    QPoint pos{boundingRect.x(), boundingRect.y()};
+    std::cout << "x: " << std::to_string(cursorBox.x()) << " y:" << std::to_string(cursorBox.y()) << std::endl;
+
+    mLastCrossHairCursorPos = cursorBox;
+    QPoint pos{cursorBox.x(), cursorBox.y()};
     auto originalPos = imageCoordinatesToPreviewCoordinates(pos);
 
     // Center viewport to the crosshair cursor center

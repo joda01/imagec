@@ -62,6 +62,7 @@ public:
   void clearOverlay();
   void reloadImage();
   void repaintImage();
+  void repaintViewport();
   void resetImage();
   void fitImageToScreenSize();
   void zoomImage(bool inOut);

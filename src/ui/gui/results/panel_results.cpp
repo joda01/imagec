@@ -744,24 +744,13 @@ void PanelResults::previewThread()
       mDockWidgetImagePreview->getImageWidget()->setImagePlane({plane, series, tileWidth, tileHeight, tileXNr, tileYNr});
       mDockWidgetImagePreview->getImageWidget()->getImagePanel()->openImage(previewData.imagePath);
 
+      // ==============================================
       // Set cursor position
-      /*
-      auto imgWidth    = mImgProps.getImageInfo(series).resolutions.at(0).imageWidth;
-      auto imageHeight = mImgProps.getImageInfo(series).resolutions.at(0).imageHeight;
-      if(imgWidth > tileWidth || imageHeight > tileHeight) {
-        tileWidth  = tileWidth;
-        tileHeight = tileHeight;
-      } else {
-        tileWidth  = imgWidth;
-        tileHeight = imageHeight;
-      }
-      auto [tileNrX, tileNrY] = mImgProps.getImageInfo(series).resolutions.at(resolution).getNrOfTiles(tileWidth, tileHeight);
+      // ==============================================
 
-      auto measBoxX = objectInfo.measBoxX - tileXNr * tileWidth;
-      auto measBoxY = objectInfo.measBoxY - tileYNr * tileHeight;
-      QRect boungingBox{(int32_t) measBoxX, (int32_t) measBoxY, (int32_t) objectInfo.measBoxWidth, (int32_t) objectInfo.measBoxHeight};
-      mDockWidgetImagePreview->getImageWidget()->setCrossHairCursorPositionAndCenter(boungingBox);
-      */
+      QRect boungingBox{(int32_t) objectInfo.measBoxX, (int32_t) objectInfo.measBoxY, (int32_t) objectInfo.measBoxWidth,
+                        (int32_t) objectInfo.measBoxHeight};
+      mDockWidgetImagePreview->getImageWidget()->getImagePanel()->setCursorPositionFromOriginalImageCoordinatesAndCenter(boungingBox);
 
     } catch(const std::exception &ex) {
       // No image selected
