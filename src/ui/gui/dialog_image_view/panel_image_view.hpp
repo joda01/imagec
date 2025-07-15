@@ -83,6 +83,7 @@ public:
   void setZprojection(enums::ZProjection);
   void setSeries(int32_t);
   void setImagePlane(const joda::image::reader::ImageReader::Plane &);
+  void setSelectedTile(int32_t tileX, int32_t tileY);
   void setImageTile(int32_t tileWith, int32_t tileHeight);
   auto mutableImage() -> joda::image::Image *;
 
@@ -126,6 +127,7 @@ private:
   // IMAGE ///////////////////////////////////////////////////
   bool mPlaceholderImageSet = true;
   std::filesystem::path mLastPath;
+  joda::image::reader::ImageReader::Plane mLastPlane{-1, -1, -1};
   joda::ome::OmeInfo mOmeInfo;
   joda::ctrl::Preview mPreviewImages;
   float mOpaque = 0.5;

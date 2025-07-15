@@ -96,7 +96,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   createToolBar(&layout());
 
   // Add to dock
-  mDockWidgetImagePreview->getImageWidget()->setVisible(false);
+  // mDockWidgetImagePreview->getImageWidget()->setVisible(false);
   mWindowMain->addDockWidget(Qt::RightDockWidgetArea, mDockWidgetImagePreview);
 
   static const int32_t SELECTED_INFO_WIDTH   = 250;
@@ -731,16 +731,17 @@ void PanelResults::previewThread()
 
     try {
       mDockWidgetImagePreview->getImageWidget()->setWaiting(true);
-      // int32_t tileWidth      = previewData.analyzeMeta.tileWidth;
-      // int32_t tileHeight     = previewData.analyzeMeta.tileHeight;
-      // uint32_t series        = previewData.analyzeMeta.series;
-      // const auto &objectInfo = previewData.objectInfo;
-      // int32_t tileXNr        = objectInfo.measCenterX / tileWidth;
-      // int32_t tileYNr        = objectInfo.measCenterY / tileHeight;
+      int32_t tileWidth      = previewData.analyzeMeta.tileWidth;
+      int32_t tileHeight     = previewData.analyzeMeta.tileHeight;
+      int32_t series         = previewData.analyzeMeta.series;
+      const auto &objectInfo = previewData.objectInfo;
+      int32_t tileXNr        = objectInfo.measCenterX / tileWidth;
+      int32_t tileYNr        = objectInfo.measCenterY / tileHeight;
       // int32_t resolution     = 0;
-      // joda::image::reader::ImageReader::Plane{
-      //    .z = static_cast<int32_t>(objectInfo.stackZ), .c = static_cast<int32_t>(objectInfo.stackC), .t = static_cast<int32_t>(objectInfo.stackT)};
+      auto plane = joda::image::reader::ImageReader::Plane{
+          .z = static_cast<int32_t>(objectInfo.stackZ), .c = static_cast<int32_t>(objectInfo.stackC), .t = static_cast<int32_t>(objectInfo.stackT)};
 
+      mDockWidgetImagePreview->getImageWidget()->setImagePlane({plane, series, tileWidth, tileHeight, tileXNr, tileYNr});
       mDockWidgetImagePreview->getImageWidget()->getImagePanel()->openImage(previewData.imagePath);
 
       // Set cursor position

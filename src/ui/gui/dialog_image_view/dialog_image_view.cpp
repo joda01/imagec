@@ -165,37 +165,29 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
     // Preview size
     //
     {
-      auto *resolutionMenu = new QMenu();
-      mPreviewSizeGroup    = new QActionGroup(toolbarTop);
-      auto *r8192          = resolutionMenu->addAction("8192x8192");
-      mPreviewSizeGroup->addAction(r8192);
-      r8192->setCheckable(true);
-      auto *r4096 = resolutionMenu->addAction("4096x4096");
-      mPreviewSizeGroup->addAction(r4096);
-      r4096->setCheckable(true);
-      auto *r2048 = resolutionMenu->addAction("2048x2048");
-      mPreviewSizeGroup->addAction(r2048);
-      r2048->setCheckable(true);
-      r2048->setChecked(true);
-      auto *r1024 = resolutionMenu->addAction("1024x1024");
-      mPreviewSizeGroup->addAction(r1024);
-      r1024->setCheckable(true);
-      auto *r512 = resolutionMenu->addAction("512x512");
-      mPreviewSizeGroup->addAction(r512);
-      r512->setCheckable(true);
-      auto *r256 = resolutionMenu->addAction("256x256");
-      mPreviewSizeGroup->addAction(r256);
-      r256->setCheckable(true);
-      auto *r128 = resolutionMenu->addAction("128x128");
-      mPreviewSizeGroup->addAction(r128);
-      r128->setCheckable(true);
-      previewSize = new QAction(generateSvgIcon("computer"), "");
-      previewSize->setStatusTip("Set preview resolution");
-      previewSize->setMenu(resolutionMenu);
-      toolbarTop->addAction(previewSize);
-      auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(previewSize));
+      auto *tileSizeMenu = new QMenu();
+      mTileSizeGroup     = new QActionGroup(toolbarTop);
+      auto addTileSize   = [this, &tileSizeMenu](int32_t tileWidth) {
+        auto *action = tileSizeMenu->addAction(QString::number(tileWidth) + "x" + QString::number(tileWidth));
+        action->setCheckable(true);
+        mTileSizeGroup->addAction(action);
+        mTileSizes.emplace(tileWidth, action);
+        return action;
+      };
+      addTileSize(8192);
+      addTileSize(4096);
+      auto *action = addTileSize(2048);
+      action->setChecked(true);
+      addTileSize(1024);
+      addTileSize(512);
+
+      mTileSize = new QAction(generateSvgIcon("computer"), "");
+      mTileSize->setStatusTip("Tile size");
+      mTileSize->setMenu(tileSizeMenu);
+      toolbarTop->addAction(mTileSize);
+      auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(mTileSize));
       btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
-      connect(mPreviewSizeGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingsChanged);
+      connect(mTileSizeGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingsChanged);
     }
 
     //
@@ -204,42 +196,25 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
     {
       auto *channelMenu      = new QMenu();
       mImageChannelMenuGroup = new QActionGroup(toolbarTop);
-      auto *r8192            = channelMenu->addAction("CH0");
-      mImageChannelMenuGroup->addAction(r8192);
-      r8192->setCheckable(true);
-      r8192->setChecked(true);
-      auto *r4096 = channelMenu->addAction("CH1");
-      mImageChannelMenuGroup->addAction(r4096);
-      r4096->setCheckable(true);
-      auto *r2048 = channelMenu->addAction("CH2");
-      mImageChannelMenuGroup->addAction(r2048);
-      r2048->setCheckable(true);
-      auto *r1024 = channelMenu->addAction("CH3");
-      mImageChannelMenuGroup->addAction(r1024);
-      r1024->setCheckable(true);
-      auto *r512 = channelMenu->addAction("CH4");
-      mImageChannelMenuGroup->addAction(r512);
-      r512->setCheckable(true);
-      auto *r256 = channelMenu->addAction("CH5");
-      mImageChannelMenuGroup->addAction(r256);
-      r256->setCheckable(true);
-      auto *r128 = channelMenu->addAction("CH6");
-      mImageChannelMenuGroup->addAction(r128);
-      r128->setCheckable(true);
-      auto *r7 = channelMenu->addAction("CH7");
-      mImageChannelMenuGroup->addAction(r7);
-      r128->setCheckable(true);
-      auto *r8 = channelMenu->addAction("CH8");
-      mImageChannelMenuGroup->addAction(r8);
-      r128->setCheckable(true);
-      auto *r9 = channelMenu->addAction("CH9");
-      mImageChannelMenuGroup->addAction(r9);
-      r128->setCheckable(true);
-      previewSize = new QAction(generateSvgIcon("irc-operator"), "");
-      previewSize->setStatusTip("Image channel to show");
-      previewSize->setMenu(channelMenu);
-      toolbarTop->addAction(previewSize);
-      auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(previewSize));
+
+      auto addChannel = [this, &channelMenu](int32_t chNr) {
+        auto *action = channelMenu->addAction("CH" + QString::number(chNr));
+        action->setCheckable(true);
+        if(chNr == 0) {
+          action->setChecked(true);
+        }
+        mImageChannelMenuGroup->addAction(action);
+        mChannelSelections.emplace(chNr, action);
+      };
+      for(int n = 0; n < 9; n++) {
+        addChannel(n);
+      }
+
+      auto *imageChannel = new QAction(generateSvgIcon("irc-operator"), "");
+      imageChannel->setStatusTip("Image channel to show");
+      imageChannel->setMenu(channelMenu);
+      toolbarTop->addAction(imageChannel);
+      auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(imageChannel));
       btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
       connect(mImageChannelMenuGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingsChanged);
     }
@@ -437,6 +412,43 @@ DialogImageViewer::~DialogImageViewer()
 /// \param[out]
 /// \return
 ///
+void DialogImageViewer::setImagePlane(const ImagePlaneSettings &settings)
+{
+  mSpinnerActTimeStack->blockSignals(true);
+  mImageChannelMenuGroup->blockSignals(true);
+
+  mSelectedImageSeries = settings.series;
+  mSelectedZStack      = settings.plane.z;
+  mSpinnerActTimeStack->setValue(settings.plane.t);
+  for(const auto &[chNr, action] : mChannelSelections) {
+    if(chNr == settings.plane.c) {
+      action->setChecked(true);
+    } else {
+      action->setChecked(false);
+    }
+  }
+
+  mImageViewRight.setSelectedTile(settings.tileX, settings.tileY);
+  for(const auto &[size, action] : mTileSizes) {
+    if(size == settings.tileWidth) {
+      action->setChecked(true);
+    } else {
+      action->setChecked(false);
+    }
+  }
+
+  applySettingsToImagePanel();
+  mSpinnerActTimeStack->blockSignals(false);
+  mImageChannelMenuGroup->blockSignals(false);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 auto DialogImageViewer::getImagePanel() -> PanelImageView *
 {
   return &mImageViewRight;
@@ -449,13 +461,25 @@ auto DialogImageViewer::getImagePanel() -> PanelImageView *
 /// \param[out]
 /// \return
 ///
+void DialogImageViewer::applySettingsToImagePanel()
+{
+  auto tileSize = getTileSize();
+  mImageViewRight.setZprojection(getSelectedZProjection());
+  mImageViewRight.setImagePlane({.z = mSelectedZStack, .c = getSelectedImageChannel(), .t = mSpinnerActTimeStack->value()});
+  mImageViewRight.setImageTile(tileSize, tileSize);
+  mImageViewRight.setSeries(mSelectedImageSeries);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void DialogImageViewer::onSettingsChanged()
 {
-  auto tileSize = getPreviewSize();
-  mImageViewRight.setZprojection(getSelectedZProjection());
-  mImageViewRight.setImagePlane({.z = 0, .c = getSelectedImageChannel(), .t = mSpinnerActTimeStack->value()});
-  mImageViewRight.setImageTile(tileSize, tileSize);
-  mImageViewRight.setSeries(0);
+  applySettingsToImagePanel();
   mImageViewRight.reloadImage();
   emit settingChanged();
 }
@@ -569,13 +593,14 @@ auto DialogImageViewer::getSelectedZProjection() const -> enums::ZProjection
 /// \param[out]
 /// \return
 ///
-int32_t DialogImageViewer::getPreviewSize() const
+int32_t DialogImageViewer::getTileSize() const
 {
-  if(mPreviewSizeGroup != nullptr) {
-    auto *checked     = mPreviewSizeGroup->checkedAction();
-    QStringList parts = checked->text().split('x');
-    int width         = parts.value(0).toInt();
-    return width;
+  if(mTileSizeGroup != nullptr) {
+    for(const auto &[size, action] : mTileSizes) {
+      if(action->isChecked()) {
+        return size;
+      }
+    }
   }
   return 2048;
 }
@@ -590,10 +615,11 @@ int32_t DialogImageViewer::getPreviewSize() const
 int32_t DialogImageViewer::getSelectedImageChannel() const
 {
   if(mImageChannelMenuGroup != nullptr) {
-    auto *checked     = mImageChannelMenuGroup->checkedAction();
-    QStringList parts = checked->text().split("CH");
-    int channel       = parts.value(1).toInt();
-    return channel;
+    for(const auto &[chNr, action] : mChannelSelections) {
+      if(action->isChecked()) {
+        return chNr;
+      }
+    }
   }
   return 0;
 }

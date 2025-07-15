@@ -208,9 +208,8 @@ private:
     db::ImageInfo imageMeta;
     db::ObjectInfo objectInfo;
   };
-  joda::TSQueue<PreviewData> mPreviewQue;
-
   void previewThread();
+  joda::TSQueue<PreviewData> mPreviewQue;
   std::unique_ptr<std::thread> mPreviewThread;
 
   /////////////////////////////////////////////////////

@@ -410,7 +410,7 @@ void PanelPipelineSettings::updatePreview()
 
   settings::AnalyzeSettings settingsTmp = mWindowMain->getSettings();
 
-  auto previewSize                                    = mPreviewImage->getPreviewSize();
+  auto previewSize                                    = mPreviewImage->getTileSize();
   settingsTmp.imageSetup.imageTileSettings.tileWidth  = previewSize;
   settingsTmp.imageSetup.imageTileSettings.tileHeight = previewSize;
   if(mLastSelectedPreviewSize != previewSize) {

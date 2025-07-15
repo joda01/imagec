@@ -80,11 +80,36 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
   } else {
     joda::ctrl::Controller::loadImage(imagePath, mSeries, mPlane, mTile, mPreviewImages, mOmeInfo, mZprojection);
   }
-  mLastPath = imagePath;
-  mPreviewImages.editedImage.autoAdjustBrightnessRange();
-  mPreviewImages.thumbnail.autoAdjustBrightnessRange();
+  if(mLastPath != imagePath || mPlane.c != mLastPlane.c) {
+    mPreviewImages.editedImage.autoAdjustBrightnessRange();
+    mPreviewImages.thumbnail.autoAdjustBrightnessRange();
+  }
+  mLastPath  = imagePath;
+  mLastPlane = mPlane;
   setWaiting(false);
 
+  emit updateImage();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::reloadImage()
+{
+  if(mLastPath.empty()) {
+    return;
+  }
+  joda::ctrl::Controller::loadImage(mLastPath, mSeries, mPlane, mTile, mPreviewImages, &mOmeInfo, mZprojection);
+
+  if(mPlane.c != mLastPlane.c) {
+    mPreviewImages.editedImage.autoAdjustBrightnessRange();
+    mPreviewImages.thumbnail.autoAdjustBrightnessRange();
+  }
+  mLastPlane = mPlane;
   emit updateImage();
 }
 
@@ -152,23 +177,6 @@ void PanelImageView::clearOverlay()
 /// \param[out]
 /// \return
 ///
-void PanelImageView::reloadImage()
-{
-  if(mLastPath.empty()) {
-    return;
-  }
-  joda::ctrl::Controller::loadImage(mLastPath, mSeries, mPlane, mTile, mPreviewImages, &mOmeInfo, mZprojection);
-
-  emit updateImage();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 void PanelImageView::repaintImage()
 {
   emit updateImage();
@@ -221,6 +229,19 @@ void PanelImageView::setImageTile(int32_t tileWith, int32_t tileHeight)
 {
   mTile.tileWidth  = tileWith;
   mTile.tileHeight = tileHeight;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::setSelectedTile(int32_t tileX, int32_t tileY)
+{
+  mTile.tileX = tileX;
+  mTile.tileY = tileY;
 }
 
 ///
