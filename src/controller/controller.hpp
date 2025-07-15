@@ -43,6 +43,7 @@ struct Preview
   {
     int32_t count = 0;
     std::string color;
+    bool isHidden = false;
   };
 
   joda::image::Image thumbnail;
@@ -93,7 +94,7 @@ public:
   void preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
                const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const settings::Pipeline &pipeline,
                const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, int32_t tStack, Preview &previewOut, const joda::ome::OmeInfo &,
-               const settings::ObjectInputClasses &classesToShow);
+               const settings::ObjectInputClassesExp &classesToHide);
   [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series) -> joda::ome::OmeInfo;
 
   static auto loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,

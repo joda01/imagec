@@ -126,7 +126,6 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   //
   {
     mPreviewResultsDialog = new DialogPreviewResults(getSettings().projectSettings.classification, this);
-    addDockWidget(Qt::DockWidgetArea::RightDockWidgetArea, mPreviewResultsDialog);
   }
 
   //
@@ -911,6 +910,36 @@ bool WindowMain::showPanelStartPage()
   mNavigation = Navigation::START_PAGE;
 
   return true;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \return
+///
+void WindowMain::moveEvent(QMoveEvent *event)
+{
+  QMainWindow::moveEvent(event);
+
+  if(mPreviewResultsDialog != nullptr) {
+    QPoint topRight = this->geometry().topRight();
+    mPreviewResultsDialog->move(topRight - QPoint(mPreviewResultsDialog->width() + 2, -250));
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \return
+///
+void WindowMain::resizeEvent(QResizeEvent *event)
+{
+  QMainWindow::resizeEvent(event);
+
+  if(mPreviewResultsDialog != nullptr) {
+    QPoint topRight = this->geometry().topRight();
+    mPreviewResultsDialog->move(topRight - QPoint(mPreviewResultsDialog->width() + 2, -250));
+  }
 }
 
 ///

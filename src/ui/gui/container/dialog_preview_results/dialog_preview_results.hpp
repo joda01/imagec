@@ -31,25 +31,33 @@ namespace joda::ui::gui {
 
 class WindowMain;
 class TableModelPreviewResult;
+class PanelPipelineSettings;
 
 ///
 /// \class
 /// \author     Joachim Danmayr
 /// \brief
 ///
-class DialogPreviewResults : public QDockWidget
+class DialogPreviewResults : public QDialog
 {
   Q_OBJECT
 
 public:
   /////////////////////////////////////////////////////
   DialogPreviewResults(const joda::settings::Classification &classes, WindowMain *windowMain);
-  void setResults(const joda::ctrl::Preview::PreviewResults *results);
+  void setResults(PanelPipelineSettings *pipelineSettings, joda::ctrl::Preview::PreviewResults *results);
   void refresh();
+  auto getClassesToHide() const -> settings::ObjectInputClassesExp;
+
+  void enterEvent(QEnterEvent *event) override;
+  void leaveEvent(QEvent *event) override;
+  void paintEvent(QPaintEvent *event) override;
 
 private:
   /////////////////////////////////////////////////////
   QTableView *mResultsTable;
-  TableModelPreviewResult *mTableModel = nullptr;
+  WindowMain *mWindowMain;
+  PanelPipelineSettings *mPipelineSettings = nullptr;
+  TableModelPreviewResult *mTableModel     = nullptr;
 };
 }    // namespace joda::ui::gui

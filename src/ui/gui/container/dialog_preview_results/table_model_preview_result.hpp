@@ -10,6 +10,7 @@
 ///
 
 #include <qabstractitemmodel.h>
+#include "backend/enums/enums_classes.hpp"
 #include "backend/helper/table/table.hpp"
 #include "backend/processor/initializer/pipeline_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
@@ -28,17 +29,20 @@ class TableModelPreviewResult : public QAbstractTableModel
   Q_OBJECT
 
 public:
+  static constexpr int32_t CLASS_ROLE = 0x101;
+
   /////////////////////////////////////////////////////
   TableModelPreviewResult(const joda::settings::Classification &, QObject *parent = nullptr);
-  void setData(const joda::ctrl::Preview::PreviewResults *pipelines);
+  void setData(joda::ctrl::Preview::PreviewResults *pipelines);
   int rowCount(const QModelIndex &parent = QModelIndex()) const override;
   int columnCount(const QModelIndex &parent = QModelIndex()) const override;
   QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
   QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
   void refresh();
+  void setHiddenFlag(enums::ClassId classs, bool);
 
 private:
-  const joda::ctrl::Preview::PreviewResults *mPreviewResult = nullptr;
+  joda::ctrl::Preview::PreviewResults *mPreviewResult = nullptr;
   const joda::settings::Classification &mClassSettings;
   QString base64IconName;
   QString base64IconHash;

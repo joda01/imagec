@@ -244,7 +244,7 @@ void Controller::registerImageLookupCallback(const std::function<void(joda::file
 void Controller::preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
                          const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,
                          const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, int32_t tStack,
-                         Preview &previewOut, const joda::ome::OmeInfo &ome, const settings::ObjectInputClasses &classesToShow)
+                         Preview &previewOut, const joda::ome::OmeInfo &ome, const settings::ObjectInputClassesExp &classesToHide)
 {
   static std::filesystem::path lastImagePath;
   static int32_t lastImageChannel = -1;
@@ -260,7 +260,7 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
 
   processor::Processor process;
   auto [originalImg, overlay, editedImageWithoutOverlay, thumb, foundObjects, validity] = process.generatePreview(
-      previewSettings, imageSetup, settings, threadSettings, pipeline, imagePath, tStack, 0, tileX, tileY, generateThumb, ome, classesToShow);
+      previewSettings, imageSetup, settings, threadSettings, pipeline, imagePath, tStack, 0, tileX, tileY, generateThumb, ome, classesToHide);
   previewOut.originalImage.setImage(std::move(originalImg));
   previewOut.overlay.setImage(std::move(overlay));
   previewOut.editedImage.setImage(std::move(editedImageWithoutOverlay));
@@ -269,8 +269,9 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
   }
   previewOut.results.foundObjects.clear();
   for(const auto &[key, val] : foundObjects) {
-    previewOut.results.foundObjects[key].color = val.color;
-    previewOut.results.foundObjects[key].count = val.count;
+    previewOut.results.foundObjects[key].color    = val.color;
+    previewOut.results.foundObjects[key].count    = val.count;
+    previewOut.results.foundObjects[key].isHidden = classesToHide.contains(key);
   }
   previewOut.results.noiseDetected = validity.test(enums::ChannelValidityEnum::POSSIBLE_NOISE);
   previewOut.results.isOverExposed = validity.test(enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);

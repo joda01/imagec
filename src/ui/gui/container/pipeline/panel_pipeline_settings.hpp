@@ -51,7 +51,7 @@ class PanelPipelineSettings : public QWidget, public ContainerBase
 {
   Q_OBJECT
 
-  friend class PanelChannelOverview;
+  friend class DialogPreviewResults;
 
 signals:
   void updatePreviewStarted();
@@ -140,7 +140,7 @@ private:
     int32_t selectedTileY = 0;
     int32_t timeStack     = 0;
     std::map<enums::ClassIdIn, QString> classes;
-    settings::ObjectInputClasses classesToShow;
+    settings::ObjectInputClassesExp classesToHide;
     joda::thread::ThreadingSettings threadSettings;
   };
 

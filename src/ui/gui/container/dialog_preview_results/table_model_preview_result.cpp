@@ -13,6 +13,7 @@
 #include <qbrush.h>
 #include <qnamespace.h>
 #include <qtableview.h>
+#include <qvariant.h>
 #include <QFile>
 #include <memory>
 #include <stdexcept>
@@ -44,7 +45,7 @@ TableModelPreviewResult::TableModelPreviewResult(const joda::settings::Classific
   base64IconHash = loadSvg("irc-operator");
 }
 
-void TableModelPreviewResult::setData(const joda::ctrl::Preview::PreviewResults *results)
+void TableModelPreviewResult::setData(joda::ctrl::Preview::PreviewResults *results)
 {
   mPreviewResult = results;
   refresh();
@@ -70,6 +71,14 @@ void TableModelPreviewResult::refresh()
 {
   beginResetModel();
   endResetModel();
+}
+
+void TableModelPreviewResult::setHiddenFlag(enums::ClassId classs, bool isHidden)
+{
+  if(nullptr != mPreviewResult) {
+    mPreviewResult->foundObjects.at(classs).isHidden = isHidden;
+  }
+  refresh();
 }
 
 ///
@@ -115,6 +124,14 @@ QVariant TableModelPreviewResult::data(const QModelIndex &index, int role) const
 
   if(role == Qt::UserRole) {
     return QColor(it->second.color.data());
+  }
+
+  if(role == CLASS_ROLE) {
+    return static_cast<int32_t>(it->first);
+  }
+
+  if(role == Qt::CheckStateRole) {
+    return {it->second.isHidden};
   }
 
   if(role == Qt::DisplayRole) {

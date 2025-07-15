@@ -12,6 +12,9 @@
 
 #pragma once
 
+#include <qapplication.h>
+#include <qcolor.h>
+#include <qnamespace.h>
 #include <QPainter>
 #include <QStyledItemDelegate>
 
@@ -37,8 +40,11 @@ public:
     // === 1. Get color for square ===
     QColor color       = Qt::red;    // default
     QVariant colorData = index.data(Qt::UserRole);
-    if(colorData.canConvert<QColor>())
+    if(colorData.canConvert<QColor>()) {
       color = colorData.value<QColor>();
+    }
+
+    bool isHidden = index.data(Qt::CheckStateRole).toBool();
 
     // === 2. Draw square ===
     int squareSize = 8;
@@ -51,10 +57,20 @@ public:
     painter->drawRect(squareRect);
 
     // === 3. Draw text to the right of the square ===
-    QString text   = index.data(Qt::DisplayRole).toString();
-    QRect textRect = opt.rect.adjusted(squareSize + 2 * margin, 0, 0, 0);
+    QString text = index.data(Qt::DisplayRole).toString();
+    if(isHidden) {
+      text += " (hidden)";
+    }
 
-    painter->setPen(opt.palette.color(QPalette::Text));
+    QRect textRect = opt.rect.adjusted(squareSize + 2 * margin, 0, 0, 0);
+    if(isHidden) {
+      painter->setPen(Qt::gray);
+    } else {
+      painter->setPen(Qt::white);
+    }
+    QFont f = painter->font();
+    f.setItalic(isHidden);
+    painter->setFont(f);
     painter->drawText(textRect, Qt::AlignVCenter | Qt::AlignLeft, text);
 
     painter->restore();

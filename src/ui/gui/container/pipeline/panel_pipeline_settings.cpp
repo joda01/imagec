@@ -429,7 +429,7 @@ void PanelPipelineSettings::updatePreview()
                    .selectedTileY  = selectedTileY,
                    .timeStack      = mPreviewImage->getSelectedTimeStack(),
                    .classes        = mWindowMain->getPanelClassification()->getClasses(),
-                   .classesToShow  = {},
+                   .classesToHide  = mPreviewResultsDialog->getClassesToHide(),
                    .threadSettings = threadSettings};
 
     std::lock_guard<std::mutex> lock(mCheckForEmptyMutex);
@@ -508,7 +508,7 @@ void PanelPipelineSettings::previewThread()
             joda::ctrl::Preview previewResult;
             jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, jobToDo.threadSettings, *myPipeline, imgIndex,
                                         jobToDo.selectedTileX, jobToDo.selectedTileY, jobToDo.timeStack, previewResult, imgProps,
-                                        jobToDo.classesToShow);
+                                        jobToDo.classesToHide);
 
             jobToDo.previewPanel->getImagePanel()->setOverlay(std::move(previewResult.overlay));
             mPreviewResults = std::move(previewResult.results);
@@ -689,7 +689,13 @@ void PanelPipelineSettings::onClassificationNameChanged()
 void PanelPipelineSettings::setActive(bool setActive)
 {
   if(!mIsActiveShown && setActive) {
-    mPreviewResultsDialog->setResults(&mPreviewResults);
+    mPreviewResultsDialog->setResults(this, &mPreviewResults);
+    mPreviewResultsDialog->show();
+    QTimer::singleShot(0, this, [this]() {
+      QPoint topRight = mWindowMain->geometry().topRight();
+      mPreviewResultsDialog->move(topRight - QPoint(mPreviewResultsDialog->width() + 2, -250));
+    });
+
     mToolbar->setVisible(true);
     mIsActiveShown = true;
     updatePreview();
@@ -700,6 +706,7 @@ void PanelPipelineSettings::setActive(bool setActive)
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
     mIsActiveShown = false;
     mToolbar->setVisible(false);
+    mPreviewResultsDialog->hide();
     mPreviewImage->getImagePanel()->clearOverlay();
     mDialogHistory->hide();
     mHistoryAction->setChecked(false);

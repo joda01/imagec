@@ -164,6 +164,8 @@ private:
   bool saveProject(std::filesystem::path filename, bool saveAs = false, bool createHistoryEntry = true);
   void closeEvent(QCloseEvent *event) override;
   AskEnum askForNewProject();
+  void moveEvent(QMoveEvent *event) override;
+  void resizeEvent(QResizeEvent *event) override;
 
   QWidget *createStackedWidget();
   QWidget *createStartPageWidget();

@@ -327,7 +327,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
                                 const settings::AnalyzeSettings &program, const joda::thread::ThreadingSettings &threadingSettings,
                                 const settings::Pipeline &pipelineStart, const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack,
                                 int32_t tileX, int32_t tileY, bool generateThumb, const ome::OmeInfo &ome,
-                                const settings::ObjectInputClasses &classesToShow)
+                                const settings::ObjectInputClassesExp &classesToHide)
     -> std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>, enums::ChannelValidity>
 {
   auto ii = DurationCount::start("Generate preview with >" + std::to_string(threadingSettings.coresUsed) + "< threads.");
@@ -395,7 +395,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         continue;
       }
 
-      auto executePipeline = [&db, &thumbThread, &thumb, &finished, &tmpResult, &previewSettings, &pipelineStart, &classesToShow, &totalRuns,
+      auto executePipeline = [&db, &thumbThread, &thumb, &finished, &tmpResult, &previewSettings, &pipelineStart, &classesToHide, &totalRuns,
                               pipeline = pipelineToExecute, this, &program, &globalContext, &plateContext, &pipelineOrder, imagePath, &imageContext,
                               &imageLoader, tileX, tileY, pipelines = pipelines, &iterationContext, tStack, zStack, executedSteps]() -> void {
         //
@@ -456,13 +456,13 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
                 auto key = roi.getClassId();
                 if(!foundObjects.contains(key)) {
                   foundObjects[key].count       = 0;
-                  foundObjects[key].color       = "#BFBFBF";
+                  foundObjects[key].color       = globalContext.classes[key].color;    //"#BFBFBF";
                   foundObjects[key].wantedColor = globalContext.classes[key].color;
 
                   //
                   // Show all if no class was selected
                   //
-                  if(classesToShow.empty()) {
+                  if(!classesToHide.contains(key)) {
                     foundObjects[key].color = foundObjects.at(key).wantedColor;
                     saverSettings.classesIn.emplace_back(
                         settings::ImageSaverSettings::SaveClasss{.inputClass       = static_cast<enums::ClassIdIn>(roi.getClassId()),
@@ -473,28 +473,6 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
                 }
                 foundObjects[key].count++;
               }
-            }
-          }
-
-          //
-          // Generate preview image
-          //
-          for(enums::ClassIdIn classs : classesToShow) {
-            if(classs >= enums::ClassIdIn::TEMP_01 && classs <= enums::ClassIdIn::TEMP_LAST) {
-              /// \todo allow to show temp in preview
-              continue;
-            }
-            if(classs == enums::ClassIdIn::$) {
-              classs = static_cast<enums::ClassIdIn>(pipelineStart.pipelineSetup.defaultClassId);
-            }
-
-            auto key = static_cast<enums::ClassId>(classs);
-            if(foundObjects.contains(key)) {
-              // Objects which are selected should be painted in color in the legend, not selected are black
-              foundObjects[key].color = foundObjects.at(key).wantedColor;
-
-              saverSettings.classesIn.emplace_back(settings::ImageSaverSettings::SaveClasss{
-                  .inputClass = classs, .style = previewSettings.style, .paintBoundingBox = false, .paintObjectId = false});
             }
           }
 

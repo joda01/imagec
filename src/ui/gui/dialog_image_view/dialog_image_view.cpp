@@ -290,6 +290,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
     rightSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
     mPlaybackToolbar = new QToolBar();
+    mPlaybackToolbar->setVisible(false);
     mPlaybackToolbar->addWidget(leftSpacer);
     auto *skipBackward = new QAction(generateSvgIcon("media-skip-backward"), "");
     connect(skipBackward, &QAction::triggered, [this] {
