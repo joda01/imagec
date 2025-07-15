@@ -449,6 +449,19 @@ void DialogImageViewer::setImagePlane(const ImagePlaneSettings &settings)
 /// \param[out]
 /// \return
 ///
+void DialogImageViewer::setShowCrossHairCursor(bool show)
+{
+  showCrossHairCursor->setChecked(true);
+  mImageViewRight.setShowCrosshandCursor(true);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 auto DialogImageViewer::getImagePanel() -> PanelImageView *
 {
   return &mImageViewRight;

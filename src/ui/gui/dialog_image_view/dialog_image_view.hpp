@@ -63,6 +63,7 @@ public:
 
   // SETTER ///////////////////////////////////////////
   void setImagePlane(const ImagePlaneSettings &);
+  void setShowCrossHairCursor(bool show);
 
 signals:
   /////////////////////////////////////////////////////

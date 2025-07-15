@@ -96,8 +96,7 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   createToolBar(&layout());
 
   // Add to dock
-  // mDockWidgetImagePreview->getImageWidget()->setVisible(false);
-  mWindowMain->addDockWidget(Qt::RightDockWidgetArea, mDockWidgetImagePreview);
+  mDockWidgetImagePreview->getImageWidget()->setShowCrossHairCursor(true);
 
   static const int32_t SELECTED_INFO_WIDTH   = 250;
   static const int32_t SELECTED_INFO_SPACING = 6;
@@ -122,8 +121,6 @@ PanelResults::PanelResults(WindowMain *windowMain) :
     connect(layout().getBackButton(), &QAction::triggered, [this] { mWindowMain->showPanelStartPage(); });
     connect(this, &PanelResults::finishedLoading, this, &PanelResults::onFinishedLoading);
     connect(mDockWidgetGraphSettings, &PanelGraphSettings::settingsChanged, [this]() { onColumnComboChanged(); });
-
-    mWindowMain->addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, mDockWidgetGraphSettings);
   }
 
   // CLASSIFICATION
@@ -139,9 +136,12 @@ PanelResults::PanelResults(WindowMain *windowMain) :
       }
     });
 
+    mWindowMain->addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, mDockWidgetGraphSettings);
     mWindowMain->addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, mDockWidgetClassList);
+    mWindowMain->addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, mDockWidgetImagePreview);
 
     mWindowMain->tabifyDockWidget(mDockWidgetClassList, mDockWidgetGraphSettings);
+    mWindowMain->tabifyDockWidget(mDockWidgetClassList, mDockWidgetImagePreview);
   }
 
   //
@@ -429,6 +429,7 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
     if(checked) {
       if(mNavigation == Navigation::IMAGE && !mImageWorkingDirectory.empty()) {
         mDockWidgetImagePreview->setVisible(true);
+        mDockWidgetImagePreview->raise();
       }
     } else {
       mDockWidgetImagePreview->setVisible(false);
@@ -586,6 +587,10 @@ void PanelResults::refreshBreadCrump()
       if(!mImageWorkingDirectory.empty() && mDashboard->isVisible()) {
         mShowPreview->setEnabled(true);
         mDockWidgetImagePreview->setVisible(mShowPreview->isChecked());
+        if(mShowPreview->isChecked()) {
+          mDockWidgetImagePreview->raise();
+        }
+
       } else {
         mShowPreview->setChecked(false);
         mShowPreview->setEnabled(false);
@@ -1123,7 +1128,6 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   if(mClassSelector->isChecked()) {
     mDockWidgetClassList->setVisible(true);
   }
-
   refreshView();
 }
 
