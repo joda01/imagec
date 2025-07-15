@@ -604,7 +604,7 @@ void PanelImageView::drawPixelInfo(QPainter &painter, int32_t startX, int32_t st
   QColor transparentBlack(0, 0, 0, 127);    // 127 is approximately 50% of 255 for alpha
   painter.setBrush(transparentBlack);       // Set the brush to no brush for transparent fill
   QPainterPath path;
-  path.addRoundedRect(pixelInfoRect, 10, 10);
+  path.addRoundedRect(pixelInfoRect, 8, 8);
   painter.fillPath(path, transparentBlack);
   painter.drawPath(path);
 
