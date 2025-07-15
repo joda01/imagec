@@ -82,6 +82,7 @@ void DialogPreviewResults::enterEvent(QEnterEvent *event)
 void DialogPreviewResults::leaveEvent(QEvent *event)
 {
   setWindowOpacity(0.5);    // Transparent again when mouse leaves
+  mResultsTable->clearSelection();
   QDialog::leaveEvent(event);
 }
 
