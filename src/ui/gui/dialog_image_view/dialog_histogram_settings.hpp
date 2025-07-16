@@ -29,13 +29,13 @@ class DialogImageViewer;
 class PanelHistogram;
 class PanelImageView;
 
-class DialogChannelSettings : public QDialog
+class DialogHistogramSettings : public QDialog
 {
   Q_OBJECT
 
 public:
   /////////////////////////////////////////////////////
-  DialogChannelSettings(PanelImageView *image, QWidget *parent);
+  DialogHistogramSettings(PanelImageView *image, QWidget *parent);
   void clearSettings();
 
 private:

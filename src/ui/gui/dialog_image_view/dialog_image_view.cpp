@@ -28,7 +28,8 @@
 #include <string>
 #include <thread>
 #include "backend/helper/image/image.hpp"
-#include "ui/gui/dialog_image_view/dialog_channel_settings.hpp"
+#include "ui/gui/dialog_image_view/dialog_histogram_settings.hpp"
+#include "ui/gui/dialog_image_view/dialog_image_settings.hpp"
 #include "ui/gui/dialog_image_view/panel_image_view.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 
@@ -154,41 +155,12 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
     histogram->setObjectName("ToolButton");
     histogram->setStatusTip("Histogram");
     connect(histogram, &QAction::triggered, [this] {
-      auto *dialog = new DialogChannelSettings(&mImageViewRight, this);
+      auto *dialog = new DialogHistogramSettings(&mImageViewRight, this);
       dialog->show();
     });
     toolbarTop->addAction(histogram);
 
     toolbarTop->addSeparator();
-
-    //
-    // Preview size
-    //
-    {
-      auto *tileSizeMenu = new QMenu();
-      mTileSizeGroup     = new QActionGroup(toolbarTop);
-      auto addTileSize   = [this, &tileSizeMenu](int32_t tileWidth) {
-        auto *action = tileSizeMenu->addAction(QString::number(tileWidth) + "x" + QString::number(tileWidth));
-        action->setCheckable(true);
-        mTileSizeGroup->addAction(action);
-        mTileSizes.emplace(tileWidth, action);
-        return action;
-      };
-      addTileSize(8192);
-      addTileSize(4096);
-      auto *action = addTileSize(2048);
-      action->setChecked(true);
-      addTileSize(1024);
-      addTileSize(512);
-
-      mTileSize = new QAction(generateSvgIcon("computer"), "");
-      mTileSize->setStatusTip("Tile size");
-      mTileSize->setMenu(tileSizeMenu);
-      toolbarTop->addAction(mTileSize);
-      auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(mTileSize));
-      btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
-      connect(mTileSizeGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingsChanged);
-    }
 
     //
     // Image channel
@@ -210,7 +182,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
         addChannel(n);
       }
 
-      auto *imageChannel = new QAction(generateSvgIcon("irc-operator"), "");
+      auto *imageChannel = new QAction(generateSvgIcon("irc-operator"), "Image channel");
       imageChannel->setStatusTip("Image channel to show");
       imageChannel->setMenu(channelMenu);
       toolbarTop->addAction(imageChannel);
@@ -220,35 +192,18 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
     }
 
     //
-    // z-Projection
+    // Open image settings
     //
-    {
-      auto *zProjectionMenu    = new QMenu();
-      mZProjectionGroup        = new QActionGroup(toolbarTop);
-      mSingleChannelProjection = zProjectionMenu->addAction("Single channel");
-      mZProjectionGroup->addAction(mSingleChannelProjection);
-      mSingleChannelProjection->setCheckable(true);
-      mMaxIntensityProjection = zProjectionMenu->addAction("Max. intensity");
-      mZProjectionGroup->addAction(mMaxIntensityProjection);
-      mMaxIntensityProjection->setCheckable(true);
-      mMaxIntensityProjection->setChecked(true);
-      mMinIntensityProjection = zProjectionMenu->addAction("Min. intensity");
-      mZProjectionGroup->addAction(mMinIntensityProjection);
-      mMinIntensityProjection->setCheckable(true);
-      mAvgIntensity = zProjectionMenu->addAction("Avg. intensity");
-      mZProjectionGroup->addAction(mAvgIntensity);
-      mAvgIntensity->setCheckable(true);
-      mTakeTheMiddleProjection = zProjectionMenu->addAction("Take the middle");
-      mZProjectionGroup->addAction(mTakeTheMiddleProjection);
-      mTakeTheMiddleProjection->setCheckable(true);
-      mZProjectionAction = new QAction(generateSvgIcon("layer-visible-on"), "");
-      mZProjectionAction->setStatusTip("z-projection options");
-      mZProjectionAction->setMenu(zProjectionMenu);
-      toolbarTop->addAction(mZProjectionAction);
-      auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(mZProjectionAction));
-      btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
-      connect(mZProjectionGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingsChanged);
-    }
+    auto *imgSettings = new QAction(generateSvgIcon("view-object-histogram-linear"), "Image settings");
+    imgSettings->setObjectName("ToolButton");
+    imgSettings->setStatusTip("Image settings");
+    connect(imgSettings, &QAction::triggered, [this] {
+      auto *dialog = new DialogImageSettings(&mImageSettings, this);
+      if(dialog->exec() == QDialog::Accepted) {
+        onSettingsChanged();
+      }
+    });
+    toolbarTop->addAction(imgSettings);
 
     if(toolbarParent == nullptr) {
       mMainLayout->addWidget(toolbarTop);
@@ -416,10 +371,9 @@ DialogImageViewer::~DialogImageViewer()
 void DialogImageViewer::setImagePlane(const ImagePlaneSettings &settings)
 {
   mSpinnerActTimeStack->blockSignals(true);
-  mImageChannelMenuGroup->blockSignals(true);
 
-  mSelectedImageSeries = settings.series;
-  mSelectedZStack      = settings.plane.z;
+  mImageSettings.imageSeries = settings.series;
+  mSelectedZStack            = settings.plane.z;
   mSpinnerActTimeStack->setValue(settings.plane.t);
   for(const auto &[chNr, action] : mChannelSelections) {
     if(chNr == settings.plane.c) {
@@ -430,13 +384,7 @@ void DialogImageViewer::setImagePlane(const ImagePlaneSettings &settings)
   }
 
   mImageViewRight.setSelectedTile(settings.tileX, settings.tileY);
-  for(const auto &[size, action] : mTileSizes) {
-    if(size == settings.tileWidth) {
-      action->setChecked(true);
-    } else {
-      action->setChecked(false);
-    }
-  }
+  mImageSettings.tileWidth = settings.tileWidth;
 
   applySettingsToImagePanel();
   mSpinnerActTimeStack->blockSignals(false);
@@ -493,14 +441,14 @@ void DialogImageViewer::applySettingsToImagePanel()
   mImageViewRight.setZprojection(getSelectedZProjection());
   mImageViewRight.setImagePlane({.z = mSelectedZStack, .c = getSelectedImageChannel(), .t = mSpinnerActTimeStack->value()});
   mImageViewRight.setImageTile(tileSize, tileSize);
-  mImageViewRight.setSeries(mSelectedImageSeries);
+  mImageViewRight.setSeries(mImageSettings.imageSeries);
 
   // Sync to settings
   if(mSettings != nullptr) {
     auto tileSize                                      = getTileSize();
     mSettings->imageSetup.imageTileSettings.tileHeight = tileSize;
     mSettings->imageSetup.imageTileSettings.tileWidth  = tileSize;
-    mSettings->imageSetup.series                       = mSelectedImageSeries;
+    mSettings->imageSetup.series                       = mImageSettings.imageSeries;
   }
 }
 
@@ -599,25 +547,7 @@ void DialogImageViewer::onShowCrossHandCursor(bool checked)
 ///
 auto DialogImageViewer::getSelectedZProjection() const -> enums::ZProjection
 {
-  if(mZProjectionGroup != nullptr) {
-    auto *checked = mZProjectionGroup->checkedAction();
-    if(checked == mSingleChannelProjection) {
-      return enums::ZProjection::NONE;
-    }
-    if(checked == mMaxIntensityProjection) {
-      return enums::ZProjection::MAX_INTENSITY;
-    }
-    if(checked == mMinIntensityProjection) {
-      return enums::ZProjection::MIN_INTENSITY;
-    }
-    if(checked == mAvgIntensity) {
-      return enums::ZProjection::AVG_INTENSITY;
-    }
-    if(checked == mTakeTheMiddleProjection) {
-      return enums::ZProjection::TAKE_MIDDLE;
-    }
-  }
-  return enums::ZProjection::MAX_INTENSITY;
+  return mImageSettings.zProjection;
 }
 
 ///
@@ -629,14 +559,7 @@ auto DialogImageViewer::getSelectedZProjection() const -> enums::ZProjection
 ///
 int32_t DialogImageViewer::getTileSize() const
 {
-  if(mTileSizeGroup != nullptr) {
-    for(const auto &[size, action] : mTileSizes) {
-      if(action->isChecked()) {
-        return size;
-      }
-    }
-  }
-  return 2048;
+  return mImageSettings.tileWidth;
 }
 
 ///
@@ -648,7 +571,7 @@ int32_t DialogImageViewer::getTileSize() const
 ///
 int32_t DialogImageViewer::getSeries() const
 {
-  return mSelectedImageSeries;
+  return mImageSettings.imageSeries;
 }
 
 ///

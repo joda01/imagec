@@ -11,7 +11,7 @@
 ///
 ///
 
-#include "dialog_channel_settings.hpp"
+#include "dialog_histogram_settings.hpp"
 #include <qboxlayout.h>
 #include <qlabel.h>
 #include <qpushbutton.h>
@@ -30,9 +30,9 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-DialogChannelSettings::DialogChannelSettings(PanelImageView *imagePanel, QWidget *parent) : QDialog(parent), mImagePanel(imagePanel)
+DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWidget *parent) : QDialog(parent), mImagePanel(imagePanel)
 {
-  setWindowTitle("Channel settings");
+  setWindowTitle("Histogram");
   setMinimumSize(300, 400);
 
   auto *layout = new QFormLayout();
@@ -121,7 +121,7 @@ DialogChannelSettings::DialogChannelSettings(PanelImageView *imagePanel, QWidget
 /// \param[out]
 /// \return
 ///
-void DialogChannelSettings::applyHistogramSettingsToImage()
+void DialogHistogramSettings::applyHistogramSettingsToImage()
 {
   mImagePanel->mutableImage()->setBrightnessRange(mSliderHistogramMin->value(), mSliderHistogramMax->value(), mSliderDisplayLower->value(),
                                                   mSliderDisplayUpper->value());
@@ -136,7 +136,7 @@ void DialogChannelSettings::applyHistogramSettingsToImage()
 /// \param[out]
 /// \return
 ///
-void DialogChannelSettings::clearSettings()
+void DialogHistogramSettings::clearSettings()
 {
 }
 

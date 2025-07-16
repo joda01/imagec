@@ -22,6 +22,7 @@
 #include "backend/settings/analze_settings.hpp"
 #include "controller/controller.hpp"
 #include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
+#include "dialog_image_settings.hpp"
 #include "panel_image_view.hpp"
 
 namespace joda::ui::gui {
@@ -84,23 +85,13 @@ private:
   PanelImageView mImageViewRight;
 
   // ACTIONS //////////////////////////////////////////////////
-  QAction *mFillOVerlay        = nullptr;
-  QActionGroup *mTileSizeGroup = nullptr;
-  std::map<int32_t, QAction *> mTileSizes;
-  QAction *mTileSize                   = nullptr;
+  QAction *mFillOVerlay                = nullptr;
   QAction *showCrossHairCursor         = nullptr;
   QAction *showPixelInfo               = nullptr;
   QAction *showOverlay                 = nullptr;
-  QAction *mZProjectionAction          = nullptr;
-  QActionGroup *mZProjectionGroup      = nullptr;
+  QSlider *mOverlayOpaque              = nullptr;
   QActionGroup *mImageChannelMenuGroup = nullptr;
   std::map<int32_t, QAction *> mChannelSelections;
-  QAction *mSingleChannelProjection = nullptr;
-  QAction *mMaxIntensityProjection  = nullptr;
-  QAction *mMinIntensityProjection  = nullptr;
-  QAction *mAvgIntensity            = nullptr;
-  QAction *mTakeTheMiddleProjection = nullptr;
-  QSlider *mOverlayOpaque           = nullptr;
 
   // T-STACK //////////////////////////////////////////////////
   std::optional<int32_t> mMaxTimeStacks = std::nullopt;
@@ -113,9 +104,12 @@ private:
   QAction *mActionStop;
   QSpinBox *mSpinnerActTimeStack;
   bool mPlaybackToolbarVisible = false;
-  int32_t mSelectedImageSeries = 0;
   int32_t mSelectedZStack      = 0;
 
+  // IMAGE SETTINGS //////////////////////////////////////////////////
+  DialogImageSettings::Settings mImageSettings;
+
+  // ANALYZE SETTINGS ///////////////////////////////////
   joda::settings::AnalyzeSettings *mSettings = nullptr;
 
 private slots:

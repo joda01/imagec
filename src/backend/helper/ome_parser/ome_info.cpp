@@ -245,7 +245,7 @@ TRY_AGAIN:
 ///
 int OmeInfo::getNrOfChannels(int32_t series) const
 {
-  if(series < 0) {
+  if(series < 0 || series >= getNrOfSeries()) {
     series = getSeriesWithHighestResolution();
   }
   return mImageInfo.at(series).nrOfChannels;
@@ -257,7 +257,7 @@ int OmeInfo::getNrOfChannels(int32_t series) const
 ///
 int OmeInfo::getNrOfZStack(int32_t series) const
 {
-  if(series < 0) {
+  if(series < 0 || series >= getNrOfSeries()) {
     series = getSeriesWithHighestResolution();
   }
   return mImageInfo.at(series).nrOfZStacks;
@@ -269,7 +269,7 @@ int OmeInfo::getNrOfZStack(int32_t series) const
 ///
 int OmeInfo::getNrOfTStack(int32_t series) const
 {
-  if(series < 0) {
+  if(series < 0 || series >= getNrOfSeries()) {
     series = getSeriesWithHighestResolution();
   }
   return mImageInfo.at(series).nrOfTStacks;
@@ -281,7 +281,7 @@ int OmeInfo::getNrOfTStack(int32_t series) const
 ///
 [[nodiscard]] int32_t OmeInfo::getBits(int32_t series) const
 {
-  if(series < 0) {
+  if(series < 0 || series >= getNrOfSeries()) {
     series = getSeriesWithHighestResolution();
   }
   return mImageInfo.at(series).resolutions.at(0).bits;
@@ -293,7 +293,7 @@ int OmeInfo::getNrOfTStack(int32_t series) const
 ///
 [[nodiscard]] std::tuple<int64_t, int64_t> OmeInfo::getSize(int32_t series) const
 {
-  if(series < 0) {
+  if(series < 0 || series >= getNrOfSeries()) {
     series = getSeriesWithHighestResolution();
   }
   return {mImageInfo.at(series).resolutions.at(0).imageWidth, mImageInfo.at(series).resolutions.at(0).imageHeight};
