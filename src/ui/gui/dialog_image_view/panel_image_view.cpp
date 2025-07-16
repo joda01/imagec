@@ -100,14 +100,11 @@ void PanelImageView::restoreChannelSettings()
   auto key = SettingsIdx{.imageChannel = static_cast<uint16_t>(mPlane.c), .isEdited = mShowEditedImage};
 
   if(mChannelSettings.contains(key)) {
-    std::cout << "Founs" << std::endl;
     const auto &tmp = mChannelSettings.at(key);
     mImageToShow->setBrightnessRange(tmp.mLowerValue, tmp.mUpperValue, tmp.mDisplayAreaLower, tmp.mDisplayAreaUpper);
     // mHistogramPanel->update();
     repaintImage();
   } else {
-    std::cout << "Auto" << std::endl;
-
     mImageToShow->autoAdjustBrightnessRange();
     mPreviewImages.thumbnail.autoAdjustBrightnessRange();
     mChannelSettings.emplace(key, ChannelSettings{
