@@ -42,10 +42,13 @@ public:
   void setHiddenFlag(enums::ClassId classs, bool);
 
 private:
+  /////////////////////////////////////////////////////
   joda::ctrl::Preview::PreviewResults *mPreviewResult = nullptr;
   const joda::settings::Classification &mClassSettings;
   QString base64IconName;
   QString base64IconHash;
+  const QColor ALTERNATE;
+  const QColor BASE;
 };
 
 }    // namespace joda::ui::gui

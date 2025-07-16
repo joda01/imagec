@@ -26,7 +26,9 @@
 namespace joda::ui::gui {
 
 TableModelPreviewResult::TableModelPreviewResult(const joda::settings::Classification &classSettings, QObject *parent) :
-    QAbstractTableModel(parent), mClassSettings(classSettings)
+    QAbstractTableModel(parent), mClassSettings(classSettings), ALTERNATE(((QTableView *) parent)->palette().color(QPalette::AlternateBase)),
+    BASE(((QTableView *) parent)->palette().color(QPalette::Base))
+
 {
   if(parent == nullptr) {
     throw std::runtime_error("Parent must not be empty and of type QTableView.");
@@ -108,9 +110,6 @@ QVariant TableModelPreviewResult::headerData(int section, Qt::Orientation orient
 ///
 QVariant TableModelPreviewResult::data(const QModelIndex &index, int role) const
 {
-  const auto ALTERNATE = ((QTableView *) parent())->palette().color(QPalette::AlternateBase);
-  const auto BASE      = ((QTableView *) parent())->palette().color(QPalette::Base);
-
   if(mPreviewResult == nullptr) {
     return {};
   }
