@@ -80,15 +80,43 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
   } else {
     joda::ctrl::Controller::loadImage(imagePath, mSeries, mPlane, mTile, mPreviewImages, mOmeInfo, mZprojection);
   }
-  if(mLastPath != imagePath || mPlane.c != mLastPlane.c) {
-    mImageToShow->autoAdjustBrightnessRange();
-    mPreviewImages.thumbnail.autoAdjustBrightnessRange();
-  }
+  restoreChannelSettings();
   mLastPath  = imagePath;
   mLastPlane = mPlane;
   setWaiting(false);
 
   emit updateImage();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::restoreChannelSettings()
+{
+  auto key = SettingsIdx{.imageChannel = static_cast<uint16_t>(mPlane.c), .isEdited = mShowEditedImage};
+
+  if(mChannelSettings.contains(key)) {
+    std::cout << "Founs" << std::endl;
+    const auto &tmp = mChannelSettings.at(key);
+    mImageToShow->setBrightnessRange(tmp.mLowerValue, tmp.mUpperValue, tmp.mDisplayAreaLower, tmp.mDisplayAreaUpper);
+    // mHistogramPanel->update();
+    repaintImage();
+  } else {
+    std::cout << "Auto" << std::endl;
+
+    mImageToShow->autoAdjustBrightnessRange();
+    mPreviewImages.thumbnail.autoAdjustBrightnessRange();
+    mChannelSettings.emplace(key, ChannelSettings{
+                                      .mLowerValue       = mImageToShow->getLowerLevelContrast(),
+                                      .mUpperValue       = mImageToShow->getUpperLevelContrast(),
+                                      .mDisplayAreaLower = mImageToShow->getHistogramDisplayAreaLower(),
+                                      .mDisplayAreaUpper = mImageToShow->getHistogramDisplayAreaUpper(),
+                                  });
+  }
 }
 
 ///
@@ -105,10 +133,7 @@ void PanelImageView::reloadImage()
   }
   joda::ctrl::Controller::loadImage(mLastPath, mSeries, mPlane, mTile, mPreviewImages, &mOmeInfo, mZprojection);
 
-  if(mPlane.c != mLastPlane.c) {
-    mImageToShow->autoAdjustBrightnessRange();
-    mPreviewImages.thumbnail.autoAdjustBrightnessRange();
-  }
+  restoreChannelSettings();
   mLastPlane = mPlane;
   emit updateImage();
 }
@@ -148,6 +173,7 @@ void PanelImageView::setOverlay(const joda::image::Image &&overlay)
 void PanelImageView::setEditedImage(const joda::image::Image &&edited)
 {
   mPreviewImages.editedImage.setImage(std::move(*edited.getImage()));
+  restoreChannelSettings();
   emit updateImage();
 }
 
@@ -160,11 +186,13 @@ void PanelImageView::setEditedImage(const joda::image::Image &&edited)
 ///
 void PanelImageView::setShowEditedImage(bool showEdited)
 {
+  mShowEditedImage = showEdited;
   if(showEdited) {
     mImageToShow = &mPreviewImages.editedImage;
   } else {
     mImageToShow = &mPreviewImages.originalImage;
   }
+  restoreChannelSettings();
   emit updateImage();
 }
 
@@ -209,6 +237,15 @@ void PanelImageView::clearOverlay()
 ///
 void PanelImageView::repaintImage()
 {
+  auto key = SettingsIdx{.imageChannel = static_cast<uint16_t>(mPlane.c), .isEdited = mShowEditedImage};
+  if(mChannelSettings.contains(key)) {
+    mChannelSettings[key] = ChannelSettings{
+        .mLowerValue       = mImageToShow->getLowerLevelContrast(),
+        .mUpperValue       = mImageToShow->getUpperLevelContrast(),
+        .mDisplayAreaLower = mImageToShow->getHistogramDisplayAreaLower(),
+        .mDisplayAreaUpper = mImageToShow->getHistogramDisplayAreaUpper(),
+    };
+  }
   emit updateImage();
 }
 

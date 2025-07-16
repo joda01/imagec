@@ -17,6 +17,8 @@
 
 namespace joda::ui::gui {
 
+class PanelImageView;
+
 ///
 /// \class
 /// \author     Joachim Danmayr
@@ -26,7 +28,7 @@ class PanelHistogram : public QWidget
 {
 public:
   /////////////////////////////////////////////////////
-  PanelHistogram(joda::image::Image *image, QWidget *parent);
+  PanelHistogram(PanelImageView *image, QWidget *parent);
 
 private:
   /////////////////////////////////////////////////////
@@ -35,7 +37,7 @@ private:
   void mouseMoveEvent(QMouseEvent *event) override;
 
   /////////////////////////////////////////////////////
-  joda::image::Image *mImage;
+  PanelImageView *mImagePanel;
 };
 
 }    // namespace joda::ui::gui

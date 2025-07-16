@@ -15,6 +15,7 @@
 #include <qlayout.h>
 #include <qwidget.h>
 #include "backend/helper/image/image.hpp"
+#include "ui/gui/dialog_image_view/panel_image_view.hpp"
 
 namespace joda::ui::gui {
 
@@ -25,7 +26,7 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-PanelHistogram::PanelHistogram(joda::image::Image *image, QWidget *parent) : QWidget(parent), mImage(image)
+PanelHistogram::PanelHistogram(PanelImageView *image, QWidget *parent) : QWidget(parent), mImagePanel(image)
 {
 }
 
@@ -53,7 +54,7 @@ void PanelHistogram::paintEvent(QPaintEvent *event)
 ///
 void PanelHistogram::drawHistogram(QPainter &painter)
 {
-  const auto *image = mImage->getImage();
+  const auto *image = mImagePanel->mutableImage()->getImage();
   if(image == nullptr) {
     return;
   }
@@ -76,12 +77,12 @@ void PanelHistogram::drawHistogram(QPainter &painter)
       painter.setBrush(Qt::NoBrush);         // Set the brush to no brush for transparent fill
 
       // Precalculation
-      // float histOffset    = mImage->getHistogramOffset();
-      // float histZoom      = mImage->getHitogramZoomFactor();
-      int number          = mImage->getHistogramDisplayAreaUpper() - mImage->getHistogramDisplayAreaLower();
+      // float histOffset    = mImagePanel->getHistogramOffset();
+      // float histZoom      = mImagePanel->getHitogramZoomFactor();
+      int number          = mImagePanel->mutableImage()->getHistogramDisplayAreaUpper() - mImagePanel->mutableImage()->getHistogramDisplayAreaLower();
       float binWidth      = (RECT_WIDTH / static_cast<float>(number));
       int markerPos       = number / NR_OF_MARKERS;
-      const auto &hist    = mImage->getHistogram();
+      const auto &hist    = mImagePanel->mutableImage()->getHistogram();
       int32_t compression = 1;
 
       if(number > UINT16_MAX / 2) {
@@ -89,7 +90,7 @@ void PanelHistogram::drawHistogram(QPainter &painter)
       }
       auto rectHeight = height() - RECT_START_Y;
       for(int i = 1; i < number; i += compression) {
-        int idx = i + mImage->getHistogramDisplayAreaLower();
+        int idx = i + mImagePanel->mutableImage()->getHistogramDisplayAreaLower();
         if(idx > UINT16_MAX) {
           idx = UINT16_MAX;
         }
@@ -99,7 +100,8 @@ void PanelHistogram::drawHistogram(QPainter &painter)
         painter.drawLine(startX, startY, startX, startY - histValue);
 
         // Upper level indicator
-        if(idx == mImage->getUpperLevelContrast() || (compression != 1 && idx + 1 == mImage->getUpperLevelContrast())) {
+        if(idx == mImagePanel->mutableImage()->getUpperLevelContrast() ||
+           (compression != 1 && idx + 1 == mImagePanel->mutableImage()->getUpperLevelContrast())) {
           painter.setPen(QColor(255, 0, 0));    // Set the pen color to red
           painter.drawText(QRect(startX - 50, startY, 100, 12), Qt::AlignHCenter, std::to_string(idx).data());
           painter.drawLine(startX, startY, startX, startY - rectHeight);
@@ -107,7 +109,8 @@ void PanelHistogram::drawHistogram(QPainter &painter)
         }
 
         // Lower level indicator
-        if(idx == mImage->getLowerLevelContrast() || (compression != 1 && idx + 1 == mImage->getLowerLevelContrast())) {
+        if(idx == mImagePanel->mutableImage()->getLowerLevelContrast() ||
+           (compression != 1 && idx + 1 == mImagePanel->mutableImage()->getLowerLevelContrast())) {
           painter.setPen(QColor(255, 0, 0));    // Set the pen color to red
           painter.drawText(QRect(startX - 50, startY, 100, 12), Qt::AlignHCenter, std::to_string(idx).data());
           painter.drawLine(startX, startY, startX, startY - rectHeight);

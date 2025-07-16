@@ -36,6 +36,7 @@ class DialogChannelSettings : public QDialog
 public:
   /////////////////////////////////////////////////////
   DialogChannelSettings(PanelImageView *image, QWidget *parent);
+  void clearSettings();
 
 private:
   /////////////////////////////////////////////////////

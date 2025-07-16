@@ -54,6 +54,27 @@ public:
     PixelInfo pixelInfo;
   };
 
+  struct SettingsIdx
+  {
+    uint16_t imageChannel = 0;
+    bool isEdited         = false;
+
+    bool operator<(const SettingsIdx &other) const
+    {
+      auto edit  = static_cast<uint32_t>(isEdited);
+      auto editO = static_cast<uint32_t>(other.isEdited);
+      return (static_cast<uint32_t>(imageChannel) << 16 | edit) < (static_cast<uint32_t>(other.imageChannel) << 16 | editO);
+    }
+  };
+
+  struct ChannelSettings
+  {
+    uint16_t mLowerValue       = 0;
+    uint16_t mUpperValue       = UINT16_MAX;
+    uint16_t mDisplayAreaLower = 0;
+    uint16_t mDisplayAreaUpper = 0;
+  };
+
   /////////////////////////////////////////////////////
   PanelImageView(QWidget *parent = nullptr);
   void openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo = nullptr);
@@ -164,6 +185,10 @@ private:
   /////////////////////////////////////////////////////
   bool mThumbnailAreaEntered = false;
 
+  // IMAGE CHANNEL SETTINGS ///////////////////////////////////////////////////
+  void restoreChannelSettings();
+  std::map<SettingsIdx, ChannelSettings> mChannelSettings;
+
   /////////////////////////////////////////////////////
   bool mWaiting             = false;
   bool mShowThumbnail       = true;
@@ -171,6 +196,7 @@ private:
   bool mShowCrosshandCursor = false;
   bool mLockCrosshandCursor = false;
   bool mShowOverlay         = true;
+  bool mShowEditedImage     = false;
 
   mutable std::mutex mImageResetMutex;
 

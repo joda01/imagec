@@ -37,7 +37,7 @@ DialogChannelSettings::DialogChannelSettings(PanelImageView *imagePanel, QWidget
 
   auto *layout = new QFormLayout();
 
-  mHistogramPanel = new PanelHistogram(imagePanel->mutableImage(), this);
+  mHistogramPanel = new PanelHistogram(imagePanel, this);
   mHistogramPanel->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding);
   layout->addRow(mHistogramPanel);
 
@@ -127,6 +127,17 @@ void DialogChannelSettings::applyHistogramSettingsToImage()
                                                   mSliderDisplayUpper->value());
   mHistogramPanel->update();
   mImagePanel->repaintImage();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogChannelSettings::clearSettings()
+{
 }
 
 }    // namespace joda::ui::gui
