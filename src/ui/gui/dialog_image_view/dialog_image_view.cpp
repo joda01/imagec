@@ -85,7 +85,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
     paintRectangle->setCheckable(true);
     buttonGroup->addAction(paintRectangle);
 
-    auto *showThumbnail = new QAction(generateSvgIcon("virtual-desktops"), "");
+    auto *showThumbnail = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("picture-in-picture"), "");
     showThumbnail->setStatusTip("Show/Hide image thumbnail");
     showThumbnail->setCheckable(true);
     showThumbnail->setChecked(true);
@@ -151,7 +151,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
     connect(zoomOut, &QAction::triggered, this, &DialogImageViewer::onZoomOutClicked);
     toolbarTop->addAction(zoomOut);
 
-    auto *histogram = new QAction(generateSvgIcon("view-object-histogram-linear"), "");
+    auto *histogram = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("chart-bar"), "Histogram");
     histogram->setObjectName("ToolButton");
     histogram->setStatusTip("Histogram");
     connect(histogram, &QAction::triggered, [this] {

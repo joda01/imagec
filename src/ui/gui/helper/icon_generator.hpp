@@ -54,4 +54,45 @@ inline QIcon generateSvgIcon(const QString &iconName)
   return log;
 }
 
+enum class Style
+{
+  REGULAR,
+  DUETONE
+};
+
+enum class Color
+{
+  BLACK,
+  RED,
+  GREEN,
+  BLUE
+};
+
+template <Style STYLE, Color COLOR>
+inline QIcon generateSvgIcon(const QString &iconName)
+{
+  QString colorStr = "black";
+  if constexpr(COLOR == Color::BLACK) {
+    colorStr = "black";
+  }
+  if constexpr(COLOR == Color::RED) {
+    colorStr = "red";
+  }
+  if constexpr(COLOR == Color::GREEN) {
+    colorStr = "green";
+  }
+  if constexpr(COLOR == Color::BLUE) {
+    colorStr = "blue";
+  }
+
+  if constexpr(STYLE == Style::REGULAR) {
+    QIcon log;
+    log.addPixmap(QPixmap(":/icons-svg/regular-" + colorStr + "/icons-svg/regular-" + colorStr + "/" + iconName + ".svg").scaled(256, 256));
+    if(log.isNull()) {
+      std::cout << "Null " << iconName.toStdString() << std::endl;
+    }
+    return log;
+  }
+}
+
 }    // namespace joda::ui::gui

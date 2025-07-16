@@ -245,19 +245,19 @@ void WindowMain::createTopToolbar()
   mTopToolBar = addToolBar("File toolbar");
 
   mOpenProjectMenu   = new QMenu();
-  mOpenProjectButton = new QAction(generateSvgIcon("document-open-folder"), "Create new project or open project, templates or results", mTopToolBar);
+  mOpenProjectButton = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("folder-open"), "Open", mTopToolBar);
   mOpenProjectButton->setStatusTip("Open existing project, template or results");
   mOpenProjectButton->setMenu(mOpenProjectMenu);
   connect(mOpenProjectButton, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
   mTopToolBar->addAction(mOpenProjectButton);
 
-  mSaveProject = new QAction(generateSvgIcon("document-save"), "Save", mTopToolBar);
+  mSaveProject = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("floppy-disk"), "Save", mTopToolBar);
   mSaveProject->setStatusTip("Save project");
   mSaveProject->setEnabled(false);
   connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
   mTopToolBar->addAction(mSaveProject);
 
-  mSaveProjectAs = new QAction(generateSvgIcon("document-save-as"), "Save as", mTopToolBar);
+  mSaveProjectAs = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("floppy-disk-back"), "Save as", mTopToolBar);
   mSaveProjectAs->setStatusTip("Save project as new name");
   connect(mSaveProjectAs, &QAction::triggered, this, &WindowMain::onSaveProjectAs);
   mTopToolBar->addAction(mSaveProjectAs);
@@ -270,7 +270,7 @@ void WindowMain::createTopToolbar()
   // toolbar->addAction(showResultsTemplate);
   // mTopToolBar->addSeparator();
 
-  mShowCompilerLog = new QAction(generateSvgIcon("show-all-effects"), "Compiler log", mTopToolBar);
+  mShowCompilerLog = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("list-checks"), "Compiler log", mTopToolBar);
   mShowCompilerLog->setStatusTip("Show possible pipeline issues");
   mShowCompilerLog->setCheckable(true);
   connect(mShowCompilerLog, &QAction::triggered, [this](bool checked) {
@@ -284,7 +284,7 @@ void WindowMain::createTopToolbar()
 
   mTopToolBar->addAction(mShowCompilerLog);
 
-  mStartAnalysisToolButton = new QAction(generateSvgIcon("media-playback-start"), "Start analyze", mTopToolBar);
+  mStartAnalysisToolButton = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("person-simple-run"), "Start analyze", mTopToolBar);
   mStartAnalysisToolButton->setStatusTip("Start analyze");
   mStartAnalysisToolButton->setEnabled(false);
   connect(mStartAnalysisToolButton, &QAction::triggered, this, &WindowMain::onStartClicked);
