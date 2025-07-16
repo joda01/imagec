@@ -91,6 +91,10 @@ public:
   void clearPipeline();
   void pipelineSavedEvent();
   void openPipelineSettings();
+  auto getListOfCommands() -> std::vector<std::shared_ptr<Command>> *
+  {
+    return &mCommands;
+  }
 
 private:
   /////////////////////////////////////////////////////

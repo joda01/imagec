@@ -205,7 +205,14 @@ protected:
 
   void setIsBreakpoint(bool breakPoint)
   {
-    mBreakpoint->setCheckable(breakPoint);
+    mBreakpoint->setChecked(breakPoint);
+  }
+
+  void setIsBreakpointWithoutSignal(bool breakPoint)
+  {
+    mBreakpoint->blockSignals(true);
+    mBreakpoint->setChecked(breakPoint);
+    mBreakpoint->blockSignals(false);
   }
 
   [[nodiscard]] bool isBreakpoint() const
@@ -237,6 +244,7 @@ private:
 
   /////////////////////////////////////////////////////
   joda::settings::PipelineStep &mPipelineStep;
+  std::vector<std::shared_ptr<Command>> *mOtherCommands = nullptr;
   QAction *mDisabled;
   QAction *mLocked;
   QAction *mBreakpoint;

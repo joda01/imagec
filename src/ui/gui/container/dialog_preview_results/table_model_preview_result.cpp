@@ -27,8 +27,7 @@
 namespace joda::ui::gui {
 
 TableModelPreviewResult::TableModelPreviewResult(const joda::settings::Classification &classSettings, QObject *parent) :
-    QAbstractTableModel(parent), mClassSettings(classSettings), ALTERNATE(((QTableView *) parent)->palette().color(QPalette::AlternateBase)),
-    BASE(((QTableView *) parent)->palette().color(QPalette::Base))
+    QAbstractTableModel(parent), mClassSettings(classSettings)
 
 {
   if(parent == nullptr) {
@@ -46,6 +45,9 @@ TableModelPreviewResult::TableModelPreviewResult(const joda::settings::Classific
 
   base64IconName = loadSvg("text-field");
   base64IconHash = loadSvg("irc-operator");
+
+  ALTERNATE = (((QTableView *) parent)->palette().color(QPalette::AlternateBase));
+  BASE      = (((QTableView *) parent)->palette().color(QPalette::Base));
 }
 
 void TableModelPreviewResult::setData(joda::ctrl::Preview::PreviewResults *results)

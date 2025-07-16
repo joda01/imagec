@@ -121,6 +121,16 @@ void Command::mousePressEvent(QMouseEvent *event)
 
   // Breakpoints
   if(event->button() == Qt::RightButton) {
+    // Only one breakpoint is allowed remove the others
+    if(nullptr != mOtherCommands) {
+      for(auto &cmd : *mOtherCommands) {
+        if(cmd.get() != this) {
+          cmd->setBreakpoint(false);
+          cmd->setIsBreakpointWithoutSignal(false);
+        }
+      }
+    }
+
     mBreakpoint->blockSignals(true);
     mBreakpoint->setChecked(!isBreakpoint());
     setBreakpoint(mBreakpoint->isChecked());
@@ -402,6 +412,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
     setBreakpoint(mBreakpoint->isChecked());
     emit valueChanged();
   });
+  mOtherCommands = pipelineSettingsUi->getListOfCommands();
 
   //
   // Okay button

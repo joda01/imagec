@@ -47,8 +47,8 @@ private:
   const joda::settings::Classification &mClassSettings;
   QString base64IconName;
   QString base64IconHash;
-  const QColor ALTERNATE;
-  const QColor BASE;
+  QColor ALTERNATE;
+  QColor BASE;
 };
 
 }    // namespace joda::ui::gui
