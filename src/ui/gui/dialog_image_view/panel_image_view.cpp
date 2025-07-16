@@ -122,7 +122,7 @@ void PanelImageView::reloadImage()
 ///
 auto PanelImageView::mutableImage() -> joda::image::Image *
 {
-  return &mPreviewImages.originalImage;
+  return mImageToShow;
 }
 
 ///
