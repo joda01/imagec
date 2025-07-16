@@ -19,6 +19,7 @@
 #include <optional>
 #include "backend/enums/types.hpp"
 #include "backend/helper/image/image.hpp"
+#include "backend/settings/analze_settings.hpp"
 #include "controller/controller.hpp"
 #include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
 #include "panel_image_view.hpp"
@@ -55,6 +56,7 @@ public:
   void setWaiting(bool waiting);
 
   int32_t getTileSize() const;
+  int32_t getSeries() const;
   auto getSelectedZProjection() const -> enums::ZProjection;
   int32_t getSelectedImageChannel() const;
   int32_t getSelectedTimeStack() const;
@@ -64,6 +66,7 @@ public:
   // SETTER ///////////////////////////////////////////
   void setImagePlane(const ImagePlaneSettings &);
   void setShowCrossHairCursor(bool show);
+  void setSettingsPointer(joda::settings::AnalyzeSettings *settings);
 
 signals:
   /////////////////////////////////////////////////////
@@ -112,6 +115,8 @@ private:
   bool mPlaybackToolbarVisible = false;
   int32_t mSelectedImageSeries = 0;
   int32_t mSelectedZStack      = 0;
+
+  joda::settings::AnalyzeSettings *mSettings = nullptr;
 
 private slots:
   /////////////////////////////////////////////////////

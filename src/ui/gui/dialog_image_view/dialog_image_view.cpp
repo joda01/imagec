@@ -463,6 +463,18 @@ void DialogImageViewer::setShowCrossHairCursor(bool show)
 /// \param[out]
 /// \return
 ///
+void DialogImageViewer::setSettingsPointer(joda::settings::AnalyzeSettings *settings)
+{
+  mSettings = settings;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 auto DialogImageViewer::getImagePanel() -> PanelImageView *
 {
   return &mImageViewRight;
@@ -482,6 +494,14 @@ void DialogImageViewer::applySettingsToImagePanel()
   mImageViewRight.setImagePlane({.z = mSelectedZStack, .c = getSelectedImageChannel(), .t = mSpinnerActTimeStack->value()});
   mImageViewRight.setImageTile(tileSize, tileSize);
   mImageViewRight.setSeries(mSelectedImageSeries);
+
+  // Sync to settings
+  if(mSettings != nullptr) {
+    auto tileSize                                      = getTileSize();
+    mSettings->imageSetup.imageTileSettings.tileHeight = tileSize;
+    mSettings->imageSetup.imageTileSettings.tileWidth  = tileSize;
+    mSettings->imageSetup.series                       = mSelectedImageSeries;
+  }
 }
 
 ///
@@ -617,6 +637,18 @@ int32_t DialogImageViewer::getTileSize() const
     }
   }
   return 2048;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+int32_t DialogImageViewer::getSeries() const
+{
+  return mSelectedImageSeries;
 }
 
 ///

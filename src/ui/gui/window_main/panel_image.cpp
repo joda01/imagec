@@ -99,7 +99,7 @@ void PanelImages::filterImages()
 auto PanelImages::getSelectedImage() const -> std::tuple<std::filesystem::path, int32_t, joda::ome::OmeInfo>
 {
   int selectedRow = mImages->currentRow();
-  int32_t series  = mWindowMain->getPanelProjectSettings()->getImageSeries();
+  int32_t series  = mWindowMain->getPreviewDock()->getSeries();
 
   if(selectedRow >= 0) {
     QTableWidgetItem *item = mImages->item(selectedRow, 0);
@@ -121,7 +121,7 @@ auto PanelImages::getSelectedImage() const -> std::tuple<std::filesystem::path, 
 [[nodiscard]] auto PanelImages::getSelectedImageOrFirst() const -> std::tuple<std::filesystem::path, int32_t, joda::ome::OmeInfo>
 {
   auto [path, idx, omeInfo] = getSelectedImage();
-  int32_t series            = mWindowMain->getPanelProjectSettings()->getImageSeries();
+  int32_t series            = mWindowMain->getPreviewDock()->getSeries();
 
   if(path.empty()) {
     if(mImages->rowCount() > 0) {

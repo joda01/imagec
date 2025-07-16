@@ -135,17 +135,6 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   addSeparator();
 
   //
-  // Image Series
-  //
-  mImageSeries = new QComboBox();
-  for(int32_t series = 0; series < 10; series++) {
-    mImageSeries->addItem(("Series " + std::to_string(series)).data(), static_cast<int32_t>(series));
-  }
-  formLayout->addRow(new QLabel(tr("Series:")), mImageSeries);
-  connect(mImageSeries, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onSettingChanged);
-  connect(mImageSeries, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::updateImagePreview);
-
-  //
   // Stack handling
   //
   mStackHandlingZ = new QComboBox();
@@ -169,17 +158,6 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   tStackRangeLayout->addWidget(mTStackFrameStart);
   tStackRangeLayout->addWidget(mTStackFrameEnd);
   formLayout->addRow(new QLabel(tr("T-Range:")), tStackRangeLayout);
-
-  //
-  mCompositeTileSize = new QComboBox();
-  mCompositeTileSize->addItem("8192x8192 (~134 MB)", static_cast<int32_t>(8192));
-  mCompositeTileSize->addItem("4096x4096 (~34 MB)", static_cast<int32_t>(4096));
-  mCompositeTileSize->addItem("2048x2048 (~8 MB)", static_cast<int32_t>(2048));
-  mCompositeTileSize->addItem("1024x1024 (~2 MB)", static_cast<int32_t>(1024));
-  mCompositeTileSize->addItem("512x512 (~0.5 MB)", static_cast<int32_t>(512));
-  mCompositeTileSize->addItem("256x256 (~0.02 MB)", static_cast<int32_t>(256));
-  connect(mCompositeTileSize, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onSettingChanged);
-  formLayout->addRow(new QLabel(tr("Tile size:")), mCompositeTileSize);
 
   addSeparator();
 
@@ -268,14 +246,6 @@ void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &s
       mPlateSize->setCurrentIndex(idx);
     }
   }
-  {
-    auto idx = mImageSeries->findData(static_cast<int>(settings.imageSetup.series));
-    if(idx >= 0) {
-      mImageSeries->setCurrentIndex(idx);
-    } else {
-      mImageSeries->setCurrentIndex(0);
-    }
-  }
 
   {
     auto idx = mStackHandlingZ->findData(static_cast<int>(settings.imageSetup.zStackHandling));
@@ -295,15 +265,6 @@ void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &s
       mStackHandlingT->setCurrentIndex(idx);
     } else {
       mStackHandlingT->setCurrentIndex(0);
-    }
-  }
-  {
-    auto idx = mCompositeTileSize->findData(
-        static_cast<int>(std::max(settings.imageSetup.imageTileSettings.tileWidth, settings.imageSetup.imageTileSettings.tileHeight)));
-    if(idx >= 0) {
-      mCompositeTileSize->setCurrentIndex(idx);
-    } else {
-      mCompositeTileSize->setCurrentIndex(0);
     }
   }
 
@@ -343,11 +304,8 @@ void PanelProjectSettings::toSettings()
   mSettings.projectSettings.plates.begin()->plateSetup.cols = value % 100;
   mSettings.projectSettings.plates.begin()->plateId         = 1;
 
-  mSettings.imageSetup.series         = static_cast<int32_t>(mImageSeries->currentData().toInt());
   mSettings.imageSetup.zStackHandling = static_cast<joda::settings::ProjectImageSetup::ZStackHandling>(mStackHandlingZ->currentData().toInt());
   mSettings.imageSetup.tStackHandling = static_cast<joda::settings::ProjectImageSetup::TStackHandling>(mStackHandlingT->currentData().toInt());
-  mSettings.imageSetup.imageTileSettings.tileWidth  = static_cast<int32_t>(mCompositeTileSize->currentData().toInt());
-  mSettings.imageSetup.imageTileSettings.tileHeight = static_cast<int32_t>(mCompositeTileSize->currentData().toInt());
 
   mSettings.imageSetup.tStackSettings.startFrame = mTStackFrameStart->text().toInt();
   mSettings.imageSetup.tStackSettings.endFrame   = mTStackFrameEnd->text().toInt();

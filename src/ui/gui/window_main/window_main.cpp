@@ -86,7 +86,8 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
     mTopToolBar->addSeparator();
     mPreviewImage = new DialogImageViewer(this, mTopToolBar);
     mPreviewImage->setVisible(false);
-    // addDockWidget(Qt::RightDockWidgetArea, mPreviewImage);
+    mPreviewImage->setSettingsPointer(&mAnalyzeSettings);
+    connect(mPreviewImage, &DialogImageViewer::settingChanged, [this]() { checkForSettingsChanged(); });
   }
 
   //
@@ -621,6 +622,13 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     mAnalyzeSettings.projectSettings.classification = analyzeSettings.projectSettings.classification;
     mAnalyzeSettingsOld                             = mAnalyzeSettings;
 
+    mPreviewImage->setImagePlane(DialogImageViewer::ImagePlaneSettings{.plane      = {.z = 0, .c = 0, .t = 0},
+                                                                       .series     = analyzeSettings.imageSetup.series,
+                                                                       .tileWidth  = analyzeSettings.imageSetup.imageTileSettings.tileWidth,
+                                                                       .tileHeight = analyzeSettings.imageSetup.imageTileSettings.tileHeight,
+                                                                       .tileX      = 0,
+                                                                       .tileY      = 0});
+
     for(const auto &channel : analyzeSettings.pipelines) {
       mPanelPipeline->addChannel(channel);
     }
@@ -774,6 +782,7 @@ bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
   }
+
   return okay;
 }
 
