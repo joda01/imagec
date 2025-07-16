@@ -58,7 +58,7 @@ public:
   PanelImageView(QWidget *parent = nullptr);
   void openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo = nullptr);
   void setOverlay(const joda::image::Image &&overlay);
-  void serOverlayOpaque(float opaque);
+  void setEditedImage(const joda::image::Image &&edited);
   void clearOverlay();
   void reloadImage();
   void repaintImage();
@@ -70,6 +70,8 @@ public:
   void setShowThumbnail(bool);
   void setShowPixelInfo(bool);
   void setShowOverlay(bool);
+  void setOverlayOpaque(float opaque);
+  void setShowEditedImage(bool);
   void setShowCrosshandCursor(bool);
   void setLockCrosshandCursor(bool);
   void setCursorPosition(const QPoint &pos);
@@ -131,7 +133,8 @@ private:
   joda::image::reader::ImageReader::Plane mLastPlane{-1, -1, -1};
   joda::ome::OmeInfo mOmeInfo;
   joda::ctrl::Preview mPreviewImages;
-  float mOpaque = 0.5;
+  joda::image::Image *mImageToShow = nullptr;
+  float mOpaque                    = 0.5;
   joda::image::reader::ImageReader::Plane mPlane;
   joda::ome::TileToLoad mTile;
   enums::ZProjection mZprojection;

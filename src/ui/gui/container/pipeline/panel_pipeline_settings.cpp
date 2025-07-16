@@ -149,6 +149,14 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   connect(mActionDisabled, &QAction::triggered, this, &PanelPipelineSettings::valueChangedEvent);
 
   //
+  // Switch to edit mode
+  //
+  mActionEditMode = mToolbar->addAction(generateSvgIcon("document-edit"), "Switch to edit mode");
+  mActionEditMode->setStatusTip("Switch to edit mode");
+  mActionEditMode->setCheckable(true);
+  connect(mActionEditMode, &QAction::triggered, [this](bool selected) { mPreviewImage->getImagePanel()->setShowEditedImage(selected); });
+
+  //
   // Close button
   //
   auto *closePipeline = mToolbar->addAction(generateSvgIcon("window-close"), "Close pipeline editor");
@@ -511,6 +519,7 @@ void PanelPipelineSettings::previewThread()
                                         jobToDo.classesToHide);
 
             jobToDo.previewPanel->getImagePanel()->setOverlay(std::move(previewResult.overlay));
+            jobToDo.previewPanel->getImagePanel()->setEditedImage(std::move(previewResult.editedImage));
             mPreviewResults = std::move(previewResult.results);
 
           } catch(const std::exception &error) {
@@ -701,6 +710,7 @@ void PanelPipelineSettings::setActive(bool setActive)
     updatePreview();
     mDialogHistory->loadHistory();
     mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
+    mPreviewImage->getImagePanel()->setShowEditedImage(mActionEditMode->isChecked());
   }
   if(!setActive && mIsActiveShown) {
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
@@ -708,6 +718,7 @@ void PanelPipelineSettings::setActive(bool setActive)
     mToolbar->setVisible(false);
     mPreviewResultsDialog->hide();
     mPreviewImage->getImagePanel()->clearOverlay();
+    mPreviewImage->getImagePanel()->setShowEditedImage(false);
     mDialogHistory->hide();
     mHistoryAction->setChecked(false);
     // Wait until preview render has been finished

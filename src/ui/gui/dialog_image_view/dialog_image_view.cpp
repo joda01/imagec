@@ -127,7 +127,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
     mOverlayOpaque->setValue(50);
     mOverlayOpaque->setMaximumWidth(100);
     connect(mOverlayOpaque, &QSlider::valueChanged,
-            [this] { mImageViewRight.serOverlayOpaque(static_cast<float>(mOverlayOpaque->value()) / 100.0F); });
+            [this] { mImageViewRight.setOverlayOpaque(static_cast<float>(mOverlayOpaque->value()) / 100.0F); });
     toolbarTop->addWidget(mOverlayOpaque);
 
     toolbarTop->addSeparator();

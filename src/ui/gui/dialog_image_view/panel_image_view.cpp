@@ -42,7 +42,7 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-PanelImageView::PanelImageView(QWidget *parent) : QGraphicsView(parent), scene(new QGraphicsScene(this))
+PanelImageView::PanelImageView(QWidget *parent) : QGraphicsView(parent), scene(new QGraphicsScene(this)), mImageToShow(&mPreviewImages.originalImage)
 {
   setScene(scene);
   setBackgroundBrush(QBrush(Qt::black));
@@ -81,7 +81,7 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
     joda::ctrl::Controller::loadImage(imagePath, mSeries, mPlane, mTile, mPreviewImages, mOmeInfo, mZprojection);
   }
   if(mLastPath != imagePath || mPlane.c != mLastPlane.c) {
-    mPreviewImages.editedImage.autoAdjustBrightnessRange();
+    mImageToShow->autoAdjustBrightnessRange();
     mPreviewImages.thumbnail.autoAdjustBrightnessRange();
   }
   mLastPath  = imagePath;
@@ -106,7 +106,7 @@ void PanelImageView::reloadImage()
   joda::ctrl::Controller::loadImage(mLastPath, mSeries, mPlane, mTile, mPreviewImages, &mOmeInfo, mZprojection);
 
   if(mPlane.c != mLastPlane.c) {
-    mPreviewImages.editedImage.autoAdjustBrightnessRange();
+    mImageToShow->autoAdjustBrightnessRange();
     mPreviewImages.thumbnail.autoAdjustBrightnessRange();
   }
   mLastPlane = mPlane;
@@ -122,7 +122,7 @@ void PanelImageView::reloadImage()
 ///
 auto PanelImageView::mutableImage() -> joda::image::Image *
 {
-  return &mPreviewImages.editedImage;
+  return &mPreviewImages.originalImage;
 }
 
 ///
@@ -145,7 +145,37 @@ void PanelImageView::setOverlay(const joda::image::Image &&overlay)
 /// \param[out]
 /// \return
 ///
-void PanelImageView::serOverlayOpaque(float opaque)
+void PanelImageView::setEditedImage(const joda::image::Image &&edited)
+{
+  mPreviewImages.editedImage.setImage(std::move(*edited.getImage()));
+  emit updateImage();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::setShowEditedImage(bool showEdited)
+{
+  if(showEdited) {
+    mImageToShow = &mPreviewImages.editedImage;
+  } else {
+    mImageToShow = &mPreviewImages.originalImage;
+  }
+  emit updateImage();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::setOverlayOpaque(float opaque)
 {
   if(opaque > 1) {
     opaque = 1;
@@ -280,11 +310,11 @@ void PanelImageView::resetImage()
 
 void PanelImageView::onUpdateImage()
 {
-  auto *img = mPreviewImages.editedImage.getImage();
+  auto *img = mImageToShow->getImage();
   if(img != nullptr) {
-    auto pixmap = mPreviewImages.editedImage.getPixmap({nullptr});
-    if(!mPreviewImages.overlay.empty() && mShowOverlay && mPreviewImages.overlay.getImage()->size == mPreviewImages.editedImage.getImage()->size) {
-      pixmap = mPreviewImages.editedImage.getPixmap({.combineWith = &mPreviewImages.overlay, .opaque = mOpaque});
+    auto pixmap = mImageToShow->getPixmap({nullptr});
+    if(!mPreviewImages.overlay.empty() && mShowOverlay && mPreviewImages.overlay.getImage()->size == mImageToShow->getImage()->size) {
+      pixmap = mImageToShow->getPixmap({.combineWith = &mPreviewImages.overlay, .opaque = mOpaque});
     }
 
     scene->setSceneRect(pixmap.rect());
@@ -590,7 +620,7 @@ void PanelImageView::drawCrossHairCursor(QPainter &painter)
 void PanelImageView::drawPixelInfo(QPainter &painter, int32_t startX, int32_t startY, const PixelInfo &info)
 {
   std::lock_guard<std::mutex> locked(mImageResetMutex);
-  const auto *image = mPreviewImages.editedImage.getImage();
+  const auto *image = mImageToShow->getImage();
   if(image == nullptr) {
     return;
   }
@@ -855,26 +885,26 @@ auto PanelImageView::fetchPixelInfoFromMousePosition(const QPoint &viewPos) cons
   PixelInfo pixelInfo;
   std::lock_guard<std::mutex> locked(mImageResetMutex);
   // Map the scene coordinates to image coordinates
-  if(mActPixmap != nullptr && mPreviewImages.editedImage.getImage() != nullptr) {
+  if(mActPixmap != nullptr && mImageToShow->getImage() != nullptr) {
     QPointF imagePos = mActPixmap->mapFromScene(scenePos);
     pixelInfo.posX   = imagePos.x();
     pixelInfo.posY   = imagePos.y();
 
-    int type  = mPreviewImages.editedImage.getImage()->type();
+    int type  = mImageToShow->getImage()->type();
     int depth = type & CV_MAT_DEPTH_MASK;
     cv::Mat image;
-    if(pixelInfo.posX >= 0 && pixelInfo.posX < mPreviewImages.editedImage.getImage()->cols && pixelInfo.posY >= 0 &&
-       pixelInfo.posY < mPreviewImages.editedImage.getImage()->rows) {
+    if(pixelInfo.posX >= 0 && pixelInfo.posX < mImageToShow->getImage()->cols && pixelInfo.posY >= 0 &&
+       pixelInfo.posY < mImageToShow->getImage()->rows) {
       if(depth == CV_16U) {
-        pixelInfo.grayScale = mPreviewImages.editedImage.getImage()->at<uint16_t>(pixelInfo.posY, pixelInfo.posX);
+        pixelInfo.grayScale = mImageToShow->getImage()->at<uint16_t>(pixelInfo.posY, pixelInfo.posX);
         pixelInfo.redVal    = -1;
         pixelInfo.greenVal  = -1;
         pixelInfo.blueVal   = -1;
       } else {
         pixelInfo.grayScale = -1;
-        pixelInfo.redVal    = mPreviewImages.editedImage.getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[2];
-        pixelInfo.greenVal  = mPreviewImages.editedImage.getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[1];
-        pixelInfo.blueVal   = mPreviewImages.editedImage.getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[0];
+        pixelInfo.redVal    = mImageToShow->getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[2];
+        pixelInfo.greenVal  = mImageToShow->getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[1];
+        pixelInfo.blueVal   = mImageToShow->getImage()->at<cv::Vec3b>(pixelInfo.posY, pixelInfo.posX)[0];
         QColor color(pixelInfo.redVal, pixelInfo.greenVal, pixelInfo.blueVal);
         color.getHsv(&pixelInfo.hue, &pixelInfo.saturation, &pixelInfo.value);
       }
@@ -1047,8 +1077,8 @@ auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QPoint &imageCoo
     QRectF sceneRect = mActPixmap->sceneBoundingRect();
     QRect viewRect   = mapFromScene(sceneRect).boundingRect();
 
-    auto originalImageSize = mPreviewImages.editedImage.getOriginalImageSize();
-    auto previewImageSize  = mPreviewImages.editedImage.getPreviewImageSize();
+    auto originalImageSize = mImageToShow->getOriginalImageSize();
+    auto previewImageSize  = mImageToShow->getPreviewImageSize();
     auto viewPortImageSize = QSize{viewRect.width(), viewRect.height()};
 
     double factorX = static_cast<double>(viewPortImageSize.width()) / static_cast<double>(originalImageSize.width());
@@ -1082,8 +1112,8 @@ auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QRect &imageCoor
     QRectF sceneRect = mActPixmap->sceneBoundingRect();
     QRect viewRect   = mapFromScene(sceneRect).boundingRect();
 
-    auto originalImageSize = mPreviewImages.editedImage.getOriginalImageSize();
-    auto previewImageSize  = mPreviewImages.editedImage.getPreviewImageSize();
+    auto originalImageSize = mImageToShow->getOriginalImageSize();
+    auto previewImageSize  = mImageToShow->getPreviewImageSize();
     auto viewPortImageSize = QSize{viewRect.width(), viewRect.height()};
 
     double factorX = static_cast<double>(viewPortImageSize.width()) / static_cast<double>(originalImageSize.width());

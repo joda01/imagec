@@ -377,7 +377,7 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
       }
     }
 
-    previewOut.editedImage.setImage(std::move(image));
+    previewOut.originalImage.setImage(std::move(image));
   }
 
   if(generateThumb) {

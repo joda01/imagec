@@ -12,6 +12,7 @@
 #include "table_model_preview_result.hpp"
 #include <qbrush.h>
 #include <qnamespace.h>
+#include <qpalette.h>
 #include <qtableview.h>
 #include <qvariant.h>
 #include <QFile>

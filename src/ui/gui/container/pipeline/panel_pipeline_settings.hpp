@@ -103,6 +103,7 @@ private:
   QAction *mUndoAction;
   QAction *mHistoryAction;
   QAction *mActionDisabled;
+  QAction *mActionEditMode;
 
   /////////////////////////////////////////////////////
   QToolBar *mToolbar;
