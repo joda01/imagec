@@ -420,15 +420,11 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
             // For preview do not execute image saver
             continue;
           }
-
-          step(context, context.getActImage().image, context.getActObjects());
-
-          // The command where the breakpoint is set is executed.
           // Breakpoints are only enabled in the preview pipeline
           if(step.breakPoint && previewPipeline) {
             editedImageAtBreakpoint = context.getActImage().image.clone();
-            // break;
           }
+          step(context, context.getActImage().image, context.getActObjects());
         }
         // Remove temporary objects from pipeline
         iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_01));
