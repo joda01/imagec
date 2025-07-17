@@ -91,6 +91,7 @@ private:
   QAction *showOverlay                 = nullptr;
   QSlider *mOverlayOpaque              = nullptr;
   QActionGroup *mImageChannelMenuGroup = nullptr;
+  QAction *mImageChannel               = nullptr;
   std::map<int32_t, QAction *> mChannelSelections;
 
   // T-STACK //////////////////////////////////////////////////

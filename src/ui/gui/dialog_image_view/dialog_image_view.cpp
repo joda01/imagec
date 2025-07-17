@@ -52,6 +52,10 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
 
   mMainLayout = new QVBoxLayout();
   mMainLayout->setContentsMargins(0, 0, 0, 0);
+
+  // ======================================
+  // Toolbar
+  // ======================================
   {
     QToolBar *toolbarTop;
     if(toolbarParent == nullptr) {
@@ -60,62 +64,124 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
       toolbarTop = toolbarParent;
     }
 
-    auto *pinToTop = new QAction(generateSvgIcon("window-pin"), "");
-    pinToTop->setToolTip("Pin to stay on top");
-    pinToTop->setCheckable(true);
-    pinToTop->setChecked(false);
-    connect(pinToTop, &QAction::triggered, [this](bool checked) {
-      if(checked) {
-        setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
-        show();
-      } else {
-        setWindowFlags(windowFlags() & ~Qt::WindowStaysOnTopHint);
-        show();
+    auto *histogram = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("chart-bar"), "Histogram");
+    histogram->setObjectName("ToolButton");
+    histogram->setStatusTip("Histogram");
+    connect(histogram, &QAction::triggered, [this] {
+      auto *dialog = new DialogHistogramSettings(&mImageViewRight, this);
+      dialog->show();
+    });
+    toolbarTop->addAction(histogram);
+
+    //
+    // Image channel
+    //
+
+    auto *channelMenu      = new QMenu();
+    mImageChannelMenuGroup = new QActionGroup(toolbarTop);
+
+    auto addChannel = [this, &channelMenu](int32_t chNr) {
+      QString numberName = "zero";
+      switch(chNr) {
+        case 1:
+          numberName = "one";
+          break;
+        case 2:
+          numberName = "two";
+          break;
+        case 3:
+          numberName = "three";
+          break;
+        case 4:
+          numberName = "four";
+          break;
+        case 5:
+          numberName = "five";
+          break;
+        case 6:
+          numberName = "six";
+          break;
+        case 7:
+          numberName = "seven";
+          break;
+        case 8:
+          numberName = "eight";
+          break;
+        case 9:
+          numberName = "nine";
+          break;
+      }
+
+      auto *action =
+          channelMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-" + numberName), "CH" + QString::number(chNr));
+      action->setCheckable(true);
+      if(chNr == 0) {
+        action->setChecked(true);
+      }
+      mImageChannelMenuGroup->addAction(action);
+      mChannelSelections.emplace(chNr, action);
+    };
+    for(int n = 0; n < 9; n++) {
+      addChannel(n);
+    }
+
+    mImageChannel = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-zero"), "Image channel");
+    mImageChannel->setStatusTip("Image channel to show");
+    mImageChannel->setMenu(channelMenu);
+    toolbarTop->addAction(mImageChannel);
+    auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(mImageChannel));
+    btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
+    connect(mImageChannelMenuGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingsChanged);
+    connect(channelMenu, &QMenu::triggered, [this](QAction *triggeredAction) {
+      if(triggeredAction != nullptr) {
+        mImageChannel->setIcon(triggeredAction->icon());
       }
     });
 
-    auto *buttonGroup = new QActionGroup(toolbarTop);
-
-    auto *action2 = new QAction({}, "");
-    action2->setCheckable(true);
-    action2->setChecked(true);
-    buttonGroup->addAction(action2);
-
-    auto *paintRectangle = new QAction(generateSvgIcon("draw-rectangle"), "");
-    paintRectangle->setCheckable(true);
-    buttonGroup->addAction(paintRectangle);
-
-    auto *showThumbnail = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("picture-in-picture"), "");
-    showThumbnail->setStatusTip("Show/Hide image thumbnail");
-    showThumbnail->setCheckable(true);
-    showThumbnail->setChecked(true);
-    connect(showThumbnail, &QAction::triggered, this, &DialogImageViewer::onShowThumbnailChanged);
-    toolbarTop->addAction(showThumbnail);
-
-    showPixelInfo = new QAction(generateSvgIcon("coordinate"), "");
-    showPixelInfo->setStatusTip("Show/Hide pixel information");
-    showPixelInfo->setCheckable(true);
-    showPixelInfo->setChecked(true);
-    connect(showPixelInfo, &QAction::triggered, this, &DialogImageViewer::onShowPixelInfo);
-    toolbarTop->addAction(showPixelInfo);
-
-    showCrossHairCursor = new QAction(generateSvgIcon("crosshairs"), "");
-    showCrossHairCursor->setStatusTip("Show/Hide cross hair cursor (right click to place)");
-    showCrossHairCursor->setCheckable(true);
-    showCrossHairCursor->setChecked(false);
-    connect(showCrossHairCursor, &QAction::triggered, this, &DialogImageViewer::onShowCrossHandCursor);
-    toolbarTop->addAction(showCrossHairCursor);
+    //
+    // Open image settings
+    //
+    auto *imgSettings = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("wrench"), "Image settings");
+    imgSettings->setObjectName("ToolButton");
+    imgSettings->setStatusTip("Image settings");
+    connect(imgSettings, &QAction::triggered, [this] {
+      auto *dialog = new DialogImageSettings(&mImageSettings, this);
+      if(dialog->exec() == QDialog::Accepted) {
+        onSettingsChanged();
+      }
+    });
+    toolbarTop->addAction(imgSettings);
 
     toolbarTop->addSeparator();
 
-    showOverlay = new QAction(generateSvgIcon("redeyes"), "");
+    auto *fitToScreen = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("magnifying-glass"), "Fir");
+    fitToScreen->setStatusTip("Fit image to screen");
+    fitToScreen->setObjectName("ToolButton");
+    connect(fitToScreen, &QAction::triggered, this, &DialogImageViewer::onFitImageToScreenSizeClicked);
+    toolbarTop->addAction(fitToScreen);
+
+    auto *zoomIn = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("magnifying-glass-plus"), "Zoom in");
+    zoomIn->setStatusTip("Zoom image in");
+    zoomIn->setObjectName("ToolButton");
+    connect(zoomIn, &QAction::triggered, this, &DialogImageViewer::onZoomInClicked);
+    toolbarTop->addAction(zoomIn);
+
+    auto *zoomOut = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("magnifying-glass-minus"), "Zoom out");
+    zoomOut->setObjectName("ToolButton");
+    zoomIn->setStatusTip("Zoom image out");
+    connect(zoomOut, &QAction::triggered, this, &DialogImageViewer::onZoomOutClicked);
+    toolbarTop->addAction(zoomOut);
+
+    toolbarTop->addSeparator();
+
+    showOverlay = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("circle"), "Overlay");
     showOverlay->setStatusTip("Show/Hide results as overlay");
     showOverlay->setCheckable(true);
     showOverlay->setChecked(true);
     connect(showOverlay, &QAction::triggered, [this](bool selected) { mImageViewRight.setShowOverlay(selected); });
     toolbarTop->addAction(showOverlay);
 
-    mFillOVerlay = new QAction(generateSvgIcon("fill-color"), "");
+    mFillOVerlay = new QAction(generateSvgIcon<Style::DUETONE, Color::RED>("circle"), "Fill");
     mFillOVerlay->setStatusTip("Fill/Outline results overlay");
     mFillOVerlay->setCheckable(true);
     connect(mFillOVerlay, &QAction::triggered, this, &DialogImageViewer::onSettingsChanged);
@@ -133,77 +199,28 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
 
     toolbarTop->addSeparator();
 
-    auto *fitToScreen = new QAction(generateSvgIcon("zoom-fit-best"), "");
-    fitToScreen->setStatusTip("Fit image to screen");
-    fitToScreen->setObjectName("ToolButton");
-    connect(fitToScreen, &QAction::triggered, this, &DialogImageViewer::onFitImageToScreenSizeClicked);
-    toolbarTop->addAction(fitToScreen);
+    showCrossHairCursor = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("crosshair"), "");
+    showCrossHairCursor->setStatusTip("Show/Hide cross hair cursor (right click to place)");
+    showCrossHairCursor->setCheckable(true);
+    showCrossHairCursor->setChecked(false);
+    connect(showCrossHairCursor, &QAction::triggered, this, &DialogImageViewer::onShowCrossHandCursor);
+    toolbarTop->addAction(showCrossHairCursor);
 
-    auto *zoomIn = new QAction(generateSvgIcon("zoom-in"), "");
-    zoomIn->setStatusTip("Zoom image in");
-    zoomIn->setObjectName("ToolButton");
-    connect(zoomIn, &QAction::triggered, this, &DialogImageViewer::onZoomInClicked);
-    toolbarTop->addAction(zoomIn);
+    auto *showThumbnail = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("picture-in-picture"), "Thumbnail");
+    showThumbnail->setStatusTip("Show/Hide image thumbnail");
+    showThumbnail->setCheckable(true);
+    showThumbnail->setChecked(true);
+    connect(showThumbnail, &QAction::triggered, this, &DialogImageViewer::onShowThumbnailChanged);
+    toolbarTop->addAction(showThumbnail);
 
-    auto *zoomOut = new QAction(generateSvgIcon("zoom-out"), "");
-    zoomOut->setObjectName("ToolButton");
-    zoomIn->setStatusTip("Zoom image out");
-    connect(zoomOut, &QAction::triggered, this, &DialogImageViewer::onZoomOutClicked);
-    toolbarTop->addAction(zoomOut);
-
-    auto *histogram = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("chart-bar"), "Histogram");
-    histogram->setObjectName("ToolButton");
-    histogram->setStatusTip("Histogram");
-    connect(histogram, &QAction::triggered, [this] {
-      auto *dialog = new DialogHistogramSettings(&mImageViewRight, this);
-      dialog->show();
-    });
-    toolbarTop->addAction(histogram);
+    showPixelInfo = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("vector-two"), "Pixel info");
+    showPixelInfo->setStatusTip("Show/Hide pixel information");
+    showPixelInfo->setCheckable(true);
+    showPixelInfo->setChecked(true);
+    connect(showPixelInfo, &QAction::triggered, this, &DialogImageViewer::onShowPixelInfo);
+    toolbarTop->addAction(showPixelInfo);
 
     toolbarTop->addSeparator();
-
-    //
-    // Image channel
-    //
-    {
-      auto *channelMenu      = new QMenu();
-      mImageChannelMenuGroup = new QActionGroup(toolbarTop);
-
-      auto addChannel = [this, &channelMenu](int32_t chNr) {
-        auto *action = channelMenu->addAction("CH" + QString::number(chNr));
-        action->setCheckable(true);
-        if(chNr == 0) {
-          action->setChecked(true);
-        }
-        mImageChannelMenuGroup->addAction(action);
-        mChannelSelections.emplace(chNr, action);
-      };
-      for(int n = 0; n < 9; n++) {
-        addChannel(n);
-      }
-
-      auto *imageChannel = new QAction(generateSvgIcon("irc-operator"), "Image channel");
-      imageChannel->setStatusTip("Image channel to show");
-      imageChannel->setMenu(channelMenu);
-      toolbarTop->addAction(imageChannel);
-      auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(imageChannel));
-      btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
-      connect(mImageChannelMenuGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingsChanged);
-    }
-
-    //
-    // Open image settings
-    //
-    auto *imgSettings = new QAction(generateSvgIcon("view-object-histogram-linear"), "Image settings");
-    imgSettings->setObjectName("ToolButton");
-    imgSettings->setStatusTip("Image settings");
-    connect(imgSettings, &QAction::triggered, [this] {
-      auto *dialog = new DialogImageSettings(&mImageSettings, this);
-      if(dialog->exec() == QDialog::Accepted) {
-        onSettingsChanged();
-      }
-    });
-    toolbarTop->addAction(imgSettings);
 
     if(toolbarParent == nullptr) {
       mMainLayout->addWidget(toolbarTop);

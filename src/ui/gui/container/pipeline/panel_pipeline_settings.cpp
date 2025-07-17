@@ -77,6 +77,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   mLayout  = new QVBoxLayout();
   mToolbar = new QToolBar();
   mToolbar->setVisible(false);
+  mToolbar->setMovable(false);
   wm->addToolBar(Qt::ToolBarArea::TopToolBarArea, mToolbar);
 
   mDialogHistory = new DialogHistory(wm, this);
@@ -113,7 +114,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   }
 
   // Tool button
-  mUndoAction = mToolbar->addAction(generateSvgIcon("edit-undo"), "Undo");
+  mUndoAction = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("arrow-counter-clockwise"), "Undo");
   mUndoAction->setEnabled(false);
   mUndoAction->setStatusTip("Undo last setting");
   connect(mUndoAction, &QAction::triggered, [this]() {
@@ -121,7 +122,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
     mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
   });
 
-  mHistoryAction = mToolbar->addAction(generateSvgIcon("deep-history"), "History");
+  mHistoryAction = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("clock-counter-clockwise"), "History");
   mHistoryAction->setStatusTip("Show/Hide pipeline edit history");
   mHistoryAction->setCheckable(true);
   connect(mHistoryAction, &QAction::triggered, [this](bool checked) {
@@ -133,7 +134,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   });
   connect(mDialogHistory, &QDialog::finished, [this] { mHistoryAction->setChecked(false); });
 
-  auto *addTagAction = mToolbar->addAction(generateSvgIcon("tag"), "Add tag");
+  auto *addTagAction = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("tag-simple"), "Add tag");
   addTagAction->setStatusTip("Tag actual pipeline settings");
   addTagAction->setToolTip("Tag the actual settings in the history.");
   connect(addTagAction, &QAction::triggered, [this]() { mDialogHistory->createTag(); });
@@ -141,32 +142,32 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   mToolbar->addSeparator();
 
   //
-  // Add disable button
-  //
-  mActionDisabled = mToolbar->addAction(generateSvgIcon("view-hidden"), "Disable pipeline");
-  mActionDisabled->setStatusTip("Temporary disable this pipeline");
-  mActionDisabled->setCheckable(true);
-  connect(mActionDisabled, &QAction::triggered, this, &PanelPipelineSettings::valueChangedEvent);
-
-  //
   // Switch to edit mode
   //
-  mActionEditMode = mToolbar->addAction(generateSvgIcon("document-edit"), "Switch to edit mode");
+  mActionEditMode = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("pencil-simple"), "Switch to edit mode");
   mActionEditMode->setStatusTip("Switch to edit mode");
   mActionEditMode->setCheckable(true);
   connect(mActionEditMode, &QAction::triggered, [this](bool selected) { mPreviewImage->getImagePanel()->setShowEditedImage(selected); });
 
   //
+  // Add disable button
+  //
+  mActionDisabled = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("eye-slash"), "Disable pipeline");
+  mActionDisabled->setStatusTip("Temporary disable this pipeline");
+  mActionDisabled->setCheckable(true);
+  connect(mActionDisabled, &QAction::triggered, this, &PanelPipelineSettings::valueChangedEvent);
+
+  mToolbar->addSeparator();
+  //
   // Close button
   //
-  auto *closePipeline = mToolbar->addAction(generateSvgIcon("window-close"), "Close pipeline editor");
+  auto *closePipeline = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("x"), "Close pipeline editor");
   closePipeline->setStatusTip("Close pipeline editor");
 
   //
   // Preview dialog
   //
   setLayout(mLayout);
-
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);
   connect(this, &PanelPipelineSettings::updatePreviewFinished, this, &PanelPipelineSettings::onPreviewFinished);
   connect(mPreviewImage, &DialogImageViewer::settingChanged, this, &PanelPipelineSettings::updatePreview);

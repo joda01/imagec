@@ -93,6 +93,14 @@ inline QIcon generateSvgIcon(const QString &iconName)
     }
     return log;
   }
+  if constexpr(STYLE == Style::DUETONE) {
+    QIcon log;
+    log.addPixmap(QPixmap(":/icons-svg/duotone-" + colorStr + "/icons-svg/duotone-" + colorStr + "/" + iconName + "-duotone.svg").scaled(256, 256));
+    if(log.isNull()) {
+      std::cout << "Null " << iconName.toStdString() << std::endl;
+    }
+    return log;
+  }
 }
 
 }    // namespace joda::ui::gui

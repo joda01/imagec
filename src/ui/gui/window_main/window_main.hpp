@@ -13,6 +13,7 @@
 
 #include <qcombobox.h>
 #include <qdockwidget.h>
+#include <qmenubar.h>
 #include <qwidget.h>
 #include <QtWidgets>
 #include <filesystem>
@@ -174,6 +175,7 @@ private:
 
   static QString bytesToString(int64_t bytes);
   ////Common/////////////////////////////////////////////////
+  QMenuBar *mTopMenuBar;
   QToolBar *mTopToolBar;
   joda::ctrl::Controller *mController;
   QFileSystemWatcher mTemplateDirWatcher;
@@ -205,8 +207,8 @@ private:
   PanelResults *mPanelReporting  = nullptr;
 
   ////ToolbarIcons/////////////////////////////////////////////////
-  QMenu *mOpenProjectMenu           = nullptr;
   QAction *mOpenProjectButton       = nullptr;
+  QMenu *mOpenRecentProjectMenu     = nullptr;
   QAction *mSaveProject             = nullptr;
   QAction *mSaveProjectAs           = nullptr;
   QAction *mShowInfoDialog          = nullptr;

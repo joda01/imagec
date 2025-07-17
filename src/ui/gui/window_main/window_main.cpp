@@ -97,23 +97,6 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
     mPreviewResultsDialog = new DialogPreviewResults(getSettings().projectSettings.classification, this);
   }
 
-  //
-  // Add info button at the end
-  //
-  {
-    // auto *helpButton = new QAction(generateSvgIcon("help-contents"), "Help", mTopToolBar);
-    // helpButton->setToolTip("Help");
-    // connect(helpButton, &QAction::triggered, this, &WindowMain::onShowHelpClicked);
-    // mTopToolBar->addAction(helpButton);
-
-    mTopToolBar->addSeparator();
-
-    mShowInfoDialog = new QAction(generateSvgIcon("help-about"), "About", mTopToolBar);
-    mShowInfoDialog->setStatusTip("Open about dialog");
-    connect(mShowInfoDialog, &QAction::triggered, this, &WindowMain::onShowInfoDialog);
-    mTopToolBar->addAction(mShowInfoDialog);
-  }
-
   setCentralWidget(createStackedWidget());
   showPanelStartPage();
   clearSettings();
@@ -243,32 +226,23 @@ void WindowMain::createTopToolbar()
 {
   ////////////
   mTopToolBar = addToolBar("File toolbar");
+  mTopToolBar->setObjectName("MainWindowTopToolBar");
+  mTopToolBar->setMovable(false);
 
-  mOpenProjectMenu   = new QMenu();
   mOpenProjectButton = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("folder-open"), "Open", mTopToolBar);
   mOpenProjectButton->setStatusTip("Open existing project, template or results");
-  mOpenProjectButton->setMenu(mOpenProjectMenu);
   connect(mOpenProjectButton, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
-  mTopToolBar->addAction(mOpenProjectButton);
+
+  mOpenRecentProjectMenu = new QMenu("Recent projects");
 
   mSaveProject = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("floppy-disk"), "Save", mTopToolBar);
   mSaveProject->setStatusTip("Save project");
   mSaveProject->setEnabled(false);
   connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
-  mTopToolBar->addAction(mSaveProject);
 
   mSaveProjectAs = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("floppy-disk-back"), "Save as", mTopToolBar);
   mSaveProjectAs->setStatusTip("Save project as new name");
   connect(mSaveProjectAs, &QAction::triggered, this, &WindowMain::onSaveProjectAs);
-  mTopToolBar->addAction(mSaveProjectAs);
-
-  mTopToolBar->addSeparator();
-
-  // auto *showResultsTemplate = new QAction(generateIcon("table"), "Results template", toolbar);
-  // showResultsTemplate->setToolTip("Results template!");
-  // connect(showResultsTemplate, &QAction::triggered, [this]() { mResultsTemplate->exec(); });
-  // toolbar->addAction(showResultsTemplate);
-  // mTopToolBar->addSeparator();
 
   mShowCompilerLog = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("list-checks"), "Compiler log", mTopToolBar);
   mShowCompilerLog->setStatusTip("Show possible pipeline issues");
@@ -282,13 +256,37 @@ void WindowMain::createTopToolbar()
   });
   connect(mCompilerLog->getDialog(), &QDialog::finished, [this] { mShowCompilerLog->setChecked(false); });
 
-  mTopToolBar->addAction(mShowCompilerLog);
-
   mStartAnalysisToolButton = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("person-simple-run"), "Start analyze", mTopToolBar);
   mStartAnalysisToolButton->setStatusTip("Start analyze");
   mStartAnalysisToolButton->setEnabled(false);
   connect(mStartAnalysisToolButton, &QAction::triggered, this, &WindowMain::onStartClicked);
+
+  mShowInfoDialog = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("info"), "About", mTopToolBar);
+  mShowInfoDialog->setStatusTip("Open about dialog");
+  connect(mShowInfoDialog, &QAction::triggered, this, &WindowMain::onShowInfoDialog);
+
+  // =====================================
+  // Toolbar
+  // =====================================
+
+  mTopToolBar->addAction(mOpenProjectButton);
+  mTopToolBar->addAction(mSaveProject);
+  mTopToolBar->addSeparator();
+  mTopToolBar->addAction(mShowCompilerLog);
   mTopToolBar->addAction(mStartAnalysisToolButton);
+
+  // =====================================
+  // Menu bar
+  // =====================================
+  mTopMenuBar    = menuBar();
+  auto *fileMenu = mTopMenuBar->addMenu("File");
+  fileMenu->addAction(mOpenProjectButton);
+  fileMenu->addMenu(mOpenRecentProjectMenu);
+  fileMenu->addAction(mSaveProject);
+  fileMenu->addAction(mSaveProjectAs);
+
+  auto *helpMenu = mTopMenuBar->addMenu("Help");
+  helpMenu->addAction(mShowInfoDialog);
 }
 
 ///
@@ -792,15 +790,15 @@ bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
 ///
 void WindowMain::loadLastOpened()
 {
-  mOpenProjectMenu->clear();
-  mOpenProjectMenu->addSection("Projects");
+  mOpenRecentProjectMenu->clear();
+  mOpenRecentProjectMenu->addSection("Projects");
   for(const auto &path : joda::user_settings::UserSettings::getLastOpenedProject()) {
-    auto *action = mOpenProjectMenu->addAction(path.path.data());
+    auto *action = mOpenRecentProjectMenu->addAction(path.path.data());
     connect(action, &QAction::triggered, this, [this, path = path.path]() { openProjectSettings(path.data(), false); });
   }
-  mOpenProjectMenu->addSection("Results");
+  mOpenRecentProjectMenu->addSection("Results");
   for(const auto &path : joda::user_settings::UserSettings::getLastOpenedResult()) {
-    auto *action = mOpenProjectMenu->addAction((path.path + " (" + path.title + ")").data());
+    auto *action = mOpenRecentProjectMenu->addAction((path.path + " (" + path.title + ")").data());
     connect(action, &QAction::triggered, this, [this, path = path.path]() { openResultsSettings(path.data()); });
   }
 }

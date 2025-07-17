@@ -350,6 +350,16 @@ void Starter::startUi(QApplication &app, QSplashScreen *splashScreen, joda::upda
         QPushButton {
             min-height: 26px;
         }
+        QToolBar#MainWindowTopToolBar QToolButton {
+          margin-right: 4px;
+          padding: 4px;       
+        }
+        QToolBar#MainWindowTopToolBar {
+          padding-top: 8px; 
+          padding-bottom: 8px;
+          padding-left: 4px; 
+          padding-right: 4px;
+        }
     )";
 
   app.setStyleSheet(stylesheet);
