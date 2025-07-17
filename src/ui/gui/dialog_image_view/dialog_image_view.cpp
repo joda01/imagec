@@ -56,8 +56,8 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
   // ======================================
   // Toolbar
   // ======================================
+  QToolBar *toolbarTop;
   {
-    QToolBar *toolbarTop;
     if(toolbarParent == nullptr) {
       toolbarTop = new QToolBar();
     } else {
@@ -160,18 +160,6 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
     connect(fitToScreen, &QAction::triggered, this, &DialogImageViewer::onFitImageToScreenSizeClicked);
     toolbarTop->addAction(fitToScreen);
 
-    auto *zoomIn = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("magnifying-glass-plus"), "Zoom in");
-    zoomIn->setStatusTip("Zoom image in");
-    zoomIn->setObjectName("ToolButton");
-    connect(zoomIn, &QAction::triggered, this, &DialogImageViewer::onZoomInClicked);
-    toolbarTop->addAction(zoomIn);
-
-    auto *zoomOut = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("magnifying-glass-minus"), "Zoom out");
-    zoomOut->setObjectName("ToolButton");
-    zoomIn->setStatusTip("Zoom image out");
-    connect(zoomOut, &QAction::triggered, this, &DialogImageViewer::onZoomOutClicked);
-    toolbarTop->addAction(zoomOut);
-
     toolbarTop->addSeparator();
 
     showOverlay = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("circle"), "Overlay");
@@ -246,43 +234,26 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
 
     connect(&mImageViewRight, &PanelImageView::tileClicked, this, &DialogImageViewer::onSettingsChanged);
     connect(&mImageViewRight, &PanelImageView::classesToShowChanged, this, &DialogImageViewer::onSettingsChanged);
+    connect(&mImageViewRight, &PanelImageView::updateImage, [this]() { enableOrDisableVideoToolbar(); });
   }
 
   // Bottom toolbar
   {
     mSpinnerActTimeStack = new QSpinBox();
     mSpinnerActTimeStack->setValue(0);
+    mSpinnerActTimeStack->setMinimumWidth(65);
     connect(mSpinnerActTimeStack, &QSpinBox::valueChanged, [this] { onSettingsChanged(); });
 
-    // Create spacer widgets
-    auto *leftSpacer = new QWidget;
-    leftSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-
-    auto *rightSpacer = new QWidget;
-    rightSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-
-    mPlaybackToolbar = new QToolBar();
-    mPlaybackToolbar->setVisible(false);
-    mPlaybackToolbar->addWidget(leftSpacer);
-    auto *skipBackward = new QAction(generateSvgIcon("media-skip-backward"), "");
-    connect(skipBackward, &QAction::triggered, [this] {
-      mSpinnerActTimeStack->blockSignals(true);
-      mSpinnerActTimeStack->setValue(0);
-      mSpinnerActTimeStack->blockSignals(false);
-      emit settingChanged();
-    });
-    mPlaybackToolbar->addAction(skipBackward);
-
-    auto *seekBackward = new QAction(generateSvgIcon("media-seek-backward"), "");
-    connect(seekBackward, &QAction::triggered, [this] {
+    mSeekBack = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("skip-back"), "Backward");
+    connect(mSeekBack, &QAction::triggered, [this] {
       if(mSpinnerActTimeStack->value() > 0) {
         mSpinnerActTimeStack->blockSignals(true);
         mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() - 1);
         mSpinnerActTimeStack->blockSignals(false);
       }
-      emit settingChanged();
+      onSettingsChanged();
     });
-    mPlaybackToolbar->addAction(seekBackward);
+    toolbarTop->addAction(mSeekBack);
 
     // ==========================================================
 
@@ -311,7 +282,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
     addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("1 Hz"), 1000, true);
     addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("0.5 Hz"), 2000);
 
-    mActionPlay = new QAction(generateSvgIcon("media-playback-start"), "");
+    mActionPlay = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("play"), "Play/Stop");
     mActionPlay->setMenu(mPlaybackSpeedSelector);
     mActionPlay->setCheckable(true);
     connect(mActionPlay, &QAction::triggered, [this](bool selected) {
@@ -322,28 +293,19 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
       }
     });
 
-    mPlaybackToolbar->addAction(mActionPlay);
-    mPlaybackToolbar->addWidget(mSpinnerActTimeStack);
+    toolbarTop->addAction(mActionPlay);
+    toolbarTop->addWidget(mSpinnerActTimeStack);
 
-    mActionStop = new QAction(generateSvgIcon("media-playback-stop"), "");
-    connect(mActionStop, &QAction::triggered, [this] {
-      mActionPlay->setChecked(false);
-      mPlayTimer->stop();
-    });
-    mPlaybackToolbar->addAction(mActionStop);
-
-    auto *seekForward = new QAction(generateSvgIcon("media-seek-forward"), "");
-    connect(seekForward, &QAction::triggered, [this] {
-      if(mSpinnerActTimeStack->value() < mImageViewRight.getNrOfTstacks()) {
+    mSeekForward = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("skip-forward"), "Forward");
+    connect(mSeekForward, &QAction::triggered, [this] {
+      if(mSpinnerActTimeStack->value() < getMaxTimeStacks()) {
         mSpinnerActTimeStack->blockSignals(true);
         mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() + 1);
         mSpinnerActTimeStack->blockSignals(false);
       }
-      emit settingChanged();
+      onSettingsChanged();
     });
-    mPlaybackToolbar->addAction(seekForward);
-    mPlaybackToolbar->addWidget(rightSpacer);
-    mMainLayout->addWidget(mPlaybackToolbar);
+    toolbarTop->addAction(mSeekForward);
   }
 
   // setLayout(layout);
@@ -352,7 +314,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
   // Video timer
   mPlayTimer = new QTimer();
   QObject::connect(mPlayTimer, &QTimer::timeout, [&] {
-    if(mSpinnerActTimeStack->value() < mImageViewRight.getNrOfTstacks()) {
+    if(mSpinnerActTimeStack->value() < getMaxTimeStacks()) {
       mSpinnerActTimeStack->blockSignals(true);
       mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() + 1);
       mSpinnerActTimeStack->blockSignals(false);
@@ -361,7 +323,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
       mSpinnerActTimeStack->setValue(0);
       mSpinnerActTimeStack->blockSignals(false);
     }
-    emit settingChanged();
+    onSettingsChanged();
   });
 
   onSettingsChanged();
@@ -452,13 +414,75 @@ auto DialogImageViewer::getImagePanel() -> PanelImageView *
 /// \param[out]
 /// \return
 ///
+void DialogImageViewer::setMaxTimeStacks(int32_t tStacks)
+{
+  mTempMaxTimeStacks = tStacks;
+  enableOrDisableVideoToolbar();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+int32_t DialogImageViewer::getMaxTimeStacks() const
+{
+  if(mTempMaxTimeStacks < 0) {
+    return mImageViewRight.getNrOfTstacks();
+  } else {
+    return mTempMaxTimeStacks;
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::enableOrDisableVideoToolbar()
+{
+  int32_t nrOfTStacks = getMaxTimeStacks();
+  mSpinnerActTimeStack->setMaximum(nrOfTStacks);
+  if(nrOfTStacks <= 1) {
+    if(mSpinnerActTimeStack->value() > 0) {
+      mSpinnerActTimeStack->setValue(0);
+    }
+    if(mSeekForward->isEnabled()) {
+      mSeekForward->setEnabled(false);
+      mSeekBack->setEnabled(false);
+      mActionPlay->setChecked(false);
+      mActionPlay->setEnabled(false);
+      mSpinnerActTimeStack->setEnabled(false);
+    }
+  } else {
+    if(!mSeekForward->isEnabled()) {
+      mSeekForward->setEnabled(true);
+      mSeekBack->setEnabled(true);
+      mActionPlay->setEnabled(true);
+      mSpinnerActTimeStack->setEnabled(true);
+    }
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void DialogImageViewer::applySettingsToImagePanel()
 {
   auto tileSize = getTileSize();
+  mImageViewRight.setSeries(mImageSettings.imageSeries);
+  enableOrDisableVideoToolbar();
   mImageViewRight.setZprojection(getSelectedZProjection());
   mImageViewRight.setImagePlane({.z = mSelectedZStack, .c = getSelectedImageChannel(), .t = mSpinnerActTimeStack->value()});
   mImageViewRight.setImageTile(tileSize, tileSize);
-  mImageViewRight.setSeries(mImageSettings.imageSeries);
 
   // Sync to settings
   if(mSettings != nullptr) {

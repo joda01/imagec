@@ -68,6 +68,7 @@ public:
   void setImagePlane(const ImagePlaneSettings &);
   void setShowCrossHairCursor(bool show);
   void setSettingsPointer(joda::settings::AnalyzeSettings *settings);
+  void setMaxTimeStacks(int32_t);
 
 signals:
   /////////////////////////////////////////////////////
@@ -76,6 +77,8 @@ signals:
 private:
   /////////////////////////////////////////////////////
   void applySettingsToImagePanel();
+  void enableOrDisableVideoToolbar();
+  int32_t getMaxTimeStacks() const;
 
   // LAYOUT //////////////////////////////////////////
   QBoxLayout *mCentralLayout;
@@ -96,16 +99,17 @@ private:
 
   // T-STACK //////////////////////////////////////////////////
   std::optional<int32_t> mMaxTimeStacks = std::nullopt;
-  QToolBar *mPlaybackToolbar;
-  int32_t mPlaybackSpeed = 1000;
+  int32_t mPlaybackSpeed                = 1000;
   QActionGroup *mPlaybackspeedGroup;
   QMenu *mPlaybackSpeedSelector;
   QTimer *mPlayTimer;
   QAction *mActionPlay;
-  QAction *mActionStop;
+  QAction *mSeekBack;
+  QAction *mSeekForward;
   QSpinBox *mSpinnerActTimeStack;
   bool mPlaybackToolbarVisible = false;
   int32_t mSelectedZStack      = 0;
+  int32_t mTempMaxTimeStacks   = -1;
 
   // IMAGE SETTINGS //////////////////////////////////////////////////
   DialogImageSettings::Settings mImageSettings;

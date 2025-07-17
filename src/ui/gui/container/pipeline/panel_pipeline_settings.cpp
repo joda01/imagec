@@ -114,13 +114,32 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   }
 
   // Tool button
-  mUndoAction = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("arrow-counter-clockwise"), "Undo");
+  mToolbar->addSeparator();
+  mUndoAction = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("arrow-counter-clockwise"), "Undo");
   mUndoAction->setEnabled(false);
   mUndoAction->setStatusTip("Undo last setting");
   connect(mUndoAction, &QAction::triggered, [this]() {
     this->mDialogHistory->undo();
     mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
   });
+
+  //
+  // Switch to edit mode
+  //
+  mActionEditMode = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("eye"), "Live mode");
+  mActionEditMode->setStatusTip("Switch to live edit mode");
+  mActionEditMode->setCheckable(true);
+  connect(mActionEditMode, &QAction::triggered, [this](bool selected) { mPreviewImage->getImagePanel()->setShowEditedImage(selected); });
+
+  //
+  // Add disable button
+  //
+  mActionDisabled = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("selection-slash"), "Disable pipeline");
+  mActionDisabled->setStatusTip("Temporary disable this pipeline");
+  mActionDisabled->setCheckable(true);
+  connect(mActionDisabled, &QAction::triggered, this, &PanelPipelineSettings::valueChangedEvent);
+
+  mToolbar->addSeparator();
 
   mHistoryAction = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("clock-counter-clockwise"), "History");
   mHistoryAction->setStatusTip("Show/Hide pipeline edit history");
@@ -142,25 +161,12 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   mToolbar->addSeparator();
 
   //
-  // Switch to edit mode
-  //
-  mActionEditMode = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("pencil-simple"), "Switch to edit mode");
-  mActionEditMode->setStatusTip("Switch to edit mode");
-  mActionEditMode->setCheckable(true);
-  connect(mActionEditMode, &QAction::triggered, [this](bool selected) { mPreviewImage->getImagePanel()->setShowEditedImage(selected); });
-
-  //
-  // Add disable button
-  //
-  mActionDisabled = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("eye-slash"), "Disable pipeline");
-  mActionDisabled->setStatusTip("Temporary disable this pipeline");
-  mActionDisabled->setCheckable(true);
-  connect(mActionDisabled, &QAction::triggered, this, &PanelPipelineSettings::valueChangedEvent);
-
-  mToolbar->addSeparator();
-  //
   // Close button
   //
+  auto *spacer = new QWidget();
+  spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  mToolbar->addWidget(spacer);
+
   auto *closePipeline = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("x"), "Close pipeline editor");
   closePipeline->setStatusTip("Close pipeline editor");
 
@@ -233,7 +239,6 @@ void PanelPipelineSettings::insertNewPipelineStep(int32_t posToInsert, std::uniq
 
   if(mCommands.empty()) {
     command->registerAddCommandButton(nullptr, mCommandSelectionDialog, mSettings, this, mWindowMain);
-
   } else if(posToInsert > 0) {
     command->registerAddCommandButton(mCommands.at(posToInsert - 1), mCommandSelectionDialog, mSettings, this, mWindowMain);
 

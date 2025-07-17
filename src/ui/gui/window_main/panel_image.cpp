@@ -24,12 +24,6 @@ PanelImages::PanelImages(WindowMain *windowMain) : mWindowMain(windowMain)
 {
   auto *layout = new QVBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
-  {
-    mSearchField = new QLineEdit();
-    mSearchField->setPlaceholderText("Search ...");
-    layout->addWidget(mSearchField);
-    connect(mSearchField, &QLineEdit::editingFinished, this, &PanelImages::filterImages);
-  }
 
   {
     mImages = new PlaceholderTableWidget(0, 2);
@@ -63,6 +57,12 @@ PanelImages::PanelImages(WindowMain *windowMain) : mWindowMain(windowMain)
     layout->addWidget(mImageMeta, 4);
   }
 
+  {
+    mSearchField = new QLineEdit();
+    mSearchField->setPlaceholderText("Search ...");
+    layout->addWidget(mSearchField);
+    connect(mSearchField, &QLineEdit::editingFinished, this, &PanelImages::filterImages);
+  }
   setLayout(layout);
 
   windowMain->getController()->registerImageLookupCallback([this](joda::filesystem ::State state) {

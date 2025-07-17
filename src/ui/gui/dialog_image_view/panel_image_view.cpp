@@ -847,9 +847,13 @@ auto PanelImageView::getSelectedTile() -> std::pair<int32_t, int32_t>
 /// \param[out]
 /// \return
 ///
-int32_t PanelImageView::getNrOfTstacks()
+int32_t PanelImageView::getNrOfTstacks() const
 {
-  return mOmeInfo.getNrOfTStack(mSeries);
+  try {
+    return mOmeInfo.getNrOfTStack(mSeries);
+  } catch(...) {
+    return 0;
+  }
 }
 
 ///
@@ -859,9 +863,13 @@ int32_t PanelImageView::getNrOfTstacks()
 /// \param[out]
 /// \return
 ///
-int32_t PanelImageView::getNrOfCstacks()
+int32_t PanelImageView::getNrOfCstacks() const
 {
-  return mOmeInfo.getNrOfChannels(mSeries);
+  try {
+    return mOmeInfo.getNrOfChannels(mSeries);
+  } catch(...) {
+    return 0;
+  }
 }
 
 ///
@@ -871,9 +879,13 @@ int32_t PanelImageView::getNrOfCstacks()
 /// \param[out]
 /// \return
 ///
-int32_t PanelImageView::getNrOfZstacks()
+int32_t PanelImageView::getNrOfZstacks() const
 {
-  return mOmeInfo.getNrOfZStack(mSeries);
+  try {
+    return mOmeInfo.getNrOfZStack(mSeries);
+  } catch(...) {
+    return 0;
+  }
 }
 
 ///

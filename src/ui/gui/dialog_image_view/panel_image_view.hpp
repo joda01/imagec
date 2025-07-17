@@ -99,9 +99,9 @@ public:
   void setCursorPositionFromOriginalImageCoordinatesAndCenter(const QRect &boundingRect);
   auto getCursorPosition() -> QPoint;
   auto getSelectedTile() -> std::pair<int32_t, int32_t>;
-  int32_t getNrOfTstacks();
-  int32_t getNrOfCstacks();
-  int32_t getNrOfZstacks();
+  int32_t getNrOfTstacks() const;
+  int32_t getNrOfCstacks() const;
+  int32_t getNrOfZstacks() const;
 
   // INFORMATION NEEDED FROM EXTERNAL ///////////////////////////////////////////////////
   void setZprojection(enums::ZProjection);
