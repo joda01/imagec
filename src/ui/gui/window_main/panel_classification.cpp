@@ -47,22 +47,24 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
 
   {
     auto *toolbar = new QToolBar();
+    toolbar->setObjectName("SubToolBar");
+    toolbar->setIconSize(QSize(16, 16));
 
     //
     // Add class
     //
-    mTemplateMenu     = new QMenu();
-    auto *newPipeline = new QAction(generateSvgIcon("list-add"), "Add object class");
-    connect(newPipeline, &QAction::triggered, [this]() { addClass(); });
-    newPipeline->setStatusTip("Add object class or load from template");
-    newPipeline->setMenu(mTemplateMenu);
-    toolbar->addAction(newPipeline);
+    mTemplateMenu  = new QMenu();
+    auto *newClass = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("plus"), "Add object class");
+    connect(newClass, &QAction::triggered, [this]() { addClass(); });
+    newClass->setStatusTip("Add object class or load from template");
+    newClass->setMenu(mTemplateMenu);
+    toolbar->addAction(newClass);
 
     //
     // Populate from image
     // object-ungroup
     //
-    auto *populateFromImage = new QAction(generateSvgIcon("tools-wizard"), "Populate from image channels");
+    auto *populateFromImage = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("magic-wand"), "Populate from image channels");
     populateFromImage->setStatusTip("Automatically populate classes from image channels");
     toolbar->addAction(populateFromImage);
     connect(populateFromImage, &QAction::triggered, [this]() { this->populateClassesFromImage(); });
@@ -72,7 +74,7 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
     //
     // Open template
     //
-    auto *openTemplate = new QAction(generateSvgIcon("folder-open"), "Open object class template");
+    auto *openTemplate = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("folder-open"), "Open object class template");
     openTemplate->setStatusTip("Open object class template");
     connect(openTemplate, &QAction::triggered, [this]() {
       QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
@@ -88,16 +90,17 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
     //
     // Save as template
     //
-    auto *saveAsTemplate = new QAction(generateSvgIcon("document-save-as-template"), "Save classification settings as template");
+    auto *saveAsTemplate = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("floppy-disk"), "Save classification settings as template");
     saveAsTemplate->setStatusTip("Save classification settings as template");
     connect(saveAsTemplate, &QAction::triggered, [this]() { saveAsNewTemplate(); });
     toolbar->addAction(saveAsTemplate);
 
     toolbar->addSeparator();
+
     //
     // Move down
     //
-    auto *moveDown = new QAction(generateSvgIcon("go-down"), "Move down");
+    auto *moveDown = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("caret-down"), "Move down");
     moveDown->setStatusTip("Move selected pipeline down");
     connect(moveDown, &QAction::triggered, this, &PanelClassification::moveDown);
     toolbar->addAction(moveDown);
@@ -105,7 +108,7 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
     //
     // Move up
     //
-    auto *moveUp = new QAction(generateSvgIcon("go-up"), "Move up");
+    auto *moveUp = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("caret-up"), "Move up");
     moveUp->setStatusTip("Move selected pipeline up");
     connect(moveUp, &QAction::triggered, this, &PanelClassification::moveUp);
     toolbar->addAction(moveUp);
@@ -115,7 +118,7 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
     //
     // Copy selection
     //
-    auto *copy = new QAction(generateSvgIcon("edit-copy"), "Copy selected class");
+    auto *copy = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("copy"), "Copy selected class");
     copy->setStatusTip("Copy selected class");
     connect(copy, &QAction::triggered, [this]() {
       QList<QTableWidgetSelectionRange> ranges = mClasses->selectedRanges();
@@ -138,11 +141,12 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
       }
     });
     toolbar->addAction(copy);
+    toolbar->addSeparator();
 
     //
     // Delete column
     //
-    auto *deleteColumn = new QAction(generateSvgIcon("edit-delete"), "Delete selected class", this);
+    auto *deleteColumn = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("trash-simple"), "Delete selected class", this);
     deleteColumn->setStatusTip("Delete selected class");
     toolbar->addAction(deleteColumn);
     connect(deleteColumn, &QAction::triggered, [this]() {

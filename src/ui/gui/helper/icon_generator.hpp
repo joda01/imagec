@@ -65,7 +65,8 @@ enum class Color
   BLACK,
   RED,
   GREEN,
-  BLUE
+  BLUE,
+  GRAY
 };
 
 template <Style STYLE, Color COLOR>
@@ -83,6 +84,9 @@ inline QIcon generateSvgIcon(const QString &iconName)
   }
   if constexpr(COLOR == Color::BLUE) {
     colorStr = "blue";
+  }
+  if constexpr(COLOR == Color::GRAY) {
+    colorStr = "gray";
   }
 
   if constexpr(STYLE == Style::REGULAR) {

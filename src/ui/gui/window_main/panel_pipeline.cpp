@@ -50,12 +50,13 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
   mMainLayout = new QVBoxLayout();
   mMainLayout->setContentsMargins(0, 0, 0, 0);
   auto *toolbar = new QToolBar();
+  toolbar->setIconSize(QSize(16, 16));
 
   {
     //
     // New pipeline
     //
-    auto *newPipeline = new QAction(generateSvgIcon("list-add"), "Add new pipeline");
+    auto *newPipeline = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("plus"), "Add new pipeline");
     newPipeline->setStatusTip("Add new pipeline or use predefined template");
     connect(newPipeline, &QAction::triggered, [this]() { addChannel(joda::settings::Pipeline{}); });
     mTemplatesMenu = new QMenu();
@@ -65,7 +66,7 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     //
     // Open template
     //
-    auto *openTemplate = new QAction(generateSvgIcon("folder-open"), "Open template");
+    auto *openTemplate = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("folder-open"), "Open template");
     openTemplate->setStatusTip("Open pipeline from template");
     connect(openTemplate, &QAction::triggered, [this]() {
       QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
@@ -82,7 +83,7 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     //
     // Save template
     //
-    auto *saveAsTemplateButton = new QAction(generateSvgIcon("document-save-as-template"), "Save as template");
+    auto *saveAsTemplateButton = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("floppy-disk"), "Save as template");
     saveAsTemplateButton->setStatusTip("Save pipeline as template");
     connect(saveAsTemplateButton, &QAction::triggered, [this]() { this->saveAsTemplate(); });
     toolbar->addAction(saveAsTemplateButton);
@@ -91,7 +92,7 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     //
     // Move down
     //
-    auto *moveDown = new QAction(generateSvgIcon("go-down"), "Move down");
+    auto *moveDown = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("caret-down"), "Move down");
     moveDown->setStatusTip("Move selected pipeline down");
     connect(moveDown, &QAction::triggered, this, &PanelPipeline::moveDown);
     toolbar->addAction(moveDown);
@@ -99,7 +100,7 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     //
     // Move up
     //
-    auto *moveUp = new QAction(generateSvgIcon("go-up"), "Move up");
+    auto *moveUp = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("caret-up"), "Move up");
     moveUp->setStatusTip("Move selected pipeline up");
     connect(moveUp, &QAction::triggered, this, &PanelPipeline::moveUp);
     toolbar->addAction(moveUp);
@@ -109,7 +110,7 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     //
     // Copy selection
     //
-    auto *copy = new QAction(generateSvgIcon("edit-copy"), "Copy selected pipeline");
+    auto *copy = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("copy"), "Copy selected pipeline");
     copy->setStatusTip("Copy selected pipeline");
     connect(copy, &QAction::triggered, [this]() {
       joda::settings::Pipeline copiedPipeline = getSelectedPipeline()->mutablePipeline();
@@ -117,11 +118,12 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
       addChannel(copiedPipeline);
     });
     toolbar->addAction(copy);
+    toolbar->addSeparator();
 
     //
     // Delete column
     //
-    auto *deleteColumn = new QAction(generateSvgIcon("edit-delete"), "Delete selected pipeline", this);
+    auto *deleteColumn = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("trash-simple"), "Delete selected pipeline", this);
     deleteColumn->setStatusTip("Delete selected pipeline");
     toolbar->addAction(deleteColumn);
     connect(deleteColumn, &QAction::triggered, [this]() {
