@@ -32,7 +32,7 @@
 #include "ui/gui/dialog_image_view/dialog_image_view.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 
-class PlaceholderTableWidget;
+class PlaceholderTableView;
 
 namespace joda::settings {
 class PipelineHistoryEntry;

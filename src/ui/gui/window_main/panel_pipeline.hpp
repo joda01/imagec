@@ -22,7 +22,7 @@
 #include "backend/settings/pipeline/pipeline.hpp"
 
 class DroppableWidget;
-class PlaceholderTableWidget;
+class PlaceholderTableView;
 
 namespace joda::ui::gui {
 
@@ -69,7 +69,7 @@ private:
   void removePipelineWidget();
 
   /////////////////////////////////////////////////////
-  QTableView *mPipelineTable;
+  PlaceholderTableView *mPipelineTable;
   TableModelPipeline *mTableModel;
   std::set<std::unique_ptr<PanelPipelineSettings>> mChannels;    // The second value is the pointer to the array entry in the AnalyzeSettings
   WindowMain *mWindowMain;

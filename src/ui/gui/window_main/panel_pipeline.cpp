@@ -33,6 +33,7 @@
 #include "ui/gui/helper/html_header.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/pipeline_overview_delegate.hpp"
+#include "ui/gui/helper/table_view.hpp"
 #include "ui/gui/helper/template_parser/template_parser.hpp"
 #include "ui/gui/window_main/window_main.hpp"
 
@@ -186,7 +187,8 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
 
   // Create a widget to hold the panels
   {
-    mPipelineTable = new QTableView(this);
+    mPipelineTable = new PlaceholderTableView(this);
+    mPipelineTable->setPlaceholderText("Press the + button to add a new pipeline.");
     mPipelineTable->setFrameStyle(QFrame::NoFrame);
     mPipelineTable->setShowGrid(false);
     mPipelineTable->setItemDelegate(new HtmlDelegate(mPipelineTable));

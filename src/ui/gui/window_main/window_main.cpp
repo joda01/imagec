@@ -306,6 +306,7 @@ void WindowMain::createLeftToolbar()
     panel->setParent(dock);
     dock->setWidget(panel);
     dock->setWindowTitle(title);
+    dock->setTitleBarWidget(nullptr);
     mDockWidgets.push_back(dock);
 
     addDockWidget(area, dock);
