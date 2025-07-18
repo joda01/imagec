@@ -12,6 +12,7 @@
 ///
 
 #include "ai_classifier_settings_ui.hpp"
+#include "ui/gui/helper/icon_generator.hpp"
 
 namespace joda::ui::gui {
 
@@ -29,16 +30,16 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   this->mutableEditDialog()->setMinimumWidth(700);
   this->mutableEditDialog()->setMinimumHeight(600);
 
-  auto *openModelsPath = addActionButton("Open models path", generateSvgIcon("open-link"));
+  auto *openModelsPath = addActionButton("Open models path", generateSvgIcon<Style::REGULAR, Color::BLACK>("arrow-square-out"));
   connect(openModelsPath, &QAction::triggered, [this]() {
     QString appDirPath = QCoreApplication::applicationDirPath() + "/models";
     QDesktopServices::openUrl(QUrl("file:///" + appDirPath));
   });
 
-  auto *reloadModels = addActionButton("Reload models", generateSvgIcon("view-refresh"));
+  auto *reloadModels = addActionButton("Reload models", generateSvgIcon<Style::REGULAR, Color::BLACK>("arrows-clockwise"));
   connect(reloadModels, &QAction::triggered, [this]() { refreshModels(); });
 
-  auto *helpButton = addActionButton("Help", generateSvgIcon("help-contents"));
+  auto *helpButton = addActionButton("Help", generateSvgIcon<Style::REGULAR, Color::BLUE>("question"));
   connect(helpButton, &QAction::triggered, [this]() {
     QUrl url("https://imagec.org/doc/docs/commands/index.html#object-classification");
     QDesktopServices::openUrl(url);
@@ -98,8 +99,8 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
 
   mChannels = SettingBase::create<SettingComboBox<joda::settings::AiClassifierSettings::NetChannels>>(parent, {}, "Input channels of the model");
   mChannels->setDefaultValue(joda::settings::AiClassifierSettings::NetChannels::GRAYSCALE);
-  mChannels->addOptions({{joda::settings::AiClassifierSettings::NetChannels::GRAYSCALE, "Grayscale", generateSvgIcon("drive-multipartition")},
-                         {joda::settings::AiClassifierSettings::NetChannels::RGB, "Color", generateSvgIcon("color-management")}});
+  mChannels->addOptions({{joda::settings::AiClassifierSettings::NetChannels::GRAYSCALE, "Grayscale"},
+                         {joda::settings::AiClassifierSettings::NetChannels::RGB, "Color"}});
   mChannels->setValue(settings.modelInputParameter.channels);
   mChannels->connectWithSetting(&settings.modelInputParameter.channels);
   mChannels->setShortDescription("Channels:");
@@ -110,7 +111,7 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   ////
   mModelFormat = SettingBase::create<SettingComboBox<joda::settings::AiClassifierSettings::ModelFormat>>(parent, {}, "Model format");
   mModelFormat->setDefaultValue(joda::settings::AiClassifierSettings::ModelFormat::ONNX);
-  mModelFormat->addOptions({{joda::settings::AiClassifierSettings::ModelFormat::UNKNOWN, "Unknown", generateSvgIcon("question")},
+  mModelFormat->addOptions({{joda::settings::AiClassifierSettings::ModelFormat::UNKNOWN, "Unknown"},
                             {joda::settings::AiClassifierSettings::ModelFormat::ONNX, "Onnx", generateIcon("onnx")},
                             {joda::settings::AiClassifierSettings::ModelFormat::TORCHSCRIPT, "Torchscript", generateIcon("pytorch")},
                             {joda::settings::AiClassifierSettings::ModelFormat::TENSORFLOW, "Tensorflow", generateIcon("tensorflow")}
@@ -127,7 +128,7 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
       SettingBase::create<SettingComboBox<joda::settings::AiClassifierSettings::ModelArchitecture>>(parent, {}, "Model architecture");
   mModelArchitecture->setDefaultValue(joda::settings::AiClassifierSettings::ModelArchitecture::YOLO_V5);
   mModelArchitecture->addOptions({
-      {joda::settings::AiClassifierSettings::ModelArchitecture::UNKNOWN, "Unknown", generateSvgIcon("question")},
+      {joda::settings::AiClassifierSettings::ModelArchitecture::UNKNOWN, "Unknown"},
       {joda::settings::AiClassifierSettings::ModelArchitecture::YOLO_V5, "Yolo v5", generateIcon("connect")},
       {joda::settings::AiClassifierSettings::ModelArchitecture::U_NET, "U-Net", generateIcon("u")},
       {joda::settings::AiClassifierSettings::ModelArchitecture::CYTO3, "Cyto3", generateIcon("cellpose")},
@@ -151,8 +152,7 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   //
   //
   //
-  mClassThreshold =
-      SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("format-number-percent"), "Class threshold. Default: Yolo: 0.5");
+  mClassThreshold = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Class threshold. Default: Yolo: 0.5");
   mClassThreshold->setPlaceholderText("[0 - 1]");
   mClassThreshold->setUnit("");
   mClassThreshold->setMinMax(0, 1);
@@ -162,8 +162,7 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   //
   //
   //
-  mMaskThreshold =
-      SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("format-number-percent"), "Mask threshold. Default: U-Net 0.96, Yolo: 0.8");
+  mMaskThreshold = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Mask threshold. Default: U-Net 0.96, Yolo: 0.8");
   mMaskThreshold->setPlaceholderText("[0 - 1");
   mMaskThreshold->setUnit("");
   mMaskThreshold->setMinMax(0, 1);

@@ -32,7 +32,7 @@ concept ImageCStackCombo_t = std::is_base_of<SettingComboBoxMulti<int32_t>, T>::
 template <ImageCStackCombo_t T>
 inline auto generateCStackCombo(const QString &helpText, QWidget *parent, const QString &thisText = "Default")
 {
-  auto dropBox = SettingBase::create<T>(parent, generateSvgIcon("irc-operator"), helpText);
+  auto dropBox = SettingBase::create<T>(parent, {}, helpText);
   dropBox->addOptions({{-2, "Off", generateSvgIcon<Style::REGULAR, Color::BLUE>("placeholder")},
                        {-1, thisText, generateSvgIcon<Style::REGULAR, Color::BLUE>("rectangle")},
                        {0, "CH0", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-zero")},
@@ -50,7 +50,8 @@ inline auto generateCStackCombo(const QString &helpText, QWidget *parent, const 
 
 inline auto generateZProjection(bool withThis, QWidget *parent) -> std::unique_ptr<SettingComboBox<enums::ZProjection>>
 {
-  auto zProjection = SettingBase::create<SettingComboBox<enums::ZProjection>>(parent, generateSvgIcon("stack"), "Z-Projection");
+  auto zProjection =
+      SettingBase::create<SettingComboBox<enums::ZProjection>>(parent, generateSvgIcon<Style::REGULAR, Color::BLUE>("stack"), "Z-Projection");
   if(withThis) {
     zProjection->addOptions({{enums::ZProjection::$, "Default"},
                              {enums::ZProjection::NONE, "Single channel"},
@@ -95,15 +96,8 @@ inline auto generateAiModelClass(const QString &helpText, QWidget *parent) -> st
 {
   auto mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, helpText);
   mGrayScaleValue->setDefaultValue(0);
-  mGrayScaleValue->addOptions({{-1, "Unset", generateSvgIcon("question")},
-                               {0, "CL 1"},
-                               {1, "CL 2"},
-                               {2, "CL 3"},
-                               {3, "CL 4"},
-                               {4, "CL 5"},
-                               {5, "CL 6"},
-                               {6, "CL 7"},
-                               {7, "CL 8"}});
+  mGrayScaleValue->addOptions(
+      {{-1, "Unset"}, {0, "CL 1"}, {1, "CL 2"}, {2, "CL 3"}, {3, "CL 4"}, {4, "CL 5"}, {5, "CL 6"}, {6, "CL 7"}, {7, "CL 8"}});
   mGrayScaleValue->setUnit("");
   mGrayScaleValue->setShortDescription("");
 

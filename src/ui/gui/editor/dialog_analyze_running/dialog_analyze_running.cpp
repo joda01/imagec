@@ -73,7 +73,7 @@ DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain, const joda::s
   stopButton->setObjectName("ToolButton");
   stopButton->setEnabled(true);
 
-  QPushButton *openResultsFolder = new QPushButton(generateSvgIcon("open-link"), "", this);
+  QPushButton *openResultsFolder = new QPushButton(generateSvgIcon<Style::REGULAR, Color::BLACK>("arrow-square-out"), "", this);
   openResultsFolder->setObjectName("ToolButton");
   openResultsFolder->setToolTip("Open results folder");
 

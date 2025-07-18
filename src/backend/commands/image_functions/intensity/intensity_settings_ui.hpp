@@ -47,7 +47,7 @@ public:
     //
     //
     //
-    mContrast = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("lighttable"), "Contrast");
+    mContrast = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Contrast");
     mContrast->setValue(settings.contrast);
     mContrast->connectWithSetting(&settings.contrast);
     mContrast->setPlaceholderText("[1-65535]");
@@ -56,7 +56,7 @@ public:
     //
     //
     //
-    mBrightness = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-high"), "Brightness");
+    mBrightness = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Brightness");
     mBrightness->setValue(settings.brightness);
     mBrightness->connectWithSetting(&settings.brightness);
     mBrightness->setPlaceholderText("[-32768, +32767]");
@@ -65,7 +65,7 @@ public:
     //
     //
     //
-    mGamma = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("labplot-matrix"), "Gamma");
+    mGamma = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Gamma");
     mGamma->setValue(settings.gamma);
     mGamma->connectWithSetting(&settings.gamma);
     mGamma->setShortDescription("Gamma: ");

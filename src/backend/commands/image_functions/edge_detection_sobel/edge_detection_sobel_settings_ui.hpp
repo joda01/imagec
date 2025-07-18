@@ -39,7 +39,7 @@ public:
     //
     //
     //
-    mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, generateSvgIcon("labplot-matrix"), "Kernel size");
+    mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, "Kernel size");
     mKernelSize->addOptions({{-1, "ImageJ"},
                              {3, "3x3"},
                              {5, "5x5"},
@@ -61,8 +61,16 @@ public:
     //
     mFunction = SettingBase::create<SettingComboBox<settings::EdgeDetectionSobelSettings::WeightFunction>>(parent, {}, "Weight function");
     mFunction->addOptions({
-        {.key = settings::EdgeDetectionSobelSettings::WeightFunction::MAGNITUDE, .label = "Magnitude", .icon = generateSvgIcon("sqrt")},
-        {.key = settings::EdgeDetectionSobelSettings::WeightFunction::ABS, .label = "Absolute value", .icon = generateSvgIcon("filename-divider")},
+        {
+            .key   = settings::EdgeDetectionSobelSettings::WeightFunction::MAGNITUDE,
+            .label = "Magnitude",
+            .icon  = {},
+        },
+        {
+            .key   = settings::EdgeDetectionSobelSettings::WeightFunction::ABS,
+            .label = "Absolute value",
+            .icon  = {},
+        },
     });
     mFunction->setValue(settings.weighFunction);
     mFunction->connectWithSetting(&settings.weighFunction);
@@ -70,7 +78,7 @@ public:
     //
     //
     //
-    mDerivativeOrderX = SettingBase::create<SettingLineEdit<uint16_t>>(parent, generateSvgIcon("labplot-axis-horizontal"), "Derivation order X");
+    mDerivativeOrderX = SettingBase::create<SettingLineEdit<uint16_t>>(parent, {}, "Derivation order X");
     mDerivativeOrderX->setPlaceholderText("[0 - 255]");
     mDerivativeOrderX->setUnit("");
     mDerivativeOrderX->setMinMax(0, 255);
@@ -81,7 +89,7 @@ public:
     //
     //
     //
-    mDerivativeOrderY = SettingBase::create<SettingLineEdit<uint16_t>>(parent, generateSvgIcon("labplot-axis-vertical"), "Derivation order Y");
+    mDerivativeOrderY = SettingBase::create<SettingLineEdit<uint16_t>>(parent, {}, "Derivation order Y");
     mDerivativeOrderY->setPlaceholderText("[0 - 255]");
     mDerivativeOrderY->setUnit("");
     mDerivativeOrderY->setMinMax(0, 255);

@@ -67,7 +67,7 @@ public:
     mFunction->setValue(settings.function);
     mFunction->connectWithSetting(&settings.function);
 
-    mScaleFactor = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("skrooge_type"), "Factor [0-65535]");
+    mScaleFactor = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Factor [0-65535]");
     mScaleFactor->setPlaceholderText("[0 - 65535]");
     mScaleFactor->setUnit("x");
     mScaleFactor->setMinMax(0, 65535);

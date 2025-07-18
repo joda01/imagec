@@ -39,7 +39,7 @@ public:
     //
     //
     //
-    mThresholdValueMin = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("brightness-low"), "Min. threshold");
+    mThresholdValueMin = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Min. threshold");
     mThresholdValueMin->setPlaceholderText("[0 - 255]");
     mThresholdValueMin->setUnit("");
     mThresholdValueMin->setMinMax(0, 255);
@@ -50,7 +50,7 @@ public:
     //
     //
     //
-    mThresholdValueMax = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("brightness-high"), "Max. threshold");
+    mThresholdValueMax = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Max. threshold");
     mThresholdValueMax->setPlaceholderText("[0 - 255]");
     mThresholdValueMax->setUnit("");
     mThresholdValueMax->setMinMax(0, 255);
@@ -61,7 +61,7 @@ public:
     //
     //
     //
-    mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, generateSvgIcon("labplot-matrix"), "Kernel size");
+    mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, "Kernel size");
     mKernelSize->addOptions({{3, "3x3"}, {5, "5x5"}, {7, "7x7"}});
     mKernelSize->setValue(settings.kernelSize);
     mKernelSize->connectWithSetting(&settings.kernelSize);

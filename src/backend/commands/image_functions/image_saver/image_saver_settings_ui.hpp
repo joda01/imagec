@@ -52,10 +52,9 @@ public:
       //
       canvas = SettingBase::create<SettingComboBox<settings::ImageSaverSettings::Canvas>>(parent, {}, "Canvas");
       canvas->setDefaultValue(settings::ImageSaverSettings::Canvas::IMAGE_$);
-      canvas->addOptions(
-          {{.key = settings::ImageSaverSettings::Canvas::IMAGE_$, .label = "Image", .icon = generateSvgIcon("color-mode-invert-image")},
-           {.key = settings::ImageSaverSettings::Canvas::WHITE, .label = "White", .icon = generateSvgIcon("color-mode-invert-image")},
-           {.key = settings::ImageSaverSettings::Canvas::BLACK, .label = "Black", .icon = generateSvgIcon("color-mode-invert-image")}});
+      canvas->addOptions({{.key = settings::ImageSaverSettings::Canvas::IMAGE_$, .label = "Image", .icon = {}},
+                          {.key = settings::ImageSaverSettings::Canvas::WHITE, .label = "White", .icon = {}},
+                          {.key = settings::ImageSaverSettings::Canvas::BLACK, .label = "Black", .icon = {}}});
       canvas->setValue(settings.canvas);
       canvas->connectWithSetting(&settings.canvas);
 
@@ -63,26 +62,24 @@ public:
       //
       style = SettingBase::create<SettingComboBox<settings::ImageSaverSettings::Style>>(parent, {}, "Style");
       style->setDefaultValue(settings::ImageSaverSettings::Style::OUTLINED);
-      style->addOptions({{.key = settings::ImageSaverSettings::Style::OUTLINED, .label = "Outlined", .icon = generateSvgIcon("fill-color")},
-                         {.key = settings::ImageSaverSettings::Style::FILLED, .label = "Filled", .icon = generateSvgIcon("fill-color")}});
+      style->addOptions({{.key = settings::ImageSaverSettings::Style::OUTLINED, .label = "Outlined", .icon = {}},
+                         {.key = settings::ImageSaverSettings::Style::FILLED, .label = "Filled", .icon = {}}});
 
       //
       //
       boundingBox = SettingBase::create<SettingComboBox<bool>>(parent, {}, "Bounding box");
       boundingBox->setDefaultValue(false);
-      boundingBox->addOptions({{.key = false, .label = "No bounding box", .icon = generateSvgIcon("select-rectangular")},
-                               {.key = true, .label = "With bounding box", .icon = generateSvgIcon("select-rectangular")}});
+      boundingBox->addOptions({{.key = false, .label = "No bounding box", .icon = {}}, {.key = true, .label = "With bounding box", .icon = {}}});
 
       //
       //
       objectId = SettingBase::create<SettingComboBox<bool>>(parent, {}, "Object ID");
       objectId->setDefaultValue(false);
-      objectId->addOptions({{.key = false, .label = "No object ID", .icon = generateSvgIcon("irc-remove-operator")},
-                            {.key = true, .label = "With object ID", .icon = generateSvgIcon("irc-operator")}});
+      objectId->addOptions({{.key = false, .label = "No object ID", .icon = {}}, {.key = true, .label = "With object ID", .icon = {}}});
 
       //
       //
-      mImageNamePrefix = SettingBase::create<SettingLineEdit<std::string>>(parent, generateSvgIcon("filename-initial-amarok"), "Image name prefix");
+      mImageNamePrefix = SettingBase::create<SettingLineEdit<std::string>>(parent, {}, "Image name prefix");
       mImageNamePrefix->setDefaultValue("control");
       mImageNamePrefix->setPlaceholderText("Name ...");
       mImageNamePrefix->setUnit("");

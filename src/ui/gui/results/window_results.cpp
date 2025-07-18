@@ -78,7 +78,6 @@
 #include "ui/gui/results/panel_classification_list.hpp"
 #include "ui/gui/results/panel_graph_settings.hpp"
 #include <nlohmann/json_fwd.hpp>
-#include "dialog_column_settings.hpp"
 
 namespace joda::ui::gui {
 
@@ -102,8 +101,6 @@ WindowResults::WindowResults(WindowMain *windowMain) : mWindowMain(windowMain), 
 
   static const int32_t SELECTED_INFO_WIDTH   = 250;
   static const int32_t SELECTED_INFO_SPACING = 6;
-
-  mColumnEditDialog = new DialogColumnSettings(&mFilter, this);
 
   //
   // Graph
@@ -461,40 +458,6 @@ auto WindowResults::createToolBar() -> QToolBar *
   connect(restoreAll, &QAction::triggered, [this]() { mDashboard->restoreSubWindows(); });
   windowMenu->addAction(restoreAll);
 
-  /*
-    auto *addColumn = new QAction(generateSvgIcon("edit-table-insert-column-right"), "");
-    addColumn->setToolTip("Add column");
-    connect(addColumn, &QAction::triggered, [this]() {
-      columnEdit(-1);
-      mDockWidgetClassList->fromSettings();
-    });
-
-    toolbar->addItemToTopToolbar(addColumn);
-
-    mDeleteCol = new QAction(generateSvgIcon("edit-table-delete-column"), "");
-    mDeleteCol->setToolTip("Delete column");
-    connect(mDeleteCol, &QAction::triggered, [this]() {
-      if(mSelectedTableColumnIdx >= 0) {
-        auto colIdx = mActFilter.getColumn({.colIdx = mSelectedTableColumnIdx});
-        mFilter.eraseColumn(colIdx);
-        if(mAutoSort->isChecked()) {
-          mFilter.sortColumns();
-        }
-        refreshView();
-        mDockWidgetClassList->fromSettings();
-      }
-    });
-    toolbar->addItemToTopToolbar(mDeleteCol);
-
-    mEditCol = new QAction(generateSvgIcon("document-edit"), "");
-    mEditCol->setToolTip("Edit column");
-    connect(mEditCol, &QAction::triggered, [this]() {
-      if(mSelectedTableColumnIdx >= 0) {
-        columnEdit(mSelectedTableColumnIdx);
-      }
-    });
-    toolbar->addItemToTopToolbar(mEditCol);
-  */
   mFilter.sortColumns();
   toolbar->addSeparator();
 
@@ -1115,7 +1078,6 @@ void WindowResults::openFromFile(const QString &pathToDbFile)
   mImageWorkingDirectory = mDbFilePath.parent_path().parent_path().parent_path();
 
   mSelectedDataSet.analyzeMeta = mAnalyzer->selectExperiment();
-  mColumnEditDialog->updateClassesAndClasses(mAnalyzer.get());
   // Try to load settings if available
   try {
     if(mSelectedDataSet.analyzeMeta.has_value()) {
@@ -1208,11 +1170,6 @@ void WindowResults::onShowHeatmap()
 ///
 void WindowResults::columnEdit(int32_t colIdx)
 {
-  if(colIdx >= 0) {
-    mColumnEditDialog->exec(mActFilter.getColumn({.colIdx = colIdx}), false);
-  } else {
-    mColumnEditDialog->exec({}, true);
-  }
   mFilter.sortColumns();
 
   refreshView();

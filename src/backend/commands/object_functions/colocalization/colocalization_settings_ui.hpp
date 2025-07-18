@@ -137,7 +137,7 @@ public:
 
     //
     //
-    mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("format-number-percent"), "Min. intersection");
+    mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Min. intersection");
     mMinIntersection->setDefaultValue(0.1);
     mMinIntersection->setPlaceholderText("[0 - 1]");
     mMinIntersection->setUnit("%");
@@ -150,9 +150,16 @@ public:
     //
     //
     mMode = SettingBase::create<SettingComboBox<joda::settings::ColocalizationSettings::Mode>>(parent, {}, "Mode");
-    mMode->addOptions(
-        {{.key = joda::settings::ColocalizationSettings::Mode::RECLASSIFY_MOVE, .label = "Reclassify Move", .icon = generateSvgIcon("edit-move")},
-         {.key = joda::settings::ColocalizationSettings::Mode::RECLASSIFY_COPY, .label = "Reclassify Copy", .icon = generateSvgIcon("edit-copy")}});
+    mMode->addOptions({{
+                           .key   = joda::settings::ColocalizationSettings::Mode::RECLASSIFY_MOVE,
+                           .label = "Reclassify Move",
+                           .icon  = {},
+                       },
+                       {
+                           .key   = joda::settings::ColocalizationSettings::Mode::RECLASSIFY_COPY,
+                           .label = "Reclassify Copy",
+                           .icon  = {},
+                       }});
     mMode->setValue(settings.mode);
     mMode->connectWithSetting(&settings.mode);
 
@@ -162,10 +169,10 @@ public:
     mTrackingMode = SettingBase::create<SettingComboBox<joda::settings::ColocalizationSettings::TrackingMode>>(parent, {}, "Tracking mode");
     mTrackingMode->addOptions({{.key   = joda::settings::ColocalizationSettings::TrackingMode::OVERRIDE,
                                 .label = "Override existing tracking information",
-                                .icon  = generateSvgIcon("join")},
+                                .icon  = {}},
                                /*{.key   = joda::settings::ColocalizationSettings::TrackingMode::KEEP_EXISTING,
                                 .label = "Keep existing tracking information",
-                                .icon  = generateSvgIcon("view-list-tree")}*/});
+                                .icon  = {}}*/});
     mTrackingMode->setValue(settings.trackingMode);
     mTrackingMode->connectWithSetting(&settings.trackingMode);
 

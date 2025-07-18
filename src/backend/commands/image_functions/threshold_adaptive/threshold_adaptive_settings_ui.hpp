@@ -86,7 +86,7 @@ private:
       //
       //
       //
-      mKernelSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("labplot-matrix"), "Kernel size");
+      mKernelSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Kernel size");
       // mKernelSize->addOptions({{-1, "Off"},
       //                          {3, "3x3"},
       //                          {5, "5x5"},
@@ -116,7 +116,7 @@ private:
       //
       //
       //
-      mContrastThreshold = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-high"), "Contrast threshold");
+      mContrastThreshold = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Contrast threshold");
       mContrastThreshold->setPlaceholderText("[0 - 65535]");
       mContrastThreshold->setUnit("");
       mContrastThreshold->setMinMax(0, 65535);
@@ -127,7 +127,7 @@ private:
       //
       //
       //
-      mThresholdOffset = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-high"), "Threshold offset");
+      mThresholdOffset = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Threshold offset");
       mThresholdOffset->setPlaceholderText("[0 - 65535]");
       mThresholdOffset->setUnit("");
       mThresholdOffset->setMinMax(0, 65535);

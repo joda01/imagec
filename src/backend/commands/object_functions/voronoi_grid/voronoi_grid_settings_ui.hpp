@@ -46,7 +46,7 @@ public:
         "", [] {}, false);
     //
     //
-    pointsClasss = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateSvgIcon("snap-bounding-box-center"), "Centers");
+    pointsClasss = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, {}, "Centers");
     pointsClasss->setValue(settings.inputClassesPoints);
     pointsClasss->connectWithSetting(&settings.inputClassesPoints);
 
@@ -56,7 +56,7 @@ public:
 
     //
     //
-    mMaxRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("snap-nodes-center"), "Max. radius");
+    mMaxRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Max. radius");
     mMaxRadius->setPlaceholderText("[0 - ]");
     mMaxRadius->setUnit("px");
     mMaxRadius->setMinMax(0, INT32_MAX);
@@ -89,7 +89,7 @@ public:
 
     //
     //
-    mMinAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("skrooge_type"), "Min. area size");
+    mMinAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Min. area size");
     mMinAreaSize->setPlaceholderText("[0 - ]");
     mMinAreaSize->setUnit("px");
     mMinAreaSize->setMinMax(0, INT32_MAX);
@@ -99,7 +99,7 @@ public:
 
     //
     //
-    mMaxAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("skrooge_type"), "Max. area size");
+    mMaxAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Max. area size");
     mMaxAreaSize->setPlaceholderText("[0 - ]");
     mMaxAreaSize->setUnit("px");
     mMaxAreaSize->setMinMax(0, INT32_MAX);

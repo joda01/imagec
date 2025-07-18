@@ -382,7 +382,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   //
   // Disabled button
   //
-  mDisabled = mLayout.addActionButton("Disable", generateSvgIcon("view-hidden"));
+  mDisabled = mLayout.addActionButton("Disable", generateSvgIcon<Style::REGULAR, Color::BLACK>("eye-slash"));
   mDisabled->setCheckable(true);
   mDisabled->setChecked(mPipelineStep.disabled);
   connect(mDisabled, &QAction::triggered, [this, pipelineSettingsUi](bool) {
@@ -393,7 +393,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   //
   // Locked button
   //
-  mLocked = mLayout.addActionButton("Locked", generateSvgIcon("folder-locked"));
+  mLocked = mLayout.addActionButton("Locked", generateSvgIcon<Style::REGULAR, Color::YELLOW>("lock-simple"));
   mLocked->setCheckable(true);
   mLocked->setChecked(mPipelineStep.locked);
   connect(mLocked, &QAction::triggered, [this, pipelineSettingsUi](bool) {
@@ -404,7 +404,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   //
   // Breakpoint button
   //
-  mBreakpoint = mLayout.addActionButton("Breakpoint", generateSvgIcon("media-record"));
+  mBreakpoint = mLayout.addActionButton("Breakpoint", generateSvgIcon<Style::DUETONE, Color::RED>("stop"));
   mBreakpoint->setCheckable(true);
   mBreakpoint->setChecked(mPipelineStep.breakPoint);
   mBreakpoint->setVisible(false);
@@ -417,7 +417,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   //
   // Okay button
   //
-  auto *okayBottom = mLayout.addActionBottomButton("Okay", generateSvgIcon("dialog-ok-apply"));
+  auto *okayBottom = mLayout.addActionBottomButton("Okay", generateSvgIcon<Style::DUETONE, Color::BLACK>("arrow-elbow-down-left"));
   connect(okayBottom, &QAction::triggered, [this]() { mEditDialog->close(); });
 
   connect(mLayout.getDeleteButton(), &QAction::triggered, [this, pipelineSettingsUi]() {

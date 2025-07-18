@@ -36,8 +36,7 @@ public:
   {
     //
     //
-    mBallType =
-        SettingBase::create<SettingComboBox<joda::settings::RollingBallSettings::BallType>>(parent, generateSvgIcon("kstars_horizon"), "Ball type");
+    mBallType = SettingBase::create<SettingComboBox<joda::settings::RollingBallSettings::BallType>>(parent, {}, "Ball type");
     mBallType->addOptions(
         {{joda::settings::RollingBallSettings::BallType::BALL, "Ball"}, {joda::settings::RollingBallSettings::BallType::PARABOLOID, "Paraboloid"}});
     mBallType->setValue(settings.ballType);
@@ -45,7 +44,7 @@ public:
 
     //
     //
-    mBallSize = SettingBase::create<SettingLineEdit<int>>(parent, generateSvgIcon("skrooge_type"), "Ball size [0-256]");
+    mBallSize = SettingBase::create<SettingLineEdit<int>>(parent, {}, "Ball size [0-256]");
     mBallSize->setPlaceholderText("[0 - 256]");
     mBallSize->setUnit("px");
     mBallSize->setMinMax(0, 256);

@@ -43,7 +43,7 @@ LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool wi
       auto *spacerTop = new QWidget();
       spacerTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
       mSpaceTopToolbar = mToolbarTop->addWidget(spacerTop);
-      mBackButton      = new QAction(generateSvgIcon("window-close"), "Close", mToolbarTop);
+      mBackButton      = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("x"), "Close", mToolbarTop);
       mToolbarTop->addAction(mBackButton);
     }
   }

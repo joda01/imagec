@@ -38,7 +38,7 @@ public:
   {
     //
     //
-    mBlurMode = SettingBase::create<SettingComboBox<settings::BlurSettings::Mode>>(parent, generateSvgIcon("blurimage"), "Blur mode");
+    mBlurMode = SettingBase::create<SettingComboBox<settings::BlurSettings::Mode>>(parent, {}, "Blur mode");
     mBlurMode->addOptions({{settings::BlurSettings::Mode::BLUR_MORE, "Smoothing"}, {settings::BlurSettings::Mode::GAUSSIAN, "Gaussian blur"}});
     mBlurMode->setValue(settings.mode);
     mBlurMode->connectWithSetting(&settings.mode);
@@ -46,7 +46,7 @@ public:
     //
     //
     //
-    mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, generateSvgIcon("labplot-matrix"), "Kernel size");
+    mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, "Kernel size");
     mKernelSize->addOptions({{-1, "Off"},
                              {3, "3x3"},
                              {5, "5x5"},
@@ -66,7 +66,7 @@ public:
     //
     //
     //
-    mRepeat = SettingBase::create<SettingComboBox<int32_t>>(parent, generateSvgIcon("media-playlist-repeat"), "Repeat");
+    mRepeat = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, "Repeat");
     mRepeat->addOptions({{1, "x1"},
                          {2, "x2"},
                          {3, "x3"},

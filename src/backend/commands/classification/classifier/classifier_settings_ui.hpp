@@ -102,7 +102,7 @@ private:
 
       //
       //
-      mMinParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("skrooge_type"), "Min particle size");
+      mMinParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Min particle size");
       mMinParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
       mMinParticleSize->setUnit("px");
       mMinParticleSize->setMinMax(0, INT32_MAX);
@@ -111,7 +111,7 @@ private:
       mMinParticleSize->setShortDescription("Min. ");
       //
       //
-      mMaxParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("skrooge_type"), "Max particle size");
+      mMaxParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Max particle size");
       mMaxParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
       mMaxParticleSize->setUnit("px");
       mMaxParticleSize->setMinMax(0, INT32_MAX);
@@ -155,7 +155,7 @@ private:
 
       //
       //
-      mMinIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-low"), "Min intensity");
+      mMinIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Min intensity");
       mMinIntensity->setPlaceholderText("[0 - 65535]");
       mMinIntensity->setUnit("");
       mMinIntensity->setMinMax(0, INT32_MAX);
@@ -164,7 +164,7 @@ private:
       mMinIntensity->setShortDescription("Min. ");
       //
       //
-      mMaxIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-high"), "Max intensity");
+      mMaxIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Max intensity");
       mMaxIntensity->setPlaceholderText("[0 - 65535]");
       mMaxIntensity->setUnit("");
       mMaxIntensity->setMinMax(0, INT32_MAX);

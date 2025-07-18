@@ -168,12 +168,6 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
 
     // toolbar->addSeparator();
 
-    auto *hideClass = new QAction(generateSvgIcon("view-hidden"), "Hide class from preview", this);
-    hideClass->setStatusTip("Temporary disable this pipeline");
-    hideClass->setCheckable(true);
-    // toolbar->addAction(hideClass);
-    connect(hideClass, &QAction::triggered, [](bool checked) {});
-
     //
     // Clear
     //
@@ -470,7 +464,7 @@ void PanelClassification::loadTemplates()
       if(!data.icon.isNull()) {
         action = mTemplateMenu->addAction(QIcon(data.icon.scaled(28, 28)), data.title.data());
       } else {
-        action = mTemplateMenu->addAction(generateSvgIcon("favorite"), data.title.data());
+        action = mTemplateMenu->addAction(generateSvgIcon<Style::REGULAR, Color::YELLOW>("star"), data.title.data());
       }
       connect(action, &QAction::triggered, [this, path = data.path]() { openTemplate(path.data()); });
     }

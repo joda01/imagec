@@ -97,7 +97,7 @@ private:
       //
       //
       //
-      mThresholdValueMin = SettingBase::create<SettingLineEdit<uint16_t>>(parent, generateSvgIcon("brightness-low"), "Min. threshold");
+      mThresholdValueMin = SettingBase::create<SettingLineEdit<uint16_t>>(parent, {}, "Min. threshold");
       mThresholdValueMin->setPlaceholderText("[0 - 65535]");
       mThresholdValueMin->setUnit("");
       mThresholdValueMin->setMinMax(0, 65535);
@@ -108,7 +108,7 @@ private:
       //
       //
       //
-      mThresholdValueMax = SettingBase::create<SettingLineEdit<uint16_t>>(parent, generateSvgIcon("brightness-high"), "Max. threshold");
+      mThresholdValueMax = SettingBase::create<SettingLineEdit<uint16_t>>(parent, {}, "Max. threshold");
       mThresholdValueMax->setPlaceholderText("[0 - 65535]");
       mThresholdValueMax->setUnit("");
       mThresholdValueMax->setMinMax(0, 65535);

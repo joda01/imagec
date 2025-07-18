@@ -191,7 +191,7 @@ void DialogOpenTemplate::loadTemplates()
                       .title       = "Empty project",
                       .description = "Create a new, empty project.",
                       .path        = "empty",
-                      .icon        = generateSvgIcon("document-new").pixmap(16, 16)},
+                      .icon        = generateSvgIcon<Style::REGULAR, Color::BLACK>("file").pixmap(16, 16)},
                      "");
   mTableTemplates->setRowHeight(0, 35);
 
@@ -268,7 +268,7 @@ int DialogOpenTemplate::addTemplateToTable(const joda::templates::TemplateParser
   if(!data.icon.isNull()) {
     icon = QIcon(data.icon.scaled(28, 28));
   } else {
-    icon = generateSvgIcon("favorite");
+    icon = generateSvgIcon<Style::REGULAR, Color::YELLOW>("star");
   }
   auto *iconItem = new QTableWidgetItem();
   iconItem->setIcon(icon);

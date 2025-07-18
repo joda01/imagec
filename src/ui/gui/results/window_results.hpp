@@ -40,7 +40,6 @@ class WindowMain;
 
 namespace joda::ui::gui {
 
-class DialogColumnSettings;
 class ImageViewDockWidget;
 class HeatmapWidget;
 class PanelClassificationList;
@@ -156,7 +155,6 @@ private:
 
   /// COLUMN EDIT //////////////////////////////////////////////////
   void columnEdit(int32_t colIdx);
-  DialogColumnSettings *mColumnEditDialog;
 
   // FILTER ///////////////////////////////////////////////////
   settings::ResultsSettings mFilter;
