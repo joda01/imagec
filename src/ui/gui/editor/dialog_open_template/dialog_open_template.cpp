@@ -268,7 +268,7 @@ int DialogOpenTemplate::addTemplateToTable(const joda::templates::TemplateParser
   if(!data.icon.isNull()) {
     icon = QIcon(data.icon.scaled(28, 28));
   } else {
-    icon = generateSvgIcon<Style::REGULAR, Color::YELLOW>("star");
+    icon = generateSvgIcon<Style::REGULAR, Color::BLACK>("star");
   }
   auto *iconItem = new QTableWidgetItem();
   iconItem->setIcon(icon);

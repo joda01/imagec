@@ -360,7 +360,7 @@ void PanelPipeline::loadTemplates()
         auto *action = mTemplatesMenu->addAction(QIcon(data.icon.scaled(28, 28)), data.title.data());
         connect(action, &QAction::triggered, [this, path = data.path]() { onAddChannel(path.data()); });
       } else {
-        auto *action = mTemplatesMenu->addAction(generateSvgIcon<Style::REGULAR, Color::YELLOW>("star"), data.title.data());
+        auto *action = mTemplatesMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("star"), data.title.data());
         connect(action, &QAction::triggered, [this, path = data.path]() { onAddChannel(path.data()); });
       }
     }

@@ -62,7 +62,18 @@ Command::Command(joda::settings::PipelineStep &pipelineStep, const QString &titl
     headerWidget->setLayout(layout);
     auto *mDisplayLabelIcon = new QLabel();
     if(!icon.isEmpty()) {
-      mIcon = generateSvgIcon<Style::REGULAR, Color::BLACK>(icon);
+      auto color = Color::BLACK;
+      if(type.out == InOuts::OBJECT) {
+        color = Color::GREEN;
+      }
+      if(icon.contains("-duotone")) {
+        QString tmp(icon);
+        tmp.replace("-duotone", "");
+        mIcon = generateSvgIcon<Style::DUETONE, Color::BLACK>(icon);
+      } else {
+        mIcon = generateSvgIcon<Style::REGULAR, Color::BLACK>(icon);
+      }
+
       mDisplayLabelIcon->setPixmap(mIcon.pixmap(16, 16));    // You can adjust the size of the icon as needed
       layout->addWidget(mDisplayLabelIcon);
     }
@@ -393,7 +404,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   //
   // Locked button
   //
-  mLocked = mLayout.addActionButton("Locked", generateSvgIcon<Style::REGULAR, Color::YELLOW>("lock-simple"));
+  mLocked = mLayout.addActionButton("Locked", generateSvgIcon<Style::REGULAR, Color::BLACK>("lock-simple"));
   mLocked->setCheckable(true);
   mLocked->setChecked(mPipelineStep.locked);
   connect(mLocked, &QAction::triggered, [this, pipelineSettingsUi](bool) {
