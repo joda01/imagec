@@ -440,7 +440,7 @@ auto WindowResults::createToolBar() -> QToolBar *
 
   toolbar->addSeparator();
 
-  QMenu *windowMenu = new QMenu();
+  QMenu *windowMenu = new QMenu("Window");
   auto *cascade     = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("browsers"), "Cascade");
   cascade->setStatusTip("Cascade windows");
   connect(cascade, &QAction::triggered, [this]() { mDashboard->cascadeSubWindows(); });
@@ -460,13 +460,6 @@ auto WindowResults::createToolBar() -> QToolBar *
   restoreAll->setStatusTip("Restore windows");
   connect(restoreAll, &QAction::triggered, [this]() { mDashboard->restoreSubWindows(); });
   windowMenu->addAction(restoreAll);
-
-  auto *windowSettings = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("browser"), "");
-  windowSettings->setStatusTip("Window arrangement settings.");
-  windowSettings->setMenu(windowMenu);
-  toolbar->addAction(windowSettings);
-  auto *btn01 = qobject_cast<QToolButton *>(toolbar->widgetForAction(windowSettings));
-  btn01->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
 
   /*
     auto *addColumn = new QAction(generateSvgIcon("edit-table-insert-column-right"), "");
@@ -549,6 +542,8 @@ auto WindowResults::createToolBar() -> QToolBar *
   fileMenu->addMenu(mOpenProjectMenu);
   fileMenu->addSeparator();
   fileMenu->addMenu(exportMenu);
+
+  auto *windowToolBarMenu = mTopMenuBar->addMenu(windowMenu);
 
   return toolbar;
 }

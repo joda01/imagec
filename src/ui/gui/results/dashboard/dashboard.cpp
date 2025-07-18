@@ -55,11 +55,14 @@ void Dashboard::tableToQWidgetTable(const std::shared_ptr<joda::table::Table> ta
 
   // This is a workaround since Qt has a buf which leads that the first added MidiSubWindow is not layout correctly.
   // Therefore we add a dummy, which is deleted later on.
-  auto *dummy = new QMdiSubWindow(this);
-  dummy->show();
+  QMdiSubWindow *dummy;
+  if(mFirstOpen) {
+    dummy = new QMdiSubWindow(this);
+    dummy->show();
+  }
 
   // ========================================
-  // Lamda function to create the dashboard
+  // Lambda function to create the dashboard
   // ========================================
   std::set<joda::db::data::Dashboard::TabWindowKey> availableCols;
   auto createDashboards = [this, &isImageView, &availableCols](joda::db::data::Dashboard::TabWindowKey midiKey,
@@ -76,7 +79,6 @@ void Dashboard::tableToQWidgetTable(const std::shared_ptr<joda::table::Table> ta
       connect(element01, &DashboardElement::cellSelected, [this](joda::table::TableCell cell) { mWindowResults->setSelectedElement(cell); });
       connect(element01, &DashboardElement::cellDoubleClicked, [this](joda::table::TableCell cell) { mWindowResults->openNextLevel({cell}); });
       element01->show();
-      element01->layout()->invalidate();
     }
     availableCols.emplace(midiKey);
     element01->setData(table);
@@ -87,7 +89,9 @@ void Dashboard::tableToQWidgetTable(const std::shared_ptr<joda::table::Table> ta
     createDashboards(key, table);
   }
   if(nullptr != focusedWindow) {
-    setActiveSubWindow(focusedWindow);    // Restore focus
+    if(!focusedWindow->isMaximized()) {
+      setActiveSubWindow(focusedWindow);    // Restore focus
+    }
   }
 
   // ========================================
@@ -100,11 +104,10 @@ void Dashboard::tableToQWidgetTable(const std::shared_ptr<joda::table::Table> ta
   }
 
   if(mFirstOpen) {
+    dummy->deleteLater();
     mFirstOpen = false;
-
     cascadeSubWindows();
   }
-  dummy->deleteLater();
 }
 
 ///
