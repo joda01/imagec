@@ -80,7 +80,7 @@ struct Plate
   //
   // Image grouping option [NONE, FOLDER, FILENAME]
   //
-  joda::enums::GroupBy groupBy = enums::GroupBy::OFF;
+  joda::enums::GroupBy groupBy = enums::GroupBy::UNKNOWN;
 
   //
   // Used to extract coordinates of a well form the image name
@@ -96,6 +96,7 @@ struct Plate
   void check() const
   {
     CHECK_ERROR(!imageFolder.empty(), "Image folder must not be empty!");
+    CHECK_ERROR(groupBy != joda::enums::GroupBy::UNKNOWN, "Select image grouping option!");
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Plate, plateId, name, notes, plateSetup, imageFolder, groupBy, filenameRegex);

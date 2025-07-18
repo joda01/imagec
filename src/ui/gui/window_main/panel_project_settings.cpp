@@ -11,6 +11,7 @@
 
 #include "panel_project_settings.hpp"
 #include <qcombobox.h>
+#include <qdialog.h>
 #include <qlineedit.h>
 #include <string>
 #include "backend/enums/enums_file_endians.hpp"
@@ -19,6 +20,7 @@
 #include "backend/settings/project_settings/project_image_setup.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
 #include "backend/settings/project_settings/project_settings.hpp"
+#include "ui/gui/helper/combo_placeholder.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/window_main/window_main.hpp"
 
@@ -52,85 +54,142 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   mWorkingDir->setPlaceholderText("Directory your images are placed in...");
   auto *workingDir = new QHBoxLayout;
   workingDir->addWidget(mWorkingDir);
-  auto *openDir = new QPushButton(generateSvgIcon("image-jpeg"), "");
+  auto *openDir = new QPushButton(generateSvgIcon<Style::REGULAR, Color::BLUE>("folder-open"), "");
   openDir->setStatusTip("Select image directory");
   connect(openDir, &QPushButton::clicked, this, &PanelProjectSettings::onOpenWorkingDirectoryClicked);
   workingDir->addWidget(openDir);
   workingDir->setStretch(0, 1);    // Make label take all available space
-  formLayout->addRow(new QLabel(tr("Working directory:")), workingDir);
+  formLayout->addRow(new QLabel(tr("Image directory")), workingDir);
+
+  // Grouping settings
+  {
+    //
+    // Group by
+    //
+    mGroupByComboBox = new ComboWithPlaceholder();
+    mGroupByComboBox->setPlaceholderText("Select option...");
+    mGroupByComboBox->addItem("Ungrouped", static_cast<int>(joda::enums::GroupBy::OFF));
+    mGroupByComboBox->addItem("Group based on foldername", static_cast<int>(joda::enums::GroupBy::DIRECTORY));
+    mGroupByComboBox->addItem("Group based on filename", static_cast<int>(joda::enums::GroupBy::FILENAME));
+    mGroupByComboBox->setCurrentIndex(-1);
+    connect(mGroupByComboBox, &QComboBox::currentIndexChanged, [this](int index) {
+      if(mGroupByComboBox->currentData().toInt() == static_cast<int>(joda::enums::GroupBy::FILENAME)) {
+        mOpenGroupingSettings->setEnabled(true);
+        mGroupingDialog->exec();
+      } else {
+        mOpenGroupingSettings->setEnabled(false);
+      }
+    });
+
+    auto *groupingLayout = new QHBoxLayout;
+    groupingLayout->addWidget(mGroupByComboBox);
+    mOpenGroupingSettings = new QPushButton(generateSvgIcon<Style::REGULAR, Color::BLACK>("dots-three-outline-vertical"), "");
+    mOpenGroupingSettings->setStatusTip("Grouping settings");
+    mOpenGroupingSettings->setEnabled(false);
+    connect(mOpenGroupingSettings, &QPushButton::clicked, [this] { mGroupingDialog->exec(); });
+    groupingLayout->addWidget(mOpenGroupingSettings);
+    groupingLayout->setStretch(0, 1);    // Make label take all available space
+    formLayout->addRow(new QLabel(tr("Grouping")), groupingLayout);
+
+    mGroupingDialog = new QDialog(parentWindow);
+    mGroupingDialog->setWindowTitle("Grouping settings");
+    mGroupingDialog->setMinimumWidth(400);
+    auto *formLayout = new QFormLayout;
+
+    //
+    // Regex
+    //
+    mRegexToFindTheWellPosition = new QComboBox();
+    mRegexToFindTheWellPosition->addItem("_((.)([0-9]+))_([0-9]+)", "_((.)([0-9]+))_([0-9]+)");
+    mRegexToFindTheWellPosition->addItem("((.)([0-9]+))_([0-9]+)", "((.)([0-9]+))_([0-9]+)");
+    mRegexToFindTheWellPosition->addItem("(.*)_([0-9]*)", "(.*)_([0-9]*)");
+    mRegexToFindTheWellPosition->setEditable(true);
+    mRegexToFindTheWellPositionLabel = new QLabel(tr("Filename regex:"));
+    formLayout->addRow(mRegexToFindTheWellPositionLabel, mRegexToFindTheWellPosition);
+
+    //
+    mTestFileName      = new QLineEdit("your_test_image_file_Name_A99_01.tif");
+    mTestFileNameLabel = new QLabel(tr("Regex test"));
+    formLayout->addRow(mTestFileNameLabel, mTestFileName);
+
+    mTestFileResult = new QLabel();
+    formLayout->addRow(mTestFileResult);
+
+    // Okay and canlce
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok, Qt::Horizontal, this);
+    connect(buttonBox, &QDialogButtonBox::accepted, mGroupingDialog, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, mGroupingDialog, &QDialog::reject);
+    formLayout->addWidget(buttonBox);
+
+    mGroupingDialog->setLayout(formLayout);
+  }
 
   addSeparator();
-
-  //
-  // Experiment name
-  //
-  mExperimentName = new QLineEdit;
-  mExperimentName->addAction(generateSvgIcon("text-field"), QLineEdit::LeadingPosition);
-  mExperimentName->setPlaceholderText("Experiment");
-  formLayout->addRow(new QLabel(tr("Experiment name:")), mExperimentName);
-
-  //
-  // Scientist
-  //
-  mScientistsFirstName = new QLineEdit;
-  mScientistsFirstName->addAction(generateSvgIcon("im-user"), QLineEdit::LeadingPosition);
-  formLayout->addRow(new QLabel(tr("Scientist:")), mScientistsFirstName);
-  connect(mScientistsFirstName, &QLineEdit::editingFinished, this, &PanelProjectSettings::onSettingChanged);
-  mScientistsFirstName->setPlaceholderText(joda::helper::getLoggedInUserName());
-
-  //
-  // Organization
-  //
-  mAddressOrganisation = new QLineEdit;
-  mAddressOrganisation->addAction(generateSvgIcon("edit-paste-in-place"), QLineEdit::LeadingPosition);
-  mAddressOrganisation->setPlaceholderText("University of Salzburg");
-  formLayout->addRow(new QLabel(tr("Organization:")), mAddressOrganisation);
-
-  //
-  // Experiment ID
-  //
-  mExperimentId = new QLineEdit;
-  mExperimentId->addAction(generateSvgIcon("view-barcode-qr"), QLineEdit::LeadingPosition);
-  mExperimentId->setPlaceholderText("6fc87cc8-686e-4806-a78a-3f623c849cb7");
-  /// \todo add for advanced mode
-  // formLayout->addRow(new QLabel(tr("Experiment ID:")), mExperimentId);
 
   //
   // Job name
   //
   mJobName = new QLineEdit;
+  mJobName->addAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("person-simple-run"), QLineEdit::LeadingPosition);
   mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
-  formLayout->addRow(new QLabel(tr("Job name:")), mJobName);
 
-  addSeparator();
+  // Meta edit dialog
+  {
+    auto *expirmentMeta = new QHBoxLayout;
+    expirmentMeta->addWidget(mJobName);
+    auto *openMetaEditor = new QPushButton(generateSvgIcon<Style::REGULAR, Color::BLACK>("dots-three-outline-vertical"), "");
+    openMetaEditor->setStatusTip("Project meta information");
+    connect(openMetaEditor, &QPushButton::clicked, [this] { mMetaEditDialog->exec(); });
+    expirmentMeta->addWidget(openMetaEditor);
+    expirmentMeta->setStretch(0, 1);    // Make label take all available space
+    formLayout->addRow(new QLabel(tr("Job name")), expirmentMeta);
 
-  //
-  // Group by
-  //
-  mGroupByComboBox = new QComboBox();
-  mGroupByComboBox->addItem("Ungrouped", static_cast<int>(joda::enums::GroupBy::OFF));
-  mGroupByComboBox->addItem("Group based on foldername", static_cast<int>(joda::enums::GroupBy::DIRECTORY));
-  mGroupByComboBox->addItem("Group based on filename", static_cast<int>(joda::enums::GroupBy::FILENAME));
-  formLayout->addRow(new QLabel(tr("Group by:")), mGroupByComboBox);
+    mMetaEditDialog = new QDialog(mParentWindow);
+    mMetaEditDialog->setWindowTitle("Project meta");
+    mMetaEditDialog->setMinimumWidth(400);
+    auto *formLayout = new QFormLayout;
 
-  //
-  // Regex
-  //
-  mRegexToFindTheWellPosition = new QComboBox();
-  mRegexToFindTheWellPosition->addItem("_((.)([0-9]+))_([0-9]+)", "_((.)([0-9]+))_([0-9]+)");
-  mRegexToFindTheWellPosition->addItem("((.)([0-9]+))_([0-9]+)", "((.)([0-9]+))_([0-9]+)");
-  mRegexToFindTheWellPosition->addItem("(.*)_([0-9]*)", "(.*)_([0-9]*)");
-  mRegexToFindTheWellPosition->setEditable(true);
-  mRegexToFindTheWellPositionLabel = new QLabel(tr("Filename regex:"));
-  formLayout->addRow(mRegexToFindTheWellPositionLabel, mRegexToFindTheWellPosition);
+    //
+    // Experiment name
+    //
+    mExperimentName = new QLineEdit;
+    mExperimentName->addAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("text-t"), QLineEdit::LeadingPosition);
+    mExperimentName->setPlaceholderText("Experiment");
+    formLayout->addRow(new QLabel(tr("Experiment title")), mExperimentName);
 
-  //
-  mTestFileName      = new QLineEdit("your_test_image_file_Name_A99_01.tif");
-  mTestFileNameLabel = new QLabel(tr("Regex test:"));
-  formLayout->addRow(mTestFileNameLabel, mTestFileName);
+    //
+    // Scientist
+    //
+    mScientistsFirstName = new QLineEdit;
+    mScientistsFirstName->addAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("user"), QLineEdit::LeadingPosition);
+    formLayout->addRow(new QLabel(tr("Scientist")), mScientistsFirstName);
+    connect(mScientistsFirstName, &QLineEdit::editingFinished, this, &PanelProjectSettings::onSettingChanged);
+    mScientistsFirstName->setPlaceholderText(joda::helper::getLoggedInUserName());
 
-  mTestFileResult = new QLabel();
-  formLayout->addRow(mTestFileResult);
+    //
+    // Organization
+    //
+    mAddressOrganisation = new QLineEdit;
+    mAddressOrganisation->addAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("map-pin"), QLineEdit::LeadingPosition);
+    mAddressOrganisation->setPlaceholderText("University of Salzburg");
+    formLayout->addRow(new QLabel(tr("Organization")), mAddressOrganisation);
+
+    //
+    // Experiment ID
+    //
+    mExperimentId = new QLineEdit;
+    mExperimentId->addAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("binary"), QLineEdit::LeadingPosition);
+    mExperimentId->setPlaceholderText("6fc87cc8-686e-4806-a78a-3f623c849cb7");
+    formLayout->addRow(new QLabel(tr("Experiment ID")), mExperimentId);
+
+    // Okay and canlce
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok, Qt::Horizontal, this);
+    connect(buttonBox, &QDialogButtonBox::accepted, mMetaEditDialog, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, mMetaEditDialog, &QDialog::reject);
+    formLayout->addWidget(buttonBox);
+
+    mMetaEditDialog->setLayout(formLayout);
+  }
 
   addSeparator();
 
@@ -140,7 +199,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   mStackHandlingZ = new QComboBox();
   mStackHandlingZ->addItem("Each one", static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::EACH_ONE));
   mStackHandlingZ->addItem("Defined by pipeline", static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::EXACT_ONE));
-  formLayout->addRow(new QLabel(tr("Z-Stack:")), mStackHandlingZ);
+  formLayout->addRow(new QLabel(tr("Z-Stack")), mStackHandlingZ);
   connect(mStackHandlingZ, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onSettingChanged);
 
   //
@@ -148,7 +207,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   mStackHandlingT->addItem("Each one", static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EACH_ONE));
   mStackHandlingT->addItem("Defined by pipeline", static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EXACT_ONE));
   connect(mStackHandlingT, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onSettingChanged);
-  formLayout->addRow(new QLabel(tr("T-Stack:")), mStackHandlingT);
+  formLayout->addRow(new QLabel(tr("T-Stack")), mStackHandlingT);
 
   auto *tStackRangeLayout = new QHBoxLayout;
   mTStackFrameStart       = new QLineEdit();
@@ -157,7 +216,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   mTStackFrameEnd->setStatusTip("Time frame to stop (-1 = last time frame).");
   tStackRangeLayout->addWidget(mTStackFrameStart);
   tStackRangeLayout->addWidget(mTStackFrameEnd);
-  formLayout->addRow(new QLabel(tr("T-Range:")), tStackRangeLayout);
+  formLayout->addRow(new QLabel(tr("T-Range")), tStackRangeLayout);
 
   addSeparator();
 
@@ -223,16 +282,7 @@ void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &s
     if(idx >= 0) {
       mGroupByComboBox->setCurrentIndex(idx);
     } else {
-      mGroupByComboBox->setCurrentIndex(0);
-    }
-  }
-
-  {
-    auto idx = mGroupByComboBox->findData(static_cast<int>(settings.projectSettings.plates.begin()->groupBy));
-    if(idx >= 0) {
-      mGroupByComboBox->setCurrentIndex(idx);
-    } else {
-      mGroupByComboBox->setCurrentIndex(0);
+      mGroupByComboBox->setCurrentIndex(-1);
     }
   }
 

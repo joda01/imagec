@@ -17,6 +17,7 @@
 #include "backend/helper/random_name_generator.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/project_settings.hpp"
+#include "ui/gui/helper/combo_placeholder.hpp"
 
 namespace joda::ui::gui {
 
@@ -74,14 +75,18 @@ private:
   joda::settings::AnalyzeSettings &mSettings;
   WindowMain *mParentWindow;
 
-  /////////////////////////////////////////////////////
-  QLineEdit *mAddressOrganisation;
+  // META ///////////////////////////////////////////////////
+  QDialog *mMetaEditDialog;
   QLineEdit *mJobName;
+  QLineEdit *mAddressOrganisation;
   QLineEdit *mScientistsFirstName;
   QLineEdit *mExperimentName;
   QLineEdit *mExperimentId;
 
-  QComboBox *mGroupByComboBox;
+  // GROUPING ///////////////////////////////////////////////////
+  QDialog *mGroupingDialog;
+  QPushButton *mOpenGroupingSettings;
+  ComboWithPlaceholder *mGroupByComboBox;
   QComboBox *mPlateSize;
 
   QComboBox *mStackHandlingZ;

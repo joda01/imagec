@@ -33,7 +33,7 @@ namespace joda::ui::gui {
 DialogImageSettings::DialogImageSettings(Settings *settings, QWidget *parent) : QDialog(parent), mSettings(settings)
 {
   setWindowTitle("Image settings");
-  setMinimumWidth(500);
+  setMinimumWidth(400);
   auto *formLayout = new QFormLayout;
 
   auto addSeparator = [&formLayout]() {

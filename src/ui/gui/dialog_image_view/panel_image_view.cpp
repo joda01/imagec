@@ -807,24 +807,27 @@ void PanelImageView::drawThumbnail(QPainter &painter)
 ///
 void PanelImageView::getClickedTileInThumbnail(QMouseEvent *event)
 {
-  auto [nrOfTilesX, nrOfTilesY] = mOmeInfo.getResolutionCount(mSeries).at(0).getNrOfTiles(mTile.tileWidth, mTile.tileHeight);
+  try {
+    auto [nrOfTilesX, nrOfTilesY] = mOmeInfo.getResolutionCount(mSeries).at(0).getNrOfTiles(mTile.tileWidth, mTile.tileHeight);
 
-  for(int y = 0; y < nrOfTilesY; y++) {
-    for(int x = 0; x < nrOfTilesX; x++) {
-      int xOffset = x * mTileRectWidthScaled;
-      int yOffset = y * mTileRectHeightScaled;
+    for(int y = 0; y < nrOfTilesY; y++) {
+      for(int x = 0; x < nrOfTilesX; x++) {
+        int xOffset = x * mTileRectWidthScaled;
+        int yOffset = y * mTileRectHeightScaled;
 
-      QRect rectangle(QPoint(width() - THUMB_RECT_START_X - mThumbRectWidth + xOffset, THUMB_RECT_START_Y + yOffset),
-                      QSize(mTileRectWidthScaled, mTileRectHeightScaled));
-      if(rectangle.contains(event->pos())) {
-        mTile.tileX = x;
-        mTile.tileY = y;
-        scene->update();
-        update();
-        emit tileClicked(x, y);
-        return;
+        QRect rectangle(QPoint(width() - THUMB_RECT_START_X - mThumbRectWidth + xOffset, THUMB_RECT_START_Y + yOffset),
+                        QSize(mTileRectWidthScaled, mTileRectHeightScaled));
+        if(rectangle.contains(event->pos())) {
+          mTile.tileX = x;
+          mTile.tileY = y;
+          scene->update();
+          update();
+          emit tileClicked(x, y);
+          return;
+        }
       }
     }
+  } catch(...) {
   }
 }
 
