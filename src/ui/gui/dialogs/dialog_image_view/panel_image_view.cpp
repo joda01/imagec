@@ -1094,8 +1094,6 @@ void PanelImageView::setCursorPositionFromOriginalImageCoordinatesAndCenter(cons
 
   //////////////////////
   if(mActPixmap != nullptr) {
-    std::cout << "x: " << std::to_string(cursorBox.x()) << " y:" << std::to_string(cursorBox.y()) << std::endl;
-
     mLastCrossHairCursorPos = cursorBox;
     QPoint pos{cursorBox.x(), cursorBox.y()};
     auto originalPos = imageCoordinatesToPreviewCoordinates(pos);

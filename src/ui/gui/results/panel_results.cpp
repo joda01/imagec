@@ -93,6 +93,8 @@ PanelResults::PanelResults(WindowMain *windowMain) : mWindowMain(windowMain), mD
   addToolBar(Qt::ToolBarArea::TopToolBarArea, toolBar);
   setTabPosition(Qt::DockWidgetArea::LeftDockWidgetArea, QTabWidget::TabPosition::North);
   setWindowTitle("ImageC results");
+  const QIcon myIcon(":/icons/icons/icon.png");
+  setWindowIcon(myIcon);
 
   // Add to dock
   mDockWidgetImagePreview->getImageWidget()->setShowCrossHairCursor(true);
@@ -329,9 +331,9 @@ void PanelResults::setHeatmapVisible(bool visible)
 void PanelResults::setWindowTitlePrefix(const QString &txt)
 {
   if(!txt.isEmpty()) {
-    setWindowTitle(QString(Version::getTitle().data()) + " - " + txt);
+    setWindowTitle(QString(Version::getTitle().data()) + "Database - " + txt);
   } else {
-    setWindowTitle(QString(Version::getTitle().data()));
+    setWindowTitle(QString(Version::getTitle().data()) + "Database");
   }
 }
 
@@ -1112,7 +1114,6 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   mAnalyzer = std::make_unique<joda::db::Database>();
   mAnalyzer->openDatabase(std::filesystem::path(pathToDbFile.toStdString()));
   mDbFilePath = std::filesystem::path(pathToDbFile.toStdString());
-  setWindowTitlePrefix(mDbFilePath.filename().string().data());
 
   // We assume the images to be in the folder ../../../<IMAGES>
   // If not the user will be asked to select the image working directory.
@@ -1157,6 +1158,8 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   // Make visible
 
   mDockWidgetClassList->setDatabase(mAnalyzer.get());
+  setWindowTitlePrefix(QString(mDbFilePath.filename().string().data()) + " (" + QString(mSelectedDataSet.analyzeMeta->jobName.data()) + ")");
+
   refreshView();
 }
 
