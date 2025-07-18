@@ -16,6 +16,7 @@
 #include "backend/enums/types.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "ui/gui/container/setting/setting_base.hpp"
+#include "ui/gui/helper/iconless_dialog_button_box.hpp"
 #include "ui/gui/helper/setting_generator.hpp"
 #include "ui/gui/window_main/window_main.hpp"
 
@@ -91,7 +92,7 @@ DialogPipelineSettings::DialogPipelineSettings(const joda::settings::Classificat
   formLayout->addRow("Notes", mPipelineNotes);
 
   // Okay and canlce
-  auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
+  auto *buttonBox = new IconlessDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
   connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
   connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
   formLayout->addWidget(buttonBox);

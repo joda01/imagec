@@ -64,6 +64,14 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     toolbar->addAction(newPipeline);
 
     //
+    // Open stack options dialof
+    //
+    auto *pipelineSettings = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("wrench"), "Stack options");
+    pipelineSettings->setStatusTip("Open stack options dialog");
+    connect(pipelineSettings, &QAction::triggered, [this]() { mStackOptionsDialog->exec(); });
+    toolbar->addAction(pipelineSettings);
+
+    //
     // Open template
     //
     auto *openTemplate = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("folder-open"), "Open template");
@@ -141,6 +149,39 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
       mWindowMain->showPanelStartPage();
       erase(getSelectedPipeline());
     });
+  }
+
+  {
+    mStackOptionsDialog = new QDialog(mWindowMain);
+    mStackOptionsDialog->setWindowTitle("Stack handling");
+    mStackOptionsDialog->setMinimumWidth(400);
+    auto *formLayout = new QFormLayout;
+    //
+    // Stack handling
+    //
+    mStackHandlingZ = new QComboBox();
+    mStackHandlingZ->addItem("Each one", static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::EACH_ONE));
+    mStackHandlingZ->addItem("Defined by pipeline", static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::EXACT_ONE));
+    formLayout->addRow(new QLabel(tr("Z-Stack")), mStackHandlingZ);
+    connect(mStackHandlingZ, &QComboBox::currentIndexChanged, [this]() { toSettings(); });
+
+    //
+    mStackHandlingT = new QComboBox();
+    mStackHandlingT->addItem("Each one", static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EACH_ONE));
+    mStackHandlingT->addItem("Defined by pipeline", static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EXACT_ONE));
+    connect(mStackHandlingT, &QComboBox::currentIndexChanged, [this]() { toSettings(); });
+    formLayout->addRow(new QLabel(tr("T-Stack")), mStackHandlingT);
+
+    auto *tStackRangeLayout = new QHBoxLayout;
+    mTStackFrameStart       = new QLineEdit();
+    mTStackFrameStart->setStatusTip("Time frame to start (0 to -1).");
+    mTStackFrameEnd = new QLineEdit();
+    mTStackFrameEnd->setStatusTip("Time frame to stop (-1 = last time frame).");
+    tStackRangeLayout->addWidget(mTStackFrameStart);
+    tStackRangeLayout->addWidget(mTStackFrameEnd);
+    formLayout->addRow(new QLabel(tr("T-Range")), tStackRangeLayout);
+
+    mStackOptionsDialog->setLayout(formLayout);
   }
 
   // Create a widget to hold the panels
@@ -557,6 +598,53 @@ void PanelPipeline::saveAsTemplate()
     messageBox.setText("Could not save template, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     auto reply = messageBox.exec();
+  }
+}
+
+///
+/// \brief      Save as template
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipeline::toSettings()
+{
+  mAnalyzeSettings.imageSetup.zStackHandling = static_cast<joda::settings::ProjectImageSetup::ZStackHandling>(mStackHandlingZ->currentData().toInt());
+  mAnalyzeSettings.imageSetup.tStackHandling = static_cast<joda::settings::ProjectImageSetup::TStackHandling>(mStackHandlingT->currentData().toInt());
+
+  mAnalyzeSettings.imageSetup.tStackSettings.startFrame = mTStackFrameStart->text().toInt();
+  mAnalyzeSettings.imageSetup.tStackSettings.endFrame   = mTStackFrameEnd->text().toInt();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipeline::fromSettings(const joda::settings::AnalyzeSettings &settings)
+{
+  {
+    auto idx = mStackHandlingZ->findData(static_cast<int>(settings.imageSetup.zStackHandling));
+    if(idx >= 0) {
+      mStackHandlingZ->setCurrentIndex(idx);
+    } else {
+      mStackHandlingZ->setCurrentIndex(0);
+    }
+  }
+  {
+    mTStackFrameStart->setText(QString::number(settings.imageSetup.tStackSettings.startFrame));
+    mTStackFrameEnd->setText(QString::number(settings.imageSetup.tStackSettings.endFrame));
+  }
+  {
+    auto idx = mStackHandlingT->findData(static_cast<int>(settings.imageSetup.tStackHandling));
+    if(idx >= 0) {
+      mStackHandlingT->setCurrentIndex(idx);
+    } else {
+      mStackHandlingT->setCurrentIndex(0);
+    }
   }
 }
 

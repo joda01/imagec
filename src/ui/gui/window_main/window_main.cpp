@@ -512,6 +512,7 @@ void WindowMain::clearSettings()
   mAnalyzeSettingsOld.pipelines.clear();
   mPanelProjectSettings->fromSettings({});
   mPanelClassification->fromSettings({});
+  mPanelPipeline->fromSettings({});
 }
 
 ///
@@ -614,6 +615,7 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     clearSettings();
 
     mPanelProjectSettings->fromSettings(analyzeSettings);
+    mPanelPipeline->fromSettings(analyzeSettings);
     mPanelClassification->fromSettings(analyzeSettings.projectSettings.classification);
 
     mAnalyzeSettings.projectSettings                = analyzeSettings.projectSettings;

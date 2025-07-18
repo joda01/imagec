@@ -20,6 +20,7 @@
 #include <QMessageBox>
 #include <QVBoxLayout>
 #include "backend/settings/settings_meta.hpp"
+#include "ui/gui/helper/iconless_dialog_button_box.hpp"
 
 namespace joda::ui::gui {
 
@@ -66,7 +67,7 @@ public:
 
     mainLayout->addLayout(formLayout);
 
-    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    auto *buttons = new IconlessDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
     mainLayout->addWidget(buttons);

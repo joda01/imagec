@@ -22,6 +22,7 @@
 namespace joda::ui::gui {
 
 class WindowMain;
+class DialogPlateSettings;
 
 ///
 /// \class      PanelProjectSettings
@@ -75,6 +76,9 @@ private:
   joda::settings::AnalyzeSettings &mSettings;
   WindowMain *mParentWindow;
 
+  // WORKING directory ///////////////////////////////////////////////////
+  QLineEdit *mWorkingDir;
+
   // META ///////////////////////////////////////////////////
   QDialog *mMetaEditDialog;
   QLineEdit *mJobName;
@@ -86,23 +90,13 @@ private:
   // GROUPING ///////////////////////////////////////////////////
   QDialog *mGroupingDialog;
   QPushButton *mOpenGroupingSettings;
-  ComboWithPlaceholder *mGroupByComboBox;
-  QComboBox *mPlateSize;
-
-  QComboBox *mStackHandlingZ;
-  QComboBox *mStackHandlingT;
-
-  QLineEdit *mTStackFrameStart;
-  QLineEdit *mTStackFrameEnd;
-
-  QLineEdit *mWorkingDir;
-  QLabel *mWellOrderMatrixLabel;
-  QLineEdit *mWellOrderMatrix;
-  QLabel *mRegexToFindTheWellPositionLabel;
   QComboBox *mRegexToFindTheWellPosition;
+  ComboWithPlaceholder *mGroupByComboBox;
   QLineEdit *mTestFileName;
-  QLabel *mTestFileNameLabel;
   QLabel *mTestFileResult;
+
+  // PLATE /////////////////////////////////////////////////////
+  QComboBox *mPlateSize;
   QTextEdit *mNotes;
 
 private slots:

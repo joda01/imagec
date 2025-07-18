@@ -48,6 +48,8 @@ public:
   void clear();
   void saveAsTemplate();
   void loadTemplates();
+  void toSettings();
+  void fromSettings(const joda::settings::AnalyzeSettings &settings);
 
   void addChannel(joda::settings::Pipeline settings);
   void addChannel(const QString &pathToSettings);
@@ -74,6 +76,13 @@ private:
   joda::settings::AnalyzeSettings &mAnalyzeSettings;
   std::shared_ptr<DialogCommandSelection> mCommandSelectionDialog;
   PanelPipelineSettings *mActivePipeline;
+
+  // Stack options ///////////////////////////////////////////
+  QDialog *mStackOptionsDialog;
+  QComboBox *mStackHandlingZ;
+  QComboBox *mStackHandlingT;
+  QLineEdit *mTStackFrameStart;
+  QLineEdit *mTStackFrameEnd;
 
   // LAYOUT //////////////////////////////////////////////////
   QVBoxLayout *mMainLayout;

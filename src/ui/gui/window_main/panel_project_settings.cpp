@@ -20,8 +20,10 @@
 #include "backend/settings/project_settings/project_image_setup.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
 #include "backend/settings/project_settings/project_settings.hpp"
+#include "ui/gui/dialog_plate_settings/dialog_plate_settings.hpp"
 #include "ui/gui/helper/combo_placeholder.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
+#include "ui/gui/helper/iconless_dialog_button_box.hpp"
 #include "ui/gui/window_main/window_main.hpp"
 
 namespace joda::ui::gui {
@@ -49,92 +51,28 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   //
   // Working directory
   //
-  mWorkingDir = new QLineEdit();
-  mWorkingDir->setReadOnly(true);
-  mWorkingDir->setPlaceholderText("Directory your images are placed in...");
-  auto *workingDir = new QHBoxLayout;
-  workingDir->addWidget(mWorkingDir);
-  auto *openDir = new QPushButton(generateSvgIcon<Style::REGULAR, Color::BLUE>("folder-open"), "");
-  openDir->setStatusTip("Select image directory");
-  connect(openDir, &QPushButton::clicked, this, &PanelProjectSettings::onOpenWorkingDirectoryClicked);
-  workingDir->addWidget(openDir);
-  workingDir->setStretch(0, 1);    // Make label take all available space
-  formLayout->addRow(new QLabel(tr("Image directory")), workingDir);
-
-  // Grouping settings
   {
-    //
-    // Group by
-    //
-    mGroupByComboBox = new ComboWithPlaceholder();
-    mGroupByComboBox->setPlaceholderText("Select option...");
-    mGroupByComboBox->addItem("Ungrouped", static_cast<int>(joda::enums::GroupBy::OFF));
-    mGroupByComboBox->addItem("Group based on foldername", static_cast<int>(joda::enums::GroupBy::DIRECTORY));
-    mGroupByComboBox->addItem("Group based on filename", static_cast<int>(joda::enums::GroupBy::FILENAME));
-    mGroupByComboBox->setCurrentIndex(-1);
-    connect(mGroupByComboBox, &QComboBox::currentIndexChanged, [this](int index) {
-      if(mGroupByComboBox->currentData().toInt() == static_cast<int>(joda::enums::GroupBy::FILENAME)) {
-        mOpenGroupingSettings->setEnabled(true);
-        mGroupingDialog->exec();
-      } else {
-        mOpenGroupingSettings->setEnabled(false);
-      }
-    });
-
-    auto *groupingLayout = new QHBoxLayout;
-    groupingLayout->addWidget(mGroupByComboBox);
-    mOpenGroupingSettings = new QPushButton(generateSvgIcon<Style::REGULAR, Color::BLACK>("dots-three-outline-vertical"), "");
-    mOpenGroupingSettings->setStatusTip("Grouping settings");
-    mOpenGroupingSettings->setEnabled(false);
-    connect(mOpenGroupingSettings, &QPushButton::clicked, [this] { mGroupingDialog->exec(); });
-    groupingLayout->addWidget(mOpenGroupingSettings);
-    groupingLayout->setStretch(0, 1);    // Make label take all available space
-    formLayout->addRow(new QLabel(tr("Grouping")), groupingLayout);
-
-    mGroupingDialog = new QDialog(parentWindow);
-    mGroupingDialog->setWindowTitle("Grouping settings");
-    mGroupingDialog->setMinimumWidth(400);
-    auto *formLayout = new QFormLayout;
-
-    //
-    // Regex
-    //
-    mRegexToFindTheWellPosition = new QComboBox();
-    mRegexToFindTheWellPosition->addItem("_((.)([0-9]+))_([0-9]+)", "_((.)([0-9]+))_([0-9]+)");
-    mRegexToFindTheWellPosition->addItem("((.)([0-9]+))_([0-9]+)", "((.)([0-9]+))_([0-9]+)");
-    mRegexToFindTheWellPosition->addItem("(.*)_([0-9]*)", "(.*)_([0-9]*)");
-    mRegexToFindTheWellPosition->setEditable(true);
-    mRegexToFindTheWellPositionLabel = new QLabel(tr("Filename regex:"));
-    formLayout->addRow(mRegexToFindTheWellPositionLabel, mRegexToFindTheWellPosition);
-
-    //
-    mTestFileName      = new QLineEdit("your_test_image_file_Name_A99_01.tif");
-    mTestFileNameLabel = new QLabel(tr("Regex test"));
-    formLayout->addRow(mTestFileNameLabel, mTestFileName);
-
-    mTestFileResult = new QLabel();
-    formLayout->addRow(mTestFileResult);
-
-    // Okay and canlce
-    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok, Qt::Horizontal, this);
-    connect(buttonBox, &QDialogButtonBox::accepted, mGroupingDialog, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, mGroupingDialog, &QDialog::reject);
-    formLayout->addWidget(buttonBox);
-
-    mGroupingDialog->setLayout(formLayout);
+    mWorkingDir = new QLineEdit();
+    mWorkingDir->setReadOnly(true);
+    mWorkingDir->setPlaceholderText("Directory your images are placed in...");
+    auto *workingDir = new QHBoxLayout;
+    workingDir->addWidget(mWorkingDir);
+    auto *openDir = new QPushButton(generateSvgIcon<Style::REGULAR, Color::BLUE>("folder-open"), "");
+    openDir->setStatusTip("Select image directory");
+    connect(openDir, &QPushButton::clicked, this, &PanelProjectSettings::onOpenWorkingDirectoryClicked);
+    workingDir->addWidget(openDir);
+    workingDir->setStretch(0, 1);    // Make label take all available space
+    formLayout->addRow(new QLabel(tr("Image directory")), workingDir);
   }
-
-  addSeparator();
-
-  //
-  // Job name
-  //
-  mJobName = new QLineEdit;
-  mJobName->addAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("person-simple-run"), QLineEdit::LeadingPosition);
-  mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
-
   // Meta edit dialog
   {
+    //
+    // Job name
+    //
+    mJobName = new QLineEdit;
+    mJobName->addAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("person-simple-run"), QLineEdit::LeadingPosition);
+    mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
+
     auto *expirmentMeta = new QHBoxLayout;
     expirmentMeta->addWidget(mJobName);
     auto *openMetaEditor = new QPushButton(generateSvgIcon<Style::REGULAR, Color::BLACK>("dots-three-outline-vertical"), "");
@@ -183,7 +121,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
     formLayout->addRow(new QLabel(tr("Experiment ID")), mExperimentId);
 
     // Okay and canlce
-    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok, Qt::Horizontal, this);
+    auto *buttonBox = new IconlessDialogButtonBox(QDialogButtonBox::Ok, Qt::Horizontal, this);
     connect(buttonBox, &QDialogButtonBox::accepted, mMetaEditDialog, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, mMetaEditDialog, &QDialog::reject);
     formLayout->addWidget(buttonBox);
@@ -193,63 +131,104 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
 
   addSeparator();
 
-  //
-  // Stack handling
-  //
-  mStackHandlingZ = new QComboBox();
-  mStackHandlingZ->addItem("Each one", static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::EACH_ONE));
-  mStackHandlingZ->addItem("Defined by pipeline", static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::EXACT_ONE));
-  formLayout->addRow(new QLabel(tr("Z-Stack")), mStackHandlingZ);
-  connect(mStackHandlingZ, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onSettingChanged);
+  // Grouping settings
+  {
+    //
+    // Group by
+    //
+    mGroupByComboBox = new ComboWithPlaceholder();
+    mGroupByComboBox->setPlaceholderText("Select option...");
+    mGroupByComboBox->addItem("Ungrouped", static_cast<int>(joda::enums::GroupBy::OFF));
+    mGroupByComboBox->addItem("Group based on foldername", static_cast<int>(joda::enums::GroupBy::DIRECTORY));
+    mGroupByComboBox->addItem("Group based on filename", static_cast<int>(joda::enums::GroupBy::FILENAME));
+    mGroupByComboBox->setCurrentIndex(-1);
+    connect(mGroupByComboBox, &QComboBox::currentIndexChanged, [this](int index) {
+      if(mGroupByComboBox->currentData().toInt() == static_cast<int>(joda::enums::GroupBy::FILENAME)) {
+        mOpenGroupingSettings->setEnabled(true);
+        mGroupingDialog->exec();
+      } else {
+        mOpenGroupingSettings->setEnabled(false);
+      }
+    });
 
-  //
-  mStackHandlingT = new QComboBox();
-  mStackHandlingT->addItem("Each one", static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EACH_ONE));
-  mStackHandlingT->addItem("Defined by pipeline", static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EXACT_ONE));
-  connect(mStackHandlingT, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onSettingChanged);
-  formLayout->addRow(new QLabel(tr("T-Stack")), mStackHandlingT);
+    auto *groupingLayout = new QHBoxLayout;
+    groupingLayout->addWidget(mGroupByComboBox);
+    mOpenGroupingSettings = new QPushButton(generateSvgIcon<Style::REGULAR, Color::BLACK>("dots-three-outline-vertical"), "");
+    mOpenGroupingSettings->setStatusTip("Grouping settings");
+    mOpenGroupingSettings->setEnabled(false);
+    connect(mOpenGroupingSettings, &QPushButton::clicked, [this] { mGroupingDialog->exec(); });
+    groupingLayout->addWidget(mOpenGroupingSettings);
+    groupingLayout->setStretch(0, 1);    // Make label take all available space
+    formLayout->addRow(new QLabel(tr("Grouping")), groupingLayout);
 
-  auto *tStackRangeLayout = new QHBoxLayout;
-  mTStackFrameStart       = new QLineEdit();
-  mTStackFrameStart->setStatusTip("Time frame to start (0 to -1).");
-  mTStackFrameEnd = new QLineEdit();
-  mTStackFrameEnd->setStatusTip("Time frame to stop (-1 = last time frame).");
-  tStackRangeLayout->addWidget(mTStackFrameStart);
-  tStackRangeLayout->addWidget(mTStackFrameEnd);
-  formLayout->addRow(new QLabel(tr("T-Range")), tStackRangeLayout);
+    mGroupingDialog = new QDialog(parentWindow);
+    mGroupingDialog->setWindowTitle("Grouping settings");
+    mGroupingDialog->setMinimumWidth(400);
+    auto *formLayout = new QFormLayout;
 
-  addSeparator();
+    //
+    // Regex
+    //
+    mRegexToFindTheWellPosition = new QComboBox();
+    mRegexToFindTheWellPosition->addItem("_((.)([0-9]+))_([0-9]+)", "_((.)([0-9]+))_([0-9]+)");
+    mRegexToFindTheWellPosition->addItem("((.)([0-9]+))_([0-9]+)", "((.)([0-9]+))_([0-9]+)");
+    mRegexToFindTheWellPosition->addItem("(.*)_([0-9]*)", "(.*)_([0-9]*)");
+    mRegexToFindTheWellPosition->setEditable(true);
+    formLayout->addRow("Filename regex", mRegexToFindTheWellPosition);
 
-  //
-  // Well order matrix
-  //
-  mWellOrderMatrix = new QLineEdit("[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]");
-  mWellOrderMatrix->addAction(generateSvgIcon("labplot-matrix"), QLineEdit::LeadingPosition);
-  mWellOrderMatrixLabel = new QLabel(tr("Well order:"));
-  formLayout->addRow(mWellOrderMatrixLabel, mWellOrderMatrix);
+    //
+    mTestFileName = new QLineEdit("your_test_image_file_Name_A99_01.tif");
+    formLayout->addRow("Regex test", mTestFileName);
 
-  //
-  // Plate size
-  //
-  mPlateSize = new QComboBox();
-  mPlateSize->addItem("1", 1);
-  mPlateSize->addItem("2 x 3", 203);
-  mPlateSize->addItem("3 x 4", 304);
-  mPlateSize->addItem("4 x 6", 406);
-  mPlateSize->addItem("6 x 8", 608);
-  mPlateSize->addItem("8 x 12", 812);
-  mPlateSize->addItem("16 x 24", 1624);
-  mPlateSize->addItem("32 x 48", 3248);
-  mPlateSize->addItem("48 x 72", 4872);
-  formLayout->addRow(new QLabel(tr("Plate size:")), mPlateSize);
+    mTestFileResult = new QLabel();
+    formLayout->addRow(mTestFileResult);
 
-  addSeparator();
+    // Okay and canlce
+    auto *buttonBox = new IconlessDialogButtonBox(QDialogButtonBox::Ok, Qt::Horizontal, this);
+    connect(buttonBox, &QDialogButtonBox::accepted, mGroupingDialog, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, mGroupingDialog, &QDialog::reject);
+    formLayout->addWidget(buttonBox);
+
+    mGroupingDialog->setLayout(formLayout);
+  }
+
+  // Plate settings
+  {
+    //
+    // Plate size
+    //
+    mPlateSize = new QComboBox();
+    mPlateSize->addItem("1", 1);
+    mPlateSize->addItem("2 x 3", 203);
+    mPlateSize->addItem("3 x 4", 304);
+    mPlateSize->addItem("4 x 6", 406);
+    mPlateSize->addItem("6 x 8", 608);
+    mPlateSize->addItem("8 x 12", 812);
+    mPlateSize->addItem("16 x 24", 1624);
+    mPlateSize->addItem("32 x 48", 3248);
+    mPlateSize->addItem("48 x 72", 4872);
+
+    auto *plateSettingsLayout = new QHBoxLayout;
+    auto *openPlateSettings   = new QPushButton(generateSvgIcon<Style::REGULAR, Color::BLACK>("dots-three-outline-vertical"), "");
+    openPlateSettings->setStatusTip("Well image order settings");
+    connect(openPlateSettings, &QPushButton::clicked, [this] {
+      auto *dialogPlateSettings = new DialogPlateSettings(&mSettings.projectSettings.plates.begin()->plateSetup.wellImageOrder, mParentWindow);
+      if(dialogPlateSettings->exec() == QDialog::Accepted) {
+        emit onSettingChanged();
+      }
+    });
+
+    plateSettingsLayout->addWidget(mPlateSize);
+    plateSettingsLayout->addWidget(openPlateSettings);
+    plateSettingsLayout->setStretch(0, 1);    // Make label take all available space
+    formLayout->addRow(new QLabel(tr("Plate settings")), plateSettingsLayout);
+  }
 
   layout->addLayout(formLayout);
 
   mNotes = new QTextEdit;
   mNotes->setPlaceholderText("Notes on the experiment...");
-  layout->addWidget(mNotes);
+  // layout->addWidget(mNotes);
 
   layout->addStretch();
   setLayout(layout);
@@ -262,7 +241,6 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   connect(mRegexToFindTheWellPosition, &QComboBox::currentTextChanged, this, &PanelProjectSettings::applyRegex);
   connect(mGroupByComboBox, &QComboBox::currentIndexChanged, this, &PanelProjectSettings::onSettingChanged);
   connect(mAddressOrganisation, &QLineEdit::textChanged, this, &PanelProjectSettings::onSettingChanged);
-  connect(mWellOrderMatrix, &QLineEdit::textChanged, this, &PanelProjectSettings::onSettingChanged);
 
   mPlateSize->setCurrentIndex(6);
   applyRegex();
@@ -285,36 +263,11 @@ void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &s
       mGroupByComboBox->setCurrentIndex(-1);
     }
   }
-
-  {
-    mWellOrderMatrix->setText(joda::settings::vectorToString(settings.projectSettings.plates.begin()->plateSetup.wellImageOrder).data());
-  }
   {
     auto val = settings.projectSettings.plates.begin()->plateSetup.rows * 100 + settings.projectSettings.plates.begin()->plateSetup.cols;
     auto idx = mPlateSize->findData(val);
     if(idx >= 0) {
       mPlateSize->setCurrentIndex(idx);
-    }
-  }
-
-  {
-    auto idx = mStackHandlingZ->findData(static_cast<int>(settings.imageSetup.zStackHandling));
-    if(idx >= 0) {
-      mStackHandlingZ->setCurrentIndex(idx);
-    } else {
-      mStackHandlingZ->setCurrentIndex(0);
-    }
-  }
-  {
-    mTStackFrameStart->setText(QString::number(settings.imageSetup.tStackSettings.startFrame));
-    mTStackFrameEnd->setText(QString::number(settings.imageSetup.tStackSettings.endFrame));
-  }
-  {
-    auto idx = mStackHandlingT->findData(static_cast<int>(settings.imageSetup.tStackHandling));
-    if(idx >= 0) {
-      mStackHandlingT->setCurrentIndex(idx);
-    } else {
-      mStackHandlingT->setCurrentIndex(0);
     }
   }
 
@@ -344,21 +297,15 @@ void PanelProjectSettings::toSettings()
   mSettings.projectSettings.experimentSettings.notes = mNotes->toPlainText().toStdString();
   mSettings.projectSettings.address.firstName        = mScientistsFirstName->text().toStdString();
 
-  mSettings.projectSettings.plates.begin()->groupBy                   = static_cast<joda::enums::GroupBy>(mGroupByComboBox->currentData().toInt());
-  mSettings.projectSettings.plates.begin()->filenameRegex             = mRegexToFindTheWellPosition->currentText().toStdString();
-  mSettings.projectSettings.plates.begin()->imageFolder               = mWorkingDir->text().toStdString();
-  mSettings.projectSettings.plates.begin()->plateSetup.wellImageOrder = joda::settings::stringToVector(mWellOrderMatrix->text().toStdString());
+  mSettings.projectSettings.plates.begin()->groupBy       = static_cast<joda::enums::GroupBy>(mGroupByComboBox->currentData().toInt());
+  mSettings.projectSettings.plates.begin()->filenameRegex = mRegexToFindTheWellPosition->currentText().toStdString();
+  mSettings.projectSettings.plates.begin()->imageFolder   = mWorkingDir->text().toStdString();
 
   auto value                                                = mPlateSize->currentData().toUInt();
   mSettings.projectSettings.plates.begin()->plateSetup.rows = value / 100;
   mSettings.projectSettings.plates.begin()->plateSetup.cols = value % 100;
   mSettings.projectSettings.plates.begin()->plateId         = 1;
 
-  mSettings.imageSetup.zStackHandling = static_cast<joda::settings::ProjectImageSetup::ZStackHandling>(mStackHandlingZ->currentData().toInt());
-  mSettings.imageSetup.tStackHandling = static_cast<joda::settings::ProjectImageSetup::TStackHandling>(mStackHandlingT->currentData().toInt());
-
-  mSettings.imageSetup.tStackSettings.startFrame = mTStackFrameStart->text().toInt();
-  mSettings.imageSetup.tStackSettings.endFrame   = mTStackFrameEnd->text().toInt();
   mParentWindow->checkForSettingsChanged();
 }
 

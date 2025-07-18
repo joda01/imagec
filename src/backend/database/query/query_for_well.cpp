@@ -12,20 +12,6 @@
 namespace joda::db {
 
 ///
-/// \class      PositionInWell
-/// \author     Joachim Danmayr
-/// \brief      Position in well
-///
-struct ImgPositionInWell
-{
-  int32_t img = -1;
-  int32_t x   = -1;
-  int32_t y   = -1;
-};
-
-auto transformMatrix(const std::vector<std::vector<int32_t>> &wellImageOrder, int32_t &sizeX, int32_t &sizeY) -> std::map<int32_t, ImgPositionInWell>;
-
-///
 /// \brief
 /// \author
 /// \param[in]
@@ -58,9 +44,9 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
   //
   int32_t sizeX = 0;
   int32_t sizeY = 0;
-  std::map<int32_t, ImgPositionInWell> wellPos;
+  std::map<int32_t, joda::settings::ImgPositionInWell> wellPos;
   if(grouping == Grouping::BY_WELL) {
-    wellPos = transformMatrix(filter.getPlateSetup().wellImageOrder, sizeX, sizeY);
+    wellPos = joda::settings::transformMatrix(filter.getPlateSetup().wellImageOrder, sizeX, sizeY);
   } else {
     sizeX = filter.getPlateSetup().cols;
     sizeY = filter.getPlateSetup().rows;
@@ -133,7 +119,7 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
           double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
           if(grouping == Grouping::BY_WELL) {
             ///
-            ImgPositionInWell pos;
+            joda::settings::ImgPositionInWell pos;
             if(wellPos.contains(static_cast<int32_t>(imgGroupIdx))) {
               pos = wellPos[static_cast<int32_t>(imgGroupIdx)];
             } else {
@@ -323,43 +309,6 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
     return {sql, {static_cast<uint16_t>(classsAndClass.classs), static_cast<int32_t>(classsAndClass.zStack)}};
   }
   throw std::invalid_argument("Unknow t-Stack handling");
-}
-
-///
-/// \brief      Transforms a 2D Matrix where the elements in the matrix represents an images index
-///             and the coordinates of the matrix the position on the well to a map
-///             whereby the key is the images index and the values are the coordinates
-///              | 0  1  2
-///             -|---------
-///             0| 1  2  3
-///             1| 4  5  6
-///             2| 7  8  9
-///
-///            [1] => {0,0}
-///            [2] => {1,0}
-///            ...
-///            [9] => {2,2}
-///
-///
-/// \author     Joachim Danmayr
-///
-auto transformMatrix(const std::vector<std::vector<int32_t>> &wellImageOrder, int32_t &sizeX, int32_t &sizeY) -> std::map<int32_t, ImgPositionInWell>
-{
-  sizeY = wellImageOrder.size();
-  sizeX = 0;
-
-  std::map<int32_t, ImgPositionInWell> ret;
-  for(int y = 0; y < wellImageOrder.size(); y++) {
-    for(int x = 0; x < wellImageOrder[y].size(); x++) {
-      auto imgNr = wellImageOrder[y][x];
-      ret[imgNr] = ImgPositionInWell{.img = imgNr, .x = x + 1, .y = y + 1};    // We start with 1 not with zero
-      if(x > sizeX) {
-        sizeX = x;
-      }
-    }
-  }
-  sizeX++;    // Because we start with zro to count
-  return ret;
 }
 
 }    // namespace joda::db

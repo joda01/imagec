@@ -20,6 +20,7 @@
 #include "ui/gui/dialog_image_view/dialog_image_view.hpp"
 #include "ui/gui/dialog_image_view/panel_histogram.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
+#include "ui/gui/helper/iconless_dialog_button_box.hpp"
 
 namespace joda::ui::gui {
 
@@ -80,7 +81,7 @@ DialogImageSettings::DialogImageSettings(Settings *settings, QWidget *parent) : 
   fromSettings();
 
   // Okay and canlce
-  auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
+  auto *buttonBox = new IconlessDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
   connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
   connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
   formLayout->addWidget(buttonBox);
