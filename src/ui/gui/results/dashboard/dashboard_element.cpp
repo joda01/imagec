@@ -29,8 +29,8 @@ DashboardElement::DashboardElement(QWidget *widget) : QMdiSubWindow(widget)
   auto *centralWidget = new QWidget(this);
   auto *layout        = new QVBoxLayout(centralWidget);
   layout->setContentsMargins(0, 4, 0, 0);
-  setMinimumWidth(500);
-  // Header
+  // setMinimumWidth(500);
+  //  Header
   {
     mHeaderLabel = new QLabel();
     layout->addWidget(mHeaderLabel);

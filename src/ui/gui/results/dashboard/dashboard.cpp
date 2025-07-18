@@ -53,6 +53,11 @@ void Dashboard::tableToQWidgetTable(const std::shared_ptr<joda::table::Table> ta
   joda::db::data::Dashboard dashboard;
   auto tabs = dashboard.convert(tableIn, classesWithSameTrackingId, isImageView);
 
+  // This is a workaround since Qt has a buf which leads that the first added MidiSubWindow is not layout correctly.
+  // Therefore we add a dummy, which is deleted later on.
+  auto *dummy = new QMdiSubWindow(this);
+  dummy->show();
+
   // ========================================
   // Lamda function to create the dashboard
   // ========================================
@@ -71,7 +76,7 @@ void Dashboard::tableToQWidgetTable(const std::shared_ptr<joda::table::Table> ta
       connect(element01, &DashboardElement::cellSelected, [this](joda::table::TableCell cell) { mWindowResults->setSelectedElement(cell); });
       connect(element01, &DashboardElement::cellDoubleClicked, [this](joda::table::TableCell cell) { mWindowResults->openNextLevel({cell}); });
       element01->show();
-      element01->adjustSize();
+      element01->layout()->invalidate();
     }
     availableCols.emplace(midiKey);
     element01->setData(table);
@@ -81,8 +86,9 @@ void Dashboard::tableToQWidgetTable(const std::shared_ptr<joda::table::Table> ta
   for(const auto &[key, table] : tabs) {
     createDashboards(key, table);
   }
-
-  setActiveSubWindow(focusedWindow);    // Restore focus
+  if(nullptr != focusedWindow) {
+    setActiveSubWindow(focusedWindow);    // Restore focus
+  }
 
   // ========================================
   // Remove not used midi windows
@@ -95,8 +101,10 @@ void Dashboard::tableToQWidgetTable(const std::shared_ptr<joda::table::Table> ta
 
   if(mFirstOpen) {
     mFirstOpen = false;
+
     cascadeSubWindows();
   }
+  dummy->deleteLater();
 }
 
 ///
