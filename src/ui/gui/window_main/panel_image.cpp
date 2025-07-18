@@ -44,16 +44,14 @@ PanelImages::PanelImages(WindowMain *windowMain) : mWindowMain(windowMain)
   {
     mImageMeta = new PlaceholderTableWidget(0, 2);
     mImageMeta->setFrameStyle(QFrame::NoFrame);
-    mImageMeta->setShowGrid(false);
     mImageMeta->setPlaceholderText("Select an image");
     mImageMeta->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     mImageMeta->verticalHeader()->setVisible(false);
     mImageMeta->horizontalHeader()->setVisible(true);
-    mImageMeta->setHorizontalHeaderLabels({"Image properties"});
-    mImageMeta->setAlternatingRowColors(false);
+    mImageMeta->setHorizontalHeaderLabels({"Name", "Value"});
+    mImageMeta->setAlternatingRowColors(true);
     mImageMeta->setSelectionBehavior(QAbstractItemView::SelectRows);
     mImageMeta->setItemDelegate(new HtmlDelegate(mImageMeta));
-    mImageMeta->setColumnHidden(1, true);
     layout->addWidget(mImageMeta, 4);
   }
 
@@ -193,66 +191,81 @@ void PanelImages::updateImageMeta()
   QList<QTableWidgetItem *> selectedItems = mImages->selectedItems();
   if(!selectedItems.isEmpty()) {
     auto [imagePath, series, _] = getSelectedImage();
-    mOmeFromActSelectedImage    = mWindowMain->getController()->getImageProperties(imagePath, series);
 
+    mOmeFromActSelectedImage = mWindowMain->getController()->getImageProperties(imagePath, series);
     // Open image
     mWindowMain->openImage(imagePath, &mOmeFromActSelectedImage);
-
-    // Load meta data
     auto tileSize = mWindowMain->getSettings().imageSetup.imageTileSettings;
 
     mImageMeta->clearContents();
-    mImageMeta->setRowCount(20 + mOmeFromActSelectedImage.getNrOfSeries() * 20);
+    mImageMeta->setRowCount(0);
 
-    int32_t row = 0;
-
-    auto addItem = [this, &row](const std::string name, int64_t value, const std::string &prefix) {
-      auto *title = new QTableWidgetItem("<b><i>" + QString(name.data()) + ":</i></b> " + QString::number(value) + " " + QString(prefix.data()));
+    auto addItem = [this](const std::string name, int64_t value, const std::string &prefix) {
+      auto row = mImageMeta->rowCount();
+      mImageMeta->setRowCount(row + 1);
+      auto *title = new QTableWidgetItem(name.data());
       title->setFlags(title->flags() & ~Qt::ItemIsEditable);
       mImageMeta->setItem(row, 0, title);
-      row++;
+
+      auto *valueItem = new QTableWidgetItem(QString::number(value) + " " + QString(prefix.data()));
+      valueItem->setFlags(valueItem->flags() & ~Qt::ItemIsEditable);
+      mImageMeta->setItem(row, 1, valueItem);
     };
 
-    auto addItemFloat = [this, &row](const std::string name, float value, const std::string &prefix) {
-      auto *title = new QTableWidgetItem("<b><i>" + QString(name.data()) + ":</i></b> " + QString::number(value) + " " + QString(prefix.data()));
+    auto addItemFloat = [this](const std::string name, float value, const std::string &prefix) {
+      auto row = mImageMeta->rowCount();
+      mImageMeta->setRowCount(row + 1);
+
+      auto *title = new QTableWidgetItem(name.data());
       title->setFlags(title->flags() & ~Qt::ItemIsEditable);
       mImageMeta->setItem(row, 0, title);
-      row++;
+
+      auto *valueItem = new QTableWidgetItem(QString::number(value) + " " + QString(prefix.data()));
+      valueItem->setFlags(valueItem->flags() & ~Qt::ItemIsEditable);
+      mImageMeta->setItem(row, 1, valueItem);
     };
 
-    auto addStringItem = [this, &row](const std::string name, const std::string &value) {
-      auto *title = new QTableWidgetItem("<b><i>" + QString(name.data()) + ":</i></b> " + value.data());
+    auto addStringItem = [this](const std::string name, const std::string &value) {
+      auto row = mImageMeta->rowCount();
+      mImageMeta->setRowCount(row + 1);
+      auto *title = new QTableWidgetItem(name.data());
       title->setFlags(title->flags() & ~Qt::ItemIsEditable);
       mImageMeta->setItem(row, 0, title);
-      row++;
+
+      auto *valueItem = new QTableWidgetItem(value.data());
+      valueItem->setFlags(valueItem->flags() & ~Qt::ItemIsEditable);
+      mImageMeta->setItem(row, 1, valueItem);
     };
 
-    auto addTitle = [this, &row](const std::string name) {
-      auto *item = new QTableWidgetItem("<b><span style=\"color:#000000;\">" + QString(name.data()) + "</span></b>");
-      item->setBackground(QColor("#f7f7f7"));
+    auto addTitle = [this](const std::string name) {
+      auto row = mImageMeta->rowCount();
+      mImageMeta->setRowCount(row + 1);
+      auto *item = new QTableWidgetItem("<b>" + QString(name.data()) + "</b>");
+      QFont font;
+      font.setBold(true);
+      item->setFont(font);
       mImageMeta->setItem(row, 0, item);
-      row++;
+      mImageMeta->setItem(row, 1, new QTableWidgetItem(""));
     };
 
-    auto addSubTitle = [this, &row](const std::string name) {
-      auto *item = new QTableWidgetItem("<b><span style=\"color:#3399ff;\">" + QString(name.data()) + "</span></b>");
+    auto addSubTitle = [this](const std::string name) {
+      auto row = mImageMeta->rowCount();
+      mImageMeta->setRowCount(row + 1);
+      auto *item = new QTableWidgetItem("<i>" + QString(name.data()) + "</i>");
+      QFont font;
+      font.setItalic(true);
+      item->setFont(font);
       mImageMeta->setItem(row, 0, item);
-      row++;
+      mImageMeta->setItem(row, 1, new QTableWidgetItem(""));
     };
 
-    auto addSubSubTitle = [this, &row](const std::string name) {
-      auto *item = new QTableWidgetItem("<b><span style=\"color:#000000;\">" + QString(name.data()) + "</span></b>");
-      mImageMeta->setItem(row, 0, item);
-      row++;
-    };
-
-    addStringItem("Filename", imagePath.filename().string());
-    addItem("Nr. series", mOmeFromActSelectedImage.getNrOfSeries(), "");
+    addItem("Series", mOmeFromActSelectedImage.getNrOfSeries(), "");
 
     for(int32_t series = 0; series < mOmeFromActSelectedImage.getNrOfSeries(); series++) {
       const auto &imgInfo = mOmeFromActSelectedImage.getImageInfo(series);
 
       addTitle("Image (Series - " + std::to_string(series) + ")");
+      addStringItem("Name", imagePath.filename().string());
       addItem("Width", imgInfo.resolutions.at(0).imageWidth, "px");
       addItem("Height", imgInfo.resolutions.at(0).imageHeight, "px");
       addItem("Bits", imgInfo.resolutions.at(0).bits, "");
@@ -268,42 +281,27 @@ void PanelImages::updateImageMeta()
 
       QString channelInfoStr;
       for(const auto &[idx, channelInfo] : mOmeFromActSelectedImage.getChannelInfos(series)) {
-        mImageMeta->setRowCount(mImageMeta->rowCount() + 5);
         addSubTitle("Channel " + std::to_string(idx));
-        addStringItem("Name", channelInfo.name);
         addStringItem("ID", channelInfo.channelId);
+        addStringItem("Name", channelInfo.name);
         addItemFloat("Emission wave length", channelInfo.emissionWaveLength, channelInfo.emissionWaveLengthUnit);
         addStringItem("Contrast method", channelInfo.contrastMethod);
-        addItem("Nr. T-Stacks", channelInfo.planes.size(), "");
-        if(!channelInfo.planes.empty()) {
-          addItem("Nr. Z-Stacks", channelInfo.planes.at(0).size(), "");
-        } else {
-          addItem("Nr. Z-Stacks", 0, "");
-        }
 
         for(const auto &[tStack, tdata] : channelInfo.planes) {
           for(const auto &[zStack, zData] : tdata) {
-            mImageMeta->setRowCount(mImageMeta->rowCount() + 3);
-            addSubSubTitle("Stack Z" + std::to_string(zStack) + "/T" + std::to_string(tStack));
             addItemFloat("Exposure time", zData.exposureTime, zData.exposureTimeUnit);
-            // addItem("Z-Stack", zStack, "");
-            // addItem("T-Stack", tStack, "");
+            addItem("Z-Stack", zStack, "");
+            addItem("T-Stack", tStack, "");
           }
         }
       }
     }
 
-    //
-    // Objective information
-    //
     const auto &objectiveInfo = mOmeFromActSelectedImage.getObjectiveInfo();
-    addTitle("Objective");
-    addStringItem("Manufacturer", objectiveInfo.manufacturer);
-    addStringItem("Model", objectiveInfo.model);
-    addStringItem("Medium", objectiveInfo.medium);
-    addStringItem("Magnification", "x" + std::to_string(objectiveInfo.magnification));
-
-    mImageMeta->setRowCount(row);
+    addStringItem("Objective manufacturer", objectiveInfo.manufacturer);
+    addStringItem("Objective model", objectiveInfo.model);
+    addStringItem("Objective medium", objectiveInfo.medium);
+    addStringItem("Objective magnification", "x" + std::to_string(objectiveInfo.magnification));
 
   } else {
     mImageMeta->setRowCount(0);
