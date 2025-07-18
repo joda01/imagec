@@ -27,6 +27,7 @@
 #include "ui/gui/container/dialog_command_selection/dialog_command_selection.hpp"
 #include "ui/gui/container/dialog_pipeline_settings/dialog_pipeline_settings.hpp"
 #include "ui/gui/container/pipeline/panel_pipeline_settings.hpp"
+#include "ui/gui/container/pipeline/table_item_delegate_pipeline.hpp"
 #include "ui/gui/container/pipeline/table_model_pipeline.hpp"
 #include "ui/gui/helper/droppable_widget/droppable_widget.hpp"
 #include "ui/gui/helper/html_delegate.hpp"
@@ -190,13 +191,13 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     mPipelineTable = new PlaceholderTableView(this);
     mPipelineTable->setPlaceholderText("Press the + button to add a new pipeline.");
     mPipelineTable->setFrameStyle(QFrame::NoFrame);
-    mPipelineTable->setShowGrid(false);
-    mPipelineTable->setItemDelegate(new HtmlDelegate(mPipelineTable));
     mPipelineTable->verticalHeader()->setVisible(false);
     mPipelineTable->horizontalHeader()->setVisible(true);
     mPipelineTable->setAlternatingRowColors(true);
     mPipelineTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     mPipelineTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    mPipelineTable->setItemDelegateForColumn(0, new HtmlDelegate(mPipelineTable));
+    mPipelineTable->setItemDelegateForColumn(1, new ColorSquareDelegatePipeline(mPipelineTable));
     mTableModel = new TableModelPipeline(mAnalyzeSettings.projectSettings.classification, mPipelineTable);
     mTableModel->setData(&settings.pipelines);
     mPipelineTable->setModel(mTableModel);

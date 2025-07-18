@@ -62,7 +62,7 @@ int TableModelPipeline::columnCount(const QModelIndex &parent) const
   if(!mPipelines) {
     return 0;
   }
-  return 1;
+  return 2;
 }
 
 ///
@@ -80,7 +80,13 @@ QVariant TableModelPipeline::headerData(int section, Qt::Orientation orientation
   if(role != Qt::DisplayRole) {
     return {};
   }
-  return {"Pipelines"};
+  if(section == 0) {
+    return {"Name"};
+  }
+  if(section == 1) {
+    return {"Class/Channel"};
+  }
+  return {};
 }
 
 ///
@@ -103,39 +109,40 @@ QVariant TableModelPipeline::data(const QModelIndex &index, int role) const
     return {};
   }
 
+  auto it = mPipelines->begin();
+  std::advance(it, index.row());
+
+  if(role == CLASS_ROLE) {
+    return static_cast<int32_t>(it->pipelineSetup.defaultClassId);
+  }
+
+  if(role == CHANNEL_IDX_ROLE) {
+    return static_cast<int32_t>(it->pipelineSetup.cStackIndex);
+  }
+
+  if(role == Qt::UserRole) {
+    return QColor(mClassSettings.getClassFromId(it->pipelineSetup.defaultClassId).color.data());
+  }
+
   if(role == Qt::DisplayRole) {
-    auto it = mPipelines->begin();
-    std::advance(it, index.row());
-
-    QString html = R"(
-    <table width="100%">
-      <tr>
-        <td align="left">
-          <img src="data:image/png;base64,%1" width="22" height="22"/>
-        </td>
-        <td width="150" align="left" valign="middle" text-align: left;">
-          %2
-        </td>
-        <td align="left">
-          <img src="data:image/png;base64,%3" width="22" height="22"/>
-        </td>
-        <td width="150" align="left" valign="middle" text-align: left;">
-           %4 / %5
-        </td>
-      </tr>
-    </table>
-    )";
-
     QString imgChannel = QString::number(it->pipelineSetup.cStackIndex);
     if(it->pipelineSetup.cStackIndex < 0) {
       imgChannel = "None";
     }
-    html = html.arg(base64IconName)
-               .arg(QString(it->meta.name.data()))
-               .arg(base64IconHash)
-               .arg(QString(mClassSettings.getClassFromId(it->pipelineSetup.defaultClassId).name.data()))
-               .arg(imgChannel);
-    return html;
+    if(index.column() == 0) {
+      QString html = "%1";
+      return html.arg(QString(it->meta.name.data()));
+    }
+    if(index.column() == 1) {
+      QString retStr;
+      if((int32_t) it->pipelineSetup.defaultClassId >= 0) {
+        retStr = mClassSettings.getClassFromId(it->pipelineSetup.defaultClassId).name.data();
+      } else {
+        retStr = "None";
+      }
+
+      return retStr;
+    }
   }
   return {};
 }

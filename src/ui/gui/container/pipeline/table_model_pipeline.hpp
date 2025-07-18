@@ -27,6 +27,9 @@ class TableModelPipeline : public QAbstractTableModel
   Q_OBJECT
 
 public:
+  static constexpr int32_t CLASS_ROLE       = 0x101;
+  static constexpr int32_t CHANNEL_IDX_ROLE = 0x102;
+
   /////////////////////////////////////////////////////
   TableModelPipeline(const joda::settings::Classification &, QObject *parent = nullptr);
   void setData(std::list<joda::settings::Pipeline> *pipelines);
