@@ -229,11 +229,16 @@ void WindowMain::createTopToolbar()
   mTopToolBar->setObjectName("MainWindowTopToolBar");
   mTopToolBar->setMovable(false);
 
+  auto *newProject = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("file"), "New", mTopToolBar);
+  newProject->setStatusTip("Creates a new project either from template ar an empty one.");
+  connect(newProject, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
+
   mOpenProjectButton = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("folder-open"), "Open", mTopToolBar);
   mOpenProjectButton->setStatusTip("Open existing project, template or results");
-  connect(mOpenProjectButton, &QAction::triggered, this, &WindowMain::onNewProjectClicked);
+  connect(mOpenProjectButton, &QAction::triggered, this, &WindowMain::onOpenClicked);
 
   mOpenRecentProjectMenu = new QMenu("Recent projects");
+  mOpenRecentProjectMenu->setIcon(generateSvgIcon<Style::REGULAR, Color::BLACK>("folder-simple"));
 
   mSaveProject = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("floppy-disk"), "Save", mTopToolBar);
   mSaveProject->setStatusTip("Save project");
@@ -280,8 +285,11 @@ void WindowMain::createTopToolbar()
   // =====================================
   mTopMenuBar    = menuBar();
   auto *fileMenu = mTopMenuBar->addMenu("File");
+  fileMenu->addAction(newProject);
+  fileMenu->addSeparator();
   fileMenu->addAction(mOpenProjectButton);
   fileMenu->addMenu(mOpenRecentProjectMenu);
+  fileMenu->addSeparator();
   fileMenu->addAction(mSaveProject);
   fileMenu->addAction(mSaveProjectAs);
 
