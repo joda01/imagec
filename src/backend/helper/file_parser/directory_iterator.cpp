@@ -27,12 +27,16 @@ DirectoryWatcher::DirectoryWatcher(const std::set<std::string> &supportedFileFor
 /// \brief      Find all images in the given infolder and its subfolder.
 /// \author     Joachim Danmayr
 ///
-void DirectoryWatcher::setWorkingDirectory(uint8_t group, const std::filesystem::path &inputFolder)
+void DirectoryWatcher::setWorkingDirectory(const std::filesystem::path &inputFolder)
 {
-  if(mWorkingDirectory[group] != inputFolder) {
-    mWorkingDirectory[group] = inputFolder;
+  if(mWorkingDirectory != inputFolder) {
+    mWorkingDirectory = inputFolder;
     if(inputFolder.empty()) {
-      mListOfImagePaths[group].clear();
+      std::cout << "Clear" << std::endl;
+      mListOfImagePaths.clear();
+      for(const auto &callback : mCallbacks) {
+        callback(State::FINISHED);
+      }
     } else {
       stop();
       mWorkerThread = std::make_unique<std::thread>(&DirectoryWatcher::lookForImagesInFolderAndSubfolder, this);
@@ -52,18 +56,15 @@ void DirectoryWatcher::lookForImagesInFolderAndSubfolder()
     callback(State::RUNNING);
   }
 
-  for(const auto &[group, workingDir] : mWorkingDirectory) {
-    mListOfImagePaths[group].clear();
-    if(workingDir.empty()) {
-      continue;
-    }
+  mListOfImagePaths.clear();
+  if(!mWorkingDirectory.empty()) {
     try {
-      for(recursive_directory_iterator i(workingDir), end; i != end; ++i) {
+      for(recursive_directory_iterator i(mWorkingDirectory), end; i != end; ++i) {
         try {
           if(!is_directory(i->path())) {
             auto supported = parseFile(*i);
             if(supported) {
-              mListOfImagePaths[group].push_back(*i);
+              mListOfImagePaths.push_back(*i);
             }
           }
         } catch(const std::exception &ex) {
@@ -77,7 +78,6 @@ void DirectoryWatcher::lookForImagesInFolderAndSubfolder()
       joda::log::logError("File iterator: " + std::string(ex.what()));
     }
   }
-
   mIsRunning = false;
   for(const auto &callback : mCallbacks) {
     callback(State::FINISHED);

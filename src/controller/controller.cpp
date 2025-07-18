@@ -194,7 +194,7 @@ auto Controller::getNrOfFoundImages() -> uint32_t
 /// \author
 /// \return
 ///
-auto Controller::getListOfFoundImages() -> const std::map<uint8_t, std::vector<std::filesystem::path>> &
+auto Controller::getListOfFoundImages() const -> const std::vector<std::filesystem::path> &
 {
   return mWorkingDirectory.getFilesList();
 }
@@ -224,9 +224,9 @@ void Controller::stopLookingForFiles()
 /// \author
 /// \return
 ///
-void Controller::setWorkingDirectory(uint8_t plateNr, const std::filesystem::path &dir)
+void Controller::setWorkingDirectory(const std::filesystem::path &dir)
 {
-  mWorkingDirectory.setWorkingDirectory(plateNr, dir);
+  mWorkingDirectory.setWorkingDirectory(dir);
 }
 
 ///
@@ -409,7 +409,7 @@ void Controller::start(const settings::AnalyzeSettings &settings, const joda::th
   if(mActThread.joinable()) {
     mActThread.join();
   }
-  setWorkingDirectory(settings.projectSettings.plates.begin()->plateId, settings.projectSettings.plates.begin()->imageFolder);
+  setWorkingDirectory(settings.projectSettings.plate.imageFolder);
   mWorkingDirectory.waitForFinished();
 
   mActProcessor.reset();

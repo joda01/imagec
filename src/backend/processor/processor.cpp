@@ -86,15 +86,16 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
     //
     // Iterate over each plate and analyze the images
     //
-    auto &db = globalContext.database;
-    for(const auto &plate : program.projectSettings.plates) {
+    auto &db          = globalContext.database;
+    const auto &plate = program.projectSettings.plate;
+    {
       BS::multi_future<void> imageFutures;
       PlateContext plateContext{.plateId = plate.plateId};
-      const auto &images = allImages.getFilesListAt(plate.plateId);
+      const auto &images = allImages.getFilesListAt();
 
       mProgress.setRunningPreparingPipeline();
       auto imagesToProcess = db->prepareImages(plate.plateId, program.imageSetup.series, plate.groupBy, plate.filenameRegex, images,
-                                               allImages.getDirectoryAt(plate.plateId), mGlobThreadPool);
+                                               allImages.getDirectoryAt(), mGlobThreadPool);
       mProgress.setStateRunning();
 
       //
@@ -308,9 +309,7 @@ std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSett
 void Processor::listImages(const joda::settings::AnalyzeSettings &program, imagesList_t &allImages)
 {
   mProgress.setStateLookingForImages();
-  for(const auto &plate : program.projectSettings.plates) {
-    allImages.setWorkingDirectory(plate.plateId, plate.imageFolder);
-  }
+  allImages.setWorkingDirectory(program.projectSettings.plate.imageFolder);
   allImages.waitForFinished();
   mProgress.setTotalNrOfImages(allImages.getNrOfFiles());
   mProgress.setRunningPreparingPipeline();

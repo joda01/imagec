@@ -37,7 +37,7 @@ public:
   //
   // Plates analyzed by this run
   //
-  std::list<Plate> plates = {{}};
+  Plate plate = {};
 
   //
   // The address of the experiment
@@ -57,16 +57,6 @@ public:
   void check() const
   {
     CHECK_ERROR(!workingDirectory.empty(), "Working directory must not be empty!");
-    // Check plates
-    {
-      CHECK_ERROR(!plates.empty(), "At least one plate must be given!");
-      std::set<uint8_t> ids;
-      for(const auto &plate : plates) {
-        if(ids.contains(plate.plateId)) {
-          THROW_ERROR("Plate ID >" + std::to_string(plate.plateId) + "< was used twice!");
-        }
-      }
-    }
     // Check classes
     {
       CHECK_ERROR(!classification.classes.empty(), "At least one class must be given!");
@@ -82,7 +72,14 @@ public:
     }
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectSettings, experimentSettings, plates, address, classification, workingDirectory);
+  //
+  // This is legacy and will be removed in a further version
+  /// \todo REMOVE, legacy
+  //
+  std::list<Plate> plates;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectSettings, experimentSettings, plate, address, classification, workingDirectory,
+                                                       /*LEGACY*/ plates);
 };
 
 }    // namespace joda::settings

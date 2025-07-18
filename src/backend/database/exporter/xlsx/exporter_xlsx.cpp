@@ -299,14 +299,13 @@ void Exporter::createAnalyzeSettings(WorkBook &workbookSettings, const settings:
   addElement("Notes", settings.projectSettings.experimentSettings.notes);
   addElement("Working directory", settings.projectSettings.workingDirectory);
 
-  for(const auto &plate : settings.projectSettings.plates) {
-    addTitle("Plate " + std::to_string(plate.plateId));
-    addElement("Filename regex", plate.filenameRegex);
-    addElement("Image folder", plate.imageFolder);
-    addElement("Well order", joda::settings::vectorToString(plate.plateSetup.wellImageOrder));
-    nlohmann::json groupBy = static_cast<enums::GroupBy>(plate.groupBy);
-    addElement("Group by", std::string(groupBy));
-  }
+  const auto &plate = settings.projectSettings.plate;
+  addTitle("Plate " + std::to_string(plate.plateId));
+  addElement("Filename regex", plate.filenameRegex);
+  addElement("Image folder", plate.imageFolder);
+  addElement("Well order", joda::settings::vectorToString(plate.plateSetup.wellImageOrder));
+  nlohmann::json groupBy = static_cast<enums::GroupBy>(plate.groupBy);
+  addElement("Group by", std::string(groupBy));
 }
 
 }    // namespace joda::exporter::xlsx

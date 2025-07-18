@@ -1187,22 +1187,22 @@ std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &
 
   // First try to insert plates
   try {
-    auto platesDb = duckdb::Appender(*connection, "plates");
-    for(const auto &plate : exp.projectSettings.plates) {
-      nlohmann::json groupBy = plate.groupBy;
-      platesDb.BeginRow();
-      platesDb.Append(jobId);                                                                          //       " job_id UUID,"
-      platesDb.Append<uint16_t>(plate.plateId);                                                        //       " plate_id USMALLINT,"
-      platesDb.Append<duckdb::string_t>(plate.name);                                                   //       " name STRING,"
-      platesDb.Append<duckdb::string_t>(plate.notes);                                                  //       " notes STRING,"
-      platesDb.Append<uint16_t>(plate.plateSetup.rows);                                                //       " rows USMALLINT,"
-      platesDb.Append<uint16_t>(plate.plateSetup.cols);                                                //       " cols USMALLINT,"
-      platesDb.Append<duckdb::string_t>(plate.imageFolder);                                            //       " image_folder STRING,"
-      platesDb.Append<duckdb::string_t>(settings::vectorToString(plate.plateSetup.wellImageOrder));    //       " well_image_order STRING,"
-      platesDb.Append<duckdb::string_t>(std::string(groupBy));                                         //       " group_by STRING,"
-      platesDb.Append<duckdb::string_t>(plate.filenameRegex);                                          //       " filename_regex STRING,"
-      platesDb.EndRow();
-    }
+    auto platesDb          = duckdb::Appender(*connection, "plates");
+    const auto &plate      = exp.projectSettings.plate;
+    nlohmann::json groupBy = plate.groupBy;
+    platesDb.BeginRow();
+    platesDb.Append(jobId);                                                                          //       " job_id UUID,"
+    platesDb.Append<uint16_t>(plate.plateId);                                                        //       " plate_id USMALLINT,"
+    platesDb.Append<duckdb::string_t>(plate.name);                                                   //       " name STRING,"
+    platesDb.Append<duckdb::string_t>(plate.notes);                                                  //       " notes STRING,"
+    platesDb.Append<uint16_t>(plate.plateSetup.rows);                                                //       " rows USMALLINT,"
+    platesDb.Append<uint16_t>(plate.plateSetup.cols);                                                //       " cols USMALLINT,"
+    platesDb.Append<duckdb::string_t>(plate.imageFolder);                                            //       " image_folder STRING,"
+    platesDb.Append<duckdb::string_t>(settings::vectorToString(plate.plateSetup.wellImageOrder));    //       " well_image_order STRING,"
+    platesDb.Append<duckdb::string_t>(std::string(groupBy));                                         //       " group_by STRING,"
+    platesDb.Append<duckdb::string_t>(plate.filenameRegex);                                          //       " filename_regex STRING,"
+    platesDb.EndRow();
+
     platesDb.Close();
   } catch(const std::exception &ex) {
     connection->Rollback();

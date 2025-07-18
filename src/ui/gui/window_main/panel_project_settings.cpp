@@ -212,7 +212,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
     auto *openPlateSettings   = new QPushButton(generateSvgIcon<Style::REGULAR, Color::BLACK>("dots-three-outline-vertical"), "");
     openPlateSettings->setStatusTip("Well image order settings");
     connect(openPlateSettings, &QPushButton::clicked, [this] {
-      auto *dialogPlateSettings = new DialogPlateSettings(&mSettings.projectSettings.plates.begin()->plateSetup.wellImageOrder, mParentWindow);
+      auto *dialogPlateSettings = new DialogPlateSettings(&mSettings.projectSettings.plate.plateSetup.wellImageOrder, mParentWindow);
       if(dialogPlateSettings->exec() == QDialog::Accepted) {
         emit onSettingChanged();
       }
@@ -256,7 +256,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
 void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &settings)
 {
   {
-    auto idx = mGroupByComboBox->findData(static_cast<int>(settings.projectSettings.plates.begin()->groupBy));
+    auto idx = mGroupByComboBox->findData(static_cast<int>(settings.projectSettings.plate.groupBy));
     if(idx >= 0) {
       mGroupByComboBox->setCurrentIndex(idx);
     } else {
@@ -264,7 +264,7 @@ void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &s
     }
   }
   {
-    auto val = settings.projectSettings.plates.begin()->plateSetup.rows * 100 + settings.projectSettings.plates.begin()->plateSetup.cols;
+    auto val = settings.projectSettings.plate.plateSetup.rows * 100 + settings.projectSettings.plate.plateSetup.cols;
     auto idx = mPlateSize->findData(val);
     if(idx >= 0) {
       mPlateSize->setCurrentIndex(idx);
@@ -272,15 +272,14 @@ void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &s
   }
 
   mWorkingDir->setText(settings.projectSettings.workingDirectory.data());
-  mRegexToFindTheWellPosition->setCurrentText(settings.projectSettings.plates.begin()->filenameRegex.data());
+  mRegexToFindTheWellPosition->setCurrentText(settings.projectSettings.plate.filenameRegex.data());
   mNotes->setText(settings.projectSettings.experimentSettings.notes.data());
   mAddressOrganisation->setText(settings.projectSettings.address.organization.data());
   mScientistsFirstName->setText(settings.projectSettings.address.firstName.data());
 
   mJobName->clear();
   applyRegex();
-  mParentWindow->getController()->setWorkingDirectory(settings.projectSettings.plates.begin()->plateId,
-                                                      settings.projectSettings.plates.begin()->imageFolder);
+  mParentWindow->getController()->setWorkingDirectory(settings.projectSettings.plate.imageFolder);
 }
 
 ///
@@ -297,14 +296,14 @@ void PanelProjectSettings::toSettings()
   mSettings.projectSettings.experimentSettings.notes = mNotes->toPlainText().toStdString();
   mSettings.projectSettings.address.firstName        = mScientistsFirstName->text().toStdString();
 
-  mSettings.projectSettings.plates.begin()->groupBy       = static_cast<joda::enums::GroupBy>(mGroupByComboBox->currentData().toInt());
-  mSettings.projectSettings.plates.begin()->filenameRegex = mRegexToFindTheWellPosition->currentText().toStdString();
-  mSettings.projectSettings.plates.begin()->imageFolder   = mWorkingDir->text().toStdString();
+  mSettings.projectSettings.plate.groupBy       = static_cast<joda::enums::GroupBy>(mGroupByComboBox->currentData().toInt());
+  mSettings.projectSettings.plate.filenameRegex = mRegexToFindTheWellPosition->currentText().toStdString();
+  mSettings.projectSettings.plate.imageFolder   = mWorkingDir->text().toStdString();
 
-  auto value                                                = mPlateSize->currentData().toUInt();
-  mSettings.projectSettings.plates.begin()->plateSetup.rows = value / 100;
-  mSettings.projectSettings.plates.begin()->plateSetup.cols = value % 100;
-  mSettings.projectSettings.plates.begin()->plateId         = 1;
+  auto value                                      = mPlateSize->currentData().toUInt();
+  mSettings.projectSettings.plate.plateSetup.rows = value / 100;
+  mSettings.projectSettings.plate.plateSetup.cols = value % 100;
+  mSettings.projectSettings.plate.plateId         = 1;
 
   mParentWindow->checkForSettingsChanged();
 }
@@ -325,8 +324,8 @@ void PanelProjectSettings::onOpenWorkingDirectoryClicked()
   mWorkingDir->update();
   mWorkingDir->repaint();
   mSettings.projectSettings.workingDirectory = mWorkingDir->text().toStdString();
-  mParentWindow->getController()->setWorkingDirectory(mSettings.projectSettings.plates.begin()->plateId, selectedDirectory.toStdString());
-  mSettings.projectSettings.plates.begin()->imageFolder = mSettings.projectSettings.workingDirectory;
+  mParentWindow->getController()->setWorkingDirectory(selectedDirectory.toStdString());
+  mSettings.projectSettings.plate.imageFolder = mSettings.projectSettings.workingDirectory;
   onSettingChanged();
 }
 

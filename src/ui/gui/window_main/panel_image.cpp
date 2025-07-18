@@ -158,23 +158,21 @@ void PanelImages::updateImagesList()
   mImages->clearContents();
   int row = 0;
   int idx = 0;
-  for(const auto &[plateId, images] : foundImages) {
-    auto rowCount = row + images.size();
-    mImages->setRowCount(rowCount);
-    for(const auto &filename : images) {
-      if(contains(filename.string().data())) {
-        auto *index = new QTableWidgetItem(filename.string().data());
-        index->setFlags(index->flags() & ~Qt::ItemIsEditable);
-        mImages->setItem(row, 0, index);
+  mImages->setRowCount(foundImages.size());
+  for(const auto &filename : foundImages) {
+    if(contains(filename.string().data())) {
+      auto *index = new QTableWidgetItem(filename.string().data());
+      index->setFlags(index->flags() & ~Qt::ItemIsEditable);
+      mImages->setItem(row, 0, index);
 
-        auto *item = new QTableWidgetItem(filename.filename().string().data());
-        item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-        mImages->setItem(row, 1, item);
-        row++;
-      }
-      idx++;
+      auto *item = new QTableWidgetItem(filename.filename().string().data());
+      item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+      mImages->setItem(row, 1, item);
+      row++;
     }
+    idx++;
   }
+
   mImages->setRowCount(row);
   mSearchField->setPlaceholderText("Search (" + QString::number(row) + ") ...");
 }

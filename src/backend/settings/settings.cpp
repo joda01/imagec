@@ -40,6 +40,17 @@ auto Settings::openSettings(const std::filesystem::path &pathIn) -> joda::settin
   ifs.close();
   migrateSettings(wholeFile);
   joda::settings::AnalyzeSettings analyzeSettings = nlohmann::json::parse(wholeFile);
+
+  //
+  // Further legacy migration
+  /// \todo REMOVE, legacy
+  {
+    if(!analyzeSettings.projectSettings.plates.empty()) {
+      analyzeSettings.projectSettings.plate = *analyzeSettings.projectSettings.plates.begin();
+      analyzeSettings.projectSettings.plates.clear();
+    }
+  }
+
   return analyzeSettings;
 }
 
@@ -70,6 +81,11 @@ void Settings::storeSettings(const std::filesystem::path &pathIn, const joda::se
     settings.meta.setModifiedAtDateToNow();
     nlohmann::json json = settings;
     removeNullValues(json);
+
+    /// \todo REMOVE, legacy
+    {
+      json["projectSettings"].erase("plates");
+    }
 
     if(!path.ends_with(joda::fs::EXT_PROJECT)) {
       path += joda::fs::EXT_PROJECT;
@@ -106,7 +122,7 @@ void Settings::storeSettingsTemplate(const std::filesystem::path &pathIn, joda::
     //
     settings.projectSettings.workingDirectory                = "";
     settings.projectSettings.experimentSettings.experimentId = "";
-    settings.projectSettings.plates                          = {{}};
+    settings.projectSettings.plate                           = {{}};
     settings.projectSettings.address                         = {};
     for(auto &pipeline : settings.pipelines) {
       pipeline.meta.icon = "";
@@ -118,6 +134,11 @@ void Settings::storeSettingsTemplate(const std::filesystem::path &pathIn, joda::
     //
     nlohmann::json json = settings;
     removeNullValues(json);
+
+    /// \todo REMOVE, legacy
+    {
+      json["projectSettings"].erase("plates");
+    }
 
     if(!path.ends_with(joda::fs::EXT_PROJECT_TEMPLATE)) {
       path += joda::fs::EXT_PROJECT_TEMPLATE;
