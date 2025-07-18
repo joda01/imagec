@@ -101,10 +101,14 @@ void PanelImageView::restoreChannelSettings()
 
   if(mChannelSettings.contains(key)) {
     const auto &tmp = mChannelSettings.at(key);
+    if(tmp.mDisplayAreaLower <= 1 && tmp.mDisplayAreaUpper <= 1) {
+      goto ADJUST;    // The histo of an empty image was calculates
+    }
     mImageToShow->setBrightnessRange(tmp.mLowerValue, tmp.mUpperValue, tmp.mDisplayAreaLower, tmp.mDisplayAreaUpper);
     // mHistogramPanel->update();
     repaintImage();
   } else {
+  ADJUST:
     mImageToShow->autoAdjustBrightnessRange();
     mPreviewImages.thumbnail.autoAdjustBrightnessRange();
     mChannelSettings.emplace(key, ChannelSettings{

@@ -428,7 +428,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   //
   // Okay button
   //
-  auto *okayBottom = mLayout.addActionBottomButton("Okay", generateSvgIcon<Style::DUETONE, Color::BLACK>("arrow-elbow-down-left"));
+  auto *okayBottom = mLayout.addActionBottomButton("Okay", generateSvgIcon<Style::DUETONE, Color::BLACK>("check"));
   connect(okayBottom, &QAction::triggered, [this]() { mEditDialog->close(); });
 
   connect(mLayout.getDeleteButton(), &QAction::triggered, [this, pipelineSettingsUi]() {

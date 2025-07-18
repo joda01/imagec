@@ -178,7 +178,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
     mOverlayOpaque->setOrientation(Qt::Orientation::Horizontal);
     mOverlayOpaque->setMinimum(0);
     mOverlayOpaque->setMaximum(100);
-    mOverlayOpaque->setValue(50);
+    mOverlayOpaque->setValue(90);
     mOverlayOpaque->setMaximumWidth(100);
     connect(mOverlayOpaque, &QSlider::valueChanged,
             [this] { mImageViewRight.setOverlayOpaque(static_cast<float>(mOverlayOpaque->value()) / 100.0F); });
