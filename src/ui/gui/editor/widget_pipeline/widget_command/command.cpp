@@ -69,9 +69,9 @@ Command::Command(joda::settings::PipelineStep &pipelineStep, const QString &titl
       if(icon.contains("-duotone")) {
         QString tmp(icon);
         tmp.replace("-duotone", "");
-        mIcon = generateSvgIcon<Style::DUETONE, Color::BLACK>(icon);
+        mIcon = generateSvgIcon<Style::DUETONE>(color, tmp);
       } else {
-        mIcon = generateSvgIcon<Style::REGULAR, Color::BLACK>(icon);
+        mIcon = generateSvgIcon<Style::REGULAR>(color, icon);
       }
 
       mDisplayLabelIcon->setPixmap(mIcon.pixmap(16, 16));    // You can adjust the size of the icon as needed
