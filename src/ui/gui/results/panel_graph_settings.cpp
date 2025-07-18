@@ -33,13 +33,12 @@
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/settings.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
-#include "ui/gui/window_main/window_main.hpp"
 
 namespace joda::ui::gui {
 
 using namespace joda::db::data;
 
-PanelGraphSettings::PanelGraphSettings(WindowMain *windowMain) : mWindowMain(windowMain)
+PanelGraphSettings::PanelGraphSettings()
 {
   setWindowTitle("Graph settings");
   setFeatures(features() & ~QDockWidget::DockWidgetClosable);

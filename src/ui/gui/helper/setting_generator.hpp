@@ -18,10 +18,10 @@
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enums_classes.hpp"
 
-#include "ui/gui/container/setting/setting_base.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
-#include "ui/gui/container/setting/setting_combobox_multi.hpp"
-#include "ui/gui/container/setting/setting_spinbox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_multi.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_spinbox.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 
 namespace joda::ui::gui {

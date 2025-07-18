@@ -46,7 +46,7 @@ class PanelClassificationList : public QDockWidget
 
 public:
   /////////////////////////////////////////////////////
-  explicit PanelClassificationList(WindowMain *windowMain, settings::ResultsSettings *resultsSettings);
+  explicit PanelClassificationList(settings::ResultsSettings *resultsSettings);
   void setDatabase(joda::db::Database *database);
   void fromSettings();
 
@@ -66,7 +66,6 @@ private:
   void createTableItem(int32_t rowIdx, enums::ClassId classId, const std::string &name, const std::string &color, const std::string &notes);
 
   /////////////////////////////////////////////////////
-  WindowMain *mWindowMain;
   settings::ResultsSettings *mResultsSettings;
   joda::db::Database *mDatabase = nullptr;
   PlaceholderTableWidget *mClasses;

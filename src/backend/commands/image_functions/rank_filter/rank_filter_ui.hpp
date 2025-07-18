@@ -14,9 +14,9 @@
 #pragma once
 
 #include <qwidget.h>
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
-#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_line_edit.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "rank_filter_settings.hpp"
 

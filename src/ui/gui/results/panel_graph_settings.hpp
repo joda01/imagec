@@ -47,7 +47,7 @@ class PanelGraphSettings : public QDockWidget
 
 public:
   /////////////////////////////////////////////////////
-  explicit PanelGraphSettings(WindowMain *windowMain);
+  explicit PanelGraphSettings();
   int32_t getSelectedColumn() const
   {
     return mColumn->currentData().toInt();
@@ -68,7 +68,6 @@ signals:
 
 private:
   /////////////////////////////////////////////////////
-  WindowMain *mWindowMain;
   QComboBox *mColumn;
   QLineEdit *mWellOrderMatrix;
   QComboBox *mPlateSize;

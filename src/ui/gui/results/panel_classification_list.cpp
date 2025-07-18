@@ -37,17 +37,15 @@
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/results/dialog_class_settings.hpp"
 #include "ui/gui/results/panel_results.hpp"
-#include "ui/gui/window_main/window_main.hpp"
 #include <nlohmann/json_fwd.hpp>
 
 namespace joda::ui::gui {
 
-PanelClassificationList::PanelClassificationList(WindowMain *windowMain, settings::ResultsSettings *settings) :
-    mWindowMain(windowMain), mResultsSettings(settings)
+PanelClassificationList::PanelClassificationList(settings::ResultsSettings *settings) : mResultsSettings(settings)
 {
   setWindowTitle("Column settings");
   setFeatures(features() & ~QDockWidget::DockWidgetClosable);
-  mClassSettingsDialog = new DialogClassSettings(windowMain);
+  mClassSettingsDialog = new DialogClassSettings(this);
   mClassSettingsDialog->setEditable(false);
   auto *centralWidget = new QWidget();
   centralWidget->setContentsMargins(0, 0, 0, 0);

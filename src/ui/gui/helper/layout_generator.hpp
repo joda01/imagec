@@ -29,7 +29,7 @@
 #include <qwidget.h>
 #include <future>
 #include <utility>
-#include "ui/gui/container/setting/setting_base.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
 
 namespace joda::ui::gui::helper {
 

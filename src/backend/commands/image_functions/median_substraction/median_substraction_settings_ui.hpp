@@ -15,8 +15,8 @@
 
 #include <qwidget.h>
 #include "backend/commands/command.hpp"
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "median_substraction_settings.hpp"

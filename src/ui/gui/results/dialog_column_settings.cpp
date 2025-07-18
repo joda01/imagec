@@ -23,7 +23,7 @@
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/settings/analze_settings.hpp"
-#include "ui/gui/container/setting/setting_combobox_multi_classification_unmanaged.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_multi_classification_unmanaged.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 
 namespace joda::ui::gui {

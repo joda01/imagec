@@ -18,10 +18,10 @@
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/helper/table/table.hpp"
+#include "ui/gui/editor/window_main.hpp"
 #include "ui/gui/helper/word_wrap_header.hpp"
 #include "ui/gui/results/dashboard/dashboard_element.hpp"
 #include "ui/gui/results/panel_results.hpp"
-#include "ui/gui/window_main/window_main.hpp"
 
 namespace joda::ui::gui {
 
@@ -32,7 +32,7 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-Dashboard::Dashboard(PanelResults *panelResults, WindowMain *mainWindow) : mPanelResults(panelResults), mMainWindow(mainWindow)
+Dashboard::Dashboard(PanelResults *panelResults) : QMdiArea(panelResults), mPanelResults(panelResults)
 {
   // setViewMode(QMdiArea::TabbedView);
   setTabsMovable(true);

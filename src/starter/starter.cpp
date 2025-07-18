@@ -24,7 +24,7 @@
 #include "backend/updater/updater.hpp"
 #include "backend/user_settings/user_settings.hpp"
 #include "controller/controller.hpp"
-#include "ui/gui/window_main/window_main.hpp"
+#include "ui/gui/editor/window_main.hpp"
 #include "ui/terminal/terminal.hpp"
 #include "version.h"
 

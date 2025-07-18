@@ -83,8 +83,8 @@
 #include "backend/commands/object_functions/validator_threshold/validator_threshold_settings_ui.hpp"
 #include "backend/commands/object_functions/voronoi_grid/voronoi_grid.hpp"
 #include "backend/commands/object_functions/voronoi_grid/voronoi_grid_settings_ui.hpp"
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/command/factory.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/factory.hpp"
 #include "pipeline_step.hpp"
 
 namespace joda::settings {

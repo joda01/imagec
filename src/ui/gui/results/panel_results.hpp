@@ -30,7 +30,6 @@
 #include "backend/helper/table/table.hpp"
 #include "backend/helper/thread_safe_queue.hpp"
 #include "controller/controller.hpp"
-#include "ui/gui/container/panel_edit_base.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 
 class PlaceholderTableWidget;
@@ -53,7 +52,7 @@ class Dashboard;
 /// \author     Joachim Danmayr
 /// \brief      Heatmap panel
 ///
-class PanelResults : public PanelEdit
+class PanelResults : public QMainWindow
 {
   Q_OBJECT
 
@@ -69,7 +68,6 @@ public:
   PanelResults(WindowMain *win);
   ~PanelResults();
   void openFromFile(const QString &pathToDbFile);
-  void setActive(bool);
   [[nodiscard]] Navigation getActualNavigation() const
   {
     return mNavigation;
@@ -116,7 +114,7 @@ private:
   };
 
   /////////////////////////////////////////////////////
-  void valueChangedEvent() override;
+  void valueChangedEvent();
   void goHome();
   void refreshView();
   void refreshBreadCrump();
@@ -141,20 +139,20 @@ private:
   QLabel *mSelectedRowInfo;
   QLineEdit *mSelectedValue;
 
-  QPushButton *mBreadCrumpPlate;
-  QPushButton *mBreadCrumpWell;
-  QPushButton *mBreadCrumpImage;
-  QPushButton *mOpenNextLevel;
+  QToolBar *mBreadCrumpToolBar;
+  QAction *mBreadCrumpPlate;
+  QAction *mBreadCrumpWell;
+  QAction *mBreadCrumpImage;
+  QAction *mOpenNextLevel;
   QLabel *mBreadCrumpInfoText;
 
   // Toolbar///////////////////////////////////////////////////
-  void createToolBar(joda::ui::gui::helper::LayoutGenerator *);
+  auto createToolBar() -> QToolBar *;
   auto getClasssFromCombo() const -> std::pair<std::string, std::string>;
-  QPushButton *mTableButton   = nullptr;
-  QPushButton *mHeatmapButton = nullptr;
+  QAction *mTableButton   = nullptr;
+  QAction *mHeatmapButton = nullptr;
 
   /// COLUMN EDIT //////////////////////////////////////////////////
-  void createEditColumnDialog();
   void columnEdit(int32_t colIdx);
   DialogColumnSettings *mColumnEditDialog;
 
@@ -166,7 +164,6 @@ private:
 
   // TOOLBARS///////////////////////////////////////////////////
   QAction *mShowPreview;
-  QAction *mClassSelector;
   QAction *mDeleteCol;
   QAction *mEditCol;
 
@@ -229,7 +226,6 @@ private:
   std::mutex mLoadLock;
 
   bool mIsLoading = false;
-  bool mIsActive  = false;
 
 public slots:
   void onFinishedExport();

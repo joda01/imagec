@@ -64,13 +64,12 @@
 #include "backend/settings/results_settings/results_settings.hpp"
 #include "backend/user_settings/user_settings.hpp"
 #include "graphs/heatmap_widget.hpp"
-#include "ui/gui/container/container_button.hpp"
-#include "ui/gui/container/container_label.hpp"
-#include "ui/gui/container/panel_edit_base.hpp"
-#include "ui/gui/container/setting/setting_combobox_classification_unmanaged.hpp"
-#include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
-#include "ui/gui/dialog_image_view/dialog_image_view.hpp"
-#include "ui/gui/dialog_image_view/image_view_dock_widget.hpp"
+#include "ui/gui/dialogs/dialog_image_view/dialog_image_view.hpp"
+#include "ui/gui/dialogs/dialog_image_view/image_view_dock_widget.hpp"
+#include "ui/gui/dialogs/dialog_image_view/panel_image_view.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classification_unmanaged.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_multi_classification_in.hpp"
+#include "ui/gui/editor/window_main.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/table_widget.hpp"
@@ -78,7 +77,6 @@
 #include "ui/gui/results/dashboard/dashboard.hpp"
 #include "ui/gui/results/panel_classification_list.hpp"
 #include "ui/gui/results/panel_graph_settings.hpp"
-#include "ui/gui/window_main/window_main.hpp"
 #include <nlohmann/json_fwd.hpp>
 #include "dialog_column_settings.hpp"
 
@@ -88,23 +86,26 @@ namespace joda::ui::gui {
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-PanelResults::PanelResults(WindowMain *windowMain) :
-    PanelEdit(windowMain, nullptr, false, windowMain), mWindowMain(windowMain), mDockWidgetImagePreview(new ImageViewDockWidget(windowMain))
+PanelResults::PanelResults(WindowMain *windowMain) : mWindowMain(windowMain), mDockWidgetImagePreview(new ImageViewDockWidget(this))
 {
   // Drop downs
-  createEditColumnDialog();
-  createToolBar(&layout());
+  auto *toolBar = createToolBar();
+  addToolBar(Qt::ToolBarArea::TopToolBarArea, toolBar);
+  setTabPosition(Qt::DockWidgetArea::LeftDockWidgetArea, QTabWidget::TabPosition::North);
 
   // Add to dock
   mDockWidgetImagePreview->getImageWidget()->setShowCrossHairCursor(true);
 
   static const int32_t SELECTED_INFO_WIDTH   = 250;
   static const int32_t SELECTED_INFO_SPACING = 6;
+
+  mColumnEditDialog = new DialogColumnSettings(&mFilter, this);
+
   //
   // Graph
   //
   {
-    mDockWidgetGraphSettings = new PanelGraphSettings(mWindowMain);
+    mDockWidgetGraphSettings = new PanelGraphSettings();
     mGraphContainer          = std::make_shared<HeatmapWidget>(this);
     mGraphContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
@@ -118,91 +119,85 @@ PanelResults::PanelResults(WindowMain *windowMain) :
 
       openNextLevel({cell});
     });
-    connect(layout().getBackButton(), &QAction::triggered, [this] { mWindowMain->showPanelStartPage(); });
+    // connect(layout().getBackButton(), &QAction::triggered, [this] { mWindowMain->showPanelStartPage(); });
     connect(this, &PanelResults::finishedLoading, this, &PanelResults::onFinishedLoading);
     connect(mDockWidgetGraphSettings, &PanelGraphSettings::settingsChanged, [this]() { onColumnComboChanged(); });
   }
 
   // CLASSIFICATION
   {
-    mDockWidgetClassList = new PanelClassificationList(mWindowMain, &mFilter);
-    mDockWidgetClassList->setVisible(false);
+    mDockWidgetClassList = new PanelClassificationList(&mFilter);
     connect(mDockWidgetClassList, &PanelClassificationList::settingsChanged, [this]() { refreshView(); });
-    connect(mDockWidgetClassList, &QDockWidget::visibilityChanged, [&](bool visible) {
-      if(!visible) {
-        mClassSelector->setChecked(false);
-      } else {
-        mClassSelector->setChecked(true);
-      }
-    });
 
-    mWindowMain->addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, mDockWidgetGraphSettings);
-    mWindowMain->addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, mDockWidgetClassList);
-    mWindowMain->addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, mDockWidgetImagePreview);
+    addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, mDockWidgetGraphSettings);
+    addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, mDockWidgetClassList);
+    addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, mDockWidgetImagePreview);
 
-    mWindowMain->tabifyDockWidget(mDockWidgetClassList, mDockWidgetGraphSettings);
-    mWindowMain->tabifyDockWidget(mDockWidgetClassList, mDockWidgetImagePreview);
+    tabifyDockWidget(mDockWidgetClassList, mDockWidgetGraphSettings);
+    tabifyDockWidget(mDockWidgetClassList, mDockWidgetImagePreview);
+    mDockWidgetClassList->raise();
   }
 
   //
   // Breadcrump
   //
-  auto *topBreadCrump = new QWidget();
   {
-    auto *topBreadCrumpLayout = new QHBoxLayout();
-    topBreadCrump->setLayout(topBreadCrumpLayout);
-    topBreadCrump->setContentsMargins(0, 0, 0, 0);
-    topBreadCrumpLayout->setContentsMargins(0, 0, 0, 0);
+    mBreadCrumpToolBar = new QToolBar();
+    mBreadCrumpToolBar->setObjectName("MainWindowTopToolBar");
 
+    mBreadCrumpToolBar->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    mBreadCrumpToolBar->setMovable(false);
+    addToolBar(Qt::ToolBarArea::TopToolBarArea, mBreadCrumpToolBar);
+
+    mBreadCrumpToolBar->addSeparator();
     //
     //
     //
-    auto *grp    = new QButtonGroup();
-    mTableButton = new QPushButton(generateSvgIcon("folder-table"), "");
+    auto *grp    = new QActionGroup(this);
+    mTableButton = new QAction(generateSvgIcon<Style::REGULAR, Color::GREEN>("table"), "", mBreadCrumpToolBar);
     mTableButton->setCheckable(true);
     mTableButton->setChecked(true);
-    grp->addButton(mTableButton);
-    topBreadCrumpLayout->addWidget(mTableButton);
+    grp->addAction(mTableButton);
+    mBreadCrumpToolBar->addAction(mTableButton);
 
-    mHeatmapButton = new QPushButton(generateSvgIcon("skg-chart-bubble"), "");
+    mHeatmapButton = new QAction(generateSvgIcon<Style::REGULAR, Color::GREEN>("chart-scatter"), "", mBreadCrumpToolBar);
     mHeatmapButton->setCheckable(true);
-    grp->addButton(mHeatmapButton);
-    topBreadCrumpLayout->addWidget(mHeatmapButton);
+    grp->addAction(mHeatmapButton);
+    mBreadCrumpToolBar->addAction(mHeatmapButton);
 
-    connect(mHeatmapButton, &QPushButton::clicked, [this](bool checked) {
+    connect(mHeatmapButton, &QAction::triggered, [this](bool checked) {
       if(checked) {
         onShowHeatmap();
       }
     });
-    connect(mTableButton, &QPushButton::clicked, [this](bool checked) {
+    connect(mTableButton, &QAction::triggered, [this](bool checked) {
       if(checked) {
         onShowTable();
       }
     });
 
-    mBreadCrumpPlate = new QPushButton(generateSvgIcon("go-home"), "Plate");
-    topBreadCrumpLayout->addWidget(mBreadCrumpPlate);
-    connect(mBreadCrumpPlate, &QPushButton::clicked, [this]() { backTo(Navigation::PLATE); });
+    mBreadCrumpToolBar->addSeparator();
 
-    mBreadCrumpWell = new QPushButton("Well (1)");
-    topBreadCrumpLayout->addWidget(mBreadCrumpWell);
-    connect(mBreadCrumpWell, &QPushButton::clicked, [this]() { backTo(Navigation::WELL); });
+    mBreadCrumpPlate = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("house-simple"), "", mBreadCrumpToolBar);
+    mBreadCrumpToolBar->addAction(mBreadCrumpPlate);
+    connect(mBreadCrumpPlate, &QAction::triggered, [this]() { backTo(Navigation::PLATE); });
 
-    mBreadCrumpImage = new QPushButton("Image (abcd.tif)");
-    topBreadCrumpLayout->addWidget(mBreadCrumpImage);
-    connect(mBreadCrumpImage, &QPushButton::clicked, [this]() { /*backTo(Navigation::IMAGE);*/ });
+    mBreadCrumpWell = new QAction("Well (1)");
+    mBreadCrumpToolBar->addAction(mBreadCrumpWell);
+    connect(mBreadCrumpWell, &QAction::triggered, [this]() { backTo(Navigation::WELL); });
+
+    mBreadCrumpImage = new QAction("Image (abcd.tif)");
+    mBreadCrumpToolBar->addAction(mBreadCrumpImage);
+    connect(mBreadCrumpImage, &QAction::triggered, [this]() { /*backTo(Navigation::IMAGE);*/ });
 
     // Open next level button
-    mOpenNextLevel = new QPushButton(generateSvgIcon("go-next"), "");
+    mOpenNextLevel = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("caret-right"), "", mBreadCrumpToolBar);
     mOpenNextLevel->setStatusTip("Open selected wells/images");
-    topBreadCrumpLayout->addWidget(mOpenNextLevel);
-    connect(mOpenNextLevel, &QPushButton::clicked, [this]() { openNextLevel(mDashboard->getSelectedRows()); });
+    mBreadCrumpToolBar->addAction(mOpenNextLevel);
+    connect(mOpenNextLevel, &QAction::triggered, [this]() { openNextLevel(mDashboard->getSelectedRows()); });
 
     mBreadCrumpInfoText = new QLabel();
-    topBreadCrumpLayout->addWidget(mBreadCrumpInfoText);
-
-    topBreadCrumpLayout->addStretch();
-    topBreadCrump->setSizePolicy(QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Minimum);
+    mBreadCrumpToolBar->addWidget(mBreadCrumpInfoText);
   }
 
   //
@@ -236,21 +231,22 @@ PanelResults::PanelResults(WindowMain *windowMain) :
   // Dashboard
   //
   {
-    mDashboard = new Dashboard(this, windowMain);
+    mDashboard = new Dashboard(this);
   }
 
   //
   // Add to layout
   //
-  auto *tab = layout().addTab(
-      "", [] {}, false, 0);
-  auto *col = tab->addVerticalPanel();
+  auto *centralWidget = new QWidget();
+  auto *col           = new QVBoxLayout();
   col->setContentsMargins(0, 6, 0, 0);
   col->setSpacing(4);
-  col->addWidget(topBreadCrump);
   col->addWidget(topInfo);
   col->addWidget(mGraphContainer.get());
   col->addWidget(mDashboard);
+  centralWidget->setLayout(col);
+
+  setCentralWidget(centralWidget);
 
   onShowTable();
   refreshView();
@@ -287,25 +283,6 @@ void PanelResults::setHeatmapVisible(bool visible)
 }
 
 ///
-/// \brief
-/// \author     Joachim Danmayr
-///
-void PanelResults::setActive(bool active)
-{
-  if(!active) {
-    showToolBar(false);
-    mShowPreview->setEnabled(true);
-    mDockWidgetImagePreview->setVisible(false);
-    mDockWidgetGraphSettings->setVisible(false);
-    mDockWidgetClassList->setVisible(false);
-    resetSettings();
-    // refreshView();
-    mIsActive = active;
-    mWindowMain->setSideBarVisible(true);
-  }
-}
-
-///
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
@@ -337,37 +314,42 @@ void PanelResults::resetSettings()
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar)
+auto PanelResults::createToolBar() -> QToolBar *
 {
+  auto *mTopMenuBar = menuBar();
+  auto *toolbar     = new QToolBar(this);
+  toolbar->setObjectName("MainWindowTopToolBar");
+  toolbar->setMovable(false);
   //
   // Open
   //
-  mOpenProjectMenu   = new QMenu();
-  auto *openDatabase = new QAction(generateSvgIcon("folder-open"), "Open", toolbar);
+  mOpenProjectMenu = new QMenu("Recent results");
+  mOpenProjectMenu->setIcon(generateSvgIcon<Style::REGULAR, Color::BLACK>("folder-simple"));
+
+  auto *openDatabase = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("folder-open"), "Open", toolbar);
   openDatabase->setStatusTip("Open results file");
-  openDatabase->setMenu(mOpenProjectMenu);
   connect(openDatabase, &QAction::triggered, [this]() { showOpenFileDialog(); });
-  toolbar->addItemToTopToolbar(openDatabase);
+  toolbar->addAction(openDatabase);
 
   //
   // Export buttons
   //
   auto *exportMenu = new QMenu("Export");
   // text-csv
-  auto *exportData = exportMenu->addAction(generateSvgIcon("x-office-spreadsheet"), "Save as XLSX");
+  auto *exportData = exportMenu->addAction(generateSvgIcon<Style::REGULAR, Color::GREEN>("file-xls"), "Save as XLSX");
   exportData->setToolTip("Export XLSX");
   connect(exportData, &QAction::triggered, [this]() { showFileSaveDialog("Excel 2007-365 (*.xlsx)"); });
 
-  auto *exportR = exportMenu->addAction(generateSvgIcon("text-x-r"), "Save for R");
+  auto *exportR = exportMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("file-arrow-down"), "Save for R");
   exportR->setToolTip("Export R");
   connect(exportR, &QAction::triggered, [this]() { showFileSaveDialog("R-Script (*.r)"); });
 
-  mExportPng = exportMenu->addAction(generateSvgIcon("image-png"), "Save as PNG");
+  mExportPng = exportMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("file-png"), "Save as PNG");
   mExportPng->setToolTip("Export PNG");
   mExportPng->setVisible(false);
   connect(mExportPng, &QAction::triggered, [this]() { showFileSaveDialog("PNG image (*.png)"); });
 
-  mExportSvg = exportMenu->addAction(generateSvgIcon("image-x-generic"), "Save as SVG");
+  mExportSvg = exportMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("file-svg"), "Save as SVG");
   mExportSvg->setToolTip("Export SVG");
   mExportSvg->setVisible(false);
   mExportSvg->setEnabled(false);
@@ -376,19 +358,22 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   exportMenu->addSeparator();
 
   //
-  mExports = new QAction(generateSvgIcon("folder-download"), "Export", toolbar);
+  mExports = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("export"), "Export", toolbar);
   mExports->setStatusTip("Export table or heatmap to R or Excel");
   connect(mExports, &QAction::triggered, [this]() { showFileSaveDialog(); });
 
   mExports->setMenu(exportMenu);
-  toolbar->addItemToTopToolbar(mExports);
+
+  auto *btn = qobject_cast<QToolButton *>(toolbar->widgetForAction(mExports));
+  btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
+  toolbar->addAction(mExports);
 
   connect(this, &PanelResults::finishedExport, this, &PanelResults::onFinishedExport);
 
   //
   // Copy button
   //
-  auto *copyTable = new QAction(generateSvgIcon("edit-copy"), "Copy values", toolbar);
+  auto *copyTable = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("copy"), "Copy values", toolbar);
   connect(copyTable, &QAction::triggered, [this]() {
     if(mGraphContainer->isVisible()) {
       mGraphContainer->copyToClipboard();
@@ -397,75 +382,37 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
     }
   });
   copyTable->setStatusTip("Copy table to clipboard");
-  toolbar->addItemToTopToolbar(copyTable);
+  toolbar->addAction(copyTable);
 
-  toolbar->addSeparatorToTopToolbar();
-
-  //
-  //
-  //
-  mClassSelector = new QAction(generateSvgIcon("edit-table-insert-column-right"), "");
-  mClassSelector->setCheckable(true);
-  mClassSelector->setChecked(true);
-  mClassSelector->setToolTip("Class selector");
-  connect(mClassSelector, &QAction::triggered, [this](bool checked) {
-    if(checked) {
-      mDockWidgetClassList->setVisible(true);
-      mDockWidgetClassList->raise();    // Bring the dock widget to front
-    } else {
-      mDockWidgetClassList->setVisible(false);
-    }
-  });
-  toolbar->addItemToTopToolbar(mClassSelector);
-
-  //
-  // Show preview action
-  //
-  mShowPreview = new QAction(generateSvgIcon("sidebar-expand-right"), "");
-  mShowPreview->setCheckable(true);
-  mShowPreview->setChecked(true);
-  mShowPreview->setToolTip("Show preview");
-  connect(mShowPreview, &QAction::triggered, [this](bool checked) {
-    if(checked) {
-      if(mNavigation == Navigation::IMAGE && !mImageWorkingDirectory.empty()) {
-        mDockWidgetImagePreview->setVisible(true);
-        mDockWidgetImagePreview->raise();
-      }
-    } else {
-      mDockWidgetImagePreview->setVisible(false);
-    }
-  });
-  toolbar->addItemToTopToolbar(mShowPreview);
-
-  toolbar->addSeparatorToTopToolbar();
+  toolbar->addSeparator();
 
   QMenu *windowMenu = new QMenu();
-  auto *cascade     = new QAction(generateSvgIcon("window-duplicate"), "Cascade");
+  auto *cascade     = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("browsers"), "Cascade");
   cascade->setStatusTip("Cascade windows");
   connect(cascade, &QAction::triggered, [this]() { mDashboard->cascadeSubWindows(); });
   windowMenu->addAction(cascade);
 
-  auto *tileWindows = new QAction(generateSvgIcon("view-group"), "Tile");
+  auto *tileWindows = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("grid-four"), "Tile");
   tileWindows->setStatusTip("Tile windows");
   connect(tileWindows, &QAction::triggered, [this]() { mDashboard->tileSubWindows(); });
   windowMenu->addAction(tileWindows);
 
-  auto *minimizeAll = new QAction(generateSvgIcon("user-desktop"), "Minimize");
+  auto *minimizeAll = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("minus"), "Minimize");
   minimizeAll->setStatusTip("Minimize windows");
   connect(minimizeAll, &QAction::triggered, [this]() { mDashboard->minimizeSubWindows(); });
   windowMenu->addAction(minimizeAll);
 
-  auto *restoreAll = new QAction(generateSvgIcon("window"), "Restore");
+  auto *restoreAll = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("app-window"), "Restore");
   restoreAll->setStatusTip("Restore windows");
   connect(restoreAll, &QAction::triggered, [this]() { mDashboard->restoreSubWindows(); });
   windowMenu->addAction(restoreAll);
 
-  auto *windowSettings = new QAction(generateSvgIcon("window"), "");
+  auto *windowSettings = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("browser"), "");
   windowSettings->setStatusTip("Window arrangement settings.");
   windowSettings->setMenu(windowMenu);
-  toolbar->addItemToTopToolbar(windowSettings);
-  auto *btn = qobject_cast<QToolButton *>(toolbar->mutableTopToolbar()->widgetForAction(windowSettings));
-  btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
+  toolbar->addAction(windowSettings);
+  auto *btn01 = qobject_cast<QToolButton *>(toolbar->widgetForAction(windowSettings));
+  btn01->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
 
   /*
     auto *addColumn = new QAction(generateSvgIcon("edit-table-insert-column-right"), "");
@@ -502,7 +449,26 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
     toolbar->addItemToTopToolbar(mEditCol);
   */
   mFilter.sortColumns();
-  toolbar->addSeparatorToTopToolbar();
+  toolbar->addSeparator();
+
+  //
+  // Show preview action
+  //
+  mShowPreview = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("image"), "");
+  mShowPreview->setCheckable(true);
+  mShowPreview->setChecked(true);
+  mShowPreview->setToolTip("Show preview");
+  connect(mShowPreview, &QAction::triggered, [this](bool checked) {
+    if(checked) {
+      if(mNavigation == Navigation::IMAGE && !mImageWorkingDirectory.empty()) {
+        mDockWidgetImagePreview->setVisible(true);
+        mDockWidgetImagePreview->raise();
+      }
+    } else {
+      mDockWidgetImagePreview->setVisible(false);
+    }
+  });
+  toolbar->addAction(mShowPreview);
 
   //
   // Mark as invalid button
@@ -510,12 +476,27 @@ void PanelResults::createToolBar(joda::ui::gui::helper::LayoutGenerator *toolbar
   // edit-select-none
   // paint-none
   // video-off
-  mMarkAsInvalid = new QAction(generateSvgIcon("gnumeric-autofilter-delete"), "");
+  mMarkAsInvalid = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("funnel-x"), "");
   mMarkAsInvalid->setToolTip("Exclude selected image from statistics");
   mMarkAsInvalid->setCheckable(true);
-  toolbar->addItemToTopToolbar(mMarkAsInvalid);
+  toolbar->addAction(mMarkAsInvalid);
   mMarkAsInvalid->setEnabled(false);
   connect(mMarkAsInvalid, &QAction::triggered, this, &PanelResults::onMarkAsInvalidClicked);
+
+  // =====================================
+  // Toolbar
+  // =====================================
+
+  // =====================================
+  // Menu bar
+  // =====================================
+  auto *fileMenu = mTopMenuBar->addMenu("File");
+  fileMenu->addAction(openDatabase);
+  fileMenu->addMenu(mOpenProjectMenu);
+  fileMenu->addSeparator();
+  fileMenu->addMenu(exportMenu);
+
+  return toolbar;
 }
 
 ///
@@ -542,7 +523,7 @@ void PanelResults::loadLastOpened()
 void PanelResults::storeResultsTableSettingsToDatabase()
 {
   try {
-    if(mIsActive && mAnalyzer != nullptr && mSelectedDataSet.analyzeMeta.has_value() && !mSelectedDataSet.analyzeMeta->jobId.empty()) {
+    if(mAnalyzer != nullptr && mSelectedDataSet.analyzeMeta.has_value() && !mSelectedDataSet.analyzeMeta->jobId.empty()) {
       mAnalyzer->updateResultsTableSettings(mSelectedDataSet.analyzeMeta->jobId, nlohmann::json(mFilter).dump());
     }
   } catch(...) {
@@ -627,7 +608,7 @@ void PanelResults::refreshBreadCrump()
 ///
 bool PanelResults::showSelectWorkingDir(const QString &path)
 {
-  QFileDialog dialog(mWindowMain);
+  QFileDialog dialog(this);
   dialog.setWindowTitle("Select images Directory");
   dialog.setFileMode(QFileDialog::Directory);
   dialog.setOption(QFileDialog::ShowDirsOnly, true);
@@ -674,7 +655,7 @@ void PanelResults::loadPreview()
   }
 
   while(showDialog) {
-    QMessageBox msgBox(mWindowMain);
+    QMessageBox msgBox(this);
     msgBox.setWindowTitle("Image not found");
     msgBox.setText("Image >" + QString(mSelectedDataSet.imageMeta->filename.data()) +
                    "< not found. Would you like to select the folder in which the images are located??");
@@ -797,7 +778,7 @@ void PanelResults::refreshView()
   //
   //
   //
-  if(mIsActive && mAnalyzer && !mIsLoading) {
+  if(mAnalyzer && !mIsLoading) {
     mIsLoading = true;
     QApplication::setOverrideCursor(Qt::WaitCursor);
     std::thread([this, rows, cols, wellOrder = wellOrder] {
@@ -1115,19 +1096,14 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
 
   // Store last opened
   if(mSelectedDataSet.analyzeMeta.has_value()) {
-    getWindowMain()->addToLastLoadedResults(pathToDbFile, mSelectedDataSet.analyzeMeta->jobName.data());
+    // joda::user_settings::UserSettings::addLastOpenedResult(pathToDbFile.toStdString(), mSelectedDataSet.analyzeMeta->jobName);
+    mWindowMain->addToLastLoadedResults(pathToDbFile, mSelectedDataSet.analyzeMeta->jobName.data());
   }
   loadLastOpened();
 
   // Make visible
 
-  showToolBar(true);
-  mIsActive = true;
-  mWindowMain->setSideBarVisible(false);
   mDockWidgetClassList->setDatabase(mAnalyzer.get());
-  if(mClassSelector->isChecked()) {
-    mDockWidgetClassList->setVisible(true);
-  }
   refreshView();
 }
 
@@ -1170,18 +1146,6 @@ void PanelResults::onShowHeatmap()
   mDockWidgetImagePreview->setVisible(false);
   setHeatmapVisible(true);
   refreshView();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelResults::createEditColumnDialog()
-{
-  mColumnEditDialog = new DialogColumnSettings(&mFilter, mWindowMain);
 }
 
 ///
