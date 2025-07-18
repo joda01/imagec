@@ -138,7 +138,7 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     toolbar->addAction(deleteColumn);
     connect(deleteColumn, &QAction::triggered, [this]() {
       QMessageBox messageBox(mWindowMain);
-      messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
+      messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning").pixmap(48, 48));
       messageBox.setWindowTitle("Delete pipeline?");
       messageBox.setText("Delete pipeline?");
       QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
@@ -469,7 +469,7 @@ void PanelPipeline::addChannel(const QString &pathToSettings)
     addChannel(joda::templates::TemplateParser::loadChannelFromTemplate(std::filesystem::path(pathToSettings.toStdString())));
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning").pixmap(48, 48));
     messageBox.setWindowTitle("Could not load settings!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
@@ -490,7 +490,7 @@ void PanelPipeline::addChannel(const nlohmann::json &json)
     addChannel(joda::templates::TemplateParser::loadChannelFromTemplate(json));
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning").pixmap(48, 48));
     messageBox.setWindowTitle("Could not load settings!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
@@ -596,7 +596,7 @@ void PanelPipeline::saveAsTemplate()
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(mWindowMain);
-    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning").pixmap(48, 48));
     messageBox.setWindowTitle("Could not save template!");
     messageBox.setText("Could not save template, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);

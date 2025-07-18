@@ -116,7 +116,7 @@ DialogColumnSettings::DialogColumnSettings(settings::ResultsSettings *filter, QW
     auto *mSpaceBottomToolbar = mToolbarBottom->addWidget(spacerBottom);
 
     //
-    // auto *mDeleteButton = new QAction(generateSvgIcon("edit-delete"), "Delete", mToolbarBottom);
+    // auto *mDeleteButton = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("trash-simple"), "Delete", mToolbarBottom);
     // connect(mDeleteButton, &QAction::triggered, [this]() { close(); });
     // mToolbarBottom->addAction(mDeleteButton);
 

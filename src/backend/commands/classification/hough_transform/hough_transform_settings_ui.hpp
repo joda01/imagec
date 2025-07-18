@@ -37,7 +37,7 @@ class HoughTransform : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Hough transform";
-  inline static std::string ICON              = "draw-square-inverted-corners";
+  inline static std::string ICON              = "bezier-curve";
   inline static std::string DESCRIPTION       = "Feature extraction technique for lines and circled";
   inline static std::vector<std::string> TAGS = {"classifier", "classify", "objects", "ai", "feature extraction", "pattern recognition"};
 
@@ -53,7 +53,9 @@ public:
     mShape = SettingBase::create<SettingComboBox<joda::settings::HoughTransformSettings::Shape>>(parent, {}, "Shape");
     mShape->addOptions({
         //{.key = joda::settings::HoughTransformSettings::HughMode::LINE_TRANSFORM, .label = "Line", .icon = generateSvgIcon("line")},
-        {.key = joda::settings::HoughTransformSettings::Shape::CIRCLE_TRANSFORM, .label = "Circle", .icon = generateSvgIcon("choice-round")},
+        {.key   = joda::settings::HoughTransformSettings::Shape::CIRCLE_TRANSFORM,
+         .label = "Circle",
+         .icon  = generateSvgIcon<Style::REGULAR, Color::BLACK>("circle")},
     });
 
     mShape->setValue(settings.shape);
@@ -112,7 +114,8 @@ public:
     // If you want get better detection of small circles, you may decrease it to 0.85, 0.8 or even less.
     // But then also try to limit the search range [minRadius, maxRadius] to avoid many false circles.
     //     mParam2 =
-    mParam2 = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("choice-round"), "Circle perfectness measure");
+    mParam2 =
+        SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon<Style::REGULAR, Color::BLACK>("circle"), "Circle perfectness measure");
     mParam2->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mParam2->setUnit("");
     mParam2->setMinMax(0, INT32_MAX);

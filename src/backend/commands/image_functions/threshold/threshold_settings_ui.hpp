@@ -32,7 +32,7 @@ class Threshold : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Threshold";
-  inline static std::string ICON              = "edit-select-invert";
+  inline static std::string ICON              = "circle-half";
   inline static std::string DESCRIPTION       = "Converts a grayscale image to a binary image.";
   inline static std::vector<std::string> TAGS = {"threshold", "background", "binary", "otsu", "li", "triangle", "shanbhag"};
 
@@ -51,7 +51,7 @@ public:
       cnt++;
     }
 
-    auto *addFilter = addActionButton("Add threshold", generateSvgIcon("list-add"));
+    auto *addFilter = addActionButton("Add threshold", generateSvgIcon<Style::REGULAR, Color::BLACK>("list-plus"));
     connect(addFilter, &QAction::triggered, this, &Threshold::addFilter);
   }
 
@@ -119,7 +119,8 @@ private:
       //
       //
       //
-      mCValue = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("list-add"), "Auto contrast added const");
+      mCValue = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon<Style::REGULAR, Color::BLACK>("list-plus"),
+                                                              "Auto contrast added const");
       mCValue->setEmptyValue(0);
       mCValue->setPlaceholderText("[-32000 - +32000]");
       mCValue->setUnit("");

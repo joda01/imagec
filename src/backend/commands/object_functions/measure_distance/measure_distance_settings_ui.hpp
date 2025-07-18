@@ -34,7 +34,7 @@ class MeasureDistance : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Measure distance";
-  inline static std::string ICON              = "tool-measure";
+  inline static std::string ICON              = "ruler";
   inline static std::string DESCRIPTION       = "Measure the distance of all objects in two object classes.";
   inline static std::vector<std::string> TAGS = {"distance", "measure", "object"};
 

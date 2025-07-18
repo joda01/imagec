@@ -36,7 +36,7 @@ class FillHoles : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Fill holes";
-  inline static std::string ICON              = "fill-color";
+  inline static std::string ICON              = "paint-bucket";
   inline static std::string DESCRIPTION       = "Fill the holes within a binary image.";
   inline static std::vector<std::string> TAGS = {"fill", "holes"};
 

@@ -39,7 +39,7 @@ class AiClassifier : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "AI Classifier";
-  inline static std::string ICON              = "kstars_supernovae";    // application-dicom
+  inline static std::string ICON              = "brain";    // application-dicom
   inline static std::string DESCRIPTION       = "Extract objects from an image using AI.";
   inline static std::vector<std::string> TAGS = {"classifier", "classify", "objects", "ai", "feature extraction", "pattern recognition"};
 
@@ -85,7 +85,8 @@ private:
 
       //
       //
-      mMinCircularity = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("choice-round"), "Circularity [0-1]");
+      mMinCircularity =
+          SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon<Style::REGULAR, Color::BLACK>("circle"), "Circularity [0-1]");
       mMinCircularity->setPlaceholderText("[0 - 1]");
       mMinCircularity->setUnit("%");
       mMinCircularity->setMinMax(0, 1);

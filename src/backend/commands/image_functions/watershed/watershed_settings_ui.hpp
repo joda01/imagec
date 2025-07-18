@@ -28,7 +28,7 @@ class Watershed : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Watershed";
-  inline static std::string ICON              = "pixelate";
+  inline static std::string ICON              = "chart-pie-slice";
   inline static std::string DESCRIPTION       = "Trys to separate clustered objects.";
   inline static std::vector<std::string> TAGS = {"watershed", "object separation", "separation"};
 

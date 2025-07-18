@@ -59,5 +59,6 @@ create_qresource_file("./icons-svg/regular-red", output_file, ".svg")
 create_qresource_file("./icons-svg/duotone-black", output_file, ".svg")
 create_qresource_file("./icons-svg/duotone-red", output_file, ".svg")
 create_qresource_file("./icons-svg/regular-green", output_file, ".svg")
+create_qresource_file("./icons-svg/regular-yellow", output_file, ".svg")
 with open(output_file, 'a') as f:
     f.write(f'</RCC>\n')

@@ -38,7 +38,7 @@ class Colocalization : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Colocalization";
-  inline static std::string ICON              = "bwtonal";
+  inline static std::string ICON              = "intersect";
   inline static std::string DESCRIPTION       = "Calculates the overlapping are of two or more image channels.";
   inline static std::vector<std::string> TAGS = {"colocalization", "object", "coloc"};
 
@@ -130,7 +130,8 @@ public:
     //
     //
     //
-    mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, generateSvgIcon("choice-round"), "Coloc output class");
+    mClassOutput =
+        SettingBase::create<SettingComboBoxClassesOut>(parent, generateSvgIcon<Style::REGULAR, Color::BLACK>("circle"), "Coloc output class");
     mClassOutput->setValue(settings.outputClass);
     mClassOutput->connectWithSetting(&settings.outputClass);
 

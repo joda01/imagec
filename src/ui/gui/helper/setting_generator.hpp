@@ -33,24 +33,24 @@ template <ImageCStackCombo_t T>
 inline auto generateCStackCombo(const QString &helpText, QWidget *parent, const QString &thisText = "Default")
 {
   auto dropBox = SettingBase::create<T>(parent, generateSvgIcon("irc-operator"), helpText);
-  dropBox->addOptions({{-2, "Off", generateSvgIcon("irc-operator")},
-                       {-1, thisText, generateSvgIcon("irc-operator")},
-                       {0, "CH0", generateSvgIcon("irc-operator")},
-                       {1, "CH1", generateSvgIcon("irc-operator")},
-                       {2, "CH2", generateSvgIcon("irc-operator")},
-                       {3, "CH3", generateSvgIcon("irc-operator")},
-                       {4, "CH4", generateSvgIcon("irc-operator")},
-                       {5, "CH5", generateSvgIcon("irc-operator")},
-                       {6, "CH6", generateSvgIcon("irc-operator")},
-                       {7, "CH7", generateSvgIcon("irc-operator")},
-                       {8, "CH8", generateSvgIcon("irc-operator")},
-                       {9, "CH9", generateSvgIcon("irc-operator")}});
+  dropBox->addOptions({{-2, "Off", generateSvgIcon<Style::REGULAR, Color::BLUE>("placeholder")},
+                       {-1, thisText, generateSvgIcon<Style::REGULAR, Color::BLUE>("rectangle")},
+                       {0, "CH0", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-zero")},
+                       {1, "CH1", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-one")},
+                       {2, "CH2", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-two")},
+                       {3, "CH3", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-three")},
+                       {4, "CH4", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-four")},
+                       {5, "CH5", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-five")},
+                       {6, "CH6", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-six")},
+                       {7, "CH7", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-seven")},
+                       {8, "CH8", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-eight")},
+                       {9, "CH9", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-nine")}});
   return dropBox;
 }
 
 inline auto generateZProjection(bool withThis, QWidget *parent) -> std::unique_ptr<SettingComboBox<enums::ZProjection>>
 {
-  auto zProjection = SettingBase::create<SettingComboBox<enums::ZProjection>>(parent, generateSvgIcon("layer-visible-on"), "Z-Projection");
+  auto zProjection = SettingBase::create<SettingComboBox<enums::ZProjection>>(parent, generateSvgIcon("stack"), "Z-Projection");
   if(withThis) {
     zProjection->addOptions({{enums::ZProjection::$, "Default"},
                              {enums::ZProjection::NONE, "Single channel"},

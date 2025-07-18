@@ -28,7 +28,7 @@ class MedianSubtraction : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Median subtraction";
-  inline static std::string ICON              = "format-align-vertical-center";
+  inline static std::string ICON              = "minus";
   inline static std::string DESCRIPTION       = "Supress image background.";
   inline static std::vector<std::string> TAGS = {"noise reduction", "background subtraction", "noise"};
 

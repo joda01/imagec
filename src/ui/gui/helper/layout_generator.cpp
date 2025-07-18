@@ -56,7 +56,7 @@ LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool wi
       spacerBottom->setContentsMargins(0, 0, 0, 0);
       spacerBottom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
       mSpaceBottomToolbar = mToolbarBottom->addWidget(spacerBottom);
-      mDeleteButton       = new QAction(generateSvgIcon("edit-delete"), "Delete", mToolbarBottom);
+      mDeleteButton       = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("trash-simple"), "Delete", mToolbarBottom);
       mDeleteButton->setToolTip("Delete");
       mToolbarBottom->addAction(mDeleteButton);
     }

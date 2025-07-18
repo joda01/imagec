@@ -214,7 +214,7 @@ void DialogAnalyzeRunning::onRefreshData()
     if(!mStopped) {
       QMessageBox messageBox(this);
       // Color red = #860000
-      messageBox.setIconPixmap(generateSvgIcon("data-error").pixmap(48, 48));
+      messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::RED>("warning-diamond").pixmap(48, 48));
       messageBox.setWindowTitle("Error...");
       messageBox.setText("Error in execution got >" + QString(mWindowMain->getController()->getJobInformation().errorLog.data()) + "<.");
       messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);

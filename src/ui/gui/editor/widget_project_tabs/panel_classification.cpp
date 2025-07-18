@@ -177,7 +177,7 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
     //
     // Clear
     //
-    // auto *clearList = new QAction(generateSvgIcon("edit-delete"), "Clear");
+    // auto *clearList = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("trash-simple"), "Clear");
     // clearList->setStatusTip("Clear classification list");
     // toolbar->addAction(clearList);
     // connect(clearList, &QAction::triggered, [this]() {
@@ -497,7 +497,7 @@ void PanelClassification::saveAsNewTemplate()
   if(!pathToStoreFileIn.startsWith(templatePath)) {
     joda::log::logError("Templates must be stored in >" + templatePath.toStdString() + "< directory.");
     QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning").pixmap(48, 48));
     messageBox.setWindowTitle("Could not save template!");
     messageBox.setText("Templates must be stored in >" + templatePath + "< directory.");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
@@ -521,7 +521,7 @@ void PanelClassification::saveAsNewTemplate()
 bool PanelClassification::askForChangeTemplateIndex()
 {
   QMessageBox messageBox(mWindowMain);
-  messageBox.setIconPixmap(generateSvgIcon("data-information").pixmap(48, 48));
+  messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::BLUE>("warning-circle").pixmap(48, 48));
   messageBox.setWindowTitle("Proceed?");
   messageBox.setText("Actual taken settings will get lost!");
   QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
@@ -541,7 +541,7 @@ bool PanelClassification::askForChangeTemplateIndex()
 bool PanelClassification::askForDeleteClass()
 {
   QMessageBox messageBox(mWindowMain);
-  messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
+  messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning").pixmap(48, 48));
   messageBox.setWindowTitle("Proceed?");
   messageBox.setText("Remove selected class?");
   QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
@@ -602,7 +602,7 @@ void PanelClassification::populateClassesFromImage()
     if(path.empty()) {
       joda::log::logError("No images found! Please select an image directory first!");
       QMessageBox messageBox(this);
-      messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
+      messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning").pixmap(48, 48));
       messageBox.setWindowTitle("Could not find any images!");
       messageBox.setText("No images found! Please select a image directory first!");
       messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);

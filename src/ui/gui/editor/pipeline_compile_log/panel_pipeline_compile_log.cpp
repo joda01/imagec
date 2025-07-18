@@ -94,16 +94,16 @@ void PanelCompilerLog::updateCompilerLog(const joda::settings::AnalyzeSettings &
     auto *sortItem = new QTableWidgetItem();
     QIcon *icon    = nullptr;
     if(log.severity == SettingParserLog::Severity::JODA_ERROR) {
-      icon = new QIcon(generateSvgIcon("data-error"));
+      icon = new QIcon(generateSvgIcon<Style::REGULAR, Color::RED>("warning-diamond"));
       iconItem->setText("Error");
       sortItem->setText("A");
       mNrOfErrors++;
     } else if(log.severity == SettingParserLog::Severity::JODA_WARNING) {
-      icon = new QIcon(generateSvgIcon("data-warning"));
+      icon = new QIcon(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning"));
       iconItem->setText("Warning");
       sortItem->setText("B");
     } else if(log.severity == SettingParserLog::Severity::JODA_INFO) {
-      icon = new QIcon(generateSvgIcon("data-information"));
+      icon = new QIcon(generateSvgIcon<Style::REGULAR, Color::BLUE>("warning-circle"));
       iconItem->setText("Info");
       sortItem->setText("C");
     }

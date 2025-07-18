@@ -78,7 +78,7 @@ public:
     mFunction->connectWithSetting(&settingsIn.detectionHierarchy);
     auto *col = addSetting(detectionSettings, "Model settings", {{mFunction.get(), false, 0}});
 
-    auto *addFilter = addActionButton("Add filter", generateSvgIcon("list-add"));
+    auto *addFilter = addActionButton("Add filter", generateSvgIcon<Style::REGULAR, Color::BLACK>("list-plus"));
     connect(addFilter, &QAction::triggered, this, &Classifier::addFilter);
   }
 
@@ -121,7 +121,8 @@ private:
 
       //
       //
-      mMinCircularity = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("choice-round"), "Circularity [0-1]");
+      mMinCircularity =
+          SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon<Style::REGULAR, Color::BLACK>("circle"), "Circularity [0-1]");
       mMinCircularity->setPlaceholderText("[0 - 1]");
       mMinCircularity->setUnit("%");
       mMinCircularity->setMinMax(0, 1);

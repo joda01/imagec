@@ -35,7 +35,7 @@ class VoronoiGrid : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Voronoi";
-  inline static std::string ICON              = "kstars_grid";
+  inline static std::string ICON              = "circle";
   inline static std::string DESCRIPTION       = "Partition a plane into regions close to each of a given set of objects";
   inline static std::vector<std::string> TAGS = {"voronoi", "grid", "delaunay", "triangulation", "tessellation"};
 

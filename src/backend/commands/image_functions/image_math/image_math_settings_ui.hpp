@@ -36,7 +36,7 @@ class ImageMath : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Image math";
-  inline static std::string ICON              = "insert-math-expression";
+  inline static std::string ICON              = "math-operations";
   inline static std::string DESCRIPTION       = "Apply basic mathematical operations on one or two images.";
   inline static std::vector<std::string> TAGS = {"invert", "math", "subtract", "add", "plus", "minus"};
 

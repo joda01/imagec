@@ -35,7 +35,7 @@ class MeasureIntensity : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Measure intensity";
-  inline static std::string ICON              = "colorfx";
+  inline static std::string ICON              = "lightbulb";
   inline static std::string DESCRIPTION       = "Measure the intensity of objects areas in an image channel.";
   inline static std::vector<std::string> TAGS = {"intensity", "measure", "object"};
 

@@ -62,7 +62,7 @@ Command::Command(joda::settings::PipelineStep &pipelineStep, const QString &titl
     headerWidget->setLayout(layout);
     auto *mDisplayLabelIcon = new QLabel();
     if(!icon.isEmpty()) {
-      mIcon = generateSvgIcon(icon);
+      mIcon = generateSvgIcon<Style::REGULAR, Color::BLACK>(icon);
       mDisplayLabelIcon->setPixmap(mIcon.pixmap(16, 16));    // You can adjust the size of the icon as needed
       layout->addWidget(mDisplayLabelIcon);
     }
@@ -422,7 +422,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
 
   connect(mLayout.getDeleteButton(), &QAction::triggered, [this, pipelineSettingsUi]() {
     QMessageBox messageBox(mParent);
-    messageBox.setIconPixmap(generateSvgIcon("data-warning").pixmap(48, 48));
+    messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning").pixmap(48, 48));
     messageBox.setWindowTitle("Delete command?");
     messageBox.setText("Delete command from pipeline?");
     QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
