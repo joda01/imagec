@@ -92,9 +92,11 @@ PanelResults::PanelResults(WindowMain *windowMain) : mWindowMain(windowMain), mD
   auto *toolBar = createToolBar();
   addToolBar(Qt::ToolBarArea::TopToolBarArea, toolBar);
   setTabPosition(Qt::DockWidgetArea::LeftDockWidgetArea, QTabWidget::TabPosition::North);
+  setWindowTitle("ImageC results");
 
   // Add to dock
   mDockWidgetImagePreview->getImageWidget()->setShowCrossHairCursor(true);
+  mDockWidgetImagePreview->getImageWidget()->setOverlayButtonsVisible(false);
 
   static const int32_t SELECTED_INFO_WIDTH   = 250;
   static const int32_t SELECTED_INFO_SPACING = 6;
@@ -260,8 +262,16 @@ PanelResults::PanelResults(WindowMain *windowMain) : mWindowMain(windowMain), mD
   });
 
   mPreviewThread = std::make_unique<std::thread>(&PanelResults::previewThread, this);
+  loadLastOpened();
 }
 
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
 PanelResults::~PanelResults()
 {
   mStopped = true;
@@ -273,13 +283,56 @@ PanelResults::~PanelResults()
   }
 }
 
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::closeEvent(QCloseEvent *event)
+{
+  mDockWidgetImagePreview->setFloating(false);
+  event->accept();    // Close the window
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelResults::valueChangedEvent()
 {
 }
 
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelResults::setHeatmapVisible(bool visible)
 {
   mGraphContainer->setVisible(visible);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelResults::setWindowTitlePrefix(const QString &txt)
+{
+  if(!txt.isEmpty()) {
+    setWindowTitle(QString(Version::getTitle().data()) + " - " + txt);
+  } else {
+    setWindowTitle(QString(Version::getTitle().data()));
+  }
 }
 
 ///
@@ -361,12 +414,11 @@ auto PanelResults::createToolBar() -> QToolBar *
   mExports = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("export"), "Export", toolbar);
   mExports->setStatusTip("Export table or heatmap to R or Excel");
   connect(mExports, &QAction::triggered, [this]() { showFileSaveDialog(); });
-
   mExports->setMenu(exportMenu);
+  toolbar->addAction(mExports);
 
   auto *btn = qobject_cast<QToolButton *>(toolbar->widgetForAction(mExports));
   btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
-  toolbar->addAction(mExports);
 
   connect(this, &PanelResults::finishedExport, this, &PanelResults::onFinishedExport);
 
@@ -1060,6 +1112,7 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
   mAnalyzer = std::make_unique<joda::db::Database>();
   mAnalyzer->openDatabase(std::filesystem::path(pathToDbFile.toStdString()));
   mDbFilePath = std::filesystem::path(pathToDbFile.toStdString());
+  setWindowTitlePrefix(mDbFilePath.filename().string().data());
 
   // We assume the images to be in the folder ../../../<IMAGES>
   // If not the user will be asked to select the image working directory.

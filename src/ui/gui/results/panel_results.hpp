@@ -128,6 +128,8 @@ private:
   void saveData(const std::string &fileName, joda::exporter::xlsx::ExportSettings::ExportType);
   void showOpenFileDialog();
   void backTo(Navigation backTo);
+  void closeEvent(QCloseEvent *event) override;
+  void setWindowTitlePrefix(const QString &txt);
 
   WindowMain *mWindowMain;
   std::unique_ptr<joda::db::Database> mAnalyzer;

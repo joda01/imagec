@@ -69,6 +69,9 @@ public:
   void setSettingsPointer(joda::settings::AnalyzeSettings *settings);
   void setMaxTimeStacks(int32_t);
 
+  // Visibility ///////////////////////////////////////////
+  void setOverlayButtonsVisible(bool);
+
 signals:
   /////////////////////////////////////////////////////
   void settingChanged();
@@ -87,11 +90,13 @@ private:
   PanelImageView mImageViewRight;
 
   // ACTIONS //////////////////////////////////////////////////
-  QAction *mFillOVerlay                = nullptr;
-  QAction *showCrossHairCursor         = nullptr;
-  QAction *showPixelInfo               = nullptr;
-  QAction *showOverlay                 = nullptr;
-  QSlider *mOverlayOpaque              = nullptr;
+  QAction *mFillOVerlay         = nullptr;
+  QAction *showCrossHairCursor  = nullptr;
+  QAction *showPixelInfo        = nullptr;
+  QAction *showOverlay          = nullptr;
+  QSlider *mOverlayOpaque       = nullptr;
+  QAction *mOverlayOpaqueAction = nullptr;
+
   QActionGroup *mImageChannelMenuGroup = nullptr;
   QAction *mImageChannel               = nullptr;
   std::map<int32_t, QAction *> mChannelSelections;

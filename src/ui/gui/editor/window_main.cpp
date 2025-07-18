@@ -85,7 +85,6 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   //
   {
     mPanelReporting = new PanelResults(this);
-    mPanelReporting->show();
   }
 
   //
@@ -524,6 +523,7 @@ void WindowMain::openResultsSettings(const QString &filePath)
 
   try {
     mPanelReporting->openFromFile(filePath);
+    mPanelReporting->show();
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     QMessageBox messageBox(this);

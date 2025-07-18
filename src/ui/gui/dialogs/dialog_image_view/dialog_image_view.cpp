@@ -182,7 +182,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
     mOverlayOpaque->setMaximumWidth(100);
     connect(mOverlayOpaque, &QSlider::valueChanged,
             [this] { mImageViewRight.setOverlayOpaque(static_cast<float>(mOverlayOpaque->value()) / 100.0F); });
-    toolbarTop->addWidget(mOverlayOpaque);
+    mOverlayOpaqueAction = toolbarTop->addWidget(mOverlayOpaque);
 
     toolbarTop->addSeparator();
 
@@ -417,6 +417,20 @@ void DialogImageViewer::setMaxTimeStacks(int32_t tStacks)
 {
   mTempMaxTimeStacks = tStacks;
   enableOrDisableVideoToolbar();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::setOverlayButtonsVisible(bool visible)
+{
+  mFillOVerlay->setVisible(visible);
+  showOverlay->setVisible(visible);
+  mOverlayOpaqueAction->setVisible(visible);
 }
 
 ///
