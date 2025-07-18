@@ -48,11 +48,11 @@ class PanelGraphSettings;
 class Dashboard;
 
 ///
-/// \class      PanelResults
+/// \class      WindowResults
 /// \author     Joachim Danmayr
 /// \brief      Heatmap panel
 ///
-class PanelResults : public QMainWindow
+class WindowResults : public QMainWindow
 {
   Q_OBJECT
 
@@ -65,8 +65,8 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  PanelResults(WindowMain *win);
-  ~PanelResults();
+  WindowResults(WindowMain *win);
+  ~WindowResults();
   void openFromFile(const QString &pathToDbFile);
   [[nodiscard]] Navigation getActualNavigation() const
   {

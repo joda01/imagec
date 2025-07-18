@@ -61,7 +61,7 @@
 #include "ui/gui/editor/widget_project_tabs/panel_project_settings.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/template_parser/template_parser.hpp"
-#include "ui/gui/results/panel_results.hpp"
+#include "ui/gui/results/window_results.hpp"
 #include "build_info.h"
 #include "version.h"
 
@@ -84,7 +84,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   // Reporting panel
   //
   {
-    mPanelReporting = new PanelResults(this);
+    mPanelReporting = new WindowResults(this);
   }
 
   //

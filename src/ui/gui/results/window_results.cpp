@@ -9,7 +9,7 @@
 ///            For **Commercial** please contact the copyright owner.
 ///
 
-#include "panel_results.hpp"
+#include "window_results.hpp"
 #include <qaction.h>
 #include <qactiongroup.h>
 #include <qboxlayout.h>
@@ -86,7 +86,7 @@ namespace joda::ui::gui {
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-PanelResults::PanelResults(WindowMain *windowMain) : mWindowMain(windowMain), mDockWidgetImagePreview(new ImageViewDockWidget(this))
+WindowResults::WindowResults(WindowMain *windowMain) : mWindowMain(windowMain), mDockWidgetImagePreview(new ImageViewDockWidget(this))
 {
   // Drop downs
   auto *toolBar = createToolBar();
@@ -124,7 +124,7 @@ PanelResults::PanelResults(WindowMain *windowMain) : mWindowMain(windowMain), mD
       openNextLevel({cell});
     });
     // connect(layout().getBackButton(), &QAction::triggered, [this] { mWindowMain->showPanelStartPage(); });
-    connect(this, &PanelResults::finishedLoading, this, &PanelResults::onFinishedLoading);
+    connect(this, &WindowResults::finishedLoading, this, &WindowResults::onFinishedLoading);
     connect(mDockWidgetGraphSettings, &PanelGraphSettings::settingsChanged, [this]() { onColumnComboChanged(); });
   }
 
@@ -263,7 +263,7 @@ PanelResults::PanelResults(WindowMain *windowMain) : mWindowMain(windowMain), mD
     loadPreview();
   });
 
-  mPreviewThread = std::make_unique<std::thread>(&PanelResults::previewThread, this);
+  mPreviewThread = std::make_unique<std::thread>(&WindowResults::previewThread, this);
   loadLastOpened();
 }
 
@@ -274,7 +274,7 @@ PanelResults::PanelResults(WindowMain *windowMain) : mWindowMain(windowMain), mD
 /// \param[out]
 /// \return
 ///
-PanelResults::~PanelResults()
+WindowResults::~WindowResults()
 {
   mStopped = true;
   mPreviewQue.stop();
@@ -292,7 +292,7 @@ PanelResults::~PanelResults()
 /// \param[out]
 /// \return
 ///
-void PanelResults::closeEvent(QCloseEvent *event)
+void WindowResults::closeEvent(QCloseEvent *event)
 {
   mDockWidgetImagePreview->setFloating(false);
   event->accept();    // Close the window
@@ -305,7 +305,7 @@ void PanelResults::closeEvent(QCloseEvent *event)
 /// \param[out]
 /// \return
 ///
-void PanelResults::valueChangedEvent()
+void WindowResults::valueChangedEvent()
 {
 }
 
@@ -316,7 +316,7 @@ void PanelResults::valueChangedEvent()
 /// \param[out]
 /// \return
 ///
-void PanelResults::setHeatmapVisible(bool visible)
+void WindowResults::setHeatmapVisible(bool visible)
 {
   mGraphContainer->setVisible(visible);
 }
@@ -328,12 +328,12 @@ void PanelResults::setHeatmapVisible(bool visible)
 /// \param[out]
 /// \return
 ///
-void PanelResults::setWindowTitlePrefix(const QString &txt)
+void WindowResults::setWindowTitlePrefix(const QString &txt)
 {
   if(!txt.isEmpty()) {
-    setWindowTitle(QString(Version::getTitle().data()) + "Database - " + txt);
+    setWindowTitle(QString(Version::getTitle().data()) + " Database - " + txt);
   } else {
-    setWindowTitle(QString(Version::getTitle().data()) + "Database");
+    setWindowTitle(QString(Version::getTitle().data()) + " Database");
   }
 }
 
@@ -341,7 +341,7 @@ void PanelResults::setWindowTitlePrefix(const QString &txt)
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelResults::resetSettings()
+void WindowResults::resetSettings()
 {
   std::lock_guard<std::mutex> lock(mLoadLock);
   mSelectedDataSet.analyzeMeta.reset();
@@ -369,7 +369,7 @@ void PanelResults::resetSettings()
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-auto PanelResults::createToolBar() -> QToolBar *
+auto WindowResults::createToolBar() -> QToolBar *
 {
   auto *mTopMenuBar = menuBar();
   auto *toolbar     = new QToolBar(this);
@@ -422,7 +422,7 @@ auto PanelResults::createToolBar() -> QToolBar *
   auto *btn = qobject_cast<QToolButton *>(toolbar->widgetForAction(mExports));
   btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
 
-  connect(this, &PanelResults::finishedExport, this, &PanelResults::onFinishedExport);
+  connect(this, &WindowResults::finishedExport, this, &WindowResults::onFinishedExport);
 
   //
   // Copy button
@@ -535,7 +535,7 @@ auto PanelResults::createToolBar() -> QToolBar *
   mMarkAsInvalid->setCheckable(true);
   toolbar->addAction(mMarkAsInvalid);
   mMarkAsInvalid->setEnabled(false);
-  connect(mMarkAsInvalid, &QAction::triggered, this, &PanelResults::onMarkAsInvalidClicked);
+  connect(mMarkAsInvalid, &QAction::triggered, this, &WindowResults::onMarkAsInvalidClicked);
 
   // =====================================
   // Toolbar
@@ -557,7 +557,7 @@ auto PanelResults::createToolBar() -> QToolBar *
 /// \brief      Load last opened files
 /// \author     Joachim Danmayr
 ///
-void PanelResults::loadLastOpened()
+void WindowResults::loadLastOpened()
 {
   mOpenProjectMenu->clear();
   mOpenProjectMenu->addSection("Results");
@@ -574,7 +574,7 @@ void PanelResults::loadLastOpened()
 /// \param[out]
 /// \return
 ///
-void PanelResults::storeResultsTableSettingsToDatabase()
+void WindowResults::storeResultsTableSettingsToDatabase()
 {
   try {
     if(mAnalyzer != nullptr && mSelectedDataSet.analyzeMeta.has_value() && !mSelectedDataSet.analyzeMeta->jobId.empty()) {
@@ -591,7 +591,7 @@ void PanelResults::storeResultsTableSettingsToDatabase()
 /// \param[out]
 /// \return
 ///
-void PanelResults::refreshBreadCrump()
+void WindowResults::refreshBreadCrump()
 {
   switch(mNavigation) {
     case Navigation::PLATE:
@@ -660,7 +660,7 @@ void PanelResults::refreshBreadCrump()
 /// \param[out]
 /// \return
 ///
-bool PanelResults::showSelectWorkingDir(const QString &path)
+bool WindowResults::showSelectWorkingDir(const QString &path)
 {
   QFileDialog dialog(this);
   dialog.setWindowTitle("Select images Directory");
@@ -681,7 +681,7 @@ bool PanelResults::showSelectWorkingDir(const QString &path)
 /// \param[out]
 /// \return
 ///
-void PanelResults::loadPreview()
+void WindowResults::loadPreview()
 {
   if(!mGeneratePreviewMutex.try_lock()) {
     return;
@@ -764,7 +764,7 @@ void PanelResults::loadPreview()
 /// \param[out]
 /// \return
 ///
-void PanelResults::previewThread()
+void WindowResults::previewThread()
 {
   while(!mStopped) {
     auto previewData = mPreviewQue.pop();
@@ -807,14 +807,14 @@ void PanelResults::previewThread()
 /// \param[out]
 /// \return
 ///
-void PanelResults::refreshView()
+void WindowResults::refreshView()
 {
   const auto &wellOrder = mDockWidgetGraphSettings->getWellOrder();
   auto plateSize        = mDockWidgetGraphSettings->getPlateSize();
   uint16_t rows         = plateSize.height();
   uint16_t cols         = plateSize.width();
 
-  auto form = static_cast<PanelResults::Navigation>(mNavigation) == PanelResults::Navigation::PLATE
+  auto form = static_cast<WindowResults::Navigation>(mNavigation) == WindowResults::Navigation::PLATE
                   ? joda::settings::DensityMapSettings::ElementForm::CIRCLE
                   : joda::settings::DensityMapSettings::ElementForm::RECTANGLE;
 
@@ -891,7 +891,7 @@ void PanelResults::refreshView()
 /// \param[out]
 /// \return
 ///
-void PanelResults::onFinishedLoading()
+void WindowResults::onFinishedLoading()
 {
   // ===============================================
   // Data
@@ -945,7 +945,7 @@ void PanelResults::onFinishedLoading()
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelResults::onMarkAsInvalidClicked(bool isInvalid)
+void WindowResults::onMarkAsInvalidClicked(bool isInvalid)
 {
   if(isInvalid) {
     enums::ChannelValidity val;
@@ -963,7 +963,7 @@ void PanelResults::onMarkAsInvalidClicked(bool isInvalid)
 /// \brief      An element has been selected
 /// \author     Joachim Danmayr
 ///
-void PanelResults::setSelectedElement(table::TableCell value)
+void WindowResults::setSelectedElement(table::TableCell value)
 {
   if(!mAnalyzer) {
     return;
@@ -1037,7 +1037,7 @@ void PanelResults::setSelectedElement(table::TableCell value)
 /// \brief      Open the next deeper level form the element with given id
 /// \author     Joachim Danmayr
 ///
-void PanelResults::openNextLevel(const std::vector<table::TableCell> &value)
+void WindowResults::openNextLevel(const std::vector<table::TableCell> &value)
 {
   int actMenu = static_cast<int>(mNavigation);
   actMenu++;
@@ -1070,7 +1070,7 @@ void PanelResults::openNextLevel(const std::vector<table::TableCell> &value)
 /// \brief      Constructor
 /// \author     Joachim Danmayr
 ///
-void PanelResults::backTo(Navigation backTo)
+void WindowResults::backTo(Navigation backTo)
 {
   // int actMenu = static_cast<int>(mNavigation);
   // actMenu--;
@@ -1093,7 +1093,7 @@ void PanelResults::backTo(Navigation backTo)
   refreshView();
 }
 
-void PanelResults::goHome()
+void WindowResults::goHome()
 {
   mNavigation = Navigation::PLATE;
   mSelectedDataSet.imageMeta.reset();
@@ -1105,7 +1105,7 @@ void PanelResults::goHome()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void PanelResults::openFromFile(const QString &pathToDbFile)
+void WindowResults::openFromFile(const QString &pathToDbFile)
 {
   if(pathToDbFile.isEmpty()) {
     return;
@@ -1170,7 +1170,7 @@ void PanelResults::openFromFile(const QString &pathToDbFile)
 /// \param[out]
 /// \return
 ///
-void PanelResults::onShowTable()
+void WindowResults::onShowTable()
 {
   if(mExportSvg != nullptr) {
     mExportSvg->setVisible(false);
@@ -1190,7 +1190,7 @@ void PanelResults::onShowTable()
 /// \param[out]
 /// \return
 ///
-void PanelResults::onShowHeatmap()
+void WindowResults::onShowHeatmap()
 {
   if(mExportSvg != nullptr) {
     mExportSvg->setVisible(true);
@@ -1211,7 +1211,7 @@ void PanelResults::onShowHeatmap()
 /// \param[out]
 /// \return
 ///
-void PanelResults::columnEdit(int32_t colIdx)
+void WindowResults::columnEdit(int32_t colIdx)
 {
   if(colIdx >= 0) {
     mColumnEditDialog->exec(mActFilter.getColumn({.colIdx = colIdx}), false);
@@ -1230,7 +1230,7 @@ void PanelResults::columnEdit(int32_t colIdx)
 /// \param[out]
 /// \return
 ///
-void PanelResults::onColumnComboChanged()
+void WindowResults::onColumnComboChanged()
 {
   refreshView();
 }
@@ -1242,7 +1242,7 @@ void PanelResults::onColumnComboChanged()
 /// \param[out]
 /// \return
 ///
-void PanelResults::showOpenFileDialog()
+void WindowResults::showOpenFileDialog()
 {
   std::filesystem::path filePath = mDbFilePath.parent_path();
 
@@ -1261,7 +1261,7 @@ void PanelResults::showOpenFileDialog()
 /// \param[out]
 /// \return
 ///
-void PanelResults::showFileSaveDialog(const QString &filter)
+void WindowResults::showFileSaveDialog(const QString &filter)
 {
   QString templatePath = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
 
@@ -1320,7 +1320,7 @@ void PanelResults::showFileSaveDialog(const QString &filter)
 /// \param[out]
 /// \return
 ///
-void PanelResults::saveData(const std::string &fileName, joda::exporter::xlsx::ExportSettings::ExportType format)
+void WindowResults::saveData(const std::string &fileName, joda::exporter::xlsx::ExportSettings::ExportType format)
 {
   if(fileName.empty()) {
     return;
@@ -1382,7 +1382,7 @@ void PanelResults::saveData(const std::string &fileName, joda::exporter::xlsx::E
 /// \param[out]
 /// \return
 ///
-void PanelResults::onFinishedExport()
+void WindowResults::onFinishedExport()
 {
   mExports->setEnabled(true);
   mBreadCrumpInfoText->setText("");

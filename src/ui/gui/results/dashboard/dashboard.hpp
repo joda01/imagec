@@ -30,7 +30,7 @@ namespace joda::ui::gui {
 
 class DashboardElement;
 class WindowMain;
-class PanelResults;
+class WindowResults;
 
 class Dashboard : public QMdiArea
 {
@@ -38,7 +38,7 @@ class Dashboard : public QMdiArea
 
 public:
   /////////////////////////////////////////////////////
-  Dashboard(PanelResults *panelResults);
+  Dashboard(WindowResults *panelResults);
   void reset();
   void tableToQWidgetTable(const std::shared_ptr<joda::table::Table> tableIn, const std::set<std::set<enums::ClassId>> &classesWithSameTrackingId,
                            bool isImageView);
@@ -63,7 +63,7 @@ private:
   void paintEvent(QPaintEvent *event) override;
 
   /////////////////////////////////////////////////////
-  PanelResults *mPanelResults;
+  WindowResults *mWindowResults;
   std::map<joda::db::data::Dashboard::TabWindowKey, DashboardElement *> mMidiWindows;
   bool mFirstOpen = true;
 };

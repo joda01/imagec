@@ -36,8 +36,8 @@ class Updater;
 namespace joda::ui::gui {
 
 class ContainerChannel;
-class PanelResults;
-class PanelResultsTableGenerator;
+class WindowResults;
+class WindowResultsTableGenerator;
 class DialogOpenTemplate;
 class PanelClassification;
 class PanelPipeline;
@@ -190,7 +190,7 @@ private:
   QAction *mShowCompilerLog         = nullptr;
 
   // RESULTS PANEL ////////////////////
-  PanelResults *mPanelReporting;
+  WindowResults *mPanelReporting;
 
   ////Mutexes/////////////////////////////////////////////////
   std::mutex mCheckForSettingsChangedMutex;

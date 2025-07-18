@@ -21,7 +21,7 @@
 #include "ui/gui/editor/window_main.hpp"
 #include "ui/gui/helper/word_wrap_header.hpp"
 #include "ui/gui/results/dashboard/dashboard_element.hpp"
-#include "ui/gui/results/panel_results.hpp"
+#include "ui/gui/results/window_results.hpp"
 
 namespace joda::ui::gui {
 
@@ -32,7 +32,7 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-Dashboard::Dashboard(PanelResults *panelResults) : QMdiArea(panelResults), mPanelResults(panelResults)
+Dashboard::Dashboard(WindowResults *panelResults) : QMdiArea(panelResults), mWindowResults(panelResults)
 {
   // setViewMode(QMdiArea::TabbedView);
   setTabsMovable(true);
@@ -68,8 +68,8 @@ void Dashboard::tableToQWidgetTable(const std::shared_ptr<joda::table::Table> ta
     } else {
       element01 = new DashboardElement(this);
       mMidiWindows.emplace(midiKey, element01);
-      connect(element01, &DashboardElement::cellSelected, [this](joda::table::TableCell cell) { mPanelResults->setSelectedElement(cell); });
-      connect(element01, &DashboardElement::cellDoubleClicked, [this](joda::table::TableCell cell) { mPanelResults->openNextLevel({cell}); });
+      connect(element01, &DashboardElement::cellSelected, [this](joda::table::TableCell cell) { mWindowResults->setSelectedElement(cell); });
+      connect(element01, &DashboardElement::cellDoubleClicked, [this](joda::table::TableCell cell) { mWindowResults->openNextLevel({cell}); });
       element01->show();
       element01->adjustSize();
     }

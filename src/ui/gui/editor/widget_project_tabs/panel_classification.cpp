@@ -34,7 +34,7 @@
 #include "ui/gui/helper/colord_square_delegate.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/results/dialog_class_settings.hpp"
-#include "ui/gui/results/panel_results.hpp"
+#include "ui/gui/results/window_results.hpp"
 #include <nlohmann/json_fwd.hpp>
 
 namespace joda::ui::gui {
