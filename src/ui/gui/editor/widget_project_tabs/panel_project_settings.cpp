@@ -255,6 +255,11 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
 ///
 void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &settings)
 {
+  mGroupByComboBox->blockSignals(true);
+  mPlateSize->blockSignals(true);
+  mNotes->blockSignals(true);
+  mAddressOrganisation->blockSignals(true);
+
   {
     auto idx = mGroupByComboBox->findData(static_cast<int>(settings.projectSettings.plate.groupBy));
     if(idx >= 0) {
@@ -280,6 +285,11 @@ void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &s
   mJobName->clear();
   applyRegex();
   mParentWindow->getController()->setWorkingDirectory(settings.projectSettings.plate.imageFolder);
+
+  mGroupByComboBox->blockSignals(false);
+  mPlateSize->blockSignals(false);
+  mNotes->blockSignals(false);
+  mAddressOrganisation->blockSignals(false);
 }
 
 ///
