@@ -31,13 +31,13 @@ class TableModel;
 /// \author     Joachim Danmayr
 /// \brief
 ///
-class DashboardElement : public QMdiSubWindow, public exporter::Exportable
+class DashboardElement : public QWidget, public exporter::Exportable
 {
   Q_OBJECT
 
 public:
   /////////////////////////////////////////////////////
-  DashboardElement(QWidget *widget);
+  DashboardElement();
   void setData(const std::shared_ptr<joda::table::Table> table);
   void copyTableToClipboard() const;
   const std::string &getTitle() const override;
@@ -54,10 +54,10 @@ private:
   void saveSelection();
   void restoreSelection();
 
-  void closeEvent(QCloseEvent *event)
-  {
-    event->ignore();    // Prevent closing
-  }
+  // void closeEvent(QCloseEvent *event)
+  // {
+  //   event->ignore();    // Prevent closing
+  // }
 
   /////////////////////////////////////////////////////
   std::string mTitle;

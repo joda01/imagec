@@ -34,10 +34,33 @@ namespace joda::ui::gui {
 ///
 Dashboard::Dashboard(WindowResults *panelResults) : QMdiArea(panelResults), mWindowResults(panelResults)
 {
-  // setViewMode(QMdiArea::TabbedView);
   setTabsMovable(true);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
   setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+  setViewMode(QMdiArea::TabbedView);
+  setTabPosition(QTabWidget::TabPosition::South);
+
+  auto *tabBar = findChild<QTabBar *>();
+  if(tabBar != nullptr) {
+    tabBar->setExpanding(false);    // Tabs will shrink to fit their content
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Dashboard::setWindowDisplayMode(bool windowMode)
+{
+  if(windowMode) {
+    setViewMode(QMdiArea::SubWindowView);
+
+  } else {
+    setViewMode(QMdiArea::TabbedView);
+  }
 }
 
 ///
@@ -53,14 +76,6 @@ void Dashboard::tableToQWidgetTable(const std::shared_ptr<joda::table::Table> ta
   joda::db::data::Dashboard dashboard;
   auto tabs = dashboard.convert(tableIn, classesWithSameTrackingId, isImageView);
 
-  // This is a workaround since Qt has a buf which leads that the first added MidiSubWindow is not layout correctly.
-  // Therefore we add a dummy, which is deleted later on.
-  QMdiSubWindow *dummy;
-  if(mFirstOpen) {
-    dummy = new QMdiSubWindow(this);
-    dummy->show();
-  }
-
   // ========================================
   // Lambda function to create the dashboard
   // ========================================
@@ -69,16 +84,17 @@ void Dashboard::tableToQWidgetTable(const std::shared_ptr<joda::table::Table> ta
                                                                const std::shared_ptr<joda::table::Table> &table) {
     DashboardElement *element01;
     if(mMidiWindows.contains(midiKey)) {
-      element01 = mMidiWindows.at(midiKey);
+      element01 = (DashboardElement *) mMidiWindows.at(midiKey)->widget();
       if(element01->isHidden()) {
         element01->show();
       }
     } else {
-      element01 = new DashboardElement(this);
-      mMidiWindows.emplace(midiKey, element01);
+      element01       = new DashboardElement();
+      auto *subWindow = addSubWindow(element01);
+      mMidiWindows.emplace(midiKey, subWindow);
       connect(element01, &DashboardElement::cellSelected, [this](joda::table::TableCell cell) { mWindowResults->setSelectedElement(cell); });
       connect(element01, &DashboardElement::cellDoubleClicked, [this](joda::table::TableCell cell) { mWindowResults->openNextLevel({cell}); });
-      element01->show();
+      subWindow->show();
     }
     availableCols.emplace(midiKey);
     element01->setData(table);
@@ -104,10 +120,14 @@ void Dashboard::tableToQWidgetTable(const std::shared_ptr<joda::table::Table> ta
   }
 
   if(mFirstOpen) {
-    dummy->deleteLater();
+    if(!mMidiWindows.empty()) {    // Make the first tab visible
+      setActiveSubWindow(mMidiWindows.begin()->second);
+    }
     mFirstOpen = false;
-    cascadeSubWindows();
+    // cascadeSubWindows();
   }
+
+  setViewMode(QMdiArea::TabbedView);
 }
 
 ///
@@ -151,7 +171,7 @@ void Dashboard::copyToClipboard() const
 {
   for(const auto &[_, subWindow] : mMidiWindows) {
     if(subWindow == activeSubWindow()) {
-      subWindow->copyTableToClipboard();
+      ((DashboardElement *) subWindow->widget())->copyTableToClipboard();
     }
   }
 }
@@ -168,7 +188,7 @@ auto Dashboard::getExportables() const -> std::vector<const exporter::Exportable
   std::vector<const exporter::Exportable *> retVal;
 
   for(const auto &[_, dashb] : mMidiWindows) {
-    retVal.emplace_back(dashb);
+    retVal.emplace_back((DashboardElement *) dashb->widget());
   }
   return retVal;
 }

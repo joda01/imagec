@@ -47,6 +47,7 @@ public:
   void minimizeSubWindows();
   void restoreSubWindows();
   auto getSelectedRows() const -> std::vector<joda::table::TableCell>;
+  void setWindowDisplayMode(bool);
 
 private:
   enum class DashboardType
@@ -64,7 +65,7 @@ private:
 
   /////////////////////////////////////////////////////
   WindowResults *mWindowResults;
-  std::map<joda::db::data::Dashboard::TabWindowKey, DashboardElement *> mMidiWindows;
+  std::map<joda::db::data::Dashboard::TabWindowKey, QMdiSubWindow *> mMidiWindows;
   bool mFirstOpen = true;
 };
 

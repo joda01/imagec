@@ -177,6 +177,12 @@ private:
   QAction *mExportSvg = nullptr;
   QAction *mExportPng = nullptr;
 
+  /// WINDOW//////////////////////////////////////////////////
+  QAction *mCascade;
+  QAction *mTile;
+  QAction *mMinimize;
+  QAction *mRestore;
+
   /// DASHBOARD ///////////////////////////////////////
   Dashboard *mDashboard;
   std::set<std::set<enums::ClassId>> mTmpColocClasses;    // This is just for caching

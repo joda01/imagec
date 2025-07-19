@@ -243,7 +243,7 @@ WindowResults::WindowResults(WindowMain *windowMain) : mWindowMain(windowMain), 
   //
   auto *centralWidget = new QWidget();
   auto *col           = new QVBoxLayout();
-  col->setContentsMargins(0, 6, 0, 0);
+  col->setContentsMargins(0, 6, 0, 6);
   col->setSpacing(4);
   col->addWidget(topInfo);
   col->addWidget(mGraphContainer.get());
@@ -441,28 +441,45 @@ auto WindowResults::createToolBar() -> QToolBar *
   copyTable->setStatusTip("Copy table to clipboard");
   toolbar->addAction(copyTable);
 
-  toolbar->addSeparator();
-
   QMenu *windowMenu = new QMenu("Window");
-  auto *cascade     = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("browsers"), "Cascade");
-  cascade->setStatusTip("Cascade windows");
-  connect(cascade, &QAction::triggered, [this]() { mDashboard->cascadeSubWindows(); });
-  windowMenu->addAction(cascade);
 
-  auto *tileWindows = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("grid-four"), "Tile");
-  tileWindows->setStatusTip("Tile windows");
-  connect(tileWindows, &QAction::triggered, [this]() { mDashboard->tileSubWindows(); });
-  windowMenu->addAction(tileWindows);
+  void setWindowDisplayMode(bool);
+  auto *windowMode = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("browsers"), "Window mode");
+  windowMode->setCheckable(true);
+  windowMode->setStatusTip("Switch to window mode");
+  connect(windowMode, &QAction::triggered, [this](bool enabled) {
+    mCascade->setEnabled(enabled);
+    mTile->setEnabled(enabled);
+    mMinimize->setEnabled(enabled);
+    mRestore->setEnabled(enabled);
+    mDashboard->setWindowDisplayMode(enabled);
+  });
+  windowMenu->addAction(windowMode);
 
-  auto *minimizeAll = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("minus"), "Minimize");
-  minimizeAll->setStatusTip("Minimize windows");
-  connect(minimizeAll, &QAction::triggered, [this]() { mDashboard->minimizeSubWindows(); });
-  windowMenu->addAction(minimizeAll);
+  windowMenu->addSeparator();
+  mCascade = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("browsers"), "Cascade");
+  mCascade->setEnabled(false);
+  mCascade->setStatusTip("Cascade windows");
+  connect(mCascade, &QAction::triggered, [this]() { mDashboard->cascadeSubWindows(); });
+  windowMenu->addAction(mCascade);
 
-  auto *restoreAll = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("app-window"), "Restore");
-  restoreAll->setStatusTip("Restore windows");
-  connect(restoreAll, &QAction::triggered, [this]() { mDashboard->restoreSubWindows(); });
-  windowMenu->addAction(restoreAll);
+  mTile = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("grid-four"), "Tile");
+  mTile->setEnabled(false);
+  mTile->setStatusTip("Tile windows");
+  connect(mTile, &QAction::triggered, [this]() { mDashboard->tileSubWindows(); });
+  windowMenu->addAction(mTile);
+
+  mMinimize = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("minus"), "Minimize");
+  mMinimize->setEnabled(false);
+  mMinimize->setStatusTip("Minimize windows");
+  connect(mMinimize, &QAction::triggered, [this]() { mDashboard->minimizeSubWindows(); });
+  windowMenu->addAction(mMinimize);
+
+  mRestore = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("app-window"), "Restore");
+  mRestore->setEnabled(false);
+  mRestore->setStatusTip("Restore windows");
+  connect(mRestore, &QAction::triggered, [this]() { mDashboard->restoreSubWindows(); });
+  windowMenu->addAction(mRestore);
 
   mFilter.sortColumns();
   toolbar->addSeparator();

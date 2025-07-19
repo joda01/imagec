@@ -25,10 +25,9 @@
 
 namespace joda::ui::gui {
 
-DashboardElement::DashboardElement(QWidget *widget) : QMdiSubWindow(widget)
+DashboardElement::DashboardElement() /*: QMdiSubWindow(widget)*/
 {
-  auto *centralWidget = new QWidget(this);
-  auto *layout        = new QVBoxLayout(centralWidget);
+  auto *layout = new QVBoxLayout();
   layout->setContentsMargins(0, 4, 0, 0);
   // setMinimumWidth(500);
   //  Header
@@ -39,7 +38,7 @@ DashboardElement::DashboardElement(QWidget *widget) : QMdiSubWindow(widget)
 
   // Table
   {
-    mTableView = new QTableView(centralWidget);
+    mTableView = new QTableView();
     mTableView->setHorizontalHeader(new HtmlHeaderView(Qt::Horizontal));
     mTableView->setItemDelegate(new HtmlDelegate(mTableView));
     mTableView->horizontalHeader()->setMinimumSectionSize(120);
@@ -61,7 +60,7 @@ DashboardElement::DashboardElement(QWidget *widget) : QMdiSubWindow(widget)
     });
     layout->addWidget(mTableView);
   }
-  setWidget(centralWidget);
+  setLayout(layout);
 }
 
 ///
