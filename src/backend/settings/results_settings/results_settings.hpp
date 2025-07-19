@@ -136,7 +136,7 @@ public:
 
   struct ColumnKey
   {
-    joda::enums::ClassId classId;
+    joda::enums::ClassId classId             = joda::enums::ClassId::UNDEFINED;
     enums::Measurement measureChannel        = enums::Measurement::NONE;
     enums::Stats stats                       = enums::Stats::AVG;
     int32_t crossChannelStacksC              = -1;

@@ -14,8 +14,10 @@
 #include <qnamespace.h>
 #include <qtableview.h>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/helper/base32.hpp"
 #include "backend/settings/analze_settings.hpp"
@@ -136,6 +138,7 @@ QVariant TableModel::data(const QModelIndex &index, int role) const
 
 void TableModel::setData(const std::shared_ptr<joda::table::Table> table)
 {
+  std::lock_guard<std::mutex> lock(mChangeMutex);
   beginResetModel();
   // reload or rebind your internal Table data here
   mTable = table;

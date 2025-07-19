@@ -10,6 +10,7 @@
 ///
 
 #include <qabstractitemmodel.h>
+#include <mutex>
 #include "backend/helper/table/table.hpp"
 
 namespace joda::ui::gui {
@@ -34,6 +35,7 @@ public:
 
 private:
   std::shared_ptr<joda::table::Table> mTable;
+  std::mutex mChangeMutex;
 };
 
 }    // namespace joda::ui::gui

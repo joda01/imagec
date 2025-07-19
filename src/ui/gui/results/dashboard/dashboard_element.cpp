@@ -17,6 +17,7 @@
 #include <qwidget.h>
 #include <memory>
 #include <string>
+#include <thread>
 #include "backend/helper/base32.hpp"
 #include "ui/gui/helper/html_delegate.hpp"
 #include "ui/gui/helper/html_header.hpp"
@@ -98,14 +99,12 @@ void DashboardElement::setHeader(const QString &text)
 ///
 void DashboardElement::setData(const std::shared_ptr<joda::table::Table> table)
 {
+  using namespace std::chrono_literals;
   // Store actual selection
   saveSelection();
-
-  // Update data
   mTable = table;
-  setHeader(table->getTitle().data());
-  mTableModel->setData(table);
-
+  setHeader(mTable->getTitle().data());
+  mTableModel->setData(mTable);
   // Restore selected rows
   restoreSelection();
 }

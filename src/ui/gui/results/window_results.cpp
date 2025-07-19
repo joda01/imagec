@@ -864,6 +864,7 @@ void WindowResults::refreshView()
 ///
 void WindowResults::onFinishedLoading()
 {
+  std::lock_guard<std::mutex> lock(mLoadLock);
   // ===============================================
   // Data
   // ===============================================

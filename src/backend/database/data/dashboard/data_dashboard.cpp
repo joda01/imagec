@@ -92,17 +92,19 @@ auto Dashboard::convert(const std::shared_ptr<joda::table::Table> tableIn, const
   // ========================================
   for(const auto &[_, col] : tableIn->columns()) {
     // This is a distance measurement. We create a own dashboard for each distance measure if we are in image view
+    auto key = static_cast<uint32_t>(col.colSettings.classId);
+
     if(isDistance(col.colSettings.measureChannel) && isImageView) {
-      uint32_t key = (static_cast<uint16_t>(col.colSettings.classId) << 16) | static_cast<uint16_t>(col.colSettings.intersectingChannel);
+      uint32_t key = (key << 16) | static_cast<uint16_t>(col.colSettings.intersectingChannel);
       auto &ed     = distance[key];
       ed.colName   = "Distance: " + col.colSettings.names.className + " to " + col.colSettings.names.intersectingName;
       ed.cols.emplace_back(&col);
-    } else if(intersecting.contains(static_cast<uint32_t>(col.colSettings.classId))) {
-      auto &ed   = intersecting[static_cast<uint32_t>(col.colSettings.classId)];
+    } else if(intersecting.contains(key)) {
+      auto &ed   = intersecting.at(key);
       ed.colName = col.colSettings.names.className;
       ed.cols.emplace_back(&col);
     } else {
-      auto &ed   = dashboards[static_cast<uint32_t>(col.colSettings.classId)];
+      auto &ed   = dashboards[key];
       ed.colName = col.colSettings.names.className;
       ed.cols.emplace_back(&col);
     }
