@@ -98,9 +98,50 @@ void DashboardElement::setHeader(const QString &text)
 ///
 void DashboardElement::setData(const std::shared_ptr<joda::table::Table> table)
 {
+  // Store actual selection
+  saveSelection();
+
+  // Update data
   mTable = table;
   setHeader(table->getTitle().data());
   mTableModel->setData(table);
+
+  // Restore selected rows
+  restoreSelection();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DashboardElement::saveSelection()
+{
+  QModelIndex currentIndex = mTableView->currentIndex();
+  if(currentIndex.isValid()) {
+    savedRow    = currentIndex.row();
+    savedColumn = currentIndex.column();
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DashboardElement::restoreSelection()
+{
+  if(savedRow >= 0 && savedColumn >= 0) {
+    QModelIndex index = mTableModel->index(savedRow, savedColumn);
+    if(index.isValid()) {
+      mTableView->setCurrentIndex(index);
+      mTableView->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect);
+    }
+  }
 }
 
 ///

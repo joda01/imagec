@@ -45,6 +45,7 @@ class HeatmapWidget;
 class PanelClassificationList;
 class PanelGraphSettings;
 class Dashboard;
+class VideoControlButtonGroup;
 
 ///
 /// \class      WindowResults
@@ -112,6 +113,8 @@ private:
     //  std::optional<results::db::ImageChannelMeta> imageChannelMeta;
   };
 
+  void closeEvent(QCloseEvent *event) override;
+
   /////////////////////////////////////////////////////
   void valueChangedEvent();
   void goHome();
@@ -127,7 +130,6 @@ private:
   void saveData(const std::string &fileName, joda::exporter::xlsx::ExportSettings::ExportType);
   void showOpenFileDialog();
   void backTo(Navigation backTo);
-  void closeEvent(QCloseEvent *event) override;
   void setWindowTitlePrefix(const QString &txt);
 
   WindowMain *mWindowMain;
@@ -207,6 +209,9 @@ private:
   void previewThread();
   joda::TSQueue<PreviewData> mPreviewQue;
   std::unique_ptr<std::thread> mPreviewThread;
+
+  // T-STACK //////////////////////////////////////////////////
+  VideoControlButtonGroup *mVideoControlButton;
 
   /////////////////////////////////////////////////////
   uint64 mActGroupId = 0;

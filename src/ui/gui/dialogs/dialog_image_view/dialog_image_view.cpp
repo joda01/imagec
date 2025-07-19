@@ -28,6 +28,7 @@
 #include <string>
 #include <thread>
 #include "backend/helper/image/image.hpp"
+#include "ui/gui/dialogs/widget_video_control_button_group/widget_video_control_button_group.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "dialog_histogram_settings.hpp"
 #include "dialog_image_settings.hpp"
@@ -233,97 +234,20 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
 
     connect(&mImageViewRight, &PanelImageView::tileClicked, this, &DialogImageViewer::onSettingsChanged);
     connect(&mImageViewRight, &PanelImageView::classesToShowChanged, this, &DialogImageViewer::onSettingsChanged);
-    connect(&mImageViewRight, &PanelImageView::updateImage, [this]() { enableOrDisableVideoToolbar(); });
+    connect(&mImageViewRight, &PanelImageView::updateImage, [this]() {
+      if(nullptr != mVideoButtonGroup) {
+        mVideoButtonGroup->setMaxTimeStacks(mImageViewRight.getNrOfTstacks());
+      }
+    });
   }
 
   // Bottom toolbar
   {
-    mSpinnerActTimeStack = new QSpinBox();
-    mSpinnerActTimeStack->setValue(0);
-    mSpinnerActTimeStack->setMinimumWidth(65);
-    connect(mSpinnerActTimeStack, &QSpinBox::valueChanged, [this] { onSettingsChanged(); });
-
-    mSeekBack = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("skip-back"), "Backward");
-    connect(mSeekBack, &QAction::triggered, [this] {
-      if(mSpinnerActTimeStack->value() > 0) {
-        mSpinnerActTimeStack->blockSignals(true);
-        mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() - 1);
-        mSpinnerActTimeStack->blockSignals(false);
-      }
-      onSettingsChanged();
-    });
-    toolbarTop->addAction(mSeekBack);
-
-    // ==========================================================
-
-    mPlaybackSpeedSelector     = new QMenu();
-    mPlaybackspeedGroup        = new QActionGroup(mPlaybackSpeedSelector);
-    auto addPlaybackSpeedLamda = [this](QAction *action, int32_t timeMs, bool checked = false) {
-      mPlaybackspeedGroup->addAction(action);
-      action->setCheckable(true);
-      action->setChecked(checked);
-      connect(action, &QAction::triggered, [timeMs, this]() {
-        mPlaybackSpeed = timeMs;
-        if(mActionPlay->isChecked()) {
-          mPlayTimer->stop();
-          mPlayTimer->start(mPlaybackSpeed);
-        }
-      });
-    };
-
-    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("25 Hz"), 40);
-    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("20 Hz"), 50);
-    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("10 Hz"), 100);
-    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("5 Hz"), 200);
-    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("4 Hz"), 250);
-    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("3 Hz"), 333);
-    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("2 Hz"), 500);
-    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("1 Hz"), 1000, true);
-    addPlaybackSpeedLamda(mPlaybackSpeedSelector->addAction("0.5 Hz"), 2000);
-
-    mActionPlay = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("play"), "Play/Stop");
-    mActionPlay->setMenu(mPlaybackSpeedSelector);
-    mActionPlay->setCheckable(true);
-    connect(mActionPlay, &QAction::triggered, [this](bool selected) {
-      if(selected) {
-        mPlayTimer->start(mPlaybackSpeed);
-      } else {
-        mPlayTimer->stop();
-      }
-    });
-
-    toolbarTop->addAction(mActionPlay);
-    toolbarTop->addWidget(mSpinnerActTimeStack);
-
-    mSeekForward = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("skip-forward"), "Forward");
-    connect(mSeekForward, &QAction::triggered, [this] {
-      if(mSpinnerActTimeStack->value() < getMaxTimeStacks()) {
-        mSpinnerActTimeStack->blockSignals(true);
-        mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() + 1);
-        mSpinnerActTimeStack->blockSignals(false);
-      }
-      onSettingsChanged();
-    });
-    toolbarTop->addAction(mSeekForward);
+    mVideoButtonGroup = new VideoControlButtonGroup([this]() { onSettingsChanged(); }, toolbarTop);
   }
 
   // setLayout(layout);
   setLayout(mMainLayout);
-
-  // Video timer
-  mPlayTimer = new QTimer();
-  QObject::connect(mPlayTimer, &QTimer::timeout, [&] {
-    if(mSpinnerActTimeStack->value() < getMaxTimeStacks()) {
-      mSpinnerActTimeStack->blockSignals(true);
-      mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() + 1);
-      mSpinnerActTimeStack->blockSignals(false);
-    } else {
-      mSpinnerActTimeStack->blockSignals(true);
-      mSpinnerActTimeStack->setValue(0);
-      mSpinnerActTimeStack->blockSignals(false);
-    }
-    onSettingsChanged();
-  });
 
   onSettingsChanged();
 }
@@ -348,11 +272,14 @@ DialogImageViewer::~DialogImageViewer()
 ///
 void DialogImageViewer::setImagePlane(const ImagePlaneSettings &settings)
 {
-  mSpinnerActTimeStack->blockSignals(true);
-
   mImageSettings.imageSeries = settings.series;
   mSelectedZStack            = settings.plane.z;
-  mSpinnerActTimeStack->setValue(settings.plane.t);
+  mSelectedTStack            = settings.plane.t;
+  if(nullptr != mVideoButtonGroup) {
+    mVideoButtonGroup->setMaxTimeStacks(mImageViewRight.getNrOfTstacks());
+    mVideoButtonGroup->setValue(settings.plane.t);
+  }
+
   for(const auto &[chNr, action] : mChannelSelections) {
     if(chNr == settings.plane.c) {
       action->setChecked(true);
@@ -363,9 +290,7 @@ void DialogImageViewer::setImagePlane(const ImagePlaneSettings &settings)
 
   mImageViewRight.setSelectedTile(settings.tileX, settings.tileY);
   mImageSettings.tileWidth = settings.tileWidth;
-
   applySettingsToImagePanel();
-  mSpinnerActTimeStack->blockSignals(false);
   mImageChannelMenuGroup->blockSignals(false);
 }
 
@@ -413,19 +338,6 @@ auto DialogImageViewer::getImagePanel() -> PanelImageView *
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::setMaxTimeStacks(int32_t tStacks)
-{
-  mTempMaxTimeStacks = tStacks;
-  enableOrDisableVideoToolbar();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 void DialogImageViewer::setOverlayButtonsVisible(bool visible)
 {
   mFillOVerlay->setVisible(visible);
@@ -440,45 +352,10 @@ void DialogImageViewer::setOverlayButtonsVisible(bool visible)
 /// \param[out]
 /// \return
 ///
-int32_t DialogImageViewer::getMaxTimeStacks() const
+void DialogImageViewer::removeVideoControl()
 {
-  if(mTempMaxTimeStacks < 0) {
-    return mImageViewRight.getNrOfTstacks();
-  } else {
-    return mTempMaxTimeStacks;
-  }
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogImageViewer::enableOrDisableVideoToolbar()
-{
-  int32_t nrOfTStacks = getMaxTimeStacks();
-  mSpinnerActTimeStack->setMaximum(nrOfTStacks);
-  if(nrOfTStacks <= 1) {
-    if(mSpinnerActTimeStack->value() > 0) {
-      mSpinnerActTimeStack->setValue(0);
-    }
-    if(mSeekForward->isEnabled()) {
-      mSeekForward->setEnabled(false);
-      mSeekBack->setEnabled(false);
-      mActionPlay->setChecked(false);
-      mActionPlay->setEnabled(false);
-      mSpinnerActTimeStack->setEnabled(false);
-    }
-  } else {
-    if(!mSeekForward->isEnabled()) {
-      mSeekForward->setEnabled(true);
-      mSeekBack->setEnabled(true);
-      mActionPlay->setEnabled(true);
-      mSpinnerActTimeStack->setEnabled(true);
-    }
-  }
+  delete mVideoButtonGroup;
+  mVideoButtonGroup = nullptr;
 }
 
 ///
@@ -492,9 +369,12 @@ void DialogImageViewer::applySettingsToImagePanel()
 {
   auto tileSize = getTileSize();
   mImageViewRight.setSeries(mImageSettings.imageSeries);
-  enableOrDisableVideoToolbar();
+  if(nullptr != mVideoButtonGroup) {
+    mVideoButtonGroup->setMaxTimeStacks(mImageViewRight.getNrOfTstacks());
+    mSelectedTStack = mVideoButtonGroup->value();
+  }
   mImageViewRight.setZprojection(getSelectedZProjection());
-  mImageViewRight.setImagePlane({.z = mSelectedZStack, .c = getSelectedImageChannel(), .t = mSpinnerActTimeStack->value()});
+  mImageViewRight.setImagePlane({.z = mSelectedZStack, .c = getSelectedImageChannel(), .t = mSelectedTStack});
   mImageViewRight.setImageTile(tileSize, tileSize);
 
   // Sync to settings
@@ -656,7 +536,10 @@ int32_t DialogImageViewer::getSelectedImageChannel() const
 ///
 int32_t DialogImageViewer::getSelectedTimeStack() const
 {
-  return mSpinnerActTimeStack->value();
+  if(nullptr != mVideoButtonGroup) {
+    return mVideoButtonGroup->value();
+  }
+  return mSelectedTStack;
 }
 
 ///
@@ -669,7 +552,7 @@ int32_t DialogImageViewer::getSelectedTimeStack() const
 void DialogImageViewer::setWaiting(bool waiting)
 {
   // Don't show waiting dialog if video is running for a better view.
-  if(mActionPlay->isChecked()) {
+  if(mVideoButtonGroup != nullptr && mVideoButtonGroup->isVideoRunning()) {
     return;
   }
   mImageViewRight.setWaiting(waiting);

@@ -51,6 +51,8 @@ signals:
 private:
   /////////////////////////////////////////////////////
   void setHeader(const QString &);
+  void saveSelection();
+  void restoreSelection();
 
   void closeEvent(QCloseEvent *event)
   {
@@ -63,6 +65,10 @@ private:
   QTableView *mTableView;
   TableModel *mTableModel;
   std::shared_ptr<joda::table::Table> mTable;
+
+  /////////////////////////////////////////////////////
+  int savedRow    = -1;
+  int savedColumn = -1;
 };
 
 }    // namespace joda::ui::gui

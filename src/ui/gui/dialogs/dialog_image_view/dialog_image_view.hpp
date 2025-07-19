@@ -27,6 +27,7 @@
 namespace joda::ui::gui {
 
 class HistoToolbar;
+class VideoControlButtonGroup;
 
 ///
 /// \class      DialogImageViewer
@@ -67,10 +68,10 @@ public:
   void setImagePlane(const ImagePlaneSettings &);
   void setShowCrossHairCursor(bool show);
   void setSettingsPointer(joda::settings::AnalyzeSettings *settings);
-  void setMaxTimeStacks(int32_t);
 
   // Visibility ///////////////////////////////////////////
   void setOverlayButtonsVisible(bool);
+  void removeVideoControl();
 
 signals:
   /////////////////////////////////////////////////////
@@ -79,8 +80,6 @@ signals:
 private:
   /////////////////////////////////////////////////////
   void applySettingsToImagePanel();
-  void enableOrDisableVideoToolbar();
-  int32_t getMaxTimeStacks() const;
 
   // LAYOUT //////////////////////////////////////////
   QBoxLayout *mCentralLayout;
@@ -102,18 +101,11 @@ private:
   std::map<int32_t, QAction *> mChannelSelections;
 
   // T-STACK //////////////////////////////////////////////////
-  std::optional<int32_t> mMaxTimeStacks = std::nullopt;
-  int32_t mPlaybackSpeed                = 1000;
-  QActionGroup *mPlaybackspeedGroup;
-  QMenu *mPlaybackSpeedSelector;
-  QTimer *mPlayTimer;
-  QAction *mActionPlay;
-  QAction *mSeekBack;
-  QAction *mSeekForward;
-  QSpinBox *mSpinnerActTimeStack;
-  bool mPlaybackToolbarVisible = false;
-  int32_t mSelectedZStack      = 0;
-  int32_t mTempMaxTimeStacks   = -1;
+  VideoControlButtonGroup *mVideoButtonGroup;
+
+  // Z-STACK //////////////////////////////////////////////////
+  int32_t mSelectedZStack = 0;
+  int32_t mSelectedTStack = 0;
 
   // IMAGE SETTINGS //////////////////////////////////////////////////
   DialogImageSettings::Settings mImageSettings;

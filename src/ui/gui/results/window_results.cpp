@@ -22,6 +22,7 @@
 #include <qlabel.h>
 #include <qlayout.h>
 #include <qlineedit.h>
+#include <qmainwindow.h>
 #include <qnamespace.h>
 #include <qpushbutton.h>
 #include <qsize.h>
@@ -67,6 +68,7 @@
 #include "ui/gui/dialogs/dialog_image_view/dialog_image_view.hpp"
 #include "ui/gui/dialogs/dialog_image_view/image_view_dock_widget.hpp"
 #include "ui/gui/dialogs/dialog_image_view/panel_image_view.hpp"
+#include "ui/gui/dialogs/widget_video_control_button_group/widget_video_control_button_group.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classification_unmanaged.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_multi_classification_in.hpp"
 #include "ui/gui/editor/window_main.hpp"
@@ -253,7 +255,7 @@ WindowResults::WindowResults(WindowMain *windowMain) : mWindowMain(windowMain), 
   refreshView();
 
   connect(mDockWidgetImagePreview->getImageWidget(), &DialogImageViewer::settingChanged, [this] {
-    if(mFilter.getFilter().tStack != mDockWidgetImagePreview->getImageWidget()->getSelectedTimeStack()) {
+    if(mFilter.getFilter().tStack != mVideoControlButton->getMaxTimeStacks()) {
       // If t stack has been changed, reload the results with the new t-stack
       refreshView();
     }
@@ -291,8 +293,11 @@ WindowResults::~WindowResults()
 ///
 void WindowResults::closeEvent(QCloseEvent *event)
 {
+  mDockWidgetImagePreview->getImageWidget()->getImagePanel()->resetImage();
   mDockWidgetImagePreview->setFloating(false);
-  event->accept();    // Close the window
+  resetSettings();
+  refreshView();
+  QMainWindow::closeEvent(event);
 }
 
 ///
@@ -493,6 +498,14 @@ auto WindowResults::createToolBar() -> QToolBar *
   mMarkAsInvalid->setEnabled(false);
   connect(mMarkAsInvalid, &QAction::triggered, this, &WindowResults::onMarkAsInvalidClicked);
 
+  toolbar->addSeparator();
+  mVideoControlButton = new VideoControlButtonGroup(
+      [this] {
+        refreshView();
+        //  loadPreview();
+      },
+      toolbar);
+
   // =====================================
   // Toolbar
   // =====================================
@@ -559,6 +572,7 @@ void WindowResults::refreshBreadCrump()
       mShowPreview->setEnabled(false);
       mDockWidgetImagePreview->setVisible(false);
       mDockWidgetImagePreview->setFloating(false);
+      mVideoControlButton->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
       break;
     case Navigation::WELL:
       mBreadCrumpWell->setVisible(true);
@@ -567,6 +581,7 @@ void WindowResults::refreshBreadCrump()
       mShowPreview->setEnabled(false);
       mDockWidgetImagePreview->setVisible(false);
       mDockWidgetImagePreview->setFloating(false);
+      mVideoControlButton->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
       if(mSelectedDataSet.groupMeta.has_value()) {
         auto platePos =
             "Well (" + std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + ")";
@@ -577,13 +592,13 @@ void WindowResults::refreshBreadCrump()
       mBreadCrumpWell->setVisible(true);
       mBreadCrumpImage->setVisible(true);
       mOpenNextLevel->setVisible(false);
+      mVideoControlButton->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());    // Reset
       if(!mImageWorkingDirectory.empty() && mDashboard->isVisible()) {
         mShowPreview->setEnabled(true);
         mDockWidgetImagePreview->setVisible(mShowPreview->isChecked());
         if(mShowPreview->isChecked()) {
           mDockWidgetImagePreview->raise();
         }
-
       } else {
         mShowPreview->setChecked(false);
         mShowPreview->setEnabled(false);
@@ -736,11 +751,13 @@ void WindowResults::previewThread()
       int32_t tileXNr        = objectInfo.measCenterX / tileWidth;
       int32_t tileYNr        = objectInfo.measCenterY / tileHeight;
       // int32_t resolution     = 0;
+
       auto plane = joda::image::reader::ImageReader::Plane{
           .z = static_cast<int32_t>(objectInfo.stackZ), .c = static_cast<int32_t>(objectInfo.stackC), .t = static_cast<int32_t>(objectInfo.stackT)};
 
       mDockWidgetImagePreview->getImageWidget()->setImagePlane({plane, series, tileWidth, tileHeight, tileXNr, tileYNr});
       mDockWidgetImagePreview->getImageWidget()->getImagePanel()->openImage(previewData.imagePath);
+      mVideoControlButton->setValue(objectInfo.stackT);
 
       // ==============================================
       // Set cursor position
@@ -776,10 +793,7 @@ void WindowResults::refreshView()
                   ? joda::settings::DensityMapSettings::ElementForm::CIRCLE
                   : joda::settings::DensityMapSettings::ElementForm::RECTANGLE;
 
-  mFilter.setFilter({.plateId = 0,
-                     .groupId = static_cast<uint16_t>(mActGroupId),
-                     .imageId = mActImageId,
-                     .tStack  = mDockWidgetImagePreview->getImageWidget()->getSelectedTimeStack()},
+  mFilter.setFilter({.plateId = 0, .groupId = static_cast<uint16_t>(mActGroupId), .imageId = mActImageId, .tStack = mVideoControlButton->value()},
                     {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
                     {.form               = form,
                      .heatmapRangeMode   = mFilter.getDensityMapSettings().heatmapRangeMode,
@@ -814,12 +828,10 @@ void WindowResults::refreshView()
               mActGroupId                = getID;
               mSelectedWellId            = getID;
               mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(getID);
-              mFilter.setFilter({.plateId = 0,
-                                 .groupId = static_cast<uint16_t>(mActGroupId),
-                                 .imageId = mActImageId,
-                                 .tStack  = mDockWidgetImagePreview->getImageWidget()->getSelectedTimeStack()},
-                                {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
-                                {.densityMapAreaSize = static_cast<int32_t>(mDockWidgetGraphSettings->getDensityMapSize())});
+              mFilter.setFilter(
+                  {.plateId = 0, .groupId = static_cast<uint16_t>(mActGroupId), .imageId = mActImageId, .tStack = mVideoControlButton->value()},
+                  {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
+                  {.densityMapAreaSize = static_cast<int32_t>(mDockWidgetGraphSettings->getDensityMapSize())});
               goto REFRESH_VIEW;
             }
 
@@ -830,6 +842,7 @@ void WindowResults::refreshView()
           } break;
           case Navigation::IMAGE: {
             mActListData = std::make_shared<db::QueryResult>(joda::db::StatsPerImage::toTable(mAnalyzer.get(), mFilter, &mActFilter));
+
           } break;
         }
         mIsLoading = false;
@@ -884,8 +897,10 @@ void WindowResults::onFinishedLoading()
   }
 
   mDockWidgetGraphSettings->setColumns(mActFilter.getColumns());
+
+  // CHANGED FROM ActFilter
   auto data = joda::db::data::convertToHeatmap(mActListData.get(), rows, cols, mDockWidgetGraphSettings->getSelectedColumn(),
-                                               mFilter.getFilter().tStack, joda::db::data::PlotPlateSettings{.densityMapSize = densityMapSize});
+                                               mActFilter.getFilter().tStack, joda::db::data::PlotPlateSettings{.densityMapSize = densityMapSize});
 
   mGraphContainer->updateGraph(std::move(data), mDockWidgetGraphSettings->getSelectedColorMap(), mDockWidgetGraphSettings->getColorMapRangeSetting(),
                                mDockWidgetGraphSettings->getColorMapRange(), mNavigation == Navigation::PLATE, mNavigation == Navigation::IMAGE);
@@ -1112,7 +1127,7 @@ void WindowResults::openFromFile(const QString &pathToDbFile)
   }
   loadLastOpened();
 
-  // Make visible
+  mVideoControlButton->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
 
   mDockWidgetClassList->setDatabase(mAnalyzer.get());
   setWindowTitlePrefix(QString(mDbFilePath.filename().string().data()) + " (" + QString(mSelectedDataSet.analyzeMeta->jobName.data()) + ")");
