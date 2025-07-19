@@ -220,24 +220,7 @@ void Image::autoAdjustBrightnessRange()
     bool accumulate        = false;
     cv::Mat hist;
     cv::calcHist(mImageOriginal, 1, 0, cv::Mat(), hist, 1, &histSize, &histRange);    //, uniform, accumulate);
-    auto lut = joda::cmd::EnhanceContrast::equalize(hist);
-
-    int32_t lowerIdx = 0;
-    for(int lower = 0; lower < UINT16_MAX; lower++) {
-      if(lut[lower] > 0) {
-        lowerIdx = lower;
-        break;
-      }
-    }
-
-    int32_t upperIdx = UINT16_MAX;
-
-    for(int upper = UINT16_MAX - 1; upper >= 0; upper--) {
-      if(lut[upper] < UINT16_MAX) {
-        upperIdx = upper;
-        break;
-      }
-    }
+    auto [lowerIdx, upperIdx] = joda::cmd::EnhanceContrast::findContrastStretchBounds(hist, 0.005);
     setBrightnessRange(lowerIdx, upperIdx, lowerIdx - 256, upperIdx + 256);
   }
 }

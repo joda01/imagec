@@ -74,6 +74,7 @@ DialogImageSettings::DialogImageSettings(Settings *settings, QWidget *parent) : 
   mTileSize->addItem("1024x1024", 1024);
   mTileSize->addItem("512x512", 512);
   formLayout->addRow("Tile size", mTileSize);
+  mTileSize->setCurrentIndex(1);
 
   //
   // Assign data

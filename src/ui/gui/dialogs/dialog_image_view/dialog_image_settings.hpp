@@ -36,7 +36,7 @@ public:
   {
     enums::ZProjection zProjection = enums::ZProjection::MAX_INTENSITY;
     int32_t imageSeries            = 0;
-    int32_t tileWidth              = 2048;
+    int32_t tileWidth              = 4096;
   };
 
   /////////////////////////////////////////////////////

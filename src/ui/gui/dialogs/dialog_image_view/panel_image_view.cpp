@@ -105,6 +105,7 @@ void PanelImageView::restoreChannelSettings()
       goto ADJUST;    // The histo of an empty image was calculates
     }
     mImageToShow->setBrightnessRange(tmp.mLowerValue, tmp.mUpperValue, tmp.mDisplayAreaLower, tmp.mDisplayAreaUpper);
+    mPreviewImages.thumbnail.autoAdjustBrightnessRange();
     // mHistogramPanel->update();
     repaintImage();
   } else {
