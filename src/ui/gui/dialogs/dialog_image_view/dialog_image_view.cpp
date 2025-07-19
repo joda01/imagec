@@ -354,6 +354,7 @@ void DialogImageViewer::setOverlayButtonsVisible(bool visible)
 ///
 void DialogImageViewer::removeVideoControl()
 {
+  mVideoButtonGroup->setVisible(false);
   delete mVideoButtonGroup;
   mVideoButtonGroup = nullptr;
 }

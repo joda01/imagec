@@ -97,7 +97,7 @@ public:
     });
 
     parentToolbar->addAction(mActionPlay);
-    parentToolbar->addWidget(mSpinnerActTimeStack);
+    mSpinnerActTimeStackAction = parentToolbar->addWidget(mSpinnerActTimeStack);
 
     mSeekForward = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("skip-forward"), "Forward");
     QWidget::connect(mSeekForward, &QAction::triggered, [this] {
@@ -143,17 +143,27 @@ public:
 
   void setEnabled(bool enabled)
   {
-    mActionPlay->setVisible(enabled);
-    mSeekBack->setVisible(enabled);
-    mSeekForward->setVisible(enabled);
-    mSpinnerActTimeStack->setVisible(enabled);
+    mActionPlay->setEnabled(enabled);
+    mSeekBack->setEnabled(enabled);
+    mSeekForward->setEnabled(enabled);
+    mSpinnerActTimeStackAction->setEnabled(enabled);
+  }
+
+  void setVisible(bool visible)
+  {
+    mActionPlay->setVisible(visible);
+    mSeekBack->setVisible(visible);
+    mSeekForward->setVisible(visible);
+    mSpinnerActTimeStackAction->setVisible(visible);
   }
 
   void setValue(int32_t val)
   {
     mSpinnerActTimeStack->blockSignals(true);
+    mSpinnerActTimeStackAction->blockSignals(true);
     mSpinnerActTimeStack->setValue(val);
     mSpinnerActTimeStack->blockSignals(false);
+    mSpinnerActTimeStackAction->blockSignals(false);
   }
 
   auto value() -> int32_t
@@ -177,6 +187,7 @@ private:
   QAction *mSeekBack;
   QAction *mSeekForward;
   QSpinBox *mSpinnerActTimeStack;
+  QAction *mSpinnerActTimeStackAction;
   bool mPlaybackToolbarVisible = false;
   int32_t mTempMaxTimeStacks   = 0;
 
