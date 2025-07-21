@@ -362,8 +362,6 @@ void PanelPipelineSettings::valueChangedEvent()
   if(isBlocked) {
     return;
   }
-  std::cout << "Val changed" << std::endl;
-
   isBlocked = true;
 
   /* QObject *senderObject = sender();    // Get the signal's origin
@@ -394,8 +392,6 @@ void PanelPipelineSettings::valueChangedEvent()
 ///
 void PanelPipelineSettings::metaChangedEvent()
 {
-  std::cout << "Meta changed" << std::endl;
-
   toSettings();
   mWindowMain->checkForSettingsChanged();
 }
@@ -409,8 +405,6 @@ void PanelPipelineSettings::metaChangedEvent()
 ///
 void PanelPipelineSettings::updatePreview()
 {
-  std::cout << "Uodate review" << std::endl;
-
   {
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
     if(!mIsActiveShown || mLoadingSettings) {
@@ -525,14 +519,12 @@ void PanelPipelineSettings::previewThread()
             if(myPipeline == nullptr) {
               continue;
             }
-            joda::ctrl::Preview previewResult;
             jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, jobToDo.threadSettings, *myPipeline, imgIndex,
-                                        jobToDo.selectedTileX, jobToDo.selectedTileY, jobToDo.timeStack, previewResult, imgProps,
+                                        jobToDo.selectedTileX, jobToDo.selectedTileY, jobToDo.timeStack, mPreviewResult, imgProps,
                                         jobToDo.classesToHide);
 
-            jobToDo.previewPanel->getImagePanel()->setOverlay(std::move(previewResult.overlay));
-            jobToDo.previewPanel->getImagePanel()->setEditedImage(std::move(previewResult.editedImage));
-            mPreviewResults = std::move(previewResult.results);
+            jobToDo.previewPanel->getImagePanel()->setOverlay(std::move(mPreviewResult.overlay));
+            jobToDo.previewPanel->getImagePanel()->setEditedImage(std::move(mPreviewResult.editedImage));
 
           } catch(const std::exception &error) {
             joda::log::logError("Preview error: " + std::string(error.what()));
@@ -625,8 +617,6 @@ void PanelPipelineSettings::pipelineSavedEvent()
 ///
 void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &settings)
 {
-  std::cout << "From settings" << std::endl;
-
   mLoadingSettings        = true;
   mSettings.meta          = settings.meta;
   mSettings.meta.notes    = settings.meta.notes;
@@ -674,8 +664,6 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
 ///
 void PanelPipelineSettings::toSettings()
 {
-  std::cout << "To settings" << std::endl;
-
   mSettings.disabled = mActionDisabled->isChecked();
 }
 
@@ -714,7 +702,7 @@ void PanelPipelineSettings::onClassificationNameChanged()
 void PanelPipelineSettings::setActive(bool setActive)
 {
   if(!mIsActiveShown && setActive) {
-    mPreviewResultsDialog->setResults(this, &mPreviewResults);
+    mPreviewResultsDialog->setResults(this, &mPreviewResult.results);
     mPreviewResultsDialog->show();
     QTimer::singleShot(0, this, [this]() {
       QPoint topRight = mWindowMain->geometry().topRight();

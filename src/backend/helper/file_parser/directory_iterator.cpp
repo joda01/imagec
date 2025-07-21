@@ -32,7 +32,6 @@ void DirectoryWatcher::setWorkingDirectory(const std::filesystem::path &inputFol
   if(mWorkingDirectory != inputFolder) {
     mWorkingDirectory = inputFolder;
     if(inputFolder.empty()) {
-      std::cout << "Clear" << std::endl;
       mListOfImagePaths.clear();
       for(const auto &callback : mCallbacks) {
         callback(State::FINISHED);
