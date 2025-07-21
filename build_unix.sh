@@ -43,7 +43,6 @@ pack(){
     cp ../tests tests
     cp -r /root/.conan2/p/*/p/./plugins/* ./plugins
     cp -r ../../../resources/templates/* ./templates/
-    cp -r ../../../resources/gnuplot_linux_x86 ./gnuplot
     cp ../../../resources/launcher/imagec.sh imagec.sh
     cd lib
     cp /root/.conan2/p/*/p/lib/libQt6Core.so.6 .
@@ -55,7 +54,6 @@ pack(){
     cp /usr/lib/x86_64-linux-gnu/libxcb-icccm.so .
     cd ..
     chmod +x imagec
-    chmod +x gnuplot
     chmod +x imagec.sh
     cd java
     cp -r ../../../../resources/java/bioformats.jar .
