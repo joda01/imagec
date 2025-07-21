@@ -87,6 +87,7 @@ find_package( Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg)
 find_package( ONNX REQUIRED )
 find_package( ryml REQUIRED )
 find_package( OpenSSL REQUIRED )
+find_package( CLI11 REQUIRED )
 
 
 SET(DuckDB_USE_STATIC_LIBS TRUE)
@@ -103,6 +104,7 @@ set(LIBS
   onnx::onnx
   ryml::ryml
   openssl::openssl
+  CLI11::CLI11
 )
 
 if(WITH_ONNX)

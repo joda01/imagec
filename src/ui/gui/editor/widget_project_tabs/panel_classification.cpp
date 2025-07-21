@@ -488,16 +488,6 @@ void PanelClassification::saveAsNewTemplate()
   if(pathToStoreFileIn.isEmpty()) {
     return;
   }
-  if(!pathToStoreFileIn.startsWith(templatePath)) {
-    joda::log::logError("Templates must be stored in >" + templatePath.toStdString() + "< directory.");
-    QMessageBox messageBox(this);
-    messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning").pixmap(48, 48));
-    messageBox.setWindowTitle("Could not save template!");
-    messageBox.setText("Templates must be stored in >" + templatePath + "< directory.");
-    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-    auto reply = messageBox.exec();
-    return;
-  }
 
   nlohmann::json json = mWindowMain->getSettings().projectSettings.classification;
   auto storedFileName =

@@ -42,12 +42,9 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  void initLogger(const std::string &logLevel);
-  auto initApplication() -> std::shared_ptr<std::thread>;
-  void startUi(QApplication &app, QSplashScreen *splashScreen, joda::updater::Updater *updater);
+  int startUi(int argc, char *argv[]);
   void exitWithError(const std::string &what);
 
-  ctrl::Controller *mController;
   joda::ui::gui::WindowMain *mWindowMain;
 };
 

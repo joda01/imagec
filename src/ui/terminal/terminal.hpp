@@ -14,6 +14,7 @@
 #pragma once
 
 #include <filesystem>
+#include <memory>
 #include <optional>
 
 namespace joda::ctrl {
@@ -26,15 +27,16 @@ class Terminal
 {
 public:
   /////////////////////////////////////////////////////
-  Terminal(ctrl::Controller *);
+  Terminal();
+  int startCommandLineController(int argc, char *argv[]);
   void startAnalyze(const std::filesystem::path &pathToSettingsFile, std::optional<std::string> &imagedInputFolder);
-  void exportData(const std::filesystem::path &pathToDatabasefile, const std::filesystem::path &outputPath,
-                  const std::filesystem::path &pathToQueryFilter, const std::string &type, const std::string &format, const std::string &view,
-                  const std::string &exportFilter);
+  void exportData(const std::filesystem::path &pathToDatabasefile, const std::filesystem::path &outputPath, const std::string &type,
+                  const std::string &format, const std::string &view, const std::string &exportFilter, const std::filesystem::path &path);
+  static void initLogger(const std::string &logLevel);
 
 private:
   /////////////////////////////////////////////////////
-  ctrl::Controller *mController;
+  std::unique_ptr<ctrl::Controller> mController;
 };
 
 }    // namespace joda::ui::terminal

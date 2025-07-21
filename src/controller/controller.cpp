@@ -71,6 +71,30 @@ Controller::~Controller()
 ///
 /// \brief
 /// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Controller::initApplication()
+{
+  // ======================================
+  // Reserve system resources
+  // ======================================
+  auto systemRecourses   = joda::system::acquire();
+  int32_t totalRam       = std::ceil(static_cast<float>(systemRecourses.ramTotal) / 1000000.0f);
+  int32_t availableRam   = std::ceil(static_cast<float>(systemRecourses.ramAvailable) / 1000000.0f);
+  int32_t jvmReservedRam = std::ceil(static_cast<float>(systemRecourses.ramReservedForJVM) / 1000000.0f);
+
+  joda::log::logInfo("Total available RAM " + std::to_string(totalRam) + " MB.");
+  joda::log::logInfo("Usable RAM " + std::to_string(availableRam) + " MB.");
+  joda::log::logInfo("JVM reserved RAM " + std::to_string(jvmReservedRam) + " MB.");
+
+  joda::image::reader::ImageReader::init(systemRecourses.ramReservedForJVM);    // Costs ~50MB RAM
+}
+
+///
+/// \brief
+/// \author
 /// \return
 ///
 auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::optional<joda::ome::OmeInfo> &imageOmeInfo)

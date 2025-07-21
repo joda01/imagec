@@ -76,6 +76,7 @@ public:
   ~Controller();
 
   // SYSTEM ///////////////////////////////////////////////////
+  static void initApplication();
   static auto getSystemResources() -> joda::system::SystemResources;
   static auto calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::filesystem::path &file, int nrOfFiles,
                                       const std::optional<joda::ome::OmeInfo> &imageOmeInfo) -> joda::thread::ThreadingSettings;
