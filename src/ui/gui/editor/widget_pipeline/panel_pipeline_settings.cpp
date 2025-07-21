@@ -362,6 +362,7 @@ void PanelPipelineSettings::valueChangedEvent()
   if(isBlocked) {
     return;
   }
+  std::cout << "Val changed" << std::endl;
 
   isBlocked = true;
 
@@ -393,6 +394,8 @@ void PanelPipelineSettings::valueChangedEvent()
 ///
 void PanelPipelineSettings::metaChangedEvent()
 {
+  std::cout << "Meta changed" << std::endl;
+
   toSettings();
   mWindowMain->checkForSettingsChanged();
 }
@@ -406,6 +409,8 @@ void PanelPipelineSettings::metaChangedEvent()
 ///
 void PanelPipelineSettings::updatePreview()
 {
+  std::cout << "Uodate review" << std::endl;
+
   {
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
     if(!mIsActiveShown || mLoadingSettings) {
@@ -620,6 +625,8 @@ void PanelPipelineSettings::pipelineSavedEvent()
 ///
 void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &settings)
 {
+  std::cout << "From settings" << std::endl;
+
   mLoadingSettings        = true;
   mSettings.meta          = settings.meta;
   mSettings.meta.notes    = settings.meta.notes;
@@ -667,6 +674,8 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
 ///
 void PanelPipelineSettings::toSettings()
 {
+  std::cout << "To settings" << std::endl;
+
   mSettings.disabled = mActionDisabled->isChecked();
 }
 

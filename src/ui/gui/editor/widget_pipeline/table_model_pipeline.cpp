@@ -59,7 +59,7 @@ int TableModelPipeline::rowCount(const QModelIndex &parent) const
 
 int TableModelPipeline::columnCount(const QModelIndex &parent) const
 {
-  if(!mPipelines) {
+  if(mPipelines == nullptr) {
     return 0;
   }
   return 2;

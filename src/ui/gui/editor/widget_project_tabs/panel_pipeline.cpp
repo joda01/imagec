@@ -60,7 +60,7 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     //
     auto *newPipeline = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("plus"), "Add new pipeline");
     newPipeline->setStatusTip("Add new pipeline or use predefined template");
-    connect(newPipeline, &QAction::triggered, [this]() { addChannel(joda::settings::Pipeline{}); });
+    connect(newPipeline, &QAction::triggered, [this]() { addChannelFromSettings(joda::settings::Pipeline{}); });
     mTemplatesMenu = new QMenu();
     newPipeline->setMenu(mTemplatesMenu);
     toolbar->addAction(newPipeline);
@@ -86,7 +86,7 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
         return;
       }
 
-      addChannel(filePathOfSettingsFile);
+      addChannelFromPath(filePathOfSettingsFile);
     });
     toolbar->addAction(openTemplate);
 
@@ -125,7 +125,7 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     connect(copy, &QAction::triggered, [this]() {
       joda::settings::Pipeline copiedPipeline = getSelectedPipeline()->mutablePipeline();
       copiedPipeline.meta.name += " (copy)";
-      addChannel(copiedPipeline);
+      addChannelFromSettings(copiedPipeline);
     });
     toolbar->addAction(copy);
     toolbar->addSeparator();
@@ -377,7 +377,7 @@ void PanelPipeline::loadTemplates()
 ///
 void PanelPipeline::onAddChannel(const QString &path)
 {
-  addChannel(path);
+  addChannelFromPath(path);
   mWindowMain->checkForSettingsChanged();
 }
 
@@ -439,7 +439,7 @@ void PanelPipeline::clear()
 /// \param[out]
 /// \return
 ///
-void PanelPipeline::addChannel(joda::settings::Pipeline settings)
+void PanelPipeline::addChannelFromSettings(joda::settings::Pipeline settings)
 {
   if(settings.pipelineSetup.cStackIndex == -2) {
     auto *dialog = new DialogPipelineSettings(mWindowMain->getSettings().projectSettings.classification, settings, mWindowMain);
@@ -447,7 +447,7 @@ void PanelPipeline::addChannel(joda::settings::Pipeline settings)
       return;
     }
   }
-  mAnalyzeSettings.pipelines.push_back(joda::settings::Pipeline{});
+  mAnalyzeSettings.pipelines.emplace_back();
   auto &newlyAdded = mAnalyzeSettings.pipelines.back();
   auto panel1 = std::make_unique<PanelPipelineSettings>(mWindowMain, mWindowMain->getPreviewDock(), mWindowMain->getPreviewResultsDock(), newlyAdded,
                                                         mCommandSelectionDialog);
@@ -463,10 +463,10 @@ void PanelPipeline::addChannel(joda::settings::Pipeline settings)
 /// \param[out]
 /// \return
 ///
-void PanelPipeline::addChannel(const QString &pathToSettings)
+void PanelPipeline::addChannelFromPath(const QString &pathToSettings)
 {
   try {
-    addChannel(joda::templates::TemplateParser::loadChannelFromTemplate(std::filesystem::path(pathToSettings.toStdString())));
+    addChannelFromSettings(joda::templates::TemplateParser::loadChannelFromTemplate(std::filesystem::path(pathToSettings.toStdString())));
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);
     messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning").pixmap(48, 48));
@@ -484,10 +484,10 @@ void PanelPipeline::addChannel(const QString &pathToSettings)
 /// \param[out]
 /// \return
 ///
-void PanelPipeline::addChannel(const nlohmann::json &json)
+void PanelPipeline::addChannelFromJson(const nlohmann::json &json)
 {
   try {
-    addChannel(joda::templates::TemplateParser::loadChannelFromTemplate(json));
+    addChannelFromSettings(joda::templates::TemplateParser::loadChannelFromTemplate(json));
   } catch(const std::exception &ex) {
     QMessageBox messageBox(this);
     messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning").pixmap(48, 48));

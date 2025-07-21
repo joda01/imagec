@@ -577,7 +577,7 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
                                                                        .tileY      = 0});
 
     for(const auto &channel : analyzeSettings.pipelines) {
-      mPanelPipeline->addChannel(channel);
+      mPanelPipeline->addChannelFromSettings(channel);
     }
 
     mActAnalyzeSettings = &mAnalyzeSettings;
