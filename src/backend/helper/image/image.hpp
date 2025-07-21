@@ -14,6 +14,7 @@
 #include <qpixmap.h>
 #include <qpoint.h>
 #include <cstdint>
+#include <mutex>
 #include <vector>
 #include <opencv2/core/mat.hpp>
 
@@ -124,6 +125,7 @@ private:
 
   //// IMAGE /////////////////////////////////////////////////
   const cv::Mat *mImageOriginal = nullptr;
+  mutable std::mutex mLockMutex;
 };
 
 }    // namespace joda::image

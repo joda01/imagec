@@ -52,6 +52,7 @@ void Image::setImage(const cv::Mat &&imageToDisplay, int32_t rescale)
 {
   mOriginalImageSize = {imageToDisplay.cols, imageToDisplay.rows};
   if(rescale > 0) {
+    std::lock_guard<std::mutex> lock(mLockMutex);
     delete mImageOriginal;
     mImageOriginal = new cv::Mat(joda::image::func::Resizer::resizeWithAspectRatio(imageToDisplay, std::min(imageToDisplay.cols, rescale),
                                                                                    std::min(imageToDisplay.rows, rescale)));
@@ -86,6 +87,7 @@ void Image::setImage(const cv::Mat &&imageToDisplay, int32_t rescale)
 ///
 QPixmap Image::getPixmap(const Overlay &overlay) const
 {
+  std::lock_guard<std::mutex> lock(mLockMutex);
   if(mImageOriginal == nullptr) {
     std::cout << "Ups it is null" << std::endl;
     return {};
@@ -209,6 +211,7 @@ void Image::setBrightnessRange(int32_t lowerValue, int32_t upperValue, int32_t d
 ///
 void Image::autoAdjustBrightnessRange()
 {
+  std::lock_guard<std::mutex> lock(mLockMutex);
   if(mImageOriginal != nullptr) {
     if(mImageOriginal->empty() || mImageOriginal->channels() != 1) {
       return;
