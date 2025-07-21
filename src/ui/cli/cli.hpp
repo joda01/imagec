@@ -21,13 +21,13 @@ namespace joda::ctrl {
 class Controller;
 };
 
-namespace joda::ui::terminal {
+namespace joda::ui::cli {
 
-class Terminal
+class Cli
 {
 public:
   /////////////////////////////////////////////////////
-  Terminal();
+  Cli();
   int startCommandLineController(int argc, char *argv[]);
   void startAnalyze(const std::filesystem::path &pathToSettingsFile, std::optional<std::string> &imagedInputFolder);
   void exportData(const std::filesystem::path &pathToDatabasefile, const std::filesystem::path &outputPath, const std::string &type,
@@ -39,4 +39,4 @@ private:
   std::unique_ptr<ctrl::Controller> mController;
 };
 
-}    // namespace joda::ui::terminal
+}    // namespace joda::ui::cli

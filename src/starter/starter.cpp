@@ -24,8 +24,8 @@
 #include "backend/updater/updater.hpp"
 #include "backend/user_settings/user_settings.hpp"
 #include "controller/controller.hpp"
+#include "ui/cli/cli.hpp"
 #include "ui/gui/editor/window_main.hpp"
-#include "ui/terminal/terminal.hpp"
 #include "version.h"
 
 namespace joda::start {
@@ -71,7 +71,7 @@ void Starter::exec(int argc, char *argv[])
   if(argc <= 1) {
     startUi(argc, argv);
   } else {
-    joda::ui::terminal::Terminal term;
+    joda::ui::cli::Cli term;
     term.startCommandLineController(argc, argv);
   }
 

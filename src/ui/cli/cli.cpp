@@ -1,5 +1,5 @@
 ///
-/// \file      terminal.cpp
+/// \file      Cli.cpp
 /// \author    Joachim Danmayr
 /// \date      2025-02-10
 ///
@@ -11,7 +11,7 @@
 ///
 ///
 
-#include "terminal.hpp"
+#include "cli.hpp"
 #include <exception>
 #include <memory>
 #include <string>
@@ -24,7 +24,7 @@
 #include "controller/controller.hpp"
 #include <CLI/CLI.hpp>
 
-namespace joda::ui::terminal {
+namespace joda::ui::cli {
 
 using namespace std::chrono_literals;
 
@@ -35,7 +35,7 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-Terminal::Terminal()
+Cli::Cli()
 {
 }
 
@@ -46,7 +46,7 @@ Terminal::Terminal()
 /// \param[out]
 /// \return
 ///
-int Terminal::startCommandLineController(int argc, char *argv[])
+int Cli::startCommandLineController(int argc, char *argv[])
 {
   CLI::App app{Version::getTitle()};
 
@@ -171,16 +171,16 @@ int Terminal::startCommandLineController(int argc, char *argv[])
     }
 
     QString settingsFilePath = parser.value(runOption);
-    joda::ui::terminal::Terminal terminal(mController);
-    terminal.startAnalyze(std::filesystem::path(settingsFilePath.toStdString()), imageInputPath);
+    joda::ui::Cli::Cli Cli(mController);
+    Cli.startAnalyze(std::filesystem::path(settingsFilePath.toStdString()), imageInputPath);
   }
 
   // ===================================
   // Export
   // ==================================
   if(parser.isSet(exportData)) {
-    joda::ui::terminal::Terminal terminal(mController);
-    terminal.exportData(parser.value(exportData).toStdString(), parser.value(resultsOutput).toStdString(),
+    joda::ui::Cli::Cli Cli(mController);
+    Cli.exportData(parser.value(exportData).toStdString(), parser.value(resultsOutput).toStdString(),
                         parser.value(queryFilterTemplate).toStdString(), parser.value(exportType).toStdString(),
                         parser.value(exportFormat).toStdString(), parser.value(exportView).toStdString(), parser.value(exportFilter).toStdString());
   }
@@ -194,7 +194,7 @@ int Terminal::startCommandLineController(int argc, char *argv[])
 /// \param[out]
 /// \return
 ///
-void Terminal::startAnalyze(const std::filesystem::path &pathToSettingsFile, std::optional<std::string> &imagedInputFolder)
+void Cli::startAnalyze(const std::filesystem::path &pathToSettingsFile, std::optional<std::string> &imagedInputFolder)
 {
   joda::settings::AnalyzeSettings analyzeSettings;
 
@@ -274,9 +274,9 @@ void Terminal::startAnalyze(const std::filesystem::path &pathToSettingsFile, std
 /// \param[out]
 /// \return
 ///
-void Terminal::exportData(const std::filesystem::path &pathToDatabasefile, const std::filesystem::path &outputPath, const std::string &type,
-                          const std::string &format, const std::string &view, const std::string &exportFilter,
-                          const std::filesystem::path &pathToQueryFilter)
+void Cli::exportData(const std::filesystem::path &pathToDatabasefile, const std::filesystem::path &outputPath, const std::string &type,
+                     const std::string &format, const std::string &view, const std::string &exportFilter,
+                     const std::filesystem::path &pathToQueryFilter)
 {
   settings::ResultsSettings filter;
 
@@ -372,7 +372,7 @@ void Terminal::exportData(const std::filesystem::path &pathToDatabasefile, const
 ///             allowed inputs are: [off, error, warning, info, debug, trace]
 /// \author     Joachim Danmayr
 ///
-void Terminal::initLogger(const std::string &logLevel)
+void Cli::initLogger(const std::string &logLevel)
 {
   if(logLevel == "off") {
     joda::log::setLogLevel(joda::log::LogLevel::OFF);
@@ -396,4 +396,4 @@ void Terminal::initLogger(const std::string &logLevel)
   }
 }
 
-}    // namespace joda::ui::terminal
+}    // namespace joda::ui::cli
