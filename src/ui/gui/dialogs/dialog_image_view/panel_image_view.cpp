@@ -26,7 +26,9 @@
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"
+#include <opencv2/core/mat.hpp>
 #include <opencv2/core/matx.hpp>
+#include <opencv2/core/types.hpp>
 #include <opencv2/imgproc.hpp>
 
 namespace joda::ui::gui {
@@ -72,13 +74,15 @@ PanelImageView::PanelImageView(QWidget *parent) : QGraphicsView(parent), scene(n
 ///
 void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo)
 {
-  std::lock_guard<std::mutex> locked(mImageResetMutex);
   setWaiting(true);
   clearOverlay();
+
   if(omeInfo != nullptr) {
+    std::lock_guard<std::mutex> locked(mImageResetMutex);
     joda::ctrl::Controller::loadImage(imagePath, mSeries, mPlane, mTile, mPreviewImages, omeInfo, mZprojection);
     mOmeInfo = *omeInfo;
   } else {
+    std::lock_guard<std::mutex> locked(mImageResetMutex);
     joda::ctrl::Controller::loadImage(imagePath, mSeries, mPlane, mTile, mPreviewImages, mOmeInfo, mZprojection);
   }
   restoreChannelSettings();
@@ -98,17 +102,18 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
 void PanelImageView::restoreChannelSettings()
 {
   auto key = SettingsIdx{.imageChannel = static_cast<uint16_t>(mPlane.c), .isEdited = mShowEditedImage};
-
   if(mChannelSettings.contains(key)) {
     const auto &tmp = mChannelSettings.at(key);
     if(tmp.mDisplayAreaLower <= 1 && tmp.mDisplayAreaUpper <= 1) {
       goto ADJUST;    // The histo of an empty image was calculates
     }
-    std::lock_guard<std::mutex> locked(mImageResetMutex);
-    mImageToShow->setBrightnessRange(tmp.mLowerValue, tmp.mUpperValue, tmp.mDisplayAreaLower, tmp.mDisplayAreaUpper);
+    {
+      std::lock_guard<std::mutex> locked(mImageResetMutex);
+      mImageToShow->setBrightnessRange(tmp.mLowerValue, tmp.mUpperValue, tmp.mDisplayAreaLower, tmp.mDisplayAreaUpper);
+    }
     mPreviewImages.thumbnail.autoAdjustBrightnessRange();
   } else {
-  ADJUST:
+  ADJUST : {
     std::lock_guard<std::mutex> locked(mImageResetMutex);
     mImageToShow->autoAdjustBrightnessRange();
     mPreviewImages.thumbnail.autoAdjustBrightnessRange();
@@ -118,6 +123,7 @@ void PanelImageView::restoreChannelSettings()
                                       .mDisplayAreaLower = mImageToShow->getHistogramDisplayAreaLower(),
                                       .mDisplayAreaUpper = mImageToShow->getHistogramDisplayAreaUpper(),
                                   });
+  }
   }
 }
 
@@ -130,12 +136,13 @@ void PanelImageView::restoreChannelSettings()
 ///
 void PanelImageView::reloadImage()
 {
-  std::lock_guard<std::mutex> locked(mImageResetMutex);
   if(mLastPath.empty()) {
     return;
   }
-  joda::ctrl::Controller::loadImage(mLastPath, mSeries, mPlane, mTile, mPreviewImages, &mOmeInfo, mZprojection);
-
+  {
+    std::lock_guard<std::mutex> locked(mImageResetMutex);
+    joda::ctrl::Controller::loadImage(mLastPath, mSeries, mPlane, mTile, mPreviewImages, &mOmeInfo, mZprojection);
+  }
   restoreChannelSettings();
   mLastPlane = mPlane;
   repaintImage();
@@ -175,8 +182,10 @@ void PanelImageView::setOverlay(const joda::image::Image &&overlay)
 ///
 void PanelImageView::setEditedImage(const joda::image::Image &&edited)
 {
-  std::lock_guard<std::mutex> locked(mImageResetMutex);
-  mPreviewImages.editedImage.setImage(std::move(*edited.getImage()));
+  {
+    std::lock_guard<std::mutex> locked(mImageResetMutex);
+    mPreviewImages.editedImage.setImage(std::move(*edited.getImage()));
+  }
   restoreChannelSettings();
 }
 
@@ -189,11 +198,12 @@ void PanelImageView::setEditedImage(const joda::image::Image &&edited)
 ///
 void PanelImageView::setShowEditedImage(bool showEdited)
 {
-  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mShowEditedImage = showEdited;
   if(showEdited) {
+    std::lock_guard<std::mutex> locked(mImageResetMutex);
     mImageToShow = &mPreviewImages.editedImage;
   } else {
+    std::lock_guard<std::mutex> locked(mImageResetMutex);
     mImageToShow = &mPreviewImages.originalImage;
   }
   restoreChannelSettings();
@@ -337,52 +347,61 @@ void PanelImageView::setSelectedTile(int32_t tileX, int32_t tileY)
 ///
 void PanelImageView::resetImage()
 {
-  std::lock_guard<std::mutex> locked(mImageResetMutex);
   if(scene == nullptr) {
     return;
   }
-  mPlaceholderImageSet = true;
-  for(QGraphicsItem *item : scene->items()) {
-    if(auto *pixmapItem = dynamic_cast<QGraphicsPixmapItem *>(item)) {
-      scene->removeItem(pixmapItem);
-      delete pixmapItem;
+  {
+    std::lock_guard<std::mutex> locked(mImageResetMutex);
+
+    mPlaceholderImageSet = true;
+    for(QGraphicsItem *item : scene->items()) {
+      if(auto *pixmapItem = dynamic_cast<QGraphicsPixmapItem *>(item)) {
+        scene->removeItem(pixmapItem);
+        delete pixmapItem;
+      }
     }
+    mActPixmap = nullptr;
   }
-  mActPixmap = nullptr;
   fitImageToScreenSize();
   emit updateImage();
 }
 
 void PanelImageView::onUpdateImage()
 {
-  std::lock_guard<std::mutex> locked(mImageResetMutex);
-  auto *img = mImageToShow->getImage();
-  if(img != nullptr) {
-    auto pixmap = mImageToShow->getPixmap({nullptr});
-    if(!mPreviewImages.overlay.empty() && mShowOverlay && mPreviewImages.overlay.getImage()->size == mImageToShow->getImage()->size) {
-      pixmap = mImageToShow->getPixmap({.combineWith = &mPreviewImages.overlay, .opaque = mOpaque});
+  cv::Size size;
+  {
+    std::lock_guard<std::mutex> locked(mImageResetMutex);
+    auto *img = mImageToShow->getImage();
+    if(img == nullptr) {
+      return;
     }
-
-    scene->setSceneRect(pixmap.rect());
-    if(nullptr == mActPixmap) {
-      mActPixmap = scene->addPixmap(pixmap);
-    } else {
-      mActPixmap->setPixmap(pixmap);
-    }
-    auto size = img->size();
-    if((size.width != mPixmapSize.width) || (size.height != mPixmapSize.height) || mPlaceholderImageSet) {
-      std::cout << "Fit " << std::to_string(size.width) << ";" << std::to_string(mPixmapSize.width) << "||" << std::to_string(size.height) << ";"
-                << std::to_string(mPixmapSize.height) << std::endl;
-
-      mPixmapSize = size;
-      if(size.width > 0 && size.height > 0) {
-        fitImageToScreenSize();
-      }
-      mPlaceholderImageSet = false;
-    } else {
-      emit onImageRepainted();
-    }
+    size = img->size();
   }
+  auto pixmap = mImageToShow->getPixmap({nullptr});
+  if(!mPreviewImages.overlay.empty() && mShowOverlay && mPreviewImages.overlay.getImage()->size == mImageToShow->getImage()->size) {
+    pixmap = mImageToShow->getPixmap({.combineWith = &mPreviewImages.overlay, .opaque = mOpaque});
+  }
+
+  scene->setSceneRect(pixmap.rect());
+  if(nullptr == mActPixmap) {
+    mActPixmap = scene->addPixmap(pixmap);
+  } else {
+    mActPixmap->setPixmap(pixmap);
+  }
+
+  if((size.width != mPixmapSize.width) || (size.height != mPixmapSize.height) || mPlaceholderImageSet) {
+    std::cout << "Fit " << std::to_string(size.width) << ";" << std::to_string(mPixmapSize.width) << "||" << std::to_string(size.height) << ";"
+              << std::to_string(mPixmapSize.height) << std::endl;
+
+    mPixmapSize = size;
+    if(size.width > 0 && size.height > 0) {
+      fitImageToScreenSize();
+    }
+    mPlaceholderImageSet = false;
+  } else {
+    emit onImageRepainted();
+  }
+
   scene->update();
   update();
 }
@@ -670,12 +689,6 @@ void PanelImageView::drawCrossHairCursor(QPainter &painter)
 ///
 void PanelImageView::drawPixelInfo(QPainter &painter, int32_t startX, int32_t startY, const PixelInfo &info)
 {
-  std::lock_guard<std::mutex> locked(mImageResetMutex);
-  const auto *image = mImageToShow->getImage();
-  if(image == nullptr) {
-    return;
-  }
-
   QRect pixelInfoRect(QPoint(startX - THUMB_RECT_START_X - PIXEL_INFO_RECT_WIDTH, startY - THUMB_RECT_START_Y - PIXEL_INFO_RECT_HEIGHT),
                       QSize(PIXEL_INFO_RECT_WIDTH,
                             PIXEL_INFO_RECT_HEIGHT));    // Adjust the size as needed
