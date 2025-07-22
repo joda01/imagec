@@ -72,6 +72,7 @@ PanelImageView::PanelImageView(QWidget *parent) : QGraphicsView(parent), scene(n
 ///
 void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   setWaiting(true);
   clearOverlay();
   if(omeInfo != nullptr) {
@@ -103,10 +104,12 @@ void PanelImageView::restoreChannelSettings()
     if(tmp.mDisplayAreaLower <= 1 && tmp.mDisplayAreaUpper <= 1) {
       goto ADJUST;    // The histo of an empty image was calculates
     }
+    std::lock_guard<std::mutex> locked(mImageResetMutex);
     mImageToShow->setBrightnessRange(tmp.mLowerValue, tmp.mUpperValue, tmp.mDisplayAreaLower, tmp.mDisplayAreaUpper);
     mPreviewImages.thumbnail.autoAdjustBrightnessRange();
   } else {
   ADJUST:
+    std::lock_guard<std::mutex> locked(mImageResetMutex);
     mImageToShow->autoAdjustBrightnessRange();
     mPreviewImages.thumbnail.autoAdjustBrightnessRange();
     mChannelSettings.emplace(key, ChannelSettings{
@@ -127,6 +130,7 @@ void PanelImageView::restoreChannelSettings()
 ///
 void PanelImageView::reloadImage()
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   if(mLastPath.empty()) {
     return;
   }
@@ -158,6 +162,7 @@ auto PanelImageView::mutableImage() -> joda::image::Image *
 ///
 void PanelImageView::setOverlay(const joda::image::Image &&overlay)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mPreviewImages.overlay.setImage(std::move(*overlay.getImage()));
 }
 
@@ -170,6 +175,7 @@ void PanelImageView::setOverlay(const joda::image::Image &&overlay)
 ///
 void PanelImageView::setEditedImage(const joda::image::Image &&edited)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mPreviewImages.editedImage.setImage(std::move(*edited.getImage()));
   restoreChannelSettings();
 }
@@ -183,6 +189,7 @@ void PanelImageView::setEditedImage(const joda::image::Image &&edited)
 ///
 void PanelImageView::setShowEditedImage(bool showEdited)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mShowEditedImage = showEdited;
   if(showEdited) {
     mImageToShow = &mPreviewImages.editedImage;
@@ -236,6 +243,7 @@ void PanelImageView::repaintImage()
 {
   auto key = SettingsIdx{.imageChannel = static_cast<uint16_t>(mPlane.c), .isEdited = mShowEditedImage};
   if(mChannelSettings.contains(key)) {
+    std::lock_guard<std::mutex> locked(mImageResetMutex);
     mChannelSettings[key] = ChannelSettings{
         .mLowerValue       = mImageToShow->getLowerLevelContrast(),
         .mUpperValue       = mImageToShow->getUpperLevelContrast(),
@@ -347,6 +355,7 @@ void PanelImageView::resetImage()
 
 void PanelImageView::onUpdateImage()
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   auto *img = mImageToShow->getImage();
   if(img != nullptr) {
     auto pixmap = mImageToShow->getPixmap({nullptr});
@@ -1131,7 +1140,7 @@ auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QPoint &imageCoo
   if(mActPixmap != nullptr) {
     QRectF sceneRect = mActPixmap->sceneBoundingRect();
     QRect viewRect   = mapFromScene(sceneRect).boundingRect();
-
+    std::lock_guard<std::mutex> locked(mImageResetMutex);
     auto originalImageSize = mImageToShow->getOriginalImageSize();
     auto previewImageSize  = mImageToShow->getPreviewImageSize();
     auto viewPortImageSize = QSize{viewRect.width(), viewRect.height()};
@@ -1167,6 +1176,7 @@ auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QRect &imageCoor
     QRectF sceneRect = mActPixmap->sceneBoundingRect();
     QRect viewRect   = mapFromScene(sceneRect).boundingRect();
 
+    std::lock_guard<std::mutex> locked(mImageResetMutex);
     auto originalImageSize = mImageToShow->getOriginalImageSize();
     auto previewImageSize  = mImageToShow->getPreviewImageSize();
     auto viewPortImageSize = QSize{viewRect.width(), viewRect.height()};
