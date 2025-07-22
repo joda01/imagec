@@ -525,6 +525,7 @@ void PanelPipelineSettings::previewThread()
 
             jobToDo.previewPanel->getImagePanel()->setOverlay(std::move(mPreviewResult.overlay));
             jobToDo.previewPanel->getImagePanel()->setEditedImage(std::move(mPreviewResult.editedImage));
+            jobToDo.previewPanel->getImagePanel()->repaintImage();
 
           } catch(const std::exception &error) {
             joda::log::logError("Preview error: " + std::string(error.what()));

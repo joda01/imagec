@@ -163,7 +163,7 @@ private:
 
   // WIDGET ///////////////////////////////////////////////////
   QGraphicsPixmapItem *mActPixmap = nullptr;
-  QGraphicsScene *scene;
+  QGraphicsScene *scene           = nullptr;
 
   // MOVE IMAGE ///////////////////////////////////////////////////
   bool isDragging = false;

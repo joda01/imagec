@@ -84,8 +84,7 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
   mLastPath  = imagePath;
   mLastPlane = mPlane;
   setWaiting(false);
-
-  emit updateImage();
+  repaintImage();
 }
 
 ///
@@ -106,8 +105,6 @@ void PanelImageView::restoreChannelSettings()
     }
     mImageToShow->setBrightnessRange(tmp.mLowerValue, tmp.mUpperValue, tmp.mDisplayAreaLower, tmp.mDisplayAreaUpper);
     mPreviewImages.thumbnail.autoAdjustBrightnessRange();
-    // mHistogramPanel->update();
-    repaintImage();
   } else {
   ADJUST:
     mImageToShow->autoAdjustBrightnessRange();
@@ -137,7 +134,7 @@ void PanelImageView::reloadImage()
 
   restoreChannelSettings();
   mLastPlane = mPlane;
-  emit updateImage();
+  repaintImage();
 }
 
 ///
@@ -162,7 +159,6 @@ auto PanelImageView::mutableImage() -> joda::image::Image *
 void PanelImageView::setOverlay(const joda::image::Image &&overlay)
 {
   mPreviewImages.overlay.setImage(std::move(*overlay.getImage()));
-  emit updateImage();
 }
 
 ///
@@ -176,7 +172,6 @@ void PanelImageView::setEditedImage(const joda::image::Image &&edited)
 {
   mPreviewImages.editedImage.setImage(std::move(*edited.getImage()));
   restoreChannelSettings();
-  emit updateImage();
 }
 
 ///
@@ -195,7 +190,7 @@ void PanelImageView::setShowEditedImage(bool showEdited)
     mImageToShow = &mPreviewImages.originalImage;
   }
   restoreChannelSettings();
-  emit updateImage();
+  repaintImage();
 }
 
 ///
@@ -335,6 +330,9 @@ void PanelImageView::setSelectedTile(int32_t tileX, int32_t tileY)
 void PanelImageView::resetImage()
 {
   std::lock_guard<std::mutex> locked(mImageResetMutex);
+  if(scene == nullptr) {
+    return;
+  }
   mPlaceholderImageSet = true;
   for(QGraphicsItem *item : scene->items()) {
     if(auto *pixmapItem = dynamic_cast<QGraphicsPixmapItem *>(item)) {
@@ -364,8 +362,13 @@ void PanelImageView::onUpdateImage()
     }
     auto size = img->size();
     if((size.width != mPixmapSize.width) || (size.height != mPixmapSize.height) || mPlaceholderImageSet) {
+      std::cout << "Fit " << std::to_string(size.width) << ";" << std::to_string(mPixmapSize.width) << "||" << std::to_string(size.height) << ";"
+                << std::to_string(mPixmapSize.height) << std::endl;
+
       mPixmapSize = size;
-      fitImageToScreenSize();
+      if(size.width > 0 && size.height > 0) {
+        fitImageToScreenSize();
+      }
       mPlaceholderImageSet = false;
     } else {
       emit onImageRepainted();
