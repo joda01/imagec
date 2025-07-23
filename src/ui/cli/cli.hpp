@@ -16,6 +16,7 @@
 #include <filesystem>
 #include <memory>
 #include <optional>
+#include "backend/database/exporter/xlsx/exporter_xlsx.hpp"
 
 namespace joda::ctrl {
 class Controller;
@@ -29,10 +30,13 @@ public:
   /////////////////////////////////////////////////////
   Cli();
   int startCommandLineController(int argc, char *argv[]);
-  void startAnalyze(const std::filesystem::path &pathToSettingsFile, std::optional<std::string> &imagedInputFolder);
-  void exportData(const std::filesystem::path &pathToDatabasefile, const std::filesystem::path &outputPath, const std::string &type,
-                  const std::string &format, const std::string &view, const std::string &exportFilter, const std::filesystem::path &path);
-  static void initLogger(const std::string &logLevel);
+  void startAnalyze(const std::filesystem::path &pathToSettingsFile, const std::optional<std::string> &imagedInputFolder, std::string jobName);
+
+  void exportData(const std::filesystem::path &pathToDatabasefile, const std::filesystem::path &outputPath,
+                  exporter::xlsx::ExportSettings::ExportSettings::ExportFormat type, exporter::xlsx::ExportSettings::ExportStyle formatEnum,
+                  const exporter::xlsx::ExportSettings::ExportView &view, const std::string &wellId, const std::string &tStack,
+                  const std::string &imageName);
+  static void setLogLevel(const std::string &logLevel);
 
 private:
   /////////////////////////////////////////////////////

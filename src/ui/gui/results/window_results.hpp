@@ -127,7 +127,7 @@ private:
   /////////////////////////////////////////////////////
   void storeResultsTableSettingsToDatabase();
   void showFileSaveDialog(const QString &filter = "Excel 2007-365 (*.xlsx);;Text CSV (*.csv);;R-Script (*.r)");
-  void saveData(const std::string &fileName, joda::exporter::xlsx::ExportSettings::ExportType);
+  void saveData(const std::string &fileName, joda::exporter::xlsx::ExportSettings::ExportFormat);
   void showOpenFileDialog();
   void backTo(Navigation backTo);
   void setWindowTitlePrefix(const QString &txt);

@@ -599,8 +599,8 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, settings:
   auto experiment                           = analyzer->selectExperiment();
   settings::AnalyzeSettings analyzeSettings = nlohmann::json::parse(experiment.analyzeSettingsJsonString);
 
-  if(settings.type == exporter::xlsx::ExportSettings::ExportType::XLSX) {
-    if(exporter::xlsx::ExportSettings::ExportFormat::LIST == settings.format) {
+  if(settings.format == exporter::xlsx::ExportSettings::ExportFormat::XLSX) {
+    if(exporter::xlsx::ExportSettings::ExportStyle::LIST == settings.style) {
       joda::db::data::Dashboard dashboard;
       auto colocClasses    = analyzer->selectColocalizingClasses();
       auto tmp             = std::shared_ptr<joda::table::Table>(&dataToExport, [](joda::table::Table *) { /* no delete */ });
@@ -612,7 +612,7 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, settings:
       joda::exporter::xlsx::Exporter::startExport(retVal, analyzeSettings, experiment.jobName, experiment.timestampStart, experiment.timestampFinish,
                                                   outputFilePath.string());
 
-    } else if(exporter::xlsx::ExportSettings::ExportFormat::HEATMAP == settings.format) {
+    } else if(exporter::xlsx::ExportSettings::ExportStyle::HEATMAP == settings.style) {
       joda::exporter::xlsx::Exporter::startHeatmapExport({&dataToExport}, analyzeSettings, experiment.jobName, experiment.timestampStart,
                                                          experiment.timestampFinish, outputFilePath.string(), filter, settings.view, imgHeight,
                                                          imgWidth);

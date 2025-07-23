@@ -16,6 +16,7 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include "CLI/CLI.hpp"
 #include "backend/database/query/filter.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
@@ -23,10 +24,14 @@
 #include "backend/settings/settings.hpp"
 #include "controller/controller.hpp"
 #include <CLI/CLI.hpp>
+#include "version.h"
 
 namespace joda::ui::cli {
 
 using namespace std::chrono_literals;
+
+auto toFormatEnum(const std::string &type) -> exporter::xlsx::ExportSettings::ExportSettings::ExportFormat;
+auto toStyleEnum(const std::string &format) -> exporter::xlsx::ExportSettings::ExportStyle;
 
 ///
 /// \brief
@@ -39,6 +44,89 @@ Cli::Cli()
 {
 }
 
+struct FileValidator : public CLI::Validator
+{
+  FileValidator(const std::string &endian)
+  {
+    name_ = "LOWER";
+    func_ = [&](const std::string &str) {
+      int endianSize = endian.size();
+      if(str.size() >= endianSize && str.substr(str.size() - endianSize) == endian) {
+        return std::string();    // valid
+      } else {
+        return std::string("File must have a " + endian + " extension");
+      }
+    };
+    description("(" + endian + ")");
+  }
+};
+
+struct FileExistsValidator : public CLI::Validator
+{
+  FileExistsValidator()
+  {
+    name_ = "FILE";
+    func_ = [&](const std::string &str) {
+      auto ret = CLI::detail::check_path(str.c_str());
+      if(ret == CLI::detail::path_type::nonexistent) {
+        return "File does not exist.";
+      }
+      if(ret != CLI::detail::path_type::file) {
+        return "This is not a file.";
+      }
+      return "";
+    };
+    description("FILE");
+  }
+};
+
+struct DirectoryExistsValidator : public CLI::Validator
+{
+  DirectoryExistsValidator()
+  {
+    name_ = "DIRECTORY";
+    func_ = [&](const std::string &str) {
+      auto ret = CLI::detail::check_path(str.c_str());
+      if(ret == CLI::detail::path_type::nonexistent) {
+        return "Directory does not exist.";
+      }
+      if(ret != CLI::detail::path_type::directory) {
+        return "This is not a directory.";
+      }
+      return "";
+    };
+    description("DIRECTORY");
+  }
+};
+
+class NoOptionOptsFormatter : public CLI::Formatter
+{
+public:
+  // Override and return an empty string to remove option metadata
+  std::string make_option_opts(const CLI::Option *) const override
+  {
+    return "";
+  }
+
+  // std::string make_description(const CLI::App *app) const override
+  // {
+  //   return app->get_description() + "\n\n";    // no added newline
+  // }
+  //
+  // std::string make_usage(const CLI::App *app, std::string name) const override
+  // {
+  //   return "Usage: " + name + " " + app->get_usage() + "[OPTIONS]";
+  // }
+
+  // std::string make_group(std::string group, bool is_positional, std::vector<const CLI::Option *> opts) const override
+  //{
+  //   if(group == "OPTIONS") {
+  //     return "options:";    // lowercase
+  //   }
+  //   return CLI::Formatter::make_group(group, is_positional, opts);    // fallback to default
+  // }
+};
+
 ///
 /// \brief
 /// \author
@@ -48,143 +136,88 @@ Cli::Cli()
 ///
 int Cli::startCommandLineController(int argc, char *argv[])
 {
-  CLI::App app{Version::getTitle()};
+  CLI::App app{"High throughput image processing application.", Version::getTitle()};
+  app.formatter(std::make_shared<NoOptionOptsFormatter>());
+  // app.get_formatter()->column_width(40);
+  // app.get_formatter()->label("REQUIRED", "*");
 
-  std::string input, settings;
-  auto run = app.add_subcommand("run", "Run the main process");
-  run->add_option("--input", input, "Input file")->required();
-  run->add_option("--settings", settings, "Settings file")->required();
+  // =====================================
+  // Options
+  // =====================================
+  std::string logLevelStr = "info";
+  app.add_option("-l,--log-level", logLevelStr, "Set log level (trace, debug, info, warning, error)")
+      ->check(CLI::IsMember({"trace", "debug", "info", "warning", "error"}))
+      ->default_val("info");
 
-  std::string infile, outfile, options;
-  auto export_cmd = app.add_subcommand("export", "Export processed data");
-  export_cmd->add_option("--infile", infile, "Input file")->required();
-  export_cmd->add_option("--outfile", outfile, "Output file")->required();
-  export_cmd->add_option("--options", options, "Export options file")->required();
+  // =====================================
+  // Run subcommand
+  // =====================================
+  std::string projectFilePath;
+  std::string workingDirectory;
+  std::string jobName;
+  auto *run = app.add_subcommand("run", "Start an analyzes by using an existing project file.");
+  run->add_option("-p,--project", projectFilePath, "ImageC project settings file (*.icproj)")
+      ->check(FileExistsValidator())
+      ->check(FileValidator(".icproj"))
+      ->required();
+  run->add_option("-i,--input-folder", workingDirectory, "Images folder.")->check(DirectoryExistsValidator())->required();
+  run->add_option("-n,--job-name", jobName, "Optional job name");
+
+  // =====================================
+  // Export subcommand
+  // =====================================
+  std::string infile, outfile, options, format, style;
+  auto *export_cmd = app.add_subcommand("export", "Export processed data");
+  export_cmd->add_option("-i,--infile", infile, "Input database file (*.icdb)")
+      ->check(FileExistsValidator())
+      ->check(FileValidator(".icproj"))
+      ->required();
+  export_cmd->add_option("-o,--outpath", outfile, "Output path")->required();
+  export_cmd->add_option("--format", format, "Output format (xlsx, r).")->check(CLI::IsMember({"xlsx", "r"}))->default_val("xlsx");
+  export_cmd->add_option("--style", style, "Output style (table, heatmap).")->check(CLI::IsMember({"table", "heatmap"}))->default_val("table");
+
+  auto *plateCmd = export_cmd->add_subcommand("plate", "Export plate view");
+
+  auto *wellCmd = export_cmd->add_subcommand("well", "Export well view");
+  std::string wellId;
+  wellCmd->add_option("--id", wellId, "Id of the well to export (0, 1, 2, 3,...)")->required()->default_str("0");
+
+  auto *listCmd = export_cmd->add_subcommand("image", "Export list view");
+  std::string imageName, tStack;
+  listCmd->add_option("--image", imageName, "Name of the image to export the data for")->required();
+  listCmd->add_option("--tstack", tStack, "Time stack index to export (0, 1, 2, 3,...)")->default_str("0");
 
   CLI11_PARSE(app, argc, argv);
 
+  // =====================================
+  // Set log level
+  // =====================================
+  setLogLevel(logLevelStr);
+
+  // =====================================
+  // Execute command
+  // =====================================
   joda::ctrl::Controller::initApplication();
   mController = std::make_unique<joda::ctrl::Controller>();
 
   if(run->parsed()) {
     // Run logic
+    startAnalyze(std::filesystem::path(projectFilePath), workingDirectory, jobName);
   } else if(export_cmd->parsed()) {
     // Export logic
+    exporter::xlsx::ExportSettings::ExportView toExport;
+    if(plateCmd->parsed()) {
+      toExport = exporter::xlsx::ExportSettings::ExportView::PLATE;
+    } else if(wellCmd->parsed()) {
+      toExport = exporter::xlsx::ExportSettings::ExportView::WELL;
+    } else if(listCmd->parsed()) {
+      toExport = exporter::xlsx::ExportSettings::ExportView::IMAGE;
+    }
+    exportData(std::filesystem::path(infile), std::filesystem::path(outfile), toFormatEnum(format), toStyleEnum(style), toExport, wellId, tStack,
+               imageName);
   }
 
   return 0;
-
-  /*
-  // ======================================
-  // Init command line parser
-  // ======================================
-  QCommandLineParser parser;
-  parser.setApplicationDescription("ImageC high throughput image processing application.");
-  parser.addHelpOption();
-  parser.addVersionOption();
-
-  //
-  // Common commands
-  //
-
-  // Add an option for CLI to accept a name
-  QCommandLineOption loggingOption(QStringList() << "l"
-                                                 << "logging",
-                                   "Set logging level (error, warning, info, debug, trace).", "loglevel");
-  parser.addOption(loggingOption);
-
-  //
-  // Run analyze commends
-  //
-
-  // Add run option
-  QCommandLineOption runOption(QStringList() << "r"
-                                             << "run",
-                               "Start an analyze.", "*.icproj");
-  parser.addOption(runOption);
-
-  // Add path options
-  QCommandLineOption imagePathOption(QStringList() << "p"
-                                                   << "run-path",
-                                     "Path to images which should be analyzed.", "folder");
-  parser.addOption(imagePathOption);
-
-  //
-  // Export commands
-  //
-  QCommandLineOption exportData(QStringList() << "e"
-                                              << "export",
-                                "Export data form a run.", "*.icdb");
-  parser.addOption(exportData);
-
-  QCommandLineOption resultsOutput(QStringList() << "o"
-                                                 << "export-output",
-                                   "Path and filename to store the exported data.", "path/filename");
-  parser.addOption(resultsOutput);
-
-  QCommandLineOption queryFilterTemplate(QStringList() << "c"
-                                                       << "export-columns",
-                                         "Path to results table settings file.", "*." + QString(joda::fs::EXT_CLASS_CLASS_TEMPLATE.data()) + "");
-  parser.addOption(queryFilterTemplate);
-
-  QCommandLineOption exportType(QStringList() << "t"
-                                              << "export-type",
-                                "Export either R or XLSX (r, xlsx)", "type");
-  parser.addOption(exportType);
-
-  QCommandLineOption exportFormat(QStringList() << "f"
-                                                << "export-format",
-                                  "Export either list or heatmap (list, heatmap)", "format");
-  parser.addOption(exportFormat);
-
-  QCommandLineOption exportView(QStringList() << "w"
-                                              << "export-view",
-                                "Which view should be exported (plate, well, image)", "view");
-  parser.addOption(exportView);
-
-  QCommandLineOption exportFilter(QStringList() << "q"
-                                                << "export-filter",
-                                  "Plate, group and image to export [plate-id group-id image-id]", "filter");
-  parser.addOption(exportFilter);
-
-  parser.process(app);
-
-  // ===================================
-  // Logger
-  // ==================================
-  if(parser.isSet(loggingOption)) {
-    QString loglevel = parser.value(loggingOption);
-    initLogger(loglevel.toStdString());
-  } else {
-    initLogger("trace");
-  }
-
-  bool runGui = !parser.isSet(runOption) && !parser.isSet(exportData);
-
-  // ===================================
-  // Run analyze
-  // ==================================
-  if(parser.isSet(runOption)) {
-    std::optional<std::string> imageInputPath = std::nullopt;
-    if(parser.isSet(imagePathOption)) {
-      imageInputPath = parser.value(imagePathOption).toStdString();
-    }
-
-    QString settingsFilePath = parser.value(runOption);
-    joda::ui::Cli::Cli Cli(mController);
-    Cli.startAnalyze(std::filesystem::path(settingsFilePath.toStdString()), imageInputPath);
-  }
-
-  // ===================================
-  // Export
-  // ==================================
-  if(parser.isSet(exportData)) {
-    joda::ui::Cli::Cli Cli(mController);
-    Cli.exportData(parser.value(exportData).toStdString(), parser.value(resultsOutput).toStdString(),
-                        parser.value(queryFilterTemplate).toStdString(), parser.value(exportType).toStdString(),
-                        parser.value(exportFormat).toStdString(), parser.value(exportView).toStdString(), parser.value(exportFilter).toStdString());
-  }
-                        */
 }
 
 ///
@@ -194,7 +227,7 @@ int Cli::startCommandLineController(int argc, char *argv[])
 /// \param[out]
 /// \return
 ///
-void Cli::startAnalyze(const std::filesystem::path &pathToSettingsFile, std::optional<std::string> &imagedInputFolder)
+void Cli::startAnalyze(const std::filesystem::path &pathToSettingsFile, const std::optional<std::string> &imagedInputFolder, std::string jobName)
 {
   joda::settings::AnalyzeSettings analyzeSettings;
 
@@ -234,7 +267,9 @@ void Cli::startAnalyze(const std::filesystem::path &pathToSettingsFile, std::opt
   // ==========================
   // Start job
   // ==========================
-  auto jobName = joda::helper::RandomNameGenerator::GetRandomName();
+  if(jobName.empty()) {
+    jobName = joda::helper::RandomNameGenerator::GetRandomName();
+  }
   mController->start(analyzeSettings, {}, jobName);
   joda::log::logInfo("Job >" + jobName + "< started!");
 
@@ -274,63 +309,25 @@ void Cli::startAnalyze(const std::filesystem::path &pathToSettingsFile, std::opt
 /// \param[out]
 /// \return
 ///
-void Cli::exportData(const std::filesystem::path &pathToDatabasefile, const std::filesystem::path &outputPath, const std::string &type,
-                     const std::string &format, const std::string &view, const std::string &exportFilter,
-                     const std::filesystem::path &pathToQueryFilter)
+void Cli::exportData(const std::filesystem::path &pathToDatabasefile, const std::filesystem::path &outputPath,
+                     exporter::xlsx::ExportSettings::ExportSettings::ExportFormat format, exporter::xlsx::ExportSettings::ExportStyle style,
+                     const exporter::xlsx::ExportSettings::ExportView &view, const std::string &wellId, const std::string &tStackIn,
+                     const std::string &imageFileName)
 {
-  settings::ResultsSettings filter;
-
-  // ==========================
-  // Open settings file
-  // ==========================
-  try {
-    std::ifstream ifs(pathToQueryFilter.string());
-    filter = nlohmann::json::parse(ifs);
-    ifs.close();
-  } catch(const std::exception &ex) {
-    joda::log::logError("Could not load filter file >" + std::string(ex.what()) + "<!");
-    std::exit(1);
-  }
-
-  exporter::xlsx::ExportSettings::ExportSettings::ExportType typeEnum;
-  if(type == "xlsx") {
-    typeEnum = exporter::xlsx::ExportSettings::ExportSettings::ExportType::XLSX;
-  } else if(type == "r") {
-    typeEnum = exporter::xlsx::ExportSettings::ExportType::R;
-  } else {
-    joda::log::logError("Invalid export type!");
-    std::exit(1);
-  }
-
-  exporter::xlsx::ExportSettings::ExportFormat formatEnum;
-  if(format == "list") {
-    formatEnum = exporter::xlsx::ExportSettings::ExportFormat::LIST;
-  } else if(format == "heatmap") {
-    formatEnum = exporter::xlsx::ExportSettings::ExportFormat::HEATMAP;
-  } else {
-    joda::log::logError("Invalid export format!");
-    std::exit(1);
-  }
-
-  auto filterElements = joda::helper::split(exportFilter, {' '});
-
-  exporter::xlsx::ExportSettings::ExportView viewEnum;
-  if(view == "plate") {
-    viewEnum = exporter::xlsx::ExportSettings::ExportView::PLATE;
-    if(filterElements.size() < 1) {
-      joda::log::logError("Export filter in form [plate-id] must be given!");
+  int32_t tStack  = 0;
+  int32_t groupId = 0;
+  if(view == exporter::xlsx::ExportSettings::ExportView::WELL) {
+    try {
+      groupId = std::stoi(wellId);
+    } catch(...) {
+      joda::log::logError("Well ID must be a number!");
       std::exit(1);
     }
-  } else if(view == "well") {
-    viewEnum = exporter::xlsx::ExportSettings::ExportView::WELL;
-    if(filterElements.size() < 2) {
-      joda::log::logError("Export filter in form [plate-id group-id] must be given!");
-      std::exit(1);
-    }
-  } else if(view == "image") {
-    viewEnum = exporter::xlsx::ExportSettings::ExportView::IMAGE;
-    if(filterElements.size() < 3) {
-      joda::log::logError("Export filter in form [t-stack, plate-id group-id image-file-name] must be given!");
+  } else if(view == exporter::xlsx::ExportSettings::ExportView::IMAGE) {
+    try {
+      tStack = std::stoi(tStackIn);
+    } catch(...) {
+      joda::log::logError("Time stack must be a number!");
       std::exit(1);
     }
   } else {
@@ -338,28 +335,11 @@ void Cli::exportData(const std::filesystem::path &pathToDatabasefile, const std:
     std::exit(1);
   }
 
-  int32_t tStack  = 0;
-  int32_t plateId = 0;
-  int32_t groupId = 0;
-  std::string imageFileName;
   try {
-    tStack  = std::stoi(filterElements[0]);
-    plateId = std::stoi(filterElements[1]);
-    if(filterElements.size() > 2) {
-      groupId = std::stoi(filterElements[2]);
-    }
-    if(filterElements.size() > 3) {
-      imageFileName = filterElements[3];
-    }
-  } catch(const std::exception &e) {
-    joda::log::logError("Plate ID and Group ID must be a number between [0-65535].");
-    std::exit(1);
-  }
-
-  try {
+    const int32_t plateId = 0;
+    settings::ResultsSettings filter;
     mController->exportData(pathToDatabasefile, filter,
-                            joda::exporter::xlsx::ExportSettings{formatEnum, typeEnum, viewEnum, {plateId, groupId, tStack, imageFileName}},
-                            outputPath);
+                            joda::exporter::xlsx::ExportSettings{style, format, view, {plateId, groupId, tStack, imageFileName}}, outputPath);
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     std::exit(1);
@@ -372,7 +352,7 @@ void Cli::exportData(const std::filesystem::path &pathToDatabasefile, const std:
 ///             allowed inputs are: [off, error, warning, info, debug, trace]
 /// \author     Joachim Danmayr
 ///
-void Cli::initLogger(const std::string &logLevel)
+void Cli::setLogLevel(const std::string &logLevel)
 {
   if(logLevel == "off") {
     joda::log::setLogLevel(joda::log::LogLevel::OFF);
@@ -394,6 +374,34 @@ void Cli::initLogger(const std::string &logLevel)
     std::cout << "Wrong parameter for loglevel!" << std::endl;
     std::exit(1);
   }
+}
+
+auto toFormatEnum(const std::string &type) -> exporter::xlsx::ExportSettings::ExportSettings::ExportFormat
+{
+  exporter::xlsx::ExportSettings::ExportSettings::ExportFormat typeEnum;
+  if(type == "xlsx") {
+    typeEnum = exporter::xlsx::ExportSettings::ExportSettings::ExportFormat::XLSX;
+  } else if(type == "r") {
+    typeEnum = exporter::xlsx::ExportSettings::ExportFormat::R;
+  } else {
+    joda::log::logError("Invalid export type!");
+    std::exit(1);
+  }
+  return typeEnum;
+}
+
+auto toStyleEnum(const std::string &format) -> exporter::xlsx::ExportSettings::ExportStyle
+{
+  exporter::xlsx::ExportSettings::ExportStyle formatEnum;
+  if(format == "table") {
+    formatEnum = exporter::xlsx::ExportSettings::ExportStyle::LIST;
+  } else if(format == "heatmap") {
+    formatEnum = exporter::xlsx::ExportSettings::ExportStyle::HEATMAP;
+  } else {
+    joda::log::logError("Invalid export format!");
+    std::exit(1);
+  }
+  return formatEnum;
 }
 
 }    // namespace joda::ui::cli

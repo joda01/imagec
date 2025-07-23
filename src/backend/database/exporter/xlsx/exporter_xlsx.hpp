@@ -28,13 +28,13 @@ struct ExportSettings
     std::string imageFileName;
   };
 
-  enum class ExportType
+  enum class ExportFormat
   {
     XLSX,
     R
   };
 
-  enum class ExportFormat
+  enum class ExportStyle
   {
     LIST,
     HEATMAP
@@ -46,8 +46,8 @@ struct ExportSettings
     WELL,
     IMAGE
   };
+  ExportStyle style;
   ExportFormat format;
-  ExportType type;
   ExportView view;
   ExportFilter filter;
 };

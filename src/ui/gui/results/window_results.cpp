@@ -1287,9 +1287,9 @@ void WindowResults::showFileSaveDialog(const QString &filter)
 
   // Select save option
   if(filename.ends_with(".xlsx")) {
-    saveData(filename, joda::exporter::xlsx::ExportSettings::ExportType::XLSX);
+    saveData(filename, joda::exporter::xlsx::ExportSettings::ExportFormat::XLSX);
   } else if(filename.ends_with(".r")) {
-    saveData(filename, joda::exporter::xlsx::ExportSettings::ExportType::R);
+    saveData(filename, joda::exporter::xlsx::ExportSettings::ExportFormat::R);
   } else if(filename.ends_with(".svg")) {
     // mHeatmapChart->exportToSVG(filename.data());
   } else if(filename.ends_with(".png")) {
@@ -1306,7 +1306,7 @@ void WindowResults::showFileSaveDialog(const QString &filter)
 /// \param[out]
 /// \return
 ///
-void WindowResults::saveData(const std::string &fileName, joda::exporter::xlsx::ExportSettings::ExportType format)
+void WindowResults::saveData(const std::string &fileName, joda::exporter::xlsx::ExportSettings::ExportFormat format)
 {
   if(fileName.empty()) {
     return;
@@ -1322,7 +1322,7 @@ void WindowResults::saveData(const std::string &fileName, joda::exporter::xlsx::
       joda::log::logWarning("Could not parse settings from database. Reason: " + std::string(ex.what()));
     }
 
-    if(format == joda::exporter::xlsx::ExportSettings::ExportType::XLSX) {
+    if(format == joda::exporter::xlsx::ExportSettings::ExportFormat::XLSX) {
       if(mGraphContainer->isVisible()) {
         // Export heatmap
         int32_t imgWidth                                      = 0;
