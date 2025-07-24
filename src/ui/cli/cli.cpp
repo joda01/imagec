@@ -175,9 +175,9 @@ int Cli::startCommandLineController(int argc, char *argv[])
   auto *export_cmd = app.add_subcommand("export", "Export processed data");
   export_cmd->add_option("-i,--infile", infile, "Input database file (*.icdb)")
       ->check(FileExistsValidator())
-      ->check(FileValidator(".icproj"))
+      ->check(FileValidator(".icdb"))
       ->required();
-  export_cmd->add_option("-o,--outpath", outfile, "Output path")->required();
+  export_cmd->add_option("-o,--outpath", outfile, "Output path");
   export_cmd->add_option("--format", format, "Output format (xlsx, r).")->check(CLI::IsMember({"xlsx", "r"}))->default_val("xlsx");
   export_cmd->add_option("--style", style, "Output style (table, heatmap).")->check(CLI::IsMember({"table", "heatmap"}))->default_val("table");
 
@@ -189,9 +189,13 @@ int Cli::startCommandLineController(int argc, char *argv[])
 
   auto *listCmd = export_cmd->add_subcommand("image", "Export list view");
   std::string imageName;
-  std::string tStack;
+  std::string tStack = "0";
   listCmd->add_option("--image", imageName, "Name of the image to export the data for")->required();
   listCmd->add_option("--tstack", tStack, "Time stack index to export (0, 1, 2, 3,...)")->default_str("0");
+
+  // =====================================
+  // Database
+  // =====================================
 
   CLI11_PARSE(app, argc, argv);
 
@@ -315,14 +319,16 @@ void Cli::startAnalyze(const std::filesystem::path &pathToSettingsFile, const st
 /// \param[out]
 /// \return
 ///
-void Cli::exportData(const std::filesystem::path &pathToDatabasefile, const std::filesystem::path &outputPath,
+void Cli::exportData(const std::filesystem::path &pathToDatabasefile, std::filesystem::path outputPath,
                      exporter::xlsx::ExportSettings::ExportSettings::ExportFormat format, exporter::xlsx::ExportSettings::ExportStyle style,
                      const exporter::xlsx::ExportSettings::ExportView &view, const std::string &wellId, const std::string &tStackIn,
                      const std::string &imageFileName)
 {
-  int32_t tStack  = 0;
-  int32_t groupId = 0;
+  int32_t tStack             = 0;
+  int32_t groupId            = 0;
+  std::string fileNameSuffix = "_plate";
   if(view == exporter::xlsx::ExportSettings::ExportView::WELL) {
+    fileNameSuffix = "_well";
     try {
       groupId = std::stoi(wellId);
     } catch(...) {
@@ -330,15 +336,28 @@ void Cli::exportData(const std::filesystem::path &pathToDatabasefile, const std:
       std::exit(1);
     }
   } else if(view == exporter::xlsx::ExportSettings::ExportView::IMAGE) {
+    fileNameSuffix = "_" + imageFileName;
+    helper::stringReplace(fileNameSuffix, ".", "");
     try {
       tStack = std::stoi(tStackIn);
     } catch(...) {
       joda::log::logError("Time stack must be a number!");
       std::exit(1);
     }
-  } else {
-    joda::log::logError("Invalid export view!");
-    std::exit(1);
+  }
+
+  if(outputPath.empty()) {
+    std::string fileName = pathToDatabasefile.filename().string();
+    helper::stringReplace(fileName, ".icdb", "");
+
+    if(format == exporter::xlsx::ExportSettings::ExportSettings::ExportFormat::XLSX) {
+      fileName += fileNameSuffix + ".xlsx";
+    }
+    if(format == exporter::xlsx::ExportSettings::ExportSettings::ExportFormat::R) {
+      fileName += fileNameSuffix + ".R";
+    }
+
+    outputPath = pathToDatabasefile.parent_path() / fileName;
   }
 
   try {
