@@ -37,6 +37,8 @@
 #include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
+#include "backend/settings/results_settings/results_settings.hpp"
+#include "backend/settings/settings.hpp"
 #include <nlohmann/json_fwd.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
@@ -556,7 +558,7 @@ auto Controller::populateClassesFromImage(const joda::ome::OmeInfo &omeInfo, int
 /// \return
 ///
 void Controller::exportData(const std::filesystem::path &pathToDbFile, const joda::exporter::xlsx::ExportSettings &settings,
-                            const std::filesystem::path &outputFilePath, std::optional<settings::ResultsSettings> filter)
+                            const std::filesystem::path &outputFilePath, const std::optional<std::list<joda::settings::Class>> &classesList)
 {
   auto analyzer = std::make_unique<joda::db::Database>();
   analyzer->openDatabase(std::filesystem::path(pathToDbFile.string()));
@@ -574,10 +576,20 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, const jod
   }
 
   // Filter options
-  if(!filter.has_value()) {
-    filter.emplace(nlohmann::json::parse(analyzer->selectResultsTableSettings(experiment.jobId)));
+  settings::ResultsSettings filter;
+  if(!classesList.has_value()) {
+    // Use default settings
+    filter = nlohmann::json::parse(analyzer->selectResultsTableSettings(experiment.jobId));
+  } else {
+    // Generate settings
+    filter = joda::settings::Settings::toResultsSettings(
+        joda::settings::Settings::ResultSettingsInput{.classes             = {classesList->begin(), classesList->end()},
+                                                      .outputClasses       = analyzer->selectOutputClasses(),
+                                                      .intersectingClasses = analyzer->selectIntersectingClassForClasses(),
+                                                      .measuredChannels    = analyzer->selectMeasurementChannelsForClasses(),
+                                                      .distanceFromClasses = analyzer->selectDistanceClassForClasses()});
   }
-  filter->setFilter(settings.filter.plateId, settings.filter.groupId, settings.filter.tStack, {imageId});
+  filter.setFilter(settings.filter.plateId, settings.filter.groupId, settings.filter.tStack, {imageId});
 
   joda::log::logInfo("Export started!");
   auto grouping = db::StatsPerGroup::Grouping::BY_IMAGE;
@@ -587,18 +599,18 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, const jod
   switch(settings.view) {
     case exporter::xlsx::ExportSettings::ExportView::PLATE: {
       grouping     = db::StatsPerGroup::Grouping::BY_PLATE;
-      dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter.value(), grouping);
+      dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter, grouping);
     } break;
     case exporter::xlsx::ExportSettings::ExportView::WELL:
       grouping     = db::StatsPerGroup::Grouping::BY_WELL;
-      dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter.value(), grouping);
+      dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter, grouping);
       break;
     case exporter::xlsx::ExportSettings::ExportView::IMAGE:
       auto image   = analyzer->selectImageInfo(imageId);
       imgWidth     = image.width;
       imgHeight    = image.height;
       grouping     = db::StatsPerGroup::Grouping::BY_IMAGE;
-      dataToExport = joda::db::StatsPerImage::toTable(analyzer.get(), filter.value());
+      dataToExport = joda::db::StatsPerImage::toTable(analyzer.get(), filter);
       break;
   }
 
@@ -619,8 +631,8 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, const jod
 
     } else if(exporter::xlsx::ExportSettings::ExportStyle::HEATMAP == settings.style) {
       joda::exporter::xlsx::Exporter::startHeatmapExport({&dataToExport}, analyzeSettings, experiment.jobName, experiment.timestampStart,
-                                                         experiment.timestampFinish, outputFilePath.string(), filter.value(), settings.view,
-                                                         imgHeight, imgWidth);
+                                                         experiment.timestampFinish, outputFilePath.string(), filter, settings.view, imgHeight,
+                                                         imgWidth);
     }
   } else {
     joda::db::data::Dashboard dashboard;

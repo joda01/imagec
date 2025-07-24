@@ -60,9 +60,9 @@ void Starter::exec(int argc, char *argv[])
   // ======================================
   try {
     joda::user_settings::UserSettings::open();
-    joda::log::logInfo("User settings loaded.");
+    joda::log::logDebug("User settings loaded.");
   } catch(const std::exception &ex) {
-    joda::log::logError("Could not open user settings! What: " + std::string(ex.what()));
+    joda::log::logWarning("Could not open user settings! What: " + std::string(ex.what()));
   }
 
   // ===================================

@@ -35,7 +35,9 @@ public:
   void exportData(const std::filesystem::path &pathToDatabasefile, std::filesystem::path outputPath,
                   exporter::xlsx::ExportSettings::ExportSettings::ExportFormat type, exporter::xlsx::ExportSettings::ExportStyle formatEnum,
                   const exporter::xlsx::ExportSettings::ExportView &view, const std::string &wellId, const std::string &tStack,
-                  const std::string &imageName);
+                  const std::string &imageName, const std::string &classExportTemplate);
+  void viewData(const std::filesystem::path &pathToDatabasefile, const std::string &target);
+
   static void setLogLevel(const std::string &logLevel);
 
 private:

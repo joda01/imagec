@@ -24,6 +24,7 @@
 #include "backend/helper/random_name_generator.hpp"
 #include "backend/settings/settings.hpp"
 #include "controller/controller.hpp"
+#include "ui/gui/helper/template_parser/template_parser.hpp"
 #include <CLI/CLI.hpp>
 #include "version.h"
 
@@ -50,7 +51,7 @@ struct FileValidator : public CLI::Validator
   FileValidator(const std::string &endian)
   {
     name_ = "LOWER";
-    func_ = [&](const std::string &str) {
+    func_ = [endian](const std::string &str) {
       int endianSize = endian.size();
       if(str.size() >= endianSize && str.substr(str.size() - endianSize) == endian) {
         return std::string();    // valid
@@ -169,9 +170,10 @@ int Cli::startCommandLineController(int argc, char *argv[])
   // =====================================
   std::string infile;
   std::string outfile;
-  std::string options;
   std::string format;
   std::string style;
+  std::string outputTemplate;
+
   auto *export_cmd = app.add_subcommand("export", "Export processed data");
   export_cmd->add_option("-i,--infile", infile, "Input database file (*.icdb)")
       ->check(FileExistsValidator())
@@ -180,10 +182,12 @@ int Cli::startCommandLineController(int argc, char *argv[])
   export_cmd->add_option("-o,--outpath", outfile, "Output path");
   export_cmd->add_option("--format", format, "Output format (xlsx, r).")->check(CLI::IsMember({"xlsx", "r"}))->default_val("xlsx");
   export_cmd->add_option("--style", style, "Output style (table, heatmap).")->check(CLI::IsMember({"table", "heatmap"}))->default_val("table");
-
+  export_cmd->add_option("-c,--columns", outputTemplate, "Output columns template file (*.ictemplcc)")
+      ->check(FileExistsValidator())
+      ->check(FileValidator(".ictemplcc"))
+      ->required();
   auto *plateCmd = export_cmd->add_subcommand("plate", "Export plate view");
-
-  auto *wellCmd = export_cmd->add_subcommand("well", "Export well view");
+  auto *wellCmd  = export_cmd->add_subcommand("well", "Export well view");
   std::string wellId;
   wellCmd->add_option("--id", wellId, "Id of the well to export (0, 1, 2, 3,...)")->required()->default_str("0");
 
@@ -194,8 +198,17 @@ int Cli::startCommandLineController(int argc, char *argv[])
   listCmd->add_option("--tstack", tStack, "Time stack index to export (0, 1, 2, 3,...)")->default_str("0");
 
   // =====================================
-  // Database
+  // Database view
   // =====================================
+  std::string target;
+  std::string infileDb;
+  auto *databaseCmd = app.add_subcommand("database", "View database content");
+  databaseCmd->add_option("-i,--infile", infileDb, "Input database file (*.icdb)")
+      ->check(FileExistsValidator())
+      ->check(FileValidator(".icdb"))
+      ->required();
+  auto *dbView = databaseCmd->add_subcommand("view", "View some content of the database");
+  dbView->add_option("target", target, "Must be either 'wells' or 'images'")->required()->check(CLI::IsMember({"wells", "images"}));
 
   CLI11_PARSE(app, argc, argv);
 
@@ -224,7 +237,11 @@ int Cli::startCommandLineController(int argc, char *argv[])
       toExport = exporter::xlsx::ExportSettings::ExportView::IMAGE;
     }
     exportData(std::filesystem::path(infile), std::filesystem::path(outfile), toFormatEnum(format), toStyleEnum(style), toExport, wellId, tStack,
-               imageName);
+               imageName, outputTemplate);
+  } else if(databaseCmd->parsed()) {
+    if(dbView->parsed()) {
+      viewData(infileDb, target);
+    }
   }
 
   return 0;
@@ -322,7 +339,7 @@ void Cli::startAnalyze(const std::filesystem::path &pathToSettingsFile, const st
 void Cli::exportData(const std::filesystem::path &pathToDatabasefile, std::filesystem::path outputPath,
                      exporter::xlsx::ExportSettings::ExportSettings::ExportFormat format, exporter::xlsx::ExportSettings::ExportStyle style,
                      const exporter::xlsx::ExportSettings::ExportView &view, const std::string &wellId, const std::string &tStackIn,
-                     const std::string &imageFileName)
+                     const std::string &imageFileName, const std::string &classExportTemplate)
 {
   int32_t tStack             = 0;
   int32_t groupId            = 0;
@@ -360,10 +377,21 @@ void Cli::exportData(const std::filesystem::path &pathToDatabasefile, std::files
     outputPath = pathToDatabasefile.parent_path() / fileName;
   }
 
+  std::optional<std::list<settings::Class>> classes = std::nullopt;
+  if(!classExportTemplate.empty()) {
+    try {
+      joda::settings::Classification settings = joda::templates::TemplateParser::loadTemplate(std::filesystem::path(classExportTemplate));
+      classes.emplace(settings.classes);
+    } catch(const std::exception &ex) {
+      joda::log::logError("Could not load template >" + classExportTemplate + "<. What: " + std::string(ex.what()));
+      exit(1);
+    }
+  }
+
   try {
     const int32_t plateId = 0;
     mController->exportData(pathToDatabasefile, joda::exporter::xlsx::ExportSettings{style, format, view, {plateId, groupId, tStack, imageFileName}},
-                            outputPath, std::nullopt);    // ToDo allow to give filter settings
+                            outputPath, classes);
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     std::exit(1);
@@ -397,6 +425,41 @@ void Cli::setLogLevel(const std::string &logLevel)
   } else {
     std::cout << "Wrong parameter for loglevel!" << std::endl;
     std::exit(1);
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Cli::viewData(const std::filesystem::path &pathToDatabasefile, const std::string &target)
+{
+  auto analyzer = std::make_unique<joda::db::Database>();
+  analyzer->openDatabase(std::filesystem::path(pathToDatabasefile.string()));
+
+  if(target == "wells") {
+    auto groups = analyzer->selectGroups();
+    // Header
+    std::cout << std::left << std::setw(10) << "ID" << std::setw(20) << "Name"
+              << "\n";
+    std::cout << std::string(30, '-') << "\n";
+    for(const auto &[key, value] : groups) {
+      std::cout << std::left << std::setw(10) << key << std::setw(20) << value << "\n";
+    }
+  }
+
+  if(target == "images") {
+    auto images = analyzer->selectImages();
+    // Header
+    std::cout << std::left << std::setw(30) << "ID" << std::setw(40) << "Name"
+              << "\n";
+    std::cout << std::string(50, '-') << "\n";
+    for(const auto &image : images) {
+      std::cout << std::left << std::setw(30) << std::to_string(image.imageId) << std::setw(40) << image.filename << "\n";
+    }
   }
 }
 
