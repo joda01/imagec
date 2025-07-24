@@ -14,6 +14,7 @@
 #include "cli.hpp"
 #include <exception>
 #include <memory>
+#include <optional>
 #include <string>
 #include <thread>
 #include "CLI/CLI.hpp"
@@ -166,7 +167,11 @@ int Cli::startCommandLineController(int argc, char *argv[])
   // =====================================
   // Export subcommand
   // =====================================
-  std::string infile, outfile, options, format, style;
+  std::string infile;
+  std::string outfile;
+  std::string options;
+  std::string format;
+  std::string style;
   auto *export_cmd = app.add_subcommand("export", "Export processed data");
   export_cmd->add_option("-i,--infile", infile, "Input database file (*.icdb)")
       ->check(FileExistsValidator())
@@ -183,7 +188,8 @@ int Cli::startCommandLineController(int argc, char *argv[])
   wellCmd->add_option("--id", wellId, "Id of the well to export (0, 1, 2, 3,...)")->required()->default_str("0");
 
   auto *listCmd = export_cmd->add_subcommand("image", "Export list view");
-  std::string imageName, tStack;
+  std::string imageName;
+  std::string tStack;
   listCmd->add_option("--image", imageName, "Name of the image to export the data for")->required();
   listCmd->add_option("--tstack", tStack, "Time stack index to export (0, 1, 2, 3,...)")->default_str("0");
 
@@ -337,9 +343,8 @@ void Cli::exportData(const std::filesystem::path &pathToDatabasefile, const std:
 
   try {
     const int32_t plateId = 0;
-    settings::ResultsSettings filter;
-    mController->exportData(pathToDatabasefile, filter,
-                            joda::exporter::xlsx::ExportSettings{style, format, view, {plateId, groupId, tStack, imageFileName}}, outputPath);
+    mController->exportData(pathToDatabasefile, joda::exporter::xlsx::ExportSettings{style, format, view, {plateId, groupId, tStack, imageFileName}},
+                            outputPath, std::nullopt);    // ToDo allow to give filter settings
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     std::exit(1);

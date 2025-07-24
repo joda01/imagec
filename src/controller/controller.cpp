@@ -555,11 +555,12 @@ auto Controller::populateClassesFromImage(const joda::ome::OmeInfo &omeInfo, int
 /// \author
 /// \return
 ///
-void Controller::exportData(const std::filesystem::path &pathToDbFile, settings::ResultsSettings &filter,
-                            const joda::exporter::xlsx::ExportSettings &settings, const std::filesystem::path &outputFilePath)
+void Controller::exportData(const std::filesystem::path &pathToDbFile, const joda::exporter::xlsx::ExportSettings &settings,
+                            const std::filesystem::path &outputFilePath, std::optional<settings::ResultsSettings> filter)
 {
   auto analyzer = std::make_unique<joda::db::Database>();
   analyzer->openDatabase(std::filesystem::path(pathToDbFile.string()));
+  auto experiment = analyzer->selectExperiment();
 
   if(outputFilePath.empty()) {
     return;
@@ -571,7 +572,12 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, settings:
       throw std::invalid_argument("Image with name >" + settings.filter.imageFileName + "< not found in database!");
     }
   }
-  filter.setFilter(settings.filter.plateId, settings.filter.groupId, settings.filter.tStack, {imageId});
+
+  // Filter options
+  if(!filter.has_value()) {
+    filter.emplace(nlohmann::json::parse(analyzer->selectResultsTableSettings(experiment.jobId)));
+  }
+  filter->setFilter(settings.filter.plateId, settings.filter.groupId, settings.filter.tStack, {imageId});
 
   joda::log::logInfo("Export started!");
   auto grouping = db::StatsPerGroup::Grouping::BY_IMAGE;
@@ -581,22 +587,21 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, settings:
   switch(settings.view) {
     case exporter::xlsx::ExportSettings::ExportView::PLATE: {
       grouping     = db::StatsPerGroup::Grouping::BY_PLATE;
-      dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter, grouping);
+      dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter.value(), grouping);
     } break;
     case exporter::xlsx::ExportSettings::ExportView::WELL:
       grouping     = db::StatsPerGroup::Grouping::BY_WELL;
-      dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter, grouping);
+      dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter.value(), grouping);
       break;
     case exporter::xlsx::ExportSettings::ExportView::IMAGE:
       auto image   = analyzer->selectImageInfo(imageId);
       imgWidth     = image.width;
       imgHeight    = image.height;
       grouping     = db::StatsPerGroup::Grouping::BY_IMAGE;
-      dataToExport = joda::db::StatsPerImage::toTable(analyzer.get(), filter);
+      dataToExport = joda::db::StatsPerImage::toTable(analyzer.get(), filter.value());
       break;
   }
 
-  auto experiment                           = analyzer->selectExperiment();
   settings::AnalyzeSettings analyzeSettings = nlohmann::json::parse(experiment.analyzeSettingsJsonString);
 
   if(settings.format == exporter::xlsx::ExportSettings::ExportFormat::XLSX) {
@@ -614,8 +619,8 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, settings:
 
     } else if(exporter::xlsx::ExportSettings::ExportStyle::HEATMAP == settings.style) {
       joda::exporter::xlsx::Exporter::startHeatmapExport({&dataToExport}, analyzeSettings, experiment.jobName, experiment.timestampStart,
-                                                         experiment.timestampFinish, outputFilePath.string(), filter, settings.view, imgHeight,
-                                                         imgWidth);
+                                                         experiment.timestampFinish, outputFilePath.string(), filter.value(), settings.view,
+                                                         imgHeight, imgWidth);
     }
   } else {
     joda::db::data::Dashboard dashboard;

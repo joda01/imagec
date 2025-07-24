@@ -114,8 +114,8 @@ public:
 
   // EXPORT ///////////////////////////////////////
 
-  void exportData(const std::filesystem::path &pathToDbFile, settings::ResultsSettings &filter, const joda::exporter::xlsx::ExportSettings &settings,
-                  const std::filesystem::path &outputFilePath);
+  void exportData(const std::filesystem::path &pathToDbFile, const joda::exporter::xlsx::ExportSettings &settings,
+                  const std::filesystem::path &outputFilePath, std::optional<settings::ResultsSettings> filter);
 
 private:
   /////////////////////////////////////////////////////
