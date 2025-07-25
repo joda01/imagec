@@ -10,12 +10,12 @@
     "tags": ["yeast","cells","segmentation"]
   },
   "pipelineSetup": {
-    "cStackIndex": 1,
+    "cStackIndex": -2,
     "defaultClassId": "4",
     "source": "FromFile",
-    "tStackIndex": -1,
+    "tStackIndex": 0,
     "zProjection": "AvgIntensity",
-    "zStackIndex": -1
+    "zStackIndex": 0
   },
   "pipelineSteps": [
     {

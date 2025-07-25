@@ -7,12 +7,12 @@
     "tags": ["ev","evs","extracellular vesicle"]
   },
   "pipelineSetup": {
-    "cStackIndex": 0,
+    "cStackIndex": -2,
     "defaultClassId": "None",
     "source": "FromFile",
-    "tStackIndex": -1,
+    "tStackIndex": 0,
     "zProjection": "MaxIntensity",
-    "zStackIndex": -1
+    "zStackIndex": 0
   },
   "pipelineSteps": [
     {
