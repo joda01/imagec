@@ -109,7 +109,7 @@ WindowResults::WindowResults(WindowMain *windowMain) : mWindowMain(windowMain), 
   // Graph
   //
   {
-    mDockWidgetGraphSettings = new PanelGraphSettings();
+    mDockWidgetGraphSettings = new PanelGraphSettings(this);
     mGraphContainer          = std::make_shared<HeatmapWidget>(this);
     mGraphContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
@@ -198,7 +198,10 @@ WindowResults::WindowResults(WindowMain *windowMain) : mWindowMain(windowMain), 
     mOpenNextLevel = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("caret-right"), "", mBreadCrumpToolBar);
     mOpenNextLevel->setStatusTip("Open selected wells/images");
     mBreadCrumpToolBar->addAction(mOpenNextLevel);
-    connect(mOpenNextLevel, &QAction::triggered, [this]() { openNextLevel(mDashboard->getSelectedRows()); });
+    connect(mOpenNextLevel, &QAction::triggered, [this]() {
+      auto selectedRows = mDashboard->getSelectedRows();
+      openNextLevel(selectedRows);
+    });
 
     mBreadCrumpInfoText = new QLabel();
     mBreadCrumpToolBar->addWidget(mBreadCrumpInfoText);
@@ -1031,7 +1034,8 @@ void WindowResults::setSelectedElement(table::TableCell value)
 ///
 void WindowResults::openNextLevel(const std::vector<table::TableCell> &value)
 {
-  int actMenu = static_cast<int>(mNavigation);
+  int actMenu     = static_cast<int>(mNavigation);
+  auto oldActMenu = mNavigation;
   actMenu++;
   if(actMenu <= 2) {
     mNavigation = static_cast<Navigation>(actMenu);
@@ -1045,14 +1049,20 @@ void WindowResults::openNextLevel(const std::vector<table::TableCell> &value)
     case Navigation::WELL:
       if(!value.empty()) {
         mActGroupId = value.at(0).getId();
+      } else {
+        mNavigation = oldActMenu;
       }
       break;
     case Navigation::IMAGE:
-      std::set<uint64_t> act;
-      for(const auto &row : value) {
-        act.emplace(row.getObjectId());
+      if(value.empty()) {
+        mNavigation = oldActMenu;
+      } else {
+        std::set<uint64_t> act;
+        for(const auto &row : value) {
+          act.emplace(row.getObjectId());
+        }
+        mActImageId = act;
       }
-      mActImageId = act;
       break;
   }
   refreshView();

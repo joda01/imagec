@@ -166,13 +166,13 @@ auto DashboardElement::getSelectedRows() const -> std::vector<joda::table::Table
   std::vector<joda::table::TableCell> selectedCells;
 
   QItemSelectionModel *selectionModel = mTableView->selectionModel();
-  QModelIndexList selectedRows        = selectionModel->selectedRows();    // one QModelIndex per selected row
-  int columnCount                     = mTableModel->columnCount();
-  for(const QModelIndex &rowIndex : selectedRows) {
-    int row = rowIndex.row();
-    for(int col = 0; col < columnCount; ++col) {
-      selectedCells.emplace_back(*mTableModel->getCell(row, col));
-    }
+  if(selectionModel == nullptr) {
+    return {};
+  }
+  QModelIndexList selectedIndex = selectionModel->selectedIndexes();    // one QModelIndex per selected row
+  int columnCount               = mTableModel->columnCount();
+  foreach(const QModelIndex &index, selectedIndex) {
+    selectedCells.emplace_back(*mTable->data(index.row(), index.column()));
   }
 
   return selectedCells;
