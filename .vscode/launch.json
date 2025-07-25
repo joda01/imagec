@@ -9,9 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/workspaces/imagec/build/build/output/imagec",
-            "args": [
-                "[ai_classifier]"
-            ],
+            "args": [],
             "stopAtEntry": false,
             "cwd": "/workspaces/imagec/build/build/output",
             "environment": [

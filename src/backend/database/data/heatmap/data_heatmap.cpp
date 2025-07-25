@@ -79,7 +79,11 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
   }
   std::optional<joda::table::TableCell> cellTmp;    // Needed for the density map
   for(int32_t tblRow = 0; tblRow < table->getNrOfRows(); tblRow++) {
-    auto cellData = std::make_shared<joda::table::TableCell>(table->data(tblRow, colToDisplay));
+    std::shared_ptr<const table::TableCell> tmp = table->data(tblRow, colToDisplay);
+    if(tmp == nullptr) {
+      continue;
+    }
+    auto cellData = std::make_shared<joda::table::TableCell>(tmp);
     if(cellData == nullptr) {
       continue;
     }
