@@ -73,6 +73,7 @@ public:
   }
   void clear()
   {
+    std::lock_guard<std::mutex> lock(mLockMutex);
     if(mImageOriginal != nullptr) {
       delete mImageOriginal;
       mImageOriginal = nullptr;
