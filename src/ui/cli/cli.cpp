@@ -138,7 +138,8 @@ public:
 ///
 int Cli::startCommandLineController(int argc, char *argv[])
 {
-  CLI::App app{"High throughput image processing application.", Version::getTitle()};
+  std::cout << Version::getLogo();
+  CLI::App app{"High throughput image processing application.", "imagec"};
   app.formatter(std::make_shared<NoOptionOptsFormatter>());
   // app.get_formatter()->column_width(40);
   // app.get_formatter()->label("REQUIRED", "*");
@@ -157,21 +158,21 @@ int Cli::startCommandLineController(int argc, char *argv[])
   std::string projectFilePath;
   std::string workingDirectory;
   std::string jobName;
-  auto *run = app.add_subcommand("run", "Start an analyzes by using an existing project file.");
+  auto *run = app.add_subcommand("run", "Run an analyzes");
   run->add_option("-p,--project", projectFilePath, "ImageC project settings file (*.icproj)")
       ->check(FileExistsValidator())
       ->check(FileValidator(".icproj"))
       ->required();
-  run->add_option("-i,--input-folder", workingDirectory, "Images folder.")->check(DirectoryExistsValidator())->required();
-  run->add_option("-n,--job-name", jobName, "Optional job name");
+  run->add_option("-i,--input-folder", workingDirectory, "Images folder")->check(DirectoryExistsValidator())->required();
+  run->add_option("-n,--job-name", jobName, "Job name (optional)");
 
   // =====================================
   // Export subcommand
   // =====================================
   std::string infile;
   std::string outfile;
-  std::string format;
-  std::string style;
+  std::string format = "xlsx";
+  std::string style  = "table";
   std::string outputTemplate;
 
   auto *export_cmd = app.add_subcommand("export", "Export processed data");
@@ -179,9 +180,11 @@ int Cli::startCommandLineController(int argc, char *argv[])
       ->check(FileExistsValidator())
       ->check(FileValidator(".icdb"))
       ->required();
-  export_cmd->add_option("-o,--outpath", outfile, "Output path");
-  export_cmd->add_option("--format", format, "Output format (xlsx, r).")->check(CLI::IsMember({"xlsx", "r"}))->default_val("xlsx");
-  export_cmd->add_option("--style", style, "Output style (table, heatmap).")->check(CLI::IsMember({"table", "heatmap"}))->default_val("table");
+  export_cmd->add_option("-o,--outpath", outfile, "Output folder");
+  export_cmd->add_option("-f,--format", format, "Output format (xlsx, r) [xlsx].")->check(CLI::IsMember({"xlsx", "r"}))->default_val("xlsx");
+  export_cmd->add_option("-s,--style", style, "Output style (table, heatmap) [table].")
+      ->check(CLI::IsMember({"table", "heatmap"}))
+      ->default_val("table");
   export_cmd->add_option("-c,--columns", outputTemplate, "Output columns template file (*.ictemplcc)")
       ->check(FileExistsValidator())
       ->check(FileValidator(".ictemplcc"))
@@ -195,15 +198,14 @@ int Cli::startCommandLineController(int argc, char *argv[])
   std::string imageName;
   std::string tStack = "0";
   listCmd->add_option("--image", imageName, "Name of the image to export the data for")->required();
-  listCmd->add_option("--tstack", tStack, "Time stack index to export (0, 1, 2, 3,...)")->default_str("0");
+  listCmd->add_option("--tstack", tStack, "Time stack index to export (0, 1, 2, 3,...) [0]")->default_str("0");
 
   // =====================================
   // Database view
   // =====================================
   std::string target;
-  std::string infileDb;
   auto *databaseCmd = app.add_subcommand("database", "View database content");
-  databaseCmd->add_option("-i,--infile", infileDb, "Input database file (*.icdb)")
+  databaseCmd->add_option("-i,--infile", infile, "Input database file (*.icdb)")
       ->check(FileExistsValidator())
       ->check(FileValidator(".icdb"))
       ->required();
@@ -240,7 +242,7 @@ int Cli::startCommandLineController(int argc, char *argv[])
                imageName, outputTemplate);
   } else if(databaseCmd->parsed()) {
     if(dbView->parsed()) {
-      viewData(infileDb, target);
+      viewData(infile, target);
     }
   }
 
