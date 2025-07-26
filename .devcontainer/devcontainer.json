@@ -15,7 +15,7 @@
 		"--cap-add=SYS_PTRACE",
 		"--security-opt",
 		"seccomp=unconfined",
-		"--gpus=all"
+		//"--gpus=all"
 	],
 	"customizations": {
 		// Set *default* container specific settings.json values on container create.
