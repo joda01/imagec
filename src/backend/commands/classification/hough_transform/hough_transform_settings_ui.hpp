@@ -19,13 +19,13 @@
 #include <string>
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_base.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
-#include "ui/gui/container/setting/setting_combobox_classes_out.hpp"
-#include "ui/gui/container/setting/setting_combobox_classification_in.hpp"
-#include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
-#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classes_out.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classification_in.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_multi_classification_in.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_line_edit.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/setting_generator.hpp"
 #include "hough_transform_settings.hpp"
@@ -37,7 +37,7 @@ class HoughTransform : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Hough transform";
-  inline static std::string ICON              = "draw-square-inverted-corners";
+  inline static std::string ICON              = "bezier-curve";
   inline static std::string DESCRIPTION       = "Feature extraction technique for lines and circled";
   inline static std::vector<std::string> TAGS = {"classifier", "classify", "objects", "ai", "feature extraction", "pattern recognition"};
 
@@ -52,8 +52,9 @@ public:
     //
     mShape = SettingBase::create<SettingComboBox<joda::settings::HoughTransformSettings::Shape>>(parent, {}, "Shape");
     mShape->addOptions({
-        //{.key = joda::settings::HoughTransformSettings::HughMode::LINE_TRANSFORM, .label = "Line", .icon = generateSvgIcon("line")},
-        {.key = joda::settings::HoughTransformSettings::Shape::CIRCLE_TRANSFORM, .label = "Circle", .icon = generateSvgIcon("choice-round")},
+        {.key   = joda::settings::HoughTransformSettings::Shape::CIRCLE_TRANSFORM,
+         .label = "Circle",
+         .icon  = generateSvgIcon<Style::REGULAR, Color::BLACK>("circle")},
     });
 
     mShape->setValue(settings.shape);
@@ -62,8 +63,7 @@ public:
     //
     //
     //
-    mMinCircleDistance =
-        SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("distribute-horizontal-equal"), "Min. circle distance");
+    mMinCircleDistance = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Min. circle distance");
     mMinCircleDistance->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mMinCircleDistance->setUnit("");
     mMinCircleDistance->setMinMax(0, INT32_MAX);
@@ -96,7 +96,7 @@ public:
     //
     //
     //
-    mParam1 = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("brightness-high"), "Max. threshold of canny edge detector");
+    mParam1 = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Max. threshold of canny edge detector");
     mParam1->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mParam1->setUnit("");
     mParam1->setMinMax(0, INT32_MAX);
@@ -112,7 +112,8 @@ public:
     // If you want get better detection of small circles, you may decrease it to 0.85, 0.8 or even less.
     // But then also try to limit the search range [minRadius, maxRadius] to avoid many false circles.
     //     mParam2 =
-    mParam2 = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("choice-round"), "Circle perfectness measure");
+    mParam2 =
+        SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon<Style::REGULAR, Color::BLACK>("circle"), "Circle perfectness measure");
     mParam2->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mParam2->setUnit("");
     mParam2->setMinMax(0, INT32_MAX);

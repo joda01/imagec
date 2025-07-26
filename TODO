@@ -8,3 +8,7 @@
 - [ ] allow to specify the intensity calculation mode for RGB images in (/workspaces/imagec/src/backend/commands/object_functions/measure/measure.hpp)
 - [ ] Improve object segmentation for U-NET
 - [ ] Support to keep tracking information in coloc 
+
+
+- [ ] Display t stack in description of well and plate view
+- [ ] Set temp t-stack in plate and well view

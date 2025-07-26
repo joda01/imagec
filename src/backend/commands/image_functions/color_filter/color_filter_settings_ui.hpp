@@ -17,11 +17,11 @@
 #include <qwidget.h>
 #include <memory>
 #include <string>
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_base.hpp"
-#include "ui/gui/container/setting/setting_color_picker.hpp"
-#include "ui/gui/container/setting/setting_line_edit.hpp"
-#include "ui/gui/container/setting/setting_spinbox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_color_picker.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_line_edit.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_spinbox.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "color_filter_settings.hpp"
 
@@ -32,7 +32,7 @@ class ColorFilter : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Color filter";
-  inline static std::string ICON              = "color-management";
+  inline static std::string ICON              = "palette";
   inline static std::string DESCRIPTION       = "Convert the image to a grayscale applying the selected color filter.";
   inline static std::vector<std::string> TAGS = {};
 

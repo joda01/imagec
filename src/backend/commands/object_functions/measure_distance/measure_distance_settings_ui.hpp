@@ -19,9 +19,9 @@
 #include "backend/commands/classification/classifier_filter.hpp"
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_base.hpp"
-#include "ui/gui/container/setting/setting_combobox_classification_in.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classification_in.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/setting_generator.hpp"
@@ -34,7 +34,7 @@ class MeasureDistance : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Measure distance";
-  inline static std::string ICON              = "tool-measure";
+  inline static std::string ICON              = "ruler";
   inline static std::string DESCRIPTION       = "Measure the distance of all objects in two object classes.";
   inline static std::vector<std::string> TAGS = {"distance", "measure", "object"};
 
@@ -56,8 +56,7 @@ public:
 
     //
     //
-    mCondition =
-        SettingBase::create<SettingComboBox<joda::settings::DistanceMeasureConditions>>(parent, generateSvgIcon("kstars_horizon"), "Condition");
+    mCondition = SettingBase::create<SettingComboBox<joda::settings::DistanceMeasureConditions>>(parent, {}, "Condition");
     mCondition->addOptions({{joda::settings::DistanceMeasureConditions::ALL, "All"},
                             {joda::settings::DistanceMeasureConditions::INTERSECTING, "Intersecting objects"},
                             {joda::settings::DistanceMeasureConditions::SAME_PARENT_ID, "Objects with same parent ID"},

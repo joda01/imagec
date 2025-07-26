@@ -150,7 +150,7 @@ public:
   }
   [[nodiscard]] auto getResolutionCount(int32_t series) const -> const std::map<int32_t, ImageInfo::Pyramid> &
   {
-    if(series < 0) {
+    if(series < 0 || series >= getNrOfSeries()) {
       series = getSeriesWithHighestResolution();
     }
     return mImageInfo.at(series).resolutions;

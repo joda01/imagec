@@ -1,3 +1,16 @@
+///
+/// \file      word_wrap_header.hpp
+/// \author    Joachim Danmayr
+/// \date      2025-06-29
+///
+/// \copyright Copyright 2019 Joachim Danmayr
+///            This software is licensed for **non-commercial** use only.
+///            Educational, research, and personal use are permitted.
+///            For **Commercial** please contact the copyright owner.
+///
+
+#pragma once
+
 #include <QHeaderView>
 #include <QPainter>
 #include <QStyleOptionHeader>
@@ -49,7 +62,7 @@ protected:
   {
     QString text = model()->headerData(logicalIndex, orientation(), Qt::DisplayRole).toString();
     QTextDocument doc;
-    doc.setTextWidth(150);    // Example max width
+    // doc.setTextWidth(150);    // Example max width
     doc.setDefaultFont(font());
     doc.setHtml("<div align='center'>" + text.toHtmlEscaped() + "</div>");
     QSize size = doc.size().toSize();

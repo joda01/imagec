@@ -15,9 +15,9 @@
 
 #include <qwidget.h>
 #include "backend/commands/command.hpp"
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
-#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_line_edit.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "blur_settings.hpp"
@@ -29,7 +29,7 @@ class Blur : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Blur";
-  inline static std::string ICON              = "blurimage";
+  inline static std::string ICON              = "drop-simple";
   inline static std::string DESCRIPTION       = "Reduce noise within the image";
   inline static std::vector<std::string> TAGS = {"blur", "gaussian", "noise reduction", "noise", "smooth"};
 
@@ -38,7 +38,7 @@ public:
   {
     //
     //
-    mBlurMode = SettingBase::create<SettingComboBox<settings::BlurSettings::Mode>>(parent, generateSvgIcon("blurimage"), "Blur mode");
+    mBlurMode = SettingBase::create<SettingComboBox<settings::BlurSettings::Mode>>(parent, {}, "Blur mode");
     mBlurMode->addOptions({{settings::BlurSettings::Mode::BLUR_MORE, "Smoothing"}, {settings::BlurSettings::Mode::GAUSSIAN, "Gaussian blur"}});
     mBlurMode->setValue(settings.mode);
     mBlurMode->connectWithSetting(&settings.mode);
@@ -46,7 +46,7 @@ public:
     //
     //
     //
-    mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, generateSvgIcon("labplot-matrix"), "Kernel size");
+    mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, "Kernel size");
     mKernelSize->addOptions({{-1, "Off"},
                              {3, "3x3"},
                              {5, "5x5"},
@@ -66,7 +66,7 @@ public:
     //
     //
     //
-    mRepeat = SettingBase::create<SettingComboBox<int32_t>>(parent, generateSvgIcon("media-playlist-repeat"), "Repeat");
+    mRepeat = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, "Repeat");
     mRepeat->addOptions({{1, "x1"},
                          {2, "x2"},
                          {3, "x3"},

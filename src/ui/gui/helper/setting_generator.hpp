@@ -18,10 +18,10 @@
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enums_classes.hpp"
 
-#include "ui/gui/container/setting/setting_base.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
-#include "ui/gui/container/setting/setting_combobox_multi.hpp"
-#include "ui/gui/container/setting/setting_spinbox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_multi.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_spinbox.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 
 namespace joda::ui::gui {
@@ -32,25 +32,26 @@ concept ImageCStackCombo_t = std::is_base_of<SettingComboBoxMulti<int32_t>, T>::
 template <ImageCStackCombo_t T>
 inline auto generateCStackCombo(const QString &helpText, QWidget *parent, const QString &thisText = "Default")
 {
-  auto dropBox = SettingBase::create<T>(parent, generateSvgIcon("irc-operator"), helpText);
-  dropBox->addOptions({{-2, "Off", generateSvgIcon("irc-operator")},
-                       {-1, thisText, generateSvgIcon("irc-operator")},
-                       {0, "CH0", generateSvgIcon("irc-operator")},
-                       {1, "CH1", generateSvgIcon("irc-operator")},
-                       {2, "CH2", generateSvgIcon("irc-operator")},
-                       {3, "CH3", generateSvgIcon("irc-operator")},
-                       {4, "CH4", generateSvgIcon("irc-operator")},
-                       {5, "CH5", generateSvgIcon("irc-operator")},
-                       {6, "CH6", generateSvgIcon("irc-operator")},
-                       {7, "CH7", generateSvgIcon("irc-operator")},
-                       {8, "CH8", generateSvgIcon("irc-operator")},
-                       {9, "CH9", generateSvgIcon("irc-operator")}});
+  auto dropBox = SettingBase::create<T>(parent, {}, helpText);
+  dropBox->addOptions({{-2, "Off", generateSvgIcon<Style::REGULAR, Color::BLUE>("placeholder")},
+                       {-1, thisText, generateSvgIcon<Style::REGULAR, Color::BLUE>("rectangle")},
+                       {0, "CH0", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-zero")},
+                       {1, "CH1", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-one")},
+                       {2, "CH2", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-two")},
+                       {3, "CH3", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-three")},
+                       {4, "CH4", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-four")},
+                       {5, "CH5", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-five")},
+                       {6, "CH6", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-six")},
+                       {7, "CH7", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-seven")},
+                       {8, "CH8", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-eight")},
+                       {9, "CH9", generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-nine")}});
   return dropBox;
 }
 
 inline auto generateZProjection(bool withThis, QWidget *parent) -> std::unique_ptr<SettingComboBox<enums::ZProjection>>
 {
-  auto zProjection = SettingBase::create<SettingComboBox<enums::ZProjection>>(parent, generateSvgIcon("layer-visible-on"), "Z-Projection");
+  auto zProjection =
+      SettingBase::create<SettingComboBox<enums::ZProjection>>(parent, generateSvgIcon<Style::REGULAR, Color::BLUE>("stack"), "Z-Projection");
   if(withThis) {
     zProjection->addOptions({{enums::ZProjection::$, "Default"},
                              {enums::ZProjection::NONE, "Single channel"},
@@ -95,15 +96,8 @@ inline auto generateAiModelClass(const QString &helpText, QWidget *parent) -> st
 {
   auto mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, helpText);
   mGrayScaleValue->setDefaultValue(0);
-  mGrayScaleValue->addOptions({{-1, "Unset", generateSvgIcon("question")},
-                               {0, "CL 1"},
-                               {1, "CL 2"},
-                               {2, "CL 3"},
-                               {3, "CL 4"},
-                               {4, "CL 5"},
-                               {5, "CL 6"},
-                               {6, "CL 7"},
-                               {7, "CL 8"}});
+  mGrayScaleValue->addOptions(
+      {{-1, "Unset"}, {0, "CL 1"}, {1, "CL 2"}, {2, "CL 3"}, {3, "CL 4"}, {4, "CL 5"}, {5, "CL 6"}, {6, "CL 7"}, {7, "CL 8"}});
   mGrayScaleValue->setUnit("");
   mGrayScaleValue->setShortDescription("");
 

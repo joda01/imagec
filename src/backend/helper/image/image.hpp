@@ -14,6 +14,7 @@
 #include <qpixmap.h>
 #include <qpoint.h>
 #include <cstdint>
+#include <mutex>
 #include <vector>
 #include <opencv2/core/mat.hpp>
 
@@ -33,7 +34,7 @@ public:
   {
     clear();
   }
-  void setImage(const cv::Mat &&imageToDisplay);
+  void setImage(const cv::Mat &&imageToDisplay, int32_t rescale = 2048);
   bool empty()
   {
     if(mImageOriginal != nullptr) {
@@ -45,22 +46,34 @@ public:
   {
     return mImageOriginal;
   }
-  [[nodiscard]] QPixmap getPixmap(const Image *combineWith) const;
-  [[nodiscard]] float getHitogramZoomFactor() const
+  struct Overlay
   {
-    return mHistogramZoomFactor;
+    const Image *combineWith = nullptr;
+    float opaque             = 0.3;
+  };
+  [[nodiscard]] QPixmap getPixmap(const Overlay &) const;
+
+  [[nodiscard]] uint16_t getHistogramDisplayAreaLower() const
+  {
+    return mDisplayAreaLower;
   }
-  [[nodiscard]] float getHistogramOffset() const
+  [[nodiscard]] uint16_t getHistogramDisplayAreaUpper() const
   {
-    return mHistogramOffset;
+    return mDisplayAreaUpper;
   }
 
   [[nodiscard]] uint16_t getUpperLevelContrast() const
   {
     return mUpperValue;
   }
+
+  [[nodiscard]] uint16_t getLowerLevelContrast() const
+  {
+    return mLowerValue;
+  }
   void clear()
   {
+    std::lock_guard<std::mutex> lock(mLockMutex);
     if(mImageOriginal != nullptr) {
       delete mImageOriginal;
       mImageOriginal = nullptr;
@@ -72,7 +85,7 @@ public:
     return mHistogram;
   }
 
-  void setBrightnessRange(uint16_t lowerValue, uint16_t upperValue, float histogramZoomFactor, uint16_t histogramOffset);
+  void setBrightnessRange(int32_t lowerValue, int32_t upperValue, int32_t displayAreaLower, int32_t displayAreaUpper);
 
   struct AutoAdjustRet
   {
@@ -98,7 +111,6 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  const int32_t WIDTH = 2048;
   cv::Mat mHistogram;
 
   /////////////////////////////////////////////////////
@@ -108,12 +120,13 @@ private:
   //// BRIGHTNESS /////////////////////////////////////////////////
   uint16_t mLowerValue       = 0;
   uint16_t mUpperValue       = UINT16_MAX;
-  float mHistogramZoomFactor = 1;
-  float mHistogramOffset     = 0;
+  uint16_t mDisplayAreaLower = 0;
+  uint16_t mDisplayAreaUpper = 0;
   QSize mOriginalImageSize;
 
   //// IMAGE /////////////////////////////////////////////////
-  cv::Mat *mImageOriginal = nullptr;
+  const cv::Mat *mImageOriginal = nullptr;
+  mutable std::mutex mLockMutex;
 };
 
 }    // namespace joda::image

@@ -14,9 +14,9 @@
 #pragma once
 
 #include <qwidget.h>
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
-#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_line_edit.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "rank_filter_settings.hpp"
 
@@ -27,7 +27,7 @@ class RankFilter : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Rank filter";
-  inline static std::string ICON              = "view-statistics";
+  inline static std::string ICON              = "chart-bar-horizontal";
   inline static std::string DESCRIPTION       = "Each pixel is set to the minimum, maximum or median value of its neighborhood.";
   inline static std::vector<std::string> TAGS = {"rank", "filter", "maximum", "minimum", "median"};
 
@@ -47,7 +47,7 @@ public:
 
     //
     //
-    mRadius = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("skrooge_type"), "Radius [0-256]");
+    mRadius = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Radius [0-256]");
     mRadius->setPlaceholderText("[0 - 256]");
     mRadius->setUnit("px");
     mRadius->setMinMax(0, 256);

@@ -16,10 +16,10 @@
 #include <qwidget.h>
 #include <cstdint>
 #include "backend/commands/command.hpp"
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_base.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
-#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_line_edit.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/setting_generator.hpp"
@@ -32,7 +32,7 @@ class Threshold : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Threshold";
-  inline static std::string ICON              = "edit-select-invert";
+  inline static std::string ICON              = "circle-half";
   inline static std::string DESCRIPTION       = "Converts a grayscale image to a binary image.";
   inline static std::vector<std::string> TAGS = {"threshold", "background", "binary", "otsu", "li", "triangle", "shanbhag"};
 
@@ -51,7 +51,7 @@ public:
       cnt++;
     }
 
-    auto *addFilter = addActionButton("Add threshold", generateSvgIcon("list-add"));
+    auto *addFilter = addActionButton("Add threshold", generateSvgIcon<Style::REGULAR, Color::BLACK>("list-plus"));
     connect(addFilter, &QAction::triggered, this, &Threshold::addFilter);
   }
 
@@ -97,7 +97,7 @@ private:
       //
       //
       //
-      mThresholdValueMin = SettingBase::create<SettingLineEdit<uint16_t>>(parent, generateSvgIcon("brightness-low"), "Min. threshold");
+      mThresholdValueMin = SettingBase::create<SettingLineEdit<uint16_t>>(parent, {}, "Min. threshold");
       mThresholdValueMin->setPlaceholderText("[0 - 65535]");
       mThresholdValueMin->setUnit("");
       mThresholdValueMin->setMinMax(0, 65535);
@@ -108,7 +108,7 @@ private:
       //
       //
       //
-      mThresholdValueMax = SettingBase::create<SettingLineEdit<uint16_t>>(parent, generateSvgIcon("brightness-high"), "Max. threshold");
+      mThresholdValueMax = SettingBase::create<SettingLineEdit<uint16_t>>(parent, {}, "Max. threshold");
       mThresholdValueMax->setPlaceholderText("[0 - 65535]");
       mThresholdValueMax->setUnit("");
       mThresholdValueMax->setMinMax(0, 65535);
@@ -119,7 +119,8 @@ private:
       //
       //
       //
-      mCValue = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("list-add"), "Auto contrast added const");
+      mCValue = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon<Style::REGULAR, Color::BLACK>("list-plus"),
+                                                              "Auto contrast added const");
       mCValue->setEmptyValue(0);
       mCValue->setPlaceholderText("[-32000 - +32000]");
       mCValue->setUnit("");

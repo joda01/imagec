@@ -17,11 +17,10 @@
 
 namespace joda::fs {
 
-static inline std::string EXT_DATABASE               = ".icdb";
-static inline std::string EXT_RESULTS_TABLE_SETTINGS = ".ictbl";
-static inline std::string EXT_PROJECT                = ".icproj";
-static inline std::string EXT_PROJECT_TEMPLATE       = ".ictemplproj";
-static inline std::string EXT_PIPELINE_TEMPLATE      = ".ictempl";
-static inline std::string EXT_CLASS_CLASS_TEMPLATE   = ".ictemplcc";
+static inline std::string EXT_DATABASE             = ".icdb";
+static inline std::string EXT_PROJECT              = ".icproj";
+static inline std::string EXT_PROJECT_TEMPLATE     = ".ictemplproj";
+static inline std::string EXT_PIPELINE_TEMPLATE    = ".ictempl";
+static inline std::string EXT_CLASS_CLASS_TEMPLATE = ".ictemplcc";
 
 }    // namespace joda::fs

@@ -18,11 +18,11 @@
 #include <string>
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
-#include "ui/gui/container/setting/setting_combobox_classes_out.hpp"
-#include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
-#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classes_out.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_multi_classification_in.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_line_edit.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/setting_generator.hpp"
@@ -35,7 +35,7 @@ class VoronoiGrid : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Voronoi";
-  inline static std::string ICON              = "kstars_grid";
+  inline static std::string ICON              = "circle";
   inline static std::string DESCRIPTION       = "Partition a plane into regions close to each of a given set of objects";
   inline static std::vector<std::string> TAGS = {"voronoi", "grid", "delaunay", "triangulation", "tessellation"};
 
@@ -46,7 +46,7 @@ public:
         "", [] {}, false);
     //
     //
-    pointsClasss = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateSvgIcon("snap-bounding-box-center"), "Centers");
+    pointsClasss = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, {}, "Centers");
     pointsClasss->setValue(settings.inputClassesPoints);
     pointsClasss->connectWithSetting(&settings.inputClassesPoints);
 
@@ -56,7 +56,7 @@ public:
 
     //
     //
-    mMaxRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("snap-nodes-center"), "Max. radius");
+    mMaxRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Max. radius");
     mMaxRadius->setPlaceholderText("[0 - ]");
     mMaxRadius->setUnit("px");
     mMaxRadius->setMinMax(0, INT32_MAX);
@@ -89,7 +89,7 @@ public:
 
     //
     //
-    mMinAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("skrooge_type"), "Min. area size");
+    mMinAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Min. area size");
     mMinAreaSize->setPlaceholderText("[0 - ]");
     mMinAreaSize->setUnit("px");
     mMinAreaSize->setMinMax(0, INT32_MAX);
@@ -99,7 +99,7 @@ public:
 
     //
     //
-    mMaxAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("skrooge_type"), "Max. area size");
+    mMaxAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Max. area size");
     mMaxAreaSize->setPlaceholderText("[0 - ]");
     mMaxAreaSize->setUnit("px");
     mMaxAreaSize->setMinMax(0, INT32_MAX);

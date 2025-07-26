@@ -15,19 +15,20 @@
 #include <exception>
 #include <filesystem>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include "backend/database/data/dashboard/data_dashboard.hpp"
+#include "backend/database/database.hpp"
+#include "backend/database/exporter/r/exporter_r.hpp"
+#include "backend/database/exporter/xlsx/exporter_xlsx.hpp"
+#include "backend/database/query/filter.hpp"
+#include "backend/database/query/query_for_image.hpp"
+#include "backend/database/query/query_for_well.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/types.hpp"
-#include "backend/helper/database/database.hpp"
-#include "backend/helper/database/exporter/r/exporter_r.hpp"
-#include "backend/helper/database/exporter/xlsx/exporter.hpp"
-#include "backend/helper/database/plugins/control_image.hpp"
-#include "backend/helper/database/plugins/filter.hpp"
-#include "backend/helper/database/plugins/stats_for_image.hpp"
-#include "backend/helper/database/plugins/stats_for_well.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/helper/reader/image_reader.hpp"
@@ -36,6 +37,8 @@
 #include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
+#include "backend/settings/results_settings/results_settings.hpp"
+#include "backend/settings/settings.hpp"
 #include <nlohmann/json_fwd.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
@@ -70,12 +73,37 @@ Controller::~Controller()
 ///
 /// \brief
 /// \author
+/// \param[in]
+/// \param[out]
 /// \return
 ///
-auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings) -> joda::thread::ThreadingSettings
+void Controller::initApplication()
+{
+  // ======================================
+  // Reserve system resources
+  // ======================================
+  auto systemRecourses   = joda::system::acquire();
+  int32_t totalRam       = std::ceil(static_cast<float>(systemRecourses.ramTotal) / 1000000.0f);
+  int32_t availableRam   = std::ceil(static_cast<float>(systemRecourses.ramAvailable) / 1000000.0f);
+  int32_t jvmReservedRam = std::ceil(static_cast<float>(systemRecourses.ramReservedForJVM) / 1000000.0f);
+
+  joda::log::logInfo("Total available RAM " + std::to_string(totalRam) + " MB.");
+  joda::log::logInfo("Usable RAM " + std::to_string(availableRam) + " MB.");
+  joda::log::logInfo("JVM reserved RAM " + std::to_string(jvmReservedRam) + " MB.");
+
+  joda::image::reader::ImageReader::init(systemRecourses.ramReservedForJVM);    // Costs ~50MB RAM
+}
+
+///
+/// \brief
+/// \author
+/// \return
+///
+auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::optional<joda::ome::OmeInfo> &imageOmeInfo)
+    -> joda::thread::ThreadingSettings
 {
   if(mWorkingDirectory.getNrOfFiles() > 0) {
-    return calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles());
+    return calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles(), imageOmeInfo);
   }
   return {};
 }
@@ -85,12 +113,17 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
 /// \author
 /// \return
 ///
-auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::filesystem::path &file, int nrOfFiles)
-    -> joda::thread::ThreadingSettings
+auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::filesystem::path &file, int nrOfFiles,
+                                         const std::optional<joda::ome::OmeInfo> &imageOmeInfo) -> joda::thread::ThreadingSettings
 {
   joda::thread::ThreadingSettings threads;
 
-  auto ome             = getImageProperties(file, settings.imageSetup.series);
+  joda::ome::OmeInfo ome;
+  if(!imageOmeInfo.has_value()) {
+    ome = getImageProperties(file, settings.imageSetup.series);
+  } else {
+    ome = imageOmeInfo.value();
+  }
   int64_t imgNr        = nrOfFiles;
   int64_t tileNr       = 1;
   int64_t pipelineNr   = settings.pipelines.size();
@@ -187,7 +220,7 @@ auto Controller::getNrOfFoundImages() -> uint32_t
 /// \author
 /// \return
 ///
-auto Controller::getListOfFoundImages() -> const std::map<uint8_t, std::vector<std::filesystem::path>> &
+auto Controller::getListOfFoundImages() const -> const std::vector<std::filesystem::path> &
 {
   return mWorkingDirectory.getFilesList();
 }
@@ -217,9 +250,9 @@ void Controller::stopLookingForFiles()
 /// \author
 /// \return
 ///
-void Controller::setWorkingDirectory(uint8_t plateNr, const std::filesystem::path &dir)
+void Controller::setWorkingDirectory(const std::filesystem::path &dir)
 {
-  mWorkingDirectory.setWorkingDirectory(plateNr, dir);
+  mWorkingDirectory.setWorkingDirectory(dir);
 }
 
 ///
@@ -236,8 +269,8 @@ void Controller::registerImageLookupCallback(const std::function<void(joda::file
 
 void Controller::preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
                          const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,
-                         const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY,
-                         Preview &previewOut, const joda::ome::OmeInfo &ome, const settings::ObjectInputClasses &classesToShow)
+                         const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, int32_t tStack,
+                         Preview &previewOut, const joda::ome::OmeInfo &ome, const settings::ObjectInputClassesExp &classesToHide)
 {
   static std::filesystem::path lastImagePath;
   static int32_t lastImageChannel = -1;
@@ -253,7 +286,7 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
 
   processor::Processor process;
   auto [originalImg, overlay, editedImageWithoutOverlay, thumb, foundObjects, validity] = process.generatePreview(
-      previewSettings, imageSetup, settings, threadSettings, pipeline, imagePath, 0, 0, tileX, tileY, generateThumb, ome, classesToShow);
+      previewSettings, imageSetup, settings, threadSettings, pipeline, imagePath, tStack, 0, tileX, tileY, generateThumb, ome, classesToHide);
   previewOut.originalImage.setImage(std::move(originalImg));
   previewOut.overlay.setImage(std::move(overlay));
   previewOut.editedImage.setImage(std::move(editedImageWithoutOverlay));
@@ -262,11 +295,13 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
   }
   previewOut.results.foundObjects.clear();
   for(const auto &[key, val] : foundObjects) {
-    previewOut.results.foundObjects[key].color = val.color;
-    previewOut.results.foundObjects[key].count = val.count;
+    previewOut.results.foundObjects[key].color    = val.color;
+    previewOut.results.foundObjects[key].count    = val.count;
+    previewOut.results.foundObjects[key].isHidden = classesToHide.contains(key);
   }
   previewOut.results.noiseDetected = validity.test(enums::ChannelValidityEnum::POSSIBLE_NOISE);
   previewOut.results.isOverExposed = validity.test(enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
+  previewOut.tStacks               = ome.getNrOfTStack(imageSetup.series);
 }
 
 ///
@@ -275,35 +310,53 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
 /// \return
 ///
 auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
-                           const joda::ome::TileToLoad &tileLoad, Preview &previewOut, joda::ome::OmeInfo &omeOut, const db::ObjectInfo &objInfo,
+                           const joda::ome::TileToLoad &tileLoad, Preview &previewOut, joda::ome::OmeInfo &omeOut, enums::ZProjection zProjection)
+    -> void
+{
+  static std::filesystem::path lastImagePath;
+
+  if(lastImagePath != imagePath) {
+    lastImagePath = imagePath;
+    omeOut        = joda::image::reader::ImageReader::getOmeInformation(imagePath, series);
+  }
+  loadImage(imagePath, series, imagePlane, tileLoad, previewOut, &omeOut, zProjection);
+}
+
+///
+/// \brief
+/// \author
+/// \return
+///
+auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
+                           const joda::ome::TileToLoad &tileLoad, Preview &previewOut, const joda::ome::OmeInfo *omeIn,
                            enums::ZProjection zProjection) -> void
 {
+  if(nullptr == omeIn) {
+    return;
+  }
   static std::filesystem::path lastImagePath;
   static joda::image::reader::ImageReader::Plane lastImagePlane = {-1, -1, -1};
   static joda::ome::TileToLoad lastImageTile                    = {-1};
   static int32_t lastImageSeries                                = -1;
   static enums::ZProjection lastZProjection                     = enums::ZProjection::UNDEFINED;
   bool generateThumb                                            = false;
-  bool loadImage                                                = false;
+  bool refreshImage                                             = false;
 
   if(imagePath != lastImagePath || previewOut.thumbnail.empty() || lastImagePlane != imagePlane || lastImageTile != tileLoad ||
      lastImageSeries != series || zProjection != lastZProjection) {
     lastImageSeries = series;
     lastImagePath   = imagePath;
     generateThumb   = true;
-    loadImage       = true;
+    refreshImage    = true;
     lastImagePlane  = imagePlane;
     lastImageTile   = tileLoad;
     lastZProjection = zProjection;
   }
 
-  if(loadImage || generateThumb) {
-    omeOut = joda::image::reader::ImageReader::getOmeInformation(imagePath, series);
-  }
-  if(loadImage) {
-    auto loadImageTile = [&tileLoad, series, &omeOut, &imagePath](int32_t z, int32_t c, int32_t t) {
+  if(refreshImage) {
+    auto loadImageTile = [&tileLoad, series, &omeIn, &imagePath](int32_t z, int32_t c, int32_t t) {
       return joda::image::reader::ImageReader::loadImageTile(imagePath.string(), joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t},
-                                                             series, 0, tileLoad, omeOut);
+                                                             series, 0, tileLoad, *omeIn);
     };
 
     //
@@ -313,6 +366,7 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
     int32_t z  = imagePlane.z;
     int32_t t  = imagePlane.t;
     auto image = loadImageTile(z, c, t);
+
     if(zProjection != enums::ZProjection::NONE && zProjection != enums::ZProjection::TAKE_MIDDLE) {
       auto max = [&loadImageTile, &image, c, t](int zIdx) { image = cv::max(image, loadImageTile(zIdx, c, t)); };
       auto min = [&loadImageTile, &image, c, t](int zIdx) { image = cv::min(image, loadImageTile(zIdx, c, t)); };
@@ -323,7 +377,7 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
       };
 
       std::function<void(int)> func;
-
+      auto imageType = image.type();
       switch(zProjection) {
         case enums::ZProjection::MAX_INTENSITY:
           func = max;
@@ -339,42 +393,26 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
           break;
       }
 
-      for(uint32_t zIdx = 1; zIdx < omeOut.getNrOfZStack(series); zIdx++) {
+      for(uint32_t zIdx = 1; zIdx < omeIn->getNrOfZStack(series); zIdx++) {
         func(zIdx);
       }
       // Avg intensity projection
       if(enums::ZProjection::AVG_INTENSITY == zProjection) {
-        image = image / omeOut.getNrOfZStack(series);
-        image.convertTo(image, CV_16UC1);    // no scaling
+        image = image / omeIn->getNrOfZStack(series);
+        image.convertTo(image, imageType);    // no scaling
       }
     }
 
-    previewOut.editedImage.setImage(std::move(image));
+    previewOut.originalImage.setImage(std::move(image));
   }
 
   if(generateThumb) {
-    auto thumb = joda::image::reader::ImageReader::loadThumbnail(imagePath.string(), imagePlane, series, omeOut);
+    auto thumb = joda::image::reader::ImageReader::loadThumbnail(imagePath.string(), imagePlane, series, *omeIn);
     previewOut.thumbnail.setImage(std::move(thumb));
   }
 
-  //
-  // Generate overlay
-  //
-  cv::Mat overlay =
-      cv::Mat::zeros(previewOut.editedImage.getOriginalImageSize().height(), previewOut.editedImage.getOriginalImageSize().width(), CV_8UC3);
-  auto drawCrosshair = [&](cv::Mat &image, const db::ObjectInfo &objInfo, cv::Scalar color = cv::Scalar(0, 255, 0), int thickness = 1) {
-    // Bring in the context of the tile
-    int32_t boxX = objInfo.measBoxX - tileLoad.tileX * tileLoad.tileWidth;
-    int32_t boxY = objInfo.measBoxY - tileLoad.tileY * tileLoad.tileHeight;
-
-    // Bounding box
-    cv::Point topLeft(boxX, boxY);
-    cv::Point bottomRight(boxX + objInfo.measBoxWidth, boxY + objInfo.measBoxHeight);
-    cv::rectangle(image, topLeft, bottomRight, color, thickness);
-  };
-  drawCrosshair(overlay, objInfo);
-  previewOut.overlay.setImage(std::move(overlay));
   previewOut.results.foundObjects.clear();
+  previewOut.tStacks = omeIn->getNrOfTStack(series);
 }
 
 ///
@@ -397,13 +435,14 @@ void Controller::start(const settings::AnalyzeSettings &settings, const joda::th
   if(mActThread.joinable()) {
     mActThread.join();
   }
-  setWorkingDirectory(settings.projectSettings.plates.begin()->plateId, settings.projectSettings.plates.begin()->imageFolder);
+  setWorkingDirectory(settings.projectSettings.plate.imageFolder);
   mWorkingDirectory.waitForFinished();
 
   mActProcessor.reset();
   mActProcessor = std::make_unique<processor::Processor>();
   mActThread    = std::thread([this, settings, jobName] {
-    mActProcessor->execute(settings, jobName, calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles()),
+    mActProcessor->execute(settings, jobName,
+                              calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles(), std::nullopt),
                               mWorkingDirectory);
   });
 }
@@ -518,11 +557,12 @@ auto Controller::populateClassesFromImage(const joda::ome::OmeInfo &omeInfo, int
 /// \author
 /// \return
 ///
-void Controller::exportData(const std::filesystem::path &pathToDbFile, settings::ResultsSettings &filter, const ExportSettings &settings,
-                            const std::filesystem::path &outputFilePath)
+void Controller::exportData(const std::filesystem::path &pathToDbFile, const joda::exporter::xlsx::ExportSettings &settings,
+                            const std::filesystem::path &outputFilePath, const std::optional<std::list<joda::settings::Class>> &classesList)
 {
   auto analyzer = std::make_unique<joda::db::Database>();
   analyzer->openDatabase(std::filesystem::path(pathToDbFile.string()));
+  auto experiment = analyzer->selectExperiment();
 
   if(outputFilePath.empty()) {
     return;
@@ -534,52 +574,77 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, settings:
       throw std::invalid_argument("Image with name >" + settings.filter.imageFileName + "< not found in database!");
     }
   }
-  filter.setFilter(settings.filter.plateId, settings.filter.groupId, {imageId});
+
+  // Filter options
+  settings::ResultsSettings filter;
+  if(!classesList.has_value()) {
+    // Use default settings
+    filter = nlohmann::json::parse(analyzer->selectResultsTableSettings(experiment.jobId));
+  } else {
+    // Generate settings
+    filter = joda::settings::Settings::toResultsSettings(
+        joda::settings::Settings::ResultSettingsInput{.classes             = {classesList->begin(), classesList->end()},
+                                                      .outputClasses       = analyzer->selectOutputClasses(),
+                                                      .intersectingClasses = analyzer->selectIntersectingClassForClasses(),
+                                                      .measuredChannels    = analyzer->selectMeasurementChannelsForClasses(),
+                                                      .distanceFromClasses = analyzer->selectDistanceClassForClasses()});
+  }
+  filter.setFilter(settings.filter.plateId, settings.filter.groupId, settings.filter.tStack, {imageId});
 
   joda::log::logInfo("Export started!");
   auto grouping = db::StatsPerGroup::Grouping::BY_IMAGE;
-  std::map<int32_t, joda::table::Table> dataToExport;
+  joda::table::Table dataToExport;
+  int32_t imgWidth  = 0;
+  int32_t imgHeight = 0;
   switch(settings.view) {
-    case ExportSettings::ExportView::PLATE: {
-      grouping = db::StatsPerGroup::Grouping::BY_PLATE;
-      if(ExportSettings::ExportFormat::LIST == settings.format) {
-        dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter, grouping);
-      } else {
-        dataToExport = joda::db::StatsPerGroup::toHeatmap(analyzer.get(), filter, grouping);
-      }
+    case exporter::xlsx::ExportSettings::ExportView::PLATE: {
+      grouping     = db::StatsPerGroup::Grouping::BY_PLATE;
+      dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter, grouping);
     } break;
-    case ExportSettings::ExportView::WELL:
-      grouping = db::StatsPerGroup::Grouping::BY_WELL;
-      if(ExportSettings::ExportFormat::LIST == settings.format) {
-        dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter, grouping);
-      } else {
-        dataToExport = joda::db::StatsPerGroup::toHeatmap(analyzer.get(), filter, grouping);
-      }
+    case exporter::xlsx::ExportSettings::ExportView::WELL:
+      grouping     = db::StatsPerGroup::Grouping::BY_WELL;
+      dataToExport = joda::db::StatsPerGroup::toTable(analyzer.get(), filter, grouping);
       break;
-    case ExportSettings::ExportView::IMAGE:
-      grouping = db::StatsPerGroup::Grouping::BY_IMAGE;
-      if(ExportSettings::ExportFormat::LIST == settings.format) {
-        dataToExport = joda::db::StatsPerImage::toTable(analyzer.get(), filter);
-      } else {
-        dataToExport = joda::db::StatsPerImage::toHeatmap(analyzer.get(), filter);
-      }
+    case exporter::xlsx::ExportSettings::ExportView::IMAGE:
+      auto image   = analyzer->selectImageInfo(imageId);
+      imgWidth     = image.width;
+      imgHeight    = image.height;
+      grouping     = db::StatsPerGroup::Grouping::BY_IMAGE;
+      dataToExport = joda::db::StatsPerImage::toTable(analyzer.get(), filter);
       break;
   }
 
-  auto experiment                           = analyzer->selectExperiment();
   settings::AnalyzeSettings analyzeSettings = nlohmann::json::parse(experiment.analyzeSettingsJsonString);
 
-  if(settings.type == ExportSettings::ExportType::XLSX) {
-    if(ExportSettings::ExportFormat::HEATMAP == settings.format) {
-      joda::db::BatchExporter::startExportHeatmap(dataToExport, analyzeSettings, experiment.jobName, experiment.timestampStart,
-                                                  experiment.timestampFinish, outputFilePath.string());
-    } else {
-      joda::db::BatchExporter::startExportList(dataToExport, analyzeSettings, experiment.jobName, experiment.timestampStart,
-                                               experiment.timestampFinish, outputFilePath.string());
+  if(settings.format == exporter::xlsx::ExportSettings::ExportFormat::XLSX) {
+    if(exporter::xlsx::ExportSettings::ExportStyle::LIST == settings.style) {
+      joda::db::data::Dashboard dashboard;
+      auto colocClasses    = analyzer->selectColocalizingClasses();
+      auto tmp             = std::shared_ptr<joda::table::Table>(&dataToExport, [](joda::table::Table *) { /* no delete */ });
+      auto retValDashboard = dashboard.convert(tmp, colocClasses, settings.view == exporter::xlsx::ExportSettings::ExportView::IMAGE);
+      std::vector<const exporter::Exportable *> retVal;
+      for(const auto &[_, data] : retValDashboard) {
+        retVal.emplace_back(data.get());
+      }
+      joda::exporter::xlsx::Exporter::startExport(retVal, analyzeSettings, experiment.jobName, experiment.timestampStart, experiment.timestampFinish,
+                                                  outputFilePath.string());
+
+    } else if(exporter::xlsx::ExportSettings::ExportStyle::HEATMAP == settings.style) {
+      joda::exporter::xlsx::Exporter::startHeatmapExport({&dataToExport}, analyzeSettings, experiment.jobName, experiment.timestampStart,
+                                                         experiment.timestampFinish, outputFilePath.string(), filter, settings.view, imgHeight,
+                                                         imgWidth);
     }
   } else {
-    joda::db::RExporter::startExport(filter, grouping, analyzeSettings, experiment.jobName, experiment.timestampStart, experiment.timestampFinish,
-                                     outputFilePath.string());
+    joda::db::data::Dashboard dashboard;
+    auto colocClasses    = analyzer->selectColocalizingClasses();
+    auto tmp             = std::shared_ptr<joda::table::Table>(&dataToExport, [](joda::table::Table *) { /* no delete */ });
+    auto retValDashboard = dashboard.convert(tmp, colocClasses, settings.view == exporter::xlsx::ExportSettings::ExportView::IMAGE);
+    std::vector<const exporter::Exportable *> retVal;
+    for(const auto &[_, data] : retValDashboard) {
+      retVal.emplace_back(data.get());
+    }
+    joda::exporter::r::Exporter::startExport(retVal, analyzeSettings, experiment.jobName, experiment.timestampStart, experiment.timestampFinish,
+                                             outputFilePath.string());
   }
   joda::log::logInfo("Export finished!");
 }

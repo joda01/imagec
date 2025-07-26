@@ -18,13 +18,13 @@
 #include <cstdint>
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_base.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
-#include "ui/gui/container/setting/setting_combobox_classes_out.hpp"
-#include "ui/gui/container/setting/setting_combobox_classification_in.hpp"
-#include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
-#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classes_out.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classification_in.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_multi_classification_in.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_line_edit.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/setting_generator.hpp"
 #include "enhance_contrast_settings.hpp"
@@ -36,7 +36,7 @@ class EnhanceContrast : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Enhance contrast";
-  inline static std::string ICON              = "lighttable";
+  inline static std::string ICON              = "circle-half-tilt";
   inline static std::string DESCRIPTION       = "Enhance the contrast of an image.";
   inline static std::vector<std::string> TAGS = {"contrast", "enhancement", "normalize", "equalize histogram"};
 
@@ -48,7 +48,7 @@ public:
 
     //
     //
-    mSaturatedPixels = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("gnumeric-format-percentage"), "Saturated pixels [0-1]");
+    mSaturatedPixels = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Saturated pixels [0-1]");
     mSaturatedPixels->setPlaceholderText("[0 - 1]");
     mSaturatedPixels->setUnit("%");
     mSaturatedPixels->setMinMax(0, 1);

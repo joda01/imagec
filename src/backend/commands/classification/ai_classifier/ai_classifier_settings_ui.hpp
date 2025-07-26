@@ -21,12 +21,12 @@
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/helper/ai_model_parser/ai_model_parser.hpp"
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
-#include "ui/gui/container/setting/setting_combobox_classes_out.hpp"
-#include "ui/gui/container/setting/setting_combobox_string.hpp"
-#include "ui/gui/container/setting/setting_line_edit.hpp"
-#include "ui/gui/container/setting/setting_spinbox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classes_out.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_string.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_line_edit.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_spinbox.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/setting_generator.hpp"
@@ -39,7 +39,7 @@ class AiClassifier : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "AI Classifier";
-  inline static std::string ICON              = "kstars_supernovae";    // application-dicom
+  inline static std::string ICON              = "brain";    // application-dicom
   inline static std::string DESCRIPTION       = "Extract objects from an image using AI.";
   inline static std::vector<std::string> TAGS = {"classifier", "classify", "objects", "ai", "feature extraction", "pattern recognition"};
 
@@ -66,7 +66,7 @@ private:
 
       //
       //
-      mMinParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("skrooge_type"), "Min particle size");
+      mMinParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Min particle size");
       mMinParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
       mMinParticleSize->setUnit("px");
       mMinParticleSize->setMinMax(0, INT32_MAX);
@@ -75,7 +75,7 @@ private:
       mMinParticleSize->setShortDescription("Min. ");
       //
       //
-      mMaxParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("skrooge_type"), "Max particle size");
+      mMaxParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Max particle size");
       mMaxParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
       mMaxParticleSize->setUnit("px");
       mMaxParticleSize->setMinMax(0, INT32_MAX);
@@ -85,7 +85,8 @@ private:
 
       //
       //
-      mMinCircularity = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("choice-round"), "Circularity [0-1]");
+      mMinCircularity =
+          SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon<Style::REGULAR, Color::BLACK>("circle"), "Circularity [0-1]");
       mMinCircularity->setPlaceholderText("[0 - 1]");
       mMinCircularity->setUnit("%");
       mMinCircularity->setMinMax(0, 1);
@@ -127,7 +128,7 @@ private:
 
       //
       //
-      mMinIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-low"), "Min intensity");
+      mMinIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Min intensity");
       mMinIntensity->setPlaceholderText("[0 - 65535]");
       mMinIntensity->setUnit("");
       mMinIntensity->setMinMax(0, INT32_MAX);
@@ -136,7 +137,7 @@ private:
       mMinIntensity->setShortDescription("Min. ");
       //
       //
-      mMaxIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-high"), "Max intensity");
+      mMaxIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Max intensity");
       mMaxIntensity->setPlaceholderText("[0 - 65535]");
       mMaxIntensity->setUnit("");
       mMaxIntensity->setMinMax(0, INT32_MAX);

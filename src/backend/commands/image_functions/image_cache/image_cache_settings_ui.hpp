@@ -17,9 +17,9 @@
 #include "backend/commands/command.hpp"
 #include "backend/commands/image_functions/image_cache/image_cache_settings.hpp"
 #include "backend/enums/enum_memory_idx.hpp"
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
-#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_line_edit.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "image_cache.hpp"
@@ -31,7 +31,7 @@ class ImageCache : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Image cache";
-  inline static std::string ICON              = "edit-paste";
+  inline static std::string ICON              = "clipboard";
   inline static std::string DESCRIPTION       = "Store or load an image to cache for later use.";
   inline static std::vector<std::string> TAGS = {"cache", "store", "load"};
 
@@ -42,7 +42,7 @@ public:
     //
     //
     //
-    mMemoryIdx = SettingBase::create<SettingComboBox<enums::MemoryIdx::Enum>>(parent, generateSvgIcon("labplot-matrix"), "Cache");
+    mMemoryIdx = SettingBase::create<SettingComboBox<enums::MemoryIdx::Enum>>(parent, {}, "Cache");
     mMemoryIdx->addOptions({{enums::MemoryIdx::M0, "M0"},
                             {enums::MemoryIdx::M1, "M1"},
                             {enums::MemoryIdx::M2, "M2"},
@@ -58,13 +58,13 @@ public:
     mMemoryIdx->connectWithSetting(&settings.memoryId);
     mMemoryIdx->setShortDescription("Cache: ");
 
-    mMemoryScope = SettingBase::create<SettingComboBox<enums::MemoryScope>>(parent, generateSvgIcon("labplot-matrix"), "Storage scope");
+    mMemoryScope = SettingBase::create<SettingComboBox<enums::MemoryScope>>(parent, {}, "Storage scope");
     mMemoryScope->addOptions({{enums::MemoryScope::PIPELINE, "Pipeline"}, {enums::MemoryScope::ITERATION, "Iteration"}});
     mMemoryScope->setValue(settings.memoryScope);
     mMemoryScope->connectWithSetting(&settings.memoryScope);
     mMemoryScope->setShortDescription("");
 
-    mMode = SettingBase::create<SettingComboBox<settings::ImageCacheSettings::Mode>>(parent, generateSvgIcon("labplot-matrix"), "Cache");
+    mMode = SettingBase::create<SettingComboBox<settings::ImageCacheSettings::Mode>>(parent, {}, "Cache");
     mMode->addOptions({
         {settings::ImageCacheSettings::Mode::STORE, "Store"},
         {settings::ImageCacheSettings::Mode::LOAD, "Load"},

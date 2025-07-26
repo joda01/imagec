@@ -31,6 +31,7 @@ public:
   EnhanceContrast(const settings::EnhanceContrastSettings &);
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
   static auto equalize(cv::Mat &histogram) -> std::array<int32_t, UINT16_MAX + 1>;
+  static auto findContrastStretchBounds(const cv::Mat &hist, double percentage = 0.01) -> std::pair<int, int>;
 
 private:
   /////////////////////////////////////////////////////

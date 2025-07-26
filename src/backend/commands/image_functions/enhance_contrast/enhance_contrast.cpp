@@ -199,6 +199,56 @@ auto EnhanceContrast::equalize(cv::Mat &histogram) -> std::array<int32_t, UINT16
 
 ///
 /// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+std::pair<int, int> EnhanceContrast::findContrastStretchBounds(const cv::Mat &hist, double percentage)
+{
+  CV_Assert(hist.type() == CV_32F || hist.type() == CV_64F);
+  int histSize = hist.rows * hist.cols;    // Usually 65536 for 16-bit
+
+  // Normalize histogram to sum to 1
+  cv::Mat histNorm;
+  hist.convertTo(histNorm, CV_64F);
+  double total = cv::sum(histNorm)[0];
+  histNorm /= total;
+
+  // Compute cumulative distribution function (CDF)
+  std::vector<double> cdf(histSize, 0.0);
+  cdf[0] = histNorm.at<double>(0);
+  for(int i = 1; i < histSize; i++) {
+    cdf[i] = cdf[i - 1] + histNorm.at<double>(i);
+  }
+
+  double lower_thresh = percentage;
+  double upper_thresh = 1.0 - percentage;
+
+  int low  = 0;
+  int high = histSize - 1;
+
+  // Find lower bound
+  for(int i = 0; i < histSize; ++i) {
+    if(cdf[i] >= lower_thresh) {
+      low = i;
+      break;
+    }
+  }
+
+  // Find upper bound
+  for(int i = histSize - 1; i >= 0; --i) {
+    if(cdf[i] <= upper_thresh) {
+      high = i;
+      break;
+    }
+  }
+
+  return {low, high};
+}
+
+///
+/// \brief
 /// \author
 /// \param[in]
 /// \param[out]

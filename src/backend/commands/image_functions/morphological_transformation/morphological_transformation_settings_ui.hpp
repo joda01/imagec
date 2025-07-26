@@ -18,13 +18,13 @@
 #include <cstdint>
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_base.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
-#include "ui/gui/container/setting/setting_combobox_classes_out.hpp"
-#include "ui/gui/container/setting/setting_combobox_classification_in.hpp"
-#include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
-#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classes_out.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classification_in.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_multi_classification_in.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_line_edit.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/setting_generator.hpp"
 #include "morphological_transformation_settings.hpp"
@@ -36,7 +36,7 @@ class MorphologicalTransform : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Morphological Transform";
-  inline static std::string ICON              = "distribute-graph";
+  inline static std::string ICON              = "hexagon";
   inline static std::string DESCRIPTION       = "Simple operations based on the image shape.";
   inline static std::vector<std::string> TAGS = {"transform", "morphological", "erosion",  "erode",   "dilation",  "dilate",
                                                  "open",      "close",         "gradient", "top hat", "black hat", "hitmiss"};
@@ -73,9 +73,9 @@ public:
     //
     mShape = SettingBase::create<SettingComboBox<joda::settings::MorphologicalTransformSettings::Shape>>(parent, {}, "Shape");
     mShape->addOptions({
-        {.key = joda::settings::MorphologicalTransformSettings::Shape::ELLIPSE, .label = "Ellipse", .icon = generateSvgIcon("draw-ellipse")},
-        {.key = joda::settings::MorphologicalTransformSettings::Shape::RECTANGLE, .label = "Rectangle", .icon = generateSvgIcon("draw-rectangle")},
-        {.key = joda::settings::MorphologicalTransformSettings::Shape::CROSS, .label = "Cross", .icon = generateSvgIcon("draw-cross")},
+        {.key = joda::settings::MorphologicalTransformSettings::Shape::ELLIPSE, .label = "Ellipse", .icon = {}},
+        {.key = joda::settings::MorphologicalTransformSettings::Shape::RECTANGLE, .label = "Rectangle", .icon = {}},
+        {.key = joda::settings::MorphologicalTransformSettings::Shape::CROSS, .label = "Cross", .icon = {}},
     });
 
     mShape->setValue(settings.shape);
@@ -84,7 +84,7 @@ public:
     //
     //
     //
-    mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, generateSvgIcon("labplot-matrix"), "Kernel size");
+    mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, "Kernel size");
     mKernelSize->addOptions({{-1, "Off"},
                              {3, "3x3"},
                              {5, "5x5"},
@@ -103,7 +103,7 @@ public:
 
     //
     //
-    mIterations = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("skrooge_type"), "Iterations [1-256]");
+    mIterations = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Iterations [1-256]");
     mIterations->setPlaceholderText("[1 - 256]");
     mIterations->setUnit("x");
     mIterations->setMinMax(-1, 256);

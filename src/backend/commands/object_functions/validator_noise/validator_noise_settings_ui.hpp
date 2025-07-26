@@ -17,10 +17,10 @@
 #include <cstdint>
 #include <string>
 #include "backend/commands/command.hpp"
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
-#include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
-#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_multi_classification_in.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_line_edit.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/setting_generator.hpp"
@@ -33,14 +33,15 @@ class NoiseValidator : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Noise filter";
-  inline static std::string ICON              = "view-filter";
+  inline static std::string ICON              = "funnel";
   inline static std::string DESCRIPTION       = "Exclude noise images from statistics.";
   inline static std::vector<std::string> TAGS = {"filter", "noise"};
 
   NoiseValidator(joda::settings::PipelineStep &pipelineStep, settings::NoiseValidatorSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}})
   {
-    mClassesIn = SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateSvgIcon("choice-round"), "Input class");
+    mClassesIn =
+        SettingBase::create<SettingComboBoxMultiClassificationIn>(parent, generateSvgIcon<Style::REGULAR, Color::BLACK>("circle"), "Input class");
     mClassesIn->setValue(settings.inputClasses);
     mClassesIn->connectWithSetting(&settings.inputClasses);
 

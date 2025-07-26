@@ -48,10 +48,10 @@ public:
     stop();
   }
 
-  void setWorkingDirectory(uint8_t group, const std::filesystem::path &inputFolder);
-  inline std::string getWorkingDirectory(uint8_t group)
+  void setWorkingDirectory(const std::filesystem::path &inputFolder);
+  inline std::string getWorkingDirectory()
   {
-    return mWorkingDirectory[group].string();
+    return mWorkingDirectory.string();
   }
 
   ///
@@ -88,7 +88,7 @@ public:
   /// \brief      Returns list of found files
   /// \author     Joachim Danmayr
   ///
-  [[nodiscard]] auto getFilesList() const -> const std::map<uint8_t, std::vector<std::filesystem::path>> &
+  [[nodiscard]] auto getFilesList() const -> const std::vector<std::filesystem::path> &
   {
     return mListOfImagePaths;
   }
@@ -99,11 +99,10 @@ public:
   ///
   [[nodiscard]] auto gitFirstFile() const -> std::filesystem::path
   {
-    for(const auto &[_, list] : mListOfImagePaths) {
-      for(const auto &path : list) {
-        return path;
-      }
+    for(const auto &path : mListOfImagePaths) {
+      return path;
     }
+
     return {};
   }
 
@@ -111,18 +110,18 @@ public:
   /// \brief      Returns list of found files
   /// \author     Joachim Danmayr
   ///
-  [[nodiscard]] auto getFilesListAt(uint8_t group) const -> const std::vector<std::filesystem::path> &
+  [[nodiscard]] auto getFilesListAt() const -> const std::vector<std::filesystem::path> &
   {
-    return mListOfImagePaths.at(group);
+    return mListOfImagePaths;
   }
 
   ///
   /// \brief      Returns list of found files
   /// \author     Joachim Danmayr
   ///
-  [[nodiscard]] auto getDirectoryAt(uint8_t group) const -> std::filesystem::path
+  [[nodiscard]] auto getDirectoryAt() const -> std::filesystem::path
   {
-    return mWorkingDirectory.at(group);
+    return mWorkingDirectory;
   }
 
   ///
@@ -131,11 +130,7 @@ public:
   ///
   [[nodiscard]] auto getNrOfFiles() const -> uint32_t
   {
-    uint32_t size = 0;
-    for(const auto [_, list] : mListOfImagePaths) {
-      size += list.size();
-    }
-    return size;
+    return mListOfImagePaths.size();
   }
 
   ///
@@ -159,8 +154,8 @@ private:
   /////////////////////////////////////////////////////
   std::vector<std::function<void(State)>> mCallbacks;
   std::set<std::string> mSupportedFormats;
-  std::map<uint8_t, std::filesystem::path> mWorkingDirectory;
-  std::map<uint8_t, std::vector<std::filesystem::path>> mListOfImagePaths;
+  std::filesystem::path mWorkingDirectory;
+  std::vector<std::filesystem::path> mListOfImagePaths;
   bool mIsStopped = false;
   bool mIsRunning = false;
   std::unique_ptr<std::thread> mWorkerThread;

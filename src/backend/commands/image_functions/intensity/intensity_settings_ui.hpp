@@ -15,9 +15,9 @@
 
 #include <qwidget.h>
 #include "backend/commands/command.hpp"
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
-#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_line_edit.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "intensity_settings.hpp"
@@ -29,7 +29,7 @@ class IntensityTransformation : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Intensity";
-  inline static std::string ICON              = "contrast";
+  inline static std::string ICON              = "sun";
   inline static std::string DESCRIPTION       = "Adjust image contrast and brightness";
   inline static std::vector<std::string> TAGS = {"contrast", "brightness", "adjust"};
 
@@ -47,7 +47,7 @@ public:
     //
     //
     //
-    mContrast = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("lighttable"), "Contrast");
+    mContrast = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Contrast");
     mContrast->setValue(settings.contrast);
     mContrast->connectWithSetting(&settings.contrast);
     mContrast->setPlaceholderText("[1-65535]");
@@ -56,7 +56,7 @@ public:
     //
     //
     //
-    mBrightness = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-high"), "Brightness");
+    mBrightness = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Brightness");
     mBrightness->setValue(settings.brightness);
     mBrightness->connectWithSetting(&settings.brightness);
     mBrightness->setPlaceholderText("[-32768, +32767]");
@@ -65,7 +65,7 @@ public:
     //
     //
     //
-    mGamma = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("labplot-matrix"), "Gamma");
+    mGamma = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Gamma");
     mGamma->setValue(settings.gamma);
     mGamma->connectWithSetting(&settings.gamma);
     mGamma->setShortDescription("Gamma: ");

@@ -18,13 +18,13 @@
 #include <cstdint>
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_base.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
-#include "ui/gui/container/setting/setting_combobox_classes_out.hpp"
-#include "ui/gui/container/setting/setting_combobox_classification_in.hpp"
-#include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
-#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classes_out.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classification_in.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_multi_classification_in.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_line_edit.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/setting_generator.hpp"
 #include "image_math_settings.hpp"
@@ -36,7 +36,7 @@ class ImageMath : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Image math";
-  inline static std::string ICON              = "insert-math-expression";
+  inline static std::string ICON              = "math-operations";
   inline static std::string DESCRIPTION       = "Apply basic mathematical operations on one or two images.";
   inline static std::vector<std::string> TAGS = {"invert", "math", "subtract", "add", "plus", "minus"};
 
@@ -108,7 +108,7 @@ public:
     //
     //
     //
-    mMemoryScope = SettingBase::create<SettingComboBox<enums::MemoryScope>>(parent, generateSvgIcon("labplot-matrix"), "Storage scope");
+    mMemoryScope = SettingBase::create<SettingComboBox<enums::MemoryScope>>(parent, {}, "Storage scope");
     mMemoryScope->addOptions({{enums::MemoryScope::PIPELINE, "Pipeline"}, {enums::MemoryScope::ITERATION, "Iteration"}});
     mMemoryScope->setValue(settings.memoryScope);
     mMemoryScope->connectWithSetting(&settings.memoryScope);
@@ -117,7 +117,7 @@ public:
     //
     //
     //
-    mMemoryIdx = SettingBase::create<SettingComboBox<enums::MemoryIdx::Enum>>(parent, generateSvgIcon("labplot-matrix"), "From cache");
+    mMemoryIdx = SettingBase::create<SettingComboBox<enums::MemoryIdx::Enum>>(parent, {}, "From cache");
     mMemoryIdx->addOptions({{enums::MemoryIdx::NONE, "None"},
                             {enums::MemoryIdx::M0, "M0"},
                             {enums::MemoryIdx::M1, "M1"},

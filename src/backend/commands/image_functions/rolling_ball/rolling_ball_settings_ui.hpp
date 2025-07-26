@@ -14,9 +14,9 @@
 #pragma once
 
 #include <qwidget.h>
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
-#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_line_edit.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "rolling_ball_settings.hpp"
 
@@ -27,7 +27,7 @@ class RollingBallBackground : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Rolling ball";
-  inline static std::string ICON              = "kstars_horizon";    // blur
+  inline static std::string ICON              = "sphere";    // blur
   inline static std::string DESCRIPTION       = "Remove image background.";
   inline static std::vector<std::string> TAGS = {"noise reduction", "background subtraction", "noise"};
 
@@ -36,8 +36,7 @@ public:
   {
     //
     //
-    mBallType =
-        SettingBase::create<SettingComboBox<joda::settings::RollingBallSettings::BallType>>(parent, generateSvgIcon("kstars_horizon"), "Ball type");
+    mBallType = SettingBase::create<SettingComboBox<joda::settings::RollingBallSettings::BallType>>(parent, {}, "Ball type");
     mBallType->addOptions(
         {{joda::settings::RollingBallSettings::BallType::BALL, "Ball"}, {joda::settings::RollingBallSettings::BallType::PARABOLOID, "Paraboloid"}});
     mBallType->setValue(settings.ballType);
@@ -45,7 +44,7 @@ public:
 
     //
     //
-    mBallSize = SettingBase::create<SettingLineEdit<int>>(parent, generateSvgIcon("skrooge_type"), "Ball size [0-256]");
+    mBallSize = SettingBase::create<SettingLineEdit<int>>(parent, {}, "Ball size [0-256]");
     mBallSize->setPlaceholderText("[0 - 256]");
     mBallSize->setUnit("px");
     mBallSize->setMinMax(0, 256);

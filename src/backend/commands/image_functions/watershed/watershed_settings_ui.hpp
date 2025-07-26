@@ -15,8 +15,8 @@
 
 #include <qwidget.h>
 #include "backend/commands/command.hpp"
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "watershed_settings.hpp"
@@ -28,7 +28,7 @@ class Watershed : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Watershed";
-  inline static std::string ICON              = "pixelate";
+  inline static std::string ICON              = "chart-pie-slice";
   inline static std::string DESCRIPTION       = "Trys to separate clustered objects.";
   inline static std::vector<std::string> TAGS = {"watershed", "object separation", "separation"};
 

@@ -31,9 +31,11 @@ struct ObjectTransformSettings : public SettingBase
   {
     UNKNOWN,
     SCALE,
-    SNAP_AREA,      // Use the object size and paint a circle with object_size+factor around it.
-    MIN_CIRCLE,     // Paint a circle around the object with at least this radius. If the object is bigger, the object size is used.
-    EXACT_CIRCLE    // Paint a circle with exact the given radius.
+    SNAP_AREA,       // Use the object size and paint a circle with object_size+factor around it.
+    MIN_CIRCLE,      // Paint a circle around the object with at least this radius. If the object is bigger, the object size is used.
+    EXACT_CIRCLE,    // Paint a circle with exact the given radius.
+    FIT_ELLIPSE      // Paint a ellipse fitting the contour of the element.
+
   };
 
   //
@@ -84,7 +86,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ObjectTransformSettings::Function, {
                                                                     {ObjectTransformSettings::Function::SNAP_AREA, "SnapArea"},
                                                                     {ObjectTransformSettings::Function::MIN_CIRCLE, "CircleMin"},
                                                                     {ObjectTransformSettings::Function::EXACT_CIRCLE, "Circle"},
-
+                                                                    {ObjectTransformSettings::Function::FIT_ELLIPSE, "FitEllipse"},
                                                                 });
 
 }    // namespace joda::settings

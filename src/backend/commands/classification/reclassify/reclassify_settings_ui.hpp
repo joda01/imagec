@@ -19,12 +19,12 @@
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
 
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_base.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
-#include "ui/gui/container/setting/setting_combobox_classes_out.hpp"
-#include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
-#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classes_out.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_multi_classification_in.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_line_edit.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/setting_generator.hpp"
 #include "reclassify_settings.hpp"
@@ -36,7 +36,7 @@ class Reclassify : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Reclassify";
-  inline static std::string ICON              = "exchange-positions-clockwise";
+  inline static std::string ICON              = "swap";
   inline static std::string DESCRIPTION       = "Change the classification of objects based on different parameters.";
   inline static std::vector<std::string> TAGS = {"classification", "reclassify", "copy", "move", "incell", "is in"};
 
@@ -55,9 +55,8 @@ public:
     mClassesIn->connectWithSetting(&settings.inputClasses);
 
     mMode = SettingBase::create<SettingComboBox<joda::settings::ReclassifySettings::Mode>>(parent, {}, "Mode");
-    mMode->addOptions(
-        {{.key = joda::settings::ReclassifySettings::Mode::RECLASSIFY_MOVE, .label = "Reclassify Move", .icon = generateSvgIcon("edit-move")},
-         {.key = joda::settings::ReclassifySettings::Mode::RECLASSIFY_COPY, .label = "Reclassify Copy", .icon = generateSvgIcon("edit-copy")}});
+    mMode->addOptions({{.key = joda::settings::ReclassifySettings::Mode::RECLASSIFY_MOVE, .label = "Reclassify Move", .icon = {}},
+                       {.key = joda::settings::ReclassifySettings::Mode::RECLASSIFY_COPY, .label = "Reclassify Copy", .icon = {}}});
     mMode->setValue(settings.mode);
     mMode->connectWithSetting(&settings.mode);
 
@@ -74,7 +73,7 @@ public:
     mClassesIntersectWith->setValue(settings.intersection.inputClassesIntersectWith);
     mClassesIntersectWith->connectWithSetting(&settings.intersection.inputClassesIntersectWith);
 
-    mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("format-number-percent"), "Min. intersection");
+    mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Min. intersection");
     mMinIntersection->setDefaultValue(0.1);
     mMinIntersection->setPlaceholderText("[0 - 1]");
     mMinIntersection->setUnit("%");
@@ -91,15 +90,10 @@ public:
     mFilterLogic->connectWithSetting(&settings.intersection.filterLogic);
 
     mHierarchyMode = SettingBase::create<SettingComboBox<joda::settings::ReclassifySettings::HierarchyHandling>>(parent, {}, "Hierarchy mode");
-    mHierarchyMode->addOptions({{.key   = joda::settings::ReclassifySettings::HierarchyHandling::CREATE_TREE,
-                                 .label = "Create hierarchy tree",
-                                 .icon  = generateSvgIcon("view-list-tree")},
-                                {.key   = joda::settings::ReclassifySettings::HierarchyHandling::KEEP_EXISTING,
-                                 .label = "Keep existing tree",
-                                 .icon  = generateSvgIcon("view-list-tree")},
-                                {.key   = joda::settings::ReclassifySettings::HierarchyHandling::REMOVE,
-                                 .label = "Remove tree information",
-                                 .icon  = generateSvgIcon("view-list-tree")}});
+    mHierarchyMode->addOptions(
+        {{.key = joda::settings::ReclassifySettings::HierarchyHandling::CREATE_TREE, .label = "Create hierarchy tree", .icon = {}},
+         {.key = joda::settings::ReclassifySettings::HierarchyHandling::KEEP_EXISTING, .label = "Keep existing tree", .icon = {}},
+         {.key = joda::settings::ReclassifySettings::HierarchyHandling::REMOVE, .label = "Remove tree information", .icon = {}}});
     mHierarchyMode->setValue(settings.hierarchyMode);
     mHierarchyMode->connectWithSetting(&settings.hierarchyMode);
 
@@ -112,7 +106,7 @@ public:
     //
     // Intensity filter
     //
-    mMinIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-low"), "Min intensity");
+    mMinIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Min intensity");
     mMinIntensity->setPlaceholderText("[0 - 65535]");
     mMinIntensity->setUnit("");
     mMinIntensity->setMinMax(0, INT32_MAX);
@@ -121,7 +115,7 @@ public:
     mMinIntensity->setShortDescription("Min. ");
     //
     //
-    mMaxIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-high"), "Max intensity");
+    mMaxIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Max intensity");
     mMaxIntensity->setPlaceholderText("[0 - 65535]");
     mMaxIntensity->setUnit("");
     mMaxIntensity->setMinMax(0, INT32_MAX);

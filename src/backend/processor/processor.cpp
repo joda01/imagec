@@ -17,12 +17,12 @@
 #include <thread>
 #include "backend/commands/image_functions/image_saver/image_saver.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
+#include "backend/database/database.hpp"
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/enums/enums_grouping.hpp"
-#include "backend/helper/database/database.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/file_grouper/file_grouper.hpp"
 #include "backend/helper/helper.hpp"
@@ -86,15 +86,16 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
     //
     // Iterate over each plate and analyze the images
     //
-    auto &db = globalContext.database;
-    for(const auto &plate : program.projectSettings.plates) {
+    auto &db          = globalContext.database;
+    const auto &plate = program.projectSettings.plate;
+    {
       BS::multi_future<void> imageFutures;
       PlateContext plateContext{.plateId = plate.plateId};
-      const auto &images = allImages.getFilesListAt(plate.plateId);
+      const auto &images = allImages.getFilesListAt();
 
       mProgress.setRunningPreparingPipeline();
       auto imagesToProcess = db->prepareImages(plate.plateId, program.imageSetup.series, plate.groupBy, plate.filenameRegex, images,
-                                               allImages.getDirectoryAt(plate.plateId), mGlobThreadPool);
+                                               allImages.getDirectoryAt(), mGlobThreadPool);
       mProgress.setStateRunning();
 
       //
@@ -115,7 +116,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
           auto nrzSTack         = imageLoader.getNrOfZStacksToProcess();
           auto nrChannels       = omeInfo.getNrOfChannels(imageContext.series);
 
-          mProgress.setTotalNrOfTiles(mProgress.totalImages() * tilesX * tilesY);
+          mProgress.setTotalNrOfTiles(mProgress.totalImages() * tilesX * tilesY * nrtStack);
           BS::multi_future<void> tilesFutures;
 
           for(int tileX = 0; tileX < tilesX; tileX++) {
@@ -130,7 +131,17 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
               auto analyzeTile = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db, imagePath = imagePath, nrtStack, nrzSTack,
                                   nrChannels, &imageContext, &imageLoader, tileX, tileY, &poolSizeChannels]() {
                 // Start of the image specific function
-                for(int tStack = 0; tStack < nrtStack; tStack++) {
+                int32_t tStackStart = 0;
+                auto tStackEnd      = static_cast<int32_t>(nrtStack);
+                if(program.imageSetup.tStackSettings.startFrame > nrtStack) {
+                  tStackStart = static_cast<int32_t>(nrtStack);
+                } else {
+                  tStackStart = program.imageSetup.tStackSettings.startFrame;
+                }
+                if(program.imageSetup.tStackSettings.endFrame >= 0 && program.imageSetup.tStackSettings.endFrame <= nrtStack) {
+                  tStackEnd = program.imageSetup.tStackSettings.endFrame;
+                }
+                for(int tStack = tStackStart; tStack < tStackEnd; tStack++) {
                   if(mProgress.isStopping()) {
                     break;
                   }
@@ -225,9 +236,11 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                     }
                     DurationCount::stop(id);
                   }
+
+                  // Time frame finished
+                  mProgress.incProcessedTiles();
                 }
                 // Tile finished
-                mProgress.incProcessedTiles();
               };
 
               if(poolSizeTiles > 1) {
@@ -296,9 +309,7 @@ std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSett
 void Processor::listImages(const joda::settings::AnalyzeSettings &program, imagesList_t &allImages)
 {
   mProgress.setStateLookingForImages();
-  for(const auto &plate : program.projectSettings.plates) {
-    allImages.setWorkingDirectory(plate.plateId, plate.imageFolder);
-  }
+  allImages.setWorkingDirectory(program.projectSettings.plate.imageFolder);
   allImages.waitForFinished();
   mProgress.setTotalNrOfImages(allImages.getNrOfFiles());
   mProgress.setRunningPreparingPipeline();
@@ -315,7 +326,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
                                 const settings::AnalyzeSettings &program, const joda::thread::ThreadingSettings &threadingSettings,
                                 const settings::Pipeline &pipelineStart, const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack,
                                 int32_t tileX, int32_t tileY, bool generateThumb, const ome::OmeInfo &ome,
-                                const settings::ObjectInputClasses &classesToShow)
+                                const settings::ObjectInputClassesExp &classesToHide)
     -> std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>, enums::ChannelValidity>
 {
   auto ii = DurationCount::start("Generate preview with >" + std::to_string(threadingSettings.coresUsed) + "< threads.");
@@ -383,7 +394,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         continue;
       }
 
-      auto executePipeline = [&db, &thumbThread, &thumb, &finished, &tmpResult, &previewSettings, &pipelineStart, &classesToShow, &totalRuns,
+      auto executePipeline = [&db, &thumbThread, &thumb, &finished, &tmpResult, &previewSettings, &pipelineStart, &classesToHide, &totalRuns,
                               pipeline = pipelineToExecute, this, &program, &globalContext, &plateContext, &pipelineOrder, imagePath, &imageContext,
                               &imageLoader, tileX, tileY, pipelines = pipelines, &iterationContext, tStack, zStack, executedSteps]() -> void {
         //
@@ -411,7 +422,6 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
           // Breakpoints are only enabled in the preview pipeline
           if(step.breakPoint && previewPipeline) {
             editedImageAtBreakpoint = context.getActImage().image.clone();
-            // break;
           }
           step(context, context.getActImage().image, context.getActObjects());
         }
@@ -432,6 +442,8 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         // The last step is the wanted pipeline
         //
         if(previewPipeline) {
+          joda::settings::ImageSaverSettings saverSettings;
+          saverSettings.classesIn.clear();
           //
           // Count elements
           //
@@ -439,40 +451,29 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
           {
             for(auto const &[classs, objects] : context.getActObjects()) {
               for(const auto &roi : *objects) {
-                joda::enums::ClassId key = static_cast<enums::ClassId>(roi.getClassId());
+                auto key = roi.getClassId();
                 if(!foundObjects.contains(key)) {
                   foundObjects[key].count       = 0;
-                  foundObjects[key].color       = "#BFBFBF";
+                  foundObjects[key].color       = globalContext.classes[key].color;    //"#BFBFBF";
                   foundObjects[key].wantedColor = globalContext.classes[key].color;
+
+                  //
+                  // Show all if no class was selected
+                  //
+                  if(!classesToHide.contains(key)) {
+                    foundObjects[key].color = foundObjects.at(key).wantedColor;
+                    saverSettings.classesIn.emplace_back(
+                        settings::ImageSaverSettings::SaveClasss{.inputClass       = static_cast<enums::ClassIdIn>(roi.getClassId()),
+                                                                 .style            = previewSettings.style,
+                                                                 .paintBoundingBox = false,
+                                                                 .paintObjectId    = false});
+                  }
                 }
                 foundObjects[key].count++;
               }
             }
           }
 
-          //
-          // Generate preview image
-          //
-          joda::settings::ImageSaverSettings saverSettings;
-          saverSettings.classesIn.clear();
-          for(enums::ClassIdIn classs : classesToShow) {
-            if(classs >= enums::ClassIdIn::TEMP_01 && classs <= enums::ClassIdIn::TEMP_LAST) {
-              /// \todo allow to show temp in preview
-              continue;
-            }
-            if(classs == enums::ClassIdIn::$) {
-              classs = static_cast<enums::ClassIdIn>(pipelineStart.pipelineSetup.defaultClassId);
-            }
-
-            auto key = static_cast<enums::ClassId>(classs);
-            if(foundObjects.contains(key)) {
-              // Objects which are selected should be painted in color in the legend, not selected are black
-              foundObjects[key].color = foundObjects.at(key).wantedColor;
-
-              saverSettings.classesIn.emplace_back(settings::ImageSaverSettings::SaveClasss{
-                  .inputClass = classs, .style = previewSettings.style, .paintBoundingBox = false, .paintObjectId = false});
-            }
-          }
           // No breakpoint was set, use the last image
           if(editedImageAtBreakpoint.empty()) {
             editedImageAtBreakpoint = context.getActImage().image.clone();

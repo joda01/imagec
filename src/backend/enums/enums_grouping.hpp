@@ -20,6 +20,7 @@ namespace joda::enums {
 
 enum class GroupBy
 {
+  UNKNOWN,
   OFF,
   DIRECTORY,
   FILENAME
@@ -27,6 +28,7 @@ enum class GroupBy
 
 // map TaskState values to JSON as strings
 NLOHMANN_JSON_SERIALIZE_ENUM(GroupBy, {
+                                          {GroupBy::UNKNOWN, "Unknown"},
                                           {GroupBy::OFF, "Off"},
                                           {GroupBy::DIRECTORY, "Directory"},
                                           {GroupBy::FILENAME, "Filename"},

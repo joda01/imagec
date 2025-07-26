@@ -50,6 +50,17 @@ struct Classification
     return configSchema;
   }
 
+  auto getClassFromId(enums::ClassId classId) const -> const Class &
+  {
+    for(const auto &elem : classes) {
+      if(elem.classId == classId) {
+        return elem;
+      }
+    }
+    static const Class no{.name = "None"};
+    return no;
+  }
+
   std::string configSchema = "https://imagec.org/schemas/v1/classification-settings.json";
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Classification, configSchema, meta, classes);
 };

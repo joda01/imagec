@@ -18,13 +18,13 @@
 #include <cstdint>
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_base.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
-#include "ui/gui/container/setting/setting_combobox_classes_out.hpp"
-#include "ui/gui/container/setting/setting_combobox_classification_in.hpp"
-#include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
-#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classes_out.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classification_in.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_multi_classification_in.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_line_edit.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/setting_generator.hpp"
 #include "object_transform_settings.hpp"
@@ -36,7 +36,7 @@ class ObjectTransform : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Object transform";
-  inline static std::string ICON              = "transform-shear-right";
+  inline static std::string ICON              = "arrows-out";
   inline static std::string DESCRIPTION       = "Change the object shape and or size";
   inline static std::vector<std::string> TAGS = {"transform", "scale"};
 
@@ -62,11 +62,12 @@ public:
         {{.key = joda::settings::ObjectTransformSettings::Function::SCALE, .label = "Scale (factor=scale)", .icon = {}},
          {.key = joda::settings::ObjectTransformSettings::Function::SNAP_AREA, .label = "Snap area (factor=snap area size)", .icon = {}},
          {.key = joda::settings::ObjectTransformSettings::Function::MIN_CIRCLE, .label = "Min. circle (factor=min radius)", .icon = {}},
-         {.key = joda::settings::ObjectTransformSettings::Function::EXACT_CIRCLE, .label = "Draw circle (factor=radius)", .icon = {}}});
+         {.key = joda::settings::ObjectTransformSettings::Function::EXACT_CIRCLE, .label = "Draw circle (factor=radius)", .icon = {}},
+         {.key = joda::settings::ObjectTransformSettings::Function::FIT_ELLIPSE, .label = "Fit ellipse (factor=scale)", .icon = {}}});
     mFunction->setValue(settings.function);
     mFunction->connectWithSetting(&settings.function);
 
-    mScaleFactor = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("skrooge_type"), "Factor [0-65535]");
+    mScaleFactor = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Factor [0-65535]");
     mScaleFactor->setPlaceholderText("[0 - 65535]");
     mScaleFactor->setUnit("x");
     mScaleFactor->setMinMax(0, 65535);

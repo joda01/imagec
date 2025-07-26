@@ -43,7 +43,7 @@ LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool wi
       auto *spacerTop = new QWidget();
       spacerTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
       mSpaceTopToolbar = mToolbarTop->addWidget(spacerTop);
-      mBackButton      = new QAction(generateSvgIcon("window-close"), "Close", mToolbarTop);
+      mBackButton      = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("x"), "Close", mToolbarTop);
       mToolbarTop->addAction(mBackButton);
     }
   }
@@ -56,7 +56,7 @@ LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool wi
       spacerBottom->setContentsMargins(0, 0, 0, 0);
       spacerBottom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
       mSpaceBottomToolbar = mToolbarBottom->addWidget(spacerBottom);
-      mDeleteButton       = new QAction(generateSvgIcon("edit-delete"), "Delete", mToolbarBottom);
+      mDeleteButton       = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("trash-simple"), "Delete", mToolbarBottom);
       mDeleteButton->setToolTip("Delete");
       mToolbarBottom->addAction(mDeleteButton);
     }

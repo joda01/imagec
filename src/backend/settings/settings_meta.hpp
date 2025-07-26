@@ -75,6 +75,11 @@ struct SettingsMeta
   std::optional<std::string> author;
 
   //
+  // Optional organization
+  //
+  std::optional<std::string> organization;
+
+  //
   // Optional webpage
   //
   std::optional<std::string> webpage;
@@ -94,7 +99,7 @@ struct SettingsMeta
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(SettingsMeta, name, notes, color, icon, revision, uid, modifiedAt, group, category, tags,
-                                                       author, webpage);
+                                                       author, organization, webpage);
 };
 
 };    // namespace joda::settings

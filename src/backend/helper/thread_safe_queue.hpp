@@ -4,6 +4,8 @@
 /// \date      2024-10-04
 ///
 
+#pragma once
+
 // C++ implementation of the above approach
 #include <condition_variable>
 #include <iostream>
@@ -21,7 +23,7 @@ private:
   std::queue<T> m_queue;
 
   // mutex for thread synchronization
-  std::mutex m_mutex;
+  mutable std::mutex m_mutex;
 
   // Condition variable for signaling
   std::condition_variable m_cond;
@@ -64,6 +66,7 @@ public:
 
   [[nodiscard]] bool isEmpty() const
   {
+    std::unique_lock<std::mutex> lock(m_mutex);
     return m_queue.empty();
   }
 

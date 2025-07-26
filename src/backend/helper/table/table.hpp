@@ -15,32 +15,82 @@
 #include <cmath>
 #include <filesystem>
 #include <map>
+#include <memory>
 #include <string>
+#include <variant>
 #include <vector>
+#include "backend/database/exporter/exportable.hpp"
+#include "backend/enums/bigtypes.hpp"
+#include "backend/enums/enum_measurements.hpp"
+#include "backend/helper/base32.hpp"
 #include "backend/helper/helper.hpp"
+#include "backend/settings/results_settings/results_settings.hpp"
 
 namespace joda::table {
+
+using namespace joda::stdi;
 
 class TableCell
 {
 public:
+  struct MetaData
+  {
+    uint64_t objectIdGroup      = 0;    // Elements with the same object ID group should be printed side by side
+    uint64_t objectId           = 0;    // The original object id
+    uint64_t parentObjectId     = 0;
+    uint64_t trackingId         = 0;
+    uint64_t distanceToObjectId = 0;
+    bool isValid                = false;
+    uint32_t tStack             = 0;
+    uint32_t zStack             = 0;
+    uint32_t cStack             = 0;
+    std::string rowName;
+  };
+
+  struct Grouping
+  {
+    uint64_t groupIdx = 0;
+    uint32_t posX     = 0;
+    uint32_t posY     = 0;
+  };
+
+  struct Formating
+  {
+    enum class Color
+    {
+      BASE_0,
+      ALTERNATE_0,
+      BASE_1,
+      ALTERNATE_1
+    };
+    Color bgColor         = Color::BASE_0;
+    bool isObjectId       = false;
+    bool isParentObjectId = false;
+    bool isTrackingId     = false;
+  };
+
   /////////////////////////////////////////////////////
   TableCell()
   {
   }
 
-  TableCell(double val, uint64_t id, uint64_t objectIdReal, bool valid, uint64_t parentObjectId, uint64_t trackingId) :
-      value(val), id(id), objectId(objectIdReal), validity(valid), parentId(parentObjectId), trackingId(trackingId)
+  TableCell(const TableCell &other)
   {
+    value       = other.value;
+    mMetaData   = other.mMetaData;
+    mGrouping   = other.mGrouping;
+    mFormatting = other.mFormatting;
   }
 
-  TableCell(double val, uint64_t id, uint64_t objectIdReal, bool valid, const std::string &linkToImage) :
-      value(val), id(id), objectId(objectIdReal), validity(valid), linkToImage(linkToImage)
+  TableCell(const std::shared_ptr<const TableCell> &other)
   {
+    value       = other->value;
+    mMetaData   = other->mMetaData;
+    mGrouping   = other->mGrouping;
+    mFormatting = other->mFormatting;
   }
 
-  TableCell(double val, uint64_t id, uint64_t objectIdReal, const std::string &linkToImage) :
-      value(val), id(id), objectId(objectIdReal), linkToImage(linkToImage)
+  TableCell(double val, const MetaData &meta, const Grouping &grouping) : value(val), mMetaData(meta), mGrouping(grouping)
   {
   }
 
@@ -48,210 +98,266 @@ public:
   {
     return value;
   }
+  void setVal(double val)
+  {
+    value = val;
+  }
+
+  [[nodiscard]] std::variant<std::string, double> getValAsVariant(enums::Measurement meas) const
+  {
+    if(meas == enums::Measurement::OBJECT_ID) {
+      return helper::toBase32(getObjectId());
+    }
+    if(meas == enums::Measurement::PARENT_OBJECT_ID) {
+      return helper::toBase32(getParentId());
+    }
+    if(meas == enums::Measurement::TRACKING_ID) {
+      return helper::toBase32(getTrackingId());
+    }
+    if(meas == enums::Measurement::DISTANCE_TO_OBJECT_ID) {
+      return helper::toBase32(getDistanceToObjectId());
+    }
+    return value;
+  }
 
   [[nodiscard]] uint64_t getId() const
   {
-    return id;
+    return mMetaData.objectIdGroup;
   }
 
   [[nodiscard]] uint64_t getObjectId() const
   {
-    return objectId;
+    return mMetaData.objectId;
   }
 
   void setId(uint64_t id)
   {
-    this->id = id;
+    mMetaData.objectIdGroup = id;
   }
 
   [[nodiscard]] uint64_t getParentId() const
   {
-    return parentId;
+    return mMetaData.parentObjectId;
   }
 
   [[nodiscard]] uint64_t getTrackingId() const
   {
-    return trackingId;
+    return mMetaData.trackingId;
+  }
+
+  [[nodiscard]] uint64_t getDistanceToObjectId() const
+  {
+    return mMetaData.distanceToObjectId;
   }
 
   [[nodiscard]] bool isValid() const
   {
-    return validity;
-  }
-
-  [[nodiscard]] const std::filesystem::path &getControlImagePath() const
-  {
-    return linkToImage;
+    return mMetaData.isValid;
   }
 
   [[nodiscard]] bool isNAN() const
   {
-    return std::isnan(value);
+    return std::isnan(value) || std::isinf(value);
+  }
+
+  uint32_t getPosX() const
+  {
+    return mGrouping.posX;
+  }
+
+  uint32_t getPosY() const
+  {
+    return mGrouping.posY;
+  }
+
+  uint64_t getGroupId() const
+  {
+    return mGrouping.groupIdx;
+  }
+
+  uint32_t getStackT() const
+  {
+    return mMetaData.tStack;
+  }
+
+  const std::string &getRowName() const
+  {
+    return mMetaData.rowName;
+  }
+
+  void setRowName(const std::string &rowName)
+  {
+    mMetaData.rowName = rowName;
+  }
+
+  void setBackgroundColor(Formating::Color color)
+  {
+    mFormatting.bgColor = color;
+  }
+
+  void setIsObjectIdCell(bool enable)
+  {
+    mFormatting.isObjectId = enable;
+  }
+
+  void setIsParentObjectIdCell(bool enable)
+  {
+    mFormatting.isParentObjectId = enable;
+  }
+
+  void setIsTrackinIdCell(bool enable)
+  {
+    mFormatting.isTrackingId = enable;
+  }
+
+  auto getFormatting() const -> const Formating &
+  {
+    return mFormatting;
   }
 
 private:
   /////////////////////////////////////////////////////
-  double value        = std::numeric_limits<double>::quiet_NaN();
-  uint64_t id         = 0;
-  uint64_t objectId   = 0;
-  uint64_t parentId   = 0;
-  uint64_t trackingId = 0;
-  bool validity       = true;
-  std::filesystem::path linkToImage;
+  double value = std::numeric_limits<double>::quiet_NaN();
+  MetaData mMetaData;
+  Grouping mGrouping;
+  Formating mFormatting;
 };
 
-using entry_t = std::map<uint32_t, std::map<uint32_t, TableCell>>;
+using colRows_t = std::map<uint32_t, std::shared_ptr<TableCell>>;    // This is a column with its rows
+
+struct TableColumn
+{
+  colRows_t rows;
+  settings::ResultsSettings::ColumnKey colSettings;
+  std::string title;
+};
+
+using entry_t = std::map<uint32_t, TableColumn>;    // These are the different columns
 
 ///
 /// \class      Table
 /// \author     Joachim Danmayr
 /// \brief
 ///
-class Table
+class Table : public joda::exporter::Exportable
 {
 public:
   /////////////////////////////////////////////////////
-  struct Meta
-  {
-    std::string className;
-  };
-
-  enum class SortFields
-  {
-    OBJECT_ID,
-    TRACKING_ID
-  };
+  void setColHeader(const std::map<uint32_t, settings::ResultsSettings::ColumnKey> &);
+  void setColHeader(uint32_t colIdx, const settings::ResultsSettings::ColumnKey &data);
 
   Table();
+  Table(const std::vector<TableColumn> &);
   void setTitle(const std::string &title);
-  void setMeta(const Meta &);
-  void setColHeader(const std::map<uint32_t, std::string> &);
-  void setRowHeader(const std::map<uint32_t, std::string> &);
-  void setRowName(uint32_t row, const std::string &data);
-  auto getMutableRowHeader() -> std::map<uint32_t, std::string> &
+  void init(int32_t cols, int32_t rows);
+
+  auto columns() const -> const entry_t &
   {
-    return mRowHeader;
-  }
-  auto getMutableColHeader() -> std::map<uint32_t, std::string> &
-  {
-    return mColHeader;
+    return mDataColOrganized;
   }
 
-  [[nodiscard]] auto getRowHeader(uint32_t idx) const -> std::string
+  auto mutableColumns() -> entry_t &
   {
-    if(mRowHeader.contains(idx)) {
-      return mRowHeader.at(idx);
-    }
-    return "";
-  }
-  [[nodiscard]] auto getColHeader(uint32_t idx) const -> std::string
-  {
-    if(mColHeader.contains(idx)) {
-      return mColHeader.at(idx);
-    }
-    return "";
+    return mDataColOrganized;
   }
 
-  void print();
-  [[nodiscard]] TableCell data(uint32_t row, uint32_t col) const;
+  [[nodiscard]] std::shared_ptr<const TableCell> data(uint32_t row, uint32_t col) const;
+  [[nodiscard]] std::shared_ptr<TableCell> mutableData(uint32_t row, uint32_t col);
+
+  void setData(uint32_t row, uint32_t col, const std::shared_ptr<TableCell> &data)
+  {
+    mDataColOrganized[col].rows[row] = data;
+  }
 
   void setData(uint32_t row, uint32_t col, const TableCell &data)
   {
-    if(data.isValid()) {
-      mMin = std::min(mMin, data.getVal());
-      mMax = std::max(mMax, data.getVal());
-    }
-
-    mData[row][col] = data;
+    mDataColOrganized[col].rows[row] = std::make_shared<TableCell>(data);
   }
 
   void setDataId(uint32_t row, uint32_t col, uint64_t id)
   {
-    mData[row][col].setId(id);
+    if(mDataColOrganized[col].rows[row] == nullptr) {
+      mDataColOrganized[col].rows[row] = std::make_shared<TableCell>();
+    }
+    mDataColOrganized[col].rows[row]->setId(id);
   }
-
-  [[nodiscard]] auto getMinMax() const -> std::tuple<double, double>
+  [[nodiscard]] uint32_t getNrOfRows() const
   {
-    return {mMin, mMax};
-  }
-
-  [[nodiscard]] auto getAvg(double *sizeOut = nullptr) const -> double
-  {
-    double sum  = 0.0;
-    double size = 0;
-    for(int row = 0; row < getRows(); row++) {
-      for(int col = 0; col < getCols(); col++) {
-        if(data(row, col).isValid() && !data(row, col).isNAN()) {
-          sum += data(row, col).getVal();
-          size++;
+    if(mDataColOrganized.empty()) {
+      return 0;
+    }
+    uint32_t nr = 0;
+    for(const auto &col : mDataColOrganized) {
+      if(!col.second.rows.empty()) {
+        auto tmp = std::prev(col.second.rows.end())->first + 1;
+        if(tmp > nr) {
+          nr = tmp;
         }
       }
     }
-    if(sizeOut != nullptr) {
-      *sizeOut = size;
+    return nr;
+  }
+
+  [[nodiscard]] uint32_t getNrOfCols() const
+  {
+    if(mDataColOrganized.empty()) {
+      return 0;
     }
-    return sum / size;
+    return std::prev(mDataColOrganized.end())->first + 1;
   }
 
-  [[nodiscard]] auto getStddev() const -> double
+  const settings::ResultsSettings::ColumnKey &getColHeader(int32_t col) const
   {
-    double size    = 0;
-    double average = getAvg(&size);
-    if(size <= 1) {
-      return 0.0;    // Handle case of empty or single-element array
+    if(!mDataColOrganized.contains(col)) {
+      static settings::ResultsSettings::ColumnKey ret;
+      return ret;
     }
-    double variance = 0.0;
-    for(int row = 0; row < getRows(); row++) {
-      for(int col = 0; col < getCols(); col++) {
-        if(data(row, col).isValid() && !data(row, col).isNAN()) {
-          variance += pow(data(row, col).getVal() - average, 2);
-        }
-      }
+    return mDataColOrganized.at(col).colSettings;
+  }
+
+  const std::string &getColHeaderTitle(int32_t col) const
+  {
+    if(!mDataColOrganized.contains(col)) {
+      static std::string ret;
+      return ret;
     }
-    return sqrt(variance / (size - 1));    // Use unbiased sample standard deviation
+    return mDataColOrganized.at(col).title;
   }
 
-  [[nodiscard]] uint32_t getRows() const
+  const std::string &getRowHeader(int32_t row) const
   {
-    return mData.size();
-  }
-  [[nodiscard]] uint32_t getCols() const
-  {
-    return std::max(mNrOfCols, getColHeaderSize());
-  }
-
-  [[nodiscard]] uint32_t getRowHeaderSize() const
-  {
-    return mRowHeader.size();
-  }
-  [[nodiscard]] uint32_t getColHeaderSize() const
-  {
-    return mColHeader.size();
+    static std::string ret;
+    if(mDataColOrganized.empty()) {
+      return ret;
+    }
+    if(!mDataColOrganized.begin()->second.rows.contains(row)) {
+      return ret;
+    }
+    if(mDataColOrganized.begin()->second.rows.at(row) == nullptr) {
+      return ret;
+    }
+    return mDataColOrganized.begin()->second.rows.at(row)->getRowName();
   }
 
-  [[nodiscard]] std::string getTitle() const
+  [[nodiscard]] const std::string &getTitle() const override
   {
     return mTitle;
   }
 
-  [[nodiscard]] const Meta &getMeta() const
+  [[nodiscard]] const joda::table::Table &getTable() const override
   {
-    return mMeta;
+    return *this;
   }
 
+  void clear();
   void arrangeByTrackingId();
+  std::pair<double, double> getMinMax(int column) const;
+  std::pair<double, double> getMinMax() const;
 
 private:
   /////////////////////////////////////////////////////
-  entry_t mData;    // <ROW, <COL, DATA>>
-  double mMin = std::numeric_limits<double>::max();
-  double mMax = std::numeric_limits<double>::min();
-
-  std::map<uint32_t, std::string> mColHeader;
-  std::map<uint32_t, std::string> mRowHeader;
-  uint32_t mNrOfCols = 0;
+  entry_t mDataColOrganized;    // <ROW, <COL, DATA>>
   std::string mTitle;
-  Meta mMeta;
 };
 
 }    // namespace joda::table

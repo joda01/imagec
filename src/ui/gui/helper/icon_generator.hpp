@@ -54,4 +54,102 @@ inline QIcon generateSvgIcon(const QString &iconName)
   return log;
 }
 
+enum class Style
+{
+  REGULAR,
+  DUETONE
+};
+
+enum class Color
+{
+  BLACK,
+  RED,
+  GREEN,
+  BLUE,
+  GRAY,
+  YELLOW
+};
+
+template <Style STYLE, Color COLOR>
+inline QIcon generateSvgIcon(const QString &iconName)
+{
+  QString colorStr = "black";
+  if constexpr(COLOR == Color::BLACK) {
+    colorStr = "black";
+  }
+  if constexpr(COLOR == Color::RED) {
+    colorStr = "red";
+  }
+  if constexpr(COLOR == Color::GREEN) {
+    colorStr = "green";
+  }
+  if constexpr(COLOR == Color::BLUE) {
+    colorStr = "blue";
+  }
+  if constexpr(COLOR == Color::GRAY) {
+    colorStr = "gray";
+  }
+  if constexpr(COLOR == Color::YELLOW) {
+    colorStr = "yellow";
+  }
+
+  if constexpr(STYLE == Style::REGULAR) {
+    QIcon log;
+    log.addPixmap(QPixmap(":/icons-svg/regular-" + colorStr + "/icons-svg/regular-" + colorStr + "/" + iconName + ".svg").scaled(256, 256));
+    if(log.isNull()) {
+      std::cout << "Null " << iconName.toStdString() << std::endl;
+    }
+    return log;
+  }
+  if constexpr(STYLE == Style::DUETONE) {
+    QIcon log;
+    log.addPixmap(QPixmap(":/icons-svg/duotone-" + colorStr + "/icons-svg/duotone-" + colorStr + "/" + iconName + "-duotone.svg").scaled(256, 256));
+    if(log.isNull()) {
+      std::cout << "Null " << iconName.toStdString() << std::endl;
+    }
+    return log;
+  }
+}
+
+template <Style STYLE>
+inline QIcon generateSvgIcon(Color COLOR, const QString &iconName)
+{
+  QString colorStr = "black";
+  if(COLOR == Color::BLACK) {
+    colorStr = "black";
+  }
+  if(COLOR == Color::RED) {
+    colorStr = "red";
+  }
+  if(COLOR == Color::GREEN) {
+    colorStr = "green";
+  }
+  if(COLOR == Color::BLUE) {
+    colorStr = "blue";
+  }
+  if(COLOR == Color::GRAY) {
+    colorStr = "gray";
+  }
+  if(COLOR == Color::YELLOW) {
+    colorStr = "yellow";
+  }
+
+  if constexpr(STYLE == Style::REGULAR) {
+    QIcon log;
+    log.addPixmap(QPixmap(":/icons-svg/regular-" + colorStr + "/icons-svg/regular-" + colorStr + "/" + iconName + ".svg").scaled(256, 256));
+    if(log.isNull()) {
+      std::cout << "Null " << iconName.toStdString() << std::endl;
+    }
+    return log;
+  }
+  if constexpr(STYLE == Style::DUETONE) {
+    QIcon log;
+    log.addPixmap(QPixmap(":/icons-svg/duotone-" + colorStr + "/icons-svg/duotone-" + colorStr + "/" + iconName + "-duotone.svg").scaled(256, 256));
+    if(log.isNull()) {
+      std::cout << "Null " << iconName.toStdString() << std::endl;
+    }
+    return log;
+  }
+}
+
 }    // namespace joda::ui::gui

@@ -15,8 +15,8 @@
 
 #include <qwidget.h>
 #include "backend/commands/command.hpp"
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "median_substraction_settings.hpp"
@@ -28,15 +28,14 @@ class MedianSubtraction : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Median subtraction";
-  inline static std::string ICON              = "format-align-vertical-center";
+  inline static std::string ICON              = "minus";
   inline static std::string DESCRIPTION       = "Supress image background.";
   inline static std::vector<std::string> TAGS = {"noise reduction", "background subtraction", "noise"};
 
   MedianSubtraction(joda::settings::PipelineStep &pipelineStep, settings::MedianSubtractSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::IMAGE}})
   {
-    mMedianBackgroundSubtraction =
-        SettingBase::create<SettingComboBox<int32_t>>(parent, generateSvgIcon("labplot-matrix"), "Median background subtraction");
+    mMedianBackgroundSubtraction = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, "Median background subtraction");
     mMedianBackgroundSubtraction->addOptions({{-1, "Off"},
                                               {3, "3x3"},
                                               {5, "5x5"},

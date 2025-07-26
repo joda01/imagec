@@ -21,11 +21,11 @@
 #include "backend/commands/object_functions/colocalization/colocalization_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
 
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
-#include "ui/gui/container/setting/setting_combobox_classes_out.hpp"
-#include "ui/gui/container/setting/setting_combobox_multi_classification_in.hpp"
-#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classes_out.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_multi_classification_in.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_line_edit.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/setting_generator.hpp"
@@ -38,7 +38,7 @@ class Colocalization : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Colocalization";
-  inline static std::string ICON              = "bwtonal";
+  inline static std::string ICON              = "intersect";
   inline static std::string DESCRIPTION       = "Calculates the overlapping are of two or more image channels.";
   inline static std::vector<std::string> TAGS = {"colocalization", "object", "coloc"};
 
@@ -130,13 +130,14 @@ public:
     //
     //
     //
-    mClassOutput = SettingBase::create<SettingComboBoxClassesOut>(parent, generateSvgIcon("choice-round"), "Coloc output class");
+    mClassOutput =
+        SettingBase::create<SettingComboBoxClassesOut>(parent, generateSvgIcon<Style::REGULAR, Color::BLACK>("circle"), "Coloc output class");
     mClassOutput->setValue(settings.outputClass);
     mClassOutput->connectWithSetting(&settings.outputClass);
 
     //
     //
-    mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon("format-number-percent"), "Min. intersection");
+    mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Min. intersection");
     mMinIntersection->setDefaultValue(0.1);
     mMinIntersection->setPlaceholderText("[0 - 1]");
     mMinIntersection->setUnit("%");
@@ -149,9 +150,16 @@ public:
     //
     //
     mMode = SettingBase::create<SettingComboBox<joda::settings::ColocalizationSettings::Mode>>(parent, {}, "Mode");
-    mMode->addOptions(
-        {{.key = joda::settings::ColocalizationSettings::Mode::RECLASSIFY_MOVE, .label = "Reclassify Move", .icon = generateSvgIcon("edit-move")},
-         {.key = joda::settings::ColocalizationSettings::Mode::RECLASSIFY_COPY, .label = "Reclassify Copy", .icon = generateSvgIcon("edit-copy")}});
+    mMode->addOptions({{
+                           .key   = joda::settings::ColocalizationSettings::Mode::RECLASSIFY_MOVE,
+                           .label = "Reclassify Move",
+                           .icon  = {},
+                       },
+                       {
+                           .key   = joda::settings::ColocalizationSettings::Mode::RECLASSIFY_COPY,
+                           .label = "Reclassify Copy",
+                           .icon  = {},
+                       }});
     mMode->setValue(settings.mode);
     mMode->connectWithSetting(&settings.mode);
 
@@ -161,10 +169,10 @@ public:
     mTrackingMode = SettingBase::create<SettingComboBox<joda::settings::ColocalizationSettings::TrackingMode>>(parent, {}, "Tracking mode");
     mTrackingMode->addOptions({{.key   = joda::settings::ColocalizationSettings::TrackingMode::OVERRIDE,
                                 .label = "Override existing tracking information",
-                                .icon  = generateSvgIcon("join")},
+                                .icon  = {}},
                                /*{.key   = joda::settings::ColocalizationSettings::TrackingMode::KEEP_EXISTING,
                                 .label = "Keep existing tracking information",
-                                .icon  = generateSvgIcon("view-list-tree")}*/});
+                                .icon  = {}}*/});
     mTrackingMode->setValue(settings.trackingMode);
     mTrackingMode->connectWithSetting(&settings.trackingMode);
 

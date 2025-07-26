@@ -46,11 +46,31 @@ void ObjectTransform::execute(processor::ProcessContext &context, cv::Mat &image
         }
       } break;
       case settings::ObjectTransformSettings::Function::EXACT_CIRCLE: {
+        auto factor = mSettings.factor;
+        // If factor is zero use the bounding box
+        if(factor == 0) {
+          factor = std::max(roi.getBoundingBoxTile().width, roi.getBoundingBoxTile().height);
+        }
         if(inputClass == outputClass) {
-          roi.drawCircle(mSettings.factor);
+          roi.drawCircle(factor);
         } else {
           auto newRoi = roi.copy(outputClass, roi.getParentObjectId());
-          newRoi.drawCircle(mSettings.factor);
+          newRoi.drawCircle(factor);
+          resultIn.push_back(newRoi);
+        }
+      } break;
+      case settings::ObjectTransformSettings::Function::FIT_ELLIPSE: {
+        if(inputClass == outputClass) {
+          roi.fitEllipse();
+          if(mSettings.factor > 1) {
+            roi.resize(mSettings.factor, mSettings.factor);
+          }
+        } else {
+          auto newRoi = roi.copy(outputClass, roi.getParentObjectId());
+          newRoi.fitEllipse();
+          if(mSettings.factor > 1) {
+            newRoi.resize(mSettings.factor, mSettings.factor);
+          }
           resultIn.push_back(newRoi);
         }
       } break;

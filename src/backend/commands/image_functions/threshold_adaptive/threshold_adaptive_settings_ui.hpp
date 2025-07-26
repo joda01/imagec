@@ -16,10 +16,10 @@
 #include <qwidget.h>
 #include <cstdint>
 #include "backend/commands/command.hpp"
-#include "ui/gui/container/command/command.hpp"
-#include "ui/gui/container/setting/setting_base.hpp"
-#include "ui/gui/container/setting/setting_combobox.hpp"
-#include "ui/gui/container/setting/setting_line_edit.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_line_edit.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/layout_generator.hpp"
 #include "ui/gui/helper/setting_generator.hpp"
@@ -32,7 +32,7 @@ class ThresholdAdaptive : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Adaptive threshold (ALPHA)";
-  inline static std::string ICON              = "edit-select-invert";
+  inline static std::string ICON              = "circle-half-duotone";
   inline static std::string DESCRIPTION       = "Converts a grayscale image to a binary image.";
   inline static std::vector<std::string> TAGS = {"threshold", "background", "binary", "adaptive", "sauvola", "nitblack", "otsu", "phanskalar"};
 
@@ -51,7 +51,7 @@ public:
       cnt++;
     }
 
-    auto *addFilter = addActionButton("Add threshold", generateSvgIcon("list-add"));
+    auto *addFilter = addActionButton("Add threshold", generateSvgIcon<Style::REGULAR, Color::BLACK>("list-plus"));
     connect(addFilter, &QAction::triggered, this, &ThresholdAdaptive::addFilter);
   }
 
@@ -86,7 +86,7 @@ private:
       //
       //
       //
-      mKernelSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("labplot-matrix"), "Kernel size");
+      mKernelSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Kernel size");
       // mKernelSize->addOptions({{-1, "Off"},
       //                          {3, "3x3"},
       //                          {5, "5x5"},
@@ -116,7 +116,7 @@ private:
       //
       //
       //
-      mContrastThreshold = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-high"), "Contrast threshold");
+      mContrastThreshold = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Contrast threshold");
       mContrastThreshold->setPlaceholderText("[0 - 65535]");
       mContrastThreshold->setUnit("");
       mContrastThreshold->setMinMax(0, 65535);
@@ -127,7 +127,7 @@ private:
       //
       //
       //
-      mThresholdOffset = SettingBase::create<SettingLineEdit<int32_t>>(parent, generateSvgIcon("brightness-high"), "Threshold offset");
+      mThresholdOffset = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Threshold offset");
       mThresholdOffset->setPlaceholderText("[0 - 65535]");
       mThresholdOffset->setUnit("");
       mThresholdOffset->setMinMax(0, 65535);
