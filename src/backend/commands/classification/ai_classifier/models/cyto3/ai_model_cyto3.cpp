@@ -1,0 +1,172 @@
+///
+/// \file      ai_model_bioimage.cpp
+/// \author    Joachim Danmayr
+/// \date      2025-02-07
+///
+/// \copyright Copyright 2019 Joachim Danmayr
+///            This software is licensed for **non-commercial** use only.
+///            Educational, research, and personal use are permitted.
+///            For **Commercial** please contact the copyright owner.
+///
+///
+///
+
+#include <string>
+#include "backend/helper/logger/console_logger.hpp"
+#include <opencv2/core/types.hpp>
+#undef slots
+#include <ATen/core/TensorBody.h>
+#include <stdexcept>
+#include <opencv2/core.hpp>
+#include <opencv2/core/matx.hpp>
+#include <opencv2/core/persistence.hpp>
+#include <opencv2/dnn/dnn.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+#include "ai_model_cyto3.hpp"
+#define slots Q_SLOTS
+
+namespace joda::ai {
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+AiModelCyto3::AiModelCyto3(const ProbabilitySettings &settings) : mSettings(settings)
+{
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto AiModelCyto3::processPrediction(const cv::Mat &inputImage, const at::IValue &tensorIn) -> std::vector<Result>
+{
+  static const int CHANNEL_GRADIENTS_X = 0;
+  static const int CHANNEL_GRADIENTS_Y = 1;
+  static const int CHANNEL_MASKS       = 2;
+
+  const int32_t originalHeight = inputImage.rows;
+  const int32_t originalWith   = inputImage.cols;
+
+  if(!tensorIn.isTuple()) {
+    joda::log::logError("Expected model output to be a tuple (detections, seg_masks).");
+    return {};
+  }
+
+  auto outputTuple = tensorIn.toTuple();
+  std::cout << std::to_string(outputTuple->size()) << std::endl;
+
+  auto maskTensor = outputTuple->elements()[0].toTensor();    // Shape: [N, 6]
+
+  // Move tensor to CPU and convert to float32
+  maskTensor = maskTensor.detach().to(torch::kCPU).to(torch::kFloat32);
+
+  // ===============================
+  // 0. Rescale to original image
+  // ===============================
+  at::Tensor tensorSmall     = maskTensor.to(at::kCPU).to(at::kFloat);
+  torch::Tensor tensorCpu    = torch::upsample_bilinear2d(tensorSmall, {originalHeight, originalWith}, false);
+  at::Tensor maskTensorImage = tensorCpu[0][CHANNEL_MASKS].clone().contiguous();          // [height, width]
+  at::Tensor flowX           = tensorCpu[0][CHANNEL_GRADIENTS_X].clone().contiguous();    // [height, width]
+  at::Tensor flowY           = tensorCpu[0][CHANNEL_GRADIENTS_Y].clone().contiguous();    // [height, width]
+
+  // ===============================
+  // 1. Convert mask to cv::mat
+  // ===============================
+  cv::Mat maskImage(originalHeight, originalWith, CV_32F, maskTensorImage.data_ptr<float>());
+  cv::Mat flowXImage(originalHeight, originalWith, CV_32F, flowX.data_ptr<float>());
+  cv::Mat flowYImage(originalHeight, originalWith, CV_32F, flowY.data_ptr<float>());
+
+  {
+    cv::Mat normMat;
+    cv::normalize(maskImage, normMat, 0.0, 1.0, cv::NORM_MINMAX);
+    auto success = cv::imwrite("tmp/output.png", normMat);
+
+    success = cv::imwrite("tmp/flowXImage.png", flowXImage);
+    success = cv::imwrite("tmp/flowYImage.png", flowYImage);
+  }
+
+  // ===============================
+  // 2.  Apply a threshold to create a binary mask for the object
+  // ===============================
+  cv::Mat binaryMask;
+  cv::threshold(maskImage, binaryMask, mSettings.maskThreshold, 1.0, cv::THRESH_BINARY);
+  binaryMask.convertTo(binaryMask, CV_8U, 255);
+
+  //
+  // ===============================
+  // 3. Extract each individual object by finding connected components
+  // ===============================
+  std::vector<cv::Mat> contours;
+  std::vector<std::vector<cv::Point>> contours_poly;
+  cv::findContours(binaryMask, contours_poly, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+  std::vector<Result> results;
+  for(size_t j = 0; j < contours_poly.size(); ++j) {
+    // Create an empty mask for this object
+    cv::Mat object_mask = cv::Mat::zeros(binaryMask.size(), CV_8U);
+
+    // Draw the contour for this object on the empty mask
+    cv::drawContours(object_mask, contours_poly, (int) j, cv::Scalar(255), cv::FILLED);
+
+    // Get the class probabilities for this object (we take the maximum probability over the mask)
+    cv::Mat object_probs = cv::Mat::zeros(binaryMask.size(), CV_32F);
+
+    // Loop through the mask and find the max class probability
+    float max_prob      = 0.0f;
+    int predicted_class = 0;
+
+    for(int y = 0; y < originalHeight; ++y) {
+      for(int x = 0; x < originalWith; ++x) {
+        if(object_mask.at<uchar>(y, x) == 255) {
+          // Get the class probabilities at this pixel (for all classes)
+          // for(int c = 0; c < tensorProbabilitiesCpu.size(1); ++c) {
+          //   float prob = tensorProbabilitiesCpu[0][c][y][x].item<float>();
+          //   if(prob > max_prob) {
+          //     max_prob        = prob;
+          //     predicted_class = c;
+          //   }
+          // }
+        }
+      }
+    }
+
+    cv::Rect fittedBoundingBox = cv::boundingRect(contours_poly[j]);
+    // Fit the bounding box and mask to the new size
+    cv::Mat shiftedMask = cv::Mat::zeros(fittedBoundingBox.size(), CV_8UC1);
+    shiftedMask         = object_mask(fittedBoundingBox).clone();
+
+    // Move the contour points
+    int32_t xOffset = fittedBoundingBox.x;
+    int32_t yOffset = fittedBoundingBox.y;
+    auto contour    = contours_poly[j];
+    for(auto &point : contour) {
+      point.x = point.x - xOffset;
+      if(point.x < 0) {
+        point.x = 0;
+      }
+      point.y = point.y - yOffset;
+      if(point.y < 0) {
+        point.y = 0;
+      }
+    }
+
+    // Add the individual object mask to the vector
+    results.push_back(Result{.boundingBox = fittedBoundingBox,
+                             .mask        = std::move(shiftedMask),
+                             .contour     = std::move(contour),
+                             .classId     = predicted_class,
+                             .probability = max_prob});
+  }
+
+  return results;    // Return the vector of individual object masks
+}
+
+}    // namespace joda::ai

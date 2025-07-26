@@ -196,3 +196,45 @@ TEST_CASE("ai::classifier::test::pytorch::yolo", "[ai_classifier]")
   CHECK(result.size() == 1);
   CHECK(result.begin()->second->size() == 56);
 }
+
+TEST_CASE("ai::classifier::test::pytorch::cyto3", "[ai_classifier]")
+{
+  std::string path = "/workspaces/imagec/tmp/imagec-test/scenarios/scenario_01/test_data_v1_full/images/full/B8_15_5ADVMLE.vsi.vsi";
+  auto omeXML      = joda::image::reader::ImageReader::getOmeInformation(path, 0);
+  auto img         = joda::image::reader::ImageReader::loadEntireImage(path, {0, 3, 0}, 0, 0, omeXML);
+
+  joda::settings::AiClassifierSettings aiSets;
+  aiSets.modelPath = "resources/models/cyto3_cpu/cyto3_cpu.pt";
+  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 0});
+  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 1});
+
+  auto info                         = joda::ai::AiModelParser::parseResourceDescriptionFile("resources/models/cyto3_cpu/rdf.yaml");
+  aiSets.modelParameter             = info.modelParameter;
+  aiSets.modelParameter.modelFormat = joda::settings::AiClassifierSettings::ModelFormat::TORCHSCRIPT;
+  aiSets.modelInputParameter        = info.inputs.begin()->second;
+  aiSets.thresholds.maskThreshold   = 0.2;
+  joda::cmd::AiClassifier ai(aiSets);
+  joda::atom::ObjectList result;
+  joda::settings::ProjectImageSetup setup;
+  joda::processor::PipelineInitializer pipeLinieInit(setup);
+  joda::processor::GlobalContext glob;
+  glob.resultsOutputFolder = "/workspaces/imagec/tmp";
+  joda::processor::PlateContext plate;
+  joda::processor::ImageContext imgCtx{pipeLinieInit, path, omeXML};
+  joda::processor::IterationContext iter;
+  joda::processor::ProcessContext context(glob, plate, imgCtx, iter);
+
+  cv::Mat aiorward = img.clone();
+  ai.execute(context, aiorward, result);
+  joda::settings::ImageSaverSettings imageSaver;
+  imageSaver.classesIn.emplace_back(
+      joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C0, .paintBoundingBox = false});
+  imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C1});
+  imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C2});
+
+  joda::cmd::ImageSaver imgSaver(imageSaver);
+  imgSaver.execute(context, img, result);
+
+  // CHECK(result.size() == 1);
+  // CHECK(result.begin()->second->size() == 56);
+}
