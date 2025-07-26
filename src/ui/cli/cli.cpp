@@ -187,8 +187,7 @@ int Cli::startCommandLineController(int argc, char *argv[])
       ->default_val("table");
   export_cmd->add_option("-c,--columns", outputTemplate, "Output columns template file (*.ictemplcc)")
       ->check(FileExistsValidator())
-      ->check(FileValidator(".ictemplcc"))
-      ->required();
+      ->check(FileValidator(".ictemplcc"));
   auto *plateCmd = export_cmd->add_subcommand("plate", "Export plate view");
   auto *wellCmd  = export_cmd->add_subcommand("well", "Export well view");
   std::string wellId;
@@ -197,7 +196,7 @@ int Cli::startCommandLineController(int argc, char *argv[])
   auto *listCmd = export_cmd->add_subcommand("image", "Export list view");
   std::string imageName;
   std::string tStack = "0";
-  listCmd->add_option("--image", imageName, "Name of the image to export the data for")->required();
+  listCmd->add_option("--name", imageName, "Name of the image to export the data for")->required();
   listCmd->add_option("--tstack", tStack, "Time stack index to export (0, 1, 2, 3,...) [0]")->default_str("0");
 
   // =====================================
@@ -347,7 +346,7 @@ void Cli::exportData(const std::filesystem::path &pathToDatabasefile, std::files
   int32_t groupId            = 0;
   std::string fileNameSuffix = "_plate";
   if(view == exporter::xlsx::ExportSettings::ExportView::WELL) {
-    fileNameSuffix = "_well";
+    fileNameSuffix = "_well_" + wellId;
     try {
       groupId = std::stoi(wellId);
     } catch(...) {
