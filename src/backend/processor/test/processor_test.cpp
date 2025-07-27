@@ -35,7 +35,7 @@ SCENARIO("pipeline:test:heatmap", "[processor]")
   file.close();
   joda::processor::Processor processor;
   processor::imagesList_t workingdirs;
-  workingdirs.setWorkingDirectory(0, settings.projectSettings.plate.imageFolder);
+  workingdirs.setWorkingDirectory(settings.projectSettings.plate.imageFolder);
   workingdirs.waitForFinished();
   processor.execute(settings, "test",
                     joda::ctrl::Controller::calcOptimalThreadNumber(settings, workingdirs.gitFirstFile(), workingdirs.getNrOfFiles(), std::nullopt),
