@@ -217,6 +217,9 @@ std::pair<cv::Mat, std::set<int>> followFlowField(const cv::Mat &flowX, const cv
     }
   }
 
+  // transpose back
+  cv::transpose(labels, labels);
+
   //
   // Cell pose flow field
   //
