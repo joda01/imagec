@@ -11,6 +11,7 @@
 ///
 ///
 
+#include <random>
 #include <string>
 #include "backend/helper/logger/console_logger.hpp"
 #include <opencv2/core/types.hpp>
@@ -28,6 +29,17 @@
 
 namespace joda::ai {
 
+std::pair<cv::Mat, std::set<int>> followFlowField(const cv::Mat &flowX, const cv::Mat &flowY, const cv::Mat &masl);
+cv::Vec2f bilinearInterpolate(const cv::Mat &flowX, const cv::Mat &flowY, float x, float y);
+cv::Point2f followFlow(const cv::Mat &flowX, const cv::Mat &flowY, float startX, float startY, int numSteps = 10, float stepSize = 1.0f);
+cv::Vec3b flowToColor(float flow_x, float flow_y);
+void drawFlowArrows(const cv::Mat &flowX, const cv::Mat &flowY, cv::Mat &outImage, int stride = 10, float scale = 1.0,
+                    cv::Scalar color = cv::Scalar(0, 255, 0));
+void clusterLandingPoints(std::map<std::pair<int, int>, int> &landingLabelMap, cv::Mat &outLabelImageDebug, cv::Mat &outBinaryMaskDebug);
+cv::Mat paintLabels(const cv::Mat &labels);
+
+std::vector<AiModel::Result> extractObjectMasksAndBoundingBoxes(const cv::Mat &labelImage, const std::set<int> &labels);
+
 ///
 /// \brief
 /// \author
@@ -38,8 +50,6 @@ namespace joda::ai {
 AiModelCyto3::AiModelCyto3(const ProbabilitySettings &settings) : mSettings(settings)
 {
 }
-
-cv::Mat followFlowField(const cv::Mat &flowX, const cv::Mat &flowY, const cv::Mat &masl);
 
 ///
 /// \brief
@@ -86,173 +96,186 @@ auto AiModelCyto3::processPrediction(const cv::Mat &inputImage, const at::IValue
   cv::Mat flowXImage(originalHeight, originalWith, CV_32F, flowX.data_ptr<float>());
   cv::Mat flowYImage(originalHeight, originalWith, CV_32F, flowY.data_ptr<float>());
 
-  {
-    followFlowField(flowXImage, flowYImage, maskImage);
-    // cv::Mat normMat;
-    // cv::normalize(maskImage, normMat, 0.0, 1.0, cv::NORM_MINMAX);
-    auto success = cv::imwrite("tmp/mask.png", maskImage * 128);
-
-    success = cv::imwrite("tmp/flowXImage.png", flowXImage * 128);
-    success = cv::imwrite("tmp/flowYImage.png", flowYImage * 128);
-  }
-
   // ===============================
-  // 2.  Apply a threshold to create a binary mask for the object
+  // 2. Follow the flow field, returns a object segmented mask
   // ===============================
-  cv::Mat binaryMask;
-  cv::threshold(maskImage, binaryMask, mSettings.maskThreshold, 1.0, cv::THRESH_BINARY);
-  binaryMask.convertTo(binaryMask, CV_8U, 255);
+  auto [segmentationMask, labels] = followFlowField(flowXImage, flowYImage, maskImage);
 
-  //
-  // ===============================
-  // 3. Extract each individual object by finding connected components
-  // ===============================
-  std::vector<cv::Mat> contours;
-  std::vector<std::vector<cv::Point>> contours_poly;
-  cv::findContours(binaryMask, contours_poly, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+  return extractObjectMasksAndBoundingBoxes(segmentationMask, labels);
+}
 
-  std::vector<Result> results;
-  for(size_t j = 0; j < contours_poly.size(); ++j) {
-    // Create an empty mask for this object
-    cv::Mat object_mask = cv::Mat::zeros(binaryMask.size(), CV_8U);
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+std::vector<AiModel::Result> extractObjectMasksAndBoundingBoxes(const cv::Mat &labelImage, const std::set<int> &labels)
+{
+  CV_Assert(labelImage.type() == CV_32S || labelImage.type() == CV_8U);
 
-    // Draw the contour for this object on the empty mask
-    cv::drawContours(object_mask, contours_poly, (int) j, cv::Scalar(255), cv::FILLED);
+  int rows = labelImage.rows;
+  int cols = labelImage.cols;
 
-    // Get the class probabilities for this object (we take the maximum probability over the mask)
-    cv::Mat object_probs = cv::Mat::zeros(binaryMask.size(), CV_32F);
+  std::vector<AiModel::Result> result;
 
-    // Loop through the mask and find the max class probability
-    float max_prob      = 0.0f;
-    int predicted_class = 0;
+  for(int label : labels) {
+    cv::Mat fullMask = cv::Mat::zeros(rows, cols, CV_8U);
 
-    for(int y = 0; y < originalHeight; ++y) {
-      for(int x = 0; x < originalWith; ++x) {
-        if(object_mask.at<uchar>(y, x) == 255) {
-          // Get the class probabilities at this pixel (for all classes)
-          // for(int c = 0; c < tensorProbabilitiesCpu.size(1); ++c) {
-          //   float prob = tensorProbabilitiesCpu[0][c][y][x].item<float>();
-          //   if(prob > max_prob) {
-          //     max_prob        = prob;
-          //     predicted_class = c;
-          //   }
-          // }
+    // Generate full-size binary mask
+    for(int y = 0; y < rows; ++y) {
+      for(int x = 0; x < cols; ++x) {
+        int val = (labelImage.type() == CV_32S) ? labelImage.at<int>(y, x) : labelImage.at<uchar>(y, x);
+        if(val == label) {
+          fullMask.at<uchar>(y, x) = 255;
         }
       }
     }
 
-    cv::Rect fittedBoundingBox = cv::boundingRect(contours_poly[j]);
-    // Fit the bounding box and mask to the new size
-    cv::Mat shiftedMask = cv::Mat::zeros(fittedBoundingBox.size(), CV_8UC1);
-    shiftedMask         = object_mask(fittedBoundingBox).clone();
+    // Find contours
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(fullMask.clone(), contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
-    // Move the contour points
-    int32_t xOffset = fittedBoundingBox.x;
-    int32_t yOffset = fittedBoundingBox.y;
-    auto contour    = contours_poly[j];
-    for(auto &point : contour) {
-      point.x = point.x - xOffset;
-      if(point.x < 0) {
-        point.x = 0;
-      }
-      point.y = point.y - yOffset;
-      if(point.y < 0) {
-        point.y = 0;
-      }
+    if(contours.empty()) {
+      continue;
     }
 
-    // Add the individual object mask to the vector
-    results.push_back(Result{.boundingBox = fittedBoundingBox,
-                             .mask        = std::move(shiftedMask),
-                             .contour     = std::move(contour),
-                             .classId     = predicted_class,
-                             .probability = max_prob});
-  }
-
-  return results;    // Return the vector of individual object masks
-}
-
-cv::Vec2f bilinearInterpolate(const cv::Mat &flowX, const cv::Mat &flowY, float x, float y);
-cv::Point2f followFlow(const cv::Mat &flowX, const cv::Mat &flowY, float startX, float startY, int numSteps = 10, float stepSize = 1.0f);
-
-cv::Vec3b flowToColor(float flow_x, float flow_y)
-{
-  float magnitude = std::sqrt(flow_x * flow_x + flow_y * flow_y);
-  float angle     = std::atan2(flow_y, flow_x);    // Radians
-
-  // Normalize angle to [0, 180) for hue (OpenCV uses 0–180 for H)
-  float hue = (angle + CV_PI) * 90.0f / CV_PI;
-
-  // Normalize magnitude (optional: scale as needed)
-  float mag_normalized = std::min(1.0f, magnitude / 10.0f);    // assuming max mag = 10
-
-  // Create HSV color: H [0,180], S [0,255], V [0,255]
-  cv::Mat hsv(1, 1, CV_8UC3, cv::Scalar(hue, 255, mag_normalized * 255));
-  cv::Mat bgr;
-  cv::cvtColor(hsv, bgr, cv::COLOR_HSV2BGR);
-
-  return bgr.at<cv::Vec3b>(0, 0);
-}
-
-void drawFlowArrows(const cv::Mat &flowX, const cv::Mat &flowY, cv::Mat &outImage, int stride = 10, float scale = 1.0,
-                    cv::Scalar color = cv::Scalar(0, 255, 0))
-{
-  outImage = cv::Mat::zeros(flowX.size(), CV_8UC3);    // black canvas
-
-  for(int y = 0; y < flowX.rows; y += stride) {
-    for(int x = 0; x < flowX.cols; x += stride) {
-      float fx = flowX.at<float>(y, x);
-      float fy = flowY.at<float>(y, x);
-
-      cv::Point2f start(x, y);
-      cv::Point2f end(x + fx * scale, y + fy * scale);
-
-      cv::arrowedLine(outImage, start, end, color, 1, cv::LINE_AA, 0, 0.3);
+    // Use contour to get bounding box
+    cv::Rect bbox = cv::boundingRect(contours[0]);
+    for(size_t i = 1; i < contours.size(); ++i) {
+      bbox |= cv::boundingRect(contours[i]);
     }
+
+    // Crop mask and adjust contours
+    cv::Mat croppedMask = fullMask(bbox).clone();
+
+    // Shift contours relative to top-left of bbox
+    std::vector<std::vector<cv::Point>> adjustedContours;
+    int32_t maxContourIdx = 0;
+    int32_t conoutrSize   = 0;
+    int32_t idx           = 0;
+    for(const auto &contour : contours) {
+      std::vector<cv::Point> shifted;
+      if(contour.size() > conoutrSize) {
+        maxContourIdx = idx;
+        conoutrSize   = contour.size();
+      }
+      for(const auto &pt : contour) {
+        shifted.emplace_back(pt.x - bbox.x, pt.y - bbox.y);
+      }
+      adjustedContours.push_back(shifted);
+      idx++;
+    }
+
+    result.push_back(AiModel::Result{.boundingBox = bbox, .mask = croppedMask, .contour = adjustedContours.at(maxContourIdx), .classId = 0});
   }
+
+  return result;
 }
 
-cv::Mat followFlowField(const cv::Mat &flowX, const cv::Mat &flowY, const cv::Mat &mask)
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+std::pair<cv::Mat, std::set<int>> followFlowField(const cv::Mat &flowX, const cv::Mat &flowY, const cv::Mat &mask)
 {
-  cv::Mat colorImage(mask.size(), CV_8UC3, cv::Scalar(0, 0, 0));    // Black image
+  //
+  // Cell pose flow field
+  //
+  {
+    cv::Mat colorImage(mask.size(), CV_8UC3, cv::Scalar(0, 0, 0));    // Black image
+    for(int x = 0; x < mask.cols; x++) {
+      for(int y = 0; y < mask.rows; y++) {
+        float pixelMask = mask.at<float>(y, x);
+        if(pixelMask > 0.5) {
+          float pixelValFlowX = flowX.at<float>(y, x);
+          float pixelValFlowY = flowY.at<float>(y, x);
 
-  for(int x = 0; x < mask.cols; x++) {
-    for(int y = 0; y < mask.rows; y++) {
-      float pixelMask = mask.at<float>(y, x);
-      if(pixelMask > 0.5) {
-        float pixelValFlowX = flowX.at<float>(y, x);
-        float pixelValFlowY = flowY.at<float>(y, x);
-
-        colorImage.at<cv::Vec3b>(y, x) = flowToColor(pixelValFlowX, pixelValFlowY);
-      } else {
-        colorImage.at<cv::Vec3b>(y, x) = {0, 0, 0};
+          colorImage.at<cv::Vec3b>(y, x) = flowToColor(pixelValFlowX, pixelValFlowY);
+        } else {
+          colorImage.at<cv::Vec3b>(y, x) = {0, 0, 0};
+        }
       }
     }
+    cv::imwrite("tmp/flowField.jpg", colorImage);
   }
-
-  cv::imwrite("tmp/flowField.jpg", colorImage);
 
   cv::transpose(flowX, flowX);
   cv::transpose(flowY, flowY);
+  cv::transpose(mask, mask);
 
-  cv::Mat arrowImage;
-  drawFlowArrows(flowX, flowY, arrowImage, 10, 5.0);    // stride=10, scale flow x5 for visibility
+  cv::Mat labels = cv::Mat::zeros(flowX.size(), CV_32S);    // int labels per pixel
+  std::map<std::pair<int, int>, int> landingLabelMap;
+  std::set<int> labelsSet;
+  {
+    // Follow the flow starting at pixel (x0, y0)
+    int currentLabel = 1;
 
-  // Follow the flow starting at pixel (x0, y0)
-  float x0                = 820.0f;
-  float y0                = 1543.0f;
-  cv::Point2f landing_pos = followFlow(flowX, flowY, x0, y0, 250, 2.0f);
-  std::cout << "Pixel lands at: " << std::to_string(landing_pos.x) << " " << std::to_string(landing_pos.y) << std::endl;
+    for(int y = 0; y < flowX.rows; ++y) {
+      for(int x = 0; x < flowX.cols; ++x) {
+        float pixelMask = mask.at<float>(y, x);
+        if(pixelMask > 0.5) {
+          float px = static_cast<float>(x);
+          float py = static_cast<float>(y);
 
-  cv::Point center(cvRound(landing_pos.x), cvRound(landing_pos.y));    // Convert to integer pixel position
-  cv::circle(arrowImage, center, 2, cv::Scalar(0, 0, 255), -1);        // BGR = Red
+          cv::Point2f landing_pos = followFlow(flowX, flowY, px, py, 500, 2);    // your method modifies px, py to landing pos
 
-  cv::imwrite("tmp/arrows.jpg", arrowImage);
+          int lx = cvRound(landing_pos.x);
+          int ly = cvRound(landing_pos.y);
 
-  return {};
+          // Key for map
+          auto key = std::make_pair(lx, ly);
+
+          int label;
+          auto it = landingLabelMap.find(key);
+          if(it == landingLabelMap.end()) {
+            label                = currentLabel++;
+            landingLabelMap[key] = label;
+          } else {
+            label = it->second;
+          }
+          labelsSet.emplace(label);
+
+          labels.at<int>(y, x) = label;
+        }
+      }
+    }
+    cv::Mat labelDebugImage;
+    cv::Mat binaryDebugImage;
+    clusterLandingPoints(landingLabelMap, labelDebugImage, binaryDebugImage);
+    cv::imwrite("tmp/labelDebugImage.jpg", labelDebugImage);
+    cv::imwrite("tmp/binaryDebugImage.jpg", binaryDebugImage);
+    cv::transpose(labels, labels);
+    cv::imwrite("tmp/labels.jpg", paintLabels(labels));
+  }
+
+  //
+  // Debugging
+  //
+  {
+    cv::Mat arrowImage;
+    drawFlowArrows(flowX, flowY, arrowImage, 10, 5.0);    // stride=10, scale flow x5 for visibility
+    for(const auto &[coor, a] : landingLabelMap) {
+      cv::Point center(cvRound(coor.first), cvRound(coor.second));     // Convert to integer pixel position
+      cv::circle(arrowImage, center, 2, cv::Scalar(0, 0, 255), -1);    // BGR = Red
+    }
+    cv::imwrite("tmp/arrows.jpg", arrowImage);
+  }
+
+  return {labels, labelsSet};
 }
 
-// Follow flow field from (startX, startY) for numSteps with stepSize
+///
+/// \brief      Follow flow field from (startX, startY) for numSteps with stepSize
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
 cv::Point2f followFlow(const cv::Mat &flowX, const cv::Mat &flowY, float startX, float startY, int numSteps, float stepSize)
 {
   float x = startX;
@@ -275,11 +298,15 @@ cv::Point2f followFlow(const cv::Mat &flowX, const cv::Mat &flowY, float startX,
     y = std::clamp(y, 0.0f, static_cast<float>(height - 1));
   }
 
-  return cv::Point2f(x, y);
+  return {x, y};
 }
 
 ///
-/// Bilinear interpolation of flow vectors at floating point (x, y)
+/// \brief      Bilinear interpolation of flow vectors at floating point (x, y)
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
 ///
 cv::Vec2f bilinearInterpolate(const cv::Mat &flowX, const cv::Mat &flowY, float x, float y)
 {
@@ -316,7 +343,172 @@ cv::Vec2f bilinearInterpolate(const cv::Mat &flowX, const cv::Mat &flowY, float 
   float flow_x = (1 - dx) * (1 - dy) * Q11_x + dx * (1 - dy) * Q12_x + (1 - dx) * dy * Q21_x + dx * dy * Q22_x;
   float flow_y = (1 - dx) * (1 - dy) * Q11_y + dx * (1 - dy) * Q12_y + (1 - dx) * dy * Q21_y + dx * dy * Q22_y;
 
-  return cv::Vec2f(flow_x, flow_y);
+  return {flow_x, flow_y};
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+cv::Mat paintLabels(const cv::Mat &labels)
+{
+  CV_Assert(labels.type() == CV_32S);
+
+  int rows = labels.rows;
+  int cols = labels.cols;
+
+  cv::Mat colorMap(rows, cols, CV_8UC3, cv::Scalar(0, 0, 0));
+
+  std::unordered_map<int, cv::Vec3b> labelColors;
+
+  // Random generator for colors
+  std::mt19937 rng(12345);    // fixed seed for reproducibility
+  std::uniform_int_distribution<int> dist(0, 255);
+
+  for(int y = 0; y < rows; ++y) {
+    const int *labelRow = labels.ptr<int>(y);
+    cv::Vec3b *colorRow = colorMap.ptr<cv::Vec3b>(y);
+
+    for(int x = 0; x < cols; ++x) {
+      int label = labelRow[x];
+      if(label == 0) {
+        // background or unlabeled pixels -> black
+        colorRow[x] = cv::Vec3b(0, 0, 0);
+        continue;
+      }
+
+      // Assign color if not yet assigned
+      if(labelColors.find(label) == labelColors.end()) {
+        labelColors[label] = cv::Vec3b(dist(rng), dist(rng), dist(rng));
+      }
+
+      colorRow[x] = labelColors[label];
+    }
+  }
+
+  return colorMap;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void drawFlowArrows(const cv::Mat &flowX, const cv::Mat &flowY, cv::Mat &outImage, int stride, float scale, cv::Scalar color)
+{
+  outImage = cv::Mat::zeros(flowX.size(), CV_8UC3);    // black canvas
+
+  for(int y = 0; y < flowX.rows; y += stride) {
+    for(int x = 0; x < flowX.cols; x += stride) {
+      float fx = flowX.at<float>(y, x);
+      float fy = flowY.at<float>(y, x);
+
+      cv::Point2f start(x, y);
+      cv::Point2f end(x + fx * scale, y + fy * scale);
+
+      cv::arrowedLine(outImage, start, end, color, 1, cv::LINE_AA, 0, 0.3);
+    }
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void clusterLandingPoints(std::map<std::pair<int, int>, int> &landingLabelMap,
+                          cv::Mat &outLabelImageDebug,    // Output: debug color labels
+                          cv::Mat &outBinaryMaskDebug     // Output: debug binary mask
+)
+{
+  // 1. Find bounding box
+  int minX = std::numeric_limits<int>::max();
+  int maxX = std::numeric_limits<int>::min();
+  int minY = std::numeric_limits<int>::max();
+  int maxY = std::numeric_limits<int>::min();
+
+  for(const auto &[pt, _] : landingLabelMap) {
+    int x = pt.first;
+    int y = pt.second;
+    minX  = std::min(minX, x);
+    maxX  = std::max(maxX, x);
+    minY  = std::min(minY, y);
+    maxY  = std::max(maxY, y);
+  }
+
+  int width  = maxX - minX + 1;
+  int height = maxY - minY + 1;
+
+  if(width <= 0 || height <= 0) {
+    std::cerr << "Invalid landing point bounds." << std::endl;
+    return;
+  }
+
+  // 2. Create binary mask
+  cv::Mat binaryMask = cv::Mat::zeros(height, width, CV_8UC1);
+  for(const auto &[pt, label] : landingLabelMap) {
+    int x                      = pt.first - minX;
+    int y                      = pt.second - minY;
+    binaryMask.at<uchar>(y, x) = 255;
+  }
+
+  // Optional debug: visualize binary landing point mask
+  outBinaryMaskDebug = binaryMask.clone();
+
+  // 3. Connected components
+  cv::Mat ccLabels;
+  int numComponents = cv::connectedComponents(binaryMask, ccLabels, 8, CV_32S);
+
+  // Optional debug: visualize components as color image
+  cv::Mat ccLabelsColor;
+  ccLabels.convertTo(ccLabels, CV_16U);    // For color map
+  ccLabels *= 1000;                        // Scale for better color separation
+  cv::Mat ccLabels8U;
+  ccLabels.convertTo(ccLabels8U, CV_8U, 1.0 / 256);    // bring back to 8-bit range
+  cv::applyColorMap(ccLabels8U, outLabelImageDebug, cv::COLORMAP_JET);
+
+  // 4. Update map with clustered label IDs
+  for(auto &[pt, label] : landingLabelMap) {
+    int x            = pt.first - minX;
+    int y            = pt.second - minY;
+    int clusterLabel = ccLabels.at<int>(y, x);
+    label            = clusterLabel;
+  }
+
+  std::cout << "Clustering complete. Found " << numComponents << " components." << std::endl;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+cv::Vec3b flowToColor(float flow_x, float flow_y)
+{
+  float magnitude = std::sqrt(flow_x * flow_x + flow_y * flow_y);
+  float angle     = std::atan2(flow_y, flow_x);    // Radians
+
+  // Normalize angle to [0, 180) for hue (OpenCV uses 0–180 for H)
+  float hue = (angle + CV_PI) * 90.0f / CV_PI;
+
+  // Normalize magnitude (optional: scale as needed)
+  float mag_normalized = std::min(1.0f, magnitude / 10.0f);    // assuming max mag = 10
+
+  // Create HSV color: H [0,180], S [0,255], V [0,255]
+  cv::Mat hsv(1, 1, CV_8UC3, cv::Scalar(hue, 255, mag_normalized * 255));
+  cv::Mat bgr;
+  cv::cvtColor(hsv, bgr, cv::COLOR_HSV2BGR);
+
+  return bgr.at<cv::Vec3b>(0, 0);
 }
 
 }    // namespace joda::ai
