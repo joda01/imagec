@@ -39,6 +39,8 @@ AiModelCyto3::AiModelCyto3(const ProbabilitySettings &settings) : mSettings(sett
 {
 }
 
+cv::Mat followFlowField(const cv::Mat &flowX, const cv::Mat &flowY, const cv::Mat &masl);
+
 ///
 /// \brief
 /// \author
@@ -85,12 +87,13 @@ auto AiModelCyto3::processPrediction(const cv::Mat &inputImage, const at::IValue
   cv::Mat flowYImage(originalHeight, originalWith, CV_32F, flowY.data_ptr<float>());
 
   {
-    cv::Mat normMat;
-    cv::normalize(maskImage, normMat, 0.0, 1.0, cv::NORM_MINMAX);
-    auto success = cv::imwrite("tmp/output.png", normMat);
+    followFlowField(flowXImage, flowYImage, maskImage);
+    // cv::Mat normMat;
+    // cv::normalize(maskImage, normMat, 0.0, 1.0, cv::NORM_MINMAX);
+    auto success = cv::imwrite("tmp/mask.png", maskImage * 128);
 
-    success = cv::imwrite("tmp/flowXImage.png", flowXImage);
-    success = cv::imwrite("tmp/flowYImage.png", flowYImage);
+    success = cv::imwrite("tmp/flowXImage.png", flowXImage * 128);
+    success = cv::imwrite("tmp/flowYImage.png", flowYImage * 128);
   }
 
   // ===============================
@@ -167,6 +170,48 @@ auto AiModelCyto3::processPrediction(const cv::Mat &inputImage, const at::IValue
   }
 
   return results;    // Return the vector of individual object masks
+}
+
+cv::Vec3b flowToColor(float flow_x, float flow_y)
+{
+  float magnitude = std::sqrt(flow_x * flow_x + flow_y * flow_y);
+  float angle     = std::atan2(flow_y, flow_x);    // Radians
+
+  // Normalize angle to [0, 180) for hue (OpenCV uses 0–180 for H)
+  float hue = (angle + CV_PI) * 90.0f / CV_PI;
+
+  // Normalize magnitude (optional: scale as needed)
+  float mag_normalized = std::min(1.0f, magnitude / 10.0f);    // assuming max mag = 10
+
+  // Create HSV color: H [0,180], S [0,255], V [0,255]
+  cv::Mat hsv(1, 1, CV_8UC3, cv::Scalar(hue, 255, mag_normalized * 255));
+  cv::Mat bgr;
+  cv::cvtColor(hsv, bgr, cv::COLOR_HSV2BGR);
+
+  return bgr.at<cv::Vec3b>(0, 0);
+}
+
+cv::Mat followFlowField(const cv::Mat &flowX, const cv::Mat &flowY, const cv::Mat &mask)
+{
+  cv::Mat colorImage(mask.size(), CV_8UC3, cv::Scalar(0, 0, 0));    // Black image
+
+  for(int x = 0; x < mask.cols; x++) {
+    for(int y = 0; y < mask.rows; y++) {
+      float pixelMask = mask.at<float>(y, x);
+      if(pixelMask > 0.5) {
+        float pixelValFlowX = flowX.at<float>(y, x);
+        float pixelValFlowY = flowY.at<float>(y, x);
+
+        colorImage.at<cv::Vec3b>(y, x) = flowToColor(pixelValFlowX, pixelValFlowY);
+      } else {
+        colorImage.at<cv::Vec3b>(y, x) = {0, 0, 0};
+      }
+    }
+  }
+
+  cv::imwrite("tmp/flowField.png", colorImage);
+
+  return {};
 }
 
 }    // namespace joda::ai
