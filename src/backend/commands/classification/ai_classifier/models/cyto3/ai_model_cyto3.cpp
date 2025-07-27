@@ -29,7 +29,7 @@
 
 namespace joda::ai {
 
-std::pair<cv::Mat, std::set<int>> followFlowField(const cv::Mat &flowX, const cv::Mat &flowY, const cv::Mat &masl);
+std::pair<cv::Mat, std::set<int>> followFlowField(const cv::Mat &flowX, const cv::Mat &flowY, const cv::Mat &masl, float maskThreshold);
 cv::Vec2f bilinearInterpolate(const cv::Mat &flowX, const cv::Mat &flowY, float x, float y);
 cv::Point2f followFlow(const cv::Mat &flowX, const cv::Mat &flowY, float startX, float startY, int numSteps = 10, float stepSize = 1.0f);
 cv::Vec3b flowToColor(float flow_x, float flow_y);
@@ -99,7 +99,7 @@ auto AiModelCyto3::processPrediction(const cv::Mat &inputImage, const at::IValue
   // ===============================
   // 2. Follow the flow field, returns a object segmented mask
   // ===============================
-  auto [segmentationMask, labels] = followFlowField(flowXImage, flowYImage, maskImage);
+  auto [segmentationMask, labels] = followFlowField(flowXImage, flowYImage, maskImage, mSettings.maskThreshold);
 
   return extractObjectMasksAndBoundingBoxes(segmentationMask, labels);
 }
@@ -115,14 +115,12 @@ std::vector<AiModel::Result> extractObjectMasksAndBoundingBoxes(const cv::Mat &l
 {
   CV_Assert(labelImage.type() == CV_32S || labelImage.type() == CV_8U);
 
-  int rows = labelImage.rows;
-  int cols = labelImage.cols;
+  const int rows = labelImage.rows;
+  const int cols = labelImage.cols;
 
   std::vector<AiModel::Result> result;
-
   for(int label : labels) {
     cv::Mat fullMask = cv::Mat::zeros(rows, cols, CV_8U);
-
     // Generate full-size binary mask
     for(int y = 0; y < rows; ++y) {
       for(int x = 0; x < cols; ++x) {
@@ -136,7 +134,6 @@ std::vector<AiModel::Result> extractObjectMasksAndBoundingBoxes(const cv::Mat &l
     // Find contours
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(fullMask.clone(), contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-
     if(contours.empty()) {
       continue;
     }
@@ -175,95 +172,94 @@ std::vector<AiModel::Result> extractObjectMasksAndBoundingBoxes(const cv::Mat &l
 }
 
 ///
-/// \brief
+/// \brief      Follow the flow field and returns a cv::Mat with each segmented object having a pixel value
 /// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
+/// \return     Segmented mask, set of labels
 ///
-std::pair<cv::Mat, std::set<int>> followFlowField(const cv::Mat &flowX, const cv::Mat &flowY, const cv::Mat &mask)
+std::pair<cv::Mat, std::set<int>> followFlowField(const cv::Mat &flowX, const cv::Mat &flowY, const cv::Mat &mask, float maskThreshold)
 {
-  //
-  // Cell pose flow field
-  //
-  {
-    cv::Mat colorImage(mask.size(), CV_8UC3, cv::Scalar(0, 0, 0));    // Black image
-    for(int x = 0; x < mask.cols; x++) {
-      for(int y = 0; y < mask.rows; y++) {
-        float pixelMask = mask.at<float>(y, x);
-        if(pixelMask > 0.5) {
-          float pixelValFlowX = flowX.at<float>(y, x);
-          float pixelValFlowY = flowY.at<float>(y, x);
-
-          colorImage.at<cv::Vec3b>(y, x) = flowToColor(pixelValFlowX, pixelValFlowY);
-        } else {
-          colorImage.at<cv::Vec3b>(y, x) = {0, 0, 0};
-        }
-      }
-    }
-    cv::imwrite("tmp/flowField.jpg", colorImage);
-  }
-
+  // We have to transform to get a correct flow field
   cv::transpose(flowX, flowX);
   cv::transpose(flowY, flowY);
   cv::transpose(mask, mask);
 
+  // Follow the flow starting at pixel (x0, y0)
   cv::Mat labels = cv::Mat::zeros(flowX.size(), CV_32S);    // int labels per pixel
   std::map<std::pair<int, int>, int> landingLabelMap;
   std::set<int> labelsSet;
-  {
-    // Follow the flow starting at pixel (x0, y0)
-    int currentLabel = 1;
+  int currentLabel = 1;
+  for(int y = 0; y < flowX.rows; ++y) {
+    for(int x = 0; x < flowX.cols; ++x) {
+      float pixelMask = mask.at<float>(y, x);
+      if(pixelMask > maskThreshold) {
+        float px = static_cast<float>(x);
+        float py = static_cast<float>(y);
 
-    for(int y = 0; y < flowX.rows; ++y) {
-      for(int x = 0; x < flowX.cols; ++x) {
-        float pixelMask = mask.at<float>(y, x);
-        if(pixelMask > 0.5) {
-          float px = static_cast<float>(x);
-          float py = static_cast<float>(y);
+        cv::Point2f landing_pos = followFlow(flowX, flowY, px, py, 500, 2);    // your method modifies px, py to landing pos
 
-          cv::Point2f landing_pos = followFlow(flowX, flowY, px, py, 500, 2);    // your method modifies px, py to landing pos
+        int lx = cvRound(landing_pos.x);
+        int ly = cvRound(landing_pos.y);
 
-          int lx = cvRound(landing_pos.x);
-          int ly = cvRound(landing_pos.y);
+        // Key for map
+        auto key = std::make_pair(lx, ly);
 
-          // Key for map
-          auto key = std::make_pair(lx, ly);
-
-          int label;
-          auto it = landingLabelMap.find(key);
-          if(it == landingLabelMap.end()) {
-            label                = currentLabel++;
-            landingLabelMap[key] = label;
-          } else {
-            label = it->second;
-          }
-          labelsSet.emplace(label);
-
-          labels.at<int>(y, x) = label;
+        int label;
+        auto it = landingLabelMap.find(key);
+        if(it == landingLabelMap.end()) {
+          label                = currentLabel++;
+          landingLabelMap[key] = label;
+        } else {
+          label = it->second;
         }
+        labelsSet.emplace(label);
+        labels.at<int>(y, x) = label;
       }
     }
-    cv::Mat labelDebugImage;
-    cv::Mat binaryDebugImage;
-    clusterLandingPoints(landingLabelMap, labelDebugImage, binaryDebugImage);
-    cv::imwrite("tmp/labelDebugImage.jpg", labelDebugImage);
-    cv::imwrite("tmp/binaryDebugImage.jpg", binaryDebugImage);
-    cv::transpose(labels, labels);
-    cv::imwrite("tmp/labels.jpg", paintLabels(labels));
+  }
+
+  //
+  // Cell pose flow field
+  //
+  {
+      //   cv::Mat colorImage(mask.size(), CV_8UC3, cv::Scalar(0, 0, 0));    // Black image
+      //   for(int x = 0; x < mask.cols; x++) {
+      //     for(int y = 0; y < mask.rows; y++) {
+      //       float pixelMask = mask.at<float>(y, x);
+      //       if(pixelMask > 0.5) {
+      //         float pixelValFlowX = flowX.at<float>(y, x);
+      //         float pixelValFlowY = flowY.at<float>(y, x);
+      //
+      //         colorImage.at<cv::Vec3b>(y, x) = flowToColor(pixelValFlowX, pixelValFlowY);
+      //       } else {
+      //         colorImage.at<cv::Vec3b>(y, x) = {0, 0, 0};
+      //       }
+      //     }
+      //   }
+      //   cv::imwrite("tmp/flowField.jpg", colorImage);
   }
 
   //
   // Debugging
   //
   {
-    cv::Mat arrowImage;
-    drawFlowArrows(flowX, flowY, arrowImage, 10, 5.0);    // stride=10, scale flow x5 for visibility
-    for(const auto &[coor, a] : landingLabelMap) {
-      cv::Point center(cvRound(coor.first), cvRound(coor.second));     // Convert to integer pixel position
-      cv::circle(arrowImage, center, 2, cv::Scalar(0, 0, 255), -1);    // BGR = Red
-    }
-    cv::imwrite("tmp/arrows.jpg", arrowImage);
+    // cv::Mat labelDebugImage;
+    // cv::Mat binaryDebugImage;
+    // clusterLandingPoints(landingLabelMap, labelDebugImage, binaryDebugImage);
+    // cv::imwrite("tmp/labelDebugImage.jpg", labelDebugImage);
+    // cv::imwrite("tmp/binaryDebugImage.jpg", binaryDebugImage);
+    // cv::transpose(labels, labels);
+    // cv::imwrite("tmp/labels.jpg", paintLabels(labels));
+
+    //
+    // FLow field arrows
+    //
+    // cv::Mat arrowImage;
+    // drawFlowArrows(flowX, flowY, arrowImage, 10, 5.0);    // stride=10, scale flow x5 for visibility
+    // for(const auto &[coor, a] : landingLabelMap) {
+    //  cv::Point center(cvRound(coor.first), cvRound(coor.second));     // Convert to integer pixel position
+    //  cv::circle(arrowImage, center, 2, cv::Scalar(0, 0, 255), -1);    // BGR = Red
+    //}
+    // cv::imwrite("tmp/arrows.jpg", arrowImage);
   }
 
   return {labels, labelsSet};
@@ -286,13 +282,12 @@ cv::Point2f followFlow(const cv::Mat &flowX, const cv::Mat &flowY, float startX,
 
   for(int i = 0; i < numSteps; ++i) {
     cv::Vec2f flow = bilinearInterpolate(flowX, flowY, x, y);
-    float ε        = 0.0001;
-    if(std::abs(flow[0]) < ε && std::abs(flow[1]) < ε) {
+    float epsilon  = 0.0001;
+    if(std::abs(flow[0]) < epsilon && std::abs(flow[1]) < epsilon) {
       break;    // converged
     }
     x += stepSize * flow[0];
     y += stepSize * flow[1];
-
     // Clamp position inside image bounds
     x = std::clamp(x, 0.0f, static_cast<float>(width - 1));
     y = std::clamp(y, 0.0f, static_cast<float>(height - 1));
