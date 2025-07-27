@@ -232,17 +232,22 @@ cv::Mat followFlowField(const cv::Mat &flowX, const cv::Mat &flowY, const cv::Ma
 
   cv::imwrite("tmp/flowField.jpg", colorImage);
 
+  cv::transpose(flowX, flowX);
+  cv::transpose(flowY, flowY);
+
   cv::Mat arrowImage;
   drawFlowArrows(flowX, flowY, arrowImage, 10, 5.0);    // stride=10, scale flow x5 for visibility
-  cv::imwrite("tmp/arrows.jpg", arrowImage);
 
   // Follow the flow starting at pixel (x0, y0)
-  float x0 = 320.0f;
-  float y0 = 800.0f;
-
-  cv::Point2f landing_pos = followFlow(flowX, flowY, x0, y0, 150, 0.25f);
-
+  float x0                = 820.0f;
+  float y0                = 1543.0f;
+  cv::Point2f landing_pos = followFlow(flowX, flowY, x0, y0, 250, 2.0f);
   std::cout << "Pixel lands at: " << std::to_string(landing_pos.x) << " " << std::to_string(landing_pos.y) << std::endl;
+
+  cv::Point center(cvRound(landing_pos.x), cvRound(landing_pos.y));    // Convert to integer pixel position
+  cv::circle(arrowImage, center, 2, cv::Scalar(0, 0, 255), -1);        // BGR = Red
+
+  cv::imwrite("tmp/arrows.jpg", arrowImage);
 
   return {};
 }
@@ -258,7 +263,10 @@ cv::Point2f followFlow(const cv::Mat &flowX, const cv::Mat &flowY, float startX,
 
   for(int i = 0; i < numSteps; ++i) {
     cv::Vec2f flow = bilinearInterpolate(flowX, flowY, x, y);
-
+    float ε        = 0.0001;
+    if(std::abs(flow[0]) < ε && std::abs(flow[1]) < ε) {
+      break;    // converged
+    }
     x += stepSize * flow[0];
     y += stepSize * flow[1];
 
