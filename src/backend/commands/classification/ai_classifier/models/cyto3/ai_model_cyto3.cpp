@@ -172,6 +172,9 @@ auto AiModelCyto3::processPrediction(const cv::Mat &inputImage, const at::IValue
   return results;    // Return the vector of individual object masks
 }
 
+cv::Vec2f bilinearInterpolate(const cv::Mat &flowX, const cv::Mat &flowY, float x, float y);
+cv::Point2f followFlow(const cv::Mat &flowX, const cv::Mat &flowY, float startX, float startY, int numSteps = 10, float stepSize = 1.0f);
+
 cv::Vec3b flowToColor(float flow_x, float flow_y)
 {
   float magnitude = std::sqrt(flow_x * flow_x + flow_y * flow_y);
@@ -189,6 +192,24 @@ cv::Vec3b flowToColor(float flow_x, float flow_y)
   cv::cvtColor(hsv, bgr, cv::COLOR_HSV2BGR);
 
   return bgr.at<cv::Vec3b>(0, 0);
+}
+
+void drawFlowArrows(const cv::Mat &flowX, const cv::Mat &flowY, cv::Mat &outImage, int stride = 10, float scale = 1.0,
+                    cv::Scalar color = cv::Scalar(0, 255, 0))
+{
+  outImage = cv::Mat::zeros(flowX.size(), CV_8UC3);    // black canvas
+
+  for(int y = 0; y < flowX.rows; y += stride) {
+    for(int x = 0; x < flowX.cols; x += stride) {
+      float fx = flowX.at<float>(y, x);
+      float fy = flowY.at<float>(y, x);
+
+      cv::Point2f start(x, y);
+      cv::Point2f end(x + fx * scale, y + fy * scale);
+
+      cv::arrowedLine(outImage, start, end, color, 1, cv::LINE_AA, 0, 0.3);
+    }
+  }
 }
 
 cv::Mat followFlowField(const cv::Mat &flowX, const cv::Mat &flowY, const cv::Mat &mask)
@@ -209,9 +230,85 @@ cv::Mat followFlowField(const cv::Mat &flowX, const cv::Mat &flowY, const cv::Ma
     }
   }
 
-  cv::imwrite("tmp/flowField.png", colorImage);
+  cv::imwrite("tmp/flowField.jpg", colorImage);
+
+  cv::Mat arrowImage;
+  drawFlowArrows(flowX, flowY, arrowImage, 10, 5.0);    // stride=10, scale flow x5 for visibility
+  cv::imwrite("tmp/arrows.jpg", arrowImage);
+
+  // Follow the flow starting at pixel (x0, y0)
+  float x0 = 320.0f;
+  float y0 = 800.0f;
+
+  cv::Point2f landing_pos = followFlow(flowX, flowY, x0, y0, 150, 0.25f);
+
+  std::cout << "Pixel lands at: " << std::to_string(landing_pos.x) << " " << std::to_string(landing_pos.y) << std::endl;
 
   return {};
+}
+
+// Follow flow field from (startX, startY) for numSteps with stepSize
+cv::Point2f followFlow(const cv::Mat &flowX, const cv::Mat &flowY, float startX, float startY, int numSteps, float stepSize)
+{
+  float x = startX;
+  float y = startY;
+
+  int width  = flowX.cols;
+  int height = flowX.rows;
+
+  for(int i = 0; i < numSteps; ++i) {
+    cv::Vec2f flow = bilinearInterpolate(flowX, flowY, x, y);
+
+    x += stepSize * flow[0];
+    y += stepSize * flow[1];
+
+    // Clamp position inside image bounds
+    x = std::clamp(x, 0.0f, static_cast<float>(width - 1));
+    y = std::clamp(y, 0.0f, static_cast<float>(height - 1));
+  }
+
+  return cv::Point2f(x, y);
+}
+
+///
+/// Bilinear interpolation of flow vectors at floating point (x, y)
+///
+cv::Vec2f bilinearInterpolate(const cv::Mat &flowX, const cv::Mat &flowY, float x, float y)
+{
+  int width  = flowX.cols;
+  int height = flowX.rows;
+
+  int x0 = static_cast<int>(std::floor(x));
+  int y0 = static_cast<int>(std::floor(y));
+  int x1 = x0 + 1;
+  int y1 = y0 + 1;
+
+  float dx = x - x0;
+  float dy = y - y0;
+
+  // Clamp to valid image coordinates
+  x0 = std::clamp(x0, 0, width - 1);
+  x1 = std::clamp(x1, 0, width - 1);
+  y0 = std::clamp(y0, 0, height - 1);
+  y1 = std::clamp(y1, 0, height - 1);
+
+  // Sample flowX at 4 neighbors
+  float Q11_x = flowX.at<float>(y0, x0);
+  float Q12_x = flowX.at<float>(y0, x1);
+  float Q21_x = flowX.at<float>(y1, x0);
+  float Q22_x = flowX.at<float>(y1, x1);
+
+  // Sample flowY at 4 neighbors
+  float Q11_y = flowY.at<float>(y0, x0);
+  float Q12_y = flowY.at<float>(y0, x1);
+  float Q21_y = flowY.at<float>(y1, x0);
+  float Q22_y = flowY.at<float>(y1, x1);
+
+  // Bilinear interpolation
+  float flow_x = (1 - dx) * (1 - dy) * Q11_x + dx * (1 - dy) * Q12_x + (1 - dx) * dy * Q21_x + dx * dy * Q22_x;
+  float flow_y = (1 - dx) * (1 - dy) * Q11_y + dx * (1 - dy) * Q12_y + (1 - dx) * dy * Q21_y + dx * dy * Q22_y;
+
+  return cv::Vec2f(flow_x, flow_y);
 }
 
 }    // namespace joda::ai
