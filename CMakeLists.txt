@@ -75,7 +75,7 @@ SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 
-find_package( OpenCV REQUIRED )
+find_package( OpenCV REQUIRED ximgproc)
 find_package( PugiXML )
 find_package( JNI REQUIRED )
 find_package( Java COMPONENTS REQUIRED)

@@ -61,6 +61,8 @@
 #include "backend/commands/image_functions/rolling_ball/rolling_ball.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings_ui.hpp"
+#include "backend/commands/image_functions/skeletonize/skeletonize.hpp"
+#include "backend/commands/image_functions/skeletonize/skeletonize_settings_ui.hpp"
 #include "backend/commands/image_functions/threshold/threshold.hpp"
 #include "backend/commands/image_functions/threshold/threshold_settings_ui.hpp"
 #include "backend/commands/image_functions/threshold_adaptive/threshold_adaptive.hpp"
@@ -392,6 +394,15 @@ private:
       } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
         return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::RankFilter, RankFilterSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<RankFilterSettings &>(step.$rank.value()), parent));
+      }
+    }
+
+    if(step.$skeletonize) {
+      if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
+        return std::make_unique<joda::cmd::Factory<joda::cmd::Skeletonize, SkeletonizeSettings>>(step.$skeletonize.value());
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::Skeletonize, SkeletonizeSettings>>(
+            const_cast<settings::PipelineStep &>(step), const_cast<SkeletonizeSettings &>(step.$skeletonize.value()), parent));
       }
     }
 
