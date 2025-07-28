@@ -48,17 +48,17 @@ public:
     //
     mKernelSize = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, "Kernel size");
     mKernelSize->addOptions({{-1, "Off"},
-                             {3, "3x3"},
-                             {5, "5x5"},
-                             {7, "7x7"},
-                             {9, "9x9"},
-                             {11, "11x11"},
-                             {13, "13x13"},
-                             {15, "15x15"},
-                             {17, "17x17"},
-                             {19, "19x19"},
-                             {21, "21x21"},
-                             {23, "23x23"}});
+                             {3, "3x3 (σ=0.3)"},
+                             {5, "5x5 (σ=0.7)"},
+                             {7, "7x7 (σ=1.0)"},
+                             {9, "9x9 (σ=1.3)"},
+                             {11, "11x11 (σ=1.6)"},
+                             {13, "13x13 (σ=2.0)"},
+                             {15, "15x15 (σ=2.3)"},
+                             {17, "17x17 (σ=2.6)"},
+                             {19, "19x19 (σ=3.0)"},
+                             {21, "21x21 (σ=3.3)"},
+                             {23, "23x23 (σ=3.6)"}});
     mKernelSize->setValue(settings.kernelSize);
     mKernelSize->connectWithSetting(&settings.kernelSize);
     mKernelSize->setShortDescription("Kernel: ");
