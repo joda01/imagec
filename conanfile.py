@@ -45,8 +45,8 @@ class ImageC(ConanFile):
         self.requires("rapidyaml/0.7.1")
         if self.options.get_safe("with_onnx"):
             self.requires("onnxruntime/1.18.1")
-        if self.options.get_safe("with_pytorch"):
-            self.requires("libtorch/2.4.0")
+        #if self.options.get_safe("with_pytorch"):
+        #    self.requires("libtorch/2.4.0")
         if self.options.get_safe("with_tensorflow"):
             self.requires("tensorflow-lite/2.15.0")
         self.requires("flatbuffers/23.5.26", force=True)

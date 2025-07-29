@@ -55,10 +55,27 @@ else ()
     set(CMAKE_INSTALL_RPATH "$ORIGIN/lib")
 endif()
 
+
+# Detect platform and set LibTorch path accordingly
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(LIBTORCH_PATH "lib/libtorch/libtorch_linux_x86")
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(LIBTORCH_PATH "${CMAKE_SOURCE_DIR}/3rdparty/libtorch-windows")
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(LIBTORCH_PATH "${CMAKE_SOURCE_DIR}/3rdparty/libtorch-macos")
+else()
+    message(FATAL_ERROR "Unsupported OS: ${CMAKE_SYSTEM_NAME}")
+endif()
+
+# Add only LibTorch's prefix path
+list(APPEND CMAKE_PREFIX_PATH "${LIBTORCH_PATH}")
+
+
 # Options
 set(WITH_ONNX "With onnx support" ON)
 set(WITH_PYTORCH "With pytorch support" ON)
 set(WITH_TENSORFLOW "With tensorflow support" ON)
+set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda)
 
 
 # Get the current user and host
