@@ -283,6 +283,7 @@ void DialogImageViewer::setImagePlane(const ImagePlaneSettings &settings)
   for(const auto &[chNr, action] : mChannelSelections) {
     if(chNr == settings.plane.c) {
       action->setChecked(true);
+      mImageChannel->setIcon(action->icon());
     } else {
       action->setChecked(false);
     }
@@ -292,6 +293,29 @@ void DialogImageViewer::setImagePlane(const ImagePlaneSettings &settings)
   mImageSettings.tileWidth = settings.tileWidth;
   applySettingsToImagePanel();
   mImageChannelMenuGroup->blockSignals(false);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageViewer::setImageChannel(int32_t channel)
+{
+  if(getSelectedImageChannel() == channel) {
+    return;
+  }
+  for(const auto &[chNr, action] : mChannelSelections) {
+    if(chNr == channel) {
+      action->setChecked(true);
+      mImageChannel->setIcon(action->icon());
+    } else {
+      action->setChecked(false);
+    }
+  }
+  onSettingsChanged();
 }
 
 ///

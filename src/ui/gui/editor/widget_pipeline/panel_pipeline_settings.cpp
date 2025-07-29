@@ -703,6 +703,11 @@ void PanelPipelineSettings::onClassificationNameChanged()
 void PanelPipelineSettings::setActive(bool setActive)
 {
   if(!mIsActiveShown && setActive) {
+    // Set the image channel initial to the selected channel of the pipeline
+    if(mSettings.pipelineSetup.cStackIndex >= 0) {
+      mPreviewImage->setImageChannel(mSettings.pipelineSetup.cStackIndex);
+    }
+
     mPreviewResultsDialog->setResults(this, &mPreviewResult.results);
     mPreviewResultsDialog->show();
     QTimer::singleShot(0, this, [this]() {

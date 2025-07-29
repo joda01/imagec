@@ -66,6 +66,7 @@ public:
 
   // SETTER ///////////////////////////////////////////
   void setImagePlane(const ImagePlaneSettings &);
+  void setImageChannel(int32_t channel);
   void setShowCrossHairCursor(bool show);
   void setSettingsPointer(joda::settings::AnalyzeSettings *settings);
 
