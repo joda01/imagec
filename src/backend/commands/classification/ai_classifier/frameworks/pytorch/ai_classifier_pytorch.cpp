@@ -68,7 +68,10 @@ auto AiFrameworkPytorch::predict(const cv::Mat &originalImage) -> at::IValue
     model = torch::jit::load(mModelPath);
     model.eval();
     if(numCudaDevices > 0) {
+      joda::log::logDebug("Using GPU: cuda:0");
       model.to(at::Device("cuda:0"));
+    } else {
+      joda::log::logDebug("Using CPU.");
     }
   } catch(const c10::Error &e) {
     throw std::runtime_error(e.what());
@@ -95,10 +98,20 @@ auto AiFrameworkPytorch::predict(const cv::Mat &originalImage) -> at::IValue
     inputTensor = inputTensor.to(torch::kFloat).clone();
   }
 
+  std::cout << "Before forward" << std::endl;
+
+  if(numCudaDevices > 0) {
+    joda::log::logDebug("Using GPU: cuda:0");
+
+    inputTensor = inputTensor.to(at::Device("cuda:0"));
+  }
+
   // ===============================
   // 3. Run the Model Inference
   // ===============================
   at::IValue output = model.forward({inputTensor});
+
+  std::cout << "After forward" << std::endl;
 
   return output;
 }

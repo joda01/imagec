@@ -75,7 +75,11 @@ list(APPEND CMAKE_PREFIX_PATH "${LIBTORCH_PATH}")
 set(WITH_ONNX "With onnx support" ON)
 set(WITH_PYTORCH "With pytorch support" ON)
 set(WITH_TENSORFLOW "With tensorflow support" ON)
+
+
 set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda)
+set(CMAKE_CUDA_ARCHITECTURES 60 61 70 75 80 86)
+#set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
 
 
 # Get the current user and host
@@ -86,7 +90,7 @@ execute_process(COMMAND hostname OUTPUT_VARIABLE BUILD_HOST OUTPUT_STRIP_TRAILIN
 SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
-#SET(CMAKE_CXX_FLAGS "-g -O0 -z noexecstack") 
+SET(CMAKE_CXX_FLAGS "-g -O0 -z noexecstack") 
 SET(CMAKE_GENERATOR "Unix Makefiles")
 SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -105,6 +109,7 @@ find_package( ONNX REQUIRED )
 find_package( ryml REQUIRED )
 find_package( OpenSSL REQUIRED )
 find_package( CLI11 REQUIRED )
+find_package( httplib REQUIRED )
 
 
 SET(DuckDB_USE_STATIC_LIBS TRUE)
@@ -122,6 +127,7 @@ set(LIBS
   ryml::ryml
   openssl::openssl
   CLI11::CLI11
+  httplib::httplib
 )
 
 if(WITH_ONNX)

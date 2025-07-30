@@ -43,6 +43,7 @@ class ImageC(ConanFile):
         self.requires("cli11/2.5.0")
         self.requires("onnx/1.17.0", force=True)
         self.requires("rapidyaml/0.7.1")
+        self.requires("cpp-httplib/0.19.0", force=True)
         if self.options.get_safe("with_onnx"):
             self.requires("onnxruntime/1.18.1")
         #if self.options.get_safe("with_pytorch"):

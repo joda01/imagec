@@ -52,6 +52,28 @@ pack(){
     cp /root/.conan2/p/*/p/lib/libQt6Svg.so.6 .
     cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 .
     cp /usr/lib/x86_64-linux-gnu/libxcb-icccm.so .
+
+    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libtorch_cpu.so .
+    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libtorch_cuda.so .
+    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libtorch.so .
+    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libc10.so .
+    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libc10_cuda.so .
+    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libgomp-98b21ff3.so.1 .
+    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libcudart-d0da41ae.so.11.0 .
+    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libcublas-3b81d170.so.11 .
+    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libcublasLt-b6d14a74.so.11 .
+    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libcudnn.so.9 .
+    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libcudnn_graph.so.9 .
+    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libcudnn_heuristic.so.9 .
+
+    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libcudnn_engines_runtime_compiled.so.9 .
+
+
+    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libcudnn_cnn.so.9 .
+    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libcudnn_engines_precompiled.so.9 .
+
+    cp /usr/local/cuda-12.0/targets/x86_64-linux/lib/libcudart.so.12 .
+
     cd ..
     chmod +x imagec
     chmod +x imagec.sh
