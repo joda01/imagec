@@ -13,8 +13,10 @@
 
 #include <random>
 #include <string>
+#include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/logger/console_logger.hpp"
 #include <opencv2/core/types.hpp>
+
 #undef slots
 #include <ATen/core/TensorBody.h>
 #include <stdexcept>
@@ -99,7 +101,9 @@ auto AiModelCyto3::processPrediction(const cv::Mat &inputImage, const at::IValue
   // ===============================
   // 2. Follow the flow field, returns a object segmented mask
   // ===============================
+  auto idx                        = DurationCount::start("Follow field");
   auto [segmentationMask, labels] = followFlowField(flowXImage, flowYImage, maskImage, mSettings.maskThreshold);
+  DurationCount::stop(idx);
 
   return extractObjectMasksAndBoundingBoxes(segmentationMask, labels);
 }

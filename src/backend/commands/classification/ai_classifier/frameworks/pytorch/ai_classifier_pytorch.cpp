@@ -11,6 +11,7 @@
 ///
 ///
 #include <vector>
+#include "backend/helper/duration_count/duration_count.h"
 #if defined(WITH_PYTORCH)
 
 #undef slots
@@ -98,11 +99,9 @@ auto AiFrameworkPytorch::predict(const cv::Mat &originalImage) -> at::IValue
     inputTensor = inputTensor.to(torch::kFloat).clone();
   }
 
-  std::cout << "Before forward" << std::endl;
+  auto idx = DurationCount::start("Forward to libtorch");
 
   if(numCudaDevices > 0) {
-    joda::log::logDebug("Using GPU: cuda:0");
-
     inputTensor = inputTensor.to(at::Device("cuda:0"));
   }
 
@@ -111,7 +110,7 @@ auto AiFrameworkPytorch::predict(const cv::Mat &originalImage) -> at::IValue
   // ===============================
   at::IValue output = model.forward({inputTensor});
 
-  std::cout << "After forward" << std::endl;
+  DurationCount::stop(idx);
 
   return output;
 }
