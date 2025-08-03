@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.5)
+cmake_minimum_required (VERSION 3.18)
 
 if(NOT CLANG_TIDY)
   find_package(Python3)
@@ -76,7 +76,9 @@ set(WITH_ONNX "With onnx support" ON)
 set(WITH_PYTORCH "With pytorch support" ON)
 set(WITH_TENSORFLOW "With tensorflow support" ON)
 
-
+#
+# CUDA stuff
+#
 set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda)
 set(CMAKE_CUDA_ARCHITECTURES 60 61 70 75 80 86)
 #set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
@@ -163,6 +165,7 @@ file(GLOB_RECURSE SOURCES
   ./src/*.cpp
   ./src/*.c
   ./src/*.cc
+  ./src/*.cu
  ${RESOURCE_SOURCES}
 )
 
@@ -177,6 +180,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     WIN32_EXECUTABLE ON
     MACOSX_BUNDLE ON
     CMAKE_AUTOMOC ON
+    CUDA_SEPARABLE_COMPILATION ON
+    CUDA_STANDARD 17
 )
 
 target_sources(${PROJECT_NAME} PRIVATE ${RESOURCE_SOURCES})
