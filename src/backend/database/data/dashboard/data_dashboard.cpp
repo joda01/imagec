@@ -195,7 +195,7 @@ void Dashboard::setData(const std::shared_ptr<joda::table::Table> &tableToSet, c
 
     int row = 0;
     for(const auto &[_, rowData] : colData->rows) {
-      if(rowData->getObjectId() == 0) {
+      if(isImageView && rowData->getObjectId() == 0) {
         continue;
       }
 
