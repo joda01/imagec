@@ -92,10 +92,10 @@ public:
   static auto populateClassesFromImage(const joda::ome::OmeInfo &omeInfo, int32_t series) -> joda::settings::Classification;
 
   // PREVIEW ///////////////////////////////////////////////////
-  void preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
+  auto preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
                const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const settings::Pipeline &pipeline,
                const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, int32_t tStack, Preview &previewOut, const joda::ome::OmeInfo &,
-               const settings::ObjectInputClassesExp &classesToHide);
+               const settings::ObjectInputClassesExp &classesToHide) -> joda::atom::ObjectMap;
   [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series) -> joda::ome::OmeInfo;
 
   static auto loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,

@@ -134,7 +134,7 @@ auto ROI::calcCentroid(const cv::Mat &mask) const -> cv::Point
 /// \brief        Calculate the avg, min and max intensity in the given image
 /// \author       Joachim Danmayr
 ///
-auto ROI::calcIntensity(const cv::Mat &image) -> Intensity
+auto ROI::calcIntensity(const cv::Mat &image) const -> Intensity
 {
   // \todo make more efficient
   Intensity intensityRet;
@@ -150,6 +150,29 @@ auto ROI::calcIntensity(const cv::Mat &image) -> Intensity
   intensityRet.intensitySum = cv::sum(maskImg)[0];
   cv::minMaxLoc(maskImg, &intensityRet.intensityMin, &intensityRet.intensityMax, nullptr, nullptr, mMask);
   return intensityRet;
+}
+
+///
+/// \brief        Calculate the gradients in the given image
+/// \author       Joachim Danmayr
+///
+auto ROI::calcGradients(const cv::Mat &image, cv::Mat &gradMag, cv::Mat &gradAngle) const -> void
+{
+  // \todo make more efficient
+  cv::Mat maskImg = image(mBoundingBoxTile).clone();
+  for(int x = 0; x < maskImg.cols; x++) {
+    for(int y = 0; y < maskImg.rows; y++) {
+      if(mMask.at<uint8_t>(y, x) <= 0) {
+        maskImg.at<uint16_t>(y, x) = 0;
+      }
+    }
+  }
+
+  cv::Mat grad_x;
+  cv::Mat grad_y;
+  cv::Sobel(maskImg, grad_x, CV_32F, 1, 0, 3);
+  cv::Sobel(maskImg, grad_y, CV_32F, 0, 1, 3);
+  cv::cartToPolar(grad_x, grad_y, gradMag, gradAngle, true);
 }
 
 ///

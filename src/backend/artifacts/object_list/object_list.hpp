@@ -221,7 +221,9 @@ public:
   }
 };
 
-class ObjectList : public std::map<enums::ClassId, std::unique_ptr<SpheralIndex>>
+using ObjectMap = std::map<enums::ClassId, std::unique_ptr<SpheralIndex>>;
+
+class ObjectList : public ObjectMap
 {
 public:
   void push_back(const ROI &roi)
@@ -247,7 +249,7 @@ public:
 
   void erase(enums::ClassId classToErase)
   {
-    std::map<enums::ClassId, std::unique_ptr<SpheralIndex>>::erase(classToErase);
+    ObjectMap::erase(classToErase);
 
     for(auto it = objectsOrderedByObjectId.begin(); it != objectsOrderedByObjectId.end();) {
       if((it->second != nullptr) && it->second->getClassId() == classToErase) {

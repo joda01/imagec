@@ -327,7 +327,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
                                 const settings::Pipeline &pipelineStart, const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack,
                                 int32_t tileX, int32_t tileY, bool generateThumb, const ome::OmeInfo &ome,
                                 const settings::ObjectInputClassesExp &classesToHide)
-    -> std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>, enums::ChannelValidity>
+    -> std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>, enums::ChannelValidity, joda::atom::ObjectMap>
 {
   auto ii = DurationCount::start("Generate preview with >" + std::to_string(threadingSettings.coresUsed) + "< threads.");
 
@@ -382,7 +382,8 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
     }
   }
 
-  std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>, enums::ChannelValidity> tmpResult;
+  std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>, enums::ChannelValidity, joda::atom::ObjectMap>
+      tmpResult;
   bool finished = false;
 
   int executedSteps = 0;
@@ -494,7 +495,8 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
               editedImageAtBreakpoint,
               thumb,
               foundObjects,
-              db->getImageValidity()};
+              db->getImageValidity(),
+              context.getActObjects()};
           finished = true;
         }
       };
@@ -513,7 +515,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
   if(!finished) {
     thumbThread.join();
     DurationCount::stop(ii);
-    return {{}, {}, {}, {}, {}, {}};
+    return {{}, {}, {}, {}, {}, {}, {}};
   } else {
     DurationCount::stop(ii);
     return tmpResult;

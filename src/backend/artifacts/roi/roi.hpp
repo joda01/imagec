@@ -355,6 +355,8 @@ public:
   }
 
   void assignTrackingIdToAllLinkedRois(uint64_t trackingIdForLinked = 0);
+  auto calcGradients(const cv::Mat &image, cv::Mat &gradMag, cv::Mat &gradAngle) const -> void;
+  auto calcIntensity(const cv::Mat &imageOriginal) const -> Intensity;
 
 private:
   /////////////////////////////////////////////////////
@@ -364,7 +366,6 @@ private:
   [[nodiscard]] Boxes calcRealBoundingBox(const enums::tile_t &tile, const cv::Size &tileSize);
   [[nodiscard]] std::tuple<int32_t, int32_t, int32_t, int32_t, int32_t> calcCircleRadius(int32_t snapAreaSize) const;
 
-  auto calcIntensity(const cv::Mat &imageOriginal) -> Intensity;
   [[nodiscard]] auto calcIntersectingMask(const ROI &roi) const -> IntersectingMask;
   [[nodiscard]] static double getSmoothedLineLength(const std::vector<cv::Point> &);
   [[nodiscard]] static double getLength(const std::vector<cv::Point> &points, bool closeShape);
@@ -380,6 +381,7 @@ private:
   Boxes mBoundingBoxTile;    ///< Rectangle around the prediction in tile
   Boxes mBoundingBoxReal;    ///< Rectangle around the prediction with real coordinates
   cv::Mat mMask;             ///< Segmentation mask
+
   std::vector<cv::Point> mMaskContours;
 
   const cv::Size mImageSize;
