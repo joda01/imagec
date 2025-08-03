@@ -272,7 +272,7 @@ auto Settings::toResultsSettings(const ResultSettingsInput &settingsIn) -> Resul
           //
           if(measure.measureChannel == enums::Measurement::INTERSECTING) {
             // Add only those intersecting classes which appear in the pipeline
-            if(settingsIn.intersectingClasses.contains(classId)) {
+            if(entry.classId == classId && settingsIn.intersectingClasses.contains(classId)) {
               for(const auto &intersectingClassId : settingsIn.intersectingClasses.at(classId)) {
                 addColumn(classId, measure.measureChannel, stats, -1, intersectingClassId);
               }
@@ -286,7 +286,7 @@ auto Settings::toResultsSettings(const ResultSettingsInput &settingsIn) -> Resul
           if(measure.measureChannel == enums::Measurement::INTENSITY_SUM || measure.measureChannel == enums::Measurement::INTENSITY_AVG ||
              measure.measureChannel == enums::Measurement::INTENSITY_MIN || measure.measureChannel == enums::Measurement::INTENSITY_MAX) {
             // Iterate over cross channels
-            if(settingsIn.measuredChannels.contains(classId)) {
+            if(entry.classId == classId && settingsIn.measuredChannels.contains(classId)) {
               for(const auto &channelId : settingsIn.measuredChannels.at(classId)) {
                 addColumn(classId, measure.measureChannel, stats, channelId, enums::ClassId::UNDEFINED, "CH " + std::to_string(channelId));
               }
@@ -305,7 +305,7 @@ auto Settings::toResultsSettings(const ResultSettingsInput &settingsIn) -> Resul
              measure.measureChannel == enums::Measurement::DISTANCE_FROM_OBJECT_ID ||
              measure.measureChannel == enums::Measurement::DISTANCE_TO_OBJECT_ID) {
             // List of distance from classes which contains the distance to classes
-            if(settingsIn.distanceFromClasses.contains(classId)) {
+            if(entry.classId == classId && settingsIn.distanceFromClasses.contains(classId)) {
               for(const auto &intersectingClassId : settingsIn.distanceFromClasses.at(classId)) {
                 if(measure.measureChannel == enums::Measurement::DISTANCE_FROM_OBJECT_ID ||
                    measure.measureChannel == enums::Measurement::DISTANCE_TO_OBJECT_ID) {
