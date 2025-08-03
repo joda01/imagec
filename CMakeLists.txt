@@ -72,17 +72,15 @@ list(APPEND CMAKE_PREFIX_PATH "${LIBTORCH_PATH}")
 
 
 # Options
-set(WITH_ONNX "With onnx support" ON)
-set(WITH_PYTORCH "With pytorch support" ON)
-set(WITH_TENSORFLOW "With tensorflow support" ON)
+set(WITH_CUDA "With cuda support" ON)
 
 #
 # CUDA stuff
 #
-set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda)
-set(CMAKE_CUDA_ARCHITECTURES 60 61 70 75 80 86)
-#set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
-
+if(DEFINED WITH_CUDA)
+  set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda)
+  set(CMAKE_CUDA_ARCHITECTURES 60 61 70 75 80 86)
+endif()
 
 # Get the current user and host
 execute_process(COMMAND whoami OUTPUT_VARIABLE BUILD_USER OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -112,6 +110,9 @@ find_package( ryml REQUIRED )
 find_package( OpenSSL REQUIRED )
 find_package( CLI11 REQUIRED )
 find_package( httplib REQUIRED )
+find_package( onnxruntime REQUIRED)
+find_package( tensorflowlite REQUIRED )
+find_package( Torch REQUIRED )
 
 
 SET(DuckDB_USE_STATIC_LIBS TRUE)
@@ -130,23 +131,10 @@ set(LIBS
   openssl::openssl
   CLI11::CLI11
   httplib::httplib
+  onnxruntime::onnxruntime
+  tensorflow::tensorflowlite
+  ${TORCH_LIBRARIES}
 )
-
-if(WITH_ONNX)
-  find_package(onnxruntime REQUIRED)
-  set(LIBS ${LIBS} onnxruntime::onnxruntime)
-endif()
-
-if(WITH_PYTORCH)
-  find_package( Torch REQUIRED )
-  set(LIBS ${LIBS} ${TORCH_LIBRARIES})
-endif()
-
-if(WITH_TENSORFLOW)
-  find_package( tensorflowlite REQUIRED )
-  set(LIBS ${LIBS} tensorflow::tensorflowlite)
-endif()
-
 
 set(RESOURCE_FILES
     resources/qt_conf.qrc
@@ -187,18 +175,9 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 target_sources(${PROJECT_NAME} PRIVATE ${RESOURCE_SOURCES})
 target_compile_definitions(${PROJECT_NAME} PUBLIC BS_THREAD_POOL_ENABLE_PRIORITY DUCKDB_BUILD_LIBRARY )
 
-if(WITH_ONNX)
-  add_compile_definitions(WITH_ONNX)
+if(WITH_CUDA)
+  add_compile_definitions(WITH_CUDA)
 endif()
-
-if(WITH_PYTORCH)
-  add_compile_definitions(WITH_PYTORCH)
-endif()
-
-if(WITH_TENSORFLOW)
-  add_compile_definitions(WITH_TENSORFLOW)
-endif()
-
 
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES

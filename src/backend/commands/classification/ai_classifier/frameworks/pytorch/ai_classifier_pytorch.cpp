@@ -12,8 +12,6 @@
 ///
 #include <vector>
 #include "backend/helper/duration_count/duration_count.h"
-#if defined(WITH_PYTORCH)
-
 #undef slots
 #include <ATen/ops/upsample_nearest2d.h>
 #include <c10/core/Device.h>
@@ -104,4 +102,3 @@ auto AiFrameworkPytorch::predict(const at::Device &device, const cv::Mat &origin
 }
 
 }    // namespace joda::ai
-#endif

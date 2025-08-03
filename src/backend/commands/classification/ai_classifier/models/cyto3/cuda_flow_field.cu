@@ -9,6 +9,8 @@
 ///            For **Commercial** please contact the copyright owner.
 ///
 
+#ifdef WITH_CUDA
+
 #include <cuda_runtime.h>                // Core CUDA runtime API (for cudaMalloc, cudaMemcpy, etc.)
 #include <device_launch_parameters.h>    // For thread/block indexing macros
 #include <math_constants.h>              // Optional, for constants like CUDART_INF_F, if needed
@@ -103,3 +105,4 @@ extern "C" void cudaFlowIterationKernel(const float *flowX, const float *flowY, 
 
   cudaDeviceSynchronize();    // optional but good for debugging
 }
+#endif

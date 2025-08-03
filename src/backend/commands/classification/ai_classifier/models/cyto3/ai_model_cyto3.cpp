@@ -30,17 +30,22 @@
 #define slots Q_SLOTS
 
 // Cuda
+#ifdef WITH_CUDA
 #include <cuda_runtime.h>
+#include "cuda_flow_field.h"
+#endif
 
 // Flow field
 #include "cpu_flow_field.h"
-#include "cuda_flow_field.h"
 
 namespace joda::ai {
 
 std::pair<cv::Mat, std::set<int>> followFlowFieldCpu(const cv::Mat &flowX, const cv::Mat &flowY, const cv::Mat &mask, float maskThreshold);
+
+#ifdef WITH_CUDA
 std::pair<cv::Mat, std::set<int>> followFlowFieldCuda(const at::Device &device, const cv::Mat &flowX, const cv::Mat &flowY, const cv::Mat &mask,
                                                       float maskThreshold);
+#endif
 std::vector<AiModel::Result> extractObjectMasksAndBoundingBoxes(const cv::Mat &labelImage, const std::set<int> &labels);
 
 ///
@@ -106,11 +111,15 @@ auto AiModelCyto3::processPrediction(const at::Device &device, const cv::Mat &in
     auto idx = DurationCount::start("Follow field CPU");
     result   = followFlowFieldCpu(flowXImage, flowYImage, maskImage, mSettings.maskThreshold);
     DurationCount::stop(idx);
-  } else if(device.is_cuda()) {
+  }
+#ifdef WITH_CUDA
+  else if(device.is_cuda()) {
     auto idx = DurationCount::start("Follow field CUDA");
     result   = followFlowFieldCuda(device, flowXImage, flowYImage, maskImage, mSettings.maskThreshold);
     DurationCount::stop(idx);
-  } else {
+  }
+#endif
+  else {
     throw std::runtime_error("unsupported device");
   }
 
@@ -192,6 +201,7 @@ std::vector<AiModel::Result> extractObjectMasksAndBoundingBoxes(const cv::Mat &l
 /// \param[out]
 /// \return
 ///
+#ifdef WITH_CUDA
 std::pair<cv::Mat, std::set<int>> followFlowFieldCuda(const at::Device &device, const cv::Mat &flowX, const cv::Mat &flowY, const cv::Mat &mask,
                                                       float maskThreshold)
 {
@@ -262,6 +272,7 @@ std::pair<cv::Mat, std::set<int>> followFlowFieldCuda(const at::Device &device, 
 
   return {labels, labelsSet};
 }
+#endif
 
 ///
 /// \brief      Follow the flow field and returns a cv::Mat with each segmented object having a pixel value

@@ -14,14 +14,10 @@ class ImageC(ConanFile):
     topics = ("conan", "image-processing", "science")
     settings = "os", "compiler", "build_type", "arch"
     options = {
-        "with_onnx": [True, False],
-        "with_tensorflow": [True, False],
-        "with_pytorch": [True, False],
+        "with_cuda": [True, False]
     }
     default_options = {
-        "with_onnx": True,
-        "with_tensorflow": True,
-        "with_pytorch": True,
+        "with_cuda": True
     }
 
     exports_sources = "src/*"
@@ -44,12 +40,9 @@ class ImageC(ConanFile):
         self.requires("onnx/1.17.0", force=True)
         self.requires("rapidyaml/0.7.1")
         self.requires("cpp-httplib/0.19.0", force=True)
-        if self.options.get_safe("with_onnx"):
-            self.requires("onnxruntime/1.18.1")
-        #if self.options.get_safe("with_pytorch"):
-        #    self.requires("libtorch/2.4.0")
-        if self.options.get_safe("with_tensorflow"):
-            self.requires("tensorflow-lite/2.15.0")
+        self.requires("onnxruntime/1.18.1")
+        #self.requires("libtorch/2.4.0")
+        self.requires("tensorflow-lite/2.15.0")
         self.requires("flatbuffers/23.5.26", force=True)
         self.requires("protobuf/3.21.12", override=True)
         self.requires("xkbcommon/1.6.0", override=True)
@@ -64,9 +57,7 @@ class ImageC(ConanFile):
         deps = CMakeDeps(self)
         deps.generate()
         toolchain = CMakeToolchain(self)
-        toolchain.variables["WITH_ONNX"] = self.options.with_onnx
-        toolchain.variables["WITH_TENSORFLOW"] = self.options.with_tensorflow
-        toolchain.variables["WITH_PYTORCH"] = self.options.with_pytorch
+        toolchain.variables["WITH_CUDA"] = self.options.with_cuda
         toolchain.generate()
 
     def layout(self):

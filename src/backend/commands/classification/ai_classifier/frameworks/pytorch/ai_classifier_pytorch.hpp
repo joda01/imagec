@@ -12,7 +12,6 @@
 ///
 
 #include <mutex>
-#if defined(WITH_PYTORCH)
 
 #include <string>
 #include <vector>
@@ -42,5 +41,3 @@ private:
 };
 
 }    // namespace joda::ai
-
-#endif
