@@ -1,7 +1,7 @@
 
 
 ///
-/// \file      ai_model_bioimage.hpp
+/// \file      ai_model_unet.hpp
 /// \author    Joachim Danmayr
 /// \date      2025-02-07
 ///

@@ -21,7 +21,7 @@
 #include "backend/commands/classification/ai_classifier/frameworks/onnx/ai_classifier_onnx.hpp"
 #include "backend/commands/classification/ai_classifier/frameworks/pytorch/ai_classifier_pytorch.hpp"
 #include "backend/commands/classification/ai_classifier/models/ai_model.hpp"
-#include "backend/commands/classification/ai_classifier/models/bioimage/ai_model_bioimage.hpp"
+#include "backend/commands/classification/ai_classifier/models/unet/ai_model_unet.hpp"
 #include "backend/commands/classification/ai_classifier/models/cyto3/ai_model_cyto3.hpp"
 #include "backend/commands/classification/ai_classifier/models/yolo/ai_model_yolo.hpp"
 #include "backend/enums/enum_objects.hpp"
@@ -106,7 +106,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
     } break;
     case settings::AiClassifierSettings::ModelArchitecture::STAR_DIST:
     case settings::AiClassifierSettings::ModelArchitecture::U_NET: {
-      ai::AiModelBioImage bioImage({.maskThreshold = mSettings.thresholds.maskThreshold, .contourThreshold = 0.3});
+      ai::AiModelUNet bioImage({.maskThreshold = mSettings.thresholds.maskThreshold, .contourThreshold = 0.3});
       segResult = bioImage.processPrediction(device, imageNotUse, prediction);
     } break;
     case settings::AiClassifierSettings::ModelArchitecture::MASK_R_CNN:
