@@ -11,6 +11,7 @@
 ///
 ///
 
+#include <mutex>
 #if defined(WITH_PYTORCH)
 
 #include <string>
@@ -30,13 +31,14 @@ class AiFrameworkPytorch : public AiFramework
 public:
   /////////////////////////////////////////////////////
   AiFrameworkPytorch(const std::string &modelPath, const InputParameters &inputParameters);
-  auto predict(const cv::Mat &originalImage) -> at::IValue override;
+  auto predict(const at::Device &device, const cv::Mat &originalImage) -> at::IValue override;
 
 private:
   /////////////////////////////////////////////////////
 
   const InputParameters &mSettings;
   const std::string mModelPath;
+  static inline std::mutex mExecutionMutex;
 };
 
 }    // namespace joda::ai

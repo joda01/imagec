@@ -60,7 +60,7 @@ AiModelCyto3::AiModelCyto3(const ProbabilitySettings &settings) : mSettings(sett
 /// \param[out]
 /// \return
 ///
-auto AiModelCyto3::processPrediction(const cv::Mat &inputImage, const at::IValue &tensorIn) -> std::vector<Result>
+auto AiModelCyto3::processPrediction(const at::Device &device, const cv::Mat &inputImage, const at::IValue &tensorIn) -> std::vector<Result>
 {
   static const int CHANNEL_GRADIENTS_X = 0;
   static const int CHANNEL_GRADIENTS_Y = 1;
@@ -75,7 +75,6 @@ auto AiModelCyto3::processPrediction(const cv::Mat &inputImage, const at::IValue
   }
 
   auto outputTuple = tensorIn.toTuple();
-  std::cout << std::to_string(outputTuple->size()) << std::endl;
 
   auto maskTensor = outputTuple->elements()[0].toTensor();    // Shape: [N, 6]
 

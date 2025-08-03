@@ -35,7 +35,7 @@ public:
     float probability;
   };
 
-  virtual auto processPrediction(const cv::Mat &inputImage, const at::IValue &prediction) -> std::vector<Result> = 0;
+  virtual auto processPrediction(const at::Device &device, const cv::Mat &inputImage, const at::IValue &prediction) -> std::vector<Result> = 0;
 
   void printTensorProperties(const torch::Tensor &tensor)
   {

@@ -35,7 +35,7 @@ AiModelBioImage::AiModelBioImage(const ProbabilitySettings &settings) : mSetting
 /// \param[out]
 /// \return
 ///
-auto AiModelBioImage::processPrediction(const cv::Mat &inputImage, const at::IValue &tensorIn) -> std::vector<Result>
+auto AiModelBioImage::processPrediction(const at::Device &device, const cv::Mat &inputImage, const at::IValue &tensorIn) -> std::vector<Result>
 {
   static const int CHANNEL_MASK    = 0;
   static const int CHANNEL_CONTOUR = 1;

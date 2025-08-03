@@ -59,7 +59,7 @@ AiModelYolo::AiModelYolo(const ProbabilitySettings &settings) :
 /// \param[in]  inputImage Image which has been used for detection
 /// \return     Result of the analysis
 ///
-auto AiModelYolo::processPrediction(const cv::Mat &inputImage, const at::IValue &tensor) -> std::vector<Result>
+auto AiModelYolo::processPrediction(const at::Device &device, const cv::Mat &inputImage, const at::IValue &tensor) -> std::vector<Result>
 {
   // We assume the model returns a tuple: (detections, seg_masks)
   if(!tensor.isTuple()) {

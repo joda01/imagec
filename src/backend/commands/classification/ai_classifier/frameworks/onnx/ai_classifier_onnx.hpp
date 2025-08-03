@@ -23,7 +23,7 @@ class AiFrameworkOnnx : public AiFramework
 public:
   /////////////////////////////////////////////////////
   AiFrameworkOnnx(const std::string &modelPath, const InputParameters &inputParameters);
-  auto predict(const cv::Mat &originalImage) -> at::IValue override;
+  auto predict(const at::Device &device, const cv::Mat &originalImage) -> at::IValue override;
 
 private:
   /////////////////////////////////////////////////////

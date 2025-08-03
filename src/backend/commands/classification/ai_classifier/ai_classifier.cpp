@@ -11,6 +11,7 @@
 ///\link       https :// github.com/UNeedCryDear/yolov5-seg-opencv-onnxruntime-cpp
 
 #include "ai_classifier.hpp"
+#include <c10/cuda/CUDACachingAllocator.h>
 #include <exception>
 #include <filesystem>
 #include <memory>
@@ -33,6 +34,9 @@
 #include <opencv2/imgproc.hpp>
 
 namespace joda::cmd {
+
+at::Device getCudaDevice(int index = 0);
+
 ///
 /// \brief      Constructor
 /// \author     Joachim Danmayr
@@ -45,6 +49,8 @@ AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) : mSe
 
 void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNotUse, atom::ObjectList &result)
 {
+  at::Device device = getCudaDevice();
+
   auto parsed = joda::ai::AiModelParser::parseResourceDescriptionFile(mSettings.modelPath);
   if(parsed.inputs.empty()) {
     THROW("Could not read model input parameter!");
@@ -77,12 +83,12 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
 
     case settings::AiClassifierSettings::ModelFormat::ONNX: {
       joda::ai::AiFrameworkOnnx onnxClassifier(modelPath.string(), params);
-      prediction = onnxClassifier.predict(imageNotUse);
+      prediction = onnxClassifier.predict(device, imageNotUse);
     } break;
 
     case settings::AiClassifierSettings::ModelFormat::TORCHSCRIPT: {
       joda::ai::AiFrameworkPytorch torch(modelPath.string(), params);
-      prediction = torch.predict(imageNotUse);
+      prediction = torch.predict(device, imageNotUse);
     } break;
 
     case settings::AiClassifierSettings::ModelFormat::TENSORFLOW:
@@ -96,19 +102,19 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
       break;
     case settings::AiClassifierSettings::ModelArchitecture::YOLO_V5: {
       ai::AiModelYolo yoloy({.maskThreshold = mSettings.thresholds.maskThreshold, .classThreshold = mSettings.thresholds.classThreshold});
-      segResult = yoloy.processPrediction(imageNotUse, prediction);
+      segResult = yoloy.processPrediction(device, imageNotUse, prediction);
     } break;
     case settings::AiClassifierSettings::ModelArchitecture::STAR_DIST:
     case settings::AiClassifierSettings::ModelArchitecture::U_NET: {
       ai::AiModelBioImage bioImage({.maskThreshold = mSettings.thresholds.maskThreshold, .contourThreshold = 0.3});
-      segResult = bioImage.processPrediction(imageNotUse, prediction);
+      segResult = bioImage.processPrediction(device, imageNotUse, prediction);
     } break;
     case settings::AiClassifierSettings::ModelArchitecture::MASK_R_CNN:
       THROW("Mask R-CNN architecture is not supported yet");
       break;
     case settings::AiClassifierSettings::ModelArchitecture::CYTO3:
       ai::AiModelCyto3 cyto3({.maskThreshold = mSettings.thresholds.maskThreshold, .classThreshold = mSettings.thresholds.classThreshold});
-      segResult = cyto3.processPrediction(imageNotUse, prediction);
+      segResult = cyto3.processPrediction(device, imageNotUse, prediction);
       break;
   }
 
@@ -143,6 +149,21 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
       result.push_back(std::move(detectedRoi));
     }
   }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+at::Device getCudaDevice(int index)
+{
+  if(torch::cuda::is_available()) {
+    return at::Device(torch::kCUDA, index);
+  }
+  return at::Device(at::kCPU);
 }
 
 }    // namespace joda::cmd

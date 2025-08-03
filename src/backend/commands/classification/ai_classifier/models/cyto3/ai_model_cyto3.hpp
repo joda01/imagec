@@ -29,7 +29,7 @@ public:
   };
 
   AiModelCyto3(const ProbabilitySettings &settings);
-  auto processPrediction(const cv::Mat &inputImage, const at::IValue &tensorIn) -> std::vector<Result> override;
+  auto processPrediction(const at::Device &device, const cv::Mat &inputImage, const at::IValue &tensorIn) -> std::vector<Result> override;
 
 private:
   /////////////////////////////////////////////////////

@@ -27,7 +27,7 @@ public:
   };
 
   AiModelBioImage(const ProbabilitySettings &settings);
-  auto processPrediction(const cv::Mat &inputImage, const at::IValue &prediction) -> std::vector<Result> override;
+  auto processPrediction(const at::Device &device, const cv::Mat &inputImage, const at::IValue &prediction) -> std::vector<Result> override;
 
 private:
   /////////////////////////////////////////////////////

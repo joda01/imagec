@@ -56,7 +56,7 @@ std::vector<float> convertToTensor(const cv::Mat &img)
 /// \param[out]
 /// \return
 ///
-auto AiFrameworkOnnx::predict(const cv::Mat &originalImage) -> at::IValue
+auto AiFrameworkOnnx::predict(const at::Device &device, const cv::Mat &originalImage) -> at::IValue
 {
   if(originalImage.empty()) {
     throw std::runtime_error("Failed to load image!");
@@ -94,7 +94,7 @@ auto AiFrameworkOnnx::predict(const cv::Mat &originalImage) -> at::IValue
   // ===============================
   // 1. Prepare image
   // ===============================
-  cv::Mat blob = prepareImage(originalImage, mSettings, cv::COLOR_GRAY2BGR);
+  cv::Mat blob = prepareImage(device, originalImage, mSettings, cv::COLOR_GRAY2BGR);
 
   std::array<int64_t, 4> inputDims = {mSettings.batchSize, mSettings.nrOfChannels, mSettings.inputWidth, mSettings.inputHeight};
 
