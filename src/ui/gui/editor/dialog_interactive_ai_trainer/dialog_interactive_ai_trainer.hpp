@@ -17,6 +17,7 @@
 #include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
+#include "controller/controller.hpp"
 
 namespace joda::ui::gui {
 
@@ -33,7 +34,7 @@ class DialogInteractiveAiTrainer : public QDialog
 
 public:
   /////////////////////////////////////////////////////
-  DialogInteractiveAiTrainer(const joda::settings::Classification &classes, joda::settings::Pipeline &settings, joda::atom::ObjectMap *objects,
+  DialogInteractiveAiTrainer(const joda::settings::Classification &classes, joda::settings::Pipeline &settings, joda::ctrl::Preview *objects,
                              WindowMain *parent);
 
 signals:
@@ -54,8 +55,11 @@ protected:
 
 private:
   /////////////////////////////////////////////////////
+  void startTraining();
+
+  /////////////////////////////////////////////////////
   QComboBox *defaultClassId;
-  joda::atom::ObjectMap *mObjects;
+  joda::ctrl::Preview *mPreviewResult;
 };
 
 }    // namespace joda::ui::gui

@@ -29,8 +29,7 @@ public:
   /////////////////////////////////////////////////////
   RandomForest(const settings::RandomForestSettings &);
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
-  void prepareTrainingDataFromROI(const cv::Mat &image, const std::unique_ptr<atom::SpheralIndex> &objectsToLearn,
-                                  std::vector<std::vector<float>> &featList, std::vector<int> &labelList);
+  void prepareTrainingDataFromROI(const cv::Mat &image, const std::unique_ptr<atom::SpheralIndex> &objectsToLearn, cv::Mat &samples, cv::Mat &labels);
   cv::Ptr<cv::ml::RTrees> trainRandomForest(std::vector<std::vector<float>> &featList, std::vector<int> &labelList);
 
 private:

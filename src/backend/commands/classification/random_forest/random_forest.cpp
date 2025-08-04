@@ -44,59 +44,68 @@ void RandomForest::execute(processor::ProcessContext &context, cv::Mat &image, a
 /// \param[out]
 /// \return
 ///
-void RandomForest::prepareTrainingDataFromROI(const cv::Mat &image, const std::unique_ptr<atom::SpheralIndex> &objectsToLearn,
-                                              std::vector<std::vector<float>> &featList, std::vector<int> &labelList)
+void RandomForest::prepareTrainingDataFromROI(const cv::Mat &image, const std::unique_ptr<atom::SpheralIndex> &objectsToLearn, cv::Mat &samples,
+                                              cv::Mat &labels)
 {
+  std::vector<std::vector<float>> tempFeatures;    // temporary to count total size
+  int featureLength = 0;
+
+  // First pass: gather features to determine total count and dimensionality
   for(const auto &roi : *objectsToLearn) {
-    // Extract patch from image and labelMask
-    const cv::Mat imgPatch = image(roi.getBoundingBoxTile());
-    const auto &mask       = roi.getMask();
-    const auto &bbox       = roi.getBoundingBoxTile();
+    const cv::Mat mask = roi.getMask();
+    const auto bbox    = roi.getBoundingBoxTile();
 
-    cv::Mat roiPatch(bbox.size(), CV_16UC1);
-
-    // Compute gradients on roiPatch
-    cv::Mat gradMag;
-    cv::Mat gradAngle;
+    cv::Mat gradMag, gradAngle;
     roi.calcGradients(image, gradMag, gradAngle);
-
-    // Compute intensity
     auto roiIntensity = roi.calcIntensity(image);
 
-    // Assume roi.mask size == roi.bbox.size()
     for(int y = 0; y < mask.rows; ++y) {
       for(int x = 0; x < mask.cols; ++x) {
         if(mask.at<uchar>(y, x) == 0) {
-          continue;    // skip pixel outside ROI mask inside bbox
+          continue;
         }
 
         int img_x = bbox.x + x;
         int img_y = bbox.y + y;
 
-        // Extract features for this pixel, for example:
         float intensity = static_cast<float>(image.at<uchar>(img_y, img_x));
         float gmag      = gradMag.at<float>(y, x);
         float gangle    = gradAngle.at<float>(y, x);
 
         std::vector<float> featureVec = {
-            intensity,                                        //
-            static_cast<float>(img_x),                        //
-            static_cast<float>(img_y),                        //
-            static_cast<float>(roi.getCircularity()),         //
-            static_cast<float>(roi.getAreaSize()),            //
-            static_cast<float>(roiIntensity.intensitySum),    //
-            static_cast<float>(roiIntensity.intensityMax),    //
-            static_cast<float>(roiIntensity.intensityMin),    //
-            static_cast<float>(roiIntensity.intensityAvg),    //
-            gmag,                                             //
-            gangle,                                           //
-                                                              // Add other features here
+            intensity,
+            static_cast<float>(img_x),
+            static_cast<float>(img_y),
+            static_cast<float>(roi.getCircularity()),
+            static_cast<float>(roi.getAreaSize()),
+            static_cast<float>(roiIntensity.intensitySum),
+            static_cast<float>(roiIntensity.intensityMax),
+            static_cast<float>(roiIntensity.intensityMin),
+            static_cast<float>(roiIntensity.intensityAvg),
+            gmag,
+            gangle,
         };
-        featList.push_back(featureVec);
-        int label = static_cast<int>(0);
-        labelList.push_back(label);
+
+        tempFeatures.push_back(featureVec);
       }
     }
+  }
+
+  if(tempFeatures.empty())
+    return;
+
+  featureLength  = static_cast<int>(tempFeatures[0].size());
+  int numSamples = static_cast<int>(tempFeatures.size());
+
+  // Allocate final matrices
+  samples = cv::Mat(numSamples, featureLength, CV_32F);
+  labels  = cv::Mat(numSamples, 1, CV_32S);    // assuming classification
+
+  for(int i = 0; i < numSamples; ++i) {
+    for(int j = 0; j < featureLength; ++j) {
+      samples.at<float>(i, j) = tempFeatures[i][j];
+    }
+    labels.at<int>(i, 0) = 0;    // Replace with actual label logic if needed
   }
 }
 

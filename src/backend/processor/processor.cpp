@@ -496,7 +496,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
               thumb,
               foundObjects,
               db->getImageValidity(),
-              context.getActObjects()};
+              std::move(context.getActObjects())};
           finished = true;
         }
       };
@@ -515,7 +515,8 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
   if(!finished) {
     thumbThread.join();
     DurationCount::stop(ii);
-    return {{}, {}, {}, {}, {}, {}, {}};
+    // return {{}, {}, {}, {}, {}, {}, std::map<enums::ClassId, std::unique_ptr<joda::atom::SpheralIndex>>{}};
+    return tmpResult;
   } else {
     DurationCount::stop(ii);
     return tmpResult;

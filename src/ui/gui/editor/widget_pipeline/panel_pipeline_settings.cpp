@@ -135,7 +135,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   });
 
   mInteractiveAiTrainer =
-      new DialogInteractiveAiTrainer(mWindowMain->getSettings().projectSettings.classification, mSettings, &mObjectMap, mWindowMain);
+      new DialogInteractiveAiTrainer(mWindowMain->getSettings().projectSettings.classification, mSettings, &mPreviewResult, mWindowMain);
   connect(mInteractiveAiTrainer, &DialogInteractiveAiTrainer::dialogDisappeared, [this]() {
     //  mInteractiveAITraining->setChecked(false);
   });
@@ -546,9 +546,9 @@ void PanelPipelineSettings::previewThread()
             if(myPipeline == nullptr) {
               continue;
             }
-            mObjectMap = jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, jobToDo.threadSettings, *myPipeline,
-                                                     imgIndex, jobToDo.selectedTileX, jobToDo.selectedTileY, jobToDo.timeStack, mPreviewResult,
-                                                     imgProps, jobToDo.classesToHide);
+            jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, jobToDo.threadSettings, *myPipeline, imgIndex,
+                                        jobToDo.selectedTileX, jobToDo.selectedTileY, jobToDo.timeStack, mPreviewResult, imgProps,
+                                        jobToDo.classesToHide);
 
             jobToDo.previewPanel->getImagePanel()->setOverlay(std::move(mPreviewResult.overlay));
             jobToDo.previewPanel->getImagePanel()->setEditedImage(std::move(mPreviewResult.editedImage));

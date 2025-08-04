@@ -13,6 +13,8 @@
 #include <qdialog.h>
 #include <qformlayout.h>
 #include <qpushbutton.h>
+#include "backend/commands/classification/random_forest/random_forest.hpp"
+#include "backend/commands/classification/random_forest/random_forest_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
@@ -31,9 +33,9 @@ namespace joda::ui::gui {
 /// \return
 ///
 DialogInteractiveAiTrainer::DialogInteractiveAiTrainer(const joda::settings::Classification &classes, joda::settings::Pipeline &settings,
-                                                       joda::atom::ObjectMap *objects, WindowMain *parent) :
+                                                       joda::ctrl::Preview *objects, WindowMain *parent) :
     QDialog(parent),
-    mObjects(objects)
+    mPreviewResult(objects)
 {
   setWindowTitle("Pixel classifier (alpha)");
   setMinimumSize(300, 400);
@@ -50,10 +52,10 @@ DialogInteractiveAiTrainer::DialogInteractiveAiTrainer(const joda::settings::Cla
 
   formLayout->addRow("Class to train from", defaultClassId);
 
-  auto *startTraining = new QPushButton("Start training");
-  connect(startTraining, &QPushButton::pressed, []() {});
+  auto *btnStartTraining = new QPushButton("Start training");
+  connect(btnStartTraining, &QPushButton::pressed, [this]() { startTraining(); });
 
-  formLayout->addWidget(startTraining);
+  formLayout->addRow(btnStartTraining);
 
   // Okay and canlce
   auto *buttonBox = new IconlessDialogButtonBox(QDialogButtonBox::Ok, Qt::Horizontal, this);
@@ -63,4 +65,26 @@ DialogInteractiveAiTrainer::DialogInteractiveAiTrainer(const joda::settings::Cla
 
   setLayout(formLayout);
 }
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogInteractiveAiTrainer::startTraining()
+{
+  joda::settings::RandomForestSettings settings;
+  joda::cmd::RandomForest randForest(settings);
+
+  std::vector<std::vector<float>> featList;
+  std::vector<int> labelList;
+  randForest.prepareTrainingDataFromROI(*mPreviewResult->originalImage.getOriginalImage(), mPreviewResult->objectMap.at(enums::ClassId::C0), featList,
+                                        labelList);
+
+  auto ret = randForest.trainRandomForest(featList, labelList);
+  ret->save("tmp/mymodel.xml");
+}
+
 }    // namespace joda::ui::gui

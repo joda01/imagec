@@ -135,7 +135,6 @@ private:
   int32_t mLastSelectedPreviewSize = 0;
   joda::settings::Pipeline &mSettings;
   joda::ctrl::Preview mPreviewResult;
-  joda::atom::ObjectMap mObjectMap;
   DialogPreviewResults *mPreviewResultsDialog;
 
   struct PreviewJob

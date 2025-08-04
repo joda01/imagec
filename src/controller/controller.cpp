@@ -275,11 +275,10 @@ void Controller::registerImageLookupCallback(const std::function<void(joda::file
 
 // PREVIEW ///////////////////////////////////////////////////
 
-auto Controller::preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
+void Controller::preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
                          const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,
                          const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, int32_t tStack,
                          Preview &previewOut, const joda::ome::OmeInfo &ome, const settings::ObjectInputClassesExp &classesToHide)
-    -> joda::atom::ObjectMap
 {
   static std::filesystem::path lastImagePath;
   static int32_t lastImageChannel = -1;
@@ -311,8 +310,7 @@ auto Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
   previewOut.results.noiseDetected = validity.test(enums::ChannelValidityEnum::POSSIBLE_NOISE);
   previewOut.results.isOverExposed = validity.test(enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
   previewOut.tStacks               = ome.getNrOfTStack(imageSetup.series);
-
-  return objects;
+  previewOut.objectMap             = std::move(objects);
 }
 
 ///
