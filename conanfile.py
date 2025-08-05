@@ -15,6 +15,7 @@ class ImageC(ConanFile):
     description = "High throughput image analysis tool for bio science!"
     topics = ("image-processing", "science")
     settings = "os", "compiler", "build_type", "arch"
+    package_type = "application"
     options = {
         "with_cuda": [True, False]
     }
