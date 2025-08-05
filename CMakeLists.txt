@@ -56,6 +56,26 @@ else ()
 endif()
 
 
+# Options
+set(WITH_CUDA "With cuda support" ON)
+
+
+
+
+# Get the current user and host
+execute_process(COMMAND whoami OUTPUT_VARIABLE BUILD_USER OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND hostname OUTPUT_VARIABLE BUILD_HOST OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+
+SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
+#SET(CMAKE_CXX_FLAGS "-g -O0 -z noexecstack") 
+SET(CMAKE_GENERATOR "Unix Makefiles")
+SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
+
 # Detect platform and set LibTorch path accordingly
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(LIBTORCH_PATH "lib/libtorch/libtorch_linux_x86")
@@ -71,30 +91,19 @@ endif()
 list(APPEND CMAKE_PREFIX_PATH "${LIBTORCH_PATH}")
 
 
-# Options
-set(WITH_CUDA "With cuda support" ON)
-
 #
-# CUDA stuff
+# CUDA
 #
 if(DEFINED WITH_CUDA)
+  message("With cuda")
   set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda)
+  set(CMAKE_CUDA_COMPILER /usr/local/cuda-12.0/bin/nvcc)
   set(CMAKE_CUDA_ARCHITECTURES 60 61 70 75 80 86)
+  find_package(CUDAToolkit REQUIRED)
+  include_directories(${CUDAToolkit_INCLUDE_DIRS})
+  add_compile_definitions(WITH_CUDA)
+  enable_language(CUDA)
 endif()
-
-# Get the current user and host
-execute_process(COMMAND whoami OUTPUT_VARIABLE BUILD_USER OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND hostname OUTPUT_VARIABLE BUILD_HOST OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-
-SET(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_AUTOMOC ON)
-#SET(CMAKE_CXX_FLAGS "-g -O0 -z noexecstack") 
-SET(CMAKE_GENERATOR "Unix Makefiles")
-SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-
 
 find_package( OpenCV REQUIRED ximgproc)
 find_package( PugiXML )
@@ -113,6 +122,9 @@ find_package( httplib REQUIRED )
 find_package( onnxruntime REQUIRED)
 find_package( tensorflowlite REQUIRED )
 find_package( Torch REQUIRED )
+
+#include_directories("${libtorch_INCLUDE_DIRS_RELEASE}/torch/csrc/api/include")
+#link_directories("${libtorch_INCLUDE_DIRS_RELEASE}/../lib")
 
 
 SET(DuckDB_USE_STATIC_LIBS TRUE)
@@ -133,7 +145,7 @@ set(LIBS
   httplib::httplib
   onnxruntime::onnxruntime
   tensorflow::tensorflowlite
-  ${TORCH_LIBRARIES}
+   ${TORCH_LIBRARIES}
 )
 
 set(RESOURCE_FILES
@@ -172,12 +184,10 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     CUDA_STANDARD 17
 )
 
+
+
 target_sources(${PROJECT_NAME} PRIVATE ${RESOURCE_SOURCES})
 target_compile_definitions(${PROJECT_NAME} PUBLIC BS_THREAD_POOL_ENABLE_PRIORITY DUCKDB_BUILD_LIBRARY )
-
-if(WITH_CUDA)
-  add_compile_definitions(WITH_CUDA)
-endif()
 
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
@@ -197,38 +207,38 @@ configure_file(
 ###########################################################################################
 # Unittest
 
-set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
+#set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
+#
+#file(GLOB_RECURSE TEST_SOURCES
+#  ./src/*.cpp
+#  ./src/*.cc
+#  ./src/*.c
+#  ./test/*.cpp
+#   ${RESOURCE_SOURCES}
+#
+#)
+## Exclude main file from source
+#list(FILTER TEST_SOURCES EXCLUDE REGEX "/main\\.cpp$")
+#
+#add_executable(tests ${TEST_SOURCES})
+#set_property(TARGET tests PROPERTY CXX_STANDARD 20)
+#target_sources(tests PRIVATE ${RESOURCE_SOURCES})
+#set_target_properties( tests
+#  PROPERTIES
+#  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build"
+#  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build"
+#  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build"
+#  WIN32_EXECUTABLE ON
+#  MACOSX_BUNDLE ON
+#  CMAKE_AUTOMOC ON
+#)
+#
+#find_package(Catch2 3 REQUIRED)
+#
+#set(TESTING_LIBS
+#  Catch2::Catch2
+#)
 
-file(GLOB_RECURSE TEST_SOURCES
-  ./src/*.cpp
-  ./src/*.cc
-  ./src/*.c
-  ./test/*.cpp
-   ${RESOURCE_SOURCES}
-
-)
-# Exclude main file from source
-list(FILTER TEST_SOURCES EXCLUDE REGEX "/main\\.cpp$")
-
-add_executable(tests ${TEST_SOURCES})
-set_property(TARGET tests PROPERTY CXX_STANDARD 20)
-target_sources(tests PRIVATE ${RESOURCE_SOURCES})
-set_target_properties( tests
-  PROPERTIES
-  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build"
-  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build"
-  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build"
-  WIN32_EXECUTABLE ON
-  MACOSX_BUNDLE ON
-  CMAKE_AUTOMOC ON
-)
-
-find_package(Catch2 3 REQUIRED)
-
-set(TESTING_LIBS
-  Catch2::Catch2
-)
-
-set_property(TARGET tests PROPERTY CXX_STANDARD 20)
-target_link_libraries(tests ${LIBS} ${TESTING_LIBS})
-target_compile_definitions(tests PUBLIC UNIT_TEST BS_THREAD_POOL_ENABLE_PRIORITY)
+#set_property(TARGET tests PROPERTY CXX_STANDARD 20)
+#target_link_libraries(tests ${LIBS} ${TESTING_LIBS})
+#target_compile_definitions(tests PUBLIC UNIT_TEST BS_THREAD_POOL_ENABLE_PRIORITY)

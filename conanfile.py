@@ -1,17 +1,19 @@
 from conan import ConanFile
 from conan.tools.cmake import cmake_layout
 from conan.tools.cmake import CMakeToolchain, CMakeDeps
+from conan.tools.cmake import CMake, cmake_layout
+
 
 
 class ImageC(ConanFile):
     name = "ImageC"
     version = "1.0-beta"
     license = ["AGPL-3.0","imagec"]
-    author = "Joachim Danmayr <your.email@example.com>"
+    author = "Joachim Danmayr <support@imagec.org>"
     url = "https://github.com/joda01/imagec"
     homepage="https://imagec.org"
     description = "High throughput image analysis tool for bio science!"
-    topics = ("conan", "image-processing", "science")
+    topics = ("image-processing", "science")
     settings = "os", "compiler", "build_type", "arch"
     options = {
         "with_cuda": [True, False]
@@ -22,10 +24,6 @@ class ImageC(ConanFile):
 
     exports_sources = "src/*"
     
-    #def config_options(self):
-    #    print("")
-
-
     def requirements(self):
         self.requires("qt/6.7.1", force=True)
         self.requires("opencv/4.10.0")
@@ -39,9 +37,11 @@ class ImageC(ConanFile):
         self.requires("cli11/2.5.0")
         self.requires("onnx/1.17.0", force=True)
         self.requires("rapidyaml/0.7.1")
-        self.requires("cpp-httplib/0.19.0", force=True)
         self.requires("onnxruntime/1.18.1")
-        #self.requires("libtorch/2.4.0")
+        #if self.options.with_cuda:
+        #    self.requires("libtorch/2.7.1", options={"with_cuda": True})
+        #else:
+        #    self.requires("libtorch/2.7.1", options={"with_cuda": False})
         self.requires("tensorflow-lite/2.15.0")
         self.requires("flatbuffers/23.5.26", force=True)
         self.requires("protobuf/3.21.12", override=True)
@@ -51,14 +51,23 @@ class ImageC(ConanFile):
         self.requires("libbacktrace/cci.20240730", override = True)
         self.requires("xnnpack/cci.20240229", override = True)
         self.requires("boost/1.86.0", override = True)
+        #self.requires("cpp-httplib/0.19.0")
 
-        
     def generate(self):
         deps = CMakeDeps(self)
         deps.generate()
         toolchain = CMakeToolchain(self)
         toolchain.variables["WITH_CUDA"] = self.options.with_cuda
+        toolchain.variables["TAG_NAME"] = "devel"
         toolchain.generate()
+
+    def build(self):
+        cmake = CMake(self)
+        cmake.configure()
+        cmake.build()
 
     def layout(self):
         cmake_layout(self)
+
+
+# conan build . --profile conan/profile_linux

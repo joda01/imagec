@@ -78,13 +78,13 @@ void DialogInteractiveAiTrainer::startTraining()
   joda::settings::RandomForestSettings settings;
   joda::cmd::RandomForest randForest(settings);
 
-  std::vector<std::vector<float>> featList;
-  std::vector<int> labelList;
+  cv::Mat featList;
+  cv::Mat labelList;
   randForest.prepareTrainingDataFromROI(*mPreviewResult->originalImage.getOriginalImage(), mPreviewResult->objectMap.at(enums::ClassId::C0), featList,
                                         labelList);
 
-  auto ret = randForest.trainRandomForest(featList, labelList);
-  ret->save("tmp/mymodel.xml");
+  // auto ret = randForest.trainRandomForest(featList, labelList);
+  // ret->save("tmp/mymodel.xml");
 }
 
 }    // namespace joda::ui::gui

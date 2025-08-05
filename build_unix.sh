@@ -7,6 +7,10 @@ initConan(){
     conan remote login imageclibs admin
 }
 
+patch(){
+    echo "core.net.http:timeout = 500" >> ~/.conan2/global.conf
+}
+
 make(){
     conan install . --profile conan/profile_linux --output-folder=build --build=missing
     cmake -S . -B ./build -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_TOOLCHAIN_FILE="./build/build/Release/generators/conan_toolchain.cmake"
@@ -53,24 +57,24 @@ pack(){
     cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 .
     cp /usr/lib/x86_64-linux-gnu/libxcb-icccm.so .
 
-    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libtorch_cpu.so .
-    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libtorch_cuda.so .
-    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libtorch.so .
-    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libc10.so .
-    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libc10_cuda.so .
-    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libgomp-98b21ff3.so.1 .
-    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libcudart-d0da41ae.so.11.0 .
-    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libcublas-3b81d170.so.11 .
-    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libcublasLt-b6d14a74.so.11 .
-    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libcudnn.so.9 .
-    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libcudnn_graph.so.9 .
-    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libcudnn_heuristic.so.9 .
+    cp /root/.conan2/p/*/p/lib/libtorch_cpu.so .
+    cp /root/.conan2/p/*/p/lib/libtorch_cuda.so .
+    cp /root/.conan2/p/*/p/lib/libtorch.so .
+    cp /root/.conan2/p/*/p/lib/libc10.so .
+    cp /root/.conan2/p/*/p/lib/libc10_cuda.so .
+    cp /root/.conan2/p/*/p/lib/libgomp-98b21ff3.so.1 .
+    cp /root/.conan2/p/*/p/lib/libcudart-d0da41ae.so.11.0 .
+    cp /root/.conan2/p/*/p/lib/libcublas-3b81d170.so.11 .
+    cp /root/.conan2/p/*/p/lib/libcublasLt-b6d14a74.so.11 .
+    cp /root/.conan2/p/*/p/lib/libcudnn.so.9 .
+    cp /root/.conan2/p/*/p/lib/libcudnn_graph.so.9 .
+    cp /root/.conan2/p/*/p/lib/libcudnn_heuristic.so.9 .
 
-    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libcudnn_engines_runtime_compiled.so.9 .
+    cp /root/.conan2/p/*/p/lib/libcudnn_engines_runtime_compiled.so.9 .
 
 
-    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libcudnn_cnn.so.9 .
-    cp ../../../../lib/libtorch/libtorch_linux_x86/lib/libcudnn_engines_precompiled.so.9 .
+    cp /root/.conan2/p/*/p/lib/libcudnn_cnn.so.9 .
+    cp /root/.conan2/p/*/p/lib/libcudnn_engines_precompiled.so.9 .
 
     cp /usr/local/cuda-12.0/targets/x86_64-linux/lib/libcudart.so.12 .
 
