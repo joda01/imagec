@@ -46,11 +46,9 @@ jobs:
 
       - name: Install NVIDIA CUDA Toolkit
         if: matrix.with-cuda == 'True'
-        run: |
-          sudo wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
-          sudo dpkg -i cuda-keyring_1.1-1_all.deb
-          sudo apt-get update
-          sudo apt-get install -y cuda-toolkit-12-0
+        uses: Jimver/cuda-toolkit@v0.3.0
+        with:
+          cuda: '12.0.0'
 
 
       - name: Build with Conan
@@ -68,7 +66,8 @@ jobs:
             -o:a "&:with_cuda=${{ matrix.with-cuda }}"
           sudo chmod 777 -R /root/.conan2
 
-      - name: Build imagec
+      - name: Build imagec CUDA
+        if: matrix.with-cuda == 'True'
         env:
           TAG_NAME: "${{ github.ref_name }}"
         run: |
@@ -76,14 +75,29 @@ jobs:
           sudo cmake .. \
             -G "Unix Makefiles" \
             -DTAG_NAME="$TAG_NAME" \
-            -DWITH_CUDA="${{ matrix.with-cuda }}" \
+            -DWITH_CUDA="On" \
             -DCMAKE_BUILD_TYPE="Release" \
             -DCMAKE_POLICY_DEFAULT_CMP0091=NEW \
             -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake" \
-            -DCUDA_TOOLKIT_ROOT_DIR="/usr/local/cuda" \
-            -DCMAKE_CUDA_COMPILER="/usr/local/cuda-12.0/bin/nvcc"
+            -DCUDA_TOOLKIT_ROOT_DIR="$CUDA_PATH" \
+            -DCMAKE_CUDA_COMPILER="$CUDA_PATH/bin/nvcc"
           sudo cmake --build . --config Release --target imagec --parallel 8
           
+      - name: Build imagec CPU
+        if: matrix.with-cuda == 'False'
+        env:
+          TAG_NAME: "${{ github.ref_name }}"
+        run: |
+          cd build
+          sudo cmake .. \
+            -G "Unix Makefiles" \
+            -DTAG_NAME="$TAG_NAME" \
+            -DWITH_CUDA="Off" \
+            -DCMAKE_BUILD_TYPE="Release" \
+            -DCMAKE_POLICY_DEFAULT_CMP0091=NEW \
+            -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake" \
+          sudo cmake --build . --config Release --target imagec --parallel 8
+
       - name: Prepare output
         run: |
           sudo chmod -R 777 build/build
@@ -183,7 +197,10 @@ jobs:
             conan profile detect
           fi
           cat /Users/runner/.conan2/profiles/default
-          conan install . --profile conan/profile_macos --output-folder=build --build=missing -o:a '&:with_cuda=False'
+          conan install . \
+            --profile conan/profile_macos \
+            --output-folder=build \
+            --build=missing -o:a '&:with_cuda=False'
 
 
       - name: Build imagec
@@ -191,7 +208,13 @@ jobs:
           TAG_NAME: "${{ github.ref_name }}"
         run: |
           cd build
-          cmake .. -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
+          cmake .. \
+            -G "Unix Makefiles" \
+            -DTAG_NAME="$TAG_NAME" \
+            -DWITH_CUDA="Off" \
+            -DCMAKE_BUILD_TYPE="Release" \
+            -DCMAKE_POLICY_DEFAULT_CMP0091=NEW \
+            -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
           cmake --build . --config Release --target imagec --parallel 8
 
       - name: Prepare output
@@ -288,12 +311,11 @@ jobs:
           conan remote add imageclibs https://imagec.org:4431/artifactory/api/conan/imageclibs
           conan remote login imageclibs writer -p "$env:CONAN_IMAGEC_ARTIFACTORY_PW"
 
-
       - name: Install NVIDIA CUDA Toolkit
         if: matrix.with-cuda == 'True'
-        run: |
-          choco install cuda --version=12.0.0 --yes --limit-output
-
+        uses: Jimver/cuda-toolkit@v0.3.0
+        with:
+          cuda: '12.0.0'
 
       - name: Build with Conan
         run: |
@@ -311,7 +333,8 @@ jobs:
             --build=missing `
             -o:a "&:with_cuda=$cudaFlag"
 
-      - name: Build imagec
+      - name: Build imagec CUDA
+        if: matrix.with-cuda == 'True'
         env:
           TAG_NAME: "${{ github.ref_name }}"
         run: |    
@@ -323,9 +346,25 @@ jobs:
             -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake" `
-            -DWITH_CUDA="$cudaFlag" `
-            -DCUDA_TOOLKIT_ROOT_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.0" `
-            -DCMAKE_CUDA_COMPILER="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.0/bin/nvcc.exe"
+            -DWITH_CUDA="On" `
+            -DCUDA_TOOLKIT_ROOT_DIR="$env:CUDA_PATH" `
+            -DCMAKE_CUDA_COMPILER="$env:CUDA_PATH/bin/nvcc.exe"
+          cmake --build . --config Release --target imagec --parallel 8
+
+      - name: Build imagec CPU
+        if: matrix.with-cuda == 'False'
+        env:
+          TAG_NAME: "${{ github.ref_name }}"
+        run: |    
+          cd D:\a\imagec\imagec\build
+          cmake .. `
+            -G "Visual Studio 17 2022" `
+            -DTAG_NAME="$env:TAG_NAME" `
+            -DCMAKE_SH=CMAKE_SH-NOTFOUND `
+            -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake" `
+            -DWITH_CUDA="OFF" `
           cmake --build . --config Release --target imagec --parallel 8
 
       - name: Prepare output
