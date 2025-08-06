@@ -23,7 +23,7 @@ class ImageC(ConanFile):
         "with_cuda": [True, False]
     }
     default_options = {
-        "with_cuda": False
+        "with_cuda": True
     }
 
     exports_sources = "src/*"
