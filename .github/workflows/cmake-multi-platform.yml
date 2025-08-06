@@ -50,7 +50,7 @@ jobs:
           sudo wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
           sudo dpkg -i cuda-keyring_1.1-1_all.deb
           sudo apt-get update
-          sudo apt-get install cuda-toolkit-12-0
+          sudo apt-get install -y cuda-toolkit-12-0
 
 
       - name: Build with Conan
@@ -305,10 +305,10 @@ jobs:
             conan profile detect
           }
           
-          conan install . \
-            --profile $env:GITHUB_WORKSPACE\conan\profile_win \
-            --output-folder=build \
-            --build=missing \
+          conan install . `
+            --profile $env:GITHUB_WORKSPACE\conan\profile_win `
+            --output-folder=build `
+            --build=missing `
             -o:a "&:with_cuda=$cudaFlag"
 
       - name: Build imagec
@@ -316,15 +316,15 @@ jobs:
           TAG_NAME: "${{ github.ref_name }}"
         run: |    
           cd D:\a\imagec\imagec\build
-          cmake .. \
-            -G "Visual Studio 17 2022" \
-            -DTAG_NAME="$env:TAG_NAME" \
-            -DCMAKE_SH=CMAKE_SH-NOTFOUND \
-            -DCMAKE_POLICY_DEFAULT_CMP0091=NEW \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake" \
-            -DWITH_CUDA="$cudaFlag" \
-            -DCUDA_TOOLKIT_ROOT_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.0" \
+          cmake .. `
+            -G "Visual Studio 17 2022" `
+            -DTAG_NAME="$env:TAG_NAME" `
+            -DCMAKE_SH=CMAKE_SH-NOTFOUND `
+            -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake" `
+            -DWITH_CUDA="$cudaFlag" `
+            -DCUDA_TOOLKIT_ROOT_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.0" `
             -DCMAKE_CUDA_COMPILER="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.0/bin/nvcc.exe"
           cmake --build . --config Release --target imagec --parallel 8
 
