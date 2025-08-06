@@ -95,7 +95,7 @@ jobs:
             -DWITH_CUDA="Off" \
             -DCMAKE_BUILD_TYPE="Release" \
             -DCMAKE_POLICY_DEFAULT_CMP0091=NEW \
-            -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake" \
+            -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
           sudo cmake --build . --config Release --target imagec --parallel 8
 
       - name: Prepare output
