@@ -75,7 +75,7 @@ jobs:
           sudo cmake .. \
             -G "Unix Makefiles" \
             -DTAG_NAME="$TAG_NAME" \
-            -DWITH_CUDA="On" \
+            -DWITH_CUDA="ON" \
             -DCMAKE_BUILD_TYPE="Release" \
             -DCMAKE_POLICY_DEFAULT_CMP0091=NEW \
             -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake" \
@@ -92,7 +92,7 @@ jobs:
           sudo cmake .. \
             -G "Unix Makefiles" \
             -DTAG_NAME="$TAG_NAME" \
-            -DWITH_CUDA="Off" \
+            -DWITH_CUDA="OFF" \
             -DCMAKE_BUILD_TYPE="Release" \
             -DCMAKE_POLICY_DEFAULT_CMP0091=NEW \
             -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
@@ -211,7 +211,7 @@ jobs:
           cmake .. \
             -G "Unix Makefiles" \
             -DTAG_NAME="$TAG_NAME" \
-            -DWITH_CUDA="Off" \
+            -DWITH_CUDA="OFF" \
             -DCMAKE_BUILD_TYPE="Release" \
             -DCMAKE_POLICY_DEFAULT_CMP0091=NEW \
             -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
@@ -346,7 +346,7 @@ jobs:
             -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake" `
-            -DWITH_CUDA="On" `
+            -DWITH_CUDA="ON" `
             -DCUDA_TOOLKIT_ROOT_DIR="$env:CUDA_PATH" `
             -DCMAKE_CUDA_COMPILER="$env:CUDA_PATH/bin/nvcc.exe"
           cmake --build . --config Release --target imagec --parallel 8
@@ -364,7 +364,7 @@ jobs:
             -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake" `
-            -DWITH_CUDA="OFF" `
+            -DWITH_CUDA="OFF" 
           cmake --build . --config Release --target imagec --parallel 8
 
       - name: Prepare output

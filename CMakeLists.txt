@@ -58,7 +58,7 @@ endif()
 
 
 # Options
-set(WITH_CUDA "With cuda support" ON)
+option(WITH_CUDA "With cuda support" ON)
 
 
 
