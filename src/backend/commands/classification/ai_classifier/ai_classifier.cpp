@@ -11,7 +11,6 @@
 ///\link       https :// github.com/UNeedCryDear/yolov5-seg-opencv-onnxruntime-cpp
 
 #include "ai_classifier.hpp"
-#include <c10/cuda/CUDACachingAllocator.h>
 #include <exception>
 #include <filesystem>
 #include <memory>
@@ -21,8 +20,8 @@
 #include "backend/commands/classification/ai_classifier/frameworks/onnx/ai_classifier_onnx.hpp"
 #include "backend/commands/classification/ai_classifier/frameworks/pytorch/ai_classifier_pytorch.hpp"
 #include "backend/commands/classification/ai_classifier/models/ai_model.hpp"
-#include "backend/commands/classification/ai_classifier/models/unet/ai_model_unet.hpp"
 #include "backend/commands/classification/ai_classifier/models/cyto3/ai_model_cyto3.hpp"
+#include "backend/commands/classification/ai_classifier/models/unet/ai_model_unet.hpp"
 #include "backend/commands/classification/ai_classifier/models/yolo/ai_model_yolo.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/helper/ai_model_parser/ai_model_parser.hpp"

@@ -45,6 +45,7 @@ else()
   set(VERSION "${TAG_NAME}")
 endif()
 
+
 message("Tag name is ${TAG_NAME}")
 
 set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
@@ -74,22 +75,6 @@ set(CMAKE_AUTOMOC ON)
 SET(CMAKE_GENERATOR "Unix Makefiles")
 SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-
-
-# Detect platform and set LibTorch path accordingly
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(LIBTORCH_PATH "lib/libtorch/libtorch_linux_x86")
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    set(LIBTORCH_PATH "${CMAKE_SOURCE_DIR}/3rdparty/libtorch-windows")
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(LIBTORCH_PATH "${CMAKE_SOURCE_DIR}/3rdparty/libtorch-macos")
-else()
-    message(FATAL_ERROR "Unsupported OS: ${CMAKE_SYSTEM_NAME}")
-endif()
-
-# Add only LibTorch's prefix path
-list(APPEND CMAKE_PREFIX_PATH "${LIBTORCH_PATH}")
-
 
 #
 # CUDA
@@ -145,7 +130,7 @@ set(LIBS
   httplib::httplib
   onnxruntime::onnxruntime
   tensorflow::tensorflowlite
-   ${TORCH_LIBRARIES}
+  ${TORCH_LIBRARIES}
 )
 
 set(RESOURCE_FILES
