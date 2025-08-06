@@ -16,6 +16,12 @@ on:
 jobs:
   build-linux:
     runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        with-cuda: [true, false]  # This runs the job twice, once for each value
+    env:
+      TAG_NAME: "${{ github.ref_name }}"
+      WITH_CUDA: ${{ matrix.with-cuda }}
 
     steps:
       - uses: actions/checkout@v4
@@ -53,7 +59,7 @@ jobs:
             sudo conan profile detect
           fi
           sudo cat /root/.conan2/profiles/default
-          sudo conan install . --profile conan/profile_linux --output-folder=build --build=missing
+          sudo conan install . --profile conan/profile_linux --output-folder=build --build=missing -o:a '&:with_cuda=False'
           sudo chmod 777 -R /root/.conan2
 
       - name: Build imagec
@@ -153,7 +159,7 @@ jobs:
             conan profile detect
           fi
           cat /Users/runner/.conan2/profiles/default
-          conan install . --profile conan/profile_macos --output-folder=build --build=missing
+          conan install . --profile conan/profile_macos --output-folder=build --build=missing -o:a '&:with_cuda=False'
 
 
       - name: Build imagec
@@ -259,7 +265,7 @@ jobs:
             conan profile detect
           }
           
-          conan install . --profile $env:GITHUB_WORKSPACE\conan\profile_win --output-folder=build --build=missing
+          conan install . --profile $env:GITHUB_WORKSPACE\conan\profile_win --output-folder=build --build=missing -o:a '&:with_cuda=False'
 
       - name: Build imagec
         env:

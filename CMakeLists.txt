@@ -80,7 +80,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 # CUDA
 #
 if(DEFINED WITH_CUDA)
-  message("With cuda")
+  message("with cuda enabled")
   set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda)
   set(CMAKE_CUDA_COMPILER /usr/local/cuda-12.0/bin/nvcc)
   set(CMAKE_CUDA_ARCHITECTURES 60 61 70 75 80 86)
@@ -88,6 +88,8 @@ if(DEFINED WITH_CUDA)
   include_directories(${CUDAToolkit_INCLUDE_DIRS})
   add_compile_definitions(WITH_CUDA)
   enable_language(CUDA)
+else()
+  message("with cuda disabled")
 endif()
 
 find_package( OpenCV REQUIRED ximgproc)
@@ -107,9 +109,6 @@ find_package( httplib REQUIRED )
 find_package( onnxruntime REQUIRED)
 find_package( tensorflowlite REQUIRED )
 find_package( Torch REQUIRED )
-
-#include_directories("${libtorch_INCLUDE_DIRS_RELEASE}/torch/csrc/api/include")
-#link_directories("${libtorch_INCLUDE_DIRS_RELEASE}/../lib")
 
 
 SET(DuckDB_USE_STATIC_LIBS TRUE)

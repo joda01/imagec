@@ -23,7 +23,7 @@ class ImageC(ConanFile):
         "with_cuda": [True, False]
     }
     default_options = {
-        "with_cuda": True
+        "with_cuda": False
     }
 
     exports_sources = "src/*"
@@ -61,12 +61,14 @@ class ImageC(ConanFile):
         #self.requires("cpp-httplib/0.19.0")
 
     def generate(self):
-        print("=====GENERATE=========")
+        if self.options.with_cuda:
+            print("With cuda")
+        else:
+            print("No cuda")
         deps = CMakeDeps(self)
         deps.generate()
         toolchain = CMakeToolchain(self)
         toolchain.variables["WITH_CUDA"] = self.options.with_cuda
-        toolchain.variables["TAG_NAME"] = "1.0.0"
         toolchain.generate()
 
     def build(self):
