@@ -69,10 +69,7 @@ pack(){
     cp /root/.conan2/p/*/p/lib/libcudnn.so.9 .
     cp /root/.conan2/p/*/p/lib/libcudnn_graph.so.9 .
     cp /root/.conan2/p/*/p/lib/libcudnn_heuristic.so.9 .
-
     cp /root/.conan2/p/*/p/lib/libcudnn_engines_runtime_compiled.so.9 .
-
-
     cp /root/.conan2/p/*/p/lib/libcudnn_cnn.so.9 .
     cp /root/.conan2/p/*/p/lib/libcudnn_engines_precompiled.so.9 .
 
