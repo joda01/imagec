@@ -1,5 +1,10 @@
 cmake_minimum_required (VERSION 3.18)
 
+
+option(WITH_CUDA "Build with CUDA suppoer" ON)
+set(TAG_NAME "devel-build" CACHE STRING "Set version tag of this build")
+
+
 if(NOT CLANG_TIDY)
   find_package(Python3)
 endif()
@@ -35,17 +40,6 @@ project (imagec
 # Get the current date and time
 string(TIMESTAMP BUILD_TIME "%Y-%m-%d %H:%M:%S")
 
-if(NOT DEFINED TAG_NAME)
-    message(FATAL_ERROR "TAG_NAME variable not provided!")
-endif()
-
-if("${TAG_NAME}" STREQUAL "")
-  set(VERSION "devel-build")
-else()
-  set(VERSION "${TAG_NAME}")
-endif()
-
-
 message("TAG_NAME: ${TAG_NAME}")
 message("WITH_CUDA: ${WITH_CUDA}")
 
@@ -74,7 +68,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 #
 # CUDA
 #
-if(DEFINED WITH_CUDA)
+if(WITH_CUDA)
   message("with cuda enabled")
   set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda)
   set(CMAKE_CUDA_COMPILER /usr/local/cuda-12.0/bin/nvcc)
