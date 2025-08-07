@@ -46,7 +46,8 @@ else()
 endif()
 
 
-message("Tag name is ${TAG_NAME}")
+message("TAG_NAME: ${TAG_NAME}")
+message("WITH_CUDA: ${WITH_CUDA}")
 
 set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 
@@ -55,12 +56,6 @@ if (APPLE)
 else ()
     set(CMAKE_INSTALL_RPATH "$ORIGIN/lib")
 endif()
-
-
-# Options
-option(WITH_CUDA "With cuda support" ON)
-
-
 
 
 # Get the current user and host
