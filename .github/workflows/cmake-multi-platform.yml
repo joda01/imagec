@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   build-linux:
-    name: Build on ${{ matrix.os }} (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
+    name: Build on Linux (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
     runs-on: ubuntu-22.04
     strategy:
       matrix:
@@ -122,12 +122,9 @@ jobs:
           cp /root/.conan2/p/*/p/lib/libQt6Widgets.so.6 .
           cp /root/.conan2/p/*/p/lib/libQt6XcbQpa.so.6 .
           cp /root/.conan2/p/*/p/lib/libQt6Svg.so.6 .
-          cp /root/.conan2/p/*/p/lib/libnuma.so.1 .
           cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 .
           cp /lib/x86_64-linux-gnu/libbsd.so.0 .
           cp /lib/x86_64-linux-gnu/libmd.so.0 .
-          cp /lib/x86_64-linux-gnu/libnuma.so.1 .
-          cp /lib/x86_64-linux-gnu/libgomp.so.1 .
           cp /lib/x86_64-linux-gnu/libGL.so.1 .
           cp /lib/x86_64-linux-gnu/libxcb.so.1 .
           cp /lib/x86_64-linux-gnu/libGLdispatch.so.0 .
@@ -136,12 +133,12 @@ jobs:
           cp /lib/x86_64-linux-gnu/libXdmcp.so.6 .
 
           cp /root/.conan2/p/*/p/lib/libtorch_cpu.so .
+          cp /root/.conan2/p/*/p/lib/libtorch.so .
+          cp /root/.conan2/p/*/p/lib/libc10.so .
+          cp /root/.conan2/p/*/p/lib/libgomp-98b21ff3.so.1 .
           if [[ "${{ matrix.with-cuda }}" == "True" ]]; then
             cp /root/.conan2/p/*/p/lib/libtorch_cuda.so .
-            cp /root/.conan2/p/*/p/lib/libtorch.so .
-            cp /root/.conan2/p/*/p/lib/libc10.so .
             cp /root/.conan2/p/*/p/lib/libc10_cuda.so .
-            cp /root/.conan2/p/*/p/lib/libgomp-98b21ff3.so.1 .
             cp /root/.conan2/p/*/p/lib/libcudart-d0da41ae.so.11.0 .
             cp /root/.conan2/p/*/p/lib/libcublas-3b81d170.so.11 .
             cp /root/.conan2/p/*/p/lib/libcublasLt-b6d14a74.so.11 .
@@ -175,7 +172,7 @@ jobs:
 
 
   build-macos:
-    name: Build on ${{ matrix.os }} (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
+    name: Build on MacOs (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
@@ -289,7 +286,7 @@ jobs:
           path: build/build/output
 
   build-windows:
-    name: Build on ${{ matrix.os }} (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
+    name: Build on Windows (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
     runs-on: windows-2022
     strategy:
       matrix:
@@ -297,7 +294,6 @@ jobs:
     env:
       TAG_NAME: "${{ github.ref_name }}"
       WITH_CUDA: ${{ matrix.with-cuda }}
-
 
     steps:
       - uses: actions/checkout@v4
@@ -320,6 +316,7 @@ jobs:
       - name: Install NVIDIA CUDA Toolkit
         if: matrix.with-cuda == 'True'
         uses: Jimver/cuda-toolkit@v0.2.24
+        id: cuda-toolkit
         with:
           cuda: '12.0.0'
 
@@ -353,8 +350,8 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake" `
             -DWITH_CUDA="ON" `
-            -DCUDA_TOOLKIT_ROOT_DIR="$env:CUDA_PATH" `
-            -DCMAKE_CUDA_COMPILER="$env:CUDA_PATH/bin/nvcc.exe"
+            -DCUDA_TOOLKIT_ROOT_DIR="${{ steps.cuda-toolkit.outputs.CUDA_PATH }}" `
+            -DCMAKE_CUDA_COMPILER="${{ steps.cuda-toolkit.outputs.CUDA_PATH }}/bin/nvcc.exe"
           cmake --build . --config Release --target imagec --parallel 8
 
       - name: Build imagec CPU
@@ -384,42 +381,73 @@ jobs:
           ni "java" -ItemType Directory
           Copy-Item -Path "D:\a\imagec\imagec\build\build\Release\imagec.exe" -Destination "imagec.exe"
           
-          $qtInstallPath = "C:\Users\runneradmin\.conan2\p"
+          $conanLibInstallPath = "C:\Users\runneradmin\.conan2\p"
 
-          Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
-            $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\.\plugins\*"
+          Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+            $pathToCopyFrom = $conanLibInstallPath + "\" + $_.Name + "\p\.\plugins\*"
             if (Test-Path "$pathToCopyFrom") {
               Copy-Item -Recurse -Path $pathToCopyFrom -Destination "./plugins"  -Force
             }
           }
 
-          Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
-            $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\bin\Qt6Core.dll"
+          Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+            $pathToCopyFrom = $conanLibInstallPath + "\" + $_.Name + "\p\bin\Qt6Core.dll"
             if (Test-Path "$pathToCopyFrom") {
               Copy-Item -Path $pathToCopyFrom -Destination "."  -Force
             }
           }
 
-          Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
-            $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\bin\Qt6Gui.dll"
+          Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+            $pathToCopyFrom = $conanLibInstallPath + "\" + $_.Name + "\p\bin\Qt6Gui.dll"
             if (Test-Path "$pathToCopyFrom") {
               Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
             }
           }
           
-          Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
-            $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\bin\Qt6Widgets.dll"
+          Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+            $pathToCopyFrom = $conanLibInstallPath + "\" + $_.Name + "\p\bin\Qt6Widgets.dll"
             if (Test-Path "$pathToCopyFrom") {
               Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
             }
           }
 
-          Get-ChildItem -Path "$qtInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
-            $pathToCopyFrom = $qtInstallPath + "\" + $_.Name + "\p\bin\Qt6Svg.dll"
+          Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+            $pathToCopyFrom = $conanLibInstallPath + "\" + $_.Name + "\p\bin\Qt6Svg.dll"
             if (Test-Path "$pathToCopyFrom") {
               Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
             }
           }
+          $dllsToCopy = @(
+              "torch_cpu.dll",
+              "torch.dll",
+              "c10.dll"
+          )
+
+          if ($env:WITH_CUDA -eq 'True') {
+            $dllsToCopy += @(
+              "torch_cuda.dll", 
+              "c10_cuda.dll",
+              "libcudart-d0da41ae.so.11.0",
+              "libcublas-3b81d170.so.11",
+              "libcublasLt-b6d14a74.so.11",
+              "libcudnn.so.9",
+              "libcudnn_graph.so.9",
+              "libcudnn_heuristic.so.9 ",
+              "libcudnn_engines_runtime_compiled.so.9 .",
+              "libcudnn_cnn.so.9",
+              "libcudnn_engines_precompiled.so.9"
+              )
+          } 
+
+          foreach ($dll in $dllsToCopy) {
+              Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object { $_.Name -like "libtoc*" } | ForEach-Object {
+                  $pathToCopyFrom = Join-Path $_.FullName "p\lib\$dll"
+                  if (Test-Path $pathToCopyFrom) {
+                      Copy-Item -Path $pathToCopyFrom -Destination "." -Force
+                  }
+              }
+          }
+          
           
           ls "C:\Windows\System32"
           Copy-Item -Path "C:\Windows\System32\vcruntime140.dll" -Destination "."  -Force
