@@ -180,38 +180,37 @@ configure_file(
 ###########################################################################################
 # Unittest
 
-#set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
-#
-#file(GLOB_RECURSE TEST_SOURCES
-#  ./src/*.cpp
-#  ./src/*.cc
-#  ./src/*.c
-#  ./test/*.cpp
-#   ${RESOURCE_SOURCES}
-#
-#)
-## Exclude main file from source
-#list(FILTER TEST_SOURCES EXCLUDE REGEX "/main\\.cpp$")
-#
-#add_executable(tests ${TEST_SOURCES})
-#set_property(TARGET tests PROPERTY CXX_STANDARD 20)
-#target_sources(tests PRIVATE ${RESOURCE_SOURCES})
-#set_target_properties( tests
-#  PROPERTIES
-#  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build"
-#  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build"
-#  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build"
-#  WIN32_EXECUTABLE ON
-#  MACOSX_BUNDLE ON
-#  CMAKE_AUTOMOC ON
-#)
-#
-#find_package(Catch2 3 REQUIRED)
-#
-#set(TESTING_LIBS
-#  Catch2::Catch2
-#)
+set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
 
-#set_property(TARGET tests PROPERTY CXX_STANDARD 20)
-#target_link_libraries(tests ${LIBS} ${TESTING_LIBS})
-#target_compile_definitions(tests PUBLIC UNIT_TEST BS_THREAD_POOL_ENABLE_PRIORITY)
+file(GLOB_RECURSE TEST_SOURCES
+  ./src/*.cpp
+  ./src/*.cc
+  ./src/*.c
+  ./test/*.cpp
+   ${RESOURCE_SOURCES}
+)
+# Exclude main file from source
+list(FILTER TEST_SOURCES EXCLUDE REGEX "/main\\.cpp$")
+
+add_executable(tests ${TEST_SOURCES})
+set_property(TARGET tests PROPERTY CXX_STANDARD 20)
+target_sources(tests PRIVATE ${RESOURCE_SOURCES})
+set_target_properties( tests
+  PROPERTIES
+  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build"
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build"
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build"
+  WIN32_EXECUTABLE ON
+  MACOSX_BUNDLE ON
+  CMAKE_AUTOMOC ON
+)
+
+find_package(Catch2 3 REQUIRED)
+
+set(TESTING_LIBS
+  Catch2::Catch2
+)
+
+set_property(TARGET tests PROPERTY CXX_STANDARD 20)
+target_link_libraries(tests ${LIBS} ${TESTING_LIBS})
+target_compile_definitions(tests PUBLIC UNIT_TEST BS_THREAD_POOL_ENABLE_PRIORITY)
