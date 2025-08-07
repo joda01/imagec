@@ -38,10 +38,12 @@ project (imagec
          LANGUAGES CXX C)
 
 # Get the current date and time
-string(TIMESTAMP BUILD_TIME "%Y-%m-%d %H:%M:%S")
 
 message("TAG_NAME: ${TAG_NAME}")
 message("WITH_CUDA: ${WITH_CUDA}")
+
+set(VERSION "${TAG_NAME}")
+string(TIMESTAMP BUILD_TIME "%Y-%m-%d %H:%M:%S")
 
 set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 

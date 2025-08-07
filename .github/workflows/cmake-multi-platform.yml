@@ -11,14 +11,18 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 
 jobs:
   build-linux:
+    name: Build on ${{ matrix.os }} (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        with-cuda: ["True", "False"]  # This runs the job twice, once for each value
+        with-cuda: ["True", "False"]
     env:
       TAG_NAME: "${{ github.ref_name }}"
       WITH_CUDA: ${{ matrix.with-cuda }}
@@ -171,6 +175,7 @@ jobs:
 
 
   build-macos:
+    name: Build on ${{ matrix.os }} (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
@@ -284,10 +289,11 @@ jobs:
           path: build/build/output
 
   build-windows:
+    name: Build on ${{ matrix.os }} (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
     runs-on: windows-2022
     strategy:
       matrix:
-        with-cuda: ["True", "False"]  # This runs the job twice, once for each value
+        with-cuda: ["True", "False"]
     env:
       TAG_NAME: "${{ github.ref_name }}"
       WITH_CUDA: ${{ matrix.with-cuda }}
