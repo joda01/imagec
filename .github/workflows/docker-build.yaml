@@ -1,6 +1,8 @@
 name: Build and Push Multi-Platform Images
 
 on:
+  branches:
+    - random_forest
   workflow_dispatch:   # Only manual trigger, no automatic runs
 
 jobs:
