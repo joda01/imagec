@@ -12,51 +12,50 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Log in to GHCR
+      - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build Linux image
         run: |
           cd docker
-          docker build -f Dockerfile.linux -t ghcr.io/${{ github.repository }}/imagec-dev:linux-latest .
+          docker build -f Dockerfile.linux -t ${{ secrets.DOCKERHUB_USERNAME }}/imagec-dev:linux-latest .
 
       - name: Push Linux image
-        run: docker push ghcr.io/${{ github.repository }}/imagec-dev:linux-latest
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/imagec-dev:linux-latest
 
   build-windows:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
 
-      - name: Log in to GHCR
-        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Log in to Docker Hub
+        run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
 
       - name: Build Windows image
         run: |
           cd docker
-          docker build -f Dockerfile.windows -t ghcr.io/${{ github.repository }}/imagec-dev:windows-latest .
+          docker build -f Dockerfile.windows -t ${{ secrets.DOCKERHUB_USERNAME }}/imagec-dev:windows-latest .
 
       - name: Push Windows image
-        run: docker push ghcr.io/${{ github.repository }}/imagec-dev:windows-latest
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/imagec-dev:windows-latest
 
   create-manifest:
     runs-on: ubuntu-latest
     needs: [build-linux, build-windows]
     steps:
-      - name: Log in to GHCR
+      - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Create and push multi-arch manifest
         run: |
-          docker manifest create ghcr.io/${{ github.repository }}/imagec-dev:latest \
-            ghcr.io/${{ github.repository }}/imagec-dev:linux-latest \
-            ghcr.io/${{ github.repository }}/imagec-dev:windows-latest
-          docker manifest push ghcr.io/${{ github.repository }}/imagec-dev:latest
+          docker manifest create ${{ secrets.DOCKERHUB_USERNAME }}/myapp:latest \
+            ${{ secrets.DOCKERHUB_USERNAME }}/myapp:linux-latest \
+            ${{ secrets.DOCKERHUB_USERNAME }}/myapp:windows-latest
+          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/myapp:latest
