@@ -1,9 +1,6 @@
 name: Build and Push Multi-Platform Images
 
 on:
-  push:
-    branches:
-      - random_forest
   workflow_dispatch:   # <-- This enables manual trigger from GitHub UI
 
 jobs:
