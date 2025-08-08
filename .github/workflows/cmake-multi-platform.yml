@@ -59,6 +59,7 @@ jobs:
       TAG_NAME: "${{ github.ref_name }}"
       WITH_CUDA: ${{ matrix.with-cuda }}
       CONAN_IMAGEC_ARTIFACTORY_PW: ${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}
+      GITHUB_WORKSPACE: $env:GITHUB_WORKSPACE
 
     steps:
       - name: Checkout repository
@@ -69,10 +70,10 @@ jobs:
 
       - name: Build
         run: docker run --rm -v "${{ github.workspace }}":C:\app `
-              -e TAG_NAME=${{ TAG_NAME }} `
-              -e CONAN_IMAGEC_ARTIFACTORY_PW=${{ CONAN_IMAGEC_ARTIFACTORY_PW }} `
-              -e WITH_CUDA=${{ WITH_CUDA }} `
-              -e GITHUB_WORKSPACE=$env:GITHUB_WORKSPACE `
+              -e TAG_NAME=$TAG_NAME `
+              -e CONAN_IMAGEC_ARTIFACTORY_PW=$CONAN_IMAGEC_ARTIFACTORY_PW `
+              -e WITH_CUDA=$WITH_CUDA `
+              -e GITHUB_WORKSPACE=$GITHUB_WORKSPACE `
               -e USERPROFILE="C:\users\admin" `
               joda001/imagec-dev:windows-latest powershell -Command "cd C:\app && ./build_win.ps1"
 
