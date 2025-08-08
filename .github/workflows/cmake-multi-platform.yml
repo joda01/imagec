@@ -22,144 +22,22 @@ jobs:
     strategy:
       matrix:
         with-cuda: ["True", "False"]
+      container:
+      image: joda001/imagec-dev:linux-latest
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     env:
       TAG_NAME: "${{ github.ref_name }}"
       WITH_CUDA: ${{ matrix.with-cuda }}
+      CONAN_IMAGEC_ARTIFACTORY_PW: ${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Set up Conan
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install Conan
-        env:
-          CONAN_IMAGEC_ARTIFACTORY_PW: ${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libva-dev libvdpau-dev xkb-data
-          sudo pip install conan 
-          sudo chmod 777 -R /root
-          sudo conan remote remove conancenter
-          sudo conan remote add imageclibs https://imagec.org:4431/artifactory/api/conan/imageclibs
-          sudo conan remote login imageclibs writer -p $CONAN_IMAGEC_ARTIFACTORY_PW
-
-
-      - name: Install NVIDIA CUDA Toolkit
-        if: matrix.with-cuda == 'True'
-        uses: Jimver/cuda-toolkit@v0.2.26
-        with:
-          cuda: '12.0.0'
-
-
-      - name: Build with Conan
-        run: |
-          if [[ -f "/root/.conan2/profiles/default" ]]; then
-            echo "Loaded from cache"
-          else
-            sudo conan profile detect
-          fi
-          sudo cat /root/.conan2/profiles/default
-          sudo conan install . \
-            --profile conan/profile_linux \
-            --output-folder=build \
-            --build=missing \
-            -o:a "&:with_cuda=${{ matrix.with-cuda }}"
-          sudo chmod 777 -R /root/.conan2
-
-      - name: Build imagec CUDA
-        if: matrix.with-cuda == 'True'
-        env:
-          TAG_NAME: "${{ github.ref_name }}"
-        run: |
-          cd build
-          sudo cmake .. \
-            -G "Unix Makefiles" \
-            -DTAG_NAME="$TAG_NAME" \
-            -DWITH_CUDA="ON" \
-            -DCMAKE_BUILD_TYPE="Release" \
-            -DCMAKE_POLICY_DEFAULT_CMP0091=NEW \
-            -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake" \
-            -DCUDA_TOOLKIT_ROOT_DIR="$CUDA_PATH" \
-            -DCMAKE_CUDA_COMPILER="$CUDA_PATH/bin/nvcc"
-          sudo cmake --build . --config Release --target imagec --parallel 8
-          
-      - name: Build imagec CPU
-        if: matrix.with-cuda == 'False'
-        env:
-          TAG_NAME: "${{ github.ref_name }}"
-        run: |
-          cd build
-          sudo cmake .. \
-            -G "Unix Makefiles" \
-            -DTAG_NAME="$TAG_NAME" \
-            -DWITH_CUDA="OFF" \
-            -DCMAKE_BUILD_TYPE="Release" \
-            -DCMAKE_POLICY_DEFAULT_CMP0091=NEW \
-            -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
-          sudo cmake --build . --config Release --target imagec --parallel 8
-
-      - name: Prepare output
-        run: |
-          sudo chmod -R 777 build/build
-          cd build/build
-          mkdir -p output
-          cd output
-          mkdir -p ./plugins
-          mkdir -p ./models
-          mkdir -p ./lib
-          mkdir -p ./java
-          cp ../imagec imagec
-          cp -r /root/.conan2/p/*/p/./plugins/* ./plugins
-          cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
-          cp ${GITHUB_WORKSPACE}/resources/launcher/imagec.sh imagec.sh
-          cd lib
-          cp /root/.conan2/p/*/p/lib/libQt6Core.so.6 .
-          cp /root/.conan2/p/*/p/lib/libQt6Gui.so.6 .
-          cp /root/.conan2/p/*/p/lib/libQt6Widgets.so.6 .
-          cp /root/.conan2/p/*/p/lib/libQt6XcbQpa.so.6 .
-          cp /root/.conan2/p/*/p/lib/libQt6Svg.so.6 .
-          cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 .
-          cp /lib/x86_64-linux-gnu/libbsd.so.0 .
-          cp /lib/x86_64-linux-gnu/libmd.so.0 .
-          cp /lib/x86_64-linux-gnu/libGL.so.1 .
-          cp /lib/x86_64-linux-gnu/libxcb.so.1 .
-          cp /lib/x86_64-linux-gnu/libGLdispatch.so.0 .
-          cp /lib/x86_64-linux-gnu/libGLX.so.0 .
-          cp /lib/x86_64-linux-gnu/libXau.so.6 .
-          cp /lib/x86_64-linux-gnu/libXdmcp.so.6 .
-
-          cp /root/.conan2/p/*/p/lib/libtorch_cpu.so .
-          cp /root/.conan2/p/*/p/lib/libtorch.so .
-          cp /root/.conan2/p/*/p/lib/libc10.so .
-          cp /root/.conan2/p/*/p/lib/libgomp-98b21ff3.so.1 .
-          if [[ "${{ matrix.with-cuda }}" == "True" ]]; then
-            cp /root/.conan2/p/*/p/lib/libtorch_cuda.so .
-            cp /root/.conan2/p/*/p/lib/libc10_cuda.so .
-            cp /root/.conan2/p/*/p/lib/libcudart-d0da41ae.so.11.0 .
-            cp /root/.conan2/p/*/p/lib/libcublas-3b81d170.so.11 .
-            cp /root/.conan2/p/*/p/lib/libcublasLt-b6d14a74.so.11 .
-            cp /root/.conan2/p/*/p/lib/libcudnn.so.9 .
-            cp /root/.conan2/p/*/p/lib/libcudnn_graph.so.9 .
-            cp /root/.conan2/p/*/p/lib/libcudnn_heuristic.so.9 .
-            cp /root/.conan2/p/*/p/lib/libcudnn_engines_runtime_compiled.so.9 .
-            cp /root/.conan2/p/*/p/lib/libcudnn_cnn.so.9 .
-            cp /root/.conan2/p/*/p/lib/libcudnn_engines_precompiled.so.9 .
-          fi
-          
-          cd ..
-          strip imagec
-          chmod +x imagec
-          chmod +x imagec.sh
-          cd java
-          cp ${GITHUB_WORKSPACE}/resources/java/bioformats.jar .
-          cp ${GITHUB_WORKSPACE}/resources/java/BioFormatsWrapper.class .
-          cp -r ${GITHUB_WORKSPACE}/resources/java/jre_linux.zip .
-          unzip jre_linux.zip
-          rm -rf jre_linux.zip
-          cd ..
+      - name: Build
+        run: sudo ./build_linux.sh "$TAG_NAME" "$CONAN_IMAGEC_ARTIFACTORY_PW" "$WITH_CUDA" "$GITHUB_WORKSPACE"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -170,7 +48,46 @@ jobs:
           path: build/build/output
 
 
-  build-macos:
+  build-windows:
+    name: Build on Windows (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
+    runs-on: windows-2022
+    strategy:
+      matrix:
+        with-cuda: ["True", "False"]
+    env:
+      TAG_NAME: "${{ github.ref_name }}"
+      WITH_CUDA: ${{ matrix.with-cuda }}
+      CONAN_IMAGEC_ARTIFACTORY_PW: ${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Pull docker image
+        run: docker pull joda001/imagec-dev:windows-latest
+
+      - name: Build
+        run: docker run --rm -v "${{ github.workspace }}":C:\app `
+              -e TAG_NAME=${{ TAG_NAME }} `
+              -e CONAN_IMAGEC_ARTIFACTORY_PW=${{ CONAN_IMAGEC_ARTIFACTORY_PW }} `
+              -e WITH_CUDA=${{ WITH_CUDA }} `
+              -e GITHUB_WORKSPACE=$env:GITHUB_WORKSPACE `
+              -e USERPROFILE="C:\users\admin" `
+              joda001/imagec-dev:windows-latest powershell -Command "cd C:\app && ./build_win.ps1"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: imagec-x64-win
+          include-hidden-files: true
+          if-no-files-found: error
+          path: build/build/output
+
+#     $env:USERPROFILE $env:GITHUB_WORKSPACE
+
+
+
+build-macos:
     name: Build on MacOs (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
     runs-on: macos-14
     steps:
@@ -284,213 +201,7 @@ jobs:
           if-no-files-found: error
           path: build/build/output
 
-  build-windows:
-    name: Build on Windows (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
-    runs-on: windows-2022
-    strategy:
-      matrix:
-        with-cuda: ["True", "False"]
-    env:
-      TAG_NAME: "${{ github.ref_name }}"
-      WITH_CUDA: ${{ matrix.with-cuda }}
 
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Conan
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install Conan
-        env:
-          CONAN_IMAGEC_ARTIFACTORY_PW: ${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}
-        run: |
-          pip install conan
-          pip install numpy
-          conan remote remove conancenter
-          conan remote add imageclibs https://imagec.org:4431/artifactory/api/conan/imageclibs
-          conan remote login imageclibs writer -p "$env:CONAN_IMAGEC_ARTIFACTORY_PW"
-
-      - name: Install NVIDIA CUDA Toolkit
-        if: matrix.with-cuda == 'True'
-        uses: Jimver/cuda-toolkit@v0.2.24
-        id: cuda-toolkit
-        with:
-          cuda: '12.0.0'
-
-      - name: Build with Conan
-        run: |
-          $cudaFlag = if ($env:WITH_CUDA -eq 'True') { 'True' } else { 'False' }
-
-          if (Test-Path "C:\Users\runneradmin\.conan2\profiles\default") {
-            Write-Host "Loaded from cache!"
-          } else {
-            conan profile detect
-          }
-          
-          conan install . `
-            --profile $env:GITHUB_WORKSPACE\conan\profile_win `
-            --output-folder=build `
-            --build=missing `
-            -o:a "&:with_cuda=$cudaFlag"
-
-      - name: Build imagec CUDA
-        if: matrix.with-cuda == 'True'
-        env:
-          TAG_NAME: "${{ github.ref_name }}"
-        run: |    
-          cd D:\a\imagec\imagec\build
-          cmake .. `
-            -G "Visual Studio 17 2022" `
-            -DTAG_NAME="$env:TAG_NAME" `
-            -DCMAKE_SH=CMAKE_SH-NOTFOUND `
-            -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake" `
-            -DWITH_CUDA="ON" `
-            -DCUDA_TOOLKIT_ROOT_DIR="${{ steps.cuda-toolkit.outputs.CUDA_PATH }}" `
-            -DCMAKE_CUDA_COMPILER="${{ steps.cuda-toolkit.outputs.CUDA_PATH }}/bin/nvcc.exe"
-          cmake --build . --config Release --target imagec --parallel 8
-
-      - name: Build imagec CPU
-        if: matrix.with-cuda == 'False'
-        env:
-          TAG_NAME: "${{ github.ref_name }}"
-        run: |    
-          cd D:\a\imagec\imagec\build
-          cmake .. `
-            -G "Visual Studio 17 2022" `
-            -DTAG_NAME="$env:TAG_NAME" `
-            -DCMAKE_SH=CMAKE_SH-NOTFOUND `
-            -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake" `
-            -DWITH_CUDA="OFF" 
-          cmake --build . --config Release --target imagec --parallel 8
-
-      - name: Prepare output
-        run: |
-          cd build/build
-          strip "D:\a\imagec\imagec\build\build\Release\imagec.exe"
-          ni "output" -ItemType Directory
-          cd output
-          ni "plugins" -ItemType Directory
-          ni "models" -ItemType Directory
-          ni "java" -ItemType Directory
-          Copy-Item -Path "D:\a\imagec\imagec\build\build\Release\imagec.exe" -Destination "imagec.exe"
-          
-          $conanLibInstallPath = "C:\Users\runneradmin\.conan2\p"
-
-          Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
-            $pathToCopyFrom = $conanLibInstallPath + "\" + $_.Name + "\p\.\plugins\*"
-            if (Test-Path "$pathToCopyFrom") {
-              Copy-Item -Recurse -Path $pathToCopyFrom -Destination "./plugins"  -Force
-            }
-          }
-
-          Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
-            $pathToCopyFrom = $conanLibInstallPath + "\" + $_.Name + "\p\bin\Qt6Core.dll"
-            if (Test-Path "$pathToCopyFrom") {
-              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force
-            }
-          }
-
-          Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
-            $pathToCopyFrom = $conanLibInstallPath + "\" + $_.Name + "\p\bin\Qt6Gui.dll"
-            if (Test-Path "$pathToCopyFrom") {
-              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
-            }
-          }
-          
-          Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
-            $pathToCopyFrom = $conanLibInstallPath + "\" + $_.Name + "\p\bin\Qt6Widgets.dll"
-            if (Test-Path "$pathToCopyFrom") {
-              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
-            }
-          }
-
-          Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
-            $pathToCopyFrom = $conanLibInstallPath + "\" + $_.Name + "\p\bin\Qt6Svg.dll"
-            if (Test-Path "$pathToCopyFrom") {
-              Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
-            }
-          }
-          $dllsToCopy = @(
-              "torch_cpu.dll",
-              "torch.dll",
-              "c10.dll"
-          )
-
-          if ($env:WITH_CUDA -eq 'True') {
-            $dllsToCopy += @(
-              "torch_cuda.dll", 
-              "c10_cuda.dll",
-              "libcudart-d0da41ae.so.11.0",
-              "libcublas-3b81d170.so.11",
-              "libcublasLt-b6d14a74.so.11",
-              "libcudnn.so.9",
-              "libcudnn_graph.so.9",
-              "libcudnn_heuristic.so.9 ",
-              "libcudnn_engines_runtime_compiled.so.9 .",
-              "libcudnn_cnn.so.9",
-              "libcudnn_engines_precompiled.so.9"
-              )
-          } 
-
-          foreach ($dll in $dllsToCopy) {
-              Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object { $_.Name -like "libtoc*" } | ForEach-Object {
-                  $pathToCopyFrom = Join-Path $_.FullName "p\lib\$dll"
-                  if (Test-Path $pathToCopyFrom) {
-                      Copy-Item -Path $pathToCopyFrom -Destination "." -Force
-                  }
-              }
-          }
-          
-          
-          ls "C:\Windows\System32"
-          Copy-Item -Path "C:\Windows\System32\vcruntime140.dll" -Destination "."  -Force
-          Copy-Item -Path "C:\Windows\System32\vcruntime140_1.dll" -Destination "."  -Force
-          Copy-Item -Path "C:\Windows\System32\msvcp140.dll" -Destination "."  -Force
-          Copy-Item -Path "C:\Windows\System32\msvcp140_1.dll" -Destination "."  -Force
-          Copy-Item -Path "C:\Windows\System32\msvcp140_2.dll" -Destination "."  -Force
-          Copy-Item -Path "C:\Windows\System32\concrt140.dll" -Destination "."  -Force
-          Copy-Item -Path "C:\Windows\System32\msvcp140_codecvt_ids.dll" -Destination "."  -Force
-          Copy-Item -Path "C:\Windows\System32\vcomp140.dll" -Destination "."  -Force
-
-
-          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/templates" ./templates
-          cd java
-          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/bioformats.jar" -Destination "."
-          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/BioFormatsWrapper.class" -Destination "."
-          Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/jre_win.zip" -Destination "."
-          Expand-Archive "jre_win.zip" -DestinationPath "."
-          Remove-Item jre_win.zip
-          cd ..
-
-      - name: Sign Binaries
-        env:
-          PRIV_KEY: ${{ secrets.PRIV_KEY }}
-          PUB_KEY: ${{ secrets.PUB_KEY }}
-        run: |
-          if ($env:GITHUB_REPOSITORY -eq "joda01/imagec-sign") {
-            "$env:PRIV_KEY" | Set-Content -Path privkey.key
-            "$env:PUB_KEY" | Set-Content -Path pubkey.pem
-            cd build/build
-            openssl pkcs12 -password pass: -inkey privkey.key -in pubkey.pem -export -out mycert.pfx
-            & "C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe" sign /fd SHA256 /td sha256 /f "mycert.pfx" /tr http://timestamp.digicert.com "imagec.exe"
-            Remove-Item -Force mycert.pfx
-            Remove-Item -Force privkey.key
-            Remove-Item -Force pubkey.pem
-          }
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: imagec-x64-win
-          include-hidden-files: true
-          if-no-files-found: error
-          path: build/build/output
 
 
 

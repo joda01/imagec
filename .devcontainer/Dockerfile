@@ -1,1 +1,1 @@
-FROM joda001/imagec:v1.7.9 AS live
+FROM joda001/imagec-dev:linux-latest AS live

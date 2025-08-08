@@ -1,4 +1,6 @@
 
+
+
 initConan(){
     pip install conan --upgrade --break-system-packages
     conan profile detect --force
@@ -13,7 +15,7 @@ patch(){
 
 make(){
     conan install . --profile conan/profile_linux --output-folder=build --build=missing
-    cmake -S . -B ./build -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_TOOLCHAIN_FILE="./build/build/Release/generators/conan_toolchain.cmake"
+    cmake -S . -B ./build -G "Unix Makefiles" -DTAG_NAME="devel-build" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_TOOLCHAIN_FILE="./build/build/Release/generators/conan_toolchain.cmake"
 }
 
 build(){
@@ -22,10 +24,11 @@ build(){
 }
 
 makeIcons() {
+    TAG_NAME="devel-build"
     cd resources
     python3 get_icons.py
     cd ..
-    cmake -S . -B ./build -G "Unix Makefiles" -DTAG_NAME="$TAG_NAME" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_TOOLCHAIN_FILE="./build/build/Release/generators/conan_toolchain.cmake"
+    cmake -S . -B ./build -G "Unix Makefiles" -DTAG_NAME="devel-build" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_TOOLCHAIN_FILE="./build/build/Release/generators/conan_toolchain.cmake"
 }
 
 pack(){
