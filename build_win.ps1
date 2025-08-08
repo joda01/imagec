@@ -143,11 +143,11 @@ function Pack {
   Copy-Item -Path "C:\Windows\System32\msvcp140_codecvt_ids.dll" -Destination "."  -Force
   Copy-Item -Path "C:\Windows\System32\vcomp140.dll" -Destination "."  -Force
 
-  Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/templates" ./templates
+  Copy-Item -Recurse -Path "$GITHUB_WORKSPACE/resources/templates" ./templates
   cd java
-  Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/bioformats.jar" -Destination "."
-  Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/BioFormatsWrapper.class" -Destination "."
-  Copy-Item -Recurse -Path "$env:GITHUB_WORKSPACE/resources/java/jre_win.zip" -Destination "."
+  Copy-Item -Recurse -Path "$GITHUB_WORKSPACE/resources/java/bioformats.jar" -Destination "."
+  Copy-Item -Recurse -Path "$GITHUB_WORKSPACE/resources/java/BioFormatsWrapper.class" -Destination "."
+  Copy-Item -Recurse -Path "$GITHUB_WORKSPACE/resources/java/jre_win.zip" -Destination "."
   Expand-Archive "jre_win.zip" -DestinationPath "."
   Remove-Item jre_win.zip
   cd ..

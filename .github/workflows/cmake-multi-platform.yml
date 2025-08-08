@@ -17,158 +17,75 @@ concurrency:
 
 
 jobs:
-
-  #
-  # Linux
-  #
-  pull-image-linux:
+  build-linux:
+    name: Build on Linux (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
     runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        with-cuda: ["True", "False"]
+    container:
+      image: joda001/imagec-dev:linux-latest
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    env:
+      TAG_NAME: "${{ github.ref_name }}"
+      WITH_CUDA: ${{ matrix.with-cuda }}
+      CONAN_IMAGEC_ARTIFACTORY_PW: ${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}
+
     steps:
-      - name: Pull image
-        run: docker pull joda001/imagec-dev:linux-latest
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Save image
-        run: docker save joda001/imagec-dev:linux-latest -o linux-image.tar
+      - name: Build
+        run: sudo ./build_linux.sh "$TAG_NAME" "$CONAN_IMAGEC_ARTIFACTORY_PW" "$WITH_CUDA" "$GITHUB_WORKSPACE"
 
-      - name: Upload image
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: linux-image
-          path: linux-image.tar
-
-  build-linux-cpu:
-    needs: pull-image-linux
-    runs-on: ubuntu-22.04
-    env:
-      TAG_NAME: "${{ github.ref_name }}"
-      CONAN_IMAGEC_ARTIFACTORY_PW: ${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download image
-        uses: actions/download-artifact@v4
-        with:
-          name: linux-image
-
-      - name: Load image
-        run: docker load -i linux-image.tar
-
-      - name: Build CPU
-        run: |
-          docker run --rm -v "${{ github.workspace }}":/app \
-            -e TAG_NAME="$TAG_NAME" \
-            -e CONAN_IMAGEC_ARTIFACTORY_PW="$CONAN_IMAGEC_ARTIFACTORY_PW" \
-            joda001/imagec-dev:linux-latest \
-            bash -c "chmod +x /app/build_linux.sh && /app/build_linux.sh \"$TAG_NAME\" \"$CONAN_IMAGEC_ARTIFACTORY_PW\" False /app"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: imagec-x64-linux-cpu
-          path: build/build/output
+          name: imagec-x64-linux-${{ matrix.with-cuda == 'True' && 'cuda' || 'cpu' }}
           include-hidden-files: true
           if-no-files-found: error
+          path: build/build/output
 
-  build-linux-cuda:
-    needs: pull-image-linux
-    runs-on: ubuntu-22.04
+
+  build-windows:
+    name: Build on Windows (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
+    runs-on: windows-2022
+    strategy:
+      matrix:
+        with-cuda: ["True", "False"]
     env:
       TAG_NAME: "${{ github.ref_name }}"
+      WITH_CUDA: ${{ matrix.with-cuda }}
       CONAN_IMAGEC_ARTIFACTORY_PW: ${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}
+      GITHUB_WORKSPACE: $env:GITHUB_WORKSPACE
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Download image
-        uses: actions/download-artifact@v4
-        with:
-          name: linux-image
-
-      - name: Load image
-        run: docker load -i linux-image.tar
-
-      - name: Build CUDA
-        run: |
-          docker run --rm -v "${{ github.workspace }}":/app \
-            -e TAG_NAME="$TAG_NAME" \
-            -e CONAN_IMAGEC_ARTIFACTORY_PW="$CONAN_IMAGEC_ARTIFACTORY_PW" \
-            joda001/imagec-dev:linux-latest \
-            bash -c "chmod +x /app/build_linux.sh && /app/build_linux.sh \"$TAG_NAME\" \"$CONAN_IMAGEC_ARTIFACTORY_PW\" True /app"
-
-#
-# Window
-#
-  pull-image-windows:
-    runs-on: windows-2022
-    steps:
-      - name: Pull image
+      - name: Pull docker image
         run: docker pull joda001/imagec-dev:windows-latest
 
-      - name: Save image
-        run: docker save joda001/imagec-dev:windows-latest -o windows-image.tar
-
-      - name: Upload image
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-image
-          path: windows-image.tar
-
-
-  build-windows-cpu:
-    needs: pull-image-windows
-    runs-on: windows-2022
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download image
-        uses: actions/download-artifact@v4
-        with:
-          name: windows-image
-
-      - name: Load image
-        run: docker load -i windows-image.tar
-
-      - name: Build CPU
-        run: docker run --rm -v "${{ github.workspace }}":C:\app `
-              -e WITH_CUDA="False" `
-              -e TAG_NAME="${{ github.ref_name }}" `
-              -e CONAN_IMAGEC_ARTIFACTORY_PW="${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" `
-              -e USERPROFILE="C:\users\admin" `
-              joda001/imagec-dev:windows-latest powershell -Command "cd C:\app && ./build_win.ps1"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: imagec-x64-win-cpu
-          path: build/build/output
-          include-hidden-files: true
-          if-no-files-found: error
-
-  build-windows-cuda:
-    needs: pull-image-windows
-    runs-on: windows-2022
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download image
-        uses: actions/download-artifact@v4
-        with:
-          name: windows-image
-
-      - name: Load image
-        run: docker load -i windows-image.tar
-
-      - name: Build CUDA
+      - name: Build
         run: docker run --rm -v "${{ github.workspace }}":C:\app `
               -e WITH_CUDA="True" `
               -e TAG_NAME="${{ github.ref_name }}" `
               -e CONAN_IMAGEC_ARTIFACTORY_PW="${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" `
               -e USERPROFILE="C:\users\admin" `
+              -e GITHUB_WORKSPACE="C:\app" `
               joda001/imagec-dev:windows-latest powershell -Command "cd C:\app && ./build_win.ps1"
 
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: imagec-x64-win
+          include-hidden-files: true
+          if-no-files-found: error
+          path: build/build/output
 
-#
-# Mac OS
-#
+
   build-macos:
     name: Build on MacOs (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
     runs-on: macos-14
@@ -285,10 +202,8 @@ jobs:
 
   deploy:
     needs:
-      - build-windows-cpu
-      - build-windows-cuda
-      - build-linux-cpu
-      - build-linux-cuda
+      - build-windows
+      - build-linux
       - build-macos
     runs-on: ubuntu-latest
     steps:
