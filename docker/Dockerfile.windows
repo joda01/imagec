@@ -40,9 +40,4 @@ ENV CUDA_PATH="C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.8"
 ENV PATH="${CUDA_PATH}\\bin;${CUDA_PATH}\\libnvvp;${PATH}"
 
 
-#
-# Verify tools
-#
-RUN cl && cmake --version && git --version && python --version && conan --version && nvcc --version
-
 CMD ["powershell"]
