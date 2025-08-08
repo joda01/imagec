@@ -1,23 +1,58 @@
-name: Build ImageC docker images
+name: Build and Push Multi-Platform Images
 
 on:
-  push:
-    branches: [ random_forest ]
+  workflow_dispatch:   # Only manual trigger, no automatic runs
 
 jobs:
-  build:
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Linux image
+        run: |
+          cd docker
+          docker build -f Dockerfile.linux -t ghcr.io/${{ github.repository }}/imagec-dev:linux-latest .
+
+      - name: Push Linux image
+        run: docker push ghcr.io/${{ github.repository }}/imagec-dev:linux-latest
+
+  build-windows:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
 
       - name: Log in to GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Build Docker image
+      - name: Build Windows image
         run: |
-          cd docker/windows
-          docker build -t ghcr.io/${{ github.repository }}/windows-cuda-msvc:latest .
+          docker build -f Dockerfile.windows -t ghcr.io/${{ github.repository }}/imagec-dev:windows-latest .
 
-      - name: Push Docker image
+      - name: Push Windows image
+        run: docker push ghcr.io/${{ github.repository }}/imagec-dev:windows-latest
+
+  create-manifest:
+    runs-on: ubuntu-latest
+    needs: [build-linux, build-windows]
+    steps:
+      - name: Log in to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and push multi-arch manifest
         run: |
-          docker push ghcr.io/${{ github.repository }}/windows-cuda-msvc:latest
+          docker manifest create ghcr.io/${{ github.repository }}/imagec-dev:latest \
+            ghcr.io/${{ github.repository }}/imagec-dev:linux-latest \
+            ghcr.io/${{ github.repository }}/imagec-dev:windows-latest
+          docker manifest push ghcr.io/${{ github.repository }}/imagec-dev:latest

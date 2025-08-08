@@ -9,16 +9,19 @@ RUN Set-ExecutionPolicy Bypass -Scope Process -Force; \
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; \
     iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
+
 #
 # Install Visual Studio Build Tools with C++ workload
 #
 RUN choco install visualstudio2022buildtools --package-parameters "'--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --includeOptional'" -y
 
+
 #
 # Install CMake, Git, Python, Conan
 #
 RUN choco install -y cmake git python --installargs 'ADD_CMAKE_TO_PATH=System' ; \
-    pip install --upgrade conan
+    pip install --upgrade conan numpy
+
 
 #
 # Install CUDA Toolkit (no GPU required for compilation)
@@ -33,6 +36,7 @@ RUN Invoke-WebRequest -Uri https://developer.download.nvidia.com/compute/cuda/12
 #
 ENV CUDA_PATH="C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.8"
 ENV PATH="${CUDA_PATH}\\bin;${CUDA_PATH}\\libnvvp;${PATH}"
+
 
 #
 # Verify tools

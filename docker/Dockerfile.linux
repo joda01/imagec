@@ -65,6 +65,6 @@ RUN echo "deb http://apt.llvm.org/bookworm/ llvm-toolchain-bookworm-15 main" >> 
 #
 # Install conan
 #
-RUN pip install conan --break-system-packages
+RUN pip install conan numpy --break-system-packages
 
 RUN ldconfig
