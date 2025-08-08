@@ -23,7 +23,7 @@ jobs:
     strategy:
       matrix:
         with-cuda: ["True", "False"]
-      container:
+    container:
       image: joda001/imagec-dev:linux-latest
       credentials:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -84,11 +84,8 @@ jobs:
           if-no-files-found: error
           path: build/build/output
 
-#     $env:USERPROFILE $env:GITHUB_WORKSPACE
 
-
-
-build-macos:
+  build-macos:
     name: Build on MacOs (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
     runs-on: macos-14
     steps:
@@ -201,10 +198,6 @@ build-macos:
           include-hidden-files: true
           if-no-files-found: error
           path: build/build/output
-
-
-
-
 
   deploy:
     needs:
