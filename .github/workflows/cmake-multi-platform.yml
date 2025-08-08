@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - random_forest
     tags:
       - '*'
   pull_request:

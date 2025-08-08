@@ -1,0 +1,23 @@
+name: Build ImageC docker images
+
+on:
+  push:
+    branches: [ random_forest ]
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build Docker image
+        run: |
+          cd docker/windows
+          docker build -t ghcr.io/${{ github.repository }}/windows-cuda-msvc:latest .
+
+      - name: Push Docker image
+        run: |
+          docker push ghcr.io/${{ github.repository }}/windows-cuda-msvc:latest
