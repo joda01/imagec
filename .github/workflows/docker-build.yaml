@@ -37,6 +37,7 @@ jobs:
 
       - name: Build Windows image
         run: |
+          cd docker
           docker build -f Dockerfile.windows -t ghcr.io/${{ github.repository }}/imagec-dev:windows-latest .
 
       - name: Push Windows image
