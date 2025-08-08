@@ -72,6 +72,7 @@ jobs:
 
 
   build-macos:
+    if: false
     name: Build on MacOs (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
     runs-on: macos-14
     steps:

@@ -18,7 +18,7 @@ function Install-Dependencies {
   #
   # Install CMake, Git, Python, Conan
   #
-  choco install -y cmake git ;
+  choco install -y cmake git
   python -m ensurepip --default-pip
   python -m pip install --upgrade pip
   python -m pip install conan numpy
@@ -26,16 +26,15 @@ function Install-Dependencies {
   #
   # Install CUDA Toolkit (no GPU required for compilation)
   #
-  Invoke-WebRequest -Uri https://developer.download.nvidia.com/compute/cuda/12.8.0/network_installers/cuda_12.8.0_windows_network.exe -OutFile cuda_installer.exe ; \
-      Start-Process -Wait -FilePath cuda_installer.exe -ArgumentList '-s','nvcc_12.8','visual_studio_integration_12.8' ; \
-      Remove-Item cuda_installer.exe
+  Invoke-WebRequest -Uri https://developer.download.nvidia.com/compute/cuda/12.8.0/network_installers/cuda_12.8.0_windows_network.exe -OutFile cuda_installer.exe
+  Start-Process -Wait -FilePath cuda_installer.exe -ArgumentList '-s','nvcc_12.8','visual_studio_integration_12.8'
+  Remove-Item cuda_installer.exe
 
   #
   # Set ENV variables
   #
   $env:CUDA_PATH = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8"
   $env:PATH = "$env:CUDA_PATH\bin;$env:CUDA_PATH\libnvvp;" + $env:PATH
-
 }
 
 #
