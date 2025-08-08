@@ -55,7 +55,7 @@ jobs:
 
       - name: Create and push multi-arch manifest
         run: |
-          docker manifest create ${{ secrets.DOCKERHUB_USERNAME }}/myapp:latest \
-            ${{ secrets.DOCKERHUB_USERNAME }}/myapp:linux-latest \
-            ${{ secrets.DOCKERHUB_USERNAME }}/myapp:windows-latest
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/myapp:latest
+          docker manifest create ${{ secrets.DOCKERHUB_USERNAME }}/imagec-dev:latest \
+            ${{ secrets.DOCKERHUB_USERNAME }}/imagec-dev:linux-latest \
+            ${{ secrets.DOCKERHUB_USERNAME }}/imagec-dev:windows-latest
+          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/imagec-dev:latest
