@@ -36,7 +36,7 @@ jobs:
       - name: Build
         run: |
           chmod +x ./build_linux.sh
-          ./build_linux.sh "${{ github.ref_name }}" "${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" ${{ matrix.with-cuda }} "$GITHUB_WORKSPACE"
+          ./build_linux.sh "${{ github.ref_name }}" "${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" ${{ matrix.with-cuda }} "${{ github.workspace }}"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -60,7 +60,7 @@ jobs:
 
 
       - name: Build
-        run: ./build_win.ps1 "${{ github.ref_name }}" "${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" ${{ matrix.with-cuda }} ${{ env.GITHUB_WORKSPACE }}
+        run: ./build_win.ps1 "${{ github.ref_name }}" "${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" ${{ matrix.with-cuda }} "${{ github.workspace }}"
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4

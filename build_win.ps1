@@ -9,7 +9,7 @@ Write-Host "Start Windows build ..."
 Write-Host "TAG_NAME: $TAG_NAME"
 Write-Host "CONAN_IMAGEC_ARTIFACTORY_PW: $CONAN_IMAGEC_ARTIFACTORY_PW"
 Write-Host "WITH_CUDA: $WITH_CUDA"
-
+Write-Host "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
 
 #
 #
