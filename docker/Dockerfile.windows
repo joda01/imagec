@@ -19,8 +19,10 @@ RUN choco install visualstudio2022buildtools --package-parameters "'--add Micros
 #
 # Install CMake, Git, Python, Conan
 #
-RUN choco install -y cmake git python --installargs 'ADD_CMAKE_TO_PATH=System' ; \
-    pip install --upgrade conan numpy
+RUN choco install -y cmake git python --installargs 'ADD_CMAKE_TO_PATH=System' ;
+RUN python -m ensurepip --default-pip
+RUN python -m pip install --upgrade pip
+RUN python -m pip install conan numpy
 
 
 #
