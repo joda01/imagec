@@ -28,17 +28,13 @@ jobs:
       credentials:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    env:
-      TAG_NAME: "${{ github.ref_name }}"
-      WITH_CUDA: ${{ matrix.with-cuda }}
-      CONAN_IMAGEC_ARTIFACTORY_PW: ${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Build
-        run: sudo ./build_linux.sh "$TAG_NAME" "$CONAN_IMAGEC_ARTIFACTORY_PW" "$WITH_CUDA" "$GITHUB_WORKSPACE"
+        run: ./build_linux.sh "${{ github.ref_name }}" "${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" ${{ matrix.with-cuda }} "$GITHUB_WORKSPACE"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -55,28 +51,15 @@ jobs:
     strategy:
       matrix:
         with-cuda: ["True", "False"]
-    env:
-      TAG_NAME: "${{ github.ref_name }}"
-      WITH_CUDA: ${{ matrix.with-cuda }}
-      CONAN_IMAGEC_ARTIFACTORY_PW: ${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}
-      GITHUB_WORKSPACE: $env:GITHUB_WORKSPACE
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Pull docker image
-        run: docker pull joda001/imagec-dev:windows-latest
 
       - name: Build
-        run: docker run --rm -v "${{ github.workspace }}":C:\app `
-              -e WITH_CUDA="True" `
-              -e TAG_NAME="${{ github.ref_name }}" `
-              -e CONAN_IMAGEC_ARTIFACTORY_PW="${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" `
-              -e USERPROFILE="C:\users\admin" `
-              -e GITHUB_WORKSPACE="C:\app" `
-              joda001/imagec-dev:windows-latest powershell -Command "cd C:\app && ./build_win.ps1"
-
+        run: ./build_win.ps1 "${{ github.ref_name }}" "${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" ${{ matrix.with-cuda }} ${{ env.GITHUB_WORKSPACE }}
+          
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:

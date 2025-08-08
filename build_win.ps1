@@ -3,13 +3,40 @@ param(
     [string]$CONAN_IMAGEC_ARTIFACTORY_PW,
     [string]$WITH_CUDA,
     [string]$GITHUB_WORKSPACE
-    [string]$USERPROFILE
 )
 
 Write-Host "Start Windows build ..."
 Write-Host "TAG_NAME: $TAG_NAME"
 Write-Host "CONAN_IMAGEC_ARTIFACTORY_PW: $CONAN_IMAGEC_ARTIFACTORY_PW"
 Write-Host "WITH_CUDA: $WITH_CUDA"
+
+
+#
+#
+#
+function Install-Dependencies {
+  #
+  # Install CMake, Git, Python, Conan
+  #
+  RUN choco install -y cmake git ;
+  RUN python -m ensurepip --default-pip
+  RUN python -m pip install --upgrade pip
+  RUN python -m pip install conan numpy
+
+  #
+  # Install CUDA Toolkit (no GPU required for compilation)
+  #
+  RUN Invoke-WebRequest -Uri https://developer.download.nvidia.com/compute/cuda/12.8.0/network_installers/cuda_12.8.0_windows_network.exe -OutFile cuda_installer.exe ; \
+      Start-Process -Wait -FilePath cuda_installer.exe -ArgumentList '-s','nvcc_12.8','visual_studio_integration_12.8' ; \
+      Remove-Item cuda_installer.exe
+
+  #
+  # Set ENV variables
+  #
+  ENV CUDA_PATH="C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.8"
+  ENV PATH="${CUDA_PATH}\\bin;${CUDA_PATH}\\libnvvp;${PATH}"
+
+}
 
 #
 #
@@ -19,7 +46,7 @@ function Fetch-ExternalLibs {
   conan remote add imageclibs https://imagec.org:4431/artifactory/api/conan/imageclibs
   conan remote login imageclibs writer -p $CONAN_IMAGEC_ARTIFACTORY_PW
 
-  if (Test-Path "$env:USERPROFILE\.conan2\profiles\default") {
+  if (Test-Path "C:\Users\runneradmin\.conan2\profiles\default") {
       Write-Host "Loaded from cache"
   }
   else {
@@ -153,6 +180,7 @@ function Pack {
   cd ..
 }
 
+Install-Dependencies
 Fetch-ExternalLibs
 Build
 Pack
