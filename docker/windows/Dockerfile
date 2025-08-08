@@ -12,8 +12,7 @@ RUN Set-ExecutionPolicy Bypass -Scope Process -Force; \
 #
 # Install Visual Studio Build Tools with C++ workload
 #
-RUN choco install -y visualstudio2022buildtools `
-    --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --includeOptional"
+RUN choco install -y visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --includeOptional"
 
 #
 # Install CMake, Git, Python, Conan
