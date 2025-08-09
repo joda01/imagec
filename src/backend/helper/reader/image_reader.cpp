@@ -76,7 +76,7 @@ void ImageReader::setPath()
   std::string newPath = javaBin + std::string(";") + path;
   SetEnvironmentVariable("PATH", javaBin.c_str());
 #elif defined(__APPLE__)
-  std::string javaHome = "java/jre_macos_arm";
+  std::string javaHome = "/../java/jre_macos_arm";
   std::string javaBin  = javaHome + "/bin";
   setenv("JAVA_HOME", javaHome.c_str(), 1);
   std::string path = std::getenv("PATH");

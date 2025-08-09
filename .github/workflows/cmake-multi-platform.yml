@@ -11,12 +11,16 @@ on:
     branches:
       - main
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+#concurrency:
+#  group: ${{ github.workflow }}-${{ github.ref }}
+#  cancel-in-progress: true
 
 
 jobs:
+  
+  #
+  # Linux
+  #
   build-linux:
     name: Build on Linux (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
     runs-on: ubuntu-22.04
@@ -36,7 +40,7 @@ jobs:
       - name: Build
         run: |
           chmod +x ./build_linux.sh
-          ./build_linux.sh "${{ github.ref_name }}" "${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" ${{ matrix.with-cuda }} "${{ github.workspace }}"
+          ./build_linux.sh "${{ github.ref_name }}" "${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" ${{ matrix.with-cuda }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -46,7 +50,9 @@ jobs:
           if-no-files-found: error
           path: build/build/output
 
-
+  #
+  # Windows
+  #
   build-windows:
     name: Build on Windows (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
     runs-on: windows-2022
@@ -60,7 +66,7 @@ jobs:
 
 
       - name: Build
-        run: ./build_win.ps1 "${{ github.ref_name }}" "${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" ${{ matrix.with-cuda }} "${{ github.workspace }}"
+        run: ./build_win.ps1 "${{ github.ref_name }}" "${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" ${{ matrix.with-cuda }}
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -70,114 +76,21 @@ jobs:
           if-no-files-found: error
           path: build/build/output
 
-
+  #
+  # MacOS
+  #
   build-macos:
-    if: false
     name: Build on MacOs (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
     runs-on: macos-14
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Set up Conan
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install Conan
-        env:
-          CONAN_IMAGEC_ARTIFACTORY_PW: ${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}
+      - name: Build
         run: |
-          pip install conan
-          conan remote remove conancenter
-          conan remote add imageclibs https://imagec.org:4431/artifactory/api/conan/imageclibs
-          conan remote login imageclibs writer -p $CONAN_IMAGEC_ARTIFACTORY_PW
-
-      - name: Build with Conan
-        run: |
-          if [[ -f "/Users/runner/.conan2/profiles/default" ]]; then
-            echo "Loaded from cache"
-          else
-            conan profile detect
-          fi
-          cat /Users/runner/.conan2/profiles/default
-          conan install . \
-            --profile conan/profile_macos \
-            --output-folder=build \
-            --build=missing -o:a '&:with_cuda=False'
-
-
-      - name: Build imagec
-        env:
-          TAG_NAME: "${{ github.ref_name }}"
-        run: |
-          cd build
-          cmake .. \
-            -G "Unix Makefiles" \
-            -DTAG_NAME="$TAG_NAME" \
-            -DWITH_CUDA="OFF" \
-            -DCMAKE_BUILD_TYPE="Release" \
-            -DCMAKE_POLICY_DEFAULT_CMP0091=NEW \
-            -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake"
-          cmake --build . --config Release --target imagec --parallel 8
-
-      - name: Prepare output
-        run: |
-          cd build/build
-          mkdir -p output
-          cd output
-          mkdir -p ./plugins
-          mkdir -p ./models
-          cp -r ../imagec.app imagec.app
-          cp -r /Users/runner/.conan2/p/*/p/./plugins/* ./plugins
-          cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
-          strip ./imagec.app/Contents/MacOS/imagec
-          chmod +x ./imagec.app/Contents/MacOS/imagec
-          chmod +x ./imagec.app
-          mkdir -p imagec.app/Contents/MacOS/lib
-          mkdir -p imagec.app/Contents/MacOS/java
-          cd imagec.app/Contents/MacOS/lib
-          cp /Users/runner/.conan2/p/*/p/lib/libQt6Core.6.dylib .
-          cp /Users/runner/.conan2/p/*/p/lib/libQt6Gui.6.dylib .
-          cp /Users/runner/.conan2/p/*/p/lib/libQt6Widgets.6.dylib .
-          cp /Users/runner/.conan2/p/*/p/lib/libQt6Svg.6.dylib .
-          cd ..
-          cd java
-          cp ${GITHUB_WORKSPACE}/resources/java/bioformats.jar .
-          cp ${GITHUB_WORKSPACE}/resources/java/BioFormatsWrapper.class .
-          mkdir -p jre_macos_arm
-          cd jre_macos_arm
-          cp -r ${GITHUB_WORKSPACE}/resources/java/jre_macos_arm.zip .
-          unzip jre_macos_arm.zip
-          rm -rf jre_macos_arm.zip
-
-
-      - name: Sign Binaries
-        shell: bash
-        env:
-          BUILD_CERTIFICATE_BASE64: ${{ secrets.OSX_CODESIGN_BUILD_CERTIFICATE_BASE64 }}
-          P12_PASSWORD: ${{ secrets.OSX_CODESIGN_P12_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.OSX_CODESIGN_KEYCHAIN_PASSWORD }}
-        run: |
-          if [[ "$GITHUB_REPOSITORY" = "joda01/imagec-sign" ]] ; then
-            # create variables
-            export CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-            export KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-
-            # import certificate and provisioning profile from secrets
-            echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
-
-            # create temporary keychain
-            security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-            security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-            security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-
-            # import certificate to keychain
-            security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-            security list-keychain -d user -s $KEYCHAIN_PATH
-
-            codesign --all-architectures --force --sign "Developer ID Application: Joachim Danmayr" build/build/imagec
-          fi
-
+          chmod +x ./build_macos.sh
+          ./build_macos.sh "${{ github.ref_name }}" "${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" ${{ matrix.with-cuda }}
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -186,6 +99,9 @@ jobs:
           if-no-files-found: error
           path: build/build/output
 
+  #
+  # Deploy
+  #
   deploy:
     needs:
       - build-windows

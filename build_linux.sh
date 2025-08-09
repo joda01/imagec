@@ -1,14 +1,12 @@
 TAG_NAME=$1
 CONAN_IMAGEC_ARTIFACTORY_PW=$2
 WITH_CUDA=$3
-GITHUB_WORKSPACE=$4
+USERS_DIR="/github/home"
 
 echo "Start linux build ..."
 echo "TAG_NAME: $TAG_NAME"
 echo "CONAN_IMAGEC_ARTIFACTORY_PW: $CONAN_IMAGEC_ARTIFACTORY_PW"
 echo "WITH_CUDA: $WITH_CUDA"
-echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
-
 
 #
 #
@@ -17,7 +15,7 @@ fetch_external_libs() {
     conan remote remove conancenter
     conan remote add imageclibs https://imagec.org:4431/artifactory/api/conan/imageclibs
     conan remote login imageclibs writer -p $CONAN_IMAGEC_ARTIFACTORY_PW
-    if [[ -f "/root/.conan2/profiles/default" ]]; then
+    if [[ -f "$USERS_DIR/.conan2/profiles/default" ]]; then
       "Loaded from cache"
     else
       conan profile detect
@@ -27,7 +25,7 @@ fetch_external_libs() {
       --output-folder=build \
       --build=missing \
       -o:a "&:with_cuda=$WITH_CUDA"
-    chmod 777 -R /root/.conan2
+    chmod 777 -R $USERS_DIR/.conan2
 }
 
 #
@@ -53,6 +51,8 @@ build(){
 #
 #
 pack(){
+    WORKING_DIR=$(pwd)
+
     chmod -R 777 build/build
     cd build/build
     mkdir -p output
@@ -62,15 +62,15 @@ pack(){
     mkdir -p ./lib
     mkdir -p ./java
     cp ../imagec imagec
-    cp -r /root/.conan2/p/*/p/./plugins/* ./plugins
-    cp -r ${GITHUB_WORKSPACE}/resources/templates ./templates
-    cp ${GITHUB_WORKSPACE}/resources/launcher/imagec.sh imagec.sh
+    cp -r $USERS_DIR/.conan2/p/*/p/./plugins/* ./plugins
+    cp -r ${WORKING_DIR}/resources/templates ./templates
+    cp ${WORKING_DIR}/resources/launcher/imagec.sh imagec.sh
     cd lib
-    cp /root/.conan2/p/*/p/lib/libQt6Core.so.6 .
-    cp /root/.conan2/p/*/p/lib/libQt6Gui.so.6 .
-    cp /root/.conan2/p/*/p/lib/libQt6Widgets.so.6 .
-    cp /root/.conan2/p/*/p/lib/libQt6XcbQpa.so.6 .
-    cp /root/.conan2/p/*/p/lib/libQt6Svg.so.6 .
+    cp $USERS_DIR/.conan2/p/*/p/lib/libQt6Core.so.6 .
+    cp $USERS_DIR/.conan2/p/*/p/lib/libQt6Gui.so.6 .
+    cp $USERS_DIR/.conan2/p/*/p/lib/libQt6Widgets.so.6 .
+    cp $USERS_DIR/.conan2/p/*/p/lib/libQt6XcbQpa.so.6 .
+    cp $USERS_DIR/.conan2/p/*/p/lib/libQt6Svg.so.6 .
     cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 .
     cp /lib/x86_64-linux-gnu/libbsd.so.0 .
     cp /lib/x86_64-linux-gnu/libmd.so.0 .
@@ -81,22 +81,22 @@ pack(){
     cp /lib/x86_64-linux-gnu/libXau.so.6 .
     cp /lib/x86_64-linux-gnu/libXdmcp.so.6 .
 
-    cp /root/.conan2/p/*/p/lib/libtorch_cpu.so .
-    cp /root/.conan2/p/*/p/lib/libtorch.so .
-    cp /root/.conan2/p/*/p/lib/libc10.so .
-    cp /root/.conan2/p/*/p/lib/libgomp-98b21ff3.so.1 .
+    cp $USERS_DIR/.conan2/p/*/p/lib/libtorch_cpu.so .
+    cp $USERS_DIR/.conan2/p/*/p/lib/libtorch.so .
+    cp $USERS_DIR/.conan2/p/*/p/lib/libc10.so .
+    cp $USERS_DIR/.conan2/p/*/p/lib/libgomp-98b21ff3.so.1 .
     if [[ "$WITH_CUDA" == "True" ]]; then
-      cp /root/.conan2/p/*/p/lib/libtorch_cuda.so .
-      cp /root/.conan2/p/*/p/lib/libc10_cuda.so .
-      cp /root/.conan2/p/*/p/lib/libcudart-d0da41ae.so.11.0 .
-      cp /root/.conan2/p/*/p/lib/libcublas-3b81d170.so.11 .
-      cp /root/.conan2/p/*/p/lib/libcublasLt-b6d14a74.so.11 .
-      cp /root/.conan2/p/*/p/lib/libcudnn.so.9 .
-      cp /root/.conan2/p/*/p/lib/libcudnn_graph.so.9 .
-      cp /root/.conan2/p/*/p/lib/libcudnn_heuristic.so.9 .
-      cp /root/.conan2/p/*/p/lib/libcudnn_engines_runtime_compiled.so.9 .
-      cp /root/.conan2/p/*/p/lib/libcudnn_cnn.so.9 .
-      cp /root/.conan2/p/*/p/lib/libcudnn_engines_precompiled.so.9 .
+      cp $USERS_DIR/.conan2/p/*/p/lib/libtorch_cuda.so .
+      cp $USERS_DIR/.conan2/p/*/p/lib/libc10_cuda.so .
+      cp $USERS_DIR/.conan2/p/*/p/lib/libcudart-d0da41ae.so.11.0 .
+      cp $USERS_DIR/.conan2/p/*/p/lib/libcublas-3b81d170.so.11 .
+      cp $USERS_DIR/.conan2/p/*/p/lib/libcublasLt-b6d14a74.so.11 .
+      cp $USERS_DIR/.conan2/p/*/p/lib/libcudnn.so.9 .
+      cp $USERS_DIR/.conan2/p/*/p/lib/libcudnn_graph.so.9 .
+      cp $USERS_DIR/.conan2/p/*/p/lib/libcudnn_heuristic.so.9 .
+      cp $USERS_DIR/.conan2/p/*/p/lib/libcudnn_engines_runtime_compiled.so.9 .
+      cp $USERS_DIR/.conan2/p/*/p/lib/libcudnn_cnn.so.9 .
+      cp $USERS_DIR/.conan2/p/*/p/lib/libcudnn_engines_precompiled.so.9 .
     fi
           
     cd ..
@@ -104,9 +104,9 @@ pack(){
     chmod +x imagec
     chmod +x imagec.sh
     cd java
-    cp ${GITHUB_WORKSPACE}/resources/java/bioformats.jar .
-    cp ${GITHUB_WORKSPACE}/resources/java/BioFormatsWrapper.class .
-    cp -r ${GITHUB_WORKSPACE}/resources/java/jre_linux.zip .
+    cp ${WORKING_DIR}/resources/java/bioformats.jar .
+    cp ${WORKING_DIR}/resources/java/BioFormatsWrapper.class .
+    cp -r ${WORKING_DIR}/resources/java/jre_linux.zip .
     unzip jre_linux.zip
     rm -rf jre_linux.zip
     cd ..

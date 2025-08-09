@@ -2,14 +2,12 @@ param(
     [string]$TAG_NAME,
     [string]$CONAN_IMAGEC_ARTIFACTORY_PW,
     [string]$WITH_CUDA,
-    [string]$GITHUB_WORKSPACE
 )
 
 Write-Host "Start Windows build ..."
 Write-Host "TAG_NAME: $TAG_NAME"
 Write-Host "CONAN_IMAGEC_ARTIFACTORY_PW: $CONAN_IMAGEC_ARTIFACTORY_PW"
 Write-Host "WITH_CUDA: $WITH_CUDA"
-Write-Host "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
 
 #
 #
@@ -53,7 +51,7 @@ function Fetch-ExternalLibs {
   }
 
   conan install . `
-      --profile $GITHUB_WORKSPACE\conan\profile_win `
+      --profile conan\profile_win `
       --output-folder=build `
       --build=missing `
       -o:a "&:with_cuda=$WITH_CUDA"
@@ -84,7 +82,7 @@ function Build {
 #
 #
 function Pack {
-  $workingPath = "D:\a\imagec\imagec\build\build"
+  $WORKING_DIR = (Get-Location).Path
   $conanLibInstallPath = "C:\Users\runneradmin\.conan2\p"
 
   Set-Location -Path "build\build"
@@ -94,8 +92,8 @@ function Pack {
   ni "models" -ItemType Directory
   ni "java" -ItemType Directory
 
-  strip "$workingPath\Release\imagec.exe"
-  Copy-Item -Path "$workingPath\Release\imagec.exe" -Destination "imagec.exe"
+  strip "$WORKING_DIR\build\build\Release\imagec.exe"
+  Copy-Item -Path "$WORKING_DIR\build\build\Release\imagec.exe" -Destination "imagec.exe"
 
   #
   # Copy qt files
@@ -171,11 +169,11 @@ function Pack {
   Copy-Item -Path "C:\Windows\System32\msvcp140_codecvt_ids.dll" -Destination "."  -Force
   Copy-Item -Path "C:\Windows\System32\vcomp140.dll" -Destination "."  -Force
 
-  Copy-Item -Recurse -Path "$GITHUB_WORKSPACE/resources/templates" ./templates
+  Copy-Item -Recurse -Path "$WORKING_DIR/resources/templates" ./templates
   cd java
-  Copy-Item -Recurse -Path "$GITHUB_WORKSPACE/resources/java/bioformats.jar" -Destination "."
-  Copy-Item -Recurse -Path "$GITHUB_WORKSPACE/resources/java/BioFormatsWrapper.class" -Destination "."
-  Copy-Item -Recurse -Path "$GITHUB_WORKSPACE/resources/java/jre_win.zip" -Destination "."
+  Copy-Item -Recurse -Path "$WORKING_DIR/resources/java/bioformats.jar" -Destination "."
+  Copy-Item -Recurse -Path "$WORKING_DIR/resources/java/BioFormatsWrapper.class" -Destination "."
+  Copy-Item -Recurse -Path "$WORKING_DIR/resources/java/jre_win.zip" -Destination "."
   Expand-Archive "jre_win.zip" -DestinationPath "."
   Remove-Item jre_win.zip
   cd ..
