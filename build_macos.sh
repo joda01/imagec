@@ -150,9 +150,9 @@ pack(){
     #if [[ "$WITH_CUDA" == "True" ]]; then
     #  cp $USERS_DIR/.conan2/p/*/p/lib/libtorch_cuda.so .
     #  cp $USERS_DIR/.conan2/p/*/p/lib/libc10_cuda.so .
-    #  cp $USERS_DIR/.conan2/p/*/p/lib/libcudart-d0da41ae.so.11.0 .
-    #  cp $USERS_DIR/.conan2/p/*/p/lib/libcublas-3b81d170.so.11 .
-    #  cp $USERS_DIR/.conan2/p/*/p/lib/libcublasLt-b6d14a74.so.11 .
+    #  cp $USERS_DIR/.conan2/p/*/p/lib/libcudart-218eec4c.so.12 .
+    #  cp $USERS_DIR/.conan2/p/*/p/lib/libcublas-f6c022dc.so.12 .
+    #  cp $USERS_DIR/.conan2/p/*/p/lib/libcublasLt-4ef47ce6.so.12 .
     #  cp $USERS_DIR/.conan2/p/*/p/lib/libcudnn.so.9 .
     #  cp $USERS_DIR/.conan2/p/*/p/lib/libcudnn_graph.so.9 .
     #  cp $USERS_DIR/.conan2/p/*/p/lib/libcudnn_heuristic.so.9 .

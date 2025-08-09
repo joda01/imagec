@@ -4,5 +4,6 @@
 // Placeholder for build time
 #cmakedefine BUILD_TIME "@BUILD_TIME@"
 #cmakedefine VERSION "@VERSION@"
+#cmakedefine CUDA_ENABLED "@CUDA_ENABLED@"
 
 #endif    // BUILD_TIME_H

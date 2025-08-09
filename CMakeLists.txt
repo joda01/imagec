@@ -1,8 +1,12 @@
-cmake_minimum_required (VERSION 3.18)
-
+# 3.30
+cmake_minimum_required (VERSION 3.25) 
 
 option(WITH_CUDA "Build with CUDA suppoer" ON)
 set(TAG_NAME "devel-build" CACHE STRING "Set version tag of this build")
+
+
+
+
 
 if(NOT CLANG_TIDY)
   find_package(Python3)
@@ -31,10 +35,20 @@ endif()
 
 
 # Project name and version
-project (imagec
-         VERSION 1.0.0
-         HOMEPAGE_URL https://imagec.org
-         LANGUAGES CXX C)
+if(WITH_CUDA)
+  message("Project with cuda patch ...")
+  set(CMAKE_CUDA_ARCHITECTURES "60;61;70;75;80;86" CACHE STRING "CUDA architectures")
+  set(CMAKE_CUDA_FLAGS_INIT "--generate-code=arch=compute_${CMAKE_CUDA_ARCHITECTURES},code=sm_${CMAKE_CUDA_ARCHITECTURES}")
+  project (imagec
+          VERSION 1.0.0
+          HOMEPAGE_URL https://imagec.org
+          LANGUAGES CXX C CUDA)
+else()
+  project (imagec
+          VERSION 1.0.0
+          HOMEPAGE_URL https://imagec.org
+          LANGUAGES CXX C)
+endif()
 
 # Get the current date and time
 
@@ -42,6 +56,7 @@ message("TAG_NAME: ${TAG_NAME}")
 message("WITH_CUDA: ${WITH_CUDA}")
 
 set(VERSION "${TAG_NAME}")
+set(CUDA_ENABLED "${WITH_CUDA}")
 string(TIMESTAMP BUILD_TIME "%Y-%m-%d %H:%M:%S")
 
 set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
@@ -73,7 +88,7 @@ if(WITH_CUDA)
   message("with cuda enabled")
   message("CUDA_TOOLKIT_ROOT_DIR: ${CUDA_TOOLKIT_ROOT_DIR}")
   message("CMAKE_CUDA_COMPILER: ${CMAKE_CUDA_COMPILER}")
-  set(CMAKE_CUDA_ARCHITECTURES 60 61 70 75 80 86)
+ #set(CMAKE_CUDA_ARCHITECTURES 60 61 70 75 80 86)
   find_package(CUDAToolkit REQUIRED)
   include_directories(${CUDAToolkit_INCLUDE_DIRS})
   add_compile_definitions(WITH_CUDA)

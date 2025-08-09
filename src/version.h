@@ -27,6 +27,11 @@ public:
     return VERSION;
   }
 
+  static auto getCudaEnabled() -> bool
+  {
+    return "True" == std::string(CUDA_ENABLED);
+  }
+
   static auto getBuildTime() -> std::string
   {
     return BUILD_TIME;
@@ -43,6 +48,9 @@ public:
 
   static std::string getTitle()
   {
+    if(getCudaEnabled()) {
+      return "ImageC (CUDA)";
+    }
     return "ImageC";
   }
 

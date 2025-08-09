@@ -150,15 +150,15 @@ function Pack {
     $dllsToCopy += @(
       "torch_cuda.dll", 
       "c10_cuda.dll",
-      "libcudart-d0da41ae.so.11.0",
-      "libcublas-3b81d170.so.11",
-      "libcublasLt-b6d14a74.so.11",
-      "libcudnn.so.9",
-      "libcudnn_graph.so.9",
-      "libcudnn_heuristic.so.9 ",
-      "libcudnn_engines_runtime_compiled.so.9 .",
-      "libcudnn_cnn.so.9",
-      "libcudnn_engines_precompiled.so.9"
+      "cudart-218eec4c.dll",
+      "cublas-f6c022dc.dll",
+      "cublasLt-4ef47ce6.dll",
+      "cudnn.dll",
+      "cudnn_graph.dll",
+      "cudnn_heuristic.dll ",
+      "cudnn_engines_runtime_compiled.dll .",
+      "cudnn_cnn.dll",
+      "cudnn_engines_precompiled.dll"
       )
   } 
 
