@@ -77,8 +77,9 @@ function Fetch-ExternalLibs {
 #
 function Build {
   Set-Location -Path "build"
-
-  ls "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8"
+  if ($WITH_CUDA -eq "True") {
+    ls "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8"
+  }
   #
   # Call cmake
   #
