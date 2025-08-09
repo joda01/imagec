@@ -56,7 +56,7 @@ message("TAG_NAME: ${TAG_NAME}")
 message("WITH_CUDA: ${WITH_CUDA}")
 
 set(VERSION "${TAG_NAME}")
-set(CUDA_ENABLED "${WITH_CUDA}")
+string(CUDA_ENABLED "${WITH_CUDA}")
 string(TIMESTAMP BUILD_TIME "%Y-%m-%d %H:%M:%S")
 
 set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)

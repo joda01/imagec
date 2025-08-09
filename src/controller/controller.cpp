@@ -97,6 +97,7 @@ void Controller::initApplication()
   joda::log::logInfo("Total available RAM " + std::to_string(totalRam) + " MB.");
   joda::log::logInfo("Usable RAM " + std::to_string(availableRam) + " MB.");
   joda::log::logInfo("JVM reserved RAM " + std::to_string(jvmReservedRam) + " MB.");
+  joda::log::logInfo("CUDA available: " + std::to_string(static_cast<int>(cudaAvailable)));
   joda::log::logInfo("Found CUDA devices: " + std::to_string(numCudaDevices));
 
   joda::image::reader::ImageReader::init(systemRecourses.ramReservedForJVM);    // Costs ~50MB RAM
