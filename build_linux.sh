@@ -1,3 +1,6 @@
+#!/bin/sh
+set -e  # Exit immediately if any command fails
+
 TAG_NAME=$1
 CONAN_IMAGEC_ARTIFACTORY_PW=$2
 WITH_CUDA=$3
@@ -19,7 +22,7 @@ install_dependencies() {
   #
   # NVIDIA Toolkit
   #
-  if [[ "$WITH_CUDA" == "True" ]]; then
+  if [ "$WITH_CUDA" = "True" ]; then
     echo "Install cuda toolkit ..."
     wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
     dpkg -i cuda-keyring_1.1-1_all.deb
@@ -43,7 +46,7 @@ fetch_external_libs() {
     conan remote remove conancenter
     conan remote add imageclibs https://imagec.org:4431/artifactory/api/conan/imageclibs
     conan remote login imageclibs writer -p $CONAN_IMAGEC_ARTIFACTORY_PW
-    if [[ -f "$USERS_DIR/.conan2/profiles/default" ]]; then
+    if [ -f "$USERS_DIR/.conan2/profiles/default" ]; then
       "Loaded from cache"
     else
       conan profile detect

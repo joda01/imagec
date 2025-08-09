@@ -1,3 +1,6 @@
+#!/bin/sh
+set -e  # Exit immediately if any command fails
+
 TAG_NAME=$1
 CONAN_IMAGEC_ARTIFACTORY_PW=$2
 WITH_CUDA="False"
