@@ -16,7 +16,7 @@ function Install-Dependencies {
   #
   # Install CUDA Toolkit (no GPU required for compilation)
   #
-  if($WITH_CUDA == "True"){
+  if ($WITH_CUDA -eq "True") {
     try {
       Write-Host "Downloading CUDA installer..."
       Invoke-WebRequest -Uri https://developer.download.nvidia.com/compute/cuda/12.8.0/network_installers/cuda_12.8.0_windows_network.exe -OutFile cuda_installer.exe
