@@ -4,7 +4,6 @@ cmake_minimum_required (VERSION 3.18)
 option(WITH_CUDA "Build with CUDA suppoer" ON)
 set(TAG_NAME "devel-build" CACHE STRING "Set version tag of this build")
 
-
 if(NOT CLANG_TIDY)
   find_package(Python3)
 endif()
@@ -72,8 +71,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 #
 if(WITH_CUDA)
   message("with cuda enabled")
-  set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda)
-  set(CMAKE_CUDA_COMPILER /usr/local/cuda-12.8/bin/nvcc)
+  message("CUDA_TOOLKIT_ROOT_DIR: $CUDA_TOOLKIT_ROOT_DIR")
+  message("CMAKE_CUDA_COMPILER: $CMAKE_CUDA_COMPILER")
   set(CMAKE_CUDA_ARCHITECTURES 60 61 70 75 80 86)
   find_package(CUDAToolkit REQUIRED)
   include_directories(${CUDAToolkit_INCLUDE_DIRS})
