@@ -61,16 +61,17 @@ pack(){
     mkdir -p ./models
     mkdir -p ./lib
     mkdir -p ./java
-    cp ../imagec imagec
-    cp -r $USERS_DIR/.conan2/p/*/p/./plugins/* ./plugins
-    cp -r ${WORKING_DIR}/resources/templates ./templates
-    cp ${WORKING_DIR}/resources/launcher/imagec.sh imagec.sh
+    strip ../imagec
+    mv ../imagec imagec
+    mv -r $USERS_DIR/.conan2/p/*/p/./plugins/* ./plugins
+    mv -r ${WORKING_DIR}/resources/templates ./templates
+    mv ${WORKING_DIR}/resources/launcher/imagec.sh imagec.sh
     cd lib
-    cp $USERS_DIR/.conan2/p/*/p/lib/libQt6Core.so.6 .
-    cp $USERS_DIR/.conan2/p/*/p/lib/libQt6Gui.so.6 .
-    cp $USERS_DIR/.conan2/p/*/p/lib/libQt6Widgets.so.6 .
-    cp $USERS_DIR/.conan2/p/*/p/lib/libQt6XcbQpa.so.6 .
-    cp $USERS_DIR/.conan2/p/*/p/lib/libQt6Svg.so.6 .
+    mv $USERS_DIR/.conan2/p/*/p/lib/libQt6Core.so.6 .
+    mv $USERS_DIR/.conan2/p/*/p/lib/libQt6Gui.so.6 .
+    mv $USERS_DIR/.conan2/p/*/p/lib/libQt6Widgets.so.6 .
+    mv $USERS_DIR/.conan2/p/*/p/lib/libQt6XcbQpa.so.6 .
+    mv $USERS_DIR/.conan2/p/*/p/lib/libQt6Svg.so.6 .
     cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 .
     cp /lib/x86_64-linux-gnu/libbsd.so.0 .
     cp /lib/x86_64-linux-gnu/libmd.so.0 .
@@ -81,37 +82,35 @@ pack(){
     cp /lib/x86_64-linux-gnu/libXau.so.6 .
     cp /lib/x86_64-linux-gnu/libXdmcp.so.6 .
 
-    cp $USERS_DIR/.conan2/p/*/p/lib/libtorch_cpu.so .
-    cp $USERS_DIR/.conan2/p/*/p/lib/libtorch.so .
-    cp $USERS_DIR/.conan2/p/*/p/lib/libc10.so .
-    cp $USERS_DIR/.conan2/p/*/p/lib/libgomp-98b21ff3.so.1 .
+    mv $USERS_DIR/.conan2/p/*/p/lib/libtorch_cpu.so .
+    mv $USERS_DIR/.conan2/p/*/p/lib/libtorch.so .
+    mv $USERS_DIR/.conan2/p/*/p/lib/libc10.so .
+    mv $USERS_DIR/.conan2/p/*/p/lib/libgomp-98b21ff3.so.1 .
     if [[ "$WITH_CUDA" == "True" ]]; then
-      cp $USERS_DIR/.conan2/p/*/p/lib/libtorch_cuda.so .
-      cp $USERS_DIR/.conan2/p/*/p/lib/libc10_cuda.so .
-      cp $USERS_DIR/.conan2/p/*/p/lib/libcudart-d0da41ae.so.11.0 .
-      cp $USERS_DIR/.conan2/p/*/p/lib/libcublas-3b81d170.so.11 .
-      cp $USERS_DIR/.conan2/p/*/p/lib/libcublasLt-b6d14a74.so.11 .
-      cp $USERS_DIR/.conan2/p/*/p/lib/libcudnn.so.9 .
-      cp $USERS_DIR/.conan2/p/*/p/lib/libcudnn_graph.so.9 .
-      cp $USERS_DIR/.conan2/p/*/p/lib/libcudnn_heuristic.so.9 .
-      cp $USERS_DIR/.conan2/p/*/p/lib/libcudnn_engines_runtime_compiled.so.9 .
-      cp $USERS_DIR/.conan2/p/*/p/lib/libcudnn_cnn.so.9 .
-      cp $USERS_DIR/.conan2/p/*/p/lib/libcudnn_engines_precompiled.so.9 .
+      mv $USERS_DIR/.conan2/p/*/p/lib/libtorch_cuda.so .
+      mv $USERS_DIR/.conan2/p/*/p/lib/libc10_cuda.so .
+      mv $USERS_DIR/.conan2/p/*/p/lib/libcudart-d0da41ae.so.11.0 .
+      mv $USERS_DIR/.conan2/p/*/p/lib/libcublas-3b81d170.so.11 .
+      mv $USERS_DIR/.conan2/p/*/p/lib/libcublasLt-b6d14a74.so.11 .
+      mv $USERS_DIR/.conan2/p/*/p/lib/libcudnn.so.9 .
+      mv $USERS_DIR/.conan2/p/*/p/lib/libcudnn_graph.so.9 .
+      mv $USERS_DIR/.conan2/p/*/p/lib/libcudnn_heuristic.so.9 .
+      mv $USERS_DIR/.conan2/p/*/p/lib/libcudnn_engines_runtime_compiled.so.9 .
+      mv $USERS_DIR/.conan2/p/*/p/lib/libcudnn_cnn.so.9 .
+      mv $USERS_DIR/.conan2/p/*/p/lib/libcudnn_engines_precompiled.so.9 .
     fi
           
     cd ..
-    strip imagec
     chmod +x imagec
     chmod +x imagec.sh
     cd java
-    cp ${WORKING_DIR}/resources/java/bioformats.jar .
-    cp ${WORKING_DIR}/resources/java/BioFormatsWrapper.class .
-    cp -r ${WORKING_DIR}/resources/java/jre_linux.zip .
+    mv ${WORKING_DIR}/resources/java/bioformats.jar .
+    mv ${WORKING_DIR}/resources/java/BioFormatsWrapper.class .
+    mv -r ${WORKING_DIR}/resources/java/jre_linux.zip .
     unzip jre_linux.zip
     rm -rf jre_linux.zip
     cd ..
 }
-
 
 fetch_external_libs
 build

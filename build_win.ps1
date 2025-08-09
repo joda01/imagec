@@ -14,25 +14,38 @@ Write-Host "WITH_CUDA: $WITH_CUDA"
 #
 function Install-Dependencies {
   #
-  # Install CMake, Git, Python, Conan
-  #
-  choco install -y cmake git
-  python -m ensurepip --default-pip
-  python -m pip install --upgrade pip
-  python -m pip install conan numpy
-
-  #
   # Install CUDA Toolkit (no GPU required for compilation)
   #
-  Invoke-WebRequest -Uri https://developer.download.nvidia.com/compute/cuda/12.8.0/network_installers/cuda_12.8.0_windows_network.exe -OutFile cuda_installer.exe
-  Start-Process -Wait -FilePath cuda_installer.exe -ArgumentList '-s','nvcc_12.8','visual_studio_integration_12.8'
-  Remove-Item cuda_installer.exe
+  if($WITH_CUDA == "True"){
+    try {
+      Write-Host "Downloading CUDA installer..."
+      Invoke-WebRequest -Uri https://developer.download.nvidia.com/compute/cuda/12.8.0/network_installers/cuda_12.8.0_windows_network.exe -OutFile cuda_installer.exe
+      Write-Host "Starting installer..."
+      Start-Process -Wait -FilePath cuda_installer.exe -ArgumentList '-s','nvcc_12.8','visual_studio_integration_12.8'
+      Remove-Item cuda_installer.exe
+    }
+    catch {
+        Write-Host "Error occurred: $_"
+        exit 1
+    }
+  }else{
+    Write-Host "CUDA disabled..."
+  }
 
   #
   # Set ENV variables
   #
   $env:CUDA_PATH = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8"
   $env:PATH = "$env:CUDA_PATH\bin;$env:CUDA_PATH\libnvvp;" + $env:PATH
+
+
+  #
+  # Install CMake, Git, Python, Conan
+  #
+  choco install -y cmake
+  python -m ensurepip --default-pip
+  python -m pip install --upgrade pip
+  python -m pip install conan numpy
 }
 
 #
@@ -71,8 +84,8 @@ function Build {
     -DCMAKE_BUILD_TYPE="Release" `
     -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
     -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake" `
-    -DCUDA_TOOLKIT_ROOT_DIR="$env:CUDA_PATH" `
-    -DCMAKE_CUDA_COMPILER="$env:CUDA_PATH\bin\nvcc.exe"
+    -DCUDA_TOOLKIT_ROOT_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" `
+    -DCMAKE_CUDA_COMPILER="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8/bin/nvcc.exe"
   cmake --build . --config Release --target imagec --parallel 8
 
   cd ..
@@ -109,7 +122,7 @@ function Pack {
     Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
       $pathToCopyFrom = $conanLibInstallPath + "\" + $_.Name + "\p\bin\$dll"
       if (Test-Path "$pathToCopyFrom") {
-        Copy-Item -Path $pathToCopyFrom -Destination "."  -Force
+        Move-Item -Path $pathToCopyFrom -Destination "."  -Force
       }
     }
   }
@@ -117,7 +130,7 @@ function Pack {
   Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
     $pathToCopyFrom = $conanLibInstallPath + "\" + $_.Name + "\p\.\plugins\*"
     if (Test-Path "$pathToCopyFrom") {
-      Copy-Item -Recurse -Path $pathToCopyFrom -Destination "./plugins"  -Force
+      Move-Item -Recurse -Path $pathToCopyFrom -Destination "./plugins"  -Force
     }
   }
 
@@ -151,7 +164,7 @@ function Pack {
       Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object { $_.Name -like "libtoc*" } | ForEach-Object {
           $pathToCopyFrom = Join-Path $_.FullName "p\lib\$dll"
           if (Test-Path $pathToCopyFrom) {
-              Copy-Item -Path $pathToCopyFrom -Destination "." -Force
+              Move-Item -Path $pathToCopyFrom -Destination "." -Force
           }
       }
   }
@@ -169,11 +182,11 @@ function Pack {
   Copy-Item -Path "C:\Windows\System32\msvcp140_codecvt_ids.dll" -Destination "."  -Force
   Copy-Item -Path "C:\Windows\System32\vcomp140.dll" -Destination "."  -Force
 
-  Copy-Item -Recurse -Path "$WORKING_DIR/resources/templates" ./templates
+  Move-Item -Recurse -Path "$WORKING_DIR/resources/templates" ./templates
   cd java
-  Copy-Item -Recurse -Path "$WORKING_DIR/resources/java/bioformats.jar" -Destination "."
-  Copy-Item -Recurse -Path "$WORKING_DIR/resources/java/BioFormatsWrapper.class" -Destination "."
-  Copy-Item -Recurse -Path "$WORKING_DIR/resources/java/jre_win.zip" -Destination "."
+  Move-Item -Recurse -Path "$WORKING_DIR/resources/java/bioformats.jar" -Destination "."
+  Move-Item -Recurse -Path "$WORKING_DIR/resources/java/BioFormatsWrapper.class" -Destination "."
+  Move-Item -Recurse -Path "$WORKING_DIR/resources/java/jre_win.zip" -Destination "."
   Expand-Archive "jre_win.zip" -DestinationPath "."
   Remove-Item jre_win.zip
   cd ..

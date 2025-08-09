@@ -71,7 +71,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: imagec-x64-win
+          name: imagec-x64-win-${{ matrix.with-cuda == 'True' && 'cuda' || 'cpu' }}
           include-hidden-files: true
           if-no-files-found: error
           path: build/build/output
@@ -80,7 +80,7 @@ jobs:
   # MacOS
   #
   build-macos:
-    name: Build on MacOs (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
+    name: Build on MacOs (CPU Only)
     runs-on: macos-14
 
     steps:
@@ -94,7 +94,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: imagec-arm64-macos
+          name: imagec-arm64-macos-cpu
           include-hidden-files: true
           if-no-files-found: error
           path: build/build/output
