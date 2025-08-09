@@ -120,7 +120,7 @@ function Pack {
   #
   # Copy qt files
   #
-  $qtDlls = @(
+  $qtPackages = @(
       "Qt6Core.dll",
       "Qt6Gui.dll",
       "Qt6Widgets.dll",
