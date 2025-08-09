@@ -84,7 +84,6 @@ function Build {
     -DTAG_NAME="$TAG_NAME" `
     -DWITH_CUDA="$WITH_CUDA" `
     -DCMAKE_BUILD_TYPE="Release" `
-    -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
     -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake" `
     -DCUDA_TOOLKIT_ROOT_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" `
     -DCMAKE_CUDA_COMPILER="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8/bin/nvcc.exe"

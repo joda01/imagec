@@ -8,11 +8,6 @@ if(NOT CLANG_TIDY)
   find_package(Python3)
 endif()
 
-if(POLICY CMP0091)
-  cmake_policy(SET CMP0091 NEW)
-endif()
-
-
 if(POLICY CMP0026)
   cmake_policy(SET CMP0026 NEW)
 endif()

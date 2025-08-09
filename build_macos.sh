@@ -29,6 +29,8 @@ install_dependencies() {
 #
 #
 fetch_external_libs() {
+    WORKING_DIR=$(pwd)
+
     conan remote remove conancenter
     conan remote add imageclibs https://imagec.org:4431/artifactory/api/conan/imageclibs
     conan remote login imageclibs writer -p $CONAN_IMAGEC_ARTIFACTORY_PW
@@ -38,7 +40,7 @@ fetch_external_libs() {
       conan profile detect
     fi
     conan install . \
-      --profile conan/profile_macos \
+      --profile "$WORKING_DIR/conan/profile_macos" \
       --output-folder=build \
       --build=missing \
       -o:a "&:with_cuda=$WITH_CUDA"

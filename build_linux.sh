@@ -43,6 +43,8 @@ install_dependencies() {
 #
 #
 fetch_external_libs() {
+    WORKING_DIR=$(pwd)
+
     conan remote remove conancenter
     conan remote add imageclibs https://imagec.org:4431/artifactory/api/conan/imageclibs
     conan remote login imageclibs writer -p $CONAN_IMAGEC_ARTIFACTORY_PW
@@ -52,7 +54,7 @@ fetch_external_libs() {
       conan profile detect
     fi
     conan install . \
-      --profile conan/profile_linux \
+      --profile "$WORKING_DIR/conan/profile_linux" \
       --output-folder=build \
       --build=missing \
       -o:a "&:with_cuda=$WITH_CUDA"
@@ -117,7 +119,7 @@ pack(){
     cp $USERS_DIR/.conan2/p/*/p/lib/libtorch.so .
     cp $USERS_DIR/.conan2/p/*/p/lib/libc10.so .
     cp $USERS_DIR/.conan2/p/*/p/lib/libgomp-98b21ff3.so.1 .
-    if [[ "$WITH_CUDA" == "True" ]]; then
+    if [ "$WITH_CUDA" = "True" ]; then
       cp /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12 .
       cp $USERS_DIR/.conan2/p/*/p/lib/libtorch_cuda.so .
       cp $USERS_DIR/.conan2/p/*/p/lib/libc10_cuda.so .

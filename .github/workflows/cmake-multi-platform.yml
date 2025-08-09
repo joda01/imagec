@@ -96,7 +96,7 @@ jobs:
       - name: Build
         run: |
           chmod +x ./build_macos.sh
-          ./build_macos.sh "${{ github.ref_name }}" "${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" ${{ matrix.with-cuda }} "${{ github.workspace }}"
+          ./build_macos.sh "${{ github.ref_name }}" "${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" "False" "${{ github.workspace }}"
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
