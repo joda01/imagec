@@ -1,13 +1,15 @@
 param(
     [string]$TAG_NAME,
     [string]$CONAN_IMAGEC_ARTIFACTORY_PW,
-    [string]$WITH_CUDA
+    [string]$WITH_CUDA,
+    [string]$GITHUB_WORKSPACE
 )
 
 Write-Host "Start Windows build ..."
 Write-Host "TAG_NAME: $TAG_NAME"
 Write-Host "CONAN_IMAGEC_ARTIFACTORY_PW: $CONAN_IMAGEC_ARTIFACTORY_PW"
 Write-Host "WITH_CUDA: $WITH_CUDA"
+Write-Host "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
 
 #
 #
@@ -64,7 +66,7 @@ function Fetch-ExternalLibs {
   }
 
   conan install . `
-      --profile conan\profile_win `
+      --profile $GITHUB_WORKSPACE\conan\profile_win `
       --output-folder=build `
       --build=missing `
       -o:a "&:with_cuda=$WITH_CUDA"
