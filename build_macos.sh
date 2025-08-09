@@ -15,10 +15,10 @@ echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
 #
 #
 install_dependencies() {
+    #
+    # Install conan
+    #
     pip install conan
-    conan remote remove conancenter
-    conan remote add imageclibs https://imagec.org:4431/artifactory/api/conan/imageclibs
-    conan remote login imageclibs writer -p $CONAN_IMAGEC_ARTIFACTORY_PW
 }
 
 

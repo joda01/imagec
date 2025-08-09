@@ -27,20 +27,19 @@ jobs:
     strategy:
       matrix:
         with-cuda: ["True", "False"]
-    container:
-      image: joda001/imagec-dev:linux-latest
-      credentials:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Build
         run: |
-          chmod +x ./build_linux.sh
-          ./build_linux.sh "${{ github.ref_name }}" "${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" ${{ matrix.with-cuda }} "${{ github.workspace }}"
+          sudo rm -rf /usr/local/lib/android/sdk
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /usr/share/swift
+          sudo docker rmi -f $(docker images -aq)
+
+          sudo chmod +x ./build_linux.sh
+          sudo ./build_linux.sh "${{ github.ref_name }}" "${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" ${{ matrix.with-cuda }} "${{ github.workspace }}"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -66,7 +65,14 @@ jobs:
 
 
       - name: Build
-        run: ./build_win.ps1 "${{ github.ref_name }}" "${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" ${{ matrix.with-cuda }} "${{ github.workspace }}"
+        run: |
+          Remove-Item -Recurse -Force $env:ANDROID_SDK_ROOT
+          $images = docker images -aq
+          if ($images) {
+            docker rmi -f $images
+          }
+
+          ./build_win.ps1 "${{ github.ref_name }}" "${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" ${{ matrix.with-cuda }} "${{ github.workspace }}"
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4

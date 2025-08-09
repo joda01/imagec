@@ -23,7 +23,7 @@ function Install-Dependencies {
       Write-Host "Downloading CUDA installer..."
       Invoke-WebRequest -Uri https://developer.download.nvidia.com/compute/cuda/12.8.0/network_installers/cuda_12.8.0_windows_network.exe -OutFile cuda_installer.exe
       Write-Host "Starting installer..."
-      Start-Process -Wait -FilePath cuda_installer.exe -ArgumentList '-s','nvcc_12.8','visual_studio_integration_12.8'
+      Start-Process -Wait -FilePath cuda_installer.exe -ArgumentList '-s'
       Remove-Item cuda_installer.exe
     }
     catch {
@@ -174,7 +174,6 @@ function Pack {
   #
   # Copy system dlls
   #
-  ls "C:\Windows\System32"
   Copy-Item -Path "C:\Windows\System32\vcruntime140.dll" -Destination "."  -Force
   Copy-Item -Path "C:\Windows\System32\vcruntime140_1.dll" -Destination "."  -Force
   Copy-Item -Path "C:\Windows\System32\msvcp140.dll" -Destination "."  -Force

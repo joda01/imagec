@@ -2,13 +2,36 @@ TAG_NAME=$1
 CONAN_IMAGEC_ARTIFACTORY_PW=$2
 WITH_CUDA=$3
 GITHUB_WORKSPACE=$4
-USERS_DIR="/github/home"
+USERS_DIR="/root"
 
 echo "Start linux build ..."
 echo "TAG_NAME: $TAG_NAME"
 echo "CONAN_IMAGEC_ARTIFACTORY_PW: $CONAN_IMAGEC_ARTIFACTORY_PW"
 echo "WITH_CUDA: $WITH_CUDA"
 echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+
+
+
+#
+#
+#
+install_dependencies() {
+  #
+  # NVIDIA Toolkit
+  #
+  wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
+  dpkg -i cuda-keyring_1.1-1_all.deb
+  apt-get update
+  apt-get install -y cuda-toolkit-12-8
+  export PATH=/usr/local/cuda/bin:$PATH
+  export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
+  #
+  # Install conan
+  #
+  pip install conan numpy --break-system-packages
+}
+
 
 #
 #
@@ -108,12 +131,13 @@ pack(){
     cd java
     mv ${WORKING_DIR}/resources/java/bioformats.jar .
     mv ${WORKING_DIR}/resources/java/BioFormatsWrapper.class .
-    mv -r ${WORKING_DIR}/resources/java/jre_linux.zip .
+    mv ${WORKING_DIR}/resources/java/jre_linux.zip .
     unzip jre_linux.zip
     rm -rf jre_linux.zip
     cd ..
 }
 
+install_dependencies
 fetch_external_libs
 build
 pack
