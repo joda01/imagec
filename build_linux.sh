@@ -45,6 +45,7 @@ build(){
         -DCUDA_TOOLKIT_ROOT_DIR="/usr/local/cuda" \
         -DCMAKE_CUDA_COMPILER="/usr/local/cuda/bin/nvcc"
     cmake --build . --config Release --target imagec --parallel 8
+    cd ..
 }
 
 

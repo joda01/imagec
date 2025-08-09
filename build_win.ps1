@@ -66,32 +66,55 @@ function Build {
   Set-Location -Path "build"
 
   cmake .. `
-    -G "Unix Makefiles" `
+    -G "Visual Studio 17 2022" `
+    -DCMAKE_SH=CMAKE_SH-NOTFOUND `
     -DTAG_NAME="$TAG_NAME" `
     -DWITH_CUDA="$WITH_CUDA" `
     -DCMAKE_BUILD_TYPE="Release" `
     -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
-    -DCMAKE_TOOLCHAIN_FILE="build/Release/generators/conan_toolchain.cmake" `
-    -DCUDA_TOOLKIT_ROOT_DIR="/usr/local/cuda" `
-    -DCMAKE_CUDA_COMPILER="/usr/local/cuda/bin/nvcc"
-
+    -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake" `
+    -DCUDA_TOOLKIT_ROOT_DIR="$env:CUDA_PATH" `
+    -DCMAKE_CUDA_COMPILER="$env:CUDA_PATH\bin\nvcc.exe"
   cmake --build . --config Release --target imagec --parallel 8
+
+  cd ..
 }
 
 #
 #
 #
 function Pack {
-  cd build/build
-  strip "D:\a\imagec\imagec\build\build\Release\imagec.exe"
+  $workingPath = "D:\a\imagec\imagec\build\build"
+  $conanLibInstallPath = "C:\Users\runneradmin\.conan2\p"
+
+  Set-Location -Path "build\build"
   ni "output" -ItemType Directory
-  cd output
+  Set-Location -Path "output"
   ni "plugins" -ItemType Directory
   ni "models" -ItemType Directory
   ni "java" -ItemType Directory
-  Copy-Item -Path "D:\a\imagec\imagec\build\build\Release\imagec.exe" -Destination "imagec.exe"
-          
-  $conanLibInstallPath = "C:\Users\runneradmin\.conan2\p"
+
+  strip "$workingPath\Release\imagec.exe"
+  Copy-Item -Path "$workingPath\Release\imagec.exe" -Destination "imagec.exe"
+
+  #
+  # Copy qt files
+  #
+  $qtDlls = @(
+      "Qt6Core.dll",
+      "Qt6Gui.dll",
+      "Qt6Widgets.dll",
+      "Qt6Svg.dll"
+  )
+
+  foreach ($dll in $qtPackages) {
+    Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
+      $pathToCopyFrom = $conanLibInstallPath + "\" + $_.Name + "\p\bin\$dll"
+      if (Test-Path "$pathToCopyFrom") {
+        Copy-Item -Path $pathToCopyFrom -Destination "."  -Force
+      }
+    }
+  }
 
   Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
     $pathToCopyFrom = $conanLibInstallPath + "\" + $_.Name + "\p\.\plugins\*"
@@ -100,33 +123,10 @@ function Pack {
     }
   }
 
-  Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
-    $pathToCopyFrom = $conanLibInstallPath + "\" + $_.Name + "\p\bin\Qt6Core.dll"
-    if (Test-Path "$pathToCopyFrom") {
-      Copy-Item -Path $pathToCopyFrom -Destination "."  -Force
-    }
-  }
 
-  Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
-    $pathToCopyFrom = $conanLibInstallPath + "\" + $_.Name + "\p\bin\Qt6Gui.dll"
-    if (Test-Path "$pathToCopyFrom") {
-      Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
-    }
-  }
-          
-  Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
-    $pathToCopyFrom = $conanLibInstallPath + "\" + $_.Name + "\p\bin\Qt6Widgets.dll"
-    if (Test-Path "$pathToCopyFrom") {
-      Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
-    }
-  }
-
-  Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
-    $pathToCopyFrom = $conanLibInstallPath + "\" + $_.Name + "\p\bin\Qt6Svg.dll"
-    if (Test-Path "$pathToCopyFrom") {
-      Copy-Item -Path $pathToCopyFrom -Destination "."  -Force 
-    }
-  }
+  #
+  # Copy torch/cuda files
+  #
   $dllsToCopy = @(
       "torch_cpu.dll",
       "torch.dll",
@@ -158,7 +158,9 @@ function Pack {
       }
   }
           
-          
+  #
+  # Copy system dlls
+  #
   ls "C:\Windows\System32"
   Copy-Item -Path "C:\Windows\System32\vcruntime140.dll" -Destination "."  -Force
   Copy-Item -Path "C:\Windows\System32\vcruntime140_1.dll" -Destination "."  -Force
