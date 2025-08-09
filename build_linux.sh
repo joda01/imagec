@@ -17,6 +17,11 @@ echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
 #
 install_dependencies() {
   #
+  # Install conan
+  #
+  pip install conan numpy
+  
+  #
   # NVIDIA Toolkit
   #
   wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
@@ -25,11 +30,6 @@ install_dependencies() {
   apt-get install -y cuda-toolkit-12-8
   export PATH=/usr/local/cuda/bin:$PATH
   export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
-
-  #
-  # Install conan
-  #
-  pip install conan numpy --break-system-packages
 }
 
 

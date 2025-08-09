@@ -141,12 +141,12 @@ pack(){
     #cp /lib/x86_64-linux-gnu/libXau.so.6 .
     #cp /lib/x86_64-linux-gnu/libXdmcp.so.6 .
 
-    cp $USERS_DIR/.conan2/p/*/p/lib/libtorch_cpu.dylib .
-    cp $USERS_DIR/.conan2/p/*/p/lib/libtorch.dylib .
-    cp $USERS_DIR/.conan2/p/*/p/lib/libc10.dylib .
-    cp $USERS_DIR/.conan2/p/*/p/lib/libtorch_global_deps.dylib .
-    cp $USERS_DIR/.conan2/p/*/p/lib/libshm.dylib .
-    cp $USERS_DIR/.conan2/p/*/p/lib/libomp.dylib .
+    cp $USERS_DIR/.conan2/p/*/p/lib/libtorch_cpu.dylib imagec.app/Contents/Frameworks/
+    cp $USERS_DIR/.conan2/p/*/p/lib/libtorch.dylib imagec.app/Contents/Frameworks/
+    cp $USERS_DIR/.conan2/p/*/p/lib/libc10.dylib imagec.app/Contents/Frameworks/
+    cp $USERS_DIR/.conan2/p/*/p/lib/libtorch_global_deps.dylib imagec.app/Contents/Frameworks/
+    cp $USERS_DIR/.conan2/p/*/p/lib/libshm.dylib imagec.app/Contents/Frameworks/
+    cp $USERS_DIR/.conan2/p/*/p/lib/libomp.dylib imagec.app/Contents/Frameworks/
     #if [[ "$WITH_CUDA" == "True" ]]; then
     #  cp $USERS_DIR/.conan2/p/*/p/lib/libtorch_cuda.so .
     #  cp $USERS_DIR/.conan2/p/*/p/lib/libc10_cuda.so .
