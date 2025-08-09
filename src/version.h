@@ -27,11 +27,6 @@ public:
     return VERSION;
   }
 
-  static auto getCudaEnabledStr() -> std::string
-  {
-    return CUDA_ENABLED;
-  }
-
   static auto getCudaEnabled() -> bool
   {
     return "True" == getCudaEnabledStr();
@@ -76,4 +71,17 @@ public:
 
     return oss.str();
   }
+
+private:
+#ifdef CUDA_ENABLED
+  static auto getCudaEnabledStr() -> std::string
+  {
+    return CUDA_ENABLED;
+  }
+#else
+  static auto getCudaEnabledStr() -> std::string
+  {
+    return "False";
+  }
+#endif
 };

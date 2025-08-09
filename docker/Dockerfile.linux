@@ -41,7 +41,7 @@ RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86
 #
 # CMAKE
 #
-RUN wget https://github.com/Kitware/CMake/archive/refs/tags/v3.25.2.tar.gz -O cmake.tar.gz && \
+RUN wget https://github.com/Kitware/CMake/archive/refs/tags/v3.31.6.tar.gz -O cmake.tar.gz && \
     tar xf cmake.tar.gz && \
     rm cmake.tar.gz &&\
     cd CMake-* && \

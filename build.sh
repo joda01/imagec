@@ -15,7 +15,7 @@ patch(){
 
 make(){
     conan install . --profile conan/profile_linux --output-folder=build --build=missing -o:a "&:with_cuda=True"
-    cmake -S . -B ./build -G "Unix Makefiles" -DTAG_NAME="devel-build" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_TOOLCHAIN_FILE="./build/build/Release/generators/conan_toolchain.cmake"  -DCUDA_TOOLKIT_ROOT_DIR="/usr/local/cuda" -DCMAKE_CUDA_COMPILER="/usr/local/cuda-12.8/bin/nvcc" -DWITH_CUDA="True"
+    cmake -S . -B ./build -G "Unix Makefiles" -DTAG_NAME="devel-build" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_TOOLCHAIN_FILE="./build/build/Release/generators/conan_toolchain.cmake"  -DCUDA_TOOLKIT_ROOT_DIR="/usr/local/cuda" -DCMAKE_CUDA_COMPILER="/usr/local/cuda/bin/nvcc" -DWITH_CUDA="True"
 }
 
 build(){
@@ -29,7 +29,7 @@ makeIcons() {
     cd resources
     python3 get_icons.py
     cd ..
-    cmake -S . -B ./build -G "Unix Makefiles" -DTAG_NAME="devel-build" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_TOOLCHAIN_FILE="./build/build/Release/generators/conan_toolchain.cmake" -DCUDA_TOOLKIT_ROOT_DIR="/usr/local/cuda" -DCMAKE_CUDA_COMPILER="/usr/local/cuda-12.8/bin/nvcc" -DWITH_CUDA="True"
+    cmake -S . -B ./build -G "Unix Makefiles" -DTAG_NAME="devel-build" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_TOOLCHAIN_FILE="./build/build/Release/generators/conan_toolchain.cmake" -DCUDA_TOOLKIT_ROOT_DIR="/usr/local/cuda" -DCMAKE_CUDA_COMPILER="/usr/local/cuda/bin/nvcc" -DWITH_CUDA="True"
 }
 
 pack(){
