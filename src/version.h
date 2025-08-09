@@ -27,9 +27,14 @@ public:
     return VERSION;
   }
 
+  static auto getCudaEnabledStr() -> std::string
+  {
+    return CUDA_ENABLED;
+  }
+
   static auto getCudaEnabled() -> bool
   {
-    return "True" == std::string(CUDA_ENABLED);
+    return "True" == getCudaEnabledStr();
   }
 
   static auto getBuildTime() -> std::string
