@@ -1,7 +1,7 @@
 param(
     [string]$TAG_NAME,
     [string]$CONAN_IMAGEC_ARTIFACTORY_PW,
-    [string]$WITH_CUDA,
+    [string]$WITH_CUDA
 )
 
 Write-Host "Start Windows build ..."
