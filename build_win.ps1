@@ -78,25 +78,7 @@ function Fetch-ExternalLibs {
 function Build {
   Set-Location -Path "build"
 
-  #
-  # This is a workaround because Visual Studio with CUDA 12.8 together with conan
-  # has a strange bug (see https://github.com/conan-io/conan/issues/17289)
-  # We have to remove the set(CMAKE_MSVC_RUNTIME_LIBRARY "$<$<CONFIG:Release>:MultiThreadedDLL>")
-  # line from the conan generated toolchain file
-  #
-  $path = "build/generators/conan_toolchain.cmake"
-
-  Write-Host "=== BEFORE ===" -ForegroundColor Yellow
-  Get-Content $path | ForEach-Object { Write-Host $_ }
-
-  # Remove the specific line
-  (Get-Content $path) |
-      Where-Object { $_ -notmatch 'set\(CMAKE_MSVC_RUNTIME_LIBRARY "\$<\$<CONFIG:Release>:MultiThreadedDLL>"\)' } |
-      Set-Content $path
-
-  Write-Host "`n=== AFTER ===" -ForegroundColor Yellow
-  Get-Content $path | ForEach-Object { Write-Host $_ }
-
+  ls "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8"
   #
   # Call cmake
   #
@@ -109,6 +91,8 @@ function Build {
     -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
     -DCMAKE_TOOLCHAIN_FILE="build/generators/conan_toolchain.cmake" `
     -DCUDA_TOOLKIT_ROOT_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" `
+    -DCUDAToolkit_ROOT="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" `
+    -DCMAKE_GENERATOR_TOOLSET="cuda=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8"
     -DCMAKE_CUDA_COMPILER="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8/bin/nvcc.exe"
   cmake --build . --config Release --target imagec --parallel 8
 

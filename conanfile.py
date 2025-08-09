@@ -69,8 +69,17 @@ class ImageC(ConanFile):
         deps.generate()
         toolchain = CMakeToolchain(self)
         toolchain.variables["WITH_CUDA"] = self.options.with_cuda
+
+        #
+        # This is a workaround because Visual Studio with CUDA 12.8 together with conan
+        # has a strange bug (see https://github.com/conan-io/conan/issues/17289)
+        # We have to remove the set(CMAKE_MSVC_RUNTIME_LIBRARY "$<$<CONFIG:Release>:MultiThreadedDLL>")
+        # line from the conan generated toolchain file
+        #
         toolchain.blocks.remove("vs_runtime")
         toolchain.cache_variables["CMAKE_TRY_COMPILE_CONFIGURATION"] = "Release"
+        #
+        #
         toolchain.generate()
 
     def build(self):

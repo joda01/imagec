@@ -129,7 +129,6 @@ pack(){
     cp $USERS_DIR/.conan2/p/*/p/lib/libQt6Core.6.dylib imagec.app/Contents/Frameworks/
     cp $USERS_DIR/.conan2/p/*/p/lib/libQt6Gui.6.dylib imagec.app/Contents/Frameworks/
     cp $USERS_DIR/.conan2/p/*/p/lib/libQt6Widgets.6.dylib imagec.app/Contents/Frameworks/
-    cp $USERS_DIR/.conan2/p/*/p/lib/libQt6XcbQpa.6.dylib imagec.app/Contents/Frameworks/
     cp $USERS_DIR/.conan2/p/*/p/lib/libQt6Svg.6.dylib imagec.app/Contents/Frameworks/
    
     #cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 .
