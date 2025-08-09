@@ -78,6 +78,28 @@ function Fetch-ExternalLibs {
 function Build {
   Set-Location -Path "build"
 
+  #
+  # This is a workaround because Visual Studio with CUDA 12.8 together with conan
+  # has a strange bug (see https://github.com/conan-io/conan/issues/17289)
+  # We have to remove the set(CMAKE_MSVC_RUNTIME_LIBRARY "$<$<CONFIG:Release>:MultiThreadedDLL>")
+  # line from the conan generated toolchain file
+  #
+  $path = "build/generators/conan_toolchain.cmake"
+
+  Write-Host "=== BEFORE ===" -ForegroundColor Yellow
+  Get-Content $path | ForEach-Object { Write-Host $_ }
+
+  # Remove the specific line
+  (Get-Content $path) |
+      Where-Object { $_ -notmatch 'set\(CMAKE_MSVC_RUNTIME_LIBRARY "\$<\$<CONFIG:Release>:MultiThreadedDLL>"\)' } |
+      Set-Content $path
+
+  Write-Host "`n=== AFTER ===" -ForegroundColor Yellow
+  Get-Content $path | ForEach-Object { Write-Host $_ }
+
+  #
+  # Call cmake
+  #
   cmake .. `
     -G "Visual Studio 17 2022" `
     -DCMAKE_SH=CMAKE_SH-NOTFOUND `
