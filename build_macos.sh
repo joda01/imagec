@@ -34,15 +34,12 @@ fetch_external_libs() {
     conan remote remove conancenter
     conan remote add imageclibs https://imagec.org:4431/artifactory/api/conan/imageclibs
     conan remote login imageclibs writer -p $CONAN_IMAGEC_ARTIFACTORY_PW
-    if [[ -f "/root/.conan2/profiles/default" ]]; then
-      "Loaded from cache"
-    else
-      conan profile detect
-    fi
+
+    cp "$WORKING_DIR/conan/profile_macos" /root/.conan2/profiles/default
+
     conan install . \
       --profile "$WORKING_DIR/conan/profile_macos" \
       --output-folder=build \
-      --build=missing \
       -o:a "&:with_cuda=$WITH_CUDA"
     chmod 777 -R /root/.conan2
 }

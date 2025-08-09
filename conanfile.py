@@ -69,6 +69,8 @@ class ImageC(ConanFile):
         deps.generate()
         toolchain = CMakeToolchain(self)
         toolchain.variables["WITH_CUDA"] = self.options.with_cuda
+        toolchain.blocks.remove("vs_runtime")
+        toolchain.cache_variables["CMAKE_TRY_COMPILE_CONFIGURATION"] = "Release"
         toolchain.generate()
 
     def build(self):
