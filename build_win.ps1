@@ -168,7 +168,12 @@ function Pack {
   $dllsToCopy = @(
       "torch_cpu.dll",
       "torch.dll",
-      "c10.dll"
+      "c10.dll",
+      "fbgemm.dll",
+      "libiomp5md.dll",
+      "uv.dll",
+      "cupti64_2025.1.0.dll",
+      "asmjit.dll"
   )
 
   if ($WITH_CUDA -eq "True") {
@@ -181,7 +186,7 @@ function Pack {
       "cudnn64_9.dll",
       "cudnn_graph64_9.dll",
       "cudnn_heuristic64_9.dll ",
-      "cudnn_engines_runtime_compiled64_9.dll .",
+      "cudnn_engines_runtime_compiled64_9.dll",
       "cudnn_cnn64_9.dll",
       "cudnn_adv64_9.dll",
       "cudnn_ops64_9.dll",
@@ -190,7 +195,7 @@ function Pack {
   } 
 
   foreach ($dll in $dllsToCopy) {
-      Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object { $_.Name -like "libtoc*" } | ForEach-Object {
+      Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object { $_.Name -like "libto*" } | ForEach-Object {
           $pathToCopyFrom = Join-Path $_.FullName "p\lib\$dll"
           if (Test-Path $pathToCopyFrom) {
               Copy-Item -Path $pathToCopyFrom -Destination "." -Force
