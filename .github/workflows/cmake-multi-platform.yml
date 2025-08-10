@@ -107,8 +107,13 @@ jobs:
       - build-windows
       - build-linux
       - build-macos
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
+      - name: Cleanup
+        run: |
+          sudo rm -rf /usr/local/lib/android/sdk
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /usr/share/swift
 
       - uses: actions/download-artifact@v4
         with:
@@ -143,12 +148,6 @@ jobs:
       - name: Rename files through architecture
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          sudo rm -rf /usr/local/lib/android/sdk
-          sudo rm -rf /usr/local/.ghcup
-          sudo rm -rf /usr/share/swift
-          sudo docker rmi -f $(docker images -aq)
-
-
           chmod +x imagec-x64-linux-cpu/imagec
           chmod +x imagec-x64-linux-cpu/imagec.sh
           chmod +x imagec-x64-linux-cuda/imagec
