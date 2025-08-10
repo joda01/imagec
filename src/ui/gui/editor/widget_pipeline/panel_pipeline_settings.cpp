@@ -17,6 +17,7 @@
 #include <qgroupbox.h>
 #include <qlabel.h>
 #include <qlineedit.h>
+#include <qmessagebox.h>
 #include <qpushbutton.h>
 #include <qtablewidget.h>
 #include <qtoolbar.h>
@@ -508,6 +509,7 @@ void PanelPipelineSettings::previewThread()
 
       mPreviewInProgress = true;
       emit updatePreviewStarted();
+      QString errorMsg;
       if(nullptr != jobToDo.previewPanel && mIsActiveShown) {
         auto [imgIndex, selectedSeries, imgProps] = jobToDo.selectedImage;
         if(!imgIndex.empty()) {
@@ -556,7 +558,7 @@ void PanelPipelineSettings::previewThread()
             jobToDo.previewPanel->getImagePanel()->repaintImage();
 
           } catch(const std::exception &error) {
-            joda::log::logError("Preview error: " + std::string(error.what()));
+            errorMsg = QString(error.what()) + QString("\n\nSee compiler log and application log for more details!");
           }
         }
       }
@@ -564,7 +566,7 @@ void PanelPipelineSettings::previewThread()
       {
         if(isEmpty) {
           mPreviewInProgress = false;
-          emit updatePreviewFinished();
+          emit updatePreviewFinished(errorMsg);
         }
       }
     } catch(...) {
@@ -572,7 +574,7 @@ void PanelPipelineSettings::previewThread()
   }
 
   mPreviewInProgress = false;
-  emit updatePreviewFinished();
+  emit updatePreviewFinished("");
 }
 
 ///
@@ -596,7 +598,7 @@ void PanelPipelineSettings::onPreviewStarted()
 /// \param[out]
 /// \return
 ///
-void PanelPipelineSettings::onPreviewFinished()
+void PanelPipelineSettings::onPreviewFinished(QString error)
 {
   if(nullptr != mPreviewImage) {
     mPreviewImage->setWaiting(false);
@@ -604,6 +606,15 @@ void PanelPipelineSettings::onPreviewFinished()
 
   if(nullptr != mPreviewResultsDialog) {
     mPreviewResultsDialog->refresh();
+  }
+
+  if(!error.isEmpty()) {
+    QMessageBox messageBox(mWindowMain);
+    messageBox.setIconPixmap(generateSvgIcon<Style::DUETONE, Color::RED>("warning-octagon").pixmap(48, 48));
+    messageBox.setWindowTitle("Pipeline error");
+    messageBox.setText(error);
+    messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
+    auto reply = messageBox.exec();
   }
 }
 

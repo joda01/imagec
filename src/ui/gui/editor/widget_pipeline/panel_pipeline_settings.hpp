@@ -57,7 +57,7 @@ class PanelPipelineSettings : public QWidget
 
 signals:
   void updatePreviewStarted();
-  void updatePreviewFinished();
+  void updatePreviewFinished(QString error);
 
 public:
   PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, DialogPreviewResults *previewResults, joda::settings::Pipeline &settings,
@@ -164,7 +164,7 @@ private slots:
   /////////////////////////////////////////////////////
   void updatePreview();
   void onPreviewStarted();
-  void onPreviewFinished();
+  void onPreviewFinished(QString error);
   void valueChangedEvent();
   void metaChangedEvent();
   void closeWindow();

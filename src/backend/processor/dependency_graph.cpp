@@ -15,6 +15,7 @@
 #include <concepts>
 #include <cstddef>
 #include <exception>
+#include <sstream>
 #include <stack>
 #include <stdexcept>
 #include <string>
@@ -165,17 +166,21 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
     pipelinesToAttache.emplace(reinterpret_cast<const settings::Pipeline *>(&pipelines));
   }
 
+  std::stringstream ssOut;
+  ssOut << "---------" << std::endl;
+
   // Find all dependencies
   Graph_t depGraph;
   {
     for(const settings::Pipeline *pipelineOne : pipelinesToAttache) {
       DependencyGraphKeySet inputClasses(pipelineOne->getInputClasses(), pipelineOne->getInputImageCache());
+      DependencyGraphKeySet inputClassCopy;
 
       depGraph.push_back(Node{pipelineOne});
 
       if(inputClasses.empty()) {
         // This pipeline depends on nothing
-        //    std::cout << pipelineOne->meta.name << " depends on nothing" << std::endl;
+        ssOut << pipelineOne->meta.name << " depends on nothing" << std::endl;
 
       } else {
         Node &inserted = depGraph.at(depGraph.size() - 1);
@@ -189,15 +194,15 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
             inserted.addDependency(pipelineTwo);
 
             for(const auto &element : provided) {
-              inputClasses.erase(element);    // Remove deps which are still covered
+              inputClassCopy.erase(element);    // Remove deps which are still covered
             }
-            //    std::cout << pipelineOne->meta.name << " depends on " << pipelineTwo->meta.name << std::endl;
+            ssOut << pipelineOne->meta.name << " depends on " << pipelineTwo->meta.name << std::endl;
           }
         }
 
-        if(!inputClasses.empty()) {
+        if(!inputClassCopy.empty()) {
           std::string unresolved;
-          for(const auto &ele : inputClasses) {
+          for(const auto &ele : inputClassCopy) {
             unresolved += ele.toString() + ",";
           }
           if(!unresolved.empty()) {
@@ -209,7 +214,7 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
         }
       }
 
-      //  std::cout << "###############" << std::endl;
+      ssOut << "---------" << std::endl;
     }
   }
 
@@ -299,7 +304,8 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
         pipelines.pop_back();
       }
       writeToLog(SettingParserLog::Severity::JODA_ERROR, "", "Cycle detected in pipelines [" + pipelines + "]");
-      break;
+      joda::log::logError("Cycle detected in pipelines:\n" + ssOut.str());
+      return {};
     }
   }
 

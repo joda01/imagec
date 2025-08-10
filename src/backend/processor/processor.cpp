@@ -13,6 +13,7 @@
 #include <exception>
 #include <filesystem>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <thread>
 #include "backend/commands/image_functions/image_saver/image_saver.hpp"
@@ -340,6 +341,9 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
   //  We only want to execute those pipelines which are needed for the preview
   //
   auto pipelineOrder = joda::processor::DependencyGraph::calcGraph(program, &pipelineStart);
+  if(pipelineOrder.empty()) {
+    throw std::invalid_argument("Cycle detected in pipelines!");
+  }
 
   //
   // Generate preview in a thread

@@ -16,6 +16,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include "backend/enums/enum_memory_idx.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "pipeline_factory.hpp"
 
@@ -132,6 +133,9 @@ ObjectInputClassesExp Pipeline::getInputClasses() const
 {
   ObjectInputClassesExp classes;
   for(const auto &pipelineStep : pipelineSteps) {
+    if(pipelineStep.disabled) {
+      continue;
+    }
     auto command = PipelineFactory<joda::cmd::Command>::generate(pipelineStep);
     if(command == nullptr) {
       /// \todo Log warning
@@ -163,6 +167,9 @@ ObjectOutputClassesExp Pipeline::getOutputClasses() const
 {
   ObjectOutputClassesExp classes;
   for(const auto &pipelineStep : pipelineSteps) {
+    if(pipelineStep.disabled) {
+      continue;
+    }
     auto command = PipelineFactory<joda::cmd::Command>::generate(pipelineStep);
     if(command == nullptr) {
       continue;
@@ -188,12 +195,20 @@ ObjectOutputClassesExp Pipeline::getOutputClasses() const
 {
   std::set<enums::MemoryIdx> caches;
   for(const auto &pipelineStep : pipelineSteps) {
+    if(pipelineStep.disabled) {
+      continue;
+    }
     auto command = PipelineFactory<joda::cmd::Command>::generate(pipelineStep);
     if(command == nullptr) {
       continue;
     }
     const auto &mems = command->getInputImageCache();
-    caches.insert(mems.begin(), mems.end());
+    for(const auto &tmp : mems) {
+      if(tmp == enums::MemoryIdx::NONE) {
+        continue;
+      }
+      caches.emplace(tmp);
+    }
   }
   return caches;
 }
@@ -202,12 +217,20 @@ ObjectOutputClassesExp Pipeline::getOutputClasses() const
 {
   std::set<enums::MemoryIdx> caches;
   for(const auto &pipelineStep : pipelineSteps) {
+    if(pipelineStep.disabled) {
+      continue;
+    }
     auto command = PipelineFactory<joda::cmd::Command>::generate(pipelineStep);
     if(command == nullptr) {
       continue;
     }
     const auto &mems = command->getOutputImageCache();
-    caches.insert(mems.begin(), mems.end());
+    for(const auto &tmp : mems) {
+      if(tmp == enums::MemoryIdx::NONE) {
+        continue;
+      }
+      caches.emplace(tmp);
+    }
   }
   return caches;
 }

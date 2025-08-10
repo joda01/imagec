@@ -15,6 +15,7 @@
 #include <set>
 #include <vector>
 #include "backend/commands/classification/classifier_filter.hpp"
+#include "backend/enums/enum_memory_idx.hpp"
 #include "backend/enums/enum_objects.hpp"
 
 #include "backend/global_enums.hpp"
@@ -135,7 +136,18 @@ struct ReclassifySettings : public SettingBase
   {
     ObjectOutputClasses out;
     out.emplace(newClassId);
+
+    if(mode == Mode::RECLASSIFY_MOVE) {
+      for(const auto &in : inputClasses) {
+        out.emplace(in);
+      }
+    }
     return out;
+  }
+
+  [[nodiscard]] std::set<enums::MemoryIdx::Enum> getInputImageCache() const override
+  {
+    return {intensity.imageIn.memoryId};
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ReclassifySettings, mode, hierarchyMode, inputClasses, intersection, metrics, intensity,
