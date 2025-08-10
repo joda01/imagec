@@ -22,7 +22,6 @@ jobs:
   # Linux
   #
   build-linux:
-    if: false
     name: Build on Linux (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
     runs-on: ubuntu-22.04
     strategy:
@@ -87,7 +86,6 @@ jobs:
   # MacOS
   #
   build-macos:
-    if: false
     name: Build on MacOs (CPU Only)
     runs-on: macos-14
 

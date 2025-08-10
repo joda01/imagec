@@ -171,19 +171,21 @@ function Pack {
       "c10.dll"
   )
 
-  if ($env:WITH_CUDA -eq 'True') {
+  if ($WITH_CUDA -eq "True") {
     $dllsToCopy += @(
       "torch_cuda.dll", 
       "c10_cuda.dll",
-      "cudart-218eec4c.dll",
-      "cublas-f6c022dc.dll",
-      "cublasLt-4ef47ce6.dll",
-      "cudnn.dll",
-      "cudnn_graph.dll",
-      "cudnn_heuristic.dll ",
-      "cudnn_engines_runtime_compiled.dll .",
-      "cudnn_cnn.dll",
-      "cudnn_engines_precompiled.dll"
+      "cudart64_12.dll",
+      "cublas64_12.dll",
+      "cublasLt64_12.dll",
+      "cudnn64_9.dll",
+      "cudnn_graph64_9.dll",
+      "cudnn_heuristic64_9.dll ",
+      "cudnn_engines_runtime_compiled64_9.dll .",
+      "cudnn_cnn64_9.dll",
+      "cudnn_adv64_9.dll",
+      "cudnn_ops64_9.dll",
+      "cudnn_engines_precompiled64_9.dll"
       )
   } 
 
