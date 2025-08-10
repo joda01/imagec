@@ -35,19 +35,32 @@ function Install-Dependencies {
   }
 
   #
-  # Set ENV variables
-  #
-  $env:CUDA_PATH = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8"
-  $env:PATH = "$env:CUDA_PATH\bin;$env:CUDA_PATH\libnvvp;" + $env:PATH
-
-
-  #
   # Install CMake, Git, Python, Conan
   #
   choco install -y cmake
   python -m ensurepip --default-pip
   python -m pip install --upgrade pip
   python -m pip install conan numpy
+
+
+  #
+  # Set ENV variables
+  #
+
+  # Bring cl.exe to path: C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe
+  cmd.exe /c "call `"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat`" && set > %temp%\vcvars.txt"
+  Get-Content "$env:temp\vcvars.txt" | Foreach-Object {
+    if ($_ -match "^(.*?)=(.*)$") {
+      Set-Content "env:\$($matches[1])" $matches[2]
+    }
+  }
+
+  $env:CUDA_PATH = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8"
+  $env:CUDA_PATH_V12_8 = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8"
+  $env:PATH = "$env:CUDA_PATH\bin;$env:CUDA_PATH\libnvvp;" + $env:PATH
+
+  # Remove duplicates
+  $env:PATH = ($env:PATH -split ';' | Select-Object -Unique) -join ';'
 }
 
 #
@@ -79,7 +92,11 @@ function Build {
   Set-Location -Path "build"
   if ($WITH_CUDA -eq "True") {
     ls "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8"
+    ls "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VC\v170\BuildCustomizations"
   }
+
+  Get-ChildItem Env:
+  
   #
   # Call cmake
   #
@@ -94,7 +111,8 @@ function Build {
     -DCUDA_TOOLKIT_ROOT_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" `
     -DCUDAToolkit_ROOT="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" `
     -DCMAKE_GENERATOR_TOOLSET="cuda=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" `
-    -DCMAKE_CUDA_COMPILER="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8/bin/nvcc.exe"
+    -DCMAKE_CUDA_COMPILER="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8/bin/nvcc.exe" `
+    -DUSE_SYSTEM_NVTX:BOOL=ON
   cmake --build . --config Release --target imagec --parallel 8
 
   cd ..
@@ -200,18 +218,6 @@ function Pack {
   cd ..
 }
 
-#
-# Bring cl.exe to path
-# C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe
-#
-cmd.exe /c "call `"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat`" && set > %temp%\vcvars.txt"
-Get-Content "$env:temp\vcvars.txt" | Foreach-Object {
-  if ($_ -match "^(.*?)=(.*)$") {
-    Set-Content "env:\$($matches[1])" $matches[2]
-  }
-}
-
-Write-Output $env:PATH
 
 Install-Dependencies
 Fetch-ExternalLibs
