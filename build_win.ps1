@@ -149,7 +149,7 @@ function Pack {
     Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
       $pathToCopyFrom = $conanLibInstallPath + "\" + $_.Name + "\p\bin\$dll"
       if (Test-Path "$pathToCopyFrom") {
-        Move-Item -Path $pathToCopyFrom -Destination "."  -Force
+        Copy-Item -Path $pathToCopyFrom -Destination "."  -Force
       }
     }
   }
@@ -157,7 +157,7 @@ function Pack {
   Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object {$_.Name -like "qt*"} | ForEach-Object {
     $pathToCopyFrom = $conanLibInstallPath + "\" + $_.Name + "\p\.\plugins\*"
     if (Test-Path "$pathToCopyFrom") {
-      Move-Item -Recurse -Path $pathToCopyFrom -Destination "./plugins"  -Force
+      Copy-Item -Recurse -Path $pathToCopyFrom -Destination "./plugins"  -Force
     }
   }
 
@@ -191,7 +191,7 @@ function Pack {
       Get-ChildItem -Path "$conanLibInstallPath\*" | Where-Object { $_.Name -like "libtoc*" } | ForEach-Object {
           $pathToCopyFrom = Join-Path $_.FullName "p\lib\$dll"
           if (Test-Path $pathToCopyFrom) {
-              Move-Item -Path $pathToCopyFrom -Destination "." -Force
+              Copy-Item -Path $pathToCopyFrom -Destination "." -Force
           }
       }
   }
@@ -208,11 +208,11 @@ function Pack {
   Copy-Item -Path "C:\Windows\System32\msvcp140_codecvt_ids.dll" -Destination "."  -Force
   Copy-Item -Path "C:\Windows\System32\vcomp140.dll" -Destination "."  -Force
 
-  Move-Item -Recurse -Path "$WORKING_DIR/resources/templates" ./templates
+  Copy-Item -Recurse -Path "$WORKING_DIR/resources/templates" ./templates
   cd java
-  Move-Item -Recurse -Path "$WORKING_DIR/resources/java/bioformats.jar" -Destination "."
-  Move-Item -Recurse -Path "$WORKING_DIR/resources/java/BioFormatsWrapper.class" -Destination "."
-  Move-Item -Recurse -Path "$WORKING_DIR/resources/java/jre_win.zip" -Destination "."
+  Copy-Item -Recurse -Path "$WORKING_DIR/resources/java/bioformats.jar" -Destination "."
+  Copy-Item -Recurse -Path "$WORKING_DIR/resources/java/BioFormatsWrapper.class" -Destination "."
+  Copy-Item -Recurse -Path "$WORKING_DIR/resources/java/jre_win.zip" -Destination "."
   Expand-Archive "jre_win.zip" -DestinationPath "."
   Remove-Item jre_win.zip
   cd ..
