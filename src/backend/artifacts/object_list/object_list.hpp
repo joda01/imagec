@@ -43,7 +43,7 @@ class SpheralIndex
 public:
   /////////////////////////////////////////////////////
 
-  explicit SpheralIndex(int cellSize = 100) : mCellSize(cellSize)
+  explicit SpheralIndex(bool allowNoneValue = false, int cellSize = 100) : mCellSize(cellSize), mAllowNonValues(allowNoneValue)
   {
   }
 
@@ -161,7 +161,7 @@ private:
   const ROI &insertIntoGrid(const ROI &boxIn)
   {
     // If class id is none, do not enter the ROI
-    if(boxIn.getClassId() == enums::ClassId::NONE) {
+    if(!mAllowNonValues && boxIn.getClassId() == enums::ClassId::NONE) {
       return boxIn;
     }
     /// \todo generate an object ID
@@ -203,6 +203,7 @@ private:
   }
 
   std::mutex mInsertLock;
+  bool mAllowNonValues = false;
 };
 
 class SpheralIndexStandAlone : public SpheralIndex

@@ -46,16 +46,16 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
       joda::log::logWarning("At least two channels must be given to calc Colocalization!");
       return;
     }
-    atom::SpheralIndex *result = resultIn[context.getClassId(mSettings.outputClass)].get();
+    atom::SpheralIndex result(true);
 
     const auto *firstDataBuffer    = context.loadObjectsFromCache()->at(context.getClassId(it->inputClassId)).get();
     const auto *working            = firstDataBuffer;
     atom::SpheralIndex *resultTemp = nullptr;
     // Directly write to the output buffer
-    atom::SpheralIndex buffer01;
-    atom::SpheralIndex buffer02;
+    atom::SpheralIndex buffer01(true);
+    atom::SpheralIndex buffer02(true);
     if(intersectCount == 2) {
-      resultTemp = result;
+      resultTemp = &result;
     } else {
       resultTemp = &buffer01;
     }
@@ -83,7 +83,7 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
       const auto *tmpWorking = working;
       working                = resultTemp;
       if(idx + 1 >= intersectCount) {
-        resultTemp = result;
+        resultTemp = &result;
       } else {
         if(tmpWorking == firstDataBuffer) {
           // In the first run the working pointer was the loaded data we must change to buffer
@@ -118,7 +118,7 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
       //
       // Move or copy coloc classes
       //
-      for(auto &colocRois : *result) {
+      for(auto &colocRois : result) {
         uint64_t trackingID = atom::ROI::generateNewTrackingId();
         colocRois.setTrackingId(trackingID);
         for(const auto &linked : colocRois.getLinkedRois()) {
@@ -187,6 +187,13 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
     // Remove ROIs
     for(const auto *roi : roisToRemove) {
       resultIn.erase(roi);
+    }
+
+    // Enter the coloc area ROIs
+    if(mSettings.outputClass != enums::ClassIdIn::NONE) {
+      for(const auto &roi : result) {
+        resultIn.push_back(roi);
+      }
     }
 
   } catch(const std::exception &ex) {
