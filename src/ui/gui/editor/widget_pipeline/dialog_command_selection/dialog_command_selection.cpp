@@ -66,7 +66,7 @@ DialogCommandSelection::DialogCommandSelection(WindowMain *parent) : QDialog(par
   mCommands->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
   mCommands->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
   mCommands->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
-  mCommands->setColumnWidth(1, 16);
+  mCommands->setColumnWidth(1, 26);
   mCommands->setShowGrid(false);
   mCommands->setStyleSheet("QTableView::item { border-top: 0px solid black; border-bottom: 1px solid gray; }");
   mCommands->verticalHeader()->setMinimumSectionSize(36);

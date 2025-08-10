@@ -148,7 +148,7 @@ auto TemplateParser::getUsersTemplateDirectory() -> std::filesystem::path
 ///
 bool isRunningInsideAppBundle()
 {
-#ifdef defined(__APPLE__)
+#ifdef __APPLE__
   QDir dir(QCoreApplication::applicationDirPath());
   // Go up two levels: MacOS -> Contents -> .app
   if(!dir.cdUp() || !dir.cdUp()) {
