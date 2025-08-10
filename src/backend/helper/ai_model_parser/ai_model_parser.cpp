@@ -13,8 +13,11 @@
 
 #include "ai_model_parser.hpp"
 #include <onnx/onnx_pb.h>    // The ONNX protobuf headers
+#include <qdir.h>
+#include <QCoreApplication>
 #include <cstddef>
 #include <exception>
+#include <filesystem>
 #include <mutex>
 #include <sstream>
 #include <stdexcept>
@@ -28,35 +31,111 @@
 namespace joda::ai {
 
 ///
+/// \brief      Save template in users home directory
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto AiModelParser::getUsersAiModelDirectory() -> std::filesystem::path
+{
+#ifdef _WIN32
+  auto homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path("imagec") /
+                 std::filesystem::path("models");
+#else
+  auto homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path(".imagec") /
+                 std::filesystem::path("models");
+
+#endif
+  if(!fs::exists(homeDir) || !fs::is_directory(homeDir)) {
+    try {
+      fs::create_directories(homeDir);
+    } catch(const fs::filesystem_error &e) {
+      joda::log::logError("Cannot create users template directory!");
+    }
+  }
+  return homeDir.string();
+}
+
+///
+/// \brief      For apple the application could be started from imagec.app
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+bool isRunningInsideAppBundle()
+{
+#ifdef __APPLE__
+  QDir dir(QCoreApplication::applicationDirPath());
+  // Go up two levels: MacOS -> Contents -> .app
+  if(!dir.cdUp() || !dir.cdUp()) {
+    // Could not navigate up, assume no .app bundle
+    return false;
+  }
+  QString appBundlePath = dir.absolutePath();
+  // Check if directory ends with ".app"
+  return appBundlePath.endsWith(".app");
+#else
+  return false;
+#endif
+}
+
+///
+/// \brief      Save template in users home directory
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto AiModelParser::getGlobalAiModelDirectory() -> std::filesystem::path
+{
+  // Path to the executable directory
+  QDir dir(QCoreApplication::applicationDirPath());
+
+  if(isRunningInsideAppBundle()) {
+    dir.cdUp();    // from MacOS to Contents
+    dir.cdUp();    // from Contents to MyApplication.app
+  }
+
+  std::filesystem::path path = std::filesystem::path(dir.absolutePath().toStdString()) / "models";
+  return path;
+}
+
+///
 /// \brief
 /// \author
 /// \param[in]
 /// \param[out]
 /// \return
 ///
-auto AiModelParser::findAiModelFiles(const std::string &directory) -> std::map<std::filesystem::path, Data>
+auto AiModelParser::findAiModelFiles() -> std::map<std::filesystem::path, Data>
 {
   std::lock_guard<std::mutex> lock(lookForMutex);
   std::map<std::filesystem::path, Data> aiModelFiles;
-  if(fs::exists(directory) && fs::is_directory(directory)) {
-    for(const auto &entry : fs::recursive_directory_iterator(directory)) {
-      if(entry.is_regular_file()) {
-        try {
-          if(entry.path().string().ends_with("rdf.yaml") || entry.path().string().ends_with("rdf.yml")) {
-            auto modelInfo = parseResourceDescriptionFile(entry.path());
-            aiModelFiles.emplace(modelInfo.modelPath, modelInfo);
+  std::vector<std::filesystem::path> directories{getGlobalAiModelDirectory(), getUsersAiModelDirectory()};
+
+  for(const auto &directory : directories) {
+    if(fs::exists(directory) && fs::is_directory(directory)) {
+      for(const auto &entry : fs::recursive_directory_iterator(directory)) {
+        if(entry.is_regular_file()) {
+          try {
+            if(entry.path().string().ends_with("rdf.yaml") || entry.path().string().ends_with("rdf.yml")) {
+              auto modelInfo = parseResourceDescriptionFile(entry.path());
+              aiModelFiles.emplace(modelInfo.modelPath, modelInfo);
+            }
+          } catch(const nlohmann::json::parse_error &ex) {
+            // std::cerr << "JSON Parse error: " << ex.what() << "\n"
+            //           << "Error occurred at byte: " << ex.byte << "\n";
+            //
+            joda::log::logWarning(entry.path().string() + ": " + std::string(ex.what()));
+
+          } catch(const nlohmann::json::type_error &ex) {
+            joda::log::logWarning(entry.path().string() + ": " + std::string(ex.what()));
+
+          } catch(const std::exception &ex) {
+            joda::log::logWarning(entry.path().string() + ": " + ex.what());
           }
-        } catch(const nlohmann::json::parse_error &ex) {
-          // std::cerr << "JSON Parse error: " << ex.what() << "\n"
-          //           << "Error occurred at byte: " << ex.byte << "\n";
-          //
-          joda::log::logWarning(entry.path().string() + ": " + std::string(ex.what()));
-
-        } catch(const nlohmann::json::type_error &ex) {
-          joda::log::logWarning(entry.path().string() + ": " + std::string(ex.what()));
-
-        } catch(const std::exception &ex) {
-          joda::log::logWarning(entry.path().string() + ": " + ex.what());
         }
       }
     }

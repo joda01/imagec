@@ -53,11 +53,13 @@ public:
     std::string toString() const;
   };
 
-  static auto findAiModelFiles(const std::string &directory = "models") -> std::map<std::filesystem::path, Data>;
+  static auto findAiModelFiles() -> std::map<std::filesystem::path, Data>;
   static auto parseResourceDescriptionFile(std::filesystem::path rdfYaml) -> Data;
 
 private:
   /////////////////////////////////////////////////////
+  static auto getUsersAiModelDirectory() -> std::filesystem::path;
+  static auto getGlobalAiModelDirectory() -> std::filesystem::path;
 
   static std::map<int, std::string> getONNXModelOutputClasses(const std::filesystem::path &modelPath);
   static inline std::map<std::filesystem::path, Data> mCache;
