@@ -39,6 +39,7 @@
 #include "backend/settings/project_settings/project_class.hpp"
 #include "backend/settings/results_settings/results_settings.hpp"
 #include "backend/settings/settings.hpp"
+#include "ui/gui/helper/template_parser/template_parser.hpp"
 #include <nlohmann/json_fwd.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
@@ -99,6 +100,8 @@ void Controller::initApplication()
   joda::log::logInfo("JVM reserved RAM " + std::to_string(jvmReservedRam) + " MB.");
   joda::log::logInfo("CUDA available: " + std::to_string(static_cast<int>(cudaAvailable)));
   joda::log::logInfo("Found CUDA devices: " + std::to_string(numCudaDevices));
+  joda::log::logInfo("Global template folder: " + templates::TemplateParser::getGlobalTemplateDirectory("").string());
+  joda::log::logInfo("User template folder: " + templates::TemplateParser::getUsersTemplateDirectory().string());
 
   joda::image::reader::ImageReader::init(systemRecourses.ramReservedForJVM);    // Costs ~50MB RAM
 }

@@ -16,7 +16,6 @@ jobs:
   # Linux
   #
   build-linux:
-    if: false
     name: Build on Linux (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
     runs-on: ubuntu-22.04
     strategy:
@@ -48,7 +47,6 @@ jobs:
   # Windows
   #
   build-windows:
-    if: false
     name: Build on Windows (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
     runs-on: windows-2022
     strategy:
@@ -105,7 +103,6 @@ jobs:
   # Deploy
   #
   deploy:
-    if: false
     needs:
       - build-windows
       - build-linux
@@ -173,7 +170,7 @@ jobs:
           zip -r imagec-x64-win-cpu-bin.zip imagec-x64-win-cpu/imagec.exe
           rm -rf imagec-x64-win-cpu
 
-          7z a -mx=6 -mmt=on imagec-x64-win-cuda-bundle.z7 imagec-x64-win-cuda
+          7z a -mx=6 -mmt=on imagec-x64-win-cuda-bundle.7z imagec-x64-win-cuda
           hash_value_win_cuda=$(sha256sum imagec-x64-win-cuda/imagec.exe | cut -d ' ' -f 1)
           zip -r imagec-x64-win-cuda-bin.zip imagec-x64-win-cuda/imagec.exe
           rm -rf imagec-x64-win-cuda

@@ -32,7 +32,8 @@
 #include <windows.h>
 #elif defined(__APPLE__)
 #include <dlfcn.h>
-#include <cstdlib>
+#include <libgen.h>
+#include <mach-o/dyld.h>
 #else
 #include <dlfcn.h>
 #endif
@@ -42,6 +43,25 @@
 #endif
 
 namespace joda::image::reader {
+
+#ifdef _APPLE
+std::string getAppContentsPath()
+{
+  char exePath[PATH_MAX];
+  uint32_t size = sizeof(exePath);
+  if(_NSGetExecutablePath(exePath, &size) != 0) {
+    throw std::runtime_error("Path buffer too small");
+  }
+  char resolved[PATH_MAX];
+  realpath(exePath, resolved);
+
+  // exe is in MyApp.app/Contents/MacOS/
+  std::string contentsDir = resolved;
+  contentsDir             = dirname(resolved);              // MacOS
+  contentsDir             = dirname(contentsDir.data());    // Contents
+  return contentsDir;
+}
+#endif
 
 #ifdef _WIN32
 wchar_t *ConvertToWideString(const char *narrowString)
@@ -76,8 +96,9 @@ void ImageReader::setPath()
   std::string newPath = javaBin + std::string(";") + path;
   SetEnvironmentVariable("PATH", javaBin.c_str());
 #elif defined(__APPLE__)
-  std::string javaHome = "/../Java/jre_macos_arm";
-  std::string javaBin  = javaHome + "/bin";
+  std::string contentsPath = getAppContentsPath();
+  std::string javaHome     = contentsPath + "/Java/jre_macos_arm";
+  std::string javaBin      = javaHome + "/bin";
   setenv("JAVA_HOME", javaHome.c_str(), 1);
   std::string path = std::getenv("PATH");
   path             = javaBin + ":" + path;
@@ -109,7 +130,9 @@ void ImageReader::init(uint64_t reservedRamForVMInBytes)
 #ifdef _WIN32
   HINSTANCE jvmDll = LoadLibrary(TEXT("./java/jre_win/bin/server/jvm.dll"));
 #elif defined(__APPLE__)
-  void *jvmDll     = dlopen("/../Java/jre_macos_arm/lib/server/libjvm.dylib", RTLD_LAZY);
+  std::string contentsPath = getAppContentsPath();
+  std::string jvmLibPath   = contentsPath + "/Java/jre_macos_arm/lib/server/libjvm.dylib";
+  void *jvmDll             = dlopen("/../Java/jre_macos_arm/lib/server/libjvm.dylib", RTLD_LAZY);
 #else
   void *jvmDll = dlopen("./java/jre_linux/lib/amd64/server/libjvm.so", RTLD_LAZY);
 #endif
@@ -122,7 +145,7 @@ void ImageReader::init(uint64_t reservedRamForVMInBytes)
 #ifdef _WIN32
   JNI_CreateJavaVM = reinterpret_cast<myFunc>(GetProcAddress(jvmDll, JNI_CREATEVM));
 #else
-  JNI_CreateJavaVM = reinterpret_cast<myFunc>(dlsym(jvmDll, JNI_CREATEVM));
+  JNI_CreateJavaVM         = reinterpret_cast<myFunc>(dlsym(jvmDll, JNI_CREATEVM));
 #endif
 
   if(JNI_CreateJavaVM == nullptr) {
@@ -142,7 +165,9 @@ void ImageReader::init(uint64_t reservedRamForVMInBytes)
 #ifdef _WIN32
     options[0].optionString = const_cast<char *>("-Djava.class.path=./;java/bioformats.jar;java");
 #elif defined(__APPLE__)
-    options[0].optionString = const_cast<char *>("-Djava.class.path=./:/../Java/bioformats.jar:java");
+    std::string jarPath     = contentsPath + "/Java/bioformats.jar";
+    std::string classPath   = "-Djava.class.path=./:" + jarPath + ":java";
+    options[0].optionString = const_cast<char *>(classPath.c_str());
 #else
     options[0].optionString = const_cast<char *>("-Djava.class.path=./:java/bioformats.jar:java");
 #endif

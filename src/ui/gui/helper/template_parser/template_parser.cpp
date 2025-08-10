@@ -11,11 +11,11 @@
 
 #include "template_parser.hpp"
 #include <duckdb.h>
-#include <QCoreApplication>
 #include <QDir>
 #include <exception>
 #include <filesystem>
 #include "backend/helper/logger/console_logger.hpp"
+#include "backend/helper/system/directories.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "backend/settings/settings_meta.hpp"
 #include <nlohmann/json_fwd.hpp>
@@ -140,30 +140,6 @@ auto TemplateParser::getUsersTemplateDirectory() -> std::filesystem::path
 }
 
 ///
-/// \brief      For apple the application could be started from imagec.app
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-bool isRunningInsideAppBundle()
-{
-#ifdef __APPLE__
-  QDir dir(QCoreApplication::applicationDirPath());
-  // Go up two levels: MacOS -> Contents -> .app
-  if(!dir.cdUp() || !dir.cdUp()) {
-    // Could not navigate up, assume no .app bundle
-    return false;
-  }
-  QString appBundlePath = dir.absolutePath();
-  // Check if directory ends with ".app"
-  return appBundlePath.endsWith(".app");
-#else
-  return false;
-#endif
-}
-
-///
 /// \brief      Save template in users home directory
 /// \author
 /// \param[in]
@@ -172,15 +148,7 @@ bool isRunningInsideAppBundle()
 ///
 auto TemplateParser::getGlobalTemplateDirectory(const std::string &subPath) -> std::filesystem::path
 {
-  // Path to the executable directory
-  QDir dir(QCoreApplication::applicationDirPath());
-
-  if(isRunningInsideAppBundle()) {
-    dir.cdUp();    // from MacOS to Contents
-    dir.cdUp();    // from Contents to MyApplication.app
-  }
-
-  std::filesystem::path path = std::filesystem::path(dir.absolutePath().toStdString()) / "templates" / subPath;
+  std::filesystem::path path = joda::system::getExecutablePath() / "templates" / subPath;
   return path;
 }
 
