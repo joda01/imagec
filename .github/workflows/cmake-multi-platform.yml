@@ -160,7 +160,7 @@ jobs:
           zip -r imagec-x64-linux-cpu-bin.zip imagec-x64-linux-cpu/imagec
           rm -rf imagec-x64-linux-cpu
 
-          zip -r imagec-x64-linux-cuda-bundle.zip imagec-x64-linux-cuda
+          7z a -mx=6 -mmt=on imagec-x64-linux-cuda-bundle.7z imagec-x64-linux-cuda
           hash_value_linux_cuda=$(sha256sum imagec-x64-linux-cuda/imagec | cut -d ' ' -f 1)
           zip -r imagec-x64-linux-cuda-bin.zip imagec-x64-linux-cuda/imagec
           rm -rf imagec-x64-linux-cuda
@@ -170,7 +170,7 @@ jobs:
           zip -r imagec-x64-win-cpu-bin.zip imagec-x64-win-cpu/imagec.exe
           rm -rf imagec-x64-win-cpu
 
-          zip -r imagec-x64-win-cuda-bundle.zip imagec-x64-win-cuda
+          7z a -mx=6 -mmt=on imagec-x64-win-cuda-bundle.z7 imagec-x64-win-cuda
           hash_value_win_cuda=$(sha256sum imagec-x64-win-cuda/imagec.exe | cut -d ' ' -f 1)
           zip -r imagec-x64-win-cuda-bin.zip imagec-x64-win-cuda/imagec.exe
           rm -rf imagec-x64-win-cuda
@@ -227,15 +227,15 @@ jobs:
           generate_release_notes: true
           files: |
             imagec-x64-linux-cpu-bundle.zip
-            imagec-x64-linux-cuda-bundle.zip
             imagec-x64-win-cpu-bundle.zip
-            imagec-x64-win-cuda-bundle.zip
             imagec-arm64-macos-cpu-bundle.zip
             imagec-x64-linux-cpu-bin.zip
             imagec-x64-linux-cuda-bin.zip
             imagec-x64-win-cpu-bin.zip
             imagec-x64-win-cuda-bin.zip
             imagec-arm64-macos-cpu-bin.zip
+            imagec-x64-win-cuda-bundle.7z
+            imagec-x64-linux-cuda-bundle.7z
       
       - name: Upload to imagec.org
         if: startsWith(github.ref, 'refs/tags/') && !contains(github.ref, 'alpha')
@@ -245,12 +245,17 @@ jobs:
         run: |
           echo "$SSH_KEY" > ssh_key_for_github
           chmod 400 ssh_key_for_github
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-linux-cpu-bin.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-cpu-bin.zip
           scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-linux-cpu-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-cpu-bundle.zip
-          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-linux-cuda-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-cuda-bundle.zip
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-linux-cuda-bin.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-cuda-bin.zip
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-linux-cuda-bundle.7z github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-cuda-bundle.7z
           scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-linux-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-linux-bundle.json
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-win-cpu-bin.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-cpu-bin.zip
           scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-win-cpu-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-cpu-bundle.zip
-          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-win-cuda-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-cuda-bundle.zip
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-win-cuda-bin.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-cuda-bin.zip
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-win-cuda-bundle.7z github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-cuda-bundle.7z
           scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-x64-win-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-x64-win-bundle.json
+          scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-arm64-macos-cpu-bin.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-arm64-macos-cpu-bin.zip
           scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-arm64-macos-cpu-bundle.zip github@$SERVER_NAME:/var/www/html/downloads/imagec-arm64-macos-cpu-bundle.zip
           scp -o StrictHostKeyChecking=no -i ssh_key_for_github imagec-arm64-macos-bundle.json github@$SERVER_NAME:/var/www/html/downloads/imagec-arm64-macos-bundle.json
           rm -rf ssh_key_for_github

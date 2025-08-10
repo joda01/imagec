@@ -125,6 +125,7 @@ pack(){
     # Copy libs
     #
     mkdir -p imagec.app/Contents/Frameworks
+    chmod +x imagec.app/Contents/MacOS/imagec
 
     cp $USERS_DIR/.conan2/p/*/p/lib/libQt6Core.6.dylib imagec.app/Contents/Frameworks/
     cp $USERS_DIR/.conan2/p/*/p/lib/libQt6Gui.6.dylib imagec.app/Contents/Frameworks/
