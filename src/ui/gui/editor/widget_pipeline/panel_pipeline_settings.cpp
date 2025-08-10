@@ -121,25 +121,26 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   //
   // AI Training
   //
-  mInteractiveAITraining = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("brain"), "AI training");
-  mInteractiveAITraining->setCheckable(true);
-  mInteractiveAITraining->setStatusTip("Interactive AI trainer");
-  connect(mInteractiveAITraining, &QAction::toggled, [this](bool checked) {
-    mInteractiveAiTrainer->blockSignals(true);
-    if(checked) {
-      mInteractiveAiTrainer->show();
-    } else {
-      mInteractiveAiTrainer->hide();
-    }
-    mInteractiveAiTrainer->blockSignals(false);
-  });
+  /*
+   mInteractiveAITraining = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("brain"), "AI training");
+   mInteractiveAITraining->setCheckable(true);
+   mInteractiveAITraining->setStatusTip("Interactive AI trainer");
+   connect(mInteractiveAITraining, &QAction::toggled, [this](bool checked) {
+     mInteractiveAiTrainer->blockSignals(true);
+     if(checked) {
+       mInteractiveAiTrainer->show();
+     } else {
+       mInteractiveAiTrainer->hide();
+     }
+     mInteractiveAiTrainer->blockSignals(false);
+   });
 
-  mInteractiveAiTrainer =
-      new DialogInteractiveAiTrainer(mWindowMain->getSettings().projectSettings.classification, mSettings, &mPreviewResult, mWindowMain);
-  connect(mInteractiveAiTrainer, &DialogInteractiveAiTrainer::dialogDisappeared, [this]() {
-    //  mInteractiveAITraining->setChecked(false);
-  });
-
+   mInteractiveAiTrainer =
+       new DialogInteractiveAiTrainer(mWindowMain->getSettings().projectSettings.classification, mSettings, &mPreviewResult, mWindowMain);
+   connect(mInteractiveAiTrainer, &DialogInteractiveAiTrainer::dialogDisappeared, [this]() {
+     //  mInteractiveAITraining->setChecked(false);
+   });
+ */
   //
   // Undo
   //

@@ -4,17 +4,11 @@ on:
   push:
     branches:
       - main
-      - random_forest
     tags:
       - '*'
-  pull_request:
-    branches:
-      - main
-
-#concurrency:
-#  group: ${{ github.workflow }}-${{ github.ref }}
-#  cancel-in-progress: true
-
+  #pull_request:
+  #  branches:
+  #    - main
 
 jobs:
   
