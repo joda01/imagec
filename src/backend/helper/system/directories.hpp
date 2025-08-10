@@ -38,12 +38,11 @@ inline std::filesystem::path getExecutablePath()
   if(_NSGetExecutablePath(buf, &size) != 0) {
     throw std::runtime_error("Executable path buffer too small");
   }
-  // If inside .app bundle: MyApp.app/Contents/MacOS
+  // If inside .app bundle: MyApp.app/Contents/MacOS/imagec
   auto baseDir = std::filesystem::canonical(buf);
-  if(baseDir.filename() == "MacOS" && baseDir.parent_path().filename() == "Contents" && baseDir.parent_path().parent_path().extension() == ".app") {
-    return baseDir.parent_path().parent_path();    // up to .app
-  }
-  return baseDir.parent_path();
+
+  // .
+  return baseDir.parent_path().parent_path().parent_path().parent_path();
 #elif defined(_WIN32)
   char buf[MAX_PATH];
   DWORD len = GetModuleFileNameA(NULL, buf, MAX_PATH);

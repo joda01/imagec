@@ -47,19 +47,15 @@ namespace joda::image::reader {
 #ifdef __APPLE__
 std::string getAppContentsPath()
 {
-  char exePath[PATH_MAX];
-  uint32_t size = sizeof(exePath);
-  if(_NSGetExecutablePath(exePath, &size) != 0) {
-    throw std::runtime_error("Path buffer too small");
+  char buf[PATH_MAX];
+  uint32_t size = sizeof(buf);
+  if(_NSGetExecutablePath(buf, &size) != 0) {
+    throw std::runtime_error("Executable path buffer too small");
   }
-  char resolved[PATH_MAX];
-  realpath(exePath, resolved);
-
-  // exe is in MyApp.app/Contents/MacOS/
-  std::string contentsDir = resolved;
-  contentsDir             = dirname(resolved);              // MacOS
-  contentsDir             = dirname(contentsDir.data());    // Contents
-  return contentsDir;
+  // If inside .app bundle: MyApp.app/Contents/MacOS/imagec
+  auto baseDir = std::filesystem::canonical(buf);
+  // If inside .app bundle: MyApp.app/Contents
+  return baseDir.parent_path().parent_path();
 }
 #endif
 
