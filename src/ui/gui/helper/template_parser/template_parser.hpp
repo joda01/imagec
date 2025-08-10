@@ -58,6 +58,7 @@ public:
   static auto loadChannelFromTemplate(const std::filesystem::path &pathToTemplate) -> joda::settings::Pipeline;
   static auto loadTemplate(const std::filesystem::path &pathToTemplate) -> nlohmann::json;
   static auto getUsersTemplateDirectory() -> std::filesystem::path;
+  static auto getGlobalTemplateDirectory(const std::string &subPath) -> std::filesystem::path;
 
 private:
   /////////////////////////////////////////////////////

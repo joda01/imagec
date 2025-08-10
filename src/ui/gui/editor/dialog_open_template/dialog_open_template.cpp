@@ -41,7 +41,7 @@ DialogOpenTemplate::DialogOpenTemplate(const std::set<std::string> &directories,
   mTableTemplates->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
   mTableTemplates->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
   mTableTemplates->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
-  mTableTemplates->setColumnWidth(1, 16);
+  mTableTemplates->setColumnWidth(1, 26);
   mTableTemplates->setShowGrid(false);
   mTableTemplates->setStyleSheet("QTableView::item { border-top: 0px solid black; border-bottom: 1px solid gray; }");
   mTableTemplates->verticalHeader()->setMinimumSectionSize(36);

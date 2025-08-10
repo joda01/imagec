@@ -184,10 +184,12 @@ pack(){
     cd imagec.app/Contents/Java
     cp ${GITHUB_WORKSPACE}/resources/java/bioformats.jar .
     cp ${GITHUB_WORKSPACE}/resources/java/BioFormatsWrapper.class .
+    mkdir jre_macos_arm
+    cd jre_macos_arm
     cp -r ${GITHUB_WORKSPACE}/resources/java/jre_macos_arm.zip .
     unzip jre_macos_arm.zip
     rm -rf jre_macos_arm.zip
-    cd ../../..
+    cd ../../../..
 
     #
     # Sign

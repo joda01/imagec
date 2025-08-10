@@ -76,7 +76,7 @@ void ImageReader::setPath()
   std::string newPath = javaBin + std::string(";") + path;
   SetEnvironmentVariable("PATH", javaBin.c_str());
 #elif defined(__APPLE__)
-  std::string javaHome = "/../java/jre_macos_arm";
+  std::string javaHome = "/../Java/jre_macos_arm";
   std::string javaBin  = javaHome + "/bin";
   setenv("JAVA_HOME", javaHome.c_str(), 1);
   std::string path = std::getenv("PATH");
@@ -109,7 +109,7 @@ void ImageReader::init(uint64_t reservedRamForVMInBytes)
 #ifdef _WIN32
   HINSTANCE jvmDll = LoadLibrary(TEXT("./java/jre_win/bin/server/jvm.dll"));
 #elif defined(__APPLE__)
-  void *jvmDll     = dlopen("./java/jre_macos_arm/lib/server/libjvm.dylib", RTLD_LAZY);
+  void *jvmDll     = dlopen("/../Java/jre_macos_arm/lib/server/libjvm.dylib", RTLD_LAZY);
 #else
   void *jvmDll = dlopen("./java/jre_linux/lib/amd64/server/libjvm.so", RTLD_LAZY);
 #endif
@@ -141,6 +141,8 @@ void ImageReader::init(uint64_t reservedRamForVMInBytes)
  */
 #ifdef _WIN32
     options[0].optionString = const_cast<char *>("-Djava.class.path=./;java/bioformats.jar;java");
+#elif defined(__APPLE__)
+    options[0].optionString = const_cast<char *>("-Djava.class.path=./:/../Java/bioformats.jar:java");
 #else
     options[0].optionString = const_cast<char *>("-Djava.class.path=./:java/bioformats.jar:java");
 #endif

@@ -108,7 +108,8 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   clearSettings();
   statusBar();
 
-  mDialogOpenProjectTemplates = new DialogOpenTemplate({"templates/projects", joda::templates::TemplateParser::getUsersTemplateDirectory().string()},
+  mDialogOpenProjectTemplates = new DialogOpenTemplate({joda::templates::TemplateParser::getGlobalTemplateDirectory("projects"),
+                                                        joda::templates::TemplateParser::getUsersTemplateDirectory().string()},
                                                        joda::fs::EXT_PROJECT_TEMPLATE, this);
 
   //

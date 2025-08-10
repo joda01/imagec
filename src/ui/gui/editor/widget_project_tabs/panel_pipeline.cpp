@@ -341,8 +341,9 @@ auto PanelPipeline::getSelectedPipeline() -> PanelPipelineSettings *
 ///
 void PanelPipeline::loadTemplates()
 {
-  auto foundTemplates = joda::templates::TemplateParser::findTemplates(
-      {"templates/pipelines", joda::templates::TemplateParser::getUsersTemplateDirectory().string()}, joda::fs::EXT_PIPELINE_TEMPLATE);
+  auto foundTemplates = joda::templates::TemplateParser::findTemplates({joda::templates::TemplateParser::getGlobalTemplateDirectory("pipelines"),
+                                                                        joda::templates::TemplateParser::getUsersTemplateDirectory().string()},
+                                                                       joda::fs::EXT_PIPELINE_TEMPLATE);
 
   mTemplatesMenu->clear();
   size_t addedPerCategory = 0;
