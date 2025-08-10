@@ -44,7 +44,7 @@
 
 namespace joda::image::reader {
 
-#ifdef _APPLE
+#ifdef __APPLE__
 std::string getAppContentsPath()
 {
   char exePath[PATH_MAX];

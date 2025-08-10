@@ -445,9 +445,10 @@ void PanelClassification::onSettingChanged()
 ///
 void PanelClassification::loadTemplates()
 {
-  auto foundTemplates = joda::templates::TemplateParser::findTemplates({joda::templates::TemplateParser::getGlobalTemplateDirectory("classification"),
-                                                                        joda::templates::TemplateParser::getUsersTemplateDirectory().string()},
-                                                                       joda::fs::EXT_CLASS_CLASS_TEMPLATE);
+  auto foundTemplates =
+      joda::templates::TemplateParser::findTemplates({joda::templates::TemplateParser::getGlobalTemplateDirectory("classification").string(),
+                                                      joda::templates::TemplateParser::getUsersTemplateDirectory().string()},
+                                                     joda::fs::EXT_CLASS_CLASS_TEMPLATE);
 
   mTemplateMenu->clear();
   std::string actCategory = "basic";
