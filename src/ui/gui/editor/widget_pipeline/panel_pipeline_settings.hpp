@@ -17,6 +17,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/helper/thread_safe_queue.hpp"
@@ -46,6 +47,7 @@ class PanelClassification;
 class DialogCommandSelection;
 class DialogPreviewResults;
 class DialogImageViewer;
+class DialogInteractiveAiTrainer;
 
 class PanelPipelineSettings : public QWidget
 {
@@ -104,6 +106,7 @@ private:
   void previewThread();
 
   // ACTIONS///////////////////////////////////////////////////
+  QAction *mInteractiveAITraining;
   QAction *mUndoAction;
   QAction *mHistoryAction;
   QAction *mActionDisabled;
@@ -153,6 +156,9 @@ private:
   joda::TSQueue<PreviewJob> mPreviewQue;
   std::mutex mCheckForEmptyMutex;
   std::mutex mShutingDownMutex;
+
+  // AI Trainer ////////////////////////////////////////////////////
+  DialogInteractiveAiTrainer *mInteractiveAiTrainer;
 
 private slots:
   /////////////////////////////////////////////////////

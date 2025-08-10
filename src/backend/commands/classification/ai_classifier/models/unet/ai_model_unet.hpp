@@ -1,5 +1,5 @@
 ///
-/// \file      ai_model_bioimage.hpp
+/// \file      ai_model_unet.hpp
 /// \author    Joachim Danmayr
 /// \date      2025-02-07
 ///
@@ -17,7 +17,7 @@
 
 namespace joda::ai {
 
-class AiModelBioImage : public AiModel
+class AiModelUNet : public AiModel
 {
 public:
   struct ProbabilitySettings
@@ -26,8 +26,8 @@ public:
     float contourThreshold = 0.3;
   };
 
-  AiModelBioImage(const ProbabilitySettings &settings);
-  auto processPrediction(const cv::Mat &inputImage, const at::IValue &prediction) -> std::vector<Result> override;
+  AiModelUNet(const ProbabilitySettings &settings);
+  auto processPrediction(const at::Device &device, const cv::Mat &inputImage, const at::IValue &prediction) -> std::vector<Result> override;
 
 private:
   /////////////////////////////////////////////////////

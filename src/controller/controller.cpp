@@ -43,6 +43,10 @@
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
 
+#undef slots
+#include <torch/cuda.h>
+#define slots Q_SLOTS
+
 namespace joda::ctrl {
 
 ///
@@ -87,9 +91,14 @@ void Controller::initApplication()
   int32_t availableRam   = std::ceil(static_cast<float>(systemRecourses.ramAvailable) / 1000000.0f);
   int32_t jvmReservedRam = std::ceil(static_cast<float>(systemRecourses.ramReservedForJVM) / 1000000.0f);
 
+  bool cudaAvailable = torch::cuda::is_available();
+  int numCudaDevices = torch::cuda::device_count();
+
   joda::log::logInfo("Total available RAM " + std::to_string(totalRam) + " MB.");
   joda::log::logInfo("Usable RAM " + std::to_string(availableRam) + " MB.");
   joda::log::logInfo("JVM reserved RAM " + std::to_string(jvmReservedRam) + " MB.");
+  joda::log::logInfo("CUDA available: " + std::to_string(static_cast<int>(cudaAvailable)));
+  joda::log::logInfo("Found CUDA devices: " + std::to_string(numCudaDevices));
 
   joda::image::reader::ImageReader::init(systemRecourses.ramReservedForJVM);    // Costs ~50MB RAM
 }
@@ -285,7 +294,7 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
   }
 
   processor::Processor process;
-  auto [originalImg, overlay, editedImageWithoutOverlay, thumb, foundObjects, validity] = process.generatePreview(
+  auto [originalImg, overlay, editedImageWithoutOverlay, thumb, foundObjects, validity, objects] = process.generatePreview(
       previewSettings, imageSetup, settings, threadSettings, pipeline, imagePath, tStack, 0, tileX, tileY, generateThumb, ome, classesToHide);
   previewOut.originalImage.setImage(std::move(originalImg));
   previewOut.overlay.setImage(std::move(overlay));
@@ -302,6 +311,7 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
   previewOut.results.noiseDetected = validity.test(enums::ChannelValidityEnum::POSSIBLE_NOISE);
   previewOut.results.isOverExposed = validity.test(enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
   previewOut.tStacks               = ome.getNrOfTStack(imageSetup.series);
+  previewOut.objectMap             = std::move(objects);
 }
 
 ///

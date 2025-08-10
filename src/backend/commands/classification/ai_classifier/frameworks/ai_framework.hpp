@@ -61,11 +61,11 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  virtual at::IValue predict(const cv::Mat &inputImage) = 0;
+  virtual at::IValue predict(const at::Device &device, const cv::Mat &inputImage) = 0;
 
 protected:
   /////////////////////////////////////////////////////
-  static auto prepareImage(const cv::Mat &inputImageOriginal, const InputParameters &settings, int colorOrder) -> cv::Mat;
+  static auto prepareImage(const at::Device &device, const cv::Mat &inputImageOriginal, const InputParameters &settings, int colorOrder) -> cv::Mat;
 };
 
 }    // namespace joda::ai

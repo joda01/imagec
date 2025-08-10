@@ -1,4 +1,8 @@
-cmake_minimum_required (VERSION 3.5)
+# 3.30
+cmake_minimum_required (VERSION 3.31) 
+
+option(WITH_CUDA "Build with CUDA suppoer" ON)
+set(TAG_NAME "devel-build" CACHE STRING "Set version tag of this build")
 
 if(NOT CLANG_TIDY)
   find_package(Python3)
@@ -28,24 +32,19 @@ endif()
 
 # Project name and version
 project (imagec
-         VERSION 1.0.0
-         HOMEPAGE_URL https://imagec.org
-         LANGUAGES CXX C)
+        VERSION 1.0.0
+        HOMEPAGE_URL https://imagec.org
+        LANGUAGES CXX C)
+
 
 # Get the current date and time
+
+message("TAG_NAME: ${TAG_NAME}")
+message("WITH_CUDA: ${WITH_CUDA}")
+
+set(VERSION "${TAG_NAME}")
+set(CUDA_ENABLED "${WITH_CUDA}" CACHE STRING "${WITH_CUDA}")
 string(TIMESTAMP BUILD_TIME "%Y-%m-%d %H:%M:%S")
-
-if(NOT DEFINED TAG_NAME)
-    message(FATAL_ERROR "TAG_NAME variable not provided!")
-endif()
-
-if("${TAG_NAME}" STREQUAL "")
-  set(VERSION "devel-build")
-else()
-  set(VERSION "${TAG_NAME}")
-endif()
-
-message("Tag name is ${TAG_NAME}")
 
 set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 
@@ -54,11 +53,6 @@ if (APPLE)
 else ()
     set(CMAKE_INSTALL_RPATH "$ORIGIN/lib")
 endif()
-
-# Options
-set(WITH_ONNX "With onnx support" ON)
-set(WITH_PYTORCH "With pytorch support" ON)
-set(WITH_TENSORFLOW "With tensorflow support" ON)
 
 
 # Get the current user and host
@@ -74,6 +68,30 @@ SET(CMAKE_GENERATOR "Unix Makefiles")
 SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
+#
+# CUDA
+#
+if(WITH_CUDA)
+  message("with cuda enabled")
+  message("CUDA_TOOLKIT_ROOT_DIR: ${CUDA_TOOLKIT_ROOT_DIR}")
+  message("CMAKE_CUDA_COMPILER: ${CMAKE_CUDA_COMPILER}")
+  
+  set(CMAKE_CUDA_STANDARD 17)
+  set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+
+  find_package(CUDAToolkit REQUIRED)
+  include_directories(${CUDAToolkit_INCLUDE_DIRS})
+  add_compile_definitions(WITH_CUDA)
+  enable_language(CUDA)
+else()
+  message("with cuda disabled")
+  unset(CUDA_TOOLKIT_ROOT_DIR CACHE)
+  unset(CUDA_TOOLKIT_ROOT_DIR)
+  unset(CMAKE_CUDA_COMPILER CACHE)
+  unset(CMAKE_CUDA_COMPILER)
+  unset(CMAKE_CUDA_ARCHITECTURES CACHE)
+  unset(CMAKE_CUDA_ARCHITECTURES)
+endif()
 
 find_package( OpenCV REQUIRED ximgproc)
 find_package( PugiXML )
@@ -88,6 +106,10 @@ find_package( ONNX REQUIRED )
 find_package( ryml REQUIRED )
 find_package( OpenSSL REQUIRED )
 find_package( CLI11 REQUIRED )
+find_package( httplib REQUIRED )
+find_package( onnxruntime REQUIRED)
+find_package( tensorflowlite REQUIRED )
+find_package( Torch REQUIRED )
 
 
 SET(DuckDB_USE_STATIC_LIBS TRUE)
@@ -105,23 +127,11 @@ set(LIBS
   ryml::ryml
   openssl::openssl
   CLI11::CLI11
+  httplib::httplib
+  onnxruntime::onnxruntime
+  tensorflow::tensorflowlite
+  ${TORCH_LIBRARIES}
 )
-
-if(WITH_ONNX)
-  find_package(onnxruntime REQUIRED)
-  set(LIBS ${LIBS} onnxruntime::onnxruntime)
-endif()
-
-if(WITH_PYTORCH)
-  find_package( Torch REQUIRED )
-  set(LIBS ${LIBS} ${TORCH_LIBRARIES})
-endif()
-
-if(WITH_TENSORFLOW)
-  find_package( tensorflowlite REQUIRED )
-  set(LIBS ${LIBS} tensorflow::tensorflowlite)
-endif()
-
 
 set(RESOURCE_FILES
     resources/qt_conf.qrc
@@ -140,6 +150,7 @@ file(GLOB_RECURSE SOURCES
   ./src/*.cpp
   ./src/*.c
   ./src/*.cc
+  ./src/*.cu
  ${RESOURCE_SOURCES}
 )
 
@@ -154,23 +165,16 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     WIN32_EXECUTABLE ON
     MACOSX_BUNDLE ON
     CMAKE_AUTOMOC ON
+    CUDA_SEPARABLE_COMPILATION ON
+    CUDA_STANDARD 17
+    CUDA_ARCHITECTURES "60;61;70;75;80;86"
 )
+
+
+
 
 target_sources(${PROJECT_NAME} PRIVATE ${RESOURCE_SOURCES})
 target_compile_definitions(${PROJECT_NAME} PUBLIC BS_THREAD_POOL_ENABLE_PRIORITY DUCKDB_BUILD_LIBRARY )
-
-if(WITH_ONNX)
-  add_compile_definitions(WITH_ONNX)
-endif()
-
-if(WITH_PYTORCH)
-  add_compile_definitions(WITH_PYTORCH)
-endif()
-
-if(WITH_TENSORFLOW)
-  add_compile_definitions(WITH_TENSORFLOW)
-endif()
-
 
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
@@ -198,7 +202,6 @@ file(GLOB_RECURSE TEST_SOURCES
   ./src/*.c
   ./test/*.cpp
    ${RESOURCE_SOURCES}
-
 )
 # Exclude main file from source
 list(FILTER TEST_SOURCES EXCLUDE REGEX "/main\\.cpp$")

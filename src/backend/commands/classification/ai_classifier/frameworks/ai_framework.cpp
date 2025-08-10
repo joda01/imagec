@@ -17,7 +17,8 @@
 
 namespace joda::ai {
 
-auto AiFramework::prepareImage(const cv::Mat &inputImageOriginal, const InputParameters &settings, int colorOrder) -> cv::Mat
+auto AiFramework::prepareImage(const at::Device &device, const cv::Mat &inputImageOriginal, const InputParameters &settings, int colorOrder)
+    -> cv::Mat
 {
   // Normalize the pixel values to [0, 1] float for detection
   cv::Mat grayImageFloat;

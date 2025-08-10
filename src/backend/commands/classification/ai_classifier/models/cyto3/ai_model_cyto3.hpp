@@ -1,7 +1,7 @@
 
 
 ///
-/// \file      ai_model_bioimage.hpp
+/// \file      ai_model_unet.hpp
 /// \author    Joachim Danmayr
 /// \date      2025-02-07
 ///
@@ -29,7 +29,7 @@ public:
   };
 
   AiModelCyto3(const ProbabilitySettings &settings);
-  auto processPrediction(const cv::Mat &inputImage, const at::IValue &tensorIn) -> std::vector<Result> override;
+  auto processPrediction(const at::Device &device, const cv::Mat &inputImage, const at::IValue &tensorIn) -> std::vector<Result> override;
 
 private:
   /////////////////////////////////////////////////////

@@ -58,6 +58,8 @@ struct Preview
     bool noiseDetected = false;
   } results;
 
+  joda::atom::ObjectMap objectMap;
+
   int height;
   int width;
   int tStacks = 1;    // Nr. of t stacks the image has.

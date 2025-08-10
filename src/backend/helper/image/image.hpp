@@ -37,15 +37,20 @@ public:
   void setImage(const cv::Mat &&imageToDisplay, int32_t rescale = 2048);
   bool empty()
   {
-    if(mImageOriginal != nullptr) {
-      return mImageOriginal->empty();
+    if(mImageOriginalScaled != nullptr) {
+      return mImageOriginalScaled->empty();
     }
     return true;
   }
   [[nodiscard]] const cv::Mat *getImage() const
   {
-    return mImageOriginal;
+    return mImageOriginalScaled;
   }
+  [[nodiscard]] const cv::Mat *getOriginalImage() const
+  {
+    return mOriginalImage;
+  }
+
   struct Overlay
   {
     const Image *combineWith = nullptr;
@@ -74,9 +79,14 @@ public:
   void clear()
   {
     std::lock_guard<std::mutex> lock(mLockMutex);
-    if(mImageOriginal != nullptr) {
-      delete mImageOriginal;
-      mImageOriginal = nullptr;
+    if(mImageOriginalScaled != nullptr) {
+      delete mImageOriginalScaled;
+      mImageOriginalScaled = nullptr;
+    }
+
+    if(mOriginalImage != nullptr) {
+      delete mOriginalImage;
+      mOriginalImage = nullptr;
     }
   }
 
@@ -102,8 +112,8 @@ public:
 
   auto getPreviewImageSize() const -> QSize
   {
-    if(mImageOriginal != nullptr) {
-      return {mImageOriginal->cols, mImageOriginal->rows};
+    if(mImageOriginalScaled != nullptr) {
+      return {mImageOriginalScaled->cols, mImageOriginalScaled->rows};
     } else {
       return {};
     }
@@ -125,7 +135,8 @@ private:
   QSize mOriginalImageSize;
 
   //// IMAGE /////////////////////////////////////////////////
-  const cv::Mat *mImageOriginal = nullptr;
+  const cv::Mat *mImageOriginalScaled = nullptr;
+  const cv::Mat *mOriginalImage       = nullptr;
   mutable std::mutex mLockMutex;
 };
 

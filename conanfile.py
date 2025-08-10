@@ -1,34 +1,35 @@
+import os
 from conan import ConanFile
 from conan.tools.cmake import cmake_layout
 from conan.tools.cmake import CMakeToolchain, CMakeDeps
+from conan.tools.cmake import CMake, cmake_layout
+
+
+
 
 
 class ImageC(ConanFile):
-    name = "ImageC"
-    version = "1.0-beta"
+    name = "imagec"
+    version = "1.0.0"
     license = ["AGPL-3.0","imagec"]
-    author = "Joachim Danmayr <your.email@example.com>"
+    author = "Joachim Danmayr <support@imagec.org>"
     url = "https://github.com/joda01/imagec"
     homepage="https://imagec.org"
     description = "High throughput image analysis tool for bio science!"
-    topics = ("conan", "image-processing", "science")
+    topics = ("image-processing", "science")
     settings = "os", "compiler", "build_type", "arch"
+    package_type = "application"
     options = {
-        "with_onnx": [True, False],
-        "with_tensorflow": [True, False],
-        "with_pytorch": [True, False],
+        "with_cuda": [True, False]
     }
     default_options = {
-        "with_onnx": True,
-        "with_tensorflow": True,
-        "with_pytorch": True,
+        "with_cuda": False
     }
 
     exports_sources = "src/*"
-    
-    #def config_options(self):
-    #    print("")
 
+    def set_version(self):
+        self.version = self.version
 
     def requirements(self):
         self.requires("qt/6.7.1", force=True)
@@ -43,12 +44,12 @@ class ImageC(ConanFile):
         self.requires("cli11/2.5.0")
         self.requires("onnx/1.17.0", force=True)
         self.requires("rapidyaml/0.7.1")
-        if self.options.get_safe("with_onnx"):
-            self.requires("onnxruntime/1.18.1")
-        if self.options.get_safe("with_pytorch"):
-            self.requires("libtorch/2.4.0")
-        if self.options.get_safe("with_tensorflow"):
-            self.requires("tensorflow-lite/2.15.0")
+        self.requires("onnxruntime/1.18.1")
+        if self.options.with_cuda:
+            self.requires("libtorch/2.7.1", options={"with_cuda": True})
+        else:
+            self.requires("libtorch/2.7.1", options={"with_cuda": False})
+        self.requires("tensorflow-lite/2.15.0")
         self.requires("flatbuffers/23.5.26", force=True)
         self.requires("protobuf/3.21.12", override=True)
         self.requires("xkbcommon/1.6.0", override=True)
@@ -57,16 +58,38 @@ class ImageC(ConanFile):
         self.requires("libbacktrace/cci.20240730", override = True)
         self.requires("xnnpack/cci.20240229", override = True)
         self.requires("boost/1.86.0", override = True)
+        #self.requires("cpp-httplib/0.19.0")
 
-        
     def generate(self):
+        if self.options.with_cuda:
+            print("With cuda")
+        else:
+            print("No cuda")
         deps = CMakeDeps(self)
         deps.generate()
         toolchain = CMakeToolchain(self)
-        toolchain.variables["WITH_ONNX"] = self.options.with_onnx
-        toolchain.variables["WITH_TENSORFLOW"] = self.options.with_tensorflow
-        toolchain.variables["WITH_PYTORCH"] = self.options.with_pytorch
+        toolchain.variables["WITH_CUDA"] = self.options.with_cuda
+
+        #
+        # This is a workaround because Visual Studio with CUDA 12.8 together with conan
+        # has a strange bug (see https://github.com/conan-io/conan/issues/17289)
+        # We have to remove the set(CMAKE_MSVC_RUNTIME_LIBRARY "$<$<CONFIG:Release>:MultiThreadedDLL>")
+        # line from the conan generated toolchain file
+        #
+        toolchain.blocks.remove("vs_runtime")
+        toolchain.cache_variables["CMAKE_TRY_COMPILE_CONFIGURATION"] = "Release"
+        #
+        #
         toolchain.generate()
+
+    def build(self):
+        cmake = CMake(self)
+        cmake.configure()
+        cmake.build()
 
     def layout(self):
         cmake_layout(self)
+
+
+# conan build . --profile conan/profile_linux
+# conan remote disable imageclibs

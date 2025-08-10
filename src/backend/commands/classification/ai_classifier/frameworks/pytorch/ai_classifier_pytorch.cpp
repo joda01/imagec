@@ -11,8 +11,7 @@
 ///
 ///
 #include <vector>
-#if defined(WITH_PYTORCH)
-
+#include "backend/helper/duration_count/duration_count.h"
 #undef slots
 #include <ATen/ops/upsample_nearest2d.h>
 #include <c10/core/Device.h>
@@ -54,22 +53,17 @@ AiFrameworkPytorch::AiFrameworkPytorch(const std::string &modelPath, const Input
 /// \param[out]
 /// \return
 ///
-auto AiFrameworkPytorch::predict(const cv::Mat &originalImage) -> at::IValue
+auto AiFrameworkPytorch::predict(const at::Device &device, const cv::Mat &originalImage) -> at::IValue
 {
-  // Check if CUDA is available
-  bool cudaAvailable = torch::cuda::is_available();
-  int numCudaDevices = torch::cuda::device_count();
+  std::lock_guard<std::mutex> lock(mExecutionMutex);
 
   // ===============================
   // 0. Load model
   // ===============================
   torch::jit::script::Module model;
   try {
-    model = torch::jit::load(mModelPath);
+    model = torch::jit::load(mModelPath, device);
     model.eval();
-    if(numCudaDevices > 0) {
-      model.to(at::Device("cuda:0"));
-    }
   } catch(const c10::Error &e) {
     throw std::runtime_error(e.what());
   }
@@ -77,7 +71,7 @@ auto AiFrameworkPytorch::predict(const cv::Mat &originalImage) -> at::IValue
   // ===============================
   // 1. Prepare image
   // ===============================
-  cv::Mat resizedImage = prepareImage(originalImage, mSettings, cv::COLOR_GRAY2RGB);
+  cv::Mat resizedImage = prepareImage(device, originalImage, mSettings, cv::COLOR_GRAY2RGB);
   if(!resizedImage.isContinuous()) {
     resizedImage = resizedImage.clone();
   }
@@ -94,14 +88,17 @@ auto AiFrameworkPytorch::predict(const cv::Mat &originalImage) -> at::IValue
   if(!inputTensor.is_contiguous()) {
     inputTensor = inputTensor.to(torch::kFloat).clone();
   }
+  inputTensor = inputTensor.to(device);
 
   // ===============================
   // 3. Run the Model Inference
   // ===============================
+  auto idx          = DurationCount::start("Forward to libtorch");
   at::IValue output = model.forward({inputTensor});
+  DurationCount::stop(idx);
+  inputTensor = at::Tensor();    // frees the GPU tensor
 
   return output;
 }
 
 }    // namespace joda::ai
-#endif

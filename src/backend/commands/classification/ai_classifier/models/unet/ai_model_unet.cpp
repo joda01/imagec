@@ -1,5 +1,5 @@
 ///
-/// \file      ai_model_bioimage.cpp
+/// \file      ai_model_unet.cpp
 /// \author    Joachim Danmayr
 /// \date      2025-02-07
 ///
@@ -11,7 +11,7 @@
 ///
 ///
 
-#include "ai_model_bioimage.hpp"
+#include "ai_model_unet.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 
@@ -24,7 +24,7 @@ namespace joda::ai {
 /// \param[out]
 /// \return
 ///
-AiModelBioImage::AiModelBioImage(const ProbabilitySettings &settings) : mSettings(settings)
+AiModelUNet::AiModelUNet(const ProbabilitySettings &settings) : mSettings(settings)
 {
 }
 
@@ -35,7 +35,7 @@ AiModelBioImage::AiModelBioImage(const ProbabilitySettings &settings) : mSetting
 /// \param[out]
 /// \return
 ///
-auto AiModelBioImage::processPrediction(const cv::Mat &inputImage, const at::IValue &tensorIn) -> std::vector<Result>
+auto AiModelUNet::processPrediction(const at::Device &device, const cv::Mat &inputImage, const at::IValue &tensorIn) -> std::vector<Result>
 {
   static const int CHANNEL_MASK    = 0;
   static const int CHANNEL_CONTOUR = 1;

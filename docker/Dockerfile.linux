@@ -1,0 +1,70 @@
+FROM ubuntu:noble-20240429 AS build
+
+
+#
+# Install base packages
+#
+RUN apt-get update &&\
+    apt-get install -y \
+        autoconf \
+        automake \
+        libtool \
+        curl \
+        make \
+        g++ \
+        unzip \
+        gdb \
+        ninja-build \
+        wget \
+        libssl-dev \
+        pkg-config \
+        git default-jre \
+        libcurl4-openssl-dev \
+        default-jdk \
+        pip libva-dev \
+        libvdpau-dev \
+        xkb-data \
+        python3
+
+
+#
+# NVIDIA Toolkit
+#
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb &&\
+    dpkg -i cuda-keyring_1.1-1_all.deb &&\
+    apt-get update &&\
+    apt-get install -y cuda-toolkit-12-8 &&\
+    export PATH=/usr/local/cuda/bin:$PATH &&\
+    export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
+
+#
+# CMAKE
+#
+RUN wget https://github.com/Kitware/CMake/archive/refs/tags/v3.31.6.tar.gz -O cmake.tar.gz && \
+    tar xf cmake.tar.gz && \
+    rm cmake.tar.gz &&\
+    cd CMake-* && \
+    ./bootstrap --prefix=/usr --no-qt-gui --parallel=8 && \
+    make -j8 && \
+    make install && \
+    cd .. && \
+    rm -rf CMake*
+
+
+#
+# LLVM toolchain
+#
+RUN echo "deb http://apt.llvm.org/bookworm/ llvm-toolchain-bookworm-15 main" >> /etc/apt/sources.list &&\
+    wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key| apt-key add - &&\
+    apt-get update && apt-get install -y clang-format-15 clangd-15 &&\
+    ln -s /usr/bin/clangd-15 /usr/bin/clangd &&\
+    ln -s /usr/bin/clang-format-15 /usr/bin/clang-format
+
+
+#
+# Install conan
+#
+RUN pip install conan numpy --break-system-packages
+
+RUN ldconfig
