@@ -754,8 +754,8 @@ void PanelPipelineSettings::setActive(bool setActive)
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
     mIsActiveShown = false;
     mToolbar->setVisible(false);
-    mInteractiveAiTrainer->hide();
-    mInteractiveAITraining->setChecked(false);
+    // mInteractiveAiTrainer->hide();
+    // mInteractiveAITraining->setChecked(false);
     mPreviewResultsDialog->hide();
     mPreviewImage->getImagePanel()->clearOverlay();
     mPreviewImage->getImagePanel()->setShowEditedImage(false);

@@ -90,6 +90,8 @@ private:
   // ACTIONS///////////////////////////////////////////////////
   QMenu *mTemplatesMenu;
 
+  std::mutex mClosePipelineMutex;
+
 private slots:
   void openSelectedPipeline(const QModelIndex &current, const QModelIndex &previous);
   void openSelectedPipelineSettings(const QModelIndex &current);

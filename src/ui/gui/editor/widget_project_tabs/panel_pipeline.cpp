@@ -240,6 +240,7 @@ void PanelPipeline::removePipelineWidget()
   //
   // Remove old pipeline form the layout
   //
+  std::lock_guard<std::mutex> lock(mClosePipelineMutex);
   int count = mMainLayout->count();
   if(count > 2) {
     if(mActivePipeline != nullptr) {
@@ -273,13 +274,19 @@ void PanelPipeline::openSelectedPipeline(const QModelIndex &current, const QMode
   if(selectedRow >= 0) {
     for(auto &pipeline : mChannels) {
       if(&pipeline->mutablePipeline() == mTableModel->getCell(selectedRow)) {
-        if(mActivePipeline == pipeline.get()) {
-          // Pipeline is still open
-          return;
+        {
+          std::lock_guard<std::mutex> lock(mClosePipelineMutex);
+          if(mActivePipeline == pipeline.get()) {
+            // Pipeline is still open
+            return;
+          }
         }
         removePipelineWidget();
         pipeline->setActive(true);
-        mActivePipeline = pipeline.get();
+        {
+          std::lock_guard<std::mutex> lock(mClosePipelineMutex);
+          mActivePipeline = pipeline.get();
+        }
         mMainLayout->addWidget(pipeline.get(), 4);
       }
     }

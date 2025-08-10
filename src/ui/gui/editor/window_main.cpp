@@ -958,7 +958,6 @@ void WindowMain::onShowInfoDialog()
     tab->addTab(widgetAbout, "3rd party");
     auto *labelAbout = new QLabel();
     QString others =
-        "<u>icons8</u> : Thanks to <a href=\"https://icons8.com/\">http://icon8.org</a> for providing some of the icons!<br/><br/>"
         "<u>KDE project</u> : Thanks to the KDE project for providing the <a "
         "href=\"https://develop.kde.org/frameworks/breeze-icons/\">Breeze</a> icon set!<br/><br/>";
     labelAbout->setText(others);
