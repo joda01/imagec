@@ -148,6 +148,8 @@ pack(){
     cp $USERS_DIR/.conan2/p/*/p/lib/libtorch_global_deps.dylib imagec.app/Contents/Frameworks/
     cp $USERS_DIR/.conan2/p/*/p/lib/libshm.dylib imagec.app/Contents/Frameworks/
     cp $USERS_DIR/.conan2/p/*/p/lib/libomp.dylib imagec.app/Contents/Frameworks/
+
+    cp $USERS_DIR/.conan2/p/*/p/lib/libeight_bit_int_gemm.dylib imagec.app/Contents/Frameworks/
     #if [[ "$WITH_CUDA" == "True" ]]; then
     #  cp $USERS_DIR/.conan2/p/*/p/lib/libtorch_cuda.so .
     #  cp $USERS_DIR/.conan2/p/*/p/lib/libc10_cuda.so .
