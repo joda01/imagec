@@ -10,6 +10,12 @@ namespace joda::settings {
 bool ClassifierFilter::doesFilterMatch(joda::processor::ProcessContext &context, atom::ROI &roi, const MetricsFilter &metrics,
                                        const IntensityFilter &intensity)
 {
+  if(metrics.excludeObjectsAtTheEdge) {
+    if(roi.isTouchingTheImageEdge()) {
+      return false;
+    }
+  }
+
   if((intensity.minIntensity >= 0 && intensity.maxIntensity >= 0)) {
     const auto &cachedImage = context.loadImageFromCache(enums::MemoryScope::ITERATION, intensity.imageIn);
     auto intensityMeasured  = roi.measureIntensityAndAdd(*cachedImage);

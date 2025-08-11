@@ -130,11 +130,20 @@ private:
       mMinCircularity->connectWithSetting(&classifyFilter.metrics.minCircularity);
       mMinCircularity->setShortDescription("Circ. ");
 
+      //
+      //
+      mExcludeObjectsAtTheEdge = SettingBase::create<SettingComboBox<bool>>(parent, {}, "Exclude objects at the edges");
+      mExcludeObjectsAtTheEdge->addOptions({{false, "Off", {}}, {true, "On", {}}});
+      mExcludeObjectsAtTheEdge->setDefaultValue(true);
+      mExcludeObjectsAtTheEdge->setValue(classifyFilter.metrics.excludeObjectsAtTheEdge);
+      mExcludeObjectsAtTheEdge->connectWithSetting(&classifyFilter.metrics.excludeObjectsAtTheEdge);
+
       auto *col = outer.addSetting(tab, "Match filter",
                                    {{mGrayScaleValue.get(), true, tabIndex},
                                     {mMinCircularity.get(), true, tabIndex},
                                     {mMinParticleSize.get(), true, tabIndex},
-                                    {mMaxParticleSize.get(), true, tabIndex}});
+                                    {mMaxParticleSize.get(), true, tabIndex},
+                                    {mExcludeObjectsAtTheEdge.get(), false, tabIndex}});
 
       //
       //
@@ -203,7 +212,7 @@ private:
     {
       outer.removeSetting({mClassOutNoMatch.get(), mGrayScaleValue.get(), mClassOut.get(), mMinParticleSize.get(), mMaxParticleSize.get(),
                            mMinCircularity.get(), cStackForIntensityFilter.get(), zProjectionForIntensityFilter.get(), zStackIndex.get(),
-                           mMinIntensity.get(), mMaxIntensity.get()});
+                           mMinIntensity.get(), mMaxIntensity.get(), mExcludeObjectsAtTheEdge.get()});
     }
 
     // std::unique_ptr<SettingComboBox<enums::ClasssIdIn>> mClasssOut;
@@ -222,6 +231,7 @@ private:
     std::unique_ptr<SettingSpinBox<int32_t>> zStackIndex;
     std::unique_ptr<SettingLineEdit<int>> mMinIntensity;
     std::unique_ptr<SettingLineEdit<int>> mMaxIntensity;
+    std::unique_ptr<SettingComboBox<bool>> mExcludeObjectsAtTheEdge;
 
     settings::ObjectClass &settings;
     Classifier &outer;

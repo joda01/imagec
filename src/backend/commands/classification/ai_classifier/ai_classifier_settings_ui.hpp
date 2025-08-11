@@ -94,11 +94,20 @@ private:
       mMinCircularity->connectWithSetting(&classifyFilter.metrics.minCircularity);
       mMinCircularity->setShortDescription("Circ. ");
 
+      //
+      //
+      mExcludeObjectsAtTheEdge = SettingBase::create<SettingComboBox<bool>>(parent, {}, "Exclude objects at the edges");
+      mExcludeObjectsAtTheEdge->addOptions({{false, "Off", {}}, {true, "On", {}}});
+      mExcludeObjectsAtTheEdge->setDefaultValue(true);
+      mExcludeObjectsAtTheEdge->setValue(classifyFilter.metrics.excludeObjectsAtTheEdge);
+      mExcludeObjectsAtTheEdge->connectWithSetting(&classifyFilter.metrics.excludeObjectsAtTheEdge);
+
       auto *col = outer.addSetting(tab, "Match filter",
                                    {{mGrayScaleValue.get(), true, tabIndex},
                                     {mMinCircularity.get(), true, tabIndex},
                                     {mMinParticleSize.get(), true, tabIndex},
-                                    {mMaxParticleSize.get(), true, tabIndex}});
+                                    {mMaxParticleSize.get(), true, tabIndex},
+                                    {mExcludeObjectsAtTheEdge.get(), true, tabIndex}});
 
       //
       //
@@ -176,7 +185,7 @@ private:
     {
       outer.removeSetting({mClassOutNoMatch.get(), mGrayScaleValue.get(), mClassOut.get(), mMinParticleSize.get(), mMaxParticleSize.get(),
                            mMinCircularity.get(), cStackForIntensityFilter.get(), zProjectionForIntensityFilter.get(), zStackIndex.get(),
-                           mMinIntensity.get(), mMaxIntensity.get(), mProbabilityHandicap.get()});
+                           mMinIntensity.get(), mMaxIntensity.get(), mProbabilityHandicap.get(), mExcludeObjectsAtTheEdge.get()});
     }
 
     // std::unique_ptr<SettingComboBox<enums::ClasssIdIn>> mClasssOut;
@@ -188,6 +197,7 @@ private:
     std::unique_ptr<SettingLineEdit<int>> mMinParticleSize;
     std::unique_ptr<SettingLineEdit<int>> mMaxParticleSize;
     std::unique_ptr<SettingLineEdit<float>> mMinCircularity;
+    std::unique_ptr<SettingComboBox<bool>> mExcludeObjectsAtTheEdge;
 
     std::unique_ptr<SettingComboBox<int32_t>> cStackForIntensityFilter;
     std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjectionForIntensityFilter;

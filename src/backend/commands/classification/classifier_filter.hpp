@@ -74,6 +74,11 @@ struct MetricsFilter
   //
   float minCircularity = -1;
 
+  //
+  // Exclude elements touching the edges
+  //
+  bool excludeObjectsAtTheEdge = false;
+
   void check() const
   {
     CHECK_ERROR(maxParticleSize < 0 || minParticleSize < 0 || maxParticleSize >= minParticleSize,
@@ -81,7 +86,7 @@ struct MetricsFilter
     CHECK_ERROR(minCircularity < 0 || (minCircularity >= 0 && minCircularity <= 1), "Min circularity must be in range [0-1].");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MetricsFilter, minParticleSize, maxParticleSize, minCircularity);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(MetricsFilter, minParticleSize, maxParticleSize, minCircularity, excludeObjectsAtTheEdge);
 };
 
 struct ClassifierFilter

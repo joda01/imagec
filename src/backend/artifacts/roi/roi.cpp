@@ -131,6 +131,21 @@ auto ROI::calcCentroid(const cv::Mat &mask) const -> cv::Point
 }
 
 ///
+/// \brief        Returns true if the ROI is touching the image edge
+/// \author       Joachim Danmayr
+///
+bool ROI::isTouchingTheImageEdge() const
+{
+  auto box       = getBoundingBoxTile();
+  auto imageSize = mImageSize;
+  if(box.x <= 0 || box.y <= 0 || box.x + box.width >= imageSize.width || box.y + box.height >= imageSize.height) {
+    // Touches the edge
+    return true;
+  }
+  return false;
+}
+
+///
 /// \brief        Calculate the avg, min and max intensity in the given image
 /// \author       Joachim Danmayr
 ///

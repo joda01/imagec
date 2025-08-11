@@ -357,6 +357,7 @@ public:
   void assignTrackingIdToAllLinkedRois(uint64_t trackingIdForLinked = 0);
   auto calcGradients(const cv::Mat &image, cv::Mat &gradMag, cv::Mat &gradAngle) const -> void;
   auto calcIntensity(const cv::Mat &imageOriginal) const -> Intensity;
+  bool isTouchingTheImageEdge() const;
 
 private:
   /////////////////////////////////////////////////////
