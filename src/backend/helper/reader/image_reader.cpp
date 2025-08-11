@@ -107,6 +107,9 @@ void ImageReader::setPath()
   path             = javaBin + ":" + path;
   setenv("PATH", path.c_str(), 1);
 #endif
+
+  joda::log::logInfo("Java HOME: " + javaHome);
+  joda::log::logInfo("Java BIN: " + javaBin);
 }
 
 ///
@@ -128,7 +131,8 @@ void ImageReader::init(uint64_t reservedRamForVMInBytes)
 #elif defined(__APPLE__)
   std::string contentsPath = getAppContentsPath();
   std::string jvmLibPath   = contentsPath + "/Java/jre_macos_arm/lib/server/libjvm.dylib";
-  void *jvmDll             = dlopen("/../Java/jre_macos_arm/lib/server/libjvm.dylib", RTLD_LAZY);
+  joda::log::logInfo("Java DLL: " + jvmLibPath);
+  void *jvmDll     = dlopen((const char *) jvmLibPath.c_str(), RTLD_LAZY);
 #else
   void *jvmDll = dlopen("./java/jre_linux/lib/amd64/server/libjvm.so", RTLD_LAZY);
 #endif
@@ -141,7 +145,7 @@ void ImageReader::init(uint64_t reservedRamForVMInBytes)
 #ifdef _WIN32
   JNI_CreateJavaVM = reinterpret_cast<myFunc>(GetProcAddress(jvmDll, JNI_CREATEVM));
 #else
-  JNI_CreateJavaVM         = reinterpret_cast<myFunc>(dlsym(jvmDll, JNI_CREATEVM));
+  JNI_CreateJavaVM = reinterpret_cast<myFunc>(dlsym(jvmDll, JNI_CREATEVM));
 #endif
 
   if(JNI_CreateJavaVM == nullptr) {
