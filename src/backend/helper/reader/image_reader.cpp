@@ -165,9 +165,10 @@ void ImageReader::init(uint64_t reservedRamForVMInBytes)
 #ifdef _WIN32
     options[0].optionString = const_cast<char *>("-Djava.class.path=./;java/bioformats.jar;java");
 #elif defined(__APPLE__)
-    std::string jarPath     = contentsPath + "/Java/bioformats.jar";
-    std::string classPath   = "-Djava.class.path=./:" + jarPath + ":java";
-    options[0].optionString = const_cast<char *>(classPath.c_str());
+    std::string jarPath        = contentsPath + "/Java/bioformats.jar";
+    std::string otherClassPath = contentsPath + "/Java";
+    std::string classPath      = "-Djava.class.path=./:" + jarPath + ":java:" + otherClassPath;
+    options[0].optionString    = const_cast<char *>(classPath.c_str());
 #else
     options[0].optionString = const_cast<char *>("-Djava.class.path=./:java/bioformats.jar:java");
 #endif
