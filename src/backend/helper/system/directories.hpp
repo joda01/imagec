@@ -16,6 +16,7 @@
 #include <string>
 
 #if defined(__APPLE__)
+#include <CoreFoundation/CoreFoundation.h>
 #include <mach-o/dyld.h>
 #include <unistd.h>
 #elif defined(_WIN32)
@@ -33,16 +34,14 @@ namespace joda::system {
 inline std::filesystem::path getExecutablePath()
 {
 #if defined(__APPLE__)
-  char buf[PATH_MAX];
-  uint32_t size = sizeof(buf);
-  if(_NSGetExecutablePath(buf, &size) != 0) {
-    throw std::runtime_error("Executable path buffer too small");
+  CFURLRef bundleURL = CFBundleCopyBundleURL(CFBundleGetMainBundle());
+  char path[PATH_MAX];
+  std::filesystem::path bundlePath;
+  if(CFURLGetFileSystemRepresentation(bundleURL, true, (UInt8 *) path, PATH_MAX)) {
+    bundlePath = std::filesystem::path(path);
   }
-  // If inside .app bundle: MyApp.app/Contents/MacOS/imagec
-  auto baseDir = std::filesystem::canonical(buf);
-
-  // .
-  return baseDir.parent_path().parent_path().parent_path().parent_path();
+  CFRelease(bundleURL);
+  return bundlePath.parent_path();
 #elif defined(_WIN32)
   char buf[MAX_PATH];
   DWORD len = GetModuleFileNameA(NULL, buf, MAX_PATH);
