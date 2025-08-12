@@ -169,6 +169,7 @@ void ImageReader::init(uint64_t reservedRamForVMInBytes)
     std::string otherClassPath = contentsPath + "/Java";
     std::string classPath      = "-Djava.class.path=./:" + jarPath + ":java:" + otherClassPath;
     options[0].optionString    = const_cast<char *>(classPath.c_str());
+    options[1].optionString    = (char *) "-XstartOnFirstThread";
 #else
     options[0].optionString = const_cast<char *>("-Djava.class.path=./:java/bioformats.jar:java");
 #endif
