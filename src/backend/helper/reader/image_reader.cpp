@@ -191,14 +191,16 @@ void ImageReader::init(uint64_t reservedRamForVMInBytes)
       std::cout << "JAVA VM ERROR" << std::endl;
       mJVMInitialised = false;
     } else {
-      mBioformatsClass = myGlobEnv->FindClass("BioFormatsWrapper");
-      if(mBioformatsClass == NULL) {
+      jclass localCls = myGlobEnv->FindClass("BioFormatsWrapper");
+      if(localCls == NULL) {
         if(myGlobEnv->ExceptionOccurred()) {
           myGlobEnv->ExceptionDescribe();
         }
         joda::log::logError("Could not found BioFormats class!");
         exit(7);
       } else {
+        mBioformatsClass = (jclass) myGlobEnv->NewGlobalRef(localCls);
+        myGlobEnv->DeleteLocalRef(localCls);
         mGetImageProperties = myGlobEnv->GetStaticMethodID(mBioformatsClass, "getImageProperties", "(Ljava/lang/String;I)Ljava/lang/String;");
         mReadImage          = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImage", "(Ljava/lang/String;IIIII)[B");
         mReadImageTile      = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImageTile", "(Ljava/lang/String;IIIIIIIII)[B");
