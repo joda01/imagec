@@ -169,7 +169,6 @@ void ImageReader::init(uint64_t reservedRamForVMInBytes)
     std::string otherClassPath = contentsPath + "/Java";
     std::string classPath      = "-Djava.class.path=./:" + jarPath + ":java:" + otherClassPath;
     options[0].optionString    = const_cast<char *>(classPath.c_str());
-    options[1].optionString    = (char *) "-XstartOnFirstThread";
 #else
     options[0].optionString = const_cast<char *>("-Djava.class.path=./:java/bioformats.jar:java");
 #endif
@@ -286,7 +285,14 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &i
     }
     jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, static_cast<int>(series),
                                                                     static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t);
-    if(readImg == nullptr) {
+    bool exception     = false;
+    if(myEnv->ExceptionCheck() != 0u) {
+      myEnv->ExceptionDescribe();
+      myEnv->ExceptionClear();
+      exception = true;
+    }
+
+    if(readImg == nullptr || exception) {
       myEnv->DeleteLocalRef(filePath);
       myJVM->DetachCurrentThread();
       joda::log::logError("Cannot load image tile info for >" + filename + "<, nullptr in result!");
@@ -381,7 +387,14 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, Plane imagePlane
     //
     jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, static_cast<int>(series),
                                                                     static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t);
-    if(readImg == nullptr) {
+    bool exception     = false;
+    if(myEnv->ExceptionCheck() != 0u) {
+      myEnv->ExceptionDescribe();
+      myEnv->ExceptionClear();
+      exception = true;
+    }
+
+    if(readImg == nullptr || exception) {
       myEnv->DeleteLocalRef(filePath);
       myJVM->DetachCurrentThread();
       joda::log::logError("Cannot load image tile info for >" + filename + "<, nullptr in result!");
@@ -491,8 +504,14 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
                                                                static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t, offsetX,
                                                                offsetY, tileWidthToLoad, tileHeightToLoad);
 
+    bool exception = false;
+    if(myEnv->ExceptionCheck() != 0u) {
+      myEnv->ExceptionDescribe();
+      myEnv->ExceptionClear();
+      exception = true;
+    }
     DurationCount::stop(i1);
-    if(readImg == nullptr) {
+    if(readImg == nullptr || exception) {
       myEnv->DeleteLocalRef(filePath);
       myJVM->DetachCurrentThread();
       joda::log::logError("Cannot load image tile info for >" + filename + "<, nullptr in result!");
@@ -533,8 +552,15 @@ auto ImageReader::getOmeInformation(const std::filesystem::path &filename, uint1
 
     jstring filePath = myEnv->NewStringUTF(filename.string().c_str());
     jstring result   = (jstring) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageProperties, filePath, static_cast<int>(series));
+    bool exception   = false;
+    if(myEnv->ExceptionCheck() != 0u) {
+      myEnv->ExceptionDescribe();
+      myEnv->ExceptionClear();
+      exception = true;
+    }
+
     myEnv->DeleteLocalRef(filePath);
-    if(result == nullptr) {
+    if(result == nullptr || exception) {
       myJVM->DetachCurrentThread();
       DurationCount::stop(id);
       joda::log::logError("Cannot load OME info for >" + filename.string() + "<, nullptr in result!");
@@ -546,12 +572,16 @@ auto ImageReader::getOmeInformation(const std::filesystem::path &filename, uint1
     myEnv->ReleaseStringUTFChars(result, stringChars);
 
     // Parse ome
-    joda::ome::OmeInfo omeInfo;
-    omeInfo.loadOmeInformationFromXMLString(omeXML);    ///\todo this method can throw an excaption
+    try {
+      joda::ome::OmeInfo omeInfo;
+      omeInfo.loadOmeInformationFromXMLString(omeXML);    ///\todo this method can throw an excaption
 
-    myJVM->DetachCurrentThread();
-    DurationCount::stop(id);
-    return omeInfo;
+      myJVM->DetachCurrentThread();
+      DurationCount::stop(id);
+      return omeInfo;
+    } catch(...) {
+      return {};
+    }
   }
   return {};
 }
