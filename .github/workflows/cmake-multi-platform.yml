@@ -16,7 +16,6 @@ jobs:
   # Linux
   #
   build-linux:
-    if: false
     name: Build on Linux (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
     runs-on: ubuntu-22.04
     strategy:
@@ -48,7 +47,6 @@ jobs:
   # Windows
   #
   build-windows:
-    if: false
     name: Build on Windows (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
     runs-on: windows-2022
     strategy:
