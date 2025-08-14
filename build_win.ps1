@@ -190,7 +190,11 @@ function Pack {
       "cudnn_cnn64_9.dll",
       "cudnn_adv64_9.dll",
       "cudnn_ops64_9.dll",
-      "cudnn_engines_precompiled64_9.dll"
+      "cudnn_engines_precompiled64_9.dll",
+      "cufft64_11.dll",
+      "cusparse64_12.dll",
+      "nvJitLink_120_0.dll",
+      "cusolver64_11.dll"
       )
   } 
 
