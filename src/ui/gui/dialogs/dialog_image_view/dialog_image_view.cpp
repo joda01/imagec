@@ -145,7 +145,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
     imgSettings->setObjectName("ToolButton");
     imgSettings->setStatusTip("Image settings");
     connect(imgSettings, &QAction::triggered, [this] {
-      auto *dialog = new DialogImageSettings(&mImageSettings, this);
+      auto *dialog = new DialogImageSettings(&mImageSettings, this, mImageViewRight.getOmeInfo());
       if(dialog->exec() == QDialog::Accepted) {
         onSettingsChanged();
       }
@@ -341,6 +341,11 @@ void DialogImageViewer::setShowCrossHairCursor(bool show)
 void DialogImageViewer::setSettingsPointer(joda::settings::AnalyzeSettings *settings)
 {
   mSettings = settings;
+  if(mSettings != nullptr) {
+    mImageSettings.pixelHeight = mSettings->imageSetup.pixelSizeSettings.pixelHeight;
+    mImageSettings.pixelWidth  = mSettings->imageSetup.pixelSizeSettings.pixelWidth;
+    mImageSettings.unit        = mSettings->imageSetup.pixelSizeSettings.unit;
+  }
 }
 
 ///
@@ -401,6 +406,8 @@ void DialogImageViewer::applySettingsToImagePanel()
   mImageViewRight.setZprojection(getSelectedZProjection());
   mImageViewRight.setImagePlane({.z = mSelectedZStack, .c = getSelectedImageChannel(), .t = mSelectedTStack});
   mImageViewRight.setImageTile(tileSize, tileSize);
+  mImageViewRight.setDefaultPhysicalSize(joda::settings::ProjectImageSetup::PhysicalSizeSettings{
+      .pixelWidth = mImageSettings.pixelWidth, .pixelHeight = mImageSettings.pixelHeight, .unit = mImageSettings.unit});
 
   // Sync to settings
   if(mSettings != nullptr) {
@@ -408,6 +415,10 @@ void DialogImageViewer::applySettingsToImagePanel()
     mSettings->imageSetup.imageTileSettings.tileHeight = tileSize;
     mSettings->imageSetup.imageTileSettings.tileWidth  = tileSize;
     mSettings->imageSetup.series                       = mImageSettings.imageSeries;
+
+    mSettings->imageSetup.pixelSizeSettings.pixelHeight = mImageSettings.pixelHeight;
+    mSettings->imageSetup.pixelSizeSettings.pixelWidth  = mImageSettings.pixelWidth;
+    mSettings->imageSetup.pixelSizeSettings.unit        = mImageSettings.unit;
   }
 }
 

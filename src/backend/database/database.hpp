@@ -53,7 +53,8 @@ public:
 
   auto prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
                      const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
-                     BS::thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>;
+                     const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings, BS::thread_pool &globalThreadPool)
+      -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> override;
   void setImageProcessed(uint64_t);
 
   void insertGroup(uint16_t plateId, const joda::grp::GroupInformation &groupInfo);

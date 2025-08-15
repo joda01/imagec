@@ -27,6 +27,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include "backend/enums/enums_units.hpp"
 #include "backend/enums/types.hpp"
 #include <opencv2/core/types.hpp>
 
@@ -131,10 +132,23 @@ public:
         return rgbChannelCount == 3;
       }
     };
+
+    struct PhyiscalSize
+    {
+      float sizeX = 0;
+      float sizeY = 0;
+      float sizeZ = 0;
+
+      joda::enums::Units unitX = enums::Units::Pixels;
+      joda::enums::Units unitY = enums::Units::Pixels;
+      joda::enums::Units unitZ = enums::Units::Pixels;
+    };
+
     int32_t seriesIdx    = 0;
     int32_t nrOfChannels = 0;
     int32_t nrOfZStacks  = 0;
     int32_t nrOfTStacks  = 0;
+    PhyiscalSize physicalSize;
     std::map<int32_t, Pyramid> resolutions;      ///< Array of resolutions in case of a pyamid image
     std::map<uint32_t, ChannelInfo> channels;    ///< Contains the channel information <channelIdx | channelinfo>
   };
@@ -142,7 +156,7 @@ public:
   /////////////////////////////////////////////////////
   OmeInfo();
 
-  void loadOmeInformationFromXMLString(const std::string &omeXML);
+  void loadOmeInformationFromXMLString(const std::string &omeXML, const ImageInfo::PhyiscalSize &defaultSettings);
 
   [[nodiscard]] size_t getNrOfSeries() const
   {
@@ -158,7 +172,7 @@ public:
   [[nodiscard]] int getNrOfChannels(int32_t series) const;
   [[nodiscard]] int getNrOfZStack(int32_t series) const;
   [[nodiscard]] int getNrOfTStack(int32_t series) const;
-
+  [[nodiscard]] auto getPhyiscalSize(int32_t series) const -> const ImageInfo::PhyiscalSize &;
   [[nodiscard]] std::tuple<int64_t, int64_t> getSize(int32_t series) const;
   [[nodiscard]] int32_t getBits(int32_t series) const;
   [[nodiscard]] int32_t getSeriesWithHighestResolution() const;
@@ -240,5 +254,6 @@ private:
   /////////////////////////////////////////////////////
   std::map<int32_t, ImageInfo> mImageInfo;    // Key is series
   ObjectiveInfo mObjectiveInfo;
+  ImageInfo::PhyiscalSize mDefaultPhyiscalSizeSettings;
 };
 }    // namespace joda::ome

@@ -99,6 +99,7 @@ public:
   void setCursorPositionFromOriginalImageCoordinatesAndCenter(const QRect &boundingRect);
   auto getCursorPosition() -> QPoint;
   auto getSelectedTile() -> std::pair<int32_t, int32_t>;
+  auto getOmeInfo() const -> const ome::OmeInfo &;
   int32_t getNrOfTstacks() const;
   int32_t getNrOfCstacks() const;
   int32_t getNrOfZstacks() const;
@@ -109,6 +110,7 @@ public:
   void setImagePlane(const joda::image::reader::ImageReader::Plane &);
   void setSelectedTile(int32_t tileX, int32_t tileY);
   void setImageTile(int32_t tileWith, int32_t tileHeight);
+  void setDefaultPhysicalSize(const joda::settings::ProjectImageSetup::PhysicalSizeSettings &);
   auto mutableImage() -> joda::image::Image *;
 
 signals:
@@ -129,6 +131,7 @@ private:
   void drawThumbnail(QPainter &);
   void drawCrossHairCursor(QPainter &);
   void drawPixelInfo(QPainter &, int32_t startX, int32_t startY, const PixelInfo &info);
+  void drawRuler(QPainter &);
   void getClickedTileInThumbnail(QMouseEvent *event);
   void getThumbnailAreaEntered(QMouseEvent *event);
   auto fetchPixelInfoFromMousePosition(const QPoint &pos) const -> PixelInfo;
@@ -147,6 +150,8 @@ private:
 
   const float PIXEL_INFO_RECT_WIDTH  = 150;
   const float PIXEL_INFO_RECT_HEIGHT = 40;
+
+  const float RULER_LENGTH = 100;
 
   // IMAGE ///////////////////////////////////////////////////
   bool mPlaceholderImageSet = true;
@@ -173,6 +178,7 @@ private:
   // IMAGE INFO ///////////////////////////////////////////////////
   CrossCursorInfo mCrossCursorInfo;
   QRect mLastCrossHairCursorPos = {0, 0, 0, 0};
+  joda::settings::ProjectImageSetup::PhysicalSizeSettings mDefaultPhysicalSize;
 
   /////////////////////////////////////////////////////
   // ThumbParameter mThumbnailParameter;
@@ -197,6 +203,7 @@ private:
   bool mLockCrosshandCursor = false;
   bool mShowOverlay         = true;
   bool mShowEditedImage     = false;
+  bool mShowRuler           = true;
 
   mutable std::mutex mImageResetMutex;
 

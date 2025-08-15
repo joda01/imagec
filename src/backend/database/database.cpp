@@ -22,6 +22,7 @@
 #include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_grouping.hpp"
+#include "backend/enums/enums_units.hpp"
 #include "backend/helper/base64.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/file_grouper/file_grouper.hpp"
@@ -35,6 +36,7 @@
 #include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
+#include "backend/settings/project_settings/project_image_setup.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
 #include "backend/settings/results_settings/results_settings.hpp"
 #include "backend/settings/settings.hpp"
@@ -523,6 +525,7 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
 
 auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
                              const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
+                             const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings,
                              BS::thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>
 {
   std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> imagesToProcess;
@@ -544,8 +547,16 @@ auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy gro
 
   for(const auto &imagePath : imagePaths) {
     auto prepareImage = [&groups, &grouper, &addedGroups, &imagesToProcess, &images, &images_groups, &images_channels, &insertMutex, &series, plateId,
-                         imagePath, &imagesBasePath]() {
-      auto ome         = joda::image::reader::ImageReader::getOmeInformation(imagePath, series);
+                         imagePath, &imagesBasePath, &defaultPhysicalSizeSettings]() {
+      auto ome         = joda::image::reader::ImageReader::getOmeInformation(imagePath, series,
+                                                                             joda::ome::OmeInfo::ImageInfo::PhyiscalSize{
+                                                                                 .sizeX = defaultPhysicalSizeSettings.pixelWidth,
+                                                                                 .sizeY = defaultPhysicalSizeSettings.pixelHeight,
+                                                                                 .sizeZ = 0,
+                                                                                 .unitX = defaultPhysicalSizeSettings.unit,
+                                                                                 .unitY = defaultPhysicalSizeSettings.unit,
+                                                                                 .unitZ = defaultPhysicalSizeSettings.unit,
+                                                                     });
       uint64_t imageId = joda::helper::fnv1a(imagePath.string());
       auto groupInfo   = grouper.getGroupForFilename(imagePath);
 

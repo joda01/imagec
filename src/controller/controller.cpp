@@ -132,7 +132,7 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
 
   joda::ome::OmeInfo ome;
   if(!imageOmeInfo.has_value()) {
-    ome = getImageProperties(file, settings.imageSetup.series);
+    ome = getImageProperties(file, settings.imageSetup.series, settings.imageSetup.pixelSizeSettings);
   } else {
     ome = imageOmeInfo.value();
   }
@@ -323,14 +323,23 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
 /// \return
 ///
 auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
-                           const joda::ome::TileToLoad &tileLoad, Preview &previewOut, joda::ome::OmeInfo &omeOut, enums::ZProjection zProjection)
-    -> void
+                           const joda::ome::TileToLoad &tileLoad,
+                           const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings, Preview &previewOut,
+                           joda::ome::OmeInfo &omeOut, enums::ZProjection zProjection) -> void
 {
   static std::filesystem::path lastImagePath;
 
   if(lastImagePath != imagePath) {
     lastImagePath = imagePath;
-    omeOut        = joda::image::reader::ImageReader::getOmeInformation(imagePath, series);
+    omeOut        = joda::image::reader::ImageReader::getOmeInformation(imagePath, series,
+                                                                        joda::ome::OmeInfo::ImageInfo::PhyiscalSize{
+                                                                            .sizeX = defaultPhysicalSizeSettings.pixelWidth,
+                                                                            .sizeY = defaultPhysicalSizeSettings.pixelHeight,
+                                                                            .sizeZ = 0,
+                                                                            .unitX = defaultPhysicalSizeSettings.unit,
+                                                                            .unitY = defaultPhysicalSizeSettings.unit,
+                                                                            .unitZ = defaultPhysicalSizeSettings.unit,
+                                                                 });
   }
   loadImage(imagePath, series, imagePlane, tileLoad, previewOut, &omeOut, zProjection);
 }
@@ -433,9 +442,18 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
 /// \author
 /// \return
 ///
-auto Controller::getImageProperties(const std::filesystem::path &image, int series) -> joda::ome::OmeInfo
+auto Controller::getImageProperties(const std::filesystem::path &image, int series,
+                                    const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings) -> joda::ome::OmeInfo
 {
-  return joda::image::reader::ImageReader::getOmeInformation(image, series);
+  return joda::image::reader::ImageReader::getOmeInformation(image, series,
+                                                             joda::ome::OmeInfo::ImageInfo::PhyiscalSize{
+                                                                 .sizeX = defaultPhysicalSizeSettings.pixelWidth,
+                                                                 .sizeY = defaultPhysicalSizeSettings.pixelHeight,
+                                                                 .sizeZ = 0,
+                                                                 .unitX = defaultPhysicalSizeSettings.unit,
+                                                                 .unitY = defaultPhysicalSizeSettings.unit,
+                                                                 .unitZ = defaultPhysicalSizeSettings.unit,
+                                                             });
 }
 
 // FLOW CONTROL ////////////////////////////////////////////////

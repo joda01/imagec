@@ -541,7 +541,8 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
 /// \param[out]
 /// \return
 ///
-auto ImageReader::getOmeInformation(const std::filesystem::path &filename, uint16_t series) -> joda::ome::OmeInfo
+auto ImageReader::getOmeInformation(const std::filesystem::path &filename, uint16_t series,
+                                    const ome::OmeInfo::ImageInfo::PhyiscalSize &defaultSettings) -> joda::ome::OmeInfo
 {
   if(nullptr != myJVM && mJVMInitialised) {
     auto id = DurationCount::start("Get OEM");
@@ -576,7 +577,7 @@ auto ImageReader::getOmeInformation(const std::filesystem::path &filename, uint1
     // Parse ome
     try {
       joda::ome::OmeInfo omeInfo;
-      omeInfo.loadOmeInformationFromXMLString(omeXML);    ///\todo this method can throw an excaption
+      omeInfo.loadOmeInformationFromXMLString(omeXML, defaultSettings);    ///\todo this method can throw an excaption
 
       myJVM->DetachCurrentThread();
       DurationCount::stop(id);

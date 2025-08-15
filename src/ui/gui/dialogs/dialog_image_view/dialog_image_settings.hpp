@@ -15,6 +15,7 @@
 
 #include <qcombobox.h>
 #include <qdialog.h>
+#include <qlineedit.h>
 #include <qscrollbar.h>
 #include <qslider.h>
 #include <qspinbox.h>
@@ -22,8 +23,10 @@
 #include <qtoolbar.h>
 #include <qwindow.h>
 #include <tuple>
+#include "backend/enums/enums_units.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/image/image.hpp"
+#include "backend/helper/ome_parser/ome_info.hpp"
 
 namespace joda::ui::gui {
 
@@ -37,20 +40,30 @@ public:
     enums::ZProjection zProjection = enums::ZProjection::MAX_INTENSITY;
     int32_t imageSeries            = 0;
     int32_t tileWidth              = 4096;
+
+    float pixelWidth  = 0;
+    float pixelHeight = 0;
+    enums::Units unit = enums::Units::Pixels;
   };
 
   /////////////////////////////////////////////////////
-  DialogImageSettings(Settings *settings, QWidget *parent);
+  DialogImageSettings(Settings *settings, QWidget *parent, const ome::OmeInfo &omeInfo);
 
 private:
   /////////////////////////////////////////////////////
   void accept() override;
-  void fromSettings();
+  void fromSettings(const ome::OmeInfo &omeInfo);
 
   /////////////////////////////////////////////////////
   QComboBox *mZprojection;
   QComboBox *mSeries;
   QComboBox *mTileSize;
+
+  QLineEdit *mPixelWidth;
+  QComboBox *mUnitWidth;
+
+  QLineEdit *mPixelHeight;
+  QComboBox *mUnitHeight;
 
   Settings *mSettings;
 };

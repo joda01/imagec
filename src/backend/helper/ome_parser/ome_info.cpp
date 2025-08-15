@@ -18,6 +18,7 @@
 #include <string>
 #include <system_error>
 #include <vector>
+#include "backend/enums/enums_units.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include <nlohmann/json.hpp>
@@ -37,9 +38,10 @@ OmeInfo::OmeInfo()
 /// \param[in]  omeXML  Read OME XML data as string
 /// \return     Parsed OME information
 ///
-void OmeInfo::loadOmeInformationFromXMLString(const std::string &omeXML)
+void OmeInfo::loadOmeInformationFromXMLString(const std::string &omeXML, const ImageInfo::PhyiscalSize &defaultSettings)
 {
   setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
+  mDefaultPhyiscalSizeSettings = defaultSettings;
 
   // std::cout << omeXML << std::endl;
 
@@ -119,14 +121,6 @@ TRY_AGAIN:
     std::string imageName = std::string(image.attribute("Name").as_string());
 
     //
-    // Plane numbers
-    //
-    auto sizeC    = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeC").as_int();
-    auto sizeZ    = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeZ").as_int();
-    auto sizeT    = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeT").as_int();
-    auto dimOrder = std::string(image.child(std::string(keyPrefix + "Pixels").data()).attribute("DimensionOrder").as_string());
-
-    //
     // TIFF Data
     // This is the implementation of the specification section >The TiffDataElement<
     // https://docs.openmicroscopy.org/ome-model/6.1.0/ome-tiff/specification.html
@@ -146,6 +140,24 @@ TRY_AGAIN:
     };
 
     pugi::xml_node pixels = image.child((keyPrefix + "Pixels").data());
+
+    //
+    // Plane numbers
+    //
+    auto sizeC    = pixels.attribute("SizeC").as_int();
+    auto sizeZ    = pixels.attribute("SizeZ").as_int();
+    auto sizeT    = pixels.attribute("SizeT").as_int();
+    auto dimOrder = std::string(pixels.attribute("DimensionOrder").as_string());
+
+    //
+    // Pixel size
+    //
+    auto physicalSizeX            = pixels.attribute("PhysicalSizeX").as_double();
+    std::string physicalSizeXUnit = pixels.attribute("PhysicalSizeXUnit").as_string();
+    auto physicalSizeY            = pixels.attribute("PhysicalSizeY").as_double();
+    std::string physicalSizeYUnit = pixels.attribute("PhysicalSizeYUnit").as_string();
+    auto physicalSizeZ            = pixels.attribute("PhysicalSizeZ").as_double();
+    std::string physicalSizeZUnit = pixels.attribute("PhysicalSizeZUnit").as_string();
 
     //
     // Load channels
@@ -194,6 +206,36 @@ TRY_AGAIN:
     actImageInfo.nrOfZStacks = sizeZ;
     actImageInfo.nrOfTStacks = sizeT;
 
+    actImageInfo.physicalSize.sizeX = physicalSizeX;
+    actImageInfo.physicalSize.sizeY = physicalSizeY;
+    actImageInfo.physicalSize.sizeZ = physicalSizeZ;
+
+    auto stringToUnit = [](const std::string &unit) -> enums::Units {
+      if(unit == "nm") {
+        return enums::Units::nm;
+      }
+      if(unit == "µm") {
+        return enums::Units::um;
+      }
+      if(unit == "mm") {
+        return enums::Units::mm;
+      }
+      if(unit == "cm") {
+        return enums::Units::cm;
+      }
+      if(unit == "m") {
+        return enums::Units::m;
+      }
+      if(unit == "km") {
+        return enums::Units::km;
+      }
+      return enums::Units::Pixels;
+    };
+
+    actImageInfo.physicalSize.unitX = stringToUnit(physicalSizeXUnit);
+    actImageInfo.physicalSize.unitY = stringToUnit(physicalSizeYUnit);
+    actImageInfo.physicalSize.unitZ = stringToUnit(physicalSizeZUnit);
+
     //
     // Load planes
     //
@@ -237,6 +279,25 @@ TRY_AGAIN:
                                   .isLittleEndian         = isLittleEndian != 0});
     }
   }
+}
+
+///
+/// \brief      Returns the number of channels
+/// \author     Joachim Danmayr
+///
+auto OmeInfo::getPhyiscalSize(int32_t series) const -> const ImageInfo::PhyiscalSize &
+{
+  if(series >= getNrOfSeries()) {
+    return mDefaultPhyiscalSizeSettings;
+  }
+  if(series < 0 || series >= getNrOfSeries()) {
+    series = getSeriesWithHighestResolution();
+  }
+  auto tmp = mImageInfo.at(series).physicalSize;
+  if(tmp.sizeX == 0 || tmp.sizeY == 0) {
+    return mDefaultPhyiscalSizeSettings;
+  }
+  return mImageInfo.at(series).physicalSize;
 }
 
 ///

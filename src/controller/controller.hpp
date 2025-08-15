@@ -98,11 +98,14 @@ public:
                const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const settings::Pipeline &pipeline,
                const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, int32_t tStack, Preview &previewOut, const joda::ome::OmeInfo &,
                const settings::ObjectInputClassesExp &classesToHide);
-  [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series) -> joda::ome::OmeInfo;
+  [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series,
+                                               const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings)
+      -> joda::ome::OmeInfo;
 
   static auto loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
-                        const joda::ome::TileToLoad &tileLoad, Preview &previewOut, joda::ome::OmeInfo &omeOut, enums::ZProjection zProjection)
-      -> void;
+                        const joda::ome::TileToLoad &tileLoad,
+                        const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings, Preview &previewOut,
+                        joda::ome::OmeInfo &omeOut, enums::ZProjection zProjection) -> void;
 
   static auto loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
                         const joda::ome::TileToLoad &tileLoad, Preview &previewOut, const joda::ome::OmeInfo *omeIn, enums::ZProjection zProjection)

@@ -83,6 +83,7 @@ public:
 
   virtual auto prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
                              const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
+                             const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings,
                              BS::thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> = 0;
   virtual void setImageProcessed(uint64_t)                                                                                                      = 0;
 
@@ -122,7 +123,8 @@ public:
 
   auto prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
                      const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
-                     BS::thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> override
+                     const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings, BS::thread_pool &globalThreadPool)
+      -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> override
   {
     return {};
   }

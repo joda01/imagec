@@ -126,8 +126,9 @@ auto PanelImages::getSelectedImage() const -> std::tuple<std::filesystem::path, 
     if(mImages->rowCount() > 0) {
       QTableWidgetItem *item = mImages->item(0, 0);
       if(item != nullptr) {
-        auto path    = std::filesystem::path(item->text().toStdString());
-        auto omeInfo = mWindowMain->getController()->getImageProperties(path, series);
+        auto path                               = std::filesystem::path(item->text().toStdString());
+        const auto &defaultPhysicalSizeSettings = mWindowMain->getSettings().imageSetup.pixelSizeSettings;
+        auto omeInfo                            = mWindowMain->getController()->getImageProperties(path, series, defaultPhysicalSizeSettings);
         return {path, series, omeInfo};
       }
     }
@@ -189,9 +190,9 @@ void PanelImages::updateImageMeta()
 {
   QList<QTableWidgetItem *> selectedItems = mImages->selectedItems();
   if(!selectedItems.isEmpty()) {
-    auto [imagePath, series, _] = getSelectedImage();
-
-    mOmeFromActSelectedImage = mWindowMain->getController()->getImageProperties(imagePath, series);
+    auto [imagePath, series, _]             = getSelectedImage();
+    const auto &defaultPhysicalSizeSettings = mWindowMain->getSettings().imageSetup.pixelSizeSettings;
+    mOmeFromActSelectedImage                = mWindowMain->getController()->getImageProperties(imagePath, series, defaultPhysicalSizeSettings);
     // Open image
     mWindowMain->openImage(imagePath, &mOmeFromActSelectedImage);
     auto tileSize = mWindowMain->getSettings().imageSetup.imageTileSettings;
