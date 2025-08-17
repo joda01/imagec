@@ -52,7 +52,7 @@ struct FileValidator : public CLI::Validator
   {
     name_ = "LOWER";
     func_ = [endian](const std::string &str) {
-      int endianSize = endian.size();
+      size_t endianSize = endian.size();
       if(str.size() >= endianSize && str.substr(str.size() - endianSize) == endian) {
         return std::string();    // valid
       } else {

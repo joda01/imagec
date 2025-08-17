@@ -55,16 +55,6 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
   //
   auto classesToExport = ResultingTable(&filter);
 
-  auto findMaxRowIdx = [](const std::map<uint64_t, int32_t> &rowIndexes) -> int32_t {
-    int32_t rowIdx = -1;
-    for(const auto &[_, row] : rowIndexes) {
-      if(row > rowIdx) {
-        rowIdx = row;
-      }
-    }
-    return rowIdx;
-  };
-
   //
   // This is used to align the objects for each class correct
   //
@@ -76,8 +66,8 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
     }
     auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
     size_t columnNr         = statement.getColSize();
-    for(int32_t rowIdx = 0; rowIdx < materializedResult->RowCount(); rowIdx++) {
-      for(int32_t colIdx = 0; colIdx < columnNr; colIdx++) {
+    for(duckdb::idx_t rowIdx = 0; rowIdx < materializedResult->RowCount(); rowIdx++) {
+      for(size_t colIdx = 0; colIdx < columnNr; colIdx++) {
         uint32_t meas_center_x  = materializedResult->GetValue(columnNr + 0, rowIdx).GetValue<uint32_t>();
         uint32_t meas_center_y  = materializedResult->GetValue(columnNr + 1, rowIdx).GetValue<uint32_t>();
         uint64_t objectId       = materializedResult->GetValue(columnNr + 2, rowIdx).GetValue<uint64_t>();
@@ -99,7 +89,7 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
           value = materializedResult->GetValue(colIdx, rowIdx).GetValue<double>();
         }
         std::string fileNameTmp = "t=" + std::to_string(tStack) + " " + filename;
-        classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
+        classesToExport.setData(classs, statement.getColNames(), static_cast<uint32_t>(rowIdx), static_cast<uint32_t>(colIdx), fileNameTmp,
                                 table::TableCell{value,
                                                  table::TableCell::MetaData{.objectIdGroup      = objectId,
                                                                             .objectId           = objectIdReal,

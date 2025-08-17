@@ -23,7 +23,7 @@ public:
   {
   }
 
-  void execute(processor::ProcessContext &context, cv::Mat & /*image*/, atom::ObjectList &result) override
+  void execute(processor::ProcessContext &context, cv::Mat & /*image*/, atom::ObjectList & /*result*/) override
   {
     auto &store = *context.loadObjectsFromCache();
     for(auto imageId : mSettings.planesIn) {

@@ -77,12 +77,12 @@ void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image,
       // In the second run, we have to ignore the object class filter of me, because this are still the filtered objects
       objectClassesMe.reset();
       idx++;
-      if(idx >= intersectCount) {
+      if(idx >= static_cast<int32_t>(intersectCount)) {
         break;
       }
       const auto *tmpWorking = working;
       working                = resultTemp;
-      if(idx + 1 >= intersectCount) {
+      if(idx + 1 >= static_cast<int32_t>(intersectCount)) {
         resultTemp = &result;
       } else {
         if(tmpWorking == firstDataBuffer) {

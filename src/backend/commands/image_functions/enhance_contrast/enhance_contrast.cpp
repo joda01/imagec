@@ -127,7 +127,7 @@ void normalize(cv::Mat &ip, double min, double max)
 
   std::array<int32_t, range> lut;
   for(size_t i = 0; i < range; i++) {
-    if(i <= min) {
+    if(static_cast<double>(i) <= min) {
       lut[i] = 0;
     } else if(i >= static_cast<size_t>(max)) {
       lut[i] = max2;
@@ -236,7 +236,7 @@ std::pair<int, int> EnhanceContrast::findContrastStretchBounds(const cv::Mat &hi
   }
 
   // Find upper bound
-  for(auto i = static_cast<size_t>(histSize - 1); i >= 0; --i) {
+  for(auto i = static_cast<size_t>(histSize); i-- > 0;) {
     if(cdf[i] <= upper_thresh) {
       high = static_cast<int>(i);
       break;

@@ -68,12 +68,12 @@ public:
     columns.emplace(pos, col);
   }
 
-  [[nodiscard]] auto getColumns() const -> const std::map<int32_t, settings::ResultsSettings::ColumnKey> &
+  [[nodiscard]] auto getColumns() const -> const std::map<uint32_t, settings::ResultsSettings::ColumnKey> &
   {
     return columns;
   }
 
-  [[nodiscard]] auto getColumnAt(int32_t dbColIdx) const -> const settings::ResultsSettings::ColumnKey &
+  [[nodiscard]] auto getColumnAt(uint32_t dbColIdx) const -> const settings::ResultsSettings::ColumnKey &
   {
     if(!columns.contains(dbColIdx)) {
       throw std::invalid_argument("Colum unknown!");
@@ -97,7 +97,7 @@ private:
   static std::string getStatsString(enums::Stats stats, const std::string &offValue = "ANY_VALUE");
 
   /////////////////////////////////////////////////////
-  std::map<int32_t, settings::ResultsSettings::ColumnKey> columns;
+  std::map<uint32_t, settings::ResultsSettings::ColumnKey> columns;
   settings::ResultsSettings::ColumnName mColNames;
   const settings::ResultsSettings *mFilter;
 };
@@ -140,7 +140,7 @@ public:
 
   explicit ResultingTable(const settings::ResultsSettings *);
 
-  void setData(const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, int32_t row, int32_t dbColIx,
+  void setData(const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, uint32_t row, uint32_t dbColIx,
                const std::string & /*rowName*/, const table::TableCell &tableCell)
   {
     if(!mClassesAndClasses.contains(classsAndClass)) {

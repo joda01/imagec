@@ -93,7 +93,7 @@ public:
   auto createSnapShot(enums::HistoryCategory category, const std::string &note) -> std::optional<PipelineHistoryEntry>;
   auto restoreSnapShot(int32_t idex) const -> Pipeline;
   auto undo() const -> Pipeline;
-  void tag(const std::string &tagName, int32_t index = 0);
+  void tag(const std::string &tagName, size_t index = 0);
   void clearHistory();
   void eraseHistory();
   auto getHistory() const -> const std::vector<PipelineHistoryEntry> &

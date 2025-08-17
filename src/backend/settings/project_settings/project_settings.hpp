@@ -32,7 +32,7 @@ public:
   //
   // Job settings
   //
-  ExperimentSettings experimentSettings;
+  ExperimentSettings experimentSettings = {};
 
   //
   // Plates analyzed by this run

@@ -765,12 +765,12 @@ void WindowResults::previewThread()
 
     try {
       mDockWidgetImagePreview->getImageWidget()->setWaiting(true);
-      int32_t tileWidth      = previewData.analyzeMeta.tileWidth;
-      int32_t tileHeight     = previewData.analyzeMeta.tileHeight;
-      int32_t series         = previewData.analyzeMeta.series;
+      int32_t tileWidth      = static_cast<int32_t>(previewData.analyzeMeta.tileWidth);
+      int32_t tileHeight     = static_cast<int32_t>(previewData.analyzeMeta.tileHeight);
+      int32_t series         = static_cast<int32_t>(previewData.analyzeMeta.series);
       const auto &objectInfo = previewData.objectInfo;
-      int32_t tileXNr        = objectInfo.measCenterX / tileWidth;
-      int32_t tileYNr        = objectInfo.measCenterY / tileHeight;
+      int32_t tileXNr        = static_cast<int32_t>(static_cast<float>(objectInfo.measCenterX) / static_cast<float>(tileWidth));
+      int32_t tileYNr        = static_cast<int32_t>(static_cast<float>(objectInfo.measCenterY) / static_cast<float>(tileHeight));
       // int32_t resolution     = 0;
 
       auto plane = joda::image::reader::ImageReader::Plane{
@@ -784,8 +784,8 @@ void WindowResults::previewThread()
       // Set cursor position
       // ==============================================
 
-      QRect boungingBox{(int32_t) objectInfo.measBoxX, (int32_t) objectInfo.measBoxY, (int32_t) objectInfo.measBoxWidth,
-                        (int32_t) objectInfo.measBoxHeight};
+      QRect boungingBox{static_cast<int32_t>(objectInfo.measBoxX), static_cast<int32_t>(objectInfo.measBoxY),
+                        static_cast<int32_t>(objectInfo.measBoxWidth), static_cast<int32_t>(objectInfo.measBoxHeight)};
       mDockWidgetImagePreview->getImageWidget()->getImagePanel()->setCursorPositionFromOriginalImageCoordinatesAndCenter(boungingBox);
 
     } catch(const std::exception &ex) {
@@ -907,8 +907,8 @@ void WindowResults::onFinishedLoading()
     case Navigation::IMAGE:
       densityMapSize = mFilter.getDensityMapSettings().densityMapAreaSize;
       if(mSelectedDataSet.imageMeta.has_value()) {
-        rows = static_cast<int32_t>(std::ceil((float) mSelectedDataSet.imageMeta->height / (float) densityMapSize));
-        cols = static_cast<int32_t>(std::ceil((float) mSelectedDataSet.imageMeta->width / (float) densityMapSize));
+        rows = static_cast<int32_t>(std::ceil(static_cast<float>(mSelectedDataSet.imageMeta->height) / static_cast<float>(densityMapSize)));
+        cols = static_cast<int32_t>(std::ceil(static_cast<float>(mSelectedDataSet.imageMeta->width) / static_cast<float>(densityMapSize)));
       } else {
         rows           = 1;
         cols           = 1;
@@ -924,7 +924,7 @@ void WindowResults::onFinishedLoading()
   auto data = joda::db::data::convertToHeatmap(mActListData.get(), rows, cols, mDockWidgetGraphSettings->getSelectedColumn(),
                                                mActFilter.getFilter().tStack, joda::db::data::PlotPlateSettings{.densityMapSize = densityMapSize});
 
-  mGraphContainer->updateGraph(std::move(data), mDockWidgetGraphSettings->getSelectedColorMap(), mDockWidgetGraphSettings->getColorMapRangeSetting(),
+  mGraphContainer->updateGraph(data, mDockWidgetGraphSettings->getSelectedColorMap(), mDockWidgetGraphSettings->getColorMapRangeSetting(),
                                mDockWidgetGraphSettings->getColorMapRange(), mNavigation == Navigation::PLATE, mNavigation == Navigation::IMAGE);
   mDockWidgetGraphSettings->setColorMapRange(mGraphContainer->getColorMapRange());
 
@@ -972,7 +972,8 @@ void WindowResults::setSelectedElement(table::TableCell value)
       mMarkAsInvalid->setEnabled(false);
 
       // Act data
-      auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX);
+      auto platePos =
+          std::string(1, (static_cast<char>(mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX);
       mSelectedRowInfo->setText(platePos.data());
     } break;
     case Navigation::WELL: {
@@ -1016,8 +1017,8 @@ void WindowResults::setSelectedElement(table::TableCell value)
       if(mActImageId.size() > 1) {
         rowImageName = value.getRowName();
       }
-      auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
-                      rowImageName + "/" + std::to_string(value.getObjectId());
+      auto platePos = std::string(1, (static_cast<char>(mSelectedDataSet.groupMeta->posY - 1) + 'A')) +
+                      std::to_string(mSelectedDataSet.groupMeta->posX) + "/" + rowImageName + "/" + std::to_string(value.getObjectId());
       mSelectedRowInfo->setText(platePos.data());
 
       loadPreview();
