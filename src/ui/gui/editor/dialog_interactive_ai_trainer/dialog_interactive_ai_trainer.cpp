@@ -41,15 +41,7 @@ DialogInteractiveAiTrainer::DialogInteractiveAiTrainer(const joda::settings::Cla
   setMinimumSize(300, 400);
   auto *formLayout = new QFormLayout;
 
-  auto addSeparator = [&formLayout]() {
-    auto *separator = new QFrame;
-    separator->setFrameShape(QFrame::HLine);
-    separator->setFrameShadow(QFrame::Sunken);
-    formLayout->addRow(separator);
-  };
-
   defaultClassId = new QComboBox();
-
   formLayout->addRow("Class to train from", defaultClassId);
 
   auto *btnStartTraining = new QPushButton("Start training");

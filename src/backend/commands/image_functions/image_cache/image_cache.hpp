@@ -32,7 +32,7 @@ public:
   explicit ImageCache(const settings::ImageCacheSettings &settings) : mSettings(settings)
   {
   }
-  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
+  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList & /*result*/) override
   {
     joda::enums::ImageId id{.zProjection = enums::ZProjection::NONE, .imagePlane = {}, .memoryId = mSettings.memoryId};
 

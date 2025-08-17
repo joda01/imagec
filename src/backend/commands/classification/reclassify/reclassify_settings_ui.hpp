@@ -74,7 +74,7 @@ public:
     mClassesIntersectWith->connectWithSetting(&settings.intersection.inputClassesIntersectWith);
 
     mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Min. intersection");
-    mMinIntersection->setDefaultValue(0.1);
+    mMinIntersection->setDefaultValue(0.1F);
     mMinIntersection->setPlaceholderText("[0 - 1]");
     mMinIntersection->setUnit("%");
     mMinIntersection->setMinMax(0, 1);

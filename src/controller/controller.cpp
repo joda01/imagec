@@ -88,9 +88,9 @@ void Controller::initApplication()
   // Reserve system resources
   // ======================================
   auto systemRecourses   = joda::system::acquire();
-  int32_t totalRam       = std::ceil(static_cast<float>(systemRecourses.ramTotal) / 1000000.0f);
-  int32_t availableRam   = std::ceil(static_cast<float>(systemRecourses.ramAvailable) / 1000000.0f);
-  int32_t jvmReservedRam = std::ceil(static_cast<float>(systemRecourses.ramReservedForJVM) / 1000000.0f);
+  int32_t totalRam       = static_cast<int32_t>(std::ceil(static_cast<float>(systemRecourses.ramTotal) / 1000000.0F));
+  int32_t availableRam   = static_cast<int32_t>(std::ceil(static_cast<float>(systemRecourses.ramAvailable) / 1000000.0F));
+  int32_t jvmReservedRam = static_cast<int32_t>(std::ceil(static_cast<float>(systemRecourses.ramReservedForJVM) / 1000000.0F));
 
   bool cudaAvailable = torch::cuda::is_available();
   int numCudaDevices = torch::cuda::device_count();
@@ -115,7 +115,7 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
     -> joda::thread::ThreadingSettings
 {
   if(mWorkingDirectory.getNrOfFiles() > 0) {
-    return calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles(), imageOmeInfo);
+    return calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), static_cast<int32_t>(mWorkingDirectory.getNrOfFiles()), imageOmeInfo);
   }
   return {};
 }
@@ -136,10 +136,10 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
   } else {
     ome = imageOmeInfo.value();
   }
-  int64_t imgNr        = nrOfFiles;
-  int64_t tileNr       = 1;
-  int64_t pipelineNr   = settings.pipelines.size();
-  const auto &props    = ome.getImageInfo(settings.imageSetup.series);
+  int64_t imgNr      = nrOfFiles;
+  int64_t tileNr     = 1;
+  int64_t pipelineNr = static_cast<int64_t>(settings.pipelines.size());
+  // const auto &props    = ome.getImageInfo(settings.imageSetup.series);
   auto systemRecourses = getSystemResources();
 
   // Load image in tiles if too big
@@ -151,12 +151,12 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
                       imageInfo.imageHeight > settings.imageSetup.imageTileSettings.tileHeight)) {
     auto [tilesX, tilesY] = imageInfo.getNrOfTiles(settings.imageSetup.imageTileSettings.tileWidth, settings.imageSetup.imageTileSettings.tileHeight);
     tileNr                = static_cast<int64_t>(tilesX) * tilesY;
-    threads.ramPerImage   = (imageInfo.rgbChannelCount * imageInfo.bits * settings.imageSetup.imageTileSettings.tileWidth *
-                           settings.imageSetup.imageTileSettings.tileHeight) /
-                          8;
+    threads.ramPerImage   = static_cast<uint64_t>((imageInfo.rgbChannelCount * imageInfo.bits * settings.imageSetup.imageTileSettings.tileWidth *
+                                                 settings.imageSetup.imageTileSettings.tileHeight) /
+                                                8);
   } else {
     tileNr              = 1;
-    threads.ramPerImage = imageInfo.imageMemoryUsage;
+    threads.ramPerImage = static_cast<uint64_t>(imageInfo.imageMemoryUsage);
   }
 
   if(threads.ramPerImage <= 0) {
@@ -176,15 +176,15 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
 
   // Maximum number of cores depends on the available RAM.)
   int32_t maxNumberOfCoresToAssign =
-      std::min(static_cast<uint64_t>(systemRecourses.cpus), static_cast<uint64_t>(threads.ramFree / threads.ramPerImage));
+      static_cast<int32_t>(std::min(static_cast<uint64_t>(systemRecourses.cpus), static_cast<uint64_t>(threads.ramFree / threads.ramPerImage)));
   if(maxNumberOfCoresToAssign <= 0) {
     maxNumberOfCoresToAssign = 1;
   }
-  if(maxNumberOfCoresToAssign > 1 && maxNumberOfCoresToAssign == systemRecourses.cpus) {
+  if(maxNumberOfCoresToAssign > 1 && maxNumberOfCoresToAssign == static_cast<int32_t>(systemRecourses.cpus)) {
     // Don't use all CPU cores if there are more than 1
     maxNumberOfCoresToAssign--;
   }
-  threads.coresUsed = maxNumberOfCoresToAssign;
+  threads.coresUsed = static_cast<uint32_t>(maxNumberOfCoresToAssign);
 
   threads.cores[joda::thread::ThreadingSettings::IMAGES]   = 1;
   threads.cores[joda::thread::ThreadingSettings::TILES]    = 1;
@@ -208,7 +208,7 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
     }
   }
 
-  threads.totalRuns = imgNr * tileNr * pipelineNr;
+  threads.totalRuns = static_cast<uint64_t>(imgNr * tileNr * pipelineNr);
 
   /* joda::log::logInfo("Calculated threads " + std::to_string(imageInfo.optimalTileHeight) + "x" + std::to_string(imageInfo.optimalTileWidth) + " | "
      + std::to_string((float) threads.ramPerImage / 1000000.0f) + " MB " + " | " + std::to_string(threads.coresUsed));*/
@@ -224,7 +224,7 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
 ///
 auto Controller::getNrOfFoundImages() -> uint32_t
 {
-  return mWorkingDirectory.getNrOfFiles();
+  return static_cast<uint32_t>(mWorkingDirectory.getNrOfFiles());
 }
 
 ///
@@ -333,8 +333,8 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
     lastImagePath          = imagePath;
     ome::PhyiscalSize phys = {};
     if(defaultPhysicalSizeSettings.mode == enums::PhysicalSizeMode::Manual) {
-      phys = joda::ome::PhyiscalSize{defaultPhysicalSizeSettings.pixelWidth, defaultPhysicalSizeSettings.pixelHeight, 0,
-                                     defaultPhysicalSizeSettings.unit};
+      phys = joda::ome::PhyiscalSize{static_cast<double>(defaultPhysicalSizeSettings.pixelWidth),
+                                     static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.unit};
     }
     omeOut = joda::image::reader::ImageReader::getOmeInformation(imagePath, series, phys);
   }
@@ -397,6 +397,7 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
 
       std::function<void(int)> func;
       auto imageType = image.type();
+
       switch(zProjection) {
         case enums::ZProjection::MAX_INTENSITY:
           func = max;
@@ -409,11 +410,14 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
           func = avg;
           break;
         case enums::ZProjection::NONE:
+        case enums::ZProjection::$:
+        case enums::ZProjection::UNDEFINED:
+        case enums::ZProjection::TAKE_MIDDLE:
           break;
       }
 
-      for(uint32_t zIdx = 1; zIdx < omeIn->getNrOfZStack(series); zIdx++) {
-        func(zIdx);
+      for(uint32_t zIdx = 1; zIdx < static_cast<uint32_t>(omeIn->getNrOfZStack(series)); zIdx++) {
+        func(static_cast<int32_t>(zIdx));
       }
       // Avg intensity projection
       if(enums::ZProjection::AVG_INTENSITY == zProjection) {
@@ -444,10 +448,10 @@ auto Controller::getImageProperties(const std::filesystem::path &image, int seri
 {
   ome::PhyiscalSize phys = {};
   if(defaultPhysicalSizeSettings.mode == enums::PhysicalSizeMode::Manual) {
-    phys =
-        joda::ome::PhyiscalSize{defaultPhysicalSizeSettings.pixelWidth, defaultPhysicalSizeSettings.pixelHeight, 0, defaultPhysicalSizeSettings.unit};
+    phys = joda::ome::PhyiscalSize{static_cast<double>(defaultPhysicalSizeSettings.pixelWidth),
+                                   static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.unit};
   }
-  return joda::image::reader::ImageReader::getOmeInformation(image, series, phys);
+  return joda::image::reader::ImageReader::getOmeInformation(image, static_cast<uint16_t>(series), phys);
 }
 
 // FLOW CONTROL ////////////////////////////////////////////////
@@ -455,7 +459,8 @@ auto Controller::getImageProperties(const std::filesystem::path &image, int seri
 /// \author
 /// \return
 ///
-void Controller::start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const std::string &jobName)
+void Controller::start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings & /*threadSettings*/,
+                       const std::string &jobName)
 {
   if(mActThread.joinable()) {
     mActThread.join();
@@ -466,9 +471,10 @@ void Controller::start(const settings::AnalyzeSettings &settings, const joda::th
   mActProcessor.reset();
   mActProcessor = std::make_unique<processor::Processor>();
   mActThread    = std::thread([this, settings, jobName] {
-    mActProcessor->execute(settings, jobName,
-                              calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), mWorkingDirectory.getNrOfFiles(), std::nullopt),
-                              mWorkingDirectory);
+    mActProcessor->execute(
+        settings, jobName,
+        calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), static_cast<int32_t>(mWorkingDirectory.getNrOfFiles()), std::nullopt),
+        mWorkingDirectory);
   });
 }
 
@@ -545,7 +551,7 @@ auto Controller::populateClassesFromImage(const joda::ome::OmeInfo &omeInfo, int
   auto channels           = omeInfo.getChannelInfos(series);
   enums::ClassId actClass = enums::ClassId::C0;
   int colorIdx            = 0;
-  for(const auto &[_, channel] : channels) {
+  for(const auto &[_, channelIn] : channels) {
     auto addSubClass = [&actClass, &classes, &templatePerType](const std::string &channel, const std::string &subclass, const std::string &color) {
       std::vector<settings::ResultsTemplate> measurements;
       if(templatePerType.contains(subclass)) {
@@ -556,9 +562,9 @@ auto Controller::populateClassesFromImage(const joda::ome::OmeInfo &omeInfo, int
           .classId = actClass, .name = channel + "@" + subclass, .color = color, .notes = "", .defaultMeasurements = measurements});
       actClass = static_cast<enums::ClassId>((static_cast<uint16_t>(actClass)) + 1);
     };
-    auto waveLength         = channel.emissionWaveLength;
-    auto channelName        = helper::toLower(channel.name);
-    std::string color       = joda::settings::COLORS.at(colorIdx % joda::settings::COLORS.size());
+    // auto waveLength         = channel.emissionWaveLength;
+    auto channelName        = helper::toLower(channelIn.name);
+    std::string color       = joda::settings::COLORS.at(static_cast<uint64_t>(colorIdx) % joda::settings::COLORS.size());
     std::string channelType = "spot";
     // Try to find the best matching
     for(const auto &[channelFluorophore, data] : channelNameToColorMap) {
@@ -614,7 +620,7 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, const jod
                                                       .measuredChannels    = analyzer->selectMeasurementChannelsForClasses(),
                                                       .distanceFromClasses = analyzer->selectDistanceClassForClasses()});
   }
-  filter.setFilter(settings.filter.plateId, settings.filter.groupId, settings.filter.tStack, {imageId});
+  filter.setFilter(static_cast<uint8_t>(settings.filter.plateId), static_cast<uint16_t>(settings.filter.groupId), settings.filter.tStack, {imageId});
 
   joda::log::logInfo("Export started!");
   auto grouping = db::StatsPerGroup::Grouping::BY_IMAGE;
@@ -632,8 +638,8 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, const jod
       break;
     case exporter::xlsx::ExportSettings::ExportView::IMAGE:
       auto image   = analyzer->selectImageInfo(imageId);
-      imgWidth     = image.width;
-      imgHeight    = image.height;
+      imgWidth     = static_cast<int32_t>(image.width);
+      imgHeight    = static_cast<int32_t>(image.height);
       grouping     = db::StatsPerGroup::Grouping::BY_IMAGE;
       dataToExport = joda::db::StatsPerImage::toTable(analyzer.get(), filter);
       break;
@@ -648,6 +654,7 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, const jod
       auto tmp             = std::shared_ptr<joda::table::Table>(&dataToExport, [](joda::table::Table *) { /* no delete */ });
       auto retValDashboard = dashboard.convert(tmp, colocClasses, settings.view == exporter::xlsx::ExportSettings::ExportView::IMAGE);
       std::vector<const exporter::Exportable *> retVal;
+      retVal.reserve(retValDashboard.size());
       for(const auto &[_, data] : retValDashboard) {
         retVal.emplace_back(data.get());
       }
@@ -665,6 +672,7 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, const jod
     auto tmp             = std::shared_ptr<joda::table::Table>(&dataToExport, [](joda::table::Table *) { /* no delete */ });
     auto retValDashboard = dashboard.convert(tmp, colocClasses, settings.view == exporter::xlsx::ExportSettings::ExportView::IMAGE);
     std::vector<const exporter::Exportable *> retVal;
+    retVal.reserve(retValDashboard.size());
     for(const auto &[_, data] : retValDashboard) {
       retVal.emplace_back(data.get());
     }

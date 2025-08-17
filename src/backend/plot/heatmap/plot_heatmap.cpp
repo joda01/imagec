@@ -131,7 +131,7 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
   // Plot highlight
   // =========================================
   if(mHighLight.has_value()) {
-    if(mHighLight->row < nrRows && mHighLight->col < nrCols) {
+    if(mHighLight->row < static_cast<int32_t>(nrRows) && mHighLight->col < static_cast<int32_t>(nrCols)) {
       auto x1          = static_cast<int32_t>(static_cast<double>(mHighLight->col) * mRectWidth);
       auto y1          = static_cast<int32_t>(static_cast<double>(mHighLight->row) * mRectHeight);
       auto x2          = static_cast<int32_t>(static_cast<double>(mHighLight->col) * mRectWidth + mRectWidth);
@@ -185,7 +185,7 @@ void Heatmap::plotLegend(const ColorMappingRange &range, const cv::Mat &colorLUT
       if(idx == UINT8_MAX - 1) {
         idx = UINT8_MAX;
       }
-      cv::Rect rect(startX + COLOR_STRIP_WITH + 4, y, 100, 30);
+      cv::Rect rect(startX + COLOR_STRIP_WITH + 4, static_cast<int32_t>(y), 100, 30);
       PlotBase::drawLeftAlignedText(plotArea, doubleToString(value, mPrecision), rect, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1);
     }
   }
@@ -329,10 +329,10 @@ auto Heatmap::getCellFromCoordinates(double x, double y) const -> std::optional<
   uint32_t nrCols = mData.getNrOfCols();
   auto row        = static_cast<int32_t>(y / mRectHeight);
   auto col        = static_cast<int32_t>(x / mRectWidth);
-  if(row >= 0 && row < nrRows && col >= 0 && col < nrCols) {
-    auto data = mData.data(row, col);
+  if(row >= 0 && row < static_cast<int32_t>(nrRows) && col >= 0 && col < static_cast<int32_t>(nrCols)) {
+    auto data = mData.data(static_cast<uint32_t>(row), static_cast<uint32_t>(col));
     if(data != nullptr) {
-      return std::tuple<Cell, joda::table::TableCell>{Cell{col, row}, *mData.data(row, col)};
+      return std::tuple<Cell, joda::table::TableCell>{Cell{col, row}, *mData.data(static_cast<uint32_t>(row), static_cast<uint32_t>(col))};
     } else {
       return std::tuple<Cell, joda::table::TableCell>{Cell{col, row}, {}};
     }

@@ -97,8 +97,8 @@ settings::ObjectInputClassesExp SettingComboBoxMultiClassificationUnmanaged::get
   settings::ObjectInputClassesExp toReturn;
   auto checked = (mComboBox)->getCheckedItems();
 
-  for(const auto &[data, _] : checked) {
-    toReturn.emplace(fromInt(data.toUInt()));
+  for(const auto &[dataIn, _] : checked) {
+    toReturn.emplace(fromInt(dataIn.toUInt()));
   }
 
   return toReturn;

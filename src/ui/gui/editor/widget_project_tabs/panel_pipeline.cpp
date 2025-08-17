@@ -141,10 +141,10 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
       messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning").pixmap(48, 48));
       messageBox.setWindowTitle("Delete pipeline?");
       messageBox.setText("Delete pipeline?");
-      QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
-      QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+      QPushButton *noButton = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+      messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
       messageBox.setDefaultButton(noButton);
-      auto reply = messageBox.exec();
+      messageBox.exec();
       if(messageBox.clickedButton() == noButton) {
         return;
       }
@@ -482,7 +482,7 @@ void PanelPipeline::addChannelFromPath(const QString &pathToSettings)
     messageBox.setWindowTitle("Could not load settings!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-    auto reply = messageBox.exec();
+    messageBox.exec();
   }
 }
 
@@ -503,7 +503,7 @@ void PanelPipeline::addChannelFromJson(const nlohmann::json &json)
     messageBox.setWindowTitle("Could not load settings!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-    auto reply = messageBox.exec();
+    messageBox.exec();
   }
 }
 

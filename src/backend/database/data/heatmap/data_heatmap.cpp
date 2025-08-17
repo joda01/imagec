@@ -134,14 +134,10 @@ auto convertToHeatmap(const joda::table::Table *table, uint32_t rows, uint32_t c
       uint32_t posY = pos.posY;
       uint32_t posX = pos.posX;
       // int32_t tblRow = value.tblRow;
-      if(posX >= 0) {
-        if(posY >= 0) {
-          if(cellTmp.has_value()) {
-            cellTmp->setRowName(numberToExcelColumn(posY + 1));
-            cellTmp->setVal(val);
-            data.setData(posY, posX, cellTmp.value());
-          }
-        }
+      if(cellTmp.has_value()) {
+        cellTmp->setRowName(numberToExcelColumn(posY + 1));
+        cellTmp->setVal(val);
+        data.setData(posY, posX, cellTmp.value());
       }
     }
   }

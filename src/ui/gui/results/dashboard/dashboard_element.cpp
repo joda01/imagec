@@ -186,11 +186,11 @@ auto DashboardElement::getSelectedRows() const -> std::vector<joda::table::Table
 ///
 void DashboardElement::copyTableToClipboard() const
 {
-  QStringList data;
+  QStringList dataIn;
   QStringList header;
-  for(int row = 0; row < mTable->getNrOfRows(); ++row) {
+  for(uint32_t row = 0; row < mTable->getNrOfRows(); ++row) {
     QStringList rowData;
-    for(int col = 0; col < mTable->getNrOfCols(); ++col) {
+    for(uint32_t col = 0; col < mTable->getNrOfCols(); ++col) {
       if(row == 0) {
         header << mTable->getColHeader(col).createHeader().data();
       }
@@ -211,10 +211,10 @@ void DashboardElement::copyTableToClipboard() const
         rowData << "";
       }
     }
-    data << rowData.join("\t");    // Join row data with tabs for better readability
+    dataIn << rowData.join("\t");    // Join row data with tabs for better readability
   }
 
-  QString text = "\t" + header.join("\t") + "\n" + data.join("\n");    // Join rows with newlines
+  QString text = "\t" + header.join("\t") + "\n" + dataIn.join("\n");    // Join rows with newlines
 
   QClipboard *clipboard = QApplication::clipboard();
   clipboard->setText(text);

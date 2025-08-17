@@ -218,7 +218,7 @@ void DialogAnalyzeRunning::onRefreshData()
       messageBox.setWindowTitle("Error...");
       messageBox.setText("Error in execution got >" + QString(mWindowMain->getController()->getJobInformation().errorLog.data()) + "<.");
       messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-      auto reply = messageBox.exec();
+      messageBox.exec();
     }
     mStopped     = true;
     progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Finished ...";

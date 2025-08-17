@@ -12,6 +12,7 @@
 ///
 
 #include "pipeline.hpp"
+#include <cstddef>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -117,12 +118,12 @@ auto Pipeline::undo() const -> Pipeline
 /// \brief      Tagname
 /// \author     Joachim Danmayr
 ///
-void Pipeline::tag(const std::string &tagName, int32_t index)
+void Pipeline::tag(const std::string &tagName, size_t indexIn)
 {
-  if(history.size() < index) {
+  if(history.size() < indexIn) {
     throw std::runtime_error("This history entry does not exist!");
   }
-  history.at(index).tagMessage = tagName;
+  history.at(indexIn).tagMessage = tagName;
 }
 
 ///

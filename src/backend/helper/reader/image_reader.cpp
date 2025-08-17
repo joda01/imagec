@@ -172,7 +172,7 @@ void ImageReader::init(uint64_t reservedRamForVMInBytes)
 #else
     options[0].optionString = const_cast<char *>("-Djava.class.path=./:java/bioformats.jar:java");
 #endif
-    int32_t jvmRam          = std::ceil(static_cast<double>(reservedRamForVMInBytes) / 1000000.0f);
+    int32_t jvmRam          = static_cast<int32_t>(std::ceil(static_cast<double>(reservedRamForVMInBytes) / 1000000.0));
     std::string ramReserved = "-Xmx" + std::to_string(jvmRam) + "m";
     options[1].optionString = const_cast<char *>(ramReserved.data());
 
@@ -187,13 +187,13 @@ void ImageReader::init(uint64_t reservedRamForVMInBytes)
      *  variable to the home directory of the JVM you want to use
      *  (prior to the CreateJavaVM() call).
      */
-    if(JNI_CreateJavaVM(&myJVM, (void **) &myGlobEnv, &initArgs) != 0) {
+    if(JNI_CreateJavaVM(&myJVM, reinterpret_cast<void **>(&myGlobEnv), &initArgs) != 0) {
       std::cout << "JAVA VM ERROR" << std::endl;
       mJVMInitialised = false;
     } else {
       jclass localCls = myGlobEnv->FindClass("BioFormatsWrapper");
       if(localCls == NULL) {
-        if(myGlobEnv->ExceptionOccurred()) {
+        if(myGlobEnv->ExceptionOccurred() != nullptr) {
           myGlobEnv->ExceptionDescribe();
         }
         joda::log::logError("Could not found BioFormats class!");
@@ -266,7 +266,7 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &i
     // std::lock_guard<std::mutex> lock(mReadMutex);
 
     JNIEnv *myEnv;
-    myJVM->AttachCurrentThread((void **) &myEnv, NULL);
+    myJVM->AttachCurrentThread(reinterpret_cast<void **>(&myEnv), nullptr);
     jstring filePath = myEnv->NewStringUTF(filename.c_str());
 
     //
@@ -283,7 +283,7 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &i
     // Load image
     //
     if(series >= ome.getNrOfSeries()) {
-      series = ome.getNrOfSeries() - 1;
+      series = static_cast<uint16_t>(ome.getNrOfSeries() - 1);
     }
     jbyteArray readImg = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, static_cast<int>(series),
                                                                     static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t);
@@ -328,7 +328,7 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, Plane imagePlane
   if(nullptr != myJVM && mJVMInitialised && imagePlane.c >= 0 && imagePlane.z >= 0 && imagePlane.t >= 0) {
     // std::lock_guard<std::mutex> lock(mReadMutex);
     if(series >= ome.getNrOfSeries()) {
-      series = ome.getNrOfSeries() - 1;
+      series = static_cast<uint16_t>(ome.getNrOfSeries() - 1);
     }
     // Find the pyramid with the best matching resolution for thumbnail creation
 
@@ -346,7 +346,7 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, Plane imagePlane
     };
 
     int32_t resolutionIdx = 0;
-    uint16_t nrOfSeries   = ome.getNrOfSeries();
+    uint16_t nrOfSeries   = static_cast<uint16_t>(ome.getNrOfSeries());
     ome::OmeInfo::ImageInfo::Pyramid resolution;
     // Look for a possible thumbnail
     for(; series < nrOfSeries; series++) {
@@ -364,7 +364,7 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, Plane imagePlane
       return cv::Mat{};
     }
     JNIEnv *myEnv;
-    myJVM->AttachCurrentThread((void **) &myEnv, NULL);
+    myJVM->AttachCurrentThread(reinterpret_cast<void **>(&myEnv), nullptr);
     jstring filePath = myEnv->NewStringUTF(filename.c_str());
 
     //
@@ -403,14 +403,14 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, Plane imagePlane
       return {};
     }
 
-    jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
+    // jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
 
     // This is the image information
     cv::Mat loadedImage = convertImageToMat(myEnv, readImg, imageWidth, imageHeight, bitDepth, rgbChannelCount, isInterleaved, isLittleEndian);
 
     myEnv->DeleteLocalRef(filePath);
     myJVM->DetachCurrentThread();
-    return cv::Mat(joda::image::func::Resizer::resizeWithAspectRatio(loadedImage, THUMBNAIL_SIZE, THUMBNAIL_SIZE));
+    return (joda::image::func::Resizer::resizeWithAspectRatio(loadedImage, THUMBNAIL_SIZE, THUMBNAIL_SIZE));
   }
 
   return cv::Mat{};
@@ -499,7 +499,7 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
     // Load image
     //
     if(series >= ome.getNrOfSeries()) {
-      series = ome.getNrOfSeries() - 1;
+      series = static_cast<uint16_t>(ome.getNrOfSeries() - 1);
     }
     auto i1       = DurationCount::start("Load from filesystm");
     auto *readImg = (jbyteArray) myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImageTile, filePath, static_cast<int>(series),
@@ -547,7 +547,7 @@ auto ImageReader::getOmeInformation(const std::filesystem::path &filename, uint1
   if(nullptr != myJVM && mJVMInitialised) {
     auto id = DurationCount::start("Get OEM");
     JNIEnv *myEnv;
-    myJVM->AttachCurrentThread((void **) &myEnv, NULL);
+    myJVM->AttachCurrentThread((void **) &myEnv, nullptr);
     if(!std::filesystem::exists(filename)) {
       joda::log::logError("File >" + filename.string() + "<, does not exist!");
       return {};
@@ -570,7 +570,7 @@ auto ImageReader::getOmeInformation(const std::filesystem::path &filename, uint1
       return {};
     }
 
-    const char *stringChars = myEnv->GetStringUTFChars(result, NULL);
+    const char *stringChars = myEnv->GetStringUTFChars(result, nullptr);
     std::string omeXML(stringChars);
     myEnv->ReleaseStringUTFChars(result, stringChars);
 
@@ -623,7 +623,7 @@ cv::Mat ImageReader::convertImageToMat(JNIEnv *myEnv, const jbyteArray &readImg,
   }
 
   cv::Mat image = cv::Mat::zeros(heightTmp, widthTmp, format);
-  myEnv->GetByteArrayRegion(readImg, 0, totalSizeLoaded, (jbyte *) image.data);
+  myEnv->GetByteArrayRegion(readImg, 0, totalSizeLoaded, reinterpret_cast<jbyte *>(image.data));
   if(!isLittleEndian) {
     bigEndianToLittleEndian(image, format);
   }
@@ -682,9 +682,9 @@ void ImageReader::bigEndianToLittleEndian(cv::Mat &inOut, uint32_t format)
 {
   // 16 bit grayscale
   if(format == CV_16UC1) {
-    for(int p = 0; p < inOut.total(); p++) {
-      uint16_t tmp         = inOut.at<int16_t>(p);
-      inOut.at<int16_t>(p) = (tmp >> 8) | (tmp << 8);
+    for(size_t p = 0; p < inOut.total(); p++) {
+      uint16_t tmp         = static_cast<uint16_t>(inOut.at<int16_t>(p));
+      inOut.at<int16_t>(p) = static_cast<uint8_t>((tmp >> 8) | (tmp << 8));
     }
   }
 }

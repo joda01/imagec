@@ -53,7 +53,7 @@ void TableModelPreviewResult::setData(joda::ctrl::Preview::PreviewResults *resul
   refresh();
 }
 
-int TableModelPreviewResult::rowCount(const QModelIndex &parent) const
+int TableModelPreviewResult::rowCount(const QModelIndex & /*parent*/) const
 {
   if(mPreviewResult == nullptr) {
     return 0;
@@ -61,7 +61,7 @@ int TableModelPreviewResult::rowCount(const QModelIndex &parent) const
   return mPreviewResult->foundObjects.size();
 }
 
-int TableModelPreviewResult::columnCount(const QModelIndex &parent) const
+int TableModelPreviewResult::columnCount(const QModelIndex & /*parent*/) const
 {
   if(mPreviewResult == nullptr) {
     return 0;

@@ -540,7 +540,7 @@ auto WindowResults::createToolBar() -> QToolBar *
   fileMenu->addSeparator();
   fileMenu->addMenu(exportMenu);
 
-  auto *windowToolBarMenu = mTopMenuBar->addMenu(windowMenu);
+  mTopMenuBar->addMenu(windowMenu);
 
   return toolbar;
 }

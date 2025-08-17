@@ -156,7 +156,7 @@ void SettingComboBoxClassificationIn::setValue(const settings::ObjectInputClasss
 std::map<enums::ClassIdIn, std::string> SettingComboBoxClassificationIn::getValueAndNames()
 {
   std::map<enums::ClassIdIn, std::string> toReturn;
-  auto checked = ((QComboBoxMulti *) mComboBox)->getCheckedItems();
+  auto checked = (dynamic_cast<QComboBoxMulti *>(mComboBox))->getCheckedItems();
 
   for(const auto &[dataIn, txt] : checked) {
     toReturn.emplace(fromInt(dataIn.toUInt()), txt.toStdString());

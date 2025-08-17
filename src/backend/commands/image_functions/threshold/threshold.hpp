@@ -129,7 +129,7 @@ private:
     double scale    = 256.0 / (max - min + 1);
     cv::Mat charImg = cv::Mat::zeros(srcImg.rows, srcImg.cols, CV_8UC1);
     // srcImg.convertTo(charImg, CV_8UC1, scale);
-    for(int i = 0; i < srcImg.total(); i++) {
+    for(int i = 0; i < static_cast<int32_t>(srcImg.total()); i++) {
       auto value = (srcImg.at<uint16_t>(i) & 0xffff) - min;
       if(value < 0) {
         value = 0;

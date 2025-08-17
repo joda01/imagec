@@ -49,15 +49,15 @@ void TableModelPipeline::setData(std::list<joda::settings::Pipeline> *pipelines)
   mPipelines = pipelines;
 }
 
-int TableModelPipeline::rowCount(const QModelIndex &parent) const
+int TableModelPipeline::rowCount(const QModelIndex & /*parent*/) const
 {
   if(mPipelines == nullptr) {
     return 0;
   }
-  return mPipelines->size();
+  return static_cast<int>(mPipelines->size());
 }
 
-int TableModelPipeline::columnCount(const QModelIndex &parent) const
+int TableModelPipeline::columnCount(const QModelIndex & /*parent*/) const
 {
   if(mPipelines == nullptr) {
     return 0;
@@ -72,7 +72,7 @@ int TableModelPipeline::columnCount(const QModelIndex &parent) const
 /// \param[out]
 /// \return
 ///
-QVariant TableModelPipeline::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant TableModelPipeline::headerData(int section, Qt::Orientation /*orientation*/, int role) const
 {
   if(mPipelines == nullptr) {
     return {};
@@ -135,7 +135,7 @@ QVariant TableModelPipeline::data(const QModelIndex &index, int role) const
     }
     if(index.column() == 1) {
       QString retStr;
-      if((int32_t) it->pipelineSetup.defaultClassId >= 0) {
+      if(static_cast<int32_t>(it->pipelineSetup.defaultClassId) >= 0) {
         retStr = mClassSettings.getClassFromId(it->pipelineSetup.defaultClassId).name.data();
       } else {
         retStr = "None";

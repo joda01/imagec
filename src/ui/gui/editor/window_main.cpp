@@ -530,7 +530,7 @@ void WindowMain::openResultsSettings(const QString &filePath)
     messageBox.setWindowTitle("Could not load database!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-    auto reply = messageBox.exec();
+    messageBox.exec();
   }
 }
 

@@ -569,10 +569,10 @@ auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy gro
                          imagePath, &imagesBasePath, &defaultPhysicalSizeSettings]() {
       ome::PhyiscalSize phys = {};
       if(defaultPhysicalSizeSettings.mode == enums::PhysicalSizeMode::Manual) {
-        phys = joda::ome::PhyiscalSize{defaultPhysicalSizeSettings.pixelWidth, defaultPhysicalSizeSettings.pixelHeight, 0,
-                                       defaultPhysicalSizeSettings.unit};
+        phys = joda::ome::PhyiscalSize{static_cast<double>(defaultPhysicalSizeSettings.pixelWidth),
+                                       static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.unit};
       }
-      auto ome = joda::image::reader::ImageReader::getOmeInformation(imagePath, series, phys);
+      auto ome = joda::image::reader::ImageReader::getOmeInformation(imagePath, static_cast<uint16_t>(series), phys);
       auto [physicalPixelSizeWidth, physicalPixelSizeHeight, physicalPixelSizeDepth] =
           ome.getPhyiscalSize(series).getPixelSize(defaultPhysicalSizeSettings.unit);
       nlohmann::json physicalImageSizeUnit = defaultPhysicalSizeSettings.unit;
@@ -682,7 +682,7 @@ void Database::insertGroup(uint16_t plateId, const joda::grp::GroupInformation &
 /// \param[out]
 /// \return
 ///
-void Database::insertImage(const joda::processor::ImageContext &image, const joda::grp::GroupInformation &groupInfo)
+void Database::insertImage(const joda::processor::ImageContext &image, const joda::grp::GroupInformation & /*groupInfo*/)
 {
   auto connection = acquire();
   auto prepare    = connection->Prepare(
@@ -756,7 +756,7 @@ void Analyzer::unMarkImageChannelAsManualInvalid(const std::string &analyzeId, u
 /// \param[out]
 /// \return
 ///
-void Database::insertImagePlane(uint64_t imageId, const enums::PlaneId &planeId, const ome::OmeInfo::ImagePlane &planeInfo)
+void Database::insertImagePlane(uint64_t imageId, const enums::PlaneId &planeId, const ome::OmeInfo::ImagePlane & /*planeInfo*/)
 {
   auto connection = acquire();
   auto prepare    = connection->Prepare("INSERT OR IGNORE INTO images_planes (image_id, stack_c, stack_z, stack_t, validity) VALUES (?, ?, ?, ?, ?)");
@@ -1230,8 +1230,8 @@ std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &
     platesDb.Append<uint16_t>(plate.plateId);                                                        //       " plate_id USMALLINT,"
     platesDb.Append<duckdb::string_t>(plate.name);                                                   //       " name STRING,"
     platesDb.Append<duckdb::string_t>(plate.notes);                                                  //       " notes STRING,"
-    platesDb.Append<uint16_t>(plate.plateSetup.rows);                                                //       " rows USMALLINT,"
-    platesDb.Append<uint16_t>(plate.plateSetup.cols);                                                //       " cols USMALLINT,"
+    platesDb.Append<uint16_t>(static_cast<uint16_t>(plate.plateSetup.rows));                         //       " rows USMALLINT,"
+    platesDb.Append<uint16_t>(static_cast<uint16_t>(plate.plateSetup.cols));                         //       " cols USMALLINT,"
     platesDb.Append<duckdb::string_t>(plate.imageFolder);                                            //       " image_folder STRING,"
     platesDb.Append<duckdb::string_t>(settings::vectorToString(plate.plateSetup.wellImageOrder));    //       " well_image_order STRING,"
     platesDb.Append<duckdb::string_t>(std::string(groupBy));                                         //       " group_by STRING,"
@@ -1268,7 +1268,7 @@ auto Database::selectPlates() -> std::map<uint16_t, joda::settings::Plate>
   std::map<uint16_t, joda::settings::Plate> results;
   for(size_t n = 0; n < materializedResult->RowCount(); n++) {
     joda::settings::Plate plate;
-    plate.plateId                   = materializedResult->GetValue(0, n).GetValue<uint16_t>();
+    plate.plateId                   = static_cast<uint8_t>(materializedResult->GetValue(0, n).GetValue<uint16_t>());
     plate.name                      = materializedResult->GetValue(1, n).GetValue<std::string>();
     plate.notes                     = materializedResult->GetValue(2, n).GetValue<std::string>();
     plate.plateSetup.rows           = materializedResult->GetValue(3, n).GetValue<uint16_t>();
@@ -1343,8 +1343,8 @@ void Database::flatten(const std::vector<cv::Point> &contour, duckdb::vector<duc
 {
   flattenPointsOut.reserve(contour.size() * 2);
   for(const auto &point : contour) {
-    flattenPointsOut.push_back(duckdb::Value::UINTEGER(point.x));
-    flattenPointsOut.push_back(duckdb::Value::UINTEGER(point.y));
+    flattenPointsOut.push_back(duckdb::Value::UINTEGER(static_cast<uint32_t>(point.x)));
+    flattenPointsOut.push_back(duckdb::Value::UINTEGER(static_cast<uint32_t>(point.y)));
   }
 }
 
@@ -1608,7 +1608,7 @@ auto Database::selectOutputClasses() -> std::set<enums::ClassId>
   if(materializedResult->RowCount() > 0) {
     duckdb::Value value = materializedResult->GetValue(0, 0);
     auto children       = duckdb::MapValue::GetChildren(value);
-    for(int n = 0; n < children.size(); n++) {
+    for(size_t n = 0; n < children.size(); n++) {
       channels.emplace(static_cast<enums::ClassId>(children[n].GetValue<int32_t>()));
     }
   }
@@ -1672,8 +1672,8 @@ auto Database::selectColocalizingClasses() -> std::set<std::set<enums::ClassId>>
   auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
 
   std::set<std::set<enums::ClassId>> ret;
-  for(int32_t row = 0; row < materializedResult->RowCount(); row++) {
-    auto listOfClasses = materializedResult->GetValue(0, row).GetValue<std::string>();
+  for(duckdb::idx_t row = 0; row < materializedResult->RowCount(); row++) {
+    auto listOfClasses = materializedResult->GetValue(0, static_cast<duckdb::idx_t>(row)).GetValue<std::string>();
     auto classesStr    = joda::helper::split(listOfClasses, {','});
     std::set<enums::ClassId> classesHavingCommonTrackingId;
     for(const auto &classStr : classesStr) {

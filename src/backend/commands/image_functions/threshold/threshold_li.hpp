@@ -80,7 +80,7 @@ public:
       /* Object */
       sum_obj = 0;
       num_obj = 0;
-      for(int ih = threshold + 1; ih < histogram.total(); ih++) {
+      for(int ih = threshold + 1; ih < static_cast<int32_t>(histogram.total()); ih++) {
         sum_obj += static_cast<double>(ih) * static_cast<double>(histogram.at<float>(ih));
         num_obj += static_cast<double>(histogram.at<float>(ih));
       }

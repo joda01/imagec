@@ -38,13 +38,6 @@ DialogPipelineSettings::DialogPipelineSettings(const joda::settings::Classificat
   setMinimumSize(500, 400);
   auto *formLayout = new QFormLayout;
 
-  auto addSeparator = [&formLayout]() {
-    auto *separator = new QFrame;
-    separator->setFrameShape(QFrame::HLine);
-    separator->setFrameShadow(QFrame::Sunken);
-    formLayout->addRow(separator);
-  };
-
   mPipelineName = new QLineEdit();
   formLayout->addRow("Pipeline name", mPipelineName);
 
@@ -71,11 +64,11 @@ DialogPipelineSettings::DialogPipelineSettings(const joda::settings::Classificat
   formLayout->addRow("Output class", mClass);
 
   zProjection = new QComboBox();
-  zProjection->addItem("None", (int32_t) enums::ZProjection::NONE);
-  zProjection->addItem("Max. intensity", (int32_t) enums::ZProjection::MAX_INTENSITY);
-  zProjection->addItem("Min. intensity", (int32_t) enums::ZProjection::MIN_INTENSITY);
-  zProjection->addItem("Avg. intensity", (int32_t) enums::ZProjection::AVG_INTENSITY);
-  zProjection->addItem("Take middle", (int32_t) enums::ZProjection::TAKE_MIDDLE);
+  zProjection->addItem("None", static_cast<int32_t>(enums::ZProjection::NONE));
+  zProjection->addItem("Max. intensity", static_cast<int32_t>(enums::ZProjection::MAX_INTENSITY));
+  zProjection->addItem("Min. intensity", static_cast<int32_t>(enums::ZProjection::MIN_INTENSITY));
+  zProjection->addItem("Avg. intensity", static_cast<int32_t>(enums::ZProjection::AVG_INTENSITY));
+  zProjection->addItem("Take middle", static_cast<int32_t>(enums::ZProjection::TAKE_MIDDLE));
   formLayout->addRow("z-projection", zProjection);
 
   zStackIndex = new QLineEdit();
@@ -140,8 +133,8 @@ void DialogPipelineSettings::accept()
   mSettings.pipelineSetup.cStackIndex    = mCStackIndex->currentData().toInt();
   mSettings.pipelineSetup.zStackIndex    = zStack;
   mSettings.pipelineSetup.tStackIndex    = tStack;
-  mSettings.pipelineSetup.defaultClassId = (enums::ClassId) mClass->currentData().toInt();
-  mSettings.pipelineSetup.zProjection    = (enums::ZProjection) zProjection->currentData().toInt();
+  mSettings.pipelineSetup.defaultClassId = static_cast<enums::ClassId>(mClass->currentData().toInt());
+  mSettings.pipelineSetup.zProjection    = static_cast<enums::ZProjection>(zProjection->currentData().toInt());
 
   QDialog::accept();
 }
@@ -179,7 +172,7 @@ void DialogPipelineSettings::fromSettings()
   }
 
   for(int idx = 0; idx < mClass->count(); idx++) {
-    if(mSettings.pipelineSetup.defaultClassId == (enums::ClassId) mClass->itemData(idx).toInt()) {
+    if(mSettings.pipelineSetup.defaultClassId == static_cast<enums::ClassId>(mClass->itemData(idx).toInt())) {
       mClass->setCurrentIndex(idx);
       break;
     }

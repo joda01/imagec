@@ -430,7 +430,7 @@ void PanelClassification::loadTemplates()
   std::string actCategory = "basic";
   size_t addedPerCategory = 0;
   for(const auto &[category, dataInCategory] : foundTemplates) {
-    for(const auto &[_, data] : dataInCategory) {
+    for(const auto &[_, dataIn] : dataInCategory) {
       // Now the user templates start, add an addition separator
       if(category != actCategory) {
         actCategory = category;
@@ -439,12 +439,12 @@ void PanelClassification::loadTemplates()
         }
       }
       QAction *action;
-      if(!data.icon.isNull()) {
-        action = mTemplateMenu->addAction(QIcon(data.icon.scaled(28, 28)), data.title.data());
+      if(!dataIn.icon.isNull()) {
+        action = mTemplateMenu->addAction(QIcon(dataIn.icon.scaled(28, 28)), dataIn.title.data());
       } else {
-        action = mTemplateMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("star"), data.title.data());
+        action = mTemplateMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("star"), dataIn.title.data());
       }
-      connect(action, &QAction::triggered, [this, path = data.path]() { openTemplate(path.data()); });
+      connect(action, &QAction::triggered, [this, path = dataIn.path]() { openTemplate(path.data()); });
     }
     addedPerCategory = dataInCategory.size();
   }
@@ -568,7 +568,7 @@ void PanelClassification::populateClassesFromImage()
       messageBox.setWindowTitle("Could not find any images!");
       messageBox.setText("No images found! Please select a image directory first!");
       messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-      auto reply = messageBox.exec();
+      messageBox.exec();
       return;
     }
 
