@@ -31,7 +31,7 @@ struct EnhanceContrastSettings : public SettingBase
   //
   //
   //
-  float saturatedPixels = 0.35;
+  float saturatedPixels = 0.35F;
 
   //
   //

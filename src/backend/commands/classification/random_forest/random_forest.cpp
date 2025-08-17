@@ -11,6 +11,7 @@
 
 #include "random_forest.hpp"
 #include <opencv2/core/hal/interface.h>
+#include "backend/enums/enums_units.hpp"
 #include <opencv2/ml.hpp>
 
 namespace joda::cmd {
@@ -77,7 +78,7 @@ void RandomForest::prepareTrainingDataFromROI(const cv::Mat &image, const std::u
             static_cast<float>(img_x),
             static_cast<float>(img_y),
             static_cast<float>(roi.getCircularity()),
-            static_cast<float>(roi.getAreaSize()),
+            static_cast<float>(roi.getAreaSize({ome::PhyiscalSize::Pixels(), enums::Units::Pixels})),    /// \todo
             static_cast<float>(roiIntensity.intensitySum),
             static_cast<float>(roiIntensity.intensityMax),
             static_cast<float>(roiIntensity.intensityMin),

@@ -140,7 +140,7 @@ private:
   {
     mElements.remove_if([eraseRoi](const ROI &obj) { return &obj == eraseRoi; });
     for(auto &[_, vec] : grid) {
-      int32_t vecSizeBefore = vec.size();
+      auto vecSizeBefore = vec.size();
       vec.erase(std::remove_if(vec.begin(), vec.end(), [eraseRoi](const ROI *obj) { return obj == eraseRoi; }), vec.end());
       if(vec.size() < vecSizeBefore) {
         // We removed something
@@ -270,12 +270,12 @@ public:
     return at(classId);
   }
 
-  const ROI *getObjectById(uint64_t objectId) const
+  [[nodiscard]] const ROI *getObjectById(uint64_t objectId) const
   {
     return objectsOrderedByObjectId.at(objectId);
   }
 
-  const bool containsObjectById(uint64_t objectId) const
+  [[nodiscard]] bool containsObjectById(uint64_t objectId) const
   {
     return objectsOrderedByObjectId.contains(objectId);
   }

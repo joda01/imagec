@@ -21,8 +21,10 @@
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_units.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/global_enums.hpp"
+#include "backend/helper/ome_parser/physical_size.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
 #include <opencv2/dnn.hpp>
@@ -86,25 +88,25 @@ public:
   ROI(RoiObjectId index, Confidence confidence, const Boxes &boundingBox, const cv::Mat &mask, const std::vector<cv::Point> &contour,
       const cv::Size &imageSize, const cv::Size &originalImageSize, const enums::tile_t &tile, const cv::Size &tileSize);
 
-  ROI(ROI &&input) :
-      mIsNull(std::move(input.mIsNull)), mObjectId(std::move(input.mObjectId)), mId(std::move(input.mId)), confidence(std::move(input.confidence)),
-      mBoundingBoxTile(std::move(input.mBoundingBoxTile)), mBoundingBoxReal(std::move(input.mBoundingBoxReal)), mMask(std::move(input.mMask)),
-      mMaskContours(std::move(input.mMaskContours)), mImageSize(std::move(input.mImageSize)), mOriginalImageSize(std::move(input.mOriginalImageSize)),
-      mAreaSize(std::move(input.mAreaSize)), mPerimeter(std::move(input.mPerimeter)), mCircularity(std::move(input.mCircularity)),
-      intensity(std::move(input.intensity)), mOriginObjectId(std::move(input.mOriginObjectId)), mCentroid(std::move(input.mCentroid)),
-      mParentObjectId(std::move(input.mParentObjectId)), mTrackingId(std::move(input.mTrackingId)), mLinkedWith(std::move(input.mLinkedWith))
+  ROI(ROI &&input)
+  noexcept :
+      mIsNull(input.mIsNull), mObjectId(input.mObjectId), mId(input.mId), mConfidence(input.mConfidence), mBoundingBoxTile(input.mBoundingBoxTile),
+      mBoundingBoxReal(input.mBoundingBoxReal), mMask(std::move(input.mMask)), mMaskContours(std::move(input.mMaskContours)),
+      mImageSize(input.mImageSize), mOriginalImageSize(input.mOriginalImageSize), mAreaSize(input.mAreaSize), mPerimeter(input.mPerimeter),
+      mCircularity(input.mCircularity), mCentroid(input.mCentroid), mParentObjectId(input.mParentObjectId), mTrackingId(input.mTrackingId),
+      mIntensity(std::move(input.mIntensity)), mOriginObjectId(input.mOriginObjectId), mLinkedWith(std::move(input.mLinkedWith))
   {
   }
 
-  ROI(bool mIsNull, uint64_t mObjectId, RoiObjectId mId, Confidence confidence, Boxes mBoundingBoxTile, Boxes mBoundingBoxReal, cv::Mat mMask,
-      std::vector<cv::Point> mMaskContours, cv::Size mImageSize, cv::Size originalImageSize, double mAreaSize, float mPerimeter, float mCircularity,
+  ROI(bool isNull, uint64_t objectId, RoiObjectId id, Confidence confidence, Boxes boundingBoxTile, Boxes boundingBoxReal, cv::Mat mask,
+      std::vector<cv::Point> maskContours, cv::Size imageSize, cv::Size originalImageSize, double areaSize, float perimeter, float circularity,
       std::map<enums::ImageId, Intensity> intensity, uint64_t originObjectId, cv::Point centroid, uint64_t parentObjectId, uint64_t linkedObjectId,
-      const std::set<ROI *> &linkedWith) :
-      mIsNull(mIsNull),
-      mObjectId(mObjectId), mId(mId), confidence(confidence), mBoundingBoxTile(mBoundingBoxTile), mBoundingBoxReal(mBoundingBoxReal), mMask(mMask),
-      mMaskContours(mMaskContours), mImageSize(mImageSize), mOriginalImageSize(originalImageSize), mAreaSize(mAreaSize), mPerimeter(mPerimeter),
-      mCircularity(mCircularity), intensity(intensity), mOriginObjectId(originObjectId), mCentroid(centroid), mParentObjectId(parentObjectId),
-      mTrackingId(linkedObjectId), mLinkedWith(linkedWith)
+      std::set<ROI *> linkedWith) :
+      mIsNull(isNull),
+      mObjectId(objectId), mId(std::move(id)), mConfidence(confidence), mBoundingBoxTile(boundingBoxTile), mBoundingBoxReal(boundingBoxReal),
+      mMask(std::move(mask)), mMaskContours(std::move(maskContours)), mImageSize(imageSize), mOriginalImageSize(originalImageSize),
+      mAreaSize(areaSize), mPerimeter(perimeter), mCircularity(circularity), mCentroid(centroid), mParentObjectId(parentObjectId),
+      mTrackingId(linkedObjectId), mIntensity(std::move(intensity)), mOriginObjectId(originObjectId), mLinkedWith(std::move(linkedWith))
   {
   }
 
@@ -115,8 +117,8 @@ public:
 
   [[nodiscard]] ROI clone() const
   {
-    return {mIsNull,         mObjectId,          mId,        confidence, mBoundingBoxTile, mBoundingBoxReal, mMask,           mMaskContours,
-            mImageSize,      mOriginalImageSize, mAreaSize,  mPerimeter, mCircularity,     intensity,        mOriginObjectId, mCentroid,
+    return {mIsNull,         mObjectId,          mId,        mConfidence, mBoundingBoxTile, mBoundingBoxReal, mMask,           mMaskContours,
+            mImageSize,      mOriginalImageSize, mAreaSize,  mPerimeter,  mCircularity,     mIntensity,       mOriginObjectId, mCentroid,
             mParentObjectId, mTrackingId,        mLinkedWith};
   }
 
@@ -125,7 +127,7 @@ public:
     return {mIsNull,
             mObjectId,
             {newClassId, mId.imagePlane},
-            confidence,
+            mConfidence,
             mBoundingBoxTile,
             mBoundingBoxReal,
             mMask,
@@ -135,7 +137,7 @@ public:
             mAreaSize,
             mPerimeter,
             mCircularity,
-            intensity,
+            mIntensity,
             mOriginObjectId,
             mCentroid,
             newParentObjectId,
@@ -148,7 +150,7 @@ public:
     return {mIsNull,
             mGlobalUniqueObjectId++,
             mId,
-            confidence,
+            mConfidence,
             mBoundingBoxTile,
             mBoundingBoxReal,
             mMask,
@@ -158,7 +160,7 @@ public:
             mAreaSize,
             mPerimeter,
             mCircularity,
-            intensity,
+            mIntensity,
             mObjectId,
             mCentroid,
             mParentObjectId,
@@ -171,7 +173,7 @@ public:
     return {mIsNull,
             mGlobalUniqueObjectId++,
             {newClassId, mId.imagePlane},
-            confidence,
+            mConfidence,
             mBoundingBoxTile,
             mBoundingBoxReal,
             mMask,
@@ -181,7 +183,7 @@ public:
             mAreaSize,
             mPerimeter,
             mCircularity,
-            intensity,
+            mIntensity,
             mObjectId,
             mCentroid,
             newParentObjectId,
@@ -230,7 +232,7 @@ public:
 
   [[nodiscard]] auto getConfidence() const
   {
-    return confidence;
+    return mConfidence;
   }
 
   [[nodiscard]] auto getBoundingBoxReal() const -> const Boxes &
@@ -245,18 +247,18 @@ public:
 
   [[nodiscard]] auto getCentroidReal() const -> cv::Point
   {
-    double cx = mCentroid.x + getBoundingBoxReal().x;
-    double cy = mCentroid.y + getBoundingBoxReal().y;
+    int32_t cx = mCentroid.x + getBoundingBoxReal().x;
+    int32_t cy = mCentroid.y + getBoundingBoxReal().y;
 
-    return cv::Point(cx, cy);
+    return {cx, cy};
   }
 
   [[nodiscard]] auto getCentroidTile() const -> cv::Point
   {
-    double cx = mCentroid.x + getBoundingBoxTile().x;
-    double cy = mCentroid.y + getBoundingBoxTile().y;
+    int32_t cx = mCentroid.x + getBoundingBoxTile().x;
+    int32_t cy = mCentroid.y + getBoundingBoxTile().y;
 
-    return cv::Point(cx, cy);
+    return {cx, cy};
   }
 
   [[nodiscard]] auto getMask() const -> const cv::Mat &
@@ -271,27 +273,15 @@ public:
 
   [[nodiscard]] const auto &getIntensity() const
   {
-    return intensity;
+    return mIntensity;
   }
 
-  [[nodiscard]] const auto &getDistances() const
-  {
-    return distances;
-  }
-
-  [[nodiscard]] double getAreaSize() const
-  {
-    return mAreaSize;
-  }
-
+  [[nodiscard]] auto getDistances(const std::pair<ome::PhyiscalSize, enums::Units> &physicalSize) const -> std::map<uint64_t, Distance>;
+  [[nodiscard]] double getAreaSize(const std::pair<ome::PhyiscalSize, enums::Units> &physicalSize) const;
+  [[nodiscard]] float getPerimeter(const std::pair<ome::PhyiscalSize, enums::Units> &physicalSize) const;
   [[nodiscard]] float getCircularity() const
   {
     return mCircularity;
-  }
-
-  [[nodiscard]] float getPerimeter() const
-  {
-    return mPerimeter;
   }
 
   [[nodiscard]] ROI calcIntersection(const enums::PlaneId &iterator, const ROI &roi, float minIntersection, const enums::tile_t &tile,
@@ -363,9 +353,8 @@ private:
   /////////////////////////////////////////////////////
   [[nodiscard]] uint64_t calcAreaSize() const;
   [[nodiscard]] float calcCircularity() const;
-  [[nodiscard]] auto calcCentroid(const cv::Mat &) const -> cv::Point;
-  [[nodiscard]] Boxes calcRealBoundingBox(const enums::tile_t &tile, const cv::Size &tileSize);
-  [[nodiscard]] std::tuple<int32_t, int32_t, int32_t, int32_t, int32_t> calcCircleRadius(int32_t snapAreaSize) const;
+  [[nodiscard]] static auto calcCentroid(const cv::Mat &) -> cv::Point;
+  [[nodiscard]] Boxes calcRealBoundingBox(const enums::tile_t &tile, const cv::Size &tileSize) const;
 
   [[nodiscard]] auto calcIntersectingMask(const ROI &roi) const -> IntersectingMask;
   [[nodiscard]] static double getSmoothedLineLength(const std::vector<cv::Point> &);
@@ -374,9 +363,9 @@ private:
 
   // Identification ///////////////////////////////////////////////////
   const bool mIsNull;
-  const uint64_t mObjectId;       ///< Global unique object ID
-  const RoiObjectId mId;          ///< Unique identification of the this ROI
-  const Confidence confidence;    ///< Probability
+  const uint64_t mObjectId;        ///< Global unique object ID
+  const RoiObjectId mId;           ///< Unique identification of the this ROI
+  const Confidence mConfidence;    ///< Probability
 
   // Metrics ///////////////////////////////////////////////////
   Boxes mBoundingBoxTile;    ///< Rectangle around the prediction in tile
@@ -395,8 +384,8 @@ private:
   uint64_t mTrackingId     = 0;    // 0 if not linked with anything
 
   // Measurements ///////////////////////////////////////////////////
-  std::map<enums::ImageId, Intensity> intensity;
-  std::map<uint64_t, Distance> distances;    ///< Key is the ID of the object the distance was calculated to.
+  std::map<enums::ImageId, Intensity> mIntensity;
+  std::map<uint64_t, Distance> mDistances;    ///< Key is the ID of the object the distance was calculated to.
   uint64_t mOriginObjectId = 0;
 
   static inline std::atomic<uint64_t> mGlobalUniqueObjectId   = 1;

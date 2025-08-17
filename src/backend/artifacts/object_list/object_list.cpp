@@ -144,10 +144,10 @@ void SpheralIndex::calcIntersection(ObjectList *objectList, joda::processor::Pro
 void SpheralIndex::createBinaryImage(cv::Mat &img) const
 {
   for(const auto &roi : *this) {
-    int left   = roi.getBoundingBoxTile().x;
-    int top    = roi.getBoundingBoxTile().y;
-    int width  = roi.getBoundingBoxTile().width;
-    int height = roi.getBoundingBoxTile().height;
+    //   int left   = roi.getBoundingBoxTile().x;
+    //   int top    = roi.getBoundingBoxTile().y;
+    //   int width  = roi.getBoundingBoxTile().width;
+    //   int height = roi.getBoundingBoxTile().height;
 
     if(!roi.getMask().empty() && !roi.getBoundingBoxTile().empty() && roi.getBoundingBoxTile().x >= 0 && roi.getBoundingBoxTile().y >= 0 &&
        roi.getBoundingBoxTile().width >= 0 && roi.getBoundingBoxTile().height >= 0 &&

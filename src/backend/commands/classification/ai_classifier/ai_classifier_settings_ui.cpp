@@ -140,12 +140,12 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   mModelArchitecture->setShortDescription("Architecture:");
   connect(mModelArchitecture.get(), &SettingBase::valueChanged, [this]() {
     if(mModelArchitecture->getValue() == joda::settings::AiClassifierSettings::ModelArchitecture::YOLO_V5) {
-      mMaskThreshold->setValue(0.8);
+      mMaskThreshold->setValue(0.8F);
     } else if(mModelArchitecture->getValue() == joda::settings::AiClassifierSettings::ModelArchitecture::U_NET ||
               mModelArchitecture->getValue() == joda::settings::AiClassifierSettings::ModelArchitecture::STAR_DIST) {
-      mMaskThreshold->setValue(0.96);
+      mMaskThreshold->setValue(0.96F);
     } else {
-      mMaskThreshold->setValue(0.8);
+      mMaskThreshold->setValue(0.8F);
     }
   });
 

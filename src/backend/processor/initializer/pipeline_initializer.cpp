@@ -190,7 +190,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   //
   // Write context
   //
-  processContext.initDefaultSettings(pipelineSetup.defaultClassId, zProjection, pipelineIndex);
+  processContext.initDefaultSettings(pipelineSetup.defaultClassId, zProjection, pipelineIndex, mSettings.pixelSizeSettings.unit);
 }
 
 ///

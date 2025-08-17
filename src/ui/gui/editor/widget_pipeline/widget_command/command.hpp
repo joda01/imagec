@@ -19,6 +19,7 @@
 #include <qicon.h>
 #include <qnamespace.h>
 #include <qwidget.h>
+#include <cstddef>
 #include <memory>
 #include <thread>
 #include <vector>
@@ -112,7 +113,7 @@ public:
 
   void removeSetting(const std::set<SettingBase *> &toRemove)
   {
-    for(int m = mSettings.size() - 1; m >= 0; m--) {
+    for(size_t m = mSettings.size() - 1; m >= 0; m--) {
       if(toRemove.contains(std::get<0>(mSettings[m]))) {
         mSettings.erase(mSettings.begin() + m);
       }

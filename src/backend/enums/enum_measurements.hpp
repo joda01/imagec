@@ -117,6 +117,8 @@ inline std::string toString(const Stats &enumIn)
       return "median";
     case Stats::STDDEV:
       return "stddev";
+    case Stats::OFF:
+      return "";
   }
   return "";
 }
@@ -170,6 +172,12 @@ inline std::string toString(const Measurement &enumIn)
       return "Distance from object ID";
     case Measurement::DISTANCE_TO_OBJECT_ID:
       return "Distance to object ID";
+    case Measurement::NONE:
+      return "";
+    case Measurement::BOUNDING_BOX_WIDTH:
+      return "Bounding box width";
+    case Measurement::BOUNDING_BOX_HEIGHT:
+      return "Bounding box height";
   }
   return "";
 }

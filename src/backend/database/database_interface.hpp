@@ -96,7 +96,7 @@ public:
   virtual void setImagePlaneClasssClasssValidity(uint64_t imageId, const enums::PlaneId &, enums::ClassId classId,
                                                  enums::ChannelValidity validity)                               = 0;
 
-  virtual void insertObjects(const joda::processor::ImageContext &, const joda::atom::ObjectList &) = 0;
+  virtual void insertObjects(const joda::processor::ImageContext &, enums::Units, const joda::atom::ObjectList &) = 0;
 };
 
 ///
@@ -114,7 +114,7 @@ public:
   void closeDatabase() override
   {
   }
-  std::string startJob(const joda::settings::AnalyzeSettings &, const std::string &jobName) override
+  std::string startJob(const joda::settings::AnalyzeSettings &, const std::string & /*jobName*/) override
   {
     return {};
   }
@@ -122,10 +122,10 @@ public:
   {
   }
 
-  auto prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
-                     const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
-                     const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings, BS::thread_pool &globalThreadPool)
-      -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> override
+  auto prepareImages(uint8_t /*plateId*/, int32_t /*series*/, enums::GroupBy /*groupBy*/, const std::string & /*filenameRegex*/,
+                     const std::vector<std::filesystem::path> & /*imagePaths*/, const std::filesystem::path & /*imagesBasePath*/,
+                     const joda::settings::ProjectImageSetup::PhysicalSizeSettings & /*defaultPhysicalSizeSettings*/,
+                     BS::thread_pool & /*globalThreadPool*/) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> override
   {
     return {};
   }
@@ -133,7 +133,7 @@ public:
   {
   }
 
-  void insertImagePlane(uint64_t imageId, const enums::PlaneId &, const ome::OmeInfo::ImagePlane &) override
+  void insertImagePlane(uint64_t /*imageId*/, const enums::PlaneId &, const ome::OmeInfo::ImagePlane &) override
   {
   }
 
@@ -145,18 +145,19 @@ public:
   {
     mImageValidity[imageId] = validity;
   }
-  void setImagePlaneValidity(uint64_t imageId, const enums::PlaneId &, enums::ChannelValidity validity) override
+  void setImagePlaneValidity(uint64_t /*imageId*/, const enums::PlaneId &, enums::ChannelValidity validity) override
   {
   }
-  void setImagePlaneClasssClasssValidity(uint64_t imageId, const enums::PlaneId &, enums::ClassId classId, enums::ChannelValidity validity) override
-  {
-  }
-
-  void insertObjects(const joda::processor::ImageContext &, const joda::atom::ObjectList &) override
+  void setImagePlaneClasssClasssValidity(uint64_t /*imageId*/, const enums::PlaneId &, enums::ClassId classId,
+                                         enums::ChannelValidity validity) override
   {
   }
 
-  auto getImageValidity() const -> enums::ChannelValidity
+  void insertObjects(const joda::processor::ImageContext &, enums::Units, const joda::atom::ObjectList &) override
+  {
+  }
+
+  [[nodiscard]] auto getImageValidity() const -> enums::ChannelValidity
   {
     if(mImageValidity.empty()) {
       return {};

@@ -50,8 +50,8 @@ private:
 
   struct ClassifierFilter
   {
-    ClassifierFilter(settings::ObjectClass &settings, AiClassifier &outer, helper::TabWidget *tab, int32_t tabIndex, QWidget *parent) :
-        outer(outer), tab(tab), settings(settings)
+    ClassifierFilter(settings::ObjectClass &settingsIn, AiClassifier &outerIn, helper::TabWidget *tabIn, int32_t tabIndex, QWidget *parent) :
+        settings(settingsIn), outer(outerIn), tab(tabIn)
     {
       if(settings.filters.empty()) {
         settings.filters.emplace_back(settings::ClassifierFilter{});

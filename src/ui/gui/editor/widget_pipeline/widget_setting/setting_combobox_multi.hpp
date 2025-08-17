@@ -82,17 +82,17 @@ public:
   void addOptions(const std::vector<ComboEntry> &options)
   {
     mComboBox->clear();
-    for(const auto &data : options) {
+    for(const auto &dataLoop : options) {
       QVariant variant;
       if constexpr(std::is_enum<VALUE_T>::value) {
-        variant = QVariant(static_cast<int>(data.key));
+        variant = QVariant(static_cast<int>(dataLoop.key));
       } else {
-        variant = QVariant(data.key);
+        variant = QVariant(dataLoop.key);
       }
-      if(data.icon.isNull()) {
-        mComboBox->addItem(SettingBase::getIcon(), data.label, variant);
+      if(dataLoop.icon.isNull()) {
+        mComboBox->addItem(SettingBase::getIcon(), dataLoop.label, variant);
       } else {
-        mComboBox->addItem(data.icon, data.label, variant);
+        mComboBox->addItem(dataLoop.icon, dataLoop.label, variant);
       }
     }
   }
@@ -165,24 +165,24 @@ public:
     std::set<VALUE_T> toReturn;
     auto checked = ((QComboBoxMulti *) mComboBox)->getCheckedItems();
 
-    for(const auto &[data, _] : checked) {
+    for(const auto &[dataC, _] : checked) {
       if constexpr(std::same_as<VALUE_T, int32_t>) {
-        toReturn.emplace(data.toInt());
+        toReturn.emplace(dataC.toInt());
       }
       if constexpr(std::same_as<VALUE_T, uint32_t>) {
-        toReturn.emplace(data.toUInt());
+        toReturn.emplace(dataC.toUInt());
       }
       if constexpr(std::same_as<VALUE_T, uint16_t>) {
-        toReturn.emplace(data.toUInt());
+        toReturn.emplace(dataC.toUInt());
       }
       if constexpr(std::same_as<VALUE_T, float>) {
-        toReturn.emplace(data.toFloat());
+        toReturn.emplace(dataC.toFloat());
       }
       if constexpr(std::same_as<VALUE_T, bool>) {
-        toReturn.emplace(data.toBool());
+        toReturn.emplace(dataC.toBool());
       }
       if constexpr(std::is_enum<VALUE_T>::value) {
-        toReturn.emplace((VALUE_T) data.toInt());
+        toReturn.emplace((VALUE_T) dataC.toInt());
       }
     }
 

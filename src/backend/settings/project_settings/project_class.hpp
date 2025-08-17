@@ -83,7 +83,7 @@ struct ResultsTemplate
   {
   }
   // We don't want to do a error check for the history
-  void getErrorLogRecursive(SettingParserLog_t &settingsParserLog) const
+  void getErrorLogRecursive(SettingParserLog_t & /*settingsParserLog*/) const
   {
   }
 };

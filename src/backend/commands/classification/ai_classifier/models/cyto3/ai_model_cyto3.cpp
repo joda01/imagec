@@ -172,9 +172,9 @@ std::vector<AiModel::Result> extractObjectMasksAndBoundingBoxes(const cv::Mat &l
 
     // Shift contours relative to top-left of bbox
     std::vector<std::vector<cv::Point>> adjustedContours;
-    int32_t maxContourIdx = 0;
-    int32_t conoutrSize   = 0;
-    int32_t idx           = 0;
+    size_t maxContourIdx = 0;
+    size_t conoutrSize   = 0;
+    size_t idx           = 0;
     for(const auto &contour : contours) {
       std::vector<cv::Point> shifted;
       if(contour.size() > conoutrSize) {

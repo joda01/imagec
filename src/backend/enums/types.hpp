@@ -39,10 +39,9 @@ struct PlaneId
   {
   }
 
-  auto toInt(const PlaneId &id) const -> stdi::uint128_t
+  static auto toInt(const PlaneId &id) -> stdi::uint128_t
   {
-    stdi::uint128_t nr(static_cast<uint64_t>(id.cStack), static_cast<uint64_t>(id.zStack) << 32 | static_cast<uint64_t>(id.tStack));
-    return nr;
+    return {static_cast<uint64_t>(id.cStack), static_cast<uint64_t>(id.zStack) << 32 | static_cast<uint64_t>(id.tStack)};
   };
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PlaneId, tStack, zStack, cStack);

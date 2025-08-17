@@ -51,7 +51,7 @@ struct ThresholdValidatorSettings : public SettingBase
   // If the min threshold is lower than the value at the maximum
   // of the histogram multiplied with this factor the filter
   //
-  float histMinThresholdFilterFactor = 0.8;
+  float histMinThresholdFilterFactor = 0.8F;
 
   /////////////////////////////////////////////////////
   void check() const

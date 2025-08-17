@@ -8,56 +8,54 @@ namespace joda::stdi {
 class uint128_t
 {
 public:
-  uint128_t() = default;
+  uint128_t()                  = default;
+  uint128_t(const uint128_t &) = default;
 
-  explicit uint128_t(uint32_t low) : low(low)
+  explicit uint128_t(uint32_t low) : mLow(low)
   {
   }
 
-  explicit uint128_t(int32_t low) : low(low)
+  explicit uint128_t(int32_t low) : mLow(static_cast<uint64_t>(low))
   {
   }
 
-  explicit uint128_t(uint64_t low) : low(low)
+  explicit uint128_t(uint64_t low) : mLow(low)
   {
   }
 
-  uint128_t(uint64_t high, uint64_t low) : high(high), low(low)
+  uint128_t(uint64_t high, uint64_t low) : mHigh(high), mLow(low)
   {
   }
 
   // user-defined copy assignment (copy-and-swap idiom)
   uint128_t &operator=(uint128_t other)
   {
-    std::swap(high, other.high);
-    std::swap(low, other.low);
+    std::swap(mHigh, other.mHigh);
+    std::swap(mLow, other.mLow);
     return *this;
   }
   constexpr bool operator==(const uint128_t &other) const
   {
-    return low == other.low && high == other.high;
+    return mLow == other.mLow && mHigh == other.mHigh;
   }
 
   constexpr bool operator==(const uint32_t &other) const
   {
-    return low == other && high == 0;
+    return mLow == other && mHigh == 0;
   }
 
   // Overload subtraction operator
   uint128_t operator-(const uint128_t &other) const
   {
-    uint128_t result;
-    result.low  = low - other.low;
-    result.high = high - other.high - (low < other.low);    // Borrow if needed
-    return result;
+    return {mHigh - other.mHigh - static_cast<uint64_t>(mLow < other.mLow), mLow - other.mLow};
   }
 
   uint128_t operator+(const uint64_t other) const
   {
     uint128_t result;
-    result.low = low + other;
-    if(result.low < low) {
-      result.high++;
+    result.mLow = mLow + other;
+    if(result.mLow < mLow) {
+      result.mHigh++;
     }
     return result;
   }
@@ -71,7 +69,7 @@ public:
   // Overload modulo operator
   uint128_t operator%(const uint128_t &divisor) const
   {
-    if(divisor.high == 0 && divisor.low == 0) {
+    if(divisor.mHigh == 0 && divisor.mLow == 0) {
       throw std::runtime_error("Modulo by zero error");
     }
 
@@ -81,9 +79,9 @@ public:
     for(int i = 127; i >= 0; --i) {
       // Shift remainder left by 1 bit and bring down the next bit from dividend
       remainder = remainder << 1;
-      remainder.low |= (dividend.high >> 63);    // Bring down MSB from high
-      dividend.high = (dividend.high << 1) | (dividend.low >> 63);
-      dividend.low <<= 1;
+      remainder.mLow |= (dividend.mHigh >> 63);    // Bring down MSB from high
+      dividend.mHigh = (dividend.mHigh << 1) | (dividend.mLow >> 63);
+      dividend.mLow <<= 1;
 
       // Subtract divisor if remainder >= divisor
       if(!(remainder < divisor)) {
@@ -100,11 +98,11 @@ public:
     if(shift == 0) {
       result = *this;
     } else if(shift < 64) {
-      result.high = (high << shift) | (low >> (64 - shift));
-      result.low  = low << shift;
+      result.mHigh = (mHigh << shift) | (mLow >> (64 - shift));
+      result.mLow  = mLow << shift;
     } else {    // shift >= 64
-      result.high = low << (shift - 64);
-      result.low  = 0;
+      result.mHigh = mLow << (shift - 64);
+      result.mLow  = 0;
     }
     return result;
   }
@@ -116,11 +114,11 @@ public:
     if(shift == 0) {
       result = *this;
     } else if(shift < 64) {
-      result.low  = (low >> shift) | (high << (64 - shift));
-      result.high = high >> shift;
+      result.mLow  = (mLow >> shift) | (mHigh << (64 - shift));
+      result.mHigh = mHigh >> shift;
     } else {    // shift >= 64
-      result.low  = high >> (shift - 64);
-      result.high = 0;
+      result.mLow  = mHigh >> (shift - 64);
+      result.mHigh = 0;
     }
     return result;
   }
@@ -128,24 +126,24 @@ public:
   // Overload less than operator
   bool operator<(const uint128_t &other) const
   {
-    return (high < other.high) || (high == other.high && low < other.low);
+    return (mHigh < other.mHigh) || (mHigh == other.mHigh && mLow < other.mLow);
   }
 
   // Overload greater than operator
   bool operator>(const uint128_t &other) const
   {
-    return (high > other.high) || (high == other.high && low > other.low);
+    return (mHigh > other.mHigh) || (mHigh == other.mHigh && mLow > other.mLow);
   }
 
   // Overload greater than operator
   bool operator>(const uint32_t &other) const
   {
-    return (high > 0) || (high == 0 && low > other);
+    return (mHigh > 0) || (mHigh == 0 && mLow > other);
   }
 
-  uint64_t lowRet() const
+  [[nodiscard]] uint64_t lowRet() const
   {
-    return low;
+    return mLow;
   }
 
   // Overload modulo operator
@@ -157,7 +155,7 @@ public:
   // Overload division operator (in-place division)
   uint128_t &operator/=(const uint128_t &divisor)
   {
-    if(divisor.high == 0 && divisor.low == 0) {
+    if(divisor.mHigh == 0 && divisor.mLow == 0) {
       throw std::runtime_error("Division by zero error");
     }
     if(*this < divisor) {
@@ -172,17 +170,17 @@ public:
     for(int i = 127; i >= 0; --i) {
       // Shift remainder left by 1 bit and bring down the next bit from dividend
       remainder = remainder << 1;
-      remainder.low |= (dividend.high >> 63);    // Bring down MSB from high
-      dividend.high = (dividend.high << 1) | (dividend.low >> 63);
-      dividend.low <<= 1;
+      remainder.mLow |= (dividend.mHigh >> 63);    // Bring down MSB from high
+      dividend.mHigh = (dividend.mHigh << 1) | (dividend.mLow >> 63);
+      dividend.mLow <<= 1;
 
       // If remainder >= divisor, subtract divisor and set quotient bit
       if(!(remainder < divisor)) {
         remainder = remainder - divisor;
         if(i >= 64) {
-          quotient.high |= (1ULL << (i - 64));
+          quotient.mHigh |= (1ULL << (i - 64));
         } else {
-          quotient.low |= (1ULL << i);
+          quotient.mLow |= (1ULL << i);
         }
       }
     }
@@ -194,22 +192,22 @@ public:
   // Overload bitwise OR operator
   uint128_t operator|(const uint32_t &other) const
   {
-    return {high | 0, low | other};
+    return {mHigh | 0, mLow | other};
   }
 
   // Overload bitwise OR operator
   uint128_t operator|(const uint128_t &other) const
   {
-    return {high | other.high, low | other.low};
+    return {mHigh | other.mHigh, mLow | other.mLow};
   }
 
   [[nodiscard]] uint64_t highBytes() const
   {
-    return high;
+    return mHigh;
   }
 
 private:
-  uint64_t high = 0;
-  uint64_t low  = 0;
+  uint64_t mHigh = 0;
+  uint64_t mLow  = 0;
 };
 }    // namespace joda::stdi

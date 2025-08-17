@@ -9,6 +9,8 @@
 ///            For **Commercial** please contact the copyright owner.
 ///
 
+#pragma once
+
 #include <stdexcept>
 #include <tuple>
 #include "backend/enums/enums_units.hpp"
@@ -18,6 +20,10 @@ namespace joda::ome {
 class PhyiscalSize
 {
 public:
+  static PhyiscalSize Pixels()
+  {
+    return {1, 1, 1, enums::Units::Pixels};
+  }
   PhyiscalSize() = default;
   PhyiscalSize(double sizeX, double sizeY, double sizeZ, enums::Units unit)
   {

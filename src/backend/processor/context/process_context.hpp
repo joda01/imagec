@@ -28,6 +28,7 @@
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enum_validity.hpp"
 #include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_units.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
@@ -60,11 +61,12 @@ class ProcessContext
 public:
   ProcessContext(GlobalContext &globalContext, PlateContext &plateContext, ImageContext &imageContext, IterationContext &iterationContext);
 
-  void initDefaultSettings(enums::ClassId classId, enums::ZProjection zProjection, int32_t pipelineIndex)
+  void initDefaultSettings(enums::ClassId classId, enums::ZProjection zProjection, int32_t pipelineIndex, enums::Units pixelSizeUnit)
   {
     pipelineContext.defaultClassId     = classId;
     pipelineContext.defaultZProjection = zProjection;
     pipelineContext.pipelineIndex      = pipelineIndex;
+    pipelineContext.pixelSizeUnit      = pixelSizeUnit;
   }
 
   void setBinaryImage(uint16_t thresholdMin, uint16_t thresholdMax)
@@ -111,6 +113,11 @@ public:
   [[nodiscard]] cv::Size getTileSize() const
   {
     return imageContext.tileSize;
+  }
+
+  std::pair<ome::PhyiscalSize, enums::Units> getPhysicalPixelSIzeOfImage() const
+  {
+    return {imageContext.imageMeta.getPhyiscalSize(imageContext.series), pipelineContext.pixelSizeUnit};
   }
 
   void setActImage(const joda::atom::ImagePlane *image)

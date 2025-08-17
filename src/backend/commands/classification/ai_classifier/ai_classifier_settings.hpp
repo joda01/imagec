@@ -152,12 +152,12 @@ struct AiClassifierSettings : public SettingBase
     //
     // Default class threshold used to mark an object as object
     //
-    float classThreshold = 0.5;
+    float classThreshold = 0.5F;
 
     //
     // Default mask threshold
     //
-    float maskThreshold = 0.8;
+    float maskThreshold = 0.8F;
 
     void check() const
     {

@@ -423,13 +423,15 @@ std::unique_ptr<duckdb::QueryResult> Database::select(const std::string &query, 
 /// \param[out]
 /// \return
 ///
-void Database::insertObjects(const joda::processor::ImageContext &imgContext, const joda::atom::ObjectList &objectsList)
+void Database::insertObjects(const joda::processor::ImageContext &imgContext, enums::Units physicalSizeUnit,
+                             const joda::atom::ObjectList &objectsList)
 {
   auto connection = acquire();
   // connection->BeginTransaction();
   auto objects               = duckdb::Appender(*connection, "objects");
   auto object_measurements   = duckdb::Appender(*connection, "object_measurements");
   auto distance_measurements = duckdb::Appender(*connection, "distance_measurements");
+  const auto &physicalSize   = imgContext.imageMeta.getPhyiscalSize(imgContext.series);
 
   for(const auto &[_, obj] : objectsList) {
     for(const auto &roi : *obj) {
@@ -442,16 +444,16 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
       objects.Append<uint32_t>(roi.getZ());                     // " stack_z UINTEGER,"
       objects.Append<uint32_t>(roi.getT());                     // " stack_t UINTEGER,"
       // Data
-      objects.Append<float>(roi.getConfidence());                   // " meas_confidence float,"
-      objects.Append<double>(roi.getAreaSize());                    // " meas_area_size DOUBLE,"
-      objects.Append<float>(roi.getPerimeter());                    // " meas_perimeter float,"
-      objects.Append<float>(roi.getCircularity());                  // " meas_circularity float,"
-      objects.Append<uint32_t>(roi.getCentroidReal().x);            // " meas_center_x UINTEGER,"
-      objects.Append<uint32_t>(roi.getCentroidReal().y);            // " meas_center_y UINTEGER,"
-      objects.Append<uint32_t>(roi.getBoundingBoxReal().x);         // " meas_box_x UINTEGER,"
-      objects.Append<uint32_t>(roi.getBoundingBoxReal().y);         // " meas_box_y UINTEGER,"
-      objects.Append<uint32_t>(roi.getBoundingBoxReal().width);     // " meas_box_width UINTEGER,"
-      objects.Append<uint32_t>(roi.getBoundingBoxReal().height);    // " meas_box_height UINTEGER,"
+      objects.Append<float>(roi.getConfidence());                                   // " meas_confidence float,"
+      objects.Append<double>(roi.getAreaSize({physicalSize, physicalSizeUnit}));    // " meas_area_size DOUBLE,"
+      objects.Append<float>(roi.getPerimeter({physicalSize, physicalSizeUnit}));    // " meas_perimeter float,"
+      objects.Append<float>(roi.getCircularity());                                  // " meas_circularity float,"
+      objects.Append<uint32_t>(roi.getCentroidReal().x);                            // " meas_center_x UINTEGER,"
+      objects.Append<uint32_t>(roi.getCentroidReal().y);                            // " meas_center_y UINTEGER,"
+      objects.Append<uint32_t>(roi.getBoundingBoxReal().x);                         // " meas_box_x UINTEGER,"
+      objects.Append<uint32_t>(roi.getBoundingBoxReal().y);                         // " meas_box_y UINTEGER,"
+      objects.Append<uint32_t>(roi.getBoundingBoxReal().width);                     // " meas_box_width UINTEGER,"
+      objects.Append<uint32_t>(roi.getBoundingBoxReal().height);                    // " meas_box_height UINTEGER,"
 
       auto mask =
           duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER), duckdb::LogicalType(duckdb::LogicalTypeId::BOOLEAN), {}, {});
@@ -498,7 +500,7 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
       //
       // Distance
       //
-      for(const auto &[measObjectId, distance] : roi.getDistances()) {
+      for(const auto &[measObjectId, distance] : roi.getDistances({physicalSize, physicalSizeUnit})) {
         try {
           distance_measurements.BeginRow();
           // Primary key

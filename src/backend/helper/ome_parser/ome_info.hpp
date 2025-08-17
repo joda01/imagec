@@ -154,7 +154,7 @@ public:
   }
   [[nodiscard]] auto getResolutionCount(int32_t series) const -> const std::map<int32_t, ImageInfo::Pyramid> &
   {
-    if(series < 0 || series >= getNrOfSeries()) {
+    if(series < 0 || static_cast<size_t>(series) >= getNrOfSeries()) {
       series = getSeriesWithHighestResolution();
     }
     return mImageInfo.at(series).resolutions;
@@ -170,7 +170,7 @@ public:
 
   [[nodiscard]] const ImageInfo &getImageInfo(int32_t series) const
   {
-    if(series < 0 || series >= getNrOfSeries()) {
+    if(series < 0 || static_cast<size_t>(series) >= getNrOfSeries()) {
       series = 0;
     }
     return mImageInfo.at(series);
@@ -182,7 +182,7 @@ public:
 
   [[nodiscard]] const std::map<uint32_t, ChannelInfo> &getChannelInfos(int32_t series) const
   {
-    if(series < 0 || series >= getNrOfSeries()) {
+    if(series < 0 || static_cast<size_t>(series) >= getNrOfSeries()) {
       series = 0;
     }
     return mImageInfo.at(series).channels;
@@ -193,49 +193,49 @@ public:
     return mImageInfo;
   }
 
-  int32_t getImageWidth(int32_t series, int32_t resolutionIdx) const
+  [[nodiscard]] int32_t getImageWidth(int32_t series, int32_t resolutionIdx) const
   {
-    if(series < 0 || series >= getNrOfSeries()) {
+    if(series < 0 || static_cast<size_t>(series) >= getNrOfSeries()) {
       series = 0;
     }
     return mImageInfo.at(series).resolutions.at(resolutionIdx).imageWidth;
   }
 
-  int32_t getImageHeight(int32_t series, int32_t resolutionIdx) const
+  [[nodiscard]] int32_t getImageHeight(int32_t series, int32_t resolutionIdx) const
   {
-    if(series < 0 || series >= getNrOfSeries()) {
+    if(series < 0 || static_cast<size_t>(series) >= getNrOfSeries()) {
       series = 0;
     }
 
     return mImageInfo.at(series).resolutions.at(resolutionIdx).imageHeight;
   }
 
-  int32_t getBitDepth(int32_t series, int32_t resolutionIdx) const
+  [[nodiscard]] int32_t getBitDepth(int32_t series, int32_t resolutionIdx) const
   {
-    if(series < 0 || series >= getNrOfSeries()) {
+    if(series < 0 || static_cast<size_t>(series) >= getNrOfSeries()) {
       series = 0;
     }
     return mImageInfo.at(series).resolutions.at(resolutionIdx).bits;
   }
 
-  int32_t getRGBchannelCount(int32_t series, int32_t resolutionIdx) const
+  [[nodiscard]] int32_t getRGBchannelCount(int32_t series, int32_t resolutionIdx) const
   {
-    if(series < 0 || series >= getNrOfSeries()) {
+    if(series < 0 || static_cast<size_t>(series) >= getNrOfSeries()) {
       series = 0;
     }
     return mImageInfo.at(series).resolutions.at(resolutionIdx).rgbChannelCount;
   }
 
-  bool getIsInterleaved(int32_t series, int32_t resolutionIdx) const
+  [[nodiscard]] bool getIsInterleaved(int32_t series, int32_t resolutionIdx) const
   {
-    if(series < 0 || series >= getNrOfSeries()) {
+    if(series < 0 || static_cast<size_t>(series) >= getNrOfSeries()) {
       series = 0;
     }
     return mImageInfo.at(series).resolutions.at(resolutionIdx).isInterleaved;
   }
-  bool getIsLittleEndian(int32_t series, int32_t resolutionIdx) const
+  [[nodiscard]] bool getIsLittleEndian(int32_t series, int32_t resolutionIdx) const
   {
-    if(series < 0 || series >= getNrOfSeries()) {
+    if(series < 0 || static_cast<size_t>(series) >= getNrOfSeries()) {
       series = 0;
     }
     return mImageInfo.at(series).resolutions.at(resolutionIdx).isLittleEndian;

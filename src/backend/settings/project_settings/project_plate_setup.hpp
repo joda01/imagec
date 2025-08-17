@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <set>
 #include <string>
 #include <vector>
@@ -41,12 +42,12 @@ struct PlateSetup
 
   std::pair<int32_t, int32_t> getRowsAndColsOfWell() const
   {
-    int32_t sizeY = wellImageOrder.size();
-    int32_t sizeX = 0;
+    size_t sizeY = wellImageOrder.size();
+    size_t sizeX = 0;
 
-    for(int y = 0; y < wellImageOrder.size(); y++) {
-      for(int x = 0; x < wellImageOrder[y].size(); x++) {
-        auto imgNr = wellImageOrder[y][x];
+    for(size_t y = 0; y < wellImageOrder.size(); y++) {
+      for(size_t x = 0; x < wellImageOrder[y].size(); x++) {
+        // auto imgNr = wellImageOrder[y][x];
         if(x > sizeX) {
           sizeX = x;
         }
@@ -61,7 +62,7 @@ struct PlateSetup
   {
   }
   // We don't want to do a error check for the history
-  void getErrorLogRecursive(SettingParserLog_t &settingsParserLog) const
+  void getErrorLogRecursive(SettingParserLog_t & /*settingsParserLog*/) const
   {
   }
 
@@ -98,16 +99,17 @@ struct ImgPositionInWell
 inline auto transformMatrix(const std::vector<std::vector<int32_t>> &wellImageOrder, int32_t &sizeX, int32_t &sizeY)
     -> std::map<int32_t, ImgPositionInWell>
 {
-  sizeY = wellImageOrder.size();
+  sizeY = static_cast<int32_t>(wellImageOrder.size());
   sizeX = 0;
 
   std::map<int32_t, ImgPositionInWell> ret;
-  for(int y = 0; y < wellImageOrder.size(); y++) {
-    for(int x = 0; x < wellImageOrder[y].size(); x++) {
+  for(size_t y = 0; y < wellImageOrder.size(); y++) {
+    for(size_t x = 0; x < wellImageOrder[y].size(); x++) {
       auto imgNr = wellImageOrder[y][x];
-      ret[imgNr] = ImgPositionInWell{.img = imgNr, .x = x + 1, .y = y + 1};    // We start with 1 not with zero
-      if(x > sizeX) {
-        sizeX = x;
+      ret[imgNr] =
+          ImgPositionInWell{.img = imgNr, .x = static_cast<int32_t>(x) + 1, .y = static_cast<int32_t>(y) + 1};    // We start with 1 not with zero
+      if(static_cast<int32_t>(x) > sizeX) {
+        sizeX = static_cast<int32_t>(x);
       }
     }
   }

@@ -104,7 +104,7 @@ struct ColocalizationSettings : public SettingBase
   settings::ObjectInputClasses getInputClasses() const override
   {
     settings::ObjectInputClasses classes;
-    for(const auto classs : inputClasses) {
+    for(const auto &classs : inputClasses) {
       if(classs.inputClassId != enums::ClassIdIn::UNDEFINED) {
         classes.emplace(classs.inputClassId);
       }
@@ -117,7 +117,7 @@ struct ColocalizationSettings : public SettingBase
   {
     settings::ObjectInputClasses classes = {outputClass};
 
-    for(const auto classs : inputClasses) {
+    for(const auto &classs : inputClasses) {
       if(classs.inputClassId != enums::ClassIdIn::UNDEFINED) {
         classes.emplace(classs.newClassId);
         classes.emplace(classs.newClassIdNotIntersecting);

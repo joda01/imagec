@@ -66,7 +66,7 @@ public:
           THROW_ERROR("Class >UNDEFINED< is not allowed was used twice!");
         }
         if(ids.contains(element.classId)) {
-          THROW_ERROR("Class ID >" + std::to_string((uint16_t) element.classId) + "< was used twice!");
+          THROW_ERROR("Class ID >" + std::to_string(static_cast<uint16_t>(element.classId)) + "< was used twice!");
         }
       }
     }

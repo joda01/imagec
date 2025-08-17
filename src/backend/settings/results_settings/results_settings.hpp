@@ -89,6 +89,8 @@ public:
       case enums::Measurement::PARENT_OBJECT_ID:
       case enums::Measurement::TRACKING_ID:
         return MeasureType::ID;
+      case enums::Measurement::NONE:
+        return MeasureType::OBJECT;
     }
     return MeasureType::OBJECT;
   }
@@ -148,15 +150,15 @@ public:
     bool operator<(const ColumnKey &input) const
     {
       auto toInt = [](const ColumnKey &in) {
-        auto classClasss         = static_cast<uint16_t>(in.classId);
-        auto intersectingChannel = static_cast<uint16_t>(in.intersectingChannel);
-        auto measure             = static_cast<uint8_t>(in.measureChannel);
-        auto stat                = static_cast<uint8_t>(in.stats);
+        auto classClasss           = static_cast<uint16_t>(in.classId);
+        auto intersectingChannelIn = static_cast<uint16_t>(in.intersectingChannel);
+        auto measure               = static_cast<uint8_t>(in.measureChannel);
+        auto stat                  = static_cast<uint8_t>(in.stats);
 
         stdi::uint128_t erg = (static_cast<stdi::uint128_t>(classClasss) << 112) | (static_cast<stdi::uint128_t>(0) << 80) |
                               (static_cast<stdi::uint128_t>(in.zStack) << 48) | (static_cast<stdi::uint128_t>(measure & 0xFF) << 40) |
                               (static_cast<stdi::uint128_t>(stat) << 32) | (static_cast<stdi::uint128_t>(in.crossChannelStacksC & 0xFFFF) << 16) |
-                              (static_cast<stdi::uint128_t>(intersectingChannel) << 0);
+                              (static_cast<stdi::uint128_t>(intersectingChannelIn) << 0);
         return erg;
       };
 
@@ -184,19 +186,19 @@ public:
 
   explicit ResultsSettings() = default;
 
-  void setFilter(const ObjectFilter &filter, const joda::settings::PlateSetup &plateSetup, const DensityMapSettings &densityMap)
+  void setFilter(const ObjectFilter &filterIn, const joda::settings::PlateSetup &plateSetupIn, const DensityMapSettings &densityMapIn)
   {
-    this->filter             = filter;
-    this->plateSetup         = plateSetup;
-    this->densityMapSettings = densityMap;
+    this->filter             = filterIn;
+    this->plateSetup         = plateSetupIn;
+    this->densityMapSettings = densityMapIn;
   }
 
-  void setFilter(const joda::settings::PlateSetup &plateSetup)
+  void setFilter(const joda::settings::PlateSetup &plateSetupIn)
   {
-    this->plateSetup = plateSetup;
+    this->plateSetup = plateSetupIn;
   }
 
-  void setFilter(int32_t plateId, int32_t groupId, int32_t tStack, const std::set<uint64_t> &imageId)
+  void setFilter(uint8_t plateId, uint16_t groupId, int32_t tStack, const std::set<uint64_t> &imageId)
   {
     filter.plateId = plateId;
     filter.groupId = groupId;
@@ -308,7 +310,7 @@ public:
   {
   }
   // We don't want to do a error check for the history
-  void getErrorLogRecursive(SettingParserLog_t &settingsParserLog) const
+  void getErrorLogRecursive(SettingParserLog_t & /*settingsParserLog*/) const
   {
   }
 

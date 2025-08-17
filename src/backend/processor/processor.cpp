@@ -231,7 +231,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                     // Insert objects to database
                     auto id = DurationCount::start("Insert");
                     try {
-                      db->insertObjects(imageContext, iterationContext.getObjects());
+                      db->insertObjects(imageContext, program.imageSetup.pixelSizeSettings.unit, iterationContext.getObjects());
                     } catch(const std::exception &ex) {
                       std::cout << "Insert Obj: " << ex.what() << std::endl;
                     }
