@@ -34,7 +34,8 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-DialogImageSettings::DialogImageSettings(Settings *settings, QWidget *parent, const ome::OmeInfo &omeInfo) : QDialog(parent), mSettings(settings)
+DialogImageSettings::DialogImageSettings(Settings *settings, QWidget *parent, const ome::OmeInfo &omeInfo) :
+    QDialog(parent), mSettings(settings), mOmeInfo(omeInfo)
 {
   setWindowTitle("Image settings");
   setMinimumWidth(400);
@@ -84,9 +85,15 @@ DialogImageSettings::DialogImageSettings(Settings *settings, QWidget *parent, co
   //
   // Pixel sizes
   //
+  mPixelSizeMode = new QComboBox();
+  mPixelSizeMode->addItem("Automatic", 0);
+  mPixelSizeMode->addItem("Manual", 1);
+  formLayout->addRow("Pixel size mode", mPixelSizeMode);
+
   auto *physicalSizeX = new QHBoxLayout();
   mPixelWidth         = new QLineEdit("0");
-  mUnitWidth          = new QComboBox();
+  mPixelWidth->setEnabled(false);
+  mUnitWidth = new QComboBox();
   mUnitWidth->addItem("Px", (int32_t) enums::Units::Pixels);
   mUnitWidth->addItem("nm", (int32_t) enums::Units::nm);
   mUnitWidth->addItem("µm", (int32_t) enums::Units::um);
@@ -94,13 +101,15 @@ DialogImageSettings::DialogImageSettings(Settings *settings, QWidget *parent, co
   mUnitWidth->addItem("cm", (int32_t) enums::Units::cm);
   mUnitWidth->addItem("m", (int32_t) enums::Units::m);
   mUnitWidth->addItem("km", (int32_t) enums::Units::km);
+  mUnitWidth->setEnabled(false);
   physicalSizeX->addWidget(mPixelWidth);
   physicalSizeX->addWidget(mUnitWidth);
   formLayout->addRow("Pixel width", physicalSizeX);
 
   auto *physicalSizeY = new QHBoxLayout();
   mPixelHeight        = new QLineEdit("0");
-  mUnitHeight         = new QComboBox();
+  mPixelHeight->setEnabled(false);
+  mUnitHeight = new QComboBox();
   mUnitHeight->addItem("Px", (int32_t) enums::Units::Pixels);
   mUnitHeight->addItem("nm", (int32_t) enums::Units::nm);
   mUnitHeight->addItem("µm", (int32_t) enums::Units::um);
@@ -114,19 +123,58 @@ DialogImageSettings::DialogImageSettings(Settings *settings, QWidget *parent, co
   formLayout->addRow("Pixel height", physicalSizeY);
 
   connect(mUnitWidth, &QComboBox::currentIndexChanged, [&](int index) { mUnitHeight->setCurrentIndex(index); });
+  connect(mPixelSizeMode, &QComboBox::currentIndexChanged, [&](int index) {
+    if(mPixelSizeMode->currentData().toInt() == 0) {
+      // Automatic
+      mUnitWidth->setEnabled(false);
+      mPixelWidth->setEnabled(false);
+      mPixelHeight->setEnabled(false);
+      setFromOme(mOmeInfo);
+    } else {
+      // Manual
+      mUnitWidth->setEnabled(true);
+      mPixelWidth->setEnabled(true);
+      mPixelHeight->setEnabled(true);
+    }
+  });
 
   //
   // Assign data
   //
   fromSettings(omeInfo);
 
-  // Okay and canlce
+  // Okay and cancel
   auto *buttonBox = new IconlessDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
   connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
   connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
   formLayout->addWidget(buttonBox);
 
   setLayout(formLayout);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageSettings::setFromOme(const ome::OmeInfo &omeInfo)
+{
+  const auto &physk = omeInfo.getPhyiscalSize(mSettings->imageSeries, true);
+  mPixelWidth->setText(QString::number(physk.sizeX));
+  mPixelHeight->setText(QString::number(physk.sizeY));
+
+  auto idx = mUnitWidth->findData((int32_t) physk.unitX);
+  if(idx != -1) {
+    mUnitWidth->setCurrentIndex(idx);
+  }
+  idx = mUnitWidth->findData((int32_t) physk.unitY);
+  if(idx != -1) {
+    mUnitHeight->setCurrentIndex(idx);
+  } else {
+    mUnitHeight->setCurrentIndex(mUnitWidth->currentIndex());
+  }
 }
 
 ///
@@ -153,8 +201,11 @@ void DialogImageSettings::fromSettings(const ome::OmeInfo &omeInfo)
     mTileSize->setCurrentIndex(idx);
   }
 
-  const auto &physk = omeInfo.getPhyiscalSize(mSettings->imageSeries);
-  if(physk.sizeX == 0 || physk.sizeY == 0) {
+  if(mSettings->unit == enums::Units::Automatic) {
+    mPixelSizeMode->setCurrentIndex(0);
+    setFromOme(omeInfo);
+  } else {
+    mPixelSizeMode->setCurrentIndex(1);
     idx = mUnitWidth->findData((int32_t) mSettings->unit);
     if(idx != -1) {
       mUnitWidth->setCurrentIndex(idx);
@@ -162,20 +213,6 @@ void DialogImageSettings::fromSettings(const ome::OmeInfo &omeInfo)
     }
     mPixelWidth->setText(QString::number(mSettings->pixelWidth));
     mPixelHeight->setText(QString::number(mSettings->pixelHeight));
-  } else {
-    mPixelWidth->setText(QString::number(physk.sizeX));
-    mPixelHeight->setText(QString::number(physk.sizeY));
-
-    idx = mUnitWidth->findData((int32_t) physk.unitX);
-    if(idx != -1) {
-      mUnitWidth->setCurrentIndex(idx);
-    }
-    idx = mUnitWidth->findData((int32_t) physk.unitY);
-    if(idx != -1) {
-      mUnitHeight->setCurrentIndex(idx);
-    } else {
-      mUnitHeight->setCurrentIndex(mUnitWidth->currentIndex());
-    }
   }
 }
 ///
@@ -191,9 +228,17 @@ void DialogImageSettings::accept()
   mSettings->imageSeries = mSeries->currentData().toInt();
   mSettings->tileWidth   = mTileSize->currentData().toInt();
 
-  mSettings->pixelWidth  = mPixelWidth->text().toDouble();
-  mSettings->pixelHeight = mPixelHeight->text().toDouble();
-  mSettings->unit        = static_cast<enums::Units>(mUnitWidth->currentData().toInt());
+  if(0 == mPixelSizeMode->currentData().toInt()) {
+    // Automatic mode
+    mSettings->pixelWidth  = mPixelWidth->text().toDouble();
+    mSettings->pixelHeight = mPixelHeight->text().toDouble();
+    mSettings->unit        = enums::Units::Automatic;
+  } else {
+    // Automatic mode
+    mSettings->pixelWidth  = mPixelWidth->text().toDouble();
+    mSettings->pixelHeight = mPixelHeight->text().toDouble();
+    mSettings->unit        = static_cast<enums::Units>(mUnitWidth->currentData().toInt());
+  }
 
   QDialog::accept();
 }

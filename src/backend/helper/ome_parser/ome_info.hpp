@@ -139,9 +139,14 @@ public:
       float sizeY = 0;
       float sizeZ = 0;
 
-      joda::enums::Units unitX = enums::Units::Pixels;
-      joda::enums::Units unitY = enums::Units::Pixels;
-      joda::enums::Units unitZ = enums::Units::Pixels;
+      joda::enums::Units unitX = enums::Units::Automatic;
+      joda::enums::Units unitY = enums::Units::Automatic;
+      joda::enums::Units unitZ = enums::Units::Automatic;
+
+      [[nodiscard]] bool isSet() const
+      {
+        return sizeX != 0 && sizeY != 0 && unitX != enums::Units::Automatic && unitY != enums::Units::Automatic;
+      }
     };
 
     int32_t seriesIdx    = 0;
@@ -172,7 +177,8 @@ public:
   [[nodiscard]] int getNrOfChannels(int32_t series) const;
   [[nodiscard]] int getNrOfZStack(int32_t series) const;
   [[nodiscard]] int getNrOfTStack(int32_t series) const;
-  [[nodiscard]] auto getPhyiscalSize(int32_t series) const -> const ImageInfo::PhyiscalSize &;
+  [[nodiscard]] auto getPhyiscalSize(int32_t series, bool alwaysReal = false) const -> const ImageInfo::PhyiscalSize &;
+  void setPhyiscalSize(const ImageInfo::PhyiscalSize &);
   [[nodiscard]] std::tuple<int64_t, int64_t> getSize(int32_t series) const;
   [[nodiscard]] int32_t getBits(int32_t series) const;
   [[nodiscard]] int32_t getSeriesWithHighestResolution() const;

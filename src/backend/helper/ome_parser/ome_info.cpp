@@ -285,7 +285,7 @@ TRY_AGAIN:
 /// \brief      Returns the number of channels
 /// \author     Joachim Danmayr
 ///
-auto OmeInfo::getPhyiscalSize(int32_t series) const -> const ImageInfo::PhyiscalSize &
+auto OmeInfo::getPhyiscalSize(int32_t series, bool alwaysReal) const -> const ImageInfo::PhyiscalSize &
 {
   if(series >= getNrOfSeries()) {
     return mDefaultPhyiscalSizeSettings;
@@ -293,11 +293,22 @@ auto OmeInfo::getPhyiscalSize(int32_t series) const -> const ImageInfo::Phyiscal
   if(series < 0 || series >= getNrOfSeries()) {
     series = getSeriesWithHighestResolution();
   }
-  auto tmp = mImageInfo.at(series).physicalSize;
-  if(tmp.sizeX == 0 || tmp.sizeY == 0) {
+  if(mDefaultPhyiscalSizeSettings.isSet() && !alwaysReal) {
     return mDefaultPhyiscalSizeSettings;
   }
-  return mImageInfo.at(series).physicalSize;
+  if(mImageInfo.at(series).physicalSize.isSet() || alwaysReal) {
+    return mImageInfo.at(series).physicalSize;
+  }
+  return mDefaultPhyiscalSizeSettings;
+}
+
+///
+/// \brief      Sets the phyiscal size from external
+/// \author     Joachim Danmayr
+///
+void OmeInfo::setPhyiscalSize(const ImageInfo::PhyiscalSize &in)
+{
+  mDefaultPhyiscalSizeSettings = in;
 }
 
 ///

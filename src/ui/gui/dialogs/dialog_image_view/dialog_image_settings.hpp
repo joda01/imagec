@@ -53,11 +53,14 @@ private:
   /////////////////////////////////////////////////////
   void accept() override;
   void fromSettings(const ome::OmeInfo &omeInfo);
+  void setFromOme(const ome::OmeInfo &omeInfo);
 
   /////////////////////////////////////////////////////
   QComboBox *mZprojection;
   QComboBox *mSeries;
   QComboBox *mTileSize;
+
+  QComboBox *mPixelSizeMode;
 
   QLineEdit *mPixelWidth;
   QComboBox *mUnitWidth;
@@ -66,6 +69,8 @@ private:
   QComboBox *mUnitHeight;
 
   Settings *mSettings;
+
+  const ome::OmeInfo &mOmeInfo;
 };
 
 }    // namespace joda::ui::gui

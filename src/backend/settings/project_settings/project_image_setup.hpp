@@ -77,7 +77,7 @@ struct ProjectImageSetup
     //
     //
     //
-    enums::Units unit = enums::Units::Pixels;
+    enums::Units unit = enums::Units::Automatic;
 
     void check() const
     {

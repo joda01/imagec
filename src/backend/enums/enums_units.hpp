@@ -20,6 +20,7 @@ namespace joda::enums {
 
 enum class Units
 {
+  Automatic,
   Pixels,
   nm,
   um,
@@ -31,6 +32,7 @@ enum class Units
 
 // map TaskState values to JSON as strings
 NLOHMANN_JSON_SERIALIZE_ENUM(Units, {
+                                        {Units::Automatic, "Automatic"},
                                         {Units::Pixels, "Px"},
                                         {Units::nm, "nm"},
                                         {Units::um, "um"},

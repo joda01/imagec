@@ -137,6 +137,14 @@ void PanelImageView::restoreChannelSettings()
 void PanelImageView::setDefaultPhysicalSize(const joda::settings::ProjectImageSetup::PhysicalSizeSettings &set)
 {
   mDefaultPhysicalSize = set;
+  mOmeInfo.setPhyiscalSize(joda::ome::OmeInfo::ImageInfo::PhyiscalSize{
+      .sizeX = set.pixelWidth,
+      .sizeY = set.pixelHeight,
+      .sizeZ = 0,
+      .unitX = set.unit,
+      .unitY = set.unit,
+      .unitZ = set.unit,
+  });
 }
 
 ///
