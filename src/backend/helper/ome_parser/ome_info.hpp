@@ -30,6 +30,7 @@
 #include "backend/enums/enums_units.hpp"
 #include "backend/enums/types.hpp"
 #include <opencv2/core/types.hpp>
+#include "physical_size.hpp"
 
 namespace joda::ome {
 
@@ -133,22 +134,6 @@ public:
       }
     };
 
-    struct PhyiscalSize
-    {
-      float sizeX = 0;
-      float sizeY = 0;
-      float sizeZ = 0;
-
-      joda::enums::Units unitX = enums::Units::Automatic;
-      joda::enums::Units unitY = enums::Units::Automatic;
-      joda::enums::Units unitZ = enums::Units::Automatic;
-
-      [[nodiscard]] bool isSet() const
-      {
-        return sizeX != 0 && sizeY != 0 && unitX != enums::Units::Automatic && unitY != enums::Units::Automatic;
-      }
-    };
-
     int32_t seriesIdx    = 0;
     int32_t nrOfChannels = 0;
     int32_t nrOfZStacks  = 0;
@@ -161,7 +146,7 @@ public:
   /////////////////////////////////////////////////////
   OmeInfo();
 
-  void loadOmeInformationFromXMLString(const std::string &omeXML, const ImageInfo::PhyiscalSize &defaultSettings);
+  void loadOmeInformationFromXMLString(const std::string &omeXML, const PhyiscalSize &defaultSettings);
 
   [[nodiscard]] size_t getNrOfSeries() const
   {
@@ -177,8 +162,8 @@ public:
   [[nodiscard]] int getNrOfChannels(int32_t series) const;
   [[nodiscard]] int getNrOfZStack(int32_t series) const;
   [[nodiscard]] int getNrOfTStack(int32_t series) const;
-  [[nodiscard]] auto getPhyiscalSize(int32_t series, bool alwaysReal = false) const -> const ImageInfo::PhyiscalSize &;
-  void setPhyiscalSize(const ImageInfo::PhyiscalSize &);
+  [[nodiscard]] auto getPhyiscalSize(int32_t series, bool alwaysReal = false) const -> const PhyiscalSize &;
+  void setPhyiscalSize(const PhyiscalSize &);
   [[nodiscard]] std::tuple<int64_t, int64_t> getSize(int32_t series) const;
   [[nodiscard]] int32_t getBits(int32_t series) const;
   [[nodiscard]] int32_t getSeriesWithHighestResolution() const;
@@ -260,6 +245,6 @@ private:
   /////////////////////////////////////////////////////
   std::map<int32_t, ImageInfo> mImageInfo;    // Key is series
   ObjectiveInfo mObjectiveInfo;
-  ImageInfo::PhyiscalSize mDefaultPhyiscalSizeSettings;
+  PhyiscalSize mDefaultPhyiscalSizeSettings;
 };
 }    // namespace joda::ome

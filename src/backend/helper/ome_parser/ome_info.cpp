@@ -38,7 +38,7 @@ OmeInfo::OmeInfo()
 /// \param[in]  omeXML  Read OME XML data as string
 /// \return     Parsed OME information
 ///
-void OmeInfo::loadOmeInformationFromXMLString(const std::string &omeXML, const ImageInfo::PhyiscalSize &defaultSettings)
+void OmeInfo::loadOmeInformationFromXMLString(const std::string &omeXML, const PhyiscalSize &defaultSettings)
 {
   setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
   mDefaultPhyiscalSizeSettings = defaultSettings;
@@ -152,11 +152,11 @@ TRY_AGAIN:
     //
     // Pixel size
     //
-    auto physicalSizeX            = pixels.attribute("PhysicalSizeX").as_double();
+    auto physicalSizeX            = pixels.attribute("PhysicalSizeX").as_double(-1);
     std::string physicalSizeXUnit = pixels.attribute("PhysicalSizeXUnit").as_string();
-    auto physicalSizeY            = pixels.attribute("PhysicalSizeY").as_double();
+    auto physicalSizeY            = pixels.attribute("PhysicalSizeY").as_double(-1);
     std::string physicalSizeYUnit = pixels.attribute("PhysicalSizeYUnit").as_string();
-    auto physicalSizeZ            = pixels.attribute("PhysicalSizeZ").as_double();
+    auto physicalSizeZ            = pixels.attribute("PhysicalSizeZ").as_double(-1);
     std::string physicalSizeZUnit = pixels.attribute("PhysicalSizeZUnit").as_string();
 
     //
@@ -206,10 +206,6 @@ TRY_AGAIN:
     actImageInfo.nrOfZStacks = sizeZ;
     actImageInfo.nrOfTStacks = sizeT;
 
-    actImageInfo.physicalSize.sizeX = physicalSizeX;
-    actImageInfo.physicalSize.sizeY = physicalSizeY;
-    actImageInfo.physicalSize.sizeZ = physicalSizeZ;
-
     auto stringToUnit = [](const std::string &unit) -> enums::Units {
       if(unit == "nm") {
         return enums::Units::nm;
@@ -232,9 +228,7 @@ TRY_AGAIN:
       return enums::Units::Pixels;
     };
 
-    actImageInfo.physicalSize.unitX = stringToUnit(physicalSizeXUnit);
-    actImageInfo.physicalSize.unitY = stringToUnit(physicalSizeYUnit);
-    actImageInfo.physicalSize.unitZ = stringToUnit(physicalSizeZUnit);
+    actImageInfo.physicalSize = PhyiscalSize(physicalSizeX, physicalSizeY, physicalSizeZ, stringToUnit(physicalSizeXUnit));
 
     //
     // Load planes
@@ -285,7 +279,7 @@ TRY_AGAIN:
 /// \brief      Returns the number of channels
 /// \author     Joachim Danmayr
 ///
-auto OmeInfo::getPhyiscalSize(int32_t series, bool alwaysReal) const -> const ImageInfo::PhyiscalSize &
+auto OmeInfo::getPhyiscalSize(int32_t series, bool alwaysReal) const -> const PhyiscalSize &
 {
   if(series >= getNrOfSeries()) {
     return mDefaultPhyiscalSizeSettings;
@@ -306,7 +300,7 @@ auto OmeInfo::getPhyiscalSize(int32_t series, bool alwaysReal) const -> const Im
 /// \brief      Sets the phyiscal size from external
 /// \author     Joachim Danmayr
 ///
-void OmeInfo::setPhyiscalSize(const ImageInfo::PhyiscalSize &in)
+void OmeInfo::setPhyiscalSize(const PhyiscalSize &in)
 {
   mDefaultPhyiscalSizeSettings = in;
 }

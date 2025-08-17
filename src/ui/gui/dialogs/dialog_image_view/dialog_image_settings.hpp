@@ -41,9 +41,10 @@ public:
     int32_t imageSeries            = 0;
     int32_t tileWidth              = 4096;
 
-    float pixelWidth  = 0;
-    float pixelHeight = 0;
-    enums::Units unit = enums::Units::Pixels;
+    float pixelWidth                 = 0;
+    float pixelHeight                = 0;
+    enums::Units unit                = enums::Units::um;
+    enums::PhysicalSizeMode sizeMode = enums::PhysicalSizeMode::Automatic;
   };
 
   /////////////////////////////////////////////////////
@@ -53,7 +54,7 @@ private:
   /////////////////////////////////////////////////////
   void accept() override;
   void fromSettings(const ome::OmeInfo &omeInfo);
-  void setFromOme(const ome::OmeInfo &omeInfo);
+  void setFromOme(const ome::OmeInfo &omeInfo, int32_t imgSeries, enums::Units unit);
 
   /////////////////////////////////////////////////////
   QComboBox *mZprojection;
@@ -61,12 +62,11 @@ private:
   QComboBox *mTileSize;
 
   QComboBox *mPixelSizeMode;
+  QComboBox *mUnit;
 
   QLineEdit *mPixelWidth;
-  QComboBox *mUnitWidth;
 
   QLineEdit *mPixelHeight;
-  QComboBox *mUnitHeight;
 
   Settings *mSettings;
 

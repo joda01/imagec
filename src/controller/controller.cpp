@@ -330,16 +330,13 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
   static std::filesystem::path lastImagePath;
 
   if(lastImagePath != imagePath) {
-    lastImagePath = imagePath;
-    omeOut        = joda::image::reader::ImageReader::getOmeInformation(imagePath, series,
-                                                                        joda::ome::OmeInfo::ImageInfo::PhyiscalSize{
-                                                                            .sizeX = defaultPhysicalSizeSettings.pixelWidth,
-                                                                            .sizeY = defaultPhysicalSizeSettings.pixelHeight,
-                                                                            .sizeZ = 0,
-                                                                            .unitX = defaultPhysicalSizeSettings.unit,
-                                                                            .unitY = defaultPhysicalSizeSettings.unit,
-                                                                            .unitZ = defaultPhysicalSizeSettings.unit,
-                                                                 });
+    lastImagePath          = imagePath;
+    ome::PhyiscalSize phys = {};
+    if(defaultPhysicalSizeSettings.mode == enums::PhysicalSizeMode::Manual) {
+      phys = joda::ome::PhyiscalSize{defaultPhysicalSizeSettings.pixelWidth, defaultPhysicalSizeSettings.pixelHeight, 0,
+                                     defaultPhysicalSizeSettings.unit};
+    }
+    omeOut = joda::image::reader::ImageReader::getOmeInformation(imagePath, series, phys);
   }
   loadImage(imagePath, series, imagePlane, tileLoad, previewOut, &omeOut, zProjection);
 }
@@ -445,15 +442,12 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
 auto Controller::getImageProperties(const std::filesystem::path &image, int series,
                                     const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings) -> joda::ome::OmeInfo
 {
-  return joda::image::reader::ImageReader::getOmeInformation(image, series,
-                                                             joda::ome::OmeInfo::ImageInfo::PhyiscalSize{
-                                                                 .sizeX = defaultPhysicalSizeSettings.pixelWidth,
-                                                                 .sizeY = defaultPhysicalSizeSettings.pixelHeight,
-                                                                 .sizeZ = 0,
-                                                                 .unitX = defaultPhysicalSizeSettings.unit,
-                                                                 .unitY = defaultPhysicalSizeSettings.unit,
-                                                                 .unitZ = defaultPhysicalSizeSettings.unit,
-                                                             });
+  ome::PhyiscalSize phys = {};
+  if(defaultPhysicalSizeSettings.mode == enums::PhysicalSizeMode::Manual) {
+    phys =
+        joda::ome::PhyiscalSize{defaultPhysicalSizeSettings.pixelWidth, defaultPhysicalSizeSettings.pixelHeight, 0, defaultPhysicalSizeSettings.unit};
+  }
+  return joda::image::reader::ImageReader::getOmeInformation(image, series, phys);
 }
 
 // FLOW CONTROL ////////////////////////////////////////////////

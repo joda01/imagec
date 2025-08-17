@@ -67,6 +67,16 @@ struct ProjectImageSetup
     //
     //
     //
+    enums::PhysicalSizeMode mode = enums::PhysicalSizeMode::Automatic;
+
+    //
+    //
+    //
+    enums::Units unit = enums::Units::um;
+
+    //
+    //
+    //
     float pixelWidth = 0;
 
     //
@@ -74,16 +84,11 @@ struct ProjectImageSetup
     //
     float pixelHeight = 0;
 
-    //
-    //
-    //
-    enums::Units unit = enums::Units::Automatic;
-
     void check() const
     {
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PhysicalSizeSettings, pixelWidth, pixelHeight, unit);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PhysicalSizeSettings, mode, pixelWidth, pixelHeight, unit);
   };
 
   ZStackHandling zStackHandling = ZStackHandling::EXACT_ONE;

@@ -55,6 +55,7 @@ struct ImageInfo
   uint32_t height = 0;
   std::string imageGroupName;
   uint64_t imageId;
+  std::string physicalSizeUnit = "Px";
 };
 
 struct ObjectInfo

@@ -20,6 +20,7 @@
 #include <string>
 #include <utility>
 #include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_units.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"

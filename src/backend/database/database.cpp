@@ -175,8 +175,24 @@ void Database::createTables()
       " height UINTEGER,"
       " validity UBIGINT,"
       " processed BOOLEAN,"
+      " physicalPixelSizeWidth DOUBLE,"
+      " physicalPixelSizeHeight DOUBLE,"
+      " physicalPixelSizeDepth DOUBLE,"
+      " physicalPixelSizeUnit STRING,"
       " PRIMARY KEY (image_id)"
       ");"
+
+      "ALTER TABLE images "
+      " ADD COLUMN IF NOT EXISTS physicalPixelSizeWidth DOUBLE DEFAULT 1;\n"
+
+      "ALTER TABLE images "
+      " ADD COLUMN IF NOT EXISTS physicalPixelSizeHeight DOUBLE DEFAULT 1;\n"
+
+      "ALTER TABLE images "
+      " ADD COLUMN IF NOT EXISTS physicalPixelSizeDepth DOUBLE DEFAULT 1;\n"
+
+      "ALTER TABLE images "
+      " ADD COLUMN IF NOT EXISTS physicalPixelSizeUnit STRING DEFAULT 'Px';\n"
 
       "CREATE TABLE IF NOT EXISTS images_groups ("
       " plate_id USMALLINT,"
@@ -548,15 +564,16 @@ auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy gro
   for(const auto &imagePath : imagePaths) {
     auto prepareImage = [&groups, &grouper, &addedGroups, &imagesToProcess, &images, &images_groups, &images_channels, &insertMutex, &series, plateId,
                          imagePath, &imagesBasePath, &defaultPhysicalSizeSettings]() {
-      auto ome         = joda::image::reader::ImageReader::getOmeInformation(imagePath, series,
-                                                                             joda::ome::OmeInfo::ImageInfo::PhyiscalSize{
-                                                                                 .sizeX = defaultPhysicalSizeSettings.pixelWidth,
-                                                                                 .sizeY = defaultPhysicalSizeSettings.pixelHeight,
-                                                                                 .sizeZ = 0,
-                                                                                 .unitX = defaultPhysicalSizeSettings.unit,
-                                                                                 .unitY = defaultPhysicalSizeSettings.unit,
-                                                                                 .unitZ = defaultPhysicalSizeSettings.unit,
-                                                                     });
+      ome::PhyiscalSize phys = {};
+      if(defaultPhysicalSizeSettings.mode == enums::PhysicalSizeMode::Manual) {
+        phys = joda::ome::PhyiscalSize{defaultPhysicalSizeSettings.pixelWidth, defaultPhysicalSizeSettings.pixelHeight, 0,
+                                       defaultPhysicalSizeSettings.unit};
+      }
+      auto ome = joda::image::reader::ImageReader::getOmeInformation(imagePath, series, phys);
+      auto [physicalPixelSizeWidth, physicalPixelSizeHeight, physicalPixelSizeDepth] =
+          ome.getPhyiscalSize(series).getPixelSize(defaultPhysicalSizeSettings.unit);
+      nlohmann::json physicalImageSizeUnit = defaultPhysicalSizeSettings.unit;
+
       uint64_t imageId = joda::helper::fnv1a(imagePath.string());
       auto groupInfo   = grouper.getGroupForFilename(imagePath);
 
@@ -582,17 +599,21 @@ auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy gro
         {
           auto relativePath = std::filesystem::relative(imagePath, imagesBasePath);
           images.BeginRow();
-          images.Append<uint64_t>(imageId);                                  //       " image_id UBIGINT,"
-          images.Append<duckdb::string_t>(imagePath.filename().string());    //       " file_name TEXT,"
-          images.Append<duckdb::string_t>(imagePath.string());               //       " original_file_path TEXT
-          images.Append<duckdb::string_t>(relativePath.string());            //       " relative_file_path TEXT
-          images.Append<uint32_t>(ome.getNrOfChannels(series));              //       " nr_of_c_stacks UINTEGER
-          images.Append<uint32_t>(ome.getNrOfZStack(series));                //       " nr_of_z_stacks UINTEGER
-          images.Append<uint32_t>(ome.getNrOfTStack(series));                //       " nr_of_t_stacks UINTEGER
-          images.Append<uint32_t>(std::get<0>(ome.getSize(series)));         //       " width UINTEGER,"
-          images.Append<uint32_t>(std::get<1>(ome.getSize(series)));         //       " height UINTEGER,"
-          images.Append<uint64_t>(0);                                        //       " validity UBIGINT,"
-          images.Append<bool>(false);                                        //       " processed BOOL,"
+          images.Append<uint64_t>(imageId);                                                     //       " image_id UBIGINT,"
+          images.Append<duckdb::string_t>(imagePath.filename().string());                       //       " file_name TEXT,"
+          images.Append<duckdb::string_t>(imagePath.string());                                  //       " original_file_path TEXT
+          images.Append<duckdb::string_t>(relativePath.string());                               //       " relative_file_path TEXT
+          images.Append<uint32_t>(ome.getNrOfChannels(series));                                 //       " nr_of_c_stacks UINTEGER
+          images.Append<uint32_t>(ome.getNrOfZStack(series));                                   //       " nr_of_z_stacks UINTEGER
+          images.Append<uint32_t>(ome.getNrOfTStack(series));                                   //       " nr_of_t_stacks UINTEGER
+          images.Append<uint32_t>(std::get<0>(ome.getSize(series)));                            //       " width UINTEGER,"
+          images.Append<uint32_t>(std::get<1>(ome.getSize(series)));                            //       " height UINTEGER,"
+          images.Append<uint64_t>(0);                                                           //       " validity UBIGINT,"
+          images.Append<bool>(false);                                                           //       " processed BOOL,"
+          images.Append<double>(physicalPixelSizeWidth);                                        //       " physicalPixelSizeWidth DOUBLE
+          images.Append<double>(physicalPixelSizeHeight);                                       //       " physicalPixelSizeHeight DOUBLE
+          images.Append<double>(physicalPixelSizeDepth);                                        //       " physicalPixelSizeDepth DOUBLE,
+          images.Append<duckdb::string_t>(physicalImageSizeUnit.get<std::string>().c_str());    //       " physicalPixelSizeUnit STRING,
           images.EndRow();
         }
 
@@ -1413,7 +1434,8 @@ auto Database::selectGroupInfo(uint64_t groupId) -> GroupInfo
 auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
 {
   std::unique_ptr<duckdb::QueryResult> result = select(
-      "SELECT images.file_name, images.original_file_path,images.relative_file_path, images.validity, images.width, images.height, groups.name "
+      "SELECT images.file_name, images.original_file_path,images.relative_file_path, images.validity, images.width, images.height, "
+      "images.physicalPixelSizeUnit, groups.name "
       "FROM images "
       "JOIN images_groups ON "
       "     images.image_id = images_groups.image_id "
@@ -1435,7 +1457,8 @@ auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
     results.validity         = materializedResult->GetValue(3, 0).GetValue<uint64_t>();
     results.width            = materializedResult->GetValue(4, 0).GetValue<uint32_t>();
     results.height           = materializedResult->GetValue(5, 0).GetValue<uint32_t>();
-    results.imageGroupName   = materializedResult->GetValue(6, 0).GetValue<std::string>();
+    results.physicalSizeUnit = materializedResult->GetValue(6, 0).GetValue<std::string>();
+    results.imageGroupName   = materializedResult->GetValue(7, 0).GetValue<std::string>();
     results.imageId          = imageId;
   }
 

@@ -541,8 +541,8 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
 /// \param[out]
 /// \return
 ///
-auto ImageReader::getOmeInformation(const std::filesystem::path &filename, uint16_t series,
-                                    const ome::OmeInfo::ImageInfo::PhyiscalSize &defaultSettings) -> joda::ome::OmeInfo
+auto ImageReader::getOmeInformation(const std::filesystem::path &filename, uint16_t series, const ome::PhyiscalSize &defaultSettings)
+    -> joda::ome::OmeInfo
 {
   if(nullptr != myJVM && mJVMInitialised) {
     auto id = DurationCount::start("Get OEM");
