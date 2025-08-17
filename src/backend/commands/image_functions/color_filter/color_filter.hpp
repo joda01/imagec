@@ -78,8 +78,10 @@ public:
             if(combinedMask.at<uint8_t>(i, j) == 0) {
             } else {
               cv::Vec3b pixel = image.at<cv::Vec3b>(i, j);
-              uint16_t grayValue =
-                  (((0.299 * (float) pixel[2] + 0.587 * (float) pixel[1] + 0.114 * (float) pixel[0]) * 65535.0) / (3 * 255.0));    // BGR format
+              auto grayValue  = static_cast<uint16_t>(
+                  ((0.299F * static_cast<float>(pixel[2]) + 0.587F * static_cast<float>(pixel[1]) + 0.114F * static_cast<float>(pixel[0])) *
+                   65535.0F) /
+                  (3.0F * 255.0F));    // BGR format
               hsvImageTmp.at<uint16_t>(i, j) = grayValue;
             }
           }
@@ -89,8 +91,10 @@ public:
           for(int j = 0; j < image.cols; ++j) {
             if(combinedMask.at<uint8_t>(i, j) == 0) {
             } else {
-              cv::Vec3b pixel                = image.at<cv::Vec3b>(i, j);
-              uint16_t grayValue             = (((pixel[2] + pixel[1] + pixel[0]) * 65535.0) / (3 * 255.0));    // BGR format
+              cv::Vec3b pixel = image.at<cv::Vec3b>(i, j);
+              auto grayValue =
+                  static_cast<uint16_t>((((static_cast<float>(pixel[2]) + static_cast<float>(pixel[1]) + static_cast<float>(pixel[0])) * 65535.0F) /
+                                         (3.0F * 255.0F)));    // BGR format
               hsvImageTmp.at<uint16_t>(i, j) = grayValue;
             }
           }
@@ -111,7 +115,9 @@ private:
     std::string hex = hexColor[0] == '#' ? hexColor.substr(1) : hexColor;
 
     // Convert hex string to integer values for R, G, B
-    int r, g, b;
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
     std::stringstream ss;
 
     // Convert red component

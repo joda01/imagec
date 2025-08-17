@@ -10,6 +10,7 @@
 ///
 
 #include "processor.hpp"
+#include <cstddef>
 #include <exception>
 #include <filesystem>
 #include <memory>
@@ -134,19 +135,19 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                 // Start of the image specific function
                 int32_t tStackStart = 0;
                 auto tStackEnd      = static_cast<int32_t>(nrtStack);
-                if(program.imageSetup.tStackSettings.startFrame > nrtStack) {
+                if(program.imageSetup.tStackSettings.startFrame > static_cast<int32_t>(nrtStack)) {
                   tStackStart = static_cast<int32_t>(nrtStack);
                 } else {
                   tStackStart = program.imageSetup.tStackSettings.startFrame;
                 }
-                if(program.imageSetup.tStackSettings.endFrame >= 0 && program.imageSetup.tStackSettings.endFrame <= nrtStack) {
+                if(program.imageSetup.tStackSettings.endFrame >= 0 && program.imageSetup.tStackSettings.endFrame <= static_cast<int32_t>(nrtStack)) {
                   tStackEnd = program.imageSetup.tStackSettings.endFrame;
                 }
                 for(int tStack = tStackStart; tStack < tStackEnd; tStack++) {
                   if(mProgress.isStopping()) {
                     break;
                   }
-                  for(int zStack = 0; zStack < nrzSTack; zStack++) {
+                  for(int zStack = 0; zStack < static_cast<int32_t>(nrzSTack); zStack++) {
                     if(mProgress.isStopping()) {
                       break;
                     }
@@ -155,18 +156,17 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
 
                     // Start with the highest prio pipelines down to the lowest prio
                     for(const auto &[order, pipelines] : pipelineOrder) {
-                      auto executePipelineOrder = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db, imagePath, nrtStack, nrzSTack,
-                                                   &imageContext, &imageLoader, tileX, tileY, nrChannels, pipelines = pipelines, &iterationContext,
-                                                   tStack, zStack, &poolSizeChannels]() {
+                      auto executePipelineOrder = [this, &globalContext, &plateContext, &db, imagePath, &imageContext, &imageLoader, tileX, tileY,
+                                                   nrChannels, pipelines = pipelines, &iterationContext, tStack, zStack, &poolSizeChannels]() {
                         // These are pipelines in onw prio step -> Can be parallelized
                         BS::multi_future<void> pipelinesFutures;
                         for(const auto &pipelineToExecute : pipelines) {
                           if(mProgress.isStopping()) {
                             break;
                           }
-                          auto executePipeline = [pipeline = pipelineToExecute, this, &program, &globalContext, &plateContext, &pipelineOrder, &db,
-                                                  imagePath, nrtStack, nrzSTack, &imageContext, &imageLoader, tileX, tileY, nrChannels,
-                                                  pipelines = pipelines, &iterationContext, tStack, zStack]() {
+                          auto executePipeline = [pipeline = pipelineToExecute, this, &globalContext, &plateContext, &db, imagePath, &imageContext,
+                                                  &imageLoader, tileX, tileY, nrChannels, pipelines = pipelines, &iterationContext, tStack,
+                                                  zStack]() {
                             //
                             // Load the image imagePlane
                             //
@@ -179,7 +179,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                               if(pipeline->pipelineSetup.cStackIndex >= 0 && pipeline->pipelineSetup.cStackIndex < nrChannels) {
                                 db->insertImagePlane(imageContext.imageId, planeId,
                                                      imageContext.imageMeta.getChannelInfos(imageContext.series)
-                                                         .at(pipeline->pipelineSetup.cStackIndex)
+                                                         .at(static_cast<uint32_t>(pipeline->pipelineSetup.cStackIndex))
                                                          .planes.at(planeId.tStack)
                                                          .at(planeId.zStack));
                               }
@@ -275,7 +275,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
     db->finishJob(jobId);
     globalContext.database->closeDatabase();
     mProgress.setStateFinished();
-    DurationCount::printStats(allImages.getNrOfFiles(), mJobInformation.ouputFolder);
+    DurationCount::printStats(static_cast<int32_t>(allImages.getNrOfFiles()), mJobInformation.ouputFolder);
   } catch(const std::exception &ex) {
     mProgress.setStateError(mJobInformation, ex.what());
   }
@@ -312,7 +312,7 @@ void Processor::listImages(const joda::settings::AnalyzeSettings &program, image
   mProgress.setStateLookingForImages();
   allImages.setWorkingDirectory(program.projectSettings.plate.imageFolder);
   allImages.waitForFinished();
-  mProgress.setTotalNrOfImages(allImages.getNrOfFiles());
+  mProgress.setTotalNrOfImages(static_cast<uint32_t>(allImages.getNrOfFiles()));
   mProgress.setRunningPreparingPipeline();
 }
 
@@ -354,7 +354,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
       auto i = DurationCount::start("Generate thumb");
       thumb  = joda::image::reader::ImageReader::loadThumbnail(
           imagePath.string(), joda::image::reader::ImageReader::Plane{.z = zStack, .c = pipelineStart.pipelineSetup.cStackIndex, .t = tStack},
-          imageSetup.series, ome);
+          static_cast<uint16_t>(imageSetup.series), ome);
       DurationCount::stop(i);
     }
   });
@@ -379,18 +379,16 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
 
   IterationContext iterationContext;
 
-  int32_t totalRuns = 0;
+  size_t totalRuns = 0;
   for(const auto &[order, pipelines] : pipelineOrder) {
-    for(const auto &pipeline : pipelines) {
-      totalRuns++;
-    }
+    totalRuns += pipelines.size();
   }
 
   std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>, enums::ChannelValidity, joda::atom::ObjectMap>
       tmpResult;
   bool finished = false;
 
-  int executedSteps = 0;
+  size_t executedSteps = 0;
   for(const auto &[order, pipelines] : pipelineOrder) {
     BS::multi_future<void> pipelinesFutures;
     for(const auto &pipelineToExecute : pipelines) {
@@ -399,9 +397,9 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         continue;
       }
 
-      auto executePipeline = [&db, &thumbThread, &thumb, &finished, &tmpResult, &previewSettings, &pipelineStart, &classesToHide, &totalRuns,
-                              pipeline = pipelineToExecute, this, &program, &globalContext, &plateContext, &pipelineOrder, imagePath, &imageContext,
-                              &imageLoader, tileX, tileY, pipelines = pipelines, &iterationContext, tStack, zStack, executedSteps]() -> void {
+      auto executePipeline = [&db, &thumbThread, &thumb, &finished, &tmpResult, &previewSettings, &classesToHide, &totalRuns,
+                              pipeline  = pipelineToExecute, &globalContext, &plateContext, imagePath, &imageContext, &imageLoader, tileX, tileY,
+                              pipelines = pipelines, &iterationContext, tStack, zStack, executedSteps]() -> void {
         //
         // The last step is the wanted pipeline
         //

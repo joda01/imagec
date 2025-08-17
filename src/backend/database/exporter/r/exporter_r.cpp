@@ -45,8 +45,8 @@ library(ggplot2)
 
   // Iterate over the sheets
   int32_t index = 1;
-  for(const auto *data : data) {
-    std::string name = data->getTitle();
+  for(const auto *dataIn : data) {
+    std::string name = dataIn->getTitle();
     // Max. sheet name length = 31 because of excel limitation
     if(name.size() > 28) {
       name = name.substr(0, 28);

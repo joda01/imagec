@@ -36,7 +36,8 @@ HeatmapWidget::HeatmapWidget(QWidget *parent) : QWidget(parent)
   mHeatmap->setGapsBetweenBoxes(4);
   mHeatmap->setPrecision(0);
   auto bgColor = palette().color(backgroundRole());
-  mHeatmap->setBackgroundColor(cv::Vec3b{(uint8_t) bgColor.blue(), (uint8_t) bgColor.green(), (uint8_t) bgColor.red()});
+  mHeatmap->setBackgroundColor(
+      cv::Vec3b{static_cast<uint8_t>(bgColor.blue()), static_cast<uint8_t>(bgColor.green()), static_cast<uint8_t>(bgColor.red())});
 }
 
 HeatmapWidget::~HeatmapWidget()
@@ -54,7 +55,7 @@ void HeatmapWidget::exportToPNG(const std::filesystem::path &path) const
   auto withTmp   = 2048;
   auto heightTmp = 2048;
   auto graph     = mHeatmap->plot({withTmp, heightTmp});
-  bool success   = cv::imwrite(path.string(), graph);
+  //  bool success   = cv::imwrite(path.string(), graph);
 }
 
 ///
@@ -110,7 +111,7 @@ void HeatmapWidget::copyToClipboard() const
 /// \param[out]
 /// \return
 ///
-void HeatmapWidget::updateGraph(const joda::table::Table &&data, joda::plot::ColormapName colorMap, joda::plot::ColorMappingMode mode,
+void HeatmapWidget::updateGraph(const joda::table::Table &data, joda::plot::ColormapName colorMap, joda::plot::ColorMappingMode mode,
                                 const joda::plot::ColorMappingRange &range, bool isPlateView, bool isImageView)
 {
   if(isImageView) {
@@ -126,7 +127,7 @@ void HeatmapWidget::updateGraph(const joda::table::Table &&data, joda::plot::Col
   mHeatmap->setColorMappingMode(mode);
   mHeatmap->setColorMappingRange(range);
   mHeatmap->setColorMap(colorMap);
-  mHeatmap->setData(std::move(data));
+  mHeatmap->setData(data);
   update();
 }
 

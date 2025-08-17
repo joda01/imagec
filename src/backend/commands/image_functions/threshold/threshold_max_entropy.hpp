@@ -36,7 +36,8 @@ public:
   static uint16_t calcThresholdValue(const cv::Mat &histogram)
   {
     int threshold = -1;
-    int ih, it;
+    int ih;
+    int it;
     int first_bin;
     int last_bin;
     double tot_ent;         /* total entropy */
@@ -48,11 +49,13 @@ public:
     double P2[256];
 
     double total = 0;
-    for(ih = 0; ih < 256; ih++)
-      total += histogram.at<float>(ih);
+    for(ih = 0; ih < 256; ih++) {
+      total += static_cast<double>(histogram.at<float>(ih));
+    }
 
-    for(ih = 0; ih < 256; ih++)
-      norm_histo[ih] = histogram.at<float>(ih) / total;
+    for(ih = 0; ih < 256; ih++) {
+      norm_histo[ih] = static_cast<double>(histogram.at<float>(ih)) / total;
+    }
 
     P1[0] = norm_histo[0];
     P2[0] = 1.0 - P1[0];
@@ -109,7 +112,7 @@ public:
         threshold = it;
       }
     }
-    return threshold;
+    return static_cast<uint16_t>(threshold);
   }
 };
 

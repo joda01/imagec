@@ -22,6 +22,7 @@
 #include <stdexcept>
 #include <string>
 #include <tuple>
+#include <utility>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_classes.hpp"
@@ -50,7 +51,7 @@ ROI::ROI() :
 ROI::ROI(RoiObjectId index, Confidence confidence, const Boxes &boundingBox, const cv::Mat &mask, const std::vector<cv::Point> &contour,
          const cv::Size &imageSize, const cv::Size &originalImageSize, const enums::tile_t &tile, const cv::Size &tileSize) :
     mIsNull(false),
-    mObjectId(mGlobalUniqueObjectId++), mId(index), mConfidence(confidence), mBoundingBoxTile(boundingBox),
+    mObjectId(mGlobalUniqueObjectId++), mId(std::move(index)), mConfidence(confidence), mBoundingBoxTile(boundingBox),
     mBoundingBoxReal(calcRealBoundingBox(tile, tileSize)), mMask(mask), mMaskContours(contour), mImageSize(imageSize),
     mOriginalImageSize(originalImageSize), mAreaSize(static_cast<double>(calcAreaSize())), mPerimeter(getTracedPerimeter(mMaskContours)),
     mCircularity(calcCircularity()), mCentroid(calcCentroid(mMask)), mOriginObjectId(mObjectId)
@@ -138,8 +139,8 @@ auto ROI::calcIntensity(const cv::Mat &image) const -> Intensity
       }
     }
   }
-  intensityRet.intensityAvg = cv::mean(maskImg, mMask)[0];
-  intensityRet.intensitySum = cv::sum(maskImg)[0];
+  intensityRet.intensityAvg = static_cast<float>(cv::mean(maskImg, mMask)[0]);
+  intensityRet.intensitySum = static_cast<uint64_t>(cv::sum(maskImg)[0]);
   cv::minMaxLoc(maskImg, &intensityRet.intensityMin, &intensityRet.intensityMax, nullptr, nullptr, mMask);
   return intensityRet;
 }
@@ -255,7 +256,7 @@ float ROI::getTracedPerimeter(const std::vector<cv::Point> &points)
     side1 = side2;
   }
 
-  return static_cast<float>(static_cast<float>(sumdx) + static_cast<float>(sumdy) - (static_cast<float>(nCorners) * (2.0F - std::sqrt(2))));
+  return static_cast<float>(static_cast<double>(sumdx) + static_cast<double>(sumdy) - (static_cast<double>(nCorners) * (2.0 - std::sqrt(2))));
 }
 
 ///
@@ -270,7 +271,7 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
   double pixelWidth  = 1.0;
   double pixelHeight = 1.0;
   double length      = 0;
-  for(int i = 0; i < npoints - 1; i++) {
+  for(size_t i = 0; i < npoints - 1; i++) {
     length += std::sqrt(std::pow((points[i + 1].x - points[i].x) * pixelWidth, 2) + std::pow((points[i + 1].y - points[i].y) * pixelHeight, 2));
   }
   if(closeShape) {
@@ -544,7 +545,7 @@ void ROI::resize(float scaleX, float scaleY)
     return;
   }
   // Compute the new size
-  cv::Size newSize(static_cast<int>(mMask.cols * scaleX), static_cast<int>(mMask.rows * scaleY));
+  cv::Size newSize(static_cast<int>(static_cast<float>(mMask.cols) * scaleX), static_cast<int>(static_cast<float>(mMask.rows) * scaleY));
   if(newSize.height <= 0) {
     newSize.height = 1;
   }
@@ -611,7 +612,7 @@ void ROI::resize(float scaleX, float scaleY)
   cv::findContours(mMask, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
 
   if(!contours.empty()) {
-    for(int i = 0; i < contours.size(); i++) {
+    for(size_t i = 0; i < contours.size(); i++) {
       // Do not paint a contour for elements inside an element.
       // In other words if there is a particle with a hole, ignore the hole.
       // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html
@@ -697,7 +698,7 @@ void ROI::drawCircle(float radius)
   // Circle parameters
   mMask = 0;
   cv::Point center(newCentroid.x + centroidOffset.first, newCentroid.y + centroidOffset.second);    // Center of the circle
-  cv::circle(mMask, center, radius, cv::Scalar{255}, -1);
+  cv::circle(mMask, center, static_cast<int>(radius), cv::Scalar{255}, -1);
 
   // Crop
   cv::Rect crop(0, 0, mBoundingBoxTile.width, mBoundingBoxTile.height);
@@ -708,7 +709,7 @@ void ROI::drawCircle(float radius)
   cv::findContours(mMask, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
 
   if(!contours.empty()) {
-    for(int i = 0; i < contours.size(); i++) {
+    for(size_t i = 0; i < contours.size(); i++) {
       // Do not paint a contour for elements inside an element.
       // In other words if there is a particle with a hole, ignore the hole.
       // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html
@@ -738,7 +739,7 @@ void ROI::fitEllipse()
   if(mMaskContours.size() >= 5) {    // fitEllipse needs at least 5 points
     ellipseBox = cv::fitEllipse(mMaskContours);
   } else {
-    float radius = std::max(getBoundingBoxTile().width, getBoundingBoxTile().height);
+    auto radius = static_cast<float>(std::max(getBoundingBoxTile().width, getBoundingBoxTile().height));
     drawCircle(radius);
     return;
   }
@@ -798,7 +799,7 @@ void ROI::fitEllipse()
     }
     return centroidOffset;
   };
-  auto centroidOffset = scaleBoundingBox(mBoundingBoxTile, mImageSize);
+  // auto centroidOffset = scaleBoundingBox(mBoundingBoxTile, mImageSize);
   scaleBoundingBox(mBoundingBoxReal, mOriginalImageSize);
 
   // Circle parameters
@@ -814,7 +815,7 @@ void ROI::fitEllipse()
   cv::findContours(mMask, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
 
   if(!contours.empty()) {
-    for(int i = 0; i < contours.size(); i++) {
+    for(size_t i = 0; i < contours.size(); i++) {
       // Do not paint a contour for elements inside an element.
       // In other words if there is a particle with a hole, ignore the hole.
       // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html

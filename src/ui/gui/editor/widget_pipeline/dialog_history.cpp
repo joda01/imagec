@@ -258,9 +258,9 @@ void DialogHistory::undo()
     return;
   }
   try {
-    auto data = mPanelPipeline->mutablePipeline().undo();
+    auto dataIn = mPanelPipeline->mutablePipeline().undo();
     mPanelPipeline->clearPipeline();
-    mPanelPipeline->fromSettings(data);
+    mPanelPipeline->fromSettings(dataIn);
     updateSelection();
   } catch(...) {
   }
@@ -286,7 +286,8 @@ void DialogHistory::createTag()
     if(!text.isEmpty()) {
       try {
         mPanelPipeline->mutablePipeline().tag(text.toStdString());
-        ((TimeHistoryEntry *) mHistory->cellWidget(0, 0))->updateContent(generateSvgIcon<Style::REGULAR, Color::BLACK>("tag-simple"), text);
+        (static_cast<TimeHistoryEntry *>(mHistory->cellWidget(0, 0)))
+            ->updateContent(generateSvgIcon<Style::REGULAR, Color::BLACK>("tag-simple"), text);
         mHistory->update();
         mHistory->viewport()->update();
         mWindowMain->checkForSettingsChanged();

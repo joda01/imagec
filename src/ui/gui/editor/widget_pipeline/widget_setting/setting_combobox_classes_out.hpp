@@ -124,7 +124,7 @@ public:
 
       std::map<std::string, std::multimap<std::string, CLASSID>> orderedClasses;
       for(const auto &[id, className] : classes) {
-        orderedClasses[enums::getPrefixFromClassName(className.toStdString())].emplace(className.toStdString(), (CLASSID) id);
+        orderedClasses[enums::getPrefixFromClassName(className.toStdString())].emplace(className.toStdString(), static_cast<CLASSID>(id));
       }
 
       if constexpr(std::same_as<CLASSID, enums::ClassIdIn>) {
@@ -139,8 +139,8 @@ public:
           QVariant variant;
           variant = QVariant(toInt(id));
           if constexpr(std::same_as<CLASSID, enums::ClassIdIn>) {
-            if(((enums::ClassIdIn) id != enums::ClassIdIn::$) &&
-               ((enums::ClassIdIn) id < enums::ClassIdIn::TEMP_01 || (enums::ClassIdIn) id > enums::ClassIdIn::TEMP_LAST)) {
+            if((static_cast<enums::ClassIdIn>(id) != enums::ClassIdIn::$) &&
+               (static_cast<enums::ClassIdIn>(id) < enums::ClassIdIn::TEMP_01 || static_cast<enums::ClassIdIn>(id) > enums::ClassIdIn::TEMP_LAST)) {
               if(!SettingBase::getIcon().isNull()) {
                 mComboBox->addItem(QIcon(SettingBase::getIcon().pixmap(SettingBase::TXT_ICON_SIZE, SettingBase::TXT_ICON_SIZE)), className.data(),
                                    variant);
@@ -149,10 +149,11 @@ public:
               }
             }
           } else {
-            if(((enums::ClassIdIn) id >= enums::ClassIdIn::TEMP_01 && (enums::ClassIdIn) id < enums::ClassIdIn::TEMP_LAST) && !mWithMemory) {
+            if((static_cast<enums::ClassIdIn>(id) >= enums::ClassIdIn::TEMP_01 && static_cast<enums::ClassIdIn>(id) < enums::ClassIdIn::TEMP_LAST) &&
+               !mWithMemory) {
               continue;
             }
-            if(((enums::ClassIdIn) id == enums::ClassIdIn::$) && !mWithDefault) {
+            if((static_cast<enums::ClassIdIn>(id) == enums::ClassIdIn::$) && !mWithDefault) {
               continue;
             }
 
@@ -217,11 +218,11 @@ public:
   }
   CLASSID getValue()
   {
-    return fromInt(mComboBox->currentData().toUInt());
+    return fromInt(static_cast<uint16_t>(mComboBox->currentData().toUInt()));
   }
   std::pair<CLASSID, std::string> getValueAndNames()
   {
-    return {fromInt(mComboBox->currentData().toUInt()), mComboBox->currentText().toStdString()};
+    return {fromInt(static_cast<uint16_t>(mComboBox->currentData().toUInt())), mComboBox->currentText().toStdString()};
   }
 
   void setValue(const CLASSID &valueIn)

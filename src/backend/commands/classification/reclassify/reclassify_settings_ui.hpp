@@ -106,19 +106,19 @@ public:
     //
     // Intensity filter
     //
-    mMinIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Min intensity");
+    mMinIntensity = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Min intensity");
     mMinIntensity->setPlaceholderText("[0 - 65535]");
     mMinIntensity->setUnit("");
-    mMinIntensity->setMinMax(0, INT32_MAX);
+    mMinIntensity->setMinMax(0, std::numeric_limits<float>::max());
     mMinIntensity->setValue(settings.intensity.minIntensity);
     mMinIntensity->connectWithSetting(&settings.intensity.minIntensity);
     mMinIntensity->setShortDescription("Min. ");
     //
     //
-    mMaxIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Max intensity");
+    mMaxIntensity = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Max intensity");
     mMaxIntensity->setPlaceholderText("[0 - 65535]");
     mMaxIntensity->setUnit("");
-    mMaxIntensity->setMinMax(0, INT32_MAX);
+    mMaxIntensity->setMinMax(0, std::numeric_limits<float>::max());
     mMaxIntensity->setValue(settings.intensity.maxIntensity);
     mMaxIntensity->connectWithSetting(&settings.intensity.maxIntensity);
     mMaxIntensity->setShortDescription("Max. ");
@@ -169,8 +169,8 @@ private:
   std::unique_ptr<SettingComboBox<int32_t>> cStackForIntensityFilter;
   std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjectionForIntensityFilter;
   std::unique_ptr<SettingSpinBox<int32_t>> zStackIndex;
-  std::unique_ptr<SettingLineEdit<int>> mMinIntensity;
-  std::unique_ptr<SettingLineEdit<int>> mMaxIntensity;
+  std::unique_ptr<SettingLineEdit<float>> mMinIntensity;
+  std::unique_ptr<SettingLineEdit<float>> mMaxIntensity;
 
   /////////////////////////////////////////////////////
 

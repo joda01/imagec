@@ -314,7 +314,7 @@ inline void toLog(const T &v1, auto &settingsParserLog)
 }
 
 template <IsPrimitive_t T>
-inline void toLog(const std::optional<T> &v1, auto & /*settingsParserLog*/)
+inline void toLog(const std::optional<T> & /*v1*/, auto & /*settingsParserLog*/)
 {
 }
 

@@ -32,7 +32,8 @@ struct SettingParserLog
     JODA_ERROR
   };
 
-  SettingParserLog(Severity sev, const std::string &command, const std::string &msg) : severity(sev), commandNameOfOccurrence(command), message(msg)
+  SettingParserLog(Severity sev, std::string command, std::string msg) :
+      severity(sev), commandNameOfOccurrence(std::move(command)), message(std::move(msg))
   {
   }
 
@@ -49,7 +50,7 @@ using SettingParserLog_t = std::vector<SettingParserLog>;
 #define ADD_TO_LOG(x) x.getErrorLogRecursive(log);
 
 #define NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Type, ...)                                    \
-  mutable SettingParserLog_t joda_settings_log;                                                            \
+  mutable SettingParserLog_t joda_settings_log = {};                                                       \
   friend void to_json(nlohmann::json &nlohmann_json_j, const Type &nlohmann_json_t)                        \
   {                                                                                                        \
     NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_TO, __VA_ARGS__))                               \

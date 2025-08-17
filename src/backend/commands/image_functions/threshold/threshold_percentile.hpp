@@ -34,13 +34,13 @@ class ThresholdPercentile final
 public:
   static uint16_t calcThresholdValue(const cv::Mat &histogram)
   {
-    int iter      = 0;
     int threshold = -1;
     double ptile  = 0.5;    // default fraction of foreground pixels
     double avec[256];
 
-    for(int i = 0; i < 256; i++)
+    for(int i = 0; i < 256; i++) {
       avec[i] = 0.0;
+    }
 
     double total = partialSum(histogram, 255);
     double temp  = 1.0;
@@ -52,7 +52,7 @@ public:
         threshold = i;
       }
     }
-    return threshold;
+    return static_cast<uint16_t>(threshold);
   }
 
 private:
@@ -60,7 +60,7 @@ private:
   {
     double x = 0;
     for(int i = 0; i <= j; i++) {
-      x += y.at<float>(i);
+      x += static_cast<double>(y.at<float>(i));
     }
     return x;
   }

@@ -52,14 +52,14 @@ public:
 
     double tolerance  = 0.5;    // threshold tolerance
     double num_pixels = 0;
-    for(int ih = 0; ih < histogram.total(); ih++) {
-      num_pixels += histogram.at<float>(ih);
+    for(int ih = 0; ih < static_cast<int32_t>(histogram.total()); ih++) {
+      num_pixels += static_cast<double>(histogram.at<float>(ih));
     }
 
     /* Calculate the mean gray-level */
     double mean = 0.0;
-    for(int ih = 0 + 1; ih < histogram.total(); ih++) {    // 0 + 1?
-      mean += static_cast<double>(ih) * histogram.at<float>(ih);
+    for(int ih = 0 + 1; ih < static_cast<int32_t>(histogram.total()); ih++) {    // 0 + 1?
+      mean += static_cast<double>(ih) * static_cast<double>(histogram.at<float>(ih));
     }
     mean /= num_pixels;
     /* Initial estimate */
@@ -73,16 +73,16 @@ public:
       sum_back = 0;
       num_back = 0;
       for(int ih = 0; ih <= threshold; ih++) {
-        sum_back += static_cast<double>(ih) * histogram.at<float>(ih);
-        num_back += histogram.at<float>(ih);
+        sum_back += static_cast<double>(ih) * static_cast<double>(histogram.at<float>(ih));
+        num_back += static_cast<double>(histogram.at<float>(ih));
       }
       mean_back = (num_back == 0 ? 0.0 : (sum_back / num_back));
       /* Object */
       sum_obj = 0;
       num_obj = 0;
       for(int ih = threshold + 1; ih < histogram.total(); ih++) {
-        sum_obj += static_cast<double>(ih) * histogram.at<float>(ih);
-        num_obj += histogram.at<float>(ih);
+        sum_obj += static_cast<double>(ih) * static_cast<double>(histogram.at<float>(ih));
+        num_obj += static_cast<double>(histogram.at<float>(ih));
       }
       mean_obj = (num_obj == 0 ? 0.0 : (sum_obj / num_obj));
 
@@ -105,7 +105,7 @@ public:
       new and old threshold values is less than the tolerance */
     } while(std::abs(new_thresh - old_thresh) > tolerance);
 
-    return threshold;
+    return static_cast<uint16_t>(threshold);
   }
 };
 

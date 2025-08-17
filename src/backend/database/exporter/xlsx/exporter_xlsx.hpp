@@ -106,7 +106,7 @@ private:
 
   static Pos paintHeatmap(const WorkBook &workbookSettings, lxw_worksheet *worksheet, const joda::table::Table &table, uint32_t rowOffset);
 
-  static void paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset, lxw_format *header, lxw_format *numberFormat,
+  static void paintPlateBorder(lxw_worksheet *sheet, uint32_t rows, uint16_t cols, uint32_t rowOffset, lxw_format *header, lxw_format *numberFormat,
                                lxw_format *mergeFormat, const std::string &title);
 };
 

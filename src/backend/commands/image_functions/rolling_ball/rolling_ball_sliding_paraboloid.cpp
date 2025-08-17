@@ -29,6 +29,7 @@
 
 #include <cfloat>
 #include <climits>
+#include <cstddef>
 #include "rolling_ball.hpp"
 
 namespace joda::cmd {
@@ -38,20 +39,19 @@ namespace joda::cmd {
 /// \author
 /// \return
 ///
-void RollingBallBackground::slidingParaboloidFloatBackground(cv::Mat &fp, float radius, bool invert, bool doPresmooth,
-                                                             bool correctCorners) const
+void RollingBallBackground::slidingParaboloidFloatBackground(cv::Mat &fp, float radiusIn, bool invert, bool doPresmooth, bool correctCorners) const
 {
   // float[] pixels   = (float[]) fp.getPixels();    // this will become the background
   int width        = fp.cols;
   int height       = fp.rows;
   uint64_t length  = width * height;
-  float *cache     = new float[std::max(width, height)]{0};    // work array for lineSlideParabola
-  int *nextPoint   = new int[std::max(width, height)]{0};      // work array for lineSlideParabola
-  float coeff2     = 0.5f / radius;    // 2nd-order coefficient of the polynomial approximating the ball
-  float coeff2diag = 1.f / radius;     // same for diagonal directions where step is sqrt2
+  auto *cache      = new float[static_cast<size_t>(std::max(width, height))]{0};    // work array for lineSlideParabola
+  int *nextPoint   = new int[static_cast<size_t>(std::max(width, height))]{0};      // work array for lineSlideParabola
+  float coeff2     = 0.5F / radiusIn;                                               // 2nd-order coefficient of the polynomial approximating the ball
+  float coeff2diag = 1.0F / radiusIn;                                               // same for diagonal directions where step is sqrt2
 
   if(invert) {
-    for(int i = 0; i < fp.total(); i++) {
+    for(int i = 0; i < static_cast<int>(fp.total()); i++) {
       fp.at<float>(i) = -fp.at<float>(i);
     }
   }
@@ -79,12 +79,12 @@ void RollingBallBackground::slidingParaboloidFloatBackground(cv::Mat &fp, float 
   filter1D(fp, DIAGONAL_1B, coeff2diag, cache, nextPoint);
 
   if(invert) {
-    for(int i = 0; i < length; i++) {
-      fp.at<float>(i) = -(fp.at<float>(i) - shiftBy);
+    for(uint64_t i = 0; i < length; i++) {
+      fp.at<float>(static_cast<int>(i)) = -(fp.at<float>(static_cast<int>(i)) - shiftBy);
     }
   } else if(doPresmooth) {
-    for(int i = 0; i < length; i++) {
-      fp.at<float>(i) -= shiftBy;    // correct for shift by 3x3 maximum
+    for(uint64_t i = 0; i < length; i++) {
+      fp.at<float>(static_cast<int>(i)) -= shiftBy;    // correct for shift by 3x3 maximum
     }
   }
 
@@ -146,8 +146,9 @@ void RollingBallBackground::filter1D(cv::Mat &fp, int direction, float coeff2, f
   }
   for(int i = startLine; i < nLines; i++) {
     int startPixel = i * lineInc;
-    if(direction == DIAGONAL_2B)
+    if(direction == DIAGONAL_2B) {
       startPixel += width - 1;
+    }
     switch(direction) {
       case DIAGONAL_1A:
         length = std::min(height, width - i);
@@ -162,7 +163,7 @@ void RollingBallBackground::filter1D(cv::Mat &fp, int direction, float coeff2, f
         length = std::min(width, height - i);
         break;
     }
-    RollingBallBackground::lineSlideParabola(fp, startPixel, pointInc, length, coeff2, cache, nextPoint, NULL);
+    RollingBallBackground::lineSlideParabola(fp, startPixel, pointInc, length, coeff2, cache, nextPoint, nullptr);
   }
 }    // void filter1D
 
@@ -185,8 +186,8 @@ void RollingBallBackground::filter1D(cv::Mat &fp, int direction, float coeff2, f
 ///  @return          The correctedEdges array (if non-null on input) with the two estimated
 ///                   edge pixel values corrected for edge particles.
 ///
-float *RollingBallBackground::lineSlideParabola(cv::Mat &pixels, int start, int inc, int length, float coeff2,
-                                                float *cache, int *nextPoint, float *correctedEdges) const
+float *RollingBallBackground::lineSlideParabola(cv::Mat &pixels, int start, int inc, int length, float coeff2, float *cache, int *nextPoint,
+                                                float *correctedEdges) const
 {
   float minValue      = FLT_MAX;
   int lastpoint       = 0;
@@ -194,7 +195,7 @@ float *RollingBallBackground::lineSlideParabola(cv::Mat &pixels, int start, int 
   int lastCorner      = 0;             // the last point except the edge that is touched
   float vPrevious1    = 0.0F;
   float vPrevious2    = 0.0F;
-  float curvatureTest = 1.999f * coeff2;    // not 2: numeric scatter of 2nd derivative
+  float curvatureTest = 1.999F * coeff2;    // not 2: numeric scatter of 2nd derivative
   /* copy data to cache, determine the minimum, and find points with local curvature such
    * that the parabola can touch them - only these need to be examined futher on */
   for(int i = 0, p = start; i < length; i++, p += inc) {
@@ -223,17 +224,16 @@ float *RollingBallBackground::lineSlideParabola(cv::Mat &pixels, int start, int 
     /* find the second point where the parabola through point i1,v1 touches: */
     for(int j = nextPoint[i1]; j < searchTo; j = nextPoint[j], recalculateLimitNow++) {
       float v2    = cache[j];
-      float slope = (v2 - v1) / (j - i1) + coeff2 * (j - i1);
+      float slope = (v2 - v1) / static_cast<float>(j - i1) + coeff2 * static_cast<float>(j - i1);
       if(slope < minSlope) {
         minSlope            = slope;
         i2                  = j;
         recalculateLimitNow = -3;
       }
-      if(recalculateLimitNow ==
-         0) {    // time-consuming recalculation of search limit: wait a bit after slope is updated
-        double b      = 0.5f * minSlope / coeff2;
-        int maxSearch = i1 + (int) (b + std::sqrt(b * b + (v1 - minValue) / coeff2) +
-                                    1);    //(numeric overflow may make this negative)
+      if(recalculateLimitNow == 0) {    // time-consuming recalculation of search limit: wait a bit after slope is updated
+        auto b        = static_cast<double>(0.5F * minSlope / coeff2);
+        int maxSearch = i1 + static_cast<int>(b + std::sqrt(b * b + static_cast<double>((v1 - minValue) / coeff2)) +
+                                              1.0);    //(numeric overflow may make this negative)
         if(maxSearch < searchTo && maxSearch > 0) {
           searchTo = maxSearch;
         }
@@ -247,39 +247,37 @@ float *RollingBallBackground::lineSlideParabola(cv::Mat &pixels, int start, int 
     }
     /* interpolate between the two points where the parabola touches: */
     for(int j = i1 + 1, p = start + j * inc; j < i2; j++, p += inc) {
-      pixels.at<float>(p) = v1 + (j - i1) * (minSlope - (j - i1) * coeff2);
+      pixels.at<float>(p) = v1 + static_cast<float>(j - i1) * (minSlope - static_cast<float>(j - i1) * coeff2);
     }
     i1 = i2;    // continue from this new point
   }             // while (i1<length-1)
   /* Now calculate estimated edge values without an edge particle, allowing for vignetting
    * described as a 6th-order polynomial: */
-  if(correctedEdges != NULL) {
+  if(correctedEdges != nullptr) {
     if(4 * firstCorner >= length) {
       firstCorner = 0;    // edge particles must be < 1/4 image size
     }
     if(4 * (length - 1 - lastCorner) >= length) {
       lastCorner = length - 1;
     }
-    float v1 = cache[firstCorner];
-    float v2 = cache[lastCorner];
-    float slope =
-        (v2 - v1) / (lastCorner - firstCorner);    // of the line through the two outermost non-edge touching points
-    float value0 = v1 - slope * firstCorner;       // offset of this line
-    float coeff6 = 0;                              // coefficient of 6th order polynomial
-    float mid    = 0.5f * (lastCorner + firstCorner);
+    float v1     = cache[firstCorner];
+    float v2     = cache[lastCorner];
+    float slope  = (v2 - v1) / static_cast<float>(lastCorner - firstCorner);    // of the line through the two outermost non-edge touching points
+    float value0 = v1 - slope * static_cast<float>(firstCorner);                // offset of this line
+    float coeff6 = 0;                                                           // coefficient of 6th order polynomial
+    float mid    = 0.5F * static_cast<float>(lastCorner + firstCorner);
     for(int i = (length + 2) / 3; i <= (2 * length) / 3; i++) {    // compare with mid-image pixels to detect vignetting
-      float dx = (i - mid) * 2.0f / (lastCorner - firstCorner);
-      float poly6 =
-          dx * dx * dx * dx * dx * dx - 1.0f;    // the 6th order polynomial, zero at firstCorner and lastCorner
-      if(cache[i] < value0 + slope * i + coeff6 * poly6) {
-        coeff6 = -(value0 + slope * i - cache[i]) / poly6;
+      float dx    = (i - mid) * 2.0F / static_cast<float>(lastCorner - firstCorner);
+      float poly6 = dx * dx * dx * dx * dx * dx - 1.0F;    // the 6th order polynomial, zero at firstCorner and lastCorner
+      if(cache[i] < value0 + slope * static_cast<float>(i) + coeff6 * poly6) {
+        coeff6 = -(value0 + slope * static_cast<float>(i) - cache[i]) / poly6;
       }
     }
-    float dx          = (firstCorner - mid) * 2.0f / (lastCorner - firstCorner);
-    correctedEdges[0] = value0 + coeff6 * (dx * dx * dx * dx * dx * dx - 1.0f) + coeff2 * firstCorner * firstCorner;
-    dx                = (lastCorner - mid) * 2.0f / (lastCorner - firstCorner);
-    correctedEdges[1] = value0 + (length - 1) * slope + coeff6 * (dx * dx * dx * dx * dx * dx - 1.0f) +
-                        coeff2 * (length - 1 - lastCorner) * (length - 1 - lastCorner);
+    float dx          = (static_cast<float>(firstCorner) - mid) * 2.0F / static_cast<float>(lastCorner - firstCorner);
+    correctedEdges[0] = value0 + coeff6 * (dx * dx * dx * dx * dx * dx - 1.0F) + coeff2 * static_cast<float>(firstCorner * firstCorner);
+    dx                = (static_cast<float>(lastCorner) - mid) * 2.0F / static_cast<float>(lastCorner - firstCorner);
+    correctedEdges[1] = value0 + static_cast<float>(length - 1) * slope + coeff6 * (dx * dx * dx * dx * dx * dx - 1.0F) +
+                        coeff2 * static_cast<float>(length - 1 - lastCorner) * static_cast<float>(length - 1 - lastCorner);
   }
   return correctedEdges;
 }    // void lineSlideParabola
@@ -291,17 +289,17 @@ float *RollingBallBackground::lineSlideParabola(cv::Mat &pixels, int start, int 
 ///
 void RollingBallBackground::correctCorners(cv::Mat &pixels, float coeff2, float *cache, int *nextPoint) const
 {
-  int width             = pixels.cols;
-  int height            = pixels.rows;
-  float *corners        = new float[4]{0};    //(0,0); (xmax,0); (ymax,0); (xmax,ymax)
-  float *correctedEdges = new float[2]{0};
-  correctedEdges        = lineSlideParabola(pixels, 0, 1, width, coeff2, cache, nextPoint, correctedEdges);
-  corners[0]            = correctedEdges[0];
-  corners[1]            = correctedEdges[1];
-  correctedEdges = lineSlideParabola(pixels, (height - 1) * width, 1, width, coeff2, cache, nextPoint, correctedEdges);
-  corners[2]     = correctedEdges[0];
-  corners[3]     = correctedEdges[1];
-  correctedEdges = lineSlideParabola(pixels, 0, width, height, coeff2, cache, nextPoint, correctedEdges);
+  int width            = pixels.cols;
+  int height           = pixels.rows;
+  auto *corners        = new float[4]{0};    //(0,0); (xmax,0); (ymax,0); (xmax,ymax)
+  auto *correctedEdges = new float[2]{0};
+  correctedEdges       = lineSlideParabola(pixels, 0, 1, width, coeff2, cache, nextPoint, correctedEdges);
+  corners[0]           = correctedEdges[0];
+  corners[1]           = correctedEdges[1];
+  correctedEdges       = lineSlideParabola(pixels, (height - 1) * width, 1, width, coeff2, cache, nextPoint, correctedEdges);
+  corners[2]           = correctedEdges[0];
+  corners[3]           = correctedEdges[1];
+  correctedEdges       = lineSlideParabola(pixels, 0, width, height, coeff2, cache, nextPoint, correctedEdges);
   corners[0] += correctedEdges[0];
   corners[2] += correctedEdges[1];
   correctedEdges = lineSlideParabola(pixels, width - 1, width, height, coeff2, cache, nextPoint, correctedEdges);
@@ -311,14 +309,11 @@ void RollingBallBackground::correctCorners(cv::Mat &pixels, float coeff2, float 
   float coeff2diag = 2 * coeff2;
   correctedEdges   = lineSlideParabola(pixels, 0, 1 + width, diagLength, coeff2diag, cache, nextPoint, correctedEdges);
   corners[0] += correctedEdges[0];
-  correctedEdges =
-      lineSlideParabola(pixels, width - 1, -1 + width, diagLength, coeff2diag, cache, nextPoint, correctedEdges);
+  correctedEdges = lineSlideParabola(pixels, width - 1, -1 + width, diagLength, coeff2diag, cache, nextPoint, correctedEdges);
   corners[1] += correctedEdges[0];
-  correctedEdges = lineSlideParabola(pixels, (height - 1) * width, 1 - width, diagLength, coeff2diag, cache, nextPoint,
-                                     correctedEdges);
+  correctedEdges = lineSlideParabola(pixels, (height - 1) * width, 1 - width, diagLength, coeff2diag, cache, nextPoint, correctedEdges);
   corners[2] += correctedEdges[0];
-  correctedEdges = lineSlideParabola(pixels, width * height - 1, -1 - width, diagLength, coeff2diag, cache, nextPoint,
-                                     correctedEdges);
+  correctedEdges = lineSlideParabola(pixels, width * height - 1, -1 - width, diagLength, coeff2diag, cache, nextPoint, correctedEdges);
   corners[3] += correctedEdges[0];
   if(pixels.at<float>(0) > corners[0] / 3) {
     pixels.at<float>(0) = corners[0] / 3;

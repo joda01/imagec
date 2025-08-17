@@ -38,7 +38,7 @@ public:
   }
   virtual ~ThresholdAdaptive() = default;
 
-  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
+  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList & /*result*/) override
   {
     cv::Mat outputImage = cv::Mat::zeros(image.size(), CV_16UC1);
 

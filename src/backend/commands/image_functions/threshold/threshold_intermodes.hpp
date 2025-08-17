@@ -75,7 +75,7 @@ public:
     int length = (maxbin - minbin) + 1;
     auto *hist = new double[length];
     for(int i = minbin; i <= maxbin; i++) {
-      hist[i - minbin] = histogram.at<float>(i);
+      hist[i - minbin] = static_cast<double>(histogram.at<float>(i));
     }
 
     int iter      = 0;
@@ -97,7 +97,7 @@ public:
         threshold = -1;
         // IJ.log("Intermodes Threshold not found after 10000 iterations.");
         delete[] hist;
-        return threshold;
+        return static_cast<uint16_t>(threshold);
       }
     }
 
@@ -109,9 +109,9 @@ public:
         // IJ.log("mode:" +i);
       }
     }
-    threshold = (int) std::floor(tt / 2.0);
+    threshold = static_cast<int>(std::floor(tt / 2.0));
     delete[] hist;
-    return threshold + minbin;
+    return static_cast<uint16_t>(threshold + minbin);
   }
 };
 

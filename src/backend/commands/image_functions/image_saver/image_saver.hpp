@@ -47,7 +47,7 @@ public:
   }
   std::string replaceImageName(const std::string &input, const std::string &replacement)
   {
-    std::regex pattern("\\$\\{imageName\\}");
+    std::regex pattern(R"(\$\{imageName\})");
     return std::regex_replace(input, pattern, replacement);
   }
 
@@ -66,9 +66,10 @@ public:
     auto actTile = context.getActTile();
 
     std::filesystem::path saveName =
-        parentPath / (fileName.string() + "__" + std::to_string(std::get<1>(actTile)) + "x" + std::to_string(std::get<0>(actTile)) + "__" +
-                      std::to_string((int32_t) context.getActImagePlaneId().cStack) + "-" + std::to_string(context.getActImagePlaneId().zStack) +
-                      "-" + std::to_string((int32_t) context.getActImagePlaneId().tStack) + mSettings.namePrefix + ".png");
+        parentPath /
+        (fileName.string() + "__" + std::to_string(std::get<1>(actTile)) + "x" + std::to_string(std::get<0>(actTile)) + "__" +
+         std::to_string(static_cast<int32_t>(context.getActImagePlaneId().cStack)) + "-" + std::to_string(context.getActImagePlaneId().zStack) + "-" +
+         std::to_string(static_cast<int32_t>(context.getActImagePlaneId().tStack)) + mSettings.namePrefix + ".png");
 
     // Convert to 8-bit grayscale
     cv::Mat img_8bit_color;
@@ -135,12 +136,12 @@ private:
                   cv::Mat &imageOut)
   {
     if(context.getClassId(settings.inputClass) == roi.getClassId()) {
-      int left   = roi.getBoundingBoxTile().x;
-      int top    = roi.getBoundingBoxTile().y;
-      int width  = roi.getBoundingBoxTile().width;
-      int height = roi.getBoundingBoxTile().height;
+      int left = roi.getBoundingBoxTile().x;
+      int top  = roi.getBoundingBoxTile().y;
+      // int width  = roi.getBoundingBoxTile().width;
+      // int height = roi.getBoundingBoxTile().height;
 
-      auto centroid = roi.getCentroidTile();
+      // auto centroid = roi.getCentroidTile();
 
       if(!roi.getMask().empty() && !roi.getBoundingBoxTile().empty()) {
         auto color     = context.getColorClass(settings.inputClass);
@@ -173,7 +174,7 @@ private:
 
         // Draw object ID
         if(settings.paintObjectId) {
-          auto scale   = getFontScaleFromHeight(cv::FONT_HERSHEY_PLAIN, 12);
+          // auto scale   = getFontScaleFromHeight(cv::FONT_HERSHEY_PLAIN, 12);
           int baseline = 0;
           auto tSize   = cv::getTextSize(helper::toBase32(roi.getObjectId()), cv::FONT_HERSHEY_PLAIN, 1, 0, &baseline);
 
@@ -188,9 +189,11 @@ private:
 
   cv::Scalar hexToScalar(const std::string &hexColor)
   {
-    int r, g, b;
+    unsigned int r;
+    unsigned int g;
+    unsigned int b;
     sscanf(hexColor.c_str(), "#%2x%2x%2x", &r, &g, &b);
-    return cv::Scalar(b, g, r);    // OpenCV uses BGR order
+    return {static_cast<double>(b), static_cast<double>(g), static_cast<double>(r)};    // OpenCV uses BGR order
   }
 
   /////////////////////////////////////////////////////

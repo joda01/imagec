@@ -38,8 +38,7 @@ class RollingBallBackground : public Command
 public:
   /////////////////////////////////////////////////////
   explicit RollingBallBackground(const settings::RollingBallSettings &settings) :
-      mUseSlidingParaboloid(settings.ballType == settings::RollingBallSettings::BallType::PARABOLOID),
-      radius(settings.ballSize)
+      mUseSlidingParaboloid(settings.ballType == settings::RollingBallSettings::BallType::PARABOLOID), radius(settings.ballSize)
   {
   }
 
@@ -56,21 +55,19 @@ private:
   /////////////////////////////////////////////////////
   void rollingBallFloatBackground(cv::Mat &fp, float radius, bool invert, bool doPresmooth, RollingBall *ball) const;
 
-  void slidingParaboloidFloatBackground(cv::Mat &fp, float radius, bool invert, bool doPresmooth,
-                                        bool correctCorners) const;
+  void slidingParaboloidFloatBackground(cv::Mat &fp, float radius, bool invert, bool doPresmooth, bool correctCorners) const;
 
-  void correctCorners(cv::Mat &fp, float coeff2, float *cache, int *nextPoint) const;
+  void correctCorners(cv::Mat &pixels, float coeff2, float *cache, int *nextPoint) const;
   void filter1D(cv::Mat &fp, int direction, float coeff2, float *cache, int *nextPoint) const;
-  float *lineSlideParabola(cv::Mat &pixels, int start, int inc, int length, float coeff2, float *cache, int *nextPoint,
-                           float *correctedEdges) const;
+  float *lineSlideParabola(cv::Mat &pixels, int start, int inc, int length, float coeff2, float *cache, int *nextPoint, float *correctedEdges) const;
 
-  cv::Mat shrinkImage(const cv::Mat &ip, int shrinkFactor) const;
-  void enlargeImage(const cv::Mat &smallImage, cv::Mat &fp, int shrinkFactor) const;
-  void rollBall(RollingBall *ball, cv::Mat &fp) const;
-  static void makeInterpolationArrays(int *smallIndices, float *weights, int length, int smallLength, int shrinkFactor);
+  static cv::Mat shrinkImage(const cv::Mat &ip, int shrinkFactor);
+  static void enlargeImage(const cv::Mat &smallImage, cv::Mat &fp, int shrinkFactor);
+  static void rollBall(RollingBall *ball, cv::Mat &fp);
+  static void makeInterpolationArrays(int *smallIndices, float *weights, int length, float smallLength, float shrinkFactor);
 
-  double filter3x3(cv::Mat &ip, int type) const;
-  double filter3(cv::Mat &ip, int length, int pixel0, int inc, int type) const;
+  static double filter3x3(cv::Mat &ip, int type);
+  static double filter3(cv::Mat &ip, int length, int pixel0, int inc, int type);
   // void setNPasses(int nPasses);
 
   /////////////////////////////////////////////////////
@@ -78,6 +75,6 @@ private:
   const float radius;
   const bool lightBackground = false;
   const int nPasses          = 1;
-  const int flags = 0;    //= DOES_8G | DOES_16 | DOES_RGB | FINAL_PROCESSING | KEEP_PREVIEW | PARALLELIZE_STACKS;
+  const int flags            = 0;    //= DOES_8G | DOES_16 | DOES_RGB | FINAL_PROCESSING | KEEP_PREVIEW | PARALLELIZE_STACKS;
 };
 }    // namespace joda::cmd

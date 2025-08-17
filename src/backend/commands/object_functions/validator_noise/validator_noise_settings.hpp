@@ -45,7 +45,7 @@ struct NoiseValidatorSettings : public SettingBase
   //
   // Classs on which the result should be applied to
   //
-  ObjectInputClasses inputClasses;
+  ObjectInputClasses inputClasses = {};
 
   //
   // If this number of objects is exceeded the filter will be applied

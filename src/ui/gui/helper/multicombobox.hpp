@@ -28,11 +28,11 @@ private:
   QStandardItemModel *model;
 
 public:
-  QComboBoxMulti(QWidget *parent = 0);
-  void addItem(const QIcon &aicon, const QString &atext, const QVariant &auserData)
+  explicit QComboBoxMulti(QWidget *parent = nullptr);
+  void addItem(const QIcon & /*aicon*/, const QString &atext, const QVariant &auserData)
   {
-    int row             = model->rowCount();
-    QStandardItem *item = new QStandardItem();
+    int row    = model->rowCount();
+    auto *item = new QStandardItem();
     item->setText(atext);
     item->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
     item->setData(Qt::Unchecked, Qt::CheckStateRole);
@@ -43,8 +43,8 @@ public:
 
   void addItem(const QString &atext, const QVariant &auserData)
   {
-    int row             = model->rowCount();
-    QStandardItem *item = new QStandardItem();
+    int row    = model->rowCount();
+    auto *item = new QStandardItem();
     item->setText(atext);
     item->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
     item->setData(Qt::Unchecked, Qt::CheckStateRole);
@@ -59,7 +59,7 @@ public:
     QComboBox::clear();
   }
 
-  std::vector<std::pair<QVariant, QString>> getCheckedItems() const
+  [[nodiscard]] std::vector<std::pair<QVariant, QString>> getCheckedItems() const
   {
     std::vector<std::pair<QVariant, QString>> checkedItems;
 

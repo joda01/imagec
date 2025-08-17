@@ -128,7 +128,7 @@ public:
   /// \brief     Get number of found files
   /// \author    Joachim Danmayr
   ///
-  [[nodiscard]] auto getNrOfFiles() const -> uint32_t
+  [[nodiscard]] auto getNrOfFiles() const -> size_t
   {
     return mListOfImagePaths.size();
   }

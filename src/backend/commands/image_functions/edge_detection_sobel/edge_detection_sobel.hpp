@@ -33,7 +33,7 @@ public:
   explicit EdgeDetectionSobel(const joda::settings::EdgeDetectionSobelSettings &settings) : mSetting(settings)
   {
   }
-  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
+  void execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/) override
   {
     if(mSetting.kernelSize > -1) {
       sobel(image);

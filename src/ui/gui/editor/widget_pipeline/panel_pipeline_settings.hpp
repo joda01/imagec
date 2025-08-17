@@ -65,7 +65,7 @@ public:
   ~PanelPipelineSettings();
 
   void addPipelineStep(std::unique_ptr<joda::ui::gui::Command> command, const settings::PipelineStep *);
-  void insertNewPipelineStep(int32_t posToInsert, std::unique_ptr<joda::ui::gui::Command> command, const settings::PipelineStep *pipelineStepBefore);
+  void insertNewPipelineStep(size_t posToInsert, std::unique_ptr<joda::ui::gui::Command> command, const settings::PipelineStep *pipelineStepBefore);
   void erasePipelineStep(const Command *, bool updateHistory = true);
   void setActive(bool setActive);
   const joda::settings::Pipeline &getPipeline()
@@ -83,7 +83,7 @@ public:
     return this;
   }
 
-  nlohmann::json toJson(const std::string &titlePrefix)
+  nlohmann::json toJson(const std::string & /*titlePrefix*/)
   {
     return {};
   }

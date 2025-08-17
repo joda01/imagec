@@ -61,6 +61,8 @@ void ObjectsToImage::execute(processor::ProcessContext &context, cv::Mat &image,
     case settings::ObjectsToImageSettings::Function::XOR:
       cv::bitwise_xor(image, img2, image);
       break;
+    case settings::ObjectsToImageSettings::Function::UNKNOWN:
+      break;
   }
 
   context.setBinaryImage(0, UINT16_MAX);

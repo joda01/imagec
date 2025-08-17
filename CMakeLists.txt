@@ -55,6 +55,20 @@ else ()
 endif()
 
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_compile_options(
+        -Wall -Wextra -Wpedantic
+        -Wcast-align -Wconversion -Wshadow
+        -Wold-style-cast -Wnull-dereference
+        -Wdouble-promotion -Wformat=2
+        -Wsuggest-override
+    )
+#elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+#    add_compile_options(-Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic)
+#elseif (MSVC)
+#    add_compile_options(/W4 /permissive- /Zc:__cplusplus)
+endif()
+
 # Get the current user and host
 execute_process(COMMAND whoami OUTPUT_VARIABLE BUILD_USER OUTPUT_STRIP_TRAILING_WHITESPACE)
 execute_process(COMMAND hostname OUTPUT_VARIABLE BUILD_HOST OUTPUT_STRIP_TRAILING_WHITESPACE)

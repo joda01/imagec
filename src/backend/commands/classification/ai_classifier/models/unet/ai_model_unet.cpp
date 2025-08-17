@@ -35,7 +35,7 @@ AiModelUNet::AiModelUNet(const ProbabilitySettings &settings) : mSettings(settin
 /// \param[out]
 /// \return
 ///
-auto AiModelUNet::processPrediction(const at::Device &device, const cv::Mat &inputImage, const at::IValue &tensorIn) -> std::vector<Result>
+auto AiModelUNet::processPrediction(const at::Device & /*device*/, const cv::Mat &inputImage, const at::IValue &tensorIn) -> std::vector<Result>
 {
   static const int CHANNEL_MASK    = 0;
   static const int CHANNEL_CONTOUR = 1;

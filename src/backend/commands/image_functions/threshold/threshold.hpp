@@ -134,19 +134,19 @@ private:
       if(value < 0) {
         value = 0;
       }
-      value = (int) (value * scale + 0.5);
+      value = static_cast<int>(std::lround(static_cast<double>(value) * scale));    // static_cast<int>(static_cast<double>(value) * scale + 0.5);
       if(value > 255) {
         value = 255;
       }
-      charImg.at<uint8_t>(i) = (uint8_t) value;
+      charImg.at<uint8_t>(i) = static_cast<uint8_t>(value);
     }
 
     // Calculate the histogram of the image
-    int histSize           = UINT8_MAX + 1;    // Number of bins
-    float range[]          = {0, 256};         // Pixel value range
+    int histSize           = UINT8_MAX + 1;     // Number of bins
+    float range[]          = {0.0F, 256.0F};    // Pixel value range
     const float *histRange = {range};
     cv::Mat histogram;
-    cv::calcHist(&charImg, 1, 0, cv::Mat(), histogram, 1, &histSize, &histRange);
+    cv::calcHist(&charImg, 1, nullptr, cv::Mat(), histogram, 1, &histSize, &histRange);
     // histogram.at<float>(0) = 0;
 
     uint16_t thresholdTempMin = settings.thresholdMin;
@@ -162,7 +162,7 @@ private:
   ///
   /// \ref https://imagej.net/ij/developer/source/ij/process/ImageProcessor.java.html
   ///
-  [[nodiscard]] uint16_t scaleAndSetThreshold(double lower, double upper, double min, double max) const
+  [[nodiscard]] static uint16_t scaleAndSetThreshold(double lower, double upper, double min, double max)
   {
     if(max > min) {
       if(lower == 0.0) {
@@ -177,7 +177,7 @@ private:
     } else {
       lower = upper = min;
     }
-    return upper;
+    return static_cast<uint16_t>(upper);
   }
 
   /////////////////////////////////////////////////////

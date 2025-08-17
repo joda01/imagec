@@ -96,7 +96,7 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
         point.x = point.x - boundingBox.x;
         point.y = point.y - boundingBox.y;
       }
-      cv::drawContours(mask, contours, i, cv::Scalar(255), cv::FILLED);
+      cv::drawContours(mask, contours, static_cast<int>(i), cv::Scalar(255), cv::FILLED);
       // Remove inner holes from the mask
       cv::bitwise_and(mask, imagePart, mask);
 

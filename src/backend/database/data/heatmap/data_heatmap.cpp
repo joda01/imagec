@@ -22,7 +22,7 @@ struct Pos
   };
 };
 
-std::string numberToExcelColumn(int number)
+std::string numberToExcelColumn(uint32_t number)
 {
   std::string result;
 
@@ -43,7 +43,7 @@ std::string numberToExcelColumn(int number)
 /// \param[out]
 /// \return
 ///
-auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t cols, int32_t colToDisplay, int32_t tStackIn,
+auto convertToHeatmap(const joda::table::Table *table, uint32_t rows, uint32_t cols, uint32_t colToDisplay, int32_t tStackIn,
                       const PlotPlateSettings &settings) -> joda::table::Table
 {
   if(rows == 0) {
@@ -51,7 +51,7 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
   }
   int32_t densityMapSize = settings.densityMapSize;
   if(rows > 100 || cols > 100) {
-    densityMapSize = settings.densityMapSize * rows / 100;
+    densityMapSize = static_cast<int32_t>(settings.densityMapSize * static_cast<int32_t>(rows) / 100.0);
     rows           = 100;
     cols           = 100;
   }
@@ -67,18 +67,18 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
   joda::table::Table data;
   data.init(cols, rows);
 
-  for(int x = 0; x < cols; x++) {
+  for(uint32_t x = 0; x < cols; x++) {
     data.mutableColumns()[x].title = std::to_string(x + 1);
   }
 
-  for(int y = 0; y < rows; y++) {
+  for(uint32_t y = 0; y < rows; y++) {
     if(nullptr == data.data(y, 0)) {
       data.setData(y, 0, std::make_shared<joda::table::TableCell>());
     }
     data.mutableData(y, 0)->setRowName(numberToExcelColumn(y + 1));
   }
   std::optional<joda::table::TableCell> cellTmp;    // Needed for the density map
-  for(int32_t tblRow = 0; tblRow < table->getNrOfRows(); tblRow++) {
+  for(uint32_t tblRow = 0; tblRow < table->getNrOfRows(); tblRow++) {
     std::shared_ptr<const table::TableCell> tmp = table->data(tblRow, colToDisplay);
     if(tmp == nullptr) {
       continue;
@@ -87,12 +87,12 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
     if(cellData == nullptr) {
       continue;
     }
-    uint32_t posX    = cellData->getPosX();
-    uint32_t posY    = cellData->getPosY();
-    uint32_t tStack  = cellData->getStackT();
-    uint64_t groupId = cellData->getGroupId();
+    uint32_t posX   = cellData->getPosX();
+    uint32_t posY   = cellData->getPosY();
+    uint32_t tStack = cellData->getStackT();
+    // uint64_t groupId = cellData->getGroupId();
     cellData->setRowName(numberToExcelColumn(posY));
-    if(tStack == tStackIn) {
+    if(static_cast<int32_t>(tStack) == tStackIn) {
       if(posX <= 0 || posY <= 0) {
         continue;
       }
@@ -103,8 +103,8 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
           if(!cellTmp.has_value()) {
             cellTmp.emplace(cellData);
           }
-          posX = std::round((double) posX / (double) densityMapSize);
-          posY = std::round((double) posY / (double) densityMapSize);
+          posX = static_cast<uint32_t>(std::round(static_cast<double>(posX) / static_cast<double>(densityMapSize)));
+          posY = static_cast<uint32_t>(std::round(static_cast<double>(posY) / static_cast<double>(densityMapSize)));
           if(posX >= cols) {
             posX = cols - 1;
           }
@@ -113,7 +113,7 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
           }
           densityMapVal[{posX, posY}].val += cellData->getVal();
           densityMapVal[{posX, posY}].cnt++;
-          densityMapVal[{posX, posY}].tblRow = tblRow;
+          densityMapVal[{posX, posY}].tblRow = static_cast<int32_t>(tblRow);
         }
       } else {
         data.setData(posY, posX, cellData);
@@ -131,9 +131,9 @@ auto convertToHeatmap(const joda::table::Table *table, int32_t rows, int32_t col
         // Only calculate an average if not counting
         val /= static_cast<double>(value.cnt);
       }
-      uint32_t posY  = pos.posY;
-      uint32_t posX  = pos.posX;
-      int32_t tblRow = value.tblRow;
+      uint32_t posY = pos.posY;
+      uint32_t posX = pos.posX;
+      // int32_t tblRow = value.tblRow;
       if(posX >= 0) {
         if(posY >= 0) {
           if(cellTmp.has_value()) {

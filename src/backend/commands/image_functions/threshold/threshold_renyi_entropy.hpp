@@ -37,12 +37,17 @@ public:
     int threshold;
     int opt_threshold;
 
-    int ih, it;
+    int ih;
+    int it;
     int first_bin;
     int last_bin;
     int tmp_var;
-    int t_star1, t_star2, t_star3;
-    int beta1, beta2, beta3;
+    int t_star1;
+    int t_star2;
+    int t_star3;
+    int beta1;
+    int beta2;
+    int beta3;
     double alpha; /* alpha parameter of the method */
     double term;
     double tot_ent;  /* total entropy */
@@ -55,11 +60,13 @@ public:
     double P2[256];
 
     double total = 0;
-    for(ih = 0; ih < 256; ih++)
-      total += histogram.at<float>(ih);
+    for(ih = 0; ih < 256; ih++) {
+      total += static_cast<double>(histogram.at<float>(ih));
+    }
 
-    for(ih = 0; ih < 256; ih++)
-      norm_histo[ih] = histogram.at<float>(ih) / total;
+    for(ih = 0; ih < 256; ih++) {
+      norm_histo[ih] = static_cast<double>(histogram.at<float>(ih)) / total;
+    }
 
     P1[0] = norm_histo[0];
     P2[0] = 1.0 - P1[0];
@@ -131,13 +138,15 @@ public:
     for(it = first_bin; it <= last_bin; it++) {
       /* Entropy of the background pixels */
       ent_back = 0.0;
-      for(ih = 0; ih <= it; ih++)
+      for(ih = 0; ih <= it; ih++) {
         ent_back += std::sqrt(norm_histo[ih] / P1[it]);
+      }
 
       /* Entropy of the object pixels */
       ent_obj = 0.0;
-      for(ih = it + 1; ih < 256; ih++)
+      for(ih = it + 1; ih < 256; ih++) {
         ent_obj += std::sqrt(norm_histo[ih] / P2[it]);
+      }
 
       /* Total entropy */
       tot_ent = term * ((ent_back * ent_obj) > 0.0 ? std::log(ent_back * ent_obj) : 0.0);
@@ -157,13 +166,15 @@ public:
     for(it = first_bin; it <= last_bin; it++) {
       /* Entropy of the background pixels */
       ent_back = 0.0;
-      for(ih = 0; ih <= it; ih++)
+      for(ih = 0; ih <= it; ih++) {
         ent_back += (norm_histo[ih] * norm_histo[ih]) / (P1[it] * P1[it]);
+      }
 
       /* Entropy of the object pixels */
       ent_obj = 0.0;
-      for(ih = it + 1; ih < 256; ih++)
+      for(ih = it + 1; ih < 256; ih++) {
         ent_obj += (norm_histo[ih] * norm_histo[ih]) / (P2[it] * P2[it]);
+      }
 
       /* Total entropy */
       tot_ent = term * ((ent_back * ent_obj) > 0.0 ? std::log(ent_back * ent_obj) : 0.0);
@@ -217,11 +228,11 @@ public:
     }
     // IJ.log(""+t_star1+" "+t_star2+" "+t_star3);
     /* Determine the optimal threshold value */
-    omega = P1[t_star3] - P1[t_star1];
-    opt_threshold =
-        (int) (t_star1 * (P1[t_star1] + 0.25 * omega * beta1) + 0.25 * t_star2 * omega * beta2 + t_star3 * (P2[t_star3] + 0.25 * omega * beta3));
+    omega         = P1[t_star3] - P1[t_star1];
+    opt_threshold = static_cast<int>(t_star1 * (P1[t_star1] + 0.25 * omega * beta1) + 0.25 * t_star2 * omega * beta2 +
+                                     t_star3 * (P2[t_star3] + 0.25 * omega * beta3));
 
-    return opt_threshold;
+    return static_cast<uint16_t>(opt_threshold);
   }
 };
 

@@ -201,13 +201,14 @@ auto Settings::toResultsSettings(const ResultSettingsInput &settingsIn) -> Resul
     auto addColumn = [&](enums::ClassId classId, enums::Measurement measureChannel, enums::Stats stat, int32_t crossChannel,
                          enums::ClassId intersecting, const std::string &channelName = "") {
       if(!classes.contains(classId)) {
-        joda::log::logError("Class name for ID >" + std::to_string((int32_t) classId) + "<not found during table generation from template!");
+        joda::log::logError("Class name for ID >" + std::to_string(static_cast<int32_t>(classId)) +
+                            "<not found during table generation from template!");
         return;
       }
       std::string intersectingName;
       if(intersecting != enums::ClassId::UNDEFINED) {
         if(!classes.contains(intersecting)) {
-          joda::log::logError("Intersecting class name for ID >" + std::to_string((int32_t) intersecting) +
+          joda::log::logError("Intersecting class name for ID >" + std::to_string(static_cast<int32_t>(intersecting)) +
                               "<not found during table generation from template!");
           return;
         }

@@ -100,7 +100,7 @@ PanelClassificationList::PanelClassificationList(settings::ResultsSettings *sett
 /// \param[out]
 /// \return
 ///
-void PanelClassificationList::openEditDialog(int row, int column)
+void PanelClassificationList::openEditDialog(int row, int /*column*/)
 {
   auto it = mClassesList.begin();
   std::advance(it, row);
@@ -171,7 +171,7 @@ void PanelClassificationList::fromSettings()
   }
   mClassesList.clear();
   auto classes = mDatabase->selectClasses();
-  mClasses->setRowCount(classes.size());
+  mClasses->setRowCount(static_cast<int>(classes.size()));
   int32_t rowIdx = 0;
 
   auto cols = mResultsSettings->getColumns();

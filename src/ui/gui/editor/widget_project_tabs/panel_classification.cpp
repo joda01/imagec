@@ -230,31 +230,7 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
 /// \param[out]
 /// \return
 ///
-void PanelClassification::setIsHidden(int32_t row)
-{
-  auto *isHiddenCell = mClasses->item(row, COL_HIDDEN);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-bool PanelClassification::getIsHidden(int32_t row) const
-{
-  return false;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelClassification::openEditDialog(int row, int column)
+void PanelClassification::openEditDialog(int row, int /*column*/)
 {
   auto it = mSettings.classes.begin();
   std::advance(it, row);
@@ -510,10 +486,10 @@ bool PanelClassification::askForChangeTemplateIndex()
   messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::BLUE>("warning-circle").pixmap(48, 48));
   messageBox.setWindowTitle("Proceed?");
   messageBox.setText("Actual taken settings will get lost!");
-  QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
-  QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+  QPushButton *noButton = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+  messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
   messageBox.setDefaultButton(noButton);
-  auto reply = messageBox.exec();
+  messageBox.exec();
   return messageBox.clickedButton() != noButton;
 }
 
@@ -530,10 +506,10 @@ bool PanelClassification::askForDeleteClass()
   messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning").pixmap(48, 48));
   messageBox.setWindowTitle("Proceed?");
   messageBox.setText("Remove selected class?");
-  QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
-  QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+  QPushButton *noButton = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+  messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
   messageBox.setDefaultButton(noButton);
-  auto reply = messageBox.exec();
+  messageBox.exec();
   return messageBox.clickedButton() != noButton;
 }
 

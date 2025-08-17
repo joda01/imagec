@@ -71,8 +71,8 @@ using namespace std::chrono_literals;
 PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, DialogPreviewResults *previewResults,
                                              joda::settings::Pipeline &settings, std::shared_ptr<DialogCommandSelection> &commandSelectionDialog) :
     QWidget(wm),
-    mPreviewResultsDialog(previewResults), mPreviewImage(previewDock), mWindowMain(wm), mSettings(settings),
-    mCommandSelectionDialog(commandSelectionDialog)
+    mPreviewImage(previewDock), mWindowMain(wm), mCommandSelectionDialog(commandSelectionDialog), mSettings(settings),
+    mPreviewResultsDialog(previewResults)
 {
   setObjectName("PanelPipelineSettings");
   setContentsMargins(0, 0, 0, 0);
@@ -239,7 +239,7 @@ void PanelPipelineSettings::openPipelineSettings()
 /// \param[out]
 /// \return
 ///
-void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::gui::Command> command, const settings::PipelineStep *pipelineStepBefore)
+void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::gui::Command> command, const settings::PipelineStep * /*pipelineStepBefore*/)
 {
   command->registerDeleteButton(this);
   if(mCommands.empty()) {
@@ -260,8 +260,8 @@ void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::gui::Comma
 /// \param[out]
 /// \return
 ///
-void PanelPipelineSettings::insertNewPipelineStep(int32_t posToInsert, std::unique_ptr<joda::ui::gui::Command> command,
-                                                  const settings::PipelineStep *pipelineStepBefore)
+void PanelPipelineSettings::insertNewPipelineStep(size_t posToInsert, std::unique_ptr<joda::ui::gui::Command> command,
+                                                  const settings::PipelineStep * /*pipelineStepBefore*/)
 {
   mDialogHistory->updateHistory(enums::HistoryCategory::ADDED, "Added: " + command->getTitle().toStdString());
   mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
@@ -271,16 +271,15 @@ void PanelPipelineSettings::insertNewPipelineStep(int32_t posToInsert, std::uniq
     command->registerAddCommandButton(nullptr, mCommandSelectionDialog, mSettings, this, mWindowMain);
   } else if(posToInsert > 0) {
     command->registerAddCommandButton(mCommands.at(posToInsert - 1), mCommandSelectionDialog, mSettings, this, mWindowMain);
-
   } else {
     command->registerAddCommandButton(nullptr, mCommandSelectionDialog, mSettings, this, mWindowMain);
   }
 
   connect(command.get(), &joda::ui::gui::Command::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
-  int widgetPos = posToInsert + 1;    // Each second is a button
-  mPipelineSteps->insertWidget(widgetPos, command.get());
+  size_t widgetPos = posToInsert + 1;    // Each second is a button
+  mPipelineSteps->insertWidget(static_cast<int>(widgetPos), command.get());
 
-  mCommands.insert(mCommands.begin() + posToInsert, std::move(command));
+  mCommands.insert(mCommands.begin() + static_cast<int>(posToInsert), std::move(command));
 
   if((posToInsert + 1) < mCommands.size()) {
     mCommands.at(posToInsert + 1)->setCommandBefore(mCommands.at(posToInsert));
@@ -318,7 +317,7 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete, bool upda
 
       // Delete command from vector
       {
-        int32_t deletedPos = 0;
+        size_t deletedPos = 0;
         for(auto it = mCommands.begin(); it != mCommands.end(); it++) {
           if(it->get() == toDelete) {
             mCommands.erase(it);
@@ -329,8 +328,8 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete, bool upda
 
         // This command is now at the old position. And for this command the parent has been changed
         if(deletedPos < mCommands.size()) {
-          int32_t posPrev                  = deletedPos - 1;
-          int32_t posNext                  = deletedPos + 1;
+          size_t posPrev                   = deletedPos - 1;
+          size_t posNext                   = deletedPos + 1;
           std::shared_ptr<Command> &newOld = mCommands.at(deletedPos);
           if(posPrev >= 0) {
             std::shared_ptr<Command> &prevCommand = mCommands.at(posPrev);
@@ -407,7 +406,7 @@ void PanelPipelineSettings::valueChangedEvent()
   mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
   updatePreview();
 
-  QTimer::singleShot(100, this, [this]() {
+  QTimer::singleShot(100, this, []() {
     isBlocked = false;    // Unblock after 100ms
   });
 }
@@ -442,8 +441,7 @@ void PanelPipelineSettings::updatePreview()
   }
   toSettings();
   mWindowMain->checkForSettingsChanged();
-  auto *controller = mWindowMain->getController();
-  int cnt          = 0;
+  int cnt = 0;
   for(const auto &myPipeline : mWindowMain->getSettings().pipelines) {
     if(&myPipeline == &getPipeline()) {
       break;
@@ -514,9 +512,8 @@ void PanelPipelineSettings::previewThread()
         auto [imgIndex, selectedSeries, imgProps] = jobToDo.selectedImage;
         if(!imgIndex.empty()) {
           try {
-            int32_t resolution = 0;
-            int32_t series     = selectedSeries;
-            auto tileSize      = jobToDo.settings.imageSetup.imageTileSettings;
+            int32_t series = selectedSeries;
+            auto tileSize  = jobToDo.settings.imageSetup.imageTileSettings;
 
             // If image is too big scale to tiles
             auto imgWidth    = imgProps.getImageInfo(series).resolutions.at(0).imageWidth;
@@ -530,8 +527,9 @@ void PanelPipelineSettings::previewThread()
               tileSize.tileWidth  = imgWidth;
               tileSize.tileHeight = imageHeight;
             }
-
-            auto [tileNrX, tileNrY] = imgProps.getImageInfo(series).resolutions.at(resolution).getNrOfTiles(tileSize.tileWidth, tileSize.tileHeight);
+            // int32_t resolution = 0;
+            //  auto [tileNrX, tileNrY] = imgProps.getImageInfo(series).resolutions.at(resolution).getNrOfTiles(tileSize.tileWidth,
+            //  tileSize.tileHeight);
 
             processor::PreviewSettings prevSettings;
             prevSettings.style =
@@ -614,7 +612,7 @@ void PanelPipelineSettings::onPreviewFinished(QString error)
     messageBox.setWindowTitle("Pipeline error");
     messageBox.setText(error);
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-    auto reply = messageBox.exec();
+    messageBox.exec();
   }
 }
 

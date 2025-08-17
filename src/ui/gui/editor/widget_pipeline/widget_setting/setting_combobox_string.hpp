@@ -33,7 +33,7 @@ public:
   {
     std::string key;
     QString label;
-    QIcon icon;
+    QIcon icon = {};
   };
 
   struct ComboEntryText
@@ -78,13 +78,13 @@ public:
     mComboBox->blockSignals(true);
     auto actSelected = getValue();
     mComboBox->clear();
-    for(const auto &data : options) {
+    for(const auto &dataIn : options) {
       QVariant variant;
-      variant = QVariant(data.key.data());
-      if(data.icon.isNull()) {
-        mComboBox->addItem(getIcon(), data.label, variant);
+      variant = QVariant(dataIn.key.data());
+      if(dataIn.icon.isNull()) {
+        mComboBox->addItem(getIcon(), dataIn.label, variant);
       } else {
-        mComboBox->addItem(data.icon, data.label, variant);
+        mComboBox->addItem(dataIn.icon, dataIn.label, variant);
       }
     }
     setValue(actSelected);
@@ -93,17 +93,6 @@ public:
 
   void changeOptionText(const std::map<std::string, QString> &options)
   {
-    auto findItem = [this](std::string key) -> int {
-      int count = mComboBox->count();
-      for(int i = 0; i < count; ++i) {
-        auto item = mComboBox->itemData(i);
-        if(QString(key.data()) == item.toString()) {
-          return i;
-        }
-      }
-      return -1;
-    };
-
     auto act = getValue();
     mComboBox->clear();
     for(const auto &[key, label] : options) {

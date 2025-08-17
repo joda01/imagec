@@ -136,7 +136,7 @@ auto AiModelCyto3::processPrediction(const at::Device &device, const cv::Mat &in
 std::vector<AiModel::Result> extractObjectMasksAndBoundingBoxes(const cv::Mat &labelImage, const std::set<int> &labels)
 {
   CV_Assert(labelImage.type() == CV_32S || labelImage.type() == CV_8U);
-  auto idx = DurationCount::start("Extract objects");
+  auto cId = DurationCount::start("Extract objects");
 
   const int rows = labelImage.rows;
   const int cols = labelImage.cols;
@@ -174,23 +174,24 @@ std::vector<AiModel::Result> extractObjectMasksAndBoundingBoxes(const cv::Mat &l
     std::vector<std::vector<cv::Point>> adjustedContours;
     size_t maxContourIdx = 0;
     size_t conoutrSize   = 0;
-    size_t idx           = 0;
+    size_t idxId         = 0;
     for(const auto &contour : contours) {
       std::vector<cv::Point> shifted;
       if(contour.size() > conoutrSize) {
-        maxContourIdx = idx;
+        maxContourIdx = idxId;
         conoutrSize   = contour.size();
       }
+      shifted.reserve(contour.size());
       for(const auto &pt : contour) {
         shifted.emplace_back(pt.x - bbox.x, pt.y - bbox.y);
       }
       adjustedContours.push_back(shifted);
-      idx++;
+      idxId++;
     }
 
     result.push_back(AiModel::Result{.boundingBox = bbox, .mask = croppedMask, .contour = adjustedContours.at(maxContourIdx), .classId = 0});
   }
-  DurationCount::stop(idx);
+  DurationCount::stop(cId);
   return result;
 }
 

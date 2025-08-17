@@ -18,10 +18,10 @@
 
 namespace joda::processor {
 
-ProcessContext::ProcessContext(GlobalContext &globalContext, PlateContext &plateContext, ImageContext &imageContext,
-                               IterationContext &iterationContext) :
-    globalContext(globalContext),
-    plateContext(plateContext), imageContext(imageContext), iterationContext(iterationContext)
+ProcessContext::ProcessContext(GlobalContext &globalContextIn, PlateContext &plateContextIn, ImageContext &imageContextIn,
+                               IterationContext &iterationContextIn) :
+    globalContext(globalContextIn),
+    plateContext(plateContextIn), imageContext(imageContextIn), iterationContext(iterationContextIn)
 {
 }
 

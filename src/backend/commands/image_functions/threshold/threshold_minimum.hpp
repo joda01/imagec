@@ -63,7 +63,7 @@ public:
     int threshold = -1;
     double iHisto[256];
     for(int i = 0; i < 256; i++) {
-      iHisto[i] = (double) histogram.at<float>(i);
+      iHisto[i] = static_cast<double>(histogram.at<float>(i));
     }
     double tHisto[256];
 
@@ -79,7 +79,7 @@ public:
       if(iter > 10000) {
         threshold = -1;
         // IJ.log("Minimum: threshold not found after 10000 iterations.");
-        return threshold;
+        return static_cast<uint16_t>(threshold);
       }
     }
     // The threshold is the minimum between the two peaks.
@@ -89,7 +89,7 @@ public:
         break;
       }
     }
-    return threshold;
+    return static_cast<uint16_t>(threshold);
   }
 };
 

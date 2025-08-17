@@ -14,8 +14,18 @@ Checks: |
   performance-*,
   portability-*,
   readability-*
+  readability-identifier-length
+  -bugprone-easily-swappable-parameters
+  -readability-magic-numbers
+  -readability-identifier-length
+  -dollar-in-identifier-extension
+
 CheckOptions:
   - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
     value: true
   - key: misc-header-include-cycle
     value: true
+  - key: readability-identifier-length.MinimumVariableNameLength
+    value: '2'
+  - key: readability-identifier-length.IgnoredVariableNames
+    value: 'i;j;k;x;y;z;w2'

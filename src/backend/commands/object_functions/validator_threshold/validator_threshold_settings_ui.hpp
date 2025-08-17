@@ -42,10 +42,10 @@ public:
     //
     //
     mHistThreshold = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Hist. min threshold");
-    mHistThreshold->setDefaultValue(0.8);
+    mHistThreshold->setDefaultValue(0.8F);
     mHistThreshold->setPlaceholderText("[0 - 1]");
     mHistThreshold->setUnit("");
-    mHistThreshold->setMinMax(0, UINT32_MAX);
+    mHistThreshold->setMinMax(0, std::numeric_limits<float>::max());
     mHistThreshold->setValue(settings.histMinThresholdFilterFactor);
     mHistThreshold->connectWithSetting(&settings.histMinThresholdFilterFactor);
     mHistThreshold->setShortDescription("Factor. ");

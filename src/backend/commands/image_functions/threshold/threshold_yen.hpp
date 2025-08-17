@@ -41,7 +41,8 @@ public:
   static uint16_t calcThresholdValue(const cv::Mat &histogram)
   {
     int threshold;
-    int ih, it;
+    int ih;
+    int it;
     double crit;
     double max_crit;
     double norm_histo[256]; /* normalized histogram */
@@ -50,23 +51,28 @@ public:
     double P2_sq[256];
 
     double total = 0;
-    for(ih = 0; ih < 256; ih++)
-      total += histogram.at<float>(ih);
+    for(ih = 0; ih < 256; ih++) {
+      total += static_cast<double>(histogram.at<float>(ih));
+    }
 
-    for(ih = 0; ih < 256; ih++)
-      norm_histo[ih] = histogram.at<float>(ih) / total;
+    for(ih = 0; ih < 256; ih++) {
+      norm_histo[ih] = static_cast<double>(histogram.at<float>(ih)) / total;
+    }
 
     P1[0] = norm_histo[0];
-    for(ih = 1; ih < 256; ih++)
+    for(ih = 1; ih < 256; ih++) {
       P1[ih] = P1[ih - 1] + norm_histo[ih];
+    }
 
     P1_sq[0] = norm_histo[0] * norm_histo[0];
-    for(ih = 1; ih < 256; ih++)
+    for(ih = 1; ih < 256; ih++) {
       P1_sq[ih] = P1_sq[ih - 1] + norm_histo[ih] * norm_histo[ih];
+    }
 
     P2_sq[255] = 0.0;
-    for(ih = 254; ih >= 0; ih--)
+    for(ih = 254; ih >= 0; ih--) {
       P2_sq[ih] = P2_sq[ih + 1] + norm_histo[ih + 1] * norm_histo[ih + 1];
+    }
 
     /* Find the threshold that maximizes the criterion */
     threshold = -1;
@@ -79,7 +85,7 @@ public:
         threshold = it;
       }
     }
-    return threshold;
+    return static_cast<uint16_t>(threshold);
   }
 };
 

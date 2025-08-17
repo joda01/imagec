@@ -299,7 +299,7 @@ enums::ImageId PipelineInitializer::loadImageAndStoreToCache(enums::MemoryScope 
   DurationCount::stop(i);
 
   // Store original image to cache
-  processContext.addImageToCache(scope, imagePlaneOut.getId(), std::move(std::make_unique<joda::atom::ImagePlane>(imagePlaneOut)));
+  processContext.addImageToCache(scope, imagePlaneOut.getId(), std::make_unique<joda::atom::ImagePlane>(imagePlaneOut));
 
   return imagePlaneOut.getId();
 }

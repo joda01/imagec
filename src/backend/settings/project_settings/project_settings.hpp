@@ -42,17 +42,17 @@ public:
   //
   // The address of the experiment
   //
-  Address address;
+  Address address = {};
 
   //
   // Classs and classes
   //
-  Classification classification;
+  Classification classification = {};
 
   //
   // Directory where outputs will be stored
   //
-  std::string workingDirectory;
+  std::string workingDirectory = {};
 
   void check() const
   {

@@ -35,17 +35,19 @@ struct IntensityFilter
   // Which image should be used for measure the intensity value.
   // If not specified the initial image of the actual pipeline step is used.
   //
-  enums::ImageId imageIn = {.zProjection = joda::enums::ZProjection::$, .imagePlane = {.cStack = -1}};
+  enums::ImageId imageIn = {.zProjection = joda::enums::ZProjection::$,
+                            .imagePlane  = {.tStack = -1, .zStack = -1, .cStack = -1},
+                            .memoryId    = enums::MemoryIdx::NONE};
 
   //
   // Min intensity
   //
-  int32_t minIntensity = -1;
+  float minIntensity = -1;
 
   //
   // Max intensity
   //
-  int32_t maxIntensity = -1;
+  float maxIntensity = -1;
 
   void check() const
   {
@@ -62,12 +64,12 @@ struct MetricsFilter
   //
   //
   //
-  int32_t minParticleSize = -1;
+  float minParticleSize = -1;
 
   //
   //
   //
-  int32_t maxParticleSize = -1;
+  float maxParticleSize = -1;
 
   //
   //

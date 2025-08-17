@@ -25,8 +25,9 @@ bool ClassifierFilter::doesFilterMatch(joda::processor::ProcessContext &context,
     }
   }
   const auto &physicalSize = context.getPhysicalPixelSIzeOfImage();
-  return (metrics.minParticleSize < 0 || roi.getAreaSize(physicalSize) >= metrics.minParticleSize) &&
-         (metrics.maxParticleSize < 0 || roi.getAreaSize(physicalSize) <= metrics.maxParticleSize) && roi.getCircularity() >= metrics.minCircularity;
+  return (metrics.minParticleSize < 0 || roi.getAreaSize(physicalSize) >= static_cast<double>(metrics.minParticleSize)) &&
+         (metrics.maxParticleSize < 0 || roi.getAreaSize(physicalSize) <= static_cast<double>(metrics.maxParticleSize)) &&
+         roi.getCircularity() >= metrics.minCircularity;
 }
 
 }    // namespace joda::settings

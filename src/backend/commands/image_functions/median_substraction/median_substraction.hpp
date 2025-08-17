@@ -35,7 +35,7 @@ public:
   }
   virtual ~MedianSubtraction() = default;
 
-  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
+  void execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/) override
   {
     auto medianBlurredImageOut = image.clone();
     algo::RankFilter rank;

@@ -170,7 +170,6 @@ auto DashboardElement::getSelectedRows() const -> std::vector<joda::table::Table
     return {};
   }
   QModelIndexList selectedIndex = selectionModel->selectedIndexes();    // one QModelIndex per selected row
-  int columnCount               = mTableModel->columnCount();
   foreach(const QModelIndex &index, selectedIndex) {
     selectedCells.emplace_back(*mTable->data(index.row(), index.column()));
   }

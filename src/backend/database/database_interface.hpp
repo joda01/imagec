@@ -108,7 +108,7 @@ class PreviewDatabase : public DatabaseInterface
 {
 public:
   PreviewDatabase() = default;
-  void openDatabase(const std::filesystem::path &pathToDb) override
+  void openDatabase(const std::filesystem::path & /*pathToDb*/) override
   {
   }
   void closeDatabase() override
@@ -118,7 +118,7 @@ public:
   {
     return {};
   }
-  void finishJob(const std::string &jobId) override
+  void finishJob(const std::string & /*jobId*/) override
   {
   }
 
@@ -145,11 +145,11 @@ public:
   {
     mImageValidity[imageId] = validity;
   }
-  void setImagePlaneValidity(uint64_t /*imageId*/, const enums::PlaneId &, enums::ChannelValidity validity) override
+  void setImagePlaneValidity(uint64_t /*imageId*/, const enums::PlaneId &, enums::ChannelValidity /*validity*/) override
   {
   }
-  void setImagePlaneClasssClasssValidity(uint64_t /*imageId*/, const enums::PlaneId &, enums::ClassId classId,
-                                         enums::ChannelValidity validity) override
+  void setImagePlaneClasssClasssValidity(uint64_t /*imageId*/, const enums::PlaneId &, enums::ClassId /*classId*/,
+                                         enums::ChannelValidity /*validity*/) override
   {
   }
 

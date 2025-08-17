@@ -39,17 +39,18 @@ public:
     float aspectRatio = static_cast<float>(originalWidth) / static_cast<float>(originalHeight);
 
     // Determine new dimensions
-    int newWidth, newHeight;
+    int newWidth;
+    int newHeight;
 
     // Check if width or height is the limiting factor
-    if(targetWidth / aspectRatio <= targetHeight) {
+    if(static_cast<float>(targetWidth) / aspectRatio <= static_cast<float>(targetHeight)) {
       // Width is the limiting factor
       newWidth  = targetWidth;
-      newHeight = static_cast<int>(targetWidth / aspectRatio);
+      newHeight = static_cast<int>(static_cast<float>(targetWidth) / aspectRatio);
     } else {
       // Height is the limiting factor
       newHeight = targetHeight;
-      newWidth  = static_cast<int>(targetHeight * aspectRatio);
+      newWidth  = static_cast<int>(static_cast<float>(targetHeight) * aspectRatio);
     }
 
     // Resize image
@@ -59,8 +60,6 @@ public:
   }
 
 private:
-  /////////////////////////////////////////////////////
-  int mMarginSize;
 };
 
 }    // namespace joda::image::func

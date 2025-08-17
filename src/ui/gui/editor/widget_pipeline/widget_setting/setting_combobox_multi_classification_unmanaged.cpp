@@ -119,10 +119,10 @@ void SettingComboBoxMultiClassificationUnmanaged::setValue(const settings::Objec
 std::map<joda::enums::ClassId, std::pair<std::string, std::string>> SettingComboBoxMultiClassificationUnmanaged::getValueAndNames()
 {
   std::map<joda::enums::ClassId, std::pair<std::string, std::string>> toReturn;
-  auto checked = ((QComboBoxMulti *) mComboBox)->getCheckedItems();
+  auto checked = (static_cast<QComboBoxMulti *>(mComboBox))->getCheckedItems();
 
-  for(const auto &[data, txt] : checked) {
-    toReturn.emplace(fromInt(data.toUInt()), std::pair<std::string, std::string>{txt.toStdString(), txt.toStdString()});
+  for(const auto &[dataIn, txt] : checked) {
+    toReturn.emplace(fromInt(dataIn.toUInt()), std::pair<std::string, std::string>{txt.toStdString(), txt.toStdString()});
   }
 
   return toReturn;
@@ -138,9 +138,9 @@ void SettingComboBoxMultiClassificationUnmanaged::onValueChanged()
   QVariant itemData = mComboBox->itemData(mComboBox->currentIndex(), Qt::DecorationRole);
   if(itemData.isValid() && itemData.canConvert<QIcon>()) {
     auto selectedIcon = qvariant_cast<QIcon>(itemData);
-    SettingBase::triggerValueChanged(((QComboBoxMulti *) mComboBox)->getDisplayText(), hasValueChanged, selectedIcon);
+    SettingBase::triggerValueChanged((static_cast<QComboBoxMulti *>(mComboBox))->getDisplayText(), hasValueChanged, selectedIcon);
   } else {
-    SettingBase::triggerValueChanged(((QComboBoxMulti *) mComboBox)->getDisplayText(), hasValueChanged);
+    SettingBase::triggerValueChanged((static_cast<QComboBoxMulti *>(mComboBox))->getDisplayText(), hasValueChanged);
   }
 }
 

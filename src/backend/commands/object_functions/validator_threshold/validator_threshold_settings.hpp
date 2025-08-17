@@ -15,6 +15,7 @@
 
 #include <set>
 #include "backend/enums/enum_images.hpp"
+#include "backend/enums/enum_memory_idx.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/settings/setting_base.hpp"
@@ -40,7 +41,7 @@ struct ThresholdValidatorSettings : public SettingBase
   //
   // Image which should be used for the validation
   //
-  enums::ImageId imageIn = {.zProjection = enums::ZProjection::$};
+  enums::ImageId imageIn = {.zProjection = enums::ZProjection::$, .imagePlane = {}, .memoryId = enums::MemoryIdx::NONE};
 
   //
   // Classs on which the result should be applied to

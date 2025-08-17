@@ -42,7 +42,7 @@ struct SettingsMeta
   //
   // Base 64 encoded PNG icon
   //
-  std::string icon;
+  std::string icon = {};
 
   //
   // Revision of this pipeline

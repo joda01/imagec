@@ -43,41 +43,44 @@ public:
       // CVGIP: Graphical Models and Image Processing, vol. 55, pp. 532-537, 1993.
       //
       // The threshold is the mean of the greyscale data
-      float threshold = -1;
-      double tot      = 0;
-      double sum      = 0;
-      for(int i = 0; i < data.total(); i++) {
-        tot += data.at<float>(i);
-        sum += ((double) i * (double) data.at<float>(i));
+      double threshold = -1;
+      double tot       = 0;
+      double sum       = 0;
+      for(int i = 0; i < static_cast<int32_t>(data.total()); i++) {
+        tot += static_cast<double>(data.at<float>(i));
+        sum += (static_cast<double>(i) * static_cast<double>(data.at<float>(i)));
       }
-      threshold = std::floor(sum / tot);
-      return threshold;
+      threshold = static_cast<double>(std::floor(sum / tot));
+      return static_cast<uint16_t>(threshold);
     };
 
     auto A = [](const cv::Mat &y, int j) -> double {
       double x = 0;
-      for(int i = 0; i <= j; i++)
-        x += y.at<float>(i);
+      for(int i = 0; i <= j; i++) {
+        x += static_cast<double>(y.at<float>(i));
+      }
       return x;
     };
 
     auto B = [](const cv::Mat &y, int j) -> double {
       double x = 0;
-      for(int i = 0; i <= j; i++)
-        x += i * y.at<float>(i);
+      for(int i = 0; i <= j; i++) {
+        x += static_cast<double>(i) * static_cast<double>(y.at<float>(i));
+      }
       return x;
     };
 
     auto C = [](const cv::Mat &y, int j) -> double {
       double x = 0;
-      for(int i = 0; i <= j; i++)
-        x += i * i * y.at<float>(i);
+      for(int i = 0; i <= j; i++) {
+        x += static_cast<double>(i) * static_cast<double>(i) * static_cast<double>(y.at<float>(i));
+      }
       return x;
     };
 
     // Calc
     float threshold = mean(histogram);    // Initial estimate for the threshold is found with the MEAN algorithm.
-    int Tprev       = -2;
+    float Tprev     = -2.0F;
     double mu;
     double nu;
     double p;
@@ -90,15 +93,18 @@ public:
     double sqterm;
     double temp;
     // int counter=1;
-    int32_t histoLength = histogram.total();
+    int32_t histoLength = static_cast<int32_t>(histogram.total());
     while(threshold != Tprev) {
       // Calculate some statistics.
-      mu     = B(histogram, threshold) / A(histogram, threshold);
-      nu     = (B(histogram, histoLength - 1) - B(histogram, threshold)) / (A(histogram, histoLength - 1) - A(histogram, threshold));
-      p      = A(histogram, threshold) / A(histogram, histoLength - 1);
-      q      = (A(histogram, histoLength - 1) - A(histogram, threshold)) / A(histogram, histoLength - 1);
-      sigma2 = C(histogram, threshold) / A(histogram, threshold) - (mu * mu);
-      tau2   = (C(histogram, histoLength - 1) - C(histogram, threshold)) / (A(histogram, histoLength - 1) - A(histogram, threshold)) - (nu * nu);
+      mu = B(histogram, static_cast<int>(threshold)) / A(histogram, static_cast<int>(threshold));
+      nu = (B(histogram, histoLength - 1) - B(histogram, static_cast<int>(threshold))) /
+           (A(histogram, histoLength - 1) - A(histogram, static_cast<int>(threshold)));
+      p      = A(histogram, static_cast<int>(threshold)) / A(histogram, histoLength - 1);
+      q      = (A(histogram, histoLength - 1) - A(histogram, static_cast<int>(threshold))) / A(histogram, histoLength - 1);
+      sigma2 = C(histogram, static_cast<int>(threshold)) / A(histogram, static_cast<int>(threshold)) - (mu * mu);
+      tau2   = (C(histogram, histoLength - 1) - C(histogram, static_cast<int>(threshold))) /
+                 (A(histogram, histoLength - 1) - A(histogram, static_cast<int>(threshold))) -
+             (nu * nu);
 
       // The terms of the quadratic equation to be solved.
       w0 = 1.0 / sigma2 - 1.0 / tau2;
@@ -109,7 +115,7 @@ public:
       sqterm = (w1 * w1) - w0 * w2;
       if(sqterm < 0) {
         joda::log::logWarning("MinError(I): not converging.");
-        return threshold;
+        return static_cast<uint16_t>(threshold);
       }
 
       // The updated threshold is the integer part of the solution of the quadratic equation.
@@ -119,11 +125,11 @@ public:
       if(temp != temp) {
         threshold = Tprev;
       } else {
-        threshold = static_cast<int>(std::floor(temp));
+        threshold = static_cast<float>(std::floor(temp));
       }
     }
 
-    return threshold;
+    return static_cast<uint16_t>(threshold);
   }
 };
 }    // namespace joda::cmd

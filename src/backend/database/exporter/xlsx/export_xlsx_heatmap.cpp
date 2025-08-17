@@ -44,8 +44,8 @@ void Exporter::startHeatmapExport(const std::vector<const Exportable *> &data, c
       break;
     case ExportSettings::ExportView::IMAGE:
       densityMapSize = filterSettings.getDensityMapSettings().densityMapAreaSize;
-      rows           = static_cast<int32_t>(std::ceil((float) imageHeight / (float) densityMapSize));
-      cols           = static_cast<int32_t>(std::ceil((float) imageWidth / (float) densityMapSize));
+      rows           = static_cast<int32_t>(std::ceil(static_cast<float>(imageHeight) / static_cast<float>(densityMapSize)));
+      cols           = static_cast<int32_t>(std::ceil(static_cast<float>(imageWidth) / static_cast<float>(densityMapSize)));
 
       break;
   }
@@ -54,7 +54,7 @@ void Exporter::startHeatmapExport(const std::vector<const Exportable *> &data, c
 
   std::map<enums::ClassId, std::pair<std::string, std::vector<const table::TableColumn *>>> sortedTables;
   for(const auto &tbl : data) {
-    for(int n = 0; n < colNr; n++) {
+    for(uint32_t n = 0; n < colNr; n++) {
       auto &tmp = sortedTables[tbl->getTable().getColHeader(n).classId];
       tmp.first = tbl->getTable().columns().at(n).colSettings.names.className;
       tmp.second.emplace_back(&tbl->getTable().columns().at(n));
@@ -92,7 +92,7 @@ void Exporter::startHeatmapExport(const std::vector<const Exportable *> &data, c
 /// \param[out]
 /// \return
 ///
-void Exporter::paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset, lxw_format *header, lxw_format *numberFormat,
+void Exporter::paintPlateBorder(lxw_worksheet *sheet, uint32_t rows, uint16_t cols, uint32_t rowOffset, lxw_format *header, lxw_format *numberFormat,
                                 lxw_format *mergeFormat, const std::string &title)
 {
   const int32_t ROW_OFFSET       = 2;
@@ -100,16 +100,16 @@ void Exporter::paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols
   const int32_t CELL_SIZE        = 60;
 
   ///////////////////////////7
-  lxw_conditional_format *condFormat = new lxw_conditional_format();
-  condFormat->type                   = LXW_CONDITIONAL_3_COLOR_SCALE;
-  condFormat->format                 = numberFormat;
-  condFormat->min_color              = 0x63BE7B;
-  condFormat->min_rule_type          = LXW_CONDITIONAL_RULE_TYPE_MINIMUM;
-  condFormat->mid_color              = 0xFFEB84;
-  condFormat->mid_rule_type          = LXW_CONDITIONAL_RULE_TYPE_PERCENTILE;
-  condFormat->mid_value              = 50;
-  condFormat->max_color              = 0xF8696B;
-  condFormat->max_rule_type          = LXW_CONDITIONAL_RULE_TYPE_MAXIMUM;
+  auto *condFormat          = new lxw_conditional_format();
+  condFormat->type          = LXW_CONDITIONAL_3_COLOR_SCALE;
+  condFormat->format        = numberFormat;
+  condFormat->min_color     = 0x63BE7B;
+  condFormat->min_rule_type = LXW_CONDITIONAL_RULE_TYPE_MINIMUM;
+  condFormat->mid_color     = 0xFFEB84;
+  condFormat->mid_rule_type = LXW_CONDITIONAL_RULE_TYPE_PERCENTILE;
+  condFormat->mid_value     = 50;
+  condFormat->max_color     = 0xF8696B;
+  condFormat->max_rule_type = LXW_CONDITIONAL_RULE_TYPE_MAXIMUM;
   ///////////////////
 
   // Title
@@ -117,23 +117,23 @@ void Exporter::paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols
   worksheet_write_string(sheet, rowOffset, 1, title.data(), header);
 
   // Column
-  worksheet_set_column_pixels(sheet, 0, 0, HEADER_CELL_SIZE, NULL);
-  worksheet_set_column_pixels(sheet, cols + 1, cols + 1, HEADER_CELL_SIZE, NULL);
+  worksheet_set_column_pixels(sheet, 0, 0, HEADER_CELL_SIZE, nullptr);
+  worksheet_set_column_pixels(sheet, cols + 1, cols + 1, HEADER_CELL_SIZE, nullptr);
 
-  for(int col = 1; col < cols + 1; col++) {
-    worksheet_set_column_pixels(sheet, col, col, CELL_SIZE, NULL);
+  for(uint16_t col = 1; col < cols + 1; col++) {
+    worksheet_set_column_pixels(sheet, col, col, CELL_SIZE, nullptr);
     worksheet_write_string(sheet, rowOffset + 1, col, std::to_string(col).data(), header);
     worksheet_write_string(sheet, rows + rowOffset + 2, col, std::to_string(col).data(), header);
   }
 
   // Row
-  worksheet_set_row_pixels(sheet, rowOffset + ROW_OFFSET, HEADER_CELL_SIZE, NULL);
-  for(int row = 0; row < rows; row++) {
+  worksheet_set_row_pixels(sheet, rowOffset + ROW_OFFSET, HEADER_CELL_SIZE, nullptr);
+  for(uint32_t row = 0; row < rows; row++) {
     char toWrt[2];
-    toWrt[0] = (row) + 'A';
+    toWrt[0] = static_cast<char>((row) + 'A');
     toWrt[1] = 0;
 
-    worksheet_set_row_pixels(sheet, row + rowOffset + ROW_OFFSET, CELL_SIZE, NULL);
+    worksheet_set_row_pixels(sheet, row + rowOffset + ROW_OFFSET, CELL_SIZE, nullptr);
     worksheet_write_string(sheet, row + rowOffset + ROW_OFFSET, 0, toWrt, header);
     worksheet_write_string(sheet, row + rowOffset + ROW_OFFSET, cols + 1, toWrt, header);
   }
@@ -150,10 +150,10 @@ void Exporter::paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols
 ///
 Exporter::Pos Exporter::paintHeatmap(const WorkBook &workbookSettings, lxw_worksheet *worksheet, const joda::table::Table &table, uint32_t rowOffset)
 {
-  const int32_t ROW_OFFSET = 2;
+  const uint32_t ROW_OFFSET = 2;
 
-  for(int row = 0; row < table.getNrOfRows(); row++) {
-    for(int col = 0; col < table.getNrOfCols(); col++) {
+  for(uint32_t row = 0; row < table.getNrOfRows(); row++) {
+    for(uint16_t col = 0; col < table.getNrOfCols(); col++) {
       auto *format     = workbookSettings.numberFormatScientific;
       const auto &cell = table.data(row, col);
 

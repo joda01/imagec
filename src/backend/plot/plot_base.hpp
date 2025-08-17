@@ -128,8 +128,8 @@ public:
     int height = 0;
   };
 
-  virtual auto plot(const Size &size) -> cv::Mat        = 0;
-  virtual void setData(const joda::table::Table &&data) = 0;
+  virtual auto plot(const Size &size) -> cv::Mat       = 0;
+  virtual void setData(const joda::table::Table &data) = 0;
 
   static cv::Mat buildColorLUT(ColormapName colorMap);
   static cv::Vec3b mapValueToColor(double value, double vmin, double vmax, const cv::Mat &colorLUT);

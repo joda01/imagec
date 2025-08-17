@@ -161,7 +161,7 @@ private:
   joda::ome::OmeInfo mOmeInfo;
   joda::ctrl::Preview mPreviewImages;
   joda::image::Image *mImageToShow = nullptr;
-  float mOpaque                    = 0.9;
+  float mOpaque                    = 0.9F;
   joda::image::reader::ImageReader::Plane mPlane;
   joda::ome::TileToLoad mTile;
   enums::ZProjection mZprojection;

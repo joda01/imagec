@@ -126,10 +126,10 @@ auto PanelImages::getSelectedImage() const -> std::tuple<std::filesystem::path, 
     if(mImages->rowCount() > 0) {
       QTableWidgetItem *item = mImages->item(0, 0);
       if(item != nullptr) {
-        auto path                               = std::filesystem::path(item->text().toStdString());
+        auto pathIn                             = std::filesystem::path(item->text().toStdString());
         const auto &defaultPhysicalSizeSettings = mWindowMain->getSettings().imageSetup.pixelSizeSettings;
-        auto omeInfo                            = mWindowMain->getController()->getImageProperties(path, series, defaultPhysicalSizeSettings);
-        return {path, series, omeInfo};
+        auto omeInfoIn                          = mWindowMain->getController()->getImageProperties(pathIn, series, defaultPhysicalSizeSettings);
+        return {pathIn, series, omeInfoIn};
       }
     }
   }
@@ -159,8 +159,7 @@ void PanelImages::updateImagesList()
   const auto &foundImages = mWindowMain->getController()->getListOfFoundImages();
   mImages->clearContents();
   int row = 0;
-  int idx = 0;
-  mImages->setRowCount(foundImages.size());
+  mImages->setRowCount(static_cast<int>(foundImages.size()));
   for(const auto &filename : foundImages) {
     if(contains(filename.string().data())) {
       auto *index = new QTableWidgetItem(filename.string().data());
@@ -172,7 +171,6 @@ void PanelImages::updateImagesList()
       mImages->setItem(row, 1, item);
       row++;
     }
-    idx++;
   }
 
   mImages->setRowCount(row);
@@ -200,7 +198,7 @@ void PanelImages::updateImageMeta()
     mImageMeta->clearContents();
     mImageMeta->setRowCount(0);
 
-    auto addItem = [this](const std::string name, int64_t value, const std::string &prefix) {
+    auto addItem = [this](const std::string &name, int64_t value, const std::string &prefix) {
       auto row = mImageMeta->rowCount();
       mImageMeta->setRowCount(row + 1);
       auto *title = new QTableWidgetItem(name.data());
@@ -212,7 +210,7 @@ void PanelImages::updateImageMeta()
       mImageMeta->setItem(row, 1, valueItem);
     };
 
-    auto addItemFloat = [this](const std::string name, float value, const std::string &prefix) {
+    auto addItemFloat = [this](const std::string &name, float value, const std::string &prefix) {
       auto row = mImageMeta->rowCount();
       mImageMeta->setRowCount(row + 1);
 
@@ -220,12 +218,12 @@ void PanelImages::updateImageMeta()
       title->setFlags(title->flags() & ~Qt::ItemIsEditable);
       mImageMeta->setItem(row, 0, title);
 
-      auto *valueItem = new QTableWidgetItem(QString::number(value) + " " + QString(prefix.data()));
+      auto *valueItem = new QTableWidgetItem(QString::number(static_cast<double>(value)) + " " + QString(prefix.data()));
       valueItem->setFlags(valueItem->flags() & ~Qt::ItemIsEditable);
       mImageMeta->setItem(row, 1, valueItem);
     };
 
-    auto addStringItem = [this](const std::string name, const std::string &value) {
+    auto addStringItem = [this](const std::string &name, const std::string &value) {
       auto row = mImageMeta->rowCount();
       mImageMeta->setRowCount(row + 1);
       auto *title = new QTableWidgetItem(name.data());
@@ -237,7 +235,7 @@ void PanelImages::updateImageMeta()
       mImageMeta->setItem(row, 1, valueItem);
     };
 
-    auto addTitle = [this](const std::string name) {
+    auto addTitle = [this](const std::string &name) {
       auto row = mImageMeta->rowCount();
       mImageMeta->setRowCount(row + 1);
       auto *item = new QTableWidgetItem("<b>" + QString(name.data()) + "</b>");
@@ -248,7 +246,7 @@ void PanelImages::updateImageMeta()
       mImageMeta->setItem(row, 1, new QTableWidgetItem(""));
     };
 
-    auto addSubTitle = [this](const std::string name) {
+    auto addSubTitle = [this](const std::string &name) {
       auto row = mImageMeta->rowCount();
       mImageMeta->setRowCount(row + 1);
       auto *item = new QTableWidgetItem("<i>" + QString(name.data()) + "</i>");
@@ -259,12 +257,12 @@ void PanelImages::updateImageMeta()
       mImageMeta->setItem(row, 1, new QTableWidgetItem(""));
     };
 
-    addItem("Series", mOmeFromActSelectedImage.getNrOfSeries(), "");
+    addItem("Series", static_cast<int64_t>(mOmeFromActSelectedImage.getNrOfSeries()), "");
 
-    for(int32_t series = 0; series < mOmeFromActSelectedImage.getNrOfSeries(); series++) {
-      const auto &imgInfo = mOmeFromActSelectedImage.getImageInfo(series);
+    for(int32_t seriesIn = 0; seriesIn < static_cast<int32_t>(mOmeFromActSelectedImage.getNrOfSeries()); seriesIn++) {
+      const auto &imgInfo = mOmeFromActSelectedImage.getImageInfo(seriesIn);
 
-      addTitle("Image (Series - " + std::to_string(series) + ")");
+      addTitle("Image (Series - " + std::to_string(seriesIn) + ")");
       addStringItem("Name", imagePath.filename().string());
       addItem("Width", imgInfo.resolutions.at(0).imageWidth, "px");
       addItem("Height", imgInfo.resolutions.at(0).imageHeight, "px");
@@ -277,10 +275,10 @@ void PanelImages::updateImageMeta()
       // addItem("Composite tile width", tileSize.tileWidth, "px");
       // addItem("Composite tile height", tileSize.tileHeight, "px");
       // addItem("Composite tile count", imgInfo.resolutions.at(0).getTileCount(tileSize.tileWidth, tileSize.tileHeight), "");
-      addItem("Pyramids", mOmeFromActSelectedImage.getResolutionCount(series).size(), "");
+      addItem("Pyramids", static_cast<int64_t>(mOmeFromActSelectedImage.getResolutionCount(seriesIn).size()), "");
 
       QString channelInfoStr;
-      for(const auto &[idx, channelInfo] : mOmeFromActSelectedImage.getChannelInfos(series)) {
+      for(const auto &[idx, channelInfo] : mOmeFromActSelectedImage.getChannelInfos(seriesIn)) {
         addSubTitle("Channel " + std::to_string(idx));
         addStringItem("ID", channelInfo.channelId);
         addStringItem("Name", channelInfo.name);

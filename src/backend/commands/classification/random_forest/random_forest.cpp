@@ -34,7 +34,7 @@ RandomForest::RandomForest(const settings::RandomForestSettings &settings) : mSe
 /// \param[out]
 /// \return
 ///
-void RandomForest::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result)
+void RandomForest::execute(processor::ProcessContext & /*context*/, cv::Mat & /*image*/, atom::ObjectList & /*result*/)
 {
 }
 
@@ -56,7 +56,8 @@ void RandomForest::prepareTrainingDataFromROI(const cv::Mat &image, const std::u
     const cv::Mat mask = roi.getMask();
     const auto bbox    = roi.getBoundingBoxTile();
 
-    cv::Mat gradMag, gradAngle;
+    cv::Mat gradMag;
+    cv::Mat gradAngle;
     roi.calcGradients(image, gradMag, gradAngle);
     auto roiIntensity = roi.calcIntensity(image);
 
@@ -92,8 +93,9 @@ void RandomForest::prepareTrainingDataFromROI(const cv::Mat &image, const std::u
     }
   }
 
-  if(tempFeatures.empty())
+  if(tempFeatures.empty()) {
     return;
+  }
 
   featureLength  = static_cast<int>(tempFeatures[0].size());
   int numSamples = static_cast<int>(tempFeatures.size());

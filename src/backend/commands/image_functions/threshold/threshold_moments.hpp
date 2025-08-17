@@ -36,18 +36,27 @@ public:
   static uint16_t calcThresholdValue(const cv::Mat &histogram)
   {
     double total = 0;
-    double m0 = 1.0, m1 = 0.0, m2 = 0.0, m3 = 0.0, sum = 0.0, p0 = 0.0;
-    double cd, c0, c1, z0, z1; /* auxiliary variables */
+    double m0    = 1.0;
+    double m1    = 0.0;
+    double m2    = 0.0;
+    double m3    = 0.0;
+    double sum   = 0.0;
+    double p0    = 0.0;
+    double cd;
+    double c0;
+    double c1;
+    double z0;
+    double z1; /* auxiliary variables */
     int threshold = -1;
 
     double histo[256];
 
     for(int i = 0; i < 256; i++) {
-      total += histogram.at<float>(i);
+      total += static_cast<double>(histogram.at<float>(i));
     }
 
     for(int i = 0; i < 256; i++) {
-      histo[i] = (double) (histogram.at<float>(i) / total);    // normalised histogram
+      histo[i] = static_cast<double>(histogram.at<float>(i)) / total;    // normalised histogram
     }
 
     /* Calculate the first, second, and third order moments */
@@ -79,7 +88,7 @@ public:
         break;
       }
     }
-    return threshold;
+    return static_cast<uint16_t>(threshold);
   }
 };
 

@@ -59,7 +59,7 @@ AiModelYolo::AiModelYolo(const ProbabilitySettings &settings) :
 /// \param[in]  inputImage Image which has been used for detection
 /// \return     Result of the analysis
 ///
-auto AiModelYolo::processPrediction(const at::Device &device, const cv::Mat &inputImage, const at::IValue &tensor) -> std::vector<Result>
+auto AiModelYolo::processPrediction(const at::Device & /*device*/, const cv::Mat &inputImage, const at::IValue &tensor) -> std::vector<Result>
 {
   // We assume the model returns a tuple: (detections, seg_masks)
   if(!tensor.isTuple()) {
@@ -132,7 +132,7 @@ auto AiModelYolo::processPrediction(const at::Device &device, const cv::Mat &inp
                           class). For example, if you’re using a model trained on the COCO dataset, there would be 80 class scores.
   */
 
-  int net_width = numberOfClasses + 5 + SEG_CHANNELS;
+  int net_width = static_cast<int>(numberOfClasses + 5 + SEG_CHANNELS);
   auto *pdata   = static_cast<float *>(detections.data_ptr());
   for(int stride = 0; stride < STRIDE_SIZE; stride++) {    // stride
     int grid_x = static_cast<int>(NET_WIDTH / NET_STRIDE[stride]);
@@ -148,7 +148,7 @@ auto AiModelYolo::processPrediction(const at::Device &device, const cv::Mat &inp
           // Get the probability that an object is contained in the box of
           // each row
           if(box_score >= BOX_THRESHOLD) {
-            cv::Mat scores(1, numberOfClasses, CV_32FC1, pdata + 5);
+            cv::Mat scores(1, static_cast<int32_t>(numberOfClasses), CV_32FC1, pdata + 5);
 
             cv::Point classIdPointMax;
             cv::Point classIdPointMin;
@@ -156,8 +156,8 @@ auto AiModelYolo::processPrediction(const at::Device &device, const cv::Mat &inp
             double maxClassScores;
             double minClassScores;
             minMaxLoc(scores, &minClassScores, &maxClassScores, &classIdPointMin, &classIdPointMax);
-            maxClassScores = static_cast<float>(maxClassScores);
-            if(maxClassScores >= mClassThreshold) {
+            maxClassScores = static_cast<double>(maxClassScores);
+            if(maxClassScores >= static_cast<double>(mClassThreshold)) {
               std::vector<float> temp_proto(pdata + 5 + numberOfClasses, pdata + 5 + numberOfClasses + SEG_CHANNELS);
               pickedProposals.push_back(temp_proto);
               //  rect [x,y,w,h]
@@ -165,11 +165,11 @@ auto AiModelYolo::processPrediction(const at::Device &device, const cv::Mat &inp
               float y  = pdata[1] / ratio[1];    // y
               float w  = pdata[2] / ratio[0];    // w
               float h  = pdata[3] / ratio[1];    // h
-              int left = MAX((x - 0.5 * w), 0);
-              int top  = MAX((y - 0.5 * h), 0);
+              int left = static_cast<int32_t>(MAX((x - 0.5F * w), 0));
+              int top  = static_cast<int32_t>(MAX((y - 0.5F * h), 0));
 
               classIds.push_back(classIdPointMax.x);
-              confidences.push_back(maxClassScores * box_score);
+              confidences.push_back(static_cast<float>(maxClassScores) * box_score);
               boxes.emplace_back(left, top, static_cast<int>(w), static_cast<int>(h));
             }
           }
@@ -185,8 +185,8 @@ auto AiModelYolo::processPrediction(const at::Device &device, const cv::Mat &inp
   cv::dnn::NMSBoxes(boxes, confidences, mNmsScoreThreshold, NMS_THRESHOLD, nms_result);
 
   cv::Mat mask_proposals;
-  for(int i = 0; i < nms_result.size(); ++i) {
-    int idx = nms_result[i];
+  for(size_t i = 0; i < nms_result.size(); ++i) {
+    auto idx = static_cast<size_t>(nms_result[i]);
     mask_proposals.push_back(cv::Mat(pickedProposals[idx]).t());
   }
 
@@ -196,19 +196,19 @@ auto AiModelYolo::processPrediction(const at::Device &device, const cv::Mat &inp
   cv::Mat protosTmp(SEG_CHANNELS, SEG_WIDTH * SEG_HEIGHT, CV_32F, seg_masks.data_ptr<float>());
   cv::Mat protos    = protosTmp.reshape(0, {SEG_CHANNELS, SEG_WIDTH * SEG_HEIGHT});
   cv::Mat matmulRes = (mask_proposals * protos).t();
-  cv::Mat masks     = matmulRes.reshape(nms_result.size(), {SEG_WIDTH, SEG_HEIGHT});
+  cv::Mat masks     = matmulRes.reshape(static_cast<int32_t>(nms_result.size()), {SEG_WIDTH, SEG_HEIGHT});
   std::vector<cv::Mat> maskChannels;
   split(masks, maskChannels);
 
   cv::Rect holeImgRect(0, 0, inputImage.cols, inputImage.rows);
   std::vector<Result> results;
-  for(int i = 0; i < nms_result.size(); ++i) {
+  for(size_t i = 0; i < nms_result.size(); ++i) {
     if(maskChannels[i].empty()) {
       continue;
     }
 
     int idx              = nms_result[i];
-    cv::Rect boundingBox = boxes[idx] & holeImgRect;
+    cv::Rect boundingBox = boxes[static_cast<size_t>(idx)] & holeImgRect;
     auto mask            = getMask(maskChannels[i], inputImage.size(), boundingBox);
 
     // Find contours in the binary image
@@ -221,11 +221,11 @@ auto AiModelYolo::processPrediction(const at::Device &device, const cv::Mat &inp
     }
 
     // Look for the biggest contour area
-    int idxMax = 0;
-    for(int i = 1; i < contours.size(); i++) {
-      if(hierarchy[i][3] == -1) {
-        if(contours[i - 1].size() < contours[i].size()) {
-          idxMax = i;
+    size_t idxMax = 0;
+    for(size_t ii = 1; ii < contours.size(); ii++) {
+      if(hierarchy[ii][3] == -1) {
+        if(contours[ii - 1].size() < contours[ii].size()) {
+          idxMax = ii;
         }
       }
     }
@@ -268,10 +268,13 @@ auto AiModelYolo::processPrediction(const at::Device &device, const cv::Mat &inp
     //
     // Apply the filter based on the object class
     //
-    int32_t modelClassId = classIds[idx];
+    int32_t modelClassId = classIds[static_cast<size_t>(idx)];
 
-    results.push_back(
-        Result{.boundingBox = fittedBoundingBox, .mask = shiftedMask, .contour = contour, .classId = modelClassId, .probability = confidences[idx]});
+    results.push_back(Result{.boundingBox = fittedBoundingBox,
+                             .mask        = shiftedMask,
+                             .contour     = contour,
+                             .classId     = modelClassId,
+                             .probability = confidences[static_cast<size_t>(idx)]});
   }
   return results;
 }
@@ -298,7 +301,7 @@ auto AiModelYolo::getMask(const cv::Mat &maskChannel, const cv::Size &inputImage
   resize(dest, mask, inputImageShape, cv::INTER_NEAREST);
   mask = mask(box).clone();
   if(!mask.empty()) {
-    mask = mask > mMaskThreshold;
+    mask = mask > static_cast<double>(mMaskThreshold);
   }
 
   return mask;

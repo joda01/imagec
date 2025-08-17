@@ -84,7 +84,7 @@ public:
   }
 
   /// \todo Implement valifator
-  void setMinMax(VALUE_T min, VALUE_T max)
+  void setMinMax(VALUE_T /*min*/, VALUE_T /*max*/)
     requires Number_t<VALUE_T>
   {
     // If the textfield is empty, no signal was emitted
