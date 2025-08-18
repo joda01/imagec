@@ -17,6 +17,7 @@
 #include <qpushbutton.h>
 #include <qtoolbutton.h>
 #include <QKeyEvent>
+#include <cstddef>
 #include "backend/user_settings/user_settings.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/template_parser/template_parser.hpp"
@@ -24,7 +25,7 @@
 namespace joda::ui::gui {
 
 DialogOpenTemplate::DialogOpenTemplate(const std::set<std::string> &directories, const std::string &endian, QWidget *parent) :
-    mDirectories(directories), mEndian(endian), QDialog(parent)
+    QDialog(parent), mDirectories(directories), mEndian(endian)
 {
   setWindowTitle("New project");
   mSearch = new QLineEdit();
@@ -47,9 +48,9 @@ DialogOpenTemplate::DialogOpenTemplate(const std::set<std::string> &directories,
   mTableTemplates->verticalHeader()->setMinimumSectionSize(36);
   mTableTemplates->installEventFilter(this);
 
-  connect(mTableTemplates, &QTableWidget::cellDoubleClicked, [&](int row, int column) {
+  connect(mTableTemplates, &QTableWidget::cellDoubleClicked, [&](int row, int /*column*/) {
     auto idx              = mTableTemplates->item(row, 0)->text().toInt();
-    mSelectedTemplatePath = mTemplateList.at(idx).path.data();
+    mSelectedTemplatePath = mTemplateList.at(static_cast<size_t>(idx)).path.data();
     mReturnCode           = ReturnCode::OPEN_TEMPLATE;
     close();
   });
@@ -62,7 +63,7 @@ DialogOpenTemplate::DialogOpenTemplate(const std::set<std::string> &directories,
     if(!selectedItems.isEmpty()) {
       auto row              = selectedItems.first()->row();
       auto idx              = mTableTemplates->item(row, 0)->text().toInt();
-      mSelectedTemplatePath = mTemplateList.at(idx).path.data();
+      mSelectedTemplatePath = mTemplateList.at(static_cast<size_t>(idx)).path.data();
       mReturnCode           = ReturnCode::OPEN_TEMPLATE;
       close();
     }
@@ -287,8 +288,8 @@ void DialogOpenTemplate::filterCommands(const TemplateTableFilter &filter)
 {
   auto searchTexts = filter.searchText.toLower();
   std::set<std::string> groups;
-  for(int32_t n = 0; n < mTemplateList.size(); n++) {
-    const auto &command = mTemplateList.at(n);
+  for(int32_t n = 0; n < static_cast<int32_t>(mTemplateList.size()); n++) {
+    const auto &command = mTemplateList.at(static_cast<size_t>(n));
     int32_t tableIndex  = mTemplateMap.at(n);
     auto filterCategory = filter.category.toStdString();
     if(command.group == filterCategory && !filterCategory.empty()) {

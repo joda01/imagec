@@ -29,8 +29,8 @@ struct ImageContext
   PipelineInitializer &imageLoader;
   std::filesystem::path imagePath;
   const joda::ome::OmeInfo &imageMeta;
-  uint64_t imageId;
-  cv::Size tileSize;
+  uint64_t imageId      = {};
+  cv::Size tileSize     = {};
   uint32_t nrOfZStacks  = 0;
   int32_t series        = 0;
   bool loadImageInTiles = false;

@@ -604,8 +604,8 @@ void WindowResults::refreshBreadCrump()
       mDockWidgetImagePreview->setFloating(false);
       mVideoControlButton->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
       if(mSelectedDataSet.groupMeta.has_value()) {
-        auto platePos =
-            "Well (" + std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + ")";
+        auto platePos = "Well (" + std::string(1, (static_cast<char>(mSelectedDataSet.groupMeta->posY - 1) + 'A')) +
+                        std::to_string(mSelectedDataSet.groupMeta->posX) + ")";
         mBreadCrumpWell->setText(platePos.data());
       }
       break;
@@ -654,7 +654,7 @@ void WindowResults::refreshBreadCrump()
 /// \param[out]
 /// \return
 ///
-bool WindowResults::showSelectWorkingDir(const QString &path)
+bool WindowResults::showSelectWorkingDir(const QString & /*path*/)
 {
   QFileDialog dialog(this);
   dialog.setWindowTitle("Select images Directory");
@@ -807,8 +807,8 @@ void WindowResults::refreshView()
 {
   const auto &wellOrder = mDockWidgetGraphSettings->getWellOrder();
   auto plateSize        = mDockWidgetGraphSettings->getPlateSize();
-  uint16_t rows         = plateSize.height();
-  uint16_t cols         = plateSize.width();
+  uint16_t rows         = static_cast<uint16_t>(plateSize.height());
+  uint16_t cols         = static_cast<uint16_t>(plateSize.width());
 
   auto form = static_cast<WindowResults::Navigation>(mNavigation) == WindowResults::Navigation::PLATE
                   ? joda::settings::DensityMapSettings::ElementForm::CIRCLE
@@ -996,8 +996,8 @@ void WindowResults::setSelectedElement(table::TableCell value)
       mMarkAsInvalid->setEnabled(true);
 
       // Act data
-      auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
-                      imageInfo.filename;
+      auto platePos = std::string(1, (static_cast<char>(mSelectedDataSet.groupMeta->posY - 1) + 'A')) +
+                      std::to_string(mSelectedDataSet.groupMeta->posX) + "/" + imageInfo.filename;
       mSelectedRowInfo->setText(platePos.data());
     }
 
@@ -1006,11 +1006,9 @@ void WindowResults::setSelectedElement(table::TableCell value)
       mSelectedTileId = value.getObjectId();
       mMarkAsInvalid->setEnabled(false);
 
-      if(mSelectedTileId >= 0) {
-        mSelectedDataSet.objectInfo = mAnalyzer->selectObjectInfo(mSelectedTileId);
-        if(mSelectedDataSet.imageMeta->imageId != mSelectedDataSet.objectInfo->imageId) {
-          mSelectedDataSet.imageMeta = mAnalyzer->selectImageInfo(mSelectedDataSet.objectInfo->imageId);
-        }
+      mSelectedDataSet.objectInfo = mAnalyzer->selectObjectInfo(mSelectedTileId);
+      if(mSelectedDataSet.imageMeta->imageId != mSelectedDataSet.objectInfo->imageId) {
+        mSelectedDataSet.imageMeta = mAnalyzer->selectImageInfo(mSelectedDataSet.objectInfo->imageId);
       }
 
       auto rowImageName = mSelectedDataSet.imageMeta->filename;
@@ -1033,7 +1031,7 @@ void WindowResults::setSelectedElement(table::TableCell value)
 /// \brief      Open the next deeper level form the element with given id
 /// \author     Joachim Danmayr
 ///
-void WindowResults::openNextLevel(const std::vector<table::TableCell> &value)
+void WindowResults::openNextLevel(const std::vector<table::TableCell> &selectedRows)
 {
   int actMenu     = static_cast<int>(mNavigation);
   auto oldActMenu = mNavigation;
@@ -1048,18 +1046,18 @@ void WindowResults::openNextLevel(const std::vector<table::TableCell> &value)
     case Navigation::PLATE:
       break;
     case Navigation::WELL:
-      if(!value.empty()) {
-        mActGroupId = value.at(0).getId();
+      if(!selectedRows.empty()) {
+        mActGroupId = selectedRows.at(0).getId();
       } else {
         mNavigation = oldActMenu;
       }
       break;
     case Navigation::IMAGE:
-      if(value.empty()) {
+      if(selectedRows.empty()) {
         mNavigation = oldActMenu;
       } else {
         std::set<uint64_t> act;
-        for(const auto &row : value) {
+        for(const auto &row : selectedRows) {
           act.emplace(row.getObjectId());
         }
         mActImageId = act;
@@ -1213,10 +1211,9 @@ void WindowResults::onShowHeatmap()
 /// \param[out]
 /// \return
 ///
-void WindowResults::columnEdit(int32_t colIdx)
+void WindowResults::columnEdit(int32_t /*colIdx*/)
 {
   mFilter.sortColumns();
-
   refreshView();
 }
 
@@ -1262,17 +1259,17 @@ void WindowResults::showFileSaveDialog(const QString &filter)
 {
   QString templatePath = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
 
-  auto getEndianFromFilter = [](const QString &filter) -> std::string {
+  auto getEndianFromFilter = [](const QString &filterIn) -> std::string {
     std::string endian;
-    if(filter.contains("(*.xlsx)")) {
+    if(filterIn.contains("(*.xlsx)")) {
       endian = ".xlsx";
-    } else if(filter.contains("(*.r)")) {
+    } else if(filterIn.contains("(*.r)")) {
       endian = ".r";
-    } else if(filter.contains("(*.csv)")) {
+    } else if(filterIn.contains("(*.csv)")) {
       endian = ".csv";
-    } else if(filter.contains("(*.svg)")) {
+    } else if(filterIn.contains("(*.svg)")) {
       endian = ".svg";
-    } else if(filter.contains("(*.png)")) {
+    } else if(filterIn.contains("(*.png)")) {
       endian = ".png";
     } else {
       return "";

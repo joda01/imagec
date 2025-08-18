@@ -115,8 +115,8 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
           classesToExport.setRowID(classs, statement.getColNames(), rowIdx, colC, groupId);
         }
 
-        for(int32_t colIdx = 0; colIdx < columnNr; colIdx++) {
-          double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
+        for(int32_t colIdxI = 0; colIdxI < static_cast<int32_t>(columnNr); colIdxI++) {
+          double value = materializedResult->GetValue(colIdxI, row).GetValue<double>();
           if(grouping == Grouping::BY_WELL) {
             ///
             joda::settings::ImgPositionInWell pos;

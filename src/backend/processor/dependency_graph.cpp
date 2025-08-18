@@ -289,7 +289,7 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
     //
     // Remove the nodes from the graph
     //
-    for(size_t idx = (depGraph.size() - 1); idx >= 0; idx--) {
+    for(size_t idx = depGraph.size(); idx-- > 0;) {
       if(toRemove.contains(depGraph.at(idx).getPipeline())) {
         depGraph.erase(depGraph.begin() + idx);
       }

@@ -54,6 +54,9 @@ public:
   {
     std::filesystem::path userSettingsPath = getUserHomeDir() / "userSettings.json";
     std::ifstream ifs(userSettingsPath);
+    if(!ifs) {
+      return;
+    }
     std::string wholeFile = std::string((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
     ifs.close();
     UserSettings set;

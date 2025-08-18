@@ -47,7 +47,7 @@ private:
   ///                 applied
   /// \author Joachim Danmayr
   ///
-  inline void applyHistogramFilter(processor::ProcessContext &context, cv::Mat & /*image*/, atom::ObjectList &result)
+  inline void applyHistogramFilter(processor::ProcessContext &context, cv::Mat & /*image*/, atom::ObjectList & /*result*/)
   {
     const auto &imageOriginal  = *context.loadImageFromCache(enums::MemoryScope::ITERATION, mSettings.imageIn);
     const auto &imageThreshold = context.getActImage();

@@ -133,7 +133,7 @@ PanelGraphSettings::PanelGraphSettings(QWidget *parent) : QDockWidget(parent)
       mDensityMapSize->addItem("4000", 4000);
       mDensityMapSize->addItem(std::to_string(4096).data(), 4096);
       mDensityMapSize->setCurrentIndex(mDensityMapSize->count() - 1);
-      connect(mDensityMapSize, &QComboBox::currentIndexChanged, [this](int32_t index) { emit settingsChanged(); });
+      connect(mDensityMapSize, &QComboBox::currentIndexChanged, [this](int32_t /*index*/) { emit settingsChanged(); });
       formLayout->addRow("Density map size", mDensityMapSize);
     }
     addSeparator();
@@ -233,7 +233,7 @@ PanelGraphSettings::PanelGraphSettings(QWidget *parent) : QDockWidget(parent)
       mColormapRangeSettings = new QComboBox();
       mColormapRangeSettings->addItem("Automatic", static_cast<int>(joda::plot::ColorMappingMode::AUTO));
       mColormapRangeSettings->addItem("Manual", static_cast<int>(joda::plot::ColorMappingMode::MANUAL));
-      connect(mColormapRangeSettings, &QComboBox::currentIndexChanged, [this](int32_t index) {
+      connect(mColormapRangeSettings, &QComboBox::currentIndexChanged, [this](int32_t /*index*/) {
         if(getColorMapRangeSetting() == joda::plot::ColorMappingMode::AUTO) {
           mColorMapMinValue->setEnabled(false);
           mColorMapMaxValue->setEnabled(false);

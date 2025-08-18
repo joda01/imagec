@@ -45,7 +45,7 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-PanelImageView::PanelImageView(QWidget *parent) : QGraphicsView(parent), scene(new QGraphicsScene(this)), mImageToShow(&mPreviewImages.originalImage)
+PanelImageView::PanelImageView(QWidget *parent) : QGraphicsView(parent), mImageToShow(&mPreviewImages.originalImage), scene(new QGraphicsScene(this))
 {
   setScene(scene);
   setBackgroundBrush(QBrush(Qt::black));
@@ -80,11 +80,12 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
 
   if(omeInfo != nullptr) {
     std::lock_guard<std::mutex> locked(mImageResetMutex);
-    joda::ctrl::Controller::loadImage(imagePath, mSeries, mPlane, mTile, mPreviewImages, omeInfo, mZprojection);
+    joda::ctrl::Controller::loadImage(imagePath, static_cast<uint16_t>(mSeries), mPlane, mTile, mPreviewImages, omeInfo, mZprojection);
     mOmeInfo = *omeInfo;
   } else {
     std::lock_guard<std::mutex> locked(mImageResetMutex);
-    joda::ctrl::Controller::loadImage(imagePath, mSeries, mPlane, mTile, mDefaultPhysicalSize, mPreviewImages, mOmeInfo, mZprojection);
+    joda::ctrl::Controller::loadImage(imagePath, static_cast<uint16_t>(mSeries), mPlane, mTile, mDefaultPhysicalSize, mPreviewImages, mOmeInfo,
+                                      mZprojection);
   }
   restoreChannelSettings();
   mLastPath  = imagePath;
@@ -140,8 +141,8 @@ void PanelImageView::setDefaultPhysicalSize(const joda::settings::ProjectImageSe
   if(mDefaultPhysicalSize.mode == enums::PhysicalSizeMode::Manual) {
     mDefaultPhysicalSize = set;
     mOmeInfo.setPhyiscalSize(joda::ome::PhyiscalSize{
-        set.pixelWidth,
-        set.pixelHeight,
+        static_cast<double>(set.pixelWidth),
+        static_cast<double>(set.pixelHeight),
         0,
         set.unit,
     });
@@ -167,7 +168,7 @@ void PanelImageView::reloadImage()
   }
   {
     std::lock_guard<std::mutex> locked(mImageResetMutex);
-    joda::ctrl::Controller::loadImage(mLastPath, mSeries, mPlane, mTile, mPreviewImages, &mOmeInfo, mZprojection);
+    joda::ctrl::Controller::loadImage(mLastPath, static_cast<uint16_t>(mSeries), mPlane, mTile, mPreviewImages, &mOmeInfo, mZprojection);
   }
   restoreChannelSettings();
   mLastPlane = mPlane;
@@ -762,12 +763,9 @@ void PanelImageView::drawRuler(QPainter &painter)
   const auto &physk = mOmeInfo.getPhyiscalSize(mSeries);
   QTransform t      = transform();
   qreal scaleX      = t.m11();
-  qreal scaleY      = t.m22();
-  std::cout << "Scale: " << std::to_string(scaleX) << std::endl;
+  //  qreal scaleY      = t.m22();
   auto [sizeX, sizeY, sizeZ] = physk.getPixelSize(mDefaultPhysicalSize.unit);
   double onePxSize           = sizeX / scaleX;
-
-  std::cout << "One px: " << std::to_string(onePxSize) << std::endl;
 
   double unitToShow = 500.0;
   double rulerSize  = unitToShow / onePxSize;
@@ -781,7 +779,6 @@ void PanelImageView::drawRuler(QPainter &painter)
     }
     rulerSize = unitToShow / onePxSize;
   }
-  std::cout << "Ruker px: " << std::to_string(rulerSize) << std::endl;
 
   //
   // Draw
@@ -945,7 +942,7 @@ void PanelImageView::getClickedTileInThumbnail(QMouseEvent *event)
 
         QRect rectangle(QPoint(static_cast<int32_t>(static_cast<float>(width()) - THUMB_RECT_START_X - static_cast<float>(mThumbRectWidth) +
                                                     static_cast<float>(xOffset)),
-                               static_cast<int32_t>(THUMB_RECT_START_Y + yOffset)),
+                               static_cast<int32_t>(THUMB_RECT_START_Y + static_cast<float>(yOffset))),
                         QSize(mTileRectWidthScaled, mTileRectHeightScaled));
         if(rectangle.contains(event->pos())) {
           mTile.tileX = x;
@@ -1041,7 +1038,9 @@ int32_t PanelImageView::getNrOfZstacks() const
 ///
 void PanelImageView::getThumbnailAreaEntered(QMouseEvent *event)
 {
-  QRect rectangle(QPoint(width() - THUMB_RECT_START_X - mThumbRectWidth, THUMB_RECT_START_Y), QSize(mThumbRectWidth, mThumbRectHeight));
+  QRect rectangle(
+      QPoint(width() - static_cast<int32_t>(THUMB_RECT_START_X) - static_cast<int32_t>(mThumbRectWidth), static_cast<int32_t>(THUMB_RECT_START_Y)),
+      QSize(static_cast<int32_t>(mThumbRectWidth), static_cast<int32_t>(mThumbRectHeight)));
   if(rectangle.contains(event->pos())) {
     if(!mThumbnailAreaEntered) {
       mThumbnailAreaEntered = true;
@@ -1227,7 +1226,7 @@ void PanelImageView::setCursorPositionFromOriginalImageCoordinatesAndCenter(cons
     tileWidth  = imgWidth;
     tileHeight = imageHeight;
   }
-  auto [tileNrX, tileNrY] = mOmeInfo.getImageInfo(mSeries).resolutions.at(0 /*resolution*/).getNrOfTiles(tileWidth, tileHeight);
+  // auto [tileNrX, tileNrY] = mOmeInfo.getImageInfo(mSeries).resolutions.at(0 /*resolution*/).getNrOfTiles(tileWidth, tileHeight);
 
   auto measBoxX = boundingBox.x() - mTile.tileX * tileWidth;
   auto measBoxY = boundingBox.y() - mTile.tileY * tileHeight;

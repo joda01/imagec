@@ -37,7 +37,7 @@ public:
 
   void execute(cv::Mat &image)
   {
-    for(const auto &filter : mSetting.filter) {
+    for(size_t n = 0; n < mSetting.filter.size(); n++) {
       cv::Mat hsvImageTmp;
       cvtColor(image, hsvImageTmp, cv::COLOR_BGR2HSV_FULL);
 

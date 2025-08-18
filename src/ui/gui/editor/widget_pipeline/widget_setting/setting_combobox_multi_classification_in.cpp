@@ -161,8 +161,8 @@ std::map<joda::enums::ClassIdIn, std::string> SettingComboBoxMultiClassification
   std::map<joda::enums::ClassIdIn, std::string> toReturn;
   auto checked = (static_cast<QComboBoxMulti *>(mComboBox))->getCheckedItems();
 
-  for(const auto &[data, txt] : checked) {
-    toReturn.emplace(fromInt(data.toUInt()), txt.toStdString());
+  for(const auto &[dataIn, txt] : checked) {
+    toReturn.emplace(fromInt(dataIn.toUInt()), txt.toStdString());
   }
 
   return toReturn;

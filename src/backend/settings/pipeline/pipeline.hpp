@@ -91,7 +91,7 @@ public:
   enums::ClassId getOutputClass() const;
 
   auto createSnapShot(enums::HistoryCategory category, const std::string &note) -> std::optional<PipelineHistoryEntry>;
-  auto restoreSnapShot(int32_t idex) const -> Pipeline;
+  auto restoreSnapShot(size_t idex) const -> Pipeline;
   auto undo() const -> Pipeline;
   void tag(const std::string &tagName, size_t index = 0);
   void clearHistory();

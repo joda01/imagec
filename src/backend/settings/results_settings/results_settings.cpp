@@ -26,9 +26,9 @@ std::string ResultsSettings::ColumnKey::createHeader() const
   std::map<uint32_t, std::string> columnHeaders;
   std::string stacks = "{Z" + std::to_string(zStack) + "}";
 
-  auto createStatsHeader = [](enums::Stats stats) -> std::string {
-    if(stats != enums::Stats::OFF) {
-      return "[" + enums::toString(stats) + "]";
+  auto createStatsHeader = [](enums::Stats statsIn) -> std::string {
+    if(statsIn != enums::Stats::OFF) {
+      return "[" + enums::toString(statsIn) + "]";
     }
     return "";
   };
@@ -65,9 +65,9 @@ std::string ResultsSettings::ColumnKey::createHtmlHeader(HeaderStyle style) cons
   std::map<uint32_t, std::string> columnHeaders;
   std::string stacks = "{Z" + std::to_string(zStack) + "}";
 
-  auto createStatsHeader = [](enums::Stats stats) -> std::string {
-    if(stats != enums::Stats::OFF) {
-      return "[" + enums::toString(stats) + "]";
+  auto createStatsHeader = [](enums::Stats statsIn) -> std::string {
+    if(statsIn != enums::Stats::OFF) {
+      return "[" + enums::toString(statsIn) + "]";
     }
     return "";
   };

@@ -28,10 +28,10 @@ public:
   TableModel(QObject *parent = nullptr);
   void setData(const std::shared_ptr<joda::table::Table> table);
   auto getCell(int row, int col) -> const std::shared_ptr<const joda::table::TableCell>;
-  int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-  int columnCount(const QModelIndex &parent = QModelIndex()) const override;
-  QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-  QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+  [[nodiscard]] int rowCount(const QModelIndex &parent) const override;
+  [[nodiscard]] int columnCount(const QModelIndex &parent) const override;
+  [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
+  [[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
 private:
   std::shared_ptr<joda::table::Table> mTable;

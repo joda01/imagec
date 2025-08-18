@@ -27,7 +27,7 @@
 
 namespace joda::ui::gui {
 
-WrapLabel::WrapLabel(InOut inout) : QLabel(), inout(inout)
+WrapLabel::WrapLabel(InOut inoutIn) : inout(inoutIn)
 {
   setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed);
   setWordWrap(true);
@@ -42,8 +42,8 @@ void WrapLabel::resizeEvent(QResizeEvent *event)
 Command::Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &description, const std::vector<std::string> &tags,
                  const QString &icon, QWidget *parent, InOut type) :
     mPipelineStep(pipelineStep),
-    mParent(parent), mTitle(title), mDescription(description), mTags(tags), mLayout(&mEditView, true, true, false), mDisplayViewLayout(this),
-    mInOut(type)
+    mParent(parent), mTitle(title), mDescription(description), mLayout(&mEditView, true, true, false), mDisplayViewLayout(this), mInOut(type),
+    mTags(tags)
 {
   setContentsMargins(0, 0, 4, 0);
   mDisplayViewLayout.setContentsMargins(0, 0, 0, 0);
@@ -233,6 +233,8 @@ void Command::paintEvent(QPaintEvent *event)
           return Qt::white;
         case InOuts::OBJECT:
           return Qt::green;
+        case InOuts::OUTPUT_EQUAL_TO_INPUT:
+          break;
       }
       return Qt::lightGray;
     };
@@ -292,9 +294,9 @@ void Command::paintEvent(QPaintEvent *event)
       painter.setBrush(brush);
 
       QPolygon chevron;
-      auto left         = static_cast<float>(((width() - 1) - LINE_WIDTH));
-      auto middle       = static_cast<float>(((width() - 1) - static_cast<float>(LINE_WIDTH) / 2.0));
-      auto right        = static_cast<float>(width() - 1);
+      float left        = static_cast<float>(width()) - 1.0F - static_cast<float>(LINE_WIDTH);
+      float middle      = static_cast<float>(width()) - 1.0F - static_cast<float>(LINE_WIDTH) / 2.0F;
+      float right       = static_cast<float>(width() - 1);
       auto heightStart  = heightToPaint;
       auto heightMiddle = static_cast<float>(heightToPaint * 2) - 8;    // (static_cast<float>(heightToPaint / 3.0));
       auto heightEnd    = static_cast<float>(heightToPaint * 2);
@@ -579,7 +581,7 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
     return false;
   };
 
-  for(auto &[dataIn, bo, group] : settings) {
+  for(const auto &[dataIn, bo, group] : settings) {
     if(!containsPtr(dataIn)) {
       mSettings.emplace_back(dataIn, bo, group);
     }

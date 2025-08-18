@@ -145,7 +145,7 @@ public:
     joda::enums::ClassId intersectingChannel = joda::enums::ClassId::NONE;
     int32_t zStack                           = 0;
 
-    ColumnName names;
+    ColumnName names = {};
 
     bool operator<(const ColumnKey &input) const
     {

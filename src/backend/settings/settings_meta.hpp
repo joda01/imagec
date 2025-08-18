@@ -52,7 +52,7 @@ struct SettingsMeta
   //
   // Optional uuid identifying this object unique
   //
-  std::string uid;
+  std::string uid = {};
 
   //
   // Optional group

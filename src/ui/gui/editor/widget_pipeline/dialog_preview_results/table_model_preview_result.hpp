@@ -33,10 +33,10 @@ public:
 
   /////////////////////////////////////////////////////
   TableModelPreviewResult(const joda::settings::Classification &, QObject *parent = nullptr);
-  void setData(joda::ctrl::Preview::PreviewResults *pipelines);
+  void setData(joda::ctrl::Preview::PreviewResults *results);
   int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-  int columnCount(const QModelIndex &parent = QModelIndex()) const override;
-  QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+  int columnCount(const QModelIndex &parent) const override;
+  QVariant data(const QModelIndex &index, int role) const override;
   QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
   void refresh();
   void setHiddenFlag(enums::ClassId classs, bool);

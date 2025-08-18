@@ -317,7 +317,7 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete, bool upda
 
       // Delete command from vector
       {
-        size_t deletedPos = 0;
+        int32_t deletedPos = 0;
         for(auto it = mCommands.begin(); it != mCommands.end(); it++) {
           if(it->get() == toDelete) {
             mCommands.erase(it);
@@ -327,18 +327,18 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete, bool upda
         }
 
         // This command is now at the old position. And for this command the parent has been changed
-        if(deletedPos < mCommands.size()) {
-          size_t posPrev                   = deletedPos - 1;
-          size_t posNext                   = deletedPos + 1;
-          std::shared_ptr<Command> &newOld = mCommands.at(deletedPos);
+        if(deletedPos < static_cast<int32_t>(mCommands.size())) {
+          int32_t posPrev                  = deletedPos - 1;
+          int32_t posNext                  = deletedPos + 1;
+          std::shared_ptr<Command> &newOld = mCommands.at(static_cast<size_t>(deletedPos));
           if(posPrev >= 0) {
-            std::shared_ptr<Command> &prevCommand = mCommands.at(posPrev);
+            std::shared_ptr<Command> &prevCommand = mCommands.at(static_cast<size_t>(posPrev));
             newOld->setCommandBefore(prevCommand);
           } else {
             newOld->setCommandBefore(nullptr);
           }
-          if(posNext < mCommands.size()) {
-            mCommands.at(posNext)->setCommandBefore(newOld);
+          if(posNext < static_cast<int32_t>(mCommands.size())) {
+            mCommands.at(static_cast<size_t>(posNext))->setCommandBefore(newOld);
           }
         }
       }

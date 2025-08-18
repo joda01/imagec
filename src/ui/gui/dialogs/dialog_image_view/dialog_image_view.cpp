@@ -327,8 +327,8 @@ void DialogImageViewer::setImageChannel(int32_t channel)
 ///
 void DialogImageViewer::setShowCrossHairCursor(bool show)
 {
-  showCrossHairCursor->setChecked(true);
-  mImageViewRight.setShowCrosshandCursor(true);
+  showCrossHairCursor->setChecked(show);
+  mImageViewRight.setShowCrosshandCursor(show);
 }
 
 ///
@@ -398,7 +398,7 @@ void DialogImageViewer::removeVideoControl()
 ///
 void DialogImageViewer::applySettingsToImagePanel()
 {
-  auto tileSize = getTileSize();
+  auto tileSizeIn = getTileSize();
   mImageViewRight.setSeries(mImageSettings.imageSeries);
   if(nullptr != mVideoButtonGroup) {
     mVideoButtonGroup->setMaxTimeStacks(mImageViewRight.getNrOfTstacks());
@@ -406,7 +406,7 @@ void DialogImageViewer::applySettingsToImagePanel()
   }
   mImageViewRight.setZprojection(getSelectedZProjection());
   mImageViewRight.setImagePlane({.z = mSelectedZStack, .c = getSelectedImageChannel(), .t = mSelectedTStack});
-  mImageViewRight.setImageTile(tileSize, tileSize);
+  mImageViewRight.setImageTile(tileSizeIn, tileSizeIn);
   mImageViewRight.setDefaultPhysicalSize(joda::settings::ProjectImageSetup::PhysicalSizeSettings{.mode        = mImageSettings.sizeMode,
                                                                                                  .unit        = mImageSettings.unit,
                                                                                                  .pixelWidth  = mImageSettings.pixelWidth,

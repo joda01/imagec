@@ -57,7 +57,7 @@ using SettingParserLog_t = std::vector<SettingParserLog>;
   }                                                                                                        \
   friend void from_json(const nlohmann::json &nlohmann_json_j, Type &nlohmann_json_t)                      \
   {                                                                                                        \
-    Type nlohmann_json_default_obj;                                                                        \
+    Type nlohmann_json_default_obj = {};                                                                   \
     NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM_WITH_DEFAULT, __VA_ARGS__))                \
   }                                                                                                        \
   void getErrorLogRecursive(SettingParserLog_t &settingsParserLog) const                                   \
@@ -105,7 +105,7 @@ using SettingParserLog_t = std::vector<SettingParserLog>;
   }                                                                                                          \
   friend void from_json(const nlohmann::json &nlohmann_json_j, Type &nlohmann_json_t)                        \
   {                                                                                                          \
-    Type nlohmann_json_default_obj;                                                                          \
+    Type nlohmann_json_default_obj = {};                                                                     \
     NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM_WITH_DEFAULT, __VA_ARGS__))                  \
   }                                                                                                          \
   void getErrorLogRecursive(SettingParserLog_t &settingsParserLog) const                                     \

@@ -45,7 +45,7 @@ public:
     uint32_t tStack             = 0;
     uint32_t zStack             = 0;
     uint32_t cStack             = 0;
-    std::string rowName;
+    std::string rowName         = {};
   };
 
   struct Grouping

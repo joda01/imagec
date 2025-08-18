@@ -58,7 +58,7 @@ int TableModelPreviewResult::rowCount(const QModelIndex & /*parent*/) const
   if(mPreviewResult == nullptr) {
     return 0;
   }
-  return mPreviewResult->foundObjects.size();
+  return static_cast<int32_t>(mPreviewResult->foundObjects.size());
 }
 
 int TableModelPreviewResult::columnCount(const QModelIndex & /*parent*/) const
@@ -90,7 +90,7 @@ void TableModelPreviewResult::setHiddenFlag(enums::ClassId classs, bool isHidden
 /// \param[out]
 /// \return
 ///
-QVariant TableModelPreviewResult::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant TableModelPreviewResult::headerData(int /*section*/, Qt::Orientation /*orientation*/, int role) const
 {
   if(mPreviewResult == nullptr) {
     return {};
@@ -114,7 +114,7 @@ QVariant TableModelPreviewResult::data(const QModelIndex &index, int role) const
     return {};
   }
 
-  if(index.row() < 0 || index.row() >= mPreviewResult->foundObjects.size()) {
+  if(index.row() < 0 || index.row() >= static_cast<int32_t>(mPreviewResult->foundObjects.size())) {
     return {};
   }
 

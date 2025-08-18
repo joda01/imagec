@@ -265,14 +265,14 @@ void PanelPipeline::removePipelineWidget()
 /// \param[out]
 /// \return
 ///
-void PanelPipeline::openSelectedPipeline(const QModelIndex &current, const QModelIndex &previous)
+void PanelPipeline::openSelectedPipeline(const QModelIndex &current, const QModelIndex & /*previous*/)
 {
   //
   // Add new one
   //
   auto selectedRow = current.row();
   if(selectedRow >= 0) {
-    for(auto &pipeline : mChannels) {
+    for(const auto &pipeline : mChannels) {
       if(&pipeline->mutablePipeline() == mTableModel->getCell(selectedRow)) {
         {
           std::lock_guard<std::mutex> lock(mClosePipelineMutex);
@@ -357,7 +357,7 @@ void PanelPipeline::loadTemplates()
   size_t addedPerCategory = 0;
   std::string actCategory = "basic";
   for(const auto &[category, dataInCategory] : foundTemplates) {
-    for(const auto &[_, data] : dataInCategory) {
+    for(const auto &[_, dataIn] : dataInCategory) {
       // Now the user templates start, add an addition separator
       if(category != actCategory) {
         actCategory = category;
@@ -365,12 +365,12 @@ void PanelPipeline::loadTemplates()
           mTemplatesMenu->addSeparator();
         }
       }
-      if(!data.icon.isNull()) {
-        auto *action = mTemplatesMenu->addAction(QIcon(data.icon.scaled(28, 28)), data.title.data());
-        connect(action, &QAction::triggered, [this, path = data.path]() { onAddChannel(path.data()); });
+      if(!dataIn.icon.isNull()) {
+        auto *action = mTemplatesMenu->addAction(QIcon(dataIn.icon.scaled(28, 28)), dataIn.title.data());
+        connect(action, &QAction::triggered, [this, path = dataIn.path]() { onAddChannel(path.data()); });
       } else {
-        auto *action = mTemplatesMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("star"), data.title.data());
-        connect(action, &QAction::triggered, [this, path = data.path]() { onAddChannel(path.data()); });
+        auto *action = mTemplatesMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("star"), dataIn.title.data());
+        connect(action, &QAction::triggered, [this, path = dataIn.path]() { onAddChannel(path.data()); });
       }
     }
     addedPerCategory = dataInCategory.size();
@@ -526,7 +526,7 @@ void PanelPipeline::moveUp()
     if(newPos < 0) {
       return;
     }
-    movePipelineToPosition(rowAct, newPos);
+    movePipelineToPosition(static_cast<uint32_t>(rowAct), static_cast<uint32_t>(newPos));
     mPipelineTable->blockSignals(false);
   }
 }
@@ -549,7 +549,7 @@ void PanelPipeline::moveDown()
     if(newPos >= mTableModel->rowCount()) {
       return;
     }
-    movePipelineToPosition(rowAct, newPos);
+    movePipelineToPosition(static_cast<uint32_t>(rowAct), static_cast<uint32_t>(newPos));
     mPipelineTable->blockSignals(false);
   }
 }
@@ -561,7 +561,7 @@ void PanelPipeline::moveDown()
 /// \param[out]
 /// \return
 ///
-void PanelPipeline::movePipelineToPosition(size_t fromPos, size_t newPos)
+void PanelPipeline::movePipelineToPosition(size_t fromPos, size_t newPosIn)
 {
   auto moveElementToListPosition = [](std::list<joda::settings::Pipeline> &myList, size_t oldPos, size_t newPos) {
     // Get iterators to the old and new positions
@@ -578,7 +578,7 @@ void PanelPipeline::movePipelineToPosition(size_t fromPos, size_t newPos)
     }
   };
 
-  moveElementToListPosition(mAnalyzeSettings.pipelines, fromPos, newPos);
+  moveElementToListPosition(mAnalyzeSettings.pipelines, fromPos, newPosIn);
   mWindowMain->checkForSettingsChanged();
   mTableModel->refresh();
 }
@@ -609,7 +609,7 @@ void PanelPipeline::saveAsTemplate()
     messageBox.setWindowTitle("Could not save template!");
     messageBox.setText("Could not save template, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-    auto reply = messageBox.exec();
+    messageBox.exec();
   }
 }
 

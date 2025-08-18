@@ -31,7 +31,7 @@ AddCommandButtonBase::AddCommandButtonBase(std::shared_ptr<DialogCommandSelectio
   setFixedHeight(10);
 }
 
-void AddCommandButtonBase::paintEvent(QPaintEvent *event)
+void AddCommandButtonBase::paintEvent(QPaintEvent * /*event*/)
 {
   QPainter painter(this);
   if(!mMouseEntered) {
@@ -51,7 +51,7 @@ void AddCommandButtonBase::paintEvent(QPaintEvent *event)
   painter.drawText(centerX - 5, centerY - 5, 10, 10, Qt::AlignCenter, "+");
 }
 
-void AddCommandButtonBase::mousePressEvent(QMouseEvent *event)
+void AddCommandButtonBase::mousePressEvent(QMouseEvent * /*event*/)
 {
   mDialogCommandSelection->show(mPipelineStepBefore, mOutOfStepBefore, &mSettings, pipelineStepSettingsUi);
 }

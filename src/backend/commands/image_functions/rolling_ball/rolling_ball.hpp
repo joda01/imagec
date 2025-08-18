@@ -38,7 +38,7 @@ class RollingBallBackground : public Command
 public:
   /////////////////////////////////////////////////////
   explicit RollingBallBackground(const settings::RollingBallSettings &settings) :
-      mUseSlidingParaboloid(settings.ballType == settings::RollingBallSettings::BallType::PARABOLOID), radius(settings.ballSize)
+      mUseSlidingParaboloid(settings.ballType == settings::RollingBallSettings::BallType::PARABOLOID), radius(static_cast<float>(settings.ballSize))
   {
   }
 

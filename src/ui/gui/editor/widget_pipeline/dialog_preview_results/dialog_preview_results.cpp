@@ -67,7 +67,7 @@ DialogPreviewResults::DialogPreviewResults(const joda::settings::Classification 
 
   connect(mResultsTable, &QTableView::doubleClicked, [this](const QModelIndex &index) {
     bool isHidden = mTableModel->data(index, Qt::CheckStateRole).toBool();
-    mTableModel->setHiddenFlag((enums::ClassId) mTableModel->data(index, TableModelPreviewResult::CLASS_ROLE).toInt(), !isHidden);
+    mTableModel->setHiddenFlag(static_cast<enums::ClassId>(mTableModel->data(index, TableModelPreviewResult::CLASS_ROLE).toInt()), !isHidden);
     if(mPipelineSettings != nullptr) {
       mPipelineSettings->updatePreview();
     }
@@ -110,7 +110,7 @@ auto DialogPreviewResults::getClassesToHide() const -> settings::ObjectInputClas
     auto idx = mTableModel->index(n, 0);
 
     if(mTableModel->data(idx, Qt::CheckStateRole).toBool()) {
-      ret.emplace((enums::ClassId) mTableModel->data(idx, TableModelPreviewResult::CLASS_ROLE).toInt());
+      ret.emplace(static_cast<enums::ClassId>(mTableModel->data(idx, TableModelPreviewResult::CLASS_ROLE).toInt()));
     }
   }
   return ret;

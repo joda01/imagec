@@ -75,7 +75,7 @@ DialogCommandSelection::DialogCommandSelection(WindowMain *parent) : QDialog(par
 
   // mCommands.setsh
 
-  connect(mCommands, &QTableWidget::cellDoubleClicked, [&](int row, int column) {
+  connect(mCommands, &QTableWidget::cellDoubleClicked, [&](int row, int /*column*/) {
     auto idx = mCommands->item(row, 0)->text().toInt();
     addNewCommand(idx);
     close();

@@ -26,7 +26,7 @@ namespace joda::ui::gui {
 /// \return
 ///
 SettingBase::SettingBase(QWidget *parent, const QIcon &icon, const QString &description, int32_t maxTextLengthToDisplay) :
-    mParent((WindowMain *) parent), mIcon(icon), mDescription(description), mMaxTextLengthToDisplay(maxTextLengthToDisplay)
+    mParent(dynamic_cast<WindowMain *>(parent)), mIcon(icon), mDescription(description), mMaxTextLengthToDisplay(maxTextLengthToDisplay)
 {
   setObjectName("SettingBase");
   createDisplayAbleWidget(icon, description);
@@ -220,7 +220,7 @@ void SettingBase::updateDisplayLabel()
 /// \brief    This label is not editable but only shows the entered data
 /// \author   Joachim Danmayr
 ///
-void SettingBase::createDisplayAbleWidget(const QIcon &icon, const QString &tooltip)
+void SettingBase::createDisplayAbleWidget(const QIcon &icon, const QString & /*tooltip*/)
 {
   mDisplayable = new QWidget();
   mDisplayable->setContentsMargins(0, 0, 0, 0);

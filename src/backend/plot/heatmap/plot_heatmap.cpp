@@ -116,7 +116,7 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
 
       // Plot labels
       if(mPlotLabels && mRectWidth > 50) {
-        cv::Rect rect(x1, y1, mRectWidth, mRectHeight);
+        cv::Rect rect(x1, y1, static_cast<int32_t>(mRectWidth), static_cast<int32_t>(mRectHeight));
         PlotBase::drawCenteredText(plotArea, doubleToString(val, mPrecision), rect, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1);
       }
 

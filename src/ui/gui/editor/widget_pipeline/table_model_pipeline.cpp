@@ -98,14 +98,11 @@ QVariant TableModelPipeline::headerData(int section, Qt::Orientation /*orientati
 ///
 QVariant TableModelPipeline::data(const QModelIndex &index, int role) const
 {
-  const auto ALTERNATE = ((QTableView *) parent())->palette().color(QPalette::AlternateBase);
-  const auto BASE      = ((QTableView *) parent())->palette().color(QPalette::Base);
-
   if(mPipelines == nullptr) {
     return {};
   }
 
-  if(index.row() < 0 || index.row() >= mPipelines->size()) {
+  if(index.row() < 0 || index.row() >= static_cast<int32_t>(mPipelines->size())) {
     return {};
   }
 
@@ -135,12 +132,7 @@ QVariant TableModelPipeline::data(const QModelIndex &index, int role) const
     }
     if(index.column() == 1) {
       QString retStr;
-      if(static_cast<int32_t>(it->pipelineSetup.defaultClassId) >= 0) {
-        retStr = mClassSettings.getClassFromId(it->pipelineSetup.defaultClassId).name.data();
-      } else {
-        retStr = "None";
-      }
-
+      retStr = mClassSettings.getClassFromId(it->pipelineSetup.defaultClassId).name.data();
       return retStr;
     }
   }
@@ -156,7 +148,7 @@ QVariant TableModelPipeline::data(const QModelIndex &index, int role) const
 ///
 auto TableModelPipeline::getCell(int row) -> joda::settings::Pipeline *
 {
-  if(row >= 0 && row < mPipelines->size()) {
+  if(row >= 0 && row < static_cast<int32_t>(mPipelines->size())) {
     auto it = mPipelines->begin();
     std::advance(it, row);
     return &*it;

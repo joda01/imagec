@@ -32,15 +32,15 @@ TableModel::TableModel(QObject *parent) : QAbstractTableModel(parent)
   }
 }
 
-int TableModel::rowCount(const QModelIndex &parent) const
+int TableModel::rowCount(const QModelIndex & /*parent*/) const
 {
   if(!mTable) {
     return 0;
   }
-  return mTable->getNrOfRows();
+  return static_cast<int>(mTable->getNrOfRows());
 }
 
-int TableModel::columnCount(const QModelIndex &parent) const
+int TableModel::columnCount(const QModelIndex & /*parent*/) const
 {
   if(!mTable) {
     return 0;
@@ -65,10 +65,11 @@ QVariant TableModel::headerData(int section, Qt::Orientation orientation, int ro
   }
 
   if(orientation == Qt::Orientation::Horizontal) {
-    return QString(mTable->getColHeader(section).createHtmlHeader(joda::settings::ResultsSettings::ColumnKey::HeaderStyle::FULL).data());
+    return QString(
+        mTable->getColHeader(static_cast<uint32_t>(section)).createHtmlHeader(joda::settings::ResultsSettings::ColumnKey::HeaderStyle::FULL).data());
   }
   if(orientation == Qt::Orientation::Vertical) {
-    return QString(mTable->getRowHeader(section).data());
+    return QString(mTable->getRowHeader(static_cast<uint32_t>(section)).data());
   }
   return {};
 }
@@ -84,13 +85,13 @@ QVariant TableModel::data(const QModelIndex &index, int role) const
 {
   const auto LIGHT_BLUE = QColor("#ADD8E6");
   const auto DARK_BLUE  = QColor("#87CEEB");
-  const auto ALTERNATE  = ((QTableView *) parent())->palette().color(QPalette::AlternateBase);
-  const auto BASE       = ((QTableView *) parent())->palette().color(QPalette::Base);
+  const auto ALTERNATE  = (dynamic_cast<QTableView *>(parent()))->palette().color(QPalette::AlternateBase);
+  const auto BASE       = (dynamic_cast<QTableView *>(parent()))->palette().color(QPalette::Base);
 
   if(!mTable) {
     return {};
   }
-  const auto &cell = mTable->data(index.row(), index.column());
+  const auto &cell = mTable->data(static_cast<uint32_t>(index.row()), static_cast<uint32_t>(index.column()));
   if(cell == nullptr) {
     return {};
   }
@@ -113,7 +114,7 @@ QVariant TableModel::data(const QModelIndex &index, int role) const
     return {};
   }
 
-  auto generateMetaFooter = [](const std::shared_ptr<const joda::table::TableCell> &rowData) -> QString {
+  auto generateMetaFooter = [](const std::shared_ptr<const joda::table::TableCell> & /*rowData*/) -> QString {
     return "";
     /*return "<br><span style=\"color:rgb(155, 153, 153);\"><i>🗝: " + QString(joda::helper::toBase32(rowData.getObjectId()).data()) + " ⬆ " +
            QString(joda::helper::toBase32(rowData.getParentId()).data()) + "<br> ↔ " +
@@ -154,7 +155,7 @@ void TableModel::setData(const std::shared_ptr<joda::table::Table> table)
 ///
 auto TableModel::getCell(int row, int col) -> const std::shared_ptr<const joda::table::TableCell>
 {
-  return mTable->data(row, col);
+  return mTable->data(static_cast<uint32_t>(row), static_cast<uint32_t>(col));
 }
 
 }    // namespace joda::ui::gui

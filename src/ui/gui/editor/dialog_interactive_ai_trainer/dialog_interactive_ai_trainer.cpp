@@ -32,7 +32,7 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-DialogInteractiveAiTrainer::DialogInteractiveAiTrainer(const joda::settings::Classification &classes, joda::settings::Pipeline &settings,
+DialogInteractiveAiTrainer::DialogInteractiveAiTrainer(const joda::settings::Classification & /*classes*/, joda::settings::Pipeline & /*settings*/,
                                                        joda::ctrl::Preview *objects, WindowMain *parent) :
     QDialog(parent),
     mPreviewResult(objects)

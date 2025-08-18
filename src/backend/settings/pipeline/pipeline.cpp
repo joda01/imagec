@@ -92,7 +92,7 @@ void Pipeline::eraseHistory()
 /// \brief      Restore a snap shot
 /// \author     Joachim Danmayr
 ///
-auto Pipeline::restoreSnapShot(int32_t idx) const -> Pipeline
+auto Pipeline::restoreSnapShot(size_t idx) const -> Pipeline
 {
   if(history.size() < idx) {
     throw std::runtime_error("This history entry does not exist!");
