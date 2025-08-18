@@ -81,6 +81,7 @@ private:
   QDialog *mStackOptionsDialog;
   QComboBox *mStackHandlingZ;
   QComboBox *mStackHandlingT;
+  QComboBox *mMeasureUnit;
   QLineEdit *mTStackFrameStart;
   QLineEdit *mTStackFrameEnd;
 

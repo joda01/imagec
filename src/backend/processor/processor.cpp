@@ -97,7 +97,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
 
       mProgress.setRunningPreparingPipeline();
       auto imagesToProcess = db->prepareImages(plate.plateId, program.imageSetup.series, plate.groupBy, plate.filenameRegex, images,
-                                               allImages.getDirectoryAt(), program.imageSetup.pixelSizeSettings, mGlobThreadPool);
+                                               allImages.getDirectoryAt(), program.imageSetup.imagePixelSizeSettings, mGlobThreadPool);
       mProgress.setStateRunning();
 
       //
@@ -106,7 +106,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
       for(const auto &actImage : imagesToProcess) {
         auto analyzeImage = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db, &poolSizeTiles, &poolSizeChannels, &actImage]() {
           auto const [imagePath, omeInfo, imageId] = actImage;
-          PipelineInitializer imageLoader(program.imageSetup);
+          PipelineInitializer imageLoader(program.imageSetup, program.pipelineSetup);
           ImageContext imageContext{.imageLoader = imageLoader, .imagePath = imagePath, .imageMeta = omeInfo, .imageId = imageId};
           imageLoader.init(imageContext);
 
@@ -231,7 +231,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                     // Insert objects to database
                     auto id = DurationCount::start("Insert");
                     try {
-                      db->insertObjects(imageContext, program.imageSetup.pixelSizeSettings.unit, iterationContext.getObjects());
+                      db->insertObjects(imageContext, program.imageSetup.imagePixelSizeSettings.pixelSizeUnit, iterationContext.getObjects());
                     } catch(const std::exception &ex) {
                       std::cout << "Insert Obj: " << ex.what() << std::endl;
                     }
@@ -373,7 +373,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
 
   PlateContext plateContext{.plateId = 0};
   joda::grp::FileGrouper grouper(enums::GroupBy::OFF, "");
-  PipelineInitializer imageLoader(imageSetup);
+  PipelineInitializer imageLoader(imageSetup, program.pipelineSetup);
   ImageContext imageContext{.imageLoader = imageLoader, .imagePath = imagePath, .imageMeta = ome, .imageId = 1};
   imageLoader.init(imageContext);
 

@@ -39,7 +39,8 @@ namespace joda::processor {
 /// \param[out]
 /// \return
 ///
-PipelineInitializer::PipelineInitializer(const settings::ProjectImageSetup &settings) : mSettings(settings)
+PipelineInitializer::PipelineInitializer(const settings::ProjectImageSetup &settings, const settings::ProjectPipelineSetup &pipelineSetup) :
+    mSettings(settings), mSettingsPipeline(pipelineSetup)
 {
 }
 
@@ -188,7 +189,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   //
   // Write context
   //
-  processContext.initDefaultSettings(pipelineSetup.defaultClassId, zProjection, pipelineIndex, mSettings.pixelSizeSettings.unit);
+  processContext.initDefaultSettings(pipelineSetup.defaultClassId, zProjection, pipelineIndex, mSettingsPipeline.realSizesUnit);
 }
 
 ///

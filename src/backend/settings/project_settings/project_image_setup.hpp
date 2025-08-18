@@ -65,14 +65,16 @@ struct ProjectImageSetup
   struct PhysicalSizeSettings
   {
     //
-    //
+    // If automatic, the pixelWidth and pixelHeight is taken from the OME
+    // meta info from the image.
     //
     enums::PhysicalSizeMode mode = enums::PhysicalSizeMode::Automatic;
 
     //
+    // The unit the image pixel size is measured.
+    // The values are written into the database as defined here.
     //
-    //
-    enums::Units unit = enums::Units::um;
+    enums::Units pixelSizeUnit = enums::Units::um;
 
     //
     //
@@ -88,14 +90,14 @@ struct ProjectImageSetup
     {
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PhysicalSizeSettings, mode, pixelWidth, pixelHeight, unit);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PhysicalSizeSettings, mode, pixelWidth, pixelHeight, pixelSizeUnit);
   };
 
   ZStackHandling zStackHandling = ZStackHandling::EXACT_ONE;
   TStackHandling tStackHandling = TStackHandling::EACH_ONE;
 
-  TStackSettings tStackSettings          = {};
-  PhysicalSizeSettings pixelSizeSettings = {};
+  TStackSettings tStackSettings               = {};
+  PhysicalSizeSettings imagePixelSizeSettings = {};
 
   //
   // If the image is too big too load at once to RAM it is loaded in tiles
@@ -108,7 +110,7 @@ struct ProjectImageSetup
   int32_t series = 0;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectImageSetup, zStackHandling, tStackHandling, imageTileSettings, series, tStackSettings,
-                                                       pixelSizeSettings);
+                                                       imagePixelSizeSettings);
 
   void check() const
   {

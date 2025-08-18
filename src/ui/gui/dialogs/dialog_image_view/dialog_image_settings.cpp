@@ -182,14 +182,14 @@ void DialogImageSettings::fromSettings(const ome::OmeInfo &omeInfo)
     mTileSize->setCurrentIndex(idx);
   }
 
-  idx = mUnit->findData(static_cast<int32_t>(mSettings->unit));
+  idx = mUnit->findData(static_cast<int32_t>(mSettings->pixelSizeUnit));
   if(idx != -1) {
     mUnit->setCurrentIndex(idx);
   }
 
   if(mSettings->sizeMode == enums::PhysicalSizeMode::Automatic) {
     mPixelSizeMode->setCurrentIndex(0);
-    setFromOme(omeInfo, mSettings->imageSeries, mSettings->unit);
+    setFromOme(omeInfo, mSettings->imageSeries, mSettings->pixelSizeUnit);
   } else {
     mPixelSizeMode->setCurrentIndex(1);
     mPixelWidth->setText(QString::number(static_cast<double>(mSettings->pixelWidth), 'g', 10));
@@ -205,10 +205,10 @@ void DialogImageSettings::fromSettings(const ome::OmeInfo &omeInfo)
 ///
 void DialogImageSettings::accept()
 {
-  mSettings->zProjection = static_cast<enums::ZProjection>(mZprojection->currentData().toInt());
-  mSettings->imageSeries = mSeries->currentData().toInt();
-  mSettings->tileWidth   = mTileSize->currentData().toInt();
-  mSettings->unit        = static_cast<enums::Units>(mUnit->currentData().toInt());
+  mSettings->zProjection   = static_cast<enums::ZProjection>(mZprojection->currentData().toInt());
+  mSettings->imageSeries   = mSeries->currentData().toInt();
+  mSettings->tileWidth     = mTileSize->currentData().toInt();
+  mSettings->pixelSizeUnit = static_cast<enums::Units>(mUnit->currentData().toInt());
 
   if(0 == mPixelSizeMode->currentData().toInt()) {
     // Automatic mode

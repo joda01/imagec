@@ -22,6 +22,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include "backend/enums/enums_units.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "ui/gui/editor/widget_pipeline/dialog_command_selection/dialog_command_selection.hpp"
@@ -155,9 +156,16 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
 
   {
     mStackOptionsDialog = new QDialog(mWindowMain);
-    mStackOptionsDialog->setWindowTitle("Stack handling");
+    mStackOptionsDialog->setWindowTitle("Analyze settings");
     mStackOptionsDialog->setMinimumWidth(400);
     auto *formLayout = new QFormLayout;
+
+    auto addSeparator = [&formLayout]() {
+      auto *separator = new QFrame;
+      separator->setFrameShape(QFrame::HLine);
+      separator->setFrameShadow(QFrame::Sunken);
+      formLayout->addRow(separator);
+    };
     //
     // Stack handling
     //
@@ -182,6 +190,17 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     tStackRangeLayout->addWidget(mTStackFrameStart);
     tStackRangeLayout->addWidget(mTStackFrameEnd);
     formLayout->addRow(new QLabel(tr("T-Range")), tStackRangeLayout);
+
+    addSeparator();
+    mMeasureUnit = new QComboBox();
+    mMeasureUnit->addItem("Px", static_cast<int32_t>(enums::Units::Pixels));
+    mMeasureUnit->addItem("nm", static_cast<int32_t>(enums::Units::nm));
+    mMeasureUnit->addItem("µm", static_cast<int32_t>(enums::Units::um));
+    mMeasureUnit->addItem("mm", static_cast<int32_t>(enums::Units::mm));
+    mMeasureUnit->addItem("cm", static_cast<int32_t>(enums::Units::cm));
+    mMeasureUnit->addItem("m", static_cast<int32_t>(enums::Units::m));
+    mMeasureUnit->addItem("km", static_cast<int32_t>(enums::Units::km));
+    formLayout->addRow(new QLabel(tr("Measure unit")), mMeasureUnit);
 
     mStackOptionsDialog->setLayout(formLayout);
   }
@@ -627,6 +646,8 @@ void PanelPipeline::toSettings()
 
   mAnalyzeSettings.imageSetup.tStackSettings.startFrame = mTStackFrameStart->text().toInt();
   mAnalyzeSettings.imageSetup.tStackSettings.endFrame   = mTStackFrameEnd->text().toInt();
+
+  mAnalyzeSettings.pipelineSetup.realSizesUnit = static_cast<enums::Units>(mMeasureUnit->currentData().toInt());
 }
 
 ///
@@ -656,6 +677,15 @@ void PanelPipeline::fromSettings(const joda::settings::AnalyzeSettings &settings
       mStackHandlingT->setCurrentIndex(idx);
     } else {
       mStackHandlingT->setCurrentIndex(0);
+    }
+  }
+
+  {
+    auto idx = mMeasureUnit->findData(static_cast<int>(settings.pipelineSetup.realSizesUnit));
+    if(idx >= 0) {
+      mMeasureUnit->setCurrentIndex(idx);
+    } else {
+      mMeasureUnit->setCurrentIndex(0);
     }
   }
 }

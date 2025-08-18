@@ -119,7 +119,7 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
   }
 
   auto calcOptimalSize = [](int32_t min, int32_t step) {
-    int32_t k = ((640.0f - static_cast<float>(min)) / static_cast<float>(step));
+    int32_t k = static_cast<int32_t>((640.0F - static_cast<float>(min)) / static_cast<float>(step));
     if(k < 1) {
       k = 0;
     }
@@ -166,7 +166,10 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
   // =======================================
   // Convert to JSON and parse
   // =======================================
-  std::string yamlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+  std::string yamlContent;
+  size_t size = std::filesystem::file_size(rdfYaml);
+  yamlContent.resize(size);
+  file.read(yamlContent.data(), static_cast<std::streamsize>(size));
   auto rdfParsed = joda::yaml::Yaml::convert(yamlContent);
 
   // =======================================
@@ -339,13 +342,13 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
           axesString += id;
 
           int32_t fixedSize = 0;
-          auto size         = axe["size"];
-          if(size.is_object()) {
-            int32_t min  = size["min"];
-            int32_t step = size["step"];
+          auto sizeIn       = axe["size"];
+          if(sizeIn.is_object()) {
+            int32_t min  = sizeIn["min"];
+            int32_t step = sizeIn["step"];
             fixedSize    = calcOptimalSize(min, step);
           } else {
-            fixedSize = size;
+            fixedSize = sizeIn;
           }
 
           if(id == "y") {
@@ -385,30 +388,30 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
     for(const auto &output : outputs) {
       std::string outputName = output["name"];
       std::string axesOrder  = output["axes"];    //  "axes": "bcyx"
-      auto netOutputType     = dataTypeToEnum(output["data_type"]);
+      // auto netOutputType     = dataTypeToEnum(output["data_type"]);
 
       std::optional<size_t> bPos = getPos(axesOrder, 'b');
       std::optional<size_t> cPos = getPos(axesOrder, 'c');
       std::optional<size_t> xPos = getPos(axesOrder, 'x');
       std::optional<size_t> yPos = getPos(axesOrder, 'y');
 
-      auto halo     = output["halo"];
-      int32_t haloB = 0;
-      int32_t haloC = 0;
-      int32_t haloX = 0;
-      int32_t haloY = 0;
-      if(cPos.has_value()) {
-        haloC = halo[cPos.value()];
-      }
-      if(bPos.has_value()) {
-        haloB = halo[bPos.value()];
-      }
-      if(xPos.has_value()) {
-        haloX = halo[xPos.value()];
-      }
-      if(yPos.has_value()) {
-        haloY = halo[yPos.value()];
-      }
+      // auto halo     = output["halo"];
+      // int32_t haloB = 0;
+      // int32_t haloC = 0;
+      // int32_t haloX = 0;
+      // int32_t haloY = 0;
+      // if(cPos.has_value()) {
+      //   haloC = halo[cPos.value()];
+      // }
+      // if(bPos.has_value()) {
+      //   haloB = halo[bPos.value()];
+      // }
+      // if(xPos.has_value()) {
+      //   haloX = halo[xPos.value()];
+      // }
+      // if(yPos.has_value()) {
+      //   haloY = halo[yPos.value()];
+      // }
 
       int32_t channelSize  = 1;
       int32_t batchSize    = 1;
@@ -478,10 +481,10 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
       if(output.contains("description")) {
         std::string description = output["description"];
       }
-      std::string id = output["id"];
+      std::string idOut = output["id"];
 
-      response.outputs.emplace(id, settings::AiClassifierSettings::NetOutputParameters{});
-      auto &objectToWorkOn = response.outputs.at(id);
+      response.outputs.emplace(idOut, settings::AiClassifierSettings::NetOutputParameters{});
+      auto &objectToWorkOn = response.outputs.at(idOut);
 
       auto axes = output["axes"];    //  "axes": "bcyx"
       std::string axesString;
@@ -502,20 +505,20 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
             channelNamesOut.emplace_back(channelName);
           }
           /// How to get correct channel size
-          objectToWorkOn.channels = channelNamesOut.size();
+          objectToWorkOn.channels = static_cast<int32_t>(channelNamesOut.size());
         }
         if(type == "space") {
           std::string id = axe["id"];
           axesString += id;
-          auto size = axe["size"];
-          if(size.is_object()) {
+          auto sizeIn = axe["size"];
+          if(sizeIn.is_object()) {
             // int32_t halo         = axe["halo"];
             float scale          = axe["scale"];
-            std::string tensorId = size["tensor_id"];
-            std::string axisId   = size["axis_id"];
+            std::string tensorId = sizeIn["tensor_id"];
+            std::string axisId   = sizeIn["axis_id"];
             float offset         = 0;
-            if(size.contains("offset")) {
-              offset = size["offset"];
+            if(sizeIn.contains("offset")) {
+              offset = sizeIn["offset"];
             }
 
             if(id == "y") {
@@ -528,10 +531,10 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
             }
           } else {
             if(id == "y") {
-              objectToWorkOn.spaceY = size;
+              objectToWorkOn.spaceY = sizeIn;
             }
             if(id == "x") {
-              objectToWorkOn.spaceX = size;
+              objectToWorkOn.spaceX = sizeIn;
             }
             if(id == "z") {
             }
@@ -540,14 +543,14 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
         if(type == "index") {
           std::string id = axe["id"];
           axesString += id;
-          float scale = axe["scale"];
-          auto size   = axe["size"];
-          if(size.is_object()) {
-            std::string tensorId = size["tensor_id"];
-            std::string axisId   = size["axis_id"];
-            int32_t offset       = size["offset"];
+          // float scale = axe["scale"];
+          auto sizeIn = axe["size"];
+          if(sizeIn.is_object()) {
+            std::string tensorId = sizeIn["tensor_id"];
+            std::string axisId   = sizeIn["axis_id"];
+            // int32_t offset       = size["offset"];
           } else {
-            int32_t idx          = size;
+            int32_t idx          = sizeIn;
             objectToWorkOn.index = idx;
           }
         }
@@ -624,7 +627,7 @@ auto toInputOrder(const std::string &id, const T &in) -> std::string
   std::stringstream outTmp;
   prefix << joda::helper::shrinkString(id, 7) << ":\t[";
   outTmp << "[";
-  for(int32_t idx = 0; idx < in.axes.size(); idx++) {
+  for(size_t idx = 0; idx < in.axes.size(); idx++) {
     char ax = in.axes.at(idx);
     if(outTmp.str().size() > 1) {
       outTmp << " ";
@@ -675,7 +678,7 @@ std::string AiModelParser::Data::toString() const
   }
 
   out << "\n----\n”";
-  for(int n = 0; n < authors.size(); n++) {
+  for(size_t n = 0; n < authors.size(); n++) {
     const auto &author = authors[n];
     if(!author.affiliation.empty()) {
       out << author.affiliation << "/" << author.authorName;

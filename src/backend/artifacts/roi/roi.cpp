@@ -287,9 +287,9 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 /// \param[out]
 /// \return
 ///
-[[nodiscard]] double ROI::getAreaSize(const std::pair<ome::PhyiscalSize, enums::Units> &physicalSize) const
+[[nodiscard]] double ROI::getAreaSize(const ome::PhyiscalSize &physicalSize, enums::Units unit) const
 {
-  auto [pxSizeX, pxSizeY, pxSizeZ] = physicalSize.first.getPixelSize(physicalSize.second);
+  auto [pxSizeX, pxSizeY, pxSizeZ] = physicalSize.getPixelSize(unit);
 
   return mAreaSize * pxSizeX * pxSizeY;
 }
@@ -301,9 +301,9 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 /// \param[out]
 /// \return
 ///
-[[nodiscard]] float ROI::getPerimeter(const std::pair<ome::PhyiscalSize, enums::Units> &physicalSize) const
+[[nodiscard]] float ROI::getPerimeter(const ome::PhyiscalSize &physicalSize, enums::Units unit) const
 {
-  auto [pxSizeX, pxSizeY, pxSizeZ] = physicalSize.first.getPixelSize(physicalSize.second);
+  auto [pxSizeX, pxSizeY, pxSizeZ] = physicalSize.getPixelSize(unit);
   if(pxSizeX != pxSizeY) {
     throw std::invalid_argument("Perimeter to real value with rectangle pixels not supported right now!");
   }
@@ -317,9 +317,9 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 /// \param[out]
 /// \return
 ///
-[[nodiscard]] auto ROI::getDistances(const std::pair<ome::PhyiscalSize, enums::Units> &physicalSize) const -> std::map<uint64_t, Distance>
+[[nodiscard]] auto ROI::getDistances(const ome::PhyiscalSize &physicalSize, enums::Units unit) const -> std::map<uint64_t, Distance>
 {
-  auto [pxSizeX, pxSizeY, pxSizeZ] = physicalSize.first.getPixelSize(physicalSize.second);
+  auto [pxSizeX, pxSizeY, pxSizeZ] = physicalSize.getPixelSize(unit);
   return mDistances;
 }
 
@@ -426,8 +426,8 @@ ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
     }
   }
 
-  double smallestArea = std::min(getAreaSize({ome::PhyiscalSize::Pixels(), enums::Units::Pixels}),
-                                 roi.getAreaSize({ome::PhyiscalSize::Pixels(), enums::Units::Pixels}));
+  double smallestArea =
+      std::min(getAreaSize(ome::PhyiscalSize::Pixels(), enums::Units::Pixels), roi.getAreaSize(ome::PhyiscalSize::Pixels(), enums::Units::Pixels));
   if(smallestArea > 0) {
     result.intersectionArea = static_cast<float>(static_cast<double>(result.nrOfIntersectingPixels) / static_cast<double>(smallestArea));
   }

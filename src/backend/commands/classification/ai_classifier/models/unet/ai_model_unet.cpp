@@ -89,7 +89,7 @@ auto AiModelUNet::processPrediction(const at::Device & /*device*/, const cv::Mat
     cv::Mat object_mask = cv::Mat::zeros(binaryMask.size(), CV_8U);
 
     // Draw the contour for this object on the empty mask
-    cv::drawContours(object_mask, contours_poly, (int) j, cv::Scalar(255), cv::FILLED);
+    cv::drawContours(object_mask, contours_poly, static_cast<int>(j), cv::Scalar(255), cv::FILLED);
 
     // Get the class probabilities for this object (we take the maximum probability over the mask)
     cv::Mat object_probs = cv::Mat::zeros(binaryMask.size(), CV_32F);

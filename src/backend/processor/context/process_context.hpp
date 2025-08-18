@@ -61,12 +61,17 @@ class ProcessContext
 public:
   ProcessContext(GlobalContext &globalContext, PlateContext &plateContext, ImageContext &imageContext, IterationContext &iterationContext);
 
-  void initDefaultSettings(enums::ClassId classId, enums::ZProjection zProjection, int32_t pipelineIndex, enums::Units pixelSizeUnit)
+  void initDefaultSettings(enums::ClassId classId, enums::ZProjection zProjection, int32_t pipelineIndex, enums::Units realSizesUnit)
   {
     pipelineContext.defaultClassId     = classId;
     pipelineContext.defaultZProjection = zProjection;
     pipelineContext.pipelineIndex      = pipelineIndex;
-    pipelineContext.pixelSizeUnit      = pixelSizeUnit;
+    pipelineContext.realSizesUnit      = realSizesUnit;
+  }
+
+  enums::Units getPipelineRealValuesUnit() const
+  {
+    return pipelineContext.realSizesUnit;
   }
 
   void setBinaryImage(uint16_t thresholdMin, uint16_t thresholdMax)
@@ -115,9 +120,9 @@ public:
     return imageContext.tileSize;
   }
 
-  std::pair<ome::PhyiscalSize, enums::Units> getPhysicalPixelSIzeOfImage() const
+  ome::PhyiscalSize getPhysicalPixelSIzeOfImage() const
   {
-    return {imageContext.imageMeta.getPhyiscalSize(imageContext.series), pipelineContext.pixelSizeUnit};
+    return imageContext.imageMeta.getPhyiscalSize(imageContext.series);
   }
 
   void setActImage(const joda::atom::ImagePlane *image)

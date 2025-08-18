@@ -276,9 +276,9 @@ public:
     return mIntensity;
   }
 
-  [[nodiscard]] auto getDistances(const std::pair<ome::PhyiscalSize, enums::Units> &physicalSize) const -> std::map<uint64_t, Distance>;
-  [[nodiscard]] double getAreaSize(const std::pair<ome::PhyiscalSize, enums::Units> &physicalSize) const;
-  [[nodiscard]] float getPerimeter(const std::pair<ome::PhyiscalSize, enums::Units> &physicalSize) const;
+  [[nodiscard]] auto getDistances(const ome::PhyiscalSize &physicalSIze, enums::Units unit) const -> std::map<uint64_t, Distance>;
+  [[nodiscard]] double getAreaSize(const ome::PhyiscalSize &physicalSIze, enums::Units unit) const;
+  [[nodiscard]] float getPerimeter(const ome::PhyiscalSize &physicalSIze, enums::Units unit) const;
   [[nodiscard]] float getCircularity() const
   {
     return mCircularity;

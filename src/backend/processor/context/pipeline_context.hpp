@@ -29,7 +29,8 @@ struct PipelineContext
   enums::ZProjection defaultZProjection;
   int32_t pipelineIndex = 0;
   mutable enums::imageCache_t imageCache;
-  enums::Units pixelSizeUnit = enums::Units::um;
+
+  enums::Units realSizesUnit = enums::Units::Pixels;    ///< The unit used in the commands
 };
 
 }    // namespace joda::processor

@@ -43,7 +43,7 @@ public:
 
     float pixelWidth                 = 0;
     float pixelHeight                = 0;
-    enums::Units unit                = enums::Units::um;
+    enums::Units pixelSizeUnit       = enums::Units::um;
     enums::PhysicalSizeMode sizeMode = enums::PhysicalSizeMode::Automatic;
   };
 

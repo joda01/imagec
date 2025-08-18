@@ -446,8 +446,8 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, en
       objects.Append<uint32_t>(static_cast<uint32_t>(roi.getT()));          // " stack_t UINTEGER,"
       // Data
       objects.Append<float>(roi.getConfidence());                                          // " meas_confidence float,"
-      objects.Append<double>(roi.getAreaSize({physicalSize, physicalSizeUnit}));           // " meas_area_size DOUBLE,"
-      objects.Append<float>(roi.getPerimeter({physicalSize, physicalSizeUnit}));           // " meas_perimeter float,"
+      objects.Append<double>(roi.getAreaSize(physicalSize, physicalSizeUnit));             // " meas_area_size DOUBLE,"
+      objects.Append<float>(roi.getPerimeter(physicalSize, physicalSizeUnit));             // " meas_perimeter float,"
       objects.Append<float>(roi.getCircularity());                                         // " meas_circularity float,"
       objects.Append<uint32_t>(static_cast<uint32_t>(roi.getCentroidReal().x));            // " meas_center_x UINTEGER,"
       objects.Append<uint32_t>(static_cast<uint32_t>(roi.getCentroidReal().y));            // " meas_center_y UINTEGER,"
@@ -501,7 +501,7 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, en
       //
       // Distance
       //
-      for(const auto &[measObjectId, distance] : roi.getDistances({physicalSize, physicalSizeUnit})) {
+      for(const auto &[measObjectId, distance] : roi.getDistances(physicalSize, physicalSizeUnit)) {
         try {
           distance_measurements.BeginRow();
           // Primary key
@@ -570,12 +570,12 @@ auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy gro
       ome::PhyiscalSize phys = {};
       if(defaultPhysicalSizeSettings.mode == enums::PhysicalSizeMode::Manual) {
         phys = joda::ome::PhyiscalSize{static_cast<double>(defaultPhysicalSizeSettings.pixelWidth),
-                                       static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.unit};
+                                       static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.pixelSizeUnit};
       }
       auto ome = joda::image::reader::ImageReader::getOmeInformation(imagePath, static_cast<uint16_t>(series), phys);
       auto [physicalPixelSizeWidth, physicalPixelSizeHeight, physicalPixelSizeDepth] =
-          ome.getPhyiscalSize(series).getPixelSize(defaultPhysicalSizeSettings.unit);
-      nlohmann::json physicalImageSizeUnit = defaultPhysicalSizeSettings.unit;
+          ome.getPhyiscalSize(series).getPixelSize(defaultPhysicalSizeSettings.pixelSizeUnit);
+      nlohmann::json physicalImageSizeUnit = defaultPhysicalSizeSettings.pixelSizeUnit;
 
       uint64_t imageId = joda::helper::fnv1a(imagePath.string());
       auto groupInfo   = grouper.getGroupForFilename(imagePath);

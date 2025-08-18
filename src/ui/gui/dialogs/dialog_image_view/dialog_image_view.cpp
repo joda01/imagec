@@ -342,10 +342,10 @@ void DialogImageViewer::setSettingsPointer(joda::settings::AnalyzeSettings *sett
 {
   mSettings = settings;
   if(mSettings != nullptr) {
-    mImageSettings.pixelHeight = mSettings->imageSetup.pixelSizeSettings.pixelHeight;
-    mImageSettings.pixelWidth  = mSettings->imageSetup.pixelSizeSettings.pixelWidth;
-    mImageSettings.unit        = mSettings->imageSetup.pixelSizeSettings.unit;
-    mImageSettings.sizeMode    = mSettings->imageSetup.pixelSizeSettings.mode;
+    mImageSettings.pixelHeight   = mSettings->imageSetup.imagePixelSizeSettings.pixelHeight;
+    mImageSettings.pixelWidth    = mSettings->imageSetup.imagePixelSizeSettings.pixelWidth;
+    mImageSettings.pixelSizeUnit = mSettings->imageSetup.imagePixelSizeSettings.pixelSizeUnit;
+    mImageSettings.sizeMode      = mSettings->imageSetup.imagePixelSizeSettings.mode;
   }
 }
 
@@ -407,10 +407,10 @@ void DialogImageViewer::applySettingsToImagePanel()
   mImageViewRight.setZprojection(getSelectedZProjection());
   mImageViewRight.setImagePlane({.z = mSelectedZStack, .c = getSelectedImageChannel(), .t = mSelectedTStack});
   mImageViewRight.setImageTile(tileSizeIn, tileSizeIn);
-  mImageViewRight.setDefaultPhysicalSize(joda::settings::ProjectImageSetup::PhysicalSizeSettings{.mode        = mImageSettings.sizeMode,
-                                                                                                 .unit        = mImageSettings.unit,
-                                                                                                 .pixelWidth  = mImageSettings.pixelWidth,
-                                                                                                 .pixelHeight = mImageSettings.pixelHeight});
+  mImageViewRight.setDefaultPhysicalSize(joda::settings::ProjectImageSetup::PhysicalSizeSettings{.mode          = mImageSettings.sizeMode,
+                                                                                                 .pixelSizeUnit = mImageSettings.pixelSizeUnit,
+                                                                                                 .pixelWidth    = mImageSettings.pixelWidth,
+                                                                                                 .pixelHeight   = mImageSettings.pixelHeight});
 
   // Sync to settings
   if(mSettings != nullptr) {
@@ -419,10 +419,10 @@ void DialogImageViewer::applySettingsToImagePanel()
     mSettings->imageSetup.imageTileSettings.tileWidth  = tileSize;
     mSettings->imageSetup.series                       = mImageSettings.imageSeries;
 
-    mSettings->imageSetup.pixelSizeSettings.pixelHeight = mImageSettings.pixelHeight;
-    mSettings->imageSetup.pixelSizeSettings.pixelWidth  = mImageSettings.pixelWidth;
-    mSettings->imageSetup.pixelSizeSettings.unit        = mImageSettings.unit;
-    mSettings->imageSetup.pixelSizeSettings.mode        = mImageSettings.sizeMode;
+    mSettings->imageSetup.imagePixelSizeSettings.pixelHeight   = mImageSettings.pixelHeight;
+    mSettings->imageSetup.imagePixelSizeSettings.pixelWidth    = mImageSettings.pixelWidth;
+    mSettings->imageSetup.imagePixelSizeSettings.pixelSizeUnit = mImageSettings.pixelSizeUnit;
+    mSettings->imageSetup.imagePixelSizeSettings.mode          = mImageSettings.sizeMode;
   }
 }
 

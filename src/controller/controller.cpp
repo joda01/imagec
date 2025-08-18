@@ -132,7 +132,7 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
 
   joda::ome::OmeInfo ome;
   if(!imageOmeInfo.has_value()) {
-    ome = getImageProperties(file, settings.imageSetup.series, settings.imageSetup.pixelSizeSettings);
+    ome = getImageProperties(file, settings.imageSetup.series, settings.imageSetup.imagePixelSizeSettings);
   } else {
     ome = imageOmeInfo.value();
   }
@@ -334,7 +334,7 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
     ome::PhyiscalSize phys = {};
     if(defaultPhysicalSizeSettings.mode == enums::PhysicalSizeMode::Manual) {
       phys = joda::ome::PhyiscalSize{static_cast<double>(defaultPhysicalSizeSettings.pixelWidth),
-                                     static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.unit};
+                                     static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.pixelSizeUnit};
     }
     omeOut = joda::image::reader::ImageReader::getOmeInformation(imagePath, series, phys);
   }
@@ -449,7 +449,7 @@ auto Controller::getImageProperties(const std::filesystem::path &image, int seri
   ome::PhyiscalSize phys = {};
   if(defaultPhysicalSizeSettings.mode == enums::PhysicalSizeMode::Manual) {
     phys = joda::ome::PhyiscalSize{static_cast<double>(defaultPhysicalSizeSettings.pixelWidth),
-                                   static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.unit};
+                                   static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.pixelSizeUnit};
   }
   return joda::image::reader::ImageReader::getOmeInformation(image, static_cast<uint16_t>(series), phys);
 }
