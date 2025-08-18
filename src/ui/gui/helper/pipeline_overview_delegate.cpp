@@ -38,7 +38,7 @@ void PipelineOverviewDelegate::paint(QPainter *painter, const QStyleOptionViewIt
 
   QString color;
   if(parent() != nullptr) {
-    color = ((QTableWidget *) parent())->item(index.row(), 3)->text();    // 3 is the column congaing the color
+    color = (dynamic_cast<QTableWidget *>(parent()))->item(index.row(), 3)->text();    // 3 is the column congaing the color
   }
 
   // Draw the colored square

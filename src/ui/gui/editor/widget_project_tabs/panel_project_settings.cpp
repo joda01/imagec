@@ -142,7 +142,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
     mGroupByComboBox->addItem("Group based on foldername", static_cast<int>(joda::enums::GroupBy::DIRECTORY));
     mGroupByComboBox->addItem("Group based on filename", static_cast<int>(joda::enums::GroupBy::FILENAME));
     mGroupByComboBox->setCurrentIndex(-1);
-    connect(mGroupByComboBox, &QComboBox::currentIndexChanged, [this](int index) {
+    connect(mGroupByComboBox, &QComboBox::currentIndexChanged, [this](int /*index*/) {
       if(mGroupByComboBox->currentData().toInt() == static_cast<int>(joda::enums::GroupBy::FILENAME)) {
         mOpenGroupingSettings->setEnabled(true);
         mGroupingDialog->exec();

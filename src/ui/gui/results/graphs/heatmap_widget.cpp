@@ -50,7 +50,7 @@ HeatmapWidget::~HeatmapWidget()
 /// \param[out]
 /// \return
 ///
-void HeatmapWidget::exportToPNG(const std::filesystem::path &path) const
+void HeatmapWidget::exportToPNG(const std::filesystem::path & /*path*/) const
 {
   auto withTmp   = 2048;
   auto heightTmp = 2048;
@@ -70,9 +70,9 @@ void HeatmapWidget::copyToClipboard() const
   const auto &table = mHeatmap->getData();
   QStringList dataIn;
   QStringList header;
-  for(int row = 0; row < table.getNrOfRows(); row++) {
+  for(uint32_t row = 0; row < table.getNrOfRows(); row++) {
     QStringList rowData;
-    for(int col = 0; col < table.getNrOfCols(); col++) {
+    for(uint16_t col = 0; col < table.getNrOfCols(); col++) {
       if(row == 0) {
         header << table.getColHeaderTitle(col).data();
       }
@@ -111,7 +111,7 @@ void HeatmapWidget::copyToClipboard() const
 /// \param[out]
 /// \return
 ///
-void HeatmapWidget::updateGraph(const joda::table::Table &data, joda::plot::ColormapName colorMap, joda::plot::ColorMappingMode mode,
+void HeatmapWidget::updateGraph(const joda::table::Table &dataIn, joda::plot::ColormapName colorMap, joda::plot::ColorMappingMode mode,
                                 const joda::plot::ColorMappingRange &range, bool isPlateView, bool isImageView)
 {
   if(isImageView) {
@@ -127,7 +127,7 @@ void HeatmapWidget::updateGraph(const joda::table::Table &data, joda::plot::Colo
   mHeatmap->setColorMappingMode(mode);
   mHeatmap->setColorMappingRange(range);
   mHeatmap->setColorMap(colorMap);
-  mHeatmap->setData(data);
+  mHeatmap->setData(dataIn);
   update();
 }
 

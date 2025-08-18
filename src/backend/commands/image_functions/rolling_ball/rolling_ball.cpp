@@ -238,8 +238,8 @@ void RollingBallBackground::enlargeImage(const cv::Mat &smallImage, cv::Mat &fp,
   for(int y = 0; y < height; y++) {
     if(ySmallLine0 < ySmallIndices[y]) {
       float *swap = line0;    // previous line1 -> line0
-      memcpy(line0, line1, sizeof(line1));
-      memcpy(line1, swap, sizeof(line1));
+      memcpy(line0, line1, static_cast<size_t>(width));
+      memcpy(line1, swap, static_cast<size_t>(width));
       ySmallLine0++;
       int sYPointer = (ySmallIndices[y] + 1) * smallWidth;    // points to line0 + 1 in smallImage
       for(int x = 0; x < width; x++) {                        // x-interpolation of the new smallImage line -> line1

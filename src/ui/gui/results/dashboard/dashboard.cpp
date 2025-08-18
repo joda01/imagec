@@ -84,7 +84,7 @@ void Dashboard::tableToQWidgetTable(const std::shared_ptr<joda::table::Table> ta
     DashboardElement *element01;
     if(mMidiWindows.contains(midiKey)) {
       element01 = dynamic_cast<DashboardElement *>(mMidiWindows.at(midiKey)->widget());
-      if(element01->isHidden()) {
+      if(nullptr != element01 && element01->isHidden()) {
         element01->show();
       }
     } else {
@@ -188,7 +188,7 @@ auto Dashboard::getExportables() const -> std::vector<const exporter::Exportable
 
   retVal.reserve(mMidiWindows.size());
   for(const auto &[_, dashb] : mMidiWindows) {
-    retVal.emplace_back((DashboardElement *) dashb->widget());
+    retVal.emplace_back(dynamic_cast<DashboardElement *>(dashb->widget()));
   }
   return retVal;
 }

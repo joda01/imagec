@@ -224,7 +224,7 @@ PanelGraphSettings::PanelGraphSettings(QWidget *parent) : QDockWidget(parent)
           mColorMaps->setCurrentIndex(mColorMaps->count() - 1);
         }
       }
-      connect(mColorMaps, &QComboBox::currentIndexChanged, [this](int32_t index) { emit settingsChanged(); });
+      connect(mColorMaps, &QComboBox::currentIndexChanged, [this](int32_t /*index*/) { emit settingsChanged(); });
       formLayout->addRow("Colormap", mColorMaps);
 
       //

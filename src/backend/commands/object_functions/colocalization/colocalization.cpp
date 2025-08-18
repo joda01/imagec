@@ -26,7 +26,7 @@ Colocalization::Colocalization(const settings::ColocalizationSettings &settings)
 {
 }
 
-void Colocalization::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &resultIn)
+void Colocalization::execute(processor::ProcessContext &context, cv::Mat & /*image*/, atom::ObjectList &resultIn)
 {
   const auto &classesToIntersect = mSettings.inputClasses;
   size_t intersectCount          = 0;

@@ -28,8 +28,8 @@ std::string numberToExcelColumn(uint32_t number)
 
   while(number > 0) {
     number--;    // Excel columns are 1-based, but internally it's 0-based
-    char ch = 'A' + (number % 26);
-    result  = ch + result;
+    char ch = static_cast<char>('A' + (number % 26));
+    result += ch;
     number /= 26;
   }
 

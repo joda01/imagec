@@ -82,7 +82,7 @@ struct SettingsMeta
   //
   // Optional webpage
   //
-  std::optional<std::string> webpage;
+  std::optional<std::string> webpage = std::nullopt;
 
   //
   // Modified at date

@@ -328,7 +328,7 @@ void PanelClassification::createTableItem(int32_t rowIdx, enums::ClassId classId
 void PanelClassification::fromSettings(const joda::settings::Classification &settings)
 {
   mClasses->blockSignals(true);
-  mClasses->setRowCount(settings.classes.size());
+  mClasses->setRowCount(static_cast<int32_t>(settings.classes.size()));
   mSettings = settings;
 
   //

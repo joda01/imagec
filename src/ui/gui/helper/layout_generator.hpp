@@ -172,7 +172,7 @@ public:
   VerticalPane *addVerticalPanel();
   void beforeClose()
   {
-    beforeTabClose();
+    mBeforeTabClose();
   }
 
 private:
@@ -181,7 +181,7 @@ private:
   QHBoxLayout *mainLayout;
   LayoutGenerator *mLayoutGenerator;
   QWidget *mParent;
-  std::function<void()> beforeTabClose;
+  std::function<void()> mBeforeTabClose;
 };
 
 }    // namespace joda::ui::gui::helper

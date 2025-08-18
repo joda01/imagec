@@ -101,7 +101,7 @@ auto Pipeline::restoreSnapShot(size_t idx) const -> Pipeline
   Pipeline pip = *this;
   pip.pipelineSteps.clear();
   pip.pipelineSteps   = history.at(idx).pipelineSteps;
-  pip.actHistoryIndex = idx;
+  pip.actHistoryIndex = static_cast<int32_t>(idx);
   return pip;
 }
 
@@ -111,7 +111,7 @@ auto Pipeline::restoreSnapShot(size_t idx) const -> Pipeline
 ///
 auto Pipeline::undo() const -> Pipeline
 {
-  return restoreSnapShot(actHistoryIndex + 1);
+  return restoreSnapShot(static_cast<size_t>(actHistoryIndex) + 1);
 }
 
 ///

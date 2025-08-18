@@ -247,7 +247,7 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
     }
 
     // Remove not needed nodes
-    for(size_t idx = (depGraph.size() - 1); idx >= 0; idx--) {
+    for(size_t idx = depGraph.size(); idx-- > 0;) {
       const auto *pip = depGraph.at(idx).getPipeline();
       if(!meDeps.contains(pip) && pip != calcGraphFor) {
         depGraph.erase(depGraph.begin() + idx);
@@ -264,7 +264,7 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
   // Repeat until the graph is empty
   // If there is a cycle this loop will never stop
   //
-  size_t maxRuns = depGraph.size() * depGraph.size();
+  int32_t maxRuns = static_cast<int32_t>(depGraph.size()) * static_cast<int32_t>(depGraph.size());
   while(!depGraph.empty()) {
     //
     // Find the root nodes: Root nodes are nodes which have no dependency or only depends on itself

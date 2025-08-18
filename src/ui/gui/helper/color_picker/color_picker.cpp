@@ -88,17 +88,17 @@ auto ColorPicker::getValue() -> std::tuple<joda::enums::HsvColor, joda::enums::H
 /// \brief      Painter
 /// \author     Joachim Danmayr
 ///
-void ColorPicker::paintEvent(QPaintEvent *event)
+void ColorPicker::paintEvent(QPaintEvent * /*event*/)
 {
-  uint32_t width  = size().width();
-  uint32_t height = size().height();
-  int cx          = width / 2;
-  int cy          = height / 2;
+  uint32_t width  = static_cast<uint32_t>(size().width());
+  uint32_t height = static_cast<uint32_t>(size().height());
+  int cx          = static_cast<int32_t>(width / 2.0);
+  int cy          = static_cast<int32_t>(height / 2.0);
 
   QPainter painter(this);
   painter.setRenderHint(QPainter::Antialiasing);    // Enable smooth edges
 
-  int radius = qMin(width, height) / 2 - 10;    // Radius for the circle, with a small padding
+  int radius = static_cast<int32_t>(qMin(width, height) / 2.0 - 10.0);    // Radius for the circle, with a small padding
 
   // Loop through the angles (0-360 degrees for Hue)
   for(int y = -radius; y < radius; ++y) {
@@ -112,8 +112,8 @@ void ColorPicker::paintEvent(QPaintEvent *event)
         double dist = qSqrt(x * x + y * y) / radius;    // Distance from the center (Saturation)
 
         // Update coordinates of points
-        int32_t hue   = angle;
-        int32_t sat   = (dist * 255);
+        int32_t hue   = static_cast<int32_t>(angle);
+        int32_t sat   = static_cast<int32_t>(dist * 255);
         int32_t alpha = 64;
 
         if(mClickPoints[0].mSelectedHue > mClickPoints[1].mSelectedHue) {
@@ -129,7 +129,7 @@ void ColorPicker::paintEvent(QPaintEvent *event)
         }
 
         // Convert HSV to QColor
-        QColor color = QColor::fromHsv(angle, sat, 255, alpha);
+        QColor color = QColor::fromHsv(static_cast<int32_t>(angle), sat, 255, alpha);
         // Set the pixel color
         painter.setPen(color);
         painter.drawPoint(cx + x, cy + y);
@@ -145,7 +145,6 @@ void ColorPicker::paintEvent(QPaintEvent *event)
   }
 
   // If the user has clicked, mark the selected point
-  int idx = 0;
   for(std::size_t i = 0; i < mClickPoints.size(); ++i) {
     auto &cpt = mClickPoints[i];
 
@@ -170,7 +169,6 @@ void ColorPicker::paintEvent(QPaintEvent *event)
 
       painter.setPen(Qt::black);    // Black marker
     }
-    idx++;
   }
 }
 
@@ -235,7 +233,7 @@ void ColorPicker::wheelEvent(QWheelEvent *event)
           circ.mSelectedVal = 0;
         }
       }
-      adjustPoints(i);
+      adjustPoints(static_cast<int32_t>(i));
       emit valueChanged();
       break;
     }
@@ -288,7 +286,7 @@ void ColorPicker::mouseReleaseEvent(QMouseEvent *event)
     auto &circ = mClickPoints[i];
     if(circ.isDraged) {
       // Stop dragging when the mouse button is released
-      getValuesOfPoint(i, circ, event->pos());
+      getValuesOfPoint(static_cast<int32_t>(i), circ, event->pos());
       circ.isDraged = false;
     }
   }
@@ -312,8 +310,8 @@ void ColorPicker::getValuesOfPoint(int32_t idx, ClickPoint &point, QPoint clickP
     double dist  = qSqrt(x * x + y * y) / radius;          // Calculate distance for saturation
 
     point.mClickedPoint       = clickPos;
-    point.mSelectedHue        = angle;
-    point.mSelectedSaturation = dist * 255;
+    point.mSelectedHue        = static_cast<int32_t>(angle);
+    point.mSelectedSaturation = static_cast<int32_t>(dist * 255);
 
   } else {
     point.mClickedPoint = point.mOldClickPos;

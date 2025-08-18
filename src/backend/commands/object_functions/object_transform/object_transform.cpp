@@ -28,7 +28,7 @@ ObjectTransform::ObjectTransform(const settings::ObjectTransformSettings &settin
 {
 }
 
-void ObjectTransform::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &resultIn)
+void ObjectTransform::execute(processor::ProcessContext &context, cv::Mat & /*image*/, atom::ObjectList &resultIn)
 {
   auto inputClass  = context.getClassId(mSettings.inputClasses);
   auto outputClass = context.getClassId(mSettings.outputClasses);

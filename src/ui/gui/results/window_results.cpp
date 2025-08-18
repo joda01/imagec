@@ -921,10 +921,11 @@ void WindowResults::onFinishedLoading()
   mDockWidgetGraphSettings->setColumns(mActFilter.getColumns());
 
   // CHANGED FROM ActFilter
-  auto data = joda::db::data::convertToHeatmap(mActListData.get(), rows, cols, mDockWidgetGraphSettings->getSelectedColumn(),
-                                               mActFilter.getFilter().tStack, joda::db::data::PlotPlateSettings{.densityMapSize = densityMapSize});
+  auto dataIn = joda::db::data::convertToHeatmap(mActListData.get(), static_cast<uint32_t>(rows), static_cast<uint32_t>(cols),
+                                                 static_cast<uint32_t>(mDockWidgetGraphSettings->getSelectedColumn()), mActFilter.getFilter().tStack,
+                                                 joda::db::data::PlotPlateSettings{.densityMapSize = densityMapSize});
 
-  mGraphContainer->updateGraph(data, mDockWidgetGraphSettings->getSelectedColorMap(), mDockWidgetGraphSettings->getColorMapRangeSetting(),
+  mGraphContainer->updateGraph(dataIn, mDockWidgetGraphSettings->getSelectedColorMap(), mDockWidgetGraphSettings->getColorMapRangeSetting(),
                                mDockWidgetGraphSettings->getColorMapRange(), mNavigation == Navigation::PLATE, mNavigation == Navigation::IMAGE);
   mDockWidgetGraphSettings->setColorMapRange(mGraphContainer->getColorMapRange());
 

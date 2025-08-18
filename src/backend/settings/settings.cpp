@@ -39,7 +39,11 @@ auto Settings::openSettings(const std::filesystem::path &pathIn) -> joda::settin
   if(!ifs) {
     return {};
   }
-  std::string wholeFile = std::string((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+  std::string wholeFile;
+  size_t size = std::filesystem::file_size(pathIn);
+  wholeFile.resize(size);
+  ifs.read(wholeFile.data(), static_cast<std::streamsize>(size));
+
   ifs.close();
   migrateSettings(wholeFile);
   joda::settings::AnalyzeSettings analyzeSettings = nlohmann::json::parse(wholeFile);

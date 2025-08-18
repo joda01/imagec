@@ -279,7 +279,7 @@ int DialogClassSettings::exec(joda::settings::Class &classs)
 {
   mOkayPressed = -1;
   fromSettings(classs);
-  int ret = QDialog::exec();
+  QDialog::exec();
   if(mOkayPressed == 0) {
     toSettings(classs);
   }
@@ -304,7 +304,7 @@ void DialogClassSettings::fromSettings(const joda::settings::Class &classs)
 
   for(auto &[_, settings] : mMeasurements) {
     settings.first->setChecked(false);
-    for(auto &[_, stat] : settings.second) {
+    for(auto &[_1, stat] : settings.second) {
       stat.first->setChecked(false);
     }
   }
@@ -326,7 +326,7 @@ void DialogClassSettings::fromSettings(const joda::settings::Class &classs)
   //
   for(auto &[_, settings] : mMeasurements) {
     if(!settings.first->isChecked()) {
-      for(auto &[_, setting] : settings.second) {
+      for(auto &[_1, setting] : settings.second) {
         setting.first->setChecked(setting.second);
       }
     }

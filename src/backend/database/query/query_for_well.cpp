@@ -91,7 +91,7 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
           if(rowIndexes.contains({imageId, tStack})) {
             rowIdx = rowIndexes.at({imageId, tStack});
           } else {
-            rowIdx = findMaxRowIdx() + 1;
+            rowIdx = static_cast<size_t>(findMaxRowIdx()) + 1;
             rowIndexes.emplace(stdi::uint128_t{imageId, tStack}, rowIdx);
           }
         } else {
@@ -100,23 +100,23 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
           if(rowIndexes.contains({groupId, tStack})) {
             rowIdx = rowIndexes.at({groupId, tStack});
           } else {
-            rowIdx = findMaxRowIdx() + 1;
+            rowIdx = static_cast<size_t>(findMaxRowIdx()) + 1;
             rowIndexes.emplace(stdi::uint128_t{groupId, tStack}, rowIdx);
           }
-          colC = std::string(1, ((char) (platePosY - 1) + 'A')) + std::to_string(platePosX);
+          colC = std::string(1, (static_cast<char>(platePosY - 1) + 'A')) + std::to_string(platePosX);
         }
 
         std::string fileNameTmp;
         if(grouping == Grouping::BY_WELL) {
           fileNameTmp = "t=" + std::to_string(tStack) + " " + filename;
-          classesToExport.setRowID(classs, statement.getColNames(), rowIdx, fileNameTmp, imageId);
+          classesToExport.setRowID(classs, statement.getColNames(), static_cast<int32_t>(rowIdx), fileNameTmp, imageId);
         } else {
           fileNameTmp = "t=" + std::to_string(tStack) + " " + colC;
-          classesToExport.setRowID(classs, statement.getColNames(), rowIdx, colC, groupId);
+          classesToExport.setRowID(classs, statement.getColNames(), static_cast<int32_t>(rowIdx), colC, groupId);
         }
 
         for(int32_t colIdxI = 0; colIdxI < static_cast<int32_t>(columnNr); colIdxI++) {
-          double value = materializedResult->GetValue(colIdxI, row).GetValue<double>();
+          double value = materializedResult->GetValue(static_cast<uint32_t>(colIdxI), row).GetValue<double>();
           if(grouping == Grouping::BY_WELL) {
             ///
             joda::settings::ImgPositionInWell pos;
@@ -126,7 +126,7 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
               pos.x = 1;
               pos.y = 1;
             }
-            classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
+            classesToExport.setData(classs, statement.getColNames(), static_cast<uint32_t>(rowIdx), static_cast<uint32_t>(colIdx), fileNameTmp,
                                     table::TableCell{value,
                                                      table::TableCell::MetaData{.objectIdGroup  = imageId,
                                                                                 .objectId       = imageId,
@@ -142,7 +142,7 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
                                                                                 .posY     = static_cast<uint32_t>(pos.y)}});
           } else {
             classesToExport.setData(
-                classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
+                classs, statement.getColNames(), static_cast<uint32_t>(rowIdx), static_cast<uint32_t>(colIdx), fileNameTmp,
                 table::TableCell{value,
                                  table::TableCell::MetaData{.objectIdGroup  = groupId,
                                                             .objectId       = groupId,

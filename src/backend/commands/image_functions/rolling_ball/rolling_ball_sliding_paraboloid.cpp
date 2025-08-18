@@ -267,7 +267,7 @@ float *RollingBallBackground::lineSlideParabola(cv::Mat &pixels, int start, int 
     float coeff6 = 0;                                                           // coefficient of 6th order polynomial
     float mid    = 0.5F * static_cast<float>(lastCorner + firstCorner);
     for(int i = (length + 2) / 3; i <= (2 * length) / 3; i++) {    // compare with mid-image pixels to detect vignetting
-      float dx    = (i - mid) * 2.0F / static_cast<float>(lastCorner - firstCorner);
+      float dx    = (static_cast<float>(i) - mid) * 2.0F / static_cast<float>(lastCorner - firstCorner);
       float poly6 = dx * dx * dx * dx * dx * dx - 1.0F;    // the 6th order polynomial, zero at firstCorner and lastCorner
       if(cache[i] < value0 + slope * static_cast<float>(i) + coeff6 * poly6) {
         coeff6 = -(value0 + slope * static_cast<float>(i) - cache[i]) / poly6;

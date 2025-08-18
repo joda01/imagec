@@ -65,17 +65,17 @@ struct Plate
   //
   // Plate Name
   //
-  std::string name;
+  std::string name = {};
 
   //
   // Plate notes
   //
-  std::string notes;
+  std::string notes = {};
 
   //
   // Folder where images for this plate are placed in
   //
-  std::string imageFolder;
+  std::string imageFolder = {};
 
   //
   // Image grouping option [NONE, FOLDER, FILENAME]
@@ -91,7 +91,7 @@ struct Plate
   //
   // How the plate looks like
   //
-  PlateSetup plateSetup;
+  PlateSetup plateSetup = {};
 
   void check() const
   {

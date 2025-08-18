@@ -230,15 +230,15 @@ enums::ImageId PipelineInitializer::loadImageAndStoreToCache(enums::MemoryScope 
   //
   // Load from image file
   //
-  auto loadEntireImage = [&imageContext, series = imageContext.series](int32_t z, int32_t c, int32_t t) {
+  auto loadEntireImage = [&imageContext, series = imageContext.series](int32_t zIn, int32_t cIn, int32_t tIn) {
     return joda::image::reader::ImageReader::loadEntireImage(imageContext.imagePath.string(),
-                                                             joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t},
+                                                             joda::image::reader::ImageReader::Plane{.z = zIn, .c = cIn, .t = tIn},
                                                              static_cast<uint16_t>(series), 0, imageContext.imageMeta);
   };
 
-  auto loadImageTile = [&imageContext, &tile, series = imageContext.series](int32_t z, int32_t c, int32_t t) {
+  auto loadImageTile = [&imageContext, &tile, series = imageContext.series](int32_t zIn, int32_t cIn, int32_t tIn) {
     return joda::image::reader::ImageReader::loadImageTile(
-        imageContext.imagePath.string(), joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t}, static_cast<uint16_t>(series), 0,
+        imageContext.imagePath.string(), joda::image::reader::ImageReader::Plane{.z = zIn, .c = cIn, .t = tIn}, static_cast<uint16_t>(series), 0,
         joda::ome::TileToLoad{.tileX      = std::get<0>(tile),
                               .tileY      = std::get<1>(tile),
                               .tileWidth  = imageContext.tileSize.width,

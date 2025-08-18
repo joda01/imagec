@@ -50,8 +50,8 @@ private:
 
   struct TemplateTableFilter
   {
-    QString searchText;
-    QString category;
+    QString searchText = {};
+    QString category   = {};
   };
 
   /////////////////////////////////////////////////////
@@ -65,16 +65,16 @@ private:
   const std::set<std::string> mDirectories;
   const std::string mEndian;
 
-  QMenu *mOpenProjectMenu;
-  QLineEdit *mSearch = nullptr;
-  QTableWidget *mTableTemplates;
+  QMenu *mOpenProjectMenu       = nullptr;
+  QLineEdit *mSearch            = nullptr;
+  QTableWidget *mTableTemplates = nullptr;
 
-  ReturnCode mReturnCode = ReturnCode::CANCEL;
-  QString mSelectedTemplatePath;
+  ReturnCode mReturnCode        = ReturnCode::CANCEL;
+  QString mSelectedTemplatePath = {};
 
-  std::vector<joda::templates::TemplateParser::Data> mTemplateList;
-  std::map<int32_t, int32_t> mTemplateMap;       // Key is the array index of the command in the mCommandList vector, value the index in the table
-  std::map<std::string, int32_t> mTitleINdex;    // Key is the group ID, value the index in the table
+  std::vector<joda::templates::TemplateParser::Data> mTemplateList = {};
+  std::map<int32_t, int32_t> mTemplateMap = {};    // Key is the array index of the command in the mCommandList vector, value the index in the table
+  std::map<std::string, int32_t> mTitleINdex = {};    // Key is the group ID, value the index in the table
 };
 
 }    // namespace joda::ui::gui

@@ -37,7 +37,7 @@ void ColoredSquareDelegate::paint(QPainter *painter, const QStyleOptionViewItem 
   // painter->restore();
 
   QString color;
-  auto *tbl = (QTableWidget *) parent();
+  auto *tbl = dynamic_cast<QTableWidget *>(parent());
   if(parent() != nullptr && tbl->columnCount() > 3) {
     color = tbl->item(index.row(), 3)->text();    // 3 is the column containg the color
   }

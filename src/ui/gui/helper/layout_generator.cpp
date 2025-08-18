@@ -280,8 +280,8 @@ void VerticalPane ::addWidgetGroup(const std::vector<QWidget *> &elements, int m
 ///
 TabWidget::TabWidget(int32_t topContentSpacing, bool hasBottomToolbar, std::function<void()> beforeTabClose, LayoutGenerator *layoutGenerator,
                      QWidget *parent) :
-    beforeTabClose(std::move(beforeTabClose)),
-    mLayoutGenerator(layoutGenerator), mParent(parent)
+    mLayoutGenerator(layoutGenerator),
+    mParent(parent), mBeforeTabClose(std::move(beforeTabClose))
 {
   setObjectName("scrollArea");
   setFrameStyle(0);
@@ -321,7 +321,10 @@ TabWidget::TabWidget(int32_t topContentSpacing, bool hasBottomToolbar, std::func
 ///
 void LayoutGenerator::onTabClosed(int idx)
 {
-  ((TabWidget *) mTabWidget->widget(idx))->beforeClose();
+  auto *ptr = (dynamic_cast<TabWidget *>(mTabWidget->widget(idx)));
+  if(ptr != nullptr) {
+    ptr->beforeClose();
+  }
   removeTab(idx);
 }
 

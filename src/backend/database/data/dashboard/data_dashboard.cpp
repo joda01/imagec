@@ -73,9 +73,9 @@ auto Dashboard::convert(const std::shared_ptr<joda::table::Table> tableIn, const
     // Group the colocalizing classes (those with at least one common tracking id) to one table
     for(const auto &colcGroup : classesWithSameTrackingId) {
       if(colcGroup.contains(col.colSettings.classId)) {
-        uint32_t mapId = 0;
+        // uint32_t mapId = 0;
         if(classesWithSameTrackingIdMappingTable.contains(colcGroup)) {
-          mapId = classesWithSameTrackingIdMappingTable.at(colcGroup);
+          // mapId = classesWithSameTrackingIdMappingTable.at(colcGroup);
         } else {
           classesWithSameTrackingIdMappingTable.emplace(colcGroup, mapIdIdx);
           mapIdIdx++;
@@ -92,19 +92,19 @@ auto Dashboard::convert(const std::shared_ptr<joda::table::Table> tableIn, const
   // ========================================
   for(const auto &[_, col] : tableIn->columns()) {
     // This is a distance measurement. We create a own dashboard for each distance measure if we are in image view
-    auto key = static_cast<uint32_t>(col.colSettings.classId);
+    auto keyOut = static_cast<uint32_t>(col.colSettings.classId);
 
     if(isDistance(col.colSettings.measureChannel) && isImageView) {
-      uint32_t key = (key << 16) | static_cast<uint16_t>(col.colSettings.intersectingChannel);
+      uint32_t key = (keyOut << 16) | static_cast<uint16_t>(col.colSettings.intersectingChannel);
       auto &ed     = distance[key];
       ed.colName   = "Distance: " + col.colSettings.names.className + " to " + col.colSettings.names.intersectingName;
       ed.cols.emplace_back(&col);
-    } else if(intersecting.contains(key)) {
-      auto &ed   = intersecting.at(key);
+    } else if(intersecting.contains(keyOut)) {
+      auto &ed   = intersecting.at(keyOut);
       ed.colName = col.colSettings.names.className;
       ed.cols.emplace_back(&col);
     } else {
-      auto &ed   = dashboards[key];
+      auto &ed   = dashboards[keyOut];
       ed.colName = col.colSettings.names.className;
       ed.cols.emplace_back(&col);
     }
@@ -176,14 +176,12 @@ void Dashboard::setData(const std::shared_ptr<joda::table::Table> &tableToSet, c
   joda::table::TableCell::Formating::Color bgColor = joda::table::TableCell::Formating::Color::BASE_0;
 
   settings::ResultsSettings::ColumnKey actColumnKey;
-  bool addObjectId = false;
   auto colTableTmp = 0;
   for(const auto &colData : cols) {
     if(actColumnKey.classId != colData->colSettings.classId && isImageView) {
       // Add the object ID again
       actColumnKey      = colData->colSettings;
       COL_IDX_OBJECT_ID = colTableTmp;
-      addObjectId       = true;
       if(intersectingColl != nullptr && colTableTmp == 0) {
         colTableTmp += 2;    // We put the parent object id in the second column
       } else {
@@ -297,7 +295,7 @@ void Dashboard::setData(const std::shared_ptr<joda::table::Table> &tableToSet, c
         continue;
       }
 
-      auto [row, bgColor] = startOfNewParent.at(rowData->getObjectId());
+      auto [row, bgColorIn] = startOfNewParent.at(rowData->getObjectId());
       // We link to the parent. So if the users clicks on this cell, he gets the information about the parent object
       // rowData.getVal() contains the number of elements we have to fill
       for(int n = 0; n < rowData->getVal(); n++) {
@@ -310,10 +308,10 @@ void Dashboard::setData(const std::shared_ptr<joda::table::Table> &tableToSet, c
 
         // Header is filled out above
         auto objectIdCell = std::make_shared<joda::table::TableCell>(rowData);
-        objectIdCell->setBackgroundColor(bgColor);
+        objectIdCell->setBackgroundColor(bgColorIn);
         objectIdCell->setIsObjectIdCell(true);    // This is special, we print the object ID of the parent which is the paren object ID from this
                                                   // object but the object id from the referencing object
-        tableToSet->setData(rowTemp, COL_IDX_INTERSECTING, objectIdCell);
+        tableToSet->setData(static_cast<uint32_t>(rowTemp), COL_IDX_INTERSECTING, objectIdCell);
       }
     }
   }

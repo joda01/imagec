@@ -70,7 +70,7 @@ public:
       totl = 0;
       for(i = 0; i < g; i++) {
         totl = totl + static_cast<int32_t>(histogram.at<float>(i));
-        l    = l + static_cast<int32_t>((histogram.at<float>(i)) * static_cast<int32_t>(i));
+        l    = l + static_cast<int32_t>((histogram.at<float>(i)) * static_cast<float>(i));
       }
       h    = 0;
       toth = 0;
