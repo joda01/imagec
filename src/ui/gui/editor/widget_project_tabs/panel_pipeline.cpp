@@ -67,11 +67,15 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     toolbar->addAction(newPipeline);
 
     //
-    // Open stack options dialof
+    // Open pipeline setup
     //
-    auto *pipelineSettings = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("wrench"), "Stack options");
-    pipelineSettings->setStatusTip("Open stack options dialog");
-    connect(pipelineSettings, &QAction::triggered, [this]() { mStackOptionsDialog->exec(); });
+    auto *pipelineSettings = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("wrench"), "Pipeline setup");
+    pipelineSettings->setStatusTip("Open pipeline setup dialog");
+    connect(pipelineSettings, &QAction::triggered, [this]() {
+      mStackOptionsDialog->exec();
+      toSettings();
+      updatePipelineCommandUnits();
+    });
     toolbar->addAction(pipelineSettings);
 
     //
@@ -173,13 +177,11 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     mStackHandlingZ->addItem("Each one", static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::EACH_ONE));
     mStackHandlingZ->addItem("Defined by pipeline", static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::EXACT_ONE));
     formLayout->addRow(new QLabel(tr("Z-Stack")), mStackHandlingZ);
-    connect(mStackHandlingZ, &QComboBox::currentIndexChanged, [this]() { toSettings(); });
 
     //
     mStackHandlingT = new QComboBox();
     mStackHandlingT->addItem("Each one", static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EACH_ONE));
     mStackHandlingT->addItem("Defined by pipeline", static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EXACT_ONE));
-    connect(mStackHandlingT, &QComboBox::currentIndexChanged, [this]() { toSettings(); });
     formLayout->addRow(new QLabel(tr("T-Stack")), mStackHandlingT);
 
     auto *tStackRangeLayout = new QHBoxLayout;
@@ -686,6 +688,23 @@ void PanelPipeline::fromSettings(const joda::settings::AnalyzeSettings &settings
       mMeasureUnit->setCurrentIndex(idx);
     } else {
       mMeasureUnit->setCurrentIndex(0);
+    }
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipeline::updatePipelineCommandUnits()
+{
+  std::cout << "Update unut" << std::endl;
+  for(auto &pipeline : mChannels) {
+    for(auto &cmd : *pipeline->getListOfCommands()) {
+      cmd->updateSettingsUnit();
     }
   }
 }

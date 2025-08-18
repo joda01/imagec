@@ -62,7 +62,7 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   //
   mNumberOdModelClasses = SettingBase::create<SettingSpinBox<int32_t>>(parent, {}, "Nr. of model classes");
   mNumberOdModelClasses->setMinMax(1, 99);
-  mNumberOdModelClasses->setUnit("");
+  mNumberOdModelClasses->setUnit("", false);
   mNumberOdModelClasses->setMinMax(1, INT32_MAX);
   mNumberOdModelClasses->setValue(static_cast<int32_t>(settings.modelClasses.size()));
   mNumberOdModelClasses->connectWithSetting(&nrOfClassesTmp);

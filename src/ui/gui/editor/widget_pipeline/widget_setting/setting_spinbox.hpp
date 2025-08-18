@@ -17,7 +17,11 @@
 #include <qspinbox.h>
 #include <cstdint>
 #include <optional>
+#include <string>
+#include "backend/enums/enums_units.hpp"
+#include "backend/helper/ome_parser/physical_size.hpp"
 #include "ui/gui/helper/clickablelineedit.hpp"
+#include <nlohmann/json_fwd.hpp>
 #include "setting_base.hpp"
 
 namespace joda::ui::gui {
@@ -35,8 +39,11 @@ public:
 
   QWidget *createInputObject() override
   {
-    mSpinBox = new QSpinBox();
+    mSpinBox = new QDoubleSpinBox();
     mSpinBox->setMinimumHeight(34);
+    mSpinBox->setRange(-1.0, std::numeric_limits<float>::max());
+    mSpinBox->setSpecialValueText("(disabled)");
+    mSpinBox->setDecimals(3);    // optional, number of decimal places
     // mLineEdit->setClearButtonEnabled(true);
     // if(!getIcon().isNull()) {
     //  mSpinBox->addAction(getIcon().pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE), QLineEdit::LeadingPosition);
@@ -47,9 +54,28 @@ public:
     return mSpinBox;
   }
 
-  QSpinBox *getLineEdit()
+  QDoubleSpinBox *getSpinBox()
   {
     return mSpinBox;
+  }
+
+  void setUnit(QString unit, bool autoUnit)
+  {
+    mAutoUnit = autoUnit;
+    if(autoUnit) {
+      auto [cmdUnit, physicalSize] = getUnit();
+      nlohmann::json unitJson      = cmdUnit;
+      unit                         = unitJson.get<std::string>().c_str();
+    }
+    SettingBase::setUnit(unit);
+    mSpinBox->setSuffix(" " + unit);
+  }
+
+  void changeUnit() override
+  {
+    if(mAutoUnit) {
+      setUnit("", true);
+    }
   }
 
   void setDefaultValue(VALUE_T defaultVal)
@@ -58,12 +84,19 @@ public:
     reset();
   }
 
-  void setMinMax(VALUE_T min, VALUE_T max)
+  void setMinMax(VALUE_T min, VALUE_T max, int32_t precision = 3, double singleStep = 1)
     requires Number_t<VALUE_T>
   {
     if(mSpinBox != nullptr) {
       mSpinBox->setMinimum(min);
       mSpinBox->setMaximum(max);
+      mSpinBox->setDecimals(precision);    // optional, number of decimal places
+      mSpinBox->setSingleStep(singleStep);
+      if(min < 0) {
+        mSpinBox->setSpecialValueText("Disabled");
+      } else {
+        mSpinBox->setSpecialValueText("");
+      }
     }
   }
 
@@ -80,7 +113,7 @@ public:
 
   void clear() override
   {
-    mSpinBox->clear();
+    mSpinBox->setValue(mSpinBox->minimum());
   }
 
   VALUE_T getValue()
@@ -89,28 +122,28 @@ public:
       if(mSpinBox->text().isEmpty()) {
         return -1;
       }
-      return mSpinBox->value();
+      return static_cast<VALUE_T>(mSpinBox->value());
     }
     if constexpr(std::same_as<VALUE_T, uint32_t>) {
       if(mSpinBox->text().isEmpty()) {
         return 0;
       }
-      return mSpinBox->value();
+      return static_cast<VALUE_T>(mSpinBox->value());
     }
     if constexpr(std::same_as<VALUE_T, uint16_t>) {
       if(mSpinBox->text().isEmpty()) {
         return 0;
       }
-      return mSpinBox->value();
+      return static_cast<VALUE_T>(mSpinBox->value());
     }
     if constexpr(std::same_as<VALUE_T, float>) {
       if(mSpinBox->text().isEmpty()) {
         return -1;
       }
-      return mSpinBox->value();
+      return static_cast<VALUE_T>(mSpinBox->value());
     }
     if constexpr(std::same_as<VALUE_T, std::string>) {
-      return mSpinBox->value();
+      return static_cast<VALUE_T>(mSpinBox->value());
     }
   }
 
@@ -166,10 +199,11 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  QSpinBox *mSpinBox = nullptr;
+  QDoubleSpinBox *mSpinBox = nullptr;
   std::optional<VALUE_T> mDefaultValue;
   VALUE_T *mSetting = nullptr;
   std::optional<VALUE_T> mOldValue;
+  bool mAutoUnit = false;
 
 private slots:
   void onValueChanged()

@@ -102,18 +102,18 @@ private:
 
       //
       //
-      mMinParticleSize = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Min particle size");
-      mMinParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
-      mMinParticleSize->setUnit("px");
+      mMinParticleSize = SettingBase::create<SettingSpinBox<float>>(parent, {}, "Min particle size");
+      mMinParticleSize->setMinMax(-1, std::numeric_limits<float>::max(), 3, 0.01);
+      mMinParticleSize->setUnit("px", true);
       mMinParticleSize->setMinMax(0, std::numeric_limits<float>::max());
       mMinParticleSize->setValue(classifyFilter.metrics.minParticleSize);
       mMinParticleSize->connectWithSetting(&classifyFilter.metrics.minParticleSize);
       mMinParticleSize->setShortDescription("Min. ");
       //
       //
-      mMaxParticleSize = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Max particle size");
-      mMaxParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
-      mMaxParticleSize->setUnit("px");
+      mMaxParticleSize = SettingBase::create<SettingSpinBox<float>>(parent, {}, "Max particle size");
+      mMaxParticleSize->setMinMax(-1, std::numeric_limits<float>::max(), 3, 0.01);
+      mMaxParticleSize->setUnit("px", true);
       mMaxParticleSize->setMinMax(0, std::numeric_limits<float>::max());
       mMaxParticleSize->setValue(classifyFilter.metrics.maxParticleSize);
       mMaxParticleSize->connectWithSetting(&classifyFilter.metrics.maxParticleSize);
@@ -122,9 +122,9 @@ private:
       //
       //
       mMinCircularity =
-          SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon<Style::REGULAR, Color::BLACK>("circle"), "Circularity [0-1]");
-      mMinCircularity->setPlaceholderText("[0 - 1]");
-      mMinCircularity->setUnit("%");
+          SettingBase::create<SettingSpinBox<float>>(parent, generateSvgIcon<Style::REGULAR, Color::BLACK>("circle"), "Circularity [0-1]");
+      mMinCircularity->setMinMax(0, 1, 2, 0.1);
+      mMinCircularity->setUnit("%", false);
       mMinCircularity->setMinMax(0, 1);
       mMinCircularity->setValue(classifyFilter.metrics.minCircularity);
       mMinCircularity->connectWithSetting(&classifyFilter.metrics.minCircularity);
@@ -222,9 +222,9 @@ private:
     QWidget *mParent;
 
     std::unique_ptr<SettingComboBoxClassesOut> mClassOut;
-    std::unique_ptr<SettingLineEdit<float>> mMinParticleSize;
-    std::unique_ptr<SettingLineEdit<float>> mMaxParticleSize;
-    std::unique_ptr<SettingLineEdit<float>> mMinCircularity;
+    std::unique_ptr<SettingSpinBox<float>> mMinParticleSize;
+    std::unique_ptr<SettingSpinBox<float>> mMaxParticleSize;
+    std::unique_ptr<SettingSpinBox<float>> mMinCircularity;
 
     std::unique_ptr<SettingComboBox<int32_t>> cStackForIntensityFilter;
     std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjectionForIntensityFilter;

@@ -175,6 +175,12 @@ public:
   {
     return mIcon;
   }
+  void updateSettingsUnit()
+  {
+    for(auto &setting : mSettings) {
+      std::get<0>(setting)->changeUnit();
+    }
+  }
 
 signals:
   void valueChanged();

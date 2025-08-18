@@ -85,7 +85,7 @@ public:
   /// \ref        https://learnopencv.com/delaunay-triangulation-and-voronoi-diagram-using-opencv-c-python/
   /// \param[in]   subdiv   Sub division points
   ///
-  void drawVoronoi(processor::ProcessContext &context, const cv::Size &imgSize, cv::Subdiv2D &subdiv, int circleSize,
+  void drawVoronoi(processor::ProcessContext &context, const cv::Size &imgSize, cv::Subdiv2D &subdiv, float circleSize,
                    atom::SpheralIndexStandAlone &result) const
   {
     std::vector<std::vector<cv::Point2f>> facets;
@@ -104,8 +104,12 @@ public:
 
       cv::Mat tmpImage(imgSize, CV_8UC1);
 
+      auto [pixelWidth, pixelHeight, _] = context.getPhysicalPixelSIzeOfImage().getPixelSize(context.getPipelineRealValuesUnit());
+
+      double radiusPx = static_cast<double>(circleSize) / pixelWidth;     // radius in x direction (pixels)
+      double radiusPy = static_cast<double>(circleSize) / pixelHeight;    // radius in y direction (pixels)
       std::vector<cv::Point> circleMask;
-      cv::ellipse2Poly(centers[i], cv::Size(circleSize, circleSize), 0, 0, 360, 1, circleMask);
+      cv::ellipse2Poly(centers[i], cv::Size(static_cast<int32_t>(radiusPx), static_cast<int32_t>(radiusPy)), 0, 0, 360, 1, circleMask);
 
       cv::Mat mask1 = cv::Mat::zeros(tmpImage.size(), CV_8UC1);
       fillConvexPoly(mask1, ifacet, cv::Scalar(255), 8, 0);

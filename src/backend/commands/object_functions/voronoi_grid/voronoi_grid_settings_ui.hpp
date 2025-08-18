@@ -56,10 +56,9 @@ public:
 
     //
     //
-    mMaxRadius = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Max. radius");
-    mMaxRadius->setPlaceholderText("[0 - ]");
-    mMaxRadius->setUnit("px");
-    mMaxRadius->setMinMax(0, INT32_MAX);
+    mMaxRadius = SettingBase::create<SettingSpinBox<float>>(parent, {}, "Max. radius");
+    mMaxRadius->setMinMax(-1, std::numeric_limits<float>::max(), 3, 0.01);
+    mMaxRadius->setUnit("px", true);
     mMaxRadius->setValue(settings.maxRadius);
     mMaxRadius->connectWithSetting(&settings.maxRadius);
     mMaxRadius->setShortDescription("Rad. ");
@@ -89,20 +88,18 @@ public:
 
     //
     //
-    mMinAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Min. area size");
-    mMinAreaSize->setPlaceholderText("[0 - ]");
-    mMinAreaSize->setUnit("px");
-    mMinAreaSize->setMinMax(0, INT32_MAX);
+    mMinAreaSize = SettingBase::create<SettingSpinBox<float>>(parent, {}, "Min. area size");
+    mMinAreaSize->setMinMax(-1, std::numeric_limits<float>::max(), 3, 0.01);
+    mMinAreaSize->setUnit("px", true);
     mMinAreaSize->setValue(settings.minAreaSize);
     mMinAreaSize->connectWithSetting(&settings.minAreaSize);
     mMinAreaSize->setShortDescription("Min. ");
 
     //
     //
-    mMaxAreaSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Max. area size");
-    mMaxAreaSize->setPlaceholderText("[0 - ]");
-    mMaxAreaSize->setUnit("px");
-    mMaxAreaSize->setMinMax(0, INT32_MAX);
+    mMaxAreaSize = SettingBase::create<SettingSpinBox<float>>(parent, {}, "Max. area size");
+    mMaxAreaSize->setMinMax(-1, std::numeric_limits<float>::max(), 3, 0.01);
+    mMaxAreaSize->setUnit("px", true);
     mMaxAreaSize->setValue(settings.maxAreaSize);
     mMaxAreaSize->connectWithSetting(&settings.maxAreaSize);
     mMaxAreaSize->setShortDescription("Max. ");
@@ -119,9 +116,9 @@ private:
   std::unique_ptr<SettingComboBox<bool>> excludeAreasWithoutPoints;
   std::unique_ptr<SettingComboBox<bool>> excludeAreasAtTheEdge;
 
-  std::unique_ptr<SettingLineEdit<int32_t>> mMaxRadius;
-  std::unique_ptr<SettingLineEdit<int32_t>> mMinAreaSize;
-  std::unique_ptr<SettingLineEdit<int32_t>> mMaxAreaSize;
+  std::unique_ptr<SettingSpinBox<float>> mMaxRadius;
+  std::unique_ptr<SettingSpinBox<float>> mMinAreaSize;
+  std::unique_ptr<SettingSpinBox<float>> mMaxAreaSize;
 };
 
 }    // namespace joda::ui::gui

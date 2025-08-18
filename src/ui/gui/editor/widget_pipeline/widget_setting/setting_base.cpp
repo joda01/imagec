@@ -11,8 +11,10 @@
 
 #include "setting_base.hpp"
 #include <iostream>
+#include "backend/enums/enums_units.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/dialog_tooltip.hpp"
 #include "ui/gui/editor/widget_project_tabs/panel_classification.hpp"
+#include "ui/gui/editor/widget_project_tabs/panel_image.hpp"
 #include "ui/gui/editor/window_main.hpp"
 #include "ui/gui/helper/widget_generator.hpp"
 
@@ -59,6 +61,17 @@ void SettingBase::setUnit(const QString &unit)
 {
   mUnit = unit;
   updateDisplayLabel();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void SettingBase::changeUnit()
+{
 }
 
 ///
@@ -343,6 +356,20 @@ void SettingBase::onOutputClassifierChanges()
 [[nodiscard]] auto SettingBase::getClasses() const -> std::map<enums::ClassIdIn, QString>
 {
   return mParent->getPanelClassification()->getClasses();
+}
+
+///
+/// \brief   Returns the actual set unit
+/// \author   Joachim Danmayr
+///
+[[nodiscard]] std::tuple<enums::Units, joda::ome::PhyiscalSize> SettingBase::getUnit() const
+{
+  if(mParent != nullptr) {
+    auto unit                    = mParent->getSettings().pipelineSetup.realSizesUnit;
+    auto [path, series, omeInfo] = mParent->getImagePanel()->getSelectedImageOrFirst();
+    return {unit, omeInfo.getPhyiscalSize(series)};
+  }
+  return {};
 }
 
 }    // namespace joda::ui::gui

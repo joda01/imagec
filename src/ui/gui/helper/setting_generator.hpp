@@ -74,8 +74,8 @@ inline auto generateStackIndexCombo(bool withThis, const QString &helpText, QWid
   auto channelSpinbox = SettingBase::create<SettingSpinBox<int32_t>>(parent, {}, helpText);
   int32_t min         = withThis ? -1 : 0;
   channelSpinbox->setDefaultValue(min);
-  channelSpinbox->setMinMax(min, 65535);
-  channelSpinbox->setUnit("");
+  channelSpinbox->setMinMax(min, 65535, 0, 1);
+  channelSpinbox->setUnit("CH", false);
   channelSpinbox->setShortDescription("");
   return channelSpinbox;
 }
