@@ -36,6 +36,7 @@ struct AnalyzeMeta
   uint32_t tileWidth  = 0;    // Tile width selected for analysis.
   uint32_t tileHeight = 0;    // Tile height selected for analysis.
   uint32_t series     = 0;    // Image series used for analysis.
+  std::string physicalPixelSizeUnit;
 };
 
 struct GroupInfo
@@ -54,7 +55,7 @@ struct ImageInfo
   uint32_t width  = 0;
   uint32_t height = 0;
   std::string imageGroupName;
-  uint64_t imageId;
+  uint64_t imageId             = 0;
   std::string physicalSizeUnit = "Px";
 };
 

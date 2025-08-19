@@ -71,7 +71,7 @@ void Dashboard::setWindowDisplayMode(bool windowMode)
 /// \return
 ///
 void Dashboard::tableToQWidgetTable(const std::shared_ptr<joda::table::Table> tableIn,
-                                    const std::set<std::set<enums::ClassId>> &classesWithSameTrackingId, bool isImageView)
+                                    const std::set<std::set<enums::ClassId>> &classesWithSameTrackingId, bool isImageView, const std::string &unit)
 {
   joda::db::data::Dashboard dashboard;
   auto tabs = dashboard.convert(tableIn, classesWithSameTrackingId, isImageView);
@@ -80,7 +80,8 @@ void Dashboard::tableToQWidgetTable(const std::shared_ptr<joda::table::Table> ta
   // Lambda function to create the dashboard
   // ========================================
   std::set<joda::db::data::Dashboard::TabWindowKey> availableCols;
-  auto createDashboards = [this, &availableCols](joda::db::data::Dashboard::TabWindowKey midiKey, const std::shared_ptr<joda::table::Table> &table) {
+  auto createDashboards = [this, &availableCols, &unit](joda::db::data::Dashboard::TabWindowKey midiKey,
+                                                        const std::shared_ptr<joda::table::Table> &table) {
     DashboardElement *element01;
     if(mMidiWindows.contains(midiKey)) {
       element01 = dynamic_cast<DashboardElement *>(mMidiWindows.at(midiKey)->widget());
@@ -96,7 +97,7 @@ void Dashboard::tableToQWidgetTable(const std::shared_ptr<joda::table::Table> ta
       subWindow->show();
     }
     availableCols.emplace(midiKey);
-    element01->setData(table);
+    element01->setData(table, unit);
   };
 
   QMdiSubWindow *focusedWindow = activeSubWindow();

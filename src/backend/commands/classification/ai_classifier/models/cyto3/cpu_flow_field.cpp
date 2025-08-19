@@ -38,7 +38,7 @@ cv::Point2f cpuFlowIterationKernel(const cv::Mat &flowX, const cv::Mat &flowY, f
 
   for(int i = 0; i < numSteps; ++i) {
     cv::Vec2f flow = bilinearInterpolate(flowX, flowY, x, y);
-    float epsilon  = 0.0001;
+    float epsilon  = 0.0001F;
     if(std::abs(flow[0]) < epsilon && std::abs(flow[1]) < epsilon) {
       break;    // converged
     }
@@ -69,8 +69,8 @@ cv::Vec2f bilinearInterpolate(const cv::Mat &flowX, const cv::Mat &flowY, float 
   int x1 = x0 + 1;
   int y1 = y0 + 1;
 
-  float dx = x - x0;
-  float dy = y - y0;
+  float dx = x - static_cast<float>(x0);
+  float dy = y - static_cast<float>(y0);
 
   // Clamp to valid image coordinates
   x0 = std::clamp(x0, 0, width - 1);
@@ -159,8 +159,8 @@ void drawFlowArrows(const cv::Mat &flowX, const cv::Mat &flowY, cv::Mat &outImag
       float fx = flowX.at<float>(y, x);
       float fy = flowY.at<float>(y, x);
 
-      cv::Point2f start(x, y);
-      cv::Point2f end(x + fx * scale, y + fy * scale);
+      cv::Point2f start(static_cast<float>(x), static_cast<float>(y));
+      cv::Point2f end(static_cast<float>(x) + fx * scale, static_cast<float>(y) + fy * scale);
 
       cv::arrowedLine(outImage, start, end, color, 1, cv::LINE_AA, 0, 0.3);
     }
@@ -249,13 +249,13 @@ cv::Vec3b flowToColor(float flow_x, float flow_y)
   float angle     = std::atan2(flow_y, flow_x);    // Radians
 
   // Normalize angle to [0, 180) for hue (OpenCV uses 0–180 for H)
-  float hue = (angle + CV_PI) * 90.0f / CV_PI;
+  float hue = static_cast<float>((static_cast<double>(angle) + CV_PI) * 90.0 / CV_PI);
 
   // Normalize magnitude (optional: scale as needed)
-  float mag_normalized = std::min(1.0f, magnitude / 10.0f);    // assuming max mag = 10
+  float mag_normalized = std::min(1.0F, magnitude / 10.0F);    // assuming max mag = 10
 
   // Create HSV color: H [0,180], S [0,255], V [0,255]
-  cv::Mat hsv(1, 1, CV_8UC3, cv::Scalar(hue, 255, mag_normalized * 255));
+  cv::Mat hsv(1, 1, CV_8UC3, cv::Scalar(static_cast<int32_t>(hue), 255, static_cast<int32_t>(mag_normalized * 255.0F)));
   cv::Mat bgr;
   cv::cvtColor(hsv, bgr, cv::COLOR_HSV2BGR);
 

@@ -26,7 +26,7 @@ class TableModel : public QAbstractTableModel
 
 public:
   TableModel(QObject *parent = nullptr);
-  void setData(const std::shared_ptr<joda::table::Table> table);
+  void setData(const std::shared_ptr<joda::table::Table> table, const std::string &unit);
   auto getCell(int row, int col) -> const std::shared_ptr<const joda::table::TableCell>;
   [[nodiscard]] int rowCount(const QModelIndex &parent) const override;
   [[nodiscard]] int columnCount(const QModelIndex &parent) const override;
@@ -36,6 +36,7 @@ public:
 private:
   std::shared_ptr<joda::table::Table> mTable;
   std::mutex mChangeMutex;
+  std::string mUnit;
 };
 
 }    // namespace joda::ui::gui

@@ -26,7 +26,7 @@
 namespace joda::ai {
 
 AiFrameworkOnnx::AiFrameworkOnnx(const std::string &modelPath, const InputParameters &inputParameters) :
-    mModelPath(modelPath), mSettings(inputParameters)
+    mSettings(inputParameters), mModelPath(modelPath)
 {
 }
 

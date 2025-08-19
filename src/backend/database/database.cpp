@@ -111,6 +111,7 @@ void Database::createTables()
       " settings_tile_width UINTEGER,"
       " settings_tile_height UINTEGER,"
       " settings_image_series UINTEGER,"
+      " physicalPixelSizeUnit STRING,"
       " PRIMARY KEY (job_id),"
       " FOREIGN KEY(experiment_id) REFERENCES experiment(experiment_id)"
       ");"
@@ -129,6 +130,9 @@ void Database::createTables()
 
       "ALTER TABLE jobs "
       " ADD COLUMN IF NOT EXISTS settings_image_series UINTEGER DEFAULT 0;\n"
+
+      "ALTER TABLE jobs "
+      " ADD COLUMN IF NOT EXISTS physicalPixelSizeUnit STRING DEFAULT 'Px';\n"
 
       "CREATE TABLE IF NOT EXISTS plates ("
       " job_id UUID,"
@@ -1116,6 +1120,7 @@ auto Database::selectExperiment() -> AnalyzeMeta
   std::string settingsString;
   std::string jobName;
   std::string jobId;
+  std::string physicalPixelSizeUnit;
   uint32_t tileWidth  = 0;
   uint32_t tileHeight = 0;
   uint32_t series     = 0;
@@ -1136,7 +1141,8 @@ auto Database::selectExperiment() -> AnalyzeMeta
 
   {
     std::unique_ptr<duckdb::QueryResult> resultJobs = select(
-        "SELECT time_started,time_finished,settings,job_name,job_id,settings_tile_width,settings_tile_height,settings_image_series FROM jobs ORDER "
+        "SELECT time_started,time_finished,settings,job_name,job_id,settings_tile_width,settings_tile_height,settings_image_series, "
+        "physicalPixelSizeUnit FROM jobs ORDER "
         "BY time_started");
     if(resultJobs->HasError()) {
       throw std::invalid_argument(resultJobs->GetError());
@@ -1166,9 +1172,10 @@ auto Database::selectExperiment() -> AnalyzeMeta
         jobId = duckdb::UUID::ToString(materializedResult->GetValue(4, 0).GetValue<duckdb::hugeint_t>());
       }
 
-      tileWidth  = materializedResult->GetValue(5, 0).GetValue<uint32_t>();
-      tileHeight = materializedResult->GetValue(6, 0).GetValue<uint32_t>();
-      series     = materializedResult->GetValue(7, 0).GetValue<uint32_t>();
+      tileWidth             = materializedResult->GetValue(5, 0).GetValue<uint32_t>();
+      tileHeight            = materializedResult->GetValue(6, 0).GetValue<uint32_t>();
+      series                = materializedResult->GetValue(7, 0).GetValue<uint32_t>();
+      physicalPixelSizeUnit = materializedResult->GetValue(8, 0).GetValue<duckdb::string>();
     }
   }
 
@@ -1180,7 +1187,8 @@ auto Database::selectExperiment() -> AnalyzeMeta
           .analyzeSettingsJsonString = settingsString,
           .tileWidth                 = tileWidth,
           .tileHeight                = tileHeight,
-          .series                    = series};
+          .series                    = series,
+          .physicalPixelSizeUnit     = physicalPixelSizeUnit};
 }
 
 ///
@@ -1194,9 +1202,9 @@ std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &
 {
   auto connection = acquire();
   connection->BeginTransaction();
-  std::string jobIdStr = joda::helper::generate_uuid();
-  auto jobId           = duckdb::Value::UUID(jobIdStr);
-
+  std::string jobIdStr                 = joda::helper::generate_uuid();
+  auto jobId                           = duckdb::Value::UUID(jobIdStr);
+  nlohmann::json physicalImageSizeUnit = exp.imageSetup.imagePixelSizeSettings.pixelSizeUnit;
   //
   // If this was successful, insert the job
   //
@@ -1206,15 +1214,16 @@ std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &
     duckdb::timestamp_t nil = {};
     auto prepare            = connection->Prepare(
         "INSERT INTO jobs (experiment_id, job_id, job_name,imagec_version, time_started, time_finished, settings, settings_results_table_default, "
-                   "settings_results_table, settings_tile_width, settings_tile_height, settings_image_series) "
-                   "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                   "settings_results_table, settings_tile_width, settings_tile_height, settings_image_series, physicalPixelSizeUnit) "
+                   "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     auto resultsTableSettings = exp.toResultsSettings();
     prepare->Execute(duckdb::Value::UUID(exp.projectSettings.experimentSettings.experimentId), jobId, jobName, Version::getVersion(),
                      duckdb::Value::TIMESTAMP(timestampStart), duckdb::Value::TIMESTAMP(nil), helper::base64Encode(settings::Settings::toString(exp)),
                      helper::base64Encode(settings::Settings::toString(resultsTableSettings)),
                      helper::base64Encode(settings::Settings::toString(resultsTableSettings)), exp.imageSetup.imageTileSettings.tileWidth,
-                     exp.imageSetup.imageTileSettings.tileHeight, exp.imageSetup.series);
+                     exp.imageSetup.imageTileSettings.tileHeight, exp.imageSetup.series,
+                     static_cast<duckdb::string_t>(physicalImageSizeUnit.get<std::string>().c_str()));
   } catch(const std::exception &ex) {
     connection->Rollback();
     throw std::runtime_error(ex.what());

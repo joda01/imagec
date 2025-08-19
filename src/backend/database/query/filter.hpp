@@ -64,7 +64,7 @@ public:
       }
     }
 
-    size_t pos = columns.size();
+    uint32_t pos = static_cast<uint32_t>(columns.size());
     columns.emplace(pos, col);
   }
 
@@ -76,7 +76,7 @@ public:
   [[nodiscard]] auto getColumnAt(uint32_t dbColIdx) const -> const settings::ResultsSettings::ColumnKey &
   {
     if(!columns.contains(dbColIdx)) {
-      throw std::invalid_argument("Colum unknown!");
+      throw std::invalid_argument("Colum >" + std::to_string(dbColIdx) + "< unknown!");
     }
     return columns.at(dbColIdx);
   }
@@ -155,7 +155,7 @@ public:
     }
   }
 
-  [[nodiscard]] int32_t getColIdxFromDbColIdx(const PreparedStatement &statement, int32_t dbColIdx) const
+  [[nodiscard]] int32_t getColIdxFromDbColIdx(const PreparedStatement &statement, uint32_t dbColIdx) const
   {
     int32_t colIdx        = 0;
     const auto &columnKey = statement.getColumnAt(dbColIdx);

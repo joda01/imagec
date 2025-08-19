@@ -96,14 +96,15 @@ void DashboardElement::setHeader(const QString &text)
 /// \param[out]
 /// \return
 ///
-void DashboardElement::setData(const std::shared_ptr<joda::table::Table> table)
+void DashboardElement::setData(const std::shared_ptr<joda::table::Table> table, const std::string &unit)
 {
   using namespace std::chrono_literals;
+  mUnit = unit;
   // Store actual selection
   saveSelection();
   mTable = table;
   setHeader(mTable->getTitle().data());
-  mTableModel->setData(mTable);
+  mTableModel->setData(mTable, unit);
   // Restore selected rows
   restoreSelection();
 }
@@ -192,7 +193,7 @@ void DashboardElement::copyTableToClipboard() const
     QStringList rowData;
     for(uint32_t col = 0; col < mTable->getNrOfCols(); ++col) {
       if(row == 0) {
-        header << mTable->getColHeader(col).createHeader().data();
+        header << mTable->getColHeader(col).createHeader(mUnit).data();
       }
       if(col == 0) {
         rowData << mTable->getRowHeader(row).data();

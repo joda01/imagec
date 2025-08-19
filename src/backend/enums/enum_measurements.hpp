@@ -123,7 +123,7 @@ inline std::string toString(const Stats &enumIn)
   return "";
 }
 
-inline std::string toString(const Measurement &enumIn)
+inline std::string toString(const Measurement &enumIn, const std::string &unit)
 {
   switch(enumIn) {
     case Measurement::COUNT:
@@ -131,9 +131,9 @@ inline std::string toString(const Measurement &enumIn)
     case Measurement::CONFIDENCE:
       return "Confidence";
     case Measurement::AREA_SIZE:
-      return "Area size";
+      return "Area size [" + unit + "²]";
     case Measurement::PERIMETER:
-      return "Perimeter";
+      return "Perimeter [" + unit + "]";
     case Measurement::CIRCULARITY:
       return "Circularity";
     case Measurement::INTENSITY_SUM:
@@ -159,19 +159,19 @@ inline std::string toString(const Measurement &enumIn)
     case Measurement::INTERSECTING:
       return "Intersection";
     case Measurement::DISTANCE_CENTER_TO_CENTER:
-      return "Distance center-center";
+      return "Distance center-center [" + unit + "]";
     case Measurement::DISTANCE_CENTER_TO_SURFACE_MIN:
-      return "Distance center-surface min";
+      return "Distance center-surface min [" + unit + "]";
     case Measurement::DISTANCE_CENTER_TO_SURFACE_MAX:
-      return "Distance center-surface max";
+      return "Distance center-surface max [" + unit + "]";
     case Measurement::DISTANCE_SURFACE_TO_SURFACE_MIN:
-      return "Distance surface-surface min";
+      return "Distance surface-surface min [" + unit + "]";
     case Measurement::DISTANCE_SURFACE_TO_SURFACE_MAX:
-      return "Distance surface-surface max";
+      return "Distance surface-surface max [" + unit + "]";
     case Measurement::DISTANCE_FROM_OBJECT_ID:
-      return "Distance from object ID";
+      return "Distance from object ID [" + unit + "]";
     case Measurement::DISTANCE_TO_OBJECT_ID:
-      return "Distance to object ID";
+      return "Distance to object ID [" + unit + "]";
     case Measurement::NONE:
       return "";
     case Measurement::BOUNDING_BOX_WIDTH:

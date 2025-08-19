@@ -63,13 +63,13 @@ public:
   /////////////////////////////////////////////////////
   static void startExport(const std::vector<const Exportable *> &data, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
                           std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
-                          const std::string &outputFileName);
+                          const std::string &unit, const std::string &outputFileName);
 
   static void startHeatmapExport(const std::vector<const Exportable *> &data, const settings::AnalyzeSettings &analyzeSettings,
                                  const std::string &jobName, std::chrono::system_clock::time_point timeStarted,
                                  std::chrono::system_clock::time_point timeFinished, const std::string &outputFileName,
                                  const settings::ResultsSettings &filterSettings, ExportSettings::ExportView view, int32_t imageHeight,
-                                 int32_t imageWidth);
+                                 int32_t imageWidth, const std::string &unit);
 
 private:
   /////////////////////////////////////////////////////
@@ -100,7 +100,7 @@ private:
   static WorkBook createWorkBook(std::string outputFileName);
   static void createAnalyzeSettings(WorkBook &workbookSettings, const settings::AnalyzeSettings &settings, const std::string &jobName,
                                     std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished);
-  static void writeWorkSheet(const Exporter::WorkBook &, const Exportable *, int32_t index);
+  static void writeWorkSheet(const Exporter::WorkBook &, const Exportable *, int32_t index, const std::string &unit);
 
   static std::string prepareSheetName(std::string);
 

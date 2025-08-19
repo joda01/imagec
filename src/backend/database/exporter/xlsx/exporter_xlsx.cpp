@@ -27,7 +27,7 @@ namespace joda::exporter::xlsx {
 ///
 void Exporter::startExport(const std::vector<const Exportable *> &data, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
                            std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
-                           const std::string &outputFileName)
+                           const std::string &unit, const std::string &outputFileName)
 {
   setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
   auto workbookSettings = createWorkBook(outputFileName);
@@ -35,7 +35,7 @@ void Exporter::startExport(const std::vector<const Exportable *> &data, const se
 
   int32_t index = 1;
   for(const auto *dataToWrite : data) {
-    writeWorkSheet(workbookSettings, dataToWrite, index);
+    writeWorkSheet(workbookSettings, dataToWrite, index, unit);
     index++;
   }
   workbook_close(workbookSettings.workbook);
@@ -67,7 +67,7 @@ std::string Exporter::prepareSheetName(std::string name)
 /// \param[out]
 /// \return
 ///
-void Exporter::writeWorkSheet(const Exporter::WorkBook &workbookSettings, const Exportable *data, int32_t index)
+void Exporter::writeWorkSheet(const Exporter::WorkBook &workbookSettings, const Exportable *data, int32_t index, const std::string &unit)
 {
   std::string name = prepareSheetName(data->getTitle());
   name += "_" + std::to_string(index);
@@ -82,7 +82,7 @@ void Exporter::writeWorkSheet(const Exporter::WorkBook &workbookSettings, const 
   //
   const auto &table = data->getTable();
   for(uint16_t n = 0; n < table.getNrOfCols(); n++) {
-    worksheet_write_string(worksheet, 0, n + 1, table.getColHeader(n).createHeader().data(), workbookSettings.header);
+    worksheet_write_string(worksheet, 0, n + 1, table.getColHeader(n).createHeader(unit).data(), workbookSettings.header);
   }
 
   for(uint32_t n = 0; n < table.getNrOfRows(); n++) {

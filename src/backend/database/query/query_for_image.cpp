@@ -35,7 +35,7 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
   //
   settings::ResultsSettings filter;
   std::set<settings::ResultsSettings::ColumnKey> stillMeasured;
-  int32_t tabColIdx = 0;
+  uint32_t tabColIdx = 0;
   for(const auto &[_, key] : filterIn.getColumns()) {
     settings::ResultsSettings::ColumnKey keyTmp = key;
     keyTmp.stats                                = enums::Stats::OFF;

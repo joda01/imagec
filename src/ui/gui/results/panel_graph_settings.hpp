@@ -52,7 +52,7 @@ public:
   {
     return mColumn->currentData().toInt();
   }
-  void setColumns(const std::map<joda::settings::ResultsSettings::ColumnIdx, joda::settings::ResultsSettings::ColumnKey> &);
+  void setColumns(const std::map<joda::settings::ResultsSettings::ColumnIdx, joda::settings::ResultsSettings::ColumnKey> &, const std::string &unit);
 
   auto getWellOrder() const -> std::vector<std::vector<int32_t>>;
   auto getPlateSize() const -> QSize;

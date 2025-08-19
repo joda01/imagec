@@ -858,10 +858,12 @@ void WindowResults::refreshView()
 
           } break;
           case Navigation::WELL: {
+            std::cout << "Well" << std::endl;
             mActListData = std::make_shared<db::QueryResult>(
                 joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL, &mActFilter));
           } break;
           case Navigation::IMAGE: {
+            std::cout << "Image" << std::endl;
             mActListData = std::make_shared<db::QueryResult>(joda::db::StatsPerImage::toTable(mAnalyzer.get(), mFilter, &mActFilter));
 
           } break;
@@ -869,6 +871,7 @@ void WindowResults::refreshView()
         mIsLoading = false;
         joda::log::logTrace("Finished refresh view.");
       } catch(const std::exception &ex) {
+        mIsLoading = false;
         joda::log::logError(ex.what());
       }
       emit finishedLoading();
@@ -885,11 +888,21 @@ void WindowResults::refreshView()
 ///
 void WindowResults::onFinishedLoading()
 {
+  if(mActListData == nullptr) {
+    refreshBreadCrump();
+    update();
+    QApplication::restoreOverrideCursor();
+    return;
+  }
+
   std::lock_guard<std::mutex> lock(mLoadLock);
   // ===============================================
   // Data
   // ===============================================
-  mDashboard->tableToQWidgetTable(mActListData, mTmpColocClasses, mNavigation == Navigation::IMAGE);
+  if(mSelectedDataSet.analyzeMeta.has_value()) {
+    mDashboard->tableToQWidgetTable(mActListData, mTmpColocClasses, mNavigation == Navigation::IMAGE,
+                                    mSelectedDataSet.analyzeMeta->physicalPixelSizeUnit);
+  }
 
   // ===============================================
   // Heatmap
@@ -917,8 +930,9 @@ void WindowResults::onFinishedLoading()
 
       break;
   }
-
-  mDockWidgetGraphSettings->setColumns(mActFilter.getColumns());
+  if(mSelectedDataSet.analyzeMeta.has_value()) {
+    mDockWidgetGraphSettings->setColumns(mActFilter.getColumns(), mSelectedDataSet.analyzeMeta->physicalPixelSizeUnit);
+  }
 
   // CHANGED FROM ActFilter
   auto dataIn = joda::db::data::convertToHeatmap(mActListData.get(), static_cast<uint32_t>(rows), static_cast<uint32_t>(cols),
@@ -1350,18 +1364,20 @@ void WindowResults::saveData(const std::string &fileName, joda::exporter::xlsx::
             break;
         }
 
-        joda::exporter::xlsx::Exporter::startHeatmapExport(
-            {mActListData.get()}, settings, mSelectedDataSet.analyzeMeta->jobName, mSelectedDataSet.analyzeMeta->timestampStart,
-            mSelectedDataSet.analyzeMeta->timestampFinish, fileName, mActFilter, view, imgHeight, imgWidth);
+        joda::exporter::xlsx::Exporter::startHeatmapExport({mActListData.get()}, settings, mSelectedDataSet.analyzeMeta->jobName,
+                                                           mSelectedDataSet.analyzeMeta->timestampStart,
+                                                           mSelectedDataSet.analyzeMeta->timestampFinish, fileName, mActFilter, view, imgHeight,
+                                                           imgWidth, mSelectedDataSet.analyzeMeta->physicalPixelSizeUnit);
 
       } else {
         joda::exporter::xlsx::Exporter::startExport(mDashboard->getExportables(), settings, mSelectedDataSet.analyzeMeta->jobName,
                                                     mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
-                                                    fileName);
+                                                    mSelectedDataSet.analyzeMeta->physicalPixelSizeUnit, fileName);
       }
     } else {
       joda::exporter::r::Exporter::startExport(mDashboard->getExportables(), settings, mSelectedDataSet.analyzeMeta->jobName,
-                                               mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish, fileName);
+                                               mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
+                                               mSelectedDataSet.analyzeMeta->physicalPixelSizeUnit, fileName);
     }
 
     QString folderPath = std::filesystem::path(fileName).parent_path().string().data();

@@ -144,7 +144,7 @@ TRY_AGAIN:
     //
     // Plane numbers
     //
-    auto sizeC    = pixels.attribute("SizeC").as_int();
+    // auto sizeC    = pixels.attribute("SizeC").as_int();
     auto sizeZ    = pixels.attribute("SizeZ").as_int();
     auto sizeT    = pixels.attribute("SizeT").as_int();
     auto dimOrder = std::string(pixels.attribute("DimensionOrder").as_string());
@@ -162,7 +162,6 @@ TRY_AGAIN:
     //
     // Load channels
     //
-    int idx = 0;
     for(pugi::xml_node channelNode = pixels.child((keyPrefix + "Channel").data()); channelNode != nullptr;
         channelNode                = channelNode.next_sibling((keyPrefix + "Channel").data())) {
       auto channelId = std::string(channelNode.attribute("ID").as_string());
@@ -199,8 +198,6 @@ TRY_AGAIN:
                                                    .emissionWaveLengthUnit = emissionWaveLengthUnit,
                                                    .contrastMethod         = contrastMethod,
                                                });
-
-      idx++;
     }
 
     actImageInfo.nrOfZStacks = sizeZ;
@@ -311,7 +308,7 @@ void OmeInfo::setPhyiscalSize(const PhyiscalSize &in)
 ///
 int OmeInfo::getNrOfChannels(int32_t series) const
 {
-  if(series < 0 || series >= getNrOfSeries()) {
+  if(series < 0 || series >= static_cast<int32_t>(getNrOfSeries())) {
     series = getSeriesWithHighestResolution();
   }
   return mImageInfo.at(series).nrOfChannels;
@@ -323,7 +320,7 @@ int OmeInfo::getNrOfChannels(int32_t series) const
 ///
 int OmeInfo::getNrOfZStack(int32_t series) const
 {
-  if(series < 0 || series >= getNrOfSeries()) {
+  if(series < 0 || series >= static_cast<int32_t>(getNrOfSeries())) {
     series = getSeriesWithHighestResolution();
   }
   return mImageInfo.at(series).nrOfZStacks;
@@ -335,7 +332,7 @@ int OmeInfo::getNrOfZStack(int32_t series) const
 ///
 int OmeInfo::getNrOfTStack(int32_t series) const
 {
-  if(series < 0 || series >= getNrOfSeries()) {
+  if(series < 0 || series >= static_cast<int32_t>(getNrOfSeries())) {
     series = getSeriesWithHighestResolution();
   }
   return mImageInfo.at(series).nrOfTStacks;
@@ -347,7 +344,7 @@ int OmeInfo::getNrOfTStack(int32_t series) const
 ///
 [[nodiscard]] int32_t OmeInfo::getBits(int32_t series) const
 {
-  if(series < 0 || series >= getNrOfSeries()) {
+  if(series < 0 || series >= static_cast<int32_t>(getNrOfSeries())) {
     series = getSeriesWithHighestResolution();
   }
   return mImageInfo.at(series).resolutions.at(0).bits;
@@ -359,7 +356,7 @@ int OmeInfo::getNrOfTStack(int32_t series) const
 ///
 [[nodiscard]] std::tuple<int64_t, int64_t> OmeInfo::getSize(int32_t series) const
 {
-  if(series < 0 || series >= getNrOfSeries()) {
+  if(series < 0 || series >= static_cast<int32_t>(getNrOfSeries())) {
     series = getSeriesWithHighestResolution();
   }
   return {mImageInfo.at(series).resolutions.at(0).imageWidth, mImageInfo.at(series).resolutions.at(0).imageHeight};

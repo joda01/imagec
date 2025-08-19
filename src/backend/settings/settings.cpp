@@ -226,7 +226,7 @@ auto Settings::toResultsSettings(const ResultSettingsInput &settingsIn) -> Resul
   }
 
   ResultsSettings settings;
-  int32_t colIdx = 0;
+  uint32_t colIdx = 0;
   for(const auto &entry : settingsIn.classes) {
     auto addColumn = [&](enums::ClassId classId, enums::Measurement measureChannel, enums::Stats stat, int32_t crossChannel,
                          enums::ClassId intersecting, const std::string &channelName = "") {

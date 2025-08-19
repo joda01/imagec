@@ -659,12 +659,12 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, const jod
         retVal.emplace_back(data.get());
       }
       joda::exporter::xlsx::Exporter::startExport(retVal, analyzeSettings, experiment.jobName, experiment.timestampStart, experiment.timestampFinish,
-                                                  outputFilePath.string());
+                                                  experiment.physicalPixelSizeUnit, outputFilePath.string());
 
     } else if(exporter::xlsx::ExportSettings::ExportStyle::HEATMAP == settings.style) {
       joda::exporter::xlsx::Exporter::startHeatmapExport({&dataToExport}, analyzeSettings, experiment.jobName, experiment.timestampStart,
                                                          experiment.timestampFinish, outputFilePath.string(), filter, settings.view, imgHeight,
-                                                         imgWidth);
+                                                         imgWidth, experiment.physicalPixelSizeUnit);
     }
   } else {
     joda::db::data::Dashboard dashboard;
@@ -677,7 +677,7 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, const jod
       retVal.emplace_back(data.get());
     }
     joda::exporter::r::Exporter::startExport(retVal, analyzeSettings, experiment.jobName, experiment.timestampStart, experiment.timestampFinish,
-                                             outputFilePath.string());
+                                             experiment.physicalPixelSizeUnit, outputFilePath.string());
   }
   joda::log::logInfo("Export finished!");
 }

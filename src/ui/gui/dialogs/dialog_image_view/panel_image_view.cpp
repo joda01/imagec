@@ -147,7 +147,6 @@ void PanelImageView::setDefaultPhysicalSize(const joda::settings::ProjectImageSe
         set.pixelSizeUnit,
     });
   } else {
-    std::cout << "Auto" << std::endl;
     mDefaultPhysicalSize = {};
     mOmeInfo.setPhyiscalSize({});
   }

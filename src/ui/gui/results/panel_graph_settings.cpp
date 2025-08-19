@@ -370,7 +370,8 @@ auto PanelGraphSettings::getColorMapRangeSetting() const -> joda::plot::ColorMap
 /// \param[out]
 /// \return
 ///
-void PanelGraphSettings::setColumns(const std::map<joda::settings::ResultsSettings::ColumnIdx, joda::settings::ResultsSettings::ColumnKey> &columns)
+void PanelGraphSettings::setColumns(const std::map<joda::settings::ResultsSettings::ColumnIdx, joda::settings::ResultsSettings::ColumnKey> &columns,
+                                    const std::string &unit)
 {
   //
   // Update heatmap column selector
@@ -379,7 +380,7 @@ void PanelGraphSettings::setColumns(const std::map<joda::settings::ResultsSettin
   auto actData = mColumn->currentData();
   mColumn->clear();
   for(const auto &[key, value] : columns) {
-    QString headerText = value.createHeader().data();
+    QString headerText = value.createHeader(unit).data();
     mColumn->addItem(headerText, key.colIdx);
   }
   auto idx = mColumn->findData(actData);

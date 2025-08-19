@@ -123,7 +123,7 @@ public:
 
   struct ColumnIdx
   {
-    int32_t colIdx = 0;
+    uint32_t colIdx = 0;
     bool operator<(const ColumnIdx &input) const
     {
       auto toInt = [](const ColumnIdx &in) -> uint64_t {
@@ -172,14 +172,14 @@ public:
              intersectingChannel == input.intersectingChannel && zStack == input.zStack;
     }
 
-    std::string createHeader() const;
+    std::string createHeader(const std::string &unit) const;
 
     enum class HeaderStyle
     {
       FULL,
       WITHOUT_OWN_NAME,
     };
-    std::string createHtmlHeader(HeaderStyle style) const;
+    std::string createHtmlHeader(HeaderStyle style, const std::string &unit) const;
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnKey, classId, measureChannel, stats, crossChannelStacksC, intersectingChannel, zStack, names);
   };
@@ -337,7 +337,7 @@ public:
               [](const std::pair<ColumnIdx, ColumnKey> &a, const std::pair<ColumnIdx, ColumnKey> &b) { return std::get<1>(a) < std::get<1>(b); });
 
     columns.clear();
-    int32_t colIdx = 0;
+    uint32_t colIdx = 0;
     for(const auto &[colIdxAct, keyIdx] : data) {
       columns.emplace(ColumnIdx{colIdx}, keyIdx);
       colIdx++;

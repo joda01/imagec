@@ -65,8 +65,9 @@ QVariant TableModel::headerData(int section, Qt::Orientation orientation, int ro
   }
 
   if(orientation == Qt::Orientation::Horizontal) {
-    return QString(
-        mTable->getColHeader(static_cast<uint32_t>(section)).createHtmlHeader(joda::settings::ResultsSettings::ColumnKey::HeaderStyle::FULL).data());
+    return QString(mTable->getColHeader(static_cast<uint32_t>(section))
+                       .createHtmlHeader(joda::settings::ResultsSettings::ColumnKey::HeaderStyle::FULL, mUnit)
+                       .data());
   }
   if(orientation == Qt::Orientation::Vertical) {
     return QString(mTable->getRowHeader(static_cast<uint32_t>(section)).data());
@@ -137,11 +138,12 @@ QVariant TableModel::data(const QModelIndex &index, int role) const
   return QString::number(cell->getVal()) + generateMetaFooter(cell);
 }
 
-void TableModel::setData(const std::shared_ptr<joda::table::Table> table)
+void TableModel::setData(const std::shared_ptr<joda::table::Table> table, const std::string &unit)
 {
   std::lock_guard<std::mutex> lock(mChangeMutex);
   beginResetModel();
   // reload or rebind your internal Table data here
+  mUnit  = unit;
   mTable = table;
   endResetModel();
 }

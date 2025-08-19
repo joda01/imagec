@@ -25,7 +25,7 @@ void Exporter::startHeatmapExport(const std::vector<const Exportable *> &data, c
                                   const std::string &jobName, std::chrono::system_clock::time_point timeStarted,
                                   std::chrono::system_clock::time_point timeFinished, const std::string &outputFileName,
                                   const settings::ResultsSettings &filterSettings, ExportSettings::ExportView view, int32_t imageHeight,
-                                  int32_t imageWidth)
+                                  int32_t imageWidth, const std::string &unit)
 {
   setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
   auto workbookSettings = createWorkBook(outputFileName);
@@ -77,7 +77,7 @@ void Exporter::startHeatmapExport(const std::vector<const Exportable *> &data, c
       }
 
       paintPlateBorder(worksheet, dataHeatmap.getNrOfRows(), dataHeatmap.getNrOfCols(), pos.row, workbookSettings.header,
-                       workbookSettings.numberFormat, workbookSettings.merge_format, col->colSettings.createHeader());
+                       workbookSettings.numberFormat, workbookSettings.merge_format, col->colSettings.createHeader(unit));
       pos = paintHeatmap(workbookSettings, worksheet, dataHeatmap, pos.row);
     }
     idx++;
