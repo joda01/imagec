@@ -30,6 +30,7 @@
 #include "ui/gui/editor/widget_pipeline/panel_pipeline_settings.hpp"
 #include "ui/gui/editor/widget_pipeline/table_item_delegate_pipeline.hpp"
 #include "ui/gui/editor/widget_pipeline/table_model_pipeline.hpp"
+#include "ui/gui/editor/widget_project_tabs/panel_image.hpp"
 #include "ui/gui/editor/window_main.hpp"
 #include "ui/gui/helper/droppable_widget/droppable_widget.hpp"
 #include "ui/gui/helper/html_delegate.hpp"
@@ -72,6 +73,14 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     auto *pipelineSettings = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("wrench"), "Pipeline setup");
     pipelineSettings->setStatusTip("Open pipeline setup dialog");
     connect(pipelineSettings, &QAction::triggered, [this]() {
+      auto [path, series, ome] = mWindowMain->getImagePanel()->getSelectedImageOrFirst();
+      if(path.empty()) {
+        // Unit is only allowed to change if an image is opened, because we need the real pixel sizes.
+        mMeasureUnit->setEnabled(false);
+      } else {
+        mMeasureUnit->setEnabled(true);
+      }
+
       mStackOptionsDialog->exec();
       toSettings();
       updatePipelineCommandUnits();
@@ -701,7 +710,6 @@ void PanelPipeline::fromSettings(const joda::settings::AnalyzeSettings &settings
 ///
 void PanelPipeline::updatePipelineCommandUnits()
 {
-  std::cout << "Update unut" << std::endl;
   for(auto &pipeline : mChannels) {
     for(auto &cmd : *pipeline->getListOfCommands()) {
       cmd->updateSettingsUnit();

@@ -18,6 +18,7 @@
 #include <string>
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_units.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classes_out.hpp"
@@ -58,7 +59,7 @@ public:
     //
     mMaxRadius = SettingBase::create<SettingSpinBox<float>>(parent, {}, "Max. radius");
     mMaxRadius->setMinMax(-1, std::numeric_limits<float>::max(), 3, 0.01);
-    mMaxRadius->setUnit("px", true);
+    mMaxRadius->setUnit("px", enums::ObjectType::LINE2D);
     mMaxRadius->setValue(settings.maxRadius);
     mMaxRadius->connectWithSetting(&settings.maxRadius);
     mMaxRadius->setShortDescription("Rad. ");
@@ -90,7 +91,7 @@ public:
     //
     mMinAreaSize = SettingBase::create<SettingSpinBox<float>>(parent, {}, "Min. area size");
     mMinAreaSize->setMinMax(-1, std::numeric_limits<float>::max(), 3, 0.01);
-    mMinAreaSize->setUnit("px", true);
+    mMinAreaSize->setUnit("px", enums::ObjectType::AREA2D);
     mMinAreaSize->setValue(settings.minAreaSize);
     mMinAreaSize->connectWithSetting(&settings.minAreaSize);
     mMinAreaSize->setShortDescription("Min. ");
@@ -99,7 +100,7 @@ public:
     //
     mMaxAreaSize = SettingBase::create<SettingSpinBox<float>>(parent, {}, "Max. area size");
     mMaxAreaSize->setMinMax(-1, std::numeric_limits<float>::max(), 3, 0.01);
-    mMaxAreaSize->setUnit("px", true);
+    mMaxAreaSize->setUnit("px", enums::ObjectType::AREA2D);
     mMaxAreaSize->setValue(settings.maxAreaSize);
     mMaxAreaSize->connectWithSetting(&settings.maxAreaSize);
     mMaxAreaSize->setShortDescription("Max. ");

@@ -231,15 +231,15 @@ std::pair<cv::Mat, std::set<int>> followFlowFieldCuda(const at::Device &device, 
   auto *d_mask  = mask_tensor.data_ptr<float>();
   float *d_outX;
   float *d_outY;
-  cudaMalloc(&d_outX, sizeof(float) * width * height);
-  cudaMalloc(&d_outY, sizeof(float) * width * height);
-  cudaFlowIterationKernel(d_flowX, d_flowY, d_mask, width, height, stepSize, numSteps, 0.0001f, d_outX, d_outY, maskThreshold);
+  cudaMalloc(&d_outX, sizeof(float) * static_cast<uint64_t>(width) * static_cast<uint64_t>(height));
+  cudaMalloc(&d_outY, sizeof(float) * static_cast<uint64_t>(width) * static_cast<uint64_t>(height));
+  cudaFlowIterationKernel(d_flowX, d_flowY, d_mask, width, height, static_cast<float>(stepSize), numSteps, 0.0001F, d_outX, d_outY, maskThreshold);
 
   // Copy result back to CPU if needed
-  std::vector<float> h_outX(width * height);
-  std::vector<float> h_outY(width * height);
-  cudaMemcpy(h_outX.data(), d_outX, sizeof(float) * width * height, cudaMemcpyDeviceToHost);
-  cudaMemcpy(h_outY.data(), d_outY, sizeof(float) * width * height, cudaMemcpyDeviceToHost);
+  std::vector<float> h_outX(static_cast<uint64_t>(width) * static_cast<uint64_t>(height));
+  std::vector<float> h_outY(static_cast<uint64_t>(width) * static_cast<uint64_t>(height));
+  cudaMemcpy(h_outX.data(), d_outX, sizeof(float) * static_cast<uint64_t>(width) * static_cast<uint64_t>(height), cudaMemcpyDeviceToHost);
+  cudaMemcpy(h_outY.data(), d_outY, sizeof(float) * static_cast<uint64_t>(width) * static_cast<uint64_t>(height), cudaMemcpyDeviceToHost);
 
   // Cleanup GPU memory
   cudaFree(d_outX);
@@ -253,8 +253,8 @@ std::pair<cv::Mat, std::set<int>> followFlowFieldCuda(const at::Device &device, 
   for(int y = 0; y < flowY.rows; ++y) {
     for(int x = 0; x < flowX.cols; ++x) {
       // Get the landing pos
-      int lx = cvRound(h_outX.at(y * flowX.cols + x));
-      int ly = cvRound(h_outY.at(y * flowX.cols + x));
+      int lx = cvRound(h_outX.at(static_cast<size_t>(static_cast<int64_t>(y) * static_cast<int64_t>(flowX.cols) + static_cast<int64_t>(x))));
+      int ly = cvRound(h_outY.at(static_cast<size_t>(static_cast<int64_t>(y) * static_cast<int64_t>(flowX.cols) + static_cast<int64_t>(x))));
       // Key for map
       auto key = std::make_pair(lx, ly);
       int label;

@@ -104,8 +104,7 @@ private:
       //
       mMinParticleSize = SettingBase::create<SettingSpinBox<float>>(parent, {}, "Min particle size");
       mMinParticleSize->setMinMax(-1, std::numeric_limits<float>::max(), 3, 0.01);
-      mMinParticleSize->setUnit("px", true);
-      mMinParticleSize->setMinMax(0, std::numeric_limits<float>::max());
+      mMinParticleSize->setUnit("px", enums::ObjectType::AREA2D);
       mMinParticleSize->setValue(classifyFilter.metrics.minParticleSize);
       mMinParticleSize->connectWithSetting(&classifyFilter.metrics.minParticleSize);
       mMinParticleSize->setShortDescription("Min. ");
@@ -113,8 +112,7 @@ private:
       //
       mMaxParticleSize = SettingBase::create<SettingSpinBox<float>>(parent, {}, "Max particle size");
       mMaxParticleSize->setMinMax(-1, std::numeric_limits<float>::max(), 3, 0.01);
-      mMaxParticleSize->setUnit("px", true);
-      mMaxParticleSize->setMinMax(0, std::numeric_limits<float>::max());
+      mMaxParticleSize->setUnit("px", enums::ObjectType::AREA2D);
       mMaxParticleSize->setValue(classifyFilter.metrics.maxParticleSize);
       mMaxParticleSize->connectWithSetting(&classifyFilter.metrics.maxParticleSize);
       mMaxParticleSize->setShortDescription("Max. ");
@@ -124,8 +122,7 @@ private:
       mMinCircularity =
           SettingBase::create<SettingSpinBox<float>>(parent, generateSvgIcon<Style::REGULAR, Color::BLACK>("circle"), "Circularity [0-1]");
       mMinCircularity->setMinMax(0, 1, 2, 0.1);
-      mMinCircularity->setUnit("%", false);
-      mMinCircularity->setMinMax(0, 1);
+      mMinCircularity->setUnit("r", enums::ObjectType::Undefined);
       mMinCircularity->setValue(classifyFilter.metrics.minCircularity);
       mMinCircularity->connectWithSetting(&classifyFilter.metrics.minCircularity);
       mMinCircularity->setShortDescription("Circ. ");

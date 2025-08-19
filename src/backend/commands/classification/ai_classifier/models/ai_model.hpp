@@ -28,11 +28,11 @@ class AiModel
 public:
   struct Result
   {
-    cv::Rect boundingBox;
-    cv::Mat mask;
-    std::vector<cv::Point> contour;
-    int32_t classId;
-    float probability;
+    cv::Rect boundingBox           = {};
+    cv::Mat mask                   = {};
+    std::vector<cv::Point> contour = {};
+    int32_t classId                = 0;
+    float probability              = 0;
   };
 
   virtual auto processPrediction(const at::Device &device, const cv::Mat &inputImage, const at::IValue &prediction) -> std::vector<Result> = 0;

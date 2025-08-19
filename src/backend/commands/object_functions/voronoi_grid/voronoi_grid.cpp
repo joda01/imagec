@@ -43,9 +43,9 @@ void VoronoiGrid::applyFilter(processor::ProcessContext &context, const atom::Sp
           //
           const auto &physicalSize = context.getPhysicalPixelSIzeOfImage();
           if((mSettings.minAreaSize >= 0 &&
-              cutedVoronoiArea.getAreaSize(physicalSize, context.getPipelineRealValuesUnit()) < mSettings.minAreaSize) ||
+              cutedVoronoiArea.getAreaSize(physicalSize, context.getPipelineRealValuesUnit()) < static_cast<double>(mSettings.minAreaSize)) ||
              (mSettings.maxAreaSize >= 0 &&
-              cutedVoronoiArea.getAreaSize(physicalSize, context.getPipelineRealValuesUnit()) > mSettings.maxAreaSize)) {
+              cutedVoronoiArea.getAreaSize(physicalSize, context.getPipelineRealValuesUnit()) > static_cast<double>(mSettings.maxAreaSize))) {
             return;
           }
 

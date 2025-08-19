@@ -332,11 +332,11 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, Plane imagePlane
     }
     // Find the pyramid with the best matching resolution for thumbnail creation
 
-    auto lookForSmallestImage = [&ome](int32_t series) -> std::tuple<int32_t, ome::OmeInfo::ImageInfo::Pyramid> {
+    auto lookForSmallestImage = [&ome](int32_t seriesIn) -> std::tuple<int32_t, ome::OmeInfo::ImageInfo::Pyramid> {
       int32_t resolutionIdx                       = 0;
-      ome::OmeInfo::ImageInfo::Pyramid resolution = ome.getResolutionCount(series).at(0);
-      for(int idx = 0; idx < ome.getResolutionCount(series).size(); idx++) {
-        resolution = ome.getResolutionCount(series).at(idx);
+      ome::OmeInfo::ImageInfo::Pyramid resolution = ome.getResolutionCount(seriesIn).at(0);
+      for(int idx = 0; idx < static_cast<int>(ome.getResolutionCount(seriesIn).size()); idx++) {
+        resolution = ome.getResolutionCount(seriesIn).at(idx);
         if(resolution.imageWidth <= THUMBNAIL_SIZE || resolution.imageHeight <= THUMBNAIL_SIZE) {
           resolutionIdx = idx;
           break;
@@ -554,7 +554,7 @@ auto ImageReader::getOmeInformation(const std::filesystem::path &filename, uint1
     }
 
     jstring filePath = myEnv->NewStringUTF(filename.string().c_str());
-    jstring result   = (jstring) myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageProperties, filePath, static_cast<int>(series));
+    jstring result   = static_cast<jstring>(myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageProperties, filePath, static_cast<int>(series)));
     bool exception   = false;
     if(myEnv->ExceptionCheck() != 0u) {
       myEnv->ExceptionDescribe();

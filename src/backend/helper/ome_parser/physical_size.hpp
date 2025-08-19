@@ -69,6 +69,8 @@ public:
         mSizeY = sizeY * 1e9;
         mSizeZ = sizeZ * 1e9;
         break;
+      case enums::Units::Undefined:
+        break;
     }
   }
 
@@ -94,6 +96,8 @@ public:
         return {mSizeX / 1e6, mSizeY / 1e6, mSizeZ / 1e6};
       case enums::Units::km:
         return {mSizeX / 1e9, mSizeY / 1e9, mSizeZ / 1e9};
+      case enums::Units::Undefined:
+        break;
     }
     throw std::runtime_error("Not a valid unit!");
   }

@@ -21,6 +21,7 @@
 #include "backend/enums/enums_units.hpp"
 #include "backend/helper/ome_parser/physical_size.hpp"
 #include "ui/gui/helper/clickablelineedit.hpp"
+#include "ui/gui/helper/jump_spinbox.hpp"
 #include <nlohmann/json_fwd.hpp>
 #include "setting_base.hpp"
 
@@ -39,7 +40,7 @@ public:
 
   QWidget *createInputObject() override
   {
-    mSpinBox = new QDoubleSpinBox();
+    mSpinBox = new JumpSpinBox();
     mSpinBox->setMinimumHeight(34);
     mSpinBox->setRange(-1.0, std::numeric_limits<float>::max());
     mSpinBox->setSpecialValueText("(disabled)");
@@ -59,13 +60,43 @@ public:
     return mSpinBox;
   }
 
-  void setUnit(QString unit, bool autoUnit)
+  void setUnit(QString unit, enums::ObjectType objectType)
   {
-    mAutoUnit = autoUnit;
-    if(autoUnit) {
+    mObjectType = objectType;
+    if(mObjectType != enums::ObjectType::Undefined) {
       auto [cmdUnit, physicalSize] = getUnit();
+      mActUnit                     = cmdUnit;
       nlohmann::json unitJson      = cmdUnit;
       unit                         = unitJson.get<std::string>().c_str();
+      switch(cmdUnit) {
+        case enums::Units::Pixels:
+          mSpinBox->setDecimals(0);
+          mSpinBox->setSingleStep(1);
+          break;
+        case enums::Units::nm:
+          mSpinBox->setDecimals(1);
+          mSpinBox->setSingleStep(0.1);
+          break;
+        case enums::Units::mm:
+        case enums::Units::um:
+          mSpinBox->setDecimals(3);
+          mSpinBox->setSingleStep(0.01);
+          break;
+        case enums::Units::cm:
+          mSpinBox->setDecimals(2);
+          mSpinBox->setSingleStep(0.1);
+          break;
+        case enums::Units::m:
+          mSpinBox->setDecimals(3);
+          mSpinBox->setSingleStep(0.01);
+          break;
+        case enums::Units::km:
+          mSpinBox->setDecimals(2);
+          mSpinBox->setSingleStep(0.1);
+          break;
+        case enums::Units::Undefined:
+          break;
+      }
     }
     SettingBase::setUnit(unit);
     mSpinBox->setSuffix(" " + unit);
@@ -73,8 +104,73 @@ public:
 
   void changeUnit() override
   {
-    if(mAutoUnit) {
-      setUnit("", true);
+    if(mObjectType != enums::ObjectType::Undefined) {
+      auto [newUnit, physicalSize] = getUnit();
+      if(newUnit != mActUnit) {
+        double valueInUm     = 0;
+        auto [pxX, pxY, pxZ] = physicalSize.getPixelSize(enums::Units::um);
+        switch(mActUnit) {
+          case enums::Units::Pixels:
+            // Not possible
+            if(mObjectType == enums::ObjectType::AREA2D) {
+              valueInUm = static_cast<double>(static_cast<double>(getValue()) * (pxX * pxY));
+            } else {
+              valueInUm = static_cast<double>(getValue()) * pxX;
+            }
+            break;
+          case enums::Units::nm:
+            valueInUm = static_cast<double>(getValue()) * 1e3;
+            break;
+          case enums::Units::um:
+            valueInUm = static_cast<double>(getValue());
+            break;
+          case enums::Units::mm:
+            valueInUm = static_cast<double>(getValue()) / 1e3;
+            break;
+          case enums::Units::cm:
+            valueInUm = static_cast<double>(getValue()) / 1e4;
+            break;
+          case enums::Units::m:
+            valueInUm = static_cast<double>(getValue()) / 1e6;
+            break;
+          case enums::Units::km:
+            valueInUm = static_cast<double>(getValue()) / 1e9;
+            break;
+          case enums::Units::Undefined:
+            break;
+        }
+
+        setUnit("", mObjectType);
+        switch(newUnit) {
+          case enums::Units::Pixels:
+            if(mObjectType == enums::ObjectType::AREA2D) {
+              mSpinBox->setValue(static_cast<double>(static_cast<int32_t>(std::nearbyint(valueInUm / (pxX * pxY)))));
+            } else {
+              mSpinBox->setValue(static_cast<double>(static_cast<int32_t>(std::nearbyint(valueInUm / pxX))));
+            }
+            break;
+          case enums::Units::nm:
+            mSpinBox->setValue(valueInUm * 1e3);
+            break;
+          case enums::Units::um:
+            mSpinBox->setValue(valueInUm);
+            break;
+          case enums::Units::mm:
+            mSpinBox->setValue(valueInUm / 1e3);
+            break;
+          case enums::Units::cm:
+            mSpinBox->setValue(valueInUm / 1e4);
+            break;
+          case enums::Units::m:
+            mSpinBox->setValue(valueInUm / 1e6);
+            break;
+          case enums::Units::km:
+            mSpinBox->setValue(valueInUm / 1e9);
+            break;
+          case enums::Units::Undefined:
+            break;
+        }
+      }
     }
   }
 
@@ -199,11 +295,12 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  QDoubleSpinBox *mSpinBox = nullptr;
+  JumpSpinBox *mSpinBox = nullptr;
   std::optional<VALUE_T> mDefaultValue;
   VALUE_T *mSetting = nullptr;
   std::optional<VALUE_T> mOldValue;
-  bool mAutoUnit = false;
+  enums::Units mActUnit         = enums::Units::Undefined;
+  enums::ObjectType mObjectType = enums::ObjectType::Undefined;
 
 private slots:
   void onValueChanged()
