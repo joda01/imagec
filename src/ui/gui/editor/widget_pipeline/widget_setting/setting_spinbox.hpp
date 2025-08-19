@@ -109,6 +109,9 @@ public:
         setUnit("", mObjectType);
         return;
       }
+      if(getValue() < 0) {
+        return;
+      }
       auto [newUnit, physicalSize] = getUnit();
       if(newUnit != mActUnit) {
         double valueInUm     = 0;
@@ -123,22 +126,22 @@ public:
             }
             break;
           case enums::Units::nm:
-            valueInUm = static_cast<double>(getValue()) * 1e3;
+            valueInUm = static_cast<double>(getValue()) / 1e3;
             break;
           case enums::Units::um:
             valueInUm = static_cast<double>(getValue());
             break;
           case enums::Units::mm:
-            valueInUm = static_cast<double>(getValue()) / 1e3;
+            valueInUm = static_cast<double>(getValue()) * 1e3;
             break;
           case enums::Units::cm:
-            valueInUm = static_cast<double>(getValue()) / 1e4;
+            valueInUm = static_cast<double>(getValue()) * 1e4;
             break;
           case enums::Units::m:
-            valueInUm = static_cast<double>(getValue()) / 1e6;
+            valueInUm = static_cast<double>(getValue()) * 1e6;
             break;
           case enums::Units::km:
-            valueInUm = static_cast<double>(getValue()) / 1e9;
+            valueInUm = static_cast<double>(getValue()) * 1e9;
             break;
           case enums::Units::Undefined:
             break;

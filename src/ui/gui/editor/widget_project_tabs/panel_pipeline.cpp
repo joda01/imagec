@@ -36,6 +36,7 @@
 #include "ui/gui/helper/html_delegate.hpp"
 #include "ui/gui/helper/html_header.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
+#include "ui/gui/helper/iconless_dialog_button_box.hpp"
 #include "ui/gui/helper/pipeline_overview_delegate.hpp"
 #include "ui/gui/helper/table_view.hpp"
 #include "ui/gui/helper/template_parser/template_parser.hpp"
@@ -80,10 +81,12 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
       } else {
         mMeasureUnit->setEnabled(true);
       }
-
-      mStackOptionsDialog->exec();
-      toSettings();
-      updatePipelineCommandUnits();
+      fromSettings(mAnalyzeSettings);
+      auto ret = mStackOptionsDialog->exec();
+      if(ret != 0) {
+        toSettings();
+        updatePipelineCommandUnits();
+      }
     });
     toolbar->addAction(pipelineSettings);
 
@@ -212,6 +215,12 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     mMeasureUnit->addItem("m", static_cast<int32_t>(enums::Units::m));
     mMeasureUnit->addItem("km", static_cast<int32_t>(enums::Units::km));
     formLayout->addRow(new QLabel(tr("Measure unit")), mMeasureUnit);
+
+    // Okay and canlce
+    auto *buttonBox = new IconlessDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, mStackOptionsDialog);
+    connect(buttonBox, &QDialogButtonBox::accepted, mStackOptionsDialog, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, mStackOptionsDialog, &QDialog::reject);
+    formLayout->addWidget(buttonBox);
 
     mStackOptionsDialog->setLayout(formLayout);
   }
