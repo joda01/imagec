@@ -456,6 +456,7 @@ void WindowMain::clearSettings()
   mAnalyzeSettings    = {};
   mAnalyzeSettingsOld = {};
   mAnalyzeSettings.pipelines.clear();
+  mAnalyzeSettings.pipelineSetup = {};
   mAnalyzeSettingsOld.pipelines.clear();
   mPanelProjectSettings->fromSettings({});
   mPanelClassification->fromSettings({});
@@ -566,6 +567,7 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
 
     mAnalyzeSettings.projectSettings                = analyzeSettings.projectSettings;
     mAnalyzeSettings.projectSettings.classification = analyzeSettings.projectSettings.classification;
+    mAnalyzeSettings.pipelineSetup                  = analyzeSettings.pipelineSetup;
     mAnalyzeSettingsOld                             = mAnalyzeSettings;
 
     mPreviewImage->setImagePlane(DialogImageViewer::ImagePlaneSettings{.plane      = {.z = 0, .c = 0, .t = 0},

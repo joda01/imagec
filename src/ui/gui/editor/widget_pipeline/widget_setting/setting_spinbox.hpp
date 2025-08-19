@@ -105,6 +105,10 @@ public:
   void changeUnit() override
   {
     if(mObjectType != enums::ObjectType::Undefined) {
+      if(mActUnit == enums::Units::Undefined) {
+        setUnit("", mObjectType);
+        return;
+      }
       auto [newUnit, physicalSize] = getUnit();
       if(newUnit != mActUnit) {
         double valueInUm     = 0;

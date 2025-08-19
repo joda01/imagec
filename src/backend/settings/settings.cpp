@@ -20,6 +20,7 @@
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_file_endians.hpp"
+#include "backend/enums/enums_units.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/analze_settings.hpp"
@@ -46,7 +47,29 @@ auto Settings::openSettings(const std::filesystem::path &pathIn) -> joda::settin
 
   ifs.close();
   migrateSettings(wholeFile);
-  joda::settings::AnalyzeSettings analyzeSettings = nlohmann::json::parse(wholeFile);
+
+  auto parsed = nlohmann::json::parse(wholeFile);
+
+  //
+  //
+  /// \todo Remove legacy
+  bool doesPipelineSetupExists = true;
+  {
+    if(!parsed.contains("pipelineSetup")) {
+      doesPipelineSetupExists = false;
+    }
+  }
+
+  joda::settings::AnalyzeSettings analyzeSettings = parsed;
+
+  //
+  //
+  /// \todo Remove legacy
+  {
+    if(!doesPipelineSetupExists) {
+      analyzeSettings.pipelineSetup.realSizesUnit = enums::Units::Pixels;
+    }
+  }
 
   //
   // Further legacy migration
@@ -56,7 +79,7 @@ auto Settings::openSettings(const std::filesystem::path &pathIn) -> joda::settin
       analyzeSettings.projectSettings.plate = *analyzeSettings.projectSettings.plates.begin();
       analyzeSettings.projectSettings.plates.clear();
     }
-  }
+  }    // namespace joda::settings
 
   return analyzeSettings;
 }
