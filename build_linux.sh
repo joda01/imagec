@@ -102,12 +102,13 @@ pack(){
     cp $USERS_DIR/.conan2/p/*/p/lib/libQt6XcbQpa.so.6 .
     cp $USERS_DIR/.conan2/p/*/p/lib/libQt6Svg.so.6 .
     cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 .
+    cp /usr/lib/x86_64-linux-gnu/libGLdispatch.so.0 .
+    cp /usr/lib/x86_64-linux-gnu/libGL.so.1 .
+    cp /usr/lib/x86_64-linux-gnu/libGLX.so.0 .
+
     cp /lib/x86_64-linux-gnu/libbsd.so.0 .
     cp /lib/x86_64-linux-gnu/libmd.so.0 .
-    cp /lib/x86_64-linux-gnu/libGL.so.1 .
     cp /lib/x86_64-linux-gnu/libxcb.so.1 .
-    cp /lib/x86_64-linux-gnu/libGLdispatch.so.0 .
-    cp /lib/x86_64-linux-gnu/libGLX.so.0 .
     cp /lib/x86_64-linux-gnu/libXau.so.6 .
     cp /lib/x86_64-linux-gnu/libXdmcp.so.6 .
 

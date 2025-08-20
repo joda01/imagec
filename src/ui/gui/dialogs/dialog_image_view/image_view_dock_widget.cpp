@@ -27,7 +27,7 @@ ImageViewDockWidget::ImageViewDockWidget(QMainWindow *windowMMain) : mWindowMain
   setWindowTitle("Preview");
   setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
   setFeatures(features() & ~QDockWidget::DockWidgetClosable);
-  mImageViewWidget = new DialogImageViewer(windowMMain, nullptr);
+  mImageViewWidget = new DialogImageViewer(windowMMain, nullptr, nullptr);
   setWidget(mImageViewWidget);
 }
 

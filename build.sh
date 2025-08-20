@@ -60,6 +60,9 @@ pack(){
     cp /root/.conan2/p/*/p/lib/libQt6Svg.so.6 .
     cp /usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0 .
     cp /usr/lib/x86_64-linux-gnu/libxcb-icccm.so .
+    cp /usr/lib/x86_64-linux-gnu/libGL.so.1 .
+    cp /usr/lib/x86_64-linux-gnu/libGLX.so.0 .
+    cp /usr/lib/x86_64-linux-gnu/libGLdispatch.so.0 .
 
     cp /root/.conan2/p/*/p/lib/libtorch_cpu.so .
     cp /root/.conan2/p/*/p/lib/libtorch_cuda.so .

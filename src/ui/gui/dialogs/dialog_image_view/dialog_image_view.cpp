@@ -45,7 +45,8 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) : QWidget(parent), mImageViewRight(parent)
+DialogImageViewer::DialogImageViewer(QWidget *parent, joda::settings::AnalyzeSettings *settings, QToolBar *toolbarParent) :
+    QWidget(parent), mImageViewRight(parent), mSettings(settings)
 {
   setWindowTitle("Preview");
   setContentsMargins(0, 0, 0, 0);
@@ -338,14 +339,14 @@ void DialogImageViewer::setShowCrossHairCursor(bool show)
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::setSettingsPointer(joda::settings::AnalyzeSettings *settings)
+void DialogImageViewer::fromSettings(const joda::settings::AnalyzeSettings &settings)
 {
-  mSettings = settings;
   if(mSettings != nullptr) {
-    mImageSettings.pixelHeight   = mSettings->imageSetup.imagePixelSizeSettings.pixelHeight;
-    mImageSettings.pixelWidth    = mSettings->imageSetup.imagePixelSizeSettings.pixelWidth;
-    mImageSettings.pixelSizeUnit = mSettings->imageSetup.imagePixelSizeSettings.pixelSizeUnit;
-    mImageSettings.sizeMode      = mSettings->imageSetup.imagePixelSizeSettings.mode;
+    mImageSettings.zProjection   = settings.imageSetup.zStackSettings.defaultZProjection;
+    mImageSettings.pixelHeight   = settings.imageSetup.imagePixelSizeSettings.pixelHeight;
+    mImageSettings.pixelWidth    = settings.imageSetup.imagePixelSizeSettings.pixelWidth;
+    mImageSettings.pixelSizeUnit = settings.imageSetup.imagePixelSizeSettings.pixelSizeUnit;
+    mImageSettings.sizeMode      = settings.imageSetup.imagePixelSizeSettings.mode;
   }
 }
 
@@ -414,10 +415,11 @@ void DialogImageViewer::applySettingsToImagePanel()
 
   // Sync to settings
   if(mSettings != nullptr) {
-    auto tileSize                                      = getTileSize();
-    mSettings->imageSetup.imageTileSettings.tileHeight = tileSize;
-    mSettings->imageSetup.imageTileSettings.tileWidth  = tileSize;
-    mSettings->imageSetup.series                       = mImageSettings.imageSeries;
+    auto tileSize                                           = getTileSize();
+    mSettings->imageSetup.zStackSettings.defaultZProjection = getSelectedZProjection();
+    mSettings->imageSetup.imageTileSettings.tileHeight      = tileSize;
+    mSettings->imageSetup.imageTileSettings.tileWidth       = tileSize;
+    mSettings->imageSetup.series                            = mImageSettings.imageSeries;
 
     mSettings->imageSetup.imagePixelSizeSettings.pixelHeight   = mImageSettings.pixelHeight;
     mSettings->imageSetup.imagePixelSizeSettings.pixelWidth    = mImageSettings.pixelWidth;

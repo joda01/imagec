@@ -5,6 +5,7 @@
 #include <set>
 
 #include "backend/enums/enums_units.hpp"
+#include "backend/enums/types.hpp"
 #include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
@@ -62,6 +63,17 @@ struct ProjectImageSetup
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(TStackSettings, startFrame, endFrame);
   };
 
+  struct ZStackSettings
+  {
+    enums::ZProjection defaultZProjection = enums::ZProjection::MAX_INTENSITY;
+
+    void check() const
+    {
+    }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ZStackSettings, defaultZProjection);
+  };
+
   struct PhysicalSizeSettings
   {
     //
@@ -97,6 +109,7 @@ struct ProjectImageSetup
   TStackHandling tStackHandling = TStackHandling::EACH_ONE;
 
   TStackSettings tStackSettings               = {};
+  ZStackSettings zStackSettings               = {};
   PhysicalSizeSettings imagePixelSizeSettings = {};
 
   //
@@ -109,8 +122,8 @@ struct ProjectImageSetup
   //
   int32_t series = 0;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectImageSetup, zStackHandling, tStackHandling, imageTileSettings, series, tStackSettings,
-                                                       imagePixelSizeSettings);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectImageSetup, zStackHandling, tStackHandling, imagePixelSizeSettings, imageTileSettings,
+                                                       series, tStackSettings, zStackSettings, imagePixelSizeSettings);
 
   void check() const
   {

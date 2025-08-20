@@ -92,8 +92,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   //
   {
     mTopToolBar->addSeparator();
-    mPreviewImage = new DialogImageViewer(this, mTopToolBar);
-    mPreviewImage->setSettingsPointer(&mAnalyzeSettings);
+    mPreviewImage = new DialogImageViewer(this, &mAnalyzeSettings, mTopToolBar);
     connect(mPreviewImage, &DialogImageViewer::settingChanged, [this]() { checkForSettingsChanged(); });
   }
 
@@ -564,6 +563,7 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     mPanelProjectSettings->fromSettings(analyzeSettings);
     mPanelPipeline->fromSettings(analyzeSettings);
     mPanelClassification->fromSettings(analyzeSettings.projectSettings.classification);
+    mPreviewImage->fromSettings(analyzeSettings);
 
     mAnalyzeSettings.projectSettings                = analyzeSettings.projectSettings;
     mAnalyzeSettings.projectSettings.classification = analyzeSettings.projectSettings.classification;

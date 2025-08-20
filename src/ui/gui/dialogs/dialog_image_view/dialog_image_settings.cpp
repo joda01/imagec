@@ -167,6 +167,9 @@ void DialogImageSettings::setFromOme(const ome::OmeInfo &omeInfo, int32_t imgSer
 ///
 void DialogImageSettings::fromSettings(const ome::OmeInfo &omeInfo)
 {
+  if(mSettings == nullptr) {
+    return;
+  }
   int idx = mZprojection->findData(static_cast<int32_t>(mSettings->zProjection));
   if(idx != -1) {
     mZprojection->setCurrentIndex(idx);
@@ -205,6 +208,9 @@ void DialogImageSettings::fromSettings(const ome::OmeInfo &omeInfo)
 ///
 void DialogImageSettings::accept()
 {
+  if(mSettings == nullptr) {
+    return;
+  }
   mSettings->zProjection   = static_cast<enums::ZProjection>(mZprojection->currentData().toInt());
   mSettings->imageSeries   = mSeries->currentData().toInt();
   mSettings->tileWidth     = mTileSize->currentData().toInt();
