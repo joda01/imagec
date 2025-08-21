@@ -52,7 +52,8 @@ public:
     INTENSITY,
     DISTANCE,
     DISTANCE_ID,
-    INTERSECTION
+    INTERSECTION,
+    POSITION
   };
 
   static MeasureType getType(enums::Measurement measure)
@@ -74,6 +75,7 @@ public:
         return MeasureType::DISTANCE_ID;
       case enums::Measurement::CENTEROID_X:
       case enums::Measurement::CENTEROID_Y:
+        return MeasureType::POSITION;
       case enums::Measurement::CONFIDENCE:
       case enums::Measurement::AREA_SIZE:
       case enums::Measurement::PERIMETER:

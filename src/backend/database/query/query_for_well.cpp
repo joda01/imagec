@@ -22,13 +22,14 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
                             settings::ResultsSettings *resultingFilter) -> QueryResult
 {
   //
-  // Remove object IDs, since they make no sense in an overview
+  // Remove object IDs, and position since they make no sense in an overview
   //
   settings::ResultsSettings filter;
   uint32_t colIdxOut = 0;
   for(const auto &[_, key] : filterIn.getColumns()) {
     if(settings::ResultsSettings::getType(key.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE_ID ||
-       settings::ResultsSettings::getType(key.measureChannel) == settings::ResultsSettings::MeasureType::ID) {
+       settings::ResultsSettings::getType(key.measureChannel) == settings::ResultsSettings::MeasureType::ID ||
+       settings::ResultsSettings::getType(key.measureChannel) == settings::ResultsSettings::MeasureType::POSITION) {
       continue;
     }
     filter.addColumn({colIdxOut}, key, key.names);
