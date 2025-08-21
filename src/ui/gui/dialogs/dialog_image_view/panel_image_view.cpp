@@ -767,7 +767,30 @@ void PanelImageView::drawRuler(QPainter &painter)
   double onePxSize           = sizeX / scaleX;
 
   double unitToShow = 500.0;
-  double rulerSize  = unitToShow / onePxSize;
+  switch(mDefaultPhysicalSize.pixelSizeUnit) {
+    case enums::Units::um:
+    case enums::Units::Undefined:
+    case enums::Units::Pixels:
+      unitToShow *= 1;
+      break;
+    case enums::Units::nm:
+      unitToShow *= 10e3;
+      break;
+    case enums::Units::mm:
+      unitToShow /= 10e3;
+      break;
+    case enums::Units::cm:
+      unitToShow /= 10e4;
+      break;
+    case enums::Units::m:
+      unitToShow /= 10e6;
+      break;
+    case enums::Units::km:
+      unitToShow /= 10e9;
+      break;
+  }
+
+  double rulerSize = unitToShow / onePxSize;
   while(rulerSize > 100) {
     if(unitToShow > 20) {
       unitToShow -= 20;
