@@ -27,7 +27,7 @@ public:
   {
   }
 
-  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
+  void execute(processor::ProcessContext &context, cv::Mat & /*image*/, atom::ObjectList &result) override
   {
     uint64_t count = mSettings.maxObjects;
 

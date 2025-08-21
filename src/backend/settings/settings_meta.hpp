@@ -42,7 +42,7 @@ struct SettingsMeta
   //
   // Base 64 encoded PNG icon
   //
-  std::string icon;
+  std::string icon = {};
 
   //
   // Revision of this pipeline
@@ -52,7 +52,7 @@ struct SettingsMeta
   //
   // Optional uuid identifying this object unique
   //
-  std::string uid;
+  std::string uid = {};
 
   //
   // Optional group
@@ -82,7 +82,7 @@ struct SettingsMeta
   //
   // Optional webpage
   //
-  std::optional<std::string> webpage;
+  std::optional<std::string> webpage = std::nullopt;
 
   //
   // Modified at date

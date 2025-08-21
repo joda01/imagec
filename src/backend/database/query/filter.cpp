@@ -189,8 +189,7 @@ std::string PreparedStatement::createStatsQuery(bool isOuter, bool excludeInvali
 ///
 std::string PreparedStatement::createStatsQueryJoins(bool isImage, JoinResults *results) const
 {
-  bool joinedDistance = false;
-  std::set<uint32_t> joindStacks;
+  std::set<int32_t> joindStacks;
   std::set<enums::ClassId> joindDistanceStacks;
   std::string joins;
   bool intersectionJoin = false;
@@ -333,6 +332,8 @@ std::string PreparedStatement::getMeasurement(enums::Measurement measure, bool t
       return "object_id";
     case enums::Measurement::DISTANCE_TO_OBJECT_ID:
       return "meas_object_id";
+    case enums::Measurement::NONE:
+      break;
   }
   if(textual) {
     return "none";

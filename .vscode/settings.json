@@ -93,7 +93,6 @@
     "files.exclude": {
         ".gitignore": false,
         ".dockerignore": true,
-        ".clang-tidy": true,
         ".clangd": true
     },
     "C_Cpp.intelliSenseEngineFallback": "disabled",

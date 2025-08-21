@@ -41,7 +41,7 @@ public:
   Dashboard(WindowResults *panelResults);
   void reset();
   void tableToQWidgetTable(const std::shared_ptr<joda::table::Table> tableIn, const std::set<std::set<enums::ClassId>> &classesWithSameTrackingId,
-                           bool isImageView);
+                           bool isImageView, const std::string &unit);
   void copyToClipboard() const;
   auto getExportables() const -> std::vector<const exporter::Exportable *>;
   void minimizeSubWindows();

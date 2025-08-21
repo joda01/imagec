@@ -36,7 +36,7 @@ private:
   /////////////////////////////////////////////////////
 
   const InputParameters &mSettings;
-  const std::string mModelPath;
+  const std::string mModelPath = {};
   static inline std::mutex mExecutionMutex;
 };
 

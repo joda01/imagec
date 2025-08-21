@@ -59,8 +59,8 @@ private:
   class ThresholdUi
   {
   public:
-    ThresholdUi(settings::ThresholdSettings::Threshold &settings, Threshold &outer, helper::TabWidget *tab, int32_t index, QWidget *parent) :
-        settings(settings), outer(outer)
+    ThresholdUi(settings::ThresholdSettings::Threshold &settingsIn, Threshold &outerIn, helper::TabWidget *tab, int32_t index, QWidget *parent) :
+        settings(settingsIn), outer(outerIn)
     {
       //
       //

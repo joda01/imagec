@@ -53,18 +53,18 @@ inline auto generateZProjection(bool withThis, QWidget *parent) -> std::unique_p
   auto zProjection =
       SettingBase::create<SettingComboBox<enums::ZProjection>>(parent, generateSvgIcon<Style::REGULAR, Color::BLUE>("stack"), "Z-Projection");
   if(withThis) {
-    zProjection->addOptions({{enums::ZProjection::$, "Default"},
-                             {enums::ZProjection::NONE, "Single channel"},
-                             {enums::ZProjection::MAX_INTENSITY, "Max. intensity"},
-                             {enums::ZProjection::MIN_INTENSITY, "Min. intensity"},
-                             {enums::ZProjection::AVG_INTENSITY, "Avg. intensity"},
-                             {enums::ZProjection::TAKE_MIDDLE, "Take middle"}});
+    zProjection->addOptions({{enums::ZProjection::$, "Default", {}},
+                             {enums::ZProjection::NONE, "Single channel", {}},
+                             {enums::ZProjection::MAX_INTENSITY, "Max. intensity", {}},
+                             {enums::ZProjection::MIN_INTENSITY, "Min. intensity", {}},
+                             {enums::ZProjection::AVG_INTENSITY, "Avg. intensity", {}},
+                             {enums::ZProjection::TAKE_MIDDLE, "Take middle", {}}});
   } else {
-    zProjection->addOptions({{enums::ZProjection::NONE, "Single channel"},
-                             {enums::ZProjection::MAX_INTENSITY, "Max. intensity"},
-                             {enums::ZProjection::MIN_INTENSITY, "Min. intensity"},
-                             {enums::ZProjection::AVG_INTENSITY, "Avg. intensity"},
-                             {enums::ZProjection::TAKE_MIDDLE, "Take middle"}});
+    zProjection->addOptions({{enums::ZProjection::NONE, "Single channel", {}},
+                             {enums::ZProjection::MAX_INTENSITY, "Max. intensity", {}},
+                             {enums::ZProjection::MIN_INTENSITY, "Min. intensity", {}},
+                             {enums::ZProjection::AVG_INTENSITY, "Avg. intensity", {}},
+                             {enums::ZProjection::TAKE_MIDDLE, "Take middle", {}}});
   }
   return zProjection;
 }
@@ -74,8 +74,8 @@ inline auto generateStackIndexCombo(bool withThis, const QString &helpText, QWid
   auto channelSpinbox = SettingBase::create<SettingSpinBox<int32_t>>(parent, {}, helpText);
   int32_t min         = withThis ? -1 : 0;
   channelSpinbox->setDefaultValue(min);
-  channelSpinbox->setMinMax(min, 65535);
-  channelSpinbox->setUnit("");
+  channelSpinbox->setMinMax(min, 65535, 0, 1);
+  channelSpinbox->setUnit("CH", enums::ObjectType::Undefined);
   channelSpinbox->setShortDescription("");
   return channelSpinbox;
 }
@@ -84,8 +84,14 @@ inline auto generateThresholdClass(const QString &helpText, QWidget *parent) -> 
 {
   auto mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, helpText);
   mGrayScaleValue->setDefaultValue(65535);
-  mGrayScaleValue->addOptions(
-      {{65535, "TH 1"}, {65534, "TH 2"}, {65533, "TH 3"}, {65532, "TH 4"}, {65530, "TH 5"}, {65529, "TH 6"}, {65528, "TH 7"}, {65527, "TH 8"}});
+  mGrayScaleValue->addOptions({{65535, "TH 1", {}},
+                               {65534, "TH 2", {}},
+                               {65533, "TH 3", {}},
+                               {65532, "TH 4", {}},
+                               {65530, "TH 5", {}},
+                               {65529, "TH 6", {}},
+                               {65528, "TH 7", {}},
+                               {65527, "TH 8", {}}});
   mGrayScaleValue->setUnit("");
   mGrayScaleValue->setShortDescription("");
 
@@ -96,8 +102,15 @@ inline auto generateAiModelClass(const QString &helpText, QWidget *parent) -> st
 {
   auto mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, helpText);
   mGrayScaleValue->setDefaultValue(0);
-  mGrayScaleValue->addOptions(
-      {{-1, "Unset"}, {0, "CL 1"}, {1, "CL 2"}, {2, "CL 3"}, {3, "CL 4"}, {4, "CL 5"}, {5, "CL 6"}, {6, "CL 7"}, {7, "CL 8"}});
+  mGrayScaleValue->addOptions({{-1, "Unset", {}},
+                               {0, "CL 1", {}},
+                               {1, "CL 2", {}},
+                               {2, "CL 3", {}},
+                               {3, "CL 4", {}},
+                               {4, "CL 5", {}},
+                               {5, "CL 6", {}},
+                               {6, "CL 7", {}},
+                               {7, "CL 8", {}}});
   mGrayScaleValue->setUnit("");
   mGrayScaleValue->setShortDescription("");
 

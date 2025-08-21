@@ -35,11 +35,11 @@ public:
     double tot    = 0;
     double sum    = 0;
     for(int i = 0; i < 256; i++) {
-      tot += histogram.at<float>(i);
-      sum += (static_cast<double>(i) * histogram.at<float>(i));
+      tot += static_cast<double>(histogram.at<float>(i));
+      sum += (static_cast<double>(i) * static_cast<double>(histogram.at<float>(i)));
     }
     threshold = static_cast<int>(std::floor(sum / tot));
-    return threshold;
+    return static_cast<uint16_t>(threshold);
   }
 };
 

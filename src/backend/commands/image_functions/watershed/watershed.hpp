@@ -36,18 +36,18 @@ public:
   {
   }
   virtual ~Watershed() = default;
-  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
+  void execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/) override
   {
     if(mSettings.maximumFinderTolerance <= 0) {
       return;
     }
-    image.convertTo(image, CV_8UC1, 1.0F / 257.0F);
+    image.convertTo(image, CV_8UC1, 1.0 / 257.0);
     auto floatEdm = joda::image::func::Edm::makeFloatEDM(image, 0, false);
     joda::image::func::MaximumFinder find;
-    auto maxIp = find.findMaxima(floatEdm, mSettings.maximumFinderTolerance, joda::image::func::MaximumFinder::NO_THRESHOLD,
+    auto maxIp = find.findMaxima(floatEdm, static_cast<double>(mSettings.maximumFinderTolerance), joda::image::func::MaximumFinder::NO_THRESHOLD,
                                  joda::image::func::MaximumFinder::SEGMENTED, false, true);
     cv::bitwise_and(maxIp, image, image);
-    image.convertTo(image, CV_16UC1, (float) UINT16_MAX / (float) UINT8_MAX);
+    image.convertTo(image, CV_16UC1, static_cast<double>(UINT16_MAX) / static_cast<double>(UINT8_MAX));
   }
 
 private:

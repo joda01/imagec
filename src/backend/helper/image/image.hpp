@@ -54,7 +54,7 @@ public:
   struct Overlay
   {
     const Image *combineWith = nullptr;
-    float opaque             = 0.3;
+    float opaque             = 0.3F;
   };
   [[nodiscard]] QPixmap getPixmap(const Overlay &) const;
 

@@ -21,36 +21,36 @@ namespace joda::settings {
 /// \param[out]
 /// \return
 ///
-std::string ResultsSettings::ColumnKey::createHeader() const
+std::string ResultsSettings::ColumnKey::createHeader(const std::string &unit) const
 {
   std::map<uint32_t, std::string> columnHeaders;
   std::string stacks = "{Z" + std::to_string(zStack) + "}";
 
-  auto createStatsHeader = [](enums::Stats stats) -> std::string {
-    if(stats != enums::Stats::OFF) {
-      return "[" + enums::toString(stats) + "]";
+  auto createStatsHeader = [](enums::Stats statsIn) -> std::string {
+    if(statsIn != enums::Stats::OFF) {
+      return "[" + enums::toString(statsIn) + "]";
     }
     return "";
   };
 
   if(getType(measureChannel) == MeasureType::INTENSITY) {
-    return names.className + "-" + toString(measureChannel) + createStatsHeader(stats) + " " + "(C" + std::to_string(crossChannelStacksC) + ")" +
-           stacks;
+    return names.className + "-" + toString(measureChannel, unit) + createStatsHeader(stats) + " " + "(C" + std::to_string(crossChannelStacksC) +
+           ")" + stacks;
   }
   if(getType(measureChannel) == MeasureType::INTERSECTION) {
     return "Nr. of " + names.intersectingName + " in " + names.className + createStatsHeader(stats) + stacks;
   }
   if(getType(measureChannel) == MeasureType::ID) {
-    return names.className + "-" + toString(measureChannel) + " " + stacks;
+    return names.className + "-" + toString(measureChannel, unit) + " " + stacks;
   }
   if(getType(measureChannel) == MeasureType::DISTANCE) {
-    return names.className + " to " + names.intersectingName + "-" + toString(measureChannel) + createStatsHeader(stats) + stacks;
+    return names.className + " to " + names.intersectingName + "-" + toString(measureChannel, unit) + createStatsHeader(stats) + stacks;
   }
   if(getType(measureChannel) == MeasureType::DISTANCE_ID) {
-    return names.className + " to " + names.intersectingName + "-" + toString(measureChannel) + stacks;
+    return names.className + " to " + names.intersectingName + "-" + toString(measureChannel, unit) + stacks;
   }
 
-  return names.className + "-" + toString(measureChannel) + createStatsHeader(stats) + stacks;
+  return names.className + "-" + toString(measureChannel, unit) + createStatsHeader(stats) + stacks;
 }
 
 ///
@@ -60,14 +60,14 @@ std::string ResultsSettings::ColumnKey::createHeader() const
 /// \param[out]
 /// \return
 ///
-std::string ResultsSettings::ColumnKey::createHtmlHeader(HeaderStyle style) const
+std::string ResultsSettings::ColumnKey::createHtmlHeader(HeaderStyle style, const std::string &unit) const
 {
   std::map<uint32_t, std::string> columnHeaders;
   std::string stacks = "{Z" + std::to_string(zStack) + "}";
 
-  auto createStatsHeader = [](enums::Stats stats) -> std::string {
-    if(stats != enums::Stats::OFF) {
-      return "[" + enums::toString(stats) + "]";
+  auto createStatsHeader = [](enums::Stats statsIn) -> std::string {
+    if(statsIn != enums::Stats::OFF) {
+      return "[" + enums::toString(statsIn) + "]";
     }
     return "";
   };
@@ -78,7 +78,8 @@ std::string ResultsSettings::ColumnKey::createHtmlHeader(HeaderStyle style) cons
   }
 
   if(getType(measureChannel) == MeasureType::INTENSITY) {
-    return className + toString(measureChannel) + " " + createStatsHeader(stats) + " " + "(C" + std::to_string(crossChannelStacksC) + ")" + stacks;
+    return className + toString(measureChannel, unit) + " " + createStatsHeader(stats) + " " + "(C" + std::to_string(crossChannelStacksC) + ")" +
+           stacks;
   }
   if(getType(measureChannel) == MeasureType::INTERSECTION) {
     if(style == HeaderStyle::FULL) {
@@ -95,16 +96,16 @@ std::string ResultsSettings::ColumnKey::createHtmlHeader(HeaderStyle style) cons
   }
 
   if(getType(measureChannel) == MeasureType::ID) {
-    return className + toString(measureChannel) + "<br>" + stacks;
+    return className + toString(measureChannel, unit) + "<br>" + stacks;
   }
   if(getType(measureChannel) == MeasureType::DISTANCE) {
-    return className + toString(measureChannel) + " to <br><b>" + names.intersectingName + "</b>" + createStatsHeader(stats) + "<br>" + stacks;
+    return className + toString(measureChannel, unit) + " to <br><b>" + names.intersectingName + "</b>" + createStatsHeader(stats) + "<br>" + stacks;
   }
   if(getType(measureChannel) == MeasureType::DISTANCE_ID) {
-    return className + " to " + names.intersectingName + "-" + toString(measureChannel) + stacks;
+    return className + " to " + names.intersectingName + "-" + toString(measureChannel, unit) + stacks;
   }
 
-  return className + toString(measureChannel) + " " + createStatsHeader(stats) + "<br>" + stacks;
+  return className + toString(measureChannel, unit) + " " + createStatsHeader(stats) + "<br>" + stacks;
 }
 
 }    // namespace joda::settings

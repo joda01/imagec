@@ -31,11 +31,11 @@ void Command::operator()(processor::ProcessContext &context, cv::Mat &image, ato
   DurationCount::stop(id);
 }
 
-void Command::preCommandStep(const processor::ProcessContext &context)
+void Command::preCommandStep(const processor::ProcessContext & /*context*/)
 {
 }
 
-void Command::postCommandStep(const processor::ProcessContext &context)
+void Command::postCommandStep(const processor::ProcessContext & /*context*/)
 {
 }
 

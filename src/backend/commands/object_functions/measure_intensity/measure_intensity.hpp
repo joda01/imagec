@@ -23,7 +23,7 @@ public:
   {
   }
 
-  void execute(processor::ProcessContext &context, cv::Mat & /*image*/, atom::ObjectList &result) override
+  void execute(processor::ProcessContext &context, cv::Mat & /*image*/, atom::ObjectList & /*result*/) override
   {
     auto &store = *context.loadObjectsFromCache();
     for(auto imageId : mSettings.planesIn) {
@@ -36,7 +36,7 @@ public:
         for(int i = 0; i < image.image.rows; ++i) {
           for(int j = 0; j < image.image.cols; ++j) {
             cv::Vec3b pixel                   = image.image.at<cv::Vec3b>(i, j);
-            uint16_t grayValue                = (((pixel[2] + pixel[1] + pixel[0]) * 65535.0) / (3 * 255.0));    // BGR format
+            uint16_t grayValue                = static_cast<uint16_t>(((pixel[2] + pixel[1] + pixel[0]) * 65535.0) / (3 * 255.0));    // BGR format
             rgbPlane.image.at<uint16_t>(i, j) = grayValue;
           }
         }

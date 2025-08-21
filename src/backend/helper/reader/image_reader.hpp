@@ -46,7 +46,8 @@ public:
 
   static cv::Mat loadThumbnail(const std::string &filename, Plane directory, uint16_t series, const joda::ome::OmeInfo &ome);
 
-  static auto getOmeInformation(const std::filesystem::path &filename, uint16_t series) -> joda::ome::OmeInfo;
+  static auto getOmeInformation(const std::filesystem::path &filename, uint16_t series, const ome::PhyiscalSize &defaultSettings)
+      -> joda::ome::OmeInfo;
   static void init(uint64_t reservedRamForVMInBytes);
   static void destroy();
 

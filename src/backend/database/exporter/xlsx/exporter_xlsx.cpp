@@ -27,7 +27,7 @@ namespace joda::exporter::xlsx {
 ///
 void Exporter::startExport(const std::vector<const Exportable *> &data, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
                            std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
-                           const std::string &outputFileName)
+                           const std::string &unit, const std::string &outputFileName)
 {
   setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
   auto workbookSettings = createWorkBook(outputFileName);
@@ -35,7 +35,7 @@ void Exporter::startExport(const std::vector<const Exportable *> &data, const se
 
   int32_t index = 1;
   for(const auto *dataToWrite : data) {
-    writeWorkSheet(workbookSettings, dataToWrite, index);
+    writeWorkSheet(workbookSettings, dataToWrite, index, unit);
     index++;
   }
   workbook_close(workbookSettings.workbook);
@@ -54,7 +54,7 @@ std::string Exporter::prepareSheetName(std::string name)
     name = name.substr(0, 28);
   }
   name.erase(std::remove_if(name.begin(), name.end(),
-                            [](char c) { return !std::isalnum(static_cast<unsigned char>(c)) && static_cast<unsigned char>(c) != ' '; }),
+                            [](char c) { return (std::isalnum(static_cast<unsigned char>(c)) == 0) && static_cast<unsigned char>(c) != ' '; }),
              name.end());
   helper::stringReplace(name, " ", "_");
   return name;
@@ -67,7 +67,7 @@ std::string Exporter::prepareSheetName(std::string name)
 /// \param[out]
 /// \return
 ///
-void Exporter::writeWorkSheet(const Exporter::WorkBook &workbookSettings, const Exportable *data, int32_t index)
+void Exporter::writeWorkSheet(const Exporter::WorkBook &workbookSettings, const Exportable *data, int32_t index, const std::string &unit)
 {
   std::string name = prepareSheetName(data->getTitle());
   name += "_" + std::to_string(index);
@@ -81,16 +81,16 @@ void Exporter::writeWorkSheet(const Exporter::WorkBook &workbookSettings, const 
   // Write table header
   //
   const auto &table = data->getTable();
-  for(int n = 0; n < table.getNrOfCols(); n++) {
-    worksheet_write_string(worksheet, 0, n + 1, table.getColHeader(n).createHeader().data(), workbookSettings.header);
+  for(uint16_t n = 0; n < table.getNrOfCols(); n++) {
+    worksheet_write_string(worksheet, 0, n + 1, table.getColHeader(n).createHeader(unit).data(), workbookSettings.header);
   }
 
-  for(int n = 0; n < table.getNrOfRows(); n++) {
+  for(uint32_t n = 0; n < table.getNrOfRows(); n++) {
     worksheet_write_string(worksheet, n + 1, 0, table.getRowHeader(n).data(), workbookSettings.header);
   }
 
-  for(int row = 0; row < table.getNrOfRows(); row++) {
-    for(int col = 0; col < table.getNrOfCols(); col++) {
+  for(uint32_t row = 0; row < table.getNrOfRows(); row++) {
+    for(uint16_t col = 0; col < table.getNrOfCols(); col++) {
       const auto &item = table.data(row, col);
       if(item == nullptr) {
         worksheet_write_blank(worksheet, row + 1, 1 + col, workbookSettings.numberFormatInvalid);
@@ -250,11 +250,11 @@ void Exporter::createAnalyzeSettings(WorkBook &workbookSettings, const settings:
 {
   auto *sheet = workbook_add_worksheet(workbookSettings.workbook, "Analyze");
 
-  worksheet_set_column_pixels(sheet, 0, 0, 200, NULL);
-  worksheet_set_column_pixels(sheet, 1, 1, 400, NULL);
+  worksheet_set_column_pixels(sheet, 0, 0, 200, nullptr);
+  worksheet_set_column_pixels(sheet, 1, 1, 400, nullptr);
 
-  int32_t rowOffset = 0;
-  auto addTitle     = [&sheet, &rowOffset, &workbookSettings](const std::string &title) {
+  uint32_t rowOffset = 0;
+  auto addTitle      = [&sheet, &rowOffset, &workbookSettings](const std::string &title) {
     rowOffset++;
     worksheet_merge_range(sheet, rowOffset, 0, rowOffset, 1, "-", workbookSettings.headerBold);
     worksheet_write_string(sheet, rowOffset, 0, title.data(), workbookSettings.headerBold);

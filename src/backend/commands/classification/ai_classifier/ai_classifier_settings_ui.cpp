@@ -31,7 +31,7 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   this->mutableEditDialog()->setMinimumHeight(600);
 
   auto *openModelsPath = addActionButton("Open models path", generateSvgIcon<Style::REGULAR, Color::BLACK>("arrow-square-out"));
-  connect(openModelsPath, &QAction::triggered, [this]() {
+  connect(openModelsPath, &QAction::triggered, []() {
     QString appDirPath = QCoreApplication::applicationDirPath() + "/models";
     QDesktopServices::openUrl(QUrl("file:///" + appDirPath));
   });
@@ -40,7 +40,7 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   connect(reloadModels, &QAction::triggered, [this]() { refreshModels(); });
 
   auto *helpButton = addActionButton("Help", generateSvgIcon<Style::REGULAR, Color::BLUE>("question"));
-  connect(helpButton, &QAction::triggered, [this]() {
+  connect(helpButton, &QAction::triggered, []() {
     QUrl url("https://imagec.org/doc/docs/commands/index.html#object-classification");
     QDesktopServices::openUrl(url);
   });
@@ -61,21 +61,20 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   //
   //
   mNumberOdModelClasses = SettingBase::create<SettingSpinBox<int32_t>>(parent, {}, "Nr. of model classes");
-  mNumberOdModelClasses->setMinMax(1, 99);
-  mNumberOdModelClasses->setUnit("");
+  mNumberOdModelClasses->setUnit("", enums::ObjectType::Undefined);
   mNumberOdModelClasses->setMinMax(1, INT32_MAX);
-  mNumberOdModelClasses->setValue(settings.modelClasses.size());
+  mNumberOdModelClasses->setValue(static_cast<int32_t>(settings.modelClasses.size()));
   mNumberOdModelClasses->connectWithSetting(&nrOfClassesTmp);
   mNumberOdModelClasses->setShortDescription("Classes:");
   mNumberOdModelClasses->setEnabled(false);
   connect(mNumberOdModelClasses.get(), &SettingBase::valueChanged, [this]() {
     // We have to add
-    while(mClassifyFilter.size() < mNumberOdModelClasses->getValue()) {
-      addFilter("Class " + std::to_string(mClassifyFilter.size()), mClassifyFilter.size(), 1);
+    while(static_cast<int32_t>(mClassifyFilter.size()) < mNumberOdModelClasses->getValue()) {
+      addFilter("Class " + std::to_string(mClassifyFilter.size()), static_cast<int32_t>(mClassifyFilter.size()), 1);
     }
     // We have to remove
-    while(mClassifyFilter.size() > mNumberOdModelClasses->getValue()) {
-      removeTab(mClassifyFilter.size());
+    while(static_cast<int32_t>(mClassifyFilter.size()) > mNumberOdModelClasses->getValue()) {
+      removeTab(static_cast<int32_t>(mClassifyFilter.size()));
     }
   });
 
@@ -139,13 +138,12 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   mModelArchitecture->connectWithSetting(&settings.modelParameter.modelArchitecture);
   mModelArchitecture->setShortDescription("Architecture:");
   connect(mModelArchitecture.get(), &SettingBase::valueChanged, [this]() {
+    mMaskThreshold->setValue(0.8F);
     if(mModelArchitecture->getValue() == joda::settings::AiClassifierSettings::ModelArchitecture::YOLO_V5) {
-      mMaskThreshold->setValue(0.8);
+      mMaskThreshold->setValue(0.8F);
     } else if(mModelArchitecture->getValue() == joda::settings::AiClassifierSettings::ModelArchitecture::U_NET ||
               mModelArchitecture->getValue() == joda::settings::AiClassifierSettings::ModelArchitecture::STAR_DIST) {
-      mMaskThreshold->setValue(0.96);
-    } else {
-      mMaskThreshold->setValue(0.8);
+      mMaskThreshold->setValue(0.96F);
     }
   });
 
@@ -190,7 +188,8 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   int32_t cnt = 1;
   for(auto &classifierSetting : settings.modelClasses) {
     auto *tab = addTab(
-        std::string("Class " + std::to_string(cnt - 1)).data(), [this, &classifierSetting] { removeObjectClass(&classifierSetting); }, false);
+        static_cast<std::string>("Class " + std::to_string(cnt - 1)).data(), [this, &classifierSetting] { removeObjectClass(&classifierSetting); },
+        false);
     mClassifyFilter.emplace_back(classifierSetting, *this, tab, cnt, parent);
     cnt++;
   }
@@ -229,7 +228,7 @@ void AiClassifier::updateModel()
       auto info = joda::ai::AiModelParser::parseResourceDescriptionFile(std::filesystem::path(mModelPath->getValue()));
       mModelDetails->setText(info.toString().data());
       mSettings.modelInputParameter = info.inputs.begin()->second;
-      updateInputFields(info.classes.size(), info.modelParameter, info.inputs.begin()->second);
+      updateInputFields(static_cast<int32_t>(info.classes.size()), info.modelParameter, info.inputs.begin()->second);
       /* removeAll();
        mNumberOdModelClasses->setValue(info.classes.size());
        int n = 0;

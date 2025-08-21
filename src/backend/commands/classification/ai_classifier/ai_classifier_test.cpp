@@ -18,7 +18,7 @@
 ///
 TEST_CASE("ai::classifier::test::nucleus", "[ai_classifier]")
 {
-  auto omeXML = joda::image::reader::ImageReader::getOmeInformation("models/nucleisegmentationboundarymodel_torchscript/sample_input_00.tif", 0);
+  auto omeXML = joda::image::reader::ImageReader::getOmeInformation("models/nucleisegmentationboundarymodel_torchscript/sample_input_00.tif", 0, {});
   auto img = joda::image::reader::ImageReader::loadEntireImage("models/nucleisegmentationboundarymodel_torchscript/sample_input_00.tif", {0, 0, 0}, 0,
                                                                0, omeXML);
 
@@ -60,7 +60,7 @@ TEST_CASE("ai::classifier::test::nucleus", "[ai_classifier]")
 
 TEST_CASE("ai::classifier::test::livecell", "[ai_classifier]")
 {
-  auto omeXML = joda::image::reader::ImageReader::getOmeInformation("models/livecellsegmentationboundarymodel_torchscript/sample_input_0.tif", 0);
+  auto omeXML = joda::image::reader::ImageReader::getOmeInformation("models/livecellsegmentationboundarymodel_torchscript/sample_input_0.tif", 0, {});
   auto img = joda::image::reader::ImageReader::loadEntireImage("models/livecellsegmentationboundarymodel_torchscript/sample_input_0.tif", {0, 0, 0},
                                                                0, 0, omeXML);
 
@@ -118,7 +118,7 @@ TEST_CASE("ai::classifier::test::livecell", "[ai_classifier]")
 TEST_CASE("ai::classifier::test::onnx", "[ai_classifier]")
 {
   std::string path = "/workspaces/imagec/build/build/output/Test ImageC v15/test folder/B2_15_5ADVMLE.vsi.vsi";
-  auto omeXML      = joda::image::reader::ImageReader::getOmeInformation(path, 0);
+  auto omeXML      = joda::image::reader::ImageReader::getOmeInformation(path, 0, {});
   auto img         = joda::image::reader::ImageReader::loadEntireImage(path, {0, 3, 0}, 0, 0, omeXML);
 
   joda::settings::AiClassifierSettings aiSets;
@@ -159,7 +159,7 @@ TEST_CASE("ai::classifier::test::onnx", "[ai_classifier]")
 TEST_CASE("ai::classifier::test::pytorch::yolo", "[ai_classifier]")
 {
   std::string path = "/workspaces/imagec/build/build/output/Test ImageC v15/test folder/B2_15_5ADVMLE.vsi.vsi";
-  auto omeXML      = joda::image::reader::ImageReader::getOmeInformation(path, 0);
+  auto omeXML      = joda::image::reader::ImageReader::getOmeInformation(path, 0, {});
   auto img         = joda::image::reader::ImageReader::loadEntireImage(path, {0, 3, 0}, 0, 0, omeXML);
 
   joda::settings::AiClassifierSettings aiSets;
@@ -200,7 +200,7 @@ TEST_CASE("ai::classifier::test::pytorch::yolo", "[ai_classifier]")
 TEST_CASE("ai::classifier::test::pytorch::cyto3", "[ai_classifier]")
 {
   std::string path = "/workspaces/imagec/tmp/imagec-test/scenarios/scenario_01/test_data_v1_full/images/full/B8_15_5ADVMLE.vsi.vsi";
-  auto omeXML      = joda::image::reader::ImageReader::getOmeInformation(path, 0);
+  auto omeXML      = joda::image::reader::ImageReader::getOmeInformation(path, 0, {});
   auto img         = joda::image::reader::ImageReader::loadEntireImage(path, {0, 3, 0}, 0, 0, omeXML);
 
   joda::settings::AiClassifierSettings aiSets;

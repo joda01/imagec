@@ -92,8 +92,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   //
   {
     mTopToolBar->addSeparator();
-    mPreviewImage = new DialogImageViewer(this, mTopToolBar);
-    mPreviewImage->setSettingsPointer(&mAnalyzeSettings);
+    mPreviewImage = new DialogImageViewer(this, &mAnalyzeSettings, mTopToolBar);
     connect(mPreviewImage, &DialogImageViewer::settingChanged, [this]() { checkForSettingsChanged(); });
   }
 
@@ -131,11 +130,11 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   // Watch for new templates added
   //
   mTemplateDirWatcher.addPath(joda::templates::TemplateParser::getUsersTemplateDirectory().string().data());    // Replace with your desired path
-  QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::fileChanged, [&](const QString &path) {
+  QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::fileChanged, [&](const QString & /*path*/) {
     mPanelPipeline->loadTemplates();
     mDialogOpenProjectTemplates->loadTemplates();
   });
-  QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::directoryChanged, [&](const QString &path) {
+  QObject::connect(&mTemplateDirWatcher, &QFileSystemWatcher::directoryChanged, [&](const QString & /*path*/) {
     mPanelPipeline->loadTemplates();
     mDialogOpenProjectTemplates->loadTemplates();
   });
@@ -189,9 +188,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   QTimer::singleShot(0, this, SLOT(onNewProjectClicked();));
 }
 
-WindowMain::~WindowMain()
-{
-}
+WindowMain::~WindowMain() = default;
 
 void WindowMain::closeEvent(QCloseEvent *event)
 {
@@ -386,7 +383,7 @@ WindowMain::AskEnum WindowMain::askForNewProject()
   QPushButton *noButton     = messageBox.addButton(tr("No"), QMessageBox::NoRole);
   QPushButton *cancelButton = messageBox.addButton(tr("Cancel"), QMessageBox::RejectRole);
   messageBox.setDefaultButton(yesButton);
-  auto reply = messageBox.exec();
+  messageBox.exec();
   if(messageBox.clickedButton() == noButton) {
     return AskEnum::no;
   }
@@ -458,6 +455,7 @@ void WindowMain::clearSettings()
   mAnalyzeSettings    = {};
   mAnalyzeSettingsOld = {};
   mAnalyzeSettings.pipelines.clear();
+  mAnalyzeSettings.pipelineSetup = {};
   mAnalyzeSettingsOld.pipelines.clear();
   mPanelProjectSettings->fromSettings({});
   mPanelClassification->fromSettings({});
@@ -532,7 +530,7 @@ void WindowMain::openResultsSettings(const QString &filePath)
     messageBox.setWindowTitle("Could not load database!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-    auto reply = messageBox.exec();
+    messageBox.exec();
   }
 }
 
@@ -565,9 +563,11 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     mPanelProjectSettings->fromSettings(analyzeSettings);
     mPanelPipeline->fromSettings(analyzeSettings);
     mPanelClassification->fromSettings(analyzeSettings.projectSettings.classification);
+    mPreviewImage->fromSettings(analyzeSettings);
 
     mAnalyzeSettings.projectSettings                = analyzeSettings.projectSettings;
     mAnalyzeSettings.projectSettings.classification = analyzeSettings.projectSettings.classification;
+    mAnalyzeSettings.pipelineSetup                  = analyzeSettings.pipelineSetup;
     mAnalyzeSettingsOld                             = mAnalyzeSettings;
 
     mPreviewImage->setImagePlane(DialogImageViewer::ImagePlaneSettings{.plane      = {.z = 0, .c = 0, .t = 0},
@@ -604,7 +604,7 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     messageBox.setWindowTitle("Could not load settings!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-    auto reply = messageBox.exec();
+    messageBox.exec();
   }
 }
 
@@ -728,7 +728,7 @@ bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
     messageBox.setWindowTitle("Could not save settings!");
     messageBox.setText("Could not save settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-    auto reply = messageBox.exec();
+    messageBox.exec();
   }
 
   return okay;
@@ -913,10 +913,10 @@ void WindowMain::onShowInfoDialog()
                                   "CPU cores: " + QString(std::to_string(joda::system::getNrOfCPUs()).data()) +
                                   "<br/>"
                                   "RAM Total: " +
-                                  QString::number((double) joda::system::getTotalSystemMemory() / 1000000.0, 'f', 2) +
+                                  QString::number(static_cast<double>(joda::system::getTotalSystemMemory()) / 1000000.0, 'f', 2) +
                                   "MB <br/>"
                                   "RAM Available: " +
-                                  QString::number((double) joda::system::getAvailableSystemMemory() / 1000000.0, 'f', 2) + " MB <br/>");
+                                  QString::number(static_cast<double>(joda::system::getAvailableSystemMemory()) / 1000000.0, 'f', 2) + " MB <br/>");
 
     labelAbout->setOpenExternalLinks(true);
     labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -1005,8 +1005,7 @@ void WindowMain::onShowInfoDialog()
     layoutAbout->setAlignment(Qt::AlignCenter);
     widgetAbout->setLayout(layoutAbout);
     tab->addTab(widgetAbout, "Log");
-    auto *labelAbout      = new QTextBrowser();
-    const auto &logBuffer = joda::log::getLogBuffer();
+    auto *labelAbout = new QTextBrowser();
     labelAbout->setHtml(joda::log::logBufferToHtml().data());
     labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     layoutAbout->addWidget(labelAbout);

@@ -22,6 +22,7 @@
 #include <string>
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/settings/program/program_meta.hpp"
+#include "backend/settings/project_settings/project_pipeline_setup.hpp"
 #include "pipeline/pipeline.hpp"
 #include "project_settings/project_settings.hpp"
 #include "results_settings/results_settings.hpp"
@@ -35,6 +36,7 @@ class AnalyzeSettings final
 public:
   ProjectSettings projectSettings;
   ProjectImageSetup imageSetup;
+  ProjectPipelineSetup pipelineSetup;
   std::list<Pipeline> pipelines;
   ProgramMeta imagecMeta;
   SettingsMeta meta;
@@ -56,6 +58,7 @@ public:
 private:
   std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings.json";
   void check() const;
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, configSchema, projectSettings, imageSetup, pipelines, imagecMeta, meta);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, configSchema, projectSettings, imageSetup, pipelineSetup, pipelines,
+                                                       imagecMeta, meta);
 };
 }    // namespace joda::settings

@@ -18,11 +18,11 @@ namespace joda::exporter::r {
 
 void Exporter::startExport(const std::vector<const Exportable *> &data, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
                            std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
-                           const std::string &outputFileName)
+                           const std::string &unit, const std::string &outputFileName)
 {
   std::string xlsxOutFile = outputFileName;
   helper::stringReplace(xlsxOutFile, ".r", ".xlsx");
-  joda::exporter::xlsx::Exporter::startExport(data, analyzeSettings, jobName, timeStarted, timeFinished, xlsxOutFile);
+  joda::exporter::xlsx::Exporter::startExport(data, analyzeSettings, jobName, timeStarted, timeFinished, unit, xlsxOutFile);
 
   std::string rScript =
       "# \n"
@@ -45,8 +45,8 @@ library(ggplot2)
 
   // Iterate over the sheets
   int32_t index = 1;
-  for(const auto *data : data) {
-    std::string name = data->getTitle();
+  for(const auto *dataIn : data) {
+    std::string name = dataIn->getTitle();
     // Max. sheet name length = 31 because of excel limitation
     if(name.size() > 28) {
       name = name.substr(0, 28);

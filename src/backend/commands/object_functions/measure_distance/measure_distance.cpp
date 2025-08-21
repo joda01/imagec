@@ -21,7 +21,7 @@ namespace joda::cmd {
 /// \param[out]
 /// \return
 ///
-void MeasureDistance::execute(processor::ProcessContext &context, cv::Mat & /*image*/, atom::ObjectList &result)
+void MeasureDistance::execute(processor::ProcessContext &context, cv::Mat & /*image*/, atom::ObjectList & /*result*/)
 {
   auto &store = *context.loadObjectsFromCache();
 

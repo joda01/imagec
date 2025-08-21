@@ -11,6 +11,7 @@
 
 #include "table.hpp"
 #include <cmath>
+#include <cstddef>
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -19,13 +20,11 @@
 
 namespace joda::table {
 
-Table::Table()
-{
-}
+Table::Table() = default;
 
 Table::Table(const std::vector<TableColumn> &input)
 {
-  for(int n = 0; n < input.size(); n++) {
+  for(size_t n = 0; n < input.size(); n++) {
     mDataColOrganized.emplace(n, input.at(n));
   }
 }
@@ -54,7 +53,7 @@ void Table::setTitle(const std::string &title)
 /// \param[out]
 /// \return
 ///
-void Table::init(int32_t cols, int32_t rows)
+void Table::init(uint32_t cols, uint32_t rows)
 {
   if(cols > 0 && rows > 0) {
     setData(rows - 1, cols - 1, {std::numeric_limits<double>::quiet_NaN(), {.isValid = false}, {}});
@@ -107,11 +106,11 @@ void Table::clear()
 /// \param[out]
 /// \return
 ///
-std::pair<double, double> Table::getMinMax(int column) const
+std::pair<double, double> Table::getMinMax(uint32_t column) const
 {
-  double min = std::numeric_limits<double>::max();
-  double max = std::numeric_limits<double>::min();
-  auto &col  = mDataColOrganized.at(column);
+  double min      = std::numeric_limits<double>::max();
+  double max      = std::numeric_limits<double>::min();
+  const auto &col = mDataColOrganized.at(column);
   for(const auto &[_, row] : col.rows) {
     if(!row->isNAN() && row->isValid()) {
       if(row->getVal() < min) {
@@ -129,14 +128,14 @@ std::pair<double, double> Table::getMinMax() const
 {
   double min = std::numeric_limits<double>::max();
   double max = std::numeric_limits<double>::min();
-  for(const auto &[_, col] : mDataColOrganized) {
-    for(const auto &[_, row] : col.rows) {
-      if(!row->isNAN() && row->isValid()) {
-        if(row->getVal() < min) {
-          min = row->getVal();
+  for(const auto &[_1, col] : mDataColOrganized) {
+    for(const auto &[_2, rowIn] : col.rows) {
+      if(!rowIn->isNAN() && rowIn->isValid()) {
+        if(rowIn->getVal() < min) {
+          min = rowIn->getVal();
         }
-        if(row->getVal() > max) {
-          max = row->getVal();
+        if(rowIn->getVal() > max) {
+          max = rowIn->getVal();
         }
       }
     }

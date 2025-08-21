@@ -99,7 +99,7 @@ public:
     mParam1 = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Max. threshold of canny edge detector");
     mParam1->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mParam1->setUnit("");
-    mParam1->setMinMax(0, INT32_MAX);
+    mParam1->setMinMax(0, std::numeric_limits<float>::max());
     mParam1->setValue(settings.circleProperties.param01);
     mParam1->connectWithSetting(&settings.circleProperties.param01);
     mParam1->setShortDescription("Min. ");
@@ -116,7 +116,7 @@ public:
         SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon<Style::REGULAR, Color::BLACK>("circle"), "Circle perfectness measure");
     mParam2->setPlaceholderText("[0 - " + QString(std::to_string(INT32_MAX).data()) + "]");
     mParam2->setUnit("");
-    mParam2->setMinMax(0, INT32_MAX);
+    mParam2->setMinMax(0, std::numeric_limits<float>::max());
     mParam2->setValue(settings.circleProperties.param02);
     mParam2->connectWithSetting(&settings.circleProperties.param02);
     mParam2->setShortDescription("Min. ");

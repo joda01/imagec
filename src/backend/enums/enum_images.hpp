@@ -27,7 +27,7 @@ struct ImageId
   //
   // Image plane to load
   //
-  joda::enums::PlaneId imagePlane;
+  joda::enums::PlaneId imagePlane = {};
 
   //
   // If a memory ID is given the image is loaded from the memory instead of using the given plane
@@ -37,8 +37,8 @@ struct ImageId
   bool operator<(const ImageId &in) const
   {
     if(memoryId == MemoryIdx::NONE) {
-      stdi::uint128_t plane1 = (imagePlane.toInt(imagePlane) << 8) | static_cast<uint8_t>(zProjection);
-      stdi::uint128_t plane2 = (in.imagePlane.toInt(in.imagePlane) << 8) | static_cast<uint8_t>(in.zProjection);
+      stdi::uint128_t plane1 = (joda::enums::PlaneId::toInt(imagePlane) << 8) | static_cast<uint8_t>(zProjection);
+      stdi::uint128_t plane2 = (joda::enums::PlaneId::toInt(in.imagePlane) << 8) | static_cast<uint8_t>(in.zProjection);
 
       return plane1 < plane2;
     }

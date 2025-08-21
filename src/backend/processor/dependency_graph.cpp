@@ -45,22 +45,23 @@ public:
     return mKey < in.mKey;
   }
 
-  operator stdi::uint128_t() const
+  explicit operator stdi::uint128_t() const
   {
     return mKey;
   }
 
-  std::string toString() const
+  [[nodiscard]] std::string toString() const
   {
     stdi::uint128_t key = mKey;
-    if(key == 0)
+    if(key == 0) {
       return "0";
+    }
 
     std::string result;
     while(key > 0) {
       // Get the last digit using modulo 10
       stdi::uint128_t digit = key % 10;
-      result                = char('0' + digit.lowRet()) + result;
+      result                = static_cast<char>('0' + digit.lowRet()) + result;
       key /= 10;
     }
 
@@ -246,7 +247,7 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
     }
 
     // Remove not needed nodes
-    for(int idx = (depGraph.size() - 1); idx >= 0; idx--) {
+    for(size_t idx = depGraph.size(); idx-- > 0;) {
       const auto *pip = depGraph.at(idx).getPipeline();
       if(!meDeps.contains(pip) && pip != calcGraphFor) {
         depGraph.erase(depGraph.begin() + idx);
@@ -263,7 +264,7 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
   // Repeat until the graph is empty
   // If there is a cycle this loop will never stop
   //
-  int32_t maxRuns = depGraph.size() * depGraph.size();
+  int32_t maxRuns = static_cast<int32_t>(depGraph.size()) * static_cast<int32_t>(depGraph.size());
   while(!depGraph.empty()) {
     //
     // Find the root nodes: Root nodes are nodes which have no dependency or only depends on itself
@@ -288,7 +289,7 @@ auto DependencyGraph::calcGraph(const joda::settings::AnalyzeSettings &settings,
     //
     // Remove the nodes from the graph
     //
-    for(int idx = (depGraph.size() - 1); idx >= 0; idx--) {
+    for(size_t idx = depGraph.size(); idx-- > 0;) {
       if(toRemove.contains(depGraph.at(idx).getPipeline())) {
         depGraph.erase(depGraph.begin() + idx);
       }

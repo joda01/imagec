@@ -51,10 +51,12 @@ void Blur::filter3x3(cv::Mat &image, joda::settings::BlurSettings::Mode type, in
     k7 = kernel[6];
     k8 = kernel[7];
     k9 = kernel[8];
-    for(int i = 0; i < kernelArraySize; i++)
+    for(int i = 0; i < kernelArraySize; i++) {
       scale += kernel[i];
-    if(scale == 0)
+    }
+    if(scale == 0) {
       scale = 1;
+    }
   }
   int roiX      = 0;
   int roiY      = 0;
@@ -71,17 +73,17 @@ void Blur::filter3x3(cv::Mat &image, joda::settings::BlurSettings::Mode type, in
     int p6 = p - (roiX > 0 ? 1 : 0);               // will point to v6, currently lower
     int p3 = p6 - (y > 0 ? width : 0);             // will point to v3, currently lower
     int p9 = p6 + (y < height - 1 ? width : 0);    // ...  to v9, currently lower
-    v2     = imageCopy.at<unsigned short>(p3) & 0xffff;
-    v5     = imageCopy.at<unsigned short>(p6) & 0xffff;
-    v8     = imageCopy.at<unsigned short>(p9) & 0xffff;
+    v2     = imageCopy.at<uint16_t>(p3) & 0xffff;
+    v5     = imageCopy.at<uint16_t>(p6) & 0xffff;
+    v8     = imageCopy.at<uint16_t>(p9) & 0xffff;
     if(roiX > 0) {
       p3++;
       p6++;
       p9++;
     }
-    v3 = imageCopy.at<unsigned short>(p3) & 0xffff;
-    v6 = imageCopy.at<unsigned short>(p6) & 0xffff;
-    v9 = imageCopy.at<unsigned short>(p9) & 0xffff;
+    v3 = imageCopy.at<uint16_t>(p3) & 0xffff;
+    v6 = imageCopy.at<uint16_t>(p6) & 0xffff;
+    v9 = imageCopy.at<uint16_t>(p9) & 0xffff;
 
     switch(type) {
       case joda::settings::BlurSettings::Mode::GAUSSIAN:
@@ -92,16 +94,16 @@ void Blur::filter3x3(cv::Mat &image, joda::settings::BlurSettings::Mode type, in
             p6++;
             p9++;
           }
-          v1                          = v2;
-          v2                          = v3;
-          v3                          = imageCopy.at<unsigned short>(p3) & 0xffff;
-          v4                          = v5;
-          v5                          = v6;
-          v6                          = imageCopy.at<unsigned short>(p6) & 0xffff;
-          v7                          = v8;
-          v8                          = v9;
-          v9                          = imageCopy.at<unsigned short>(p9) & 0xffff;
-          image.at<unsigned short>(p) = (unsigned short) ((v1 + v2 + v3 + v4 + v5 + v6 + v7 + v8 + v9 + 4) / 9);
+          v1                    = v2;
+          v2                    = v3;
+          v3                    = imageCopy.at<uint16_t>(p3) & 0xffff;
+          v4                    = v5;
+          v5                    = v6;
+          v6                    = imageCopy.at<uint16_t>(p6) & 0xffff;
+          v7                    = v8;
+          v8                    = v9;
+          v9                    = imageCopy.at<uint16_t>(p9) & 0xffff;
+          image.at<uint16_t>(p) = static_cast<uint16_t>((v1 + v2 + v3 + v4 + v5 + v6 + v7 + v8 + v9 + 4) / 9);
         }
         break;
       case joda::settings::BlurSettings::Mode::FIND_EDGES:
@@ -113,19 +115,20 @@ void Blur::filter3x3(cv::Mat &image, joda::settings::BlurSettings::Mode type, in
           }
           v1            = v2;
           v2            = v3;
-          v3            = imageCopy.at<unsigned short>(p3) & 0xffff;
+          v3            = imageCopy.at<uint16_t>(p3) & 0xffff;
           v4            = v5;
           v5            = v6;
-          v6            = imageCopy.at<unsigned short>(p6) & 0xffff;
+          v6            = imageCopy.at<uint16_t>(p6) & 0xffff;
           v7            = v8;
           v8            = v9;
-          v9            = imageCopy.at<unsigned short>(p9) & 0xffff;
+          v9            = imageCopy.at<uint16_t>(p9) & 0xffff;
           double sum1   = v1 + 2 * v2 + v3 - v7 - 2 * v8 - v9;
           double sum2   = v1 + 2 * v4 + v7 - v3 - 2 * v6 - v9;
           double result = std::sqrt(sum1 * sum1 + sum2 * sum2);
-          if(result > 65535.0)
+          if(result > 65535.0) {
             result = 65535.0;
-          image.at<unsigned short>(p) = (short) result;
+          }
+          image.at<uint16_t>(p) = static_cast<uint16_t>(result);    // short
         }
         break;
       case joda::settings::BlurSettings::Mode::CONVOLVE:
@@ -137,20 +140,22 @@ void Blur::filter3x3(cv::Mat &image, joda::settings::BlurSettings::Mode type, in
           }
           v1      = v2;
           v2      = v3;
-          v3      = imageCopy.at<unsigned short>(p3) & 0xffff;
+          v3      = imageCopy.at<uint16_t>(p3) & 0xffff;
           v4      = v5;
           v5      = v6;
-          v6      = imageCopy.at<unsigned short>(p6) & 0xffff;
+          v6      = imageCopy.at<uint16_t>(p6) & 0xffff;
           v7      = v8;
           v8      = v9;
-          v9      = imageCopy.at<unsigned short>(p9) & 0xffff;
+          v9      = imageCopy.at<uint16_t>(p9) & 0xffff;
           int sum = k1 * v1 + k2 * v2 + k3 * v3 + k4 * v4 + k5 * v5 + k6 * v6 + k7 * v7 + k8 * v8 + k9 * v9;
           sum     = (sum + scale / 2) / scale;    // scale/2 for rounding
-          if(sum > 65535)
+          if(sum > 65535) {
             sum = 65535;
-          if(sum < 0)
+          }
+          if(sum < 0) {
             sum = 0;
-          image.at<unsigned short>(p) = (short) sum;
+          }
+          image.at<uint16_t>(p) = static_cast<uint16_t>(sum);
         }
         break;
     }

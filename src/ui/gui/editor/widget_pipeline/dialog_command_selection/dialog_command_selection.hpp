@@ -74,7 +74,7 @@ private:
   };
 
   /////////////////////////////////////////////////////
-  void addNewCommand(int commandListIdx);
+  void addNewCommand(size_t commandListIdx);
   void addTitleToTable(const std::string &title, Group group);
   void addCommandsToTable();
   int addCommandToTable(const settings::PipelineStep &step, Group group);
@@ -86,8 +86,8 @@ private:
   QLineEdit *mSearch = nullptr;
   QTableWidget *mCommands;
   std::vector<CommandListEntry> mCommandList;
-  std::map<int32_t, int32_t> mCommandIndexMap;    // Key is the array index of the command in the mCommandList vector, value the index in the table
-  std::map<Group, int32_t> mTitleINdex;           // Key is the group ID, value the index in the table
+  std::map<size_t, int32_t> mCommandIndexMap;    // Key is the array index of the command in the mCommandList vector, value the index in the table
+  std::map<Group, int32_t> mTitleINdex;          // Key is the group ID, value the index in the table
 
   WindowMain *mParent;
   const settings::PipelineStep *mPipelineStepBefore = nullptr;

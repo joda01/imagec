@@ -133,7 +133,7 @@ PanelGraphSettings::PanelGraphSettings(QWidget *parent) : QDockWidget(parent)
       mDensityMapSize->addItem("4000", 4000);
       mDensityMapSize->addItem(std::to_string(4096).data(), 4096);
       mDensityMapSize->setCurrentIndex(mDensityMapSize->count() - 1);
-      connect(mDensityMapSize, &QComboBox::currentIndexChanged, [this](int32_t index) { emit settingsChanged(); });
+      connect(mDensityMapSize, &QComboBox::currentIndexChanged, [this](int32_t /*index*/) { emit settingsChanged(); });
       formLayout->addRow("Density map size", mDensityMapSize);
     }
     addSeparator();
@@ -224,7 +224,7 @@ PanelGraphSettings::PanelGraphSettings(QWidget *parent) : QDockWidget(parent)
           mColorMaps->setCurrentIndex(mColorMaps->count() - 1);
         }
       }
-      connect(mColorMaps, &QComboBox::currentIndexChanged, [this](int32_t index) { emit settingsChanged(); });
+      connect(mColorMaps, &QComboBox::currentIndexChanged, [this](int32_t /*index*/) { emit settingsChanged(); });
       formLayout->addRow("Colormap", mColorMaps);
 
       //
@@ -233,7 +233,7 @@ PanelGraphSettings::PanelGraphSettings(QWidget *parent) : QDockWidget(parent)
       mColormapRangeSettings = new QComboBox();
       mColormapRangeSettings->addItem("Automatic", static_cast<int>(joda::plot::ColorMappingMode::AUTO));
       mColormapRangeSettings->addItem("Manual", static_cast<int>(joda::plot::ColorMappingMode::MANUAL));
-      connect(mColormapRangeSettings, &QComboBox::currentIndexChanged, [this](int32_t index) {
+      connect(mColormapRangeSettings, &QComboBox::currentIndexChanged, [this](int32_t /*index*/) {
         if(getColorMapRangeSetting() == joda::plot::ColorMappingMode::AUTO) {
           mColorMapMinValue->setEnabled(false);
           mColorMapMaxValue->setEnabled(false);
@@ -370,7 +370,8 @@ auto PanelGraphSettings::getColorMapRangeSetting() const -> joda::plot::ColorMap
 /// \param[out]
 /// \return
 ///
-void PanelGraphSettings::setColumns(const std::map<joda::settings::ResultsSettings::ColumnIdx, joda::settings::ResultsSettings::ColumnKey> &columns)
+void PanelGraphSettings::setColumns(const std::map<joda::settings::ResultsSettings::ColumnIdx, joda::settings::ResultsSettings::ColumnKey> &columns,
+                                    const std::string &unit)
 {
   //
   // Update heatmap column selector
@@ -379,7 +380,7 @@ void PanelGraphSettings::setColumns(const std::map<joda::settings::ResultsSettin
   auto actData = mColumn->currentData();
   mColumn->clear();
   for(const auto &[key, value] : columns) {
-    QString headerText = value.createHeader().data();
+    QString headerText = value.createHeader(unit).data();
     mColumn->addItem(headerText, key.colIdx);
   }
   auto idx = mColumn->findData(actData);

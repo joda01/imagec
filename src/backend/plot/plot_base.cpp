@@ -215,8 +215,9 @@ cv::Mat PlotBase::buildColorLUT(ColormapName colorMap)
   }
 
   cv::Mat lut(1, 256, CV_8UC1);    // grayscale ramp 0..255
-  for(int i = 0; i < 256; ++i)
+  for(int i = 0; i < 256; ++i) {
     lut.at<uchar>(0, i) = static_cast<uchar>(i);
+  }
 
   cv::Mat colorLUT;
   cv::applyColorMap(lut, colorLUT, colormapType);    // Apply chosen OpenCV colormap
@@ -241,7 +242,7 @@ cv::Vec3b PlotBase::mapValueToColor(double value, double vmin, double vmax, cons
   if(vmax - vmin == 0) {
     return {255, 255, 255};
   }
-  int idx = static_cast<int>(255.0f * (clamped - vmin) / (vmax - vmin));
+  int idx = static_cast<int>(255.0 * (clamped - vmin) / (vmax - vmin));
   if(colorLUT.cols > idx) {
     return colorLUT.at<cv::Vec3b>(0, idx);    // Return BGR color
   }

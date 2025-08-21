@@ -17,6 +17,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <variant>
 #include <vector>
 #include "backend/database/exporter/exportable.hpp"
@@ -44,7 +45,7 @@ public:
     uint32_t tStack             = 0;
     uint32_t zStack             = 0;
     uint32_t cStack             = 0;
-    std::string rowName;
+    std::string rowName         = {};
   };
 
   struct Grouping
@@ -70,9 +71,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  TableCell()
-  {
-  }
+  TableCell() = default;
 
   TableCell(const TableCell &other)
   {
@@ -82,7 +81,7 @@ public:
     mFormatting = other.mFormatting;
   }
 
-  TableCell(const std::shared_ptr<const TableCell> &other)
+  explicit TableCell(const std::shared_ptr<const TableCell> &other)
   {
     value       = other->value;
     mMetaData   = other->mMetaData;
@@ -90,7 +89,7 @@ public:
     mFormatting = other->mFormatting;
   }
 
-  TableCell(double val, const MetaData &meta, const Grouping &grouping) : value(val), mMetaData(meta), mGrouping(grouping)
+  TableCell(double val, MetaData meta, const Grouping &grouping) : value(val), mMetaData(std::move(meta)), mGrouping(grouping)
   {
   }
 
@@ -160,27 +159,27 @@ public:
     return std::isnan(value) || std::isinf(value);
   }
 
-  uint32_t getPosX() const
+  [[nodiscard]] uint32_t getPosX() const
   {
     return mGrouping.posX;
   }
 
-  uint32_t getPosY() const
+  [[nodiscard]] uint32_t getPosY() const
   {
     return mGrouping.posY;
   }
 
-  uint64_t getGroupId() const
+  [[nodiscard]] uint64_t getGroupId() const
   {
     return mGrouping.groupIdx;
   }
 
-  uint32_t getStackT() const
+  [[nodiscard]] uint32_t getStackT() const
   {
     return mMetaData.tStack;
   }
 
-  const std::string &getRowName() const
+  [[nodiscard]] const std::string &getRowName() const
   {
     return mMetaData.rowName;
   }
@@ -210,7 +209,7 @@ public:
     mFormatting.isTrackingId = enable;
   }
 
-  auto getFormatting() const -> const Formating &
+  [[nodiscard]] auto getFormatting() const -> const Formating &
   {
     return mFormatting;
   }
@@ -247,11 +246,11 @@ public:
   void setColHeader(uint32_t colIdx, const settings::ResultsSettings::ColumnKey &data);
 
   Table();
-  Table(const std::vector<TableColumn> &);
+  explicit Table(const std::vector<TableColumn> &);
   void setTitle(const std::string &title);
-  void init(int32_t cols, int32_t rows);
+  void init(uint32_t cols, uint32_t rows);
 
-  auto columns() const -> const entry_t &
+  [[nodiscard]] auto columns() const -> const entry_t &
   {
     return mDataColOrganized;
   }
@@ -295,18 +294,18 @@ public:
         }
       }
     }
-    return nr;
+    return static_cast<uint32_t>(nr);
   }
 
-  [[nodiscard]] uint32_t getNrOfCols() const
+  [[nodiscard]] uint16_t getNrOfCols() const
   {
     if(mDataColOrganized.empty()) {
       return 0;
     }
-    return std::prev(mDataColOrganized.end())->first + 1;
+    return static_cast<uint16_t>(std::prev(mDataColOrganized.end())->first + 1);
   }
 
-  const settings::ResultsSettings::ColumnKey &getColHeader(int32_t col) const
+  [[nodiscard]] const settings::ResultsSettings::ColumnKey &getColHeader(uint32_t col) const
   {
     if(!mDataColOrganized.contains(col)) {
       static settings::ResultsSettings::ColumnKey ret;
@@ -315,7 +314,7 @@ public:
     return mDataColOrganized.at(col).colSettings;
   }
 
-  const std::string &getColHeaderTitle(int32_t col) const
+  [[nodiscard]] const std::string &getColHeaderTitle(uint32_t col) const
   {
     if(!mDataColOrganized.contains(col)) {
       static std::string ret;
@@ -324,7 +323,7 @@ public:
     return mDataColOrganized.at(col).title;
   }
 
-  const std::string &getRowHeader(int32_t row) const
+  [[nodiscard]] const std::string &getRowHeader(uint32_t row) const
   {
     static std::string ret;
     if(mDataColOrganized.empty()) {
@@ -351,8 +350,8 @@ public:
 
   void clear();
   void arrangeByTrackingId();
-  std::pair<double, double> getMinMax(int column) const;
-  std::pair<double, double> getMinMax() const;
+  [[nodiscard]] std::pair<double, double> getMinMax(uint32_t column) const;
+  [[nodiscard]] std::pair<double, double> getMinMax() const;
 
 private:
   /////////////////////////////////////////////////////

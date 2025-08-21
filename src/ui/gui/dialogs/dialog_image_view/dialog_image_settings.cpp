@@ -13,10 +13,13 @@
 
 #include "dialog_image_settings.hpp"
 #include <qboxlayout.h>
+#include <qcombobox.h>
 #include <qlabel.h>
+#include <qlineedit.h>
 #include <qpushbutton.h>
 #include <qslider.h>
 #include <qtoolbar.h>
+#include "backend/enums/enums_units.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/iconless_dialog_button_box.hpp"
 #include "panel_histogram.hpp"
@@ -31,7 +34,8 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-DialogImageSettings::DialogImageSettings(Settings *settings, QWidget *parent) : QDialog(parent), mSettings(settings)
+DialogImageSettings::DialogImageSettings(Settings *settings, QWidget *parent, const ome::OmeInfo &omeInfo) :
+    QDialog(parent), mSettings(settings), mOmeInfo(omeInfo)
 {
   setWindowTitle("Image settings");
   setMinimumWidth(400);
@@ -48,11 +52,11 @@ DialogImageSettings::DialogImageSettings(Settings *settings, QWidget *parent) : 
   // Z-Projection
   //
   mZprojection = new QComboBox();
-  mZprojection->addItem("None", (int32_t) enums::ZProjection::NONE);
-  mZprojection->addItem("Max. intensity", (int32_t) enums::ZProjection::MAX_INTENSITY);
-  mZprojection->addItem("Min. intensity", (int32_t) enums::ZProjection::MIN_INTENSITY);
-  mZprojection->addItem("Avg. intensity", (int32_t) enums::ZProjection::AVG_INTENSITY);
-  mZprojection->addItem("Take middle", (int32_t) enums::ZProjection::TAKE_MIDDLE);
+  mZprojection->addItem("None", static_cast<int32_t>(enums::ZProjection::NONE));
+  mZprojection->addItem("Max. intensity", static_cast<int32_t>(enums::ZProjection::MAX_INTENSITY));
+  mZprojection->addItem("Min. intensity", static_cast<int32_t>(enums::ZProjection::MIN_INTENSITY));
+  mZprojection->addItem("Avg. intensity", static_cast<int32_t>(enums::ZProjection::AVG_INTENSITY));
+  mZprojection->addItem("Take middle", static_cast<int32_t>(enums::ZProjection::TAKE_MIDDLE));
   formLayout->addRow("z-projection", mZprojection);
 
   //
@@ -76,12 +80,61 @@ DialogImageSettings::DialogImageSettings(Settings *settings, QWidget *parent) : 
   formLayout->addRow("Tile size", mTileSize);
   mTileSize->setCurrentIndex(1);
 
+  addSeparator();
+
+  //
+  // Pixel sizes
+  //
+  auto *physicalSize = new QHBoxLayout();
+  mPixelSizeMode     = new QComboBox();
+  mPixelSizeMode->addItem("Automatic", 0);
+  mPixelSizeMode->addItem("Manual", 1);
+  mUnit = new QComboBox();
+  mUnit->addItem("Px", static_cast<int32_t>(enums::Units::Pixels));
+  mUnit->addItem("nm", static_cast<int32_t>(enums::Units::nm));
+  mUnit->addItem("µm", static_cast<int32_t>(enums::Units::um));
+  mUnit->addItem("mm", static_cast<int32_t>(enums::Units::mm));
+  mUnit->addItem("cm", static_cast<int32_t>(enums::Units::cm));
+  mUnit->addItem("m", static_cast<int32_t>(enums::Units::m));
+  mUnit->addItem("km", static_cast<int32_t>(enums::Units::km));
+  physicalSize->addWidget(mPixelSizeMode);
+  physicalSize->addWidget(mUnit);
+
+  formLayout->addRow("Pixel size mode", physicalSize);
+
+  mPixelWidth = new QLineEdit("0");
+  mPixelWidth->setEnabled(false);
+  formLayout->addRow("Pixel width", mPixelWidth);
+
+  mPixelHeight = new QLineEdit("0");
+  mPixelHeight->setEnabled(false);
+  formLayout->addRow("Pixel height", mPixelHeight);
+
+  connect(mPixelSizeMode, &QComboBox::currentIndexChanged, [&](int /*index*/) {
+    if(mPixelSizeMode->currentData().toInt() == 0) {
+      // Automatic
+      mPixelWidth->setEnabled(false);
+      mPixelHeight->setEnabled(false);
+      setFromOme(mOmeInfo, mSeries->currentData().toInt(), static_cast<enums::Units>(mUnit->currentData().toInt()));
+    } else {
+      // Manual
+      mPixelWidth->setEnabled(true);
+      mPixelHeight->setEnabled(true);
+    }
+  });
+
+  connect(mUnit, &QComboBox::currentIndexChanged, [&](int /*index*/) {
+    if(mPixelSizeMode->currentData().toInt() == 0) {
+      setFromOme(mOmeInfo, mSeries->currentData().toInt(), static_cast<enums::Units>(mUnit->currentData().toInt()));
+    }
+  });
+
   //
   // Assign data
   //
-  fromSettings();
+  fromSettings(omeInfo);
 
-  // Okay and canlce
+  // Okay and cancel
   auto *buttonBox = new IconlessDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
   connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
   connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
@@ -97,9 +150,27 @@ DialogImageSettings::DialogImageSettings(Settings *settings, QWidget *parent) : 
 /// \param[out]
 /// \return
 ///
-void DialogImageSettings::fromSettings()
+void DialogImageSettings::setFromOme(const ome::OmeInfo &omeInfo, int32_t imgSeries, enums::Units unit)
 {
-  int idx = mZprojection->findData((int32_t) mSettings->zProjection);
+  const auto &physk          = omeInfo.getPhyiscalSize(imgSeries, true);
+  auto [sizeX, sizeY, sizeZ] = physk.getPixelSize(unit);
+  mPixelWidth->setText(QString::number(sizeX, 'g', 10));
+  mPixelHeight->setText(QString::number(sizeY, 'g', 10));
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogImageSettings::fromSettings(const ome::OmeInfo &omeInfo)
+{
+  if(mSettings == nullptr) {
+    return;
+  }
+  int idx = mZprojection->findData(static_cast<int32_t>(mSettings->zProjection));
   if(idx != -1) {
     mZprojection->setCurrentIndex(idx);
   }
@@ -113,6 +184,20 @@ void DialogImageSettings::fromSettings()
   if(idx != -1) {
     mTileSize->setCurrentIndex(idx);
   }
+
+  idx = mUnit->findData(static_cast<int32_t>(mSettings->pixelSizeUnit));
+  if(idx != -1) {
+    mUnit->setCurrentIndex(idx);
+  }
+
+  if(mSettings->sizeMode == enums::PhysicalSizeMode::Automatic) {
+    mPixelSizeMode->setCurrentIndex(0);
+    setFromOme(omeInfo, mSettings->imageSeries, mSettings->pixelSizeUnit);
+  } else {
+    mPixelSizeMode->setCurrentIndex(1);
+    mPixelWidth->setText(QString::number(static_cast<double>(mSettings->pixelWidth), 'g', 10));
+    mPixelHeight->setText(QString::number(static_cast<double>(mSettings->pixelHeight), 'g', 10));
+  }
 }
 ///
 /// \brief
@@ -123,9 +208,26 @@ void DialogImageSettings::fromSettings()
 ///
 void DialogImageSettings::accept()
 {
-  mSettings->zProjection = static_cast<enums::ZProjection>(mZprojection->currentData().toInt());
-  mSettings->imageSeries = mSeries->currentData().toInt();
-  mSettings->tileWidth   = mTileSize->currentData().toInt();
+  if(mSettings == nullptr) {
+    return;
+  }
+  mSettings->zProjection   = static_cast<enums::ZProjection>(mZprojection->currentData().toInt());
+  mSettings->imageSeries   = mSeries->currentData().toInt();
+  mSettings->tileWidth     = mTileSize->currentData().toInt();
+  mSettings->pixelSizeUnit = static_cast<enums::Units>(mUnit->currentData().toInt());
+
+  if(0 == mPixelSizeMode->currentData().toInt()) {
+    // Automatic mode
+    mSettings->pixelWidth  = 0;
+    mSettings->pixelHeight = 0;
+    mSettings->sizeMode    = enums::PhysicalSizeMode::Automatic;
+  } else {
+    // Manual mode
+    mSettings->pixelWidth  = mPixelWidth->text().toFloat();
+    mSettings->pixelHeight = mPixelHeight->text().toFloat();
+    mSettings->sizeMode    = enums::PhysicalSizeMode::Manual;
+  }
+
   QDialog::accept();
 }
 

@@ -64,7 +64,7 @@ struct ImageMathSettings : public SettingBase
   //
   // Objects to calc the intersection with
   //
-  enums::ImageId inputImageSecond = {enums::ZProjection::$, {-1, -1, -1}};
+  enums::ImageId inputImageSecond = {enums::ZProjection::$, joda::enums::PlaneId{-1, -1, -1}, enums::MemoryIdx::NONE};
 
   //
   //

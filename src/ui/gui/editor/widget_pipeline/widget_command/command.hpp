@@ -19,6 +19,7 @@
 #include <qicon.h>
 #include <qnamespace.h>
 #include <qwidget.h>
+#include <cstddef>
 #include <memory>
 #include <thread>
 #include <vector>
@@ -53,7 +54,7 @@ struct InOut
 class WrapLabel : public QLabel
 {
 public:
-  WrapLabel(InOut inout);
+  explicit WrapLabel(InOut inout);
   void resizeEvent(QResizeEvent *event) override;
 
 private:
@@ -112,24 +113,24 @@ public:
 
   void removeSetting(const std::set<SettingBase *> &toRemove)
   {
-    for(int m = mSettings.size() - 1; m >= 0; m--) {
+    for(size_t m = mSettings.size(); m-- > 0;) {
       if(toRemove.contains(std::get<0>(mSettings[m]))) {
-        mSettings.erase(mSettings.begin() + m);
+        mSettings.erase((mSettings.begin() + static_cast<int64_t>(m)));
       }
     }
   }
 
-  auto getDisplayWidget() const -> const QWidget *
+  [[nodiscard]] auto getDisplayWidget() const -> const QWidget *
   {
     return this;
   }
 
-  auto getEditWidget() const -> const QWidget *
+  [[nodiscard]] auto getEditWidget() const -> const QWidget *
   {
     return &mEditView;
   }
 
-  auto mutableEditDialog() const -> QWidget *
+  [[nodiscard]] auto mutableEditDialog() const -> QWidget *
   {
     return mEditDialog;
   }
@@ -155,24 +156,30 @@ public:
     return mLayout.addActionButton(text, icon);
   }
 
-  const QString &getTitle() const
+  [[nodiscard]] const QString &getTitle() const
   {
     return mTitle;
   }
 
-  const std::vector<std::string> &getTags() const
+  [[nodiscard]] const std::vector<std::string> &getTags() const
   {
     return mTags;
   }
 
-  const QString &getDescription() const
+  [[nodiscard]] const QString &getDescription() const
   {
     return mDescription;
   }
 
-  const QIcon &getIcon() const
+  [[nodiscard]] const QIcon &getIcon() const
   {
     return mIcon;
+  }
+  void updateSettingsUnit()
+  {
+    for(auto &setting : mSettings) {
+      std::get<0>(setting)->changeUnit();
+    }
   }
 
 signals:
@@ -220,9 +227,9 @@ protected:
     return mBreakpoint->isChecked();
   }
 
-  InOuts getOut() const;
+  [[nodiscard]] InOuts getOut() const;
 
-  std::shared_ptr<Command> getCommandBefore() const
+  [[nodiscard]] std::shared_ptr<Command> getCommandBefore() const
   {
     return mCommandBefore;
   }

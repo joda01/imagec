@@ -11,6 +11,7 @@
 
 #include "random_forest.hpp"
 #include <opencv2/core/hal/interface.h>
+#include "backend/enums/enums_units.hpp"
 #include <opencv2/ml.hpp>
 
 namespace joda::cmd {
@@ -33,7 +34,7 @@ RandomForest::RandomForest(const settings::RandomForestSettings &settings) : mSe
 /// \param[out]
 /// \return
 ///
-void RandomForest::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result)
+void RandomForest::execute(processor::ProcessContext & /*context*/, cv::Mat & /*image*/, atom::ObjectList & /*result*/)
 {
 }
 
@@ -55,7 +56,8 @@ void RandomForest::prepareTrainingDataFromROI(const cv::Mat &image, const std::u
     const cv::Mat mask = roi.getMask();
     const auto bbox    = roi.getBoundingBoxTile();
 
-    cv::Mat gradMag, gradAngle;
+    cv::Mat gradMag;
+    cv::Mat gradAngle;
     roi.calcGradients(image, gradMag, gradAngle);
     auto roiIntensity = roi.calcIntensity(image);
 
@@ -77,7 +79,7 @@ void RandomForest::prepareTrainingDataFromROI(const cv::Mat &image, const std::u
             static_cast<float>(img_x),
             static_cast<float>(img_y),
             static_cast<float>(roi.getCircularity()),
-            static_cast<float>(roi.getAreaSize()),
+            static_cast<float>(roi.getAreaSize(ome::PhyiscalSize::Pixels(), enums::Units::Pixels)),    /// \todo
             static_cast<float>(roiIntensity.intensitySum),
             static_cast<float>(roiIntensity.intensityMax),
             static_cast<float>(roiIntensity.intensityMin),
@@ -91,8 +93,9 @@ void RandomForest::prepareTrainingDataFromROI(const cv::Mat &image, const std::u
     }
   }
 
-  if(tempFeatures.empty())
+  if(tempFeatures.empty()) {
     return;
+  }
 
   featureLength  = static_cast<int>(tempFeatures[0].size());
   int numSamples = static_cast<int>(tempFeatures.size());

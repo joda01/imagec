@@ -136,7 +136,7 @@ auto AiModelCyto3::processPrediction(const at::Device &device, const cv::Mat &in
 std::vector<AiModel::Result> extractObjectMasksAndBoundingBoxes(const cv::Mat &labelImage, const std::set<int> &labels)
 {
   CV_Assert(labelImage.type() == CV_32S || labelImage.type() == CV_8U);
-  auto idx = DurationCount::start("Extract objects");
+  auto cId = DurationCount::start("Extract objects");
 
   const int rows = labelImage.rows;
   const int cols = labelImage.cols;
@@ -172,25 +172,26 @@ std::vector<AiModel::Result> extractObjectMasksAndBoundingBoxes(const cv::Mat &l
 
     // Shift contours relative to top-left of bbox
     std::vector<std::vector<cv::Point>> adjustedContours;
-    int32_t maxContourIdx = 0;
-    int32_t conoutrSize   = 0;
-    int32_t idx           = 0;
+    size_t maxContourIdx = 0;
+    size_t conoutrSize   = 0;
+    size_t idxId         = 0;
     for(const auto &contour : contours) {
       std::vector<cv::Point> shifted;
       if(contour.size() > conoutrSize) {
-        maxContourIdx = idx;
+        maxContourIdx = idxId;
         conoutrSize   = contour.size();
       }
+      shifted.reserve(contour.size());
       for(const auto &pt : contour) {
         shifted.emplace_back(pt.x - bbox.x, pt.y - bbox.y);
       }
       adjustedContours.push_back(shifted);
-      idx++;
+      idxId++;
     }
 
     result.push_back(AiModel::Result{.boundingBox = bbox, .mask = croppedMask, .contour = adjustedContours.at(maxContourIdx), .classId = 0});
   }
-  DurationCount::stop(idx);
+  DurationCount::stop(cId);
   return result;
 }
 
@@ -230,15 +231,15 @@ std::pair<cv::Mat, std::set<int>> followFlowFieldCuda(const at::Device &device, 
   auto *d_mask  = mask_tensor.data_ptr<float>();
   float *d_outX;
   float *d_outY;
-  cudaMalloc(&d_outX, sizeof(float) * width * height);
-  cudaMalloc(&d_outY, sizeof(float) * width * height);
-  cudaFlowIterationKernel(d_flowX, d_flowY, d_mask, width, height, stepSize, numSteps, 0.0001f, d_outX, d_outY, maskThreshold);
+  cudaMalloc(&d_outX, sizeof(float) * static_cast<uint64_t>(width) * static_cast<uint64_t>(height));
+  cudaMalloc(&d_outY, sizeof(float) * static_cast<uint64_t>(width) * static_cast<uint64_t>(height));
+  cudaFlowIterationKernel(d_flowX, d_flowY, d_mask, width, height, static_cast<float>(stepSize), numSteps, 0.0001F, d_outX, d_outY, maskThreshold);
 
   // Copy result back to CPU if needed
-  std::vector<float> h_outX(width * height);
-  std::vector<float> h_outY(width * height);
-  cudaMemcpy(h_outX.data(), d_outX, sizeof(float) * width * height, cudaMemcpyDeviceToHost);
-  cudaMemcpy(h_outY.data(), d_outY, sizeof(float) * width * height, cudaMemcpyDeviceToHost);
+  std::vector<float> h_outX(static_cast<uint64_t>(width) * static_cast<uint64_t>(height));
+  std::vector<float> h_outY(static_cast<uint64_t>(width) * static_cast<uint64_t>(height));
+  cudaMemcpy(h_outX.data(), d_outX, sizeof(float) * static_cast<uint64_t>(width) * static_cast<uint64_t>(height), cudaMemcpyDeviceToHost);
+  cudaMemcpy(h_outY.data(), d_outY, sizeof(float) * static_cast<uint64_t>(width) * static_cast<uint64_t>(height), cudaMemcpyDeviceToHost);
 
   // Cleanup GPU memory
   cudaFree(d_outX);
@@ -252,8 +253,8 @@ std::pair<cv::Mat, std::set<int>> followFlowFieldCuda(const at::Device &device, 
   for(int y = 0; y < flowY.rows; ++y) {
     for(int x = 0; x < flowX.cols; ++x) {
       // Get the landing pos
-      int lx = cvRound(h_outX.at(y * flowX.cols + x));
-      int ly = cvRound(h_outY.at(y * flowX.cols + x));
+      int lx = cvRound(h_outX.at(static_cast<size_t>(static_cast<int64_t>(y) * static_cast<int64_t>(flowX.cols) + static_cast<int64_t>(x))));
+      int ly = cvRound(h_outY.at(static_cast<size_t>(static_cast<int64_t>(y) * static_cast<int64_t>(flowX.cols) + static_cast<int64_t>(x))));
       // Key for map
       auto key = std::make_pair(lx, ly);
       int label;

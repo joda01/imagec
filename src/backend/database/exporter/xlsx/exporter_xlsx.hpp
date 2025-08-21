@@ -23,8 +23,8 @@ struct ExportSettings
   struct ExportFilter
   {
     int32_t plateId = 0;
-    int32_t groupId = 0;
-    int32_t tStack  = 0;
+    std::string groupName;
+    int32_t tStack = 0;
     std::string imageFileName;
   };
 
@@ -63,13 +63,13 @@ public:
   /////////////////////////////////////////////////////
   static void startExport(const std::vector<const Exportable *> &data, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
                           std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
-                          const std::string &outputFileName);
+                          const std::string &unit, const std::string &outputFileName);
 
   static void startHeatmapExport(const std::vector<const Exportable *> &data, const settings::AnalyzeSettings &analyzeSettings,
                                  const std::string &jobName, std::chrono::system_clock::time_point timeStarted,
                                  std::chrono::system_clock::time_point timeFinished, const std::string &outputFileName,
                                  const settings::ResultsSettings &filterSettings, ExportSettings::ExportView view, int32_t imageHeight,
-                                 int32_t imageWidth);
+                                 int32_t imageWidth, const std::string &unit);
 
 private:
   /////////////////////////////////////////////////////
@@ -100,13 +100,13 @@ private:
   static WorkBook createWorkBook(std::string outputFileName);
   static void createAnalyzeSettings(WorkBook &workbookSettings, const settings::AnalyzeSettings &settings, const std::string &jobName,
                                     std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished);
-  static void writeWorkSheet(const Exporter::WorkBook &, const Exportable *, int32_t index);
+  static void writeWorkSheet(const Exporter::WorkBook &, const Exportable *, int32_t index, const std::string &unit);
 
   static std::string prepareSheetName(std::string);
 
   static Pos paintHeatmap(const WorkBook &workbookSettings, lxw_worksheet *worksheet, const joda::table::Table &table, uint32_t rowOffset);
 
-  static void paintPlateBorder(lxw_worksheet *sheet, int64_t rows, int64_t cols, int32_t rowOffset, lxw_format *header, lxw_format *numberFormat,
+  static void paintPlateBorder(lxw_worksheet *sheet, uint32_t rows, uint16_t cols, uint32_t rowOffset, lxw_format *header, lxw_format *numberFormat,
                                lxw_format *mergeFormat, const std::string &title);
 };
 

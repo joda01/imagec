@@ -21,7 +21,7 @@ public:
     actions_with_showed_menu.insert(action);
   }
 
-  virtual void setVisible(bool visible)
+  void setVisible(bool visible) override
   {
     if(is_ignore_hide) {
       is_ignore_hide = false;
@@ -30,12 +30,14 @@ public:
     QMenu::setVisible(visible);
   }
 
-  virtual void mouseReleaseEvent(QMouseEvent *e)
+  void mouseReleaseEvent(QMouseEvent *e) override
   {
     const QAction *action = actionAt(e->pos());
-    if(action)
-      if(actions_with_showed_menu.contains(action))
+    if(action != nullptr) {
+      if(actions_with_showed_menu.contains(action)) {
         is_ignore_hide = true;
+      }
+    }
     QMenu::mouseReleaseEvent(e);
   }
 

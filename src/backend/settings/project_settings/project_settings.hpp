@@ -32,7 +32,7 @@ public:
   //
   // Job settings
   //
-  ExperimentSettings experimentSettings;
+  ExperimentSettings experimentSettings = {};
 
   //
   // Plates analyzed by this run
@@ -42,17 +42,17 @@ public:
   //
   // The address of the experiment
   //
-  Address address;
+  Address address = {};
 
   //
   // Classs and classes
   //
-  Classification classification;
+  Classification classification = {};
 
   //
   // Directory where outputs will be stored
   //
-  std::string workingDirectory;
+  std::string workingDirectory = {};
 
   void check() const
   {
@@ -66,7 +66,7 @@ public:
           THROW_ERROR("Class >UNDEFINED< is not allowed was used twice!");
         }
         if(ids.contains(element.classId)) {
-          THROW_ERROR("Class ID >" + std::to_string((uint16_t) element.classId) + "< was used twice!");
+          THROW_ERROR("Class ID >" + std::to_string(static_cast<uint16_t>(element.classId)) + "< was used twice!");
         }
       }
     }

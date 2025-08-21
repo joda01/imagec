@@ -14,6 +14,8 @@
 #include <qwidget.h>
 #include <QtWidgets>
 #include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_units.hpp"
+#include "backend/helper/ome_parser/physical_size.hpp"
 #include "backend/settings/setting.hpp"
 
 namespace joda::ui::gui {
@@ -60,6 +62,7 @@ public:
   ~SettingBase() = default;
   void blockAllSignals(bool);
   void setUnit(const QString &unit);
+  virtual void changeUnit();
   void setDisplayIconVisible(bool visible);
   void setShortDescription(const QString &description);
   void setPathToHelpFile(const QString &helpFilePath);
@@ -94,6 +97,7 @@ protected:
   }
 
   [[nodiscard]] auto getClasses() const -> std::map<enums::ClassIdIn, QString>;
+  [[nodiscard]] std::tuple<enums::Units, joda::ome::PhyiscalSize> getUnit() const;
 
 private:
   /////////////////////////////////////////////////////

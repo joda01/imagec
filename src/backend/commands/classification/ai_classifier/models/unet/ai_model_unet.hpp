@@ -22,8 +22,8 @@ class AiModelUNet : public AiModel
 public:
   struct ProbabilitySettings
   {
-    float maskThreshold    = 0.96;
-    float contourThreshold = 0.3;
+    float maskThreshold    = 0.96F;
+    float contourThreshold = 0.3F;
   };
 
   AiModelUNet(const ProbabilitySettings &settings);

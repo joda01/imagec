@@ -20,6 +20,7 @@
 #include <string>
 #include <utility>
 #include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_units.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"
@@ -99,6 +100,7 @@ public:
   void setCursorPositionFromOriginalImageCoordinatesAndCenter(const QRect &boundingRect);
   auto getCursorPosition() -> QPoint;
   auto getSelectedTile() -> std::pair<int32_t, int32_t>;
+  auto getOmeInfo() const -> const ome::OmeInfo &;
   int32_t getNrOfTstacks() const;
   int32_t getNrOfCstacks() const;
   int32_t getNrOfZstacks() const;
@@ -109,6 +111,7 @@ public:
   void setImagePlane(const joda::image::reader::ImageReader::Plane &);
   void setSelectedTile(int32_t tileX, int32_t tileY);
   void setImageTile(int32_t tileWith, int32_t tileHeight);
+  void setDefaultPhysicalSize(const joda::settings::ProjectImageSetup::PhysicalSizeSettings &);
   auto mutableImage() -> joda::image::Image *;
 
 signals:
@@ -129,6 +132,7 @@ private:
   void drawThumbnail(QPainter &);
   void drawCrossHairCursor(QPainter &);
   void drawPixelInfo(QPainter &, int32_t startX, int32_t startY, const PixelInfo &info);
+  void drawRuler(QPainter &);
   void getClickedTileInThumbnail(QMouseEvent *event);
   void getThumbnailAreaEntered(QMouseEvent *event);
   auto fetchPixelInfoFromMousePosition(const QPoint &pos) const -> PixelInfo;
@@ -148,6 +152,8 @@ private:
   const float PIXEL_INFO_RECT_WIDTH  = 150;
   const float PIXEL_INFO_RECT_HEIGHT = 40;
 
+  const float RULER_LENGTH = 100;
+
   // IMAGE ///////////////////////////////////////////////////
   bool mPlaceholderImageSet = true;
   std::filesystem::path mLastPath;
@@ -155,7 +161,7 @@ private:
   joda::ome::OmeInfo mOmeInfo;
   joda::ctrl::Preview mPreviewImages;
   joda::image::Image *mImageToShow = nullptr;
-  float mOpaque                    = 0.9;
+  float mOpaque                    = 0.9F;
   joda::image::reader::ImageReader::Plane mPlane;
   joda::ome::TileToLoad mTile;
   enums::ZProjection mZprojection;
@@ -173,6 +179,7 @@ private:
   // IMAGE INFO ///////////////////////////////////////////////////
   CrossCursorInfo mCrossCursorInfo;
   QRect mLastCrossHairCursorPos = {0, 0, 0, 0};
+  joda::settings::ProjectImageSetup::PhysicalSizeSettings mDefaultPhysicalSize;
 
   /////////////////////////////////////////////////////
   // ThumbParameter mThumbnailParameter;
@@ -197,6 +204,7 @@ private:
   bool mLockCrosshandCursor = false;
   bool mShowOverlay         = true;
   bool mShowEditedImage     = false;
+  bool mShowRuler           = true;
 
   mutable std::mutex mImageResetMutex;
 

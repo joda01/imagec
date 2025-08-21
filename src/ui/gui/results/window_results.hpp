@@ -225,7 +225,7 @@ private:
   bool mStopped = false;
   uint64_t mSelectedWellId;
   uint64_t mSelectedImageId;
-  uint32_t mSelectedTileId;
+  uint64_t mSelectedTileId;
 
   struct Selection
   {

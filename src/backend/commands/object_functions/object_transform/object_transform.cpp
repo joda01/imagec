@@ -28,7 +28,7 @@ ObjectTransform::ObjectTransform(const settings::ObjectTransformSettings &settin
 {
 }
 
-void ObjectTransform::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &resultIn)
+void ObjectTransform::execute(processor::ProcessContext &context, cv::Mat & /*image*/, atom::ObjectList &resultIn)
 {
   auto inputClass  = context.getClassId(mSettings.inputClasses);
   auto outputClass = context.getClassId(mSettings.outputClasses);
@@ -49,7 +49,7 @@ void ObjectTransform::execute(processor::ProcessContext &context, cv::Mat &image
         auto factor = mSettings.factor;
         // If factor is zero use the bounding box
         if(factor == 0) {
-          factor = std::max(roi.getBoundingBoxTile().width, roi.getBoundingBoxTile().height);
+          factor = static_cast<float>(std::max(roi.getBoundingBoxTile().width, roi.getBoundingBoxTile().height));
         }
         if(inputClass == outputClass) {
           roi.drawCircle(factor);
@@ -75,7 +75,7 @@ void ObjectTransform::execute(processor::ProcessContext &context, cv::Mat &image
         }
       } break;
       case settings::ObjectTransformSettings::Function::MIN_CIRCLE: {
-        float areaLength = std::max(roi.getBoundingBoxTile().width, roi.getBoundingBoxTile().height);
+        float areaLength = static_cast<float>(std::max(roi.getBoundingBoxTile().width, roi.getBoundingBoxTile().height));
         if(areaLength < mSettings.factor) {
           areaLength = mSettings.factor;
         }
@@ -88,7 +88,7 @@ void ObjectTransform::execute(processor::ProcessContext &context, cv::Mat &image
         }
       } break;
       case settings::ObjectTransformSettings::Function::SNAP_AREA: {
-        float areaLength = std::max(roi.getBoundingBoxTile().width, roi.getBoundingBoxTile().height);
+        float areaLength = static_cast<float>(std::max(roi.getBoundingBoxTile().width, roi.getBoundingBoxTile().height));
         areaLength += mSettings.factor;
         if(inputClass == outputClass) {
           roi.drawCircle(areaLength);
@@ -98,6 +98,8 @@ void ObjectTransform::execute(processor::ProcessContext &context, cv::Mat &image
           resultIn.push_back(newRoi);
         }
       } break;
+      case settings::ObjectTransformSettings::Function::UNKNOWN:
+        break;
     }
   }
 }

@@ -67,6 +67,7 @@ private:
   void movePipelineToPosition(size_t fromPos, size_t newPos);
   void openSelectedPipelineSettings(int32_t selectedRow);
   void removePipelineWidget();
+  void updatePipelineCommandUnits();
 
   /////////////////////////////////////////////////////
   PlaceholderTableView *mPipelineTable;
@@ -81,6 +82,7 @@ private:
   QDialog *mStackOptionsDialog;
   QComboBox *mStackHandlingZ;
   QComboBox *mStackHandlingT;
+  QComboBox *mMeasureUnit;
   QLineEdit *mTStackFrameStart;
   QLineEdit *mTStackFrameEnd;
 

@@ -138,7 +138,7 @@ public:
     //
     //
     mMinIntersection = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Min. intersection");
-    mMinIntersection->setDefaultValue(0.1);
+    mMinIntersection->setDefaultValue(0.1F);
     mMinIntersection->setPlaceholderText("[0 - 1]");
     mMinIntersection->setUnit("%");
     mMinIntersection->setMinMax(0, 1);
@@ -176,9 +176,8 @@ public:
     mTrackingMode->setValue(settings.trackingMode);
     mTrackingMode->connectWithSetting(&settings.trackingMode);
 
-    auto *col =
-        addSetting(modelTab, "Output",
-                   {{mClassOutput.get(), true, 0}, {mMinIntersection.get(), false, 0}, {mMode.get(), false, 0}, {mTrackingMode.get(), false, 0}});
+    addSetting(modelTab, "Output",
+               {{mClassOutput.get(), true, 0}, {mMinIntersection.get(), false, 0}, {mMode.get(), false, 0}, {mTrackingMode.get(), false, 0}});
   }
 
 private:

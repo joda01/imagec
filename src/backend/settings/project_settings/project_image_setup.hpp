@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <set>
 
+#include "backend/enums/enums_units.hpp"
+#include "backend/enums/types.hpp"
 #include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
 
@@ -61,10 +63,54 @@ struct ProjectImageSetup
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(TStackSettings, startFrame, endFrame);
   };
 
+  struct ZStackSettings
+  {
+    enums::ZProjection defaultZProjection = enums::ZProjection::MAX_INTENSITY;
+
+    void check() const
+    {
+    }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ZStackSettings, defaultZProjection);
+  };
+
+  struct PhysicalSizeSettings
+  {
+    //
+    // If automatic, the pixelWidth and pixelHeight is taken from the OME
+    // meta info from the image.
+    //
+    enums::PhysicalSizeMode mode = enums::PhysicalSizeMode::Automatic;
+
+    //
+    // The unit the image pixel size is measured.
+    // The values are written into the database as defined here.
+    //
+    enums::Units pixelSizeUnit = enums::Units::um;
+
+    //
+    //
+    //
+    float pixelWidth = 0;
+
+    //
+    //
+    //
+    float pixelHeight = 0;
+
+    void check() const
+    {
+    }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PhysicalSizeSettings, mode, pixelWidth, pixelHeight, pixelSizeUnit);
+  };
+
   ZStackHandling zStackHandling = ZStackHandling::EXACT_ONE;
   TStackHandling tStackHandling = TStackHandling::EACH_ONE;
 
-  TStackSettings tStackSettings = {};
+  TStackSettings tStackSettings               = {};
+  ZStackSettings zStackSettings               = {};
+  PhysicalSizeSettings imagePixelSizeSettings = {};
 
   //
   // If the image is too big too load at once to RAM it is loaded in tiles
@@ -76,7 +122,8 @@ struct ProjectImageSetup
   //
   int32_t series = 0;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectImageSetup, zStackHandling, tStackHandling, imageTileSettings, series, tStackSettings);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectImageSetup, zStackHandling, tStackHandling, imagePixelSizeSettings, imageTileSettings,
+                                                       series, tStackSettings, zStackSettings, imagePixelSizeSettings);
 
   void check() const
   {

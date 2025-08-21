@@ -22,6 +22,7 @@
 #include <ranges>
 #include <string>
 #include <utility>
+#include "backend/enums/enums_units.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/image/image.hpp"
@@ -44,7 +45,7 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-PanelImageView::PanelImageView(QWidget *parent) : QGraphicsView(parent), scene(new QGraphicsScene(this)), mImageToShow(&mPreviewImages.originalImage)
+PanelImageView::PanelImageView(QWidget *parent) : QGraphicsView(parent), mImageToShow(&mPreviewImages.originalImage), scene(new QGraphicsScene(this))
 {
   setScene(scene);
   setBackgroundBrush(QBrush(Qt::black));
@@ -79,11 +80,12 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
 
   if(omeInfo != nullptr) {
     std::lock_guard<std::mutex> locked(mImageResetMutex);
-    joda::ctrl::Controller::loadImage(imagePath, mSeries, mPlane, mTile, mPreviewImages, omeInfo, mZprojection);
+    joda::ctrl::Controller::loadImage(imagePath, static_cast<uint16_t>(mSeries), mPlane, mTile, mPreviewImages, omeInfo, mZprojection);
     mOmeInfo = *omeInfo;
   } else {
     std::lock_guard<std::mutex> locked(mImageResetMutex);
-    joda::ctrl::Controller::loadImage(imagePath, mSeries, mPlane, mTile, mPreviewImages, mOmeInfo, mZprojection);
+    joda::ctrl::Controller::loadImage(imagePath, static_cast<uint16_t>(mSeries), mPlane, mTile, mDefaultPhysicalSize, mPreviewImages, mOmeInfo,
+                                      mZprojection);
   }
   restoreChannelSettings();
   mLastPath  = imagePath;
@@ -134,6 +136,30 @@ void PanelImageView::restoreChannelSettings()
 /// \param[out]
 /// \return
 ///
+void PanelImageView::setDefaultPhysicalSize(const joda::settings::ProjectImageSetup::PhysicalSizeSettings &set)
+{
+  if(mDefaultPhysicalSize.mode == enums::PhysicalSizeMode::Manual) {
+    mDefaultPhysicalSize = set;
+    mOmeInfo.setPhyiscalSize(joda::ome::PhyiscalSize{
+        static_cast<double>(set.pixelWidth),
+        static_cast<double>(set.pixelHeight),
+        0,
+        set.pixelSizeUnit,
+    });
+  } else {
+    mDefaultPhysicalSize = {};
+    mOmeInfo.setPhyiscalSize({});
+  }
+  mDefaultPhysicalSize.pixelSizeUnit = set.pixelSizeUnit;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::reloadImage()
 {
   if(mLastPath.empty()) {
@@ -141,7 +167,7 @@ void PanelImageView::reloadImage()
   }
   {
     std::lock_guard<std::mutex> locked(mImageResetMutex);
-    joda::ctrl::Controller::loadImage(mLastPath, mSeries, mPlane, mTile, mPreviewImages, &mOmeInfo, mZprojection);
+    joda::ctrl::Controller::loadImage(mLastPath, static_cast<uint16_t>(mSeries), mPlane, mTile, mPreviewImages, &mOmeInfo, mZprojection);
   }
   restoreChannelSettings();
   mLastPlane = mPlane;
@@ -539,7 +565,7 @@ void PanelImageView::zoomImage(bool inOut)
 void PanelImageView::fitImageToScreenSize()
 {
   resetTransform();
-  float zoomFactor = static_cast<float>(std::min(width(), height())) / static_cast<float>(mPixmapSize.width);
+  double zoomFactor = static_cast<double>(std::min(width(), height())) / static_cast<double>(mPixmapSize.width);
   scale(zoomFactor, zoomFactor);
   emit onImageRepainted();
 }
@@ -570,23 +596,24 @@ void PanelImageView::paintEvent(QPaintEvent *event)
     painter.drawRect(viewportRect);
   }
 
-  QRect rectangle(RECT_START_X, RECT_START_Y, RECT_SIZE, RECT_SIZE);    // Adjust the size as needed
+  QRect rectangle(RECT_START_X, RECT_START_Y, static_cast<int>(RECT_SIZE), static_cast<int>(RECT_SIZE));    // Adjust the size as needed
 
-  float zoomFactor     = viewportTransform().m11();
-  float actImageWith   = RECT_SIZE * width() / (zoomFactor * scene->width());
-  float actImageHeight = RECT_SIZE * height() / (zoomFactor * scene->width());
+  float zoomFactor     = static_cast<float>(viewportTransform().m11());
+  float actImageWith   = static_cast<float>(static_cast<double>(RECT_SIZE) * width() / (static_cast<double>(zoomFactor) * scene->width()));
+  float actImageHeight = static_cast<float>(static_cast<double>(RECT_SIZE) * height() / (static_cast<double>(zoomFactor) * scene->width()));
 
-  float posX = (RECT_SIZE - actImageWith) * (float) horizontalScrollBar()->value() / (float) horizontalScrollBar()->maximum();
-  float posY = (RECT_SIZE - actImageHeight) * (float) verticalScrollBar()->value() / (float) verticalScrollBar()->maximum();
+  float posX = (RECT_SIZE - actImageWith) * static_cast<float>(horizontalScrollBar()->value()) / static_cast<float>(horizontalScrollBar()->maximum());
+  float posY = (RECT_SIZE - actImageHeight) * static_cast<float>(verticalScrollBar()->value()) / static_cast<float>(verticalScrollBar()->maximum());
 
-  QRect viewPort(RECT_START_X + posX, RECT_START_Y + posY, actImageWith, actImageHeight);
+  QRect viewPort(static_cast<int>(RECT_START_X + posX), static_cast<int>(RECT_START_Y + posY), static_cast<int>(actImageWith),
+                 static_cast<int>(actImageHeight));
 
   // Draw the rectangle
   painter.setPen(QColor(173, 216, 230));    // Set the pen color to light blue
   painter.setBrush(Qt::NoBrush);            // Set the brush to no brush for transparent fill
 
   // Draw
-  if(viewPort.width() < RECT_SIZE) {
+  if(viewPort.width() < static_cast<double>(RECT_SIZE)) {
     painter.drawRect(rectangle);
     painter.drawRect(viewPort);
   }
@@ -600,6 +627,11 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   if(mShowPixelInfo) {
     // Takes 0.08ms
     drawPixelInfo(painter, width(), height() - 20, mPixelInfo);
+  }
+
+  // Draw ruler
+  if(mShowRuler) {
+    drawRuler(painter);
   }
 
   // Waiting banner
@@ -669,11 +701,11 @@ void PanelImageView::drawCrossHairCursor(QPainter &painter)
       auto x = mCrossCursorInfo.mCursorPos.x();
       if(x < width() / 2) {
         // Switch the side
-        x = x + PIXEL_INFO_RECT_WIDTH + THUMB_RECT_START_X * 2;
+        x = x + static_cast<int32_t>(PIXEL_INFO_RECT_WIDTH) + static_cast<int32_t>(THUMB_RECT_START_X) * 2;
       }
       auto y = mCrossCursorInfo.mCursorPos.y();
       if(y < height() / 2) {
-        y = y + PIXEL_INFO_RECT_HEIGHT + THUMB_RECT_START_Y * 2;
+        y = y + static_cast<int32_t>(PIXEL_INFO_RECT_HEIGHT) + static_cast<int32_t>(THUMB_RECT_START_Y) * 2;
       }
       drawPixelInfo(painter, x, y, mCrossCursorInfo.pixelInfo);
     }
@@ -689,9 +721,10 @@ void PanelImageView::drawCrossHairCursor(QPainter &painter)
 ///
 void PanelImageView::drawPixelInfo(QPainter &painter, int32_t startX, int32_t startY, const PixelInfo &info)
 {
-  QRect pixelInfoRect(QPoint(startX - THUMB_RECT_START_X - PIXEL_INFO_RECT_WIDTH, startY - THUMB_RECT_START_Y - PIXEL_INFO_RECT_HEIGHT),
-                      QSize(PIXEL_INFO_RECT_WIDTH,
-                            PIXEL_INFO_RECT_HEIGHT));    // Adjust the size as needed
+  QRect pixelInfoRect(QPoint(startX - static_cast<int32_t>(THUMB_RECT_START_X) - static_cast<int32_t>(PIXEL_INFO_RECT_WIDTH),
+                             startY - static_cast<int32_t>(THUMB_RECT_START_Y) - static_cast<int32_t>(PIXEL_INFO_RECT_HEIGHT)),
+                      QSize(static_cast<int32_t>(PIXEL_INFO_RECT_WIDTH),
+                            static_cast<int32_t>(PIXEL_INFO_RECT_HEIGHT)));    // Adjust the size as needed
 
   painter.setPen(Qt::NoPen);    // Set the pen color to light blue
 
@@ -721,9 +754,86 @@ void PanelImageView::drawPixelInfo(QPainter &painter, int32_t startX, int32_t st
 /// \param[out]
 /// \return
 ///
+void PanelImageView::drawRuler(QPainter &painter)
+{
+  //
+  // Calc
+  //
+  const auto &physk = mOmeInfo.getPhyiscalSize(mSeries);
+  QTransform t      = transform();
+  qreal scaleX      = t.m11();
+  //  qreal scaleY      = t.m22();
+  auto [sizeX, sizeY, sizeZ] = physk.getPixelSize(mDefaultPhysicalSize.pixelSizeUnit);
+  double onePxSize           = sizeX / scaleX;
+
+  double unitToShow = 500.0;
+  switch(mDefaultPhysicalSize.pixelSizeUnit) {
+    case enums::Units::um:
+    case enums::Units::Undefined:
+    case enums::Units::Pixels:
+      unitToShow *= 1;
+      break;
+    case enums::Units::nm:
+      unitToShow *= 10e3;
+      break;
+    case enums::Units::mm:
+      unitToShow /= 10e3;
+      break;
+    case enums::Units::cm:
+      unitToShow /= 10e4;
+      break;
+    case enums::Units::m:
+      unitToShow /= 10e6;
+      break;
+    case enums::Units::km:
+      unitToShow /= 10e9;
+      break;
+  }
+
+  double rulerSize = unitToShow / onePxSize;
+  while(rulerSize > 100) {
+    if(unitToShow > 20) {
+      unitToShow -= 20;
+    } else if(unitToShow > 1) {
+      unitToShow -= 1;
+    } else {
+      unitToShow -= 0.25;
+    }
+    rulerSize = unitToShow / onePxSize;
+  }
+
+  //
+  // Draw
+  //
+
+  QColor transparentWhite(255, 255, 255, 127);    // 127 is approximately 50% of 255 for alpha
+  painter.setBrush(transparentWhite);             // Set the brush to no brush for transparent fill
+  QPen tmp = painter.pen();
+  QPen pen(Qt::black);
+  pen.setColor(transparentWhite);
+  pen.setWidth(3);          // 2 px
+  pen.setCosmetic(true);    // stays 2 px regardless of view transforms/DPI
+  painter.setPen(pen);
+  painter.drawLine(static_cast<int32_t>(THUMB_RECT_START_X), height() - 30,
+                   static_cast<int32_t>(static_cast<int32_t>(THUMB_RECT_START_X) + rulerSize), height() - 30);
+
+  painter.setPen(tmp);
+  nlohmann::json j = mDefaultPhysicalSize.pixelSizeUnit;    // thanks to to_json generated by macro
+
+  QString textToPrint = QString("%1 %2").arg(QString::number(static_cast<double>(unitToShow))).arg(j.get<std::string>().c_str());
+  painter.drawText(QRect(static_cast<int32_t>(THUMB_RECT_START_X), height() - 20, static_cast<int32_t>(rulerSize), 10), Qt::AlignCenter, textToPrint);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::drawThumbnail(QPainter &painter)
 {
-  if(mPreviewImages.thumbnail.empty() || mOmeInfo.getNrOfSeries() < mSeries) {
+  if(mPreviewImages.thumbnail.empty() || static_cast<int32_t>(mOmeInfo.getNrOfSeries()) < mSeries) {
     return;
   }
 
@@ -739,7 +849,7 @@ void PanelImageView::drawThumbnail(QPainter &painter)
     rectWidth  = THUMB_RECT_WIDTH_ZOOMED;
   }
 
-  auto *img = mPreviewImages.thumbnail.getImage();
+  const auto *img = mPreviewImages.thumbnail.getImage();
   if(img == nullptr) {
     return;
   }
@@ -755,19 +865,21 @@ void PanelImageView::drawThumbnail(QPainter &painter)
   float aspectRatio = static_cast<float>(thumbnailWidth) / static_cast<float>(thumbnailHeight);
   if(rectWidth / aspectRatio <= rectHeight) {
     // Width is the limiting factor
-    newWidth  = rectWidth;
+    newWidth  = static_cast<int32_t>(rectWidth);
     newHeight = static_cast<int>(rectWidth / aspectRatio);
   } else {
     // Height is the limiting factor
-    newHeight = rectHeight;
+    newHeight = static_cast<int32_t>(rectHeight);
     newWidth  = static_cast<int>(rectHeight * aspectRatio);
   }
   if(newWidth < 0 || newHeight < 0) {
     return;
   }
 
-  QRect thumbRect(QPoint(width() - THUMB_RECT_START_X - rectWidth, THUMB_RECT_START_Y), QSize(newWidth,
-                                                                                              newHeight));    // Adjust the size as needed
+  QRect thumbRect(
+      QPoint(static_cast<int32_t>(static_cast<float>(width()) - THUMB_RECT_START_X - rectWidth), static_cast<int32_t>(THUMB_RECT_START_Y)),
+      QSize(newWidth,
+            newHeight));    // Adjust the size as needed
   painter.drawPixmap(thumbRect, mPreviewImages.thumbnail.getPixmap({nullptr}));
 
   //
@@ -775,12 +887,14 @@ void PanelImageView::drawThumbnail(QPainter &painter)
   //
   painter.setPen(QColor(173, 216, 230));    // Set the pen color to light blue
   painter.setBrush(Qt::NoBrush);            // Set the brush to no brush for transparent fill
-  QRect rectangle(QPoint(width() - THUMB_RECT_START_X - rectWidth, THUMB_RECT_START_Y), QSize(newWidth,
-                                                                                              newHeight));    // Adjust the size as needed
+  QRect rectangle(
+      QPoint(static_cast<int32_t>(static_cast<float>(width()) - THUMB_RECT_START_X - rectWidth), static_cast<int32_t>(THUMB_RECT_START_Y)),
+      QSize(newWidth,
+            newHeight));    // Adjust the size as needed
   painter.drawRect(rectangle);
 
-  mThumbRectWidth  = newWidth;
-  mThumbRectHeight = newHeight;
+  mThumbRectWidth  = static_cast<uint32_t>(newWidth);
+  mThumbRectHeight = static_cast<uint32_t>(newHeight);
 
   //
   // Draw grid
@@ -791,8 +905,10 @@ void PanelImageView::drawThumbnail(QPainter &painter)
   auto originalImageWidth  = mOmeInfo.getResolutionCount(mSeries).at(0).imageWidth;
   auto originalImageHeight = mOmeInfo.getResolutionCount(mSeries).at(0).imageHeight;
 
-  mTileRectWidthScaled  = std::ceil(static_cast<float>(mTile.tileWidth) * (float) newWidth / (float) originalImageWidth);
-  mTileRectHeightScaled = std::ceil(static_cast<float>(mTile.tileHeight) * (float) newHeight / (float) originalImageHeight);
+  mTileRectWidthScaled =
+      static_cast<int32_t>(std::ceil(static_cast<float>(mTile.tileWidth) * static_cast<float>(newWidth) / static_cast<float>(originalImageWidth)));
+  mTileRectHeightScaled =
+      static_cast<int32_t>(std::ceil(static_cast<float>(mTile.tileHeight) * static_cast<float>(newHeight) / static_cast<float>(originalImageHeight)));
 
   for(int y = 0; y < nrOfTilesY; y++) {
     for(int x = 0; x < nrOfTilesX; x++) {
@@ -810,16 +926,17 @@ void PanelImageView::drawThumbnail(QPainter &painter)
       if(mThumbnailAreaEntered || isSelected) {
         float xOffset = std::floor(static_cast<float>(x) * static_cast<float>(mTileRectWidthScaled));
         float yOffset = std::floor(static_cast<float>(y) * static_cast<float>(mTileRectHeightScaled));
-        QRect tileRect(QPoint(width() - THUMB_RECT_START_X - static_cast<float>(newWidth) + xOffset, THUMB_RECT_START_Y + yOffset),
+        QRect tileRect(QPoint(static_cast<int32_t>(static_cast<float>(width()) - THUMB_RECT_START_X - static_cast<float>(newWidth) + xOffset),
+                              static_cast<int32_t>(THUMB_RECT_START_Y + yOffset)),
                        QSize(mTileRectWidthScaled, mTileRectHeightScaled));
 
         if(tileRect.x() + tileRect.width() > rectangle.x() + rectangle.width()) {
-          auto newWidth = (tileRect.x() + tileRect.width()) - (rectangle.x() + rectangle.width());
-          tileRect.setWidth(tileRect.width() - newWidth);
+          auto newWidthTmp = (tileRect.x() + tileRect.width()) - (rectangle.x() + rectangle.width());
+          tileRect.setWidth(tileRect.width() - newWidthTmp);
         }
         if(tileRect.y() + tileRect.height() > rectangle.y() + rectangle.height()) {
-          auto newHeight = (tileRect.y() + tileRect.height()) - (rectangle.y() + rectangle.height());
-          tileRect.setHeight(tileRect.height() - newHeight);
+          auto newHeightTmp = (tileRect.y() + tileRect.height()) - (rectangle.y() + rectangle.height());
+          tileRect.setHeight(tileRect.height() - newHeightTmp);
         }
 
         painter.drawRect(tileRect);
@@ -845,7 +962,9 @@ void PanelImageView::getClickedTileInThumbnail(QMouseEvent *event)
         int xOffset = x * mTileRectWidthScaled;
         int yOffset = y * mTileRectHeightScaled;
 
-        QRect rectangle(QPoint(width() - THUMB_RECT_START_X - mThumbRectWidth + xOffset, THUMB_RECT_START_Y + yOffset),
+        QRect rectangle(QPoint(static_cast<int32_t>(static_cast<float>(width()) - THUMB_RECT_START_X - static_cast<float>(mThumbRectWidth) +
+                                                    static_cast<float>(xOffset)),
+                               static_cast<int32_t>(THUMB_RECT_START_Y + static_cast<float>(yOffset))),
                         QSize(mTileRectWidthScaled, mTileRectHeightScaled));
         if(rectangle.contains(event->pos())) {
           mTile.tileX = x;
@@ -871,6 +990,17 @@ void PanelImageView::getClickedTileInThumbnail(QMouseEvent *event)
 auto PanelImageView::getSelectedTile() -> std::pair<int32_t, int32_t>
 {
   return {mTile.tileX, mTile.tileY};
+}
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto PanelImageView::getOmeInfo() const -> const ome::OmeInfo &
+{
+  return mOmeInfo;
 }
 
 ///
@@ -930,7 +1060,9 @@ int32_t PanelImageView::getNrOfZstacks() const
 ///
 void PanelImageView::getThumbnailAreaEntered(QMouseEvent *event)
 {
-  QRect rectangle(QPoint(width() - THUMB_RECT_START_X - mThumbRectWidth, THUMB_RECT_START_Y), QSize(mThumbRectWidth, mThumbRectHeight));
+  QRect rectangle(
+      QPoint(width() - static_cast<int32_t>(THUMB_RECT_START_X) - static_cast<int32_t>(mThumbRectWidth), static_cast<int32_t>(THUMB_RECT_START_Y)),
+      QSize(static_cast<int32_t>(mThumbRectWidth), static_cast<int32_t>(mThumbRectHeight)));
   if(rectangle.contains(event->pos())) {
     if(!mThumbnailAreaEntered) {
       mThumbnailAreaEntered = true;
@@ -966,8 +1098,8 @@ auto PanelImageView::fetchPixelInfoFromMousePosition(const QPoint &viewPos) cons
   // Map the scene coordinates to image coordinates
   if(mActPixmap != nullptr && mImageToShow->getImage() != nullptr) {
     QPointF imagePos = mActPixmap->mapFromScene(scenePos);
-    pixelInfo.posX   = imagePos.x();
-    pixelInfo.posY   = imagePos.y();
+    pixelInfo.posX   = static_cast<int32_t>(imagePos.x());
+    pixelInfo.posY   = static_cast<int32_t>(imagePos.y());
 
     int type  = mImageToShow->getImage()->type();
     int depth = type & CV_MAT_DEPTH_MASK;
@@ -1116,11 +1248,12 @@ void PanelImageView::setCursorPositionFromOriginalImageCoordinatesAndCenter(cons
     tileWidth  = imgWidth;
     tileHeight = imageHeight;
   }
-  auto [tileNrX, tileNrY] = mOmeInfo.getImageInfo(mSeries).resolutions.at(0 /*resolution*/).getNrOfTiles(tileWidth, tileHeight);
+  // auto [tileNrX, tileNrY] = mOmeInfo.getImageInfo(mSeries).resolutions.at(0 /*resolution*/).getNrOfTiles(tileWidth, tileHeight);
 
   auto measBoxX = boundingBox.x() - mTile.tileX * tileWidth;
   auto measBoxY = boundingBox.y() - mTile.tileY * tileHeight;
-  QRect cursorBox{(int32_t) measBoxX, (int32_t) measBoxY, (int32_t) boundingBox.width(), (int32_t) boundingBox.height()};
+  QRect cursorBox{static_cast<int32_t>(measBoxX), static_cast<int32_t>(measBoxY), static_cast<int32_t>(boundingBox.width()),
+                  static_cast<int32_t>(boundingBox.height())};
 
   //////////////////////
   if(mActPixmap != nullptr) {
@@ -1155,7 +1288,7 @@ auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QPoint &imageCoo
     QRect viewRect   = mapFromScene(sceneRect).boundingRect();
     std::lock_guard<std::mutex> locked(mImageResetMutex);
     auto originalImageSize = mImageToShow->getOriginalImageSize();
-    auto previewImageSize  = mImageToShow->getPreviewImageSize();
+    // auto previewImageSize  = mImageToShow->getPreviewImageSize();
     auto viewPortImageSize = QSize{viewRect.width(), viewRect.height()};
 
     double factorX = static_cast<double>(viewPortImageSize.width()) / static_cast<double>(originalImageSize.width());
@@ -1167,7 +1300,7 @@ auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QPoint &imageCoo
     imgX += viewRect.x();
     imgY += viewRect.y();
   }
-  return {(int32_t) imgX, (int32_t) imgY};
+  return {static_cast<int32_t>(imgX), static_cast<int32_t>(imgY)};
 }
 
 ///
@@ -1191,7 +1324,7 @@ auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QRect &imageCoor
 
     std::lock_guard<std::mutex> locked(mImageResetMutex);
     auto originalImageSize = mImageToShow->getOriginalImageSize();
-    auto previewImageSize  = mImageToShow->getPreviewImageSize();
+    // auto previewImageSize  = mImageToShow->getPreviewImageSize();
     auto viewPortImageSize = QSize{viewRect.width(), viewRect.height()};
 
     double factorX = static_cast<double>(viewPortImageSize.width()) / static_cast<double>(originalImageSize.width());
@@ -1206,7 +1339,7 @@ auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QRect &imageCoor
     width *= factorX;
     height *= factorY;
   }
-  return {(int32_t) imgX, (int32_t) imgY, (int32_t) width, (int32_t) height};
+  return {static_cast<int32_t>(imgX), static_cast<int32_t>(imgY), static_cast<int32_t>(width), static_cast<int32_t>(height)};
 }
 
 ///

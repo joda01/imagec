@@ -129,13 +129,13 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
           auto actClass = mSettings.classes.begin();
           std::advance(actClass, selectedRow);
 
-          joda::settings::Class newClass;
-          newClass.classId             = findNextFreeClassId();
-          newClass.color               = actClass->color;
-          newClass.defaultMeasurements = actClass->defaultMeasurements;
-          newClass.name                = actClass->name + " (copy)";
-          newClass.notes               = actClass->notes;
-          mSettings.classes.emplace_back(newClass);
+          joda::settings::Class newCreatedClass;
+          newCreatedClass.classId             = findNextFreeClassId();
+          newCreatedClass.color               = actClass->color;
+          newCreatedClass.defaultMeasurements = actClass->defaultMeasurements;
+          newCreatedClass.name                = actClass->name + " (copy)";
+          newCreatedClass.notes               = actClass->notes;
+          mSettings.classes.emplace_back(newCreatedClass);
 
           onSettingChanged();
         }
@@ -218,9 +218,7 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
     }
   });
 
-  connect(mClasses, &QTableWidget::currentCellChanged, [&](int currentRow, int currentColumn, int previousRow, int previousColumn) {
-
-  });
+  // connect(mClasses, &QTableWidget::currentCellChanged, [&](int currentRow, int currentColumn, int previousRow, int previousColumn) {});
 }
 
 ///
@@ -230,31 +228,7 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
 /// \param[out]
 /// \return
 ///
-void PanelClassification::setIsHidden(int32_t row)
-{
-  auto *isHiddenCell = mClasses->item(row, COL_HIDDEN);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-bool PanelClassification::getIsHidden(int32_t row) const
-{
-  return false;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelClassification::openEditDialog(int row, int column)
+void PanelClassification::openEditDialog(int row, int /*column*/)
 {
   auto it = mSettings.classes.begin();
   std::advance(it, row);
@@ -335,7 +309,7 @@ void PanelClassification::createTableItem(int32_t rowIdx, enums::ClassId classId
 
   auto calculatedColor = QString(color.data());
   if(calculatedColor.isEmpty()) {
-    calculatedColor = QString(joda::settings::COLORS.at(rowIdx % joda::settings::COLORS.size()).data());
+    calculatedColor = QString(joda::settings::COLORS.at(static_cast<uint64_t>(rowIdx) % joda::settings::COLORS.size()).data());
   }
   auto *itemColor = new QTableWidgetItem(calculatedColor);
   mClasses->setItem(rowIdx, COL_COLOR, itemColor);
@@ -354,7 +328,7 @@ void PanelClassification::createTableItem(int32_t rowIdx, enums::ClassId classId
 void PanelClassification::fromSettings(const joda::settings::Classification &settings)
 {
   mClasses->blockSignals(true);
-  mClasses->setRowCount(settings.classes.size());
+  mClasses->setRowCount(static_cast<int32_t>(settings.classes.size()));
   mSettings = settings;
 
   //
@@ -454,7 +428,7 @@ void PanelClassification::loadTemplates()
   std::string actCategory = "basic";
   size_t addedPerCategory = 0;
   for(const auto &[category, dataInCategory] : foundTemplates) {
-    for(const auto &[_, data] : dataInCategory) {
+    for(const auto &[_, dataIn] : dataInCategory) {
       // Now the user templates start, add an addition separator
       if(category != actCategory) {
         actCategory = category;
@@ -463,12 +437,12 @@ void PanelClassification::loadTemplates()
         }
       }
       QAction *action;
-      if(!data.icon.isNull()) {
-        action = mTemplateMenu->addAction(QIcon(data.icon.scaled(28, 28)), data.title.data());
+      if(!dataIn.icon.isNull()) {
+        action = mTemplateMenu->addAction(QIcon(dataIn.icon.scaled(28, 28)), dataIn.title.data());
       } else {
-        action = mTemplateMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("star"), data.title.data());
+        action = mTemplateMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("star"), dataIn.title.data());
       }
-      connect(action, &QAction::triggered, [this, path = data.path]() { openTemplate(path.data()); });
+      connect(action, &QAction::triggered, [this, path = dataIn.path]() { openTemplate(path.data()); });
     }
     addedPerCategory = dataInCategory.size();
   }
@@ -510,10 +484,10 @@ bool PanelClassification::askForChangeTemplateIndex()
   messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::BLUE>("warning-circle").pixmap(48, 48));
   messageBox.setWindowTitle("Proceed?");
   messageBox.setText("Actual taken settings will get lost!");
-  QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
-  QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+  QPushButton *noButton = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+  messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
   messageBox.setDefaultButton(noButton);
-  auto reply = messageBox.exec();
+  messageBox.exec();
   return messageBox.clickedButton() != noButton;
 }
 
@@ -530,10 +504,10 @@ bool PanelClassification::askForDeleteClass()
   messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning").pixmap(48, 48));
   messageBox.setWindowTitle("Proceed?");
   messageBox.setText("Remove selected class?");
-  QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
-  QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+  QPushButton *noButton = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+  messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
   messageBox.setDefaultButton(noButton);
-  auto reply = messageBox.exec();
+  messageBox.exec();
   return messageBox.clickedButton() != noButton;
 }
 
@@ -592,7 +566,7 @@ void PanelClassification::populateClassesFromImage()
       messageBox.setWindowTitle("Could not find any images!");
       messageBox.setText("No images found! Please select a image directory first!");
       messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-      auto reply = messageBox.exec();
+      messageBox.exec();
       return;
     }
 
@@ -647,9 +621,9 @@ void PanelClassification::moveDown()
 /// \param[out]
 /// \return
 ///
-void PanelClassification::moveClassToPosition(size_t fromPos, size_t newPos)
+void PanelClassification::moveClassToPosition(int32_t fromPos, int32_t newPosIn)
 {
-  auto moveElementToListPosition = [](std::list<joda::settings::Class> &myList, size_t oldPos, size_t newPos) {
+  auto moveElementToListPosition = [](std::list<joda::settings::Class> &myList, int32_t oldPos, int32_t newPos) {
     // Get iterators to the old and new positions
     if(newPos > oldPos) {
       auto oldIt = std::next(myList.begin(), newPos);
@@ -664,14 +638,14 @@ void PanelClassification::moveClassToPosition(size_t fromPos, size_t newPos)
     }
   };
 
-  auto moveRow = [&](int fromRow, int toRow) {
+  auto moveRow = [&](int32_t fromRow, int32_t toRow) {
     if(fromRow == toRow || fromRow < 0 || toRow < 0 || fromRow >= mClasses->rowCount() || toRow > mClasses->rowCount()) {
       return;    // invalid input
     }
     mClasses->setUpdatesEnabled(false);
 
-    int columnCount = mClasses->columnCount();
-    for(int col = 0; col < columnCount; ++col) {
+    int32_t columnCount = mClasses->columnCount();
+    for(int32_t col = 0; col < columnCount; ++col) {
       QTableWidgetItem *fromItem = mClasses->takeItem(fromRow, col);
       QTableWidgetItem *toItem   = mClasses->takeItem(toRow, col);
 
@@ -683,8 +657,8 @@ void PanelClassification::moveClassToPosition(size_t fromPos, size_t newPos)
     mClasses->selectRow(toRow);
   };
 
-  moveElementToListPosition(mSettings.classes, fromPos, newPos);
-  moveRow(fromPos, newPos);
+  moveElementToListPosition(mSettings.classes, fromPos, newPosIn);
+  moveRow(fromPos, newPosIn);
 
   mWindowMain->checkForSettingsChanged();
 }

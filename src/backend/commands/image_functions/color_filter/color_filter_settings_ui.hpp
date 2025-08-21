@@ -105,13 +105,13 @@ public:
   }
 
 private:
-  QColor pickColor(QWidget *parent, QColor initialColor)
+  static QColor pickColor(QWidget *parent, QColor initialColor)
   {
     // Open the color dialog and get the selected color
     return QColorDialog::getColor(initialColor, parent, "Select Color");
   }
 
-  QColor adjustColor(const QColor &color, int delta)
+  static QColor adjustColor(const QColor &color, int delta)
   {
     int red   = qBound(0, color.red() + delta, 255);
     int green = qBound(0, color.green() + delta, 255);
@@ -164,9 +164,10 @@ private slots:
   {
     mTargetColor->blockAllSignals(true);
 
-    mTargetColor->setValue(
-        {joda::enums::HsvColor{(int32_t) mPointAHue->getValue(), (int32_t) mPointASat->getValue(), (int32_t) mPointAVal->getValue()},
-         joda::enums::HsvColor{(int32_t) mPointBHue->getValue(), (int32_t) mPointBSat->getValue(), (int32_t) mPointBVal->getValue()}});
+    mTargetColor->setValue({joda::enums::HsvColor{static_cast<int32_t>(mPointAHue->getValue()), static_cast<int32_t>(mPointASat->getValue()),
+                                                  static_cast<int32_t>(mPointAVal->getValue())},
+                            joda::enums::HsvColor{static_cast<int32_t>(mPointBHue->getValue()), static_cast<int32_t>(mPointBSat->getValue()),
+                                                  static_cast<int32_t>(mPointBVal->getValue())}});
 
     mTargetColor->blockAllSignals(false);
   }

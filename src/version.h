@@ -37,7 +37,7 @@ public:
     return BUILD_TIME;
   }
 
-  static void initVersion(const std::string &bin)
+  static void initVersion(const std::string & /*bin*/)
   {
   }
 

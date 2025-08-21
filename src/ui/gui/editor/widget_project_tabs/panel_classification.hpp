@@ -63,10 +63,8 @@ private:
   void populateClassesFromImage();
   void addClass(bool withUpdate = true);
   void createTableItem(int32_t rowIdx, enums::ClassId classId, const std::string &name, const std::string &color, const std::string &notes);
-  void moveClassToPosition(size_t fromPos, size_t newPos);
+  void moveClassToPosition(int32_t fromPos, int32_t newPos);
   auto findNextFreeClassId() -> enums::ClassId;
-  void setIsHidden(int32_t row);
-  bool getIsHidden(int32_t row) const;
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;

@@ -67,8 +67,8 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
   // =========================================
   // Plot data
   // =========================================
-  for(int32_t col = 0; col < nrCols; col++) {
-    for(int32_t row = 0; row < nrRows; row++) {
+  for(uint32_t col = 0; col < nrCols; col++) {
+    for(uint32_t row = 0; row < nrRows; row++) {
       const auto &tmpData = mData.data(row, col);
       double val          = std::numeric_limits<double>::quiet_NaN();
       bool isValid        = false;
@@ -116,7 +116,7 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
 
       // Plot labels
       if(mPlotLabels && mRectWidth > 50) {
-        cv::Rect rect(x1, y1, mRectWidth, mRectHeight);
+        cv::Rect rect(x1, y1, static_cast<int32_t>(mRectWidth), static_cast<int32_t>(mRectHeight));
         PlotBase::drawCenteredText(plotArea, doubleToString(val, mPrecision), rect, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1);
       }
 
@@ -131,7 +131,7 @@ auto Heatmap::plot(const Size &size) -> cv::Mat
   // Plot highlight
   // =========================================
   if(mHighLight.has_value()) {
-    if(mHighLight->row < nrRows && mHighLight->col < nrCols) {
+    if(mHighLight->row < static_cast<int32_t>(nrRows) && mHighLight->col < static_cast<int32_t>(nrCols)) {
       auto x1          = static_cast<int32_t>(static_cast<double>(mHighLight->col) * mRectWidth);
       auto y1          = static_cast<int32_t>(static_cast<double>(mHighLight->row) * mRectHeight);
       auto x2          = static_cast<int32_t>(static_cast<double>(mHighLight->col) * mRectWidth + mRectWidth);
@@ -168,14 +168,14 @@ void Heatmap::plotLegend(const ColorMappingRange &range, const cv::Mat &colorLUT
   static const int32_t COLOR_STRIP_WITH = 50;
   int32_t startX                        = plotArea.cols - LEGEND_WIDTH + COLOR_STRIP_WITH;
   int32_t startY                        = 0;
-  double rectHeight                     = (double) plotArea.rows / (double) UINT8_MAX;
+  double rectHeight                     = static_cast<double>(plotArea.rows) / static_cast<double>(UINT8_MAX);
 
   for(int32_t idx = 0; idx < UINT8_MAX; idx++) {
-    int32_t colorIdx = UINT8_MAX - idx;
-    auto color       = colorLUT.at<cv::Vec3b>(0, colorIdx);
-    double value     = ((double) colorIdx * ((double) range.max - (double) range.min)) / (double) UINT8_MAX + (double) range.min;
-    cv::rectangle(plotArea, {startX, (int32_t) (startY + idx * rectHeight)},
-                  {startX + COLOR_STRIP_WITH, (int32_t) (startY + rectHeight + idx * rectHeight)}, color, cv::FILLED);
+    int32_t colorIdx  = UINT8_MAX - idx;
+    const auto &color = colorLUT.at<cv::Vec3b>(0, colorIdx);
+    double value      = (static_cast<double>(colorIdx) * (range.max - range.min)) / static_cast<double>(UINT8_MAX) + static_cast<double>(range.min);
+    cv::rectangle(plotArea, {startX, static_cast<int32_t>(startY + idx * rectHeight)},
+                  {startX + COLOR_STRIP_WITH, static_cast<int32_t>(startY + rectHeight + idx * rectHeight)}, color, cv::FILLED);
 
     if(idx == 0 || idx == UINT8_MAX - 1 || idx == UINT8_MAX / 2) {
       auto y = startY + idx * rectHeight;
@@ -185,7 +185,7 @@ void Heatmap::plotLegend(const ColorMappingRange &range, const cv::Mat &colorLUT
       if(idx == UINT8_MAX - 1) {
         idx = UINT8_MAX;
       }
-      cv::Rect rect(startX + COLOR_STRIP_WITH + 4, y, 100, 30);
+      cv::Rect rect(startX + COLOR_STRIP_WITH + 4, static_cast<int32_t>(y), 100, 30);
       PlotBase::drawLeftAlignedText(plotArea, doubleToString(value, mPrecision), rect, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1);
     }
   }
@@ -222,7 +222,7 @@ void Heatmap::setColorMappingRange(ColorMappingRange range)
 /// \param[out]
 /// \return
 ///
-auto Heatmap::getColorMapRange() const -> const ColorMappingRange
+auto Heatmap::getColorMapRange() const -> ColorMappingRange
 {
   if(mColorMapMode == ColorMappingMode::AUTO) {
     auto [min, max] = mData.getMinMax();
@@ -329,10 +329,10 @@ auto Heatmap::getCellFromCoordinates(double x, double y) const -> std::optional<
   uint32_t nrCols = mData.getNrOfCols();
   auto row        = static_cast<int32_t>(y / mRectHeight);
   auto col        = static_cast<int32_t>(x / mRectWidth);
-  if(row >= 0 && row < nrRows && col >= 0 && col < nrCols) {
-    auto data = mData.data(row, col);
+  if(row >= 0 && row < static_cast<int32_t>(nrRows) && col >= 0 && col < static_cast<int32_t>(nrCols)) {
+    auto data = mData.data(static_cast<uint32_t>(row), static_cast<uint32_t>(col));
     if(data != nullptr) {
-      return std::tuple<Cell, joda::table::TableCell>{Cell{col, row}, *mData.data(row, col)};
+      return std::tuple<Cell, joda::table::TableCell>{Cell{col, row}, *mData.data(static_cast<uint32_t>(row), static_cast<uint32_t>(col))};
     } else {
       return std::tuple<Cell, joda::table::TableCell>{Cell{col, row}, {}};
     }
@@ -348,7 +348,7 @@ auto Heatmap::getCellFromCoordinates(double x, double y) const -> std::optional<
 /// \param[out]
 /// \return
 ///
-void Heatmap::setData(const joda::table::Table &&data)
+void Heatmap::setData(const joda::table::Table &data)
 {
   mData = data;
 }

@@ -19,8 +19,7 @@
 
 namespace joda::grp {
 
-FileGrouper::FileGrouper(joda::enums::GroupBy groupBy, const std::string &fileRegex) :
-    mGroupBy(groupBy), mFileRegex(fileRegex)
+FileGrouper::FileGrouper(joda::enums::GroupBy groupBy, const std::string &fileRegex) : mGroupBy(groupBy), mFileRegex(fileRegex)
 {
 }
 
@@ -43,6 +42,8 @@ GroupInformation FileGrouper::getGroupForFilename(const std::filesystem::path &f
     case enums::GroupBy::FILENAME: {
       groupInfo = applyRegex(mFileRegex, filePath);
     } break;
+    case enums::GroupBy::UNKNOWN:
+      break;
   }
   {
     std::lock_guard<std::mutex> lock(mWellGeneratorLock);

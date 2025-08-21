@@ -34,17 +34,17 @@ public:
   //
   // The snap shotted pipeline steps
   //
-  std::list<PipelineStep> pipelineSteps;
+  std::list<PipelineStep> pipelineSteps = {};
 
   //
   // Short comment to this snap shpt
   //
-  std::string commitMessage;
+  std::string commitMessage = {};
 
   //
   // A tagged snap shot, else empty
   //
-  std::string tagMessage;
+  std::string tagMessage = {};
 
   //
   // It ends at Sunday, February 7, 2106 6:28:16 AM
@@ -52,10 +52,10 @@ public:
   // Sorry for that but the actual used JSON lib does not
   // support serializing 64 bit integers.
   //
-  uint32_t timeStamp;
+  uint32_t timeStamp = {};
 
   // We don't want to do a error check for the history
-  void getErrorLogRecursive(SettingParserLog_t &settingsParserLog) const
+  void getErrorLogRecursive(SettingParserLog_t & /*settingsParserLog*/) const
   {
   }
 
@@ -67,9 +67,9 @@ class Pipeline
 public:
   int32_t index = 0;    // Pipeline index, this is temporary and must not be saved. The index is given during the dependency graph generation
   /////////////////////////////////////////////////////
-  SettingsMeta meta;
-  PipelineSettings pipelineSetup;
-  std::list<PipelineStep> pipelineSteps;
+  SettingsMeta meta                     = {};
+  PipelineSettings pipelineSetup        = {};
+  std::list<PipelineStep> pipelineSteps = {};
 
   //
   // Disabled pipelines are not executed.
@@ -91,26 +91,26 @@ public:
   enums::ClassId getOutputClass() const;
 
   auto createSnapShot(enums::HistoryCategory category, const std::string &note) -> std::optional<PipelineHistoryEntry>;
-  auto restoreSnapShot(int32_t idex) const -> Pipeline;
+  auto restoreSnapShot(size_t idex) const -> Pipeline;
   auto undo() const -> Pipeline;
-  void tag(const std::string &tagName, int32_t index = 0);
+  void tag(const std::string &tagName, size_t index = 0);
   void clearHistory();
   void eraseHistory();
   auto getHistory() const -> const std::vector<PipelineHistoryEntry> &
   {
     return history;
   }
-  void setHistory(const std::vector<PipelineHistoryEntry> &in, int32_t idx, const Pipeline &initialPipeline)
+  void setHistory(const std::vector<PipelineHistoryEntry> &in, size_t idx, const Pipeline &initialPipeline)
   {
     history         = in;
-    actHistoryIndex = idx;
+    actHistoryIndex = static_cast<int>(idx);
     if(history.empty()) {
       history.emplace_back(PipelineHistoryEntry{.pipelineSteps = initialPipeline.pipelineSteps, .commitMessage = "Created"});
     }
   }
-  auto getHistoryIndex() const
+  size_t getHistoryIndex() const
   {
-    return actHistoryIndex;
+    return static_cast<size_t>(actHistoryIndex);
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED_CONDITIONAL_CHECK(Pipeline, disabled, meta, pipelineSetup, pipelineSteps, disabled, locked,

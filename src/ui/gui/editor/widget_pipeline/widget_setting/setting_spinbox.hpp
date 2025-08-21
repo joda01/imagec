@@ -17,7 +17,12 @@
 #include <qspinbox.h>
 #include <cstdint>
 #include <optional>
+#include <string>
+#include "backend/enums/enums_units.hpp"
+#include "backend/helper/ome_parser/physical_size.hpp"
 #include "ui/gui/helper/clickablelineedit.hpp"
+#include "ui/gui/helper/jump_spinbox.hpp"
+#include <nlohmann/json_fwd.hpp>
 #include "setting_base.hpp"
 
 namespace joda::ui::gui {
@@ -35,8 +40,11 @@ public:
 
   QWidget *createInputObject() override
   {
-    mSpinBox = new QSpinBox();
+    mSpinBox = new JumpSpinBox();
     mSpinBox->setMinimumHeight(34);
+    mSpinBox->setRange(-1.0, std::numeric_limits<float>::max());
+    mSpinBox->setSpecialValueText("(disabled)");
+    mSpinBox->setDecimals(3);    // optional, number of decimal places
     // mLineEdit->setClearButtonEnabled(true);
     // if(!getIcon().isNull()) {
     //  mSpinBox->addAction(getIcon().pixmap(TXT_ICON_SIZE, TXT_ICON_SIZE), QLineEdit::LeadingPosition);
@@ -47,9 +55,130 @@ public:
     return mSpinBox;
   }
 
-  QSpinBox *getLineEdit()
+  QDoubleSpinBox *getSpinBox()
   {
     return mSpinBox;
+  }
+
+  void setUnit(QString unit, enums::ObjectType objectType)
+  {
+    mObjectType = objectType;
+    if(mObjectType != enums::ObjectType::Undefined) {
+      auto [cmdUnit, physicalSize] = getUnit();
+      mActUnit                     = cmdUnit;
+      nlohmann::json unitJson      = cmdUnit;
+      unit                         = unitJson.get<std::string>().c_str();
+      switch(cmdUnit) {
+        case enums::Units::Pixels:
+          mSpinBox->setDecimals(0);
+          mSpinBox->setSingleStep(1);
+          break;
+        case enums::Units::nm:
+          mSpinBox->setDecimals(1);
+          mSpinBox->setSingleStep(0.1);
+          break;
+        case enums::Units::mm:
+        case enums::Units::um:
+          mSpinBox->setDecimals(3);
+          mSpinBox->setSingleStep(0.01);
+          break;
+        case enums::Units::cm:
+          mSpinBox->setDecimals(2);
+          mSpinBox->setSingleStep(0.1);
+          break;
+        case enums::Units::m:
+          mSpinBox->setDecimals(3);
+          mSpinBox->setSingleStep(0.01);
+          break;
+        case enums::Units::km:
+          mSpinBox->setDecimals(2);
+          mSpinBox->setSingleStep(0.1);
+          break;
+        case enums::Units::Undefined:
+          break;
+      }
+    }
+    SettingBase::setUnit(unit);
+    mSpinBox->setSuffix(" " + unit);
+  }
+
+  void changeUnit() override
+  {
+    if(mObjectType != enums::ObjectType::Undefined) {
+      if(mActUnit == enums::Units::Undefined) {
+        setUnit("", mObjectType);
+        return;
+      }
+      if(getValue() < 0) {
+        return;
+      }
+      auto [newUnit, physicalSize] = getUnit();
+      if(newUnit != mActUnit) {
+        double valueInUm     = 0;
+        auto [pxX, pxY, pxZ] = physicalSize.getPixelSize(enums::Units::um);
+        switch(mActUnit) {
+          case enums::Units::Pixels:
+            // Not possible
+            if(mObjectType == enums::ObjectType::AREA2D) {
+              valueInUm = static_cast<double>(static_cast<double>(getValue()) * (pxX * pxY));
+            } else {
+              valueInUm = static_cast<double>(getValue()) * pxX;
+            }
+            break;
+          case enums::Units::nm:
+            valueInUm = static_cast<double>(getValue()) / 1e3;
+            break;
+          case enums::Units::um:
+            valueInUm = static_cast<double>(getValue());
+            break;
+          case enums::Units::mm:
+            valueInUm = static_cast<double>(getValue()) * 1e3;
+            break;
+          case enums::Units::cm:
+            valueInUm = static_cast<double>(getValue()) * 1e4;
+            break;
+          case enums::Units::m:
+            valueInUm = static_cast<double>(getValue()) * 1e6;
+            break;
+          case enums::Units::km:
+            valueInUm = static_cast<double>(getValue()) * 1e9;
+            break;
+          case enums::Units::Undefined:
+            break;
+        }
+
+        setUnit("", mObjectType);
+        switch(newUnit) {
+          case enums::Units::Pixels:
+            if(mObjectType == enums::ObjectType::AREA2D) {
+              mSpinBox->setValue(static_cast<double>(static_cast<int32_t>(std::nearbyint(valueInUm / (pxX * pxY)))));
+            } else {
+              mSpinBox->setValue(static_cast<double>(static_cast<int32_t>(std::nearbyint(valueInUm / pxX))));
+            }
+            break;
+          case enums::Units::nm:
+            mSpinBox->setValue(valueInUm * 1e3);
+            break;
+          case enums::Units::um:
+            mSpinBox->setValue(valueInUm);
+            break;
+          case enums::Units::mm:
+            mSpinBox->setValue(valueInUm / 1e3);
+            break;
+          case enums::Units::cm:
+            mSpinBox->setValue(valueInUm / 1e4);
+            break;
+          case enums::Units::m:
+            mSpinBox->setValue(valueInUm / 1e6);
+            break;
+          case enums::Units::km:
+            mSpinBox->setValue(valueInUm / 1e9);
+            break;
+          case enums::Units::Undefined:
+            break;
+        }
+      }
+    }
   }
 
   void setDefaultValue(VALUE_T defaultVal)
@@ -58,12 +187,19 @@ public:
     reset();
   }
 
-  void setMinMax(VALUE_T min, VALUE_T max)
+  void setMinMax(VALUE_T min, VALUE_T max, int32_t precision = 3, double singleStep = 1)
     requires Number_t<VALUE_T>
   {
     if(mSpinBox != nullptr) {
       mSpinBox->setMinimum(min);
       mSpinBox->setMaximum(max);
+      mSpinBox->setDecimals(precision);    // optional, number of decimal places
+      mSpinBox->setSingleStep(singleStep);
+      if(min < 0) {
+        mSpinBox->setSpecialValueText("Disabled");
+      } else {
+        mSpinBox->setSpecialValueText("");
+      }
     }
   }
 
@@ -80,7 +216,7 @@ public:
 
   void clear() override
   {
-    mSpinBox->clear();
+    mSpinBox->setValue(mSpinBox->minimum());
   }
 
   VALUE_T getValue()
@@ -89,28 +225,28 @@ public:
       if(mSpinBox->text().isEmpty()) {
         return -1;
       }
-      return mSpinBox->value();
+      return static_cast<VALUE_T>(mSpinBox->value());
     }
     if constexpr(std::same_as<VALUE_T, uint32_t>) {
       if(mSpinBox->text().isEmpty()) {
         return 0;
       }
-      return mSpinBox->value();
+      return static_cast<VALUE_T>(mSpinBox->value());
     }
     if constexpr(std::same_as<VALUE_T, uint16_t>) {
       if(mSpinBox->text().isEmpty()) {
         return 0;
       }
-      return mSpinBox->value();
+      return static_cast<VALUE_T>(mSpinBox->value());
     }
     if constexpr(std::same_as<VALUE_T, float>) {
       if(mSpinBox->text().isEmpty()) {
         return -1;
       }
-      return mSpinBox->value();
+      return static_cast<VALUE_T>(mSpinBox->value());
     }
     if constexpr(std::same_as<VALUE_T, std::string>) {
-      return mSpinBox->value();
+      return static_cast<VALUE_T>(mSpinBox->value());
     }
   }
 
@@ -166,10 +302,12 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  QSpinBox *mSpinBox = nullptr;
+  JumpSpinBox *mSpinBox = nullptr;
   std::optional<VALUE_T> mDefaultValue;
   VALUE_T *mSetting = nullptr;
   std::optional<VALUE_T> mOldValue;
+  enums::Units mActUnit         = enums::Units::Undefined;
+  enums::ObjectType mObjectType = enums::ObjectType::Undefined;
 
 private slots:
   void onValueChanged()

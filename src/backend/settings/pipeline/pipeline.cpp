@@ -12,6 +12,7 @@
 ///
 
 #include "pipeline.hpp"
+#include <cstddef>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -91,7 +92,7 @@ void Pipeline::eraseHistory()
 /// \brief      Restore a snap shot
 /// \author     Joachim Danmayr
 ///
-auto Pipeline::restoreSnapShot(int32_t idx) const -> Pipeline
+auto Pipeline::restoreSnapShot(size_t idx) const -> Pipeline
 {
   if(history.size() < idx) {
     throw std::runtime_error("This history entry does not exist!");
@@ -100,7 +101,7 @@ auto Pipeline::restoreSnapShot(int32_t idx) const -> Pipeline
   Pipeline pip = *this;
   pip.pipelineSteps.clear();
   pip.pipelineSteps   = history.at(idx).pipelineSteps;
-  pip.actHistoryIndex = idx;
+  pip.actHistoryIndex = static_cast<int32_t>(idx);
   return pip;
 }
 
@@ -110,19 +111,19 @@ auto Pipeline::restoreSnapShot(int32_t idx) const -> Pipeline
 ///
 auto Pipeline::undo() const -> Pipeline
 {
-  return restoreSnapShot(actHistoryIndex + 1);
+  return restoreSnapShot(static_cast<size_t>(actHistoryIndex) + 1);
 }
 
 ///
 /// \brief      Tagname
 /// \author     Joachim Danmayr
 ///
-void Pipeline::tag(const std::string &tagName, int32_t index)
+void Pipeline::tag(const std::string &tagName, size_t indexIn)
 {
-  if(history.size() < index) {
+  if(history.size() < indexIn) {
     throw std::runtime_error("This history entry does not exist!");
   }
-  history.at(index).tagMessage = tagName;
+  history.at(indexIn).tagMessage = tagName;
 }
 
 ///

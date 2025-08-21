@@ -39,14 +39,14 @@ public:
   using Group = std::string;
   struct Data
   {
-    Group group;
-    std::string title;
-    std::string description;
-    std::string path;
-    std::vector<std::string> tags;
-    QPixmap icon;
-    std::optional<std::string> author;
-    std::optional<std::string> organization;
+    Group group                             = {};
+    std::string title                       = {};
+    std::string description                 = {};
+    std::string path                        = {};
+    std::vector<std::string> tags           = {};
+    QPixmap icon                            = {};
+    std::optional<std::string> author       = {};
+    std::optional<std::string> organization = {};
   };
 
   static void saveTemplate(const joda::settings::Pipeline &data, const std::filesystem::path &pathToStoreTemplateIn);

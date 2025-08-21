@@ -54,7 +54,14 @@ public:
   {
     std::filesystem::path userSettingsPath = getUserHomeDir() / "userSettings.json";
     std::ifstream ifs(userSettingsPath);
-    std::string wholeFile = std::string((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+    if(!ifs) {
+      return;
+    }
+    std::string wholeFile;
+    size_t size = std::filesystem::file_size(userSettingsPath);
+    wholeFile.resize(size);
+    ifs.read(wholeFile.data(), static_cast<std::streamsize>(size));
+
     ifs.close();
     UserSettings set;
     set = nlohmann::json::parse(wholeFile);

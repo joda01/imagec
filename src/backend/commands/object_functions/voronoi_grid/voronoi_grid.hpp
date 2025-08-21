@@ -60,7 +60,7 @@ public:
           voronoiPoints.emplace(res);
           int x = static_cast<int>(static_cast<float>(res.getBoundingBoxTile().x) + static_cast<float>(res.getBoundingBoxTile().width) / 2.0F);
           int y = static_cast<int>(static_cast<float>(res.getBoundingBoxTile().y) + static_cast<float>(res.getBoundingBoxTile().height) / 2.0F);
-          subdiv.insert(cv::Point2f(x, y));
+          subdiv.insert(cv::Point2f(static_cast<float>(x), static_cast<float>(y)));
         }
       }
     }
@@ -85,8 +85,8 @@ public:
   /// \ref        https://learnopencv.com/delaunay-triangulation-and-voronoi-diagram-using-opencv-c-python/
   /// \param[in]   subdiv   Sub division points
   ///
-  void drawVoronoi(processor::ProcessContext &context, const cv::Size &imgSize, cv::Subdiv2D &subdiv, int circleSize,
-                   atom::SpheralIndexStandAlone &result)
+  void drawVoronoi(processor::ProcessContext &context, const cv::Size &imgSize, cv::Subdiv2D &subdiv, float circleSize,
+                   atom::SpheralIndexStandAlone &result) const
   {
     std::vector<std::vector<cv::Point2f>> facets;
     std::vector<cv::Point2f> centers;
@@ -104,8 +104,12 @@ public:
 
       cv::Mat tmpImage(imgSize, CV_8UC1);
 
+      auto [pixelWidth, pixelHeight, _] = context.getPhysicalPixelSIzeOfImage().getPixelSize(context.getPipelineRealValuesUnit());
+
+      double radiusPx = static_cast<double>(circleSize) / pixelWidth;     // radius in x direction (pixels)
+      double radiusPy = static_cast<double>(circleSize) / pixelHeight;    // radius in y direction (pixels)
       std::vector<cv::Point> circleMask;
-      cv::ellipse2Poly(centers[i], cv::Size(circleSize, circleSize), 0, 0, 360, 1, circleMask);
+      cv::ellipse2Poly(centers[i], cv::Size(static_cast<int32_t>(radiusPx), static_cast<int32_t>(radiusPy)), 0, 0, 360, 1, circleMask);
 
       cv::Mat mask1 = cv::Mat::zeros(tmpImage.size(), CV_8UC1);
       fillConvexPoly(mask1, ifacet, cv::Scalar(255), 8, 0);
@@ -129,10 +133,10 @@ public:
         contours.emplace_back();
       }
       // Look for the biggest contour area
-      int idxMax = 0;
-      for(int i = 1; i < contours.size(); i++) {
-        if(contours[i - 1].size() < contours[i].size()) {
-          idxMax = i;
+      size_t idxMax = 0;
+      for(size_t ii = 1; ii < contours.size(); ii++) {
+        if(contours[ii - 1].size() < contours[ii].size()) {
+          idxMax = ii;
         }
       }
 
@@ -145,11 +149,12 @@ public:
   void applyFilter(processor::ProcessContext &context, const atom::SpheralIndex &voronoiGrid, const atom::SpheralIndex &voronoiPoints,
                    atom::ObjectList &objects);
 
-  static bool doesAreaContainsPoint(const atom::ROI &voronoiArea, const atom::SpheralIndex &voronoiPoints, std::set<enums::ClassId> pointsClassIn)
+  static bool doesAreaContainsPoint(const atom::ROI &voronoiArea, const atom::SpheralIndex &voronoiPoints,
+                                    const std::set<enums::ClassId> &pointsClassIn)
   {
     for(const auto &point : voronoiPoints) {
       if(pointsClassIn.contains(point.getClassId())) {
-        if(voronoiArea.isIntersecting(point, 0.1)) {
+        if(voronoiArea.isIntersecting(point, 0.1F)) {
           return true;
         }
       }

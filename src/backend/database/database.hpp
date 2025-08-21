@@ -48,32 +48,33 @@ public:
   /////////////////////////////////////////////////////
   void openDatabase(const std::filesystem::path &pathToDb) override;
   void closeDatabase() override;
-  std::string startJob(const joda::settings::AnalyzeSettings &, const std::string &jobName);
-  void finishJob(const std::string &jobId);
+  std::string startJob(const joda::settings::AnalyzeSettings &, const std::string &jobName) override;
+  void finishJob(const std::string &jobId) override;
 
   auto prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
                      const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
-                     BS::thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>;
-  void setImageProcessed(uint64_t);
+                     const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings, BS::thread_pool &globalThreadPool)
+      -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> override;
+  void setImageProcessed(uint64_t) override;
 
   void insertGroup(uint16_t plateId, const joda::grp::GroupInformation &groupInfo);
   void insertImage(const joda::processor::ImageContext &, const joda::grp::GroupInformation &groupInfo);
   void insetImageToGroup(uint16_t plateId, uint64_t imageId, uint16_t imageIdx, const joda::grp::GroupInformation &groupInfo);
 
   void insertImageChannels(uint64_t imageId, int32_t series, const joda::ome::OmeInfo &ome);
-  void insertImagePlane(uint64_t imageId, const enums::PlaneId &, const ome::OmeInfo::ImagePlane &);
+  void insertImagePlane(uint64_t imageId, const enums::PlaneId &, const ome::OmeInfo::ImagePlane &) override;
 
-  void setImageValidity(uint64_t imageId, enums::ChannelValidity validity);
-  void unsetImageValidity(uint64_t imageId, enums::ChannelValidity validity);
-  void setImagePlaneValidity(uint64_t imageId, const enums::PlaneId &, enums::ChannelValidity validity);
-  void setImagePlaneClasssClasssValidity(uint64_t imageId, const enums::PlaneId &, enums::ClassId classId, enums::ChannelValidity validity);
+  void setImageValidity(uint64_t imageId, enums::ChannelValidity validity) override;
+  void unsetImageValidity(uint64_t imageId, enums::ChannelValidity validity) override;
+  void setImagePlaneValidity(uint64_t imageId, const enums::PlaneId &, enums::ChannelValidity validity) override;
+  void setImagePlaneClasssClasssValidity(uint64_t imageId, const enums::PlaneId &, enums::ClassId classId, enums::ChannelValidity validity) override;
 
   void setAnalyzeSettingsCache(const std::string &jobID, const std::set<enums::ClassId> &outputClasses,
                                const std::map<enums::ClassId, std::set<int32_t>> &measureChannels,
                                const std::map<enums::ClassId, std::set<enums::ClassId>> &intersectingChannels,
                                const std::map<enums::ClassId, std::set<enums::ClassId>> &distanceChannels);
 
-  void insertObjects(const joda::processor::ImageContext &, const joda::atom::ObjectList &);
+  void insertObjects(const joda::processor::ImageContext &, enums::Units, const joda::atom::ObjectList &) override;
 
   auto selectExperiment() -> AnalyzeMeta;
   auto selectPlates() -> std::map<uint16_t, joda::settings::Plate>;
@@ -98,6 +99,7 @@ public:
   void updateResultsTableSettings(const std::string &jobId, const std::string &settings);
   auto selectResultsTableSettings(const std::string &jobId) -> std::string;
   auto selectImageIdFromImageFileName(const std::string &imageFileName) -> uint64_t;
+  auto selectGroupIdFromGroupName(const std::string &groupName) -> uint16_t;
 
   template <typename... ARGS>
   std::unique_ptr<duckdb::QueryResult> select(const std::string &query, ARGS... args)

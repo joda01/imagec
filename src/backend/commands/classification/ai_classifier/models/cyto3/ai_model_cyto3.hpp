@@ -24,8 +24,8 @@ class AiModelCyto3 : public AiModel
 public:
   struct ProbabilitySettings
   {
-    float maskThreshold  = 0.8;
-    float classThreshold = 0.5;
+    float maskThreshold  = 0.8F;
+    float classThreshold = 0.5F;
   };
 
   AiModelCyto3(const ProbabilitySettings &settings);

@@ -28,7 +28,7 @@ struct GroupInformation
 
   [[nodiscard]] std::string toString() const
   {
-    char al = (wellPosY - 1 + 'A');
+    char al = static_cast<char>(wellPosY - 1 + 'A');
     return std::string(1, al) + "x" + std::to_string(wellPosX);
   }
 };

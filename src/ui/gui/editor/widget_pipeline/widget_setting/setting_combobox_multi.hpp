@@ -82,17 +82,17 @@ public:
   void addOptions(const std::vector<ComboEntry> &options)
   {
     mComboBox->clear();
-    for(const auto &data : options) {
+    for(const auto &dataLoop : options) {
       QVariant variant;
       if constexpr(std::is_enum<VALUE_T>::value) {
-        variant = QVariant(static_cast<int>(data.key));
+        variant = static_cast<int>(dataLoop.key);
       } else {
-        variant = QVariant(data.key);
+        variant = QVariant(dataLoop.key);
       }
-      if(data.icon.isNull()) {
-        mComboBox->addItem(SettingBase::getIcon(), data.label, variant);
+      if(dataLoop.icon.isNull()) {
+        mComboBox->addItem(SettingBase::getIcon(), dataLoop.label, variant);
       } else {
-        mComboBox->addItem(data.icon, data.label, variant);
+        mComboBox->addItem(dataLoop.icon, dataLoop.label, variant);
       }
     }
   }
@@ -129,7 +129,7 @@ public:
           }
         }
         if constexpr(std::is_enum<VALUE_T>::value) {
-          if(key == (VALUE_T) item.toInt()) {
+          if(key == static_cast<VALUE_T>(item.toInt())) {
             return i;
           }
         }
@@ -142,7 +142,7 @@ public:
     for(const auto &[key, label] : options) {
       QVariant variant;
       if constexpr(std::is_enum<VALUE_T>::value) {
-        variant = QVariant(static_cast<int>(key));
+        variant = static_cast<int>(key);
       } else {
         variant = QVariant(key);
       }
@@ -163,26 +163,26 @@ public:
   std::set<VALUE_T> getValue()
   {
     std::set<VALUE_T> toReturn;
-    auto checked = ((QComboBoxMulti *) mComboBox)->getCheckedItems();
+    auto checked = (static_cast<QComboBoxMulti *>(mComboBox))->getCheckedItems();
 
-    for(const auto &[data, _] : checked) {
+    for(const auto &[dataC, _] : checked) {
       if constexpr(std::same_as<VALUE_T, int32_t>) {
-        toReturn.emplace(data.toInt());
+        toReturn.emplace(dataC.toInt());
       }
       if constexpr(std::same_as<VALUE_T, uint32_t>) {
-        toReturn.emplace(data.toUInt());
+        toReturn.emplace(dataC.toUInt());
       }
       if constexpr(std::same_as<VALUE_T, uint16_t>) {
-        toReturn.emplace(data.toUInt());
+        toReturn.emplace(dataC.toUInt());
       }
       if constexpr(std::same_as<VALUE_T, float>) {
-        toReturn.emplace(data.toFloat());
+        toReturn.emplace(dataC.toFloat());
       }
       if constexpr(std::same_as<VALUE_T, bool>) {
-        toReturn.emplace(data.toBool());
+        toReturn.emplace(dataC.toBool());
       }
       if constexpr(std::is_enum<VALUE_T>::value) {
-        toReturn.emplace((VALUE_T) data.toInt());
+        toReturn.emplace(static_cast<VALUE_T>(dataC.toInt()));
       }
     }
 
@@ -192,26 +192,26 @@ public:
   std::map<VALUE_T, std::string> getValueAndNames()
   {
     std::map<VALUE_T, std::string> toReturn;
-    auto checked = ((QComboBoxMulti *) mComboBox)->getCheckedItems();
+    auto checked = (static_cast<QComboBoxMulti *>(mComboBox))->getCheckedItems();
 
-    for(const auto &[data, txt] : checked) {
+    for(const auto &[dataIn, txt] : checked) {
       if constexpr(std::same_as<VALUE_T, int32_t>) {
-        toReturn.emplace(data.toInt(), txt.toStdString());
+        toReturn.emplace(dataIn.toInt(), txt.toStdString());
       }
       if constexpr(std::same_as<VALUE_T, uint32_t>) {
-        toReturn.emplace(data.toUInt(), txt.toStdString());
+        toReturn.emplace(dataIn.toUInt(), txt.toStdString());
       }
       if constexpr(std::same_as<VALUE_T, uint16_t>) {
-        toReturn.emplace(data.toUInt(), txt.toStdString());
+        toReturn.emplace(dataIn.toUInt(), txt.toStdString());
       }
       if constexpr(std::same_as<VALUE_T, float>) {
-        toReturn.emplace(data.toFloat(), txt.toStdString());
+        toReturn.emplace(dataIn.toFloat(), txt.toStdString());
       }
       if constexpr(std::same_as<VALUE_T, bool>) {
-        toReturn.emplace(data.toBool(), txt.toStdString());
+        toReturn.emplace(dataIn.toBool(), txt.toStdString());
       }
       if constexpr(std::is_enum<VALUE_T>::value) {
-        toReturn.emplace((VALUE_T) data.toInt(), txt.toStdString());
+        toReturn.emplace(static_cast<VALUE_T>(dataIn.toInt()), txt.toStdString());
       }
     }
 
@@ -247,7 +247,7 @@ public:
         toCheck.append(static_cast<int>(value));
       }
     }
-    ((QComboBoxMulti *) mComboBox)->setCheckedItems(toCheck);
+    (static_cast<QComboBoxMulti *>(mComboBox))->setCheckedItems(toCheck);
     onValueChanged();
     mComboBox->blockSignals(false);
   }
@@ -281,9 +281,9 @@ private slots:
     QVariant itemData = mComboBox->itemData(mComboBox->currentIndex(), Qt::DecorationRole);
     if(itemData.isValid() && itemData.canConvert<QIcon>()) {
       auto selectedIcon = qvariant_cast<QIcon>(itemData);
-      SettingBase::triggerValueChanged(((QComboBoxMulti *) mComboBox)->getDisplayText(), hasValueChanged, selectedIcon);
+      SettingBase::triggerValueChanged((static_cast<QComboBoxMulti *>(mComboBox))->getDisplayText(), hasValueChanged, selectedIcon);
     } else {
-      SettingBase::triggerValueChanged(((QComboBoxMulti *) mComboBox)->getDisplayText(), hasValueChanged);
+      SettingBase::triggerValueChanged((static_cast<QComboBoxMulti *>(mComboBox))->getDisplayText(), hasValueChanged);
     }
   }
 };

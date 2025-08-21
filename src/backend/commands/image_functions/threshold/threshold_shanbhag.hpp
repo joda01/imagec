@@ -35,7 +35,8 @@ public:
     //  Image Thresholding" Graphical Models and Image Processing, 56(5): 414-419
     // Ported to ImageJ plugin by G.Landini from E Celebi's fourier_0.8 routines
     int threshold;
-    int ih, it;
+    int ih;
+    int it;
     int first_bin;
     int last_bin;
     double term;
@@ -49,11 +50,11 @@ public:
 
     double total = 0;
     for(ih = 0; ih < 256; ih++) {
-      total += histogram.at<float>(ih);
+      total += static_cast<double>(histogram.at<float>(ih));
     }
 
     for(ih = 0; ih < 256; ih++) {
-      norm_histo[ih] = histogram.at<float>(ih) / total;
+      norm_histo[ih] = static_cast<double>(histogram.at<float>(ih)) / total;
     }
 
     P1[0] = norm_histo[0];
@@ -111,7 +112,7 @@ public:
         threshold = it;
       }
     }
-    return threshold;
+    return static_cast<uint16_t>(threshold);
   }
 };
 

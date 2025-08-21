@@ -51,10 +51,10 @@ public:
     bool containsIntensity    = false;
     bool containsIntersection = false;
   };
-  std::string createStatsQuery(bool isOuter, bool excludeInvalid, std::string offValue = "ANY_VALUE",
-                               std::optional<enums::Stats> overrideStats = std::nullopt) const;
+  [[nodiscard]] std::string createStatsQuery(bool isOuter, bool excludeInvalid, std::string offValue = "ANY_VALUE",
+                                             std::optional<enums::Stats> overrideStats = std::nullopt) const;
   std::string createStatsQueryJoins(bool isImage = false, JoinResults *results = nullptr) const;
-  std::tuple<std::string, std::string> createIntersectionQuery() const;
+  [[nodiscard]] std::tuple<std::string, std::string> createIntersectionQuery() const;
 
   void addColumn(settings::ResultsSettings::ColumnKey col)
   {
@@ -64,24 +64,24 @@ public:
       }
     }
 
-    size_t pos = columns.size();
+    uint32_t pos = static_cast<uint32_t>(columns.size());
     columns.emplace(pos, col);
   }
 
-  [[nodiscard]] auto getColumns() const -> const std::map<int32_t, settings::ResultsSettings::ColumnKey> &
+  [[nodiscard]] auto getColumns() const -> const std::map<uint32_t, settings::ResultsSettings::ColumnKey> &
   {
     return columns;
   }
 
-  [[nodiscard]] auto getColumnAt(int32_t dbColIdx) const -> const settings::ResultsSettings::ColumnKey &
+  [[nodiscard]] auto getColumnAt(uint32_t dbColIdx) const -> const settings::ResultsSettings::ColumnKey &
   {
     if(!columns.contains(dbColIdx)) {
-      throw std::invalid_argument("Colum unknown!");
+      throw std::invalid_argument("Colum >" + std::to_string(dbColIdx) + "< unknown!");
     }
     return columns.at(dbColIdx);
   }
 
-  auto getColSize() const
+  [[nodiscard]] auto getColSize() const
   {
     return columns.size();
   }
@@ -97,7 +97,7 @@ private:
   static std::string getStatsString(enums::Stats stats, const std::string &offValue = "ANY_VALUE");
 
   /////////////////////////////////////////////////////
-  std::map<int32_t, settings::ResultsSettings::ColumnKey> columns;
+  std::map<uint32_t, settings::ResultsSettings::ColumnKey> columns;
   settings::ResultsSettings::ColumnName mColNames;
   const settings::ResultsSettings *mFilter;
 };
@@ -125,13 +125,13 @@ public:
 
     bool operator<(const QueryKey &key) const
     {
-      auto toUint128 = [](const QueryKey &key) -> stdi::uint128_t {
-        if(key.distanceToClass == joda::enums::ClassId::NONE) {
+      auto toUint128 = [](const QueryKey &keyIn) -> stdi::uint128_t {
+        if(keyIn.distanceToClass == joda::enums::ClassId::NONE) {
           // We want the none to be first this is neccessary for toHeatmap to keep the order the rows are queried
-          return stdi::uint128_t(static_cast<uint64>(key.classs), static_cast<uint64>(key.zStack) << 32 | static_cast<uint64>(key.tStack));
+          return {static_cast<uint64>(keyIn.classs), static_cast<uint64>(keyIn.zStack) << 32 | static_cast<uint64>(keyIn.tStack)};
         }
-        return stdi::uint128_t((static_cast<uint64>(key.distanceToClass) + 1) << 16 | static_cast<uint64>(key.classs),
-                               static_cast<uint64>(key.zStack) << 32 | static_cast<uint64>(key.tStack));
+        return {(static_cast<uint64>(keyIn.distanceToClass) + 1) << 16 | static_cast<uint64>(keyIn.classs),
+                static_cast<uint64>(keyIn.zStack) << 32 | static_cast<uint64>(keyIn.tStack)};
       };
 
       return toUint128(*this) < toUint128(key);
@@ -140,8 +140,8 @@ public:
 
   explicit ResultingTable(const settings::ResultsSettings *);
 
-  void setData(const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, int32_t row, int32_t dbColIx,
-               const std::string &rowName, const table::TableCell &tableCell)
+  void setData(const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, uint32_t row, uint32_t dbColIx,
+               const std::string & /*rowName*/, const table::TableCell &tableCell)
   {
     if(!mClassesAndClasses.contains(classsAndClass)) {
       mClassesAndClasses.emplace(classsAndClass, PreparedStatement{colName, mFilter});
@@ -155,18 +155,18 @@ public:
     }
   }
 
-  size_t getColIdxFromDbColIdx(const PreparedStatement &statement, size_t dbColIdx) const
+  [[nodiscard]] int32_t getColIdxFromDbColIdx(const PreparedStatement &statement, uint32_t dbColIdx) const
   {
-    size_t colIdx  = 0;
-    auto columnKey = statement.getColumnAt(dbColIdx);
+    int32_t colIdx        = 0;
+    const auto &columnKey = statement.getColumnAt(dbColIdx);
     for(auto [itr, rangeEnd] = mTableMapping.equal_range(columnKey); itr != rangeEnd; ++itr) {
-      auto &element = itr->second;
-      colIdx        = element.colIdx;
+      const auto &element = itr->second;
+      colIdx              = element.colIdx;
     }
     return colIdx;
   }
 
-  void setRowID(const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, int32_t row, const std::string &rowName,
+  void setRowID(const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, int32_t row, const std::string & /*rowName*/,
                 uint64_t rowId)
   {
     if(!mClassesAndClasses.contains(classsAndClass)) {

@@ -18,6 +18,7 @@
 #include <qpainter.h>
 #include <qtoolbar.h>
 #include <chrono>
+#include <utility>
 #include "backend/helper/logger/console_logger.hpp"
 #include "ui/gui/editor/window_main.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
@@ -30,10 +31,8 @@ class TimeHistoryEntry : public QWidget
 public:
   using QWidget::QWidget;
 
-  explicit TimeHistoryEntry(const QIcon &icon, const QString &leftText, const std::chrono::system_clock::time_point &timestamp,
-                            QWidget *parent = nullptr) :
-      QWidget(parent),
-      mIcon(icon), mLeftText(leftText), mTimeStamp(timestamp)
+  explicit TimeHistoryEntry(QIcon icon, QString leftText, const std::chrono::system_clock::time_point &timestamp, QWidget *parent = nullptr) :
+      QWidget(parent), mIcon(std::move(icon)), mLeftText(std::move(leftText)), mTimeStamp(timestamp)
   {
   }
   void updateContent(const QIcon &icon, const QString &txt)
@@ -44,7 +43,7 @@ public:
   }
 
 protected:
-  void paintEvent(QPaintEvent *event) override
+  void paintEvent(QPaintEvent * /*event*/) override
   {
     QPainter painter(this);
     int padding = 5;    // Padding around elements
@@ -107,7 +106,7 @@ DialogHistory::DialogHistory(WindowMain *parent, PanelPipelineSettings *panelPip
   mHistory->setShowGrid(false);
   mHistory->setFrameStyle(QFrame::NoFrame);
   mHistory->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  connect(mHistory, &QTableWidget::cellDoubleClicked, [&](int row, int column) { restoreHistory(row); });
+  connect(mHistory, &QTableWidget::cellDoubleClicked, [&](int row, int /*column*/) { restoreHistory(row); });
 
   //
   // Toolbar
@@ -126,10 +125,10 @@ DialogHistory::DialogHistory(WindowMain *parent, PanelPipelineSettings *panelPip
     messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning").pixmap(48, 48));
     messageBox.setWindowTitle("Clear history?");
     messageBox.setText("Clear history and keep tags?");
-    QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
-    QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+    QPushButton *noButton = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+    messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
     messageBox.setDefaultButton(noButton);
-    auto reply = messageBox.exec();
+    messageBox.exec();
     if(messageBox.clickedButton() == noButton) {
       return;
     }
@@ -200,7 +199,7 @@ void DialogHistory::loadHistory()
     return;
   }
   const auto &history = mPanelPipeline->mutablePipeline().getHistory();
-  mHistory->setRowCount(history.size());
+  mHistory->setRowCount(static_cast<int32_t>(history.size()));
   int idx = 0;
   for(const auto &step : history) {
     mHistory->setCellWidget(idx, 0, generateHistoryEntry(step));
@@ -221,9 +220,9 @@ void DialogHistory::restoreHistory(int32_t index)
     return;
   }
   try {
-    auto data = mPanelPipeline->mutablePipeline().restoreSnapShot(index);
+    auto dataIn = mPanelPipeline->mutablePipeline().restoreSnapShot(index);
     mPanelPipeline->clearPipeline();
-    mPanelPipeline->fromSettings(data);
+    mPanelPipeline->fromSettings(dataIn);
     updateSelection();
   } catch(...) {
   }
@@ -240,8 +239,8 @@ void DialogHistory::restoreHistory(int32_t index)
 void DialogHistory::updateSelection()
 {
   auto idx = mPanelPipeline->mutablePipeline().getHistoryIndex();
-  if(mHistory->rowCount() > idx) {
-    mHistory->selectRow(idx);
+  if(mHistory->rowCount() > static_cast<int32_t>(idx)) {
+    mHistory->selectRow(static_cast<int32_t>(idx));
   }
 }
 
@@ -258,9 +257,9 @@ void DialogHistory::undo()
     return;
   }
   try {
-    auto data = mPanelPipeline->mutablePipeline().undo();
+    auto dataIn = mPanelPipeline->mutablePipeline().undo();
     mPanelPipeline->clearPipeline();
-    mPanelPipeline->fromSettings(data);
+    mPanelPipeline->fromSettings(dataIn);
     updateSelection();
   } catch(...) {
   }
@@ -286,7 +285,8 @@ void DialogHistory::createTag()
     if(!text.isEmpty()) {
       try {
         mPanelPipeline->mutablePipeline().tag(text.toStdString());
-        ((TimeHistoryEntry *) mHistory->cellWidget(0, 0))->updateContent(generateSvgIcon<Style::REGULAR, Color::BLACK>("tag-simple"), text);
+        (static_cast<TimeHistoryEntry *>(mHistory->cellWidget(0, 0)))
+            ->updateContent(generateSvgIcon<Style::REGULAR, Color::BLACK>("tag-simple"), text);
         mHistory->update();
         mHistory->viewport()->update();
         mWindowMain->checkForSettingsChanged();

@@ -45,7 +45,8 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) : QWidget(parent), mImageViewRight(parent)
+DialogImageViewer::DialogImageViewer(QWidget *parent, joda::settings::AnalyzeSettings *settings, QToolBar *toolbarParent) :
+    QWidget(parent), mImageViewRight(parent), mSettings(settings)
 {
   setWindowTitle("Preview");
   setContentsMargins(0, 0, 0, 0);
@@ -145,7 +146,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, QToolBar *toolbarParent) :
     imgSettings->setObjectName("ToolButton");
     imgSettings->setStatusTip("Image settings");
     connect(imgSettings, &QAction::triggered, [this] {
-      auto *dialog = new DialogImageSettings(&mImageSettings, this);
+      auto *dialog = new DialogImageSettings(&mImageSettings, this, mImageViewRight.getOmeInfo());
       if(dialog->exec() == QDialog::Accepted) {
         onSettingsChanged();
       }
@@ -327,8 +328,8 @@ void DialogImageViewer::setImageChannel(int32_t channel)
 ///
 void DialogImageViewer::setShowCrossHairCursor(bool show)
 {
-  showCrossHairCursor->setChecked(true);
-  mImageViewRight.setShowCrosshandCursor(true);
+  showCrossHairCursor->setChecked(show);
+  mImageViewRight.setShowCrosshandCursor(show);
 }
 
 ///
@@ -338,9 +339,15 @@ void DialogImageViewer::setShowCrossHairCursor(bool show)
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::setSettingsPointer(joda::settings::AnalyzeSettings *settings)
+void DialogImageViewer::fromSettings(const joda::settings::AnalyzeSettings &settings)
 {
-  mSettings = settings;
+  if(mSettings != nullptr) {
+    mImageSettings.zProjection   = settings.imageSetup.zStackSettings.defaultZProjection;
+    mImageSettings.pixelHeight   = settings.imageSetup.imagePixelSizeSettings.pixelHeight;
+    mImageSettings.pixelWidth    = settings.imageSetup.imagePixelSizeSettings.pixelWidth;
+    mImageSettings.pixelSizeUnit = settings.imageSetup.imagePixelSizeSettings.pixelSizeUnit;
+    mImageSettings.sizeMode      = settings.imageSetup.imagePixelSizeSettings.mode;
+  }
 }
 
 ///
@@ -392,7 +399,7 @@ void DialogImageViewer::removeVideoControl()
 ///
 void DialogImageViewer::applySettingsToImagePanel()
 {
-  auto tileSize = getTileSize();
+  auto tileSizeIn = getTileSize();
   mImageViewRight.setSeries(mImageSettings.imageSeries);
   if(nullptr != mVideoButtonGroup) {
     mVideoButtonGroup->setMaxTimeStacks(mImageViewRight.getNrOfTstacks());
@@ -400,14 +407,24 @@ void DialogImageViewer::applySettingsToImagePanel()
   }
   mImageViewRight.setZprojection(getSelectedZProjection());
   mImageViewRight.setImagePlane({.z = mSelectedZStack, .c = getSelectedImageChannel(), .t = mSelectedTStack});
-  mImageViewRight.setImageTile(tileSize, tileSize);
+  mImageViewRight.setImageTile(tileSizeIn, tileSizeIn);
+  mImageViewRight.setDefaultPhysicalSize(joda::settings::ProjectImageSetup::PhysicalSizeSettings{.mode          = mImageSettings.sizeMode,
+                                                                                                 .pixelSizeUnit = mImageSettings.pixelSizeUnit,
+                                                                                                 .pixelWidth    = mImageSettings.pixelWidth,
+                                                                                                 .pixelHeight   = mImageSettings.pixelHeight});
 
   // Sync to settings
   if(mSettings != nullptr) {
-    auto tileSize                                      = getTileSize();
-    mSettings->imageSetup.imageTileSettings.tileHeight = tileSize;
-    mSettings->imageSetup.imageTileSettings.tileWidth  = tileSize;
-    mSettings->imageSetup.series                       = mImageSettings.imageSeries;
+    auto tileSize                                           = getTileSize();
+    mSettings->imageSetup.zStackSettings.defaultZProjection = getSelectedZProjection();
+    mSettings->imageSetup.imageTileSettings.tileHeight      = tileSize;
+    mSettings->imageSetup.imageTileSettings.tileWidth       = tileSize;
+    mSettings->imageSetup.series                            = mImageSettings.imageSeries;
+
+    mSettings->imageSetup.imagePixelSizeSettings.pixelHeight   = mImageSettings.pixelHeight;
+    mSettings->imageSetup.imagePixelSizeSettings.pixelWidth    = mImageSettings.pixelWidth;
+    mSettings->imageSetup.imagePixelSizeSettings.pixelSizeUnit = mImageSettings.pixelSizeUnit;
+    mSettings->imageSetup.imagePixelSizeSettings.mode          = mImageSettings.sizeMode;
   }
 }
 

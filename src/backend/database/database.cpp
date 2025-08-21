@@ -14,6 +14,7 @@
 #include "database.hpp"
 #include <duckdb.h>
 #include <chrono>
+#include <cstdint>
 #include <exception>
 #include <filesystem>
 #include <mutex>
@@ -22,6 +23,7 @@
 #include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_grouping.hpp"
+#include "backend/enums/enums_units.hpp"
 #include "backend/helper/base64.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/file_grouper/file_grouper.hpp"
@@ -35,9 +37,11 @@
 #include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
+#include "backend/settings/project_settings/project_image_setup.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
 #include "backend/settings/results_settings/results_settings.hpp"
 #include "backend/settings/settings.hpp"
+#include <duckdb/common/typedefs.hpp>
 #include <duckdb/common/types.hpp>
 #include <duckdb/common/types/string_type.hpp>
 #include <duckdb/common/types/uuid.hpp>
@@ -57,12 +61,12 @@ auto duckdbMapToMap(auto &materializedResult) -> std::map<KEY, std::set<VALUE>>
   if(materializedResult->RowCount() > 0) {
     duckdb::Value value = materializedResult->GetValue(0, 0);
     auto children       = duckdb::MapValue::GetChildren(value);
-    for(int n = 0; n < children.size(); n++) {
+    for(size_t n = 0; n < children.size(); n++) {
       auto tuple   = duckdb::ListValue::GetChildren(children[n]);    // LIST<INT32>
       auto key     = tuple[0].GetValue<int32_t>();
       auto values  = duckdb::ListValue::GetChildren(tuple[1]);
       auto &toEdit = channels[static_cast<KEY>(key)];
-      for(int m = 0; m < values.size(); m++) {
+      for(size_t m = 0; m < values.size(); m++) {
         toEdit.emplace(static_cast<VALUE>(values[m].GetValue<int32_t>()));
       }
     }
@@ -108,6 +112,7 @@ void Database::createTables()
       " settings_tile_width UINTEGER,"
       " settings_tile_height UINTEGER,"
       " settings_image_series UINTEGER,"
+      " physicalPixelSizeUnit STRING,"
       " PRIMARY KEY (job_id),"
       " FOREIGN KEY(experiment_id) REFERENCES experiment(experiment_id)"
       ");"
@@ -126,6 +131,9 @@ void Database::createTables()
 
       "ALTER TABLE jobs "
       " ADD COLUMN IF NOT EXISTS settings_image_series UINTEGER DEFAULT 0;\n"
+
+      "ALTER TABLE jobs "
+      " ADD COLUMN IF NOT EXISTS physicalPixelSizeUnit STRING DEFAULT 'Px';\n"
 
       "CREATE TABLE IF NOT EXISTS plates ("
       " job_id UUID,"
@@ -173,8 +181,24 @@ void Database::createTables()
       " height UINTEGER,"
       " validity UBIGINT,"
       " processed BOOLEAN,"
+      " physicalPixelSizeWidth DOUBLE,"
+      " physicalPixelSizeHeight DOUBLE,"
+      " physicalPixelSizeDepth DOUBLE,"
+      " physicalPixelSizeUnit STRING,"
       " PRIMARY KEY (image_id)"
       ");"
+
+      "ALTER TABLE images "
+      " ADD COLUMN IF NOT EXISTS physicalPixelSizeWidth DOUBLE DEFAULT 1;\n"
+
+      "ALTER TABLE images "
+      " ADD COLUMN IF NOT EXISTS physicalPixelSizeHeight DOUBLE DEFAULT 1;\n"
+
+      "ALTER TABLE images "
+      " ADD COLUMN IF NOT EXISTS physicalPixelSizeDepth DOUBLE DEFAULT 1;\n"
+
+      "ALTER TABLE images "
+      " ADD COLUMN IF NOT EXISTS physicalPixelSizeUnit STRING DEFAULT 'Px';\n"
 
       "CREATE TABLE IF NOT EXISTS images_groups ("
       " plate_id USMALLINT,"
@@ -291,10 +315,10 @@ void Database::createTables()
                                                            // measures the distance to this channel
       ");";
 
-  auto connection = acquire();
-  auto result     = connection->Query(create_table_sql);
-  if(result->HasError()) {
-    throw std::invalid_argument(result->GetError());
+  auto connection   = acquire();
+  auto resultCreate = connection->Query(create_table_sql);
+  if(resultCreate->HasError()) {
+    throw std::invalid_argument(resultCreate->GetError());
   }
 
   //
@@ -305,9 +329,9 @@ void Database::createTables()
     std::string query =
         "SELECT COUNT(*) FROM information_schema.columns "
         "WHERE table_name = 'images' AND column_name = 'relative_file_path';";
-    auto con    = acquire();
-    auto result = con->Query(query);
-    if(result->GetValue<int64_t>(0, 0) <= 0) {
+    auto con     = acquire();
+    auto resultt = con->Query(query);
+    if(resultt->GetValue<int64_t>(0, 0) <= 0) {
       std::string alter_sql = "ALTER TABLE images ADD COLUMN relative_file_path TEXT DEFAULT '';";
       con->Query(alter_sql);
       {
@@ -318,9 +342,9 @@ void Database::createTables()
           for(const auto &image : images) {
             auto originalFilePath = std::filesystem::path(image.imageFilePath);
             auto relativePath     = std::filesystem::relative(originalFilePath, workingDirectory);
-            std::string alter_sql =
+            std::string alter_sqlIn =
                 "UPDATE images SET relative_file_path = '" + relativePath.string() + "' WHERE original_file_path='" + originalFilePath.string() + "'";
-            con->Query(alter_sql);
+            con->Query(alter_sqlIn);
           }
         }
       }
@@ -339,26 +363,26 @@ void Database::createTables()
 
       /// \todo Fill the parent object class id
       {
-        std::unique_ptr<duckdb::QueryResult> result = select("SELECT class_id,object_id, meas_parent_object_id FROM objects\n");
-        if(result->HasError()) {
+        std::unique_ptr<duckdb::QueryResult> resultIn = select("SELECT class_id,object_id, meas_parent_object_id FROM objects\n");
+        if(resultIn->HasError()) {
           throw std::invalid_argument(result->GetError());
         }
-        auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+        auto materializedResultIn = resultIn->Cast<duckdb::StreamQueryResult>().Materialize();
         std::map<uint64_t, enums::ClassId> objectIdClassMapping;
         std::vector<std::pair<uint64_t, uint64_t>> parentIdObjectIdMapping;
 
-        for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-          auto classID        = (static_cast<enums::ClassId>(materializedResult->GetValue(0, n).GetValue<uint16_t>()));
-          auto objectId       = materializedResult->GetValue(1, n).GetValue<uint64_t>();
-          auto parentObjectId = materializedResult->GetValue(2, n).GetValue<uint64_t>();
+        for(size_t n = 0; n < materializedResultIn->RowCount(); n++) {
+          auto classID        = (static_cast<enums::ClassId>(materializedResultIn->GetValue(0, n).GetValue<uint16_t>()));
+          auto objectId       = materializedResultIn->GetValue(1, n).GetValue<uint64_t>();
+          auto parentObjectId = materializedResultIn->GetValue(2, n).GetValue<uint64_t>();
           objectIdClassMapping.emplace(objectId, classID);
           parentIdObjectIdMapping.emplace_back(parentObjectId, objectId);
         }
 
         for(const auto &[parentObjectId, objectId] : parentIdObjectIdMapping) {
           if(parentObjectId > 0) {
-            std::unique_ptr<duckdb::QueryResult> result = select("UPDATE objects SET meas_parent_class_id=? WHERE object_id=?\n",
-                                                                 static_cast<uint16_t>(objectIdClassMapping.at(parentObjectId)), objectId);
+            std::unique_ptr<duckdb::QueryResult> resultIn2 = select("UPDATE objects SET meas_parent_class_id=? WHERE object_id=?\n",
+                                                                    static_cast<uint16_t>(objectIdClassMapping.at(parentObjectId)), objectId);
           }
         }
       }
@@ -405,35 +429,37 @@ std::unique_ptr<duckdb::QueryResult> Database::select(const std::string &query, 
 /// \param[out]
 /// \return
 ///
-void Database::insertObjects(const joda::processor::ImageContext &imgContext, const joda::atom::ObjectList &objectsList)
+void Database::insertObjects(const joda::processor::ImageContext &imgContext, enums::Units physicalSizeUnit,
+                             const joda::atom::ObjectList &objectsList)
 {
   auto connection = acquire();
   // connection->BeginTransaction();
   auto objects               = duckdb::Appender(*connection, "objects");
   auto object_measurements   = duckdb::Appender(*connection, "object_measurements");
   auto distance_measurements = duckdb::Appender(*connection, "distance_measurements");
+  const auto &physicalSize   = imgContext.imageMeta.getPhyiscalSize(imgContext.series);
 
   for(const auto &[_, obj] : objectsList) {
     for(const auto &roi : *obj) {
       objects.BeginRow();
       // Primary key
-      objects.Append<uint64_t>(imgContext.imageId);             // "	image_id UBIGINT,"
-      objects.Append<uint64_t>(roi.getObjectId());              // " object_id UBIGINT,"
-      objects.Append<uint16_t>((uint16_t) roi.getClassId());    // " class_id USMALLINT,"
-      objects.Append<uint32_t>(roi.getC());                     // " stack_c UINTEGER,"
-      objects.Append<uint32_t>(roi.getZ());                     // " stack_z UINTEGER,"
-      objects.Append<uint32_t>(roi.getT());                     // " stack_t UINTEGER,"
+      objects.Append<uint64_t>(imgContext.imageId);                         // "	image_id UBIGINT,"
+      objects.Append<uint64_t>(roi.getObjectId());                          // " object_id UBIGINT,"
+      objects.Append<uint16_t>(static_cast<uint16_t>(roi.getClassId()));    // " class_id USMALLINT,"
+      objects.Append<uint32_t>(static_cast<uint32_t>(roi.getC()));          // " stack_c UINTEGER,"
+      objects.Append<uint32_t>(static_cast<uint32_t>(roi.getZ()));          // " stack_z UINTEGER,"
+      objects.Append<uint32_t>(static_cast<uint32_t>(roi.getT()));          // " stack_t UINTEGER,"
       // Data
-      objects.Append<float>(roi.getConfidence());                   // " meas_confidence float,"
-      objects.Append<double>(roi.getAreaSize());                    // " meas_area_size DOUBLE,"
-      objects.Append<float>(roi.getPerimeter());                    // " meas_perimeter float,"
-      objects.Append<float>(roi.getCircularity());                  // " meas_circularity float,"
-      objects.Append<uint32_t>(roi.getCentroidReal().x);            // " meas_center_x UINTEGER,"
-      objects.Append<uint32_t>(roi.getCentroidReal().y);            // " meas_center_y UINTEGER,"
-      objects.Append<uint32_t>(roi.getBoundingBoxReal().x);         // " meas_box_x UINTEGER,"
-      objects.Append<uint32_t>(roi.getBoundingBoxReal().y);         // " meas_box_y UINTEGER,"
-      objects.Append<uint32_t>(roi.getBoundingBoxReal().width);     // " meas_box_width UINTEGER,"
-      objects.Append<uint32_t>(roi.getBoundingBoxReal().height);    // " meas_box_height UINTEGER,"
+      objects.Append<float>(roi.getConfidence());                                          // " meas_confidence float,"
+      objects.Append<double>(roi.getAreaSize(physicalSize, physicalSizeUnit));             // " meas_area_size DOUBLE,"
+      objects.Append<float>(roi.getPerimeter(physicalSize, physicalSizeUnit));             // " meas_perimeter float,"
+      objects.Append<float>(roi.getCircularity());                                         // " meas_circularity float,"
+      objects.Append<uint32_t>(static_cast<uint32_t>(roi.getCentroidReal().x));            // " meas_center_x UINTEGER,"
+      objects.Append<uint32_t>(static_cast<uint32_t>(roi.getCentroidReal().y));            // " meas_center_y UINTEGER,"
+      objects.Append<uint32_t>(static_cast<uint32_t>(roi.getBoundingBoxReal().x));         // " meas_box_x UINTEGER,"
+      objects.Append<uint32_t>(static_cast<uint32_t>(roi.getBoundingBoxReal().y));         // " meas_box_y UINTEGER,"
+      objects.Append<uint32_t>(static_cast<uint32_t>(roi.getBoundingBoxReal().width));     // " meas_box_width UINTEGER,"
+      objects.Append<uint32_t>(static_cast<uint32_t>(roi.getBoundingBoxReal().height));    // " meas_box_height UINTEGER,"
 
       auto mask =
           duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER), duckdb::LogicalType(duckdb::LogicalTypeId::BOOLEAN), {}, {});
@@ -467,20 +493,20 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
         object_measurements.Append<uint64_t>(imgContext.imageId);    //       "	image_id UBIGINT,"
         object_measurements.Append<uint64_t>(roi.getObjectId());     //       " object_id UBIGINT,"
         //  Data
-        object_measurements.Append<uint32_t>(plane.imagePlane.cStack);    //       " meas_stack_c UINTEGER,"
-        object_measurements.Append<uint32_t>(plane.imagePlane.zStack);    //       " meas_stack_z UINTEGER,"
-        object_measurements.Append<uint32_t>(plane.imagePlane.tStack);    //       " meas_stack_t UINTEGER,"
-        object_measurements.Append<uint64_t>(intensity.intensitySum);     //       " meas_intensity_sum UBIGINT,"
-        object_measurements.Append<float>(intensity.intensityAvg);        //       " meas_intensity_avg float,"
-        object_measurements.Append<uint32_t>(intensity.intensityMin);     //       " meas_intensity_min UINTEGER,"
-        object_measurements.Append<uint32_t>(intensity.intensityMax);     //       " meas_intensity_max UINTEGER"
+        object_measurements.Append<uint32_t>(static_cast<uint32_t>(plane.imagePlane.cStack));    //       " meas_stack_c UINTEGER,"
+        object_measurements.Append<uint32_t>(static_cast<uint32_t>(plane.imagePlane.zStack));    //       " meas_stack_z UINTEGER,"
+        object_measurements.Append<uint32_t>(static_cast<uint32_t>(plane.imagePlane.tStack));    //       " meas_stack_t UINTEGER,"
+        object_measurements.Append<uint64_t>(intensity.intensitySum);                            //       " meas_intensity_sum UBIGINT,"
+        object_measurements.Append<float>(intensity.intensityAvg);                               //       " meas_intensity_avg float,"
+        object_measurements.Append<uint32_t>(static_cast<uint32_t>(intensity.intensityMin));     //       " meas_intensity_min UINTEGER,"
+        object_measurements.Append<uint32_t>(static_cast<uint32_t>(intensity.intensityMax));     //       " meas_intensity_max UINTEGER"
         object_measurements.EndRow();
       }
 
       //
       // Distance
       //
-      for(const auto &[measObjectId, distance] : roi.getDistances()) {
+      for(const auto &[measObjectId, distance] : roi.getDistances(physicalSize, physicalSizeUnit)) {
         try {
           distance_measurements.BeginRow();
           // Primary key
@@ -492,9 +518,9 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
               static_cast<uint16_t>(objectsList.getObjectById(measObjectId)->getClassId()));    //       " meas_class_id USMALLINT,"
 
           //  Data
-          distance_measurements.Append<uint32_t>(roi.getC());                             //       " meas_stack_c UINTEGER,"
-          distance_measurements.Append<uint32_t>(roi.getZ());                             //       " meas_stack_z UINTEGER,"
-          distance_measurements.Append<uint32_t>(roi.getT());                             //       " meas_stack_t UINTEGER,"
+          distance_measurements.Append<uint32_t>(static_cast<uint32_t>(roi.getC()));      //       " meas_stack_c UINTEGER,"
+          distance_measurements.Append<uint32_t>(static_cast<uint32_t>(roi.getZ()));      //       " meas_stack_z UINTEGER,"
+          distance_measurements.Append<uint32_t>(static_cast<uint32_t>(roi.getT()));      //       " meas_stack_t UINTEGER,"
           distance_measurements.Append<double>(distance.distanceCentroidToCentroid);      // meas_distance_center_to_center DOUBLE,"
           distance_measurements.Append<double>(distance.distanceCentroidToSurfaceMin);    // meas_distance_center_to_surface_min DOUBLE,"
           distance_measurements.Append<double>(distance.distanceCentroidToSurfaceMax);    // meas_distance_center_to_surface_max DOUBLE,"
@@ -523,6 +549,7 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, co
 
 auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
                              const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
+                             const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings,
                              BS::thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>
 {
   std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> imagesToProcess;
@@ -544,8 +571,17 @@ auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy gro
 
   for(const auto &imagePath : imagePaths) {
     auto prepareImage = [&groups, &grouper, &addedGroups, &imagesToProcess, &images, &images_groups, &images_channels, &insertMutex, &series, plateId,
-                         imagePath, &imagesBasePath]() {
-      auto ome         = joda::image::reader::ImageReader::getOmeInformation(imagePath, series);
+                         imagePath, &imagesBasePath, &defaultPhysicalSizeSettings]() {
+      ome::PhyiscalSize phys = {};
+      if(defaultPhysicalSizeSettings.mode == enums::PhysicalSizeMode::Manual) {
+        phys = joda::ome::PhyiscalSize{static_cast<double>(defaultPhysicalSizeSettings.pixelWidth),
+                                       static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.pixelSizeUnit};
+      }
+      auto ome = joda::image::reader::ImageReader::getOmeInformation(imagePath, static_cast<uint16_t>(series), phys);
+      auto [physicalPixelSizeWidth, physicalPixelSizeHeight, physicalPixelSizeDepth] =
+          ome.getPhyiscalSize(series).getPixelSize(defaultPhysicalSizeSettings.pixelSizeUnit);
+      nlohmann::json physicalImageSizeUnit = defaultPhysicalSizeSettings.pixelSizeUnit;
+
       uint64_t imageId = joda::helper::fnv1a(imagePath.string());
       auto groupInfo   = grouper.getGroupForFilename(imagePath);
 
@@ -571,17 +607,21 @@ auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy gro
         {
           auto relativePath = std::filesystem::relative(imagePath, imagesBasePath);
           images.BeginRow();
-          images.Append<uint64_t>(imageId);                                  //       " image_id UBIGINT,"
-          images.Append<duckdb::string_t>(imagePath.filename().string());    //       " file_name TEXT,"
-          images.Append<duckdb::string_t>(imagePath.string());               //       " original_file_path TEXT
-          images.Append<duckdb::string_t>(relativePath.string());            //       " relative_file_path TEXT
-          images.Append<uint32_t>(ome.getNrOfChannels(series));              //       " nr_of_c_stacks UINTEGER
-          images.Append<uint32_t>(ome.getNrOfZStack(series));                //       " nr_of_z_stacks UINTEGER
-          images.Append<uint32_t>(ome.getNrOfTStack(series));                //       " nr_of_t_stacks UINTEGER
-          images.Append<uint32_t>(std::get<0>(ome.getSize(series)));         //       " width UINTEGER,"
-          images.Append<uint32_t>(std::get<1>(ome.getSize(series)));         //       " height UINTEGER,"
-          images.Append<uint64_t>(0);                                        //       " validity UBIGINT,"
-          images.Append<bool>(false);                                        //       " processed BOOL,"
+          images.Append<uint64_t>(imageId);                                                     //       " image_id UBIGINT,"
+          images.Append<duckdb::string_t>(imagePath.filename().string());                       //       " file_name TEXT,"
+          images.Append<duckdb::string_t>(imagePath.string());                                  //       " original_file_path TEXT
+          images.Append<duckdb::string_t>(relativePath.string());                               //       " relative_file_path TEXT
+          images.Append<uint32_t>(static_cast<uint32_t>(ome.getNrOfChannels(series)));          //       " nr_of_c_stacks UINTEGER
+          images.Append<uint32_t>(static_cast<uint32_t>(ome.getNrOfZStack(series)));            //       " nr_of_z_stacks UINTEGER
+          images.Append<uint32_t>(static_cast<uint32_t>(ome.getNrOfTStack(series)));            //       " nr_of_t_stacks UINTEGER
+          images.Append<uint32_t>(static_cast<uint32_t>(std::get<0>(ome.getSize(series))));     //       " width UINTEGER,"
+          images.Append<uint32_t>(static_cast<uint32_t>(std::get<1>(ome.getSize(series))));     //       " height UINTEGER,"
+          images.Append<uint64_t>(0);                                                           //       " validity UBIGINT,"
+          images.Append<bool>(false);                                                           //       " processed BOOL,"
+          images.Append<double>(physicalPixelSizeWidth);                                        //       " physicalPixelSizeWidth DOUBLE
+          images.Append<double>(physicalPixelSizeHeight);                                       //       " physicalPixelSizeHeight DOUBLE
+          images.Append<double>(physicalPixelSizeDepth);                                        //       " physicalPixelSizeDepth DOUBLE,
+          images.Append<duckdb::string_t>(physicalImageSizeUnit.get<std::string>().c_str());    //       " physicalPixelSizeUnit STRING,
           images.EndRow();
         }
 
@@ -647,7 +687,7 @@ void Database::insertGroup(uint16_t plateId, const joda::grp::GroupInformation &
 /// \param[out]
 /// \return
 ///
-void Database::insertImage(const joda::processor::ImageContext &image, const joda::grp::GroupInformation &groupInfo)
+void Database::insertImage(const joda::processor::ImageContext &image, const joda::grp::GroupInformation & /*groupInfo*/)
 {
   auto connection = acquire();
   auto prepare    = connection->Prepare(
@@ -721,7 +761,7 @@ void Analyzer::unMarkImageChannelAsManualInvalid(const std::string &analyzeId, u
 /// \param[out]
 /// \return
 ///
-void Database::insertImagePlane(uint64_t imageId, const enums::PlaneId &planeId, const ome::OmeInfo::ImagePlane &planeInfo)
+void Database::insertImagePlane(uint64_t imageId, const enums::PlaneId &planeId, const ome::OmeInfo::ImagePlane & /*planeInfo*/)
 {
   auto connection = acquire();
   auto prepare    = connection->Prepare("INSERT OR IGNORE INTO images_planes (image_id, stack_c, stack_z, stack_t, validity) VALUES (?, ?, ?, ?, ?)");
@@ -918,7 +958,7 @@ void Database::createAnalyzeSettingsCache(const std::string &jobId)
     }
     auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
     for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-      enums::ClassId classID = ((enums::ClassId) materializedResult->GetValue(0, n).GetValue<uint16_t>());
+      enums::ClassId classID = (static_cast<enums::ClassId>(materializedResult->GetValue(0, n).GetValue<uint16_t>()));
       channels.emplace(classID);
     }
     return channels;
@@ -935,8 +975,8 @@ void Database::createAnalyzeSettingsCache(const std::string &jobId)
     }
     auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
     for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-      enums::ClassId classID = ((enums::ClassId) materializedResult->GetValue(0, n).GetValue<uint16_t>());
-      auto channelId         = (int32_t) materializedResult->GetValue(1, n).GetValue<uint32_t>();
+      enums::ClassId classID = (static_cast<enums::ClassId>(materializedResult->GetValue(0, n).GetValue<uint16_t>()));
+      auto channelId         = static_cast<int32_t>(materializedResult->GetValue(1, n).GetValue<uint32_t>());
       channels[classID].emplace(channelId);
     }
     return channels;
@@ -959,8 +999,8 @@ void Database::createAnalyzeSettingsCache(const std::string &jobId)
     }
     auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
     for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-      auto classID   = ((enums::ClassId) materializedResult->GetValue(0, n).GetValue<uint16_t>());
-      auto channelId = (enums::ClassId) materializedResult->GetValue(1, n).GetValue<uint16_t>();
+      auto classID   = (static_cast<enums::ClassId>(materializedResult->GetValue(0, n).GetValue<uint16_t>()));
+      auto channelId = static_cast<enums::ClassId>(materializedResult->GetValue(1, n).GetValue<uint16_t>());
       channels[classID].emplace(channelId);
     }
     return channels;
@@ -976,8 +1016,8 @@ void Database::createAnalyzeSettingsCache(const std::string &jobId)
     }
     auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
     for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-      auto classID   = ((enums::ClassId) materializedResult->GetValue(0, n).GetValue<uint16_t>());
-      auto channelId = (enums::ClassId) materializedResult->GetValue(1, n).GetValue<uint16_t>();
+      auto classID   = (static_cast<enums::ClassId>(materializedResult->GetValue(0, n).GetValue<uint16_t>()));
+      auto channelId = static_cast<enums::ClassId>(materializedResult->GetValue(1, n).GetValue<uint16_t>());
       channels[classID].emplace(channelId);
     }
     return channels;
@@ -1081,6 +1121,7 @@ auto Database::selectExperiment() -> AnalyzeMeta
   std::string settingsString;
   std::string jobName;
   std::string jobId;
+  std::string physicalPixelSizeUnit;
   uint32_t tileWidth  = 0;
   uint32_t tileHeight = 0;
   uint32_t series     = 0;
@@ -1101,7 +1142,8 @@ auto Database::selectExperiment() -> AnalyzeMeta
 
   {
     std::unique_ptr<duckdb::QueryResult> resultJobs = select(
-        "SELECT time_started,time_finished,settings,job_name,job_id,settings_tile_width,settings_tile_height,settings_image_series FROM jobs ORDER "
+        "SELECT time_started,time_finished,settings,job_name,job_id,settings_tile_width,settings_tile_height,settings_image_series, "
+        "physicalPixelSizeUnit FROM jobs ORDER "
         "BY time_started");
     if(resultJobs->HasError()) {
       throw std::invalid_argument(resultJobs->GetError());
@@ -1131,9 +1173,10 @@ auto Database::selectExperiment() -> AnalyzeMeta
         jobId = duckdb::UUID::ToString(materializedResult->GetValue(4, 0).GetValue<duckdb::hugeint_t>());
       }
 
-      tileWidth  = materializedResult->GetValue(5, 0).GetValue<uint32_t>();
-      tileHeight = materializedResult->GetValue(6, 0).GetValue<uint32_t>();
-      series     = materializedResult->GetValue(7, 0).GetValue<uint32_t>();
+      tileWidth             = materializedResult->GetValue(5, 0).GetValue<uint32_t>();
+      tileHeight            = materializedResult->GetValue(6, 0).GetValue<uint32_t>();
+      series                = materializedResult->GetValue(7, 0).GetValue<uint32_t>();
+      physicalPixelSizeUnit = materializedResult->GetValue(8, 0).GetValue<duckdb::string>();
     }
   }
 
@@ -1145,7 +1188,8 @@ auto Database::selectExperiment() -> AnalyzeMeta
           .analyzeSettingsJsonString = settingsString,
           .tileWidth                 = tileWidth,
           .tileHeight                = tileHeight,
-          .series                    = series};
+          .series                    = series,
+          .physicalPixelSizeUnit     = physicalPixelSizeUnit};
 }
 
 ///
@@ -1159,9 +1203,9 @@ std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &
 {
   auto connection = acquire();
   connection->BeginTransaction();
-  std::string jobIdStr = joda::helper::generate_uuid();
-  auto jobId           = duckdb::Value::UUID(jobIdStr);
-
+  std::string jobIdStr                 = joda::helper::generate_uuid();
+  auto jobId                           = duckdb::Value::UUID(jobIdStr);
+  nlohmann::json physicalImageSizeUnit = exp.imageSetup.imagePixelSizeSettings.pixelSizeUnit;
   //
   // If this was successful, insert the job
   //
@@ -1171,15 +1215,16 @@ std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &
     duckdb::timestamp_t nil = {};
     auto prepare            = connection->Prepare(
         "INSERT INTO jobs (experiment_id, job_id, job_name,imagec_version, time_started, time_finished, settings, settings_results_table_default, "
-                   "settings_results_table, settings_tile_width, settings_tile_height, settings_image_series) "
-                   "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                   "settings_results_table, settings_tile_width, settings_tile_height, settings_image_series, physicalPixelSizeUnit) "
+                   "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     auto resultsTableSettings = exp.toResultsSettings();
-    prepare->Execute(duckdb::Value::UUID(exp.projectSettings.experimentSettings.experimentId), jobId, jobName, std::string(Version::getVersion()),
+    prepare->Execute(duckdb::Value::UUID(exp.projectSettings.experimentSettings.experimentId), jobId, jobName, Version::getVersion(),
                      duckdb::Value::TIMESTAMP(timestampStart), duckdb::Value::TIMESTAMP(nil), helper::base64Encode(settings::Settings::toString(exp)),
                      helper::base64Encode(settings::Settings::toString(resultsTableSettings)),
                      helper::base64Encode(settings::Settings::toString(resultsTableSettings)), exp.imageSetup.imageTileSettings.tileWidth,
-                     exp.imageSetup.imageTileSettings.tileHeight, exp.imageSetup.series);
+                     exp.imageSetup.imageTileSettings.tileHeight, exp.imageSetup.series,
+                     static_cast<duckdb::string_t>(physicalImageSizeUnit.get<std::string>().c_str()));
   } catch(const std::exception &ex) {
     connection->Rollback();
     throw std::runtime_error(ex.what());
@@ -1195,8 +1240,8 @@ std::string Database::insertJobAndPlates(const joda::settings::AnalyzeSettings &
     platesDb.Append<uint16_t>(plate.plateId);                                                        //       " plate_id USMALLINT,"
     platesDb.Append<duckdb::string_t>(plate.name);                                                   //       " name STRING,"
     platesDb.Append<duckdb::string_t>(plate.notes);                                                  //       " notes STRING,"
-    platesDb.Append<uint16_t>(plate.plateSetup.rows);                                                //       " rows USMALLINT,"
-    platesDb.Append<uint16_t>(plate.plateSetup.cols);                                                //       " cols USMALLINT,"
+    platesDb.Append<uint16_t>(static_cast<uint16_t>(plate.plateSetup.rows));                         //       " rows USMALLINT,"
+    platesDb.Append<uint16_t>(static_cast<uint16_t>(plate.plateSetup.cols));                         //       " cols USMALLINT,"
     platesDb.Append<duckdb::string_t>(plate.imageFolder);                                            //       " image_folder STRING,"
     platesDb.Append<duckdb::string_t>(settings::vectorToString(plate.plateSetup.wellImageOrder));    //       " well_image_order STRING,"
     platesDb.Append<duckdb::string_t>(std::string(groupBy));                                         //       " group_by STRING,"
@@ -1233,7 +1278,7 @@ auto Database::selectPlates() -> std::map<uint16_t, joda::settings::Plate>
   std::map<uint16_t, joda::settings::Plate> results;
   for(size_t n = 0; n < materializedResult->RowCount(); n++) {
     joda::settings::Plate plate;
-    plate.plateId                   = materializedResult->GetValue(0, n).GetValue<uint16_t>();
+    plate.plateId                   = static_cast<uint8_t>(materializedResult->GetValue(0, n).GetValue<uint16_t>());
     plate.name                      = materializedResult->GetValue(1, n).GetValue<std::string>();
     plate.notes                     = materializedResult->GetValue(2, n).GetValue<std::string>();
     plate.plateSetup.rows           = materializedResult->GetValue(3, n).GetValue<uint16_t>();
@@ -1308,8 +1353,8 @@ void Database::flatten(const std::vector<cv::Point> &contour, duckdb::vector<duc
 {
   flattenPointsOut.reserve(contour.size() * 2);
   for(const auto &point : contour) {
-    flattenPointsOut.push_back(duckdb::Value::UINTEGER(point.x));
-    flattenPointsOut.push_back(duckdb::Value::UINTEGER(point.y));
+    flattenPointsOut.push_back(duckdb::Value::UINTEGER(static_cast<uint32_t>(point.x)));
+    flattenPointsOut.push_back(duckdb::Value::UINTEGER(static_cast<uint32_t>(point.y)));
   }
 }
 
@@ -1356,7 +1401,7 @@ auto Database::selectNrOfTimeStacks() -> int32_t
 
   auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
   if(materializedResult->RowCount() > 0) {
-    return materializedResult->GetValue(0, 0).GetValue<uint32_t>();
+    return static_cast<int32_t>(materializedResult->GetValue(0, 0).GetValue<uint32_t>());
   }
 
   return 0;
@@ -1402,7 +1447,8 @@ auto Database::selectGroupInfo(uint64_t groupId) -> GroupInfo
 auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
 {
   std::unique_ptr<duckdb::QueryResult> result = select(
-      "SELECT images.file_name, images.original_file_path,images.relative_file_path, images.validity, images.width, images.height, groups.name "
+      "SELECT images.file_name, images.original_file_path,images.relative_file_path, images.validity, images.width, images.height, "
+      "images.physicalPixelSizeUnit, groups.name "
       "FROM images "
       "JOIN images_groups ON "
       "     images.image_id = images_groups.image_id "
@@ -1424,7 +1470,8 @@ auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
     results.validity         = materializedResult->GetValue(3, 0).GetValue<uint64_t>();
     results.width            = materializedResult->GetValue(4, 0).GetValue<uint32_t>();
     results.height           = materializedResult->GetValue(5, 0).GetValue<uint32_t>();
-    results.imageGroupName   = materializedResult->GetValue(6, 0).GetValue<std::string>();
+    results.physicalSizeUnit = materializedResult->GetValue(6, 0).GetValue<std::string>();
+    results.imageGroupName   = materializedResult->GetValue(7, 0).GetValue<std::string>();
     results.imageId          = imageId;
   }
 
@@ -1454,7 +1501,7 @@ auto Database::selectImages() -> std::vector<ImageInfo>
   auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
 
   std::vector<ImageInfo> results;
-  for(int n = 0; n < materializedResult->RowCount(); n++) {
+  for(duckdb::idx_t n = 0; n < materializedResult->RowCount(); n++) {
     ImageInfo info;
     info.filename         = materializedResult->GetValue(0, n).GetValue<std::string>();
     info.imageFilePath    = materializedResult->GetValue(1, n).GetValue<std::string>();
@@ -1571,7 +1618,7 @@ auto Database::selectOutputClasses() -> std::set<enums::ClassId>
   if(materializedResult->RowCount() > 0) {
     duckdb::Value value = materializedResult->GetValue(0, 0);
     auto children       = duckdb::MapValue::GetChildren(value);
-    for(int n = 0; n < children.size(); n++) {
+    for(size_t n = 0; n < children.size(); n++) {
       channels.emplace(static_cast<enums::ClassId>(children[n].GetValue<int32_t>()));
     }
   }
@@ -1635,8 +1682,8 @@ auto Database::selectColocalizingClasses() -> std::set<std::set<enums::ClassId>>
   auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
 
   std::set<std::set<enums::ClassId>> ret;
-  for(int32_t row = 0; row < materializedResult->RowCount(); row++) {
-    auto listOfClasses = materializedResult->GetValue(0, row).GetValue<std::string>();
+  for(duckdb::idx_t row = 0; row < materializedResult->RowCount(); row++) {
+    auto listOfClasses = materializedResult->GetValue(0, static_cast<duckdb::idx_t>(row)).GetValue<std::string>();
     auto classesStr    = joda::helper::split(listOfClasses, {','});
     std::set<enums::ClassId> classesHavingCommonTrackingId;
     for(const auto &classStr : classesStr) {
@@ -1657,8 +1704,8 @@ auto Database::selectColocalizingClasses() -> std::set<std::set<enums::ClassId>>
 ///
 void Database::updateResultsTableSettings(const std::string &jobId, const std::string &settings)
 {
-  auto timestampFinished =
-      duckdb::timestamp_t(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
+  // auto timestampFinished =
+  //     duckdb::timestamp_t(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
   std::unique_ptr<duckdb::QueryResult> result =
       select("UPDATE jobs SET settings_results_table = ? WHERE job_id = ?", helper::base64Encode(settings), duckdb::Value::UUID(jobId));
   if(result->HasError()) {
@@ -1712,6 +1759,30 @@ auto Database::selectImageIdFromImageFileName(const std::string &imageFileName) 
     }
   }
   return 0;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Database::selectGroupIdFromGroupName(const std::string &groupName) -> uint16_t
+{
+  {
+    std::unique_ptr<duckdb::QueryResult> resultJobs = select("SELECT group_id FROM groups WHERE name = ?", groupName);
+    if(resultJobs->HasError()) {
+      throw std::invalid_argument(resultJobs->GetError());
+    }
+    auto materializedResult = resultJobs->Cast<duckdb::StreamQueryResult>().Materialize();
+    if(materializedResult->RowCount() > 0) {
+      {
+        return materializedResult->GetValue(0, 0).GetValue<uint16_t>();
+      }
+    }
+  }
+  return UINT16_MAX;
 }
 
 }    // namespace joda::db

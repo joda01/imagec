@@ -20,6 +20,7 @@
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_file_endians.hpp"
+#include "backend/enums/enums_units.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/analze_settings.hpp"
@@ -36,10 +37,39 @@ namespace joda::settings {
 auto Settings::openSettings(const std::filesystem::path &pathIn) -> joda::settings::AnalyzeSettings
 {
   std::ifstream ifs(pathIn);
-  std::string wholeFile = std::string((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+  if(!ifs) {
+    return {};
+  }
+  std::string wholeFile;
+  size_t size = std::filesystem::file_size(pathIn);
+  wholeFile.resize(size);
+  ifs.read(wholeFile.data(), static_cast<std::streamsize>(size));
+
   ifs.close();
   migrateSettings(wholeFile);
-  joda::settings::AnalyzeSettings analyzeSettings = nlohmann::json::parse(wholeFile);
+
+  auto parsed = nlohmann::json::parse(wholeFile);
+
+  //
+  //
+  /// \todo Remove legacy
+  bool doesPipelineSetupExists = true;
+  {
+    if(!parsed.contains("pipelineSetup")) {
+      doesPipelineSetupExists = false;
+    }
+  }
+
+  joda::settings::AnalyzeSettings analyzeSettings = parsed;
+
+  //
+  //
+  /// \todo Remove legacy
+  {
+    if(!doesPipelineSetupExists) {
+      analyzeSettings.pipelineSetup.realSizesUnit = enums::Units::Pixels;
+    }
+  }
 
   //
   // Further legacy migration
@@ -49,7 +79,7 @@ auto Settings::openSettings(const std::filesystem::path &pathIn) -> joda::settin
       analyzeSettings.projectSettings.plate = *analyzeSettings.projectSettings.plates.begin();
       analyzeSettings.projectSettings.plates.clear();
     }
-  }
+  }    // namespace joda::settings
 
   return analyzeSettings;
 }
@@ -196,18 +226,19 @@ auto Settings::toResultsSettings(const ResultSettingsInput &settingsIn) -> Resul
   }
 
   ResultsSettings settings;
-  int32_t colIdx = 0;
+  uint32_t colIdx = 0;
   for(const auto &entry : settingsIn.classes) {
     auto addColumn = [&](enums::ClassId classId, enums::Measurement measureChannel, enums::Stats stat, int32_t crossChannel,
                          enums::ClassId intersecting, const std::string &channelName = "") {
       if(!classes.contains(classId)) {
-        joda::log::logError("Class name for ID >" + std::to_string((int32_t) classId) + "<not found during table generation from template!");
+        joda::log::logError("Class name for ID >" + std::to_string(static_cast<int32_t>(classId)) +
+                            "<not found during table generation from template!");
         return;
       }
       std::string intersectingName;
       if(intersecting != enums::ClassId::UNDEFINED) {
         if(!classes.contains(intersecting)) {
-          joda::log::logError("Intersecting class name for ID >" + std::to_string((int32_t) intersecting) +
+          joda::log::logError("Intersecting class name for ID >" + std::to_string(static_cast<int32_t>(intersecting)) +
                               "<not found during table generation from template!");
           return;
         }

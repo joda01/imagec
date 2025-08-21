@@ -22,17 +22,18 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
                             settings::ResultsSettings *resultingFilter) -> QueryResult
 {
   //
-  // Remove object IDs, since they make no sense in an overview
+  // Remove object IDs, and position since they make no sense in an overview
   //
   settings::ResultsSettings filter;
-  int32_t colIdx = 0;
+  uint32_t colIdxOut = 0;
   for(const auto &[_, key] : filterIn.getColumns()) {
     if(settings::ResultsSettings::getType(key.measureChannel) == settings::ResultsSettings::MeasureType::DISTANCE_ID ||
-       settings::ResultsSettings::getType(key.measureChannel) == settings::ResultsSettings::MeasureType::ID) {
+       settings::ResultsSettings::getType(key.measureChannel) == settings::ResultsSettings::MeasureType::ID ||
+       settings::ResultsSettings::getType(key.measureChannel) == settings::ResultsSettings::MeasureType::POSITION) {
       continue;
     }
-    filter.addColumn({colIdx}, key, key.names);
-    colIdx++;
+    filter.addColumn({colIdxOut}, key, key.names);
+    colIdxOut++;
   }
   filter.setFilter(filterIn.getFilter(), filterIn.getPlateSetup(), filterIn.getDensityMapSettings());
   if(resultingFilter != nullptr) {
@@ -57,13 +58,13 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
   //
   auto classesToExport = ResultingTable(&filter);
 
-  std::map<stdi::uint128_t, int32_t> rowIndexes;    // <ID, rowIdx>
+  std::map<stdi::uint128_t, uint32_t> rowIndexes;    // <ID, rowIdx>
 
   auto findMaxRowIdx = [&rowIndexes]() -> int32_t {
     int32_t rowIdx = -1;
     for(const auto &[_, row] : rowIndexes) {
-      if(row > rowIdx) {
-        rowIdx = row;
+      if(static_cast<int32_t>(row) > rowIdx) {
+        rowIdx = static_cast<int32_t>(row);
       }
     }
     return rowIdx;
@@ -91,7 +92,7 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
           if(rowIndexes.contains({imageId, tStack})) {
             rowIdx = rowIndexes.at({imageId, tStack});
           } else {
-            rowIdx = findMaxRowIdx() + 1;
+            rowIdx = static_cast<size_t>(findMaxRowIdx()) + 1;
             rowIndexes.emplace(stdi::uint128_t{imageId, tStack}, rowIdx);
           }
         } else {
@@ -100,23 +101,23 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
           if(rowIndexes.contains({groupId, tStack})) {
             rowIdx = rowIndexes.at({groupId, tStack});
           } else {
-            rowIdx = findMaxRowIdx() + 1;
+            rowIdx = static_cast<size_t>(findMaxRowIdx()) + 1;
             rowIndexes.emplace(stdi::uint128_t{groupId, tStack}, rowIdx);
           }
-          colC = std::string(1, ((char) (platePosY - 1) + 'A')) + std::to_string(platePosX);
+          colC = std::string(1, (static_cast<char>(platePosY - 1) + 'A')) + std::to_string(platePosX);
         }
 
         std::string fileNameTmp;
         if(grouping == Grouping::BY_WELL) {
           fileNameTmp = "t=" + std::to_string(tStack) + " " + filename;
-          classesToExport.setRowID(classs, statement.getColNames(), rowIdx, fileNameTmp, imageId);
+          classesToExport.setRowID(classs, statement.getColNames(), static_cast<int32_t>(rowIdx), fileNameTmp, imageId);
         } else {
           fileNameTmp = "t=" + std::to_string(tStack) + " " + colC;
-          classesToExport.setRowID(classs, statement.getColNames(), rowIdx, colC, groupId);
+          classesToExport.setRowID(classs, statement.getColNames(), static_cast<int32_t>(rowIdx), colC, groupId);
         }
 
-        for(int32_t colIdx = 0; colIdx < columnNr; colIdx++) {
-          double value = materializedResult->GetValue(colIdx, row).GetValue<double>();
+        for(int32_t colIdxI = 0; colIdxI < static_cast<int32_t>(columnNr); colIdxI++) {
+          double value = materializedResult->GetValue(static_cast<uint32_t>(colIdxI), row).GetValue<double>();
           if(grouping == Grouping::BY_WELL) {
             ///
             joda::settings::ImgPositionInWell pos;
@@ -126,7 +127,7 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
               pos.x = 1;
               pos.y = 1;
             }
-            classesToExport.setData(classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
+            classesToExport.setData(classs, statement.getColNames(), static_cast<uint32_t>(rowIdx), static_cast<uint32_t>(colIdxI), fileNameTmp,
                                     table::TableCell{value,
                                                      table::TableCell::MetaData{.objectIdGroup  = imageId,
                                                                                 .objectId       = imageId,
@@ -142,7 +143,7 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
                                                                                 .posY     = static_cast<uint32_t>(pos.y)}});
           } else {
             classesToExport.setData(
-                classs, statement.getColNames(), rowIdx, colIdx, fileNameTmp,
+                classs, statement.getColNames(), static_cast<uint32_t>(rowIdx), static_cast<uint32_t>(colIdxI), fileNameTmp,
                 table::TableCell{value,
                                  table::TableCell::MetaData{.objectIdGroup  = groupId,
                                                             .objectId       = groupId,
@@ -159,6 +160,7 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
           }
         }
       } catch(const duckdb::InternalException &ex) {
+        std::cout << ex.what() << std::endl;
       }
     }
   }

@@ -33,7 +33,7 @@ public:
   explicit EdgeDetectionCanny(const joda::settings::EdgeDetectionCannySettings &settings) : mSetting(settings)
   {
   }
-  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
+  void execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/) override
   {
     canny(image);
   }

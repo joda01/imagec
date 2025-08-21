@@ -34,7 +34,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  PipelineInitializer(const settings::ProjectImageSetup &settings);
+  PipelineInitializer(const settings::ProjectImageSetup &settings, const settings::ProjectPipelineSetup &pipelineSetup);
   void init(ImageContext &imageContextOut);
 
   [[nodiscard]] const std::tuple<int32_t, int32_t> &getNrOfTilesToProcess() const
@@ -74,6 +74,7 @@ private:
 
   /////////////////////////////////////////////////////
   const settings::ProjectImageSetup &mSettings;
+  const settings::ProjectPipelineSetup &mSettingsPipeline;
   processor::ImageContext *mImageContext = nullptr;
 };
 

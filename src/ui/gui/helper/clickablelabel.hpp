@@ -17,7 +17,7 @@ signals:
   void clicked();
 
 protected:
-  void mousePressEvent(QMouseEvent *event);
+  void mousePressEvent(QMouseEvent *event) override;
 };
 
 #endif    // CLICKABLELABEL_H

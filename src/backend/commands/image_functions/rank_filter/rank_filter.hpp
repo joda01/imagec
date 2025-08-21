@@ -32,7 +32,7 @@ public:
   explicit RankFilter(const settings::RankFilterSettings &settings) : mSettings(settings)
   {
   }
-  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
+  void execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/) override
   {
     algo::RankFilter rank;
     rank.rank(image, mSettings.radius, static_cast<int>(mSettings.mode));

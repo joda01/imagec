@@ -50,12 +50,12 @@ public:
     // Initialize values:
     S = N = 0;
     for(k = 0; k < L; k++) {
-      S += static_cast<double>(k) * histogram.at<float>(k);    // Total histogram intensity
-      N += histogram.at<float>(k);                             // Total number of data points
+      S += static_cast<double>(k) * static_cast<double>(histogram.at<float>(k));    // Total histogram intensity
+      N += static_cast<double>(histogram.at<float>(k));                             // Total number of data points
     }
 
     Sk     = 0;
-    N1     = histogram.at<float>(0);    // The entry for zero intensity
+    N1     = static_cast<double>(histogram.at<float>(0));    // The entry for zero intensity
     BCV    = 0;
     BCVmax = 0;
     kStar  = 0;
@@ -63,8 +63,8 @@ public:
     // Look at each possible threshold value,
     // calculate the between-class variance, and decide if it's a max
     for(k = 1; k < L - 1; k++) {    // No need to check endpoints k = 0 or k = L-1
-      Sk += static_cast<double>(k) * histogram.at<float>(k);
-      N1 += histogram.at<float>(k);
+      Sk += static_cast<double>(k) * static_cast<double>(histogram.at<float>(k));
+      N1 += static_cast<double>(histogram.at<float>(k));
 
       // The float casting here is to avoid compiler warning about loss of precision and
       // will prevent overflow in the case of large saturated images
@@ -85,7 +85,7 @@ public:
     }
     // kStar += 1;  // Use QTI convention that intensity -> 1 if intensity >= k
     // (the algorithm was developed for I-> 1 if I <= k.)
-    return kStar;
+    return static_cast<uint16_t>(kStar);
   }
 };
 

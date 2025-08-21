@@ -28,6 +28,6 @@ public:
   /////////////////////////////////////////////////////
   static void startExport(const std::vector<const Exportable *> &data, const settings::AnalyzeSettings &analyzeSettings, const std::string &jobName,
                           std::chrono::system_clock::time_point timeStarted, std::chrono::system_clock::time_point timeFinished,
-                          const std::string &outputFileName);
+                          const std::string &unit, const std::string &outputFileName);
 };
 }    // namespace joda::exporter::r

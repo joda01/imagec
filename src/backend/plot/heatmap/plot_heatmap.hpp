@@ -46,7 +46,7 @@ public:
   void setColorMap(ColormapName colorMap);
   void setColorMappingMode(ColorMappingMode);
   void setColorMappingRange(ColorMappingRange);
-  void setData(const joda::table::Table &&data) override;
+  void setData(const joda::table::Table &data) override;
   auto getData() const -> const joda::table::Table &;
   void setPlotLabels(bool);
   void setPrecision(int32_t);
@@ -55,7 +55,7 @@ public:
   void setShape(Shape);
   void setGapsBetweenBoxes(int32_t);
   [[nodiscard]] auto getCellFromCoordinates(double x, double y) const -> std::optional<std::tuple<Cell, joda::table::TableCell>>;
-  auto getColorMapRange() const -> const ColorMappingRange;
+  [[nodiscard]] auto getColorMapRange() const -> ColorMappingRange;
 
 private:
   /////////////////////////////////////////////////////

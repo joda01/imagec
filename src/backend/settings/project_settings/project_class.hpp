@@ -83,7 +83,7 @@ struct ResultsTemplate
   {
   }
   // We don't want to do a error check for the history
-  void getErrorLogRecursive(SettingParserLog_t &settingsParserLog) const
+  void getErrorLogRecursive(SettingParserLog_t & /*settingsParserLog*/) const
   {
   }
 };
@@ -95,22 +95,22 @@ struct Class
   //
   //  Display name of the object class
   //
-  std::string name;
+  std::string name = {};
 
   //
   //  Display color of the object class
   //
-  std::string color;
+  std::string color = {};
 
   //
   //  Further notes to the object class
   //
-  std::string notes;
+  std::string notes = {};
 
   //
   // Default measurements for this class
   //
-  std::vector<ResultsTemplate> defaultMeasurements;
+  std::vector<ResultsTemplate> defaultMeasurements = {};
 
   void check() const
   {

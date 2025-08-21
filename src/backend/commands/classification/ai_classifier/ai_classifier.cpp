@@ -34,7 +34,7 @@
 
 namespace joda::cmd {
 
-at::Device getCudaDevice(int index = 0);
+at::Device getCudaDevice(c10::DeviceIndex index = 0);
 
 ///
 /// \brief      Constructor
@@ -105,7 +105,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
     } break;
     case settings::AiClassifierSettings::ModelArchitecture::STAR_DIST:
     case settings::AiClassifierSettings::ModelArchitecture::U_NET: {
-      ai::AiModelUNet bioImage({.maskThreshold = mSettings.thresholds.maskThreshold, .contourThreshold = 0.3});
+      ai::AiModelUNet bioImage({.maskThreshold = mSettings.thresholds.maskThreshold, .contourThreshold = 0.3F});
       segResult = bioImage.processPrediction(device, imageNotUse, prediction);
     } break;
     case settings::AiClassifierSettings::ModelArchitecture::MASK_R_CNN:
@@ -121,7 +121,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
     //
     // Apply the filter based on the object class
     //
-    if(mSettings.modelClasses.size() > res.classId) {
+    if(static_cast<int32_t>(mSettings.modelClasses.size()) > res.classId) {
       auto objectClassToUse = *mSettings.modelClasses.begin();
       for(const auto &objectClass : mSettings.modelClasses) {
         if(objectClass.modelClassId == res.classId) {
@@ -145,7 +145,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
         }
       }
 
-      result.push_back(std::move(detectedRoi));
+      result.push_back(detectedRoi);
     }
   }
 }
@@ -157,12 +157,12 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
 /// \param[out]
 /// \return
 ///
-at::Device getCudaDevice(int index)
+at::Device getCudaDevice(c10::DeviceIndex index)
 {
   if(torch::cuda::is_available()) {
-    return at::Device(torch::kCUDA, index);
+    return {torch::kCUDA, index};
   }
-  return at::Device(at::kCPU);
+  return {at::kCPU};
 }
 
 }    // namespace joda::cmd

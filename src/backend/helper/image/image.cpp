@@ -36,8 +36,8 @@ namespace joda::image {
 ///
 Image::Image()
 {
-  for(int i = 0; i < 65536; ++i) {
-    mLut[i] = i;
+  for(int32_t i = 0; i < 65536; ++i) {
+    mLut[static_cast<size_t>(i)] = i;
   }
 }
 
@@ -71,9 +71,7 @@ void Image::setImage(const cv::Mat &&imageToDisplay, int32_t rescale)
     int histSize           = UINT16_MAX + 1;
     float range[]          = {0, UINT16_MAX + 1};
     const float *histRange = {range};
-    bool uniform           = true;
-    bool accumulate        = false;
-    cv::calcHist(mImageOriginalScaled, 1, 0, cv::Mat(), mHistogram, 1, &histSize, &histRange);    //, uniform, accumulate);
+    cv::calcHist(mImageOriginalScaled, 1, nullptr, cv::Mat(), mHistogram, 1, &histSize, &histRange);    //, uniform, accumulate);
 
     // Normalize the histogram to [0, histImage.height()]
     mHistogram.at<float>(0) = 0;    // We don't want to display black
@@ -105,62 +103,61 @@ QPixmap Image::getPixmap(const Overlay &overlay) const
   // PxlInImg....New
   int type  = mImageOriginalScaled->type();
   int depth = type & CV_MAT_DEPTH_MASK;
-  cv::Mat image;
+  cv::Mat imageTmp;
 
   // Take 2ms
   if(depth == CV_16U) {
-    image = mImageOriginalScaled->clone();
-    for(int y = 0; y < image.rows; ++y) {
-      for(int x = 0; x < image.cols; ++x) {
-        uint16_t pixelValue      = image.at<uint16_t>(y, x);
-        image.at<uint16_t>(y, x) = mLut[pixelValue];
+    imageTmp = mImageOriginalScaled->clone();
+    for(int y = 0; y < imageTmp.rows; ++y) {
+      for(int x = 0; x < imageTmp.cols; ++x) {
+        size_t pixelValue           = imageTmp.at<uint16_t>(y, x);
+        imageTmp.at<uint16_t>(y, x) = static_cast<uint16_t>(mLut[pixelValue]);
       }
     }
     // Takes 20ms
     if(overlay.combineWith != nullptr) {
       // Convert 16-bit grayscale to 8-bit grayscale
-      image.convertTo(image, CV_8UC3, 255.0 / 65535.0);    // Normalize to 8-bit
-      cv::cvtColor(image, image, cv::COLOR_GRAY2BGR);
+      imageTmp.convertTo(imageTmp, CV_8UC3, 255.0 / 65535.0);    // Normalize to 8-bit
+      cv::cvtColor(imageTmp, imageTmp, cv::COLOR_GRAY2BGR);
 
       // Add transparent effect
       cv::Mat coloredImage = overlay.combineWith->mImageOriginalScaled->clone();
-      int numPixels        = image.rows * image.cols;
-      for(int64_t n = 0; n < numPixels; n++) {
-        auto &original = image.at<cv::Vec3b>(n);
+      int numPixels        = imageTmp.rows * imageTmp.cols;
+      for(int32_t n = 0; n < numPixels; n++) {
+        auto &original = imageTmp.at<cv::Vec3b>(n);
         auto &mask     = coloredImage.at<cv::Vec3b>(n);
         if(mask == cv::Vec3b{0, 0, 0}) {
           mask = original;
         } else {
           for(int c = 0; c < 3; ++c) {
-            mask[c] = static_cast<uchar>(static_cast<float>(mask[c]) * overlay.opaque + static_cast<float>(original[c]) * (1.0f - overlay.opaque));
+            mask[c] = static_cast<uchar>(static_cast<float>(mask[c]) * overlay.opaque + static_cast<float>(original[c]) * (1.0F - overlay.opaque));
           }
         }
       }
 
       return encode(&coloredImage);
     } else {
-      return encode(&image);
+      return encode(&imageTmp);
     }
   } else {
     if(overlay.combineWith != nullptr) {
-      cv::Mat image = mImageOriginalScaled->clone();
-      int numPixels = image.rows * image.cols;
-      for(int64_t n = 0; n < numPixels; n++) {
-        auto &original = image.at<cv::Vec3b>(n);
-        auto &mask     = overlay.combineWith->mImageOriginalScaled->at<cv::Vec3b>(n);
+      cv::Mat imageIn = mImageOriginalScaled->clone();
+      int numPixels   = imageIn.rows * imageIn.cols;
+      for(int32_t n = 0; n < numPixels; n++) {
+        auto &original   = imageIn.at<cv::Vec3b>(n);
+        const auto &mask = overlay.combineWith->mImageOriginalScaled->at<cv::Vec3b>(n);
         if(mask == cv::Vec3b{0, 0, 0}) {
           original = original;
         } else {
           for(int c = 0; c < 3; ++c) {
             original[c] =
-                static_cast<uchar>(static_cast<float>(mask[c]) * overlay.opaque + static_cast<float>(original[c]) * (1.0f - overlay.opaque));
+                static_cast<uchar>(static_cast<float>(mask[c]) * overlay.opaque + static_cast<float>(original[c]) * (1.0F - overlay.opaque));
           }
         }
       }
-      return encode(&image);
-    } else {
-      return encode(mImageOriginalScaled);
+      return encode(&imageIn);
     }
+    return encode(mImageOriginalScaled);
   }
   return encode(mImageOriginalScaled);
 }
@@ -187,20 +184,20 @@ void Image::setBrightnessRange(int32_t lowerValue, int32_t upperValue, int32_t d
     displayAreaLower = displayAreaUpper;
   }
 
-  mLowerValue       = lowerValue;
-  mUpperValue       = upperValue;
-  mDisplayAreaLower = displayAreaLower;
-  mDisplayAreaUpper = displayAreaUpper;
+  mLowerValue       = static_cast<uint16_t>(lowerValue);
+  mUpperValue       = static_cast<uint16_t>(upperValue);
+  mDisplayAreaLower = static_cast<uint16_t>(displayAreaLower);
+  mDisplayAreaUpper = static_cast<uint16_t>(displayAreaUpper);
 
   // Create a lookup table for mapping pixel values
-  for(int i = 0; i < 65536; ++i) {
+  for(size_t i = 0; i < 65536; ++i) {
     if(i < mLowerValue) {
       mLut[i] = 0;
     } else if(i > mUpperValue) {
       mLut[i] = 65535;
     } else {
-      mLut[i] = static_cast<uint16_t>((i - static_cast<float>(mLowerValue)) * 65535.0 /
-                                      (static_cast<float>(mUpperValue) - static_cast<float>(mLowerValue)));
+      mLut[i] = static_cast<uint16_t>((static_cast<double>(i) - static_cast<double>(mLowerValue)) * 65535.0 /
+                                      (static_cast<double>(mUpperValue) - static_cast<double>(mLowerValue)));
     }
   }
 }
@@ -222,10 +219,8 @@ void Image::autoAdjustBrightnessRange()
     int histSize           = UINT16_MAX + 1;
     float range[]          = {0, UINT16_MAX + 1};
     const float *histRange = {range};
-    bool uniform           = true;
-    bool accumulate        = false;
     cv::Mat hist;
-    cv::calcHist(mImageOriginalScaled, 1, 0, cv::Mat(), hist, 1, &histSize, &histRange);    //, uniform, accumulate);
+    cv::calcHist(mImageOriginalScaled, 1, nullptr, cv::Mat(), hist, 1, &histSize, &histRange);
     auto [lowerIdx, upperIdx] = joda::cmd::EnhanceContrast::findContrastStretchBounds(hist, 0.005);
     setBrightnessRange(lowerIdx, upperIdx, lowerIdx - 256, upperIdx + 256);
   }

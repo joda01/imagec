@@ -15,17 +15,21 @@
 #include <qnamespace.h>
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <iterator>
 #include <mutex>
 #include <optional>
 #include <stdexcept>
 #include <string>
 #include <tuple>
+#include <utility>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_objects.hpp"
 #include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_units.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/global_enums.hpp"
+#include "backend/helper/ome_parser/physical_size.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
@@ -38,19 +42,19 @@
 namespace joda::atom {
 
 ROI::ROI() :
-    mIsNull(true), mObjectId(mGlobalUniqueObjectId++), mId({}), confidence(0), mBoundingBoxTile({}), mBoundingBoxReal({}),
-    mMask(cv::Mat(0, 0, CV_16UC1)), mMaskContours({}), mImageSize(cv::Size{0, 0}), mOriginalImageSize(cv::Size{0, 0}), mAreaSize(0), mPerimeter(0),
-    mCircularity(0), mOriginObjectId(mObjectId), mCentroid(0, 0)
+    mIsNull(true), mObjectId(mGlobalUniqueObjectId++), mId({}), mConfidence(0), mMask(cv::Mat(0, 0, CV_16UC1)), mMaskContours({}),
+    mImageSize(cv::Size{0, 0}), mOriginalImageSize(cv::Size{0, 0}), mAreaSize(0), mPerimeter(0), mCircularity(0), mCentroid(0, 0),
+    mOriginObjectId(mObjectId)
 {
 }
 
 ROI::ROI(RoiObjectId index, Confidence confidence, const Boxes &boundingBox, const cv::Mat &mask, const std::vector<cv::Point> &contour,
          const cv::Size &imageSize, const cv::Size &originalImageSize, const enums::tile_t &tile, const cv::Size &tileSize) :
     mIsNull(false),
-    mObjectId(mGlobalUniqueObjectId++), mId(index), confidence(confidence), mBoundingBoxTile(boundingBox),
+    mObjectId(mGlobalUniqueObjectId++), mId(std::move(index)), mConfidence(confidence), mBoundingBoxTile(boundingBox),
     mBoundingBoxReal(calcRealBoundingBox(tile, tileSize)), mMask(mask), mMaskContours(contour), mImageSize(imageSize),
-    mOriginalImageSize(originalImageSize), mAreaSize(calcAreaSize()), mPerimeter(getTracedPerimeter(mMaskContours)), mCircularity(calcCircularity()),
-    mOriginObjectId(mObjectId), mCentroid(calcCentroid(mMask))
+    mOriginalImageSize(originalImageSize), mAreaSize(static_cast<double>(calcAreaSize())), mPerimeter(getTracedPerimeter(mMaskContours)),
+    mCircularity(calcCircularity()), mCentroid(calcCentroid(mMask)), mOriginObjectId(mObjectId)
 {
 }
 
@@ -58,7 +62,7 @@ ROI::ROI(RoiObjectId index, Confidence confidence, const Boxes &boundingBox, con
 /// \brief      Calculates a the bounding box in the overall image if it is a tiled image
 /// \author     Joachim Danmayr
 ///
-Boxes ROI::calcRealBoundingBox(const enums::tile_t &tile, const cv::Size &tileSize)
+Boxes ROI::calcRealBoundingBox(const enums::tile_t &tile, const cv::Size &tileSize) const
 {
   Boxes box;
   box.width  = mBoundingBoxTile.width;
@@ -69,38 +73,13 @@ Boxes ROI::calcRealBoundingBox(const enums::tile_t &tile, const cv::Size &tileSi
   return box;
 }
 
-std::tuple<int32_t, int32_t, int32_t, int32_t, int32_t> ROI::calcCircleRadius(int32_t snapAreaSize) const
-{
-  int32_t x = mBoundingBoxTile.x + (mBoundingBoxTile.width - snapAreaSize) / 2.0F;
-
-  int32_t boundingBoxWith   = snapAreaSize;
-  int32_t boundingBoxHeight = snapAreaSize;
-
-  auto circleRadius = static_cast<int32_t>(static_cast<float>(snapAreaSize) / 2.0F);
-  auto circleX      = circleRadius;
-  auto circleY      = circleRadius;
-
-  if(x < 0) {
-    boundingBoxWith += x;
-    circleX += x;
-    x = 0;
-  }
-  int32_t y = mBoundingBoxTile.y + (mBoundingBoxTile.height - snapAreaSize) / 2.0F;
-  if(y < 0) {
-    boundingBoxHeight += y;
-    circleY += y;
-    y = 0;
-  }
-  return {x, y, circleY, circleY, circleRadius};
-}
-
 ///
 /// \brief        Calculate area size
 /// \author       Joachim Danmayr
 ///
 uint64_t ROI::calcAreaSize() const
 {
-  return cv::countNonZero(mMask);
+  return static_cast<uint64_t>(cv::countNonZero(mMask));
 }
 
 ///
@@ -109,10 +88,10 @@ uint64_t ROI::calcAreaSize() const
 ///
 float ROI::calcCircularity() const
 {
-  float dividend       = 4.0F * M_PI * static_cast<float>(mAreaSize);
-  float perimterSquare = static_cast<float>(mPerimeter) * static_cast<float>(mPerimeter);
+  double dividend       = 4.0 * M_PI * static_cast<double>(mAreaSize);
+  double perimterSquare = static_cast<double>(mPerimeter) * static_cast<double>(mPerimeter);
   if(dividend < perimterSquare) {
-    return dividend / perimterSquare;
+    return static_cast<float>(dividend / perimterSquare);
   }
   return 1;
 }
@@ -121,13 +100,13 @@ float ROI::calcCircularity() const
 /// \brief        Calculate centroid
 /// \author       Joachim Danmayr
 ///
-auto ROI::calcCentroid(const cv::Mat &mask) const -> cv::Point
+auto ROI::calcCentroid(const cv::Mat &mask) -> cv::Point
 {
   // Calculate moments
   cv::Moments moments = cv::moments(mask, true);
-  double cx           = (moments.m10 / moments.m00);
-  double cy           = (moments.m01 / moments.m00);
-  return cv::Point(cx, cy);
+  auto cx             = static_cast<int32_t>(moments.m10 / moments.m00);
+  auto cy             = static_cast<int32_t>(moments.m01 / moments.m00);
+  return {cx, cy};
 }
 
 ///
@@ -139,8 +118,7 @@ bool ROI::isTouchingTheImageEdge() const
   auto box       = getBoundingBoxTile();
   auto imageSize = mImageSize;
   if(box.x <= 0 || box.y <= 0 || box.x + box.width >= imageSize.width || box.y + box.height >= imageSize.height) {
-    // Touches the edge
-    return true;
+    return true;    // Touches the edge
   }
   return false;
 }
@@ -161,8 +139,8 @@ auto ROI::calcIntensity(const cv::Mat &image) const -> Intensity
       }
     }
   }
-  intensityRet.intensityAvg = cv::mean(maskImg, mMask)[0];
-  intensityRet.intensitySum = cv::sum(maskImg)[0];
+  intensityRet.intensityAvg = static_cast<float>(cv::mean(maskImg, mMask)[0]);
+  intensityRet.intensitySum = static_cast<uint64_t>(cv::sum(maskImg)[0]);
   cv::minMaxLoc(maskImg, &intensityRet.intensityMin, &intensityRet.intensityMax, nullptr, nullptr, mMask);
   return intensityRet;
 }
@@ -203,7 +181,7 @@ double ROI::getSmoothedLineLength(const std::vector<cv::Point> &points)
   double dx      = (points[0].x + points[1].x + points[2].x) / 3.0 - points[0].x;
   double dy      = (points[0].y + points[1].y + points[2].y) / 3.0 - points[0].y;
   length += std::sqrt(dx * dx * w2 + dy * dy * h2);
-  for(int i = 1; i < points.size() - 2; i++) {
+  for(size_t i = 1; i < points.size() - 2; i++) {
     dx = (points[i + 2].x - points[i - 1].x) / 3.0;    // = (x[i]+x[i+1]+x[i+2])/3-(x[i-1]+x[i]+x[i+1])/3
     dy = (points[i + 2].y - points[i - 1].y) / 3.0;    // = (y[i]+y[i+1]+y[i+2])/3-(y[i-1]+y[i]+y[i+1])/3
     length += std::sqrt(dx * dx * w2 + dy * dy * h2);
@@ -234,16 +212,16 @@ float ROI::getTracedPerimeter(const std::vector<cv::Point> &points)
   size_t nPoints = points.size();
 
   if(nPoints == 1) {
-    return 4 - 2 * (2 - sqrt(2));
+    return static_cast<float>(4.0 - 2.0 * (2.0 - sqrt(2)));
   }
   if(nPoints == 2) {
-    return 6 - 3 * (2 - sqrt(2));
+    return static_cast<float>(6 - 3 * (2 - sqrt(2)));
   }
   if(nPoints == 3) {
-    return 8 - 3 * (2 - sqrt(2));
+    return static_cast<float>(8 - 3 * (2 - sqrt(2)));
   }
   if(nPoints == 4) {
-    return 8 - 4 * (2 - sqrt(2));
+    return static_cast<float>(8 - 4 * (2 - sqrt(2)));
   }
 
   int sumdx    = 2;    // Starting with 2 is an approximation because ImageJ has an other conour algorhtm then opencv
@@ -253,12 +231,12 @@ float ROI::getTracedPerimeter(const std::vector<cv::Point> &points)
   int dy1      = points[0].y - points[nPoints - 1].y;
   int side1    = std::abs(dx1) + std::abs(dy1);    // one of these is 0
   bool corner  = false;
-  int nexti    = 0;
-  int dx2      = 0;
-  int dy2      = 0;
-  int side2    = 0;
-  for(int i = 0; i < nPoints; i++) {
-    int nexti = i + 1;
+  // int nexti    = 0;
+  int dx2   = 0;
+  int dy2   = 0;
+  int side2 = 0;
+  for(size_t i = 0; i < nPoints; i++) {
+    size_t nexti = i + 1;
     if(nexti == nPoints) {
       nexti = 0;
     }
@@ -278,7 +256,7 @@ float ROI::getTracedPerimeter(const std::vector<cv::Point> &points)
     side1 = side2;
   }
 
-  return static_cast<float>(static_cast<float>(sumdx) + static_cast<float>(sumdy) - (static_cast<float>(nCorners) * (2.0F - std::sqrt(2))));
+  return static_cast<float>(static_cast<double>(sumdx) + static_cast<double>(sumdy) - (static_cast<double>(nCorners) * (2.0 - std::sqrt(2))));
 }
 
 ///
@@ -293,13 +271,56 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
   double pixelWidth  = 1.0;
   double pixelHeight = 1.0;
   double length      = 0;
-  for(int i = 0; i < npoints - 1; i++) {
+  for(size_t i = 0; i < npoints - 1; i++) {
     length += std::sqrt(std::pow((points[i + 1].x - points[i].x) * pixelWidth, 2) + std::pow((points[i + 1].y - points[i].y) * pixelHeight, 2));
   }
   if(closeShape) {
     length += std::sqrt(pow((points[0].x - points[npoints - 1].x) * pixelWidth, 2) + pow((points[0].y - points[npoints - 1].y) * pixelHeight, 2));
   }
   return length;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+[[nodiscard]] double ROI::getAreaSize(const ome::PhyiscalSize &physicalSize, enums::Units unit) const
+{
+  auto [pxSizeX, pxSizeY, pxSizeZ] = physicalSize.getPixelSize(unit);
+
+  return mAreaSize * pxSizeX * pxSizeY;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+[[nodiscard]] float ROI::getPerimeter(const ome::PhyiscalSize &physicalSize, enums::Units unit) const
+{
+  auto [pxSizeX, pxSizeY, pxSizeZ] = physicalSize.getPixelSize(unit);
+  if(pxSizeX != pxSizeY) {
+    throw std::invalid_argument("Perimeter to real value with rectangle pixels not supported right now!");
+  }
+  return static_cast<float>(static_cast<double>(ROI::mPerimeter) * pxSizeX);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+[[nodiscard]] auto ROI::getDistances(const ome::PhyiscalSize &physicalSize, enums::Units unit) const -> std::map<uint64_t, Distance>
+{
+  auto [pxSizeX, pxSizeY, pxSizeZ] = physicalSize.getPixelSize(unit);
+  return mDistances;
 }
 
 ///
@@ -330,8 +351,8 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
     std::vector<cv::Point> contour = {};
     cv::findContours(intersectingMask.intersectedMask, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
     if(!contours.empty()) {
-      int32_t contourSize = contours[0].size();
-      contour             = contours[0];
+      size_t contourSize = contours[0].size();
+      contour            = contours[0];
       for(const auto &cont : contours) {
         if(cont.size() > contourSize) {
           contourSize = cont.size();
@@ -405,9 +426,10 @@ ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
     }
   }
 
-  int smallestArea = std::min(getAreaSize(), roi.getAreaSize());
+  double smallestArea =
+      std::min(getAreaSize(ome::PhyiscalSize::Pixels(), enums::Units::Pixels), roi.getAreaSize(ome::PhyiscalSize::Pixels(), enums::Units::Pixels));
   if(smallestArea > 0) {
-    result.intersectionArea = static_cast<float>(result.nrOfIntersectingPixels) / static_cast<float>(smallestArea);
+    result.intersectionArea = static_cast<float>(static_cast<double>(result.nrOfIntersectingPixels) / static_cast<double>(smallestArea));
   }
 
   return result;
@@ -422,19 +444,19 @@ ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
 ///
 auto ROI::measureIntensityAndAdd(const joda::atom::ImagePlane &image) -> Intensity
 {
-  if(!intensity.contains(image.getId())) {
+  if(!mIntensity.contains(image.getId())) {
     // Just add an empty entry
-    intensity[image.getId()].intensitySum = 0;
-    intensity[image.getId()].intensityAvg = 0;
-    intensity[image.getId()].intensityMax = 0;
-    intensity[image.getId()].intensityMin = 0;
+    mIntensity[image.getId()].intensitySum = 0;
+    mIntensity[image.getId()].intensityAvg = 0;
+    mIntensity[image.getId()].intensityMax = 0;
+    mIntensity[image.getId()].intensityMin = 0;
 
     if(!image.image.empty() && !mBoundingBoxTile.empty() && !mMask.empty()) {
-      intensity[image.getId()] = calcIntensity(image.image);
+      mIntensity[image.getId()] = calcIntensity(image.image);
     }
   } else {
   }
-  return intensity[image.getId()];
+  return mIntensity[image.getId()];
 }
 
 ///
@@ -482,7 +504,7 @@ auto ROI::measureDistanceAndAdd(const ROI &secondRoi) -> Distance
   }
 
   distance.distanceCentroidToCentroid = cv::norm(getCentroidReal() - secondRoi.getCentroidReal());
-  distances[secondRoi.getObjectId()]  = distance;
+  mDistances[secondRoi.getObjectId()] = distance;
   // distance.print();
   return distance;
 }
@@ -523,7 +545,7 @@ void ROI::resize(float scaleX, float scaleY)
     return;
   }
   // Compute the new size
-  cv::Size newSize(static_cast<int>(mMask.cols * scaleX), static_cast<int>(mMask.rows * scaleY));
+  cv::Size newSize(static_cast<int>(static_cast<float>(mMask.cols) * scaleX), static_cast<int>(static_cast<float>(mMask.rows) * scaleY));
   if(newSize.height <= 0) {
     newSize.height = 1;
   }
@@ -544,8 +566,8 @@ void ROI::resize(float scaleX, float scaleY)
     int32_t widthDif                           = newCentroid.x - oldCentroid.x;
     int32_t heightDif                          = newCentroid.y - oldCentroid.y;
 
-    int32_t moveX = std::ceil(static_cast<float>(widthDif) / 1.0);
-    int32_t moveY = std::ceil(static_cast<float>(heightDif) / 1.0);
+    auto moveX = static_cast<int32_t>(std::ceil(static_cast<float>(widthDif) / 1.0F));
+    auto moveY = static_cast<int32_t>(std::ceil(static_cast<float>(heightDif) / 1.0F));
 
     box.x = box.x - moveX;
     if(box.x < 0) {
@@ -590,7 +612,7 @@ void ROI::resize(float scaleX, float scaleY)
   cv::findContours(mMask, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
 
   if(!contours.empty()) {
-    for(int i = 0; i < contours.size(); i++) {
+    for(size_t i = 0; i < contours.size(); i++) {
       // Do not paint a contour for elements inside an element.
       // In other words if there is a particle with a hole, ignore the hole.
       // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html
@@ -637,8 +659,8 @@ void ROI::drawCircle(float radius)
     int32_t widthDif                           = newCentroid.x - oldCentroid.x;
     int32_t heightDif                          = newCentroid.y - oldCentroid.y;
 
-    int32_t moveX = std::ceil(static_cast<float>(widthDif) / 1.0);
-    int32_t moveY = std::ceil(static_cast<float>(heightDif) / 1.0);
+    auto moveX = static_cast<int32_t>(std::ceil(static_cast<float>(widthDif) / 1.0F));
+    auto moveY = static_cast<int32_t>(std::ceil(static_cast<float>(heightDif) / 1.0F));
 
     box.x = box.x - moveX;
     if(box.x < 0) {
@@ -676,7 +698,7 @@ void ROI::drawCircle(float radius)
   // Circle parameters
   mMask = 0;
   cv::Point center(newCentroid.x + centroidOffset.first, newCentroid.y + centroidOffset.second);    // Center of the circle
-  cv::circle(mMask, center, radius, cv::Scalar{255}, -1);
+  cv::circle(mMask, center, static_cast<int>(radius), cv::Scalar{255}, -1);
 
   // Crop
   cv::Rect crop(0, 0, mBoundingBoxTile.width, mBoundingBoxTile.height);
@@ -687,7 +709,7 @@ void ROI::drawCircle(float radius)
   cv::findContours(mMask, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
 
   if(!contours.empty()) {
-    for(int i = 0; i < contours.size(); i++) {
+    for(size_t i = 0; i < contours.size(); i++) {
       // Do not paint a contour for elements inside an element.
       // In other words if there is a particle with a hole, ignore the hole.
       // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html
@@ -717,7 +739,7 @@ void ROI::fitEllipse()
   if(mMaskContours.size() >= 5) {    // fitEllipse needs at least 5 points
     ellipseBox = cv::fitEllipse(mMaskContours);
   } else {
-    float radius = std::max(getBoundingBoxTile().width, getBoundingBoxTile().height);
+    auto radius = static_cast<float>(std::max(getBoundingBoxTile().width, getBoundingBoxTile().height));
     drawCircle(radius);
     return;
   }
@@ -741,11 +763,11 @@ void ROI::fitEllipse()
 
   auto scaleBoundingBox = [&](Boxes &box, const cv::Size &imgSize) -> std::pair<int32_t, int32_t> {
     std::pair<int32_t, int32_t> centroidOffset = {0, 0};
-    int32_t widthDif                           = newCentroid.x - oldCentroid.x;
-    int32_t heightDif                          = newCentroid.y - oldCentroid.y;
+    auto widthDif                              = static_cast<int32_t>(newCentroid.x - static_cast<float>(oldCentroid.x));
+    auto heightDif                             = static_cast<int32_t>(newCentroid.y - static_cast<float>(oldCentroid.y));
 
-    int32_t moveX = std::ceil(static_cast<float>(widthDif) / 1.0);
-    int32_t moveY = std::ceil(static_cast<float>(heightDif) / 1.0);
+    auto moveX = static_cast<int32_t>(std::ceil(static_cast<double>(widthDif) / 1.0));
+    auto moveY = static_cast<int32_t>(std::ceil(static_cast<double>(heightDif) / 1.0));
 
     box.x = box.x - moveX;
     if(box.x < 0) {
@@ -777,7 +799,7 @@ void ROI::fitEllipse()
     }
     return centroidOffset;
   };
-  auto centroidOffset = scaleBoundingBox(mBoundingBoxTile, mImageSize);
+  // auto centroidOffset = scaleBoundingBox(mBoundingBoxTile, mImageSize);
   scaleBoundingBox(mBoundingBoxReal, mOriginalImageSize);
 
   // Circle parameters
@@ -793,7 +815,7 @@ void ROI::fitEllipse()
   cv::findContours(mMask, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
 
   if(!contours.empty()) {
-    for(int i = 0; i < contours.size(); i++) {
+    for(size_t i = 0; i < contours.size(); i++) {
       // Do not paint a contour for elements inside an element.
       // In other words if there is a particle with a hole, ignore the hole.
       // See https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html
@@ -825,9 +847,8 @@ void ROI::assignTrackingIdToAllLinkedRois(uint64_t trackingIdForLinked)
   if(trackingId == 0) {
     static std::mutex assignMutex;
     std::lock_guard<std::mutex> lock(assignMutex);
-    auto trackingId = generateNewTrackingId();
+    trackingId = generateNewTrackingId();
     setTrackingId(trackingId);
-    trackingId = trackingId;
   }
 
   for(auto *roi : mLinkedWith) {

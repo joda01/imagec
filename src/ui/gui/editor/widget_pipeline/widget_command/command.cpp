@@ -27,7 +27,7 @@
 
 namespace joda::ui::gui {
 
-WrapLabel::WrapLabel(InOut inout) : QLabel(), inout(inout)
+WrapLabel::WrapLabel(InOut inoutIn) : inout(inoutIn)
 {
   setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed);
   setWordWrap(true);
@@ -42,8 +42,8 @@ void WrapLabel::resizeEvent(QResizeEvent *event)
 Command::Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &description, const std::vector<std::string> &tags,
                  const QString &icon, QWidget *parent, InOut type) :
     mPipelineStep(pipelineStep),
-    mParent(parent), mTitle(title), mDescription(description), mTags(tags), mLayout(&mEditView, true, true, false), mDisplayViewLayout(this),
-    mInOut(type)
+    mParent(parent), mTitle(title), mDescription(description), mLayout(&mEditView, true, true, false), mDisplayViewLayout(this), mInOut(type),
+    mTags(tags)
 {
   setContentsMargins(0, 0, 4, 0);
   mDisplayViewLayout.setContentsMargins(0, 0, 0, 0);
@@ -233,11 +233,13 @@ void Command::paintEvent(QPaintEvent *event)
           return Qt::white;
         case InOuts::OBJECT:
           return Qt::green;
+        case InOuts::OUTPUT_EQUAL_TO_INPUT:
+          break;
       }
       return Qt::lightGray;
     };
 
-    auto getColorSet = [&](std::set<InOuts> inouts) -> QColor {
+    auto getColorSet = [&](const std::set<InOuts> &inouts) -> QColor {
       // Select the input color depending on the previous command output
       if(mCommandBefore != nullptr) {
         auto outTmp = mCommandBefore->getInOut().out;
@@ -261,25 +263,25 @@ void Command::paintEvent(QPaintEvent *event)
       return getColor(*inouts.begin());
     };
 
-    int heightToPaint    = std::ceil(static_cast<float>(height()) / 2.0);
+    int heightToPaint    = static_cast<int>(std::ceil(static_cast<float>(height()) / 2.0F));
     auto paintTopPolygon = [&](const QColor &color) {
       QPen pen(color, 1);    // Black pen with 3px width
       painter.setPen(pen);
       QBrush brush(color);    // Fill with blue color
       painter.setBrush(brush);
       QPolygon chevron;
-      auto left         = static_cast<float>(((width() - 1) - LINE_WIDTH));
-      auto middle       = static_cast<float>(((width() - 1) - static_cast<float>(LINE_WIDTH) / 2.0));
+      auto left         = static_cast<float>(width()) - 1.0F - static_cast<float>(LINE_WIDTH);
+      auto middle       = static_cast<float>(width()) - 1.0F - static_cast<float>(LINE_WIDTH) / 2.0F;
       auto right        = static_cast<float>(width() - 1);
-      auto heightStart  = 0.0f;
+      auto heightStart  = 0.0F;
       auto heightMiddle = 8;    // static_cast<float>(heightToPaint / 3.0);
       auto heightEnd    = static_cast<float>(heightToPaint);
-      chevron << QPoint(left, heightStart)       // Top-left
-              << QPoint(middle, heightMiddle)    // Top-middle
-              << QPoint(right, heightStart)      // Top-right
-              << QPoint(right, heightEnd)        // Bottom point
-              << QPoint(left, heightEnd)         // Bottom-left
-              << QPoint(left, heightStart);      // Return to middle
+      chevron << QPoint(static_cast<int32_t>(left), static_cast<int32_t>(heightStart))     // Top-left
+              << QPoint(static_cast<int32_t>(middle), heightMiddle)                        // Top-middle
+              << QPoint(static_cast<int32_t>(right), static_cast<int32_t>(heightStart))    // Top-right
+              << QPoint(static_cast<int32_t>(right), static_cast<int32_t>(heightEnd))      // Bottom point
+              << QPoint(static_cast<int32_t>(left), static_cast<int32_t>(heightEnd))       // Bottom-left
+              << QPoint(static_cast<int32_t>(left), static_cast<int32_t>(heightStart));    // Return to middle
 
       // Draw the chevron
       painter.drawPolygon(chevron);
@@ -292,18 +294,18 @@ void Command::paintEvent(QPaintEvent *event)
       painter.setBrush(brush);
 
       QPolygon chevron;
-      auto left         = static_cast<float>(((width() - 1) - LINE_WIDTH));
-      auto middle       = static_cast<float>(((width() - 1) - static_cast<float>(LINE_WIDTH) / 2.0));
-      auto right        = static_cast<float>(width() - 1);
+      float left        = static_cast<float>(width()) - 1.0F - static_cast<float>(LINE_WIDTH);
+      float middle      = static_cast<float>(width()) - 1.0F - static_cast<float>(LINE_WIDTH) / 2.0F;
+      float right       = static_cast<float>(width() - 1);
       auto heightStart  = heightToPaint;
       auto heightMiddle = static_cast<float>(heightToPaint * 2) - 8;    // (static_cast<float>(heightToPaint / 3.0));
       auto heightEnd    = static_cast<float>(heightToPaint * 2);
-      chevron << QPoint(left, heightStart)      // Top-left
-              << QPoint(right, heightStart)     // Top-middle
-              << QPoint(right, heightMiddle)    // Top-right
-              << QPoint(middle, heightEnd)      // Bottom point
-              << QPoint(left, heightMiddle)     // Bottom-left
-              << QPoint(left, heightStart);     // Return to middle
+      chevron << QPoint(static_cast<int32_t>(left), heightStart)                            // Top-left
+              << QPoint(static_cast<int32_t>(right), heightStart)                           // Top-middle
+              << QPoint(static_cast<int32_t>(right), static_cast<int32_t>(heightMiddle))    // Top-right
+              << QPoint(static_cast<int32_t>(middle), static_cast<int32_t>(heightEnd))      // Bottom point
+              << QPoint(static_cast<int32_t>(left), static_cast<int32_t>(heightMiddle))     // Bottom-left
+              << QPoint(static_cast<int32_t>(left), heightStart);                           // Return to middle
 
       // Draw the chevron
       painter.drawPolygon(chevron);
@@ -338,8 +340,8 @@ void Command::paintEvent(QPaintEvent *event)
 ///
 InOuts Command::getOut() const
 {
-  auto outTmp = getInOut().out;
-  if(outTmp == InOuts::OUTPUT_EQUAL_TO_INPUT) {
+  auto outTmpOut = getInOut().out;
+  if(outTmpOut == InOuts::OUTPUT_EQUAL_TO_INPUT) {
     if(mCommandBefore != nullptr) {
       auto outTmp = mCommandBefore->getInOut().out;
       if(outTmp == InOuts::OUTPUT_EQUAL_TO_INPUT) {
@@ -347,9 +349,9 @@ InOuts Command::getOut() const
       }
       return outTmp;
     }
-    outTmp = *mInOut.in.begin();
+    outTmpOut = *mInOut.in.begin();
   }
-  return outTmp;
+  return outTmpOut;
 }
 
 ///
@@ -396,7 +398,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   mDisabled = mLayout.addActionButton("Disable", generateSvgIcon<Style::REGULAR, Color::BLACK>("eye-slash"));
   mDisabled->setCheckable(true);
   mDisabled->setChecked(mPipelineStep.disabled);
-  connect(mDisabled, &QAction::triggered, [this, pipelineSettingsUi](bool) {
+  connect(mDisabled, &QAction::triggered, [this](bool) {
     setDisabled(mDisabled->isChecked());
     emit valueChanged();
   });
@@ -407,7 +409,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   mLocked = mLayout.addActionButton("Locked", generateSvgIcon<Style::REGULAR, Color::BLACK>("lock-simple"));
   mLocked->setCheckable(true);
   mLocked->setChecked(mPipelineStep.locked);
-  connect(mLocked, &QAction::triggered, [this, pipelineSettingsUi](bool) {
+  connect(mLocked, &QAction::triggered, [this](bool) {
     setLocked(mLocked->isChecked());
     emit valueChanged();
   });
@@ -419,7 +421,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   mBreakpoint->setCheckable(true);
   mBreakpoint->setChecked(mPipelineStep.breakPoint);
   mBreakpoint->setVisible(false);
-  connect(mBreakpoint, &QAction::triggered, [this, pipelineSettingsUi](bool) {
+  connect(mBreakpoint, &QAction::triggered, [this](bool) {
     setBreakpoint(mBreakpoint->isChecked());
     emit valueChanged();
   });
@@ -436,10 +438,10 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
     messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning").pixmap(48, 48));
     messageBox.setWindowTitle("Delete command?");
     messageBox.setText("Delete command from pipeline?");
-    QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
-    QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+    QPushButton *noButton = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+    messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
     messageBox.setDefaultButton(noButton);
-    auto reply = messageBox.exec();
+    messageBox.exec();
     if(messageBox.clickedButton() == noButton) {
       return;
     }
@@ -579,9 +581,9 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
     return false;
   };
 
-  for(auto &[data, bo, group] : settings) {
-    if(!containsPtr(data)) {
-      mSettings.emplace_back(data, bo, group);
+  for(const auto &[dataIn, bo, group] : settings) {
+    if(!containsPtr(dataIn)) {
+      mSettings.emplace_back(dataIn, bo, group);
     }
   }
   auto convert = [&]() {

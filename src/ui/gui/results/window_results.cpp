@@ -540,7 +540,7 @@ auto WindowResults::createToolBar() -> QToolBar *
   fileMenu->addSeparator();
   fileMenu->addMenu(exportMenu);
 
-  auto *windowToolBarMenu = mTopMenuBar->addMenu(windowMenu);
+  mTopMenuBar->addMenu(windowMenu);
 
   return toolbar;
 }
@@ -604,8 +604,8 @@ void WindowResults::refreshBreadCrump()
       mDockWidgetImagePreview->setFloating(false);
       mVideoControlButton->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
       if(mSelectedDataSet.groupMeta.has_value()) {
-        auto platePos =
-            "Well (" + std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + ")";
+        auto platePos = "Well (" + std::string(1, (static_cast<char>(mSelectedDataSet.groupMeta->posY - 1) + 'A')) +
+                        std::to_string(mSelectedDataSet.groupMeta->posX) + ")";
         mBreadCrumpWell->setText(platePos.data());
       }
       break;
@@ -654,7 +654,7 @@ void WindowResults::refreshBreadCrump()
 /// \param[out]
 /// \return
 ///
-bool WindowResults::showSelectWorkingDir(const QString &path)
+bool WindowResults::showSelectWorkingDir(const QString & /*path*/)
 {
   QFileDialog dialog(this);
   dialog.setWindowTitle("Select images Directory");
@@ -765,12 +765,12 @@ void WindowResults::previewThread()
 
     try {
       mDockWidgetImagePreview->getImageWidget()->setWaiting(true);
-      int32_t tileWidth      = previewData.analyzeMeta.tileWidth;
-      int32_t tileHeight     = previewData.analyzeMeta.tileHeight;
-      int32_t series         = previewData.analyzeMeta.series;
+      int32_t tileWidth      = static_cast<int32_t>(previewData.analyzeMeta.tileWidth);
+      int32_t tileHeight     = static_cast<int32_t>(previewData.analyzeMeta.tileHeight);
+      int32_t series         = static_cast<int32_t>(previewData.analyzeMeta.series);
       const auto &objectInfo = previewData.objectInfo;
-      int32_t tileXNr        = objectInfo.measCenterX / tileWidth;
-      int32_t tileYNr        = objectInfo.measCenterY / tileHeight;
+      int32_t tileXNr        = static_cast<int32_t>(static_cast<float>(objectInfo.measCenterX) / static_cast<float>(tileWidth));
+      int32_t tileYNr        = static_cast<int32_t>(static_cast<float>(objectInfo.measCenterY) / static_cast<float>(tileHeight));
       // int32_t resolution     = 0;
 
       auto plane = joda::image::reader::ImageReader::Plane{
@@ -784,8 +784,8 @@ void WindowResults::previewThread()
       // Set cursor position
       // ==============================================
 
-      QRect boungingBox{(int32_t) objectInfo.measBoxX, (int32_t) objectInfo.measBoxY, (int32_t) objectInfo.measBoxWidth,
-                        (int32_t) objectInfo.measBoxHeight};
+      QRect boungingBox{static_cast<int32_t>(objectInfo.measBoxX), static_cast<int32_t>(objectInfo.measBoxY),
+                        static_cast<int32_t>(objectInfo.measBoxWidth), static_cast<int32_t>(objectInfo.measBoxHeight)};
       mDockWidgetImagePreview->getImageWidget()->getImagePanel()->setCursorPositionFromOriginalImageCoordinatesAndCenter(boungingBox);
 
     } catch(const std::exception &ex) {
@@ -807,8 +807,8 @@ void WindowResults::refreshView()
 {
   const auto &wellOrder = mDockWidgetGraphSettings->getWellOrder();
   auto plateSize        = mDockWidgetGraphSettings->getPlateSize();
-  uint16_t rows         = plateSize.height();
-  uint16_t cols         = plateSize.width();
+  uint16_t rows         = static_cast<uint16_t>(plateSize.height());
+  uint16_t cols         = static_cast<uint16_t>(plateSize.width());
 
   auto form = static_cast<WindowResults::Navigation>(mNavigation) == WindowResults::Navigation::PLATE
                   ? joda::settings::DensityMapSettings::ElementForm::CIRCLE
@@ -858,10 +858,12 @@ void WindowResults::refreshView()
 
           } break;
           case Navigation::WELL: {
+            std::cout << "Well" << std::endl;
             mActListData = std::make_shared<db::QueryResult>(
                 joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL, &mActFilter));
           } break;
           case Navigation::IMAGE: {
+            std::cout << "Image" << std::endl;
             mActListData = std::make_shared<db::QueryResult>(joda::db::StatsPerImage::toTable(mAnalyzer.get(), mFilter, &mActFilter));
 
           } break;
@@ -869,6 +871,7 @@ void WindowResults::refreshView()
         mIsLoading = false;
         joda::log::logTrace("Finished refresh view.");
       } catch(const std::exception &ex) {
+        mIsLoading = false;
         joda::log::logError(ex.what());
       }
       emit finishedLoading();
@@ -885,11 +888,21 @@ void WindowResults::refreshView()
 ///
 void WindowResults::onFinishedLoading()
 {
+  if(mActListData == nullptr) {
+    refreshBreadCrump();
+    update();
+    QApplication::restoreOverrideCursor();
+    return;
+  }
+
   std::lock_guard<std::mutex> lock(mLoadLock);
   // ===============================================
   // Data
   // ===============================================
-  mDashboard->tableToQWidgetTable(mActListData, mTmpColocClasses, mNavigation == Navigation::IMAGE);
+  if(mSelectedDataSet.analyzeMeta.has_value()) {
+    mDashboard->tableToQWidgetTable(mActListData, mTmpColocClasses, mNavigation == Navigation::IMAGE,
+                                    mSelectedDataSet.analyzeMeta->physicalPixelSizeUnit);
+  }
 
   // ===============================================
   // Heatmap
@@ -907,8 +920,8 @@ void WindowResults::onFinishedLoading()
     case Navigation::IMAGE:
       densityMapSize = mFilter.getDensityMapSettings().densityMapAreaSize;
       if(mSelectedDataSet.imageMeta.has_value()) {
-        rows = static_cast<int32_t>(std::ceil((float) mSelectedDataSet.imageMeta->height / (float) densityMapSize));
-        cols = static_cast<int32_t>(std::ceil((float) mSelectedDataSet.imageMeta->width / (float) densityMapSize));
+        rows = static_cast<int32_t>(std::ceil(static_cast<float>(mSelectedDataSet.imageMeta->height) / static_cast<float>(densityMapSize)));
+        cols = static_cast<int32_t>(std::ceil(static_cast<float>(mSelectedDataSet.imageMeta->width) / static_cast<float>(densityMapSize)));
       } else {
         rows           = 1;
         cols           = 1;
@@ -917,14 +930,16 @@ void WindowResults::onFinishedLoading()
 
       break;
   }
-
-  mDockWidgetGraphSettings->setColumns(mActFilter.getColumns());
+  if(mSelectedDataSet.analyzeMeta.has_value()) {
+    mDockWidgetGraphSettings->setColumns(mActFilter.getColumns(), mSelectedDataSet.analyzeMeta->physicalPixelSizeUnit);
+  }
 
   // CHANGED FROM ActFilter
-  auto data = joda::db::data::convertToHeatmap(mActListData.get(), rows, cols, mDockWidgetGraphSettings->getSelectedColumn(),
-                                               mActFilter.getFilter().tStack, joda::db::data::PlotPlateSettings{.densityMapSize = densityMapSize});
+  auto dataIn = joda::db::data::convertToHeatmap(mActListData.get(), static_cast<uint32_t>(rows), static_cast<uint32_t>(cols),
+                                                 static_cast<uint32_t>(mDockWidgetGraphSettings->getSelectedColumn()), mActFilter.getFilter().tStack,
+                                                 joda::db::data::PlotPlateSettings{.densityMapSize = densityMapSize});
 
-  mGraphContainer->updateGraph(std::move(data), mDockWidgetGraphSettings->getSelectedColorMap(), mDockWidgetGraphSettings->getColorMapRangeSetting(),
+  mGraphContainer->updateGraph(dataIn, mDockWidgetGraphSettings->getSelectedColorMap(), mDockWidgetGraphSettings->getColorMapRangeSetting(),
                                mDockWidgetGraphSettings->getColorMapRange(), mNavigation == Navigation::PLATE, mNavigation == Navigation::IMAGE);
   mDockWidgetGraphSettings->setColorMapRange(mGraphContainer->getColorMapRange());
 
@@ -972,7 +987,8 @@ void WindowResults::setSelectedElement(table::TableCell value)
       mMarkAsInvalid->setEnabled(false);
 
       // Act data
-      auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX);
+      auto platePos =
+          std::string(1, (static_cast<char>(mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX);
       mSelectedRowInfo->setText(platePos.data());
     } break;
     case Navigation::WELL: {
@@ -995,8 +1011,8 @@ void WindowResults::setSelectedElement(table::TableCell value)
       mMarkAsInvalid->setEnabled(true);
 
       // Act data
-      auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
-                      imageInfo.filename;
+      auto platePos = std::string(1, (static_cast<char>(mSelectedDataSet.groupMeta->posY - 1) + 'A')) +
+                      std::to_string(mSelectedDataSet.groupMeta->posX) + "/" + imageInfo.filename;
       mSelectedRowInfo->setText(platePos.data());
     }
 
@@ -1005,19 +1021,17 @@ void WindowResults::setSelectedElement(table::TableCell value)
       mSelectedTileId = value.getObjectId();
       mMarkAsInvalid->setEnabled(false);
 
-      if(mSelectedTileId >= 0) {
-        mSelectedDataSet.objectInfo = mAnalyzer->selectObjectInfo(mSelectedTileId);
-        if(mSelectedDataSet.imageMeta->imageId != mSelectedDataSet.objectInfo->imageId) {
-          mSelectedDataSet.imageMeta = mAnalyzer->selectImageInfo(mSelectedDataSet.objectInfo->imageId);
-        }
+      mSelectedDataSet.objectInfo = mAnalyzer->selectObjectInfo(mSelectedTileId);
+      if(mSelectedDataSet.imageMeta->imageId != mSelectedDataSet.objectInfo->imageId) {
+        mSelectedDataSet.imageMeta = mAnalyzer->selectImageInfo(mSelectedDataSet.objectInfo->imageId);
       }
 
       auto rowImageName = mSelectedDataSet.imageMeta->filename;
       if(mActImageId.size() > 1) {
         rowImageName = value.getRowName();
       }
-      auto platePos = std::string(1, ((char) (mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX) + "/" +
-                      rowImageName + "/" + std::to_string(value.getObjectId());
+      auto platePos = std::string(1, (static_cast<char>(mSelectedDataSet.groupMeta->posY - 1) + 'A')) +
+                      std::to_string(mSelectedDataSet.groupMeta->posX) + "/" + rowImageName + "/" + std::to_string(value.getObjectId());
       mSelectedRowInfo->setText(platePos.data());
 
       loadPreview();
@@ -1032,7 +1046,7 @@ void WindowResults::setSelectedElement(table::TableCell value)
 /// \brief      Open the next deeper level form the element with given id
 /// \author     Joachim Danmayr
 ///
-void WindowResults::openNextLevel(const std::vector<table::TableCell> &value)
+void WindowResults::openNextLevel(const std::vector<table::TableCell> &selectedRows)
 {
   int actMenu     = static_cast<int>(mNavigation);
   auto oldActMenu = mNavigation;
@@ -1047,18 +1061,18 @@ void WindowResults::openNextLevel(const std::vector<table::TableCell> &value)
     case Navigation::PLATE:
       break;
     case Navigation::WELL:
-      if(!value.empty()) {
-        mActGroupId = value.at(0).getId();
+      if(!selectedRows.empty()) {
+        mActGroupId = selectedRows.at(0).getId();
       } else {
         mNavigation = oldActMenu;
       }
       break;
     case Navigation::IMAGE:
-      if(value.empty()) {
+      if(selectedRows.empty()) {
         mNavigation = oldActMenu;
       } else {
         std::set<uint64_t> act;
-        for(const auto &row : value) {
+        for(const auto &row : selectedRows) {
           act.emplace(row.getObjectId());
         }
         mActImageId = act;
@@ -1212,10 +1226,9 @@ void WindowResults::onShowHeatmap()
 /// \param[out]
 /// \return
 ///
-void WindowResults::columnEdit(int32_t colIdx)
+void WindowResults::columnEdit(int32_t /*colIdx*/)
 {
   mFilter.sortColumns();
-
   refreshView();
 }
 
@@ -1261,17 +1274,17 @@ void WindowResults::showFileSaveDialog(const QString &filter)
 {
   QString templatePath = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
 
-  auto getEndianFromFilter = [](const QString &filter) -> std::string {
+  auto getEndianFromFilter = [](const QString &filterIn) -> std::string {
     std::string endian;
-    if(filter.contains("(*.xlsx)")) {
+    if(filterIn.contains("(*.xlsx)")) {
       endian = ".xlsx";
-    } else if(filter.contains("(*.r)")) {
+    } else if(filterIn.contains("(*.r)")) {
       endian = ".r";
-    } else if(filter.contains("(*.csv)")) {
+    } else if(filterIn.contains("(*.csv)")) {
       endian = ".csv";
-    } else if(filter.contains("(*.svg)")) {
+    } else if(filterIn.contains("(*.svg)")) {
       endian = ".svg";
-    } else if(filter.contains("(*.png)")) {
+    } else if(filterIn.contains("(*.png)")) {
       endian = ".png";
     } else {
       return "";
@@ -1351,18 +1364,20 @@ void WindowResults::saveData(const std::string &fileName, joda::exporter::xlsx::
             break;
         }
 
-        joda::exporter::xlsx::Exporter::startHeatmapExport(
-            {mActListData.get()}, settings, mSelectedDataSet.analyzeMeta->jobName, mSelectedDataSet.analyzeMeta->timestampStart,
-            mSelectedDataSet.analyzeMeta->timestampFinish, fileName, mActFilter, view, imgHeight, imgWidth);
+        joda::exporter::xlsx::Exporter::startHeatmapExport({mActListData.get()}, settings, mSelectedDataSet.analyzeMeta->jobName,
+                                                           mSelectedDataSet.analyzeMeta->timestampStart,
+                                                           mSelectedDataSet.analyzeMeta->timestampFinish, fileName, mActFilter, view, imgHeight,
+                                                           imgWidth, mSelectedDataSet.analyzeMeta->physicalPixelSizeUnit);
 
       } else {
         joda::exporter::xlsx::Exporter::startExport(mDashboard->getExportables(), settings, mSelectedDataSet.analyzeMeta->jobName,
                                                     mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
-                                                    fileName);
+                                                    mSelectedDataSet.analyzeMeta->physicalPixelSizeUnit, fileName);
       }
     } else {
       joda::exporter::r::Exporter::startExport(mDashboard->getExportables(), settings, mSelectedDataSet.analyzeMeta->jobName,
-                                               mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish, fileName);
+                                               mSelectedDataSet.analyzeMeta->timestampStart, mSelectedDataSet.analyzeMeta->timestampFinish,
+                                               mSelectedDataSet.analyzeMeta->physicalPixelSizeUnit, fileName);
     }
 
     QString folderPath = std::filesystem::path(fileName).parent_path().string().data();

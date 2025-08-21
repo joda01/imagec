@@ -20,10 +20,10 @@
 namespace joda::ui::gui {
 
 AddCommandButtonBase::AddCommandButtonBase(std::shared_ptr<DialogCommandSelection> &dialogCommandSelection, joda::settings::Pipeline &settings,
-                                           PanelPipelineSettings *pipelineStepSettingsUi, const settings::PipelineStep *pipelineStepBefore,
+                                           PanelPipelineSettings *pipelineStepSettingsUiIn, const settings::PipelineStep *pipelineStepBefore,
                                            InOuts outOfStepBefore, WindowMain *parent) :
     mDialogCommandSelection(dialogCommandSelection),
-    mParent(parent), mPipelineStepBefore(pipelineStepBefore), mSettings(settings), pipelineStepSettingsUi(pipelineStepSettingsUi),
+    mParent(parent), mPipelineStepBefore(pipelineStepBefore), mSettings(settings), pipelineStepSettingsUi(pipelineStepSettingsUiIn),
     mOutOfStepBefore(outOfStepBefore)
 {
   setObjectName("addCommandButton");
@@ -31,7 +31,7 @@ AddCommandButtonBase::AddCommandButtonBase(std::shared_ptr<DialogCommandSelectio
   setFixedHeight(10);
 }
 
-void AddCommandButtonBase::paintEvent(QPaintEvent *event)
+void AddCommandButtonBase::paintEvent(QPaintEvent * /*event*/)
 {
   QPainter painter(this);
   if(!mMouseEntered) {
@@ -51,7 +51,7 @@ void AddCommandButtonBase::paintEvent(QPaintEvent *event)
   painter.drawText(centerX - 5, centerY - 5, 10, 10, Qt::AlignCenter, "+");
 }
 
-void AddCommandButtonBase::mousePressEvent(QMouseEvent *event)
+void AddCommandButtonBase::mousePressEvent(QMouseEvent * /*event*/)
 {
   mDialogCommandSelection->show(mPipelineStepBefore, mOutOfStepBefore, &mSettings, pipelineStepSettingsUi);
 }

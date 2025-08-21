@@ -15,7 +15,7 @@
 TEST_CASE("ai::classifier::random_forest", "[random_forest]")
 {
   auto omeXML = joda::image::reader::ImageReader::getOmeInformation(
-      "/workspaces/imagec/tmp/imagec-test/scenarios/scenario_01/test_data_v1_full/images/full/B2_15_5ADVMLE.vsi.vsi", 0);
+      "/workspaces/imagec/tmp/imagec-test/scenarios/scenario_01/test_data_v1_full/images/full/B2_15_5ADVMLE.vsi.vsi", 0, {});
   auto img = joda::image::reader::ImageReader::loadEntireImage(
       "/workspaces/imagec/tmp/imagec-test/scenarios/scenario_01/test_data_v1_full/images/full/B2_15_5ADVMLE.vsi.vsi", {0, 0, 0}, 0, 0, omeXML);
 

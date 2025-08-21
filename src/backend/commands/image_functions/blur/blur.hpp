@@ -31,7 +31,7 @@ public:
   explicit Blur(const settings::BlurSettings &settings) : mSettings(settings)
   {
   }
-  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
+  void execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/) override
   {
     int kernel[3]{0};    //= {-1, -1, -1, -1, 12, -1, -1, -1, -1};
     for(int n = 0; n < mSettings.repeat; n++) {

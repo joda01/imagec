@@ -75,7 +75,7 @@ DialogCommandSelection::DialogCommandSelection(WindowMain *parent) : QDialog(par
 
   // mCommands.setsh
 
-  connect(mCommands, &QTableWidget::cellDoubleClicked, [&](int row, int column) {
+  connect(mCommands, &QTableWidget::cellDoubleClicked, [&](int row, int /*column*/) {
     auto idx = mCommands->item(row, 0)->text().toInt();
     addNewCommand(idx);
     close();
@@ -132,7 +132,7 @@ void DialogCommandSelection::show(const settings::PipelineStep *pipelineStepBefo
 ///
 std::unique_ptr<joda::ui::gui::Command> DialogCommandSelection::generateCommand(const settings::PipelineStep &step)
 {
-  return std::move(joda::settings::PipelineFactory<joda::ui::gui::Command>::generate(step, mParent));
+  return joda::settings::PipelineFactory<joda::ui::gui::Command>::generate(step, mParent);
 }
 
 void assignLabels()
@@ -274,7 +274,7 @@ void DialogCommandSelection::filterCommands(const CommandTableFilter &filter)
 {
   auto searchTexts = filter.searchText.toLower();
   std::set<Group> groups;
-  for(int32_t n = 0; n < mCommandList.size(); n++) {
+  for(size_t n = 0; n < mCommandList.size(); n++) {
     const auto &command = mCommandList.at(n);
     int32_t tableIndex  = mCommandIndexMap.at(n);
     auto filterInOut    = filter.outOfStepBefore;
@@ -308,7 +308,7 @@ void DialogCommandSelection::filterCommands(const CommandTableFilter &filter)
   }
 }
 
-void DialogCommandSelection::addNewCommand(int commandListIdx)
+void DialogCommandSelection::addNewCommand(size_t commandListIdx)
 {
   if(mPipelineStepBefore == nullptr && mSettings != nullptr) {
     auto inserted = mSettings->pipelineSteps.insert(mSettings->pipelineSteps.begin(), mCommandList[commandListIdx].pipelineStep);

@@ -37,11 +37,11 @@ public:
   {
     mFindTolerance = SettingBase::create<SettingComboBox<float>>(parent, {}, "Find tolerance");
     mFindTolerance->addOptions({
-        {0.5, "Default (0.5)"},
-        {0.6, "0.6"},
-        {0.7, "0.7"},
-        {0.8, "0.8"},
-        {0.9, "0.9"},
+        {0.5F, "Default (0.5)"},
+        {0.6F, "0.6"},
+        {0.7F, "0.7"},
+        {0.8F, "0.8"},
+        {0.9F, "0.9"},
     });
     mFindTolerance->setValue(settings.maximumFinderTolerance);
     mFindTolerance->connectWithSetting(&settings.maximumFinderTolerance);

@@ -36,6 +36,7 @@ struct AnalyzeMeta
   uint32_t tileWidth  = 0;    // Tile width selected for analysis.
   uint32_t tileHeight = 0;    // Tile height selected for analysis.
   uint32_t series     = 0;    // Image series used for analysis.
+  std::string physicalPixelSizeUnit;
 };
 
 struct GroupInfo
@@ -54,7 +55,8 @@ struct ImageInfo
   uint32_t width  = 0;
   uint32_t height = 0;
   std::string imageGroupName;
-  uint64_t imageId;
+  uint64_t imageId             = 0;
+  std::string physicalSizeUnit = "Px";
 };
 
 struct ObjectInfo
@@ -83,6 +85,7 @@ public:
 
   virtual auto prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
                              const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
+                             const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings,
                              BS::thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> = 0;
   virtual void setImageProcessed(uint64_t)                                                                                                      = 0;
 
@@ -94,7 +97,7 @@ public:
   virtual void setImagePlaneClasssClasssValidity(uint64_t imageId, const enums::PlaneId &, enums::ClassId classId,
                                                  enums::ChannelValidity validity)                               = 0;
 
-  virtual void insertObjects(const joda::processor::ImageContext &, const joda::atom::ObjectList &) = 0;
+  virtual void insertObjects(const joda::processor::ImageContext &, enums::Units, const joda::atom::ObjectList &) = 0;
 };
 
 ///
@@ -106,23 +109,24 @@ class PreviewDatabase : public DatabaseInterface
 {
 public:
   PreviewDatabase() = default;
-  void openDatabase(const std::filesystem::path &pathToDb) override
+  void openDatabase(const std::filesystem::path & /*pathToDb*/) override
   {
   }
   void closeDatabase() override
   {
   }
-  std::string startJob(const joda::settings::AnalyzeSettings &, const std::string &jobName) override
+  std::string startJob(const joda::settings::AnalyzeSettings &, const std::string & /*jobName*/) override
   {
     return {};
   }
-  void finishJob(const std::string &jobId) override
+  void finishJob(const std::string & /*jobId*/) override
   {
   }
 
-  auto prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
-                     const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
-                     BS::thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> override
+  auto prepareImages(uint8_t /*plateId*/, int32_t /*series*/, enums::GroupBy /*groupBy*/, const std::string & /*filenameRegex*/,
+                     const std::vector<std::filesystem::path> & /*imagePaths*/, const std::filesystem::path & /*imagesBasePath*/,
+                     const joda::settings::ProjectImageSetup::PhysicalSizeSettings & /*defaultPhysicalSizeSettings*/,
+                     BS::thread_pool & /*globalThreadPool*/) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> override
   {
     return {};
   }
@@ -130,7 +134,7 @@ public:
   {
   }
 
-  void insertImagePlane(uint64_t imageId, const enums::PlaneId &, const ome::OmeInfo::ImagePlane &) override
+  void insertImagePlane(uint64_t /*imageId*/, const enums::PlaneId &, const ome::OmeInfo::ImagePlane &) override
   {
   }
 
@@ -142,18 +146,19 @@ public:
   {
     mImageValidity[imageId] = validity;
   }
-  void setImagePlaneValidity(uint64_t imageId, const enums::PlaneId &, enums::ChannelValidity validity) override
+  void setImagePlaneValidity(uint64_t /*imageId*/, const enums::PlaneId &, enums::ChannelValidity /*validity*/) override
   {
   }
-  void setImagePlaneClasssClasssValidity(uint64_t imageId, const enums::PlaneId &, enums::ClassId classId, enums::ChannelValidity validity) override
-  {
-  }
-
-  void insertObjects(const joda::processor::ImageContext &, const joda::atom::ObjectList &) override
+  void setImagePlaneClasssClasssValidity(uint64_t /*imageId*/, const enums::PlaneId &, enums::ClassId /*classId*/,
+                                         enums::ChannelValidity /*validity*/) override
   {
   }
 
-  auto getImageValidity() const -> enums::ChannelValidity
+  void insertObjects(const joda::processor::ImageContext &, enums::Units, const joda::atom::ObjectList &) override
+  {
+  }
+
+  [[nodiscard]] auto getImageValidity() const -> enums::ChannelValidity
   {
     if(mImageValidity.empty()) {
       return {};

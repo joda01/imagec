@@ -37,7 +37,7 @@ public:
     int dmax = 0;
     int max  = 0;
     int min2 = 0;
-    for(int i = 0; i < histogram.total(); i++) {
+    for(int i = 0; i < static_cast<int>(histogram.total()); i++) {
       if(histogram.at<float>(i) > 0) {
         min = i;
         break;
@@ -63,9 +63,9 @@ public:
     }
 
     for(int i = 0; i < 256; i++) {
-      if(histogram.at<float>(i) > dmax) {
+      if(histogram.at<float>(i) > static_cast<float>(dmax)) {
         max  = i;
-        dmax = histogram.at<float>(i);
+        dmax = static_cast<int>(histogram.at<float>(i));
       }
     }
     // find which is the furthest side
@@ -79,7 +79,7 @@ public:
       int right = 255;    // index of rightmost element
       while(left < right) {
         // exchange the left and right elements
-        int temp                   = histogram.at<float>(left);
+        float temp                 = histogram.at<float>(left);
         histogram.at<float>(left)  = histogram.at<float>(right);
         histogram.at<float>(right) = temp;
         // move the bounds toward the center
@@ -92,7 +92,7 @@ public:
 
     if(min == max) {
       // IJ.log("Triangle:  min == max.");
-      return min;
+      return static_cast<uint16_t>(min);
     }
 
     // describe line by nx * x + ny * y - d = 0
@@ -100,18 +100,18 @@ public:
     double ny;
     double d;
     // nx is just the max frequency as the other point has freq=0
-    nx = histogram.at<float>(max);    //-min; // data[min]; //  lowest value bmin = (p=0)% in the image
+    nx = static_cast<double>(histogram.at<float>(max));    //-min; // data[min]; //  lowest value bmin = (p=0)% in the image
     ny = min - max;
     d  = std::sqrt(nx * nx + ny * ny);
     nx /= d;
     ny /= d;
-    d = nx * min + ny * histogram.at<float>(min);
+    d = nx * min + ny * static_cast<double>(histogram.at<float>(min));
 
     // find split point
     int split            = min;
     double splitDistance = 0;
     for(int i = min + 1; i <= max; i++) {
-      double newDistance = nx * i + ny * histogram.at<float>(i) - d;
+      double newDistance = nx * i + ny * static_cast<double>(histogram.at<float>(i)) - d;
       if(newDistance > splitDistance) {
         split         = i;
         splitDistance = newDistance;
@@ -124,15 +124,15 @@ public:
       int left  = 0;
       int right = 255;
       while(left < right) {
-        int temp                   = histogram.at<float>(left);
+        float temp                 = histogram.at<float>(left);
         histogram.at<float>(left)  = histogram.at<float>(right);
         histogram.at<float>(right) = temp;
         left++;
         right--;
       }
-      return (255 - split);
+      return static_cast<uint16_t>(255 - split);
     }
-    return split;
+    return static_cast<uint16_t>(split);
   }
 };
 

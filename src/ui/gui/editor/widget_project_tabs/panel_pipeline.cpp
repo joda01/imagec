@@ -22,6 +22,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include "backend/enums/enums_units.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "ui/gui/editor/widget_pipeline/dialog_command_selection/dialog_command_selection.hpp"
@@ -29,11 +30,13 @@
 #include "ui/gui/editor/widget_pipeline/panel_pipeline_settings.hpp"
 #include "ui/gui/editor/widget_pipeline/table_item_delegate_pipeline.hpp"
 #include "ui/gui/editor/widget_pipeline/table_model_pipeline.hpp"
+#include "ui/gui/editor/widget_project_tabs/panel_image.hpp"
 #include "ui/gui/editor/window_main.hpp"
 #include "ui/gui/helper/droppable_widget/droppable_widget.hpp"
 #include "ui/gui/helper/html_delegate.hpp"
 #include "ui/gui/helper/html_header.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
+#include "ui/gui/helper/iconless_dialog_button_box.hpp"
 #include "ui/gui/helper/pipeline_overview_delegate.hpp"
 #include "ui/gui/helper/table_view.hpp"
 #include "ui/gui/helper/template_parser/template_parser.hpp"
@@ -66,11 +69,25 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     toolbar->addAction(newPipeline);
 
     //
-    // Open stack options dialof
+    // Open pipeline setup
     //
-    auto *pipelineSettings = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("wrench"), "Stack options");
-    pipelineSettings->setStatusTip("Open stack options dialog");
-    connect(pipelineSettings, &QAction::triggered, [this]() { mStackOptionsDialog->exec(); });
+    auto *pipelineSettings = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("wrench"), "Pipeline setup");
+    pipelineSettings->setStatusTip("Open pipeline setup dialog");
+    connect(pipelineSettings, &QAction::triggered, [this]() {
+      auto [path, series, ome] = mWindowMain->getImagePanel()->getSelectedImageOrFirst();
+      if(path.empty()) {
+        // Unit is only allowed to change if an image is opened, because we need the real pixel sizes.
+        mMeasureUnit->setEnabled(false);
+      } else {
+        mMeasureUnit->setEnabled(true);
+      }
+      fromSettings(mAnalyzeSettings);
+      auto ret = mStackOptionsDialog->exec();
+      if(ret != 0) {
+        toSettings();
+        updatePipelineCommandUnits();
+      }
+    });
     toolbar->addAction(pipelineSettings);
 
     //
@@ -141,10 +158,10 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
       messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning").pixmap(48, 48));
       messageBox.setWindowTitle("Delete pipeline?");
       messageBox.setText("Delete pipeline?");
-      QPushButton *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
-      QPushButton *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+      QPushButton *noButton = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+      messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
       messageBox.setDefaultButton(noButton);
-      auto reply = messageBox.exec();
+      messageBox.exec();
       if(messageBox.clickedButton() == noButton) {
         return;
       }
@@ -155,9 +172,16 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
 
   {
     mStackOptionsDialog = new QDialog(mWindowMain);
-    mStackOptionsDialog->setWindowTitle("Stack handling");
+    mStackOptionsDialog->setWindowTitle("Analyze settings");
     mStackOptionsDialog->setMinimumWidth(400);
     auto *formLayout = new QFormLayout;
+
+    auto addSeparator = [&formLayout]() {
+      auto *separator = new QFrame;
+      separator->setFrameShape(QFrame::HLine);
+      separator->setFrameShadow(QFrame::Sunken);
+      formLayout->addRow(separator);
+    };
     //
     // Stack handling
     //
@@ -165,13 +189,11 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     mStackHandlingZ->addItem("Each one", static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::EACH_ONE));
     mStackHandlingZ->addItem("Defined by pipeline", static_cast<int32_t>(joda::settings::ProjectImageSetup::ZStackHandling::EXACT_ONE));
     formLayout->addRow(new QLabel(tr("Z-Stack")), mStackHandlingZ);
-    connect(mStackHandlingZ, &QComboBox::currentIndexChanged, [this]() { toSettings(); });
 
     //
     mStackHandlingT = new QComboBox();
     mStackHandlingT->addItem("Each one", static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EACH_ONE));
     mStackHandlingT->addItem("Defined by pipeline", static_cast<int32_t>(joda::settings::ProjectImageSetup::TStackHandling::EXACT_ONE));
-    connect(mStackHandlingT, &QComboBox::currentIndexChanged, [this]() { toSettings(); });
     formLayout->addRow(new QLabel(tr("T-Stack")), mStackHandlingT);
 
     auto *tStackRangeLayout = new QHBoxLayout;
@@ -182,6 +204,23 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     tStackRangeLayout->addWidget(mTStackFrameStart);
     tStackRangeLayout->addWidget(mTStackFrameEnd);
     formLayout->addRow(new QLabel(tr("T-Range")), tStackRangeLayout);
+
+    addSeparator();
+    mMeasureUnit = new QComboBox();
+    mMeasureUnit->addItem("Px", static_cast<int32_t>(enums::Units::Pixels));
+    mMeasureUnit->addItem("nm", static_cast<int32_t>(enums::Units::nm));
+    mMeasureUnit->addItem("µm", static_cast<int32_t>(enums::Units::um));
+    mMeasureUnit->addItem("mm", static_cast<int32_t>(enums::Units::mm));
+    mMeasureUnit->addItem("cm", static_cast<int32_t>(enums::Units::cm));
+    mMeasureUnit->addItem("m", static_cast<int32_t>(enums::Units::m));
+    mMeasureUnit->addItem("km", static_cast<int32_t>(enums::Units::km));
+    formLayout->addRow(new QLabel(tr("Measure unit")), mMeasureUnit);
+
+    // Okay and canlce
+    auto *buttonBox = new IconlessDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, mStackOptionsDialog);
+    connect(buttonBox, &QDialogButtonBox::accepted, mStackOptionsDialog, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, mStackOptionsDialog, &QDialog::reject);
+    formLayout->addWidget(buttonBox);
 
     mStackOptionsDialog->setLayout(formLayout);
   }
@@ -265,14 +304,14 @@ void PanelPipeline::removePipelineWidget()
 /// \param[out]
 /// \return
 ///
-void PanelPipeline::openSelectedPipeline(const QModelIndex &current, const QModelIndex &previous)
+void PanelPipeline::openSelectedPipeline(const QModelIndex &current, const QModelIndex & /*previous*/)
 {
   //
   // Add new one
   //
   auto selectedRow = current.row();
   if(selectedRow >= 0) {
-    for(auto &pipeline : mChannels) {
+    for(const auto &pipeline : mChannels) {
       if(&pipeline->mutablePipeline() == mTableModel->getCell(selectedRow)) {
         {
           std::lock_guard<std::mutex> lock(mClosePipelineMutex);
@@ -357,7 +396,7 @@ void PanelPipeline::loadTemplates()
   size_t addedPerCategory = 0;
   std::string actCategory = "basic";
   for(const auto &[category, dataInCategory] : foundTemplates) {
-    for(const auto &[_, data] : dataInCategory) {
+    for(const auto &[_, dataIn] : dataInCategory) {
       // Now the user templates start, add an addition separator
       if(category != actCategory) {
         actCategory = category;
@@ -365,12 +404,12 @@ void PanelPipeline::loadTemplates()
           mTemplatesMenu->addSeparator();
         }
       }
-      if(!data.icon.isNull()) {
-        auto *action = mTemplatesMenu->addAction(QIcon(data.icon.scaled(28, 28)), data.title.data());
-        connect(action, &QAction::triggered, [this, path = data.path]() { onAddChannel(path.data()); });
+      if(!dataIn.icon.isNull()) {
+        auto *action = mTemplatesMenu->addAction(QIcon(dataIn.icon.scaled(28, 28)), dataIn.title.data());
+        connect(action, &QAction::triggered, [this, path = dataIn.path]() { onAddChannel(path.data()); });
       } else {
-        auto *action = mTemplatesMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("star"), data.title.data());
-        connect(action, &QAction::triggered, [this, path = data.path]() { onAddChannel(path.data()); });
+        auto *action = mTemplatesMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("star"), dataIn.title.data());
+        connect(action, &QAction::triggered, [this, path = dataIn.path]() { onAddChannel(path.data()); });
       }
     }
     addedPerCategory = dataInCategory.size();
@@ -482,7 +521,7 @@ void PanelPipeline::addChannelFromPath(const QString &pathToSettings)
     messageBox.setWindowTitle("Could not load settings!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-    auto reply = messageBox.exec();
+    messageBox.exec();
   }
 }
 
@@ -503,7 +542,7 @@ void PanelPipeline::addChannelFromJson(const nlohmann::json &json)
     messageBox.setWindowTitle("Could not load settings!");
     messageBox.setText("Could not load settings, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-    auto reply = messageBox.exec();
+    messageBox.exec();
   }
 }
 
@@ -526,7 +565,7 @@ void PanelPipeline::moveUp()
     if(newPos < 0) {
       return;
     }
-    movePipelineToPosition(rowAct, newPos);
+    movePipelineToPosition(static_cast<uint32_t>(rowAct), static_cast<uint32_t>(newPos));
     mPipelineTable->blockSignals(false);
   }
 }
@@ -549,7 +588,7 @@ void PanelPipeline::moveDown()
     if(newPos >= mTableModel->rowCount()) {
       return;
     }
-    movePipelineToPosition(rowAct, newPos);
+    movePipelineToPosition(static_cast<uint32_t>(rowAct), static_cast<uint32_t>(newPos));
     mPipelineTable->blockSignals(false);
   }
 }
@@ -561,7 +600,7 @@ void PanelPipeline::moveDown()
 /// \param[out]
 /// \return
 ///
-void PanelPipeline::movePipelineToPosition(size_t fromPos, size_t newPos)
+void PanelPipeline::movePipelineToPosition(size_t fromPos, size_t newPosIn)
 {
   auto moveElementToListPosition = [](std::list<joda::settings::Pipeline> &myList, size_t oldPos, size_t newPos) {
     // Get iterators to the old and new positions
@@ -578,7 +617,7 @@ void PanelPipeline::movePipelineToPosition(size_t fromPos, size_t newPos)
     }
   };
 
-  moveElementToListPosition(mAnalyzeSettings.pipelines, fromPos, newPos);
+  moveElementToListPosition(mAnalyzeSettings.pipelines, fromPos, newPosIn);
   mWindowMain->checkForSettingsChanged();
   mTableModel->refresh();
 }
@@ -609,7 +648,7 @@ void PanelPipeline::saveAsTemplate()
     messageBox.setWindowTitle("Could not save template!");
     messageBox.setText("Could not save template, got error >" + QString(ex.what()) + "<!");
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
-    auto reply = messageBox.exec();
+    messageBox.exec();
   }
 }
 
@@ -627,6 +666,8 @@ void PanelPipeline::toSettings()
 
   mAnalyzeSettings.imageSetup.tStackSettings.startFrame = mTStackFrameStart->text().toInt();
   mAnalyzeSettings.imageSetup.tStackSettings.endFrame   = mTStackFrameEnd->text().toInt();
+
+  mAnalyzeSettings.pipelineSetup.realSizesUnit = static_cast<enums::Units>(mMeasureUnit->currentData().toInt());
 }
 
 ///
@@ -656,6 +697,31 @@ void PanelPipeline::fromSettings(const joda::settings::AnalyzeSettings &settings
       mStackHandlingT->setCurrentIndex(idx);
     } else {
       mStackHandlingT->setCurrentIndex(0);
+    }
+  }
+
+  {
+    auto idx = mMeasureUnit->findData(static_cast<int>(settings.pipelineSetup.realSizesUnit));
+    if(idx >= 0) {
+      mMeasureUnit->setCurrentIndex(idx);
+    } else {
+      mMeasureUnit->setCurrentIndex(0);
+    }
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipeline::updatePipelineCommandUnits()
+{
+  for(auto &pipeline : mChannels) {
+    for(auto &cmd : *pipeline->getListOfCommands()) {
+      cmd->updateSettingsUnit();
     }
   }
 }

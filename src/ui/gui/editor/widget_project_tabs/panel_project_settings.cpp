@@ -38,14 +38,14 @@ namespace joda::ui::gui {
 PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &settings, WindowMain *parentWindow) :
     mSettings(settings), mParentWindow(parentWindow)
 {
-  auto *layout     = new QVBoxLayout(this);
-  auto *formLayout = new QFormLayout;
+  auto *layout        = new QVBoxLayout(this);
+  auto *formLayoutOut = new QFormLayout;
 
-  auto addSeparator = [&formLayout]() {
+  auto addSeparator = [&formLayoutOut]() {
     auto *separator = new QFrame;
     separator->setFrameShape(QFrame::HLine);
     separator->setFrameShadow(QFrame::Sunken);
-    formLayout->addRow(separator);
+    formLayoutOut->addRow(separator);
   };
 
   //
@@ -62,7 +62,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
     connect(openDir, &QPushButton::clicked, this, &PanelProjectSettings::onOpenWorkingDirectoryClicked);
     workingDir->addWidget(openDir);
     workingDir->setStretch(0, 1);    // Make label take all available space
-    formLayout->addRow(new QLabel(tr("Image directory")), workingDir);
+    formLayoutOut->addRow(new QLabel(tr("Image directory")), workingDir);
   }
   // Meta edit dialog
   {
@@ -80,7 +80,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
     connect(openMetaEditor, &QPushButton::clicked, [this] { mMetaEditDialog->exec(); });
     expirmentMeta->addWidget(openMetaEditor);
     expirmentMeta->setStretch(0, 1);    // Make label take all available space
-    formLayout->addRow(new QLabel(tr("Job name")), expirmentMeta);
+    formLayoutOut->addRow(new QLabel(tr("Job name")), expirmentMeta);
 
     mMetaEditDialog = new QDialog(mParentWindow);
     mMetaEditDialog->setWindowTitle("Project meta");
@@ -142,7 +142,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
     mGroupByComboBox->addItem("Group based on foldername", static_cast<int>(joda::enums::GroupBy::DIRECTORY));
     mGroupByComboBox->addItem("Group based on filename", static_cast<int>(joda::enums::GroupBy::FILENAME));
     mGroupByComboBox->setCurrentIndex(-1);
-    connect(mGroupByComboBox, &QComboBox::currentIndexChanged, [this](int index) {
+    connect(mGroupByComboBox, &QComboBox::currentIndexChanged, [this](int /*index*/) {
       if(mGroupByComboBox->currentData().toInt() == static_cast<int>(joda::enums::GroupBy::FILENAME)) {
         mOpenGroupingSettings->setEnabled(true);
         mGroupingDialog->exec();
@@ -159,7 +159,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
     connect(mOpenGroupingSettings, &QPushButton::clicked, [this] { mGroupingDialog->exec(); });
     groupingLayout->addWidget(mOpenGroupingSettings);
     groupingLayout->setStretch(0, 1);    // Make label take all available space
-    formLayout->addRow(new QLabel(tr("Grouping")), groupingLayout);
+    formLayoutOut->addRow(new QLabel(tr("Grouping")), groupingLayout);
 
     mGroupingDialog = new QDialog(parentWindow);
     mGroupingDialog->setWindowTitle("Grouping settings");
@@ -221,10 +221,10 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
     plateSettingsLayout->addWidget(mPlateSize);
     plateSettingsLayout->addWidget(openPlateSettings);
     plateSettingsLayout->setStretch(0, 1);    // Make label take all available space
-    formLayout->addRow(new QLabel(tr("Plate settings")), plateSettingsLayout);
+    formLayoutOut->addRow(new QLabel(tr("Plate settings")), plateSettingsLayout);
   }
 
-  layout->addLayout(formLayout);
+  layout->addLayout(formLayoutOut);
 
   mNotes = new QTextEdit;
   mNotes->setPlaceholderText("Notes on the experiment...");

@@ -53,7 +53,7 @@ public:
   }
   virtual ~Threshold() = default;
 
-  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
+  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList & /*result*/) override
   {
     cv::Mat outputImage = cv::Mat::zeros(image.size(), CV_16UC1);
 
@@ -129,24 +129,24 @@ private:
     double scale    = 256.0 / (max - min + 1);
     cv::Mat charImg = cv::Mat::zeros(srcImg.rows, srcImg.cols, CV_8UC1);
     // srcImg.convertTo(charImg, CV_8UC1, scale);
-    for(int i = 0; i < srcImg.total(); i++) {
+    for(int i = 0; i < static_cast<int32_t>(srcImg.total()); i++) {
       auto value = (srcImg.at<uint16_t>(i) & 0xffff) - min;
       if(value < 0) {
         value = 0;
       }
-      value = (int) (value * scale + 0.5);
+      value = static_cast<int>(std::lround(static_cast<double>(value) * scale));    // static_cast<int>(static_cast<double>(value) * scale + 0.5);
       if(value > 255) {
         value = 255;
       }
-      charImg.at<uint8_t>(i) = (uint8_t) value;
+      charImg.at<uint8_t>(i) = static_cast<uint8_t>(value);
     }
 
     // Calculate the histogram of the image
-    int histSize           = UINT8_MAX + 1;    // Number of bins
-    float range[]          = {0, 256};         // Pixel value range
+    int histSize           = UINT8_MAX + 1;     // Number of bins
+    float range[]          = {0.0F, 256.0F};    // Pixel value range
     const float *histRange = {range};
     cv::Mat histogram;
-    cv::calcHist(&charImg, 1, 0, cv::Mat(), histogram, 1, &histSize, &histRange);
+    cv::calcHist(&charImg, 1, nullptr, cv::Mat(), histogram, 1, &histSize, &histRange);
     // histogram.at<float>(0) = 0;
 
     uint16_t thresholdTempMin = settings.thresholdMin;
@@ -162,7 +162,7 @@ private:
   ///
   /// \ref https://imagej.net/ij/developer/source/ij/process/ImageProcessor.java.html
   ///
-  [[nodiscard]] uint16_t scaleAndSetThreshold(double lower, double upper, double min, double max) const
+  [[nodiscard]] static uint16_t scaleAndSetThreshold(double lower, double upper, double min, double max)
   {
     if(max > min) {
       if(lower == 0.0) {
@@ -177,7 +177,7 @@ private:
     } else {
       lower = upper = min;
     }
-    return upper;
+    return static_cast<uint16_t>(upper);
   }
 
   /////////////////////////////////////////////////////

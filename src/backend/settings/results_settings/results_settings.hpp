@@ -52,7 +52,8 @@ public:
     INTENSITY,
     DISTANCE,
     DISTANCE_ID,
-    INTERSECTION
+    INTERSECTION,
+    POSITION
   };
 
   static MeasureType getType(enums::Measurement measure)
@@ -74,6 +75,7 @@ public:
         return MeasureType::DISTANCE_ID;
       case enums::Measurement::CENTEROID_X:
       case enums::Measurement::CENTEROID_Y:
+        return MeasureType::POSITION;
       case enums::Measurement::CONFIDENCE:
       case enums::Measurement::AREA_SIZE:
       case enums::Measurement::PERIMETER:
@@ -89,6 +91,8 @@ public:
       case enums::Measurement::PARENT_OBJECT_ID:
       case enums::Measurement::TRACKING_ID:
         return MeasureType::ID;
+      case enums::Measurement::NONE:
+        return MeasureType::OBJECT;
     }
     return MeasureType::OBJECT;
   }
@@ -121,7 +125,7 @@ public:
 
   struct ColumnIdx
   {
-    int32_t colIdx = 0;
+    uint32_t colIdx = 0;
     bool operator<(const ColumnIdx &input) const
     {
       auto toInt = [](const ColumnIdx &in) -> uint64_t {
@@ -143,20 +147,20 @@ public:
     joda::enums::ClassId intersectingChannel = joda::enums::ClassId::NONE;
     int32_t zStack                           = 0;
 
-    ColumnName names;
+    ColumnName names = {};
 
     bool operator<(const ColumnKey &input) const
     {
       auto toInt = [](const ColumnKey &in) {
-        auto classClasss         = static_cast<uint16_t>(in.classId);
-        auto intersectingChannel = static_cast<uint16_t>(in.intersectingChannel);
-        auto measure             = static_cast<uint8_t>(in.measureChannel);
-        auto stat                = static_cast<uint8_t>(in.stats);
+        auto classClasss           = static_cast<uint16_t>(in.classId);
+        auto intersectingChannelIn = static_cast<uint16_t>(in.intersectingChannel);
+        auto measure               = static_cast<uint8_t>(in.measureChannel);
+        auto stat                  = static_cast<uint8_t>(in.stats);
 
         stdi::uint128_t erg = (static_cast<stdi::uint128_t>(classClasss) << 112) | (static_cast<stdi::uint128_t>(0) << 80) |
                               (static_cast<stdi::uint128_t>(in.zStack) << 48) | (static_cast<stdi::uint128_t>(measure & 0xFF) << 40) |
                               (static_cast<stdi::uint128_t>(stat) << 32) | (static_cast<stdi::uint128_t>(in.crossChannelStacksC & 0xFFFF) << 16) |
-                              (static_cast<stdi::uint128_t>(intersectingChannel) << 0);
+                              (static_cast<stdi::uint128_t>(intersectingChannelIn) << 0);
         return erg;
       };
 
@@ -170,33 +174,33 @@ public:
              intersectingChannel == input.intersectingChannel && zStack == input.zStack;
     }
 
-    std::string createHeader() const;
+    std::string createHeader(const std::string &unit) const;
 
     enum class HeaderStyle
     {
       FULL,
       WITHOUT_OWN_NAME,
     };
-    std::string createHtmlHeader(HeaderStyle style) const;
+    std::string createHtmlHeader(HeaderStyle style, const std::string &unit) const;
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColumnKey, classId, measureChannel, stats, crossChannelStacksC, intersectingChannel, zStack, names);
   };
 
   explicit ResultsSettings() = default;
 
-  void setFilter(const ObjectFilter &filter, const joda::settings::PlateSetup &plateSetup, const DensityMapSettings &densityMap)
+  void setFilter(const ObjectFilter &filterIn, const joda::settings::PlateSetup &plateSetupIn, const DensityMapSettings &densityMapIn)
   {
-    this->filter             = filter;
-    this->plateSetup         = plateSetup;
-    this->densityMapSettings = densityMap;
+    this->filter             = filterIn;
+    this->plateSetup         = plateSetupIn;
+    this->densityMapSettings = densityMapIn;
   }
 
-  void setFilter(const joda::settings::PlateSetup &plateSetup)
+  void setFilter(const joda::settings::PlateSetup &plateSetupIn)
   {
-    this->plateSetup = plateSetup;
+    this->plateSetup = plateSetupIn;
   }
 
-  void setFilter(int32_t plateId, int32_t groupId, int32_t tStack, const std::set<uint64_t> &imageId)
+  void setFilter(uint8_t plateId, uint16_t groupId, int32_t tStack, const std::set<uint64_t> &imageId)
   {
     filter.plateId = plateId;
     filter.groupId = groupId;
@@ -308,7 +312,7 @@ public:
   {
   }
   // We don't want to do a error check for the history
-  void getErrorLogRecursive(SettingParserLog_t &settingsParserLog) const
+  void getErrorLogRecursive(SettingParserLog_t & /*settingsParserLog*/) const
   {
   }
 
@@ -335,7 +339,7 @@ public:
               [](const std::pair<ColumnIdx, ColumnKey> &a, const std::pair<ColumnIdx, ColumnKey> &b) { return std::get<1>(a) < std::get<1>(b); });
 
     columns.clear();
-    int32_t colIdx = 0;
+    uint32_t colIdx = 0;
     for(const auto &[colIdxAct, keyIdx] : data) {
       columns.emplace(ColumnIdx{colIdx}, keyIdx);
       colIdx++;

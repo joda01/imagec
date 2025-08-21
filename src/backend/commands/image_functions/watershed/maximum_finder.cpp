@@ -109,8 +109,7 @@ Polygon MaximumFinder::getMaxima(cv::Mat &ip, double tolerance, bool strict, boo
 ///                  edgeMode = 2 (circular) array is regarded to be circular
 /// \return          Positions of peaks, sorted with decreasing amplitude
 ///
-std::shared_ptr<int> MaximumFinder::findMaxima(std::shared_ptr<double> xx, size_t xxSize, double tolerance,
-                                               int edgeMode)
+std::shared_ptr<int> MaximumFinder::findMaxima(std::shared_ptr<double> xx, size_t xxSize, double tolerance, int edgeMode)
 {
   int INCLUDE_EDGE = 0;
   int CIRCULAR     = 2;
@@ -223,8 +222,7 @@ std::shared_ptr<int> MaximumFinder::findMaxima(std::shared_ptr<double> xx, size_
   return returnArr;
 }
 
-std::shared_ptr<int> MaximumFinder::findMaxima(std::shared_ptr<double> xx, size_t xxSize, double tolerance,
-                                               bool excludeOnEdges)
+std::shared_ptr<int> MaximumFinder::findMaxima(std::shared_ptr<double> xx, size_t xxSize, double tolerance, bool excludeOnEdges)
 {
   int edgeBehavior = (excludeOnEdges) ? 1 : 0;
   return findMaxima(xx, xxSize, tolerance, edgeBehavior);
@@ -233,15 +231,13 @@ std::shared_ptr<int> MaximumFinder::findMaxima(std::shared_ptr<double> xx, size_
 /**
  * Returns minimum positions of array xx, sorted with decreasing strength
  */
-std::shared_ptr<int> MaximumFinder::findMinima(std::shared_ptr<double> xx, size_t xxSize, double tolerance,
-                                               bool excludeEdges)
+std::shared_ptr<int> MaximumFinder::findMinima(std::shared_ptr<double> xx, size_t xxSize, double tolerance, bool excludeEdges)
 {
   int edgeMode = (excludeEdges) ? 1 : 0;
   return findMinima(xx, xxSize, tolerance, edgeMode);
 }
 
-std::shared_ptr<int> MaximumFinder::findMinima(std::shared_ptr<double> xx, size_t xxSize, double tolerance,
-                                               int edgeMode)
+std::shared_ptr<int> MaximumFinder::findMinima(std::shared_ptr<double> xx, size_t xxSize, double tolerance, int edgeMode)
 {
   int len = xxSize;
   std::shared_ptr<double> negArr(new double[len]{0}, [](double *p) { delete[] p; });
@@ -291,8 +287,7 @@ cv::Mat MaximumFinder::findMaxima(cv::Mat &ip, double tolerance, int outputType,
  *                       Returns null if outputType does not require an output or if cancelled by escape
  */
 
-cv::Mat MaximumFinder::findMaxima(cv::Mat &ip, double tolerance, double threshold, int outputType, bool excludeOnEdges,
-                                  bool isEDM)
+cv::Mat MaximumFinder::findMaxima(cv::Mat &ip, double tolerance, double threshold, int outputType, bool excludeOnEdges, bool isEDM)
 {
   return findMaxima(ip, tolerance, excludeOnEdges, threshold, outputType, excludeOnEdges, isEDM);
 }
@@ -320,8 +315,7 @@ cv::Mat MaximumFinder::findMaxima(cv::Mat &ip, double tolerance, double threshol
  *                       Returns null if outputType does not require an output or if cancelled by escape
  */
 
-cv::Mat MaximumFinder::findMaxima(cv::Mat &ip, double tolerance, bool strict, double threshold, int outputType,
-                                  bool excludeOnEdges, bool isEDM)
+cv::Mat MaximumFinder::findMaxima(cv::Mat &ip, double tolerance, bool strict, double threshold, int outputType, bool excludeOnEdges, bool isEDM)
 {
   if(dirOffset == nullptr) {
     makeDirectionOffsets(ip);
@@ -356,16 +350,13 @@ cv::Mat MaximumFinder::findMaxima(cv::Mat &ip, double tolerance, bool strict, do
   // for segmentation, exclusion of edge maxima cannot be done now but has to be done after segmentation:
   bool excludeEdgesNow = excludeOnEdges && outputType != SEGMENTED;
   size_t maxPointsSize = 0;
-  auto maxPoints       = maximumPossible ? getSortedMaxPoints(ip, typeP, excludeEdgesNow, isEDM, globalMin, globalMax,
-                                                              threshold, maxPointsSize)
-                                         : nullptr;
+  auto maxPoints = maximumPossible ? getSortedMaxPoints(ip, typeP, excludeEdgesNow, isEDM, globalMin, globalMax, threshold, maxPointsSize) : nullptr;
 
   float maxSortingError = 0;
   if(ip.type() == CV_32FC1) {    // sorted sequence may be inaccurate by this value
     maxSortingError = 1.1f * (isEDM ? SQRT2 / 2.0f : (globalMax - globalMin) / 2e9f);
   }
-  analyzeAndMarkMaxima(ip, typeP, maxPoints, maxPointsSize, excludeEdgesNow, isEDM, globalMin, tolerance, strict,
-                       outputType, maxSortingError);
+  analyzeAndMarkMaxima(ip, typeP, maxPoints, maxPointsSize, excludeEdgesNow, isEDM, globalMin, tolerance, strict, outputType, maxSortingError);
   // new ImagePlus("Pixel types",typeP.duplicate()).show();
 
   if(outputType == POINT_SELECTION || outputType == LIST || outputType == COUNT) {
@@ -423,17 +414,15 @@ cv::Mat MaximumFinder::findMaxima(cv::Mat &ip, double tolerance, bool strict, do
  *                  is encoded in the upper 32 bits and the pixel offset in the lower 32 bit
  * Note: Do not use the positions of the points marked as MAXIMUM in typeP, they are invalid for images with a roi.
  */
-std::shared_ptr<uint64_t> MaximumFinder::getSortedMaxPoints(cv::Mat &ip, cv::Mat &typeP, bool excludeEdgesNow,
-                                                            bool isEDM, float globalMin, float globalMax,
-                                                            double threshold, size_t &maxPointSize)
+std::shared_ptr<uint64_t> MaximumFinder::getSortedMaxPoints(cv::Mat &ip, cv::Mat &typeP, bool excludeEdgesNow, bool isEDM, float globalMin,
+                                                            float globalMax, double threshold, size_t &maxPointSize)
 {
   // byte[] types        = (byte[]) typeP.getPixels();
   int nMax            = 0;    // counts local maxima
   bool checkThreshold = threshold != MaximumFinder::NO_THRESHOLD;
   // long t0 = System.currentTimeMillis();
-  for(int y = 0; y < ip.rows; y++) {    // find local maxima now
-    for(int x = 0, i = x + y * width; x < ip.cols;
-        x++, i++) {    // for better performance with rois, restrict search to roi
+  for(int y = 0; y < ip.rows; y++) {                              // find local maxima now
+    for(int x = 0, i = x + y * width; x < ip.cols; x++, i++) {    // for better performance with rois, restrict search to roi
       float v     = ip.at<float>(y, x);
       float vTrue = isEDM ? trueEdmHeight(x, y, ip) : v;    // for EDMs, use interpolated ridge height
       if(v == globalMin) {
@@ -449,9 +438,8 @@ std::shared_ptr<uint64_t> MaximumFinder::getSortedMaxPoints(cv::Mat &ip, cv::Mat
       /* check wheter we have a local maximum.
        Note: For an EDM, we need all maxima: those of the EDM-corrected values
        (needed by findMaxima) and those of the raw values (needed by cleanupMaxima) */
-      bool isInner =
-          (y != 0 && y != height - 1) && (x != 0 && x != width - 1);    // not necessary, but faster than isWithin
-      for(int d = 0; d < 8; d++) {                                      // compare with the 8 neighbor pixels
+      bool isInner = (y != 0 && y != height - 1) && (x != 0 && x != width - 1);    // not necessary, but faster than isWithin
+      for(int d = 0; d < 8; d++) {                                                 // compare with the 8 neighbor pixels
         if(isInner || isWithin(x, y, d)) {
           float vNeighbor     = ip.at<float>(y + DIR_Y_OFFSET[d], x + DIR_X_OFFSET[d]);
           float vNeighborTrue = isEDM ? trueEdmHeight(x + DIR_X_OFFSET[d], y + DIR_Y_OFFSET[d], ip) : vNeighbor;
@@ -471,16 +459,15 @@ std::shared_ptr<uint64_t> MaximumFinder::getSortedMaxPoints(cv::Mat &ip, cv::Mat
   // long t1 = System.currentTimeMillis();IJ.log("markMax:"+(t1-t0));
 
   float vFactor = (float) (2e9 / (globalMax - globalMin));    // for converting float values into a 32-bit int
-  std::shared_ptr<uint64_t> maxPoints(new uint64_t[nMax]{0}, [](uint64_t *p) {
-    delete[] p;
-  });    // value (int) is in the upper 32 bit, pixel offset in the lower
+  std::shared_ptr<uint64_t> maxPoints(new uint64_t[nMax]{0},
+                                      [](uint64_t *p) { delete[] p; });    // value (int) is in the upper 32 bit, pixel offset in the lower
 
   int iMax = 0;
   for(int y = 0; y < ip.rows; y++)    // enter all maxima into an array
     for(int x = 0, p = x + y * width; x < ip.cols; x++, p++)
       if(typeP.at<uint8_t>(p) == MAXIMUM) {
-        float fValue = isEDM ? trueEdmHeight(x, y, ip) : ip.at<float>(y, x);
-        int iValue   = (int) ((fValue - globalMin) * vFactor);    // 32-bit int, linear function of float value
+        float fValue            = isEDM ? trueEdmHeight(x, y, ip) : ip.at<float>(y, x);
+        int iValue              = (int) ((fValue - globalMin) * vFactor);    // 32-bit int, linear function of float value
         maxPoints.get()[iMax++] = (uint64_t) iValue << 32 | p;
       }
   // long t2 = System.currentTimeMillis();IJ.log("makeArray:"+(t2-t1));
@@ -506,9 +493,9 @@ std::shared_ptr<uint64_t> MaximumFinder::getSortedMaxPoints(cv::Mat &ip, cv::Mat
  *                       take the height correction in 'trueEdmHeight' into account
  * \param outputType
  */
-void MaximumFinder::analyzeAndMarkMaxima(const cv::Mat &ip, cv::Mat &typeP, std::shared_ptr<uint64_t> maxPoints,
-                                         size_t maxPointsSize, bool excludeEdgesNow, bool isEDM, float globalMin,
-                                         double tolerance, bool strict, int outputType, float maxSortingError)
+void MaximumFinder::analyzeAndMarkMaxima(const cv::Mat &ip, cv::Mat &typeP, std::shared_ptr<uint64_t> maxPoints, size_t maxPointsSize,
+                                         bool excludeEdgesNow, bool isEDM, float globalMin, double tolerance, bool strict, int outputType,
+                                         float maxSortingError)
 {
   // byte[] types        = (byte[]) typeP.getPixels();
   int nMax = maxPointsSize;
@@ -543,12 +530,11 @@ void MaximumFinder::analyzeAndMarkMaxima(const cv::Mat &ip, cv::Mat &typeP, std:
       double yEqual      = y0;       //  coordinates of contiguous equal-height points
       int nEqual         = 1;        // counts xEqual/yEqual points that we use for averaging
       do {                           // while neigbor list is not fully processed (to listLen)
-        int offset = pList.get()[listI];
-        int x      = offset % width;
-        int y      = offset / width;
-        bool isInner =
-            (y != 0 && y != height - 1) && (x != 0 && x != width - 1);    // not necessary, but faster than isWithin
-        for(int d = 0; d < 8; d++) {    // analyze all neighbors (in 8 directions) at the same level
+        int offset   = pList.get()[listI];
+        int x        = offset % width;
+        int y        = offset / width;
+        bool isInner = (y != 0 && y != height - 1) && (x != 0 && x != width - 1);    // not necessary, but faster than isWithin
+        for(int d = 0; d < 8; d++) {                                                 // analyze all neighbors (in 8 directions) at the same level
           int offset2 = offset + dirOffset.get()[d];
           if((isInner || isWithin(x, y, d)) && (typeP.at<uint8_t>(offset2) & LISTED) == 0) {
             if(isEDM && ip.at<float>(offset2) <= 0)
@@ -649,8 +635,7 @@ void MaximumFinder::analyzeAndMarkMaxima(const cv::Mat &ip, cv::Mat &typeP, std:
  * MaximumFinder::NO_THRESHOLD
  * \return           The 8-bit output image.
  */
-cv::Mat MaximumFinder::make8bit(cv::Mat &ip, cv::Mat &typeP, bool isEDM, float globalMin, float globalMax,
-                                double threshold)
+cv::Mat MaximumFinder::make8bit(cv::Mat &ip, cv::Mat &typeP, bool isEDM, float globalMin, float globalMax, double threshold)
 {
   double minValue = 0;
   if(isEDM) {
@@ -659,8 +644,7 @@ cv::Mat MaximumFinder::make8bit(cv::Mat &ip, cv::Mat &typeP, bool isEDM, float g
   } else {
     minValue = (threshold == MaximumFinder::NO_THRESHOLD) ? globalMin : threshold;
   }
-  double offset = minValue - (globalMax - minValue) *
-                                 (1.0F / 253.0F / 2.0F - 1e-6);    // everything above minValue should become >(byte)0
+  double offset = minValue - (globalMax - minValue) * (1.0F / 253.0F / 2.0F - 1e-6);    // everything above minValue should become >(byte)0
   double factor = 253.0F / (globalMax - minValue);
 
   if(isEDM && factor > 1) {
@@ -674,17 +658,17 @@ cv::Mat MaximumFinder::make8bit(cv::Mat &ip, cv::Mat &typeP, bool isEDM, float g
     for(int x = 0; x < width; x++, i++) {
       float rawValue = ip.at<float>(y, x);
       if(threshold != MaximumFinder::NO_THRESHOLD && rawValue < threshold) {
-        outIp.at<uint8_t>(i) = (uint8_t) 0;
+        outIp.at<uint8_t>(i) = static_cast<uint8_t>(0);
       } else if((typeP.at<uint8_t>(i) & MAX_AREA) != 0) {
-        outIp.at<uint8_t>(i) = (uint8_t) 255;    // prepare watershed by setting "true" maxima+surroundings to 255
+        outIp.at<uint8_t>(i) = static_cast<uint8_t>(255);    // prepare watershed by setting "true" maxima+surroundings to 255
       } else {
         v = 1 + std::round((rawValue - offset) * factor);
         if(v < 1) {
-          outIp.at<uint8_t>(i) = (uint8_t) 1;
+          outIp.at<uint8_t>(i) = static_cast<uint8_t>(1);
         } else if(v <= 254) {
-          outIp.at<uint8_t>(i) = (uint8_t) (v & 255);
+          outIp.at<uint8_t>(i) = static_cast<uint8_t>(v & 255);
         } else {
-          outIp.at<uint8_t>(i) = (uint8_t) 254;
+          outIp.at<uint8_t>(i) = static_cast<uint8_t>(254);
         }
       }
     }
@@ -709,7 +693,7 @@ float MaximumFinder::trueEdmHeight(int x, int y, const cv::Mat &ip)
   if(x == 0 || y == 0 || x == xmax || y == ymax || v == 0) {
     return v;    // don't recalculate for edge pixels or background
   } else {
-    float trueH     = v + 0.5f * SQRT2;    // true height can never by higher than this
+    float trueH     = v + 0.5F * SQRT2;    // true height can never by higher than this
     bool ridgeOrMax = false;
     for(int d = 0; d < 4; d++) {    // for all directions halfway around:
       int d2   = (d + 4) % 8;       // get the opposite direction and neighbors
@@ -742,8 +726,7 @@ float MaximumFinder::trueEdmHeight(int x, int y, const cv::Mat &ip)
  * \param typeP     the types of the pixels are marked here
  * \param maxPoints array containing the coordinates of all maxima that might be relevant
  */
-void MaximumFinder::cleanupMaxima(cv::Mat &outIp, cv::Mat &typeP, std::shared_ptr<uint64_t> maxPoints,
-                                  size_t maxPointSize)
+void MaximumFinder::cleanupMaxima(cv::Mat &outIp, cv::Mat &typeP, std::shared_ptr<uint64_t> maxPoints, size_t maxPointSize)
 {
   // byte[] pixels = (byte[]) outIp.getPixels();
   // byte[] types  = (byte[]) typeP.getPixels();
@@ -768,12 +751,11 @@ void MaximumFinder::cleanupMaxima(cv::Mat &outIp, cv::Mat &typeP, std::shared_pt
       lastLen = listLen;    // remember end of list for previous level
       listI   = 0;          // in each level, start analyzing the neighbors of all pixels
       do {                  // for all pixels listed so far
-        int offset = pList.get()[listI];
-        int x      = offset % width;
-        int y      = offset / width;
-        bool isInner =
-            (y != 0 && y != height - 1) && (x != 0 && x != width - 1);    // not necessary, but faster than isWithin
-        for(int d = 0; d < 8; d++) {    // analyze all neighbors (in 8 directions) at the same level
+        int offset   = pList.get()[listI];
+        int x        = offset % width;
+        int y        = offset / width;
+        bool isInner = (y != 0 && y != height - 1) && (x != 0 && x != width - 1);    // not necessary, but faster than isWithin
+        for(int d = 0; d < 8; d++) {                                                 // analyze all neighbors (in 8 directions) at the same level
           int offset2 = offset + dirOffset.get()[d];
           if((isInner || isWithin(x, y, d)) && (typeP.at<uint8_t>(offset2) & LISTED) == 0) {
             if((typeP.at<uint8_t>(offset2) & MAX_AREA) != 0 ||
@@ -801,7 +783,7 @@ void MaximumFinder::cleanupMaxima(cv::Mat &outIp, cv::Mat &typeP, std::shared_pt
     for(listI = 0; listI < lastLen; listI++) {    // for all points higher than the level of the saddle point
       int offset                = pList.get()[listI];
       outIp.at<uint8_t>(offset) = (uint8_t) loLevel;    // set pixel value to the level of the saddle point
-      typeP.at<uint8_t>(offset) |= ELIMINATED;    // mark as processed: there can't be a local maximum in this area
+      typeP.at<uint8_t>(offset) |= ELIMINATED;          // mark as processed: there can't be a local maximum in this area
     }
   }    // for all maxima iMax
 }    // void MaximumFinder::cleanupMaxima
@@ -816,12 +798,13 @@ void MaximumFinder::cleanupExtraLines(cv::Mat &ip)
   for(int y = 0, i = 0; y < ip.rows; y++) {
     for(int x = 0; x < ip.cols; x++, i++) {
       int v = ip.at<uint8_t>(i);
-      if(v != (uint8_t) 255 && v != 0) {
+      if(v != static_cast<uint8_t>(255) && v != 0) {
         int nRadii = this->nRadii(ip.data, x, y);    // number of lines radiating
-        if(nRadii == 0)                              // single point or foreground patch?
-          ip.at<uint8_t>(i) = (uint8_t) 255;
-        else if(nRadii == 1)
+        if(nRadii == 0) {                            // single point or foreground patch?
+          ip.at<uint8_t>(i) = static_cast<uint8_t>(255);
+        } else if(nRadii == 1) {
           removeLineFrom(ip.data, x, y);
+        }
       }    // if v<255 && v>0
     }      // for x
   }        // for y
@@ -831,22 +814,21 @@ void MaximumFinder::cleanupExtraLines(cv::Mat &ip)
 void MaximumFinder::removeLineFrom(uint8_t *pixels, int x, int y)
 {
   // IJ.log("del line from "+x+","+y);
-  pixels[x + width * y] = (uint8_t) 255;    // delete the first point
+  pixels[x + width * y] = static_cast<uint8_t>(255);    // delete the first point
   bool continues;
   do {
-    continues = false;
-    bool isInner =
-        (y != 0 && y != height - 1) && (x != 0 && x != width - 1);    // not necessary, but faster than isWithin
-    for(int d = 0; d < 8; d += 2) {                                   // analyze 4-connected neighbors
+    continues    = false;
+    bool isInner = (y != 0 && y != height - 1) && (x != 0 && x != width - 1);    // not necessary, but faster than isWithin
+    for(int d = 0; d < 8; d += 2) {                                              // analyze 4-connected neighbors
       if(isInner || isWithin(x, y, d)) {
         int v = pixels[x + width * y + dirOffset.get()[d]];
-        if(v != (uint8_t) 255 && v != 0) {
+        if(v != static_cast<uint8_t>(255) && v != 0) {
           int nRadii = this->nRadii(pixels, x + DIR_X_OFFSET[d], y + DIR_Y_OFFSET[d]);
           if(nRadii <= 1) {    // found a point or line end
             x += DIR_X_OFFSET[d];
             y += DIR_Y_OFFSET[d];
-            pixels[x + width * y] = (uint8_t) 255;    // delete the point
-            continues             = nRadii == 1;      // continue along that line
+            pixels[x + width * y] = static_cast<uint8_t>(255);    // delete the point
+            continues             = nRadii == 1;                  // continue along that line
             break;
           }
         }
@@ -869,9 +851,8 @@ int MaximumFinder::nRadii(uint8_t *pixels, int x, int y)
   int offset           = x + y * width;
   int countTransitions = 0;
   bool prevPixelSet    = true;
-  bool firstPixelSet   = true;    // initialize to make the compiler happy
-  bool isInner =
-      (y != 0 && y != height - 1) && (x != 0 && x != width - 1);    // not necessary, but faster than isWithin
+  bool firstPixelSet   = true;                                                         // initialize to make the compiler happy
+  bool isInner         = (y != 0 && y != height - 1) && (x != 0 && x != width - 1);    // not necessary, but faster than isWithin
   for(int d = 0; d < 8; d++) {    // walk around the point and note every no-line->line transition
     bool pixelSet = prevPixelSet;
     if(isInner || isWithin(x, y, d)) {
@@ -993,8 +974,7 @@ bool MaximumFinder::watershedSegment(cv::Mat &ip)
   cv::calcHist(&ip, 1, nullptr, cv::Mat(), histogram, 1, &histSize, &histRange);
 
   ///////////////////////////
-  int arraySize = static_cast<int>(static_cast<float>(width) * static_cast<float>(height) - histogram.at<float>(0) -
-                                   histogram.at<float>(255));
+  int arraySize = static_cast<int>(static_cast<float>(width) * static_cast<float>(height) - histogram.at<float>(0) - histogram.at<float>(255));
   if(arraySize <= 0) {
     return true;
   }
@@ -1030,8 +1010,7 @@ bool MaximumFinder::watershedSegment(cv::Mat &ip)
   }      // for y
          // Create an array of the points (pixel offsets) that we set to 255 in one pass.
          // If we remember this list we need not create a snapshot of the ImageProcessor.
-  std::shared_ptr<int> setPointList(new int[std::min(maxBinSize, (width * height + 2) / 3)]{0},
-                                    [](int *p) { delete[] p; });
+  std::shared_ptr<int> setPointList(new int[std::min(maxBinSize, (width * height + 2) / 3)]{0}, [](int *p) { delete[] p; });
 
   // now do the segmentation, starting at the highest level and working down.
   // At each level, dilate the particle (set pixels to 255), constrained to pixels
@@ -1046,8 +1025,7 @@ bool MaximumFinder::watershedSegment(cv::Mat &ip)
       int sumN   = 0;
       int dIndex = 0;
       do {    // expand each level in 8 directions -> manipukates image
-        int n = processLevel(directionSequence[dIndex % 8], ip, table, levelStart[level], remaining, coordinates,
-                             setPointList);
+        int n = processLevel(directionSequence[dIndex % 8], ip, table, levelStart[level], remaining, coordinates, setPointList);
         // IJ.log("level="+level+" direction="+directionSequence[dIndex%8]+" remain="+remaining+"-"+n);
         remaining -= n;    // number of points processed
         sumN += n;
@@ -1194,15 +1172,12 @@ std::shared_ptr<int> MaximumFinder::makeFateTable()
       isSet[i] = (item & mask) == mask;
       mask *= 2;
     }
-    for(int i = 0, mask = 1; i < 8;
-        i++) {    // we dilate in the direction opposite to the direction of the existing neighbors
+    for(int i = 0, mask = 1; i < 8; i++) {    // we dilate in the direction opposite to the direction of the existing neighbors
       if(isSet[(i + 4) % 8])
         table.get()[item] |= mask;
       mask *= 2;
     }
-    for(int i = 0; i < 8;
-        i +=
-        2) {    // if side pixels are set, for counting transitions it is as good as if the adjacent edges were also set
+    for(int i = 0; i < 8; i += 2) {    // if side pixels are set, for counting transitions it is as good as if the adjacent edges were also set
       if(isSet[i]) {
         isSet[(i + 1) % 8] = true;
         isSet[(i + 7) % 8] = true;
@@ -1245,8 +1220,7 @@ void MaximumFinder::makeDirectionOffsets(cv::Mat &ip)
   intEncodeYMask = ~intEncodeXMask;
   intEncodeShift = shift;
   // IJ.log("masks (hex):"+Integer.toHexString(xMask)+","+Integer.toHexString(xMask)+"; shift="+shift);
-  dirOffset = std::shared_ptr<int>(new int[12]{-width, -width + 1, +1, +width + 1, +width, +width - 1, -1, -width - 1},
-                                   [](int *p) { delete[] p; });
+  dirOffset = std::shared_ptr<int>(new int[12]{-width, -width + 1, +1, +width + 1, +width, +width - 1, -1, -width - 1}, [](int *p) { delete[] p; });
   // dirOffset is created last, so check for it being null before makeDirectionOffsets
   //(in case we have multiple threads using the same MaximumFinder)
 }

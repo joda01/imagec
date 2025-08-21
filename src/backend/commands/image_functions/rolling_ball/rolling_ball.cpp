@@ -29,6 +29,7 @@
 #include "rolling_ball.hpp"
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -88,29 +89,32 @@ public:
   ///
   void buildRollingBall(double ballradius, int arcTrimPer)
   {
-    double rsquare;            // rolling ball radius squared
-    int xtrim;                 // # of pixels trimmed off each end of ball to make patch
-    int xval, yval;            // x,y-values on patch relative to center of rolling ball
+    double rsquare;    // rolling ball radius squared
+    int xtrim;         // # of pixels trimmed off each end of ball to make patch
+    int xval;
+    int yval;                  // x,y-values on patch relative to center of rolling ball
     double smallballradius;    // radius of rolling ball (downscaled in x,y and z when image is shrunk)
     int halfWidth;             // distance in x or y from center of patch to any edge (patch "radius")
 
     smallballradius = ballradius / shrinkFactor;
-    if(smallballradius < 1)
+    if(smallballradius < 1) {
       smallballradius = 1;
+    }
     rsquare   = smallballradius * smallballradius;
-    xtrim     = (int) (double) (arcTrimPer * smallballradius) / 100.0F;    // only use a patch of the rolling ball
-    halfWidth = (int) std::round(smallballradius - xtrim);
+    xtrim     = static_cast<int>(arcTrimPer * smallballradius / 100.0);    // only use a patch of the rolling ball
+    halfWidth = static_cast<int>(std::round(smallballradius - xtrim));
     width     = 2 * halfWidth + 1;
     data      = new float[width * width];
 
-    for(int y = 0, p = 0; y < width; y++)
+    for(int y = 0, p = 0; y < width; y++) {
       for(int x = 0; x < width; x++, p++) {
         xval        = x - halfWidth;
         yval        = y - halfWidth;
         double temp = rsquare - xval * xval - yval * yval;
-        data[p]     = temp > 0. ? (float) (std::sqrt(temp)) : 0.0F;
+        data[p]     = temp > 0. ? static_cast<float>(std::sqrt(temp)) : 0.0F;
         //-Float.MAX_VALUE might be better than 0f, but gives different results than earlier versions
       }
+    }
   }
 };
 
@@ -120,7 +124,7 @@ public:
 /// \param[in,out]  ip  Image the rolling ball algorithm should be applied on
 ///                     Result is written back to the same variable.
 ///
-void RollingBallBackground::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result)
+void RollingBallBackground::execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/)
 {
   // Settings
   bool createBackground = false;
@@ -131,13 +135,13 @@ void RollingBallBackground::execute(processor::ProcessContext &context, cv::Mat 
   ///////////////7
   RollingBall *ball = nullptr;
   if(!mUseSlidingParaboloid) {
-    ball = new RollingBall(radius);
+    ball = new RollingBall(static_cast<double>(radius));
   }
 
   cv::Mat fp;
   image.convertTo(fp, CV_32FC1);
   if(mUseSlidingParaboloid) {
-    slidingParaboloidFloatBackground(fp, (float) radius, invert, doPresmooth, correctCorners);
+    slidingParaboloidFloatBackground(fp, radius, invert, doPresmooth, correctCorners);
   } else {
     rollingBallFloatBackground(fp, radius, invert, doPresmooth, ball);
   }
@@ -146,15 +150,15 @@ void RollingBallBackground::execute(processor::ProcessContext &context, cv::Mat 
     // ip.setPixels(channelNumber, fp);
   } else {
     // subtract the background now
-    float offset = invert ? 65535.5f : 0.5f;    // includes 0.5 for rounding when converting float to short
-    for(int p = 0; p < fp.total(); p++) {
-      float value = (image.at<unsigned short>(p) & 0xffff) - fp.at<float>(p) + offset;
-      if(value < 0.0f) {
-        value = 0.0f;
+    float offset = invert ? 65535.5F : 0.5F;    // includes 0.5 for rounding when converting float to short
+    for(int p = 0; p < static_cast<int>(fp.total()); p++) {
+      float value = static_cast<float>((image.at<uint16_t>(p) & 0xffff)) - fp.at<float>(p) + offset;
+      if(value < 0.0F) {
+        value = 0.0F;
       }
 
       if(value > 65535.0F) {
-        value = 65535.0f;
+        value = 65535.0F;
       }
       image.at<uint16_t>(p) = static_cast<uint16_t>(value);
     }
@@ -163,11 +167,11 @@ void RollingBallBackground::execute(processor::ProcessContext &context, cv::Mat 
 
 /** Create background for a float image by rolling a ball over
  * the image. */
-void RollingBallBackground::rollingBallFloatBackground(cv::Mat &fp, float radius, bool invert, bool doPresmooth, RollingBall *ball) const
+void RollingBallBackground::rollingBallFloatBackground(cv::Mat &fp, float /*radius*/, bool invert, bool doPresmooth, RollingBall *ball) const
 {
   bool shrink = ball->shrinkFactor > 1;
   if(invert) {
-    for(int i = 0; i < fp.total(); i++) {
+    for(int i = 0; i < static_cast<int>(fp.total()); i++) {
       fp.at<float>(i) = -fp.at<float>(i);
     }
   }
@@ -182,28 +186,30 @@ void RollingBallBackground::rollingBallFloatBackground(cv::Mat &fp, float radius
   }
 
   if(invert) {
-    for(int i = 0; i < fp.total(); i++) {
+    for(int i = 0; i < static_cast<int>(fp.total()); i++) {
       fp.at<float>(i) = -fp.at<float>(i);
     }
   }
 }
 
-cv::Mat RollingBallBackground::shrinkImage(const cv::Mat &ip, int shrinkFactor) const
+cv::Mat RollingBallBackground::shrinkImage(const cv::Mat &ip, int shrinkFactor)
 {
   int width          = ip.cols;
   int height         = ip.rows;
-  int sWidth         = ((float) width + (float) shrinkFactor - 1) / (float) shrinkFactor;
-  int sHeight        = ((float) height + (float) shrinkFactor - 1) / (float) shrinkFactor;
+  int sWidth         = static_cast<int>((static_cast<float>(width) + static_cast<float>(shrinkFactor) - 1) / static_cast<float>(shrinkFactor));
+  int sHeight        = static_cast<int>((static_cast<float>(height) + static_cast<float>(shrinkFactor) - 1) / static_cast<float>(shrinkFactor));
   cv::Mat smallImage = cv::Mat(sHeight, sWidth, CV_32FC1, cv::Scalar(0));
-  float min, thispixel;
+  float min;
+  float thispixel;
   for(int ySmall = 0; ySmall < sHeight; ySmall++) {
     for(int xSmall = 0; xSmall < sWidth; xSmall++) {
       min = std::numeric_limits<float>::max();
       for(int j = 0, y = shrinkFactor * ySmall; j < shrinkFactor && y < height; j++, y++) {
         for(int k = 0, x = shrinkFactor * xSmall; k < shrinkFactor && x < width; k++, x++) {
           thispixel = ip.at<float>(x + y * width);
-          if(thispixel < min)
+          if(thispixel < min) {
             min = thispixel;
+          }
         }
       }
       smallImage.at<float>(xSmall + ySmall * sWidth) = min;    // each point in small image is minimum of its neighborhood
@@ -212,37 +218,39 @@ cv::Mat RollingBallBackground::shrinkImage(const cv::Mat &ip, int shrinkFactor) 
   return smallImage;
 }
 
-void RollingBallBackground::enlargeImage(const cv::Mat &smallImage, cv::Mat &fp, int shrinkFactor) const
+void RollingBallBackground::enlargeImage(const cv::Mat &smallImage, cv::Mat &fp, int shrinkFactor)
 {
   int width          = fp.cols;
   int height         = fp.rows;
   int smallWidth     = smallImage.cols;
   int smallHeight    = smallImage.rows;
   int *xSmallIndices = new int[width];      // index of first point in smallImage
-  float *xWeights    = new float[width];    // weight of this point
-  makeInterpolationArrays(xSmallIndices, xWeights, width, smallWidth, shrinkFactor);
+  auto *xWeights     = new float[width];    // weight of this point
+  makeInterpolationArrays(xSmallIndices, xWeights, width, static_cast<float>(smallWidth), static_cast<float>(shrinkFactor));
   int *ySmallIndices = new int[height];
-  float *yWeights    = new float[height];
-  makeInterpolationArrays(ySmallIndices, yWeights, height, smallHeight, shrinkFactor);
-  float *line0 = new float[width];
-  float *line1 = new float[width];
+  auto *yWeights     = new float[height];
+  makeInterpolationArrays(ySmallIndices, yWeights, height, static_cast<float>(smallHeight), static_cast<float>(shrinkFactor));
+  auto *line0 = new float[width];
+  auto *line1 = new float[width];
   for(int x = 0; x < width; x++)    // x-interpolation of the first smallImage line
-    line1[x] = smallImage.at<float>(xSmallIndices[x]) * xWeights[x] + smallImage.at<float>(xSmallIndices[x] + 1) * (1.0f - xWeights[x]);
+    line1[x] = smallImage.at<float>(xSmallIndices[x]) * xWeights[x] + smallImage.at<float>(xSmallIndices[x] + 1) * (1.0F - xWeights[x]);
   int ySmallLine0 = -1;    // line0 corresponds to this y of smallImage
   for(int y = 0; y < height; y++) {
     if(ySmallLine0 < ySmallIndices[y]) {
       float *swap = line0;    // previous line1 -> line0
-      memcpy(line0, line1, sizeof(line1));
-      memcpy(line1, swap, sizeof(line1));
+      memcpy(line0, line1, static_cast<size_t>(width));
+      memcpy(line1, swap, static_cast<size_t>(width));
       ySmallLine0++;
       int sYPointer = (ySmallIndices[y] + 1) * smallWidth;    // points to line0 + 1 in smallImage
-      for(int x = 0; x < width; x++)                          // x-interpolation of the new smallImage line -> line1
+      for(int x = 0; x < width; x++) {                        // x-interpolation of the new smallImage line -> line1
         line1[x] = smallImage.at<float>(sYPointer + xSmallIndices[x]) * xWeights[x] +
-                   smallImage.at<float>(sYPointer + xSmallIndices[x] + 1) * (1.0f - xWeights[x]);
+                   smallImage.at<float>(sYPointer + xSmallIndices[x] + 1) * (1.0F - xWeights[x]);
+      }
     }
     float weight = yWeights[y];
-    for(int x = 0, p = y * width; x < width; x++, p++)
-      fp.at<float>(p) = line0[x] * weight + line1[x] * (1.0f - weight);
+    for(int x = 0, p = y * width; x < width; x++, p++) {
+      fp.at<float>(p) = line0[x] * weight + line1[x] * (1.0F - weight);
+    }
   }
 
   delete[] xSmallIndices;
@@ -263,30 +271,31 @@ void RollingBallBackground::enlargeImage(const cv::Mat &smallImage, cv::Mat &fp,
            it is higher by one
  </pre>
  */
-void RollingBallBackground::makeInterpolationArrays(int *smallIndices, float *weights, int length, int smallLength, int shrinkFactor)
+void RollingBallBackground::makeInterpolationArrays(int *smallIndices, float *weights, int length, float smallLength, float shrinkFactor)
 {
   for(int i = 0; i < length; i++) {
-    int smallIndex = (i - shrinkFactor / 2) / shrinkFactor;
-    if(smallIndex >= smallLength - 1)
+    float smallIndex = (static_cast<float>(i) - shrinkFactor / 2.0F) / shrinkFactor;
+    if(smallIndex >= smallLength - 1) {
       smallIndex = smallLength - 2;
-    smallIndices[i] = smallIndex;
-    float distance  = (i + 0.5f) / shrinkFactor - (smallIndex + 0.5f);    // distance of pixel centers (in smallImage pixels)
-    weights[i]      = 1.0f - distance;
+    }
+    smallIndices[i] = static_cast<int>(smallIndex);
+    float distance  = (static_cast<float>(i) + 0.5F) / shrinkFactor - (smallIndex + 0.5F);    // distance of pixel centers (in smallImage pixels)
+    weights[i]      = 1.0F - distance;
   }
 }
 
-void RollingBallBackground::rollBall(RollingBall *ball, cv::Mat &fp) const
+void RollingBallBackground::rollBall(RollingBall *ball, cv::Mat &fp)
 {
   int width     = fp.cols;
   int height    = fp.rows;
   auto *zBall   = ball->data;
   int ballWidth = ball->width;
-  int radius    = ballWidth / 2;
-  float *cache  = new float[width * ballWidth];    // temporarily stores the pixels we work on
+  int radiusIn  = static_cast<int>(static_cast<float>(ballWidth) / 2.0F);
+  auto *cache   = new float[width * ballWidth];    // temporarily stores the pixels we work on
 
-  for(int y = -radius; y < height + radius; y++) {    // for all positions of the ball center:
-    int nextLineToWriteInCache = (y + radius) % ballWidth;
-    int nextLineToRead         = y + radius;    // line of the input not touched yet
+  for(int y = -radiusIn; y < height + radiusIn; y++) {    // for all positions of the ball center:
+    int nextLineToWriteInCache = (y + radiusIn) % ballWidth;
+    int nextLineToRead         = y + radiusIn;    // line of the input not touched yet
     if(nextLineToRead < height) {
       // std::copy(pixels + nextLineToRead * width, pixels + (nextLineToRead + 1) * width,cache + nextLineToWriteInCache
       // * width);
@@ -298,22 +307,26 @@ void RollingBallBackground::rollBall(RollingBall *ball, cv::Mat &fp) const
         fp.at<float>(p) = -std::numeric_limits<float>::max();    // unprocessed pixels start at minus infinity
       }
     }
-    int y0 = y - radius;    // the first line to see whether the ball touches
-    if(y0 < 0)
+    int y0 = y - radiusIn;    // the first line to see whether the ball touches
+    if(y0 < 0) {
       y0 = 0;
-    int yBall0 = y0 - y + radius;    // y coordinate in the ball corresponding to y0
-    int yend   = y + radius;         // the last line to see whether the ball touches
-    if(yend >= height)
+    }
+    int yBall0 = y0 - y + radiusIn;    // y coordinate in the ball corresponding to y0
+    int yend   = y + radiusIn;         // the last line to see whether the ball touches
+    if(yend >= height) {
       yend = height - 1;
-    for(int x = -radius; x < width + radius; x++) {
+    }
+    for(int x = -radiusIn; x < width + radiusIn; x++) {
       float z = std::numeric_limits<float>::max();    // the height of the ball (ball is in position x,y)
-      int x0  = x - radius;
-      if(x0 < 0)
+      int x0  = x - radiusIn;
+      if(x0 < 0) {
         x0 = 0;
-      int xBall0 = x0 - x + radius;
-      int xend   = x + radius;
-      if(xend >= width)
+      }
+      int xBall0 = x0 - x + radiusIn;
+      int xend   = x + radiusIn;
+      if(xend >= width) {
         xend = width - 1;
+      }
       for(int yp = y0, yBall = yBall0; yp <= yend; yp++, yBall++) {    // for all points inside the ball
         int cachePointer = (yp % ballWidth) * width + x0;
         for(int xp = x0, bp = xBall0 + yBall * ballWidth; xp <= xend; xp++, cachePointer++, bp++) {
@@ -326,8 +339,9 @@ void RollingBallBackground::rollBall(RollingBall *ball, cv::Mat &fp) const
       for(int yp = y0, yBall = yBall0; yp <= yend; yp++, yBall++)    // raise pixels to ball surface
         for(int xp = x0, p = xp + yp * width, bp = xBall0 + yBall * ballWidth; xp <= xend; xp++, p++, bp++) {
           float zMin = z + zBall[bp];
-          if(fp.at<float>(p) < zMin)
+          if(fp.at<float>(p) < zMin) {
             fp.at<float>(p) = zMin;
+          }
         }
       // if (x>=0&&y>=0&&x<width&&y<height) bgPixels[x+y*width] = z; //debug, ball height output
     }
@@ -337,7 +351,7 @@ void RollingBallBackground::rollBall(RollingBall *ball, cv::Mat &fp) const
   delete[] cache;
 }
 
-double RollingBallBackground::filter3x3(cv::Mat &ip, int type) const
+double RollingBallBackground::filter3x3(cv::Mat &ip, int type)
 {
   int width      = ip.cols;
   int height     = ip.rows;
@@ -352,26 +366,28 @@ double RollingBallBackground::filter3x3(cv::Mat &ip, int type) const
 }
 
 /** Filter a line: maximum or average of 3-pixel neighborhood */
-double RollingBallBackground::filter3(cv::Mat &ip, int length, int pixel0, int inc, int type) const
+double RollingBallBackground::filter3(cv::Mat &ip, int length, int pixel0, int inc, int type)
 {
   double shiftBy = 0;
-  double v3      = ip.at<float>(pixel0);    // will be pixel[i+1]
-  double v2      = v3;                      // will be pixel[i]
-  double v1;                                // will be pixel[i-1]
+  double v3      = static_cast<double>(ip.at<float>(pixel0));    // will be pixel[i+1]
+  double v2      = v3;                                           // will be pixel[i]
+  double v1;                                                     // will be pixel[i-1]
   for(int i = 0, p = pixel0; i < length; i++, p += inc) {
     v1 = v2;
     v2 = v3;
-    if(i < length - 1)
-      v3 = ip.at<float>(p + inc);
+    if(i < length - 1) {
+      v3 = static_cast<double>(ip.at<float>(p + inc));
+    }
     if(type == MAXIMUM) {
       double max = v1 > v3 ? v1 : v3;
       if(v2 > max) {
         max = v2;
       }
       shiftBy += max - v2;
-      ip.at<float>(p) = max;
-    } else
-      ip.at<float>(p) = (v1 + v2 + v3) * 0.33333333f;
+      ip.at<float>(p) = static_cast<float>(max);
+    } else {
+      ip.at<float>(p) = static_cast<float>((v1 + v2 + v3) * 0.33333333);
+    }
   }
   return shiftBy;
 }

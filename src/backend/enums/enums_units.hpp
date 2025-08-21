@@ -1,0 +1,64 @@
+
+///
+/// \file      enums_grouping.hpp
+/// \author    Joachim Danmayr
+/// \date      2024-08-16
+///
+/// \copyright Copyright 2019 Joachim Danmayr
+///            This software is licensed for **non-commercial** use only.
+///            Educational, research, and personal use are permitted.
+///            For **Commercial** please contact the copyright owner.
+///
+///
+///
+
+#pragma once
+
+#include <nlohmann/json.hpp>
+
+namespace joda::enums {
+
+enum class Units
+{
+  Undefined,
+  Pixels,
+  nm,
+  um,
+  mm,
+  cm,
+  m,
+  km
+};
+
+// map TaskState values to JSON as strings
+NLOHMANN_JSON_SERIALIZE_ENUM(Units, {
+                                        {Units::Undefined, "Undefined"},
+                                        {Units::Pixels, "Px"},
+                                        {Units::nm, "nm"},
+                                        {Units::um, "um"},
+                                        {Units::mm, "mm"},
+                                        {Units::cm, "cm"},
+                                        {Units::m, "m"},
+                                        {Units::km, "km"},
+                                    });
+
+enum class PhysicalSizeMode
+{
+  Automatic,
+  Manual
+};
+
+NLOHMANN_JSON_SERIALIZE_ENUM(PhysicalSizeMode, {
+                                                   {PhysicalSizeMode::Automatic, "Automatic"},
+                                                   {PhysicalSizeMode::Manual, "Manual"},
+
+                                               });
+
+enum class ObjectType
+{
+  Undefined,
+  LINE2D,
+  AREA2D
+};
+
+}    // namespace joda::enums

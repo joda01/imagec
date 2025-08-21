@@ -50,8 +50,8 @@ private:
 
   struct ClassifierFilter
   {
-    ClassifierFilter(settings::ObjectClass &settings, AiClassifier &outer, helper::TabWidget *tab, int32_t tabIndex, QWidget *parent) :
-        outer(outer), tab(tab), settings(settings)
+    ClassifierFilter(settings::ObjectClass &settingsIn, AiClassifier &outerIn, helper::TabWidget *tabIn, int32_t tabIndex, QWidget *parent) :
+        settings(settingsIn), outer(outerIn), tab(tabIn)
     {
       if(settings.filters.empty()) {
         settings.filters.emplace_back(settings::ClassifierFilter{});
@@ -66,19 +66,17 @@ private:
 
       //
       //
-      mMinParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Min particle size");
-      mMinParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
-      mMinParticleSize->setUnit("px");
-      mMinParticleSize->setMinMax(0, INT32_MAX);
+      mMinParticleSize = SettingBase::create<SettingSpinBox<float>>(parent, {}, "Min particle size");
+      mMinParticleSize->setUnit("px", enums::ObjectType::AREA2D);
+      mMinParticleSize->setMinMax(-1, std::numeric_limits<float>::max(), 3, 0.01);
       mMinParticleSize->setValue(classifyFilter.metrics.minParticleSize);
       mMinParticleSize->connectWithSetting(&classifyFilter.metrics.minParticleSize);
       mMinParticleSize->setShortDescription("Min. ");
       //
       //
-      mMaxParticleSize = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Max particle size");
-      mMaxParticleSize->setPlaceholderText("[0 - 2,147,483,647]");
-      mMaxParticleSize->setUnit("px");
-      mMaxParticleSize->setMinMax(0, INT32_MAX);
+      mMaxParticleSize = SettingBase::create<SettingSpinBox<float>>(parent, {}, "Max particle size");
+      mMaxParticleSize->setUnit("px", enums::ObjectType::AREA2D);
+      mMaxParticleSize->setMinMax(-1, std::numeric_limits<float>::max(), 3, 0.01);
       mMaxParticleSize->setValue(classifyFilter.metrics.maxParticleSize);
       mMaxParticleSize->connectWithSetting(&classifyFilter.metrics.maxParticleSize);
       mMaxParticleSize->setShortDescription("Max. ");
@@ -86,10 +84,9 @@ private:
       //
       //
       mMinCircularity =
-          SettingBase::create<SettingLineEdit<float>>(parent, generateSvgIcon<Style::REGULAR, Color::BLACK>("circle"), "Circularity [0-1]");
-      mMinCircularity->setPlaceholderText("[0 - 1]");
-      mMinCircularity->setUnit("%");
-      mMinCircularity->setMinMax(0, 1);
+          SettingBase::create<SettingSpinBox<float>>(parent, generateSvgIcon<Style::REGULAR, Color::BLACK>("circle"), "Circularity [0-1]");
+      mMinCircularity->setUnit("r", enums::ObjectType::Undefined);
+      mMinCircularity->setMinMax(0, 1, 2, 0.1);
       mMinCircularity->setValue(classifyFilter.metrics.minCircularity);
       mMinCircularity->connectWithSetting(&classifyFilter.metrics.minCircularity);
       mMinCircularity->setShortDescription("Circ. ");
@@ -102,12 +99,12 @@ private:
       mExcludeObjectsAtTheEdge->setValue(classifyFilter.metrics.excludeObjectsAtTheEdge);
       mExcludeObjectsAtTheEdge->connectWithSetting(&classifyFilter.metrics.excludeObjectsAtTheEdge);
 
-      auto *col = outer.addSetting(tab, "Match filter",
-                                   {{mGrayScaleValue.get(), true, tabIndex},
-                                    {mMinCircularity.get(), true, tabIndex},
-                                    {mMinParticleSize.get(), true, tabIndex},
-                                    {mMaxParticleSize.get(), true, tabIndex},
-                                    {mExcludeObjectsAtTheEdge.get(), true, tabIndex}});
+      outer.addSetting(tab, "Match filter",
+                       {{mGrayScaleValue.get(), true, tabIndex},
+                        {mMinCircularity.get(), true, tabIndex},
+                        {mMinParticleSize.get(), true, tabIndex},
+                        {mMaxParticleSize.get(), true, tabIndex},
+                        {mExcludeObjectsAtTheEdge.get(), true, tabIndex}});
 
       //
       //
@@ -137,19 +134,19 @@ private:
 
       //
       //
-      mMinIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Min intensity");
+      mMinIntensity = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Min intensity");
       mMinIntensity->setPlaceholderText("[0 - 65535]");
       mMinIntensity->setUnit("");
-      mMinIntensity->setMinMax(0, INT32_MAX);
+      mMinIntensity->setMinMax(0, std::numeric_limits<float>::max());
       mMinIntensity->setValue(classifyFilter.intensity.minIntensity);
       mMinIntensity->connectWithSetting(&classifyFilter.intensity.minIntensity);
       mMinIntensity->setShortDescription("Min. ");
       //
       //
-      mMaxIntensity = SettingBase::create<SettingLineEdit<int32_t>>(parent, {}, "Max intensity");
+      mMaxIntensity = SettingBase::create<SettingLineEdit<float>>(parent, {}, "Max intensity");
       mMaxIntensity->setPlaceholderText("[0 - 65535]");
       mMaxIntensity->setUnit("");
-      mMaxIntensity->setMinMax(0, INT32_MAX);
+      mMaxIntensity->setMinMax(0, std::numeric_limits<float>::max());
       mMaxIntensity->setValue(classifyFilter.intensity.maxIntensity);
       mMaxIntensity->connectWithSetting(&classifyFilter.intensity.maxIntensity);
       mMaxIntensity->setShortDescription("Max. ");
@@ -194,16 +191,16 @@ private:
     QWidget *mParent;
 
     std::unique_ptr<SettingComboBoxClassesOut> mClassOut;
-    std::unique_ptr<SettingLineEdit<int>> mMinParticleSize;
-    std::unique_ptr<SettingLineEdit<int>> mMaxParticleSize;
-    std::unique_ptr<SettingLineEdit<float>> mMinCircularity;
+    std::unique_ptr<SettingSpinBox<float>> mMinParticleSize;
+    std::unique_ptr<SettingSpinBox<float>> mMaxParticleSize;
+    std::unique_ptr<SettingSpinBox<float>> mMinCircularity;
     std::unique_ptr<SettingComboBox<bool>> mExcludeObjectsAtTheEdge;
 
     std::unique_ptr<SettingComboBox<int32_t>> cStackForIntensityFilter;
     std::unique_ptr<SettingComboBox<enums::ZProjection>> zProjectionForIntensityFilter;
     std::unique_ptr<SettingSpinBox<int32_t>> zStackIndex;
-    std::unique_ptr<SettingLineEdit<int>> mMinIntensity;
-    std::unique_ptr<SettingLineEdit<int>> mMaxIntensity;
+    std::unique_ptr<SettingLineEdit<float>> mMinIntensity;
+    std::unique_ptr<SettingLineEdit<float>> mMaxIntensity;
 
     std::unique_ptr<SettingLineEdit<float>> mProbabilityHandicap;
 

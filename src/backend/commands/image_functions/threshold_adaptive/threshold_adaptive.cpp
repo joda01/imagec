@@ -29,7 +29,7 @@ namespace joda::cmd {
 ///                This version uses a circular local window, instead of a rectagular one
 ///
 ///
-void Bernsen(cv::Mat &imp, int radius, double par1, double par2, int32_t c_value, bool doIwhite)
+void Bernsen(cv::Mat &imp, int radius, double par1, double /*par2*/, int32_t /*c_value*/, bool doIwhite)
 {
   int contrast_threshold = 15;
   int local_contrast     = 0;
@@ -39,15 +39,15 @@ void Bernsen(cv::Mat &imp, int radius, double par1, double par2, int32_t c_value
   int temp               = 0;
 
   if(par1 != 0) {
-    contrast_threshold = (int) par1;
+    contrast_threshold = static_cast<int>(par1);
   }
 
   if(doIwhite) {
-    object = (uint16_t) 0xffff;
-    backg  = (uint16_t) 0;
+    object = 0xffff;
+    backg  = 0;
   } else {
-    object = (uint16_t) 0;
-    backg  = (uint16_t) 0xffff;
+    object = 0;
+    backg  = 0xffff;
   }
 
   //
@@ -69,10 +69,10 @@ void Bernsen(cv::Mat &imp, int radius, double par1, double par2, int32_t c_value
   }
 
   cv::Mat outImg = imp.clone();
-  for(int i = 0; i < imp.total(); i++) {
-    local_contrast = (int32_t) (ipMax.at<uint16_t>(i) & 0xffff) - (int) (ipMin.at<uint16_t>(i) & 0xffff);
-    mid_gray       = ((int32_t) (ipMin.at<uint16_t>(i) & 0xffff) + (int) (ipMax.at<uint16_t>(i) & 0xffff)) / 2;
-    temp           = (int32_t) (imp.at<uint16_t>(i) & 0x0000ff);
+  for(int i = 0; i < static_cast<int>(imp.total()); i++) {
+    local_contrast = static_cast<int32_t>(ipMax.at<uint16_t>(i) & 0xffff) - (ipMin.at<uint16_t>(i) & 0xffff);
+    mid_gray       = (static_cast<int32_t>(ipMin.at<uint16_t>(i) & 0xffff) + (ipMax.at<uint16_t>(i) & 0xffff)) / 2;
+    temp           = static_cast<int32_t>(imp.at<uint16_t>(i) & 0x0000ff);
     if(local_contrast < contrast_threshold) {
       outImg.at<uint16_t>(i) = (mid_gray >= 32768) ? object : backg;    // Low contrast region
     } else {
@@ -88,25 +88,17 @@ void Bernsen(cv::Mat &imp, int radius, double par1, double par2, int32_t c_value
 /// Sets the pixel value to either white or black depending on whether its current value is closest to the local Max or Min respectively
 /// The procedure is similar to Toggle Contrast Enhancement (see Soille, Morphological Image Analysis (2004), p. 259
 ///
-void Contrast(cv::Mat &imp, int radius, double par1, double par2, int32_t c_value, bool doIwhite)
+void Contrast(cv::Mat &imp, int radius, double /*par1*/, double /*par2*/, int32_t /*c_value*/, bool doIwhite)
 {
-  int contrast_threshold = 15;
-  int local_contrast     = 0;
-  int mid_gray           = 0;
-  uint16_t object        = 0;
-  uint16_t backg         = 0;
-  int temp               = 0;
-
-  if(par1 != 0) {
-    contrast_threshold = (int) par1;
-  }
+  uint16_t object = 0;
+  uint16_t backg  = 0;
 
   if(doIwhite) {
-    object = (uint16_t) 0xffff;
-    backg  = (uint16_t) 0;
+    object = 0xffff;
+    backg  = 0;
   } else {
-    object = (uint16_t) 0;
-    backg  = (uint16_t) 0xffff;
+    object = 0;
+    backg  = 0xffff;
   }
 
   //
@@ -128,10 +120,10 @@ void Contrast(cv::Mat &imp, int radius, double par1, double par2, int32_t c_valu
   }
 
   cv::Mat outImg = imp.clone();
-  for(int i = 0; i < imp.total(); i++) {
-    outImg.at<uint16_t>(i) = ((std::abs((int) (ipMax.at<uint16_t>(i) & 0xffff) - (int) (outImg.at<uint16_t>(i) & 0xffff)) <=
-                               std::abs((int) (outImg.at<uint16_t>(i) & 0xffff) - (int) (ipMin.at<uint16_t>(i) & 0xffff))) &&
-                              ((int) (outImg.at<uint16_t>(i) & 0xffff) != 0))
+  for(int i = 0; i < static_cast<int>(imp.total()); i++) {
+    outImg.at<uint16_t>(i) = ((std::abs((ipMax.at<uint16_t>(i) & 0xffff) - (outImg.at<uint16_t>(i) & 0xffff)) <=
+                               std::abs((outImg.at<uint16_t>(i) & 0xffff) - (ipMin.at<uint16_t>(i) & 0xffff))) &&
+                              ((outImg.at<uint16_t>(i) & 0xffff) != 0))
                                  ? object
                                  : backg;
   }
@@ -142,24 +134,17 @@ void Contrast(cv::Mat &imp, int radius, double par1, double par2, int32_t c_valu
 /// See: Image Processing Learning Resourches HIPR2
 /// http://homepages.inf.ed.ac.uk/rbf/HIPR2/adpthrsh.htm
 ///
-void Mean(cv::Mat &imp, int radius, double par1, double par2, int32_t c_value, bool doIwhite)
+void Mean(cv::Mat &imp, int radius, double /*par1*/, double /*par2*/, int32_t c_value, bool doIwhite)
 {
-  int contrast_threshold = 15;
-  int local_contrast     = 0;
-  int mid_gray           = 0;
-  uint16_t object        = 0;
-  uint16_t backg         = 0;
-  int temp               = 0;
+  uint16_t object = 0;
+  uint16_t backg  = 0;
 
-  if(par1 != 0) {
-    contrast_threshold = (int) par1;
-  }
   if(doIwhite) {
-    object = (uint16_t) 0xffff;
-    backg  = (uint16_t) 0;
+    object = 0xffff;
+    backg  = 0;
   } else {
-    object = (uint16_t) 0;
-    backg  = (uint16_t) 0xffff;
+    object = 0;
+    backg  = 0xffff;
   }
 
   //
@@ -172,30 +157,23 @@ void Mean(cv::Mat &imp, int radius, double par1, double par2, int32_t c_value, b
   }
 
   cv::Mat outImg = imp.clone();
-  for(int i = 0; i < imp.total(); i++) {
-    outImg.at<uint16_t>(i) = ((int) (outImg.at<uint16_t>(i) & 0xffff) > (int) (ipMean.at<uint16_t>(i) - c_value)) ? object : backg;
+  for(int i = 0; i < static_cast<int>(imp.total()); i++) {
+    outImg.at<uint16_t>(i) = ((outImg.at<uint16_t>(i) & 0xffff) > (ipMean.at<uint16_t>(i) - c_value)) ? object : backg;
   }
   imp = outImg;
 }
 
-void Median(cv::Mat &imp, int radius, double par1, double par2, int32_t c_value, bool doIwhite)
+void Median(cv::Mat &imp, int radius, double /*par1*/, double /*par2*/, int32_t c_value, bool doIwhite)
 {
-  int contrast_threshold = 15;
-  int local_contrast     = 0;
-  int mid_gray           = 0;
-  uint16_t object        = 0;
-  uint16_t backg         = 0;
-  int temp               = 0;
+  uint16_t object = 0;
+  uint16_t backg  = 0;
 
-  if(par1 != 0) {
-    contrast_threshold = (int) par1;
-  }
   if(doIwhite) {
-    object = (uint16_t) 0xffff;
-    backg  = (uint16_t) 0;
+    object = 0xffff;
+    backg  = 0;
   } else {
-    object = (uint16_t) 0;
-    backg  = (uint16_t) 0xffff;
+    object = 0;
+    backg  = 0xffff;
   }
 
   //
@@ -208,8 +186,8 @@ void Median(cv::Mat &imp, int radius, double par1, double par2, int32_t c_value,
   }
 
   cv::Mat outImg = imp.clone();
-  for(int i = 0; i < imp.total(); i++) {
-    outImg.at<uint16_t>(i) = ((int) (outImg.at<uint16_t>(i) & 0xffff) > (int) (ipMean.at<uint16_t>(i) - c_value)) ? object : backg;
+  for(int i = 0; i < static_cast<int>(imp.total()); i++) {
+    outImg.at<uint16_t>(i) = ((outImg.at<uint16_t>(i) & 0xffff) > (ipMean.at<uint16_t>(i) - c_value)) ? object : backg;
   }
   imp = outImg;
 }
@@ -221,11 +199,11 @@ cv::Mat calcHistogram(const cv::Mat &charImg)
   float range[]          = {0, 65536};        // Pixel value range
   const float *histRange = {range};
   cv::Mat histogram;
-  cv::calcHist(&charImg, 1, 0, cv::Mat(), histogram, 1, &histSize, &histRange);
+  cv::calcHist(&charImg, 1, nullptr, cv::Mat(), histogram, 1, &histSize, &histRange);
   return histogram;
 }
 
-void Otsu(cv::Mat &imp, int radius, double par1, double par2, int32_t c_value, bool doIwhite)
+void Otsu(cv::Mat &imp, int radius, double /*par1*/, double /*par2*/, int32_t /*c_value*/, bool doIwhite)
 {
   // Otsu's threshold algorithm
   // M. Emre Celebi 6.15.2007, Fourier Library https://sourceforge.net/projects/fourier-ipal/
@@ -241,11 +219,11 @@ void Otsu(cv::Mat &imp, int radius, double par1, double par2, int32_t c_value, b
   uint16_t backg;
 
   if(doIwhite) {
-    object = (uint16_t) 0xffff;
-    backg  = (uint16_t) 0;
+    object = 0xffff;
+    backg  = 0;
   } else {
-    object = (uint16_t) 0;
-    backg  = (uint16_t) 0xffff;
+    object = 0;
+    backg  = 0xffff;
   }
 
   int ih;
@@ -293,14 +271,14 @@ void Otsu(cv::Mat &imp, int radius, double par1, double par2, int32_t c_value, b
       num_pixels = 0;
 
       for(ih = 0; ih < L; ih++) {
-        num_pixels = num_pixels + data.at<float>(ih);
+        num_pixels = num_pixels + static_cast<int>(data.at<float>(ih));
       }
 
-      term = 1.0 / (double) num_pixels;
+      term = 1.0 / static_cast<double>(num_pixels);
 
       // Calculate the normalized histogram
       for(ih = 0; ih < L; ih++) {
-        histo[ih] = term * data.at<float>(ih);
+        histo[ih] = term * static_cast<int>(data.at<float>(ih));
       }
 
       // Calculate the cumulative normalized histogram
@@ -333,7 +311,7 @@ void Otsu(cv::Mat &imp, int radius, double par1, double par2, int32_t c_value, b
 
       // std::cout << "TH: " << std::to_string(threshold) << std::endl;
       pixelsOut.at<uint16_t>(position) =
-          ((int) (imp.at<uint16_t>(position) & 0xffff) > threshold || (int) (imp.at<uint16_t>(position) & 0xffff) == 65535) ? object : backg;
+          ((imp.at<uint16_t>(position) & 0xffff) > threshold || (imp.at<uint16_t>(position) & 0xffff) == 65535) ? object : backg;
     }
   }
   for(position = 0; position < w * h; position++) {

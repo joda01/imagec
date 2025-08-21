@@ -11,8 +11,10 @@
 
 #include "setting_base.hpp"
 #include <iostream>
+#include "backend/enums/enums_units.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/dialog_tooltip.hpp"
 #include "ui/gui/editor/widget_project_tabs/panel_classification.hpp"
+#include "ui/gui/editor/widget_project_tabs/panel_image.hpp"
 #include "ui/gui/editor/window_main.hpp"
 #include "ui/gui/helper/widget_generator.hpp"
 
@@ -26,7 +28,7 @@ namespace joda::ui::gui {
 /// \return
 ///
 SettingBase::SettingBase(QWidget *parent, const QIcon &icon, const QString &description, int32_t maxTextLengthToDisplay) :
-    mParent((WindowMain *) parent), mIcon(icon), mDescription(description), mMaxTextLengthToDisplay(maxTextLengthToDisplay)
+    mParent(dynamic_cast<WindowMain *>(parent)), mIcon(icon), mDescription(description), mMaxTextLengthToDisplay(maxTextLengthToDisplay)
 {
   setObjectName("SettingBase");
   createDisplayAbleWidget(icon, description);
@@ -59,6 +61,17 @@ void SettingBase::setUnit(const QString &unit)
 {
   mUnit = unit;
   updateDisplayLabel();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void SettingBase::changeUnit()
+{
 }
 
 ///
@@ -220,7 +233,7 @@ void SettingBase::updateDisplayLabel()
 /// \brief    This label is not editable but only shows the entered data
 /// \author   Joachim Danmayr
 ///
-void SettingBase::createDisplayAbleWidget(const QIcon &icon, const QString &tooltip)
+void SettingBase::createDisplayAbleWidget(const QIcon &icon, const QString & /*tooltip*/)
 {
   mDisplayable = new QWidget();
   mDisplayable->setContentsMargins(0, 0, 0, 0);
@@ -343,6 +356,20 @@ void SettingBase::onOutputClassifierChanges()
 [[nodiscard]] auto SettingBase::getClasses() const -> std::map<enums::ClassIdIn, QString>
 {
   return mParent->getPanelClassification()->getClasses();
+}
+
+///
+/// \brief   Returns the actual set unit
+/// \author   Joachim Danmayr
+///
+[[nodiscard]] std::tuple<enums::Units, joda::ome::PhyiscalSize> SettingBase::getUnit() const
+{
+  if(mParent != nullptr) {
+    auto unit                    = mParent->getSettings().pipelineSetup.realSizesUnit;
+    auto [path, series, omeInfo] = mParent->getImagePanel()->getSelectedImageOrFirst();
+    return {unit, omeInfo.getPhyiscalSize(series)};
+  }
+  return {};
 }
 
 }    // namespace joda::ui::gui

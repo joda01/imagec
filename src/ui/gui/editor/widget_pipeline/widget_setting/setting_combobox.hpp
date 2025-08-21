@@ -34,7 +34,7 @@ public:
   {
     VALUE_T key;
     QString label;
-    QIcon icon;
+    QIcon icon = {};
   };
 
   struct ComboEntryText
@@ -80,17 +80,17 @@ public:
     auto actSelected = getValue();
     mComboBox->clear();
 
-    for(const auto &data : options) {
+    for(const auto &dataIn : options) {
       QVariant variant;
       if constexpr(std::is_enum<VALUE_T>::value) {
-        variant = QVariant(static_cast<int>(data.key));
+        variant = static_cast<int>(dataIn.key);
       } else {
-        variant = QVariant(data.key);
+        variant = QVariant(dataIn.key);
       }
-      if(data.icon.isNull()) {
-        mComboBox->addItem(getIcon(), data.label, variant);
+      if(dataIn.icon.isNull()) {
+        mComboBox->addItem(getIcon(), dataIn.label, variant);
       } else {
-        mComboBox->addItem(data.icon, data.label, variant);
+        mComboBox->addItem(dataIn.icon, dataIn.label, variant);
       }
     }
     setValue(actSelected);
@@ -129,7 +129,7 @@ public:
           }
         }
         if constexpr(std::is_enum<VALUE_T>::value) {
-          if(key == (VALUE_T) item.toInt()) {
+          if(key == static_cast<VALUE_T>(item.toInt())) {
             return i;
           }
         }
@@ -142,7 +142,7 @@ public:
     for(const auto &[key, label] : options) {
       QVariant variant;
       if constexpr(std::is_enum<VALUE_T>::value) {
-        variant = QVariant(static_cast<int>(key));
+        variant = static_cast<int>(key);
       } else {
         variant = QVariant(key);
       }
@@ -169,7 +169,7 @@ public:
       return mComboBox->currentData().toBool();
     }
     if constexpr(std::is_enum<VALUE_T>::value) {
-      return (VALUE_T) mComboBox->currentData().toInt();
+      return static_cast<VALUE_T>(mComboBox->currentData().toInt());
     }
   }
 

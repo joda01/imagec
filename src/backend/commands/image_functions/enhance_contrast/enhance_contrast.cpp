@@ -29,19 +29,19 @@ EnhanceContrast::EnhanceContrast(const settings::EnhanceContrastSettings &settin
 
 void setMinMax(cv::Mat &image, uint16_t min, uint16_t max)
 {
-  auto min2    = static_cast<float>(min);
-  auto max2    = static_cast<float>(max);
+  auto min2    = static_cast<double>(min);
+  auto max2    = static_cast<double>(max);
   int maxValue = 65535;
-  double scale = 65535.0 / (max2 - min2 + 1);
-  int32_t value;
+  auto scale   = static_cast<double>(65535.0 / (max2 - min2 + 1.0));
+  double value;
 
   for(int y = 0; y < image.rows; ++y) {
     for(int x = 0; x < image.cols; ++x) {
-      value = (image.at<uint16_t>(y, x) & 0xffff) - min2;
+      value = static_cast<double>((image.at<uint16_t>(y, x) & 0xffff)) - min2;
       if(value < 0) {
         value = 0;
       }
-      value = static_cast<int32_t>(static_cast<float>(value) * scale + 0.5);
+      value = value * scale + 0.5;
       if(value > maxValue) {
         value = maxValue;
       }
@@ -122,18 +122,17 @@ std::tuple<int32_t, int32_t> getMinAndMax(cv::Mat &ip, double saturated, cv::Mat
 ///
 void normalize(cv::Mat &ip, double min, double max)
 {
-  int min2                       = 0;
   static constexpr uint16_t max2 = UINT16_MAX;
   static constexpr size_t range  = UINT16_MAX + 1;
 
   std::array<int32_t, range> lut;
-  for(int i = 0; i < range; i++) {
-    if(i <= min) {
+  for(size_t i = 0; i < range; i++) {
+    if(static_cast<double>(i) <= min) {
       lut[i] = 0;
-    } else if(i >= max) {
+    } else if(i >= static_cast<size_t>(max)) {
       lut[i] = max2;
     } else {
-      lut[i] = (int) (((double) (i - min) / (max - min)) * max2);
+      lut[i] = static_cast<int>(((static_cast<double>(i) - min) / (max - min)) * max2);
     }
   }
   applyTable(ip, lut);
@@ -216,10 +215,10 @@ std::pair<int, int> EnhanceContrast::findContrastStretchBounds(const cv::Mat &hi
   histNorm /= total;
 
   // Compute cumulative distribution function (CDF)
-  std::vector<double> cdf(histSize, 0.0);
+  std::vector<double> cdf(static_cast<size_t>(histSize), 0.0);
   cdf[0] = histNorm.at<double>(0);
-  for(int i = 1; i < histSize; i++) {
-    cdf[i] = cdf[i - 1] + histNorm.at<double>(i);
+  for(int32_t i = 1; i < histSize; i++) {
+    cdf[static_cast<size_t>(i)] = cdf[static_cast<size_t>(i - 1)] + histNorm.at<double>(i);
   }
 
   double lower_thresh = percentage;
@@ -229,17 +228,17 @@ std::pair<int, int> EnhanceContrast::findContrastStretchBounds(const cv::Mat &hi
   int high = histSize - 1;
 
   // Find lower bound
-  for(int i = 0; i < histSize; ++i) {
+  for(size_t i = 0; i < static_cast<size_t>(histSize); ++i) {
     if(cdf[i] >= lower_thresh) {
-      low = i;
+      low = static_cast<int>(i);
       break;
     }
   }
 
   // Find upper bound
-  for(int i = histSize - 1; i >= 0; --i) {
+  for(auto i = static_cast<size_t>(histSize); i-- > 0;) {
     if(cdf[i] <= upper_thresh) {
-      high = i;
+      high = static_cast<int>(i);
       break;
     }
   }
@@ -261,7 +260,7 @@ void stretchHistogram(cv::Mat &ip, double saturated, cv::Mat &histogram, bool do
     if(doNormalize) {
       normalize(ip, hmin, hmax);
     } else {
-      setMinMax(ip, hmin, hmax);
+      setMinMax(ip, static_cast<uint16_t>(hmin), static_cast<uint16_t>(hmax));
     }
   }
 }
@@ -273,7 +272,7 @@ void stretchHistogram(cv::Mat &ip, double saturated, cv::Mat &histogram, bool do
 /// \param[out]
 /// \return
 ///
-void EnhanceContrast::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList & /*resultIn*/)
+void EnhanceContrast::execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*resultIn*/)
 {
   //
   // Compute the histogram
@@ -281,8 +280,6 @@ void EnhanceContrast::execute(processor::ProcessContext &context, cv::Mat &image
   int histSize           = UINT16_MAX + 1;
   float range[]          = {0, UINT16_MAX + 1};
   const float *histRange = {range};
-  bool uniform           = true;
-  bool accumulate        = false;
   cv::Mat hist;
   cv::calcHist(&image, 1, 0, cv::Mat(), hist, 1, &histSize, &histRange);    //, uniform, accumulate);
 
@@ -292,7 +289,7 @@ void EnhanceContrast::execute(processor::ProcessContext &context, cv::Mat &image
   if(mSettings.equalizeHistogram) {
     applyTable(image, equalize(hist));
   } else {
-    stretchHistogram(image, mSettings.saturatedPixels, hist, mSettings.normalize);
+    stretchHistogram(image, static_cast<double>(mSettings.saturatedPixels), hist, mSettings.normalize);
   }
   if(mSettings.normalize) {
     double max = 0;

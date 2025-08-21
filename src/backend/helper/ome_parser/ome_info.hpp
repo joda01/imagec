@@ -27,8 +27,10 @@
 #include <map>
 #include <set>
 #include <string>
+#include "backend/enums/enums_units.hpp"
 #include "backend/enums/types.hpp"
 #include <opencv2/core/types.hpp>
+#include "physical_size.hpp"
 
 namespace joda::ome {
 
@@ -131,10 +133,12 @@ public:
         return rgbChannelCount == 3;
       }
     };
+
     int32_t seriesIdx    = 0;
     int32_t nrOfChannels = 0;
     int32_t nrOfZStacks  = 0;
     int32_t nrOfTStacks  = 0;
+    PhyiscalSize physicalSize;
     std::map<int32_t, Pyramid> resolutions;      ///< Array of resolutions in case of a pyamid image
     std::map<uint32_t, ChannelInfo> channels;    ///< Contains the channel information <channelIdx | channelinfo>
   };
@@ -142,7 +146,7 @@ public:
   /////////////////////////////////////////////////////
   OmeInfo();
 
-  void loadOmeInformationFromXMLString(const std::string &omeXML);
+  void loadOmeInformationFromXMLString(const std::string &omeXML, const PhyiscalSize &defaultSettings);
 
   [[nodiscard]] size_t getNrOfSeries() const
   {
@@ -150,7 +154,7 @@ public:
   }
   [[nodiscard]] auto getResolutionCount(int32_t series) const -> const std::map<int32_t, ImageInfo::Pyramid> &
   {
-    if(series < 0 || series >= getNrOfSeries()) {
+    if(series < 0 || static_cast<size_t>(series) >= getNrOfSeries()) {
       series = getSeriesWithHighestResolution();
     }
     return mImageInfo.at(series).resolutions;
@@ -158,14 +162,15 @@ public:
   [[nodiscard]] int getNrOfChannels(int32_t series) const;
   [[nodiscard]] int getNrOfZStack(int32_t series) const;
   [[nodiscard]] int getNrOfTStack(int32_t series) const;
-
+  [[nodiscard]] auto getPhyiscalSize(int32_t series, bool alwaysReal = false) const -> const PhyiscalSize &;
+  void setPhyiscalSize(const PhyiscalSize &);
   [[nodiscard]] std::tuple<int64_t, int64_t> getSize(int32_t series) const;
   [[nodiscard]] int32_t getBits(int32_t series) const;
   [[nodiscard]] int32_t getSeriesWithHighestResolution() const;
 
   [[nodiscard]] const ImageInfo &getImageInfo(int32_t series) const
   {
-    if(series < 0 || series >= getNrOfSeries()) {
+    if(series < 0 || static_cast<size_t>(series) >= getNrOfSeries()) {
       series = 0;
     }
     return mImageInfo.at(series);
@@ -177,7 +182,7 @@ public:
 
   [[nodiscard]] const std::map<uint32_t, ChannelInfo> &getChannelInfos(int32_t series) const
   {
-    if(series < 0 || series >= getNrOfSeries()) {
+    if(series < 0 || static_cast<size_t>(series) >= getNrOfSeries()) {
       series = 0;
     }
     return mImageInfo.at(series).channels;
@@ -188,49 +193,49 @@ public:
     return mImageInfo;
   }
 
-  int32_t getImageWidth(int32_t series, int32_t resolutionIdx) const
+  [[nodiscard]] int32_t getImageWidth(int32_t series, int32_t resolutionIdx) const
   {
-    if(series < 0 || series >= getNrOfSeries()) {
+    if(series < 0 || static_cast<size_t>(series) >= getNrOfSeries()) {
       series = 0;
     }
     return mImageInfo.at(series).resolutions.at(resolutionIdx).imageWidth;
   }
 
-  int32_t getImageHeight(int32_t series, int32_t resolutionIdx) const
+  [[nodiscard]] int32_t getImageHeight(int32_t series, int32_t resolutionIdx) const
   {
-    if(series < 0 || series >= getNrOfSeries()) {
+    if(series < 0 || static_cast<size_t>(series) >= getNrOfSeries()) {
       series = 0;
     }
 
     return mImageInfo.at(series).resolutions.at(resolutionIdx).imageHeight;
   }
 
-  int32_t getBitDepth(int32_t series, int32_t resolutionIdx) const
+  [[nodiscard]] int32_t getBitDepth(int32_t series, int32_t resolutionIdx) const
   {
-    if(series < 0 || series >= getNrOfSeries()) {
+    if(series < 0 || static_cast<size_t>(series) >= getNrOfSeries()) {
       series = 0;
     }
     return mImageInfo.at(series).resolutions.at(resolutionIdx).bits;
   }
 
-  int32_t getRGBchannelCount(int32_t series, int32_t resolutionIdx) const
+  [[nodiscard]] int32_t getRGBchannelCount(int32_t series, int32_t resolutionIdx) const
   {
-    if(series < 0 || series >= getNrOfSeries()) {
+    if(series < 0 || static_cast<size_t>(series) >= getNrOfSeries()) {
       series = 0;
     }
     return mImageInfo.at(series).resolutions.at(resolutionIdx).rgbChannelCount;
   }
 
-  bool getIsInterleaved(int32_t series, int32_t resolutionIdx) const
+  [[nodiscard]] bool getIsInterleaved(int32_t series, int32_t resolutionIdx) const
   {
-    if(series < 0 || series >= getNrOfSeries()) {
+    if(series < 0 || static_cast<size_t>(series) >= getNrOfSeries()) {
       series = 0;
     }
     return mImageInfo.at(series).resolutions.at(resolutionIdx).isInterleaved;
   }
-  bool getIsLittleEndian(int32_t series, int32_t resolutionIdx) const
+  [[nodiscard]] bool getIsLittleEndian(int32_t series, int32_t resolutionIdx) const
   {
-    if(series < 0 || series >= getNrOfSeries()) {
+    if(series < 0 || static_cast<size_t>(series) >= getNrOfSeries()) {
       series = 0;
     }
     return mImageInfo.at(series).resolutions.at(resolutionIdx).isLittleEndian;
@@ -240,5 +245,6 @@ private:
   /////////////////////////////////////////////////////
   std::map<int32_t, ImageInfo> mImageInfo;    // Key is series
   ObjectiveInfo mObjectiveInfo;
+  PhyiscalSize mDefaultPhyiscalSizeSettings;
 };
 }    // namespace joda::ome

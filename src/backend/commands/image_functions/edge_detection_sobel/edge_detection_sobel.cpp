@@ -66,25 +66,25 @@ void EdgeDetectionSobel::sobel(cv::Mat &image) const
 
 void EdgeDetectionSobel::filter3x3(cv::Mat &image) const
 {
-  int v1    = 0;
-  int v2    = 0;
-  int v3    = 0;    // input pixel values around the current pixel
-  int v4    = 0;
-  int v5    = 0;
-  int v6    = 0;
-  int v7    = 0;
-  int v8    = 0;
-  int v9    = 0;
-  int k1    = 0;
-  int k2    = 0;
-  int k3    = 0;    // kernel values (used for CONVOLVE only)
-  int k4    = 0;
-  int k5    = 0;
-  int k6    = 0;
-  int k7    = 0;
-  int k8    = 0;
-  int k9    = 0;
-  int scale = 0;
+  int v1 = 0;
+  int v2 = 0;
+  int v3 = 0;    // input pixel values around the current pixel
+  int v4 = 0;
+  int v5 = 0;
+  int v6 = 0;
+  int v7 = 0;
+  int v8 = 0;
+  int v9 = 0;
+  // int k1    = 0;
+  // int k2    = 0;
+  // int k3    = 0;    // kernel values (used for CONVOLVE only)
+  // int k4    = 0;
+  // int k5    = 0;
+  // int k6    = 0;
+  // int k7    = 0;
+  // int k8    = 0;
+  // int k9    = 0;
+  // int scale = 0;
 
   int roiX      = 0;
   int roiY      = 0;
@@ -101,17 +101,17 @@ void EdgeDetectionSobel::filter3x3(cv::Mat &image) const
     int p6 = p - (roiX > 0 ? 1 : 0);               // will point to v6, currently lower
     int p3 = p6 - (y > 0 ? width : 0);             // will point to v3, currently lower
     int p9 = p6 + (y < height - 1 ? width : 0);    // ...  to v9, currently lower
-    v2     = imageCopy.at<unsigned short>(p3) & 0xffff;
-    v5     = imageCopy.at<unsigned short>(p6) & 0xffff;
-    v8     = imageCopy.at<unsigned short>(p9) & 0xffff;
+    v2     = imageCopy.at<uint16_t>(p3) & 0xffff;
+    v5     = imageCopy.at<uint16_t>(p6) & 0xffff;
+    v8     = imageCopy.at<uint16_t>(p9) & 0xffff;
     if(roiX > 0) {
       p3++;
       p6++;
       p9++;
     }
-    v3 = imageCopy.at<unsigned short>(p3) & 0xffff;
-    v6 = imageCopy.at<unsigned short>(p6) & 0xffff;
-    v9 = imageCopy.at<unsigned short>(p9) & 0xffff;
+    v3 = imageCopy.at<uint16_t>(p3) & 0xffff;
+    v6 = imageCopy.at<uint16_t>(p6) & 0xffff;
+    v9 = imageCopy.at<uint16_t>(p9) & 0xffff;
 
     for(int x = roiX; x < xEnd; x++, p++) {
       if(x < width - 1) {
@@ -121,19 +121,20 @@ void EdgeDetectionSobel::filter3x3(cv::Mat &image) const
       }
       v1            = v2;
       v2            = v3;
-      v3            = imageCopy.at<unsigned short>(p3) & 0xffff;
+      v3            = imageCopy.at<uint16_t>(p3) & 0xffff;
       v4            = v5;
       v5            = v6;
-      v6            = imageCopy.at<unsigned short>(p6) & 0xffff;
+      v6            = imageCopy.at<uint16_t>(p6) & 0xffff;
       v7            = v8;
       v8            = v9;
-      v9            = imageCopy.at<unsigned short>(p9) & 0xffff;
+      v9            = imageCopy.at<uint16_t>(p9) & 0xffff;
       double sum1   = v1 + 2 * v2 + v3 - v7 - 2 * v8 - v9;
       double sum2   = v1 + 2 * v4 + v7 - v3 - 2 * v6 - v9;
       double result = std::sqrt(sum1 * sum1 + sum2 * sum2);
-      if(result > 65535.0)
+      if(result > 65535.0) {
         result = 65535.0;
-      image.at<unsigned short>(p) = static_cast<unsigned short>(result);
+      }
+      image.at<uint16_t>(p) = static_cast<uint16_t>(result);
     }
   }
 }

@@ -28,12 +28,13 @@ MorphologicalTransform::MorphologicalTransform(const settings::MorphologicalTran
 {
 }
 
-void MorphologicalTransform::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList & /*resultIn*/)
+void MorphologicalTransform::execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*resultIn*/)
 {
   auto function = cv::MORPH_CLOSE;
   switch(mSettings.function) {
     case settings::MorphologicalTransformSettings::Function::UNKNOWN:
       THROW("Unknow morphological function!");
+      break;
     case settings::MorphologicalTransformSettings::Function::ERODE:
       function = cv::MORPH_ERODE;
       break;

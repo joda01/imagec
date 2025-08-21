@@ -21,9 +21,9 @@
 
 namespace joda::cmd {
 
-void Skeletonize::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result)
+void Skeletonize::execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/)
 {
-  image.convertTo(image, CV_8UC1, 1.0F / 257.0F);
+  image.convertTo(image, CV_8UC1, 1.0 / 257.0);
   switch(mSettings.mode) {
     case settings::SkeletonizeSettings::Mode::ZHANGSUEN:
       cv::ximgproc::thinning(image, image, cv::ximgproc::THINNING_ZHANGSUEN);
@@ -32,7 +32,7 @@ void Skeletonize::execute(processor::ProcessContext &context, cv::Mat &image, at
       cv::ximgproc::thinning(image, image, cv::ximgproc::THINNING_GUOHALL);
       break;
   }
-  image.convertTo(image, CV_16UC1, (float) UINT16_MAX / (float) UINT8_MAX);
+  image.convertTo(image, CV_16UC1, static_cast<double>(UINT16_MAX) / static_cast<double>(UINT8_MAX));
 }
 
 }    // namespace joda::cmd

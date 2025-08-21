@@ -4,7 +4,7 @@
 
 namespace joda::helper {
 
-static QString getLoggedInUserName()
+static inline QString getLoggedInUserName()
 {
 #ifdef Q_OS_WIN
   // On Windows, we can use the USERNAME environment variable

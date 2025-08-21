@@ -99,9 +99,9 @@ void SettingComboBoxClassificationIn::outputClassesChanges()
 
     auto classes = parent->getPanelClassification()->getClasses();
     std::map<std::string, std::multimap<std::string, enums::ClassId>> orderedClasses;
-    for(const auto &data : outputClasses) {
-      QString className = classes[static_cast<enums::ClassIdIn>(data)];
-      orderedClasses[enums::getPrefixFromClassName(className.toStdString())].emplace(className.toStdString(), data);
+    for(const auto &dataIn : outputClasses) {
+      QString className = classes[static_cast<enums::ClassIdIn>(dataIn)];
+      orderedClasses[enums::getPrefixFromClassName(className.toStdString())].emplace(className.toStdString(), dataIn);
     }
 
     for(const auto &[prefix, group] : orderedClasses) {
@@ -156,10 +156,10 @@ void SettingComboBoxClassificationIn::setValue(const settings::ObjectInputClasss
 std::map<enums::ClassIdIn, std::string> SettingComboBoxClassificationIn::getValueAndNames()
 {
   std::map<enums::ClassIdIn, std::string> toReturn;
-  auto checked = ((QComboBoxMulti *) mComboBox)->getCheckedItems();
+  auto checked = (dynamic_cast<QComboBoxMulti *>(mComboBox))->getCheckedItems();
 
-  for(const auto &[data, txt] : checked) {
-    toReturn.emplace(fromInt(data.toUInt()), txt.toStdString());
+  for(const auto &[dataIn, txt] : checked) {
+    toReturn.emplace(fromInt(dataIn.toUInt()), txt.toStdString());
   }
 
   return toReturn;

@@ -46,17 +46,17 @@ public:
   //
   // Maximum radius the voronoi are is limited to
   //
-  int32_t maxRadius = -1;
+  float maxRadius = -1;
 
   //
   // Minimum area size to be a valid area
   //
-  int32_t minAreaSize = -1;
+  float minAreaSize = -1;
 
   //
   // Maximum area size to be a valid area
   //
-  int32_t maxAreaSize = -1;
+  float maxAreaSize = -1;
 
   /////////////////////////////////////////////////////
   void check() const

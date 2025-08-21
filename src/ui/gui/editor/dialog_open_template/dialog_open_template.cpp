@@ -17,6 +17,7 @@
 #include <qpushbutton.h>
 #include <qtoolbutton.h>
 #include <QKeyEvent>
+#include <cstddef>
 #include "backend/user_settings/user_settings.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/template_parser/template_parser.hpp"
@@ -24,7 +25,7 @@
 namespace joda::ui::gui {
 
 DialogOpenTemplate::DialogOpenTemplate(const std::set<std::string> &directories, const std::string &endian, QWidget *parent) :
-    mDirectories(directories), mEndian(endian), QDialog(parent)
+    QDialog(parent), mDirectories(directories), mEndian(endian)
 {
   setWindowTitle("New project");
   mSearch = new QLineEdit();
@@ -47,9 +48,9 @@ DialogOpenTemplate::DialogOpenTemplate(const std::set<std::string> &directories,
   mTableTemplates->verticalHeader()->setMinimumSectionSize(36);
   mTableTemplates->installEventFilter(this);
 
-  connect(mTableTemplates, &QTableWidget::cellDoubleClicked, [&](int row, int column) {
+  connect(mTableTemplates, &QTableWidget::cellDoubleClicked, [&](int row, int /*column*/) {
     auto idx              = mTableTemplates->item(row, 0)->text().toInt();
-    mSelectedTemplatePath = mTemplateList.at(idx).path.data();
+    mSelectedTemplatePath = mTemplateList.at(static_cast<size_t>(idx)).path.data();
     mReturnCode           = ReturnCode::OPEN_TEMPLATE;
     close();
   });
@@ -62,7 +63,7 @@ DialogOpenTemplate::DialogOpenTemplate(const std::set<std::string> &directories,
     if(!selectedItems.isEmpty()) {
       auto row              = selectedItems.first()->row();
       auto idx              = mTableTemplates->item(row, 0)->text().toInt();
-      mSelectedTemplatePath = mTemplateList.at(idx).path.data();
+      mSelectedTemplatePath = mTemplateList.at(static_cast<size_t>(idx)).path.data();
       mReturnCode           = ReturnCode::OPEN_TEMPLATE;
       close();
     }
@@ -197,13 +198,13 @@ void DialogOpenTemplate::loadTemplates()
 
   std::string actGroup = "basic";
   for(const auto &[_, dataInCategory] : foundTemplates) {
-    for(const auto &[_, data] : dataInCategory) {
+    for(const auto &[_1, dataIn] : dataInCategory) {
       // Now the user templates start, add an addition separator
-      if(actGroup != data.group) {
-        actGroup = data.group;
-        addTitleToTable(data.group, data.group);
+      if(actGroup != dataIn.group) {
+        actGroup = dataIn.group;
+        addTitleToTable(dataIn.group, dataIn.group);
       }
-      addTemplateToTable(data, data.group);
+      addTemplateToTable(dataIn, dataIn.group);
     }
   }
 }
@@ -234,27 +235,27 @@ void DialogOpenTemplate::addTitleToTable(const std::string &title, const std::st
   mTableTemplates->setSpan(newRow, 1, 1, 2);    // Starts at (row 0, column 0) and spans 1 row and 2 columns
 }
 
-int DialogOpenTemplate::addTemplateToTable(const joda::templates::TemplateParser::Data &data, const std::string &category)
+int DialogOpenTemplate::addTemplateToTable(const joda::templates::TemplateParser::Data &dataIn, const std::string & /*category*/)
 {
-  mTemplateList.emplace_back(data);
+  mTemplateList.emplace_back(dataIn);
   int newRow = mTableTemplates->rowCount();
   mTemplateMap.emplace(mTemplateList.size() - 1, newRow);
   mTableTemplates->insertRow(newRow);
 
   QString text;
-  QString author       = "<i><span style='color:gray;'>" + QString(data.author.value_or("").data()) + "</span></i>";
-  QString organization = "<i><span style='color:gray;'>" + QString(data.organization.value_or("").data()) + "</span></i>";
+  QString author       = "<i><span style='color:gray;'>" + QString(dataIn.author.value_or("").data()) + "</span></i>";
+  QString organization = "<i><span style='color:gray;'>" + QString(dataIn.organization.value_or("").data()) + "</span></i>";
 
-  if(!data.description.empty()) {
-    text = QString(data.title.data()) + "<br/><span style='color:gray;'><i>" + QString(data.description.data()) + "</i></span>";
+  if(!dataIn.description.empty()) {
+    text = QString(dataIn.title.data()) + "<br/><span style='color:gray;'><i>" + QString(dataIn.description.data()) + "</i></span>";
   } else {
-    text = QString(data.title.data());
+    text = QString(dataIn.title.data());
   }
-  if(!data.author.value_or("").empty() && !data.organization.value_or("").empty()) {
+  if(!dataIn.author.value_or("").empty() && !dataIn.organization.value_or("").empty()) {
     text += "<br>" + author + ", " + organization;
-  } else if(!data.author.value_or("").empty()) {
+  } else if(!dataIn.author.value_or("").empty()) {
     text += "<br>" + author;
-  } else if(!data.organization.value_or("").empty()) {
+  } else if(!dataIn.organization.value_or("").empty()) {
     text += "<br>" + organization;
   }
 
@@ -265,8 +266,8 @@ int DialogOpenTemplate::addTemplateToTable(const joda::templates::TemplateParser
   mTableTemplates->setCellWidget(newRow, 2, textIcon);
 
   QIcon icon;
-  if(!data.icon.isNull()) {
-    icon = QIcon(data.icon.scaled(28, 28));
+  if(!dataIn.icon.isNull()) {
+    icon = QIcon(dataIn.icon.scaled(28, 28));
   } else {
     icon = generateSvgIcon<Style::REGULAR, Color::BLACK>("star");
   }
@@ -287,8 +288,8 @@ void DialogOpenTemplate::filterCommands(const TemplateTableFilter &filter)
 {
   auto searchTexts = filter.searchText.toLower();
   std::set<std::string> groups;
-  for(int32_t n = 0; n < mTemplateList.size(); n++) {
-    const auto &command = mTemplateList.at(n);
+  for(int32_t n = 0; n < static_cast<int32_t>(mTemplateList.size()); n++) {
+    const auto &command = mTemplateList.at(static_cast<size_t>(n));
     int32_t tableIndex  = mTemplateMap.at(n);
     auto filterCategory = filter.category.toStdString();
     if(command.group == filterCategory && !filterCategory.empty()) {

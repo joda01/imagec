@@ -59,10 +59,10 @@ private:
   class ThresholdAdaptiveUi
   {
   public:
-    ThresholdAdaptiveUi(settings::ThresholdAdaptiveSettings::ThresholdAdaptive &settings, ThresholdAdaptive &outer, helper::TabWidget *tab,
+    ThresholdAdaptiveUi(settings::ThresholdAdaptiveSettings::ThresholdAdaptive &settingsIn, ThresholdAdaptive &outerIn, helper::TabWidget *tab,
                         int32_t index, QWidget *parent) :
-        settings(settings),
-        outer(outer)
+        settings(settingsIn),
+        outer(outerIn)
     {
       //
       //

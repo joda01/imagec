@@ -18,6 +18,7 @@
 #include <string>
 #include <system_error>
 #include <vector>
+#include "backend/enums/enums_units.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include <nlohmann/json.hpp>
@@ -37,9 +38,10 @@ OmeInfo::OmeInfo()
 /// \param[in]  omeXML  Read OME XML data as string
 /// \return     Parsed OME information
 ///
-void OmeInfo::loadOmeInformationFromXMLString(const std::string &omeXML)
+void OmeInfo::loadOmeInformationFromXMLString(const std::string &omeXML, const PhyiscalSize &defaultSettings)
 {
   setlocale(LC_NUMERIC, "C");    // Needed for correct comma in libxlsx
+  mDefaultPhyiscalSizeSettings = defaultSettings;
 
   // std::cout << omeXML << std::endl;
 
@@ -119,14 +121,6 @@ TRY_AGAIN:
     std::string imageName = std::string(image.attribute("Name").as_string());
 
     //
-    // Plane numbers
-    //
-    auto sizeC    = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeC").as_int();
-    auto sizeZ    = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeZ").as_int();
-    auto sizeT    = image.child(std::string(keyPrefix + "Pixels").data()).attribute("SizeT").as_int();
-    auto dimOrder = std::string(image.child(std::string(keyPrefix + "Pixels").data()).attribute("DimensionOrder").as_string());
-
-    //
     // TIFF Data
     // This is the implementation of the specification section >The TiffDataElement<
     // https://docs.openmicroscopy.org/ome-model/6.1.0/ome-tiff/specification.html
@@ -148,9 +142,26 @@ TRY_AGAIN:
     pugi::xml_node pixels = image.child((keyPrefix + "Pixels").data());
 
     //
+    // Plane numbers
+    //
+    // auto sizeC    = pixels.attribute("SizeC").as_int();
+    auto sizeZ    = pixels.attribute("SizeZ").as_int();
+    auto sizeT    = pixels.attribute("SizeT").as_int();
+    auto dimOrder = std::string(pixels.attribute("DimensionOrder").as_string());
+
+    //
+    // Pixel size
+    //
+    auto physicalSizeX            = pixels.attribute("PhysicalSizeX").as_double(-1);
+    std::string physicalSizeXUnit = pixels.attribute("PhysicalSizeXUnit").as_string();
+    auto physicalSizeY            = pixels.attribute("PhysicalSizeY").as_double(-1);
+    std::string physicalSizeYUnit = pixels.attribute("PhysicalSizeYUnit").as_string();
+    auto physicalSizeZ            = pixels.attribute("PhysicalSizeZ").as_double(-1);
+    std::string physicalSizeZUnit = pixels.attribute("PhysicalSizeZUnit").as_string();
+
+    //
     // Load channels
     //
-    int idx = 0;
     for(pugi::xml_node channelNode = pixels.child((keyPrefix + "Channel").data()); channelNode != nullptr;
         channelNode                = channelNode.next_sibling((keyPrefix + "Channel").data())) {
       auto channelId = std::string(channelNode.attribute("ID").as_string());
@@ -187,12 +198,34 @@ TRY_AGAIN:
                                                    .emissionWaveLengthUnit = emissionWaveLengthUnit,
                                                    .contrastMethod         = contrastMethod,
                                                });
-
-      idx++;
     }
 
     actImageInfo.nrOfZStacks = sizeZ;
     actImageInfo.nrOfTStacks = sizeT;
+
+    auto stringToUnit = [](const std::string &unit) -> enums::Units {
+      if(unit == "nm") {
+        return enums::Units::nm;
+      }
+      if(unit == "µm") {
+        return enums::Units::um;
+      }
+      if(unit == "mm") {
+        return enums::Units::mm;
+      }
+      if(unit == "cm") {
+        return enums::Units::cm;
+      }
+      if(unit == "m") {
+        return enums::Units::m;
+      }
+      if(unit == "km") {
+        return enums::Units::km;
+      }
+      return enums::Units::Pixels;
+    };
+
+    actImageInfo.physicalSize = PhyiscalSize(physicalSizeX, physicalSizeY, physicalSizeZ, stringToUnit(physicalSizeXUnit));
 
     //
     // Load planes
@@ -243,9 +276,39 @@ TRY_AGAIN:
 /// \brief      Returns the number of channels
 /// \author     Joachim Danmayr
 ///
+auto OmeInfo::getPhyiscalSize(int32_t series, bool alwaysReal) const -> const PhyiscalSize &
+{
+  if(series >= getNrOfSeries()) {
+    return mDefaultPhyiscalSizeSettings;
+  }
+  if(series < 0 || series >= getNrOfSeries()) {
+    series = getSeriesWithHighestResolution();
+  }
+  if(mDefaultPhyiscalSizeSettings.isSet() && !alwaysReal) {
+    return mDefaultPhyiscalSizeSettings;
+  }
+  if(mImageInfo.at(series).physicalSize.isSet() || alwaysReal) {
+    return mImageInfo.at(series).physicalSize;
+  }
+  return mDefaultPhyiscalSizeSettings;
+}
+
+///
+/// \brief      Sets the phyiscal size from external
+/// \author     Joachim Danmayr
+///
+void OmeInfo::setPhyiscalSize(const PhyiscalSize &in)
+{
+  mDefaultPhyiscalSizeSettings = in;
+}
+
+///
+/// \brief      Returns the number of channels
+/// \author     Joachim Danmayr
+///
 int OmeInfo::getNrOfChannels(int32_t series) const
 {
-  if(series < 0 || series >= getNrOfSeries()) {
+  if(series < 0 || series >= static_cast<int32_t>(getNrOfSeries())) {
     series = getSeriesWithHighestResolution();
   }
   return mImageInfo.at(series).nrOfChannels;
@@ -257,7 +320,7 @@ int OmeInfo::getNrOfChannels(int32_t series) const
 ///
 int OmeInfo::getNrOfZStack(int32_t series) const
 {
-  if(series < 0 || series >= getNrOfSeries()) {
+  if(series < 0 || series >= static_cast<int32_t>(getNrOfSeries())) {
     series = getSeriesWithHighestResolution();
   }
   return mImageInfo.at(series).nrOfZStacks;
@@ -269,7 +332,7 @@ int OmeInfo::getNrOfZStack(int32_t series) const
 ///
 int OmeInfo::getNrOfTStack(int32_t series) const
 {
-  if(series < 0 || series >= getNrOfSeries()) {
+  if(series < 0 || series >= static_cast<int32_t>(getNrOfSeries())) {
     series = getSeriesWithHighestResolution();
   }
   return mImageInfo.at(series).nrOfTStacks;
@@ -281,7 +344,7 @@ int OmeInfo::getNrOfTStack(int32_t series) const
 ///
 [[nodiscard]] int32_t OmeInfo::getBits(int32_t series) const
 {
-  if(series < 0 || series >= getNrOfSeries()) {
+  if(series < 0 || series >= static_cast<int32_t>(getNrOfSeries())) {
     series = getSeriesWithHighestResolution();
   }
   return mImageInfo.at(series).resolutions.at(0).bits;
@@ -293,7 +356,7 @@ int OmeInfo::getNrOfTStack(int32_t series) const
 ///
 [[nodiscard]] std::tuple<int64_t, int64_t> OmeInfo::getSize(int32_t series) const
 {
-  if(series < 0 || series >= getNrOfSeries()) {
+  if(series < 0 || series >= static_cast<int32_t>(getNrOfSeries())) {
     series = getSeriesWithHighestResolution();
   }
   return {mImageInfo.at(series).resolutions.at(0).imageWidth, mImageInfo.at(series).resolutions.at(0).imageHeight};

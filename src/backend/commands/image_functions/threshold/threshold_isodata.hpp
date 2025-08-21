@@ -69,13 +69,13 @@ public:
       l    = 0;
       totl = 0;
       for(i = 0; i < g; i++) {
-        totl = totl + histogram.at<float>(i);
-        l    = l + (histogram.at<float>(i) * i);
+        totl = totl + static_cast<int32_t>(histogram.at<float>(i));
+        l    = l + static_cast<int32_t>((histogram.at<float>(i)) * static_cast<float>(i));
       }
       h    = 0;
       toth = 0;
       for(i = g + 1; i < 256; i++) {
-        toth += histogram.at<float>(i);
+        toth += static_cast<double>(histogram.at<float>(i));
         h += (static_cast<double>(histogram.at<float>(i)) * i);
       }
       if(totl > 0 && toth > 0) {
@@ -87,10 +87,10 @@ public:
       }
       g++;
       if(g > 254) {
-        return -1;
+        return static_cast<uint16_t>(-1);
       }
     }
-    return g;
+    return static_cast<uint16_t>(g);
   }
 };
 

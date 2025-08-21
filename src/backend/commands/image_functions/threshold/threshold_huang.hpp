@@ -35,7 +35,8 @@ public:
   static uint16_t calcThresholdValue(const cv::Mat &histogram)
   {
     int threshold = -1;
-    int ih, it;
+    int ih;
+    int it;
     int first_bin;
     int last_bin;
     double sum_pix;
@@ -62,12 +63,12 @@ public:
         break;
       }
     }
-    term = 1.0 / (double) (last_bin - first_bin);
+    term = 1.0 / static_cast<double>(last_bin - first_bin);
     double mu_0[256];
     sum_pix = num_pix = 0;
     for(ih = first_bin; ih < 256; ih++) {
-      sum_pix += (double) ih * histogram.at<float>(ih);
-      num_pix += histogram.at<float>(ih);
+      sum_pix += static_cast<double>(ih) * static_cast<double>(histogram.at<float>(ih));
+      num_pix += static_cast<double>(histogram.at<float>(ih));
       /* NUM_PIX cannot be zero ! */
       mu_0[ih] = sum_pix / num_pix;
     }
@@ -75,10 +76,10 @@ public:
     double mu_1[256];
     sum_pix = num_pix = 0;
     for(ih = last_bin; ih > 0; ih--) {
-      sum_pix += (double) ih * histogram.at<float>(ih);
-      num_pix += histogram.at<float>(ih);
+      sum_pix += static_cast<double>(ih) * static_cast<double>(histogram.at<float>(ih));
+      num_pix += static_cast<double>(histogram.at<float>(ih));
       /* NUM_PIX cannot be zero ! */
-      mu_1[ih - 1] = sum_pix / (double) num_pix;
+      mu_1[ih - 1] = sum_pix / num_pix;
     }
 
     /* Determine the threshold that minimizes the fuzzy entropy */
@@ -89,18 +90,18 @@ public:
       for(ih = 0; ih <= it; ih++) {
         /* Equation (4) in Ref. 1 */
         mu_x = 1.0 / (1.0 + term * std::abs(ih - mu_0[it]));
-        if(!((mu_x < 1e-06) || (mu_x > 0.999999))) {
+        if((mu_x >= 1e-06) && (mu_x <= 0.999999)) {
           /* Equation (6) & (8) in Ref. 1 */
-          ent += histogram.at<float>(ih) * (-mu_x * std::log(mu_x) - (1.0 - mu_x) * std::log(1.0 - mu_x));
+          ent += static_cast<double>(histogram.at<float>(ih)) * (-mu_x * std::log(mu_x) - (1.0 - mu_x) * std::log(1.0 - mu_x));
         }
       }
 
       for(ih = it + 1; ih < 256; ih++) {
         /* Equation (4) in Ref. 1 */
         mu_x = 1.0 / (1.0 + term * std::abs(ih - mu_1[it]));
-        if(!((mu_x < 1e-06) || (mu_x > 0.999999))) {
+        if((mu_x >= 1e-06) && (mu_x <= 0.999999)) {
           /* Equation (6) & (8) in Ref. 1 */
-          ent += histogram.at<float>(ih) * (-mu_x * std::log(mu_x) - (1.0 - mu_x) * std::log(1.0 - mu_x));
+          ent += static_cast<double>(histogram.at<float>(ih)) * (-mu_x * std::log(mu_x) - (1.0 - mu_x) * std::log(1.0 - mu_x));
         }
       }
       /* No need to divide by NUM_ROWS * NUM_COLS * LOG(2) ! */
@@ -109,7 +110,7 @@ public:
         threshold = it;
       }
     }
-    return threshold;
+    return static_cast<uint16_t>(threshold);
   }
 };
 

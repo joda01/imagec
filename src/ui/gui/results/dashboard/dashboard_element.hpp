@@ -38,7 +38,7 @@ class DashboardElement : public QWidget, public exporter::Exportable
 public:
   /////////////////////////////////////////////////////
   DashboardElement();
-  void setData(const std::shared_ptr<joda::table::Table> table);
+  void setData(const std::shared_ptr<joda::table::Table> table, const std::string &unit);
   void copyTableToClipboard() const;
   const std::string &getTitle() const override;
   auto getTable() const -> const joda::table::Table & override;
@@ -65,6 +65,7 @@ private:
   QTableView *mTableView;
   TableModel *mTableModel;
   std::shared_ptr<joda::table::Table> mTable;
+  std::string mUnit;
 
   /////////////////////////////////////////////////////
   int savedRow    = -1;

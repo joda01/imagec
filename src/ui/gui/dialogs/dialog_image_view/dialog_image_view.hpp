@@ -50,7 +50,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  DialogImageViewer(QWidget *parent, QToolBar *toolbarParent = nullptr);
+  DialogImageViewer(QWidget *parent, joda::settings::AnalyzeSettings *settings, QToolBar *toolbarParent = nullptr);
   ~DialogImageViewer();
 
   // IMAGE CONTROL ///////////////////////////////
@@ -68,7 +68,7 @@ public:
   void setImagePlane(const ImagePlaneSettings &);
   void setImageChannel(int32_t channel);
   void setShowCrossHairCursor(bool show);
-  void setSettingsPointer(joda::settings::AnalyzeSettings *settings);
+  void fromSettings(const joda::settings::AnalyzeSettings &settings);
 
   // Visibility ///////////////////////////////////////////
   void setOverlayButtonsVisible(bool);

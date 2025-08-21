@@ -28,9 +28,9 @@ public:
     BINARY
   };
 
-  void setId(const enums::ImageId &id, const enums::tile_t &tile)
+  void setId(const enums::ImageId &id, const enums::tile_t &tileIn)
   {
-    this->tile = tile;
+    this->tile = tileIn;
     mId        = id;
   }
 

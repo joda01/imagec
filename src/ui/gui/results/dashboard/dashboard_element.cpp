@@ -96,14 +96,15 @@ void DashboardElement::setHeader(const QString &text)
 /// \param[out]
 /// \return
 ///
-void DashboardElement::setData(const std::shared_ptr<joda::table::Table> table)
+void DashboardElement::setData(const std::shared_ptr<joda::table::Table> table, const std::string &unit)
 {
   using namespace std::chrono_literals;
+  mUnit = unit;
   // Store actual selection
   saveSelection();
   mTable = table;
   setHeader(mTable->getTitle().data());
-  mTableModel->setData(mTable);
+  mTableModel->setData(mTable, unit);
   // Restore selected rows
   restoreSelection();
 }
@@ -170,7 +171,6 @@ auto DashboardElement::getSelectedRows() const -> std::vector<joda::table::Table
     return {};
   }
   QModelIndexList selectedIndex = selectionModel->selectedIndexes();    // one QModelIndex per selected row
-  int columnCount               = mTableModel->columnCount();
   foreach(const QModelIndex &index, selectedIndex) {
     selectedCells.emplace_back(*mTable->data(index.row(), index.column()));
   }
@@ -187,13 +187,13 @@ auto DashboardElement::getSelectedRows() const -> std::vector<joda::table::Table
 ///
 void DashboardElement::copyTableToClipboard() const
 {
-  QStringList data;
+  QStringList dataIn;
   QStringList header;
-  for(int row = 0; row < mTable->getNrOfRows(); ++row) {
+  for(uint32_t row = 0; row < mTable->getNrOfRows(); ++row) {
     QStringList rowData;
-    for(int col = 0; col < mTable->getNrOfCols(); ++col) {
+    for(uint32_t col = 0; col < mTable->getNrOfCols(); ++col) {
       if(row == 0) {
-        header << mTable->getColHeader(col).createHeader().data();
+        header << mTable->getColHeader(col).createHeader(mUnit).data();
       }
       if(col == 0) {
         rowData << mTable->getRowHeader(row).data();
@@ -212,10 +212,10 @@ void DashboardElement::copyTableToClipboard() const
         rowData << "";
       }
     }
-    data << rowData.join("\t");    // Join row data with tabs for better readability
+    dataIn << rowData.join("\t");    // Join row data with tabs for better readability
   }
 
-  QString text = "\t" + header.join("\t") + "\n" + data.join("\n");    // Join rows with newlines
+  QString text = "\t" + header.join("\t") + "\n" + dataIn.join("\n");    // Join rows with newlines
 
   QClipboard *clipboard = QApplication::clipboard();
   clipboard->setText(text);
