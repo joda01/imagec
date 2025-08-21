@@ -190,8 +190,8 @@ int Cli::startCommandLineController(int argc, char *argv[])
       ->check(FileValidator(".ictemplcc"));
   auto *plateCmd = export_cmd->add_subcommand("plate", "Export plate view");
   auto *wellCmd  = export_cmd->add_subcommand("well", "Export well view");
-  std::string wellId;
-  wellCmd->add_option("--id", wellId, "Id of the well to export (0, 1, 2, 3,...)")->required()->default_str("0");
+  std::string groupName;
+  wellCmd->add_option("--name", groupName, "Name of the well to export (11, 10,...)")->required()->default_str("00");
 
   auto *listCmd = export_cmd->add_subcommand("image", "Export list view");
   std::string imageName;
@@ -237,7 +237,7 @@ int Cli::startCommandLineController(int argc, char *argv[])
     } else if(listCmd->parsed()) {
       toExport = exporter::xlsx::ExportSettings::ExportView::IMAGE;
     }
-    exportData(std::filesystem::path(infile), std::filesystem::path(outfile), toFormatEnum(format), toStyleEnum(style), toExport, wellId, tStack,
+    exportData(std::filesystem::path(infile), std::filesystem::path(outfile), toFormatEnum(format), toStyleEnum(style), toExport, groupName, tStack,
                imageName, outputTemplate);
   } else if(databaseCmd->parsed()) {
     if(dbView->parsed()) {
@@ -339,20 +339,13 @@ void Cli::startAnalyze(const std::filesystem::path &pathToSettingsFile, const st
 ///
 void Cli::exportData(const std::filesystem::path &pathToDatabasefile, std::filesystem::path outputPath,
                      exporter::xlsx::ExportSettings::ExportSettings::ExportFormat format, exporter::xlsx::ExportSettings::ExportStyle style,
-                     const exporter::xlsx::ExportSettings::ExportView &view, const std::string &wellId, const std::string &tStackIn,
+                     const exporter::xlsx::ExportSettings::ExportView &view, const std::string &groupName, const std::string &tStackIn,
                      const std::string &imageFileName, const std::string &classExportTemplate)
 {
   int32_t tStack             = 0;
-  int32_t groupId            = 0;
   std::string fileNameSuffix = "_plate";
   if(view == exporter::xlsx::ExportSettings::ExportView::WELL) {
-    fileNameSuffix = "_well_" + wellId;
-    try {
-      groupId = std::stoi(wellId);
-    } catch(...) {
-      joda::log::logError("Well ID must be a number!");
-      std::exit(1);
-    }
+    fileNameSuffix = "_well_" + groupName;
   } else if(view == exporter::xlsx::ExportSettings::ExportView::IMAGE) {
     fileNameSuffix = "_" + imageFileName;
     helper::stringReplace(fileNameSuffix, ".", "");
@@ -391,8 +384,9 @@ void Cli::exportData(const std::filesystem::path &pathToDatabasefile, std::files
 
   try {
     const int32_t plateId = 0;
-    mController->exportData(pathToDatabasefile, joda::exporter::xlsx::ExportSettings{style, format, view, {plateId, groupId, tStack, imageFileName}},
-                            outputPath, classes);
+    mController->exportData(pathToDatabasefile,
+                            joda::exporter::xlsx::ExportSettings{style, format, view, {plateId, groupName, tStack, imageFileName}}, outputPath,
+                            classes);
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
     std::exit(1);

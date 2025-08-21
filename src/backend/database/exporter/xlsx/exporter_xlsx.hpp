@@ -23,8 +23,8 @@ struct ExportSettings
   struct ExportFilter
   {
     int32_t plateId = 0;
-    int32_t groupId = 0;
-    int32_t tStack  = 0;
+    std::string groupName;
+    int32_t tStack = 0;
     std::string imageFileName;
   };
 

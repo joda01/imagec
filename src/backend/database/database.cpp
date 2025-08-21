@@ -14,6 +14,7 @@
 #include "database.hpp"
 #include <duckdb.h>
 #include <chrono>
+#include <cstdint>
 #include <exception>
 #include <filesystem>
 #include <mutex>
@@ -1758,6 +1759,30 @@ auto Database::selectImageIdFromImageFileName(const std::string &imageFileName) 
     }
   }
   return 0;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Database::selectGroupIdFromGroupName(const std::string &groupName) -> uint16_t
+{
+  {
+    std::unique_ptr<duckdb::QueryResult> resultJobs = select("SELECT group_id FROM groups WHERE name = ?", groupName);
+    if(resultJobs->HasError()) {
+      throw std::invalid_argument(resultJobs->GetError());
+    }
+    auto materializedResult = resultJobs->Cast<duckdb::StreamQueryResult>().Materialize();
+    if(materializedResult->RowCount() > 0) {
+      {
+        return materializedResult->GetValue(0, 0).GetValue<uint16_t>();
+      }
+    }
+  }
+  return UINT16_MAX;
 }
 
 }    // namespace joda::db

@@ -99,6 +99,7 @@ public:
   void updateResultsTableSettings(const std::string &jobId, const std::string &settings);
   auto selectResultsTableSettings(const std::string &jobId) -> std::string;
   auto selectImageIdFromImageFileName(const std::string &imageFileName) -> uint64_t;
+  auto selectGroupIdFromGroupName(const std::string &groupName) -> uint16_t;
 
   template <typename... ARGS>
   std::unique_ptr<duckdb::QueryResult> select(const std::string &query, ARGS... args)
