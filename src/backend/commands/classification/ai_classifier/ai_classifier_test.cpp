@@ -37,7 +37,8 @@ TEST_CASE("ai::classifier::test::nucleus", "[ai_classifier]")
   joda::cmd::AiClassifier ai(aiSets);
   joda::atom::ObjectList result;
   joda::settings::ProjectImageSetup setup;
-  joda::processor::PipelineInitializer pipeLinieInit(setup);
+  joda::settings::ProjectPipelineSetup pipSetup;
+  joda::processor::PipelineInitializer pipeLinieInit(setup, pipSetup);
   joda::processor::GlobalContext glob;
   glob.resultsOutputFolder = "/workspaces/imagec/tmp";
   joda::processor::PlateContext plate;
@@ -81,7 +82,8 @@ TEST_CASE("ai::classifier::test::livecell", "[ai_classifier]")
   joda::cmd::AiClassifier ai(aiSets);
   joda::atom::ObjectList result;
   joda::settings::ProjectImageSetup setup;
-  joda::processor::PipelineInitializer pipeLinieInit(setup);
+  joda::settings::ProjectPipelineSetup pipSetup;
+  joda::processor::PipelineInitializer pipeLinieInit(setup, pipSetup);
   joda::processor::GlobalContext glob;
   glob.resultsOutputFolder = "/workspaces/imagec/tmp";
   joda::processor::PlateContext plate;
@@ -134,7 +136,8 @@ TEST_CASE("ai::classifier::test::onnx", "[ai_classifier]")
   joda::cmd::AiClassifier ai(aiSets);
   joda::atom::ObjectList result;
   joda::settings::ProjectImageSetup setup;
-  joda::processor::PipelineInitializer pipeLinieInit(setup);
+  joda::settings::ProjectPipelineSetup pipSetup;
+  joda::processor::PipelineInitializer pipeLinieInit(setup, pipSetup);
   joda::processor::GlobalContext glob;
   glob.resultsOutputFolder = "/workspaces/imagec/tmp";
   joda::processor::PlateContext plate;
@@ -174,7 +177,9 @@ TEST_CASE("ai::classifier::test::pytorch::yolo", "[ai_classifier]")
   joda::cmd::AiClassifier ai(aiSets);
   joda::atom::ObjectList result;
   joda::settings::ProjectImageSetup setup;
-  joda::processor::PipelineInitializer pipeLinieInit(setup);
+  joda::settings::ProjectPipelineSetup pipSetup;
+
+  joda::processor::PipelineInitializer pipeLinieInit(setup, pipSetup);
   joda::processor::GlobalContext glob;
   glob.resultsOutputFolder = "/workspaces/imagec/tmp";
   joda::processor::PlateContext plate;
@@ -216,7 +221,8 @@ TEST_CASE("ai::classifier::test::pytorch::cyto3", "[ai_classifier]")
   joda::cmd::AiClassifier ai(aiSets);
   joda::atom::ObjectList result;
   joda::settings::ProjectImageSetup setup;
-  joda::processor::PipelineInitializer pipeLinieInit(setup);
+  joda::settings::ProjectPipelineSetup pipSetup;
+  joda::processor::PipelineInitializer pipeLinieInit(setup, pipSetup);
   joda::processor::GlobalContext glob;
   glob.resultsOutputFolder = "/workspaces/imagec/tmp";
   joda::processor::PlateContext plate;

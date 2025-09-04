@@ -89,6 +89,7 @@ public:
   std::optional<ImageFromClassSettings> $imageFromClass                 = std::nullopt;
   std::optional<ClassifierSettings> $classify                           = std::nullopt;
   std::optional<AiClassifierSettings> $aiClassify                       = std::nullopt;
+  std::optional<AiClassifierSettings> $pixelClassify                    = std::nullopt;
   std::optional<ColocalizationSettings> $colocalization                 = std::nullopt;
   std::optional<ReclassifySettings> $reclassify                         = std::nullopt;
   std::optional<MeasureIntensitySettings> $measureIntensity             = std::nullopt;
@@ -122,7 +123,7 @@ public:
                                                        $rollingBall, $medianSubtract, $sobel, $canny, $crop, $voronoi, $thresholdValidator,
                                                        $noiseValidator, $intensityTransform, $colorFilter, $objectsToImage, $imageMath,
                                                        $objectTransform, $imageToCache, $morphologicalTransform, $fillHoles, $houghTransform,
-                                                       $enhanceContrast, $rank, $skeletonize, disabled, locked);
+                                                       $enhanceContrast, $rank, $skeletonize, $pixelClassify, disabled, locked);
 };
 
 }    // namespace joda::settings

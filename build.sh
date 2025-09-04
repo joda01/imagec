@@ -20,7 +20,7 @@ make(){
 
 build(){
     cmake --build ./build --config Release --target imagec --parallel 16
-   # cmake --build ./build --config Release --target tests --parallel 16
+    cmake --build ./build --config Release --target tests --parallel 16
 }
 
 

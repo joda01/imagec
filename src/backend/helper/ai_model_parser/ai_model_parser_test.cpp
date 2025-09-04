@@ -8,7 +8,7 @@
 ///
 TEST_CASE("ai_model_parser:test", "[ai_model_parser_test]")
 {
-  auto result = joda::ai::AiModelParser::findAiModelFiles("resources/models");
+  auto result = joda::ai::AiModelParser::findAiModelFiles();
 
   REQUIRE(result.contains("resources/models/cell_segmentation_brightfield_in_vitro_v1.onnx"));
   REQUIRE(result.contains("resources/models/nucleus_detection_ex_vivo_v1.onnx"));

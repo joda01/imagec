@@ -13,8 +13,10 @@
 #include <qdialog.h>
 #include <qformlayout.h>
 #include <qpushbutton.h>
-#include "backend/commands/classification/random_forest/random_forest.hpp"
-#include "backend/commands/classification/random_forest/random_forest_settings.hpp"
+#include "backend/commands/classification/pixel_classifier/pixel_classifier.hpp"
+#include "backend/commands/classification/pixel_classifier/pixel_classifier_settings.hpp"
+#include "backend/commands/classification/pixel_classifier/pixel_classifier_training_settings.hpp"
+#include "backend/commands/classification/pixel_classifier/random_forest/random_forest.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
@@ -41,8 +43,8 @@ DialogInteractiveAiTrainer::DialogInteractiveAiTrainer(const joda::settings::Cla
   setMinimumSize(300, 400);
   auto *formLayout = new QFormLayout;
 
-  defaultClassId = new QComboBox();
-  formLayout->addRow("Class to train from", defaultClassId);
+  mClassId = SettingBase::create<SettingComboBoxClassesOutN>(parent, {}, "Reclassify to");
+  formLayout->addRow("Class to train from", mClassId->getEditableWidget());
 
   auto *btnStartTraining = new QPushButton("Start training");
   connect(btnStartTraining, &QPushButton::pressed, [this]() { startTraining(); });
@@ -67,16 +69,10 @@ DialogInteractiveAiTrainer::DialogInteractiveAiTrainer(const joda::settings::Cla
 ///
 void DialogInteractiveAiTrainer::startTraining()
 {
-  joda::settings::RandomForestSettings settings;
-  joda::cmd::RandomForest randForest(settings);
+  joda::settings::PixelClassifierTrainingSettings settings{
+      .trainingClass = mClassId->getValue(), .method = joda::settings::PixelClassifierMethod::RANDOM_FOREST, .outPath = "myModel.xml"};
 
-  cv::Mat featList;
-  cv::Mat labelList;
-  randForest.prepareTrainingDataFromROI(*mPreviewResult->originalImage.getOriginalImage(), mPreviewResult->objectMap.at(enums::ClassId::C0), featList,
-                                        labelList);
-
-  // auto ret = randForest.trainRandomForest(featList, labelList);
-  // ret->save("tmp/mymodel.xml");
+  joda::cmd::PixelClassifier::train(*mPreviewResult->originalImage.getOriginalImage(), mPreviewResult->objectMap, settings);
 }
 
 }    // namespace joda::ui::gui

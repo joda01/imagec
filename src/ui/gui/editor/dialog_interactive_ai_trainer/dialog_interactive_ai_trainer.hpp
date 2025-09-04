@@ -18,6 +18,7 @@
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "controller/controller.hpp"
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classes_out.hpp"
 
 namespace joda::ui::gui {
 
@@ -58,7 +59,8 @@ private:
   void startTraining();
 
   /////////////////////////////////////////////////////
-  QComboBox *defaultClassId;
+  std::unique_ptr<SettingComboBoxClassesOutN> mClassId;
+
   joda::ctrl::Preview *mPreviewResult;
 };
 

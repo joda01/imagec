@@ -215,6 +215,7 @@ file(GLOB_RECURSE TEST_SOURCES
   ./src/*.cc
   ./src/*.c
   ./test/*.cpp
+    ./src/*.cu
    ${RESOURCE_SOURCES}
 )
 # Exclude main file from source
