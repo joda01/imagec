@@ -205,10 +205,10 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
         "  SELECT\n"
         "  ad.image_id,\n" +
         retValSum +
-        "  FROM objects ad,\n"
+        "  FROM objects ad\n"
         "  WHERE ad.meas_parent_class_id=" +
         std::to_string(static_cast<uint16_t>(classsAndClass.classs)) +
-        "  GROUP BY ad.image_id, ad.class_id, ad.meas_parent_object_id, ad.meas_parent_class_id\n"
+        "  GROUP BY ad.image_id, ad.meas_parent_object_id, ad.meas_parent_class_id\n"
         "),\n";
   } else {
     intersect = "WITH ";

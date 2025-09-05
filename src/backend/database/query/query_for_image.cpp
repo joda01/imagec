@@ -144,12 +144,12 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
         "  image_id,"
         "  ad.meas_parent_object_id as object_id,\n" +
         retValSum +
-        "  FROM objects ad,\n"
+        "  FROM objects ad\n"
         "  WHERE ad.image_id IN " +
         query + " AND ad.stack_z=" + std::to_string(static_cast<int32_t>(classsAndClass.zStack)) +
         " AND ad.stack_t=" + std::to_string(static_cast<int32_t>(classsAndClass.tStack)) +
         " AND ad.meas_parent_class_id=" + std::to_string(static_cast<uint16_t>(classsAndClass.classs)) +
-        "  GROUP BY ad.image_id, ad.class_id, ad.meas_parent_object_id, ad.meas_parent_class_id\n"
+        "  GROUP BY ad.image_id, ad.meas_parent_object_id, ad.meas_parent_class_id\n"
         ")\n";
   } else {
     intersect = "";
@@ -187,7 +187,6 @@ auto StatsPerImage::toSqlTable(const db::ResultingTable::QueryKey &classsAndClas
   DbArgs_t argsEnd = {static_cast<uint16_t>(classsAndClass.classs), static_cast<int32_t>(classsAndClass.zStack),
                       static_cast<int32_t>(classsAndClass.tStack)};
   args.insert(args.end(), argsEnd.begin(), argsEnd.end());
-
   return {sql, args};
 }
 
