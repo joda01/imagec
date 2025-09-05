@@ -31,8 +31,8 @@ TEST_CASE("ai::classifier::test::nucleus", "[ai_classifier]")
   auto info                  = joda::ai::AiModelParser::parseResourceDescriptionFile("models/nucleisegmentationboundarymodel_torchscript/rdf.yaml");
   aiSets.modelParameter      = info.modelParameter;
   aiSets.modelInputParameter = info.inputs.begin()->second;
-  aiSets.thresholds.maskThreshold  = 0.5;
-  aiSets.thresholds.classThreshold = 0.3;
+  aiSets.thresholds.maskThreshold  = 0.5F;
+  aiSets.thresholds.classThreshold = 0.3F;
 
   joda::cmd::AiClassifier ai(aiSets);
   joda::atom::ObjectList result;
@@ -77,7 +77,7 @@ TEST_CASE("ai::classifier::test::livecell", "[ai_classifier]")
   auto info                  = joda::ai::AiModelParser::parseResourceDescriptionFile("models/livecellsegmentationboundarymodel_torchscript/rdf.yaml");
   aiSets.modelParameter      = info.modelParameter;
   aiSets.modelInputParameter = info.inputs.begin()->second;
-  aiSets.thresholds.maskThreshold = 0.96;
+  aiSets.thresholds.maskThreshold = 0.96F;
 
   joda::cmd::AiClassifier ai(aiSets);
   joda::atom::ObjectList result;
@@ -217,7 +217,7 @@ TEST_CASE("ai::classifier::test::pytorch::cyto3", "[ai_classifier]")
   aiSets.modelParameter             = info.modelParameter;
   aiSets.modelParameter.modelFormat = joda::settings::AiClassifierSettings::ModelFormat::TORCHSCRIPT;
   aiSets.modelInputParameter        = info.inputs.begin()->second;
-  aiSets.thresholds.maskThreshold   = 0.2;
+  aiSets.thresholds.maskThreshold   = 0.2F;
   joda::cmd::AiClassifier ai(aiSets);
   joda::atom::ObjectList result;
   joda::settings::ProjectImageSetup setup;
