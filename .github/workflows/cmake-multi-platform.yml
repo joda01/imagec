@@ -177,7 +177,7 @@ jobs:
 
           zip -r imagec-arm64-macos-cpu-bundle.zip imagec-arm64-macos-cpu
           hash_value_macos_cpu=$(sha256sum imagec-arm64-macos-cpu/imagec.app/Contents/MacOS/imagec | cut -d ' ' -f 1)
-          zip -r imagec-arm64-macos-bin-cpu.zip imagec-arm64-macos-cpu/imagec.app
+          zip -r imagec-arm64-macos-cpu-bin.zip imagec-arm64-macos-cpu/imagec.app
           rm -rf imagec-arm64-macos-cpu
           
           timestamp=$(date +"%Y-%m-%d %H:%M:%S")
