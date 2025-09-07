@@ -327,6 +327,19 @@ void PanelImageView::setState(State state)
 /// \param[out]
 /// \return
 ///
+void PanelImageView::setSelectedPixelClass(int32_t pixelClass, const QColor &color)
+{
+  mSelectedPixelClass = pixelClass;
+  mPixelClassColor    = color;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::setCursor()
 {
   switch(mState) {
@@ -503,15 +516,15 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
       // Start rectangle in scene coordinates
       mPaintOrigin = mapToScene(event->pos());
       if(mState == State::PAINT_RECTANGLE) {
-        mRubberItem = scene->addRect(QRectF(mPaintOrigin, mPaintOrigin), QPen(Qt::DashLine));
+        mRubberItem = scene->addRect(QRectF(mPaintOrigin, mPaintOrigin), QPen(Qt::blue, 1, Qt::DashLine));
       } else if(mState == State::PAINT_OVAL) {
-        mRubberItem = scene->addEllipse(QRectF(mPaintOrigin, mPaintOrigin), QPen(Qt::DashLine));
+        mRubberItem = scene->addEllipse(QRectF(mPaintOrigin, mPaintOrigin), QPen(Qt::blue, 1, Qt::DashLine));
       } else if(mState == State::PAINT_POLYGON) {
         if(!mDrawPolygon) {
           mDrawPolygon = true;
           mPolygonPoints.clear();
           mPolygonPoints.push_back(mPaintOrigin);
-          mTempPolygonItem = scene->addPolygon(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()), QPen(Qt::blue, 1), Qt::NoBrush);
+          mTempPolygonItem = scene->addPolygon(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()), QPen(Qt::blue, 1, Qt::DashLine), Qt::NoBrush);
         } else {
           mPolygonPoints.push_back(mPaintOrigin);
           mTempPolygonItem->setPolygon(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()));
@@ -521,8 +534,10 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
       if(mState == State::PAINT_POLYGON) {
         // Finish polygon
         mTempPolygonItem->setPolygon(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()));    // final update
-        mTempPolygonItem->setPen(QPen(Qt::red, 1));                                               // optional fill
-        mPolygonItems.push_back(mTempPolygonItem);
+        mTempPolygonItem->setPen(QPen(mPixelClassColor, 1));                                      // optional fill
+        mTempPolygonItem->setBrush(QBrush(mPixelClassColor, Qt::Dense4Pattern));                  // optional fill
+        mPolygonItems.push_back(
+            PaintedRoiProperties{.pixelClass = mSelectedPixelClass, .pixelClassColor = mPixelClassColor, .item = mTempPolygonItem});
 
         // Clean up temporary data
         mTempPolygonItem = nullptr;
@@ -635,8 +650,8 @@ void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
       }
 
       // Add polygon to scene as a proper polygon item
-      auto *polygon = scene->addPolygon(poly, QPen(Qt::red), Qt::NoBrush);
-      mPolygonItems.push_back(polygon);
+      auto *polygon = scene->addPolygon(poly, QPen(mPixelClassColor), QBrush(mPixelClassColor, Qt::Dense4Pattern));
+      mPolygonItems.push_back(PaintedRoiProperties{.pixelClass = mSelectedPixelClass, .pixelClassColor = mPixelClassColor, .item = polygon});
 
       // Remove the temporary rubber rectangle
       scene->removeItem(mRubberItem);

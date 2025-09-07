@@ -11,7 +11,9 @@
 
 #pragma once
 
+#include <qcolor.h>
 #include <qlabel.h>
+#include <qnamespace.h>
 #include <qwidget.h>
 #include <QtWidgets>
 #include <filesystem>
@@ -87,6 +89,13 @@ public:
     uint16_t mDisplayAreaUpper = 0;
   };
 
+  struct PaintedRoiProperties
+  {
+    int32_t pixelClass = 0;
+    QColor pixelClassColor;
+    QGraphicsPolygonItem *item;
+  };
+
   /////////////////////////////////////////////////////
   PanelImageView(QWidget *parent = nullptr);
   void openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo = nullptr);
@@ -118,6 +127,7 @@ public:
 
   // SET STATE ///////////////////////////////////////////////////
   void setState(State);
+  void setSelectedPixelClass(int32_t pixelClass, const QColor &color);
 
   // INFORMATION NEEDED FROM EXTERNAL ///////////////////////////////////////////////////
   void setZprojection(enums::ZProjection);
@@ -189,7 +199,7 @@ private:
 
   // STATE AND PAINTING ///////////////////////////////////////////////////
   State mState = State::MOVE;
-  std::vector<QGraphicsPolygonItem *> mPolygonItems;
+  std::vector<PaintedRoiProperties> mPolygonItems;
   PaintedRoi_t mActPaintingRoi;
 
   QPointF mPaintOrigin;
@@ -198,6 +208,8 @@ private:
   std::vector<QPointF> mPolygonPoints;
   QGraphicsLineItem *mTempPolygonLine;
   QGraphicsPolygonItem *mTempPolygonItem;
+  int32_t mSelectedPixelClass = 0;
+  QColor mPixelClassColor     = Qt::gray;
 
   // MOVE IMAGE ///////////////////////////////////////////////////
   cv::Size mPixmapSize;

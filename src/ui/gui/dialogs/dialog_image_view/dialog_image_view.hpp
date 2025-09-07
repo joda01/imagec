@@ -60,6 +60,7 @@ public:
   int32_t getSeries() const;
   auto getSelectedZProjection() const -> enums::ZProjection;
   int32_t getSelectedImageChannel() const;
+  int32_t getSelectedPixelClass() const;
   int32_t getSelectedTimeStack() const;
   bool getFillOverlay() const;
   auto getImagePanel() -> PanelImageView *;
@@ -100,6 +101,10 @@ private:
   QActionGroup *mImageChannelMenuGroup = nullptr;
   QAction *mImageChannel               = nullptr;
   std::map<int32_t, QAction *> mChannelSelections;
+
+  QActionGroup *mPixelClassMenuGroup = nullptr;
+  QAction *mPixelClass               = nullptr;
+  std::map<int32_t, QAction *> mPixelClassSelections;
 
   // T-STACK //////////////////////////////////////////////////
   VideoControlButtonGroup *mVideoButtonGroup;
