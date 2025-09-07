@@ -18,6 +18,13 @@ namespace joda::settings {
 
 struct PixelClassifierSettings : public SettingBase
 {
+  int32_t tmp = 0;
+
+  void check() const
+  {
+  }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PixelClassifierSettings, tmp);
 };
 
 }    // namespace joda::settings

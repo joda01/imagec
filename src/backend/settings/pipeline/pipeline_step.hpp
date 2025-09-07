@@ -16,6 +16,7 @@
 #include "backend/commands/classification/ai_classifier/ai_classifier_settings.hpp"
 #include "backend/commands/classification/classifier/classifier_settings.hpp"
 #include "backend/commands/classification/hough_transform/hough_transform_settings.hpp"
+#include "backend/commands/classification/pixel_classifier/pixel_classifier_settings.hpp"
 #include "backend/commands/classification/reclassify/reclassify_settings.hpp"
 #include "backend/commands/image_functions/blur/blur_settings.hpp"
 #include "backend/commands/image_functions/color_filter/color_filter_settings.hpp"
@@ -89,7 +90,7 @@ public:
   std::optional<ImageFromClassSettings> $imageFromClass                 = std::nullopt;
   std::optional<ClassifierSettings> $classify                           = std::nullopt;
   std::optional<AiClassifierSettings> $aiClassify                       = std::nullopt;
-  std::optional<AiClassifierSettings> $pixelClassify                    = std::nullopt;
+  std::optional<PixelClassifierSettings> $pixelClassify                 = std::nullopt;
   std::optional<ColocalizationSettings> $colocalization                 = std::nullopt;
   std::optional<ReclassifySettings> $reclassify                         = std::nullopt;
   std::optional<MeasureIntensitySettings> $measureIntensity             = std::nullopt;

@@ -22,6 +22,8 @@
 #include "backend/commands/classification/hough_transform/hough_transform.hpp"
 #include "backend/commands/classification/hough_transform/hough_transform_settings.hpp"
 #include "backend/commands/classification/hough_transform/hough_transform_settings_ui.hpp"
+#include "backend/commands/classification/pixel_classifier/pixel_classifier.hpp"
+#include "backend/commands/classification/pixel_classifier/pixel_classifier_settings_ui.hpp"
 #include "backend/commands/classification/reclassify/reclassify.hpp"
 #include "backend/commands/classification/reclassify/reclassify_settings.hpp"
 #include "backend/commands/classification/reclassify/reclassify_settings_ui.hpp"
@@ -172,6 +174,15 @@ private:
       } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
         return std::make_unique<joda::ui::gui::Factory<joda::ui::gui::ThresholdAdaptive, ThresholdAdaptiveSettings>>(
             const_cast<settings::PipelineStep &>(step), const_cast<ThresholdAdaptiveSettings &>(step.$thresholdAdaptive.value()), parent);
+      }
+    }
+
+    if(step.$pixelClassify) {
+      if constexpr(std::is_base_of<joda::cmd::Command, RET>::value) {
+        return std::make_unique<joda::cmd::Factory<joda::cmd::PixelClassifier, PixelClassifierSettings>>(step.$pixelClassify.value());
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {
+        return std::make_unique<joda::ui::gui::Factory<joda::ui::gui::PixelClassifier, PixelClassifierSettings>>(
+            const_cast<settings::PipelineStep &>(step), const_cast<PixelClassifierSettings &>(step.$pixelClassify.value()), parent);
       }
     }
 

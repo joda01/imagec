@@ -48,12 +48,13 @@ private:
   {
     IMAGE_PROCESSING        = 0,
     BINARY_IMAGE_PROCESSING = 1,
-    CLASSIFICATION          = 2,
-    OBJECT_PROCESSING       = 3,
-    MEASUREMENT             = 4,
-    FILTERING               = 5,
-    OUTPUT                  = 6,
-    LAST_GROUP              = 7
+    PIXEL_CLASSIFICATION    = 2,
+    OBJECT_CLASSIFICATION   = 3,
+    OBJECT_PROCESSING       = 4,
+    MEASUREMENT             = 5,
+    FILTERING               = 6,
+    OUTPUT                  = 7,
+    LAST_GROUP              = 8
   };
 
   /////////////////////////////////////////////////////

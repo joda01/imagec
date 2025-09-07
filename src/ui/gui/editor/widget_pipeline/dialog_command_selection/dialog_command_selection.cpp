@@ -19,6 +19,7 @@
 #include <memory>
 #include <string>
 #include "backend/commands/classification/hough_transform/hough_transform_settings.hpp"
+#include "backend/commands/classification/pixel_classifier/pixel_classifier_settings.hpp"
 #include "backend/commands/image_functions/blur/blur_settings.hpp"
 #include "backend/commands/image_functions/blur/blur_settings_ui.hpp"
 #include "backend/commands/image_functions/enhance_contrast/enhance_contrast_settings.hpp"
@@ -166,9 +167,14 @@ void DialogCommandSelection::addCommandsToTable()
   }
 
   {
+    addTitleToTable("Pixel classification", Group::PIXEL_CLASSIFICATION);
+    addCommandToTable(settings::PipelineStep{.$threshold = settings::ThresholdSettings{}}, Group::PIXEL_CLASSIFICATION);
+    addCommandToTable(settings::PipelineStep{.$thresholdAdaptive = settings::ThresholdAdaptiveSettings{}}, Group::PIXEL_CLASSIFICATION);
+    addCommandToTable(settings::PipelineStep{.$pixelClassify = settings::PixelClassifierSettings{}}, Group::PIXEL_CLASSIFICATION);
+  }
+
+  {
     addTitleToTable("Binary image Processing", Group::BINARY_IMAGE_PROCESSING);
-    addCommandToTable(settings::PipelineStep{.$threshold = settings::ThresholdSettings{}}, Group::BINARY_IMAGE_PROCESSING);
-    addCommandToTable(settings::PipelineStep{.$thresholdAdaptive = settings::ThresholdAdaptiveSettings{}}, Group::BINARY_IMAGE_PROCESSING);
     addCommandToTable(settings::PipelineStep{.$watershed = settings::WatershedSettings{}}, Group::BINARY_IMAGE_PROCESSING);
     addCommandToTable(settings::PipelineStep{.$morphologicalTransform = settings::MorphologicalTransformSettings{}}, Group::BINARY_IMAGE_PROCESSING);
     addCommandToTable(settings::PipelineStep{.$fillHoles = settings::FillHolesSettings{}}, Group::BINARY_IMAGE_PROCESSING);
@@ -178,14 +184,14 @@ void DialogCommandSelection::addCommandsToTable()
   {
     settings::ClassifierSettings defaultClassify;
     defaultClassify.modelClasses = {{.pixelClassId = 1}};
-    addTitleToTable("Classification", Group::CLASSIFICATION);
-    addCommandToTable(settings::PipelineStep{.$classify = defaultClassify}, Group::CLASSIFICATION);
-    addCommandToTable(settings::PipelineStep{.$aiClassify = settings::AiClassifierSettings{}}, Group::CLASSIFICATION);
-    addCommandToTable(settings::PipelineStep{.$houghTransform = settings::HoughTransformSettings{}}, Group::CLASSIFICATION);
+    addTitleToTable("Object classification", Group::OBJECT_CLASSIFICATION);
+    addCommandToTable(settings::PipelineStep{.$classify = defaultClassify}, Group::OBJECT_CLASSIFICATION);
+    addCommandToTable(settings::PipelineStep{.$aiClassify = settings::AiClassifierSettings{}}, Group::OBJECT_CLASSIFICATION);
+    addCommandToTable(settings::PipelineStep{.$houghTransform = settings::HoughTransformSettings{}}, Group::OBJECT_CLASSIFICATION);
   }
 
   {
-    addTitleToTable("Object Processing", Group::OBJECT_PROCESSING);
+    addTitleToTable("Object processing", Group::OBJECT_PROCESSING);
     addCommandToTable(settings::PipelineStep{.$voronoi = settings::VoronoiGridSettings{}}, Group::OBJECT_PROCESSING);
     addCommandToTable(settings::PipelineStep{.$reclassify = settings::ReclassifySettings{}}, Group::OBJECT_PROCESSING);
     addCommandToTable(settings::PipelineStep{.$objectsToImage = settings::ObjectsToImageSettings{}}, Group::OBJECT_PROCESSING);
