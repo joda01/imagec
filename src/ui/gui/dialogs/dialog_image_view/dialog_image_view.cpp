@@ -155,7 +155,68 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, joda::settings::AnalyzeSet
 
     toolbarTop->addSeparator();
 
-    auto *fitToScreen = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("magnifying-glass"), "Fir");
+    // Painting tools
+    auto *paintingToolActionGroup = new QActionGroup(toolbarTop);
+
+    auto *move = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("hand"), "Move");
+    move->setStatusTip("Move");
+    move->setCheckable(true);
+    move->setChecked(true);
+    paintingToolActionGroup->addAction(move);
+    toolbarTop->addAction(move);
+    connect(move, &QAction::triggered, this, [this](bool checked) {
+      if(checked) {
+        mImageViewRight.setState(PanelImageView::State::MOVE);
+      }
+    });
+
+    auto *paintRectangle = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("rectangle"), "Rectangle");
+    paintRectangle->setStatusTip("Paint rectangle");
+    paintRectangle->setCheckable(true);
+    paintingToolActionGroup->addAction(paintRectangle);
+    toolbarTop->addAction(paintRectangle);
+    connect(paintRectangle, &QAction::triggered, this, [this](bool checked) {
+      if(checked) {
+        mImageViewRight.setState(PanelImageView::State::PAINT_RECTANGLE);
+      }
+    });
+
+    auto *paintCircle = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("circle"), "Circle");
+    paintCircle->setStatusTip("Paint circle");
+    paintCircle->setCheckable(true);
+    paintingToolActionGroup->addAction(paintCircle);
+    toolbarTop->addAction(paintCircle);
+    connect(paintCircle, &QAction::triggered, this, [this](bool checked) {
+      if(checked) {
+        mImageViewRight.setState(PanelImageView::State::PAINT_OVAL);
+      }
+    });
+
+    auto *paintPolygon = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("polygon"), "Polygon");
+    paintPolygon->setStatusTip("Paint polygon");
+    paintPolygon->setCheckable(true);
+    paintingToolActionGroup->addAction(paintPolygon);
+    toolbarTop->addAction(paintPolygon);
+    connect(paintPolygon, &QAction::triggered, this, [this](bool checked) {
+      if(checked) {
+        mImageViewRight.setState(PanelImageView::State::PAINT_POLYGON);
+      }
+    });
+
+    auto *paintBrush = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("paint-brush"), "Brush");
+    paintBrush->setStatusTip("Paint brush");
+    paintBrush->setCheckable(true);
+    paintingToolActionGroup->addAction(paintBrush);
+    // toolbarTop->addAction(paintBrush);
+    connect(paintBrush, &QAction::triggered, this, [this](bool checked) {
+      if(checked) {
+        mImageViewRight.setState(PanelImageView::State::PAIN_BRUSH);
+      }
+    });
+
+    toolbarTop->addSeparator();
+
+    auto *fitToScreen = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("magnifying-glass"), "Fit");
     fitToScreen->setStatusTip("Fit image to screen");
     fitToScreen->setObjectName("ToolButton");
     connect(fitToScreen, &QAction::triggered, this, &DialogImageViewer::onFitImageToScreenSizeClicked);

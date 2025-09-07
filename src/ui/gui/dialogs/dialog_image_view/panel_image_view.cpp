@@ -31,6 +31,7 @@
 #include <opencv2/core/matx.hpp>
 #include <opencv2/core/types.hpp>
 #include <opencv2/imgproc.hpp>
+#include "polygon_item.hpp"
 
 namespace joda::ui::gui {
 
@@ -60,8 +61,7 @@ PanelImageView::PanelImageView(QWidget *parent) : QGraphicsView(parent), mImageT
   setMouseTracking(true);
 
   setFrameShape(Shape::NoFrame);
-  setCursor(Qt::PointingHandCursor);
-  viewport()->setCursor(Qt::PointingHandCursor);
+  setCursor();
 
   connect(this, &PanelImageView::updateImage, this, &PanelImageView::onUpdateImage);
 }
@@ -309,6 +309,53 @@ void PanelImageView::repaintViewport()
 /// \param[out]
 /// \return
 ///
+void PanelImageView::setState(State state)
+{
+  mState = state;
+  setCursor();
+  if(state == State::MOVE) {
+    setDragMode(QGraphicsView::ScrollHandDrag);
+  } else {
+    setDragMode(QGraphicsView::NoDrag);
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::setCursor()
+{
+  switch(mState) {
+    case MOVE:
+      if(mThumbnailAreaEntered) {
+        QGraphicsView::setCursor(Qt::CrossCursor);
+        viewport()->setCursor(Qt::CrossCursor);
+      } else {
+        QGraphicsView::setCursor(Qt::PointingHandCursor);
+        viewport()->setCursor(Qt::PointingHandCursor);
+      }
+      break;
+    case PAINT_RECTANGLE:
+    case PAINT_OVAL:
+    case PAINT_POLYGON:
+    case PAIN_BRUSH:
+      QGraphicsView::setCursor(Qt::CrossCursor);
+      viewport()->setCursor(Qt::CrossCursor);
+      break;
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::setZprojection(enums::ZProjection projection)
 {
   mZprojection = projection;
@@ -439,29 +486,98 @@ void PanelImageView::onUpdateImage()
 /// \param[out]
 /// \return
 ///
+void PanelImageView::mousePressEvent(QMouseEvent *event)
+{
+  if(mState == State::MOVE) {
+    if(mShowCrosshandCursor && event->button() == Qt::RightButton) {
+      mCrossCursorInfo.mCursorPos = event->pos();
+      mCrossCursorInfo.pixelInfo  = fetchPixelInfoFromMousePosition(event->pos());
+      viewport()->update();
+      emit onImageRepainted();
+      return;
+    }
+    QGraphicsView::mousePressEvent(event);
+
+  } else {
+    if(event->button() == Qt::LeftButton) {
+      // Start rectangle in scene coordinates
+      mPaintOrigin = mapToScene(event->pos());
+      if(mState == State::PAINT_RECTANGLE) {
+        mRubberItem = scene->addRect(QRectF(mPaintOrigin, mPaintOrigin), QPen(Qt::DashLine));
+      } else if(mState == State::PAINT_OVAL) {
+        mRubberItem = scene->addEllipse(QRectF(mPaintOrigin, mPaintOrigin), QPen(Qt::DashLine));
+      } else if(mState == State::PAINT_POLYGON) {
+        if(!mDrawPolygon) {
+          mDrawPolygon = true;
+          mPolygonPoints.clear();
+          mPolygonPoints.push_back(mPaintOrigin);
+          mTempPolygonItem = scene->addPolygon(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()), QPen(Qt::blue, 1), Qt::NoBrush);
+        } else {
+          mPolygonPoints.push_back(mPaintOrigin);
+          mTempPolygonItem->setPolygon(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()));
+        }
+      }
+    } else if(event->button() == Qt::RightButton && mDrawPolygon && mPolygonPoints.size() >= 3) {
+      if(mState == State::PAINT_POLYGON) {
+        // Finish polygon
+        mTempPolygonItem->setPolygon(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()));    // final update
+        mTempPolygonItem->setPen(QPen(Qt::red, 1));                                               // optional fill
+        mPolygonItems.push_back(mTempPolygonItem);
+
+        // Clean up temporary data
+        mTempPolygonItem = nullptr;
+        mPolygonPoints.clear();
+        mDrawPolygon = false;
+      }
+    }
+  }
+  QGraphicsView::mousePressEvent(event);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::mouseMoveEvent(QMouseEvent *event)
 {
-  if(isDragging) {
-    // Calculate the difference in mouse position
-    QPoint delta = event->pos() - lastPos;
+  if(mState == State::MOVE) {
+    if(mShowThumbnail) {
+      getThumbnailAreaEntered(event);
+    }
+    if(mShowPixelInfo) {
+      mPixelInfo = fetchPixelInfoFromMousePosition(event->pos());
+    }
 
-    // Scroll the view
-    verticalScrollBar()->setValue(verticalScrollBar()->value() - delta.y());
-    horizontalScrollBar()->setValue(horizontalScrollBar()->value() - delta.x());
+    if(mShowCrosshandCursor) {
+      mCrossCursorInfo.pixelInfo = fetchPixelInfoFromMousePosition(mCrossCursorInfo.mCursorPos);
+    }
+    QGraphicsView::mouseMoveEvent(event);
 
-    // Update the last position
-    lastPos = event->pos();
-    emit onImageRepainted();
-  }
-  if(mShowThumbnail) {
-    getThumbnailAreaEntered(event);
-  }
-  if(mShowPixelInfo) {
-    mPixelInfo = fetchPixelInfoFromMousePosition(event->pos());
-  }
-
-  if(mShowCrosshandCursor) {
-    mCrossCursorInfo.pixelInfo = fetchPixelInfoFromMousePosition(mCrossCursorInfo.mCursorPos);
+  } else {
+    if(mRubberItem != nullptr) {
+      QPointF current = mapToScene(event->pos());
+      QRectF rect(mPaintOrigin, current);
+      rect = rect.normalized();
+      if(mState == State::PAINT_RECTANGLE) {
+        dynamic_cast<QGraphicsRectItem *>(mRubberItem)->setRect(rect);
+      } else if(mState == State::PAINT_OVAL) {
+        dynamic_cast<QGraphicsEllipseItem *>(mRubberItem)->setRect(rect);
+      }
+    }
+    if(mState == State::PAINT_POLYGON) {
+      if(mDrawPolygon && !mPolygonPoints.empty()) {
+        // Update temporary polygon with "rubber line" to cursor
+        QPolygonF polyWithCursor = QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end());
+        polyWithCursor.push_back(mapToScene(event->pos()));
+        if(mTempPolygonItem != nullptr) {
+          mTempPolygonItem->setPolygon(polyWithCursor);
+        }
+      }
+    }
+    QGraphicsView::mouseMoveEvent(event);
   }
 
   scene->update();
@@ -475,17 +591,24 @@ void PanelImageView::mouseMoveEvent(QMouseEvent *event)
 /// \param[out]
 /// \return
 ///
-void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
+QPolygonF ellipseToPolygon(QGraphicsEllipseItem *ellipse, int segments = 36)
 {
-  if(event->button() == Qt::LeftButton) {
-    // End dragging
-    if(cursor() != Qt::PointingHandCursor) {
-      setCursor(Qt::PointingHandCursor);
-      viewport()->setCursor(Qt::PointingHandCursor);
-    }
+  QRectF rect = ellipse->rect();
+  QPolygonF poly;
 
-    isDragging = false;
+  qreal cx = rect.center().x();
+  qreal cy = rect.center().y();
+  qreal rx = rect.width() / 2.0;
+  qreal ry = rect.height() / 2.0;
+
+  for(int i = 0; i < segments; ++i) {
+    qreal angle = (2 * M_PI * i) / segments;
+    qreal x     = cx + rx * cos(angle);
+    qreal y     = cy + ry * sin(angle);
+    poly << QPointF(x, y);
   }
+
+  return poly;
 }
 
 ///
@@ -495,28 +618,32 @@ void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
 /// \param[out]
 /// \return
 ///
-void PanelImageView::mousePressEvent(QMouseEvent *event)
+void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
 {
-  if(mShowCrosshandCursor && event->button() == Qt::RightButton) {
-    mCrossCursorInfo.mCursorPos = event->pos();
-    mCrossCursorInfo.pixelInfo  = fetchPixelInfoFromMousePosition(event->pos());
-    viewport()->update();
-    emit onImageRepainted();
-    return;
-  }
+  if(mState == State::MOVE) {
+    QGraphicsView::mouseReleaseEvent(event);
 
-  if(event->button() == Qt::LeftButton) {
-    // Start dragging
-    if(cursor() != Qt::ClosedHandCursor) {
-      setCursor(Qt::ClosedHandCursor);
-      viewport()->setCursor(Qt::ClosedHandCursor);
-    }
+  } else {
+    if(mRubberItem != nullptr) {
+      QPolygonF poly;
 
-    isDragging = true;
-    lastPos    = event->pos();
-    if(mShowThumbnail) {
-      getClickedTileInThumbnail(event);
+      if(mState == State::PAINT_RECTANGLE) {
+        QRectF rect = dynamic_cast<QGraphicsRectItem *>(mRubberItem)->rect();
+        poly << rect.topLeft() << rect.topRight() << rect.bottomRight() << rect.bottomLeft();
+      } else if(mState == State::PAINT_OVAL) {
+        poly = ellipseToPolygon(dynamic_cast<QGraphicsEllipseItem *>(mRubberItem));
+      }
+
+      // Add polygon to scene as a proper polygon item
+      auto *polygon = scene->addPolygon(poly, QPen(Qt::red), Qt::NoBrush);
+      mPolygonItems.push_back(polygon);
+
+      // Remove the temporary rubber rectangle
+      scene->removeItem(mRubberItem);
+      delete mRubberItem;
+      mRubberItem = nullptr;
     }
+    QGraphicsView::mouseReleaseEvent(event);
   }
 }
 
@@ -633,6 +760,9 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   if(mShowRuler) {
     drawRuler(painter);
   }
+
+  // Draw painted ROIs
+  drawPaintedRois(painter);
 
   // Waiting banner
   if(mWaiting) {
@@ -822,6 +952,17 @@ void PanelImageView::drawRuler(QPainter &painter)
 
   QString textToPrint = QString("%1 %2").arg(QString::number(static_cast<double>(unitToShow))).arg(j.get<std::string>().c_str());
   painter.drawText(QRect(static_cast<int32_t>(THUMB_RECT_START_X), height() - 20, static_cast<int32_t>(rulerSize), 10), Qt::AlignCenter, textToPrint);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::drawPaintedRois(QPainter &painter)
+{
 }
 
 ///
@@ -1066,18 +1207,12 @@ void PanelImageView::getThumbnailAreaEntered(QMouseEvent *event)
   if(rectangle.contains(event->pos())) {
     if(!mThumbnailAreaEntered) {
       mThumbnailAreaEntered = true;
-    }
-    if(cursor() != Qt::CrossCursor) {
-      setCursor(Qt::CrossCursor);
-      viewport()->setCursor(Qt::CrossCursor);
+      setCursor();
     }
   } else {
     if(mThumbnailAreaEntered) {
       mThumbnailAreaEntered = false;
-    }
-    if(cursor() == Qt::CrossCursor) {
-      setCursor(Qt::PointingHandCursor);
-      viewport()->setCursor(Qt::PointingHandCursor);
+      setCursor();
     }
   }
 }

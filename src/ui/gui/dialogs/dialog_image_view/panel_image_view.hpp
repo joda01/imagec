@@ -28,6 +28,8 @@
 
 namespace joda::ui::gui {
 
+using PaintedRoi_t = std::vector<QPoint>;
+
 ///
 /// \class      PanelImageView
 /// \author     Joachim Danmayr
@@ -36,6 +38,15 @@ class PanelImageView : public QGraphicsView
 {
   Q_OBJECT
 public:
+  enum State
+  {
+    MOVE,
+    PAINT_RECTANGLE,
+    PAINT_OVAL,
+    PAINT_POLYGON,
+    PAIN_BRUSH
+  };
+
   struct PixelInfo
   {
     int32_t posX       = 0;
@@ -105,6 +116,9 @@ public:
   int32_t getNrOfCstacks() const;
   int32_t getNrOfZstacks() const;
 
+  // SET STATE ///////////////////////////////////////////////////
+  void setState(State);
+
   // INFORMATION NEEDED FROM EXTERNAL ///////////////////////////////////////////////////
   void setZprojection(enums::ZProjection);
   void setSeries(int32_t);
@@ -133,11 +147,13 @@ private:
   void drawCrossHairCursor(QPainter &);
   void drawPixelInfo(QPainter &, int32_t startX, int32_t startY, const PixelInfo &info);
   void drawRuler(QPainter &);
+  void drawPaintedRois(QPainter &);
   void getClickedTileInThumbnail(QMouseEvent *event);
   void getThumbnailAreaEntered(QMouseEvent *event);
   auto fetchPixelInfoFromMousePosition(const QPoint &pos) const -> PixelInfo;
   auto imageCoordinatesToPreviewCoordinates(const QPoint &imageCoordinates) -> QPoint;
   auto imageCoordinatesToPreviewCoordinates(const QRect &imageCoordinates) -> QRect;
+  void setCursor();
 
 private:
   /////////////////////////////////////////////////////
@@ -171,9 +187,19 @@ private:
   QGraphicsPixmapItem *mActPixmap = nullptr;
   QGraphicsScene *scene           = nullptr;
 
+  // STATE AND PAINTING ///////////////////////////////////////////////////
+  State mState = State::MOVE;
+  std::vector<QGraphicsPolygonItem *> mPolygonItems;
+  PaintedRoi_t mActPaintingRoi;
+
+  QPointF mPaintOrigin;
+  QAbstractGraphicsShapeItem *mRubberItem = nullptr;
+  bool mDrawPolygon                       = false;
+  std::vector<QPointF> mPolygonPoints;
+  QGraphicsLineItem *mTempPolygonLine;
+  QGraphicsPolygonItem *mTempPolygonItem;
+
   // MOVE IMAGE ///////////////////////////////////////////////////
-  bool isDragging = false;
-  QPoint lastPos;
   cv::Size mPixmapSize;
 
   // IMAGE INFO ///////////////////////////////////////////////////
