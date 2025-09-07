@@ -94,6 +94,8 @@ public:
     int32_t pixelClass = 0;
     QColor pixelClassColor;
     QGraphicsPolygonItem *item;
+
+    joda::atom::ROI qPolygonToRoi(const cv::Mat *image) const;
   };
 
   /////////////////////////////////////////////////////
@@ -137,6 +139,7 @@ public:
   void setImageTile(int32_t tileWith, int32_t tileHeight);
   void setDefaultPhysicalSize(const joda::settings::ProjectImageSetup::PhysicalSizeSettings &);
   auto mutableImage() -> joda::image::Image *;
+  auto getObjectMapFromAnnotatedRegions(atom::ObjectList &) -> void;
 
 signals:
   /////////////////////////////////////////////////////

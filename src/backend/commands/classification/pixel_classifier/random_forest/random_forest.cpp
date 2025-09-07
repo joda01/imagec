@@ -12,7 +12,9 @@
 #include "random_forest.hpp"
 #include <opencv2/core/hal/interface.h>
 #include <string>
+#include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_units.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -41,8 +43,7 @@ RandomForest::RandomForest()
 void RandomForest::execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/)
 {
   // Load trained forest
-  cv::Ptr<cv::ml::RTrees> model =
-      cv::ml::StatModel::load<cv::ml::RTrees>("/workspaces/imagec/src/backend/commands/classification/random_forest/myTree.xml");
+  cv::Ptr<cv::ml::RTrees> model = cv::ml::StatModel::load<cv::ml::RTrees>("tmp/myTree.xml");
 
   // ===============================
   // Predict
@@ -67,12 +68,16 @@ void RandomForest::execute(processor::ProcessContext & /*context*/, cv::Mat &ima
 
 // TRAINING //////////////////////////////////
 
-void RandomForest::train(const cv::Mat &image, const std::set<joda::enums::ClassId> &classesToTrain, const atom::ObjectMap &regionOfInterest,
+void RandomForest::train(const cv::Mat &image, const std::set<int32_t> &classesToTrain, const atom::ObjectList &regionOfInterest,
                          const std::filesystem::path &trainedModelOutputFile)
 {
   cv::Mat trainSamples;
   cv::Mat labelList;
   prepareTrainingDataFromROI(image, classesToTrain, regionOfInterest, trainSamples, labelList);
+  if(trainSamples.empty() || labelList.empty()) {
+    joda::log::logWarning("No training samples!");
+    return;
+  }
   auto mlTree = trainRandomForest(trainSamples, labelList);
   mlTree->save(trainedModelOutputFile);
 }
@@ -131,8 +136,8 @@ cv::Mat RandomForest::extractFeatures(const cv::Mat &img)
 /// \param[out]
 /// \return
 ///
-void RandomForest::prepareTrainingDataFromROI(const cv::Mat &image, const std::set<joda::enums::ClassId> &classesToTrain,
-                                              const atom::ObjectMap &regionOfInterest, cv::Mat &trainSamples, cv::Mat &trainLabels)
+void RandomForest::prepareTrainingDataFromROI(const cv::Mat &image, const std::set<int32_t> &classesToTrain, const atom::ObjectList &regionOfInterest,
+                                              cv::Mat &trainSamples, cv::Mat &trainLabels)
 {
   // Extract features
   cv::Mat features = extractFeatures(image);
@@ -157,26 +162,18 @@ void RandomForest::prepareTrainingDataFromROI(const cv::Mat &image, const std::s
   // ====================================
   // Train the individual classes
   // ====================================
-  cv::Mat overlayOfAllRois =
-      cv::Mat::zeros(image.size(), CV_16UC1);    // At the end of the loop this cv::Mat contains all trained areas as white pixels
-  int32_t classLabelIndex = 1;                   // We start at 1, because 0 is reserver for the background
   for(const auto classIdToTrain : classesToTrain) {
-    if(!regionOfInterest.contains(classIdToTrain)) {
+    if(!regionOfInterest.contains(static_cast<enums::ClassId>(classIdToTrain))) {
       continue;
     }
     cv::Mat roiMask            = cv::Mat::zeros(image.size(), CV_16UC1);
-    const auto &objectsToLearn = regionOfInterest.at(classIdToTrain);
+    const auto &objectsToLearn = regionOfInterest.at(static_cast<enums::ClassId>(classIdToTrain));
     objectsToLearn->createBinaryImage(roiMask);
-    cv::bitwise_or(roiMask, overlayOfAllRois, overlayOfAllRois);
-    extractSamples(roiMask, classLabelIndex);
-    classLabelIndex++;
+    extractSamples(roiMask, classIdToTrain);
+    cv::imwrite("tmp/training_mask_" + std::to_string(classIdToTrain) + ".png", roiMask);      // multiply for visualization
+    cv::imwrite("tmp/image_" + std::to_string(classIdToTrain) + ".png", image / 256);          // multiply for visualization
+    cv::imwrite("tmp/features_" + std::to_string(classIdToTrain) + ".png", features / 256);    // multiply for visualization
   }
-
-  // ====================================
-  // Train the background
-  // ====================================
-  cv::bitwise_not(overlayOfAllRois, overlayOfAllRois);
-  extractSamples(overlayOfAllRois, 0);    // Background is always 0
 
   // ====================================
   // Convert labels and samples to cv::Mat

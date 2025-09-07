@@ -17,7 +17,7 @@ class PixelClassifier
 {
 public:
   virtual void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) = 0;
-  virtual void train(const cv::Mat &image, const std::set<joda::enums::ClassId> &classesToTrain, const atom::ObjectMap &regionOfInterest,
+  virtual void train(const cv::Mat &image, const std::set<int32_t> &classesToTrain, const atom::ObjectList &regionOfInterest,
                      const std::filesystem::path &trainedModelOutputFile)                            = 0;
 };
 

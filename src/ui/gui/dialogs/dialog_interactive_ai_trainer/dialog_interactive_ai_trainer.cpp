@@ -20,6 +20,7 @@
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
+#include "ui/gui/dialogs/dialog_image_view/panel_image_view.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
 #include "ui/gui/editor/window_main.hpp"
 #include "ui/gui/helper/iconless_dialog_button_box.hpp"
@@ -34,17 +35,11 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-DialogInteractiveAiTrainer::DialogInteractiveAiTrainer(const joda::settings::Classification & /*classes*/, joda::settings::Pipeline & /*settings*/,
-                                                       joda::ctrl::Preview *objects, WindowMain *parent) :
-    QDialog(parent),
-    mPreviewResult(objects)
+DialogInteractiveAiTrainer::DialogInteractiveAiTrainer(PanelImageView *imagePanel, QWidget *parent) : QDialog(parent), mImagePanel(imagePanel)
 {
   setWindowTitle("Pixel classifier (alpha)");
   setMinimumSize(300, 400);
   auto *formLayout = new QFormLayout;
-
-  mClassId = SettingBase::create<SettingComboBoxClassesOutN>(parent, {}, "Reclassify to");
-  formLayout->addRow("Class to train from", mClassId->getEditableWidget());
 
   auto *btnStartTraining = new QPushButton("Start training");
   connect(btnStartTraining, &QPushButton::pressed, [this]() { startTraining(); });
@@ -69,10 +64,19 @@ DialogInteractiveAiTrainer::DialogInteractiveAiTrainer(const joda::settings::Cla
 ///
 void DialogInteractiveAiTrainer::startTraining()
 {
-  joda::settings::PixelClassifierTrainingSettings settings{
-      .trainingClasses = {mClassId->getValue()}, .method = joda::settings::PixelClassifierMethod::RANDOM_FOREST, .outPath = "myModel.xml"};
+  atom::ObjectList objectList;
+  mImagePanel->getObjectMapFromAnnotatedRegions(objectList);
+  std::set<int32_t> classesToTrain;
 
-  joda::cmd::PixelClassifier::train(*mPreviewResult->originalImage.getOriginalImage(), mPreviewResult->objectMap, settings);
+  for(const auto &[classId, _] : objectList) {
+    classesToTrain.emplace(static_cast<int32_t>(classId));
+  }
+
+  if(classesToTrain.size() > 1) {
+    joda::settings::PixelClassifierTrainingSettings settings{
+        .trainingClasses = classesToTrain, .method = joda::settings::PixelClassifierMethod::RANDOM_FOREST, .outPath = "tmp/myModel.xml"};
+    joda::cmd::PixelClassifier::train(*mImagePanel->mutableImage()->getOriginalImage(), objectList, settings);
+  }
 }
 
 }    // namespace joda::ui::gui

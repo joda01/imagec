@@ -106,7 +106,6 @@ private:
   void previewThread();
 
   // ACTIONS///////////////////////////////////////////////////
-  QAction *mInteractiveAITraining;
   QAction *mUndoAction;
   QAction *mHistoryAction;
   QAction *mActionDisabled;
@@ -156,9 +155,6 @@ private:
   joda::TSQueue<PreviewJob> mPreviewQue;
   std::mutex mCheckForEmptyMutex;
   std::mutex mShutingDownMutex;
-
-  // AI Trainer ////////////////////////////////////////////////////
-  DialogInteractiveAiTrainer *mInteractiveAiTrainer;
 
 private slots:
   /////////////////////////////////////////////////////

@@ -30,7 +30,7 @@ public:
   /////////////////////////////////////////////////////
   PixelClassifier(const settings::PixelClassifierSettings &);
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
-  static void train(const cv::Mat &image, const atom::ObjectMap &result, const settings::PixelClassifierTrainingSettings &trainingSettings);
+  static void train(const cv::Mat &image, const atom::ObjectList &result, const settings::PixelClassifierTrainingSettings &trainingSettings);
 
 private:
   /////////////////////////////////////////////////////

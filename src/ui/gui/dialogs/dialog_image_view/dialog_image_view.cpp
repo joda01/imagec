@@ -29,6 +29,7 @@
 #include <string>
 #include <thread>
 #include "backend/helper/image/image.hpp"
+#include "ui/gui/dialogs/dialog_interactive_ai_trainer/dialog_interactive_ai_trainer.hpp"
 #include "ui/gui/dialogs/widget_video_control_button_group/widget_video_control_button_group.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "dialog_histogram_settings.hpp"
@@ -153,6 +154,27 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, joda::settings::AnalyzeSet
       }
     });
     toolbarTop->addAction(imgSettings);
+
+    //
+    // AI Training
+    //
+    mInteractiveAITraining = toolbarTop->addAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("brain"), "ML training");
+    mInteractiveAITraining->setCheckable(true);
+    mInteractiveAITraining->setStatusTip("Train pixel classifier");
+    connect(mInteractiveAITraining, &QAction::toggled, [this](bool checked) {
+      mInteractiveAiTrainer->blockSignals(true);
+      if(checked) {
+        mInteractiveAiTrainer->show();
+      } else {
+        mInteractiveAiTrainer->hide();
+      }
+      mInteractiveAiTrainer->blockSignals(false);
+    });
+
+    mInteractiveAiTrainer = new DialogInteractiveAiTrainer(&mImageViewRight, parent);
+    connect(mInteractiveAiTrainer, &DialogInteractiveAiTrainer::dialogDisappeared, [this]() {
+      //  mInteractiveAITraining->setChecked(false);
+    });
 
     toolbarTop->addSeparator();
 

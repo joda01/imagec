@@ -37,7 +37,6 @@
 #include "backend/settings/pipeline/pipeline_factory.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
 #include "ui/gui/dialogs/dialog_image_view/dialog_image_view.hpp"
-#include "ui/gui/editor/dialog_interactive_ai_trainer/dialog_interactive_ai_trainer.hpp"
 #include "ui/gui/editor/widget_pipeline/dialog_command_selection/dialog_command_selection.hpp"
 #include "ui/gui/editor/widget_pipeline/dialog_history.hpp"
 #include "ui/gui/editor/widget_pipeline/dialog_pipeline_settings/dialog_pipeline_settings.hpp"
@@ -118,29 +117,6 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
 
   // Tool button
   mToolbar->addSeparator();
-
-  //
-  // AI Training
-  //
-
-  mInteractiveAITraining = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("brain"), "AI training");
-  mInteractiveAITraining->setCheckable(true);
-  mInteractiveAITraining->setStatusTip("Interactive AI trainer");
-  connect(mInteractiveAITraining, &QAction::toggled, [this](bool checked) {
-    mInteractiveAiTrainer->blockSignals(true);
-    if(checked) {
-      mInteractiveAiTrainer->show();
-    } else {
-      mInteractiveAiTrainer->hide();
-    }
-    mInteractiveAiTrainer->blockSignals(false);
-  });
-
-  mInteractiveAiTrainer =
-      new DialogInteractiveAiTrainer(mWindowMain->getSettings().projectSettings.classification, mSettings, &mPreviewResult, mWindowMain);
-  connect(mInteractiveAiTrainer, &DialogInteractiveAiTrainer::dialogDisappeared, [this]() {
-    //  mInteractiveAITraining->setChecked(false);
-  });
 
   //
   // Undo
@@ -763,8 +739,6 @@ void PanelPipelineSettings::setActive(bool setActive)
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
     mIsActiveShown = false;
     mToolbar->setVisible(false);
-    mInteractiveAiTrainer->hide();
-    mInteractiveAITraining->setChecked(false);
     mPreviewResultsDialog->hide();
     mPreviewImage->getImagePanel()->clearOverlay();
     mPreviewImage->getImagePanel()->setShowEditedImage(false);

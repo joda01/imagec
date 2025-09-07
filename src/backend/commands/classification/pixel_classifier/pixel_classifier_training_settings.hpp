@@ -28,7 +28,7 @@ struct PixelClassifierTrainingSettings
   //
   // ID of the class to train
   //
-  std::set<joda::enums::ClassId> trainingClasses;
+  std::set<int32_t> trainingClasses;
 
   //
   // Machine learning method to use

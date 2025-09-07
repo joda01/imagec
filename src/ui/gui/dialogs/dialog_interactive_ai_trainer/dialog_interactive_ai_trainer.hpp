@@ -23,6 +23,7 @@
 namespace joda::ui::gui {
 
 class WindowMain;
+class PanelImageView;
 
 ///
 /// \class
@@ -35,8 +36,7 @@ class DialogInteractiveAiTrainer : public QDialog
 
 public:
   /////////////////////////////////////////////////////
-  DialogInteractiveAiTrainer(const joda::settings::Classification &classes, joda::settings::Pipeline &settings, joda::ctrl::Preview *objects,
-                             WindowMain *parent);
+  DialogInteractiveAiTrainer(PanelImageView *imagePanel, QWidget *parent);
 
 signals:
   void dialogDisappeared();    // custom signal
@@ -59,9 +59,7 @@ private:
   void startTraining();
 
   /////////////////////////////////////////////////////
-  std::unique_ptr<SettingComboBoxClassesOutN> mClassId;
-
-  joda::ctrl::Preview *mPreviewResult;
+  PanelImageView *mImagePanel;
 };
 
 }    // namespace joda::ui::gui

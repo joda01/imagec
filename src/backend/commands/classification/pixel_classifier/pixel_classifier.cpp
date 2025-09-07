@@ -45,7 +45,7 @@ void PixelClassifier::execute(processor::ProcessContext &context, cv::Mat &image
 /// \param[out]
 /// \return
 ///
-void PixelClassifier::train(const cv::Mat &image, const atom::ObjectMap &result, const settings::PixelClassifierTrainingSettings &trainingSettings)
+void PixelClassifier::train(const cv::Mat &image, const atom::ObjectList &result, const settings::PixelClassifierTrainingSettings &trainingSettings)
 {
   switch(trainingSettings.method) {
     case settings::PixelClassifierMethod::UNKNOWN:
