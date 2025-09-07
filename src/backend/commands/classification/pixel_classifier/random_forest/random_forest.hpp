@@ -28,13 +28,13 @@ public:
   /////////////////////////////////////////////////////
   RandomForest();
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
-  void train(const cv::Mat &image, const std::unique_ptr<atom::SpheralIndex> &objectsToLearn,
+  void train(const cv::Mat &image, const std::set<joda::enums::ClassId> &classesToTrain, const atom::ObjectMap &regionOfInterest,
              const std::filesystem::path &trainedModelOutputFile) override;
 
 private:
   /////////////////////////////////////////////////////
-  static void prepareTrainingDataFromROI(const cv::Mat &image, const std::unique_ptr<atom::SpheralIndex> &objectsToLearn, cv::Mat &samples,
-                                         cv::Mat &labels);
+  static void prepareTrainingDataFromROI(const cv::Mat &image, const std::set<joda::enums::ClassId> &classesToTrain,
+                                         const atom::ObjectMap &regionOfInterest, cv::Mat &trainSamples, cv::Mat &trainLabels);
   static cv::Ptr<cv::ml::RTrees> trainRandomForest(const cv::Mat &featList, const cv::Mat &labelList);
 
   static cv::Mat extractFeatures(const cv::Mat &img);

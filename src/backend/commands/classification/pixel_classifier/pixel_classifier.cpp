@@ -47,15 +47,12 @@ void PixelClassifier::execute(processor::ProcessContext &context, cv::Mat &image
 ///
 void PixelClassifier::train(const cv::Mat &image, const atom::ObjectMap &result, const settings::PixelClassifierTrainingSettings &trainingSettings)
 {
-  if(!result.contains(trainingSettings.trainingClass)) {
-    throw std::invalid_argument("No objects with selected class exist!");
-  }
   switch(trainingSettings.method) {
     case settings::PixelClassifierMethod::UNKNOWN:
       break;
     case settings::PixelClassifierMethod::RANDOM_FOREST: {
       RandomForest randForrest;
-      randForrest.train(image, result.at(trainingSettings.trainingClass), trainingSettings.outPath);
+      randForrest.train(image, trainingSettings.trainingClasses, result, trainingSettings.outPath);
     } break;
     case settings::PixelClassifierMethod::K_NEAREST:
       break;

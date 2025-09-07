@@ -177,7 +177,7 @@ void DialogCommandSelection::addCommandsToTable()
 
   {
     settings::ClassifierSettings defaultClassify;
-    defaultClassify.modelClasses = {{.modelClassId = 65535}};
+    defaultClassify.modelClasses = {{.pixelClassId = 1}};
     addTitleToTable("Classification", Group::CLASSIFICATION);
     addCommandToTable(settings::PipelineStep{.$classify = defaultClassify}, Group::CLASSIFICATION);
     addCommandToTable(settings::PipelineStep{.$aiClassify = settings::AiClassifierSettings{}}, Group::CLASSIFICATION);

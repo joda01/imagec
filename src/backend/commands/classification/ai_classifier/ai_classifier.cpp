@@ -124,7 +124,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
     if(static_cast<int32_t>(mSettings.modelClasses.size()) > res.classId) {
       auto objectClassToUse = *mSettings.modelClasses.begin();
       for(const auto &objectClass : mSettings.modelClasses) {
-        if(objectClass.modelClassId == res.classId) {
+        if(objectClass.pixelClassId == res.classId) {
           objectClassToUse = objectClass;
           break;
         }

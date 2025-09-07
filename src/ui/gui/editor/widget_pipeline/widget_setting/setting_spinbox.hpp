@@ -151,28 +151,28 @@ public:
         switch(newUnit) {
           case enums::Units::Pixels:
             if(mObjectType == enums::ObjectType::AREA2D) {
-              mSpinBox->setValue(static_cast<double>(static_cast<int32_t>(std::nearbyint(valueInUm / (pxX * pxY)))));
+              setValue(static_cast<VALUE_T>(static_cast<int32_t>(std::nearbyint(valueInUm / (pxX * pxY)))));
             } else {
-              mSpinBox->setValue(static_cast<double>(static_cast<int32_t>(std::nearbyint(valueInUm / pxX))));
+              setValue(static_cast<VALUE_T>(static_cast<int32_t>(std::nearbyint(valueInUm / pxX))));
             }
             break;
           case enums::Units::nm:
-            mSpinBox->setValue(valueInUm * 1e3);
+            setValue(static_cast<VALUE_T>(valueInUm * 1e3));
             break;
           case enums::Units::um:
-            mSpinBox->setValue(valueInUm);
+            setValue(static_cast<VALUE_T>(valueInUm));
             break;
           case enums::Units::mm:
-            mSpinBox->setValue(valueInUm / 1e3);
+            setValue(static_cast<VALUE_T>(valueInUm / 1e3));
             break;
           case enums::Units::cm:
-            mSpinBox->setValue(valueInUm / 1e4);
+            setValue(static_cast<VALUE_T>(valueInUm / 1e4));
             break;
           case enums::Units::m:
-            mSpinBox->setValue(valueInUm / 1e6);
+            setValue(static_cast<VALUE_T>(valueInUm / 1e6));
             break;
           case enums::Units::km:
-            mSpinBox->setValue(valueInUm / 1e9);
+            setValue(static_cast<VALUE_T>(valueInUm / 1e9));
             break;
           case enums::Units::Undefined:
             break;

@@ -56,7 +56,7 @@ public:
     //
     // Grayscale to assign to
     //
-    int32_t modelClassId = UINT16_MAX;
+    int32_t pixelClassId = 1;
 
     //
     // This factor is added to the calculated auto threshold
@@ -69,7 +69,7 @@ public:
       CHECK_ERROR(thresholdMax >= thresholdMin, "Threshold max must be higher than threshold min.");
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Threshold, method, thresholdMin, thresholdMax, modelClassId, cValue);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Threshold, method, thresholdMin, thresholdMax, pixelClassId, cValue);
   };
 
   std::list<Threshold> modelClasses;

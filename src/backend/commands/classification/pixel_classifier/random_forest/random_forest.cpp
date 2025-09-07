@@ -13,6 +13,7 @@
 #include <opencv2/core/hal/interface.h>
 #include <string>
 #include "backend/enums/enums_units.hpp"
+#include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/ml.hpp>
@@ -66,12 +67,12 @@ void RandomForest::execute(processor::ProcessContext & /*context*/, cv::Mat &ima
 
 // TRAINING //////////////////////////////////
 
-void RandomForest::train(const cv::Mat &image, const std::unique_ptr<atom::SpheralIndex> &objectsToLearn,
+void RandomForest::train(const cv::Mat &image, const std::set<joda::enums::ClassId> &classesToTrain, const atom::ObjectMap &regionOfInterest,
                          const std::filesystem::path &trainedModelOutputFile)
 {
   cv::Mat trainSamples;
   cv::Mat labelList;
-  prepareTrainingDataFromROI(image, objectsToLearn, trainSamples, labelList);
+  prepareTrainingDataFromROI(image, classesToTrain, regionOfInterest, trainSamples, labelList);
   auto mlTree = trainRandomForest(trainSamples, labelList);
   mlTree->save(trainedModelOutputFile);
 }
@@ -130,8 +131,8 @@ cv::Mat RandomForest::extractFeatures(const cv::Mat &img)
 /// \param[out]
 /// \return
 ///
-void RandomForest::prepareTrainingDataFromROI(const cv::Mat &image, const std::unique_ptr<atom::SpheralIndex> &objectsToLearn, cv::Mat &trainSamples,
-                                              cv::Mat &trainLabels)
+void RandomForest::prepareTrainingDataFromROI(const cv::Mat &image, const std::set<joda::enums::ClassId> &classesToTrain,
+                                              const atom::ObjectMap &regionOfInterest, cv::Mat &trainSamples, cv::Mat &trainLabels)
 {
   // Extract features
   cv::Mat features = extractFeatures(image);
@@ -140,26 +141,46 @@ void RandomForest::prepareTrainingDataFromROI(const cv::Mat &image, const std::u
   std::vector<int> labels;
   std::vector<int> sampleIdx;
 
-  cv::Mat roiMask = cv::Mat::zeros(image.size(), CV_16UC1);
-  objectsToLearn->createBinaryImage(roiMask);
-
-  cv::imwrite("tmp/roi_mask.png", roiMask);
-
-  for(int y = 0; y < roiMask.rows; y++) {
-    for(int x = 0; x < roiMask.cols; x++) {
-      uint16_t lbl = roiMask.at<uint16_t>(y, x);
-      int idx      = y * image.cols + x;
-      if(lbl > 0) {    // skip unlabeled pixels
-        sampleIdx.push_back(idx);
-        labels.push_back(1);
-      } else if((rand() % 100) < 5) {
-        // take ~5% of background pixels only
-        sampleIdx.push_back(idx);
-        labels.push_back(0);
+  auto extractSamples = [&image, &sampleIdx, &labels](const cv::Mat &roiMask, int32_t classLabelIndex) {
+    for(int y = 0; y < roiMask.rows; y++) {
+      for(int x = 0; x < roiMask.cols; x++) {
+        uint16_t lbl = roiMask.at<uint16_t>(y, x);
+        int idx      = y * image.cols + x;
+        if(lbl > 0) {    // skip unlabeled pixels
+          sampleIdx.push_back(idx);
+          labels.push_back(classLabelIndex);
+        }
       }
     }
+  };
+
+  // ====================================
+  // Train the individual classes
+  // ====================================
+  cv::Mat overlayOfAllRois =
+      cv::Mat::zeros(image.size(), CV_16UC1);    // At the end of the loop this cv::Mat contains all trained areas as white pixels
+  int32_t classLabelIndex = 1;                   // We start at 1, because 0 is reserver for the background
+  for(const auto classIdToTrain : classesToTrain) {
+    if(!regionOfInterest.contains(classIdToTrain)) {
+      continue;
+    }
+    cv::Mat roiMask            = cv::Mat::zeros(image.size(), CV_16UC1);
+    const auto &objectsToLearn = regionOfInterest.at(classIdToTrain);
+    objectsToLearn->createBinaryImage(roiMask);
+    cv::bitwise_or(roiMask, overlayOfAllRois, overlayOfAllRois);
+    extractSamples(roiMask, classLabelIndex);
+    classLabelIndex++;
   }
 
+  // ====================================
+  // Train the background
+  // ====================================
+  cv::bitwise_not(overlayOfAllRois, overlayOfAllRois);
+  extractSamples(overlayOfAllRois, 0);    // Background is always 0
+
+  // ====================================
+  // Convert labels and samples to cv::Mat
+  // ====================================
   trainSamples = cv::Mat(static_cast<int>(sampleIdx.size()), features.cols, CV_32F);
   trainLabels  = cv::Mat(static_cast<int>(sampleIdx.size()), 1, CV_32S);
 

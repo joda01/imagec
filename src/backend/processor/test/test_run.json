@@ -38,7 +38,7 @@
           "$threshold": {
             "modelClasses": [
               {
-                "modelClassId": 65535,
+                "pixelClassId": 1,
                 "mode": "Manual",
                 "thresholdMax": 65535,
                 "thresholdMin": 25
@@ -81,7 +81,7 @@
                     "snapAreaSize": 0.0
                   }
                 ],
-                "modelClassId": 65535,
+                "pixelClassId": 1,
                 "outputClusterNoMatch": {
                   "classId": "None",
                   "clusterId": "$"
@@ -148,7 +148,7 @@
           "$threshold": {
             "modelClasses": [
               {
-                "modelClassId": 65535,
+                "pixelClassId": 1,
                 "mode": "Manual",
                 "thresholdMax": 65535,
                 "thresholdMin": 85
@@ -190,7 +190,7 @@
                     "snapAreaSize": 0.0
                   }
                 ],
-                "modelClassId": 65535,
+                "pixelClassId": 1,
                 "outputClusterNoMatch": {
                   "classId": "None",
                   "clusterId": "$"
@@ -250,7 +250,7 @@
           "$threshold": {
             "modelClasses": [
               {
-                "modelClassId": 65535,
+                "pixelClassId": 1,
                 "mode": "Li",
                 "thresholdMax": 65535,
                 "thresholdMin": 0
@@ -293,7 +293,7 @@
                     "snapAreaSize": 0.0
                   }
                 ],
-                "modelClassId": 65535,
+                "pixelClassId": 1,
                 "outputClusterNoMatch": {
                   "classId": "None",
                   "clusterId": "$"
@@ -357,7 +357,7 @@
           "$threshold": {
             "modelClasses": [
               {
-                "modelClassId": 65535,
+                "pixelClassId": 1,
                 "mode": "MinError",
                 "thresholdMax": 65535,
                 "thresholdMin": 0
@@ -394,7 +394,7 @@
                     "snapAreaSize": 0.0
                   }
                 ],
-                "modelClassId": 65535,
+                "pixelClassId": 1,
                 "outputClusterNoMatch": {
                   "classId": "None",
                   "clusterId": "$"

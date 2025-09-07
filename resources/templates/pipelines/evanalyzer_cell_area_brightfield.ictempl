@@ -32,7 +32,7 @@
       "$threshold": {
         "modelClasses": [
           {
-            "modelClassId": 65535,
+            "pixelClassId": 1,
             "method": "MinError",
             "thresholdMax": 65535,
             "thresholdMin": 0
@@ -67,7 +67,7 @@
                 "outputClass": "$"
               }
             ],
-            "modelClassId": 65535,
+            "pixelClassId": 1,
             "outputClassNoMatch": "None"
           }
         ]

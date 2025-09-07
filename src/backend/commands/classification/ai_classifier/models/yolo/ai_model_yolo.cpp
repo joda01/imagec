@@ -268,12 +268,12 @@ auto AiModelYolo::processPrediction(const at::Device & /*device*/, const cv::Mat
     //
     // Apply the filter based on the object class
     //
-    int32_t modelClassId = classIds[static_cast<size_t>(idx)];
+    int32_t pixelClassId = classIds[static_cast<size_t>(idx)];
 
     results.push_back(Result{.boundingBox = fittedBoundingBox,
                              .mask        = shiftedMask,
                              .contour     = contour,
-                             .classId     = modelClassId,
+                             .classId     = pixelClassId,
                              .probability = confidences[static_cast<size_t>(idx)]});
   }
   return results;

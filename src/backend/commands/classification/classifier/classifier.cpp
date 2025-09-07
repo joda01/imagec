@@ -53,7 +53,7 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
   for(const auto &objectClass : mSettings.modelClasses) {
     // Create a mask where pixels with value 1 are set to 255
     cv::Mat binaryImage(image.size(), CV_8UC1);
-    binaryImage = image == objectClass.modelClassId;
+    binaryImage = image == objectClass.pixelClassId;
 
     // std::unique_ptr<image::detect::DetectionResults> response = std::make_unique<image::detect::DetectionResults>();
 

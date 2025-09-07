@@ -80,37 +80,24 @@ inline auto generateStackIndexCombo(bool withThis, const QString &helpText, QWid
   return channelSpinbox;
 }
 
-inline auto generateThresholdClass(const QString &helpText, QWidget *parent) -> std::unique_ptr<SettingComboBox<int32_t>>
-{
-  auto mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, helpText);
-  mGrayScaleValue->setDefaultValue(65535);
-  mGrayScaleValue->addOptions({{65535, "TH 1", {}},
-                               {65534, "TH 2", {}},
-                               {65533, "TH 3", {}},
-                               {65532, "TH 4", {}},
-                               {65530, "TH 5", {}},
-                               {65529, "TH 6", {}},
-                               {65528, "TH 7", {}},
-                               {65527, "TH 8", {}}});
-  mGrayScaleValue->setUnit("");
-  mGrayScaleValue->setShortDescription("");
-
-  return mGrayScaleValue;
-}
-
-inline auto generateAiModelClass(const QString &helpText, QWidget *parent) -> std::unique_ptr<SettingComboBox<int32_t>>
+inline auto generatePixelClass(const QString &helpText, QWidget *parent) -> std::unique_ptr<SettingComboBox<int32_t>>
 {
   auto mGrayScaleValue = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, helpText);
   mGrayScaleValue->setDefaultValue(0);
   mGrayScaleValue->addOptions({{-1, "Unset", {}},
-                               {0, "CL 1", {}},
-                               {1, "CL 2", {}},
-                               {2, "CL 3", {}},
-                               {3, "CL 4", {}},
-                               {4, "CL 5", {}},
-                               {5, "CL 6", {}},
-                               {6, "CL 7", {}},
-                               {7, "CL 8", {}}});
+                               {0, "CL 0", {}},
+                               {1, "CL 1", {}},
+                               {2, "CL 2", {}},
+                               {3, "CL 3", {}},
+                               {4, "CL 4", {}},
+                               {5, "CL 5", {}},
+                               {6, "CL 6", {}},
+                               {7, "CL 7", {}},
+                               {8, "CL 8", {}},
+                               {9, "CL 8", {}},
+                               {10, "CL 8", {}},
+                               {11, "CL 8", {}},
+                               {12, "CL 8", {}}});
   mGrayScaleValue->setUnit("");
   mGrayScaleValue->setShortDescription("");
 

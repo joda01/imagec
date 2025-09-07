@@ -77,7 +77,7 @@
               {
                 "cValue": 0,
                 "method": "Manual",
-                "modelClassId": 65535,
+                "pixelClassId": 1,
                 "thresholdMax": 65535,
                 "thresholdMin": 200
               }
@@ -121,7 +121,7 @@
                     "outputClass": "$"
                   }
                 ],
-                "modelClassId": 65535,
+                "pixelClassId": 1,
                 "outputClassNoMatch": "None",
                 "probabilityHandicap": 1.0
               }
@@ -220,7 +220,7 @@
               {
                 "cValue": 0,
                 "method": "Manual",
-                "modelClassId": 65535,
+                "pixelClassId": 1,
                 "thresholdMax": 65535,
                 "thresholdMin": 200
               }
@@ -264,7 +264,7 @@
                     "outputClass": "$"
                   }
                 ],
-                "modelClassId": 65535,
+                "pixelClassId": 1,
                 "outputClassNoMatch": "None",
                 "probabilityHandicap": 1.0
               }
@@ -363,7 +363,7 @@
               {
                 "cValue": 0,
                 "method": "Manual",
-                "modelClassId": 65535,
+                "pixelClassId": 1,
                 "thresholdMax": 65535,
                 "thresholdMin": 200
               }
@@ -407,7 +407,7 @@
                     "outputClass": "$"
                   }
                 ],
-                "modelClassId": 65535,
+                "pixelClassId": 1,
                 "outputClassNoMatch": "None",
                 "probabilityHandicap": 1.0
               }
@@ -506,7 +506,7 @@
               {
                 "cValue": 0,
                 "method": "Manual",
-                "modelClassId": 65535,
+                "pixelClassId": 1,
                 "thresholdMax": 65535,
                 "thresholdMin": 200
               }
@@ -550,7 +550,7 @@
                     "outputClass": "$"
                   }
                 ],
-                "modelClassId": 65535,
+                "pixelClassId": 1,
                 "outputClassNoMatch": "None",
                 "probabilityHandicap": 1.0
               }

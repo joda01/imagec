@@ -33,7 +33,7 @@ void JumpSpinBox::stepBy(int steps)
     setValue(0.0);
     return;
   }
-  if(v == 0.0 && steps < 0) {
+  if(v <= 0 && steps < 0) {
     setValue(-1.0);
     return;
   }

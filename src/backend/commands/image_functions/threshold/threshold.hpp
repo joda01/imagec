@@ -64,7 +64,7 @@ public:
       cv::Mat thresholdTmp;
       cv::threshold(image, thresholdTmp, thresholdValMax, UINT16_MAX, cv::THRESH_BINARY_INV);
       cv::bitwise_and(thresholdImg, thresholdTmp, thresholdImg);
-      thresholdImg.setTo(threshold.modelClassId, thresholdImg > 0);
+      thresholdImg.setTo(threshold.pixelClassId, thresholdImg > 0);
       context.setBinaryImage(thresholdValMin, thresholdValMax);
       outputImage = cv::max(outputImage, thresholdImg);
     }

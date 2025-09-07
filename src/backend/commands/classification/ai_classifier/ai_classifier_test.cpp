@@ -24,9 +24,9 @@ TEST_CASE("ai::classifier::test::nucleus", "[ai_classifier]")
 
   joda::settings::AiClassifierSettings aiSets;
   aiSets.modelPath = "models/nucleisegmentationboundarymodel_torchscript/weights-torchscript.pt";
-  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 0});
-  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 1});
-  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 2});
+  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.pixelClassId = 0});
+  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.pixelClassId = 1});
+  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.pixelClassId = 2});
 
   auto info                  = joda::ai::AiModelParser::parseResourceDescriptionFile("models/nucleisegmentationboundarymodel_torchscript/rdf.yaml");
   aiSets.modelParameter      = info.modelParameter;
@@ -67,12 +67,12 @@ TEST_CASE("ai::classifier::test::livecell", "[ai_classifier]")
 
   joda::settings::AiClassifierSettings aiSets;
   aiSets.modelPath = "models/livecellsegmentationboundarymodel_torchscript/weights-torchscript.pt";
-  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 0});
-  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 1});
-  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 2});
-  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 3});
-  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 4});
-  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 5});
+  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.pixelClassId = 0});
+  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.pixelClassId = 1});
+  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.pixelClassId = 2});
+  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.pixelClassId = 3});
+  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.pixelClassId = 4});
+  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.pixelClassId = 5});
 
   auto info                  = joda::ai::AiModelParser::parseResourceDescriptionFile("models/livecellsegmentationboundarymodel_torchscript/rdf.yaml");
   aiSets.modelParameter      = info.modelParameter;
@@ -125,8 +125,8 @@ TEST_CASE("ai::classifier::test::onnx", "[ai_classifier]")
 
   joda::settings::AiClassifierSettings aiSets;
   aiSets.modelPath = "models/university_of_sbg_cell_segmentation_v3/weights.onnx";
-  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 0});
-  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 1});
+  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.pixelClassId = 0});
+  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.pixelClassId = 1});
 
   auto info                         = joda::ai::AiModelParser::parseResourceDescriptionFile("models/university_of_sbg_cell_segmentation_v3/rdf.yaml");
   aiSets.modelParameter             = info.modelParameter;
@@ -167,8 +167,8 @@ TEST_CASE("ai::classifier::test::pytorch::yolo", "[ai_classifier]")
 
   joda::settings::AiClassifierSettings aiSets;
   aiSets.modelPath = "models/university_of_sbg_cell_segmentation_v3/weights.pt";
-  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 0});
-  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 1});
+  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.pixelClassId = 0});
+  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.pixelClassId = 1});
 
   auto info                         = joda::ai::AiModelParser::parseResourceDescriptionFile("models/university_of_sbg_cell_segmentation_v3/rdf.yaml");
   aiSets.modelParameter             = info.modelParameter;
@@ -210,8 +210,8 @@ TEST_CASE("ai::classifier::test::pytorch::cyto3", "[ai_classifier]")
 
   joda::settings::AiClassifierSettings aiSets;
   aiSets.modelPath = "resources/models/cyto3_cpu/cyto3_cpu.pt";
-  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 0});
-  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.modelClassId = 1});
+  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.pixelClassId = 0});
+  aiSets.modelClasses.emplace_back(joda::settings::ObjectClass{.pixelClassId = 1});
 
   auto info                         = joda::ai::AiModelParser::parseResourceDescriptionFile("resources/models/cyto3_cpu/rdf.yaml");
   aiSets.modelParameter             = info.modelParameter;

@@ -37,7 +37,7 @@ struct ClassifierSettings : public SettingBase
   HierarchyMode detectionHierarchy = HierarchyMode::OUTER;
 
   //
-  // Object classification based on gray scale value (default: modelClassId = 65535)
+  // Object classification based on gray scale value (default: pixelClassId = 1)
   //
   std::list<ObjectClass> modelClasses;
 

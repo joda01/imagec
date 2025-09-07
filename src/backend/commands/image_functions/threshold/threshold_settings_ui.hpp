@@ -88,9 +88,9 @@ private:
       //
       //
       //
-      mGrayScaleValue = generateThresholdClass("Threshold class", parent);
-      mGrayScaleValue->setValue(settings.modelClassId);
-      mGrayScaleValue->connectWithSetting(&settings.modelClassId);
+      mGrayScaleValue = generatePixelClass("Pixel class", parent);
+      mGrayScaleValue->setValue(settings.pixelClassId);
+      mGrayScaleValue->connectWithSetting(&settings.pixelClassId);
 
       outer.addSetting(tab, "Algorithm", {{mThresholdAlgorithm.get(), true, index}, {mGrayScaleValue.get(), true, index}});
 

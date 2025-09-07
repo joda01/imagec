@@ -16,6 +16,7 @@
 #include "backend/commands/image_functions/watershed/watershed_settings.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core/mat.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include "edm.hpp"
 #include "maximum_finder.hpp"
@@ -36,18 +37,39 @@ public:
   {
   }
   virtual ~Watershed() = default;
-  void execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/) override
+  void execute(processor::ProcessContext & /*context*/, cv::Mat &imageIn, atom::ObjectList & /*result*/) override
   {
     if(mSettings.maximumFinderTolerance <= 0) {
       return;
     }
-    image.convertTo(image, CV_8UC1, 1.0 / 257.0);
-    auto floatEdm = joda::image::func::Edm::makeFloatEDM(image, 0, false);
+
+    // ==========================
+    // Prepare input image
+    // ===========================
+    cv::Mat binary8(imageIn.size(), CV_8UC1);
+    binary8 = (imageIn > 0);
+    binary8 *= 255;
+
+    // ==========================
+    // Apply watershed
+    // ===========================
+    auto floatEdm = joda::image::func::Edm::makeFloatEDM(binary8, 0, false);
     joda::image::func::MaximumFinder find;
     auto maxIp = find.findMaxima(floatEdm, static_cast<double>(mSettings.maximumFinderTolerance), joda::image::func::MaximumFinder::NO_THRESHOLD,
                                  joda::image::func::MaximumFinder::SEGMENTED, false, true);
-    cv::bitwise_and(maxIp, image, image);
-    image.convertTo(image, CV_16UC1, static_cast<double>(UINT16_MAX) / static_cast<double>(UINT8_MAX));
+
+    // ==========================
+    // Apply mask
+    // ===========================
+    for(int y = 0; y < maxIp.rows; y++) {
+      const uint8_t *p1 = maxIp.ptr<uint8_t>(y);       // or uchar*, depends on type
+      uint16_t *p2      = imageIn.ptr<uint16_t>(y);    // adjust type as needed
+      for(int x = 0; x < maxIp.cols; x++) {
+        if(p1[x] == 0) {
+          p2[x] = 0;
+        }
+      }
+    }
   }
 
 private:

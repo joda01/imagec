@@ -45,7 +45,7 @@ public:
     for(const auto &threshold : mSettings.modelClasses) {
       cv::Mat thresholdImg(image.size(), CV_16UC1);
       autoThresholdAdaptive(threshold, image, thresholdImg);
-      thresholdImg.setTo(threshold.modelClassId, thresholdImg > 0);
+      thresholdImg.setTo(threshold.pixelClassId, thresholdImg > 0);
       context.setBinaryImage(0, 0);
       outputImage = cv::max(outputImage, thresholdImg);
     }

@@ -70,7 +70,7 @@ DialogInteractiveAiTrainer::DialogInteractiveAiTrainer(const joda::settings::Cla
 void DialogInteractiveAiTrainer::startTraining()
 {
   joda::settings::PixelClassifierTrainingSettings settings{
-      .trainingClass = mClassId->getValue(), .method = joda::settings::PixelClassifierMethod::RANDOM_FOREST, .outPath = "myModel.xml"};
+      .trainingClasses = {mClassId->getValue()}, .method = joda::settings::PixelClassifierMethod::RANDOM_FOREST, .outPath = "myModel.xml"};
 
   joda::cmd::PixelClassifier::train(*mPreviewResult->originalImage.getOriginalImage(), mPreviewResult->objectMap, settings);
 }
