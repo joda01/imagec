@@ -34,7 +34,7 @@ public:
   inline static std::string TITLE             = "Threshold";
   inline static std::string ICON              = "circle-half";
   inline static std::string DESCRIPTION       = "Converts a grayscale image to a binary image.";
-  inline static std::vector<std::string> TAGS = {"threshold", "background", "binary", "otsu", "li", "triangle", "shanbhag"};
+  inline static std::vector<std::string> TAGS = {"threshold", "background", "binary", "otsu", "li", "triangle", "shanbhag", "pixel classify"};
 
   Threshold(joda::settings::PipelineStep &pipelineStep, settings::ThresholdSettings &settings, QWidget *parent) :
       Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::BINARY}}), mSettings(settings),

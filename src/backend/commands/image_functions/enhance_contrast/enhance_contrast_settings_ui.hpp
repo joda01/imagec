@@ -36,7 +36,7 @@ class EnhanceContrast : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Enhance contrast";
-  inline static std::string ICON              = "circle-half-tilt";
+  inline static std::string ICON              = "drop-half";
   inline static std::string DESCRIPTION       = "Enhance the contrast of an image.";
   inline static std::vector<std::string> TAGS = {"contrast", "enhancement", "normalize", "equalize histogram"};
 

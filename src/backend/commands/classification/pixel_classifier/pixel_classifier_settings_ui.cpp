@@ -21,7 +21,7 @@ namespace joda::ui::gui {
 /// \return
 ///
 PixelClassifier::PixelClassifier(joda::settings::PipelineStep &pipelineStep, settings::PixelClassifierSettings &settings, QWidget *parent) :
-    Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings),
+    Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::BINARY}}), mSettings(settings),
     mParent(parent)
 {
   auto *modelTab = addTab(
