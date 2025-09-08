@@ -13,12 +13,14 @@
 #include <qdialog.h>
 #include <qformlayout.h>
 #include <qpushbutton.h>
+#include <filesystem>
 #include "backend/commands/classification/pixel_classifier/pixel_classifier.hpp"
 #include "backend/commands/classification/pixel_classifier/pixel_classifier_settings.hpp"
 #include "backend/commands/classification/pixel_classifier/pixel_classifier_training_settings.hpp"
 #include "backend/commands/classification/pixel_classifier/random_forest/random_forest.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/types.hpp"
+#include "backend/helper/ml_model_parser/ml_model_parser.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "ui/gui/dialogs/dialog_image_view/panel_image_view.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
@@ -73,8 +75,10 @@ void DialogInteractiveAiTrainer::startTraining()
   }
 
   if(classesToTrain.size() > 1) {
+    std::filesystem::path modelPath = joda::ml::MlModelParser::getUsersMlModelDirectory() / ("tmp" + joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL);
+
     joda::settings::PixelClassifierTrainingSettings settings{
-        .trainingClasses = classesToTrain, .method = joda::settings::PixelClassifierMethod::RANDOM_FOREST, .outPath = "tmp/myModel.xml"};
+        .trainingClasses = classesToTrain, .method = joda::settings::PixelClassifierMethod::RANDOM_FOREST, .outPath = modelPath};
     joda::cmd::PixelClassifier::train(*mImagePanel->mutableImage()->getOriginalImage(), objectList, settings);
   }
 }

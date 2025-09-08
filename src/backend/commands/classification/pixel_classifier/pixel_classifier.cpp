@@ -36,6 +36,8 @@ PixelClassifier::PixelClassifier(const settings::PixelClassifierSettings &settin
 ///
 void PixelClassifier::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result)
 {
+  RandomForest randForrest(mSettings.modelPath);
+  randForrest.execute(context, image, result);
 }
 
 ///
@@ -51,7 +53,7 @@ void PixelClassifier::train(const cv::Mat &image, const atom::ObjectList &result
     case settings::PixelClassifierMethod::UNKNOWN:
       break;
     case settings::PixelClassifierMethod::RANDOM_FOREST: {
-      RandomForest randForrest;
+      RandomForest randForrest(trainingSettings.outPath);
       randForrest.train(image, trainingSettings.trainingClasses, result, trainingSettings.outPath);
     } break;
     case settings::PixelClassifierMethod::K_NEAREST:

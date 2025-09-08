@@ -29,7 +29,7 @@ namespace joda::cmd {
 /// \param[out]
 /// \return
 ///
-RandomForest::RandomForest()
+RandomForest::RandomForest(const std::filesystem::path &modelPath) : mModelPath(modelPath)
 {
 }
 
@@ -43,7 +43,7 @@ RandomForest::RandomForest()
 void RandomForest::execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/)
 {
   // Load trained forest
-  cv::Ptr<cv::ml::RTrees> model = cv::ml::StatModel::load<cv::ml::RTrees>("tmp/myTree.xml");
+  cv::Ptr<cv::ml::RTrees> model = cv::ml::StatModel::load<cv::ml::RTrees>(mModelPath.string());
 
   // ===============================
   // Predict
@@ -57,10 +57,9 @@ void RandomForest::execute(processor::ProcessContext & /*context*/, cv::Mat &ima
   segMask.convertTo(segMask, CV_16UC1);
 
   image        = cv::Mat::zeros(segMask.size(), CV_16U);
-  cv::Mat inv  = 65536 - segMask;
   cv::Mat mask = (segMask > 0);
   image.setTo(0, ~mask);
-  inv.copyTo(image, mask);
+  segMask.copyTo(image, mask);
 
   // Now segMask is a binary mask (0 = background, 1 = object)
   cv::imwrite("tmp/segmentation_02.png", image);    // multiply for visualization

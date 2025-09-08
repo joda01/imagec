@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_string.hpp"
 #pragma once
 
 #include <qaction.h>
@@ -45,11 +46,16 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  void refreshModels();
+  void updateModel();
+
+  /////////////////////////////////////////////////////
   settings::PixelClassifierSettings &mSettings;
   QWidget *mParent;
 
   /////////////////////////////////////////////////////
-  std::unique_ptr<SettingComboBoxClassificationIn> mClassesIn;
+  std::unique_ptr<SettingComboBoxString> mModelPath;
+  QLabel *mModelDetails;
 };
 
 }    // namespace joda::ui::gui

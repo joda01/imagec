@@ -11,8 +11,10 @@
 
 #pragma once
 
+#include <filesystem>
 #include "backend/commands/classification/pixel_classifier/pixel_classifier_interface.hpp"
 #include "backend/commands/command.hpp"
+#include "backend/helper/ml_model_parser/ml_model_parser.hpp"
 
 namespace joda::cmd {
 
@@ -26,7 +28,7 @@ class RandomForest : public joda::ml::PixelClassifier
 {
 public:
   /////////////////////////////////////////////////////
-  RandomForest();
+  RandomForest(const std::filesystem::path &modelPath);
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
   void train(const cv::Mat &image, const std::set<int32_t> &classesToTrain, const atom::ObjectList &regionOfInterest,
              const std::filesystem::path &trainedModelOutputFile) override;
@@ -38,6 +40,8 @@ private:
   static cv::Ptr<cv::ml::RTrees> trainRandomForest(const cv::Mat &featList, const cv::Mat &labelList);
 
   static cv::Mat extractFeatures(const cv::Mat &img);
+
+  std::filesystem::path mModelPath;
 };
 
 }    // namespace joda::cmd
