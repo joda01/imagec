@@ -26,6 +26,7 @@
 #include "backend/enums/types.hpp"
 #include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"
+#include "ui/gui/dialogs/dialog_image_view/painted_roi_properties.hpp"
 #include <opencv2/core/types.hpp>
 
 namespace joda::ui::gui {
@@ -89,15 +90,6 @@ public:
     uint16_t mDisplayAreaUpper = 0;
   };
 
-  struct PaintedRoiProperties
-  {
-    int32_t pixelClass = 0;
-    QColor pixelClassColor;
-    QGraphicsPolygonItem *item;
-
-    joda::atom::ROI qPolygonToRoi(const cv::Mat *image) const;
-  };
-
   /////////////////////////////////////////////////////
   PanelImageView(QWidget *parent = nullptr);
   void openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo = nullptr);
@@ -140,6 +132,7 @@ public:
   void setDefaultPhysicalSize(const joda::settings::ProjectImageSetup::PhysicalSizeSettings &);
   auto mutableImage() -> joda::image::Image *;
   auto getObjectMapFromAnnotatedRegions(atom::ObjectList &) -> void;
+  auto getPtrToPolygons() -> std::vector<PaintedRoiProperties> *;
 
 signals:
   /////////////////////////////////////////////////////
@@ -147,6 +140,7 @@ signals:
   void updateImage();
   void onImageRepainted();
   void tileClicked(int32_t tileX, int32_t tileY);
+  void paintedPolygonsChanged();
 
 private:
   /////////////////////////////////////////////////////

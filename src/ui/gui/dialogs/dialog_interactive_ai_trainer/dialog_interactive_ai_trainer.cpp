@@ -23,8 +23,10 @@
 #include "backend/helper/ml_model_parser/ml_model_parser.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "ui/gui/dialogs/dialog_image_view/panel_image_view.hpp"
+#include "ui/gui/dialogs/dialog_interactive_ai_trainer/table_model_painted_polygon.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
 #include "ui/gui/editor/window_main.hpp"
+#include "ui/gui/helper/html_delegate.hpp"
 #include "ui/gui/helper/iconless_dialog_button_box.hpp"
 #include "ui/gui/helper/setting_generator.hpp"
 
@@ -48,13 +50,34 @@ DialogInteractiveAiTrainer::DialogInteractiveAiTrainer(PanelImageView *imagePane
 
   formLayout->addRow(btnStartTraining);
 
-  // Okay and canlce
+  {
+    mPolygonsTable = new PlaceholderTableView(this);
+    mPolygonsTable->setPlaceholderText("Press the + button to add a new pipeline.");
+    mPolygonsTable->setFrameStyle(QFrame::NoFrame);
+    mPolygonsTable->verticalHeader()->setVisible(false);
+    mPolygonsTable->horizontalHeader()->setVisible(true);
+    mPolygonsTable->setAlternatingRowColors(true);
+    mPolygonsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    mPolygonsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    mTableModel = new TableModelPaintedPolygon(mPolygonsTable);
+    mTableModel->setData(imagePanel->getPtrToPolygons());
+    mPolygonsTable->setModel(mTableModel);
+    formLayout->addRow(mPolygonsTable);
+
+    connect(mPolygonsTable->selectionModel(), &QItemSelectionModel::currentChanged, [&](const QModelIndex &current, const QModelIndex &previous) {});
+    connect(mPolygonsTable, &QTableView::clicked, [this](const QModelIndex &index) {});
+    connect(mPolygonsTable, &QTableView::doubleClicked, [this](const QModelIndex &index) {});
+  }
+
+  // Okay and cancel
   auto *buttonBox = new IconlessDialogButtonBox(QDialogButtonBox::Ok, Qt::Horizontal, this);
   connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
   connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
   formLayout->addWidget(buttonBox);
 
   setLayout(formLayout);
+
+  connect(imagePanel, &PanelImageView::paintedPolygonsChanged, [this]() { mTableModel->refresh(); });
 }
 
 ///

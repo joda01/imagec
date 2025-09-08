@@ -19,11 +19,14 @@
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "controller/controller.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classes_out.hpp"
+#include "ui/gui/helper/table_view.hpp"
+#include "ui/gui/helper/table_widget.hpp"
 
 namespace joda::ui::gui {
 
 class WindowMain;
 class PanelImageView;
+class TableModelPaintedPolygon;
 
 ///
 /// \class
@@ -60,6 +63,8 @@ private:
 
   /////////////////////////////////////////////////////
   PanelImageView *mImagePanel;
+  PlaceholderTableView *mPolygonsTable;
+  TableModelPaintedPolygon *mTableModel;
 };
 
 }    // namespace joda::ui::gui

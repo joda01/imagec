@@ -208,6 +208,18 @@ auto PanelImageView::getObjectMapFromAnnotatedRegions(atom::ObjectList &objectMa
 /// \param[out]
 /// \return
 ///
+auto PanelImageView::getPtrToPolygons() -> std::vector<PaintedRoiProperties> *
+{
+  return &mPolygonItems;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::setOverlay(const joda::image::Image &&overlay)
 {
   std::lock_guard<std::mutex> locked(mImageResetMutex);
@@ -558,6 +570,7 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
         mTempPolygonItem = nullptr;
         mPolygonPoints.clear();
         mDrawPolygon = false;
+        emit paintedPolygonsChanged();
       }
     }
   }
@@ -672,6 +685,7 @@ void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
       scene->removeItem(mRubberItem);
       delete mRubberItem;
       mRubberItem = nullptr;
+      emit paintedPolygonsChanged();
     }
     QGraphicsView::mouseReleaseEvent(event);
   }
@@ -1519,46 +1533,6 @@ void PanelImageView::setWaiting(bool waiting)
   mWaiting = waiting;
   update();
   viewport()->update();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-joda::atom::ROI PanelImageView::PaintedRoiProperties::qPolygonToRoi(const cv::Mat *image) const
-{
-  QPolygonF poly = item->polygon();    // get polygon
-  // Convert to cv::Point
-  std::vector<cv::Point> contour;
-  contour.reserve(static_cast<size_t>(poly.size()));
-  for(int i = 0; i < poly.size(); ++i) {
-    contour.emplace_back(static_cast<int>(poly[i].x()), static_cast<int>(poly[i].y()));
-  }
-
-  // Make contour
-  auto boundingBox = cv::boundingRect(contour);
-  cv::Mat mask     = cv::Mat::zeros(boundingBox.size(), CV_8UC1);
-
-  // Bring the contours box in the area of the bounding box
-  for(auto &point : contour) {
-    point.x = point.x - boundingBox.x;
-    point.y = point.y - boundingBox.y;
-  }
-
-  std::vector<std::vector<cv::Point>> contours = {contour};
-  cv::drawContours(mask, contours, -1, cv::Scalar(255), cv::FILLED);
-
-  //
-  // Ready to classify -> First create a ROI object to get the measurements
-  //
-  joda::atom::ROI detectedRoi(
-      atom::ROI::RoiObjectId{.classId = static_cast<enums::ClassId>(pixelClass), .imagePlane = {.tStack = 0, .zStack = 0, .cStack = 0}}, 1.0,
-      boundingBox, mask, contour, image->size(), image->size(), {0, 0}, image->size());
-
-  return detectedRoi;
 }
 
 }    // namespace joda::ui::gui
