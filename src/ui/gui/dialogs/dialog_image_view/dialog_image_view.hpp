@@ -28,7 +28,7 @@ namespace joda::ui::gui {
 
 class HistoToolbar;
 class VideoControlButtonGroup;
-class DialogInteractiveAiTrainer;
+class DialogRoiManager;
 
 ///
 /// \class      DialogImageViewer
@@ -109,7 +109,7 @@ private:
   std::map<int32_t, QAction *> mPixelClassSelections;
 
   // AI Trainer ////////////////////////////////////////////////////
-  DialogInteractiveAiTrainer *mInteractiveAiTrainer;
+  DialogRoiManager *mInteractiveAiTrainer;
 
   // T-STACK //////////////////////////////////////////////////
   VideoControlButtonGroup *mVideoButtonGroup;

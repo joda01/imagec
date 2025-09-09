@@ -47,7 +47,7 @@ class PanelClassification;
 class DialogCommandSelection;
 class DialogPreviewResults;
 class DialogImageViewer;
-class DialogInteractiveAiTrainer;
+class DialogRoiManager;
 
 class PanelPipelineSettings : public QWidget
 {

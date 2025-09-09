@@ -17,6 +17,7 @@
 #include <qsize.h>
 #include <qstatictext.h>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <mutex>
 #include <ranges>
@@ -528,6 +529,9 @@ void PanelImageView::onUpdateImage()
 ///
 void PanelImageView::mousePressEvent(QMouseEvent *event)
 {
+  if(getClickedOnRoi(event)) {
+    return;
+  }
   if(mState == State::MOVE) {
     if(mShowCrosshandCursor && event->button() == Qt::RightButton) {
       mCrossCursorInfo.mCursorPos = event->pos();
@@ -805,9 +809,6 @@ void PanelImageView::paintEvent(QPaintEvent *event)
     drawRuler(painter);
   }
 
-  // Draw painted ROIs
-  drawPaintedRois(painter);
-
   // Waiting banner
   if(mWaiting) {
     QRect overlay(0, viewportRect.height() / 2 - 10, viewportRect.width(), 20);
@@ -996,17 +997,6 @@ void PanelImageView::drawRuler(QPainter &painter)
 
   QString textToPrint = QString("%1 %2").arg(QString::number(static_cast<double>(unitToShow))).arg(j.get<std::string>().c_str());
   painter.drawText(QRect(static_cast<int32_t>(THUMB_RECT_START_X), height() - 20, static_cast<int32_t>(rulerSize), 10), Qt::AlignCenter, textToPrint);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelImageView::drawPaintedRois(QPainter &painter)
-{
 }
 
 ///
@@ -1258,6 +1248,61 @@ void PanelImageView::getThumbnailAreaEntered(QMouseEvent *event)
       mThumbnailAreaEntered = false;
       setCursor();
     }
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+bool PanelImageView::getClickedOnRoi(QMouseEvent *event)
+{
+  for(size_t idx = 0; idx < mPolygonItems.size(); idx++) {
+    const auto &poly = mPolygonItems.at(idx);
+    if(poly.item->contains(mapToScene(event->pos()))) {
+      setSelectedRoi(static_cast<int32_t>(idx));
+      return true;
+    }
+  }
+  resetSelectedPolygon();
+  mSelectedPolygonIdx = -1;
+  emit paintedPolygonClicked(mSelectedPolygonIdx);
+  return false;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::setSelectedRoi(int32_t idx)
+{
+  if(mSelectedPolygonIdx != static_cast<int32_t>(idx)) {
+    resetSelectedPolygon();
+    const auto &poly = mPolygonItems.at(static_cast<size_t>(idx));
+    poly.item->setPen(QPen(Qt::yellow, 2));
+    mSelectedPolygonIdx = static_cast<int32_t>(idx);
+    emit paintedPolygonClicked(mSelectedPolygonIdx);
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::resetSelectedPolygon()
+{
+  if(mSelectedPolygonIdx >= 0 && static_cast<int32_t>(mPolygonItems.size()) > mSelectedPolygonIdx) {
+    auto &poly = mPolygonItems.at(static_cast<size_t>(mSelectedPolygonIdx));
+    poly.item->setPen(QPen(poly.pixelClassColor, 1));
   }
 }
 

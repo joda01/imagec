@@ -1,5 +1,5 @@
 ///
-/// \file      dialog_interactive_ai_trainer.cpp
+/// \file      dialog_roi_manager.cpp
 /// \author    Joachim Danmayr
 /// \date      2025-08-03
 ///
@@ -9,7 +9,7 @@
 ///            For **Commercial** please contact the copyright owner.
 ///
 
-#include "dialog_interactive_ai_trainer.hpp"
+#include "dialog_roi_manager.hpp"
 #include <qdialog.h>
 #include <qformlayout.h>
 #include <qpushbutton.h>
@@ -23,7 +23,7 @@
 #include "backend/helper/ml_model_parser/ml_model_parser.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "ui/gui/dialogs/dialog_image_view/panel_image_view.hpp"
-#include "ui/gui/dialogs/dialog_interactive_ai_trainer/table_model_painted_polygon.hpp"
+#include "ui/gui/dialogs/dialog_roi_manager/table_model_painted_polygon.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
 #include "ui/gui/editor/window_main.hpp"
 #include "ui/gui/helper/html_delegate.hpp"
@@ -39,7 +39,7 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-DialogInteractiveAiTrainer::DialogInteractiveAiTrainer(PanelImageView *imagePanel, QWidget *parent) : QDialog(parent), mImagePanel(imagePanel)
+DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) : QDialog(parent), mImagePanel(imagePanel)
 {
   setWindowTitle("Pixel classifier (alpha)");
   setMinimumSize(300, 400);
@@ -78,6 +78,11 @@ DialogInteractiveAiTrainer::DialogInteractiveAiTrainer(PanelImageView *imagePane
   setLayout(formLayout);
 
   connect(imagePanel, &PanelImageView::paintedPolygonsChanged, [this]() { mTableModel->refresh(); });
+  connect(imagePanel, &PanelImageView::paintedPolygonClicked, [this](int32_t selectedIndex) {
+    QModelIndex index = mPolygonsTable->model()->index(selectedIndex, 0);    // pick column 0 for the row
+    mPolygonsTable->selectionModel()->select(index, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+    mPolygonsTable->setCurrentIndex(index);
+  });
 }
 
 ///
@@ -87,7 +92,7 @@ DialogInteractiveAiTrainer::DialogInteractiveAiTrainer(PanelImageView *imagePane
 /// \param[out]
 /// \return
 ///
-void DialogInteractiveAiTrainer::startTraining()
+void DialogRoiManager::startTraining()
 {
   atom::ObjectList objectList;
   mImagePanel->getObjectMapFromAnnotatedRegions(objectList);

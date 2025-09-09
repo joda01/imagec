@@ -29,7 +29,7 @@
 #include <string>
 #include <thread>
 #include "backend/helper/image/image.hpp"
-#include "ui/gui/dialogs/dialog_interactive_ai_trainer/dialog_interactive_ai_trainer.hpp"
+#include "ui/gui/dialogs/dialog_roi_manager/dialog_roi_manager.hpp"
 #include "ui/gui/dialogs/widget_video_control_button_group/widget_video_control_button_group.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "dialog_histogram_settings.hpp"
@@ -171,8 +171,8 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, joda::settings::AnalyzeSet
       mInteractiveAiTrainer->blockSignals(false);
     });
 
-    mInteractiveAiTrainer = new DialogInteractiveAiTrainer(&mImageViewRight, parent);
-    connect(mInteractiveAiTrainer, &DialogInteractiveAiTrainer::dialogDisappeared, [this]() {
+    mInteractiveAiTrainer = new DialogRoiManager(&mImageViewRight, parent);
+    connect(mInteractiveAiTrainer, &DialogRoiManager::dialogDisappeared, [this]() {
       //  mInteractiveAITraining->setChecked(false);
     });
 

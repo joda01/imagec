@@ -1,5 +1,5 @@
 ///
-/// \file      dialog_interactive_ai_trainer.hpp
+/// \file      dialog_roi_manager.hpp
 /// \author    Joachim Danmayr
 /// \date      2025-08-03
 ///
@@ -33,13 +33,13 @@ class TableModelPaintedPolygon;
 /// \author     Joachim Danmayr
 /// \brief
 ///
-class DialogInteractiveAiTrainer : public QDialog
+class DialogRoiManager : public QDialog
 {
   Q_OBJECT
 
 public:
   /////////////////////////////////////////////////////
-  DialogInteractiveAiTrainer(PanelImageView *imagePanel, QWidget *parent);
+  DialogRoiManager(PanelImageView *imagePanel, QWidget *parent);
 
 signals:
   void dialogDisappeared();    // custom signal

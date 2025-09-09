@@ -131,8 +131,11 @@ public:
   void setImageTile(int32_t tileWith, int32_t tileHeight);
   void setDefaultPhysicalSize(const joda::settings::ProjectImageSetup::PhysicalSizeSettings &);
   auto mutableImage() -> joda::image::Image *;
+
+  // REGION OF INTERESTS //////////////////////////////////////////////
   auto getObjectMapFromAnnotatedRegions(atom::ObjectList &) -> void;
   auto getPtrToPolygons() -> std::vector<PaintedRoiProperties> *;
+  void setSelectedRoi(int32_t idx);
 
 signals:
   /////////////////////////////////////////////////////
@@ -141,6 +144,7 @@ signals:
   void onImageRepainted();
   void tileClicked(int32_t tileX, int32_t tileY);
   void paintedPolygonsChanged();
+  void paintedPolygonClicked(int32_t selectedIndex);
 
 private:
   /////////////////////////////////////////////////////
@@ -154,13 +158,14 @@ private:
   void drawCrossHairCursor(QPainter &);
   void drawPixelInfo(QPainter &, int32_t startX, int32_t startY, const PixelInfo &info);
   void drawRuler(QPainter &);
-  void drawPaintedRois(QPainter &);
   void getClickedTileInThumbnail(QMouseEvent *event);
   void getThumbnailAreaEntered(QMouseEvent *event);
+  bool getClickedOnRoi(QMouseEvent *event);
   auto fetchPixelInfoFromMousePosition(const QPoint &pos) const -> PixelInfo;
   auto imageCoordinatesToPreviewCoordinates(const QPoint &imageCoordinates) -> QPoint;
   auto imageCoordinatesToPreviewCoordinates(const QRect &imageCoordinates) -> QRect;
   void setCursor();
+  void resetSelectedPolygon();
 
 private:
   /////////////////////////////////////////////////////
@@ -198,6 +203,7 @@ private:
   State mState = State::MOVE;
   std::vector<PaintedRoiProperties> mPolygonItems;
   PaintedRoi_t mActPaintingRoi;
+  int32_t mSelectedPolygonIdx = -1;
 
   QPointF mPaintOrigin;
   QAbstractGraphicsShapeItem *mRubberItem = nullptr;
