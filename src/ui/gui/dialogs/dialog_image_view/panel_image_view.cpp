@@ -1283,11 +1283,17 @@ bool PanelImageView::getClickedOnRoi(QMouseEvent *event)
 void PanelImageView::setSelectedRoi(int32_t idx)
 {
   if(mSelectedPolygonIdx != static_cast<int32_t>(idx)) {
-    resetSelectedPolygon();
-    const auto &poly = mPolygonItems.at(static_cast<size_t>(idx));
-    poly.item->setPen(QPen(Qt::yellow, 2));
-    mSelectedPolygonIdx = static_cast<int32_t>(idx);
-    emit paintedPolygonClicked(mSelectedPolygonIdx);
+    if(idx < 0) {
+      resetSelectedPolygon();
+      mSelectedPolygonIdx = static_cast<int32_t>(idx);
+      emit paintedPolygonClicked(mSelectedPolygonIdx);
+    } else {
+      resetSelectedPolygon();
+      const auto &poly = mPolygonItems.at(static_cast<size_t>(idx));
+      poly.item->setPen(QPen(Qt::yellow, 2));
+      mSelectedPolygonIdx = static_cast<int32_t>(idx);
+      emit paintedPolygonClicked(mSelectedPolygonIdx);
+    }
   }
 }
 

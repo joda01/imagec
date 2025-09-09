@@ -49,7 +49,7 @@ int TableModelPaintedPolygon::columnCount(const QModelIndex & /*parent*/) const
   if(mPolygons == nullptr) {
     return 0;
   }
-  return 2;
+  return 1;
 }
 
 ///
@@ -68,10 +68,7 @@ QVariant TableModelPaintedPolygon::headerData(int section, Qt::Orientation /*ori
     return {};
   }
   if(section == 0) {
-    return {"Name"};
-  }
-  if(section == 1) {
-    return {"Class/Channel"};
+    return {"Region of interests"};
   }
   return {};
 }
@@ -107,11 +104,10 @@ QVariant TableModelPaintedPolygon::data(const QModelIndex &index, int role) cons
   if(role == Qt::DisplayRole) {
     QString imgChannel = QString::number(it->pixelClass);
     if(it->pixelClass == 0) {
-      imgChannel = "Background";
+      return "Background";
     }
     if(index.column() == 0) {
-      QString html = "%1";
-      return html.arg(QString::number(it->pixelClass));
+      return "Class " + QString::number(it->pixelClass);
     }
     if(index.column() == 1) {
       QString retStr;

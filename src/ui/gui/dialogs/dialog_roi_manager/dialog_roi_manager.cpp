@@ -23,6 +23,7 @@
 #include "backend/helper/ml_model_parser/ml_model_parser.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "ui/gui/dialogs/dialog_image_view/panel_image_view.hpp"
+#include "ui/gui/dialogs/dialog_roi_manager/table_item_delegate_polygon.hpp"
 #include "ui/gui/dialogs/dialog_roi_manager/table_model_painted_polygon.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
 #include "ui/gui/editor/window_main.hpp"
@@ -59,14 +60,21 @@ DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) 
     mPolygonsTable->setAlternatingRowColors(true);
     mPolygonsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     mPolygonsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    mPolygonsTable->setItemDelegateForColumn(0, new ItemDelegatePolygon(mPolygonsTable));
     mTableModel = new TableModelPaintedPolygon(mPolygonsTable);
     mTableModel->setData(imagePanel->getPtrToPolygons());
     mPolygonsTable->setModel(mTableModel);
     formLayout->addRow(mPolygonsTable);
 
-    connect(mPolygonsTable->selectionModel(), &QItemSelectionModel::currentChanged, [&](const QModelIndex &current, const QModelIndex &previous) {});
-    connect(mPolygonsTable, &QTableView::clicked, [this](const QModelIndex &index) {});
-    connect(mPolygonsTable, &QTableView::doubleClicked, [this](const QModelIndex &index) {});
+    connect(mPolygonsTable->selectionModel(), &QItemSelectionModel::currentChanged,
+            [&](const QModelIndex &current, const QModelIndex & /*previous*/) { mImagePanel->setSelectedRoi(current.row()); });
+    connect(mPolygonsTable, &QTableView::clicked, [this](const QModelIndex &index) { mImagePanel->setSelectedRoi(index.row()); });
+    connect(mPolygonsTable->selectionModel(), &QItemSelectionModel::selectionChanged, this, [this](const QItemSelection &, const QItemSelection &) {
+      if(!mPolygonsTable->selectionModel()->hasSelection()) {
+        mImagePanel->setSelectedRoi(-1);
+      }
+    });
+    // connect(mPolygonsTable, &QTableView::doubleClicked, [this](const QModelIndex &index) {});
   }
 
   // Okay and cancel

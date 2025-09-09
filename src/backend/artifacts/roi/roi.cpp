@@ -319,7 +319,7 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 ///
 [[nodiscard]] auto ROI::getDistances(const ome::PhyiscalSize &physicalSize, enums::Units unit) const -> std::map<uint64_t, Distance>
 {
-  auto [pxSizeX, pxSizeY, pxSizeZ] = physicalSize.getPixelSize(unit);
+  // auto [pxSizeX, pxSizeY, pxSizeZ] = physicalSize.getPixelSize(unit);
   return mDistances;
 }
 

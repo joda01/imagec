@@ -53,8 +53,8 @@ void OmeInfo::loadOmeInformationFromXMLString(const std::string &omeXML, const P
   std::string keyPrefix;    // OME:
 
 TRY_AGAIN:
-  std::string imageName = std::string(doc.child("OME").child(std::string(keyPrefix + "Image").data()).attribute("Name").as_string());
-  if(imageName.empty() && keyPrefix.empty()) {
+  std::string imageNameIn = std::string(doc.child("OME").child(std::string(keyPrefix + "Image").data()).attribute("Name").as_string());
+  if(imageNameIn.empty() && keyPrefix.empty()) {
     keyPrefix = "OME:";
     goto TRY_AGAIN;
   }
@@ -82,12 +82,10 @@ TRY_AGAIN:
 
   mObjectiveInfo = ObjectiveInfo{.manufacturer = objectivManufacturer, .model = objectivModel, .medium = medium, .magnification = magnification};
 
-  int series = 0;
-
   // Function to find the Series node by index
-  auto getSeriesByIndex = [](const pugi::xml_document &doc, int index) -> std::tuple<pugi::xml_node, int32_t> {
+  auto getSeriesByIndex = [](const pugi::xml_document &docIn, int index) -> std::tuple<pugi::xml_node, int32_t> {
     // Get the root node (JODA)
-    pugi::xml_node root = doc.child("JODA");
+    pugi::xml_node root = docIn.child("JODA");
 
     // Check if the root node exists
     if(!root) {
@@ -109,6 +107,7 @@ TRY_AGAIN:
     return {pugi::xml_node(), -1};
   };
 
+  int series = 0;
   for(pugi::xml_node image = doc.child("OME").child(std::string(keyPrefix + "Image").data()); image != nullptr;
       image                = image.next_sibling(std::string(keyPrefix + "Image").data())) {
     if(!mImageInfo.contains(series)) {
@@ -118,7 +117,7 @@ TRY_AGAIN:
     actImageInfo.seriesIdx = series;
     series++;
 
-    std::string imageName = std::string(image.attribute("Name").as_string());
+    // std::string imageName = std::string(image.attribute("Name").as_string());
 
     //
     // TIFF Data
@@ -180,8 +179,8 @@ TRY_AGAIN:
         joda::log::logWarning("Wrong Channel ID format in OME XML.");
       }
 
-      auto channelName            = std::string(channelNode.attribute("Name").as_string("Unknown"));
-      auto samplesPerPixel        = channelNode.attribute("SamplesPerPixel").as_float();
+      auto channelName = std::string(channelNode.attribute("Name").as_string("Unknown"));
+      // auto samplesPerPixel        = channelNode.attribute("SamplesPerPixel").as_float();
       auto contrastMethod         = std::string(channelNode.attribute("ContrastMethod").as_string("Unknown"));
       auto emissionWaveLength     = channelNode.attribute("EmissionWavelength").as_float();
       auto emissionWaveLengthUnit = std::string(channelNode.attribute("EmissionWavelengthUnit").as_string());
@@ -278,10 +277,10 @@ TRY_AGAIN:
 ///
 auto OmeInfo::getPhyiscalSize(int32_t series, bool alwaysReal) const -> const PhyiscalSize &
 {
-  if(series >= getNrOfSeries()) {
+  if(static_cast<size_t>(series) >= getNrOfSeries()) {
     return mDefaultPhyiscalSizeSettings;
   }
-  if(series < 0 || series >= getNrOfSeries()) {
+  if(series < 0 || static_cast<size_t>(series) >= getNrOfSeries()) {
     series = getSeriesWithHighestResolution();
   }
   if(mDefaultPhyiscalSizeSettings.isSet() && !alwaysReal) {
