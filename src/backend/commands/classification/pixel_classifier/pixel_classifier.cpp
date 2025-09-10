@@ -54,9 +54,11 @@ void PixelClassifier::train(const cv::Mat &image, const atom::ObjectList &result
       break;
     case settings::PixelClassifierMethod::RANDOM_FOREST: {
       RandomForest randForrest(trainingSettings.outPath);
-      randForrest.train(image, trainingSettings.trainingClasses, result, trainingSettings.outPath);
+      randForrest.train(trainingSettings, image, trainingSettings.trainingClasses, result, trainingSettings.outPath);
     } break;
     case settings::PixelClassifierMethod::K_NEAREST:
+      break;
+    case settings::PixelClassifierMethod::ANN_MLP:
       break;
   }
 }

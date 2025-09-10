@@ -255,7 +255,15 @@ DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) 
   {
     auto *btnStartTraining = new QPushButton("Start training");
     connect(btnStartTraining, &QPushButton::pressed, [this]() { startTraining(); });
-    layout->addWidget(btnStartTraining);
+
+    auto *trainingSettingsMeta = new QHBoxLayout;
+    trainingSettingsMeta->addWidget(btnStartTraining);
+    auto *openMetaEditor = new QPushButton(generateSvgIcon<Style::REGULAR, Color::BLACK>("dots-three-outline-vertical"), "");
+    openMetaEditor->setStatusTip("Training settings");
+    connect(openMetaEditor, &QPushButton::clicked, [this] {});
+    trainingSettingsMeta->addWidget(openMetaEditor);
+    trainingSettingsMeta->setStretch(0, 1);    // Make label take all available space
+    layout->addLayout(trainingSettingsMeta);
   }
 
   setLayout(layout);

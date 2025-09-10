@@ -13,6 +13,7 @@
 
 #include "backend/settings/setting.hpp"
 #include "backend/settings/setting_base.hpp"
+#include "random_forest/random_forest_training_settings.hpp"
 
 namespace joda::settings {
 
@@ -20,7 +21,8 @@ enum class PixelClassifierMethod
 {
   UNKNOWN,
   RANDOM_FOREST,
-  K_NEAREST
+  K_NEAREST,
+  ANN_MLP
 };
 
 struct PixelClassifierTrainingSettings
@@ -39,10 +41,16 @@ struct PixelClassifierTrainingSettings
   // Output path where the trained model should be stored
   //
   std::filesystem::path outPath;
+
+  //
+  // Settings for different algorithms
+  //
+  std::optional<RandomForestTrainingSettings> randomForest;
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(PixelClassifierMethod, {{PixelClassifierMethod::UNKNOWN, "Unknown"},
                                                      {PixelClassifierMethod::RANDOM_FOREST, "RandomForest"},
-                                                     {PixelClassifierMethod::K_NEAREST, "KNearest"}});
+                                                     {PixelClassifierMethod::K_NEAREST, "KNearest"},
+                                                     {PixelClassifierMethod::ANN_MLP, "AnnMlp"}});
 
 }    // namespace joda::settings

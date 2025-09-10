@@ -67,7 +67,8 @@ void RandomForest::execute(processor::ProcessContext & /*context*/, cv::Mat &ima
 
 // TRAINING //////////////////////////////////
 
-void RandomForest::train(const cv::Mat &image, const std::set<int32_t> &classesToTrain, const atom::ObjectList &regionOfInterest,
+void RandomForest::train(const settings::PixelClassifierTrainingSettings &trainingSettings, const cv::Mat &image,
+                         const std::set<int32_t> &classesToTrain, const atom::ObjectList &regionOfInterest,
                          const std::filesystem::path &trainedModelOutputFile)
 {
   cv::Mat trainSamples;
@@ -77,7 +78,7 @@ void RandomForest::train(const cv::Mat &image, const std::set<int32_t> &classesT
     joda::log::logWarning("No training samples!");
     return;
   }
-  auto mlTree = trainRandomForest(trainSamples, labelList);
+  auto mlTree = trainRandomForest(trainingSettings.randomForest.value_or(joda::settings::RandomForestTrainingSettings{}), trainSamples, labelList);
   mlTree->save(trainedModelOutputFile);
 }
 
@@ -193,16 +194,17 @@ void RandomForest::prepareTrainingDataFromROI(const cv::Mat &image, const std::s
 /// \param[out]
 /// \return
 ///
-cv::Ptr<cv::ml::RTrees> RandomForest::trainRandomForest(const cv::Mat &trainSamples, const cv::Mat &trainLabels)
+cv::Ptr<cv::ml::RTrees> RandomForest::trainRandomForest(const joda::settings::RandomForestTrainingSettings &settings, const cv::Mat &trainSamples,
+                                                        const cv::Mat &trainLabels)
 {
   cv::Ptr<cv::ml::RTrees> rf = cv::ml::RTrees::create();
 
-  rf->setMaxDepth(15);
-  rf->setMinSampleCount(2);
-  rf->setRegressionAccuracy(0);
+  rf->setMaxDepth(settings.maxTreeDepth);
+  rf->setMinSampleCount(settings.minSampleCount);
+  rf->setRegressionAccuracy(settings.regressionAccuracy);
   rf->setUseSurrogates(false);
-  rf->setMaxCategories(2);    // adjust for multiclass
-  rf->setTermCriteria(cv::TermCriteria(cv::TermCriteria::MAX_ITER, 50, 0.01));
+  rf->setMaxCategories(10);
+  rf->setTermCriteria(cv::TermCriteria(cv::TermCriteria::MAX_ITER, settings.maxNumberOfTrees, settings.terminationEpsilon));
   cv::Ptr<cv::ml::TrainData> td = cv::ml::TrainData::create(trainSamples, cv::ml::ROW_SAMPLE, trainLabels);
   rf->train(td);
   return rf;
