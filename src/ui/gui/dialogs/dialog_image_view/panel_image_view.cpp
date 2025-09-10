@@ -1265,13 +1265,10 @@ bool PanelImageView::getClickedOnRoi(QMouseEvent *event)
   for(size_t idx = 0; idx < mPolygonItems.size(); idx++) {
     const auto &poly = mPolygonItems.at(idx);
     if(poly.item->contains(mapToScene(event->pos()))) {
-      setSelectedRoi(static_cast<int32_t>(idx));
+      setSelectedRois({static_cast<int32_t>(idx)});
       return true;
     }
   }
-  resetSelectedPolygon();
-  mSelectedPolygonIdx = -1;
-  emit paintedPolygonClicked(mSelectedPolygonIdx);
   return false;
 }
 
@@ -1282,21 +1279,29 @@ bool PanelImageView::getClickedOnRoi(QMouseEvent *event)
 /// \param[out]
 /// \return
 ///
-void PanelImageView::setSelectedRoi(int32_t idx)
+void PanelImageView::setSelectedRois(const std::set<int32_t> &idxs)
 {
-  if(mSelectedPolygonIdx != static_cast<int32_t>(idx)) {
-    if(idx < 0) {
-      resetSelectedPolygon();
-      mSelectedPolygonIdx = static_cast<int32_t>(idx);
-      emit paintedPolygonClicked(mSelectedPolygonIdx);
-    } else {
-      resetSelectedPolygon();
-      const auto &poly = mPolygonItems.at(static_cast<size_t>(idx));
-      poly.item->setPen(QPen(Qt::yellow, 2));
-      mSelectedPolygonIdx = static_cast<int32_t>(idx);
-      emit paintedPolygonClicked(mSelectedPolygonIdx);
+  // ==============================
+  // First rest old selections
+  // ==============================
+  for(int32_t idx : mSelectedPolygonIdx) {
+    if(!idxs.contains(idx)) {
+      // This is not selected any more
+      auto &poly = mPolygonItems.at(static_cast<size_t>(idx));
+      poly.item->setPen(QPen(poly.pixelClassColor, 1));
     }
   }
+
+  // ==============================
+  // Highlight new selections
+  // ==============================
+  mSelectedPolygonIdx = idxs;
+  for(int32_t idx : mSelectedPolygonIdx) {
+    const auto &poly = mPolygonItems.at(static_cast<size_t>(idx));
+    poly.item->setPen(QPen(Qt::yellow, 2));
+  }
+
+  emit paintedPolygonClicked(mSelectedPolygonIdx);
 }
 ///
 /// \brief
@@ -1312,28 +1317,13 @@ void PanelImageView::deleteRois(const std::set<int32_t> &idxs)
     if(idx >= 0 && static_cast<int32_t>(mPolygonItems.size()) > idx) {
       delete mPolygonItems.at(static_cast<size_t>(idx)).item;
       mPolygonItems.erase(mPolygonItems.begin() + idx);
-      if(idx == mSelectedPolygonIdx) {
-        mSelectedPolygonIdx = -1;
+      if(mSelectedPolygonIdx.contains(idx)) {
+        mSelectedPolygonIdx.erase(idx);
       }
     }
   }
 
   emit paintedPolygonsChanged();
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelImageView::resetSelectedPolygon()
-{
-  if(mSelectedPolygonIdx >= 0 && static_cast<int32_t>(mPolygonItems.size()) > mSelectedPolygonIdx) {
-    auto &poly = mPolygonItems.at(static_cast<size_t>(mSelectedPolygonIdx));
-    poly.item->setPen(QPen(poly.pixelClassColor, 1));
-  }
 }
 
 ///

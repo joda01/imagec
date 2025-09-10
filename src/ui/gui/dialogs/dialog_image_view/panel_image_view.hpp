@@ -136,7 +136,7 @@ public:
   // REGION OF INTERESTS //////////////////////////////////////////////
   auto getObjectMapFromAnnotatedRegions(atom::ObjectList &) -> void;
   auto getPtrToPolygons() -> std::vector<PaintedRoiProperties> *;
-  void setSelectedRoi(int32_t idx);
+  void setSelectedRois(const std::set<int32_t> &idxs);
   void deleteRois(const std::set<int32_t> &idx);
 
 signals:
@@ -146,7 +146,7 @@ signals:
   void onImageRepainted();
   void tileClicked(int32_t tileX, int32_t tileY);
   void paintedPolygonsChanged();
-  void paintedPolygonClicked(int32_t selectedIndex);
+  void paintedPolygonClicked(std::set<int32_t> idxs);
 
 private:
   /////////////////////////////////////////////////////
@@ -167,7 +167,6 @@ private:
   auto imageCoordinatesToPreviewCoordinates(const QPoint &imageCoordinates) -> QPoint;
   auto imageCoordinatesToPreviewCoordinates(const QRect &imageCoordinates) -> QRect;
   void setCursor();
-  void resetSelectedPolygon();
 
 private:
   /////////////////////////////////////////////////////
@@ -205,7 +204,7 @@ private:
   State mState = State::MOVE;
   std::vector<PaintedRoiProperties> mPolygonItems;
   PaintedRoi_t mActPaintingRoi;
-  int32_t mSelectedPolygonIdx = -1;
+  std::set<int32_t> mSelectedPolygonIdx;
 
   QPointF mPaintOrigin;
   QAbstractGraphicsShapeItem *mRubberItem = nullptr;

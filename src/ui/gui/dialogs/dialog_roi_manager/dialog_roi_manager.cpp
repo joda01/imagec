@@ -238,11 +238,11 @@ DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) 
     layout->addWidget(mPolygonsTable);
 
     connect(mPolygonsTable->selectionModel(), &QItemSelectionModel::currentChanged,
-            [&](const QModelIndex &current, const QModelIndex & /*previous*/) { mImagePanel->setSelectedRoi(current.row()); });
-    connect(mPolygonsTable, &QTableView::clicked, [this](const QModelIndex &index) { mImagePanel->setSelectedRoi(index.row()); });
+            [&](const QModelIndex &current, const QModelIndex & /*previous*/) { mImagePanel->setSelectedRois({current.row()}); });
+    connect(mPolygonsTable, &QTableView::clicked, [this](const QModelIndex &index) { mImagePanel->setSelectedRois({index.row()}); });
     connect(mPolygonsTable->selectionModel(), &QItemSelectionModel::selectionChanged, this, [this](const QItemSelection &, const QItemSelection &) {
       if(!mPolygonsTable->selectionModel()->hasSelection()) {
-        mImagePanel->setSelectedRoi(-1);
+        mImagePanel->setSelectedRois({});
       }
     });
     // connect(mPolygonsTable, &QTableView::doubleClicked, [this](const QModelIndex &index) {});
@@ -257,10 +257,16 @@ DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) 
   setLayout(layout);
 
   connect(imagePanel, &PanelImageView::paintedPolygonsChanged, [this]() { mTableModel->refresh(); });
-  connect(imagePanel, &PanelImageView::paintedPolygonClicked, [this](int32_t selectedIndex) {
-    QModelIndex index = mPolygonsTable->model()->index(selectedIndex, 0);    // pick column 0 for the row
-    mPolygonsTable->selectionModel()->select(index, QItemSelectionModel::Select | QItemSelectionModel::Rows);
-    mPolygonsTable->setCurrentIndex(index);
+  connect(imagePanel, &PanelImageView::paintedPolygonClicked, [this](std::set<int32_t> idxs) {
+    bool firstRun = true;
+    for(const auto idx : idxs) {
+      QModelIndex index = mPolygonsTable->model()->index(idx, 0);    // pick column 0 for the row
+      mPolygonsTable->selectionModel()->select(index, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+      if(firstRun) {
+        firstRun = false;
+        mPolygonsTable->setCurrentIndex(index);
+      }
+    }
   });
 }
 
