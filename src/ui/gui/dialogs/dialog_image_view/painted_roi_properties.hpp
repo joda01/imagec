@@ -15,6 +15,7 @@
 #include <qgraphicsitem.h>
 #include <qpolygon.h>
 #include "backend/artifacts/roi/roi.hpp"
+#include <opencv2/core/types.hpp>
 
 namespace joda::ui::gui {
 
@@ -24,14 +25,17 @@ struct PaintedRoiProperties
   QColor pixelClassColor;
   QGraphicsPolygonItem *item;
 
-  joda::atom::ROI qPolygonToRoi(const cv::Mat *image) const
+  joda::atom::ROI qPolygonToRoi(const cv::Mat *image, const cv::Size &previewSize) const
   {
+    float scaleX = static_cast<float>(image->cols) / static_cast<float>(previewSize.width);
+    float scaleY = static_cast<float>(image->rows) / static_cast<float>(previewSize.height);
+
     QPolygonF poly = item->polygon();    // get polygon
     // Convert to cv::Point
     std::vector<cv::Point> contour;
     contour.reserve(static_cast<size_t>(poly.size()));
     for(int i = 0; i < poly.size(); ++i) {
-      contour.emplace_back(static_cast<int>(poly[i].x()), static_cast<int>(poly[i].y()));
+      contour.emplace_back(static_cast<int>(static_cast<float>(poly[i].x()) * scaleX), static_cast<int>(static_cast<float>(poly[i].y()) * scaleY));
     }
 
     // Make contour

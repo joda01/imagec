@@ -196,8 +196,9 @@ auto PanelImageView::mutableImage() -> joda::image::Image *
 ///
 auto PanelImageView::getObjectMapFromAnnotatedRegions(atom::ObjectList &objectMap) -> void
 {
+  const auto &size = mImageToShow->getPreviewImageSize();
   for(const auto &polyRoi : mPolygonItems) {
-    joda::atom::ROI roi = polyRoi.qPolygonToRoi(mImageToShow->getOriginalImage());
+    joda::atom::ROI roi = polyRoi.qPolygonToRoi(mImageToShow->getOriginalImage(), {size.width(), size.height()});
     objectMap.push_back(roi);
   }
 }
@@ -1300,9 +1301,8 @@ void PanelImageView::setSelectedRois(const std::set<int32_t> &idxs)
     const auto &poly = mPolygonItems.at(static_cast<size_t>(idx));
     poly.item->setPen(QPen(Qt::yellow, 2));
   }
-
-  emit paintedPolygonClicked(mSelectedPolygonIdx);
 }
+
 ///
 /// \brief
 /// \author     Joachim Danmayr

@@ -237,12 +237,16 @@ DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) 
     mPolygonsTable->setModel(mTableModel);
     layout->addWidget(mPolygonsTable);
 
-    connect(mPolygonsTable->selectionModel(), &QItemSelectionModel::currentChanged,
-            [&](const QModelIndex &current, const QModelIndex & /*previous*/) { mImagePanel->setSelectedRois({current.row()}); });
-    connect(mPolygonsTable, &QTableView::clicked, [this](const QModelIndex &index) { mImagePanel->setSelectedRois({index.row()}); });
     connect(mPolygonsTable->selectionModel(), &QItemSelectionModel::selectionChanged, this, [this](const QItemSelection &, const QItemSelection &) {
       if(!mPolygonsTable->selectionModel()->hasSelection()) {
         mImagePanel->setSelectedRois({});
+      } else {
+        auto indexes = mPolygonsTable->selectionModel()->selectedIndexes();
+        std::set<int32_t> idxs;
+        for(const auto row : indexes) {
+          idxs.emplace(row.row());
+        }
+        mImagePanel->setSelectedRois(idxs);
       }
     });
     // connect(mPolygonsTable, &QTableView::doubleClicked, [this](const QModelIndex &index) {});
