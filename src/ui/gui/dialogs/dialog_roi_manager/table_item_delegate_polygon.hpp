@@ -54,7 +54,7 @@ public:
     painter->setRenderHint(QPainter::Antialiasing);
     painter->setBrush(color);
     painter->setPen(Qt::NoPen);
-    painter->drawRect(squareRect);
+    painter->drawEllipse(squareRect);
 
     // === 3. Draw text to the right of the square ===
     QString classs = index.data(Qt::DisplayRole).toString();

@@ -45,17 +45,9 @@ signals:
   void dialogDisappeared();    // custom signal
 
 protected:
-  void hideEvent(QHideEvent *event) override
-  {
-    emit dialogDisappeared();
-    QDialog::hideEvent(event);
-  }
-
-  void closeEvent(QCloseEvent *event) override
-  {
-    emit dialogDisappeared();
-    QDialog::closeEvent(event);
-  }
+  void hideEvent(QHideEvent *event) override;
+  void closeEvent(QCloseEvent *event) override;
+  int32_t getSelectedPixelClass() const;
 
 private:
   /////////////////////////////////////////////////////
@@ -65,6 +57,13 @@ private:
   PanelImageView *mImagePanel;
   PlaceholderTableView *mPolygonsTable;
   TableModelPaintedPolygon *mTableModel;
+
+  // PAINTING///////////////////////////////////////////////////
+  QAction *mMoveAction;
+
+  QActionGroup *mPixelClassMenuGroup = nullptr;
+  QAction *mPixelClass               = nullptr;
+  std::map<int32_t, QAction *> mPixelClassSelections;
 };
 
 }    // namespace joda::ui::gui

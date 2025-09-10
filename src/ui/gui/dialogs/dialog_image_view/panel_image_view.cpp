@@ -387,6 +387,8 @@ void PanelImageView::setCursor()
       QGraphicsView::setCursor(Qt::CrossCursor);
       viewport()->setCursor(Qt::CrossCursor);
       break;
+    case PAINT_MAGIC_WAND:
+      break;
   }
 }
 
@@ -1295,6 +1297,28 @@ void PanelImageView::setSelectedRoi(int32_t idx)
       emit paintedPolygonClicked(mSelectedPolygonIdx);
     }
   }
+}
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::deleteRois(const std::set<int32_t> &idxs)
+{
+  for(auto it = idxs.rbegin(); it != idxs.rend(); ++it) {
+    int32_t idx = *it;
+    if(idx >= 0 && static_cast<int32_t>(mPolygonItems.size()) > idx) {
+      delete mPolygonItems.at(static_cast<size_t>(idx)).item;
+      mPolygonItems.erase(mPolygonItems.begin() + idx);
+      if(idx == mSelectedPolygonIdx) {
+        mSelectedPolygonIdx = -1;
+      }
+    }
+  }
+
+  emit paintedPolygonsChanged();
 }
 
 ///

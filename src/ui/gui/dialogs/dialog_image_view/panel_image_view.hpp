@@ -47,7 +47,8 @@ public:
     PAINT_RECTANGLE,
     PAINT_OVAL,
     PAINT_POLYGON,
-    PAIN_BRUSH
+    PAIN_BRUSH,
+    PAINT_MAGIC_WAND
   };
 
   struct PixelInfo
@@ -136,6 +137,7 @@ public:
   auto getObjectMapFromAnnotatedRegions(atom::ObjectList &) -> void;
   auto getPtrToPolygons() -> std::vector<PaintedRoiProperties> *;
   void setSelectedRoi(int32_t idx);
+  void deleteRois(const std::set<int32_t> &idx);
 
 signals:
   /////////////////////////////////////////////////////
