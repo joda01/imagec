@@ -18,7 +18,7 @@ namespace joda::settings {
 
 struct RandomForestTrainingSettings
 {
-  int32_t maxTreeDepth     = 0;
+  int32_t maxTreeDepth     = 50;    // 100
   int32_t minSampleCount   = 10;
   float regressionAccuracy = 0;
   float terminationEpsilon = 0;

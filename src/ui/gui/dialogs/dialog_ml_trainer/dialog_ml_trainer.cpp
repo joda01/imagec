@@ -54,9 +54,9 @@ DialogMlTrainer::DialogMlTrainer(PanelImageView *imagePanel, QWidget *parent) : 
   // Settings
   {
     mComboClassifierMethod = new QComboBox();
-    mComboClassifierMethod->addItem("Random forest (RTree)", static_cast<int>(joda::settings::PixelClassifierMethod::RANDOM_FOREST));
+    mComboClassifierMethod->addItem("Random forest (RTree)", static_cast<int>(joda::settings::PixelClassifierMethod::RTrees));
     mComboClassifierMethod->addItem("Artificial neural network (ANN_MLP)", static_cast<int>(joda::settings::PixelClassifierMethod::ANN_MLP));
-    mComboClassifierMethod->addItem("K nearest neighbor", static_cast<int>(joda::settings::PixelClassifierMethod::K_NEAREST));
+    mComboClassifierMethod->addItem("K nearest neighbor", static_cast<int>(joda::settings::PixelClassifierMethod::KNearest));
 
     auto *trainingSettingsMeta = new QHBoxLayout;
     trainingSettingsMeta->addWidget(mComboClassifierMethod);
@@ -71,14 +71,17 @@ DialogMlTrainer::DialogMlTrainer(PanelImageView *imagePanel, QWidget *parent) : 
   // Features
   {
     mComboTrainingFeatures = new QComboBoxMulti();
-    mComboTrainingFeatures->addItem("Gaussian blur", static_cast<int>(joda::settings::PixelClassifierMethod::RANDOM_FOREST));
-    mComboTrainingFeatures->addItem("Laplacian of Gaussian", static_cast<int>(joda::settings::PixelClassifierMethod::K_NEAREST));
-    mComboTrainingFeatures->addItem("Weighted deviation", static_cast<int>(joda::settings::PixelClassifierMethod::K_NEAREST));
-    mComboTrainingFeatures->addItem("Gradient magnitude", static_cast<int>(joda::settings::PixelClassifierMethod::K_NEAREST));
-    mComboTrainingFeatures->addItem("Structure tensor eigenvalues", static_cast<int>(joda::settings::PixelClassifierMethod::K_NEAREST));
-    mComboTrainingFeatures->addItem("Structure tensor coherence", static_cast<int>(joda::settings::PixelClassifierMethod::K_NEAREST));
-    mComboTrainingFeatures->addItem("Hessian determinant", static_cast<int>(joda::settings::PixelClassifierMethod::K_NEAREST));
-    mComboTrainingFeatures->addItem("Hessian eigenvalues", static_cast<int>(joda::settings::PixelClassifierMethod::K_NEAREST));
+    mComboTrainingFeatures->addItem("Intensity", static_cast<int>(joda::settings::PixelClassifierFeatures::Intensity));
+    mComboTrainingFeatures->addItem("Gaussian blur", static_cast<int>(joda::settings::PixelClassifierFeatures::Gaussian));
+    mComboTrainingFeatures->addItem("Laplacian of Gaussian", static_cast<int>(joda::settings::PixelClassifierFeatures::LaplacianOfGaussian));
+    mComboTrainingFeatures->addItem("Weighted deviation", static_cast<int>(joda::settings::PixelClassifierFeatures::WeightedDeviation));
+    mComboTrainingFeatures->addItem("Gradient magnitude", static_cast<int>(joda::settings::PixelClassifierFeatures::GradientMagnitude));
+    mComboTrainingFeatures->addItem("Structure tensor eigenvalues",
+                                    static_cast<int>(joda::settings::PixelClassifierFeatures::StructureTensorEigenvalues));
+    mComboTrainingFeatures->addItem("Structure tensor coherence",
+                                    static_cast<int>(joda::settings::PixelClassifierFeatures::StructureTensorCoherence));
+    mComboTrainingFeatures->addItem("Hessian determinant", static_cast<int>(joda::settings::PixelClassifierFeatures::HessianDeterminant));
+    mComboTrainingFeatures->addItem("Hessian eigenvalues", static_cast<int>(joda::settings::PixelClassifierFeatures::HessianEigenvalues));
 
     auto *trainingSettingsMeta = new QHBoxLayout;
     trainingSettingsMeta->addWidget(mComboTrainingFeatures);
@@ -88,6 +91,9 @@ DialogMlTrainer::DialogMlTrainer(PanelImageView *imagePanel, QWidget *parent) : 
     trainingSettingsMeta->addWidget(openMetaEditor);
     trainingSettingsMeta->setStretch(0, 1);    // Make label take all available space
     layout->addRow("Features", trainingSettingsMeta);
+
+    mComboTrainingFeatures->setCheckedItems(
+        {static_cast<int>(joda::settings::PixelClassifierFeatures::Intensity), static_cast<int>(joda::settings::PixelClassifierFeatures::Gaussian)});
   }
 
   // Start training
@@ -159,10 +165,24 @@ void DialogMlTrainer::startTraining()
   if(classesToTrain.size() > 1) {
     std::filesystem::path modelPath = joda::ml::MlModelParser::getUsersMlModelDirectory() / ("tmp" + joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL);
 
+    std::set<joda::settings::PixelClassifierFeatures> features;
+
+    const auto &items = mComboTrainingFeatures->getCheckedItems();
+    for(const auto &item : items) {
+      features.emplace(static_cast<joda::settings::PixelClassifierFeatures>(item.first.toInt()));
+    }
+
+    if(features.empty()) {
+      QMessageBox::warning(this, "Feature error", "At least one feature must be selected!", QMessageBox::Yes | QMessageBox::No);
+      return;
+    }
+
     joda::settings::PixelClassifierTrainingSettings settings{
         .trainingClasses = classesToTrain,
         .method          = static_cast<joda::settings::PixelClassifierMethod>(mComboClassifierMethod->currentData().toInt()),
-        .outPath         = modelPath};
+        .features        = features,
+        .outPath         = modelPath,
+        .randomForest    = std::nullopt};
     joda::cmd::PixelClassifier::train(*mImagePanel->mutableImage()->getOriginalImage(), objectList, settings);
   }
 }

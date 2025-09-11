@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <type_traits>
 #include "backend/processor/context/process_context.hpp"
+#include <opencv2/ml.hpp>
 #include "pixel_classifier_training_settings.hpp"
 
 template <class T>
@@ -18,7 +19,7 @@ concept CvModel_t =
     std::is_base_of<cv::ml::RTrees, T>::value || std::is_base_of<cv::ml::NormalBayesClassifier, T>::value ||
     std::is_base_of<cv::ml::KNearest, T>::value || std::is_base_of<cv::ml::SVM, T>::value || std::is_base_of<cv::ml::DTrees, T>::value ||
     std::is_base_of<cv::ml::Boost, T>::value || std::is_base_of<cv::ml::ANN_MLP, T>::value || std::is_base_of<cv::ml::LogisticRegression, T>::value ||
-    std::is_base_of<cv::ml::SVMSGD, T>::value;
+    std::is_base_of<cv::ml::SVMSGD, T>::value || std::is_base_of<cv::ml::EM, T>::value;
 
 namespace joda::ml {
 
@@ -33,8 +34,8 @@ public:
   template <CvModel_t MODEL>
   static void storeModel(cv::Ptr<MODEL> model, const std::filesystem::path &path, const std::set<joda::settings::PixelClassifierFeatures> &features);
 
-  template <CvModel_t MODEL>
-  static cv::Ptr<MODEL> loadModel(const std::filesystem::path &path, std::set<joda::settings::PixelClassifierFeatures> &features);
+  static cv::Ptr<cv::ml::StatModel> loadModel(const std::filesystem::path &path, std::set<joda::settings::PixelClassifierFeatures> &features,
+                                              settings::PixelClassifierMethod &modelType);
 };
 
 }    // namespace joda::ml

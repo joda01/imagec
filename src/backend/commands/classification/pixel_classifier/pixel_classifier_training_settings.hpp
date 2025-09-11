@@ -19,21 +19,30 @@ namespace joda::settings {
 
 enum class PixelClassifierMethod
 {
-  UNKNOWN,
-  RANDOM_FOREST,
-  K_NEAREST,
-  ANN_MLP
+  Unknown,
+  RTrees,
+  DTrees,
+  Boost,
+  SVM,
+  SVMSGD,
+  ANN_MLP,
+  KNearest,
+  NormalBayes,
+  LogisticRegression,
+  EM
 };
 
 enum class PixelClassifierFeatures
 {
-  INTENSITY,
-  GAUSSIAN,
-  LAPLACIAN,
-  GRADIENT,
-  VARIANCE,
-  HESSIAN
-
+  Intensity,
+  Gaussian,
+  LaplacianOfGaussian,
+  WeightedDeviation,
+  GradientMagnitude,
+  StructureTensorEigenvalues,
+  StructureTensorCoherence,
+  HessianDeterminant,
+  HessianEigenvalues
 };
 
 struct PixelClassifierTrainingSettings
@@ -46,7 +55,7 @@ struct PixelClassifierTrainingSettings
   //
   // Machine learning method to use
   //
-  PixelClassifierMethod method = PixelClassifierMethod::UNKNOWN;
+  PixelClassifierMethod method = PixelClassifierMethod::Unknown;
 
   //
   // Features to use for training and prediction
@@ -64,9 +73,28 @@ struct PixelClassifierTrainingSettings
   std::optional<RandomForestTrainingSettings> randomForest;
 };
 
-NLOHMANN_JSON_SERIALIZE_ENUM(PixelClassifierMethod, {{PixelClassifierMethod::UNKNOWN, "Unknown"},
-                                                     {PixelClassifierMethod::RANDOM_FOREST, "RandomForest"},
-                                                     {PixelClassifierMethod::K_NEAREST, "KNearest"},
-                                                     {PixelClassifierMethod::ANN_MLP, "AnnMlp"}});
+NLOHMANN_JSON_SERIALIZE_ENUM(PixelClassifierMethod, {
+                                                        {PixelClassifierMethod::Unknown, "Unknown"},
+                                                        {PixelClassifierMethod::RTrees, "RTrees"},
+                                                        {PixelClassifierMethod::DTrees, "DTrees"},
+                                                        {PixelClassifierMethod::Boost, "Boost"},
+                                                        {PixelClassifierMethod::SVM, "SVM"},
+                                                        {PixelClassifierMethod::SVMSGD, "SVMSGD"},
+                                                        {PixelClassifierMethod::ANN_MLP, "ANN_MLP"},
+                                                        {PixelClassifierMethod::KNearest, "KNearest"},
+                                                        {PixelClassifierMethod::NormalBayes, "NormalBayes"},
+                                                        {PixelClassifierMethod::EM, "EM"},
+                                                        {PixelClassifierMethod::LogisticRegression, "LogisticRegression"},
+                                                    });
+
+NLOHMANN_JSON_SERIALIZE_ENUM(PixelClassifierFeatures, {{PixelClassifierFeatures::Intensity, "Intensity"},
+                                                       {PixelClassifierFeatures::Gaussian, "Gaussian"},
+                                                       {PixelClassifierFeatures::LaplacianOfGaussian, "LaplacianOfGaussian"},
+                                                       {PixelClassifierFeatures::WeightedDeviation, "WeightedDeviation"},
+                                                       {PixelClassifierFeatures::GradientMagnitude, "GradientMagnitude"},
+                                                       {PixelClassifierFeatures::StructureTensorEigenvalues, "StructureTensorEigenvalues"},
+                                                       {PixelClassifierFeatures::StructureTensorCoherence, "StructureTensorCoherence"},
+                                                       {PixelClassifierFeatures::HessianDeterminant, "HessianDeterminant"},
+                                                       {PixelClassifierFeatures::HessianEigenvalues, "HessianEigenvalues"}});
 
 }    // namespace joda::settings

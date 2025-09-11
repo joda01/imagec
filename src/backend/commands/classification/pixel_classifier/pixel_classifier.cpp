@@ -49,16 +49,25 @@ void PixelClassifier::execute(processor::ProcessContext &context, cv::Mat &image
 ///
 void PixelClassifier::train(const cv::Mat &image, const atom::ObjectList &result, const settings::PixelClassifierTrainingSettings &trainingSettings)
 {
+  if(trainingSettings.features.empty()) {
+    throw std::invalid_argument("At least one feature must be selected!");
+  }
+
   switch(trainingSettings.method) {
-    case settings::PixelClassifierMethod::UNKNOWN:
-      break;
-    case settings::PixelClassifierMethod::RANDOM_FOREST: {
+    case settings::PixelClassifierMethod::RTrees: {
       RandomForest randForrest(trainingSettings.outPath);
       randForrest.train(trainingSettings, image, trainingSettings.trainingClasses, result, trainingSettings.outPath);
     } break;
-    case settings::PixelClassifierMethod::K_NEAREST:
-      break;
+    case settings::PixelClassifierMethod::Unknown:
+    case settings::PixelClassifierMethod::DTrees:
+    case settings::PixelClassifierMethod::Boost:
+    case settings::PixelClassifierMethod::SVM:
+    case settings::PixelClassifierMethod::SVMSGD:
     case settings::PixelClassifierMethod::ANN_MLP:
+    case settings::PixelClassifierMethod::KNearest:
+    case settings::PixelClassifierMethod::NormalBayes:
+    case settings::PixelClassifierMethod::LogisticRegression:
+    case settings::PixelClassifierMethod::EM:
       break;
   }
 }

@@ -10,6 +10,9 @@
 ///
 
 #include "pixel_classifier_interface.hpp"
+#include <memory>
+#include <opencv2/core/persistence.hpp>
+#include <opencv2/ml.hpp>
 
 namespace joda::ml {
 
@@ -24,43 +27,147 @@ template <CvModel_t MODEL>
 void PixelClassifier::storeModel(cv::Ptr<MODEL> model, const std::filesystem::path &path,
                                  const std::set<joda::settings::PixelClassifierFeatures> &features)
 {
-  cv::FileStorage fs(path.string(), cv::FileStorage::WRITE);
-  model->write(fs);
-
-  // Now write custom feature flags
-  fs << "features"
+  cv::FileStorage fs(path.string(), cv::FileStorage::WRITE | cv::FileStorage::FORMAT_JSON);
+  fs << "model"
      << "{";
-  fs << "useIntensity" << features.contains(joda::settings::PixelClassifierFeatures::INTENSITY);
-  fs << "useGaussian" << features.contains(joda::settings::PixelClassifierFeatures::GAUSSIAN);
-  fs << "useLaplacian" << features.contains(joda::settings::PixelClassifierFeatures::LAPLACIAN);
-  fs << "useGradient" << features.contains(joda::settings::PixelClassifierFeatures::GRADIENT);
-  fs << "useVariance" << features.contains(joda::settings::PixelClassifierFeatures::VARIANCE);
-  fs << "useHessian" << features.contains(joda::settings::PixelClassifierFeatures::HESSIAN);
+  model->write(fs);
   fs << "}";
+
+  // Convert set of enums to JSON array of strings
+  nlohmann::json j_features = nlohmann::json::array();
+  for(auto f : features) {
+    j_features.push_back(f);    // uses NLOHMANN_JSON_SERIALIZE_ENUM mapping
+  }
+  // Write features as an array
+  fs << "features"
+     << "[";
+  for(auto f : features) {
+    std::string name = nlohmann::json(f).get<std::string>();    // enum -> string
+    fs << name;
+  }
+  fs << "]";
+
+  // Write model
+  if constexpr(std::is_same_v<cv::ml::RTrees, MODEL>) {
+    std::string name = nlohmann::json(joda::settings::PixelClassifierMethod::RTrees).get<std::string>();    // enum -> string
+    fs << "modelType" << name;
+  }
+  if constexpr(std::is_same_v<cv::ml::NormalBayesClassifier, MODEL>) {
+    std::string name = nlohmann::json(joda::settings::PixelClassifierMethod::NormalBayes).get<std::string>();    // enum -> string
+    fs << "modelType" << name;
+  }
+  if constexpr(std::is_same_v<cv::ml::KNearest, MODEL>) {
+    std::string name = nlohmann::json(joda::settings::PixelClassifierMethod::KNearest).get<std::string>();    // enum -> string
+    fs << "modelType" << name;
+  }
+  if constexpr(std::is_same_v<cv::ml::SVM, MODEL>) {
+    std::string name = nlohmann::json(joda::settings::PixelClassifierMethod::SVM).get<std::string>();    // enum -> string
+    fs << "modelType" << name;
+  }
+  if constexpr(std::is_same_v<cv::ml::DTrees, MODEL>) {
+    std::string name = nlohmann::json(joda::settings::PixelClassifierMethod::DTrees).get<std::string>();    // enum -> string
+    fs << "modelType" << name;
+  }
+  if constexpr(std::is_same_v<cv::ml::Boost, MODEL>) {
+    std::string name = nlohmann::json(joda::settings::PixelClassifierMethod::Boost).get<std::string>();    // enum -> string
+    fs << "modelType" << name;
+  }
+  if constexpr(std::is_same_v<cv::ml::ANN_MLP, MODEL>) {
+    std::string name = nlohmann::json(joda::settings::PixelClassifierMethod::ANN_MLP).get<std::string>();    // enum -> string
+    fs << "modelType" << name;
+  }
+  if constexpr(std::is_same_v<cv::ml::LogisticRegression, MODEL>) {
+    std::string name = nlohmann::json(joda::settings::PixelClassifierMethod::LogisticRegression).get<std::string>();    // enum -> string
+    fs << "modelType" << name;
+  }
+  if constexpr(std::is_same_v<cv::ml::SVMSGD, MODEL>) {
+    std::string name = nlohmann::json(joda::settings::PixelClassifierMethod::SVMSGD).get<std::string>();    // enum -> string
+    fs << "modelType" << name;
+  }
+  if constexpr(std::is_same_v<cv::ml::EM, MODEL>) {
+    std::string name = nlohmann::json(joda::settings::PixelClassifierMethod::EM).get<std::string>();    // enum -> string
+    fs << "modelType" << name;
+  }
 }
 
-template <CvModel_t MODEL>
-cv::Ptr<MODEL> PixelClassifier::loadModel(const std::filesystem::path &path, std::set<joda::settings::PixelClassifierFeatures> &features)
+cv::Ptr<cv::ml::StatModel> PixelClassifier::loadModel(const std::filesystem::path &path, std::set<joda::settings::PixelClassifierFeatures> &features,
+                                                      settings::PixelClassifierMethod &modelType)
 {
-  cv::FileStorage fs(path.string(), cv::FileStorage::READ);
-  cv::Ptr<cv::ml::RTrees> rtrees = cv::Algorithm::read<cv::ml::RTrees>(fs.root());
+  cv::FileStorage fs(path.string(), cv::FileStorage::READ | cv::FileStorage::FORMAT_JSON);
+  cv::FileNode fnT       = fs["modelType"];
+  std::string mlModelStr = fnT.string();
+  modelType              = nlohmann::json(mlModelStr).get<joda::settings::PixelClassifierMethod>();
 
+  //
+  // Load the model type
+  //
+  cv::Ptr<cv::ml::StatModel> loadedModel;
+  switch(modelType) {
+    case settings::PixelClassifierMethod::Unknown:
+      throw std::runtime_error("Unknown or unsupported ML model type: " + mlModelStr);
+    case settings::PixelClassifierMethod::RTrees: {
+      loadedModel     = cv::ml::RTrees::create();
+      cv::FileNode fn = fs["model"];
+      loadedModel->read(fn);
+    } break;
+    case settings::PixelClassifierMethod::DTrees: {
+      loadedModel     = cv::ml::DTrees::create();
+      cv::FileNode fn = fs["model"];
+      loadedModel->read(fn);
+    } break;
+    case settings::PixelClassifierMethod::Boost: {
+      loadedModel     = cv::ml::Boost::create();
+      cv::FileNode fn = fs["model"];
+      loadedModel->read(fn);
+    } break;
+    case settings::PixelClassifierMethod::SVM: {
+      loadedModel     = cv::ml::SVM::create();
+      cv::FileNode fn = fs["model"];
+      loadedModel->read(fn);
+    } break;
+    case settings::PixelClassifierMethod::SVMSGD: {
+      loadedModel     = cv::ml::SVMSGD::create();
+      cv::FileNode fn = fs["model"];
+      loadedModel->read(fn);
+    } break;
+    case settings::PixelClassifierMethod::ANN_MLP: {
+      loadedModel     = cv::ml::ANN_MLP::create();
+      cv::FileNode fn = fs["model"];
+      loadedModel->read(fn);
+    } break;
+    case settings::PixelClassifierMethod::KNearest: {
+      loadedModel     = cv::ml::KNearest::create();
+      cv::FileNode fn = fs["model"];
+      loadedModel->read(fn);
+    } break;
+    case settings::PixelClassifierMethod::NormalBayes: {
+      loadedModel     = cv::ml::NormalBayesClassifier::create();
+      cv::FileNode fn = fs["model"];
+      loadedModel->read(fn);
+    } break;
+    case settings::PixelClassifierMethod::LogisticRegression: {
+      loadedModel     = cv::ml::LogisticRegression::create();
+      cv::FileNode fn = fs["model"];
+      loadedModel->read(fn);
+    } break;
+    case settings::PixelClassifierMethod::EM: {
+      loadedModel     = cv::ml::EM::create();
+      cv::FileNode fn = fs["model"];
+      loadedModel->read(fn);
+    } break;
+  }
+
+  // Read sequence of strings
+  features.clear();
   cv::FileNode fn = fs["features"];
+  // fn.
 
-  auto readFlag = [&fn, &features](const std::string &key, joda::settings::PixelClassifierFeatures enumC) {
-    bool tmp = false;
-    fn["key"] >> tmp;
-    if(tmp) {
-      features.emplace(enumC);
-    }
-  };
-  readFlag("useIntensity", joda::settings::PixelClassifierFeatures::INTENSITY);
-  readFlag("useGaussian", joda::settings::PixelClassifierFeatures::GAUSSIAN);
-  readFlag("useLaplacian", joda::settings::PixelClassifierFeatures::LAPLACIAN);
-  readFlag("useGradient", joda::settings::PixelClassifierFeatures::GRADIENT);
-  readFlag("useVariance", joda::settings::PixelClassifierFeatures::VARIANCE);
-  readFlag("useHessian", joda::settings::PixelClassifierFeatures::HESSIAN);
-  fs.release();
+  for(int i = 0; i < static_cast<int>(fn.size()); i++) {
+    std::string value = static_cast<std::string>(fn[i]);
+    features.insert(nlohmann::json(value).get<joda::settings::PixelClassifierFeatures>());
+  }
+
+  return loadedModel;
 }
 
 ///
@@ -83,65 +190,148 @@ cv::Mat PixelClassifier::extractFeatures(const cv::Mat &img, const std::set<joda
 
   std::vector<cv::Mat> featureMaps;
 
-  // 1. Raw intensity
-  if(features.contains(joda::settings::PixelClassifierFeatures::INTENSITY)) {
-    featureMaps.push_back(gray);
+  // --- Intensity ---
+  if(features.contains(joda::settings::PixelClassifierFeatures::Intensity)) {
+    featureMaps.push_back(gray.clone());
   }
 
-  // 2. Gaussian blur (sigma=1.0 as example)
-  if(features.contains(joda::settings::PixelClassifierFeatures::GAUSSIAN)) {
+  // --- Gaussian smoothed ---
+  if(features.contains(joda::settings::PixelClassifierFeatures::Gaussian)) {
     cv::Mat gauss;
     cv::GaussianBlur(gray, gauss, cv::Size(5, 5), 1.0);
     featureMaps.push_back(gauss);
   }
 
-  // 3. Laplacian of Gaussian (edge + blob detection)
-  if(features.contains(joda::settings::PixelClassifierFeatures::LAPLACIAN)) {
-    cv::Mat gauss, lap;
+  // --- Laplacian of Gaussian ---
+  if(features.contains(joda::settings::PixelClassifierFeatures::LaplacianOfGaussian)) {
+    cv::Mat gauss;
+    cv::Mat log;
     cv::GaussianBlur(gray, gauss, cv::Size(5, 5), 1.0);
-    cv::Laplacian(gauss, lap, CV_32F, 3);
-    featureMaps.push_back(lap);
+    cv::Laplacian(gauss, log, CV_32F, 3);
+    featureMaps.push_back(log);
   }
 
-  // 4. Gradient magnitude
-  if(features.contains(joda::settings::PixelClassifierFeatures::GRADIENT)) {
-    cv::Mat gradX, gradY, gradMag;
-    cv::Sobel(gray, gradX, CV_32F, 1, 0, 3);
-    cv::Sobel(gray, gradY, CV_32F, 0, 1, 3);
-    cv::magnitude(gradX, gradY, gradMag);
-    featureMaps.push_back(gradMag);
+  // --- Weighted deviation (Gaussian-weighted std) ---
+  if(features.contains(joda::settings::PixelClassifierFeatures::WeightedDeviation)) {
+    cv::Mat grayF;
+    cv::Mat mean;
+    cv::Mat meanSq;
+    cv::Mat stdWeighted;
+
+    // Convert to float to avoid overflow (16-bit * 16-bit can overflow)
+    gray.convertTo(grayF, CV_32F);
+
+    // Gaussian smoothing of image and squared image
+    cv::GaussianBlur(grayF, mean, cv::Size(5, 5), 1.0);
+    cv::GaussianBlur(grayF.mul(grayF), meanSq, cv::Size(5, 5), 1.0);
+
+    // Compute standard deviation: sqrt(E[x^2] - (E[x])^2)
+    cv::sqrt(meanSq - mean.mul(mean), stdWeighted);
+
+    featureMaps.push_back(stdWeighted);
   }
 
-  // 5. Local variance (texture)
-  if(features.contains(joda::settings::PixelClassifierFeatures::VARIANCE)) {
-    cv::Mat mean, meanSq, var;
-    cv::blur(gray, mean, cv::Size(5, 5));
-    cv::blur(gray.mul(gray), meanSq, cv::Size(5, 5));
-    cv::sqrt(meanSq - mean.mul(mean), var);
-    featureMaps.push_back(var);
+  // --- Gradient magnitude (Sobel) ---
+  if(features.contains(joda::settings::PixelClassifierFeatures::GradientMagnitude)) {
+    cv::Mat gx;
+    cv::Mat gy;
+    cv::Mat mag;
+    cv::Sobel(gray, gx, CV_32F, 1, 0, 3);
+    cv::Sobel(gray, gy, CV_32F, 0, 1, 3);
+    cv::magnitude(gx, gy, mag);
+    featureMaps.push_back(mag);
   }
 
-  // 6. Hessian determinant (blob/ridge detection)
-  if(features.contains(joda::settings::PixelClassifierFeatures::HESSIAN)) {
-    cv::Mat dxx, dyy, dxy;
+  // --- Structure tensor eigenvalues & coherence ---
+  if(features.contains(joda::settings::PixelClassifierFeatures::StructureTensorEigenvalues) ||
+     features.contains(joda::settings::PixelClassifierFeatures::StructureTensorCoherence)) {
+    cv::Mat gx;
+    cv::Mat gy;
+    cv::Sobel(gray, gx, CV_32F, 1, 0, 3);
+    cv::Sobel(gray, gy, CV_32F, 0, 1, 3);
+
+    cv::Mat Jxx = gx.mul(gx);
+    cv::Mat Jyy = gy.mul(gy);
+    cv::Mat Jxy = gx.mul(gy);
+
+    // Smooth tensor components
+    cv::GaussianBlur(Jxx, Jxx, cv::Size(5, 5), 1.0);
+    cv::GaussianBlur(Jyy, Jyy, cv::Size(5, 5), 1.0);
+    cv::GaussianBlur(Jxy, Jxy, cv::Size(5, 5), 1.0);
+
+    // Eigenvalues: λ1, λ2
+    cv::Mat tmp = (Jxx - Jyy).mul(Jxx - Jyy) + 4 * Jxy.mul(Jxy);
+    cv::sqrt(tmp, tmp);
+    cv::Mat l1 = 0.5 * (Jxx + Jyy + tmp);
+    cv::Mat l2 = 0.5 * (Jxx + Jyy - tmp);
+
+    if(features.contains(joda::settings::PixelClassifierFeatures::StructureTensorEigenvalues)) {
+      featureMaps.push_back(l1);
+      featureMaps.push_back(l2);
+    }
+
+    if(features.contains(joda::settings::PixelClassifierFeatures::StructureTensorCoherence)) {
+      cv::Mat coherence = (l1 - l2) / (l1 + l2 + 1e-6);
+      featureMaps.push_back(coherence);
+    }
+  }
+
+  // --- Hessian determinant & eigenvalues ---
+  if(features.contains(joda::settings::PixelClassifierFeatures::HessianDeterminant) ||
+     features.contains(joda::settings::PixelClassifierFeatures::HessianEigenvalues)) {
+    cv::Mat dxx;
+    cv::Mat dyy;
+    cv::Mat dxy;
     cv::Sobel(gray, dxx, CV_32F, 2, 0, 3);
     cv::Sobel(gray, dyy, CV_32F, 0, 2, 3);
     cv::Sobel(gray, dxy, CV_32F, 1, 1, 3);
-    cv::Mat detHessian = dxx.mul(dyy) - dxy.mul(dxy);
-    featureMaps.push_back(detHessian);
+
+    if(features.contains(joda::settings::PixelClassifierFeatures::HessianDeterminant)) {
+      cv::Mat detH = dxx.mul(dyy) - dxy.mul(dxy);
+      featureMaps.push_back(detH);
+    }
+
+    if(features.contains(joda::settings::PixelClassifierFeatures::HessianEigenvalues)) {
+      // Eigenvalues of Hessian
+      cv::Mat tmp = (dxx - dyy).mul(dxx - dyy) + 4 * dxy.mul(dxy);
+      cv::sqrt(tmp, tmp);
+      cv::Mat l1 = 0.5 * (dxx + dyy + tmp);
+      cv::Mat l2 = 0.5 * (dxx + dyy - tmp);
+      featureMaps.push_back(l1);
+      featureMaps.push_back(l2);
+    }
   }
 
   // ---- Convert feature maps to feature matrix (pixels × features) ----
-  int rows = img.rows * img.cols;
-  int dims = static_cast<int>(featureMaps.size());
-  cv::Mat featureMatrix(rows, dims, CV_32F);
 
-  for(int f = 0; f < dims; ++f) {
-    cv::Mat flat = featureMaps[f].reshape(1, rows);    // flatten
-    flat.convertTo(featureMatrix.col(f), CV_32F);
+  // Stack into feature matrix
+  cv::Mat featureMatrix(img.rows * img.cols, static_cast<int>(featureMaps.size()), CV_32F);
+  for(int i = 0; i < static_cast<int>(featureMaps.size()); i++) {
+    cv::Mat f = featureMaps[i].reshape(1, img.rows * img.cols);
+    f.copyTo(featureMatrix.col(i));
   }
 
   return featureMatrix;    // each row = pixel, each col = feature
 }
+
+template void PixelClassifier::storeModel<cv::ml::RTrees>(cv::Ptr<cv::ml::RTrees> model, const std::filesystem::path &path,
+                                                          const std::set<joda::settings::PixelClassifierFeatures> &features);
+template void PixelClassifier::storeModel<cv::ml::NormalBayesClassifier>(cv::Ptr<cv::ml::NormalBayesClassifier> model,
+                                                                         const std::filesystem::path &path,
+                                                                         const std::set<joda::settings::PixelClassifierFeatures> &features);
+template void PixelClassifier::storeModel<cv::ml::KNearest>(cv::Ptr<cv::ml::KNearest> model, const std::filesystem::path &path,
+                                                            const std::set<joda::settings::PixelClassifierFeatures> &features);
+template void PixelClassifier::storeModel<cv::ml::SVM>(cv::Ptr<cv::ml::SVM> model, const std::filesystem::path &path,
+                                                       const std::set<joda::settings::PixelClassifierFeatures> &features);
+template void PixelClassifier::storeModel<cv::ml::DTrees>(cv::Ptr<cv::ml::DTrees> model, const std::filesystem::path &path,
+                                                          const std::set<joda::settings::PixelClassifierFeatures> &features);
+template void PixelClassifier::storeModel<cv::ml::Boost>(cv::Ptr<cv::ml::Boost> model, const std::filesystem::path &path,
+                                                         const std::set<joda::settings::PixelClassifierFeatures> &features);
+template void PixelClassifier::storeModel<cv::ml::ANN_MLP>(cv::Ptr<cv::ml::ANN_MLP> model, const std::filesystem::path &path,
+                                                           const std::set<joda::settings::PixelClassifierFeatures> &features);
+template void PixelClassifier::storeModel<cv::ml::LogisticRegression>(cv::Ptr<cv::ml::LogisticRegression> model, const std::filesystem::path &path,
+                                                                      const std::set<joda::settings::PixelClassifierFeatures> &features);
+template void PixelClassifier::storeModel<cv::ml::SVMSGD>(cv::Ptr<cv::ml::SVMSGD> model, const std::filesystem::path &path,
+                                                          const std::set<joda::settings::PixelClassifierFeatures> &features);
 
 }    // namespace joda::ml

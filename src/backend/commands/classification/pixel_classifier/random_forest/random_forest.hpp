@@ -42,8 +42,6 @@ private:
   static cv::Ptr<cv::ml::RTrees> trainRandomForest(const joda::settings::RandomForestTrainingSettings &settings, const cv::Mat &featList,
                                                    const cv::Mat &labelList);
 
-  static cv::Mat extractFeatures(const cv::Mat &img, const std::set<joda::settings::PixelClassifierFeatures> &features);
-
   std::filesystem::path mModelPath;
 };
 

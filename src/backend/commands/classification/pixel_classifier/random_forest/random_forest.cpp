@@ -12,6 +12,7 @@
 #include "random_forest.hpp"
 #include <opencv2/core/hal/interface.h>
 #include <string>
+#include "backend/commands/classification/pixel_classifier/pixel_classifier_training_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_units.hpp"
 #include "backend/helper/logger/console_logger.hpp"
@@ -44,7 +45,8 @@ void RandomForest::execute(processor::ProcessContext & /*context*/, cv::Mat &ima
 {
   // Load trained forest
   std::set<joda::settings::PixelClassifierFeatures> featuresSet;
-  cv::Ptr<cv::ml::RTrees> model = loadModel<cv::ml::RTrees>(mModelPath, featuresSet);
+  settings::PixelClassifierMethod method;
+  auto model = loadModel(mModelPath, featuresSet, method);
 
   // ===============================
   // Predict
@@ -126,7 +128,7 @@ void RandomForest::prepareTrainingDataFromROI(const cv::Mat &image, const std::s
     objectsToLearn->createBinaryImage(roiMask);
     extractSamples(roiMask, classIdToTrain);
     cv::imwrite("tmp/training_mask_" + std::to_string(classIdToTrain) + ".png", roiMask);      // multiply for visualization
-    cv::imwrite("tmp/image_" + std::to_string(classIdToTrain) + ".png", image / 256);          // multiply for visualization
+    cv::imwrite("tmp/image_" + std::to_string(classIdToTrain) + ".png", image);                // multiply for visualization
     cv::imwrite("tmp/features_" + std::to_string(classIdToTrain) + ".png", features / 256);    // multiply for visualization
   }
 

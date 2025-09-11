@@ -22,6 +22,6 @@ static inline std::string EXT_PROJECT                          = ".icproj";
 static inline std::string EXT_PROJECT_TEMPLATE                 = ".ictemplproj";
 static inline std::string EXT_PIPELINE_TEMPLATE                = ".ictempl";
 static inline std::string EXT_CLASS_CLASS_TEMPLATE             = ".ictemplcc";
-static inline std::string MASCHINE_LEARNING_OPCEN_CV_XML_MODEL = ".icmlmcvx";
+static inline std::string MASCHINE_LEARNING_OPCEN_CV_XML_MODEL = ".icmlmcv";
 
 }    // namespace joda::fs
