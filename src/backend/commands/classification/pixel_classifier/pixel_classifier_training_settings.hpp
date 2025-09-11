@@ -25,6 +25,17 @@ enum class PixelClassifierMethod
   ANN_MLP
 };
 
+enum class PixelClassifierFeatures
+{
+  INTENSITY,
+  GAUSSIAN,
+  LAPLACIAN,
+  GRADIENT,
+  VARIANCE,
+  HESSIAN
+
+};
+
 struct PixelClassifierTrainingSettings
 {
   //
@@ -36,6 +47,11 @@ struct PixelClassifierTrainingSettings
   // Machine learning method to use
   //
   PixelClassifierMethod method = PixelClassifierMethod::UNKNOWN;
+
+  //
+  // Features to use for training and prediction
+  //
+  std::set<PixelClassifierFeatures> features;
 
   //
   // Output path where the trained model should be stored

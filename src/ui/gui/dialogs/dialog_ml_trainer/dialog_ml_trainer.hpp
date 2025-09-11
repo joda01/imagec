@@ -22,6 +22,8 @@
 #include "ui/gui/helper/table_view.hpp"
 #include "ui/gui/helper/table_widget.hpp"
 
+class QComboBoxMulti;
+
 namespace joda::ui::gui {
 
 class WindowMain;
@@ -33,13 +35,13 @@ class TableModelPaintedPolygon;
 /// \author     Joachim Danmayr
 /// \brief
 ///
-class DialogRoiManager : public QDialog
+class DialogMlTrainer : public QDialog
 {
   Q_OBJECT
 
 public:
   /////////////////////////////////////////////////////
-  DialogRoiManager(PanelImageView *imagePanel, QWidget *parent);
+  DialogMlTrainer(PanelImageView *imagePanel, QWidget *parent);
 
 signals:
   void dialogDisappeared();    // custom signal
@@ -51,16 +53,12 @@ protected:
 
 private:
   /////////////////////////////////////////////////////
+  void startTraining();
+
+  /////////////////////////////////////////////////////
   PanelImageView *mImagePanel;
-  PlaceholderTableView *mPolygonsTable;
-  TableModelPaintedPolygon *mTableModel;
-
-  // PAINTING///////////////////////////////////////////////////
-  QAction *mMoveAction;
-
-  QActionGroup *mPixelClassMenuGroup = nullptr;
-  QAction *mPixelClass               = nullptr;
-  std::map<int32_t, QAction *> mPixelClassSelections;
+  QComboBox *mComboClassifierMethod;
+  QComboBoxMulti *mComboTrainingFeatures;
 };
 
 }    // namespace joda::ui::gui

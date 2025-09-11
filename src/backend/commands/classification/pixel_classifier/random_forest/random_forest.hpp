@@ -37,11 +37,12 @@ public:
 private:
   /////////////////////////////////////////////////////
   static void prepareTrainingDataFromROI(const cv::Mat &image, const std::set<int32_t> &classesToTrain, const atom::ObjectList &regionOfInterest,
-                                         cv::Mat &trainSamples, cv::Mat &trainLabels);
+                                         cv::Mat &trainSamples, cv::Mat &trainLabels,
+                                         const std::set<joda::settings::PixelClassifierFeatures> &features);
   static cv::Ptr<cv::ml::RTrees> trainRandomForest(const joda::settings::RandomForestTrainingSettings &settings, const cv::Mat &featList,
                                                    const cv::Mat &labelList);
 
-  static cv::Mat extractFeatures(const cv::Mat &img);
+  static cv::Mat extractFeatures(const cv::Mat &img, const std::set<joda::settings::PixelClassifierFeatures> &features);
 
   std::filesystem::path mModelPath;
 };

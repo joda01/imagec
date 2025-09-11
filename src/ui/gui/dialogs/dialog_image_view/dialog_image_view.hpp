@@ -21,6 +21,7 @@
 #include "backend/helper/image/image.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "controller/controller.hpp"
+#include "ui/gui/dialogs/dialog_ml_trainer/dialog_ml_trainer.hpp"
 #include "dialog_image_settings.hpp"
 #include "panel_image_view.hpp"
 
@@ -97,14 +98,16 @@ private:
   QAction *showOverlay          = nullptr;
   QSlider *mOverlayOpaque       = nullptr;
   QAction *mOverlayOpaqueAction = nullptr;
-  QAction *mInteractiveAITraining;
+  QAction *mActionRoiManager    = nullptr;
+  QAction *mActionMlTrainer     = nullptr;
 
   QActionGroup *mImageChannelMenuGroup = nullptr;
   QAction *mImageChannel               = nullptr;
   std::map<int32_t, QAction *> mChannelSelections;
 
   // AI Trainer ////////////////////////////////////////////////////
-  DialogRoiManager *mInteractiveAiTrainer;
+  DialogRoiManager *mDialogRoiManager;
+  DialogMlTrainer *mDialogMlTrainer;
 
   // T-STACK //////////////////////////////////////////////////
   VideoControlButtonGroup *mVideoButtonGroup;

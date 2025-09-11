@@ -43,13 +43,14 @@ RandomForest::RandomForest(const std::filesystem::path &modelPath) : mModelPath(
 void RandomForest::execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/)
 {
   // Load trained forest
-  cv::Ptr<cv::ml::RTrees> model = cv::ml::StatModel::load<cv::ml::RTrees>(mModelPath.string());
+  std::set<joda::settings::PixelClassifierFeatures> featuresSet;
+  cv::Ptr<cv::ml::RTrees> model = loadModel<cv::ml::RTrees>(mModelPath, featuresSet);
 
   // ===============================
   // Predict
   // ===============================
 
-  cv::Mat features = extractFeatures(image);
+  cv::Mat features = extractFeatures(image, featuresSet);
 
   cv::Mat predFloat;    // (H*W) x 1, CV_32F
   model->predict(features, predFloat);
@@ -73,60 +74,13 @@ void RandomForest::train(const settings::PixelClassifierTrainingSettings &traini
 {
   cv::Mat trainSamples;
   cv::Mat labelList;
-  prepareTrainingDataFromROI(image, classesToTrain, regionOfInterest, trainSamples, labelList);
+  prepareTrainingDataFromROI(image, classesToTrain, regionOfInterest, trainSamples, labelList, trainingSettings.features);
   if(trainSamples.empty() || labelList.empty()) {
     joda::log::logWarning("No training samples!");
     return;
   }
   auto mlTree = trainRandomForest(trainingSettings.randomForest.value_or(joda::settings::RandomForestTrainingSettings{}), trainSamples, labelList);
-  mlTree->save(trainedModelOutputFile);
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-cv::Mat RandomForest::extractFeatures(const cv::Mat &img)
-{
-  CV_Assert(img.channels() == 1);
-  std::vector<cv::Mat> featureMaps;
-
-  // Raw intensity
-  featureMaps.push_back(img.clone());
-
-  // Gaussian blur at different scales
-  cv::Mat blur1;
-  cv::Mat blur2;
-  cv::GaussianBlur(img, blur1, cv::Size(5, 5), 1.0);
-  cv::GaussianBlur(img, blur2, cv::Size(9, 9), 2.0);
-  featureMaps.push_back(blur1);
-  featureMaps.push_back(blur2);
-
-  // Gradient magnitude
-  cv::Mat gradX;
-  cv::Mat gradY;
-  cv::Mat gradMag;
-  cv::Sobel(img, gradX, CV_32F, 1, 0);
-  cv::Sobel(img, gradY, CV_32F, 0, 1);
-  cv::magnitude(gradX, gradY, gradMag);
-  featureMaps.push_back(gradMag);
-
-  // Laplacian of Gaussian
-  cv::Mat lap;
-  cv::Laplacian(img, lap, CV_32F);
-  featureMaps.push_back(lap);
-
-  // Stack into feature matrix
-  cv::Mat features(img.rows * img.cols, static_cast<int>(featureMaps.size()), CV_32F);
-  for(int i = 0; i < static_cast<int>(featureMaps.size()); i++) {
-    cv::Mat f = featureMaps[i].reshape(1, img.rows * img.cols);
-    f.copyTo(features.col(i));
-  }
-
-  return features;    // Each row = pixel, each col = feature
+  storeModel(mlTree, trainedModelOutputFile, trainingSettings.features);
 }
 
 ///
@@ -137,10 +91,11 @@ cv::Mat RandomForest::extractFeatures(const cv::Mat &img)
 /// \return
 ///
 void RandomForest::prepareTrainingDataFromROI(const cv::Mat &image, const std::set<int32_t> &classesToTrain, const atom::ObjectList &regionOfInterest,
-                                              cv::Mat &trainSamples, cv::Mat &trainLabels)
+                                              cv::Mat &trainSamples, cv::Mat &trainLabels,
+                                              const std::set<joda::settings::PixelClassifierFeatures> &featuresSet)
 {
   // Extract features
-  cv::Mat features = extractFeatures(image);
+  cv::Mat features = extractFeatures(image, featuresSet);
 
   // Collect training samples from labeled ROI mask
   std::vector<int> labels;

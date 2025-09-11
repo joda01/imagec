@@ -29,6 +29,7 @@
 #include <string>
 #include <thread>
 #include "backend/helper/image/image.hpp"
+#include "ui/gui/dialogs/dialog_ml_trainer/dialog_ml_trainer.hpp"
 #include "ui/gui/dialogs/dialog_roi_manager/dialog_roi_manager.hpp"
 #include "ui/gui/dialogs/widget_video_control_button_group/widget_video_control_button_group.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
@@ -154,28 +155,54 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, joda::settings::AnalyzeSet
       }
     });
     toolbarTop->addAction(imgSettings);
+    toolbarTop->addSeparator();
+    //
+    // ROI manager
+    //
+    {
+      mActionRoiManager = toolbarTop->addAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("shapes"), "ROI manager");
+      mActionRoiManager->setCheckable(true);
+      mActionRoiManager->setStatusTip("Show and edit region of interests");
+      mDialogRoiManager = new DialogRoiManager(&mImageViewRight, parent);
+      connect(mDialogRoiManager, &DialogRoiManager::dialogDisappeared, [this]() {
+        mActionRoiManager->blockSignals(true);
+        mActionRoiManager->setChecked(false);
+        mActionRoiManager->blockSignals(false);
+      });
+      connect(mActionRoiManager, &QAction::triggered, [this](bool checked) {
+        mDialogRoiManager->blockSignals(true);
+        if(checked) {
+          mDialogRoiManager->show();
+        } else {
+          mDialogRoiManager->close();
+        }
+        mDialogRoiManager->blockSignals(false);
+      });
+    }
 
     //
-    // AI Training
+    // ML Trainer
     //
-    mInteractiveAITraining = toolbarTop->addAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("shapes"), "ROI manager");
-    mInteractiveAITraining->setCheckable(true);
-    mInteractiveAITraining->setStatusTip("Train pixel classifier");
-    mInteractiveAiTrainer = new DialogRoiManager(&mImageViewRight, parent);
-    connect(mInteractiveAiTrainer, &DialogRoiManager::dialogDisappeared, [this]() {
-      mInteractiveAITraining->blockSignals(true);
-      mInteractiveAITraining->setChecked(false);
-      mInteractiveAITraining->blockSignals(false);
-    });
-    connect(mInteractiveAITraining, &QAction::triggered, [this](bool checked) {
-      mInteractiveAiTrainer->blockSignals(true);
-      if(checked) {
-        mInteractiveAiTrainer->show();
-      } else {
-        mInteractiveAiTrainer->close();
-      }
-      mInteractiveAiTrainer->blockSignals(false);
-    });
+    {
+      mActionMlTrainer = toolbarTop->addAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("tree-structure"), "ML Trainer");
+      mActionMlTrainer->setCheckable(true);
+      mActionMlTrainer->setStatusTip("Train pixel and object classifier");
+      mDialogMlTrainer = new DialogMlTrainer(&mImageViewRight, parent);
+      connect(mDialogMlTrainer, &DialogMlTrainer::dialogDisappeared, [this]() {
+        mActionMlTrainer->blockSignals(true);
+        mActionMlTrainer->setChecked(false);
+        mActionMlTrainer->blockSignals(false);
+      });
+      connect(mActionMlTrainer, &QAction::triggered, [this](bool checked) {
+        mDialogMlTrainer->blockSignals(true);
+        if(checked) {
+          mDialogMlTrainer->show();
+        } else {
+          mDialogMlTrainer->close();
+        }
+        mDialogMlTrainer->blockSignals(false);
+      });
+    }
 
     toolbarTop->addSeparator();
 

@@ -252,20 +252,6 @@ DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) 
     // connect(mPolygonsTable, &QTableView::doubleClicked, [this](const QModelIndex &index) {});
   }
 
-  {
-    auto *btnStartTraining = new QPushButton("Start training");
-    connect(btnStartTraining, &QPushButton::pressed, [this]() { startTraining(); });
-
-    auto *trainingSettingsMeta = new QHBoxLayout;
-    trainingSettingsMeta->addWidget(btnStartTraining);
-    auto *openMetaEditor = new QPushButton(generateSvgIcon<Style::REGULAR, Color::BLACK>("dots-three-outline-vertical"), "");
-    openMetaEditor->setStatusTip("Training settings");
-    connect(openMetaEditor, &QPushButton::clicked, [this] {});
-    trainingSettingsMeta->addWidget(openMetaEditor);
-    trainingSettingsMeta->setStretch(0, 1);    // Make label take all available space
-    layout->addLayout(trainingSettingsMeta);
-  }
-
   setLayout(layout);
 
   connect(imagePanel, &PanelImageView::paintedPolygonsChanged, [this]() { mTableModel->refresh(); });
@@ -312,32 +298,6 @@ void DialogRoiManager::closeEvent(QCloseEvent *event)
 
   emit dialogDisappeared();
   QDialog::closeEvent(event);
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogRoiManager::startTraining()
-{
-  atom::ObjectList objectList;
-  mImagePanel->getObjectMapFromAnnotatedRegions(objectList);
-  std::set<int32_t> classesToTrain;
-
-  for(const auto &[classId, _] : objectList) {
-    classesToTrain.emplace(static_cast<int32_t>(classId));
-  }
-
-  if(classesToTrain.size() > 1) {
-    std::filesystem::path modelPath = joda::ml::MlModelParser::getUsersMlModelDirectory() / ("tmp" + joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL);
-
-    joda::settings::PixelClassifierTrainingSettings settings{
-        .trainingClasses = classesToTrain, .method = joda::settings::PixelClassifierMethod::RANDOM_FOREST, .outPath = modelPath};
-    joda::cmd::PixelClassifier::train(*mImagePanel->mutableImage()->getOriginalImage(), objectList, settings);
-  }
 }
 
 ///
