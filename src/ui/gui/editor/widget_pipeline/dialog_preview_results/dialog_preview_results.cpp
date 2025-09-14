@@ -35,8 +35,8 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-DialogPreviewResults::DialogPreviewResults(const joda::settings::Classification &classes, WindowMain *windowMain) :
-    QDialog(windowMain), mWindowMain(windowMain)
+DialogPreviewResults::DialogPreviewResults(PanelImageView *panelImageView, const joda::settings::Classification &classes, WindowMain *windowMain) :
+    QDialog(windowMain), mWindowMain(windowMain), mPanelImageView(panelImageView)
 {
   setWindowTitle("Preview results");
   setWindowFlags(Qt::Tool | Qt::FramelessWindowHint);
@@ -68,6 +68,7 @@ DialogPreviewResults::DialogPreviewResults(const joda::settings::Classification 
   connect(mResultsTable, &QTableView::doubleClicked, [this](const QModelIndex &index) {
     bool isHidden = mTableModel->data(index, Qt::CheckStateRole).toBool();
     mTableModel->setHiddenFlag(static_cast<enums::ClassId>(mTableModel->data(index, TableModelPreviewResult::CLASS_ROLE).toInt()), !isHidden);
+    mPanelImageView->setRoisToHide(getClassesToHide());
   });
 }
 

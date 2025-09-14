@@ -103,12 +103,20 @@ QVariant TableModelPaintedPolygon::data(const QModelIndex &index, int role) cons
 
   if(role == Qt::DisplayRole) {
     QString imgChannel = QString::number(it->pixelClass);
-    if(it->pixelClass == 0) {
-      return "Background";
+
+    if(it->source == PaintedRoiProperties::SourceType::Manual) {
+      if(it->pixelClass == 0) {
+        return "Background";
+      }
+      if(index.column() == 0) {
+        return "Annotation " + QString::number(it->pixelClass);
+      }
+    } else {
+      if(index.column() == 0) {
+        return "Class " + QString::number(it->pixelClass);
+      }
     }
-    if(index.column() == 0) {
-      return "Class " + QString::number(it->pixelClass);
-    }
+
     if(index.column() == 1) {
       QString retStr;
       return retStr;

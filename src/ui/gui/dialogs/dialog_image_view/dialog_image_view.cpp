@@ -184,7 +184,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, joda::settings::AnalyzeSet
     // ML Trainer
     //
     {
-      mActionMlTrainer = toolbarTop->addAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("tree-structure"), "ML Trainer");
+      mActionMlTrainer = toolbarTop->addAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("fediverse-logo"), "ML Trainer");
       mActionMlTrainer->setCheckable(true);
       mActionMlTrainer->setStatusTip("Train pixel and object classifier");
       mDialogMlTrainer = new DialogMlTrainer(&mImageViewRight, parent);

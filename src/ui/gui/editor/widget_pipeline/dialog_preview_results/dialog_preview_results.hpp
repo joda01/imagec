@@ -32,6 +32,7 @@ namespace joda::ui::gui {
 class WindowMain;
 class TableModelPreviewResult;
 class PanelPipelineSettings;
+class PanelImageView;
 
 ///
 /// \class
@@ -44,7 +45,7 @@ class DialogPreviewResults : public QDialog
 
 public:
   /////////////////////////////////////////////////////
-  DialogPreviewResults(const joda::settings::Classification &classes, WindowMain *windowMain);
+  DialogPreviewResults(PanelImageView *panelImageView, const joda::settings::Classification &classes, WindowMain *windowMain);
   void setResults(PanelPipelineSettings *pipelineSettings, joda::ctrl::Preview::PreviewResults *results);
   void refresh();
   auto getClassesToHide() const -> settings::ObjectInputClassesExp;
@@ -59,5 +60,6 @@ private:
   WindowMain *mWindowMain;
   PanelPipelineSettings *mPipelineSettings = nullptr;
   TableModelPreviewResult *mTableModel     = nullptr;
+  PanelImageView *mPanelImageView          = nullptr;
 };
 }    // namespace joda::ui::gui

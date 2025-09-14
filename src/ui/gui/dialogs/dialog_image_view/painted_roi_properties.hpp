@@ -23,9 +23,16 @@ namespace joda::ui::gui {
 
 struct PaintedRoiProperties
 {
+  enum class SourceType
+  {
+    FromPipeline,
+    Manual
+  };
+
   int32_t pixelClass = 0;
   QColor pixelClassColor;
   QGraphicsPolygonItem *item;
+  SourceType source = SourceType::Manual;
 
   joda::atom::ROI qPolygonToRoi(const cv::Mat *image, const cv::Size &previewSize) const
   {

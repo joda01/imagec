@@ -133,13 +133,14 @@ public:
   // REGION OF INTERESTS //////////////////////////////////////////////
   auto getObjectMapFromAnnotatedRegions(atom::ObjectList &) -> void;
   void setRegionsOfInterestFromObjectList(const atom::ObjectMap &, const joda::settings::Classification &);
-  void clearRegionOfInterest();
+  void clearRegionOfInterest(PaintedRoiProperties::SourceType sourceToDelete = PaintedRoiProperties::SourceType::FromPipeline);
   auto getPtrToPolygons() -> std::vector<PaintedRoiProperties> *;
   void setSelectedRois(const std::set<int32_t> &idxs);
   void deleteRois(const std::set<int32_t> &idx);
   void setFillRois(bool);
   void setShowRois(bool);
   void setRoisOpaque(float opaque);
+  void setRoisToHide(const std::set<enums::ClassId> &);
 
 signals:
   /////////////////////////////////////////////////////
@@ -206,7 +207,8 @@ private:
   State mState = State::MOVE;
   std::vector<PaintedRoiProperties> mPolygonItems;
   PaintedRoi_t mActPaintingRoi;
-  std::set<int32_t> mSelectedPolygonIdx;
+  std::set<int32_t> mSelectedRois;
+  std::set<int32_t> mRoiClassesToHide;
 
   QPointF mPaintOrigin;
   QAbstractGraphicsShapeItem *mRubberItem = nullptr;

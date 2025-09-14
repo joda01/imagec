@@ -230,8 +230,14 @@ void PanelImageView::setRegionsOfInterestFromObjectList(const atom::ObjectMap &o
       auto pen = QPen(color, 3);
       pen.setCosmetic(true);
       auto *scenePolygon = scene->addPolygon(polygon, pen, brush);
-      mPolygonItems.push_back(
-          PaintedRoiProperties{.pixelClass = static_cast<int32_t>(roi.getClassId()), .pixelClassColor = color, .item = scenePolygon});
+      mPolygonItems.push_back(PaintedRoiProperties{.pixelClass      = static_cast<int32_t>(roi.getClassId()),
+                                                   .pixelClassColor = color,
+                                                   .item            = scenePolygon,
+                                                   .source          = PaintedRoiProperties::SourceType::FromPipeline});
+
+      if(mRoiClassesToHide.contains(static_cast<int32_t>(roi.getClassId()))) {
+        scenePolygon->setVisible(false);
+      }
     }
   }
   emit paintedPolygonsChanged();
@@ -538,12 +544,12 @@ void PanelImageView::onUpdateImage()
 void PanelImageView::mousePressEvent(QMouseEvent *event)
 {
   if(getClickedOnRoi(event)) {
-    emit paintedPolygonClicked(mSelectedPolygonIdx);
+    emit paintedPolygonClicked(mSelectedRois);
     return;
   } else {
-    if(!mSelectedPolygonIdx.empty()) {
+    if(!mSelectedRois.empty()) {
       setSelectedRois({});
-      emit paintedPolygonClicked(mSelectedPolygonIdx);
+      emit paintedPolygonClicked(mSelectedRois);
     }
   }
 
@@ -593,8 +599,14 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
           brush = QBrush(transparency, Qt::SolidPattern);
         }
         mTempPolygonItem->setBrush(brush);    // optional fill
-        mPolygonItems.push_back(
-            PaintedRoiProperties{.pixelClass = mSelectedPixelClass, .pixelClassColor = mPixelClassColor, .item = mTempPolygonItem});
+        mPolygonItems.push_back(PaintedRoiProperties{.pixelClass      = mSelectedPixelClass,
+                                                     .pixelClassColor = mPixelClassColor,
+                                                     .item            = mTempPolygonItem,
+                                                     .source          = PaintedRoiProperties::SourceType::Manual});
+
+        if(mRoiClassesToHide.contains(static_cast<int32_t>(mSelectedPixelClass))) {
+          mTempPolygonItem->setVisible(false);
+        }
 
         // Clean up temporary data
         mTempPolygonItem = nullptr;
@@ -717,7 +729,14 @@ void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
       auto pen = QPen(mPixelClassColor, 3);
       pen.setCosmetic(true);
       auto *polygon = scene->addPolygon(poly, pen, brush);
-      mPolygonItems.push_back(PaintedRoiProperties{.pixelClass = mSelectedPixelClass, .pixelClassColor = mPixelClassColor, .item = polygon});
+      mPolygonItems.push_back(PaintedRoiProperties{.pixelClass      = mSelectedPixelClass,
+                                                   .pixelClassColor = mPixelClassColor,
+                                                   .item            = polygon,
+                                                   .source          = PaintedRoiProperties::SourceType::Manual});
+
+      if(mRoiClassesToHide.contains(mSelectedPixelClass)) {
+        polygon->setVisible(false);
+      }
 
       // Remove the temporary rubber rectangle
       scene->removeItem(mRubberItem);
@@ -1317,7 +1336,7 @@ void PanelImageView::setSelectedRois(const std::set<int32_t> &idxs)
   // ==============================
   // First rest old selections
   // ==============================
-  for(int32_t idx : mSelectedPolygonIdx) {
+  for(int32_t idx : mSelectedRois) {
     if(!idxs.contains(idx)) {
       // This is not selected any more
       auto &poly = mPolygonItems.at(static_cast<size_t>(idx));
@@ -1330,8 +1349,8 @@ void PanelImageView::setSelectedRois(const std::set<int32_t> &idxs)
   // ==============================
   // Highlight new selections
   // ==============================
-  mSelectedPolygonIdx = idxs;
-  for(int32_t idx : mSelectedPolygonIdx) {
+  mSelectedRois = idxs;
+  for(int32_t idx : mSelectedRois) {
     const auto &poly = mPolygonItems.at(static_cast<size_t>(idx));
     auto pen         = QPen(Qt::yellow, 3);
     pen.setCosmetic(true);
@@ -1353,8 +1372,8 @@ void PanelImageView::deleteRois(const std::set<int32_t> &idxs)
     if(idx >= 0 && static_cast<int32_t>(mPolygonItems.size()) > idx) {
       delete mPolygonItems.at(static_cast<size_t>(idx)).item;
       mPolygonItems.erase(mPolygonItems.begin() + idx);
-      if(mSelectedPolygonIdx.contains(idx)) {
-        mSelectedPolygonIdx.erase(idx);
+      if(mSelectedRois.contains(idx)) {
+        mSelectedRois.erase(idx);
       }
     }
   }
@@ -1369,13 +1388,16 @@ void PanelImageView::deleteRois(const std::set<int32_t> &idxs)
 /// \param[out]
 /// \return
 ///
-void PanelImageView::clearRegionOfInterest()
+void PanelImageView::clearRegionOfInterest(PaintedRoiProperties::SourceType sourceToDelete)
 {
   for(int32_t idx = static_cast<int32_t>(mPolygonItems.size()) - 1; idx >= 0; idx--) {
+    if(mPolygonItems.at(static_cast<size_t>(idx)).source != sourceToDelete) {
+      continue;
+    }
     delete mPolygonItems.at(static_cast<size_t>(idx)).item;
     mPolygonItems.erase(mPolygonItems.begin() + idx);
-    if(mSelectedPolygonIdx.contains(idx)) {
-      mSelectedPolygonIdx.erase(idx);
+    if(mSelectedRois.contains(idx)) {
+      mSelectedRois.erase(idx);
     }
   }
 
@@ -1484,8 +1506,29 @@ void PanelImageView::setShowRois(bool show)
   for(auto &poly : mPolygonItems) {
     poly.item->setVisible(show);
   }
+}
 
-  emit paintedPolygonsChanged();
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::setRoisToHide(const std::set<enums::ClassId> &toHide)
+{
+  mRoiClassesToHide.clear();
+  for(auto id : toHide) {
+    mRoiClassesToHide.emplace(static_cast<int32_t>(id));
+  }
+
+  for(auto &poly : mPolygonItems) {
+    if(mRoiClassesToHide.contains(poly.pixelClass)) {
+      poly.item->setVisible(false);
+    } else {
+      poly.item->setVisible(true);
+    }
+  }
 }
 
 ///

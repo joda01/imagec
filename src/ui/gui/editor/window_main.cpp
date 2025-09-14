@@ -100,7 +100,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   // Preview results
   //
   {
-    mPreviewResultsDialog = new DialogPreviewResults(getSettings().projectSettings.classification, this);
+    mPreviewResultsDialog = new DialogPreviewResults(mPreviewImage->getImagePanel(), getSettings().projectSettings.classification, this);
   }
 
   setCentralWidget(mPreviewImage);
