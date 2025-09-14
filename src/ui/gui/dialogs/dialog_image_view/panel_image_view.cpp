@@ -25,6 +25,7 @@
 #include <string>
 #include <utility>
 #include "backend/commands/classification/classifier/classifier_settings.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_units.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/duration_count/duration_count.h"
@@ -229,6 +230,7 @@ void PanelImageView::setRegionsOfInterestFromObjectList(const atom::ObjectMap &o
       }
       auto pen = QPen(color, 3);
       pen.setCosmetic(true);
+
       auto *scenePolygon = scene->addPolygon(polygon, pen, brush);
       mPolygonItems.push_back(PaintedRoiProperties{.pixelClass      = static_cast<int32_t>(roi.getClassId()),
                                                    .pixelClassColor = color,
@@ -240,6 +242,36 @@ void PanelImageView::setRegionsOfInterestFromObjectList(const atom::ObjectMap &o
       }
     }
   }
+  emit paintedPolygonsChanged();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::setRoiColorsForClasses(const joda::settings::Classification &classes)
+{
+  for(auto &polyRoi : mPolygonItems) {
+    if(polyRoi.source == PaintedRoiProperties::SourceType::FromPipeline) {
+      QColor color = QColor(classes.getClassFromId(static_cast<enums::ClassId>(polyRoi.pixelClass)).color.c_str());
+      QPolygonF polygon;
+      QBrush brush = Qt::NoBrush;
+      if(mFillRoi) {
+        QColor transparency = color;
+        transparency.setAlphaF(mOpaque);
+        brush = QBrush(transparency, Qt::SolidPattern);
+      }
+      auto pen = QPen(color, 3);
+      pen.setCosmetic(true);
+      polyRoi.item->setPen(pen);
+      polyRoi.item->setBrush(brush);
+      polyRoi.pixelClassColor = color;
+    }
+  }
+
   emit paintedPolygonsChanged();
 }
 

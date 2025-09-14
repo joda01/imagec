@@ -141,6 +141,7 @@ public:
   void setShowRois(bool);
   void setRoisOpaque(float opaque);
   void setRoisToHide(const std::set<enums::ClassId> &);
+  void setRoiColorsForClasses(const joda::settings::Classification &);
 
 signals:
   /////////////////////////////////////////////////////

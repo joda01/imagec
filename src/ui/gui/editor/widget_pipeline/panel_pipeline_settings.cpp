@@ -705,6 +705,9 @@ void PanelPipelineSettings::closeWindow()
 void PanelPipelineSettings::onClassificationNameChanged()
 {
   valueChangedEvent();
+  const settings::AnalyzeSettings &settingsTmp = mWindowMain->getSettings();
+  mPreviewImage->getImagePanel()->setRoiColorsForClasses(settingsTmp.projectSettings.classification);
+  mPreviewResultsDialog->refresh();
 }
 
 ///
