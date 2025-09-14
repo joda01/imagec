@@ -230,8 +230,8 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, joda::settings::AnalyzeSet
     mOverlayOpaque = new QSlider();
     mOverlayOpaque->setOrientation(Qt::Orientation::Horizontal);
     mOverlayOpaque->setMinimum(0);
-    mOverlayOpaque->setMaximum(100);
-    mOverlayOpaque->setValue(90);
+    mOverlayOpaque->setMaximum(60);
+    mOverlayOpaque->setValue(60);
     mOverlayOpaque->setMaximumWidth(100);
     connect(mOverlayOpaque, &QSlider::valueChanged, [this] { mImageViewRight.setRoisOpaque(static_cast<float>(mOverlayOpaque->value()) / 100.0F); });
     mOverlayOpaqueAction = toolbarTop->addWidget(mOverlayOpaque);
