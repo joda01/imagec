@@ -19,7 +19,6 @@
 #include "backend/commands/classification/pixel_classifier/pixel_classifier.hpp"
 #include "backend/commands/classification/pixel_classifier/pixel_classifier_settings.hpp"
 #include "backend/commands/classification/pixel_classifier/pixel_classifier_training_settings.hpp"
-#include "backend/commands/classification/pixel_classifier/random_forest/random_forest.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/ml_model_parser/ml_model_parser.hpp"

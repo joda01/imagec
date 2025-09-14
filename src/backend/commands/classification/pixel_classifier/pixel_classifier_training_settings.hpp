@@ -13,7 +13,6 @@
 
 #include "backend/settings/setting.hpp"
 #include "backend/settings/setting_base.hpp"
-#include "random_forest/random_forest_training_settings.hpp"
 
 namespace joda::settings {
 
@@ -45,6 +44,26 @@ enum class PixelClassifierFeatures
   HessianEigenvalues
 };
 
+struct RandomForestTrainingSettings
+{
+  int32_t maxTreeDepth      = 50;    // 100
+  int32_t minSampleCount    = 10;
+  float regressionAccuracy  = 0;
+  double terminationEpsilon = 0;
+  int32_t maxNumberOfTrees  = 50;
+};
+
+struct AnnMlpTrainingSettings
+{
+  int32_t nrNeuronsLayer01  = 64;
+  int32_t nrNeuronsLayer02  = 64;
+  int32_t nrNeuronsLayer03  = 64;
+  int32_t nrNeuronsLayer04  = 64;
+  int32_t nrNeuronsLayer05  = 64;
+  double terminationEpsilon = 0;
+  int32_t maxIterations     = 1000;
+};
+
 struct PixelClassifierTrainingSettings
 {
   //
@@ -71,6 +90,7 @@ struct PixelClassifierTrainingSettings
   // Settings for different algorithms
   //
   std::optional<RandomForestTrainingSettings> randomForest;
+  std::optional<AnnMlpTrainingSettings> annMlp;
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(PixelClassifierMethod, {
