@@ -131,7 +131,7 @@ public:
   auto mutableImage() -> joda::image::Image *;
 
   // REGION OF INTERESTS //////////////////////////////////////////////
-  auto getObjectMapFromAnnotatedRegions(atom::ObjectList &) -> void;
+  auto getObjectMapFromAnnotatedRegions(const std::set<PaintedRoiProperties::SourceType> &filter, atom::ObjectList &) -> void;
   void setRegionsOfInterestFromObjectList(const atom::ObjectMap &, const joda::settings::Classification &);
   void clearRegionOfInterest(PaintedRoiProperties::SourceType sourceToDelete = PaintedRoiProperties::SourceType::FromPipeline);
   auto getPtrToPolygons() -> std::vector<PaintedRoiProperties> *;

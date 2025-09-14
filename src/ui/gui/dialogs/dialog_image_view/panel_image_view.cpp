@@ -196,10 +196,13 @@ auto PanelImageView::mutableImage() -> joda::image::Image *
 /// \param[out]
 /// \return
 ///
-auto PanelImageView::getObjectMapFromAnnotatedRegions(atom::ObjectList &objectMap) -> void
+auto PanelImageView::getObjectMapFromAnnotatedRegions(const std::set<PaintedRoiProperties::SourceType> &filter, atom::ObjectList &objectMap) -> void
 {
   const auto &size = mImageToShow->getPreviewImageSize();
   for(const auto &polyRoi : mPolygonItems) {
+    if(!filter.contains(polyRoi.source)) {
+      continue;
+    }
     joda::atom::ROI roi = polyRoi.qPolygonToRoi(mImageToShow->getOriginalImage(), {size.width(), size.height()});
     objectMap.push_back(roi);
   }

@@ -154,7 +154,7 @@ void DialogMlTrainer::closeEvent(QCloseEvent *event)
 void DialogMlTrainer::startTraining()
 {
   atom::ObjectList objectList;
-  mImagePanel->getObjectMapFromAnnotatedRegions(objectList);
+  mImagePanel->getObjectMapFromAnnotatedRegions({PaintedRoiProperties::SourceType::Manual}, objectList);
   std::set<int32_t> classesToTrain;
 
   for(const auto &[classId, _] : objectList) {
