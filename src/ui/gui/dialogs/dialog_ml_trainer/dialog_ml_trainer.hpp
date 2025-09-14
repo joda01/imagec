@@ -13,8 +13,10 @@
 
 #include <qcombobox.h>
 #include <qdialog.h>
+#include <qlineedit.h>
 #include <qwidget.h>
 #include "backend/artifacts/object_list/object_list.hpp"
+#include "backend/commands/classification/pixel_classifier/pixel_classifier_training_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "controller/controller.hpp"
@@ -59,6 +61,9 @@ private:
   PanelImageView *mImagePanel;
   QComboBox *mComboClassifierMethod;
   QComboBoxMulti *mComboTrainingFeatures;
+  QLineEdit *mModelName;
+
+  joda::settings::PixelClassifierTrainingSettings mTrainerSettings;
 };
 
 }    // namespace joda::ui::gui

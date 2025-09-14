@@ -553,9 +553,6 @@ void PanelImageView::onUpdateImage()
   }
 
   if((size.width != mPixmapSize.width) || (size.height != mPixmapSize.height) || mPlaceholderImageSet) {
-    std::cout << "Fit " << std::to_string(size.width) << ";" << std::to_string(mPixmapSize.width) << "||" << std::to_string(size.height) << ";"
-              << std::to_string(mPixmapSize.height) << std::endl;
-
     mPixmapSize = size;
     if(size.width > 0 && size.height > 0) {
       fitImageToScreenSize();
@@ -639,7 +636,7 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
                                                      .item            = mTempPolygonItem,
                                                      .source          = PaintedRoiProperties::SourceType::Manual});
 
-        if(mRoiClassesToHide.contains(static_cast<int32_t>(mSelectedPixelClass))) {
+        if(mHideManualAnnotations) {
           mTempPolygonItem->setVisible(false);
         }
 
@@ -769,7 +766,7 @@ void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
                                                    .item            = polygon,
                                                    .source          = PaintedRoiProperties::SourceType::Manual});
 
-      if(mRoiClassesToHide.contains(mSelectedPixelClass)) {
+      if(mHideManualAnnotations) {
         polygon->setVisible(false);
       }
 
@@ -1558,10 +1555,18 @@ void PanelImageView::setRoisToHide(const std::set<enums::ClassId> &toHide)
   }
 
   for(auto &poly : mPolygonItems) {
-    if(mRoiClassesToHide.contains(poly.pixelClass)) {
-      poly.item->setVisible(false);
+    if(poly.source == PaintedRoiProperties::SourceType::Manual) {
+      if(mHideManualAnnotations) {
+        poly.item->setVisible(false);
+      } else {
+        poly.item->setVisible(true);
+      }
     } else {
-      poly.item->setVisible(true);
+      if(mRoiClassesToHide.contains(poly.pixelClass)) {
+        poly.item->setVisible(false);
+      } else {
+        poly.item->setVisible(true);
+      }
     }
   }
 }

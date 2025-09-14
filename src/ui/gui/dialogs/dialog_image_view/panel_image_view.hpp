@@ -244,13 +244,14 @@ private:
   std::map<SettingsIdx, ChannelSettings> mChannelSettings;
 
   /////////////////////////////////////////////////////
-  bool mWaiting             = false;
-  bool mShowThumbnail       = true;
-  bool mShowPixelInfo       = true;
-  bool mShowCrosshandCursor = false;
-  bool mLockCrosshandCursor = false;
-  bool mShowEditedImage     = false;
-  bool mShowRuler           = true;
+  bool mWaiting               = false;
+  bool mShowThumbnail         = true;
+  bool mShowPixelInfo         = true;
+  bool mShowCrosshandCursor   = false;
+  bool mLockCrosshandCursor   = false;
+  bool mShowEditedImage       = false;
+  bool mShowRuler             = true;
+  bool mHideManualAnnotations = false;
 
   // ROI///////////////////////////////////////////////////
   bool mFillRoi  = false;

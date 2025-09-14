@@ -12,6 +12,8 @@
 #include "pixel_classifier.hpp"
 #include <stdexcept>
 #include "backend/commands/classification/pixel_classifier/pixel_classifier_training_settings.hpp"
+#include "backend/helper/duration_count/duration_count.h"
+#include <opencv2/ml.hpp>
 
 namespace joda::cmd {
 
@@ -45,6 +47,10 @@ void PixelClassifier::execute(processor::ProcessContext & /*context*/, cv::Mat &
   // ===============================
   cv::Mat features = extractFeatures(image, featuresSet, method == settings::PixelClassifierMethod::ANN_MLP);
 
+  if(features.type() != CV_32F || !features.isContinuous()) {
+    features.convertTo(features, CV_32F);
+  }
+
   // ===============================
   // Predict labels
   // ===============================
@@ -52,11 +58,13 @@ void PixelClassifier::execute(processor::ProcessContext & /*context*/, cv::Mat &
   if(method == settings::PixelClassifierMethod::RTrees) {
     // RF: directly gives class IDs
     model->predict(features, predFloat);
+  } else if(method == settings::PixelClassifierMethod::KNearest) {
+    // KN: directly gives class IDs
+    model->predict(features, predFloat);
   } else if(method == settings::PixelClassifierMethod::ANN_MLP) {
     // MLP: outputs scores -> take argmax
     cv::Mat scores;    // (H*W) x numClasses, CV_32F
     model->predict(features, scores);
-
     predFloat.create(scores.rows, 1, CV_32F);
     for(int i = 0; i < scores.rows; i++) {
       cv::Point maxLoc;
@@ -100,8 +108,7 @@ void PixelClassifier::train(const cv::Mat &image, const atom::ObjectList &result
   switch(trainingSettings.method) {
     case settings::PixelClassifierMethod::RTrees: {
       prepareTrainingDataFromROI(image, trainingSettings.trainingClasses, result, trainSamples, labelList, trainingSettings.features, false);
-      auto statsModel =
-          trainRandomForest(trainingSettings.randomForest.value_or(joda::settings::RandomForestTrainingSettings{}), trainSamples, labelList);
+      auto statsModel = trainRandomForest(trainingSettings.randomForest, trainSamples, labelList);
       storeModel(statsModel, trainingSettings.outPath, trainingSettings.features);
 
     } break;
@@ -111,12 +118,15 @@ void PixelClassifier::train(const cv::Mat &image, const atom::ObjectList &result
     case settings::PixelClassifierMethod::SVMSGD:
     case settings::PixelClassifierMethod::ANN_MLP: {
       prepareTrainingDataFromROI(image, trainingSettings.trainingClasses, result, trainSamples, labelList, trainingSettings.features, true);
-      auto statsModel = trainAnnMlp(trainingSettings.annMlp.value_or(joda::settings::AnnMlpTrainingSettings{}), trainSamples, labelList,
-                                    static_cast<int32_t>(trainingSettings.trainingClasses.size()));
+      auto statsModel = trainAnnMlp(trainingSettings.annMlp, trainSamples, labelList, static_cast<int32_t>(trainingSettings.trainingClasses.size()));
       storeModel(statsModel, trainingSettings.outPath, trainingSettings.features);
 
     } break;
-    case settings::PixelClassifierMethod::KNearest:
+    case settings::PixelClassifierMethod::KNearest: {
+      prepareTrainingDataFromROI(image, trainingSettings.trainingClasses, result, trainSamples, labelList, trainingSettings.features, true);
+      auto statsModel = trainAnnMlp(trainingSettings.annMlp, trainSamples, labelList, static_cast<int32_t>(trainingSettings.trainingClasses.size()));
+      storeModel(statsModel, trainingSettings.outPath, trainingSettings.features);
+    } break;
     case settings::PixelClassifierMethod::NormalBayes:
     case settings::PixelClassifierMethod::LogisticRegression:
     case settings::PixelClassifierMethod::EM:
@@ -184,6 +194,24 @@ cv::Ptr<cv::ml::ANN_MLP> PixelClassifier::trainAnnMlp(const joda::settings::AnnM
   cv::Ptr<cv::ml::TrainData> td = cv::ml::TrainData::create(trainSamples, cv::ml::ROW_SAMPLE, labelsOneHot);
   mlp->train(td);
   return mlp;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+cv::Ptr<cv::ml::KNearest> PixelClassifier::trainKNearest(const joda::settings::KNearestTrainingSettings &settings, const cv::Mat &trainSamples,
+                                                         const cv::Mat &trainLabels)
+{
+  cv::Ptr<cv::ml::KNearest> rf = cv::ml::KNearest::create();
+  rf->setDefaultK(settings.defaultK);
+  rf->setIsClassifier(true);
+  cv::Ptr<cv::ml::TrainData> td = cv::ml::TrainData::create(trainSamples, cv::ml::ROW_SAMPLE, trainLabels);
+  rf->train(td);
+  return rf;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

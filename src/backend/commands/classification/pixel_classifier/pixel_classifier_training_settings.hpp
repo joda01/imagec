@@ -53,6 +53,11 @@ struct RandomForestTrainingSettings
   int32_t maxNumberOfTrees  = 50;
 };
 
+struct KNearestTrainingSettings
+{
+  int32_t defaultK = 10;
+};
+
 struct AnnMlpTrainingSettings
 {
   std::vector<int32_t> neuronsLayer = {64};    // Vector size is nr. of neuron layers. Entry is the number of neurons per layer.
@@ -85,8 +90,9 @@ struct PixelClassifierTrainingSettings
   //
   // Settings for different algorithms
   //
-  std::optional<RandomForestTrainingSettings> randomForest;
-  std::optional<AnnMlpTrainingSettings> annMlp;
+  RandomForestTrainingSettings randomForest;
+  AnnMlpTrainingSettings annMlp;
+  KNearestTrainingSettings kNearest;
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(PixelClassifierMethod, {

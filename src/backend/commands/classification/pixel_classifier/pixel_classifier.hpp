@@ -59,6 +59,9 @@ private:
   static cv::Ptr<cv::ml::ANN_MLP> trainAnnMlp(const joda::settings::AnnMlpTrainingSettings &settings, const cv::Mat &trainSamples,
                                               const cv::Mat &trainLabels, int32_t numClasses);
 
+  static cv::Ptr<cv::ml::KNearest> trainKNearest(const joda::settings::KNearestTrainingSettings &settings, const cv::Mat &trainSamples,
+                                                 const cv::Mat &trainLabels);
+
   /////////////////////////////////////////////////////
   const settings::PixelClassifierSettings &mSettings;
 };

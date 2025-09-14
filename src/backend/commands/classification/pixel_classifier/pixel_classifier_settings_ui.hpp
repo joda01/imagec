@@ -37,7 +37,7 @@ class PixelClassifier : public Command
 public:
   /////////////////////////////////////////////////////
   inline static std::string TITLE             = "Pixel classifier";
-  inline static std::string ICON              = "dots-nine";
+  inline static std::string ICON              = "fediverse-logo";
   inline static std::string DESCRIPTION       = "Use a pre-trained machine learning model for pixel classification.";
   inline static std::vector<std::string> TAGS = {"classification", "ml",        "ai",         "random forest", "k-nearest", "knearest",
                                                  "pixel classify", "threshold", "background", "binary"};
