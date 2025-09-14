@@ -25,6 +25,7 @@
 #include "backend/enums/enums_units.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/image/image.hpp"
+#include "backend/settings/project_settings/project_classification.hpp"
 #include "controller/controller.hpp"
 #include "ui/gui/dialogs/dialog_image_view/painted_roi_properties.hpp"
 #include <opencv2/core/types.hpp>
@@ -94,9 +95,7 @@ public:
   /////////////////////////////////////////////////////
   PanelImageView(QWidget *parent = nullptr);
   void openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo = nullptr);
-  void setOverlay(const joda::image::Image &&overlay);
   void setEditedImage(const joda::image::Image &&edited);
-  void clearOverlay();
   void reloadImage();
   void repaintImage();
   void repaintViewport();
@@ -106,8 +105,6 @@ public:
   void setWaiting(bool waiting);
   void setShowThumbnail(bool);
   void setShowPixelInfo(bool);
-  void setShowOverlay(bool);
-  void setOverlayOpaque(float opaque);
   void setShowEditedImage(bool);
   void setShowCrosshandCursor(bool);
   void setLockCrosshandCursor(bool);
@@ -135,9 +132,14 @@ public:
 
   // REGION OF INTERESTS //////////////////////////////////////////////
   auto getObjectMapFromAnnotatedRegions(atom::ObjectList &) -> void;
+  void setRegionsOfInterestFromObjectList(const atom::ObjectMap &, const joda::settings::Classification &);
+  void clearRegionOfInterest();
   auto getPtrToPolygons() -> std::vector<PaintedRoiProperties> *;
   void setSelectedRois(const std::set<int32_t> &idxs);
   void deleteRois(const std::set<int32_t> &idx);
+  void setFillRois(bool);
+  void setShowRois(bool);
+  void setRoisOpaque(float opaque);
 
 signals:
   /////////////////////////////////////////////////////
@@ -244,9 +246,12 @@ private:
   bool mShowPixelInfo       = true;
   bool mShowCrosshandCursor = false;
   bool mLockCrosshandCursor = false;
-  bool mShowOverlay         = true;
   bool mShowEditedImage     = false;
   bool mShowRuler           = true;
+
+  // ROI///////////////////////////////////////////////////
+  bool mFillRoi  = false;
+  bool mShowRois = true;
 
   mutable std::mutex mImageResetMutex;
 

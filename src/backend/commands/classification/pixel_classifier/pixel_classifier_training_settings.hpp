@@ -55,13 +55,9 @@ struct RandomForestTrainingSettings
 
 struct AnnMlpTrainingSettings
 {
-  int32_t nrNeuronsLayer01  = 64;
-  int32_t nrNeuronsLayer02  = 64;
-  int32_t nrNeuronsLayer03  = 64;
-  int32_t nrNeuronsLayer04  = 64;
-  int32_t nrNeuronsLayer05  = 64;
-  double terminationEpsilon = 0;
-  int32_t maxIterations     = 1000;
+  std::vector<int32_t> neuronsLayer = {64};    // Vector size is nr. of neuron layers. Entry is the number of neurons per layer.
+  double terminationEpsilon         = 0;
+  int32_t maxIterations             = 1000;
 };
 
 struct PixelClassifierTrainingSettings

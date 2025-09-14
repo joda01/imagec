@@ -86,7 +86,7 @@ void Image::setImage(const cv::Mat &&imageToDisplay, int32_t rescale)
 /// \param[out]
 /// \return
 ///
-QPixmap Image::getPixmap(const Overlay &overlay) const
+QPixmap Image::getPixmap() const
 {
   std::lock_guard<std::mutex> lock(mLockMutex);
   if(mImageOriginalScaled == nullptr) {
@@ -114,49 +114,8 @@ QPixmap Image::getPixmap(const Overlay &overlay) const
         imageTmp.at<uint16_t>(y, x) = static_cast<uint16_t>(mLut[pixelValue]);
       }
     }
-    // Takes 20ms
-    if(overlay.combineWith != nullptr) {
-      // Convert 16-bit grayscale to 8-bit grayscale
-      imageTmp.convertTo(imageTmp, CV_8UC3, 255.0 / 65535.0);    // Normalize to 8-bit
-      cv::cvtColor(imageTmp, imageTmp, cv::COLOR_GRAY2BGR);
-
-      // Add transparent effect
-      cv::Mat coloredImage = overlay.combineWith->mImageOriginalScaled->clone();
-      int numPixels        = imageTmp.rows * imageTmp.cols;
-      for(int32_t n = 0; n < numPixels; n++) {
-        auto &original = imageTmp.at<cv::Vec3b>(n);
-        auto &mask     = coloredImage.at<cv::Vec3b>(n);
-        if(mask == cv::Vec3b{0, 0, 0}) {
-          mask = original;
-        } else {
-          for(int c = 0; c < 3; ++c) {
-            mask[c] = static_cast<uchar>(static_cast<float>(mask[c]) * overlay.opaque + static_cast<float>(original[c]) * (1.0F - overlay.opaque));
-          }
-        }
-      }
-
-      return encode(&coloredImage);
-    } else {
-      return encode(&imageTmp);
-    }
+    return encode(&imageTmp);
   } else {
-    if(overlay.combineWith != nullptr) {
-      cv::Mat imageIn = mImageOriginalScaled->clone();
-      int numPixels   = imageIn.rows * imageIn.cols;
-      for(int32_t n = 0; n < numPixels; n++) {
-        auto &original   = imageIn.at<cv::Vec3b>(n);
-        const auto &mask = overlay.combineWith->mImageOriginalScaled->at<cv::Vec3b>(n);
-        if(mask == cv::Vec3b{0, 0, 0}) {
-          original = original;
-        } else {
-          for(int c = 0; c < 3; ++c) {
-            original[c] =
-                static_cast<uchar>(static_cast<float>(mask[c]) * overlay.opaque + static_cast<float>(original[c]) * (1.0F - overlay.opaque));
-          }
-        }
-      }
-      return encode(&imageIn);
-    }
     return encode(mImageOriginalScaled);
   }
   return encode(mImageOriginalScaled);

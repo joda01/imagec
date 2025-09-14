@@ -39,26 +39,16 @@ namespace joda::ctrl {
 
 struct Preview
 {
-  struct PreviewCount
-  {
-    int32_t count = 0;
-    std::string color;
-    bool isHidden = false;
-  };
-
   joda::image::Image thumbnail;
   joda::image::Image originalImage;
   joda::image::Image editedImage;
-  joda::image::Image overlay;
 
   struct PreviewResults
   {
-    std::map<joda::enums::ClassId, PreviewCount> foundObjects;
+    joda::atom::ObjectMap objectMap;
     bool isOverExposed = false;
     bool noiseDetected = false;
   } results;
-
-  joda::atom::ObjectMap objectMap;
 
   int height;
   int width;
@@ -96,8 +86,7 @@ public:
   // PREVIEW ///////////////////////////////////////////////////
   void preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
                const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const settings::Pipeline &pipeline,
-               const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, int32_t tStack, Preview &previewOut, const joda::ome::OmeInfo &,
-               const settings::ObjectInputClassesExp &classesToHide);
+               const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, int32_t tStack, Preview &previewOut, const joda::ome::OmeInfo &);
   [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series,
                                                const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings)
       -> joda::ome::OmeInfo;

@@ -50,14 +50,7 @@ public:
   {
     return mOriginalImage;
   }
-
-  struct Overlay
-  {
-    const Image *combineWith = nullptr;
-    float opaque             = 0.3F;
-  };
-  [[nodiscard]] QPixmap getPixmap(const Overlay &) const;
-
+  [[nodiscard]] QPixmap getPixmap() const;
   [[nodiscard]] uint16_t getHistogramDisplayAreaLower() const
   {
     return mDisplayAreaLower;

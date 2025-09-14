@@ -58,7 +58,8 @@ int TableModelPreviewResult::rowCount(const QModelIndex & /*parent*/) const
   if(mPreviewResult == nullptr) {
     return 0;
   }
-  return static_cast<int32_t>(mPreviewResult->foundObjects.size());
+
+  return static_cast<int32_t>(mPreviewResult->objectMap.size());
 }
 
 int TableModelPreviewResult::columnCount(const QModelIndex & /*parent*/) const
@@ -78,7 +79,11 @@ void TableModelPreviewResult::refresh()
 void TableModelPreviewResult::setHiddenFlag(enums::ClassId classs, bool isHidden)
 {
   if(nullptr != mPreviewResult) {
-    mPreviewResult->foundObjects.at(classs).isHidden = isHidden;
+    if(isHidden) {
+      mHiddenClasses.emplace(classs);
+    } else {
+      mHiddenClasses.erase(classs);
+    }
   }
   refresh();
 }
@@ -114,15 +119,18 @@ QVariant TableModelPreviewResult::data(const QModelIndex &index, int role) const
     return {};
   }
 
-  if(index.row() < 0 || index.row() >= static_cast<int32_t>(mPreviewResult->foundObjects.size())) {
+  if(index.row() < 0) {
     return {};
   }
 
-  auto it = mPreviewResult->foundObjects.begin();
+  auto it = mPreviewResult->objectMap.begin();
   std::advance(it, index.row());
+  if(it == mPreviewResult->objectMap.end()) {
+    return {};
+  }
 
   if(role == Qt::UserRole) {
-    return QColor(it->second.color.data());
+    return QColor(mClassSettings.getClassFromId(it->first).color.c_str());
   }
 
   if(role == CLASS_ROLE) {
@@ -130,11 +138,11 @@ QVariant TableModelPreviewResult::data(const QModelIndex &index, int role) const
   }
 
   if(role == Qt::CheckStateRole) {
-    return {it->second.isHidden};
+    return {mHiddenClasses.contains(it->first)};
   }
 
   if(role == Qt::DisplayRole) {
-    return QString(mClassSettings.getClassFromId(it->first).name.data()) + " (" + QString::number(it->second.count) + ")";
+    return QString(mClassSettings.getClassFromId(it->first).name.data()) + " (" + QString::number(it->second->size()) + ")";
   }
   return {};
 }

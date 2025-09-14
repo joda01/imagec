@@ -524,12 +524,7 @@ void PanelPipelineSettings::previewThread()
               continue;
             }
             jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, jobToDo.threadSettings, *myPipeline, imgIndex,
-                                        jobToDo.selectedTileX, jobToDo.selectedTileY, jobToDo.timeStack, mPreviewResult, imgProps,
-                                        jobToDo.classesToHide);
-
-            jobToDo.previewPanel->getImagePanel()->setOverlay(std::move(mPreviewResult.overlay));
-            jobToDo.previewPanel->getImagePanel()->setEditedImage(std::move(mPreviewResult.editedImage));
-            jobToDo.previewPanel->getImagePanel()->repaintImage();
+                                        jobToDo.selectedTileX, jobToDo.selectedTileY, jobToDo.timeStack, mPreviewResult, imgProps);
 
           } catch(const std::exception &error) {
             errorMsg = QString(error.what()) + QString("\n\nSee compiler log and application log for more details!");
@@ -574,6 +569,12 @@ void PanelPipelineSettings::onPreviewStarted()
 ///
 void PanelPipelineSettings::onPreviewFinished(QString error)
 {
+  const settings::AnalyzeSettings &settingsTmp = mWindowMain->getSettings();
+  mPreviewImage->getImagePanel()->setEditedImage(std::move(mPreviewResult.editedImage));
+  mPreviewImage->getImagePanel()->clearRegionOfInterest();
+  mPreviewImage->getImagePanel()->setRegionsOfInterestFromObjectList(mPreviewResult.results.objectMap, settingsTmp.projectSettings.classification);
+  mPreviewImage->getImagePanel()->repaintImage();
+
   if(nullptr != mPreviewImage) {
     mPreviewImage->setWaiting(false);
   }
@@ -740,7 +741,6 @@ void PanelPipelineSettings::setActive(bool setActive)
     mIsActiveShown = false;
     mToolbar->setVisible(false);
     mPreviewResultsDialog->hide();
-    mPreviewImage->getImagePanel()->clearOverlay();
     mPreviewImage->getImagePanel()->setShowEditedImage(false);
     mDialogHistory->hide();
     mHistoryAction->setChecked(false);

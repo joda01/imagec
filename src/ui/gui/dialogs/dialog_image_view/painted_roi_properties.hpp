@@ -14,6 +14,8 @@
 #include <qcolor.h>
 #include <qgraphicsitem.h>
 #include <qpolygon.h>
+#include <qtypes.h>
+#include <vector>
 #include "backend/artifacts/roi/roi.hpp"
 #include <opencv2/core/types.hpp>
 
@@ -59,6 +61,26 @@ struct PaintedRoiProperties
         boundingBox, mask, contour, image->size(), image->size(), {0, 0}, image->size());
 
     return detectedRoi;
+  }
+
+  static PaintedRoiProperties fromRoiToQPolygon(QPolygonF &polygon, const joda::atom::ROI &roi, const cv::Mat *image, const cv::Size &previewSize)
+  {
+    double scaleX = static_cast<double>(previewSize.width) / static_cast<double>(image->cols);
+    double scaleY = static_cast<double>(previewSize.height) / static_cast<double>(image->rows);
+
+    auto box  = roi.getBoundingBoxTile();
+    auto mask = roi.getContour();
+
+    for(const auto &point : mask) {
+      auto xP = static_cast<double>(static_cast<double>(point.x + box.x) * scaleX);
+      auto yP = static_cast<double>(static_cast<double>(point.y + box.y) * scaleY);
+      polygon.push_back({xP, yP});
+    }
+
+    PaintedRoiProperties prop;
+    prop.pixelClass = static_cast<int32_t>(roi.getClassId());
+
+    return prop;
   }
 };
 }    // namespace joda::ui::gui

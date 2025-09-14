@@ -35,13 +35,6 @@ struct PreviewSettings
   settings::ImageSaverSettings::Style style = settings::ImageSaverSettings::Style::OUTLINED;
 };
 
-struct PreviewReturn
-{
-  int32_t count = 0;
-  std::string color;
-  std::string wantedColor;
-};
-
 enum class ProcessState
 {
   INITIALIZING,
@@ -191,8 +184,8 @@ public:
   auto generatePreview(const PreviewSettings &previewSettings, const settings::ProjectImageSetup &imageSetup,
                        const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,
                        const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX,
-                       int32_t tileY, bool generateThumb, const ome::OmeInfo &ome, const settings::ObjectInputClassesExp &classesToHide)
-      -> std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>, enums::ChannelValidity, joda::atom::ObjectMap>;
+                       int32_t tileY, bool generateThumb, const ome::OmeInfo &ome)
+      -> std::tuple<cv::Mat, cv::Mat, cv::Mat, enums::ChannelValidity, joda::atom::ObjectMap>;
 
 private:
   /////////////////////////////////////////////////////

@@ -47,6 +47,8 @@ private:
   const joda::settings::Classification &mClassSettings;
   QString base64IconName;
   QString base64IconHash;
+
+  std::set<enums::ClassId> mHiddenClasses;
 };
 
 }    // namespace joda::ui::gui

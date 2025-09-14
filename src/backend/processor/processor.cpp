@@ -326,9 +326,8 @@ void Processor::listImages(const joda::settings::AnalyzeSettings &program, image
 auto Processor::generatePreview(const PreviewSettings &previewSettings, const settings::ProjectImageSetup &imageSetup,
                                 const settings::AnalyzeSettings &program, const joda::thread::ThreadingSettings &threadingSettings,
                                 const settings::Pipeline &pipelineStart, const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack,
-                                int32_t tileX, int32_t tileY, bool generateThumb, const ome::OmeInfo &ome,
-                                const settings::ObjectInputClassesExp &classesToHide)
-    -> std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>, enums::ChannelValidity, joda::atom::ObjectMap>
+                                int32_t tileX, int32_t tileY, bool generateThumb, const ome::OmeInfo &ome)
+    -> std::tuple<cv::Mat, cv::Mat, cv::Mat, enums::ChannelValidity, joda::atom::ObjectMap>
 {
   auto ii = DurationCount::start("Generate preview with >" + std::to_string(threadingSettings.coresUsed) + "< threads.");
 
@@ -384,8 +383,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
     totalRuns += pipelines.size();
   }
 
-  std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat, std::map<joda::enums::ClassId, PreviewReturn>, enums::ChannelValidity, joda::atom::ObjectMap>
-      tmpResult;
+  std::tuple<cv::Mat, cv::Mat, cv::Mat, enums::ChannelValidity, joda::atom::ObjectMap> tmpResult;
   bool finished = false;
 
   size_t executedSteps = 0;
@@ -397,13 +395,13 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         continue;
       }
 
-      auto executePipeline = [&db, &thumbThread, &thumb, &finished, &tmpResult, &previewSettings, &classesToHide, &totalRuns,
-                              pipeline  = pipelineToExecute, &globalContext, &plateContext, imagePath, &imageContext, &imageLoader, tileX, tileY,
-                              pipelines = pipelines, &iterationContext, tStack, zStack, executedSteps]() -> void {
+      auto executePipeline = [&db, &thumbThread, &thumb, &finished, &tmpResult, &previewSettings, &totalRuns, pipeline       = pipelineToExecute,
+                              &globalContext, &plateContext, imagePath, &imageContext, &imageLoader, tileX, tileY, pipelines = pipelines,
+                              &iterationContext, tStack, zStack, executedSteps]() -> void {
         //
         // The last step is the wanted pipeline
         //
-        bool previewPipeline = executedSteps >= totalRuns;
+        bool wantedPipeline = executedSteps >= totalRuns;
 
         //
         // Load the image imagePlane
@@ -423,7 +421,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
             continue;
           }
           // Breakpoints are only enabled in the preview pipeline
-          if(step.breakPoint && previewPipeline) {
+          if(step.breakPoint && wantedPipeline) {
             editedImageAtBreakpoint = context.getActImage().image.clone();
           }
           step(context, context.getActImage().image, context.getActObjects());
@@ -444,60 +442,20 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         //
         // The last step is the wanted pipeline
         //
-        if(previewPipeline) {
-          joda::settings::ImageSaverSettings saverSettings;
-          saverSettings.classesIn.clear();
-          //
-          // Count elements
-          //
-          std::map<joda::enums::ClassId, PreviewReturn> foundObjects;
-          {
-            for(auto const &[classs, objects] : context.getActObjects()) {
-              for(const auto &roi : *objects) {
-                auto key = roi.getClassId();
-                if(!foundObjects.contains(key)) {
-                  foundObjects[key].count       = 0;
-                  foundObjects[key].color       = globalContext.classes[key].color;    //"#BFBFBF";
-                  foundObjects[key].wantedColor = globalContext.classes[key].color;
-
-                  //
-                  // Show all if no class was selected
-                  //
-                  if(!classesToHide.contains(key)) {
-                    foundObjects[key].color = foundObjects.at(key).wantedColor;
-                    saverSettings.classesIn.emplace_back(
-                        settings::ImageSaverSettings::SaveClasss{.inputClass       = static_cast<enums::ClassIdIn>(roi.getClassId()),
-                                                                 .style            = previewSettings.style,
-                                                                 .paintBoundingBox = false,
-                                                                 .paintObjectId    = false});
-                  }
-                }
-                foundObjects[key].count++;
-              }
-            }
-          }
-
+        if(wantedPipeline) {
           // No breakpoint was set, use the last image
           if(editedImageAtBreakpoint.empty()) {
             editedImageAtBreakpoint = context.getActImage().image.clone();
           }
-          saverSettings.canvas     = settings::ImageSaverSettings::Canvas::BLACK;
-          saverSettings.planesIn   = enums::ImageId{.zProjection = enums::ZProjection::$};
-          saverSettings.outputSlot = settings::ImageSaverSettings::Output::IMAGE_$;
-          auto step                = settings::PipelineStep{.$saveImage = saverSettings};
-          auto saver               = joda::settings::PipelineFactory<joda::cmd::Command>::generate(step);
-          saver->execute(context, context.getActImage().image, context.getActObjects());
           ///\warning #warning "Exception on thread destructor"
           thumbThread.join();
 
           tmpResult = {
               context.loadImageFromCache(enums::MemoryScope::ITERATION, joda::enums::ImageId{.zProjection = enums::ZProjection::$, .imagePlane = {}})
-                  ->image,
-              context.getActImage().image,
-              editedImageAtBreakpoint,
-              thumb,
-              foundObjects,
-              db->getImageValidity(),
+                  ->image,                //
+              editedImageAtBreakpoint,    //
+              thumb,                      //
+              db->getImageValidity(),     //
               std::move(context.getActObjects())};
           finished = true;
         }

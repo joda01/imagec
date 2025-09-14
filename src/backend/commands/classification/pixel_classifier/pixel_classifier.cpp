@@ -164,21 +164,19 @@ cv::Ptr<cv::ml::ANN_MLP> PixelClassifier::trainAnnMlp(const joda::settings::AnnM
     labelsOneHot.at<float>(i, cls) = 1.0F;
   }
   cv::Ptr<cv::ml::ANN_MLP> mlp = cv::ml::ANN_MLP::create();
-  //  cv::Mat layerSizes           = (cv::Mat_<int>(1, 6) <<        //
-  //                            trainSamples.cols,        // Input
-  //                        settings.nrNeuronsLayer01,    // Hidden layer
-  //                        settings.nrNeuronsLayer02,    // Hidden layer
-  //                        settings.nrNeuronsLayer04,    // Hidden layer
-  //                        settings.nrNeuronsLayer05,    // Hidden layer
-  //                        numClasses                    // Output
-  //  );
 
-  cv::Mat layerSizes = (cv::Mat_<int>(1, 3) <<        //
-                            trainSamples.cols,        // Input
-                        settings.nrNeuronsLayer01,    // Hidden layer
-                        numClasses                    // Output
-  );
+  // Collect layer sizes: [input, hidden..., output]
+  std::vector<int32_t> layers;
+  layers.push_back(trainSamples.cols);    // Input layer
+  for(int neurons : settings.neuronsLayer) {
+    if(neurons > 0) {
+      layers.push_back(neurons);    // Add hidden layer if > 0
+    }
+  }
+  layers.push_back(numClasses);    // Output layer
 
+  cv::Mat layerSizes(1, static_cast<int>(layers.size()), CV_32S, layers.data());
+  layerSizes = layerSizes.clone();    // clone, because .data() would go out of scope
   mlp->setLayerSizes(layerSizes);
   mlp->setActivationFunction(cv::ml::ANN_MLP::SIGMOID_SYM, 1, 1);
   mlp->setTrainMethod(cv::ml::ANN_MLP::BACKPROP, 0.001);    // learning rate

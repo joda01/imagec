@@ -282,7 +282,7 @@ void Controller::registerImageLookupCallback(const std::function<void(joda::file
 void Controller::preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
                          const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,
                          const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, int32_t tStack,
-                         Preview &previewOut, const joda::ome::OmeInfo &ome, const settings::ObjectInputClassesExp &classesToHide)
+                         Preview &previewOut, const joda::ome::OmeInfo &ome)
 {
   static std::filesystem::path lastImagePath;
   static int32_t lastImageChannel = -1;
@@ -297,24 +297,17 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
   }
 
   processor::Processor process;
-  auto [originalImg, overlay, editedImageWithoutOverlay, thumb, foundObjects, validity, objects] = process.generatePreview(
-      previewSettings, imageSetup, settings, threadSettings, pipeline, imagePath, tStack, 0, tileX, tileY, generateThumb, ome, classesToHide);
+  auto [originalImg, editedImageWithoutOverlay, thumb, validity, objects] = process.generatePreview(
+      previewSettings, imageSetup, settings, threadSettings, pipeline, imagePath, tStack, 0, tileX, tileY, generateThumb, ome);
   previewOut.originalImage.setImage(std::move(originalImg));
-  previewOut.overlay.setImage(std::move(overlay));
   previewOut.editedImage.setImage(std::move(editedImageWithoutOverlay));
   if(generateThumb) {
     previewOut.thumbnail.setImage(std::move(thumb));
   }
-  previewOut.results.foundObjects.clear();
-  for(const auto &[key, val] : foundObjects) {
-    previewOut.results.foundObjects[key].color    = val.color;
-    previewOut.results.foundObjects[key].count    = val.count;
-    previewOut.results.foundObjects[key].isHidden = classesToHide.contains(key);
-  }
+  previewOut.results.objectMap     = std::move(objects);
   previewOut.results.noiseDetected = validity.test(enums::ChannelValidityEnum::POSSIBLE_NOISE);
   previewOut.results.isOverExposed = validity.test(enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
   previewOut.tStacks               = ome.getNrOfTStack(imageSetup.series);
-  previewOut.objectMap             = std::move(objects);
 }
 
 ///
@@ -434,7 +427,6 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
     previewOut.thumbnail.setImage(std::move(thumb));
   }
 
-  previewOut.results.foundObjects.clear();
   previewOut.tStacks = omeIn->getNrOfTStack(series);
 }
 

@@ -10,6 +10,7 @@
 ///
 
 #include "panel_image_view.hpp"
+#include <qbrush.h>
 #include <qcolor.h>
 #include <qmessagebox.h>
 #include <qnamespace.h>
@@ -23,6 +24,7 @@
 #include <ranges>
 #include <string>
 #include <utility>
+#include "backend/commands/classification/classifier/classifier_settings.hpp"
 #include "backend/enums/enums_units.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/duration_count/duration_count.h"
@@ -77,7 +79,6 @@ PanelImageView::PanelImageView(QWidget *parent) : QGraphicsView(parent), mImageT
 void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo)
 {
   setWaiting(true);
-  clearOverlay();
 
   if(omeInfo != nullptr) {
     std::lock_guard<std::mutex> locked(mImageResetMutex);
@@ -210,9 +211,30 @@ auto PanelImageView::getObjectMapFromAnnotatedRegions(atom::ObjectList &objectMa
 /// \param[out]
 /// \return
 ///
-auto PanelImageView::getPtrToPolygons() -> std::vector<PaintedRoiProperties> *
+void PanelImageView::setRegionsOfInterestFromObjectList(const atom::ObjectMap &objectMap, const joda::settings::Classification &classes)
 {
-  return &mPolygonItems;
+  const auto &size = mImageToShow->getPreviewImageSize();
+
+  for(const auto &[classId, regionOfInterests] : objectMap) {
+    for(const auto &roi : *regionOfInterests) {
+      QColor color = QColor(classes.getClassFromId(roi.getClassId()).color.c_str());
+      QPolygonF polygon;
+      PaintedRoiProperties::fromRoiToQPolygon(polygon, roi, mImageToShow->getOriginalImage(), {size.width(), size.height()});
+      // Add polygon to scene as a proper polygon item
+      QBrush brush = Qt::NoBrush;
+      if(mFillRoi) {
+        QColor transparency = color;
+        transparency.setAlphaF(mOpaque);
+        brush = QBrush(transparency, Qt::SolidPattern);
+      }
+      auto pen = QPen(color, 3);
+      pen.setCosmetic(true);
+      auto *scenePolygon = scene->addPolygon(polygon, pen, brush);
+      mPolygonItems.push_back(
+          PaintedRoiProperties{.pixelClass = static_cast<int32_t>(roi.getClassId()), .pixelClassColor = color, .item = scenePolygon});
+    }
+  }
+  emit paintedPolygonsChanged();
 }
 
 ///
@@ -222,10 +244,9 @@ auto PanelImageView::getPtrToPolygons() -> std::vector<PaintedRoiProperties> *
 /// \param[out]
 /// \return
 ///
-void PanelImageView::setOverlay(const joda::image::Image &&overlay)
+auto PanelImageView::getPtrToPolygons() -> std::vector<PaintedRoiProperties> *
 {
-  std::lock_guard<std::mutex> locked(mImageResetMutex);
-  mPreviewImages.overlay.setImage(std::move(*overlay.getImage()));
+  return &mPolygonItems;
 }
 
 ///
@@ -272,7 +293,7 @@ void PanelImageView::setShowEditedImage(bool showEdited)
 /// \param[out]
 /// \return
 ///
-void PanelImageView::setOverlayOpaque(float opaque)
+void PanelImageView::setRoisOpaque(float opaque)
 {
   if(opaque > 1) {
     opaque = 1;
@@ -281,20 +302,8 @@ void PanelImageView::setOverlayOpaque(float opaque)
     opaque = 0;
   }
   mOpaque = opaque;
-  emit updateImage();
-}
 
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelImageView::clearOverlay()
-{
-  mPreviewImages.overlay.clear();
-  emit updateImage();
+  setFillRois(mFillRoi);
 }
 
 ///
@@ -494,11 +503,7 @@ void PanelImageView::onUpdateImage()
     }
     size = img->size();
   }
-  auto pixmap = mImageToShow->getPixmap({nullptr});
-  if(!mPreviewImages.overlay.empty() && mShowOverlay && mPreviewImages.overlay.getImage()->size == mImageToShow->getImage()->size) {
-    pixmap = mImageToShow->getPixmap({.combineWith = &mPreviewImages.overlay, .opaque = mOpaque});
-  }
-
+  auto pixmap = mImageToShow->getPixmap();
   scene->setSceneRect(pixmap.rect());
   if(nullptr == mActPixmap) {
     mActPixmap = scene->addPixmap(pixmap);
@@ -533,8 +538,15 @@ void PanelImageView::onUpdateImage()
 void PanelImageView::mousePressEvent(QMouseEvent *event)
 {
   if(getClickedOnRoi(event)) {
+    emit paintedPolygonClicked(mSelectedPolygonIdx);
     return;
+  } else {
+    if(!mSelectedPolygonIdx.empty()) {
+      setSelectedRois({});
+      emit paintedPolygonClicked(mSelectedPolygonIdx);
+    }
   }
+
   if(mState == State::MOVE) {
     if(mShowCrosshandCursor && event->button() == Qt::RightButton) {
       mCrossCursorInfo.mCursorPos = event->pos();
@@ -547,18 +559,20 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
 
   } else {
     if(event->button() == Qt::LeftButton) {
+      auto pen = QPen(Qt::blue, 3, Qt::DashLine);
+      pen.setCosmetic(true);
       // Start rectangle in scene coordinates
       mPaintOrigin = mapToScene(event->pos());
       if(mState == State::PAINT_RECTANGLE) {
-        mRubberItem = scene->addRect(QRectF(mPaintOrigin, mPaintOrigin), QPen(Qt::blue, 1, Qt::DashLine));
+        mRubberItem = scene->addRect(QRectF(mPaintOrigin, mPaintOrigin), pen);
       } else if(mState == State::PAINT_OVAL) {
-        mRubberItem = scene->addEllipse(QRectF(mPaintOrigin, mPaintOrigin), QPen(Qt::blue, 1, Qt::DashLine));
+        mRubberItem = scene->addEllipse(QRectF(mPaintOrigin, mPaintOrigin), pen);
       } else if(mState == State::PAINT_POLYGON) {
         if(!mDrawPolygon) {
           mDrawPolygon = true;
           mPolygonPoints.clear();
           mPolygonPoints.push_back(mPaintOrigin);
-          mTempPolygonItem = scene->addPolygon(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()), QPen(Qt::blue, 1, Qt::DashLine), Qt::NoBrush);
+          mTempPolygonItem = scene->addPolygon(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()), pen, Qt::NoBrush);
         } else {
           mPolygonPoints.push_back(mPaintOrigin);
           mTempPolygonItem->setPolygon(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()));
@@ -568,8 +582,17 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
       if(mState == State::PAINT_POLYGON) {
         // Finish polygon
         mTempPolygonItem->setPolygon(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()));    // final update
-        mTempPolygonItem->setPen(QPen(mPixelClassColor, 1));                                      // optional fill
-        mTempPolygonItem->setBrush(QBrush(mPixelClassColor, Qt::Dense4Pattern));                  // optional fill
+        auto pen = QPen(mPixelClassColor, 3);
+        pen.setCosmetic(true);
+        mTempPolygonItem->setPen(pen);    // optional fill
+
+        QBrush brush = Qt::NoBrush;
+        if(mFillRoi) {
+          QColor transparency = mPixelClassColor;
+          transparency.setAlphaF(mOpaque);
+          brush = QBrush(transparency, Qt::SolidPattern);
+        }
+        mTempPolygonItem->setBrush(brush);    // optional fill
         mPolygonItems.push_back(
             PaintedRoiProperties{.pixelClass = mSelectedPixelClass, .pixelClassColor = mPixelClassColor, .item = mTempPolygonItem});
 
@@ -685,7 +708,15 @@ void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
       }
 
       // Add polygon to scene as a proper polygon item
-      auto *polygon = scene->addPolygon(poly, QPen(mPixelClassColor), QBrush(mPixelClassColor, Qt::Dense4Pattern));
+      QBrush brush = Qt::NoBrush;
+      if(mFillRoi) {
+        QColor transparency = mPixelClassColor;
+        transparency.setAlphaF(mOpaque);
+        brush = QBrush(transparency, Qt::SolidPattern);
+      }
+      auto pen = QPen(mPixelClassColor, 3);
+      pen.setCosmetic(true);
+      auto *polygon = scene->addPolygon(poly, pen, brush);
       mPolygonItems.push_back(PaintedRoiProperties{.pixelClass = mSelectedPixelClass, .pixelClassColor = mPixelClassColor, .item = polygon});
 
       // Remove the temporary rubber rectangle
@@ -848,7 +879,8 @@ void PanelImageView::drawCrossHairCursor(QPainter &painter)
   }
 
   // Set the color and pen thickness for the cross lines
-  QPen pen(QColor(0, 255, 0), 1);
+  QPen pen(QColor(0, 255, 0), 3);
+  pen.setCosmetic(true);
   painter.setPen(pen);
 
   if(mCrossCursorInfo.mCursorPos.x() != -1 && mCrossCursorInfo.mCursorPos.y() != -1) {
@@ -1058,7 +1090,7 @@ void PanelImageView::drawThumbnail(QPainter &painter)
       QPoint(static_cast<int32_t>(static_cast<float>(width()) - THUMB_RECT_START_X - rectWidth), static_cast<int32_t>(THUMB_RECT_START_Y)),
       QSize(newWidth,
             newHeight));    // Adjust the size as needed
-  painter.drawPixmap(thumbRect, mPreviewImages.thumbnail.getPixmap({nullptr}));
+  painter.drawPixmap(thumbRect, mPreviewImages.thumbnail.getPixmap());
 
   //
   // Draw bounding rect
@@ -1289,7 +1321,9 @@ void PanelImageView::setSelectedRois(const std::set<int32_t> &idxs)
     if(!idxs.contains(idx)) {
       // This is not selected any more
       auto &poly = mPolygonItems.at(static_cast<size_t>(idx));
-      poly.item->setPen(QPen(poly.pixelClassColor, 1));
+      auto pen   = QPen(poly.pixelClassColor, 3);
+      pen.setCosmetic(true);
+      poly.item->setPen(pen);
     }
   }
 
@@ -1299,7 +1333,9 @@ void PanelImageView::setSelectedRois(const std::set<int32_t> &idxs)
   mSelectedPolygonIdx = idxs;
   for(int32_t idx : mSelectedPolygonIdx) {
     const auto &poly = mPolygonItems.at(static_cast<size_t>(idx));
-    poly.item->setPen(QPen(Qt::yellow, 2));
+    auto pen         = QPen(Qt::yellow, 3);
+    pen.setCosmetic(true);
+    poly.item->setPen(pen);
   }
 }
 
@@ -1321,6 +1357,49 @@ void PanelImageView::deleteRois(const std::set<int32_t> &idxs)
         mSelectedPolygonIdx.erase(idx);
       }
     }
+  }
+
+  emit paintedPolygonsChanged();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::clearRegionOfInterest()
+{
+  for(int32_t idx = static_cast<int32_t>(mPolygonItems.size()) - 1; idx >= 0; idx--) {
+    delete mPolygonItems.at(static_cast<size_t>(idx)).item;
+    mPolygonItems.erase(mPolygonItems.begin() + idx);
+    if(mSelectedPolygonIdx.contains(idx)) {
+      mSelectedPolygonIdx.erase(idx);
+    }
+  }
+
+  emit paintedPolygonsChanged();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::setFillRois(bool fill)
+{
+  mFillRoi     = fill;
+  QBrush brush = Qt::NoBrush;
+  for(auto &poly : mPolygonItems) {
+    if(fill) {
+      QColor transparency = poly.pixelClassColor;
+      transparency.setAlphaF(mOpaque);
+      brush = QBrush(transparency, Qt::SolidPattern);
+    }
+    poly.item->setBrush(brush);
   }
 
   emit paintedPolygonsChanged();
@@ -1399,10 +1478,14 @@ void PanelImageView::setShowThumbnail(bool showThumbnail)
 /// \param[out]
 /// \return
 ///
-void PanelImageView::setShowOverlay(bool showOVerlay)
+void PanelImageView::setShowRois(bool show)
 {
-  mShowOverlay = showOVerlay;
-  emit updateImage();
+  mShowRois = show;
+  for(auto &poly : mPolygonItems) {
+    poly.item->setVisible(show);
+  }
+
+  emit paintedPolygonsChanged();
 }
 
 ///

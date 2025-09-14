@@ -218,13 +218,13 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, joda::settings::AnalyzeSet
     showOverlay->setStatusTip("Show/Hide results as overlay");
     showOverlay->setCheckable(true);
     showOverlay->setChecked(true);
-    connect(showOverlay, &QAction::triggered, [this](bool selected) { mImageViewRight.setShowOverlay(selected); });
+    connect(showOverlay, &QAction::triggered, [this](bool selected) { mImageViewRight.setShowRois(selected); });
     toolbarTop->addAction(showOverlay);
 
     mFillOVerlay = new QAction(generateSvgIcon<Style::DUETONE, Color::RED>("circle"), "Fill");
     mFillOVerlay->setStatusTip("Fill/Outline results overlay");
     mFillOVerlay->setCheckable(true);
-    connect(mFillOVerlay, &QAction::triggered, this, &DialogImageViewer::onSettingsChanged);
+    connect(mFillOVerlay, &QAction::triggered, [this](bool selected) { mImageViewRight.setFillRois(selected); });
     toolbarTop->addAction(mFillOVerlay);
 
     mOverlayOpaque = new QSlider();
@@ -233,8 +233,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, joda::settings::AnalyzeSet
     mOverlayOpaque->setMaximum(100);
     mOverlayOpaque->setValue(90);
     mOverlayOpaque->setMaximumWidth(100);
-    connect(mOverlayOpaque, &QSlider::valueChanged,
-            [this] { mImageViewRight.setOverlayOpaque(static_cast<float>(mOverlayOpaque->value()) / 100.0F); });
+    connect(mOverlayOpaque, &QSlider::valueChanged, [this] { mImageViewRight.setRoisOpaque(static_cast<float>(mOverlayOpaque->value()) / 100.0F); });
     mOverlayOpaqueAction = toolbarTop->addWidget(mOverlayOpaque);
 
     toolbarTop->addSeparator();
