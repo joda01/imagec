@@ -12,6 +12,7 @@
 #include "pixel_classifier.hpp"
 #include <stdexcept>
 #include "backend/commands/classification/pixel_classifier/pixel_classifier_training_settings.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/ml.hpp>
 
@@ -384,7 +385,7 @@ cv::Ptr<cv::ml::StatModel> PixelClassifier::loadModel(const std::filesystem::pat
 /// \param[out]
 /// \return
 ///
-void PixelClassifier::prepareTrainingDataFromROI(const cv::Mat &image, const std::set<int32_t> &classesToTrain,
+void PixelClassifier::prepareTrainingDataFromROI(const cv::Mat &image, const std::map<enums::ClassId, int32_t> &classesToTrain,
                                                  const atom::ObjectList &regionOfInterest, cv::Mat &trainSamples, cv::Mat &trainLabels,
                                                  const std::set<joda::settings::PixelClassifierFeatures> &featuresSet, bool normalizeForMLP)
 {
@@ -411,14 +412,14 @@ void PixelClassifier::prepareTrainingDataFromROI(const cv::Mat &image, const std
   // ====================================
   // Train the individual classes
   // ====================================
-  for(const auto classIdToTrain : classesToTrain) {
+  for(const auto [classIdToTrain, pixelClassId] : classesToTrain) {
     if(!regionOfInterest.contains(static_cast<enums::ClassId>(classIdToTrain))) {
       continue;
     }
     cv::Mat roiMask            = cv::Mat::zeros(image.size(), CV_16UC1);
     const auto &objectsToLearn = regionOfInterest.at(static_cast<enums::ClassId>(classIdToTrain));
     objectsToLearn->createBinaryImage(roiMask);
-    extractSamples(roiMask, classIdToTrain);
+    extractSamples(roiMask, pixelClassId);
   }
 
   // ====================================

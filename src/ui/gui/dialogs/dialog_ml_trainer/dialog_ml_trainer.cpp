@@ -114,6 +114,14 @@ DialogMlTrainer::DialogMlTrainer(PanelImageView *imagePanel, QWidget *parent) : 
   }
 
   {
+    mRoiSource = new QComboBox();
+    mRoiSource->addItem("Manual annotated objects", static_cast<int>(PaintedRoiProperties::SourceType::Manual));
+    mRoiSource->addItem("Pipeline annotated objects", static_cast<int>(PaintedRoiProperties::SourceType::FromPipeline));
+    mRoiSource->addItem("Any annotated object", -1);
+    layout->addRow("Training data", mRoiSource);
+  }
+
+  {
     mModelName = new QLineEdit();
     layout->addRow("Filename", mModelName);
   }
@@ -178,14 +186,56 @@ void DialogMlTrainer::closeEvent(QCloseEvent *event)
 ///
 void DialogMlTrainer::startTraining()
 {
-  atom::ObjectList objectList;
-  mImagePanel->getObjectMapFromAnnotatedRegions({PaintedRoiProperties::SourceType::Manual}, objectList);
-  std::set<int32_t> classesToTrain;
-
-  for(const auto &[classId, _] : objectList) {
-    classesToTrain.emplace(static_cast<int32_t>(classId));
+  std::set<PaintedRoiProperties::SourceType> filter;
+  if(mRoiSource->currentData().toInt() < 0) {
+    filter.emplace(PaintedRoiProperties::SourceType::Manual);
+    filter.emplace(PaintedRoiProperties::SourceType::FromPipeline);
+  } else {
+    filter.emplace(static_cast<PaintedRoiProperties::SourceType>(mRoiSource->currentData().toInt()));
   }
 
+  //
+  // We generate a continuos trainings class id therefore we first start with the manuel annotated
+  //
+  atom::ObjectList annotatedObjectsToTrain;
+  std::map<enums::ClassId, int32_t> classesToTrain;
+  int32_t trainingClassId = 0;
+  if(mRoiSource->currentData().toInt() < 0 ||
+     PaintedRoiProperties::SourceType::Manual == static_cast<PaintedRoiProperties::SourceType>(mRoiSource->currentData().toInt())) {
+    mImagePanel->getObjectMapFromAnnotatedRegions({PaintedRoiProperties::SourceType::Manual}, annotatedObjectsToTrain);
+    for(const auto &[classId, _] : annotatedObjectsToTrain) {
+      classesToTrain.emplace(classId, trainingClassId);
+      trainingClassId++;
+    }
+  } else {
+    // Only the the background annotations
+    mImagePanel->getObjectMapFromAnnotatedRegions({PaintedRoiProperties::SourceType::Manual}, annotatedObjectsToTrain, 0);
+    classesToTrain.emplace(static_cast<enums::ClassId>(0), 0);
+    trainingClassId++;
+  }
+
+  if(mRoiSource->currentData().toInt() < 0 ||
+     PaintedRoiProperties::SourceType::FromPipeline == static_cast<PaintedRoiProperties::SourceType>(mRoiSource->currentData().toInt())) {
+    atom::ObjectList pipelineAnnotatedObjects;
+    mImagePanel->getObjectMapFromAnnotatedRegions({PaintedRoiProperties::SourceType::FromPipeline}, pipelineAnnotatedObjects);
+    for(auto &[_, spheral] : pipelineAnnotatedObjects) {
+      classesToTrain.emplace(static_cast<enums::ClassId>(trainingClassId), trainingClassId);
+      annotatedObjectsToTrain.try_emplace(static_cast<enums::ClassId>(trainingClassId), std::move(spheral));
+      trainingClassId++;
+    }
+  }
+
+  //
+  // At least one background annotation must be present
+  //
+  if(!annotatedObjectsToTrain.contains(static_cast<enums::ClassId>(0)) || annotatedObjectsToTrain.at(static_cast<enums::ClassId>(0))->empty()) {
+    QMessageBox::warning(this, "No background annotation found", "At least one background annotation must be taken!");
+    return;
+  }
+
+  //
+  //
+  //
   std::string modelFileName = mModelName->text().toStdString();
   if(modelFileName.empty()) {
     modelFileName = "tmp";
@@ -203,7 +253,7 @@ void DialogMlTrainer::startTraining()
     }
 
     if(features.empty()) {
-      QMessageBox::warning(this, "Feature error", "At least one feature must be selected!", QMessageBox::Yes | QMessageBox::No);
+      QMessageBox::warning(this, "Feature error", "At least one feature must be selected!");
       return;
     }
 
@@ -211,7 +261,7 @@ void DialogMlTrainer::startTraining()
     mTrainerSettings.trainingClasses = classesToTrain;
     mTrainerSettings.features        = features;
     mTrainerSettings.outPath         = modelPath;
-    joda::cmd::PixelClassifier::train(*mImagePanel->mutableImage()->getOriginalImage(), objectList, mTrainerSettings);
+    joda::cmd::PixelClassifier::train(*mImagePanel->mutableImage()->getOriginalImage(), annotatedObjectsToTrain, mTrainerSettings);
   }
 }
 

@@ -60,6 +60,7 @@ private:
   /////////////////////////////////////////////////////
   PanelImageView *mImagePanel;
   QComboBox *mComboClassifierMethod;
+  QComboBox *mRoiSource;
   QComboBoxMulti *mComboTrainingFeatures;
   QLineEdit *mModelName;
 

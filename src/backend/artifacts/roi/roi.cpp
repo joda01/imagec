@@ -319,8 +319,24 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 ///
 [[nodiscard]] auto ROI::getDistances(const ome::PhyiscalSize &physicalSize, enums::Units unit) const -> std::map<uint64_t, Distance>
 {
-  // auto [pxSizeX, pxSizeY, pxSizeZ] = physicalSize.getPixelSize(unit);
-  return mDistances;
+  if(enums::Units::Pixels == unit) {
+    return mDistances;
+  }
+
+  auto [pxSizeX, pxSizeY, pxSizeZ] = physicalSize.getPixelSize(unit);
+  if(pxSizeX != pxSizeY) {
+    throw std::invalid_argument("Get distance with rectangle pixels not supported right now!");
+  }
+  std::map<uint64_t, Distance> realDistance;
+
+  for(const auto &[id, dis] : mDistances) {
+    realDistance.emplace(id, Distance{.distanceCentroidToCentroid   = dis.distanceCentroidToCentroid * pxSizeX,
+                                      .distanceCentroidToSurfaceMin = dis.distanceCentroidToSurfaceMin * pxSizeX,
+                                      .distanceCentroidToSurfaceMax = dis.distanceCentroidToSurfaceMax * pxSizeX,
+                                      .distanceSurfaceToSurfaceMin  = dis.distanceSurfaceToSurfaceMin * pxSizeX,
+                                      .distanceSurfaceToSurfaceMax  = dis.distanceSurfaceToSurfaceMax * pxSizeX});
+  }
+  return realDistance;
 }
 
 ///

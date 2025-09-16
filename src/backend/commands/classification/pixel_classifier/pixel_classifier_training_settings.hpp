@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include "backend/enums/enums_classes.hpp"
 #include "backend/settings/setting.hpp"
 #include "backend/settings/setting_base.hpp"
 
@@ -68,9 +69,10 @@ struct AnnMlpTrainingSettings
 struct PixelClassifierTrainingSettings
 {
   //
-  // ID of the class to train
+  // Mapping from a object class id to a trainings class id.
+  // The training class id is continuous starting with 0 for the background.
   //
-  std::set<int32_t> trainingClasses;
+  std::map<enums::ClassId, int32_t> trainingClasses;
 
   //
   // Machine learning method to use

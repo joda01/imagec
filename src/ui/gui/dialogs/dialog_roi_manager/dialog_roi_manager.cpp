@@ -161,7 +161,7 @@ DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) 
     paintBrush->setStatusTip("Paint brush");
     paintBrush->setCheckable(true);
     paintingToolActionGroup->addAction(paintBrush);
-    toolbar->addAction(paintBrush);
+    // toolbar->addAction(paintBrush);
     connect(paintBrush, &QAction::triggered, this, [this](bool checked) {
       if(checked) {
         mImagePanel->setState(PanelImageView::State::PAIN_BRUSH);
@@ -172,7 +172,7 @@ DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) 
     magicWand->setStatusTip("Paint brush");
     magicWand->setCheckable(true);
     paintingToolActionGroup->addAction(magicWand);
-    toolbar->addAction(magicWand);
+    // toolbar->addAction(magicWand);
     connect(magicWand, &QAction::triggered, this, [this](bool checked) {
       if(checked) {
         mImagePanel->setState(PanelImageView::State::PAINT_MAGIC_WAND);
@@ -189,7 +189,7 @@ DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) 
     connect(openTemplate, &QAction::triggered, [this]() {
 
     });
-    toolbar->addAction(openTemplate);
+    // toolbar->addAction(openTemplate);
 
     //
     // Save as template
@@ -197,7 +197,7 @@ DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) 
     auto *saveAsTemplate = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("floppy-disk"), "Save classification settings as template");
     saveAsTemplate->setStatusTip("Save classification settings as template");
     connect(saveAsTemplate, &QAction::triggered, [this]() {});
-    toolbar->addAction(saveAsTemplate);
+    // toolbar->addAction(saveAsTemplate);
 
     toolbar->addSeparator();
 
