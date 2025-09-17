@@ -95,6 +95,26 @@ void Settings::migrateSettings(std::string &settings)
 {
   helper::stringReplace(settings, "$edgeDetection", "$sobel");
   helper::stringReplace(settings, "\"$measure\"", "\"$measureIntensity\"");
+
+  //
+  // We removed class "0"
+  /// \todo Remove legacy
+  {
+    joda::settings::AnalyzeSettings analyzeSettings = nlohmann::json::parse(settings);
+
+    enums::ClassId lastAvailable = enums::ClassId::NONE;
+    for(const auto &classTmp : analyzeSettings.projectSettings.classification.classes) {
+      if(classTmp.classId < enums::ClassId::CMAX && classTmp.classId > lastAvailable) {
+        lastAvailable = classTmp.classId;
+      }
+    }
+
+    auto lastAvailableNr = static_cast<int32_t>(lastAvailable) + 1;
+    std::cout << "Replace 0 with " << std::to_string(lastAvailableNr) << std::endl;
+    helper::stringReplace(settings, "\"" + std::to_string(0) + "\"", "\"" + std::to_string(lastAvailableNr) + "\"");
+
+    std::cout << settings << std::endl;
+  }
 }
 
 ///

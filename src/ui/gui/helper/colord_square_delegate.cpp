@@ -15,6 +15,7 @@
 #include <qtablewidget.h>
 #include <iostream>
 #include <string>
+#include "ui/gui/helper/table_widget.hpp"
 
 namespace joda::ui::gui {
 
@@ -35,11 +36,15 @@ void ColoredSquareDelegate::paint(QPainter *painter, const QStyleOptionViewItem 
   // painter->save();
   // painter->fillRect(opt.rect, opt.palette.color(QPalette::Base));
   // painter->restore();
-
   QString color;
-  auto *tbl = dynamic_cast<QTableWidget *>(parent());
-  if(parent() != nullptr && tbl->columnCount() > 3) {
-    color = tbl->item(index.row(), 3)->text();    // 3 is the column containg the color
+  auto *tbl = dynamic_cast<PlaceholderTableWidget *>(parent());
+  if(tbl->rowCount() > index.row()) {
+    if(parent() != nullptr && tbl != nullptr && tbl->columnCount() > 3) {
+      auto *ptr = tbl->item(index.row(), 3);
+      if(ptr != nullptr) {
+        color = ptr->text();    // 3 is the column containing the color
+      }
+    }
   }
 
   // Draw the colored square

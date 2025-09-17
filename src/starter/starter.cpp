@@ -86,7 +86,7 @@ public:
   QIcon standardIcon(StandardPixmap sp, const QStyleOption *option = nullptr, const QWidget *widget = nullptr) const override
   {
     // Return empty icon only for button box standard buttons
-    if(widget && qobject_cast<const QDialogButtonBox *>(widget->parentWidget())) {
+    if((widget != nullptr) && (qobject_cast<const QDialogButtonBox *>(widget->parentWidget()) != nullptr)) {
       return QIcon();
     }
     return QProxyStyle::standardIcon(sp, option, widget);

@@ -65,6 +65,7 @@ private:
   void createTableItem(int32_t rowIdx, enums::ClassId classId, const std::string &name, const std::string &color, const std::string &notes);
   void moveClassToPosition(int32_t fromPos, int32_t newPos);
   auto findNextFreeClassId() -> enums::ClassId;
+  void addNoneClass();
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;

@@ -26,10 +26,15 @@ protected:
     Q_UNUSED(widget);
 
     if(option->state & QStyle::State_Selected) {
-      QColor yellow = Qt::yellow;
-      yellow.setAlpha(brush().color().alpha());
-      painter->setBrush(yellow);
-      painter->setPen(Qt::yellow);
+      auto brushTmp = brush();
+      if(brushTmp != Qt::NoBrush) {
+        QColor yellow = Qt::yellow;
+        yellow.setAlpha(brush().color().alpha());
+        painter->setBrush(yellow);
+      }
+      auto penTmp = pen();
+      penTmp.setColor(Qt::yellow);
+      painter->setPen(penTmp);
     } else {
       painter->setBrush(brush());
       painter->setPen(pen());

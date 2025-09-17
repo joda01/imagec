@@ -92,14 +92,14 @@ void Controller::initApplication()
   int32_t availableRam   = static_cast<int32_t>(std::ceil(static_cast<float>(systemRecourses.ramAvailable) / 1000000.0F));
   int32_t jvmReservedRam = static_cast<int32_t>(std::ceil(static_cast<float>(systemRecourses.ramReservedForJVM) / 1000000.0F));
 
-  bool cudaAvailable = torch::cuda::is_available();
-  int numCudaDevices = torch::cuda::device_count();
+  // bool cudaAvailable = torch::cuda::is_available();
+  // int numCudaDevices = torch::cuda::device_count();
 
   joda::log::logInfo("Total available RAM " + std::to_string(totalRam) + " MB.");
   joda::log::logInfo("Usable RAM " + std::to_string(availableRam) + " MB.");
   joda::log::logInfo("JVM reserved RAM " + std::to_string(jvmReservedRam) + " MB.");
-  joda::log::logInfo("CUDA available: " + std::to_string(static_cast<int>(cudaAvailable)));
-  joda::log::logInfo("Found CUDA devices: " + std::to_string(numCudaDevices));
+  // joda::log::logInfo("CUDA available: " + std::to_string(static_cast<int>(cudaAvailable)));
+  // joda::log::logInfo("Found CUDA devices: " + std::to_string(numCudaDevices));
   joda::log::logInfo("Global template folder: " + templates::TemplateParser::getGlobalTemplateDirectory("").string());
   joda::log::logInfo("User template folder: " + templates::TemplateParser::getUsersTemplateDirectory().string());
 
@@ -541,7 +541,7 @@ auto Controller::populateClassesFromImage(const joda::ome::OmeInfo &omeInfo, int
 
   joda::settings::Classification classes;
   auto channels           = omeInfo.getChannelInfos(series);
-  enums::ClassId actClass = enums::ClassId::C0;
+  enums::ClassId actClass = enums::ClassId::C1;
   int colorIdx            = 0;
   for(const auto &[_, channelIn] : channels) {
     auto addSubClass = [&actClass, &classes, &templatePerType](const std::string &channel, const std::string &subclass, const std::string &color) {

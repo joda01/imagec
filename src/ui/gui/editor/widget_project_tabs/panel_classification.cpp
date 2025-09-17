@@ -125,7 +125,8 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
       QList<QTableWidgetSelectionRange> ranges = mClasses->selectedRanges();
       if(!ranges.isEmpty()) {
         int selectedRow = ranges.first().topRow();
-        if(selectedRow >= 0) {
+        if(selectedRow > 0) {
+          selectedRow--;    // Row zero is None
           auto actClass = mSettings.classes.begin();
           std::advance(actClass, selectedRow);
 
@@ -154,11 +155,11 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
       QList<QTableWidgetSelectionRange> ranges = mClasses->selectedRanges();
       if(!ranges.isEmpty()) {
         int selectedRow = ranges.first().topRow();
-        if(selectedRow >= 0) {
+        if(selectedRow > 0) {
           if(askForDeleteClass()) {
             mClasses->removeRow(selectedRow);
             auto it = mSettings.classes.begin();
-            std::advance(it, selectedRow);
+            std::advance(it, selectedRow - 1);
             mSettings.classes.erase(it);
             onSettingChanged();
           }
@@ -213,12 +214,30 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
 
   // connect(mClasses, &QTableWidget::itemChanged, [&](QTableWidgetItem *item) { onSettingChanged(); });
   connect(mClasses, &QTableWidget::cellDoubleClicked, [&](int row, int column) {
-    if(column == COL_NAME) {
-      openEditDialog(row, column);
+    if(row > 0) {
+      row--;
+      if(column == COL_NAME) {
+        openEditDialog(row, column);
+      }
     }
   });
 
+  // The non class should always be present
+  addNoneClass();
+
   // connect(mClasses, &QTableWidget::currentCellChanged, [&](int currentRow, int currentColumn, int previousRow, int previousColumn) {});
+}
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelClassification::addNoneClass()
+{
+  mClasses->setRowCount(1);
+  createTableItem(0, enums::ClassId::NONE, "None", "#565656", "");
 }
 
 ///
@@ -252,7 +271,7 @@ auto PanelClassification::findNextFreeClassId() -> enums::ClassId
     classIds.emplace(actualClass.classId);
   }
   // Iterate over all classIds and find the first not used
-  enums::ClassId idx = enums::ClassId::C0;
+  enums::ClassId idx = enums::ClassId::C1;
   for(const auto &classId : classIds) {
     if(idx != classId) {
       return idx;
@@ -328,13 +347,13 @@ void PanelClassification::createTableItem(int32_t rowIdx, enums::ClassId classId
 void PanelClassification::fromSettings(const joda::settings::Classification &settings)
 {
   mClasses->blockSignals(true);
-  mClasses->setRowCount(static_cast<int32_t>(settings.classes.size()));
+  mClasses->setRowCount(static_cast<int32_t>(settings.classes.size()) + 1);    // +1 because none is always shown
   mSettings = settings;
 
   //
   // Load classes
   //
-  int rowIdx = 0;
+  int rowIdx = 1;    // We start at 1 because 0 is reserved for none
   for(const auto &classs : settings.classes) {
     createTableItem(rowIdx, classs.classId, classs.name, classs.color, classs.notes);
     rowIdx++;
@@ -352,7 +371,7 @@ void PanelClassification::fromSettings(const joda::settings::Classification &set
 ///
 void PanelClassification::toSettings()
 {
-  int32_t row = 0;
+  int32_t row = 1;    // we start at 1 because 0 is none.
   for(auto &classs : mSettings.classes) {
     QTableWidgetItem *itemNotes = mClasses->item(row, COL_NOTES);
     QString classNotes;
@@ -557,7 +576,7 @@ void PanelClassification::openTemplate(const QString &path)
 ///
 void PanelClassification::populateClassesFromImage()
 {
-  if(askForChangeTemplateIndex()) {
+  if(mSettings.classes.empty() || askForChangeTemplateIndex()) {
     auto [path, series, omeInfo] = mWindowMain->getImagePanel()->getSelectedImageOrFirst();
     if(path.empty()) {
       joda::log::logError("No images found! Please select an image directory first!");
@@ -588,7 +607,7 @@ void PanelClassification::moveUp()
   mClasses->blockSignals(true);
   auto rowAct = mClasses->currentRow();
   auto newPos = rowAct - 1;
-  if(newPos < 0) {
+  if(newPos <= 0) {    // Position 0 is reserved for None class
     return;
   }
   moveClassToPosition(rowAct, newPos);
@@ -657,7 +676,7 @@ void PanelClassification::moveClassToPosition(int32_t fromPos, int32_t newPosIn)
     mClasses->selectRow(toRow);
   };
 
-  moveElementToListPosition(mSettings.classes, fromPos, newPosIn);
+  moveElementToListPosition(mSettings.classes, fromPos - 1, newPosIn - 1);    // -1 because the first element in the table is none
   moveRow(fromPos, newPosIn);
 
   mWindowMain->checkForSettingsChanged();
