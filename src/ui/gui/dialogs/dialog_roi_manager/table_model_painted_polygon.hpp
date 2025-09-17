@@ -32,16 +32,17 @@ public:
 
   /////////////////////////////////////////////////////
   TableModelPaintedPolygon(QObject *parent = nullptr);
-  void setData(std::vector<PaintedRoiProperties> *polygons);
+  void setData(std::map<QGraphicsItem *, PaintedRoiProperties> *polygons);
   auto getCell(int row) -> PaintedRoiProperties *;
   int rowCount(const QModelIndex &parent = QModelIndex()) const override;
   int columnCount(const QModelIndex &parent = QModelIndex()) const override;
   QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
   QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
   void refresh();
+  int32_t indexFor(QGraphicsItem *) const;
 
 private:
-  std::vector<PaintedRoiProperties> *mPolygons = nullptr;
+  std::map<QGraphicsItem *, PaintedRoiProperties> *mPolygons = nullptr;
 };
 
 }    // namespace joda::ui::gui

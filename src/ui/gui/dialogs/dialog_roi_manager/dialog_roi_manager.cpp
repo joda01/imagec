@@ -207,16 +207,7 @@ DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) 
     auto *deleteColumn = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("trash-simple"), "Delete selected class", this);
     deleteColumn->setStatusTip("Delete selected ROIs");
     toolbar->addAction(deleteColumn);
-    connect(deleteColumn, &QAction::triggered, [this]() {
-      if(mPolygonsTable->selectionModel()->hasSelection()) {
-        auto selectedRows = mPolygonsTable->selectionModel()->selectedRows();
-        std::set<int32_t> idxs;
-        for(const auto row : selectedRows) {
-          idxs.emplace(row.row());
-        }
-        mImagePanel->deleteRois(idxs);
-      }
-    });
+    connect(deleteColumn, &QAction::triggered, [this]() { mImagePanel->deleteSelectedRois(); });
 
     layout->addWidget(toolbar);
   }
@@ -241,9 +232,9 @@ DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) 
         mImagePanel->setSelectedRois({});
       } else {
         auto indexes = mPolygonsTable->selectionModel()->selectedIndexes();
-        std::set<int32_t> idxs;
+        std::set<QGraphicsItem *> idxs;
         for(const auto row : indexes) {
-          idxs.emplace(row.row());
+          idxs.emplace(mTableModel->getCell(row.row())->item);
         }
         mImagePanel->setSelectedRois(idxs);
       }
@@ -254,10 +245,10 @@ DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) 
   setLayout(layout);
 
   connect(imagePanel, &PanelImageView::paintedPolygonsChanged, [this]() { mTableModel->refresh(); });
-  connect(imagePanel, &PanelImageView::paintedPolygonClicked, [this](std::set<int32_t> idxs) {
+  connect(imagePanel, &PanelImageView::paintedPolygonClicked, [this](QList<QGraphicsItem *> idxs) {
     bool firstRun = true;
-    for(const auto idx : idxs) {
-      QModelIndex index = mPolygonsTable->model()->index(idx, 0);    // pick column 0 for the row
+    for(const auto &idx : idxs) {
+      QModelIndex index = mPolygonsTable->model()->index(mTableModel->indexFor(idx), 0);    // pick column 0 for the row
       mPolygonsTable->selectionModel()->select(index, QItemSelectionModel::Select | QItemSelectionModel::Rows);
       if(firstRun) {
         firstRun = false;

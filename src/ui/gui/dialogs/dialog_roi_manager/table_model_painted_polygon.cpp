@@ -31,7 +31,7 @@ TableModelPaintedPolygon::TableModelPaintedPolygon(QObject *parent) : QAbstractT
   }
 }
 
-void TableModelPaintedPolygon::setData(std::vector<PaintedRoiProperties> *polygons)
+void TableModelPaintedPolygon::setData(std::map<QGraphicsItem *, PaintedRoiProperties> *polygons)
 {
   mPolygons = polygons;
 }
@@ -94,26 +94,26 @@ QVariant TableModelPaintedPolygon::data(const QModelIndex &index, int role) cons
   std::advance(it, index.row());
 
   if(role == CLASS_ROLE) {
-    return static_cast<int32_t>(it->pixelClass);
+    return static_cast<int32_t>(it->second.pixelClass);
   }
 
   if(role == Qt::UserRole) {
-    return it->pixelClassColor;
+    return it->second.pixelClassColor;
   }
 
   if(role == Qt::DisplayRole) {
-    QString imgChannel = QString::number(it->pixelClass);
+    QString imgChannel = QString::number(it->second.pixelClass);
 
-    if(it->source == PaintedRoiProperties::SourceType::Manual) {
-      if(it->pixelClass == 0) {
+    if(it->second.source == PaintedRoiProperties::SourceType::Manual) {
+      if(it->second.pixelClass == 0) {
         return "Background";
       }
       if(index.column() == 0) {
-        return "Annotation " + QString::number(it->pixelClass);
+        return "Annotation " + QString::number(it->second.pixelClass);
       }
     } else {
       if(index.column() == 0) {
-        return "Class " + QString::number(it->pixelClass);
+        return "Class " + QString::number(it->second.pixelClass);
       }
     }
 
@@ -137,7 +137,7 @@ auto TableModelPaintedPolygon::getCell(int row) -> PaintedRoiProperties *
   if(row >= 0 && row < static_cast<int32_t>(mPolygons->size())) {
     auto it = mPolygons->begin();
     std::advance(it, row);
-    return &*it;
+    return &it->second;
   }
   return nullptr;
 }
@@ -146,6 +146,23 @@ void TableModelPaintedPolygon::refresh()
 {
   beginResetModel();
   endResetModel();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+int32_t TableModelPaintedPolygon::indexFor(QGraphicsItem *item) const
+{
+  auto it = mPolygons->find(item);
+  if(it != mPolygons->end()) {
+    size_t index = std::distance(mPolygons->begin(), it);
+    return static_cast<int32_t>(index);
+  }
+  return 0;
 }
 
 }    // namespace joda::ui::gui

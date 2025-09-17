@@ -135,9 +135,10 @@ public:
       -> void;
   void setRegionsOfInterestFromObjectList(const atom::ObjectMap &, const joda::settings::Classification &);
   void clearRegionOfInterest(PaintedRoiProperties::SourceType sourceToDelete = PaintedRoiProperties::SourceType::FromPipeline);
-  auto getPtrToPolygons() -> std::vector<PaintedRoiProperties> *;
-  void setSelectedRois(const std::set<int32_t> &idxs);
-  void deleteRois(const std::set<int32_t> &idx);
+  auto getPtrToPolygons() -> std::map<QGraphicsItem *, PaintedRoiProperties> *;
+  void setSelectedRois(const std::set<QGraphicsItem *> &idxs);
+  void deleteRois(const std::set<QGraphicsItem *> &idx);
+  void deleteSelectedRois();
   void setFillRois(bool);
   void setShowRois(bool);
   void setRoisOpaque(float opaque);
@@ -151,7 +152,7 @@ signals:
   void onImageRepainted();
   void tileClicked(int32_t tileX, int32_t tileY);
   void paintedPolygonsChanged();
-  void paintedPolygonClicked(std::set<int32_t> idxs);
+  void paintedPolygonClicked(QList<QGraphicsItem *>);
 
 private:
   /////////////////////////////////////////////////////
@@ -167,7 +168,6 @@ private:
   void drawRuler(QPainter &);
   void getClickedTileInThumbnail(QMouseEvent *event);
   void getThumbnailAreaEntered(QMouseEvent *event);
-  bool getClickedOnRoi(QMouseEvent *event);
   auto fetchPixelInfoFromMousePosition(const QPoint &pos) const -> PixelInfo;
   auto imageCoordinatesToPreviewCoordinates(const QPoint &imageCoordinates) -> QPoint;
   auto imageCoordinatesToPreviewCoordinates(const QRect &imageCoordinates) -> QRect;
@@ -207,9 +207,8 @@ private:
 
   // STATE AND PAINTING ///////////////////////////////////////////////////
   State mState = State::MOVE;
-  std::vector<PaintedRoiProperties> mPolygonItems;
+  std::map<QGraphicsItem *, PaintedRoiProperties> mPolygonItems;
   PaintedRoi_t mActPaintingRoi;
-  std::set<int32_t> mSelectedRois;
   std::set<int32_t> mRoiClassesToHide;
 
   QPointF mPaintOrigin;

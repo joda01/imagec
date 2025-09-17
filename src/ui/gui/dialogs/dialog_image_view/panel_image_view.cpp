@@ -52,14 +52,21 @@ namespace joda::ui::gui {
 ///
 PanelImageView::PanelImageView(QWidget *parent) : QGraphicsView(parent), mImageToShow(&mPreviewImages.originalImage), scene(new QGraphicsScene(this))
 {
+  // setViewport(new QOpenGLWidget());
   setScene(scene);
   setBackgroundBrush(QBrush(Qt::black));
   scene->setBackgroundBrush(QBrush(Qt::black));
 
+  scene->setItemIndexMethod(QGraphicsScene::NoIndex);
+  setCacheMode(QGraphicsView::CacheBackground);
+  setRenderHint(QPainter::Antialiasing, false);
+  setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
+
   // Set up the view
   setRenderHint(QPainter::SmoothPixmapTransform);
   setDragMode(QGraphicsView::ScrollHandDrag);
-  setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+  setInteractive(true);
+  setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setMouseTracking(true);
@@ -200,7 +207,7 @@ auto PanelImageView::getObjectMapFromAnnotatedRegions(const std::set<PaintedRoiP
                                                       int32_t classFilter) -> void
 {
   const auto &size = mImageToShow->getPreviewImageSize();
-  for(const auto &polyRoi : mPolygonItems) {
+  for(const auto &[_, polyRoi] : mPolygonItems) {
     if(!filter.contains(polyRoi.source)) {
       continue;
     }
@@ -239,10 +246,12 @@ void PanelImageView::setRegionsOfInterestFromObjectList(const atom::ObjectMap &o
       pen.setCosmetic(true);
 
       auto *scenePolygon = scene->addPolygon(polygon, pen, brush);
-      mPolygonItems.push_back(PaintedRoiProperties{.pixelClass      = static_cast<int32_t>(roi.getClassId()),
-                                                   .pixelClassColor = color,
-                                                   .item            = scenePolygon,
-                                                   .source          = PaintedRoiProperties::SourceType::FromPipeline});
+      scenePolygon->setFlag(QGraphicsItem::ItemIsSelectable, true);
+      // scenePolygon->setFlag(QGraphicsItem::ItemIsMovable, true);
+      mPolygonItems.emplace(scenePolygon, PaintedRoiProperties{.pixelClass      = static_cast<int32_t>(roi.getClassId()),
+                                                               .pixelClassColor = color,
+                                                               .item            = scenePolygon,
+                                                               .source          = PaintedRoiProperties::SourceType::FromPipeline});
 
       if(mRoiClassesToHide.contains(static_cast<int32_t>(roi.getClassId()))) {
         scenePolygon->setVisible(false);
@@ -261,7 +270,7 @@ void PanelImageView::setRegionsOfInterestFromObjectList(const atom::ObjectMap &o
 ///
 void PanelImageView::setRoiColorsForClasses(const joda::settings::Classification &classes)
 {
-  for(auto &polyRoi : mPolygonItems) {
+  for(auto &[_, polyRoi] : mPolygonItems) {
     if(polyRoi.source == PaintedRoiProperties::SourceType::FromPipeline) {
       QColor color = QColor(classes.getClassFromId(static_cast<enums::ClassId>(polyRoi.pixelClass)).color.c_str());
       QPolygonF polygon;
@@ -289,7 +298,7 @@ void PanelImageView::setRoiColorsForClasses(const joda::settings::Classification
 /// \param[out]
 /// \return
 ///
-auto PanelImageView::getPtrToPolygons() -> std::vector<PaintedRoiProperties> *
+auto PanelImageView::getPtrToPolygons() -> std::map<QGraphicsItem *, PaintedRoiProperties> *
 {
   return &mPolygonItems;
 }
@@ -579,14 +588,15 @@ void PanelImageView::onUpdateImage()
 ///
 void PanelImageView::mousePressEvent(QMouseEvent *event)
 {
-  if(getClickedOnRoi(event)) {
-    emit paintedPolygonClicked(mSelectedRois);
+  QGraphicsView::mousePressEvent(event);
+
+  QList<QGraphicsItem *> selected = scene->selectedItems();
+  if(!selected.empty()) {
+    emit paintedPolygonClicked(selected);
     return;
   } else {
-    if(!mSelectedRois.empty()) {
-      setSelectedRois({});
-      emit paintedPolygonClicked(mSelectedRois);
-    }
+    setSelectedRois({});
+    emit paintedPolygonClicked(selected);
   }
 
   if(mState == State::MOVE) {
@@ -597,7 +607,6 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
       emit onImageRepainted();
       return;
     }
-    QGraphicsView::mousePressEvent(event);
 
   } else {
     if(event->button() == Qt::LeftButton) {
@@ -635,10 +644,13 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
           brush = QBrush(transparency, Qt::SolidPattern);
         }
         mTempPolygonItem->setBrush(brush);    // optional fill
-        mPolygonItems.push_back(PaintedRoiProperties{.pixelClass      = mSelectedPixelClass,
-                                                     .pixelClassColor = mPixelClassColor,
-                                                     .item            = mTempPolygonItem,
-                                                     .source          = PaintedRoiProperties::SourceType::Manual});
+        mTempPolygonItem->setFlag(QGraphicsItem::ItemIsSelectable, true);
+        mTempPolygonItem->setFlag(QGraphicsItem::ItemIsMovable, true);
+
+        mPolygonItems.emplace(mTempPolygonItem, PaintedRoiProperties{.pixelClass      = mSelectedPixelClass,
+                                                                     .pixelClassColor = mPixelClassColor,
+                                                                     .item            = mTempPolygonItem,
+                                                                     .source          = PaintedRoiProperties::SourceType::Manual});
 
         if(mHideManualAnnotations) {
           mTempPolygonItem->setVisible(false);
@@ -652,7 +664,6 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
       }
     }
   }
-  QGraphicsView::mousePressEvent(event);
 }
 
 ///
@@ -765,10 +776,12 @@ void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
       auto pen = QPen(mPixelClassColor, 3);
       pen.setCosmetic(true);
       auto *polygon = scene->addPolygon(poly, pen, brush);
-      mPolygonItems.push_back(PaintedRoiProperties{.pixelClass      = mSelectedPixelClass,
-                                                   .pixelClassColor = mPixelClassColor,
-                                                   .item            = polygon,
-                                                   .source          = PaintedRoiProperties::SourceType::Manual});
+      polygon->setFlag(QGraphicsItem::ItemIsSelectable, true);
+      polygon->setFlag(QGraphicsItem::ItemIsMovable, true);
+      mPolygonItems.emplace(polygon, PaintedRoiProperties{.pixelClass      = mSelectedPixelClass,
+                                                          .pixelClassColor = mPixelClassColor,
+                                                          .item            = polygon,
+                                                          .source          = PaintedRoiProperties::SourceType::Manual});
 
       if(mHideManualAnnotations) {
         polygon->setVisible(false);
@@ -1348,49 +1361,15 @@ void PanelImageView::getThumbnailAreaEntered(QMouseEvent *event)
 /// \param[out]
 /// \return
 ///
-bool PanelImageView::getClickedOnRoi(QMouseEvent *event)
-{
-  for(size_t idx = 0; idx < mPolygonItems.size(); idx++) {
-    const auto &poly = mPolygonItems.at(idx);
-    if(poly.item->contains(mapToScene(event->pos()))) {
-      setSelectedRois({static_cast<int32_t>(idx)});
-      return true;
-    }
-  }
-  return false;
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelImageView::setSelectedRois(const std::set<int32_t> &idxs)
+void PanelImageView::setSelectedRois(const std::set<QGraphicsItem *> &idxs)
 {
   // ==============================
   // First rest old selections
   // ==============================
-  for(int32_t idx : mSelectedRois) {
-    if(!idxs.contains(idx)) {
-      // This is not selected any more
-      auto &poly = mPolygonItems.at(static_cast<size_t>(idx));
-      auto pen   = QPen(poly.pixelClassColor, 3);
-      pen.setCosmetic(true);
-      poly.item->setPen(pen);
-    }
-  }
+  scene->clearSelection();
 
-  // ==============================
-  // Highlight new selections
-  // ==============================
-  mSelectedRois = idxs;
-  for(int32_t idx : mSelectedRois) {
-    const auto &poly = mPolygonItems.at(static_cast<size_t>(idx));
-    auto pen         = QPen(Qt::yellow, 3);
-    pen.setCosmetic(true);
-    poly.item->setPen(pen);
+  for(auto &item : idxs) {
+    item->setSelected(true);
   }
 }
 
@@ -1401,20 +1380,31 @@ void PanelImageView::setSelectedRois(const std::set<int32_t> &idxs)
 /// \param[out]
 /// \return
 ///
-void PanelImageView::deleteRois(const std::set<int32_t> &idxs)
+void PanelImageView::deleteRois(const std::set<QGraphicsItem *> &idxs)
 {
-  for(auto it = idxs.rbegin(); it != idxs.rend(); ++it) {
-    int32_t idx = *it;
-    if(idx >= 0 && static_cast<int32_t>(mPolygonItems.size()) > idx) {
-      delete mPolygonItems.at(static_cast<size_t>(idx)).item;
-      mPolygonItems.erase(mPolygonItems.begin() + idx);
-      if(mSelectedRois.contains(idx)) {
-        mSelectedRois.erase(idx);
-      }
+  for(auto it = mPolygonItems.begin(); it != mPolygonItems.end();) {
+    if(idxs.contains(it->first)) {
+      delete it->first;                // free the QGraphicsItem
+      it = mPolygonItems.erase(it);    // erase returns next iterator
+    } else {
+      ++it;
     }
   }
 
   emit paintedPolygonsChanged();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::deleteSelectedRois()
+{
+  QList<QGraphicsItem *> selected = scene->selectedItems();
+  deleteRois({selected.begin(), selected.end()});
 }
 
 ///
@@ -1426,14 +1416,12 @@ void PanelImageView::deleteRois(const std::set<int32_t> &idxs)
 ///
 void PanelImageView::clearRegionOfInterest(PaintedRoiProperties::SourceType sourceToDelete)
 {
-  for(int32_t idx = static_cast<int32_t>(mPolygonItems.size()) - 1; idx >= 0; idx--) {
-    if(mPolygonItems.at(static_cast<size_t>(idx)).source != sourceToDelete) {
-      continue;
-    }
-    delete mPolygonItems.at(static_cast<size_t>(idx)).item;
-    mPolygonItems.erase(mPolygonItems.begin() + idx);
-    if(mSelectedRois.contains(idx)) {
-      mSelectedRois.erase(idx);
+  for(auto it = mPolygonItems.begin(); it != mPolygonItems.end();) {
+    if(it->second.source == sourceToDelete) {
+      delete it->first;                // free the QGraphicsItem
+      it = mPolygonItems.erase(it);    // erase returns next iterator
+    } else {
+      ++it;
     }
   }
 
@@ -1451,7 +1439,7 @@ void PanelImageView::setFillRois(bool fill)
 {
   mFillRoi     = fill;
   QBrush brush = Qt::NoBrush;
-  for(auto &poly : mPolygonItems) {
+  for(auto &[_, poly] : mPolygonItems) {
     if(fill) {
       QColor transparency = poly.pixelClassColor;
       transparency.setAlphaF(mOpaque);
@@ -1539,7 +1527,7 @@ void PanelImageView::setShowThumbnail(bool showThumbnail)
 void PanelImageView::setShowRois(bool show)
 {
   mShowRois = show;
-  for(auto &poly : mPolygonItems) {
+  for(auto &[_, poly] : mPolygonItems) {
     poly.item->setVisible(show);
   }
 }
@@ -1558,7 +1546,7 @@ void PanelImageView::setRoisToHide(const std::set<enums::ClassId> &toHide)
     mRoiClassesToHide.emplace(static_cast<int32_t>(id));
   }
 
-  for(auto &poly : mPolygonItems) {
+  for(auto &[_, poly] : mPolygonItems) {
     if(poly.source == PaintedRoiProperties::SourceType::Manual) {
       if(mHideManualAnnotations) {
         poly.item->setVisible(false);
