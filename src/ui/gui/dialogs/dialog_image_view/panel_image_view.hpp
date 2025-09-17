@@ -27,6 +27,7 @@
 #include "backend/helper/image/image.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "controller/controller.hpp"
+#include "ui/gui/dialogs/dialog_image_view/graphics_polygon.hpp"
 #include "ui/gui/dialogs/dialog_image_view/painted_roi_properties.hpp"
 #include <opencv2/core/types.hpp>
 
@@ -216,7 +217,7 @@ private:
   bool mDrawPolygon                       = false;
   std::vector<QPointF> mPolygonPoints;
   QGraphicsLineItem *mTempPolygonLine;
-  QGraphicsPolygonItem *mTempPolygonItem;
+  MyPolygonItem *mTempPolygonItem;
   int32_t mSelectedPixelClass = 0;
   QColor mPixelClassColor     = Qt::gray;
 

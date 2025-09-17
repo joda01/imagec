@@ -31,6 +31,7 @@
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"
+#include "ui/gui/dialogs/dialog_image_view/graphics_polygon.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/matx.hpp>
 #include <opencv2/core/types.hpp>
@@ -66,7 +67,7 @@ PanelImageView::PanelImageView(QWidget *parent) : QGraphicsView(parent), mImageT
   setRenderHint(QPainter::SmoothPixmapTransform);
   setDragMode(QGraphicsView::ScrollHandDrag);
   setInteractive(true);
-  setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+  setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setMouseTracking(true);
@@ -244,8 +245,8 @@ void PanelImageView::setRegionsOfInterestFromObjectList(const atom::ObjectMap &o
       }
       auto pen = QPen(color, 3);
       pen.setCosmetic(true);
-
-      auto *scenePolygon = scene->addPolygon(polygon, pen, brush);
+      auto *scenePolygon = new MyPolygonItem(polygon, pen, brush);
+      scene->addItem(scenePolygon);
       scenePolygon->setFlag(QGraphicsItem::ItemIsSelectable, true);
       // scenePolygon->setFlag(QGraphicsItem::ItemIsMovable, true);
       mPolygonItems.emplace(scenePolygon, PaintedRoiProperties{.pixelClass      = static_cast<int32_t>(roi.getClassId()),
@@ -623,7 +624,9 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
           mDrawPolygon = true;
           mPolygonPoints.clear();
           mPolygonPoints.push_back(mPaintOrigin);
-          mTempPolygonItem = scene->addPolygon(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()), pen, Qt::NoBrush);
+
+          mTempPolygonItem = new MyPolygonItem(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()), pen, Qt::NoBrush);
+          scene->addItem(mTempPolygonItem);
         } else {
           mPolygonPoints.push_back(mPaintOrigin);
           mTempPolygonItem->setPolygon(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()));
@@ -775,7 +778,8 @@ void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
       }
       auto pen = QPen(mPixelClassColor, 3);
       pen.setCosmetic(true);
-      auto *polygon = scene->addPolygon(poly, pen, brush);
+      auto *polygon = new MyPolygonItem(poly, pen, Qt::NoBrush);
+      scene->addItem(polygon);
       polygon->setFlag(QGraphicsItem::ItemIsSelectable, true);
       polygon->setFlag(QGraphicsItem::ItemIsMovable, true);
       mPolygonItems.emplace(polygon, PaintedRoiProperties{.pixelClass      = mSelectedPixelClass,
