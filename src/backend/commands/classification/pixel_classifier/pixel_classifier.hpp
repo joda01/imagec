@@ -37,12 +37,12 @@ public:
   /////////////////////////////////////////////////////
   PixelClassifier(const settings::PixelClassifierSettings &);
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
-  static void train(const cv::Mat &image, const atom::ObjectList &result, const settings::PixelClassifierTrainingSettings &trainingSettings);
+  static void train(const cv::Mat &image, const atom::ObjectListWithNone &result, const settings::PixelClassifierTrainingSettings &trainingSettings);
 
 private:
   /////////////////////////////////////////////////////
   static void prepareTrainingDataFromROI(const cv::Mat &image, const std::map<enums::ClassId, int32_t> &classesToTrain,
-                                         const atom::ObjectList &regionOfInterest, cv::Mat &trainSamples, cv::Mat &trainLabels,
+                                         const atom::ObjectListWithNone &regionOfInterest, cv::Mat &trainSamples, cv::Mat &trainLabels,
                                          const std::set<joda::settings::PixelClassifierFeatures> &featuresSet, bool normalizeForMLP);
 
   static cv::Mat extractFeatures(const cv::Mat &img, const std::set<joda::settings::PixelClassifierFeatures> &features, bool normalizeForMLP);

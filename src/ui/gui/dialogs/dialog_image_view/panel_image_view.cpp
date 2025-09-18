@@ -204,19 +204,19 @@ auto PanelImageView::mutableImage() -> joda::image::Image *
 /// \param[out]
 /// \return
 ///
-auto PanelImageView::getObjectMapFromAnnotatedRegions(const std::set<PaintedRoiProperties::SourceType> &filter, atom::ObjectList &objectMap,
-                                                      int32_t classFilter) -> void
+auto PanelImageView::getObjectMapFromAnnotatedRegions(const std::set<PaintedRoiProperties::SourceType> &filter, atom::ObjectListWithNone &objectMap,
+                                                      enums::ClassId classFilter) -> void
 {
   const auto &size = mImageToShow->getPreviewImageSize();
   for(const auto &[_, polyRoi] : mPolygonItems) {
     if(!filter.contains(polyRoi.source)) {
       continue;
     }
-    if(classFilter >= 0 && polyRoi.pixelClass != classFilter) {
+    if(classFilter != enums::ClassId::UNDEFINED && polyRoi.classId != classFilter) {
       continue;
     }
     joda::atom::ROI roi = polyRoi.qPolygonToRoi(mImageToShow->getOriginalImage(), {size.width(), size.height()});
-    objectMap.push_back(roi);
+    objectMap.push_back(roi);    // We also allow none
   }
 }
 
@@ -249,12 +249,12 @@ void PanelImageView::setRegionsOfInterestFromObjectList(const atom::ObjectMap &o
       scene->addItem(scenePolygon);
       scenePolygon->setFlag(QGraphicsItem::ItemIsSelectable, true);
       // scenePolygon->setFlag(QGraphicsItem::ItemIsMovable, true);
-      mPolygonItems.emplace(scenePolygon, PaintedRoiProperties{.pixelClass      = static_cast<int32_t>(roi.getClassId()),
+      mPolygonItems.emplace(scenePolygon, PaintedRoiProperties{.classId         = roi.getClassId(),
                                                                .pixelClassColor = color,
                                                                .item            = scenePolygon,
                                                                .source          = PaintedRoiProperties::SourceType::FromPipeline});
 
-      if(mRoiClassesToHide.contains(static_cast<int32_t>(roi.getClassId()))) {
+      if(mRoiClassesToHide.contains(roi.getClassId())) {
         scenePolygon->setVisible(false);
       }
     }
@@ -273,7 +273,7 @@ void PanelImageView::setRoiColorsForClasses(const joda::settings::Classification
 {
   for(auto &[_, polyRoi] : mPolygonItems) {
     if(polyRoi.source == PaintedRoiProperties::SourceType::FromPipeline) {
-      QColor color = QColor(classes.getClassFromId(static_cast<enums::ClassId>(polyRoi.pixelClass)).color.c_str());
+      QColor color = QColor(classes.getClassFromId(polyRoi.classId).color.c_str());
       QPolygonF polygon;
       QBrush brush = Qt::NoBrush;
       if(mFillRoi) {
@@ -420,10 +420,11 @@ void PanelImageView::setState(State state)
 /// \param[out]
 /// \return
 ///
-void PanelImageView::setSelectedPixelClass(int32_t pixelClass, const QColor &color)
+void PanelImageView::setClassIdToUseForDrawing(enums::ClassId classId, const QColor &color)
+
 {
-  mSelectedPixelClass = pixelClass;
-  mPixelClassColor    = color;
+  mSelectedClassForDrawing = classId;
+  mPixelClassColor         = color;
 }
 
 ///
@@ -650,7 +651,7 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
         mTempPolygonItem->setFlag(QGraphicsItem::ItemIsSelectable, true);
         mTempPolygonItem->setFlag(QGraphicsItem::ItemIsMovable, true);
 
-        mPolygonItems.emplace(mTempPolygonItem, PaintedRoiProperties{.pixelClass      = mSelectedPixelClass,
+        mPolygonItems.emplace(mTempPolygonItem, PaintedRoiProperties{.classId         = mSelectedClassForDrawing,
                                                                      .pixelClassColor = mPixelClassColor,
                                                                      .item            = mTempPolygonItem,
                                                                      .source          = PaintedRoiProperties::SourceType::Manual});
@@ -782,7 +783,7 @@ void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
       scene->addItem(polygon);
       polygon->setFlag(QGraphicsItem::ItemIsSelectable, true);
       polygon->setFlag(QGraphicsItem::ItemIsMovable, true);
-      mPolygonItems.emplace(polygon, PaintedRoiProperties{.pixelClass      = mSelectedPixelClass,
+      mPolygonItems.emplace(polygon, PaintedRoiProperties{.classId         = mSelectedClassForDrawing,
                                                           .pixelClassColor = mPixelClassColor,
                                                           .item            = polygon,
                                                           .source          = PaintedRoiProperties::SourceType::Manual});
@@ -1545,10 +1546,7 @@ void PanelImageView::setShowRois(bool show)
 ///
 void PanelImageView::setRoisToHide(const std::set<enums::ClassId> &toHide)
 {
-  mRoiClassesToHide.clear();
-  for(auto id : toHide) {
-    mRoiClassesToHide.emplace(static_cast<int32_t>(id));
-  }
+  mRoiClassesToHide = toHide;
 
   for(auto &[_, poly] : mPolygonItems) {
     if(poly.source == PaintedRoiProperties::SourceType::Manual) {
@@ -1558,7 +1556,7 @@ void PanelImageView::setRoisToHide(const std::set<enums::ClassId> &toHide)
         poly.item->setVisible(true);
       }
     } else {
-      if(mRoiClassesToHide.contains(poly.pixelClass)) {
+      if(mRoiClassesToHide.contains(poly.classId)) {
         poly.item->setVisible(false);
       } else {
         poly.item->setVisible(true);

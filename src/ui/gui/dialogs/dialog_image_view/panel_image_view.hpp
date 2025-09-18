@@ -120,7 +120,7 @@ public:
 
   // SET STATE ///////////////////////////////////////////////////
   void setState(State);
-  void setSelectedPixelClass(int32_t pixelClass, const QColor &color);
+  void setClassIdToUseForDrawing(enums::ClassId classId, const QColor &color);
 
   // INFORMATION NEEDED FROM EXTERNAL ///////////////////////////////////////////////////
   void setZprojection(enums::ZProjection);
@@ -132,8 +132,8 @@ public:
   auto mutableImage() -> joda::image::Image *;
 
   // REGION OF INTERESTS //////////////////////////////////////////////
-  auto getObjectMapFromAnnotatedRegions(const std::set<PaintedRoiProperties::SourceType> &filter, atom::ObjectList &, int32_t classFilter = -1)
-      -> void;
+  auto getObjectMapFromAnnotatedRegions(const std::set<PaintedRoiProperties::SourceType> &filter, atom::ObjectListWithNone &,
+                                        enums::ClassId classFilter = enums::ClassId::UNDEFINED) -> void;
   void setRegionsOfInterestFromObjectList(const atom::ObjectMap &, const joda::settings::Classification &);
   void clearRegionOfInterest(PaintedRoiProperties::SourceType sourceToDelete = PaintedRoiProperties::SourceType::FromPipeline);
   auto getPtrToPolygons() -> std::map<QGraphicsItem *, PaintedRoiProperties> *;
@@ -210,7 +210,7 @@ private:
   State mState = State::MOVE;
   std::map<QGraphicsItem *, PaintedRoiProperties> mPolygonItems;
   PaintedRoi_t mActPaintingRoi;
-  std::set<int32_t> mRoiClassesToHide;
+  std::set<enums::ClassId> mRoiClassesToHide;
 
   QPointF mPaintOrigin;
   QAbstractGraphicsShapeItem *mRubberItem = nullptr;
@@ -218,8 +218,8 @@ private:
   std::vector<QPointF> mPolygonPoints;
   QGraphicsLineItem *mTempPolygonLine;
   MyPolygonItem *mTempPolygonItem;
-  int32_t mSelectedPixelClass = 0;
-  QColor mPixelClassColor     = Qt::gray;
+  enums::ClassId mSelectedClassForDrawing = enums::ClassId::NONE;
+  QColor mPixelClassColor                 = Qt::gray;
 
   // MOVE IMAGE ///////////////////////////////////////////////////
   cv::Size mPixmapSize;

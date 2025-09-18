@@ -67,63 +67,6 @@ DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) 
 
     toolbar->addSeparator();
 
-    // Classification
-    auto *classificationMenu = new QMenu();
-    mPixelClassMenuGroup     = new QActionGroup(toolbar);
-
-    auto addPixelClass = [this, &classificationMenu]<Color T>(int32_t classID, const QString &name) {
-      auto *action = classificationMenu->addAction(generateSvgIcon<Style::DUETONE, T>("circle-dashed"), name);
-      action->setCheckable(true);
-      if(classID == 0) {
-        action->setChecked(true);
-      }
-      mPixelClassMenuGroup->addAction(action);
-      mPixelClassSelections.emplace(classID, action);
-    };
-
-    addPixelClass.operator()<Color::BLACK>(0, "Background");
-    addPixelClass.operator()<Color::RED>(1, "Class 1");
-    addPixelClass.operator()<Color::BLUE>(2, "Class 2");
-    addPixelClass.operator()<Color::GREEN>(3, "Class 3");
-    addPixelClass.operator()<Color::YELLOW>(4, "Class 4");
-
-    mPixelClass = new QAction(generateSvgIcon<Style::DUETONE, Color::BLACK>("circle-dashed"), "Pixel class");
-    mPixelClass->setStatusTip("Pixel class used for annotation");
-    mPixelClass->setMenu(classificationMenu);
-    toolbar->addAction(mPixelClass);
-    auto *btnPxlClass = qobject_cast<QToolButton *>(toolbar->widgetForAction(mPixelClass));
-    btnPxlClass->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
-    connect(classificationMenu, &QMenu::triggered, [this](QAction *triggeredAction) {
-      if(triggeredAction != nullptr) {
-        mPixelClass->setIcon(triggeredAction->icon());
-        auto pxClass = getSelectedPixelClass();
-        QColor color = Qt::gray;
-        switch(pxClass) {
-          case 0:
-            color = Qt::gray;
-            break;
-          case 1:
-            color = Qt::red;
-            break;
-          case 2:
-            color = Qt::blue;
-            break;
-          case 3:
-            color = Qt::green;
-            break;
-          case 4:
-            color = Qt::yellow;
-            break;
-          default:
-            color = Qt::gray;
-        }
-
-        mImagePanel->setSelectedPixelClass(pxClass, color);
-      }
-    });
-
-    toolbar->addSeparator();
-
     auto *paintRectangle = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("rectangle"), "Rectangle");
     paintRectangle->setStatusTip("Paint rectangle");
     paintRectangle->setCheckable(true);
@@ -288,25 +231,6 @@ void DialogRoiManager::closeEvent(QCloseEvent *event)
 
   emit dialogDisappeared();
   QDialog::closeEvent(event);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-int32_t DialogRoiManager::getSelectedPixelClass() const
-{
-  if(mPixelClassMenuGroup != nullptr) {
-    for(const auto &[pxNr, action] : mPixelClassSelections) {
-      if(action->isChecked()) {
-        return pxNr;
-      }
-    }
-  }
-  return 0;
 }
 
 }    // namespace joda::ui::gui

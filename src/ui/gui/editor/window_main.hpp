@@ -108,6 +108,11 @@ public:
     return mPreviewResultsDialog;
   }
 
+  auto mutableImagePreview() -> DialogImageViewer *
+  {
+    return mPreviewImage;
+  }
+
   void addToLastLoadedResults(const QString &path, const QString &jobName);
   void setWindowTitlePrefix(const QString &txt);
   void checkForSettingsChanged();

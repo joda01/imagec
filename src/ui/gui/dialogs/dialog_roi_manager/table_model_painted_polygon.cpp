@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <string>
 #include "backend/enums/enum_measurements.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/helper/base32.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/results_settings/results_settings.hpp"
@@ -94,7 +95,7 @@ QVariant TableModelPaintedPolygon::data(const QModelIndex &index, int role) cons
   std::advance(it, index.row());
 
   if(role == CLASS_ROLE) {
-    return static_cast<int32_t>(it->second.pixelClass);
+    return static_cast<int32_t>(it->second.classId);
   }
 
   if(role == Qt::UserRole) {
@@ -102,18 +103,16 @@ QVariant TableModelPaintedPolygon::data(const QModelIndex &index, int role) cons
   }
 
   if(role == Qt::DisplayRole) {
-    QString imgChannel = QString::number(it->second.pixelClass);
-
     if(it->second.source == PaintedRoiProperties::SourceType::Manual) {
-      if(it->second.pixelClass == 0) {
-        return "Background";
+      if(it->second.classId == enums::ClassId::NONE) {
+        return "None";
       }
       if(index.column() == 0) {
-        return "Annotation " + QString::number(it->second.pixelClass);
+        return "Annotation " + QString::number(static_cast<int32_t>(it->second.classId));
       }
     } else {
       if(index.column() == 0) {
-        return "Class " + QString::number(it->second.pixelClass);
+        return "Class " + QString::number(static_cast<int32_t>(it->second.classId));
       }
     }
 

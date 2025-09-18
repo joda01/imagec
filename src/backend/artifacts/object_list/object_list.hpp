@@ -126,14 +126,14 @@ public:
   }
 
 private:
-  const ROI &emplace(const ROI &box)
+  const ROI &emplace(const ROI &box, bool &insertedRet)
   {
-    return insertIntoGrid(box);
+    return insertIntoGrid(box, insertedRet);
   }
 
-  const ROI &push_back(const ROI &box)
+  const ROI &push_back(const ROI &box, bool &insertedRet)
   {
-    return insertIntoGrid(box);
+    return insertIntoGrid(box, insertedRet);
   }
 
   void erase(const ROI *eraseRoi)
@@ -158,10 +158,11 @@ private:
   unordered_map<pair<int, int>, std::vector<ROI *>, PairHash> grid;
   int mCellSize;
 
-  const ROI &insertIntoGrid(const ROI &boxIn)
+  const ROI &insertIntoGrid(const ROI &boxIn, bool &insertedRet)
   {
     // If class id is none, do not enter the ROI
     if(!mAllowNonValues && boxIn.getClassId() == enums::ClassId::NONE) {
+      insertedRet = false;
       return boxIn;
     }
     /// \todo generate an object ID
@@ -182,6 +183,7 @@ private:
         grid[{x, y}].emplace_back(&inserted);
       }
     }
+    insertedRet = true;
     return inserted;
   }
 
@@ -211,14 +213,14 @@ class SpheralIndexStandAlone : public SpheralIndex
 public:
   using SpheralIndex::SpheralIndex;
 
-  const ROI &emplace(const ROI &box)
+  const ROI &emplace(const ROI &box, bool &insertedRet)
   {
-    return SpheralIndex::insertIntoGrid(box);
+    return SpheralIndex::insertIntoGrid(box, insertedRet);
   }
 
-  const ROI &push_back(const ROI &box)
+  const ROI &push_back(const ROI &box, bool &insertedRet)
   {
-    return SpheralIndex::insertIntoGrid(box);
+    return SpheralIndex::insertIntoGrid(box, insertedRet);
   }
 };
 
@@ -233,10 +235,13 @@ public:
       SpheralIndex idx{};
       operator[](roi.getClassId())->cloneFromOther(idx);
     }
-    const auto &inserted = at(roi.getClassId())->emplace(roi);
-    if(inserted.getClassId() != enums::ClassId::NONE && 0 != inserted.getObjectId()) {
-      std::lock_guard<std::mutex> lock(mInsertLock);
-      objectsOrderedByObjectId[inserted.getObjectId()] = &inserted;
+    bool insertedRet     = false;
+    const auto &inserted = at(roi.getClassId())->emplace(roi, insertedRet);
+    if(insertedRet) {
+      if(0 != inserted.getObjectId()) {
+        std::lock_guard<std::mutex> lock(mInsertLock);
+        objectsOrderedByObjectId[inserted.getObjectId()] = &inserted;
+      }
     }
   }
 
@@ -261,7 +266,7 @@ public:
     }
   }
 
-  std::unique_ptr<SpheralIndex> &operator[](enums::ClassId classId)
+  virtual std::unique_ptr<SpheralIndex> &operator[](enums::ClassId classId)
   {
     if(!contains(classId)) {
       auto newS = std::make_unique<SpheralIndex>();
@@ -282,6 +287,21 @@ public:
 
   std::map<uint64_t, const ROI *> objectsOrderedByObjectId;
   std::mutex mInsertLock;
+};
+
+class ObjectListWithNone : public ObjectList
+{
+public:
+  using ObjectList::ObjectList;
+
+  std::unique_ptr<SpheralIndex> &operator[](enums::ClassId classId) override
+  {
+    if(!contains(classId)) {
+      auto newS = std::make_unique<SpheralIndex>(true);
+      emplace(classId, std::move(newS));
+    }
+    return at(classId);
+  }
 };
 
 }    // namespace joda::atom

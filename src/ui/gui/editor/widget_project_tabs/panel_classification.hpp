@@ -17,6 +17,7 @@
 #include <filesystem>
 #include <optional>
 #include <utility>
+#include "backend/enums/enums_classes.hpp"
 #include "backend/settings/project_settings/project_settings.hpp"
 #include "ui/gui/helper/color_combo/color_combo.hpp"
 #include "ui/gui/helper/table_widget.hpp"
@@ -41,6 +42,7 @@ public:
   void fromSettings(const joda::settings::Classification &settings);
   void toSettings();
   [[nodiscard]] auto getClasses() const -> std::map<enums::ClassIdIn, QString>;
+  auto getSelectedClass() const -> enums::ClassId;
 
 signals:
   void settingsChanged();
@@ -53,6 +55,8 @@ private:
   static constexpr int COL_COLOR   = 3;
   static constexpr int COL_NOTES   = 4;
   static constexpr int COL_HIDDEN  = 5;
+
+  static inline const std::string NONE_COLOR = "#565656";
 
   /////////////////////////////////////////////////////
   void loadTemplates();

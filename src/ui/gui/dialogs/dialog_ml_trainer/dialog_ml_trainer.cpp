@@ -195,42 +195,28 @@ void DialogMlTrainer::startTraining()
   }
 
   //
-  // We generate a continuos trainings class id therefore we first start with the manuel annotated
+  // First of all we get the objects to train
   //
-  atom::ObjectList annotatedObjectsToTrain;
-  std::map<enums::ClassId, int32_t> classesToTrain;
-  int32_t trainingClassId = 0;
-  if(mRoiSource->currentData().toInt() < 0 ||
-     PaintedRoiProperties::SourceType::Manual == static_cast<PaintedRoiProperties::SourceType>(mRoiSource->currentData().toInt())) {
-    mImagePanel->getObjectMapFromAnnotatedRegions({PaintedRoiProperties::SourceType::Manual}, annotatedObjectsToTrain);
-    for(const auto &[classId, _] : annotatedObjectsToTrain) {
-      classesToTrain.emplace(classId, trainingClassId);
-      trainingClassId++;
-    }
-  } else {
-    // Only the the background annotations
-    mImagePanel->getObjectMapFromAnnotatedRegions({PaintedRoiProperties::SourceType::Manual}, annotatedObjectsToTrain, 0);
-    classesToTrain.emplace(static_cast<enums::ClassId>(0), 0);
-    trainingClassId++;
-  }
-
-  if(mRoiSource->currentData().toInt() < 0 ||
-     PaintedRoiProperties::SourceType::FromPipeline == static_cast<PaintedRoiProperties::SourceType>(mRoiSource->currentData().toInt())) {
-    atom::ObjectList pipelineAnnotatedObjects;
-    mImagePanel->getObjectMapFromAnnotatedRegions({PaintedRoiProperties::SourceType::FromPipeline}, pipelineAnnotatedObjects);
-    for(auto &[_, spheral] : pipelineAnnotatedObjects) {
-      classesToTrain.emplace(static_cast<enums::ClassId>(trainingClassId), trainingClassId);
-      annotatedObjectsToTrain.try_emplace(static_cast<enums::ClassId>(trainingClassId), std::move(spheral));
-      trainingClassId++;
-    }
-  }
+  atom::ObjectListWithNone annotatedObjectsToTrain;
+  mImagePanel->getObjectMapFromAnnotatedRegions(filter, annotatedObjectsToTrain);
 
   //
   // At least one background annotation must be present
   //
-  if(!annotatedObjectsToTrain.contains(static_cast<enums::ClassId>(0)) || annotatedObjectsToTrain.at(static_cast<enums::ClassId>(0))->empty()) {
+  if(!annotatedObjectsToTrain.contains(enums::ClassId::NONE) || annotatedObjectsToTrain.at(enums::ClassId::NONE)->empty()) {
     QMessageBox::warning(this, "No background annotation found", "At least one background annotation must be taken!");
     return;
+  }
+
+  //
+  // Now we generate a continuous training class id range which maps the class id to pixel class id in the format [0,1,2,3, ...]
+  //
+  std::map<enums::ClassId, int32_t> classesToTrainMapping;
+  classesToTrainMapping.emplace(enums::ClassId::NONE, 0);    // None is always the background/zero class
+  int32_t pixelClassId = 1;
+  for(const auto &[classId, _] : annotatedObjectsToTrain) {
+    classesToTrainMapping.emplace(classId, pixelClassId);
+    pixelClassId++;
   }
 
   //
@@ -241,7 +227,7 @@ void DialogMlTrainer::startTraining()
     modelFileName = "tmp";
   }
 
-  if(classesToTrain.size() > 1) {
+  if(classesToTrainMapping.size() > 1) {
     std::filesystem::path modelPath =
         joda::ml::MlModelParser::getUsersMlModelDirectory() / (modelFileName + joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL);
 
@@ -258,7 +244,7 @@ void DialogMlTrainer::startTraining()
     }
 
     mTrainerSettings.method          = static_cast<joda::settings::PixelClassifierMethod>(mComboClassifierMethod->currentData().toInt());
-    mTrainerSettings.trainingClasses = classesToTrain;
+    mTrainerSettings.trainingClasses = classesToTrainMapping;
     mTrainerSettings.features        = features;
     mTrainerSettings.outPath         = modelPath;
     joda::cmd::PixelClassifier::train(*mImagePanel->mutableImage()->getOriginalImage(), annotatedObjectsToTrain, mTrainerSettings);

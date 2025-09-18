@@ -28,6 +28,7 @@
 #include "backend/settings/project_settings/project_class.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
+#include "ui/gui/dialogs/dialog_image_view/dialog_image_view.hpp"
 #include "ui/gui/editor/widget_project_tabs/panel_image.hpp"
 #include "ui/gui/editor/window_main.hpp"
 #include "ui/gui/helper/color_combo/color_combo.hpp"
@@ -212,12 +213,32 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
   }
   setLayout(layout);
 
-  // connect(mClasses, &QTableWidget::itemChanged, [&](QTableWidgetItem *item) { onSettingChanged(); });
   connect(mClasses, &QTableWidget::cellDoubleClicked, [&](int row, int column) {
     if(row > 0) {
       row--;
       if(column == COL_NAME) {
         openEditDialog(row, column);
+      }
+    }
+  });
+
+  //
+  // On selected class change set the class id to draw in the image panel
+  //
+  connect(mClasses->selectionModel(), &QItemSelectionModel::selectionChanged, this, [this](const QItemSelection &, const QItemSelection &) {
+    auto *imgPanel = mWindowMain->mutableImagePreview()->getImagePanel();
+    if(!mClasses->selectionModel()->hasSelection()) {
+      imgPanel->setClassIdToUseForDrawing(enums::ClassId::NONE, QColor(NONE_COLOR.data()));
+    } else {
+      auto indexes     = mClasses->selectionModel()->selectedIndexes();
+      auto selectedRow = indexes.begin()->row();
+      if(selectedRow == 0) {
+        imgPanel->setClassIdToUseForDrawing(enums::ClassId::NONE, QColor(NONE_COLOR.data()));
+      } else {
+        selectedRow--;
+        auto it = mSettings.classes.begin();
+        std::advance(it, selectedRow);
+        imgPanel->setClassIdToUseForDrawing(it->classId, QColor(it->color.data()));
       }
     }
   });
@@ -237,7 +258,7 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
 void PanelClassification::addNoneClass()
 {
   mClasses->setRowCount(1);
-  createTableItem(0, enums::ClassId::NONE, "None", "#565656", "");
+  createTableItem(0, enums::ClassId::NONE, "None", NONE_COLOR, "");
 }
 
 ///
@@ -381,6 +402,28 @@ void PanelClassification::toSettings()
     classs.notes = classNotes.toStdString();
     row++;
   }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto PanelClassification::getSelectedClass() const -> enums::ClassId
+{
+  QList<QTableWidgetSelectionRange> ranges = mClasses->selectedRanges();
+  if(!ranges.isEmpty()) {
+    int selectedRow = ranges.first().topRow();
+    if(selectedRow == 0) {
+      return enums::ClassId::NONE;
+    }
+    auto it = mSettings.classes.begin();
+    std::advance(it, selectedRow - 1);
+    return it->classId;
+  }
+  return enums::ClassId::NONE;
 }
 
 ///

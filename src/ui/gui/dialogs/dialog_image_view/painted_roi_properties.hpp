@@ -17,6 +17,7 @@
 #include <qtypes.h>
 #include <vector>
 #include "backend/artifacts/roi/roi.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include <opencv2/core/types.hpp>
 
 namespace joda::ui::gui {
@@ -29,7 +30,7 @@ struct PaintedRoiProperties
     Manual
   };
 
-  int32_t pixelClass = 0;
+  enums::ClassId classId = enums::ClassId::NONE;
   QColor pixelClassColor;
   QGraphicsPolygonItem *item;
   SourceType source = SourceType::Manual;
@@ -63,9 +64,8 @@ struct PaintedRoiProperties
     //
     // Ready to classify -> First create a ROI object to get the measurements
     //
-    joda::atom::ROI detectedRoi(
-        atom::ROI::RoiObjectId{.classId = static_cast<enums::ClassId>(pixelClass), .imagePlane = {.tStack = 0, .zStack = 0, .cStack = 0}}, 1.0,
-        boundingBox, mask, contour, image->size(), image->size(), {0, 0}, image->size());
+    joda::atom::ROI detectedRoi(atom::ROI::RoiObjectId{.classId = classId, .imagePlane = {.tStack = 0, .zStack = 0, .cStack = 0}}, 1.0, boundingBox,
+                                mask, contour, image->size(), image->size(), {0, 0}, image->size());
 
     return detectedRoi;
   }
@@ -85,7 +85,7 @@ struct PaintedRoiProperties
     }
 
     PaintedRoiProperties prop;
-    prop.pixelClass = static_cast<int32_t>(roi.getClassId());
+    prop.classId = roi.getClassId();
 
     return prop;
   }
