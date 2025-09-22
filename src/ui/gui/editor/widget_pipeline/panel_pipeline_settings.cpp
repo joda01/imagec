@@ -569,20 +569,6 @@ void PanelPipelineSettings::onPreviewStarted()
 ///
 void PanelPipelineSettings::onPreviewFinished(QString error)
 {
-  const settings::AnalyzeSettings &settingsTmp = mWindowMain->getSettings();
-  mPreviewImage->getImagePanel()->setEditedImage(std::move(mPreviewResult.editedImage));
-  mPreviewImage->getImagePanel()->clearRegionOfInterest();
-  mPreviewImage->getImagePanel()->setRegionsOfInterestFromObjectList(mPreviewResult.results.objectMap, settingsTmp.projectSettings.classification);
-  mPreviewImage->getImagePanel()->repaintImage();
-
-  if(nullptr != mPreviewImage) {
-    mPreviewImage->setWaiting(false);
-  }
-
-  if(nullptr != mPreviewResultsDialog) {
-    mPreviewResultsDialog->refresh();
-  }
-
   if(!error.isEmpty()) {
     QMessageBox messageBox(mWindowMain);
     messageBox.setIconPixmap(generateSvgIcon<Style::DUETONE, Color::RED>("warning-octagon").pixmap(48, 48));
@@ -590,6 +576,19 @@ void PanelPipelineSettings::onPreviewFinished(QString error)
     messageBox.setText(error);
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     messageBox.exec();
+  } else {
+    const settings::AnalyzeSettings &settingsTmp = mWindowMain->getSettings();
+    mPreviewImage->getImagePanel()->setEditedImage(std::move(mPreviewResult.editedImage));
+    mPreviewImage->getImagePanel()->clearRegionOfInterest();
+    mPreviewImage->getImagePanel()->setRegionsOfInterestFromObjectList(mPreviewResult.results.objectMap, settingsTmp.projectSettings.classification);
+    mPreviewImage->getImagePanel()->repaintImage();
+  }
+  if(nullptr != mPreviewImage) {
+    mPreviewImage->setWaiting(false);
+  }
+
+  if(nullptr != mPreviewResultsDialog) {
+    mPreviewResultsDialog->refresh();
   }
 }
 
