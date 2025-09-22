@@ -236,7 +236,7 @@ void PanelImageView::setRegionsOfInterestFromObjectList(const atom::ObjectMap &o
     for(const auto &roi : *regionOfInterests) {
       QColor color = QColor(classes.getClassFromId(roi.getClassId()).color.c_str());
       QPolygonF polygon;
-      PaintedRoiProperties::fromRoiToQPolygon(polygon, roi, mImageToShow->getOriginalImage(), {size.width(), size.height()});
+      PaintedRoiProperties::fromRoiToQPolygon(polygon, roi, mPreviewImages.originalImage.getOriginalImage(), {size.width(), size.height()});
       // Add polygon to scene as a proper polygon item
       QBrush brush = Qt::NoBrush;
       if(mFillRoi) {
@@ -610,6 +610,11 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
       viewport()->update();
       emit onImageRepainted();
       return;
+    }
+    if(event->button() == Qt::LeftButton) {
+      if(mShowThumbnail) {
+        getClickedTileInThumbnail(event);
+      }
     }
 
   } else {
