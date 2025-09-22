@@ -176,6 +176,8 @@ private:
 
 private:
   /////////////////////////////////////////////////////
+  const int32_t MAX_POLYGONS_TO_DRAW = 30000;
+
   const float THUMB_RECT_START_X       = 10;
   const float THUMB_RECT_START_Y       = 10;
   const float THUMB_RECT_HEIGHT_NORMAL = 128;

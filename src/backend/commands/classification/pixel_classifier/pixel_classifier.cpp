@@ -10,10 +10,12 @@
 ///
 
 #include "pixel_classifier.hpp"
+#include <chrono>
 #include <stdexcept>
 #include "backend/commands/classification/pixel_classifier/pixel_classifier_training_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/helper/duration_count/duration_count.h"
+#include "backend/helper/helper.hpp"
 #include <opencv2/ml.hpp>
 
 namespace joda::cmd {
@@ -111,7 +113,7 @@ void PixelClassifier::train(const cv::Mat &image, const atom::ObjectListWithNone
     case settings::PixelClassifierMethod::RTrees: {
       prepareTrainingDataFromROI(image, trainingSettings.trainingClasses, result, trainSamples, labelList, trainingSettings.features, false);
       auto statsModel = trainRandomForest(trainingSettings.randomForest, trainSamples, labelList);
-      storeModel(statsModel, trainingSettings.outPath, trainingSettings.features);
+      storeModel(statsModel, trainingSettings.outPath, trainingSettings.features, trainingSettings.trainingClasses);
 
     } break;
     case settings::PixelClassifierMethod::DTrees:
@@ -121,13 +123,13 @@ void PixelClassifier::train(const cv::Mat &image, const atom::ObjectListWithNone
     case settings::PixelClassifierMethod::ANN_MLP: {
       prepareTrainingDataFromROI(image, trainingSettings.trainingClasses, result, trainSamples, labelList, trainingSettings.features, true);
       auto statsModel = trainAnnMlp(trainingSettings.annMlp, trainSamples, labelList, static_cast<int32_t>(trainingSettings.trainingClasses.size()));
-      storeModel(statsModel, trainingSettings.outPath, trainingSettings.features);
+      storeModel(statsModel, trainingSettings.outPath, trainingSettings.features, trainingSettings.trainingClasses);
 
     } break;
     case settings::PixelClassifierMethod::KNearest: {
       prepareTrainingDataFromROI(image, trainingSettings.trainingClasses, result, trainSamples, labelList, trainingSettings.features, true);
       auto statsModel = trainAnnMlp(trainingSettings.annMlp, trainSamples, labelList, static_cast<int32_t>(trainingSettings.trainingClasses.size()));
-      storeModel(statsModel, trainingSettings.outPath, trainingSettings.features);
+      storeModel(statsModel, trainingSettings.outPath, trainingSettings.features, trainingSettings.trainingClasses);
     } break;
     case settings::PixelClassifierMethod::NormalBayes:
     case settings::PixelClassifierMethod::LogisticRegression:
@@ -227,7 +229,8 @@ cv::Ptr<cv::ml::KNearest> PixelClassifier::trainKNearest(const joda::settings::K
 ///
 template <CvModel_t MODEL>
 void PixelClassifier::storeModel(cv::Ptr<MODEL> model, const std::filesystem::path &path,
-                                 const std::set<joda::settings::PixelClassifierFeatures> &features)
+                                 const std::set<joda::settings::PixelClassifierFeatures> &features,
+                                 const std::map<enums::ClassId, int32_t> &trainingClasses)
 {
   cv::FileStorage fs(path.string(), cv::FileStorage::WRITE | cv::FileStorage::FORMAT_JSON);
   fs << "model"
@@ -247,6 +250,39 @@ void PixelClassifier::storeModel(cv::Ptr<MODEL> model, const std::filesystem::pa
     std::string name = nlohmann::json(f).get<std::string>();    // enum -> string
     fs << name;
   }
+  fs << "]";
+
+  fs << "meta"
+     << "{";
+  fs << "author"
+     << "";
+  fs << "organization"
+     << "";
+  fs << "group"
+     << "";
+  fs << "modifiedAt" << helper::timepointToIsoString(std::chrono::system_clock::now());
+  fs << "name"
+     << "";
+  fs << "notes"
+     << "";
+  fs << "revision"
+     << "";
+  fs << "tags"
+     << "["
+     << "]";
+  fs << "uid"
+     << "";
+  fs << "}";
+
+  fs << "classLabels"
+     << "[";
+
+  for(const auto &[_, classsId] : trainingClasses) {
+    fs << "{";
+    fs << "classId" << classsId;
+    fs << "}";
+  }
+
   fs << "]";
 
   // Write model
@@ -593,23 +629,32 @@ cv::Mat PixelClassifier::extractFeatures(const cv::Mat &img, const std::set<joda
 }
 
 template void PixelClassifier::storeModel<cv::ml::RTrees>(cv::Ptr<cv::ml::RTrees> model, const std::filesystem::path &path,
-                                                          const std::set<joda::settings::PixelClassifierFeatures> &features);
+                                                          const std::set<joda::settings::PixelClassifierFeatures> &features,
+                                                          const std::map<enums::ClassId, int32_t> &trainingClasses);
 template void PixelClassifier::storeModel<cv::ml::NormalBayesClassifier>(cv::Ptr<cv::ml::NormalBayesClassifier> model,
                                                                          const std::filesystem::path &path,
-                                                                         const std::set<joda::settings::PixelClassifierFeatures> &features);
+                                                                         const std::set<joda::settings::PixelClassifierFeatures> &features,
+                                                                         const std::map<enums::ClassId, int32_t> &trainingClasses);
 template void PixelClassifier::storeModel<cv::ml::KNearest>(cv::Ptr<cv::ml::KNearest> model, const std::filesystem::path &path,
-                                                            const std::set<joda::settings::PixelClassifierFeatures> &features);
+                                                            const std::set<joda::settings::PixelClassifierFeatures> &features,
+                                                            const std::map<enums::ClassId, int32_t> &trainingClasses);
 template void PixelClassifier::storeModel<cv::ml::SVM>(cv::Ptr<cv::ml::SVM> model, const std::filesystem::path &path,
-                                                       const std::set<joda::settings::PixelClassifierFeatures> &features);
+                                                       const std::set<joda::settings::PixelClassifierFeatures> &features,
+                                                       const std::map<enums::ClassId, int32_t> &trainingClasses);
 template void PixelClassifier::storeModel<cv::ml::DTrees>(cv::Ptr<cv::ml::DTrees> model, const std::filesystem::path &path,
-                                                          const std::set<joda::settings::PixelClassifierFeatures> &features);
+                                                          const std::set<joda::settings::PixelClassifierFeatures> &features,
+                                                          const std::map<enums::ClassId, int32_t> &trainingClasses);
 template void PixelClassifier::storeModel<cv::ml::Boost>(cv::Ptr<cv::ml::Boost> model, const std::filesystem::path &path,
-                                                         const std::set<joda::settings::PixelClassifierFeatures> &features);
+                                                         const std::set<joda::settings::PixelClassifierFeatures> &features,
+                                                         const std::map<enums::ClassId, int32_t> &trainingClasses);
 template void PixelClassifier::storeModel<cv::ml::ANN_MLP>(cv::Ptr<cv::ml::ANN_MLP> model, const std::filesystem::path &path,
-                                                           const std::set<joda::settings::PixelClassifierFeatures> &features);
+                                                           const std::set<joda::settings::PixelClassifierFeatures> &features,
+                                                           const std::map<enums::ClassId, int32_t> &trainingClasses);
 template void PixelClassifier::storeModel<cv::ml::LogisticRegression>(cv::Ptr<cv::ml::LogisticRegression> model, const std::filesystem::path &path,
-                                                                      const std::set<joda::settings::PixelClassifierFeatures> &features);
+                                                                      const std::set<joda::settings::PixelClassifierFeatures> &features,
+                                                                      const std::map<enums::ClassId, int32_t> &trainingClasses);
 template void PixelClassifier::storeModel<cv::ml::SVMSGD>(cv::Ptr<cv::ml::SVMSGD> model, const std::filesystem::path &path,
-                                                          const std::set<joda::settings::PixelClassifierFeatures> &features);
+                                                          const std::set<joda::settings::PixelClassifierFeatures> &features,
+                                                          const std::map<enums::ClassId, int32_t> &trainingClasses);
 
 }    // namespace joda::cmd

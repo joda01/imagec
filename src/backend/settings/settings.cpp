@@ -108,12 +108,8 @@ void Settings::migrateSettings(std::string &settings)
         lastAvailable = classTmp.classId;
       }
     }
-
     auto lastAvailableNr = static_cast<int32_t>(lastAvailable) + 1;
-    std::cout << "Replace 0 with " << std::to_string(lastAvailableNr) << std::endl;
     helper::stringReplace(settings, "\"" + std::to_string(0) + "\"", "\"" + std::to_string(lastAvailableNr) + "\"");
-
-    std::cout << settings << std::endl;
   }
 }
 

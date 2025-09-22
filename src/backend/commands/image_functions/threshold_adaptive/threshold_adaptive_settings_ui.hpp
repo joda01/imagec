@@ -106,7 +106,7 @@ private:
       //
       //
       //
-      mGrayScaleValue = generatePixelClass("Pixel class", parent);
+      mGrayScaleValue = generatePixelClass("Pixel class", parent, false);
       mGrayScaleValue->setValue(settings.pixelClassId);
       mGrayScaleValue->connectWithSetting(&settings.pixelClassId);
 

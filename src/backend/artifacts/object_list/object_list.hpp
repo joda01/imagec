@@ -222,6 +222,18 @@ public:
   {
     return SpheralIndex::insertIntoGrid(box, insertedRet);
   }
+
+  const ROI &emplace(const ROI &box)
+  {
+    bool insertedRet = false;
+    return SpheralIndex::insertIntoGrid(box, insertedRet);
+  }
+
+  const ROI &push_back(const ROI &box)
+  {
+    bool insertedRet = false;
+    return SpheralIndex::insertIntoGrid(box, insertedRet);
+  }
 };
 
 using ObjectMap = std::map<enums::ClassId, std::unique_ptr<SpheralIndex>>;

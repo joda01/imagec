@@ -96,7 +96,7 @@ private:
 
       //
       //
-      mGrayScaleValue = generatePixelClass("Pixel class input", parent);
+      mGrayScaleValue = generatePixelClass("Pixel class input", parent, false);
       mGrayScaleValue->setValue(settings.pixelClassId);
       mGrayScaleValue->connectWithSetting(&settings.pixelClassId);
 
@@ -268,8 +268,9 @@ private slots:
   void addFilter()
   {
     settings::ObjectClass objClass;
-    auto &ret = mSettings.modelClasses.emplace_back(objClass);
-    auto *tab = addTab(
+    objClass.pixelClassId = static_cast<int32_t>(mSettings.modelClasses.size()) + 1;
+    auto &ret             = mSettings.modelClasses.emplace_back(objClass);
+    auto *tab             = addTab(
         "Filter", [this, &ret] { removeObjectClass(&ret); }, true);
     mClassifyFilter.emplace_back(ret, *this, tab, mSettings.modelClasses.size(), mParent);
     updateDisplayText();

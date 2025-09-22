@@ -231,6 +231,7 @@ void PanelImageView::setRegionsOfInterestFromObjectList(const atom::ObjectMap &o
 {
   const auto &size = mImageToShow->getPreviewImageSize();
 
+  int32_t counter = 0;
   for(const auto &[classId, regionOfInterests] : objectMap) {
     for(const auto &roi : *regionOfInterests) {
       QColor color = QColor(classes.getClassFromId(roi.getClassId()).color.c_str());
@@ -254,7 +255,8 @@ void PanelImageView::setRegionsOfInterestFromObjectList(const atom::ObjectMap &o
                                                                .item            = scenePolygon,
                                                                .source          = PaintedRoiProperties::SourceType::FromPipeline});
 
-      if(mRoiClassesToHide.contains(roi.getClassId())) {
+      counter++;
+      if(mRoiClassesToHide.contains(roi.getClassId()) || counter > MAX_POLYGONS_TO_DRAW) {
         scenePolygon->setVisible(false);
       }
     }

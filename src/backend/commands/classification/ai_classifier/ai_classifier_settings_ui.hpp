@@ -60,7 +60,7 @@ private:
 
       //
       //
-      mGrayScaleValue = generatePixelClass("AI model object class", parent);
+      mGrayScaleValue = generatePixelClass("AI model object class", parent, true);
       mGrayScaleValue->setValue(settings.pixelClassId);
       mGrayScaleValue->connectWithSetting(&settings.pixelClassId);
 

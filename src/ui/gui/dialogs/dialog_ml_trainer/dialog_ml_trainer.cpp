@@ -204,7 +204,7 @@ void DialogMlTrainer::startTraining()
   // At least one background annotation must be present
   //
   if(!annotatedObjectsToTrain.contains(enums::ClassId::NONE) || annotatedObjectsToTrain.at(enums::ClassId::NONE)->empty()) {
-    QMessageBox::warning(this, "No background annotation found", "At least one background annotation must be taken!");
+    QMessageBox::warning(this, "Annotation missing ...", "At least one >NONE< annotation must be taken!");
     return;
   }
 
@@ -215,8 +215,10 @@ void DialogMlTrainer::startTraining()
   classesToTrainMapping.emplace(enums::ClassId::NONE, 0);    // None is always the background/zero class
   int32_t pixelClassId = 1;
   for(const auto &[classId, _] : annotatedObjectsToTrain) {
-    classesToTrainMapping.emplace(classId, pixelClassId);
-    pixelClassId++;
+    if(classId != enums::ClassId::NONE) {
+      classesToTrainMapping.emplace(classId, pixelClassId);
+      pixelClassId++;
+    }
   }
 
   //
@@ -248,6 +250,8 @@ void DialogMlTrainer::startTraining()
     mTrainerSettings.features        = features;
     mTrainerSettings.outPath         = modelPath;
     joda::cmd::PixelClassifier::train(*mImagePanel->mutableImage()->getOriginalImage(), annotatedObjectsToTrain, mTrainerSettings);
+  } else {
+    QMessageBox::warning(this, "Annotation missing ...", "No annotation for training found!");
   }
 }
 

@@ -39,7 +39,8 @@ void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const Sphe
                     // Keep the links from a possible old round
                     colocROI.addLinkedRoi(box1->getLinkedRois());
                     colocROI.addLinkedRoi(box2->getLinkedRois());
-                    result->push_back(std::move(colocROI));
+                    bool inserRet = false;
+                    result->push_back(std::move(colocROI), inserRet);
                   }
                 }
               }

@@ -20,6 +20,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include "backend/commands/classification/pixel_classifier/pixel_classifier_store_model.hpp"
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
@@ -121,15 +122,23 @@ auto MlModelParser::findMlModelFiles() -> std::map<std::filesystem::path, Data>
 ///
 auto MlModelParser::parseOpenCVModelXMLDescriptionFile(const std::filesystem::path &modelFile) -> Data
 {
-  pugi::xml_document doc;
-  pugi::xml_parse_result result = doc.load_file(modelFile.string().c_str());
-  if(!result) {
-    // throw std::invalid_argument("Error parsing ML model information from file: " + std::string(result.description()));
-    std::cout << std::string(result.description()) << std::endl;
+  // Open file stream
+  std::ifstream file(modelFile);
+  if(!file.is_open()) {
+    return {};
   }
+  joda::ml::PixelClassifierModel parsedModel = nlohmann::json::parse(file);
+  file.close();
   Data info;
   info.modelPath = modelFile;
   info.modelName = modelFile.filename();
+  if(!parsedModel.meta.organization.value_or("").empty() || !parsedModel.meta.author.value_or("").empty()) {
+    info.authors.emplace_back(
+        Data::Author{.affiliation = parsedModel.meta.organization.value_or(""), .authorName = parsedModel.meta.author.value_or("")});
+  }
+  for(const auto &item : parsedModel.classLabels) {
+    info.classes.emplace_back("CL" + std::to_string(item.classId));
+  }
   return info;
 }
 
@@ -144,17 +153,28 @@ std::string MlModelParser::Data::toString() const
 {
   std::stringstream out;
 
-  out << modelName << " v" << version << "\n----\n";
+  out << modelName << " " << version << "\n----\n";
 
-  out << "\n----\n”";
-  for(size_t n = 0; n < authors.size(); n++) {
-    const auto &author = authors[n];
-    if(!author.affiliation.empty()) {
-      out << author.affiliation << "/" << author.authorName;
-    } else {
-      out << author.authorName;
+  if(!authors.empty()) {
+    out << "\n----\n";
+    for(size_t n = 0; n < authors.size(); n++) {
+      const auto &author = authors[n];
+      if(!author.affiliation.empty()) {
+        out << author.affiliation << "/" << author.authorName;
+      } else {
+        out << author.authorName;
+      }
+      if(n + 1 < authors.size()) {
+        out << ", ";
+      }
     }
-    if(n + 1 < authors.size()) {
+  }
+
+  out << "\nPixel classes:\n";
+  for(size_t n = 0; n < classes.size(); n++) {
+    const auto &classs = classes[n];
+    out << classs;
+    if(n + 1 < classes.size()) {
       out << ", ";
     }
   }

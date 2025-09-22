@@ -48,7 +48,8 @@ private:
   static cv::Mat extractFeatures(const cv::Mat &img, const std::set<joda::settings::PixelClassifierFeatures> &features, bool normalizeForMLP);
 
   template <CvModel_t MODEL>
-  static void storeModel(cv::Ptr<MODEL> model, const std::filesystem::path &path, const std::set<joda::settings::PixelClassifierFeatures> &features);
+  static void storeModel(cv::Ptr<MODEL> model, const std::filesystem::path &path, const std::set<joda::settings::PixelClassifierFeatures> &features,
+                         const std::map<enums::ClassId, int32_t> &trainingClasses);
 
   static cv::Ptr<cv::ml::StatModel> loadModel(const std::filesystem::path &path, std::set<joda::settings::PixelClassifierFeatures> &features,
                                               settings::PixelClassifierMethod &modelType);

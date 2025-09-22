@@ -122,7 +122,7 @@ DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) 
       }
     });
 
-    toolbar->addSeparator();
+    // toolbar->addSeparator();
 
     //
     // Open template
