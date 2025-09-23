@@ -142,11 +142,11 @@ void SpheralIndex::calcIntersection(ObjectList *objectList, joda::processor::Pro
   }
 }
 
-void SpheralIndex::createBinaryImage(cv::Mat &img) const
+void SpheralIndex::createBinaryImage(cv::Mat &img, uint16_t pixelClass) const
 {
   for(const auto &roi : *this) {
     //   int left   = roi.getBoundingBoxTile().x;
-    //   int top    = roi.getBoundingBoxTile().y;
+    //   int top    = roi.getBoundingBoxTile().y,,;
     //   int width  = roi.getBoundingBoxTile().width;
     //   int height = roi.getBoundingBoxTile().height;
 
@@ -155,7 +155,7 @@ void SpheralIndex::createBinaryImage(cv::Mat &img) const
        roi.getBoundingBoxTile().x + roi.getBoundingBoxTile().width <= img.cols &&
        roi.getBoundingBoxTile().y + roi.getBoundingBoxTile().height <= img.rows) {
       try {
-        img(roi.getBoundingBoxTile()).setTo(cv::Scalar(UINT16_MAX), roi.getMask());
+        img(roi.getBoundingBoxTile()).setTo(cv::Scalar(pixelClass), roi.getMask());
       } catch(const std::exception &ex) {
         std::cout << "PA: " << ex.what() << std::endl;
       }

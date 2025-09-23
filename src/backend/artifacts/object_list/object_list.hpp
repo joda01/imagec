@@ -47,7 +47,7 @@ public:
   {
   }
 
-  void createBinaryImage(cv::Mat &img) const;
+  void createBinaryImage(cv::Mat &img, uint16_t pixelClass) const;
 
   bool empty() const
   {

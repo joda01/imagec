@@ -41,7 +41,7 @@ public:
     image = 0;
     for(const auto &cl : mSettings.classesIn) {
       cv::Mat tmp = cv::Mat::zeros(image.size(), CV_16UC1);
-      result.at(context.getClassId(cl))->createBinaryImage(tmp);
+      result.at(context.getClassId(cl))->createBinaryImage(tmp, 1);
       cv::bitwise_or(image, tmp, image);
     }
   }

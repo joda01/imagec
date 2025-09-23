@@ -455,7 +455,7 @@ void PixelClassifier::prepareTrainingDataFromROI(const cv::Mat &image, const std
     }
     cv::Mat roiMask            = cv::Mat::zeros(image.size(), CV_16UC1);
     const auto &objectsToLearn = regionOfInterest.at(classIdToTrain);
-    objectsToLearn->createBinaryImage(roiMask);
+    objectsToLearn->createBinaryImage(roiMask, 1);
     extractSamples(roiMask, pixelClassId);
   }
 
