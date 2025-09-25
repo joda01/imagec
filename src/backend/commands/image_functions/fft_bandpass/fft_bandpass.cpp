@@ -10,6 +10,7 @@
 ///
 
 #include "fft_bandpass.hpp"
+#include "backend/commands/image_functions/enhance_contrast/enhance_contrast.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include <opencv2/core/types.hpp>
 
@@ -33,8 +34,9 @@ FFTBandpass::FFTBandpass(const settings::FFTBandpassSettings &settings) : mSetti
 /// \param[out]
 /// \return
 ///
-void FFTBandpass::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result)
+void FFTBandpass::execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/)
 {
+  filter(image);
 }
 
 /**
@@ -43,7 +45,19 @@ void FFTBandpass::execute(processor::ProcessContext &context, cv::Mat &image, at
  * The image is mirrored around its edges to avoid wrap around effects of the
  * FFT.
  */
-cv::Mat tileMirror(cv::Mat &ip, int width, int height, int x, int y)
+void insert(cv::Mat &dst, const cv::Mat &src, int xpos, int ypos)
+{
+  cv::Rect roi(xpos, ypos, src.cols, src.rows);
+  cv::Rect dstRect(0, 0, dst.cols, dst.rows);
+  cv::Rect validRoi = roi & dstRect;
+
+  if(validRoi.width > 0 && validRoi.height > 0) {
+    cv::Rect srcRoi(validRoi.x - roi.x, validRoi.y - roi.y, validRoi.width, validRoi.height);
+    src(srcRoi).copyTo(dst(validRoi));
+  }
+}
+
+cv::Mat tileMirror(const cv::Mat &ip, int width, int height, int x, int y)
 {
   if(x < 0 || x > (width - 1) || y < 0 || y > (height - 1)) {
     joda::log::logError("Image to be tiled is out of bounds.");
@@ -75,7 +89,7 @@ cv::Mat tileMirror(cv::Mat &ip, int width, int height, int x, int y)
   for(int i = -i1; i < i2; i += 2) {
     for(int j = -j1; j < j2; j += 2) {
       // ipout.insert(ip2, x - i * w2, y - j * h2);
-      ip2.copyTo(ipout(cv::Rect(x - i * w2, y - j * h2, ip2.cols, ip2.rows)));
+      insert(ipout, ip2, x - i * w2, y - j * h2);
     }
   }
 
@@ -84,7 +98,7 @@ cv::Mat tileMirror(cv::Mat &ip, int width, int height, int x, int y)
   for(int i = -i1 + 1; i < i2; i += 2) {
     for(int j = -j1; j < j2; j += 2) {
       // ipout.insert(ip2, x - i * w2, y - j * h2);
-      ip2.copyTo(ipout(cv::Rect(x - i * w2, y - j * h2, ip2.cols, ip2.rows)));
+      insert(ipout, ip2, x - i * w2, y - j * h2);
     }
   }
 
@@ -93,7 +107,7 @@ cv::Mat tileMirror(cv::Mat &ip, int width, int height, int x, int y)
   for(int i = -i1 + 1; i < i2; i += 2) {
     for(int j = -j1 + 1; j < j2; j += 2) {
       // ipout.insert(ip2, x - i * w2, y - j * h2);
-      ip2.copyTo(ipout(cv::Rect(x - i * w2, y - j * h2, ip2.cols, ip2.rows)));
+      insert(ipout, ip2, x - i * w2, y - j * h2);
     }
   }
 
@@ -102,11 +116,234 @@ cv::Mat tileMirror(cv::Mat &ip, int width, int height, int x, int y)
   for(int i = -i1; i < i2; i += 2) {
     for(int j = -j1 + 1; j < j2; j += 2) {
       //   ipout.insert(ip2, x - i * w2, y - j * h2);
-      ip2.copyTo(ipout(cv::Rect(x - i * w2, y - j * h2, ip2.cols, ip2.rows)));
+      insert(ipout, ip2, x - i * w2, y - j * h2);
     }
   }
 
   return ipout;
+}
+
+/*
+ * filterLarge: down to which size are large structures suppressed?
+ * filterSmall: up to which size are small structures suppressed?
+ * filterLarge and filterSmall are given as fraction of the image size
+ * in the original (untransformed) image.
+ * stripesHorVert: filter out: 0) nothing more 1) horizontal 2) vertical stripes
+ * (i.e. frequencies with x=0 / y=0)
+ * scaleStripes: width of the stripe filter, same unit as filterLarge
+ */
+void filterLargeSmall(cv::Mat &ip, double filterLarge, double filterSmall, settings::FFTBandpassSettings::StripeMode stripesHorVert,
+                      double scaleStripes)
+{
+  int maxN = ip.cols;
+
+  //  float* fht   = ip.data;
+  float *filter = new float[maxN * maxN];
+  for(int i = 0; i < maxN * maxN; i++) {
+    filter[i] = 1.0F;
+  }
+
+  int row;
+  int backrow;
+  float rowFactLarge;
+  float rowFactSmall;
+
+  int col;
+  int backcol;
+  float factor;
+  float colFactLarge;
+  float colFactSmall;
+
+  float factStripes;
+
+  // calculate factor in exponent of Gaussian from filterLarge / filterSmall
+
+  double scaleLarge = filterLarge * filterLarge;
+  double scaleSmall = filterSmall * filterSmall;
+  scaleStripes      = scaleStripes * scaleStripes;
+  // float FactStripes;
+
+  // loop over rows
+  for(int j = 1; j < maxN / 2; j++) {
+    row          = j * maxN;
+    backrow      = (maxN - j) * maxN;
+    rowFactLarge = static_cast<float>(std::exp(-(j * j) * scaleLarge));
+    rowFactSmall = static_cast<float>(std::exp(-(j * j) * scaleSmall));
+
+    // loop over columns
+    for(col = 1; col < maxN / 2; col++) {
+      backcol      = maxN - col;
+      colFactLarge = static_cast<float>(std::exp(-(col * col) * scaleLarge));
+      colFactSmall = static_cast<float>(std::exp(-(col * col) * scaleSmall));
+      factor       = (1 - rowFactLarge * colFactLarge) * rowFactSmall * colFactSmall;
+      switch(stripesHorVert) {
+        case settings::FFTBandpassSettings::StripeMode::HORIZONTAL:
+          factor *= (1 - static_cast<float>(std::exp(-(col * col) * scaleStripes)));
+          break;    // hor stripes
+        case settings::FFTBandpassSettings::StripeMode::VERTICAL:
+          factor *= (1 - static_cast<float>(std::exp(-(j * j) * scaleStripes)));    // vert stripes
+      }
+
+      ip.at<float>(col + row) *= factor;
+      ip.at<float>(col + backrow) *= factor;
+      ip.at<float>(backcol + row) *= factor;
+      ip.at<float>(backcol + backrow) *= factor;
+      filter[col + row] *= factor;
+      filter[col + backrow] *= factor;
+      filter[backcol + row] *= factor;
+      filter[backcol + backrow] *= factor;
+    }
+  }
+
+  // process meeting points (maxN/2,0) , (0,maxN/2), and (maxN/2,maxN/2)
+  int rowmid   = maxN * (maxN / 2);
+  rowFactLarge = static_cast<float>(std::exp(-(maxN / 2) * (maxN / 2) * scaleLarge));
+  rowFactSmall = static_cast<float>(std::exp(-(maxN / 2) * (maxN / 2) * scaleSmall));
+  factStripes  = static_cast<float>(std::exp(-(maxN / 2) * (maxN / 2) * scaleStripes));
+
+  ip.at<float>(maxN / 2) *= (1 - rowFactLarge) * rowFactSmall;                                           // (maxN/2,0)
+  ip.at<float>(rowmid) *= (1 - rowFactLarge) * rowFactSmall;                                             // (0,maxN/2)
+  ip.at<float>(maxN / 2 + rowmid) *= (1 - rowFactLarge * rowFactLarge) * rowFactSmall * rowFactSmall;    // (maxN/2,maxN/2)
+  filter[maxN / 2] *= (1 - rowFactLarge) * rowFactSmall;                                                 // (maxN/2,0)
+  filter[rowmid] *= (1 - rowFactLarge) * rowFactSmall;                                                   // (0,maxN/2)
+  filter[maxN / 2 + rowmid] *= (1 - rowFactLarge * rowFactLarge) * rowFactSmall * rowFactSmall;          // (maxN/2,maxN/2)
+
+  switch(stripesHorVert) {
+    case settings::FFTBandpassSettings::StripeMode::HORIZONTAL:
+      ip.at<float>(maxN / 2) *= (1 - factStripes);
+      ip.at<float>(rowmid) = 0;
+      ip.at<float>(maxN / 2 + rowmid) *= (1 - factStripes);
+      filter[maxN / 2] *= (1 - factStripes);
+      filter[rowmid] = 0;
+      filter[maxN / 2 + rowmid] *= (1 - factStripes);
+      break;    // hor stripes
+    case settings::FFTBandpassSettings::StripeMode::VERTICAL:
+      ip.at<float>(maxN / 2) = 0;
+      ip.at<float>(rowmid) *= (1 - factStripes);
+      ip.at<float>(maxN / 2 + rowmid) *= (1 - factStripes);
+      filter[maxN / 2] = 0;
+      filter[rowmid] *= (1 - factStripes);
+      filter[maxN / 2 + rowmid] *= (1 - factStripes);
+      break;    // vert stripes
+  }
+
+  // loop along row 0 and maxN/2
+  rowFactLarge = static_cast<float>(std::exp(-(maxN / 2) * (maxN / 2) * scaleLarge));
+  rowFactSmall = static_cast<float>(std::exp(-(maxN / 2) * (maxN / 2) * scaleSmall));
+  for(col = 1; col < maxN / 2; col++) {
+    backcol      = maxN - col;
+    colFactLarge = static_cast<float>(std::exp(-(col * col) * scaleLarge));
+    colFactSmall = static_cast<float>(std::exp(-(col * col) * scaleSmall));
+
+    switch(stripesHorVert) {
+      case settings::FFTBandpassSettings::StripeMode::NOTHING:
+        ip.at<float>(col) *= (1 - colFactLarge) * colFactSmall;
+        ip.at<float>(backcol) *= (1 - colFactLarge) * colFactSmall;
+        ip.at<float>(col + rowmid) *= (1 - colFactLarge * rowFactLarge) * colFactSmall * rowFactSmall;
+        ip.at<float>(backcol + rowmid) *= (1 - colFactLarge * rowFactLarge) * colFactSmall * rowFactSmall;
+        filter[col] *= (1 - colFactLarge) * colFactSmall;
+        filter[backcol] *= (1 - colFactLarge) * colFactSmall;
+        filter[col + rowmid] *= (1 - colFactLarge * rowFactLarge) * colFactSmall * rowFactSmall;
+        filter[backcol + rowmid] *= (1 - colFactLarge * rowFactLarge) * colFactSmall * rowFactSmall;
+        break;
+      case settings::FFTBandpassSettings::StripeMode::HORIZONTAL:
+        factStripes = static_cast<float>(std::exp(-(col * col) * scaleStripes));
+        ip.at<float>(col) *= (1 - colFactLarge) * colFactSmall * (1 - factStripes);
+        ip.at<float>(backcol) *= (1 - colFactLarge) * colFactSmall * (1 - factStripes);
+        ip.at<float>(col + rowmid) *= (1 - colFactLarge * rowFactLarge) * colFactSmall * rowFactSmall * (1 - factStripes);
+        ip.at<float>(backcol + rowmid) *= (1 - colFactLarge * rowFactLarge) * colFactSmall * rowFactSmall * (1 - factStripes);
+        filter[col] *= (1 - colFactLarge) * colFactSmall * (1 - factStripes);
+        filter[backcol] *= (1 - colFactLarge) * colFactSmall * (1 - factStripes);
+        filter[col + rowmid] *= (1 - colFactLarge * rowFactLarge) * colFactSmall * rowFactSmall * (1 - factStripes);
+        filter[backcol + rowmid] *= (1 - colFactLarge * rowFactLarge) * colFactSmall * rowFactSmall * (1 - factStripes);
+        break;
+      case settings::FFTBandpassSettings::StripeMode::VERTICAL:
+        factStripes           = static_cast<float>(std::exp(-(maxN / 2) * (maxN / 2) * scaleStripes));
+        ip.at<float>(col)     = 0;
+        ip.at<float>(backcol) = 0;
+        ip.at<float>(col + rowmid) *= (1 - colFactLarge * rowFactLarge) * colFactSmall * rowFactSmall * (1 - factStripes);
+        ip.at<float>(backcol + rowmid) *= (1 - colFactLarge * rowFactLarge) * colFactSmall * rowFactSmall * (1 - factStripes);
+        filter[col]     = 0;
+        filter[backcol] = 0;
+        filter[col + rowmid] *= (1 - colFactLarge * rowFactLarge) * colFactSmall * rowFactSmall * (1 - factStripes);
+        filter[backcol + rowmid] *= (1 - colFactLarge * rowFactLarge) * colFactSmall * rowFactSmall * (1 - factStripes);
+    }
+  }
+
+  // loop along column 0 and maxN/2
+  colFactLarge = static_cast<float>(std::exp(-(maxN / 2) * (maxN / 2) * scaleLarge));
+  colFactSmall = static_cast<float>(std::exp(-(maxN / 2) * (maxN / 2) * scaleSmall));
+  for(int j = 1; j < maxN / 2; j++) {
+    row          = j * maxN;
+    backrow      = (maxN - j) * maxN;
+    rowFactLarge = static_cast<float>(std::exp(-(j * j) * scaleLarge));
+    rowFactSmall = static_cast<float>(std::exp(-(j * j) * scaleSmall));
+
+    switch(stripesHorVert) {
+      case settings::FFTBandpassSettings::StripeMode::NOTHING:
+        ip.at<float>(row) *= (1 - rowFactLarge) * rowFactSmall;
+        ip.at<float>(backrow) *= (1 - rowFactLarge) * rowFactSmall;
+        ip.at<float>(row + maxN / 2) *= (1 - rowFactLarge * colFactLarge) * rowFactSmall * colFactSmall;
+        ip.at<float>(backrow + maxN / 2) *= (1 - rowFactLarge * colFactLarge) * rowFactSmall * colFactSmall;
+        filter[row] *= (1 - rowFactLarge) * rowFactSmall;
+        filter[backrow] *= (1 - rowFactLarge) * rowFactSmall;
+        filter[row + maxN / 2] *= (1 - rowFactLarge * colFactLarge) * rowFactSmall * colFactSmall;
+        filter[backrow + maxN / 2] *= (1 - rowFactLarge * colFactLarge) * rowFactSmall * colFactSmall;
+        break;
+      case settings::FFTBandpassSettings::StripeMode::HORIZONTAL:
+        factStripes           = static_cast<float>(std::exp(-(maxN / 2) * (maxN / 2) * scaleStripes));
+        ip.at<float>(row)     = 0;
+        ip.at<float>(backrow) = 0;
+        ip.at<float>(row + maxN / 2) *= (1 - rowFactLarge * colFactLarge) * rowFactSmall * colFactSmall * (1 - factStripes);
+        ip.at<float>(backrow + maxN / 2) *= (1 - rowFactLarge * colFactLarge) * rowFactSmall * colFactSmall * (1 - factStripes);
+        filter[row]     = 0;
+        filter[backrow] = 0;
+        filter[row + maxN / 2] *= (1 - rowFactLarge * colFactLarge) * rowFactSmall * colFactSmall * (1 - factStripes);
+        filter[backrow + maxN / 2] *= (1 - rowFactLarge * colFactLarge) * rowFactSmall * colFactSmall * (1 - factStripes);
+        break;
+      case settings::FFTBandpassSettings::StripeMode::VERTICAL:
+        factStripes = static_cast<float>(std::exp(-(j * j) * scaleStripes));
+        ip.at<float>(row) *= (1 - rowFactLarge) * rowFactSmall * (1 - factStripes);
+        ip.at<float>(backrow) *= (1 - rowFactLarge) * rowFactSmall * (1 - factStripes);
+        ip.at<float>(row + maxN / 2) *= (1 - rowFactLarge * colFactLarge) * rowFactSmall * colFactSmall * (1 - factStripes);
+        ip.at<float>(backrow + maxN / 2) *= (1 - rowFactLarge * colFactLarge) * rowFactSmall * colFactSmall * (1 - factStripes);
+        filter[row] *= (1 - rowFactLarge) * rowFactSmall * (1 - factStripes);
+        filter[backrow] *= (1 - rowFactLarge) * rowFactSmall * (1 - factStripes);
+        filter[row + maxN / 2] *= (1 - rowFactLarge * colFactLarge) * rowFactSmall * colFactSmall * (1 - factStripes);
+        filter[backrow + maxN / 2] *= (1 - rowFactLarge * colFactLarge) * rowFactSmall * colFactSmall * (1 - factStripes);
+    }
+  }
+
+  delete[] filter;
+}
+
+// Forward Hartley Transform
+cv::Mat hartleyTransform(const cv::Mat &src)
+{
+  CV_Assert(src.type() == CV_32F);    // must be float
+
+  cv::Mat planes[] = {src.clone(), cv::Mat::zeros(src.size(), CV_32F)};
+  cv::Mat complexImg;
+  cv::merge(planes, 2, complexImg);
+
+  cv::dft(complexImg, complexImg);
+
+  cv::split(complexImg, planes);
+
+  // Hartley transform: H = Re - Im
+  cv::Mat H = planes[0] - planes[1];
+  return H;
+}
+
+// Inverse Hartley Transform
+cv::Mat inverseHartleyTransform(const cv::Mat &H)
+{
+  CV_Assert(H.type() == CV_32F);
+
+  // Forward Hartley again, scaled by 1/N
+  cv::Mat invH = hartleyTransform(H);
+  invH /= static_cast<double>(H.total());
+  return invH;
 }
 
 ///
@@ -134,8 +371,8 @@ void FFTBandpass::filter(cv::Mat &ip)
   }
 
   // Calculate the inverse of the 1/e frequencies for large and small structures.
-  double filterLarge = 2.0 * static_cast<double>(mSettings.filterLargeStructure) / (double) i;
-  double filterSmall = 2.0 * static_cast<double>(mSettings.filterLargeStructure) / (double) i;
+  double filterLarge = 2.0 * static_cast<double>(mSettings.filterLargeStructure) / static_cast<double>(i);
+  double filterSmall = 2.0 * static_cast<double>(mSettings.filterLargeStructure) / static_cast<double>(i);
 
   // fit image into power of 2 size
   cv::Rect fitRect;
@@ -148,70 +385,33 @@ void FFTBandpass::filter(cv::Mat &ip)
   // mirroring to avoid wrap around effects
   // showStatus("Pad to " + i + "x" + i);
 
-  tileMirror(ip, i, i, fitRect.x, fitRect.y);
+  ip = tileMirror(ip, i, i, fitRect.x, fitRect.y);
 
-  // transform forward
-  // Do a fast harley transformation
-  {
-    // FHT fht = new FHT(ip2);
-    // fht.transform();
-
-    cv::Mat floatImg;
-    ip.convertTo(floatImg, CV_32F);    // formal ip2
-
-    // forward FFT
-    cv::Mat planes[] = {floatImg.clone(), cv::Mat::zeros(floatImg.size(), CV_32F)};
-    cv::Mat complexImg;
-    cv::merge(planes, 2, complexImg);
-    cv::dft(complexImg, complexImg);
-
-    // split back into real + imag
-    cv::split(complexImg, planes);
-    cv::Mat fht = planes[0] - planes[1];    // Hartley transform
-  }
+  ip.convertTo(ip, CV_32F);
+  cv::Mat fht = hartleyTransform(ip);
 
   // filter out large and small structures
-  filterLargeSmall(fht, filterLarge, filterSmall, choiceIndex, sharpness);
+  filterLargeSmall(fht, filterLarge, filterSmall, mSettings.stripesHorVert, sharpness);
   // new ImagePlus("filter",ip2.crop()).show();
 
   // transform backward
-  fht.inverseTransform();
+  fht = inverseHartleyTransform(fht);
 
   // crop to original size and do scaling if selected
-  fht.setRoi(fitRect);
-  ip2 = fht.crop();
+  cv::Mat ip2 = fht(fitRect).clone();    // clone() = make independent copy
+  cv::imwrite("/workspaces/imagec/tmp/ip2.png", ip2 / 10);
+
+  // ip2.convertTo(ip, CV_16U, 65535.0);
+  ip2.convertTo(ip, CV_16U);
+
   if(doScaling) {
-    ImagePlus imp2 = new ImagePlus(imp.getTitle() + "-filtered", ip2);
-    new ContrastEnhancer().stretchHistogram(imp2, saturate ? 1.0 : 0.0);
-    ip2 = imp2.getProcessor();
+    int histSize           = UINT16_MAX + 1;
+    float range[]          = {0, UINT16_MAX + 1};
+    const float *histRange = {range};
+    cv::Mat hist;
+    cv::calcHist(&ip, 1, 0, cv::Mat(), hist, 1, &histSize, &histRange);    //, uniform, accumulate);
+    joda::cmd::EnhanceContrast::stretchHistogram(ip, saturate ? 1.0 : 0.0, hist, true);
   }
-
-  // convert back to original data type
-  int bitDepth = imp.getBitDepth();
-  switch(bitDepth) {
-    case 8:
-      ip2 = ip2.convertToByte(doScaling);
-      break;
-    case 16:
-      ip2 = ip2.convertToShort(doScaling);
-      break;
-    case 24:
-      ip.snapshot();
-      showStatus("Setting brightness");
-      ((ColorProcessor) ip).setBrightness((FloatProcessor) ip2);
-      break;
-    case 32:
-      break;
-  }
-
-  // copy filtered image back into original image
-  if(bitDepth != 24) {
-    ip.snapshot();
-    ip.copyBits(ip2, roiRect.x, roiRect.y, Blitter.COPY);
-  }
-  ip.resetMinAndMax();
-  System.gc();
-  IJ.showProgress(20, 20);
 }
 
 }    // namespace joda::cmd

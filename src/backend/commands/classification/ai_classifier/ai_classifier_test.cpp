@@ -48,9 +48,9 @@ TEST_CASE("ai::classifier::test::nucleus", "[ai_classifier]")
 
   ai.execute(context, img, result);
   joda::settings::ImageSaverSettings imageSaver;
-  imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C0});
   imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C1});
   imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C2});
+  imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C3});
 
   joda::cmd::ImageSaver imgSaver(imageSaver);
   imgSaver.execute(context, img, result);
@@ -94,16 +94,16 @@ TEST_CASE("ai::classifier::test::livecell", "[ai_classifier]")
   ai.execute(context, img, result);
   joda::settings::ImageSaverSettings imageSaver;
   imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{
-      .inputClass = joda::enums::ClassIdIn::C0, .style = joda::settings::ImageSaverSettings::Style::FILLED, .paintBoundingBox = false});
-  imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{
       .inputClass = joda::enums::ClassIdIn::C1, .style = joda::settings::ImageSaverSettings::Style::FILLED, .paintBoundingBox = false});
-  imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C2,
-                                                                                   .style      = joda::settings::ImageSaverSettings::Style::FILLED});
+  imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{
+      .inputClass = joda::enums::ClassIdIn::C2, .style = joda::settings::ImageSaverSettings::Style::FILLED, .paintBoundingBox = false});
   imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C3,
                                                                                    .style      = joda::settings::ImageSaverSettings::Style::FILLED});
   imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C4,
                                                                                    .style      = joda::settings::ImageSaverSettings::Style::FILLED});
   imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C5,
+                                                                                   .style      = joda::settings::ImageSaverSettings::Style::FILLED});
+  imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C6,
                                                                                    .style      = joda::settings::ImageSaverSettings::Style::FILLED});
 
   joda::cmd::ImageSaver imgSaver(imageSaver);
@@ -148,7 +148,7 @@ TEST_CASE("ai::classifier::test::onnx", "[ai_classifier]")
   ai.execute(context, img, result);
   joda::settings::ImageSaverSettings imageSaver;
   imageSaver.classesIn.emplace_back(
-      joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C0, .paintBoundingBox = false});
+      joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C1, .paintBoundingBox = false});
   imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C1});
   imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C2});
 
@@ -191,7 +191,7 @@ TEST_CASE("ai::classifier::test::pytorch::yolo", "[ai_classifier]")
   ai.execute(context, aiorward, result);
   joda::settings::ImageSaverSettings imageSaver;
   imageSaver.classesIn.emplace_back(
-      joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C0, .paintBoundingBox = false});
+      joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C1, .paintBoundingBox = false});
   imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C1});
   imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C2});
 
@@ -234,7 +234,7 @@ TEST_CASE("ai::classifier::test::pytorch::cyto3", "[ai_classifier]")
   ai.execute(context, aiorward, result);
   joda::settings::ImageSaverSettings imageSaver;
   imageSaver.classesIn.emplace_back(
-      joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C0, .paintBoundingBox = false});
+      joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C1, .paintBoundingBox = false});
   imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C1});
   imageSaver.classesIn.emplace_back(joda::settings::ImageSaverSettings::SaveClasss{.inputClass = joda::enums::ClassIdIn::C2});
 

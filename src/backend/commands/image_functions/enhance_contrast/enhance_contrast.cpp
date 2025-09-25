@@ -253,7 +253,7 @@ std::pair<int, int> EnhanceContrast::findContrastStretchBounds(const cv::Mat &hi
 /// \param[out]
 /// \return
 ///
-void stretchHistogram(cv::Mat &ip, double saturated, cv::Mat &histogram, bool doNormalize)
+void EnhanceContrast::stretchHistogram(cv::Mat &ip, double saturated, cv::Mat &histogram, bool doNormalize)
 {
   auto [hmin, hmax] = getMinAndMax(ip, saturated, histogram);
   if(hmax > hmin) {

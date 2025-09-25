@@ -28,17 +28,17 @@ namespace joda::settings {
 
 struct FFTBandpassSettings : public SettingBase
 {
-  enum class HierarchyMode
+  enum class StripeMode
   {
-    OUTER,
-    INNER,
-    INNER_AND_OUTER
+    NOTHING,
+    HORIZONTAL,
+    VERTICAL
   };
 
   //
   // Which to paint
   //
-  HierarchyMode hierarchyMode = HierarchyMode::OUTER;
+  StripeMode stripesHorVert = StripeMode::NOTHING;
 
   float toleranceOfDirection = 0.05;
 
@@ -68,14 +68,14 @@ struct FFTBandpassSettings : public SettingBase
     return {};
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(FFTBandpassSettings, hierarchyMode);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(FFTBandpassSettings, stripesHorVert);
 };
 
-NLOHMANN_JSON_SERIALIZE_ENUM(FFTBandpassSettings::HierarchyMode, {
-                                                                     {FFTBandpassSettings::HierarchyMode::INNER_AND_OUTER, "InnerAndOuter"},
-                                                                     {FFTBandpassSettings::HierarchyMode::OUTER, "Outer"},
-                                                                     {FFTBandpassSettings::HierarchyMode::INNER, "Inner"},
+NLOHMANN_JSON_SERIALIZE_ENUM(FFTBandpassSettings::StripeMode, {
+                                                                  {FFTBandpassSettings::StripeMode::NOTHING, "InnerAndOuter"},
+                                                                  {FFTBandpassSettings::StripeMode::HORIZONTAL, "Outer"},
+                                                                  {FFTBandpassSettings::StripeMode::VERTICAL, "Inner"},
 
-                                                                 });
+                                                              });
 
 }    // namespace joda::settings
