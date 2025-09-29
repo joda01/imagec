@@ -35,7 +35,7 @@ TEST_CASE("cmd::fftbandbass", "[fft_bandpass]")
   cv::imwrite("/workspaces/imagec/tmp/original.png", img);
 
   joda::settings::FFTBandpassSettings settings;
-  settings.doScaling = false;
+  settings.doScaling = true;
 
   joda::cmd::FFTBandpass ai(settings);
   joda::atom::ObjectList result;
@@ -51,5 +51,5 @@ TEST_CASE("cmd::fftbandbass", "[fft_bandpass]")
 
   ai.execute(context, img, result);
 
-  cv::imwrite("/workspaces/imagec/tmp/fft.png", img / 2);
+  cv::imwrite("/workspaces/imagec/tmp/img.png", img / 10);
 }

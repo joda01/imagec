@@ -64,7 +64,7 @@ cv::Mat tileMirror(const cv::Mat &ip, int width, int height, int x, int y)
     return {};
   }
 
-  cv::Mat ipout = cv::Mat::zeros(cv::Size{width, height}, CV_16UC1);
+  cv::Mat ipout = cv::Mat::zeros(cv::Size{width, height}, ip.type());
 
   auto ip2 = ip.clone();
   int w2   = ip2.cols;
@@ -399,10 +399,15 @@ void FFTBandpass::filter(cv::Mat &ip)
 
   // crop to original size and do scaling if selected
   cv::Mat ip2 = fht(fitRect).clone();    // clone() = make independent copy
-  cv::imwrite("/workspaces/imagec/tmp/ip2.png", ip2 / 10);
 
-  // ip2.convertTo(ip, CV_16U, 65535.0);
-  ip2.convertTo(ip, CV_16U);
+  // Optional: clip negatives / overshoot
+  cv::threshold(ip2, ip2, 0, 0, cv::THRESH_TOZERO);           // clamp <0 to 0
+  cv::threshold(ip2, ip2, 65535, 65535, cv::THRESH_TRUNC);    // clamp >65535
+
+  ip2.convertTo(ip, CV_16UC1);    // back to 16-bit
+
+  cv::imwrite("/workspaces/imagec/tmp/ip2.png", ip2 / 20);
+  cv::imwrite("/workspaces/imagec/tmp/ip.png", ip * 10);
 
   if(doScaling) {
     int histSize           = UINT16_MAX + 1;
