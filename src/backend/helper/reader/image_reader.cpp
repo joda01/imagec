@@ -501,10 +501,10 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
     if(series >= ome.getNrOfSeries()) {
       series = static_cast<uint16_t>(ome.getNrOfSeries() - 1);
     }
-    auto i1       = DurationCount::start("Load from filesystm");
-    auto *readImg = static_cast<jbyteArray>(myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImageTile, filePath, static_cast<int>(series),
-                                                                          static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t,
-                                                                          offsetX, offsetY, tileWidthToLoad, tileHeightToLoad));
+    auto i1            = DurationCount::start("Load from filesystm");
+    jbyteArray readImg = static_cast<jbyteArray>(myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImageTile, filePath, static_cast<int>(series),
+                                                                               static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c,
+                                                                               imagePlane.t, offsetX, offsetY, tileWidthToLoad, tileHeightToLoad));
 
     bool exception = false;
     if(myEnv->ExceptionCheck() != 0u) {
@@ -683,8 +683,8 @@ void ImageReader::bigEndianToLittleEndian(cv::Mat &inOut, uint32_t format)
   // 16 bit grayscale
   if(format == CV_16UC1) {
     for(size_t p = 0; p < inOut.total(); p++) {
-      uint16_t tmp                               = static_cast<uint16_t>(inOut.at<int16_t>(static_cast<int32_t>(p)));
-      inOut.at<int16_t>(static_cast<int32_t>(p)) = static_cast<uint8_t>((tmp >> 8) | (tmp << 8));
+      uint16_t tmp                                = inOut.at<uint16_t>(static_cast<int32_t>(p));
+      inOut.at<uint16_t>(static_cast<int32_t>(p)) = static_cast<uint16_t>((tmp >> 8) | (tmp << 8));
     }
   }
 }
