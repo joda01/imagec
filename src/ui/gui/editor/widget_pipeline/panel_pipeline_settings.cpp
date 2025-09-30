@@ -529,6 +529,8 @@ void PanelPipelineSettings::previewThread()
           } catch(const std::exception &error) {
             errorMsg = QString(error.what()) + QString("\n\nSee compiler log and application log for more details!");
           }
+        } else {
+          errorMsg = "No images found! Select working directory.";
         }
       }
 
