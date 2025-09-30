@@ -46,6 +46,7 @@ public:
   enum State
   {
     MOVE,
+    SELECT,
     PAINT_RECTANGLE,
     PAINT_OVAL,
     PAINT_POLYGON,
@@ -145,6 +146,7 @@ public:
   void setRoisOpaque(float opaque);
   void setRoisToHide(const std::set<enums::ClassId> &);
   void setRoiColorsForClasses(const joda::settings::Classification &);
+  void setRoisSelectable(bool);
 
 signals:
   /////////////////////////////////////////////////////
@@ -158,6 +160,7 @@ signals:
 private:
   /////////////////////////////////////////////////////
   void mousePressEvent(QMouseEvent *event) override;
+  void mouseDoubleClickEvent(QMouseEvent *event) override;
   void mouseMoveEvent(QMouseEvent *event) override;
   void mouseReleaseEvent(QMouseEvent *event) override;
   void leaveEvent(QEvent *) override;
@@ -215,8 +218,9 @@ private:
   std::set<enums::ClassId> mRoiClassesToHide;
 
   QPointF mPaintOrigin;
-  QAbstractGraphicsShapeItem *mRubberItem = nullptr;
-  bool mDrawPolygon                       = false;
+  QAbstractGraphicsShapeItem *mRubberItem      = nullptr;
+  QAbstractGraphicsShapeItem *mLastPaintedItem = nullptr;
+  bool mDrawPolygon                            = false;
   std::vector<QPointF> mPolygonPoints;
   QGraphicsLineItem *mTempPolygonLine;
   MyPolygonItem *mTempPolygonItem;
@@ -257,8 +261,10 @@ private:
   bool mHideManualAnnotations = false;
 
   // ROI///////////////////////////////////////////////////
-  bool mFillRoi  = false;
-  bool mShowRois = true;
+  QList<QGraphicsItem *> mActualSelected;
+  bool mFillRoi    = false;
+  bool mShowRois   = true;
+  bool mSelectable = true;
 
   mutable std::mutex mImageResetMutex;
 

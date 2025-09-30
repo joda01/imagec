@@ -248,8 +248,8 @@ void PanelImageView::setRegionsOfInterestFromObjectList(const atom::ObjectMap &o
       pen.setCosmetic(true);
       auto *scenePolygon = new MyPolygonItem(polygon, pen, brush);
       scene->addItem(scenePolygon);
-      scenePolygon->setFlag(QGraphicsItem::ItemIsSelectable, true);
-      // scenePolygon->setFlag(QGraphicsItem::ItemIsMovable, true);
+      scenePolygon->setFlag(QGraphicsItem::ItemIsSelectable, mSelectable);
+      scenePolygon->setFlag(QGraphicsItem::ItemIsMovable, false);
       mPolygonItems.emplace(scenePolygon, PaintedRoiProperties{.classId         = roi.getClassId(),
                                                                .pixelClassColor = color,
                                                                .item            = scenePolygon,
@@ -409,8 +409,13 @@ void PanelImageView::setState(State state)
   mState = state;
   setCursor();
   if(state == State::MOVE) {
+    setRoisSelectable(false);
     setDragMode(QGraphicsView::ScrollHandDrag);
+  } else if(state == State::SELECT) {
+    setRoisSelectable(true);
+    setDragMode(QGraphicsView::NoDrag);
   } else {
+    setRoisSelectable(false);
     setDragMode(QGraphicsView::NoDrag);
   }
 }
@@ -447,6 +452,10 @@ void PanelImageView::setCursor()
         QGraphicsView::setCursor(Qt::PointingHandCursor);
         viewport()->setCursor(Qt::PointingHandCursor);
       }
+      break;
+    case SELECT:
+      QGraphicsView::setCursor(Qt::ArrowCursor);
+      viewport()->setCursor(Qt::ArrowCursor);
       break;
     case PAINT_RECTANGLE:
     case PAINT_OVAL:
@@ -594,16 +603,11 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
 {
   QGraphicsView::mousePressEvent(event);
 
-  QList<QGraphicsItem *> selected = scene->selectedItems();
-  if(!selected.empty()) {
-    emit paintedPolygonClicked(selected);
-    return;
-  } else {
-    setSelectedRois({});
-    emit paintedPolygonClicked(selected);
-  }
-
   if(mState == State::MOVE) {
+    for(auto &sel : mActualSelected) {
+      sel->setFlag(QGraphicsItem::ItemIsMovable, false);
+    }
+
     if(mShowCrosshandCursor && event->button() == Qt::RightButton) {
       mCrossCursorInfo.mCursorPos = event->pos();
       mCrossCursorInfo.pixelInfo  = fetchPixelInfoFromMousePosition(event->pos());
@@ -617,8 +621,23 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
       }
     }
 
+  } else if(mState == State::SELECT) {
+    QList<QGraphicsItem *> selected = scene->selectedItems();
+    if(!selected.empty()) {
+      emit paintedPolygonClicked(selected);
+      return;
+    } else {
+      setSelectedRois({});
+      emit paintedPolygonClicked(selected);
+    }
+    mActualSelected = selected;
   } else {
     if(event->button() == Qt::LeftButton) {
+      // Now start a new drawing
+      if(nullptr != mLastPaintedItem) {
+        mLastPaintedItem->setFlag(QGraphicsItem::ItemIsSelectable, false);
+        mLastPaintedItem->setFlag(QGraphicsItem::ItemIsMovable, false);
+      }
       auto pen = QPen(Qt::blue, 3, Qt::DashLine);
       pen.setCosmetic(true);
       // Start rectangle in scene coordinates
@@ -640,39 +659,51 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
           mTempPolygonItem->setPolygon(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()));
         }
       }
-    } else if(event->button() == Qt::RightButton && mDrawPolygon && mPolygonPoints.size() >= 3) {
-      if(mState == State::PAINT_POLYGON) {
-        // Finish polygon
-        mTempPolygonItem->setPolygon(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()));    // final update
-        auto pen = QPen(mPixelClassColor, 3);
-        pen.setCosmetic(true);
-        mTempPolygonItem->setPen(pen);    // optional fill
+    }
+  }
+}
 
-        QBrush brush = Qt::NoBrush;
-        if(mFillRoi) {
-          QColor transparency = mPixelClassColor;
-          transparency.setAlphaF(mOpaque);
-          brush = QBrush(transparency, Qt::SolidPattern);
-        }
-        mTempPolygonItem->setBrush(brush);    // optional fill
-        mTempPolygonItem->setFlag(QGraphicsItem::ItemIsSelectable, true);
-        mTempPolygonItem->setFlag(QGraphicsItem::ItemIsMovable, true);
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::mouseDoubleClickEvent(QMouseEvent *event)
+{
+  if(event->button() == Qt::LeftButton && mDrawPolygon && mPolygonPoints.size() >= 3) {
+    if(mState == State::PAINT_POLYGON) {
+      // Finish polygon
+      mTempPolygonItem->setPolygon(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()));    // final update
+      auto pen = QPen(mPixelClassColor, 3);
+      pen.setCosmetic(true);
+      mTempPolygonItem->setPen(pen);    // optional fill
 
-        mPolygonItems.emplace(mTempPolygonItem, PaintedRoiProperties{.classId         = mSelectedClassForDrawing,
-                                                                     .pixelClassColor = mPixelClassColor,
-                                                                     .item            = mTempPolygonItem,
-                                                                     .source          = PaintedRoiProperties::SourceType::Manual});
-
-        if(mHideManualAnnotations) {
-          mTempPolygonItem->setVisible(false);
-        }
-
-        // Clean up temporary data
-        mTempPolygonItem = nullptr;
-        mPolygonPoints.clear();
-        mDrawPolygon = false;
-        emit paintedPolygonsChanged();
+      QBrush brush = Qt::NoBrush;
+      if(mFillRoi) {
+        QColor transparency = mPixelClassColor;
+        transparency.setAlphaF(mOpaque);
+        brush = QBrush(transparency, Qt::SolidPattern);
       }
+      mTempPolygonItem->setBrush(brush);    // optional fill
+      mTempPolygonItem->setFlag(QGraphicsItem::ItemIsSelectable, true);
+      mTempPolygonItem->setFlag(QGraphicsItem::ItemIsMovable, true);
+      mLastPaintedItem = mTempPolygonItem;
+      mPolygonItems.emplace(mTempPolygonItem, PaintedRoiProperties{.classId         = mSelectedClassForDrawing,
+                                                                   .pixelClassColor = mPixelClassColor,
+                                                                   .item            = mTempPolygonItem,
+                                                                   .source          = PaintedRoiProperties::SourceType::Manual});
+
+      if(mHideManualAnnotations) {
+        mTempPolygonItem->setVisible(false);
+      }
+
+      // Clean up temporary data
+      mTempPolygonItem = nullptr;
+      mPolygonPoints.clear();
+      mDrawPolygon = false;
+      emit paintedPolygonsChanged();
     }
   }
 }
@@ -693,12 +724,18 @@ void PanelImageView::mouseMoveEvent(QMouseEvent *event)
     if(mShowPixelInfo) {
       mPixelInfo = fetchPixelInfoFromMousePosition(event->pos());
     }
-
     if(mShowCrosshandCursor) {
       mCrossCursorInfo.pixelInfo = fetchPixelInfoFromMousePosition(mCrossCursorInfo.mCursorPos);
     }
     QGraphicsView::mouseMoveEvent(event);
-
+  } else if(mState == State::SELECT) {
+    if(mShowPixelInfo) {
+      mPixelInfo = fetchPixelInfoFromMousePosition(event->pos());
+    }
+    if(mShowCrosshandCursor) {
+      mCrossCursorInfo.pixelInfo = fetchPixelInfoFromMousePosition(mCrossCursorInfo.mCursorPos);
+    }
+    QGraphicsView::mouseMoveEvent(event);
   } else {
     if(mRubberItem != nullptr) {
       QPointF current = mapToScene(event->pos());
@@ -765,7 +802,8 @@ void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
 {
   if(mState == State::MOVE) {
     QGraphicsView::mouseReleaseEvent(event);
-
+  } else if(mState == State::SELECT) {
+    QGraphicsView::mouseReleaseEvent(event);
   } else {
     if(mRubberItem != nullptr) {
       QPolygonF poly;
@@ -786,10 +824,11 @@ void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
       }
       auto pen = QPen(mPixelClassColor, 3);
       pen.setCosmetic(true);
-      auto *polygon = new MyPolygonItem(poly, pen, Qt::NoBrush);
+      auto *polygon = new MyPolygonItem(poly, pen, brush);
       scene->addItem(polygon);
       polygon->setFlag(QGraphicsItem::ItemIsSelectable, true);
       polygon->setFlag(QGraphicsItem::ItemIsMovable, true);
+      mLastPaintedItem = polygon;
       mPolygonItems.emplace(polygon, PaintedRoiProperties{.classId         = mSelectedClassForDrawing,
                                                           .pixelClassColor = mPixelClassColor,
                                                           .item            = polygon,
@@ -1568,6 +1607,24 @@ void PanelImageView::setRoisToHide(const std::set<enums::ClassId> &toHide)
       } else {
         poly.item->setVisible(true);
       }
+    }
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::setRoisSelectable(bool selectable)
+{
+  mSelectable = selectable;
+  for(auto &[_, poly] : mPolygonItems) {
+    poly.item->setFlag(QGraphicsItem::ItemIsSelectable, selectable);
+    if(poly.source == PaintedRoiProperties::SourceType::Manual) {
+      poly.item->setFlag(QGraphicsItem::ItemIsMovable, selectable);
     }
   }
 }

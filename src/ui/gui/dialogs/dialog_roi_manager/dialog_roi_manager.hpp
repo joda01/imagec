@@ -56,6 +56,7 @@ private:
 
   // PAINTING///////////////////////////////////////////////////
   QAction *mMoveAction;
+  QAction *mSelectAction;
 };
 
 }    // namespace joda::ui::gui

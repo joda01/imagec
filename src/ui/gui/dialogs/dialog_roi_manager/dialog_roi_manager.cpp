@@ -65,6 +65,17 @@ DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) 
       }
     });
 
+    mSelectAction = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("cursor-click"), "Select");
+    mSelectAction->setStatusTip("Move");
+    mSelectAction->setCheckable(true);
+    paintingToolActionGroup->addAction(mSelectAction);
+    toolbar->addAction(mSelectAction);
+    connect(mSelectAction, &QAction::triggered, this, [this](bool checked) {
+      if(checked) {
+        mImagePanel->setState(PanelImageView::State::SELECT);
+      }
+    });
+
     toolbar->addSeparator();
 
     auto *paintRectangle = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("rectangle"), "Rectangle");
