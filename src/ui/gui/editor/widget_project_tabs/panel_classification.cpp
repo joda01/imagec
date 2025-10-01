@@ -52,6 +52,8 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
     toolbar->setObjectName("SubToolBar");
     toolbar->setIconSize(QSize(16, 16));
 
+    auto *submenu = new QMenu();
+
     //
     // Add class
     //
@@ -59,7 +61,7 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
     auto *newClass = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("plus"), "Add object class");
     connect(newClass, &QAction::triggered, [this]() { addClass(); });
     newClass->setStatusTip("Add object class or load from template");
-    newClass->setMenu(mTemplateMenu);
+    // newClass->setMenu(mTemplateMenu);
     toolbar->addAction(newClass);
 
     //
@@ -68,7 +70,7 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
     //
     auto *populateFromImage = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("magic-wand"), "Populate from image channels");
     populateFromImage->setStatusTip("Automatically populate classes from image channels");
-    toolbar->addAction(populateFromImage);
+    submenu->addAction(populateFromImage);
     connect(populateFromImage, &QAction::triggered, [this]() { this->populateClassesFromImage(); });
 
     toolbar->addSeparator();
@@ -87,7 +89,7 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
       }
       this->openTemplate(filePathOfSettingsFile);
     });
-    toolbar->addAction(openTemplate);
+    submenu->addAction(openTemplate);
 
     //
     // Save as template
@@ -95,9 +97,9 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
     auto *saveAsTemplate = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("floppy-disk"), "Save classification settings as template");
     saveAsTemplate->setStatusTip("Save classification settings as template");
     connect(saveAsTemplate, &QAction::triggered, [this]() { saveAsNewTemplate(); });
-    toolbar->addAction(saveAsTemplate);
+    submenu->addAction(saveAsTemplate);
 
-    toolbar->addSeparator();
+    submenu->addSeparator();
 
     //
     // Move down
@@ -105,7 +107,7 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
     auto *moveDown = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("caret-down"), "Move down");
     moveDown->setStatusTip("Move selected pipeline down");
     connect(moveDown, &QAction::triggered, this, &PanelClassification::moveDown);
-    toolbar->addAction(moveDown);
+    submenu->addAction(moveDown);
 
     //
     // Move up
@@ -113,9 +115,9 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
     auto *moveUp = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("caret-up"), "Move up");
     moveUp->setStatusTip("Move selected pipeline up");
     connect(moveUp, &QAction::triggered, this, &PanelClassification::moveUp);
-    toolbar->addAction(moveUp);
+    submenu->addAction(moveUp);
 
-    toolbar->addSeparator();
+    submenu->addSeparator();
 
     //
     // Copy selection
@@ -143,15 +145,15 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
         }
       }
     });
-    toolbar->addAction(copy);
-    toolbar->addSeparator();
+    submenu->addAction(copy);
+    submenu->addSeparator();
 
     //
     // Delete column
     //
     auto *deleteColumn = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("trash-simple"), "Delete selected class", this);
     deleteColumn->setStatusTip("Delete selected class");
-    toolbar->addAction(deleteColumn);
+    submenu->addAction(deleteColumn);
     connect(deleteColumn, &QAction::triggered, [this]() {
       QList<QTableWidgetSelectionRange> ranges = mClasses->selectedRanges();
       if(!ranges.isEmpty()) {
@@ -167,6 +169,14 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
         }
       }
     });
+
+    // Submenu
+    auto *submenuAction = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("dots-three-vertical"), "");
+    submenuAction->setMenu(submenu);
+    toolbar->addAction(submenuAction);
+    auto *btn = qobject_cast<QToolButton *>(toolbar->widgetForAction(submenuAction));
+    btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
+    btn->setStyleSheet("QToolButton::menu-indicator { image: none; }");
 
     // toolbar->addSeparator();
 
