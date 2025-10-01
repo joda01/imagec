@@ -131,7 +131,7 @@ auto MlModelParser::parseOpenCVModelXMLDescriptionFile(const std::filesystem::pa
   file.close();
   Data info;
   info.modelPath = modelFile;
-  info.modelName = modelFile.filename();
+  info.modelName = modelFile.filename().string();
   if(!parsedModel.meta.organization.value_or("").empty() || !parsedModel.meta.author.value_or("").empty()) {
     info.authors.emplace_back(
         Data::Author{.affiliation = parsedModel.meta.organization.value_or(""), .authorName = parsedModel.meta.author.value_or("")});
