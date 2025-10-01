@@ -26,6 +26,7 @@
 namespace joda::ui::gui {
 
 class WindowMain;
+class DialogImageViewer;
 
 ///
 /// \class
@@ -38,7 +39,7 @@ class PanelClassification : public QWidget
 
 public:
   /////////////////////////////////////////////////////
-  explicit PanelClassification(joda::settings::Classification &settings, WindowMain *windowMain);
+  explicit PanelClassification(joda::settings::Classification &settings, WindowMain *windowMain, DialogImageViewer *imageView);
   void fromSettings(const joda::settings::Classification &settings);
   void toSettings();
   [[nodiscard]] auto getClasses() const -> std::map<enums::ClassIdIn, QString>;

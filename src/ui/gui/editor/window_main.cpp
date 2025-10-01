@@ -76,7 +76,6 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   setWindowIcon(myIcon);
   setWindowTitle(Version::getTitle().data());
   createTopToolbar();
-  createLeftToolbar();
   setMinimumSize(1500, 800);
   setObjectName("windowMain");
 
@@ -95,6 +94,8 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
     mPreviewImage = new DialogImageViewer(this, &mAnalyzeSettings, mTopToolBar);
     connect(mPreviewImage, &DialogImageViewer::settingChanged, [this]() { checkForSettingsChanged(); });
   }
+
+  createLeftToolbar();
 
   //
   // Preview results
@@ -272,7 +273,6 @@ void WindowMain::createTopToolbar()
   mTopToolBar->addAction(mOpenProjectButton);
   mTopToolBar->addAction(mSaveProject);
   mTopToolBar->addSeparator();
-  mTopToolBar->addAction(mShowCompilerLog);
   mTopToolBar->addAction(mStartAnalysisToolButton);
 
   // =====================================
@@ -287,6 +287,10 @@ void WindowMain::createTopToolbar()
   fileMenu->addSeparator();
   fileMenu->addAction(mSaveProject);
   fileMenu->addAction(mSaveProjectAs);
+
+  auto *pipelineMenu = mTopMenuBar->addMenu("Pipeline");
+  pipelineMenu->addAction(mStartAnalysisToolButton);
+  pipelineMenu->addAction(mShowCompilerLog);
 
   auto *helpMenu = mTopMenuBar->addMenu("Help");
   helpMenu->addAction(mShowInfoDialog);
@@ -336,7 +340,7 @@ void WindowMain::createLeftToolbar()
 
   // Classification tab
   {
-    mPanelClassification = new PanelClassification(mAnalyzeSettings.projectSettings.classification, this);
+    mPanelClassification = new PanelClassification(mAnalyzeSettings.projectSettings.classification, this, mPreviewImage);
     createDock("Classification", mPanelClassification);
   }
 

@@ -33,7 +33,7 @@ class TableModelPaintedPolygon;
 /// \author     Joachim Danmayr
 /// \brief
 ///
-class DialogRoiManager : public QDialog
+class DialogRoiManager : public QWidget
 {
   Q_OBJECT
 
@@ -53,10 +53,6 @@ private:
   PanelImageView *mImagePanel;
   PlaceholderTableView *mPolygonsTable;
   TableModelPaintedPolygon *mTableModel;
-
-  // PAINTING///////////////////////////////////////////////////
-  QAction *mMoveAction;
-  QAction *mSelectAction;
 };
 
 }    // namespace joda::ui::gui

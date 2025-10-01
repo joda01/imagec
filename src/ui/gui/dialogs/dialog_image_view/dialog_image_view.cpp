@@ -68,6 +68,98 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, joda::settings::AnalyzeSet
       toolbarTop = toolbarParent;
     }
 
+    //
+    // Painting tools
+    //
+    {
+      auto *paintingToolActionGroup = new QActionGroup(toolbarTop);
+
+      mMoveAction = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("hand"), "Move");
+      mMoveAction->setStatusTip("Move image");
+      mMoveAction->setCheckable(true);
+      mMoveAction->setChecked(true);
+      paintingToolActionGroup->addAction(mMoveAction);
+      toolbarTop->addAction(mMoveAction);
+      connect(mMoveAction, &QAction::triggered, this, [this](bool checked) {
+        if(checked) {
+          mImageViewRight.setState(PanelImageView::State::MOVE);
+        }
+      });
+
+      mSelectAction = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("cursor-click"), "Select");
+      mSelectAction->setStatusTip("Select and move region of interests");
+      mSelectAction->setCheckable(true);
+      paintingToolActionGroup->addAction(mSelectAction);
+      toolbarTop->addAction(mSelectAction);
+      connect(mSelectAction, &QAction::triggered, this, [this](bool checked) {
+        if(checked) {
+          mImageViewRight.setState(PanelImageView::State::SELECT);
+        }
+      });
+
+      toolbarTop->addSeparator();
+
+      auto *paintRectangle = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("rectangle"), "Rectangle");
+      paintRectangle->setStatusTip("Paint rectangle");
+      paintRectangle->setCheckable(true);
+      paintingToolActionGroup->addAction(paintRectangle);
+      toolbarTop->addAction(paintRectangle);
+      connect(paintRectangle, &QAction::triggered, this, [this](bool checked) {
+        if(checked) {
+          mImageViewRight.setState(PanelImageView::State::PAINT_RECTANGLE);
+        }
+      });
+
+      auto *paintCircle = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("circle"), "Circle");
+      paintCircle->setStatusTip("Paint circle");
+      paintCircle->setCheckable(true);
+      paintingToolActionGroup->addAction(paintCircle);
+      toolbarTop->addAction(paintCircle);
+      connect(paintCircle, &QAction::triggered, this, [this](bool checked) {
+        if(checked) {
+          mImageViewRight.setState(PanelImageView::State::PAINT_OVAL);
+        }
+      });
+
+      auto *paintPolygon = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("polygon"), "Polygon");
+      paintPolygon->setStatusTip("Paint polygon");
+      paintPolygon->setCheckable(true);
+      paintingToolActionGroup->addAction(paintPolygon);
+      toolbarTop->addAction(paintPolygon);
+      connect(paintPolygon, &QAction::triggered, this, [this](bool checked) {
+        if(checked) {
+          mImageViewRight.setState(PanelImageView::State::PAINT_POLYGON);
+        }
+      });
+
+      auto *paintBrush = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("paint-brush"), "Brush");
+      paintBrush->setStatusTip("Paint brush");
+      paintBrush->setCheckable(true);
+      paintingToolActionGroup->addAction(paintBrush);
+      // toolbar->addAction(paintBrush);
+      connect(paintBrush, &QAction::triggered, this, [this](bool checked) {
+        if(checked) {
+          mImageViewRight.setState(PanelImageView::State::PAIN_BRUSH);
+        }
+      });
+
+      auto *magicWand = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("magic-wand"), "MAgic wand tool");
+      magicWand->setStatusTip("Paint brush");
+      magicWand->setCheckable(true);
+      paintingToolActionGroup->addAction(magicWand);
+      // toolbar->addAction(magicWand);
+      connect(magicWand, &QAction::triggered, this, [this](bool checked) {
+        if(checked) {
+          mImageViewRight.setState(PanelImageView::State::PAINT_MAGIC_WAND);
+        }
+      });
+    }
+
+    toolbarTop->addSeparator();
+
+    //
+    // Histogram
+    //
     auto *histogram = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("chart-bar"), "Histogram");
     histogram->setObjectName("ToolButton");
     histogram->setStatusTip("Histogram");
@@ -80,7 +172,6 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, joda::settings::AnalyzeSet
     //
     // Image channel
     //
-
     auto *channelMenu      = new QMenu();
     mImageChannelMenuGroup = new QActionGroup(toolbarTop);
 
@@ -156,35 +247,12 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, joda::settings::AnalyzeSet
     });
     toolbarTop->addAction(imgSettings);
     toolbarTop->addSeparator();
-    //
-    // ROI manager
-    //
-    {
-      mActionRoiManager = toolbarTop->addAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("shapes"), "ROI manager");
-      mActionRoiManager->setCheckable(true);
-      mActionRoiManager->setStatusTip("Show and edit region of interests");
-      mDialogRoiManager = new DialogRoiManager(&mImageViewRight, parent);
-      connect(mDialogRoiManager, &DialogRoiManager::dialogDisappeared, [this]() {
-        mActionRoiManager->blockSignals(true);
-        mActionRoiManager->setChecked(false);
-        mActionRoiManager->blockSignals(false);
-      });
-      connect(mActionRoiManager, &QAction::triggered, [this](bool checked) {
-        mDialogRoiManager->blockSignals(true);
-        if(checked) {
-          mDialogRoiManager->show();
-        } else {
-          mDialogRoiManager->close();
-        }
-        mDialogRoiManager->blockSignals(false);
-      });
-    }
 
     //
     // ML Trainer
     //
     {
-      mActionMlTrainer = toolbarTop->addAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("fediverse-logo"), "ML Trainer");
+      mActionMlTrainer = toolbarTop->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("fediverse-logo"), "ML Trainer");
       mActionMlTrainer->setCheckable(true);
       mActionMlTrainer->setStatusTip("Train pixel and object classifier");
       mDialogMlTrainer = new DialogMlTrainer(&mImageViewRight, parent);
@@ -206,7 +274,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, joda::settings::AnalyzeSet
 
     toolbarTop->addSeparator();
 
-    auto *fitToScreen = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("magnifying-glass"), "Fit");
+    auto *fitToScreen = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("magnifying-glass"), "Fit");
     fitToScreen->setStatusTip("Fit image to screen");
     fitToScreen->setObjectName("ToolButton");
     connect(fitToScreen, &QAction::triggered, this, &DialogImageViewer::onFitImageToScreenSizeClicked);
@@ -214,7 +282,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, joda::settings::AnalyzeSet
 
     toolbarTop->addSeparator();
 
-    showOverlay = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("circle"), "Overlay");
+    showOverlay = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("paint-bucket"), "Overlay");
     showOverlay->setStatusTip("Show/Hide results as overlay");
     showOverlay->setCheckable(true);
     showOverlay->setChecked(true);
@@ -224,8 +292,10 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, joda::settings::AnalyzeSet
     mFillOVerlay = new QAction(generateSvgIcon<Style::DUETONE, Color::RED>("circle"), "Fill");
     mFillOVerlay->setStatusTip("Fill/Outline results overlay");
     mFillOVerlay->setCheckable(true);
+    mFillOVerlay->setChecked(true);
     connect(mFillOVerlay, &QAction::triggered, [this](bool selected) { mImageViewRight.setFillRois(selected); });
-    toolbarTop->addAction(mFillOVerlay);
+    // toolbarTop->addAction(mFillOVerlay);
+    mImageViewRight.setFillRois(true);
 
     mOverlayOpaque = new QSlider();
     mOverlayOpaque->setOrientation(Qt::Orientation::Horizontal);

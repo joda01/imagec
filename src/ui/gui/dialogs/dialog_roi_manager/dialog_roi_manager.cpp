@@ -40,98 +40,15 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) : QDialog(parent), mImagePanel(imagePanel)
+DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) : QWidget(parent), mImagePanel(imagePanel)
 {
   setWindowTitle("ROI manager");
-  setMinimumSize(300, 400);
   auto *layout = new QVBoxLayout();
   layout->setContentsMargins(0, 0, 0, 0);
   {
     auto *toolbar = new QToolBar();
     toolbar->setObjectName("SubToolBar");
     toolbar->setIconSize(QSize(16, 16));
-
-    auto *paintingToolActionGroup = new QActionGroup(toolbar);
-
-    mMoveAction = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("hand"), "Move");
-    mMoveAction->setStatusTip("Move");
-    mMoveAction->setCheckable(true);
-    mMoveAction->setChecked(true);
-    paintingToolActionGroup->addAction(mMoveAction);
-    toolbar->addAction(mMoveAction);
-    connect(mMoveAction, &QAction::triggered, this, [this](bool checked) {
-      if(checked) {
-        mImagePanel->setState(PanelImageView::State::MOVE);
-      }
-    });
-
-    mSelectAction = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("cursor-click"), "Select");
-    mSelectAction->setStatusTip("Move");
-    mSelectAction->setCheckable(true);
-    paintingToolActionGroup->addAction(mSelectAction);
-    toolbar->addAction(mSelectAction);
-    connect(mSelectAction, &QAction::triggered, this, [this](bool checked) {
-      if(checked) {
-        mImagePanel->setState(PanelImageView::State::SELECT);
-      }
-    });
-
-    toolbar->addSeparator();
-
-    auto *paintRectangle = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("rectangle"), "Rectangle");
-    paintRectangle->setStatusTip("Paint rectangle");
-    paintRectangle->setCheckable(true);
-    paintingToolActionGroup->addAction(paintRectangle);
-    toolbar->addAction(paintRectangle);
-    connect(paintRectangle, &QAction::triggered, this, [this](bool checked) {
-      if(checked) {
-        mImagePanel->setState(PanelImageView::State::PAINT_RECTANGLE);
-      }
-    });
-
-    auto *paintCircle = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("circle"), "Circle");
-    paintCircle->setStatusTip("Paint circle");
-    paintCircle->setCheckable(true);
-    paintingToolActionGroup->addAction(paintCircle);
-    toolbar->addAction(paintCircle);
-    connect(paintCircle, &QAction::triggered, this, [this](bool checked) {
-      if(checked) {
-        mImagePanel->setState(PanelImageView::State::PAINT_OVAL);
-      }
-    });
-
-    auto *paintPolygon = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("polygon"), "Polygon");
-    paintPolygon->setStatusTip("Paint polygon");
-    paintPolygon->setCheckable(true);
-    paintingToolActionGroup->addAction(paintPolygon);
-    toolbar->addAction(paintPolygon);
-    connect(paintPolygon, &QAction::triggered, this, [this](bool checked) {
-      if(checked) {
-        mImagePanel->setState(PanelImageView::State::PAINT_POLYGON);
-      }
-    });
-
-    auto *paintBrush = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("paint-brush"), "Brush");
-    paintBrush->setStatusTip("Paint brush");
-    paintBrush->setCheckable(true);
-    paintingToolActionGroup->addAction(paintBrush);
-    // toolbar->addAction(paintBrush);
-    connect(paintBrush, &QAction::triggered, this, [this](bool checked) {
-      if(checked) {
-        mImagePanel->setState(PanelImageView::State::PAIN_BRUSH);
-      }
-    });
-
-    auto *magicWand = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("magic-wand"), "MAgic wand tool");
-    magicWand->setStatusTip("Paint brush");
-    magicWand->setCheckable(true);
-    paintingToolActionGroup->addAction(magicWand);
-    // toolbar->addAction(magicWand);
-    connect(magicWand, &QAction::triggered, this, [this](bool checked) {
-      if(checked) {
-        mImagePanel->setState(PanelImageView::State::PAINT_MAGIC_WAND);
-      }
-    });
 
     // toolbar->addSeparator();
 
@@ -225,7 +142,7 @@ void DialogRoiManager::hideEvent(QHideEvent *event)
   // mMoveAction->setChecked(true);
   // mImagePanel->setState(PanelImageView::State::MOVE);
   // emit dialogDisappeared();
-  QDialog::hideEvent(event);
+  QWidget::hideEvent(event);
 }
 
 ///
@@ -237,11 +154,10 @@ void DialogRoiManager::hideEvent(QHideEvent *event)
 ///
 void DialogRoiManager::closeEvent(QCloseEvent *event)
 {
-  mMoveAction->setChecked(true);
   mImagePanel->setState(PanelImageView::State::MOVE);
 
   emit dialogDisappeared();
-  QDialog::closeEvent(event);
+  QWidget::closeEvent(event);
 }
 
 }    // namespace joda::ui::gui

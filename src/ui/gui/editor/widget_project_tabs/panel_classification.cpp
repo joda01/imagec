@@ -18,6 +18,7 @@
 #include <qlineedit.h>
 #include <qmenu.h>
 #include <qpushbutton.h>
+#include <qsplitter.h>
 #include <qtablewidget.h>
 #include <exception>
 #include <string>
@@ -29,6 +30,7 @@
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
 #include "ui/gui/dialogs/dialog_image_view/dialog_image_view.hpp"
+#include "ui/gui/dialogs/dialog_roi_manager/dialog_roi_manager.hpp"
 #include "ui/gui/editor/widget_project_tabs/panel_image.hpp"
 #include "ui/gui/editor/window_main.hpp"
 #include "ui/gui/helper/color_combo/color_combo.hpp"
@@ -40,7 +42,7 @@
 
 namespace joda::ui::gui {
 
-PanelClassification::PanelClassification(joda::settings::Classification &settings, WindowMain *windowMain) :
+PanelClassification::PanelClassification(joda::settings::Classification &settings, WindowMain *windowMain, DialogImageViewer *imageView) :
     mWindowMain(windowMain), mSettings(settings)
 {
   mClassSettingsDialog = new DialogClassSettings(windowMain);
@@ -197,29 +199,37 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
   }
 
   {
-    mClasses = new PlaceholderTableWidget(0, 6);
-    mClasses->setFrameStyle(QFrame::NoFrame);
-    mClasses->setShowGrid(false);
-    mClasses->setPlaceholderText("Press the + button to add a class or use the wizard.");
-    mClasses->verticalHeader()->setVisible(false);
-    mClasses->horizontalHeader()->setVisible(true);
-    mClasses->setHorizontalHeaderLabels({"IdNr", "Id", "Classes", "Color", "Notes", "Hidden"});
-    mClasses->setAlternatingRowColors(true);
-    mClasses->setSelectionBehavior(QAbstractItemView::SelectRows);
-    mClasses->setColumnHidden(COL_ID, true);
-    mClasses->setColumnHidden(COL_ID_ENUM, true);
-    mClasses->setColumnHidden(COL_COLOR, true);
-    mClasses->setColumnHidden(COL_NOTES, true);
-    mClasses->setColumnHidden(COL_HIDDEN, true);
-    mClasses->setColumnWidth(COL_ID_ENUM, 10);
-    mClasses->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
-    mClasses->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
-    mClasses->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Stretch);
+    auto *splitPane = new QSplitter();
+    {
+      mClasses = new PlaceholderTableWidget(0, 6);
+      mClasses->setFrameStyle(QFrame::NoFrame);
+      mClasses->setShowGrid(false);
+      mClasses->setPlaceholderText("Press the + button to add a class or use the wizard.");
+      mClasses->verticalHeader()->setVisible(false);
+      mClasses->horizontalHeader()->setVisible(true);
+      mClasses->setHorizontalHeaderLabels({"IdNr", "Id", "Classes", "Color", "Notes", "Hidden"});
+      mClasses->setAlternatingRowColors(true);
+      mClasses->setSelectionBehavior(QAbstractItemView::SelectRows);
+      mClasses->setColumnHidden(COL_ID, true);
+      mClasses->setColumnHidden(COL_ID_ENUM, true);
+      mClasses->setColumnHidden(COL_COLOR, true);
+      mClasses->setColumnHidden(COL_NOTES, true);
+      mClasses->setColumnHidden(COL_HIDDEN, true);
+      mClasses->setColumnWidth(COL_ID_ENUM, 10);
+      mClasses->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+      mClasses->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
+      mClasses->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Stretch);
 
-    auto *delegate = new ColoredSquareDelegate(mClasses);
-    mClasses->setItemDelegateForColumn(COL_NAME, delegate);    // Set the delegate for the desired column
+      auto *delegate = new ColoredSquareDelegate(mClasses);
+      mClasses->setItemDelegateForColumn(COL_NAME, delegate);    // Set the delegate for the desired column
 
-    layout->addWidget(mClasses);
+      splitPane->addWidget(mClasses);
+    }
+    {
+      splitPane->addWidget(new DialogRoiManager(imageView->getImagePanel(), mWindowMain));
+    }
+
+    layout->addWidget(splitPane);
   }
   setLayout(layout);
 

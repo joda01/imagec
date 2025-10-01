@@ -98,7 +98,6 @@ private:
   QAction *showOverlay          = nullptr;
   QSlider *mOverlayOpaque       = nullptr;
   QAction *mOverlayOpaqueAction = nullptr;
-  QAction *mActionRoiManager    = nullptr;
   QAction *mActionMlTrainer     = nullptr;
 
   QActionGroup *mImageChannelMenuGroup = nullptr;
@@ -106,7 +105,6 @@ private:
   std::map<int32_t, QAction *> mChannelSelections;
 
   // AI Trainer ////////////////////////////////////////////////////
-  DialogRoiManager *mDialogRoiManager;
   DialogMlTrainer *mDialogMlTrainer;
 
   // T-STACK //////////////////////////////////////////////////
@@ -118,6 +116,10 @@ private:
 
   // IMAGE SETTINGS //////////////////////////////////////////////////
   DialogImageSettings::Settings mImageSettings;
+
+  // PAINTING///////////////////////////////////////////////////
+  QAction *mMoveAction;
+  QAction *mSelectAction;
 
   // ANALYZE SETTINGS ///////////////////////////////////
   joda::settings::AnalyzeSettings *mSettings = nullptr;
