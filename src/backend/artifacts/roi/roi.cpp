@@ -29,6 +29,7 @@
 #include "backend/enums/enums_units.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/global_enums.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/ome_parser/physical_size.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
@@ -305,7 +306,8 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 {
   auto [pxSizeX, pxSizeY, pxSizeZ] = physicalSize.getPixelSize(unit);
   if(pxSizeX != pxSizeY) {
-    throw std::invalid_argument("Perimeter to real value with rectangle pixels not supported right now!");
+    joda::log::logWarning("Perimeter to real value with rectangle pixels not supported right now!");
+    pxSizeX = std::max(pxSizeX, pxSizeY);
   }
   return static_cast<float>(static_cast<double>(ROI::mPerimeter) * pxSizeX);
 }
@@ -325,7 +327,8 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 
   auto [pxSizeX, pxSizeY, pxSizeZ] = physicalSize.getPixelSize(unit);
   if(pxSizeX != pxSizeY) {
-    throw std::invalid_argument("Get distance with rectangle pixels not supported right now!");
+    joda::log::logWarning("Get distance with rectangle pixels not supported right now!");
+    pxSizeX = std::max(pxSizeX, pxSizeY);
   }
   std::map<uint64_t, Distance> realDistance;
 
