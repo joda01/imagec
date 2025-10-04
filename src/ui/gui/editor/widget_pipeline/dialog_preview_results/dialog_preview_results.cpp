@@ -35,8 +35,10 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-DialogPreviewResults::DialogPreviewResults(PanelImageView *panelImageView, const joda::settings::Classification &classes, WindowMain *windowMain) :
-    QDialog(windowMain), mWindowMain(windowMain), mPanelImageView(panelImageView)
+DialogPreviewResults::DialogPreviewResults(joda::ctrl::Preview *previewResult, PanelImageView *panelImageView,
+                                           const joda::settings::Classification &classes, WindowMain *windowMain) :
+    QDialog(windowMain),
+    mPreviewResult(previewResult), mWindowMain(windowMain), mPanelImageView(panelImageView)
 {
   setWindowTitle("Preview results");
   setWindowFlags(Qt::Tool | Qt::FramelessWindowHint);
@@ -60,6 +62,7 @@ DialogPreviewResults::DialogPreviewResults(PanelImageView *panelImageView, const
   mResultsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
   mTableModel = new TableModelPreviewResult(classes, mResultsTable);
   mResultsTable->setModel(mTableModel);
+  mTableModel->setData(&mPreviewResult->results);
   layoutMy->addWidget(mResultsTable);
 
   setLayout(new QVBoxLayout);
@@ -85,19 +88,12 @@ void DialogPreviewResults::leaveEvent(QEvent *event)
   QDialog::leaveEvent(event);
 }
 
-void DialogPreviewResults::setResults(PanelPipelineSettings *pipelineSettings, joda::ctrl::Preview::PreviewResults *results)
-{
-  if(mTableModel != nullptr) {
-    mTableModel->setData(results);
-  }
-  mPipelineSettings = pipelineSettings;
-}
-
 void DialogPreviewResults::refresh()
 {
   if(mTableModel != nullptr) {
     mTableModel->refresh();
   }
+
   update();
 }
 

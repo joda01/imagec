@@ -60,7 +60,8 @@ signals:
   void updatePreviewFinished(QString error);
 
 public:
-  PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, DialogPreviewResults *previewResults, joda::settings::Pipeline &settings,
+  PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, joda::ctrl::Preview *previewResult,
+                        DialogPreviewResults *previewResultsDialog, joda::settings::Pipeline &settings,
                         std::shared_ptr<DialogCommandSelection> &commandSelectionDialog);
   ~PanelPipelineSettings();
 
@@ -133,7 +134,7 @@ private:
   /////////////////////////////////////////////////////
   int32_t mLastSelectedPreviewSize = 0;
   joda::settings::Pipeline &mSettings;
-  joda::ctrl::Preview mPreviewResult;
+  joda::ctrl::Preview *mPreviewResult;
   DialogPreviewResults *mPreviewResultsDialog;
 
   struct PreviewJob

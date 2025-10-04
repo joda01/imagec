@@ -70,6 +70,7 @@ struct PaintedRoiProperties
     return detectedRoi;
   }
 
+  /*
   static PaintedRoiProperties fromRoiToQPolygon(QPolygonF &polygon, const joda::atom::ROI &roi, const cv::Mat *image, const cv::Size &previewSize)
   {
     double scaleX = static_cast<double>(previewSize.width) / static_cast<double>(image->cols);
@@ -89,5 +90,6 @@ struct PaintedRoiProperties
 
     return prop;
   }
+    */
 };
 }    // namespace joda::ui::gui

@@ -48,8 +48,10 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-DialogImageViewer::DialogImageViewer(QWidget *parent, joda::settings::AnalyzeSettings *settings, QToolBar *toolbarParent) :
-    QWidget(parent), mImageViewRight(parent), mSettings(settings)
+DialogImageViewer::DialogImageViewer(QWidget *parent, const atom::ObjectMap *objectMap, joda::settings::AnalyzeSettings *settings,
+                                     QToolBar *toolbarParent) :
+    QWidget(parent),
+    mImageViewRight(objectMap, &settings->projectSettings.classification, parent), mSettings(settings)
 {
   setWindowTitle("Preview");
   setContentsMargins(0, 0, 0, 0);
@@ -300,8 +302,8 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, joda::settings::AnalyzeSet
     mOverlayOpaque = new QSlider();
     mOverlayOpaque->setOrientation(Qt::Orientation::Horizontal);
     mOverlayOpaque->setMinimum(0);
-    mOverlayOpaque->setMaximum(60);
-    mOverlayOpaque->setValue(60);
+    mOverlayOpaque->setMaximum(100);
+    mOverlayOpaque->setValue(80);
     mOverlayOpaque->setMaximumWidth(100);
     connect(mOverlayOpaque, &QSlider::valueChanged, [this] { mImageViewRight.setRoisOpaque(static_cast<float>(mOverlayOpaque->value()) / 100.0F); });
     mOverlayOpaqueAction = toolbarTop->addWidget(mOverlayOpaque);

@@ -67,11 +67,12 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, DialogPreviewResults *previewResults,
-                                             joda::settings::Pipeline &settings, std::shared_ptr<DialogCommandSelection> &commandSelectionDialog) :
+PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, joda::ctrl::Preview *previewResult,
+                                             DialogPreviewResults *previewResultsDialog, joda::settings::Pipeline &settings,
+                                             std::shared_ptr<DialogCommandSelection> &commandSelectionDialog) :
     QWidget(wm),
-    mPreviewImage(previewDock), mWindowMain(wm), mCommandSelectionDialog(commandSelectionDialog), mSettings(settings),
-    mPreviewResultsDialog(previewResults)
+    mPreviewImage(previewDock), mWindowMain(wm), mCommandSelectionDialog(commandSelectionDialog), mSettings(settings), mPreviewResult(previewResult),
+    mPreviewResultsDialog(previewResultsDialog)
 {
   setObjectName("PanelPipelineSettings");
   setContentsMargins(0, 0, 0, 0);
@@ -524,7 +525,7 @@ void PanelPipelineSettings::previewThread()
               continue;
             }
             jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, jobToDo.threadSettings, *myPipeline, imgIndex,
-                                        jobToDo.selectedTileX, jobToDo.selectedTileY, jobToDo.timeStack, mPreviewResult, imgProps);
+                                        jobToDo.selectedTileX, jobToDo.selectedTileY, jobToDo.timeStack, *mPreviewResult, imgProps);
 
           } catch(const std::exception &error) {
             errorMsg = QString(error.what()) + QString("\n\nSee compiler log and application log for more details!");
@@ -579,10 +580,9 @@ void PanelPipelineSettings::onPreviewFinished(QString error)
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     messageBox.exec();
   } else {
-    const settings::AnalyzeSettings &settingsTmp = mWindowMain->getSettings();
-    mPreviewImage->getImagePanel()->setEditedImage(std::move(mPreviewResult.editedImage));
+    mPreviewImage->getImagePanel()->setEditedImage(std::move(mPreviewResult->editedImage));
     mPreviewImage->getImagePanel()->clearRegionOfInterest();
-    mPreviewImage->getImagePanel()->setRegionsOfInterestFromObjectList(mPreviewResult.results.objectMap, settingsTmp.projectSettings.classification);
+    mPreviewImage->getImagePanel()->setRegionsOfInterestFromObjectList();
     mPreviewImage->getImagePanel()->repaintImage();
   }
   if(nullptr != mPreviewImage) {
@@ -706,8 +706,7 @@ void PanelPipelineSettings::closeWindow()
 void PanelPipelineSettings::onClassificationNameChanged()
 {
   valueChangedEvent();
-  const settings::AnalyzeSettings &settingsTmp = mWindowMain->getSettings();
-  mPreviewImage->getImagePanel()->setRoiColorsForClasses(settingsTmp.projectSettings.classification);
+  mPreviewImage->getImagePanel()->refreshRoiColors();
   mPreviewResultsDialog->refresh();
 }
 
@@ -725,8 +724,7 @@ void PanelPipelineSettings::setActive(bool setActive)
     if(mSettings.pipelineSetup.cStackIndex >= 0) {
       mPreviewImage->setImageChannel(mSettings.pipelineSetup.cStackIndex);
     }
-
-    mPreviewResultsDialog->setResults(this, &mPreviewResult.results);
+    mPreviewResultsDialog->refresh();
     mPreviewResultsDialog->show();
     QTimer::singleShot(0, this, [this]() {
       QPoint topRight = mWindowMain->geometry().topRight();

@@ -96,6 +96,7 @@ public:
       mCircularity(input.mCircularity), mCentroid(input.mCentroid), mParentObjectId(input.mParentObjectId), mTrackingId(input.mTrackingId),
       mIntensity(std::move(input.mIntensity)), mOriginObjectId(input.mOriginObjectId), mLinkedWith(std::move(input.mLinkedWith))
   {
+    CV_Assert(mMask.type() == CV_8UC1);
   }
 
   ROI(bool isNull, uint64_t objectId, RoiObjectId id, Confidence confidence, Boxes boundingBoxTile, Boxes boundingBoxReal, cv::Mat mask,
@@ -108,6 +109,7 @@ public:
       mAreaSize(areaSize), mPerimeter(perimeter), mCircularity(circularity), mCentroid(centroid), mParentObjectId(parentObjectId),
       mTrackingId(linkedObjectId), mIntensity(std::move(intensity)), mOriginObjectId(originObjectId), mLinkedWith(std::move(linkedWith))
   {
+    CV_Assert(mMask.type() == CV_8UC1);
   }
 
   bool isNull() const

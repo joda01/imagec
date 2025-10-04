@@ -91,7 +91,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   //
   {
     mTopToolBar->addSeparator();
-    mPreviewImage = new DialogImageViewer(this, &mAnalyzeSettings, mTopToolBar);
+    mPreviewImage = new DialogImageViewer(this, &mPreviewResult.results.objectMap, &mAnalyzeSettings, mTopToolBar);
     connect(mPreviewImage, &DialogImageViewer::settingChanged, [this]() { checkForSettingsChanged(); });
   }
 
@@ -101,7 +101,8 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   // Preview results
   //
   {
-    mPreviewResultsDialog = new DialogPreviewResults(mPreviewImage->getImagePanel(), getSettings().projectSettings.classification, this);
+    mPreviewResultsDialog =
+        new DialogPreviewResults(&mPreviewResult, mPreviewImage->getImagePanel(), getSettings().projectSettings.classification, this);
   }
 
   setCentralWidget(mPreviewImage);
@@ -346,7 +347,7 @@ void WindowMain::createLeftToolbar()
 
   // Pipeline Tab
   {
-    mPanelPipeline = new PanelPipeline(this, mAnalyzeSettings);
+    mPanelPipeline = new PanelPipeline(&mPreviewResult, this, mAnalyzeSettings);
     createDock("Pipelines", mPanelPipeline);
   }
 

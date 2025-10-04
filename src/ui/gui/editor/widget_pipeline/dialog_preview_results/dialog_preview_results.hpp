@@ -45,8 +45,8 @@ class DialogPreviewResults : public QDialog
 
 public:
   /////////////////////////////////////////////////////
-  DialogPreviewResults(PanelImageView *panelImageView, const joda::settings::Classification &classes, WindowMain *windowMain);
-  void setResults(PanelPipelineSettings *pipelineSettings, joda::ctrl::Preview::PreviewResults *results);
+  DialogPreviewResults(joda::ctrl::Preview *previewResult, PanelImageView *panelImageView, const joda::settings::Classification &classes,
+                       WindowMain *windowMain);
   void refresh();
   auto getClassesToHide() const -> settings::ObjectInputClassesExp;
 
@@ -56,6 +56,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  joda::ctrl::Preview *mPreviewResult;
   QTableView *mResultsTable;
   WindowMain *mWindowMain;
   PanelPipelineSettings *mPipelineSettings = nullptr;

@@ -12,6 +12,7 @@
 #pragma once
 
 #include <qcolor.h>
+#include <qgraphicsitem.h>
 #include <qlabel.h>
 #include <qnamespace.h>
 #include <qwidget.h>
@@ -27,9 +28,12 @@
 #include "backend/helper/image/image.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "controller/controller.hpp"
+#include "ui/gui/dialogs/dialog_image_view/customer_painter/graphics_contour_overlay.hpp"
 #include "ui/gui/dialogs/dialog_image_view/graphics_polygon.hpp"
 #include "ui/gui/dialogs/dialog_image_view/painted_roi_properties.hpp"
 #include <opencv2/core/types.hpp>
+
+class RoiOverlay;
 
 namespace joda::ui::gui {
 
@@ -95,7 +99,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  PanelImageView(QWidget *parent = nullptr);
+  PanelImageView(const atom::ObjectMap *objectMap, const joda::settings::Classification *classSettings, QWidget *parent = nullptr);
   void openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo = nullptr);
   void setEditedImage(const joda::image::Image &&edited);
   void reloadImage();
@@ -135,7 +139,7 @@ public:
   // REGION OF INTERESTS //////////////////////////////////////////////
   auto getObjectMapFromAnnotatedRegions(const std::set<PaintedRoiProperties::SourceType> &filter, atom::ObjectListWithNone &,
                                         enums::ClassId classFilter = enums::ClassId::UNDEFINED) -> void;
-  void setRegionsOfInterestFromObjectList(const atom::ObjectMap &, const joda::settings::Classification &);
+  void setRegionsOfInterestFromObjectList();
   void clearRegionOfInterest(PaintedRoiProperties::SourceType sourceToDelete = PaintedRoiProperties::SourceType::FromPipeline);
   auto getPtrToPolygons() -> std::map<QGraphicsItem *, PaintedRoiProperties> *;
   void setSelectedRois(const std::set<QGraphicsItem *> &idxs);
@@ -145,7 +149,7 @@ public:
   void setShowRois(bool);
   void setRoisOpaque(float opaque);
   void setRoisToHide(const std::set<enums::ClassId> &);
-  void setRoiColorsForClasses(const joda::settings::Classification &);
+  void refreshRoiColors();
   void setRoisSelectable(bool);
 
 signals:
@@ -214,6 +218,8 @@ private:
   // STATE AND PAINTING ///////////////////////////////////////////////////
   State mState = State::MOVE;
   std::map<QGraphicsItem *, PaintedRoiProperties> mPolygonItems;
+  RoiOverlay *mOverlayMasks       = nullptr;
+  ContourOverlay *mContourOverlay = nullptr;
   PaintedRoi_t mActPaintingRoi;
   std::set<enums::ClassId> mRoiClassesToHide;
 
@@ -265,6 +271,7 @@ private:
   bool mFillRoi    = false;
   bool mShowRois   = true;
   bool mSelectable = true;
+  const joda::settings::Classification *mClassSettings;
 
   mutable std::mutex mImageResetMutex;
 

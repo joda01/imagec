@@ -43,10 +43,11 @@
 namespace joda::atom {
 
 ROI::ROI() :
-    mIsNull(true), mObjectId(mGlobalUniqueObjectId++), mId({}), mConfidence(0), mMask(cv::Mat(0, 0, CV_16UC1)), mMaskContours({}),
+    mIsNull(true), mObjectId(mGlobalUniqueObjectId++), mId({}), mConfidence(0), mMask(cv::Mat(0, 0, CV_8UC1)), mMaskContours({}),
     mImageSize(cv::Size{0, 0}), mOriginalImageSize(cv::Size{0, 0}), mAreaSize(0), mPerimeter(0), mCircularity(0), mCentroid(0, 0),
     mOriginObjectId(mObjectId)
 {
+  CV_Assert(mMask.type() == CV_8UC1);
 }
 
 ROI::ROI(RoiObjectId index, Confidence confidence, const Boxes &boundingBox, const cv::Mat &mask, const std::vector<cv::Point> &contour,
@@ -57,6 +58,7 @@ ROI::ROI(RoiObjectId index, Confidence confidence, const Boxes &boundingBox, con
     mOriginalImageSize(originalImageSize), mAreaSize(static_cast<double>(calcAreaSize())), mPerimeter(getTracedPerimeter(mMaskContours)),
     mCircularity(calcCircularity()), mCentroid(calcCentroid(mMask)), mOriginObjectId(mObjectId)
 {
+  CV_Assert(mMask.type() == CV_8UC1);
 }
 
 ///

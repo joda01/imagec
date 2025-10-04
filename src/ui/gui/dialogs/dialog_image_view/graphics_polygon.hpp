@@ -1,3 +1,14 @@
+///
+/// \file      graphics_polygon.hpp
+/// \author    Joachim Danmayr
+/// \date      2025-10-03
+///
+/// \copyright Copyright 2019 Joachim Danmayr
+///            This software is licensed for **non-commercial** use only.
+///            Educational, research, and personal use are permitted.
+///            For **Commercial** please contact the copyright owner.
+///
+
 #pragma once
 
 #include <qbrush.h>

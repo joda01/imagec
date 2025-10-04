@@ -24,6 +24,10 @@
 class DroppableWidget;
 class PlaceholderTableView;
 
+namespace joda::ctrl {
+class Preview;
+}
+
 namespace joda::ui::gui {
 
 class WindowMain;
@@ -42,7 +46,7 @@ class PanelPipeline : public QWidget
 
 public:
   /////////////////////////////////////////////////////
-  explicit PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSettings &settings);
+  explicit PanelPipeline(joda::ctrl::Preview *, WindowMain *windowMain, joda::settings::AnalyzeSettings &settings);
   void addElement(std::unique_ptr<PanelPipelineSettings> baseContainer);
   void erase(PanelPipelineSettings *toRemove);
   void clear();
@@ -91,6 +95,7 @@ private:
 
   // ACTIONS///////////////////////////////////////////////////
   QMenu *mTemplatesMenu;
+  joda::ctrl::Preview *mPreviewResults;
 
   std::mutex mClosePipelineMutex;
 

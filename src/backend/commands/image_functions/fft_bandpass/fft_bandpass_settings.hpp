@@ -40,7 +40,7 @@ struct FFTBandpassSettings : public SettingBase
   //
   StripeMode stripesHorVert = StripeMode::NOTHING;
 
-  float toleranceOfDirection = 0.05;
+  float toleranceOfDirection = 0.05F;
 
   bool doScaling    = true;
   bool doSaturation = true;
