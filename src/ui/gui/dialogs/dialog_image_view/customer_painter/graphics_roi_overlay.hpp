@@ -33,6 +33,10 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+  [[nodiscard]] const joda::atom::ROI *findRoiAt(const QPointF &itemPoint) const;
+
+  /////////////////////////////////////////////////////
   cv::Size mImageSize;
   cv::Size mPreviewSize;
   const joda::atom::ObjectMap *mObjectMap                       = nullptr;
@@ -40,4 +44,7 @@ private:
   QGraphicsOpacityEffect *mOpacityEffect;
   float mAlpha = 0.8F;
   bool mFill   = true;
+
+  /////////////////////////////////////////////////////
+  std::set<const joda::atom::ROI *> mSelectedRois;
 };

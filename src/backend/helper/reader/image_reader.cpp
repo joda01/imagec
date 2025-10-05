@@ -501,7 +501,7 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
     if(series >= ome.getNrOfSeries()) {
       series = static_cast<uint16_t>(ome.getNrOfSeries() - 1);
     }
-    auto i1            = DurationCount::start("Load from filesystm");
+    auto i1            = DurationCount::start("Load from filesystem");
     jbyteArray readImg = static_cast<jbyteArray>(myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImageTile, filePath, static_cast<int>(series),
                                                                                static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c,
                                                                                imagePlane.t, offsetX, offsetY, tileWidthToLoad, tileHeightToLoad));

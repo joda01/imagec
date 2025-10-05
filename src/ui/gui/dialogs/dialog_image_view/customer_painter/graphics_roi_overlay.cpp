@@ -11,9 +11,11 @@
 
 #include "graphics_roi_overlay.hpp"
 #include <qgraphicseffect.h>
+#include <qgraphicssceneevent.h>
 #include <qpainter.h>
 #include <qpen.h>
 #include <cstddef>
+#include <string>
 #include "backend/helper/duration_count/duration_count.h"
 #include "graphics_contour_overlay.hpp"
 
@@ -66,12 +68,17 @@ void RoiOverlay::refresh()
     const auto &classSetting = mClassificationSettings->getClassFromId(clasId);
 
     // Optimization 2: Use QImage::pixel format for direct pixel manipulation
-    QColor col = QColor(classSetting.color.c_str());
-
-    // Pre-calculate the full ARGB pixel value
-    QRgb pixelValue = qRgb(col.red(), col.green(), col.blue());
+    const QColor col = QColor(classSetting.color.c_str());
+    QRgb pixelValue  = qRgb(col.red(), col.green(), col.blue());
 
     for(const auto &roi : *classs) {
+      if(mSelectedRois.contains(&roi)) {
+        const auto colTmp = QColor(classSetting.color.c_str()).darker(200);
+        pixelValue        = qRgb(colTmp.red(), colTmp.green(), colTmp.blue());
+      } else {
+        pixelValue = qRgb(col.red(), col.green(), col.blue());
+      }
+
       // Optimization 3: Efficiently access Mat data
       const auto &mask = roi.getMask();
       const auto &box  = roi.getBoundingBoxTile();
@@ -157,4 +164,82 @@ void RoiOverlay::setAlpha(float alpha)
   mAlpha = alpha;
   mOpacityEffect->setOpacity(static_cast<double>(mAlpha));
   update();    // Request a redraw
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void RoiOverlay::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+  if(event->button() == Qt::LeftButton) {
+    // 1. Get the click point in the item's local coordinates
+    QPointF clickPoint = event->pos();
+
+    std::cout << "Clicked " << std::to_string(clickPoint.x()) << "|" << std::to_string(clickPoint.y()) << std::endl;
+
+    // 2. Find which ROI contains this point
+    const joda::atom::ROI *clickedRoi = findRoiAt(clickPoint);
+
+    // 3. Update the selected state
+    if(!mSelectedRois.contains(clickedRoi)) {
+      mSelectedRois.emplace(clickedRoi);
+      refresh();    // Forces a redraw to show the highlight
+    } else if(clickedRoi != nullptr) {
+      // Clicked on the already selected ROI: deselect it
+      mSelectedRois.erase(clickedRoi);
+      refresh();
+    }
+  }
+  QGraphicsPixmapItem::mousePressEvent(event);    // Call base class
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+const joda::atom::ROI *RoiOverlay::findRoiAt(const QPointF &itemPoint) const
+{
+  double scaleX = static_cast<double>(mPreviewSize.width) / static_cast<double>(mImageSize.width);
+  double scaleY = static_cast<double>(mPreviewSize.height) / static_cast<double>(mImageSize.height);
+
+  // Reverse iteration is often preferred so clicking selects the top-most item
+  for(const auto &[clasId, classs] : *mObjectMap) {
+    for(const auto &roi : *classs) {
+      // 1. Get the local coordinates of the click relative to the ROI's origin
+      // The itemPoint is in the parent's coordinates.
+      const auto &box  = roi.getBoundingBoxTile();
+      QPointF roiPoint = itemPoint - QPointF(box.x * scaleX, box.y * scaleY);
+
+      // 2. Check if the point is within the *unscaled* ROI dimensions
+      if(roiPoint.x() >= 0 && roiPoint.y() >= 0 && roiPoint.x() < box.width * scaleX && roiPoint.y() < box.height * scaleY) {
+        std::cout << "Found" << std::endl;
+        // This is the efficient check: check the original mask pixel
+        const cv::Mat &mask = roi.getMask();
+        if(mask.empty()) {
+          continue;
+        }
+
+        // Ensure the point is within the mask bounds before calling at<>
+        int y = static_cast<int>(roiPoint.y() / scaleY);
+        int x = static_cast<int>(roiPoint.x() / scaleX);
+
+        if(y < mask.rows && x < mask.cols) {
+          // Check the mask pixel value (assuming the mask is 8UC1)
+          if(mask.at<uint8_t>(y, x) > 0) {
+            std::cout << "Found Ptr" << std::endl;
+
+            return &roi;    // Return the pointer to the selected ROI
+          }
+        }
+      }
+    }
+  }
+  return nullptr;
 }

@@ -54,8 +54,8 @@ void ContourOverlay::refresh()
 {
   std::lock_guard<std::mutex> lock(mMutex);
   mPointsToPaint.clear();
-  float scaleX = static_cast<float>(mPreviewSize.width) / static_cast<float>(mImageSize.width);
-  float scaleY = static_cast<float>(mPreviewSize.height) / static_cast<float>(mImageSize.height);
+  double scaleX = static_cast<double>(mPreviewSize.width) / static_cast<double>(mImageSize.width);
+  double scaleY = static_cast<double>(mPreviewSize.height) / static_cast<double>(mImageSize.height);
 
   for(const auto &[clasId, classs] : *mObjectMap) {
     const auto &classSetting = mClassificationSettings->getClassFromId(clasId);
@@ -66,10 +66,10 @@ void ContourOverlay::refresh()
       const auto &box     = roi.getBoundingBoxTile();
       std::vector<QPointF> points;
       points.reserve(contour.size());    // Pre-allocate memory
-      const float offsetX = static_cast<float>(box.x) * scaleX;
-      const float offsetY = static_cast<float>(box.y) * scaleY;
+      const double offsetX = static_cast<double>(box.x) * scaleX;
+      const double offsetY = static_cast<double>(box.y) * scaleY;
       for(const auto &cont : contour) {
-        QPointF itemPoint(static_cast<float>(cont.x) * scaleX + offsetX, static_cast<float>(cont.y) * scaleY + offsetY);
+        QPointF itemPoint(static_cast<double>(cont.x) * scaleX + offsetX, static_cast<double>(cont.y) * scaleY + offsetY);
         points.push_back(itemPoint);
       }
       mPointsToPaint.emplace_back(colBorder, points);
