@@ -14,6 +14,7 @@
 #include <qgraphicssceneevent.h>
 #include <qpainter.h>
 #include <qpen.h>
+#include <qpolygon.h>
 #include <cstddef>
 #include <string>
 #include "backend/helper/duration_count/duration_count.h"
@@ -62,7 +63,7 @@ void RoiOverlay::refresh()
   // Create a QImage with ARGB32 (direct pixel access)
   QImage qimg(mImageSize.width, mImageSize.height, QImage::Format_ARGB32);
   qimg.fill(Qt::transparent);
-  mContourPreparedPoints.clear();
+  mContoursPerColor.clear();
 
   // Optimization 1: Pre-calculate the pixel value and alpha blending
   for(const auto &[clasId, classs] : *mObjectMap) {
@@ -158,7 +159,7 @@ void RoiOverlay::refresh()
   prepareGeometryChange();
   setPixmap(pix);
   setAlpha(mAlpha);
-  mContourOverlay->refresh(&mContourPreparedPoints, mPreviewSize);
+  mContourOverlay->refresh(&mContoursPerColor, mPreviewSize);
 }
 
 ///
@@ -175,7 +176,7 @@ void RoiOverlay::prepareContour(const joda::atom::ROI *roi, const QColor &colBor
 
   const auto &contour = roi->getContour();
   const auto &box     = roi->getBoundingBoxTile();
-  std::vector<QPointF> points;
+  QList<QPointF> points;
   points.reserve(contour.size());    // Pre-allocate memory
   const double offsetX = static_cast<double>(box.x) * scaleX;
   const double offsetY = static_cast<double>(box.y) * scaleY;
@@ -183,10 +184,20 @@ void RoiOverlay::prepareContour(const joda::atom::ROI *roi, const QColor &colBor
     QPointF itemPoint(static_cast<double>(cont.x) * scaleX + offsetX, static_cast<double>(cont.y) * scaleY + offsetY);
     points.push_back(itemPoint);
   }
-  if(roi->isSelected()) {
-    mContourPreparedPoints.emplace_back(Qt::yellow, points);
-  } else {
-    mContourPreparedPoints.emplace_back(colBorder, points);
+  QColor c = Qt::yellow;
+  // --- Phase 1: Build Paths (Slow but done only when data changes) ---
+
+  // The QRgb type is defined as quint32.
+  if(!points.empty()) {
+    if(roi->isSelected()) {
+      uint32_t cVal                 = static_cast<uint32_t>(c.rgb());
+      mContoursPerColor[cVal].first = c;
+      mContoursPerColor[cVal].second.addPolygon(QPolygonF(points));
+    } else {
+      uint32_t cVal                 = static_cast<uint32_t>(colBorder.rgb());
+      mContoursPerColor[cVal].first = colBorder;
+      mContoursPerColor[cVal].second.addPolygon(QPolygonF(points));
+    }
   }
 }
 
@@ -201,7 +212,7 @@ void RoiOverlay::setAlpha(float alpha)
 {
   mAlpha = alpha;
   mOpacityEffect->setOpacity(static_cast<double>(mAlpha));
-  update();    // Request a redraw
+  // update();    // Request a redraw
 }
 
 ///

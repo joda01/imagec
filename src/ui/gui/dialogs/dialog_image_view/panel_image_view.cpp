@@ -290,8 +290,7 @@ void PanelImageView::setRoisOpaque(float opaque)
     opaque = 0;
   }
   mOpaque = opaque;
-
-  setFillRois(mFillRoi);
+  mOverlayMasks->setAlpha(mOpaque);
 }
 
 ///
@@ -1365,12 +1364,10 @@ void PanelImageView::clearRegionOfInterest(joda::atom::ROI::Category sourceToDel
 void PanelImageView::setFillRois(bool fill)
 {
   mFillRoi = fill;
-
   if(mOverlayMasks != nullptr) {
     mOverlayMasks->setAlpha(mOpaque);
     mOverlayMasks->setFill(fill);
   }
-
   emit paintedPolygonsChanged();
 }
 

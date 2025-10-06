@@ -19,6 +19,8 @@
 #include "backend/settings/project_settings/project_class.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
 
+using ColorMap_t = std::map<uint32_t, std::pair<QColor, QPainterPath>>;
+
 class ContourOverlay : public QGraphicsItem
 {
   friend class RoiOverlay;
@@ -27,7 +29,7 @@ public:
   ContourOverlay(QGraphicsItem *parent = nullptr);
 
   /////////////////////////////////////////////////////
-  void refresh(const std::vector<std::pair<QColor, std::vector<QPointF>>> *, const cv::Size &previewSize);
+  void refresh(const ColorMap_t *, const cv::Size &previewSize);
 
 private:
   /////////////////////////////////////////////////////
@@ -44,5 +46,5 @@ private:
   }
 
   cv::Size mPreviewSize;
-  const std::vector<std::pair<QColor, std::vector<QPointF>>> *mData = nullptr;
+  const ColorMap_t *mData = nullptr;
 };

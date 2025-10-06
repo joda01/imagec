@@ -35,7 +35,7 @@ ContourOverlay::ContourOverlay(QGraphicsItem *parent) : QGraphicsItem(parent)
 /// \param[out]
 /// \return
 ///
-void ContourOverlay::refresh(const std::vector<std::pair<QColor, std::vector<QPointF>>> *data, const cv::Size &previewSize)
+void ContourOverlay::refresh(const ColorMap_t *data, const cv::Size &previewSize)
 {
   mData        = data;
   mPreviewSize = previewSize;
@@ -52,20 +52,15 @@ void ContourOverlay::refresh(const std::vector<std::pair<QColor, std::vector<QPo
 ///
 void ContourOverlay::paint(QPainter *painter, const QStyleOptionGraphicsItem * /*option*/, QWidget * /*widget*/)
 {
-  std::cout << "Paint" << std::endl;
+  return;
   if(mData == nullptr) {
     return;
   }
-  // Set the painter to full opacity for the contour overlay
-  painter->setOpacity(1.0);
-
-  // Iterate through all prepared contour segments
-  for(const auto &[col, points] : *mData) {
-    QPen pen(col, 3, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin);
+  for(const auto &[_, elem] : *mData) {
+    // Set pen (can use the caching strategy from #2 here too)
+    QPen pen(elem.first, 3, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin);
     pen.setCosmetic(true);
     painter->setPen(pen);
-    if(!points.empty()) {
-      painter->drawPolygon(points.data(), static_cast<int32_t>(points.size()));
-    }
+    painter->drawPath(elem.second);    // Single call for all polygons of this color
   }
 }

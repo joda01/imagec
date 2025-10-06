@@ -18,6 +18,7 @@
 #include "backend/artifacts/roi/roi.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
+#include "ui/gui/dialogs/dialog_image_view/customer_painter/graphics_contour_overlay.hpp"
 
 class ContourOverlay;
 
@@ -60,5 +61,5 @@ private:
   ContourOverlay *mContourOverlay;
 
   // Cntours ///////////////
-  std::vector<std::pair<QColor, std::vector<QPointF>>> mContourPreparedPoints;
+  ColorMap_t mContoursPerColor;
 };
