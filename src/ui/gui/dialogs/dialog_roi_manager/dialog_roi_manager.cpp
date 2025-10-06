@@ -15,6 +15,7 @@
 #include <qformlayout.h>
 #include <qpushbutton.h>
 #include <filesystem>
+#include "backend/artifacts/roi/roi.hpp"
 #include "backend/commands/classification/pixel_classifier/pixel_classifier.hpp"
 #include "backend/commands/classification/pixel_classifier/pixel_classifier_settings.hpp"
 #include "backend/commands/classification/pixel_classifier/pixel_classifier_training_settings.hpp"
@@ -40,7 +41,10 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) : QWidget(parent), mImagePanel(imagePanel)
+DialogRoiManager::DialogRoiManager(atom::ObjectList *objectMap, const joda::settings::Classification *classSettings, PanelImageView *imagePanel,
+                                   QWidget *parent) :
+    QWidget(parent),
+    mImagePanel(imagePanel)
 {
   setWindowTitle("ROI manager");
   auto *layout = new QVBoxLayout();
@@ -93,8 +97,7 @@ DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) 
     mPolygonsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     mPolygonsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     mPolygonsTable->setItemDelegateForColumn(0, new ItemDelegatePolygon(mPolygonsTable));
-    mTableModel = new TableModelPaintedPolygon(mPolygonsTable);
-    mTableModel->setData(imagePanel->getPtrToPolygons());
+    mTableModel = new TableModelPaintedPolygon(classSettings, objectMap, mPolygonsTable);
     mPolygonsTable->setModel(mTableModel);
     layout->addWidget(mPolygonsTable);
 
@@ -103,9 +106,9 @@ DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) 
         mImagePanel->setSelectedRois({});
       } else {
         auto indexes = mPolygonsTable->selectionModel()->selectedIndexes();
-        std::set<QGraphicsItem *> idxs;
+        std::set<const atom::ROI *> idxs;
         for(const auto row : indexes) {
-          idxs.emplace(mTableModel->getCell(row.row())->item);
+          idxs.emplace(mTableModel->getCell(row.row()));
         }
         mImagePanel->setSelectedRois(idxs);
       }
@@ -116,7 +119,7 @@ DialogRoiManager::DialogRoiManager(PanelImageView *imagePanel, QWidget *parent) 
   setLayout(layout);
 
   connect(imagePanel, &PanelImageView::paintedPolygonsChanged, [this]() { mTableModel->refresh(); });
-  connect(imagePanel, &PanelImageView::paintedPolygonClicked, [this](QList<QGraphicsItem *> idxs) {
+  connect(imagePanel, &PanelImageView::paintedPolygonClicked, [this](std::vector<atom::ROI *> idxs) {
     bool firstRun = true;
     for(const auto &idx : idxs) {
       QModelIndex index = mPolygonsTable->model()->index(mTableModel->indexFor(idx), 0);    // pick column 0 for the row

@@ -48,7 +48,7 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-DialogImageViewer::DialogImageViewer(QWidget *parent, const atom::ObjectMap *objectMap, joda::settings::AnalyzeSettings *settings,
+DialogImageViewer::DialogImageViewer(QWidget *parent, atom::ObjectList *objectMap, joda::settings::AnalyzeSettings *settings,
                                      QToolBar *toolbarParent) :
     QWidget(parent),
     mImageViewRight(objectMap, &settings->projectSettings.classification, parent), mSettings(settings)
@@ -257,7 +257,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const atom::ObjectMap *obj
       mActionMlTrainer = toolbarTop->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("fediverse-logo"), "ML Trainer");
       mActionMlTrainer->setCheckable(true);
       mActionMlTrainer->setStatusTip("Train pixel and object classifier");
-      mDialogMlTrainer = new DialogMlTrainer(&mImageViewRight, parent);
+      mDialogMlTrainer = new DialogMlTrainer(objectMap, &mImageViewRight, parent);
       connect(mDialogMlTrainer, &DialogMlTrainer::dialogDisappeared, [this]() {
         mActionMlTrainer->blockSignals(true);
         mActionMlTrainer->setChecked(false);

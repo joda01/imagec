@@ -45,7 +45,7 @@ struct Preview
 
   struct PreviewResults
   {
-    joda::atom::ObjectMap objectMap;
+    joda::atom::ObjectList objectMap;
     bool isOverExposed = false;
     bool noiseDetected = false;
   } results;

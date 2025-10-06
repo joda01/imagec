@@ -581,7 +581,6 @@ void PanelPipelineSettings::onPreviewFinished(QString error)
     messageBox.exec();
   } else {
     mPreviewImage->getImagePanel()->setEditedImage(std::move(mPreviewResult->editedImage));
-    mPreviewImage->getImagePanel()->clearRegionOfInterest();
     mPreviewImage->getImagePanel()->setRegionsOfInterestFromObjectList();
     mPreviewImage->getImagePanel()->repaintImage();
   }

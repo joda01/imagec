@@ -17,6 +17,7 @@
 #include <filesystem>
 #include <optional>
 #include <utility>
+#include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/settings/project_settings/project_settings.hpp"
 #include "ui/gui/helper/color_combo/color_combo.hpp"
@@ -39,7 +40,8 @@ class PanelClassification : public QWidget
 
 public:
   /////////////////////////////////////////////////////
-  explicit PanelClassification(joda::settings::Classification &settings, WindowMain *windowMain, DialogImageViewer *imageView);
+  explicit PanelClassification(atom::ObjectList *objectMap, joda::settings::Classification *settings, WindowMain *windowMain,
+                               DialogImageViewer *imageView);
   void fromSettings(const joda::settings::Classification &settings);
   void toSettings();
   [[nodiscard]] auto getClasses() const -> std::map<enums::ClassIdIn, QString>;
@@ -74,7 +76,7 @@ private:
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
-  joda::settings::Classification &mSettings;
+  joda::settings::Classification *mSettings;
   PlaceholderTableWidget *mClasses;
 
   /// DIALOG //////////////////////////////////////////////////

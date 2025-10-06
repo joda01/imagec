@@ -341,7 +341,8 @@ void WindowMain::createLeftToolbar()
 
   // Classification tab
   {
-    mPanelClassification = new PanelClassification(mAnalyzeSettings.projectSettings.classification, this, mPreviewImage);
+    mPanelClassification =
+        new PanelClassification(&mPreviewResult.results.objectMap, &mAnalyzeSettings.projectSettings.classification, this, mPreviewImage);
     createDock("Classification", mPanelClassification);
   }
 

@@ -17,6 +17,7 @@
 #include <qlineedit.h>
 #include <qpushbutton.h>
 #include <filesystem>
+#include "backend/artifacts/roi/roi.hpp"
 #include "backend/commands/classification/pixel_classifier/pixel_classifier.hpp"
 #include "backend/commands/classification/pixel_classifier/pixel_classifier_settings.hpp"
 #include "backend/commands/classification/pixel_classifier/pixel_classifier_training_settings.hpp"
@@ -46,7 +47,8 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-DialogMlTrainer::DialogMlTrainer(PanelImageView *imagePanel, QWidget *parent) : QDialog(parent), mImagePanel(imagePanel)
+DialogMlTrainer::DialogMlTrainer(atom::ObjectList *objectMap, PanelImageView *imagePanel, QWidget *parent) :
+    QDialog(parent), mImagePanel(imagePanel), mObjectMap(objectMap)
 {
   setWindowTitle("Machine learning");
   setMinimumSize(300, 400);
@@ -115,8 +117,8 @@ DialogMlTrainer::DialogMlTrainer(PanelImageView *imagePanel, QWidget *parent) : 
 
   {
     mRoiSource = new QComboBox();
-    mRoiSource->addItem("Manual annotated objects", static_cast<int>(PaintedRoiProperties::SourceType::Manual));
-    mRoiSource->addItem("Pipeline annotated objects", static_cast<int>(PaintedRoiProperties::SourceType::FromPipeline));
+    mRoiSource->addItem("Manual annotated objects", static_cast<int>(joda::atom::ROI::Category::MANUAL_SEGMENTATION));
+    mRoiSource->addItem("Pipeline annotated objects", static_cast<int>(joda::atom::ROI::Category::AUTO_SEGMENTATION));
     mRoiSource->addItem("Any annotated object", -1);
     layout->addRow("Training data", mRoiSource);
   }
@@ -186,24 +188,23 @@ void DialogMlTrainer::closeEvent(QCloseEvent *event)
 ///
 void DialogMlTrainer::startTraining()
 {
-  std::set<PaintedRoiProperties::SourceType> filter;
+  std::set<joda::atom::ROI::Category> filter;
   if(mRoiSource->currentData().toInt() < 0) {
-    filter.emplace(PaintedRoiProperties::SourceType::Manual);
-    filter.emplace(PaintedRoiProperties::SourceType::FromPipeline);
+    filter.emplace(joda::atom::ROI::Category::MANUAL_SEGMENTATION);
+    filter.emplace(joda::atom::ROI::Category::AUTO_SEGMENTATION);
   } else {
-    filter.emplace(static_cast<PaintedRoiProperties::SourceType>(mRoiSource->currentData().toInt()));
+    filter.emplace(static_cast<joda::atom::ROI::Category>(mRoiSource->currentData().toInt()));
   }
 
   //
   // First of all we get the objects to train
   //
-  atom::ObjectListWithNone annotatedObjectsToTrain;
-  mImagePanel->getObjectMapFromAnnotatedRegions(filter, annotatedObjectsToTrain);
+  //  atom::ObjectList annotatedObjectsToTrain;
 
   //
   // At least one background annotation must be present
   //
-  if(!annotatedObjectsToTrain.contains(enums::ClassId::NONE) || annotatedObjectsToTrain.at(enums::ClassId::NONE)->empty()) {
+  if(!mObjectMap->contains(enums::ClassId::NONE) || mObjectMap->at(enums::ClassId::NONE)->empty()) {
     QMessageBox::warning(this, "Annotation missing ...", "At least one >NONE< annotation must be taken!");
     return;
   }
@@ -214,7 +215,7 @@ void DialogMlTrainer::startTraining()
   std::map<enums::ClassId, int32_t> classesToTrainMapping;
   classesToTrainMapping.emplace(enums::ClassId::NONE, 0);    // None is always the background/zero class
   int32_t pixelClassId = 1;
-  for(const auto &[classId, _] : annotatedObjectsToTrain) {
+  for(const auto &[classId, _] : *mObjectMap) {
     if(classId != enums::ClassId::NONE) {
       classesToTrainMapping.emplace(classId, pixelClassId);
       pixelClassId++;
@@ -249,7 +250,7 @@ void DialogMlTrainer::startTraining()
     mTrainerSettings.trainingClasses = classesToTrainMapping;
     mTrainerSettings.features        = features;
     mTrainerSettings.outPath         = modelPath;
-    joda::cmd::PixelClassifier::train(*mImagePanel->mutableImage()->getOriginalImage(), annotatedObjectsToTrain, mTrainerSettings);
+    joda::cmd::PixelClassifier::train(*mImagePanel->mutableImage()->getOriginalImage(), *mObjectMap, mTrainerSettings);
   } else {
     QMessageBox::warning(this, "Annotation missing ...", "No annotation for training found!");
   }

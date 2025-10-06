@@ -81,6 +81,12 @@ public:
     cv::Mat intersectedMask = {};
   };
 
+  enum class Category
+  {
+    AUTO_SEGMENTATION,
+    MANUAL_SEGMENTATION
+  };
+
   /////////////////////////////////////////////////////
 
   ROI();
@@ -351,6 +357,24 @@ public:
   auto calcIntensity(const cv::Mat &imageOriginal) const -> Intensity;
   bool isTouchingTheImageEdge() const;
 
+  // Meta Information ///////////////////////////////////////////////////
+  void setIsSelected(bool selected)
+  {
+    mIsSelected = selected;
+  }
+  bool isSelected() const
+  {
+    return mIsSelected;
+  }
+  auto getCategory() const -> Category
+  {
+    return mCategory;
+  }
+  void setCategory(Category cat)
+  {
+    mCategory = cat;
+  }
+
 private:
   /////////////////////////////////////////////////////
   [[nodiscard]] uint64_t calcAreaSize() const;
@@ -393,5 +417,9 @@ private:
   static inline std::atomic<uint64_t> mGlobalUniqueObjectId   = 1;
   static inline std::atomic<uint64_t> mGlobalUniqueTrackingId = 1;
   std::set<ROI *> mLinkedWith;    // Temporary object to store linked objects and create a linked object IF afterwards
+
+  // Meta Information ///////////////////////////////////////////////////
+  bool mIsSelected   = false;
+  Category mCategory = Category::AUTO_SEGMENTATION;
 };
 }    // namespace joda::atom

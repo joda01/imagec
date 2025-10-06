@@ -60,9 +60,8 @@ DialogPreviewResults::DialogPreviewResults(joda::ctrl::Preview *previewResult, P
   mResultsTable->setAlternatingRowColors(false);
   mResultsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
   mResultsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-  mTableModel = new TableModelPreviewResult(classes, mResultsTable);
+  mTableModel = new TableModelPreviewResult(&previewResult->results, classes, mResultsTable);
   mResultsTable->setModel(mTableModel);
-  mTableModel->setData(&mPreviewResult->results);
   layoutMy->addWidget(mResultsTable);
 
   setLayout(new QVBoxLayout);

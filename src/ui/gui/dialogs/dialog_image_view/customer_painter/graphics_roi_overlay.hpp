@@ -24,17 +24,25 @@ class ContourOverlay;
 class RoiOverlay : public QGraphicsPixmapItem
 {
 public:
-  RoiOverlay(const joda::atom::ObjectMap *, const joda::settings::Classification *);
+  RoiOverlay(const joda::atom::ObjectMap *, const joda::settings::Classification *, ContourOverlay *);
 
   /////////////////////////////////////////////////////
   void setOverlay(const cv::Size &imageSize, const cv::Size &previewSize);
   void refresh();
   void setAlpha(float);
+  void setFill(bool fill)
+  {
+    mFill = fill;
+    refresh();
+  }
+  void setClassesToHide(const std::set<joda::enums::ClassId> &toHide);
+  void setSelectable(bool select);
 
 private:
   /////////////////////////////////////////////////////
+  void prepareContour(const joda::atom::ROI *roi, const QColor &colBorder);
   void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-  [[nodiscard]] const joda::atom::ROI *findRoiAt(const QPointF &itemPoint) const;
+  [[nodiscard]] joda::atom::ROI *findRoiAt(const QPointF &itemPoint) const;
 
   /////////////////////////////////////////////////////
   cv::Size mImageSize;
@@ -42,9 +50,15 @@ private:
   const joda::atom::ObjectMap *mObjectMap                       = nullptr;
   const joda::settings::Classification *mClassificationSettings = nullptr;
   QGraphicsOpacityEffect *mOpacityEffect;
-  float mAlpha = 0.8F;
-  bool mFill   = true;
+  float mAlpha     = 0.8F;
+  bool mFill       = true;
+  bool mSelectable = false;
 
   /////////////////////////////////////////////////////
-  std::set<const joda::atom::ROI *> mSelectedRois;
+  std::set<joda::enums::ClassId> mToHide;
+  std::set<joda::atom::ROI *> mSelectedRois;
+  ContourOverlay *mContourOverlay;
+
+  // Cntours ///////////////
+  std::vector<std::pair<QColor, std::vector<QPointF>>> mContourPreparedPoints;
 };

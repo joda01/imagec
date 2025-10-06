@@ -39,7 +39,7 @@ class DialogRoiManager : public QWidget
 
 public:
   /////////////////////////////////////////////////////
-  DialogRoiManager(PanelImageView *imagePanel, QWidget *parent);
+  DialogRoiManager(atom::ObjectList *objectMap, const joda::settings::Classification *classSettings, PanelImageView *imagePanel, QWidget *parent);
 
 signals:
   void dialogDisappeared();    // custom signal

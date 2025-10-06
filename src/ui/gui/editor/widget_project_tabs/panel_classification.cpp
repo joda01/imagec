@@ -42,8 +42,10 @@
 
 namespace joda::ui::gui {
 
-PanelClassification::PanelClassification(joda::settings::Classification &settings, WindowMain *windowMain, DialogImageViewer *imageView) :
-    mWindowMain(windowMain), mSettings(settings)
+PanelClassification::PanelClassification(atom::ObjectList *objectMap, joda::settings::Classification *settings, WindowMain *windowMain,
+                                         DialogImageViewer *imageView) :
+    mWindowMain(windowMain),
+    mSettings(settings)
 {
   mClassSettingsDialog = new DialogClassSettings(windowMain);
   auto *layout         = new QVBoxLayout();
@@ -132,7 +134,7 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
         int selectedRow = ranges.first().topRow();
         if(selectedRow > 0) {
           selectedRow--;    // Row zero is None
-          auto actClass = mSettings.classes.begin();
+          auto actClass = mSettings->classes.begin();
           std::advance(actClass, selectedRow);
 
           joda::settings::Class newCreatedClass;
@@ -141,7 +143,7 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
           newCreatedClass.defaultMeasurements = actClass->defaultMeasurements;
           newCreatedClass.name                = actClass->name + " (copy)";
           newCreatedClass.notes               = actClass->notes;
-          mSettings.classes.emplace_back(newCreatedClass);
+          mSettings->classes.emplace_back(newCreatedClass);
 
           onSettingChanged();
         }
@@ -163,9 +165,9 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
         if(selectedRow > 0) {
           if(askForDeleteClass()) {
             mClasses->removeRow(selectedRow);
-            auto it = mSettings.classes.begin();
+            auto it = mSettings->classes.begin();
             std::advance(it, selectedRow - 1);
-            mSettings.classes.erase(it);
+            mSettings->classes.erase(it);
             onSettingChanged();
           }
         }
@@ -226,7 +228,7 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
       splitPane->addWidget(mClasses);
     }
     {
-      splitPane->addWidget(new DialogRoiManager(imageView->getImagePanel(), mWindowMain));
+      splitPane->addWidget(new DialogRoiManager(objectMap, settings, imageView->getImagePanel(), mWindowMain));
     }
 
     layout->addWidget(splitPane);
@@ -256,7 +258,7 @@ PanelClassification::PanelClassification(joda::settings::Classification &setting
         imgPanel->setClassIdToUseForDrawing(enums::ClassId::NONE, QColor(NONE_COLOR.data()));
       } else {
         selectedRow--;
-        auto it = mSettings.classes.begin();
+        auto it = mSettings->classes.begin();
         std::advance(it, selectedRow);
         imgPanel->setClassIdToUseForDrawing(it->classId, QColor(it->color.data()));
       }
@@ -290,7 +292,7 @@ void PanelClassification::addNoneClass()
 ///
 void PanelClassification::openEditDialog(int row, int /*column*/)
 {
-  auto it = mSettings.classes.begin();
+  auto it = mSettings->classes.begin();
   std::advance(it, row);
   if(mClassSettingsDialog->exec(*it) == 0) {
     onSettingChanged();
@@ -308,7 +310,7 @@ auto PanelClassification::findNextFreeClassId() -> enums::ClassId
 {
   std::set<enums::ClassId> classIds;
   // Sort class IDs
-  for(const auto &actualClass : mSettings.classes) {
+  for(const auto &actualClass : mSettings->classes) {
     classIds.emplace(actualClass.classId);
   }
   // Iterate over all classIds and find the first not used
@@ -337,7 +339,7 @@ void PanelClassification::addClass(bool withUpdate)
   joda::settings::Class newClass;
   newClass.classId = findNextFreeClassId();
   if(mClassSettingsDialog->exec(newClass) == 0) {
-    mSettings.classes.emplace_back(newClass);
+    mSettings->classes.emplace_back(newClass);
   }
   if(withUpdate) {
     onSettingChanged();
@@ -389,7 +391,7 @@ void PanelClassification::fromSettings(const joda::settings::Classification &set
 {
   mClasses->blockSignals(true);
   mClasses->setRowCount(static_cast<int32_t>(settings.classes.size()) + 1);    // +1 because none is always shown
-  mSettings = settings;
+  *mSettings = settings;
 
   //
   // Load classes
@@ -413,7 +415,7 @@ void PanelClassification::fromSettings(const joda::settings::Classification &set
 void PanelClassification::toSettings()
 {
   int32_t row = 1;    // we start at 1 because 0 is none.
-  for(auto &classs : mSettings.classes) {
+  for(auto &classs : mSettings->classes) {
     QTableWidgetItem *itemNotes = mClasses->item(row, COL_NOTES);
     QString classNotes;
     if(itemNotes != nullptr && !itemNotes->text().isEmpty()) {
@@ -439,7 +441,7 @@ auto PanelClassification::getSelectedClass() const -> enums::ClassId
     if(selectedRow == 0) {
       return enums::ClassId::NONE;
     }
-    auto it = mSettings.classes.begin();
+    auto it = mSettings->classes.begin();
     std::advance(it, selectedRow - 1);
     return it->classId;
   }
@@ -470,7 +472,7 @@ auto PanelClassification::getSelectedClass() const -> enums::ClassId
   classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::TEMP_08), QString("Memory 08"));
   classes.emplace(static_cast<enums::ClassIdIn>(enums::ClassIdIn::TEMP_09), QString("Memory 09"));
 
-  for(const auto &classs : mSettings.classes) {
+  for(const auto &classs : mSettings->classes) {
     classes.emplace(static_cast<enums::ClassIdIn>(classs.classId), QString(classs.name.data()));
   }
 
@@ -486,7 +488,7 @@ auto PanelClassification::getSelectedClass() const -> enums::ClassId
 ///
 void PanelClassification::onSettingChanged()
 {
-  fromSettings(mSettings);
+  fromSettings(*mSettings);
   toSettings();
   mWindowMain->checkForSettingsChanged();
   emit settingsChanged();
@@ -607,7 +609,7 @@ void PanelClassification::newTemplate()
   mWindowMain->mutableSettings().projectSettings.classification.meta.icon     = "";
   mWindowMain->mutableSettings().projectSettings.classification.meta.name     = "";
   mWindowMain->mutableSettings().projectSettings.classification.meta.name     = "User defined";
-  mSettings.classes.clear();
+  mSettings->classes.clear();
   onSettingChanged();
 }
 
@@ -639,7 +641,7 @@ void PanelClassification::openTemplate(const QString &path)
 ///
 void PanelClassification::populateClassesFromImage()
 {
-  if(mSettings.classes.empty() || askForChangeTemplateIndex()) {
+  if(mSettings->classes.empty() || askForChangeTemplateIndex()) {
     auto [path, series, omeInfo] = mWindowMain->getImagePanel()->getSelectedImageOrFirst();
     if(path.empty()) {
       joda::log::logError("No images found! Please select an image directory first!");
@@ -739,7 +741,7 @@ void PanelClassification::moveClassToPosition(int32_t fromPos, int32_t newPosIn)
     mClasses->selectRow(toRow);
   };
 
-  moveElementToListPosition(mSettings.classes, fromPos - 1, newPosIn - 1);    // -1 because the first element in the table is none
+  moveElementToListPosition(mSettings->classes, fromPos - 1, newPosIn - 1);    // -1 because the first element in the table is none
   moveRow(fromPos, newPosIn);
 
   mWindowMain->checkForSettingsChanged();

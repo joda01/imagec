@@ -99,8 +99,7 @@ void PixelClassifier::execute(processor::ProcessContext & /*context*/, cv::Mat &
 /// \param[out]
 /// \return
 ///
-void PixelClassifier::train(const cv::Mat &image, const atom::ObjectListWithNone &result,
-                            const settings::PixelClassifierTrainingSettings &trainingSettings)
+void PixelClassifier::train(const cv::Mat &image, const atom::ObjectList &result, const settings::PixelClassifierTrainingSettings &trainingSettings)
 {
   if(trainingSettings.features.empty()) {
     throw std::invalid_argument("At least one feature must be selected!");
@@ -423,7 +422,7 @@ cv::Ptr<cv::ml::StatModel> PixelClassifier::loadModel(const std::filesystem::pat
 /// \return
 ///
 void PixelClassifier::prepareTrainingDataFromROI(const cv::Mat &image, const std::map<enums::ClassId, int32_t> &classesToTrain,
-                                                 const atom::ObjectListWithNone &regionOfInterest, cv::Mat &trainSamples, cv::Mat &trainLabels,
+                                                 const atom::ObjectList &regionOfInterest, cv::Mat &trainSamples, cv::Mat &trainLabels,
                                                  const std::set<joda::settings::PixelClassifierFeatures> &featuresSet, bool normalizeForMLP)
 {
   // Extract features

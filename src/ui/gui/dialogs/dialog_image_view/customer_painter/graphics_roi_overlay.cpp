@@ -26,8 +26,8 @@
 /// \param[out]
 /// \return
 ///
-RoiOverlay::RoiOverlay(const joda::atom::ObjectMap *objectMap, const joda::settings::Classification *classSettings) :
-    mObjectMap(objectMap), mClassificationSettings(classSettings)
+RoiOverlay::RoiOverlay(const joda::atom::ObjectMap *objectMap, const joda::settings::Classification *classSettings, ContourOverlay *contourOverlay) :
+    mObjectMap(objectMap), mClassificationSettings(classSettings), mContourOverlay(contourOverlay)
 {
   mOpacityEffect = new QGraphicsOpacityEffect();
   this->setGraphicsEffect(mOpacityEffect);
@@ -62,9 +62,14 @@ void RoiOverlay::refresh()
   // Create a QImage with ARGB32 (direct pixel access)
   QImage qimg(mImageSize.width, mImageSize.height, QImage::Format_ARGB32);
   qimg.fill(Qt::transparent);
+  mContourPreparedPoints.clear();
 
   // Optimization 1: Pre-calculate the pixel value and alpha blending
   for(const auto &[clasId, classs] : *mObjectMap) {
+    if(mToHide.contains(clasId)) {
+      continue;
+    }
+
     const auto &classSetting = mClassificationSettings->getClassFromId(clasId);
 
     // Optimization 2: Use QImage::pixel format for direct pixel manipulation
@@ -72,12 +77,15 @@ void RoiOverlay::refresh()
     QRgb pixelValue  = qRgb(col.red(), col.green(), col.blue());
 
     for(const auto &roi : *classs) {
-      if(mSelectedRois.contains(&roi)) {
-        const auto colTmp = QColor(classSetting.color.c_str()).darker(200);
-        pixelValue        = qRgb(colTmp.red(), colTmp.green(), colTmp.blue());
+      if(roi.isSelected()) {
+        const QColor colTmp = Qt::yellow;
+        pixelValue          = qRgb(colTmp.red(), colTmp.green(), colTmp.blue());
       } else {
         pixelValue = qRgb(col.red(), col.green(), col.blue());
       }
+
+      // Prepare contour
+      prepareContour(&roi, col);
 
       // Optimization 3: Efficiently access Mat data
       const auto &mask = roi.getMask();
@@ -150,6 +158,36 @@ void RoiOverlay::refresh()
   prepareGeometryChange();
   setPixmap(pix);
   setAlpha(mAlpha);
+  mContourOverlay->refresh(&mContourPreparedPoints, mPreviewSize);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void RoiOverlay::prepareContour(const joda::atom::ROI *roi, const QColor &colBorder)
+{
+  double scaleX = static_cast<double>(mPreviewSize.width) / static_cast<double>(mImageSize.width);
+  double scaleY = static_cast<double>(mPreviewSize.height) / static_cast<double>(mImageSize.height);
+
+  const auto &contour = roi->getContour();
+  const auto &box     = roi->getBoundingBoxTile();
+  std::vector<QPointF> points;
+  points.reserve(contour.size());    // Pre-allocate memory
+  const double offsetX = static_cast<double>(box.x) * scaleX;
+  const double offsetY = static_cast<double>(box.y) * scaleY;
+  for(const auto &cont : contour) {
+    QPointF itemPoint(static_cast<double>(cont.x) * scaleX + offsetX, static_cast<double>(cont.y) * scaleY + offsetY);
+    points.push_back(itemPoint);
+  }
+  if(roi->isSelected()) {
+    mContourPreparedPoints.emplace_back(Qt::yellow, points);
+  } else {
+    mContourPreparedPoints.emplace_back(colBorder, points);
+  }
 }
 
 ///
@@ -175,24 +213,21 @@ void RoiOverlay::setAlpha(float alpha)
 ///
 void RoiOverlay::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-  if(event->button() == Qt::LeftButton) {
+  if(mSelectable && event->button() == Qt::LeftButton) {
+    for(const auto &roi : mSelectedRois) {
+      roi->setIsSelected(false);
+    }
+    mSelectedRois.clear();
     // 1. Get the click point in the item's local coordinates
     QPointF clickPoint = event->pos();
 
-    std::cout << "Clicked " << std::to_string(clickPoint.x()) << "|" << std::to_string(clickPoint.y()) << std::endl;
-
     // 2. Find which ROI contains this point
-    const joda::atom::ROI *clickedRoi = findRoiAt(clickPoint);
-
-    // 3. Update the selected state
-    if(!mSelectedRois.contains(clickedRoi)) {
+    joda::atom::ROI *clickedRoi = findRoiAt(clickPoint);
+    if(clickedRoi != nullptr) {
+      clickedRoi->setIsSelected(true);
       mSelectedRois.emplace(clickedRoi);
-      refresh();    // Forces a redraw to show the highlight
-    } else if(clickedRoi != nullptr) {
-      // Clicked on the already selected ROI: deselect it
-      mSelectedRois.erase(clickedRoi);
-      refresh();
     }
+    refresh();
   }
   QGraphicsPixmapItem::mousePressEvent(event);    // Call base class
 }
@@ -204,14 +239,14 @@ void RoiOverlay::mousePressEvent(QGraphicsSceneMouseEvent *event)
 /// \param[out]
 /// \return
 ///
-const joda::atom::ROI *RoiOverlay::findRoiAt(const QPointF &itemPoint) const
+joda::atom::ROI *RoiOverlay::findRoiAt(const QPointF &itemPoint) const
 {
   double scaleX = static_cast<double>(mPreviewSize.width) / static_cast<double>(mImageSize.width);
   double scaleY = static_cast<double>(mPreviewSize.height) / static_cast<double>(mImageSize.height);
 
   // Reverse iteration is often preferred so clicking selects the top-most item
   for(const auto &[clasId, classs] : *mObjectMap) {
-    for(const auto &roi : *classs) {
+    for(auto &roi : *classs) {
       // 1. Get the local coordinates of the click relative to the ROI's origin
       // The itemPoint is in the parent's coordinates.
       const auto &box  = roi.getBoundingBoxTile();
@@ -219,7 +254,6 @@ const joda::atom::ROI *RoiOverlay::findRoiAt(const QPointF &itemPoint) const
 
       // 2. Check if the point is within the *unscaled* ROI dimensions
       if(roiPoint.x() >= 0 && roiPoint.y() >= 0 && roiPoint.x() < box.width * scaleX && roiPoint.y() < box.height * scaleY) {
-        std::cout << "Found" << std::endl;
         // This is the efficient check: check the original mask pixel
         const cv::Mat &mask = roi.getMask();
         if(mask.empty()) {
@@ -233,8 +267,6 @@ const joda::atom::ROI *RoiOverlay::findRoiAt(const QPointF &itemPoint) const
         if(y < mask.rows && x < mask.cols) {
           // Check the mask pixel value (assuming the mask is 8UC1)
           if(mask.at<uint8_t>(y, x) > 0) {
-            std::cout << "Found Ptr" << std::endl;
-
             return &roi;    // Return the pointer to the selected ROI
           }
         }
@@ -242,4 +274,29 @@ const joda::atom::ROI *RoiOverlay::findRoiAt(const QPointF &itemPoint) const
     }
   }
   return nullptr;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void RoiOverlay::setClassesToHide(const std::set<joda::enums::ClassId> &toHide)
+{
+  mToHide = toHide;
+  refresh();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void RoiOverlay::setSelectable(bool select)
+{
+  mSelectable = select;
 }

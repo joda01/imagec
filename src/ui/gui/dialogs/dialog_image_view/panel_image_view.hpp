@@ -22,6 +22,7 @@
 #include <mutex>
 #include <string>
 #include <utility>
+#include "backend/artifacts/roi/roi.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_units.hpp"
 #include "backend/enums/types.hpp"
@@ -29,8 +30,6 @@
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "controller/controller.hpp"
 #include "ui/gui/dialogs/dialog_image_view/customer_painter/graphics_contour_overlay.hpp"
-#include "ui/gui/dialogs/dialog_image_view/graphics_polygon.hpp"
-#include "ui/gui/dialogs/dialog_image_view/painted_roi_properties.hpp"
 #include <opencv2/core/types.hpp>
 
 class RoiOverlay;
@@ -99,7 +98,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  PanelImageView(const atom::ObjectMap *objectMap, const joda::settings::Classification *classSettings, QWidget *parent = nullptr);
+  PanelImageView(atom::ObjectList *objectMap, const joda::settings::Classification *classSettings, QWidget *parent = nullptr);
   void openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo = nullptr);
   void setEditedImage(const joda::image::Image &&edited);
   void reloadImage();
@@ -137,13 +136,10 @@ public:
   auto mutableImage() -> joda::image::Image *;
 
   // REGION OF INTERESTS //////////////////////////////////////////////
-  auto getObjectMapFromAnnotatedRegions(const std::set<PaintedRoiProperties::SourceType> &filter, atom::ObjectListWithNone &,
-                                        enums::ClassId classFilter = enums::ClassId::UNDEFINED) -> void;
   void setRegionsOfInterestFromObjectList();
-  void clearRegionOfInterest(PaintedRoiProperties::SourceType sourceToDelete = PaintedRoiProperties::SourceType::FromPipeline);
-  auto getPtrToPolygons() -> std::map<QGraphicsItem *, PaintedRoiProperties> *;
-  void setSelectedRois(const std::set<QGraphicsItem *> &idxs);
-  void deleteRois(const std::set<QGraphicsItem *> &idx);
+  void clearRegionOfInterest(joda::atom::ROI::Category sourceToDelete = joda::atom::ROI::Category::AUTO_SEGMENTATION);
+  void setSelectedRois(const std::set<const joda::atom::ROI *> &idxs);
+  void deleteRois(const std::set<const joda::atom::ROI *> &idx);
   void deleteSelectedRois();
   void setFillRois(bool);
   void setShowRois(bool);
@@ -159,7 +155,7 @@ signals:
   void onImageRepainted();
   void tileClicked(int32_t tileX, int32_t tileY);
   void paintedPolygonsChanged();
-  void paintedPolygonClicked(QList<QGraphicsItem *>);
+  void paintedPolygonClicked(std::vector<atom::ROI *>);
 
 private:
   /////////////////////////////////////////////////////
@@ -180,6 +176,7 @@ private:
   auto imageCoordinatesToPreviewCoordinates(const QPoint &imageCoordinates) -> QPoint;
   auto imageCoordinatesToPreviewCoordinates(const QRect &imageCoordinates) -> QRect;
   void setCursor();
+  void addPolygonToToObjectMap(const QPolygonF &);
 
 private:
   /////////////////////////////////////////////////////
@@ -216,20 +213,18 @@ private:
   QGraphicsScene *scene           = nullptr;
 
   // STATE AND PAINTING ///////////////////////////////////////////////////
-  State mState = State::MOVE;
-  std::map<QGraphicsItem *, PaintedRoiProperties> mPolygonItems;
+  State mState                    = State::MOVE;
   RoiOverlay *mOverlayMasks       = nullptr;
   ContourOverlay *mContourOverlay = nullptr;
   PaintedRoi_t mActPaintingRoi;
   std::set<enums::ClassId> mRoiClassesToHide;
 
   QPointF mPaintOrigin;
-  QAbstractGraphicsShapeItem *mRubberItem      = nullptr;
-  QAbstractGraphicsShapeItem *mLastPaintedItem = nullptr;
-  bool mDrawPolygon                            = false;
+  QAbstractGraphicsShapeItem *mRubberItem = nullptr;
+  bool mDrawPolygon                       = false;
   std::vector<QPointF> mPolygonPoints;
   QGraphicsLineItem *mTempPolygonLine;
-  MyPolygonItem *mTempPolygonItem;
+  QGraphicsPolygonItem *mTempPolygonItem;
   enums::ClassId mSelectedClassForDrawing = enums::ClassId::NONE;
   QColor mPixelClassColor                 = Qt::gray;
 
@@ -272,6 +267,7 @@ private:
   bool mShowRois   = true;
   bool mSelectable = true;
   const joda::settings::Classification *mClassSettings;
+  atom::ObjectList *mObjectMap;
 
   mutable std::mutex mImageResetMutex;
 

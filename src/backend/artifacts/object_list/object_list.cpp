@@ -209,4 +209,170 @@ void SpheralIndex::cloneFromOther(const SpheralIndex &other)
   }
 }
 
+/////////////////////////////////////////////////////
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ObjectList::push_back(const ROI &roi)
+{
+  if(!contains(roi.getClassId())) {
+    SpheralIndex idx{};
+    operator[](roi.getClassId())->cloneFromOther(idx);
+  }
+  bool insertedRet     = false;
+  const auto &inserted = at(roi.getClassId())->emplace(roi, insertedRet);
+  if(insertedRet) {
+    if(0 != inserted.getObjectId()) {
+      std::lock_guard<std::mutex> lock(mInsertLock);
+      objectsOrderedByObjectId[inserted.getObjectId()] = &inserted;
+    }
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ObjectList::erase(const ROI *roi)
+{
+  if(contains(roi->getClassId())) {
+    at(roi->getClassId())->erase(roi);
+  }
+  objectsOrderedByObjectId.erase(roi->getObjectId());
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ObjectList::erase(enums::ClassId classToErase)
+{
+  ObjectMap::erase(classToErase);
+
+  for(auto it = objectsOrderedByObjectId.begin(); it != objectsOrderedByObjectId.end();) {
+    if((it->second != nullptr) && it->second->getClassId() == classToErase) {
+      it = objectsOrderedByObjectId.erase(it);    // erase returns the next valid iterator
+    } else {
+      ++it;
+    }
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ObjectList::erase(joda::atom::ROI::Category categoryToErase)
+{
+  std::vector<ROI *> toErase;
+
+  for(const auto &[classId, rois] : *this) {
+    for(auto &roi : *rois) {
+      if(roi.getCategory() == categoryToErase) {
+        toErase.emplace_back(&roi);
+      }
+    }
+  }
+
+  for(auto *roi : toErase) {
+    erase(roi);
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+std::unique_ptr<SpheralIndex> &ObjectList::operator[](enums::ClassId classId)
+{
+  if(!contains(classId)) {
+    auto newS = std::make_unique<SpheralIndex>();
+    emplace(classId, std::move(newS));
+  }
+  return at(classId);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+[[nodiscard]] const ROI *ObjectList::getObjectById(uint64_t objectId) const
+{
+  return objectsOrderedByObjectId.at(objectId);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+[[nodiscard]] bool ObjectList::containsObjectById(uint64_t objectId) const
+{
+  return objectsOrderedByObjectId.contains(objectId);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+ObjectList &ObjectList::operator=(ObjectList &&other) noexcept
+{
+  if(this != &other) {
+    this->clear();
+    ObjectMap::operator=(std::move(other));
+    objectsOrderedByObjectId.swap(other.objectsOrderedByObjectId);
+  }
+  return *this;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+ObjectList::ObjectList(ObjectList &&other) noexcept
+{
+  if(this != &other) {
+    ObjectMap::operator=(std::move(other));
+    objectsOrderedByObjectId.swap(other.objectsOrderedByObjectId);
+  }
+}
+
+[[nodiscard]] size_t ObjectList::sizeList() const
+{
+  return objectsOrderedByObjectId.size();
+}
+
+[[nodiscard]] size_t ObjectList::sizeClasses() const
+{
+  return ObjectMap::size();
+}
+
 }    // namespace joda::atom

@@ -17,6 +17,8 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include "backend/artifacts/object_list/object_list.hpp"
+#include "backend/artifacts/roi/roi.hpp"
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/helper/base32.hpp"
@@ -25,29 +27,27 @@
 
 namespace joda::ui::gui {
 
-TableModelPaintedPolygon::TableModelPaintedPolygon(QObject *parent) : QAbstractTableModel(parent)
+TableModelPaintedPolygon::TableModelPaintedPolygon(const joda::settings::Classification *classification, atom::ObjectList *polygons,
+                                                   QObject *parent) :
+    QAbstractTableModel(parent),
+    mClassification(classification), mObjectMap(polygons)
 {
   if(parent == nullptr) {
     throw std::runtime_error("Parent must not be empty and of type QTableView.");
   }
 }
 
-void TableModelPaintedPolygon::setData(std::map<QGraphicsItem *, PaintedRoiProperties> *polygons)
-{
-  mPolygons = polygons;
-}
-
 int TableModelPaintedPolygon::rowCount(const QModelIndex & /*parent*/) const
 {
-  if(mPolygons == nullptr) {
+  if(mObjectMap == nullptr) {
     return 0;
   }
-  return static_cast<int>(mPolygons->size());
+  return static_cast<int>(mObjectMap->sizeList());
 }
 
 int TableModelPaintedPolygon::columnCount(const QModelIndex & /*parent*/) const
 {
-  if(mPolygons == nullptr) {
+  if(mObjectMap == nullptr) {
     return 0;
   }
   return 1;
@@ -62,7 +62,7 @@ int TableModelPaintedPolygon::columnCount(const QModelIndex & /*parent*/) const
 ///
 QVariant TableModelPaintedPolygon::headerData(int section, Qt::Orientation /*orientation*/, int role) const
 {
-  if(mPolygons == nullptr) {
+  if(mObjectMap == nullptr) {
     return {};
   }
   if(role != Qt::DisplayRole) {
@@ -83,36 +83,38 @@ QVariant TableModelPaintedPolygon::headerData(int section, Qt::Orientation /*ori
 ///
 QVariant TableModelPaintedPolygon::data(const QModelIndex &index, int role) const
 {
-  if(mPolygons == nullptr) {
+  if(mObjectMap == nullptr) {
     return {};
   }
 
-  if(index.row() < 0 || index.row() >= static_cast<int32_t>(mPolygons->size())) {
+  if(index.row() < 0 || index.row() >= static_cast<int32_t>(mObjectMap->sizeList())) {
     return {};
   }
 
-  auto it = mPolygons->begin();
+  const auto *list = mObjectMap->getObjectList();
+
+  auto it = list->begin();
   std::advance(it, index.row());
 
   if(role == CLASS_ROLE) {
-    return static_cast<int32_t>(it->second.classId);
+    return static_cast<int32_t>(it->second->getClassId());
   }
 
   if(role == Qt::UserRole) {
-    return it->second.pixelClassColor;
+    return mClassification->getClassFromId(it->second->getClassId()).color.c_str();
   }
 
   if(role == Qt::DisplayRole) {
-    if(it->second.source == PaintedRoiProperties::SourceType::Manual) {
-      if(it->second.classId == enums::ClassId::NONE) {
+    if(it->second->getCategory() == joda::atom::ROI::Category::MANUAL_SEGMENTATION) {
+      if(it->second->getClassId() == enums::ClassId::NONE) {
         return "None";
       }
       if(index.column() == 0) {
-        return "Annotation " + QString::number(static_cast<int32_t>(it->second.classId));
+        return "Annotation " + QString::number(static_cast<int32_t>(it->second->getClassId()));
       }
     } else {
       if(index.column() == 0) {
-        return "Class " + QString::number(static_cast<int32_t>(it->second.classId));
+        return "Class " + QString::number(static_cast<int32_t>(it->second->getClassId()));
       }
     }
 
@@ -131,12 +133,13 @@ QVariant TableModelPaintedPolygon::data(const QModelIndex &index, int role) cons
 /// \param[out]
 /// \return
 ///
-auto TableModelPaintedPolygon::getCell(int row) -> PaintedRoiProperties *
+auto TableModelPaintedPolygon::getCell(int row) -> const atom::ROI *
 {
-  if(row >= 0 && row < static_cast<int32_t>(mPolygons->size())) {
-    auto it = mPolygons->begin();
+  const auto *list = mObjectMap->getObjectList();
+  if(row >= 0 && row < static_cast<int32_t>(list->size())) {
+    auto it = list->begin();
     std::advance(it, row);
-    return &it->second;
+    return it->second;
   }
   return nullptr;
 }
@@ -154,11 +157,13 @@ void TableModelPaintedPolygon::refresh()
 /// \param[out]
 /// \return
 ///
-int32_t TableModelPaintedPolygon::indexFor(QGraphicsItem *item) const
+int32_t TableModelPaintedPolygon::indexFor(atom::ROI *item) const
 {
-  auto it = mPolygons->find(item);
-  if(it != mPolygons->end()) {
-    size_t index = std::distance(mPolygons->begin(), it);
+  const auto *list = mObjectMap->getObjectList();
+
+  auto it = list->find(item->getObjectId());
+  if(it != list->end()) {
+    size_t index = std::distance(list->begin(), it);
     return static_cast<int32_t>(index);
   }
   return 0;

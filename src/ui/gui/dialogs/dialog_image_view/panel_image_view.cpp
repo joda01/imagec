@@ -24,6 +24,7 @@
 #include <ranges>
 #include <string>
 #include <utility>
+#include "backend/artifacts/roi/roi.hpp"
 #include "backend/commands/classification/classifier/classifier_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_units.hpp"
@@ -32,7 +33,6 @@
 #include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"
 #include "ui/gui/dialogs/dialog_image_view/customer_painter/graphics_roi_overlay.hpp"
-#include "ui/gui/dialogs/dialog_image_view/graphics_polygon.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/matx.hpp>
 #include <opencv2/core/types.hpp>
@@ -51,8 +51,9 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-PanelImageView::PanelImageView(const atom::ObjectMap *objectMap, const joda::settings::Classification *classSettings, QWidget *parent) :
-    QGraphicsView(parent), mImageToShow(&mPreviewImages.originalImage), scene(new QGraphicsScene(this)), mClassSettings(classSettings)
+PanelImageView::PanelImageView(atom::ObjectList *objectMap, const joda::settings::Classification *classSettings, QWidget *parent) :
+    QGraphicsView(parent), mImageToShow(&mPreviewImages.originalImage), scene(new QGraphicsScene(this)), mClassSettings(classSettings),
+    mObjectMap(objectMap)
 {
   // setViewport(new QOpenGLWidget());
   setScene(scene);
@@ -76,10 +77,10 @@ PanelImageView::PanelImageView(const atom::ObjectMap *objectMap, const joda::set
   setFrameShape(Shape::NoFrame);
   setCursor();
 
-  mOverlayMasks = new RoiOverlay(objectMap, classSettings);
-  scene->addItem(mOverlayMasks);
+  mContourOverlay = new ContourOverlay();
+  mOverlayMasks   = new RoiOverlay(objectMap, classSettings, mContourOverlay);
 
-  mContourOverlay = new ContourOverlay(objectMap, classSettings);
+  scene->addItem(mOverlayMasks);
   scene->addItem(mContourOverlay);
 
   connect(this, &PanelImageView::updateImage, this, &PanelImageView::onUpdateImage);
@@ -211,29 +212,6 @@ auto PanelImageView::mutableImage() -> joda::image::Image *
 /// \param[out]
 /// \return
 ///
-auto PanelImageView::getObjectMapFromAnnotatedRegions(const std::set<PaintedRoiProperties::SourceType> &filter, atom::ObjectListWithNone &objectMap,
-                                                      enums::ClassId classFilter) -> void
-{
-  const auto &size = mImageToShow->getPreviewImageSize();
-  for(const auto &[_, polyRoi] : mPolygonItems) {
-    if(!filter.contains(polyRoi.source)) {
-      continue;
-    }
-    if(classFilter != enums::ClassId::UNDEFINED && polyRoi.classId != classFilter) {
-      continue;
-    }
-    joda::atom::ROI roi = polyRoi.qPolygonToRoi(mImageToShow->getOriginalImage(), {size.width(), size.height()});
-    objectMap.push_back(roi);    // We also allow none
-  }
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 void PanelImageView::setRegionsOfInterestFromObjectList()
 {
   const auto &size = mImageToShow->getPreviewImageSize();
@@ -241,9 +219,6 @@ void PanelImageView::setRegionsOfInterestFromObjectList()
     mOverlayMasks->setOverlay({mPreviewImages.originalImage.getOriginalImage()->cols, mPreviewImages.originalImage.getOriginalImage()->rows},
                               {size.width(), size.height()});
     mOverlayMasks->setZValue(100.0);
-
-    mContourOverlay->setOverlay({mPreviewImages.originalImage.getOriginalImage()->cols, mPreviewImages.originalImage.getOriginalImage()->rows},
-                                {size.width(), size.height()});
     mContourOverlay->setZValue(200.0);
   }
   emit paintedPolygonsChanged();
@@ -258,42 +233,8 @@ void PanelImageView::setRegionsOfInterestFromObjectList()
 ///
 void PanelImageView::refreshRoiColors()
 {
-  if(mClassSettings == nullptr) {
-    return;
-  }
-  for(auto &[_, polyRoi] : mPolygonItems) {
-    if(polyRoi.source == PaintedRoiProperties::SourceType::FromPipeline) {
-      QColor color = QColor(mClassSettings->getClassFromId(polyRoi.classId).color.c_str());
-      QPolygonF polygon;
-      QBrush brush = Qt::NoBrush;
-      if(mFillRoi) {
-        QColor transparency = color;
-        transparency.setAlphaF(mOpaque);
-        brush = QBrush(transparency, Qt::SolidPattern);
-      }
-      auto pen = QPen(color, 3);
-      pen.setCosmetic(true);
-      polyRoi.item->setPen(pen);
-      polyRoi.item->setBrush(brush);
-      polyRoi.pixelClassColor = color;
-    }
-  }
-
   mOverlayMasks->refresh();
-  mContourOverlay->refresh();
   emit paintedPolygonsChanged();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-auto PanelImageView::getPtrToPolygons() -> std::map<QGraphicsItem *, PaintedRoiProperties> *
-{
-  return &mPolygonItems;
 }
 
 ///
@@ -620,20 +561,16 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
   } else if(mState == State::SELECT) {
     QList<QGraphicsItem *> selected = scene->selectedItems();
     if(!selected.empty()) {
-      emit paintedPolygonClicked(selected);
+      // emit paintedPolygonClicked(selected);
       return;
     } else {
       setSelectedRois({});
-      emit paintedPolygonClicked(selected);
+      // emit paintedPolygonClicked(selected);
     }
     mActualSelected = selected;
   } else {
     if(event->button() == Qt::LeftButton) {
       // Now start a new drawing
-      if(nullptr != mLastPaintedItem) {
-        mLastPaintedItem->setFlag(QGraphicsItem::ItemIsSelectable, false);
-        mLastPaintedItem->setFlag(QGraphicsItem::ItemIsMovable, false);
-      }
       auto pen = QPen(Qt::blue, 3, Qt::DashLine);
       pen.setCosmetic(true);
       // Start rectangle in scene coordinates
@@ -648,7 +585,9 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
           mPolygonPoints.clear();
           mPolygonPoints.push_back(mPaintOrigin);
 
-          mTempPolygonItem = new MyPolygonItem(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()), pen, Qt::NoBrush);
+          mTempPolygonItem = new QGraphicsPolygonItem(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()));
+          mTempPolygonItem->setPen(pen);
+          mTempPolygonItem->setBrush(Qt::NoBrush);
           scene->addItem(mTempPolygonItem);
         } else {
           mPolygonPoints.push_back(mPaintOrigin);
@@ -672,30 +611,12 @@ void PanelImageView::mouseDoubleClickEvent(QMouseEvent *event)
     if(mState == State::PAINT_POLYGON) {
       // Finish polygon
       mTempPolygonItem->setPolygon(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()));    // final update
-      auto pen = QPen(mPixelClassColor, 3);
-      pen.setCosmetic(true);
-      mTempPolygonItem->setPen(pen);    // optional fill
 
-      QBrush brush = Qt::NoBrush;
-      if(mFillRoi) {
-        QColor transparency = mPixelClassColor;
-        transparency.setAlphaF(mOpaque);
-        brush = QBrush(transparency, Qt::SolidPattern);
-      }
-      mTempPolygonItem->setBrush(brush);    // optional fill
-      mTempPolygonItem->setFlag(QGraphicsItem::ItemIsSelectable, true);
-      mTempPolygonItem->setFlag(QGraphicsItem::ItemIsMovable, true);
-      mLastPaintedItem = mTempPolygonItem;
-      mPolygonItems.emplace(mTempPolygonItem, PaintedRoiProperties{.classId         = mSelectedClassForDrawing,
-                                                                   .pixelClassColor = mPixelClassColor,
-                                                                   .item            = mTempPolygonItem,
-                                                                   .source          = PaintedRoiProperties::SourceType::Manual});
+      addPolygonToToObjectMap(mTempPolygonItem->polygon());
 
-      if(mHideManualAnnotations) {
-        mTempPolygonItem->setVisible(false);
-      }
-
-      // Clean up temporary data
+      // Remove the temporary rubber rectangle
+      scene->removeItem(mTempPolygonItem);
+      delete mTempPolygonItem;
       mTempPolygonItem = nullptr;
       mPolygonPoints.clear();
       mDrawPolygon = false;
@@ -811,28 +732,7 @@ void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
         poly = ellipseToPolygon(dynamic_cast<QGraphicsEllipseItem *>(mRubberItem));
       }
 
-      // Add polygon to scene as a proper polygon item
-      QBrush brush = Qt::NoBrush;
-      if(mFillRoi) {
-        QColor transparency = mPixelClassColor;
-        transparency.setAlphaF(mOpaque);
-        brush = QBrush(transparency, Qt::SolidPattern);
-      }
-      auto pen = QPen(mPixelClassColor, 3);
-      pen.setCosmetic(true);
-      auto *polygon = new MyPolygonItem(poly, pen, brush);
-      scene->addItem(polygon);
-      polygon->setFlag(QGraphicsItem::ItemIsSelectable, true);
-      polygon->setFlag(QGraphicsItem::ItemIsMovable, true);
-      mLastPaintedItem = polygon;
-      mPolygonItems.emplace(polygon, PaintedRoiProperties{.classId         = mSelectedClassForDrawing,
-                                                          .pixelClassColor = mPixelClassColor,
-                                                          .item            = polygon,
-                                                          .source          = PaintedRoiProperties::SourceType::Manual});
-
-      if(mHideManualAnnotations) {
-        polygon->setVisible(false);
-      }
+      addPolygonToToObjectMap(poly);
 
       // Remove the temporary rubber rectangle
       scene->removeItem(mRubberItem);
@@ -1408,16 +1308,12 @@ void PanelImageView::getThumbnailAreaEntered(QMouseEvent *event)
 /// \param[out]
 /// \return
 ///
-void PanelImageView::setSelectedRois(const std::set<QGraphicsItem *> &idxs)
+void PanelImageView::setSelectedRois(const std::set<const joda::atom::ROI *> &idxs)
 {
   // ==============================
   // First rest old selections
   // ==============================
   scene->clearSelection();
-
-  for(auto &item : idxs) {
-    item->setSelected(true);
-  }
 }
 
 ///
@@ -1427,17 +1323,10 @@ void PanelImageView::setSelectedRois(const std::set<QGraphicsItem *> &idxs)
 /// \param[out]
 /// \return
 ///
-void PanelImageView::deleteRois(const std::set<QGraphicsItem *> &idxs)
+void PanelImageView::deleteRois(const std::set<const joda::atom::ROI *> &idxs)
 {
-  for(auto it = mPolygonItems.begin(); it != mPolygonItems.end();) {
-    if(idxs.contains(it->first)) {
-      delete it->first;                // free the QGraphicsItem
-      it = mPolygonItems.erase(it);    // erase returns next iterator
-    } else {
-      ++it;
-    }
-  }
-
+  mObjectMap->clear();
+  mOverlayMasks->refresh();
   emit paintedPolygonsChanged();
 }
 
@@ -1450,8 +1339,6 @@ void PanelImageView::deleteRois(const std::set<QGraphicsItem *> &idxs)
 ///
 void PanelImageView::deleteSelectedRois()
 {
-  QList<QGraphicsItem *> selected = scene->selectedItems();
-  deleteRois({selected.begin(), selected.end()});
 }
 
 ///
@@ -1461,17 +1348,10 @@ void PanelImageView::deleteSelectedRois()
 /// \param[out]
 /// \return
 ///
-void PanelImageView::clearRegionOfInterest(PaintedRoiProperties::SourceType sourceToDelete)
+void PanelImageView::clearRegionOfInterest(joda::atom::ROI::Category sourceToDelete)
 {
-  for(auto it = mPolygonItems.begin(); it != mPolygonItems.end();) {
-    if(it->second.source == sourceToDelete) {
-      delete it->first;                // free the QGraphicsItem
-      it = mPolygonItems.erase(it);    // erase returns next iterator
-    } else {
-      ++it;
-    }
-  }
-
+  mObjectMap->erase(sourceToDelete);
+  mOverlayMasks->refresh();
   emit paintedPolygonsChanged();
 }
 
@@ -1484,23 +1364,11 @@ void PanelImageView::clearRegionOfInterest(PaintedRoiProperties::SourceType sour
 ///
 void PanelImageView::setFillRois(bool fill)
 {
-  mFillRoi     = fill;
-  QBrush brush = Qt::NoBrush;
-  for(auto &[_, poly] : mPolygonItems) {
-    if(fill) {
-      QColor transparency = poly.pixelClassColor;
-      transparency.setAlphaF(mOpaque);
-      brush = QBrush(transparency, Qt::SolidPattern);
-    }
-    poly.item->setBrush(brush);
-  }
+  mFillRoi = fill;
 
   if(mOverlayMasks != nullptr) {
     mOverlayMasks->setAlpha(mOpaque);
-  }
-
-  if(mContourOverlay != nullptr) {
-    mContourOverlay->setAlpha(mOpaque);
+    mOverlayMasks->setFill(fill);
   }
 
   emit paintedPolygonsChanged();
@@ -1582,9 +1450,8 @@ void PanelImageView::setShowThumbnail(bool showThumbnail)
 void PanelImageView::setShowRois(bool show)
 {
   mShowRois = show;
-  for(auto &[_, poly] : mPolygonItems) {
-    poly.item->setVisible(show);
-  }
+  mOverlayMasks->setVisible(show);
+  mContourOverlay->setVisible(show);
 }
 
 ///
@@ -1597,22 +1464,7 @@ void PanelImageView::setShowRois(bool show)
 void PanelImageView::setRoisToHide(const std::set<enums::ClassId> &toHide)
 {
   mRoiClassesToHide = toHide;
-
-  for(auto &[_, poly] : mPolygonItems) {
-    if(poly.source == PaintedRoiProperties::SourceType::Manual) {
-      if(mHideManualAnnotations) {
-        poly.item->setVisible(false);
-      } else {
-        poly.item->setVisible(true);
-      }
-    } else {
-      if(mRoiClassesToHide.contains(poly.classId)) {
-        poly.item->setVisible(false);
-      } else {
-        poly.item->setVisible(true);
-      }
-    }
-  }
+  mOverlayMasks->setClassesToHide(toHide);
 }
 
 ///
@@ -1625,12 +1477,7 @@ void PanelImageView::setRoisToHide(const std::set<enums::ClassId> &toHide)
 void PanelImageView::setRoisSelectable(bool selectable)
 {
   mSelectable = selectable;
-  for(auto &[_, poly] : mPolygonItems) {
-    poly.item->setFlag(QGraphicsItem::ItemIsSelectable, selectable);
-    if(poly.source == PaintedRoiProperties::SourceType::Manual) {
-      poly.item->setFlag(QGraphicsItem::ItemIsMovable, selectable);
-    }
-  }
+  mOverlayMasks->setSelectable(selectable);
 }
 
 ///
@@ -1826,6 +1673,18 @@ void PanelImageView::setWaiting(bool waiting)
   mWaiting = waiting;
   update();
   viewport()->update();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::addPolygonToToObjectMap(const QPolygonF &polygon)
+{
+  // mObjectMap->emplace({});
 }
 
 }    // namespace joda::ui::gui

@@ -241,67 +241,33 @@ using ObjectMap = std::map<enums::ClassId, std::unique_ptr<SpheralIndex>>;
 class ObjectList : public ObjectMap
 {
 public:
-  void push_back(const ROI &roi)
+  /////////////////////////////////////////////////////
+  ObjectList()             = default;
+  ObjectList(ObjectList &) = delete;
+  ObjectList(ObjectList &&other) noexcept;
+  ObjectList &operator=(ObjectList &&other) noexcept;
+
+  void push_back(const ROI &roi);
+  void erase(const ROI *roi);
+  void erase(enums::ClassId classToErase);
+  void erase(joda::atom::ROI::Category categoryToErase);
+  virtual std::unique_ptr<SpheralIndex> &operator[](enums::ClassId classId);
+  [[nodiscard]] const ROI *getObjectById(uint64_t objectId) const;
+  [[nodiscard]] bool containsObjectById(uint64_t objectId) const;
+  [[nodiscard]] size_t sizeList() const;
+  [[nodiscard]] size_t sizeClasses() const;
+  auto getObjectList() -> const std::map<uint64_t, const ROI *> *
   {
-    if(!contains(roi.getClassId())) {
-      SpheralIndex idx{};
-      operator[](roi.getClassId())->cloneFromOther(idx);
-    }
-    bool insertedRet     = false;
-    const auto &inserted = at(roi.getClassId())->emplace(roi, insertedRet);
-    if(insertedRet) {
-      if(0 != inserted.getObjectId()) {
-        std::lock_guard<std::mutex> lock(mInsertLock);
-        objectsOrderedByObjectId[inserted.getObjectId()] = &inserted;
-      }
-    }
+    return &objectsOrderedByObjectId;
   }
 
-  void erase(const ROI *roi)
-  {
-    if(contains(roi->getClassId())) {
-      at(roi->getClassId())->erase(roi);
-    }
-    objectsOrderedByObjectId.erase(roi->getObjectId());
-  }
-
-  void erase(enums::ClassId classToErase)
-  {
-    ObjectMap::erase(classToErase);
-
-    for(auto it = objectsOrderedByObjectId.begin(); it != objectsOrderedByObjectId.end();) {
-      if((it->second != nullptr) && it->second->getClassId() == classToErase) {
-        it = objectsOrderedByObjectId.erase(it);    // erase returns the next valid iterator
-      } else {
-        ++it;
-      }
-    }
-  }
-
-  virtual std::unique_ptr<SpheralIndex> &operator[](enums::ClassId classId)
-  {
-    if(!contains(classId)) {
-      auto newS = std::make_unique<SpheralIndex>();
-      emplace(classId, std::move(newS));
-    }
-    return at(classId);
-  }
-
-  [[nodiscard]] const ROI *getObjectById(uint64_t objectId) const
-  {
-    return objectsOrderedByObjectId.at(objectId);
-  }
-
-  [[nodiscard]] bool containsObjectById(uint64_t objectId) const
-  {
-    return objectsOrderedByObjectId.contains(objectId);
-  }
-
+private:
   std::map<uint64_t, const ROI *> objectsOrderedByObjectId;
   std::mutex mInsertLock;
 };
 
-class ObjectListWithNone : public ObjectList
+/*
+class ObjectList : public ObjectList
 {
 public:
   using ObjectList::ObjectList;
@@ -315,5 +281,5 @@ public:
     return at(classId);
   }
 };
-
+*/
 }    // namespace joda::atom

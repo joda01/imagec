@@ -327,7 +327,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
                                 const settings::AnalyzeSettings &program, const joda::thread::ThreadingSettings &threadingSettings,
                                 const settings::Pipeline &pipelineStart, const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack,
                                 int32_t tileX, int32_t tileY, bool generateThumb, const ome::OmeInfo &ome)
-    -> std::tuple<cv::Mat, cv::Mat, cv::Mat, enums::ChannelValidity, joda::atom::ObjectMap>
+    -> std::tuple<cv::Mat, cv::Mat, cv::Mat, enums::ChannelValidity, joda::atom::ObjectList>
 {
   auto ii = DurationCount::start("Generate preview with >" + std::to_string(threadingSettings.coresUsed) + "< threads.");
 
@@ -383,7 +383,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
     totalRuns += pipelines.size();
   }
 
-  std::tuple<cv::Mat, cv::Mat, cv::Mat, enums::ChannelValidity, joda::atom::ObjectMap> tmpResult;
+  std::tuple<cv::Mat, cv::Mat, cv::Mat, enums::ChannelValidity, joda::atom::ObjectList> tmpResult;
   bool finished = false;
 
   size_t executedSteps = 0;

@@ -52,7 +52,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  DialogImageViewer(QWidget *parent, const atom::ObjectMap *objectMap, joda::settings::AnalyzeSettings *settings, QToolBar *toolbarParent = nullptr);
+  DialogImageViewer(QWidget *parent, atom::ObjectList *objectMap, joda::settings::AnalyzeSettings *settings, QToolBar *toolbarParent = nullptr);
   ~DialogImageViewer();
 
   // IMAGE CONTROL ///////////////////////////////

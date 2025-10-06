@@ -26,8 +26,10 @@
 
 namespace joda::ui::gui {
 
-TableModelPreviewResult::TableModelPreviewResult(const joda::settings::Classification &classSettings, QObject *parent) :
-    QAbstractTableModel(parent), mClassSettings(classSettings)
+TableModelPreviewResult::TableModelPreviewResult(joda::ctrl::Preview::PreviewResults *results, const joda::settings::Classification &classSettings,
+                                                 QObject *parent) :
+    QAbstractTableModel(parent),
+    mPreviewResult(results), mClassSettings(classSettings)
 
 {
   if(parent == nullptr) {
@@ -47,19 +49,13 @@ TableModelPreviewResult::TableModelPreviewResult(const joda::settings::Classific
   base64IconHash = loadSvg("irc-operator");
 }
 
-void TableModelPreviewResult::setData(joda::ctrl::Preview::PreviewResults *results)
-{
-  mPreviewResult = results;
-  refresh();
-}
-
 int TableModelPreviewResult::rowCount(const QModelIndex & /*parent*/) const
 {
   if(mPreviewResult == nullptr) {
     return 0;
   }
 
-  return static_cast<int32_t>(mPreviewResult->objectMap.size());
+  return static_cast<int32_t>(mPreviewResult->objectMap.sizeClasses());
 }
 
 int TableModelPreviewResult::columnCount(const QModelIndex & /*parent*/) const

@@ -10,11 +10,11 @@
 ///
 
 #include <qabstractitemmodel.h>
+#include "backend/artifacts/roi/roi.hpp"
 #include "backend/helper/table/table.hpp"
 #include "backend/processor/initializer/pipeline_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
-#include "ui/gui/dialogs/dialog_image_view/painted_roi_properties.hpp"
 
 namespace joda::ui::gui {
 
@@ -31,18 +31,18 @@ public:
   static constexpr int32_t CLASS_ROLE = 0x101;
 
   /////////////////////////////////////////////////////
-  TableModelPaintedPolygon(QObject *parent = nullptr);
-  void setData(std::map<QGraphicsItem *, PaintedRoiProperties> *polygons);
-  auto getCell(int row) -> PaintedRoiProperties *;
+  TableModelPaintedPolygon(const joda::settings::Classification *classification, atom::ObjectList *polygons, QObject *parent = nullptr);
+  auto getCell(int row) -> const atom::ROI *;
   int rowCount(const QModelIndex &parent = QModelIndex()) const override;
   int columnCount(const QModelIndex &parent = QModelIndex()) const override;
   QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
   QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
   void refresh();
-  int32_t indexFor(QGraphicsItem *) const;
+  int32_t indexFor(atom::ROI *) const;
 
 private:
-  std::map<QGraphicsItem *, PaintedRoiProperties> *mPolygons = nullptr;
+  const joda::settings::Classification *mClassification = nullptr;
+  atom::ObjectList *mObjectMap                          = nullptr;
 };
 
 }    // namespace joda::ui::gui

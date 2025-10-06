@@ -21,13 +21,13 @@
 
 class ContourOverlay : public QGraphicsItem
 {
+  friend class RoiOverlay;
+
 public:
-  ContourOverlay(const joda::atom::ObjectMap *, const joda::settings::Classification *, QGraphicsItem *parent = nullptr);
+  ContourOverlay(QGraphicsItem *parent = nullptr);
 
   /////////////////////////////////////////////////////
-  void setOverlay(const cv::Size &imageSize, const cv::Size &previewSize);
-  void refresh();
-  void setAlpha(float);
+  void refresh(const std::vector<std::pair<QColor, std::vector<QPointF>>> *, const cv::Size &previewSize);
 
 private:
   /////////////////////////////////////////////////////
@@ -43,12 +43,6 @@ private:
     return QRectF{0, 0, static_cast<qreal>(mPreviewSize.width), static_cast<qreal>(mPreviewSize.height)};
   }
 
-  /////////////////////////////////////////////////////
-  cv::Size mImageSize;
   cv::Size mPreviewSize;
-  const joda::atom::ObjectMap *mObjectMap                       = nullptr;
-  const joda::settings::Classification *mClassificationSettings = nullptr;
-
-  std::vector<std::pair<QColor, std::vector<QPointF>>> mPointsToPaint;
-  std::mutex mMutex;
+  const std::vector<std::pair<QColor, std::vector<QPointF>>> *mData = nullptr;
 };
