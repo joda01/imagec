@@ -50,10 +50,9 @@ private:
   cv::Size mPreviewSize;
   const joda::atom::ObjectMap *mObjectMap                       = nullptr;
   const joda::settings::Classification *mClassificationSettings = nullptr;
-  QGraphicsOpacityEffect *mOpacityEffect;
-  float mAlpha     = 0.8F;
-  bool mFill       = true;
-  bool mSelectable = false;
+  float mAlpha                                                  = 0.8F;
+  bool mFill                                                    = true;
+  bool mSelectable                                              = false;
 
   /////////////////////////////////////////////////////
   std::set<joda::enums::ClassId> mToHide;

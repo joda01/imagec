@@ -30,8 +30,6 @@
 RoiOverlay::RoiOverlay(const joda::atom::ObjectMap *objectMap, const joda::settings::Classification *classSettings, ContourOverlay *contourOverlay) :
     mObjectMap(objectMap), mClassificationSettings(classSettings), mContourOverlay(contourOverlay)
 {
-  mOpacityEffect = new QGraphicsOpacityEffect();
-  this->setGraphicsEffect(mOpacityEffect);
 }
 
 ///
@@ -195,8 +193,7 @@ void RoiOverlay::prepareContour(const joda::atom::ROI *roi, const QColor &colBor
 void RoiOverlay::setAlpha(float alpha)
 {
   mAlpha = alpha;
-  mOpacityEffect->setOpacity(static_cast<double>(mAlpha));
-  // update();    // Request a redraw
+  setOpacity(mAlpha);
 }
 
 ///

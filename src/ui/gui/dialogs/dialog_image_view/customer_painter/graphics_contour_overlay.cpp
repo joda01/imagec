@@ -52,7 +52,6 @@ void ContourOverlay::refresh(const ColorMap_t *data, const cv::Size &previewSize
 ///
 void ContourOverlay::paint(QPainter *painter, const QStyleOptionGraphicsItem * /*option*/, QWidget * /*widget*/)
 {
-  return;
   if(mData == nullptr) {
     return;
   }
