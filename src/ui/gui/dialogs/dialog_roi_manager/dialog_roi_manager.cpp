@@ -90,7 +90,7 @@ DialogRoiManager::DialogRoiManager(const std::shared_ptr<atom::ObjectList> &obje
 
   {
     mPolygonsTable = new PlaceholderTableView(this);
-    mPolygonsTable->setPlaceholderText("Press the + button to add a new pipeline.");
+    mPolygonsTable->setPlaceholderText("No annotations");
     mPolygonsTable->setFrameStyle(QFrame::NoFrame);
     mPolygonsTable->verticalHeader()->setVisible(false);
     mPolygonsTable->horizontalHeader()->setVisible(true);
