@@ -100,7 +100,8 @@ public:
       mBoundingBoxReal(input.mBoundingBoxReal), mMask(std::move(input.mMask)), mMaskContours(std::move(input.mMaskContours)),
       mImageSize(input.mImageSize), mOriginalImageSize(input.mOriginalImageSize), mAreaSize(input.mAreaSize), mPerimeter(input.mPerimeter),
       mCircularity(input.mCircularity), mCentroid(input.mCentroid), mParentObjectId(input.mParentObjectId), mTrackingId(input.mTrackingId),
-      mIntensity(std::move(input.mIntensity)), mOriginObjectId(input.mOriginObjectId), mLinkedWith(std::move(input.mLinkedWith))
+      mIntensity(std::move(input.mIntensity)), mOriginObjectId(input.mOriginObjectId), mLinkedWith(std::move(input.mLinkedWith)),
+      mIsSelected(input.mIsSelected), mCategory(input.mCategory)
   {
     CV_Assert(mMask.type() == CV_8UC1);
   }
@@ -108,12 +109,13 @@ public:
   ROI(bool isNull, uint64_t objectId, RoiObjectId id, Confidence confidence, Boxes boundingBoxTile, Boxes boundingBoxReal, cv::Mat mask,
       std::vector<cv::Point> maskContours, cv::Size imageSize, cv::Size originalImageSize, double areaSize, float perimeter, float circularity,
       std::map<enums::ImageId, Intensity> intensity, uint64_t originObjectId, cv::Point centroid, uint64_t parentObjectId, uint64_t linkedObjectId,
-      std::set<ROI *> linkedWith) :
+      std::set<ROI *> linkedWith, bool isSelected, Category category) :
       mIsNull(isNull),
       mObjectId(objectId), mId(std::move(id)), mConfidence(confidence), mBoundingBoxTile(boundingBoxTile), mBoundingBoxReal(boundingBoxReal),
       mMask(std::move(mask)), mMaskContours(std::move(maskContours)), mImageSize(imageSize), mOriginalImageSize(originalImageSize),
       mAreaSize(areaSize), mPerimeter(perimeter), mCircularity(circularity), mCentroid(centroid), mParentObjectId(parentObjectId),
-      mTrackingId(linkedObjectId), mIntensity(std::move(intensity)), mOriginObjectId(originObjectId), mLinkedWith(std::move(linkedWith))
+      mTrackingId(linkedObjectId), mIntensity(std::move(intensity)), mOriginObjectId(originObjectId), mLinkedWith(std::move(linkedWith)),
+      mIsSelected(isSelected), mCategory(category)
   {
     CV_Assert(mMask.type() == CV_8UC1);
   }
@@ -125,9 +127,9 @@ public:
 
   [[nodiscard]] ROI clone() const
   {
-    return {mIsNull,         mObjectId,          mId,        mConfidence, mBoundingBoxTile, mBoundingBoxReal, mMask,           mMaskContours,
-            mImageSize,      mOriginalImageSize, mAreaSize,  mPerimeter,  mCircularity,     mIntensity,       mOriginObjectId, mCentroid,
-            mParentObjectId, mTrackingId,        mLinkedWith};
+    return {mIsNull,         mObjectId,          mId,         mConfidence, mBoundingBoxTile, mBoundingBoxReal, mMask,           mMaskContours,
+            mImageSize,      mOriginalImageSize, mAreaSize,   mPerimeter,  mCircularity,     mIntensity,       mOriginObjectId, mCentroid,
+            mParentObjectId, mTrackingId,        mLinkedWith, mIsSelected, mCategory};
   }
 
   [[nodiscard]] ROI clone(enums::ClassId newClassId, uint64_t newParentObjectId) const
@@ -150,7 +152,9 @@ public:
             mCentroid,
             newParentObjectId,
             mTrackingId,
-            mLinkedWith};
+            mLinkedWith,
+            mIsSelected,
+            mCategory};
   }
 
   [[nodiscard]] ROI copy() const
@@ -173,7 +177,9 @@ public:
             mCentroid,
             mParentObjectId,
             mTrackingId,
-            mLinkedWith};
+            mLinkedWith,
+            false,
+            mCategory};
   }
 
   [[nodiscard]] ROI copy(enums::ClassId newClassId, uint64_t newParentObjectId) const
@@ -196,7 +202,9 @@ public:
             mCentroid,
             newParentObjectId,
             mTrackingId,
-            mLinkedWith};
+            mLinkedWith,
+            false,
+            mCategory};
   }
 
   /// @brief  ATTENTION This method must be done befor the ROI is added to the spheral index

@@ -51,7 +51,7 @@ public:
 
   bool empty() const
   {
-    return grid.empty();
+    return mElements.empty();
   }
 
   void clear()
@@ -138,7 +138,6 @@ private:
 
   void erase(const ROI *eraseRoi)
   {
-    mElements.remove_if([eraseRoi](const ROI &obj) { return &obj == eraseRoi; });
     for(auto &[_, vec] : grid) {
       auto vecSizeBefore = vec.size();
       vec.erase(std::remove_if(vec.begin(), vec.end(), [eraseRoi](const ROI *obj) { return obj == eraseRoi; }), vec.end());
@@ -151,6 +150,7 @@ private:
         break;
       }
     }
+    mElements.remove_if([eraseRoi](const ROI &obj) { return &obj == eraseRoi; });
   }
 
   /////////////////////////////////////////////////////
@@ -161,10 +161,10 @@ private:
   const ROI &insertIntoGrid(const ROI &boxIn, bool &insertedRet)
   {
     // If class id is none, do not enter the ROI
-    if(!mAllowNonValues && boxIn.getClassId() == enums::ClassId::NONE) {
-      insertedRet = false;
-      return boxIn;
-    }
+    // if(!mAllowNonValues && boxIn.getClassId() == enums::ClassId::NONE) {
+    //  insertedRet = false;
+    //  return boxIn;
+    //}
     /// \todo generate an object ID
 
     //
@@ -242,12 +242,11 @@ class ObjectList : public ObjectMap
 {
 public:
   /////////////////////////////////////////////////////
-  ObjectList()             = default;
-  ObjectList(ObjectList &) = delete;
-  ObjectList(ObjectList &&other) noexcept;
-  ObjectList &operator=(ObjectList &&other) noexcept;
-
-  const ROI &emplace(const ROI &box) = delete;
+  ObjectList()                                       = default;
+  ObjectList(ObjectList &)                           = delete;
+  ObjectList(ObjectList &&other) noexcept            = delete;
+  ObjectList &operator=(ObjectList &&other) noexcept = delete;
+  const ROI &emplace(const ROI &box)                 = delete;
 
   void push_back(const ROI &roi);
   void erase(const ROI *roi);

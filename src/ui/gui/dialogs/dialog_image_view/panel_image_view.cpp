@@ -1712,6 +1712,7 @@ void PanelImageView::addPolygonToToObjectMap(const QPolygonF &poly)
 
   joda::atom::ROI paintedRoi(atom::ROI::RoiObjectId{.classId = mSelectedClassForDrawing, .imagePlane = {.tStack = 0, .zStack = 0, .cStack = 0}}, 1.0,
                              boundingBox, mask, contour, imageSize, imageSize, {0, 0}, imageSize);
+  paintedRoi.setCategory(joda::atom::ROI::Category::MANUAL_SEGMENTATION);
 
   mObjectMap->push_back(paintedRoi);
   mObjectMap->triggerChangeCallback();

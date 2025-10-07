@@ -745,7 +745,6 @@ void PanelPipelineSettings::setActive(bool setActive)
     mPreviewImage->getImagePanel()->setShowEditedImage(false);
     mDialogHistory->hide();
     mHistoryAction->setChecked(false);
-    mPreviewImage->getImagePanel()->clearRegionOfInterest();
     // Wait until preview render has been finished
     while(mPreviewInProgress) {
       std::this_thread::sleep_for(100ms);

@@ -331,6 +331,9 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
 {
   auto ii = DurationCount::start("Generate preview with >" + std::to_string(threadingSettings.coresUsed) + "< threads.");
 
+  // Prepare the output object class
+  previewOut.results.objectMap->erase(joda::atom::ROI::Category::AUTO_SEGMENTATION);
+
   // Prepare thread pool
   mGlobThreadPool.reset(threadingSettings.coresUsed);
   auto poolSizeChannels = threadingSettings.coresUsed;

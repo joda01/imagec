@@ -245,6 +245,9 @@ void ObjectList::erase(const ROI *roi)
 {
   if(contains(roi->getClassId())) {
     at(roi->getClassId())->erase(roi);
+    if(at(roi->getClassId())->empty()) {
+      ObjectMap::erase(roi->getClassId());
+    }
   }
   objectsOrderedByObjectId.erase(roi->getObjectId());
 }
@@ -258,8 +261,6 @@ void ObjectList::erase(const ROI *roi)
 ///
 void ObjectList::erase(enums::ClassId classToErase)
 {
-  ObjectMap::erase(classToErase);
-
   for(auto it = objectsOrderedByObjectId.begin(); it != objectsOrderedByObjectId.end();) {
     if((it->second != nullptr) && it->second->getClassId() == classToErase) {
       it = objectsOrderedByObjectId.erase(it);    // erase returns the next valid iterator
@@ -267,6 +268,8 @@ void ObjectList::erase(enums::ClassId classToErase)
       ++it;
     }
   }
+
+  ObjectMap::erase(classToErase);
 }
 
 ///
@@ -279,7 +282,6 @@ void ObjectList::erase(enums::ClassId classToErase)
 void ObjectList::erase(joda::atom::ROI::Category categoryToErase)
 {
   std::vector<ROI *> toErase;
-
   for(const auto &[classId, rois] : *this) {
     for(auto &roi : *rois) {
       if(roi.getCategory() == categoryToErase) {
@@ -340,6 +342,8 @@ std::unique_ptr<SpheralIndex> &ObjectList::operator[](enums::ClassId classId)
 /// \param[out]
 /// \return
 ///
+
+/*
 ObjectList &ObjectList::operator=(ObjectList &&other) noexcept
 {
   if(this != &other) {
@@ -349,6 +353,7 @@ ObjectList &ObjectList::operator=(ObjectList &&other) noexcept
   }
   return *this;
 }
+*/
 
 ///
 /// \brief
@@ -357,6 +362,7 @@ ObjectList &ObjectList::operator=(ObjectList &&other) noexcept
 /// \param[out]
 /// \return
 ///
+/*
 ObjectList::ObjectList(ObjectList &&other) noexcept
 {
   if(this != &other) {
@@ -364,6 +370,7 @@ ObjectList::ObjectList(ObjectList &&other) noexcept
     objectsOrderedByObjectId.swap(other.objectsOrderedByObjectId);
   }
 }
+  */
 
 [[nodiscard]] size_t ObjectList::sizeList() const
 {
