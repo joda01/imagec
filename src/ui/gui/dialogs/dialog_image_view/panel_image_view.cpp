@@ -86,6 +86,7 @@ PanelImageView::PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMa
   scene->addItem(mContourOverlay);
 
   connect(this, &PanelImageView::updateImage, this, &PanelImageView::onUpdateImage);
+  connect(mOverlayMasks, &RoiOverlay::paintedPolygonClicked, this, &PanelImageView::paintedPolygonClicked);
 }
 
 ///
@@ -542,10 +543,6 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
   QGraphicsView::mousePressEvent(event);
 
   if(mState == State::MOVE) {
-    for(auto &sel : mActualSelected) {
-      sel->setFlag(QGraphicsItem::ItemIsMovable, false);
-    }
-
     if(mShowCrosshandCursor && event->button() == Qt::RightButton) {
       mCrossCursorInfo.mCursorPos = event->pos();
       mCrossCursorInfo.pixelInfo  = fetchPixelInfoFromMousePosition(event->pos());
@@ -560,15 +557,6 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
     }
 
   } else if(mState == State::SELECT) {
-    QList<QGraphicsItem *> selected = scene->selectedItems();
-    if(!selected.empty()) {
-      // emit paintedPolygonClicked(selected);
-      return;
-    } else {
-      setSelectedRois({});
-      // emit paintedPolygonClicked(selected);
-    }
-    mActualSelected = selected;
   } else {
     if(event->button() == Qt::LeftButton) {
       // Now start a new drawing
@@ -1309,12 +1297,12 @@ void PanelImageView::getThumbnailAreaEntered(QMouseEvent *event)
 /// \param[out]
 /// \return
 ///
-void PanelImageView::setSelectedRois(const std::set<const joda::atom::ROI *> &idxs)
+void PanelImageView::setSelectedRois(const std::set<joda::atom::ROI *> &idxs)
 {
   // ==============================
   // First rest old selections
   // ==============================
-  scene->clearSelection();
+  mOverlayMasks->setSelectedRois(idxs);
 }
 
 ///

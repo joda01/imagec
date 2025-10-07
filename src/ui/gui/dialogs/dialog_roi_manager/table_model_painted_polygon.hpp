@@ -33,7 +33,7 @@ public:
   /////////////////////////////////////////////////////
   TableModelPaintedPolygon(const joda::settings::Classification *classification, const std::shared_ptr<atom::ObjectList> &polygons,
                            QObject *parent = nullptr);
-  auto getCell(int row) -> const atom::ROI *;
+  auto getCell(int row) -> atom::ROI *;
   int rowCount(const QModelIndex &parent = QModelIndex()) const override;
   int columnCount(const QModelIndex &parent = QModelIndex()) const override;
   QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;

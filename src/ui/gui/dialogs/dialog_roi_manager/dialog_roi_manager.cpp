@@ -106,7 +106,7 @@ DialogRoiManager::DialogRoiManager(const std::shared_ptr<atom::ObjectList> &obje
         mImagePanel->setSelectedRois({});
       } else {
         auto indexes = mPolygonsTable->selectionModel()->selectedIndexes();
-        std::set<const atom::ROI *> idxs;
+        std::set<atom::ROI *> idxs;
         for(const auto row : indexes) {
           idxs.emplace(mTableModel->getCell(row.row()));
         }
@@ -119,7 +119,7 @@ DialogRoiManager::DialogRoiManager(const std::shared_ptr<atom::ObjectList> &obje
   setLayout(layout);
 
   connect(imagePanel, &PanelImageView::paintedPolygonsChanged, [this]() { mTableModel->refresh(); });
-  connect(imagePanel, &PanelImageView::paintedPolygonClicked, [this](std::vector<atom::ROI *> idxs) {
+  connect(imagePanel, &PanelImageView::paintedPolygonClicked, [this](std::set<atom::ROI *> idxs) {
     bool firstRun = true;
     for(const auto &idx : idxs) {
       QModelIndex index = mPolygonsTable->model()->index(mTableModel->indexFor(idx), 0);    // pick column 0 for the row

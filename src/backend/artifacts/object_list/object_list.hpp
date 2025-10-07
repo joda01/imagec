@@ -126,12 +126,12 @@ public:
   }
 
 private:
-  const ROI &emplace(const ROI &box, bool &insertedRet)
+  ROI &emplace(const ROI &box, bool &insertedRet)
   {
     return insertIntoGrid(box, insertedRet);
   }
 
-  const ROI &push_back(const ROI &box, bool &insertedRet)
+  ROI &push_back(const ROI &box, bool &insertedRet)
   {
     return insertIntoGrid(box, insertedRet);
   }
@@ -158,7 +158,7 @@ private:
   unordered_map<pair<int, int>, std::vector<ROI *>, PairHash> grid;
   int mCellSize;
 
-  const ROI &insertIntoGrid(const ROI &boxIn, bool &insertedRet)
+  ROI &insertIntoGrid(const ROI &boxIn, bool &insertedRet)
   {
     // If class id is none, do not enter the ROI
     // if(!mAllowNonValues && boxIn.getClassId() == enums::ClassId::NONE) {
@@ -213,23 +213,23 @@ class SpheralIndexStandAlone : public SpheralIndex
 public:
   using SpheralIndex::SpheralIndex;
 
-  const ROI &emplace(const ROI &box, bool &insertedRet)
+  ROI &emplace(const ROI &box, bool &insertedRet)
   {
     return SpheralIndex::insertIntoGrid(box, insertedRet);
   }
 
-  const ROI &push_back(const ROI &box, bool &insertedRet)
+  ROI &push_back(const ROI &box, bool &insertedRet)
   {
     return SpheralIndex::insertIntoGrid(box, insertedRet);
   }
 
-  const ROI &emplace(const ROI &box)
+  ROI &emplace(const ROI &box)
   {
     bool insertedRet = false;
     return SpheralIndex::insertIntoGrid(box, insertedRet);
   }
 
-  const ROI &push_back(const ROI &box)
+  ROI &push_back(const ROI &box)
   {
     bool insertedRet = false;
     return SpheralIndex::insertIntoGrid(box, insertedRet);
@@ -257,7 +257,7 @@ public:
   [[nodiscard]] bool containsObjectById(uint64_t objectId) const;
   [[nodiscard]] size_t sizeList() const;
   [[nodiscard]] size_t sizeClasses() const;
-  auto getObjectList() -> const std::map<uint64_t, const ROI *> *
+  auto getObjectList() -> const std::map<uint64_t, ROI *> *
   {
     return &objectsOrderedByObjectId;
   }
@@ -273,7 +273,7 @@ public:
   }
 
 private:
-  std::map<uint64_t, const ROI *> objectsOrderedByObjectId;
+  std::map<uint64_t, ROI *> objectsOrderedByObjectId;
   std::mutex mInsertLock;
   std::vector<std::function<void()>> mChangeCallback;
 };

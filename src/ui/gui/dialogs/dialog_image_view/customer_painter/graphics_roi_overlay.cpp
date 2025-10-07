@@ -205,6 +205,26 @@ void RoiOverlay::setAlpha(float alpha)
 /// \param[out]
 /// \return
 ///
+void RoiOverlay::setSelectedRois(const std::set<joda::atom::ROI *> &idxs)
+{
+  for(const auto &roi : mSelectedRois) {
+    roi->setIsSelected(false);
+  }
+
+  for(const auto &elem : idxs) {
+    elem->setIsSelected(true);
+  }
+  mSelectedRois = idxs;
+  refresh();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void RoiOverlay::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
   if(mSelectable && event->button() == Qt::LeftButton) {
@@ -221,6 +241,7 @@ void RoiOverlay::mousePressEvent(QGraphicsSceneMouseEvent *event)
       clickedRoi->setIsSelected(true);
       mSelectedRois.emplace(clickedRoi);
     }
+    emit paintedPolygonClicked(mSelectedRois);
     refresh();
   }
   QGraphicsPixmapItem::mousePressEvent(event);    // Call base class

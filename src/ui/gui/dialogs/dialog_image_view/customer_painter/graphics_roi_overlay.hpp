@@ -14,6 +14,7 @@
 #include <qcolor.h>
 #include <qgraphicseffect.h>
 #include <qgraphicsitem.h>
+#include <qobject.h>
 #include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/artifacts/roi/roi.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
@@ -22,8 +23,10 @@
 
 class ContourOverlay;
 
-class RoiOverlay : public QGraphicsPixmapItem
+class RoiOverlay : public QObject, public QGraphicsPixmapItem
 {
+  Q_OBJECT
+
 public:
   RoiOverlay(const std::shared_ptr<joda::atom::ObjectList> &, const joda::settings::Classification *, ContourOverlay *);
 
@@ -38,6 +41,10 @@ public:
   }
   void setClassesToHide(const std::set<joda::enums::ClassId> &toHide);
   void setSelectable(bool select);
+  void setSelectedRois(const std::set<joda::atom::ROI *> &idxs);
+
+signals:
+  void paintedPolygonClicked(std::set<joda::atom::ROI *>);
 
 private:
   /////////////////////////////////////////////////////

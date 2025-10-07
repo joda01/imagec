@@ -133,7 +133,7 @@ QVariant TableModelPaintedPolygon::data(const QModelIndex &index, int role) cons
 /// \param[out]
 /// \return
 ///
-auto TableModelPaintedPolygon::getCell(int row) -> const atom::ROI *
+auto TableModelPaintedPolygon::getCell(int row) -> atom::ROI *
 {
   const auto *list = mObjectMap->getObjectList();
   if(row >= 0 && row < static_cast<int32_t>(list->size())) {

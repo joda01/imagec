@@ -224,8 +224,8 @@ void ObjectList::push_back(const ROI &roi)
     SpheralIndex idx{};
     operator[](roi.getClassId())->cloneFromOther(idx);
   }
-  bool insertedRet     = false;
-  const auto &inserted = at(roi.getClassId())->emplace(roi, insertedRet);
+  bool insertedRet = false;
+  auto &inserted   = at(roi.getClassId())->emplace(roi, insertedRet);
   if(insertedRet) {
     if(0 != inserted.getObjectId()) {
       std::lock_guard<std::mutex> lock(mInsertLock);

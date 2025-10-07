@@ -138,7 +138,7 @@ public:
   // REGION OF INTERESTS //////////////////////////////////////////////
   void setRegionsOfInterestFromObjectList();
   void clearRegionOfInterest(joda::atom::ROI::Category sourceToDelete = joda::atom::ROI::Category::AUTO_SEGMENTATION);
-  void setSelectedRois(const std::set<const joda::atom::ROI *> &idxs);
+  void setSelectedRois(const std::set<joda::atom::ROI *> &idxs);
   void deleteRois(const std::set<const joda::atom::ROI *> &idx);
   void deleteSelectedRois();
   void setFillRois(bool);
@@ -155,7 +155,7 @@ signals:
   void onImageRepainted();
   void tileClicked(int32_t tileX, int32_t tileY);
   void paintedPolygonsChanged();
-  void paintedPolygonClicked(std::vector<atom::ROI *>);
+  void paintedPolygonClicked(std::set<atom::ROI *>);
 
 private:
   /////////////////////////////////////////////////////
@@ -262,7 +262,6 @@ private:
   bool mHideManualAnnotations = false;
 
   // ROI///////////////////////////////////////////////////
-  QList<QGraphicsItem *> mActualSelected;
   bool mFillRoi    = false;
   bool mShowRois   = true;
   bool mSelectable = true;
