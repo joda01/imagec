@@ -1679,9 +1679,40 @@ void PanelImageView::setWaiting(bool waiting)
 /// \param[out]
 /// \return
 ///
-void PanelImageView::addPolygonToToObjectMap(const QPolygonF &polygon)
+void PanelImageView::addPolygonToToObjectMap(const QPolygonF &poly)
 {
-  // mObjectMap->emplace({});
+  const auto &size     = mImageToShow->getPreviewImageSize();
+  cv::Size imageSize   = {mPreviewImages.originalImage.getOriginalImage()->cols, mPreviewImages.originalImage.getOriginalImage()->rows};
+  cv::Size previewSize = {size.width(), size.height()};
+
+  double scaleX = static_cast<double>(imageSize.width) / static_cast<double>(previewSize.width);
+  double scaleY = static_cast<double>(imageSize.height) / static_cast<double>(previewSize.height);
+
+  // Convert to cv::Point
+  std::vector<cv::Point> contour;
+  contour.reserve(static_cast<size_t>(poly.size()));
+  for(int i = 0; i < poly.size(); ++i) {
+    contour.emplace_back(static_cast<int>(static_cast<float>(poly[i].x()) * scaleX), static_cast<int>(static_cast<float>(poly[i].y()) * scaleY));
+  }
+
+  // Make contour
+  auto boundingBox = cv::boundingRect(contour);
+  cv::Mat mask     = cv::Mat::zeros(boundingBox.size(), CV_8UC1);
+
+  // Bring the contours box in the area of the bounding box
+  for(auto &point : contour) {
+    point.x = point.x - boundingBox.x;
+    point.y = point.y - boundingBox.y;
+  }
+
+  std::vector<std::vector<cv::Point>> contours = {contour};
+  cv::drawContours(mask, contours, -1, cv::Scalar(255), cv::FILLED);
+
+  joda::atom::ROI paintedRoi(atom::ROI::RoiObjectId{.classId = mSelectedClassForDrawing, .imagePlane = {.tStack = 0, .zStack = 0, .cStack = 0}}, 1.0,
+                             boundingBox, mask, contour, imageSize, imageSize, {0, 0}, imageSize);
+
+  mObjectMap->push_back(paintedRoi);
+  mOverlayMasks->refresh();
 }
 
 }    // namespace joda::ui::gui

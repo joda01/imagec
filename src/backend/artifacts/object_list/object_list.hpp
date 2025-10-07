@@ -247,6 +247,8 @@ public:
   ObjectList(ObjectList &&other) noexcept;
   ObjectList &operator=(ObjectList &&other) noexcept;
 
+  const ROI &emplace(const ROI &box) = delete;
+
   void push_back(const ROI &roi);
   void erase(const ROI *roi);
   void erase(enums::ClassId classToErase);

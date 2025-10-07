@@ -304,7 +304,7 @@ std::unique_ptr<SpheralIndex> &ObjectList::operator[](enums::ClassId classId)
 {
   if(!contains(classId)) {
     auto newS = std::make_unique<SpheralIndex>();
-    emplace(classId, std::move(newS));
+    ObjectMap::emplace(classId, std::move(newS));
   }
   return at(classId);
 }
