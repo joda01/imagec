@@ -110,8 +110,8 @@ void RoiOverlay::refresh()
               const int y_offset = i / mask.cols;
               const int x_offset = i % mask.cols;
 
-              int xx = static_cast<int>(static_cast<double>(x_offset + box.x) * scaleX);
-              int yy = static_cast<int>(static_cast<double>(y_offset + box.y) * scaleY);
+              const int xx = static_cast<int>(static_cast<double>(x_offset + box.x) * scaleX);
+              const int yy = static_cast<int>(static_cast<double>(y_offset + box.y) * scaleY);
 
               // Optimization 6: Use direct raw pointer access for QImage
               if(qimg.valid(yy, xx)) {
