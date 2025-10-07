@@ -49,7 +49,8 @@ DialogRoiManager::DialogRoiManager(const std::shared_ptr<atom::ObjectList> &obje
   setWindowTitle("ROI manager");
   auto *layout = new QVBoxLayout();
   layout->setContentsMargins(0, 0, 0, 0);
-  {
+
+  if(false) {
     auto *toolbar = new QToolBar();
     toolbar->setObjectName("SubToolBar");
     toolbar->setIconSize(QSize(16, 16));
@@ -113,7 +114,8 @@ DialogRoiManager::DialogRoiManager(const std::shared_ptr<atom::ObjectList> &obje
         mImagePanel->setSelectedRois(idxs);
       }
     });
-    // connect(mPolygonsTable, &QTableView::doubleClicked, [this](const QModelIndex &index) {});
+
+    connect(mPolygonsTable, &PlaceholderTableView::deletePressed, [this]() { mImagePanel->deleteSelectedRois(); });
   }
 
   setLayout(layout);

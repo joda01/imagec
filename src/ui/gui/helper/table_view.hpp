@@ -2,11 +2,15 @@
 #pragma once
 
 #include <qtableview.h>
+#include <qtmetamacros.h>
 #include <QtWidgets>
 
 class PlaceholderTableView : public QTableView
 {
+  Q_OBJECT
+
 public:
+  /////////////////////////////////////////////////////
   using QTableView::QTableView;
 
   void setPlaceholderText(const QString &placeholdeText)
@@ -14,17 +18,14 @@ public:
     mPlaceholderText = placeholdeText;
   }
 
-private:
-  void paintEvent(QPaintEvent *event) override
-  {
-    QTableView::paintEvent(event);
+signals:
+  /////////////////////////////////////////////////////
+  void deletePressed();
 
-    if(model()->rowCount() == 0) {
-      QPainter painter(viewport());
-      painter.setPen(Qt::gray);
-      painter.drawText(QRect(0, 0, width(), height()), Qt::AlignCenter, mPlaceholderText);
-    }
-  }
+private:
+  /////////////////////////////////////////////////////
+  void paintEvent(QPaintEvent *event) override;
+  void keyPressEvent(QKeyEvent *event) override;
 
   QString mPlaceholderText = "No data available";
 };
