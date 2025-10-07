@@ -225,6 +225,38 @@ void RoiOverlay::setSelectedRois(const std::set<joda::atom::ROI *> &idxs)
 /// \param[out]
 /// \return
 ///
+void RoiOverlay::deleteSelectedRois()
+{
+  for(joda::atom::ROI *roi : mSelectedRois) {
+    mObjectMap->erase(roi);
+  }
+  mSelectedRois.clear();
+  refresh();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void RoiOverlay::deleteRois(const std::set<joda::atom::ROI *> &idxs)
+{
+  for(joda::atom::ROI *roi : idxs) {
+    mObjectMap->erase(roi);
+    mSelectedRois.erase(roi);
+  }
+  refresh();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void RoiOverlay::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
   if(mSelectable && event->button() == Qt::LeftButton) {

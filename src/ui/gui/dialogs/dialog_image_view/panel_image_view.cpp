@@ -1312,10 +1312,9 @@ void PanelImageView::setSelectedRois(const std::set<joda::atom::ROI *> &idxs)
 /// \param[out]
 /// \return
 ///
-void PanelImageView::deleteRois(const std::set<const joda::atom::ROI *> &idxs)
+void PanelImageView::deleteRois(const std::set<joda::atom::ROI *> &idxs)
 {
-  mObjectMap->clear();
-  mOverlayMasks->refresh();
+  mOverlayMasks->deleteRois(idxs);
   emit paintedPolygonsChanged();
 }
 
@@ -1328,6 +1327,8 @@ void PanelImageView::deleteRois(const std::set<const joda::atom::ROI *> &idxs)
 ///
 void PanelImageView::deleteSelectedRois()
 {
+  mOverlayMasks->deleteSelectedRois();
+  emit paintedPolygonsChanged();
 }
 
 ///

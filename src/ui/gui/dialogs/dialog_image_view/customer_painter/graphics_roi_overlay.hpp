@@ -42,6 +42,8 @@ public:
   void setClassesToHide(const std::set<joda::enums::ClassId> &toHide);
   void setSelectable(bool select);
   void setSelectedRois(const std::set<joda::atom::ROI *> &idxs);
+  void deleteSelectedRois();
+  void deleteRois(const std::set<joda::atom::ROI *> &idxs);
 
 signals:
   void paintedPolygonClicked(std::set<joda::atom::ROI *>);

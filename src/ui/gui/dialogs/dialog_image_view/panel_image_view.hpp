@@ -139,7 +139,7 @@ public:
   void setRegionsOfInterestFromObjectList();
   void clearRegionOfInterest(joda::atom::ROI::Category sourceToDelete = joda::atom::ROI::Category::AUTO_SEGMENTATION);
   void setSelectedRois(const std::set<joda::atom::ROI *> &idxs);
-  void deleteRois(const std::set<const joda::atom::ROI *> &idx);
+  void deleteRois(const std::set<joda::atom::ROI *> &idx);
   void deleteSelectedRois();
   void setFillRois(bool);
   void setShowRois(bool);
