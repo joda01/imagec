@@ -63,8 +63,11 @@ void RoiOverlay::refresh()
   if(mObjectMap == nullptr || mClassificationSettings == nullptr) {
     return;
   }
+
+  double scaleX = static_cast<double>(mPreviewSize.width) / static_cast<double>(mImageSize.width);
+  double scaleY = static_cast<double>(mPreviewSize.height) / static_cast<double>(mImageSize.height);
   // Create a QImage with ARGB32 (direct pixel access)
-  QImage qimg(mImageSize.width, mImageSize.height, QImage::Format_ARGB32);
+  QImage qimg(mPreviewSize.width, mPreviewSize.height, QImage::Format_ARGB32);
   qimg.fill(Qt::transparent);
   mContoursPerColor.clear();
 
@@ -107,8 +110,8 @@ void RoiOverlay::refresh()
               const int y_offset = i / mask.cols;
               const int x_offset = i % mask.cols;
 
-              int xx = x_offset + box.x;
-              int yy = y_offset + box.y;
+              int xx = static_cast<int>(static_cast<double>(x_offset + box.x) * scaleX);
+              int yy = static_cast<int>(static_cast<double>(y_offset + box.y) * scaleY);
 
               // Optimization 6: Use direct raw pointer access for QImage
               if(qimg.valid(yy, xx)) {
@@ -138,14 +141,7 @@ void RoiOverlay::refresh()
 
   // Optimization 8: Check if scaling is actually needed
   QPixmap pix;
-  QSize targetSize(mPreviewSize.width, mPreviewSize.height);
-
-  if(targetSize == qimg.size()) {
-    pix = QPixmap::fromImage(qimg);
-  } else {
-    pix = QPixmap::fromImage(qimg.scaled(targetSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-  }
-
+  pix = QPixmap::fromImage(qimg);
   prepareGeometryChange();
   setPixmap(pix);
   setAlpha(mAlpha);
