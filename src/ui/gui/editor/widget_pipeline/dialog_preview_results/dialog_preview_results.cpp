@@ -35,7 +35,7 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-DialogPreviewResults::DialogPreviewResults(joda::ctrl::Preview *previewResult, PanelImageView *panelImageView,
+DialogPreviewResults::DialogPreviewResults(joda::processor::Preview *previewResult, PanelImageView *panelImageView,
                                            const joda::settings::Classification &classes, WindowMain *windowMain) :
     QDialog(windowMain),
     mPreviewResult(previewResult), mWindowMain(windowMain), mPanelImageView(panelImageView)

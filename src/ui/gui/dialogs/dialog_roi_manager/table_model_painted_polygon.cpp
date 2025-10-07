@@ -27,8 +27,8 @@
 
 namespace joda::ui::gui {
 
-TableModelPaintedPolygon::TableModelPaintedPolygon(const joda::settings::Classification *classification, atom::ObjectList *polygons,
-                                                   QObject *parent) :
+TableModelPaintedPolygon::TableModelPaintedPolygon(const joda::settings::Classification *classification,
+                                                   const std::shared_ptr<atom::ObjectList> &polygons, QObject *parent) :
     QAbstractTableModel(parent),
     mClassification(classification), mObjectMap(polygons)
 {

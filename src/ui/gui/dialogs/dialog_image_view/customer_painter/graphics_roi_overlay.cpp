@@ -27,8 +27,10 @@
 /// \param[out]
 /// \return
 ///
-RoiOverlay::RoiOverlay(const joda::atom::ObjectMap *objectMap, const joda::settings::Classification *classSettings, ContourOverlay *contourOverlay) :
-    mObjectMap(objectMap), mClassificationSettings(classSettings), mContourOverlay(contourOverlay)
+RoiOverlay::RoiOverlay(const std::shared_ptr<joda::atom::ObjectList> &objectMap, const joda::settings::Classification *classSettings,
+                       ContourOverlay *contourOverlay) :
+    mObjectMap(objectMap),
+    mClassificationSettings(classSettings), mContourOverlay(contourOverlay)
 {
 }
 

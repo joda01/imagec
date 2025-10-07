@@ -48,7 +48,7 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-DialogImageViewer::DialogImageViewer(QWidget *parent, atom::ObjectList *objectMap, joda::settings::AnalyzeSettings *settings,
+DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom::ObjectList> &objectMap, joda::settings::AnalyzeSettings *settings,
                                      QToolBar *toolbarParent) :
     QWidget(parent),
     mImageViewRight(objectMap, &settings->projectSettings.classification, parent), mSettings(settings)

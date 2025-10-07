@@ -31,7 +31,8 @@ public:
   static constexpr int32_t CLASS_ROLE = 0x101;
 
   /////////////////////////////////////////////////////
-  TableModelPaintedPolygon(const joda::settings::Classification *classification, atom::ObjectList *polygons, QObject *parent = nullptr);
+  TableModelPaintedPolygon(const joda::settings::Classification *classification, const std::shared_ptr<atom::ObjectList> &polygons,
+                           QObject *parent = nullptr);
   auto getCell(int row) -> const atom::ROI *;
   int rowCount(const QModelIndex &parent = QModelIndex()) const override;
   int columnCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -42,7 +43,7 @@ public:
 
 private:
   const joda::settings::Classification *mClassification = nullptr;
-  atom::ObjectList *mObjectMap                          = nullptr;
+  std::shared_ptr<atom::ObjectList> mObjectMap          = nullptr;
 };
 
 }    // namespace joda::ui::gui

@@ -50,7 +50,7 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-PanelPipeline::PanelPipeline(joda::ctrl::Preview *previewResults, WindowMain *windowMain, joda::settings::AnalyzeSettings &settings) :
+PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMain *windowMain, joda::settings::AnalyzeSettings &settings) :
     mWindowMain(windowMain), mAnalyzeSettings(settings), mPreviewResults(previewResults)
 {
   mMainLayout = new QVBoxLayout();

@@ -67,7 +67,7 @@ using namespace std::chrono_literals;
 /// \param[out]
 /// \return
 ///
-PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, joda::ctrl::Preview *previewResult,
+PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, joda::processor::Preview *previewResult,
                                              DialogPreviewResults *previewResultsDialog, joda::settings::Pipeline &settings,
                                              std::shared_ptr<DialogCommandSelection> &commandSelectionDialog) :
     QWidget(wm),

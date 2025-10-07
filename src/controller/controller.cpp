@@ -282,7 +282,7 @@ void Controller::registerImageLookupCallback(const std::function<void(joda::file
 void Controller::preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
                          const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,
                          const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, int32_t tStack,
-                         Preview &previewOut, const joda::ome::OmeInfo &ome)
+                         processor::Preview &previewOut, const joda::ome::OmeInfo &ome)
 {
   static std::filesystem::path lastImagePath;
   static int32_t lastImageChannel = -1;
@@ -297,17 +297,8 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
   }
 
   processor::Processor process;
-  auto [originalImg, editedImageWithoutOverlay, thumb, validity, objects] = process.generatePreview(
-      previewSettings, imageSetup, settings, threadSettings, pipeline, imagePath, tStack, 0, tileX, tileY, generateThumb, ome);
-  previewOut.originalImage.setImage(std::move(originalImg));
-  previewOut.editedImage.setImage(std::move(editedImageWithoutOverlay));
-  if(generateThumb) {
-    previewOut.thumbnail.setImage(std::move(thumb));
-  }
-  previewOut.results.objectMap     = std::move(objects);
-  previewOut.results.noiseDetected = validity.test(enums::ChannelValidityEnum::POSSIBLE_NOISE);
-  previewOut.results.isOverExposed = validity.test(enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
-  previewOut.tStacks               = ome.getNrOfTStack(imageSetup.series);
+  process.generatePreview(previewSettings, imageSetup, settings, threadSettings, pipeline, imagePath, tStack, 0, tileX, tileY, generateThumb, ome,
+                          previewOut);
 }
 
 ///
@@ -317,7 +308,7 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
 ///
 auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
                            const joda::ome::TileToLoad &tileLoad,
-                           const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings, Preview &previewOut,
+                           const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings, processor::Preview &previewOut,
                            joda::ome::OmeInfo &omeOut, enums::ZProjection zProjection) -> void
 {
   static std::filesystem::path lastImagePath;
@@ -340,7 +331,7 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
 /// \return
 ///
 auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
-                           const joda::ome::TileToLoad &tileLoad, Preview &previewOut, const joda::ome::OmeInfo *omeIn,
+                           const joda::ome::TileToLoad &tileLoad, processor::Preview &previewOut, const joda::ome::OmeInfo *omeIn,
                            enums::ZProjection zProjection) -> void
 {
   if(nullptr == omeIn) {

@@ -42,8 +42,8 @@
 
 namespace joda::ui::gui {
 
-PanelClassification::PanelClassification(atom::ObjectList *objectMap, joda::settings::Classification *settings, WindowMain *windowMain,
-                                         DialogImageViewer *imageView) :
+PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList> &objectMap, joda::settings::Classification *settings,
+                                         WindowMain *windowMain, DialogImageViewer *imageView) :
     mWindowMain(windowMain),
     mSettings(settings)
 {

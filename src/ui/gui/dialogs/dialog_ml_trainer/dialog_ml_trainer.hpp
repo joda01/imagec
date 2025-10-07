@@ -43,7 +43,7 @@ class DialogMlTrainer : public QDialog
 
 public:
   /////////////////////////////////////////////////////
-  DialogMlTrainer(atom::ObjectList *objectMap, PanelImageView *imagePanel, QWidget *parent);
+  DialogMlTrainer(const std::shared_ptr<atom::ObjectList> &objectMap, PanelImageView *imagePanel, QWidget *parent);
 
 signals:
   void dialogDisappeared();    // custom signal
@@ -63,7 +63,7 @@ private:
   QComboBox *mRoiSource;
   QComboBoxMulti *mComboTrainingFeatures;
   QLineEdit *mModelName;
-  atom::ObjectList *mObjectMap;
+  std::shared_ptr<atom::ObjectList> mObjectMap;
 
   joda::settings::PixelClassifierTrainingSettings mTrainerSettings;
 };

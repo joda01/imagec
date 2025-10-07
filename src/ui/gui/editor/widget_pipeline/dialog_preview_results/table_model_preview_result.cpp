@@ -26,8 +26,8 @@
 
 namespace joda::ui::gui {
 
-TableModelPreviewResult::TableModelPreviewResult(joda::ctrl::Preview::PreviewResults *results, const joda::settings::Classification &classSettings,
-                                                 QObject *parent) :
+TableModelPreviewResult::TableModelPreviewResult(joda::processor::Preview::PreviewResults *results,
+                                                 const joda::settings::Classification &classSettings, QObject *parent) :
     QAbstractTableModel(parent),
     mPreviewResult(results), mClassSettings(classSettings)
 
@@ -47,7 +47,7 @@ TableModelPreviewResult::TableModelPreviewResult(joda::ctrl::Preview::PreviewRes
 
   base64IconName = loadSvg("text-field");
   base64IconHash = loadSvg("irc-operator");
-  results->objectMap.registerOnChangeCallback([this] { refresh(); });
+  results->objectMap->registerOnChangeCallback([this] { refresh(); });
 }
 
 int TableModelPreviewResult::rowCount(const QModelIndex & /*parent*/) const
@@ -56,7 +56,7 @@ int TableModelPreviewResult::rowCount(const QModelIndex & /*parent*/) const
     return 0;
   }
 
-  return static_cast<int32_t>(mPreviewResult->objectMap.sizeClasses());
+  return static_cast<int32_t>(mPreviewResult->objectMap->sizeClasses());
 }
 
 int TableModelPreviewResult::columnCount(const QModelIndex & /*parent*/) const
@@ -120,9 +120,9 @@ QVariant TableModelPreviewResult::data(const QModelIndex &index, int role) const
     return {};
   }
 
-  auto it = mPreviewResult->objectMap.begin();
+  auto it = mPreviewResult->objectMap->begin();
   std::advance(it, index.row());
-  if(it == mPreviewResult->objectMap.end()) {
+  if(it == mPreviewResult->objectMap->end()) {
     return {};
   }
 

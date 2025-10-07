@@ -24,6 +24,7 @@
 #include <ranges>
 #include <string>
 #include <utility>
+#include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/artifacts/roi/roi.hpp"
 #include "backend/commands/classification/classifier/classifier_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
@@ -51,9 +52,10 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-PanelImageView::PanelImageView(atom::ObjectList *objectMap, const joda::settings::Classification *classSettings, QWidget *parent) :
-    QGraphicsView(parent), mImageToShow(&mPreviewImages.originalImage), scene(new QGraphicsScene(this)), mClassSettings(classSettings),
-    mObjectMap(objectMap)
+PanelImageView::PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMap, const joda::settings::Classification *classSettings,
+                               QWidget *parent) :
+    QGraphicsView(parent),
+    mImageToShow(&mPreviewImages.originalImage), scene(new QGraphicsScene(this)), mClassSettings(classSettings), mObjectMap(objectMap)
 {
   // setViewport(new QOpenGLWidget());
   setScene(scene);

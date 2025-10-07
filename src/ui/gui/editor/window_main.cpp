@@ -91,7 +91,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   //
   {
     mTopToolBar->addSeparator();
-    mPreviewImage = new DialogImageViewer(this, &mPreviewResult.results.objectMap, &mAnalyzeSettings, mTopToolBar);
+    mPreviewImage = new DialogImageViewer(this, mPreviewResult.results.objectMap, &mAnalyzeSettings, mTopToolBar);
     connect(mPreviewImage, &DialogImageViewer::settingChanged, [this]() { checkForSettingsChanged(); });
   }
 
@@ -342,7 +342,7 @@ void WindowMain::createLeftToolbar()
   // Classification tab
   {
     mPanelClassification =
-        new PanelClassification(&mPreviewResult.results.objectMap, &mAnalyzeSettings.projectSettings.classification, this, mPreviewImage);
+        new PanelClassification(mPreviewResult.results.objectMap, &mAnalyzeSettings.projectSettings.classification, this, mPreviewImage);
     createDock("Classification", mPanelClassification);
   }
 

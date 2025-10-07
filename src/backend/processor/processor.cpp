@@ -151,7 +151,8 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                     if(mProgress.isStopping()) {
                       break;
                     }
-                    IterationContext iterationContext;
+                    auto objectCache = std::make_shared<joda::atom::ObjectList>();
+                    IterationContext iterationContext(objectCache);
                     // Execute pipelines of this iteration
 
                     // Start with the highest prio pipelines down to the lowest prio
@@ -326,8 +327,7 @@ void Processor::listImages(const joda::settings::AnalyzeSettings &program, image
 auto Processor::generatePreview(const PreviewSettings &previewSettings, const settings::ProjectImageSetup &imageSetup,
                                 const settings::AnalyzeSettings &program, const joda::thread::ThreadingSettings &threadingSettings,
                                 const settings::Pipeline &pipelineStart, const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack,
-                                int32_t tileX, int32_t tileY, bool generateThumb, const ome::OmeInfo &ome)
-    -> std::tuple<cv::Mat, cv::Mat, cv::Mat, enums::ChannelValidity, joda::atom::ObjectList>
+                                int32_t tileX, int32_t tileY, bool generateThumb, const ome::OmeInfo &ome, Preview &previewOut) -> void
 {
   auto ii = DurationCount::start("Generate preview with >" + std::to_string(threadingSettings.coresUsed) + "< threads.");
 
@@ -376,14 +376,14 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
   ImageContext imageContext{.imageLoader = imageLoader, .imagePath = imagePath, .imageMeta = ome, .imageId = 1};
   imageLoader.init(imageContext);
 
-  IterationContext iterationContext;
+  IterationContext iterationContext(previewOut.results.objectMap);
 
   size_t totalRuns = 0;
   for(const auto &[order, pipelines] : pipelineOrder) {
     totalRuns += pipelines.size();
   }
 
-  std::tuple<cv::Mat, cv::Mat, cv::Mat, enums::ChannelValidity, joda::atom::ObjectList> tmpResult;
+  //  std::tuple<cv::Mat, cv::Mat, cv::Mat, enums::ChannelValidity, joda::atom::ObjectList> tmpResult;
   bool finished = false;
 
   size_t executedSteps = 0;
@@ -395,9 +395,9 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         continue;
       }
 
-      auto executePipeline = [&db, &thumbThread, &thumb, &finished, &tmpResult, &previewSettings, &totalRuns, pipeline       = pipelineToExecute,
-                              &globalContext, &plateContext, imagePath, &imageContext, &imageLoader, tileX, tileY, pipelines = pipelines,
-                              &iterationContext, tStack, zStack, executedSteps]() -> void {
+      auto executePipeline = [&db, &thumbThread, &thumb, &finished, &ome, &previewOut, &previewSettings, &imageSetup, &totalRuns,
+                              pipeline  = pipelineToExecute, &globalContext, &plateContext, imagePath, &imageContext, &imageLoader, tileX, tileY,
+                              pipelines = pipelines, &iterationContext, tStack, zStack, executedSteps, &generateThumb]() -> void {
         //
         // The last step is the wanted pipeline
         //
@@ -450,13 +450,20 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
           ///\warning #warning "Exception on thread destructor"
           thumbThread.join();
 
-          tmpResult = {
+          //
+          // Finished
+          //
+          previewOut.originalImage.setImage(std::move(
               context.loadImageFromCache(enums::MemoryScope::ITERATION, joda::enums::ImageId{.zProjection = enums::ZProjection::$, .imagePlane = {}})
-                  ->image,                //
-              editedImageAtBreakpoint,    //
-              thumb,                      //
-              db->getImageValidity(),     //
-              std::move(context.getActObjects())};
+                  ->image));
+          previewOut.editedImage.setImage(std::move(editedImageAtBreakpoint));
+          if(generateThumb) {
+            previewOut.thumbnail.setImage(std::move(thumb));
+          }
+          previewOut.results.noiseDetected = db->getImageValidity().test(enums::ChannelValidityEnum::POSSIBLE_NOISE);
+          previewOut.results.isOverExposed = db->getImageValidity().test(enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
+          previewOut.tStacks               = ome.getNrOfTStack(imageSetup.series);
+
           finished = true;
         }
       };
@@ -476,10 +483,10 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
     thumbThread.join();
     DurationCount::stop(ii);
     // return {{}, {}, {}, {}, {}, {}, std::map<enums::ClassId, std::unique_ptr<joda::atom::SpheralIndex>>{}};
-    return tmpResult;
+    return;
   } else {
     DurationCount::stop(ii);
-    return tmpResult;
+    return;
   }
 }
 

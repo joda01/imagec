@@ -25,7 +25,7 @@ class ContourOverlay;
 class RoiOverlay : public QGraphicsPixmapItem
 {
 public:
-  RoiOverlay(const joda::atom::ObjectMap *, const joda::settings::Classification *, ContourOverlay *);
+  RoiOverlay(const std::shared_ptr<joda::atom::ObjectList> &, const joda::settings::Classification *, ContourOverlay *);
 
   /////////////////////////////////////////////////////
   void setOverlay(const cv::Size &imageSize, const cv::Size &previewSize);
@@ -48,7 +48,7 @@ private:
   /////////////////////////////////////////////////////
   cv::Size mImageSize;
   cv::Size mPreviewSize;
-  const joda::atom::ObjectMap *mObjectMap                       = nullptr;
+  std::shared_ptr<joda::atom::ObjectList> mObjectMap            = nullptr;
   const joda::settings::Classification *mClassificationSettings = nullptr;
   float mAlpha                                                  = 0.8F;
   bool mFill                                                    = true;

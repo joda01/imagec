@@ -14,12 +14,14 @@
 #pragma once
 
 #include <filesystem>
+#include <memory>
 #include <mutex>
 #include "backend/enums/enum_images.hpp"
 
 #include "backend/global_enums.hpp"
 #include "backend/helper/file_grouper/file_grouper.hpp"
 #include "backend/helper/file_parser/directory_iterator.hpp"
+#include "backend/helper/image/image.hpp"
 #include "backend/helper/threading/threading.hpp"
 #include "backend/processor/context/process_context.hpp"
 #include "backend/settings/analze_settings.hpp"
@@ -33,6 +35,25 @@ using imagesList_t = joda::filesystem::DirectoryWatcher;
 struct PreviewSettings
 {
   settings::ImageSaverSettings::Style style = settings::ImageSaverSettings::Style::OUTLINED;
+};
+
+struct Preview
+{
+  joda::image::Image thumbnail;
+  joda::image::Image originalImage;
+  joda::image::Image editedImage;
+
+  struct PreviewResults
+  {
+    std::shared_ptr<joda::atom::ObjectList> objectMap = std::make_shared<joda::atom::ObjectList>();
+    bool isOverExposed                                = false;
+    bool noiseDetected                                = false;
+  } results;
+
+  int height;
+  int width;
+  int tStacks = 1;    // Nr. of t stacks the image has.
+  std::string imageFileName;
 };
 
 enum class ProcessState
@@ -184,8 +205,7 @@ public:
   auto generatePreview(const PreviewSettings &previewSettings, const settings::ProjectImageSetup &imageSetup,
                        const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,
                        const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX,
-                       int32_t tileY, bool generateThumb, const ome::OmeInfo &ome)
-      -> std::tuple<cv::Mat, cv::Mat, cv::Mat, enums::ChannelValidity, joda::atom::ObjectList>;
+                       int32_t tileY, bool generateThumb, const ome::OmeInfo &ome, Preview &previewOut) -> void;
 
 private:
   /////////////////////////////////////////////////////

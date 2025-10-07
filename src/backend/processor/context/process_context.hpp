@@ -134,7 +134,7 @@ public:
 
   [[nodiscard]] joda::atom::ObjectList &getActObjects()
   {
-    return iterationContext.actObjects;
+    return iterationContext.getObjects();
   }
 
   [[nodiscard]] const joda::enums::PlaneId &getActIterator() const
@@ -176,7 +176,7 @@ public:
   [[nodiscard]] joda::atom::ObjectList *loadObjectsFromCache(joda::enums::ObjectStoreId cacheId = {}) const
   {
     if(cacheId.storeIdx == enums::MemoryIdx::M0) {
-      return &iterationContext.actObjects;
+      return &iterationContext.getObjects();
     }
     getCorrectObjectId(cacheId);
     return globalContext.objectCache.at(cacheId).get();

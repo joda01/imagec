@@ -47,7 +47,7 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-DialogMlTrainer::DialogMlTrainer(atom::ObjectList *objectMap, PanelImageView *imagePanel, QWidget *parent) :
+DialogMlTrainer::DialogMlTrainer(const std::shared_ptr<atom::ObjectList> &objectMap, PanelImageView *imagePanel, QWidget *parent) :
     QDialog(parent), mImagePanel(imagePanel), mObjectMap(objectMap)
 {
   setWindowTitle("Machine learning");

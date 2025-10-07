@@ -32,7 +32,7 @@ public:
   static constexpr int32_t CLASS_ROLE = 0x101;
 
   /////////////////////////////////////////////////////
-  TableModelPreviewResult(joda::ctrl::Preview::PreviewResults *results, const joda::settings::Classification &, QObject *parent = nullptr);
+  TableModelPreviewResult(joda::processor::Preview::PreviewResults *results, const joda::settings::Classification &, QObject *parent = nullptr);
   int rowCount(const QModelIndex &parent = QModelIndex()) const override;
   int columnCount(const QModelIndex &parent) const override;
   QVariant data(const QModelIndex &index, int role) const override;
@@ -42,7 +42,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  joda::ctrl::Preview::PreviewResults *mPreviewResult = nullptr;
+  joda::processor::Preview::PreviewResults *mPreviewResult = nullptr;
   const joda::settings::Classification &mClassSettings;
   QString base64IconName;
   QString base64IconHash;

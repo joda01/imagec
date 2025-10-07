@@ -37,25 +37,6 @@ class QueryFilter;
 
 namespace joda::ctrl {
 
-struct Preview
-{
-  joda::image::Image thumbnail;
-  joda::image::Image originalImage;
-  joda::image::Image editedImage;
-
-  struct PreviewResults
-  {
-    joda::atom::ObjectList objectMap;
-    bool isOverExposed = false;
-    bool noiseDetected = false;
-  } results;
-
-  int height;
-  int width;
-  int tStacks = 1;    // Nr. of t stacks the image has.
-  std::string imageFileName;
-};
-
 ///
 /// \class      Controller
 /// \author     Joachim Danmayr
@@ -86,19 +67,20 @@ public:
   // PREVIEW ///////////////////////////////////////////////////
   void preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
                const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const settings::Pipeline &pipeline,
-               const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, int32_t tStack, Preview &previewOut, const joda::ome::OmeInfo &);
+               const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, int32_t tStack, processor::Preview &previewOut,
+               const joda::ome::OmeInfo &);
   [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series,
                                                const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings)
       -> joda::ome::OmeInfo;
 
   static auto loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
                         const joda::ome::TileToLoad &tileLoad,
-                        const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings, Preview &previewOut,
+                        const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings, processor::Preview &previewOut,
                         joda::ome::OmeInfo &omeOut, enums::ZProjection zProjection) -> void;
 
   static auto loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
-                        const joda::ome::TileToLoad &tileLoad, Preview &previewOut, const joda::ome::OmeInfo *omeIn, enums::ZProjection zProjection)
-      -> void;
+                        const joda::ome::TileToLoad &tileLoad, processor::Preview &previewOut, const joda::ome::OmeInfo *omeIn,
+                        enums::ZProjection zProjection) -> void;
 
   // FLOW CONTROL ///////////////////////////////////////////////////
   void start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const std::string &jobName);

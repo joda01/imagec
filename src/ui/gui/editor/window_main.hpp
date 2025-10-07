@@ -184,7 +184,7 @@ private:
   ////Right Dock/////////////////////////////////////////////////
   DialogImageViewer *mPreviewImage            = nullptr;
   DialogPreviewResults *mPreviewResultsDialog = nullptr;
-  joda::ctrl::Preview mPreviewResult;
+  joda::processor::Preview mPreviewResult;
 
   ////ToolbarIcons/////////////////////////////////////////////////
   QAction *mOpenProjectButton       = nullptr;

@@ -14,6 +14,7 @@
 #pragma once
 
 #include <filesystem>
+#include <memory>
 #include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/enums/enum_image_cache.hpp"
 
@@ -21,20 +22,23 @@ namespace joda::processor {
 
 class PipelineInitializer;
 
-struct IterationContext
+class IterationContext
 {
   friend class ProcessContext;
 
-  enums::imageCache_t imageCache;
-
 public:
+  explicit IterationContext(std::shared_ptr<joda::atom::ObjectList> &objectList) : actObjects(objectList)
+  {
+  }
   joda::atom::ObjectList &getObjects()
   {
-    return actObjects;
+    return *actObjects;
   }
 
 private:
-  joda::atom::ObjectList actObjects{};
+  /////////////////////////////////////////////////////
+  enums::imageCache_t imageCache;
+  std::shared_ptr<joda::atom::ObjectList> actObjects;
 };
 
 }    // namespace joda::processor

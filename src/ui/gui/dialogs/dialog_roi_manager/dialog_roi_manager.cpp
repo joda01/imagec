@@ -41,8 +41,8 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-DialogRoiManager::DialogRoiManager(atom::ObjectList *objectMap, const joda::settings::Classification *classSettings, PanelImageView *imagePanel,
-                                   QWidget *parent) :
+DialogRoiManager::DialogRoiManager(const std::shared_ptr<atom::ObjectList> &objectMap, const joda::settings::Classification *classSettings,
+                                   PanelImageView *imagePanel, QWidget *parent) :
     QWidget(parent),
     mImagePanel(imagePanel)
 {

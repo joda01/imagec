@@ -98,7 +98,7 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  PanelImageView(atom::ObjectList *objectMap, const joda::settings::Classification *classSettings, QWidget *parent = nullptr);
+  PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMap, const joda::settings::Classification *classSettings, QWidget *parent = nullptr);
   void openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo = nullptr);
   void setEditedImage(const joda::image::Image &&edited);
   void reloadImage();
@@ -200,7 +200,7 @@ private:
   std::filesystem::path mLastPath;
   joda::image::reader::ImageReader::Plane mLastPlane{-1, -1, -1};
   joda::ome::OmeInfo mOmeInfo;
-  joda::ctrl::Preview mPreviewImages;
+  joda::processor::Preview mPreviewImages;
   joda::image::Image *mImageToShow = nullptr;
   float mOpaque                    = 0.6F;
   joda::image::reader::ImageReader::Plane mPlane;
@@ -267,7 +267,7 @@ private:
   bool mShowRois   = true;
   bool mSelectable = true;
   const joda::settings::Classification *mClassSettings;
-  atom::ObjectList *mObjectMap;
+  std::shared_ptr<atom::ObjectList> mObjectMap;
 
   mutable std::mutex mImageResetMutex;
 
