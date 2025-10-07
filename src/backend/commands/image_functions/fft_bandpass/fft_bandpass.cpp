@@ -182,6 +182,9 @@ void filterLargeSmall(cv::Mat &ip, double filterLarge, double filterSmall, setti
           break;    // hor stripes
         case settings::FFTBandpassSettings::StripeMode::VERTICAL:
           factor *= (1 - static_cast<float>(std::exp(-(j * j) * scaleStripes)));    // vert stripes
+          break;
+        default:
+          break;
       }
 
       ip.at<float>(col + row) *= factor;

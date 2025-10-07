@@ -57,6 +57,9 @@ void RoiOverlay::setOverlay(const cv::Size &imageSize, const cv::Size &previewSi
 ///
 void RoiOverlay::refresh()
 {
+  const float foreground_weight = 0.25F;                       // New object contributes 25%
+  const float background_weight = 1.0F - foreground_weight;    // Background contributes 75%
+
   if(mObjectMap == nullptr || mClassificationSettings == nullptr) {
     return;
   }
@@ -98,9 +101,6 @@ void RoiOverlay::refresh()
           const int total_pixels = mask.rows * mask.cols;
           const uint8_t *p_mask  = mask.ptr<uint8_t>();
 
-          //
-          // Draw mask
-          //
           for(int i = 0; i < total_pixels; ++i) {
             if(p_mask[i] > 0) {
               // Calculate (x, y) from flat index 'i'
@@ -112,31 +112,21 @@ void RoiOverlay::refresh()
 
               // Optimization 6: Use direct raw pointer access for QImage
               if(qimg.valid(yy, xx)) {
-                QRgb *line = reinterpret_cast<QRgb *>(qimg.scanLine(yy));
-                line[xx]   = pixelValue;
-              }
-            }
-          }
+                QRgb *line    = reinterpret_cast<QRgb *>(qimg.scanLine(yy));
+                QRgb actColor = line[xx];
+                if(qAlpha(actColor) == 0) {
+                  line[xx] = pixelValue;
+                } else {
+                  // Apply the weighted average for each channel:
+                  int finalR = static_cast<int>(static_cast<float>(qRed(pixelValue)) * foreground_weight +
+                                                static_cast<float>(qRed(actColor)) * background_weight);
+                  int finalG = static_cast<int>(static_cast<float>(qGreen(pixelValue)) * foreground_weight +
+                                                static_cast<float>(qGreen(actColor)) * background_weight);
+                  int finalB = static_cast<int>(static_cast<float>(qBlue(pixelValue)) * foreground_weight +
+                                                static_cast<float>(qBlue(actColor)) * background_weight);
 
-        } else {
-          // Original row-by-row iteration for non-continuous Mats
-          for(int y = 0; y < mask.rows; ++y) {
-            const uint8_t *p_mask_row = mask.ptr<uint8_t>(y);
-            int yy                    = y + box.y;
-
-            // Optimization 7: Pre-calculate scanLine pointer per row
-            QRgb *p_qimg_row = nullptr;
-            if(yy >= 0 && yy < qimg.height()) {
-              p_qimg_row = reinterpret_cast<QRgb *>(qimg.scanLine(yy));
-            }
-
-            for(int x = 0; x < mask.cols; ++x) {
-              int xx = x + box.x;
-              // Optimization 3.1: Direct pointer access (faster than .at<>)
-              if(p_mask_row[x] > 0) {
-                // Optimization 6: Use direct raw pointer access for QImage
-                if(p_qimg_row != nullptr && xx >= 0 && xx < qimg.width()) {
-                  p_qimg_row[xx] = pixelValue;
+                  // Recombine into a new QRgb (using an opaque alpha 255)
+                  line[xx] = qRgb(finalR, finalG, finalB);
                 }
               }
             }
@@ -185,8 +175,6 @@ void RoiOverlay::prepareContour(const joda::atom::ROI *roi, const QColor &colBor
     points.push_back(itemPoint);
   }
   QColor c = Qt::yellow;
-  // --- Phase 1: Build Paths (Slow but done only when data changes) ---
-
   // The QRgb type is defined as quint32.
   if(!points.empty()) {
     if(roi->isSelected()) {

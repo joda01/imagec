@@ -47,6 +47,7 @@ TableModelPreviewResult::TableModelPreviewResult(joda::ctrl::Preview::PreviewRes
 
   base64IconName = loadSvg("text-field");
   base64IconHash = loadSvg("irc-operator");
+  results->objectMap.registerOnChangeCallback([this] { refresh(); });
 }
 
 int TableModelPreviewResult::rowCount(const QModelIndex & /*parent*/) const

@@ -1692,7 +1692,7 @@ void PanelImageView::addPolygonToToObjectMap(const QPolygonF &poly)
   std::vector<cv::Point> contour;
   contour.reserve(static_cast<size_t>(poly.size()));
   for(int i = 0; i < poly.size(); ++i) {
-    contour.emplace_back(static_cast<int>(static_cast<float>(poly[i].x()) * scaleX), static_cast<int>(static_cast<float>(poly[i].y()) * scaleY));
+    contour.emplace_back(static_cast<int>(static_cast<double>(poly[i].x()) * scaleX), static_cast<int>(static_cast<double>(poly[i].y()) * scaleY));
   }
 
   // Make contour
@@ -1712,6 +1712,7 @@ void PanelImageView::addPolygonToToObjectMap(const QPolygonF &poly)
                              boundingBox, mask, contour, imageSize, imageSize, {0, 0}, imageSize);
 
   mObjectMap->push_back(paintedRoi);
+  mObjectMap->triggerChangeCallback();
   mOverlayMasks->refresh();
 }
 

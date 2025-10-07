@@ -262,10 +262,21 @@ public:
   {
     return &objectsOrderedByObjectId;
   }
+  void registerOnChangeCallback(const std::function<void()> &cb)
+  {
+    mChangeCallback.push_back(cb);
+  }
+  void triggerChangeCallback() const
+  {
+    for(const auto &cb : mChangeCallback) {
+      cb();
+    }
+  }
 
 private:
   std::map<uint64_t, const ROI *> objectsOrderedByObjectId;
   std::mutex mInsertLock;
+  std::vector<std::function<void()>> mChangeCallback;
 };
 
 /*
