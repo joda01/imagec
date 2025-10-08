@@ -15,8 +15,11 @@
 #include <qdialog.h>
 #include <qformlayout.h>
 #include <qlineedit.h>
+#include <qprogressbar.h>
 #include <qpushbutton.h>
+#include <exception>
 #include <filesystem>
+#include <memory>
 #include "backend/artifacts/roi/roi.hpp"
 #include "backend/commands/classification/pixel_classifier/pixel_classifier.hpp"
 #include "backend/commands/classification/pixel_classifier/pixel_classifier_settings.hpp"
@@ -130,16 +133,25 @@ DialogMlTrainer::DialogMlTrainer(const std::shared_ptr<atom::ObjectList> &object
 
   // Start training
   {
-    auto *btnStartTraining = new QPushButton("Train");
-    connect(btnStartTraining, &QPushButton::pressed, [this]() { startTraining(); });
-    layout->addRow(btnStartTraining);
+    mButtonStartTraining = new QPushButton("Train");
+    connect(mButtonStartTraining, &QPushButton::pressed, [this]() { startTraining(); });
+    layout->addRow(mButtonStartTraining);
+  }
+  // Progress bar
+  {
+    mProgress = new QProgressBar();
+    mProgress->setMaximum(0);
+    mProgress->setMinimum(0);
+    layout->addRow(mProgress);
+    setInProgress(false);
   }
 
   // Description
   {
     auto *tip = new QLabel(R"(<ol>
-<li>Use the drawing tools to circle the regions of interest.</li>
-<li>Mark background areas by drawing circles with the background class.</li>
+<li>Use the drawing tools to circle the regions of interest, or create a pipeline by doing so.</li>
+<li>Mark background areas by drawing circles with the <b>None</b> class.</li>
+<li>Choose the <b>Image Channel</b> that will be used for training the model.</li>
 <li>Click <b>Train</b> to start training the model.</li>
 <li>Once trained, the model will be available in the Pixel Classifier command.</li>
 </ol>)");
@@ -148,6 +160,38 @@ DialogMlTrainer::DialogMlTrainer(const std::shared_ptr<atom::ObjectList> &object
   }
 
   setLayout(layout);
+
+  QDialog::connect(this, &DialogMlTrainer::trainingFinished, this, &DialogMlTrainer::onTrainingFinished);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogMlTrainer::onTrainingFinished(bool okay, QString message)
+{
+  setInProgress(false);
+  if(!okay) {
+    QMessageBox::warning(parentWidget(), "Training error", message);
+  } else {
+    QMessageBox::information(parentWidget(), "Training successful", "Training successful. Model can now be used with >Pixel Classifier< command.");
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogMlTrainer::setInProgress(bool inProgress)
+{
+  mButtonStartTraining->setEnabled(!inProgress);
+  mProgress->setVisible(inProgress);
 }
 
 ///
@@ -188,60 +232,73 @@ void DialogMlTrainer::closeEvent(QCloseEvent *event)
 ///
 void DialogMlTrainer::startTraining()
 {
-  //
-  // At least one background annotation must be present
-  //
-  if(!mObjectMap->contains(enums::ClassId::NONE) || mObjectMap->at(enums::ClassId::NONE)->empty()) {
-    QMessageBox::warning(this, "Annotation missing ...", "At least one >NONE< annotation must be taken!");
-    return;
+  if(mTrainingsThread && mTrainingsThread->joinable()) {
+    mTrainingsThread->join();
   }
 
-  //
-  // Now we generate a continuous training class id range which maps the class id to pixel class id in the format [0,1,2,3, ...]
-  //
-  std::map<enums::ClassId, int32_t> classesToTrainMapping;
-  classesToTrainMapping.emplace(enums::ClassId::NONE, 0);    // None is always the background/zero class
-  int32_t pixelClassId = 1;
-  for(const auto &[classId, _] : *mObjectMap) {
-    if(classId != enums::ClassId::NONE) {
-      classesToTrainMapping.emplace(classId, pixelClassId);
-      pixelClassId++;
-    }
-  }
-
-  //
-  //
-  //
-  std::string modelFileName = mModelName->text().toStdString();
-  if(modelFileName.empty()) {
-    modelFileName = "tmp";
-  }
-
-  if(classesToTrainMapping.size() > 1) {
-    std::filesystem::path modelPath =
-        joda::ml::MlModelParser::getUsersMlModelDirectory() / (modelFileName + joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL);
-
-    std::set<joda::settings::PixelClassifierFeatures> features;
-
-    const auto &items = mComboTrainingFeatures->getCheckedItems();
-    for(const auto &item : items) {
-      features.emplace(static_cast<joda::settings::PixelClassifierFeatures>(item.first.toInt()));
-    }
-
-    if(features.empty()) {
-      QMessageBox::warning(this, "Feature error", "At least one feature must be selected!");
+  setInProgress(true);
+  mTrainingsThread = std::make_unique<std::thread>([this]() {    //
+    // At least one background annotation must be present
+    //
+    if(!mObjectMap->contains(enums::ClassId::NONE) || mObjectMap->at(enums::ClassId::NONE)->empty()) {
+      emit trainingFinished(false, "At least one >NONE< annotation must be taken!");
       return;
     }
 
-    mTrainerSettings.method          = static_cast<joda::settings::PixelClassifierMethod>(mComboClassifierMethod->currentData().toInt());
-    mTrainerSettings.trainingClasses = classesToTrainMapping;
-    mTrainerSettings.features        = features;
-    mTrainerSettings.outPath         = modelPath;
-    mTrainerSettings.categoryToTrain = static_cast<joda::atom::ROI::Category>(mRoiSource->currentData().toInt());
-    joda::cmd::PixelClassifier::train(*mImagePanel->mutableImage()->getOriginalImage(), *mObjectMap, mTrainerSettings);
-  } else {
-    QMessageBox::warning(this, "Annotation missing ...", "No annotation for training found!");
-  }
+    //
+    // Now we generate a continuous training class id range which maps the class id to pixel class id in the format [0,1,2,3, ...]
+    //
+    std::map<enums::ClassId, int32_t> classesToTrainMapping;
+    classesToTrainMapping.emplace(enums::ClassId::NONE, 0);    // None is always the background/zero class
+    int32_t pixelClassId = 1;
+    for(const auto &[classId, _] : *mObjectMap) {
+      if(classId != enums::ClassId::NONE) {
+        classesToTrainMapping.emplace(classId, pixelClassId);
+        pixelClassId++;
+      }
+    }
+
+    //
+    //
+    //
+    std::string modelFileName = mModelName->text().toStdString();
+    if(modelFileName.empty()) {
+      modelFileName = "tmp";
+    }
+
+    if(classesToTrainMapping.size() > 1) {
+      std::filesystem::path modelPath =
+          joda::ml::MlModelParser::getUsersMlModelDirectory() / (modelFileName + joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL);
+
+      std::set<joda::settings::PixelClassifierFeatures> features;
+
+      const auto &items = mComboTrainingFeatures->getCheckedItems();
+      for(const auto &item : items) {
+        features.emplace(static_cast<joda::settings::PixelClassifierFeatures>(item.first.toInt()));
+      }
+
+      if(features.empty()) {
+        emit trainingFinished(false, "At least one feature must be selected!");
+        return;
+      }
+
+      mTrainerSettings.method          = static_cast<joda::settings::PixelClassifierMethod>(mComboClassifierMethod->currentData().toInt());
+      mTrainerSettings.trainingClasses = classesToTrainMapping;
+      mTrainerSettings.features        = features;
+      mTrainerSettings.outPath         = modelPath;
+      mTrainerSettings.categoryToTrain = static_cast<joda::atom::ROI::Category>(mRoiSource->currentData().toInt());
+      try {
+        joda::cmd::PixelClassifier::train(*mImagePanel->mutableImage()->getOriginalImage(), *mObjectMap, mTrainerSettings);
+      } catch(const std::exception &ex) {
+        emit trainingFinished(false, ex.what());
+        return;
+      }
+    } else {
+      emit trainingFinished(false, "No annotation for training found!");
+      return;
+    }
+    emit trainingFinished(true, "");
+  });
 }
 
 }    // namespace joda::ui::gui

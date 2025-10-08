@@ -14,6 +14,7 @@
 #include <opencv2/core/hal/interface.h>
 #include <filesystem>
 #include <string>
+#include "backend/artifacts/roi/roi.hpp"
 #include "backend/commands/command.hpp"
 #include "backend/commands/image_functions/image_from_class/image_from_class_settings.hpp"
 #include "backend/helper/duration_count/duration_count.h"
@@ -41,7 +42,7 @@ public:
     image = 0;
     for(const auto &cl : mSettings.classesIn) {
       cv::Mat tmp = cv::Mat::zeros(image.size(), CV_16UC1);
-      result.at(context.getClassId(cl))->createBinaryImage(tmp, 1);
+      result.at(context.getClassId(cl))->createBinaryImage(tmp, 1, joda::atom::ROI::Category::ANY);
       cv::bitwise_or(image, tmp, image);
     }
   }

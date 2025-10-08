@@ -112,6 +112,7 @@ void PixelClassifier::train(const cv::Mat &image, const atom::ObjectList &result
     case settings::PixelClassifierMethod::RTrees: {
       prepareTrainingDataFromROI(image, trainingSettings.trainingClasses, trainingSettings.categoryToTrain, result, trainSamples, labelList,
                                  trainingSettings.features, false);
+
       auto statsModel = trainRandomForest(trainingSettings.randomForest, trainSamples, labelList);
       storeModel(statsModel, trainingSettings.outPath, trainingSettings.features, trainingSettings.trainingClasses);
 
@@ -123,6 +124,7 @@ void PixelClassifier::train(const cv::Mat &image, const atom::ObjectList &result
     case settings::PixelClassifierMethod::ANN_MLP: {
       prepareTrainingDataFromROI(image, trainingSettings.trainingClasses, trainingSettings.categoryToTrain, result, trainSamples, labelList,
                                  trainingSettings.features, true);
+
       auto statsModel = trainAnnMlp(trainingSettings.annMlp, trainSamples, labelList, static_cast<int32_t>(trainingSettings.trainingClasses.size()));
       storeModel(statsModel, trainingSettings.outPath, trainingSettings.features, trainingSettings.trainingClasses);
 
@@ -458,8 +460,10 @@ void PixelClassifier::prepareTrainingDataFromROI(const cv::Mat &image, const std
     }
     cv::Mat roiMask            = cv::Mat::zeros(image.size(), CV_16UC1);
     const auto &objectsToLearn = regionOfInterest.at(classIdToTrain);
-    objectsToLearn->createBinaryImage(roiMask, 1, categoryToTain);
-    extractSamples(roiMask, pixelClassId);
+    auto addedRois             = objectsToLearn->createBinaryImage(roiMask, 1, categoryToTain);
+    if(addedRois > 0) {
+      extractSamples(roiMask, pixelClassId);
+    }
   }
 
   // ====================================
@@ -475,7 +479,7 @@ void PixelClassifier::prepareTrainingDataFromROI(const cv::Mat &image, const std
 
   if(trainSamples.empty() || trainLabels.empty()) {
     joda::log::logWarning("No training samples!");
-    return;
+    throw std::invalid_argument("No training samples! Did you created annotations?");
   }
 }
 

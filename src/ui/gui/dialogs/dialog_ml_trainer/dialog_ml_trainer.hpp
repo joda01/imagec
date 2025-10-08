@@ -15,6 +15,7 @@
 #include <qdialog.h>
 #include <qlineedit.h>
 #include <qwidget.h>
+#include <memory>
 #include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/commands/classification/pixel_classifier/pixel_classifier_training_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
@@ -47,6 +48,7 @@ public:
 
 signals:
   void dialogDisappeared();    // custom signal
+  void trainingFinished(bool okay, QString message);
 
 protected:
   void hideEvent(QHideEvent *event) override;
@@ -56,6 +58,7 @@ protected:
 private:
   /////////////////////////////////////////////////////
   void startTraining();
+  void setInProgress(bool);
 
   /////////////////////////////////////////////////////
   PanelImageView *mImagePanel;
@@ -63,9 +66,15 @@ private:
   QComboBox *mRoiSource;
   QComboBoxMulti *mComboTrainingFeatures;
   QLineEdit *mModelName;
+  QPushButton *mButtonStartTraining;
+  QProgressBar *mProgress;
   std::shared_ptr<atom::ObjectList> mObjectMap;
 
   joda::settings::PixelClassifierTrainingSettings mTrainerSettings;
+  std::unique_ptr<std::thread> mTrainingsThread;
+
+private slots:
+  void onTrainingFinished(bool okay, QString message);
 };
 
 }    // namespace joda::ui::gui

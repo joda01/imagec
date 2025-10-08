@@ -142,8 +142,9 @@ void SpheralIndex::calcIntersection(ObjectList *objectList, joda::processor::Pro
   }
 }
 
-void SpheralIndex::createBinaryImage(cv::Mat &img, uint16_t pixelClass, ROI::Category categoryFilter) const
+int64_t SpheralIndex::createBinaryImage(cv::Mat &img, uint16_t pixelClass, ROI::Category categoryFilter) const
 {
+  int64_t addedRois = 0;
   for(const auto &roi : *this) {
     if(categoryFilter != ROI::Category::ANY && roi.getCategory() != categoryFilter) {
       continue;
@@ -160,11 +161,13 @@ void SpheralIndex::createBinaryImage(cv::Mat &img, uint16_t pixelClass, ROI::Cat
        roi.getBoundingBoxTile().y + roi.getBoundingBoxTile().height <= img.rows) {
       try {
         img(roi.getBoundingBoxTile()).setTo(cv::Scalar(pixelClass), roi.getMask());
+        addedRois++;
       } catch(const std::exception &ex) {
         std::cout << "PA: " << ex.what() << std::endl;
       }
     }
   }
+  return addedRois;
 }
 
 std::unique_ptr<SpheralIndex> SpheralIndex::clone()

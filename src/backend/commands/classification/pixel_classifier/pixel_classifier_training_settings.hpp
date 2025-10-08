@@ -63,7 +63,7 @@ struct KNearestTrainingSettings
 struct AnnMlpTrainingSettings
 {
   std::vector<int32_t> neuronsLayer = {64};    // Vector size is nr. of neuron layers. Entry is the number of neurons per layer.
-  double terminationEpsilon         = 0;
+  double terminationEpsilon         = 0.01;
   int32_t maxIterations             = 1000;
 };
 
