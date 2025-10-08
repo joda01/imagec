@@ -24,10 +24,13 @@
 #include "ui/gui/helper/table_widget.hpp"
 #include "ui/gui/results/dialog_class_settings.hpp"
 
+class PlaceholderTableView;
+
 namespace joda::ui::gui {
 
 class WindowMain;
 class DialogImageViewer;
+class TableModelRoi;
 
 ///
 /// \class
@@ -83,6 +86,10 @@ private:
   WindowMain *mWindowMain;
   joda::settings::Classification *mSettings;
   PlaceholderTableWidget *mClasses;
+
+  /// ROI DETAILS ///////////////////////////////////
+  PlaceholderTableView *mTableRoiDetails;
+  TableModelRoi *mTableModelRoi;
 
   /// DIALOG //////////////////////////////////////////////////
   DialogClassSettings *mClassSettingsDialog;

@@ -27,6 +27,7 @@ namespace joda::ui::gui {
 class WindowMain;
 class PanelImageView;
 class TableModelPaintedPolygon;
+class TableModelRoi;
 
 ///
 /// \class
@@ -40,7 +41,7 @@ class DialogRoiManager : public QWidget
 public:
   /////////////////////////////////////////////////////
   DialogRoiManager(const std::shared_ptr<atom::ObjectList> &objectMap, const joda::settings::Classification *classSettings,
-                   PanelImageView *imagePanel, QWidget *parent);
+                   PanelImageView *imagePanel, TableModelRoi *roiDetailsTableView, QWidget *parent);
 
 signals:
   void dialogDisappeared();    // custom signal
@@ -54,6 +55,7 @@ private:
   PanelImageView *mImagePanel;
   PlaceholderTableView *mPolygonsTable;
   TableModelPaintedPolygon *mTableModel;
+  TableModelRoi *mTableModelRoi;
 };
 
 }    // namespace joda::ui::gui

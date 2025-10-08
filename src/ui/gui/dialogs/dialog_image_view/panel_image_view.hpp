@@ -129,10 +129,12 @@ public:
   // INFORMATION NEEDED FROM EXTERNAL ///////////////////////////////////////////////////
   void setZprojection(enums::ZProjection);
   void setSeries(int32_t);
+  int32_t getSeries() const;
   void setImagePlane(const joda::image::reader::ImageReader::Plane &);
   void setSelectedTile(int32_t tileX, int32_t tileY);
   void setImageTile(int32_t tileWith, int32_t tileHeight);
   void setDefaultPhysicalSize(const joda::settings::ProjectImageSetup::PhysicalSizeSettings &);
+  auto getPhysicalSizeSettings() const -> const joda::settings::ProjectImageSetup::PhysicalSizeSettings &;
   auto mutableImage() -> joda::image::Image *;
 
   // REGION OF INTERESTS //////////////////////////////////////////////

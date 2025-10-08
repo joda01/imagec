@@ -182,6 +182,18 @@ void PanelImageView::setDefaultPhysicalSize(const joda::settings::ProjectImageSe
 /// \param[out]
 /// \return
 ///
+auto PanelImageView::getPhysicalSizeSettings() const -> const joda::settings::ProjectImageSetup::PhysicalSizeSettings &
+{
+  return mDefaultPhysicalSize;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::reloadImage()
 {
   if(mLastPath.empty()) {
@@ -424,6 +436,18 @@ void PanelImageView::setZprojection(enums::ZProjection projection)
 void PanelImageView::setSeries(int32_t series)
 {
   mSeries = series;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+int32_t PanelImageView::getSeries() const
+{
+  return mSeries;
 }
 
 ///

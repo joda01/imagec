@@ -26,6 +26,7 @@
 #include "ui/gui/dialogs/dialog_image_view/panel_image_view.hpp"
 #include "ui/gui/dialogs/dialog_roi_manager/table_item_delegate_polygon.hpp"
 #include "ui/gui/dialogs/dialog_roi_manager/table_model_painted_polygon.hpp"
+#include "ui/gui/dialogs/dialog_roi_manager/table_model_roi.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
 #include "ui/gui/editor/window_main.hpp"
 #include "ui/gui/helper/html_delegate.hpp"
@@ -42,9 +43,9 @@ namespace joda::ui::gui {
 /// \return
 ///
 DialogRoiManager::DialogRoiManager(const std::shared_ptr<atom::ObjectList> &objectMap, const joda::settings::Classification *classSettings,
-                                   PanelImageView *imagePanel, QWidget *parent) :
+                                   PanelImageView *imagePanel, TableModelRoi *roiDetailsTableView, QWidget *parent) :
     QWidget(parent),
-    mImagePanel(imagePanel)
+    mImagePanel(imagePanel), mTableModelRoi(roiDetailsTableView)
 {
   setWindowTitle("ROI manager");
   auto *layout = new QVBoxLayout();
@@ -104,6 +105,7 @@ DialogRoiManager::DialogRoiManager(const std::shared_ptr<atom::ObjectList> &obje
     connect(mPolygonsTable->selectionModel(), &QItemSelectionModel::selectionChanged, this, [this](const QItemSelection &, const QItemSelection &) {
       if(!mPolygonsTable->selectionModel()->hasSelection()) {
         mImagePanel->setSelectedRois({});
+        mTableModelRoi->setData(nullptr);
       } else {
         auto indexes = mPolygonsTable->selectionModel()->selectedIndexes();
         std::set<atom::ROI *> idxs;
@@ -111,6 +113,11 @@ DialogRoiManager::DialogRoiManager(const std::shared_ptr<atom::ObjectList> &obje
           idxs.emplace(mTableModel->getCell(row.row()));
         }
         mImagePanel->setSelectedRois(idxs);
+        if(!idxs.empty()) {
+          mTableModelRoi->setData(*idxs.begin());
+        } else {
+          mTableModelRoi->setData(nullptr);
+        }
       }
     });
 
@@ -129,6 +136,11 @@ DialogRoiManager::DialogRoiManager(const std::shared_ptr<atom::ObjectList> &obje
         firstRun = false;
         mPolygonsTable->setCurrentIndex(index);
       }
+    }
+    if(!idxs.empty()) {
+      mTableModelRoi->setData(*idxs.begin());
+    } else {
+      mTableModelRoi->setData(nullptr);
     }
   });
 }

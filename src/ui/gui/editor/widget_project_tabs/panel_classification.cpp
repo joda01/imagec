@@ -31,11 +31,13 @@
 #include "backend/settings/project_settings/project_plates.hpp"
 #include "ui/gui/dialogs/dialog_image_view/dialog_image_view.hpp"
 #include "ui/gui/dialogs/dialog_roi_manager/dialog_roi_manager.hpp"
+#include "ui/gui/dialogs/dialog_roi_manager/table_model_roi.hpp"
 #include "ui/gui/editor/widget_project_tabs/panel_image.hpp"
 #include "ui/gui/editor/window_main.hpp"
 #include "ui/gui/helper/color_combo/color_combo.hpp"
 #include "ui/gui/helper/colord_square_delegate.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
+#include "ui/gui/helper/table_view.hpp"
 #include "ui/gui/results/dialog_class_settings.hpp"
 #include "ui/gui/results/window_results.hpp"
 #include <nlohmann/json_fwd.hpp>
@@ -227,11 +229,27 @@ PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList>
 
       splitPane->addWidget(mClasses);
     }
+
+    // ROI details
     {
-      splitPane->addWidget(new DialogRoiManager(objectMap, settings, imageView->getImagePanel(), mWindowMain));
+      mTableRoiDetails = new PlaceholderTableView(this);
+      mTableRoiDetails->setPlaceholderText("Select an annotation ...");
+      mTableRoiDetails->setFrameStyle(QFrame::NoFrame);
+      mTableRoiDetails->verticalHeader()->setVisible(false);
+      mTableRoiDetails->horizontalHeader()->setVisible(true);
+      mTableRoiDetails->setAlternatingRowColors(true);
+      mTableRoiDetails->setSelectionBehavior(QAbstractItemView::SelectRows);
+      mTableRoiDetails->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+      mTableModelRoi = new TableModelRoi(imageView->getImagePanel(), settings, mTableRoiDetails);
+      mTableRoiDetails->setModel(mTableModelRoi);
     }
 
-    layout->addWidget(splitPane);
+    {
+      splitPane->addWidget(new DialogRoiManager(objectMap, settings, imageView->getImagePanel(), mTableModelRoi, mWindowMain));
+    }
+
+    layout->addWidget(splitPane, 2);
+    layout->addWidget(mTableRoiDetails, 1);
   }
   setLayout(layout);
 
