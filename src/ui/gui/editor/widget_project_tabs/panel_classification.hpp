@@ -47,6 +47,11 @@ public:
   [[nodiscard]] auto getClasses() const -> std::map<enums::ClassIdIn, QString>;
   auto getSelectedClass() const -> enums::ClassId;
 
+  [[nodiscard]] QSize sizeHint() const override
+  {
+    return QSize(300, QWidget::sizeHint().height());
+  }
+
 signals:
   void settingsChanged();
 
