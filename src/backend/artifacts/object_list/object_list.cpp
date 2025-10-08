@@ -142,9 +142,13 @@ void SpheralIndex::calcIntersection(ObjectList *objectList, joda::processor::Pro
   }
 }
 
-void SpheralIndex::createBinaryImage(cv::Mat &img, uint16_t pixelClass) const
+void SpheralIndex::createBinaryImage(cv::Mat &img, uint16_t pixelClass, ROI::Category categoryFilter) const
 {
   for(const auto &roi : *this) {
+    if(categoryFilter != ROI::Category::ANY && roi.getCategory() != categoryFilter) {
+      continue;
+    }
+
     //   int left   = roi.getBoundingBoxTile().x;
     //   int top    = roi.getBoundingBoxTile().y,,;
     //   int width  = roi.getBoundingBoxTile().width;

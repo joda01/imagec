@@ -42,8 +42,9 @@ public:
 private:
   /////////////////////////////////////////////////////
   static void prepareTrainingDataFromROI(const cv::Mat &image, const std::map<enums::ClassId, int32_t> &classesToTrain,
-                                         const atom::ObjectList &regionOfInterest, cv::Mat &trainSamples, cv::Mat &trainLabels,
-                                         const std::set<joda::settings::PixelClassifierFeatures> &featuresSet, bool normalizeForMLP);
+                                         joda::atom::ROI::Category categoryToTain, const atom::ObjectList &regionOfInterest, cv::Mat &trainSamples,
+                                         cv::Mat &trainLabels, const std::set<joda::settings::PixelClassifierFeatures> &featuresSet,
+                                         bool normalizeForMLP);
 
   static cv::Mat extractFeatures(const cv::Mat &img, const std::set<joda::settings::PixelClassifierFeatures> &features, bool normalizeForMLP);
 

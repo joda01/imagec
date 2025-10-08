@@ -110,7 +110,8 @@ void PixelClassifier::train(const cv::Mat &image, const atom::ObjectList &result
 
   switch(trainingSettings.method) {
     case settings::PixelClassifierMethod::RTrees: {
-      prepareTrainingDataFromROI(image, trainingSettings.trainingClasses, result, trainSamples, labelList, trainingSettings.features, false);
+      prepareTrainingDataFromROI(image, trainingSettings.trainingClasses, trainingSettings.categoryToTrain, result, trainSamples, labelList,
+                                 trainingSettings.features, false);
       auto statsModel = trainRandomForest(trainingSettings.randomForest, trainSamples, labelList);
       storeModel(statsModel, trainingSettings.outPath, trainingSettings.features, trainingSettings.trainingClasses);
 
@@ -120,13 +121,15 @@ void PixelClassifier::train(const cv::Mat &image, const atom::ObjectList &result
     case settings::PixelClassifierMethod::SVM:
     case settings::PixelClassifierMethod::SVMSGD:
     case settings::PixelClassifierMethod::ANN_MLP: {
-      prepareTrainingDataFromROI(image, trainingSettings.trainingClasses, result, trainSamples, labelList, trainingSettings.features, true);
+      prepareTrainingDataFromROI(image, trainingSettings.trainingClasses, trainingSettings.categoryToTrain, result, trainSamples, labelList,
+                                 trainingSettings.features, true);
       auto statsModel = trainAnnMlp(trainingSettings.annMlp, trainSamples, labelList, static_cast<int32_t>(trainingSettings.trainingClasses.size()));
       storeModel(statsModel, trainingSettings.outPath, trainingSettings.features, trainingSettings.trainingClasses);
 
     } break;
     case settings::PixelClassifierMethod::KNearest: {
-      prepareTrainingDataFromROI(image, trainingSettings.trainingClasses, result, trainSamples, labelList, trainingSettings.features, true);
+      prepareTrainingDataFromROI(image, trainingSettings.trainingClasses, trainingSettings.categoryToTrain, result, trainSamples, labelList,
+                                 trainingSettings.features, true);
       auto statsModel = trainAnnMlp(trainingSettings.annMlp, trainSamples, labelList, static_cast<int32_t>(trainingSettings.trainingClasses.size()));
       storeModel(statsModel, trainingSettings.outPath, trainingSettings.features, trainingSettings.trainingClasses);
     } break;
@@ -422,7 +425,8 @@ cv::Ptr<cv::ml::StatModel> PixelClassifier::loadModel(const std::filesystem::pat
 /// \return
 ///
 void PixelClassifier::prepareTrainingDataFromROI(const cv::Mat &image, const std::map<enums::ClassId, int32_t> &classesToTrain,
-                                                 const atom::ObjectList &regionOfInterest, cv::Mat &trainSamples, cv::Mat &trainLabels,
+                                                 joda::atom::ROI::Category categoryToTain, const atom::ObjectList &regionOfInterest,
+                                                 cv::Mat &trainSamples, cv::Mat &trainLabels,
                                                  const std::set<joda::settings::PixelClassifierFeatures> &featuresSet, bool normalizeForMLP)
 {
   // Extract features
@@ -454,7 +458,7 @@ void PixelClassifier::prepareTrainingDataFromROI(const cv::Mat &image, const std
     }
     cv::Mat roiMask            = cv::Mat::zeros(image.size(), CV_16UC1);
     const auto &objectsToLearn = regionOfInterest.at(classIdToTrain);
-    objectsToLearn->createBinaryImage(roiMask, 1);
+    objectsToLearn->createBinaryImage(roiMask, 1, categoryToTain);
     extractSamples(roiMask, pixelClassId);
   }
 

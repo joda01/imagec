@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include "backend/artifacts/roi/roi.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/settings/setting.hpp"
 #include "backend/settings/setting_base.hpp"
@@ -78,6 +79,11 @@ struct PixelClassifierTrainingSettings
   // Machine learning method to use
   //
   PixelClassifierMethod method = PixelClassifierMethod::Unknown;
+
+  //
+  // Which category of classes to train
+  //
+  joda::atom::ROI::Category categoryToTrain = joda::atom::ROI::Category::MANUAL_SEGMENTATION;
 
   //
   // Features to use for training and prediction

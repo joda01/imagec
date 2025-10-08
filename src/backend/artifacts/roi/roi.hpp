@@ -83,6 +83,7 @@ public:
 
   enum class Category
   {
+    ANY,
     AUTO_SEGMENTATION,
     MANUAL_SEGMENTATION
   };

@@ -119,7 +119,7 @@ DialogMlTrainer::DialogMlTrainer(const std::shared_ptr<atom::ObjectList> &object
     mRoiSource = new QComboBox();
     mRoiSource->addItem("Manual annotated objects", static_cast<int>(joda::atom::ROI::Category::MANUAL_SEGMENTATION));
     mRoiSource->addItem("Pipeline annotated objects", static_cast<int>(joda::atom::ROI::Category::AUTO_SEGMENTATION));
-    mRoiSource->addItem("Any annotated object", -1);
+    mRoiSource->addItem("Any annotated object", static_cast<int>(joda::atom::ROI::Category::ANY));
     layout->addRow("Training data", mRoiSource);
   }
 
@@ -188,19 +188,6 @@ void DialogMlTrainer::closeEvent(QCloseEvent *event)
 ///
 void DialogMlTrainer::startTraining()
 {
-  std::set<joda::atom::ROI::Category> filter;
-  if(mRoiSource->currentData().toInt() < 0) {
-    filter.emplace(joda::atom::ROI::Category::MANUAL_SEGMENTATION);
-    filter.emplace(joda::atom::ROI::Category::AUTO_SEGMENTATION);
-  } else {
-    filter.emplace(static_cast<joda::atom::ROI::Category>(mRoiSource->currentData().toInt()));
-  }
-
-  //
-  // First of all we get the objects to train
-  //
-  //  atom::ObjectList annotatedObjectsToTrain;
-
   //
   // At least one background annotation must be present
   //
@@ -250,6 +237,7 @@ void DialogMlTrainer::startTraining()
     mTrainerSettings.trainingClasses = classesToTrainMapping;
     mTrainerSettings.features        = features;
     mTrainerSettings.outPath         = modelPath;
+    mTrainerSettings.categoryToTrain = static_cast<joda::atom::ROI::Category>(mRoiSource->currentData().toInt());
     joda::cmd::PixelClassifier::train(*mImagePanel->mutableImage()->getOriginalImage(), *mObjectMap, mTrainerSettings);
   } else {
     QMessageBox::warning(this, "Annotation missing ...", "No annotation for training found!");

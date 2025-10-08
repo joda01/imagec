@@ -236,8 +236,8 @@ bool RoiOverlay::deleteSelectedRois()
   messageBox.setIconPixmap(icon.pixmap(42, 42));
   messageBox.setWindowTitle("Delete?");
   messageBox.setText("Delete selected annotations?");
-  auto *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
-  auto *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+  messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+  auto *noButton = messageBox.addButton(tr("No"), QMessageBox::NoRole);
   messageBox.setDefaultButton(noButton);
   messageBox.exec();
   if(messageBox.clickedButton() == noButton) {
@@ -249,6 +249,7 @@ bool RoiOverlay::deleteSelectedRois()
   }
   mSelectedRois.clear();
   refresh();
+  mObjectMap->triggerChangeCallback();
   return true;
 }
 
@@ -266,6 +267,7 @@ void RoiOverlay::deleteRois(const std::set<joda::atom::ROI *> &idxs)
     mSelectedRois.erase(roi);
   }
   refresh();
+  mObjectMap->triggerChangeCallback();
 }
 
 ///

@@ -47,7 +47,7 @@ public:
   {
   }
 
-  void createBinaryImage(cv::Mat &img, uint16_t pixelClass) const;
+  void createBinaryImage(cv::Mat &img, uint16_t pixelClass, ROI::Category categoryFilter) const;
 
   bool empty() const
   {
