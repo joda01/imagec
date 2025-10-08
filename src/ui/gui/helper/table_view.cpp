@@ -40,7 +40,7 @@ void PlaceholderTableView::keyPressEvent(QKeyEvent *event)
 {
   if(event->key() == Qt::Key_Delete) {
     emit deletePressed();
-    return;
+    // return;
   }
   QTableView::keyPressEvent(event);
 }

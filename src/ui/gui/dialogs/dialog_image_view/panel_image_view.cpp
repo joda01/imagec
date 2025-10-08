@@ -80,7 +80,7 @@ PanelImageView::PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMa
   setCursor();
 
   mContourOverlay = new ContourOverlay();
-  mOverlayMasks   = new RoiOverlay(objectMap, classSettings, mContourOverlay);
+  mOverlayMasks   = new RoiOverlay(objectMap, classSettings, mContourOverlay, parent);
 
   scene->addItem(mOverlayMasks);
   scene->addItem(mContourOverlay);
@@ -1292,6 +1292,20 @@ void PanelImageView::getThumbnailAreaEntered(QMouseEvent *event)
 
 ///
 /// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::keyPressEvent(QKeyEvent *event)
+{
+  if(event->key() == Qt::Key_Delete) {
+    deleteSelectedRois();
+  }
+}
+
+///
+/// \brief
 /// \author
 /// \param[in]
 /// \param[out]
@@ -1325,10 +1339,13 @@ void PanelImageView::deleteRois(const std::set<joda::atom::ROI *> &idxs)
 /// \param[out]
 /// \return
 ///
-void PanelImageView::deleteSelectedRois()
+bool PanelImageView::deleteSelectedRois()
 {
-  mOverlayMasks->deleteSelectedRois();
-  emit paintedPolygonsChanged();
+  if(mOverlayMasks->deleteSelectedRois()) {
+    emit paintedPolygonsChanged();
+    return true;
+  }
+  return false;
 }
 
 ///

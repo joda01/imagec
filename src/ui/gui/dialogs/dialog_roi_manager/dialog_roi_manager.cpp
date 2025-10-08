@@ -84,7 +84,6 @@ DialogRoiManager::DialogRoiManager(const std::shared_ptr<atom::ObjectList> &obje
     deleteColumn->setStatusTip("Delete selected ROIs");
     toolbar->addAction(deleteColumn);
     connect(deleteColumn, &QAction::triggered, [this]() { mImagePanel->deleteSelectedRois(); });
-
     layout->addWidget(toolbar);
   }
 

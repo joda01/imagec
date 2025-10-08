@@ -140,7 +140,7 @@ public:
   void clearRegionOfInterest(joda::atom::ROI::Category sourceToDelete = joda::atom::ROI::Category::AUTO_SEGMENTATION);
   void setSelectedRois(const std::set<joda::atom::ROI *> &idxs);
   void deleteRois(const std::set<joda::atom::ROI *> &idx);
-  void deleteSelectedRois();
+  bool deleteSelectedRois();
   void setFillRois(bool);
   void setShowRois(bool);
   void setRoisOpaque(float opaque);
@@ -177,6 +177,8 @@ private:
   auto imageCoordinatesToPreviewCoordinates(const QRect &imageCoordinates) -> QRect;
   void setCursor();
   void addPolygonToToObjectMap(const QPolygonF &);
+
+  void keyPressEvent(QKeyEvent *event) override;
 
 private:
   /////////////////////////////////////////////////////

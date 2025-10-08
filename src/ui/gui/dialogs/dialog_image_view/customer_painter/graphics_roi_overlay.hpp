@@ -28,7 +28,7 @@ class RoiOverlay : public QObject, public QGraphicsPixmapItem
   Q_OBJECT
 
 public:
-  RoiOverlay(const std::shared_ptr<joda::atom::ObjectList> &, const joda::settings::Classification *, ContourOverlay *);
+  RoiOverlay(const std::shared_ptr<joda::atom::ObjectList> &, const joda::settings::Classification *, ContourOverlay *, QWidget *parent);
 
   /////////////////////////////////////////////////////
   void setOverlay(const cv::Size &imageSize, const cv::Size &previewSize);
@@ -42,7 +42,7 @@ public:
   void setClassesToHide(const std::set<joda::enums::ClassId> &toHide);
   void setSelectable(bool select);
   void setSelectedRois(const std::set<joda::atom::ROI *> &idxs);
-  void deleteSelectedRois();
+  bool deleteSelectedRois();
   void deleteRois(const std::set<joda::atom::ROI *> &idxs);
 
 signals:
@@ -67,6 +67,7 @@ private:
   std::set<joda::enums::ClassId> mToHide;
   std::set<joda::atom::ROI *> mSelectedRois;
   ContourOverlay *mContourOverlay;
+  QWidget *mParentWidget;
 
   // Cntours ///////////////
   ColorMap_t mContoursPerColor;

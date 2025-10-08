@@ -10,14 +10,18 @@
 ///
 
 #include "graphics_roi_overlay.hpp"
+#include <qevent.h>
 #include <qgraphicseffect.h>
 #include <qgraphicssceneevent.h>
+#include <qmessagebox.h>
 #include <qpainter.h>
 #include <qpen.h>
 #include <qpolygon.h>
+#include <qpushbutton.h>
 #include <cstddef>
 #include <string>
 #include "backend/helper/duration_count/duration_count.h"
+#include "ui/gui/helper/icon_generator.hpp"
 #include "graphics_contour_overlay.hpp"
 
 ///
@@ -28,9 +32,9 @@
 /// \return
 ///
 RoiOverlay::RoiOverlay(const std::shared_ptr<joda::atom::ObjectList> &objectMap, const joda::settings::Classification *classSettings,
-                       ContourOverlay *contourOverlay) :
+                       ContourOverlay *contourOverlay, QWidget *parent) :
     mObjectMap(objectMap),
-    mClassificationSettings(classSettings), mContourOverlay(contourOverlay)
+    mClassificationSettings(classSettings), mContourOverlay(contourOverlay), mParentWidget(parent)
 {
 }
 
@@ -225,13 +229,27 @@ void RoiOverlay::setSelectedRois(const std::set<joda::atom::ROI *> &idxs)
 /// \param[out]
 /// \return
 ///
-void RoiOverlay::deleteSelectedRois()
+bool RoiOverlay::deleteSelectedRois()
 {
+  QMessageBox messageBox(mParentWidget);
+  auto icon = joda::ui::gui::generateSvgIcon<joda::ui::gui::Style::REGULAR, joda::ui::gui::Color::YELLOW>("warning-circle");
+  messageBox.setIconPixmap(icon.pixmap(42, 42));
+  messageBox.setWindowTitle("Delete?");
+  messageBox.setText("Delete selected annotations?");
+  auto *yesButton = messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+  auto *noButton  = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+  messageBox.setDefaultButton(noButton);
+  messageBox.exec();
+  if(messageBox.clickedButton() == noButton) {
+    return false;
+  }
+
   for(joda::atom::ROI *roi : mSelectedRois) {
     mObjectMap->erase(roi);
   }
   mSelectedRois.clear();
   refresh();
+  return true;
 }
 
 ///
