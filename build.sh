@@ -32,6 +32,11 @@ makeIcons() {
     cmake -S . -B ./build -G "Unix Makefiles" -DTAG_NAME="devel-build" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_TOOLCHAIN_FILE="./build/build/Release/generators/conan_toolchain.cmake" -DCUDA_TOOLKIT_ROOT_DIR="/usr/local/cuda" -DCMAKE_CUDA_COMPILER="/usr/local/cuda/bin/nvcc" -DWITH_CUDA="True"
 }
 
+copy(){
+     cd build/build/output
+     cp ../imagec imagec
+}
+
 pack(){
     rm -rf build/build/java
     rm -rf build/build/plugins
@@ -47,7 +52,10 @@ pack(){
     mkdir -p ./lib
     mkdir -p ./java
     mkdir -p ./templates
+    
     cp ../imagec imagec
+    
+    
     cp ../tests tests
     cp -r /root/.conan2/p/*/p/./plugins/* ./plugins
     cp -r ../../../resources/templates/* ./templates/
@@ -131,7 +139,8 @@ for arg in "$@"; do
         --build)
             # Execute build and pack every time something in code has been changed
             build
-            pack
+            #pack
+            copy
             ;;
         --clean)
             clean
