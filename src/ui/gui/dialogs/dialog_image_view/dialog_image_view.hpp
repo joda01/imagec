@@ -43,7 +43,7 @@ class DialogImageViewer : public QWidget
 public:
   struct ImagePlaneSettings
   {
-    joda::image::reader::ImageReader::Plane plane;
+    joda::enums::PlaneId plane;
     int32_t series;
     int32_t tileWidth;
     int32_t tileHeight;

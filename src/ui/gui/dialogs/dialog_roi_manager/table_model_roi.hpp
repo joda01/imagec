@@ -40,7 +40,7 @@ public:
   void refresh();
 
 private:
-  static inline const int32_t NR_ROWS = 8;
+  static inline const int32_t NR_ROWS = 12;
 
   /////////////////////////////////////////////////////
   const PanelImageView *mPanelImageView;

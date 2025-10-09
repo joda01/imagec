@@ -576,7 +576,7 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     mAnalyzeSettings.pipelineSetup                  = analyzeSettings.pipelineSetup;
     mAnalyzeSettingsOld                             = mAnalyzeSettings;
 
-    mPreviewImage->setImagePlane(DialogImageViewer::ImagePlaneSettings{.plane      = {.z = 0, .c = 0, .t = 0},
+    mPreviewImage->setImagePlane(DialogImageViewer::ImagePlaneSettings{.plane      = {.tStack = 0, .zStack = 0, .cStack = 0},
                                                                        .series     = analyzeSettings.imageSetup.series,
                                                                        .tileWidth  = analyzeSettings.imageSetup.imageTileSettings.tileWidth,
                                                                        .tileHeight = analyzeSettings.imageSetup.imageTileSettings.tileHeight,

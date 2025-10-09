@@ -463,21 +463,21 @@ ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
 /// \param[in]  channelIdx   Channel index of the given image
 /// \param[in]  imageOriginal   Image to measure the intensity in
 ///
-auto ROI::measureIntensityAndAdd(const joda::atom::ImagePlane &image) -> Intensity
+auto ROI::measureIntensityAndAdd(const enums::ImageId &imageId, const cv::Mat &image) -> Intensity
 {
-  if(!mIntensity.contains(image.getId())) {
+  if(!mIntensity.contains(imageId)) {
     // Just add an empty entry
-    mIntensity[image.getId()].intensitySum = 0;
-    mIntensity[image.getId()].intensityAvg = 0;
-    mIntensity[image.getId()].intensityMax = 0;
-    mIntensity[image.getId()].intensityMin = 0;
+    mIntensity[imageId].intensitySum = 0;
+    mIntensity[imageId].intensityAvg = 0;
+    mIntensity[imageId].intensityMax = 0;
+    mIntensity[imageId].intensityMin = 0;
 
-    if(!image.image.empty() && !mBoundingBoxTile.empty() && !mMask.empty()) {
-      mIntensity[image.getId()] = calcIntensity(image.image);
+    if(!image.empty() && !mBoundingBoxTile.empty() && !mMask.empty()) {
+      mIntensity[imageId] = calcIntensity(image);
     }
   } else {
   }
-  return mIntensity[image.getId()];
+  return mIntensity[imageId];
 }
 
 ///

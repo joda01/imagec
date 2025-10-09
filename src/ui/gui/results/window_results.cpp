@@ -773,8 +773,9 @@ void WindowResults::previewThread()
       int32_t tileYNr        = static_cast<int32_t>(static_cast<float>(objectInfo.measCenterY) / static_cast<float>(tileHeight));
       // int32_t resolution     = 0;
 
-      auto plane = joda::image::reader::ImageReader::Plane{
-          .z = static_cast<int32_t>(objectInfo.stackZ), .c = static_cast<int32_t>(objectInfo.stackC), .t = static_cast<int32_t>(objectInfo.stackT)};
+      auto plane = joda::enums::PlaneId{.tStack = static_cast<int32_t>(objectInfo.stackT),
+                                        .zStack = static_cast<int32_t>(objectInfo.stackZ),
+                                        .cStack = static_cast<int32_t>(objectInfo.stackC)};
 
       mDockWidgetImagePreview->getImageWidget()->setImagePlane({plane, series, tileWidth, tileHeight, tileXNr, tileYNr});
       mDockWidgetImagePreview->getImageWidget()->getImagePanel()->openImage(previewData.imagePath);

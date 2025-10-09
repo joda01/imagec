@@ -304,7 +304,7 @@ public:
   [[nodiscard]] ROI calcIntersection(const enums::PlaneId &iterator, const ROI &roi, float minIntersection, const enums::tile_t &tile,
                                      const cv::Size &tileSize, joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const;
 
-  auto measureIntensityAndAdd(const joda::atom::ImagePlane &image) -> Intensity;
+  auto measureIntensityAndAdd(const enums::ImageId &imageId, const cv::Mat &image) -> Intensity;
   auto measureDistanceAndAdd(const ROI &secondRoi) -> Distance;
 
   [[nodiscard]] bool isIntersecting(const ROI &roi, float minIntersection) const;

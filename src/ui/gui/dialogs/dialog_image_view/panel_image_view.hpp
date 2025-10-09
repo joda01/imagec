@@ -128,14 +128,17 @@ public:
 
   // INFORMATION NEEDED FROM EXTERNAL ///////////////////////////////////////////////////
   void setZprojection(enums::ZProjection);
+  auto getZprojection() const -> enums::ZProjection;
   void setSeries(int32_t);
   int32_t getSeries() const;
-  void setImagePlane(const joda::image::reader::ImageReader::Plane &);
+  void setImagePlane(const joda::enums::PlaneId &);
+  auto getImagePlane() const -> const joda::enums::PlaneId &;
   void setSelectedTile(int32_t tileX, int32_t tileY);
   void setImageTile(int32_t tileWith, int32_t tileHeight);
   void setDefaultPhysicalSize(const joda::settings::ProjectImageSetup::PhysicalSizeSettings &);
   auto getPhysicalSizeSettings() const -> const joda::settings::ProjectImageSetup::PhysicalSizeSettings &;
   auto mutableImage() -> joda::image::Image *;
+  auto getImage() const -> const joda::image::Image *;
 
   // REGION OF INTERESTS //////////////////////////////////////////////
   void setRegionsOfInterestFromObjectList();
@@ -202,12 +205,12 @@ private:
   // IMAGE ///////////////////////////////////////////////////
   bool mPlaceholderImageSet = true;
   std::filesystem::path mLastPath;
-  joda::image::reader::ImageReader::Plane mLastPlane{-1, -1, -1};
+  joda::enums::PlaneId mLastPlane{-1, -1, -1};
   joda::ome::OmeInfo mOmeInfo;
   joda::processor::Preview mPreviewImages;
   joda::image::Image *mImageToShow = nullptr;
   float mOpaque                    = 0.6F;
-  joda::image::reader::ImageReader::Plane mPlane;
+  joda::enums::PlaneId mPlane;
   joda::ome::TileToLoad mTile;
   enums::ZProjection mZprojection;
   int32_t mSeries = 0;

@@ -306,7 +306,7 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
 /// \author
 /// \return
 ///
-auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
+auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::enums::PlaneId &imagePlane,
                            const joda::ome::TileToLoad &tileLoad,
                            const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings, processor::Preview &previewOut,
                            joda::ome::OmeInfo &omeOut, enums::ZProjection zProjection) -> void
@@ -330,7 +330,7 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
 /// \author
 /// \return
 ///
-auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
+auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::enums::PlaneId &imagePlane,
                            const joda::ome::TileToLoad &tileLoad, processor::Preview &previewOut, const joda::ome::OmeInfo *omeIn,
                            enums::ZProjection zProjection) -> void
 {
@@ -338,12 +338,12 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
     return;
   }
   static std::filesystem::path lastImagePath;
-  static joda::image::reader::ImageReader::Plane lastImagePlane = {-1, -1, -1};
-  static joda::ome::TileToLoad lastImageTile                    = {-1};
-  static int32_t lastImageSeries                                = -1;
-  static enums::ZProjection lastZProjection                     = enums::ZProjection::UNDEFINED;
-  bool generateThumb                                            = false;
-  bool refreshImage                                             = false;
+  static joda::enums::PlaneId lastImagePlane = {-1, -1, -1};
+  static joda::ome::TileToLoad lastImageTile = {-1};
+  static int32_t lastImageSeries             = -1;
+  static enums::ZProjection lastZProjection  = enums::ZProjection::UNDEFINED;
+  bool generateThumb                         = false;
+  bool refreshImage                          = false;
 
   if(imagePath != lastImagePath || previewOut.thumbnail.empty() || lastImagePlane != imagePlane || lastImageTile != tileLoad ||
      lastImageSeries != series || zProjection != lastZProjection) {
@@ -358,16 +358,16 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
 
   if(refreshImage) {
     auto loadImageTile = [&tileLoad, series, &omeIn, &imagePath](int32_t z, int32_t c, int32_t t) {
-      return joda::image::reader::ImageReader::loadImageTile(imagePath.string(), joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t},
-                                                             series, 0, tileLoad, *omeIn);
+      return joda::image::reader::ImageReader::loadImageTile(imagePath.string(), joda::enums::PlaneId{.tStack = t, .zStack = z, .cStack = c}, series,
+                                                             0, tileLoad, *omeIn);
     };
 
     //
     // Do z -projection if activated
     //
-    int32_t c  = imagePlane.c;
-    int32_t z  = imagePlane.z;
-    int32_t t  = imagePlane.t;
+    int32_t c  = imagePlane.cStack;
+    int32_t z  = imagePlane.zStack;
+    int32_t t  = imagePlane.tStack;
     auto image = loadImageTile(z, c, t);
 
     if(zProjection != enums::ZProjection::NONE && zProjection != enums::ZProjection::TAKE_MIDDLE) {

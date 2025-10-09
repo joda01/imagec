@@ -104,18 +104,30 @@ QVariant TableModelRoi::data(const QModelIndex &index, int role) const
         case 3:
           return "Perimeter";
         case 4:
-          return "Centroid x";
-        case 5:
-          return "Centroid y";
-        case 6:
           return "Area size";
-        case 7:
+        case 5:
           return "Circularity";
+        case 6:
+          return "Centroid x";
+        case 7:
+          return "Centroid y";
+        case 8:
+          return "Intensity min.";
+        case 9:
+          return "Intensity max.";
+        case 10:
+          return "Intensity avg.";
+        case 11:
+          return "Intensity sum.";
       }
     } else {
       const auto &phSyUnit                 = mPanelImageView->getPhysicalSizeSettings();
       nlohmann::json physicalImageSizeUnit = phSyUnit.pixelSizeUnit;
       const auto &phSy                     = mPanelImageView->getOmeInfo().getPhyiscalSize(mPanelImageView->getSeries());
+
+      const auto intensity =
+          mROI->measureIntensityAndAdd({.zProjection = mPanelImageView->getZprojection(), .imagePlane = mPanelImageView->getImagePlane()},
+                                       *mPanelImageView->getImage()->getOriginalImage());
 
       switch(index.row()) {
         case 0:
@@ -137,15 +149,25 @@ QVariant TableModelRoi::data(const QModelIndex &index, int role) const
           return QString::number(static_cast<double>(mROI->getPerimeter(phSy, phSyUnit.pixelSizeUnit))) + " " +
                  QString(physicalImageSizeUnit.get<std::string>().data());
         case 4:
-          return QString::number(mROI->getCentroidReal().x) + " px";
-        case 5:
-          return QString::number(mROI->getCentroidReal().y) + " px";
-        case 6:
           return QString::number(mROI->getAreaSize(phSy, phSyUnit.pixelSizeUnit)) + " " + QString(physicalImageSizeUnit.get<std::string>().data()) +
                  "²";
-        case 7:
+        case 5:
           return QString::number(static_cast<double>(mROI->getCircularity()));
+        case 6:
+          return QString::number(mROI->getCentroidReal().x) + " px";
+        case 7:
+          return QString::number(mROI->getCentroidReal().y) + " px";
+        case 8:
+          return QString::number(intensity.intensityMin);
+        case 9:
+          return QString::number(intensity.intensityMax);
+        case 10:
+          return QString::number(static_cast<double>(intensity.intensityAvg));
+        case 11:
+          return QString::number(static_cast<double>(intensity.intensitySum));
       }
+
+      //
     }
   }
   return {};

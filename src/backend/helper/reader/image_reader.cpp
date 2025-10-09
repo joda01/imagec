@@ -258,11 +258,11 @@ std::string ImageReader::getJavaVersion()
 /// \param[out]
 /// \return
 ///
-cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &imagePlane, uint16_t series, uint16_t resolutionIdx,
+cv::Mat ImageReader::loadEntireImage(const std::string &filename, const joda::enums::PlaneId &imagePlane, uint16_t series, uint16_t resolutionIdx,
                                      const joda::ome::OmeInfo &ome)
 {
   // Takes 150 ms
-  if(myJVM != nullptr && mJVMInitialised && imagePlane.c >= 0 && imagePlane.z >= 0 && imagePlane.t >= 0) {
+  if(myJVM != nullptr && mJVMInitialised && imagePlane.cStack >= 0 && imagePlane.zStack >= 0 && imagePlane.tStack >= 0) {
     // std::lock_guard<std::mutex> lock(mReadMutex);
 
     JNIEnv *myEnv;
@@ -285,8 +285,9 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &i
     if(series >= ome.getNrOfSeries()) {
       series = static_cast<uint16_t>(ome.getNrOfSeries() - 1);
     }
-    jbyteArray readImg = static_cast<jbyteArray>(myEnv->CallStaticObjectMethod(
-        mBioformatsClass, mReadImage, filePath, static_cast<int>(series), static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t));
+    jbyteArray readImg = static_cast<jbyteArray>(myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, static_cast<int>(series),
+                                                                               static_cast<int>(resolutionIdx), imagePlane.zStack, imagePlane.cStack,
+                                                                               imagePlane.tStack));
     bool exception     = false;
     if(myEnv->ExceptionCheck() != 0u) {
       myEnv->ExceptionDescribe();
@@ -320,12 +321,12 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &i
 /// \param[out]
 /// \return
 ///
-cv::Mat ImageReader::loadThumbnail(const std::string &filename, Plane imagePlane, uint16_t series, const joda::ome::OmeInfo &ome)
+cv::Mat ImageReader::loadThumbnail(const std::string &filename, joda::enums::PlaneId imagePlane, uint16_t series, const joda::ome::OmeInfo &ome)
 {
   const int32_t THUMBNAIL_SIZE = 1024;
 
   // Takes 150 ms
-  if(nullptr != myJVM && mJVMInitialised && imagePlane.c >= 0 && imagePlane.z >= 0 && imagePlane.t >= 0) {
+  if(nullptr != myJVM && mJVMInitialised && imagePlane.cStack >= 0 && imagePlane.zStack >= 0 && imagePlane.tStack >= 0) {
     // std::lock_guard<std::mutex> lock(mReadMutex);
     if(series >= ome.getNrOfSeries()) {
       series = static_cast<uint16_t>(ome.getNrOfSeries() - 1);
@@ -380,15 +381,16 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, Plane imagePlane
     //
     // Check if channel exists
     //
-    imagePlane.c = std::min(imagePlane.c, ome.getNrOfChannels(series) - 1);
-    imagePlane.t = std::min(imagePlane.t, ome.getNrOfTStack(series) - 1);
-    imagePlane.z = std::min(imagePlane.z, ome.getNrOfZStack(series) - 1);
+    imagePlane.cStack = std::min(imagePlane.cStack, ome.getNrOfChannels(series) - 1);
+    imagePlane.tStack = std::min(imagePlane.tStack, ome.getNrOfTStack(series) - 1);
+    imagePlane.zStack = std::min(imagePlane.zStack, ome.getNrOfZStack(series) - 1);
 
     //
     // Read image
     //
-    jbyteArray readImg = static_cast<jbyteArray>(myEnv->CallStaticObjectMethod(
-        mBioformatsClass, mReadImage, filePath, static_cast<int>(series), static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t));
+    jbyteArray readImg = static_cast<jbyteArray>(myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, static_cast<int>(series),
+                                                                               static_cast<int>(resolutionIdx), imagePlane.zStack, imagePlane.cStack,
+                                                                               imagePlane.tStack));
     bool exception     = false;
     if(myEnv->ExceptionCheck() != 0u) {
       myEnv->ExceptionDescribe();
@@ -462,10 +464,10 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, Plane imagePlane
 /// \param[in]  nrOfTilesToRead Nr of tiles which should form one composite image
 /// \return Loaded composite image
 ///
-cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &imagePlane, uint16_t series, uint16_t resolutionIdx,
+cv::Mat ImageReader::loadImageTile(const std::string &filename, const joda::enums::PlaneId &imagePlane, uint16_t series, uint16_t resolutionIdx,
                                    const joda::ome::TileToLoad &tile, const joda::ome::OmeInfo &ome)
 {
-  if(nullptr != myJVM && mJVMInitialised && imagePlane.c >= 0 && imagePlane.z >= 0 && imagePlane.t >= 0) {
+  if(nullptr != myJVM && mJVMInitialised && imagePlane.cStack >= 0 && imagePlane.zStack >= 0 && imagePlane.tStack >= 0) {
     JNIEnv *myEnv = nullptr;
     myJVM->AttachCurrentThread(reinterpret_cast<void **>(&myEnv), nullptr);
     jstring filePath = myEnv->NewStringUTF(filename.c_str());
@@ -502,9 +504,9 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
       series = static_cast<uint16_t>(ome.getNrOfSeries() - 1);
     }
     auto i1            = DurationCount::start("Load from filesystem");
-    jbyteArray readImg = static_cast<jbyteArray>(myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImageTile, filePath, static_cast<int>(series),
-                                                                               static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c,
-                                                                               imagePlane.t, offsetX, offsetY, tileWidthToLoad, tileHeightToLoad));
+    jbyteArray readImg = static_cast<jbyteArray>(
+        myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImageTile, filePath, static_cast<int>(series), static_cast<int>(resolutionIdx),
+                                      imagePlane.zStack, imagePlane.cStack, imagePlane.tStack, offsetX, offsetY, tileWidthToLoad, tileHeightToLoad));
 
     bool exception = false;
     if(myEnv->ExceptionCheck() != 0u) {

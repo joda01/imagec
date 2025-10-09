@@ -26,25 +26,13 @@ namespace joda::image::reader {
 class ImageReader
 {
 public:
-  struct Plane
-  {
-    int z = 0;
-    int c = 0;
-    int t = 0;
-
-    bool operator==(const Plane &plane) const
-    {
-      return z == plane.z && c == plane.c && t == plane.t;
-    }
-  };
-
   /////////////////////////////////////////////////////
-  static cv::Mat loadImageTile(const std::string &filename, const Plane &imagePlane, uint16_t series, uint16_t resolutionIdx,
+  static cv::Mat loadImageTile(const std::string &filename, const joda::enums::PlaneId &imagePlane, uint16_t series, uint16_t resolutionIdx,
                                const joda::ome::TileToLoad &tile, const joda::ome::OmeInfo &ome);
-  static cv::Mat loadEntireImage(const std::string &filename, const Plane &imagePlane, uint16_t series, uint16_t resolutionIdx,
+  static cv::Mat loadEntireImage(const std::string &filename, const joda::enums::PlaneId &imagePlane, uint16_t series, uint16_t resolutionIdx,
                                  const joda::ome::OmeInfo &ome);
 
-  static cv::Mat loadThumbnail(const std::string &filename, Plane directory, uint16_t series, const joda::ome::OmeInfo &ome);
+  static cv::Mat loadThumbnail(const std::string &filename, joda::enums::PlaneId directory, uint16_t series, const joda::ome::OmeInfo &ome);
 
   static auto getOmeInformation(const std::filesystem::path &filename, uint16_t series, const ome::PhyiscalSize &defaultSettings)
       -> joda::ome::OmeInfo;

@@ -18,7 +18,7 @@ bool ClassifierFilter::doesFilterMatch(joda::processor::ProcessContext &context,
 
   if((intensity.minIntensity >= 0 && intensity.maxIntensity >= 0)) {
     const auto &cachedImage = context.loadImageFromCache(enums::MemoryScope::ITERATION, intensity.imageIn);
-    auto intensityMeasured  = roi.measureIntensityAndAdd(*cachedImage);
+    auto intensityMeasured  = roi.measureIntensityAndAdd(cachedImage->getId(), cachedImage->image);
     if(intensityMeasured.intensityAvg < intensity.minIntensity || intensityMeasured.intensityAvg > intensity.maxIntensity) {
       // Intensity filter does not match
       return false;

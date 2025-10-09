@@ -355,7 +355,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
     if(generateThumb) {
       auto i = DurationCount::start("Generate thumb");
       thumb  = joda::image::reader::ImageReader::loadThumbnail(
-          imagePath.string(), joda::image::reader::ImageReader::Plane{.z = zStack, .c = pipelineStart.pipelineSetup.cStackIndex, .t = tStack},
+          imagePath.string(), joda::enums::PlaneId{.tStack = tStack, .zStack = zStack, .cStack = pipelineStart.pipelineSetup.cStackIndex},
           static_cast<uint16_t>(imageSetup.series), ome);
       DurationCount::stop(i);
     }

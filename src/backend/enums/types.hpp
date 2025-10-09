@@ -44,6 +44,11 @@ struct PlaneId
     return {static_cast<uint64_t>(id.cStack), static_cast<uint64_t>(id.zStack) << 32 | static_cast<uint64_t>(id.tStack)};
   };
 
+  bool operator==(const PlaneId &plane) const
+  {
+    return zStack == plane.zStack && cStack == plane.cStack && tStack == plane.tStack;
+  }
+
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PlaneId, tStack, zStack, cStack);
 };
 

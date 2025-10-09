@@ -125,7 +125,7 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
 ///
 void PanelImageView::restoreChannelSettings()
 {
-  auto key = SettingsIdx{.imageChannel = static_cast<uint16_t>(mPlane.c), .isEdited = mShowEditedImage};
+  auto key = SettingsIdx{.imageChannel = static_cast<uint16_t>(mPlane.cStack), .isEdited = mShowEditedImage};
   if(mChannelSettings.contains(key)) {
     const auto &tmp = mChannelSettings.at(key);
     if(tmp.mDisplayAreaLower <= 1 && tmp.mDisplayAreaUpper <= 1) {
@@ -227,6 +227,18 @@ auto PanelImageView::mutableImage() -> joda::image::Image *
 /// \param[out]
 /// \return
 ///
+auto PanelImageView::getImage() const -> const joda::image::Image *
+{
+  return mImageToShow;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::setRegionsOfInterestFromObjectList()
 {
   const auto &size = mImageToShow->getPreviewImageSize();
@@ -317,7 +329,7 @@ void PanelImageView::setRoisOpaque(float opaque)
 ///
 void PanelImageView::repaintImage()
 {
-  auto key = SettingsIdx{.imageChannel = static_cast<uint16_t>(mPlane.c), .isEdited = mShowEditedImage};
+  auto key = SettingsIdx{.imageChannel = static_cast<uint16_t>(mPlane.cStack), .isEdited = mShowEditedImage};
   if(mChannelSettings.contains(key)) {
     std::lock_guard<std::mutex> locked(mImageResetMutex);
     mChannelSettings[key] = ChannelSettings{
@@ -433,6 +445,18 @@ void PanelImageView::setZprojection(enums::ZProjection projection)
 /// \param[out]
 /// \return
 ///
+auto PanelImageView::getZprojection() const -> enums::ZProjection
+{
+  return mZprojection;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::setSeries(int32_t series)
 {
   mSeries = series;
@@ -457,9 +481,21 @@ int32_t PanelImageView::getSeries() const
 /// \param[out]
 /// \return
 ///
-void PanelImageView::setImagePlane(const joda::image::reader::ImageReader::Plane &plane)
+void PanelImageView::setImagePlane(const joda::enums::PlaneId &plane)
 {
   mPlane = plane;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto PanelImageView::getImagePlane() const -> const joda::enums::PlaneId &
+{
+  return mPlane;
 }
 
 ///

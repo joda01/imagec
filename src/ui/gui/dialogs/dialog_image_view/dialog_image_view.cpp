@@ -396,15 +396,15 @@ DialogImageViewer::~DialogImageViewer()
 void DialogImageViewer::setImagePlane(const ImagePlaneSettings &settings)
 {
   mImageSettings.imageSeries = settings.series;
-  mSelectedZStack            = settings.plane.z;
-  mSelectedTStack            = settings.plane.t;
+  mSelectedZStack            = settings.plane.zStack;
+  mSelectedTStack            = settings.plane.tStack;
   if(nullptr != mVideoButtonGroup) {
     mVideoButtonGroup->setMaxTimeStacks(mImageViewRight.getNrOfTstacks());
-    mVideoButtonGroup->setValue(settings.plane.t);
+    mVideoButtonGroup->setValue(settings.plane.tStack);
   }
 
   for(const auto &[chNr, action] : mChannelSelections) {
-    if(chNr == settings.plane.c) {
+    if(chNr == settings.plane.cStack) {
       action->setChecked(true);
       mImageChannel->setIcon(action->icon());
     } else {
@@ -528,7 +528,7 @@ void DialogImageViewer::applySettingsToImagePanel()
     mSelectedTStack = mVideoButtonGroup->value();
   }
   mImageViewRight.setZprojection(getSelectedZProjection());
-  mImageViewRight.setImagePlane({.z = mSelectedZStack, .c = getSelectedImageChannel(), .t = mSelectedTStack});
+  mImageViewRight.setImagePlane({.tStack = mSelectedTStack, .zStack = mSelectedZStack, .cStack = getSelectedImageChannel()});
   mImageViewRight.setImageTile(tileSizeIn, tileSizeIn);
   mImageViewRight.setDefaultPhysicalSize(joda::settings::ProjectImageSetup::PhysicalSizeSettings{.mode          = mImageSettings.sizeMode,
                                                                                                  .pixelSizeUnit = mImageSettings.pixelSizeUnit,
