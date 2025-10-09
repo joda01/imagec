@@ -248,7 +248,6 @@ void PanelImageView::setRegionsOfInterestFromObjectList()
     mOverlayMasks->setZValue(100.0);
     mContourOverlay->setZValue(200.0);
   }
-  emit paintedPolygonsChanged();
 }
 
 ///
@@ -261,7 +260,6 @@ void PanelImageView::setRegionsOfInterestFromObjectList()
 void PanelImageView::refreshRoiColors()
 {
   mOverlayMasks->refresh();
-  emit paintedPolygonsChanged();
 }
 
 ///
@@ -669,7 +667,6 @@ void PanelImageView::mouseDoubleClickEvent(QMouseEvent *event)
       mTempPolygonItem = nullptr;
       mPolygonPoints.clear();
       mDrawPolygon = false;
-      emit paintedPolygonsChanged();
     }
   }
 }
@@ -787,7 +784,6 @@ void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
       scene->removeItem(mRubberItem);
       delete mRubberItem;
       mRubberItem = nullptr;
-      emit paintedPolygonsChanged();
     }
     QGraphicsView::mouseReleaseEvent(event);
   }
@@ -1389,7 +1385,6 @@ void PanelImageView::setSelectedRois(const std::set<joda::atom::ROI *> &idxs)
 void PanelImageView::deleteRois(const std::set<joda::atom::ROI *> &idxs)
 {
   mOverlayMasks->deleteRois(idxs);
-  emit paintedPolygonsChanged();
 }
 
 ///
@@ -1402,7 +1397,6 @@ void PanelImageView::deleteRois(const std::set<joda::atom::ROI *> &idxs)
 bool PanelImageView::deleteSelectedRois()
 {
   if(mOverlayMasks->deleteSelectedRois()) {
-    emit paintedPolygonsChanged();
     return true;
   }
   return false;
@@ -1419,7 +1413,6 @@ void PanelImageView::clearRegionOfInterest(joda::atom::ROI::Category sourceToDel
 {
   mObjectMap->erase(sourceToDelete);
   mOverlayMasks->refresh();
-  emit paintedPolygonsChanged();
 }
 
 ///
@@ -1436,7 +1429,6 @@ void PanelImageView::setFillRois(bool fill)
     mOverlayMasks->setAlpha(mOpaque);
     mOverlayMasks->setFill(fill);
   }
-  emit paintedPolygonsChanged();
 }
 
 ///

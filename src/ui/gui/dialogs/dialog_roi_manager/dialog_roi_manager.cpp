@@ -114,7 +114,8 @@ DialogRoiManager::DialogRoiManager(const std::shared_ptr<atom::ObjectList> &obje
         }
         mImagePanel->setSelectedRois(idxs);
         if(!idxs.empty()) {
-          mTableModelRoi->setData(*idxs.begin());
+          atom::ROI *tmp = *idxs.begin();
+          mTableModelRoi->setData(tmp);
         } else {
           mTableModelRoi->setData(nullptr);
         }
@@ -126,7 +127,6 @@ DialogRoiManager::DialogRoiManager(const std::shared_ptr<atom::ObjectList> &obje
 
   setLayout(layout);
 
-  connect(imagePanel, &PanelImageView::paintedPolygonsChanged, [this]() { mTableModel->refresh(); });
   connect(imagePanel, &PanelImageView::paintedPolygonClicked, [this](std::set<atom::ROI *> idxs) {
     bool firstRun = true;
     for(const auto &idx : idxs) {
@@ -143,6 +143,8 @@ DialogRoiManager::DialogRoiManager(const std::shared_ptr<atom::ObjectList> &obje
       mTableModelRoi->setData(nullptr);
     }
   });
+
+  connect(mImagePanel, &PanelImageView::updateImage, this, [this]() { mTableModelRoi->refresh(); });    // updateImage
 }
 
 ///

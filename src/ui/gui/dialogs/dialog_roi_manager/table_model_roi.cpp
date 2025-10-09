@@ -15,6 +15,7 @@
 #include <qtableview.h>
 #include <QFile>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include "backend/enums/enum_measurements.hpp"
@@ -35,12 +36,19 @@ TableModelRoi::TableModelRoi(const PanelImageView *imageView, const joda::settin
 
 void TableModelRoi::setData(joda::atom::ROI *roi)
 {
-  mROI = roi;
+  if(roi != nullptr) {
+    std::lock_guard<std::mutex> lock(mSetDataLock);
+    mROI = std::make_unique<joda::atom::ROI>(roi->clone());
+  } else {
+    std::lock_guard<std::mutex> lock(mSetDataLock);
+    mROI.reset();
+  }
   refresh();
 }
 
 int TableModelRoi::rowCount(const QModelIndex & /*parent*/) const
 {
+  std::lock_guard<std::mutex> lock(mSetDataLock);
   if(mROI == nullptr) {
     return 0;
   }
@@ -49,6 +57,7 @@ int TableModelRoi::rowCount(const QModelIndex & /*parent*/) const
 
 int TableModelRoi::columnCount(const QModelIndex & /*parent*/) const
 {
+  std::lock_guard<std::mutex> lock(mSetDataLock);
   if(mROI == nullptr) {
     return 0;
   }
@@ -64,6 +73,7 @@ int TableModelRoi::columnCount(const QModelIndex & /*parent*/) const
 ///
 QVariant TableModelRoi::headerData(int section, Qt::Orientation /*orientation*/, int role) const
 {
+  std::lock_guard<std::mutex> lock(mSetDataLock);
   if(mROI == nullptr) {
     return {};
   }
@@ -88,6 +98,7 @@ QVariant TableModelRoi::headerData(int section, Qt::Orientation /*orientation*/,
 ///
 QVariant TableModelRoi::data(const QModelIndex &index, int role) const
 {
+  std::lock_guard<std::mutex> lock(mSetDataLock);
   if(mROI == nullptr) {
     return {};
   }

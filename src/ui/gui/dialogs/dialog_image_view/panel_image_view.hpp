@@ -159,7 +159,6 @@ signals:
   void updateImage();
   void onImageRepainted();
   void tileClicked(int32_t tileX, int32_t tileY);
-  void paintedPolygonsChanged();
   void paintedPolygonClicked(std::set<atom::ROI *>);
 
 private:

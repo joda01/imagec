@@ -10,6 +10,8 @@
 ///
 
 #include <qabstractitemmodel.h>
+#include <memory>
+#include <mutex>
 #include "backend/artifacts/roi/roi.hpp"
 #include "backend/helper/table/table.hpp"
 #include "backend/processor/initializer/pipeline_settings.hpp"
@@ -43,8 +45,9 @@ private:
   static inline const int32_t NR_ROWS = 12;
 
   /////////////////////////////////////////////////////
+  mutable std::mutex mSetDataLock;
   const PanelImageView *mPanelImageView;
-  joda::atom::ROI *mROI = nullptr;
+  std::unique_ptr<joda::atom::ROI> mROI;
   const joda::settings::Classification *mClassSettings;
 };
 
