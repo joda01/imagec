@@ -244,12 +244,9 @@ bool RoiOverlay::deleteSelectedRois()
     return false;
   }
 
-  for(joda::atom::ROI *roi : mSelectedRois) {
-    mObjectMap->erase(roi);
-  }
+  mObjectMap->erase(mSelectedRois);
   mSelectedRois.clear();
   refresh();
-  mObjectMap->triggerChangeCallback();
   return true;
 }
 
@@ -263,11 +260,10 @@ bool RoiOverlay::deleteSelectedRois()
 void RoiOverlay::deleteRois(const std::set<joda::atom::ROI *> &idxs)
 {
   for(joda::atom::ROI *roi : idxs) {
-    mObjectMap->erase(roi);
     mSelectedRois.erase(roi);
   }
+  mObjectMap->erase(idxs);
   refresh();
-  mObjectMap->triggerChangeCallback();
 }
 
 ///

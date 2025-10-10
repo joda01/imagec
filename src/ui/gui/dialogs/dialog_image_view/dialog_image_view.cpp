@@ -228,7 +228,10 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
     toolbarTop->addAction(mImageChannel);
     auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(mImageChannel));
     btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
-    connect(mImageChannelMenuGroup, &QActionGroup::triggered, this, &DialogImageViewer::onSettingsChanged);
+    connect(mImageChannelMenuGroup, &QActionGroup::triggered, this, [this] {
+      applySettingsToImagePanel();
+      mImageViewRight.reloadImage();
+    });
     connect(channelMenu, &QMenu::triggered, [this](QAction *triggeredAction) {
       if(triggeredAction != nullptr) {
         mImageChannel->setIcon(triggeredAction->icon());

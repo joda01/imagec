@@ -250,13 +250,17 @@ void ObjectList::push_back(const ROI &roi)
 ///
 void ObjectList::erase(const ROI *roi)
 {
+  {
+    std::lock_guard<std::mutex> lock(mInsertLock);
+    objectsOrderedByObjectId.erase(roi->getObjectId());
+  }
+
   if(contains(roi->getClassId())) {
     at(roi->getClassId())->erase(roi);
     if(at(roi->getClassId())->empty()) {
       ObjectMap::erase(roi->getClassId());
     }
   }
-  objectsOrderedByObjectId.erase(roi->getObjectId());
 }
 
 ///
@@ -268,11 +272,14 @@ void ObjectList::erase(const ROI *roi)
 ///
 void ObjectList::erase(enums::ClassId classToErase)
 {
-  for(auto it = objectsOrderedByObjectId.begin(); it != objectsOrderedByObjectId.end();) {
-    if((it->second != nullptr) && it->second->getClassId() == classToErase) {
-      it = objectsOrderedByObjectId.erase(it);    // erase returns the next valid iterator
-    } else {
-      ++it;
+  {
+    std::lock_guard<std::mutex> lock(mInsertLock);
+    for(auto it = objectsOrderedByObjectId.begin(); it != objectsOrderedByObjectId.end();) {
+      if((it->second != nullptr) && it->second->getClassId() == classToErase) {
+        it = objectsOrderedByObjectId.erase(it);    // erase returns the next valid iterator
+      } else {
+        ++it;
+      }
     }
   }
 
@@ -302,6 +309,15 @@ void ObjectList::erase(joda::atom::ROI::Category categoryToErase)
   }
 }
 
+void ObjectList::erase(const std::set<ROI *> &rois)
+{
+  triggerStartChangeCallback();
+  for(const joda::atom::ROI *roi : rois) {
+    erase(roi);
+  }
+  triggerChangeCallback();
+}
+
 ///
 /// \brief
 /// \author     Joachim Danmayr
@@ -327,6 +343,7 @@ std::unique_ptr<SpheralIndex> &ObjectList::operator[](enums::ClassId classId)
 ///
 [[nodiscard]] const ROI *ObjectList::getObjectById(uint64_t objectId) const
 {
+  std::lock_guard<std::mutex> lock(mInsertLock);
   return objectsOrderedByObjectId.at(objectId);
 }
 
@@ -339,48 +356,13 @@ std::unique_ptr<SpheralIndex> &ObjectList::operator[](enums::ClassId classId)
 ///
 [[nodiscard]] bool ObjectList::containsObjectById(uint64_t objectId) const
 {
+  std::lock_guard<std::mutex> lock(mInsertLock);
   return objectsOrderedByObjectId.contains(objectId);
 }
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-
-/*
-ObjectList &ObjectList::operator=(ObjectList &&other) noexcept
-{
-  if(this != &other) {
-    this->clear();
-    ObjectMap::operator=(std::move(other));
-    objectsOrderedByObjectId.swap(other.objectsOrderedByObjectId);
-  }
-  return *this;
-}
-*/
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-/*
-ObjectList::ObjectList(ObjectList &&other) noexcept
-{
-  if(this != &other) {
-    ObjectMap::operator=(std::move(other));
-    objectsOrderedByObjectId.swap(other.objectsOrderedByObjectId);
-  }
-}
-  */
-
 [[nodiscard]] size_t ObjectList::sizeList() const
 {
+  std::lock_guard<std::mutex> lock(mInsertLock);
   return objectsOrderedByObjectId.size();
 }
 

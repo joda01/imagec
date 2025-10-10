@@ -440,7 +440,6 @@ void PanelPipelineSettings::updatePreview()
         mWindowMain->getController()->calcOptimalThreadNumber(settingsTmp, std::get<2>(mWindowMain->getImagePanel()->getSelectedImage()));
     PreviewJob job{.settings       = settingsTmp,
                    .controller     = mWindowMain->getController(),
-                   .previewPanel   = mPreviewImage,
                    .selectedImage  = mWindowMain->getImagePanel()->getSelectedImage(),
                    .pipelinePos    = cnt,
                    .selectedTileX  = selectedTileX,
@@ -485,7 +484,7 @@ void PanelPipelineSettings::previewThread()
       mPreviewInProgress = true;
       emit updatePreviewStarted();
       QString errorMsg;
-      if(nullptr != jobToDo.previewPanel && mIsActiveShown) {
+      if(mIsActiveShown) {
         auto [imgIndex, selectedSeries, imgProps] = jobToDo.selectedImage;
         if(!imgIndex.empty()) {
           try {
@@ -504,14 +503,7 @@ void PanelPipelineSettings::previewThread()
               tileSize.tileWidth  = imgWidth;
               tileSize.tileHeight = imageHeight;
             }
-            // int32_t resolution = 0;
-            //  auto [tileNrX, tileNrY] = imgProps.getImageInfo(series).resolutions.at(resolution).getNrOfTiles(tileSize.tileWidth,
-            //  tileSize.tileHeight);
-
             processor::PreviewSettings prevSettings;
-            prevSettings.style =
-                jobToDo.previewPanel->getFillOverlay() ? settings::ImageSaverSettings::Style::FILLED : settings::ImageSaverSettings::Style::OUTLINED;
-
             joda::settings::Pipeline *myPipeline = nullptr;
             int cnt                              = 0;
             for(auto &pip : jobToDo.settings.pipelines) {

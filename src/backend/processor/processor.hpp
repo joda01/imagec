@@ -34,7 +34,6 @@ using imagesList_t = joda::filesystem::DirectoryWatcher;
 
 struct PreviewSettings
 {
-  settings::ImageSaverSettings::Style style = settings::ImageSaverSettings::Style::OUTLINED;
 };
 
 struct Preview

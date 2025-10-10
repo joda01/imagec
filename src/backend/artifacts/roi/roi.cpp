@@ -299,6 +299,7 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 
 ///
 /// \brief
+/// \todo Support pixels which are not a square
 /// \author     Joachim Danmayr
 /// \param[in]
 /// \param[out]
@@ -308,7 +309,7 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 {
   auto [pxSizeX, pxSizeY, pxSizeZ] = physicalSize.getPixelSize(unit);
   if(pxSizeX != pxSizeY) {
-    joda::log::logWarning("Perimeter to real value with rectangle pixels not supported right now!");
+    // joda::log::logWarning("Perimeter to real value with rectangle pixels not supported right now!");
     pxSizeX = std::max(pxSizeX, pxSizeY);
   }
   return static_cast<float>(static_cast<double>(ROI::mPerimeter) * pxSizeX);
@@ -329,7 +330,7 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 
   auto [pxSizeX, pxSizeY, pxSizeZ] = physicalSize.getPixelSize(unit);
   if(pxSizeX != pxSizeY) {
-    joda::log::logWarning("Get distance with rectangle pixels not supported right now!");
+    // joda::log::logWarning("Get distance with rectangle pixels not supported right now!");
     pxSizeX = std::max(pxSizeX, pxSizeY);
   }
   std::map<uint64_t, Distance> realDistance;

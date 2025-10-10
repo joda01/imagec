@@ -35,6 +35,11 @@ TableModelPaintedPolygon::TableModelPaintedPolygon(const joda::settings::Classif
   if(parent == nullptr) {
     throw std::runtime_error("Parent must not be empty and of type QTableView.");
   }
+  polygons->registerOnStartChangeCallback([this] { beginResetModel(); });
+  polygons->registerOnChangeCallback([this] {
+    sortData();
+    endResetModel();
+  });
 }
 
 int TableModelPaintedPolygon::rowCount(const QModelIndex & /*parent*/) const
@@ -91,30 +96,29 @@ QVariant TableModelPaintedPolygon::data(const QModelIndex &index, int role) cons
     return {};
   }
 
-  const auto *list = mObjectMap->getObjectList();
-
-  auto it = list->begin();
-  std::advance(it, index.row());
-
+  const auto *roi = getCell(index.row());
+  if(roi == nullptr) {
+    return {};
+  }
   if(role == CLASS_ROLE) {
-    return static_cast<int32_t>(it->second->getClassId());
+    return static_cast<int32_t>(roi->getClassId());
   }
 
   if(role == Qt::UserRole) {
-    return mClassification->getClassFromId(it->second->getClassId()).color.c_str();
+    return mClassification->getClassFromId(roi->getClassId()).color.c_str();
   }
 
   if(role == Qt::DisplayRole) {
-    if(it->second->getCategory() == joda::atom::ROI::Category::MANUAL_SEGMENTATION) {
-      if(it->second->getClassId() == enums::ClassId::NONE) {
+    if(roi->getCategory() == joda::atom::ROI::Category::MANUAL_SEGMENTATION) {
+      if(roi->getClassId() == enums::ClassId::NONE) {
         return "None";
       }
       if(index.column() == 0) {
-        return "Annotation " + QString::number(static_cast<int32_t>(it->second->getClassId()));
+        return "Annotation " + QString::number(static_cast<int32_t>(roi->getClassId()));
       }
     } else {
       if(index.column() == 0) {
-        return "Class " + QString::number(static_cast<int32_t>(it->second->getClassId()));
+        return "Class " + QString::number(static_cast<int32_t>(roi->getClassId()));
       }
     }
 
@@ -133,21 +137,12 @@ QVariant TableModelPaintedPolygon::data(const QModelIndex &index, int role) cons
 /// \param[out]
 /// \return
 ///
-auto TableModelPaintedPolygon::getCell(int row) -> atom::ROI *
+auto TableModelPaintedPolygon::getCell(int row) const -> atom::ROI *
 {
-  const auto *list = mObjectMap->getObjectList();
-  if(row >= 0 && row < static_cast<int32_t>(list->size())) {
-    auto it = list->begin();
-    std::advance(it, row);
-    return it->second;
+  if(row >= 0 && row < mSortedData.size()) {
+    return mSortedData.at(row).second;
   }
   return nullptr;
-}
-
-void TableModelPaintedPolygon::refresh()
-{
-  beginResetModel();
-  endResetModel();
 }
 
 ///
@@ -159,14 +154,37 @@ void TableModelPaintedPolygon::refresh()
 ///
 int32_t TableModelPaintedPolygon::indexFor(atom::ROI *item) const
 {
-  const auto *list = mObjectMap->getObjectList();
-
-  auto it = list->find(item->getObjectId());
-  if(it != list->end()) {
-    size_t index = std::distance(list->begin(), it);
-    return static_cast<int32_t>(index);
+  int32_t idx = 0;
+  for(const auto &[_, roi] : mSortedData) {
+    if(roi == item) {
+      return idx;
+    }
+    idx++;
   }
+
   return 0;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void TableModelPaintedPolygon::sortData()
+{
+  mSortedData = std::vector<std::pair<uint64_t, joda::atom::ROI *>>(mObjectMap->getObjectList()->begin(), mObjectMap->getObjectList()->end());
+
+  std::sort(mSortedData.begin(), mSortedData.end(), [](const auto &a, const auto &b) {
+    const joda::atom::ROI *ra = a.second;
+    const joda::atom::ROI *rb = b.second;
+
+    if(ra->getCategory() == rb->getCategory()) {
+      return ra->getObjectId() < rb->getObjectId();    // secondary key
+    }
+    return ra->getCategory() < rb->getCategory();    // primary key
+  });
 }
 
 }    // namespace joda::ui::gui

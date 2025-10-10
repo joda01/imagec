@@ -250,6 +250,7 @@ public:
 
   void push_back(const ROI &roi);
   void erase(const ROI *roi);
+  void erase(const std::set<ROI *> &roi);
   void erase(enums::ClassId classToErase);
   void erase(joda::atom::ROI::Category categoryToErase);
   virtual std::unique_ptr<SpheralIndex> &operator[](enums::ClassId classId);
@@ -265,6 +266,10 @@ public:
   {
     mChangeCallback.push_back(cb);
   }
+  void registerOnStartChangeCallback(const std::function<void()> &cb)
+  {
+    mStartChangeCallback.push_back(cb);
+  }
   void triggerChangeCallback() const
   {
     for(const auto &cb : mChangeCallback) {
@@ -272,10 +277,19 @@ public:
     }
   }
 
+  void triggerStartChangeCallback() const
+  {
+    for(const auto &cb : mStartChangeCallback) {
+      cb();
+    }
+  }
+
 private:
+  /////////////////////////////////////////////////////
   std::map<uint64_t, ROI *> objectsOrderedByObjectId;
-  std::mutex mInsertLock;
+  mutable std::mutex mInsertLock;
   std::vector<std::function<void()>> mChangeCallback;
+  std::vector<std::function<void()>> mStartChangeCallback;
 };
 
 /*

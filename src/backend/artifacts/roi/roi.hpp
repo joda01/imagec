@@ -89,7 +89,6 @@ public:
   };
 
   /////////////////////////////////////////////////////
-
   ROI();
   ROI(const ROI &) = delete;
   ROI(RoiObjectId index, Confidence confidence, const Boxes &boundingBox, const cv::Mat &mask, const std::vector<cv::Point> &contour,

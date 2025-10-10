@@ -33,17 +33,20 @@ public:
   /////////////////////////////////////////////////////
   TableModelPaintedPolygon(const joda::settings::Classification *classification, const std::shared_ptr<atom::ObjectList> &polygons,
                            QObject *parent = nullptr);
-  auto getCell(int row) -> atom::ROI *;
+  auto getCell(int row) const -> atom::ROI *;
   int rowCount(const QModelIndex &parent = QModelIndex()) const override;
   int columnCount(const QModelIndex &parent = QModelIndex()) const override;
   QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
   QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
-  void refresh();
   int32_t indexFor(atom::ROI *) const;
 
 private:
+  /////////////////////////////////////////////////////
+  void sortData();
+  /////////////////////////////////////////////////////
   const joda::settings::Classification *mClassification = nullptr;
-  std::shared_ptr<atom::ObjectList> mObjectMap          = nullptr;
+  std::vector<std::pair<uint64_t, joda::atom::ROI *>> mSortedData;
+  std::shared_ptr<atom::ObjectList> mObjectMap = nullptr;
 };
 
 }    // namespace joda::ui::gui

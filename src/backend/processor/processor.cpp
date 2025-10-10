@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include "backend/artifacts/roi/roi.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/database/database.hpp"
@@ -401,6 +402,8 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
       auto executePipeline = [&db, &thumbThread, &thumb, &finished, &ome, &previewOut, &previewSettings, &imageSetup, &totalRuns,
                               pipeline  = pipelineToExecute, &globalContext, &plateContext, imagePath, &imageContext, &imageLoader, tileX, tileY,
                               pipelines = pipelines, &iterationContext, tStack, zStack, executedSteps, &generateThumb]() -> void {
+        previewOut.results.objectMap->triggerStartChangeCallback();
+
         //
         // The last step is the wanted pipeline
         //
@@ -468,6 +471,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
           previewOut.tStacks               = ome.getNrOfTStack(imageSetup.series);
 
           finished = true;
+          previewOut.results.objectMap->triggerChangeCallback();
         }
       };
 
