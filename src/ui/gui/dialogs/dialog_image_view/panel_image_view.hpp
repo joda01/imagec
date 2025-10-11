@@ -224,7 +224,6 @@ private:
   RoiOverlay *mOverlayMasks       = nullptr;
   ContourOverlay *mContourOverlay = nullptr;
   PaintedRoi_t mActPaintingRoi;
-  std::set<enums::ClassId> mRoiClassesToHide;
 
   QPointF mPaintOrigin;
   QAbstractGraphicsShapeItem *mRubberItem = nullptr;

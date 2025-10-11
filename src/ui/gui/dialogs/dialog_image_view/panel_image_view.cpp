@@ -1540,19 +1540,6 @@ void PanelImageView::setShowRois(bool show)
 /// \param[out]
 /// \return
 ///
-void PanelImageView::setRoisToHide(const std::set<enums::ClassId> &toHide)
-{
-  mRoiClassesToHide = toHide;
-  mOverlayMasks->setClassesToHide(toHide);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 void PanelImageView::setRoisSelectable(bool selectable)
 {
   mSelectable = selectable;

@@ -77,11 +77,11 @@ void RoiOverlay::refresh()
 
   // Optimization 1: Pre-calculate the pixel value and alpha blending
   for(const auto &[clasId, classs] : *mObjectMap) {
-    if(mToHide.contains(clasId)) {
+    const auto &classSetting = mClassificationSettings->getClassFromId(clasId);
+
+    if(classSetting.hidden) {
       continue;
     }
-
-    const auto &classSetting = mClassificationSettings->getClassFromId(clasId);
 
     // Optimization 2: Use QImage::pixel format for direct pixel manipulation
     const QColor col = QColor(classSetting.color.c_str());
@@ -333,19 +333,6 @@ joda::atom::ROI *RoiOverlay::findRoiAt(const QPointF &itemPoint) const
     }
   }
   return nullptr;
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void RoiOverlay::setClassesToHide(const std::set<joda::enums::ClassId> &toHide)
-{
-  mToHide = toHide;
-  refresh();
 }
 
 ///

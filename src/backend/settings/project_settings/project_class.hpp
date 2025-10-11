@@ -112,6 +112,11 @@ struct Class
   //
   std::vector<ResultsTemplate> defaultMeasurements = {};
 
+  //
+  // Hide the class in the view
+  //
+  bool hidden = false;
+
   void check() const
   {
   }

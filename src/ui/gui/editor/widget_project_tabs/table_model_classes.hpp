@@ -35,8 +35,7 @@ public:
   static inline const std::string NONE_COLOR = "#565656";
 
   /////////////////////////////////////////////////////
-  TableModelClasses(const joda::settings::Classification *classification, const std::shared_ptr<atom::ObjectList> &polygons,
-                    QObject *parent = nullptr);
+  TableModelClasses(joda::settings::Classification *classification, const std::shared_ptr<atom::ObjectList> &polygons, QObject *parent = nullptr);
   auto getCell(int row) const -> const joda::settings::Class;
   int rowCount(const QModelIndex &parent = QModelIndex()) const override;
   int columnCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -51,14 +50,16 @@ public:
   {
     endResetModel();
   }
+  void hideElement(int32_t row, bool hide);
+  bool isHidden(int32_t row) const;
 
 private:
   /////////////////////////////////////////////////////
   int32_t indexFor(joda::settings::Class *) const;
 
-  const joda::settings::Classification *mClassification = nullptr;
-  std::shared_ptr<atom::ObjectList> mObjectMap          = nullptr;
-  const settings::Class mNoneClass                      = joda::settings::Class{.classId = enums::ClassId::NONE, .name = "None", .color = NONE_COLOR};
+  joda::settings::Classification *mClassification = nullptr;
+  std::shared_ptr<atom::ObjectList> mObjectMap    = nullptr;
+  settings::Class mNoneClass                      = joda::settings::Class{.classId = enums::ClassId::NONE, .name = "None", .color = NONE_COLOR};
 };
 
 }    // namespace joda::ui::gui

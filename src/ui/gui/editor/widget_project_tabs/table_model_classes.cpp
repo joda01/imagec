@@ -14,6 +14,7 @@
 #include <qnamespace.h>
 #include <qtableview.h>
 #include <QFile>
+#include <cmath>
 #include <cstddef>
 #include <iterator>
 #include <memory>
@@ -30,7 +31,7 @@
 
 namespace joda::ui::gui {
 
-TableModelClasses::TableModelClasses(const joda::settings::Classification *classification, const std::shared_ptr<atom::ObjectList> &polygons,
+TableModelClasses::TableModelClasses(joda::settings::Classification *classification, const std::shared_ptr<atom::ObjectList> &polygons,
                                      QObject *parent) :
     QAbstractTableModel(parent),
     mClassification(classification), mObjectMap(polygons)
@@ -106,11 +107,18 @@ QVariant TableModelClasses::data(const QModelIndex &index, int role) const
     return classs.color.c_str();
   }
 
+  if(role == Qt::CheckStateRole) {
+    return classs.hidden;
+  }
+
   if(role == Qt::DisplayRole) {
     QString suffix;
     if(mObjectMap != nullptr) {
       if(mObjectMap->contains(classs.classId)) {
         suffix = " (" + QString::number(mObjectMap->at(classs.classId)->size()) + ")";
+      }
+      if(classs.hidden) {
+        suffix += " (hidden)";
       }
     }
     QString className = QString(classs.name.c_str()) + suffix;
@@ -138,6 +146,45 @@ auto TableModelClasses::getCell(int row) const -> const joda::settings::Class
   std::list<joda::settings::Class>::const_iterator it = mClassification->classes.begin();
   std::advance(it, row);
   return *it;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void TableModelClasses::hideElement(int32_t row, bool hide)
+{
+  beginChange();
+  if(row == 0) {
+    mNoneClass.hidden = true;
+    endChange();
+    return;
+  }
+  row--;
+  auto it    = std::next(mClassification->classes.begin(), row);
+  it->hidden = hide;
+  endChange();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+bool TableModelClasses::isHidden(int32_t row) const
+{
+  if(row == 0) {
+    return mNoneClass.hidden;
+  }
+  row--;
+
+  auto it = std::next(mClassification->classes.begin(), row);
+  return it->hidden;
 }
 
 ///

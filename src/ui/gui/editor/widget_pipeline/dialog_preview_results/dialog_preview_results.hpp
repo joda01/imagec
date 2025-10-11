@@ -48,8 +48,6 @@ public:
   DialogPreviewResults(joda::processor::Preview *previewResult, PanelImageView *panelImageView, const joda::settings::Classification &classes,
                        WindowMain *windowMain);
   void refresh();
-  auto getClassesToHide() const -> settings::ObjectInputClassesExp;
-
   void enterEvent(QEnterEvent *event) override;
   void leaveEvent(QEvent *event) override;
   void paintEvent(QPaintEvent *event) override;

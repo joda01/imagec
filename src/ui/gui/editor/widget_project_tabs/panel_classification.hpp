@@ -77,6 +77,9 @@ private:
   PlaceholderTableView *mTableClasses;
   TableModelClasses *mTableModelClasses;
 
+  /////////////////////////////////////////////////////
+  QAction *mActionHideClass;
+
   /// ROI DETAILS ///////////////////////////////////
   PlaceholderTableView *mTableRoiDetails;
   TableModelRoi *mTableModelRoi;
@@ -86,6 +89,8 @@ private:
 
   /// Actions //////////////////////////////////////////////////
   QMenu *mTemplateMenu;
+  const std::shared_ptr<atom::ObjectList> mObjectMap;
+  DialogImageViewer *mDialogImageView;
 
   /// TEMPLATE //////////////////////////////////////////////////
   bool askForChangeTemplateIndex();

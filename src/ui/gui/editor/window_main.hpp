@@ -109,8 +109,6 @@ public:
     return mPreviewResultsDialog;
   }
 
-  auto getClassesToHide() const -> std::set<enums::ClassId>;
-
   auto mutableImagePreview() -> DialogImageViewer *
   {
     return mPreviewImage;

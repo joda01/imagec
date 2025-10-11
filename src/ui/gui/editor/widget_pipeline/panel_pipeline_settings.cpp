@@ -444,7 +444,6 @@ void PanelPipelineSettings::updatePreview()
                    .selectedTileY  = selectedTileY,
                    .timeStack      = mPreviewImage->getSelectedTimeStack(),
                    .classes        = mWindowMain->getPanelClassification()->getClasses(),
-                   .classesToHide  = mWindowMain->getClassesToHide(),
                    .threadSettings = threadSettings};
 
     std::lock_guard<std::mutex> lock(mCheckForEmptyMutex);

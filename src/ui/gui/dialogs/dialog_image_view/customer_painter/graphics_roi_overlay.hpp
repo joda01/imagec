@@ -39,7 +39,6 @@ public:
     mFill = fill;
     refresh();
   }
-  void setClassesToHide(const std::set<joda::enums::ClassId> &toHide);
   void setSelectable(bool select);
   void setSelectedRois(const std::set<joda::atom::ROI *> &idxs);
   bool deleteSelectedRois();
@@ -64,7 +63,6 @@ private:
   bool mSelectable                                              = false;
 
   /////////////////////////////////////////////////////
-  std::set<joda::enums::ClassId> mToHide;
   std::set<joda::atom::ROI *> mSelectedRois;
   ContourOverlay *mContourOverlay;
   QWidget *mParentWidget;

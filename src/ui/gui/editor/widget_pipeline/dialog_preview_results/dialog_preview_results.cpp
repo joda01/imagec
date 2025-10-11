@@ -70,7 +70,6 @@ DialogPreviewResults::DialogPreviewResults(joda::processor::Preview *previewResu
   connect(mResultsTable, &QTableView::doubleClicked, [this](const QModelIndex &index) {
     bool isHidden = mTableModel->data(index, Qt::CheckStateRole).toBool();
     mTableModel->setHiddenFlag(static_cast<enums::ClassId>(mTableModel->data(index, TableModelPreviewResult::CLASS_ROLE).toInt()), !isHidden);
-    mPanelImageView->setRoisToHide(getClassesToHide());
   });
 }
 
@@ -94,19 +93,6 @@ void DialogPreviewResults::refresh()
   }
 
   update();
-}
-
-auto DialogPreviewResults::getClassesToHide() const -> settings::ObjectInputClassesExp
-{
-  settings::ObjectInputClassesExp ret;
-  for(int n = 0; n < mTableModel->rowCount(); n++) {
-    auto idx = mTableModel->index(n, 0);
-
-    if(mTableModel->data(idx, Qt::CheckStateRole).toBool()) {
-      ret.emplace(static_cast<enums::ClassId>(mTableModel->data(idx, TableModelPreviewResult::CLASS_ROLE).toInt()));
-    }
-  }
-  return ret;
 }
 
 void DialogPreviewResults::paintEvent(QPaintEvent *event)

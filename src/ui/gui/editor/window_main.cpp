@@ -559,15 +559,6 @@ void WindowMain::addToLastLoadedResults(const QString &path, const QString &jobN
 /// \brief      Open project settings
 /// \author     Joachim Danmayr
 ///
-auto WindowMain::getClassesToHide() const -> std::set<enums::ClassId>
-{
-  return mPreviewResultsDialog->getClassesToHide();
-}
-
-///
-/// \brief      Open project settings
-/// \author     Joachim Danmayr
-///
 void WindowMain::openProjectSettings(const QString &filePath, bool openFromTemplate)
 {
   try {

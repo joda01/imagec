@@ -48,7 +48,7 @@ namespace joda::ui::gui {
 PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList> &objectMap, joda::settings::Classification *settings,
                                          WindowMain *windowMain, DialogImageViewer *imageView) :
     mWindowMain(windowMain),
-    mSettings(settings)
+    mSettings(settings), mObjectMap(objectMap), mDialogImageView(imageView)
 {
   mClassSettingsDialog = new DialogClassSettings(windowMain);
   auto *layout         = new QVBoxLayout();
@@ -70,6 +70,24 @@ PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList>
     newClass->setStatusTip("Add object class or load from template");
     // newClass->setMenu(mTemplateMenu);
     toolbar->addAction(newClass);
+
+    //
+    // Hide class
+    //
+    mActionHideClass = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("eye-slash"), "Hide class");
+    mActionHideClass->setCheckable(true);
+    connect(mActionHideClass, &QAction::triggered, [this](bool checked) {
+      auto indexes = mTableClasses->selectionModel()->selectedIndexes();
+      if(!indexes.isEmpty()) {
+        int selectedRow = indexes.first().row();
+        if(selectedRow >= 0) {
+          mTableModelClasses->hideElement(selectedRow, checked);
+        }
+      }
+      mDialogImageView->getImagePanel()->refreshRoiColors();
+    });
+    mActionHideClass->setStatusTip("Hide class in the preview");
+    toolbar->addAction(mActionHideClass);
 
     //
     // Populate from image
@@ -260,9 +278,13 @@ PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList>
     auto *imgPanel = mWindowMain->mutableImagePreview()->getImagePanel();
     if(!mTableClasses->selectionModel()->hasSelection()) {
       imgPanel->setClassIdToUseForDrawing(enums::ClassId::NONE, QColor(TableModelClasses::NONE_COLOR.data()));
+      mActionHideClass->setChecked(false);
+      mActionHideClass->setEnabled(false);
     } else {
+      mActionHideClass->setEnabled(true);
       auto indexes     = mTableClasses->selectionModel()->selectedIndexes();
       auto selectedRow = indexes.begin()->row();
+      mActionHideClass->setChecked(mTableModelClasses->isHidden(selectedRow));
       if(selectedRow == 0) {
         imgPanel->setClassIdToUseForDrawing(enums::ClassId::NONE, QColor(TableModelClasses::NONE_COLOR.data()));
       } else {
