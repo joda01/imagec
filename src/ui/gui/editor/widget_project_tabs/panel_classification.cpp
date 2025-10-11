@@ -33,6 +33,7 @@
 #include "ui/gui/dialogs/dialog_roi_manager/dialog_roi_manager.hpp"
 #include "ui/gui/dialogs/dialog_roi_manager/table_model_roi.hpp"
 #include "ui/gui/editor/widget_project_tabs/panel_image.hpp"
+#include "ui/gui/editor/widget_project_tabs/table_model_classes.hpp"
 #include "ui/gui/editor/window_main.hpp"
 #include "ui/gui/helper/color_combo/color_combo.hpp"
 #include "ui/gui/helper/colord_square_delegate.hpp"
@@ -131,9 +132,9 @@ PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList>
     auto *copy = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("copy"), "Copy selected class");
     copy->setStatusTip("Copy selected class");
     connect(copy, &QAction::triggered, [this]() {
-      QList<QTableWidgetSelectionRange> ranges = mClasses->selectedRanges();
-      if(!ranges.isEmpty()) {
-        int selectedRow = ranges.first().topRow();
+      auto indexes = mTableClasses->selectionModel()->selectedIndexes();
+      if(!indexes.isEmpty()) {
+        int selectedRow = indexes.first().row();
         if(selectedRow > 0) {
           selectedRow--;    // Row zero is None
           auto actClass = mSettings->classes.begin();
@@ -161,12 +162,11 @@ PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList>
     deleteColumn->setStatusTip("Delete selected class");
     submenu->addAction(deleteColumn);
     connect(deleteColumn, &QAction::triggered, [this]() {
-      QList<QTableWidgetSelectionRange> ranges = mClasses->selectedRanges();
-      if(!ranges.isEmpty()) {
-        int selectedRow = ranges.first().topRow();
+      auto indexes = mTableClasses->selectionModel()->selectedIndexes();
+      if(!indexes.isEmpty()) {
+        int selectedRow = indexes.first().row();
         if(selectedRow > 0) {
           if(askForDeleteClass()) {
-            mClasses->removeRow(selectedRow);
             auto it = mSettings->classes.begin();
             std::advance(it, selectedRow - 1);
             mSettings->classes.erase(it);
@@ -205,29 +205,20 @@ PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList>
   {
     auto *splitPane = new QSplitter();
     {
-      mClasses = new PlaceholderTableWidget(0, 6);
-      mClasses->setFrameStyle(QFrame::NoFrame);
-      mClasses->setShowGrid(false);
-      mClasses->setPlaceholderText("Press the + button to add a class or use the wizard.");
-      mClasses->verticalHeader()->setVisible(false);
-      mClasses->horizontalHeader()->setVisible(true);
-      mClasses->setHorizontalHeaderLabels({"IdNr", "Id", "Classes", "Color", "Notes", "Hidden"});
-      mClasses->setAlternatingRowColors(true);
-      mClasses->setSelectionBehavior(QAbstractItemView::SelectRows);
-      mClasses->setColumnHidden(COL_ID, true);
-      mClasses->setColumnHidden(COL_ID_ENUM, true);
-      mClasses->setColumnHidden(COL_COLOR, true);
-      mClasses->setColumnHidden(COL_NOTES, true);
-      mClasses->setColumnHidden(COL_HIDDEN, true);
-      mClasses->setColumnWidth(COL_ID_ENUM, 10);
-      mClasses->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
-      mClasses->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
-      mClasses->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Stretch);
+      /////////
+      mTableClasses = new PlaceholderTableView(this);
+      mTableClasses->setPlaceholderText("Select an annotation ...");
+      mTableClasses->setFrameStyle(QFrame::NoFrame);
+      mTableClasses->verticalHeader()->setVisible(false);
+      mTableClasses->horizontalHeader()->setVisible(true);
+      mTableClasses->setAlternatingRowColors(true);
+      mTableClasses->setSelectionBehavior(QAbstractItemView::SelectRows);
+      mTableClasses->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+      mTableClasses->setItemDelegateForColumn(0, new ColoredSquareDelegate(mTableClasses));
+      mTableModelClasses = new TableModelClasses(settings, objectMap, mTableClasses);
+      mTableClasses->setModel(mTableModelClasses);
 
-      auto *delegate = new ColoredSquareDelegate(mClasses);
-      mClasses->setItemDelegateForColumn(COL_NAME, delegate);    // Set the delegate for the desired column
-
-      splitPane->addWidget(mClasses);
+      splitPane->addWidget(mTableClasses);
     }
 
     // ROI details
@@ -253,27 +244,27 @@ PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList>
   }
   setLayout(layout);
 
-  connect(mClasses, &QTableWidget::cellDoubleClicked, [&](int row, int column) {
+  connect(mTableClasses, &QTableView::doubleClicked, [&](const QModelIndex &index) {
+    auto row = index.row();
     if(row > 0) {
       row--;
-      if(column == COL_NAME) {
-        openEditDialog(row, column);
-      }
+      auto it = std::next(mSettings->classes.begin(), row);
+      openEditDialog(&*it);
     }
   });
 
   //
   // On selected class change set the class id to draw in the image panel
   //
-  connect(mClasses->selectionModel(), &QItemSelectionModel::selectionChanged, this, [this](const QItemSelection &, const QItemSelection &) {
+  connect(mTableClasses->selectionModel(), &QItemSelectionModel::selectionChanged, this, [this](const QItemSelection &, const QItemSelection &) {
     auto *imgPanel = mWindowMain->mutableImagePreview()->getImagePanel();
-    if(!mClasses->selectionModel()->hasSelection()) {
-      imgPanel->setClassIdToUseForDrawing(enums::ClassId::NONE, QColor(NONE_COLOR.data()));
+    if(!mTableClasses->selectionModel()->hasSelection()) {
+      imgPanel->setClassIdToUseForDrawing(enums::ClassId::NONE, QColor(TableModelClasses::NONE_COLOR.data()));
     } else {
-      auto indexes     = mClasses->selectionModel()->selectedIndexes();
+      auto indexes     = mTableClasses->selectionModel()->selectedIndexes();
       auto selectedRow = indexes.begin()->row();
       if(selectedRow == 0) {
-        imgPanel->setClassIdToUseForDrawing(enums::ClassId::NONE, QColor(NONE_COLOR.data()));
+        imgPanel->setClassIdToUseForDrawing(enums::ClassId::NONE, QColor(TableModelClasses::NONE_COLOR.data()));
       } else {
         selectedRow--;
         auto it = mSettings->classes.begin();
@@ -283,23 +274,8 @@ PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList>
     }
   });
 
-  // The non class should always be present
-  addNoneClass();
-
   // connect(mClasses, &QTableWidget::currentCellChanged, [&](int currentRow, int currentColumn, int previousRow, int previousColumn) {});
 }
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelClassification::addNoneClass()
-{
-  mClasses->setRowCount(1);
-  createTableItem(0, enums::ClassId::NONE, "None", NONE_COLOR, "");
-}
 
 ///
 /// \brief
@@ -308,11 +284,9 @@ void PanelClassification::addNoneClass()
 /// \param[out]
 /// \return
 ///
-void PanelClassification::openEditDialog(int row, int /*column*/)
+void PanelClassification::openEditDialog(joda::settings::Class *classToModify)
 {
-  auto it = mSettings->classes.begin();
-  std::advance(it, row);
-  if(mClassSettingsDialog->exec(*it) == 0) {
+  if(mClassSettingsDialog->exec(*classToModify) == 0) {
     onSettingChanged();
   }
 }
@@ -371,56 +345,11 @@ void PanelClassification::addClass(bool withUpdate)
 /// \param[out]
 /// \return
 ///
-void PanelClassification::createTableItem(int32_t rowIdx, enums::ClassId classId, const std::string &name, const std::string &color,
-                                          const std::string &notes)
-{
-  auto *index = new QTableWidgetItem(QString::number(static_cast<uint16_t>(classId)));
-  index->setFlags(index->flags() & ~Qt::ItemIsEditable);
-  mClasses->setItem(rowIdx, COL_ID, index);
-
-  nlohmann::json classIdStr = classId;
-  auto *itemEnum            = new QTableWidgetItem(QString(std::string(classIdStr).data()));
-  itemEnum->setFlags(itemEnum->flags() & ~Qt::ItemIsEditable);
-  mClasses->setItem(rowIdx, COL_ID_ENUM, itemEnum);
-
-  auto *item = new QTableWidgetItem(QString(name.data()));
-  item->setFlags(itemEnum->flags() & ~Qt::ItemIsEditable);
-  mClasses->setItem(rowIdx, COL_NAME, item);
-
-  auto calculatedColor = QString(color.data());
-  if(calculatedColor.isEmpty()) {
-    calculatedColor = QString(joda::settings::COLORS.at(static_cast<uint64_t>(rowIdx) % joda::settings::COLORS.size()).data());
-  }
-  auto *itemColor = new QTableWidgetItem(calculatedColor);
-  mClasses->setItem(rowIdx, COL_COLOR, itemColor);
-
-  auto *itemNotes = new QTableWidgetItem(QString(notes.data()));
-  mClasses->setItem(rowIdx, COL_NOTES, itemNotes);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 void PanelClassification::fromSettings(const joda::settings::Classification &settings)
 {
-  mClasses->blockSignals(true);
-  mClasses->setRowCount(static_cast<int32_t>(settings.classes.size()) + 1);    // +1 because none is always shown
+  mTableModelClasses->beginChange();
   *mSettings = settings;
-
-  //
-  // Load classes
-  //
-  int rowIdx = 1;    // We start at 1 because 0 is reserved for none
-  for(const auto &classs : settings.classes) {
-    createTableItem(rowIdx, classs.classId, classs.name, classs.color, classs.notes);
-    rowIdx++;
-  }
-
-  mClasses->blockSignals(false);
+  mTableModelClasses->endChange();
 }
 
 ///
@@ -432,16 +361,6 @@ void PanelClassification::fromSettings(const joda::settings::Classification &set
 ///
 void PanelClassification::toSettings()
 {
-  int32_t row = 1;    // we start at 1 because 0 is none.
-  for(auto &classs : mSettings->classes) {
-    QTableWidgetItem *itemNotes = mClasses->item(row, COL_NOTES);
-    QString classNotes;
-    if(itemNotes != nullptr && !itemNotes->text().isEmpty()) {
-      classNotes = itemNotes->text();
-    }
-    classs.notes = classNotes.toStdString();
-    row++;
-  }
 }
 
 ///
@@ -453,9 +372,9 @@ void PanelClassification::toSettings()
 ///
 auto PanelClassification::getSelectedClass() const -> enums::ClassId
 {
-  QList<QTableWidgetSelectionRange> ranges = mClasses->selectedRanges();
+  auto ranges = mTableClasses->selectionModel()->selectedIndexes();
   if(!ranges.isEmpty()) {
-    int selectedRow = ranges.first().topRow();
+    int selectedRow = ranges.first().row();
     if(selectedRow == 0) {
       return enums::ClassId::NONE;
     }
@@ -687,14 +606,20 @@ void PanelClassification::populateClassesFromImage()
 ///
 void PanelClassification::moveUp()
 {
-  mClasses->blockSignals(true);
-  auto rowAct = mClasses->currentRow();
-  auto newPos = rowAct - 1;
-  if(newPos <= 0) {    // Position 0 is reserved for None class
-    return;
+  mTableModelClasses->beginChange();
+
+  QItemSelectionModel *selectionModel = mTableClasses->selectionModel();
+  if(selectionModel->hasSelection()) {
+    QModelIndex index = selectionModel->selectedRows().first();
+    auto rowAct       = index.row();
+    auto newPos       = rowAct - 1;
+    if(newPos <= 0) {    // First row is reserved for None therefore <=
+      return;
+    }
+    moveClassToPosition(static_cast<uint32_t>(rowAct), static_cast<uint32_t>(newPos));
   }
-  moveClassToPosition(rowAct, newPos);
-  mClasses->blockSignals(false);
+
+  mTableModelClasses->endChange();
 }
 
 ///
@@ -706,14 +631,19 @@ void PanelClassification::moveUp()
 ///
 void PanelClassification::moveDown()
 {
-  mClasses->blockSignals(true);
-  auto rowAct = mClasses->currentRow();
-  auto newPos = rowAct + 1;
-  if(newPos >= mClasses->rowCount()) {
-    return;
+  mTableModelClasses->beginChange();
+
+  QItemSelectionModel *selectionModel = mTableClasses->selectionModel();
+  if(selectionModel->hasSelection()) {
+    QModelIndex index = selectionModel->selectedRows().first();
+    auto rowAct       = index.row();
+    auto newPos       = rowAct + 1;
+    if(newPos >= mTableModelClasses->rowCount()) {
+      return;
+    }
+    moveClassToPosition(static_cast<uint32_t>(rowAct), static_cast<uint32_t>(newPos));
+    mTableModelClasses->endChange();
   }
-  moveClassToPosition(rowAct, newPos);
-  mClasses->blockSignals(false);
 }
 
 ///
@@ -740,28 +670,7 @@ void PanelClassification::moveClassToPosition(int32_t fromPos, int32_t newPosIn)
     }
   };
 
-  auto moveRow = [&](int32_t fromRow, int32_t toRow) {
-    if(fromRow == toRow || fromRow < 0 || toRow < 0 || fromRow >= mClasses->rowCount() || toRow > mClasses->rowCount()) {
-      return;    // invalid input
-    }
-    mClasses->setUpdatesEnabled(false);
-
-    int32_t columnCount = mClasses->columnCount();
-    for(int32_t col = 0; col < columnCount; ++col) {
-      QTableWidgetItem *fromItem = mClasses->takeItem(fromRow, col);
-      QTableWidgetItem *toItem   = mClasses->takeItem(toRow, col);
-
-      mClasses->setItem(fromRow, col, toItem);
-      mClasses->setItem(toRow, col, fromItem);
-    }
-
-    mClasses->setUpdatesEnabled(true);
-    mClasses->selectRow(toRow);
-  };
-
   moveElementToListPosition(mSettings->classes, fromPos - 1, newPosIn - 1);    // -1 because the first element in the table is none
-  moveRow(fromPos, newPosIn);
-
   mWindowMain->checkForSettingsChanged();
 }
 

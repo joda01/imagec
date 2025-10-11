@@ -31,6 +31,7 @@ namespace joda::ui::gui {
 class WindowMain;
 class DialogImageViewer;
 class TableModelRoi;
+class TableModelClasses;
 
 ///
 /// \class
@@ -60,32 +61,21 @@ signals:
 
 private:
   /////////////////////////////////////////////////////
-  static constexpr int COL_ID      = 0;
-  static constexpr int COL_ID_ENUM = 1;
-  static constexpr int COL_NAME    = 2;
-  static constexpr int COL_COLOR   = 3;
-  static constexpr int COL_NOTES   = 4;
-  static constexpr int COL_HIDDEN  = 5;
-
-  static inline const std::string NONE_COLOR = "#565656";
-
-  /////////////////////////////////////////////////////
   void loadTemplates();
   void newTemplate();
   void saveAsNewTemplate();
-  void openEditDialog(int row, int column);
+  void openEditDialog(joda::settings::Class *);
   void openTemplate(const QString &path);
   void populateClassesFromImage();
   void addClass(bool withUpdate = true);
-  void createTableItem(int32_t rowIdx, enums::ClassId classId, const std::string &name, const std::string &color, const std::string &notes);
   void moveClassToPosition(int32_t fromPos, int32_t newPos);
   auto findNextFreeClassId() -> enums::ClassId;
-  void addNoneClass();
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
   joda::settings::Classification *mSettings;
-  PlaceholderTableWidget *mClasses;
+  PlaceholderTableView *mTableClasses;
+  TableModelClasses *mTableModelClasses;
 
   /// ROI DETAILS ///////////////////////////////////
   PlaceholderTableView *mTableRoiDetails;
