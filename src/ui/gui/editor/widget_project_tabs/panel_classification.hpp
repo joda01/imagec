@@ -64,7 +64,7 @@ private:
   void loadTemplates();
   void newTemplate();
   void saveAsNewTemplate();
-  void openEditDialog(joda::settings::Class *);
+  void openEditDialog(joda::settings::Class *, int32_t row);
   void openTemplate(const QString &path);
   void populateClassesFromImage();
   void addClass(bool withUpdate = true);

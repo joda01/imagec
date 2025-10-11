@@ -157,7 +157,8 @@ auto TableModelClasses::getCell(int row) const -> const joda::settings::Class
 ///
 void TableModelClasses::hideElement(int32_t row, bool hide)
 {
-  beginChange();
+  QModelIndex indexToUpdt = index(row, 0);
+
   if(row == 0) {
     mNoneClass.hidden = true;
     endChange();
@@ -166,7 +167,8 @@ void TableModelClasses::hideElement(int32_t row, bool hide)
   row--;
   auto it    = std::next(mClassification->classes.begin(), row);
   it->hidden = hide;
-  endChange();
+
+  dataChanged(indexToUpdt, indexToUpdt);
 }
 
 ///

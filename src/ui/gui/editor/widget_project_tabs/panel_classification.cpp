@@ -263,11 +263,11 @@ PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList>
   setLayout(layout);
 
   connect(mTableClasses, &QTableView::doubleClicked, [&](const QModelIndex &index) {
-    auto row = index.row();
+    int32_t row = index.row();
     if(row > 0) {
-      row--;
-      auto it = std::next(mSettings->classes.begin(), row);
-      openEditDialog(&*it);
+      int32_t tmpRow = row - 1;
+      auto it        = std::next(mSettings->classes.begin(), tmpRow);
+      openEditDialog(&*it, row);
     }
   });
 
@@ -306,10 +306,11 @@ PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList>
 /// \param[out]
 /// \return
 ///
-void PanelClassification::openEditDialog(joda::settings::Class *classToModify)
+void PanelClassification::openEditDialog(joda::settings::Class *classToModify, int32_t row)
 {
   if(mClassSettingsDialog->exec(*classToModify) == 0) {
-    onSettingChanged();
+    QModelIndex indexToUpdt = mTableModelClasses->index(row, 0);
+    mTableModelClasses->dataChanged(indexToUpdt, indexToUpdt);
   }
 }
 
@@ -628,8 +629,6 @@ void PanelClassification::populateClassesFromImage()
 ///
 void PanelClassification::moveUp()
 {
-  mTableModelClasses->beginChange();
-
   QItemSelectionModel *selectionModel = mTableClasses->selectionModel();
   if(selectionModel->hasSelection()) {
     QModelIndex index = selectionModel->selectedRows().first();
@@ -640,8 +639,6 @@ void PanelClassification::moveUp()
     }
     moveClassToPosition(static_cast<uint32_t>(rowAct), static_cast<uint32_t>(newPos));
   }
-
-  mTableModelClasses->endChange();
 }
 
 ///
@@ -653,8 +650,6 @@ void PanelClassification::moveUp()
 ///
 void PanelClassification::moveDown()
 {
-  mTableModelClasses->beginChange();
-
   QItemSelectionModel *selectionModel = mTableClasses->selectionModel();
   if(selectionModel->hasSelection()) {
     QModelIndex index = selectionModel->selectedRows().first();
@@ -664,7 +659,6 @@ void PanelClassification::moveDown()
       return;
     }
     moveClassToPosition(static_cast<uint32_t>(rowAct), static_cast<uint32_t>(newPos));
-    mTableModelClasses->endChange();
   }
 }
 
@@ -693,6 +687,17 @@ void PanelClassification::moveClassToPosition(int32_t fromPos, int32_t newPosIn)
   };
 
   moveElementToListPosition(mSettings->classes, fromPos - 1, newPosIn - 1);    // -1 because the first element in the table is none
+
+  QModelIndex indexToUpdtFrom = mTableModelClasses->index(fromPos, 0);
+  mTableModelClasses->dataChanged(indexToUpdtFrom, indexToUpdtFrom);
+
+  QModelIndex indexToUpddTo = mTableModelClasses->index(newPosIn, 0);
+  mTableModelClasses->dataChanged(indexToUpddTo, indexToUpddTo);
+
+  mTableClasses->selectionModel()->setCurrentIndex(indexToUpdtFrom,
+                                                   QItemSelectionModel::SelectionFlag::Deselect | QItemSelectionModel::SelectionFlag::Rows);
+  mTableClasses->selectionModel()->setCurrentIndex(indexToUpddTo,
+                                                   QItemSelectionModel::SelectionFlag::Select | QItemSelectionModel::SelectionFlag::Rows);
   mWindowMain->checkForSettingsChanged();
 }
 
