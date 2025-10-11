@@ -158,6 +158,7 @@ PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList>
           auto actClass = mSettings->classes.begin();
           std::advance(actClass, selectedRow);
 
+          mTableModelClasses->beginChange();
           joda::settings::Class newCreatedClass;
           newCreatedClass.classId             = findNextFreeClassId();
           newCreatedClass.color               = actClass->color;
@@ -165,8 +166,13 @@ PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList>
           newCreatedClass.name                = actClass->name + " (copy)";
           newCreatedClass.notes               = actClass->notes;
           mSettings->classes.emplace_back(newCreatedClass);
+          mTableModelClasses->endChange();
 
           onSettingChanged();
+          QModelIndex indexToSelect = mTableModelClasses->index(
+              static_cast<int>(mSettings->classes.size()), 0);    // We can use size since the table has always one element more, the none element
+          mTableClasses->selectionModel()->setCurrentIndex(indexToSelect,
+                                                           QItemSelectionModel::SelectionFlag::Select | QItemSelectionModel::SelectionFlag::Rows);
         }
       }
     });
