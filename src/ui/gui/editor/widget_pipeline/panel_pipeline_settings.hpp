@@ -45,7 +45,6 @@ class WindowMain;
 class AddCommandButtonBase;
 class PanelClassification;
 class DialogCommandSelection;
-class DialogPreviewResults;
 class DialogImageViewer;
 class DialogRoiManager;
 
@@ -53,15 +52,12 @@ class PanelPipelineSettings : public QWidget
 {
   Q_OBJECT
 
-  friend class DialogPreviewResults;
-
 signals:
   void updatePreviewStarted();
   void updatePreviewFinished(QString error);
 
 public:
-  PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, joda::processor::Preview *previewResult,
-                        DialogPreviewResults *previewResultsDialog, joda::settings::Pipeline &settings,
+  PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, joda::processor::Preview *previewResult, joda::settings::Pipeline &settings,
                         std::shared_ptr<DialogCommandSelection> &commandSelectionDialog);
   ~PanelPipelineSettings();
 
@@ -135,7 +131,6 @@ private:
   int32_t mLastSelectedPreviewSize = 0;
   joda::settings::Pipeline &mSettings;
   joda::processor::Preview *mPreviewResult;
-  DialogPreviewResults *mPreviewResultsDialog;
 
   struct PreviewJob
   {

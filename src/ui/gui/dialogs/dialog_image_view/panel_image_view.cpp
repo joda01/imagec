@@ -80,7 +80,10 @@ PanelImageView::PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMa
   setCursor();
 
   mContourOverlay = new ContourOverlay();
-  mOverlayMasks   = new RoiOverlay(objectMap, classSettings, mContourOverlay, parent);
+  mContourOverlay->setZValue(200.0);
+
+  mOverlayMasks = new RoiOverlay(objectMap, classSettings, mContourOverlay, parent);
+  mOverlayMasks->setZValue(100.0);
 
   scene->addItem(mOverlayMasks);
   scene->addItem(mContourOverlay);
@@ -245,8 +248,6 @@ void PanelImageView::setRegionsOfInterestFromObjectList()
   if(mOverlayMasks != nullptr) {
     mOverlayMasks->setOverlay({mPreviewImages.originalImage.getOriginalImage()->cols, mPreviewImages.originalImage.getOriginalImage()->rows},
                               {size.width(), size.height()});
-    mOverlayMasks->setZValue(100.0);
-    mContourOverlay->setZValue(200.0);
   }
 }
 
@@ -1357,6 +1358,27 @@ void PanelImageView::keyPressEvent(QKeyEvent *event)
 {
   if(event->key() == Qt::Key_Delete) {
     deleteSelectedRois();
+  } else if(event->key() == Qt::Key_Escape) {
+    setState(State::MOVE);
+    emit drawingToolChanged(State::MOVE);
+  } else if(event->key() == Qt::Key_S) {
+    setState(State::SELECT);
+    emit drawingToolChanged(State::SELECT);
+  } else if(event->key() == Qt::Key_R) {
+    setState(State::PAINT_RECTANGLE);
+    emit drawingToolChanged(State::PAINT_RECTANGLE);
+  } else if(event->key() == Qt::Key_O) {
+    setState(State::PAINT_OVAL);
+    emit drawingToolChanged(State::PAINT_OVAL);
+  } else if(event->key() == Qt::Key_P) {
+    setState(State::PAINT_POLYGON);
+    emit drawingToolChanged(State::PAINT_POLYGON);
+  } else if(event->key() == Qt::Key_B) {
+    setState(State::PAIN_BRUSH);
+    emit drawingToolChanged(State::PAIN_BRUSH);
+  } else if(event->key() == Qt::Key_W) {
+    setState(State::PAIN_BRUSH);
+    emit drawingToolChanged(State::PAIN_BRUSH);
   }
 }
 
@@ -1774,7 +1796,7 @@ void PanelImageView::addPolygonToToObjectMap(const QPolygonF &poly)
 
   mObjectMap->push_back(paintedRoi);
   mObjectMap->triggerChangeCallback();
-  mOverlayMasks->refresh();
+  setRegionsOfInterestFromObjectList();
 }
 
 }    // namespace joda::ui::gui

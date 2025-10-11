@@ -68,11 +68,9 @@ using namespace std::chrono_literals;
 /// \return
 ///
 PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, joda::processor::Preview *previewResult,
-                                             DialogPreviewResults *previewResultsDialog, joda::settings::Pipeline &settings,
-                                             std::shared_ptr<DialogCommandSelection> &commandSelectionDialog) :
+                                             joda::settings::Pipeline &settings, std::shared_ptr<DialogCommandSelection> &commandSelectionDialog) :
     QWidget(wm),
-    mPreviewImage(previewDock), mWindowMain(wm), mCommandSelectionDialog(commandSelectionDialog), mSettings(settings), mPreviewResult(previewResult),
-    mPreviewResultsDialog(previewResultsDialog)
+    mPreviewImage(previewDock), mWindowMain(wm), mCommandSelectionDialog(commandSelectionDialog), mSettings(settings), mPreviewResult(previewResult)
 {
   setObjectName("PanelPipelineSettings");
   setContentsMargins(0, 0, 0, 0);
@@ -446,7 +444,7 @@ void PanelPipelineSettings::updatePreview()
                    .selectedTileY  = selectedTileY,
                    .timeStack      = mPreviewImage->getSelectedTimeStack(),
                    .classes        = mWindowMain->getPanelClassification()->getClasses(),
-                   .classesToHide  = mPreviewResultsDialog->getClassesToHide(),
+                   .classesToHide  = mWindowMain->getClassesToHide(),
                    .threadSettings = threadSettings};
 
     std::lock_guard<std::mutex> lock(mCheckForEmptyMutex);
@@ -579,10 +577,6 @@ void PanelPipelineSettings::onPreviewFinished(QString error)
   if(nullptr != mPreviewImage) {
     mPreviewImage->setWaiting(false);
   }
-
-  if(nullptr != mPreviewResultsDialog) {
-    mPreviewResultsDialog->refresh();
-  }
 }
 
 ///
@@ -698,7 +692,6 @@ void PanelPipelineSettings::onClassificationNameChanged()
 {
   valueChangedEvent();
   mPreviewImage->getImagePanel()->refreshRoiColors();
-  mPreviewResultsDialog->refresh();
 }
 
 ///
@@ -715,12 +708,6 @@ void PanelPipelineSettings::setActive(bool setActive)
     if(mSettings.pipelineSetup.cStackIndex >= 0) {
       mPreviewImage->setImageChannel(mSettings.pipelineSetup.cStackIndex);
     }
-    mPreviewResultsDialog->refresh();
-    mPreviewResultsDialog->show();
-    QTimer::singleShot(0, this, [this]() {
-      QPoint topRight = mWindowMain->geometry().topRight();
-      mPreviewResultsDialog->move(topRight - QPoint(mPreviewResultsDialog->width() + 2, -250));
-    });
 
     mToolbar->setVisible(true);
     mIsActiveShown = true;
@@ -733,7 +720,6 @@ void PanelPipelineSettings::setActive(bool setActive)
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
     mIsActiveShown = false;
     mToolbar->setVisible(false);
-    mPreviewResultsDialog->hide();
     mPreviewImage->getImagePanel()->setShowEditedImage(false);
     mDialogHistory->hide();
     mHistoryAction->setChecked(false);

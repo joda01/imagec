@@ -101,34 +101,34 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
 
       toolbarTop->addSeparator();
 
-      auto *paintRectangle = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("rectangle"), "Rectangle");
-      paintRectangle->setStatusTip("Paint rectangle");
-      paintRectangle->setCheckable(true);
-      paintingToolActionGroup->addAction(paintRectangle);
-      toolbarTop->addAction(paintRectangle);
-      connect(paintRectangle, &QAction::triggered, this, [this](bool checked) {
+      mActionPaintRectangle = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("rectangle"), "Rectangle");
+      mActionPaintRectangle->setStatusTip("Paint rectangle");
+      mActionPaintRectangle->setCheckable(true);
+      paintingToolActionGroup->addAction(mActionPaintRectangle);
+      toolbarTop->addAction(mActionPaintRectangle);
+      connect(mActionPaintRectangle, &QAction::triggered, this, [this](bool checked) {
         if(checked) {
           mImageViewRight.setState(PanelImageView::State::PAINT_RECTANGLE);
         }
       });
 
-      auto *paintCircle = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("circle"), "Circle");
-      paintCircle->setStatusTip("Paint circle");
-      paintCircle->setCheckable(true);
-      paintingToolActionGroup->addAction(paintCircle);
-      toolbarTop->addAction(paintCircle);
-      connect(paintCircle, &QAction::triggered, this, [this](bool checked) {
+      mActionPaintCircle = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("circle"), "Circle");
+      mActionPaintCircle->setStatusTip("Paint circle");
+      mActionPaintCircle->setCheckable(true);
+      paintingToolActionGroup->addAction(mActionPaintCircle);
+      toolbarTop->addAction(mActionPaintCircle);
+      connect(mActionPaintCircle, &QAction::triggered, this, [this](bool checked) {
         if(checked) {
           mImageViewRight.setState(PanelImageView::State::PAINT_OVAL);
         }
       });
 
-      auto *paintPolygon = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("polygon"), "Polygon");
-      paintPolygon->setStatusTip("Paint polygon");
-      paintPolygon->setCheckable(true);
-      paintingToolActionGroup->addAction(paintPolygon);
-      toolbarTop->addAction(paintPolygon);
-      connect(paintPolygon, &QAction::triggered, this, [this](bool checked) {
+      mPaintPolygon = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("polygon"), "Polygon");
+      mPaintPolygon->setStatusTip("Paint polygon");
+      mPaintPolygon->setCheckable(true);
+      paintingToolActionGroup->addAction(mPaintPolygon);
+      toolbarTop->addAction(mPaintPolygon);
+      connect(mPaintPolygon, &QAction::triggered, this, [this](bool checked) {
         if(checked) {
           mImageViewRight.setState(PanelImageView::State::PAINT_POLYGON);
         }
@@ -363,6 +363,30 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
     connect(&mImageViewRight, &PanelImageView::updateImage, [this]() {
       if(nullptr != mVideoButtonGroup) {
         mVideoButtonGroup->setMaxTimeStacks(mImageViewRight.getNrOfTstacks());
+      }
+    });
+
+    connect(&mImageViewRight, &PanelImageView::drawingToolChanged, [this](PanelImageView::State state) {
+      switch(state) {
+        case PanelImageView::MOVE:
+          mMoveAction->setChecked(true);
+          break;
+        case PanelImageView::SELECT:
+          mSelectAction->setChecked(true);
+          break;
+        case PanelImageView::PAINT_RECTANGLE:
+          mActionPaintRectangle->setChecked(true);
+          break;
+        case PanelImageView::PAINT_OVAL:
+          mActionPaintCircle->setChecked(true);
+          break;
+        case PanelImageView::PAINT_POLYGON:
+          mPaintPolygon->setChecked(true);
+          break;
+        case PanelImageView::PAIN_BRUSH:
+          break;
+        case PanelImageView::PAINT_MAGIC_WAND:
+          break;
       }
     });
   }

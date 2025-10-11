@@ -121,6 +121,9 @@ private:
   // PAINTING///////////////////////////////////////////////////
   QAction *mMoveAction;
   QAction *mSelectAction;
+  QAction *mActionPaintRectangle;
+  QAction *mActionPaintCircle;
+  QAction *mPaintPolygon;
 
   // ANALYZE SETTINGS ///////////////////////////////////
   joda::settings::AnalyzeSettings *mSettings = nullptr;

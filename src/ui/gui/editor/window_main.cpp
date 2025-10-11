@@ -103,6 +103,11 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   {
     mPreviewResultsDialog =
         new DialogPreviewResults(&mPreviewResult, mPreviewImage->getImagePanel(), getSettings().projectSettings.classification, this);
+    mPreviewResultsDialog->show();
+    QTimer::singleShot(0, this, [this]() {
+      QPoint topRight = geometry().topRight();
+      mPreviewResultsDialog->move(topRight - QPoint(mPreviewResultsDialog->width() + 2, -250));
+    });
   }
 
   setCentralWidget(mPreviewImage);
@@ -548,6 +553,15 @@ void WindowMain::addToLastLoadedResults(const QString &path, const QString &jobN
 {
   joda::user_settings::UserSettings::addLastOpenedResult(path.toStdString(), jobName.toStdString());
   loadLastOpened();
+}
+
+///
+/// \brief      Open project settings
+/// \author     Joachim Danmayr
+///
+auto WindowMain::getClassesToHide() const -> std::set<enums::ClassId>
+{
+  return mPreviewResultsDialog->getClassesToHide();
 }
 
 ///

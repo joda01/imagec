@@ -21,6 +21,7 @@
 #include <mutex>
 #include <set>
 #include <string>
+#include "backend/enums/enums_classes.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/setting.hpp"
 #include "controller/controller.hpp"
@@ -107,6 +108,8 @@ public:
   {
     return mPreviewResultsDialog;
   }
+
+  auto getClassesToHide() const -> std::set<enums::ClassId>;
 
   auto mutableImagePreview() -> DialogImageViewer *
   {
