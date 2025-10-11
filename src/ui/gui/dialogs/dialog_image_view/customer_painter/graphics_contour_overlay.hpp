@@ -19,7 +19,7 @@
 #include "backend/settings/project_settings/project_class.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
 
-using ColorMap_t = std::map<uint32_t, std::pair<QColor, QPainterPath>>;
+using ColorMap_t = std::vector<std::pair<QPen, QPolygonF>>;
 
 class ContourOverlay : public QGraphicsItem
 {

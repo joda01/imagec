@@ -55,11 +55,8 @@ void ContourOverlay::paint(QPainter *painter, const QStyleOptionGraphicsItem * /
   if(mData == nullptr) {
     return;
   }
-  for(const auto &[_, elem] : *mData) {
-    // Set pen (can use the caching strategy from #2 here too)
-    QPen pen(elem.first, 3, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin);
-    pen.setCosmetic(true);
+  for(const auto &[pen, elem] : *mData) {
     painter->setPen(pen);
-    painter->drawPath(elem.second);    // Single call for all polygons of this color
+    painter->drawPolygon(elem);    // Single call for all polygons of this color
   }
 }

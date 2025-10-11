@@ -167,24 +167,20 @@ void RoiOverlay::prepareContour(const joda::atom::ROI *roi, const QColor &colBor
   const auto &contour = roi->getContour();
   const auto &box     = roi->getBoundingBoxTile();
   QList<QPointF> points;
-  points.reserve(contour.size());    // Pre-allocate memory
+  points.reserve(static_cast<int>(contour.size()));    // Pre-allocate memory
   const double offsetX = static_cast<double>(box.x) * scaleX;
   const double offsetY = static_cast<double>(box.y) * scaleY;
   for(const auto &cont : contour) {
     QPointF itemPoint(static_cast<double>(cont.x) * scaleX + offsetX, static_cast<double>(cont.y) * scaleY + offsetY);
     points.push_back(itemPoint);
   }
-  QColor c = Qt::yellow;
+
   // The QRgb type is defined as quint32.
   if(!points.empty()) {
     if(roi->isSelected()) {
-      uint32_t cVal                 = static_cast<uint32_t>(c.rgb());
-      mContoursPerColor[cVal].first = c;
-      mContoursPerColor[cVal].second.addPolygon(QPolygonF(points));
+      mContoursPerColor.push_back(std::pair<QPen, QPolygonF>{QPen(Qt::yellow, 3, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin), QPolygonF(points)});
     } else {
-      uint32_t cVal                 = static_cast<uint32_t>(colBorder.rgb());
-      mContoursPerColor[cVal].first = colBorder;
-      mContoursPerColor[cVal].second.addPolygon(QPolygonF(points));
+      mContoursPerColor.push_back(std::pair<QPen, QPolygonF>{QPen(colBorder, 3, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin), QPolygonF(points)});
     }
   }
 }

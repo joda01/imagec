@@ -14,6 +14,7 @@
 #include <qnamespace.h>
 #include <qtableview.h>
 #include <QFile>
+#include <cstddef>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -109,16 +110,17 @@ QVariant TableModelPaintedPolygon::data(const QModelIndex &index, int role) cons
   }
 
   if(role == Qt::DisplayRole) {
+    QString className = mClassification->getClassFromId(roi->getClassId()).name.c_str();
     if(roi->getCategory() == joda::atom::ROI::Category::MANUAL_SEGMENTATION) {
       if(roi->getClassId() == enums::ClassId::NONE) {
-        return "None";
+        return "(M) None";
       }
       if(index.column() == 0) {
-        return "Annotation " + QString::number(static_cast<int32_t>(roi->getClassId()));
+        return "(M) " + className;
       }
     } else {
       if(index.column() == 0) {
-        return "Class " + QString::number(static_cast<int32_t>(roi->getClassId()));
+        return "(A) " + className;
       }
     }
 
@@ -139,8 +141,8 @@ QVariant TableModelPaintedPolygon::data(const QModelIndex &index, int role) cons
 ///
 auto TableModelPaintedPolygon::getCell(int row) const -> atom::ROI *
 {
-  if(row >= 0 && row < mSortedData.size()) {
-    return mSortedData.at(row).second;
+  if(row >= 0 && row < static_cast<int>(mSortedData.size())) {
+    return mSortedData.at(static_cast<size_t>(row)).second;
   }
   return nullptr;
 }
@@ -183,7 +185,7 @@ void TableModelPaintedPolygon::sortData()
     if(ra->getCategory() == rb->getCategory()) {
       return ra->getObjectId() < rb->getObjectId();    // secondary key
     }
-    return ra->getCategory() < rb->getCategory();    // primary key
+    return ra->getCategory() > rb->getCategory();    // primary key
   });
 }
 

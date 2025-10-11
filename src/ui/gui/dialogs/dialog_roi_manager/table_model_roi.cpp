@@ -148,7 +148,7 @@ QVariant TableModelRoi::data(const QModelIndex &index, int role) const
             case atom::ROI::Category::ANY:
               return QString("Unknown");
             case atom::ROI::Category::AUTO_SEGMENTATION:
-              return QString("Pipeline segmented");
+              return QString("Automatic segmented");
             case atom::ROI::Category::MANUAL_SEGMENTATION:
               return QString("Manual segmented");
           }
