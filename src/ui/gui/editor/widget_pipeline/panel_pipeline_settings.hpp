@@ -23,7 +23,6 @@
 #include "backend/helper/thread_safe_queue.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "ui/gui/dialogs/dialog_image_view/panel_image_view.hpp"
-#include "ui/gui/editor/widget_pipeline/dialog_preview_results/dialog_preview_results.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classes_out.hpp"

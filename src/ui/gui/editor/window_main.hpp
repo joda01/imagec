@@ -46,7 +46,6 @@ class PanelImages;
 class PanelProjectSettings;
 class PanelCompilerLog;
 class DialogImageViewer;
-class DialogPreviewResults;
 
 ///
 /// \class
@@ -102,11 +101,6 @@ public:
   auto getPreviewDock() -> DialogImageViewer *
   {
     return mPreviewImage;
-  }
-
-  auto getPreviewResultsDock() -> DialogPreviewResults *
-  {
-    return mPreviewResultsDialog;
   }
 
   auto mutableImagePreview() -> DialogImageViewer *
@@ -183,8 +177,7 @@ private:
   PanelImages *mPanelImages                   = nullptr;
 
   ////Right Dock/////////////////////////////////////////////////
-  DialogImageViewer *mPreviewImage            = nullptr;
-  DialogPreviewResults *mPreviewResultsDialog = nullptr;
+  DialogImageViewer *mPreviewImage = nullptr;
   joda::processor::Preview mPreviewResult;
 
   ////ToolbarIcons/////////////////////////////////////////////////

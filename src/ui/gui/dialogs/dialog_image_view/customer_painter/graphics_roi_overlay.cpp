@@ -178,9 +178,9 @@ void RoiOverlay::prepareContour(const joda::atom::ROI *roi, const QColor &colBor
   // The QRgb type is defined as quint32.
   if(!points.empty()) {
     if(roi->isSelected()) {
-      mContoursPerColor.push_back(std::pair<QPen, QPolygonF>{QPen(Qt::yellow, 3, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin), QPolygonF(points)});
+      mContoursPerColor.push_back(std::pair<QPen, QPolygonF>{QPen(Qt::yellow, 1, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin), QPolygonF(points)});
     } else {
-      mContoursPerColor.push_back(std::pair<QPen, QPolygonF>{QPen(colBorder, 3, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin), QPolygonF(points)});
+      mContoursPerColor.push_back(std::pair<QPen, QPolygonF>{QPen(colBorder, 1, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin), QPolygonF(points)});
     }
   }
 }

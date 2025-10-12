@@ -735,15 +735,28 @@ void PanelImageView::mouseMoveEvent(QMouseEvent *event)
 /// \param[out]
 /// \return
 ///
-QPolygonF ellipseToPolygon(QGraphicsEllipseItem *ellipse, int segments = 36)
+QPolygonF ellipseToPolygon(QGraphicsEllipseItem *ellipse)
 {
   QRectF rect = ellipse->rect();
-  QPolygonF poly;
 
-  qreal cx = rect.center().x();
-  qreal cy = rect.center().y();
   qreal rx = rect.width() / 2.0;
   qreal ry = rect.height() / 2.0;
+
+  // 1. Determine the maximum radius (R)
+  qreal maxRadius = qMax(rx, ry);
+
+  // 2. Calculate the minimum required segments for sub-pixel smoothness (f=0.5)
+  //    segments = ceil(PI * sqrt(R))
+  int segments = qCeil(M_PI * qSqrt(maxRadius));
+
+  // 3. Ensure a minimum number for objects too small to calculate accurately
+  //    (e.g., set a minimum of 8 for a visible shape)
+  segments = qMax(9, segments);
+
+  // 4. Paint polygon
+  QPolygonF poly;
+  qreal cx = rect.center().x();
+  qreal cy = rect.center().y();
 
   for(int i = 0; i < segments; ++i) {
     qreal angle = (2 * M_PI * i) / segments;
@@ -1418,10 +1431,7 @@ void PanelImageView::deleteRois(const std::set<joda::atom::ROI *> &idxs)
 ///
 bool PanelImageView::deleteSelectedRois()
 {
-  if(mOverlayMasks->deleteSelectedRois()) {
-    return true;
-  }
-  return false;
+  return mOverlayMasks->deleteSelectedRois();
 }
 
 ///

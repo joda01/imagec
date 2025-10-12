@@ -97,19 +97,6 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
 
   createLeftToolbar();
 
-  //
-  // Preview results
-  //
-  {
-    mPreviewResultsDialog =
-        new DialogPreviewResults(&mPreviewResult, mPreviewImage->getImagePanel(), getSettings().projectSettings.classification, this);
-    mPreviewResultsDialog->show();
-    QTimer::singleShot(0, this, [this]() {
-      QPoint topRight = geometry().topRight();
-      mPreviewResultsDialog->move(topRight - QPoint(mPreviewResultsDialog->width() + 2, -250));
-    });
-  }
-
   setCentralWidget(mPreviewImage);
   clearSettings();
   statusBar();
@@ -825,11 +812,6 @@ bool WindowMain::showPanelStartPage()
 void WindowMain::moveEvent(QMoveEvent *event)
 {
   QMainWindow::moveEvent(event);
-
-  if(mPreviewResultsDialog != nullptr) {
-    QPoint topRight = this->geometry().topRight();
-    mPreviewResultsDialog->move(topRight - QPoint(mPreviewResultsDialog->width() + 2, -250));
-  }
 }
 
 ///
@@ -840,11 +822,6 @@ void WindowMain::moveEvent(QMoveEvent *event)
 void WindowMain::resizeEvent(QResizeEvent *event)
 {
   QMainWindow::resizeEvent(event);
-
-  if(mPreviewResultsDialog != nullptr) {
-    QPoint topRight = this->geometry().topRight();
-    mPreviewResultsDialog->move(topRight - QPoint(mPreviewResultsDialog->width() + 2, -250));
-  }
 }
 
 ///
