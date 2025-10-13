@@ -199,6 +199,7 @@ minizip/1.2.13|https://zlib.net|Zlib
 duckdb/1.1.3|https://github.com/cwida/duckdb|MIT
 cpp-httplib/0.19.0|https://github.com/yhirose/cpp-httplib|MIT
 cli11/2.5.0|https://github.com/CLIUtils/CLI11|BSD-3-Clause
+cereal/1.3.2|https://github.com/USCiLab/cereal|BSD-3-Clause
 onnx/1.17.0|https://github.com/onnx/onnx|Apache-2.0
 rapidyaml/0.7.1|https://github.com/biojppm/rapidyaml|['MIT']
 c4core/0.2.0|https://github.com/biojppm/c4core|['MIT']
@@ -215,24 +216,18 @@ safeint/3.0.28|https://github.com/dcleblanc/SafeInt|MIT
 ms-gsl/4.0.0|https://github.com/microsoft/GSL|MIT
 cpuinfo/cci.20231129|https://github.com/pytorch/cpuinfo|BSD-2-Clause
 nsync/1.26.0|https://github.com/google/nsync|Apache-2.0
-libtorch/2.4.0|https://pytorch.org|BSD-3-Clause
-fp16/cci.20210320|https://github.com/Maratyszcza/FP16|MIT
-psimd/cci.20200517|https://github.com/Maratyszcza/psimd|MIT
-fmt/10.2.1|https://github.com/fmtlib/fmt|MIT
-sleef/3.6.1|https://sleef.org|BSL-1.0
-openblas/0.3.28|https://www.openblas.net|BSD-3-Clause
-fbgemm/0.8.0|https://github.com/pytorch/FBGEMM|BSD-3-Clause
-asmjit/cci.20240531|https://asmjit.com|Zlib
-fxdiv/cci.20200417|https://github.com/Maratyszcza/FXdiv|MIT
-xnnpack/cci.20240229|https://github.com/google/XNNPACK|BSD-3-Clause
-pthreadpool/cci.20231129|https://github.com/Maratyszcza/pthreadpool|BSD-2-Clause
-libnuma/2.0.16|https://github.com/numactl/numactl|LGPL-2.1-or-later
+libtorch/2.7.1|None|BSD-3-Clause
 tensorflow-lite/2.15.0|https://www.tensorflow.org/lite/guide|Apache-2.0
 farmhash/cci.20190513|https://github.com/google/farmhash|MIT
 fft/cci.20061228|http://www.kurims.kyoto-u.ac.jp/~ooura/fft.html|LicenseRef-LICENSE
 gemmlowp/cci.20210928|https://github.com/google/gemmlowp|Apache-2.0
 ruy/cci.20231129|https://github.com/google/ruy|Apache-2.0
 intel-neon2sse/cci.20210225|https://github.com/intel/ARM_NEON_2_x86_SSE|BSD-2-Clause
+xnnpack/cci.20240229|https://github.com/google/XNNPACK|BSD-3-Clause
+fp16/cci.20210320|https://github.com/Maratyszcza/FP16|MIT
+psimd/cci.20200517|https://github.com/Maratyszcza/psimd|MIT
+pthreadpool/cci.20231129|https://github.com/Maratyszcza/pthreadpool|BSD-2-Clause
+fxdiv/cci.20200417|https://github.com/Maratyszcza/FXdiv|MIT
 
 <!---EXT-LIBS-->
 
