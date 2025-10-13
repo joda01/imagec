@@ -21,24 +21,30 @@ SCENARIO("object_list", "[object_list]")
 
   joda::atom::ObjectList list;
 
-  atom::ROI::RoiObjectId index{.classId = enums::ClassId::C10, .imagePlane = {.tStack = 1, .zStack = 2, .cStack = 3}};
-  atom::Confidence confidence = 123.456;
-  atom::Boxes boundingBox(4, 5, 100, 200);
-  cv::Mat mask = cv::Mat::zeros({50, 60}, CV_8UC1);
-  for(int x = 0; x < 50; x++) {
-    for(int y = 0; y < 60; y++) {
-      mask.at<uint8_t>(y, x) = 1;
+  auto addRoi = [&list](int32_t val) {
+    atom::ROI::RoiObjectId index{.classId = enums::ClassId::C10, .imagePlane = {.tStack = 1, .zStack = 2, .cStack = 3}};
+    atom::Confidence confidence = 123.456;
+    atom::Boxes boundingBox(4, 5, 100, 200);
+    cv::Mat mask = cv::Mat::zeros({50, 60}, CV_8UC1);
+    for(int x = 0; x < 50; x++) {
+      for(int y = 0; y < 60; y++) {
+        mask.at<uint8_t>(y, x) = val;
+      }
     }
-  }
 
-  std::vector<cv::Point> contour;
-  cv::Size imageSize(500, 600);
-  cv::Size originalImageSize(700, 800);
-  enums::tile_t tile{7, 8};
-  cv::Size tileSize{500, 600};
+    std::vector<cv::Point> contour;
+    cv::Size imageSize(500, 600);
+    cv::Size originalImageSize(700, 800);
+    enums::tile_t tile{7, 8};
+    cv::Size tileSize{500, 600};
 
-  joda::atom::ROI myRoi(index, confidence, boundingBox, mask, contour, imageSize, originalImageSize, tile, tileSize);
-  list.push_back(myRoi);
+    joda::atom::ROI myRoi(index, confidence, boundingBox, mask, contour, imageSize, originalImageSize, tile, tileSize);
+    list.push_back(myRoi);
+  };
+
+  addRoi(1);
+  addRoi(2);
+
   list.serialize("tmp/serialized.bin");
 
   CHECK(1 == 1);
