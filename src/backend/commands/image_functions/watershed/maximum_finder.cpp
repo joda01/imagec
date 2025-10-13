@@ -69,9 +69,9 @@ namespace joda::image::func {
 ///                       is the number of maxima. Note that poly.xpoints.length may be greater
 ///                       than the number of maxima.
 ///
-Polygon MaximumFinder::getMaxima(cv::Mat &ip, double tolerance, bool excludeOnEdges)
+Polygon MaximumFinder::getMaxima(cv::Mat &ip, double toleranceIn, bool excludeOnEdgesIn)
 {
-  return getMaxima(ip, tolerance, excludeOnEdges, excludeOnEdges);
+  return getMaxima(ip, toleranceIn, excludeOnEdgesIn, excludeOnEdgesIn);
 }
 
 ///
@@ -91,9 +91,9 @@ Polygon MaximumFinder::getMaxima(cv::Mat &ip, double tolerance, bool excludeOnEd
 ///                       is the number of maxima. Note that poly.xpoints.length may be greater
 ///                       than the number of maxima.
 ///
-Polygon MaximumFinder::getMaxima(cv::Mat &ip, double tolerance, bool strict, bool excludeOnEdges)
+Polygon MaximumFinder::getMaxima(cv::Mat &ip, double toleranceIn, bool strictIn, bool excludeOnEdgesIn)
 {
-  findMaxima(ip, tolerance, strict, MaximumFinder::NO_THRESHOLD, MaximumFinder::POINT_SELECTION, excludeOnEdges, false);
+  findMaxima(ip, toleranceIn, strictIn, MaximumFinder::NO_THRESHOLD, MaximumFinder::POINT_SELECTION, excludeOnEdgesIn, false);
   return xyCoordinates;
 }
 
@@ -113,7 +113,7 @@ std::shared_ptr<int> MaximumFinder::findMaxima(std::shared_ptr<double> xx, size_
 {
   int INCLUDE_EDGE = 0;
   int CIRCULAR     = 2;
-  int len          = xxSize;
+  int len          = static_cast<int>(xxSize);
   int origLen      = len;
   if(len < 2) {
     return nullptr;
@@ -122,7 +122,7 @@ std::shared_ptr<int> MaximumFinder::findMaxima(std::shared_ptr<double> xx, size_
     tolerance = 0;
   }
   if(edgeMode == CIRCULAR) {
-    std::shared_ptr<double> cascade3(new double[len * 3]{0}, [](double *p) { delete[] p; });
+    std::shared_ptr<double> cascade3(new double[static_cast<size_t>(len * 3)]{0}, [](double *p) { delete[] p; });
     for(int jj = 0; jj < len; jj++) {
       cascade3.get()[jj]           = xx.get()[jj];
       cascade3.get()[jj + len]     = xx.get()[jj];
@@ -132,7 +132,7 @@ std::shared_ptr<int> MaximumFinder::findMaxima(std::shared_ptr<double> xx, size_
     xx = cascade3;
   }
 
-  std::shared_ptr<int> maxPositions(new int[len]{0}, [](int *p) { delete[] p; });
+  std::shared_ptr<int> maxPositions(new int[static_cast<size_t>(len)]{0}, [](int *p) { delete[] p; });
   int jStart = 0;
   double min = std::numeric_limits<double>::quiet_NaN();
   double max = std::numeric_limits<double>::quiet_NaN();
@@ -140,7 +140,7 @@ std::shared_ptr<int> MaximumFinder::findMaxima(std::shared_ptr<double> xx, size_
     max = xx.get()[jStart];
     min = xx.get()[jStart];
     jStart++;
-    if(jStart >= xxSize) {
+    if(static_cast<size_t>(jStart) >= xxSize) {
       return nullptr;    // only NaNs
     }
   } while(std::isnan(min));
@@ -182,12 +182,12 @@ std::shared_ptr<int> MaximumFinder::findMaxima(std::shared_ptr<double> xx, size_
       maxPositions.get()[maxCount++] = lastMaxPos;
     }
   }
-  std::shared_ptr<int> cropped(new int[maxCount]{0}, [](int *p) { delete[] p; });
+  std::shared_ptr<int> cropped(new int[static_cast<size_t>(maxCount)]{0}, [](int *p) { delete[] p; });
   // System.arraycopy(maxPositions, 0, cropped, 0, maxCount);
   std::copy(maxPositions.get(), maxPositions.get() + maxCount, cropped.get());
 
   maxPositions = cropped;
-  std::shared_ptr<double> maxValues(new double[maxCount]{0}, [](double *p) { delete[] p; });
+  std::shared_ptr<double> maxValues(new double[static_cast<size_t>(maxCount)]{0}, [](double *p) { delete[] p; });
   for(int jj = 0; jj < maxCount; jj++) {
     int pos       = maxPositions.get()[jj];
     double midPos = pos;
@@ -195,12 +195,12 @@ std::shared_ptr<int> MaximumFinder::findMaxima(std::shared_ptr<double> xx, size_
       midPos += 0.5;
       pos++;
     }
-    maxPositions.get()[jj] = (int) midPos;
+    maxPositions.get()[jj] = static_cast<int>(midPos);
     maxValues.get()[jj]    = xx.get()[maxPositions.get()[jj]];
   }
-  auto rankPositions = rank(maxValues, maxCount);
+  auto rankPositions = rank(maxValues, static_cast<size_t>(maxCount));
 
-  std::shared_ptr<int> returnArr(new int[maxCount]{0}, [](int *p) { delete[] p; });
+  std::shared_ptr<int> returnArr(new int[static_cast<size_t>(maxCount)]{0}, [](int *p) { delete[] p; });
   for(int jj = 0; jj < maxCount; jj++) {
     int pos                            = maxPositions.get()[rankPositions.get()[jj]];
     returnArr.get()[maxCount - jj - 1] = pos;    // use descending order
@@ -213,7 +213,7 @@ std::shared_ptr<int> MaximumFinder::findMaxima(std::shared_ptr<double> xx, size_
         returnArr.get()[count++] = pos;
     }
 
-    std::shared_ptr<int> returrn2Arr(new int[count]{0}, [](int *p) { delete[] p; });
+    std::shared_ptr<int> returrn2Arr(new int[static_cast<size_t>(count)]{0}, [](int *p) { delete[] p; });
     // System.arraycopy(returnArr, 0, returrn2Arr, 0, count);
     std::copy(returnArr.get(), returnArr.get() + count, returrn2Arr.get());
     returnArr = returrn2Arr;
@@ -239,11 +239,12 @@ std::shared_ptr<int> MaximumFinder::findMinima(std::shared_ptr<double> xx, size_
 
 std::shared_ptr<int> MaximumFinder::findMinima(std::shared_ptr<double> xx, size_t xxSize, double tolerance, int edgeMode)
 {
-  int len = xxSize;
-  std::shared_ptr<double> negArr(new double[len]{0}, [](double *p) { delete[] p; });
-  for(int jj = 0; jj < len; jj++)
+  int len = static_cast<int>(xxSize);
+  std::shared_ptr<double> negArr(new double[static_cast<size_t>(len)]{0}, [](double *p) { delete[] p; });
+  for(int jj = 0; jj < len; jj++) {
     negArr.get()[jj] = -xx.get()[jj];
-  auto minPositions = findMaxima(negArr, len, tolerance, edgeMode);
+  }
+  auto minPositions = findMaxima(negArr, static_cast<size_t>(len), tolerance, edgeMode);
   return minPositions;
 }
 
@@ -287,9 +288,9 @@ cv::Mat MaximumFinder::findMaxima(cv::Mat &ip, double tolerance, int outputType,
  *                       Returns null if outputType does not require an output or if cancelled by escape
  */
 
-cv::Mat MaximumFinder::findMaxima(cv::Mat &ip, double tolerance, double threshold, int outputType, bool excludeOnEdges, bool isEDM)
+cv::Mat MaximumFinder::findMaxima(cv::Mat &ip, double toleranceIn, double thresholdIn, int outputTypeIn, bool excludeOnEdgesIn, bool isEDM)
 {
-  return findMaxima(ip, tolerance, excludeOnEdges, threshold, outputType, excludeOnEdges, isEDM);
+  return findMaxima(ip, toleranceIn, excludeOnEdgesIn, thresholdIn, outputTypeIn, excludeOnEdgesIn, isEDM);
 }
 
 /** Here the processing is done: Find the maxima of an image (does not find minima).
@@ -384,16 +385,17 @@ cv::Mat MaximumFinder::findMaxima(cv::Mat &ip, double tolerance, bool strict, do
       deleteEdgeParticles(outIp, typeP);
     }
   } else {    // outputType other than SEGMENTED
-    for(int i = 0; i < width * height; i++)
-      typeP.at<uint8_t>(i) = (char) (((typeP.at<uint8_t>(i) & outputTypeMasks[outputType]) != 0) ? 255 : 0);
+    for(int i = 0; i < width * height; i++) {
+      typeP.at<uint8_t>(i) = static_cast<uint8_t>(((typeP.at<uint8_t>(i) & outputTypeMasks[outputType]) != 0) ? 255 : 0);
+    }
     outIp = typeP;
   }
   for(int y = 0, i = 0; y < outIp.rows; y++) {    // delete everything outside roi
     for(int x = 0; x < outIp.cols; x++, i++) {
       if(x < 0 || x >= 0 + ip.cols || y < 0 || y >= 0 + ip.rows) {
-        outIp.at<uint8_t>(i) = (uint8_t) 0;
+        outIp.at<uint8_t>(i) = static_cast<uint8_t>(0);
       } else if(mask != nullptr && (mask[x - 0 + ip.cols * (y - 0)] == 0)) {
-        outIp.at<uint8_t>(i) = (uint8_t) 0;
+        outIp.at<uint8_t>(i) = static_cast<uint8_t>(0);
       }
     }
   }
@@ -458,7 +460,7 @@ std::shared_ptr<uint64_t> MaximumFinder::getSortedMaxPoints(cv::Mat &ip, cv::Mat
 
   // long t1 = System.currentTimeMillis();IJ.log("markMax:"+(t1-t0));
 
-  float vFactor = (float) (2e9 / (globalMax - globalMin));    // for converting float values into a 32-bit int
+  float vFactor = static_cast<float>(2e9 / (globalMax - globalMin));    // for converting float values into a 32-bit int
   std::shared_ptr<uint64_t> maxPoints(new uint64_t[nMax]{0},
                                       [](uint64_t *p) { delete[] p; });    // value (int) is in the upper 32 bit, pixel offset in the lower
 
@@ -467,8 +469,8 @@ std::shared_ptr<uint64_t> MaximumFinder::getSortedMaxPoints(cv::Mat &ip, cv::Mat
     for(int x = 0, p = x + y * width; x < ip.cols; x++, p++)
       if(typeP.at<uint8_t>(p) == MAXIMUM) {
         float fValue            = isEDM ? trueEdmHeight(x, y, ip) : ip.at<float>(y, x);
-        int iValue              = (int) ((fValue - globalMin) * vFactor);    // 32-bit int, linear function of float value
-        maxPoints.get()[iMax++] = (uint64_t) iValue << 32 | p;
+        int iValue              = static_cast<int>((fValue - globalMin) * vFactor);    // 32-bit int, linear function of float value
+        maxPoints.get()[iMax++] = static_cast<uint64_t>(iValue) << 32 | p;
       }
   // long t2 = System.currentTimeMillis();IJ.log("makeArray:"+(t2-t1));
   // Arrays.sort(maxPoints);    // sort the maxima by value
@@ -608,7 +610,7 @@ void MaximumFinder::analyzeAndMarkMaxima(const cv::Mat &ip, cv::Mat &typeP, std:
         if(maxPossible) {
           int offset = pList.get()[nearestI];
           typeP.at<uint8_t>(offset) |= MAX_POINT;
-          if(displayOrCount && !(this->excludeOnEdges && isEdgeMaximum)) {
+          if(displayOrCount && !(/*this->excludeOnEdges*/ false && isEdgeMaximum)) {
             int x = offset % width;
             int y = offset / width;
             xyCoordinates.push_back(cv::Point(y, x));
@@ -1141,7 +1143,7 @@ int MaximumFinder::processLevel(int pass, cv::Mat &ip, std::shared_ptr<int> fate
        // IJ.log("pass="+pass+", changed="+nChanged+" unchanged="+nUnchanged);
 
   for(int i = 0; i < nChanged; i++) {
-    ip.at<uint8_t>(setPointList.get()[i]) = (uint8_t) 255;
+    ip.at<uint8_t>(setPointList.get()[i]) = static_cast<uint8_t>(255);
   }
   return nChanged;
 }    // processLevel

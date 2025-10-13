@@ -612,7 +612,7 @@ std::shared_ptr<int> RankFilter::makeLineRadii(double radius, size_t &length)
   kernel.get()[2 * kRadius + 1] = kRadius;
   int nPoints                   = 2 * kRadius + 1;
   for(int y = 1; y <= kRadius; y++) {    // lines above and below center together
-    int dx                              = (int) (std::sqrt(r2 - y * y + 1e-10));
+    int dx                              = static_cast<int>(std::sqrt(r2 - y * y + 1e-10));
     kernel.get()[2 * (kRadius - y)]     = -dx;
     kernel.get()[2 * (kRadius - y) + 1] = dx;
     kernel.get()[2 * (kRadius + y)]     = -dx;
@@ -627,7 +627,7 @@ std::shared_ptr<int> RankFilter::makeLineRadii(double radius, size_t &length)
 
 // kernel height
 
-int RankFilter::kHeight(int *lineRadii, size_t length)
+int RankFilter::kHeight(int * /*lineRadii*/, size_t length)
 {
   return static_cast<int>((length - 2) / 2);
 }
