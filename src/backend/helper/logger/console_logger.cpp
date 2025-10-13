@@ -143,7 +143,7 @@ void printOrAddToBuffer(const std::string &tmp)
 
 std::string toPercentString(float ratio)
 {
-  auto percent = int(ratio * 100.0);
+  auto percent = static_cast<int>(ratio * 100.0F);
   std::string percentString;
   if(percent < 10) {
     percentString = "  " + std::to_string(percent) + "%";

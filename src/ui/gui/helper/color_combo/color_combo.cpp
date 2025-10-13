@@ -25,7 +25,7 @@ ColorComboBox::~ColorComboBox()
 {
 }
 
-void ColorComboBox::paintEvent(QPaintEvent *event)
+void ColorComboBox::paintEvent(QPaintEvent * /*event*/)
 {
   QPainter painter(this);
 

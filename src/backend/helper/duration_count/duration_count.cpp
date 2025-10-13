@@ -12,7 +12,7 @@
 uint32_t DurationCount::start(std::string comment)
 {
   totalCnt++;
-  srand((unsigned) time(0) + totalCnt);
+  srand(static_cast<unsigned>(time(nullptr)) + totalCnt);
   uint32_t randNr                             = (rand() % INT32_MAX) + 1;
   std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
   DurationCount::TimeDely d                   = TimeDely{.t_start = start, .mComment = comment};
@@ -53,8 +53,8 @@ void DurationCount::printStats(double nrOfImages, const std::filesystem::path &o
   std::lock_guard<std::mutex> lock(mLock);
   auto timeEnd = std::chrono::system_clock::now();
 
-  auto durations         = timeEnd - mStartTime;
-  double elapsed_time_ms = std::chrono::duration<double, std::milli>(durations).count();
+  auto durations = timeEnd - mStartTime;
+  // double elapsed_time_ms = std::chrono::duration<double, std::milli>(durations).count();
 
   nlohmann::json statsJson;
   for(const auto &[comment, stats] : mStats) {

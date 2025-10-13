@@ -88,12 +88,13 @@ ryml::Callbacks ErrorHandlerExample::callbacks()
   return ryml::Callbacks(this, nullptr, nullptr, ErrorHandlerExample::s_error);
 }
 
-void ErrorHandlerExample::check_effect(bool committed) const
+void ErrorHandlerExample::check_effect(bool /*committed*/) const
 {
+  /*
   ryml::Callbacks const &current = ryml::get_callbacks();
   if(committed) {
   } else {
-  }
+  }*/
 }
 
 namespace joda::yaml {

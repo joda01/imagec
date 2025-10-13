@@ -66,14 +66,14 @@ GroupInformation FileGrouper::applyRegex(const std::string &regex, const std::fi
   if(std::regex_search(fileName, match, pattern)) {
     if(match.size() >= 5) {
       result.groupName = match[1].str();
-      result.wellPosY  = helper::stringToNumber(match[2].str());
-      result.wellPosX  = helper::stringToNumber(match[3].str());
-      result.imageIdx  = helper::stringToNumber(match[4].str());
+      result.wellPosY  = static_cast<uint16_t>(helper::stringToNumber(match[2].str()));
+      result.wellPosX  = static_cast<uint16_t>(helper::stringToNumber(match[3].str()));
+      result.imageIdx  = static_cast<uint32_t>(helper::stringToNumber(match[4].str()));
     } else if(match.size() >= 3) {
       result.groupName = match[1].str();
       result.wellPosY  = UINT16_MAX;
       result.wellPosX  = UINT16_MAX;
-      result.imageIdx  = helper::stringToNumber(match[2].str());
+      result.imageIdx  = static_cast<uint32_t>(helper::stringToNumber(match[2].str()));
     } else if(match.size() >= 2) {
       result.groupName = match[1].str();
       result.wellPosY  = UINT16_MAX;
