@@ -46,7 +46,8 @@ TEST_CASE("cmd::fftbandbass", "[fft_bandpass]")
   glob.resultsOutputFolder = "/workspaces/imagec/tmp";
   joda::processor::PlateContext plate;
   joda::processor::ImageContext imgCtx{pipeLinieInit, imgPath, omeXML};
-  joda::processor::IterationContext iter;
+  auto list = std::make_shared<joda::atom::ObjectList>();
+  joda::processor::IterationContext iter(list);
   joda::processor::ProcessContext context(glob, plate, imgCtx, iter);
 
   ai.execute(context, img, result);

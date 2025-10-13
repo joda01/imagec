@@ -2,6 +2,7 @@
 #include <opencv2/core/hal/interface.h>
 #include "ai_classifier.hpp"
 
+#include <memory>
 #include <string>
 #include "backend/commands/classification/ai_classifier/ai_classifier_settings.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver.hpp"
@@ -43,7 +44,8 @@ TEST_CASE("ai::classifier::test::nucleus", "[ai_classifier]")
   glob.resultsOutputFolder = "/workspaces/imagec/tmp";
   joda::processor::PlateContext plate;
   joda::processor::ImageContext imgCtx{pipeLinieInit, "models/nucleisegmentationboundarymodel_torchscript/sample_input_00.tif", omeXML};
-  joda::processor::IterationContext iter;
+  auto list = std::make_shared<joda::atom::ObjectList>();
+  joda::processor::IterationContext iter(list);
   joda::processor::ProcessContext context(glob, plate, imgCtx, iter);
 
   ai.execute(context, img, result);
@@ -88,7 +90,8 @@ TEST_CASE("ai::classifier::test::livecell", "[ai_classifier]")
   glob.resultsOutputFolder = "/workspaces/imagec/tmp";
   joda::processor::PlateContext plate;
   joda::processor::ImageContext imgCtx{pipeLinieInit, "models/livecellsegmentationboundarymodel_torchscript/sample_input_0.tif", omeXML};
-  joda::processor::IterationContext iter;
+  auto list = std::make_shared<joda::atom::ObjectList>();
+  joda::processor::IterationContext iter(list);
   joda::processor::ProcessContext context(glob, plate, imgCtx, iter);
 
   ai.execute(context, img, result);
@@ -142,7 +145,8 @@ TEST_CASE("ai::classifier::test::onnx", "[ai_classifier]")
   glob.resultsOutputFolder = "/workspaces/imagec/tmp";
   joda::processor::PlateContext plate;
   joda::processor::ImageContext imgCtx{pipeLinieInit, path, omeXML};
-  joda::processor::IterationContext iter;
+  auto list = std::make_shared<joda::atom::ObjectList>();
+  joda::processor::IterationContext iter(list);
   joda::processor::ProcessContext context(glob, plate, imgCtx, iter);
 
   ai.execute(context, img, result);
@@ -184,7 +188,8 @@ TEST_CASE("ai::classifier::test::pytorch::yolo", "[ai_classifier]")
   glob.resultsOutputFolder = "/workspaces/imagec/tmp";
   joda::processor::PlateContext plate;
   joda::processor::ImageContext imgCtx{pipeLinieInit, path, omeXML};
-  joda::processor::IterationContext iter;
+  auto list = std::make_shared<joda::atom::ObjectList>();
+  joda::processor::IterationContext iter(list);
   joda::processor::ProcessContext context(glob, plate, imgCtx, iter);
 
   cv::Mat aiorward = img.clone();
@@ -227,7 +232,8 @@ TEST_CASE("ai::classifier::test::pytorch::cyto3", "[ai_classifier]")
   glob.resultsOutputFolder = "/workspaces/imagec/tmp";
   joda::processor::PlateContext plate;
   joda::processor::ImageContext imgCtx{pipeLinieInit, path, omeXML};
-  joda::processor::IterationContext iter;
+  auto list = std::make_shared<joda::atom::ObjectList>();
+  joda::processor::IterationContext iter(list);
   joda::processor::ProcessContext context(glob, plate, imgCtx, iter);
 
   cv::Mat aiorward = img.clone();

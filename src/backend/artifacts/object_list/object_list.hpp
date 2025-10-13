@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <filesystem>
 #include <iostream>
 #include <list>
 #include <map>
@@ -249,6 +250,7 @@ public:
   const ROI &emplace(const ROI &box)                 = delete;
 
   void push_back(const ROI &roi);
+  void clear();
   void erase(const ROI *roi);
   void erase(const std::set<ROI *> &roi);
   void erase(enums::ClassId classToErase);
@@ -284,6 +286,9 @@ public:
     }
   }
 
+  void serialize(const std::filesystem::path &);
+  void deserialize(const std::filesystem::path &);
+
 private:
   /////////////////////////////////////////////////////
   std::map<uint64_t, ROI *> objectsOrderedByObjectId;
@@ -292,20 +297,4 @@ private:
   std::vector<std::function<void()>> mStartChangeCallback;
 };
 
-/*
-class ObjectList : public ObjectList
-{
-public:
-  using ObjectList::ObjectList;
-
-  std::unique_ptr<SpheralIndex> &operator[](enums::ClassId classId) override
-  {
-    if(!contains(classId)) {
-      auto newS = std::make_unique<SpheralIndex>(true);
-      emplace(classId, std::move(newS));
-    }
-    return at(classId);
-  }
-};
-*/
 }    // namespace joda::atom

@@ -2,10 +2,14 @@
 
 #include "object_list.hpp"
 #include <exception>
+#include <fstream>
+#include <iostream>
 #include <list>
 #include <memory>
 #include "backend/artifacts/roi/roi.hpp"
 #include "backend/commands/classification/classifier_filter.hpp"
+#include "backend/helper/cereal_cv_mat.hpp"
+#include <cereal/archives/binary.hpp>
 
 namespace joda::atom {
 
@@ -308,6 +312,21 @@ void ObjectList::erase(joda::atom::ROI::Category categoryToErase)
     erase(roi);
   }
 }
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ObjectList::clear()
+{
+  triggerStartChangeCallback();
+  std::lock_guard<std::mutex> lock(mInsertLock);
+  std::map<enums::ClassId, std::unique_ptr<SpheralIndex>>::clear();
+  objectsOrderedByObjectId.clear();
+  triggerChangeCallback();
+}
 
 void ObjectList::erase(const std::set<ROI *> &rois)
 {
@@ -369,6 +388,51 @@ std::unique_ptr<SpheralIndex> &ObjectList::operator[](enums::ClassId classId)
 [[nodiscard]] size_t ObjectList::sizeClasses() const
 {
   return ObjectMap::size();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ObjectList::serialize(const std::filesystem::path &filename)
+{
+  std::ofstream os(filename.string(), std::ios::binary);
+  cereal::BinaryOutputArchive archive(os);
+
+  // Save number of entries first (so we know how many to read back)
+  size_t count = objectsOrderedByObjectId.size();
+  archive(count);
+
+  // Write each pointed object (not the key)
+  for(const auto &[_, ptr] : objectsOrderedByObjectId) {
+    archive(*ptr);    // directly serialize the object
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ObjectList::deserialize(const std::filesystem::path &filename)
+{
+  clear();
+  std::ifstream is(filename.string(), std::ios::binary);
+  cereal::BinaryInputArchive archive(is);
+
+  size_t count;
+  archive(count);
+
+  for(size_t i = 0; i < count; ++i) {
+    ROI roi;
+    archive(roi);    // directly deserialize into allocated object
+    push_back(roi);
+  }
 }
 
 }    // namespace joda::atom

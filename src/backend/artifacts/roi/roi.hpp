@@ -25,6 +25,7 @@
 #include "backend/enums/types.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/ome_parser/physical_size.hpp"
+#include <cereal/cereal.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
 #include <opencv2/dnn.hpp>
@@ -44,11 +45,25 @@ using ClassId    = joda::enums::ClassId;
 ///
 class ROI
 {
+  friend class cereal::access;
+
 public:
   struct RoiObjectId
   {
     joda::enums::ClassId classId;
     joda::enums::PlaneId imagePlane;
+
+    template <class Archive>
+    void save(Archive &ar) const
+    {
+      ar(classId, imagePlane);
+    }
+
+    template <class Archive>
+    void load(Archive &ar)
+    {
+      ar(classId, imagePlane);
+    }
   };
 
   struct Intensity
@@ -101,7 +116,7 @@ public:
       mImageSize(input.mImageSize), mOriginalImageSize(input.mOriginalImageSize), mAreaSize(input.mAreaSize), mPerimeter(input.mPerimeter),
       mCircularity(input.mCircularity), mCentroid(input.mCentroid), mParentObjectId(input.mParentObjectId), mTrackingId(input.mTrackingId),
       mIntensity(std::move(input.mIntensity)), mOriginObjectId(input.mOriginObjectId), mLinkedWith(std::move(input.mLinkedWith)),
-      mIsSelected(input.mIsSelected), mCategory(input.mCategory)
+      mCategory(input.mCategory), mIsSelected(input.mIsSelected)
   {
     CV_Assert(mMask.type() == CV_8UC1);
   }
@@ -115,7 +130,7 @@ public:
       mMask(std::move(mask)), mMaskContours(std::move(maskContours)), mImageSize(imageSize), mOriginalImageSize(originalImageSize),
       mAreaSize(areaSize), mPerimeter(perimeter), mCircularity(circularity), mCentroid(centroid), mParentObjectId(parentObjectId),
       mTrackingId(linkedObjectId), mIntensity(std::move(intensity)), mOriginObjectId(originObjectId), mLinkedWith(std::move(linkedWith)),
-      mIsSelected(isSelected), mCategory(category)
+      mCategory(category), mIsSelected(isSelected)
   {
     CV_Assert(mMask.type() == CV_8UC1);
   }
@@ -383,6 +398,22 @@ public:
     mCategory = cat;
   }
 
+  template <class Archive>
+  void save(Archive &ar) const
+  {
+    ar(mIsNull, mObjectId, mId, mConfidence, mBoundingBoxTile, mBoundingBoxReal, mMask, mMaskContours, mImageSize, mOriginalImageSize, mAreaSize,
+       mPerimeter, mCircularity, mCentroid, mParentObjectId, mTrackingId,
+       /*mIntensity, mDistances*/ mOriginObjectId, /*mLinkedWith,*/ mCategory);
+  }
+
+  template <class Archive>
+  void load(Archive &ar)
+  {
+    ar(mIsNull, mObjectId, mId, mConfidence, mBoundingBoxTile, mBoundingBoxReal, mMask, mMaskContours, mImageSize, mOriginalImageSize, mAreaSize,
+       mPerimeter, mCircularity, mCentroid, mParentObjectId, mTrackingId,
+       /*mIntensity, mDistances*/ mOriginObjectId, /*mLinkedWith,*/ mCategory);
+  }
+
 private:
   /////////////////////////////////////////////////////
   [[nodiscard]] uint64_t calcAreaSize() const;
@@ -396,10 +427,10 @@ private:
   [[nodiscard]] static float getTracedPerimeter(const std::vector<cv::Point> &points);
 
   // Identification ///////////////////////////////////////////////////
-  const bool mIsNull;
-  const uint64_t mObjectId;        ///< Global unique object ID
-  const RoiObjectId mId;           ///< Unique identification of the this ROI
-  const Confidence mConfidence;    ///< Probability
+  bool mIsNull;
+  uint64_t mObjectId;        ///< Global unique object ID
+  RoiObjectId mId;           ///< Unique identification of the this ROI
+  Confidence mConfidence;    ///< Probability
 
   // Metrics ///////////////////////////////////////////////////
   Boxes mBoundingBoxTile;    ///< Rectangle around the prediction in tile
@@ -408,8 +439,8 @@ private:
 
   std::vector<cv::Point> mMaskContours;
 
-  const cv::Size mImageSize;
-  const cv::Size mOriginalImageSize;
+  cv::Size mImageSize;
+  cv::Size mOriginalImageSize;
   double mAreaSize;      ///< size of the masking area [px^2 ]
   float mPerimeter;      ///< Perimeter (boundary size) [px]
   float mCircularity;    ///< Circularity of the masking area [0-1]
@@ -421,13 +452,12 @@ private:
   std::map<enums::ImageId, Intensity> mIntensity;
   std::map<uint64_t, Distance> mDistances;    ///< Key is the ID of the object the distance was calculated to.
   uint64_t mOriginObjectId = 0;
+  std::set<ROI *> mLinkedWith;    // Temporary object to store linked objects and create a linked object IF afterwards
+  Category mCategory = Category::AUTO_SEGMENTATION;
 
+  // Temporary meta Information ///////////////////////////////////////////////////
+  bool mIsSelected                                            = false;
   static inline std::atomic<uint64_t> mGlobalUniqueObjectId   = 1;
   static inline std::atomic<uint64_t> mGlobalUniqueTrackingId = 1;
-  std::set<ROI *> mLinkedWith;    // Temporary object to store linked objects and create a linked object IF afterwards
-
-  // Meta Information ///////////////////////////////////////////////////
-  bool mIsSelected   = false;
-  Category mCategory = Category::AUTO_SEGMENTATION;
 };
 }    // namespace joda::atom
