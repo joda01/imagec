@@ -20,6 +20,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <filesystem>
 #include <mutex>
 #include <ranges>
 #include <string>
@@ -31,6 +32,7 @@
 #include "backend/enums/enums_units.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/duration_count/duration_count.h"
+#include "backend/helper/fnv1a.hpp"
 #include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"
 #include "ui/gui/dialogs/dialog_image_view/customer_painter/graphics_roi_overlay.hpp"
@@ -113,10 +115,23 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
                                       mZprojection);
   }
   restoreChannelSettings();
+
   mLastPath  = imagePath;
   mLastPlane = mPlane;
   setWaiting(false);
   repaintImage();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto PanelImageView::getCurrentImagePath() const -> std::filesystem::path
+{
+  return mLastPath;
 }
 
 ///
@@ -1760,9 +1775,11 @@ void PanelImageView::setWaiting(bool waiting)
 ///
 void PanelImageView::addPolygonToToObjectMap(const QPolygonF &poly)
 {
-  const auto &size     = mImageToShow->getPreviewImageSize();
-  cv::Size imageSize   = {mPreviewImages.originalImage.getOriginalImage()->cols, mPreviewImages.originalImage.getOriginalImage()->rows};
+  const auto &size   = mImageToShow->getPreviewImageSize();
+  cv::Size imageSize = {mPreviewImages.originalImage.getOriginalImage()->cols, mPreviewImages.originalImage.getOriginalImage()->rows};
+  cv::Size originalImageSize{mOmeInfo.getImageWidth(mSeries, 0), mOmeInfo.getImageHeight(mSeries, 0)};
   cv::Size previewSize = {size.width(), size.height()};
+  cv::Size tileSize    = {mTile.tileWidth, mTile.tileHeight};
 
   double scaleX = static_cast<double>(imageSize.width) / static_cast<double>(previewSize.width);
   double scaleY = static_cast<double>(imageSize.height) / static_cast<double>(previewSize.height);
@@ -1787,8 +1804,8 @@ void PanelImageView::addPolygonToToObjectMap(const QPolygonF &poly)
   std::vector<std::vector<cv::Point>> contours = {contour};
   cv::drawContours(mask, contours, -1, cv::Scalar(255), cv::FILLED);
 
-  joda::atom::ROI paintedRoi(atom::ROI::RoiObjectId{.classId = mSelectedClassForDrawing, .imagePlane = {.tStack = 0, .zStack = 0, .cStack = 0}}, 1.0,
-                             boundingBox, mask, contour, imageSize, imageSize, {0, 0}, imageSize);
+  joda::atom::ROI paintedRoi(atom::ROI::RoiObjectId{.classId = mSelectedClassForDrawing, .imagePlane = mPlane}, 1.0, boundingBox, mask, contour,
+                             imageSize, originalImageSize, {mTile.tileX, mTile.tileY}, tileSize);
   paintedRoi.setCategory(joda::atom::ROI::Category::MANUAL_SEGMENTATION);
 
   mObjectMap->push_back(paintedRoi);

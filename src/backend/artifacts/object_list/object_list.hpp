@@ -250,7 +250,7 @@ public:
   const ROI &emplace(const ROI &box)                 = delete;
 
   void push_back(const ROI &roi);
-  void clear();
+  void clearAll();
   void erase(const ROI *roi);
   void erase(const std::set<ROI *> &roi);
   void erase(enums::ClassId classToErase);

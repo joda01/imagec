@@ -319,13 +319,13 @@ void ObjectList::erase(joda::atom::ROI::Category categoryToErase)
 /// \param[out]
 /// \return
 ///
-void ObjectList::clear()
+void ObjectList::clearAll()
 {
-  triggerStartChangeCallback();
+  // triggerStartChangeCallback();
   std::lock_guard<std::mutex> lock(mInsertLock);
   std::map<enums::ClassId, std::unique_ptr<SpheralIndex>>::clear();
   objectsOrderedByObjectId.clear();
-  triggerChangeCallback();
+  // triggerChangeCallback();
 }
 
 void ObjectList::erase(const std::set<ROI *> &rois)
@@ -421,7 +421,7 @@ void ObjectList::serialize(const std::filesystem::path &filename)
 ///
 void ObjectList::deserialize(const std::filesystem::path &filename)
 {
-  clear();
+  clearAll();
   std::ifstream is(filename.string(), std::ios::binary);
   cereal::BinaryInputArchive archive(is);
 

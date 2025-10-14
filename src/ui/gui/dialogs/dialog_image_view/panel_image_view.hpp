@@ -100,6 +100,7 @@ public:
   /////////////////////////////////////////////////////
   PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMap, const joda::settings::Classification *classSettings, QWidget *parent = nullptr);
   void openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo = nullptr);
+  auto getCurrentImagePath() const -> std::filesystem::path;
   void setEditedImage(const joda::image::Image &&edited);
   void reloadImage();
   void repaintImage();
@@ -182,7 +183,6 @@ private:
   auto imageCoordinatesToPreviewCoordinates(const QRect &imageCoordinates) -> QRect;
   void setCursor();
   void addPolygonToToObjectMap(const QPolygonF &);
-
   void keyPressEvent(QKeyEvent *event) override;
 
 private:

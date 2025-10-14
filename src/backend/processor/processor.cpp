@@ -28,6 +28,7 @@
 #include "backend/enums/enums_grouping.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/file_grouper/file_grouper.hpp"
+#include "backend/helper/fnv1a.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/reader/image_reader.hpp"
@@ -293,8 +294,8 @@ std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSett
     globalContext.classes.emplace(elem.classId, elem);
   }
 
-  globalContext.resultsOutputFolder =
-      std::filesystem::path(program.projectSettings.workingDirectory) / "imagec" / (joda::helper::timepointToIsoString(now) + "_" + jobName);
+  globalContext.resultsOutputFolder = std::filesystem::path(program.projectSettings.workingDirectory) / joda::fs::WORKING_DIRECTORY_PROJECT_PATH /
+                                      (joda::helper::timepointToIsoString(now) + "_" + jobName);
 
   std::filesystem::create_directories(globalContext.resultsOutputFolder);
 

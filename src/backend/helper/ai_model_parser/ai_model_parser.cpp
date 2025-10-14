@@ -22,6 +22,7 @@
 #include <stdexcept>
 #include <string>
 #include "backend/commands/classification/ai_classifier/ai_classifier_settings.hpp"
+#include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/rapidyaml/rapidyaml.hpp"
@@ -40,11 +41,11 @@ namespace joda::ai {
 auto AiModelParser::getUsersAiModelDirectory() -> std::filesystem::path
 {
 #ifdef _WIN32
-  auto homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path("imagec") /
-                 std::filesystem::path("models");
+  auto homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) /
+                 std::filesystem::path(joda::fs::USER_SETTINGS_PATH) / std::filesystem::path("models");
 #else
-  auto homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path(".imagec") /
-                 std::filesystem::path("models");
+  auto homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) /
+                 std::filesystem::path("." + joda::fs::USER_SETTINGS_PATH) / std::filesystem::path("models");
 
 #endif
   if(!fs::exists(homeDir) || !fs::is_directory(homeDir)) {

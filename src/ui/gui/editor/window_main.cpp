@@ -39,6 +39,7 @@
 #include <thread>
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/ai_model_parser/ai_model_parser.hpp"
+#include "backend/helper/fnv1a.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/helper/random_name_generator.hpp"
@@ -507,7 +508,41 @@ void WindowMain::onOpenClicked()
 ///
 void WindowMain::openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo)
 {
+  if(imagePath.empty()) {
+    return;
+  }
+  auto lastPath = mPreviewImage->getImagePanel()->getCurrentImagePath();
+
+  std::filesystem::path projectPath(mAnalyzeSettings.projectSettings.workingDirectory);
+  projectPath = projectPath / fs::WORKING_DIRECTORY_PROJECT_PATH;
+
+  auto imgIdOld = joda::helper::fnv1a(lastPath.string());
+  auto imgIdNew = joda::helper::fnv1a(imagePath.string());
+
+  std::filesystem::path storagePath = projectPath / "annotations";
+  if(!std::filesystem::exists(storagePath)) {
+    std::filesystem::create_directories(storagePath);
+  }
+  auto storagePathOld = storagePath / std::to_string(imgIdOld);
+  auto storagePathNew = storagePath / std::to_string(imgIdNew);
+
   mPreviewImage->getImagePanel()->openImage(imagePath, omeInfo);
+
+  //
+  // Load ROIs
+  //
+  mPreviewResult.results.objectMap->triggerStartChangeCallback();
+  if(lastPath != imagePath) {
+    mPreviewResult.results.objectMap->serialize(storagePathOld);
+    if(std::filesystem::exists(storagePathNew)) {
+      mPreviewResult.results.objectMap->deserialize(storagePathNew);
+    } else {
+      mPreviewResult.results.objectMap->clearAll();
+    }
+  }
+  mPreviewResult.results.objectMap->triggerChangeCallback();
+
+  mPreviewImage->getImagePanel()->setRegionsOfInterestFromObjectList();
 }
 
 ///
@@ -668,7 +703,7 @@ bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
   try {
     if(filename.empty()) {
       std::filesystem::path filePath(mAnalyzeSettings.projectSettings.workingDirectory);
-      filePath = filePath / "imagec";
+      filePath = filePath / fs::WORKING_DIRECTORY_PROJECT_PATH;
       if(!std::filesystem::exists(filePath)) {
         std::filesystem::create_directories(filePath);
       }
