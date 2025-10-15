@@ -99,7 +99,8 @@ void PixelClassifier::execute(processor::ProcessContext & /*context*/, cv::Mat &
 /// \param[out]
 /// \return
 ///
-void PixelClassifier::train(const cv::Mat &image, const atom::ObjectList &result, const settings::PixelClassifierTrainingSettings &trainingSettings)
+void PixelClassifier::train(const cv::Mat &image, const enums::TileInfo &tileInfo, const atom::ObjectList &result,
+                            const settings::PixelClassifierTrainingSettings &trainingSettings)
 {
   if(trainingSettings.features.empty()) {
     throw std::invalid_argument("At least one feature must be selected!");
@@ -110,7 +111,7 @@ void PixelClassifier::train(const cv::Mat &image, const atom::ObjectList &result
 
   switch(trainingSettings.method) {
     case settings::PixelClassifierMethod::RTrees: {
-      prepareTrainingDataFromROI(image, trainingSettings.trainingClasses, trainingSettings.categoryToTrain, result, trainSamples, labelList,
+      prepareTrainingDataFromROI(image, tileInfo, trainingSettings.trainingClasses, trainingSettings.categoryToTrain, result, trainSamples, labelList,
                                  trainingSettings.features, false);
 
       auto statsModel = trainRandomForest(trainingSettings.randomForest, trainSamples, labelList);
@@ -122,7 +123,7 @@ void PixelClassifier::train(const cv::Mat &image, const atom::ObjectList &result
     case settings::PixelClassifierMethod::SVM:
     case settings::PixelClassifierMethod::SVMSGD:
     case settings::PixelClassifierMethod::ANN_MLP: {
-      prepareTrainingDataFromROI(image, trainingSettings.trainingClasses, trainingSettings.categoryToTrain, result, trainSamples, labelList,
+      prepareTrainingDataFromROI(image, tileInfo, trainingSettings.trainingClasses, trainingSettings.categoryToTrain, result, trainSamples, labelList,
                                  trainingSettings.features, true);
 
       auto statsModel = trainAnnMlp(trainingSettings.annMlp, trainSamples, labelList, static_cast<int32_t>(trainingSettings.trainingClasses.size()));
@@ -130,7 +131,7 @@ void PixelClassifier::train(const cv::Mat &image, const atom::ObjectList &result
 
     } break;
     case settings::PixelClassifierMethod::KNearest: {
-      prepareTrainingDataFromROI(image, trainingSettings.trainingClasses, trainingSettings.categoryToTrain, result, trainSamples, labelList,
+      prepareTrainingDataFromROI(image, tileInfo, trainingSettings.trainingClasses, trainingSettings.categoryToTrain, result, trainSamples, labelList,
                                  trainingSettings.features, true);
       auto statsModel = trainAnnMlp(trainingSettings.annMlp, trainSamples, labelList, static_cast<int32_t>(trainingSettings.trainingClasses.size()));
       storeModel(statsModel, trainingSettings.outPath, trainingSettings.features, trainingSettings.trainingClasses);
@@ -426,9 +427,9 @@ cv::Ptr<cv::ml::StatModel> PixelClassifier::loadModel(const std::filesystem::pat
 /// \param[out]
 /// \return
 ///
-void PixelClassifier::prepareTrainingDataFromROI(const cv::Mat &image, const std::map<enums::ClassId, int32_t> &classesToTrain,
-                                                 joda::atom::ROI::Category categoryToTain, const atom::ObjectList &regionOfInterest,
-                                                 cv::Mat &trainSamples, cv::Mat &trainLabels,
+void PixelClassifier::prepareTrainingDataFromROI(const cv::Mat &image, const enums::TileInfo &tileInfo,
+                                                 const std::map<enums::ClassId, int32_t> &classesToTrain, joda::atom::ROI::Category categoryToTain,
+                                                 const atom::ObjectList &regionOfInterest, cv::Mat &trainSamples, cv::Mat &trainLabels,
                                                  const std::set<joda::settings::PixelClassifierFeatures> &featuresSet, bool normalizeForMLP)
 {
   // Extract features
@@ -460,7 +461,7 @@ void PixelClassifier::prepareTrainingDataFromROI(const cv::Mat &image, const std
     }
     cv::Mat roiMask            = cv::Mat::zeros(image.size(), CV_16UC1);
     const auto &objectsToLearn = regionOfInterest.at(classIdToTrain);
-    auto addedRois             = objectsToLearn->createBinaryImage(roiMask, 1, categoryToTain);
+    auto addedRois             = objectsToLearn->createBinaryImage(roiMask, 1, categoryToTain, tileInfo);
     if(addedRois > 0) {
       extractSamples(roiMask, pixelClassId);
     }

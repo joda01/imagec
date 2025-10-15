@@ -58,8 +58,9 @@ public:
       for(const auto &res : *voronoiPointsTmp) {
         if(context.getClassId(inputPoints) == res.getClassId()) {
           voronoiPoints.emplace(res);
-          int x = static_cast<int>(static_cast<float>(res.getBoundingBoxTile().x) + static_cast<float>(res.getBoundingBoxTile().width) / 2.0F);
-          int y = static_cast<int>(static_cast<float>(res.getBoundingBoxTile().y) + static_cast<float>(res.getBoundingBoxTile().height) / 2.0F);
+          const auto boundingBox = res.getBoundingBoxTile(context.getTileInfo());
+          int x                  = static_cast<int>(static_cast<float>(boundingBox.x) + static_cast<float>(boundingBox.width) / 2.0F);
+          int y                  = static_cast<int>(static_cast<float>(boundingBox.y) + static_cast<float>(boundingBox.height) / 2.0F);
           subdiv.insert(cv::Point2f(static_cast<float>(x), static_cast<float>(y)));
         }
       }
@@ -141,7 +142,7 @@ public:
       }
 
       atom::ROI roi(atom::ROI::RoiObjectId{.classId = context.getClassId(mSettings.outputClassVoronoi), .imagePlane = context.getActIterator()}, 1,
-                    box, boxMask, contours[idxMax], imgSize, context.getOriginalImageSize(), context.getActTile(), context.getTileSize());
+                    box, boxMask, contours[idxMax], context.getTileInfo());
       result.push_back(roi);
     }
   }

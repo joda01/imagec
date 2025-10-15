@@ -17,7 +17,6 @@
 #include <memory>
 #include <mutex>
 #include "backend/enums/enum_images.hpp"
-
 #include "backend/enums/types.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/file_grouper/file_grouper.hpp"

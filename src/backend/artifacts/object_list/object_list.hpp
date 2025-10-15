@@ -48,7 +48,7 @@ public:
   {
   }
 
-  int64_t createBinaryImage(cv::Mat &img, uint16_t pixelClass, ROI::Category categoryFilter) const;
+  int64_t createBinaryImage(cv::Mat &img, uint16_t pixelClass, ROI::Category categoryFilter, const joda::enums::TileInfo &tileInfo) const;
 
   bool empty() const
   {
@@ -170,7 +170,7 @@ private:
 
     //
     ROI cloned       = boxIn.clone();
-    const auto &rect = cloned.getBoundingBoxTile();
+    const auto &rect = cloned.getBoundingBoxReal();
     int min_x        = rect.x;
     int min_y        = rect.y;
     int max_x        = rect.x + rect.width;
@@ -190,13 +190,13 @@ private:
 
   static bool isCollision(const ROI *box1, const ROI *box2)
   {
-    auto &rect1 = box1->getBoundingBoxTile();
+    auto &rect1 = box1->getBoundingBoxReal();
     int min01_x = rect1.x;
     int min11_y = rect1.y;
     int max21_x = rect1.x + rect1.width;
     int max31_y = rect1.y + rect1.height;
 
-    auto &rect2 = box2->getBoundingBoxTile();
+    auto &rect2 = box2->getBoundingBoxReal();
     int min02_x = rect2.x;
     int min12_y = rect2.y;
     int max22_x = rect2.x + rect2.width;

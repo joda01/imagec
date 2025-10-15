@@ -138,7 +138,7 @@ QVariant TableModelRoi::data(const QModelIndex &index, int role) const
 
       const auto intensity =
           mROI->measureIntensityAndAdd({.zProjection = mPanelImageView->getZprojection(), .imagePlane = mPanelImageView->getImagePlane()},
-                                       *mPanelImageView->getImage()->getOriginalImage());
+                                       *mPanelImageView->getImage()->getOriginalImage(), mPanelImageView->getTileInfo());
 
       switch(index.row()) {
         case 0:

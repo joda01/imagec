@@ -50,9 +50,9 @@ public:
         for(auto &object : *classsObjects) {
           if(context.getClassId(classIdIn) == object.getClassId()) {
             if(image.isRgb()) {
-              object.measureIntensityAndAdd(rgbPlane.getId(), rgbPlane.image);
+              object.measureIntensityAndAdd(rgbPlane.getId(), rgbPlane.image, context.getTileInfo());
             } else {
-              object.measureIntensityAndAdd(image.getId(), rgbPlane.image);
+              object.measureIntensityAndAdd(image.getId(), rgbPlane.image, context.getTileInfo());
             }
           }
         }

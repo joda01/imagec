@@ -288,7 +288,8 @@ void DialogMlTrainer::startTraining()
       mTrainerSettings.outPath         = modelPath;
       mTrainerSettings.categoryToTrain = static_cast<joda::atom::ROI::Category>(mRoiSource->currentData().toInt());
       try {
-        joda::cmd::PixelClassifier::train(*mImagePanel->mutableImage()->getOriginalImage(), *mObjectMap, mTrainerSettings);
+        joda::cmd::PixelClassifier::train(*mImagePanel->mutableImage()->getOriginalImage(), mImagePanel->getTileInfo(), *mObjectMap,
+                                          mTrainerSettings);
       } catch(const std::exception &ex) {
         emit trainingFinished(false, ex.what());
         return;

@@ -34,7 +34,7 @@ void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const Sphe
               if(!intersecting.contains(box1->getObjectId()) && !intersecting.contains(box2->getObjectId())) {
                 if(isCollision(box1, box2)) {
                   auto colocROI =
-                      box1->calcIntersection(iterator, *box2, minIntersecion, tile, tileSize, objectClassIntersectingObjectsShouldBeAssignedTo);
+                      box1->calcIntersection(iterator, *box2, minIntersecion, {tile, tileSize}, objectClassIntersectingObjectsShouldBeAssignedTo);
                   if(!colocROI.isNull()) {
                     intersecting.emplace(box1->getObjectId());
                     intersecting.emplace(box2->getObjectId());
@@ -146,7 +146,7 @@ void SpheralIndex::calcIntersection(ObjectList *objectList, joda::processor::Pro
   }
 }
 
-int64_t SpheralIndex::createBinaryImage(cv::Mat &img, uint16_t pixelClass, ROI::Category categoryFilter) const
+int64_t SpheralIndex::createBinaryImage(cv::Mat &img, uint16_t pixelClass, ROI::Category categoryFilter, const joda::enums::TileInfo &tileInfo) const
 {
   int64_t addedRois = 0;
   for(const auto &roi : *this) {
@@ -159,12 +159,11 @@ int64_t SpheralIndex::createBinaryImage(cv::Mat &img, uint16_t pixelClass, ROI::
     //   int width  = roi.getBoundingBoxTile().width;
     //   int height = roi.getBoundingBoxTile().height;
 
-    if(!roi.getMask().empty() && !roi.getBoundingBoxTile().empty() && roi.getBoundingBoxTile().x >= 0 && roi.getBoundingBoxTile().y >= 0 &&
-       roi.getBoundingBoxTile().width >= 0 && roi.getBoundingBoxTile().height >= 0 &&
-       roi.getBoundingBoxTile().x + roi.getBoundingBoxTile().width <= img.cols &&
-       roi.getBoundingBoxTile().y + roi.getBoundingBoxTile().height <= img.rows) {
+    const auto &boundigBox = roi.getBoundingBoxTile(tileInfo);
+    if(!roi.getMask().empty() && !boundigBox.empty() && boundigBox.x >= 0 && boundigBox.y >= 0 && boundigBox.width >= 0 && boundigBox.height >= 0 &&
+       boundigBox.x + boundigBox.width <= img.cols && boundigBox.y + boundigBox.height <= img.rows) {
       try {
-        img(roi.getBoundingBoxTile()).setTo(cv::Scalar(pixelClass), roi.getMask());
+        img(boundigBox).setTo(cv::Scalar(pixelClass), roi.getMask());
         addedRois++;
       } catch(const std::exception &ex) {
         std::cout << "PA: " << ex.what() << std::endl;

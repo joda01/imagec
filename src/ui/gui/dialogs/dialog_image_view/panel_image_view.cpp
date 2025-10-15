@@ -262,7 +262,7 @@ void PanelImageView::setRegionsOfInterestFromObjectList()
   const auto &size = mImageToShow->getPreviewImageSize();
   if(mOverlayMasks != nullptr) {
     mOverlayMasks->setOverlay({mPreviewImages.originalImage.getOriginalImage()->cols, mPreviewImages.originalImage.getOriginalImage()->rows},
-                              {size.width(), size.height()});
+                              {size.width(), size.height()}, getTileInfo());
   }
 }
 
@@ -536,6 +536,18 @@ void PanelImageView::setSelectedTile(int32_t tileX, int32_t tileY)
 {
   mTile.tileX = tileX;
   mTile.tileY = tileY;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto PanelImageView::getTileInfo() const -> enums::TileInfo
+{
+  return {.tileSegment{mTile.tileX, mTile.tileY}, .tileSize{mTile.tileWidth, mTile.tileHeight}};
 }
 
 ///
@@ -1805,7 +1817,7 @@ void PanelImageView::addPolygonToToObjectMap(const QPolygonF &poly)
   cv::drawContours(mask, contours, -1, cv::Scalar(255), cv::FILLED);
 
   joda::atom::ROI paintedRoi(atom::ROI::RoiObjectId{.classId = mSelectedClassForDrawing, .imagePlane = mPlane}, 1.0, boundingBox, mask, contour,
-                             imageSize, originalImageSize, {mTile.tileX, mTile.tileY}, tileSize);
+                             {{mTile.tileX, mTile.tileY}, tileSize});
   paintedRoi.setCategory(joda::atom::ROI::Category::MANUAL_SEGMENTATION);
 
   mObjectMap->push_back(paintedRoi);

@@ -105,8 +105,7 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
       //
       joda::atom::ROI detectedRoi(
           atom::ROI::RoiObjectId{.classId = context.getClassId(objectClass.outputClassNoMatch), .imagePlane = context.getActIterator()},
-          context.getAppliedMinThreshold(), boundingBox, mask, contour, context.getImageSize(), context.getOriginalImageSize(), context.getActTile(),
-          context.getTileSize());
+          context.getAppliedMinThreshold(), boundingBox, mask, contour, context.getTileInfo());
 
       for(const auto &filter : objectClass.filters) {
         // If filter matches assign the new classs and class to the ROI

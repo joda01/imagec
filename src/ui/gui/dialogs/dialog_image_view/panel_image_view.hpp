@@ -136,6 +136,7 @@ public:
   auto getImagePlane() const -> const joda::enums::PlaneId &;
   void setSelectedTile(int32_t tileX, int32_t tileY);
   void setImageTile(int32_t tileWith, int32_t tileHeight);
+  auto getTileInfo() const -> enums::TileInfo;
   void setDefaultPhysicalSize(const joda::settings::ProjectImageSetup::PhysicalSizeSettings &);
   auto getPhysicalSizeSettings() const -> const joda::settings::ProjectImageSetup::PhysicalSizeSettings &;
   auto mutableImage() -> joda::image::Image *;

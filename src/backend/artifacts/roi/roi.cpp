@@ -43,19 +43,17 @@
 namespace joda::atom {
 
 ROI::ROI() :
-    mIsNull(true), mObjectId(mGlobalUniqueObjectId++), mId({}), mConfidence(0), mMask(cv::Mat(0, 0, CV_8UC1)), mMaskContours({}),
-    mImageSize(cv::Size{0, 0}), mOriginalImageSize(cv::Size{0, 0}), mAreaSize(0), mPerimeter(0), mCircularity(0), mCentroid(0, 0),
-    mOriginObjectId(mObjectId)
+    mIsNull(true), mObjectId(mGlobalUniqueObjectId++), mId({}), mConfidence(0), mMask(cv::Mat(0, 0, CV_8UC1)), mMaskContours({}), mAreaSize(0),
+    mPerimeter(0), mCircularity(0), mCentroid(0, 0), mOriginObjectId(mObjectId)
 {
   CV_Assert(mMask.type() == CV_8UC1);
 }
 
 ROI::ROI(RoiObjectId index, Confidence confidence, const Boxes &boundingBox, const cv::Mat &mask, const std::vector<cv::Point> &contour,
-         const cv::Size &imageSize, const cv::Size &originalImageSize, const enums::tile_t &tile, const cv::Size &tileSize) :
+         const joda::enums::TileInfo &tile) :
     mIsNull(false),
-    mObjectId(mGlobalUniqueObjectId++), mId(std::move(index)), mConfidence(confidence), mBoundingBoxTile(boundingBox),
-    mBoundingBoxReal(calcRealBoundingBox(tile, tileSize)), mMask(mask), mMaskContours(contour), mImageSize(imageSize),
-    mOriginalImageSize(originalImageSize), mAreaSize(static_cast<double>(calcAreaSize())), mPerimeter(getTracedPerimeter(mMaskContours)),
+    mObjectId(mGlobalUniqueObjectId++), mId(std::move(index)), mConfidence(confidence), mBoundingBoxReal(calcRealBoundingBox(boundingBox, tile)),
+    mMask(mask), mMaskContours(contour), mAreaSize(static_cast<double>(calcAreaSize())), mPerimeter(getTracedPerimeter(mMaskContours)),
     mCircularity(calcCircularity()), mCentroid(calcCentroid(mMask)), mOriginObjectId(mObjectId)
 {
   CV_Assert(mMask.type() == CV_8UC1);
@@ -65,14 +63,27 @@ ROI::ROI(RoiObjectId index, Confidence confidence, const Boxes &boundingBox, con
 /// \brief      Calculates a the bounding box in the overall image if it is a tiled image
 /// \author     Joachim Danmayr
 ///
-Boxes ROI::calcRealBoundingBox(const enums::tile_t &tile, const cv::Size &tileSize) const
+Boxes ROI::calcRealBoundingBox(const Boxes &boundingBoxTile, const joda::enums::TileInfo &tile) const
 {
   Boxes box;
-  box.width  = mBoundingBoxTile.width;
-  box.height = mBoundingBoxTile.width;
-  box.x      = mBoundingBoxTile.x + std::get<0>(tile) * tileSize.width;
-  box.y      = mBoundingBoxTile.y + std::get<1>(tile) * tileSize.height;
+  box.width  = boundingBoxTile.width;
+  box.height = boundingBoxTile.width;
+  box.x      = boundingBoxTile.x + std::get<0>(tile.tileSegment) * tile.tileSize.width;
+  box.y      = boundingBoxTile.y + std::get<1>(tile.tileSegment) * tile.tileSize.height;
+  return box;
+}
 
+///
+/// \brief      Calculates a the bounding box within the given tile
+/// \author     Joachim Danmayr
+///
+[[nodiscard]] auto ROI::getBoundingBoxTile(const joda::enums::TileInfo &tile) const -> Boxes
+{
+  Boxes box;
+  box.width  = mBoundingBoxReal.width;
+  box.height = mBoundingBoxReal.width;
+  box.x      = mBoundingBoxReal.x - std::get<0>(tile.tileSegment) * tile.tileSize.width;
+  box.y      = mBoundingBoxReal.y - std::get<1>(tile.tileSegment) * tile.tileSize.height;
   return box;
 }
 
@@ -116,11 +127,10 @@ auto ROI::calcCentroid(const cv::Mat &mask) -> cv::Point
 /// \brief        Returns true if the ROI is touching the image edge
 /// \author       Joachim Danmayr
 ///
-bool ROI::isTouchingTheImageEdge() const
+bool ROI::isTouchingTheImageEdge(const joda::enums::TileInfo &tile) const
 {
-  auto box       = getBoundingBoxTile();
-  auto imageSize = mImageSize;
-  if(box.x <= 0 || box.y <= 0 || box.x + box.width >= imageSize.width || box.y + box.height >= imageSize.height) {
+  auto box = getBoundingBoxTile(tile);
+  if(box.x <= 0 || box.y <= 0 || box.x + box.width >= tile.tileSize.width || box.y + box.height >= tile.tileSize.height) {
     return true;    // Touches the edge
   }
   return false;
@@ -130,11 +140,11 @@ bool ROI::isTouchingTheImageEdge() const
 /// \brief        Calculate the avg, min and max intensity in the given image
 /// \author       Joachim Danmayr
 ///
-auto ROI::calcIntensity(const cv::Mat &image) const -> Intensity
+auto ROI::calcIntensity(const cv::Mat &image, const joda::enums::TileInfo &tile) const -> Intensity
 {
   // \todo make more efficient
   Intensity intensityRet;
-  cv::Mat maskImg = image(mBoundingBoxTile).clone();
+  cv::Mat maskImg = image(getBoundingBoxTile(tile)).clone();
   for(int x = 0; x < maskImg.cols; x++) {
     for(int y = 0; y < maskImg.rows; y++) {
       if(mMask.at<uint8_t>(y, x) <= 0) {
@@ -146,29 +156,6 @@ auto ROI::calcIntensity(const cv::Mat &image) const -> Intensity
   intensityRet.intensitySum = static_cast<uint64_t>(cv::sum(maskImg)[0]);
   cv::minMaxLoc(maskImg, &intensityRet.intensityMin, &intensityRet.intensityMax, nullptr, nullptr, mMask);
   return intensityRet;
-}
-
-///
-/// \brief        Calculate the gradients in the given image
-/// \author       Joachim Danmayr
-///
-auto ROI::calcGradients(const cv::Mat &image, cv::Mat &gradMag, cv::Mat &gradAngle) const -> void
-{
-  // \todo make more efficient
-  cv::Mat maskImg = image(mBoundingBoxTile).clone();
-  for(int x = 0; x < maskImg.cols; x++) {
-    for(int y = 0; y < maskImg.rows; y++) {
-      if(mMask.at<uint8_t>(y, x) <= 0) {
-        maskImg.at<uint16_t>(y, x) = 0;
-      }
-    }
-  }
-
-  cv::Mat grad_x;
-  cv::Mat grad_y;
-  cv::Sobel(maskImg, grad_x, CV_32F, 1, 0, 3);
-  cv::Sobel(maskImg, grad_y, CV_32F, 0, 1, 3);
-  cv::cartToPolar(grad_x, grad_y, gradMag, gradAngle, true);
 }
 
 ///
@@ -363,8 +350,8 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 /// \param[in]  roi   ROI to check against
 /// \return     Intersection of the areas in percent
 ///
-[[nodiscard]] ROI ROI::calcIntersection(const enums::PlaneId &iterator, const ROI &roi, float minIntersection, const enums::tile_t &tile,
-                                        const cv::Size &tileSize, joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const
+[[nodiscard]] ROI ROI::calcIntersection(const enums::PlaneId &iterator, const ROI &roi, float minIntersection, const joda::enums::TileInfo &tile,
+                                        joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const
 {
   auto intersectingMask = calcIntersectingMask(roi);
 
@@ -391,10 +378,7 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
                  intersectingMask.intersectedRect,
                  intersectingMask.intersectedMask,
                  contour,
-                 mImageSize,
-                 mOriginalImageSize,
-                 tile,
-                 tileSize};
+                 tile};
     }
   }
   return {};
@@ -409,17 +393,17 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
 {
   IntersectingMask result;
-  result.intersectedRect = getBoundingBoxTile() & roi.getBoundingBoxTile();
+  result.intersectedRect = getBoundingBoxReal() & roi.getBoundingBoxReal();
 
   if(result.intersectedRect.area() <= 0) {
     return {};
   }
   result.intersectedMask = cv::Mat::zeros(result.intersectedRect.height, result.intersectedRect.width, CV_8UC1);
 
-  const int32_t xM1Base = getBoundingBoxTile().x;
-  const int32_t yM1Base = getBoundingBoxTile().y;
-  const int32_t xM2Base = roi.getBoundingBoxTile().x;
-  const int32_t yM2Base = roi.getBoundingBoxTile().y;
+  const int32_t xM1Base = getBoundingBoxReal().x;
+  const int32_t yM1Base = getBoundingBoxReal().y;
+  const int32_t xM2Base = roi.getBoundingBoxReal().x;
+  const int32_t yM2Base = roi.getBoundingBoxReal().y;
 
   // Iterate through the pixels in the intersection and set them in the new mask
   for(int y = result.intersectedRect.y; y < result.intersectedRect.y + result.intersectedRect.height; ++y) {
@@ -464,7 +448,7 @@ ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
 /// \param[in]  channelIdx   Channel index of the given image
 /// \param[in]  imageOriginal   Image to measure the intensity in
 ///
-auto ROI::measureIntensityAndAdd(const enums::ImageId &imageId, const cv::Mat &image) -> Intensity
+auto ROI::measureIntensityAndAdd(const enums::ImageId &imageId, const cv::Mat &image, const joda::enums::TileInfo &tile) -> Intensity
 {
   if(!mIntensity.contains(imageId)) {
     // Just add an empty entry
@@ -473,8 +457,8 @@ auto ROI::measureIntensityAndAdd(const enums::ImageId &imageId, const cv::Mat &i
     mIntensity[imageId].intensityMax = 0;
     mIntensity[imageId].intensityMin = 0;
 
-    if(!image.empty() && !mBoundingBoxTile.empty() && !mMask.empty()) {
-      mIntensity[imageId] = calcIntensity(image);
+    if(!image.empty() && !mBoundingBoxReal.empty() && !mMask.empty()) {
+      mIntensity[imageId] = calcIntensity(image, tile);
     }
   } else {
   }
@@ -561,7 +545,7 @@ cv::Mat shiftMask(const cv::Mat &mask, int offsetX, int offsetY)
 /// \author Joachim Danmayr
 /// \todo   If there were still intensity measurements they are not valid any more for the new size what should happen?
 ///
-void ROI::resize(float scaleX, float scaleY)
+void ROI::resize(float scaleX, float scaleY, const cv::Size &originalImageSize)
 {
   if(mIsNull || mBoundingBoxReal.width <= 0 || mBoundingBoxReal.height <= 0) {
     return;
@@ -621,10 +605,9 @@ void ROI::resize(float scaleX, float scaleY)
     }
     return centroidOffset;
   };
-  auto centroidOffset = scaleBoundingBox(mBoundingBoxTile, mImageSize);
-  scaleBoundingBox(mBoundingBoxReal, mOriginalImageSize);
+  auto centroidOffset = scaleBoundingBox(mBoundingBoxReal, originalImageSize);
 
-  cv::Rect crop(0, 0, mBoundingBoxTile.width, mBoundingBoxTile.height);
+  cv::Rect crop(0, 0, mBoundingBoxReal.width, mBoundingBoxReal.height);
   mMask = shiftMask(mMask, centroidOffset.first, centroidOffset.second);
 
   mMask = mMask(crop).clone();
@@ -654,7 +637,7 @@ void ROI::resize(float scaleX, float scaleY)
 /// \author Joachim Danmayr
 /// \todo   If there were still intensity measurements they are not valid any more for the new size what should happen?
 ///
-void ROI::drawCircle(float radius)
+void ROI::drawCircle(float radius, const cv::Size &originalImageSize)
 {
   if(mIsNull || mBoundingBoxReal.width <= 0 || mBoundingBoxReal.height <= 0) {
     return;
@@ -714,8 +697,7 @@ void ROI::drawCircle(float radius)
     }
     return centroidOffset;
   };
-  auto centroidOffset = scaleBoundingBox(mBoundingBoxTile, mImageSize);
-  scaleBoundingBox(mBoundingBoxReal, mOriginalImageSize);
+  auto centroidOffset = scaleBoundingBox(mBoundingBoxReal, originalImageSize);
 
   // Circle parameters
   mMask = 0;
@@ -723,7 +705,7 @@ void ROI::drawCircle(float radius)
   cv::circle(mMask, center, static_cast<int>(radius), cv::Scalar{255}, -1);
 
   // Crop
-  cv::Rect crop(0, 0, mBoundingBoxTile.width, mBoundingBoxTile.height);
+  cv::Rect crop(0, 0, mBoundingBoxReal.width, mBoundingBoxReal.height);
   mMask = mMask(crop).clone();
 
   std::vector<std::vector<cv::Point>> contours;
@@ -751,7 +733,7 @@ void ROI::drawCircle(float radius)
 /// \author Joachim Danmayr
 /// \todo   If there were still intensity measurements they are not valid any more for the new size what should happen?
 ///
-void ROI::fitEllipse()
+void ROI::fitEllipse(const cv::Size &originalImageSize)
 {
   if(mIsNull || mBoundingBoxReal.width <= 0 || mBoundingBoxReal.height <= 0) {
     return;
@@ -761,8 +743,8 @@ void ROI::fitEllipse()
   if(mMaskContours.size() >= 5) {    // fitEllipse needs at least 5 points
     ellipseBox = cv::fitEllipse(mMaskContours);
   } else {
-    auto radius = static_cast<float>(std::max(getBoundingBoxTile().width, getBoundingBoxTile().height));
-    drawCircle(radius);
+    auto radius = static_cast<float>(std::max(mBoundingBoxReal.width, mBoundingBoxReal.height));
+    drawCircle(radius, originalImageSize);
     return;
   }
 
@@ -821,15 +803,14 @@ void ROI::fitEllipse()
     }
     return centroidOffset;
   };
-  // auto centroidOffset = scaleBoundingBox(mBoundingBoxTile, mImageSize);
-  scaleBoundingBox(mBoundingBoxReal, mOriginalImageSize);
+  scaleBoundingBox(mBoundingBoxReal, originalImageSize);
 
   // Circle parameters
   mMask = 0;
   cv::ellipse(mMask, ellipseBox, cv::Scalar{255}, -1);
 
   // Crop
-  cv::Rect crop(0, 0, mBoundingBoxTile.width, mBoundingBoxTile.height);
+  cv::Rect crop(0, 0, mBoundingBoxReal.width, mBoundingBoxReal.height);
   mMask = mMask(crop).clone();
 
   std::vector<std::vector<cv::Point>> contours;

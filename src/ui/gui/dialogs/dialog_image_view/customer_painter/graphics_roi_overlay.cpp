@@ -45,8 +45,9 @@ RoiOverlay::RoiOverlay(const std::shared_ptr<joda::atom::ObjectList> &objectMap,
 /// \param[out]
 /// \return
 ///
-void RoiOverlay::setOverlay(const cv::Size &imageSize, const cv::Size &previewSize)
+void RoiOverlay::setOverlay(const cv::Size &imageSize, const cv::Size &previewSize, const joda::enums::TileInfo &tileInfo)
 {
+  mTileInfo    = tileInfo;
   mImageSize   = imageSize;
   mPreviewSize = previewSize;
   refresh();
@@ -99,8 +100,11 @@ void RoiOverlay::refresh()
       prepareContour(&roi, col);
 
       // Optimization 3: Efficiently access Mat data
-      const auto &mask = roi.getMask();
-      const auto &box  = roi.getBoundingBoxTile();
+      const auto &mask    = roi.getMask();
+      const auto &box     = roi.getBoundingBoxTile(mTileInfo);
+      const auto &boxReal = roi.getBoundingBoxReal();
+
+      // Check if real box is in coordinates of the image
 
       // Check if mask data is continuous for faster row-by-row processing
       if(mFill) {
@@ -165,7 +169,7 @@ void RoiOverlay::prepareContour(const joda::atom::ROI *roi, const QColor &colBor
   double scaleY = static_cast<double>(mPreviewSize.height) / static_cast<double>(mImageSize.height);
 
   const auto &contour = roi->getContour();
-  const auto &box     = roi->getBoundingBoxTile();
+  const auto &box     = roi->getBoundingBoxTile(mTileInfo);
   QList<QPointF> points;
   points.reserve(static_cast<int>(contour.size()));    // Pre-allocate memory
   const double offsetX = static_cast<double>(box.x) * scaleX;
@@ -308,7 +312,7 @@ joda::atom::ROI *RoiOverlay::findRoiAt(const QPointF &itemPoint) const
     for(auto &roi : *classs) {
       // 1. Get the local coordinates of the click relative to the ROI's origin
       // The itemPoint is in the parent's coordinates.
-      const auto &box  = roi.getBoundingBoxTile();
+      const auto &box  = roi.getBoundingBoxTile(mTileInfo);
       QPointF roiPoint = itemPoint - QPointF(box.x * scaleX, box.y * scaleY);
 
       // 2. Check if the point is within the *unscaled* ROI dimensions

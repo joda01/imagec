@@ -17,6 +17,7 @@
 #include <qobject.h>
 #include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/artifacts/roi/roi.hpp"
+#include "backend/enums/types.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "ui/gui/dialogs/dialog_image_view/customer_painter/graphics_contour_overlay.hpp"
@@ -31,7 +32,7 @@ public:
   RoiOverlay(const std::shared_ptr<joda::atom::ObjectList> &, const joda::settings::Classification *, ContourOverlay *, QWidget *parent);
 
   /////////////////////////////////////////////////////
-  void setOverlay(const cv::Size &imageSize, const cv::Size &previewSize);
+  void setOverlay(const cv::Size &imageSize, const cv::Size &previewSize, const joda::enums::TileInfo &tileInfo);
   void refresh();
   void setAlpha(float);
   void setFill(bool fill)
@@ -56,6 +57,7 @@ private:
   /////////////////////////////////////////////////////
   cv::Size mImageSize;
   cv::Size mPreviewSize;
+  joda::enums::TileInfo mTileInfo;
   std::shared_ptr<joda::atom::ObjectList> mObjectMap            = nullptr;
   const joda::settings::Classification *mClassificationSettings = nullptr;
   float mAlpha                                                  = 0.8F;

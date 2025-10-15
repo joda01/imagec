@@ -76,8 +76,7 @@ void HoughTransform::execute(processor::ProcessContext &context, cv::Mat &image,
     cv::Rect boundingBox(x, y, width, height);
 
     joda::atom::ROI detectedRoi(atom::ROI::RoiObjectId{.classId = context.getClassId(mSettings.outputClass), .imagePlane = context.getActIterator()},
-                                context.getAppliedMinThreshold(), boundingBox, mask, contours[0], context.getImageSize(),
-                                context.getOriginalImageSize(), context.getActTile(), context.getTileSize());
+                                context.getAppliedMinThreshold(), boundingBox, mask, contours[0], context.getTileInfo());
     result.push_back(detectedRoi);
   };
 

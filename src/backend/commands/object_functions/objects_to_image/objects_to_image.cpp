@@ -33,14 +33,14 @@ void ObjectsToImage::execute(processor::ProcessContext &context, cv::Mat &image,
 {
   auto &operand01 = context.loadObjectsFromCache()->at(context.getClassId(mSettings.inputClassesFirst));
   image           = cv::Mat::zeros(image.size(), CV_16UC1);
-  operand01->createBinaryImage(image, 1, joda::atom::ROI::Category::ANY);
+  operand01->createBinaryImage(image, 1, joda::atom::ROI::Category::ANY, context.getTileInfo());
 
   cv::Mat img2;
   if(mSettings.function != settings::ObjectsToImageSettings::Function::NOT &&
      mSettings.function != settings::ObjectsToImageSettings::Function::NONE) {
     auto &operand02 = context.loadObjectsFromCache()->at(context.getClassId(mSettings.inputClassesSecond));
     img2            = cv::Mat::zeros(image.size(), CV_16UC1);
-    operand02->createBinaryImage(img2, 1, joda::atom::ROI::Category::ANY);
+    operand02->createBinaryImage(img2, 1, joda::atom::ROI::Category::ANY, context.getTileInfo());
   }
 
   switch(mSettings.function) {

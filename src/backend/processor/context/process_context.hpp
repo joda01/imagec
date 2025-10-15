@@ -22,6 +22,7 @@
 #include <string>
 #include "backend/artifacts/image/image.hpp"
 #include "backend/artifacts/object_list/object_list.hpp"
+#include "backend/artifacts/roi/roi.hpp"
 #include "backend/database/database.hpp"
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_memory_idx.hpp"
@@ -113,6 +114,11 @@ public:
   [[nodiscard]] enums::tile_t getActTile() const
   {
     return pipelineContext.actImagePlane.tile;
+  }
+
+  [[nodiscard]] joda::enums::TileInfo getTileInfo() const
+  {
+    return {getActTile(), getTileSize()};
   }
 
   [[nodiscard]] cv::Size getTileSize() const

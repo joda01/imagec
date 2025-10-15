@@ -12,6 +12,7 @@
 #pragma once
 
 #include "backend/commands/command.hpp"
+#include "backend/enums/types.hpp"
 #include "backend/processor/context/process_context.hpp"
 #include "pixel_classifier_settings.hpp"
 #include "pixel_classifier_training_settings.hpp"
@@ -37,14 +38,15 @@ public:
   /////////////////////////////////////////////////////
   PixelClassifier(const settings::PixelClassifierSettings &);
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
-  static void train(const cv::Mat &image, const atom::ObjectList &result, const settings::PixelClassifierTrainingSettings &trainingSettings);
+  static void train(const cv::Mat &image, const enums::TileInfo &tileInfo, const atom::ObjectList &result,
+                    const settings::PixelClassifierTrainingSettings &trainingSettings);
 
 private:
   /////////////////////////////////////////////////////
-  static void prepareTrainingDataFromROI(const cv::Mat &image, const std::map<enums::ClassId, int32_t> &classesToTrain,
-                                         joda::atom::ROI::Category categoryToTain, const atom::ObjectList &regionOfInterest, cv::Mat &trainSamples,
-                                         cv::Mat &trainLabels, const std::set<joda::settings::PixelClassifierFeatures> &featuresSet,
-                                         bool normalizeForMLP);
+  static void prepareTrainingDataFromROI(const cv::Mat &image, const enums::TileInfo &tileInfo,
+                                         const std::map<enums::ClassId, int32_t> &classesToTrain, joda::atom::ROI::Category categoryToTain,
+                                         const atom::ObjectList &regionOfInterest, cv::Mat &trainSamples, cv::Mat &trainLabels,
+                                         const std::set<joda::settings::PixelClassifierFeatures> &featuresSet, bool normalizeForMLP);
 
   static cv::Mat extractFeatures(const cv::Mat &img, const std::set<joda::settings::PixelClassifierFeatures> &features, bool normalizeForMLP);
 

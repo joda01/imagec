@@ -136,14 +136,15 @@ private:
                   cv::Mat &imageOut)
   {
     if(context.getClassId(settings.inputClass) == roi.getClassId()) {
-      int left = roi.getBoundingBoxTile().x;
-      int top  = roi.getBoundingBoxTile().y;
-      // int width  = roi.getBoundingBoxTile().width;
-      // int height = roi.getBoundingBoxTile().height;
+      const auto boundigBoxTile = roi.getBoundingBoxTile(context.getTileInfo());
+      int left                  = boundigBoxTile.x;
+      int top                   = boundigBoxTile.y;
+      // int width  = boundigBoxTile.width;
+      // int height = boundigBoxTile.height;
 
       // auto centroid = roi.getCentroidTile();
 
-      if(!roi.getMask().empty() && !roi.getBoundingBoxTile().empty()) {
+      if(!roi.getMask().empty() && !boundigBoxTile.empty()) {
         auto color     = context.getColorClass(settings.inputClass);
         auto areaColor = hexToScalar(color);
 
@@ -153,8 +154,8 @@ private:
         // cv::circle(imageOut, {left + width / 2, top + height / 2}, 4, YELLOW, cv::FILLED);
 
         // Boundding box
-        if(settings.paintBoundingBox && !roi.getBoundingBoxTile().empty()) {
-          rectangle(imageOut, roi.getBoundingBoxTile(), areaColor, 1 * THICKNESS, cv::LINE_4);
+        if(settings.paintBoundingBox && !boundigBoxTile.empty()) {
+          rectangle(imageOut, boundigBoxTile, areaColor, 1 * THICKNESS, cv::LINE_4);
         }
 
         // Paint contour only for valid particles
@@ -163,13 +164,13 @@ private:
         // Fill area
         if(settings.style == settings::ImageSaverSettings::Style::FILLED) {
           contourColor = hexToScalar("#000000");
-          imageOut(roi.getBoundingBoxTile()).setTo(areaColor, roi.getMask());
+          imageOut(boundigBoxTile).setTo(areaColor, roi.getMask());
         }
 
         std::vector<std::vector<cv::Point>> contours;
         contours.push_back(roi.getContour());
         if(!contours.empty()) {
-          drawContours(imageOut(roi.getBoundingBoxTile()), contours, -1, contourColor, 1);
+          drawContours(imageOut(boundigBoxTile), contours, -1, contourColor, 1);
         }
 
         // Draw object ID
