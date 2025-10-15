@@ -100,9 +100,8 @@ void RoiOverlay::refresh()
       prepareContour(&roi, col);
 
       // Optimization 3: Efficiently access Mat data
-      const auto &mask    = roi.getMask();
-      const auto &box     = roi.getBoundingBoxTile(mTileInfo);
-      const auto &boxReal = roi.getBoundingBoxReal();
+      const auto &mask = roi.getMask();
+      const auto &box  = roi.getBoundingBoxTile(mTileInfo);
 
       // Check if real box is in coordinates of the image
 

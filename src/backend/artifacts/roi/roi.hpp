@@ -48,6 +48,10 @@ class ROI
   friend class cereal::access;
 
 public:
+  // Version for serializing - must be increased if a member variable was removed ///////////////////////////////////////////////////
+
+  const static inline int32_t ROI_SCHEMA_VERSION = 1;
+
   struct RoiObjectId
   {
     joda::enums::ClassId classId;
@@ -363,7 +367,7 @@ public:
   }
 
   template <class Archive>
-  void save(Archive &ar) const
+  void save(Archive &ar, std::uint32_t const /*version*/) const
   {
     ar(mIsNull, mObjectId, mId, mBoundingBoxReal, mMask, mMaskContours, mConfidence, mAreaSize, mPerimeter, mCircularity, mCentroid, mParentObjectId,
        mTrackingId,
@@ -371,8 +375,12 @@ public:
   }
 
   template <class Archive>
-  void load(Archive &ar)
+  void load(Archive &ar, std::uint32_t const version)
   {
+    std::cout << "Version " << std::to_string(version) << std::endl;
+    if(version != joda::atom::ROI::ROI_SCHEMA_VERSION) {
+      return;
+    }
     ar(mIsNull, mObjectId, mId, mBoundingBoxReal, mMask, mMaskContours, mConfidence, mAreaSize, mPerimeter, mCircularity, mCentroid, mParentObjectId,
        mTrackingId,
        /*mIntensity, mDistances*/ mOriginObjectId, /*mLinkedWith,*/ mCategory);
@@ -423,4 +431,7 @@ private:
   static inline std::atomic<uint64_t> mGlobalUniqueObjectId   = 1;
   static inline std::atomic<uint64_t> mGlobalUniqueTrackingId = 1;
 };
+
 }    // namespace joda::atom
+
+CEREAL_CLASS_VERSION(joda::atom::ROI, joda::atom::ROI::ROI_SCHEMA_VERSION);
