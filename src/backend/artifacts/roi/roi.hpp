@@ -111,11 +111,11 @@ public:
 
   ROI(ROI &&input)
   noexcept :
-      mIsNull(input.mIsNull), mObjectId(input.mObjectId), mId(input.mId), mConfidence(input.mConfidence), mBoundingBoxReal(input.mBoundingBoxReal),
-      mMask(std::move(input.mMask)), mMaskContours(std::move(input.mMaskContours)), mAreaSize(input.mAreaSize), mPerimeter(input.mPerimeter),
-      mCircularity(input.mCircularity), mCentroid(input.mCentroid), mParentObjectId(input.mParentObjectId), mTrackingId(input.mTrackingId),
-      mIntensity(std::move(input.mIntensity)), mOriginObjectId(input.mOriginObjectId), mLinkedWith(std::move(input.mLinkedWith)),
-      mCategory(input.mCategory), mIsSelected(input.mIsSelected)
+      mIsNull(input.mIsNull), mObjectId(input.mObjectId), mId(std::move(input.mId)), mBoundingBoxReal(input.mBoundingBoxReal),
+      mMask(std::move(input.mMask)), mMaskContours(std::move(input.mMaskContours)), mConfidence(input.mConfidence), mAreaSize(input.mAreaSize),
+      mPerimeter(input.mPerimeter), mCircularity(input.mCircularity), mCentroid(input.mCentroid), mParentObjectId(input.mParentObjectId),
+      mTrackingId(input.mTrackingId), mIntensity(std::move(input.mIntensity)), mOriginObjectId(input.mOriginObjectId),
+      mLinkedWith(std::move(input.mLinkedWith)), mCategory(input.mCategory), mIsSelected(input.mIsSelected)
   {
     CV_Assert(mMask.type() == CV_8UC1);
   }
@@ -124,8 +124,8 @@ public:
       double areaSize, float perimeter, float circularity, std::map<enums::ImageId, Intensity> intensity, uint64_t originObjectId, cv::Point centroid,
       uint64_t parentObjectId, uint64_t linkedObjectId, std::set<ROI *> linkedWith, bool isSelected, Category category) :
       mIsNull(isNull),
-      mObjectId(objectId), mId(std::move(id)), mConfidence(confidence), mBoundingBoxReal(boundingBoxReal), mMask(std::move(mask)),
-      mMaskContours(std::move(maskContours)), mAreaSize(areaSize), mPerimeter(perimeter), mCircularity(circularity), mCentroid(centroid),
+      mObjectId(objectId), mId(std::move(id)), mBoundingBoxReal(boundingBoxReal), mMask(std::move(mask)), mMaskContours(std::move(maskContours)),
+      mConfidence(confidence), mAreaSize(areaSize), mPerimeter(perimeter), mCircularity(circularity), mCentroid(centroid),
       mParentObjectId(parentObjectId), mTrackingId(linkedObjectId), mIntensity(std::move(intensity)), mOriginObjectId(originObjectId),
       mLinkedWith(std::move(linkedWith)), mCategory(category), mIsSelected(isSelected)
   {
@@ -365,7 +365,7 @@ public:
   template <class Archive>
   void save(Archive &ar) const
   {
-    ar(mIsNull, mObjectId, mId, mConfidence, mBoundingBoxReal, mMask, mMaskContours, mAreaSize, mPerimeter, mCircularity, mCentroid, mParentObjectId,
+    ar(mIsNull, mObjectId, mId, mBoundingBoxReal, mMask, mMaskContours, mConfidence, mAreaSize, mPerimeter, mCircularity, mCentroid, mParentObjectId,
        mTrackingId,
        /*mIntensity, mDistances*/ mOriginObjectId, /*mLinkedWith,*/ mCategory);
   }
@@ -373,7 +373,7 @@ public:
   template <class Archive>
   void load(Archive &ar)
   {
-    ar(mIsNull, mObjectId, mId, mConfidence, mBoundingBoxReal, mMask, mMaskContours, mAreaSize, mPerimeter, mCircularity, mCentroid, mParentObjectId,
+    ar(mIsNull, mObjectId, mId, mBoundingBoxReal, mMask, mMaskContours, mConfidence, mAreaSize, mPerimeter, mCircularity, mCentroid, mParentObjectId,
        mTrackingId,
        /*mIntensity, mDistances*/ mOriginObjectId, /*mLinkedWith,*/ mCategory);
   }
@@ -392,18 +392,19 @@ private:
 
   // Identification ///////////////////////////////////////////////////
   bool mIsNull;
-  uint64_t mObjectId;        ///< Global unique object ID
-  RoiObjectId mId;           ///< Unique identification of the this ROI
-  Confidence mConfidence;    ///< Probability
+  uint64_t mObjectId;    ///< Global unique object ID
+  RoiObjectId mId;       ///< Unique identification of the this ROI
 
-  // Metrics ///////////////////////////////////////////////////
+  // Coordinates ///////////////////////////////////////////////////
   Boxes mBoundingBoxReal;    ///< Rectangle around the prediction with real coordinates
   cv::Mat mMask;             ///< Segmentation mask
   std::vector<cv::Point> mMaskContours;
 
-  double mAreaSize;      ///< size of the masking area [px^2 ]
-  float mPerimeter;      ///< Perimeter (boundary size) [px]
-  float mCircularity;    ///< Circularity of the masking area [0-1]
+  // Metrics ///////////////////////////////////////////////////
+  Confidence mConfidence;    ///< Probability
+  double mAreaSize;          ///< size of the masking area [px^2 ]
+  float mPerimeter;          ///< Perimeter (boundary size) [px]
+  float mCircularity;        ///< Circularity of the masking area [0-1]
   cv::Point mCentroid;
   uint64_t mParentObjectId = 0;    // 0 if this object has no parent
   uint64_t mTrackingId     = 0;    // 0 if not linked with anything
@@ -413,6 +414,8 @@ private:
   std::map<uint64_t, Distance> mDistances;    ///< Key is the ID of the object the distance was calculated to.
   uint64_t mOriginObjectId = 0;
   std::set<ROI *> mLinkedWith;    // Temporary object to store linked objects and create a linked object IF afterwards
+
+  // Selectors ///////////////////////////////////////////////////
   Category mCategory = Category::AUTO_SEGMENTATION;
 
   // Temporary meta Information ///////////////////////////////////////////////////

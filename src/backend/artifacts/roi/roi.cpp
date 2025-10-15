@@ -43,7 +43,7 @@
 namespace joda::atom {
 
 ROI::ROI() :
-    mIsNull(true), mObjectId(mGlobalUniqueObjectId++), mId({}), mConfidence(0), mMask(cv::Mat(0, 0, CV_8UC1)), mMaskContours({}), mAreaSize(0),
+    mIsNull(true), mObjectId(mGlobalUniqueObjectId++), mId({}), mMask(cv::Mat(0, 0, CV_8UC1)), mMaskContours({}), mConfidence(0), mAreaSize(0),
     mPerimeter(0), mCircularity(0), mCentroid(0, 0), mOriginObjectId(mObjectId)
 {
   CV_Assert(mMask.type() == CV_8UC1);
@@ -52,8 +52,8 @@ ROI::ROI() :
 ROI::ROI(RoiObjectId index, Confidence confidence, const Boxes &boundingBox, const cv::Mat &mask, const std::vector<cv::Point> &contour,
          const joda::enums::TileInfo &tile) :
     mIsNull(false),
-    mObjectId(mGlobalUniqueObjectId++), mId(std::move(index)), mConfidence(confidence), mBoundingBoxReal(calcRealBoundingBox(boundingBox, tile)),
-    mMask(mask), mMaskContours(contour), mAreaSize(static_cast<double>(calcAreaSize())), mPerimeter(getTracedPerimeter(mMaskContours)),
+    mObjectId(mGlobalUniqueObjectId++), mId(std::move(index)), mBoundingBoxReal(calcRealBoundingBox(boundingBox, tile)), mMask(mask),
+    mMaskContours(contour), mConfidence(confidence), mAreaSize(static_cast<double>(calcAreaSize())), mPerimeter(getTracedPerimeter(mMaskContours)),
     mCircularity(calcCircularity()), mCentroid(calcCentroid(mMask)), mOriginObjectId(mObjectId)
 {
   CV_Assert(mMask.type() == CV_8UC1);
