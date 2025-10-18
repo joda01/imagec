@@ -952,6 +952,10 @@ void PanelImageView::paintEvent(QPaintEvent *event)
     drawRuler(painter);
   }
 
+  if(mActPixmap != nullptr) {
+    drawActChannel(painter);
+  }
+
   // Waiting banner
   if(mWaiting) {
     QRect overlay(0, viewportRect.height() / 2 - 10, viewportRect.width(), 20);
@@ -1141,6 +1145,28 @@ void PanelImageView::drawRuler(QPainter &painter)
 
   QString textToPrint = QString("%1 %2").arg(QString::number(static_cast<double>(unitToShow))).arg(j.get<std::string>().c_str());
   painter.drawText(QRect(static_cast<int32_t>(THUMB_RECT_START_X), height() - 20, static_cast<int32_t>(rulerSize), 10), Qt::AlignCenter, textToPrint);
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::drawActChannel(QPainter &painter)
+{
+  QFont tmp  = painter.font();
+  QFont font = painter.font();
+  font.setPointSize(8);
+  font.setBold(true);
+  painter.setFont(font);
+  QColor textColor(255, 255, 255, 180);    // white with some transparency
+  painter.setPen(textColor);
+  QString textToPrint = QString("CH%1").arg(QString::number(static_cast<double>(mPlane.cStack)));
+  painter.drawText(QRect(0, static_cast<int32_t>(THUMB_RECT_START_Y), width(), 12), Qt::AlignHCenter | Qt::AlignTop, textToPrint);
+
+  painter.setFont(tmp);
 }
 
 ///

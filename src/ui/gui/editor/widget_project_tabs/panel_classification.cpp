@@ -68,8 +68,16 @@ PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList>
     auto *newClass = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("plus"), "Add object class");
     connect(newClass, &QAction::triggered, [this]() { addClass(); });
     newClass->setStatusTip("Add object class or load from template");
-    // newClass->setMenu(mTemplateMenu);
     toolbar->addAction(newClass);
+
+    //
+    // Populate from image
+    // object-ungroup
+    //
+    auto *populateFromImage = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("target"), "Populate from image channels");
+    populateFromImage->setStatusTip("Automatically populate classes from image channels");
+    toolbar->addAction(populateFromImage);
+    connect(populateFromImage, &QAction::triggered, [this]() { this->populateClassesFromImage(); });
 
     //
     // Hide class
@@ -88,15 +96,6 @@ PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList>
     });
     mActionHideClass->setStatusTip("Hide class in the preview");
     toolbar->addAction(mActionHideClass);
-
-    //
-    // Populate from image
-    // object-ungroup
-    //
-    auto *populateFromImage = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("magic-wand"), "Populate from image channels");
-    populateFromImage->setStatusTip("Automatically populate classes from image channels");
-    submenu->addAction(populateFromImage);
-    connect(populateFromImage, &QAction::triggered, [this]() { this->populateClassesFromImage(); });
 
     toolbar->addSeparator();
 

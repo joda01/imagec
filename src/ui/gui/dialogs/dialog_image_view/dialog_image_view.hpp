@@ -30,6 +30,7 @@ namespace joda::ui::gui {
 class HistoToolbar;
 class VideoControlButtonGroup;
 class DialogRoiManager;
+class DialogHistogramSettings;
 
 ///
 /// \class      DialogImageViewer
@@ -112,6 +113,7 @@ private:
 
   // IMAGE SETTINGS //////////////////////////////////////////////////
   DialogImageSettings::Settings mImageSettings;
+  DialogHistogramSettings *mHistogramSettings;
 
   // PAINTING///////////////////////////////////////////////////
   QAction *mMoveAction;

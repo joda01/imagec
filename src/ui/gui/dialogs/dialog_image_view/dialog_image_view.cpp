@@ -59,6 +59,8 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
   mMainLayout = new QVBoxLayout();
   mMainLayout->setContentsMargins(0, 0, 0, 0);
 
+  mHistogramSettings = new DialogHistogramSettings(&mImageViewRight, this);
+
   // ======================================
   // Toolbar
   // ======================================
@@ -165,10 +167,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
     auto *histogram = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("chart-bar"), "Histogram");
     histogram->setObjectName("ToolButton");
     histogram->setStatusTip("Histogram");
-    connect(histogram, &QAction::triggered, [this] {
-      auto *dialog = new DialogHistogramSettings(&mImageViewRight, this);
-      dialog->show();
-    });
+    connect(histogram, &QAction::triggered, [this] { mHistogramSettings->show(); });
     toolbarTop->addAction(histogram);
 
     //
