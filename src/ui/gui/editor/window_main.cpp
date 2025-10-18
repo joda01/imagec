@@ -187,33 +187,22 @@ WindowMain::~WindowMain() = default;
 
 void WindowMain::closeEvent(QCloseEvent *event)
 {
-  auto storeRois = [this]() {
-    auto lastPath = mPreviewImage->getImagePanel()->getCurrentImagePath();
-    std::filesystem::path projectPath(mAnalyzeSettings.projectSettings.workingDirectory);
-    projectPath                       = projectPath / fs::WORKING_DIRECTORY_PROJECT_PATH;
-    auto imgIdOld                     = joda::helper::fnv1a(lastPath.string());
-    std::filesystem::path storagePath = projectPath / "annotations";
-    auto storagePathOld               = storagePath / std::to_string(imgIdOld);
-    mPreviewResult.results.objectMap->serialize(storagePathOld);
-  };
-
   // Perform any actions before closing
   if(mSaveProject->isEnabled()) {
     int result = QMessageBox::question(this, "Save project?", "Save project before close?", QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
     if(result == QMessageBox::Yes) {
       // Accept the close event to allow the window to close
-      storeRois();
       onSaveProject();
       event->accept();
     } else if(result == QMessageBox::No) {
-      storeRois();
+      saveROI();
       event->accept();
     } else {
       // Ignore the close event to keep the window open
       event->ignore();
     }
   } else {
-    storeRois();
+    saveROI();
     event->accept();
   }
 }
@@ -534,8 +523,8 @@ void WindowMain::openImage(const std::filesystem::path &imagePath, const ome::Om
   std::filesystem::path projectPath(mAnalyzeSettings.projectSettings.workingDirectory);
   projectPath = projectPath / fs::WORKING_DIRECTORY_PROJECT_PATH;
 
-  auto imgIdOld = joda::helper::fnv1a(lastPath.string());
-  auto imgIdNew = joda::helper::fnv1a(imagePath.string());
+  auto imgIdOld = joda::helper::generateImageIdFromPath(lastPath.string(), mAnalyzeSettings.projectSettings.workingDirectory);
+  auto imgIdNew = joda::helper::generateImageIdFromPath(imagePath.string(), mAnalyzeSettings.projectSettings.workingDirectory);
 
   std::filesystem::path storagePath = projectPath / "annotations";
   if(!std::filesystem::exists(storagePath)) {
@@ -697,6 +686,21 @@ void WindowMain::checkForSettingsChanged()
 /// \brief
 /// \author     Joachim Danmayr
 ///
+void WindowMain::saveROI()
+{
+  auto lastPath = mPreviewImage->getImagePanel()->getCurrentImagePath();
+  std::filesystem::path projectPath(mAnalyzeSettings.projectSettings.workingDirectory);
+  projectPath                       = projectPath / fs::WORKING_DIRECTORY_PROJECT_PATH;
+  auto imgIdOld                     = joda::helper::generateImageIdFromPath(lastPath.string(), mAnalyzeSettings.projectSettings.workingDirectory);
+  std::filesystem::path storagePath = projectPath / "annotations";
+  auto storagePathOld               = storagePath / std::to_string(imgIdOld);
+  mPreviewResult.results.objectMap->serialize(storagePathOld);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
 void WindowMain::onSaveProject()
 {
   saveProject(mSelectedProjectSettingsFilePath);
@@ -752,6 +756,7 @@ bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
           }
           joda::settings::Settings::storeSettings(filename, mAnalyzeSettings);
         }
+        saveROI();
         mAnalyzeSettingsOld = mAnalyzeSettings;
         checkForSettingsChanged();
       } else {

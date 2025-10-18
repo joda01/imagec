@@ -185,6 +185,77 @@ void Image::autoAdjustBrightnessRange()
   }
 }
 
+cv::Mat colorizeGrayscaleToBGR(const cv::Mat &src16u, const cv::Vec3f &bgrColor, bool normalizeAcrossImage = false)
+{
+  CV_Assert(!src16u.empty());
+  CV_Assert(src16u.type() == CV_16U || src16u.type() == CV_8U || src16u.type() == CV_32F);
+
+  // Convert input to float in range 0..1
+  cv::Mat f;
+  if(src16u.type() == CV_16U) {
+    // if normalizeAcrossImage==true we map [min, max] -> [0,1], otherwise scale by 65535
+    if(normalizeAcrossImage) {
+      double minVal;
+      double maxVal;
+      cv::minMaxLoc(src16u, &minVal, &maxVal);
+      if(maxVal == minVal) {
+        f = cv::Mat(src16u.size(), CV_32F, cv::Scalar(0.0));
+        if(maxVal > 0) {
+          f.setTo(1.0);    // avoid division by zero if constant positive image
+        }
+      } else {
+        src16u.convertTo(f, CV_32F, 1.0 / (maxVal - minVal), -static_cast<double>(minVal) / static_cast<double>(maxVal - minVal));
+      }
+    } else {
+      src16u.convertTo(f, CV_32F, 1.0 / 65535.0);
+    }
+  } else if(src16u.type() == CV_8U) {
+    src16u.convertTo(f, CV_32F, 1.0 / 255.0);
+  } else {    // CV_32F
+    src16u.convertTo(f, CV_32F);
+  }
+
+  // Now f is float 0..1. Multiply into 3 channels by the color vector.
+  std::vector<cv::Mat> channels(3);
+  channels[0] = f * bgrColor[0];    // Blue channel
+  channels[1] = f * bgrColor[1];    // Green
+  channels[2] = f * bgrColor[2];    // Red
+
+  cv::Mat colorF;
+  cv::merge(channels, colorF);      // CV_32FC3, values in 0..1 (if colors in 0..1)
+  colorF = cv::min(colorF, 1.0);    // clamp to 1.0
+
+  // Convert to 8-bit BGR for display / QImage
+  cv::Mat color8;
+  colorF.convertTo(color8, CV_8UC3, 255.0);
+
+  return color8;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Image::setPseudoColor(const cv::Vec3f &color)
+{
+  mPseudoColor = color;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Image::setPseudoColorEnabled(bool enabled)
+{
+  mPSeudoColorEnabled = enabled;
+}
+
 ///
 /// \brief
 /// \author
@@ -197,23 +268,26 @@ QPixmap Image::encode(const cv::Mat *image) const
   if(mImageOriginalScaled == nullptr || image == nullptr) {
     return {};
   }
-
   switch(image->type()) {
+    case CV_8UC1:
+      [[fallthrough]];
     case CV_16UC1: {
-      return QPixmap::fromImage(QImage(image->data, image->cols, image->rows, static_cast<uint32_t>(image->step), QImage::Format_Grayscale16));
+      auto color = mPseudoColor;
+      if(!mPSeudoColorEnabled) {
+        color = {1.0, 1.0, 1.0};
+      }
+      cv::Mat redColor = colorizeGrayscaleToBGR(*image, color, false);
+      return QPixmap::fromImage(QImage(redColor.data, redColor.cols, redColor.rows, static_cast<int>(redColor.step), QImage::Format_BGR888).copy());
     } break;
 
-    case CV_8UC1: {
-      return QPixmap::fromImage(QImage(image->data, image->cols, image->rows, static_cast<uint32_t>(image->step), QImage::Format_Grayscale8));
-    } break;
     case CV_8UC3: {
       auto pixmap =
           QPixmap::fromImage(QImage(image->data, image->cols, image->rows, static_cast<uint32_t>(image->step), QImage::Format_RGB888).rgbSwapped());
       return pixmap;
-    } break;
+    }
     case CV_8UC4: {
       return QPixmap::fromImage(QImage(image->data, image->cols, image->rows, static_cast<uint32_t>(image->step), QImage::Format_ARGB32));
-    } break;
+    }
     default:
       std::cout << "Not supported" << std::endl;
       break;

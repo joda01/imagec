@@ -8,7 +8,9 @@
 #include <memory>
 #include "backend/artifacts/roi/roi.hpp"
 #include "backend/commands/classification/classifier_filter.hpp"
+#include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/cereal_cv_mat.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include <cereal/archives/binary.hpp>
 
 namespace joda::atom {
@@ -398,7 +400,7 @@ std::unique_ptr<SpheralIndex> &ObjectList::operator[](enums::ClassId classId)
 ///
 void ObjectList::serialize(const std::filesystem::path &filename)
 {
-  std::ofstream os(filename.string(), std::ios::binary);
+  std::ofstream os(filename.string() + joda::fs::EXT_ANNOTATION, std::ios::binary);
   cereal::BinaryOutputArchive archive(os);
 
   // Save number of entries first (so we know how many to read back)
@@ -407,7 +409,9 @@ void ObjectList::serialize(const std::filesystem::path &filename)
 
   // Write each pointed object (not the key)
   for(const auto &[_, ptr] : objectsOrderedByObjectId) {
-    archive(*ptr);    // directly serialize the object
+    if(ptr->getCategory() == ROI::Category::MANUAL_SEGMENTATION) {
+      archive(*ptr);    // directly serialize the object
+    }
   }
 }
 
@@ -420,17 +424,21 @@ void ObjectList::serialize(const std::filesystem::path &filename)
 ///
 void ObjectList::deserialize(const std::filesystem::path &filename)
 {
-  clearAll();
-  std::ifstream is(filename.string(), std::ios::binary);
-  cereal::BinaryInputArchive archive(is);
+  try {
+    clearAll();
+    std::ifstream is(filename.string() + joda::fs::EXT_ANNOTATION, std::ios::binary);
+    cereal::BinaryInputArchive archive(is);
 
-  size_t count;
-  archive(count);
+    size_t count;
+    archive(count);
 
-  for(size_t i = 0; i < count; ++i) {
-    ROI roi;
-    archive(roi);    // directly deserialize into allocated object
-    push_back(roi);
+    for(size_t i = 0; i < count; ++i) {
+      ROI roi;
+      archive(roi);    // directly deserialize into allocated object
+      push_back(roi);
+    }
+  } catch(const std::exception &ex) {
+    joda::log::logWarning("Could not load ROIs. what: " + std::string(ex.what()));
   }
 }
 

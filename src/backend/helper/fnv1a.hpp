@@ -15,6 +15,7 @@
 #pragma once
 
 #include <cstdint>
+#include <filesystem>
 #include <string>
 
 namespace joda::helper {
@@ -22,7 +23,7 @@ namespace joda::helper {
 inline constexpr uint64_t FNV_PRIME        = 1099511628211ULL;
 inline constexpr uint64_t FNV_OFFSET_BASIS = 14695981039346656037ULL;
 
-inline uint64_t fnv1a(const std::string &str)
+inline uint64_t calcFnv1a(const std::string &str)
 {
   uint64_t hash = FNV_OFFSET_BASIS;
   for(char c : str) {
@@ -31,4 +32,11 @@ inline uint64_t fnv1a(const std::string &str)
   }
   return hash;
 }
+
+inline uint64_t generateImageIdFromPath(const std::filesystem::path &imageFilePath, const std::filesystem::path &workingDirectory)
+{
+  auto relativePath = std::filesystem::relative(imageFilePath, workingDirectory);
+  return calcFnv1a(relativePath.string());
+}
+
 }    // namespace joda::helper

@@ -582,7 +582,7 @@ auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy gro
           ome.getPhyiscalSize(series).getPixelSize(defaultPhysicalSizeSettings.pixelSizeUnit);
       nlohmann::json physicalImageSizeUnit = defaultPhysicalSizeSettings.pixelSizeUnit;
 
-      uint64_t imageId = joda::helper::fnv1a(imagePath.string());
+      uint64_t imageId = joda::helper::generateImageIdFromPath(imagePath.string(), imagesBasePath);
       auto groupInfo   = grouper.getGroupForFilename(imagePath);
 
       {

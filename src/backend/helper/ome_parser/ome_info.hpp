@@ -29,6 +29,7 @@
 #include <string>
 #include "backend/enums/enums_units.hpp"
 #include "backend/enums/types.hpp"
+#include <opencv2/core/matx.hpp>
 #include <opencv2/core/types.hpp>
 #include "physical_size.hpp"
 
@@ -240,6 +241,8 @@ public:
     }
     return mImageInfo.at(series).resolutions.at(resolutionIdx).isLittleEndian;
   }
+
+  cv::Vec3f getPseudoColorForChannel(int32_t series, int32_t cStack) const;
 
 private:
   /////////////////////////////////////////////////////

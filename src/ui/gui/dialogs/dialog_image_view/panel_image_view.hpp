@@ -30,6 +30,7 @@
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "controller/controller.hpp"
 #include "ui/gui/dialogs/dialog_image_view/customer_painter/graphics_contour_overlay.hpp"
+#include <opencv2/core/matx.hpp>
 #include <opencv2/core/types.hpp>
 
 class RoiOverlay;

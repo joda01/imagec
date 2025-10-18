@@ -371,4 +371,107 @@ int32_t OmeInfo::getSeriesWithHighestResolution() const
   return 0;
 }
 
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+cv::Vec3f wavelengthToBGR(float wavelengthNm)
+{
+  float R     = 0.0F;
+  float G     = 0.0F;
+  float B     = 0.0F;
+  float gamma = 0.8F;
+  float factor;
+
+  if(wavelengthNm >= 380.0F && wavelengthNm < 440.0F) {
+    R = -(wavelengthNm - 440.0F) / (440.0F - 380.0F);
+    G = 0.0F;
+    B = 1.0F;
+  } else if(wavelengthNm >= 440.0F && wavelengthNm < 490.0F) {
+    R = 0.0F;
+    G = (wavelengthNm - 440.0F) / (490.0F - 440.0F);
+    B = 1.0F;
+  } else if(wavelengthNm >= 490.0F && wavelengthNm < 510.0F) {
+    R = 0.0F;
+    G = 1.0F;
+    B = -(wavelengthNm - 510.0F) / (510.0F - 490.0F);
+  } else if(wavelengthNm >= 510.0F && wavelengthNm < 580.0F) {
+    R = (wavelengthNm - 510.0F) / (580.0F - 510.0F);
+    G = 1.0F;
+    B = 0.0F;
+  } else if(wavelengthNm >= 580.0F && wavelengthNm < 645.0F) {
+    R = 1.0F;
+    G = -(wavelengthNm - 645.0F) / (645.0F - 580.0F);
+    B = 0.0F;
+  } else if(wavelengthNm >= 645.0F && wavelengthNm <= 700.0F) {
+    R = 1.0F;
+    G = 0.0F;
+    B = 0.0F;
+  } else if(wavelengthNm > 700.0F) {
+    // Infrared
+    R = 1.0F;
+    G = 0.0F;
+    B = 0.0F;
+  } else if(wavelengthNm < 380.0F) {
+    // ultra violet
+    R = 0.56F;
+    G = 0.0F;
+    B = 1.0F;
+  } else {
+    R = G = B = 0.0F;    // outside visible range
+  }
+
+  // Intensity correction near boundaries
+  if(wavelengthNm >= 380.0F && wavelengthNm < 420.0F) {
+    factor = 0.3F + 0.7F * (wavelengthNm - 380.0F) / (420.0F - 380.0F);
+  } else if(wavelengthNm >= 420.0F && wavelengthNm < 645.0F) {
+    factor = 1.0F;
+  } else if(wavelengthNm >= 645.0F && wavelengthNm <= 700.0F) {
+    factor = 0.3F + 0.7F * (700.0F - wavelengthNm) / (700.0F - 645.0F);
+  } else {
+    factor = 1.0F;
+  }
+
+  // Apply gamma correction and scale
+  auto adjust = [&](float c) { return (c == 0.0F) ? 0.0F : std::pow(c * factor, gamma); };
+
+  R = adjust(R);
+  G = adjust(G);
+  B = adjust(B);
+
+  return {B, G, R};
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+cv::Vec3f OmeInfo::getPseudoColorForChannel(int32_t series, int32_t cStack) const
+{
+  if(!mImageInfo.contains(series)) {
+    return {1.0, 1.0, 1.0};
+  }
+
+  if(getChannelInfos(series).contains(cStack)) {
+    float waveLength = getChannelInfos(series).at(static_cast<uint32_t>(cStack)).emissionWaveLength;
+    auto unit        = getChannelInfos(series).at(static_cast<uint32_t>(cStack)).emissionWaveLengthUnit;
+
+    float waveLengthNm = 450;    // blue
+    if(unit == "nm") {
+      waveLengthNm = waveLength;
+    } else if(unit == "um" || unit == "µm") {
+      waveLengthNm = waveLength * 1000;
+    }
+    auto val = wavelengthToBGR(waveLengthNm);
+    return val;
+  }
+  return {1.0, 1.0, 1.0};
+}
+
 }    // namespace joda::ome

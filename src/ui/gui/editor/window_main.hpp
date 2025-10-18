@@ -144,6 +144,7 @@ private:
   void loadLastOpened();
   void clearSettings();
   bool saveProject(std::filesystem::path filename, bool saveAs = false, bool createHistoryEntry = true);
+  void saveROI();
   void closeEvent(QCloseEvent *event) override;
   AskEnum askForNewProject();
   void moveEvent(QMoveEvent *event) override;

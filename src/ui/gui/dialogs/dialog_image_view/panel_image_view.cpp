@@ -114,6 +114,7 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
     joda::ctrl::Controller::loadImage(imagePath, static_cast<uint16_t>(mSeries), mPlane, mTile, mDefaultPhysicalSize, mPreviewImages, mOmeInfo,
                                       mZprojection);
   }
+
   restoreChannelSettings();
   mLastPath  = imagePath;
   mLastPlane = mPlane;
@@ -166,6 +167,9 @@ void PanelImageView::restoreChannelSettings()
                                   });
   }
   }
+
+  // Set pseudo color
+  mImageToShow->setPseudoColor(mOmeInfo.getPseudoColorForChannel(mSeries, mPlane.cStack));
 }
 
 ///

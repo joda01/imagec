@@ -13,10 +13,12 @@
 
 #include "dialog_histogram_settings.hpp"
 #include <qboxlayout.h>
+#include <qcombobox.h>
 #include <qlabel.h>
 #include <qpushbutton.h>
 #include <qslider.h>
 #include <qtoolbar.h>
+#include <string>
 #include "ui/gui/dialogs/dialog_image_view/panel_image_view.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "panel_histogram.hpp"
@@ -61,12 +63,18 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
   //
   // Axis range
   //
-  mSliderDisplayLower = new QSpinBox();
+  mSliderDisplayLower = new JumpSpinBox();
+  mSliderDisplayLower->setStepType(JumpSpinBox::StepType::DefaultStepType);
+  mSliderDisplayLower->setDecimals(0);
+  mSliderDisplayLower->setSingleStep(1.0);
   mSliderDisplayLower->setMinimum(0);
   mSliderDisplayLower->setMaximum(UINT16_MAX);
   mSliderDisplayLower->setValue(imagePanel->mutableImage()->getHistogramDisplayAreaLower());
 
-  mSliderDisplayUpper = new QSpinBox();
+  mSliderDisplayUpper = new JumpSpinBox();
+  mSliderDisplayUpper->setStepType(JumpSpinBox::StepType::DefaultStepType);
+  mSliderDisplayUpper->setDecimals(0);
+  mSliderDisplayUpper->setSingleStep(1.0);
   mSliderDisplayUpper->setMinimum(1);
   mSliderDisplayUpper->setMaximum(UINT16_MAX);
   mSliderDisplayUpper->setValue(imagePanel->mutableImage()->getHistogramDisplayAreaUpper());
@@ -77,6 +85,8 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
   layout->addRow("Axis range", rangeLayout);
 
   auto *autoAdjust = new QPushButton("Auto");
+  autoAdjust->setAutoDefault(false);
+  autoAdjust->setDefault(false);
   connect(autoAdjust, &QPushButton::pressed, [this]() {
     mImagePanel->mutableImage()->autoAdjustBrightnessRange();
     mHistogramPanel->update();
@@ -84,10 +94,19 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
   });
   layout->addRow(autoAdjust);
 
+  // Color mode
+  mColorMode = new QComboBox();
+  mColorMode->addItem("Pseudo color", 0);
+  mColorMode->addItem("Grayscale", 1);
+
+  layout->addRow(mColorMode);
+
+  // Connect
   connect(mSliderDisplayLower, &QSpinBox::editingFinished, [this] { applyHistogramSettingsToImage(); });
   connect(mSliderDisplayUpper, &QSpinBox::editingFinished, [this] { applyHistogramSettingsToImage(); });
   connect(mSliderHistogramMin, &QScrollBar::valueChanged, [this] { applyHistogramSettingsToImage(); });
   connect(mSliderHistogramMax, &QScrollBar::valueChanged, [this] { applyHistogramSettingsToImage(); });
+  connect(mColorMode, &QComboBox::currentIndexChanged, [this] { applyHistogramSettingsToImage(); });
 
   connect(imagePanel, &PanelImageView::updateImage, [this] {
     mSliderDisplayLower->blockSignals(true);
@@ -126,10 +145,21 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
 ///
 void DialogHistogramSettings::applyHistogramSettingsToImage()
 {
+  blockSignals(true);
+
   mImagePanel->mutableImage()->setBrightnessRange(mSliderHistogramMin->value(), mSliderHistogramMax->value(), mSliderDisplayLower->value(),
                                                   mSliderDisplayUpper->value());
+
+  if(mColorMode->currentData() == 0) {
+    mImagePanel->mutableImage()->setPseudoColorEnabled(true);
+  } else {
+    mImagePanel->mutableImage()->setPseudoColorEnabled(false);
+  }
+
   mHistogramPanel->update();
   mImagePanel->repaintImage();
+
+  blockSignals(false);
 }
 
 ///

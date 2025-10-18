@@ -17,6 +17,7 @@
 #include <mutex>
 #include <vector>
 #include <opencv2/core/mat.hpp>
+#include <opencv2/core/matx.hpp>
 
 namespace joda::image {
 
@@ -89,6 +90,8 @@ public:
   }
 
   void setBrightnessRange(int32_t lowerValue, int32_t upperValue, int32_t displayAreaLower, int32_t displayAreaUpper);
+  void setPseudoColor(const cv::Vec3f &color);
+  void setPseudoColorEnabled(bool);
 
   struct AutoAdjustRet
   {
@@ -126,6 +129,10 @@ private:
   uint16_t mDisplayAreaLower = 0;
   uint16_t mDisplayAreaUpper = 0;
   QSize mOriginalImageSize;
+
+  //// PSEUDOCOLOR /////////////////////////////////////////////////
+  bool mPSeudoColorEnabled = true;
+  cv::Vec3f mPseudoColor{1.0, 1.0, 1.0};
 
   //// IMAGE /////////////////////////////////////////////////
   const cv::Mat *mImageOriginalScaled = nullptr;
