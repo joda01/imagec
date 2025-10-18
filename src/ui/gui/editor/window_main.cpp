@@ -187,16 +187,34 @@ WindowMain::~WindowMain() = default;
 
 void WindowMain::closeEvent(QCloseEvent *event)
 {
-  // Perform any actions before closing
-  int result = QMessageBox::question(this, "Confirm Exit", "Are you sure you want to exit?", QMessageBox::Yes | QMessageBox::No);
+  auto storeRois = [this]() {
+    auto lastPath = mPreviewImage->getImagePanel()->getCurrentImagePath();
+    std::filesystem::path projectPath(mAnalyzeSettings.projectSettings.workingDirectory);
+    projectPath                       = projectPath / fs::WORKING_DIRECTORY_PROJECT_PATH;
+    auto imgIdOld                     = joda::helper::fnv1a(lastPath.string());
+    std::filesystem::path storagePath = projectPath / "annotations";
+    auto storagePathOld               = storagePath / std::to_string(imgIdOld);
+    mPreviewResult.results.objectMap->serialize(storagePathOld);
+  };
 
-  if(result == QMessageBox::Yes) {
-    // Accept the close event to allow the window to close
-    showPanelStartPage();
-    event->accept();
+  // Perform any actions before closing
+  if(mSaveProject->isEnabled()) {
+    int result = QMessageBox::question(this, "Save project?", "Save project before close?", QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+    if(result == QMessageBox::Yes) {
+      // Accept the close event to allow the window to close
+      storeRois();
+      onSaveProject();
+      event->accept();
+    } else if(result == QMessageBox::No) {
+      storeRois();
+      event->accept();
+    } else {
+      // Ignore the close event to keep the window open
+      event->ignore();
+    }
   } else {
-    // Ignore the close event to keep the window open
-    event->ignore();
+    storeRois();
+    event->accept();
   }
 }
 

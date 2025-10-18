@@ -367,8 +367,10 @@ public:
   }
 
   template <class Archive>
-  void save(Archive &ar, std::uint32_t const /*version*/) const
+  void save(Archive &ar, std::uint32_t const version) const
   {
+    std::cout << "Save ROI " << std::to_string(version) << std::endl;
+
     ar(mIsNull, mObjectId, mId, mBoundingBoxReal, mMask, mMaskContours, mConfidence, mAreaSize, mPerimeter, mCircularity, mCentroid, mParentObjectId,
        mTrackingId,
        /*mIntensity, mDistances*/ mOriginObjectId, /*mLinkedWith,*/ mCategory);
@@ -377,7 +379,7 @@ public:
   template <class Archive>
   void load(Archive &ar, std::uint32_t const version)
   {
-    std::cout << "Version " << std::to_string(version) << std::endl;
+    std::cout << "Load ROI " << std::to_string(version) << std::endl;
     if(version != joda::atom::ROI::ROI_SCHEMA_VERSION) {
       return;
     }
