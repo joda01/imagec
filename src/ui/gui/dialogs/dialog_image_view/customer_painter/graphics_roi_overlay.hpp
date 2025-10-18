@@ -33,7 +33,7 @@ public:
 
   /////////////////////////////////////////////////////
   void setOverlay(const cv::Size &imageSize, const cv::Size &previewSize, const joda::enums::TileInfo &tileInfo);
-  void refresh();
+  void refresh(const joda::enums::TileInfo &tileInfo);
   void setAlpha(float);
   void setFill(bool fill)
   {
@@ -49,6 +49,7 @@ signals:
   void paintedPolygonClicked(std::set<joda::atom::ROI *>);
 
 private:
+  void refresh();
   /////////////////////////////////////////////////////
   void prepareContour(const joda::atom::ROI *roi, const QColor &colBorder);
   void mousePressEvent(QGraphicsSceneMouseEvent *event) override;

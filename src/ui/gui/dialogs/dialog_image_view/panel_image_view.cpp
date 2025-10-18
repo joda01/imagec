@@ -115,7 +115,6 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
                                       mZprojection);
   }
   restoreChannelSettings();
-
   mLastPath  = imagePath;
   mLastPlane = mPlane;
   setWaiting(false);
@@ -219,7 +218,10 @@ void PanelImageView::reloadImage()
   }
   {
     std::lock_guard<std::mutex> locked(mImageResetMutex);
+    setWaiting(true);
     joda::ctrl::Controller::loadImage(mLastPath, static_cast<uint16_t>(mSeries), mPlane, mTile, mPreviewImages, &mOmeInfo, mZprojection);
+    setRegionsOfInterestFromObjectList();
+    setWaiting(false);
   }
   restoreChannelSettings();
   mLastPlane = mPlane;
@@ -259,23 +261,13 @@ auto PanelImageView::getImage() const -> const joda::image::Image *
 ///
 void PanelImageView::setRegionsOfInterestFromObjectList()
 {
-  const auto &size = mImageToShow->getPreviewImageSize();
-  if(mOverlayMasks != nullptr) {
-    mOverlayMasks->setOverlay({mPreviewImages.originalImage.getOriginalImage()->cols, mPreviewImages.originalImage.getOriginalImage()->rows},
-                              {size.width(), size.height()}, getTileInfo());
+  if(mImageToShow != nullptr) {
+    const auto &size = mImageToShow->getPreviewImageSize();
+    if(mOverlayMasks != nullptr && !size.isNull() && !size.isEmpty() && size.width() > 0 && size.height() > 0) {
+      mOverlayMasks->setOverlay({mPreviewImages.originalImage.getOriginalImage()->cols, mPreviewImages.originalImage.getOriginalImage()->rows},
+                                {size.width(), size.height()}, getTileInfo());
+    }
   }
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelImageView::refreshRoiColors()
-{
-  mOverlayMasks->refresh();
 }
 
 ///
@@ -952,7 +944,7 @@ void PanelImageView::paintEvent(QPaintEvent *event)
     painter.drawRect(overlay);
     painter.setPen(QColor(255, 255, 255));      // Set the pen color to light blue
     painter.setBrush(QColor(255, 255, 255));    // Set the brush to no brush for transparent fill
-    painter.drawText(overlay, Qt::AlignHCenter | Qt::AlignVCenter, "Generating preview ...");
+    painter.drawText(overlay, Qt::AlignHCenter | Qt::AlignVCenter, "Loading ...");
   }
 
   //
@@ -1280,8 +1272,9 @@ void PanelImageView::getClickedTileInThumbnail(QMouseEvent *event)
         if(rectangle.contains(event->pos())) {
           mTile.tileX = x;
           mTile.tileY = y;
-          scene->update();
-          update();
+          repaint();
+          viewport()->repaint();
+          // mOverlayMasks->refresh(getTileInfo());
           emit tileClicked(x, y);
           return;
         }
@@ -1471,7 +1464,7 @@ bool PanelImageView::deleteSelectedRois()
 void PanelImageView::clearRegionOfInterest(joda::atom::ROI::Category sourceToDelete)
 {
   mObjectMap->erase(sourceToDelete);
-  mOverlayMasks->refresh();
+  mOverlayMasks->refresh(getTileInfo());
 }
 
 ///
@@ -1774,8 +1767,8 @@ auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QRect &imageCoor
 void PanelImageView::setWaiting(bool waiting)
 {
   mWaiting = waiting;
-  update();
-  viewport()->update();
+  repaint();
+  viewport()->repaint();
 }
 
 ///

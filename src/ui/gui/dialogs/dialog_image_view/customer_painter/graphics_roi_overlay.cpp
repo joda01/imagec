@@ -53,6 +53,12 @@ void RoiOverlay::setOverlay(const cv::Size &imageSize, const cv::Size &previewSi
   refresh();
 }
 
+void RoiOverlay::refresh(const joda::enums::TileInfo &tileInfo)
+{
+  mTileInfo = tileInfo;
+  refresh();
+}
+
 ///
 /// \brief      Takes ~60ms
 /// \author     Joachim Danmayr

@@ -152,7 +152,6 @@ public:
   void setShowRois(bool);
   void setRoisOpaque(float opaque);
   void setRoisToHide(const std::set<enums::ClassId> &);
-  void refreshRoiColors();
   void setRoisSelectable(bool);
 
 signals:

@@ -84,7 +84,7 @@ PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList>
           mTableModelClasses->hideElement(selectedRow, checked);
         }
       }
-      mDialogImageView->getImagePanel()->refreshRoiColors();
+      mDialogImageView->getImagePanel()->setRegionsOfInterestFromObjectList();
     });
     mActionHideClass->setStatusTip("Hide class in the preview");
     toolbar->addAction(mActionHideClass);

@@ -690,7 +690,7 @@ void PanelPipelineSettings::closeWindow()
 void PanelPipelineSettings::onClassificationNameChanged()
 {
   valueChangedEvent();
-  mPreviewImage->getImagePanel()->refreshRoiColors();
+  mPreviewImage->getImagePanel()->setRegionsOfInterestFromObjectList();
 }
 
 ///
