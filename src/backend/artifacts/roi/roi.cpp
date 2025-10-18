@@ -143,18 +143,45 @@ bool ROI::isTouchingTheImageEdge(const joda::enums::TileInfo &tile) const
 auto ROI::calcIntensity(const cv::Mat &image, const joda::enums::TileInfo &tile) const -> Intensity
 {
   // \todo make more efficient
+
+  const auto bound = getBoundingBoxTile(tile);
   Intensity intensityRet;
-  cv::Mat maskImg = image(getBoundingBoxTile(tile)).clone();
-  for(int x = 0; x < maskImg.cols; x++) {
-    for(int y = 0; y < maskImg.rows; y++) {
-      if(mMask.at<uint8_t>(y, x) <= 0) {
-        maskImg.at<uint16_t>(y, x) = 0;
+  double count  = 0;
+  bool firstRun = true;
+  for(int y = 0; y < bound.height; y++) {
+    const uint8_t *maskRow = mMask.ptr<uint8_t>(y);
+    int imgY               = y + bound.y;
+    if(imgY >= image.rows) {
+      continue;
+    }
+
+    const uint16_t *imgRow = image.ptr<uint16_t>(imgY);
+    for(int x = 0; x < bound.width; x++) {
+      if(maskRow[x] > 0) {
+        int imgX = x + bound.x;
+        if(imgX >= image.cols) {
+          continue;
+        }
+        uint16_t val = imgRow[imgX];
+        intensityRet.intensitySum += val;
+        if(firstRun) {
+          firstRun                  = false;
+          intensityRet.intensityMin = val;
+          intensityRet.intensityMax = val;
+        } else {
+          if(val < intensityRet.intensityMin) {
+            intensityRet.intensityMin = val;
+          }
+          if(val > intensityRet.intensityMax) {
+            intensityRet.intensityMax = val;
+          }
+        }
+        count++;
       }
     }
   }
-  intensityRet.intensityAvg = static_cast<float>(cv::mean(maskImg, mMask)[0]);
-  intensityRet.intensitySum = static_cast<uint64_t>(cv::sum(maskImg)[0]);
-  cv::minMaxLoc(maskImg, &intensityRet.intensityMin, &intensityRet.intensityMax, nullptr, nullptr, mMask);
+
+  intensityRet.intensityAvg = static_cast<float>(static_cast<double>(intensityRet.intensitySum) / count);
   return intensityRet;
 }
 
