@@ -52,6 +52,9 @@ private:
   QSlider *mSliderHistogramMin;
   QSlider *mSliderHistogramMax;
   QComboBox *mColorMode;
+
+  // CHANNEL SETTINGS ////////////////////////////////////////////
+  QComboBox *mImageChannel;
 };
 
 }    // namespace joda::ui::gui

@@ -28,6 +28,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include "backend/artifacts/roi/roi.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/types.hpp"
@@ -705,7 +706,10 @@ void PanelPipelineSettings::setActive(bool setActive)
   if(!mIsActiveShown && setActive) {
     // Set the image channel initial to the selected channel of the pipeline
     if(mSettings.pipelineSetup.cStackIndex >= 0) {
-      mPreviewImage->setImageChannel(mSettings.pipelineSetup.cStackIndex);
+      if(mPreviewImage->getImagePanel()->getImagePlane().cStack != mSettings.pipelineSetup.cStackIndex) {
+        mPreviewImage->getImagePanel()->setImageChannel(mSettings.pipelineSetup.cStackIndex);
+        mPreviewImage->getImagePanel()->reloadImage();
+      }
     }
 
     mToolbar->setVisible(true);
@@ -716,6 +720,10 @@ void PanelPipelineSettings::setActive(bool setActive)
     mPreviewImage->getImagePanel()->setShowEditedImage(mActionEditMode->isChecked());
   }
   if(!setActive && mIsActiveShown) {
+    mPreviewResult->results.objectMap->triggerStartChangeCallback();
+    mPreviewResult->results.objectMap->erase(joda::atom::ROI::Category::AUTO_SEGMENTATION);
+    mPreviewResult->results.objectMap->triggerChangeCallback();
+    mPreviewImage->getImagePanel()->setRegionsOfInterestFromObjectList();
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
     mIsActiveShown = false;
     mToolbar->setVisible(false);

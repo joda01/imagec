@@ -69,7 +69,6 @@ public:
 
   // SETTER ///////////////////////////////////////////
   void setImagePlane(const ImagePlaneSettings &);
-  void setImageChannel(int32_t channel);
   void setShowCrossHairCursor(bool show);
   void fromSettings(const joda::settings::AnalyzeSettings &settings);
 
@@ -100,10 +99,6 @@ private:
   QSlider *mOverlayOpaque       = nullptr;
   QAction *mOverlayOpaqueAction = nullptr;
   QAction *mActionMlTrainer     = nullptr;
-
-  QActionGroup *mImageChannelMenuGroup = nullptr;
-  QAction *mImageChannel               = nullptr;
-  std::map<int32_t, QAction *> mChannelSelections;
 
   // AI Trainer ////////////////////////////////////////////////////
   DialogMlTrainer *mDialogMlTrainer;

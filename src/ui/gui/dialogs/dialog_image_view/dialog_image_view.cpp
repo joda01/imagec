@@ -172,73 +172,6 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
     toolbarTop->addAction(histogram);
 
     //
-    // Image channel
-    //
-    auto *channelMenu      = new QMenu();
-    mImageChannelMenuGroup = new QActionGroup(toolbarTop);
-
-    auto addChannel = [this, &channelMenu](int32_t chNr) {
-      QString numberName = "zero";
-      switch(chNr) {
-        case 1:
-          numberName = "one";
-          break;
-        case 2:
-          numberName = "two";
-          break;
-        case 3:
-          numberName = "three";
-          break;
-        case 4:
-          numberName = "four";
-          break;
-        case 5:
-          numberName = "five";
-          break;
-        case 6:
-          numberName = "six";
-          break;
-        case 7:
-          numberName = "seven";
-          break;
-        case 8:
-          numberName = "eight";
-          break;
-        case 9:
-          numberName = "nine";
-          break;
-      }
-
-      auto *action =
-          channelMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-" + numberName), "CH" + QString::number(chNr));
-      action->setCheckable(true);
-      if(chNr == 0) {
-        action->setChecked(true);
-      }
-      mImageChannelMenuGroup->addAction(action);
-      mChannelSelections.emplace(chNr, action);
-    };
-    for(int n = 0; n < 9; n++) {
-      addChannel(n);
-    }
-
-    mImageChannel = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("number-square-zero"), "Image channel");
-    mImageChannel->setStatusTip("Image channel to show");
-    mImageChannel->setMenu(channelMenu);
-    toolbarTop->addAction(mImageChannel);
-    auto *btn = qobject_cast<QToolButton *>(toolbarTop->widgetForAction(mImageChannel));
-    btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
-    connect(mImageChannelMenuGroup, &QActionGroup::triggered, this, [this] {
-      applySettingsToImagePanel();
-      mImageViewRight.reloadImage();
-    });
-    connect(channelMenu, &QMenu::triggered, [this](QAction *triggeredAction) {
-      if(triggeredAction != nullptr) {
-        mImageChannel->setIcon(triggeredAction->icon());
-      }
-    });
-
-    //
     // Open image settings
     //
     auto *imgSettings = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("wrench"), "Image settings");
@@ -430,42 +363,9 @@ void DialogImageViewer::setImagePlane(const ImagePlaneSettings &settings)
     mVideoButtonGroup->setValue(settings.plane.tStack);
   }
 
-  for(const auto &[chNr, action] : mChannelSelections) {
-    if(chNr == settings.plane.cStack) {
-      action->setChecked(true);
-      mImageChannel->setIcon(action->icon());
-    } else {
-      action->setChecked(false);
-    }
-  }
-
   mImageViewRight.setSelectedTile(settings.tileX, settings.tileY);
   mImageSettings.tileWidth = settings.tileWidth;
   applySettingsToImagePanel();
-  mImageChannelMenuGroup->blockSignals(false);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogImageViewer::setImageChannel(int32_t channel)
-{
-  if(getSelectedImageChannel() == channel) {
-    return;
-  }
-  for(const auto &[chNr, action] : mChannelSelections) {
-    if(chNr == channel) {
-      action->setChecked(true);
-      mImageChannel->setIcon(action->icon());
-    } else {
-      action->setChecked(false);
-    }
-  }
-  onSettingsChanged();
 }
 
 ///
@@ -708,14 +608,7 @@ int32_t DialogImageViewer::getSeries() const
 ///
 int32_t DialogImageViewer::getSelectedImageChannel() const
 {
-  if(mImageChannelMenuGroup != nullptr) {
-    for(const auto &[chNr, action] : mChannelSelections) {
-      if(action->isChecked()) {
-        return chNr;
-      }
-    }
-  }
-  return 0;
+  return mImageViewRight.getImagePlane().cStack;
 }
 
 ///

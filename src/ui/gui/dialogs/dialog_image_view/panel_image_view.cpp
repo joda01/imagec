@@ -503,6 +503,18 @@ void PanelImageView::setImagePlane(const joda::enums::PlaneId &plane)
 /// \param[out]
 /// \return
 ///
+void PanelImageView::setImageChannel(int32_t ch)
+{
+  mPlane.cStack = ch;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 auto PanelImageView::getImagePlane() const -> const joda::enums::PlaneId &
 {
   return mPlane;
@@ -1416,6 +1428,36 @@ void PanelImageView::keyPressEvent(QKeyEvent *event)
   } else if(event->key() == Qt::Key_W) {
     setState(State::PAIN_BRUSH);
     emit drawingToolChanged(State::PAIN_BRUSH);
+  } else if(event->key() == Qt::Key_0) {
+    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.tStack, .cStack = 0});
+    reloadImage();
+  } else if(event->key() == Qt::Key_1) {
+    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.tStack, .cStack = 1});
+    reloadImage();
+  } else if(event->key() == Qt::Key_2) {
+    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.tStack, .cStack = 2});
+    reloadImage();
+  } else if(event->key() == Qt::Key_3) {
+    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.tStack, .cStack = 3});
+    reloadImage();
+  } else if(event->key() == Qt::Key_4) {
+    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.tStack, .cStack = 4});
+    reloadImage();
+  } else if(event->key() == Qt::Key_5) {
+    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.tStack, .cStack = 5});
+    reloadImage();
+  } else if(event->key() == Qt::Key_6) {
+    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.tStack, .cStack = 6});
+    reloadImage();
+  } else if(event->key() == Qt::Key_7) {
+    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.tStack, .cStack = 7});
+    reloadImage();
+  } else if(event->key() == Qt::Key_8) {
+    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.tStack, .cStack = 8});
+    reloadImage();
+  } else if(event->key() == Qt::Key_9) {
+    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.tStack, .cStack = 9});
+    reloadImage();
   }
 }
 

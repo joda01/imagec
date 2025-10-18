@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include <string>
 #include "backend/commands/classification/classifier/classifier_settings.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core.hpp>
@@ -114,7 +115,9 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
           break;
         }
       }
-      result.push_back(detectedRoi);
+      if(detectedRoi.getClassId() != enums::ClassId::NONE) {
+        result.push_back(detectedRoi);
+      }
       i++;
     }
   }

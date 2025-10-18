@@ -77,7 +77,10 @@ void HoughTransform::execute(processor::ProcessContext &context, cv::Mat &image,
 
     joda::atom::ROI detectedRoi(atom::ROI::RoiObjectId{.classId = context.getClassId(mSettings.outputClass), .imagePlane = context.getActIterator()},
                                 context.getAppliedMinThreshold(), boundingBox, mask, contours[0], context.getTileInfo());
-    result.push_back(detectedRoi);
+
+    if(detectedRoi.getClassId() != enums::ClassId::NONE) {
+      result.push_back(detectedRoi);
+    }
   };
 
   /////////////////////

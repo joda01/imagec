@@ -18,6 +18,7 @@
 #include <qpushbutton.h>
 #include <qslider.h>
 #include <qtoolbar.h>
+#include <cstdint>
 #include <string>
 #include "ui/gui/dialogs/dialog_image_view/panel_image_view.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
@@ -101,18 +102,32 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
 
   layout->addRow(mColorMode);
 
+  //
+  // Image channel
+  //
+  mImageChannel = new QComboBox();
+  for(int n = 0; n < 9; n++) {
+    mImageChannel->addItem("Channel " + QString::number(n), n);
+  }
+  layout->addRow(mImageChannel);
+
   // Connect
   connect(mSliderDisplayLower, &QSpinBox::editingFinished, [this] { applyHistogramSettingsToImage(); });
   connect(mSliderDisplayUpper, &QSpinBox::editingFinished, [this] { applyHistogramSettingsToImage(); });
   connect(mSliderHistogramMin, &QScrollBar::valueChanged, [this] { applyHistogramSettingsToImage(); });
   connect(mSliderHistogramMax, &QScrollBar::valueChanged, [this] { applyHistogramSettingsToImage(); });
   connect(mColorMode, &QComboBox::currentIndexChanged, [this] { applyHistogramSettingsToImage(); });
+  connect(mImageChannel, &QComboBox::currentIndexChanged, [this] {
+    mImagePanel->setImageChannel(mImageChannel->currentData().toInt());
+    mImagePanel->reloadImage();
+  });
 
   connect(imagePanel, &PanelImageView::updateImage, [this] {
     mSliderDisplayLower->blockSignals(true);
     mSliderDisplayUpper->blockSignals(true);
     mSliderHistogramMin->blockSignals(true);
     mSliderHistogramMax->blockSignals(true);
+    mImageChannel->blockSignals(true);
 
     mSliderHistogramMin->setMinimum(mImagePanel->mutableImage()->getHistogramDisplayAreaLower());
     mSliderHistogramMin->setMaximum(mImagePanel->mutableImage()->getHistogramDisplayAreaUpper());
@@ -125,8 +140,11 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
     mSliderHistogramMin->setValue(mImagePanel->mutableImage()->getLowerLevelContrast());
     mSliderHistogramMax->setValue(mImagePanel->mutableImage()->getUpperLevelContrast());
 
+    mImageChannel->setCurrentIndex(mImagePanel->getImagePlane().cStack);
+
     mHistogramPanel->update();
 
+    mImageChannel->blockSignals(false);
     mSliderDisplayLower->blockSignals(false);
     mSliderDisplayUpper->blockSignals(false);
     mSliderHistogramMin->blockSignals(false);
@@ -147,8 +165,9 @@ void DialogHistogramSettings::applyHistogramSettingsToImage()
 {
   blockSignals(true);
 
-  mImagePanel->mutableImage()->setBrightnessRange(mSliderHistogramMin->value(), mSliderHistogramMax->value(), mSliderDisplayLower->value(),
-                                                  mSliderDisplayUpper->value());
+  mImagePanel->mutableImage()->setBrightnessRange(mSliderHistogramMin->value(), mSliderHistogramMax->value(),
+                                                  static_cast<int32_t>(mSliderDisplayLower->value()),
+                                                  static_cast<int32_t>(mSliderDisplayUpper->value()));
 
   if(mColorMode->currentData() == 0) {
     mImagePanel->mutableImage()->setPseudoColorEnabled(true);

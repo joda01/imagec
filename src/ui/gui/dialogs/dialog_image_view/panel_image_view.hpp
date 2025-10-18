@@ -133,6 +133,7 @@ public:
   auto getZprojection() const -> enums::ZProjection;
   void setSeries(int32_t);
   int32_t getSeries() const;
+  void setImageChannel(int32_t ch);
   void setImagePlane(const joda::enums::PlaneId &);
   auto getImagePlane() const -> const joda::enums::PlaneId &;
   void setSelectedTile(int32_t tileX, int32_t tileY);
@@ -211,7 +212,7 @@ private:
   joda::processor::Preview mPreviewImages;
   joda::image::Image *mImageToShow = nullptr;
   float mOpaque                    = 0.6F;
-  joda::enums::PlaneId mPlane;
+  joda::enums::PlaneId mPlane{0, 0, 0};
   joda::ome::TileToLoad mTile;
   enums::ZProjection mZprojection;
   int32_t mSeries = 0;

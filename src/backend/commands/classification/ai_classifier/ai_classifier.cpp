@@ -143,8 +143,9 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
           break;
         }
       }
-
-      result.push_back(detectedRoi);
+      if(detectedRoi.getClassId() != enums::ClassId::NONE) {
+        result.push_back(detectedRoi);
+      }
     }
   }
 }

@@ -143,7 +143,9 @@ public:
 
       atom::ROI roi(atom::ROI::RoiObjectId{.classId = context.getClassId(mSettings.outputClassVoronoi), .imagePlane = context.getActIterator()}, 1,
                     box, boxMask, contours[idxMax], context.getTileInfo());
-      result.push_back(roi);
+      if(roi.getClassId() != enums::ClassId::NONE) {
+        result.push_back(roi);
+      }
     }
   }
 
