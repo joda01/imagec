@@ -164,6 +164,7 @@ signals:
   void tileClicked(int32_t tileX, int32_t tileY);
   void paintedPolygonClicked(std::set<atom::ROI *>);
   void drawingToolChanged(State);
+  void imageOpened();
 
 private:
   /////////////////////////////////////////////////////
@@ -223,11 +224,7 @@ private:
   QGraphicsScene *scene           = nullptr;
 
   // STATE AND PAINTING ///////////////////////////////////////////////////
-  State mState                    = State::MOVE;
-  RoiOverlay *mOverlayMasks       = nullptr;
-  ContourOverlay *mContourOverlay = nullptr;
-  PaintedRoi_t mActPaintingRoi;
-
+  State mState = State::MOVE;
   QPointF mPaintOrigin;
   QAbstractGraphicsShapeItem *mRubberItem = nullptr;
   bool mDrawPolygon                       = false;
@@ -236,6 +233,10 @@ private:
   QGraphicsPolygonItem *mTempPolygonItem;
   enums::ClassId mSelectedClassForDrawing = enums::ClassId::NONE;
   QColor mPixelClassColor                 = Qt::gray;
+
+  // Overlays ///////////////////////////////////////////////////
+  RoiOverlay *mOverlayMasks       = nullptr;
+  ContourOverlay *mContourOverlay = nullptr;
 
   // MOVE IMAGE ///////////////////////////////////////////////////
   cv::Size mPixmapSize;
@@ -276,6 +277,7 @@ private:
   bool mSelectable = true;
   const joda::settings::Classification *mClassSettings;
   std::shared_ptr<atom::ObjectList> mObjectMap;
+  std::mutex mRepaintMutex;
 
   mutable std::mutex mImageResetMutex;
 

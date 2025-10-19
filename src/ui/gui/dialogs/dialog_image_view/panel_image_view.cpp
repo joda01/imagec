@@ -17,6 +17,7 @@
 #include <qpixmap.h>
 #include <qsize.h>
 #include <qstatictext.h>
+#include <QtConcurrent/QtConcurrentRun>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -103,23 +104,29 @@ PanelImageView::PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMa
 ///
 void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo)
 {
+  std::lock_guard<std::mutex> lock(mRepaintMutex);
   setWaiting(true);
-
   if(omeInfo != nullptr) {
-    std::lock_guard<std::mutex> locked(mImageResetMutex);
-    joda::ctrl::Controller::loadImage(imagePath, static_cast<uint16_t>(mSeries), mPlane, mTile, mPreviewImages, omeInfo, mZprojection);
     mOmeInfo = *omeInfo;
-  } else {
-    std::lock_guard<std::mutex> locked(mImageResetMutex);
-    joda::ctrl::Controller::loadImage(imagePath, static_cast<uint16_t>(mSeries), mPlane, mTile, mDefaultPhysicalSize, mPreviewImages, mOmeInfo,
-                                      mZprojection);
   }
+  QThreadPool::globalInstance()->start([this, imagePath, loadOme = nullptr != omeInfo]() {
+    {
+      std::lock_guard<std::mutex> locked(mImageResetMutex);
+      if(loadOme) {
+        joda::ctrl::Controller::loadImage(imagePath, static_cast<uint16_t>(mSeries), mPlane, mTile, mPreviewImages, &mOmeInfo, mZprojection);
+      } else {
+        joda::ctrl::Controller::loadImage(imagePath, static_cast<uint16_t>(mSeries), mPlane, mTile, mDefaultPhysicalSize, mPreviewImages, mOmeInfo,
+                                          mZprojection);
+      }
+    }
+    setRegionsOfInterestFromObjectList();
 
-  restoreChannelSettings();
-  mLastPath  = imagePath;
-  mLastPlane = mPlane;
-  setWaiting(false);
-  repaintImage();
+    restoreChannelSettings();
+    mLastPath  = imagePath;
+    mLastPlane = mPlane;
+    setWaiting(false);
+    repaintImage();
+  });
 }
 
 ///
@@ -220,16 +227,8 @@ void PanelImageView::reloadImage()
   if(mLastPath.empty()) {
     return;
   }
-  {
-    std::lock_guard<std::mutex> locked(mImageResetMutex);
-    setWaiting(true);
-    joda::ctrl::Controller::loadImage(mLastPath, static_cast<uint16_t>(mSeries), mPlane, mTile, mPreviewImages, &mOmeInfo, mZprojection);
-    setRegionsOfInterestFromObjectList();
-    setWaiting(false);
-  }
-  restoreChannelSettings();
-  mLastPlane = mPlane;
-  repaintImage();
+
+  openImage(mLastPath, &mOmeInfo);
 }
 
 ///
@@ -1178,6 +1177,8 @@ void PanelImageView::drawActChannel(QPainter &painter)
 ///
 void PanelImageView::drawThumbnail(QPainter &painter)
 {
+  std::lock_guard<std::mutex> lock(mRepaintMutex);
+
   if(mPreviewImages.thumbnail.empty() || static_cast<int32_t>(mOmeInfo.getNrOfSeries()) < mSeries) {
     return;
   }
@@ -1314,7 +1315,6 @@ void PanelImageView::getClickedTileInThumbnail(QMouseEvent *event)
         if(rectangle.contains(event->pos())) {
           mTile.tileX = x;
           mTile.tileY = y;
-          repaint();
           viewport()->repaint();
           // mOverlayMasks->refresh(getTileInfo());
           emit tileClicked(x, y);
@@ -1838,9 +1838,11 @@ auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QRect &imageCoor
 ///
 void PanelImageView::setWaiting(bool waiting)
 {
+  if(mWaiting == waiting) {
+    return;
+  }
   mWaiting = waiting;
-  repaint();
-  viewport()->repaint();
+  viewport()->update();
 }
 
 ///

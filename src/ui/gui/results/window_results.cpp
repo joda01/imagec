@@ -764,7 +764,6 @@ void WindowResults::previewThread()
     auto previewData = mPreviewQue.pop();
 
     try {
-      mDockWidgetImagePreview->getImageWidget()->setWaiting(true);
       int32_t tileWidth      = static_cast<int32_t>(previewData.analyzeMeta.tileWidth);
       int32_t tileHeight     = static_cast<int32_t>(previewData.analyzeMeta.tileHeight);
       int32_t series         = static_cast<int32_t>(previewData.analyzeMeta.series);
@@ -793,7 +792,6 @@ void WindowResults::previewThread()
       // No image selected
       joda::log::logError("Preview error: " + std::string(ex.what()));
     }
-    mDockWidgetImagePreview->getImageWidget()->setWaiting(false);
   }
 }
 
