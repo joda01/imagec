@@ -135,11 +135,9 @@ WindowResults::WindowResults(WindowMain *windowMain) : mWindowMain(windowMain), 
 
     addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, mDockWidgetGraphSettings);
     addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, mDockWidgetImagePreview);
-    // addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, mDockWidgetImagePreview);
     splitDockWidget(mDockWidgetImagePreview, mDockWidgetClassList, Qt::Vertical);    // <- key line
 
     tabifyDockWidget(mDockWidgetImagePreview, mDockWidgetGraphSettings);
-    // tabifyDockWidget(mDockWidgetClassList, mDockWidgetImagePreview);
     mDockWidgetClassList->raise();
   }
 
@@ -489,25 +487,6 @@ auto WindowResults::createToolBar() -> QToolBar *
   toolbar->addSeparator();
 
   //
-  // Show preview action
-  //
-  mShowPreview = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("image"), "");
-  mShowPreview->setCheckable(true);
-  mShowPreview->setChecked(true);
-  mShowPreview->setToolTip("Show preview");
-  connect(mShowPreview, &QAction::triggered, [this](bool checked) {
-    if(checked) {
-      if(mNavigation == Navigation::IMAGE && !mImageWorkingDirectory.empty()) {
-        // mDockWidgetImagePreview->setVisible(true);
-        mDockWidgetImagePreview->raise();
-      }
-    } else {
-      // mDockWidgetImagePreview->setVisible(false);
-    }
-  });
-  toolbar->addAction(mShowPreview);
-
-  //
   // Mark as invalid button
   //
   // edit-select-none
@@ -591,8 +570,6 @@ void WindowResults::refreshBreadCrump()
       mBreadCrumpWell->setVisible(false);
       mBreadCrumpImage->setVisible(false);
       mOpenNextLevel->setVisible(true);
-      mShowPreview->setEnabled(false);
-      // mDockWidgetImagePreview->setVisible(false);
       mDockWidgetImagePreview->setFloating(false);
       mVideoControlButton->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
       break;
@@ -600,8 +577,6 @@ void WindowResults::refreshBreadCrump()
       mBreadCrumpWell->setVisible(true);
       mBreadCrumpImage->setVisible(false);
       mOpenNextLevel->setVisible(true);
-      mShowPreview->setEnabled(false);
-      // mDockWidgetImagePreview->setVisible(false);
       mDockWidgetImagePreview->setFloating(false);
       mVideoControlButton->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
       if(mSelectedDataSet.groupMeta.has_value()) {
@@ -615,17 +590,6 @@ void WindowResults::refreshBreadCrump()
       mBreadCrumpImage->setVisible(true);
       mOpenNextLevel->setVisible(false);
       mVideoControlButton->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());    // Reset
-      if(!mImageWorkingDirectory.empty() && mDashboard->isVisible()) {
-        mShowPreview->setEnabled(true);
-        // mDockWidgetImagePreview->setVisible(mShowPreview->isChecked());
-        if(mShowPreview->isChecked()) {
-          mDockWidgetImagePreview->raise();
-        }
-      } else {
-        mShowPreview->setChecked(false);
-        mShowPreview->setEnabled(false);
-        // mDockWidgetImagePreview->setVisible(false);
-      }
 
       //
       std::string imageName;
@@ -684,9 +648,6 @@ void WindowResults::loadPreview()
 
   if(mImageWorkingDirectory.empty()) {
     // No working directory selected. Make the image preview invisible
-    mShowPreview->setEnabled(false);
-    mShowPreview->setChecked(false);
-    // mDockWidgetImagePreview->setVisible(false);
     mGeneratePreviewMutex.unlock();
     return;
   }
@@ -727,18 +688,10 @@ void WindowResults::loadPreview()
         imagePath  = mImageWorkingDirectory / imagePathRel;
         showDialog = !std::filesystem::exists(imagePath);
       } else {
-        if(mImageWorkingDirectory.empty()) {
-          mShowPreview->setEnabled(false);
-          mShowPreview->setChecked(false);
-          //  mDockWidgetImagePreview->setVisible(false);
-        }
         mGeneratePreviewMutex.unlock();
         return;
       }
     } else if(msgBox.clickedButton() == dontAskAgainButton) {
-      mShowPreview->setEnabled(false);
-      mShowPreview->setChecked(false);
-      //  mDockWidgetImagePreview->setVisible(false);
       mImageWorkingDirectory.clear();
       mGeneratePreviewMutex.unlock();
       return;
@@ -1212,7 +1165,6 @@ void WindowResults::onShowHeatmap()
   mDashboard->setVisible(false);
   mDockWidgetGraphSettings->setVisible(true);
   mDockWidgetGraphSettings->raise();    // Make it the active tab
-  // mDockWidgetImagePreview->setVisible(false);
   setHeatmapVisible(true);
   refreshView();
 }

@@ -165,7 +165,6 @@ private:
   std::mutex mSelectMutex;
 
   // TOOLBARS///////////////////////////////////////////////////
-  QAction *mShowPreview;
   QAction *mDeleteCol;
   QAction *mEditCol;
 
