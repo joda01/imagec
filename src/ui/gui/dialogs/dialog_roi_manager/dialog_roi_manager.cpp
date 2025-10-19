@@ -149,7 +149,7 @@ DialogRoiManager::DialogRoiManager(const std::shared_ptr<atom::ObjectList> &obje
     }
   });
 
-  connect(mImagePanel, &PanelImageView::updateImage, this, [this]() {
+  connect(mImagePanel, &PanelImageView::channelOpened, this, [this]() {
     auto *roi = mTableModelRoi->getActRoi();
     if(roi != nullptr) {
       roi->measureIntensityAndAdd({.zProjection = mImagePanel->getZprojection(), .imagePlane = mImagePanel->getImagePlane()},

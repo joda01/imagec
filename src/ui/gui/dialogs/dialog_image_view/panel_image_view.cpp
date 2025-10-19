@@ -92,7 +92,6 @@ PanelImageView::PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMa
   scene->addItem(mOverlayMasks);
   scene->addItem(mContourOverlay);
 
-  connect(this, &PanelImageView::updateImage, this, &PanelImageView::onUpdateImage);
   connect(mOverlayMasks, &RoiOverlay::paintedPolygonClicked, this, &PanelImageView::paintedPolygonClicked);
 }
 
@@ -133,6 +132,7 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
       emit imageOpened();
       mLastPath = imagePath;
     }
+    emit channelOpened();
     mLastPlane = mPlane;
     using namespace std::chrono_literals;
     std::this_thread::sleep_for(250ms);
@@ -365,7 +365,7 @@ void PanelImageView::repaintImage()
         .mDisplayAreaUpper = mImageToShow->getHistogramDisplayAreaUpper(),
     };
   }
-  emit updateImage();
+  onUpdateImage();
 }
 
 ///
@@ -619,7 +619,7 @@ void PanelImageView::resetImage()
     mActPixmap = nullptr;
   }
   fitImageToScreenSize();
-  emit updateImage();
+  onUpdateImage();
 }
 
 void PanelImageView::onUpdateImage()
@@ -647,8 +647,6 @@ void PanelImageView::onUpdateImage()
       fitImageToScreenSize();
     }
     mPlaceholderImageSet = false;
-  } else {
-    emit onImageRepainted();
   }
 
   scene->update();
@@ -671,7 +669,6 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
       mCrossCursorInfo.mCursorPos = event->pos();
       mCrossCursorInfo.pixelInfo  = fetchPixelInfoFromMousePosition(event->pos());
       viewport()->update();
-      emit onImageRepainted();
       return;
     }
     if(event->button() == Qt::LeftButton) {
@@ -897,7 +894,6 @@ void PanelImageView::zoomImage(bool inOut)
   } else {
     scale(1.0 / zoomFactor, 1.0 / zoomFactor);
   }
-  emit onImageRepainted();
 
   /*
   QPointF center = mapToScene(viewport()->rect().center());
@@ -918,7 +914,6 @@ void PanelImageView::fitImageToScreenSize()
   resetTransform();
   double zoomFactor = static_cast<double>(std::min(width(), height())) / static_cast<double>(mPixmapSize.width);
   scale(zoomFactor, zoomFactor);
-  emit onImageRepainted();
 }
 
 ///

@@ -159,12 +159,11 @@ public:
 signals:
   /////////////////////////////////////////////////////
   void classesToShowChanged(const settings::ObjectInputClasses &selectedClasses);
-  void updateImage();
-  void onImageRepainted();
   void tileClicked(int32_t tileX, int32_t tileY);
   void paintedPolygonClicked(std::set<atom::ROI *>);
   void drawingToolChanged(State);
   void imageOpened();
+  void channelOpened();
 
 private:
   /////////////////////////////////////////////////////

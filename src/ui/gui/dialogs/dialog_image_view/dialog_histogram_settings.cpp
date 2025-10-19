@@ -122,7 +122,7 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
     mImagePanel->reloadImage();
   });
 
-  connect(imagePanel, &PanelImageView::updateImage, [this] {
+  connect(imagePanel, &PanelImageView::channelOpened, [this] {
     mSliderDisplayLower->blockSignals(true);
     mSliderDisplayUpper->blockSignals(true);
     mSliderHistogramMin->blockSignals(true);

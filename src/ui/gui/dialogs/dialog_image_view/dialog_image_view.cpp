@@ -292,7 +292,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
 
     connect(&mImageViewRight, &PanelImageView::tileClicked, this, &DialogImageViewer::onSettingsChanged);
     connect(&mImageViewRight, &PanelImageView::classesToShowChanged, this, &DialogImageViewer::onSettingsChanged);
-    connect(&mImageViewRight, &PanelImageView::updateImage, [this]() {
+    connect(&mImageViewRight, &PanelImageView::imageOpened, [this]() {
       if(nullptr != mVideoButtonGroup) {
         mVideoButtonGroup->setMaxTimeStacks(mImageViewRight.getNrOfTstacks());
       }
