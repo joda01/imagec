@@ -21,6 +21,7 @@
 #include "backend/settings/project_settings/project_class.hpp"
 #include "backend/settings/project_settings/project_settings.hpp"
 #include "ui/gui/helper/color_combo/color_combo.hpp"
+#include "ui/gui/helper/table_view.hpp"
 #include "ui/gui/helper/table_widget.hpp"
 #include "ui/gui/results/dialog_class_settings.hpp"
 
@@ -34,6 +35,7 @@ class ResultsSettings;
 
 namespace joda::ui::gui {
 class WindowMain;
+class TableModelClasses;
 
 ///
 /// \class
@@ -62,14 +64,14 @@ private:
   static constexpr int COL_NOTES   = 4;
 
   /////////////////////////////////////////////////////
-  void openEditDialog(int row, int column);
-  void createTableItem(int32_t rowIdx, enums::ClassId classId, const std::string &name, const std::string &color, const std::string &notes);
+  void openEditDialog(joda::settings::Class *classToModify, int32_t row);
 
   /////////////////////////////////////////////////////
   settings::ResultsSettings *mResultsSettings;
   joda::db::Database *mDatabase = nullptr;
-  PlaceholderTableWidget *mClasses;
-  std::list<joda::settings::Class> mClassesList;
+  joda::settings::Classification mClassesList;
+  PlaceholderTableView *mTableClasses;
+  TableModelClasses *mTableModelClasses;
 
   /// DIALOG //////////////////////////////////////////////////
   DialogClassSettings *mClassSettingsDialog;
