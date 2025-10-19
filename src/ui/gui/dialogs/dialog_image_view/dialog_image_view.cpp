@@ -101,7 +101,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
         }
       });
 
-      toolbarTop->addSeparator();
+      mSeparatorStatePaint = toolbarTop->addSeparator();
 
       mActionPaintRectangle = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("rectangle"), "Rectangle");
       mActionPaintRectangle->setStatusTip("Paint rectangle");
@@ -159,7 +159,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
       });
     }
 
-    toolbarTop->addSeparator();
+    mSeparatorPaintHistogram = toolbarTop->addSeparator();
 
     //
     // Histogram
@@ -183,7 +183,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
       }
     });
     toolbarTop->addAction(imgSettings);
-    toolbarTop->addSeparator();
+    mSeparatorHistogramMlTraining = toolbarTop->addSeparator();
 
     //
     // ML Trainer
@@ -243,7 +243,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
     connect(mOverlayOpaque, &QSlider::valueChanged, [this] { mImageViewRight.setRoisOpaque(static_cast<float>(mOverlayOpaque->value()) / 100.0F); });
     mOverlayOpaqueAction = toolbarTop->addWidget(mOverlayOpaque);
 
-    toolbarTop->addSeparator();
+    mSeparatorFillAndOverlays = toolbarTop->addSeparator();
 
     showCrossHairCursor = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("crosshair"), "");
     showCrossHairCursor->setStatusTip("Show/Hide cross hair cursor (right click to place)");
@@ -417,11 +417,22 @@ auto DialogImageViewer::getImagePanel() -> PanelImageView *
 /// \param[out]
 /// \return
 ///
-void DialogImageViewer::setOverlayButtonsVisible(bool visible)
+void DialogImageViewer::setReadOnly(bool visible)
 {
   mFillOVerlay->setVisible(visible);
   showOverlay->setVisible(visible);
   mOverlayOpaqueAction->setVisible(visible);
+  mMoveAction->setVisible(visible);
+  mSelectAction->setVisible(visible);
+  mActionPaintRectangle->setVisible(visible);
+  mActionPaintCircle->setVisible(visible);
+  mPaintPolygon->setVisible(visible);
+  mActionMlTrainer->setVisible(visible);
+
+  mSeparatorStatePaint->setVisible(visible);
+  mSeparatorPaintHistogram->setVisible(visible);
+  mSeparatorHistogramMlTraining->setVisible(visible);
+  mSeparatorFillAndOverlays->setVisible(visible);
 }
 
 ///

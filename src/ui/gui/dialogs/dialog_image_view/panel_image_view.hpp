@@ -168,6 +168,7 @@ signals:
 
 private:
   /////////////////////////////////////////////////////
+  void setLoadingImage(bool waiting);
   void mousePressEvent(QMouseEvent *event) override;
   void mouseDoubleClickEvent(QMouseEvent *event) override;
   void mouseMoveEvent(QMouseEvent *event) override;
@@ -262,6 +263,7 @@ private:
   std::map<SettingsIdx, ChannelSettings> mChannelSettings;
 
   /////////////////////////////////////////////////////
+  bool mLoadingImage          = false;
   bool mWaiting               = false;
   bool mShowThumbnail         = true;
   bool mShowPixelInfo         = true;

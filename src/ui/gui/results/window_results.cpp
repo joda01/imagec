@@ -99,7 +99,7 @@ WindowResults::WindowResults(WindowMain *windowMain) : mWindowMain(windowMain), 
 
   // Add to dock
   mDockWidgetImagePreview->getImageWidget()->setShowCrossHairCursor(true);
-  mDockWidgetImagePreview->getImageWidget()->setOverlayButtonsVisible(false);
+  mDockWidgetImagePreview->getImageWidget()->setReadOnly(false);
   mDockWidgetImagePreview->getImageWidget()->removeVideoControl();
 
   static const int32_t SELECTED_INFO_WIDTH   = 250;

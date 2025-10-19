@@ -105,7 +105,7 @@ PanelImageView::PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMa
 void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo)
 {
   std::lock_guard<std::mutex> lock(mRepaintMutex);
-  setWaiting(true);
+  setLoadingImage(true);
   if(omeInfo != nullptr) {
     mOmeInfo = *omeInfo;
   }
@@ -120,11 +120,10 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
       }
     }
     setRegionsOfInterestFromObjectList();
-
     restoreChannelSettings();
     mLastPath  = imagePath;
     mLastPlane = mPlane;
-    setWaiting(false);
+    setLoadingImage(false);
     repaintImage();
   });
 }
@@ -956,14 +955,18 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   }
 
   // Waiting banner
-  if(mWaiting) {
+  if(mWaiting || mLoadingImage) {
     QRect overlay(0, viewportRect.height() / 2 - 10, viewportRect.width(), 20);
     painter.setPen(QColor(0, 0, 0));      // Set the pen color to light blue
     painter.setBrush(QColor(0, 0, 0));    // Set the brush to no brush for transparent fill
     painter.drawRect(overlay);
     painter.setPen(QColor(255, 255, 255));      // Set the pen color to light blue
     painter.setBrush(QColor(255, 255, 255));    // Set the brush to no brush for transparent fill
-    painter.drawText(overlay, Qt::AlignHCenter | Qt::AlignVCenter, "Loading ...");
+    if(mLoadingImage) {
+      painter.drawText(overlay, Qt::AlignHCenter | Qt::AlignVCenter, "Open image ...");
+    } else if(mWaiting) {
+      painter.drawText(overlay, Qt::AlignHCenter | Qt::AlignVCenter, "Analyzing ...");
+    }
   }
 
   //
@@ -991,7 +994,7 @@ void PanelImageView::drawCrossHairCursor(QPainter &painter)
   }
 
   // Set the color and pen thickness for the cross lines
-  QPen pen(QColor(0, 255, 0), 3);
+  QPen pen(QColor(0, 255, 0), 1);
   pen.setCosmetic(true);
   painter.setPen(pen);
 
@@ -1827,6 +1830,22 @@ auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QRect &imageCoor
     height *= factorY;
   }
   return {static_cast<int32_t>(imgX), static_cast<int32_t>(imgY), static_cast<int32_t>(width), static_cast<int32_t>(height)};
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::setLoadingImage(bool waiting)
+{
+  if(mLoadingImage == waiting) {
+    return;
+  }
+  mLoadingImage = waiting;
+  viewport()->update();
 }
 
 ///

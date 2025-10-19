@@ -74,7 +74,7 @@ public:
   void fromSettings(const joda::settings::AnalyzeSettings &settings);
 
   // Visibility ///////////////////////////////////////////
-  void setOverlayButtonsVisible(bool);
+  void setReadOnly(bool);
   void removeVideoControl();
 
 signals:
@@ -100,6 +100,11 @@ private:
   QSlider *mOverlayOpaque       = nullptr;
   QAction *mOverlayOpaqueAction = nullptr;
   QAction *mActionMlTrainer     = nullptr;
+
+  QAction *mSeparatorStatePaint;
+  QAction *mSeparatorPaintHistogram;
+  QAction *mSeparatorHistogramMlTraining;
+  QAction *mSeparatorFillAndOverlays;
 
   // AI Trainer ////////////////////////////////////////////////////
   DialogMlTrainer *mDialogMlTrainer;
