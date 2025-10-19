@@ -137,6 +137,7 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
 ///
 auto PanelImageView::getCurrentImagePath() const -> std::filesystem::path
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   return mLastPath;
 }
 
@@ -187,6 +188,7 @@ void PanelImageView::restoreChannelSettings()
 ///
 void PanelImageView::setDefaultPhysicalSize(const joda::settings::ProjectImageSetup::PhysicalSizeSettings &set)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   if(mDefaultPhysicalSize.mode == enums::PhysicalSizeMode::Manual) {
     mDefaultPhysicalSize = set;
     mOmeInfo.setPhyiscalSize(joda::ome::PhyiscalSize{
@@ -211,6 +213,7 @@ void PanelImageView::setDefaultPhysicalSize(const joda::settings::ProjectImageSe
 ///
 auto PanelImageView::getPhysicalSizeSettings() const -> const joda::settings::ProjectImageSetup::PhysicalSizeSettings &
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   return mDefaultPhysicalSize;
 }
 
@@ -239,6 +242,7 @@ void PanelImageView::reloadImage()
 ///
 auto PanelImageView::mutableImage() -> joda::image::Image *
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   return mImageToShow;
 }
 
@@ -251,6 +255,7 @@ auto PanelImageView::mutableImage() -> joda::image::Image *
 ///
 auto PanelImageView::getImage() const -> const joda::image::Image *
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   return mImageToShow;
 }
 
@@ -263,11 +268,12 @@ auto PanelImageView::getImage() const -> const joda::image::Image *
 ///
 void PanelImageView::setRegionsOfInterestFromObjectList()
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   if(mImageToShow != nullptr) {
     const auto &size = mImageToShow->getPreviewImageSize();
     if(mOverlayMasks != nullptr && !size.isNull() && !size.isEmpty() && size.width() > 0 && size.height() > 0) {
       mOverlayMasks->setOverlay({mPreviewImages.originalImage.getOriginalImage()->cols, mPreviewImages.originalImage.getOriginalImage()->rows},
-                                {size.width(), size.height()}, getTileInfo());
+                                {size.width(), size.height()}, getTileInfoInternal());
     }
   }
 }
@@ -443,6 +449,7 @@ void PanelImageView::setCursor()
 ///
 void PanelImageView::setZprojection(enums::ZProjection projection)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mZprojection = projection;
 }
 
@@ -455,6 +462,7 @@ void PanelImageView::setZprojection(enums::ZProjection projection)
 ///
 auto PanelImageView::getZprojection() const -> enums::ZProjection
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   return mZprojection;
 }
 
@@ -467,6 +475,7 @@ auto PanelImageView::getZprojection() const -> enums::ZProjection
 ///
 void PanelImageView::setSeries(int32_t series)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mSeries = series;
 }
 
@@ -479,6 +488,7 @@ void PanelImageView::setSeries(int32_t series)
 ///
 int32_t PanelImageView::getSeries() const
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   return mSeries;
 }
 
@@ -491,6 +501,7 @@ int32_t PanelImageView::getSeries() const
 ///
 void PanelImageView::setImagePlane(const joda::enums::PlaneId &plane)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mPlane = plane;
 }
 
@@ -503,6 +514,7 @@ void PanelImageView::setImagePlane(const joda::enums::PlaneId &plane)
 ///
 void PanelImageView::setImageChannel(int32_t ch)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mPlane.cStack = ch;
 }
 
@@ -513,8 +525,9 @@ void PanelImageView::setImageChannel(int32_t ch)
 /// \param[out]
 /// \return
 ///
-auto PanelImageView::getImagePlane() const -> const joda::enums::PlaneId &
+auto PanelImageView::getImagePlane() const -> joda::enums::PlaneId
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   return mPlane;
 }
 
@@ -527,6 +540,7 @@ auto PanelImageView::getImagePlane() const -> const joda::enums::PlaneId &
 ///
 void PanelImageView::setImageTile(int32_t tileWith, int32_t tileHeight)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mTile.tileWidth  = tileWith;
   mTile.tileHeight = tileHeight;
 }
@@ -540,6 +554,7 @@ void PanelImageView::setImageTile(int32_t tileWith, int32_t tileHeight)
 ///
 void PanelImageView::setSelectedTile(int32_t tileX, int32_t tileY)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mTile.tileX = tileX;
   mTile.tileY = tileY;
 }
@@ -552,6 +567,11 @@ void PanelImageView::setSelectedTile(int32_t tileX, int32_t tileY)
 /// \return
 ///
 auto PanelImageView::getTileInfo() const -> enums::TileInfo
+{
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
+  return getTileInfoInternal();
+}
+auto PanelImageView::getTileInfoInternal() const -> enums::TileInfo
 {
   return {.tileSegment{mTile.tileX, mTile.tileY}, .tileSize{mTile.tileWidth, mTile.tileHeight}};
 }
@@ -595,7 +615,7 @@ void PanelImageView::onUpdateImage()
   cv::Size size;
   {
     std::lock_guard<std::mutex> locked(mImageResetMutex);
-    auto *img = mImageToShow->getImage();
+    const auto *img = mImageToShow->getImage();
     if(img == nullptr) {
       return;
     }
@@ -650,7 +670,7 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
 
   } else if(mState == State::SELECT) {
   } else {
-    if(event->button() == Qt::LeftButton) {
+    if(event->button() == Qt::LeftButton && nullptr != mActPixmap) {
       // Now start a new drawing
       auto pen = QPen(Qt::blue, 3, Qt::DashLine);
       pen.setCosmetic(true);
@@ -714,6 +734,7 @@ void PanelImageView::mouseDoubleClickEvent(QMouseEvent *event)
 ///
 void PanelImageView::mouseMoveEvent(QMouseEvent *event)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   if(mState == State::MOVE) {
     if(mShowThumbnail) {
       getThumbnailAreaEntered(event);
@@ -845,6 +866,7 @@ void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
 ///
 void PanelImageView::wheelEvent(QWheelEvent *event)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   zoomImage(event->angleDelta().y() > 0);
 }
 
@@ -880,6 +902,7 @@ void PanelImageView::zoomImage(bool inOut)
 ///
 void PanelImageView::fitImageToScreenSize()
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   resetTransform();
   double zoomFactor = static_cast<double>(std::min(width(), height())) / static_cast<double>(mPixmapSize.width);
   scale(zoomFactor, zoomFactor);
@@ -1338,6 +1361,7 @@ void PanelImageView::getClickedTileInThumbnail(QMouseEvent *event)
 ///
 auto PanelImageView::getSelectedTile() -> std::pair<int32_t, int32_t>
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   return {mTile.tileX, mTile.tileY};
 }
 ///
@@ -1349,6 +1373,7 @@ auto PanelImageView::getSelectedTile() -> std::pair<int32_t, int32_t>
 ///
 auto PanelImageView::getOmeInfo() const -> const ome::OmeInfo &
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   return mOmeInfo;
 }
 
@@ -1361,6 +1386,7 @@ auto PanelImageView::getOmeInfo() const -> const ome::OmeInfo &
 ///
 int32_t PanelImageView::getNrOfTstacks() const
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   try {
     return mOmeInfo.getNrOfTStack(mSeries);
   } catch(...) {
@@ -1377,6 +1403,7 @@ int32_t PanelImageView::getNrOfTstacks() const
 ///
 int32_t PanelImageView::getNrOfCstacks() const
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   try {
     return mOmeInfo.getNrOfChannels(mSeries);
   } catch(...) {
@@ -1393,6 +1420,7 @@ int32_t PanelImageView::getNrOfCstacks() const
 ///
 int32_t PanelImageView::getNrOfZstacks() const
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   try {
     return mOmeInfo.getNrOfZStack(mSeries);
   } catch(...) {
@@ -1502,6 +1530,7 @@ void PanelImageView::setSelectedRois(const std::set<joda::atom::ROI *> &idxs)
   // ==============================
   // First rest old selections
   // ==============================
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mOverlayMasks->setSelectedRois(idxs);
 }
 
@@ -1514,6 +1543,7 @@ void PanelImageView::setSelectedRois(const std::set<joda::atom::ROI *> &idxs)
 ///
 void PanelImageView::deleteRois(const std::set<joda::atom::ROI *> &idxs)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mOverlayMasks->deleteRois(idxs);
 }
 
@@ -1526,6 +1556,7 @@ void PanelImageView::deleteRois(const std::set<joda::atom::ROI *> &idxs)
 ///
 bool PanelImageView::deleteSelectedRois()
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   return mOverlayMasks->deleteSelectedRois();
 }
 
@@ -1538,8 +1569,9 @@ bool PanelImageView::deleteSelectedRois()
 ///
 void PanelImageView::clearRegionOfInterest(joda::atom::ROI::Category sourceToDelete)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mObjectMap->erase(sourceToDelete);
-  mOverlayMasks->refresh(getTileInfo());
+  mOverlayMasks->refresh(getTileInfoInternal());
 }
 
 ///
@@ -1551,6 +1583,7 @@ void PanelImageView::clearRegionOfInterest(joda::atom::ROI::Category sourceToDel
 ///
 void PanelImageView::setFillRois(bool fill)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mFillRoi = fill;
   if(mOverlayMasks != nullptr) {
     mOverlayMasks->setAlpha(mOpaque);
@@ -1570,7 +1603,6 @@ auto PanelImageView::fetchPixelInfoFromMousePosition(const QPoint &viewPos) cons
   // Map the view coordinates to scene coordinates
   QPointF scenePos = mapToScene(viewPos);
   PixelInfo pixelInfo;
-  std::lock_guard<std::mutex> locked(mImageResetMutex);
   // Map the scene coordinates to image coordinates
   if(mActPixmap != nullptr && mImageToShow->getImage() != nullptr) {
     QPointF imagePos = mActPixmap->mapFromScene(scenePos);
@@ -1620,6 +1652,7 @@ void PanelImageView::leaveEvent(QEvent *)
 ///
 void PanelImageView::setShowThumbnail(bool showThumbnail)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mShowThumbnail = showThumbnail;
   viewport()->update();
 }
@@ -1633,6 +1666,7 @@ void PanelImageView::setShowThumbnail(bool showThumbnail)
 ///
 void PanelImageView::setShowRois(bool show)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mShowRois = show;
   mOverlayMasks->setVisible(show);
   mContourOverlay->setVisible(show);
@@ -1647,6 +1681,7 @@ void PanelImageView::setShowRois(bool show)
 ///
 void PanelImageView::setRoisSelectable(bool selectable)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mSelectable = selectable;
   mOverlayMasks->setSelectable(selectable);
 }
@@ -1660,6 +1695,7 @@ void PanelImageView::setRoisSelectable(bool selectable)
 ///
 void PanelImageView::setShowPixelInfo(bool show)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mShowPixelInfo = show;
   viewport()->update();
 }
@@ -1673,6 +1709,7 @@ void PanelImageView::setShowPixelInfo(bool show)
 ///
 void PanelImageView::setShowCrosshandCursor(bool show)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mShowCrosshandCursor       = show;
   mCrossCursorInfo.pixelInfo = fetchPixelInfoFromMousePosition(mCrossCursorInfo.mCursorPos);
   viewport()->update();
@@ -1687,6 +1724,7 @@ void PanelImageView::setShowCrosshandCursor(bool show)
 ///
 void PanelImageView::setLockCrosshandCursor(bool lock)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mLockCrosshandCursor = lock;
 }
 
@@ -1699,6 +1737,7 @@ void PanelImageView::setLockCrosshandCursor(bool lock)
 ///
 void PanelImageView::setCursorPosition(const QPoint &pos)
 {
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mCrossCursorInfo.mCursorPos = pos;
   mCrossCursorInfo.pixelInfo  = fetchPixelInfoFromMousePosition(mCrossCursorInfo.mCursorPos);
   viewport()->update();

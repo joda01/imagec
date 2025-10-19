@@ -40,6 +40,13 @@ public:
   QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
   QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
   void refresh();
+  auto getActRoi() -> atom::ROI *
+  {
+    if(mROI) {
+      return mROI.get();
+    }
+    return nullptr;
+  }
 
 private:
   static inline const int32_t NR_ROWS = 12;

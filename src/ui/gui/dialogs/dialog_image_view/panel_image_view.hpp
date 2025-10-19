@@ -135,7 +135,7 @@ public:
   int32_t getSeries() const;
   void setImageChannel(int32_t ch);
   void setImagePlane(const joda::enums::PlaneId &);
-  auto getImagePlane() const -> const joda::enums::PlaneId &;
+  auto getImagePlane() const -> joda::enums::PlaneId;
   void setSelectedTile(int32_t tileX, int32_t tileY);
   void setImageTile(int32_t tileWith, int32_t tileHeight);
   auto getTileInfo() const -> enums::TileInfo;
@@ -189,6 +189,7 @@ private:
   void setCursor();
   void addPolygonToToObjectMap(const QPolygonF &);
   void keyPressEvent(QKeyEvent *event) override;
+  auto getTileInfoInternal() const -> enums::TileInfo;
 
 private:
   /////////////////////////////////////////////////////

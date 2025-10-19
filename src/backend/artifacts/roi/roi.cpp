@@ -477,6 +477,7 @@ ROI::IntersectingMask ROI::calcIntersectingMask(const ROI &roi) const
 ///
 auto ROI::measureIntensityAndAdd(const enums::ImageId &imageId, const cv::Mat &image, const joda::enums::TileInfo &tile) -> Intensity
 {
+  std::lock_guard<std::mutex> lock(mIntensityMeasureMutex);
   if(!mIntensity.contains(imageId)) {
     // Just add an empty entry
     mIntensity[imageId].intensitySum = 0;
@@ -487,7 +488,6 @@ auto ROI::measureIntensityAndAdd(const enums::ImageId &imageId, const cv::Mat &i
     if(!image.empty() && !mBoundingBoxReal.empty() && !mMask.empty()) {
       mIntensity[imageId] = calcIntensity(image, tile);
     }
-  } else {
   }
   return mIntensity[imageId];
 }

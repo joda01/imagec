@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <atomic>
 #include <bitset>
+#include <mutex>
 #include <string>
 #include <utility>
 #include <vector>
@@ -271,8 +272,9 @@ public:
     return mMaskContours;
   }
 
-  [[nodiscard]] const auto &getIntensity() const
+  [[nodiscard]] auto getIntensity() const
   {
+    std::lock_guard<std::mutex> lock(mIntensityMeasureMutex);
     return mIntensity;
   }
 
@@ -428,6 +430,9 @@ private:
   bool mIsSelected                                            = false;
   static inline std::atomic<uint64_t> mGlobalUniqueObjectId   = 1;
   static inline std::atomic<uint64_t> mGlobalUniqueTrackingId = 1;
+
+  // MUTEXES
+  mutable std::mutex mIntensityMeasureMutex;
 };
 
 }    // namespace joda::atom

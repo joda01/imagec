@@ -136,9 +136,12 @@ QVariant TableModelRoi::data(const QModelIndex &index, int role) const
       nlohmann::json physicalImageSizeUnit = phSyUnit.pixelSizeUnit;
       const auto &phSy                     = mPanelImageView->getOmeInfo().getPhyiscalSize(mPanelImageView->getSeries());
 
-      const auto intensity =
-          mROI->measureIntensityAndAdd({.zProjection = mPanelImageView->getZprojection(), .imagePlane = mPanelImageView->getImagePlane()},
-                                       *mPanelImageView->getImage()->getOriginalImage(), mPanelImageView->getTileInfo());
+      atom::ROI::Intensity intensity;
+      enums::ImageId imgId = {.zProjection = mPanelImageView->getZprojection(), .imagePlane = mPanelImageView->getImagePlane()};
+      const auto tmp       = mROI->getIntensity();
+      if(tmp.contains(imgId)) {
+        intensity = tmp.at(imgId);
+      }
 
       switch(index.row()) {
         case 0:

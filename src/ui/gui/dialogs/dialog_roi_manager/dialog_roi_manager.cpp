@@ -115,6 +115,8 @@ DialogRoiManager::DialogRoiManager(const std::shared_ptr<atom::ObjectList> &obje
         mImagePanel->setSelectedRois(idxs);
         if(!idxs.empty()) {
           atom::ROI *tmp = *idxs.begin();
+          tmp->measureIntensityAndAdd({.zProjection = mImagePanel->getZprojection(), .imagePlane = mImagePanel->getImagePlane()},
+                                      *mImagePanel->getImage()->getOriginalImage(), mImagePanel->getTileInfo());
           mTableModelRoi->setData(tmp);
         } else {
           mTableModelRoi->setData(nullptr);
@@ -138,13 +140,23 @@ DialogRoiManager::DialogRoiManager(const std::shared_ptr<atom::ObjectList> &obje
       }
     }
     if(!idxs.empty()) {
-      mTableModelRoi->setData(*idxs.begin());
+      atom::ROI *roi = *idxs.begin();
+      roi->measureIntensityAndAdd({.zProjection = mImagePanel->getZprojection(), .imagePlane = mImagePanel->getImagePlane()},
+                                  *mImagePanel->getImage()->getOriginalImage(), mImagePanel->getTileInfo());
+      mTableModelRoi->setData(roi);
     } else {
       mTableModelRoi->setData(nullptr);
     }
   });
 
-  connect(mImagePanel, &PanelImageView::updateImage, this, [this]() { mTableModelRoi->refresh(); });    // updateImage
+  connect(mImagePanel, &PanelImageView::updateImage, this, [this]() {
+    auto *roi = mTableModelRoi->getActRoi();
+    if(roi != nullptr) {
+      roi->measureIntensityAndAdd({.zProjection = mImagePanel->getZprojection(), .imagePlane = mImagePanel->getImagePlane()},
+                                  *mImagePanel->getImage()->getOriginalImage(), mImagePanel->getTileInfo());
+    }
+    mTableModelRoi->refresh();
+  });    // updateImage
 }
 
 ///

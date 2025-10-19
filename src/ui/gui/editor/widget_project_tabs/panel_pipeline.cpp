@@ -59,6 +59,8 @@ PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMai
   toolbar->setIconSize(QSize(16, 16));
 
   {
+    auto *submenu = new QMenu();
+
     //
     // New pipeline
     //
@@ -106,7 +108,7 @@ PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMai
 
       addChannelFromPath(filePathOfSettingsFile);
     });
-    toolbar->addAction(openTemplate);
+    submenu->addAction(openTemplate);
 
     //
     // Save template
@@ -114,16 +116,16 @@ PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMai
     auto *saveAsTemplateButton = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("floppy-disk"), "Save as template");
     saveAsTemplateButton->setStatusTip("Save pipeline as template");
     connect(saveAsTemplateButton, &QAction::triggered, [this]() { this->saveAsTemplate(); });
-    toolbar->addAction(saveAsTemplateButton);
+    submenu->addAction(saveAsTemplateButton);
 
-    toolbar->addSeparator();
+    submenu->addSeparator();
     //
     // Move down
     //
     auto *moveDown = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("caret-down"), "Move down");
     moveDown->setStatusTip("Move selected pipeline down");
     connect(moveDown, &QAction::triggered, this, &PanelPipeline::moveDown);
-    toolbar->addAction(moveDown);
+    submenu->addAction(moveDown);
 
     //
     // Move up
@@ -131,9 +133,9 @@ PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMai
     auto *moveUp = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("caret-up"), "Move up");
     moveUp->setStatusTip("Move selected pipeline up");
     connect(moveUp, &QAction::triggered, this, &PanelPipeline::moveUp);
-    toolbar->addAction(moveUp);
+    submenu->addAction(moveUp);
 
-    toolbar->addSeparator();
+    submenu->addSeparator();
 
     //
     // Copy selection
@@ -145,15 +147,15 @@ PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMai
       copiedPipeline.meta.name += " (copy)";
       addChannelFromSettings(copiedPipeline);
     });
-    toolbar->addAction(copy);
-    toolbar->addSeparator();
+    submenu->addAction(copy);
+    submenu->addSeparator();
 
     //
     // Delete column
     //
     auto *deleteColumn = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("trash-simple"), "Delete selected pipeline", this);
     deleteColumn->setStatusTip("Delete selected pipeline");
-    toolbar->addAction(deleteColumn);
+    submenu->addAction(deleteColumn);
     connect(deleteColumn, &QAction::triggered, [this]() {
       QMessageBox messageBox(mWindowMain);
       messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning").pixmap(48, 48));
@@ -169,6 +171,14 @@ PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMai
       mWindowMain->showPanelStartPage();
       erase(getSelectedPipeline());
     });
+
+    // Submenu
+    auto *submenuAction = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("dots-three-vertical"), "");
+    submenuAction->setMenu(submenu);
+    toolbar->addAction(submenuAction);
+    auto *btn = qobject_cast<QToolButton *>(toolbar->widgetForAction(submenuAction));
+    btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
+    btn->setStyleSheet("QToolButton::menu-indicator { image: none; }");
   }
 
   {
