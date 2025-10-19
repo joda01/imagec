@@ -183,7 +183,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);
   connect(this, &PanelPipelineSettings::updatePreviewFinished, this, &PanelPipelineSettings::onPreviewFinished);
   connect(mPreviewImage, &DialogImageViewer::settingChanged, this, &PanelPipelineSettings::updatePreview);
-  connect(wm->getImagePanel(), &PanelImages::imageSelectionChanged, this, &PanelPipelineSettings::updatePreview);
+  connect(mPreviewImage->getImagePanel(), &PanelImageView::imageOpened, this, &PanelPipelineSettings::updatePreview);
   connect(wm->getPanelProjectSettings(), &PanelProjectSettings::updateImagePreview, this, &PanelPipelineSettings::updatePreview);
   connect(closePipeline, &QAction::triggered, this, &PanelPipelineSettings::closeWindow);
   connect(wm->getPanelClassification(), &PanelClassification::settingsChanged, this, &PanelPipelineSettings::onClassificationNameChanged);

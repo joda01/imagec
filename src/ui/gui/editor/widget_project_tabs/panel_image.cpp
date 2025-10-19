@@ -304,7 +304,6 @@ void PanelImages::updateImageMeta()
   } else {
     mImageMeta->setRowCount(0);
   }
-  emit imageSelectionChanged(-1, 0);
 }
 
 }    // namespace joda::ui::gui

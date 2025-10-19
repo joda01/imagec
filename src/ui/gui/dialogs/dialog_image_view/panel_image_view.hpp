@@ -280,7 +280,6 @@ private:
   bool mSelectable = true;
   const joda::settings::Classification *mClassSettings;
   std::shared_ptr<atom::ObjectList> mObjectMap;
-  std::mutex mRepaintMutex;
 
   mutable std::mutex mImageResetMutex;
 

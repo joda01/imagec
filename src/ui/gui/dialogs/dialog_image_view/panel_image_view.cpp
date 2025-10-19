@@ -25,6 +25,7 @@
 #include <mutex>
 #include <ranges>
 #include <string>
+#include <thread>
 #include <utility>
 #include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/artifacts/roi/roi.hpp"
@@ -104,7 +105,6 @@ PanelImageView::PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMa
 ///
 void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo)
 {
-  std::lock_guard<std::mutex> lock(mRepaintMutex);
   setLoadingImage(true);
   if(omeInfo != nullptr) {
     mOmeInfo = *omeInfo;
@@ -113,6 +113,13 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
     {
       std::lock_guard<std::mutex> locked(mImageResetMutex);
       if(loadOme) {
+        //   if(mTile.tileX)
+        auto [tilesX, tilesY] = mOmeInfo.getImageInfo(mSeries).resolutions.at(0).getNrOfTiles(mTile.tileWidth, mTile.tileHeight);
+        if(mTile.tileX > tilesX || mTile.tileY > tilesY) {
+          mTile.tileX = 0;
+          mTile.tileY = 0;
+        }
+
         joda::ctrl::Controller::loadImage(imagePath, static_cast<uint16_t>(mSeries), mPlane, mTile, mPreviewImages, &mOmeInfo, mZprojection);
       } else {
         joda::ctrl::Controller::loadImage(imagePath, static_cast<uint16_t>(mSeries), mPlane, mTile, mDefaultPhysicalSize, mPreviewImages, mOmeInfo,
@@ -121,10 +128,15 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
     }
     setRegionsOfInterestFromObjectList();
     restoreChannelSettings();
-    mLastPath  = imagePath;
-    mLastPlane = mPlane;
-    setLoadingImage(false);
     repaintImage();
+    if(mLastPath != imagePath) {
+      emit imageOpened();
+      mLastPath = imagePath;
+    }
+    mLastPlane = mPlane;
+    using namespace std::chrono_literals;
+    std::this_thread::sleep_for(250ms);
+    setLoadingImage(false);
   });
 }
 
@@ -1203,8 +1215,6 @@ void PanelImageView::drawActChannel(QPainter &painter)
 ///
 void PanelImageView::drawThumbnail(QPainter &painter)
 {
-  std::lock_guard<std::mutex> lock(mRepaintMutex);
-
   if(mPreviewImages.thumbnail.empty() || static_cast<int32_t>(mOmeInfo.getNrOfSeries()) < mSeries) {
     return;
   }
@@ -1339,8 +1349,9 @@ void PanelImageView::getClickedTileInThumbnail(QMouseEvent *event)
                                static_cast<int32_t>(THUMB_RECT_START_Y + static_cast<float>(yOffset))),
                         QSize(mTileRectWidthScaled, mTileRectHeightScaled));
         if(rectangle.contains(event->pos())) {
-          mTile.tileX = x;
-          mTile.tileY = y;
+          mTile.tileX   = x;
+          mTile.tileY   = y;
+          mLoadingImage = true;
           viewport()->repaint();
           // mOverlayMasks->refresh(getTileInfo());
           emit tileClicked(x, y);
