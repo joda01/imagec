@@ -154,7 +154,7 @@ void RoiOverlay::refresh()
 
   // Optimization 8: Check if scaling is actually needed
   QPixmap pix;
-  pix = QPixmap::fromImage(qimg);
+  pix = QPixmap::fromImage(qimg.copy());
   prepareGeometryChange();
   setPixmap(pix);
   setAlpha(mAlpha);

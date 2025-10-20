@@ -410,12 +410,12 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
       }
     }
 
-    previewOut.originalImage.setImage(std::move(image));
+    previewOut.originalImage.setImage(image);
   }
 
   if(generateThumb) {
     auto thumb = joda::image::reader::ImageReader::loadThumbnail(imagePath.string(), imagePlane, series, *omeIn);
-    previewOut.thumbnail.setImage(std::move(thumb));
+    previewOut.thumbnail.setImage(thumb);
   }
 
   previewOut.tStacks = omeIn->getNrOfTStack(series);

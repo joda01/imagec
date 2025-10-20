@@ -43,6 +43,8 @@ public:
 private:
   /////////////////////////////////////////////////////
   void applyHistogramSettingsToImage();
+  void getHistogramSettingsFromImage();
+
   /////////////////////////////////////////////////////
   PanelImageView *mImagePanel = nullptr;
   PanelHistogram *mHistogramPanel;

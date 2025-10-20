@@ -460,12 +460,12 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
           //
           // Finished
           //
-          previewOut.originalImage.setImage(std::move(
+          previewOut.originalImage.setImage(
               context.loadImageFromCache(enums::MemoryScope::ITERATION, joda::enums::ImageId{.zProjection = enums::ZProjection::$, .imagePlane = {}})
-                  ->image));
-          previewOut.editedImage.setImage(std::move(editedImageAtBreakpoint));
+                  ->image);
+          previewOut.editedImage.setImage(editedImageAtBreakpoint);
           if(generateThumb) {
-            previewOut.thumbnail.setImage(std::move(thumb));
+            previewOut.thumbnail.setImage(thumb);
           }
           previewOut.results.noiseDetected = db->getImageValidity().test(enums::ChannelValidityEnum::POSSIBLE_NOISE);
           previewOut.results.isOverExposed = db->getImageValidity().test(enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);

@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include <qgraphicsitem.h>
 #include <qpixmap.h>
 #include <qpoint.h>
 #include <cstdint>
@@ -26,7 +27,7 @@ namespace joda::image {
 /// \author     Joachim Danmayr
 /// \brief      Class representing an image instance
 ///
-class Image
+class Image : public QGraphicsItem
 {
 public:
   /////////////////////////////////////////////////////
@@ -35,23 +36,19 @@ public:
   {
     clear();
   }
-  void setImage(const cv::Mat &&imageToDisplay, int32_t rescale = 2048);
+  void setImage(const cv::Mat &imageToDisplay, int32_t rescale = 2048);
   bool empty()
   {
-    if(mImageOriginalScaled != nullptr) {
-      return mImageOriginalScaled->empty();
-    }
-    return true;
+    return mImageOriginalScaled.empty();
   }
   [[nodiscard]] const cv::Mat *getImage() const
   {
-    return mImageOriginalScaled;
+    return &mImageOriginalScaled;
   }
   [[nodiscard]] const cv::Mat *getOriginalImage() const
   {
-    return mOriginalImage;
+    return &mOriginalImage;
   }
-  [[nodiscard]] QPixmap getPixmap() const;
   [[nodiscard]] uint16_t getHistogramDisplayAreaLower() const
   {
     return mDisplayAreaLower;
@@ -73,15 +70,8 @@ public:
   void clear()
   {
     std::lock_guard<std::mutex> lock(mLockMutex);
-    if(mImageOriginalScaled != nullptr) {
-      delete mImageOriginalScaled;
-      mImageOriginalScaled = nullptr;
-    }
-
-    if(mOriginalImage != nullptr) {
-      delete mOriginalImage;
-      mOriginalImage = nullptr;
-    }
+    mImageOriginalScaled = cv::Mat{};
+    mOriginalImage       = cv::Mat{};
   }
 
   auto getHistogram() const -> const cv::Mat &
@@ -108,26 +98,26 @@ public:
 
   auto getPreviewImageSize() const -> QSize
   {
-    if(mImageOriginalScaled != nullptr) {
-      return {mImageOriginalScaled->cols, mImageOriginalScaled->rows};
-    } else {
-      return {};
-    }
+    return {mImageOriginalScaled.cols, mImageOriginalScaled.rows};
   }
+
+  QRectF boundingRect() const override;
+
+  void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override;
 
 private:
   /////////////////////////////////////////////////////
   cv::Mat mHistogram;
 
   /////////////////////////////////////////////////////
-  [[nodiscard]] QPixmap encode(const cv::Mat *image) const;
-  std::array<int32_t, UINT16_MAX + 1> mLut = {};
+  void applyHistogramSettings(cv::Mat &img);
 
   //// BRIGHTNESS /////////////////////////////////////////////////
   uint16_t mLowerValue       = 0;
   uint16_t mUpperValue       = UINT16_MAX;
   uint16_t mDisplayAreaLower = 0;
   uint16_t mDisplayAreaUpper = 0;
+  int32_t mHistogramMax      = UINT16_MAX;
   QSize mOriginalImageSize;
 
   //// PSEUDOCOLOR /////////////////////////////////////////////////
@@ -135,8 +125,9 @@ private:
   cv::Vec3f mPseudoColor{1.0, 1.0, 1.0};
 
   //// IMAGE /////////////////////////////////////////////////
-  const cv::Mat *mImageOriginalScaled = nullptr;
-  const cv::Mat *mOriginalImage       = nullptr;
+  QImage mQImage;
+  cv::Mat mImageOriginalScaled;
+  cv::Mat mOriginalImage;
   mutable std::mutex mLockMutex;
 };
 

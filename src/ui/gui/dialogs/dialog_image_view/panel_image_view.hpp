@@ -221,8 +221,7 @@ private:
   int32_t mSeries = 0;
 
   // WIDGET ///////////////////////////////////////////////////
-  QGraphicsPixmapItem *mActPixmap = nullptr;
-  QGraphicsScene *scene           = nullptr;
+  QGraphicsScene *scene = nullptr;
 
   // STATE AND PAINTING ///////////////////////////////////////////////////
   State mState = State::MOVE;
@@ -240,7 +239,7 @@ private:
   ContourOverlay *mContourOverlay = nullptr;
 
   // MOVE IMAGE ///////////////////////////////////////////////////
-  cv::Size mPixmapSize;
+  QSize mPixmapSize;
 
   // IMAGE INFO ///////////////////////////////////////////////////
   CrossCursorInfo mCrossCursorInfo;

@@ -534,7 +534,6 @@ void WindowMain::openImage(const std::filesystem::path &imagePath, const ome::Om
   auto storagePathNew = storagePath / std::to_string(imgIdNew);
 
   mPreviewImage->getImagePanel()->openImage(imagePath, omeInfo);
-  mPreviewImage->getImagePanel()->repaint();
 
   //
   // Load ROIs

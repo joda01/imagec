@@ -65,7 +65,6 @@ PanelImageView::PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMa
   setScene(scene);
   setBackgroundBrush(QBrush(Qt::black));
   scene->setBackgroundBrush(QBrush(Qt::black));
-
   scene->setItemIndexMethod(QGraphicsScene::NoIndex);
   setCacheMode(QGraphicsView::CacheBackground);
   setRenderHint(QPainter::Antialiasing, false);
@@ -91,6 +90,8 @@ PanelImageView::PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMa
 
   scene->addItem(mOverlayMasks);
   scene->addItem(mContourOverlay);
+  scene->addItem(&mPreviewImages.originalImage);
+  mPreviewImages.originalImage.setZValue(50);
 
   connect(mOverlayMasks, &RoiOverlay::paintedPolygonClicked, this, &PanelImageView::paintedPolygonClicked);
 }
@@ -125,8 +126,11 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
                                           mZprojection);
       }
     }
-    setRegionsOfInterestFromObjectList();
+    scene->setSceneRect(mPreviewImages.originalImage.boundingRect());
+    mPixmapSize = mPreviewImages.originalImage.getPreviewImageSize();
     restoreChannelSettings();
+    fitImageToScreenSize();
+    setRegionsOfInterestFromObjectList();
     repaintImage();
     if(mLastPath != imagePath) {
       emit imageOpened();
@@ -301,7 +305,7 @@ void PanelImageView::setEditedImage(const joda::image::Image &&edited)
 {
   {
     std::lock_guard<std::mutex> locked(mImageResetMutex);
-    mPreviewImages.editedImage.setImage(std::move(*edited.getImage()));
+    mPreviewImages.editedImage.setImage(*edited.getImage());
   }
   restoreChannelSettings();
 }
@@ -600,57 +604,17 @@ void PanelImageView::resetImage()
   if(scene == nullptr) {
     return;
   }
-  {
-    std::lock_guard<std::mutex> locked(mImageResetMutex);
-
-    mPlaceholderImageSet = true;
-    for(QGraphicsItem *item : scene->items()) {
-      if(item == mOverlayMasks) {
-        continue;
-      }
-      if(item == mContourOverlay) {
-        continue;
-      }
-      if(auto *pixmapItem = dynamic_cast<QGraphicsPixmapItem *>(item)) {
-        scene->removeItem(pixmapItem);
-        delete pixmapItem;
-      }
-    }
-    mActPixmap = nullptr;
-  }
+  mPlaceholderImageSet = true;
   fitImageToScreenSize();
   onUpdateImage();
 }
 
 void PanelImageView::onUpdateImage()
 {
-  cv::Size size;
-  {
-    std::lock_guard<std::mutex> locked(mImageResetMutex);
-    const auto *img = mImageToShow->getImage();
-    if(img == nullptr) {
-      return;
-    }
-    size = img->size();
-  }
-  auto pixmap = mImageToShow->getPixmap();
-  scene->setSceneRect(pixmap.rect());
-  if(nullptr == mActPixmap) {
-    mActPixmap = scene->addPixmap(pixmap);
-  } else {
-    mActPixmap->setPixmap(pixmap);
-  }
-
-  if((size.width != mPixmapSize.width) || (size.height != mPixmapSize.height) || mPlaceholderImageSet) {
-    mPixmapSize = size;
-    if(size.width > 0 && size.height > 0) {
-      fitImageToScreenSize();
-    }
-    mPlaceholderImageSet = false;
-  }
-
+  mPlaceholderImageSet = false;
   scene->update();
   update();
+  viewport()->update();
 }
 
 ///
@@ -679,7 +643,7 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
 
   } else if(mState == State::SELECT) {
   } else {
-    if(event->button() == Qt::LeftButton && nullptr != mActPixmap) {
+    if(event->button() == Qt::LeftButton) {
       // Now start a new drawing
       auto pen = QPen(Qt::blue, 3, Qt::DashLine);
       pen.setCosmetic(true);
@@ -912,7 +876,7 @@ void PanelImageView::fitImageToScreenSize()
 {
   std::lock_guard<std::mutex> locked(mImageResetMutex);
   resetTransform();
-  double zoomFactor = static_cast<double>(std::min(width(), height())) / static_cast<double>(mPixmapSize.width);
+  double zoomFactor = static_cast<double>(std::min(width(), height())) / static_cast<double>(mPixmapSize.width());
   scale(zoomFactor, zoomFactor);
 }
 
@@ -926,7 +890,6 @@ void PanelImageView::fitImageToScreenSize()
 void PanelImageView::paintEvent(QPaintEvent *event)
 {
   QGraphicsView::paintEvent(event);
-
   const float RECT_SIZE  = 80;
   const int RECT_START_X = 10;
   const int RECT_START_Y = 10;
@@ -935,12 +898,6 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   QRect viewportRect = viewport()->rect();
   QPainter painter(viewport());
   painter.setRenderHint(QPainter::Antialiasing);
-
-  if(mActPixmap == nullptr) {
-    painter.setPen(QColor(0, 0, 0));      // Set the pen color to light blue
-    painter.setBrush(QColor(0, 0, 0));    // Set the brush to no brush for transparent fill
-    painter.drawRect(viewportRect);
-  }
 
   QRect rectangle(RECT_START_X, RECT_START_Y, static_cast<int>(RECT_SIZE), static_cast<int>(RECT_SIZE));    // Adjust the size as needed
 
@@ -980,9 +937,7 @@ void PanelImageView::paintEvent(QPaintEvent *event)
     drawRuler(painter);
   }
 
-  if(mActPixmap != nullptr) {
-    drawActChannel(painter);
-  }
+  drawActChannel(painter);
 
   // Waiting banner
   if(mWaiting || mLoadingImage) {
@@ -1257,7 +1212,8 @@ void PanelImageView::drawThumbnail(QPainter &painter)
       QPoint(static_cast<int32_t>(static_cast<float>(width()) - THUMB_RECT_START_X - rectWidth), static_cast<int32_t>(THUMB_RECT_START_Y)),
       QSize(newWidth,
             newHeight));    // Adjust the size as needed
-  painter.drawPixmap(thumbRect, mPreviewImages.thumbnail.getPixmap());
+#warning "Draw thumbnail"
+  // painter.drawPixmap(thumbRect, mPreviewImages.thumbnail.getPixmap());
 
   //
   // Draw bounding rect
@@ -1610,8 +1566,8 @@ auto PanelImageView::fetchPixelInfoFromMousePosition(const QPoint &viewPos) cons
   QPointF scenePos = mapToScene(viewPos);
   PixelInfo pixelInfo;
   // Map the scene coordinates to image coordinates
-  if(mActPixmap != nullptr && mImageToShow->getImage() != nullptr) {
-    QPointF imagePos = mActPixmap->mapFromScene(scenePos);
+  if(mImageToShow->getImage() != nullptr) {
+    QPointF imagePos = mPreviewImages.originalImage.mapFromScene(scenePos);
     pixelInfo.posX   = static_cast<int32_t>(imagePos.x());
     pixelInfo.posY   = static_cast<int32_t>(imagePos.y());
 
@@ -1791,19 +1747,17 @@ void PanelImageView::setCursorPositionFromOriginalImageCoordinatesAndCenter(cons
                   static_cast<int32_t>(boundingBox.height())};
 
   //////////////////////
-  if(mActPixmap != nullptr) {
-    mLastCrossHairCursorPos = cursorBox;
-    QPoint pos{cursorBox.x(), cursorBox.y()};
-    auto originalPos = imageCoordinatesToPreviewCoordinates(pos);
+  mLastCrossHairCursorPos = cursorBox;
+  QPoint pos{cursorBox.x(), cursorBox.y()};
+  auto originalPos = imageCoordinatesToPreviewCoordinates(pos);
 
-    // Center viewport to the crosshair cursor center
-    auto scrollX = originalPos.x() - viewport()->size().width() / 2;
-    auto scrollY = originalPos.y() - viewport()->size().height() / 2;
-    verticalScrollBar()->setValue(verticalScrollBar()->value() + scrollY);
-    horizontalScrollBar()->setValue(horizontalScrollBar()->value() + scrollX);
+  // Center viewport to the crosshair cursor center
+  auto scrollX = originalPos.x() - viewport()->size().width() / 2;
+  auto scrollY = originalPos.y() - viewport()->size().height() / 2;
+  verticalScrollBar()->setValue(verticalScrollBar()->value() + scrollY);
+  horizontalScrollBar()->setValue(horizontalScrollBar()->value() + scrollX);
 
-    setCursorPosition(originalPos);
-  }
+  setCursorPosition(originalPos);
 }
 
 ///
@@ -1818,23 +1772,22 @@ auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QPoint &imageCoo
   double imgX = imageCoordinates.x();
   double imgY = imageCoordinates.y();
 
-  if(mActPixmap != nullptr) {
-    QRectF sceneRect = mActPixmap->sceneBoundingRect();
-    QRect viewRect   = mapFromScene(sceneRect).boundingRect();
-    std::lock_guard<std::mutex> locked(mImageResetMutex);
-    auto originalImageSize = mImageToShow->getOriginalImageSize();
-    // auto previewImageSize  = mImageToShow->getPreviewImageSize();
-    auto viewPortImageSize = QSize{viewRect.width(), viewRect.height()};
+  QRectF sceneRect = mPreviewImages.originalImage.sceneBoundingRect();
+  QRect viewRect   = mapFromScene(sceneRect).boundingRect();
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
+  auto originalImageSize = mImageToShow->getOriginalImageSize();
+  // auto previewImageSize  = mImageToShow->getPreviewImageSize();
+  auto viewPortImageSize = QSize{viewRect.width(), viewRect.height()};
 
-    double factorX = static_cast<double>(viewPortImageSize.width()) / static_cast<double>(originalImageSize.width());
-    double factorY = static_cast<double>(viewPortImageSize.height()) / static_cast<double>(originalImageSize.height());
+  double factorX = static_cast<double>(viewPortImageSize.width()) / static_cast<double>(originalImageSize.width());
+  double factorY = static_cast<double>(viewPortImageSize.height()) / static_cast<double>(originalImageSize.height());
 
-    imgX *= factorX;
-    imgY *= factorY;
+  imgX *= factorX;
+  imgY *= factorY;
 
-    imgX += viewRect.x();
-    imgY += viewRect.y();
-  }
+  imgX += viewRect.x();
+  imgY += viewRect.y();
+
   return {static_cast<int32_t>(imgX), static_cast<int32_t>(imgY)};
 }
 
@@ -1853,27 +1806,26 @@ auto PanelImageView::imageCoordinatesToPreviewCoordinates(const QRect &imageCoor
   double width  = imageCoordinates.width();
   double height = imageCoordinates.height();
 
-  if(mActPixmap != nullptr) {
-    QRectF sceneRect = mActPixmap->sceneBoundingRect();
-    QRect viewRect   = mapFromScene(sceneRect).boundingRect();
+  QRectF sceneRect = mPreviewImages.originalImage.sceneBoundingRect();
+  QRect viewRect   = mapFromScene(sceneRect).boundingRect();
 
-    std::lock_guard<std::mutex> locked(mImageResetMutex);
-    auto originalImageSize = mImageToShow->getOriginalImageSize();
-    // auto previewImageSize  = mImageToShow->getPreviewImageSize();
-    auto viewPortImageSize = QSize{viewRect.width(), viewRect.height()};
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
+  auto originalImageSize = mImageToShow->getOriginalImageSize();
+  // auto previewImageSize  = mImageToShow->getPreviewImageSize();
+  auto viewPortImageSize = QSize{viewRect.width(), viewRect.height()};
 
-    double factorX = static_cast<double>(viewPortImageSize.width()) / static_cast<double>(originalImageSize.width());
-    double factorY = static_cast<double>(viewPortImageSize.height()) / static_cast<double>(originalImageSize.height());
+  double factorX = static_cast<double>(viewPortImageSize.width()) / static_cast<double>(originalImageSize.width());
+  double factorY = static_cast<double>(viewPortImageSize.height()) / static_cast<double>(originalImageSize.height());
 
-    imgX *= factorX;
-    imgY *= factorY;
+  imgX *= factorX;
+  imgY *= factorY;
 
-    imgX += viewRect.x();
-    imgY += viewRect.y();
+  imgX += viewRect.x();
+  imgY += viewRect.y();
 
-    width *= factorX;
-    height *= factorY;
-  }
+  width *= factorX;
+  height *= factorY;
+
   return {static_cast<int32_t>(imgX), static_cast<int32_t>(imgY), static_cast<int32_t>(width), static_cast<int32_t>(height)};
 }
 
