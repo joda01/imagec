@@ -79,6 +79,11 @@ public:
     return mHistograms;
   }
 
+  auto getChannelColors() const -> const std::vector<cv::Vec3f> &
+  {
+    return mPseudoColor;
+  }
+
   void setBrightnessRange(int32_t lowerValue, int32_t upperValue, int32_t displayAreaLower, int32_t displayAreaUpper);
   void setPseudoColor(const cv::Vec3f &color);
   void setPseudoColorEnabled(bool);
@@ -114,7 +119,7 @@ private:
 
   //// PSEUDOCOLOR /////////////////////////////////////////////////
   bool mPSeudoColorEnabled = true;
-  cv::Vec3f mPseudoColor{1.0, 1.0, 1.0};
+  std::vector<cv::Vec3f> mPseudoColor{1.0, 1.0, 1.0};
 
   //// IMAGE /////////////////////////////////////////////////
   QImage mQImage;

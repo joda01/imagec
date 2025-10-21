@@ -161,7 +161,14 @@ void Image::autoAdjustBrightnessRange()
 ///
 void Image::setPseudoColor(const cv::Vec3f &color)
 {
-  mPseudoColor = color;
+  mPseudoColor.clear();
+  if(1 == mImageOriginalScaled.channels()) {
+    mPseudoColor.emplace_back(color);
+  } else {
+    mPseudoColor.emplace_back(cv::Vec3f{1.0, 0, 0});
+    mPseudoColor.emplace_back(cv::Vec3f{0, 1.0, 0});
+    mPseudoColor.emplace_back(cv::Vec3f{0, 0, 1, 0});
+  }
 }
 
 ///
@@ -209,9 +216,9 @@ void Image::refreshImageToPaint(cv::Mat &img16)
     //
     // Prepate pseude colors
     //
-    auto color = mPseudoColor;
-    if(!mPSeudoColorEnabled) {
-      color = {1.0, 1.0, 1.0};
+    auto color = cv::Vec3f{1.0, 1.0, 1.0};
+    if(mPSeudoColorEnabled && !mPseudoColor.empty()) {
+      color = mPseudoColor.at(0);
     }
 
     int rows = img16.rows;
