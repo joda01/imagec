@@ -47,9 +47,10 @@ Image::Image()
 /// \param[out]
 /// \return
 ///
-void Image::setImage(const cv::Mat &imageToDisplay, int32_t rescale)
+void Image::setImage(const cv::Mat &imageToDisplay, const cv::Vec3f &pseudoColor, int32_t rescale)
 {
   prepareGeometryChange();
+  setPseudoColor(pseudoColor);
 
   mOriginalImageSize = {imageToDisplay.cols, imageToDisplay.rows};
   if(rescale > 0) {

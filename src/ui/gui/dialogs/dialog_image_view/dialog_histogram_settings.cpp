@@ -192,18 +192,17 @@ void DialogHistogramSettings::applyHistogramSettingsToImage()
 {
   blockSignals(true);
 
-  mImagePanel->mutableImage()->setBrightnessRange(mSliderHistogramMin->value(), mSliderHistogramMax->value(),
-                                                  static_cast<int32_t>(mSliderDisplayLower->value()),
-                                                  static_cast<int32_t>(mSliderDisplayUpper->value()));
-
   if(mColorMode->currentData() == 0) {
     mImagePanel->mutableImage()->setPseudoColorEnabled(true);
   } else {
     mImagePanel->mutableImage()->setPseudoColorEnabled(false);
   }
 
+  mImagePanel->mutableImage()->setBrightnessRange(mSliderHistogramMin->value(), mSliderHistogramMax->value(),
+                                                  static_cast<int32_t>(mSliderDisplayLower->value()),
+                                                  static_cast<int32_t>(mSliderDisplayUpper->value()));
+
   mHistogramPanel->update();
-  mImagePanel->repaintImage();
 
   blockSignals(false);
 }

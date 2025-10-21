@@ -410,12 +410,12 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
       }
     }
 
-    previewOut.originalImage.setImage(image);
+    previewOut.originalImage.setImage(image, omeIn->getPseudoColorForChannel(series, c));
   }
 
   if(generateThumb) {
     auto thumb = joda::image::reader::ImageReader::loadThumbnail(imagePath.string(), imagePlane, series, *omeIn);
-    previewOut.thumbnail.setImage(thumb);
+    previewOut.thumbnail.setImage(thumb, omeIn->getPseudoColorForChannel(series, imagePlane.cStack));
   }
 
   previewOut.tStacks = omeIn->getNrOfTStack(series);

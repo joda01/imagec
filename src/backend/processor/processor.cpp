@@ -462,10 +462,12 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
           //
           previewOut.originalImage.setImage(
               context.loadImageFromCache(enums::MemoryScope::ITERATION, joda::enums::ImageId{.zProjection = enums::ZProjection::$, .imagePlane = {}})
-                  ->image);
-          previewOut.editedImage.setImage(editedImageAtBreakpoint);
+                  ->image,
+              ome.getPseudoColorForChannel(imageSetup.series, pipeline->pipelineSetup.cStackIndex));
+          previewOut.editedImage.setImage(editedImageAtBreakpoint,
+                                          ome.getPseudoColorForChannel(imageSetup.series, pipeline->pipelineSetup.cStackIndex));
           if(generateThumb) {
-            previewOut.thumbnail.setImage(thumb);
+            previewOut.thumbnail.setImage(thumb, ome.getPseudoColorForChannel(imageSetup.series, pipeline->pipelineSetup.cStackIndex));
           }
           previewOut.results.noiseDetected = db->getImageValidity().test(enums::ChannelValidityEnum::POSSIBLE_NOISE);
           previewOut.results.isOverExposed = db->getImageValidity().test(enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);

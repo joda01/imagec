@@ -83,22 +83,22 @@ void PanelHistogram::drawHistogram(QPainter &painter)
   if(number > UINT16_MAX / 2) {
     compression = 2;
   }
-  auto rectHeight = height() - static_cast<int32_t>(RECT_START_Y);
+  auto rectHeight = height() - 2 * static_cast<int32_t>(RECT_START_Y);
 
   int32_t ch = 0;
   for(const auto &hist : histograms) {
     QPainterPath path;
 
     int start = 1 + mImagePanel->mutableImage()->getHistogramDisplayAreaLower();
-    path.moveTo(0, height() - hist.at<float>(start));
+    path.moveTo(0, height() - hist.at<float>(start) - 2.0 * RECT_START_Y);
 
     for(int i = 2; i < number; i += compression) {
       int idx = i + mImagePanel->mutableImage()->getHistogramDisplayAreaLower();
       if(idx > hist.rows) {
         idx = hist.rows;
       }
-      // float startX    = (static_cast<float>(width()) - RECT_START_X - RECT_WIDTH) + static_cast<float>(i) * binWidth;
-      // float startY    = static_cast<float>(height()) - RECT_START_Y;
+      float startX = (static_cast<float>(width()) - RECT_START_X - RECT_WIDTH) + static_cast<float>(i) * binWidth;
+      float startY = static_cast<float>(height()) - RECT_START_Y;
       // float histValue = hist.at<float>(idx) * static_cast<float>(rectHeight);
       // painter.drawLine(static_cast<int32_t>(startX), static_cast<int32_t>(startY), static_cast<int32_t>(startX),
       //                  static_cast<int32_t>(startY - histValue));
@@ -114,40 +114,40 @@ void PanelHistogram::drawHistogram(QPainter &painter)
         double cx2 = x2 - binWidth / 3.0;
         double cy2 = y2;
 
-        path.cubicTo(cx1, cy1, cx2, cy2, x2, y2);
+        path.cubicTo(cx1, cy1 - 2.0 * RECT_START_Y, cx2, cy2 - 2.0 * RECT_START_Y, x2, y2 - 2.0 * RECT_START_Y);
       }
 
       //
       // Indicators
       //
       // Upper level indicator
-      /*
-       if(idx == mImagePanel->mutableImage()->getUpperLevelContrast() ||
-          (compression != 1 && idx + 1 == mImagePanel->mutableImage()->getUpperLevelContrast())) {
-         painter.setPen(QColor(255, 0, 0));    // Set the pen color to red
-         painter.drawText(QRect(static_cast<int32_t>(startX - 50), static_cast<int32_t>(startY), 100, 12), Qt::AlignHCenter,
-                          std::to_string(idx).data());
-         painter.drawLine(static_cast<int32_t>(startX), static_cast<int32_t>(startY), static_cast<int32_t>(startX),
-                          static_cast<int32_t>(startY - static_cast<float>(rectHeight)));
-         painter.setPen(QColor(0, 89, 179));    // Set the pen color to light blue
-       }
 
-       // Lower level indicator
-       if(idx == mImagePanel->mutableImage()->getLowerLevelContrast() ||
-          (compression != 1 && idx + 1 == mImagePanel->mutableImage()->getLowerLevelContrast())) {
-         painter.setPen(QColor(255, 0, 0));    // Set the pen color to red
-         painter.drawText(QRect(static_cast<int32_t>(startX - 50), static_cast<int32_t>(startY), 100, 12), Qt::AlignHCenter,
-                          std::to_string(idx).data());
-         painter.drawLine(static_cast<int32_t>(startX), static_cast<int32_t>(startY), static_cast<int32_t>(startX),
-                          static_cast<int32_t>(startY - static_cast<float>(rectHeight)));
-         painter.setPen(QColor(0, 89, 179));    // Set the pen color to light blue
-       }
+      if(idx == mImagePanel->mutableImage()->getUpperLevelContrast() ||
+         (compression != 1 && idx + 1 == mImagePanel->mutableImage()->getUpperLevelContrast())) {
+        painter.setPen(Qt::black);
+        painter.drawText(QRect(static_cast<int32_t>(startX - 50), static_cast<int32_t>(startY - 2 * RECT_START_Y - 4), 100, 12), Qt::AlignHCenter,
+                         std::to_string(idx).data());
+        painter.drawLine(static_cast<int32_t>(startX), static_cast<int32_t>(startY), static_cast<int32_t>(startX),
+                         static_cast<int32_t>(startY - static_cast<float>(rectHeight + 2 * RECT_START_Y)));
+        painter.setPen(Qt::black);
+      }
 
-       if(i == 1 || i % markerPos == 0) {
-         painter.drawText(QRect(static_cast<int32_t>(startX - 50), static_cast<int32_t>(startY), 100, 12), Qt::AlignHCenter,
-                          std::to_string(idx).data());
-       }
-                          */
+      // Lower level indicator
+      if(idx == mImagePanel->mutableImage()->getLowerLevelContrast() ||
+         (compression != 1 && idx + 1 == mImagePanel->mutableImage()->getLowerLevelContrast())) {
+        painter.setPen(Qt::black);    // Light blue
+        painter.drawText(QRect(static_cast<int32_t>(startX - 50), static_cast<int32_t>(startY - 2 * RECT_START_Y - 4), 100, 12), Qt::AlignHCenter,
+                         std::to_string(idx).data());
+        painter.drawLine(static_cast<int32_t>(startX), static_cast<int32_t>(startY), static_cast<int32_t>(startX),
+                         static_cast<int32_t>(startY - static_cast<float>(rectHeight + 2 * RECT_START_Y)));
+        painter.setPen(Qt::black);
+      }
+
+      if(i == 2 || i % markerPos == 0) {
+        painter.setPen(Qt::black);
+        painter.drawText(QRect(static_cast<int32_t>(startX - 50), static_cast<int32_t>(startY), 100, 12), Qt::AlignHCenter,
+                         std::to_string(idx).data());
+      }
     }
 
     QColor qcolor(static_cast<int>(colors[ch][2] * 255.0f),    // R

@@ -36,7 +36,7 @@ public:
   {
     clear();
   }
-  void setImage(const cv::Mat &imageToDisplay, int32_t rescale = 2048);
+  void setImage(const cv::Mat &imageToDisplay, const cv::Vec3f &pseudoColor, int32_t rescale = 2048);
   bool empty() const
   {
     return mImageOriginalScaled.empty();
@@ -85,7 +85,6 @@ public:
   }
 
   void setBrightnessRange(int32_t lowerValue, int32_t upperValue, int32_t displayAreaLower, int32_t displayAreaUpper);
-  void setPseudoColor(const cv::Vec3f &color);
   void setPseudoColorEnabled(bool);
   void autoAdjustBrightnessRange();
   auto getOriginalImageSize() const -> const QSize &
@@ -108,6 +107,7 @@ private:
 
   /////////////////////////////////////////////////////
   void refreshImageToPaint(cv::Mat &img);
+  void setPseudoColor(const cv::Vec3f &color);
 
   //// BRIGHTNESS /////////////////////////////////////////////////
   uint16_t mLowerValue       = 0;

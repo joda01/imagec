@@ -190,9 +190,6 @@ void PanelImageView::restoreChannelSettings()
                                   });
   }
   }
-
-  // Set pseudo color
-  mImageToShow->setPseudoColor(mOmeInfo.getPseudoColorForChannel(mSeries, mPlane.cStack));
 }
 
 ///
@@ -305,7 +302,7 @@ void PanelImageView::setEditedImage(const joda::image::Image &&edited)
 {
   {
     std::lock_guard<std::mutex> locked(mImageResetMutex);
-    mPreviewImages.editedImage.setImage(*edited.getImage());
+    mPreviewImages.editedImage.setImage(*edited.getImage(), mOmeInfo.getPseudoColorForChannel(mSeries, mLastPlane.cStack));
   }
   restoreChannelSettings();
 }
