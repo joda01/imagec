@@ -37,7 +37,7 @@ public:
     clear();
   }
   void setImage(const cv::Mat &imageToDisplay, int32_t rescale = 2048);
-  bool empty()
+  bool empty() const
   {
     return mImageOriginalScaled.empty();
   }
@@ -74,22 +74,14 @@ public:
     mOriginalImage       = cv::Mat{};
   }
 
-  auto getHistogram() const -> const cv::Mat &
+  auto getHistogram() const -> const std::vector<cv::Mat> &
   {
-    return mHistogram;
+    return mHistograms;
   }
 
   void setBrightnessRange(int32_t lowerValue, int32_t upperValue, int32_t displayAreaLower, int32_t displayAreaUpper);
   void setPseudoColor(const cv::Vec3f &color);
   void setPseudoColorEnabled(bool);
-
-  struct AutoAdjustRet
-  {
-    uint16_t sigmaLower       = 0;    // +/- index around the maximum
-    uint16_t sigmaUpper       = 0;    // +/- index around the maximum
-    uint16_t histogramMaximum = 0;    // Index of the maximum
-    uint16_t adjustIdx        = 0;    // Calculated "optimal" adjustment index
-  };
   void autoAdjustBrightnessRange();
   auto getOriginalImageSize() const -> const QSize &
   {
@@ -107,10 +99,10 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  cv::Mat mHistogram;
+  std::vector<cv::Mat> mHistograms;
 
   /////////////////////////////////////////////////////
-  void applyHistogramSettings(cv::Mat &img);
+  void refreshImageToPaint(cv::Mat &img);
 
   //// BRIGHTNESS /////////////////////////////////////////////////
   uint16_t mLowerValue       = 0;

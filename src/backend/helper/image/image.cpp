@@ -61,25 +61,38 @@ void Image::setImage(const cv::Mat &imageToDisplay, int32_t rescale)
     mImageOriginalScaled = imageToDisplay;
     mOriginalImage       = imageToDisplay;
   }
-  int type       = mImageOriginalScaled.type();
-  int depth      = type & CV_MAT_DEPTH_MASK;
-  int histSize   = 0;
-  float range[2] = {0};
-  if(depth == CV_16U && 1 == mImageOriginalScaled.channels()) {
-    histSize      = UINT16_MAX + 1;
-    mHistogramMax = histSize;
-  } else if(depth == CV_8U && 1 == mImageOriginalScaled.channels()) {
-    histSize      = UINT8_MAX + 1;
-    mHistogramMax = histSize;
-  }
-  std::cout << "Hist size " << std::to_string(histSize) << std::endl;
-  range[1]               = static_cast<float>(histSize);
-  const float *histRange = {range};
-  cv::calcHist(&mImageOriginalScaled, 1, nullptr, cv::Mat(), mHistogram, 1, &histSize, &histRange);
-  mHistogram.at<float>(0) = 0;    // We don't want to display black
-  cv::normalize(mHistogram, mHistogram, 0, 1, cv::NORM_MINMAX);
+  mHistograms.clear();
 
-  applyHistogramSettings(mImageOriginalScaled);
+  int type  = mImageOriginalScaled.type();
+  int depth = type & CV_MAT_DEPTH_MASK;
+  if(depth == CV_16U && 1 == mImageOriginalScaled.channels()) {
+    mHistograms                   = {{}};
+    static const auto histSize    = UINT16_MAX + 1;
+    static const float range[2]   = {0, static_cast<float>(histSize)};
+    static const float *histRange = {range};
+    cv::calcHist(&mImageOriginalScaled, 1, nullptr, cv::Mat(), mHistograms.at(0), 1, &histSize, &histRange);
+    cv::normalize(mHistograms.at(0), mHistograms.at(0), 0, 1, cv::NORM_MINMAX);
+  } else if(depth == CV_8U && 3 == mImageOriginalScaled.channels()) {
+    mHistograms                   = {{}, {}, {}};
+    static const auto histSize    = UINT8_MAX + 1;
+    static const float range[2]   = {0, static_cast<float>(histSize)};
+    static const float *histRange = {range};
+    mHistogramMax                 = histSize;
+
+    int channels[] = {0};
+    cv::calcHist(&mImageOriginalScaled, 1, channels, cv::Mat(), mHistograms.at(0), 1, &histSize, &histRange);
+    cv::normalize(mHistograms.at(0), mHistograms.at(0), 0, 1, cv::NORM_MINMAX);
+
+    channels[0] = 1;
+    cv::calcHist(&mImageOriginalScaled, 1, channels, cv::Mat(), mHistograms.at(1), 1, &histSize, &histRange);
+    cv::normalize(mHistograms.at(1), mHistograms.at(1), 0, 1, cv::NORM_MINMAX);
+
+    channels[0] = 2;
+    cv::calcHist(&mImageOriginalScaled, 1, channels, cv::Mat(), mHistograms.at(2), 1, &histSize, &histRange);
+    cv::normalize(mHistograms.at(2), mHistograms.at(2), 0, 1, cv::NORM_MINMAX);
+  }
+
+  refreshImageToPaint(mImageOriginalScaled);
 }
 
 ///
@@ -109,7 +122,7 @@ void Image::setBrightnessRange(int32_t lowerValue, int32_t upperValue, int32_t d
   mDisplayAreaLower = static_cast<uint16_t>(displayAreaLower);
   mDisplayAreaUpper = static_cast<uint16_t>(displayAreaUpper);
 
-  applyHistogramSettings(mImageOriginalScaled);
+  refreshImageToPaint(mImageOriginalScaled);
 }
 
 ///
@@ -125,13 +138,15 @@ void Image::autoAdjustBrightnessRange()
   if(mImageOriginalScaled.empty() || mImageOriginalScaled.channels() != 1) {
     return;
   }
-  int histSize           = UINT16_MAX + 1;
-  float range[]          = {0, UINT16_MAX + 1};
-  const float *histRange = {range};
-  cv::Mat hist;
-  cv::calcHist(&mImageOriginalScaled, 1, nullptr, cv::Mat(), hist, 1, &histSize, &histRange);
-  auto [lowerIdx, upperIdx] = joda::cmd::EnhanceContrast::findContrastStretchBounds(hist, 0.005);
-  setBrightnessRange(lowerIdx, upperIdx, lowerIdx - 256, upperIdx + 256);
+  // int histSize           = UINT16_MAX + 1;
+  // float range[]          = {0, UINT16_MAX + 1};
+  // const float *histRange = {range};
+  // cv::Mat hist;
+  // cv::calcHist(&mImageOriginalScaled, 1, nullptr, cv::Mat(), hist, 1, &histSize, &histRange);
+  if(mHistograms.size() == 1) {
+    auto [lowerIdx, upperIdx] = joda::cmd::EnhanceContrast::findContrastStretchBounds(mHistograms.at(0), 0.005);
+    setBrightnessRange(lowerIdx, upperIdx, lowerIdx - 256, upperIdx + 256);
+  }
 }
 
 ///
@@ -165,7 +180,7 @@ void Image::setPseudoColorEnabled(bool enabled)
 /// \param[out]
 /// \return
 ///
-void Image::applyHistogramSettings(cv::Mat &img16)
+void Image::refreshImageToPaint(cv::Mat &img16)
 {
   if(mLowerValue > mUpperValue) {
     std::cerr << "Minimum value must be less than maximum value." << std::endl;
