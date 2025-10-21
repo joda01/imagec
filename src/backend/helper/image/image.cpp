@@ -135,8 +135,11 @@ void Image::setBrightnessRange(int32_t lowerValue, int32_t upperValue, int32_t d
 void Image::autoAdjustBrightnessRange()
 {
   std::lock_guard<std::mutex> lock(mLockMutex);
-  if(mImageOriginalScaled.empty() || mImageOriginalScaled.channels() != 1) {
+  if(mImageOriginalScaled.empty()) {
     return;
+  }
+  if(3 == mImageOriginalScaled.channels()) {
+    setBrightnessRange(0, 255, 0, 255);
   }
   // int histSize           = UINT16_MAX + 1;
   // float range[]          = {0, UINT16_MAX + 1};
@@ -187,49 +190,56 @@ void Image::refreshImageToPaint(cv::Mat &img16)
     return;
   }
 
-  //
-  // Generate LUT
-  //
-  std::vector<uint16_t> lut16(65536);
-  double lower = static_cast<double>(mLowerValue);
-  double upper = static_cast<double>(mUpperValue);
-  for(size_t i = 0; i < 65536; ++i) {
-    if(i < static_cast<size_t>(lower)) {
-      lut16[i] = 0;
-    } else if(i > static_cast<size_t>(mUpperValue)) {
-      lut16[i] = 65535;
-    } else {
-      lut16[i] = static_cast<uint16_t>((static_cast<double>(i) - lower) * 65535.0 / (upper - lower));
-    }
-  }
-  //
-  // Prepate pseude colors
-  //
-  auto color = mPseudoColor;
-  if(!mPSeudoColorEnabled) {
-    color = {1.0, 1.0, 1.0};
-  }
-
-  int rows = img16.rows;
-  int cols = img16.cols;
-
-  //
-  // Apply LUT and pseudo color
-  //
-  cv::Mat color8U(rows, cols, CV_8UC3);
-  for(int y = 0; y < rows; ++y) {
-    const uint16_t *srcRow = img16.ptr<uint16_t>(y);
-    cv::Vec3b *dstRow      = color8U.ptr<cv::Vec3b>(y);
-
-    for(int x = 0; x < cols; ++x) {
-      uint16_t val = lut16[srcRow[x]];    // apply LUT
-      for(int c = 0; c < 3; ++c) {
-        float scaled = static_cast<float>(val) * color[c];             // scale for channel
-        dstRow[x][c] = cv::saturate_cast<uint8_t>(scaled / 256.0F);    // 16->8 bit
+  if(1 == mImageOriginalScaled.channels()) {
+    //
+    // Generate LUT
+    //
+    std::vector<uint16_t> lut16(65536);
+    double lower = static_cast<double>(mLowerValue);
+    double upper = static_cast<double>(mUpperValue);
+    for(size_t i = 0; i < 65536; ++i) {
+      if(i < static_cast<size_t>(lower)) {
+        lut16[i] = 0;
+      } else if(i > static_cast<size_t>(mUpperValue)) {
+        lut16[i] = 65535;
+      } else {
+        lut16[i] = static_cast<uint16_t>((static_cast<double>(i) - lower) * 65535.0 / (upper - lower));
       }
     }
+    //
+    // Prepate pseude colors
+    //
+    auto color = mPseudoColor;
+    if(!mPSeudoColorEnabled) {
+      color = {1.0, 1.0, 1.0};
+    }
+
+    int rows = img16.rows;
+    int cols = img16.cols;
+
+    //
+    // Apply LUT and pseudo color
+    //
+    cv::Mat color8U(rows, cols, CV_8UC3);
+    for(int y = 0; y < rows; ++y) {
+      const uint16_t *srcRow = img16.ptr<uint16_t>(y);
+      cv::Vec3b *dstRow      = color8U.ptr<cv::Vec3b>(y);
+
+      for(int x = 0; x < cols; ++x) {
+        uint16_t val = lut16[srcRow[x]];    // apply LUT
+        for(int c = 0; c < 3; ++c) {
+          float scaled = static_cast<float>(val) * color[c];             // scale for channel
+          dstRow[x][c] = cv::saturate_cast<uint8_t>(scaled / 256.0F);    // 16->8 bit
+        }
+      }
+    }
+
+    mQImage = QImage(color8U.data, color8U.cols, color8U.rows, static_cast<int>(color8U.step), QImage::Format_BGR888).copy();
+  } else if(3 == mImageOriginalScaled.channels()) {
+    mQImage = QImage(mImageOriginalScaled.data, mImageOriginalScaled.cols, mImageOriginalScaled.rows, static_cast<int>(mImageOriginalScaled.step),
+                     QImage::Format_BGR888)
+                  .copy();
   }
-  mQImage = QImage(color8U.data, color8U.cols, color8U.rows, static_cast<int>(color8U.step), QImage::Format_BGR888).copy();
   update();
 }
 
