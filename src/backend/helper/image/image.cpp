@@ -261,7 +261,7 @@ void Image::refreshImageToPaint(cv::Mat &img16)
 QRectF Image::boundingRect() const
 {
   if(mQImage.isNull() || mQImage.width() == 0) {
-    return QRectF(0, 0, 1024, 1024);
+    return QRectF(0, 0, 0, 0);
   }
   return QRectF(QPointF(0, 0), mQImage.size());
 }

@@ -38,12 +38,15 @@
 #include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"
 #include "ui/gui/dialogs/dialog_image_view/customer_painter/graphics_roi_overlay.hpp"
+#include "ui/gui/helper/icon_generator.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/matx.hpp>
 #include <opencv2/core/types.hpp>
 #include <opencv2/imgproc.hpp>
 
 namespace joda::ui::gui {
+
+using namespace std::chrono_literals;
 
 ////////////////////////////////////////////////////////////////
 // Image view section
@@ -66,19 +69,18 @@ PanelImageView::PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMa
   setBackgroundBrush(QBrush(Qt::black));
   scene->setBackgroundBrush(QBrush(Qt::black));
   scene->setItemIndexMethod(QGraphicsScene::NoIndex);
-  setCacheMode(QGraphicsView::CacheBackground);
-  setRenderHint(QPainter::Antialiasing, false);
-  setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
-
+  // setCacheMode(QGraphicsView::CacheBackground);
+  // setRenderHint(QPainter::Antialiasing, false);
+  // setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
   // Set up the view
-  setRenderHint(QPainter::SmoothPixmapTransform);
+  // setRenderHint(QPainter::SmoothPixmapTransform);
+  //
+  // setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
   setDragMode(QGraphicsView::ScrollHandDrag);
   setInteractive(true);
-  setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setMouseTracking(true);
-
   setFrameShape(Shape::NoFrame);
   setCursor();
 
@@ -113,7 +115,6 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
     {
       std::lock_guard<std::mutex> locked(mImageResetMutex);
       if(loadOme) {
-        //   if(mTile.tileX)
         auto [tilesX, tilesY] = mOmeInfo.getImageInfo(mSeries).resolutions.at(0).getNrOfTiles(mTile.tileWidth, mTile.tileHeight);
         if(mTile.tileX > tilesX || mTile.tileY > tilesY) {
           mTile.tileX = 0;
@@ -127,21 +128,51 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
       }
     }
     scene->setSceneRect(mPreviewImages.originalImage.boundingRect());
-    mPixmapSize = mPreviewImages.originalImage.getPreviewImageSize();
+    auto pixmapSize = mPreviewImages.originalImage.getPreviewImageSize();
+    if(mPixmapSize != pixmapSize) {
+      mPixmapSize = pixmapSize;
+      fitImageToScreenSize();
+    }
     restoreChannelSettings();
-    fitImageToScreenSize();
     setRegionsOfInterestFromObjectList();
     repaintImage();
     if(mLastPath != imagePath) {
       emit imageOpened();
       mLastPath = imagePath;
     }
-    emit channelOpened();
     mLastPlane = mPlane;
-    using namespace std::chrono_literals;
+    emit channelOpened();
     std::this_thread::sleep_for(250ms);
     setLoadingImage(false);
   });
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::resetImage()
+{
+  if(scene == nullptr) {
+    return;
+  }
+  fitImageToScreenSize();
+  viewport()->update();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::repaintImage()
+{
+  viewport()->update();
 }
 
 ///
@@ -164,6 +195,27 @@ auto PanelImageView::getCurrentImagePath() const -> std::filesystem::path
 /// \param[out]
 /// \return
 ///
+void PanelImageView::storeChannelSettings()
+{
+  auto key = SettingsIdx{.imageChannel = static_cast<uint16_t>(mPlane.cStack), .isEdited = mShowEditedImage};
+  if(mChannelSettings.contains(key)) {
+    std::lock_guard<std::mutex> locked(mImageResetMutex);
+    mChannelSettings[key] = ChannelSettings{
+        .mLowerValue       = mImageToShow->getLowerLevelContrast(),
+        .mUpperValue       = mImageToShow->getUpperLevelContrast(),
+        .mDisplayAreaLower = mImageToShow->getHistogramDisplayAreaLower(),
+        .mDisplayAreaUpper = mImageToShow->getHistogramDisplayAreaUpper(),
+    };
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::restoreChannelSettings()
 {
   auto key = SettingsIdx{.imageChannel = static_cast<uint16_t>(mPlane.cStack), .isEdited = mShowEditedImage};
@@ -176,7 +228,6 @@ void PanelImageView::restoreChannelSettings()
       std::lock_guard<std::mutex> locked(mImageResetMutex);
       mImageToShow->setBrightnessRange(tmp.mLowerValue, tmp.mUpperValue, tmp.mDisplayAreaLower, tmp.mDisplayAreaUpper);
     }
-    mPreviewImages.thumbnail.autoAdjustBrightnessRange();
   } else {
   ADJUST : {
     std::lock_guard<std::mutex> locked(mImageResetMutex);
@@ -316,6 +367,7 @@ void PanelImageView::setEditedImage(const joda::image::Image &&edited)
 ///
 void PanelImageView::setShowEditedImage(bool showEdited)
 {
+  storeChannelSettings();
   mShowEditedImage = showEdited;
   if(showEdited) {
     std::lock_guard<std::mutex> locked(mImageResetMutex);
@@ -345,40 +397,6 @@ void PanelImageView::setRoisOpaque(float opaque)
   }
   mOpaque = opaque;
   mOverlayMasks->setAlpha(mOpaque);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelImageView::repaintImage()
-{
-  auto key = SettingsIdx{.imageChannel = static_cast<uint16_t>(mPlane.cStack), .isEdited = mShowEditedImage};
-  if(mChannelSettings.contains(key)) {
-    std::lock_guard<std::mutex> locked(mImageResetMutex);
-    mChannelSettings[key] = ChannelSettings{
-        .mLowerValue       = mImageToShow->getLowerLevelContrast(),
-        .mUpperValue       = mImageToShow->getUpperLevelContrast(),
-        .mDisplayAreaLower = mImageToShow->getHistogramDisplayAreaLower(),
-        .mDisplayAreaUpper = mImageToShow->getHistogramDisplayAreaUpper(),
-    };
-  }
-  onUpdateImage();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelImageView::repaintViewport()
-{
-  viewport()->update();
 }
 
 ///
@@ -514,6 +532,7 @@ int32_t PanelImageView::getSeries() const
 ///
 void PanelImageView::setImagePlane(const joda::enums::PlaneId &plane)
 {
+  storeChannelSettings();
   std::lock_guard<std::mutex> locked(mImageResetMutex);
   mPlane = plane;
 }
@@ -527,6 +546,7 @@ void PanelImageView::setImagePlane(const joda::enums::PlaneId &plane)
 ///
 void PanelImageView::setImageChannel(int32_t ch)
 {
+  storeChannelSettings();
   std::lock_guard<std::mutex> locked(mImageResetMutex);
   mPlane.cStack = ch;
 }
@@ -596,31 +616,6 @@ auto PanelImageView::getTileInfoInternal() const -> enums::TileInfo
 /// \param[out]
 /// \return
 ///
-void PanelImageView::resetImage()
-{
-  if(scene == nullptr) {
-    return;
-  }
-  mPlaceholderImageSet = true;
-  fitImageToScreenSize();
-  onUpdateImage();
-}
-
-void PanelImageView::onUpdateImage()
-{
-  mPlaceholderImageSet = false;
-  scene->update();
-  update();
-  viewport()->update();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 void PanelImageView::mousePressEvent(QMouseEvent *event)
 {
   QGraphicsView::mousePressEvent(event);
@@ -648,8 +643,10 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
       mPaintOrigin = mapToScene(event->pos());
       if(mState == State::PAINT_RECTANGLE) {
         mRubberItem = scene->addRect(QRectF(mPaintOrigin, mPaintOrigin), pen);
+        mRubberItem->setZValue(9999);
       } else if(mState == State::PAINT_OVAL) {
         mRubberItem = scene->addEllipse(QRectF(mPaintOrigin, mPaintOrigin), pen);
+        mRubberItem->setZValue(9999);
       } else if(mState == State::PAINT_POLYGON) {
         if(!mDrawPolygon) {
           mDrawPolygon = true;
@@ -659,12 +656,14 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
           mTempPolygonItem = new QGraphicsPolygonItem(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()));
           mTempPolygonItem->setPen(pen);
           mTempPolygonItem->setBrush(Qt::NoBrush);
+          mTempPolygonItem->setZValue(9999);
           scene->addItem(mTempPolygonItem);
         } else {
           mPolygonPoints.push_back(mPaintOrigin);
           mTempPolygonItem->setPolygon(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()));
         }
       }
+      viewport()->update();
     }
   }
 }
@@ -747,9 +746,6 @@ void PanelImageView::mouseMoveEvent(QMouseEvent *event)
     }
     QGraphicsView::mouseMoveEvent(event);
   }
-
-  scene->update();
-  update();
 }
 
 ///
@@ -1140,17 +1136,10 @@ void PanelImageView::drawRuler(QPainter &painter)
 ///
 void PanelImageView::drawActChannel(QPainter &painter)
 {
-  QFont tmp  = painter.font();
-  QFont font = painter.font();
-  font.setPointSize(8);
-  font.setBold(true);
-  painter.setFont(font);
   QColor textColor(255, 255, 255, 180);    // white with some transparency
   painter.setPen(textColor);
   QString textToPrint = QString("CH%1").arg(QString::number(static_cast<double>(mPlane.cStack)));
   painter.drawText(QRect(0, static_cast<int32_t>(THUMB_RECT_START_Y), width(), 12), Qt::AlignHCenter | Qt::AlignTop, textToPrint);
-
-  painter.setFont(tmp);
 }
 
 ///
@@ -1515,6 +1504,19 @@ void PanelImageView::deleteRois(const std::set<joda::atom::ROI *> &idxs)
 ///
 bool PanelImageView::deleteSelectedRois()
 {
+  QMessageBox messageBox(parentWidget());
+  auto icon = joda::ui::gui::generateSvgIcon<joda::ui::gui::Style::REGULAR, joda::ui::gui::Color::YELLOW>("warning-circle");
+  messageBox.setIconPixmap(icon.pixmap(42, 42));
+  messageBox.setWindowTitle("Delete?");
+  messageBox.setText("Delete selected annotations?");
+  messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+  auto *noButton = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+  messageBox.setDefaultButton(noButton);
+  messageBox.exec();
+  if(messageBox.clickedButton() == noButton) {
+    return false;
+  }
+
   std::lock_guard<std::mutex> locked(mImageResetMutex);
   return mOverlayMasks->deleteSelectedRois();
 }

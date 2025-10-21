@@ -147,7 +147,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
         }
       });
 
-      auto *magicWand = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("magic-wand"), "MAgic wand tool");
+      auto *magicWand = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("magic-wand"), "Magic wand tool");
       magicWand->setStatusTip("Paint brush");
       magicWand->setCheckable(true);
       paintingToolActionGroup->addAction(magicWand);
@@ -291,7 +291,6 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
     mMainLayout->addWidget(centralWidget);
 
     connect(&mImageViewRight, &PanelImageView::tileClicked, this, &DialogImageViewer::onSettingsChanged);
-    connect(&mImageViewRight, &PanelImageView::classesToShowChanged, this, &DialogImageViewer::onSettingsChanged);
     connect(&mImageViewRight, &PanelImageView::imageOpened, [this]() {
       if(nullptr != mVideoButtonGroup) {
         mVideoButtonGroup->setMaxTimeStacks(mImageViewRight.getNrOfTstacks());

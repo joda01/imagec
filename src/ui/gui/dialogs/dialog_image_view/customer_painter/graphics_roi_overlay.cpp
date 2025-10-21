@@ -236,19 +236,6 @@ void RoiOverlay::setSelectedRois(const std::set<joda::atom::ROI *> &idxs)
 ///
 bool RoiOverlay::deleteSelectedRois()
 {
-  QMessageBox messageBox(mParentWidget);
-  auto icon = joda::ui::gui::generateSvgIcon<joda::ui::gui::Style::REGULAR, joda::ui::gui::Color::YELLOW>("warning-circle");
-  messageBox.setIconPixmap(icon.pixmap(42, 42));
-  messageBox.setWindowTitle("Delete?");
-  messageBox.setText("Delete selected annotations?");
-  messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
-  auto *noButton = messageBox.addButton(tr("No"), QMessageBox::NoRole);
-  messageBox.setDefaultButton(noButton);
-  messageBox.exec();
-  if(messageBox.clickedButton() == noButton) {
-    return false;
-  }
-
   mObjectMap->erase(mSelectedRois);
   mSelectedRois.clear();
   refresh();

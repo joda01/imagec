@@ -28,6 +28,7 @@ namespace joda::ui::gui {
 ///
 PanelHistogram::PanelHistogram(PanelImageView *image, QWidget *parent) : QWidget(parent), mImagePanel(image)
 {
+  mFont.setPointSizeF(8);
 }
 
 ///
@@ -40,7 +41,6 @@ PanelHistogram::PanelHistogram(PanelImageView *image, QWidget *parent) : QWidget
 void PanelHistogram::paintEvent(QPaintEvent *event)
 {
   QWidget::paintEvent(event);
-
   QPainter painter(this);
   drawHistogram(painter);
 }
@@ -63,9 +63,7 @@ void PanelHistogram::drawHistogram(QPainter &painter)
   float RECT_WIDTH          = static_cast<float>(width()) - (RECT_START_X * 2);
 
   // Place for the histogram
-  QFont font;
-  font.setPointSizeF(8);
-  painter.setFont(font);
+  painter.setFont(mFont);
   painter.setPen(QColor(0, 89, 179));    // Set the pen color to light blue
   painter.setBrush(Qt::NoBrush);         // Set the brush to no brush for transparent fill
 

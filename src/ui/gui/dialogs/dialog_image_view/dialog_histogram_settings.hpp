@@ -49,8 +49,8 @@ private:
   PanelImageView *mImagePanel = nullptr;
   PanelHistogram *mHistogramPanel;
 
-  JumpSpinBox *mSliderDisplayLower;
-  JumpSpinBox *mSliderDisplayUpper;
+  QSpinBox *mSliderDisplayLower;
+  QSpinBox *mSliderDisplayUpper;
   QSlider *mSliderHistogramMin;
   QSlider *mSliderHistogramMax;
   QComboBox *mColorMode;

@@ -64,18 +64,14 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
   //
   // Axis range
   //
-  mSliderDisplayLower = new JumpSpinBox();
-  mSliderDisplayLower->setStepType(JumpSpinBox::StepType::DefaultStepType);
-  mSliderDisplayLower->setDecimals(0);
-  mSliderDisplayLower->setSingleStep(1.0);
+  mSliderDisplayLower = new QSpinBox();
+  mSliderDisplayLower->setSingleStep(1);
   mSliderDisplayLower->setMinimum(0);
   mSliderDisplayLower->setMaximum(UINT16_MAX);
   mSliderDisplayLower->setValue(imagePanel->mutableImage()->getHistogramDisplayAreaLower());
 
-  mSliderDisplayUpper = new JumpSpinBox();
-  mSliderDisplayUpper->setStepType(JumpSpinBox::StepType::DefaultStepType);
-  mSliderDisplayUpper->setDecimals(0);
-  mSliderDisplayUpper->setSingleStep(1.0);
+  mSliderDisplayUpper = new QSpinBox();
+  mSliderDisplayUpper->setSingleStep(1);
   mSliderDisplayUpper->setMinimum(1);
   mSliderDisplayUpper->setMaximum(UINT16_MAX);
   mSliderDisplayUpper->setValue(imagePanel->mutableImage()->getHistogramDisplayAreaUpper());

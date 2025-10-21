@@ -105,7 +105,6 @@ public:
   void setEditedImage(const joda::image::Image &&edited);
   void reloadImage();
   void repaintImage();
-  void repaintViewport();
   void resetImage();
   void fitImageToScreenSize();
   void zoomImage(bool inOut);
@@ -158,7 +157,6 @@ public:
 
 signals:
   /////////////////////////////////////////////////////
-  void classesToShowChanged(const settings::ObjectInputClasses &selectedClasses);
   void tileClicked(int32_t tileX, int32_t tileY);
   void paintedPolygonClicked(std::set<atom::ROI *>);
   void drawingToolChanged(State);
@@ -208,7 +206,6 @@ private:
   const float RULER_LENGTH = 100;
 
   // IMAGE ///////////////////////////////////////////////////
-  bool mPlaceholderImageSet = true;
   std::filesystem::path mLastPath;
   joda::enums::PlaneId mLastPlane{-1, -1, -1};
   joda::ome::OmeInfo mOmeInfo;
@@ -258,6 +255,7 @@ private:
   bool mThumbnailAreaEntered = false;
 
   // IMAGE CHANNEL SETTINGS ///////////////////////////////////////////////////
+  void storeChannelSettings();
   void restoreChannelSettings();
   std::map<SettingsIdx, ChannelSettings> mChannelSettings;
 
@@ -280,8 +278,5 @@ private:
   std::shared_ptr<atom::ObjectList> mObjectMap;
 
   mutable std::mutex mImageResetMutex;
-
-private slots:
-  void onUpdateImage();
 };
 }    // namespace joda::ui::gui
