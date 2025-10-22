@@ -38,7 +38,7 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
   setWindowTitle("Histogram");
   setMinimumSize(300, 400);
 
-  auto *layout = new QFormLayout();
+  auto *layout = new QFormLayout(this);
 
   mHistogramPanel = new PanelHistogram(imagePanel, this);
   mHistogramPanel->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding);
@@ -47,14 +47,14 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
   //
   // Add sliders
   //
-  mSliderHistogramMin = new QSlider();
+  mSliderHistogramMin = new QSlider(this);
   mSliderHistogramMin->setOrientation(Qt::Orientation::Horizontal);
   mSliderHistogramMin->setMinimum(imagePanel->mutableImage()->getHistogramDisplayAreaLower());
   mSliderHistogramMin->setMaximum(imagePanel->mutableImage()->getHistogramDisplayAreaUpper());
   mSliderHistogramMin->setValue(imagePanel->mutableImage()->getLowerLevelContrast());
   layout->addRow("Min", mSliderHistogramMin);
 
-  mSliderHistogramMax = new QSlider();
+  mSliderHistogramMax = new QSlider(this);
   mSliderHistogramMax->setOrientation(Qt::Orientation::Horizontal);
   mSliderHistogramMax->setMinimum(imagePanel->mutableImage()->getHistogramDisplayAreaLower());
   mSliderHistogramMax->setMaximum(imagePanel->mutableImage()->getHistogramDisplayAreaUpper());
@@ -64,19 +64,19 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
   //
   // Axis range
   //
-  mSliderDisplayLower = new QSpinBox();
+  mSliderDisplayLower = new QSpinBox(this);
   mSliderDisplayLower->setSingleStep(1);
   mSliderDisplayLower->setMinimum(0);
   mSliderDisplayLower->setMaximum(UINT16_MAX);
   mSliderDisplayLower->setValue(imagePanel->mutableImage()->getHistogramDisplayAreaLower());
 
-  mSliderDisplayUpper = new QSpinBox();
+  mSliderDisplayUpper = new QSpinBox(this);
   mSliderDisplayUpper->setSingleStep(1);
   mSliderDisplayUpper->setMinimum(1);
   mSliderDisplayUpper->setMaximum(UINT16_MAX);
   mSliderDisplayUpper->setValue(imagePanel->mutableImage()->getHistogramDisplayAreaUpper());
 
-  auto *rangeLayout = new QHBoxLayout();
+  auto *rangeLayout = new QHBoxLayout(this);
   rangeLayout->addWidget(mSliderDisplayLower);
   rangeLayout->addWidget(mSliderDisplayUpper);
   layout->addRow("Axis range", rangeLayout);
@@ -102,7 +102,7 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
   //
   // Image channel
   //
-  mImageChannel = new QComboBox();
+  mImageChannel = new QComboBox(this);
   for(int n = 0; n < 9; n++) {
     mImageChannel->addItem("Channel " + QString::number(n), n);
   }
@@ -110,6 +110,9 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
 
   // Connect
   connect(mSliderDisplayLower, &QSpinBox::editingFinished, [this] {
+    mSliderHistogramMin->blockSignals(true);
+    mSliderHistogramMax->blockSignals(true);
+
     mSliderHistogramMin->setMinimum(mSliderDisplayLower->value());
     mSliderHistogramMax->setMinimum(mSliderDisplayLower->value());
 
@@ -117,8 +120,15 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
                                                     static_cast<int32_t>(mSliderDisplayLower->value()),
                                                     static_cast<int32_t>(mSliderDisplayUpper->value()));
     mHistogramPanel->update();
+
+    mSliderHistogramMin->blockSignals(false);
+    mSliderHistogramMax->blockSignals(false);
   });
+
   connect(mSliderDisplayUpper, &QSpinBox::editingFinished, [this] {
+    mSliderHistogramMin->blockSignals(true);
+    mSliderHistogramMax->blockSignals(true);
+
     mSliderHistogramMin->setMaximum(mSliderDisplayUpper->value());
     mSliderHistogramMax->setMaximum(mSliderDisplayUpper->value());
 
@@ -126,16 +136,25 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
                                                     static_cast<int32_t>(mSliderDisplayLower->value()),
                                                     static_cast<int32_t>(mSliderDisplayUpper->value()));
     mHistogramPanel->update();
+
+    mSliderHistogramMin->blockSignals(false);
+    mSliderHistogramMax->blockSignals(false);
   });
+
   connect(mSliderHistogramMin, &QScrollBar::valueChanged, [this] { applyHistogramSettingsToImage(); });
   connect(mSliderHistogramMax, &QScrollBar::valueChanged, [this] { applyHistogramSettingsToImage(); });
   connect(mColorMode, &QComboBox::currentIndexChanged, [this] { applyHistogramSettingsToImage(); });
+
   connect(mImageChannel, &QComboBox::currentIndexChanged, [this] {
     mImagePanel->setImageChannel(mImageChannel->currentData().toInt());
     mImagePanel->reloadImage();
   });
 
-  connect(imagePanel, &PanelImageView::channelOpened, [this] { getHistogramSettingsFromImage(); });
+  // This is the problemantic connect
+  connect(mImagePanel, &PanelImageView::channelOpened, [this] {
+    std::cout << "Calles" << std::endl;
+    getHistogramSettingsFromImage();
+  });
 
   setLayout(layout);
 }
@@ -161,8 +180,13 @@ void DialogHistogramSettings::getHistogramSettingsFromImage()
   mSliderHistogramMax->setMinimum(mImagePanel->mutableImage()->getHistogramDisplayAreaLower());
   mSliderHistogramMax->setMaximum(mImagePanel->mutableImage()->getHistogramDisplayAreaUpper());
 
-  mSliderDisplayLower->setValue(mImagePanel->mutableImage()->getHistogramDisplayAreaLower());
-  mSliderDisplayUpper->setValue(mImagePanel->mutableImage()->getHistogramDisplayAreaUpper());
+  QMetaObject::invokeMethod(
+      mSliderDisplayLower,
+      [this]() {
+        mSliderDisplayLower->setValue(mImagePanel->mutableImage()->getHistogramDisplayAreaLower());
+        mSliderDisplayUpper->setValue(mImagePanel->mutableImage()->getHistogramDisplayAreaUpper());
+      },
+      Qt::QueuedConnection);
   mSliderHistogramMin->setValue(mImagePanel->mutableImage()->getLowerLevelContrast());
   mSliderHistogramMax->setValue(mImagePanel->mutableImage()->getUpperLevelContrast());
 

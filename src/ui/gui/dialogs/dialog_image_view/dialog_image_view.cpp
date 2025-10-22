@@ -59,7 +59,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
   mMainLayout = new QVBoxLayout();
   mMainLayout->setContentsMargins(0, 0, 0, 0);
 
-  mHistogramSettings = new DialogHistogramSettings(&mImageViewRight, this);
+  mHistogramSettings = new DialogHistogramSettings(&mImageViewRight, parent);
 
   // ======================================
   // Toolbar

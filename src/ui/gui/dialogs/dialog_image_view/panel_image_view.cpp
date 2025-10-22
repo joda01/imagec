@@ -746,6 +746,7 @@ void PanelImageView::mouseMoveEvent(QMouseEvent *event)
     }
     QGraphicsView::mouseMoveEvent(event);
   }
+  viewport()->update();
 }
 
 ///
