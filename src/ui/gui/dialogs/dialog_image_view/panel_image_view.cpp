@@ -93,7 +93,12 @@ PanelImageView::PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMa
   scene->addItem(mOverlayMasks);
   scene->addItem(mContourOverlay);
   scene->addItem(&mPreviewImages.originalImage);
+  scene->addItem(&mPreviewImages.editedImage);
+
   mPreviewImages.originalImage.setZValue(50);
+  mPreviewImages.editedImage.setZValue(50);
+
+  mPreviewImages.editedImage.setVisible(false);
 
   connect(mOverlayMasks, &RoiOverlay::paintedPolygonClicked, this, &PanelImageView::paintedPolygonClicked);
 }
@@ -372,12 +377,17 @@ void PanelImageView::setShowEditedImage(bool showEdited)
   if(showEdited) {
     std::lock_guard<std::mutex> locked(mImageResetMutex);
     mImageToShow = &mPreviewImages.editedImage;
+    mPreviewImages.editedImage.setVisible(true);
+    mPreviewImages.originalImage.setVisible(false);
   } else {
     std::lock_guard<std::mutex> locked(mImageResetMutex);
     mImageToShow = &mPreviewImages.originalImage;
+    mPreviewImages.editedImage.setVisible(false);
+    mPreviewImages.originalImage.setVisible(true);
   }
   restoreChannelSettings();
   repaintImage();
+  emit channelOpened();
 }
 
 ///
@@ -1199,8 +1209,26 @@ void PanelImageView::drawThumbnail(QPainter &painter)
       QPoint(static_cast<int32_t>(static_cast<float>(width()) - THUMB_RECT_START_X - rectWidth), static_cast<int32_t>(THUMB_RECT_START_Y)),
       QSize(newWidth,
             newHeight));    // Adjust the size as needed
-#warning "Draw thumbnail"
-  // painter.drawPixmap(thumbRect, mPreviewImages.thumbnail.getPixmap());
+
+  //
+  // Paint thumbnail
+  //
+  painter.save();
+  painter.translate(thumbRect.topLeft());
+
+  // If you want to scale the item to match the rect size:
+  QRectF itemBounds = mPreviewImages.thumbnail.boundingRect();
+  painter.scale(thumbRect.width() / itemBounds.width(), thumbRect.height() / itemBounds.height());
+
+  // Draw the item manually into the painter
+  QStyleOptionGraphicsItem option;
+  mPreviewImages.thumbnail.paint(&painter, &option, this);
+
+  painter.restore();
+
+  //
+  //
+  //
 
   //
   // Draw bounding rect

@@ -400,18 +400,22 @@ std::unique_ptr<SpheralIndex> &ObjectList::operator[](enums::ClassId classId)
 ///
 void ObjectList::serialize(const std::filesystem::path &filename)
 {
-  std::ofstream os(filename.string() + joda::fs::EXT_ANNOTATION, std::ios::binary);
-  cereal::BinaryOutputArchive archive(os);
+  try {
+    std::ofstream os(filename.string() + joda::fs::EXT_ANNOTATION, std::ios::binary);
+    cereal::BinaryOutputArchive archive(os);
 
-  // Save number of entries first (so we know how many to read back)
-  size_t count = objectsOrderedByObjectId.size();
-  archive(count);
+    // Save number of entries first (so we know how many to read back)
+    size_t count = objectsOrderedByObjectId.size();
+    archive(count);
 
-  // Write each pointed object (not the key)
-  for(const auto &[_, ptr] : objectsOrderedByObjectId) {
-    if(ptr->getCategory() == ROI::Category::MANUAL_SEGMENTATION) {
-      archive(*ptr);    // directly serialize the object
+    // Write each pointed object (not the key)
+    for(const auto &[_, ptr] : objectsOrderedByObjectId) {
+      if(ptr->getCategory() == ROI::Category::MANUAL_SEGMENTATION) {
+        archive(*ptr);    // directly serialize the object
+      }
     }
+  } catch(const std::exception &ex) {
+    joda::log::logWarning("Could not load ROIs. what: " + std::string(ex.what()));
   }
 }
 

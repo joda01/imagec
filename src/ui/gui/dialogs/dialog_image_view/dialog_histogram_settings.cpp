@@ -151,10 +151,7 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
   });
 
   // This is the problemantic connect
-  connect(mImagePanel, &PanelImageView::channelOpened, [this] {
-    std::cout << "Calles" << std::endl;
-    getHistogramSettingsFromImage();
-  });
+  connect(mImagePanel, &PanelImageView::channelOpened, [this] { getHistogramSettingsFromImage(); });
 
   setLayout(layout);
 }

@@ -234,6 +234,8 @@ private:
   // Overlays ///////////////////////////////////////////////////
   RoiOverlay *mOverlayMasks       = nullptr;
   ContourOverlay *mContourOverlay = nullptr;
+  QGraphicsItem *mOriginalImageScaled;
+  QGraphicsItem *mEditedImageScaled;
 
   // MOVE IMAGE ///////////////////////////////////////////////////
   QSize mPixmapSize;
