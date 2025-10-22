@@ -35,6 +35,7 @@ makeIcons() {
 copy(){
      cd build/build/output
      cp ../imagec imagec
+     cp ../tests tests
 }
 
 pack(){
