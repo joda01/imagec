@@ -72,6 +72,7 @@ public:
     std::lock_guard<std::mutex> lock(mLockMutex);
     mImageOriginalScaled = cv::Mat{};
     mOriginalImage       = cv::Mat{};
+    refreshImageToPaint(mImageOriginalScaled);
   }
 
   auto getHistogram() const -> const std::vector<cv::Mat> &

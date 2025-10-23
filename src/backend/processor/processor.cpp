@@ -300,8 +300,40 @@ std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSett
 
   std::filesystem::create_directories(globalContext.resultsOutputFolder);
 
+  //
+  // Make a copy of the pipeline settings to the output folder
+  //
   settings::Settings::storeSettings((globalContext.resultsOutputFolder / (joda::fs::FILE_NAME_PROJECT_DEFAULT + joda::fs::EXT_PROJECT)), program);
 
+  // Copy models
+  {
+    std::filesystem::path source      = program.getProjectPath() / joda::fs::WORKING_DIRECTORY_MODELS_PATH;
+    std::filesystem::path destination = globalContext.resultsOutputFolder / joda::fs::WORKING_DIRECTORY_MODELS_PATH;
+
+    try {
+      std::filesystem::create_directories(destination);
+      std::filesystem::copy(source, destination, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
+    } catch(const std::filesystem::filesystem_error &e) {
+      joda::log::logWarning("Could not copy models to output path what: " + std::string(e.what()));
+    }
+  }
+
+  // Copy ROIs
+  {
+    std::filesystem::path source      = program.getProjectPath() / joda::fs::WORKING_DIRECTORY_IMAGE_DATA_PATH;
+    std::filesystem::path destination = globalContext.resultsOutputFolder / joda::fs::WORKING_DIRECTORY_IMAGE_DATA_PATH;
+
+    try {
+      std::filesystem::create_directories(destination);
+      std::filesystem::copy(source, destination, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
+    } catch(const std::filesystem::filesystem_error &e) {
+      joda::log::logWarning("Could not copy data to output path what: " + std::string(e.what()));
+    }
+  }
+
+  //
+  // Job settings
+  //
   mJobInformation.resultsFilePath  = globalContext.resultsOutputFolder / (joda::fs::FILE_NAME_RESULTS_DATABASE + joda::fs::EXT_DATABASE);
   mJobInformation.ouputFolder      = globalContext.resultsOutputFolder;
   mJobInformation.jobName          = jobName;

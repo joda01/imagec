@@ -95,6 +95,18 @@ void PanelImages::filterImages()
 /// \param[out]
 /// \return
 ///
+void PanelImages::deselectImages()
+{
+  mImages->clearSelection();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 auto PanelImages::getSelectedImage() const -> std::tuple<std::filesystem::path, int32_t, joda::ome::OmeInfo>
 {
   int selectedRow = mImages->currentRow();

@@ -164,6 +164,14 @@ void PanelImageView::resetImage()
   if(scene == nullptr) {
     return;
   }
+  mLastPath.clear();
+  mLastPlane = {-1, -1, -1};
+  mPlane     = {0, 0, 0};
+  mSeries    = 0;
+  mPreviewImages.editedImage.clear();
+  mPreviewImages.originalImage.clear();
+  mPreviewImages.thumbnail.clear();
+
   fitImageToScreenSize();
   viewport()->update();
 }
@@ -343,7 +351,11 @@ void PanelImageView::setRegionsOfInterestFromObjectList()
     if(mOverlayMasks != nullptr && !size.isNull() && !size.isEmpty() && size.width() > 0 && size.height() > 0) {
       mOverlayMasks->setOverlay({mPreviewImages.originalImage.getOriginalImage()->cols, mPreviewImages.originalImage.getOriginalImage()->rows},
                                 {size.width(), size.height()}, getTileInfoInternal());
+    } else {
+      mOverlayMasks->refresh(getTileInfoInternal());
     }
+  } else {
+    mOverlayMasks->refresh(getTileInfoInternal());
   }
 }
 

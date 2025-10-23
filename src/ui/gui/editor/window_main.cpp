@@ -440,6 +440,7 @@ void WindowMain::onNewProjectClicked()
   }
   showPanelStartPage();
   if(mode == DialogOpenTemplate::ReturnCode::EMPTY_PROJECT) {
+    saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
     clearSettings();
     checkForSettingsChanged();
   } else {
@@ -459,6 +460,10 @@ void WindowMain::onNewProjectClicked()
 ///
 void WindowMain::clearSettings()
 {
+  mPreviewResult.results.objectMap->triggerStartChangeCallback();
+  mPanelImages->deselectImages();
+  mPreviewImage->getImagePanel()->resetImage();
+  mPreviewResult.results.objectMap->clearAll();
   mAnalyzeSettings.clearProjectPath();
   mPanelPipeline->clear();
   mAnalyzeSettings    = {};
@@ -469,6 +474,8 @@ void WindowMain::clearSettings()
   mPanelProjectSettings->fromSettings({});
   mPanelClassification->fromSettings({});
   mPanelPipeline->fromSettings({});
+  mPreviewResult.results.objectMap->triggerChangeCallback();
+  mPreviewImage->getImagePanel()->setRegionsOfInterestFromObjectList();
 }
 
 ///
@@ -532,6 +539,9 @@ void WindowMain::openImage(const std::filesystem::path &imagePath, const ome::Om
 ///
 void WindowMain::loadROI(const std::filesystem::path &imagePath)
 {
+  if(imagePath.empty()) {
+    return;
+  }
   const std::filesystem::path projectPath(mAnalyzeSettings.getProjectPath());
   auto storagePathNew =
       joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath, joda::fs::FILE_NAME_ANNOTATIONS + joda::fs::EXT_ANNOTATION);
@@ -552,6 +562,9 @@ void WindowMain::loadROI(const std::filesystem::path &imagePath)
 ///
 void WindowMain::saveROI(const std::filesystem::path &imagePath)
 {
+  if(imagePath.empty()) {
+    return;
+  }
   const std::filesystem::path projectPath(mAnalyzeSettings.getProjectPath());
   auto imgIdOld =
       joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath, joda::fs::FILE_NAME_ANNOTATIONS + joda::fs::EXT_ANNOTATION);
@@ -611,6 +624,7 @@ void WindowMain::addToLastLoadedResults(const QString &path, const QString &jobN
 void WindowMain::openProjectSettings(const QString &filePath, bool openFromTemplate)
 {
   try {
+    saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
     joda::settings::AnalyzeSettings analyzeSettings = joda::settings::Settings::openSettings(filePath.toStdString());
 
     // Assign the classes first
