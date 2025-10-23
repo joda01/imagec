@@ -52,7 +52,7 @@ public:
             if(image.isRgb()) {
               object.measureIntensityAndAdd(rgbPlane.getId(), rgbPlane.image, context.getTileInfo());
             } else {
-              object.measureIntensityAndAdd(image.getId(), rgbPlane.image, context.getTileInfo());
+              object.measureIntensityAndAdd(image.getId(), image.image, context.getTileInfo());
             }
           }
         }
