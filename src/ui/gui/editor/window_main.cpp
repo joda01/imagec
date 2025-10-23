@@ -18,6 +18,7 @@
 #include <qlayout.h>
 #include <qlineedit.h>
 #include <qmenu.h>
+#include <qmessagebox.h>
 #include <qobject.h>
 #include <qpushbutton.h>
 #include <qstackedwidget.h>
@@ -350,7 +351,7 @@ void WindowMain::createLeftToolbar()
 
   // Pipeline Tab
   {
-    mPanelPipeline = new PanelPipeline(&mPreviewResult, this, &mAnalyzeSettings);
+    mPanelPipeline = new PanelPipeline(&mPreviewResult, this, mPreviewImage->getDialogMlTrainer(), &mAnalyzeSettings);
     createDock("Pipelines", mPanelPipeline);
   }
 
@@ -429,7 +430,7 @@ void WindowMain::onNewProjectClicked()
       return;
     }
     if(ret == AskEnum::yes) {
-      if(!saveProject(mSelectedProjectSettingsFilePath)) {
+      if(!saveProject(mAnalyzeSettings.getProjectPathWithFileName())) {
         // If save was not successful return
         return;
       }
@@ -458,7 +459,7 @@ void WindowMain::onNewProjectClicked()
 ///
 void WindowMain::clearSettings()
 {
-  mSelectedProjectSettingsFilePath.clear();
+  mAnalyzeSettings.clearProjectPath();
   mPanelPipeline->clear();
   mAnalyzeSettings    = {};
   mAnalyzeSettingsOld = {};
@@ -480,8 +481,8 @@ void WindowMain::onOpenClicked()
   if(!mAnalyzeSettings.projectSettings.plate.imageFolder.empty()) {
     folderToOpen = mAnalyzeSettings.projectSettings.plate.imageFolder.data();
   }
-  if(!mSelectedProjectSettingsFilePath.empty()) {
-    folderToOpen = mSelectedProjectSettingsFilePath.string().data();
+  if(mAnalyzeSettings.isProjectPathSet()) {
+    folderToOpen = mAnalyzeSettings.getProjectPath().string().data();
   }
 
   QFileDialog::Options opt;
@@ -520,7 +521,7 @@ void WindowMain::openImage(const std::filesystem::path &imagePath, const ome::Om
   if(imagePath.empty()) {
     return;
   }
-
+  saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
   mPreviewImage->getImagePanel()->openImage(imagePath, omeInfo);
   loadROI(imagePath);
 }
@@ -532,23 +533,16 @@ void WindowMain::openImage(const std::filesystem::path &imagePath, const ome::Om
 void WindowMain::loadROI(const std::filesystem::path &imagePath)
 {
   const std::filesystem::path projectPath(mAnalyzeSettings.getProjectPath());
-
-  auto lastPath = mPreviewImage->getImagePanel()->getCurrentImagePath();
-
-  auto storagePathOld = joda::helper::generateImageMetaDataStoragePathFromImagePath(lastPath, projectPath, joda::fs::FILE_NAME_ANNOTATIONS);
-  auto storagePathNew = joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath, joda::fs::FILE_NAME_ANNOTATIONS);
-
+  auto storagePathNew =
+      joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath, joda::fs::FILE_NAME_ANNOTATIONS + joda::fs::EXT_ANNOTATION);
   mPreviewResult.results.objectMap->triggerStartChangeCallback();
-  if(lastPath != imagePath) {
-    mPreviewResult.results.objectMap->serialize(storagePathOld);
-    if(std::filesystem::exists(storagePathNew)) {
-      mPreviewResult.results.objectMap->deserialize(storagePathNew);
-    } else {
-      mPreviewResult.results.objectMap->clearAll();
-    }
+  if(std::filesystem::exists(storagePathNew)) {
+    mPreviewResult.results.objectMap->deserialize(storagePathNew);
+  } else {
+    mPreviewResult.results.objectMap->clearAll();
   }
-  mPreviewResult.results.objectMap->triggerChangeCallback();
 
+  mPreviewResult.results.objectMap->triggerChangeCallback();
   mPreviewImage->getImagePanel()->setRegionsOfInterestFromObjectList();
 }
 
@@ -559,7 +553,8 @@ void WindowMain::loadROI(const std::filesystem::path &imagePath)
 void WindowMain::saveROI(const std::filesystem::path &imagePath)
 {
   const std::filesystem::path projectPath(mAnalyzeSettings.getProjectPath());
-  auto imgIdOld = joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath, joda::fs::FILE_NAME_ANNOTATIONS);
+  auto imgIdOld =
+      joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath, joda::fs::FILE_NAME_ANNOTATIONS + joda::fs::EXT_ANNOTATION);
   mPreviewResult.results.objectMap->serialize(imgIdOld);
 
   // Write meta data
@@ -618,22 +613,26 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
   try {
     joda::settings::AnalyzeSettings analyzeSettings = joda::settings::Settings::openSettings(filePath.toStdString());
 
-    // Assign temporary the newly loaded settings.
+    // Assign the classes first
     // This is needed to avoid a hen and eg problem when loading the output classes which are needed for the pipelines.
     // They must be known before the pipeline steps are loaded.
-    mActAnalyzeSettings = &analyzeSettings;
+    mAnalyzeSettings.projectSettings.classification = analyzeSettings.projectSettings.classification;
+
     showPanelStartPage();
     clearSettings();
+    mAnalyzeSettings.projectSettings.classification = analyzeSettings.projectSettings.classification;
 
     mPanelProjectSettings->fromSettings(analyzeSettings);
     mPanelPipeline->fromSettings(analyzeSettings);
     mPanelClassification->fromSettings(analyzeSettings.projectSettings.classification);
     mPreviewImage->fromSettings(analyzeSettings);
 
-    mAnalyzeSettings.projectSettings                = analyzeSettings.projectSettings;
-    mAnalyzeSettings.projectSettings.classification = analyzeSettings.projectSettings.classification;
-    mAnalyzeSettings.pipelineSetup                  = analyzeSettings.pipelineSetup;
-    mAnalyzeSettingsOld                             = mAnalyzeSettings;
+    mAnalyzeSettings.projectSettings         = analyzeSettings.projectSettings;
+    mAnalyzeSettings.pipelineSetup           = analyzeSettings.pipelineSetup;
+    mAnalyzeSettings.imageSetup              = analyzeSettings.imageSetup;
+    mAnalyzeSettings.meta                    = analyzeSettings.meta;
+    mAnalyzeSettings.projectPathWithFilename = analyzeSettings.projectPathWithFilename;
+    mAnalyzeSettingsOld                      = mAnalyzeSettings;
 
     mPreviewImage->setImagePlane(DialogImageViewer::ImagePlaneSettings{.plane      = {.tStack = 0, .zStack = 0, .cStack = 0},
                                                                        .series     = analyzeSettings.imageSetup.series,
@@ -646,17 +645,13 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
       mPanelPipeline->addChannelFromSettings(channel);
     }
 
-    mActAnalyzeSettings = &mAnalyzeSettings;
-
     emit onOutputClassifierChanges();
     if(openFromTemplate) {
-      mSelectedProjectSettingsFilePath.clear();
-    } else {
-      mSelectedProjectSettingsFilePath = filePath.toStdString();
+      mAnalyzeSettings.clearProjectPath();
     }
     checkForSettingsChanged();
     if(!openFromTemplate) {
-      saveProject(mSelectedProjectSettingsFilePath, false, false);
+      saveProject(mAnalyzeSettings.getProjectPathWithFileName(), false, false);
       joda::user_settings::UserSettings::addLastOpenedProject(filePath.toStdString());
       loadLastOpened();
     }
@@ -683,10 +678,10 @@ void WindowMain::checkForSettingsChanged()
   if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
     // Not equal
     mSaveProject->setEnabled(true);
-    if(mSelectedProjectSettingsFilePath.empty()) {
+    if(!mAnalyzeSettings.isProjectPathSet()) {
       setWindowTitlePrefix("Untitled*");
     } else {
-      setWindowTitlePrefix(QString((mSelectedProjectSettingsFilePath.filename().string() + "*").data()));
+      setWindowTitlePrefix(QString((mAnalyzeSettings.getProjectPathWithFileName().filename().string() + "*").data()));
     }
     /// \todo check if all updates still work
     auto actClasses = getOutputClasses();
@@ -698,10 +693,10 @@ void WindowMain::checkForSettingsChanged()
   } else {
     // Equal
     mSaveProject->setEnabled(false);
-    if(mSelectedProjectSettingsFilePath.empty()) {
+    if(!mAnalyzeSettings.isProjectPathSet()) {
       setWindowTitlePrefix("Untitled");
     } else {
-      setWindowTitlePrefix(mSelectedProjectSettingsFilePath.filename().string().data());
+      setWindowTitlePrefix(mAnalyzeSettings.getProjectPathWithFileName().string().data());
     }
   }
   mCompilerLog->updateCompilerLog(mAnalyzeSettings);
@@ -713,7 +708,11 @@ void WindowMain::checkForSettingsChanged()
 ///
 void WindowMain::onSaveProject()
 {
-  saveProject(mSelectedProjectSettingsFilePath);
+  if(mAnalyzeSettings.isProjectPathSet()) {
+    saveProject(mAnalyzeSettings.getProjectPathWithFileName());
+  } else {
+    saveProject("");
+  }
 }
 
 ///
@@ -734,7 +733,12 @@ bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
   bool okay = false;
   try {
     if(filename.empty()) {
-      std::filesystem::path filePath(mAnalyzeSettings.getProjectPath());
+      if(mAnalyzeSettings.projectSettings.plate.imageFolder.empty()) {
+        QMessageBox::information(this, "Save project ...", "Select an image directory first!");
+        return false;
+      }
+      std::filesystem::path filePath(mAnalyzeSettings.projectSettings.plate.imageFolder);
+      filePath = filePath / joda::fs::WORKING_DIRECTORY_PROJECT_PATH;
       if(!std::filesystem::exists(filePath)) {
         std::filesystem::create_directories(filePath);
       }
@@ -764,7 +768,7 @@ bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
             }
           }
           joda::settings::Settings::storeSettings(filename, mAnalyzeSettings);
-          mAnalyzeSettings.setProjectPath(filename.parent_path());
+          mAnalyzeSettings.setProjectPath(filename);
         }
         saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
         mAnalyzeSettingsOld = mAnalyzeSettings;
@@ -781,8 +785,7 @@ bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
     }
 
     if(!storeAsTemplate) {
-      mSelectedProjectSettingsFilePath = filename;
-      setWindowTitlePrefix(filename.filename().string().data());
+      setWindowTitlePrefix(mAnalyzeSettings.getProjectPathWithFileName().filename().string().data());
     }
     okay = true;
 
@@ -1113,9 +1116,6 @@ QString WindowMain::bytesToString(int64_t bytes)
 ///
 auto WindowMain::getOutputClasses() -> std::set<joda::enums::ClassId>
 {
-  if(mActAnalyzeSettings != nullptr) {
-    return mActAnalyzeSettings->getOutputClasses();
-  }
   return mAnalyzeSettings.getOutputClasses();
 }
 

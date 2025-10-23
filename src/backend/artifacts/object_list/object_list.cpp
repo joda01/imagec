@@ -6,6 +6,7 @@
 #include <iostream>
 #include <list>
 #include <memory>
+#include <string>
 #include "backend/artifacts/roi/roi.hpp"
 #include "backend/commands/classification/classifier_filter.hpp"
 #include "backend/enums/enums_file_endians.hpp"
@@ -402,7 +403,7 @@ std::unique_ptr<SpheralIndex> &ObjectList::operator[](enums::ClassId classId)
 void ObjectList::serialize(const std::filesystem::path &filename)
 {
   try {
-    std::ofstream os(filename.string() + joda::fs::EXT_ANNOTATION, std::ios::binary);
+    std::ofstream os(filename.string(), std::ios::binary);
     cereal::BinaryOutputArchive archive(os);
 
     // Save number of entries first (so we know how many to read back)
@@ -431,7 +432,7 @@ void ObjectList::deserialize(const std::filesystem::path &filename)
 {
   try {
     clearAll();
-    std::ifstream is(filename.string() + joda::fs::EXT_ANNOTATION, std::ios::binary);
+    std::ifstream is(filename.string(), std::ios::binary);
     cereal::BinaryInputArchive archive(is);
 
     size_t count;

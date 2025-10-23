@@ -55,7 +55,7 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
     QDialog(parent),
     mImagePanel(imagePanel), mObjectMap(objectMap), mAnalyzeSettings(analyzeSettings)
 {
-  setWindowTitle("Machine learning");
+  setWindowTitle("Machine learning (ALPHA)");
   setMinimumSize(300, 400);
   setBaseSize(300, 400);
   auto *layout = new QFormLayout();
@@ -234,12 +234,39 @@ void DialogMlTrainer::closeEvent(QCloseEvent *event)
 ///
 void DialogMlTrainer::startTraining()
 {
+  //
+  //
+  //
+  std::string modelFileName = mModelName->text().toStdString();
+  if(modelFileName.empty()) {
+    modelFileName = "tmp";
+  }
+
+  std::filesystem::path modelPath = joda::ml::MlModelParser::getUsersMlModelDirectory(mAnalyzeSettings->getProjectPath()) /
+                                    (modelFileName + joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL);
+
+  std::cout << "Model path " << modelPath.string() << std::endl;
+  if(std::filesystem::exists(modelPath)) {
+    QMessageBox messageBox(this);
+    auto icon = joda::ui::gui::generateSvgIcon<joda::ui::gui::Style::REGULAR, joda::ui::gui::Color::YELLOW>("warning-circle");
+    messageBox.setIconPixmap(icon.pixmap(42, 42));
+    messageBox.setWindowTitle("Override?");
+    messageBox.setText("A model with same name still exists. Do you want to override it?");
+    messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
+    auto *noButton = messageBox.addButton(tr("No"), QMessageBox::NoRole);
+    messageBox.setDefaultButton(noButton);
+    messageBox.exec();
+    if(messageBox.clickedButton() == noButton) {
+      return;
+    }
+  }
+
   if(mTrainingsThread && mTrainingsThread->joinable()) {
     mTrainingsThread->join();
   }
 
   setInProgress(true);
-  mTrainingsThread = std::make_unique<std::thread>([this]() {    //
+  mTrainingsThread = std::make_unique<std::thread>([this, modelPath]() {    //
     // At least one background annotation must be present
     //
     if(!mObjectMap->contains(enums::ClassId::NONE) || mObjectMap->at(enums::ClassId::NONE)->empty()) {
@@ -260,18 +287,7 @@ void DialogMlTrainer::startTraining()
       }
     }
 
-    //
-    //
-    //
-    std::string modelFileName = mModelName->text().toStdString();
-    if(modelFileName.empty()) {
-      modelFileName = "tmp";
-    }
-
     if(classesToTrainMapping.size() > 1) {
-      std::filesystem::path modelPath = joda::ml::MlModelParser::getUsersMlModelDirectory(mAnalyzeSettings->getProjectPath()) /
-                                        (modelFileName + joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL);
-
       std::set<joda::settings::PixelClassifierFeatures> features;
 
       const auto &items = mComboTrainingFeatures->getCheckedItems();
@@ -301,6 +317,7 @@ void DialogMlTrainer::startTraining()
       return;
     }
     emit trainingFinished(true, "");
+    emit triggerPreviewUpdate();
   });
 }
 

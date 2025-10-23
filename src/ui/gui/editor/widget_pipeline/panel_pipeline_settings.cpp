@@ -38,6 +38,7 @@
 #include "backend/settings/pipeline/pipeline_factory.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
 #include "ui/gui/dialogs/dialog_image_view/dialog_image_view.hpp"
+#include "ui/gui/dialogs/dialog_ml_trainer/dialog_ml_trainer.hpp"
 #include "ui/gui/editor/widget_pipeline/dialog_command_selection/dialog_command_selection.hpp"
 #include "ui/gui/editor/widget_pipeline/dialog_history.hpp"
 #include "ui/gui/editor/widget_pipeline/dialog_pipeline_settings/dialog_pipeline_settings.hpp"
@@ -69,9 +70,11 @@ using namespace std::chrono_literals;
 /// \return
 ///
 PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, joda::processor::Preview *previewResult,
-                                             joda::settings::Pipeline &settings, std::shared_ptr<DialogCommandSelection> &commandSelectionDialog) :
+                                             joda::settings::Pipeline &settings, std::shared_ptr<DialogCommandSelection> &commandSelectionDialog,
+                                             DialogMlTrainer *mlTraining) :
     QWidget(wm),
-    mPreviewImage(previewDock), mWindowMain(wm), mCommandSelectionDialog(commandSelectionDialog), mSettings(settings), mPreviewResult(previewResult)
+    mPreviewImage(previewDock), mMlTraining(mlTraining), mWindowMain(wm), mCommandSelectionDialog(commandSelectionDialog), mSettings(settings),
+    mPreviewResult(previewResult)
 {
   setObjectName("PanelPipelineSettings");
   setContentsMargins(0, 0, 0, 0);
@@ -183,6 +186,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);
   connect(this, &PanelPipelineSettings::updatePreviewFinished, this, &PanelPipelineSettings::onPreviewFinished);
   connect(mPreviewImage, &DialogImageViewer::settingChanged, this, &PanelPipelineSettings::updatePreview);
+  connect(mlTraining, &DialogMlTrainer::triggerPreviewUpdate, this, &PanelPipelineSettings::updatePreview);
   connect(mPreviewImage->getImagePanel(), &PanelImageView::imageOpened, this, &PanelPipelineSettings::updatePreview);
   connect(wm->getPanelProjectSettings(), &PanelProjectSettings::updateImagePreview, this, &PanelPipelineSettings::updatePreview);
   connect(closePipeline, &QAction::triggered, this, &PanelPipelineSettings::closeWindow);

@@ -164,10 +164,8 @@ private:
   DialogOpenTemplate *mDialogOpenProjectTemplates;
 
   ////Project settings/////////////////////////////////////////////////
-  joda ::settings::AnalyzeSettings *mActAnalyzeSettings = nullptr;
   joda::settings::AnalyzeSettings mAnalyzeSettings;
   joda::settings::AnalyzeSettings mAnalyzeSettingsOld;
-  std::filesystem::path mSelectedProjectSettingsFilePath;
   std::set<joda::enums::ClassId> mOutPutClassesOld;
 
   ////Left Toolbar/////////////////////////////////////////////////

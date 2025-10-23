@@ -46,6 +46,7 @@ class PanelClassification;
 class DialogCommandSelection;
 class DialogImageViewer;
 class DialogRoiManager;
+class DialogMlTrainer;
 
 class PanelPipelineSettings : public QWidget
 {
@@ -57,7 +58,7 @@ signals:
 
 public:
   PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, joda::processor::Preview *previewResult, joda::settings::Pipeline &settings,
-                        std::shared_ptr<DialogCommandSelection> &commandSelectionDialog);
+                        std::shared_ptr<DialogCommandSelection> &commandSelectionDialog, DialogMlTrainer *mlTraining);
   ~PanelPipelineSettings();
 
   void addPipelineStep(std::unique_ptr<joda::ui::gui::Command> command, const settings::PipelineStep *);
@@ -113,7 +114,8 @@ private:
 
   /////////////////////////////////////////////////////
   DialogHistory *mDialogHistory;
-  DialogImageViewer *mPreviewImage            = nullptr;
+  DialogImageViewer *mPreviewImage = nullptr;
+  DialogMlTrainer *mMlTraining;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
   bool mIsActiveShown                         = false;
   bool mPreviewInProgress                     = false;

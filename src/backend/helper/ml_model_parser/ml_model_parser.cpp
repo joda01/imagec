@@ -85,8 +85,7 @@ auto MlModelParser::findMlModelFiles(const std::filesystem::path &workingDirecto
           try {
             if(entry.path().string().ends_with(joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL)) {
               const auto relativePath = std::filesystem::relative(entry.path(), workingDirectory);
-              std::cout << "Rel path " << relativePath.string() << std::endl;
-              auto modelInfo = parseOpenCVModelXMLDescriptionFile(relativePath, workingDirectory);
+              auto modelInfo          = parseOpenCVModelXMLDescriptionFile(relativePath, workingDirectory);
 
               aiModelFiles.emplace(relativePath, modelInfo);
             }

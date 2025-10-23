@@ -50,8 +50,10 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMain *windowMain, joda::settings::AnalyzeSettings *settings) :
-    mWindowMain(windowMain), mAnalyzeSettings(settings), mPreviewResults(previewResults)
+PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMain *windowMain, DialogMlTrainer *mlTraining,
+                             joda::settings::AnalyzeSettings *settings) :
+    mWindowMain(windowMain),
+    mAnalyzeSettings(settings), mMlTraining(mlTraining), mPreviewResults(previewResults)
 {
   mMainLayout = new QVBoxLayout();
   mMainLayout->setContentsMargins(0, 0, 0, 0);
@@ -508,8 +510,8 @@ void PanelPipeline::addChannelFromSettings(joda::settings::Pipeline settings)
   }
   mAnalyzeSettings->pipelines.emplace_back();
   auto &newlyAdded = mAnalyzeSettings->pipelines.back();
-  auto panel1 =
-      std::make_unique<PanelPipelineSettings>(mWindowMain, mWindowMain->getPreviewDock(), mPreviewResults, newlyAdded, mCommandSelectionDialog);
+  auto panel1      = std::make_unique<PanelPipelineSettings>(mWindowMain, mWindowMain->getPreviewDock(), mPreviewResults, newlyAdded,
+                                                        mCommandSelectionDialog, mMlTraining);
   panel1->fromSettings(settings);
   panel1->toSettings();
   addElement(std::move(panel1));

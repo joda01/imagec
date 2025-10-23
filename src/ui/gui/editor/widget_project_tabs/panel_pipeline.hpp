@@ -34,6 +34,7 @@ class WindowMain;
 class PanelPipelineSettings;
 class DialogCommandSelection;
 class TableModelPipeline;
+class DialogMlTrainer;
 
 ///
 /// \class
@@ -46,7 +47,7 @@ class PanelPipeline : public QWidget
 
 public:
   /////////////////////////////////////////////////////
-  explicit PanelPipeline(joda::processor::Preview *, WindowMain *windowMain, joda::settings::AnalyzeSettings *settings);
+  explicit PanelPipeline(joda::processor::Preview *, WindowMain *windowMain, DialogMlTrainer *mlTraining, joda::settings::AnalyzeSettings *settings);
   void addElement(std::unique_ptr<PanelPipelineSettings> baseContainer);
   void erase(PanelPipelineSettings *toRemove);
   void clear();
@@ -81,6 +82,7 @@ private:
   joda::settings::AnalyzeSettings *mAnalyzeSettings;
   std::shared_ptr<DialogCommandSelection> mCommandSelectionDialog;
   PanelPipelineSettings *mActivePipeline;
+  DialogMlTrainer *mMlTraining;
 
   // Stack options ///////////////////////////////////////////
   QDialog *mStackOptionsDialog;

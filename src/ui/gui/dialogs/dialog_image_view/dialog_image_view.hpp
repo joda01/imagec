@@ -67,6 +67,10 @@ public:
   int32_t getSelectedTimeStack() const;
   bool getFillOverlay() const;
   auto getImagePanel() -> PanelImageView *;
+  auto getDialogMlTrainer() -> DialogMlTrainer *
+  {
+    return mDialogMlTrainer;
+  }
 
   // SETTER ///////////////////////////////////////////
   void setImagePlane(const ImagePlaneSettings &);

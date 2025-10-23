@@ -53,14 +53,19 @@ public:
   auto getPossibleIntersectingClasses() const -> std::map<enums::ClassId, std::set<enums::ClassId>>;
   auto getPossibleDistanceClasses() const -> std::map<enums::ClassId, std::set<enums::ClassId>>;
   auto getImageChannelsUsedForMeasurement() const -> std::map<enums::ClassId, std::set<int32_t>>;
-  auto getProjectPath() const -> std::filesystem::path;
 
   auto checkForErrors() const -> std::vector<std::pair<std::string, SettingParserLog_t>>;
   auto toResultsSettings() const -> ResultsSettings;
 
+  auto getProjectPath() const -> std::filesystem::path;
+  auto getProjectPathWithFileName() const -> std::filesystem::path
+  {
+    return projectPathWithFilename;
+  }
+
   void setProjectPath(const std::filesystem::path &path)
   {
-    projectPath = path;
+    projectPathWithFilename = path;
     for(const auto &func : mProjectPathChangedCallback) {
       func(path);
     }
@@ -69,6 +74,17 @@ public:
   {
     mProjectPathChangedCallback.emplace_back(fun);
   }
+  bool isProjectPathSet() const
+  {
+    return !projectPathWithFilename.empty();
+  }
+  void clearProjectPath()
+  {
+    projectPathWithFilename.clear();
+  }
+
+  // This is just a temporary variable which holds the folder from which this settings file was loaded from / was stored in
+  std::filesystem::path projectPathWithFilename;
 
 private:
   std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings.json";
@@ -76,8 +92,6 @@ private:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, configSchema, projectSettings, imageSetup, pipelineSetup, pipelines,
                                                        imagecMeta, meta);
 
-  // This is just a temporary variable which holds the folder from which this settings file was loaded from / was stored in
-  std::filesystem::path projectPath;
   std::vector<std::function<void(const std::string &)>> mProjectPathChangedCallback;
 };
 }    // namespace joda::settings

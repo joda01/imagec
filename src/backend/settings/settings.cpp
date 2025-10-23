@@ -81,7 +81,7 @@ auto Settings::openSettings(const std::filesystem::path &pathIn) -> joda::settin
     }
   }    // namespace joda::settings
 
-  analyzeSettings.setProjectPath(pathIn.parent_path());
+  analyzeSettings.setProjectPath(pathIn);
   return analyzeSettings;
 }
 

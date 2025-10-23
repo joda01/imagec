@@ -72,7 +72,7 @@ void PanelHistogram::drawHistogram(QPainter &painter)
   // float histOffset    = mImagePanel->getHistogramOffset();
   // float histZoom      = mImagePanel->getHitogramZoomFactor();
   int number             = mImagePanel->mutableImage()->getHistogramDisplayAreaUpper() - mImagePanel->mutableImage()->getHistogramDisplayAreaLower();
-  float binWidth         = (RECT_WIDTH / static_cast<float>(number));
+  double binWidth        = (static_cast<double>(RECT_WIDTH) / static_cast<double>(number));
   int markerPos          = static_cast<int32_t>(static_cast<float>(number) / NR_OF_MARKERS);
   const auto &histograms = mImagePanel->mutableImage()->getHistogram();
   const auto &colors     = mImagePanel->mutableImage()->getChannelColors();
@@ -89,28 +89,29 @@ void PanelHistogram::drawHistogram(QPainter &painter)
     QPainterPath path;
 
     int start = 1 + mImagePanel->mutableImage()->getHistogramDisplayAreaLower();
-    path.moveTo(0, static_cast<double>(height()) - hist.at<double>(start) - 2.0 * static_cast<double>(RECT_START_Y));
+    path.moveTo(0, height() - hist.at<double>(start) - 2.0 * static_cast<double>(RECT_START_Y));
 
     for(int i = 2; i < number; i += compression) {
       int idx = i + mImagePanel->mutableImage()->getHistogramDisplayAreaLower();
       if(idx > hist.rows) {
         idx = hist.rows;
       }
-      float startX = (static_cast<float>(width()) - RECT_START_X - RECT_WIDTH) + static_cast<float>(i) * binWidth;
-      float startY = static_cast<float>(height()) - RECT_START_Y;
+      double startX =
+          (static_cast<double>(width()) - static_cast<double>(RECT_START_X) - static_cast<double>(RECT_WIDTH)) + static_cast<double>(i) * binWidth;
+      double startY = static_cast<double>(height()) - static_cast<double>(RECT_START_Y);
       // float histValue = hist.at<float>(idx) * static_cast<float>(rectHeight);
       // painter.drawLine(static_cast<int32_t>(startX), static_cast<int32_t>(startY), static_cast<int32_t>(startX),
       //                  static_cast<int32_t>(startY - histValue));
 
       {
-        double x1 = static_cast<double>((i - 1)) * static_cast<double>(binWidth);
-        double y1 = static_cast<double>(height()) - hist.at<double>(idx - 1) * rectHeight;
-        double x2 = static_cast<double>(i) * static_cast<double>(binWidth);
-        double y2 = static_cast<double>(height()) - hist.at<double>(idx) * rectHeight;
+        double x1 = static_cast<double>(i - 1) * binWidth;
+        double y1 = height() - hist.at<double>(idx - 1) * rectHeight;
+        double x2 = i * binWidth;
+        double y2 = height() - hist.at<double>(idx) * rectHeight;
 
-        double cx1 = x1 + static_cast<double>(binWidth) / 3.0;
+        double cx1 = x1 + binWidth / 3.0;
         double cy1 = y1;
-        double cx2 = x2 - static_cast<double>(binWidth) / 3.0;
+        double cx2 = x2 - binWidth / 3.0;
         double cy2 = y2;
 
         path.cubicTo(cx1, cy1 - 2.0 * static_cast<double>(RECT_START_Y), cx2, cy2 - 2.0 * static_cast<double>(RECT_START_Y), x2,
@@ -125,10 +126,11 @@ void PanelHistogram::drawHistogram(QPainter &painter)
       if(idx == mImagePanel->mutableImage()->getUpperLevelContrast() ||
          (compression != 1 && idx + 1 == mImagePanel->mutableImage()->getUpperLevelContrast())) {
         painter.setPen(Qt::black);
-        painter.drawText(QRect(static_cast<int32_t>(startX - 50), static_cast<int32_t>(startY - 2 * RECT_START_Y - 4), 100, 12), Qt::AlignHCenter,
-                         std::to_string(idx).data());
+        painter.drawText(
+            QRect(static_cast<int32_t>(startX - 50), static_cast<int32_t>(startY - 2.0 * static_cast<double>(RECT_START_Y) - 4), 100, 12),
+            Qt::AlignHCenter, std::to_string(idx).data());
         painter.drawLine(static_cast<int32_t>(startX), static_cast<int32_t>(startY), static_cast<int32_t>(startX),
-                         static_cast<int32_t>(startY - static_cast<float>(rectHeight) + 2 * RECT_START_Y));
+                         static_cast<int32_t>(startY - static_cast<double>(static_cast<float>(rectHeight) + 2 * RECT_START_Y)));
         painter.setPen(Qt::black);
       }
 
@@ -136,10 +138,12 @@ void PanelHistogram::drawHistogram(QPainter &painter)
       if(idx == mImagePanel->mutableImage()->getLowerLevelContrast() ||
          (compression != 1 && idx + 1 == mImagePanel->mutableImage()->getLowerLevelContrast())) {
         painter.setPen(Qt::black);    // Light blue
-        painter.drawText(QRect(static_cast<int32_t>(startX - 50), static_cast<int32_t>(startY - 2 * RECT_START_Y - 4), 100, 12), Qt::AlignHCenter,
-                         std::to_string(idx).data());
-        painter.drawLine(static_cast<int32_t>(startX), static_cast<int32_t>(startY), static_cast<int32_t>(startX),
-                         static_cast<int32_t>(startY - static_cast<float>(rectHeight) + 2 * RECT_START_Y));
+        painter.drawText(
+            QRect(static_cast<int32_t>(startX - 50), static_cast<int32_t>(startY - 2.0 * static_cast<double>(RECT_START_Y) - 4), 100, 12),
+            Qt::AlignHCenter, std::to_string(idx).data());
+        painter.drawLine(
+            static_cast<int32_t>(startX), static_cast<int32_t>(startY), static_cast<int32_t>(startX),
+            static_cast<int32_t>(startY - static_cast<double>(static_cast<double>(rectHeight) + 2.0 * static_cast<double>(RECT_START_Y))));
         painter.setPen(Qt::black);
       }
 

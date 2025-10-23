@@ -67,7 +67,7 @@ Boxes ROI::calcRealBoundingBox(const Boxes &boundingBoxTile, const joda::enums::
 {
   Boxes box;
   box.width  = boundingBoxTile.width;
-  box.height = boundingBoxTile.width;
+  box.height = boundingBoxTile.height;
   box.x      = boundingBoxTile.x + std::get<0>(tile.tileSegment) * tile.tileSize.width;
   box.y      = boundingBoxTile.y + std::get<1>(tile.tileSegment) * tile.tileSize.height;
   return box;
@@ -81,7 +81,7 @@ Boxes ROI::calcRealBoundingBox(const Boxes &boundingBoxTile, const joda::enums::
 {
   Boxes box;
   box.width  = mBoundingBoxReal.width;
-  box.height = mBoundingBoxReal.width;
+  box.height = mBoundingBoxReal.height;
   box.x      = mBoundingBoxReal.x - std::get<0>(tile.tileSegment) * tile.tileSize.width;
   box.y      = mBoundingBoxReal.y - std::get<1>(tile.tileSegment) * tile.tileSize.height;
   return box;

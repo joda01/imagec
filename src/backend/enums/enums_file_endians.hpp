@@ -22,8 +22,8 @@ static inline std::string EXT_PROJECT                          = ".icproj";
 static inline std::string EXT_PROJECT_TEMPLATE                 = ".ictemplproj";
 static inline std::string EXT_PIPELINE_TEMPLATE                = ".ictempl";
 static inline std::string EXT_CLASS_CLASS_TEMPLATE             = ".ictemplcc";
-static inline std::string MASCHINE_LEARNING_OPCEN_CV_XML_MODEL = ".icmlmcv";
-static inline std::string EXT_ANNOTATION                       = ".icroibin";
+static inline std::string MASCHINE_LEARNING_OPCEN_CV_XML_MODEL = ".icmlcv";
+static inline std::string EXT_ANNOTATION                       = ".icroi";
 static inline std::string USER_SETTINGS_PATH                   = "imagec";
 
 static inline std::string RESULTS_PATH                        = "results";
