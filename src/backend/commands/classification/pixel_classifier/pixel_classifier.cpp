@@ -44,8 +44,7 @@ void PixelClassifier::execute(processor::ProcessContext &context, cv::Mat &image
   std::set<joda::settings::PixelClassifierFeatures> featuresSet;
   settings::PixelClassifierMethod method;
   const auto absoluteModelPath = std::filesystem::weakly_canonical(context.getWorkingDirectory() / mSettings.modelPath);
-  std::cout << "Path " << absoluteModelPath << std::endl;
-  auto model = loadModel(absoluteModelPath, featuresSet, method);
+  auto model                   = loadModel(absoluteModelPath, featuresSet, method);
 
   // ===============================
   // Extract features for each pixel
@@ -91,7 +90,7 @@ void PixelClassifier::execute(processor::ProcessContext &context, cv::Mat &image
   segMask.copyTo(image, mask);
 
   // Debug output
-  cv::imwrite("tmp/segmentation_02.png", image);
+  //  cv::imwrite("tmp/segmentation_02.png", image);
 }
 
 ///
