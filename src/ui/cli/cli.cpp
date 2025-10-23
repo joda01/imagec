@@ -288,7 +288,6 @@ void Cli::startAnalyze(const std::filesystem::path &pathToSettingsFile, const st
   }
 
   if(imagedInputFolder.has_value()) {
-    analyzeSettings.projectSettings.workingDirectory  = imagedInputFolder.value();
     analyzeSettings.projectSettings.plate.imageFolder = imagedInputFolder.value();
   }
 

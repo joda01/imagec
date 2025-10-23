@@ -81,6 +81,7 @@ auto Settings::openSettings(const std::filesystem::path &pathIn) -> joda::settin
     }
   }    // namespace joda::settings
 
+  analyzeSettings.setProjectPath(pathIn.parent_path());
   return analyzeSettings;
 }
 
@@ -166,7 +167,6 @@ void Settings::storeSettingsTemplate(const std::filesystem::path &pathIn, joda::
     //
     // Remove settings
     //
-    settings.projectSettings.workingDirectory                = "";
     settings.projectSettings.experimentSettings.experimentId = "";
     settings.projectSettings.plate                           = {{}};
     settings.projectSettings.address                         = {};

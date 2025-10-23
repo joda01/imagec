@@ -477,8 +477,8 @@ void WindowMain::clearSettings()
 void WindowMain::onOpenClicked()
 {
   QString folderToOpen = QDir::homePath();
-  if(!mAnalyzeSettings.projectSettings.workingDirectory.empty()) {
-    folderToOpen = mAnalyzeSettings.projectSettings.workingDirectory.data();
+  if(!mAnalyzeSettings.projectSettings.plate.imageFolder.empty()) {
+    folderToOpen = mAnalyzeSettings.projectSettings.plate.imageFolder.data();
   }
   if(!mSelectedProjectSettingsFilePath.empty()) {
     folderToOpen = mSelectedProjectSettingsFilePath.string().data();
@@ -764,6 +764,7 @@ bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
             }
           }
           joda::settings::Settings::storeSettings(filename, mAnalyzeSettings);
+          mAnalyzeSettings.setProjectPath(filename.parent_path());
         }
         saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
         mAnalyzeSettingsOld = mAnalyzeSettings;

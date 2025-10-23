@@ -77,7 +77,7 @@ private:
   WindowMain *mParentWindow;
 
   // WORKING directory ///////////////////////////////////////////////////
-  QLineEdit *mWorkingDir;
+  QLineEdit *mImageFilePath;
 
   // META ///////////////////////////////////////////////////
   QDialog *mMetaEditDialog;

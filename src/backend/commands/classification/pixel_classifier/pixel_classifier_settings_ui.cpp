@@ -68,6 +68,12 @@ PixelClassifier::PixelClassifier(joda::settings::AnalyzeSettings *analyzeSetting
   addWidgets(modelTab, "Model details", {mModelDetails}, col);
 
   updateModel();
+
+  registerProjectPathChangedCallback([this](const std::string & /*path*/) {
+    refreshModels();
+    mModelPath->setValue(mSettings.modelPath);
+    updateModel();
+  });
 }
 
 ///

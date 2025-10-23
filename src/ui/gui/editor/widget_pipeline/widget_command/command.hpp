@@ -241,9 +241,13 @@ protected:
     return mAnalyzeSettings->getProjectPath();
   }
 
+  void registerProjectPathChangedCallback(const std::function<void(const std::string &)> &fun)
+  {
+    mAnalyzeSettings->registerProjectPathChangedCallback(fun);
+  }
+
 private:
   /////////////////////////////////////////////////////
-
   ///
   /// \brief      Constructor
   /// \author     Joachim Danmayr

@@ -117,7 +117,10 @@ public:
     if(idx >= 0) {
       mComboBox->setCurrentIndex(idx);
     } else {
-      mComboBox->setCurrentIndex(0);
+      QVariant variant;
+      variant = QVariant(value.c_str());
+      mComboBox->addItem(getIcon(), value.c_str(), variant);
+      mComboBox->setCurrentIndex(mComboBox->count() - 1);
     }
     onValueChanged();
     mComboBox->blockSignals(false);

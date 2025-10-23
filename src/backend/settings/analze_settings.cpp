@@ -16,11 +16,11 @@ namespace joda::settings {
 ///
 auto AnalyzeSettings::getProjectPath() const -> std::filesystem::path
 {
-  if(projectSettings.workingDirectory.empty()) {
+  if(projectPath.empty()) {
     return joda::user_settings::getUserHomeDir() / joda::fs::WORKING_DIRECTORY_TEMP_PROJECT_PATH;
   }
 
-  return std::filesystem::path(projectSettings.workingDirectory) / joda::fs::WORKING_DIRECTORY_PROJECT_PATH;
+  return std::filesystem::path(projectPath);
 }
 
 ///

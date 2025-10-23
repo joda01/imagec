@@ -49,14 +49,8 @@ public:
   //
   Classification classification = {};
 
-  //
-  // Directory where outputs will be stored
-  //
-  std::string workingDirectory = {};
-
   void check() const
   {
-    CHECK_ERROR(!workingDirectory.empty(), "Working directory must not be empty!");
     // Check classes
     {
       CHECK_ERROR(!classification.classes.empty(), "At least one class must be given!");
@@ -78,7 +72,7 @@ public:
   //
   std::list<Plate> plates;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectSettings, experimentSettings, plate, address, classification, workingDirectory,
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ProjectSettings, experimentSettings, plate, address, classification,
                                                        /*LEGACY*/ plates);
 };
 

@@ -14,6 +14,7 @@
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <list>
 #include <map>
@@ -57,10 +58,26 @@ public:
   auto checkForErrors() const -> std::vector<std::pair<std::string, SettingParserLog_t>>;
   auto toResultsSettings() const -> ResultsSettings;
 
+  void setProjectPath(const std::filesystem::path &path)
+  {
+    projectPath = path;
+    for(const auto &func : mProjectPathChangedCallback) {
+      func(path);
+    }
+  }
+  void registerProjectPathChangedCallback(const std::function<void(const std::string &)> &fun)
+  {
+    mProjectPathChangedCallback.emplace_back(fun);
+  }
+
 private:
   std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings.json";
   void check() const;
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, configSchema, projectSettings, imageSetup, pipelineSetup, pipelines,
                                                        imagecMeta, meta);
+
+  // This is just a temporary variable which holds the folder from which this settings file was loaded from / was stored in
+  std::filesystem::path projectPath;
+  std::vector<std::function<void(const std::string &)>> mProjectPathChangedCallback;
 };
 }    // namespace joda::settings

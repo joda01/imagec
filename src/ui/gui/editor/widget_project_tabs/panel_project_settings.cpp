@@ -52,11 +52,11 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
   // Working directory
   //
   {
-    mWorkingDir = new QLineEdit();
-    mWorkingDir->setReadOnly(true);
-    mWorkingDir->setPlaceholderText("Directory your images are placed in...");
+    mImageFilePath = new QLineEdit();
+    mImageFilePath->setReadOnly(true);
+    mImageFilePath->setPlaceholderText("Directory your images are placed in...");
     auto *workingDir = new QHBoxLayout;
-    workingDir->addWidget(mWorkingDir);
+    workingDir->addWidget(mImageFilePath);
     auto *openDir = new QPushButton(generateSvgIcon<Style::REGULAR, Color::BLUE>("folder-open"), "");
     openDir->setStatusTip("Select image directory");
     connect(openDir, &QPushButton::clicked, this, &PanelProjectSettings::onOpenWorkingDirectoryClicked);
@@ -276,7 +276,7 @@ void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &s
     }
   }
 
-  mWorkingDir->setText(settings.projectSettings.workingDirectory.data());
+  mImageFilePath->setText(settings.projectSettings.plate.imageFolder.data());
   mRegexToFindTheWellPosition->setCurrentText(settings.projectSettings.plate.filenameRegex.data());
   mNotes->setText(settings.projectSettings.experimentSettings.notes.data());
   mAddressOrganisation->setText(settings.projectSettings.address.organization.data());
@@ -301,14 +301,13 @@ void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &s
 ///
 void PanelProjectSettings::toSettings()
 {
-  mSettings.projectSettings.workingDirectory         = mWorkingDir->text().toStdString();
   mSettings.projectSettings.address.organization     = mAddressOrganisation->text().trimmed().toStdString();
   mSettings.projectSettings.experimentSettings.notes = mNotes->toPlainText().toStdString();
   mSettings.projectSettings.address.firstName        = mScientistsFirstName->text().toStdString();
 
   mSettings.projectSettings.plate.groupBy       = static_cast<joda::enums::GroupBy>(mGroupByComboBox->currentData().toInt());
   mSettings.projectSettings.plate.filenameRegex = mRegexToFindTheWellPosition->currentText().toStdString();
-  mSettings.projectSettings.plate.imageFolder   = mWorkingDir->text().toStdString();
+  mSettings.projectSettings.plate.imageFolder   = mImageFilePath->text().toStdString();
 
   auto value                                      = mPlateSize->currentData().toUInt();
   mSettings.projectSettings.plate.plateSetup.rows = value / 100;
@@ -330,12 +329,11 @@ void PanelProjectSettings::onOpenWorkingDirectoryClicked()
   if(selectedDirectory.isEmpty()) {
     return;
   }
-  mWorkingDir->setText(selectedDirectory);
-  mWorkingDir->update();
-  mWorkingDir->repaint();
-  mSettings.projectSettings.workingDirectory = mWorkingDir->text().toStdString();
+  mImageFilePath->setText(selectedDirectory);
+  mImageFilePath->update();
+  mImageFilePath->repaint();
   mParentWindow->getController()->setWorkingDirectory(selectedDirectory.toStdString());
-  mSettings.projectSettings.plate.imageFolder = mSettings.projectSettings.workingDirectory;
+  mSettings.projectSettings.plate.imageFolder = mImageFilePath->text().toStdString();
   onSettingChanged();
 }
 
