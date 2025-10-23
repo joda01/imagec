@@ -50,6 +50,7 @@ struct GlobalContext
   friend class ProcessContext;
 
   std::filesystem::path resultsOutputFolder;
+  std::filesystem::path workingDirectory;
   std::unique_ptr<db::DatabaseInterface> database;
   std::map<enums::ClassId, joda::settings::Class> classes;
 
@@ -104,6 +105,11 @@ public:
   [[nodiscard]] const std::filesystem::path &getActImagePath() const
   {
     return imageContext.imagePath;
+  }
+
+  [[nodiscard]] const std::filesystem::path &getWorkingDirectory() const
+  {
+    return globalContext.workingDirectory;
   }
 
   [[nodiscard]] const std::filesystem::path &getOutputFolder() const

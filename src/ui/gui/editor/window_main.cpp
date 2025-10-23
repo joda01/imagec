@@ -24,6 +24,7 @@
 #include <qtabwidget.h>
 #include <qtoolbutton.h>
 #include <qwidget.h>
+#include <torch/cuda.h>
 #include <QAction>
 #include <QIcon>
 #include <QMainWindow>
@@ -63,6 +64,7 @@
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/template_parser/template_parser.hpp"
 #include "ui/gui/results/window_results.hpp"
+#include <nlohmann/json_fwd.hpp>
 #include "build_info.h"
 #include "version.h"
 
@@ -141,7 +143,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   //
   // Initial background tasks
   //
-  std::thread([]() { joda::ai::AiModelParser::findAiModelFiles(); }).detach();
+  std::thread([this]() { joda::ai::AiModelParser::findAiModelFiles(mAnalyzeSettings.getProjectPath()); }).detach();
   std::thread([mainWindow = this, updater]() {
     joda::updater::Updater::Status status = joda::updater::Updater::Status::PENDING;
     joda::updater::Updater::CheckForUpdateResponse response;
@@ -195,14 +197,14 @@ void WindowMain::closeEvent(QCloseEvent *event)
       onSaveProject();
       event->accept();
     } else if(result == QMessageBox::No) {
-      saveROI();
+      saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
       event->accept();
     } else {
       // Ignore the close event to keep the window open
       event->ignore();
     }
   } else {
-    saveROI();
+    saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
     event->accept();
   }
 }
@@ -348,7 +350,7 @@ void WindowMain::createLeftToolbar()
 
   // Pipeline Tab
   {
-    mPanelPipeline = new PanelPipeline(&mPreviewResult, this, mAnalyzeSettings);
+    mPanelPipeline = new PanelPipeline(&mPreviewResult, this, &mAnalyzeSettings);
     createDock("Pipelines", mPanelPipeline);
   }
 
@@ -518,26 +520,24 @@ void WindowMain::openImage(const std::filesystem::path &imagePath, const ome::Om
   if(imagePath.empty()) {
     return;
   }
-  auto lastPath = mPreviewImage->getImagePanel()->getCurrentImagePath();
-
-  std::filesystem::path projectPath(mAnalyzeSettings.projectSettings.workingDirectory);
-  projectPath = projectPath / fs::WORKING_DIRECTORY_PROJECT_PATH;
-
-  auto imgIdOld = joda::helper::generateImageIdFromPath(lastPath.string(), mAnalyzeSettings.projectSettings.workingDirectory);
-  auto imgIdNew = joda::helper::generateImageIdFromPath(imagePath.string(), mAnalyzeSettings.projectSettings.workingDirectory);
-
-  std::filesystem::path storagePath = projectPath / "annotations";
-  if(!std::filesystem::exists(storagePath)) {
-    std::filesystem::create_directories(storagePath);
-  }
-  auto storagePathOld = storagePath / std::to_string(imgIdOld);
-  auto storagePathNew = storagePath / std::to_string(imgIdNew);
 
   mPreviewImage->getImagePanel()->openImage(imagePath, omeInfo);
+  loadROI(imagePath);
+}
 
-  //
-  // Load ROIs
-  //
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::loadROI(const std::filesystem::path &imagePath)
+{
+  const std::filesystem::path projectPath(mAnalyzeSettings.getProjectPath());
+
+  auto lastPath = mPreviewImage->getImagePanel()->getCurrentImagePath();
+
+  auto storagePathOld = joda::helper::generateImageMetaDataStoragePathFromImagePath(lastPath, projectPath, joda::fs::FILE_NAME_ANNOTATIONS);
+  auto storagePathNew = joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath, joda::fs::FILE_NAME_ANNOTATIONS);
+
   mPreviewResult.results.objectMap->triggerStartChangeCallback();
   if(lastPath != imagePath) {
     mPreviewResult.results.objectMap->serialize(storagePathOld);
@@ -550,6 +550,31 @@ void WindowMain::openImage(const std::filesystem::path &imagePath, const ome::Om
   mPreviewResult.results.objectMap->triggerChangeCallback();
 
   mPreviewImage->getImagePanel()->setRegionsOfInterestFromObjectList();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::saveROI(const std::filesystem::path &imagePath)
+{
+  const std::filesystem::path projectPath(mAnalyzeSettings.getProjectPath());
+  auto imgIdOld = joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath, joda::fs::FILE_NAME_ANNOTATIONS);
+  mPreviewResult.results.objectMap->serialize(imgIdOld);
+
+  // Write meta data
+  {
+    nlohmann::json imageMetaJson;
+    imageMetaJson["fileName"] = std::filesystem::relative(imagePath, projectPath).string();
+    // Open a file for writing
+    auto metaFileName = joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath, joda::fs::FILE_NAME_image_meta + ".json");
+    std::ofstream file(metaFileName.string());
+    if(!file) {
+      joda::log::logWarning("Could not write image meta file!");
+    }
+    file << imageMetaJson.dump(2);
+    file.close();
+  }
 }
 
 ///
@@ -686,21 +711,6 @@ void WindowMain::checkForSettingsChanged()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::saveROI()
-{
-  auto lastPath = mPreviewImage->getImagePanel()->getCurrentImagePath();
-  std::filesystem::path projectPath(mAnalyzeSettings.projectSettings.workingDirectory);
-  projectPath                       = projectPath / fs::WORKING_DIRECTORY_PROJECT_PATH;
-  auto imgIdOld                     = joda::helper::generateImageIdFromPath(lastPath.string(), mAnalyzeSettings.projectSettings.workingDirectory);
-  std::filesystem::path storagePath = projectPath / "annotations";
-  auto storagePathOld               = storagePath / std::to_string(imgIdOld);
-  mPreviewResult.results.objectMap->serialize(storagePathOld);
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
 void WindowMain::onSaveProject()
 {
   saveProject(mSelectedProjectSettingsFilePath);
@@ -724,12 +734,11 @@ bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
   bool okay = false;
   try {
     if(filename.empty()) {
-      std::filesystem::path filePath(mAnalyzeSettings.projectSettings.workingDirectory);
-      filePath = filePath / fs::WORKING_DIRECTORY_PROJECT_PATH;
+      std::filesystem::path filePath(mAnalyzeSettings.getProjectPath());
       if(!std::filesystem::exists(filePath)) {
         std::filesystem::create_directories(filePath);
       }
-      filePath = filePath / ("settings" + joda::fs::EXT_PROJECT);
+      filePath = filePath / (joda::fs::FILE_NAME_PROJECT_DEFAULT + joda::fs::EXT_PROJECT);
       QString filePathOfSettingsFile =
           QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(),
                                        "ImageC project files (*" + QString(joda::fs::EXT_PROJECT.data()) + ");;ImageC project template (*" +
@@ -756,7 +765,7 @@ bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
           }
           joda::settings::Settings::storeSettings(filename, mAnalyzeSettings);
         }
-        saveROI();
+        saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
         mAnalyzeSettingsOld = mAnalyzeSettings;
         checkForSettingsChanged();
       } else {
@@ -937,8 +946,7 @@ void WindowMain::onShowInfoDialog()
         "<u>Maria Jaritsch</u> : Testing, AI-Training<br/><br/>"
         "<u>Patricia Hrasnova</u> : Testing, AI-Training<br/><br/>"
         "<u>Anna Dlugosch</u> : Testing<br/><br/>"
-        "<u>Heloisa Melo Benirschke</u> : AI-Training<br/><br/>"
-        "<u>Manfred Seiwald</u> : Integration testing<br/><br/>");
+        "<u>Heloisa Melo Benirschke</u> : AI-Training<br/><br/>");
 
     labelAbout->setOpenExternalLinks(true);
     labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -948,26 +956,37 @@ void WindowMain::onShowInfoDialog()
   //
   // Version
   //
-  {
-    auto *widgetAbout = new QWidget();
-    auto *layoutAbout = new QVBoxLayout();
-    layoutAbout->setAlignment(Qt::AlignCenter);
-    widgetAbout->setLayout(layoutAbout);
-    tab->addTab(widgetAbout, "Version");
-    auto *labelAbout = new QLabel("<b>" + QString(Version::getProgamName().data()) + " " + QString(Version::getVersion().data()) + "</b><br/>" +
-                                  QString(Version::getBuildTime().data()) + "<br/><br/>" +
-                                  "CPU cores: " + QString(std::to_string(joda::system::getNrOfCPUs()).data()) +
-                                  "<br/>"
-                                  "RAM Total: " +
-                                  QString::number(static_cast<double>(joda::system::getTotalSystemMemory()) / 1000000.0, 'f', 2) +
-                                  "MB <br/>"
-                                  "RAM Available: " +
-                                  QString::number(static_cast<double>(joda::system::getAvailableSystemMemory()) / 1000000.0, 'f', 2) + " MB <br/>");
+  QMetaObject::invokeMethod(
+      this,
+      [&]() {
+        int32_t nrOfCudaDevices = 0;
+        bool cudaAvailable      = torch::cuda::is_available();
+        if(cudaAvailable) {
+          nrOfCudaDevices = torch::cuda::device_count();
+        }
+        auto *widgetAbout = new QWidget();
+        auto *layoutAbout = new QVBoxLayout();
+        layoutAbout->setAlignment(Qt::AlignCenter);
+        widgetAbout->setLayout(layoutAbout);
+        tab->addTab(widgetAbout, "Version");
+        auto *labelAbout = new QLabel("<b>" + QString(Version::getProgamName().data()) + " " + QString(Version::getVersion().data()) + "</b><br/>" +
+                                      QString(Version::getBuildTime().data()) + "<br/><br/>" +
+                                      "CPU cores: " + QString(std::to_string(joda::system::getNrOfCPUs()).data()) +
+                                      "<br/>"
+                                      "RAM Total: " +
+                                      QString::number(static_cast<double>(joda::system::getTotalSystemMemory()) / 1000000.0, 'f', 2) +
+                                      "MB <br/>"
+                                      "RAM Available: " +
+                                      QString::number(static_cast<double>(joda::system::getAvailableSystemMemory()) / 1000000.0, 'f', 2) +
+                                      " MB <br/>CUDA devices: " + QString::number(static_cast<double>(nrOfCudaDevices))
 
-    labelAbout->setOpenExternalLinks(true);
-    labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    layoutAbout->addWidget(labelAbout);
-  }
+        );
+
+        labelAbout->setOpenExternalLinks(true);
+        labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+        layoutAbout->addWidget(labelAbout);
+      },
+      Qt::QueuedConnection);
 
   //
   // Open source
@@ -1004,8 +1023,8 @@ void WindowMain::onShowInfoDialog()
     tab->addTab(widgetAbout, "3rd party");
     auto *labelAbout = new QLabel();
     QString others =
-        "<u>KDE project</u> : Thanks to the KDE project for providing the <a "
-        "href=\"https://develop.kde.org/frameworks/breeze-icons/\">Breeze</a> icon set!<br/><br/>";
+        "<u>Phosphor icon set</u> : Thanks to the Phosphor icon project for providing the <a "
+        "href=\"https://phosphoricons.com/\">Phosphor</a> icon set!<br/><br/>";
     labelAbout->setText(others);
     labelAbout->setOpenExternalLinks(true);
     labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);

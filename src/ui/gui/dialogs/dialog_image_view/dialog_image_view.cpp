@@ -192,7 +192,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
       mActionMlTrainer = toolbarTop->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("fediverse-logo"), "ML Trainer");
       mActionMlTrainer->setCheckable(true);
       mActionMlTrainer->setStatusTip("Train pixel and object classifier");
-      mDialogMlTrainer = new DialogMlTrainer(objectMap, &mImageViewRight, parent);
+      mDialogMlTrainer = new DialogMlTrainer(settings, objectMap, &mImageViewRight, parent);
       connect(mDialogMlTrainer, &DialogMlTrainer::dialogDisappeared, [this]() {
         mActionMlTrainer->blockSignals(true);
         mActionMlTrainer->setChecked(false);

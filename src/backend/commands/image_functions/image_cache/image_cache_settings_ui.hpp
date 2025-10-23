@@ -35,8 +35,9 @@ public:
   inline static std::string DESCRIPTION       = "Store or load an image to cache for later use.";
   inline static std::vector<std::string> TAGS = {"cache", "store", "load"};
 
-  ImageCache(joda::settings::PipelineStep &pipelineStep, settings::ImageCacheSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent,
+  ImageCache(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, settings::ImageCacheSettings &settings,
+             QWidget *parent) :
+      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent,
               {{InOuts::IMAGE, InOuts::BINARY, InOuts::OBJECT}, {InOuts::OUTPUT_EQUAL_TO_INPUT}})
   {
     //

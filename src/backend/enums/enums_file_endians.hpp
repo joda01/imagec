@@ -24,7 +24,17 @@ static inline std::string EXT_PIPELINE_TEMPLATE                = ".ictempl";
 static inline std::string EXT_CLASS_CLASS_TEMPLATE             = ".ictemplcc";
 static inline std::string MASCHINE_LEARNING_OPCEN_CV_XML_MODEL = ".icmlmcv";
 static inline std::string EXT_ANNOTATION                       = ".icroibin";
-static inline std::string WORKING_DIRECTORY_PROJECT_PATH       = "imagec";
 static inline std::string USER_SETTINGS_PATH                   = "imagec";
+
+static inline std::string RESULTS_PATH                        = "results";
+static inline std::string WORKING_DIRECTORY_TEMP_PROJECT_PATH = "tmp";
+static inline std::string WORKING_DIRECTORY_PROJECT_PATH      = "imagec";
+static inline std::string WORKING_DIRECTORY_MODELS_PATH       = "models";
+static inline std::string WORKING_DIRECTORY_IMAGE_DATA_PATH   = "data";
+
+static inline std::string FILE_NAME_PROJECT_DEFAULT  = "settings";
+static inline std::string FILE_NAME_RESULTS_DATABASE = "results";
+static inline std::string FILE_NAME_ANNOTATIONS      = "annotations";
+static inline std::string FILE_NAME_image_meta       = "meta";
 
 }    // namespace joda::fs

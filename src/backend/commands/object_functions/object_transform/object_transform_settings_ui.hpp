@@ -40,8 +40,10 @@ public:
   inline static std::string DESCRIPTION       = "Change the object shape and or size";
   inline static std::vector<std::string> TAGS = {"transform", "scale"};
 
-  ObjectTransform(joda::settings::PipelineStep &pipelineStep, settings::ObjectTransformSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mParent(parent)
+  ObjectTransform(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep,
+                  settings::ObjectTransformSettings &settings, QWidget *parent) :
+      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}),
+      mParent(parent)
   {
     auto *modelTab = addTab(
         "Base", [] {}, false);

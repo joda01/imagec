@@ -38,8 +38,10 @@ public:
   inline static std::string DESCRIPTION       = "Save a control image to disk.";
   inline static std::vector<std::string> TAGS = {"save", "control image", "image"};
 
-  ImageSaver(joda::settings::PipelineStep &pipelineStep, settings::ImageSaverSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings)
+  ImageSaver(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, settings::ImageSaverSettings &settings,
+             QWidget *parent) :
+      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}),
+      mSettings(settings)
   {
     auto *tab = addTab(
         "", [] {}, false);

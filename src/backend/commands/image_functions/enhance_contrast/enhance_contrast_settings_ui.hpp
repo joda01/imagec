@@ -40,8 +40,10 @@ public:
   inline static std::string DESCRIPTION       = "Enhance the contrast of an image.";
   inline static std::vector<std::string> TAGS = {"contrast", "enhancement", "normalize", "equalize histogram"};
 
-  EnhanceContrast(joda::settings::PipelineStep &pipelineStep, settings::EnhanceContrastSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::IMAGE}}), mParent(parent)
+  EnhanceContrast(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep,
+                  settings::EnhanceContrastSettings &settings, QWidget *parent) :
+      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::IMAGE}}),
+      mParent(parent)
   {
     auto *modelTab = addTab(
         "Base", [] {}, false);

@@ -49,9 +49,9 @@ public:
     std::string toString() const;
   };
 
-  static auto findMlModelFiles() -> std::map<std::filesystem::path, Data>;
-  static auto parseOpenCVModelXMLDescriptionFile(const std::filesystem::path &rdfYaml) -> Data;
-  static auto getUsersMlModelDirectory() -> std::filesystem::path;
+  static auto findMlModelFiles(const std::filesystem::path &workingDirectory) -> std::map<std::filesystem::path, Data>;
+  static auto parseOpenCVModelXMLDescriptionFile(const std::filesystem::path &rdfYaml, const std::filesystem::path &workingDirectory) -> Data;
+  static auto getUsersMlModelDirectory(const std::filesystem::path &workingDirectory) -> std::filesystem::path;
   static auto getGlobalMlModelDirectory() -> std::filesystem::path;
 
 private:

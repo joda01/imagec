@@ -12,6 +12,7 @@
 #include "backend/helper/cereal_cv_mat.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include <cereal/archives/binary.hpp>
+#include <nlohmann/json_fwd.hpp>
 
 namespace joda::atom {
 

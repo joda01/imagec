@@ -39,11 +39,11 @@ void WrapLabel::resizeEvent(QResizeEvent *event)
   QLabel::resizeEvent(event);
 }
 
-Command::Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &description, const std::vector<std::string> &tags,
-                 const QString &icon, QWidget *parent, InOut type) :
+Command::Command(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, const QString &title,
+                 const QString &description, const std::vector<std::string> &tags, const QString &icon, QWidget *parent, InOut type) :
     mPipelineStep(pipelineStep),
     mParent(parent), mTitle(title), mDescription(description), mLayout(&mEditView, true, true, false), mDisplayViewLayout(this), mInOut(type),
-    mTags(tags)
+    mTags(tags), mAnalyzeSettings(analyzeSettings)
 {
   setContentsMargins(0, 0, 4, 0);
   mDisplayViewLayout.setContentsMargins(0, 0, 0, 0);

@@ -18,6 +18,7 @@
 #include <memory>
 #include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/commands/classification/pixel_classifier/pixel_classifier_training_settings.hpp"
+#include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "controller/controller.hpp"
@@ -44,7 +45,8 @@ class DialogMlTrainer : public QDialog
 
 public:
   /////////////////////////////////////////////////////
-  DialogMlTrainer(const std::shared_ptr<atom::ObjectList> &objectMap, PanelImageView *imagePanel, QWidget *parent);
+  DialogMlTrainer(const joda::settings::AnalyzeSettings *, const std::shared_ptr<atom::ObjectList> &objectMap, PanelImageView *imagePanel,
+                  QWidget *parent);
 
 signals:
   void dialogDisappeared();    // custom signal
@@ -72,6 +74,8 @@ private:
 
   joda::settings::PixelClassifierTrainingSettings mTrainerSettings;
   std::unique_ptr<std::thread> mTrainingsThread;
+
+  const joda::settings::AnalyzeSettings *mAnalyzeSettings;
 
 private slots:
   void onTrainingFinished(bool okay, QString message);

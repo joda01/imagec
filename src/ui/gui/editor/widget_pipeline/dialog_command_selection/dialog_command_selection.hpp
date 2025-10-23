@@ -16,6 +16,7 @@
 #include <qdialog.h>
 #include <qtablewidget.h>
 #include <memory>
+#include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
 
@@ -38,7 +39,7 @@ class DialogCommandSelection : public QDialog
 {
 public:
   /////////////////////////////////////////////////////
-  DialogCommandSelection(WindowMain *parent);
+  DialogCommandSelection(joda::settings::AnalyzeSettings *analyzeSettings, WindowMain *parent);
 
   void show(const settings::PipelineStep *pipelineStepBefore, InOuts outOfStepBefore, joda::settings::Pipeline *settings,
             PanelPipelineSettings *pipelineStepSettingsUi);
@@ -95,6 +96,7 @@ private:
   joda::settings::Pipeline *mSettings               = nullptr;
   PanelPipelineSettings *mPipelineStepSettingsUi    = nullptr;
   InOuts mOutOfStepBefore;
+  joda::settings::AnalyzeSettings *mAnalyzeSettings;
 };
 
 }    // namespace joda::ui::gui

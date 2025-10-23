@@ -38,12 +38,14 @@ PixelClassifier::PixelClassifier(const settings::PixelClassifierSettings &settin
 /// \param[out]
 /// \return
 ///
-void PixelClassifier::execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/)
+void PixelClassifier::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList & /*result*/)
 {
   // Load trained model
   std::set<joda::settings::PixelClassifierFeatures> featuresSet;
   settings::PixelClassifierMethod method;
-  auto model = loadModel(mSettings.modelPath, featuresSet, method);
+  const auto absoluteModelPath = std::filesystem::weakly_canonical(context.getWorkingDirectory() / mSettings.modelPath);
+  std::cout << "Path " << absoluteModelPath << std::endl;
+  auto model = loadModel(absoluteModelPath, featuresSet, method);
 
   // ===============================
   // Extract features for each pixel

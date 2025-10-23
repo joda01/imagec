@@ -46,7 +46,7 @@ class PanelPipeline : public QWidget
 
 public:
   /////////////////////////////////////////////////////
-  explicit PanelPipeline(joda::processor::Preview *, WindowMain *windowMain, joda::settings::AnalyzeSettings &settings);
+  explicit PanelPipeline(joda::processor::Preview *, WindowMain *windowMain, joda::settings::AnalyzeSettings *settings);
   void addElement(std::unique_ptr<PanelPipelineSettings> baseContainer);
   void erase(PanelPipelineSettings *toRemove);
   void clear();
@@ -78,7 +78,7 @@ private:
   TableModelPipeline *mTableModel;
   std::set<std::unique_ptr<PanelPipelineSettings>> mChannels;    // The second value is the pointer to the array entry in the AnalyzeSettings
   WindowMain *mWindowMain;
-  joda::settings::AnalyzeSettings &mAnalyzeSettings;
+  joda::settings::AnalyzeSettings *mAnalyzeSettings;
   std::shared_ptr<DialogCommandSelection> mCommandSelectionDialog;
   PanelPipelineSettings *mActivePipeline;
 

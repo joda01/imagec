@@ -294,19 +294,19 @@ std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSett
     globalContext.classes.emplace(elem.classId, elem);
   }
 
-  globalContext.resultsOutputFolder = std::filesystem::path(program.projectSettings.workingDirectory) / joda::fs::WORKING_DIRECTORY_PROJECT_PATH /
-                                      (joda::helper::timepointToIsoString(now) + "_" + jobName);
+  globalContext.resultsOutputFolder = program.getProjectPath() / joda::fs::RESULTS_PATH / (joda::helper::timepointToIsoString(now) + "_" + jobName);
+  globalContext.workingDirectory    = program.getProjectPath();
 
   std::filesystem::create_directories(globalContext.resultsOutputFolder);
 
-  settings::Settings::storeSettings((globalContext.resultsOutputFolder / ("settings" + joda::fs::EXT_PROJECT)), program);
+  settings::Settings::storeSettings((globalContext.resultsOutputFolder / (joda::fs::FILE_NAME_PROJECT_DEFAULT + joda::fs::EXT_PROJECT)), program);
 
-  mJobInformation.resultsFilePath  = globalContext.resultsOutputFolder / ("results" + joda::fs::EXT_DATABASE);
+  mJobInformation.resultsFilePath  = globalContext.resultsOutputFolder / (joda::fs::FILE_NAME_RESULTS_DATABASE + joda::fs::EXT_DATABASE);
   mJobInformation.ouputFolder      = globalContext.resultsOutputFolder;
   mJobInformation.jobName          = jobName;
   mJobInformation.timestampStarted = now;
   globalContext.database           = std::make_unique<db::Database>();
-  globalContext.database->openDatabase(globalContext.resultsOutputFolder / ("results" + joda::fs::EXT_DATABASE));
+  globalContext.database->openDatabase(globalContext.resultsOutputFolder / (joda::fs::FILE_NAME_RESULTS_DATABASE + joda::fs::EXT_DATABASE));
   return globalContext.database->startJob(program, jobName);
 }
 
@@ -367,6 +367,9 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
   // Get image
   //
   GlobalContext globalContext;
+  globalContext.resultsOutputFolder = program.getProjectPath() / joda::fs::RESULTS_PATH / "preview";
+  globalContext.workingDirectory    = program.getProjectPath();
+
   globalContext.database = std::make_unique<db::PreviewDatabase>();
   auto *db               = dynamic_cast<db::PreviewDatabase *>(globalContext.database.get());
 

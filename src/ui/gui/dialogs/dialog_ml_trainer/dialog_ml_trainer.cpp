@@ -50,8 +50,10 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-DialogMlTrainer::DialogMlTrainer(const std::shared_ptr<atom::ObjectList> &objectMap, PanelImageView *imagePanel, QWidget *parent) :
-    QDialog(parent), mImagePanel(imagePanel), mObjectMap(objectMap)
+DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeSettings, const std::shared_ptr<atom::ObjectList> &objectMap,
+                                 PanelImageView *imagePanel, QWidget *parent) :
+    QDialog(parent),
+    mImagePanel(imagePanel), mObjectMap(objectMap), mAnalyzeSettings(analyzeSettings)
 {
   setWindowTitle("Machine learning");
   setMinimumSize(300, 400);
@@ -267,8 +269,8 @@ void DialogMlTrainer::startTraining()
     }
 
     if(classesToTrainMapping.size() > 1) {
-      std::filesystem::path modelPath =
-          joda::ml::MlModelParser::getUsersMlModelDirectory() / (modelFileName + joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL);
+      std::filesystem::path modelPath = joda::ml::MlModelParser::getUsersMlModelDirectory(mAnalyzeSettings->getProjectPath()) /
+                                        (modelFileName + joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL);
 
       std::set<joda::settings::PixelClassifierFeatures> features;
 

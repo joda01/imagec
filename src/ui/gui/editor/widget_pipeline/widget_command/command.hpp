@@ -20,11 +20,13 @@
 #include <qnamespace.h>
 #include <qwidget.h>
 #include <cstddef>
+#include <filesystem>
 #include <memory>
 #include <thread>
 #include <vector>
 #include "backend/commands/command.hpp"
 #include "backend/enums/enums_classes.hpp"
+#include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
@@ -70,8 +72,8 @@ class Command : public QWidget
   Q_OBJECT
 public:
   /////////////////////////////////////////////////////
-  Command(joda::settings::PipelineStep &pipelineStep, const QString &title, const QString &description, const std::vector<std::string> &tags,
-          const QString &icon, QWidget *parent, InOut type);
+  Command(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, const QString &title,
+          const QString &description, const std::vector<std::string> &tags, const QString &icon, QWidget *parent, InOut type);
 
   helper::TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose, bool showCloseButton);
   void removeTab(int32_t idx);
@@ -234,6 +236,11 @@ protected:
     return mCommandBefore;
   }
 
+  std::filesystem::path getWorkingDirectory() const
+  {
+    return mAnalyzeSettings->getProjectPath();
+  }
+
 private:
   /////////////////////////////////////////////////////
 
@@ -270,6 +277,7 @@ private:
   std::shared_ptr<Command> mCommandBefore = nullptr;
   const std::vector<std::string> &mTags;
   AddCommandButtonBase *mCmdButton;
+  joda::settings::AnalyzeSettings *mAnalyzeSettings;
 };
 
 }    // namespace joda::ui::gui

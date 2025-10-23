@@ -50,7 +50,7 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMain *windowMain, joda::settings::AnalyzeSettings &settings) :
+PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMain *windowMain, joda::settings::AnalyzeSettings *settings) :
     mWindowMain(windowMain), mAnalyzeSettings(settings), mPreviewResults(previewResults)
 {
   mMainLayout = new QVBoxLayout();
@@ -84,7 +84,7 @@ PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMai
       } else {
         mMeasureUnit->setEnabled(true);
       }
-      fromSettings(mAnalyzeSettings);
+      fromSettings(*mAnalyzeSettings);
       auto ret = mStackOptionsDialog->exec();
       if(ret != 0) {
         toSettings();
@@ -248,8 +248,8 @@ PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMai
     mPipelineTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     mPipelineTable->setItemDelegateForColumn(0, new HtmlDelegate(mPipelineTable));
     mPipelineTable->setItemDelegateForColumn(1, new ColorSquareDelegatePipeline(mPipelineTable));
-    mTableModel = new TableModelPipeline(mAnalyzeSettings.projectSettings.classification, mPipelineTable);
-    mTableModel->setData(&settings.pipelines);
+    mTableModel = new TableModelPipeline(mAnalyzeSettings->projectSettings.classification, mPipelineTable);
+    mTableModel->setData(&settings->pipelines);
     mPipelineTable->setModel(mTableModel);
 
     connect(mPipelineTable->selectionModel(), &QItemSelectionModel::currentChanged,
@@ -258,7 +258,7 @@ PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMai
     connect(mPipelineTable, &QTableView::doubleClicked, [this](const QModelIndex &index) { openSelectedPipelineSettings(index); });
   }
 
-  mCommandSelectionDialog = std::make_shared<DialogCommandSelection>(mWindowMain);
+  mCommandSelectionDialog = std::make_shared<DialogCommandSelection>(mAnalyzeSettings, mWindowMain);
 
   mMainLayout->addWidget(toolbar);
   mMainLayout->addWidget(mPipelineTable, 1);
@@ -470,7 +470,7 @@ void PanelPipeline::erase(PanelPipelineSettings *toRemove)
 
     if(it != mChannels.end()) {
       void *elementInSettings = &it->get()->mutablePipeline();
-      mAnalyzeSettings.pipelines.remove_if([&elementInSettings](const joda::settings::Pipeline &item) { return &item == elementInSettings; });
+      mAnalyzeSettings->pipelines.remove_if([&elementInSettings](const joda::settings::Pipeline &item) { return &item == elementInSettings; });
       mChannels.erase(it);
       mWindowMain->checkForSettingsChanged();
     }
@@ -506,8 +506,8 @@ void PanelPipeline::addChannelFromSettings(joda::settings::Pipeline settings)
       return;
     }
   }
-  mAnalyzeSettings.pipelines.emplace_back();
-  auto &newlyAdded = mAnalyzeSettings.pipelines.back();
+  mAnalyzeSettings->pipelines.emplace_back();
+  auto &newlyAdded = mAnalyzeSettings->pipelines.back();
   auto panel1 =
       std::make_unique<PanelPipelineSettings>(mWindowMain, mWindowMain->getPreviewDock(), mPreviewResults, newlyAdded, mCommandSelectionDialog);
   panel1->fromSettings(settings);
@@ -628,7 +628,7 @@ void PanelPipeline::movePipelineToPosition(size_t fromPos, size_t newPosIn)
     }
   };
 
-  moveElementToListPosition(mAnalyzeSettings.pipelines, fromPos, newPosIn);
+  moveElementToListPosition(mAnalyzeSettings->pipelines, fromPos, newPosIn);
   mWindowMain->checkForSettingsChanged();
   mTableModel->refresh();
 }
@@ -672,13 +672,15 @@ void PanelPipeline::saveAsTemplate()
 ///
 void PanelPipeline::toSettings()
 {
-  mAnalyzeSettings.imageSetup.zStackHandling = static_cast<joda::settings::ProjectImageSetup::ZStackHandling>(mStackHandlingZ->currentData().toInt());
-  mAnalyzeSettings.imageSetup.tStackHandling = static_cast<joda::settings::ProjectImageSetup::TStackHandling>(mStackHandlingT->currentData().toInt());
+  mAnalyzeSettings->imageSetup.zStackHandling =
+      static_cast<joda::settings::ProjectImageSetup::ZStackHandling>(mStackHandlingZ->currentData().toInt());
+  mAnalyzeSettings->imageSetup.tStackHandling =
+      static_cast<joda::settings::ProjectImageSetup::TStackHandling>(mStackHandlingT->currentData().toInt());
 
-  mAnalyzeSettings.imageSetup.tStackSettings.startFrame = mTStackFrameStart->text().toInt();
-  mAnalyzeSettings.imageSetup.tStackSettings.endFrame   = mTStackFrameEnd->text().toInt();
+  mAnalyzeSettings->imageSetup.tStackSettings.startFrame = mTStackFrameStart->text().toInt();
+  mAnalyzeSettings->imageSetup.tStackSettings.endFrame   = mTStackFrameEnd->text().toInt();
 
-  mAnalyzeSettings.pipelineSetup.realSizesUnit = static_cast<enums::Units>(mMeasureUnit->currentData().toInt());
+  mAnalyzeSettings->pipelineSetup.realSizesUnit = static_cast<enums::Units>(mMeasureUnit->currentData().toInt());
 }
 
 ///

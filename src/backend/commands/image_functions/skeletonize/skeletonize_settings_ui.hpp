@@ -33,8 +33,9 @@ public:
   inline static std::string DESCRIPTION       = "Obtains the skeletons from binary images by thinning regions";
   inline static std::vector<std::string> TAGS = {"skeletonize", "skeletons", "thinning", "topological skeleton"};
 
-  Skeletonize(joda::settings::PipelineStep &pipelineStep, settings::SkeletonizeSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}})
+  Skeletonize(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, settings::SkeletonizeSettings &settings,
+              QWidget *parent) :
+      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}})
   {
     //
     //

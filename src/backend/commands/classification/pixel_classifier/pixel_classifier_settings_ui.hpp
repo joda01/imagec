@@ -42,7 +42,8 @@ public:
   inline static std::vector<std::string> TAGS = {"classification", "ml",        "ai",         "random forest", "k-nearest", "knearest",
                                                  "pixel classify", "threshold", "background", "binary"};
 
-  PixelClassifier(joda::settings::PipelineStep &pipelineStep, settings::PixelClassifierSettings &settings, QWidget *parent);
+  PixelClassifier(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep,
+                  settings::PixelClassifierSettings &settings, QWidget *parent);
 
 private:
   /////////////////////////////////////////////////////

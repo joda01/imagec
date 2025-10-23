@@ -38,21 +38,15 @@ namespace joda::ml {
 /// \param[out]
 /// \return
 ///
-auto MlModelParser::getUsersMlModelDirectory() -> std::filesystem::path
+auto MlModelParser::getUsersMlModelDirectory(const std::filesystem::path &workingDirectory) -> std::filesystem::path
 {
-#ifdef _WIN32
-  auto homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) /
-                 std::filesystem::path(joda::fs::USER_SETTINGS_PATH) / std::filesystem::path("models");
-#else
-  auto homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) /
-                 std::filesystem::path("." + joda::fs::USER_SETTINGS_PATH) / std::filesystem::path("models");
+  auto homeDir = workingDirectory / joda::fs::WORKING_DIRECTORY_MODELS_PATH;
 
-#endif
   if(!fs::exists(homeDir) || !fs::is_directory(homeDir)) {
     try {
       fs::create_directories(homeDir);
     } catch(const fs::filesystem_error &e) {
-      joda::log::logError("Cannot create users template directory!");
+      joda::log::logError("Cannot create models directory!");
     }
   }
   return homeDir.string();
@@ -78,11 +72,11 @@ auto MlModelParser::getGlobalMlModelDirectory() -> std::filesystem::path
 /// \param[out]
 /// \return
 ///
-auto MlModelParser::findMlModelFiles() -> std::map<std::filesystem::path, Data>
+auto MlModelParser::findMlModelFiles(const std::filesystem::path &workingDirectory) -> std::map<std::filesystem::path, Data>
 {
   std::lock_guard<std::mutex> lock(lookForMutex);
   std::map<std::filesystem::path, Data> aiModelFiles;
-  std::vector<std::filesystem::path> directories{getGlobalMlModelDirectory(), getUsersMlModelDirectory()};
+  std::vector<std::filesystem::path> directories{getGlobalMlModelDirectory(), getUsersMlModelDirectory(workingDirectory)};
 
   for(const auto &directory : directories) {
     if(fs::exists(directory) && fs::is_directory(directory)) {
@@ -90,8 +84,11 @@ auto MlModelParser::findMlModelFiles() -> std::map<std::filesystem::path, Data>
         if(entry.is_regular_file()) {
           try {
             if(entry.path().string().ends_with(joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL)) {
-              auto modelInfo = parseOpenCVModelXMLDescriptionFile(entry.path());
-              aiModelFiles.emplace(modelInfo.modelPath, modelInfo);
+              const auto relativePath = std::filesystem::relative(entry.path(), workingDirectory);
+              std::cout << "Rel path " << relativePath.string() << std::endl;
+              auto modelInfo = parseOpenCVModelXMLDescriptionFile(relativePath, workingDirectory);
+
+              aiModelFiles.emplace(relativePath, modelInfo);
             }
           } catch(const nlohmann::json::parse_error &ex) {
             // std::cerr << "JSON Parse error: " << ex.what() << "\n"
@@ -120,10 +117,10 @@ auto MlModelParser::findMlModelFiles() -> std::map<std::filesystem::path, Data>
 /// \param[out]
 /// \return
 ///
-auto MlModelParser::parseOpenCVModelXMLDescriptionFile(const std::filesystem::path &modelFile) -> Data
+auto MlModelParser::parseOpenCVModelXMLDescriptionFile(const std::filesystem::path &modelFile, const std::filesystem::path &workingDirectory) -> Data
 {
   // Open file stream
-  std::ifstream file(modelFile);
+  std::ifstream file(std::filesystem::weakly_canonical(workingDirectory / modelFile).string());
   if(!file.is_open()) {
     return {};
   }

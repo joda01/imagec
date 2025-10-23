@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <string>
+#include "backend/enums/enums_file_endians.hpp"
 
 namespace joda::helper {
 
@@ -37,6 +38,18 @@ inline uint64_t generateImageIdFromPath(const std::filesystem::path &imageFilePa
 {
   auto relativePath = std::filesystem::relative(imageFilePath, workingDirectory);
   return calcFnv1a(relativePath.string());
+}
+
+inline std::filesystem::path generateImageMetaDataStoragePathFromImagePath(const std::filesystem::path &imageFilePath,
+                                                                           const std::filesystem::path &workingDirectory, const std::string &fileName)
+{
+  auto imageId = generateImageIdFromPath(imageFilePath, workingDirectory);
+  auto path    = workingDirectory / joda::fs::WORKING_DIRECTORY_IMAGE_DATA_PATH / std::to_string(imageId);
+  if(!std::filesystem::exists(path)) {
+    std::filesystem::create_directories(path);
+  }
+  path = path / fileName;
+  return path;
 }
 
 }    // namespace joda::helper

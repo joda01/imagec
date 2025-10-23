@@ -166,9 +166,9 @@ void Image::setPseudoColor(const cv::Vec3f &color)
   if(1 == mImageOriginalScaled.channels()) {
     mPseudoColor.emplace_back(color);
   } else {
-    mPseudoColor.emplace_back(cv::Vec3f{1.0, 0, 0});
-    mPseudoColor.emplace_back(cv::Vec3f{0, 1.0, 0});
-    mPseudoColor.emplace_back(cv::Vec3f{0, 0, 1, 0});
+    mPseudoColor.emplace_back(cv::Vec3f{1.0, 0.0, 0.0});
+    mPseudoColor.emplace_back(cv::Vec3f{0.0, 1.0, 0.0});
+    mPseudoColor.emplace_back(cv::Vec3f{0.0, 0.0, 1.0});
   }
 }
 

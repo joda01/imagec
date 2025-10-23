@@ -48,18 +48,19 @@ AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) : mSe
 
 void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNotUse, atom::ObjectList &result)
 {
-  at::Device device = getCudaDevice();
+  at::Device device            = getCudaDevice();
+  const auto absoluteModelPath = std::filesystem::weakly_canonical(context.getWorkingDirectory() / mSettings.modelPath);
 
-  auto parsed = joda::ai::AiModelParser::parseResourceDescriptionFile(mSettings.modelPath);
+  auto parsed = joda::ai::AiModelParser::parseResourceDescriptionFile(absoluteModelPath);
   if(parsed.inputs.empty()) {
     THROW("Could not read model input parameter!");
   }
   mSettings.modelInputParameter = parsed.inputs.begin()->second;
 
-  if(mSettings.modelPath.empty()) {
+  if(absoluteModelPath.empty()) {
     return;
   }
-  auto modelPath = std::filesystem::current_path() / std::filesystem::path(mSettings.modelPath);
+  auto modelPath = std::filesystem::current_path() / std::filesystem::path(absoluteModelPath);
   if(!std::filesystem::exists(modelPath)) {
     THROW("Could not open model >" + modelPath.string() + "<!");
   }

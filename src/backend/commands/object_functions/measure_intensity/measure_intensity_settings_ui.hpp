@@ -39,9 +39,10 @@ public:
   inline static std::string DESCRIPTION       = "Measure the intensity of objects areas in an image channel.";
   inline static std::vector<std::string> TAGS = {"intensity", "measure", "object"};
 
-  MeasureIntensity(joda::settings::PipelineStep &pipelineStep, settings::MeasureIntensitySettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings),
-      mParent(parent)
+  MeasureIntensity(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep,
+                   settings::MeasureIntensitySettings &settings, QWidget *parent) :
+      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}),
+      mSettings(settings), mParent(parent)
   {
     //
     //

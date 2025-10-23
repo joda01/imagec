@@ -21,13 +21,14 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-PixelClassifier::PixelClassifier(joda::settings::PipelineStep &pipelineStep, settings::PixelClassifierSettings &settings, QWidget *parent) :
-    Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::BINARY}}), mSettings(settings),
-    mParent(parent)
+PixelClassifier::PixelClassifier(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep,
+                                 settings::PixelClassifierSettings &settings, QWidget *parent) :
+    Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::BINARY}}),
+    mSettings(settings), mParent(parent)
 {
   auto *openModelsPath = addActionButton("Open models path", generateSvgIcon<Style::REGULAR, Color::BLACK>("arrow-square-out"));
-  connect(openModelsPath, &QAction::triggered, []() {
-    QString appDirPath = QCoreApplication::applicationDirPath() + "/models";
+  connect(openModelsPath, &QAction::triggered, [this]() {
+    QString appDirPath = joda::ml::MlModelParser::getUsersMlModelDirectory(getWorkingDirectory()).string().c_str();
     QDesktopServices::openUrl(QUrl("file:///" + appDirPath));
   });
 
@@ -78,11 +79,11 @@ PixelClassifier::PixelClassifier(joda::settings::PipelineStep &pipelineStep, set
 ///
 void PixelClassifier::refreshModels()
 {
-  auto onnxModels = joda::ml::MlModelParser::findMlModelFiles();
+  auto modelsPath = joda::ml::MlModelParser::findMlModelFiles(getWorkingDirectory());
   std::vector<SettingComboBoxString::ComboEntry> entries;
-  entries.reserve(onnxModels.size() + 1);
+  entries.reserve(modelsPath.size() + 1);
   entries.emplace_back(SettingComboBoxString::ComboEntry{.key = "", .label = "Select model ..."});
-  for(const auto &[key, model] : onnxModels) {
+  for(const auto &[key, model] : modelsPath) {
     entries.emplace_back(SettingComboBoxString::ComboEntry{.key = model.modelPath.string(), .label = model.modelName.data()});
   }
   mModelPath->addOptions(entries);
@@ -99,7 +100,7 @@ void PixelClassifier::updateModel()
 {
   if(!mModelPath->getValue().empty()) {
     try {
-      auto info = joda::ml::MlModelParser::parseOpenCVModelXMLDescriptionFile(std::filesystem::path(mModelPath->getValue()));
+      auto info = joda::ml::MlModelParser::parseOpenCVModelXMLDescriptionFile(std::filesystem::path(mModelPath->getValue()), getWorkingDirectory());
       mModelDetails->setText(info.toString().data());
     } catch(...) {
     }

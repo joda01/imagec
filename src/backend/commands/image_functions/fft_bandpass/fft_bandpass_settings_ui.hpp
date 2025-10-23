@@ -40,8 +40,10 @@ public:
   inline static std::string DESCRIPTION       = "Bandpass filter";
   inline static std::vector<std::string> TAGS = {"fft", "bandpass", "filter"};
 
-  FFTBandpass(joda::settings::PipelineStep &pipelineStep, settings::FFTBandpassSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::IMAGE}}), mParent(parent)
+  FFTBandpass(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, settings::FFTBandpassSettings &settings,
+              QWidget *parent) :
+      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::IMAGE}}),
+      mParent(parent)
   {
     auto *modelTab = addTab(
         "Base", [] {}, false);

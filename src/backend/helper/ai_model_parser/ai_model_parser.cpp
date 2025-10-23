@@ -38,16 +38,10 @@ namespace joda::ai {
 /// \param[out]
 /// \return
 ///
-auto AiModelParser::getUsersAiModelDirectory() -> std::filesystem::path
+auto AiModelParser::getUsersAiModelDirectory(const std::filesystem::path &workingDirectory) -> std::filesystem::path
 {
-#ifdef _WIN32
-  auto homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) /
-                 std::filesystem::path(joda::fs::USER_SETTINGS_PATH) / std::filesystem::path("models");
-#else
-  auto homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) /
-                 std::filesystem::path("." + joda::fs::USER_SETTINGS_PATH) / std::filesystem::path("models");
+  auto homeDir = workingDirectory / joda::fs::WORKING_DIRECTORY_MODELS_PATH;
 
-#endif
   if(!fs::exists(homeDir) || !fs::is_directory(homeDir)) {
     try {
       fs::create_directories(homeDir);
@@ -78,11 +72,11 @@ auto AiModelParser::getGlobalAiModelDirectory() -> std::filesystem::path
 /// \param[out]
 /// \return
 ///
-auto AiModelParser::findAiModelFiles() -> std::map<std::filesystem::path, Data>
+auto AiModelParser::findAiModelFiles(const std::filesystem::path &workingDirectory) -> std::map<std::filesystem::path, Data>
 {
   std::lock_guard<std::mutex> lock(lookForMutex);
   std::map<std::filesystem::path, Data> aiModelFiles;
-  std::vector<std::filesystem::path> directories{getGlobalAiModelDirectory(), getUsersAiModelDirectory()};
+  std::vector<std::filesystem::path> directories{getGlobalAiModelDirectory(), getUsersAiModelDirectory(workingDirectory)};
 
   for(const auto &directory : directories) {
     if(fs::exists(directory) && fs::is_directory(directory)) {
@@ -90,8 +84,10 @@ auto AiModelParser::findAiModelFiles() -> std::map<std::filesystem::path, Data>
         if(entry.is_regular_file()) {
           try {
             if(entry.path().string().ends_with("rdf.yaml") || entry.path().string().ends_with("rdf.yml")) {
-              auto modelInfo = parseResourceDescriptionFile(entry.path());
-              aiModelFiles.emplace(modelInfo.modelPath, modelInfo);
+              auto modelInfo          = parseResourceDescriptionFile(entry.path());
+              const auto relativePath = std::filesystem::relative(modelInfo.modelPath, workingDirectory);
+              modelInfo.modelPath     = relativePath;
+              aiModelFiles.emplace(relativePath, modelInfo);
             }
           } catch(const nlohmann::json::parse_error &ex) {
             // std::cerr << "JSON Parse error: " << ex.what() << "\n"

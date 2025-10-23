@@ -634,8 +634,9 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   mSettings.pipelineSteps.clear();
   for(const joda::settings::PipelineStep &step : settings.pipelineSteps) {
     mSettings.pipelineSteps.emplace_back(step);
-    auto &cmdSetting                            = mSettings.pipelineSteps.back();
-    std::unique_ptr<joda::ui::gui::Command> cmd = joda::settings::PipelineFactory<joda::ui::gui::Command>::generate(cmdSetting, mWindowMain);
+    auto &cmdSetting = mSettings.pipelineSteps.back();
+    std::unique_ptr<joda::ui::gui::Command> cmd =
+        joda::settings::PipelineFactory<joda::ui::gui::Command>::generate(&mWindowMain->mutableSettings(), cmdSetting, mWindowMain);
     if(cmd != nullptr) {
       addPipelineStep(std::move(cmd), &cmdSetting);
     }

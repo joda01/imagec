@@ -33,8 +33,10 @@ public:
   inline static std::string DESCRIPTION       = "Reduce noise within the image";
   inline static std::vector<std::string> TAGS = {"blur", "gaussian", "noise reduction", "noise", "smooth"};
 
-  Blur(joda::settings::PipelineStep &pipelineStep, settings::BlurSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}})
+  Blur(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, settings::BlurSettings &settings,
+       QWidget *parent) :
+      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent,
+              {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}})
   {
     //
     //

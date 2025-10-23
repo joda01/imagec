@@ -39,9 +39,10 @@ public:
   inline static std::string DESCRIPTION       = "Extract objects from a binary image.";
   inline static std::vector<std::string> TAGS = {"classifier", "classify", "objects"};
 
-  Classifier(joda::settings::PipelineStep &pipelineStep, settings::ClassifierSettings &settingsIn, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::BINARY}, {InOuts::OBJECT}}), mSettings(settingsIn),
-      mParent(parent)
+  Classifier(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, settings::ClassifierSettings &settingsIn,
+             QWidget *parent) :
+      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::BINARY}, {InOuts::OBJECT}}),
+      mSettings(settingsIn), mParent(parent)
   {
     this->mutableEditDialog()->setMinimumWidth(600);
     this->mutableEditDialog()->setMinimumHeight(400);

@@ -12,6 +12,7 @@
 #pragma once
 
 #include <cstddef>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <list>
@@ -51,6 +52,7 @@ public:
   auto getPossibleIntersectingClasses() const -> std::map<enums::ClassId, std::set<enums::ClassId>>;
   auto getPossibleDistanceClasses() const -> std::map<enums::ClassId, std::set<enums::ClassId>>;
   auto getImageChannelsUsedForMeasurement() const -> std::map<enums::ClassId, std::set<int32_t>>;
+  auto getProjectPath() const -> std::filesystem::path;
 
   auto checkForErrors() const -> std::vector<std::pair<std::string, SettingParserLog_t>>;
   auto toResultsSettings() const -> ResultsSettings;

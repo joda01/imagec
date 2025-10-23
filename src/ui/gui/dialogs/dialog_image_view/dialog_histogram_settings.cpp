@@ -38,7 +38,7 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
   setWindowTitle("Histogram");
   setMinimumSize(300, 400);
 
-  auto *layout = new QFormLayout(this);
+  auto *layout = new QFormLayout();
 
   mHistogramPanel = new PanelHistogram(imagePanel, this);
   mHistogramPanel->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding);
@@ -47,14 +47,14 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
   //
   // Add sliders
   //
-  mSliderHistogramMin = new QSlider(this);
+  mSliderHistogramMin = new QSlider();
   mSliderHistogramMin->setOrientation(Qt::Orientation::Horizontal);
   mSliderHistogramMin->setMinimum(imagePanel->mutableImage()->getHistogramDisplayAreaLower());
   mSliderHistogramMin->setMaximum(imagePanel->mutableImage()->getHistogramDisplayAreaUpper());
   mSliderHistogramMin->setValue(imagePanel->mutableImage()->getLowerLevelContrast());
   layout->addRow("Min", mSliderHistogramMin);
 
-  mSliderHistogramMax = new QSlider(this);
+  mSliderHistogramMax = new QSlider();
   mSliderHistogramMax->setOrientation(Qt::Orientation::Horizontal);
   mSliderHistogramMax->setMinimum(imagePanel->mutableImage()->getHistogramDisplayAreaLower());
   mSliderHistogramMax->setMaximum(imagePanel->mutableImage()->getHistogramDisplayAreaUpper());
@@ -64,19 +64,19 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
   //
   // Axis range
   //
-  mSliderDisplayLower = new QSpinBox(this);
+  mSliderDisplayLower = new QSpinBox();
   mSliderDisplayLower->setSingleStep(1);
   mSliderDisplayLower->setMinimum(0);
   mSliderDisplayLower->setMaximum(UINT16_MAX);
   mSliderDisplayLower->setValue(imagePanel->mutableImage()->getHistogramDisplayAreaLower());
 
-  mSliderDisplayUpper = new QSpinBox(this);
+  mSliderDisplayUpper = new QSpinBox();
   mSliderDisplayUpper->setSingleStep(1);
   mSliderDisplayUpper->setMinimum(1);
   mSliderDisplayUpper->setMaximum(UINT16_MAX);
   mSliderDisplayUpper->setValue(imagePanel->mutableImage()->getHistogramDisplayAreaUpper());
 
-  auto *rangeLayout = new QHBoxLayout(this);
+  auto *rangeLayout = new QHBoxLayout();
   rangeLayout->addWidget(mSliderDisplayLower);
   rangeLayout->addWidget(mSliderDisplayUpper);
   layout->addRow("Axis range", rangeLayout);
@@ -102,7 +102,7 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
   //
   // Image channel
   //
-  mImageChannel = new QComboBox(this);
+  mImageChannel = new QComboBox();
   for(int n = 0; n < 9; n++) {
     mImageChannel->addItem("Channel " + QString::number(n), n);
   }

@@ -12,6 +12,7 @@
 ///
 
 #include "ai_classifier_settings_ui.hpp"
+#include "backend/helper/ai_model_parser/ai_model_parser.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 
 namespace joda::ui::gui {
@@ -23,16 +24,17 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings::AiClassifierSettings &settings, QWidget *parent) :
-    Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::OBJECT}}), mSettings(settings),
-    mParent(parent)
+AiClassifier::AiClassifier(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep,
+                           settings::AiClassifierSettings &settings, QWidget *parent) :
+    Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::OBJECT}}),
+    mSettings(settings), mParent(parent)
 {
   this->mutableEditDialog()->setMinimumWidth(700);
   this->mutableEditDialog()->setMinimumHeight(600);
 
   auto *openModelsPath = addActionButton("Open models path", generateSvgIcon<Style::REGULAR, Color::BLACK>("arrow-square-out"));
-  connect(openModelsPath, &QAction::triggered, []() {
-    QString appDirPath = QCoreApplication::applicationDirPath() + "/models";
+  connect(openModelsPath, &QAction::triggered, [this]() {
+    QString appDirPath = joda::ai::AiModelParser::getUsersAiModelDirectory(getWorkingDirectory()).string().c_str();
     QDesktopServices::openUrl(QUrl("file:///" + appDirPath));
   });
 
@@ -211,7 +213,7 @@ void AiClassifier::updateInputFields(int32_t nrOfClasses, const settings::AiClas
 
 void AiClassifier::refreshModels()
 {
-  auto onnxModels = joda::ai::AiModelParser::findAiModelFiles();
+  auto onnxModels = joda::ai::AiModelParser::findAiModelFiles(getWorkingDirectory());
   std::vector<SettingComboBoxString::ComboEntry> entries;
   entries.reserve(onnxModels.size() + 1);
   entries.emplace_back(SettingComboBoxString::ComboEntry{.key = "", .label = "Select model ..."});

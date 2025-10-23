@@ -114,7 +114,7 @@ public:
   }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED_CONDITIONAL_CHECK(Pipeline, disabled, meta, pipelineSetup, pipelineSteps, disabled, locked,
-                                                                         actHistoryIndex, history);
+                                                                         actHistoryIndex);
 
 private:
   //
