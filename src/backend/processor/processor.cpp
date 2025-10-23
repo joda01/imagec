@@ -294,8 +294,9 @@ std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSett
     globalContext.classes.emplace(elem.classId, elem);
   }
 
-  globalContext.resultsOutputFolder = program.getProjectPath() / joda::fs::RESULTS_PATH / (joda::helper::timepointToIsoString(now) + "_" + jobName);
-  globalContext.workingDirectory    = program.getProjectPath();
+  globalContext.resultsOutputFolder = std::filesystem::path(program.projectSettings.plate.imageFolder) / joda::fs::WORKING_DIRECTORY_PROJECT_PATH /
+                                      joda::fs::RESULTS_PATH / (joda::helper::timepointToIsoString(now) + "_" + jobName);
+  globalContext.workingDirectory = program.getProjectPath();
 
   std::filesystem::create_directories(globalContext.resultsOutputFolder);
 

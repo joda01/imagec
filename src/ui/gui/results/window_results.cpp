@@ -1082,9 +1082,10 @@ void WindowResults::openFromFile(const QString &pathToDbFile)
   mAnalyzer->openDatabase(std::filesystem::path(pathToDbFile.toStdString()));
   mDbFilePath = std::filesystem::path(pathToDbFile.toStdString());
 
-  // We assume the images to be in the folder ../../../<IMAGES>
+  // Database results file is stored in <IMAGE-PATH>/imagec/results/<JOB-NAME>/results.icdb
+  // We assume the images to be in the folder ../../../../<IMAGES>
   // If not the user will be asked to select the image working directory.
-  mImageWorkingDirectory = mDbFilePath.parent_path().parent_path().parent_path();
+  mImageWorkingDirectory = mDbFilePath.parent_path().parent_path().parent_path().parent_path();
 
   mSelectedDataSet.analyzeMeta = mAnalyzer->selectExperiment();
   // Try to load settings if available

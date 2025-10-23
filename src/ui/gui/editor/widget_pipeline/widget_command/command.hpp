@@ -238,6 +238,9 @@ protected:
 
   std::filesystem::path getWorkingDirectory() const
   {
+    if(nullptr == mAnalyzeSettings) {
+      return {};
+    }
     return mAnalyzeSettings->getProjectPath();
   }
 
@@ -281,7 +284,7 @@ private:
   std::shared_ptr<Command> mCommandBefore = nullptr;
   const std::vector<std::string> &mTags;
   AddCommandButtonBase *mCmdButton;
-  joda::settings::AnalyzeSettings *mAnalyzeSettings;
+  joda::settings::AnalyzeSettings *mAnalyzeSettings = nullptr;
 };
 
 }    // namespace joda::ui::gui
