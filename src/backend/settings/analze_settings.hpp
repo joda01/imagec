@@ -70,7 +70,7 @@ public:
       func(path);
     }
   }
-  void registerProjectPathChangedCallback(const std::function<void(const std::string &)> &fun)
+  void registerProjectPathChangedCallback(const std::function<void(const std::filesystem::path &)> &fun)
   {
     mProjectPathChangedCallback.emplace_back(fun);
   }
@@ -92,6 +92,6 @@ private:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, configSchema, projectSettings, imageSetup, pipelineSetup, pipelines,
                                                        imagecMeta, meta);
 
-  std::vector<std::function<void(const std::string &)>> mProjectPathChangedCallback;
+  std::vector<std::function<void(const std::filesystem::path &)>> mProjectPathChangedCallback;
 };
 }    // namespace joda::settings

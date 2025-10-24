@@ -244,7 +244,7 @@ protected:
     return mAnalyzeSettings->getProjectPath();
   }
 
-  void registerProjectPathChangedCallback(const std::function<void(const std::string &)> &fun)
+  void registerProjectPathChangedCallback(const std::function<void(const std::filesystem::path &)> &fun)
   {
     mAnalyzeSettings->registerProjectPathChangedCallback(fun);
   }
