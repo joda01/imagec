@@ -15,6 +15,7 @@
 #include <qdialog.h>
 #include <qformlayout.h>
 #include <qlineedit.h>
+#include <qmessagebox.h>
 #include <qprogressbar.h>
 #include <qpushbutton.h>
 #include <exception>
@@ -240,6 +241,10 @@ void DialogMlTrainer::startTraining()
   std::string modelFileName = mModelName->text().toStdString();
   if(modelFileName.empty()) {
     modelFileName = "tmp";
+  }
+  if(!mAnalyzeSettings->isProjectPathSet()) {
+    QMessageBox::information(this, "Create project ...", "Please select an image directory and save the project file first!");
+    return;
   }
 
   std::filesystem::path modelPath = joda::ml::MlModelParser::getUsersMlModelDirectory(mAnalyzeSettings->getProjectPath()) /

@@ -539,7 +539,7 @@ void WindowMain::openImage(const std::filesystem::path &imagePath, const ome::Om
 ///
 void WindowMain::loadROI(const std::filesystem::path &imagePath)
 {
-  if(imagePath.empty()) {
+  if(imagePath.empty() || !mAnalyzeSettings.isProjectPathSet()) {
     return;
   }
   const std::filesystem::path projectPath(mAnalyzeSettings.getProjectPath());
@@ -562,7 +562,7 @@ void WindowMain::loadROI(const std::filesystem::path &imagePath)
 ///
 void WindowMain::saveROI(const std::filesystem::path &imagePath)
 {
-  if(imagePath.empty()) {
+  if(imagePath.empty() || !mAnalyzeSettings.isProjectPathSet()) {
     return;
   }
   const std::filesystem::path projectPath(mAnalyzeSettings.getProjectPath());

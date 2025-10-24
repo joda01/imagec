@@ -238,7 +238,7 @@ protected:
 
   std::filesystem::path getWorkingDirectory() const
   {
-    if(nullptr == mAnalyzeSettings) {
+    if(nullptr == mAnalyzeSettings || !mAnalyzeSettings->isProjectPathSet()) {
       return {};
     }
     return mAnalyzeSettings->getProjectPath();
