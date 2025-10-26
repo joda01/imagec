@@ -22,9 +22,9 @@
 #include <filesystem>
 #include <memory>
 #include "backend/artifacts/roi/roi.hpp"
+#include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning_settings.hpp"
 #include "backend/commands/classification/pixel_classifier/pixel_classifier.hpp"
 #include "backend/commands/classification/pixel_classifier/pixel_classifier_settings.hpp"
-#include "backend/commands/classification/pixel_classifier/pixel_classifier_training_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/ml_model_parser/ml_model_parser.hpp"
@@ -65,26 +65,23 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
   // Settings
   {
     mComboClassifierMethod = new QComboBox();
-    mComboClassifierMethod->addItem("Random forest (RTree)", static_cast<int>(joda::settings::PixelClassifierMethod::RTrees));
-    mComboClassifierMethod->addItem("Artificial neural network (ANN_MLP)", static_cast<int>(joda::settings::PixelClassifierMethod::ANN_MLP));
-    mComboClassifierMethod->addItem("K nearest neighbor", static_cast<int>(joda::settings::PixelClassifierMethod::KNearest));
+    mComboClassifierMethod->addItem("Random forest (RTree)", static_cast<int>(joda::ml::ModelType::RTrees));
+    mComboClassifierMethod->addItem("Artificial neural network (ANN_MLP)", static_cast<int>(joda::ml::ModelType::ANN_MLP));
+    mComboClassifierMethod->addItem("K nearest neighbor", static_cast<int>(joda::ml::ModelType::KNearest));
 
     auto *trainingSettingsMeta = new QHBoxLayout;
     trainingSettingsMeta->addWidget(mComboClassifierMethod);
     auto *openMetaEditor = new QPushButton(generateSvgIcon<Style::REGULAR, Color::BLACK>("dots-three-outline-vertical"), "");
     openMetaEditor->setStatusTip("ML model settings");
     connect(openMetaEditor, &QPushButton::clicked, [this] {
-      if(static_cast<joda::settings::PixelClassifierMethod>(mComboClassifierMethod->currentData().toInt()) ==
-         joda::settings::PixelClassifierMethod::RTrees) {
-        SettingsRandomForest dialog(&mTrainerSettings.randomForest, this);
+      if(static_cast<joda::ml::ModelType>(mComboClassifierMethod->currentData().toInt()) == joda::ml::ModelType::RTrees) {
+        SettingsRandomForest dialog(&mModelSettings.randomForest, this);
         dialog.exec();
-      } else if(static_cast<joda::settings::PixelClassifierMethod>(mComboClassifierMethod->currentData().toInt()) ==
-                joda::settings::PixelClassifierMethod::ANN_MLP) {
-        SettingsAnnMlp dialog(&mTrainerSettings.annMlp, this);
+      } else if(static_cast<joda::ml::ModelType>(mComboClassifierMethod->currentData().toInt()) == joda::ml::ModelType::ANN_MLP) {
+        SettingsAnnMlp dialog(&mModelSettings.annMlp, this);
         dialog.exec();
-      } else if(static_cast<joda::settings::PixelClassifierMethod>(mComboClassifierMethod->currentData().toInt()) ==
-                joda::settings::PixelClassifierMethod::KNearest) {
-        SettingsKNearest dialog(&mTrainerSettings.kNearest, this);
+      } else if(static_cast<joda::ml::ModelType>(mComboClassifierMethod->currentData().toInt()) == joda::ml::ModelType::KNearest) {
+        SettingsKNearest dialog(&mModelSettings.kNearest, this);
         dialog.exec();
       }
     });
@@ -96,17 +93,15 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
   // Features
   {
     mComboTrainingFeatures = new QComboBoxMulti();
-    mComboTrainingFeatures->addItem("Intensity", static_cast<int>(joda::settings::PixelClassifierFeatures::Intensity));
-    mComboTrainingFeatures->addItem("Gaussian blur", static_cast<int>(joda::settings::PixelClassifierFeatures::Gaussian));
-    mComboTrainingFeatures->addItem("Laplacian of Gaussian", static_cast<int>(joda::settings::PixelClassifierFeatures::LaplacianOfGaussian));
-    mComboTrainingFeatures->addItem("Weighted deviation", static_cast<int>(joda::settings::PixelClassifierFeatures::WeightedDeviation));
-    mComboTrainingFeatures->addItem("Gradient magnitude", static_cast<int>(joda::settings::PixelClassifierFeatures::GradientMagnitude));
-    mComboTrainingFeatures->addItem("Structure tensor eigenvalues",
-                                    static_cast<int>(joda::settings::PixelClassifierFeatures::StructureTensorEigenvalues));
-    mComboTrainingFeatures->addItem("Structure tensor coherence",
-                                    static_cast<int>(joda::settings::PixelClassifierFeatures::StructureTensorCoherence));
-    mComboTrainingFeatures->addItem("Hessian determinant", static_cast<int>(joda::settings::PixelClassifierFeatures::HessianDeterminant));
-    mComboTrainingFeatures->addItem("Hessian eigenvalues", static_cast<int>(joda::settings::PixelClassifierFeatures::HessianEigenvalues));
+    mComboTrainingFeatures->addItem("Intensity", static_cast<int>(joda::ml::TrainingFeatures::Intensity));
+    mComboTrainingFeatures->addItem("Gaussian blur", static_cast<int>(joda::ml::TrainingFeatures::Gaussian));
+    mComboTrainingFeatures->addItem("Laplacian of Gaussian", static_cast<int>(joda::ml::TrainingFeatures::LaplacianOfGaussian));
+    mComboTrainingFeatures->addItem("Weighted deviation", static_cast<int>(joda::ml::TrainingFeatures::WeightedDeviation));
+    mComboTrainingFeatures->addItem("Gradient magnitude", static_cast<int>(joda::ml::TrainingFeatures::GradientMagnitude));
+    mComboTrainingFeatures->addItem("Structure tensor eigenvalues", static_cast<int>(joda::ml::TrainingFeatures::StructureTensorEigenvalues));
+    mComboTrainingFeatures->addItem("Structure tensor coherence", static_cast<int>(joda::ml::TrainingFeatures::StructureTensorCoherence));
+    mComboTrainingFeatures->addItem("Hessian determinant", static_cast<int>(joda::ml::TrainingFeatures::HessianDeterminant));
+    mComboTrainingFeatures->addItem("Hessian eigenvalues", static_cast<int>(joda::ml::TrainingFeatures::HessianEigenvalues));
 
     auto *trainingSettingsMeta = new QHBoxLayout;
     trainingSettingsMeta->addWidget(mComboTrainingFeatures);
@@ -118,7 +113,7 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
     layout->addRow("Features", trainingSettingsMeta);
 
     mComboTrainingFeatures->setCheckedItems(
-        {static_cast<int>(joda::settings::PixelClassifierFeatures::Intensity), static_cast<int>(joda::settings::PixelClassifierFeatures::Gaussian)});
+        {static_cast<int>(joda::ml::TrainingFeatures::Intensity), static_cast<int>(joda::ml::TrainingFeatures::Gaussian)});
   }
 
   {
@@ -293,11 +288,11 @@ void DialogMlTrainer::startTraining()
     }
 
     if(classesToTrainMapping.size() > 1) {
-      std::set<joda::settings::PixelClassifierFeatures> features;
+      std::set<joda::ml::TrainingFeatures> features;
 
       const auto &items = mComboTrainingFeatures->getCheckedItems();
       for(const auto &item : items) {
-        features.emplace(static_cast<joda::settings::PixelClassifierFeatures>(item.first.toInt()));
+        features.emplace(static_cast<joda::ml::TrainingFeatures>(item.first.toInt()));
       }
 
       if(features.empty()) {
@@ -305,14 +300,14 @@ void DialogMlTrainer::startTraining()
         return;
       }
 
-      mTrainerSettings.method          = static_cast<joda::settings::PixelClassifierMethod>(mComboClassifierMethod->currentData().toInt());
+      mTrainerSettings.modelType       = static_cast<joda::ml::ModelType>(mComboClassifierMethod->currentData().toInt());
       mTrainerSettings.trainingClasses = classesToTrainMapping;
       mTrainerSettings.features        = features;
       mTrainerSettings.outPath         = modelPath;
       mTrainerSettings.categoryToTrain = static_cast<joda::atom::ROI::Category>(mRoiSource->currentData().toInt());
       try {
-        joda::cmd::PixelClassifier::train(*mImagePanel->mutableImage()->getOriginalImage(), mImagePanel->getTileInfo(), *mObjectMap,
-                                          mTrainerSettings);
+        joda::cmd::PixelClassifier::train(*mImagePanel->mutableImage()->getOriginalImage(), mImagePanel->getTileInfo(), *mObjectMap, mTrainerSettings,
+                                          mModelSettings);
       } catch(const std::exception &ex) {
         emit trainingFinished(false, ex.what());
         return;

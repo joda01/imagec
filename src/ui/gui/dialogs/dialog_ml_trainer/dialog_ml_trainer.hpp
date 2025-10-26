@@ -17,7 +17,8 @@
 #include <qwidget.h>
 #include <memory>
 #include "backend/artifacts/object_list/object_list.hpp"
-#include "backend/commands/classification/pixel_classifier/pixel_classifier_training_settings.hpp"
+#include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning_settings.hpp"
+#include "backend/commands/classification/pixel_classifier/pixel_classifier.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
@@ -73,7 +74,8 @@ private:
   QProgressBar *mProgress;
   std::shared_ptr<atom::ObjectList> mObjectMap;
 
-  joda::settings::PixelClassifierTrainingSettings mTrainerSettings;
+  joda::ml::MachineLearningSettings mTrainerSettings;
+  joda::cmd::TrainingsModelSettings mModelSettings;
   std::unique_ptr<std::thread> mTrainingsThread;
 
   const joda::settings::AnalyzeSettings *mAnalyzeSettings;

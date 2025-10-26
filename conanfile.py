@@ -46,6 +46,7 @@ class ImageC(ConanFile):
         self.requires("onnx/1.17.0", force=True)
         self.requires("rapidyaml/0.7.1")
         self.requires("onnxruntime/1.18.1")
+        self.requires("mlpack/4.4.0")
         if self.options.with_cuda:
             self.requires("libtorch/2.7.1", options={"with_cuda": True})
         else:

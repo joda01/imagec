@@ -125,6 +125,7 @@ find_package( onnxruntime REQUIRED)
 find_package( tensorflowlite REQUIRED )
 find_package( Torch REQUIRED )
 find_package( cereal REQUIRED )
+find_package( mlpack REQUIRED )
 
 
 SET(DuckDB_USE_STATIC_LIBS TRUE)
@@ -147,6 +148,7 @@ set(LIBS
   tensorflow::tensorflowlite
   ${TORCH_LIBRARIES}
   cereal::cereal
+  mlpack::mlpack
 )
 
 set(RESOURCE_FILES

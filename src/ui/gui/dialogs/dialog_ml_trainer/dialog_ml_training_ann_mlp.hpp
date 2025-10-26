@@ -13,7 +13,7 @@
 #include <qformlayout.h>
 #include <qspinbox.h>
 #include <qwidget.h>
-#include "backend/commands/classification/pixel_classifier/pixel_classifier_training_settings.hpp"
+#include "backend/commands/classification/pixel_classifier/machine_learning/ann_mlp/ann_mlp_settings.hpp"
 #include "ui/gui/helper/iconless_dialog_button_box.hpp"
 
 namespace joda::ui::gui {
@@ -21,7 +21,7 @@ namespace joda::ui::gui {
 class SettingsAnnMlp : public QDialog
 {
 public:
-  SettingsAnnMlp(joda::settings::AnnMlpTrainingSettings *settings, QWidget *parent) : QDialog(parent), mSettings(settings)
+  SettingsAnnMlp(joda::ml::AnnMlpTrainingSettings *settings, QWidget *parent) : QDialog(parent), mSettings(settings)
   {
     setWindowTitle("Multi-Layer Perceptron");
     auto *layout = new QFormLayout();
@@ -105,7 +105,7 @@ private:
   QDoubleSpinBox *mTerminationEpsilon;
 
   /////////////////////////////////////////////////////
-  joda::settings::AnnMlpTrainingSettings *mSettings;
+  joda::ml::AnnMlpTrainingSettings *mSettings;
 };
 
 }    // namespace joda::ui::gui

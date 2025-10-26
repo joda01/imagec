@@ -13,7 +13,7 @@
 #include <qformlayout.h>
 #include <qspinbox.h>
 #include <qwidget.h>
-#include "backend/commands/classification/pixel_classifier/pixel_classifier_training_settings.hpp"
+#include "backend/commands/classification/pixel_classifier/machine_learning/k_nearest/k_nearest_settings.hpp"
 #include "ui/gui/helper/iconless_dialog_button_box.hpp"
 
 namespace joda::ui::gui {
@@ -21,7 +21,7 @@ namespace joda::ui::gui {
 class SettingsKNearest : public QDialog
 {
 public:
-  SettingsKNearest(joda::settings::KNearestTrainingSettings *settings, QWidget *parent) : QDialog(parent), mSettings(settings)
+  SettingsKNearest(joda::ml::KNearestTrainingSettings *settings, QWidget *parent) : QDialog(parent), mSettings(settings)
   {
     setWindowTitle("K-Nearest");
     auto *layout = new QFormLayout();
@@ -63,7 +63,7 @@ private:
   QSpinBox *mDefaultK;
 
   /////////////////////////////////////////////////////
-  joda::settings::KNearestTrainingSettings *mSettings;
+  joda::ml::KNearestTrainingSettings *mSettings;
 };
 
 }    // namespace joda::ui::gui

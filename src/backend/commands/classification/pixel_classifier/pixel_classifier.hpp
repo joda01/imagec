@@ -11,11 +11,14 @@
 
 #pragma once
 
+#include "backend/commands/classification/pixel_classifier/machine_learning/ann_mlp/ann_mlp_settings.hpp"
+#include "backend/commands/classification/pixel_classifier/machine_learning/k_nearest/k_nearest_settings.hpp"
+#include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning_settings.hpp"
+#include "backend/commands/classification/pixel_classifier/machine_learning/random_forest/random_forest_settings.hpp"
 #include "backend/commands/command.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/processor/context/process_context.hpp"
 #include "pixel_classifier_settings.hpp"
-#include "pixel_classifier_training_settings.hpp"
 
 template <class T>
 concept CvModel_t =
@@ -25,6 +28,13 @@ concept CvModel_t =
     std::is_base_of<cv::ml::SVMSGD, T>::value || std::is_base_of<cv::ml::EM, T>::value;
 
 namespace joda::cmd {
+
+struct TrainingsModelSettings
+{
+  ml::RandomForestTrainingSettings randomForest;
+  ml::AnnMlpTrainingSettings annMlp;
+  ml::KNearestTrainingSettings kNearest;
+};
 
 ///
 /// \class      Classifier
@@ -39,33 +49,9 @@ public:
   PixelClassifier(const settings::PixelClassifierSettings &);
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
   static void train(const cv::Mat &image, const enums::TileInfo &tileInfo, const atom::ObjectList &result,
-                    const settings::PixelClassifierTrainingSettings &trainingSettings);
+                    const ml::MachineLearningSettings &trainingSettings, const TrainingsModelSettings &modelSettings);
 
 private:
-  /////////////////////////////////////////////////////
-  static void prepareTrainingDataFromROI(const cv::Mat &image, const enums::TileInfo &tileInfo,
-                                         const std::map<enums::ClassId, int32_t> &classesToTrain, joda::atom::ROI::Category categoryToTain,
-                                         const atom::ObjectList &regionOfInterest, cv::Mat &trainSamples, cv::Mat &trainLabels,
-                                         const std::set<joda::settings::PixelClassifierFeatures> &featuresSet, bool normalizeForMLP);
-
-  static cv::Mat extractFeatures(const cv::Mat &img, const std::set<joda::settings::PixelClassifierFeatures> &features, bool normalizeForMLP);
-
-  template <CvModel_t MODEL>
-  static void storeModel(cv::Ptr<MODEL> model, const std::filesystem::path &path, const std::set<joda::settings::PixelClassifierFeatures> &features,
-                         const std::map<enums::ClassId, int32_t> &trainingClasses);
-
-  static cv::Ptr<cv::ml::StatModel> loadModel(const std::filesystem::path &path, std::set<joda::settings::PixelClassifierFeatures> &features,
-                                              settings::PixelClassifierMethod &modelType);
-
-  static cv::Ptr<cv::ml::RTrees> trainRandomForest(const joda::settings::RandomForestTrainingSettings &settings, const cv::Mat &trainSamples,
-                                                   const cv::Mat &trainLabels);
-
-  static cv::Ptr<cv::ml::ANN_MLP> trainAnnMlp(const joda::settings::AnnMlpTrainingSettings &settings, const cv::Mat &trainSamples,
-                                              const cv::Mat &trainLabels, int32_t numClasses);
-
-  static cv::Ptr<cv::ml::KNearest> trainKNearest(const joda::settings::KNearestTrainingSettings &settings, const cv::Mat &trainSamples,
-                                                 const cv::Mat &trainLabels);
-
   /////////////////////////////////////////////////////
   const settings::PixelClassifierSettings &mSettings;
 };

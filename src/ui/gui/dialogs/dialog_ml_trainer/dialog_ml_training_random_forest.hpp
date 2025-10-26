@@ -13,7 +13,7 @@
 #include <qformlayout.h>
 #include <qspinbox.h>
 #include <qwidget.h>
-#include "backend/commands/classification/pixel_classifier/pixel_classifier_training_settings.hpp"
+#include "backend/commands/classification/pixel_classifier/machine_learning/random_forest/random_forest_settings.hpp"
 #include "ui/gui/helper/iconless_dialog_button_box.hpp"
 
 namespace joda::ui::gui {
@@ -21,7 +21,7 @@ namespace joda::ui::gui {
 class SettingsRandomForest : public QDialog
 {
 public:
-  SettingsRandomForest(joda::settings::RandomForestTrainingSettings *settings, QWidget *parent) : QDialog(parent), mSettings(settings)
+  SettingsRandomForest(joda::ml::RandomForestTrainingSettings *settings, QWidget *parent) : QDialog(parent), mSettings(settings)
   {
     setWindowTitle("Random forest");
     auto *layout = new QFormLayout();
@@ -91,7 +91,7 @@ private:
   QDoubleSpinBox *mTerminationEpsilon;
 
   /////////////////////////////////////////////////////
-  joda::settings::RandomForestTrainingSettings *mSettings;
+  joda::ml::RandomForestTrainingSettings *mSettings;
 };
 
 }    // namespace joda::ui::gui
