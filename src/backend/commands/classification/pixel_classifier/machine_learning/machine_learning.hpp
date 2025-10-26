@@ -27,7 +27,7 @@ class MachineLearning
 {
 public:
   virtual ~MachineLearning() = default;
-  void forward(const std::filesystem::path &path, cv::Mat &image);
+  void forward(const std::filesystem::path &path, cv::Mat &image, const MachineLearningSettings &settings);
   void train(const MachineLearningSettings &settings, const cv::Mat &image, const enums::TileInfo &tileInfo, const atom::ObjectList &result);
   static void prepareTrainingDataFromROI(const cv::Mat &image, const enums::TileInfo &tileInfo,
                                          const std::map<enums::ClassId, int32_t> &classesToTrain, joda::atom::ROI::Category categoryToTain,
@@ -38,10 +38,13 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  virtual void predict(const std::filesystem::path &path, const cv::Mat &image, cv::Mat &prediction) = 0;
-  virtual void train(const cv::Mat &trainSamples, const cv::Mat &trainLabels, int32_t nrOfClasses)   = 0;
-  virtual void storeModel(const std::filesystem::path &path, const std::set<TrainingFeatures> &features,
-                          const std::map<enums::ClassId, int32_t> &trainingClasses)                  = 0;
-  virtual void loadModel(const std::filesystem::path &path, std::set<TrainingFeatures> &features)    = 0;
+  virtual ModelType getModelType() = 0;
+  virtual Framework getFramework() = 0;
+  void saveModel(const std::filesystem::path &path, const MachineLearningSettings &settings);
+
+  virtual void predict(const std::filesystem::path &path, const cv::Mat &image, const cv::Mat &features, cv::Mat &prediction) = 0;
+  virtual void train(const cv::Mat &trainSamples, const cv::Mat &trainLabels, int32_t nrOfClasses)                            = 0;
+  virtual void storeModel(const std::filesystem::path &path, const MachineLearningSettings &settings)                         = 0;
+  virtual void loadModel(const std::filesystem::path &path)                                                                   = 0;
 };
 }    // namespace joda::ml

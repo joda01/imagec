@@ -20,7 +20,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include "backend/commands/classification/pixel_classifier/pixel_classifier_store_model.hpp"
+#include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning_settings.hpp"
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
@@ -124,7 +124,7 @@ auto MlModelParser::parseOpenCVModelXMLDescriptionFile(const std::filesystem::pa
   if(!file.is_open()) {
     return {};
   }
-  joda::ml::PixelClassifierModel parsedModel = nlohmann::json::parse(file);
+  joda::ml::MachineLearningSettings parsedModel = nlohmann::json::parse(file);
   file.close();
   Data info;
   info.modelPath = modelFile;
@@ -134,7 +134,7 @@ auto MlModelParser::parseOpenCVModelXMLDescriptionFile(const std::filesystem::pa
         Data::Author{.affiliation = parsedModel.meta.organization.value_or(""), .authorName = parsedModel.meta.author.value_or("")});
   }
   for(const auto &item : parsedModel.classLabels) {
-    info.classes.emplace_back("CL" + std::to_string(item.classId));
+    info.classes.emplace_back("CL" + std::to_string(item.pixelClassId));
   }
   return info;
 }

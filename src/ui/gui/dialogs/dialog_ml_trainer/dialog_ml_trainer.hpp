@@ -68,6 +68,7 @@ private:
   PanelImageView *mImagePanel;
   QComboBox *mComboClassifierMethod;
   QComboBox *mRoiSource;
+  QComboBox *mFramework;
   QComboBoxMulti *mComboTrainingFeatures;
   QLineEdit *mModelName;
   QPushButton *mButtonStartTraining;

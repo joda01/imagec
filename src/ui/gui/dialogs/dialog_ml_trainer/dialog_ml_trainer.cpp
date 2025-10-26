@@ -26,6 +26,7 @@
 #include "backend/commands/classification/pixel_classifier/pixel_classifier.hpp"
 #include "backend/commands/classification/pixel_classifier/pixel_classifier_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_file_endians.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/ml_model_parser/ml_model_parser.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
@@ -125,6 +126,13 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
   }
 
   {
+    mFramework = new QComboBox();
+    mFramework->addItem("MlPack", static_cast<int>(ml::Framework::MlPack));
+    mFramework->addItem("OpenCV", static_cast<int>(ml::Framework::OpenCv));
+    layout->addRow("Framework", mFramework);
+  }
+
+  {
     mModelName = new QLineEdit();
     layout->addRow("Filename", mModelName);
   }
@@ -175,7 +183,7 @@ void DialogMlTrainer::onTrainingFinished(bool okay, QString message)
   if(!okay) {
     QMessageBox::warning(parentWidget(), "Training error", message);
   } else {
-    QMessageBox::information(parentWidget(), "Training successful", "Training successful. Model can now be used with >Pixel Classifier< command.");
+    // QMessageBox::information(parentWidget(), "Training successful", "Training successful. Model can now be used with >Pixel Classifier< command.");
   }
 }
 
@@ -242,8 +250,13 @@ void DialogMlTrainer::startTraining()
     return;
   }
 
-  std::filesystem::path modelPath = joda::ml::MlModelParser::getUsersMlModelDirectory(mAnalyzeSettings->getProjectPath()) /
-                                    (modelFileName + joda::fs::MASCHINE_LEARNING_MLPACK_JSON_MODEL);
+  auto framework     = static_cast<ml::Framework>(mFramework->currentData().toInt());
+  std::string endian = joda::fs::MASCHINE_LEARNING_MLPACK_JSON_MODEL;
+  if(framework == ml::Framework::OpenCv) {
+    endian = joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL;
+  }
+
+  std::filesystem::path modelPath = joda::ml::MlModelParser::getUsersMlModelDirectory(mAnalyzeSettings->getProjectPath()) / (modelFileName + endian);
 
   std::cout << "Model path " << modelPath.string() << std::endl;
   if(std::filesystem::exists(modelPath)) {
@@ -266,7 +279,7 @@ void DialogMlTrainer::startTraining()
   }
 
   setInProgress(true);
-  mTrainingsThread = std::make_unique<std::thread>([this, modelPath]() {    //
+  mTrainingsThread = std::make_unique<std::thread>([this, modelPath, framework]() {    //
     // At least one background annotation must be present
     //
     if(!mObjectMap->contains(enums::ClassId::NONE) || mObjectMap->at(enums::ClassId::NONE)->empty()) {
@@ -300,11 +313,12 @@ void DialogMlTrainer::startTraining()
         return;
       }
 
-      mTrainerSettings.modelType       = static_cast<joda::ml::ModelType>(mComboClassifierMethod->currentData().toInt());
-      mTrainerSettings.trainingClasses = classesToTrainMapping;
+      mTrainerSettings.modelType = static_cast<joda::ml::ModelType>(mComboClassifierMethod->currentData().toInt());
+      mTrainerSettings.toClassesLabels(classesToTrainMapping);
       mTrainerSettings.features        = features;
       mTrainerSettings.outPath         = modelPath;
       mTrainerSettings.categoryToTrain = static_cast<joda::atom::ROI::Category>(mRoiSource->currentData().toInt());
+      mTrainerSettings.framework       = framework;
       try {
         joda::cmd::PixelClassifier::train(*mImagePanel->mutableImage()->getOriginalImage(), mImagePanel->getTileInfo(), *mObjectMap, mTrainerSettings,
                                           mModelSettings);

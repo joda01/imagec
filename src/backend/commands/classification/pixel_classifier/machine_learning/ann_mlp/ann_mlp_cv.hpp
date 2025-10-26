@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning_settings.hpp"
 #include "ann_mlp.hpp"
 
 namespace joda::ml {
@@ -23,11 +24,19 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  void predict(const std::filesystem::path &path, const cv::Mat &image, cv::Mat &prediction) override;
+  ModelType getModelType() override
+  {
+    return ModelType::ANN_MLP;
+  };
+  Framework getFramework() override
+  {
+    return Framework::OpenCv;
+  };
+
+  void predict(const std::filesystem::path &path, const cv::Mat &image, const cv::Mat &features, cv::Mat &prediction) override;
   void train(const cv::Mat &trainSamples, const cv::Mat &trainLabels, int32_t nrOfClasses) override;
-  void storeModel(const std::filesystem::path &path, const std::set<TrainingFeatures> &features,
-                  const std::map<enums::ClassId, int32_t> &trainingClasses) override;
-  void loadModel(const std::filesystem::path &path, std::set<TrainingFeatures> &features) override;
+  void storeModel(const std::filesystem::path &path, const MachineLearningSettings &settings) override;
+  void loadModel(const std::filesystem::path &path) override;
 
   cv::Ptr<cv::ml::ANN_MLP> mModel;
 };

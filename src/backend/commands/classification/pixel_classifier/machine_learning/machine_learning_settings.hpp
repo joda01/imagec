@@ -16,6 +16,8 @@
 #include <set>
 #include "backend/artifacts/roi/roi.hpp"
 #include "backend/enums/enums_classes.hpp"
+#include "backend/settings/settings_meta.hpp"
+#include <nlohmann/json_fwd.hpp>
 
 namespace joda::ml {
 
@@ -47,6 +49,12 @@ enum class ModelType
   EM
 };
 
+enum class Framework
+{
+  OpenCv,
+  MlPack
+};
+
 struct MachineLearningSettings
 {
   //
@@ -54,16 +62,18 @@ struct MachineLearningSettings
   //
   ModelType modelType = ModelType::RTrees;
 
+  struct ClassLabels
+  {
+    enums::ClassId classId = enums::ClassId::NONE;
+    int32_t pixelClassId   = 0;
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ClassLabels, pixelClassId);
+  };
+
   //
   // Mapping from a object class id to a trainings class id.
   // The training class id is continuous starting with 0 for the background.
   //
-  std::map<enums::ClassId, int32_t> trainingClasses;
-
-  //
-  // Which category of classes to train
-  //
-  joda::atom::ROI::Category categoryToTrain = joda::atom::ROI::Category::MANUAL_SEGMENTATION;
+  std::list<ClassLabels> classLabels;
 
   //
   // Features to use for training and prediction
@@ -71,9 +81,55 @@ struct MachineLearningSettings
   std::set<TrainingFeatures> features;
 
   //
+  //
+  //
+  joda::settings::SettingsMeta meta;
+
+  //
+  //
+  //
+  Framework framework = Framework::OpenCv;
+
+  //
+  //
+  //
+  ModelType modelTyp;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(MachineLearningSettings, meta, classLabels, features, framework, modelTyp);
+
+  /// NOT SAVED /////////////////////////////////////
+
+  //
+  // Which category of classes to train
+  //
+  joda::atom::ROI::Category categoryToTrain = joda::atom::ROI::Category::MANUAL_SEGMENTATION;
+
+  //
   // Output path where the trained model should be stored
   //
   std::filesystem::path outPath;
+
+  //
+  // Just a placeholder
+  //
+  nlohmann::json model;
+
+  auto toTrainingsClassesMap() const -> std::map<enums::ClassId, int32_t>
+  {
+    std::map<enums::ClassId, int32_t> ret;
+    for(const auto &entry : classLabels) {
+      ret.emplace(entry.classId, entry.pixelClassId);
+    }
+    return ret;
+  }
+
+  void toClassesLabels(const std::map<enums::ClassId, int32_t> &in)
+  {
+    classLabels.clear();
+    for(const auto &[classId, pixelId] : in) {
+      classLabels.emplace_back(ClassLabels{classId, pixelId});
+    }
+  }
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ModelType, {

@@ -10,6 +10,7 @@
 ///
 
 #include "machine_learning.hpp"
+#include <fstream>
 #include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning_settings.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 
@@ -22,12 +23,12 @@ namespace joda::ml {
 /// \param[out]
 /// \return
 ///
-void MachineLearning::forward(const std::filesystem::path &path, cv::Mat &image)
+void MachineLearning::forward(const std::filesystem::path &path, cv::Mat &image, const MachineLearningSettings &settings)
 {
   // Load trained model
-  std::set<TrainingFeatures> featuresSet;
+  const cv::Mat features = extractFeatures(image, settings.features, false);
   cv::Mat predFloat;    // output (H*W) x 1, CV_32F
-  predict(path, image, predFloat);
+  predict(path, image, features, predFloat);
 
   // ===============================
   // Reshape back to segmentation mask
@@ -55,11 +56,73 @@ void MachineLearning::train(const MachineLearningSettings &settings, const cv::M
   cv::Mat trainSamples;
   cv::Mat labelList;
 
-  prepareTrainingDataFromROI(image, tileInfo, settings.trainingClasses, settings.categoryToTrain, result, trainSamples, labelList, settings.features,
-                             false);
+  auto trainingClasses = settings.toTrainingsClassesMap();
+  prepareTrainingDataFromROI(image, tileInfo, trainingClasses, settings.categoryToTrain, result, trainSamples, labelList, settings.features, false);
 
-  train(trainSamples, labelList, settings.trainingClasses.size());
-  storeModel(settings.outPath, settings.features, settings.trainingClasses);
+  train(trainSamples, labelList, trainingClasses.size());
+  saveModel(settings.outPath, settings);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void MachineLearning::saveModel(const std::filesystem::path &path, const MachineLearningSettings &settings)
+{
+  storeModel(settings.outPath, settings);
+
+  MachineLearningSettings parsed;
+  parsed.classLabels  = settings.classLabels;
+  parsed.features     = settings.features;
+  parsed.meta         = settings.meta;
+  parsed.modelTyp     = getModelType();
+  parsed.framework    = getFramework();
+  nlohmann::json json = parsed;
+  removeNullValues(json);
+  std::string metaData = json.dump(2);
+  if(!metaData.empty()) {
+    metaData.erase(0, 1);    // remove 1 character at position 0 this is a '{'
+  }
+
+  // Append meta information
+
+  // Open file in read/write mode
+  std::fstream file(path.string(), std::ios::in | std::ios::out);
+  if(!file) {
+    return;
+  }
+
+  // Go to end to get file size
+  file.seekg(0, std::ios::end);
+  std::streamoff size = file.tellg();
+
+  // Read backwards to find the last '}'
+  char ch;
+  std::streamoff pos = size - 1;
+  bool found         = false;
+
+  while(pos >= 0) {
+    file.seekg(pos);
+    file.get(ch);
+    if(ch == '}') {
+      found = true;
+      break;
+    }
+    --pos;
+  }
+
+  if(found) {
+    // Move output pointer to that position
+    file.seekp(pos);
+    // Overwrite the '}' with ','
+    file.put(',');
+  }
+
+  file << metaData;
+  file.close();
 }
 
 ///

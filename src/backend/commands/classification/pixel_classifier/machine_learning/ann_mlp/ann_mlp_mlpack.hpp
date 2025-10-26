@@ -21,6 +21,16 @@ public:
   /////////////////////////////////////////////////////
   using AnnMlp::AnnMlp;
   void train(const cv::Mat &trainSamples, const cv::Mat &trainLabels, int32_t nrOfClasses) override;
+
+private:
+  ModelType getModelType() override
+  {
+    return ModelType::ANN_MLP;
+  };
+  Framework getFramework() override
+  {
+    return Framework::MlPack;
+  };
 };
 
 }    // namespace joda::ml

@@ -10,8 +10,12 @@
 ///
 
 #include "random_forest_mlpack.hpp"
+#include <cstddef>
+#include <fstream>
+#include <string>
 #include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning_settings.hpp"
 #include <mlpack/core/data/load.hpp>
+#include <nlohmann/json_fwd.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <mlpack.hpp>
@@ -25,18 +29,17 @@ namespace joda::ml {
 /// \param[out]
 /// \return
 ///
-void RandomForestMlPack::predict(const std::filesystem::path &path, const cv::Mat &image, cv::Mat &prediction)
+void RandomForestMlPack::predict(const std::filesystem::path &path, const cv::Mat &image, const cv::Mat &features, cv::Mat &prediction)
 {
   std::set<TrainingFeatures> featuresSet;
-  loadModel(path, featuresSet);
-  cv::Mat features = extractFeatures(image, featuresSet, false);
+  loadModel(path);
 
   // 3. Convert OpenCV Mat -> Armadillo matrix
   // mlpack expects columns = samples, rows = features
-  arma::mat armaFeatures(features.cols, features.rows);
+  arma::mat armaFeatures(static_cast<arma::uword>(features.cols), static_cast<arma::uword>(features.rows));
   for(int i = 0; i < features.rows; ++i) {
     for(int j = 0; j < features.cols; ++j) {
-      armaFeatures(j, i) = features.at<float>(i, j);
+      armaFeatures(static_cast<arma::uword>(j), static_cast<arma::uword>(i)) = static_cast<double>(features.at<float>(i, j));
     }
   }
 
@@ -44,11 +47,16 @@ void RandomForestMlPack::predict(const std::filesystem::path &path, const cv::Ma
   arma::Row<size_t> predictions;
   rf.Classify(armaFeatures, predictions);
 
+  // ----------------------
+  // 5. Round predictions to nearest class
+  // ----------------------
+  //  arma::Row<size_t> predictions = arma::conv_to<arma::Row<size_t>>::from(arma::round(predictionsFloat));
+
   // Convert predictions to cv::Mat
   // cv::Mat predMat(predictions.n_elem, 1, CV_32S);
-  prediction = cv::Mat(predictions.n_elem, 1, CV_32S);
+  prediction = cv::Mat(static_cast<int>(predictions.n_elem), 1, CV_32S);
   for(size_t i = 0; i < predictions.n_elem; ++i) {
-    prediction.at<int>(i, 0) = static_cast<int>(predictions[i]);
+    prediction.at<int>(static_cast<int>(i), 0) = static_cast<int>(predictions[i]);
   }
 }
 
@@ -62,23 +70,23 @@ void RandomForestMlPack::predict(const std::filesystem::path &path, const cv::Ma
 void RandomForestMlPack::train(const cv::Mat &trainSamples, const cv::Mat &trainLabels, int32_t nrOfClasses)
 {
   // --- Convert OpenCV Mat to Armadillo ---
-  arma::mat data(trainSamples.cols, trainSamples.rows);
+  arma::mat data(static_cast<arma::uword>(trainSamples.cols), static_cast<arma::uword>(trainSamples.rows));
+
   for(int r = 0; r < trainSamples.rows; ++r) {
-    for(int c = 0; c < trainSamples.cols; ++c) {
-      data(c, r) = trainSamples.at<float>(r, c);
+    for(int c = 0; c < trainSamples.cols; ++c) {    // Features
+      data(c, r) = static_cast<double>(trainSamples.at<float>(r, c));
     }
   }
 
   // Convert labels to arma::Row<size_t>
-  arma::Row<size_t> labels(trainLabels.rows);
+  arma::Row<size_t> labels(static_cast<arma::uword>(trainLabels.rows));
   for(int r = 0; r < trainLabels.rows; ++r) {
-    labels(r) = static_cast<size_t>(trainLabels.at<int>(r, 0));
+    labels(static_cast<arma::uword>(r)) = static_cast<size_t>(trainLabels.at<int>(r, 0));
   }
 
   // --- Train RandomForest ---
-  rf.Train(data, labels, nrOfClasses, mSettings.maxNumberOfTrees, mSettings.minSampleCount, 0.0, mSettings.maxTreeDepth);
-
-  // std::cout << "✅ Random forest trained successfully with " << numTrees << " trees and " << numClasses << " classes.\n";
+  rf.Train(data, labels, static_cast<size_t>(nrOfClasses), static_cast<size_t>(mSettings.maxNumberOfTrees),
+           static_cast<size_t>(mSettings.minSampleCount), 0.0, static_cast<size_t>(mSettings.maxTreeDepth));
 }
 
 ///
@@ -88,69 +96,9 @@ void RandomForestMlPack::train(const cv::Mat &trainSamples, const cv::Mat &train
 /// \param[out]
 /// \return
 ///
-void RandomForestMlPack::storeModel(const std::filesystem::path &path, const std::set<TrainingFeatures> &features,
-                                    const std::map<enums::ClassId, int32_t> &trainingClasses)
+void RandomForestMlPack::storeModel(const std::filesystem::path &path, const MachineLearningSettings &settings)
 {
-  mlpack::data::Save(path.string(), "rf", rf, true, mlpack::data::format::json);
-
-  /*cv::FileStorage fs(path.string(), cv::FileStorage::WRITE | cv::FileStorage::FORMAT_JSON);
-
-
-  fs << "model"
-     << "{";
-  mModel->write(fs);
-  fs << "}";
-
-  // Convert set of enums to JSON array of strings
-  nlohmann::json j_features = nlohmann::json::array();
-  for(auto f : features) {
-    j_features.push_back(f);    // uses NLOHMANN_JSON_SERIALIZE_ENUM mapping
-  }
-  // Write features as an array
-  fs << "features"
-     << "[";
-  for(auto f : features) {
-    std::string name = nlohmann::json(f).get<std::string>();    // enum -> string
-    fs << name;
-  }
-  fs << "]";
-
-  fs << "meta"
-     << "{";
-  fs << "author"
-     << "";
-  fs << "organization"
-     << "";
-  fs << "group"
-     << "";
-  fs << "modifiedAt" << helper::timepointToIsoString(std::chrono::system_clock::now());
-  fs << "name"
-     << "";
-  fs << "notes"
-     << "";
-  fs << "revision"
-     << "";
-  fs << "tags"
-     << "["
-     << "]";
-  fs << "uid"
-     << "";
-  fs << "}";
-
-  fs << "classLabels"
-     << "[";
-
-  for(const auto &[_, classsId] : trainingClasses) {
-    fs << "{";
-    fs << "classId" << classsId;
-    fs << "}";
-  }
-
-  fs << "]";
-
-  std::string name = nlohmann::json(ModelType::RTrees).get<std::string>();    // enum -> string
-  fs << "modelType" << name;
-  */
+  mlpack::data::Save(path.string(), "model", rf, true, mlpack::data::format::json);
 }
 
 ///
@@ -160,28 +108,8 @@ void RandomForestMlPack::storeModel(const std::filesystem::path &path, const std
 /// \param[out]
 /// \return
 ///
-void RandomForestMlPack::loadModel(const std::filesystem::path &path, std::set<TrainingFeatures> &features)
+void RandomForestMlPack::loadModel(const std::filesystem::path &path)
 {
-  mlpack::data::Load(path.string(), "rf", rf, true, mlpack::data::format::json);
-
-  features.emplace(TrainingFeatures::Intensity);
-  features.emplace(TrainingFeatures::Gaussian);
-  /*
-cv::FileStorage fs(path.string(), cv::FileStorage::READ | cv::FileStorage::FORMAT_JSON);
-cv::FileNode fnT       = fs["modelType"];
-std::string mlModelStr = fnT.string();
-auto modelType         = nlohmann::json(mlModelStr).get<ModelType>();
-
-mModel             = cv::ml::RTrees::create();
-cv::FileNode model = fs["model"];
-mModel->read(model);
-
-// Read sequence of strings
-features.clear();
-cv::FileNode fn = fs["features"];
-for(int i = 0; i < static_cast<int>(fn.size()); i++) {
-  std::string value = static_cast<std::string>(fn[i]);
-  features.insert(nlohmann::json(value).get<TrainingFeatures>());
-}*/
+  mlpack::data::Load(path.string(), "model", rf, true, mlpack::data::format::json);
 }
 }    // namespace joda::ml

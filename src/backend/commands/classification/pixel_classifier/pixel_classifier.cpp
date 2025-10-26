@@ -14,6 +14,7 @@
 #include <stdexcept>
 #include "backend/commands/classification/pixel_classifier/machine_learning/ann_mlp/ann_mlp_cv.hpp"
 #include "backend/commands/classification/pixel_classifier/machine_learning/k_nearest/k_nearest_cv.hpp"
+#include "backend/commands/classification/pixel_classifier/machine_learning/k_nearest/k_nearest_mlpack.hpp"
 #include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning_settings.hpp"
 #include "backend/commands/classification/pixel_classifier/machine_learning/random_forest/random_forest_cv.hpp"
 #include "backend/commands/classification/pixel_classifier/machine_learning/random_forest/random_forest_mlpack.hpp"
@@ -21,6 +22,7 @@
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/helper.hpp"
+#include <nlohmann/json_fwd.hpp>
 #include <opencv2/ml.hpp>
 
 namespace joda::cmd {
@@ -46,30 +48,43 @@ PixelClassifier::PixelClassifier(const settings::PixelClassifierSettings &settin
 void PixelClassifier::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList & /*result*/)
 {
   // Load trained model
-  ml::ModelType modelType      = ml::ModelType::RTrees;
   const auto absoluteModelPath = std::filesystem::weakly_canonical(context.getWorkingDirectory() / mSettings.modelPath);
 
-  ml::MachineLearning *mlModel;
+  // Open the JSON file
+  std::ifstream file(absoluteModelPath.string());
+  if(!file.is_open()) {
+    return;
+  }
 
-  switch(modelType) {
+  nlohmann::json json;
+  file >> json;
+  file.close();
+  ml::MachineLearningSettings modelSettings = json;
+
+  ml::MachineLearning *mlModel;
+  switch(modelSettings.modelTyp) {
     case ml::ModelType::RTrees:
-      if(absoluteModelPath.string().ends_with(joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL)) {
+      if(modelSettings.framework == ml::Framework::OpenCv) {
         mlModel = new ml::RandomForestCv(ml::RandomForestTrainingSettings{});
-      } else {
+      } else if(modelSettings.framework == ml::Framework::MlPack) {
         mlModel = new ml::RandomForestMlPack(ml::RandomForestTrainingSettings{});
       }
       break;
     case ml::ModelType::ANN_MLP:
-      mlModel = new ml::AnnMlpCv(ml::AnnMlpTrainingSettings{});
+      if(modelSettings.framework == ml::Framework::OpenCv) {
+        mlModel = new ml::AnnMlpCv(ml::AnnMlpTrainingSettings{});
+      }
       break;
     case ml::ModelType::KNearest:
-      mlModel = new ml::KNearestCv(ml::KNearestTrainingSettings{});
+      if(modelSettings.framework == ml::Framework::OpenCv) {
+        mlModel = new ml::KNearestCv(ml::KNearestTrainingSettings{});
+      }
       break;
     default:
       throw std::invalid_argument("Not supported model");
   }
 
-  mlModel->forward(absoluteModelPath, image);
+  mlModel->forward(absoluteModelPath, image, modelSettings);
 }
 
 ///
@@ -92,13 +107,25 @@ void PixelClassifier::train(const cv::Mat &image, const enums::TileInfo &tileInf
 
   switch(trainingSettings.modelType) {
     case ml::ModelType::RTrees:
-      mlModel = new ml::RandomForestMlPack(modelSettings.randomForest);
+      if(trainingSettings.framework == ml::Framework::MlPack) {
+        mlModel = new ml::RandomForestMlPack(modelSettings.randomForest);
+      } else if(trainingSettings.framework == ml::Framework::OpenCv) {
+        mlModel = new ml::RandomForestCv(modelSettings.randomForest);
+      }
       break;
     case ml::ModelType::ANN_MLP:
-      mlModel = new ml::AnnMlpCv(modelSettings.annMlp);
+      if(trainingSettings.framework == ml::Framework::MlPack) {
+        mlModel = new ml::AnnMlpCv(modelSettings.annMlp);
+      } else if(trainingSettings.framework == ml::Framework::OpenCv) {
+        mlModel = new ml::AnnMlpCv(modelSettings.annMlp);
+      }
       break;
     case ml::ModelType::KNearest:
-      mlModel = new ml::KNearestCv(modelSettings.kNearest);
+      if(trainingSettings.framework == ml::Framework::MlPack) {
+        mlModel = new ml::KNearestMlPack(modelSettings.kNearest);
+      } else if(trainingSettings.framework == ml::Framework::OpenCv) {
+        mlModel = new ml::KNearestCv(modelSettings.kNearest);
+      }
       break;
     default:
       throw std::invalid_argument("Not supported model");
