@@ -93,8 +93,8 @@
     },
     "files.exclude": {
         ".gitignore": false,
-        ".dockerignore": true,
-        ".clangd": true
+        ".dockerignore": false,
+        ".clangd": false
     },
     "C_Cpp.intelliSenseEngineFallback": "disabled",
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",

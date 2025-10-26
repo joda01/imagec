@@ -16,7 +16,9 @@
 #include "backend/commands/classification/pixel_classifier/machine_learning/k_nearest/k_nearest_cv.hpp"
 #include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning_settings.hpp"
 #include "backend/commands/classification/pixel_classifier/machine_learning/random_forest/random_forest_cv.hpp"
+#include "backend/commands/classification/pixel_classifier/machine_learning/random_forest/random_forest_mlpack.hpp"
 #include "backend/enums/enums_classes.hpp"
+#include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/helper.hpp"
 #include <opencv2/ml.hpp>
@@ -51,7 +53,11 @@ void PixelClassifier::execute(processor::ProcessContext &context, cv::Mat &image
 
   switch(modelType) {
     case ml::ModelType::RTrees:
-      mlModel = new ml::RandomForestCv(ml::RandomForestTrainingSettings{});
+      if(absoluteModelPath.string().ends_with(joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL)) {
+        mlModel = new ml::RandomForestCv(ml::RandomForestTrainingSettings{});
+      } else {
+        mlModel = new ml::RandomForestMlPack(ml::RandomForestTrainingSettings{});
+      }
       break;
     case ml::ModelType::ANN_MLP:
       mlModel = new ml::AnnMlpCv(ml::AnnMlpTrainingSettings{});
@@ -86,7 +92,7 @@ void PixelClassifier::train(const cv::Mat &image, const enums::TileInfo &tileInf
 
   switch(trainingSettings.modelType) {
     case ml::ModelType::RTrees:
-      mlModel = new ml::RandomForestCv(modelSettings.randomForest);
+      mlModel = new ml::RandomForestMlPack(modelSettings.randomForest);
       break;
     case ml::ModelType::ANN_MLP:
       mlModel = new ml::AnnMlpCv(modelSettings.annMlp);

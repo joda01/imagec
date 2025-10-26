@@ -243,7 +243,7 @@ void DialogMlTrainer::startTraining()
   }
 
   std::filesystem::path modelPath = joda::ml::MlModelParser::getUsersMlModelDirectory(mAnalyzeSettings->getProjectPath()) /
-                                    (modelFileName + joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL);
+                                    (modelFileName + joda::fs::MASCHINE_LEARNING_MLPACK_JSON_MODEL);
 
   std::cout << "Model path " << modelPath.string() << std::endl;
   if(std::filesystem::exists(modelPath)) {

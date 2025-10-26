@@ -2,3 +2,6 @@ InlayHints:
   Enabled: No
   ParameterNames: No
   DeducedTypes: No
+
+CompileFlags:
+  Add: [-I/usr/lib/gcc/x86_64-linux-gnu/13/include]

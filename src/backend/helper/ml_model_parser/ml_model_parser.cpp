@@ -83,7 +83,8 @@ auto MlModelParser::findMlModelFiles(const std::filesystem::path &workingDirecto
       for(const auto &entry : fs::recursive_directory_iterator(directory)) {
         if(entry.is_regular_file()) {
           try {
-            if(entry.path().string().ends_with(joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL)) {
+            if(entry.path().string().ends_with(joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL) ||
+               entry.path().string().ends_with(joda::fs::MASCHINE_LEARNING_MLPACK_JSON_MODEL)) {
               const auto relativePath = std::filesystem::relative(entry.path(), workingDirectory);
               auto modelInfo          = parseOpenCVModelXMLDescriptionFile(relativePath, workingDirectory);
 
