@@ -13,6 +13,7 @@
 #include <chrono>
 #include <stdexcept>
 #include "backend/commands/classification/pixel_classifier/machine_learning/ann_mlp/ann_mlp_cv.hpp"
+#include "backend/commands/classification/pixel_classifier/machine_learning/ann_mlp/ann_mlp_mlpack.hpp"
 #include "backend/commands/classification/pixel_classifier/machine_learning/k_nearest/k_nearest_cv.hpp"
 #include "backend/commands/classification/pixel_classifier/machine_learning/k_nearest/k_nearest_mlpack.hpp"
 #include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning_settings.hpp"
@@ -73,6 +74,8 @@ void PixelClassifier::execute(processor::ProcessContext &context, cv::Mat &image
     case ml::ModelType::ANN_MLP:
       if(modelSettings.framework == ml::Framework::OpenCv) {
         mlModel = new ml::AnnMlpCv(ml::AnnMlpTrainingSettings{});
+      } else if(modelSettings.framework == ml::Framework::MlPack) {
+        mlModel = new ml::AnnMlpMlPack(ml::AnnMlpTrainingSettings{});
       }
       break;
     case ml::ModelType::KNearest:
@@ -115,7 +118,7 @@ void PixelClassifier::train(const cv::Mat &image, const enums::TileInfo &tileInf
       break;
     case ml::ModelType::ANN_MLP:
       if(trainingSettings.framework == ml::Framework::MlPack) {
-        mlModel = new ml::AnnMlpCv(modelSettings.annMlp);
+        mlModel = new ml::AnnMlpMlPack(modelSettings.annMlp);
       } else if(trainingSettings.framework == ml::Framework::OpenCv) {
         mlModel = new ml::AnnMlpCv(modelSettings.annMlp);
       }

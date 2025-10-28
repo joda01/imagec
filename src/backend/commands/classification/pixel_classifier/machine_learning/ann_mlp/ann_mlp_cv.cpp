@@ -24,10 +24,18 @@ namespace joda::ml {
 ///
 void AnnMlpCv::predict(const std::filesystem::path &path, const cv::Mat &image, const cv::Mat &features, cv::Mat &prediction)
 {
+  loadModel(path);
   if(features.type() != CV_32F || !features.isContinuous()) {
     features.convertTo(features, CV_32F);
   }
-  mModel->predict(features, prediction);
+  cv::Mat scores;    // (H*W) x numClasses, CV_32F
+  mModel->predict(features, scores);
+  prediction.create(scores.rows, 1, CV_32F);
+  for(int i = 0; i < scores.rows; i++) {
+    cv::Point maxLoc;
+    cv::minMaxLoc(scores.row(i), nullptr, nullptr, nullptr, &maxLoc);
+    prediction.at<float>(i, 0) = static_cast<float>(maxLoc.x);
+  }
 }
 
 ///
@@ -88,7 +96,6 @@ void AnnMlpCv::storeModel(const std::filesystem::path &path, const MachineLearni
      << "{";
   mModel->write(fs);
   fs << "}";
-  fs.endWriteStruct();
 }
 
 ///

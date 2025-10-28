@@ -60,7 +60,6 @@ void KNearestCv::storeModel(const std::filesystem::path &path, const MachineLear
   fs << "model"
      << "{";
   mModel->write(fs);
-  fs.endWriteStruct();
 }
 
 ///

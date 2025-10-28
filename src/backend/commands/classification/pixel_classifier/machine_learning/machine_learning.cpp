@@ -26,7 +26,7 @@ namespace joda::ml {
 void MachineLearning::forward(const std::filesystem::path &path, cv::Mat &image, const MachineLearningSettings &settings)
 {
   // Load trained model
-  const cv::Mat features = extractFeatures(image, settings.features, false);
+  const cv::Mat features = extractFeatures(image, settings.features, getModelType() == ModelType::ANN_MLP);
   cv::Mat predFloat;    // output (H*W) x 1, CV_32F
   predict(path, image, features, predFloat);
 
@@ -57,7 +57,8 @@ void MachineLearning::train(const MachineLearningSettings &settings, const cv::M
   cv::Mat labelList;
 
   auto trainingClasses = settings.toTrainingsClassesMap();
-  prepareTrainingDataFromROI(image, tileInfo, trainingClasses, settings.categoryToTrain, result, trainSamples, labelList, settings.features, false);
+  prepareTrainingDataFromROI(image, tileInfo, trainingClasses, settings.categoryToTrain, result, trainSamples, labelList, settings.features,
+                             getModelType() == ModelType::ANN_MLP);
 
   train(trainSamples, labelList, trainingClasses.size());
   saveModel(settings.outPath, settings);

@@ -39,7 +39,7 @@ private:
   /////////////////////////////////////////////////////
   mlpack::tree::RandomForest<mlpack::GiniGain, mlpack::RandomDimensionSelect, mlpack::BestBinaryNumericSplit, mlpack::AllCategoricalSplit, true,
                              mlpack::DefaultBootstrap>
-      rf;
+      mModel;
 };
 
 }    // namespace joda::ml

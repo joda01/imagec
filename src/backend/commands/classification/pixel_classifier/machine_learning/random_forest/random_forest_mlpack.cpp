@@ -45,7 +45,7 @@ void RandomForestMlPack::predict(const std::filesystem::path &path, const cv::Ma
 
   // 5. Predict
   arma::Row<size_t> predictions;
-  rf.Classify(armaFeatures, predictions);
+  mModel.Classify(armaFeatures, predictions);
 
   // ----------------------
   // 5. Round predictions to nearest class
@@ -85,8 +85,8 @@ void RandomForestMlPack::train(const cv::Mat &trainSamples, const cv::Mat &train
   }
 
   // --- Train RandomForest ---
-  rf.Train(data, labels, static_cast<size_t>(nrOfClasses), static_cast<size_t>(mSettings.maxNumberOfTrees),
-           static_cast<size_t>(mSettings.minSampleCount), 0.0, static_cast<size_t>(mSettings.maxTreeDepth));
+  mModel.Train(data, labels, static_cast<size_t>(nrOfClasses), static_cast<size_t>(mSettings.maxNumberOfTrees),
+               static_cast<size_t>(mSettings.minSampleCount), 0.0, static_cast<size_t>(mSettings.maxTreeDepth));
 }
 
 ///
@@ -98,7 +98,7 @@ void RandomForestMlPack::train(const cv::Mat &trainSamples, const cv::Mat &train
 ///
 void RandomForestMlPack::storeModel(const std::filesystem::path &path, const MachineLearningSettings &settings)
 {
-  mlpack::data::Save(path.string(), "model", rf, true, mlpack::data::format::json);
+  mlpack::data::Save(path.string(), "model", mModel, true, mlpack::data::format::json);
 }
 
 ///
@@ -110,6 +110,6 @@ void RandomForestMlPack::storeModel(const std::filesystem::path &path, const Mac
 ///
 void RandomForestMlPack::loadModel(const std::filesystem::path &path)
 {
-  mlpack::data::Load(path.string(), "model", rf, true, mlpack::data::format::json);
+  mlpack::data::Load(path.string(), "model", mModel, true, mlpack::data::format::json);
 }
 }    // namespace joda::ml

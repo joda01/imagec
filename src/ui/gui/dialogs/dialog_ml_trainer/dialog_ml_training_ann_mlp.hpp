@@ -46,7 +46,7 @@ public:
 
     mMaxIterations = new QSpinBox();
     mMaxIterations->setMinimum(1);
-    mMaxIterations->setMaximum(2000);
+    mMaxIterations->setMaximum(500000000);
     mMaxIterations->setSingleStep(1);
     layout->addRow("Maximum iterations", mMaxIterations);
 
