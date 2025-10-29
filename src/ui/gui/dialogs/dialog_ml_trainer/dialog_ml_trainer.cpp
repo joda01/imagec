@@ -63,6 +63,15 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
   auto *layout = new QFormLayout();
   // layout->setContentsMargins(0, 0, 4, 0);
 
+  {
+    mFramework = new QComboBox();
+    mFramework->addItem("MlPack", static_cast<int>(ml::Framework::MlPack));
+    mFramework->addItem("OpenCV", static_cast<int>(ml::Framework::OpenCv));
+    mFramework->addItem("Pytorch", static_cast<int>(ml::Framework::PyTorch));
+
+    layout->addRow("Framework", mFramework);
+  }
+
   // Settings
   {
     mComboClassifierMethod = new QComboBox();
@@ -123,13 +132,6 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
     mRoiSource->addItem("Pipeline annotated objects", static_cast<int>(joda::atom::ROI::Category::AUTO_SEGMENTATION));
     mRoiSource->addItem("Any annotated object", static_cast<int>(joda::atom::ROI::Category::ANY));
     layout->addRow("Training data", mRoiSource);
-  }
-
-  {
-    mFramework = new QComboBox();
-    mFramework->addItem("MlPack", static_cast<int>(ml::Framework::MlPack));
-    mFramework->addItem("OpenCV", static_cast<int>(ml::Framework::OpenCv));
-    layout->addRow("Framework", mFramework);
   }
 
   {

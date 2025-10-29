@@ -52,7 +52,8 @@ enum class ModelType
 enum class Framework
 {
   OpenCv,
-  MlPack
+  MlPack,
+  PyTorch
 };
 
 struct MachineLearningSettings

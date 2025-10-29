@@ -30,7 +30,7 @@ public:
     auto addLayer = [&, this](int32_t idx) {
       auto *layer = new QSpinBox();
       layer->setMinimum(0);
-      layer->setMaximum(200);
+      layer->setMaximum(INT16_MAX);
       layer->setSingleStep(1);
       layer->setSuffix(" neurons");
       layer->setSpecialValueText("Off");
