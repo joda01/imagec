@@ -19,9 +19,10 @@ namespace joda::ml {
 struct AnnMlpTrainingSettings
 {
   std::vector<int32_t> neuronsLayer = {64, 32};    // Vector size is nr. of neuron layers. Entry is the number of neurons per layer.
-  double terminationEpsilon         = 1e-7;
-  int32_t maxIterations             = 10000;
+  double terminationEpsilon         = 1e-8;
+  int32_t maxIterations             = 1000000;
   int32_t batchSize                 = 32;
+  double learningRate               = 0.0005;
 };
 
 }    // namespace joda::ml

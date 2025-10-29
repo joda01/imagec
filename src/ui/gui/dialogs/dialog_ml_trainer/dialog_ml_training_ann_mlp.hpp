@@ -13,6 +13,7 @@
 #include <qformlayout.h>
 #include <qspinbox.h>
 #include <qwidget.h>
+#include <cstdint>
 #include "backend/commands/classification/pixel_classifier/machine_learning/ann_mlp/ann_mlp_settings.hpp"
 #include "ui/gui/helper/iconless_dialog_button_box.hpp"
 
@@ -46,7 +47,7 @@ public:
 
     mMaxIterations = new QSpinBox();
     mMaxIterations->setMinimum(1);
-    mMaxIterations->setMaximum(500000000);
+    mMaxIterations->setMaximum(INT32_MAX);
     mMaxIterations->setSingleStep(1);
     layout->addRow("Maximum iterations", mMaxIterations);
 
@@ -54,8 +55,22 @@ public:
     mTerminationEpsilon->setMinimum(0);
     mTerminationEpsilon->setMaximum(1);
     mTerminationEpsilon->setSingleStep(0.001);
-    mTerminationEpsilon->setDecimals(8);
+    mTerminationEpsilon->setDecimals(10);
     layout->addRow("Termination epsilon", mTerminationEpsilon);
+
+    mBatchSize = new QSpinBox();
+    mBatchSize->setSpecialValueText("Full data set");
+    mBatchSize->setMinimum(0);
+    mBatchSize->setMaximum(INT32_MAX);
+    mBatchSize->setSingleStep(1);
+    layout->addRow("Batch size", mBatchSize);
+
+    mLearningRate = new QDoubleSpinBox();
+    mLearningRate->setMinimum(0);
+    mLearningRate->setMaximum(1);
+    mLearningRate->setSingleStep(0.001);
+    mLearningRate->setDecimals(4);
+    layout->addRow("Learning rate", mLearningRate);
 
     // Okay and canlce
     auto *buttonBox = new IconlessDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
@@ -77,6 +92,8 @@ public:
 
     mMaxIterations->setValue(mSettings->maxIterations);
     mTerminationEpsilon->setValue(mSettings->terminationEpsilon);
+    mBatchSize->setValue(mSettings->batchSize);
+    mLearningRate->setValue(mSettings->learningRate);
   }
 
   void toSettings()
@@ -89,6 +106,8 @@ public:
 
     mSettings->maxIterations      = mMaxIterations->value();
     mSettings->terminationEpsilon = mTerminationEpsilon->value();
+    mSettings->batchSize          = mBatchSize->value();
+    mSettings->learningRate       = mLearningRate->value();
   };
 
   void accept() override
@@ -103,6 +122,8 @@ private:
 
   QSpinBox *mMaxIterations;
   QDoubleSpinBox *mTerminationEpsilon;
+  QSpinBox *mBatchSize;
+  QDoubleSpinBox *mLearningRate;
 
   /////////////////////////////////////////////////////
   joda::ml::AnnMlpTrainingSettings *mSettings;

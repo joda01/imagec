@@ -14,6 +14,7 @@
 #include <fstream>
 #include <string>
 #include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning_settings.hpp"
+#include "backend/helper/duration_count/duration_count.h"
 #include <ensmallen_bits/callbacks/progress_bar.hpp>
 #include <mlpack/core.hpp>
 #include <mlpack/core/data/load.hpp>
@@ -51,30 +52,18 @@ void AnnMlpMlPack::predict(const std::filesystem::path &path, const cv::Mat &ima
   }
   arma::mat data(reinterpret_cast<double *>(temp.data), temp.cols, temp.rows, false, true);
 
+  auto idx = DurationCount::start("Predict");
   arma::mat predictionTemp;
   mModel.Predict(data, predictionTemp);
-
-  std::cout << "Cols " << std::to_string(predictionTemp.n_cols) << std::endl;
-  std::cout << "Rows " << std::to_string(predictionTemp.n_rows) << std::endl;
+  DurationCount::stop(idx);
 
   data.save("data_fe.txt", arma::arma_ascii);
-
   predictionTemp.save("predictionTemp.txt", arma::arma_ascii);
 
   // Find index of max prediction for each data point and store in "predictionInt"
-  arma::Row<size_t> predictions(data.n_cols);
+  prediction.create(static_cast<int>(data.n_cols), 1, CV_32S);
   for(size_t i = 0; i < data.n_cols; ++i) {
-    predictions(i) = arma::as_scalar(arma::find(arma::max(predictionTemp.col(i)) == predictionTemp.col(i), 1));
-  }
-  predictions.save("predictionIdx.txt", arma::arma_ascii);
-
-  std::cout << "--------" << std::endl;
-
-  // Convert predictions to cv::Mat
-  // cv::Mat predMat(predictions.n_elem, 1, CV_32S);
-  prediction.create(static_cast<int>(predictions.n_elem), 1, CV_32S);
-  for(size_t i = 0; i < predictions.n_elem; ++i) {
-    prediction.at<int>(static_cast<int>(i), 0) = static_cast<int>(predictions(i));
+    prediction.at<int>(static_cast<int>(i), 0) = arma::as_scalar(arma::find(arma::max(predictionTemp.col(i)) == predictionTemp.col(i), 1));
   }
 }
 
@@ -106,32 +95,19 @@ void AnnMlpMlPack::train(const ::cv::Mat &trainSamples, const ::cv::Mat &trainLa
     labels.col(i) = static_cast<double>(trainLabels.at<int>(i, 0));
   }
 
-  std::cout << "data: " << data.n_rows << " x " << data.n_cols << " (features x samples)\n";
-  std::cout << "labels: " << labels.n_rows << " x " << labels.n_cols << " (if mat) or length " << labels.n_elem << " (if Row<size_t>)\n";
-
   data.save("data.txt", arma::arma_ascii);
   labels.save("labels.txt", arma::arma_ascii);
-
-  const size_t inputSize  = trainSamples.cols;
-  const size_t outputSize = nrOfClasses;
-
-  std::cout << "Input size" << std::to_string(inputSize) << std::endl;
-  std::cout << "outputSize size" << std::to_string(outputSize) << std::endl;
-
-  // Input layer
-  // mModel.Add<mlpack::Linear>(inputSize);
-  // mModel.Add<mlpack::TanH>();
 
   // Hidden layers
   for(int neurons : mSettings.neuronsLayer) {
     if(neurons > 0) {
       mModel.Add<mlpack::Linear>(neurons);
-      mModel.Add<mlpack::Sigmoid>();
+      mModel.Add<mlpack::ReLU>();
     }
   }
 
   // Output layer
-  mModel.Add<mlpack::Linear>(outputSize);
+  mModel.Add<mlpack::Linear>(nrOfClasses);
   mModel.Add<mlpack::LogSoftMax>();
 
   // Optimizer (Backprop with SGD)
@@ -139,14 +115,12 @@ void AnnMlpMlPack::train(const ::cv::Mat &trainSamples, const ::cv::Mat &trainLa
   if(batchSize <= 0) {
     batchSize = trainSamples.rows;
   }
-  std::cout << "Samlples" << std::to_string(trainSamples.rows) << std::endl;
-  ens::StandardSGD optimizer(0.0005, batchSize, mSettings.maxIterations, mSettings.terminationEpsilon, true);
+
+  // Stochastic Gradient Descent
+  ens::StandardSGD optimizer(mSettings.learningRate, batchSize, mSettings.maxIterations, mSettings.terminationEpsilon, true);
 
   // Train
-  data = (data - arma::repmat(arma::mean(data, 1), 1, data.n_cols)) / arma::repmat(arma::stddev(data, 0, 1), 1, data.n_cols);
   mModel.Train(data, labels, optimizer, ens::ProgressBar(100));    // prints progress every 5%);
-  double avgLoss = mModel.Evaluate(data, labels) / data.n_cols;
-  std::cout << "Average loss per sample: " << avgLoss << std::endl;
 }
 
 ///
