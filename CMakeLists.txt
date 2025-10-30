@@ -65,8 +65,8 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     )
 #elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 #    add_compile_options(-Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic)
-#elseif (MSVC)
-#    add_compile_options(/W4 /permissive- /Zc:__cplusplus)
+elseif (MSVC)
+    add_compile_options(/openmp)
 endif()
 
 # Get the current user and host
