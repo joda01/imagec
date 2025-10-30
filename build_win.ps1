@@ -78,6 +78,9 @@ function Fetch-ExternalLibs {
       conan profile detect
   }
 
+
+  Copy-Item $GITHUB_WORKSPACE\conan\profile_win "C:\Users\runneradmin\.conan2\profiles\default" -Force
+
   conan install . `
       --profile $GITHUB_WORKSPACE\conan\profile_win `
       --output-folder=build `
