@@ -65,8 +65,8 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     )
 #elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 #    add_compile_options(-Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic)
-elseif (MSVC)
-    add_compile_options(/openmp)
+#elseif (MSVC)
+#    add_compile_options(/openmp)
 endif()
 
 # Get the current user and host
@@ -127,6 +127,11 @@ find_package( Torch REQUIRED )
 find_package( cereal REQUIRED )
 find_package( mlpack REQUIRED )
 
+if (MSVC)
+  find_package( OpenMP REQUIRED )
+endif()
+
+
 
 SET(DuckDB_USE_STATIC_LIBS TRUE)
 
@@ -150,6 +155,10 @@ set(LIBS
   cereal::cereal
   mlpack::mlpack
 )
+
+if(OpenMP_CXX_FOUND)
+  list(APPEND LIBS OpenMP::OpenMP_CXX)
+endif()
 
 set(RESOURCE_FILES
     resources/qt_conf.qrc
@@ -202,6 +211,9 @@ set_target_properties( ${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME} ${LIBS})
+
+
+
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/src/build_info.h.in"
