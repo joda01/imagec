@@ -65,8 +65,12 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     )
 #elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 #    add_compile_options(-Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic)
-#elseif (MSVC)
-#    add_compile_options(/openmp)
+elseif (MSVC)
+  foreach(flag_var CMAKE_C_FLAGS CMAKE_CXX_FLAGS
+                     CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
+                     CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE)
+        string(REPLACE "/openmp" "" ${flag_var} "${${flag_var}}")
+    endforeach()
 endif()
 
 # Get the current user and host
@@ -81,16 +85,6 @@ set(CMAKE_AUTOMOC ON)
 SET(CMAKE_GENERATOR "Unix Makefiles")
 SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-
-#
-# OPENMP
-#
-if(MSVC)
-    # Add the flag to use the modern LLVM OpenMP runtime
-    # This enables support for OpenMP 4.5 and higher
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /openmp:llvm")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp:llvm")
-endif()
 
 #
 # CUDA
@@ -138,11 +132,6 @@ find_package( Torch REQUIRED )
 find_package( cereal REQUIRED )
 find_package( mlpack REQUIRED )
 
-if (MSVC)
-  set(OpenMP_MSVC_RUNTIME llvm)
-  find_package( OpenMP REQUIRED )
-endif()
-
 
 
 SET(DuckDB_USE_STATIC_LIBS TRUE)
@@ -167,10 +156,6 @@ set(LIBS
   cereal::cereal
   mlpack::mlpack
 )
-
-if(OpenMP_CXX_FOUND)
-  list(APPEND LIBS OpenMP::OpenMP_CXX)
-endif()
 
 set(RESOURCE_FILES
     resources/qt_conf.qrc
