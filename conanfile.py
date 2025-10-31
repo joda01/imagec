@@ -48,9 +48,9 @@ class ImageC(ConanFile):
         self.requires("onnxruntime/1.18.1")
         self.requires("mlpack/4.6.2")
         if self.options.with_cuda:
-            self.requires("libtorch/2.7.1", options={"with_cuda": True})
+            self.requires("libtorch/2.9.0", options={"with_cuda": True})
         else:
-            self.requires("libtorch/2.7.1", options={"with_cuda": False})
+            self.requires("libtorch/2.9.0", options={"with_cuda": False})
         self.requires("tensorflow-lite/2.15.0")
         self.requires("flatbuffers/23.5.26", force=True)
         self.requires("protobuf/3.21.12", override=True)

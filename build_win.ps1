@@ -223,16 +223,6 @@ function Pack {
   Copy-Item -Path "C:\Windows\System32\vcomp140.dll" -Destination "."  -Force
 
   #
-  # openmp
-  #
-  $omp_dll_path = "${env:VCINSTALLDIR}Redist\MSVC\14.38.33130\debug_nonredist\x64\Microsoft.VC143.OpenMP.LLVM\libomp140.dll"
-  if (Test-Path -Path $omp_dll_path) {
-    Copy-Item -Path $omp_dll_path -Destination "." -Force
-  } else {
-    Write-Host "libomp140.dll not found at expected path: $omp_dll_path"
-  }
-
-  #
   # java
   #
   Copy-Item -Recurse -Path "$WORKING_DIR/resources/templates" ./templates
