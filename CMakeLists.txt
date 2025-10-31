@@ -65,12 +65,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     )
 #elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 #    add_compile_options(-Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic)
-elseif (MSVC)
-  foreach(flag_var CMAKE_C_FLAGS CMAKE_CXX_FLAGS
-                     CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
-                     CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE)
-        string(REPLACE "/openmp" "" ${flag_var} "${${flag_var}}")
-    endforeach()
+#elseif (MSVC)
 endif()
 
 # Get the current user and host
