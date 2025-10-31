@@ -49,7 +49,7 @@ jobs:
   #
   build-windows:
     name: Build on Windows (${{ matrix.with-cuda == 'True' && 'With CUDA' || 'CPU Only' }})
-    runs-on: windows-2022
+    runs-on: windows-2025
     strategy:
       matrix:
         with-cuda: ["True", "False"]
