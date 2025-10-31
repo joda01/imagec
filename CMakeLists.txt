@@ -140,7 +140,7 @@ find_package( mlpack REQUIRED )
 
 if (MSVC)
   set(OpenMP_MSVC_RUNTIME llvm)
-  find_package( OpenMP 3.1 REQUIRED )
+  find_package( OpenMP REQUIRED )
 endif()
 
 
