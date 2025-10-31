@@ -115,8 +115,7 @@ function Build {
     -DCUDAToolkit_ROOT="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" `
     -DCMAKE_GENERATOR_TOOLSET="cuda=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" `
     -DCMAKE_CUDA_COMPILER="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8/bin/nvcc.exe" `
-    -DUSE_SYSTEM_NVTX:BOOL=ON `
-    -DDISABLE_OPENMP=ON
+    -DUSE_SYSTEM_NVTX:BOOL=ON
   cmake --build . --config Release --target imagec --parallel 8
 
   cd ..
