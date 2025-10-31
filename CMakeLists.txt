@@ -83,6 +83,16 @@ SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 #
+# OPENMP
+#
+if(MSVC)
+    # Add the flag to use the modern LLVM OpenMP runtime
+    # This enables support for OpenMP 4.5 and higher
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /openmp:llvm")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp:llvm")
+endif()
+
+#
 # CUDA
 #
 if(WITH_CUDA)
@@ -106,6 +116,7 @@ else()
   unset(CMAKE_CUDA_ARCHITECTURES CACHE)
   unset(CMAKE_CUDA_ARCHITECTURES)
 endif()
+
 
 find_package( OpenCV REQUIRED ximgproc)
 find_package( PugiXML )
