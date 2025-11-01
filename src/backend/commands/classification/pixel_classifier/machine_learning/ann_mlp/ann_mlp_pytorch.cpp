@@ -72,7 +72,7 @@ void AnnMlpPyTorch::predict(const std::filesystem::path &path, const cv::Mat &im
 
   // Convert to cv::Mat
   prediction.create(predictions.size(0), 1, CV_32S);
-  auto predAccessor = predictions.accessor<long, 1>();
+  auto predAccessor = predictions.accessor<int64_t, 1>();
   for(int i = 0; i < predictions.size(0); ++i) {
     prediction.at<int>(i, 0) = static_cast<int>(predAccessor[i]);
   }
