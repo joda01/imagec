@@ -59,11 +59,6 @@ enum class Framework
 
 struct MachineLearningSettings
 {
-  //
-  //
-  //
-  ModelType modelType = ModelType::RTrees;
-
   struct ClassLabels
   {
     enums::ClassId classId = enums::ClassId::NONE;

@@ -311,7 +311,7 @@ void DialogMlTrainer::startTraining()
         return;
       }
 
-      mTrainerSettings.modelType = modelType;
+      mTrainerSettings.modelTyp = modelType;
       mTrainerSettings.toClassesLabels(classesToTrainMapping);
       mTrainerSettings.features        = features;
       mTrainerSettings.outPath         = modelPath;

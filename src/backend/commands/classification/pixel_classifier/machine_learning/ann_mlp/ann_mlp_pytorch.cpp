@@ -47,7 +47,6 @@ void AnnMlpPyTorch::predict(const std::filesystem::path &path, const cv::Mat &im
   // ============================================
   // Extract features based on model settings
   // ============================================
-  std::cout << "Features" << std::to_string(settings.features.size()) << std::endl;
   const cv::Mat features = extractFeatures(image, settings.features, true);
 
   // ============================================

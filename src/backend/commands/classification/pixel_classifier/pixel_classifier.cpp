@@ -107,7 +107,7 @@ void PixelClassifier::train(const cv::Mat &image, const enums::TileInfo &tileInf
   cv::Mat labelList;
   mTrainingModel.reset();
 
-  switch(trainingSettings.modelType) {
+  switch(trainingSettings.modelTyp) {
     case ml::ModelType::RTrees:
       if(trainingSettings.framework == ml::Framework::MlPack) {
         mTrainingModel = std::make_unique<ml::RandomForestMlPack>(modelSettings.randomForest);

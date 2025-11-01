@@ -57,8 +57,10 @@ void MachineLearning::train(const MachineLearningSettings &settings, const cv::M
   cv::Mat trainSamples;
   cv::Mat labelList;
   auto trainingClasses = settings.toTrainingsClassesMap();
+  const bool normalize = settings.modelTyp == ModelType::ANN_MLP;    //
+
   prepareTrainingDataFromROI(image, tileInfo, trainingClasses, settings.categoryToTrain, result, trainSamples, labelList, settings.features,
-                             settings.modelTyp == ModelType::ANN_MLP);
+                             normalize);
 
   train(trainSamples, labelList, static_cast<int32_t>(trainingClasses.size()), settings.outPath, settings);
 }
@@ -75,8 +77,6 @@ void MachineLearning::prepareTrainingDataFromROI(const cv::Mat &image, const enu
                                                  const atom::ObjectList &regionOfInterest, cv::Mat &trainSamples, cv::Mat &trainLabels,
                                                  const std::set<TrainingFeatures> &featuresSet, bool normalizeForMLP)
 {
-  std::cout << "Bin " << std::to_string(normalizeForMLP) << std::endl;
-
   // Extract features
   cv::Mat features = extractFeatures(image, featuresSet, normalizeForMLP);
 
