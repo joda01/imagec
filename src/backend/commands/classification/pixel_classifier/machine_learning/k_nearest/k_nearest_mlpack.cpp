@@ -20,17 +20,13 @@ namespace joda::ml {
 /// \param[out]
 /// \return
 ///
-void KNearestMlPack::train(const cv::Mat &trainSamples, const cv::Mat &trainLabels, int32_t nrOfClasses)
+void KNearestMlPack::train(const cv::Mat &trainSamples, const cv::Mat &trainLabels, int32_t nrOfClasses,
+                           const std::filesystem::path &modelStoragePath)
 {
 }
 
-void KNearestMlPack::predict(const std::filesystem::path &path, const cv::Mat &image, const cv::Mat &features, cv::Mat &prediction)
-{
-}
-void KNearestMlPack::storeModel(const std::filesystem::path &path, const MachineLearningSettings &settings)
-{
-}
-void KNearestMlPack::loadModel(const std::filesystem::path &path)
+void KNearestMlPack::predict(const std::filesystem::path &path, const cv::Mat &image, const cv::Mat &features, cv::Mat &prediction,
+                             const std::filesystem::path &modelStoragePath)
 {
 }
 

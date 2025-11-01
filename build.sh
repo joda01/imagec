@@ -79,9 +79,9 @@ pack(){
     cp /root/.conan2/p/*/p/lib/libc10.so .
     cp /root/.conan2/p/*/p/lib/libc10_cuda.so .
     cp /root/.conan2/p/*/p/lib/libgomp-98b21ff3.so.1 .
-    cp /root/.conan2/p/*/p/lib/libcudart-218eec4c.so.12 .
-    cp /root/.conan2/p/*/p/lib/libcublas-f6c022dc.so.12 .
-    cp /root/.conan2/p/*/p/lib/libcublasLt-4ef47ce6.so.12 .
+    cp /root/.conan2/p/*/p/lib/libcudart-c3a75b33.so.12 .
+    cp /root/.conan2/p/*/p/lib/libcublas-031ce6c2.so.12 .
+    cp /root/.conan2/p/*/p/lib/libcublasLt-10b5e663.so.12 .
     cp /root/.conan2/p/*/p/lib/libcudnn.so.9 .
     cp /root/.conan2/p/*/p/lib/libcudnn_graph.so.9 .
     cp /root/.conan2/p/*/p/lib/libcudnn_heuristic.so.9 .

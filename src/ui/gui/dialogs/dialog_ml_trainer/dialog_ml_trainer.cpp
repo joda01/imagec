@@ -256,6 +256,8 @@ void DialogMlTrainer::startTraining()
   std::string endian = joda::fs::MASCHINE_LEARNING_MLPACK_JSON_MODEL;
   if(framework == ml::Framework::OpenCv) {
     endian = joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL;
+  } else if(framework == ml::Framework::PyTorch) {
+    endian = joda::fs::MASCHINE_LEARNING_PYTORCH_JSON_MODEL;
   }
 
   std::filesystem::path modelPath = joda::ml::MlModelParser::getUsersMlModelDirectory(mAnalyzeSettings->getProjectPath()) / (modelFileName + endian);

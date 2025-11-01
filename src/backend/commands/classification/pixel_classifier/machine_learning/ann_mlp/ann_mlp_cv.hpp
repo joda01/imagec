@@ -33,12 +33,9 @@ private:
     return Framework::OpenCv;
   };
 
-  void predict(const std::filesystem::path &path, const cv::Mat &image, const cv::Mat &features, cv::Mat &prediction) override;
-  void train(const cv::Mat &trainSamples, const cv::Mat &trainLabels, int32_t nrOfClasses) override;
-  void storeModel(const std::filesystem::path &path, const MachineLearningSettings &settings) override;
-  void loadModel(const std::filesystem::path &path) override;
-
-  cv::Ptr<cv::ml::ANN_MLP> mModel;
+  void predict(const std::filesystem::path &path, const cv::Mat &image, const cv::Mat &features, cv::Mat &prediction,
+               const std::filesystem::path &modelStoragePath) override;
+  void train(const cv::Mat &trainSamples, const cv::Mat &trainLabels, int32_t nrOfClasses, const std::filesystem::path &modelStoragePath) override;
 };
 
 }    // namespace joda::ml

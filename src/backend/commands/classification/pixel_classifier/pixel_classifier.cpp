@@ -14,6 +14,7 @@
 #include <stdexcept>
 #include "backend/commands/classification/pixel_classifier/machine_learning/ann_mlp/ann_mlp_cv.hpp"
 #include "backend/commands/classification/pixel_classifier/machine_learning/ann_mlp/ann_mlp_mlpack.hpp"
+#include "backend/commands/classification/pixel_classifier/machine_learning/ann_mlp/ann_mlp_pytorch.hpp"
 #include "backend/commands/classification/pixel_classifier/machine_learning/k_nearest/k_nearest_cv.hpp"
 #include "backend/commands/classification/pixel_classifier/machine_learning/k_nearest/k_nearest_mlpack.hpp"
 #include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning_settings.hpp"
@@ -57,10 +58,17 @@ void PixelClassifier::execute(processor::ProcessContext &context, cv::Mat &image
     return;
   }
 
-  nlohmann::json json;
-  file >> json;
-  file.close();
-  ml::MachineLearningSettings modelSettings = json;
+  ml::MachineLearningSettings modelSettings;
+
+  if(absoluteModelPath.string().ends_with(joda::fs::MASCHINE_LEARNING_PYTORCH_JSON_MODEL)) {
+    modelSettings.modelTyp  = ml::ModelType::ANN_MLP;
+    modelSettings.framework = ml::Framework::PyTorch;
+  } else {
+    nlohmann::json json;
+    file >> json;
+    file.close();
+    modelSettings = json;
+  }
 
   ml::MachineLearning *mlModel;
   switch(modelSettings.modelTyp) {
@@ -76,6 +84,8 @@ void PixelClassifier::execute(processor::ProcessContext &context, cv::Mat &image
         mlModel = new ml::AnnMlpCv(ml::AnnMlpTrainingSettings{});
       } else if(modelSettings.framework == ml::Framework::MlPack) {
         mlModel = new ml::AnnMlpMlPack(ml::AnnMlpTrainingSettings{});
+      } else if(modelSettings.framework == ml::Framework::PyTorch) {
+        mlModel = new ml::AnnMlpPyTorch(ml::AnnMlpTrainingSettings{});
       }
       break;
     case ml::ModelType::KNearest:
@@ -121,6 +131,8 @@ void PixelClassifier::train(const cv::Mat &image, const enums::TileInfo &tileInf
         mlModel = new ml::AnnMlpMlPack(modelSettings.annMlp);
       } else if(trainingSettings.framework == ml::Framework::OpenCv) {
         mlModel = new ml::AnnMlpCv(modelSettings.annMlp);
+      } else if(trainingSettings.framework == ml::Framework::PyTorch) {
+        mlModel = new ml::AnnMlpPyTorch(modelSettings.annMlp);
       }
       break;
     case ml::ModelType::KNearest:

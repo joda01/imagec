@@ -14,11 +14,12 @@
 #include <fstream>
 #include <string>
 #include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning_settings.hpp"
-#include <mlpack/core/data/load.hpp>
 #include <nlohmann/json_fwd.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
-#include <mlpack.hpp>
+
+#include <mlpack/core.hpp>
+#include <mlpack/methods/random_forest/random_forest.hpp>
 
 namespace joda::ml {
 
@@ -29,10 +30,15 @@ namespace joda::ml {
 /// \param[out]
 /// \return
 ///
-void RandomForestMlPack::predict(const std::filesystem::path &path, const cv::Mat &image, const cv::Mat &features, cv::Mat &prediction)
+void RandomForestMlPack::predict(const std::filesystem::path &path, const cv::Mat &image, const cv::Mat &features, cv::Mat &prediction,
+                                 const std::filesystem::path &modelStoragePath)
 {
+  mlpack::RandomForest<mlpack::GiniGain, mlpack::RandomDimensionSelect, mlpack::BestBinaryNumericSplit, mlpack::AllCategoricalSplit, true,
+                       mlpack::DefaultBootstrap>
+      mModel;
+
   std::set<TrainingFeatures> featuresSet;
-  loadModel(path);
+  mlpack::data::Load(path.string(), "model", mModel, true, mlpack::data::format::json);
 
   // 3. Convert OpenCV Mat -> Armadillo matrix
   // mlpack expects columns = samples, rows = features
@@ -67,8 +73,13 @@ void RandomForestMlPack::predict(const std::filesystem::path &path, const cv::Ma
 /// \param[out]
 /// \return
 ///
-void RandomForestMlPack::train(const cv::Mat &trainSamples, const cv::Mat &trainLabels, int32_t nrOfClasses)
+void RandomForestMlPack::train(const cv::Mat &trainSamples, const cv::Mat &trainLabels, int32_t nrOfClasses,
+                               const std::filesystem::path &modelStoragePath)
 {
+  mlpack::RandomForest<mlpack::GiniGain, mlpack::RandomDimensionSelect, mlpack::BestBinaryNumericSplit, mlpack::AllCategoricalSplit, true,
+                       mlpack::DefaultBootstrap>
+      mModel;
+
   // --- Convert OpenCV Mat to Armadillo ---
   arma::mat data(static_cast<arma::uword>(trainSamples.cols), static_cast<arma::uword>(trainSamples.rows));
 
@@ -87,29 +98,7 @@ void RandomForestMlPack::train(const cv::Mat &trainSamples, const cv::Mat &train
   // --- Train RandomForest ---
   mModel.Train(data, labels, static_cast<size_t>(nrOfClasses), static_cast<size_t>(mSettings.maxNumberOfTrees),
                static_cast<size_t>(mSettings.minSampleCount), 0.0, static_cast<size_t>(mSettings.maxTreeDepth));
+  mlpack::data::Save(modelStoragePath.string(), "model", mModel, true, mlpack::data::format::json);
 }
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void RandomForestMlPack::storeModel(const std::filesystem::path &path, const MachineLearningSettings &settings)
-{
-  mlpack::data::Save(path.string(), "model", mModel, true, mlpack::data::format::json);
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void RandomForestMlPack::loadModel(const std::filesystem::path &path)
-{
-  mlpack::data::Load(path.string(), "model", mModel, true, mlpack::data::format::json);
-}
 }    // namespace joda::ml

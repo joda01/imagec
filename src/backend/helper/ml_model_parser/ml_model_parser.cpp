@@ -82,25 +82,31 @@ auto MlModelParser::findMlModelFiles(const std::filesystem::path &workingDirecto
     if(fs::exists(directory) && fs::is_directory(directory)) {
       for(const auto &entry : fs::recursive_directory_iterator(directory)) {
         if(entry.is_regular_file()) {
-          try {
-            if(entry.path().string().ends_with(joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL) ||
-               entry.path().string().ends_with(joda::fs::MASCHINE_LEARNING_MLPACK_JSON_MODEL)) {
-              const auto relativePath = std::filesystem::relative(entry.path(), workingDirectory);
-              auto modelInfo          = parseOpenCVModelXMLDescriptionFile(relativePath, workingDirectory);
+          if(entry.path().string().ends_with(joda::fs::MASCHINE_LEARNING_PYTORCH_JSON_MODEL)) {
+            const auto relativePath = std::filesystem::relative(entry.path(), workingDirectory);
+            aiModelFiles.emplace(relativePath, Data{.modelName = relativePath.filename().string(), .modelPath = relativePath});
 
-              aiModelFiles.emplace(relativePath, modelInfo);
+          } else {
+            try {
+              if(entry.path().string().ends_with(joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL) ||
+                 entry.path().string().ends_with(joda::fs::MASCHINE_LEARNING_MLPACK_JSON_MODEL)) {
+                const auto relativePath = std::filesystem::relative(entry.path(), workingDirectory);
+                auto modelInfo          = parseOpenCVModelXMLDescriptionFile(relativePath, workingDirectory);
+
+                aiModelFiles.emplace(relativePath, modelInfo);
+              }
+            } catch(const nlohmann::json::parse_error &ex) {
+              // std::cerr << "JSON Parse error: " << ex.what() << "\n"
+              //           << "Error occurred at byte: " << ex.byte << "\n";
+              //
+              joda::log::logWarning(entry.path().string() + ": " + std::string(ex.what()));
+
+            } catch(const nlohmann::json::type_error &ex) {
+              joda::log::logWarning(entry.path().string() + ": " + std::string(ex.what()));
+
+            } catch(const std::exception &ex) {
+              joda::log::logWarning(entry.path().string() + ": " + ex.what());
             }
-          } catch(const nlohmann::json::parse_error &ex) {
-            // std::cerr << "JSON Parse error: " << ex.what() << "\n"
-            //           << "Error occurred at byte: " << ex.byte << "\n";
-            //
-            joda::log::logWarning(entry.path().string() + ": " + std::string(ex.what()));
-
-          } catch(const nlohmann::json::type_error &ex) {
-            joda::log::logWarning(entry.path().string() + ": " + std::string(ex.what()));
-
-          } catch(const std::exception &ex) {
-            joda::log::logWarning(entry.path().string() + ": " + ex.what());
           }
         }
       }

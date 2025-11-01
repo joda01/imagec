@@ -42,9 +42,8 @@ private:
   virtual Framework getFramework() = 0;
   void saveModel(const std::filesystem::path &path, const MachineLearningSettings &settings);
 
-  virtual void predict(const std::filesystem::path &path, const cv::Mat &image, const cv::Mat &features, cv::Mat &prediction) = 0;
-  virtual void train(const cv::Mat &trainSamples, const cv::Mat &trainLabels, int32_t nrOfClasses)                            = 0;
-  virtual void storeModel(const std::filesystem::path &path, const MachineLearningSettings &settings)                         = 0;
-  virtual void loadModel(const std::filesystem::path &path)                                                                   = 0;
+  virtual void predict(const std::filesystem::path &path, const cv::Mat &image, const cv::Mat &features, cv::Mat &prediction,
+                       const std::filesystem::path &modelStoragePath)                                                                             = 0;
+  virtual void train(const cv::Mat &trainSamples, const cv::Mat &trainLabels, int32_t nrOfClasses, const std::filesystem::path &modelStoragePath) = 0;
 };
 }    // namespace joda::ml

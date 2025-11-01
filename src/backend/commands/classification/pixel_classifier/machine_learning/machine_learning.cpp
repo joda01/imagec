@@ -28,7 +28,7 @@ void MachineLearning::forward(const std::filesystem::path &path, cv::Mat &image,
   // Load trained model
   const cv::Mat features = extractFeatures(image, settings.features, getModelType() == ModelType::ANN_MLP);
   cv::Mat predFloat;    // output (H*W) x 1, CV_32F
-  predict(path, image, features, predFloat);
+  predict(path, image, features, predFloat, path);
 
   // ===============================
   // Reshape back to segmentation mask
@@ -60,7 +60,7 @@ void MachineLearning::train(const MachineLearningSettings &settings, const cv::M
   prepareTrainingDataFromROI(image, tileInfo, trainingClasses, settings.categoryToTrain, result, trainSamples, labelList, settings.features,
                              getModelType() == ModelType::ANN_MLP);
 
-  train(trainSamples, labelList, trainingClasses.size());
+  train(trainSamples, labelList, trainingClasses.size(), settings.outPath);
   saveModel(settings.outPath, settings);
 }
 
@@ -73,8 +73,6 @@ void MachineLearning::train(const MachineLearningSettings &settings, const cv::M
 ///
 void MachineLearning::saveModel(const std::filesystem::path &path, const MachineLearningSettings &settings)
 {
-  storeModel(settings.outPath, settings);
-
   MachineLearningSettings parsed;
   parsed.classLabels  = settings.classLabels;
   parsed.features     = settings.features;

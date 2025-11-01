@@ -15,18 +15,13 @@
 #include <string>
 #include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning_settings.hpp"
 #include "backend/helper/duration_count/duration_count.h"
-#include <ensmallen_bits/callbacks/progress_bar.hpp>
-#include <mlpack/core.hpp>
-#include <mlpack/core/data/load.hpp>
-#include <mlpack/methods/ann/ffn.hpp>
-#include <mlpack/methods/ann/init_rules/random_init.hpp>
-#include <mlpack/methods/ann/layer/base_layer.hpp>
-#include <mlpack/methods/ann/layer/layer.hpp>
-#include <mlpack/methods/ann/loss_functions/negative_log_likelihood.hpp>
 #include <nlohmann/json_fwd.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
-#include <ensmallen.hpp>
+
+#include <mlpack/core.hpp>
+#include <mlpack/methods/ann/ffn.hpp>
+#include <mlpack/methods/ann/layer/layer.hpp>
 
 namespace joda::ml {
 
@@ -37,9 +32,12 @@ namespace joda::ml {
 /// \param[out]
 /// \return
 ///
-void AnnMlpMlPack::predict(const std::filesystem::path &path, const cv::Mat &image, const cv::Mat &features, cv::Mat &prediction)
+void AnnMlpMlPack::predict(const std::filesystem::path &path, const cv::Mat &image, const cv::Mat &features, cv::Mat &prediction,
+                           const std::filesystem::path &modelStoragePath)
 {
-  loadModel(path);
+  mlpack::FFN<mlpack::NegativeLogLikelihood, mlpack::RandomInitialization> mModel;
+
+  mlpack::data::Load(modelStoragePath.string(), "model", mModel, true, mlpack::data::format::json);
 
   //
   // Convert to Armadillo matrices
@@ -74,8 +72,11 @@ void AnnMlpMlPack::predict(const std::filesystem::path &path, const cv::Mat &ima
 /// \param[out]
 /// \return
 ///
-void AnnMlpMlPack::train(const ::cv::Mat &trainSamples, const ::cv::Mat &trainLabels, int32_t nrOfClasses)
+void AnnMlpMlPack::train(const ::cv::Mat &trainSamples, const ::cv::Mat &trainLabels, int32_t nrOfClasses,
+                         const std::filesystem::path &modelStoragePath)
 {
+  mlpack::FFN<mlpack::NegativeLogLikelihood, mlpack::RandomInitialization> mModel;
+
   //
   // Convert to Armadillo matrices
   //
@@ -121,29 +122,7 @@ void AnnMlpMlPack::train(const ::cv::Mat &trainSamples, const ::cv::Mat &trainLa
 
   // Train
   mModel.Train(data, labels, optimizer, ens::ProgressBar(100));    // prints progress every 5%);
+  mlpack::data::Save(modelStoragePath.string(), "model", mModel, true, mlpack::data::format::json);
 }
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void AnnMlpMlPack::storeModel(const std::filesystem::path &path, const MachineLearningSettings &settings)
-{
-  mlpack::data::Save(path.string(), "model", mModel, true, mlpack::data::format::json);
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void AnnMlpMlPack::loadModel(const std::filesystem::path &path)
-{
-  mlpack::data::Load(path.string(), "model", mModel, true, mlpack::data::format::json);
-}
 }    // namespace joda::ml

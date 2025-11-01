@@ -22,9 +22,16 @@ namespace joda::ml {
 /// \param[out]
 /// \return
 ///
-void RandomForestCv::predict(const std::filesystem::path &path, const cv::Mat &image, const cv::Mat &features, cv::Mat &prediction)
+void RandomForestCv::predict(const std::filesystem::path &path, const cv::Mat &image, const cv::Mat &features, cv::Mat &prediction,
+                             const std::filesystem::path &modelStoragePath)
 {
-  loadModel(path);
+  cv::Ptr<cv::ml::RTrees> mModel;
+
+  cv::FileStorage fs(path.string(), cv::FileStorage::READ | cv::FileStorage::FORMAT_JSON);
+  mModel             = cv::ml::RTrees::create();
+  cv::FileNode model = fs["model"];
+  mModel->read(model);
+
   if(features.type() != CV_32F || !features.isContinuous()) {
     features.convertTo(features, CV_32F);
   }
@@ -38,8 +45,11 @@ void RandomForestCv::predict(const std::filesystem::path &path, const cv::Mat &i
 /// \param[out]
 /// \return
 ///
-void RandomForestCv::train(const cv::Mat &trainSamples, const cv::Mat &trainLabels, int32_t /*nrOfClasses*/)
+void RandomForestCv::train(const cv::Mat &trainSamples, const cv::Mat &trainLabels, int32_t /*nrOfClasses*/,
+                           const std::filesystem::path &modelStoragePath)
 {
+  cv::Ptr<cv::ml::RTrees> mModel;
+
   mModel = cv::ml::RTrees::create();
   mModel->setMaxDepth(mSettings.maxTreeDepth);
   mModel->setMinSampleCount(mSettings.minSampleCount);
@@ -49,45 +59,14 @@ void RandomForestCv::train(const cv::Mat &trainSamples, const cv::Mat &trainLabe
   mModel->setTermCriteria(cv::TermCriteria(cv::TermCriteria::MAX_ITER, mSettings.maxNumberOfTrees, mSettings.terminationEpsilon));
   cv::Ptr<cv::ml::TrainData> td = cv::ml::TrainData::create(trainSamples, cv::ml::ROW_SAMPLE, trainLabels);
   mModel->train(td);
-}
 
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void RandomForestCv::storeModel(const std::filesystem::path &path, const MachineLearningSettings &settings)
-{
-  cv::FileStorage fs(path.string(), cv::FileStorage::WRITE | cv::FileStorage::FORMAT_JSON);
-  fs << "model"
-     << "{";
-  mModel->write(fs);
-  fs << "}";
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void RandomForestCv::loadModel(const std::filesystem::path &path)
-{
-  cv::FileStorage fs(path.string(), cv::FileStorage::READ | cv::FileStorage::FORMAT_JSON);
-  mModel             = cv::ml::RTrees::create();
-  cv::FileNode model = fs["model"];
-  mModel->read(model);
+  {
+    cv::FileStorage fs(modelStoragePath.string(), cv::FileStorage::WRITE | cv::FileStorage::FORMAT_JSON);
+    fs << "model"
+       << "{";
+    mModel->write(fs);
+    fs << "}";
+  }
 }
 
 }    // namespace joda::ml
