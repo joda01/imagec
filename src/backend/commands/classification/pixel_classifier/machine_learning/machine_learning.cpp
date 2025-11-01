@@ -11,6 +11,7 @@
 
 #include "machine_learning.hpp"
 #include <fstream>
+#include <string>
 #include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning_settings.hpp"
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/logger/console_logger.hpp"
@@ -24,18 +25,11 @@ namespace joda::ml {
 /// \param[out]
 /// \return
 ///
-void MachineLearning::forward(const std::filesystem::path &path, cv::Mat &image, const MachineLearningSettings &settings)
+void MachineLearning::forward(const std::filesystem::path &path, cv::Mat &image)
 {
-  auto featuresIn = settings.features;
-  if(!settings.outPath.filename().string().ends_with(joda::fs::MASCHINE_LEARNING_PYTORCH_JSON_MODEL)) {
-    featuresIn.emplace(TrainingFeatures::Intensity);
-    featuresIn.emplace(TrainingFeatures::Gaussian);
-  }
-
   // Load trained model
-  const cv::Mat features = extractFeatures(image, featuresIn, getModelType() == ModelType::ANN_MLP);
   cv::Mat predFloat;    // output (H*W) x 1, CV_32F
-  predict(path, image, features, predFloat, path);
+  predict(path, image, predFloat);
 
   // ===============================
   // Reshape back to segmentation mask
@@ -62,75 +56,11 @@ void MachineLearning::train(const MachineLearningSettings &settings, const cv::M
 {
   cv::Mat trainSamples;
   cv::Mat labelList;
-
   auto trainingClasses = settings.toTrainingsClassesMap();
   prepareTrainingDataFromROI(image, tileInfo, trainingClasses, settings.categoryToTrain, result, trainSamples, labelList, settings.features,
-                             getModelType() == ModelType::ANN_MLP);
+                             settings.modelTyp == ModelType::ANN_MLP);
 
-  train(trainSamples, labelList, trainingClasses.size(), settings.outPath);
-  if(!settings.outPath.filename().string().ends_with(joda::fs::MASCHINE_LEARNING_PYTORCH_JSON_MODEL)) {
-    saveModel(settings.outPath, settings);
-  }
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void MachineLearning::saveModel(const std::filesystem::path &path, const MachineLearningSettings &settings)
-{
-  MachineLearningSettings parsed;
-  parsed.classLabels  = settings.classLabels;
-  parsed.features     = settings.features;
-  parsed.meta         = settings.meta;
-  parsed.modelTyp     = getModelType();
-  parsed.framework    = getFramework();
-  nlohmann::json json = parsed;
-  removeNullValues(json);
-  std::string metaData = json.dump(2);
-  if(!metaData.empty()) {
-    metaData.erase(0, 1);    // remove 1 character at position 0 this is a '{'
-  }
-
-  // Append meta information
-
-  // Open file in read/write mode
-  std::fstream file(path.string(), std::ios::in | std::ios::out);
-  if(!file) {
-    return;
-  }
-
-  // Go to end to get file size
-  file.seekg(0, std::ios::end);
-  std::streamoff size = file.tellg();
-
-  // Read backwards to find the last '}'
-  char ch;
-  std::streamoff pos = size - 1;
-  bool found         = false;
-
-  while(pos >= 0) {
-    file.seekg(pos);
-    file.get(ch);
-    if(ch == '}') {
-      found = true;
-      break;
-    }
-    --pos;
-  }
-
-  if(found) {
-    // Move output pointer to that position
-    file.seekp(pos);
-    // Overwrite the '}' with ','
-    file.put(',');
-  }
-
-  file << metaData;
-  file.close();
+  train(trainSamples, labelList, static_cast<int32_t>(trainingClasses.size()), settings.outPath, settings);
 }
 
 ///
@@ -145,6 +75,8 @@ void MachineLearning::prepareTrainingDataFromROI(const cv::Mat &image, const enu
                                                  const atom::ObjectList &regionOfInterest, cv::Mat &trainSamples, cv::Mat &trainLabels,
                                                  const std::set<TrainingFeatures> &featuresSet, bool normalizeForMLP)
 {
+  std::cout << "Bin " << std::to_string(normalizeForMLP) << std::endl;
+
   // Extract features
   cv::Mat features = extractFeatures(image, featuresSet, normalizeForMLP);
 

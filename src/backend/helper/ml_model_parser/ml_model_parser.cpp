@@ -82,14 +82,13 @@ auto MlModelParser::findMlModelFiles(const std::filesystem::path &workingDirecto
     if(fs::exists(directory) && fs::is_directory(directory)) {
       for(const auto &entry : fs::recursive_directory_iterator(directory)) {
         if(entry.is_regular_file()) {
-          if(entry.path().string().ends_with(joda::fs::MASCHINE_LEARNING_PYTORCH_JSON_MODEL)) {
+          if(entry.path().string().ends_with(joda::fs::MASCHINE_LEARNING_PYTORCH_ANN_MLP)) {
             const auto relativePath = std::filesystem::relative(entry.path(), workingDirectory);
             aiModelFiles.emplace(relativePath, Data{.modelName = relativePath.filename().string(), .modelPath = relativePath});
 
           } else {
             try {
-              if(entry.path().string().ends_with(joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL) ||
-                 entry.path().string().ends_with(joda::fs::MASCHINE_LEARNING_MLPACK_JSON_MODEL)) {
+              if(entry.path().string().ends_with(joda::fs::MASCHINE_LEARNING_MLPACK_RTREE)) {
                 const auto relativePath = std::filesystem::relative(entry.path(), workingDirectory);
                 auto modelInfo          = parseOpenCVModelXMLDescriptionFile(relativePath, workingDirectory);
 

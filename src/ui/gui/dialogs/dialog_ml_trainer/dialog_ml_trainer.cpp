@@ -41,7 +41,6 @@
 #include "ui/gui/helper/iconless_dialog_button_box.hpp"
 #include "ui/gui/helper/multicombobox.hpp"
 #include "ui/gui/helper/setting_generator.hpp"
-#include "dialog_ml_training_knearest.hpp"
 
 namespace joda::ui::gui {
 
@@ -63,21 +62,11 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
   auto *layout = new QFormLayout();
   // layout->setContentsMargins(0, 0, 4, 0);
 
-  {
-    mFramework = new QComboBox();
-    mFramework->addItem("MlPack", static_cast<int>(ml::Framework::MlPack));
-    mFramework->addItem("OpenCV", static_cast<int>(ml::Framework::OpenCv));
-    mFramework->addItem("Pytorch", static_cast<int>(ml::Framework::PyTorch));
-
-    layout->addRow("Framework", mFramework);
-  }
-
   // Settings
   {
     mComboClassifierMethod = new QComboBox();
-    mComboClassifierMethod->addItem("Random forest (RTree)", static_cast<int>(joda::ml::ModelType::RTrees));
-    mComboClassifierMethod->addItem("Artificial neural network (ANN_MLP)", static_cast<int>(joda::ml::ModelType::ANN_MLP));
-    mComboClassifierMethod->addItem("K nearest neighbor", static_cast<int>(joda::ml::ModelType::KNearest));
+    mComboClassifierMethod->addItem("Random forest (RTree using MLpack)", static_cast<int>(joda::ml::ModelType::RTrees));
+    mComboClassifierMethod->addItem("Artificial neural network (ANN_MLP using PyTorch)", static_cast<int>(joda::ml::ModelType::ANN_MLP));
 
     auto *trainingSettingsMeta = new QHBoxLayout;
     trainingSettingsMeta->addWidget(mComboClassifierMethod);
@@ -89,9 +78,6 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
         dialog.exec();
       } else if(static_cast<joda::ml::ModelType>(mComboClassifierMethod->currentData().toInt()) == joda::ml::ModelType::ANN_MLP) {
         SettingsAnnMlp dialog(&mModelSettings.annMlp, this);
-        dialog.exec();
-      } else if(static_cast<joda::ml::ModelType>(mComboClassifierMethod->currentData().toInt()) == joda::ml::ModelType::KNearest) {
-        SettingsKNearest dialog(&mModelSettings.kNearest, this);
         dialog.exec();
       }
     });
@@ -145,6 +131,14 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
     connect(mButtonStartTraining, &QPushButton::pressed, [this]() { startTraining(); });
     layout->addRow(mButtonStartTraining);
   }
+
+  // Stop training
+  {
+    mButtonStopTraining = new QPushButton("Stop");
+    connect(mButtonStopTraining, &QPushButton::pressed, [this]() { stopTraining(); });
+    layout->addRow(mButtonStopTraining);
+  }
+
   // Progress bar
   {
     mProgress = new QProgressBar();
@@ -252,12 +246,12 @@ void DialogMlTrainer::startTraining()
     return;
   }
 
-  auto framework     = static_cast<ml::Framework>(mFramework->currentData().toInt());
-  std::string endian = joda::fs::MASCHINE_LEARNING_MLPACK_JSON_MODEL;
-  if(framework == ml::Framework::OpenCv) {
-    endian = joda::fs::MASCHINE_LEARNING_OPCEN_CV_XML_MODEL;
-  } else if(framework == ml::Framework::PyTorch) {
-    endian = joda::fs::MASCHINE_LEARNING_PYTORCH_JSON_MODEL;
+  auto modelType          = static_cast<ml::ModelType>(mComboClassifierMethod->currentData().toInt());
+  ml::Framework framework = ml::Framework::MlPack;
+  std::string endian      = joda::fs::MASCHINE_LEARNING_MLPACK_RTREE;
+  if(modelType == ml::ModelType::ANN_MLP) {
+    endian    = joda::fs::MASCHINE_LEARNING_PYTORCH_ANN_MLP;
+    framework = ml::Framework::PyTorch;
   }
 
   std::filesystem::path modelPath = joda::ml::MlModelParser::getUsersMlModelDirectory(mAnalyzeSettings->getProjectPath()) / (modelFileName + endian);
@@ -283,7 +277,7 @@ void DialogMlTrainer::startTraining()
   }
 
   setInProgress(true);
-  mTrainingsThread = std::make_unique<std::thread>([this, modelPath, framework]() {    //
+  mTrainingsThread = std::make_unique<std::thread>([this, modelPath, framework, modelType]() {    //
     // At least one background annotation must be present
     //
     if(!mObjectMap->contains(enums::ClassId::NONE) || mObjectMap->at(enums::ClassId::NONE)->empty()) {
@@ -317,7 +311,7 @@ void DialogMlTrainer::startTraining()
         return;
       }
 
-      mTrainerSettings.modelType = static_cast<joda::ml::ModelType>(mComboClassifierMethod->currentData().toInt());
+      mTrainerSettings.modelType = modelType;
       mTrainerSettings.toClassesLabels(classesToTrainMapping);
       mTrainerSettings.features        = features;
       mTrainerSettings.outPath         = modelPath;
@@ -337,6 +331,18 @@ void DialogMlTrainer::startTraining()
     emit trainingFinished(true, "");
     emit triggerPreviewUpdate();
   });
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogMlTrainer::stopTraining()
+{
+  joda::cmd::PixelClassifier::stopTraining();
 }
 
 }    // namespace joda::ui::gui

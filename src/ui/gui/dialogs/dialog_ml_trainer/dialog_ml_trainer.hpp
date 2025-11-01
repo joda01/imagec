@@ -62,16 +62,17 @@ protected:
 private:
   /////////////////////////////////////////////////////
   void startTraining();
+  void stopTraining();
   void setInProgress(bool);
 
   /////////////////////////////////////////////////////
   PanelImageView *mImagePanel;
   QComboBox *mComboClassifierMethod;
   QComboBox *mRoiSource;
-  QComboBox *mFramework;
   QComboBoxMulti *mComboTrainingFeatures;
   QLineEdit *mModelName;
   QPushButton *mButtonStartTraining;
+  QPushButton *mButtonStopTraining;
   QProgressBar *mProgress;
   std::shared_ptr<atom::ObjectList> mObjectMap;
 

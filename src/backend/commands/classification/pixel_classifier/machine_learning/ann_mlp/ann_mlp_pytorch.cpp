@@ -35,27 +35,36 @@ namespace joda::ml {
 /// \param[out]
 /// \return
 ///
-void AnnMlpPyTorch::predict(const std::filesystem::path &path, const cv::Mat &image, const cv::Mat &features, cv::Mat &prediction,
-                            const std::filesystem::path &modelStoragePath)
+void AnnMlpPyTorch::predict(const std::filesystem::path &path, const cv::Mat &image, cv::Mat &prediction)
 {
+  // ============================================
+  // Load model together with model settings
+  // ============================================
   MLPModel model{};
-  torch::load(model, modelStoragePath.string());
+  torch::load(model, path.string());
+  MachineLearningSettings settings = model->getMeta();
 
-  std::cout << "LOADED" << std::endl;
+  // ============================================
+  // Extract features based on model settings
+  // ============================================
+  std::cout << "Features" << std::to_string(settings.features.size()) << std::endl;
+  const cv::Mat features = extractFeatures(image, settings.features, true);
 
-  // Convert features to float tensor
+  // ============================================
+  // Move features to tensor
+  // ============================================
   cv::Mat temp;
   if(features.type() != CV_32F) {
     features.convertTo(temp, CV_32F);
   } else {
     temp = features;
   }
-
-  // Convert to [num_samples, num_features] tensor
   auto options       = torch::TensorOptions().dtype(torch::kFloat32);
   torch::Tensor data = torch::from_blob(temp.data, {features.rows, features.cols}, options).clone();
 
-  // Move to device (match model device)
+  // ============================================
+  // Move tensor to device
+  // ============================================
   torch::Device device(torch::kCPU);
   if(torch::cuda::is_available()) {
     device = torch::Device(torch::kCUDA);
@@ -64,16 +73,18 @@ void AnnMlpPyTorch::predict(const std::filesystem::path &path, const cv::Mat &im
   model->to(device);
   model->eval();
 
-  // Forward pass
+  // ============================================
+  // Inference
+  // ============================================
   torch::NoGradGuard no_grad;
   auto output = model->forward(data);
 
-  // Get predicted class indices (argmax)
-  auto predictions = std::get<1>(output.max(1));    // [num_samples]
+  // ============================================
+  // Convert prediction to cv::mat
+  // ============================================
+  auto predictions = std::get<1>(output.max(1));
   predictions      = predictions.to(torch::kCPU);
-
-  // Convert to cv::Mat
-  prediction.create(predictions.size(0), 1, CV_32S);
+  prediction.create(static_cast<int32_t>(predictions.size(0)), 1, CV_32S);
   auto predAccessor = predictions.accessor<int64_t, 1>();
   for(int i = 0; i < predictions.size(0); ++i) {
     prediction.at<int>(i, 0) = static_cast<int>(predAccessor[i]);
@@ -88,87 +99,109 @@ void AnnMlpPyTorch::predict(const std::filesystem::path &path, const cv::Mat &im
 /// \return
 ///
 void AnnMlpPyTorch::train(const ::cv::Mat &trainSamples, const ::cv::Mat &trainLabels, int32_t nrOfClasses,
-                          const std::filesystem::path &modelStoragePath)
+                          const std::filesystem::path &modelStoragePath, const MachineLearningSettings &settings)
 {
+  // ============================================
   // Convert cv::Mat to float tensor
+  // ============================================
   cv::Mat samplesFloat;
   if(trainSamples.type() != CV_32F) {
     trainSamples.convertTo(samplesFloat, CV_32F);
   } else {
     samplesFloat = trainSamples;
   }
-
-  // Convert to torch tensor [num_samples, num_features]
   auto options       = torch::TensorOptions().dtype(torch::kFloat32);
   torch::Tensor data = torch::from_blob(samplesFloat.data, {trainSamples.rows, trainSamples.cols}, options).clone();
 
+  // ============================================
   // Convert labels to tensor [num_samples]
+  // ============================================
   torch::Tensor labels = torch::empty({trainLabels.rows}, torch::kInt64);
   for(int i = 0; i < trainLabels.rows; ++i) {
     labels[i] = trainLabels.at<int>(i, 0);
   }
-
-  auto model = MLPModel(trainSamples.cols, mSettings.neuronsLayer, nrOfClasses);
 
   // Move to device
   torch::Device device(torch::kCPU);
   if(torch::cuda::is_available()) {
     device = torch::Device(torch::kCUDA);
   }
+
+  // ============================================
+  // Create model and move model and data to device
+  // ============================================
+  auto model = MLPModel(trainSamples.cols, mSettings.neuronsLayer, nrOfClasses, settings);
   model->to(device);
 
   data   = data.to(device);
   labels = labels.to(device);
 
+  // ============================================
   // Optimizer (SGD)
+  // ============================================
   int64_t batchSize = (mSettings.batchSize > 0) ? mSettings.batchSize : trainSamples.rows;
   torch::optim::SGD optimizer(model->parameters(), torch::optim::SGDOptions(mSettings.learningRate).momentum(0.9));
 
+  // ============================================
   // Training loop
+  // ============================================
   const int64_t numEpochs = mSettings.maxIterations;
   model->train();
 
   for(int64_t epoch = 0; epoch < numEpochs; ++epoch) {
-    float epochLoss = 0.0f;
+    float epochLoss = 0.0F;
 
     for(int64_t i = 0; i < data.size(0); i += batchSize) {
-      auto end = std::min(i + batchSize, data.size(0));
-      // The slice operations here are view operations (efficient):
+      auto end     = std::min(i + batchSize, data.size(0));
       auto inputs  = data.slice(0, i, end);
       auto targets = labels.slice(0, i, end);
 
-      // Use zero_grad() to clear previous gradients
-      optimizer.zero_grad();
-
-      // Forward pass
-      auto outputs = model->forward(inputs);
-
-      // Calculate loss
-      // Ensure functional cross_entropy is being used efficiently by the backend
-      auto loss = torch::nn::functional::cross_entropy(outputs, targets);
-
-      // Backward pass (gradient calculation)
-      loss.backward();
-
-      // Optimizer step (parameter update)
-      optimizer.step();
-
-      // Accumulate loss (use item() after the step)
-      epochLoss += loss.item<float>();
+      optimizer.zero_grad();                    // Use zero_grad() to clear previous gradients
+      auto outputs = model->forward(inputs);    // Forward pass
+      auto loss    = torch::nn::functional::cross_entropy(
+          outputs, targets);           // Calculate loss, Ensure functional cross_entropy is being used efficiently by the backend
+      loss.backward();                    // Backward pass (gradient calculation)
+      optimizer.step();                   // Optimizer step (parameter update)
+      epochLoss += loss.item<float>();    // Accumulate loss (use item() after the step)
     }
 
-    if(epoch % 10 == 0)
-      std::cout << "Epoch [" << epoch << "/" << numEpochs << "], Loss: " << epochLoss << std::endl;
-    if(epochLoss < mSettings.terminationEpsilon) {
+    if(epoch % 10 == 0) {
+      mLastEpoch = "Epoch [" + std::to_string(epoch) + "/" + std::to_string(numEpochs) + "], Loss: " + std::to_string(epochLoss);
+      std::cout << mLastEpoch << std::endl;
+    }
+    if(static_cast<double>(epochLoss) < mSettings.terminationEpsilon || mStopped) {
       break;
     }
   }
 
+  // ============================================
+  // Save model and meta
+  // ============================================
   torch::save(model, modelStoragePath.string());
+}
 
-  /*
-  torch::jit::Module mModel;
-mModel = torch::jit::load(modelStoragePath.string());*/
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void AnnMlpPyTorch::stopTraining()
+{
+  mStopped = true;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto AnnMlpPyTorch::getTrainingProgress() -> std::string
+{
+  return mLastEpoch;
 }
 
 }    // namespace joda::ml

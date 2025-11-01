@@ -12,13 +12,8 @@
 #include "pixel_classifier.hpp"
 #include <chrono>
 #include <stdexcept>
-#include "backend/commands/classification/pixel_classifier/machine_learning/ann_mlp/ann_mlp_cv.hpp"
-#include "backend/commands/classification/pixel_classifier/machine_learning/ann_mlp/ann_mlp_mlpack.hpp"
 #include "backend/commands/classification/pixel_classifier/machine_learning/ann_mlp/ann_mlp_pytorch.hpp"
-#include "backend/commands/classification/pixel_classifier/machine_learning/k_nearest/k_nearest_cv.hpp"
-#include "backend/commands/classification/pixel_classifier/machine_learning/k_nearest/k_nearest_mlpack.hpp"
 #include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning_settings.hpp"
-#include "backend/commands/classification/pixel_classifier/machine_learning/random_forest/random_forest_cv.hpp"
 #include "backend/commands/classification/pixel_classifier/machine_learning/random_forest/random_forest_mlpack.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_file_endians.hpp"
@@ -47,57 +42,51 @@ PixelClassifier::PixelClassifier(const settings::PixelClassifierSettings &settin
 /// \param[out]
 /// \return
 ///
+std::tuple<ml::ModelType, ml::Framework> PixelClassifier::fileEndianToModelType(const std::filesystem::path &absoluteModelPath)
+{
+  if(absoluteModelPath.filename().string().ends_with(joda::fs::MASCHINE_LEARNING_PYTORCH_ANN_MLP)) {
+    return {ml::ModelType::ANN_MLP, ml::Framework::PyTorch};
+  } else if(absoluteModelPath.string().ends_with(joda::fs::MASCHINE_LEARNING_MLPACK_RTREE)) {
+    return {ml::ModelType::RTrees, ml::Framework::MlPack};
+  }
+  return {ml::ModelType::Unknown, ml::Framework::Unknown};
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PixelClassifier::execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList & /*result*/)
 {
   // Load trained model
   const auto absoluteModelPath = std::filesystem::weakly_canonical(context.getWorkingDirectory() / mSettings.modelPath);
 
-  // Open the JSON file
-  std::ifstream file(absoluteModelPath.string());
-  if(!file.is_open()) {
-    return;
-  }
-
-  ml::MachineLearningSettings modelSettings;
-
-  if(absoluteModelPath.string().ends_with(joda::fs::MASCHINE_LEARNING_PYTORCH_JSON_MODEL)) {
-    modelSettings.modelTyp  = ml::ModelType::ANN_MLP;
-    modelSettings.framework = ml::Framework::PyTorch;
-  } else {
-    nlohmann::json json;
-    file >> json;
-    file.close();
-    modelSettings = json;
-  }
-
-  ml::MachineLearning *mlModel;
-  switch(modelSettings.modelTyp) {
+  auto [type, framework]       = fileEndianToModelType(absoluteModelPath);
+  ml::MachineLearning *mlModel = nullptr;
+  switch(type) {
     case ml::ModelType::RTrees:
-      if(modelSettings.framework == ml::Framework::OpenCv) {
-        mlModel = new ml::RandomForestCv(ml::RandomForestTrainingSettings{});
-      } else if(modelSettings.framework == ml::Framework::MlPack) {
+      if(framework == ml::Framework::MlPack) {
         mlModel = new ml::RandomForestMlPack(ml::RandomForestTrainingSettings{});
       }
       break;
     case ml::ModelType::ANN_MLP:
-      if(modelSettings.framework == ml::Framework::OpenCv) {
-        mlModel = new ml::AnnMlpCv(ml::AnnMlpTrainingSettings{});
-      } else if(modelSettings.framework == ml::Framework::MlPack) {
-        mlModel = new ml::AnnMlpMlPack(ml::AnnMlpTrainingSettings{});
-      } else if(modelSettings.framework == ml::Framework::PyTorch) {
+      if(framework == ml::Framework::PyTorch) {
         mlModel = new ml::AnnMlpPyTorch(ml::AnnMlpTrainingSettings{});
       }
       break;
     case ml::ModelType::KNearest:
-      if(modelSettings.framework == ml::Framework::OpenCv) {
-        mlModel = new ml::KNearestCv(ml::KNearestTrainingSettings{});
-      }
       break;
     default:
-      throw std::invalid_argument("Not supported model");
+      throw std::invalid_argument("Not supported model >" + absoluteModelPath.string() + "<");
+  }
+  if(nullptr == mlModel) {
+    throw std::invalid_argument("Not supported model >" + absoluteModelPath.string() + "<");
   }
 
-  mlModel->forward(absoluteModelPath, image, modelSettings);
+  mlModel->forward(absoluteModelPath, image);
 }
 
 ///
@@ -116,38 +105,58 @@ void PixelClassifier::train(const cv::Mat &image, const enums::TileInfo &tileInf
 
   cv::Mat trainSamples;
   cv::Mat labelList;
-  ml::MachineLearning *mlModel;
+  mTrainingModel.reset();
 
   switch(trainingSettings.modelType) {
     case ml::ModelType::RTrees:
       if(trainingSettings.framework == ml::Framework::MlPack) {
-        mlModel = new ml::RandomForestMlPack(modelSettings.randomForest);
-      } else if(trainingSettings.framework == ml::Framework::OpenCv) {
-        mlModel = new ml::RandomForestCv(modelSettings.randomForest);
+        mTrainingModel = std::make_unique<ml::RandomForestMlPack>(modelSettings.randomForest);
       }
       break;
     case ml::ModelType::ANN_MLP:
-      if(trainingSettings.framework == ml::Framework::MlPack) {
-        mlModel = new ml::AnnMlpMlPack(modelSettings.annMlp);
-      } else if(trainingSettings.framework == ml::Framework::OpenCv) {
-        mlModel = new ml::AnnMlpCv(modelSettings.annMlp);
-      } else if(trainingSettings.framework == ml::Framework::PyTorch) {
-        mlModel = new ml::AnnMlpPyTorch(modelSettings.annMlp);
+      if(trainingSettings.framework == ml::Framework::PyTorch) {
+        mTrainingModel = std::make_unique<ml::AnnMlpPyTorch>(modelSettings.annMlp);
       }
       break;
     case ml::ModelType::KNearest:
-      if(trainingSettings.framework == ml::Framework::MlPack) {
-        mlModel = new ml::KNearestMlPack(modelSettings.kNearest);
-      } else if(trainingSettings.framework == ml::Framework::OpenCv) {
-        mlModel = new ml::KNearestCv(modelSettings.kNearest);
-      }
       break;
     default:
       throw std::invalid_argument("Not supported model");
   }
+  if(nullptr == mTrainingModel) {
+    throw std::invalid_argument("Not supported model");
+  }
+  mTrainingModel->train(trainingSettings, image, tileInfo, result);
+  mTrainingModel.reset();
+}
 
-  mlModel->train(trainingSettings, image, tileInfo, result);
-  delete mlModel;
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PixelClassifier::stopTraining()
+{
+  if(nullptr != mTrainingModel) {
+    mTrainingModel->stopTraining();
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto PixelClassifier::getTrainingProgress() -> std::string
+{
+  if(nullptr != mTrainingModel) {
+    return mTrainingModel->getTrainingProgress();
+  }
+  return "";
 }
 
 }    // namespace joda::cmd

@@ -36,8 +36,7 @@ static inline std::string FILE_NAME_RESULTS_DATABASE = "results";
 static inline std::string FILE_NAME_ANNOTATIONS      = "annotations";
 static inline std::string FILE_NAME_image_meta       = "meta";
 
-static inline std::string MASCHINE_LEARNING_OPCEN_CV_XML_MODEL = ".icmlcv";
-static inline std::string MASCHINE_LEARNING_MLPACK_JSON_MODEL  = ".icmlmlp";
-static inline std::string MASCHINE_LEARNING_PYTORCH_JSON_MODEL = ".icmlpt";
+static inline std::string MASCHINE_LEARNING_PYTORCH_ANN_MLP = ".icmlmlppt";
+static inline std::string MASCHINE_LEARNING_MLPACK_RTREE    = ".icmlrtreemp";
 
 }    // namespace joda::fs

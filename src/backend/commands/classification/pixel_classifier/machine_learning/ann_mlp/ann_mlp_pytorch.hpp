@@ -20,19 +20,16 @@ class AnnMlpPyTorch : public AnnMlp
 public:
   /////////////////////////////////////////////////////
   using AnnMlp::AnnMlp;
-  void predict(const std::filesystem::path &path, const cv::Mat &image, const cv::Mat &features, cv::Mat &prediction,
-               const std::filesystem::path &modelStoragePath) override;
-  void train(const cv::Mat &trainSamples, const cv::Mat &trainLabels, int32_t nrOfClasses, const std::filesystem::path &modelStoragePath) override;
+  void predict(const std::filesystem::path &path, const cv::Mat &image, cv::Mat &prediction) override;
+  void train(const cv::Mat &trainSamples, const cv::Mat &trainLabels, int32_t nrOfClasses, const std::filesystem::path &modelStoragePath,
+             const MachineLearningSettings &settings) override;
+  void stopTraining() override;
+  auto getTrainingProgress() -> std::string override;
 
 private:
-  ModelType getModelType() override
-  {
-    return ModelType::ANN_MLP;
-  };
-  Framework getFramework() override
-  {
-    return Framework::MlPack;
-  };
+  /////////////////////////////////////////////////////
+  bool mStopped = false;
+  std::string mLastEpoch;
 };
 
 }    // namespace joda::ml

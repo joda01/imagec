@@ -51,6 +51,7 @@ enum class ModelType
 
 enum class Framework
 {
+  Unknown,
   OpenCv,
   MlPack,
   PyTorch
@@ -132,6 +133,13 @@ struct MachineLearningSettings
     }
   }
 };
+
+NLOHMANN_JSON_SERIALIZE_ENUM(Framework, {
+                                            {Framework::Unknown, "Unknown"},
+                                            {Framework::OpenCv, "OpenCv"},
+                                            {Framework::MlPack, "MlPack"},
+                                            {Framework::PyTorch, "PyTorch"},
+                                        });
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ModelType, {
                                             {ModelType::Unknown, "Unknown"},

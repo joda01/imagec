@@ -11,8 +11,9 @@
 
 #pragma once
 
+#include <memory>
 #include "backend/commands/classification/pixel_classifier/machine_learning/ann_mlp/ann_mlp_settings.hpp"
-#include "backend/commands/classification/pixel_classifier/machine_learning/k_nearest/k_nearest_settings.hpp"
+#include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning.hpp"
 #include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning_settings.hpp"
 #include "backend/commands/classification/pixel_classifier/machine_learning/random_forest/random_forest_settings.hpp"
 #include "backend/commands/command.hpp"
@@ -20,20 +21,12 @@
 #include "backend/processor/context/process_context.hpp"
 #include "pixel_classifier_settings.hpp"
 
-template <class T>
-concept CvModel_t =
-    std::is_base_of<cv::ml::RTrees, T>::value || std::is_base_of<cv::ml::NormalBayesClassifier, T>::value ||
-    std::is_base_of<cv::ml::KNearest, T>::value || std::is_base_of<cv::ml::SVM, T>::value || std::is_base_of<cv::ml::DTrees, T>::value ||
-    std::is_base_of<cv::ml::Boost, T>::value || std::is_base_of<cv::ml::ANN_MLP, T>::value || std::is_base_of<cv::ml::LogisticRegression, T>::value ||
-    std::is_base_of<cv::ml::SVMSGD, T>::value || std::is_base_of<cv::ml::EM, T>::value;
-
 namespace joda::cmd {
 
 struct TrainingsModelSettings
 {
   ml::RandomForestTrainingSettings randomForest;
   ml::AnnMlpTrainingSettings annMlp;
-  ml::KNearestTrainingSettings kNearest;
 };
 
 ///
@@ -50,10 +43,17 @@ public:
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
   static void train(const cv::Mat &image, const enums::TileInfo &tileInfo, const atom::ObjectList &result,
                     const ml::MachineLearningSettings &trainingSettings, const TrainingsModelSettings &modelSettings);
+  static void stopTraining();
+  static auto getTrainingProgress() -> std::string;
 
 private:
   /////////////////////////////////////////////////////
+  static std::tuple<ml::ModelType, ml::Framework> fileEndianToModelType(const std::filesystem::path &);
+
+  /////////////////////////////////////////////////////
   const settings::PixelClassifierSettings &mSettings;
+
+  static inline std::unique_ptr<ml::MachineLearning> mTrainingModel;
 };
 
 }    // namespace joda::cmd
