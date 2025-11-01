@@ -20,6 +20,7 @@
 #include <string>
 #include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning_settings.hpp"
 #include "backend/helper/duration_count/duration_count.h"
+#include "models/ann_mlp_model.hpp"
 #include <nlohmann/json_fwd.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
@@ -37,9 +38,10 @@ namespace joda::ml {
 void AnnMlpPyTorch::predict(const std::filesystem::path &path, const cv::Mat &image, const cv::Mat &features, cv::Mat &prediction,
                             const std::filesystem::path &modelStoragePath)
 {
-  // Load trained model
-  torch::nn::Sequential mModel;
-  torch::load(mModel, modelStoragePath.string());
+  MLPModel model{};
+  torch::load(model, modelStoragePath.string());
+
+  std::cout << "LOADED" << std::endl;
 
   // Convert features to float tensor
   cv::Mat temp;
@@ -59,12 +61,12 @@ void AnnMlpPyTorch::predict(const std::filesystem::path &path, const cv::Mat &im
     device = torch::Device(torch::kCUDA);
   }
   data = data.to(device);
-  mModel->to(device);
-  mModel->eval();
+  model->to(device);
+  model->eval();
 
   // Forward pass
   torch::NoGradGuard no_grad;
-  auto output = mModel->forward(data);
+  auto output = model->forward(data);
 
   // Get predicted class indices (argmax)
   auto predictions = std::get<1>(output.max(1));    // [num_samples]
@@ -106,21 +108,7 @@ void AnnMlpPyTorch::train(const ::cv::Mat &trainSamples, const ::cv::Mat &trainL
     labels[i] = trainLabels.at<int>(i, 0);
   }
 
-  // Define model (simple MLP)
-  torch::nn::Sequential model;
-  int inputSize = trainSamples.cols;
-
-  int prevSize = inputSize;
-  for(int neurons : mSettings.neuronsLayer) {
-    if(neurons > 0) {
-      model->push_back(torch::nn::Linear(prevSize, neurons));
-      model->push_back(torch::nn::ReLU());
-      prevSize = neurons;
-    }
-  }
-
-  // Output layer
-  model->push_back(torch::nn::Linear(prevSize, nrOfClasses));
+  auto model = MLPModel(trainSamples.cols, mSettings.neuronsLayer, nrOfClasses);
 
   // Move to device
   torch::Device device(torch::kCPU);
@@ -177,6 +165,10 @@ void AnnMlpPyTorch::train(const ::cv::Mat &trainSamples, const ::cv::Mat &trainL
   }
 
   torch::save(model, modelStoragePath.string());
+
+  /*
+  torch::jit::Module mModel;
+mModel = torch::jit::load(modelStoragePath.string());*/
 }
 
 }    // namespace joda::ml

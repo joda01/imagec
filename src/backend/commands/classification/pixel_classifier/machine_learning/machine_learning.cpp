@@ -12,6 +12,7 @@
 #include "machine_learning.hpp"
 #include <fstream>
 #include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning_settings.hpp"
+#include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 
 namespace joda::ml {
@@ -25,8 +26,14 @@ namespace joda::ml {
 ///
 void MachineLearning::forward(const std::filesystem::path &path, cv::Mat &image, const MachineLearningSettings &settings)
 {
+  auto featuresIn = settings.features;
+  if(!settings.outPath.filename().string().ends_with(joda::fs::MASCHINE_LEARNING_PYTORCH_JSON_MODEL)) {
+    featuresIn.emplace(TrainingFeatures::Intensity);
+    featuresIn.emplace(TrainingFeatures::Gaussian);
+  }
+
   // Load trained model
-  const cv::Mat features = extractFeatures(image, settings.features, getModelType() == ModelType::ANN_MLP);
+  const cv::Mat features = extractFeatures(image, featuresIn, getModelType() == ModelType::ANN_MLP);
   cv::Mat predFloat;    // output (H*W) x 1, CV_32F
   predict(path, image, features, predFloat, path);
 
@@ -61,7 +68,9 @@ void MachineLearning::train(const MachineLearningSettings &settings, const cv::M
                              getModelType() == ModelType::ANN_MLP);
 
   train(trainSamples, labelList, trainingClasses.size(), settings.outPath);
-  saveModel(settings.outPath, settings);
+  if(!settings.outPath.filename().string().ends_with(joda::fs::MASCHINE_LEARNING_PYTORCH_JSON_MODEL)) {
+    saveModel(settings.outPath, settings);
+  }
 }
 
 ///
