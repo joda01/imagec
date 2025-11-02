@@ -22,13 +22,15 @@ class AnnMlp : public MachineLearning
 {
 public:
   /////////////////////////////////////////////////////
-  AnnMlp(const AnnMlpTrainingSettings &settings) : mSettings(settings)
+  AnnMlp(const AnnMlpTrainingSettings &settings, const settings::PixelClassifierSettings *pxlClassSettings) :
+      mSettings(settings), mPixelClassifierSettings(pxlClassSettings)
   {
   }
 
 protected:
   /////////////////////////////////////////////////////
   AnnMlpTrainingSettings mSettings;
+  const settings::PixelClassifierSettings *mPixelClassifierSettings;
 };
 
 }    // namespace joda::ml

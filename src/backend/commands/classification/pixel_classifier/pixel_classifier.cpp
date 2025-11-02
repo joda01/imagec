@@ -69,12 +69,12 @@ void PixelClassifier::execute(processor::ProcessContext &context, cv::Mat &image
   switch(type) {
     case ml::ModelType::RTrees:
       if(framework == ml::Framework::MlPack) {
-        mlModel = new ml::RandomForestMlPack(ml::RandomForestTrainingSettings{});
+        mlModel = new ml::RandomForestMlPack(ml::RandomForestTrainingSettings{}, &mSettings);
       }
       break;
     case ml::ModelType::ANN_MLP:
       if(framework == ml::Framework::PyTorch) {
-        mlModel = new ml::AnnMlpPyTorch(ml::AnnMlpTrainingSettings{});
+        mlModel = new ml::AnnMlpPyTorch(ml::AnnMlpTrainingSettings{}, &mSettings);
       }
       break;
     case ml::ModelType::KNearest:
@@ -110,12 +110,12 @@ void PixelClassifier::train(const cv::Mat &image, const enums::TileInfo &tileInf
   switch(trainingSettings.modelTyp) {
     case ml::ModelType::RTrees:
       if(trainingSettings.framework == ml::Framework::MlPack) {
-        mTrainingModel = std::make_unique<ml::RandomForestMlPack>(modelSettings.randomForest);
+        mTrainingModel = std::make_unique<ml::RandomForestMlPack>(modelSettings.randomForest, nullptr);
       }
       break;
     case ml::ModelType::ANN_MLP:
       if(trainingSettings.framework == ml::Framework::PyTorch) {
-        mTrainingModel = std::make_unique<ml::AnnMlpPyTorch>(modelSettings.annMlp);
+        mTrainingModel = std::make_unique<ml::AnnMlpPyTorch>(modelSettings.annMlp, nullptr);
       }
       break;
     case ml::ModelType::KNearest:

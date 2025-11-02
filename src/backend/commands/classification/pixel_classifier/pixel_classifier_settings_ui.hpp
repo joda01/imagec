@@ -55,6 +55,7 @@ private:
   QWidget *mParent;
 
   /////////////////////////////////////////////////////
+  std::unique_ptr<SettingComboBox<settings::PixelClassifierSettings::GpuUsage>> mGpuMode;
   std::unique_ptr<SettingComboBoxString> mModelPath;
   QLabel *mModelDetails;
 };

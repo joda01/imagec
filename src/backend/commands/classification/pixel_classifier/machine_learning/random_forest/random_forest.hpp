@@ -22,13 +22,15 @@ class RandomForest : public MachineLearning
 {
 public:
   /////////////////////////////////////////////////////
-  RandomForest(const RandomForestTrainingSettings &settings) : mSettings(settings)
+  RandomForest(const RandomForestTrainingSettings &settings, const settings::PixelClassifierSettings *pxlClassSettings) :
+      mSettings(settings), mPixelClassifierSettings(pxlClassSettings)
   {
   }
 
 protected:
   /////////////////////////////////////////////////////
   RandomForestTrainingSettings mSettings;
+  const settings::PixelClassifierSettings *mPixelClassifierSettings;
 };
 
 }    // namespace joda::ml

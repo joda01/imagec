@@ -18,13 +18,26 @@ namespace joda::settings {
 
 struct PixelClassifierSettings : public SettingBase
 {
+  enum class GpuUsage
+  {
+    Auto,
+    CpuOnly
+  };
+
   std::string modelPath;
+
+  GpuUsage gpuUsage = GpuUsage::Auto;
 
   void check() const
   {
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PixelClassifierSettings, modelPath);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PixelClassifierSettings, modelPath, gpuUsage);
 };
+
+NLOHMANN_JSON_SERIALIZE_ENUM(PixelClassifierSettings::GpuUsage, {
+                                                                    {PixelClassifierSettings::GpuUsage::Auto, "Auto"},
+                                                                    {PixelClassifierSettings::GpuUsage::CpuOnly, "CPU"},
+                                                                });
 
 }    // namespace joda::settings

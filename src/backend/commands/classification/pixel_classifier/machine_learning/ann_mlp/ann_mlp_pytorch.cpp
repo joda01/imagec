@@ -12,6 +12,7 @@
 #include "ann_mlp_pytorch.hpp"
 #include <torch/serialize.h>
 #include <mutex>
+#include "backend/commands/classification/pixel_classifier/pixel_classifier_settings.hpp"
 
 #undef slots
 #include <torch/torch.h>
@@ -66,7 +67,7 @@ void AnnMlpPyTorch::predict(const std::filesystem::path &path, const cv::Mat &im
   // Move tensor to device
   // ============================================
   torch::Device device(torch::kCPU);
-  if(torch::cuda::is_available()) {
+  if(mPixelClassifierSettings->gpuUsage == joda::settings::PixelClassifierSettings::GpuUsage::Auto && torch::cuda::is_available()) {
     device = torch::Device(torch::kCUDA);
   }
   data = data.to(device);
