@@ -45,20 +45,23 @@ void ComputeTreeStats(const TreeType &node, size_t depth, size_t &maxDepth, size
     // Leaves store class probabilities; pick the max label index.
     if constexpr(requires(const TreeType &t) { t.ClassProbabilities(); }) {
       arma::vec probs = node.ClassProbabilities();
-      if(!probs.is_empty())
+      if(!probs.is_empty()) {
         observedClasses.insert(probs.index_max());
+      }
     }
 
-    if(depth > maxDepth)
+    if(depth > maxDepth) {
       maxDepth = depth;
+    }
     return;
   }
 
   if constexpr(requires(const TreeType &t) { t.SplitDimension(); })
     usedFeatures.insert(node.SplitDimension());
 
-  for(size_t i = 0; i < node.NumChildren(); ++i)
+  for(size_t i = 0; i < node.NumChildren(); ++i) {
     ComputeTreeStats(node.Child(i), depth + 1, maxDepth, nodeCount, leafCount, usedFeatures, observedClasses);
+  }
 }
 
 template <typename RFType>
