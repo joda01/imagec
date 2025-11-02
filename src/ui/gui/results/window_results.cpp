@@ -120,7 +120,6 @@ WindowResults::WindowResults(WindowMain *windowMain) : mWindowMain(windowMain), 
 
     connect(mGraphContainer.get(), &HeatmapWidget::onGraphDoubleClicked, [this](joda::table::TableCell cell) {
       std::lock_guard<std::mutex> lock(mLoadLock);
-
       openNextLevel({cell});
     });
     // connect(layout().getBackButton(), &QAction::triggered, [this] { mWindowMain->showPanelStartPage(); });
@@ -573,18 +572,29 @@ void WindowResults::refreshBreadCrump()
       mDockWidgetImagePreview->setFloating(false);
       mVideoControlButton->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
       break;
-    case Navigation::WELL:
+    case Navigation::WELL: {
       mBreadCrumpWell->setVisible(true);
       mBreadCrumpImage->setVisible(false);
       mOpenNextLevel->setVisible(true);
       mDockWidgetImagePreview->setFloating(false);
       mVideoControlButton->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
+      std::string groupName;
       if(mSelectedDataSet.groupMeta.has_value()) {
-        auto platePos = "Well (" + std::string(1, (static_cast<char>(mSelectedDataSet.groupMeta->posY - 1) + 'A')) +
-                        std::to_string(mSelectedDataSet.groupMeta->posX) + ")";
-        mBreadCrumpWell->setText(platePos.data());
+        groupName = "Well (" + std::string(1, (static_cast<char>(mSelectedDataSet.groupMeta->posY - 1) + 'A')) +
+                    std::to_string(mSelectedDataSet.groupMeta->posX) + ")";
       }
-      break;
+      if(mActGroupId.size() > 1) {
+        groupName = "";
+        for(auto groupId : mActGroupId) {
+          auto groupInfo = mAnalyzer->selectGroupInfo(groupId);
+          groupName += groupInfo.groupName + ",";
+        }
+        if(!groupName.empty()) {
+          groupName.erase(groupName.size() - 1);
+        }
+      }
+      mBreadCrumpWell->setText(groupName.data());
+    } break;
     case Navigation::IMAGE:
       mBreadCrumpWell->setVisible(true);
       mBreadCrumpImage->setVisible(true);
@@ -767,7 +777,7 @@ void WindowResults::refreshView()
                   ? joda::settings::DensityMapSettings::ElementForm::CIRCLE
                   : joda::settings::DensityMapSettings::ElementForm::RECTANGLE;
 
-  mFilter.setFilter({.plateId = 0, .groupId = static_cast<uint16_t>(mActGroupId), .imageId = mActImageId, .tStack = mVideoControlButton->value()},
+  mFilter.setFilter({.plateId = 0, .groupId = mActGroupId, .imageId = mActImageId, .tStack = mVideoControlButton->value()},
                     {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
                     {.form               = form,
                      .heatmapRangeMode   = mFilter.getDensityMapSettings().heatmapRangeMode,
@@ -799,13 +809,12 @@ void WindowResults::refreshView()
               // If there are no groups, switch directly to well view
               mNavigation                = Navigation::WELL;
               auto getID                 = mActListData->data(0, 0)->getId();
-              mActGroupId                = getID;
+              mActGroupId                = {static_cast<uint16_t>(getID)};
               mSelectedWellId            = getID;
               mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(getID);
-              mFilter.setFilter(
-                  {.plateId = 0, .groupId = static_cast<uint16_t>(mActGroupId), .imageId = mActImageId, .tStack = mVideoControlButton->value()},
-                  {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
-                  {.densityMapAreaSize = static_cast<int32_t>(mDockWidgetGraphSettings->getDensityMapSize())});
+              mFilter.setFilter({.plateId = 0, .groupId = mActGroupId, .imageId = mActImageId, .tStack = mVideoControlButton->value()},
+                                {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
+                                {.densityMapAreaSize = static_cast<int32_t>(mDockWidgetGraphSettings->getDensityMapSize())});
               goto REFRESH_VIEW;
             }
 
@@ -938,17 +947,12 @@ void WindowResults::setSelectedElement(table::TableCell value)
       mMarkAsInvalid->setEnabled(false);
 
       // Act data
-      auto platePos =
-          std::string(1, (static_cast<char>(mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX);
+      auto platePos = mSelectedDataSet.groupMeta->groupName;
       mSelectedRowInfo->setText(platePos.data());
     } break;
     case Navigation::WELL: {
-      if(!mSelectedDataSet.groupMeta.has_value()) {
-      }
-
       mSelectedImageId = value.getId();
       mSelectedDataSet.objectInfo.reset();
-
       auto imageInfo             = mAnalyzer->selectImageInfo(value.getId());
       mSelectedDataSet.imageMeta = imageInfo;
       mMarkAsInvalid->blockSignals(true);
@@ -962,8 +966,7 @@ void WindowResults::setSelectedElement(table::TableCell value)
       mMarkAsInvalid->setEnabled(true);
 
       // Act data
-      auto platePos = std::string(1, (static_cast<char>(mSelectedDataSet.groupMeta->posY - 1) + 'A')) +
-                      std::to_string(mSelectedDataSet.groupMeta->posX) + "/" + imageInfo.filename;
+      auto platePos = imageInfo.imageGroupName + "/" + imageInfo.filename;
       mSelectedRowInfo->setText(platePos.data());
     }
 
@@ -981,8 +984,7 @@ void WindowResults::setSelectedElement(table::TableCell value)
       if(mActImageId.size() > 1) {
         rowImageName = value.getRowName();
       }
-      auto platePos = std::string(1, (static_cast<char>(mSelectedDataSet.groupMeta->posY - 1) + 'A')) +
-                      std::to_string(mSelectedDataSet.groupMeta->posX) + "/" + rowImageName + "/" + std::to_string(value.getObjectId());
+      auto platePos = mSelectedDataSet.imageMeta->imageGroupName + "/" + rowImageName + "/" + std::to_string(value.getObjectId());
       mSelectedRowInfo->setText(platePos.data());
 
       loadPreview();
@@ -1013,7 +1015,11 @@ void WindowResults::openNextLevel(const std::vector<table::TableCell> &selectedR
       break;
     case Navigation::WELL:
       if(!selectedRows.empty()) {
-        mActGroupId = selectedRows.at(0).getId();
+        std::set<uint16_t> act;
+        for(const auto &row : selectedRows) {
+          act.emplace(row.getObjectId());
+        }
+        mActGroupId = act;
       } else {
         mNavigation = oldActMenu;
       }

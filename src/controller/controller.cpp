@@ -594,7 +594,7 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, const jod
                                                       .measuredChannels    = analyzer->selectMeasurementChannelsForClasses(),
                                                       .distanceFromClasses = analyzer->selectDistanceClassForClasses()});
   }
-  filter.setFilter(static_cast<uint8_t>(settings.filter.plateId), static_cast<uint16_t>(groupId), settings.filter.tStack, {imageId});
+  filter.setFilter(static_cast<uint8_t>(settings.filter.plateId), {static_cast<uint16_t>(groupId)}, settings.filter.tStack, {imageId});
 
   joda::log::logInfo("Export started!");
   auto grouping = db::StatsPerGroup::Grouping::BY_IMAGE;

@@ -200,6 +200,16 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
   auto [retValSum, retValCnt] = channelFilter.createIntersectionQuery();
   std::string intersect;
 
+  std::string queryGroupId = "(";
+  DbArgs_t args;
+  int i = 0;
+  for(auto groupId : filter.groupId) {
+    queryGroupId += (i > 0 ? ", $" + std::to_string(i + 1) : "$" + std::to_string(i + 1));
+    args.emplace_back(static_cast<uint16_t>(groupId));
+    i++;
+  }
+  queryGroupId += ")";
+
   if(!retValSum.empty()) {
     intersect =
         " WITH TblIntersecting as (\n"
@@ -240,7 +250,8 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
   if(filter.tStackHandling == settings::ResultsSettings::ObjectFilter::TStackHandling::INDIVIDUAL) {
     if(grouping == Grouping::BY_WELL) {
       sql += "WHERE\n";
-      sql += " t1.class_id=$1 AND images_groups.group_id=$2 AND stack_z=$3 AND stack_t=$4\n";
+      sql += " images_groups.group_id IN " + queryGroupId + " AND t1.class_id=$" + std::to_string(i + 1) + " AND stack_z=$" + std::to_string(i + 2) +
+             " AND stack_t=$" + std::to_string(i + 3) + "\n";
     } else {
       sql += "WHERE\n";
       sql += " t1.class_id=$1 AND stack_z=$2 AND stack_t=$3\n";
@@ -253,7 +264,8 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
   } else if(filter.tStackHandling == settings::ResultsSettings::ObjectFilter::TStackHandling::SLICE) {
     if(grouping == Grouping::BY_WELL) {
       sql += "WHERE\n";
-      sql += " t1.class_id=$1 AND images_groups.group_id=$2 AND stack_z=$3\n";
+      sql += " images_groups.group_id IN " + queryGroupId + " AND t1.class_id=$" + std::to_string(i + 1) + " AND stack_z=$" + std::to_string(i + 2) +
+             "\n";
     } else {
       sql += "WHERE\n";
       sql += " t1.class_id=$1 AND stack_z=$2\n";
@@ -300,16 +312,18 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
 
   if(filter.tStackHandling == settings::ResultsSettings::ObjectFilter::TStackHandling::INDIVIDUAL) {
     if(grouping == Grouping::BY_WELL) {
-      return {sql,
-              {static_cast<uint16_t>(classsAndClass.classs), static_cast<uint16_t>(filter.groupId), static_cast<int32_t>(classsAndClass.zStack),
-               static_cast<int32_t>(classsAndClass.tStack)}};
+      DbArgs_t argsEnd = {static_cast<uint16_t>(classsAndClass.classs), static_cast<int32_t>(classsAndClass.zStack),
+                          static_cast<int32_t>(classsAndClass.tStack)};
+      args.insert(args.end(), argsEnd.begin(), argsEnd.end());
+      return {sql, args};
     }
     return {sql,
             {static_cast<uint16_t>(classsAndClass.classs), static_cast<int32_t>(classsAndClass.zStack), static_cast<int32_t>(classsAndClass.tStack)}};
   } else if(filter.tStackHandling == settings::ResultsSettings::ObjectFilter::TStackHandling::SLICE) {
     if(grouping == Grouping::BY_WELL) {
-      return {sql,
-              {static_cast<uint16_t>(classsAndClass.classs), static_cast<uint16_t>(filter.groupId), static_cast<int32_t>(classsAndClass.zStack)}};
+      DbArgs_t argsEnd = {static_cast<uint16_t>(classsAndClass.classs), static_cast<int32_t>(classsAndClass.zStack)};
+      args.insert(args.end(), argsEnd.begin(), argsEnd.end());
+      return {sql, args};
     }
     return {sql, {static_cast<uint16_t>(classsAndClass.classs), static_cast<int32_t>(classsAndClass.zStack)}};
   }
