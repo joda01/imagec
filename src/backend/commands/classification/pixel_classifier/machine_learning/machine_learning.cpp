@@ -77,7 +77,9 @@ void MachineLearning::prepareTrainingDataFromROI(const cv::Mat &image, const enu
                                                  const atom::ObjectList &regionOfInterest, cv::Mat &trainSamples, cv::Mat &trainLabels,
                                                  const std::list<ImageCommandPipeline> &featuresSet, bool normalizeForMLP)
 {
+  // ====================================
   // Extract features
+  // ====================================
   cv::Mat features = extractFeatures(image, featuresSet, normalizeForMLP);
 
   // Collect training samples from labeled ROI mask
@@ -150,125 +152,17 @@ cv::Mat MachineLearning::extractFeatures(const cv::Mat &img, const std::list<Ima
 
   std::vector<cv::Mat> featureMaps;
 
+  // ====================================
+  // Execute feature extraction pipeline
+  // ====================================
   for(const auto &featurePipeline : features) {
-    cv::Mat featureMat = img.clone();
+    cv::Mat featureMat = gray.clone();
     for(const auto &step : featurePipeline.pipelineSteps) {
       step(featureMat);
     }
+    featureMaps.push_back(featureMat);
   }
 
-  /*
-
-    // --- Intensity ---
-    if(features.contains(TrainingFeatures::Intensity)) {
-      featureMaps.push_back(gray.clone());
-    }
-
-    // --- Gaussian smoothed ---
-    if(features.contains(TrainingFeatures::Gaussian)) {
-      cv::Mat gauss;
-      cv::GaussianBlur(gray, gauss, cv::Size(5, 5), 1.0);
-      featureMaps.push_back(gauss);
-    }
-
-    // --- Laplacian of Gaussian ---
-    if(features.contains(TrainingFeatures::LaplacianOfGaussian)) {
-      cv::Mat gauss;
-      cv::Mat log;
-      cv::GaussianBlur(gray, gauss, cv::Size(5, 5), 1.0);
-      cv::Laplacian(gauss, log, CV_32F, 3);
-      featureMaps.push_back(log);
-    }
-
-    // --- Weighted deviation (Gaussian-weighted std) ---
-    if(features.contains(TrainingFeatures::WeightedDeviation)) {
-      cv::Mat grayF;
-      cv::Mat mean;
-      cv::Mat meanSq;
-      cv::Mat stdWeighted;
-
-      // Convert to float to avoid overflow (16-bit * 16-bit can overflow)
-      gray.convertTo(grayF, CV_32F);
-
-      // Gaussian smoothing of image and squared image
-      cv::GaussianBlur(grayF, mean, cv::Size(5, 5), 1.0);
-      cv::GaussianBlur(grayF.mul(grayF), meanSq, cv::Size(5, 5), 1.0);
-
-      // Compute standard deviation: sqrt(E[x^2] - (E[x])^2)
-      cv::sqrt(meanSq - mean.mul(mean), stdWeighted);
-
-      featureMaps.push_back(stdWeighted);
-    }
-
-    // --- Gradient magnitude (Sobel) ---
-    if(features.contains(TrainingFeatures::GradientMagnitude)) {
-      cv::Mat gx;
-      cv::Mat gy;
-      cv::Mat mag;
-      cv::Sobel(gray, gx, CV_32F, 1, 0, 3);
-      cv::Sobel(gray, gy, CV_32F, 0, 1, 3);
-      cv::magnitude(gx, gy, mag);
-      featureMaps.push_back(mag);
-    }
-
-    // --- Structure tensor eigenvalues & coherence ---
-    if(features.contains(TrainingFeatures::StructureTensorEigenvalues) || features.contains(TrainingFeatures::StructureTensorCoherence)) {
-      cv::Mat gx;
-      cv::Mat gy;
-      cv::Sobel(gray, gx, CV_32F, 1, 0, 3);
-      cv::Sobel(gray, gy, CV_32F, 0, 1, 3);
-
-      cv::Mat Jxx = gx.mul(gx);
-      cv::Mat Jyy = gy.mul(gy);
-      cv::Mat Jxy = gx.mul(gy);
-
-      // Smooth tensor components
-      cv::GaussianBlur(Jxx, Jxx, cv::Size(5, 5), 1.0);
-      cv::GaussianBlur(Jyy, Jyy, cv::Size(5, 5), 1.0);
-      cv::GaussianBlur(Jxy, Jxy, cv::Size(5, 5), 1.0);
-
-      // Eigenvalues: λ1, λ2
-      cv::Mat tmp = (Jxx - Jyy).mul(Jxx - Jyy) + 4 * Jxy.mul(Jxy);
-      cv::sqrt(tmp, tmp);
-      cv::Mat l1 = 0.5 * (Jxx + Jyy + tmp);
-      cv::Mat l2 = 0.5 * (Jxx + Jyy - tmp);
-
-      if(features.contains(TrainingFeatures::StructureTensorEigenvalues)) {
-        featureMaps.push_back(l1);
-        featureMaps.push_back(l2);
-      }
-
-      if(features.contains(TrainingFeatures::StructureTensorCoherence)) {
-        cv::Mat coherence = (l1 - l2) / (l1 + l2 + 1e-6);
-        featureMaps.push_back(coherence);
-      }
-    }
-
-    // --- Hessian determinant & eigenvalues ---
-    if(features.contains(TrainingFeatures::HessianDeterminant) || features.contains(TrainingFeatures::HessianEigenvalues)) {
-      cv::Mat dxx;
-      cv::Mat dyy;
-      cv::Mat dxy;
-      cv::Sobel(gray, dxx, CV_32F, 2, 0, 3);
-      cv::Sobel(gray, dyy, CV_32F, 0, 2, 3);
-      cv::Sobel(gray, dxy, CV_32F, 1, 1, 3);
-
-      if(features.contains(TrainingFeatures::HessianDeterminant)) {
-        cv::Mat detH = dxx.mul(dyy) - dxy.mul(dxy);
-        featureMaps.push_back(detH);
-      }
-
-      if(features.contains(TrainingFeatures::HessianEigenvalues)) {
-        // Eigenvalues of Hessian
-        cv::Mat tmp = (dxx - dyy).mul(dxx - dyy) + 4 * dxy.mul(dxy);
-        cv::sqrt(tmp, tmp);
-        cv::Mat l1 = 0.5 * (dxx + dyy + tmp);
-        cv::Mat l2 = 0.5 * (dxx + dyy - tmp);
-        featureMaps.push_back(l1);
-        featureMaps.push_back(l2);
-      }
-    }
-  */
   // ---- Convert feature maps to feature matrix (pixels × features) ----
 
   // Stack into feature matrix

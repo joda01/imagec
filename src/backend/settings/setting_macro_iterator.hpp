@@ -300,12 +300,14 @@
 // #define JODA_SETTINGS_TO(v1) JODA_SETTINGS_j[#v1] = JODA_SETTINGS_t.v1;
 
 template <typename T>
-concept IsPrimitive_t = std::same_as<T, int> || std::same_as<T, uint32_t> || std::same_as<T, uint16_t> || std::same_as<T, float> ||
-                        std::same_as<T, bool> || std::is_enum<T>::value || std::same_as<T, std::string> || std::same_as<T, unsigned char>;
+concept IsPrimitive_t =
+    std::same_as<T, int> || std::same_as<T, uint32_t> || std::same_as<T, uint16_t> || std::same_as<T, float> || std::same_as<T, double> ||
+    std::same_as<T, bool> || std::is_enum<T>::value || std::same_as<T, std::string> || std::same_as<T, unsigned char>;
 
 template <typename T>
-concept IsBaseSetting_t = !(std::same_as<T, int> || std::same_as<T, uint32_t> || std::same_as<T, uint16_t> || std::same_as<T, float> ||
-                            std::same_as<T, bool> || std::is_enum<T>::value || std::same_as<T, std::string> || std::same_as<T, unsigned char>);
+concept IsBaseSetting_t =
+    !(std::same_as<T, int> || std::same_as<T, uint32_t> || std::same_as<T, uint16_t> || std::same_as<T, float> || std::same_as<T, double> ||
+      std::same_as<T, bool> || std::is_enum<T>::value || std::same_as<T, std::string> || std::same_as<T, unsigned char>);
 
 template <IsBaseSetting_t T>
 inline void toLog(const T &v1, auto &settingsParserLog)

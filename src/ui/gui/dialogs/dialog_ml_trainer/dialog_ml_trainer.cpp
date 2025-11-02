@@ -25,6 +25,10 @@
 #include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning_settings.hpp"
 #include "backend/commands/classification/pixel_classifier/pixel_classifier.hpp"
 #include "backend/commands/classification/pixel_classifier/pixel_classifier_settings.hpp"
+#include "backend/commands/image_functions/edge_detection_sobel/edge_detection_sobel_settings.hpp"
+#include "backend/commands/image_functions/laplacian/laplacian_settings.hpp"
+#include "backend/commands/image_functions/nop/nop_settings.hpp"
+#include "backend/commands/image_functions/weighted_deviation/weighted_deviation_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/enums/types.hpp"
@@ -89,15 +93,15 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
   // Features
   {
     mComboTrainingFeatures = new QComboBoxMulti();
-    mComboTrainingFeatures->addItem("Intensity", static_cast<int>(joda::ml::TrainingFeatures::Intensity));
-    mComboTrainingFeatures->addItem("Gaussian blur", static_cast<int>(joda::ml::TrainingFeatures::Gaussian));
-    mComboTrainingFeatures->addItem("Laplacian of Gaussian", static_cast<int>(joda::ml::TrainingFeatures::LaplacianOfGaussian));
-    mComboTrainingFeatures->addItem("Weighted deviation", static_cast<int>(joda::ml::TrainingFeatures::WeightedDeviation));
-    mComboTrainingFeatures->addItem("Gradient magnitude", static_cast<int>(joda::ml::TrainingFeatures::GradientMagnitude));
-    mComboTrainingFeatures->addItem("Structure tensor eigenvalues", static_cast<int>(joda::ml::TrainingFeatures::StructureTensorEigenvalues));
-    mComboTrainingFeatures->addItem("Structure tensor coherence", static_cast<int>(joda::ml::TrainingFeatures::StructureTensorCoherence));
-    mComboTrainingFeatures->addItem("Hessian determinant", static_cast<int>(joda::ml::TrainingFeatures::HessianDeterminant));
-    mComboTrainingFeatures->addItem("Hessian eigenvalues", static_cast<int>(joda::ml::TrainingFeatures::HessianEigenvalues));
+    mComboTrainingFeatures->addItem("Intensity", static_cast<int>(TrainingFeatures::Intensity));
+    mComboTrainingFeatures->addItem("Gaussian blur", static_cast<int>(TrainingFeatures::Gaussian));
+    mComboTrainingFeatures->addItem("Laplacian of Gaussian", static_cast<int>(TrainingFeatures::LaplacianOfGaussian));
+    mComboTrainingFeatures->addItem("Weighted deviation", static_cast<int>(TrainingFeatures::WeightedDeviation));
+    mComboTrainingFeatures->addItem("Gradient magnitude", static_cast<int>(TrainingFeatures::GradientMagnitude));
+    mComboTrainingFeatures->addItem("Structure tensor eigenvalues", static_cast<int>(TrainingFeatures::StructureTensorEigenvalues));
+    mComboTrainingFeatures->addItem("Structure tensor coherence", static_cast<int>(TrainingFeatures::StructureTensorCoherence));
+    mComboTrainingFeatures->addItem("Hessian determinant", static_cast<int>(TrainingFeatures::HessianDeterminant));
+    mComboTrainingFeatures->addItem("Hessian eigenvalues", static_cast<int>(TrainingFeatures::HessianEigenvalues));
 
     auto *trainingSettingsMeta = new QHBoxLayout;
     trainingSettingsMeta->addWidget(mComboTrainingFeatures);
@@ -108,8 +112,7 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
     trainingSettingsMeta->setStretch(0, 1);    // Make label take all available space
     layout->addRow("Features", trainingSettingsMeta);
 
-    mComboTrainingFeatures->setCheckedItems(
-        {static_cast<int>(joda::ml::TrainingFeatures::Intensity), static_cast<int>(joda::ml::TrainingFeatures::Gaussian)});
+    mComboTrainingFeatures->setCheckedItems({static_cast<int>(TrainingFeatures::Intensity), static_cast<int>(TrainingFeatures::Gaussian)});
   }
 
   {
@@ -299,24 +302,17 @@ void DialogMlTrainer::startTraining()
     }
 
     if(classesToTrainMapping.size() > 1) {
-      std::set<joda::ml::TrainingFeatures> features;
-
-      const auto &items = mComboTrainingFeatures->getCheckedItems();
-      for(const auto &item : items) {
-        features.emplace(static_cast<joda::ml::TrainingFeatures>(item.first.toInt()));
-      }
-
-      if(features.empty()) {
+      buildFeatureExtractionPipeline();
+      if(mTrainerSettings.featureExtractionPipelines.empty()) {
         emit trainingFinished(false, "At least one feature must be selected!");
         return;
       }
 
       mTrainerSettings.modelTyp = modelType;
       mTrainerSettings.toClassesLabels(classesToTrainMapping);
-      mTrainerSettings.trainingFeatures = features;
-      mTrainerSettings.outPath          = modelPath;
-      mTrainerSettings.categoryToTrain  = static_cast<joda::atom::ROI::Category>(mRoiSource->currentData().toInt());
-      mTrainerSettings.framework        = framework;
+      mTrainerSettings.outPath         = modelPath;
+      mTrainerSettings.categoryToTrain = static_cast<joda::atom::ROI::Category>(mRoiSource->currentData().toInt());
+      mTrainerSettings.framework       = framework;
       try {
         joda::cmd::PixelClassifier::train(*mImagePanel->mutableImage()->getOriginalImage(), mImagePanel->getTileInfo(), *mObjectMap, mTrainerSettings,
                                           mModelSettings);
@@ -331,6 +327,158 @@ void DialogMlTrainer::startTraining()
     emit trainingFinished(true, "");
     emit triggerPreviewUpdate();
   });
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void DialogMlTrainer::buildFeatureExtractionPipeline()
+{
+  std::set<TrainingFeatures> features;
+
+  const auto &items = mComboTrainingFeatures->getCheckedItems();
+  for(const auto &item : items) {
+    features.emplace(static_cast<TrainingFeatures>(item.first.toInt()));
+  }
+
+  mTrainerSettings.featureExtractionPipelines.clear();
+
+  // ====================================
+  // Build extraction pipeline
+  // ====================================
+
+  // --- Intensity ---
+  if(features.contains(TrainingFeatures::Intensity)) {
+    ml::ImageCommandPipeline cmds;
+    {
+      joda::settings::NopSettings nop;
+      nop.repeat = 0;
+      cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$nop = nop});
+    }
+    mTrainerSettings.featureExtractionPipelines.push_back(cmds);
+  }
+
+  // --- Gaussian smoothed ---
+  if(features.contains(TrainingFeatures::Gaussian)) {
+    ml::ImageCommandPipeline cmds;
+    {
+      joda::settings::BlurSettings blur;
+      blur.mode       = joda::settings::BlurSettings::Mode::GAUSSIAN;
+      blur.kernelSize = 5;
+      blur.repeat     = 1;
+      cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$blur = blur});
+    }
+    mTrainerSettings.featureExtractionPipelines.push_back(cmds);
+  }
+
+  // --- Laplacian of Gaussian ---
+  if(features.contains(TrainingFeatures::LaplacianOfGaussian)) {
+    ml::ImageCommandPipeline cmds;
+    {
+      joda::settings::BlurSettings blur;
+      blur.mode       = joda::settings::BlurSettings::Mode::GAUSSIAN;
+      blur.kernelSize = 5;
+      blur.repeat     = 1;
+      cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$blur = blur});
+    }
+    {
+      joda::settings::LaplacianSettings laplace;
+      laplace.kernelSize = 3;
+      laplace.repeat     = 1;
+      cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$laplacian = laplace});
+    }
+    mTrainerSettings.featureExtractionPipelines.push_back(cmds);
+  }
+
+  // --- Weighted deviation (Gaussian-weighted std) ---
+  if(features.contains(TrainingFeatures::WeightedDeviation)) {
+    ml::ImageCommandPipeline cmds;
+    {
+      joda::settings::WeightedDeviationSettings weightedDev;
+      weightedDev.kernelSize = 5;
+      weightedDev.sigma      = 1;
+      cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$gaussianWeightedDev = weightedDev});
+    }
+    mTrainerSettings.featureExtractionPipelines.push_back(cmds);
+  }
+
+  // --- Gradient magnitude (Sobel) ---
+  if(features.contains(TrainingFeatures::GradientMagnitude)) {
+    ml::ImageCommandPipeline cmds;
+    {
+      joda::settings::EdgeDetectionSobelSettings gradientMag;
+      gradientMag.kernelSize       = 5;
+      gradientMag.derivativeOrderX = 1;
+      gradientMag.derivativeOrderY = 1;
+      gradientMag.weighFunction    = joda::settings::EdgeDetectionSobelSettings::WeightFunction::MAGNITUDE;
+
+      cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$sobel = gradientMag});
+    }
+    mTrainerSettings.featureExtractionPipelines.push_back(cmds);
+  }
+
+  /*
+  // --- Structure tensor eigenvalues & coherence ---
+  if(features.contains(TrainingFeatures::StructureTensorEigenvalues) || features.contains(TrainingFeatures::StructureTensorCoherence)) {
+    cv::Mat gx;
+    cv::Mat gy;
+    cv::Sobel(gray, gx, CV_32F, 1, 0, 3);
+    cv::Sobel(gray, gy, CV_32F, 0, 1, 3);
+
+    cv::Mat Jxx = gx.mul(gx);
+    cv::Mat Jyy = gy.mul(gy);
+    cv::Mat Jxy = gx.mul(gy);
+
+    // Smooth tensor components
+    cv::GaussianBlur(Jxx, Jxx, cv::Size(5, 5), 1.0);
+    cv::GaussianBlur(Jyy, Jyy, cv::Size(5, 5), 1.0);
+    cv::GaussianBlur(Jxy, Jxy, cv::Size(5, 5), 1.0);
+
+    // Eigenvalues: λ1, λ2
+    cv::Mat tmp = (Jxx - Jyy).mul(Jxx - Jyy) + 4 * Jxy.mul(Jxy);
+    cv::sqrt(tmp, tmp);
+    cv::Mat l1 = 0.5 * (Jxx + Jyy + tmp);
+    cv::Mat l2 = 0.5 * (Jxx + Jyy - tmp);
+
+    if(features.contains(TrainingFeatures::StructureTensorEigenvalues)) {
+      featureMaps.push_back(l1);
+      featureMaps.push_back(l2);
+    }
+
+    if(features.contains(TrainingFeatures::StructureTensorCoherence)) {
+      cv::Mat coherence = (l1 - l2) / (l1 + l2 + 1e-6);
+      featureMaps.push_back(coherence);
+    }
+  }
+
+  // --- Hessian determinant & eigenvalues ---
+  if(features.contains(TrainingFeatures::HessianDeterminant) || features.contains(TrainingFeatures::HessianEigenvalues)) {
+    cv::Mat dxx;
+    cv::Mat dyy;
+    cv::Mat dxy;
+    cv::Sobel(gray, dxx, CV_32F, 2, 0, 3);
+    cv::Sobel(gray, dyy, CV_32F, 0, 2, 3);
+    cv::Sobel(gray, dxy, CV_32F, 1, 1, 3);
+
+    if(features.contains(TrainingFeatures::HessianDeterminant)) {
+      cv::Mat detH = dxx.mul(dyy) - dxy.mul(dxy);
+      featureMaps.push_back(detH);
+    }
+
+    if(features.contains(TrainingFeatures::HessianEigenvalues)) {
+      // Eigenvalues of Hessian
+      cv::Mat tmp = (dxx - dyy).mul(dxx - dyy) + 4 * dxy.mul(dxy);
+      cv::sqrt(tmp, tmp);
+      cv::Mat l1 = 0.5 * (dxx + dyy + tmp);
+      cv::Mat l2 = 0.5 * (dxx + dyy - tmp);
+      featureMaps.push_back(l1);
+      featureMaps.push_back(l2);
+    }
+  }*/
 }
 
 ///

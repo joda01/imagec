@@ -28,15 +28,18 @@
 #include "backend/commands/image_functions/image_math/image_math_settings.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
 #include "backend/commands/image_functions/intensity/intensity_settings.hpp"
+#include "backend/commands/image_functions/laplacian/laplacian_settings.hpp"
 #include "backend/commands/image_functions/margin_crop/margin_crop_settings.hpp"
 #include "backend/commands/image_functions/median_substraction/median_substraction_settings.hpp"
 #include "backend/commands/image_functions/morphological_transformation/morphological_transformation_settings.hpp"
+#include "backend/commands/image_functions/nop/nop_settings.hpp"
 #include "backend/commands/image_functions/rank_filter/rank_filter_settings.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
 #include "backend/commands/image_functions/skeletonize/skeletonize_settings.hpp"
 #include "backend/commands/image_functions/threshold/threshold_settings.hpp"
 #include "backend/commands/image_functions/threshold_adaptive/threshold_adaptive_settings.hpp"
 #include "backend/commands/image_functions/watershed/watershed_settings.hpp"
+#include "backend/commands/image_functions/weighted_deviation/weighted_deviation_settings.hpp"
 #include "backend/commands/object_functions/colocalization/colocalization_settings.hpp"
 #include "backend/commands/object_functions/measure_distance/measure_distance_settings.hpp"
 #include "backend/commands/object_functions/measure_intensity/measure_intensity_settings.hpp"
@@ -95,6 +98,9 @@ public:
   std::optional<EnhanceContrastSettings> $enhanceContrast               = std::nullopt;
   std::optional<RankFilterSettings> $rank                               = std::nullopt;
   std::optional<SkeletonizeSettings> $skeletonize                       = std::nullopt;
+  std::optional<LaplacianSettings> $laplacian                           = std::nullopt;
+  std::optional<WeightedDeviationSettings> $gaussianWeightedDev         = std::nullopt;
+  std::optional<NopSettings> $nop                                       = std::nullopt;
 
   // Object commands
   std::optional<ImageCacheSettings> $imageToCache               = std::nullopt;
@@ -126,7 +132,7 @@ public:
                                                        $medianSubtract, $sobel, $canny, $crop, $voronoi, $thresholdValidator, $noiseValidator,
                                                        $intensityTransform, $colorFilter, $objectsToImage, $imageMath, $objectTransform,
                                                        $imageToCache, $morphologicalTransform, $fillHoles, $houghTransform, $enhanceContrast, $rank,
-                                                       $skeletonize, $pixelClassify, disabled, locked);
+                                                       $skeletonize, $pixelClassify, $laplacian, $gaussianWeightedDev, $nop, disabled, locked);
 };
 
 }    // namespace joda::settings

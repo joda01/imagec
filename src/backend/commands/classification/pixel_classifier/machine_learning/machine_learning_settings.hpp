@@ -22,19 +22,6 @@
 
 namespace joda::ml {
 
-enum class TrainingFeatures
-{
-  Intensity,
-  Gaussian,
-  LaplacianOfGaussian,
-  WeightedDeviation,
-  GradientMagnitude,
-  StructureTensorEigenvalues,
-  StructureTensorCoherence,
-  HessianDeterminant,
-  HessianEigenvalues
-};
-
 enum class ModelType
 {
   Unknown,
@@ -118,11 +105,6 @@ struct MachineLearningSettings
   std::filesystem::path outPath;
 
   //
-  // Features to use for training based on the selected feature the trainings pipelines are created
-  //
-  std::set<TrainingFeatures> trainingFeatures;
-
-  //
   // Just a placeholder
   //
   nlohmann::json model;
@@ -165,15 +147,5 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ModelType, {
                                             {ModelType::EM, "EM"},
                                             {ModelType::LogisticRegression, "LogisticRegression"},
                                         });
-
-NLOHMANN_JSON_SERIALIZE_ENUM(TrainingFeatures, {{TrainingFeatures::Intensity, "Intensity"},
-                                                {TrainingFeatures::Gaussian, "Gaussian"},
-                                                {TrainingFeatures::LaplacianOfGaussian, "LaplacianOfGaussian"},
-                                                {TrainingFeatures::WeightedDeviation, "WeightedDeviation"},
-                                                {TrainingFeatures::GradientMagnitude, "GradientMagnitude"},
-                                                {TrainingFeatures::StructureTensorEigenvalues, "StructureTensorEigenvalues"},
-                                                {TrainingFeatures::StructureTensorCoherence, "StructureTensorCoherence"},
-                                                {TrainingFeatures::HessianDeterminant, "HessianDeterminant"},
-                                                {TrainingFeatures::HessianEigenvalues, "HessianEigenvalues"}});
 
 }    // namespace joda::ml

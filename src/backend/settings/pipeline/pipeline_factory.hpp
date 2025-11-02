@@ -50,6 +50,8 @@
 #include "backend/commands/image_functions/image_saver/image_saver_settings_ui.hpp"
 #include "backend/commands/image_functions/intensity/intensity.hpp"
 #include "backend/commands/image_functions/intensity/intensity_settings_ui.hpp"
+#include "backend/commands/image_functions/laplacian/laplacian.hpp"
+#include "backend/commands/image_functions/laplacian/laplacian_settings_ui.hpp"
 #include "backend/commands/image_functions/margin_crop/margin_crop.hpp"
 #include "backend/commands/image_functions/margin_crop/margin_crop_settings.hpp"
 #include "backend/commands/image_functions/median_substraction/median_substraction.hpp"
@@ -97,7 +99,7 @@ concept command_t = std::is_base_of<joda::cmd::Command, T>::value || std::is_bas
 
 #define REGISTER_COMMAND(COMMAND, NAME)                                                                                                        \
   if constexpr((std::is_same<cmd::ImageProcessingCommand, RET>::value && std::is_same<cmd::ImageProcessingCommand, joda::cmd::NAME>::value) || \
-               std::is_same<cmd::Command, RET>::value) {                                                                                       \
+               std::is_same<cmd::Command, RET>::value || std::is_base_of<joda::ui::gui::Command, RET>::value) {                                \
     if(step.$##COMMAND) {                                                                                                                      \
       if constexpr(std::is_same<joda::cmd::ImageProcessingCommand, RET>::value) {                                                              \
         return std::make_unique<joda::cmd::FactoryImg<joda::cmd::NAME, NAME##Settings>>(step.$##COMMAND.value());                              \
@@ -121,7 +123,7 @@ class PipelineFactory
 public:
   static std::unique_ptr<RET> generate(joda::settings::AnalyzeSettings *analyzeSettings, const settings::PipelineStep &step,
                                        QWidget *parent = nullptr)
-    requires std::is_base_of<joda::ui::gui::Command, RET>::value
+    requires std::is_same<joda::ui::gui::Command, RET>::value
   {
     return generateIntern<RET>(analyzeSettings, step, parent);
   }
@@ -132,7 +134,7 @@ public:
     return generateIntern<joda::cmd::CommandFactory>(nullptr, step, parent);
   }
 
-  static std::unique_ptr<joda::cmd::ImageCommandFactory> generate(const settings::PipelineStep &step, QWidget *parent = nullptr)
+  static std::unique_ptr<joda::cmd::ImageCommandFactory> generateImageCommand(const settings::PipelineStep &step, QWidget *parent = nullptr)
     requires std::is_same<joda::cmd::ImageProcessingCommand, RET>::value
   {
     return generateIntern<joda::cmd::ImageCommandFactory>(nullptr, step, parent);
@@ -175,6 +177,8 @@ private:
     REGISTER_COMMAND(enhanceContrast, EnhanceContrast);
     REGISTER_COMMAND(rank, RankFilter);
     REGISTER_COMMAND(skeletonize, Skeletonize);
+    REGISTER_COMMAND(laplacian, Laplacian);
+
     //  REGISTER_COMMAND(crop, MarginCrop);
 
     /// \todo handle not supported commands

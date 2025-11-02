@@ -33,7 +33,8 @@ concept NumberOrString =
     std::same_as<T, int32_t> || std::same_as<T, uint32_t> || std::same_as<T, uint16_t> || std::same_as<T, float> || std::same_as<T, std::string>;
 
 template <typename T>
-concept Number_t = std::same_as<T, int> || std::same_as<T, uint32_t> || std::same_as<T, uint16_t> || std::same_as<T, float> || std::same_as<T, bool>;
+concept Number_t = std::same_as<T, int> || std::same_as<T, uint32_t> || std::same_as<T, uint16_t> || std::same_as<T, float> ||
+                   std::same_as<T, double> || std::same_as<T, bool>;
 
 template <typename T>
 concept NumberOrEnum_t = std::same_as<T, int> || std::same_as<T, uint32_t> || std::same_as<T, uint16_t> || std::same_as<T, float> ||

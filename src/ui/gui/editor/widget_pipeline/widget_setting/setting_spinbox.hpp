@@ -245,6 +245,12 @@ public:
       }
       return static_cast<VALUE_T>(mSpinBox->value());
     }
+    if constexpr(std::same_as<VALUE_T, double>) {
+      if(mSpinBox->text().isEmpty()) {
+        return -1;
+      }
+      return static_cast<VALUE_T>(mSpinBox->value());
+    }
     if constexpr(std::same_as<VALUE_T, std::string>) {
       return static_cast<VALUE_T>(mSpinBox->value());
     }
@@ -275,6 +281,13 @@ public:
       }
     }
     if constexpr(std::same_as<VALUE_T, float>) {
+      if(value >= 0) {
+        mSpinBox->setValue(value);
+      } else {
+        clear();
+      }
+    }
+    if constexpr(std::same_as<VALUE_T, double>) {
       if(value >= 0) {
         mSpinBox->setValue(value);
       } else {

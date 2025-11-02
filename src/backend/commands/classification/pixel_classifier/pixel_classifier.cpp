@@ -99,7 +99,7 @@ void PixelClassifier::execute(processor::ProcessContext &context, cv::Mat &image
 void PixelClassifier::train(const cv::Mat &image, const enums::TileInfo &tileInfo, const atom::ObjectList &result,
                             const ml::MachineLearningSettings &trainingSettings, const TrainingsModelSettings &modelSettings)
 {
-  if(trainingSettings.trainingFeatures.empty()) {
+  if(trainingSettings.featureExtractionPipelines.empty()) {
     throw std::invalid_argument("At least one feature must be selected!");
   }
 

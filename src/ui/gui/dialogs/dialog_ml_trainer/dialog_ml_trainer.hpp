@@ -60,10 +60,24 @@ protected:
   int32_t getSelectedPixelClass() const;
 
 private:
+  enum class TrainingFeatures
+  {
+    Intensity,
+    Gaussian,
+    LaplacianOfGaussian,
+    WeightedDeviation,
+    GradientMagnitude,
+    StructureTensorEigenvalues,
+    StructureTensorCoherence,
+    HessianDeterminant,
+    HessianEigenvalues
+  };
+
   /////////////////////////////////////////////////////
   void startTraining();
   void stopTraining();
   void setInProgress(bool);
+  void buildFeatureExtractionPipeline();
 
   /////////////////////////////////////////////////////
   PanelImageView *mImagePanel;
