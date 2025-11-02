@@ -80,12 +80,13 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
         auto imgGroupIdx = materializedResult->GetValue(columnNr + 1, row).GetValue<uint32_t>();
         auto platePosX   = materializedResult->GetValue(columnNr + 2, row).GetValue<uint32_t>();
         auto platePosY   = materializedResult->GetValue(columnNr + 3, row).GetValue<uint32_t>();
-        auto filename    = materializedResult->GetValue(columnNr + 4, row).GetValue<std::string>();
-        auto imageId     = materializedResult->GetValue(columnNr + 5, row).GetValue<uint64_t>();
-        auto validity    = materializedResult->GetValue(columnNr + 6, row).GetValue<uint64_t>();
-        auto tStack      = materializedResult->GetValue(columnNr + 7, row).GetValue<uint32_t>();
+        auto groupName   = materializedResult->GetValue(columnNr + 4, row).GetValue<std::string>();
+        auto filename    = materializedResult->GetValue(columnNr + 5, row).GetValue<std::string>();
+        auto imageId     = materializedResult->GetValue(columnNr + 6, row).GetValue<uint64_t>();
+        auto validity    = materializedResult->GetValue(columnNr + 7, row).GetValue<uint64_t>();
+        auto tStack      = materializedResult->GetValue(columnNr + 8, row).GetValue<uint32_t>();
         size_t rowIdx    = row;
-        std::string colC;
+        // std::string colC;
         if(grouping == Grouping::BY_WELL) {
           // It could be that there are classes without data, but we have to keep the row order, else the data would be shown shifted and beside a
           // wrong image
@@ -104,16 +105,16 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
             rowIdx = static_cast<size_t>(findMaxRowIdx()) + 1;
             rowIndexes.emplace(stdi::uint128_t{groupId, tStack}, rowIdx);
           }
-          colC = std::string(1, (static_cast<char>(platePosY - 1) + 'A')) + std::to_string(platePosX);
+          //  colC = std::string(1, (static_cast<char>(platePosY - 1) + 'A')) + std::to_string(platePosX);
         }
 
         std::string fileNameTmp;
         if(grouping == Grouping::BY_WELL) {
-          fileNameTmp = "t=" + std::to_string(tStack) + " " + filename;
+          fileNameTmp = filename + " t(" + std::to_string(tStack) + ")";
           classesToExport.setRowID(classs, statement.getColNames(), static_cast<int32_t>(rowIdx), fileNameTmp, imageId);
         } else {
-          fileNameTmp = "t=" + std::to_string(tStack) + " " + colC;
-          classesToExport.setRowID(classs, statement.getColNames(), static_cast<int32_t>(rowIdx), colC, groupId);
+          fileNameTmp = groupName + " t(" + std::to_string(tStack) + ")";
+          classesToExport.setRowID(classs, statement.getColNames(), static_cast<int32_t>(rowIdx), fileNameTmp, groupId);
         }
 
         for(int32_t colIdxI = 0; colIdxI < static_cast<int32_t>(columnNr); colIdxI++) {
@@ -221,6 +222,7 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
                     "	ANY_VALUE(images_groups.image_group_idx) as image_group_idx,\n"
                     "	ANY_VALUE(groups.pos_on_plate_x) as pos_on_plate_x,\n"
                     "	ANY_VALUE(groups.pos_on_plate_y) as pos_on_plate_y,\n"
+                    "	ANY_VALUE(groups.name) as group_name,\n"
                     "	ANY_VALUE(images.file_name) as file_name,\n"
                     "	ANY_VALUE(images.image_id) as image_id,\n"
                     "	MAX(images.validity) as validity,\n"
@@ -270,6 +272,7 @@ auto StatsPerGroup::toSQL(const db::ResultingTable::QueryKey &classsAndClass, co
            " ANY_VALUE(imageGrouped.image_group_idx) as image_group_idx,\n"
            " ANY_VALUE(imageGrouped.pos_on_plate_x) as pos_on_plate_x,\n"
            " ANY_VALUE(imageGrouped.pos_on_plate_y) as pos_on_plate_y,\n"
+           " ANY_VALUE(imageGrouped.group_name) as group_name,\n"
            " ANY_VALUE(imageGrouped.file_name) as file_name,\n"
            " ANY_VALUE(imageGrouped.image_id) as image_id,\n"
            " MAX(imageGrouped.validity) as validity,\n"
