@@ -507,21 +507,11 @@ void Controller::stop()
 ///
 auto Controller::populateClassesFromImage(const joda::ome::OmeInfo &omeInfo, int32_t series) -> joda::settings::Classification
 {
-  std::map<std::string, std::vector<settings::ResultsTemplate>> templatePerType = {
-      {"spot",
-       std::vector<settings::ResultsTemplate>{
-           {settings::ResultsTemplate{.measureChannel = enums::Measurement::COUNT, .stats = {enums::Stats::OFF}}},
-           {settings::ResultsTemplate{.measureChannel = enums::Measurement::INTENSITY_AVG, .stats = {enums::Stats::SUM, enums::Stats::AVG}}},
-           {settings::ResultsTemplate{.measureChannel = enums::Measurement::INTENSITY_SUM, .stats = {enums::Stats::SUM, enums::Stats::AVG}}},
-           {settings::ResultsTemplate{.measureChannel = enums::Measurement::AREA_SIZE, .stats = {enums::Stats::SUM, enums::Stats::AVG}}}}},
-      {"nucleus", std::vector<settings::ResultsTemplate>{{settings::ResultsTemplate{.measureChannel = enums::Measurement::COUNT,
-                                                                                    .stats          = {enums::Stats::OFF}}}}},
-      {"cell", std::vector<settings::ResultsTemplate>{
-                   {settings::ResultsTemplate{.measureChannel = enums::Measurement::COUNT, .stats = {enums::Stats::OFF}}},
-                   {settings::ResultsTemplate{.measureChannel = enums::Measurement::INTERSECTING, .stats = {enums::Stats::OFF}}},
-                   {settings::ResultsTemplate{.measureChannel = enums::Measurement::INTENSITY_AVG, .stats = {enums::Stats::SUM, enums::Stats::AVG}}},
-                   {settings::ResultsTemplate{.measureChannel = enums::Measurement::INTENSITY_SUM, .stats = {enums::Stats::SUM, enums::Stats::AVG}}},
-                   {settings::ResultsTemplate{.measureChannel = enums::Measurement::AREA_SIZE, .stats = {enums::Stats::SUM, enums::Stats::AVG}}}}}};
+  const std::vector<settings::ResultsTemplate> measurements = std::vector<settings::ResultsTemplate>{
+      {settings::ResultsTemplate{.measureChannel = enums::Measurement::COUNT, .stats = {enums::Stats::OFF}}},
+      {settings::ResultsTemplate{.measureChannel = enums::Measurement::INTENSITY_AVG, .stats = {enums::Stats::SUM, enums::Stats::AVG}}},
+      {settings::ResultsTemplate{.measureChannel = enums::Measurement::INTENSITY_SUM, .stats = {enums::Stats::SUM, enums::Stats::AVG}}},
+      {settings::ResultsTemplate{.measureChannel = enums::Measurement::AREA_SIZE, .stats = {enums::Stats::SUM, enums::Stats::AVG}}}};
 
   const std::map<std::string, std::pair<std::string, std::string>> channelNameToColorMap = {
       {"dapi", {"#3399FF", "nucleus"}},    {"cfp", {"#33FFD1", "spot"}}, /*{"dpss", {"#??", "spot"}},*/ {"fitc", {"#66FF33", "spot"}},
@@ -535,31 +525,24 @@ auto Controller::populateClassesFromImage(const joda::ome::OmeInfo &omeInfo, int
   enums::ClassId actClass = enums::ClassId::C1;
   int colorIdx            = 0;
   for(const auto &[_, channelIn] : channels) {
-    auto addSubClass = [&actClass, &classes, &templatePerType](const std::string &channel, const std::string &subclass, const std::string &color) {
-      std::vector<settings::ResultsTemplate> measurements;
-      if(templatePerType.contains(subclass)) {
-        measurements = templatePerType.at(subclass);
-      }
-
-      classes.classes.push_back(joda::settings::Class{
-          .classId = actClass, .name = channel + "@" + subclass, .color = color, .notes = "", .defaultMeasurements = measurements});
+    auto addSubClass = [&actClass, &classes, &measurements](const std::string &channel, const std::string &color) {
+      classes.classes.push_back(
+          joda::settings::Class{.classId = actClass, .name = channel, .color = color, .notes = "", .defaultMeasurements = measurements});
       actClass = static_cast<enums::ClassId>((static_cast<uint16_t>(actClass)) + 1);
     };
     // auto waveLength         = channel.emissionWaveLength;
-    auto channelName        = helper::toLower(channelIn.name);
-    std::string color       = joda::settings::COLORS.at(static_cast<uint64_t>(colorIdx) % joda::settings::COLORS.size());
-    std::string channelType = "spot";
+    auto channelName  = helper::toLower(channelIn.name);
+    std::string color = joda::settings::COLORS.at(static_cast<uint64_t>(colorIdx) % joda::settings::COLORS.size());
     // Try to find the best matching
     for(const auto &[channelFluorophore, data] : channelNameToColorMap) {
       auto found = channelName.find(channelFluorophore);
       if(found != std::string::npos) {
-        color       = data.first;
-        channelType = data.second;
+        color = data.first;
         break;
       }
     }
 
-    addSubClass(channelName, channelType, color);
+    addSubClass(channelName, color);
   }
 
   return classes;
