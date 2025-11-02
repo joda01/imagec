@@ -143,6 +143,7 @@ PanelGraphSettings::PanelGraphSettings(QWidget *parent) : QDockWidget(parent)
       // Color map
       //
       static const std::vector<std::pair<QString, joda::plot::ColormapName>> items = {
+          {"ImageC Green-Red", joda::plot::ColormapName::IMAGEC_GREEN_RED},    //
           // {"Accent", joda::plot::ColormapName::ACCENT},
           // {"Blues", joda::plot::ColormapName::BLUES},
           // {"BrBG", joda::plot::ColormapName::BRBG},
