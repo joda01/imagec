@@ -166,7 +166,7 @@ void AnnMlpPyTorch::train(const ::cv::Mat &trainSamples, const ::cv::Mat &trainL
 
     if(epoch % 10 == 0) {
       mLastEpoch = "Epoch [" + std::to_string(epoch) + "/" + std::to_string(numEpochs) + "], Loss: " + std::to_string(epochLoss);
-      std::cout << mLastEpoch << std::endl;
+      // std::cout << mLastEpoch << std::endl;
     }
     if(static_cast<double>(epochLoss) < mSettings.terminationEpsilon || mStopped) {
       break;

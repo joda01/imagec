@@ -138,6 +138,7 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
   // Stop training
   {
     mButtonStopTraining = new QPushButton("Stop");
+    mButtonStopTraining->setVisible(false);
     connect(mButtonStopTraining, &QPushButton::pressed, [this]() { stopTraining(); });
     layout->addRow(mButtonStopTraining);
   }
@@ -149,6 +150,19 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
     mProgress->setMinimum(0);
     layout->addRow(mProgress);
     setInProgress(false);
+  }
+
+  {
+    mTrainingsLog = new QTextBrowser();
+    layout->addRow(mTrainingsLog);
+
+    mUpdateLogTimer = new QTimer(this);
+    QObject::connect(mUpdateLogTimer, &QTimer::timeout, [&]() {
+      // Update the text field with current time
+      QString currentTime = QDateTime::currentDateTime().toString("hh:mm:ss");
+      QString log         = joda::cmd::PixelClassifier::getTrainingProgress().data();
+      mTrainingsLog->append(log);
+    });
   }
 
   // Description
@@ -195,8 +209,16 @@ void DialogMlTrainer::onTrainingFinished(bool okay, QString message)
 ///
 void DialogMlTrainer::setInProgress(bool inProgress)
 {
-  mButtonStartTraining->setEnabled(!inProgress);
+  mButtonStartTraining->setVisible(!inProgress);
+  mButtonStopTraining->setVisible(inProgress);
   mProgress->setVisible(inProgress);
+  if(mUpdateLogTimer != nullptr) {
+    if(inProgress) {
+      mUpdateLogTimer->start(500);    // 1000 ms interval
+    } else {
+      mUpdateLogTimer->stop();
+    }
+  }
 }
 
 ///
@@ -259,7 +281,6 @@ void DialogMlTrainer::startTraining()
 
   std::filesystem::path modelPath = joda::ml::MlModelParser::getUsersMlModelDirectory(mAnalyzeSettings->getProjectPath()) / (modelFileName + endian);
 
-  std::cout << "Model path " << modelPath.string() << std::endl;
   if(std::filesystem::exists(modelPath)) {
     QMessageBox messageBox(this);
     auto icon = joda::ui::gui::generateSvgIcon<joda::ui::gui::Style::REGULAR, joda::ui::gui::Color::YELLOW>("warning-circle");
@@ -280,6 +301,7 @@ void DialogMlTrainer::startTraining()
   }
 
   setInProgress(true);
+  mTrainingsLog->clear();
   mTrainingsThread = std::make_unique<std::thread>([this, modelPath, framework, modelType]() {    //
     // At least one background annotation must be present
     //

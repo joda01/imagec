@@ -90,6 +90,9 @@ private:
   QProgressBar *mProgress;
   std::shared_ptr<atom::ObjectList> mObjectMap;
 
+  QTimer *mUpdateLogTimer = nullptr;
+  QTextBrowser *mTrainingsLog;
+
   joda::ml::MachineLearningSettings mTrainerSettings;
   joda::cmd::TrainingsModelSettings mModelSettings;
   std::unique_ptr<std::thread> mTrainingsThread;
