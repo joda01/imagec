@@ -24,12 +24,12 @@ namespace joda::cmd {
 /// \author     Joachim Danmayr
 /// \brief
 ///
-class FillHoles : public Command
+class FillHoles : public ImageProcessingCommand
 {
 public:
   /////////////////////////////////////////////////////
   FillHoles(const settings::FillHolesSettings &);
-  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
+  void execute(cv::Mat &image) override;
 
 private:
   /////////////////////////////////////////////////////

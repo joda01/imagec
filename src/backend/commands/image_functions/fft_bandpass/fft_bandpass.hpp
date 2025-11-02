@@ -24,12 +24,12 @@ namespace joda::cmd {
 /// \author     Joachim Danmayr
 /// \brief
 ///
-class FFTBandpass : public Command
+class FFTBandpass : public ImageProcessingCommand
 {
 public:
   /////////////////////////////////////////////////////
   FFTBandpass(const settings::FFTBandpassSettings &settings);
-  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
+  void execute(cv::Mat &image) override;
 
 private:
   void filter(cv::Mat &ip);

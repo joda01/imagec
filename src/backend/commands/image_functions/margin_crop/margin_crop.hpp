@@ -22,14 +22,14 @@ namespace joda::cmd {
 /// \author     Joachim Danmayr
 /// \brief      Base class for an image processing function
 ///
-class MarginCrop : public cmd::Command
+class MarginCrop : public cmd::ImageProcessingCommand
 {
 public:
   /////////////////////////////////////////////////////
   explicit MarginCrop(const settings::MarginCropSettings &setting) : mMarginSize(setting.marginSize)
   {
   }
-  void execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/) override
+  void execute(cv::Mat &image) override
   {
     // Calculate the new dimensions for the cropped image
     int newWidth  = image.cols - mMarginSize * 2;    // x pixels from each side

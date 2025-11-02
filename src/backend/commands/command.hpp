@@ -56,4 +56,15 @@ private:
   void postCommandStep(const processor::ProcessContext &context);
 };
 
+class ImageProcessingCommand : public Command
+{
+public:
+  void operator()(cv::Mat &image);
+  virtual void execute(cv::Mat &image) = 0;
+  void execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/) override
+  {
+    execute(image);
+  }
+};
+
 }    // namespace joda::cmd

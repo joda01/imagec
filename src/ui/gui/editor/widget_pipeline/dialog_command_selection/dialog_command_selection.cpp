@@ -215,7 +215,7 @@ void DialogCommandSelection::addCommandsToTable()
   {
     addTitleToTable("Output", Group::OUTPUT);
     addCommandToTable(settings::PipelineStep{.$saveImage = settings::ImageSaverSettings{}}, Group::OUTPUT);
-    addCommandToTable(settings::PipelineStep{.$imageFromClass = settings::ImageFromClassSettings{}}, Group::OUTPUT);
+    // addCommandToTable(settings::PipelineStep{.$imageFromClass = settings::ImageFromClassSettings{}}, Group::OUTPUT);
   }
 }
 

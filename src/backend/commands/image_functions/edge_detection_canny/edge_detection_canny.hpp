@@ -26,14 +26,14 @@ namespace joda::cmd {
 /// \author     Joachim Danmayr
 /// \brief      Base class for an image processing function
 ///
-class EdgeDetectionCanny : public Command
+class EdgeDetectionCanny : public ImageProcessingCommand
 {
 public:
   /////////////////////////////////////////////////////
   explicit EdgeDetectionCanny(const joda::settings::EdgeDetectionCannySettings &settings) : mSetting(settings)
   {
   }
-  void execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/) override
+  void execute(cv::Mat &image) override
   {
     canny(image);
   }

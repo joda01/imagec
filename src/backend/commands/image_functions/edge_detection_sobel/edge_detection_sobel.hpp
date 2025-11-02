@@ -26,14 +26,14 @@ namespace joda::cmd {
 /// \author     Joachim Danmayr
 /// \brief      Base class for an image processing function
 ///
-class EdgeDetectionSobel : public Command
+class EdgeDetectionSobel : public ImageProcessingCommand
 {
 public:
   /////////////////////////////////////////////////////
   explicit EdgeDetectionSobel(const joda::settings::EdgeDetectionSobelSettings &settings) : mSetting(settings)
   {
   }
-  void execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/) override
+  void execute(cv::Mat &image) override
   {
     if(mSetting.kernelSize > -1) {
       sobel(image);

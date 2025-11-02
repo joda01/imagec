@@ -51,7 +51,7 @@ void RandomForestMlPack::predict(const std::filesystem::path &path, const cv::Ma
   // ============================================
   // Extract features based on model settings
   // ============================================
-  const cv::Mat features = extractFeatures(image, modelSettings.features, true);
+  const cv::Mat features = extractFeatures(image, modelSettings.featureExtractionPipelines, true);
 
   // ============================================
   // Convert OpenCV Mat -> Armadillo matrix
@@ -121,12 +121,12 @@ void RandomForestMlPack::train(const cv::Mat &trainSamples, const cv::Mat &train
   mlpack::data::Save(modelStoragePath.string(), "model", model, true, mlpack::data::format::json);
 
   MachineLearningSettings parsed;
-  parsed.classLabels  = settings.classLabels;
-  parsed.features     = settings.features;
-  parsed.meta         = settings.meta;
-  parsed.modelTyp     = ModelType::RTrees;
-  parsed.framework    = Framework::MlPack;
-  nlohmann::json json = parsed;
+  parsed.classLabels                = settings.classLabels;
+  parsed.featureExtractionPipelines = settings.featureExtractionPipelines;
+  parsed.meta                       = settings.meta;
+  parsed.modelTyp                   = ModelType::RTrees;
+  parsed.framework                  = Framework::MlPack;
+  nlohmann::json json               = parsed;
   removeNullValues(json);
   std::string metaData = json.dump(2);
   if(!metaData.empty()) {

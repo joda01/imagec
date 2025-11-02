@@ -272,7 +272,7 @@ void EnhanceContrast::stretchHistogram(cv::Mat &ip, double saturated, cv::Mat &h
 /// \param[out]
 /// \return
 ///
-void EnhanceContrast::execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*resultIn*/)
+void EnhanceContrast::execute(cv::Mat &image)
 {
   //
   // Compute the histogram

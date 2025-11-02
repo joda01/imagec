@@ -22,7 +22,7 @@
 
 namespace joda::ui::gui {
 
-class RollingBallBackground : public Command
+class RollingBall : public Command
 {
 public:
   /////////////////////////////////////////////////////
@@ -31,8 +31,8 @@ public:
   inline static std::string DESCRIPTION       = "Remove image background.";
   inline static std::vector<std::string> TAGS = {"noise reduction", "background subtraction", "noise"};
 
-  RollingBallBackground(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep,
-                        settings::RollingBallSettings &settings, QWidget *parent) :
+  RollingBall(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, settings::RollingBallSettings &settings,
+              QWidget *parent) :
       Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::IMAGE}})
   {
     //

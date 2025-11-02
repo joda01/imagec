@@ -39,7 +39,7 @@ namespace joda::cmd {
 /// \author
 /// \return
 ///
-void RollingBallBackground::slidingParaboloidFloatBackground(cv::Mat &fp, float radiusIn, bool invert, bool doPresmooth, bool correctCorners) const
+void RollingBall::slidingParaboloidFloatBackground(cv::Mat &fp, float radiusIn, bool invert, bool doPresmooth, bool correctCorners) const
 {
   // float[] pixels   = (float[]) fp.getPixels();    // this will become the background
   int width        = fp.cols;
@@ -98,7 +98,7 @@ void RollingBallBackground::slidingParaboloidFloatBackground(cv::Mat &fp, float 
 /// \author
 /// \return
 ///
-void RollingBallBackground::filter1D(cv::Mat &fp, int direction, float coeff2, float *cache, int *nextPoint) const
+void RollingBall::filter1D(cv::Mat &fp, int direction, float coeff2, float *cache, int *nextPoint) const
 {
   int width     = fp.cols;
   int height    = fp.rows;
@@ -163,7 +163,7 @@ void RollingBallBackground::filter1D(cv::Mat &fp, int direction, float coeff2, f
         length = std::min(width, height - i);
         break;
     }
-    RollingBallBackground::lineSlideParabola(fp, startPixel, pointInc, length, coeff2, cache, nextPoint, nullptr);
+    RollingBall::lineSlideParabola(fp, startPixel, pointInc, length, coeff2, cache, nextPoint, nullptr);
   }
 }    // void filter1D
 
@@ -186,8 +186,8 @@ void RollingBallBackground::filter1D(cv::Mat &fp, int direction, float coeff2, f
 ///  @return          The correctedEdges array (if non-null on input) with the two estimated
 ///                   edge pixel values corrected for edge particles.
 ///
-float *RollingBallBackground::lineSlideParabola(cv::Mat &pixels, int start, int inc, int length, float coeff2, float *cache, int *nextPoint,
-                                                float *correctedEdges) const
+float *RollingBall::lineSlideParabola(cv::Mat &pixels, int start, int inc, int length, float coeff2, float *cache, int *nextPoint,
+                                      float *correctedEdges) const
 {
   float minValue      = FLT_MAX;
   int lastpoint       = 0;
@@ -287,7 +287,7 @@ float *RollingBallBackground::lineSlideParabola(cv::Mat &pixels, int start, int 
 ///        Analyzing the directions parallel to the edges and the diagonals, we
 ///        average over the 3 correction values (found for the 3 directions)
 ///
-void RollingBallBackground::correctCorners(cv::Mat &pixels, float coeff2, float *cache, int *nextPoint) const
+void RollingBall::correctCorners(cv::Mat &pixels, float coeff2, float *cache, int *nextPoint) const
 {
   int width            = pixels.cols;
   int height           = pixels.rows;

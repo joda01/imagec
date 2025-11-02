@@ -23,7 +23,7 @@
 
 namespace joda::ui::gui {
 
-class MedianSubtraction : public Command
+class MedianSubtract : public Command
 {
 public:
   /////////////////////////////////////////////////////
@@ -32,8 +32,8 @@ public:
   inline static std::string DESCRIPTION       = "Supress image background.";
   inline static std::vector<std::string> TAGS = {"noise reduction", "background subtraction", "noise"};
 
-  MedianSubtraction(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep,
-                    settings::MedianSubtractSettings &settings, QWidget *parent) :
+  MedianSubtract(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep,
+                 settings::MedianSubtractSettings &settings, QWidget *parent) :
       Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::IMAGE}})
   {
     mMedianBackgroundSubtraction = SettingBase::create<SettingComboBox<int32_t>>(parent, {}, "Median background subtraction");

@@ -24,12 +24,12 @@ namespace joda::cmd {
 /// \author     Joachim Danmayr
 /// \brief
 ///
-class MorphologicalTransform : public Command
+class MorphologicalTransform : public ImageProcessingCommand
 {
 public:
   /////////////////////////////////////////////////////
   MorphologicalTransform(const settings::MorphologicalTransformSettings &);
-  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
+  void execute(cv::Mat &image) override;
 
 private:
   /////////////////////////////////////////////////////

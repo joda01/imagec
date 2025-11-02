@@ -30,7 +30,7 @@ FillHoles::FillHoles(const settings::FillHolesSettings &settings) : mSettings(se
 {
 }
 
-void FillHoles::execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*resultIn*/)
+void FillHoles::execute(cv::Mat &image)
 {
   cv::Mat binaryImage(image.size(), CV_8UC1);
   image.convertTo(binaryImage, CV_8UC1);

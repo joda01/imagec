@@ -34,11 +34,11 @@ public:
 
 protected:
   /////////////////////////////////////////////////////
-  static cv::Mat extractFeatures(const cv::Mat &img, const std::set<TrainingFeatures> &features, bool normalizeForMLP);
+  static cv::Mat extractFeatures(const cv::Mat &img, const std::list<ImageCommandPipeline> &features, bool normalizeForMLP);
   static void prepareTrainingDataFromROI(const cv::Mat &image, const enums::TileInfo &tileInfo,
                                          const std::map<enums::ClassId, int32_t> &classesToTrain, joda::atom::ROI::Category categoryToTain,
                                          const atom::ObjectList &regionOfInterest, cv::Mat &trainSamples, cv::Mat &trainLabels,
-                                         const std::set<TrainingFeatures> &featuresSet, bool normalizeForMLP);
+                                         const std::list<ImageCommandPipeline> &featuresSet, bool normalizeForMLP);
 
 private:
   /////////////////////////////////////////////////////

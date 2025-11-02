@@ -28,7 +28,7 @@ MorphologicalTransform::MorphologicalTransform(const settings::MorphologicalTran
 {
 }
 
-void MorphologicalTransform::execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*resultIn*/)
+void MorphologicalTransform::execute(cv::Mat &image)
 {
   auto function = cv::MORPH_CLOSE;
   switch(mSettings.function) {

@@ -46,14 +46,14 @@ namespace joda::cmd {
 /// \author     Joachim Danmayr
 /// \brief      Representation of the rolling ball
 ///
-class RollingBall
+class RollingBallBall
 {
 public:
   float *data      = nullptr;
   int width        = 0;
   int shrinkFactor = 0;
 
-  RollingBall(double radius)
+  RollingBallBall(double radius)
   {
     int arcTrimPer = 0;
     if(radius <= 10) {
@@ -72,7 +72,7 @@ public:
     buildRollingBall(radius, arcTrimPer);
   }
 
-  ~RollingBall()
+  ~RollingBallBall()
   {
     delete[] data;
   }
@@ -124,7 +124,7 @@ public:
 /// \param[in,out]  ip  Image the rolling ball algorithm should be applied on
 ///                     Result is written back to the same variable.
 ///
-void RollingBallBackground::execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/)
+void RollingBall::execute(cv::Mat &image)
 {
   // Settings
   bool createBackground = false;
@@ -133,9 +133,9 @@ void RollingBallBackground::execute(processor::ProcessContext & /*context*/, cv:
   bool invert           = false;
 
   ///////////////7
-  RollingBall *ball = nullptr;
+  RollingBallBall *ball = nullptr;
   if(!mUseSlidingParaboloid) {
-    ball = new RollingBall(static_cast<double>(radius));
+    ball = new RollingBallBall(static_cast<double>(radius));
   }
 
   cv::Mat fp;
@@ -167,7 +167,7 @@ void RollingBallBackground::execute(processor::ProcessContext & /*context*/, cv:
 
 /** Create background for a float image by rolling a ball over
  * the image. */
-void RollingBallBackground::rollingBallFloatBackground(cv::Mat &fp, float /*radius*/, bool invert, bool doPresmooth, RollingBall *ball) const
+void RollingBall::rollingBallFloatBackground(cv::Mat &fp, float /*radius*/, bool invert, bool doPresmooth, RollingBallBall *ball) const
 {
   bool shrink = ball->shrinkFactor > 1;
   if(invert) {
@@ -192,7 +192,7 @@ void RollingBallBackground::rollingBallFloatBackground(cv::Mat &fp, float /*radi
   }
 }
 
-cv::Mat RollingBallBackground::shrinkImage(const cv::Mat &ip, int shrinkFactor)
+cv::Mat RollingBall::shrinkImage(const cv::Mat &ip, int shrinkFactor)
 {
   int width          = ip.cols;
   int height         = ip.rows;
@@ -218,7 +218,7 @@ cv::Mat RollingBallBackground::shrinkImage(const cv::Mat &ip, int shrinkFactor)
   return smallImage;
 }
 
-void RollingBallBackground::enlargeImage(const cv::Mat &smallImage, cv::Mat &fp, int shrinkFactor)
+void RollingBall::enlargeImage(const cv::Mat &smallImage, cv::Mat &fp, int shrinkFactor)
 {
   int width          = fp.cols;
   int height         = fp.rows;
@@ -271,7 +271,7 @@ void RollingBallBackground::enlargeImage(const cv::Mat &smallImage, cv::Mat &fp,
            it is higher by one
  </pre>
  */
-void RollingBallBackground::makeInterpolationArrays(int *smallIndices, float *weights, int length, float smallLength, float shrinkFactor)
+void RollingBall::makeInterpolationArrays(int *smallIndices, float *weights, int length, float smallLength, float shrinkFactor)
 {
   for(int i = 0; i < length; i++) {
     float smallIndex = (static_cast<float>(i) - shrinkFactor / 2.0F) / shrinkFactor;
@@ -284,7 +284,7 @@ void RollingBallBackground::makeInterpolationArrays(int *smallIndices, float *we
   }
 }
 
-void RollingBallBackground::rollBall(RollingBall *ball, cv::Mat &fp)
+void RollingBall::rollBall(RollingBallBall *ball, cv::Mat &fp)
 {
   int width     = fp.cols;
   int height    = fp.rows;
@@ -351,7 +351,7 @@ void RollingBallBackground::rollBall(RollingBall *ball, cv::Mat &fp)
   delete[] cache;
 }
 
-double RollingBallBackground::filter3x3(cv::Mat &ip, int type)
+double RollingBall::filter3x3(cv::Mat &ip, int type)
 {
   int width      = ip.cols;
   int height     = ip.rows;
@@ -366,7 +366,7 @@ double RollingBallBackground::filter3x3(cv::Mat &ip, int type)
 }
 
 /** Filter a line: maximum or average of 3-pixel neighborhood */
-double RollingBallBackground::filter3(cv::Mat &ip, int length, int pixel0, int inc, int type)
+double RollingBall::filter3(cv::Mat &ip, int length, int pixel0, int inc, int type)
 {
   double shiftBy = 0;
   double v3      = static_cast<double>(ip.at<float>(pixel0));    // will be pixel[i+1]

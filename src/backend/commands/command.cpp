@@ -39,4 +39,16 @@ void Command::postCommandStep(const processor::ProcessContext & /*context*/)
 {
 }
 
+void ImageProcessingCommand::operator()(cv::Mat &image)
+{
+  const auto processName = std::string(typeid(*this).name());
+  auto id                = DurationCount::start("Exec: " + processName);
+  try {
+    execute(image);
+  } catch(const std::exception &ex) {
+    joda::log::logError("Cmd: >" + processName + "< failed in execution. Got >" + std::string(ex.what()) + "<");
+  }
+  DurationCount::stop(id);
+}
+
 }    // namespace joda::cmd

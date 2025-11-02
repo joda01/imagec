@@ -47,7 +47,7 @@ void AnnMlpPyTorch::predict(const std::filesystem::path &path, const cv::Mat &im
   // ============================================
   // Extract features based on model settings
   // ============================================
-  const cv::Mat features = extractFeatures(image, settings.features, true);
+  const cv::Mat features = extractFeatures(image, settings.featureExtractionPipelines, true);
 
   // ============================================
   // Move features to tensor

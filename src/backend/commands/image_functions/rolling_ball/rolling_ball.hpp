@@ -26,24 +26,24 @@
 
 namespace joda::cmd {
 
-class RollingBall;
+class RollingBallBall;
 
 ///
 /// \class    RollingBallBackground
 /// \author   Joachim Danmayr
 /// \brief    Rolling ball background substraction
 ///
-class RollingBallBackground : public Command
+class RollingBall : public ImageProcessingCommand
 {
 public:
   /////////////////////////////////////////////////////
-  explicit RollingBallBackground(const settings::RollingBallSettings &settings) :
+  explicit RollingBall(const settings::RollingBallSettings &settings) :
       mUseSlidingParaboloid(settings.ballType == settings::RollingBallSettings::BallType::PARABOLOID), radius(static_cast<float>(settings.ballSize))
   {
   }
 
-  virtual ~RollingBallBackground() = default;
-  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
+  virtual ~RollingBall() = default;
+  void execute(cv::Mat &image) override;
 
 private:
   /////////////////////////////////////////////////////
@@ -53,7 +53,7 @@ private:
                        DIAGONAL_2B = 5;    // filter directions
 
   /////////////////////////////////////////////////////
-  void rollingBallFloatBackground(cv::Mat &fp, float radius, bool invert, bool doPresmooth, RollingBall *ball) const;
+  void rollingBallFloatBackground(cv::Mat &fp, float radius, bool invert, bool doPresmooth, RollingBallBall *ball) const;
 
   void slidingParaboloidFloatBackground(cv::Mat &fp, float radius, bool invert, bool doPresmooth, bool correctCorners) const;
 
@@ -63,7 +63,7 @@ private:
 
   static cv::Mat shrinkImage(const cv::Mat &ip, int shrinkFactor);
   static void enlargeImage(const cv::Mat &smallImage, cv::Mat &fp, int shrinkFactor);
-  static void rollBall(RollingBall *ball, cv::Mat &fp);
+  static void rollBall(RollingBallBall *ball, cv::Mat &fp);
   static void makeInterpolationArrays(int *smallIndices, float *weights, int length, float smallLength, float shrinkFactor);
 
   static double filter3x3(cv::Mat &ip, int type);

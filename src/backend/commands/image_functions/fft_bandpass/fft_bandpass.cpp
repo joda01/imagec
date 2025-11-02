@@ -34,7 +34,7 @@ FFTBandpass::FFTBandpass(const settings::FFTBandpassSettings &settings) : mSetti
 /// \param[out]
 /// \return
 ///
-void FFTBandpass::execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/)
+void FFTBandpass::execute(cv::Mat &image)
 {
   filter(image);
 }

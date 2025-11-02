@@ -29,7 +29,7 @@ namespace joda::cmd {
 /// \brief      Base class for an image processing function
 /// \ref https://github.com/imagej/ImageJ/blob/master/ij/process/ShortBlitter.java#L14
 ///
-class Watershed : public Command
+class Watershed : public ImageProcessingCommand
 {
 public:
   /////////////////////////////////////////////////////
@@ -37,7 +37,7 @@ public:
   {
   }
   virtual ~Watershed() = default;
-  void execute(processor::ProcessContext & /*context*/, cv::Mat &imageIn, atom::ObjectList & /*result*/) override
+  void execute(cv::Mat &imageIn) override
   {
     if(mSettings.maximumFinderTolerance <= 0) {
       return;

@@ -313,10 +313,10 @@ void DialogMlTrainer::startTraining()
 
       mTrainerSettings.modelTyp = modelType;
       mTrainerSettings.toClassesLabels(classesToTrainMapping);
-      mTrainerSettings.features        = features;
-      mTrainerSettings.outPath         = modelPath;
-      mTrainerSettings.categoryToTrain = static_cast<joda::atom::ROI::Category>(mRoiSource->currentData().toInt());
-      mTrainerSettings.framework       = framework;
+      mTrainerSettings.trainingFeatures = features;
+      mTrainerSettings.outPath          = modelPath;
+      mTrainerSettings.categoryToTrain  = static_cast<joda::atom::ROI::Category>(mRoiSource->currentData().toInt());
+      mTrainerSettings.framework        = framework;
       try {
         joda::cmd::PixelClassifier::train(*mImagePanel->mutableImage()->getOriginalImage(), mImagePanel->getTileInfo(), *mObjectMap, mTrainerSettings,
                                           mModelSettings);

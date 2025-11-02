@@ -26,6 +26,17 @@ void PipelineStep::operator()(processor::ProcessContext &context, cv::Mat &image
   }
 }
 
+void PipelineStep::operator()(cv::Mat &image) const
+{
+  if(disabled) {
+    return;
+  }
+  auto ret = PipelineFactory<joda::cmd::ImageProcessingCommand>::generate(*this);
+  if(ret != nullptr) {
+    ret->execute(image);
+  }
+}
+
 void PipelineStep::check() const
 {
 }
