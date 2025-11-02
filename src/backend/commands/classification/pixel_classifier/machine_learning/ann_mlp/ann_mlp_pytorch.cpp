@@ -11,6 +11,7 @@
 
 #include "ann_mlp_pytorch.hpp"
 #include <torch/serialize.h>
+#include <mutex>
 
 #undef slots
 #include <torch/torch.h>
@@ -124,6 +125,9 @@ void AnnMlpPyTorch::train(const ::cv::Mat &trainSamples, const ::cv::Mat &trainL
   torch::Device device(torch::kCPU);
   if(torch::cuda::is_available()) {
     device = torch::Device(torch::kCUDA);
+    fireTrainingProgress("Start training with CUDA ...");
+  } else {
+    fireTrainingProgress("Start training with CPU ...\n");
   }
 
   // ============================================
@@ -146,7 +150,7 @@ void AnnMlpPyTorch::train(const ::cv::Mat &trainSamples, const ::cv::Mat &trainL
   // ============================================
   const int64_t numEpochs = mSettings.maxIterations;
   model->train();
-
+  float lastLoss = 1;
   for(int64_t epoch = 0; epoch < numEpochs; ++epoch) {
     float epochLoss = 0.0F;
 
@@ -165,8 +169,8 @@ void AnnMlpPyTorch::train(const ::cv::Mat &trainSamples, const ::cv::Mat &trainL
     }
 
     if(epoch % 10 == 0) {
-      mLastEpoch = "Epoch [" + std::to_string(epoch) + "/" + std::to_string(numEpochs) + "], Loss: " + std::to_string(epochLoss);
-      // std::cout << mLastEpoch << std::endl;
+      lastLoss = epochLoss;
+      fireTrainingProgress("Epoch [" + std::to_string(epoch) + "/" + std::to_string(numEpochs) + "], Loss: " + std::to_string(epochLoss));
     }
     if(static_cast<double>(epochLoss) < mSettings.terminationEpsilon || mStopped) {
       break;
@@ -177,6 +181,7 @@ void AnnMlpPyTorch::train(const ::cv::Mat &trainSamples, const ::cv::Mat &trainL
   // Save model and meta
   // ============================================
   torch::save(model, modelStoragePath.string());
+  fireTrainingProgress("Finished with Loss: " + std::to_string(lastLoss));
 }
 
 ///
@@ -189,18 +194,6 @@ void AnnMlpPyTorch::train(const ::cv::Mat &trainSamples, const ::cv::Mat &trainL
 void AnnMlpPyTorch::stopTraining()
 {
   mStopped = true;
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-auto AnnMlpPyTorch::getTrainingProgress() -> std::string
-{
-  return mLastEpoch;
 }
 
 }    // namespace joda::ml

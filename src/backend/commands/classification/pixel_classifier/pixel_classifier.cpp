@@ -126,6 +126,7 @@ void PixelClassifier::train(const cv::Mat &image, const enums::TileInfo &tileInf
   if(nullptr == mTrainingModel) {
     throw std::invalid_argument("Not supported model");
   }
+  mTrainingModel->registerProgressCallback(mProgressCallbacks);
   mTrainingModel->train(trainingSettings, image, tileInfo, result);
   mTrainingModel.reset();
 }
@@ -151,12 +152,9 @@ void PixelClassifier::stopTraining()
 /// \param[out]
 /// \return
 ///
-auto PixelClassifier::getTrainingProgress() -> std::string
+void PixelClassifier::registerProgressCallback(const std::function<void(const std::string &)> &func)
 {
-  if(nullptr != mTrainingModel) {
-    return mTrainingModel->getTrainingProgress();
-  }
-  return "";
+  mProgressCallbacks.emplace_back(func);
 }
 
 }    // namespace joda::cmd

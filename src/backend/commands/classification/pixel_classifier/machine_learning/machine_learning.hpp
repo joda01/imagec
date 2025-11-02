@@ -29,11 +29,14 @@ public:
   virtual ~MachineLearning() = default;
   void forward(const std::filesystem::path &path, cv::Mat &image);
   void train(const MachineLearningSettings &settings, const cv::Mat &image, const enums::TileInfo &tileInfo, const atom::ObjectList &result);
-  virtual void stopTraining()                       = 0;
-  virtual auto getTrainingProgress() -> std::string = 0;
+  virtual void stopTraining() = 0;
+  void registerProgressCallback(const std::function<void(const std::string &)> &);
+  void registerProgressCallback(const std::vector<std::function<void(const std::string &)>> &);
 
 protected:
   /////////////////////////////////////////////////////
+  void fireTrainingProgress(const std::string &progress);
+
   static cv::Mat extractFeatures(const cv::Mat &img, const std::list<ImageCommandPipeline> &features, bool normalizeForMLP);
   static void prepareTrainingDataFromROI(const cv::Mat &image, const enums::TileInfo &tileInfo,
                                          const std::map<enums::ClassId, int32_t> &classesToTrain, joda::atom::ROI::Category categoryToTain,
@@ -45,5 +48,7 @@ private:
   virtual void predict(const std::filesystem::path &path, const cv::Mat &image, cv::Mat &prediction) = 0;
   virtual void train(const cv::Mat &trainSamples, const cv::Mat &trainLabels, int32_t nrOfClasses, const std::filesystem::path &modelStoragePath,
                      const MachineLearningSettings &settings)                                        = 0;
+
+  std::vector<std::function<void(const std::string &)>> mProgressCallbacks;
 };
 }    // namespace joda::ml

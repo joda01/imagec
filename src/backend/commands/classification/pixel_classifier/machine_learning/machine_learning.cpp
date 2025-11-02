@@ -182,4 +182,41 @@ cv::Mat MachineLearning::extractFeatures(const cv::Mat &img, const std::list<Ima
   return featureMatrix;    // each row = pixel, each col = feature
 }
 
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void MachineLearning::fireTrainingProgress(const std::string &progress)
+{
+  for(const auto &func : mProgressCallbacks) {
+    func(progress);
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void MachineLearning::registerProgressCallback(const std::function<void(const std::string &)> &func)
+{
+  mProgressCallbacks.emplace_back(func);
+}
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void MachineLearning::registerProgressCallback(const std::vector<std::function<void(const std::string &)>> &func)
+{
+  mProgressCallbacks = func;
+}
+
 }    // namespace joda::ml

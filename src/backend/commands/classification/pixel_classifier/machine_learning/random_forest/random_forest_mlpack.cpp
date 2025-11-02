@@ -23,6 +23,77 @@
 
 namespace joda::ml {
 
+struct RandomForestMetrics
+{
+  size_t numTrees;
+  size_t numFeatures;
+  size_t estimatedNumClasses;
+  arma::Row<size_t> treeDepths;
+  arma::Row<size_t> treeNodeCounts;
+  arma::Row<size_t> treeLeafCounts;
+};
+
+template <typename TreeType>
+void ComputeTreeStats(const TreeType &node, size_t depth, size_t &maxDepth, size_t &nodeCount, size_t &leafCount,
+                      std::unordered_set<size_t> &usedFeatures, std::unordered_set<size_t> &observedClasses)
+{
+  nodeCount++;
+
+  // If no children => leaf
+  if(node.NumChildren() == 0) {
+    leafCount++;
+    // Leaves store class probabilities; pick the max label index.
+    if constexpr(requires(const TreeType &t) { t.ClassProbabilities(); }) {
+      arma::vec probs = node.ClassProbabilities();
+      if(!probs.is_empty())
+        observedClasses.insert(probs.index_max());
+    }
+
+    if(depth > maxDepth)
+      maxDepth = depth;
+    return;
+  }
+
+  if constexpr(requires(const TreeType &t) { t.SplitDimension(); })
+    usedFeatures.insert(node.SplitDimension());
+
+  for(size_t i = 0; i < node.NumChildren(); ++i)
+    ComputeTreeStats(node.Child(i), depth + 1, maxDepth, nodeCount, leafCount, usedFeatures, observedClasses);
+}
+
+template <typename RFType>
+RandomForestMetrics GetRandomForestMetrics(const RFType &rf)
+{
+  RandomForestMetrics m;
+  m.numTrees = rf.NumTrees();
+
+  m.treeDepths.set_size(m.numTrees);
+  m.treeNodeCounts.set_size(m.numTrees);
+  m.treeLeafCounts.set_size(m.numTrees);
+
+  std::unordered_set<size_t> allUsedFeatures;
+  std::unordered_set<size_t> allObservedClasses;
+
+  for(size_t i = 0; i < m.numTrees; ++i) {
+    const auto &tree = rf.Tree(i);
+    size_t depth = 0, nodeCount = 0, leafCount = 0;
+    std::unordered_set<size_t> usedFeatures;
+    std::unordered_set<size_t> observedClasses;
+
+    ComputeTreeStats(tree, 1, depth, nodeCount, leafCount, usedFeatures, observedClasses);
+
+    m.treeDepths[i]     = depth;
+    m.treeNodeCounts[i] = nodeCount;
+    m.treeLeafCounts[i] = leafCount;
+
+    allUsedFeatures.insert(usedFeatures.begin(), usedFeatures.end());
+    allObservedClasses.insert(observedClasses.begin(), observedClasses.end());
+  }
+
+  m.numFeatures         = allUsedFeatures.size();
+  m.estimatedNumClasses = allObservedClasses.size();
+  return m;
+}
 ///
 /// \brief
 /// \author     Joachim Danmayr
@@ -109,12 +180,27 @@ void RandomForestMlPack::train(const cv::Mat &trainSamples, const cv::Mat &train
   // ============================================
   // Train RandomForest
   // ============================================
+  fireTrainingProgress("Start training with CPU ...");
+
   mlpack::RandomForest<mlpack::GiniGain, mlpack::RandomDimensionSelect, mlpack::BestBinaryNumericSplit, mlpack::AllCategoricalSplit, true,
                        mlpack::DefaultBootstrap>
       model;
   model.Train(data, labels, static_cast<size_t>(nrOfClasses), static_cast<size_t>(mSettings.maxNumberOfTrees),
               static_cast<size_t>(mSettings.minSampleCount), 0.0, static_cast<size_t>(mSettings.maxTreeDepth));
 
+  auto m = GetRandomForestMetrics(model);
+  {
+    std::stringstream log;
+    log << "Finished with following metrics:\n";
+    log << "Number of trees     : " << m.numTrees << "\n";
+    log << "Estimated features  : " << m.numFeatures << "\n";
+    log << "Estimated classes   : " << m.estimatedNumClasses << "\n";
+    log << "Average tree depth  : " << arma::mean(arma::conv_to<arma::vec>::from(m.treeDepths)) << "\n";
+    log << "Average #nodes/tree : " << arma::mean(arma::conv_to<arma::vec>::from(m.treeNodeCounts)) << "\n";
+    log << "Average #leaves/tree: " << arma::mean(arma::conv_to<arma::vec>::from(m.treeLeafCounts));
+    log << std::endl;
+    fireTrainingProgress(log.str());
+  }
   // ============================================
   // Save model and meta
   // ============================================
@@ -171,10 +257,6 @@ void RandomForestMlPack::train(const cv::Mat &trainSamples, const cv::Mat &train
 
 void RandomForestMlPack::stopTraining()
 {
-}
-auto RandomForestMlPack::getTrainingProgress() -> std::string
-{
-  return "";
 }
 
 }    // namespace joda::ml

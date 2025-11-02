@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
 #include "backend/commands/classification/pixel_classifier/machine_learning/ann_mlp/ann_mlp_settings.hpp"
 #include "backend/commands/classification/pixel_classifier/machine_learning/machine_learning.hpp"
@@ -44,7 +45,7 @@ public:
   static void train(const cv::Mat &image, const enums::TileInfo &tileInfo, const atom::ObjectList &result,
                     const ml::MachineLearningSettings &trainingSettings, const TrainingsModelSettings &modelSettings);
   static void stopTraining();
-  static auto getTrainingProgress() -> std::string;
+  static void registerProgressCallback(const std::function<void(const std::string &)> &);
 
 private:
   /////////////////////////////////////////////////////
@@ -52,8 +53,8 @@ private:
 
   /////////////////////////////////////////////////////
   const settings::PixelClassifierSettings &mSettings;
-
   static inline std::unique_ptr<ml::MachineLearning> mTrainingModel;
+  static inline std::vector<std::function<void(const std::string &)>> mProgressCallbacks;
 };
 
 }    // namespace joda::cmd

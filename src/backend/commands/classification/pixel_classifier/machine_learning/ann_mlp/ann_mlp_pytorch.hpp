@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include <mutex>
 #include "ann_mlp.hpp"
 
 namespace joda::ml {
@@ -24,12 +25,10 @@ public:
   void train(const cv::Mat &trainSamples, const cv::Mat &trainLabels, int32_t nrOfClasses, const std::filesystem::path &modelStoragePath,
              const MachineLearningSettings &settings) override;
   void stopTraining() override;
-  auto getTrainingProgress() -> std::string override;
 
 private:
   /////////////////////////////////////////////////////
   bool mStopped = false;
-  std::string mLastEpoch;
 };
 
 }    // namespace joda::ml

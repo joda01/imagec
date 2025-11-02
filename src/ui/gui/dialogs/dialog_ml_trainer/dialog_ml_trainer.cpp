@@ -98,10 +98,10 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
     mComboTrainingFeatures->addItem("Laplacian of Gaussian", static_cast<int>(TrainingFeatures::LaplacianOfGaussian));
     mComboTrainingFeatures->addItem("Weighted deviation", static_cast<int>(TrainingFeatures::WeightedDeviation));
     mComboTrainingFeatures->addItem("Gradient magnitude", static_cast<int>(TrainingFeatures::GradientMagnitude));
-    mComboTrainingFeatures->addItem("Structure tensor eigenvalues", static_cast<int>(TrainingFeatures::StructureTensorEigenvalues));
-    mComboTrainingFeatures->addItem("Structure tensor coherence", static_cast<int>(TrainingFeatures::StructureTensorCoherence));
-    mComboTrainingFeatures->addItem("Hessian determinant", static_cast<int>(TrainingFeatures::HessianDeterminant));
-    mComboTrainingFeatures->addItem("Hessian eigenvalues", static_cast<int>(TrainingFeatures::HessianEigenvalues));
+    // mComboTrainingFeatures->addItem("Structure tensor eigenvalues", static_cast<int>(TrainingFeatures::StructureTensorEigenvalues));
+    // mComboTrainingFeatures->addItem("Structure tensor coherence", static_cast<int>(TrainingFeatures::StructureTensorCoherence));
+    // mComboTrainingFeatures->addItem("Hessian determinant", static_cast<int>(TrainingFeatures::HessianDeterminant));
+    // mComboTrainingFeatures->addItem("Hessian eigenvalues", static_cast<int>(TrainingFeatures::HessianEigenvalues));
 
     auto *trainingSettingsMeta = new QHBoxLayout;
     trainingSettingsMeta->addWidget(mComboTrainingFeatures);
@@ -156,12 +156,17 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
     mTrainingsLog = new QTextBrowser();
     layout->addRow(mTrainingsLog);
 
-    mUpdateLogTimer = new QTimer(this);
-    QObject::connect(mUpdateLogTimer, &QTimer::timeout, [&]() {
-      // Update the text field with current time
-      QString currentTime = QDateTime::currentDateTime().toString("hh:mm:ss");
-      QString log         = joda::cmd::PixelClassifier::getTrainingProgress().data();
-      mTrainingsLog->append(log);
+    joda::cmd::PixelClassifier::registerProgressCallback([this](const std::string &progress) {
+      QString text = QString::fromStdString(progress);
+      QMetaObject::invokeMethod(
+          mTrainingsLog,
+          [this, text]() {
+            mTrainingsLog->append(text);
+            mTrainingsLog->moveCursor(QTextCursor::End);
+            mTrainingsLog->ensureCursorVisible();
+          },
+          Qt::QueuedConnection    // 👈 ensures it runs in the GUI thread
+      );
     });
   }
 
@@ -212,13 +217,6 @@ void DialogMlTrainer::setInProgress(bool inProgress)
   mButtonStartTraining->setVisible(!inProgress);
   mButtonStopTraining->setVisible(inProgress);
   mProgress->setVisible(inProgress);
-  if(mUpdateLogTimer != nullptr) {
-    if(inProgress) {
-      mUpdateLogTimer->start(500);    // 1000 ms interval
-    } else {
-      mUpdateLogTimer->stop();
-    }
-  }
 }
 
 ///
