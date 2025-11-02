@@ -51,7 +51,7 @@ void RandomForestMlPack::predict(const std::filesystem::path &path, const cv::Ma
   // ============================================
   // Extract features based on model settings
   // ============================================
-  const cv::Mat features = extractFeatures(image, modelSettings.featureExtractionPipelines, true);
+  const cv::Mat features = extractFeatures(image, modelSettings.featureExtractionPipelines, false);
 
   // ============================================
   // Convert OpenCV Mat -> Armadillo matrix

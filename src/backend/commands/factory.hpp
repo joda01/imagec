@@ -43,6 +43,7 @@ public:
 class ImageCommandFactory
 {
 public:
+  virtual ~ImageCommandFactory()       = default;
   virtual void execute(cv::Mat &image) = 0;
 };
 

@@ -58,6 +58,8 @@
 #include "backend/commands/image_functions/median_substraction/median_substraction_settings_ui.hpp"
 #include "backend/commands/image_functions/morphological_transformation/morphological_transformation.hpp"
 #include "backend/commands/image_functions/morphological_transformation/morphological_transformation_settings_ui.hpp"
+#include "backend/commands/image_functions/nop/nop.hpp"
+#include "backend/commands/image_functions/nop/nop_settings_ui.hpp"
 #include "backend/commands/image_functions/rank_filter/rank_filter.hpp"
 #include "backend/commands/image_functions/rank_filter/rank_filter_settings.hpp"
 #include "backend/commands/image_functions/rank_filter/rank_filter_ui.hpp"
@@ -97,19 +99,19 @@ namespace joda::settings {
 template <class T>
 concept command_t = std::is_base_of<joda::cmd::Command, T>::value || std::is_base_of<joda::ui::gui::Command, T>::value;
 
-#define REGISTER_COMMAND(COMMAND, NAME)                                                                                                        \
-  if constexpr((std::is_same<cmd::ImageProcessingCommand, RET>::value && std::is_same<cmd::ImageProcessingCommand, joda::cmd::NAME>::value) || \
-               std::is_same<cmd::Command, RET>::value || std::is_base_of<joda::ui::gui::Command, RET>::value) {                                \
-    if(step.$##COMMAND) {                                                                                                                      \
-      if constexpr(std::is_same<joda::cmd::ImageProcessingCommand, RET>::value) {                                                              \
-        return std::make_unique<joda::cmd::FactoryImg<joda::cmd::NAME, NAME##Settings>>(step.$##COMMAND.value());                              \
-      } else if constexpr(std::is_same<joda::cmd::Command, RET>::value) {                                                                      \
-        return std::make_unique<joda::cmd::Factory<joda::cmd::NAME, NAME##Settings>>(step.$##COMMAND.value());                                 \
-      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {                                                               \
-        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::NAME, NAME##Settings>>(                                        \
-            analyzeSettings, const_cast<settings::PipelineStep &>(step), const_cast<NAME##Settings &>(step.$##COMMAND.value()), parent));      \
-      }                                                                                                                                        \
-    }                                                                                                                                          \
+#define REGISTER_COMMAND(COMMAND, NAME)                                                                                                           \
+  if constexpr((std::is_same<cmd::ImageProcessingCommand, RET>::value && std::is_base_of<cmd::ImageProcessingCommand, joda::cmd::NAME>::value) || \
+               std::is_same<cmd::Command, RET>::value || std::is_base_of<joda::ui::gui::Command, RET>::value) {                                   \
+    if(step.$##COMMAND) {                                                                                                                         \
+      if constexpr(std::is_same<joda::cmd::ImageProcessingCommand, RET>::value) {                                                                 \
+        return std::make_unique<joda::cmd::FactoryImg<joda::cmd::NAME, NAME##Settings>>(step.$##COMMAND.value());                                 \
+      } else if constexpr(std::is_same<joda::cmd::Command, RET>::value) {                                                                         \
+        return std::make_unique<joda::cmd::Factory<joda::cmd::NAME, NAME##Settings>>(step.$##COMMAND.value());                                    \
+      } else if constexpr(std::is_base_of<joda::ui::gui::Command, RET>::value) {                                                                  \
+        return std::move(std::make_unique<joda::ui::gui::Factory<joda::ui::gui::NAME, NAME##Settings>>(                                           \
+            analyzeSettings, const_cast<settings::PipelineStep &>(step), const_cast<NAME##Settings &>(step.$##COMMAND.value()), parent));         \
+      }                                                                                                                                           \
+    }                                                                                                                                             \
   }
 
 ///
@@ -178,6 +180,7 @@ private:
     REGISTER_COMMAND(rank, RankFilter);
     REGISTER_COMMAND(skeletonize, Skeletonize);
     REGISTER_COMMAND(laplacian, Laplacian);
+    REGISTER_COMMAND(nop, Nop);
 
     //  REGISTER_COMMAND(crop, MarginCrop);
 

@@ -42,7 +42,7 @@ void Command::postCommandStep(const processor::ProcessContext & /*context*/)
 void ImageProcessingCommand::operator()(cv::Mat &image)
 {
   const auto processName = std::string(typeid(*this).name());
-  auto id                = DurationCount::start("Exec: " + processName);
+  auto id                = DurationCount::start("ExecImg: " + processName);
   try {
     execute(image);
   } catch(const std::exception &ex) {
