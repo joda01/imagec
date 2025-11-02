@@ -211,6 +211,7 @@ private:
   };
 
   std::unique_ptr<SettingComboBoxString> mModelPath;
+  std::unique_ptr<SettingComboBox<settings::AiClassifierSettings::GpuUsage>> mGpuMode;
   std::unique_ptr<SettingSpinBox<int32_t>> mNumberOdModelClasses;
   std::unique_ptr<SettingLineEdit<int32_t>> mNetWidth;
   std::unique_ptr<SettingLineEdit<int32_t>> mNetHeight;

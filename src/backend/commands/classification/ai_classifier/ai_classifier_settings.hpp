@@ -56,6 +56,12 @@ struct AiClassifierSettings : public SettingBase
     MASK_R_CNN,
   };
 
+  enum class GpuUsage
+  {
+    Auto,
+    CpuOnly
+  };
+
   struct ModelParameters
   {
     //
@@ -173,6 +179,11 @@ struct AiClassifierSettings : public SettingBase
   std::string modelPath;
 
   //
+  // Either to use GPU if available or not
+  //
+  GpuUsage gpuUsage = GpuUsage::Auto;
+
+  //
   // Model parameter
   //
   ModelParameters modelParameter;
@@ -242,5 +253,10 @@ NLOHMANN_JSON_SERIALIZE_ENUM(AiClassifierSettings::ModelArchitecture, {
                                                                           {AiClassifierSettings::ModelArchitecture::U_NET, "U-Net"},
                                                                           {AiClassifierSettings::ModelArchitecture::MASK_R_CNN, "Mask R-CNN"},
                                                                       });
+
+NLOHMANN_JSON_SERIALIZE_ENUM(AiClassifierSettings::GpuUsage, {
+                                                                 {AiClassifierSettings::GpuUsage::Auto, "Auto"},
+                                                                 {AiClassifierSettings::GpuUsage::CpuOnly, "CPU"},
+                                                             });
 
 }    // namespace joda::settings

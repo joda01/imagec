@@ -16,6 +16,7 @@
 #include <memory>
 #include <string>
 #include "backend/artifacts/roi/roi.hpp"
+#include "backend/commands/classification/ai_classifier/ai_classifier_settings.hpp"
 #include "backend/commands/classification/ai_classifier/frameworks/ai_framework.hpp"
 #include "backend/commands/classification/ai_classifier/frameworks/onnx/ai_classifier_onnx.hpp"
 #include "backend/commands/classification/ai_classifier/frameworks/pytorch/ai_classifier_pytorch.hpp"
@@ -34,7 +35,7 @@
 
 namespace joda::cmd {
 
-at::Device getCudaDevice(c10::DeviceIndex index = 0);
+at::Device getCudaDevice(bool allowGpu, c10::DeviceIndex index = 0);
 
 ///
 /// \brief      Constructor
@@ -48,7 +49,7 @@ AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) : mSe
 
 void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNotUse, atom::ObjectList &result)
 {
-  at::Device device            = getCudaDevice();
+  at::Device device            = getCudaDevice(mSettings.gpuUsage == settings::AiClassifierSettings::GpuUsage::Auto);
   const auto absoluteModelPath = std::filesystem::weakly_canonical(context.getWorkingDirectory() / mSettings.modelPath);
 
   auto parsed = joda::ai::AiModelParser::parseResourceDescriptionFile(absoluteModelPath);
@@ -158,9 +159,9 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
 /// \param[out]
 /// \return
 ///
-at::Device getCudaDevice(c10::DeviceIndex index)
+at::Device getCudaDevice(bool allowGpu, c10::DeviceIndex index)
 {
-  if(torch::cuda::is_available()) {
+  if(allowGpu && torch::cuda::is_available()) {
     return {torch::kCUDA, index};
   }
   return {at::kCPU};

@@ -57,10 +57,6 @@ PixelClassifier::PixelClassifier(joda::settings::AnalyzeSettings *analyzeSetting
 
   //
   //
-  //
-
-  //
-  //
   mGpuMode = SettingBase::create<SettingComboBox<settings::PixelClassifierSettings::GpuUsage>>(parent, {}, "GPU usage");
   mGpuMode->addOptions(
       {{settings::PixelClassifierSettings::GpuUsage::Auto, "Auto"}, {settings::PixelClassifierSettings::GpuUsage::CpuOnly, "CPU only"}});

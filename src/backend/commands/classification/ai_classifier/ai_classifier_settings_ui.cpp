@@ -58,8 +58,15 @@ AiClassifier::AiClassifier(joda::settings::AnalyzeSettings *analyzeSettings, jod
   mModelPath->setValue(settings.modelPath);
   mModelPath->connectWithSetting(&settings.modelPath);
   mModelPath->setShortDescription("Path:");
-
   connect(mModelPath.get(), &SettingBase::valueChanged, [&]() { updateModel(); });
+
+  //
+  //
+  mGpuMode = SettingBase::create<SettingComboBox<settings::AiClassifierSettings::GpuUsage>>(parent, {}, "GPU usage");
+  mGpuMode->addOptions({{settings::AiClassifierSettings::GpuUsage::Auto, "Auto"}, {settings::AiClassifierSettings::GpuUsage::CpuOnly, "CPU only"}});
+  mGpuMode->setValue(settings.gpuUsage);
+  mGpuMode->connectWithSetting(&settings.gpuUsage);
+
   //
   //
   mNumberOdModelClasses = SettingBase::create<SettingSpinBox<int32_t>>(parent, {}, "Nr. of model classes");
@@ -177,6 +184,7 @@ AiClassifier::AiClassifier(joda::settings::AnalyzeSettings *analyzeSettings, jod
   auto *col = addSetting(modelTab, "Model settings",
                          {
                              {mModelPath.get(), true, 0},
+                             {mGpuMode.get(), false, 0},
                              {mModelFormat.get(), false, 0},
                              {mModelArchitecture.get(), false, 0},
                              {mNumberOdModelClasses.get(), false, 0},
