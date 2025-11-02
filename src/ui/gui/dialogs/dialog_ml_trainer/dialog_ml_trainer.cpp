@@ -37,6 +37,7 @@
 #include "ui/gui/dialogs/dialog_image_view/panel_image_view.hpp"
 #include "ui/gui/dialogs/dialog_ml_trainer/dialog_ml_training_ann_mlp.hpp"
 #include "ui/gui/dialogs/dialog_ml_trainer/dialog_ml_training_random_forest.hpp"
+#include "ui/gui/dialogs/dialog_ml_trainer/training_features_settings.hpp"
 #include "ui/gui/dialogs/dialog_roi_manager/table_item_delegate_polygon.hpp"
 #include "ui/gui/dialogs/dialog_roi_manager/table_model_painted_polygon.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
@@ -107,7 +108,10 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
     trainingSettingsMeta->addWidget(mComboTrainingFeatures);
     auto *openMetaEditor = new QPushButton(generateSvgIcon<Style::REGULAR, Color::BLACK>("dots-three-outline-vertical"), "");
     openMetaEditor->setStatusTip("Training feature settings");
-    connect(openMetaEditor, &QPushButton::clicked, [this] {});
+    connect(openMetaEditor, &QPushButton::clicked, [this] {
+      DialogTrainingFeatureSettings dialog(&mTrainingFeatureSettings, this);
+      dialog.exec();
+    });
     trainingSettingsMeta->addWidget(openMetaEditor);
     trainingSettingsMeta->setStretch(0, 1);    // Make label take all available space
     layout->addRow("Features", trainingSettingsMeta);
@@ -384,15 +388,17 @@ void DialogMlTrainer::buildFeatureExtractionPipeline()
 
   // --- Gaussian smoothed ---
   if(features.contains(TrainingFeatures::Gaussian)) {
-    ml::ImageCommandPipeline cmds;
-    {
-      joda::settings::BlurSettings blur;
-      blur.mode       = joda::settings::BlurSettings::Mode::GAUSSIAN;
-      blur.kernelSize = 5;
-      blur.repeat     = 1;
-      cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$blur = blur});
+    for(const auto &kernelSize : mTrainingFeatureSettings.blurKernelSizeVariation) {
+      ml::ImageCommandPipeline cmds;
+      {
+        joda::settings::BlurSettings blur;
+        blur.mode       = joda::settings::BlurSettings::Mode::GAUSSIAN;
+        blur.kernelSize = kernelSize;
+        blur.repeat     = 1;
+        cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$blur = blur});
+      }
+      mTrainerSettings.featureExtractionPipelines.push_back(cmds);
     }
-    mTrainerSettings.featureExtractionPipelines.push_back(cmds);
   }
 
   // --- Laplacian of Gaussian ---
@@ -416,29 +422,33 @@ void DialogMlTrainer::buildFeatureExtractionPipeline()
 
   // --- Weighted deviation (Gaussian-weighted std) ---
   if(features.contains(TrainingFeatures::WeightedDeviation)) {
-    ml::ImageCommandPipeline cmds;
-    {
-      joda::settings::WeightedDeviationSettings weightedDev;
-      weightedDev.kernelSize = 5;
-      weightedDev.sigma      = 1;
-      cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$gaussianWeightedDev = weightedDev});
+    for(const auto &kernelSize : mTrainingFeatureSettings.weightedDeviationKernelSizeVariation) {
+      ml::ImageCommandPipeline cmds;
+      {
+        joda::settings::WeightedDeviationSettings weightedDev;
+        weightedDev.kernelSize = kernelSize;
+        weightedDev.sigma      = 1;
+        cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$gaussianWeightedDev = weightedDev});
+      }
+      mTrainerSettings.featureExtractionPipelines.push_back(cmds);
     }
-    mTrainerSettings.featureExtractionPipelines.push_back(cmds);
   }
 
   // --- Gradient magnitude (Sobel) ---
   if(features.contains(TrainingFeatures::GradientMagnitude)) {
-    ml::ImageCommandPipeline cmds;
-    {
-      joda::settings::EdgeDetectionSobelSettings gradientMag;
-      gradientMag.kernelSize       = 5;
-      gradientMag.derivativeOrderX = 1;
-      gradientMag.derivativeOrderY = 1;
-      gradientMag.weighFunction    = joda::settings::EdgeDetectionSobelSettings::WeightFunction::MAGNITUDE;
+    for(const auto &kernelSize : mTrainingFeatureSettings.gradientMagnitudeKernelSizeVariation) {
+      ml::ImageCommandPipeline cmds;
+      {
+        joda::settings::EdgeDetectionSobelSettings gradientMag;
+        gradientMag.kernelSize       = kernelSize;
+        gradientMag.derivativeOrderX = 1;
+        gradientMag.derivativeOrderY = 1;
+        gradientMag.weighFunction    = joda::settings::EdgeDetectionSobelSettings::WeightFunction::MAGNITUDE;
 
-      cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$sobel = gradientMag});
+        cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$sobel = gradientMag});
+      }
+      mTrainerSettings.featureExtractionPipelines.push_back(cmds);
     }
-    mTrainerSettings.featureExtractionPipelines.push_back(cmds);
   }
 
   /*

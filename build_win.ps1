@@ -175,7 +175,7 @@ function Pack {
       "fbgemm.dll",
       "libiomp5md.dll",
       "uv.dll",
-      "cupti64_2025.1.0.dll",
+      "cupti64_2025.1.1.dll",
       "asmjit.dll"
   )
 

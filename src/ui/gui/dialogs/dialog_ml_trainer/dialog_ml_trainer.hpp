@@ -26,6 +26,7 @@
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classes_out.hpp"
 #include "ui/gui/helper/table_view.hpp"
 #include "ui/gui/helper/table_widget.hpp"
+#include "dialog_training_feature_Settings.hpp"
 
 class QComboBoxMulti;
 
@@ -93,6 +94,7 @@ private:
 
   joda::ml::MachineLearningSettings mTrainerSettings;
   joda::cmd::TrainingsModelSettings mModelSettings;
+  TrainingFeaturesSettings mTrainingFeatureSettings;
   std::unique_ptr<std::thread> mTrainingsThread;
 
   const joda::settings::AnalyzeSettings *mAnalyzeSettings;
