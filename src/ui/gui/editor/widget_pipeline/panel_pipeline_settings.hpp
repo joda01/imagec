@@ -95,6 +95,9 @@ public:
     return &mCommands;
   }
 
+public slots:
+  void updatePreview();
+
 private:
   /////////////////////////////////////////////////////
   static constexpr int32_t PREVIEW_BASE_SIZE = 450;
@@ -153,7 +156,6 @@ private:
 
 private slots:
   /////////////////////////////////////////////////////
-  void updatePreview();
   void onPreviewStarted();
   void onPreviewFinished(QString error);
   void valueChangedEvent();

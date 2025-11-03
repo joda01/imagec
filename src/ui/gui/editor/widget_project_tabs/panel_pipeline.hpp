@@ -81,7 +81,7 @@ private:
   WindowMain *mWindowMain;
   joda::settings::AnalyzeSettings *mAnalyzeSettings;
   std::shared_ptr<DialogCommandSelection> mCommandSelectionDialog;
-  PanelPipelineSettings *mActivePipeline;
+  PanelPipelineSettings *mActivePipeline = nullptr;
   DialogMlTrainer *mMlTraining;
 
   // Stack options ///////////////////////////////////////////

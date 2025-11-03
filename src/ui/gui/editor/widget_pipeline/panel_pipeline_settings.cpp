@@ -122,15 +122,12 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   mToolbar->addSeparator();
 
   //
-  // Undo
+  // Refresh
   //
-  mUndoAction = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("arrow-counter-clockwise"), "Undo");
-  mUndoAction->setEnabled(false);
-  mUndoAction->setStatusTip("Undo last setting");
-  connect(mUndoAction, &QAction::triggered, [this]() {
-    this->mDialogHistory->undo();
-    mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
-  });
+  auto *mRefresh = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("arrows-clockwise"), "Refresh preview");
+  mRefresh->setStatusTip("Refresh preview");
+  //  mRefresh->setShortcut(QKeySequence(Qt::Key_F5));
+  connect(mRefresh, &QAction::triggered, [this](bool /*checked*/) { updatePreview(); });
 
   //
   // Switch to edit mode
@@ -150,6 +147,20 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
 
   mToolbar->addSeparator();
 
+  //
+  // Undo
+  //
+  mUndoAction = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("arrow-counter-clockwise"), "Undo");
+  mUndoAction->setEnabled(false);
+  mUndoAction->setStatusTip("Undo last setting");
+  connect(mUndoAction, &QAction::triggered, [this]() {
+    this->mDialogHistory->undo();
+    mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
+  });
+
+  //
+  // History
+  //
   mHistoryAction = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("clock-counter-clockwise"), "History");
   mHistoryAction->setStatusTip("Show/Hide pipeline edit history");
   mHistoryAction->setCheckable(true);
@@ -185,14 +196,16 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   setLayout(mLayout);
   connect(this, &PanelPipelineSettings::updatePreviewStarted, this, &PanelPipelineSettings::onPreviewStarted);
   connect(this, &PanelPipelineSettings::updatePreviewFinished, this, &PanelPipelineSettings::onPreviewFinished);
-  connect(mPreviewImage, &DialogImageViewer::settingChanged, this, &PanelPipelineSettings::updatePreview);
-  connect(mlTraining, &DialogMlTrainer::triggerPreviewUpdate, this, &PanelPipelineSettings::updatePreview);
-  connect(mPreviewImage->getImagePanel(), &PanelImageView::imageOpened, this, &PanelPipelineSettings::updatePreview);
-  connect(wm->getPanelProjectSettings(), &PanelProjectSettings::updateImagePreview, this, &PanelPipelineSettings::updatePreview);
   connect(closePipeline, &QAction::triggered, this, &PanelPipelineSettings::closeWindow);
   connect(wm->getPanelClassification(), &PanelClassification::settingsChanged, this, &PanelPipelineSettings::onClassificationNameChanged);
   onClassificationNameChanged();
 
+  /*
+    connect(mPreviewImage, &DialogImageViewer::settingChanged, this, &PanelPipelineSettings::updatePreview);
+    connect(mlTraining, &DialogMlTrainer::triggerPreviewUpdate, this, &PanelPipelineSettings::updatePreview);
+    connect(mPreviewImage->getImagePanel(), &PanelImageView::imageOpened, this, &PanelPipelineSettings::updatePreview);
+    connect(wm->getPanelProjectSettings(), &PanelProjectSettings::updateImagePreview, this, &PanelPipelineSettings::updatePreview);
+  */
   mPreviewThread = std::make_unique<std::thread>(&PanelPipelineSettings::previewThread, this);
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
@@ -266,7 +279,7 @@ void PanelPipelineSettings::insertNewPipelineStep(size_t posToInsert, std::uniqu
   }
 
   mWindowMain->checkForSettingsChanged();
-  updatePreview();
+  //  updatePreview();
 }
 
 ///
@@ -325,7 +338,7 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete, bool upda
       if(updateHistoryEntry) {
         mDialogHistory->updateHistory(enums::HistoryCategory::DELETED, "Removed: " + deletedCommandTitle);
         mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
-        updatePreview();
+        // updatePreview();
         mWindowMain->checkForSettingsChanged();
       }
       return;
@@ -384,7 +397,7 @@ void PanelPipelineSettings::valueChangedEvent()
     mDialogHistory->updateHistory(enums::HistoryCategory::CHANGED, "Changed");
   }
   mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
-  updatePreview();
+  // updatePreview();
 
   QTimer::singleShot(100, this, []() {
     isBlocked = false;    // Unblock after 100ms
@@ -596,7 +609,7 @@ void PanelPipelineSettings::clearPipeline()
   for(const std::shared_ptr<Command> &cmd : toDelete) {
     erasePipelineStep(cmd.get(), false);
   }
-  updatePreview();
+  // updatePreview();
   mWindowMain->checkForSettingsChanged();
 }
 
@@ -656,7 +669,7 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
 
   QTimer::singleShot(500, this, [this]() { mLoadingSettings = false; });
 
-  updatePreview();
+  // updatePreview();
   mDialogHistory->loadHistory();
   mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
 }
@@ -719,7 +732,7 @@ void PanelPipelineSettings::setActive(bool setActive)
 
     mToolbar->setVisible(true);
     mIsActiveShown = true;
-    updatePreview();
+    // updatePreview();
     mDialogHistory->loadHistory();
     mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
     mPreviewImage->getImagePanel()->setShowEditedImage(mActionEditMode->isChecked());

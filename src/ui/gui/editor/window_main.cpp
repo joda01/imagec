@@ -184,6 +184,18 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   mSaveProject->setEnabled(false);
 
   QTimer::singleShot(0, this, SLOT(onNewProjectClicked();));
+
+  //
+  // Create a global shortcut for F5 to refresh the preview
+  //
+  QShortcut *shortcut = new QShortcut(QKeySequence(Qt::Key_F5), this);
+  shortcut->setContext(Qt::ApplicationShortcut);    // 🔹 works globally in the app
+  connect(shortcut, &QShortcut::activated, this, [this]() {
+    auto *pip = mPanelPipeline->getSelectedPipeline();
+    if(pip != nullptr) {
+      pip->updatePreview();
+    }
+  });
 }
 
 WindowMain::~WindowMain() = default;
