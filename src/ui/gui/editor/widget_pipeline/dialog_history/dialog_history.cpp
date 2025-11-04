@@ -105,12 +105,10 @@ DialogHistory::DialogHistory(WindowMain *parent, joda::settings::Pipeline *pipel
     mTableHistory->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     // mTableHistory->setItemDelegateForColumn(0, new HtmlDelegate(mPipelineTable));
     // mTableHistory->setItemDelegateForColumn(1, new ColorSquareDelegatePipeline(mPipelineTable));
-    mTableModelHistory = new TableModelHistory(&pipelineSettings->history, mTableHistory);
+    mTableModelHistory = new TableModelHistory(pipelineSettings, mTableHistory);
     mTableHistory->setModel(mTableModelHistory);
 
-    connect(mTableHistory->selectionModel(), &QItemSelectionModel::currentChanged, [&](const QModelIndex &current, const QModelIndex &previous) {});
-    connect(mTableHistory, &QTableView::clicked, [this](const QModelIndex &index) {});
-    connect(mTableHistory, &QTableView::doubleClicked, [this](const QModelIndex &index) {});
+    connect(mTableHistory, &QTableView::doubleClicked, [this](const QModelIndex &index) { mPipelineSettings->restoreSnapShot(index.row()); });
     pipelineSettings->registerHistoryChangeCallback([this] { mTableModelHistory->refresh(); });
   }
 
@@ -173,23 +171,6 @@ void DialogHistory::show()
 /// \param[out]
 /// \return
 ///
-/*
-void DialogHistory::updateSelection()
-{
-  auto idx = mPanelPipeline->mutablePipeline().getHistoryIndex();
-  if(mHistory->rowCount() > static_cast<int32_t>(idx)) {
-    mHistory->selectRow(static_cast<int32_t>(idx));
-  }
-}
-  */
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 void DialogHistory::createTag()
 {
   QInputDialog inputDialog(mWindowMain);
@@ -204,48 +185,4 @@ void DialogHistory::createTag()
     }
   }
 }
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-/*
-auto DialogHistory::generateHistoryEntry(const std::optional<joda::settings::PipelineHistoryEntry> &inData) -> TimeHistoryEntry *
-{
-  if(!inData.has_value()) {
-    return nullptr;
-  }
-
-  QIcon icon;
-  QString text;
-  if(!inData->tagMessage.empty()) {
-    icon = generateSvgIcon<Style::REGULAR, Color::BLACK>("tag-simple");
-    text = inData->tagMessage.data();
-  } else {
-    text = inData->commitMessage.data();
-    switch(inData->category) {
-      case enums::HistoryCategory::OTHER:
-        icon = generateSvgIcon<Style::REGULAR, Color::BLACK>("circle");
-        break;
-      case enums::HistoryCategory::ADDED:
-        icon = generateSvgIcon<Style::REGULAR, Color::BLACK>("list-plus");
-        break;
-      case enums::HistoryCategory::DELETED:
-        icon = generateSvgIcon<Style::REGULAR, Color::RED>("trash-simple");
-        break;
-      case enums::HistoryCategory::CHANGED:
-        icon = generateSvgIcon<Style::REGULAR, Color::BLACK>("circle");
-        break;
-      case enums::HistoryCategory::SAVED:
-        icon = generateSvgIcon<Style::REGULAR, Color::GREEN>("floppy-disk");
-        break;
-    }
-  }
-  // Set the icon in the first column
-  auto *textIcon = new TimeHistoryEntry(icon, text, std::chrono::system_clock::time_point(std::chrono::seconds(inData->timeStamp)));
-  return textIcon;
-}*/
 }    // namespace joda::ui::gui

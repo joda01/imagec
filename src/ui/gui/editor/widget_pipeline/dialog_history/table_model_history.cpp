@@ -25,8 +25,7 @@
 
 namespace joda::ui::gui {
 
-TableModelHistory::TableModelHistory(std::vector<settings::PipelineHistoryEntry> *dataHistory, QObject *parent) :
-    QAbstractTableModel(parent), mDataHistory(dataHistory)
+TableModelHistory::TableModelHistory(settings::Pipeline *dataHistory, QObject *parent) : QAbstractTableModel(parent), mDataHistory(dataHistory)
 {
   if(parent == nullptr) {
     throw std::runtime_error("Parent must not be empty and of type QTableView.");
@@ -38,7 +37,7 @@ int TableModelHistory::rowCount(const QModelIndex & /*parent*/) const
   if(mDataHistory == nullptr) {
     return 0;
   }
-  return static_cast<int>(mDataHistory->size());
+  return static_cast<int>(mDataHistory->history.size());
 }
 
 int TableModelHistory::columnCount(const QModelIndex & /*parent*/) const
@@ -83,11 +82,11 @@ QVariant TableModelHistory::data(const QModelIndex &index, int role) const
     return {};
   }
 
-  if(index.row() < 0 || index.row() >= static_cast<int32_t>(mDataHistory->size())) {
+  if(index.row() < 0 || index.row() >= static_cast<int32_t>(mDataHistory->history.size())) {
     return {};
   }
 
-  auto it = mDataHistory->begin();
+  auto it = mDataHistory->history.begin();
   std::advance(it, index.row());
 
   if(role == Qt::UserRole) {
@@ -101,20 +100,38 @@ QVariant TableModelHistory::data(const QModelIndex &index, int role) const
       return retStr;
     }
   } else if(role == Qt::DecorationRole) {
-    if(!it->tagMessage.empty()) {
-      return generateSvgIcon<Style::REGULAR, Color::GREEN>("tag-simple");
-    }
-    switch(it->category) {
-      case enums::HistoryCategory::ADDED:
-        return generateSvgIcon<Style::REGULAR, Color::BLACK>("list-plus");
-      case enums::HistoryCategory::DELETED:
-        return generateSvgIcon<Style::REGULAR, Color::BLACK>("trash-simple");
-      case enums::HistoryCategory::CHANGED:
-        return generateSvgIcon<Style::REGULAR, Color::BLACK>("circle");
-      case enums::HistoryCategory::SAVED:
-        return generateSvgIcon<Style::REGULAR, Color::BLACK>("floppy-disk");
-      default:
-        return generateSvgIcon<Style::REGULAR, Color::BLACK>("circle");
+    if(mDataHistory->getHistoryIndex() == static_cast<size_t>(index.row())) {
+      if(!it->tagMessage.empty()) {
+        return generateSvgIcon<Style::DUETONE, Color::RED>("tag-simple");
+      }
+      switch(it->category) {
+        case enums::HistoryCategory::ADDED:
+          return generateSvgIcon<Style::REGULAR, Color::RED>("list-plus");
+        case enums::HistoryCategory::DELETED:
+          return generateSvgIcon<Style::REGULAR, Color::RED>("trash-simple");
+        case enums::HistoryCategory::CHANGED:
+          return generateSvgIcon<Style::REGULAR, Color::RED>("circle");
+        case enums::HistoryCategory::SAVED:
+          return generateSvgIcon<Style::REGULAR, Color::RED>("floppy-disk");
+        default:
+          return generateSvgIcon<Style::REGULAR, Color::RED>("circle");
+      }
+    } else {
+      if(!it->tagMessage.empty()) {
+        return generateSvgIcon<Style::DUETONE, Color::GREEN>("tag-simple");
+      }
+      switch(it->category) {
+        case enums::HistoryCategory::ADDED:
+          return generateSvgIcon<Style::REGULAR, Color::BLACK>("list-plus");
+        case enums::HistoryCategory::DELETED:
+          return generateSvgIcon<Style::REGULAR, Color::BLACK>("trash-simple");
+        case enums::HistoryCategory::CHANGED:
+          return generateSvgIcon<Style::REGULAR, Color::BLACK>("circle");
+        case enums::HistoryCategory::SAVED:
+          return generateSvgIcon<Style::REGULAR, Color::BLACK>("floppy-disk");
+        default:
+          return generateSvgIcon<Style::REGULAR, Color::BLACK>("circle");
+      }
     }
   }
   return {};
@@ -129,8 +146,8 @@ QVariant TableModelHistory::data(const QModelIndex &index, int role) const
 ///
 auto TableModelHistory::getCell(int row) -> joda::settings::PipelineHistoryEntry *
 {
-  if(row >= 0 && row < static_cast<int32_t>(mDataHistory->size())) {
-    auto it = mDataHistory->begin();
+  if(row >= 0 && row < static_cast<int32_t>(mDataHistory->history.size())) {
+    auto it = mDataHistory->history.begin();
     std::advance(it, row);
     return &*it;
   }

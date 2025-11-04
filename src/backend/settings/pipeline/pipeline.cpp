@@ -32,6 +32,13 @@ void Pipeline::triggerHistoryChanged() const
   }
 }
 
+void Pipeline::triggerSnapshotRestored(const Pipeline &pip) const
+{
+  for(const auto &f : mSnapshotRestored) {
+    f(pip);
+  }
+}
+
 ///
 /// \brief      Create a snapshot of the actual pipeline steps
 /// \author     Joachim Danmayr
@@ -113,6 +120,7 @@ auto Pipeline::restoreSnapShot(size_t idx) const -> Pipeline
   pip.pipelineSteps   = history.at(idx).pipelineSteps;
   pip.actHistoryIndex = static_cast<int32_t>(idx);
   triggerHistoryChanged();
+  triggerSnapshotRestored(pip);
   return pip;
 }
 

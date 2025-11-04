@@ -28,7 +28,7 @@ class TableModelHistory : public QAbstractTableModel
 
 public:
   /////////////////////////////////////////////////////
-  TableModelHistory(std::vector<settings::PipelineHistoryEntry> *dataHistory, QObject *parent = nullptr);
+  TableModelHistory(settings::Pipeline *dataHistory, QObject *parent = nullptr);
   auto getCell(int row) -> joda::settings::PipelineHistoryEntry *;
   int rowCount(const QModelIndex &parent = QModelIndex()) const override;
   int columnCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -37,7 +37,7 @@ public:
   void refresh();
 
 private:
-  std::vector<settings::PipelineHistoryEntry> *mDataHistory;
+  settings::Pipeline *mDataHistory;
 };
 
 }    // namespace joda::ui::gui

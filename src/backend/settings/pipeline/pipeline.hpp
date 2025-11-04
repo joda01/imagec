@@ -123,15 +123,23 @@ public:
     mHistoryChangeCallback.emplace_back(func);
   }
 
-  std::vector<PipelineHistoryEntry> history{{.commitMessage = "Created"}};
+  void registerSnapShotRestored(const std::function<void(const Pipeline &)> &func)
+  {
+    mSnapshotRestored.emplace_back(func);
+  }
+
+  std::vector<PipelineHistoryEntry> history;
 
 private:
   //
   // Changes of the pipeline steps over time
   //
   void triggerHistoryChanged() const;
+  void triggerSnapshotRestored(const Pipeline &) const;
+
   int32_t actHistoryIndex = 0;
   std::vector<std::function<void()>> mHistoryChangeCallback;
+  std::vector<std::function<void(const Pipeline &)>> mSnapshotRestored;
 };
 
 }    // namespace joda::settings

@@ -155,6 +155,11 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
     mSettings.undo();
     mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
   });
+  settings.registerHistoryChangeCallback([this] { mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size()); });
+  settings.registerSnapShotRestored([this](const joda::settings::Pipeline &pip) {
+    clearPipeline();
+    fromSettings(pip);
+  });
 
   //
   // History
@@ -174,7 +179,19 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   auto *addTagAction = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("tag-simple"), "Add tag");
   addTagAction->setStatusTip("Tag actual pipeline settings");
   addTagAction->setToolTip("Tag the actual settings in the history.");
-  connect(addTagAction, &QAction::triggered, [this]() { mSettings.tag("My tag"); });
+  connect(addTagAction, &QAction::triggered, [this]() {
+    QInputDialog inputDialog(mWindowMain);
+    inputDialog.setWindowTitle("Create tag");
+    inputDialog.setLabelText("Tag name:");
+    inputDialog.setInputMode(QInputDialog::TextInput);
+    auto ret = inputDialog.exec();
+    if(QInputDialog::Accepted == ret) {
+      QString text = inputDialog.textValue();
+      if(!text.isEmpty()) {
+        mSettings.tag(text.toStdString());
+      }
+    }
+  });
 
   mToolbar->addSeparator();
 
