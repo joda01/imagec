@@ -57,7 +57,10 @@ PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMai
 {
   mMainLayout = new QVBoxLayout();
   mMainLayout->setContentsMargins(0, 0, 0, 0);
+  mMainLayout->setAlignment(Qt::AlignTop);    // Align all items to top
+
   auto *toolbar = new QToolBar();
+  toolbar->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed);
   toolbar->setIconSize(QSize(16, 16));
 
   {
@@ -253,6 +256,8 @@ PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMai
     mTableModel = new TableModelPipeline(mAnalyzeSettings->projectSettings.classification, mPipelineTable);
     mTableModel->setData(&settings->pipelines);
     mPipelineTable->setModel(mTableModel);
+    mPipelineTable->setMaximumHeight(200);
+    mPipelineTable->setMinimumHeight(200);
 
     connect(mPipelineTable->selectionModel(), &QItemSelectionModel::currentChanged,
             [&](const QModelIndex &current, const QModelIndex &previous) { openSelectedPipeline(current, previous); });
@@ -262,7 +267,7 @@ PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMai
 
   mCommandSelectionDialog = std::make_shared<DialogCommandSelection>(mAnalyzeSettings, mWindowMain);
 
-  mMainLayout->addWidget(toolbar);
+  mMainLayout->addWidget(toolbar, Qt::AlignTop);
   mMainLayout->addWidget(mPipelineTable, 1);
 
   setLayout(mMainLayout);

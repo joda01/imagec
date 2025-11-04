@@ -38,6 +38,8 @@ PanelImages::PanelImages(WindowMain *windowMain) : mWindowMain(windowMain)
     mImages->setAlternatingRowColors(true);
     mImages->setSelectionBehavior(QAbstractItemView::SelectRows);
     mImages->setColumnHidden(0, true);
+    mImages->setMaximumHeight(200);
+    mImages->setMinimumHeight(200);
     connect(mImages, &QTableWidget::itemSelectionChanged, [&]() { updateImageMeta(); });
     layout->addWidget(mImages, 1);
   }
