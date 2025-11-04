@@ -12,7 +12,9 @@
 #pragma once
 
 #include <chrono>
+#include <functional>
 #include <tuple>
+#include <vector>
 #include "backend/enums/enum_history.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/processor/initializer/pipeline_settings.hpp"
@@ -81,6 +83,9 @@ public:
   //
   bool locked = false;
 
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED_CONDITIONAL_CHECK(Pipeline, disabled, meta, pipelineSetup, pipelineSteps, disabled, locked);
+
+  /////////////////////////////////////////////////////
   /////////////////////////////////////////////////////
   void check() const;
 
@@ -113,15 +118,20 @@ public:
     return static_cast<size_t>(actHistoryIndex);
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED_CONDITIONAL_CHECK(Pipeline, disabled, meta, pipelineSetup, pipelineSteps, disabled, locked,
-                                                                         actHistoryIndex);
+  void registerHistoryChangeCallback(const std::function<void()> &func)
+  {
+    mHistoryChangeCallback.emplace_back(func);
+  }
+
+  std::vector<PipelineHistoryEntry> history{{.commitMessage = "Created"}};
 
 private:
   //
   // Changes of the pipeline steps over time
   //
-  std::vector<PipelineHistoryEntry> history{{.commitMessage = "Created"}};
+  void triggerHistoryChanged() const;
   int32_t actHistoryIndex = 0;
+  std::vector<std::function<void()>> mHistoryChangeCallback;
 };
 
 }    // namespace joda::settings

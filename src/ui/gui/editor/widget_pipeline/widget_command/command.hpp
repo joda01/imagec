@@ -185,7 +185,6 @@ public:
   }
 
 signals:
-  void valueChanged();
   void displayTextChanged();
 
 public slots:
@@ -285,6 +284,7 @@ private:
   const std::vector<std::string> &mTags;
   AddCommandButtonBase *mCmdButton;
   joda::settings::AnalyzeSettings *mAnalyzeSettings = nullptr;
+  joda::settings::Pipeline *mPipelineSettings       = nullptr;
 };
 
 }    // namespace joda::ui::gui

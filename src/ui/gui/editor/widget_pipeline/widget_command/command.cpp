@@ -145,7 +145,6 @@ void Command::mousePressEvent(QMouseEvent *event)
     mBreakpoint->blockSignals(true);
     mBreakpoint->setChecked(!isBreakpoint());
     setBreakpoint(mBreakpoint->isChecked());
-    emit valueChanged();
     mBreakpoint->blockSignals(false);
   }
 }
@@ -364,8 +363,9 @@ InOuts Command::getOut() const
 void Command::registerAddCommandButton(std::shared_ptr<Command> commandBefore, std::shared_ptr<DialogCommandSelection> &cmdDialog,
                                        joda::settings::Pipeline &settings, PanelPipelineSettings *pipelineSettingsUi, WindowMain *mainWindow)
 {
-  mCommandBefore = commandBefore;
-  mCmdButton     = new AddCommandButtonBase(cmdDialog, settings, pipelineSettingsUi, &mPipelineStep, getOut(), mainWindow);
+  mPipelineSettings = &settings;
+  mCommandBefore    = commandBefore;
+  mCmdButton        = new AddCommandButtonBase(cmdDialog, settings, pipelineSettingsUi, &mPipelineStep, getOut(), mainWindow);
   mCmdButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   mDisplayViewLayout.addWidget(mCmdButton, 2, 0, 1, 2);
 }
@@ -398,10 +398,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   mDisabled = mLayout.addActionButton("Disable", generateSvgIcon<Style::REGULAR, Color::BLACK>("eye-slash"));
   mDisabled->setCheckable(true);
   mDisabled->setChecked(mPipelineStep.disabled);
-  connect(mDisabled, &QAction::triggered, [this](bool) {
-    setDisabled(mDisabled->isChecked());
-    emit valueChanged();
-  });
+  connect(mDisabled, &QAction::triggered, [this](bool) { setDisabled(mDisabled->isChecked()); });
 
   //
   // Locked button
@@ -409,10 +406,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   mLocked = mLayout.addActionButton("Locked", generateSvgIcon<Style::REGULAR, Color::BLACK>("lock-simple"));
   mLocked->setCheckable(true);
   mLocked->setChecked(mPipelineStep.locked);
-  connect(mLocked, &QAction::triggered, [this](bool) {
-    setLocked(mLocked->isChecked());
-    emit valueChanged();
-  });
+  connect(mLocked, &QAction::triggered, [this](bool) { setLocked(mLocked->isChecked()); });
 
   //
   // Breakpoint button
@@ -421,10 +415,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   mBreakpoint->setCheckable(true);
   mBreakpoint->setChecked(mPipelineStep.breakPoint);
   mBreakpoint->setVisible(false);
-  connect(mBreakpoint, &QAction::triggered, [this](bool) {
-    setBreakpoint(mBreakpoint->isChecked());
-    emit valueChanged();
-  });
+  connect(mBreakpoint, &QAction::triggered, [this](bool) { setBreakpoint(mBreakpoint->isChecked()); });
   mOtherCommands = pipelineSettingsUi->getListOfCommands();
 
   //
@@ -603,7 +594,11 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
   for(const auto &[setting, show, group] : settings) {
     setting->setDisplayIconVisible(false);
     connect(setting, &SettingBase::displayTextChanged, this, &Command::displayTextChanged);
-    connect(setting, &SettingBase::valueChanged, this, &Command::valueChanged);
+    connect(setting, &SettingBase::valueChanged, [this] {
+      if(mPipelineSettings != nullptr) {
+        mPipelineSettings->createSnapShot(enums::HistoryCategory::CHANGED, "Value changed");
+      }
+    });
   }
   updateDisplayText();
   connect(this, &Command::displayTextChanged, this, &Command::updateDisplayText);

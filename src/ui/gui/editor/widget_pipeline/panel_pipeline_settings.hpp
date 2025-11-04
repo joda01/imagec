@@ -158,7 +158,6 @@ private slots:
   /////////////////////////////////////////////////////
   void onPreviewStarted();
   void onPreviewFinished(QString error);
-  void valueChangedEvent();
   void metaChangedEvent();
   void closeWindow();
   void onClassificationNameChanged();

@@ -16,17 +16,19 @@
 #include <qdialog.h>
 #include <qlabel.h>
 #include "backend/enums/enum_history.hpp"
+#include "ui/gui/helper/table_view.hpp"
 #include "ui/gui/helper/table_widget.hpp"
 
 namespace joda::settings {
 class PipelineHistoryEntry;
+class Pipeline;
 }    // namespace joda::settings
 
 namespace joda::ui::gui {
 
 class WindowMain;
-class PanelPipelineSettings;
 class TimeHistoryEntry;
+class TableModelHistory;
 
 ///
 /// \class      Dialog History
@@ -37,25 +39,18 @@ class DialogHistory : public QDialog
 {
 public:
   /////////////////////////////////////////////////////
-  DialogHistory(WindowMain *parent, PanelPipelineSettings *panelPipelineSettings);
-
+  DialogHistory(WindowMain *parent, joda::settings::Pipeline *panelPipelineSettings);
   void show();
-  void updateHistory(enums::HistoryCategory category, const std::string &);
-  void loadHistory();
-  void createTag();
-  void undo();
-  static auto generateHistoryEntry(const std::optional<joda::settings::PipelineHistoryEntry> &) -> TimeHistoryEntry *;
 
 private:
   /////////////////////////////////////////////////////
-  void updateSelection();
-  void restoreHistory(int32_t index);
+  void createTag();
 
   /////////////////////////////////////////////////////
-  WindowMain *mWindowMain               = nullptr;
-  PanelPipelineSettings *mPanelPipeline = nullptr;
-
-  PlaceholderTableWidget *mHistory;
+  WindowMain *mWindowMain = nullptr;
+  TableModelHistory *mTableModelHistory;
+  PlaceholderTableView *mTableHistory;
+  joda::settings::Pipeline *mPipelineSettings;
 };
 
 }    // namespace joda::ui::gui

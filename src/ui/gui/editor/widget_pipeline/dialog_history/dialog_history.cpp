@@ -20,9 +20,10 @@
 #include <chrono>
 #include <utility>
 #include "backend/helper/logger/console_logger.hpp"
+#include "backend/settings/pipeline/pipeline.hpp"
 #include "ui/gui/editor/window_main.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
-#include "panel_pipeline_settings.hpp"
+#include "table_model_history.hpp"
 
 namespace joda::ui::gui {
 
@@ -88,25 +89,30 @@ private:
 /// \param[out]
 /// \return
 ///
-DialogHistory::DialogHistory(WindowMain *parent, PanelPipelineSettings *panelPipelineSettings) :
-    QDialog(parent), mWindowMain(parent), mPanelPipeline(panelPipelineSettings)
+DialogHistory::DialogHistory(WindowMain *parent, joda::settings::Pipeline *pipelineSettings) :
+    QDialog(parent), mWindowMain(parent), mPipelineSettings(pipelineSettings)
 {
   setWindowTitle("Change history");
-  mHistory = new PlaceholderTableWidget();
-  mHistory->setPlaceholderText("Change history");
-  mHistory->setColumnCount(1);
-  mHistory->setColumnHidden(0, false);
-  mHistory->setHorizontalHeaderLabels({"Timeline"});
-  mHistory->verticalHeader()->setVisible(false);
-  mHistory->horizontalHeader()->setVisible(false);
-  mHistory->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
-  mHistory->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
-  // mHistory->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-  mHistory->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-  mHistory->setShowGrid(false);
-  mHistory->setFrameStyle(QFrame::NoFrame);
-  mHistory->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  connect(mHistory, &QTableWidget::cellDoubleClicked, [&](int row, int /*column*/) { restoreHistory(row); });
+
+  {
+    mTableHistory = new PlaceholderTableView(this);
+    mTableHistory->setPlaceholderText("Press the + button to add a new pipeline.");
+    mTableHistory->setFrameStyle(QFrame::NoFrame);
+    mTableHistory->verticalHeader()->setVisible(false);
+    mTableHistory->horizontalHeader()->setVisible(true);
+    mTableHistory->setAlternatingRowColors(true);
+    mTableHistory->setSelectionBehavior(QAbstractItemView::SelectRows);
+    mTableHistory->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    // mTableHistory->setItemDelegateForColumn(0, new HtmlDelegate(mPipelineTable));
+    // mTableHistory->setItemDelegateForColumn(1, new ColorSquareDelegatePipeline(mPipelineTable));
+    mTableModelHistory = new TableModelHistory(&pipelineSettings->history, mTableHistory);
+    mTableHistory->setModel(mTableModelHistory);
+
+    connect(mTableHistory->selectionModel(), &QItemSelectionModel::currentChanged, [&](const QModelIndex &current, const QModelIndex &previous) {});
+    connect(mTableHistory, &QTableView::clicked, [this](const QModelIndex &index) {});
+    connect(mTableHistory, &QTableView::doubleClicked, [this](const QModelIndex &index) {});
+    pipelineSettings->registerHistoryChangeCallback([this] { mTableModelHistory->refresh(); });
+  }
 
   //
   // Toolbar
@@ -132,9 +138,7 @@ DialogHistory::DialogHistory(WindowMain *parent, PanelPipelineSettings *panelPip
     if(messageBox.clickedButton() == noButton) {
       return;
     }
-    mPanelPipeline->mutablePipeline().clearHistory();
-    loadHistory();
-    mWindowMain->checkForSettingsChanged();
+    mPipelineSettings->clearHistory();
   });
 
   auto *addTagAction = toolBar->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("tag-simple"), "Add tag");
@@ -143,7 +147,7 @@ DialogHistory::DialogHistory(WindowMain *parent, PanelPipelineSettings *panelPip
 
   auto *layout = new QVBoxLayout();
   layout->setContentsMargins(0, 0, 0, 0);
-  layout->addWidget(mHistory);
+  layout->addWidget(mTableHistory);
   layout->addWidget(toolBar);
   setLayout(layout);
   setMinimumHeight(600);
@@ -159,10 +163,6 @@ DialogHistory::DialogHistory(WindowMain *parent, PanelPipelineSettings *panelPip
 ///
 void DialogHistory::show()
 {
-  if(mPanelPipeline == nullptr) {
-    return;
-  }
-  updateSelection();
   QDialog::show();
 }
 
@@ -173,69 +173,7 @@ void DialogHistory::show()
 /// \param[out]
 /// \return
 ///
-void DialogHistory::updateHistory(enums::HistoryCategory category, const std::string &text)
-{
-  if(mPanelPipeline == nullptr) {
-    return;
-  }
-  auto entry = mPanelPipeline->mutablePipeline().createSnapShot(category, text);
-  if(entry.has_value()) {
-    mHistory->insertRow(0);
-    mHistory->setCellWidget(0, 0, generateHistoryEntry(entry));
-  }
-  updateSelection();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogHistory::loadHistory()
-{
-  if(mPanelPipeline == nullptr) {
-    return;
-  }
-  const auto &history = mPanelPipeline->mutablePipeline().getHistory();
-  mHistory->setRowCount(static_cast<int32_t>(history.size()));
-  int idx = 0;
-  for(const auto &step : history) {
-    mHistory->setCellWidget(idx, 0, generateHistoryEntry(step));
-    idx++;
-  }
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogHistory::restoreHistory(int32_t index)
-{
-  if(mPanelPipeline == nullptr) {
-    return;
-  }
-  try {
-    auto dataIn = mPanelPipeline->mutablePipeline().restoreSnapShot(index);
-    mPanelPipeline->clearPipeline();
-    mPanelPipeline->fromSettings(dataIn);
-    updateSelection();
-  } catch(...) {
-  }
-  // updateHistory("Restored: " + std::to_string(index));
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
+/*
 void DialogHistory::updateSelection()
 {
   auto idx = mPanelPipeline->mutablePipeline().getHistoryIndex();
@@ -243,28 +181,7 @@ void DialogHistory::updateSelection()
     mHistory->selectRow(static_cast<int32_t>(idx));
   }
 }
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogHistory::undo()
-{
-  if(mPanelPipeline == nullptr) {
-    return;
-  }
-  try {
-    auto dataIn = mPanelPipeline->mutablePipeline().undo();
-    mPanelPipeline->clearPipeline();
-    mPanelPipeline->fromSettings(dataIn);
-    updateSelection();
-  } catch(...) {
-  }
-  // updateHistory("Restored: " + std::to_string(index));
-}
+  */
 
 ///
 /// \brief
@@ -283,16 +200,7 @@ void DialogHistory::createTag()
   if(QInputDialog::Accepted == ret) {
     QString text = inputDialog.textValue();
     if(!text.isEmpty()) {
-      try {
-        mPanelPipeline->mutablePipeline().tag(text.toStdString());
-        (static_cast<TimeHistoryEntry *>(mHistory->cellWidget(0, 0)))
-            ->updateContent(generateSvgIcon<Style::REGULAR, Color::BLACK>("tag-simple"), text);
-        mHistory->update();
-        mHistory->viewport()->update();
-        mWindowMain->checkForSettingsChanged();
-      } catch(...) {
-        joda::log::logWarning("Could not create tag!");
-      }
+      mPipelineSettings->tag(text.toStdString());
     }
   }
 }
@@ -304,6 +212,7 @@ void DialogHistory::createTag()
 /// \param[out]
 /// \return
 ///
+/*
 auto DialogHistory::generateHistoryEntry(const std::optional<joda::settings::PipelineHistoryEntry> &inData) -> TimeHistoryEntry *
 {
   if(!inData.has_value()) {
@@ -338,5 +247,5 @@ auto DialogHistory::generateHistoryEntry(const std::optional<joda::settings::Pip
   // Set the icon in the first column
   auto *textIcon = new TimeHistoryEntry(icon, text, std::chrono::system_clock::time_point(std::chrono::seconds(inData->timeStamp)));
   return textIcon;
-}
+}*/
 }    // namespace joda::ui::gui

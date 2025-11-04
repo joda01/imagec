@@ -22,18 +22,14 @@ namespace joda::ui::gui {
 /// \author     Joachim Danmayr
 /// \brief
 ///
-class TableModelPipeline : public QAbstractTableModel
+class TableModelHistory : public QAbstractTableModel
 {
   Q_OBJECT
 
 public:
-  static constexpr int32_t CLASS_ROLE       = 0x101;
-  static constexpr int32_t CHANNEL_IDX_ROLE = 0x102;
-
   /////////////////////////////////////////////////////
-  TableModelPipeline(const joda::settings::Classification &, QObject *parent = nullptr);
-  void setData(std::list<joda::settings::Pipeline> *pipelines);
-  auto getCell(int row) -> joda::settings::Pipeline *;
+  TableModelHistory(std::vector<settings::PipelineHistoryEntry> *dataHistory, QObject *parent = nullptr);
+  auto getCell(int row) -> joda::settings::PipelineHistoryEntry *;
   int rowCount(const QModelIndex &parent = QModelIndex()) const override;
   int columnCount(const QModelIndex &parent = QModelIndex()) const override;
   QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
@@ -41,8 +37,7 @@ public:
   void refresh();
 
 private:
-  std::list<joda::settings::Pipeline> *mPipelines = nullptr;
-  const joda::settings::Classification &mClassSettings;
+  std::vector<settings::PipelineHistoryEntry> *mDataHistory;
 };
 
 }    // namespace joda::ui::gui

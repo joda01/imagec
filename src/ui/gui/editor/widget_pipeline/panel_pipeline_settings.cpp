@@ -40,7 +40,7 @@
 #include "ui/gui/dialogs/dialog_image_view/dialog_image_view.hpp"
 #include "ui/gui/dialogs/dialog_ml_trainer/dialog_ml_trainer.hpp"
 #include "ui/gui/editor/widget_pipeline/dialog_command_selection/dialog_command_selection.hpp"
-#include "ui/gui/editor/widget_pipeline/dialog_history.hpp"
+#include "ui/gui/editor/widget_pipeline/dialog_history/dialog_history.hpp"
 #include "ui/gui/editor/widget_pipeline/dialog_pipeline_settings/dialog_pipeline_settings.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_command/factory.hpp"
@@ -56,7 +56,6 @@
 #include "ui/gui/helper/template_parser/template_parser.hpp"
 #include <nlohmann/json_fwd.hpp>
 #include "add_command_button.hpp"
-#include "dialog_history.hpp"
 
 namespace joda::ui::gui {
 
@@ -85,7 +84,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   mToolbar->setMovable(false);
   wm->addToolBar(Qt::ToolBarArea::TopToolBarArea, mToolbar);
 
-  mDialogHistory = new DialogHistory(wm, this);
+  mDialogHistory = new DialogHistory(wm, &settings);
   {
     auto *scrollArea = new QScrollArea();
     scrollArea->setContentsMargins(0, 0, 0, 0);
@@ -143,7 +142,6 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   mActionDisabled = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("selection-slash"), "Disable pipeline");
   mActionDisabled->setStatusTip("Temporary disable this pipeline");
   mActionDisabled->setCheckable(true);
-  connect(mActionDisabled, &QAction::triggered, this, &PanelPipelineSettings::valueChangedEvent);
 
   mToolbar->addSeparator();
 
@@ -154,7 +152,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   mUndoAction->setEnabled(false);
   mUndoAction->setStatusTip("Undo last setting");
   connect(mUndoAction, &QAction::triggered, [this]() {
-    this->mDialogHistory->undo();
+    mSettings.undo();
     mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
   });
 
@@ -176,7 +174,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   auto *addTagAction = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("tag-simple"), "Add tag");
   addTagAction->setStatusTip("Tag actual pipeline settings");
   addTagAction->setToolTip("Tag the actual settings in the history.");
-  connect(addTagAction, &QAction::triggered, [this]() { mDialogHistory->createTag(); });
+  connect(addTagAction, &QAction::triggered, [this]() { mSettings.tag("My tag"); });
 
   mToolbar->addSeparator();
 
@@ -200,12 +198,6 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   connect(wm->getPanelClassification(), &PanelClassification::settingsChanged, this, &PanelPipelineSettings::onClassificationNameChanged);
   onClassificationNameChanged();
 
-  /*
-    connect(mPreviewImage, &DialogImageViewer::settingChanged, this, &PanelPipelineSettings::updatePreview);
-    connect(mlTraining, &DialogMlTrainer::triggerPreviewUpdate, this, &PanelPipelineSettings::updatePreview);
-    connect(mPreviewImage->getImagePanel(), &PanelImageView::imageOpened, this, &PanelPipelineSettings::updatePreview);
-    connect(wm->getPanelProjectSettings(), &PanelProjectSettings::updateImagePreview, this, &PanelPipelineSettings::updatePreview);
-  */
   mPreviewThread = std::make_unique<std::thread>(&PanelPipelineSettings::previewThread, this);
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
@@ -221,7 +213,6 @@ void PanelPipelineSettings::openPipelineSettings()
 {
   auto *dialog = new DialogPipelineSettings(mWindowMain->getSettings().projectSettings.classification, mSettings, mWindowMain);
   if(dialog->exec() == QDialog::Accepted) {
-    emit valueChangedEvent();
   }
 }
 
@@ -240,7 +231,6 @@ void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::gui::Comma
   } else {
     command->registerAddCommandButton(mCommands.at(mCommands.size() - 1), mCommandSelectionDialog, mSettings, this, mWindowMain);
   }
-  connect(command.get(), &joda::ui::gui::Command::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   mPipelineSteps->addWidget(command.get());
   mCommands.push_back(std::move(command));
   mWindowMain->checkForSettingsChanged();
@@ -256,7 +246,7 @@ void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::gui::Comma
 void PanelPipelineSettings::insertNewPipelineStep(size_t posToInsert, std::unique_ptr<joda::ui::gui::Command> command,
                                                   const settings::PipelineStep * /*pipelineStepBefore*/)
 {
-  mDialogHistory->updateHistory(enums::HistoryCategory::ADDED, "Added: " + command->getTitle().toStdString());
+  mSettings.createSnapShot(enums::HistoryCategory::ADDED, "Added: " + command->getTitle().toStdString());
   mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
   command->registerDeleteButton(this);
 
@@ -268,7 +258,6 @@ void PanelPipelineSettings::insertNewPipelineStep(size_t posToInsert, std::uniqu
     command->registerAddCommandButton(nullptr, mCommandSelectionDialog, mSettings, this, mWindowMain);
   }
 
-  connect(command.get(), &joda::ui::gui::Command::valueChanged, this, &PanelPipelineSettings::valueChangedEvent);
   size_t widgetPos = posToInsert + 1;    // Each second is a button
   mPipelineSteps->insertWidget(static_cast<int>(widgetPos), command.get());
 
@@ -279,7 +268,6 @@ void PanelPipelineSettings::insertNewPipelineStep(size_t posToInsert, std::uniqu
   }
 
   mWindowMain->checkForSettingsChanged();
-  //  updatePreview();
 }
 
 ///
@@ -336,9 +324,8 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete, bool upda
         }
       }
       if(updateHistoryEntry) {
-        mDialogHistory->updateHistory(enums::HistoryCategory::DELETED, "Removed: " + deletedCommandTitle);
+        mSettings.createSnapShot(enums::HistoryCategory::DELETED, "Removed: " + deletedCommandTitle);
         mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
-        // updatePreview();
         mWindowMain->checkForSettingsChanged();
       }
       return;
@@ -362,46 +349,6 @@ PanelPipelineSettings::~PanelPipelineSettings()
       mPreviewThread->join();
     }
   }
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelPipelineSettings::valueChangedEvent()
-{
-  static bool isBlocked = false;
-  // if(cStackIndex < 0) {
-  //   zProjection->getDisplayLabelWidget()->setVisible(false);
-  // } else {
-  //   zProjection->getDisplayLabelWidget()->setVisible(true);
-  // }
-
-  if(isBlocked) {
-    return;
-  }
-  isBlocked = true;
-
-  /* QObject *senderObject = sender();    // Get the signal's origin
-   if(senderObject) {
-     qDebug() << "Signal received from:" << senderObject->objectName();
-     senderObject->dumpObjectInfo();
-   } else {
-     qDebug() << "Could not identify sender!";
-   }*/
-
-  if(!mLoadingSettings) {
-    mDialogHistory->updateHistory(enums::HistoryCategory::CHANGED, "Changed");
-  }
-  mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
-  // updatePreview();
-
-  QTimer::singleShot(100, this, []() {
-    isBlocked = false;    // Unblock after 100ms
-  });
 }
 
 ///
@@ -609,7 +556,6 @@ void PanelPipelineSettings::clearPipeline()
   for(const std::shared_ptr<Command> &cmd : toDelete) {
     erasePipelineStep(cmd.get(), false);
   }
-  // updatePreview();
   mWindowMain->checkForSettingsChanged();
 }
 
@@ -622,7 +568,7 @@ void PanelPipelineSettings::clearPipeline()
 ///
 void PanelPipelineSettings::pipelineSavedEvent()
 {
-  mDialogHistory->updateHistory(enums::HistoryCategory::SAVED, "Saved");
+  mSettings.createSnapShot(enums::HistoryCategory::SAVED, "Saved");
   mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
 }
 
@@ -668,9 +614,6 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   }
 
   QTimer::singleShot(500, this, [this]() { mLoadingSettings = false; });
-
-  // updatePreview();
-  mDialogHistory->loadHistory();
   mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
 }
 
@@ -708,7 +651,6 @@ void PanelPipelineSettings::closeWindow()
 ///
 void PanelPipelineSettings::onClassificationNameChanged()
 {
-  valueChangedEvent();
   mPreviewImage->getImagePanel()->setRegionsOfInterestFromObjectList();
 }
 
@@ -732,8 +674,6 @@ void PanelPipelineSettings::setActive(bool setActive)
 
     mToolbar->setVisible(true);
     mIsActiveShown = true;
-    // updatePreview();
-    mDialogHistory->loadHistory();
     mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
     mPreviewImage->getImagePanel()->setShowEditedImage(mActionEditMode->isChecked());
   }
