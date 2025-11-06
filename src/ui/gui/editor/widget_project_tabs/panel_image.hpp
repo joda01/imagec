@@ -51,6 +51,9 @@ private:
   QLineEdit *mSearchField;
   joda::ome::OmeInfo mOmeFromActSelectedImage;
 
+  mutable std::filesystem::path mPathOfFirst;
+  mutable joda::ome::OmeInfo mOmeOfFirstImage;
+
 private slots:
   void filterImages();
 };

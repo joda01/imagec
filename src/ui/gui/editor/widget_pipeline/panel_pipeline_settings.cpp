@@ -250,7 +250,6 @@ void PanelPipelineSettings::addPipelineStep(std::unique_ptr<joda::ui::gui::Comma
   }
   mPipelineSteps->addWidget(command.get());
   mCommands.push_back(std::move(command));
-  mWindowMain->checkForSettingsChanged();
 }
 
 ///
@@ -607,7 +606,6 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   mSettings.locked   = settings.locked;
 
   mActionDisabled->setChecked(settings.disabled);
-
   //
   // Pipelinesteps
   //
@@ -629,6 +627,7 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
       mTopAddCommandButton->setInOutBefore(InOuts::ALL);
     }
   }
+  mWindowMain->checkForSettingsChanged();
 
   QTimer::singleShot(500, this, [this]() { mLoadingSettings = false; });
   mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());

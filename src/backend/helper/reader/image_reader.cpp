@@ -547,7 +547,7 @@ auto ImageReader::getOmeInformation(const std::filesystem::path &filename, uint1
     -> joda::ome::OmeInfo
 {
   if(nullptr != myJVM && mJVMInitialised) {
-    auto id = DurationCount::start("Get OEM");
+    auto id = DurationCount::start("Get OME for " + filename.string());
     JNIEnv *myEnv;
     myJVM->AttachCurrentThread(reinterpret_cast<void **>(&myEnv), nullptr);
     if(!std::filesystem::exists(filename)) {

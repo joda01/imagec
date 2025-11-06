@@ -135,15 +135,19 @@ auto PanelImages::getSelectedImage() const -> std::tuple<std::filesystem::path, 
 {
   auto [path, idx, omeInfo] = getSelectedImage();
   int32_t series            = mWindowMain->getPreviewDock()->getSeries();
-
   if(path.empty()) {
     if(mImages->rowCount() > 0) {
       QTableWidgetItem *item = mImages->item(0, 0);
       if(item != nullptr) {
-        auto pathIn                             = std::filesystem::path(item->text().toStdString());
-        const auto &defaultPhysicalSizeSettings = mWindowMain->getSettings().imageSetup.imagePixelSizeSettings;
-        auto omeInfoIn                          = mWindowMain->getController()->getImageProperties(pathIn, series, defaultPhysicalSizeSettings);
-        return {pathIn, series, omeInfoIn};
+        auto pathIn = std::filesystem::path(item->text().toStdString());
+        if(mPathOfFirst != pathIn) {
+          mPathOfFirst                            = pathIn;
+          const auto &defaultPhysicalSizeSettings = mWindowMain->getSettings().imageSetup.imagePixelSizeSettings;
+          mOmeOfFirstImage = mWindowMain->getController()->getImageProperties(mPathOfFirst, series, defaultPhysicalSizeSettings);
+          return {mPathOfFirst, series, mOmeOfFirstImage};
+        } else {
+          return {mPathOfFirst, series, mOmeOfFirstImage};
+        }
       }
     }
   }
