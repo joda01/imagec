@@ -99,7 +99,6 @@ private:
   // ACTIONS //////////////////////////////////////////////////
   QAction *mFillOVerlay         = nullptr;
   QAction *showCrossHairCursor  = nullptr;
-  QAction *showPixelInfo        = nullptr;
   QAction *showOverlay          = nullptr;
   QSlider *mOverlayOpaque       = nullptr;
   QAction *mOverlayOpaqueAction = nullptr;
@@ -139,7 +138,6 @@ private slots:
   void onFitImageToScreenSizeClicked();
   void onZoomOutClicked();
   void onZoomInClicked();
-  void onShowPixelInfo(bool checked);
   void onShowThumbnailChanged(bool checked);
   void onShowCrossHandCursor(bool checked);
   void onSettingsChanged();

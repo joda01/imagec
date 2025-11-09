@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <mutex>
+#include <optional>
 #include <ranges>
 #include <string>
 #include <thread>
@@ -730,17 +731,15 @@ void PanelImageView::mouseMoveEvent(QMouseEvent *event)
     if(mShowThumbnail) {
       getThumbnailAreaEntered(event);
     }
-    if(mShowPixelInfo) {
-      mPixelInfo = fetchPixelInfoFromMousePosition(event->pos());
-    }
+    mPixelInfo = fetchPixelInfoFromMousePosition(event->pos());
+
     if(mShowCrosshandCursor) {
       mCrossCursorInfo.pixelInfo = fetchPixelInfoFromMousePosition(mCrossCursorInfo.mCursorPos);
     }
     QGraphicsView::mouseMoveEvent(event);
   } else if(mState == State::SELECT) {
-    if(mShowPixelInfo) {
-      mPixelInfo = fetchPixelInfoFromMousePosition(event->pos());
-    }
+    mPixelInfo = fetchPixelInfoFromMousePosition(event->pos());
+
     if(mShowCrosshandCursor) {
       mCrossCursorInfo.pixelInfo = fetchPixelInfoFromMousePosition(mCrossCursorInfo.mCursorPos);
     }
@@ -908,7 +907,7 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   QGraphicsView::paintEvent(event);
   const float RECT_SIZE  = 80;
   const int RECT_START_X = 10;
-  const int RECT_START_Y = 10;
+  const int RECT_START_Y = 10 + static_cast<int>(TOP_TOOLBAR_HEIGHT);
 
   // Get the viewport rectangle
   QRect viewportRect = viewport()->rect();
@@ -924,8 +923,8 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   float posX = (RECT_SIZE - actImageWith) * static_cast<float>(horizontalScrollBar()->value()) / static_cast<float>(horizontalScrollBar()->maximum());
   float posY = (RECT_SIZE - actImageHeight) * static_cast<float>(verticalScrollBar()->value()) / static_cast<float>(verticalScrollBar()->maximum());
 
-  QRect viewPort(static_cast<int>(RECT_START_X + posX), static_cast<int>(RECT_START_Y + posY), static_cast<int>(actImageWith),
-                 static_cast<int>(actImageHeight));
+  QRect viewPort(static_cast<int>(RECT_START_X) + static_cast<int>(posX), static_cast<int>(RECT_START_Y) + static_cast<int>(posY),
+                 static_cast<int>(actImageWith), static_cast<int>(actImageHeight));
 
   // Draw the rectangle
   painter.setPen(QColor(173, 216, 230));    // Set the pen color to light blue
@@ -942,18 +941,18 @@ void PanelImageView::paintEvent(QPaintEvent *event)
     drawThumbnail(painter);
   }
 
-  // Draw pixelInfo
-  if(mShowPixelInfo) {
-    // Takes 0.08ms
-    drawPixelInfo(painter, width(), height() - 20, mPixelInfo);
+  // This is a transparent toolbar at the top of the image
+  drawHeaderToolbar(painter);
+  if(mShowCrosshandCursor) {
+    drawImageInfo(painter, mPixelInfo, mCrossCursorInfo.pixelInfo);
+  } else {
+    drawImageInfo(painter, mPixelInfo, std::nullopt);
   }
 
   // Draw ruler
   if(mShowRuler) {
     drawRuler(painter);
   }
-
-  drawActChannel(painter);
 
   // Waiting banner
   if(mWaiting || mLoadingImage) {
@@ -1022,19 +1021,6 @@ void PanelImageView::drawCrossHairCursor(QPainter &painter)
       // Draw vertical line at cursor's X position
       painter.drawLine(mCrossCursorInfo.mCursorPos.x(), 0, mCrossCursorInfo.mCursorPos.x(), height());
     }
-
-    if(mShowPixelInfo) {
-      auto x = mCrossCursorInfo.mCursorPos.x();
-      if(x < width() / 2) {
-        // Switch the side
-        x = x + static_cast<int32_t>(PIXEL_INFO_RECT_WIDTH) + static_cast<int32_t>(THUMB_RECT_START_X) * 2;
-      }
-      auto y = mCrossCursorInfo.mCursorPos.y();
-      if(y < height() / 2) {
-        y = y + static_cast<int32_t>(PIXEL_INFO_RECT_HEIGHT) + static_cast<int32_t>(THUMB_RECT_START_Y) * 2;
-      }
-      drawPixelInfo(painter, x, y, mCrossCursorInfo.pixelInfo);
-    }
   }
 }
 
@@ -1045,32 +1031,94 @@ void PanelImageView::drawCrossHairCursor(QPainter &painter)
 /// \param[out]
 /// \return
 ///
-void PanelImageView::drawPixelInfo(QPainter &painter, int32_t startX, int32_t startY, const PixelInfo &info)
+void PanelImageView::drawHeaderToolbar(QPainter &painter)
 {
-  QRect pixelInfoRect(QPoint(startX - static_cast<int32_t>(THUMB_RECT_START_X) - static_cast<int32_t>(PIXEL_INFO_RECT_WIDTH),
-                             startY - static_cast<int32_t>(THUMB_RECT_START_Y) - static_cast<int32_t>(PIXEL_INFO_RECT_HEIGHT)),
-                      QSize(static_cast<int32_t>(PIXEL_INFO_RECT_WIDTH),
-                            static_cast<int32_t>(PIXEL_INFO_RECT_HEIGHT)));    // Adjust the size as needed
-
-  painter.setPen(Qt::NoPen);    // Set the pen color to light blue
-
-  QColor transparentBlack(0, 0, 0, 127);    // 127 is approximately 50% of 255 for alpha
-  painter.setBrush(transparentBlack);       // Set the brush to no brush for transparent fill
+  QRect toolbarRect;
+  if(!mShowCrosshandCursor) {
+    toolbarRect = QRect(QPoint(0, 0), QSize(width(), static_cast<int32_t>(TOP_TOOLBAR_HEIGHT)));
+  } else {
+    toolbarRect = QRect(QPoint(0, 0), QSize(width(), static_cast<int32_t>(TOP_TOOLBAR_HEIGHT_EXTENDED)));
+  }
+  painter.setPen(Qt::NoPen);               // Set the pen color to light blue
+  QColor transparentBlack(0, 0, 0, 80);    // 127 is approximately 50% of 255 for alpha
+  painter.setBrush(transparentBlack);      // Set the brush to no brush for transparent fill
   QPainterPath path;
-  path.addRoundedRect(pixelInfoRect, 8, 8);
+  path.addRect(toolbarRect);
   painter.fillPath(path, transparentBlack);
   painter.drawPath(path);
+}
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::drawImageInfo(QPainter &painter, const PixelInfo &info, const std::optional<PixelInfo> &infoCursor)
+{
+  mFontMedium = painter.font();
+  mFontSmall  = painter.font();
+  mFontSmall.setPointSize(8);
+
+  QString leftText       = QString("Channel %1").arg(mPlane.cStack);
+  auto generateRightText = [](const PixelInfo &pxInfo) -> QString {
+    if(pxInfo.grayScale >= 0) {
+      return QString("x=%1, y=%2, intensity=%3").arg(pxInfo.posX).arg(pxInfo.posY).arg(pxInfo.grayScale);
+    } else if(pxInfo.redVal >= 0) {
+      return QString("x=%1, y=%2, H=%3, S=%4, V=%5")
+          .arg(pxInfo.posX)
+          .arg(pxInfo.posY)
+          .arg(pxInfo.grayScale)
+          .arg(pxInfo.hue)
+          .arg(pxInfo.saturation)
+          .arg(pxInfo.value);
+    }
+    return "";
+  };
+
+  //  auto icon = generateSvgIcon<Style::REGULAR, Color::WHITE>("vector-three");
   painter.setPen(QColor(255, 255, 255));    // Set the pen color to light blue
 
-  if(info.grayScale >= 0) {
-    QString textToPrint = QString("%1, %2\nIntensity %3").arg(QString::number(info.posX)).arg(info.posY).arg(info.grayScale);
-    painter.drawText(pixelInfoRect, Qt::AlignCenter, textToPrint);
-  } else if(info.redVal >= 0) {
-    QString textToPrint =
-        QString("%1, %2\nH %3, S %4, V %5").arg(QString::number(info.posX)).arg(info.posY).arg(info.hue).arg(info.saturation).arg(info.value);
-    painter.drawText(pixelInfoRect, Qt::AlignCenter, textToPrint);
+  // Define drawing area
+  QRect fullRect(static_cast<int32_t>(THUMB_RECT_START_X), 0, width() - static_cast<int32_t>(THUMB_RECT_START_X),
+                 static_cast<int32_t>(TOP_TOOLBAR_HEIGHT));
+
+  // Split into left and right zones
+  QRect leftRect  = fullRect;
+  QRect rightRect = fullRect;
+  leftRect.setRight(fullRect.left() + (width() - static_cast<int32_t>(THUMB_RECT_START_X)) / 2);
+  rightRect.setLeft(leftRect.right());
+
+  // Draw left text
+  painter.setFont(mFontSmall);
+  painter.drawText(leftRect, Qt::AlignVCenter | Qt::AlignLeft, leftText);
+
+  QFontMetrics fm(painter.font());
+  // Draw right text
+  if(!infoCursor.has_value()) {
+    painter.setFont(mFontSmall);
+    const auto rightText = generateRightText(info);
+    QRect textRect       = fm.boundingRect(rightText);
+    int textX            = rightRect.right() - textRect.width() - static_cast<int32_t>(THUMB_RECT_START_X);
+    painter.drawText(QRect(textX, fullRect.top(), textRect.width(), fullRect.height()), Qt::AlignVCenter | Qt::AlignLeft, rightText);
   }
+  if(infoCursor.has_value()) {
+    {
+      const auto rightText = generateRightText(info);
+      QRect textRect       = fm.boundingRect(rightText);
+      int textX            = rightRect.right() - textRect.width() - static_cast<int32_t>(THUMB_RECT_START_X);
+      painter.drawText(QRect(textX, fullRect.top(), textRect.width(), fm.height()), Qt::AlignVCenter | Qt::AlignLeft, rightText);
+    }
+    {
+      const auto rightText = generateRightText(infoCursor.value());
+      QRect textRect       = fm.boundingRect(rightText);
+      int textX            = rightRect.right() - textRect.width() - static_cast<int32_t>(THUMB_RECT_START_X);
+      painter.drawText(QRect(textX, fullRect.top() + fm.height(), textRect.width(), fm.height()), Qt::AlignVCenter | Qt::AlignLeft, rightText);
+    }
+  }
+
+  painter.setFont(mFontMedium);
 }
 
 ///
@@ -1157,21 +1205,6 @@ void PanelImageView::drawRuler(QPainter &painter)
 /// \param[out]
 /// \return
 ///
-void PanelImageView::drawActChannel(QPainter &painter)
-{
-  QColor textColor(255, 255, 255, 180);    // white with some transparency
-  painter.setPen(textColor);
-  QString textToPrint = QString("CH%1").arg(QString::number(static_cast<double>(mPlane.cStack)));
-  painter.drawText(QRect(0, static_cast<int32_t>(THUMB_RECT_START_Y), width(), 12), Qt::AlignHCenter | Qt::AlignTop, textToPrint);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
 void PanelImageView::drawThumbnail(QPainter &painter)
 {
   if(mPreviewImages.thumbnail.empty() || static_cast<int32_t>(mOmeInfo.getNrOfSeries()) < mSeries) {
@@ -1217,10 +1250,10 @@ void PanelImageView::drawThumbnail(QPainter &painter)
     return;
   }
 
-  QRect thumbRect(
-      QPoint(static_cast<int32_t>(static_cast<float>(width()) - THUMB_RECT_START_X - rectWidth), static_cast<int32_t>(THUMB_RECT_START_Y)),
-      QSize(newWidth,
-            newHeight));    // Adjust the size as needed
+  QRect thumbRect(QPoint(static_cast<int32_t>(static_cast<float>(width()) - THUMB_RECT_START_X - rectWidth),
+                         static_cast<int32_t>(THUMB_RECT_START_Y + TOP_TOOLBAR_HEIGHT)),
+                  QSize(newWidth,
+                        newHeight));    // Adjust the size as needed
 
   //
   // Paint thumbnail
@@ -1247,10 +1280,10 @@ void PanelImageView::drawThumbnail(QPainter &painter)
   //
   painter.setPen(QColor(173, 216, 230));    // Set the pen color to light blue
   painter.setBrush(Qt::NoBrush);            // Set the brush to no brush for transparent fill
-  QRect rectangle(
-      QPoint(static_cast<int32_t>(static_cast<float>(width()) - THUMB_RECT_START_X - rectWidth), static_cast<int32_t>(THUMB_RECT_START_Y)),
-      QSize(newWidth,
-            newHeight));    // Adjust the size as needed
+  QRect rectangle(QPoint(static_cast<int32_t>(static_cast<float>(width()) - THUMB_RECT_START_X - rectWidth),
+                         static_cast<int32_t>(THUMB_RECT_START_Y + TOP_TOOLBAR_HEIGHT)),
+                  QSize(newWidth,
+                        newHeight));    // Adjust the size as needed
   painter.drawRect(rectangle);
 
   mThumbRectWidth  = static_cast<uint32_t>(newWidth);
@@ -1287,7 +1320,7 @@ void PanelImageView::drawThumbnail(QPainter &painter)
         float xOffset = std::floor(static_cast<float>(x) * static_cast<float>(mTileRectWidthScaled));
         float yOffset = std::floor(static_cast<float>(y) * static_cast<float>(mTileRectHeightScaled));
         QRect tileRect(QPoint(static_cast<int32_t>(static_cast<float>(width()) - THUMB_RECT_START_X - static_cast<float>(newWidth) + xOffset),
-                              static_cast<int32_t>(THUMB_RECT_START_Y + yOffset)),
+                              static_cast<int32_t>(THUMB_RECT_START_Y + yOffset + TOP_TOOLBAR_HEIGHT)),
                        QSize(mTileRectWidthScaled, mTileRectHeightScaled));
 
         if(tileRect.x() + tileRect.width() > rectangle.x() + rectangle.width()) {
@@ -1324,7 +1357,7 @@ void PanelImageView::getClickedTileInThumbnail(QMouseEvent *event)
 
         QRect rectangle(QPoint(static_cast<int32_t>(static_cast<float>(width()) - THUMB_RECT_START_X - static_cast<float>(mThumbRectWidth) +
                                                     static_cast<float>(xOffset)),
-                               static_cast<int32_t>(THUMB_RECT_START_Y + static_cast<float>(yOffset))),
+                               static_cast<int32_t>(THUMB_RECT_START_Y + static_cast<float>(yOffset) + TOP_TOOLBAR_HEIGHT)),
                         QSize(mTileRectWidthScaled, mTileRectHeightScaled));
         if(rectangle.contains(event->pos())) {
           mTile.tileX   = x;
@@ -1426,9 +1459,9 @@ int32_t PanelImageView::getNrOfZstacks() const
 ///
 void PanelImageView::getThumbnailAreaEntered(QMouseEvent *event)
 {
-  QRect rectangle(
-      QPoint(width() - static_cast<int32_t>(THUMB_RECT_START_X) - static_cast<int32_t>(mThumbRectWidth), static_cast<int32_t>(THUMB_RECT_START_Y)),
-      QSize(static_cast<int32_t>(mThumbRectWidth), static_cast<int32_t>(mThumbRectHeight)));
+  QRect rectangle(QPoint(width() - static_cast<int32_t>(THUMB_RECT_START_X) - static_cast<int32_t>(mThumbRectWidth),
+                         static_cast<int32_t>(THUMB_RECT_START_Y + TOP_TOOLBAR_HEIGHT)),
+                  QSize(static_cast<int32_t>(mThumbRectWidth), static_cast<int32_t>(mThumbRectHeight)));
   if(rectangle.contains(event->pos())) {
     if(!mThumbnailAreaEntered) {
       mThumbnailAreaEntered = true;
@@ -1686,20 +1719,6 @@ void PanelImageView::setRoisSelectable(bool selectable)
   std::lock_guard<std::mutex> locked(mImageResetMutex);
   mSelectable = selectable;
   mOverlayMasks->setSelectable(selectable);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelImageView::setShowPixelInfo(bool show)
-{
-  std::lock_guard<std::mutex> locked(mImageResetMutex);
-  mShowPixelInfo = show;
-  viewport()->update();
 }
 
 ///

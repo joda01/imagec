@@ -73,7 +73,7 @@ public:
 
   struct CrossCursorInfo
   {
-    QPoint mCursorPos;
+    QPoint mCursorPos = {100, 100};
     PixelInfo pixelInfo;
   };
 
@@ -110,7 +110,6 @@ public:
   void zoomImage(bool inOut);
   void setWaiting(bool waiting);
   void setShowThumbnail(bool);
-  void setShowPixelInfo(bool);
   void setShowEditedImage(bool);
   void setShowCrosshandCursor(bool);
   void setLockCrosshandCursor(bool);
@@ -175,9 +174,9 @@ private:
   void paintEvent(QPaintEvent *event) override;
   void drawThumbnail(QPainter &);
   void drawCrossHairCursor(QPainter &);
-  void drawPixelInfo(QPainter &, int32_t startX, int32_t startY, const PixelInfo &info);
   void drawRuler(QPainter &);
-  void drawActChannel(QPainter &);
+  void drawImageInfo(QPainter &, const PixelInfo &info, const std::optional<PixelInfo> &infoCursor);
+  void drawHeaderToolbar(QPainter &painter);
   void getClickedTileInThumbnail(QMouseEvent *event);
   void getThumbnailAreaEntered(QMouseEvent *event);
   auto fetchPixelInfoFromMousePosition(const QPoint &pos) const -> PixelInfo;
@@ -202,6 +201,9 @@ private:
 
   const float PIXEL_INFO_RECT_WIDTH  = 150;
   const float PIXEL_INFO_RECT_HEIGHT = 40;
+
+  const float TOP_TOOLBAR_HEIGHT          = 24;
+  const float TOP_TOOLBAR_HEIGHT_EXTENDED = 30;
 
   const float RULER_LENGTH = 100;
 
@@ -242,7 +244,7 @@ private:
 
   // IMAGE INFO ///////////////////////////////////////////////////
   CrossCursorInfo mCrossCursorInfo;
-  QRect mLastCrossHairCursorPos = {0, 0, 0, 0};
+  QRect mLastCrossHairCursorPos = {100, 100, 0, 0};
   joda::settings::ProjectImageSetup::PhysicalSizeSettings mDefaultPhysicalSize;
 
   /////////////////////////////////////////////////////
@@ -256,6 +258,10 @@ private:
   /////////////////////////////////////////////////////
   bool mThumbnailAreaEntered = false;
 
+  // FONTS  ///////////////////////////////////////////////////
+  QFont mFontSmall;
+  QFont mFontMedium;
+
   // IMAGE CHANNEL SETTINGS ///////////////////////////////////////////////////
   void storeChannelSettings();
   void restoreChannelSettings();
@@ -265,7 +271,6 @@ private:
   bool mLoadingImage          = false;
   bool mWaiting               = false;
   bool mShowThumbnail         = true;
-  bool mShowPixelInfo         = true;
   bool mShowCrosshandCursor   = false;
   bool mLockCrosshandCursor   = false;
   bool mShowEditedImage       = false;

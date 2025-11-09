@@ -259,13 +259,6 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
     connect(showThumbnail, &QAction::triggered, this, &DialogImageViewer::onShowThumbnailChanged);
     toolbarTop->addAction(showThumbnail);
 
-    showPixelInfo = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("vector-two"), "Pixel info");
-    showPixelInfo->setStatusTip("Show/Hide pixel information");
-    showPixelInfo->setCheckable(true);
-    showPixelInfo->setChecked(true);
-    connect(showPixelInfo, &QAction::triggered, this, &DialogImageViewer::onShowPixelInfo);
-    toolbarTop->addAction(showPixelInfo);
-
     toolbarTop->addSeparator();
 
     if(toolbarParent == nullptr) {
@@ -546,18 +539,6 @@ void DialogImageViewer::onFitImageToScreenSizeClicked()
 void DialogImageViewer::onShowThumbnailChanged(bool checked)
 {
   mImageViewRight.setShowThumbnail(checked);
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void DialogImageViewer::onShowPixelInfo(bool checked)
-{
-  mImageViewRight.setShowPixelInfo(checked);
 }
 
 ///
