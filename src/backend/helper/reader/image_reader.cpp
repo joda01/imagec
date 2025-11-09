@@ -20,6 +20,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <tuple>
 #include "backend/commands/image_functions/resize/resize.hpp"
 #include "backend/helper/duration_count/duration_count.h"
@@ -207,6 +208,13 @@ void ImageReader::init(uint64_t reservedRamForVMInBytes)
         mGetImageInfo       = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImageInfo", "(Ljava/lang/String;II)[I");
         joda::log::logTrace("JVM initialized!");
         mJVMInitialised = true;
+
+        // Warm up
+        std::thread([]() {
+          for(int32_t n = 0; n < 5; n++) {
+            getOmeInformation("warmup", 0, {});
+          }
+        }).detach();
       }
     }
   } catch(const std::exception &ex) {
@@ -550,7 +558,8 @@ auto ImageReader::getOmeInformation(const std::filesystem::path &filename, uint1
     auto id = DurationCount::start("Get OME for " + filename.string());
     JNIEnv *myEnv;
     myJVM->AttachCurrentThread(reinterpret_cast<void **>(&myEnv), nullptr);
-    if(!std::filesystem::exists(filename)) {
+    if(filename != "warmup" && !std::filesystem::exists(filename)) {
+      DurationCount::stop(id);
       joda::log::logError("File >" + filename.string() + "<, does not exist!");
       return {};
     }
@@ -585,6 +594,7 @@ auto ImageReader::getOmeInformation(const std::filesystem::path &filename, uint1
       DurationCount::stop(id);
       return omeInfo;
     } catch(...) {
+      myJVM->DetachCurrentThread();
       return {};
     }
   }

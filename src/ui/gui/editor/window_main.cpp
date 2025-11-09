@@ -41,6 +41,7 @@
 #include <thread>
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/ai_model_parser/ai_model_parser.hpp"
+#include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/fnv1a.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
@@ -635,6 +636,7 @@ void WindowMain::addToLastLoadedResults(const QString &path, const QString &jobN
 ///
 void WindowMain::openProjectSettings(const QString &filePath, bool openFromTemplate)
 {
+  auto id = DurationCount::start("Open project");
   try {
     saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
     joda::settings::AnalyzeSettings analyzeSettings = joda::settings::Settings::openSettings(filePath.toStdString());
@@ -692,6 +694,7 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     messageBox.exec();
   }
+  DurationCount::stop(id);
 }
 
 ///

@@ -162,7 +162,9 @@ public class BioFormatsWrapper {
             formatReader.close();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            if (!imagePath.endsWith("warmup")) {
+                e.printStackTrace();
+            }
         }
         return omeXML;
     }
