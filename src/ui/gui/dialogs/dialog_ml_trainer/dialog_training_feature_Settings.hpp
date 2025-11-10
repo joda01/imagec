@@ -46,9 +46,6 @@ public:
     mGradientMagnitudeKernelSizeVariation = createKernelMultiSelect();
     layout->addRow("Gradient magnitude kernel variation", mGradientMagnitudeKernelSizeVariation);
 
-    mGradientMagnitudeKernelSizeVariation = createKernelMultiSelect();
-    layout->addRow("Gradient magnitude kernel variation", mGradientMagnitudeKernelSizeVariation);
-
     mStructureTensorKernelSizeVariation = createKernelMultiSelect();
     layout->addRow("Structure tensor magnitude kernel variation", mStructureTensorKernelSizeVariation);
 
