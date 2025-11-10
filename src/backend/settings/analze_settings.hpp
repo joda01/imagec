@@ -83,6 +83,18 @@ public:
     projectPathWithFilename.clear();
   }
 
+  void registerSettingsChanged(const std::function<void(const AnalyzeSettings &)> &fun)
+  {
+    mSettingsChangedCallbacks.emplace_back(fun);
+  }
+
+  void triggerSettingsChanged() const
+  {
+    for(const auto &func : mSettingsChangedCallbacks) {
+      func(*this);
+    }
+  }
+
   // This is just a temporary variable which holds the folder from which this settings file was loaded from / was stored in
   std::filesystem::path projectPathWithFilename;
 
@@ -93,5 +105,6 @@ private:
                                                        imagecMeta, meta);
 
   std::vector<std::function<void(const std::filesystem::path &)>> mProjectPathChangedCallback;
+  std::vector<std::function<void(const AnalyzeSettings &)>> mSettingsChangedCallbacks;
 };
 }    // namespace joda::settings

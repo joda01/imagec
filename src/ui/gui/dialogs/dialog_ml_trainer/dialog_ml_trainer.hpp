@@ -85,6 +85,7 @@ private:
   QComboBox *mComboClassifierMethod;
   QComboBox *mRoiSource;
   QComboBoxMulti *mComboTrainingFeatures;
+  QComboBoxMulti *mTrainingClasses;
   QLineEdit *mModelName;
   QPushButton *mButtonStartTraining;
   QPushButton *mButtonStopTraining;

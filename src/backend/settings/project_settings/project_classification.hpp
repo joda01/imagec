@@ -61,8 +61,22 @@ struct Classification
     return no;
   }
 
+  void registerSettingsChanged(const std::function<void(const Classification &)> &fun) const
+  {
+    mSettingsChangedCallbacks.emplace_back(fun);
+  }
+
+  void triggerSettingsChanged() const
+  {
+    for(const auto &func : mSettingsChangedCallbacks) {
+      func(*this);
+    }
+  }
+
   std::string configSchema = "https://imagec.org/schemas/v1/classification-settings.json";
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(Classification, configSchema, meta, classes);
+
+  static inline std::vector<std::function<void(const Classification &)>> mSettingsChangedCallbacks;
 };
 
 }    // namespace joda::settings

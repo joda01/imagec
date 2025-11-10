@@ -316,6 +316,7 @@ void PanelClassification::openEditDialog(joda::settings::Class *classToModify, i
   if(mClassSettingsDialog->exec(*classToModify) == 0) {
     QModelIndex indexToUpdt = mTableModelClasses->index(row, 0);
     mTableModelClasses->dataChanged(indexToUpdt, indexToUpdt);
+    mSettings->triggerSettingsChanged();
   }
 }
 
@@ -363,6 +364,7 @@ void PanelClassification::addClass(bool withUpdate)
   }
   if(withUpdate) {
     onSettingChanged();
+    mSettings->triggerSettingsChanged();
   }
 }
 
@@ -378,6 +380,7 @@ void PanelClassification::fromSettings(const joda::settings::Classification &set
   mTableModelClasses->beginChange();
   *mSettings = settings;
   mTableModelClasses->endChange();
+  mSettings->triggerSettingsChanged();
 }
 
 ///
@@ -704,6 +707,9 @@ void PanelClassification::moveClassToPosition(int32_t fromPos, int32_t newPosIn)
   mTableClasses->selectionModel()->setCurrentIndex(indexToUpddTo,
                                                    QItemSelectionModel::SelectionFlag::Select | QItemSelectionModel::SelectionFlag::Rows);
   mWindowMain->checkForSettingsChanged();
+  std::cout << "triggered 01" << std::endl;
+
+  mSettings->triggerSettingsChanged();
 }
 
 }    // namespace joda::ui::gui

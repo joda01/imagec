@@ -128,6 +128,12 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
   }
 
   {
+    mTrainingClasses = new QComboBoxMulti();
+
+    layout->addRow("Classes to train", mTrainingClasses);
+  }
+
+  {
     mModelName = new QLineEdit();
     layout->addRow("Filename", mModelName);
   }
@@ -169,9 +175,22 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
             mTrainingsLog->moveCursor(QTextCursor::End);
             mTrainingsLog->ensureCursorVisible();
           },
-          Qt::QueuedConnection    // 👈 ensures it runs in the GUI thread
-      );
+          Qt::QueuedConnection);
     });
+
+    if(mAnalyzeSettings != nullptr) {
+      mAnalyzeSettings->projectSettings.classification.registerSettingsChanged([this](const settings::Classification &val) {
+        auto actSelected = mTrainingClasses->getCheckedItemsAsVariantList();
+        mTrainingClasses->clear();
+        mTrainingClasses->addItem("None", static_cast<int>(enums::ClassId::NONE), false);
+
+        for(const auto &classs : val.classes) {
+          mTrainingClasses->addItem(classs.name.data(), static_cast<int>(classs.classId), classs.classId != enums::ClassId::NONE);
+        }
+        actSelected.emplace_back(static_cast<int>(enums::ClassId::NONE));
+        mTrainingClasses->setCheckedItems(actSelected);
+      });
+    }
   }
 
   // Description
@@ -315,10 +334,14 @@ void DialogMlTrainer::startTraining()
     //
     // Now we generate a continuous training class id range which maps the class id to pixel class id in the format [0,1,2,3, ...]
     //
+    const auto &selectedClassesToTrain = mTrainingClasses->getCheckedItemsAsTypedSet<joda::enums::ClassId>();
     std::map<enums::ClassId, int32_t> classesToTrainMapping;
     classesToTrainMapping.emplace(enums::ClassId::NONE, 0);    // None is always the background/zero class
     int32_t pixelClassId = 1;
     for(const auto &[classId, _] : *mObjectMap) {
+      if(!selectedClassesToTrain.contains(classId)) {
+        continue;
+      }
       if(classId != enums::ClassId::NONE) {
         classesToTrainMapping.emplace(classId, pixelClassId);
         pixelClassId++;
