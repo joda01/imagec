@@ -36,6 +36,7 @@
 #include "backend/commands/image_functions/rank_filter/rank_filter_settings.hpp"
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings.hpp"
 #include "backend/commands/image_functions/skeletonize/skeletonize_settings.hpp"
+#include "backend/commands/image_functions/structur_tensor/structure_tensor_settings.hpp"
 #include "backend/commands/image_functions/threshold/threshold_settings.hpp"
 #include "backend/commands/image_functions/threshold_adaptive/threshold_adaptive_settings.hpp"
 #include "backend/commands/image_functions/watershed/watershed_settings.hpp"
@@ -100,6 +101,7 @@ public:
   std::optional<SkeletonizeSettings> $skeletonize                       = std::nullopt;
   std::optional<LaplacianSettings> $laplacian                           = std::nullopt;
   std::optional<WeightedDeviationSettings> $gaussianWeightedDev         = std::nullopt;
+  std::optional<StructureTensorSettings> $structureTensor               = std::nullopt;
   std::optional<NopSettings> $nop                                       = std::nullopt;
 
   // Object commands

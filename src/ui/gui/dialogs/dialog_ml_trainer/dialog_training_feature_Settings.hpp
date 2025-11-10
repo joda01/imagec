@@ -46,6 +46,12 @@ public:
     mGradientMagnitudeKernelSizeVariation = createKernelMultiSelect();
     layout->addRow("Gradient magnitude kernel variation", mGradientMagnitudeKernelSizeVariation);
 
+    mGradientMagnitudeKernelSizeVariation = createKernelMultiSelect();
+    layout->addRow("Gradient magnitude kernel variation", mGradientMagnitudeKernelSizeVariation);
+
+    mStructureTensorKernelSizeVariation = createKernelMultiSelect();
+    layout->addRow("Structure tensor magnitude kernel variation", mStructureTensorKernelSizeVariation);
+
     // Okay and canlce
     auto *buttonBox = new IconlessDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
@@ -81,6 +87,14 @@ public:
       }
       mGradientMagnitudeKernelSizeVariation->setCheckedItems(toCheck);
     }
+
+    {
+      QVariantList toCheck;
+      for(const auto &item : mSettings->structureTensorKernelSizeVariation) {
+        toCheck.emplace_back(static_cast<int>(item));
+      }
+      mStructureTensorKernelSizeVariation->setCheckedItems(toCheck);
+    }
   }
 
   void toSettings()
@@ -108,6 +122,14 @@ public:
         mSettings->gradientMagnitudeKernelSizeVariation.emplace(item.first.toInt());
       }
     }
+
+    {
+      mSettings->structureTensorKernelSizeVariation.clear();
+      const auto &items = mStructureTensorKernelSizeVariation->getCheckedItems();
+      for(const auto &item : items) {
+        mSettings->structureTensorKernelSizeVariation.emplace(item.first.toInt());
+      }
+    }
   }
 
   void accept() override
@@ -121,6 +143,7 @@ private:
   QComboBoxMulti *mBlurKernelSizeVariation;
   QComboBoxMulti *mWeightedDeviationKernelSizeVariation;
   QComboBoxMulti *mGradientMagnitudeKernelSizeVariation;
+  QComboBoxMulti *mStructureTensorKernelSizeVariation;
 
   /////////////////////////////////////////////////////
   TrainingFeaturesSettings *mSettings;

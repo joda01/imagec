@@ -68,6 +68,8 @@
 #include "backend/commands/image_functions/rolling_ball/rolling_ball_settings_ui.hpp"
 #include "backend/commands/image_functions/skeletonize/skeletonize.hpp"
 #include "backend/commands/image_functions/skeletonize/skeletonize_settings_ui.hpp"
+#include "backend/commands/image_functions/structur_tensor/structure_tensor.hpp"
+#include "backend/commands/image_functions/structur_tensor/structure_tensor_settings_ui.hpp"
 #include "backend/commands/image_functions/threshold/threshold.hpp"
 #include "backend/commands/image_functions/threshold/threshold_settings_ui.hpp"
 #include "backend/commands/image_functions/threshold_adaptive/threshold_adaptive.hpp"
@@ -180,6 +182,8 @@ private:
     REGISTER_COMMAND(rank, RankFilter);
     REGISTER_COMMAND(skeletonize, Skeletonize);
     REGISTER_COMMAND(laplacian, Laplacian);
+    REGISTER_COMMAND(structureTensor, StructureTensor);
+
     REGISTER_COMMAND(nop, Nop);
 
     //  REGISTER_COMMAND(crop, MarginCrop);

@@ -22,6 +22,7 @@ struct TrainingFeaturesSettings
   std::set<int32_t> blurKernelSizeVariation              = {5};
   std::set<int32_t> weightedDeviationKernelSizeVariation = {5};
   std::set<int32_t> gradientMagnitudeKernelSizeVariation = {5};
+  std::set<int32_t> structureTensorKernelSizeVariation   = {5};
 };
 
 }    // namespace joda::ui::gui

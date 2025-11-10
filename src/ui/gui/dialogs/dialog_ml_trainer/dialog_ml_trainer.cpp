@@ -28,6 +28,7 @@
 #include "backend/commands/image_functions/edge_detection_sobel/edge_detection_sobel_settings.hpp"
 #include "backend/commands/image_functions/laplacian/laplacian_settings.hpp"
 #include "backend/commands/image_functions/nop/nop_settings.hpp"
+#include "backend/commands/image_functions/structur_tensor/structure_tensor_settings.hpp"
 #include "backend/commands/image_functions/weighted_deviation/weighted_deviation_settings.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_file_endians.hpp"
@@ -99,8 +100,8 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
     mComboTrainingFeatures->addItem("Laplacian of Gaussian", static_cast<int>(TrainingFeatures::LaplacianOfGaussian));
     mComboTrainingFeatures->addItem("Weighted deviation", static_cast<int>(TrainingFeatures::WeightedDeviation));
     mComboTrainingFeatures->addItem("Gradient magnitude", static_cast<int>(TrainingFeatures::GradientMagnitude));
-    // mComboTrainingFeatures->addItem("Structure tensor eigenvalues", static_cast<int>(TrainingFeatures::StructureTensorEigenvalues));
-    // mComboTrainingFeatures->addItem("Structure tensor coherence", static_cast<int>(TrainingFeatures::StructureTensorCoherence));
+    mComboTrainingFeatures->addItem("Structure tensor eigenvalues", static_cast<int>(TrainingFeatures::StructureTensorEigenvalues));
+    mComboTrainingFeatures->addItem("Structure tensor coherence", static_cast<int>(TrainingFeatures::StructureTensorCoherence));
     // mComboTrainingFeatures->addItem("Hessian determinant", static_cast<int>(TrainingFeatures::HessianDeterminant));
     // mComboTrainingFeatures->addItem("Hessian eigenvalues", static_cast<int>(TrainingFeatures::HessianEigenvalues));
 
@@ -474,40 +475,46 @@ void DialogMlTrainer::buildFeatureExtractionPipeline()
     }
   }
 
-  /*
   // --- Structure tensor eigenvalues & coherence ---
-  if(features.contains(TrainingFeatures::StructureTensorEigenvalues) || features.contains(TrainingFeatures::StructureTensorCoherence)) {
-    cv::Mat gx;
-    cv::Mat gy;
-    cv::Sobel(gray, gx, CV_32F, 1, 0, 3);
-    cv::Sobel(gray, gy, CV_32F, 0, 1, 3);
-
-    cv::Mat Jxx = gx.mul(gx);
-    cv::Mat Jyy = gy.mul(gy);
-    cv::Mat Jxy = gx.mul(gy);
-
-    // Smooth tensor components
-    cv::GaussianBlur(Jxx, Jxx, cv::Size(5, 5), 1.0);
-    cv::GaussianBlur(Jyy, Jyy, cv::Size(5, 5), 1.0);
-    cv::GaussianBlur(Jxy, Jxy, cv::Size(5, 5), 1.0);
-
-    // Eigenvalues: λ1, λ2
-    cv::Mat tmp = (Jxx - Jyy).mul(Jxx - Jyy) + 4 * Jxy.mul(Jxy);
-    cv::sqrt(tmp, tmp);
-    cv::Mat l1 = 0.5 * (Jxx + Jyy + tmp);
-    cv::Mat l2 = 0.5 * (Jxx + Jyy - tmp);
-
-    if(features.contains(TrainingFeatures::StructureTensorEigenvalues)) {
-      featureMaps.push_back(l1);
-      featureMaps.push_back(l2);
-    }
-
-    if(features.contains(TrainingFeatures::StructureTensorCoherence)) {
-      cv::Mat coherence = (l1 - l2) / (l1 + l2 + 1e-6);
-      featureMaps.push_back(coherence);
+  if(features.contains(TrainingFeatures::StructureTensorCoherence)) {
+    for(const auto &kernelSize : mTrainingFeatureSettings.structureTensorKernelSizeVariation) {
+      ml::ImageCommandPipeline cmds;
+      {
+        joda::settings::StructureTensorSettings structureTensor;
+        structureTensor.kernelSize = kernelSize;
+        structureTensor.mode       = joda::settings::StructureTensorSettings::Mode::StructureTensorCoherence;
+        cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$structureTensor = structureTensor});
+      }
+      mTrainerSettings.featureExtractionPipelines.push_back(cmds);
     }
   }
 
+  // --- Structure tensor eigenvalues & coherence ---
+  if(features.contains(TrainingFeatures::StructureTensorEigenvalues)) {
+    for(const auto &kernelSize : mTrainingFeatureSettings.structureTensorKernelSizeVariation) {
+      ml::ImageCommandPipeline cmds;
+      {
+        joda::settings::StructureTensorSettings structureTensor;
+        structureTensor.kernelSize = kernelSize;
+        structureTensor.mode       = joda::settings::StructureTensorSettings::Mode::StructureTensorEigenvaluesX;
+        cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$structureTensor = structureTensor});
+      }
+      mTrainerSettings.featureExtractionPipelines.push_back(cmds);
+    }
+
+    for(const auto &kernelSize : mTrainingFeatureSettings.structureTensorKernelSizeVariation) {
+      ml::ImageCommandPipeline cmds;
+      {
+        joda::settings::StructureTensorSettings structureTensor;
+        structureTensor.kernelSize = kernelSize;
+        structureTensor.mode       = joda::settings::StructureTensorSettings::Mode::StructureTensorEigenvaluesY;
+        cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$structureTensor = structureTensor});
+      }
+      mTrainerSettings.featureExtractionPipelines.push_back(cmds);
+    }
+  }
+
+  /*
   // --- Hessian determinant & eigenvalues ---
   if(features.contains(TrainingFeatures::HessianDeterminant) || features.contains(TrainingFeatures::HessianEigenvalues)) {
     cv::Mat dxx;
