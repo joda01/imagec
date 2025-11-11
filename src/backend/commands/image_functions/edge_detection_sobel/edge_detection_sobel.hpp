@@ -47,6 +47,8 @@ private:
   static constexpr int K_SIZE = 3;
   void filter3x3(cv::Mat &image) const;
   void sobel(cv::Mat &image) const;
+  void sobel16Bit(cv::Mat &image) const;
+  void sobelFloat(cv::Mat &image) const;
 
   /////////////////////////////////////////////////////
   const joda::settings::EdgeDetectionSobelSettings &mSetting;

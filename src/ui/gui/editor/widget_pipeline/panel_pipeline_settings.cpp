@@ -220,6 +220,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
   mSettings.registerPipelineChangedCallback([this](const settings::Pipeline &) { setImageMustBeRefreshed(true); });
+  connect(mPreviewImage->getImagePanel(), &PanelImageView::imageOpened, [this]() { setImageMustBeRefreshed(true); });
 }
 
 ///

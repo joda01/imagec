@@ -453,6 +453,9 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
 ///
 void Command::setDisabled(bool disabled)
 {
+  if(disabled != mPipelineStep.disabled) {
+    mPipelineSettings->triggerPipelineChanged();
+  }
   mPipelineStep.disabled = disabled;
   setDisplayTextFont();
 }
@@ -479,6 +482,9 @@ void Command::setLocked(bool locked)
 ///
 void Command::setBreakpoint(bool breakPoint)
 {
+  if(breakPoint != mPipelineStep.breakPoint) {
+    mPipelineSettings->triggerPipelineChanged();
+  }
   mPipelineStep.breakPoint = breakPoint;
   setDisplayTextFont();
 }

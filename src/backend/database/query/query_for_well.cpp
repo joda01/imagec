@@ -2,6 +2,7 @@
 
 #include "query_for_well.hpp"
 #include <cstddef>
+#include <cstdint>
 #include <stdexcept>
 #include <string>
 #include "backend/database/query/filter.hpp"
@@ -105,7 +106,6 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
             rowIdx = static_cast<size_t>(findMaxRowIdx()) + 1;
             rowIndexes.emplace(stdi::uint128_t{groupId, tStack}, rowIdx);
           }
-          //  colC = std::string(1, (static_cast<char>(platePosY - 1) + 'A')) + std::to_string(platePosX);
         }
 
         std::string fileNameTmp;
@@ -113,7 +113,12 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
           fileNameTmp = filename + " t(" + std::to_string(tStack) + ")";
           classesToExport.setRowID(classs, statement.getColNames(), static_cast<int32_t>(rowIdx), fileNameTmp, imageId);
         } else {
-          fileNameTmp = groupName + " t(" + std::to_string(tStack) + ")";
+          if(platePosX < UINT16_MAX && platePosY < UINT16_MAX) {
+            fileNameTmp = std::string(1, (static_cast<char>(platePosY - 1) + 'A')) + std::to_string(platePosX) + " t(" + std::to_string(tStack) + ")";
+          } else {
+            fileNameTmp = groupName + " t(" + std::to_string(tStack) + ")";
+          }
+
           classesToExport.setRowID(classs, statement.getColNames(), static_cast<int32_t>(rowIdx), fileNameTmp, groupId);
         }
 
