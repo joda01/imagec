@@ -123,8 +123,9 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   //
   // Refresh
   //
-  auto *mRefresh = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("arrows-clockwise"), "Refresh preview");
+  mRefresh = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("arrows-clockwise"), "Refresh preview");
   mRefresh->setStatusTip("Refresh preview");
+  mRefresh->setEnabled(false);
   //  mRefresh->setShortcut(QKeySequence(Qt::Key_F5));
   connect(mRefresh, &QAction::triggered, [this](bool /*checked*/) { updatePreview(); });
 
@@ -139,7 +140,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   //
   // Add disable button
   //
-  mActionDisabled = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("selection-slash"), "Disable pipeline");
+  mActionDisabled = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("selection-slash"), "Disable pipeline");
   mActionDisabled->setStatusTip("Temporary disable this pipeline");
   mActionDisabled->setCheckable(true);
 
@@ -217,6 +218,31 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
 
   mPreviewThread = std::make_unique<std::thread>(&PanelPipelineSettings::previewThread, this);
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+  mSettings.registerPipelineChangedCallback([this](const settings::Pipeline &) { setImageMustBeRefreshed(true); });
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelPipelineSettings::setImageMustBeRefreshed(bool refresh)
+{
+  if(mIsActiveShown) {
+    std::lock_guard<std::mutex> lock(mPipelineChangedMutex);
+    mImageMustBeRefreshed = refresh;
+    mRefresh->setEnabled(refresh);
+    if(refresh) {
+      mNumberOfChangesSinceLastRefresh++;
+      mPreviewImage->getImagePanel()->setInfoText("Press F5 to update preview (" + std::to_string(mNumberOfChangesSinceLastRefresh) + ")");
+    } else {
+      mNumberOfChangesSinceLastRefresh = 0;
+      mPreviewImage->getImagePanel()->setInfoText("");
+    }
+  }
 }
 
 ///
@@ -263,6 +289,7 @@ void PanelPipelineSettings::insertNewPipelineStep(size_t posToInsert, std::uniqu
                                                   const settings::PipelineStep * /*pipelineStepBefore*/)
 {
   mSettings.createSnapShot(enums::HistoryCategory::ADDED, "Added: " + command->getTitle().toStdString());
+  mSettings.triggerPipelineChanged();
   mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
   command->registerDeleteButton(this);
 
@@ -553,6 +580,8 @@ void PanelPipelineSettings::onPreviewFinished(QString error)
     mPreviewImage->getImagePanel()->setEditedImage(std::move(mPreviewResult->editedImage));
     mPreviewImage->getImagePanel()->setRegionsOfInterestFromObjectList();
     mPreviewImage->getImagePanel()->repaintImage();
+
+    setImageMustBeRefreshed(false);
   }
   if(nullptr != mPreviewImage) {
     mPreviewImage->setWaiting(false);
@@ -687,9 +716,9 @@ void PanelPipelineSettings::setActive(bool setActive)
         mPreviewImage->getImagePanel()->reloadImage();
       }
     }
-
     mToolbar->setVisible(true);
     mIsActiveShown = true;
+    setImageMustBeRefreshed(true);
     mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
     mPreviewImage->getImagePanel()->setShowEditedImage(mActionEditMode->isChecked());
   }
@@ -699,6 +728,7 @@ void PanelPipelineSettings::setActive(bool setActive)
     mPreviewResult->results.objectMap->triggerChangeCallback();
     mPreviewImage->getImagePanel()->setRegionsOfInterestFromObjectList();
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
+    setImageMustBeRefreshed(false);
     mIsActiveShown = false;
     mToolbar->setVisible(false);
     mPreviewImage->getImagePanel()->setShowEditedImage(false);

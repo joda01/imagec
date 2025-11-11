@@ -597,6 +597,7 @@ helper::VerticalPane *Command::addSetting(helper::TabWidget *tab, const QString 
     connect(setting, &SettingBase::valueChanged, [this] {
       if(mPipelineSettings != nullptr) {
         mPipelineSettings->createSnapShot(enums::HistoryCategory::CHANGED, "Value changed");
+        mPipelineSettings->triggerPipelineChanged();
       }
     });
   }

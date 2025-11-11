@@ -128,6 +128,18 @@ public:
     mSnapshotRestored.emplace_back(func);
   }
 
+  void registerPipelineChangedCallback(const std::function<void(const Pipeline &)> &func)
+  {
+    mPipelineChangedCallbacks.emplace_back(func);
+  }
+
+  void triggerPipelineChanged() const
+  {
+    for(const auto &f : mPipelineChangedCallbacks) {
+      f(*this);
+    }
+  }
+
   std::vector<PipelineHistoryEntry> history;
 
 private:
@@ -140,6 +152,7 @@ private:
   int32_t actHistoryIndex = 0;
   std::vector<std::function<void()>> mHistoryChangeCallback;
   std::vector<std::function<void(const Pipeline &)>> mSnapshotRestored;
+  std::vector<std::function<void(const Pipeline &)>> mPipelineChangedCallbacks;
 };
 
 }    // namespace joda::settings

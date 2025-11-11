@@ -14,6 +14,7 @@
 #include <qboxlayout.h>
 #include <qtoolbar.h>
 #include <QtWidgets>
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -104,8 +105,10 @@ private:
 
   /////////////////////////////////////////////////////
   void previewThread();
+  void setImageMustBeRefreshed(bool);
 
   // ACTIONS///////////////////////////////////////////////////
+  QAction *mRefresh;
   QAction *mUndoAction;
   QAction *mHistoryAction;
   QAction *mActionDisabled;
@@ -148,11 +151,13 @@ private:
     std::map<enums::ClassIdIn, QString> classes;
     joda::thread::ThreadingSettings threadSettings;
   };
-
-  bool mStopped = false;
+  bool mImageMustBeRefreshed               = false;
+  bool mStopped                            = false;
+  int32_t mNumberOfChangesSinceLastRefresh = 0;
   joda::TSQueue<PreviewJob> mPreviewQue;
   std::mutex mCheckForEmptyMutex;
   std::mutex mShutingDownMutex;
+  std::mutex mPipelineChangedMutex;
 
 private slots:
   /////////////////////////////////////////////////////

@@ -153,6 +153,7 @@ public:
   void setRoisOpaque(float opaque);
   void setRoisToHide(const std::set<enums::ClassId> &);
   void setRoisSelectable(bool);
+  void setInfoText(const std::string &);
 
 signals:
   /////////////////////////////////////////////////////
@@ -257,6 +258,7 @@ private:
 
   /////////////////////////////////////////////////////
   bool mThumbnailAreaEntered = false;
+  std::string mInfoText;
 
   // FONTS  ///////////////////////////////////////////////////
   QFont mFontSmall;

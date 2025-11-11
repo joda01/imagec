@@ -1094,6 +1094,12 @@ void PanelImageView::drawImageInfo(QPainter &painter, const PixelInfo &info, con
   painter.setFont(mFontSmall);
   painter.drawText(leftRect, Qt::AlignVCenter | Qt::AlignLeft, leftText);
 
+  // Draw middle text
+  {
+    const QString middleText = mInfoText.data();
+    painter.drawText(QRect(0, 0, width(), static_cast<int32_t>(TOP_TOOLBAR_HEIGHT)), Qt::AlignVCenter | Qt::AlignHCenter, middleText);
+  }
+
   QFontMetrics fm(painter.font());
   // Draw right text
   if(!infoCursor.has_value()) {
@@ -1774,6 +1780,19 @@ void PanelImageView::setCursorPosition(const QPoint &pos)
 auto PanelImageView::getCursorPosition() -> QPoint
 {
   return mCrossCursorInfo.mCursorPos;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::setInfoText(const std::string &text)
+{
+  mInfoText = text;
+  viewport()->update();
 }
 
 ///

@@ -136,7 +136,8 @@ public:
                                                        $medianSubtract, $sobel, $canny, $crop, $voronoi, $thresholdValidator, $noiseValidator,
                                                        $intensityTransform, $colorFilter, $objectsToImage, $imageMath, $objectTransform,
                                                        $imageToCache, $morphologicalTransform, $fillHoles, $houghTransform, $enhanceContrast, $rank,
-                                                       $skeletonize, $pixelClassify, $laplacian, $gaussianWeightedDev, $nop, disabled, locked);
+                                                       $skeletonize, $pixelClassify, $laplacian, $gaussianWeightedDev, $structureTensor, $hessian,
+                                                       $nop, disabled, locked);
 };
 
 }    // namespace joda::settings

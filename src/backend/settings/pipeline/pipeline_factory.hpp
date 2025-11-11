@@ -186,7 +186,6 @@ private:
     REGISTER_COMMAND(laplacian, Laplacian);
     REGISTER_COMMAND(structureTensor, StructureTensor);
     REGISTER_COMMAND(hessian, Hessian);
-
     REGISTER_COMMAND(nop, Nop);
 
     //  REGISTER_COMMAND(crop, MarginCrop);
