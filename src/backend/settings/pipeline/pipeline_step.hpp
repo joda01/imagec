@@ -24,6 +24,7 @@
 #include "backend/commands/image_functions/edge_detection_sobel/edge_detection_sobel_settings.hpp"
 #include "backend/commands/image_functions/enhance_contrast/enhance_contrast_settings.hpp"
 #include "backend/commands/image_functions/fill_holes/fill_holes_settings.hpp"
+#include "backend/commands/image_functions/hessian/hessian_settings.hpp"
 #include "backend/commands/image_functions/image_cache/image_cache_settings.hpp"
 #include "backend/commands/image_functions/image_math/image_math_settings.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
@@ -102,6 +103,7 @@ public:
   std::optional<LaplacianSettings> $laplacian                           = std::nullopt;
   std::optional<WeightedDeviationSettings> $gaussianWeightedDev         = std::nullopt;
   std::optional<StructureTensorSettings> $structureTensor               = std::nullopt;
+  std::optional<HessianSettings> $hessian                               = std::nullopt;
   std::optional<NopSettings> $nop                                       = std::nullopt;
 
   // Object commands

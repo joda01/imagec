@@ -26,6 +26,7 @@
 #include "backend/commands/classification/pixel_classifier/pixel_classifier.hpp"
 #include "backend/commands/classification/pixel_classifier/pixel_classifier_settings.hpp"
 #include "backend/commands/image_functions/edge_detection_sobel/edge_detection_sobel_settings.hpp"
+#include "backend/commands/image_functions/hessian/hessian_settings.hpp"
 #include "backend/commands/image_functions/laplacian/laplacian_settings.hpp"
 #include "backend/commands/image_functions/nop/nop_settings.hpp"
 #include "backend/commands/image_functions/structur_tensor/structure_tensor_settings.hpp"
@@ -102,8 +103,8 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
     mComboTrainingFeatures->addItem("Gradient magnitude", static_cast<int>(TrainingFeatures::GradientMagnitude));
     mComboTrainingFeatures->addItem("Structure tensor eigenvalues", static_cast<int>(TrainingFeatures::StructureTensorEigenvalues));
     mComboTrainingFeatures->addItem("Structure tensor coherence", static_cast<int>(TrainingFeatures::StructureTensorCoherence));
-    // mComboTrainingFeatures->addItem("Hessian determinant", static_cast<int>(TrainingFeatures::HessianDeterminant));
-    // mComboTrainingFeatures->addItem("Hessian eigenvalues", static_cast<int>(TrainingFeatures::HessianEigenvalues));
+    mComboTrainingFeatures->addItem("Hessian determinant", static_cast<int>(TrainingFeatures::HessianDeterminant));
+    mComboTrainingFeatures->addItem("Hessian eigenvalues", static_cast<int>(TrainingFeatures::HessianEigenvalues));
 
     auto *trainingSettingsMeta = new QHBoxLayout;
     trainingSettingsMeta->addWidget(mComboTrainingFeatures);
@@ -482,7 +483,7 @@ void DialogMlTrainer::buildFeatureExtractionPipeline()
       {
         joda::settings::StructureTensorSettings structureTensor;
         structureTensor.kernelSize = kernelSize;
-        structureTensor.mode       = joda::settings::StructureTensorSettings::Mode::StructureTensorCoherence;
+        structureTensor.mode       = joda::settings::StructureTensorSettings::Mode::Coherence;
         cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$structureTensor = structureTensor});
       }
       mTrainerSettings.featureExtractionPipelines.push_back(cmds);
@@ -496,7 +497,7 @@ void DialogMlTrainer::buildFeatureExtractionPipeline()
       {
         joda::settings::StructureTensorSettings structureTensor;
         structureTensor.kernelSize = kernelSize;
-        structureTensor.mode       = joda::settings::StructureTensorSettings::Mode::StructureTensorEigenvaluesX;
+        structureTensor.mode       = joda::settings::StructureTensorSettings::Mode::EigenvaluesX;
         cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$structureTensor = structureTensor});
       }
       mTrainerSettings.featureExtractionPipelines.push_back(cmds);
@@ -507,38 +508,39 @@ void DialogMlTrainer::buildFeatureExtractionPipeline()
       {
         joda::settings::StructureTensorSettings structureTensor;
         structureTensor.kernelSize = kernelSize;
-        structureTensor.mode       = joda::settings::StructureTensorSettings::Mode::StructureTensorEigenvaluesY;
+        structureTensor.mode       = joda::settings::StructureTensorSettings::Mode::EigenvaluesY;
         cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$structureTensor = structureTensor});
       }
       mTrainerSettings.featureExtractionPipelines.push_back(cmds);
     }
   }
 
-  /*
+  // --- Hessian determinant ---
+  if(features.contains(TrainingFeatures::HessianDeterminant)) {
+    ml::ImageCommandPipeline cmds;
+    joda::settings::HessianSettings hessianSettings;
+    hessianSettings.mode = joda::settings::HessianSettings::Mode::Determinant;
+    cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$hessian = hessianSettings});
+    mTrainerSettings.featureExtractionPipelines.push_back(cmds);
+  }
+
   // --- Hessian determinant & eigenvalues ---
-  if(features.contains(TrainingFeatures::HessianDeterminant) || features.contains(TrainingFeatures::HessianEigenvalues)) {
-    cv::Mat dxx;
-    cv::Mat dyy;
-    cv::Mat dxy;
-    cv::Sobel(gray, dxx, CV_32F, 2, 0, 3);
-    cv::Sobel(gray, dyy, CV_32F, 0, 2, 3);
-    cv::Sobel(gray, dxy, CV_32F, 1, 1, 3);
-
-    if(features.contains(TrainingFeatures::HessianDeterminant)) {
-      cv::Mat detH = dxx.mul(dyy) - dxy.mul(dxy);
-      featureMaps.push_back(detH);
+  if(features.contains(TrainingFeatures::HessianEigenvalues)) {
+    {
+      ml::ImageCommandPipeline cmds;
+      joda::settings::HessianSettings hessianSettings;
+      hessianSettings.mode = joda::settings::HessianSettings::Mode::EigenvaluesX;
+      cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$hessian = hessianSettings});
+      mTrainerSettings.featureExtractionPipelines.push_back(cmds);
     }
-
-    if(features.contains(TrainingFeatures::HessianEigenvalues)) {
-      // Eigenvalues of Hessian
-      cv::Mat tmp = (dxx - dyy).mul(dxx - dyy) + 4 * dxy.mul(dxy);
-      cv::sqrt(tmp, tmp);
-      cv::Mat l1 = 0.5 * (dxx + dyy + tmp);
-      cv::Mat l2 = 0.5 * (dxx + dyy - tmp);
-      featureMaps.push_back(l1);
-      featureMaps.push_back(l2);
+    {
+      ml::ImageCommandPipeline cmds;
+      joda::settings::HessianSettings hessianSettings;
+      hessianSettings.mode = joda::settings::HessianSettings::Mode::EigenvaluesY;
+      cmds.pipelineSteps.emplace_back(settings::PipelineStep{.$hessian = hessianSettings});
+      mTrainerSettings.featureExtractionPipelines.push_back(cmds);
     }
-  }*/
+  }
 }
 
 ///

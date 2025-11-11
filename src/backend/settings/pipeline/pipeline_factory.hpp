@@ -42,6 +42,8 @@
 #include "backend/commands/image_functions/enhance_contrast/enhance_contrast_settings_ui.hpp"
 #include "backend/commands/image_functions/fill_holes/fill_holes.hpp"
 #include "backend/commands/image_functions/fill_holes/fill_holes_settings_ui.hpp"
+#include "backend/commands/image_functions/hessian/hessian.hpp"
+#include "backend/commands/image_functions/hessian/hessian_settings_ui.hpp"
 #include "backend/commands/image_functions/image_cache/image_cache.hpp"
 #include "backend/commands/image_functions/image_cache/image_cache_settings_ui.hpp"
 #include "backend/commands/image_functions/image_math/image_math.hpp"
@@ -183,6 +185,7 @@ private:
     REGISTER_COMMAND(skeletonize, Skeletonize);
     REGISTER_COMMAND(laplacian, Laplacian);
     REGISTER_COMMAND(structureTensor, StructureTensor);
+    REGISTER_COMMAND(hessian, Hessian);
 
     REGISTER_COMMAND(nop, Nop);
 

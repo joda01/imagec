@@ -36,7 +36,7 @@ public:
   Laplacian(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, settings::LaplacianSettings &settings,
             QWidget *parent) :
       Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent,
-              {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}})
+              {{InOuts::IMAGE, InOuts::IMAGE}, {InOuts::IMAGE}})
   {
     //
     //

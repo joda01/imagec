@@ -13,15 +13,15 @@ struct StructureTensorSettings : public SettingBase
 public:
   enum class Mode
   {
-    StructureTensorCoherence,
-    StructureTensorEigenvaluesX,
-    StructureTensorEigenvaluesY,
+    Coherence,
+    EigenvaluesX,
+    EigenvaluesY,
   };
 
   //
   //
   //
-  Mode mode = Mode::StructureTensorCoherence;
+  Mode mode = Mode::Coherence;
 
   //
   //
@@ -37,11 +37,10 @@ public:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(StructureTensorSettings, mode, kernelSize);
 };
 
-NLOHMANN_JSON_SERIALIZE_ENUM(StructureTensorSettings::Mode,
-                             {
-                                 {StructureTensorSettings::Mode::StructureTensorCoherence, "StructureTensorCoherence"},
-                                 {StructureTensorSettings::Mode::StructureTensorEigenvaluesX, "StructureTensorEigenvaluesX"},
-                                 {StructureTensorSettings::Mode::StructureTensorEigenvaluesX, "StructureTensorEigenvaluesY"},
-                             });
+NLOHMANN_JSON_SERIALIZE_ENUM(StructureTensorSettings::Mode, {
+                                                                {StructureTensorSettings::Mode::Coherence, "Coherence"},
+                                                                {StructureTensorSettings::Mode::EigenvaluesX, "EigenvaluesX"},
+                                                                {StructureTensorSettings::Mode::EigenvaluesY, "EigenvaluesY"},
+                                                            });
 
 }    // namespace joda::settings

@@ -36,14 +36,14 @@ public:
   StructureTensor(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep,
                   settings::StructureTensorSettings &settings, QWidget *parent) :
       Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent,
-              {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}})
+              {{InOuts::IMAGE, InOuts::IMAGE}, {InOuts::IMAGE}})
   {
     //
     //
     mMode = SettingBase::create<SettingComboBox<settings::StructureTensorSettings::Mode>>(parent, {}, "Structure tensor mode");
-    mMode->addOptions({{settings::StructureTensorSettings::Mode::StructureTensorCoherence, "Coherence"},
-                       {settings::StructureTensorSettings::Mode::StructureTensorEigenvaluesX, "Eigenvalue X"},
-                       {settings::StructureTensorSettings::Mode::StructureTensorEigenvaluesY, "Eigenvalue Y"}});
+    mMode->addOptions({{settings::StructureTensorSettings::Mode::Coherence, "Coherence"},
+                       {settings::StructureTensorSettings::Mode::EigenvaluesX, "Eigenvalue X"},
+                       {settings::StructureTensorSettings::Mode::EigenvaluesY, "Eigenvalue Y"}});
     mMode->setValue(settings.mode);
     mMode->connectWithSetting(&settings.mode);
 
