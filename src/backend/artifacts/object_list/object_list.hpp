@@ -290,6 +290,15 @@ public:
   void deserialize(const std::filesystem::path &);
   void mergeFrom(ObjectList &&other, joda::atom::ROI::Category categoryToKeep);
 
+  // iterate safely
+  void forEach(const std::function<void(const value_type &)> &func) const
+  {
+    std::lock_guard<std::mutex> lock(mInsertLock);
+    for(const auto &it : *this) {
+      func(it);
+    }
+  }
+
 private:
   /////////////////////////////////////////////////////
   std::map<uint64_t, ROI *> objectsOrderedByObjectId;

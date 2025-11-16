@@ -51,15 +51,13 @@ using namespace std::chrono_literals;
 DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom::ObjectList> &objectMap, joda::settings::AnalyzeSettings *settings,
                                      QToolBar *toolbarParent) :
     QWidget(parent),
-    mImageViewRight(objectMap, &settings->projectSettings.classification, parent), mSettings(settings)
+    mSettings(settings)
 {
   setWindowTitle("Preview");
   setContentsMargins(0, 0, 0, 0);
 
   mMainLayout = new QVBoxLayout();
   mMainLayout->setContentsMargins(0, 0, 0, 0);
-
-  mHistogramSettings = new DialogHistogramSettings(&mImageViewRight, parent);
 
   // ======================================
   // Toolbar
@@ -86,7 +84,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
       toolbarTop->addAction(mMoveAction);
       connect(mMoveAction, &QAction::triggered, this, [this](bool checked) {
         if(checked) {
-          mImageViewRight.setState(PanelImageView::State::MOVE);
+          mImagePanel->setState(PanelImageView::State::MOVE);
         }
       });
 
@@ -97,7 +95,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
       toolbarTop->addAction(mSelectAction);
       connect(mSelectAction, &QAction::triggered, this, [this](bool checked) {
         if(checked) {
-          mImageViewRight.setState(PanelImageView::State::SELECT);
+          mImagePanel->setState(PanelImageView::State::SELECT);
         }
       });
 
@@ -110,7 +108,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
       toolbarTop->addAction(mActionPaintRectangle);
       connect(mActionPaintRectangle, &QAction::triggered, this, [this](bool checked) {
         if(checked) {
-          mImageViewRight.setState(PanelImageView::State::PAINT_RECTANGLE);
+          mImagePanel->setState(PanelImageView::State::PAINT_RECTANGLE);
         }
       });
 
@@ -121,7 +119,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
       toolbarTop->addAction(mActionPaintCircle);
       connect(mActionPaintCircle, &QAction::triggered, this, [this](bool checked) {
         if(checked) {
-          mImageViewRight.setState(PanelImageView::State::PAINT_OVAL);
+          mImagePanel->setState(PanelImageView::State::PAINT_OVAL);
         }
       });
 
@@ -132,7 +130,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
       toolbarTop->addAction(mPaintPolygon);
       connect(mPaintPolygon, &QAction::triggered, this, [this](bool checked) {
         if(checked) {
-          mImageViewRight.setState(PanelImageView::State::PAINT_POLYGON);
+          mImagePanel->setState(PanelImageView::State::PAINT_POLYGON);
         }
       });
 
@@ -143,7 +141,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
       // toolbar->addAction(paintBrush);
       connect(paintBrush, &QAction::triggered, this, [this](bool checked) {
         if(checked) {
-          mImageViewRight.setState(PanelImageView::State::PAIN_BRUSH);
+          mImagePanel->setState(PanelImageView::State::PAIN_BRUSH);
         }
       });
 
@@ -154,7 +152,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
       // toolbar->addAction(magicWand);
       connect(magicWand, &QAction::triggered, this, [this](bool checked) {
         if(checked) {
-          mImageViewRight.setState(PanelImageView::State::PAINT_MAGIC_WAND);
+          mImagePanel->setState(PanelImageView::State::PAINT_MAGIC_WAND);
         }
       });
     }
@@ -177,7 +175,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
     imgSettings->setObjectName("ToolButton");
     imgSettings->setStatusTip("Image settings");
     connect(imgSettings, &QAction::triggered, [this] {
-      auto *dialog = new DialogImageSettings(&mImageSettings, this, mImageViewRight.getOmeInfo());
+      auto *dialog = new DialogImageSettings(&mImageSettings, this, mImagePanel->getOmeInfo());
       if(dialog->exec() == QDialog::Accepted) {
         onSettingsChanged();
       }
@@ -192,7 +190,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
       mActionMlTrainer = toolbarTop->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("fediverse-logo"), "ML Trainer");
       mActionMlTrainer->setCheckable(true);
       mActionMlTrainer->setStatusTip("Train pixel and object classifier");
-      mDialogMlTrainer = new DialogMlTrainer(settings, objectMap, &mImageViewRight, parent);
+      mDialogMlTrainer = new DialogMlTrainer(settings, objectMap, mImagePanel, parent);
       connect(mDialogMlTrainer, &DialogMlTrainer::dialogDisappeared, [this]() {
         mActionMlTrainer->blockSignals(true);
         mActionMlTrainer->setChecked(false);
@@ -223,16 +221,15 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
     showOverlay->setStatusTip("Show/Hide results as overlay");
     showOverlay->setCheckable(true);
     showOverlay->setChecked(true);
-    connect(showOverlay, &QAction::triggered, [this](bool selected) { mImageViewRight.setShowRois(selected); });
+    connect(showOverlay, &QAction::triggered, [this](bool selected) { mImagePanel->setShowRois(selected); });
     toolbarTop->addAction(showOverlay);
 
     mFillOVerlay = new QAction(generateSvgIcon<Style::DUETONE, Color::RED>("circle"), "Fill");
     mFillOVerlay->setStatusTip("Fill/Outline results overlay");
     mFillOVerlay->setCheckable(true);
     mFillOVerlay->setChecked(true);
-    connect(mFillOVerlay, &QAction::triggered, [this](bool selected) { mImageViewRight.setFillRois(selected); });
+    connect(mFillOVerlay, &QAction::triggered, [this](bool selected) { mImagePanel->setFillRois(selected); });
     // toolbarTop->addAction(mFillOVerlay);
-    mImageViewRight.setFillRois(true);
 
     mOverlayOpaque = new QSlider();
     mOverlayOpaque->setOrientation(Qt::Orientation::Horizontal);
@@ -240,7 +237,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
     mOverlayOpaque->setMaximum(100);
     mOverlayOpaque->setValue(80);
     mOverlayOpaque->setMaximumWidth(100);
-    connect(mOverlayOpaque, &QSlider::valueChanged, [this] { mImageViewRight.setRoisOpaque(static_cast<float>(mOverlayOpaque->value()) / 100.0F); });
+    connect(mOverlayOpaque, &QSlider::valueChanged, [this] { mImagePanel->setRoisOpaque(static_cast<float>(mOverlayOpaque->value()) / 100.0F); });
     mOverlayOpaqueAction = toolbarTop->addWidget(mOverlayOpaque);
 
     mSeparatorFillAndOverlays = toolbarTop->addSeparator();
@@ -266,6 +263,14 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
     }
   }
 
+  {
+    mVideoButtonGroup = new VideoControlButtonGroup([this]() { onSettingsChanged(); }, toolbarTop);
+    mImagePanel       = new PanelImageView(objectMap, &settings->projectSettings.classification, mVideoButtonGroup, parent);
+    mImagePanel->setFillRois(true);
+
+    mHistogramSettings = new DialogHistogramSettings(mImagePanel, parent);
+  }
+
   // Central images
   {
     mCentralLayout      = new QBoxLayout(QBoxLayout::TopToBottom);
@@ -273,24 +278,24 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
     mCentralLayout->setContentsMargins(0, 0, 0, 0);
     centralWidget->setContentsMargins(0, 0, 0, 0);
     auto *rightVerticalLayout = new QVBoxLayout();
-    mImageViewRight.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    rightVerticalLayout->addWidget(&mImageViewRight);
+    mImagePanel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    rightVerticalLayout->addWidget(mImagePanel);
     mCentralLayout->addLayout(rightVerticalLayout);
-    mImageViewRight.resetImage();
+    mImagePanel->resetImage();
 
     // centralLayout->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     centralWidget->setLayout(mCentralLayout);
     mMainLayout->addWidget(centralWidget);
 
-    connect(&mImageViewRight, &PanelImageView::tileClicked, this, &DialogImageViewer::onSettingsChanged);
-    connect(&mImageViewRight, &PanelImageView::imageOpened, [this]() {
+    connect(mImagePanel, &PanelImageView::tileClicked, this, &DialogImageViewer::onSettingsChanged);
+    connect(mImagePanel, &PanelImageView::imageOpened, [this]() {
       if(nullptr != mVideoButtonGroup) {
-        mVideoButtonGroup->setMaxTimeStacks(mImageViewRight.getNrOfTstacks());
+        mVideoButtonGroup->setMaxTimeStacks(mImagePanel->getNrOfTstacks());
       }
     });
 
-    connect(&mImageViewRight, &PanelImageView::drawingToolChanged, [this](PanelImageView::State state) {
+    connect(mImagePanel, &PanelImageView::drawingToolChanged, [this](PanelImageView::State state) {
       switch(state) {
         case PanelImageView::MOVE:
           mMoveAction->setChecked(true);
@@ -313,11 +318,6 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
           break;
       }
     });
-  }
-
-  // Bottom toolbar
-  {
-    mVideoButtonGroup = new VideoControlButtonGroup([this]() { onSettingsChanged(); }, toolbarTop);
   }
 
   // setLayout(layout);
@@ -350,11 +350,11 @@ void DialogImageViewer::setImagePlane(const ImagePlaneSettings &settings)
   mSelectedZStack            = settings.plane.zStack;
   mSelectedTStack            = settings.plane.tStack;
   if(nullptr != mVideoButtonGroup) {
-    mVideoButtonGroup->setMaxTimeStacks(mImageViewRight.getNrOfTstacks());
+    mVideoButtonGroup->setMaxTimeStacks(mImagePanel->getNrOfTstacks());
     mVideoButtonGroup->setValue(settings.plane.tStack);
   }
 
-  mImageViewRight.setSelectedTile(settings.tileX, settings.tileY);
+  mImagePanel->setSelectedTile(settings.tileX, settings.tileY);
   mImageSettings.tileWidth = settings.tileWidth;
   applySettingsToImagePanel();
 }
@@ -369,7 +369,7 @@ void DialogImageViewer::setImagePlane(const ImagePlaneSettings &settings)
 void DialogImageViewer::setShowCrossHairCursor(bool show)
 {
   showCrossHairCursor->setChecked(show);
-  mImageViewRight.setShowCrosshandCursor(show);
+  mImagePanel->setShowCrosshandCursor(show);
 }
 
 ///
@@ -399,7 +399,7 @@ void DialogImageViewer::fromSettings(const joda::settings::AnalyzeSettings &sett
 ///
 auto DialogImageViewer::getImagePanel() -> PanelImageView *
 {
-  return &mImageViewRight;
+  return mImagePanel;
 }
 
 ///
@@ -451,25 +451,25 @@ void DialogImageViewer::removeVideoControl()
 void DialogImageViewer::applySettingsToImagePanel()
 {
   auto tileSizeIn = getTileSize();
-  mImageViewRight.setSeries(mImageSettings.imageSeries);
+  mImagePanel->setSeries(mImageSettings.imageSeries);
   if(nullptr != mVideoButtonGroup) {
-    mVideoButtonGroup->setMaxTimeStacks(mImageViewRight.getNrOfTstacks());
+    mVideoButtonGroup->setMaxTimeStacks(mImagePanel->getNrOfTstacks());
     mSelectedTStack = mVideoButtonGroup->value();
     if(mVideoButtonGroup->isVideoRunning()) {
-      mImageViewRight.setWaitBannerVisible(false);
+      mImagePanel->setWaitBannerVisible(false);
     } else {
-      mImageViewRight.setWaitBannerVisible(true);
+      mImagePanel->setWaitBannerVisible(true);
     }
   } else {
-    mImageViewRight.setWaitBannerVisible(true);
+    mImagePanel->setWaitBannerVisible(true);
   }
-  mImageViewRight.setZprojection(getSelectedZProjection());
-  mImageViewRight.setImagePlane({.tStack = mSelectedTStack, .zStack = mSelectedZStack, .cStack = getSelectedImageChannel()});
-  mImageViewRight.setImageTile(tileSizeIn, tileSizeIn);
-  mImageViewRight.setDefaultPhysicalSize(joda::settings::ProjectImageSetup::PhysicalSizeSettings{.mode          = mImageSettings.sizeMode,
-                                                                                                 .pixelSizeUnit = mImageSettings.pixelSizeUnit,
-                                                                                                 .pixelWidth    = mImageSettings.pixelWidth,
-                                                                                                 .pixelHeight   = mImageSettings.pixelHeight});
+  mImagePanel->setZprojection(getSelectedZProjection());
+  mImagePanel->setImagePlane({.tStack = mSelectedTStack, .zStack = mSelectedZStack, .cStack = getSelectedImageChannel()});
+  mImagePanel->setImageTile(tileSizeIn, tileSizeIn);
+  mImagePanel->setDefaultPhysicalSize(joda::settings::ProjectImageSetup::PhysicalSizeSettings{.mode          = mImageSettings.sizeMode,
+                                                                                              .pixelSizeUnit = mImageSettings.pixelSizeUnit,
+                                                                                              .pixelWidth    = mImageSettings.pixelWidth,
+                                                                                              .pixelHeight   = mImageSettings.pixelHeight});
 
   // Sync to settings
   if(mSettings != nullptr) {
@@ -496,7 +496,7 @@ void DialogImageViewer::applySettingsToImagePanel()
 void DialogImageViewer::onSettingsChanged()
 {
   applySettingsToImagePanel();
-  mImageViewRight.reloadImage();
+  mImagePanel->reloadImage();
   emit settingChanged();
 }
 
@@ -509,7 +509,7 @@ void DialogImageViewer::onSettingsChanged()
 ///
 void DialogImageViewer::onZoomInClicked()
 {
-  mImageViewRight.zoomImage(true);
+  mImagePanel->zoomImage(true);
 }
 
 ///
@@ -521,7 +521,7 @@ void DialogImageViewer::onZoomInClicked()
 ///
 void DialogImageViewer::onZoomOutClicked()
 {
-  mImageViewRight.zoomImage(false);
+  mImagePanel->zoomImage(false);
 }
 
 ///
@@ -533,7 +533,7 @@ void DialogImageViewer::onZoomOutClicked()
 ///
 void DialogImageViewer::onFitImageToScreenSizeClicked()
 {
-  mImageViewRight.fitImageToScreenSize();
+  mImagePanel->fitImageToScreenSize();
 }
 
 ///
@@ -545,7 +545,7 @@ void DialogImageViewer::onFitImageToScreenSizeClicked()
 ///
 void DialogImageViewer::onShowThumbnailChanged(bool checked)
 {
-  mImageViewRight.setShowThumbnail(checked);
+  mImagePanel->setShowThumbnail(checked);
 }
 
 ///
@@ -557,7 +557,7 @@ void DialogImageViewer::onShowThumbnailChanged(bool checked)
 ///
 void DialogImageViewer::onShowCrossHandCursor(bool checked)
 {
-  mImageViewRight.setShowCrosshandCursor(checked);
+  mImagePanel->setShowCrosshandCursor(checked);
 }
 
 ///
@@ -605,7 +605,7 @@ int32_t DialogImageViewer::getSeries() const
 ///
 int32_t DialogImageViewer::getSelectedImageChannel() const
 {
-  return mImageViewRight.getImagePlane().cStack;
+  return mImagePanel->getImagePlane().cStack;
 }
 
 ///
@@ -636,7 +636,7 @@ void DialogImageViewer::setWaiting(bool waiting)
   if(mVideoButtonGroup != nullptr && mVideoButtonGroup->isVideoRunning()) {
     return;
   }
-  mImageViewRight.setWaiting(waiting);
+  mImagePanel->setWaiting(waiting);
 }
 
 ///

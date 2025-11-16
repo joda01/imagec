@@ -27,9 +27,9 @@ class ImageReader
 {
 public:
   /////////////////////////////////////////////////////
-  static cv::Mat loadImageTile(const std::string &filename, const joda::enums::PlaneId &imagePlane, uint16_t series, uint16_t resolutionIdx,
-                               const joda::ome::TileToLoad &tile, const joda::ome::OmeInfo &ome);
-  static cv::Mat loadEntireImage(const std::string &filename, const joda::enums::PlaneId &imagePlane, uint16_t series, uint16_t resolutionIdx,
+  static cv::Mat loadImageTile(const std::string &filename, joda::enums::PlaneId imagePlane, uint16_t series, uint16_t resolutionIdx,
+                               joda::ome::TileToLoad tile, const joda::ome::OmeInfo &ome);
+  static cv::Mat loadEntireImage(const std::string &filename, joda::enums::PlaneId imagePlane, uint16_t series, uint16_t resolutionIdx,
                                  const joda::ome::OmeInfo &ome);
 
   static cv::Mat loadThumbnail(const std::string &filename, joda::enums::PlaneId directory, uint16_t series, const joda::ome::OmeInfo &ome);

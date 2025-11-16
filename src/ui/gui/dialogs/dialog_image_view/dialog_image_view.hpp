@@ -94,7 +94,7 @@ private:
   QVBoxLayout *mMainLayout;
 
   // IMAGE PANELS ///////////////////////////////////////////////////
-  PanelImageView mImageViewRight;
+  PanelImageView *mImagePanel;
 
   // ACTIONS //////////////////////////////////////////////////
   QAction *mFillOVerlay         = nullptr;

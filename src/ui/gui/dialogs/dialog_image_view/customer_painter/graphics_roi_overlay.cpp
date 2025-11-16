@@ -83,66 +83,66 @@ void RoiOverlay::refresh()
   mContoursPerColor.clear();
 
   // Optimization 1: Pre-calculate the pixel value and alpha blending
-  for(const auto &[clasId, classs] : *mObjectMap) {
-    const auto &classSetting = mClassificationSettings->getClassFromId(clasId);
+  //
+  mObjectMap->forEach([&, this](const auto &pair) {
+    const auto &[clasId, classs] = pair;
+    const auto &classSetting     = mClassificationSettings->getClassFromId(clasId);
 
-    if(classSetting.hidden) {
-      continue;
-    }
+    if(!classSetting.hidden) {
+      // Optimization 2: Use QImage::pixel format for direct pixel manipulation
+      const QColor col = QColor(classSetting.color.c_str());
+      QRgb pixelValue  = qRgb(col.red(), col.green(), col.blue());
 
-    // Optimization 2: Use QImage::pixel format for direct pixel manipulation
-    const QColor col = QColor(classSetting.color.c_str());
-    QRgb pixelValue  = qRgb(col.red(), col.green(), col.blue());
+      for(const auto &roi : *classs) {
+        if(roi.isSelected()) {
+          const QColor colTmp = Qt::yellow;
+          pixelValue          = qRgb(colTmp.red(), colTmp.green(), colTmp.blue());
+        } else {
+          pixelValue = qRgb(col.red(), col.green(), col.blue());
+        }
 
-    for(const auto &roi : *classs) {
-      if(roi.isSelected()) {
-        const QColor colTmp = Qt::yellow;
-        pixelValue          = qRgb(colTmp.red(), colTmp.green(), colTmp.blue());
-      } else {
-        pixelValue = qRgb(col.red(), col.green(), col.blue());
-      }
+        // Prepare contour
+        prepareContour(&roi, col);
 
-      // Prepare contour
-      prepareContour(&roi, col);
+        // Optimization 3: Efficiently access Mat data
+        const auto &mask = roi.getMask();
+        const auto &box  = roi.getBoundingBoxTile(mTileInfo);
 
-      // Optimization 3: Efficiently access Mat data
-      const auto &mask = roi.getMask();
-      const auto &box  = roi.getBoundingBoxTile(mTileInfo);
+        // Check if real box is in coordinates of the image
 
-      // Check if real box is in coordinates of the image
+        // Check if mask data is continuous for faster row-by-row processing
+        if(mFill) {
+          if(mask.isContinuous()) {
+            const int total_pixels = mask.rows * mask.cols;
+            const uint8_t *p_mask  = mask.template ptr<uint8_t>();
 
-      // Check if mask data is continuous for faster row-by-row processing
-      if(mFill) {
-        if(mask.isContinuous()) {
-          const int total_pixels = mask.rows * mask.cols;
-          const uint8_t *p_mask  = mask.ptr<uint8_t>();
+            for(int i = 0; i < total_pixels; ++i) {
+              if(p_mask[i] > 0) {
+                // Calculate (x, y) from flat index 'i'
+                const int y_offset = i / mask.cols;
+                const int x_offset = i % mask.cols;
 
-          for(int i = 0; i < total_pixels; ++i) {
-            if(p_mask[i] > 0) {
-              // Calculate (x, y) from flat index 'i'
-              const int y_offset = i / mask.cols;
-              const int x_offset = i % mask.cols;
+                const int xx = static_cast<int>(static_cast<double>(x_offset + box.x) * scaleX);
+                const int yy = static_cast<int>(static_cast<double>(y_offset + box.y) * scaleY);
 
-              const int xx = static_cast<int>(static_cast<double>(x_offset + box.x) * scaleX);
-              const int yy = static_cast<int>(static_cast<double>(y_offset + box.y) * scaleY);
+                // Optimization 6: Use direct raw pointer access for QImage
+                if(qimg.valid(yy, xx)) {
+                  QRgb *line    = reinterpret_cast<QRgb *>(qimg.scanLine(yy));
+                  QRgb actColor = line[xx];
+                  if(qAlpha(actColor) == 0) {
+                    line[xx] = pixelValue;
+                  } else {
+                    // Apply the weighted average for each channel:
+                    int finalR = static_cast<int>(static_cast<float>(qRed(pixelValue)) * foreground_weight +
+                                                  static_cast<float>(qRed(actColor)) * background_weight);
+                    int finalG = static_cast<int>(static_cast<float>(qGreen(pixelValue)) * foreground_weight +
+                                                  static_cast<float>(qGreen(actColor)) * background_weight);
+                    int finalB = static_cast<int>(static_cast<float>(qBlue(pixelValue)) * foreground_weight +
+                                                  static_cast<float>(qBlue(actColor)) * background_weight);
 
-              // Optimization 6: Use direct raw pointer access for QImage
-              if(qimg.valid(yy, xx)) {
-                QRgb *line    = reinterpret_cast<QRgb *>(qimg.scanLine(yy));
-                QRgb actColor = line[xx];
-                if(qAlpha(actColor) == 0) {
-                  line[xx] = pixelValue;
-                } else {
-                  // Apply the weighted average for each channel:
-                  int finalR = static_cast<int>(static_cast<float>(qRed(pixelValue)) * foreground_weight +
-                                                static_cast<float>(qRed(actColor)) * background_weight);
-                  int finalG = static_cast<int>(static_cast<float>(qGreen(pixelValue)) * foreground_weight +
-                                                static_cast<float>(qGreen(actColor)) * background_weight);
-                  int finalB = static_cast<int>(static_cast<float>(qBlue(pixelValue)) * foreground_weight +
-                                                static_cast<float>(qBlue(actColor)) * background_weight);
-
-                  // Recombine into a new QRgb (using an opaque alpha 255)
-                  line[xx] = qRgb(finalR, finalG, finalB);
+                    // Recombine into a new QRgb (using an opaque alpha 255)
+                    line[xx] = qRgb(finalR, finalG, finalB);
+                  }
                 }
               }
             }
@@ -150,7 +150,7 @@ void RoiOverlay::refresh()
         }
       }
     }
-  }
+  });
 
   // Optimization 8: Check if scaling is actually needed
   QPixmap pix;

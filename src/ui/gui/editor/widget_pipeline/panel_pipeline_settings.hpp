@@ -106,7 +106,7 @@ private:
   void setImageMustBeRefreshed(bool);
 
   // ACTIONS///////////////////////////////////////////////////
-  QAction *mRefresh;
+  QAction *mRefresh = nullptr;
   QAction *mUndoAction;
   QAction *mHistoryAction;
   QAction *mActionDisabled;
@@ -136,12 +136,13 @@ private:
   int32_t mLastSelectedPreviewSize = 0;
   joda::settings::Pipeline &mSettings;
   joda::processor::Preview *mPreviewResult;
-  bool mStopped                            = false;
-  std::atomic<bool> mTriggerPreviewUpdate  = false;
-  int32_t mNumberOfChangesSinceLastRefresh = 0;
+  bool mStopped                                         = false;
+  std::atomic<bool> mTriggerPreviewUpdate               = false;
+  std::atomic<int32_t> mNumberOfChangesSinceLastRefresh = 0;
   std::mutex mCheckForEmptyMutex;
   std::mutex mShutingDownMutex;
-  std::mutex mPipelineChangedMutex;
+
+  QMetaObject::Connection mImageOpenedConnection;
 
 private slots:
   /////////////////////////////////////////////////////

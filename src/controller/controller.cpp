@@ -87,6 +87,7 @@ void Controller::initApplication()
   // ======================================
   // Reserve system resources
   // ======================================
+  log::initLogger();
   auto systemRecourses   = joda::system::acquire();
   int32_t totalRam       = static_cast<int32_t>(std::ceil(static_cast<float>(systemRecourses.ramTotal) / 1000000.0F));
   int32_t availableRam   = static_cast<int32_t>(std::ceil(static_cast<float>(systemRecourses.ramAvailable) / 1000000.0F));

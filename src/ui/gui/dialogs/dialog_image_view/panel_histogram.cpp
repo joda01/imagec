@@ -138,7 +138,7 @@ void PanelHistogram::drawHistogram(QPainter &painter)
         painter.setPen(Qt::black);
       }
 
-      if(i == 2 || i % markerPos == 0) {
+      if(i == 2 || (markerPos > 0 && i % markerPos == 0)) {
         painter.setPen(Qt::black);
         painter.drawText(QRect(static_cast<int>(startX - 50.0), static_cast<int>(startY), 100, 12), Qt::AlignHCenter, std::to_string(idx).data());
       }

@@ -76,6 +76,7 @@ void Starter::exec(int argc, char *argv[])
   }
 
   joda::image::reader::ImageReader::destroy();
+  log::joinLogger();
 }
 
 class NoIconStyle : public QProxyStyle

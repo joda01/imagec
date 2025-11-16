@@ -39,6 +39,7 @@
 #include "backend/helper/image/image.hpp"
 #include "controller/controller.hpp"
 #include "ui/gui/dialogs/dialog_image_view/customer_painter/graphics_roi_overlay.hpp"
+#include "ui/gui/dialogs/widget_video_control_button_group/widget_video_control_button_group.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/matx.hpp>
@@ -61,9 +62,10 @@ using namespace std::chrono_literals;
 /// \return
 ///
 PanelImageView::PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMap, const joda::settings::Classification *classSettings,
-                               QWidget *parent) :
+                               VideoControlButtonGroup *videoControl, QWidget *parent) :
     QGraphicsView(parent),
-    mImageToShow(&mPreviewImages.originalImage), scene(new QGraphicsScene(this)), mClassSettings(classSettings), mObjectMap(objectMap)
+    mImageToShow(&mPreviewImages.originalImage), scene(new QGraphicsScene(this)), mVideoControlButtons(videoControl), mClassSettings(classSettings),
+    mObjectMap(objectMap)
 {
   // setViewport(new QOpenGLWidget());
   setScene(scene);
@@ -126,9 +128,11 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
           mTile.tileX = 0;
           mTile.tileY = 0;
         }
-
         joda::ctrl::Controller::loadImage(imagePath, static_cast<uint16_t>(mSeries), mPlane, mTile, mPreviewImages, &mOmeInfo, mZprojection);
       } else {
+        if(mPlane.tStack >= mOmeInfo.getNrOfTStack(mSeries)) {
+          mPlane.tStack = mOmeInfo.getNrOfTStack(mSeries) - 1;
+        }
         joda::ctrl::Controller::loadImage(imagePath, static_cast<uint16_t>(mSeries), mPlane, mTile, mDefaultPhysicalSize, mPreviewImages, mOmeInfo,
                                           mZprojection);
       }
@@ -143,6 +147,7 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
     setRegionsOfInterestFromObjectList();
     repaintImage();
     if(mLastPath != imagePath) {
+      mVideoControlButtons->setPlay(false);
       emit imageOpened();
       mLastPath = imagePath;
     } else if(mLastPlane.tStack != mPlane.tStack) {

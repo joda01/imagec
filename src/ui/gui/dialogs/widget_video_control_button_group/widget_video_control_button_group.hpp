@@ -125,6 +125,7 @@ public:
         mActionPlay->setChecked(false);
         mActionPlay->setEnabled(false);
         mSpinnerActTimeStack->setEnabled(false);
+        mPlayTimer->stop();
       }
     } else {
       if(!mSeekForward->isEnabled()) {
@@ -174,6 +175,11 @@ public:
   bool isVideoRunning() const
   {
     return mActionPlay->isChecked();
+  }
+
+  void setPlay(bool play)
+  {
+    mActionPlay->setChecked(play);
   }
 
 private:

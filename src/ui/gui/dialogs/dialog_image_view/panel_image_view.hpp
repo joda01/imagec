@@ -37,6 +37,7 @@ class RoiOverlay;
 
 namespace joda::ui::gui {
 
+class VideoControlButtonGroup;
 using PaintedRoi_t = std::vector<QPoint>;
 
 ///
@@ -99,7 +100,8 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMap, const joda::settings::Classification *classSettings, QWidget *parent = nullptr);
+  PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMap, const joda::settings::Classification *classSettings, VideoControlButtonGroup *,
+                 QWidget *parent = nullptr);
   void openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo = nullptr);
   auto getCurrentImagePath() const -> std::filesystem::path;
   void setEditedImage(const joda::image::Image &&edited);
@@ -222,7 +224,8 @@ private:
   int32_t mSeries = 0;
 
   // WIDGET ///////////////////////////////////////////////////
-  QGraphicsScene *scene = nullptr;
+  QGraphicsScene *scene                         = nullptr;
+  VideoControlButtonGroup *mVideoControlButtons = nullptr;
 
   // STATE AND PAINTING ///////////////////////////////////////////////////
   State mState = State::MOVE;

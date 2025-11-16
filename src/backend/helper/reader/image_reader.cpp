@@ -266,7 +266,7 @@ std::string ImageReader::getJavaVersion()
 /// \param[out]
 /// \return
 ///
-cv::Mat ImageReader::loadEntireImage(const std::string &filename, const joda::enums::PlaneId &imagePlane, uint16_t series, uint16_t resolutionIdx,
+cv::Mat ImageReader::loadEntireImage(const std::string &filename, joda::enums::PlaneId imagePlane, uint16_t series, uint16_t resolutionIdx,
                                      const joda::ome::OmeInfo &ome)
 {
   // Takes 150 ms
@@ -292,6 +292,18 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const joda::en
     //
     if(series >= ome.getNrOfSeries()) {
       series = static_cast<uint16_t>(ome.getNrOfSeries() - 1);
+    }
+    if(series >= ome.getNrOfSeries()) {
+      series = static_cast<uint16_t>(ome.getNrOfSeries() - 1);
+    }
+    if(imagePlane.tStack > ome.getNrOfTStack(series)) {
+      imagePlane.tStack = ome.getNrOfTStack(series) - 1;
+    }
+    if(imagePlane.cStack > ome.getNrOfTStack(series)) {
+      imagePlane.cStack = ome.getNrOfChannels(series) - 1;
+    }
+    if(imagePlane.zStack > ome.getNrOfZStack(series)) {
+      imagePlane.zStack = ome.getNrOfZStack(series) - 1;
     }
     jbyteArray readImg = static_cast<jbyteArray>(myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImage, filePath, static_cast<int>(series),
                                                                                static_cast<int>(resolutionIdx), imagePlane.zStack, imagePlane.cStack,
@@ -472,8 +484,8 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, joda::enums::Pla
 /// \param[in]  nrOfTilesToRead Nr of tiles which should form one composite image
 /// \return Loaded composite image
 ///
-cv::Mat ImageReader::loadImageTile(const std::string &filename, const joda::enums::PlaneId &imagePlane, uint16_t series, uint16_t resolutionIdx,
-                                   const joda::ome::TileToLoad &tile, const joda::ome::OmeInfo &ome)
+cv::Mat ImageReader::loadImageTile(const std::string &filename, joda::enums::PlaneId imagePlane, uint16_t series, uint16_t resolutionIdx,
+                                   joda::ome::TileToLoad tile, const joda::ome::OmeInfo &ome)
 {
   if(nullptr != myJVM && mJVMInitialised && imagePlane.cStack >= 0 && imagePlane.zStack >= 0 && imagePlane.tStack >= 0) {
     JNIEnv *myEnv = nullptr;
@@ -511,6 +523,30 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const joda::enum
     if(series >= ome.getNrOfSeries()) {
       series = static_cast<uint16_t>(ome.getNrOfSeries() - 1);
     }
+    if(imagePlane.tStack > ome.getNrOfTStack(series)) {
+      imagePlane.tStack = ome.getNrOfTStack(series) - 1;
+    }
+    if(imagePlane.cStack > ome.getNrOfTStack(series)) {
+      imagePlane.cStack = ome.getNrOfChannels(series) - 1;
+    }
+    if(imagePlane.zStack > ome.getNrOfZStack(series)) {
+      imagePlane.zStack = ome.getNrOfZStack(series) - 1;
+    }
+
+    if(tile.tileWidth > ome.getImageInfo(series).resolutions.at(0).imageWidth) {
+      tile.tileWidth = ome.getImageInfo(series).resolutions.at(0).imageWidth;
+    }
+    if(tile.tileHeight > ome.getImageInfo(series).resolutions.at(0).imageHeight) {
+      tile.tileHeight = ome.getImageInfo(series).resolutions.at(0).imageHeight;
+    }
+    auto [tilesX, tilesY] = ome.getImageInfo(series).resolutions.at(0).getNrOfTiles(tile.tileWidth, tile.tileHeight);
+    if(tile.tileX > tilesX) {
+      tile.tileX = tilesX;
+    }
+    if(tile.tileY > tilesY) {
+      tile.tileY = tilesY;
+    }
+
     auto i1            = DurationCount::start("Load from filesystem");
     jbyteArray readImg = static_cast<jbyteArray>(
         myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImageTile, filePath, static_cast<int>(series), static_cast<int>(resolutionIdx),
