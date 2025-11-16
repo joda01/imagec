@@ -127,6 +127,7 @@ find_package( tensorflowlite REQUIRED )
 find_package( Torch REQUIRED )
 find_package( cereal REQUIRED )
 find_package( mlpack REQUIRED )
+find_package( bshoshany-thread-pool REQUIRED )
 
 
 
@@ -151,6 +152,7 @@ set(LIBS
   ${TORCH_LIBRARIES}
   cereal::cereal
   mlpack::mlpack
+  bshoshany-thread-pool::bshoshany-thread-pool
 )
 
 set(RESOURCE_FILES

@@ -33,8 +33,6 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/threading/threading.hpp"
-#include "backend/helper/threadpool/thread_pool.hpp"
-#include "backend/helper/threadpool/thread_pool_utils.hpp"
 #include "backend/processor/context/plate_context.hpp"
 #include "backend/processor/context/process_context.hpp"
 #include "backend/processor/dependency_graph.hpp"
@@ -44,6 +42,7 @@
 #include "backend/settings/setting.hpp"
 #include "backend/settings/settings.hpp"
 #include "backend/settings/settings_types.hpp"
+#include <BS_thread_pool.hpp>
 
 namespace joda::processor {
 

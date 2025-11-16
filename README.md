@@ -216,7 +216,14 @@ safeint/3.0.28|https://github.com/dcleblanc/SafeInt|MIT
 ms-gsl/4.0.0|https://github.com/microsoft/GSL|MIT
 cpuinfo/cci.20231129|https://github.com/pytorch/cpuinfo|BSD-2-Clause
 nsync/1.26.0|https://github.com/google/nsync|Apache-2.0
-libtorch/2.7.1|None|BSD-3-Clause
+mlpack/4.6.2|https://github.com/mlpack/mlpack|BSD-3-Clause
+armadillo/12.6.4|http://arma.sourceforge.net|Apache-2.0
+openblas/0.3.25|https://www.openblas.net|BSD-3-Clause
+ensmallen/2.21.0|https://github.com/mlpack/ensmallen|BSD-3-Clause
+stb/cci.20230920|https://github.com/nothings/stb|['Unlicense', 'MIT']
+llvm-openmp/17.0.6|https://github.com/llvm/llvm-project/blob/main/openmp|Apache-2.0 WITH LLVM-exception
+bshoshany-thread-pool/5.0.0|https://github.com/bshoshany/thread-pool|MIT
+libtorch/2.9.0|None|BSD-3-Clause
 tensorflow-lite/2.15.0|https://www.tensorflow.org/lite/guide|Apache-2.0
 farmhash/cci.20190513|https://github.com/google/farmhash|MIT
 fft/cci.20061228|http://www.kurims.kyoto-u.ac.jp/~ooura/fft.html|LicenseRef-LICENSE

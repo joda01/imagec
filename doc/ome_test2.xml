@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OME xmlns="http://www.openmicroscopy.org/Schemas/OME/2016-06"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openmicroscopy.org/Schemas/OME/2016-06 http://www.openmicroscopy.org/Schemas/OME/2016-06/ome.xsd">
+    <Instrument ID="Instrument:0">
+        <Detector ID="Detector:0:0" Manufacturer="Hamamatsu" Model="Hamamatsu ORCA-Flash4.0" SerialNumber="19726336" Type="CCD"/>
+        <Objective ID="Objective:0:0" LensNA="0.95" Model="UPLXAPO" NominalMagnification="40.0" WorkingDistance="180.0" WorkingDistanceUnit="µm"/>
+    </Instrument>
+    <Image ID="Image:0" Name="1746 CY7, CY5, Cy5-Cy7-FRET, DAPI_MB, BF">
+        <AcquisitionDate>2024-03-21T14:55:45</AcquisitionDate>
+        <InstrumentRef ID="Instrument:0"/>
+        <ObjectiveSettings ID="Objective:0:0" RefractiveIndex="1.0"/>
+        <Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:0" Interleaved="false" PhysicalSizeX="0.16250000000000006" PhysicalSizeXUnit="µm" PhysicalSizeY="0.16250000000000006" PhysicalSizeYUnit="µm" PhysicalSizeZ="0.5" PhysicalSizeZUnit="µm" SignificantBits="16" SizeC="5" SizeT="1" SizeX="2048" SizeY="2048" SizeZ="5" Type="uint16">
+            <Channel EmissionWavelength="767.0" EmissionWavelengthUnit="nm" ID="Channel:0:0" Name="CY7" SamplesPerPixel="1">
+                <DetectorSettings Binning="1x1" ID="Detector:0:0"/>
+                <LightPath/>
+            </Channel>
+            <Channel EmissionWavelength="575.0" EmissionWavelengthUnit="nm" ID="Channel:0:1" Name="CY5" SamplesPerPixel="1">
+                <DetectorSettings Binning="1x1" ID="Detector:0:0"/>
+                <LightPath/>
+            </Channel>
+            <Channel EmissionWavelength="575.0" EmissionWavelengthUnit="nm" ID="Channel:0:2" Name="Cy5-Cy7-FRET" SamplesPerPixel="1">
+                <DetectorSettings Binning="1x1" ID="Detector:0:0"/>
+                <LightPath/>
+            </Channel>
+            <Channel EmissionWavelength="455.0" EmissionWavelengthUnit="nm" ID="Channel:0:3" Name="DAPI_MB" SamplesPerPixel="1">
+                <DetectorSettings Binning="1x1" ID="Detector:0:0"/>
+                <LightPath/>
+            </Channel>
+            <Channel ID="Channel:0:4" Name="BF" SamplesPerPixel="1">
+                <DetectorSettings Binning="1x1" ID="Detector:0:0"/>
+                <LightPath/>
+            </Channel>
+            <MetadataOnly/>
+            <Plane ExposureTime="0.5" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8163.3" PositionZUnit="µm" TheC="0" TheT="0" TheZ="0"/>
+            <Plane ExposureTime="0.2" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8163.3" PositionZUnit="µm" TheC="1" TheT="0" TheZ="0"/>
+            <Plane ExposureTime="0.5" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8163.3" PositionZUnit="µm" TheC="2" TheT="0" TheZ="0"/>
+            <Plane ExposureTime="0.05" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8163.3" PositionZUnit="µm" TheC="3" TheT="0" TheZ="0"/>
+            <Plane ExposureTime="0.0269" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8163.3" PositionZUnit="µm" TheC="4" TheT="0" TheZ="0"/>
+            <Plane ExposureTime="0.5" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8163.8" PositionZUnit="µm" TheC="0" TheT="0" TheZ="1"/>
+            <Plane ExposureTime="0.2" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8163.8" PositionZUnit="µm" TheC="1" TheT="0" TheZ="1"/>
+            <Plane ExposureTime="0.5" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8163.8" PositionZUnit="µm" TheC="2" TheT="0" TheZ="1"/>
+            <Plane ExposureTime="0.05" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8163.8" PositionZUnit="µm" TheC="3" TheT="0" TheZ="1"/>
+            <Plane ExposureTime="0.0269" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8163.8" PositionZUnit="µm" TheC="4" TheT="0" TheZ="1"/>
+            <Plane ExposureTime="0.5" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8164.3" PositionZUnit="µm" TheC="0" TheT="0" TheZ="2"/>
+            <Plane ExposureTime="0.2" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8164.3" PositionZUnit="µm" TheC="1" TheT="0" TheZ="2"/>
+            <Plane ExposureTime="0.5" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8164.3" PositionZUnit="µm" TheC="2" TheT="0" TheZ="2"/>
+            <Plane ExposureTime="0.05" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8164.3" PositionZUnit="µm" TheC="3" TheT="0" TheZ="2"/>
+            <Plane ExposureTime="0.0269" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8164.3" PositionZUnit="µm" TheC="4" TheT="0" TheZ="2"/>
+            <Plane ExposureTime="0.5" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8164.8" PositionZUnit="µm" TheC="0" TheT="0" TheZ="3"/>
+            <Plane ExposureTime="0.2" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8164.8" PositionZUnit="µm" TheC="1" TheT="0" TheZ="3"/>
+            <Plane ExposureTime="0.5" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8164.8" PositionZUnit="µm" TheC="2" TheT="0" TheZ="3"/>
+            <Plane ExposureTime="0.05" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8164.8" PositionZUnit="µm" TheC="3" TheT="0" TheZ="3"/>
+            <Plane ExposureTime="0.0269" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8164.8" PositionZUnit="µm" TheC="4" TheT="0" TheZ="3"/>
+            <Plane ExposureTime="0.5" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8165.3" PositionZUnit="µm" TheC="0" TheT="0" TheZ="4"/>
+            <Plane ExposureTime="0.2" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8165.3" PositionZUnit="µm" TheC="1" TheT="0" TheZ="4"/>
+            <Plane ExposureTime="0.5" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8165.3" PositionZUnit="µm" TheC="2" TheT="0" TheZ="4"/>
+            <Plane ExposureTime="0.05" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8165.3" PositionZUnit="µm" TheC="3" TheT="0" TheZ="4"/>
+            <Plane ExposureTime="0.0269" ExposureTimeUnit="s" PositionX="-67371.04622957065" PositionXUnit="µm" PositionY="-70290.00475615072" PositionYUnit="µm" PositionZ="8165.3" PositionZUnit="µm" TheC="4" TheT="0" TheZ="4"/>
+        </Pixels>
+    </Image>
+    <Image ID="Image:1" Name="macro image">
+        <InstrumentRef ID="Instrument:0"/>
+        <Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:1" Interleaved="false" SignificantBits="8" SizeC="3" SizeT="1" SizeX="512" SizeY="512" SizeZ="1" Type="uint8">
+            <Channel ID="Channel:1:0" SamplesPerPixel="3">
+                <LightPath/>
+            </Channel>
+            <MetadataOnly/>
+            <Plane TheC="0" TheT="0" TheZ="0"/>
+        </Pixels>
+    </Image>
+</OME>
+<JODA xmlns="https://www.imagec.org/" TileWidht="2048" TileHeight="2048"></JODA>

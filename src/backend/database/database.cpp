@@ -32,7 +32,6 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/rle/rle.hpp"
-#include "backend/helper/threadpool/thread_pool.hpp"
 #include "backend/helper/uuid.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/settings/analze_settings.hpp"
@@ -50,6 +49,7 @@
 #include <duckdb/common/vector.hpp>
 #include <duckdb/main/appender.hpp>
 #include <nlohmann/json_fwd.hpp>
+#include <BS_thread_pool.hpp>
 
 namespace joda::db {
 
@@ -550,7 +550,7 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, en
 auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
                              const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
                              const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings,
-                             BS::thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>
+                             BS::light_thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>
 {
   std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> imagesToProcess;
   joda::grp::FileGrouper grouper(groupBy, filenameRegex);
