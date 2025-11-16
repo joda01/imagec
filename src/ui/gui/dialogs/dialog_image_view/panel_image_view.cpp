@@ -145,6 +145,8 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
     if(mLastPath != imagePath) {
       emit imageOpened();
       mLastPath = imagePath;
+    } else if(mLastPlane.tStack != mPlane.tStack) {
+      emit imageOpened();
     }
     mLastPlane = mPlane;
     emit channelOpened();
@@ -955,7 +957,7 @@ void PanelImageView::paintEvent(QPaintEvent *event)
   }
 
   // Waiting banner
-  if(mWaiting || mLoadingImage) {
+  if((mWaiting || mLoadingImage) && mWaitBannerVisible) {
     QRect overlay(0, viewportRect.height() / 2 - 10, viewportRect.width(), 20);
     painter.setPen(QColor(0, 0, 0));      // Set the pen color to light blue
     painter.setBrush(QColor(0, 0, 0));    // Set the brush to no brush for transparent fill
@@ -1937,6 +1939,18 @@ void PanelImageView::setWaiting(bool waiting)
   }
   mWaiting = waiting;
   viewport()->update();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::setWaitBannerVisible(bool waiting)
+{
+  mWaitBannerVisible = waiting;
 }
 
 ///

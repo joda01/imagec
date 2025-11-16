@@ -34,6 +34,7 @@
 #include "backend/enums/types.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
+#include "backend/helper/uuid.hpp"
 #include "backend/processor/processor.hpp"
 #include "backend/settings/pipeline/pipeline_factory.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
@@ -123,11 +124,9 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   //
   // Refresh
   //
-  mRefresh = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("arrows-clockwise"), "Refresh preview");
-  mRefresh->setStatusTip("Refresh preview");
-  mRefresh->setEnabled(false);
-  //  mRefresh->setShortcut(QKeySequence(Qt::Key_F5));
-  connect(mRefresh, &QAction::triggered, [this](bool /*checked*/) { updatePreview(); });
+  mRefresh = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("arrows-clockwise"), "Auto refresh preview");
+  mRefresh->setStatusTip("Automatic preview refresh");
+  mRefresh->setCheckable(true);
 
   //
   // Switch to edit mode
@@ -234,13 +233,12 @@ void PanelPipelineSettings::setImageMustBeRefreshed(bool refresh)
 {
   if(mIsActiveShown) {
     std::lock_guard<std::mutex> lock(mPipelineChangedMutex);
-    mImageMustBeRefreshed = refresh;
-    mRefresh->setEnabled(refresh);
     if(refresh) {
       mNumberOfChangesSinceLastRefresh++;
-      mPreviewImage->getImagePanel()->setInfoText("Press F5 to update preview (" + std::to_string(mNumberOfChangesSinceLastRefresh) + ")");
+      if(!mRefresh->isChecked()) {
+        mPreviewImage->getImagePanel()->setInfoText("Press F5 to update preview (" + std::to_string(mNumberOfChangesSinceLastRefresh) + ")");
+      }
     } else {
-      mNumberOfChangesSinceLastRefresh = 0;
       mPreviewImage->getImagePanel()->setInfoText("");
     }
   }
@@ -369,6 +367,7 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete, bool upda
       }
       if(updateHistoryEntry) {
         mSettings.createSnapShot(enums::HistoryCategory::DELETED, "Removed: " + deletedCommandTitle);
+        mSettings.triggerPipelineChanged();
         mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
         mWindowMain->checkForSettingsChanged();
       }
@@ -387,7 +386,6 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete, bool upda
 PanelPipelineSettings::~PanelPipelineSettings()
 {
   mStopped = true;
-  mPreviewQue.stop();
   if(mPreviewThread != nullptr) {
     if(mPreviewThread->joinable()) {
       mPreviewThread->join();
@@ -415,52 +413,9 @@ void PanelPipelineSettings::metaChangedEvent()
 /// \param[out]
 /// \return
 ///
-void PanelPipelineSettings::updatePreview()
+void PanelPipelineSettings::triggerPreviewUpdate()
 {
-  {
-    std::lock_guard<std::mutex> lock(mShutingDownMutex);
-    if(!mIsActiveShown || mLoadingSettings) {
-      return;
-    }
-  }
-  toSettings();
-  mWindowMain->checkForSettingsChanged();
-  int cnt = 0;
-  for(const auto &myPipeline : mWindowMain->getSettings().pipelines) {
-    if(&myPipeline == &getPipeline()) {
-      break;
-    }
-    cnt++;
-  }
-
-  settings::AnalyzeSettings settingsTmp = mWindowMain->getSettings();
-
-  auto previewSize                                    = mPreviewImage->getTileSize();
-  settingsTmp.imageSetup.imageTileSettings.tileWidth  = previewSize;
-  settingsTmp.imageSetup.imageTileSettings.tileHeight = previewSize;
-  if(mLastSelectedPreviewSize != previewSize) {
-    mLastSelectedPreviewSize = previewSize;
-  }
-  try {
-    auto [selectedTileX, selectedTileY] = mPreviewImage->getImagePanel()->getSelectedTile();
-    auto threadSettings =
-        mWindowMain->getController()->calcOptimalThreadNumber(settingsTmp, std::get<2>(mWindowMain->getImagePanel()->getSelectedImage()));
-    PreviewJob job{.settings       = settingsTmp,
-                   .controller     = mWindowMain->getController(),
-                   .selectedImage  = mWindowMain->getImagePanel()->getSelectedImage(),
-                   .pipelinePos    = cnt,
-                   .selectedTileX  = selectedTileX,
-                   .selectedTileY  = selectedTileY,
-                   .timeStack      = mPreviewImage->getSelectedTimeStack(),
-                   .classes        = mWindowMain->getPanelClassification()->getClasses(),
-                   .threadSettings = threadSettings};
-
-    std::lock_guard<std::mutex> lock(mCheckForEmptyMutex);
-    mPreviewQue.push(job);
-    log::logTrace("Add preview job!");
-  } catch(...) {
-    // No image selected
-  }
+  mTriggerPreviewUpdate = true;
 }
 
 ///
@@ -473,78 +428,68 @@ void PanelPipelineSettings::updatePreview()
 void PanelPipelineSettings::previewThread()
 {
   while(!mStopped) {
-    try {
-    next:
-      // Wait until there is at least one job in the queue
-      // mCheckForEmptyMutex.lock();
-      auto jobToDo = mPreviewQue.pop();
-      bool isEmpty = mPreviewQue.isEmpty();
-      // mCheckForEmptyMutex.unlock();
+    QString errorMsg;
+    int32_t numberOfChangesSinceLastRefresh = 0;
+    {
+      std::lock_guard<std::mutex> lock(mPipelineChangedMutex);
+      numberOfChangesSinceLastRefresh = mNumberOfChangesSinceLastRefresh;
+    }
 
-      // Process only the last element in the que
-      if(!isEmpty) {
-        std::this_thread::sleep_for(10ms);
-        goto next;
-      }
-
+    if(numberOfChangesSinceLastRefresh > 0 && mIsActiveShown && (mRefresh->isChecked() || mTriggerPreviewUpdate)) {
       mPreviewInProgress = true;
       emit updatePreviewStarted();
-      QString errorMsg;
-      if(mIsActiveShown) {
-        auto [imgIndex, selectedSeries, imgProps] = jobToDo.selectedImage;
+
+      // Collect data
+      settings::AnalyzeSettings settingsTmp           = mWindowMain->getSettings();
+      auto *controller                                = mWindowMain->getController();
+      const auto [imgIndex, selectedSeries, imgProps] = mWindowMain->getImagePanel()->getSelectedImage();
+      const auto imgWidth                             = imgProps.getImageInfo(selectedSeries).resolutions.at(0).imageWidth;
+      const auto imageHeight                          = imgProps.getImageInfo(selectedSeries).resolutions.at(0).imageHeight;
+      const auto [selectedTileX, selectedTileY]       = mPreviewImage->getImagePanel()->getSelectedTile();
+      const auto timeStack                            = mPreviewImage->getSelectedTimeStack();
+      const auto threadSettings                       = mWindowMain->getController()->calcOptimalThreadNumber(settingsTmp, imgProps);
+      const joda::settings::Pipeline *myPipeline      = nullptr;
+      for(auto &pip : settingsTmp.pipelines) {
+        if(!pip.meta.uid.empty() && pip.meta.uid == getPipeline().meta.uid) {
+          myPipeline = &pip;
+          break;
+        }
+      }
+
+      try {
         if(!imgIndex.empty()) {
-          try {
-            int32_t series = selectedSeries;
-            auto tileSize  = jobToDo.settings.imageSetup.imageTileSettings;
-
-            // If image is too big scale to tiles
-            auto imgWidth    = imgProps.getImageInfo(series).resolutions.at(0).imageWidth;
-            auto imageHeight = imgProps.getImageInfo(series).resolutions.at(0).imageHeight;
-
-            if(imgWidth > jobToDo.settings.imageSetup.imageTileSettings.tileWidth ||
-               imageHeight > jobToDo.settings.imageSetup.imageTileSettings.tileHeight) {
-              tileSize.tileWidth  = jobToDo.settings.imageSetup.imageTileSettings.tileWidth;
-              tileSize.tileHeight = jobToDo.settings.imageSetup.imageTileSettings.tileHeight;
-            } else {
-              tileSize.tileWidth  = imgWidth;
-              tileSize.tileHeight = imageHeight;
-            }
-            processor::PreviewSettings prevSettings;
-            joda::settings::Pipeline *myPipeline = nullptr;
-            int cnt                              = 0;
-            for(auto &pip : jobToDo.settings.pipelines) {
-              if(cnt == jobToDo.pipelinePos) {
-                myPipeline = &pip;
-                break;
-              }
-              cnt++;
-            }
-            if(myPipeline == nullptr) {
-              continue;
-            }
-            jobToDo.controller->preview(jobToDo.settings.imageSetup, prevSettings, jobToDo.settings, jobToDo.threadSettings, *myPipeline, imgIndex,
-                                        jobToDo.selectedTileX, jobToDo.selectedTileY, jobToDo.timeStack, *mPreviewResult, imgProps);
-
-          } catch(const std::exception &error) {
-            errorMsg = QString(error.what()) + QString("\n\nSee compiler log and application log for more details!");
+          auto tileSize = settingsTmp.imageSetup.imageTileSettings;
+          // If image is too big scale to tiles
+          if(imgWidth > settingsTmp.imageSetup.imageTileSettings.tileWidth || imageHeight > settingsTmp.imageSetup.imageTileSettings.tileHeight) {
+            tileSize.tileWidth  = settingsTmp.imageSetup.imageTileSettings.tileWidth;
+            tileSize.tileHeight = settingsTmp.imageSetup.imageTileSettings.tileHeight;
+          } else {
+            tileSize.tileWidth  = imgWidth;
+            tileSize.tileHeight = imageHeight;
           }
-        } else {
-          errorMsg = "No images found! Select working directory.";
+          if(myPipeline != nullptr) {
+            controller->preview(settingsTmp.imageSetup, processor::PreviewSettings{}, settingsTmp, threadSettings, *myPipeline, imgIndex,
+                                selectedTileX, selectedTileY, timeStack, *mPreviewResult, imgProps);
+
+          } else {
+            errorMsg = "No images found! Select working directory.";
+          }
         }
+      } catch(const std::exception &error) {
+        errorMsg = QString(error.what()) + QString("\n\nSee compiler log and application log for more details!");
       }
 
-      {
-        if(isEmpty) {
-          mPreviewInProgress = false;
-          emit updatePreviewFinished(errorMsg);
-        }
-      }
-    } catch(...) {
+      std::lock_guard<std::mutex> lock(mPipelineChangedMutex);
+      // We subtract the number of changed at startup from the actual number.
+      // If during the preview generation some settings were taken the counter is not null and we have to refresh again
+      mNumberOfChangesSinceLastRefresh -= numberOfChangesSinceLastRefresh;
+      mPreviewInProgress    = false;
+      mTriggerPreviewUpdate = false;
+      emit updatePreviewFinished(errorMsg);
     }
-  }
 
-  mPreviewInProgress = false;
-  emit updatePreviewFinished("");
+    std::this_thread::sleep_for(100ms);
+  }
 }
 
 ///
@@ -627,8 +572,11 @@ void PanelPipelineSettings::pipelineSavedEvent()
 ///
 void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &settings)
 {
-  mLoadingSettings        = true;
-  mSettings.meta          = settings.meta;
+  mLoadingSettings = true;
+  mSettings.meta   = settings.meta;
+  if(mSettings.meta.uid.empty()) {
+    mSettings.meta.uid = joda::helper::generate_uuid();
+  }
   mSettings.meta.notes    = settings.meta.notes;
   mSettings.pipelineSetup = settings.pipelineSetup;
   mSettings.setHistory(settings.getHistory(), settings.getHistoryIndex(), settings);
@@ -636,6 +584,7 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   mSettings.locked   = settings.locked;
 
   mActionDisabled->setChecked(settings.disabled);
+
   //
   // Pipelinesteps
   //

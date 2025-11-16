@@ -194,7 +194,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   connect(shortcut, &QShortcut::activated, this, [this]() {
     auto *pip = mPanelPipeline->getSelectedPipeline();
     if(pip != nullptr) {
-      pip->updatePreview();
+      pip->triggerPreviewUpdate();
     }
   });
 }

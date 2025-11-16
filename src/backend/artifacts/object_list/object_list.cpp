@@ -347,6 +347,40 @@ void ObjectList::erase(const std::set<ROI *> &rois)
 /// \param[out]
 /// \return
 ///
+void ObjectList::mergeFrom(ObjectList &&other, joda::atom::ROI::Category categoryToKeep)
+{
+  //
+  // First erase
+  //
+  std::vector<ROI *> toErase;
+  for(const auto &[classId, rois] : *this) {
+    for(auto &roi : *rois) {
+      if(roi.getCategory() != categoryToKeep) {
+        toErase.emplace_back(&roi);
+      }
+    }
+  }
+
+  for(auto *roi : toErase) {
+    erase(roi);
+  }
+
+  //
+  // Now enter
+  //
+  for(auto it = other.begin(); it != other.end();) {
+    auto node = other.extract(it++);       // remove node from a
+    ObjectMap::insert(std::move(node));    // insert same node into b
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
 std::unique_ptr<SpheralIndex> &ObjectList::operator[](enums::ClassId classId)
 {
   if(!contains(classId)) {

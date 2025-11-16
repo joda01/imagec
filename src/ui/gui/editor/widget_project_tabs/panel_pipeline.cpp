@@ -24,6 +24,7 @@
 #include <string>
 #include "backend/enums/enums_units.hpp"
 #include "backend/helper/logger/console_logger.hpp"
+#include "backend/helper/uuid.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "ui/gui/editor/widget_pipeline/dialog_command_selection/dialog_command_selection.hpp"
 #include "ui/gui/editor/widget_pipeline/dialog_pipeline_settings/dialog_pipeline_settings.hpp"
@@ -514,8 +515,9 @@ void PanelPipeline::addChannelFromSettings(joda::settings::Pipeline settings)
     }
   }
   mAnalyzeSettings->pipelines.emplace_back();
-  auto &newlyAdded = mAnalyzeSettings->pipelines.back();
-  auto panel1      = std::make_unique<PanelPipelineSettings>(mWindowMain, mWindowMain->getPreviewDock(), mPreviewResults, newlyAdded,
+  auto &newlyAdded    = mAnalyzeSettings->pipelines.back();
+  newlyAdded.meta.uid = joda::helper::generate_uuid();
+  auto panel1         = std::make_unique<PanelPipelineSettings>(mWindowMain, mWindowMain->getPreviewDock(), mPreviewResults, newlyAdded,
                                                         mCommandSelectionDialog, mMlTraining);
   panel1->fromSettings(settings);
   panel1->toSettings();

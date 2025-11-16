@@ -121,6 +121,7 @@ public:
   int32_t getNrOfTstacks() const;
   int32_t getNrOfCstacks() const;
   int32_t getNrOfZstacks() const;
+  void setWaitBannerVisible(bool);
 
   // SET STATE ///////////////////////////////////////////////////
   void setState(State);
@@ -278,6 +279,7 @@ private:
   bool mShowEditedImage       = false;
   bool mShowRuler             = true;
   bool mHideManualAnnotations = false;
+  bool mWaitBannerVisible     = true;
 
   // ROI///////////////////////////////////////////////////
   bool mFillRoi    = false;

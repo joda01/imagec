@@ -91,13 +91,11 @@ public:
   void clearPipeline();
   void pipelineSavedEvent();
   void openPipelineSettings();
+  void triggerPreviewUpdate();
   auto getListOfCommands() -> std::vector<std::shared_ptr<Command>> *
   {
     return &mCommands;
   }
-
-public slots:
-  void updatePreview();
 
 private:
   /////////////////////////////////////////////////////
@@ -138,23 +136,9 @@ private:
   int32_t mLastSelectedPreviewSize = 0;
   joda::settings::Pipeline &mSettings;
   joda::processor::Preview *mPreviewResult;
-
-  struct PreviewJob
-  {
-    settings::AnalyzeSettings settings;
-    joda::ctrl::Controller *controller;
-    std::tuple<std::filesystem::path, int32_t, joda::ome::OmeInfo> selectedImage;
-    int32_t pipelinePos;
-    int32_t selectedTileX = 0;
-    int32_t selectedTileY = 0;
-    int32_t timeStack     = 0;
-    std::map<enums::ClassIdIn, QString> classes;
-    joda::thread::ThreadingSettings threadSettings;
-  };
-  bool mImageMustBeRefreshed               = false;
   bool mStopped                            = false;
+  std::atomic<bool> mTriggerPreviewUpdate  = false;
   int32_t mNumberOfChangesSinceLastRefresh = 0;
-  joda::TSQueue<PreviewJob> mPreviewQue;
   std::mutex mCheckForEmptyMutex;
   std::mutex mShutingDownMutex;
   std::mutex mPipelineChangedMutex;

@@ -455,6 +455,13 @@ void DialogImageViewer::applySettingsToImagePanel()
   if(nullptr != mVideoButtonGroup) {
     mVideoButtonGroup->setMaxTimeStacks(mImageViewRight.getNrOfTstacks());
     mSelectedTStack = mVideoButtonGroup->value();
+    if(mVideoButtonGroup->isVideoRunning()) {
+      mImageViewRight.setWaitBannerVisible(false);
+    } else {
+      mImageViewRight.setWaitBannerVisible(true);
+    }
+  } else {
+    mImageViewRight.setWaitBannerVisible(true);
   }
   mImageViewRight.setZprojection(getSelectedZProjection());
   mImageViewRight.setImagePlane({.tStack = mSelectedTStack, .zStack = mSelectedZStack, .cStack = getSelectedImageChannel()});

@@ -367,7 +367,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
   auto ii = DurationCount::start("Generate preview with >" + std::to_string(threadingSettings.coresUsed) + "< threads.");
 
   // Prepare the output object class
-  previewOut.results.objectMap->erase(joda::atom::ROI::Category::AUTO_SEGMENTATION);
+  auto objectMapBuffer = std::make_shared<joda::atom::ObjectList>();
 
   // Prepare thread pool
   mGlobThreadPool.reset(threadingSettings.coresUsed);
@@ -417,7 +417,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
   ImageContext imageContext{.imageLoader = imageLoader, .imagePath = imagePath, .imageMeta = ome, .imageId = 1};
   imageLoader.init(imageContext);
 
-  IterationContext iterationContext(previewOut.results.objectMap);
+  IterationContext iterationContext(objectMapBuffer);
 
   size_t totalRuns = 0;
   for(const auto &[order, pipelines] : pipelineOrder) {
@@ -439,8 +439,6 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
       auto executePipeline = [&db, &thumbThread, &thumb, &finished, &ome, &previewOut, &previewSettings, &imageSetup, &totalRuns,
                               pipeline  = pipelineToExecute, &globalContext, &plateContext, imagePath, &imageContext, &imageLoader, tileX, tileY,
                               pipelines = pipelines, &iterationContext, tStack, zStack, executedSteps, &generateThumb]() -> void {
-        previewOut.results.objectMap->triggerStartChangeCallback();
-
         //
         // The last step is the wanted pipeline
         //
@@ -510,7 +508,6 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
           previewOut.tStacks               = ome.getNrOfTStack(imageSetup.series);
 
           finished = true;
-          previewOut.results.objectMap->triggerChangeCallback();
         }
       };
 
@@ -524,6 +521,11 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
       pipelinesFutures.wait();
     }
   }
+
+  previewOut.results.objectMap->triggerStartChangeCallback();
+  previewOut.results.objectMap->mergeFrom(std::move(*objectMapBuffer), joda::atom::ROI::Category::MANUAL_SEGMENTATION);
+  previewOut.results.objectMap->triggerChangeCallback();
+  objectMapBuffer.reset();
 
   if(!finished) {
     thumbThread.join();

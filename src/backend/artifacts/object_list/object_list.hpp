@@ -288,6 +288,7 @@ public:
 
   void serialize(const std::filesystem::path &);
   void deserialize(const std::filesystem::path &);
+  void mergeFrom(ObjectList &&other, joda::atom::ROI::Category categoryToKeep);
 
 private:
   /////////////////////////////////////////////////////
