@@ -310,6 +310,9 @@ int OmeInfo::getNrOfChannels(int32_t series) const
   if(series < 0 || series >= static_cast<int32_t>(getNrOfSeries())) {
     series = getSeriesWithHighestResolution();
   }
+  if(!mImageInfo.contains(series)) {
+    return 1;
+  }
   return mImageInfo.at(series).nrOfChannels;
 }
 
@@ -322,6 +325,9 @@ int OmeInfo::getNrOfZStack(int32_t series) const
   if(series < 0 || series >= static_cast<int32_t>(getNrOfSeries())) {
     series = getSeriesWithHighestResolution();
   }
+  if(!mImageInfo.contains(series)) {
+    return 1;
+  }
   return mImageInfo.at(series).nrOfZStacks;
 }
 
@@ -333,6 +339,9 @@ int OmeInfo::getNrOfTStack(int32_t series) const
 {
   if(series < 0 || series >= static_cast<int32_t>(getNrOfSeries())) {
     series = getSeriesWithHighestResolution();
+  }
+  if(!mImageInfo.contains(series)) {
+    return 1;
   }
   return mImageInfo.at(series).nrOfTStacks;
 }

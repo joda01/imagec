@@ -240,6 +240,7 @@ void PanelPipelineSettings::setImageMustBeRefreshed(bool refresh)
       mPreviewImage->getImagePanel()->setInfoText("");
     }
   }
+  mWindowMain->checkForSettingsChanged();
 }
 
 ///

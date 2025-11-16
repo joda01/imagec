@@ -726,7 +726,6 @@ void WindowResults::previewThread()
 {
   while(!mStopped) {
     auto previewData = mPreviewQue.pop();
-
     try {
       int32_t tileWidth      = static_cast<int32_t>(previewData.analyzeMeta.tileWidth);
       int32_t tileHeight     = static_cast<int32_t>(previewData.analyzeMeta.tileHeight);

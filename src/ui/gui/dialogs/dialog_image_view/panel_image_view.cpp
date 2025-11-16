@@ -1812,6 +1812,9 @@ void PanelImageView::setInfoText(const std::string &text)
 void PanelImageView::setCursorPositionFromOriginalImageCoordinatesAndCenter(const QRect &boundingBox)
 {
   ////////////////
+  if(!mOmeInfo.containsSeries(mSeries)) {
+    return;
+  }
 
   auto imgWidth    = mOmeInfo.getImageInfo(mSeries).resolutions.at(0).imageWidth;
   auto imageHeight = mOmeInfo.getImageInfo(mSeries).resolutions.at(0).imageHeight;

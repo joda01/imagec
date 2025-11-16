@@ -176,6 +176,11 @@ public:
     }
     return mImageInfo.at(series);
   }
+  [[nodiscard]] bool containsSeries(int32_t series) const
+  {
+    return mImageInfo.contains(series);
+  }
+
   [[nodiscard]] const ObjectiveInfo &getObjectiveInfo() const
   {
     return mObjectiveInfo;
