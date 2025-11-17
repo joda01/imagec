@@ -17,6 +17,7 @@
 #include "backend/artifacts/image/image.hpp"
 #include "backend/enums/enum_images.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
+#include "backend/helper/reader/image_reader.hpp"
 
 namespace joda::processor {
 class PipelineInitializer;
@@ -27,7 +28,6 @@ namespace joda::processor {
 struct ImageContext
 {
   PipelineInitializer &imageLoader;
-  std::filesystem::path imagePath;
   const joda::ome::OmeInfo &imageMeta;
   uint64_t imageId      = {};
   cv::Size tileSize     = {};

@@ -20,7 +20,7 @@ namespace joda::cmd {
 void Command::operator()(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result)
 {
   const auto processName = std::string(typeid(*this).name());
-  auto id                = DurationCount::start("Exec: " + processName);
+  DurationCount durationCount("Exec: " + processName);
   preCommandStep(context);
   try {
     execute(context, image, result);
@@ -28,7 +28,6 @@ void Command::operator()(processor::ProcessContext &context, cv::Mat &image, ato
     joda::log::logError("Cmd: >" + processName + "< failed in execution. Got >" + std::string(ex.what()) + "<");
   }
   postCommandStep(context);
-  DurationCount::stop(id);
 }
 
 void Command::preCommandStep(const processor::ProcessContext & /*context*/)
@@ -42,13 +41,12 @@ void Command::postCommandStep(const processor::ProcessContext & /*context*/)
 void ImageProcessingCommand::operator()(cv::Mat &image)
 {
   const auto processName = std::string(typeid(*this).name());
-  auto id                = DurationCount::start("ExecImg: " + processName);
+  DurationCount durationCount("Exec: " + processName);
   try {
     execute(image);
   } catch(const std::exception &ex) {
     joda::log::logError("Cmd: >" + processName + "< failed in execution. Got >" + std::string(ex.what()) + "<");
   }
-  DurationCount::stop(id);
 }
 
 }    // namespace joda::cmd

@@ -636,7 +636,7 @@ void WindowMain::addToLastLoadedResults(const QString &path, const QString &jobN
 ///
 void WindowMain::openProjectSettings(const QString &filePath, bool openFromTemplate)
 {
-  auto id = DurationCount::start("Open project");
+  DurationCount durationCount("Open project");
   try {
     saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
     joda::settings::AnalyzeSettings analyzeSettings = joda::settings::Settings::openSettings(filePath.toStdString());
@@ -694,7 +694,6 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
     messageBox.exec();
   }
-  DurationCount::stop(id);
 }
 
 ///

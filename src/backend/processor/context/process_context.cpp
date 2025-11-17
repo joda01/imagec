@@ -47,14 +47,19 @@ ProcessContext::ProcessContext(GlobalContext &globalContextIn, PlateContext &pla
       cacheId.imagePlane.zStack = getActIterator().zStack;
     }
 
-    joda::processor::PipelineInitializer::loadImageAndStoreToCache(scope, cacheId.imagePlane, cacheId.zProjection, pipelineContext.actImagePlane.tile,
-                                                                   *this, imageContext);
+    imageContext.imageLoader.loadImageAndStoreToCache(scope, cacheId.imagePlane, cacheId.zProjection, pipelineContext.actImagePlane.tile, *this,
+                                                      imageContext);
   }
   if(scope == enums::MemoryScope::ITERATION) {
     return iterationContext.imageCache.at(getMemoryIdx(cacheId)).get();
   } else {
     return pipelineContext.imageCache.at(getMemoryIdx(cacheId)).get();
   }
+}
+
+[[nodiscard]] const std::filesystem::path &ProcessContext::getActImagePath() const
+{
+  return imageContext.imageLoader.getImagePath();
 }
 
 }    // namespace joda::processor

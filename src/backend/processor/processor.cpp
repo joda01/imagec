@@ -107,8 +107,8 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
       for(const auto &actImage : imagesToProcess) {
         auto analyzeImage = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db, &poolSizeTiles, &poolSizeChannels, &actImage]() {
           auto const [imagePath, omeInfo, imageId] = actImage;
-          PipelineInitializer imageLoader(program.imageSetup, program.pipelineSetup);
-          ImageContext imageContext{.imageLoader = imageLoader, .imagePath = imagePath, .imageMeta = omeInfo, .imageId = imageId};
+          PipelineInitializer imageLoader(program.imageSetup, program.pipelineSetup, imagePath);
+          ImageContext imageContext{.imageLoader = imageLoader, .imageMeta = omeInfo, .imageId = imageId};
           imageLoader.init(imageContext);
 
           //
@@ -231,13 +231,14 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                     // Iteration for all tiles finished
 
                     // Insert objects to database
-                    auto id = DurationCount::start("Insert");
-                    try {
-                      db->insertObjects(imageContext, program.imageSetup.imagePixelSizeSettings.pixelSizeUnit, iterationContext.getObjects());
-                    } catch(const std::exception &ex) {
-                      std::cout << "Insert Obj: " << ex.what() << std::endl;
+                    {
+                      DurationCount durationCount("Insert into DB");
+                      try {
+                        db->insertObjects(imageContext, program.imageSetup.imagePixelSizeSettings.pixelSizeUnit, iterationContext.getObjects());
+                      } catch(const std::exception &ex) {
+                        std::cout << "Insert Obj: " << ex.what() << std::endl;
+                      }
                     }
-                    DurationCount::stop(id);
                   }
 
                   // Time frame finished
@@ -363,7 +364,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
                                 const settings::Pipeline &pipelineStart, const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack,
                                 int32_t tileX, int32_t tileY, bool generateThumb, const ome::OmeInfo &ome, Preview &previewOut) -> void
 {
-  auto ii = DurationCount::start("Generate preview with >" + std::to_string(threadingSettings.coresUsed) + "< threads.");
+  DurationCount durationCount("Generate preview.");
 
   // Prepare the output object class
   auto objectMapBuffer = std::make_shared<joda::atom::ObjectList>();
@@ -386,13 +387,11 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
   //
   cv::Mat thumb;
   auto thumbThread = std::thread([&]() {
-    if(generateThumb) {
-      auto i = DurationCount::start("Generate thumb");
-      thumb  = joda::image::reader::ImageReader::loadThumbnail(
-          imagePath.string(), joda::enums::PlaneId{.tStack = tStack, .zStack = zStack, .cStack = pipelineStart.pipelineSetup.cStackIndex},
-          static_cast<uint16_t>(imageSetup.series), ome);
-      DurationCount::stop(i);
-    }
+    //  if(generateThumb) {
+    //    thumb = joda::image::reader::ImageReader::loadThumbnail(
+    //        imagePath.string(), joda::enums::PlaneId{.tStack = tStack, .zStack = zStack, .cStack = pipelineStart.pipelineSetup.cStackIndex},
+    //        static_cast<uint16_t>(imageSetup.series), ome);
+    //  }
   });
 
   //
@@ -412,8 +411,8 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
 
   PlateContext plateContext{.plateId = 0};
   joda::grp::FileGrouper grouper(enums::GroupBy::OFF, "");
-  PipelineInitializer imageLoader(imageSetup, program.pipelineSetup);
-  ImageContext imageContext{.imageLoader = imageLoader, .imagePath = imagePath, .imageMeta = ome, .imageId = 1};
+  PipelineInitializer imageLoader(imageSetup, program.pipelineSetup, imagePath);
+  ImageContext imageContext{.imageLoader = imageLoader, .imageMeta = ome, .imageId = 1};
   imageLoader.init(imageContext);
 
   IterationContext iterationContext(objectMapBuffer);
@@ -528,11 +527,9 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
 
   if(!finished) {
     thumbThread.join();
-    DurationCount::stop(ii);
     // return {{}, {}, {}, {}, {}, {}, std::map<enums::ClassId, std::unique_ptr<joda::atom::SpheralIndex>>{}};
     return;
   } else {
-    DurationCount::stop(ii);
     return;
   }
 }

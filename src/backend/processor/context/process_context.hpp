@@ -102,10 +102,7 @@ public:
   {
     return pipelineContext.actImagePlane.getId().imagePlane;
   }
-  [[nodiscard]] const std::filesystem::path &getActImagePath() const
-  {
-    return imageContext.imagePath;
-  }
+  [[nodiscard]] const std::filesystem::path &getActImagePath() const;
 
   [[nodiscard]] const std::filesystem::path &getWorkingDirectory() const
   {

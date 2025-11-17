@@ -15,6 +15,7 @@
 #include <exception>
 #include <filesystem>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -312,16 +313,17 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
                            const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings, processor::Preview &previewOut,
                            joda::ome::OmeInfo &omeOut, enums::ZProjection zProjection) -> void
 {
-  static std::filesystem::path lastImagePath;
-
-  if(lastImagePath != imagePath) {
-    lastImagePath          = imagePath;
-    ome::PhyiscalSize phys = {};
-    if(defaultPhysicalSizeSettings.mode == enums::PhysicalSizeMode::Manual) {
-      phys = joda::ome::PhyiscalSize{static_cast<double>(defaultPhysicalSizeSettings.pixelWidth),
-                                     static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.pixelSizeUnit};
+  {
+    std::lock_guard<std::mutex> lock(mReadMutex);
+    if(mLastImageReader == nullptr || mLastImageReader->getImagePath() != imagePath) {
+      mLastImageReader       = std::make_unique<image::reader::ImageReader>(imagePath);
+      ome::PhyiscalSize phys = {};
+      if(defaultPhysicalSizeSettings.mode == enums::PhysicalSizeMode::Manual) {
+        phys = joda::ome::PhyiscalSize{static_cast<double>(defaultPhysicalSizeSettings.pixelWidth),
+                                       static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.pixelSizeUnit};
+      }
+      omeOut = mLastImageReader->getOmeInformation(series, phys);
     }
-    omeOut = joda::image::reader::ImageReader::getOmeInformation(imagePath, series, phys);
   }
   loadImage(imagePath, series, imagePlane, tileLoad, previewOut, &omeOut, zProjection);
 }
@@ -356,11 +358,15 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
     lastImageTile   = tileLoad;
     lastZProjection = zProjection;
   }
+  std::lock_guard<std::mutex> lock(mReadMutex);
+
+  if(mLastImageReader == nullptr || mLastImageReader->getImagePath() != imagePath) {
+    mLastImageReader = std::make_unique<image::reader::ImageReader>(imagePath);
+  }
 
   if(refreshImage) {
-    auto loadImageTile = [&tileLoad, series, &omeIn, &imagePath](int32_t z, int32_t c, int32_t t) {
-      return joda::image::reader::ImageReader::loadImageTile(imagePath.string(), joda::enums::PlaneId{.tStack = t, .zStack = z, .cStack = c}, series,
-                                                             0, tileLoad, *omeIn);
+    auto loadImageTile = [&tileLoad, series, &omeIn](int32_t z, int32_t c, int32_t t) {
+      return mLastImageReader->loadImageTile(joda::enums::PlaneId{.tStack = t, .zStack = z, .cStack = c}, series, 0, tileLoad, *omeIn);
     };
 
     //
@@ -415,7 +421,7 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
   }
 
   if(generateThumb) {
-    auto thumb = joda::image::reader::ImageReader::loadThumbnail(imagePath.string(), imagePlane, series, *omeIn);
+    auto thumb = mLastImageReader->loadThumbnail(imagePlane, series, *omeIn);
     previewOut.thumbnail.setImage(thumb, omeIn->getPseudoColorForChannel(series, imagePlane.cStack));
   }
 
@@ -427,7 +433,7 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
 /// \author
 /// \return
 ///
-auto Controller::getImageProperties(const std::filesystem::path &image, int series,
+auto Controller::getImageProperties(const std::filesystem::path &imagePath, int series,
                                     const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings) -> joda::ome::OmeInfo
 {
   ome::PhyiscalSize phys = {};
@@ -435,7 +441,12 @@ auto Controller::getImageProperties(const std::filesystem::path &image, int seri
     phys = joda::ome::PhyiscalSize{static_cast<double>(defaultPhysicalSizeSettings.pixelWidth),
                                    static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.pixelSizeUnit};
   }
-  return joda::image::reader::ImageReader::getOmeInformation(image, static_cast<uint16_t>(series), phys);
+
+  std::lock_guard<std::mutex> lock(mReadMutex);
+  if(mLastImageReader == nullptr || mLastImageReader->getImagePath() != imagePath) {
+    mLastImageReader = std::make_unique<image::reader::ImageReader>(imagePath);
+  }
+  return mLastImageReader->getOmeInformation(static_cast<uint16_t>(series), phys);
 }
 
 // FLOW CONTROL ////////////////////////////////////////////////

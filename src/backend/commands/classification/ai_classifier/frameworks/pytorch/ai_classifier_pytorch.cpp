@@ -93,10 +93,9 @@ auto AiFrameworkPytorch::predict(const at::Device &device, const cv::Mat &origin
   // ===============================
   // 3. Run the Model Inference
   // ===============================
-  auto idx          = DurationCount::start("Forward to libtorch");
+  DurationCount durationCount("Forward to libtorch");
   at::IValue output = model.forward({inputTensor});
-  DurationCount::stop(idx);
-  inputTensor = at::Tensor();    // frees the GPU tensor
+  inputTensor       = at::Tensor();    // frees the GPU tensor
 
   return output;
 }

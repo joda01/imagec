@@ -577,7 +577,8 @@ auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy gro
         phys = joda::ome::PhyiscalSize{static_cast<double>(defaultPhysicalSizeSettings.pixelWidth),
                                        static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.pixelSizeUnit};
       }
-      auto ome = joda::image::reader::ImageReader::getOmeInformation(imagePath, static_cast<uint16_t>(series), phys);
+      joda::image::reader::ImageReader reader(imagePath);
+      const auto ome = reader.getOmeInformation(static_cast<uint16_t>(series), phys);
       auto [physicalPixelSizeWidth, physicalPixelSizeHeight, physicalPixelSizeDepth] =
           ome.getPhyiscalSize(series).getPixelSize(defaultPhysicalSizeSettings.pixelSizeUnit);
       nlohmann::json physicalImageSizeUnit = defaultPhysicalSizeSettings.pixelSizeUnit;
@@ -696,8 +697,9 @@ void Database::insertImage(const joda::processor::ImageContext &image, const jod
          "VALUES (?, ?, ?, ?, ?, ?, ?, ? ,? )");
 
   auto [width, heigh] = image.imageMeta.getSize(image.series);
-  prepare->Execute(image.imageId, image.imagePath.filename().string(), image.imagePath.string(), image.imageMeta.getNrOfChannels(image.series),
-                   image.imageLoader.getNrOfZStacksToProcess(), image.imageLoader.getNrOfTStacksToProcess(), width, heigh, 0);
+  prepare->Execute(image.imageId, image.imageLoader.getImagePath().filename().string(), image.imageLoader.getImagePath().string(),
+                   image.imageMeta.getNrOfChannels(image.series), image.imageLoader.getNrOfZStacksToProcess(),
+                   image.imageLoader.getNrOfTStacksToProcess(), width, heigh, 0);
 }
 
 ///

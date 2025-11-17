@@ -108,15 +108,11 @@ auto AiModelCyto3::processPrediction(const at::Device &device, const cv::Mat &in
   std::pair<cv::Mat, std::set<int>> result;
 
   if(device.is_cpu()) {
-    auto idx = DurationCount::start("Follow field CPU");
-    result   = followFlowFieldCpu(flowXImage, flowYImage, maskImage, mSettings.maskThreshold);
-    DurationCount::stop(idx);
+    result = followFlowFieldCpu(flowXImage, flowYImage, maskImage, mSettings.maskThreshold);
   }
 #ifdef WITH_CUDA
   else if(device.is_cuda()) {
-    auto idx = DurationCount::start("Follow field CUDA");
-    result   = followFlowFieldCuda(device, flowXImage, flowYImage, maskImage, mSettings.maskThreshold);
-    DurationCount::stop(idx);
+    result = followFlowFieldCuda(device, flowXImage, flowYImage, maskImage, mSettings.maskThreshold);
   }
 #endif
   else {
@@ -136,7 +132,6 @@ auto AiModelCyto3::processPrediction(const at::Device &device, const cv::Mat &in
 std::vector<AiModel::Result> extractObjectMasksAndBoundingBoxes(const cv::Mat &labelImage, const std::set<int> &labels)
 {
   CV_Assert(labelImage.type() == CV_32S || labelImage.type() == CV_8U);
-  auto cId = DurationCount::start("Extract objects");
 
   const int rows = labelImage.rows;
   const int cols = labelImage.cols;
@@ -191,7 +186,6 @@ std::vector<AiModel::Result> extractObjectMasksAndBoundingBoxes(const cv::Mat &l
 
     result.push_back(AiModel::Result{.boundingBox = bbox, .mask = croppedMask, .contour = adjustedContours.at(maxContourIdx), .classId = 0});
   }
-  DurationCount::stop(cId);
   return result;
 }
 

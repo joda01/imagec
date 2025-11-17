@@ -27,25 +27,38 @@ class ImageReader
 {
 public:
   /////////////////////////////////////////////////////
-  static cv::Mat loadImageTile(const std::string &filename, joda::enums::PlaneId imagePlane, uint16_t series, uint16_t resolutionIdx,
-                               joda::ome::TileToLoad tile, const joda::ome::OmeInfo &ome);
-  static cv::Mat loadEntireImage(const std::string &filename, joda::enums::PlaneId imagePlane, uint16_t series, uint16_t resolutionIdx,
-                                 const joda::ome::OmeInfo &ome);
+  ImageReader(const std::filesystem::path &imageFileName);
+  ~ImageReader();
 
-  static cv::Mat loadThumbnail(const std::string &filename, joda::enums::PlaneId directory, uint16_t series, const joda::ome::OmeInfo &ome);
+  cv::Mat loadImageTile(joda::enums::PlaneId imagePlane, uint16_t series, uint16_t resolutionIdx, joda::ome::TileToLoad tile,
+                        const joda::ome::OmeInfo &ome) const;
+  cv::Mat loadEntireImage(joda::enums::PlaneId imagePlane, uint16_t series, uint16_t resolutionIdx, const joda::ome::OmeInfo &ome) const;
 
-  static auto getOmeInformation(const std::filesystem::path &filename, uint16_t series, const ome::PhyiscalSize &defaultSettings)
-      -> joda::ome::OmeInfo;
+  cv::Mat loadThumbnail(joda::enums::PlaneId directory, uint16_t series, const joda::ome::OmeInfo &ome) const;
+
+  auto getOmeInformation(uint16_t series, const ome::PhyiscalSize &defaultSettings) const -> joda::ome::OmeInfo;
+
   static void init(uint64_t reservedRamForVMInBytes);
   static void destroy();
+
+  const std::filesystem::path &getImagePath() const
+  {
+    return mImagePath;
+  }
 
 private:
   /////////////////////////////////////////////////////
   cv::Mat loadImage();
+  jobject mJavaImageReadObject;
+  std::filesystem::path mImagePath;
 
+  /////////////////////////////////////////////////////
   static void setPath();
   static cv::Mat convertImageToMat(JNIEnv *myEnv, const jbyteArray &readImg, int32_t imageWidth, int32_t imageHeight, int32_t bitDepth,
                                    int32_t rgbChannelCount, bool isInterleaved, bool isLittleEndian);
+  static void convertImageToMat(cv::Mat &image, int32_t imageWidth, int32_t imageHeight, int32_t bitDepth, int32_t rgbChannelCount,
+                                bool isInterleaved, bool isLittleEndian);
+
   static void bigEndianToLittleEndian(cv::Mat &inOut, uint32_t format);
 
   /////////////////////////////////////////////////////
@@ -58,9 +71,11 @@ private:
   static inline bool mJVMInitialised = false;
 
   static inline jclass mBioformatsClass;
-  static inline jmethodID mGetImageInfo;
+  static inline jmethodID mConstructor;
+
   static inline jmethodID mGetImageProperties;
   static inline jmethodID mReadImage;
   static inline jmethodID mReadImageTile;
+  static inline jmethodID mClose;
 };
 }    // namespace joda::image::reader

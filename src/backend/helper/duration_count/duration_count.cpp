@@ -9,30 +9,6 @@
 #include <sstream>
 #include <nlohmann/json.hpp>
 
-uint32_t DurationCount::start(std::string comment)
-{
-  totalCnt++;
-  srand(static_cast<unsigned>(time(nullptr)) + totalCnt);
-  uint32_t randNr                             = (rand() % INT32_MAX) + 1;
-  std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
-  DurationCount::TimeDely d                   = TimeDely{.t_start = start, .mComment = comment};
-  std::lock_guard<std::mutex> lock(mLock);
-  mDelays[randNr] = d;
-  return randNr;
-}
-
-void DurationCount::stop(uint32_t rand)
-{
-  std::chrono::system_clock::time_point t_end = std::chrono::system_clock::now();
-  std::lock_guard<std::mutex> lock(mLock);
-  auto durations         = t_end - mDelays[rand].t_start;
-  double elapsed_time_ms = std::chrono::duration<double, std::milli>(durations).count();
-  joda::log::logTrace(mDelays[rand].mComment + ": " + std::to_string(elapsed_time_ms) + " ms.");
-  mStats[mDelays[rand].mComment].cnt++;
-  mStats[mDelays[rand].mComment].timeCount += durations;
-  mDelays.erase(rand);
-}
-
 void DurationCount::resetStats()
 {
   std::lock_guard<std::mutex> lock(mLock);

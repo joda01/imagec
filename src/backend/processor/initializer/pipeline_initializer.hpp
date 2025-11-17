@@ -11,10 +11,12 @@
 
 #pragma once
 
+#include <filesystem>
 #include <tuple>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
+#include "backend/helper/reader/image_reader.hpp"
 #include "backend/processor/context/process_context.hpp"
 #include "backend/settings/project_settings/project_image_setup.hpp"
 #include <opencv2/core/types.hpp>
@@ -34,7 +36,8 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  PipelineInitializer(const settings::ProjectImageSetup &settings, const settings::ProjectPipelineSetup &pipelineSetup);
+  PipelineInitializer(const settings::ProjectImageSetup &settings, const settings::ProjectPipelineSetup &pipelineSetup,
+                      const std::filesystem::path &imagePath);
   void init(ImageContext &imageContextOut);
 
   [[nodiscard]] const std::tuple<int32_t, int32_t> &getNrOfTilesToProcess() const
@@ -52,12 +55,17 @@ public:
 
   auto getCompositeTileSize() const -> TileSize const;
 
-  static enums::ImageId loadImageAndStoreToCache(enums::MemoryScope scope, const enums::PlaneId &planeToLoad, enums::ZProjection zProjection,
-                                                 const enums::tile_t &tile, joda::processor::ProcessContext &processContext,
-                                                 processor::ImageContext &imageContext);
+  enums::ImageId loadImageAndStoreToCache(enums::MemoryScope scope, const enums::PlaneId &planeToLoad, enums::ZProjection zProjection,
+                                          const enums::tile_t &tile, joda::processor::ProcessContext &processContext,
+                                          processor::ImageContext &imageContext) const;
 
   void initPipeline(const joda::settings::PipelineSettings &settings, const enums::tile_t &tile, const joda::enums::PlaneId &imagePartToLoad,
                     ProcessContext &processStepOu, int32_t pipelineIndex) const;
+
+  auto &getImagePath() const
+  {
+    return mImageRead.getImagePath();
+  }
 
 private:
   /////////////////////////////////////////////////////
@@ -76,6 +84,7 @@ private:
   const settings::ProjectImageSetup &mSettings;
   const settings::ProjectPipelineSetup &mSettingsPipeline;
   processor::ImageContext *mImageContext = nullptr;
+  image::reader::ImageReader mImageRead;
 };
 
 }    // namespace joda::processor

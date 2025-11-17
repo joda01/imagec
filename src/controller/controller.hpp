@@ -98,6 +98,9 @@ private:
   processor::imagesList_t mWorkingDirectory;
   std::unique_ptr<processor::Processor> mActProcessor;
   std::thread mActThread;
+
+  static inline std::mutex mReadMutex;
+  static inline std::unique_ptr<image::reader::ImageReader> mLastImageReader;
 };
 
 }    // namespace joda::ctrl

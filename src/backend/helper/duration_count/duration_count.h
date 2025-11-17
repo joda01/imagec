@@ -37,15 +37,30 @@ public:
     int64_t cnt = 0;
   };
 
-  static uint32_t start(std::string comment);
-  static void stop(uint32_t rand);
+  explicit DurationCount(const std::string &comment)
+  {
+    std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+    mDelay                                      = TimeDely{.t_start = start, .mComment = comment};
+  }
+
+  ~DurationCount()
+  {
+    std::chrono::system_clock::time_point t_end = std::chrono::system_clock::now();
+    auto durations                              = t_end - mDelay.t_start;
+    double elapsed_time_ms                      = std::chrono::duration<double, std::milli>(durations).count();
+    joda::log::logTrace(mDelay.mComment + ": " + std::to_string(elapsed_time_ms) + " ms.");
+    std::lock_guard<std::mutex> lock(mLock);
+    mStats[mDelay.mComment].cnt++;
+    mStats[mDelay.mComment].timeCount += durations;
+  }
+
   static void printStats(double nrOfImages, const std::filesystem::path &outputDir);
   static void resetStats();
 
 private:
-  static inline std::map<std::string, TimeStats> mStats;
+  DurationCount::TimeDely mDelay;
 
-  static inline std::map<uint32_t, TimeDely> mDelays;
+  static inline std::map<std::string, TimeStats> mStats;
   static inline uint32_t totalCnt = 0;
   static inline std::mutex mLock;
   static inline std::chrono::time_point<std::chrono::system_clock> mStartTime;
