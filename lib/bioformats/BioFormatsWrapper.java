@@ -9,21 +9,53 @@ import loci.formats.meta.IMetadata;
 import loci.formats.services.OMEXMLService;
 import ome.xml.meta.OMEXMLMetadata;
 import ome.xml.model.primitives.PositiveInteger;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import loci.common.DebugTools;
 import loci.formats.IFormatReader;
+import loci.formats.Memoizer;
 
 public class BioFormatsWrapper {
+
+    static Map<String, IFormatReader> READERS = new LinkedHashMap<String, IFormatReader>(20, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, IFormatReader> eldest) {
+            if (size() > 20) {
+                // Close the reader before removing it
+                try {
+                    eldest.getValue().close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return true; // remove eldest
+            }
+            return false; // keep map unchanged
+        }
+    };
+
     public class ImageResult {
     }
 
     public static int[] readImageInfo(String imagePath, int series, int resolution) {
         try {
             // Create an appropriate reader for the format
-            IFormatReader formatReader = new ImageReader();
-            formatReader.setFlattenedResolutions(false); // Activate pyramids
+            IFormatReader formatReader = READERS.get(imagePath);
+            if (formatReader == null) {
+                formatReader = new Memoizer(new ImageReader(), 1, null);
+                ServiceFactory factory = new ServiceFactory();
+                OMEXMLService service = factory.getInstance(OMEXMLService.class);
+                IMetadata metadata = service.createOMEXMLMetadata();
+                formatReader.setMetadataStore(metadata);
+                formatReader.setFlattenedResolutions(false);
+                formatReader.setId(imagePath); // only once per thread per file
+                READERS.put(imagePath, formatReader);
+            }
 
             // Initialize the reader with the image file
-            formatReader.setId(imagePath);
             formatReader.setSeries(series);
             if (resolution >= formatReader.getResolutionCount()) {
                 resolution = formatReader.getResolutionCount() - 1;
@@ -50,25 +82,36 @@ public class BioFormatsWrapper {
     }
 
     public static byte[] readImage(String imagePath, int series, int resolution, int z, int c, int t) {
+        long start = System.nanoTime();
+
         DebugTools.setRootLevel("OFF");
 
         try {
-            // Create an appropriate reader for the format
-            IFormatReader formatReader = new ImageReader();
-            formatReader.setFlattenedResolutions(false); // Activate pyramids
 
-            // Initialize the reader with the image file
-            formatReader.setId(imagePath);
+            // Create an appropriate reader for the format
+            IFormatReader formatReader = READERS.get(imagePath);
+            if (formatReader == null) {
+                formatReader = new Memoizer(new ImageReader(), 0, new File("/tmp/bfccache"));
+                ServiceFactory factory = new ServiceFactory();
+                OMEXMLService service = factory.getInstance(OMEXMLService.class);
+                IMetadata metadata = service.createOMEXMLMetadata();
+                formatReader.setMetadataStore(metadata);
+                formatReader.setFlattenedResolutions(false);
+                formatReader.setId(imagePath); // only once per thread per file
+                READERS.put(imagePath, formatReader);
+            }
             formatReader.setSeries(series);
             if (resolution >= formatReader.getResolutionCount()) {
                 resolution = formatReader.getResolutionCount() - 1;
             }
             formatReader.setResolution(resolution);
 
-            // Read the image data for the current channel, timepoint, and slice
             byte[] imageBytes = formatReader.openBytes(formatReader.getIndex(z, c, t));
 
-            formatReader.close();
+            long end = System.nanoTime();
+            long elapsed = end - start;
+            System.out.println("Read byte time (ms): " + (elapsed / 1_000_000.0));
+
             return imageBytes;
         } catch (Exception e) {
             e.printStackTrace();
@@ -83,11 +126,17 @@ public class BioFormatsWrapper {
 
         try {
             // Create an appropriate reader for the format
-            IFormatReader formatReader = new ImageReader();
-            formatReader.setFlattenedResolutions(false); // Activate pyramids
-
-            // Initialize the reader with the image file
-            formatReader.setId(imagePath);
+            IFormatReader formatReader = READERS.get(imagePath);
+            if (formatReader == null) {
+                formatReader = new Memoizer(new ImageReader(), 0, new File("/tmp/bfccache"));
+                ServiceFactory factory = new ServiceFactory();
+                OMEXMLService service = factory.getInstance(OMEXMLService.class);
+                IMetadata metadata = service.createOMEXMLMetadata();
+                formatReader.setMetadataStore(metadata);
+                formatReader.setFlattenedResolutions(false);
+                formatReader.setId(imagePath); // only once per thread per file
+                READERS.put(imagePath, formatReader);
+            }
             formatReader.setSeries(series);
             if (resolution >= formatReader.getResolutionCount()) {
                 resolution = formatReader.getResolutionCount() - 1;
@@ -96,7 +145,6 @@ public class BioFormatsWrapper {
 
             // Read the image data for the current channel, timepoint, and slice
             byte[] imageBytes = formatReader.openBytes(formatReader.getIndex(z, c, t), x, y, width, height);
-            formatReader.close();
             return imageBytes;
         } catch (Exception e) {
             e.printStackTrace();
@@ -113,19 +161,29 @@ public class BioFormatsWrapper {
 
         try {
             // Create a service factory
-            ServiceFactory factory = new ServiceFactory();
-            OMEXMLService service = factory.getInstance(OMEXMLService.class);
-            // Create metadata object
-            IMetadata metadata = service.createOMEXMLMetadata();
 
             // Create an appropriate reader for the format
-            ImageReader formatReader = new ImageReader();
-            formatReader.setFlattenedResolutions(false); // Activate pyramids
+
+            IFormatReader formatReader = READERS.get(imagePath);
+            if (formatReader == null) {
+                System.out.println("Create for ome" + imagePath);
+
+                formatReader = new Memoizer(new ImageReader(), 0, new File("/tmp/bfccache"));
+                ServiceFactory factory = new ServiceFactory();
+                OMEXMLService service = factory.getInstance(OMEXMLService.class);
+                IMetadata metadata = service.createOMEXMLMetadata();
+                formatReader.setMetadataStore(metadata);
+                formatReader.setFlattenedResolutions(false);
+                formatReader.setId(imagePath); // only once per thread per file
+                READERS.put(imagePath, formatReader);
+            } else {
+                System.out.println("Reuse for ome" + imagePath);
+            }
 
             // Initialize the reader with the image file
-            formatReader.setMetadataStore(metadata);
-            formatReader.setId(imagePath);
-            omeXML = service.getOMEXML(metadata);
+            ServiceFactory factory = new ServiceFactory();
+            OMEXMLService service = factory.getInstance(OMEXMLService.class);
+            omeXML = service.getOMEXML((IMetadata) formatReader.getMetadataStore());
             omeXML = omeXML + "\n<JODA xmlns=\"https://www.imagec.org/\" SeriesCount=\""
                     + String.valueOf(formatReader.getSeriesCount()) + "\">";
 
@@ -158,8 +216,6 @@ public class BioFormatsWrapper {
                 omeXML = omeXML + "</Series>\n";
             }
             omeXML += "</JODA>";
-
-            formatReader.close();
 
         } catch (Exception e) {
             if (!imagePath.endsWith("warmup")) {
