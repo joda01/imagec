@@ -134,7 +134,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
 
               auto analyzeTile = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db, imagePath = imagePath, nrtStack, nrzSTack,
                                   nrChannels, &imageContext, &imageLoader, tileX, tileY, &poolSizeChannels]() {
-                DurationCount durationImageProcess("Process tile");
+                DurationCount durationTileProcess("Process tile");
 
                 // Start of the image specific function
                 int32_t tStackStart = 0;
