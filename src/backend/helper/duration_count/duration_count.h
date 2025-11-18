@@ -27,31 +27,51 @@ class DurationCount
 public:
   struct TimeDely
   {
-    std::chrono::system_clock::time_point t_start;
+    std::chrono::steady_clock::time_point t_start;
     std::string mComment;
   };
 
   struct TimeStats
   {
-    std::chrono::system_clock::duration timeCount;
+    std::chrono::steady_clock::duration timeCount;
     int64_t cnt = 0;
   };
 
-  explicit DurationCount(const std::string &comment)
+  explicit DurationCount(const std::string_view comment) : mDelay{std::chrono::steady_clock::now(), std::string(comment)}
   {
-    std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
-    mDelay                                      = TimeDely{.t_start = start, .mComment = comment};
   }
 
   ~DurationCount()
   {
-    std::chrono::system_clock::time_point t_end = std::chrono::system_clock::now();
-    auto durations                              = t_end - mDelay.t_start;
-    double elapsed_time_ms                      = std::chrono::duration<double, std::milli>(durations).count();
-    joda::log::logTrace(mDelay.mComment + ": " + std::to_string(elapsed_time_ms) + " ms.");
-    std::lock_guard<std::mutex> lock(mLock);
-    mStats[mDelay.mComment].cnt++;
-    mStats[mDelay.mComment].timeCount += durations;
+    stop();
+  }
+
+  void stop()
+  {
+    if(!mStopped) {
+      mStopped = true;
+
+      const auto t_end     = std::chrono::steady_clock::now();
+      const auto durations = t_end - mDelay.t_start;
+
+      // Efficient string building (small vector optimization will avoid allocations)
+      std::string msg;
+      msg.reserve(mDelay.mComment.size() + 32);
+      msg += mDelay.mComment;
+      msg += ": ";
+      msg += std::to_string(std::chrono::duration<double, std::milli>(durations).count());
+      msg += " ms.";
+
+      joda::log::logTrace(msg);
+
+      // Lock once, lookup once
+      {
+        std::lock_guard<std::mutex> lock(mLock);
+        auto &entry = mStats[mDelay.mComment];
+        entry.cnt++;
+        entry.timeCount += durations;
+      }
+    }
   }
 
   static void printStats(double nrOfImages, const std::filesystem::path &outputDir);
@@ -63,5 +83,6 @@ private:
   static inline std::map<std::string, TimeStats> mStats;
   static inline uint32_t totalCnt = 0;
   static inline std::mutex mLock;
-  static inline std::chrono::time_point<std::chrono::system_clock> mStartTime;
+  static inline std::chrono::time_point<std::chrono::steady_clock> mStartTime;
+  bool mStopped = false;
 };

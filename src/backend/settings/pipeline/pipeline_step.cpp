@@ -22,6 +22,7 @@ void PipelineStep::operator()(processor::ProcessContext &context, cv::Mat &image
     return;
   }
   auto ret = PipelineFactory<joda::cmd::Command>::generate(*this);
+  DurationCount durationCountExec("Execute command");
   if(ret != nullptr) {
     ret->execute(context, image, result);
   } else {

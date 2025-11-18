@@ -152,10 +152,9 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
     auto imageWidth  = mImageContext->imageMeta.getImageInfo(imagePlaneOut.series).resolutions.at(0).imageWidth;
 
     if(mImageContext->loadImageInTiles) {
-      int32_t offsetX         = std::get<0>(tile) * getCompositeTileSize().width;
-      int32_t offsetY         = std::get<1>(tile) * getCompositeTileSize().height;
-      int32_t tileWidthToLoad = getCompositeTileSize().width;
-      ;
+      int32_t offsetX          = std::get<0>(tile) * getCompositeTileSize().width;
+      int32_t offsetY          = std::get<1>(tile) * getCompositeTileSize().height;
+      int32_t tileWidthToLoad  = getCompositeTileSize().width;
       int32_t tileHeightToLoad = getCompositeTileSize().height;
       if(offsetX + getCompositeTileSize().width > imageWidth) {
         tileWidthToLoad = getCompositeTileSize().width - ((offsetX + getCompositeTileSize().width) - imageWidth);

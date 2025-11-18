@@ -106,6 +106,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
       //
       for(const auto &actImage : imagesToProcess) {
         auto analyzeImage = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db, &poolSizeTiles, &poolSizeChannels, &actImage]() {
+          DurationCount durationImageProcess("Process image");
           auto const [imagePath, omeInfo, imageId] = actImage;
           PipelineInitializer imageLoader(program.imageSetup, program.pipelineSetup, imagePath);
           ImageContext imageContext{.imageLoader = imageLoader, .imageMeta = omeInfo, .imageId = imageId};
@@ -133,6 +134,8 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
 
               auto analyzeTile = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db, imagePath = imagePath, nrtStack, nrzSTack,
                                   nrChannels, &imageContext, &imageLoader, tileX, tileY, &poolSizeChannels]() {
+                DurationCount durationImageProcess("Process tile");
+
                 // Start of the image specific function
                 int32_t tStackStart = 0;
                 auto tStackEnd      = static_cast<int32_t>(nrtStack);
@@ -160,9 +163,13 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                     for(const auto &[order, pipelines] : pipelineOrder) {
                       auto executePipelineOrder = [this, &globalContext, &plateContext, &db, imagePath, &imageContext, &imageLoader, tileX, tileY,
                                                    nrChannels, pipelines = pipelines, &iterationContext, tStack, zStack, &poolSizeChannels]() {
+                        DurationCount durationPipelineOrderProcess("Process pipeline order");
+
                         // These are pipelines in onw prio step -> Can be parallelized
                         BS::multi_future<void> pipelinesFutures;
                         for(const auto &pipelineToExecute : pipelines) {
+                          DurationCount durationImagePipelineProcess("Process pipeline");
+
                           if(mProgress.isStopping()) {
                             break;
                           }
@@ -172,13 +179,16 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                             //
                             // Load the image imagePlane
                             //
+
                             ProcessContext context{globalContext, plateContext, imageContext, iterationContext};
                             imageLoader.initPipeline(pipeline->pipelineSetup, {tileX, tileY},
                                                      {.tStack = tStack, .zStack = zStack, .cStack = pipeline->pipelineSetup.cStackIndex}, context,
                                                      pipeline->index);
+
                             auto planeId = context.getActImage().getId().imagePlane;
                             try {
                               if(pipeline->pipelineSetup.cStackIndex >= 0 && pipeline->pipelineSetup.cStackIndex < nrChannels) {
+                                DurationCount waitCounter("DB insert image plane");
                                 db->insertImagePlane(imageContext.imageId, planeId,
                                                      imageContext.imageMeta.getChannelInfos(imageContext.series)
                                                          .at(static_cast<uint32_t>(pipeline->pipelineSetup.cStackIndex))
@@ -192,16 +202,18 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                             //
                             // Execute the pipeline
                             //
-                            for(const auto &step : pipeline->pipelineSteps) {
-                              if(mProgress.isStopping()) {
-                                break;
+                            {
+                              DurationCount durationCountPipelineSteps("Process pipeline steps");
+                              for(const auto &step : pipeline->pipelineSteps) {
+                                if(mProgress.isStopping()) {
+                                  break;
+                                }
+                                // Execute a pipeline step
+                                step(context, context.getActImage().image, context.getActObjects());
                               }
-                              // Execute a pipeline step
-                              step(context, context.getActImage().image, context.getActObjects());
                             }
 
                             // Remove temporary objects from pipeline
-                            joda::log::logTrace("Pipeline >" + pipeline->meta.name + "< finished!");
                             iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_01));
                             iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_02));
                             iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_03));
@@ -221,8 +233,10 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                             executePipeline();
                           }
                         }
-                        if(poolSizeChannels > 1) {
-                          pipelinesFutures.wait();
+                        {
+                          if(poolSizeChannels > 1) {
+                            pipelinesFutures.wait();
+                          }
                         }
                       };
                       executePipelineOrder();
@@ -231,13 +245,12 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                     // Iteration for all tiles finished
 
                     // Insert objects to database
-                    {
+
+                    try {
                       DurationCount durationCount("Insert into DB");
-                      try {
-                        db->insertObjects(imageContext, program.imageSetup.imagePixelSizeSettings.pixelSizeUnit, iterationContext.getObjects());
-                      } catch(const std::exception &ex) {
-                        std::cout << "Insert Obj: " << ex.what() << std::endl;
-                      }
+                      db->insertObjects(imageContext, program.imageSetup.imagePixelSizeSettings.pixelSizeUnit, iterationContext.getObjects());
+                    } catch(const std::exception &ex) {
+                      std::cout << "Insert Obj: " << ex.what() << std::endl;
                     }
                   }
 
@@ -254,8 +267,10 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
               }
             }
           }
-          if(poolSizeTiles > 1) {
-            tilesFutures.wait();
+          {
+            if(poolSizeTiles > 1) {
+              tilesFutures.wait();
+            }
           }
 
           // Image finished
@@ -269,8 +284,10 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
           analyzeImage();
         }
       }
-      if(poolSizeImages > 1) {
-        imageFutures.wait();
+      {
+        if(poolSizeImages > 1) {
+          imageFutures.wait();
+        }
       }
     }
 
@@ -515,8 +532,11 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         executePipeline();
       }
     }
-    if(poolSizeChannels > 1) {
-      pipelinesFutures.wait();
+    {
+      DurationCount waitCounter("Waiting for pipeline finished");
+      if(poolSizeChannels > 1) {
+        pipelinesFutures.wait();
+      }
     }
   }
 

@@ -13,7 +13,7 @@ void DurationCount::resetStats()
 {
   std::lock_guard<std::mutex> lock(mLock);
   mStats.clear();
-  mStartTime = std::chrono::system_clock::now();
+  mStartTime = std::chrono::steady_clock::now();
 }
 
 std::string getCurrentDateTime()
@@ -27,7 +27,7 @@ std::string getCurrentDateTime()
 void DurationCount::printStats(double nrOfImages, const std::filesystem::path &outputDir)
 {
   std::lock_guard<std::mutex> lock(mLock);
-  auto timeEnd = std::chrono::system_clock::now();
+  auto timeEnd = std::chrono::steady_clock::now();
 
   auto durations = timeEnd - mStartTime;
   // double elapsed_time_ms = std::chrono::duration<double, std::milli>(durations).count();
