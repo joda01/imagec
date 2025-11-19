@@ -13,6 +13,7 @@
 
 #include "console_logger.hpp"
 #include <atomic>
+#include <chrono>
 #include <deque>
 #include <mutex>
 #include <regex>
@@ -273,7 +274,7 @@ void workerLoop()
     size_t h = head.load(std::memory_order_acquire);
 
     if(t == h) {
-      std::this_thread::sleep_for(std::chrono::microseconds(50));
+      std::this_thread::sleep_for(std::chrono::milliseconds(200));
       continue;
     }
 
