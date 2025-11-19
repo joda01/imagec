@@ -127,6 +127,7 @@ private:
   cv::Mat mImageOriginalScaled;
   cv::Mat mOriginalImage;
   mutable std::mutex mLockMutex;
+  mutable std::mutex mPaintImage;
 };
 
 }    // namespace joda::image

@@ -111,6 +111,21 @@ void Controller::initApplication()
 ///
 /// \brief
 /// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Controller::cleanShutdownApplication()
+{
+  mLastImageReader.reset();
+  joda::image::reader::ImageReader::destroy();
+  joda::log::logInfo("ImageC says goodbye!");
+  log::joinLogger();
+}
+
+///
+/// \brief
+/// \author
 /// \return
 ///
 auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::optional<joda::ome::OmeInfo> &imageOmeInfo)

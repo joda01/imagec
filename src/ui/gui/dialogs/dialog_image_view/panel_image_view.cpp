@@ -115,6 +115,9 @@ PanelImageView::PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMa
 ///
 void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo)
 {
+  if(mLoadingImage) {
+    return;
+  }
   setLoadingImage(true);
   if(omeInfo != nullptr) {
     mOmeInfo = *omeInfo;
@@ -193,7 +196,9 @@ void PanelImageView::resetImage()
 ///
 void PanelImageView::repaintImage()
 {
-  viewport()->update();
+  if(mWaitBannerVisible) {
+    viewport()->update();
+  }
 }
 
 ///

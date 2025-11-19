@@ -49,7 +49,6 @@ Image::Image()
 ///
 void Image::setImage(const cv::Mat &imageToDisplay, const cv::Vec3f &pseudoColor, int32_t rescale)
 {
-  prepareGeometryChange();
   setPseudoColor(pseudoColor);
 
   mOriginalImageSize = {imageToDisplay.cols, imageToDisplay.rows};
@@ -242,8 +241,10 @@ void Image::refreshImageToPaint(cv::Mat &img16)
       }
     }
 
+    std::lock_guard<std::mutex> lock(mPaintImage);
     mQImage = QImage(color8U.data, color8U.cols, color8U.rows, static_cast<int>(color8U.step), QImage::Format_BGR888).copy();
   } else if(3 == mImageOriginalScaled.channels()) {
+    std::lock_guard<std::mutex> lock(mPaintImage);
     mQImage = QImage(mImageOriginalScaled.data, mImageOriginalScaled.cols, mImageOriginalScaled.rows, static_cast<int>(mImageOriginalScaled.step),
                      QImage::Format_BGR888)
                   .copy();
@@ -260,6 +261,7 @@ void Image::refreshImageToPaint(cv::Mat &img16)
 ///
 QRectF Image::boundingRect() const
 {
+  std::lock_guard<std::mutex> lock(mPaintImage);
   if(mQImage.isNull() || mQImage.width() == 0) {
     return QRectF(0, 0, 0, 0);
   }
@@ -275,7 +277,12 @@ QRectF Image::boundingRect() const
 ///
 void Image::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
-  painter->drawImage(0, 0, mQImage);
+  if(mPaintImage.try_lock()) {
+    if(!mQImage.isNull() && mQImage.width() > 0) {
+      painter->drawImage(0, 0, mQImage);
+    }
+    mPaintImage.unlock();
+  }
 }
 
 }    // namespace joda::image

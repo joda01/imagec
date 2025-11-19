@@ -274,15 +274,15 @@ private:
   std::map<SettingsIdx, ChannelSettings> mChannelSettings;
 
   /////////////////////////////////////////////////////
-  bool mLoadingImage          = false;
-  bool mWaiting               = false;
-  bool mShowThumbnail         = true;
-  bool mShowCrosshandCursor   = false;
-  bool mLockCrosshandCursor   = false;
-  bool mShowEditedImage       = false;
-  bool mShowRuler             = true;
-  bool mHideManualAnnotations = false;
-  bool mWaitBannerVisible     = true;
+  std::atomic<bool> mLoadingImage = false;
+  bool mWaiting                   = false;
+  bool mShowThumbnail             = true;
+  bool mShowCrosshandCursor       = false;
+  bool mLockCrosshandCursor       = false;
+  bool mShowEditedImage           = false;
+  bool mShowRuler                 = true;
+  bool mHideManualAnnotations     = false;
+  bool mWaitBannerVisible         = true;
 
   // ROI///////////////////////////////////////////////////
   bool mFillRoi    = false;

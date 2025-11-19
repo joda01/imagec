@@ -75,8 +75,7 @@ void Starter::exec(int argc, char *argv[])
     term.startCommandLineController(argc, argv);
   }
 
-  joda::image::reader::ImageReader::destroy();
-  log::joinLogger();
+  ctrl::Controller::cleanShutdownApplication();
 }
 
 class NoIconStyle : public QProxyStyle

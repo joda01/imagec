@@ -3,29 +3,24 @@
 
 import loci.common.services.ServiceFactory;
 import loci.formats.ImageReader;
-import loci.formats.in.MetadataOptions;
-import loci.formats.in.OMEXMLReader;
 import loci.formats.meta.IMetadata;
 import loci.formats.services.OMEXMLService;
-import ome.xml.meta.OMEXMLMetadata;
-import ome.xml.model.primitives.PositiveInteger;
-
-import java.io.File;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import loci.common.DebugTools;
 import loci.formats.IFormatReader;
 import loci.formats.Memoizer;
 
 public class BioFormatsWrapper {
 
+    static {
+        DebugTools.setRootLevel("OFF");
+    }
+
     IFormatReader formatReader = new Memoizer(new ImageReader(), 1, null);
     OMEXMLService service;
 
     public BioFormatsWrapper(String imagePath) {
+
         try {
             ServiceFactory factory = new ServiceFactory();
             service = factory.getInstance(OMEXMLService.class);
@@ -50,9 +45,6 @@ public class BioFormatsWrapper {
 
     public void readImage(ByteBuffer targetBuffer, String imagePath, int series, int resolution, int z, int c,
             int t) {
-
-        DebugTools.setRootLevel("OFF");
-
         try {
             formatReader.setSeries(series);
             if (resolution >= formatReader.getResolutionCount()) {
@@ -69,7 +61,6 @@ public class BioFormatsWrapper {
     public void readImageTile(ByteBuffer targetBuffer, String imagePath, int series, int resolution, int z,
             int c, int t, int x, int y,
             int width, int height) {
-        DebugTools.setRootLevel("OFF");
         try {
             // Create an appropriate reader for the format
             formatReader.setSeries(series);
@@ -88,7 +79,6 @@ public class BioFormatsWrapper {
 
     /// https://docs.openmicroscopy.org/ome-model/6.2.2/ome-tiff/specification.html
     public String getImageProperties(String imagePath, int tmp/* series */) {
-        DebugTools.setRootLevel("OFF");
         String omeXML = "";
         try {
             // Create a service factory
