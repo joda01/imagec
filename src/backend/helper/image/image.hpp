@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <mutex>
 #include <vector>
+#include "backend/image_meta/image_meta.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/matx.hpp>
 

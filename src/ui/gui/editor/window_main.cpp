@@ -582,20 +582,6 @@ void WindowMain::saveROI(const std::filesystem::path &imagePath)
   auto imgIdOld =
       joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath, joda::fs::FILE_NAME_ANNOTATIONS + joda::fs::EXT_ANNOTATION);
   mPreviewResult.results.objectMap->serialize(imgIdOld);
-
-  // Write meta data
-  {
-    nlohmann::json imageMetaJson;
-    imageMetaJson["fileName"] = std::filesystem::relative(imagePath, projectPath).string();
-    // Open a file for writing
-    auto metaFileName = joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath, joda::fs::FILE_NAME_image_meta + ".json");
-    std::ofstream file(metaFileName.string());
-    if(!file) {
-      joda::log::logWarning("Could not write image meta file!");
-    }
-    file << imageMetaJson.dump(2);
-    file.close();
-  }
 }
 
 ///
@@ -661,6 +647,8 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     mAnalyzeSettings.meta                    = analyzeSettings.meta;
     mAnalyzeSettings.projectPathWithFilename = analyzeSettings.projectPathWithFilename;
     mAnalyzeSettingsOld                      = mAnalyzeSettings;
+
+    mPreviewImage->getImagePanel()->setProjectPath(mAnalyzeSettings.getProjectPath());
 
     mPreviewImage->setImagePlane(DialogImageViewer::ImagePlaneSettings{.plane      = {.tStack = 0, .zStack = 0, .cStack = 0},
                                                                        .series     = analyzeSettings.imageSetup.series,
@@ -797,6 +785,7 @@ bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
           }
           joda::settings::Settings::storeSettings(filename, mAnalyzeSettings);
           mAnalyzeSettings.setProjectPath(filename);
+          mPreviewImage->getImagePanel()->setProjectPath(mAnalyzeSettings.getProjectPath());
         }
         saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
         mAnalyzeSettingsOld = mAnalyzeSettings;

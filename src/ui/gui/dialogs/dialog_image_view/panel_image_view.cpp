@@ -150,6 +150,7 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
     setRegionsOfInterestFromObjectList();
     repaintImage();
     if(mLastPath != imagePath) {
+      mImageMeta.open(imagePath, mProjectPath);
       mVideoControlButtons->setPlay(false);
       emit imageOpened();
       mLastPath = imagePath;
@@ -182,9 +183,22 @@ void PanelImageView::resetImage()
   mPreviewImages.editedImage.clear();
   mPreviewImages.originalImage.clear();
   mPreviewImages.thumbnail.clear();
+  mImageMeta = {};
 
   fitImageToScreenSize();
   viewport()->update();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::setProjectPath(const std::filesystem::path &path)
+{
+  mProjectPath = path;
 }
 
 ///
@@ -223,16 +237,14 @@ auto PanelImageView::getCurrentImagePath() const -> std::filesystem::path
 ///
 void PanelImageView::storeChannelSettings()
 {
-  auto key = SettingsIdx{.imageChannel = static_cast<uint16_t>(mPlane.cStack), .isEdited = mShowEditedImage};
-  if(mChannelSettings.contains(key)) {
-    std::lock_guard<std::mutex> locked(mImageResetMutex);
-    mChannelSettings[key] = ChannelSettings{
-        .mLowerValue       = mImageToShow->getLowerLevelContrast(),
-        .mUpperValue       = mImageToShow->getUpperLevelContrast(),
-        .mDisplayAreaLower = mImageToShow->getHistogramDisplayAreaLower(),
-        .mDisplayAreaUpper = mImageToShow->getHistogramDisplayAreaUpper(),
-    };
-  }
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
+  mImageMeta.setHistogramSetingsForChannel({.channel            = mPlane.cStack,
+                                            .lowerLevelContrast = mImageToShow->getLowerLevelContrast(),
+                                            .upperLevelContrast = mImageToShow->getUpperLevelContrast(),
+                                            .lowerRange         = mImageToShow->getHistogramDisplayAreaLower(),
+                                            .upperRange         = mImageToShow->getHistogramDisplayAreaUpper()},
+                                           mShowEditedImage);
+  mImageMeta.save(mLastPath, mProjectPath);
 }
 
 ///
@@ -244,28 +256,19 @@ void PanelImageView::storeChannelSettings()
 ///
 void PanelImageView::restoreChannelSettings()
 {
-  auto key = SettingsIdx{.imageChannel = static_cast<uint16_t>(mPlane.cStack), .isEdited = mShowEditedImage};
-  if(mChannelSettings.contains(key)) {
-    const auto &tmp = mChannelSettings.at(key);
-    if(tmp.mDisplayAreaLower <= 1 && tmp.mDisplayAreaUpper <= 1) {
-      goto ADJUST;    // The histo of an empty image was calculates
-    }
+  auto histoSettings = mImageMeta.getHistogramSettingsForImageChannel(mPlane.cStack, mShowEditedImage);
+
+  if(histoSettings.lowerRange == 0 && histoSettings.upperRange == 0) {
     {
       std::lock_guard<std::mutex> locked(mImageResetMutex);
-      mImageToShow->setBrightnessRange(tmp.mLowerValue, tmp.mUpperValue, tmp.mDisplayAreaLower, tmp.mDisplayAreaUpper);
+      mImageToShow->autoAdjustBrightnessRange();
+      mPreviewImages.thumbnail.autoAdjustBrightnessRange();
     }
+    storeChannelSettings();
   } else {
-  ADJUST : {
     std::lock_guard<std::mutex> locked(mImageResetMutex);
-    mImageToShow->autoAdjustBrightnessRange();
-    mPreviewImages.thumbnail.autoAdjustBrightnessRange();
-    mChannelSettings.emplace(key, ChannelSettings{
-                                      .mLowerValue       = mImageToShow->getLowerLevelContrast(),
-                                      .mUpperValue       = mImageToShow->getUpperLevelContrast(),
-                                      .mDisplayAreaLower = mImageToShow->getHistogramDisplayAreaLower(),
-                                      .mDisplayAreaUpper = mImageToShow->getHistogramDisplayAreaUpper(),
-                                  });
-  }
+    mImageToShow->setBrightnessRange(histoSettings.lowerLevelContrast, histoSettings.upperLevelContrast, histoSettings.lowerRange,
+                                     histoSettings.upperRange);
   }
 }
 

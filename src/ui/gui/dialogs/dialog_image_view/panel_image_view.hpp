@@ -124,6 +124,7 @@ public:
   int32_t getNrOfCstacks() const;
   int32_t getNrOfZstacks() const;
   void setWaitBannerVisible(bool);
+  void setProjectPath(const std::filesystem::path &);
 
   // SET STATE ///////////////////////////////////////////////////
   void setState(State);
@@ -271,7 +272,8 @@ private:
   // IMAGE CHANNEL SETTINGS ///////////////////////////////////////////////////
   void storeChannelSettings();
   void restoreChannelSettings();
-  std::map<SettingsIdx, ChannelSettings> mChannelSettings;
+  joda::image_settings::ImageMeta mImageMeta;
+  std::filesystem::path mProjectPath;
 
   /////////////////////////////////////////////////////
   std::atomic<bool> mLoadingImage = false;
