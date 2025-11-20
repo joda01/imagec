@@ -12,11 +12,13 @@
 ///
 
 #include "console_logger.hpp"
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <deque>
 #include <mutex>
 #include <regex>
+#include <string>
 #include <thread>
 #include <unordered_map>
 #include <vector>
