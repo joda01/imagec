@@ -150,6 +150,7 @@ private:
   AskEnum askForNewProject();
   void moveEvent(QMoveEvent *event) override;
   void resizeEvent(QResizeEvent *event) override;
+  void updateProjectPath();
 
   QWidget *createChannelWidget();
   QWidget *createReportingWidget();

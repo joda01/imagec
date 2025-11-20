@@ -64,7 +64,23 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
     workingDir->setStretch(0, 1);    // Make label take all available space
     formLayoutOut->addRow(new QLabel(tr("Image directory")), workingDir);
   }
-  // Meta edit dialog
+  //
+  // Project path
+  //
+  {
+    mProjectFilePath = new QLineEdit();
+    mProjectFilePath->setReadOnly(true);
+    mProjectFilePath->setPlaceholderText("Project path");
+    auto *projectPath = new QHBoxLayout;
+    projectPath->addWidget(mProjectFilePath);
+    mOpenProjectPath = new QPushButton(generateSvgIcon<Style::REGULAR, Color::BLUE>("arrow-square-out"), "");
+    mOpenProjectPath->setEnabled(false);
+    mOpenProjectPath->setStatusTip("Path ImageC uses to store project settings");
+    connect(mOpenProjectPath, &QPushButton::clicked, [this]() { QDesktopServices::openUrl(QUrl("file:///" + mProjectFilePath->text())); });
+    projectPath->addWidget(mOpenProjectPath);
+    projectPath->setStretch(0, 1);    // Make label take all available space
+    formLayoutOut->addRow(new QLabel(tr("Project path")), projectPath);
+  }    // Meta edit dialog
   {
     //
     // Job name

@@ -68,6 +68,12 @@ public:
     mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
   }
 
+  void setProjectPath(const QString &path)
+  {
+    mOpenProjectPath->setEnabled(!path.isEmpty());
+    mProjectFilePath->setText(path);
+  }
+
 signals:
   void updateImagePreview();
 
@@ -78,6 +84,8 @@ private:
 
   // WORKING directory ///////////////////////////////////////////////////
   QLineEdit *mImageFilePath;
+  QLineEdit *mProjectFilePath;
+  QPushButton *mOpenProjectPath;
 
   // META ///////////////////////////////////////////////////
   QDialog *mMetaEditDialog;

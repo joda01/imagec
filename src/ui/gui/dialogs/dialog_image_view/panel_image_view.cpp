@@ -146,11 +146,14 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
       mPixmapSize = pixmapSize;
       fitImageToScreenSize();
     }
+    if(mLastPath != imagePath) {
+      storeChannelSettings();
+      mImageMeta.open(imagePath, mProjectPath);
+    }
     restoreChannelSettings();
     setRegionsOfInterestFromObjectList();
     repaintImage();
     if(mLastPath != imagePath) {
-      mImageMeta.open(imagePath, mProjectPath);
       mVideoControlButtons->setPlay(false);
       emit imageOpened();
       mLastPath = imagePath;
@@ -237,7 +240,6 @@ auto PanelImageView::getCurrentImagePath() const -> std::filesystem::path
 ///
 void PanelImageView::storeChannelSettings()
 {
-  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mImageMeta.setHistogramSetingsForChannel({.channel            = mPlane.cStack,
                                             .lowerLevelContrast = mImageToShow->getLowerLevelContrast(),
                                             .upperLevelContrast = mImageToShow->getUpperLevelContrast(),

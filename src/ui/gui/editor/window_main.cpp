@@ -648,7 +648,7 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     mAnalyzeSettings.projectPathWithFilename = analyzeSettings.projectPathWithFilename;
     mAnalyzeSettingsOld                      = mAnalyzeSettings;
 
-    mPreviewImage->getImagePanel()->setProjectPath(mAnalyzeSettings.getProjectPath());
+    updateProjectPath();
 
     mPreviewImage->setImagePlane(DialogImageViewer::ImagePlaneSettings{.plane      = {.tStack = 0, .zStack = 0, .cStack = 0},
                                                                        .series     = analyzeSettings.imageSetup.series,
@@ -688,20 +688,35 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
 /// \brief      Check if some settings have been changed
 /// \author     Joachim Danmayr
 ///
+void WindowMain::updateProjectPath()
+{
+  mPreviewImage->getImagePanel()->setProjectPath(mAnalyzeSettings.getProjectPath());
+
+  if(mAnalyzeSettings.isProjectPathSet()) {
+    mPanelProjectSettings->setProjectPath(mAnalyzeSettings.getProjectPath().string().data());
+  } else {
+    mPanelProjectSettings->setProjectPath("");
+  }
+}
+
+///
+/// \brief      Check if some settings have been changed
+/// \author     Joachim Danmayr
+///
 void WindowMain::checkForSettingsChanged()
 {
+  QString titlePr = mAnalyzeSettings.getProjectPathWithFileName().filename().string().data();
+  if(!mAnalyzeSettings.isProjectPathSet()) {
+    titlePr = "Untitled";
+  }
+
   std::lock_guard<std::mutex> lock(mCheckForSettingsChangedMutex);
   if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
     // Not equal
     mSaveProject->setEnabled(true);
-    if(!mAnalyzeSettings.isProjectPathSet()) {
-      setWindowTitlePrefix("Untitled*");
-    } else {
-      setWindowTitlePrefix(QString((mAnalyzeSettings.getProjectPathWithFileName().filename().string() + "*").data()));
-    }
+    titlePr += "*";
     /// \todo check if all updates still work
     auto actClasses = getOutputClasses();
-
     if(actClasses != mOutPutClassesOld) {
       mOutPutClassesOld = actClasses;
       emit onOutputClassifierChanges();
@@ -709,12 +724,8 @@ void WindowMain::checkForSettingsChanged()
   } else {
     // Equal
     mSaveProject->setEnabled(false);
-    if(!mAnalyzeSettings.isProjectPathSet()) {
-      setWindowTitlePrefix("Untitled");
-    } else {
-      setWindowTitlePrefix(mAnalyzeSettings.getProjectPathWithFileName().string().data());
-    }
   }
+  setWindowTitlePrefix(titlePr);
   mCompilerLog->updateCompilerLog(mAnalyzeSettings);
 }
 
@@ -785,7 +796,7 @@ bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
           }
           joda::settings::Settings::storeSettings(filename, mAnalyzeSettings);
           mAnalyzeSettings.setProjectPath(filename);
-          mPreviewImage->getImagePanel()->setProjectPath(mAnalyzeSettings.getProjectPath());
+          updateProjectPath();
         }
         saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
         mAnalyzeSettingsOld = mAnalyzeSettings;
