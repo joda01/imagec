@@ -93,7 +93,7 @@ struct ImageMeta
       return;
     }
     filePathRelative  = std::filesystem::relative(imageFile, projectPath).string();
-    filePathAbsolute  = imageFile;
+    filePathAbsolute  = imageFile.string();
     auto metaFileName = joda::helper::generateImageMetaDataStoragePathFromImagePath(imageFile, projectPath, joda::fs::FILE_NAME_image_meta + ".json");
 
     nlohmann::json tmp = *this;
