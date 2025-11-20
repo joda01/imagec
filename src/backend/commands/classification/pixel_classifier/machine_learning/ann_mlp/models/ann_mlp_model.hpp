@@ -21,6 +21,10 @@ public:
     build_layers();
   }
 
+  ///
+  /// \brief      Build the ANN MLP Feed Forward network
+  /// \author     Joachim Danmayr
+  ///
   void build_layers()
   {
     mLayers  = torch::nn::Sequential();
@@ -36,12 +40,23 @@ public:
     register_module("layers", mLayers);
   }
 
+  ///
+  /// \brief      Trigger a prediction
+  /// \author     Joachim Danmayr
+  /// \return
+  ///
   torch::Tensor forward(torch::Tensor x)
   {
     return mLayers->forward(x);
   }
 
-  // --- custom serialization hooks ---
+  ///
+  /// \brief      Store a ANN model including meta data
+  /// \author     Joachim Danmayr
+  /// \param[in]
+  /// \param[out]
+  /// \return
+  ///
   void save(torch::serialize::OutputArchive &archive) const override
   {
     // 1. Save the layers’ parameters
@@ -63,6 +78,13 @@ public:
     archive.write("model_meta", model_meta_tensor);
   }
 
+  ///
+  /// \brief      Load a ANN model
+  /// \author     Joachim Danmayr
+  /// \param[in]
+  /// \param[out]
+  /// \return
+  ///
   void load(torch::serialize::InputArchive &archive) override
   {
     // 1. Load metadata first
@@ -99,6 +121,11 @@ public:
     mLayers->load(layers_archive);
   }
 
+  ///
+  /// \brief      Return model meta data
+  /// \author     Joachim Danmayr
+  /// \return
+  ///
   const MachineLearningSettings &getMeta() const
   {
     return mModelMeta;
