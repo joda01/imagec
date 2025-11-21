@@ -209,15 +209,18 @@ void WindowMain::closeEvent(QCloseEvent *event)
     if(result == QMessageBox::Yes) {
       // Accept the close event to allow the window to close
       onSaveProject();
+      mPreviewImage->getImagePanel()->shutdown();
       event->accept();
     } else if(result == QMessageBox::No) {
       saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
+      mPreviewImage->getImagePanel()->shutdown();
       event->accept();
     } else {
       // Ignore the close event to keep the window open
       event->ignore();
     }
   } else {
+    mPreviewImage->getImagePanel()->shutdown();
     saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
     event->accept();
   }

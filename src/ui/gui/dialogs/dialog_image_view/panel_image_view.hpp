@@ -102,6 +102,7 @@ public:
   /////////////////////////////////////////////////////
   PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMap, const joda::settings::Classification *classSettings, VideoControlButtonGroup *,
                  QWidget *parent = nullptr);
+  ~PanelImageView();
   void openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo = nullptr);
   auto getCurrentImagePath() const -> std::filesystem::path;
   void setEditedImage(const joda::image::Image &&edited);
@@ -158,6 +159,7 @@ public:
   void setRoisToHide(const std::set<enums::ClassId> &);
   void setRoisSelectable(bool);
   void setInfoText(const std::string &);
+  void shutdown();
 
 signals:
   /////////////////////////////////////////////////////

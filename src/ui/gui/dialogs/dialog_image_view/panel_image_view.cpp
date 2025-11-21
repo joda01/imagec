@@ -113,6 +113,29 @@ PanelImageView::PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMa
 /// \param[out]
 /// \return
 ///
+PanelImageView::~PanelImageView()
+{
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::shutdown()
+{
+  storeChannelSettings();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo)
 {
   if(mLoadingImage) {
@@ -246,7 +269,9 @@ void PanelImageView::storeChannelSettings()
                                             .lowerRange         = mImageToShow->getHistogramDisplayAreaLower(),
                                             .upperRange         = mImageToShow->getHistogramDisplayAreaUpper()},
                                            mShowEditedImage);
-  mImageMeta.save(mLastPath, mProjectPath);
+  if(!mProjectPath.empty() && !mLastPath.empty()) {
+    mImageMeta.save(mLastPath, mProjectPath);
+  }
 }
 
 ///
@@ -390,7 +415,6 @@ void PanelImageView::setEditedImage(const joda::image::Image &&edited)
     std::lock_guard<std::mutex> locked(mImageResetMutex);
     mPreviewImages.editedImage.setImage(*edited.getImage(), mOmeInfo.getPseudoColorForChannel(mSeries, mLastPlane.cStack));
   }
-  restoreChannelSettings();
 }
 
 ///

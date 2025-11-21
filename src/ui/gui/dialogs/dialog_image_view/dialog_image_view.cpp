@@ -190,21 +190,6 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
       mActionMlTrainer = toolbarTop->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("fediverse-logo"), "ML Trainer");
       mActionMlTrainer->setCheckable(true);
       mActionMlTrainer->setStatusTip("Train pixel and object classifier");
-      mDialogMlTrainer = new DialogMlTrainer(settings, objectMap, mImagePanel, parent);
-      connect(mDialogMlTrainer, &DialogMlTrainer::dialogDisappeared, [this]() {
-        mActionMlTrainer->blockSignals(true);
-        mActionMlTrainer->setChecked(false);
-        mActionMlTrainer->blockSignals(false);
-      });
-      connect(mActionMlTrainer, &QAction::triggered, [this](bool checked) {
-        mDialogMlTrainer->blockSignals(true);
-        if(checked) {
-          mDialogMlTrainer->show();
-        } else {
-          mDialogMlTrainer->close();
-        }
-        mDialogMlTrainer->blockSignals(false);
-      });
     }
 
     toolbarTop->addSeparator();
@@ -270,7 +255,23 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
 
     mHistogramSettings = new DialogHistogramSettings(mImagePanel, parent);
   }
-
+  {
+    mDialogMlTrainer = new DialogMlTrainer(settings, objectMap, mImagePanel, parent);
+    connect(mDialogMlTrainer, &DialogMlTrainer::dialogDisappeared, [this]() {
+      mActionMlTrainer->blockSignals(true);
+      mActionMlTrainer->setChecked(false);
+      mActionMlTrainer->blockSignals(false);
+    });
+    connect(mActionMlTrainer, &QAction::triggered, [this](bool checked) {
+      mDialogMlTrainer->blockSignals(true);
+      if(checked) {
+        mDialogMlTrainer->show();
+      } else {
+        mDialogMlTrainer->close();
+      }
+      mDialogMlTrainer->blockSignals(false);
+    });
+  }
   // Central images
   {
     mCentralLayout      = new QBoxLayout(QBoxLayout::TopToBottom);
