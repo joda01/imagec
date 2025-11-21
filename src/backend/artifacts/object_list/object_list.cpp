@@ -373,6 +373,8 @@ void ObjectList::mergeFrom(ObjectList &&other, joda::atom::ROI::Category categor
     auto node = other.extract(it++);       // remove node from a
     ObjectMap::insert(std::move(node));    // insert same node into b
   }
+
+  objectsOrderedByObjectId.insert(other.objectsOrderedByObjectId.begin(), other.objectsOrderedByObjectId.end());
 }
 
 ///
