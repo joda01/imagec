@@ -190,13 +190,12 @@ TRY_AGAIN:
 
       actImageInfo.nrOfChannels++;
 
-      actImageInfo.channels.emplace(channelNr, ChannelInfo{
-                                                   .channelId              = channelId,
-                                                   .name                   = channelName,
-                                                   .emissionWaveLength     = emissionWaveLength,
-                                                   .emissionWaveLengthUnit = emissionWaveLengthUnit,
-                                                   .contrastMethod         = contrastMethod,
-                                               });
+      actImageInfo.channels.emplace(channelNr, ChannelInfo{.channelId              = channelId,
+                                                           .name                   = channelName,
+                                                           .emissionWaveLength     = emissionWaveLength,
+                                                           .emissionWaveLengthUnit = emissionWaveLengthUnit,
+                                                           .contrastMethod         = contrastMethod,
+                                                           .planes                 = {}});
     }
 
     actImageInfo.nrOfZStacks = sizeZ;

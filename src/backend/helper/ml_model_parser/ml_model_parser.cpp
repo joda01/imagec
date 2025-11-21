@@ -84,7 +84,12 @@ auto MlModelParser::findMlModelFiles(const std::filesystem::path &workingDirecto
         if(entry.is_regular_file()) {
           if(entry.path().string().ends_with(joda::fs::MASCHINE_LEARNING_PYTORCH_ANN_MLP)) {
             const auto relativePath = std::filesystem::relative(entry.path(), workingDirectory);
-            aiModelFiles.emplace(relativePath, Data{.modelName = relativePath.filename().string(), .modelPath = relativePath});
+            aiModelFiles.emplace(relativePath, Data{.modelName   = relativePath.filename().string(),
+                                                    .description = "",
+                                                    .version     = "",
+                                                    .modelPath   = relativePath,
+                                                    .classes     = {},
+                                                    .authors     = {}});
 
           } else {
             try {

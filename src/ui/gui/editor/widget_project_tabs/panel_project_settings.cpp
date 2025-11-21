@@ -20,6 +20,7 @@
 #include "backend/settings/project_settings/project_image_setup.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
 #include "backend/settings/project_settings/project_settings.hpp"
+#include "backend/user_settings/user_settings.hpp"
 #include "ui/gui/dialogs/dialog_plate_settings/dialog_plate_settings.hpp"
 #include "ui/gui/editor/window_main.hpp"
 #include "ui/gui/helper/combo_placeholder.hpp"
@@ -114,11 +115,10 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
     //
     // Scientist
     //
-    mScientistsFirstName = new QLineEdit;
-    mScientistsFirstName->addAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("user"), QLineEdit::LeadingPosition);
-    formLayout->addRow(new QLabel(tr("Scientist")), mScientistsFirstName);
-    connect(mScientistsFirstName, &QLineEdit::editingFinished, this, &PanelProjectSettings::onSettingChanged);
-    mScientistsFirstName->setPlaceholderText(joda::helper::getLoggedInUserName());
+    mScientistsName = new QLineEdit;
+    mScientistsName->addAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("user"), QLineEdit::LeadingPosition);
+    mScientistsName->setPlaceholderText("Charles Darwin");
+    formLayout->addRow(new QLabel(tr("Scientist name")), mScientistsName);
 
     //
     // Organization
@@ -137,9 +137,16 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
     formLayout->addRow(new QLabel(tr("Experiment ID")), mExperimentId);
 
     // Okay and canlce
-    auto *buttonBox = new IconlessDialogButtonBox(QDialogButtonBox::Ok, Qt::Horizontal, this);
+    auto *buttonBox = new IconlessDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
     connect(buttonBox, &QDialogButtonBox::accepted, mMetaEditDialog, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, mMetaEditDialog, &QDialog::reject);
+    connect(mMetaEditDialog, &QDialog::accepted, [this] {
+      toSettings();
+      joda::user_settings::UserSettings::setDefaultJobMetaData({.firstName    = mSettings.projectSettings.address.firstName,
+                                                                .lastName     = mSettings.projectSettings.address.lastName,
+                                                                .organization = mSettings.projectSettings.address.organization});
+    });
+
     formLayout->addWidget(buttonBox);
 
     mMetaEditDialog->setLayout(formLayout);
@@ -296,7 +303,9 @@ void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &s
   mRegexToFindTheWellPosition->setCurrentText(settings.projectSettings.plate.filenameRegex.data());
   mNotes->setText(settings.projectSettings.experimentSettings.notes.data());
   mAddressOrganisation->setText(settings.projectSettings.address.organization.data());
-  mScientistsFirstName->setText(settings.projectSettings.address.firstName.data());
+  mScientistsName->setText(
+      QString(QString(settings.projectSettings.address.firstName.data()) + " " + QString(settings.projectSettings.address.lastName.data()))
+          .trimmed());
 
   mJobName->clear();
   applyRegex();
@@ -319,7 +328,15 @@ void PanelProjectSettings::toSettings()
 {
   mSettings.projectSettings.address.organization     = mAddressOrganisation->text().trimmed().toStdString();
   mSettings.projectSettings.experimentSettings.notes = mNotes->toPlainText().toStdString();
-  mSettings.projectSettings.address.firstName        = mScientistsFirstName->text().toStdString();
+  const auto name                                    = mScientistsName->text().split(" ");
+  if(name.size() > 1) {
+    mSettings.projectSettings.address.firstName = name[0].toStdString();
+    mSettings.projectSettings.address.lastName  = name[1].toStdString();
+  } else if(name.size() == 1) {
+    mSettings.projectSettings.address.firstName = name[0].toStdString();
+  } else {
+    mSettings.projectSettings.address.firstName = joda::helper::getLoggedInUserName().toStdString();
+  }
 
   mSettings.projectSettings.plate.groupBy       = static_cast<joda::enums::GroupBy>(mGroupByComboBox->currentData().toInt());
   mSettings.projectSettings.plate.filenameRegex = mRegexToFindTheWellPosition->currentText().toStdString();

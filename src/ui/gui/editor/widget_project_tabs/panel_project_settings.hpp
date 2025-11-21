@@ -91,7 +91,7 @@ private:
   QDialog *mMetaEditDialog;
   QLineEdit *mJobName;
   QLineEdit *mAddressOrganisation;
-  QLineEdit *mScientistsFirstName;
+  QLineEdit *mScientistsName;
   QLineEdit *mExperimentName;
   QLineEdit *mExperimentId;
 
