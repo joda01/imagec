@@ -35,7 +35,7 @@ inline std::filesystem::path getUserHomeDir(const std::string &subPath = "")
   if(!std::filesystem::exists(homeDir) || !std::filesystem::is_directory(homeDir)) {
     std::filesystem::create_directories(homeDir);
   }
-  return homeDir.string();
+  return homeDir.generic_string();
 }
 
 }    // namespace joda::user_settings

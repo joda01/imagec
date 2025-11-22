@@ -92,14 +92,14 @@ struct ImageMeta
     if(projectPath.empty()) {
       return;
     }
-    filePathRelative  = std::filesystem::relative(imageFile, projectPath).string();
-    filePathAbsolute  = imageFile.string();
+    filePathRelative  = std::filesystem::relative(imageFile, projectPath).generic_string();
+    filePathAbsolute  = imageFile.generic_string();
     auto metaFileName = joda::helper::generateImageMetaDataStoragePathFromImagePath(imageFile, projectPath, joda::fs::FILE_NAME_image_meta + ".json");
 
     nlohmann::json tmp = *this;
     std::ofstream file(metaFileName.string());
     if(!file) {
-      joda::log::logWarning("Could not write image meta file >" + metaFileName.string() + "<!");
+      joda::log::logWarning("Could not write image meta file >" + metaFileName.generic_string() + "<!");
     }
     file << tmp.dump(2);
     file.close();

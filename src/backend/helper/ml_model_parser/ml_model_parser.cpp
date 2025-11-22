@@ -49,7 +49,7 @@ auto MlModelParser::getUsersMlModelDirectory(const std::filesystem::path &workin
       joda::log::logError("Cannot create models directory!");
     }
   }
-  return homeDir.string();
+  return homeDir.generic_string();
 }
 
 ///
@@ -138,7 +138,7 @@ auto MlModelParser::parseOpenCVModelXMLDescriptionFile(const std::filesystem::pa
   file.close();
   Data info;
   info.modelPath = modelFile;
-  info.modelName = modelFile.filename().string();
+  info.modelName = modelFile.filename().generic_string();
   if(!parsedModel.meta.organization.value_or("").empty() || !parsedModel.meta.author.value_or("").empty()) {
     info.authors.emplace_back(
         Data::Author{.affiliation = parsedModel.meta.organization.value_or(""), .authorName = parsedModel.meta.author.value_or("")});

@@ -51,7 +51,7 @@ public:
   void setWorkingDirectory(const std::filesystem::path &inputFolder);
   inline std::string getWorkingDirectory()
   {
-    return mWorkingDirectory.string();
+    return mWorkingDirectory.generic_string();
   }
 
   ///
@@ -147,7 +147,7 @@ private:
   void lookForImagesInFolderAndSubfolder();
   bool parseFile(const std::filesystem::directory_entry &path)
   {
-    auto ext = path.path().extension().string();
+    auto ext = path.path().extension().generic_string();
     return mSupportedFormats.contains(ext);
   }
 

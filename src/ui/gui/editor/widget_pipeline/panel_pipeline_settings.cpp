@@ -665,10 +665,12 @@ void PanelPipelineSettings::setActive(bool setActive)
     mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
     mPreviewImage->getImagePanel()->setShowEditedImage(mActionEditMode->isChecked());
 
-    mImageOpenedConnection = connect(mPreviewImage->getImagePanel(), &PanelImageView::imageOpened, [this]() { setImageMustBeRefreshed(true); });
+    mImageOpenedConnection      = connect(mPreviewImage->getImagePanel(), &PanelImageView::imageOpened, [this]() { setImageMustBeRefreshed(true); });
+    mTrainingFinishedConnection = connect(mMlTraining, &DialogMlTrainer::trainingFinished, [this]() { setImageMustBeRefreshed(true); });
   }
   if(!setActive && mIsActiveShown) {
     disconnect(mImageOpenedConnection);
+    disconnect(mTrainingFinishedConnection);
     mPreviewResult->results.objectMap->triggerStartChangeCallback();
     mPreviewResult->results.objectMap->erase(joda::atom::ROI::Category::AUTO_SEGMENTATION);
     mPreviewResult->results.objectMap->triggerChangeCallback();

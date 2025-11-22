@@ -49,7 +49,7 @@ auto AiModelParser::getUsersAiModelDirectory(const std::filesystem::path &workin
       joda::log::logError("Cannot create users template directory!");
     }
   }
-  return homeDir.string();
+  return homeDir.generic_string();
 }
 
 ///

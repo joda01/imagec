@@ -123,7 +123,7 @@ void Settings::migrateSettings(std::string &settings)
 ///
 void Settings::storeSettings(const std::filesystem::path &pathIn, const joda::settings::AnalyzeSettings &settings)
 {
-  std::string path = pathIn.string();
+  std::string path = pathIn.generic_string();
   if(!path.empty()) {
     settings.meta.setModifiedAtDateToNow();
     nlohmann::json json = settings;
@@ -158,7 +158,7 @@ void Settings::storeSettings(const std::filesystem::path &pathIn, const joda::se
 ///
 void Settings::storeSettingsTemplate(const std::filesystem::path &pathIn, joda::settings::AnalyzeSettings settings, const SettingsMeta &settingsMeta)
 {
-  std::string path = pathIn.string();
+  std::string path = pathIn.generic_string();
   if(!path.empty()) {
     // Set modified at
     settings.meta = settingsMeta;

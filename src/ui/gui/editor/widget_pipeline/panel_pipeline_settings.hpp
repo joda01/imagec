@@ -143,6 +143,7 @@ private:
   std::mutex mShutingDownMutex;
 
   QMetaObject::Connection mImageOpenedConnection;
+  QMetaObject::Connection mTrainingFinishedConnection;
 
 private slots:
   /////////////////////////////////////////////////////

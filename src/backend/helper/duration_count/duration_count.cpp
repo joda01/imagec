@@ -50,7 +50,7 @@ void DurationCount::printStats(double nrOfImages, const std::filesystem::path &o
   std::string currentDate = getCurrentDateTime();
 
   // Define the filename using the current date
-  std::string filename = (outputDir / "profiling.json").string();
+  std::string filename = (outputDir / "profiling.json").generic_string();
 
   // Open the file for writing
   std::ofstream outputFile(filename);

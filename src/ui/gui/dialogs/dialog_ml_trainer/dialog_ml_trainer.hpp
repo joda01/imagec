@@ -53,7 +53,6 @@ public:
 signals:
   void dialogDisappeared();    // custom signal
   void trainingFinished(bool okay, QString message);
-  void triggerPreviewUpdate();
 
 protected:
   void hideEvent(QHideEvent *event) override;

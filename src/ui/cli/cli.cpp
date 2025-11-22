@@ -357,7 +357,7 @@ void Cli::exportData(const std::filesystem::path &pathToDatabasefile, std::files
   }
 
   if(outputPath.empty()) {
-    std::string fileName = pathToDatabasefile.filename().string();
+    std::string fileName = pathToDatabasefile.filename().generic_string();
     helper::stringReplace(fileName, ".icdb", "");
 
     if(format == exporter::xlsx::ExportSettings::ExportSettings::ExportFormat::XLSX) {

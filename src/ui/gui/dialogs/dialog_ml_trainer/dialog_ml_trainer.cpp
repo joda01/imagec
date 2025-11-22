@@ -374,7 +374,6 @@ void DialogMlTrainer::startTraining()
       return;
     }
     emit trainingFinished(true, "");
-    emit triggerPreviewUpdate();
   });
 }
 

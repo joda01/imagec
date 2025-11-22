@@ -136,7 +136,7 @@ auto TemplateParser::getUsersTemplateDirectory() -> std::filesystem::path
       joda::log::logError("Cannot create users template directory!");
     }
   }
-  return homeDir.string();
+  return homeDir.generic_string();
 }
 
 ///
@@ -178,7 +178,7 @@ void TemplateParser::saveTemplate(const settings::Pipeline &data, const std::fil
 std::filesystem::path TemplateParser::saveTemplate(nlohmann::json &json, const std::filesystem::path &pathToStoreTemplateIn,
                                                    const std::string &endian)
 {
-  std::string pathToStore = pathToStoreTemplateIn.string();
+  std::string pathToStore = pathToStoreTemplateIn.generic_string();
   if(!pathToStore.ends_with(endian)) {
     pathToStore += endian;
   }
