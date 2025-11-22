@@ -113,12 +113,7 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
           fileNameTmp = filename + " t(" + std::to_string(tStack) + ")";
           classesToExport.setRowID(classs, statement.getColNames(), static_cast<int32_t>(rowIdx), fileNameTmp, imageId);
         } else {
-          if(platePosX < UINT16_MAX && platePosY < UINT16_MAX) {
-            fileNameTmp = std::string(1, (static_cast<char>(platePosY - 1) + 'A')) + std::to_string(platePosX) + " t(" + std::to_string(tStack) + ")";
-          } else {
-            fileNameTmp = groupName + " t(" + std::to_string(tStack) + ")";
-          }
-
+          fileNameTmp = groupName + " t(" + std::to_string(tStack) + ")";
           classesToExport.setRowID(classs, statement.getColNames(), static_cast<int32_t>(rowIdx), fileNameTmp, groupId);
         }
 
