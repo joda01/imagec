@@ -166,7 +166,7 @@ public:
     return colIdx;
   }
 
-  void setRowID(const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, int32_t row, const std::string & /*rowName*/,
+  void setRowID(const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, uint32_t row, const std::string &rowName,
                 uint64_t rowId)
   {
     if(!mClassesAndClasses.contains(classsAndClass)) {
@@ -174,7 +174,7 @@ public:
     }
 
     for(auto [itr, element] : mTableMapping) {
-      mResultingTable.setDataId(row, element.colIdx, rowId);
+      mResultingTable.setDataId(row, element.colIdx, rowId, rowName);
     }
   }
 

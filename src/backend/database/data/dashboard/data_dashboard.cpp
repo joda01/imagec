@@ -88,7 +88,7 @@ auto Dashboard::convert(const std::shared_ptr<joda::table::Table> tableIn, const
   }
 
   // ========================================
-  // Now create te other dashboard columns
+  // Now create the other dashboard columns
   // ========================================
   for(const auto &[_, col] : tableIn->columns()) {
     // This is a distance measurement. We create a own dashboard for each distance measure if we are in image view

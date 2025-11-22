@@ -273,10 +273,11 @@ public:
     mDataColOrganized[col].rows[row] = std::make_shared<TableCell>(data);
   }
 
-  void setDataId(uint32_t row, uint32_t col, uint64_t id)
+  void setDataId(uint32_t row, uint32_t col, uint64_t id, const std::string &rowName)
   {
     if(mDataColOrganized[col].rows[row] == nullptr) {
       mDataColOrganized[col].rows[row] = std::make_shared<TableCell>();
+      mDataColOrganized[col].rows[row]->setRowName(rowName);
     }
     mDataColOrganized[col].rows[row]->setId(id);
   }
@@ -329,13 +330,14 @@ public:
     if(mDataColOrganized.empty()) {
       return ret;
     }
-    if(!mDataColOrganized.begin()->second.rows.contains(row)) {
-      return ret;
+    for(const auto &col : mDataColOrganized) {
+      if(col.second.rows.contains(row)) {
+        if(!col.second.rows.at(row)->getRowName().empty()) {
+          return col.second.rows.at(row)->getRowName();
+        }
+      }
     }
-    if(mDataColOrganized.begin()->second.rows.at(row) == nullptr) {
-      return ret;
-    }
-    return mDataColOrganized.begin()->second.rows.at(row)->getRowName();
+    return ret;
   }
 
   [[nodiscard]] const std::string &getTitle() const override
