@@ -290,6 +290,11 @@ void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &s
     } else {
       mGroupByComboBox->setCurrentIndex(-1);
     }
+    if(mGroupByComboBox->currentData().toInt() == static_cast<int>(joda::enums::GroupBy::FILENAME)) {
+      mOpenGroupingSettings->setEnabled(true);
+    } else {
+      mOpenGroupingSettings->setEnabled(false);
+    }
   }
   {
     auto val = settings.projectSettings.plate.plateSetup.rows * 100 + settings.projectSettings.plate.plateSetup.cols;
