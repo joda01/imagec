@@ -82,7 +82,7 @@ public:
   auto selectGroups() -> std::map<uint16_t, std::string>;
 
   auto selectImageChannels() -> std::map<uint32_t, joda::ome::OmeInfo::ChannelInfo>;
-  auto selectNrOfTimeStacks() -> int32_t;
+  auto selectNrOfTimeStacks() -> uint32_t;
 
   auto selectClasses() -> std::map<enums::ClassId, joda::settings::Class>;
 
@@ -90,6 +90,7 @@ public:
   auto selectImageInfo(uint64_t imageId) -> ImageInfo;
   auto selectObjectInfo(uint64_t objectId) -> ObjectInfo;
   auto selectImages() -> std::vector<ImageInfo>;
+  auto selectImagesOfGroup(const std::set<uint16_t> &groupIds) -> std::vector<ImageInfo>;
 
   auto selectOutputClasses() -> std::set<enums::ClassId>;
   auto selectMeasurementChannelsForClasses() -> std::map<enums::ClassId, std::set<int32_t>>;

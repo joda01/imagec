@@ -270,7 +270,17 @@ public:
 
   void setData(uint32_t row, uint32_t col, const TableCell &data)
   {
-    mDataColOrganized[col].rows[row] = std::make_shared<TableCell>(data);
+    if(data.getRowName().empty()) {
+      if(mDataColOrganized[col].rows[row] != nullptr) {
+        const auto rowName               = mDataColOrganized[col].rows[row]->getRowName();
+        mDataColOrganized[col].rows[row] = std::make_shared<TableCell>(data);
+        mDataColOrganized[col].rows[row]->setRowName(rowName);
+      } else {
+        mDataColOrganized[col].rows[row] = std::make_shared<TableCell>(data);
+      }
+    } else {
+      mDataColOrganized[col].rows[row] = std::make_shared<TableCell>(data);
+    }
   }
 
   void setDataId(uint32_t row, uint32_t col, uint64_t id, const std::string &rowName)

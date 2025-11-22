@@ -59,18 +59,42 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
   //
   auto classesToExport = ResultingTable(&filter);
 
-  std::map<stdi::uint128_t, uint32_t> rowIndexes;    // <ID, rowIdx>
-
-  auto findMaxRowIdx = [&rowIndexes]() -> int32_t {
-    int32_t rowIdx = -1;
-    for(const auto &[_, row] : rowIndexes) {
-      if(static_cast<int32_t>(row) > rowIdx) {
-        rowIdx = static_cast<int32_t>(row);
+  //
+  // Prepare rows
+  //
+  uint32_t nrOfTimeStacks = database->selectNrOfTimeStacks();
+  std::map<stdi::uint128_t, std::uint32_t> rowIndexes;    // <ID, rowIdx>
+  if(grouping == Grouping::BY_WELL) {
+    const auto &images = database->selectImagesOfGroup(filterIn.getFilter().groupId);
+    uint32_t rowIdx    = 0;
+    for(uint32_t tStack = 0; tStack < nrOfTimeStacks; tStack++) {
+      for(const auto &image : images) {
+        rowIndexes.emplace(stdi::uint128_t{image.imageId, tStack}, rowIdx);
+        for(const auto &[classs, statement] : classesToExport) {
+          const std::string fileNameTmp = image.filename + " t(" + std::to_string(tStack) + ")";
+          classesToExport.setRowID(classs, statement.getColNames(), static_cast<uint32_t>(rowIdx), fileNameTmp, image.imageId);
+        }
+        rowIdx++;
       }
     }
-    return rowIdx;
-  };
+  } else {
+    const auto &groups = database->selectGroups();
+    uint32_t rowIdx    = 0;
+    for(uint32_t tStack = 0; tStack < nrOfTimeStacks; tStack++) {
+      for(const auto &[groupId, groupName] : groups) {
+        rowIndexes.emplace(stdi::uint128_t{groupId, tStack}, rowIdx);
+        for(const auto &[classs, statement] : classesToExport) {
+          const std::string fileNameTmp = groupName + " t(" + std::to_string(tStack) + ")";
+          classesToExport.setRowID(classs, statement.getColNames(), static_cast<uint32_t>(rowIdx), fileNameTmp, groupId);
+        }
+        rowIdx++;
+      }
+    }
+  }
 
+  //
+  // Iterate
+  //
   for(const auto &[classs, statement] : classesToExport) {
     auto materializedResult = getData(classs, database, filter.getFilter(), statement, grouping)->Cast<duckdb::StreamQueryResult>().Materialize();
     size_t columnNr         = statement.getColSize();
@@ -87,34 +111,10 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
         auto validity    = materializedResult->GetValue(columnNr + 7, row).GetValue<uint64_t>();
         auto tStack      = materializedResult->GetValue(columnNr + 8, row).GetValue<uint32_t>();
         size_t rowIdx    = row;
-        // std::string colC;
         if(grouping == Grouping::BY_WELL) {
-          // It could be that there are classes without data, but we have to keep the row order, else the data would be shown shifted and beside a
-          // wrong image
-          if(rowIndexes.contains({imageId, tStack})) {
-            rowIdx = rowIndexes.at({imageId, tStack});
-          } else {
-            rowIdx = static_cast<size_t>(findMaxRowIdx()) + 1;
-            rowIndexes.emplace(stdi::uint128_t{imageId, tStack}, rowIdx);
-          }
+          rowIdx = rowIndexes.at({imageId, tStack});
         } else {
-          // It could be that there are classes without data, but we have to keep the row order, else the data would be shown shifted and beside a
-          // wrong image
-          if(rowIndexes.contains({groupId, tStack})) {
-            rowIdx = rowIndexes.at({groupId, tStack});
-          } else {
-            rowIdx = static_cast<size_t>(findMaxRowIdx()) + 1;
-            rowIndexes.emplace(stdi::uint128_t{groupId, tStack}, rowIdx);
-          }
-        }
-
-        std::string fileNameTmp;
-        if(grouping == Grouping::BY_WELL) {
-          fileNameTmp = filename + " t(" + std::to_string(tStack) + ")";
-          classesToExport.setRowID(classs, statement.getColNames(), static_cast<int32_t>(rowIdx), fileNameTmp, imageId);
-        } else {
-          fileNameTmp = groupName + " t(" + std::to_string(tStack) + ")";
-          classesToExport.setRowID(classs, statement.getColNames(), static_cast<int32_t>(rowIdx), fileNameTmp, groupId);
+          rowIdx = rowIndexes.at({static_cast<uint32_t>(groupId), tStack});
         }
 
         for(int32_t colIdxI = 0; colIdxI < static_cast<int32_t>(columnNr); colIdxI++) {
@@ -128,7 +128,7 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
               pos.x = 1;
               pos.y = 1;
             }
-            classesToExport.setData(classs, statement.getColNames(), static_cast<uint32_t>(rowIdx), static_cast<uint32_t>(colIdxI), fileNameTmp,
+            classesToExport.setData(classs, statement.getColNames(), static_cast<uint32_t>(rowIdx), static_cast<uint32_t>(colIdxI),
                                     table::TableCell{value,
                                                      table::TableCell::MetaData{.objectIdGroup  = imageId,
                                                                                 .objectId       = imageId,
@@ -138,13 +138,13 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
                                                                                 .tStack         = tStack,
                                                                                 .zStack         = 0,
                                                                                 .cStack         = 0,
-                                                                                .rowName        = fileNameTmp},
+                                                                                .rowName        = {}},
                                                      table::TableCell::Grouping{.groupIdx = static_cast<uint64_t>(imgGroupIdx),
                                                                                 .posX     = static_cast<uint32_t>(pos.x),
                                                                                 .posY     = static_cast<uint32_t>(pos.y)}});
           } else {
             classesToExport.setData(
-                classs, statement.getColNames(), static_cast<uint32_t>(rowIdx), static_cast<uint32_t>(colIdxI), fileNameTmp,
+                classs, statement.getColNames(), static_cast<uint32_t>(rowIdx), static_cast<uint32_t>(colIdxI),
                 table::TableCell{value,
                                  table::TableCell::MetaData{.objectIdGroup  = groupId,
                                                             .objectId       = groupId,
@@ -154,7 +154,7 @@ auto StatsPerGroup::toTable(db::Database *database, const settings::ResultsSetti
                                                             .tStack         = tStack,
                                                             .zStack         = 0,
                                                             .cStack         = 0,
-                                                            .rowName        = fileNameTmp},
+                                                            .rowName        = {}},
                                  table::TableCell::Grouping{.groupIdx = static_cast<uint64_t>((static_cast<uint64_t>(platePosX) << 32) | platePosY),
                                                             .posX     = platePosX,
                                                             .posY     = platePosY}});

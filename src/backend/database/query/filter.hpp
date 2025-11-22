@@ -141,7 +141,7 @@ public:
   explicit ResultingTable(const settings::ResultsSettings *);
 
   void setData(const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, uint32_t row, uint32_t dbColIx,
-               const std::string & /*rowName*/, const table::TableCell &tableCell)
+               const table::TableCell &tableCell)
   {
     if(!mClassesAndClasses.contains(classsAndClass)) {
       mClassesAndClasses.emplace(classsAndClass, PreparedStatement{colName, mFilter});
@@ -155,9 +155,9 @@ public:
     }
   }
 
-  [[nodiscard]] int32_t getColIdxFromDbColIdx(const PreparedStatement &statement, uint32_t dbColIdx) const
+  [[nodiscard]] uint32_t getColIdxFromDbColIdx(const PreparedStatement &statement, uint32_t dbColIdx) const
   {
-    int32_t colIdx        = 0;
+    uint32_t colIdx       = 0;
     const auto &columnKey = statement.getColumnAt(dbColIdx);
     for(auto [itr, rangeEnd] = mTableMapping.equal_range(columnKey); itr != rangeEnd; ++itr) {
       const auto &element = itr->second;
