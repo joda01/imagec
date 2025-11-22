@@ -1407,10 +1407,8 @@ void PanelImageView::getClickedTileInThumbnail(QMouseEvent *event)
                                static_cast<int32_t>(THUMB_RECT_START_Y + static_cast<float>(yOffset) + TOP_TOOLBAR_HEIGHT)),
                         QSize(mTileRectWidthScaled, mTileRectHeightScaled));
         if(rectangle.contains(event->pos())) {
-          mTile.tileX   = x;
-          mTile.tileY   = y;
-          mLoadingImage = true;
-          viewport()->repaint();
+          mTile.tileX = x;
+          mTile.tileY = y;
           // mOverlayMasks->refresh(getTileInfo());
           emit tileClicked(x, y);
           return;

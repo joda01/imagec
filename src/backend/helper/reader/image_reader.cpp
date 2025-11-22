@@ -277,6 +277,7 @@ ImageReader::ImageReader(const std::filesystem::path &imageFileName) : mImagePat
   }
 
   myEnv->DeleteLocalRef(filePath);
+  myJVM->DetachCurrentThread();
 }
 
 ///
@@ -292,6 +293,7 @@ ImageReader::~ImageReader()
   myJVM->AttachCurrentThread(reinterpret_cast<void **>(&myEnv), nullptr);
   myEnv->CallVoidMethod(mJavaImageReadObject, mClose);
   myEnv->DeleteGlobalRef(mJavaImageReadObject);
+  mJavaImageReadObject = nullptr;
   myJVM->DetachCurrentThread();
 }
 

@@ -47,12 +47,12 @@ void AnnMlpPyTorch::predict(const std::filesystem::path &path, const cv::Mat &im
   MachineLearningSettings settings = model->getMeta();
 
   // ============================================
-  // Extract features based on model settings
+  // Extract features
   // ============================================
   const cv::Mat features = extractFeatures(image, settings.featureExtractionPipelines, true);
 
   // ============================================
-  // Move features to tensor
+  // Convert features to float32
   // ============================================
   cv::Mat temp;
   if(features.type() != CV_32F) {
@@ -60,35 +60,57 @@ void AnnMlpPyTorch::predict(const std::filesystem::path &path, const cv::Mat &im
   } else {
     temp = features;
   }
-  auto options       = torch::TensorOptions().dtype(torch::kFloat32);
-  torch::Tensor data = torch::from_blob(temp.data, {features.rows, features.cols}, options).clone();
+
+  const int numPixels   = features.rows;
+  const int numFeatures = features.cols;
+
+  // Tensor shape: [numPixels, numFeatures]
+  torch::TensorOptions opts = torch::TensorOptions().dtype(torch::kFloat32);
+  torch::Tensor data        = torch::from_blob(temp.data, {numPixels, numFeatures}, opts).clone();
 
   // ============================================
-  // Move tensor to device
+  // Move to device once
   // ============================================
   torch::Device device(torch::kCPU);
-  if(mPixelClassifierSettings->gpuUsage == joda::settings::PixelClassifierSettings::GpuUsage::Auto && torch::cuda::is_available()) {
-    device = torch::Device(torch::kCUDA);
+  const bool useGpu = mPixelClassifierSettings->gpuUsage == joda::settings::PixelClassifierSettings::GpuUsage::Auto && torch::cuda::is_available();
+
+  if(useGpu) {
+    mGpuMutex.lock();
+    device = torch::kCUDA;
   }
-  data = data.to(device);
+
   model->to(device);
   model->eval();
 
   // ============================================
-  // Inference
+  // Prepare output
   // ============================================
-  torch::NoGradGuard no_grad;
-  auto output = model->forward(data);
+  prediction.create(numPixels, 1, CV_32S);
 
-  // ============================================
-  // Convert prediction to cv::mat
-  // ============================================
-  auto predictions = std::get<1>(output.max(1));
-  predictions      = predictions.to(torch::kCPU);
-  prediction.create(static_cast<int32_t>(predictions.size(0)), 1, CV_32S);
-  auto predAccessor = predictions.accessor<int64_t, 1>();
-  for(int i = 0; i < predictions.size(0); ++i) {
-    prediction.at<int>(i, 0) = static_cast<int>(predAccessor[i]);
+  torch::NoGradGuard no_grad;
+
+  for(int start = 0; start < numPixels; start += BATCH_SIZE) {
+    const int end  = std::min(start + BATCH_SIZE, numPixels);
+    const int size = end - start;
+
+    // Slice the batch: [size, numFeatures]
+    torch::Tensor batch = data.index({torch::indexing::Slice(start, end)}).to(device);
+
+    // Forward
+    torch::Tensor out = model->forward({batch});
+
+    // Argmax along feature dimension
+    torch::Tensor pred = std::get<1>(out.max(1)).to(torch::kCPU);
+
+    // Copy to output cv::Mat
+    auto accessor = pred.accessor<int64_t, 1>();
+    for(int i = 0; i < size; ++i) {
+      prediction.at<int>(start + i, 0) = static_cast<int>(accessor[i]);
+    }
+  }
+
+  if(useGpu) {
+    mGpuMutex.unlock();
   }
 }
 

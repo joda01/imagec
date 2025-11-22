@@ -28,7 +28,11 @@ public:
 
 private:
   /////////////////////////////////////////////////////
+  static constexpr int32_t BATCH_SIZE = 4096;
+
+  /////////////////////////////////////////////////////
   bool mStopped = false;
+  static inline std::mutex mGpuMutex;
 };
 
 }    // namespace joda::ml
