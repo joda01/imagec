@@ -78,6 +78,9 @@
 #include "backend/commands/image_functions/threshold_adaptive/threshold_adaptive_settings_ui.hpp"
 #include "backend/commands/image_functions/watershed/watershed.hpp"
 #include "backend/commands/image_functions/watershed/watershed_settings_ui.hpp"
+#include "backend/commands/image_functions/weighted_deviation/weighted_deviation.hpp"
+#include "backend/commands/image_functions/weighted_deviation/weighted_deviation_settings.hpp"
+#include "backend/commands/image_functions/weighted_deviation/weighted_deviation_settings_ui.hpp"
 #include "backend/commands/object_functions/colocalization/colocalization.hpp"
 #include "backend/commands/object_functions/colocalization/colocalization_settings_ui.hpp"
 #include "backend/commands/object_functions/measure_distance/measure_distance.hpp"
@@ -186,6 +189,7 @@ private:
     REGISTER_COMMAND(laplacian, Laplacian);
     REGISTER_COMMAND(structureTensor, StructureTensor);
     REGISTER_COMMAND(hessian, Hessian);
+    REGISTER_COMMAND(gaussianWeightedDev, WeightedDeviation);
     REGISTER_COMMAND(nop, Nop);
 
     //  REGISTER_COMMAND(crop, MarginCrop);

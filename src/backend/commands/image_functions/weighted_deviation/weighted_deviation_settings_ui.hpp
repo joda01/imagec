@@ -36,8 +36,7 @@ public:
 
   WeightedDeviation(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep,
                     settings::WeightedDeviationSettings &settings, QWidget *parent) :
-      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent,
-              {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}})
+      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, InOuts::IMAGE})
   {
     //
     //
