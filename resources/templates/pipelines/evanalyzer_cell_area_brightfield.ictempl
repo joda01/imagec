@@ -62,7 +62,7 @@
                 "metrics": {
                   "maxParticleSize": -1,
                   "minCircularity": 0.0,
-                  "minParticleSize": 2000
+                  "minParticleSize": 53.2
                 },
                 "outputClass": "$"
               }
