@@ -21,7 +21,7 @@ public:
 
   Mode mode          = Mode::BLUR_MORE;
   int32_t kernelSize = 3;
-  int32_t repeat     = 0;
+  int32_t repeat     = 1;
 
   /////////////////////////////////////////////////////
   void check() const

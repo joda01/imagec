@@ -333,13 +333,13 @@ cv::Mat ImageReader::loadEntireImage(joda::enums::PlaneId imagePlane, uint16_t s
     if(series >= ome.getNrOfSeries()) {
       series = static_cast<uint16_t>(ome.getNrOfSeries() - 1);
     }
-    if(imagePlane.tStack > ome.getNrOfTStack(series)) {
+    if(imagePlane.tStack >= ome.getNrOfTStack(series)) {
       imagePlane.tStack = ome.getNrOfTStack(series) - 1;
     }
-    if(imagePlane.cStack > ome.getNrOfTStack(series)) {
+    if(imagePlane.cStack >= ome.getNrOfChannels(series)) {
       imagePlane.cStack = ome.getNrOfChannels(series) - 1;
     }
-    if(imagePlane.zStack > ome.getNrOfZStack(series)) {
+    if(imagePlane.zStack >= ome.getNrOfZStack(series)) {
       imagePlane.zStack = ome.getNrOfZStack(series) - 1;
     }
 
@@ -611,13 +611,13 @@ cv::Mat ImageReader::loadImageTile(joda::enums::PlaneId imagePlane, uint16_t ser
     if(series >= ome.getNrOfSeries()) {
       series = static_cast<uint16_t>(ome.getNrOfSeries() - 1);
     }
-    if(imagePlane.tStack > ome.getNrOfTStack(series)) {
+    if(imagePlane.tStack >= ome.getNrOfTStack(series)) {
       imagePlane.tStack = ome.getNrOfTStack(series) - 1;
     }
-    if(imagePlane.cStack > ome.getNrOfTStack(series)) {
+    if(imagePlane.cStack >= ome.getNrOfChannels(series)) {
       imagePlane.cStack = ome.getNrOfChannels(series) - 1;
     }
-    if(imagePlane.zStack > ome.getNrOfZStack(series)) {
+    if(imagePlane.zStack >= ome.getNrOfZStack(series)) {
       imagePlane.zStack = ome.getNrOfZStack(series) - 1;
     }
 

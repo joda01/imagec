@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <atomic>
 #include <bitset>
+#include <exception>
 #include <mutex>
 #include <string>
 #include <utility>
@@ -25,6 +26,7 @@
 #include "backend/enums/enums_units.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/global_enums.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/ome_parser/physical_size.hpp"
 #include <cereal/cereal.hpp>
 #include <opencv2/core/mat.hpp>
@@ -371,9 +373,13 @@ public:
   template <class Archive>
   void save(Archive &ar, std::uint32_t const /*version*/) const
   {
-    ar(mIsNull, mObjectId, mId, mBoundingBoxReal, mMask, mMaskContours, mConfidence, mAreaSize, mPerimeter, mCircularity, mCentroid, mParentObjectId,
-       mTrackingId,
-       /*mIntensity, mDistances*/ mOriginObjectId, /*mLinkedWith,*/ mCategory);
+    try {
+      ar(mIsNull, mObjectId, mId, mBoundingBoxReal, mMask, mMaskContours, mConfidence, mAreaSize, mPerimeter, mCircularity, mCentroid,
+         mParentObjectId, mTrackingId,
+         /*mIntensity, mDistances*/ mOriginObjectId, /*mLinkedWith,*/ mCategory);
+    } catch(const std::exception &ex) {
+      joda::log::logError("Could not write roi " + std::string(ex.what()));
+    }
   }
 
   template <class Archive>

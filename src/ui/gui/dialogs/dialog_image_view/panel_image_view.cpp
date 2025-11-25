@@ -2035,6 +2035,7 @@ void PanelImageView::addPolygonToToObjectMap(const QPolygonF &poly)
                              {{mTile.tileX, mTile.tileY}, tileSize});
   paintedRoi.setCategory(joda::atom::ROI::Category::MANUAL_SEGMENTATION);
 
+  mObjectMap->triggerStartChangeCallback();
   mObjectMap->push_back(paintedRoi);
   mObjectMap->triggerChangeCallback();
   setRegionsOfInterestFromObjectList();

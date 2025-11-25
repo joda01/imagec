@@ -368,13 +368,11 @@ void ObjectList::mergeFrom(ObjectList &&other, joda::atom::ROI::Category categor
   //
   // Now enter
   //
-  std::lock_guard<std::mutex> lock(mInsertLock);
-  for(auto it = other.begin(); it != other.end();) {
-    auto node = other.extract(it++);       // remove node from a
-    ObjectMap::insert(std::move(node));    // insert same node into b
+  for(const auto &grid : other) {
+    for(const auto &roi : *grid.second) {
+      push_back(roi);
+    }
   }
-
-  objectsOrderedByObjectId.insert(other.objectsOrderedByObjectId.begin(), other.objectsOrderedByObjectId.end());
 }
 
 ///
