@@ -247,8 +247,11 @@ std::pair<cv::Mat, std::set<int>> followFlowFieldCuda(const at::Device &device, 
   for(int y = 0; y < flowY.rows; ++y) {
     for(int x = 0; x < flowX.cols; ++x) {
       // Get the landing pos
-      int lx = cvRound(h_outX.at(static_cast<size_t>(static_cast<int64_t>(y) * static_cast<int64_t>(flowX.cols) + static_cast<int64_t>(x))));
-      int ly = cvRound(h_outY.at(static_cast<size_t>(static_cast<int64_t>(y) * static_cast<int64_t>(flowX.cols) + static_cast<int64_t>(x))));
+      const int lx = cvRound(h_outX.at(static_cast<size_t>(static_cast<int64_t>(y) * static_cast<int64_t>(flowX.cols) + static_cast<int64_t>(x))));
+      const int ly = cvRound(h_outY.at(static_cast<size_t>(static_cast<int64_t>(y) * static_cast<int64_t>(flowX.cols) + static_cast<int64_t>(x))));
+      if(lx < 0 || ly < 0) {
+        continue;
+      }
       // Key for map
       auto key = std::make_pair(lx, ly);
       int label;
