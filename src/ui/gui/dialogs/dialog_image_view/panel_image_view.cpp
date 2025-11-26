@@ -180,10 +180,11 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
       mVideoControlButtons->setPlay(false);
       emit imageOpened();
       mLastPath = imagePath;
-    } else if(mLastPlane.tStack != mPlane.tStack) {
+    } else if(mLastPlane.tStack != mPlane.tStack || mLastTile != mTile) {
       emit imageOpened();
     }
     mLastPlane = mPlane;
+    mLastTile  = mTile;
     emit channelOpened();
     std::this_thread::sleep_for(250ms);
     setLoadingImage(false);

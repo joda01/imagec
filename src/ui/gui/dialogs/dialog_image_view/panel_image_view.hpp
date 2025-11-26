@@ -223,6 +223,8 @@ private:
   float mOpaque                    = 0.6F;
   joda::enums::PlaneId mPlane{0, 0, 0};
   joda::ome::TileToLoad mTile;
+  joda::ome::TileToLoad mLastTile;
+
   enums::ZProjection mZprojection;
   int32_t mSeries = 0;
 
