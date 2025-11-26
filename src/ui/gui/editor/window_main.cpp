@@ -19,6 +19,7 @@
 #include <qlineedit.h>
 #include <qmenu.h>
 #include <qmessagebox.h>
+#include <qnamespace.h>
 #include <qobject.h>
 #include <qpushbutton.h>
 #include <qstackedwidget.h>
@@ -189,14 +190,16 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   //
   // Create a global shortcut for F5 to refresh the preview
   //
-  QShortcut *shortcut = new QShortcut(QKeySequence(Qt::Key_F5), this);
-  shortcut->setContext(Qt::ApplicationShortcut);    // 🔹 works globally in the app
-  connect(shortcut, &QShortcut::activated, this, [this]() {
-    auto *pip = mPanelPipeline->getSelectedPipeline();
-    if(pip != nullptr) {
-      pip->triggerPreviewUpdate();
-    }
-  });
+  {
+    QShortcut *shortcut = new QShortcut(QKeySequence(Qt::Key_F5), this);
+    shortcut->setContext(Qt::ApplicationShortcut);
+    connect(shortcut, &QShortcut::activated, this, [this]() {
+      auto *pip = mPanelPipeline->getSelectedPipeline();
+      if(pip != nullptr) {
+        pip->triggerPreviewUpdate();
+      }
+    });
+  }
 }
 
 WindowMain::~WindowMain() = default;

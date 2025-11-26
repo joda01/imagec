@@ -59,7 +59,7 @@ struct ImageMeta
     //
     //
     //
-    bool usePseudocolors = true;
+    bool usePseudocolors = false;
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(HistogramSettings, channel, lowerLevelContrast, upperLevelContrast, usePseudocolors, lowerRange,
                                                 upperRange)

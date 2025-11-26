@@ -68,6 +68,7 @@ public:
   {
     return mLowerValue;
   }
+
   void clear()
   {
     std::lock_guard<std::mutex> lock(mLockMutex);
@@ -88,6 +89,11 @@ public:
 
   void setBrightnessRange(int32_t lowerValue, int32_t upperValue, int32_t displayAreaLower, int32_t displayAreaUpper);
   void setPseudoColorEnabled(bool);
+  [[nodiscard]] bool getUsePseudoColors() const
+  {
+    return mPSeudoColorEnabled;
+  }
+
   void autoAdjustBrightnessRange();
   auto getOriginalImageSize() const -> const QSize &
   {
@@ -120,7 +126,7 @@ private:
   QSize mOriginalImageSize;
 
   //// PSEUDOCOLOR /////////////////////////////////////////////////
-  bool mPSeudoColorEnabled = true;
+  bool mPSeudoColorEnabled = false;
   std::vector<cv::Vec3f> mPseudoColor{1.0, 1.0, 1.0};
 
   //// IMAGE /////////////////////////////////////////////////

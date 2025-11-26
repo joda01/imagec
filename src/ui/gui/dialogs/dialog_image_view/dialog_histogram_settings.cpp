@@ -94,8 +94,8 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
 
   // Color mode
   mColorMode = new QComboBox();
-  mColorMode->addItem("Pseudo color", 0);
-  mColorMode->addItem("Grayscale", 1);
+  mColorMode->addItem("Grayscale", 0);
+  mColorMode->addItem("Pseudo color", 1);
 
   layout->addRow(mColorMode);
 
@@ -165,35 +165,49 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
 ///
 void DialogHistogramSettings::getHistogramSettingsFromImage()
 {
-  mSliderDisplayLower->blockSignals(true);
-  mSliderDisplayUpper->blockSignals(true);
   mSliderHistogramMin->blockSignals(true);
   mSliderHistogramMax->blockSignals(true);
   mImageChannel->blockSignals(true);
+  mColorMode->blockSignals(true);
 
-  mSliderHistogramMin->setMinimum(mImagePanel->mutableImage()->getHistogramDisplayAreaLower());
-  mSliderHistogramMin->setMaximum(mImagePanel->mutableImage()->getHistogramDisplayAreaUpper());
+  const auto lowerArea = mImagePanel->mutableImage()->getHistogramDisplayAreaLower();
+  const auto upperArea = mImagePanel->mutableImage()->getHistogramDisplayAreaUpper();
 
-  mSliderHistogramMax->setMinimum(mImagePanel->mutableImage()->getHistogramDisplayAreaLower());
-  mSliderHistogramMax->setMaximum(mImagePanel->mutableImage()->getHistogramDisplayAreaUpper());
+  mSliderHistogramMin->setMinimum(lowerArea);
+  mSliderHistogramMin->setMaximum(upperArea);
 
-  QMetaObject::invokeMethod(
-      mSliderDisplayLower,
-      [this]() {
-        mSliderDisplayLower->setValue(mImagePanel->mutableImage()->getHistogramDisplayAreaLower());
-        mSliderDisplayUpper->setValue(mImagePanel->mutableImage()->getHistogramDisplayAreaUpper());
-      },
-      Qt::QueuedConnection);
+  mSliderHistogramMax->setMinimum(lowerArea);
+  mSliderHistogramMax->setMaximum(upperArea);
+
   mSliderHistogramMin->setValue(mImagePanel->mutableImage()->getLowerLevelContrast());
   mSliderHistogramMax->setValue(mImagePanel->mutableImage()->getUpperLevelContrast());
 
   mImageChannel->setCurrentIndex(mImagePanel->getImagePlane().cStack);
 
-  mHistogramPanel->update();
+  const bool usePseudoColors = mImagePanel->mutableImage()->getUsePseudoColors();
+  if(usePseudoColors) {
+    mColorMode->setCurrentIndex(1);
+  } else {
+    mColorMode->setCurrentIndex(0);
+  }
 
+  QMetaObject::invokeMethod(
+      mSliderDisplayLower,
+      [this, upperArea, lowerArea]() {
+        mSliderDisplayLower->blockSignals(true);
+        mSliderDisplayUpper->blockSignals(true);
+
+        mSliderDisplayLower->setValue(lowerArea);
+        mSliderDisplayUpper->setValue(upperArea);
+
+        mSliderDisplayLower->blockSignals(false);
+        mSliderDisplayUpper->blockSignals(false);
+        mHistogramPanel->update();
+      },
+      Qt::QueuedConnection);
+
+  mColorMode->blockSignals(false);
   mImageChannel->blockSignals(false);
-  mSliderDisplayLower->blockSignals(false);
-  mSliderDisplayUpper->blockSignals(false);
   mSliderHistogramMin->blockSignals(false);
   mSliderHistogramMax->blockSignals(false);
 }
@@ -210,9 +224,9 @@ void DialogHistogramSettings::applyHistogramSettingsToImage()
   blockSignals(true);
 
   if(mColorMode->currentData() == 0) {
-    mImagePanel->mutableImage()->setPseudoColorEnabled(true);
-  } else {
     mImagePanel->mutableImage()->setPseudoColorEnabled(false);
+  } else {
+    mImagePanel->mutableImage()->setPseudoColorEnabled(true);
   }
 
   mImagePanel->mutableImage()->setBrightnessRange(mSliderHistogramMin->value(), mSliderHistogramMax->value(),

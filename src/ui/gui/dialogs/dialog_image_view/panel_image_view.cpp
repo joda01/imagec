@@ -267,7 +267,8 @@ void PanelImageView::storeChannelSettings()
                                             .lowerLevelContrast = mImageToShow->getLowerLevelContrast(),
                                             .upperLevelContrast = mImageToShow->getUpperLevelContrast(),
                                             .lowerRange         = mImageToShow->getHistogramDisplayAreaLower(),
-                                            .upperRange         = mImageToShow->getHistogramDisplayAreaUpper()},
+                                            .upperRange         = mImageToShow->getHistogramDisplayAreaUpper(),
+                                            .usePseudocolors    = mImageToShow->getUsePseudoColors()},
                                            mShowEditedImage);
   if(!mProjectPath.empty() && !mLastPath.empty()) {
     mImageMeta.save(mLastPath, mProjectPath);
@@ -294,6 +295,7 @@ void PanelImageView::restoreChannelSettings()
     storeChannelSettings();
   } else {
     std::lock_guard<std::mutex> locked(mImageResetMutex);
+    mImageToShow->setPseudoColorEnabled(histoSettings.usePseudocolors);
     mImageToShow->setBrightnessRange(histoSettings.lowerLevelContrast, histoSettings.upperLevelContrast, histoSettings.lowerRange,
                                      histoSettings.upperRange);
   }
@@ -1531,7 +1533,7 @@ void PanelImageView::keyPressEvent(QKeyEvent *event)
 {
   if(event->key() == Qt::Key_Delete) {
     deleteSelectedRois();
-  } else if(event->key() == Qt::Key_Escape) {
+  } else if(event->key() == Qt::Key_Escape || event->key() == Qt::Key_M) {
     setState(State::MOVE);
     emit drawingToolChanged(State::MOVE);
   } else if(event->key() == Qt::Key_S) {
