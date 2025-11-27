@@ -635,6 +635,7 @@ bool WindowResults::showSelectWorkingDir(const QString & /*path*/)
   dialog.setWindowTitle("Select images Directory");
   dialog.setFileMode(QFileDialog::Directory);
   dialog.setOption(QFileDialog::ShowDirsOnly, true);
+  dialog.setOption(QFileDialog::DontUseNativeDialog, true);
   if(dialog.exec() == QDialog::Accepted) {
     mImageWorkingDirectory = std::filesystem::path(dialog.selectedFiles().first().toStdString());
     return true;
@@ -1211,8 +1212,9 @@ void WindowResults::showOpenFileDialog()
 {
   std::filesystem::path filePath = mDbFilePath.parent_path();
 
-  QString filename = QFileDialog::getOpenFileName(this, "Open File", filePath.string().data(),
-                                                  "ImageC results files (*" + QString(joda::fs::EXT_DATABASE.data()) + ")");
+  QFileDialog::Options opt = QFileDialog::DontUseNativeDialog;
+  QString filename         = QFileDialog::getOpenFileName(this, "Open File", filePath.string().data(),
+                                                          "ImageC results files (*" + QString(joda::fs::EXT_DATABASE.data()) + ")", nullptr, opt);
   // Select save option
   if(filename.endsWith(joda::fs::EXT_DATABASE.data())) {
     openFromFile(filename);
@@ -1257,7 +1259,8 @@ void WindowResults::showFileSaveDialog(const QString &filter)
   }
 
   QString selectedFilter;
-  QString filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(), filter, &selectedFilter);
+  QFileDialog::Options opt       = QFileDialog::DontUseNativeDialog;
+  QString filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(), filter, &selectedFilter, opt);
   std::string filename           = filePathOfSettingsFile.toStdString();
   auto selectedEndian            = getEndianFromFilter(selectedFilter);
   if(!filename.ends_with(selectedEndian)) {

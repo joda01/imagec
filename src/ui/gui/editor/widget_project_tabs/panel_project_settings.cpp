@@ -362,7 +362,8 @@ void PanelProjectSettings::toSettings()
 void PanelProjectSettings::onOpenWorkingDirectoryClicked()
 {
   QString folderToOpen      = QDir::homePath();
-  QString selectedDirectory = QFileDialog::getExistingDirectory(this, "Select a directory", folderToOpen);
+  QFileDialog::Options opt  = QFileDialog::DontUseNativeDialog;
+  QString selectedDirectory = QFileDialog::getExistingDirectory(this, "Select a directory", folderToOpen, opt);
 
   if(selectedDirectory.isEmpty()) {
     return;

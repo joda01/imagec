@@ -34,11 +34,11 @@ int main(int argc, char *argv[])
   setenv("QT_SCREEN_SCALE_FACTORS", "1", 1);
 
   //
-  signal(SIGSEGV, crash_handler);
-  signal(SIGABRT, crash_handler);
-  signal(SIGFPE, crash_handler);
-  signal(SIGILL, crash_handler);
-  signal(SIGBUS, crash_handler);
+  // signal(SIGSEGV, crash_handler);
+  // signal(SIGABRT, crash_handler);
+  // signal(SIGFPE, crash_handler);
+  // signal(SIGILL, crash_handler);
+  // signal(SIGBUS, crash_handler);
 
 #endif
 

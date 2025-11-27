@@ -106,8 +106,9 @@ PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMai
     openTemplate->setStatusTip("Open pipeline from template");
     connect(openTemplate, &QAction::triggered, [this]() {
       QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+      QFileDialog::Options opt       = QFileDialog::DontUseNativeDialog;
       QString filePathOfSettingsFile = QFileDialog::getOpenFileName(
-          this, "Open template", folderToOpen, "ImageC template files (*" + QString(joda::fs::EXT_PIPELINE_TEMPLATE.data()) + ")");
+          this, "Open template", folderToOpen, "ImageC template files (*" + QString(joda::fs::EXT_PIPELINE_TEMPLATE.data()) + ")", nullptr, opt);
       if(filePathOfSettingsFile.isEmpty()) {
         return;
       }
@@ -652,8 +653,9 @@ void PanelPipeline::movePipelineToPosition(size_t fromPos, size_t newPosIn)
 void PanelPipeline::saveAsTemplate()
 {
   QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
-  QString filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save template", folderToOpen,
-                                                                "ImageC template files (*" + QString(joda::fs::EXT_PIPELINE_TEMPLATE.data()) + ")");
+  QFileDialog::Options opt       = QFileDialog::DontUseNativeDialog;
+  QString filePathOfSettingsFile = QFileDialog::getSaveFileName(
+      this, "Save template", folderToOpen, "ImageC template files (*" + QString(joda::fs::EXT_PIPELINE_TEMPLATE.data()) + ")", nullptr, opt);
   if(filePathOfSettingsFile.isEmpty()) {
     return;
   }

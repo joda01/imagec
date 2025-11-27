@@ -105,9 +105,11 @@ PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList>
     auto *openTemplate = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("folder-open"), "Open object class template");
     openTemplate->setStatusTip("Open object class template");
     connect(openTemplate, &QAction::triggered, [this]() {
-      QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
-      QString filePathOfSettingsFile = QFileDialog::getOpenFileName(
-          this, "Open template", folderToOpen, "ImageC classification templates (*" + QString(joda::fs::EXT_CLASS_CLASS_TEMPLATE.data()) + ")");
+      QString folderToOpen     = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+      QFileDialog::Options opt = QFileDialog::DontUseNativeDialog;
+      QString filePathOfSettingsFile =
+          QFileDialog::getOpenFileName(this, "Open template", folderToOpen,
+                                       "ImageC classification templates (*" + QString(joda::fs::EXT_CLASS_CLASS_TEMPLATE.data()) + ")", nullptr, opt);
       if(filePathOfSettingsFile.isEmpty()) {
         return;
       }
@@ -510,8 +512,9 @@ void PanelClassification::loadTemplates()
 void PanelClassification::saveAsNewTemplate()
 {
   QString templatePath      = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+  QFileDialog::Options opt  = QFileDialog::DontUseNativeDialog;
   QString pathToStoreFileIn = QFileDialog::getSaveFileName(
-      this, "Save File", templatePath, "ImageC classification template (*" + QString(joda::fs::EXT_CLASS_CLASS_TEMPLATE.data()) + ")");
+      this, "Save File", templatePath, "ImageC classification template (*" + QString(joda::fs::EXT_CLASS_CLASS_TEMPLATE.data()) + ")", nullptr, opt);
 
   if(pathToStoreFileIn.isEmpty()) {
     return;

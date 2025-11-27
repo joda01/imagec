@@ -511,8 +511,7 @@ void WindowMain::onOpenClicked()
     folderToOpen = mAnalyzeSettings.getProjectPath().string().data();
   }
 
-  QFileDialog::Options opt;
-
+  QFileDialog::Options opt = QFileDialog::DontUseNativeDialog;
   QString filePath =
       QFileDialog::getOpenFileName(this, "Open File", folderToOpen,
                                    "ImageC project, template or results files (*" + QString(joda::fs::EXT_PROJECT.data()) + " *" +
@@ -775,11 +774,13 @@ bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
       if(!std::filesystem::exists(filePath)) {
         std::filesystem::create_directories(filePath);
       }
-      filePath = filePath / (joda::fs::FILE_NAME_PROJECT_DEFAULT + joda::fs::EXT_PROJECT);
+      filePath                 = filePath / (joda::fs::FILE_NAME_PROJECT_DEFAULT + joda::fs::EXT_PROJECT);
+      QFileDialog::Options opt = QFileDialog::DontUseNativeDialog;
       QString filePathOfSettingsFile =
           QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(),
                                        "ImageC project files (*" + QString(joda::fs::EXT_PROJECT.data()) + ");;ImageC project template (*" +
-                                           QString(joda::fs::EXT_PROJECT_TEMPLATE.data()) + ")");
+                                           QString(joda::fs::EXT_PROJECT_TEMPLATE.data()) + ")",
+                                       nullptr, opt);
       filename = filePathOfSettingsFile.toStdString();
     }
     bool storeAsTemplate = false;
