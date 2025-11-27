@@ -193,8 +193,8 @@ private:
   void addPolygonToToObjectMap(const QPolygonF &);
   void keyPressEvent(QKeyEvent *event) override;
   auto getTileInfoInternal() const -> enums::TileInfo;
+  void scheduleUpdate();
 
-private:
   /////////////////////////////////////////////////////
   const int32_t MAX_POLYGONS_TO_DRAW = 30000;
 
@@ -298,5 +298,6 @@ private:
   std::shared_ptr<atom::ObjectList> mObjectMap;
 
   mutable std::mutex mImageResetMutex;
+  std::atomic<bool> mPendingUpdate;
 };
 }    // namespace joda::ui::gui

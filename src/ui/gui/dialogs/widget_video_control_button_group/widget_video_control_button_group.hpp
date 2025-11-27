@@ -18,6 +18,7 @@
 #include <qtoolbar.h>
 #include <qwidget.h>
 #include <functional>
+#include <mutex>
 #include "ui/gui/helper/icon_generator.hpp"
 
 namespace joda::ui::gui {
@@ -113,6 +114,7 @@ public:
 
   void setMaxTimeStacks(int32_t maxTStacks)
   {
+    std::lock_guard<std::mutex> lock(mSetMutex);
     mTempMaxTimeStacks = maxTStacks;
     mSpinnerActTimeStack->setMaximum(maxTStacks);
     if(mTempMaxTimeStacks <= 1) {
@@ -198,6 +200,7 @@ private:
   int32_t mTempMaxTimeStacks   = 0;
 
   std::function<void(void)> mCallback;
+  std::mutex mSetMutex;
 };
 
 }    // namespace joda::ui::gui

@@ -213,7 +213,7 @@ void PanelImageView::resetImage()
   mImageMeta = {};
 
   fitImageToScreenSize();
-  viewport()->update();
+  scheduleUpdate();
 }
 
 ///
@@ -238,7 +238,7 @@ void PanelImageView::setProjectPath(const std::filesystem::path &path)
 void PanelImageView::repaintImage()
 {
   if(mWaitBannerVisible) {
-    viewport()->update();
+    scheduleUpdate();
   }
 }
 
@@ -691,7 +691,7 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
     if(mShowCrosshandCursor && event->button() == Qt::RightButton) {
       mCrossCursorInfo.mCursorPos = event->pos();
       mCrossCursorInfo.pixelInfo  = fetchPixelInfoFromMousePosition(event->pos());
-      viewport()->update();
+      scheduleUpdate();
       return;
     }
     if(event->button() == Qt::LeftButton) {
@@ -730,7 +730,7 @@ void PanelImageView::mousePressEvent(QMouseEvent *event)
           mTempPolygonItem->setPolygon(QPolygonF(mPolygonPoints.begin(), mPolygonPoints.end()));
         }
       }
-      viewport()->update();
+      scheduleUpdate();
     }
   }
 }
@@ -811,7 +811,7 @@ void PanelImageView::mouseMoveEvent(QMouseEvent *event)
     }
     QGraphicsView::mouseMoveEvent(event);
   }
-  viewport()->update();
+  scheduleUpdate();
 }
 
 ///
@@ -948,6 +948,8 @@ void PanelImageView::fitImageToScreenSize()
 ///
 void PanelImageView::paintEvent(QPaintEvent *event)
 {
+  mPendingUpdate = false;
+  DurationCount counter("Pain event panel image view");
   QGraphicsView::paintEvent(event);
   const float RECT_SIZE  = 80;
   const int RECT_START_X = 10;
@@ -1737,7 +1739,7 @@ void PanelImageView::setShowThumbnail(bool showThumbnail)
 {
   std::lock_guard<std::mutex> locked(mImageResetMutex);
   mShowThumbnail = showThumbnail;
-  viewport()->update();
+  scheduleUpdate();
 }
 
 ///
@@ -1781,7 +1783,7 @@ void PanelImageView::setShowCrosshandCursor(bool show)
   std::lock_guard<std::mutex> locked(mImageResetMutex);
   mShowCrosshandCursor       = show;
   mCrossCursorInfo.pixelInfo = fetchPixelInfoFromMousePosition(mCrossCursorInfo.mCursorPos);
-  viewport()->update();
+  scheduleUpdate();
 }
 
 ///
@@ -1809,7 +1811,7 @@ void PanelImageView::setCursorPosition(const QPoint &pos)
   std::lock_guard<std::mutex> locked(mImageResetMutex);
   mCrossCursorInfo.mCursorPos = pos;
   mCrossCursorInfo.pixelInfo  = fetchPixelInfoFromMousePosition(mCrossCursorInfo.mCursorPos);
-  viewport()->update();
+  scheduleUpdate();
 }
 
 ///
@@ -1834,7 +1836,7 @@ auto PanelImageView::getCursorPosition() -> QPoint
 void PanelImageView::setInfoText(const std::string &text)
 {
   mInfoText = text;
-  viewport()->update();
+  scheduleUpdate();
 }
 
 ///
@@ -1965,7 +1967,7 @@ void PanelImageView::setLoadingImage(bool waiting)
     return;
   }
   mLoadingImage = waiting;
-  viewport()->update();
+  scheduleUpdate();
 }
 
 ///
@@ -1981,7 +1983,7 @@ void PanelImageView::setWaiting(bool waiting)
     return;
   }
   mWaiting = waiting;
-  viewport()->update();
+  scheduleUpdate();
 }
 
 ///
@@ -2042,6 +2044,22 @@ void PanelImageView::addPolygonToToObjectMap(const QPolygonF &poly)
   mObjectMap->push_back(paintedRoi);
   mObjectMap->triggerChangeCallback();
   setRegionsOfInterestFromObjectList();
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::scheduleUpdate()
+{
+  if(!mPendingUpdate) {
+    mPendingUpdate = true;
+    // Schedule update on the next event loop iteration
+    QTimer::singleShot(0, this, [this]() { viewport()->update(); });
+  }
 }
 
 }    // namespace joda::ui::gui

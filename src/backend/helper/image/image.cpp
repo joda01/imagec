@@ -249,7 +249,6 @@ void Image::refreshImageToPaint(cv::Mat &img16)
                      QImage::Format_BGR888)
                   .copy();
   }
-  update();
 }
 
 ///
@@ -277,11 +276,13 @@ QRectF Image::boundingRect() const
 ///
 void Image::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
-  if(mPaintImage.try_lock()) {
-    if(!mQImage.isNull() && mQImage.width() > 0) {
-      painter->drawImage(0, 0, mQImage);
-    }
-    mPaintImage.unlock();
+  QImage localCopy;
+  {
+    std::lock_guard<std::mutex> guard(mPaintImage);
+    localCopy = mQImage;    // Implicit shared but safe: no writer now
+  }
+  if(!localCopy.isNull()) {
+    painter->drawImage(0, 0, localCopy);
   }
 }
 

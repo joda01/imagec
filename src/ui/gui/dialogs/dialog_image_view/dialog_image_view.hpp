@@ -110,10 +110,10 @@ private:
   QAction *mSeparatorFillAndOverlays;
 
   // AI Trainer ////////////////////////////////////////////////////
-  DialogMlTrainer *mDialogMlTrainer;
+  DialogMlTrainer *mDialogMlTrainer = nullptr;
 
   // T-STACK //////////////////////////////////////////////////
-  VideoControlButtonGroup *mVideoButtonGroup;
+  VideoControlButtonGroup *mVideoButtonGroup = nullptr;
 
   // Z-STACK //////////////////////////////////////////////////
   int32_t mSelectedZStack = 0;
