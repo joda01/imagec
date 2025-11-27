@@ -35,11 +35,13 @@ ContourOverlay::ContourOverlay(QGraphicsItem *parent) : QGraphicsItem(parent)
 /// \param[out]
 /// \return
 ///
-void ContourOverlay::refresh(const ColorMap_t *data, const cv::Size &previewSize)
+void ContourOverlay::refresh(ColorMap_t &&data, const cv::Size &previewSize)
 {
-  mData        = data;
-  mPreviewSize = previewSize;
-
+  {
+    std::lock_guard<std::mutex> lock(mPaintMutex);
+    mData        = std::move(data);
+    mPreviewSize = previewSize;
+  }
   update();
 }
 
@@ -52,10 +54,8 @@ void ContourOverlay::refresh(const ColorMap_t *data, const cv::Size &previewSize
 ///
 void ContourOverlay::paint(QPainter *painter, const QStyleOptionGraphicsItem * /*option*/, QWidget * /*widget*/)
 {
-  if(mData == nullptr) {
-    return;
-  }
-  for(const auto &[pen, elem] : *mData) {
+  std::lock_guard<std::mutex> lock(mPaintMutex);
+  for(const auto &[pen, elem] : mData) {
     painter->setPen(pen);
     painter->drawPolygon(elem);    // Single call for all polygons of this color
   }

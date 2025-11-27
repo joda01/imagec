@@ -80,7 +80,7 @@ void RoiOverlay::refresh()
   // Create a QImage with ARGB32 (direct pixel access)
   QImage qimg(mPreviewSize.width, mPreviewSize.height, QImage::Format_ARGB32);
   qimg.fill(Qt::transparent);
-  mContoursPerColor.clear();
+  ColorMap_t contourPerColor;
 
   // Optimization 1: Pre-calculate the pixel value and alpha blending
   //
@@ -102,7 +102,7 @@ void RoiOverlay::refresh()
         }
 
         // Prepare contour
-        prepareContour(&roi, col);
+        prepareContour(&roi, col, contourPerColor);
 
         // Optimization 3: Efficiently access Mat data
         const auto &mask = roi.getMask();
@@ -158,7 +158,7 @@ void RoiOverlay::refresh()
   prepareGeometryChange();
   setPixmap(pix);
   setAlpha(mAlpha);
-  mContourOverlay->refresh(&mContoursPerColor, mPreviewSize);
+  mContourOverlay->refresh(std::move(contourPerColor), mPreviewSize);
 }
 
 ///
@@ -168,7 +168,7 @@ void RoiOverlay::refresh()
 /// \param[out]
 /// \return
 ///
-void RoiOverlay::prepareContour(const joda::atom::ROI *roi, const QColor &colBorder)
+void RoiOverlay::prepareContour(const joda::atom::ROI *roi, const QColor &colBorder, ColorMap_t &contourPerColor)
 {
   double scaleX = static_cast<double>(mPreviewSize.width) / static_cast<double>(mImageSize.width);
   double scaleY = static_cast<double>(mPreviewSize.height) / static_cast<double>(mImageSize.height);
@@ -187,9 +187,9 @@ void RoiOverlay::prepareContour(const joda::atom::ROI *roi, const QColor &colBor
   // The QRgb type is defined as quint32.
   if(!points.empty()) {
     if(roi->isSelected()) {
-      mContoursPerColor.push_back(std::pair<QPen, QPolygonF>{QPen(Qt::yellow, 1, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin), QPolygonF(points)});
+      contourPerColor.push_back(std::pair<QPen, QPolygonF>{QPen(Qt::yellow, 1, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin), QPolygonF(points)});
     } else {
-      mContoursPerColor.push_back(std::pair<QPen, QPolygonF>{QPen(colBorder, 1, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin), QPolygonF(points)});
+      contourPerColor.push_back(std::pair<QPen, QPolygonF>{QPen(colBorder, 1, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin), QPolygonF(points)});
     }
   }
 }

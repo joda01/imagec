@@ -51,7 +51,7 @@ signals:
 private:
   void refresh();
   /////////////////////////////////////////////////////
-  void prepareContour(const joda::atom::ROI *roi, const QColor &colBorder);
+  void prepareContour(const joda::atom::ROI *roi, const QColor &colBorder, ColorMap_t &contourPerColor);
   void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
   [[nodiscard]] joda::atom::ROI *findRoiAt(const QPointF &itemPoint) const;
 
@@ -71,5 +71,5 @@ private:
   QWidget *mParentWidget;
 
   // Cntours ///////////////
-  ColorMap_t mContoursPerColor;
+  std::mutex mWriteContourMutex;
 };

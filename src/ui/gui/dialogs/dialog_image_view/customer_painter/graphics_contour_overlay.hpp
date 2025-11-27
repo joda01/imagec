@@ -14,6 +14,7 @@
 #include <qcolor.h>
 #include <qgraphicseffect.h>
 #include <qgraphicsitem.h>
+#include <mutex>
 #include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/artifacts/roi/roi.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
@@ -29,7 +30,7 @@ public:
   ContourOverlay(QGraphicsItem *parent = nullptr);
 
   /////////////////////////////////////////////////////
-  void refresh(const ColorMap_t *, const cv::Size &previewSize);
+  void refresh(ColorMap_t &&, const cv::Size &previewSize);
 
 private:
   /////////////////////////////////////////////////////
@@ -46,5 +47,6 @@ private:
   }
 
   cv::Size mPreviewSize;
-  const ColorMap_t *mData = nullptr;
+  ColorMap_t mData;
+  std::mutex mPaintMutex;
 };
