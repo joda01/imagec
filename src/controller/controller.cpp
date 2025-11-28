@@ -117,7 +117,9 @@ void Controller::initApplication()
 ///
 void Controller::cleanShutdownApplication()
 {
-  mLastImageReader.reset();
+  if(mLastImageReader) {
+    mLastImageReader.reset();
+  }
   joda::image::reader::ImageReader::destroy();
   joda::log::logInfo("ImageC says goodbye!");
   log::joinLogger();

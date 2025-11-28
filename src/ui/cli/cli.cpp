@@ -245,6 +245,7 @@ int Cli::startCommandLineController(int argc, char *argv[])
     }
   }
 
+  ctrl::Controller::cleanShutdownApplication();
   return 0;
 }
 
@@ -266,6 +267,7 @@ void Cli::startAnalyze(const std::filesystem::path &pathToSettingsFile, const st
     analyzeSettings = joda::settings::Settings::openSettings(pathToSettingsFile);
   } catch(const std::exception &ex) {
     joda::log::logError("Could not load settings file >" + std::string(ex.what()) + "<!");
+    ctrl::Controller::cleanShutdownApplication();
     std::exit(1);
   }
 
@@ -284,6 +286,7 @@ void Cli::startAnalyze(const std::filesystem::path &pathToSettingsFile, const st
   }
   if(hasError) {
     joda::log::logError("Configuration has errors!");
+    ctrl::Controller::cleanShutdownApplication();
     std::exit(0);
   }
 
@@ -326,6 +329,7 @@ void Cli::startAnalyze(const std::filesystem::path &pathToSettingsFile, const st
   }
   joda::log::logProgress(1, "Completed");
   joda::log::logInfo("Job >" + jobName + "< finished!");
+  ctrl::Controller::cleanShutdownApplication();
   std::exit(0);
 }
 
@@ -352,6 +356,7 @@ void Cli::exportData(const std::filesystem::path &pathToDatabasefile, std::files
       tStack = std::stoi(tStackIn);
     } catch(...) {
       joda::log::logError("Time stack must be a number!");
+      ctrl::Controller::cleanShutdownApplication();
       std::exit(1);
     }
   }
@@ -377,6 +382,7 @@ void Cli::exportData(const std::filesystem::path &pathToDatabasefile, std::files
       classes.emplace(settings.classes);
     } catch(const std::exception &ex) {
       joda::log::logError("Could not load template >" + classExportTemplate + "<. What: " + std::string(ex.what()));
+      ctrl::Controller::cleanShutdownApplication();
       exit(1);
     }
   }
@@ -388,8 +394,10 @@ void Cli::exportData(const std::filesystem::path &pathToDatabasefile, std::files
                             classes);
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
+    ctrl::Controller::cleanShutdownApplication();
     std::exit(1);
   }
+  ctrl::Controller::cleanShutdownApplication();
   std::exit(0);
 }
 
@@ -466,6 +474,7 @@ auto toFormatEnum(const std::string &type) -> exporter::xlsx::ExportSettings::Ex
     typeEnum = exporter::xlsx::ExportSettings::ExportFormat::R;
   } else {
     joda::log::logError("Invalid export type!");
+    ctrl::Controller::cleanShutdownApplication();
     std::exit(1);
   }
   return typeEnum;
@@ -480,6 +489,7 @@ auto toStyleEnum(const std::string &format) -> exporter::xlsx::ExportSettings::E
     formatEnum = exporter::xlsx::ExportSettings::ExportStyle::HEATMAP;
   } else {
     joda::log::logError("Invalid export format!");
+    ctrl::Controller::cleanShutdownApplication();
     std::exit(1);
   }
   return formatEnum;

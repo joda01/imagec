@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <string>
 #include "ui/gui/dialogs/dialog_image_view/panel_image_view.hpp"
+#include "ui/gui/helper/debugging.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "panel_histogram.hpp"
 
@@ -113,6 +114,7 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
     mSliderHistogramMin->blockSignals(true);
     mSliderHistogramMax->blockSignals(true);
 
+    CHECK_GUI_THREAD(mSliderHistogramMin);
     mSliderHistogramMin->setMinimum(mSliderDisplayLower->value());
     mSliderHistogramMax->setMinimum(mSliderDisplayLower->value());
 
@@ -120,6 +122,7 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
                                                     static_cast<int32_t>(mSliderDisplayLower->value()),
                                                     static_cast<int32_t>(mSliderDisplayUpper->value()));
     mHistogramPanel->update();
+    mImagePanel->repaintImage();
 
     mSliderHistogramMin->blockSignals(false);
     mSliderHistogramMax->blockSignals(false);
@@ -129,6 +132,7 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
     mSliderHistogramMin->blockSignals(true);
     mSliderHistogramMax->blockSignals(true);
 
+    CHECK_GUI_THREAD(mSliderHistogramMin);
     mSliderHistogramMin->setMaximum(mSliderDisplayUpper->value());
     mSliderHistogramMax->setMaximum(mSliderDisplayUpper->value());
 
@@ -136,7 +140,7 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
                                                     static_cast<int32_t>(mSliderDisplayLower->value()),
                                                     static_cast<int32_t>(mSliderDisplayUpper->value()));
     mHistogramPanel->update();
-
+    mImagePanel->repaintImage();
     mSliderHistogramMin->blockSignals(false);
     mSliderHistogramMax->blockSignals(false);
   });
@@ -165,35 +169,35 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
 ///
 void DialogHistogramSettings::getHistogramSettingsFromImage()
 {
-  mSliderHistogramMin->blockSignals(true);
-  mSliderHistogramMax->blockSignals(true);
-  mImageChannel->blockSignals(true);
-  mColorMode->blockSignals(true);
-
-  const auto lowerArea = mImagePanel->mutableImage()->getHistogramDisplayAreaLower();
-  const auto upperArea = mImagePanel->mutableImage()->getHistogramDisplayAreaUpper();
-
-  mSliderHistogramMin->setMinimum(lowerArea);
-  mSliderHistogramMin->setMaximum(upperArea);
-
-  mSliderHistogramMax->setMinimum(lowerArea);
-  mSliderHistogramMax->setMaximum(upperArea);
-
-  mSliderHistogramMin->setValue(mImagePanel->mutableImage()->getLowerLevelContrast());
-  mSliderHistogramMax->setValue(mImagePanel->mutableImage()->getUpperLevelContrast());
-
-  mImageChannel->setCurrentIndex(mImagePanel->getImagePlane().cStack);
-
-  const bool usePseudoColors = mImagePanel->mutableImage()->getUsePseudoColors();
-  if(usePseudoColors) {
-    mColorMode->setCurrentIndex(1);
-  } else {
-    mColorMode->setCurrentIndex(0);
-  }
-
   QMetaObject::invokeMethod(
       mSliderDisplayLower,
-      [this, upperArea, lowerArea]() {
+      [this]() {
+        mSliderHistogramMin->blockSignals(true);
+        mSliderHistogramMax->blockSignals(true);
+        mImageChannel->blockSignals(true);
+        mColorMode->blockSignals(true);
+
+        const auto lowerArea = mImagePanel->mutableImage()->getHistogramDisplayAreaLower();
+        const auto upperArea = mImagePanel->mutableImage()->getHistogramDisplayAreaUpper();
+
+        mSliderHistogramMin->setMinimum(lowerArea);
+        mSliderHistogramMin->setMaximum(upperArea);
+
+        mSliderHistogramMax->setMinimum(lowerArea);
+        mSliderHistogramMax->setMaximum(upperArea);
+
+        mSliderHistogramMin->setValue(mImagePanel->mutableImage()->getLowerLevelContrast());
+        mSliderHistogramMax->setValue(mImagePanel->mutableImage()->getUpperLevelContrast());
+
+        mImageChannel->setCurrentIndex(mImagePanel->getImagePlane().cStack);
+
+        const bool usePseudoColors = mImagePanel->mutableImage()->getUsePseudoColors();
+        if(usePseudoColors) {
+          mColorMode->setCurrentIndex(1);
+        } else {
+          mColorMode->setCurrentIndex(0);
+        }
+
         mSliderDisplayLower->blockSignals(true);
         mSliderDisplayUpper->blockSignals(true);
 
@@ -203,13 +207,13 @@ void DialogHistogramSettings::getHistogramSettingsFromImage()
         mSliderDisplayLower->blockSignals(false);
         mSliderDisplayUpper->blockSignals(false);
         mHistogramPanel->update();
+
+        mColorMode->blockSignals(false);
+        mImageChannel->blockSignals(false);
+        mSliderHistogramMin->blockSignals(false);
+        mSliderHistogramMax->blockSignals(false);
       },
       Qt::QueuedConnection);
-
-  mColorMode->blockSignals(false);
-  mImageChannel->blockSignals(false);
-  mSliderHistogramMin->blockSignals(false);
-  mSliderHistogramMax->blockSignals(false);
 }
 
 ///
@@ -234,7 +238,7 @@ void DialogHistogramSettings::applyHistogramSettingsToImage()
                                                   static_cast<int32_t>(mSliderDisplayUpper->value()));
 
   mHistogramPanel->update();
-
+  mImagePanel->repaintImage();
   blockSignals(false);
 }
 

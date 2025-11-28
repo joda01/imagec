@@ -70,12 +70,11 @@ void Starter::exec(int argc, char *argv[])
   // ==================================
   if(argc <= 1) {
     startUi(argc, argv);
+    ctrl::Controller::cleanShutdownApplication();
   } else {
     joda::ui::cli::Cli term;
     term.startCommandLineController(argc, argv);
   }
-
-  ctrl::Controller::cleanShutdownApplication();
 }
 
 class NoIconStyle : public QProxyStyle

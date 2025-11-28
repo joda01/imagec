@@ -310,8 +310,10 @@ void initLogger()
 
 void joinLogger()
 {
-  running.store(false);
-  worker.join();
+  if(worker.joinable()) {
+    running.store(false);
+    worker.join();
+  }
 }
 
 }    // namespace joda::log

@@ -740,8 +740,11 @@ void WindowMain::checkForSettingsChanged()
   std::lock_guard<std::mutex> lock(mCheckForSettingsChangedMutex);
   if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
     // Not equal
-    CHECK_GUI_THREAD(mSaveProject)
-    mSaveProject->setEnabled(true);
+
+    QMetaObject::invokeMethod(mSaveProject, [this]() {
+      CHECK_GUI_THREAD(mSaveProject)
+      mSaveProject->setEnabled(true);
+    });
     titlePr += "*";
     /// \todo check if all updates still work
     auto actClasses = getOutputClasses();
@@ -750,9 +753,10 @@ void WindowMain::checkForSettingsChanged()
       emit onOutputClassifierChanges();
     }
   } else {
-    // Equal
-    CHECK_GUI_THREAD(mSaveProject)
-    mSaveProject->setEnabled(false);
+    QMetaObject::invokeMethod(mSaveProject, [this]() {
+      CHECK_GUI_THREAD(mSaveProject)
+      mSaveProject->setEnabled(false);
+    });
   }
   setWindowTitlePrefix(titlePr);
   mCompilerLog->updateCompilerLog(mAnalyzeSettings);
