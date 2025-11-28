@@ -33,10 +33,10 @@
                     "name": "QT_DEBUG_PLUGINS",
                     "value": "1"
                 },
-                {
-                    "name": "QT_FATAL_WARNINGS",
-                    "value": "1"
-                },
+                //{
+                //    "name": "QT_FATAL_WARNINGS",
+                //    "value": "1"
+                //},
                 {
                     "name": "LANG",
                     "value": "C.UTF-8"
