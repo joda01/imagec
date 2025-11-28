@@ -19,6 +19,7 @@
 #include <qwidget.h>
 #include <functional>
 #include <mutex>
+#include "ui/gui/helper/debugging.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 
 namespace joda::ui::gui {
@@ -122,18 +123,26 @@ public:
         mSpinnerActTimeStack->setValue(0);
       }
       if(mSeekForward->isEnabled()) {
+        CHECK_GUI_THREAD(mSeekForward)
         mSeekForward->setEnabled(false);
+        CHECK_GUI_THREAD(mSeekBack)
         mSeekBack->setEnabled(false);
         mActionPlay->setChecked(false);
+        CHECK_GUI_THREAD(mActionPlay)
         mActionPlay->setEnabled(false);
+        CHECK_GUI_THREAD(mSpinnerActTimeStack)
         mSpinnerActTimeStack->setEnabled(false);
         mPlayTimer->stop();
       }
     } else {
       if(!mSeekForward->isEnabled()) {
+        CHECK_GUI_THREAD(mSeekForward)
         mSeekForward->setEnabled(true);
+        CHECK_GUI_THREAD(mSeekBack)
         mSeekBack->setEnabled(true);
+        CHECK_GUI_THREAD(mActionPlay)
         mActionPlay->setEnabled(true);
+        CHECK_GUI_THREAD(mSpinnerActTimeStack)
         mSpinnerActTimeStack->setEnabled(true);
       }
     }
@@ -146,17 +155,25 @@ public:
 
   void setEnabled(bool enabled)
   {
+    CHECK_GUI_THREAD(mActionPlay)
     mActionPlay->setEnabled(enabled);
+    CHECK_GUI_THREAD(mSeekBack)
     mSeekBack->setEnabled(enabled);
+    CHECK_GUI_THREAD(mSeekForward)
     mSeekForward->setEnabled(enabled);
+    CHECK_GUI_THREAD(mSpinnerActTimeStackAction)
     mSpinnerActTimeStackAction->setEnabled(enabled);
   }
 
   void setVisible(bool visible)
   {
+    CHECK_GUI_THREAD(mActionPlay)
     mActionPlay->setVisible(visible);
+    CHECK_GUI_THREAD(mSeekBack)
     mSeekBack->setVisible(visible);
+    CHECK_GUI_THREAD(mSeekForward)
     mSeekForward->setVisible(visible);
+    CHECK_GUI_THREAD(mSpinnerActTimeStackAction)
     mSpinnerActTimeStackAction->setVisible(visible);
   }
 

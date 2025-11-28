@@ -81,6 +81,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
 
   mLayout  = new QVBoxLayout();
   mToolbar = new QToolBar();
+  CHECK_GUI_THREAD(mToolbar)
   mToolbar->setVisible(false);
   mToolbar->setMovable(false);
   wm->addToolBar(Qt::ToolBarArea::TopToolBarArea, mToolbar);
@@ -149,13 +150,18 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   // Undo
   //
   mUndoAction = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("arrow-counter-clockwise"), "Undo");
+  CHECK_GUI_THREAD(mUndoAction)
   mUndoAction->setEnabled(false);
   mUndoAction->setStatusTip("Undo last setting");
   connect(mUndoAction, &QAction::triggered, [this]() {
     mSettings.undo();
+    CHECK_GUI_THREAD(mUndoAction)
     mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
   });
-  settings.registerHistoryChangeCallback([this] { mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size()); });
+  settings.registerHistoryChangeCallback([this] {
+    CHECK_GUI_THREAD(mUndoAction)
+    mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
+  });
   settings.registerSnapShotRestored([this](const joda::settings::Pipeline &pip) {
     clearPipeline();
     fromSettings(pip);
@@ -288,6 +294,7 @@ void PanelPipelineSettings::insertNewPipelineStep(size_t posToInsert, std::uniqu
 {
   mSettings.createSnapShot(enums::HistoryCategory::ADDED, "Added: " + command->getTitle().toStdString());
   mSettings.triggerPipelineChanged();
+  CHECK_GUI_THREAD(mUndoAction)
   mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
   command->registerDeleteButton(this);
 
@@ -367,6 +374,7 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete, bool upda
       if(updateHistoryEntry) {
         mSettings.createSnapShot(enums::HistoryCategory::DELETED, "Removed: " + deletedCommandTitle);
         mSettings.triggerPipelineChanged();
+        CHECK_GUI_THREAD(mUndoAction)
         mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
         mWindowMain->checkForSettingsChanged();
       }
@@ -553,6 +561,7 @@ void PanelPipelineSettings::clearPipeline()
 void PanelPipelineSettings::pipelineSavedEvent()
 {
   mSettings.createSnapShot(enums::HistoryCategory::SAVED, "Saved");
+  CHECK_GUI_THREAD(mUndoAction)
   mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
 }
 
@@ -602,6 +611,7 @@ void PanelPipelineSettings::fromSettings(const joda::settings::Pipeline &setting
   mWindowMain->checkForSettingsChanged();
 
   QTimer::singleShot(500, this, [this]() { mLoadingSettings = false; });
+  CHECK_GUI_THREAD(mUndoAction)
   mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
 }
 
@@ -659,9 +669,11 @@ void PanelPipelineSettings::setActive(bool setActive)
         mPreviewImage->getImagePanel()->reloadImage();
       }
     }
+    CHECK_GUI_THREAD(mToolbar)
     mToolbar->setVisible(true);
     mIsActiveShown = true;
     setImageMustBeRefreshed(true);
+    CHECK_GUI_THREAD(mUndoAction)
     mUndoAction->setEnabled(mSettings.getHistoryIndex() + 1 < mSettings.getHistory().size());
     mPreviewImage->getImagePanel()->setShowEditedImage(mActionEditMode->isChecked());
 
@@ -678,6 +690,7 @@ void PanelPipelineSettings::setActive(bool setActive)
     std::lock_guard<std::mutex> lock(mShutingDownMutex);
     setImageMustBeRefreshed(false);
     mIsActiveShown = false;
+    CHECK_GUI_THREAD(mToolbar)
     mToolbar->setVisible(false);
     mPreviewImage->getImagePanel()->setShowEditedImage(false);
     mDialogHistory->hide();

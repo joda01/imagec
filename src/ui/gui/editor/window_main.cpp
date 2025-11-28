@@ -117,12 +117,31 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   getController()->registerImageLookupCallback([this](joda::filesystem::State state) {
     if(state == joda::filesystem::State::FINISHED) {
       if(getController()->getNrOfFoundImages() > 0) {
-        mStartAnalysisToolButton->setEnabled(true);
+        QMetaObject::invokeMethod(
+            mStartAnalysisToolButton,
+            [this]() {
+              CHECK_GUI_THREAD(mStartAnalysisToolButton)
+              mStartAnalysisToolButton->setEnabled(true);
+            },
+            Qt::QueuedConnection);
+
       } else {
-        mStartAnalysisToolButton->setEnabled(false);
+        QMetaObject::invokeMethod(
+            mStartAnalysisToolButton,
+            [this]() {
+              CHECK_GUI_THREAD(mStartAnalysisToolButton)
+              mStartAnalysisToolButton->setEnabled(false);
+            },
+            Qt::QueuedConnection);
       }
     } else if(state == joda::filesystem::State::RUNNING) {
-      mStartAnalysisToolButton->setEnabled(false);
+      QMetaObject::invokeMethod(
+          mStartAnalysisToolButton,
+          [this]() {
+            CHECK_GUI_THREAD(mStartAnalysisToolButton)
+            mStartAnalysisToolButton->setEnabled(false);
+          },
+          Qt::QueuedConnection);
     }
   });
 
@@ -183,6 +202,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
     }
   }).detach();
 
+  CHECK_GUI_THREAD(mSaveProject)
   mSaveProject->setEnabled(false);
 
   QTimer::singleShot(0, this, SLOT(onNewProjectClicked();));
@@ -262,6 +282,7 @@ void WindowMain::createTopToolbar()
 
   mSaveProject = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("floppy-disk"), "Save", mTopToolBar);
   mSaveProject->setStatusTip("Save project");
+  CHECK_GUI_THREAD(mSaveProject)
   mSaveProject->setEnabled(false);
   connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
 
@@ -283,6 +304,7 @@ void WindowMain::createTopToolbar()
 
   mStartAnalysisToolButton = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("person-simple-run"), "Start analyze", mTopToolBar);
   mStartAnalysisToolButton->setStatusTip("Start analyze");
+  CHECK_GUI_THREAD(mStartAnalysisToolButton)
   mStartAnalysisToolButton->setEnabled(false);
   connect(mStartAnalysisToolButton, &QAction::triggered, this, &WindowMain::onStartClicked);
 
@@ -718,6 +740,7 @@ void WindowMain::checkForSettingsChanged()
   std::lock_guard<std::mutex> lock(mCheckForSettingsChangedMutex);
   if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
     // Not equal
+    CHECK_GUI_THREAD(mSaveProject)
     mSaveProject->setEnabled(true);
     titlePr += "*";
     /// \todo check if all updates still work
@@ -728,6 +751,7 @@ void WindowMain::checkForSettingsChanged()
     }
   } else {
     // Equal
+    CHECK_GUI_THREAD(mSaveProject)
     mSaveProject->setEnabled(false);
   }
   setWindowTitlePrefix(titlePr);

@@ -949,7 +949,7 @@ void PanelImageView::fitImageToScreenSize()
 void PanelImageView::paintEvent(QPaintEvent *event)
 {
   mPendingUpdate = false;
-  DurationCount counter("Pain event panel image view");
+  // DurationCount counter("Pain event panel image view");
   QGraphicsView::paintEvent(event);
   const float RECT_SIZE  = 80;
   const int RECT_START_X = 10;
@@ -1753,6 +1753,7 @@ void PanelImageView::setShowRois(bool show)
 {
   std::lock_guard<std::mutex> locked(mImageResetMutex);
   mShowRois = show;
+  CHECK_GUI_THREAD(mOverlayMasks)
   mOverlayMasks->setVisible(show);
   mContourOverlay->setVisible(show);
 }

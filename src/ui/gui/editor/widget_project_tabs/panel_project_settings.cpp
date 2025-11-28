@@ -75,6 +75,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
     auto *projectPath = new QHBoxLayout;
     projectPath->addWidget(mProjectFilePath);
     mOpenProjectPath = new QPushButton(generateSvgIcon<Style::REGULAR, Color::BLUE>("arrow-square-out"), "");
+    CHECK_GUI_THREAD(mOpenProjectPath)
     mOpenProjectPath->setEnabled(false);
     mOpenProjectPath->setStatusTip("Path ImageC uses to store project settings");
     connect(mOpenProjectPath, &QPushButton::clicked, [this]() { QDesktopServices::openUrl(QUrl("file:///" + mProjectFilePath->text())); });
@@ -167,9 +168,11 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
     mGroupByComboBox->setCurrentIndex(-1);
     connect(mGroupByComboBox, &QComboBox::currentIndexChanged, [this](int /*index*/) {
       if(mGroupByComboBox->currentData().toInt() == static_cast<int>(joda::enums::GroupBy::FILENAME)) {
+        CHECK_GUI_THREAD(mOpenGroupingSettings)
         mOpenGroupingSettings->setEnabled(true);
         mGroupingDialog->exec();
       } else {
+        CHECK_GUI_THREAD(mOpenGroupingSettings)
         mOpenGroupingSettings->setEnabled(false);
       }
     });
@@ -178,6 +181,7 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
     groupingLayout->addWidget(mGroupByComboBox);
     mOpenGroupingSettings = new QPushButton(generateSvgIcon<Style::REGULAR, Color::BLACK>("dots-three-outline-vertical"), "");
     mOpenGroupingSettings->setStatusTip("Grouping settings");
+    CHECK_GUI_THREAD(mOpenGroupingSettings)
     mOpenGroupingSettings->setEnabled(false);
     connect(mOpenGroupingSettings, &QPushButton::clicked, [this] { mGroupingDialog->exec(); });
     groupingLayout->addWidget(mOpenGroupingSettings);
@@ -291,8 +295,10 @@ void PanelProjectSettings::fromSettings(const joda::settings::AnalyzeSettings &s
       mGroupByComboBox->setCurrentIndex(-1);
     }
     if(mGroupByComboBox->currentData().toInt() == static_cast<int>(joda::enums::GroupBy::FILENAME)) {
+      CHECK_GUI_THREAD(mOpenGroupingSettings)
       mOpenGroupingSettings->setEnabled(true);
     } else {
+      CHECK_GUI_THREAD(mOpenGroupingSettings)
       mOpenGroupingSettings->setEnabled(false);
     }
   }

@@ -19,6 +19,7 @@
 #include <qwidgetaction.h>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
+#include "ui/gui/helper/debugging.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/showed_menu.hpp"
 
@@ -114,6 +115,7 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
         submenu->setChecked(true);
       }
       if(stat == enums::Stats::OFF) {
+        CHECK_GUI_THREAD(submenu)
         submenu->setVisible(false);
       }
       // Store menu and default setting
@@ -251,7 +253,9 @@ DialogClassSettings::DialogClassSettings(QWidget *parent) : QDialog(parent)
 ///
 void DialogClassSettings::setEditable(bool editable)
 {
+  CHECK_GUI_THREAD(mDialogClassName)
   mDialogClassName->setEnabled(editable);
+  CHECK_GUI_THREAD(mDialogColorCombo)
   mDialogColorCombo->setEnabled(editable);
 }
 

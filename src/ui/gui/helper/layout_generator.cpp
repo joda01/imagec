@@ -66,6 +66,7 @@ LayoutGenerator::LayoutGenerator(QWidget *parent, bool withDeleteButton, bool wi
     if(toolbarParent == nullptr) {
       container->addWidget(mToolbarTop);
     } else {
+      CHECK_GUI_THREAD(mToolbarTop)
       mToolbarTop->setVisible(false);
       toolbarParent->addToolBar(mToolbarTop);
     }

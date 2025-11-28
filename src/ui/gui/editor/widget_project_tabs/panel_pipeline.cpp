@@ -86,8 +86,10 @@ PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMai
       auto [path, series, ome] = mWindowMain->getImagePanel()->getSelectedImageOrFirst();
       if(path.empty()) {
         // Unit is only allowed to change if an image is opened, because we need the real pixel sizes.
+        CHECK_GUI_THREAD(mMeasureUnit)
         mMeasureUnit->setEnabled(false);
       } else {
+        CHECK_GUI_THREAD(mMeasureUnit)
         mMeasureUnit->setEnabled(true);
       }
       fromSettings(*mAnalyzeSettings);

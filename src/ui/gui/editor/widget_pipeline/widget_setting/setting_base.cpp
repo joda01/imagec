@@ -83,6 +83,7 @@ void SettingBase::changeUnit()
 ///
 void SettingBase::setDisplayIconVisible(bool visible)
 {
+  CHECK_GUI_THREAD(mDisplayLabelIcon)
   mDisplayLabelIcon->setVisible(visible);
 }
 
@@ -316,8 +317,10 @@ void SettingBase::setPathToHelpFile(const QString &helpFilePath)
 {
   mHelpFilePath = helpFilePath;
   if(!helpFilePath.isEmpty()) {
+    CHECK_GUI_THREAD(mHelpButton)
     mHelpButton->setVisible(true);
   } else {
+    CHECK_GUI_THREAD(mHelpButton)
     mHelpButton->setVisible(false);
   }
 }

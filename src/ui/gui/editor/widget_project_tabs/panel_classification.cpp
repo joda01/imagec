@@ -286,8 +286,10 @@ PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList>
     if(!mTableClasses->selectionModel()->hasSelection()) {
       imgPanel->setClassIdToUseForDrawing(enums::ClassId::NONE, QColor(TableModelClasses::NONE_COLOR.data()));
       mActionHideClass->setChecked(false);
+      CHECK_GUI_THREAD(mActionHideClass)
       mActionHideClass->setEnabled(false);
     } else {
+      CHECK_GUI_THREAD(mActionHideClass)
       mActionHideClass->setEnabled(true);
       auto indexes     = mTableClasses->selectionModel()->selectedIndexes();
       auto selectedRow = indexes.begin()->row();

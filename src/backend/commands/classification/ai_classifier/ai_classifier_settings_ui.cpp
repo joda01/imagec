@@ -75,6 +75,7 @@ AiClassifier::AiClassifier(joda::settings::AnalyzeSettings *analyzeSettings, jod
   mNumberOdModelClasses->setValue(static_cast<int32_t>(settings.modelClasses.size()));
   mNumberOdModelClasses->connectWithSetting(&nrOfClassesTmp);
   mNumberOdModelClasses->setShortDescription("Classes:");
+  CHECK_GUI_THREAD(mNumberOdModelClasses)
   mNumberOdModelClasses->setEnabled(false);
   connect(mNumberOdModelClasses.get(), &SettingBase::valueChanged, [this]() {
     // We have to add

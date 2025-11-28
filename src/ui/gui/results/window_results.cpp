@@ -322,6 +322,7 @@ void WindowResults::valueChangedEvent()
 ///
 void WindowResults::setHeatmapVisible(bool visible)
 {
+  CHECK_GUI_THREAD(mGraphContainer)
   mGraphContainer->setVisible(visible);
 }
 
@@ -361,6 +362,7 @@ void WindowResults::resetSettings()
 
   mHeatmapButton->setChecked(false);
   mTableButton->setChecked(true);
+  CHECK_GUI_THREAD(mDashboard)
   mDashboard->setVisible(true);
   mDashboard->reset();
   setHeatmapVisible(false);
@@ -405,12 +407,15 @@ auto WindowResults::createToolBar() -> QToolBar *
 
   mExportPng = exportMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("file-png"), "Save as PNG");
   mExportPng->setToolTip("Export PNG");
+  CHECK_GUI_THREAD(mExportPng)
   mExportPng->setVisible(false);
   connect(mExportPng, &QAction::triggered, [this]() { showFileSaveDialog("PNG image (*.png)"); });
 
   mExportSvg = exportMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("file-svg"), "Save as SVG");
   mExportSvg->setToolTip("Export SVG");
+  CHECK_GUI_THREAD(mExportSvg)
   mExportSvg->setVisible(false);
+  CHECK_GUI_THREAD(mExportSvg)
   mExportSvg->setEnabled(false);
   connect(mExportSvg, &QAction::triggered, [this]() { showFileSaveDialog("SVG image (*.svg)"); });
 
@@ -449,9 +454,13 @@ auto WindowResults::createToolBar() -> QToolBar *
   windowMode->setCheckable(true);
   windowMode->setStatusTip("Switch to window mode");
   connect(windowMode, &QAction::triggered, [this](bool enabled) {
+    CHECK_GUI_THREAD(mCascade)
     mCascade->setEnabled(enabled);
+    CHECK_GUI_THREAD(mTile)
     mTile->setEnabled(enabled);
+    CHECK_GUI_THREAD(mMinimize)
     mMinimize->setEnabled(enabled);
+    CHECK_GUI_THREAD(mRestore)
     mRestore->setEnabled(enabled);
     mDashboard->setWindowDisplayMode(enabled);
   });
@@ -459,24 +468,28 @@ auto WindowResults::createToolBar() -> QToolBar *
 
   windowMenu->addSeparator();
   mCascade = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("browsers"), "Cascade");
+  CHECK_GUI_THREAD(mCascade)
   mCascade->setEnabled(false);
   mCascade->setStatusTip("Cascade windows");
   connect(mCascade, &QAction::triggered, [this]() { mDashboard->cascadeSubWindows(); });
   windowMenu->addAction(mCascade);
 
   mTile = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("grid-four"), "Tile");
+  CHECK_GUI_THREAD(mTile)
   mTile->setEnabled(false);
   mTile->setStatusTip("Tile windows");
   connect(mTile, &QAction::triggered, [this]() { mDashboard->tileSubWindows(); });
   windowMenu->addAction(mTile);
 
   mMinimize = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("minus"), "Minimize");
+  CHECK_GUI_THREAD(mMinimize)
   mMinimize->setEnabled(false);
   mMinimize->setStatusTip("Minimize windows");
   connect(mMinimize, &QAction::triggered, [this]() { mDashboard->minimizeSubWindows(); });
   windowMenu->addAction(mMinimize);
 
   mRestore = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("app-window"), "Restore");
+  CHECK_GUI_THREAD(mRestore)
   mRestore->setEnabled(false);
   mRestore->setStatusTip("Restore windows");
   connect(mRestore, &QAction::triggered, [this]() { mDashboard->restoreSubWindows(); });
@@ -495,6 +508,7 @@ auto WindowResults::createToolBar() -> QToolBar *
   mMarkAsInvalid->setToolTip("Exclude selected image from statistics");
   mMarkAsInvalid->setCheckable(true);
   toolbar->addAction(mMarkAsInvalid);
+  CHECK_GUI_THREAD(mMarkAsInvalid)
   mMarkAsInvalid->setEnabled(false);
   connect(mMarkAsInvalid, &QAction::triggered, this, &WindowResults::onMarkAsInvalidClicked);
 
@@ -566,15 +580,21 @@ void WindowResults::refreshBreadCrump()
 {
   switch(mNavigation) {
     case Navigation::PLATE:
+      CHECK_GUI_THREAD(mBreadCrumpWell)
       mBreadCrumpWell->setVisible(false);
+      CHECK_GUI_THREAD(mBreadCrumpImage)
       mBreadCrumpImage->setVisible(false);
+      CHECK_GUI_THREAD(mOpenNextLevel)
       mOpenNextLevel->setVisible(true);
       mDockWidgetImagePreview->setFloating(false);
       mVideoControlButton->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
       break;
     case Navigation::WELL: {
+      CHECK_GUI_THREAD(mBreadCrumpWell)
       mBreadCrumpWell->setVisible(true);
+      CHECK_GUI_THREAD(mBreadCrumpImage)
       mBreadCrumpImage->setVisible(false);
+      CHECK_GUI_THREAD(mOpenNextLevel)
       mOpenNextLevel->setVisible(true);
       mDockWidgetImagePreview->setFloating(false);
       mVideoControlButton->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
@@ -596,8 +616,11 @@ void WindowResults::refreshBreadCrump()
       mBreadCrumpWell->setText(groupName.data());
     } break;
     case Navigation::IMAGE:
+      CHECK_GUI_THREAD(mBreadCrumpWell)
       mBreadCrumpWell->setVisible(true);
+      CHECK_GUI_THREAD(mBreadCrumpImage)
       mBreadCrumpImage->setVisible(true);
+      CHECK_GUI_THREAD(mOpenNextLevel)
       mOpenNextLevel->setVisible(false);
       mVideoControlButton->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());    // Reset
 
@@ -944,6 +967,7 @@ void WindowResults::setSelectedElement(table::TableCell value)
       mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(value.getId());
       mSelectedDataSet.imageMeta.reset();
       mSelectedDataSet.objectInfo.reset();
+      CHECK_GUI_THREAD(mMarkAsInvalid)
       mMarkAsInvalid->setEnabled(false);
 
       // Act data
@@ -963,6 +987,7 @@ void WindowResults::setSelectedElement(table::TableCell value)
         mMarkAsInvalid->setChecked(false);
       }
       mMarkAsInvalid->blockSignals(false);
+      CHECK_GUI_THREAD(mMarkAsInvalid)
       mMarkAsInvalid->setEnabled(true);
 
       // Act data
@@ -973,6 +998,7 @@ void WindowResults::setSelectedElement(table::TableCell value)
     break;
     case Navigation::IMAGE:
       mSelectedTileId = value.getObjectId();
+      CHECK_GUI_THREAD(mMarkAsInvalid)
       mMarkAsInvalid->setEnabled(false);
 
       mSelectedDataSet.objectInfo = mAnalyzer->selectObjectInfo(mSelectedTileId);
@@ -1146,11 +1172,15 @@ void WindowResults::openFromFile(const QString &pathToDbFile)
 void WindowResults::onShowTable()
 {
   if(mExportSvg != nullptr) {
+    CHECK_GUI_THREAD(mExportSvg)
     mExportSvg->setVisible(false);
+    CHECK_GUI_THREAD(mExportPng)
     mExportPng->setVisible(false);
   }
 
+  CHECK_GUI_THREAD(mDashboard)
   mDashboard->setVisible(true);
+  CHECK_GUI_THREAD(mDockWidgetGraphSettings)
   mDockWidgetGraphSettings->setVisible(false);
   setHeatmapVisible(false);
   refreshView();
@@ -1166,10 +1196,14 @@ void WindowResults::onShowTable()
 void WindowResults::onShowHeatmap()
 {
   if(mExportSvg != nullptr) {
+    CHECK_GUI_THREAD(mExportSvg)
     mExportSvg->setVisible(true);
+    CHECK_GUI_THREAD(mExportPng)
     mExportPng->setVisible(true);
   }
+  CHECK_GUI_THREAD(mDashboard)
   mDashboard->setVisible(false);
+  CHECK_GUI_THREAD(mDockWidgetGraphSettings)
   mDockWidgetGraphSettings->setVisible(true);
   mDockWidgetGraphSettings->raise();    // Make it the active tab
   setHeatmapVisible(true);
@@ -1294,6 +1328,7 @@ void WindowResults::saveData(const std::string &fileName, joda::exporter::xlsx::
     return;
   }
 
+  CHECK_GUI_THREAD(mExports)
   mExports->setEnabled(false);
   mBreadCrumpInfoText->setText("Export running ...");
   std::thread([this, fileName, format] {
@@ -1354,6 +1389,7 @@ void WindowResults::saveData(const std::string &fileName, joda::exporter::xlsx::
 ///
 void WindowResults::onFinishedExport()
 {
+  CHECK_GUI_THREAD(mExports)
   mExports->setEnabled(true);
   mBreadCrumpInfoText->setText("");
 }

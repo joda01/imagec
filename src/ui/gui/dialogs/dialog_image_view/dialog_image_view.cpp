@@ -412,19 +412,32 @@ auto DialogImageViewer::getImagePanel() -> PanelImageView *
 ///
 void DialogImageViewer::setReadOnly(bool visible)
 {
+  CHECK_GUI_THREAD(mFillOVerlay)
   mFillOVerlay->setVisible(visible);
+  CHECK_GUI_THREAD(showOverlay)
   showOverlay->setVisible(visible);
+  CHECK_GUI_THREAD(mOverlayOpaqueAction)
   mOverlayOpaqueAction->setVisible(visible);
+  CHECK_GUI_THREAD(mMoveAction)
   mMoveAction->setVisible(visible);
+  CHECK_GUI_THREAD(mSelectAction)
   mSelectAction->setVisible(visible);
+  CHECK_GUI_THREAD(mActionPaintRectangle)
   mActionPaintRectangle->setVisible(visible);
+  CHECK_GUI_THREAD(mActionPaintCircle)
   mActionPaintCircle->setVisible(visible);
+  CHECK_GUI_THREAD(mPaintPolygon)
   mPaintPolygon->setVisible(visible);
+  CHECK_GUI_THREAD(mActionMlTrainer)
   mActionMlTrainer->setVisible(visible);
 
+  CHECK_GUI_THREAD(mSeparatorStatePaint)
   mSeparatorStatePaint->setVisible(visible);
+  CHECK_GUI_THREAD(mSeparatorPaintHistogram)
   mSeparatorPaintHistogram->setVisible(visible);
+  CHECK_GUI_THREAD(mSeparatorHistogramMlTraining)
   mSeparatorHistogramMlTraining->setVisible(visible);
+  CHECK_GUI_THREAD(mSeparatorFillAndOverlays)
   mSeparatorFillAndOverlays->setVisible(visible);
 }
 

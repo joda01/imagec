@@ -18,6 +18,7 @@
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/project_settings.hpp"
 #include "ui/gui/helper/combo_placeholder.hpp"
+#include "ui/gui/helper/debugging.hpp"
 
 namespace joda::ui::gui {
 
@@ -70,6 +71,7 @@ public:
 
   void setProjectPath(const QString &path)
   {
+    CHECK_GUI_THREAD(mOpenProjectPath)
     mOpenProjectPath->setEnabled(!path.isEmpty());
     mProjectFilePath->setText(path);
   }

@@ -414,6 +414,7 @@ void Command::registerDeleteButton(PanelPipelineSettings *pipelineSettingsUi)
   mBreakpoint = mLayout.addActionButton("Breakpoint", generateSvgIcon<Style::DUETONE, Color::RED>("stop"));
   mBreakpoint->setCheckable(true);
   mBreakpoint->setChecked(mPipelineStep.breakPoint);
+  CHECK_GUI_THREAD(mBreakpoint)
   mBreakpoint->setVisible(false);
   connect(mBreakpoint, &QAction::triggered, [this](bool) { setBreakpoint(mBreakpoint->isChecked()); });
   mOtherCommands = pipelineSettingsUi->getListOfCommands();

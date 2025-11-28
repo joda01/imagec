@@ -44,6 +44,7 @@
 #include "ui/gui/dialogs/dialog_roi_manager/table_model_painted_polygon.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
 #include "ui/gui/editor/window_main.hpp"
+#include "ui/gui/helper/debugging.hpp"
 #include "ui/gui/helper/html_delegate.hpp"
 #include "ui/gui/helper/iconless_dialog_button_box.hpp"
 #include "ui/gui/helper/multicombobox.hpp"
@@ -150,6 +151,7 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
   // Stop training
   {
     mButtonStopTraining = new QPushButton("Stop");
+    CHECK_GUI_THREAD(mButtonStopTraining)
     mButtonStopTraining->setVisible(false);
     connect(mButtonStopTraining, &QPushButton::pressed, [this]() { stopTraining(); });
     layout->addRow(mButtonStopTraining);
@@ -239,8 +241,11 @@ void DialogMlTrainer::onTrainingFinished(bool okay, QString message)
 ///
 void DialogMlTrainer::setInProgress(bool inProgress)
 {
+  CHECK_GUI_THREAD(mButtonStartTraining)
   mButtonStartTraining->setVisible(!inProgress);
+  CHECK_GUI_THREAD(mButtonStopTraining)
   mButtonStopTraining->setVisible(inProgress);
+  CHECK_GUI_THREAD(mProgress)
   mProgress->setVisible(inProgress);
 }
 
