@@ -129,6 +129,18 @@ public:
   // }
 };
 
+#ifdef _WIN32
+#include <windows.h>
+void attachConsole()
+{
+  AllocConsole();
+  FILE *fp;
+  freopen_s(&fp, "CONOUT$", "w", stdout);
+  freopen_s(&fp, "CONOUT$", "w", stderr);
+  freopen_s(&fp, "CONIN$", "r", stdin);
+}
+#endif
+
 ///
 /// \brief
 /// \author
@@ -138,6 +150,10 @@ public:
 ///
 int Cli::startCommandLineController(int argc, char *argv[])
 {
+#ifdef _WIN32
+  attachConsole();
+#endif
+
   std::cout << Version::getLogo();
   CLI::App app{"High throughput image processing application.", "imagec"};
   app.formatter(std::make_shared<NoOptionOptsFormatter>());
