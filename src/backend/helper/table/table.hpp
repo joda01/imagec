@@ -246,6 +246,22 @@ public:
   void setColHeader(uint32_t colIdx, const settings::ResultsSettings::ColumnKey &data);
 
   Table();
+  Table(const Table &other)
+  {
+    mDataColOrganized = other.mDataColOrganized;
+    mTitle            = other.mTitle;
+  }
+
+  Table &operator=(const Table &other)
+  {
+    if(this == &other) {
+      return *this;
+    }
+    mDataColOrganized = other.mDataColOrganized;
+    mTitle            = other.mTitle;
+    return *this;
+  }
+
   explicit Table(const std::vector<TableColumn> &);
   void setTitle(const std::string &title);
   void init(uint32_t cols, uint32_t rows);
@@ -369,6 +385,7 @@ private:
   /////////////////////////////////////////////////////
   entry_t mDataColOrganized;    // <ROW, <COL, DATA>>
   std::string mTitle;
+  mutable std::mutex mAccessMutex;
 };
 
 }    // namespace joda::table

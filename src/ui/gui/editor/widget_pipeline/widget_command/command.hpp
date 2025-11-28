@@ -74,6 +74,7 @@ public:
   /////////////////////////////////////////////////////
   Command(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, const QString &title,
           const QString &description, const std::vector<std::string> &tags, const QString &icon, QWidget *parent, InOut type);
+  ~Command() override = default;
 
   helper::TabWidget *addTab(const QString &title, std::function<void()> beforeTabClose, bool showCloseButton);
   void removeTab(int32_t idx);
@@ -243,9 +244,14 @@ protected:
     return mAnalyzeSettings->getProjectPath();
   }
 
-  void registerProjectPathChangedCallback(const std::function<void(const std::filesystem::path &)> &fun)
+  uint64_t registerProjectPathChangedCallback(const std::function<void(const std::filesystem::path &)> &fun)
   {
-    mAnalyzeSettings->registerProjectPathChangedCallback(fun);
+    return mAnalyzeSettings->registerProjectPathChangedCallback(fun);
+  }
+
+  void unregisterProjectPathChangeCallback(uint64_t id)
+  {
+    mAnalyzeSettings->unregisterProjectPathChangedCallback(id);
   }
 
 private:

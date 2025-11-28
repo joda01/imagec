@@ -206,11 +206,16 @@ AiClassifier::AiClassifier(joda::settings::AnalyzeSettings *analyzeSettings, jod
   }
 
   updateModel();
-  registerProjectPathChangedCallback([this](const std::filesystem::path & /*path*/) {
+  mRegisterId = registerProjectPathChangedCallback([this](const std::filesystem::path & /*path*/) {
     refreshModels();
     mModelPath->setValue(mSettings.modelPath);
     updateModel();
   });
+}
+
+AiClassifier::~AiClassifier()
+{
+  unregisterProjectPathChangeCallback(mRegisterId);
 }
 
 void AiClassifier::updateInputFields(int32_t nrOfClasses, const settings::AiClassifierSettings::ModelParameters &model,

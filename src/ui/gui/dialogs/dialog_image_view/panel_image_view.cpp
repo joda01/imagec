@@ -17,7 +17,6 @@
 #include <qpixmap.h>
 #include <qsize.h>
 #include <qstatictext.h>
-#include <QtConcurrent/QtConcurrentRun>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -145,6 +144,7 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
   if(omeInfo != nullptr) {
     mOmeInfo = *omeInfo;
   }
+
   QThreadPool::globalInstance()->start([this, imagePath, loadOme = nullptr != omeInfo]() {
     {
       std::lock_guard<std::mutex> locked(mImageResetMutex);
@@ -177,7 +177,6 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
     setRegionsOfInterestFromObjectList();
     repaintImage();
     if(mLastPath != imagePath) {
-      mVideoControlButtons->setPlay(false);
       emit imageOpened();
       mLastPath = imagePath;
     } else if(mLastPlane.tStack != mPlane.tStack || mLastTile != mTile) {

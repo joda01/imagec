@@ -78,11 +78,23 @@ PixelClassifier::PixelClassifier(joda::settings::AnalyzeSettings *analyzeSetting
 
   updateModel();
 
-  registerProjectPathChangedCallback([this](const std::filesystem::path & /*path*/) {
+  mCallBackId = registerProjectPathChangedCallback([this](const std::filesystem::path & /*path*/) {
     refreshModels();
     mModelPath->setValue(mSettings.modelPath);
     updateModel();
   });
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+PixelClassifier::~PixelClassifier()
+{
+  unregisterProjectPathChangeCallback(mCallBackId);
 }
 
 ///

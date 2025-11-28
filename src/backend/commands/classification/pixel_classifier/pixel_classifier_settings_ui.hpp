@@ -44,6 +44,7 @@ public:
 
   PixelClassifier(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep,
                   settings::PixelClassifierSettings &settings, QWidget *parent);
+  ~PixelClassifier() override;
 
 private:
   /////////////////////////////////////////////////////
@@ -58,6 +59,7 @@ private:
   std::unique_ptr<SettingComboBox<settings::PixelClassifierSettings::GpuUsage>> mGpuMode;
   std::unique_ptr<SettingComboBoxString> mModelPath;
   QLabel *mModelDetails;
+  uint64_t mCallBackId = 0;
 };
 
 }    // namespace joda::ui::gui

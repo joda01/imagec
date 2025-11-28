@@ -45,6 +45,7 @@ public:
 
   AiClassifier(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, settings::AiClassifierSettings &settings,
                QWidget *parent);
+  ~AiClassifier() override;
 
 private:
   /////////////////////////////////////////////////////
@@ -265,6 +266,8 @@ private:
 
   void refreshModels();
   void updateModel();
+
+  uint64_t mRegisterId = 0;
 private slots:
   void addFilter(const std::string &title, int32_t classId, float handicap)
   {

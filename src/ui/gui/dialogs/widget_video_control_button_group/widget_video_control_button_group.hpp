@@ -33,16 +33,21 @@ public:
     // Video timer
     mPlayTimer = new QTimer();
     QObject::connect(mPlayTimer, &QTimer::timeout, [this] {
-      if(mSpinnerActTimeStack->value() < getMaxTimeStacks()) {
-        mSpinnerActTimeStack->blockSignals(true);
-        mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() + 1);
-        mSpinnerActTimeStack->blockSignals(false);
+      if(getMaxTimeStacks() <= 1) {
+        mPlayTimer->stop();
+        mActionPlay->setChecked(false);
       } else {
-        mSpinnerActTimeStack->blockSignals(true);
-        mSpinnerActTimeStack->setValue(0);
-        mSpinnerActTimeStack->blockSignals(false);
+        if(mSpinnerActTimeStack->value() < getMaxTimeStacks()) {
+          mSpinnerActTimeStack->blockSignals(true);
+          mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() + 1);
+          mSpinnerActTimeStack->blockSignals(false);
+        } else {
+          mSpinnerActTimeStack->blockSignals(true);
+          mSpinnerActTimeStack->setValue(0);
+          mSpinnerActTimeStack->blockSignals(false);
+        }
+        mCallback();
       }
-      mCallback();
     });
 
     mSpinnerActTimeStack = new QSpinBox();
@@ -213,11 +218,6 @@ public:
   bool isVideoRunning() const
   {
     return mActionPlay->isChecked();
-  }
-
-  void setPlay(bool play)
-  {
-    mActionPlay->setChecked(play);
   }
 
 private:

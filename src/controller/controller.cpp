@@ -332,8 +332,13 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
 {
   {
     std::lock_guard<std::mutex> lock(mReadMutex);
+    bool loadOme = false;
     if(mLastImageReader == nullptr || mLastImageReader->getImagePath() != imagePath) {
-      mLastImageReader       = std::make_unique<image::reader::ImageReader>(imagePath);
+      mLastImageReader = std::make_unique<image::reader::ImageReader>(imagePath);
+      loadOme          = true;
+    }
+
+    if(loadOme || omeOut.getNrOfSeries() == 0) {
       ome::PhyiscalSize phys = {};
       if(defaultPhysicalSizeSettings.mode == enums::PhysicalSizeMode::Manual) {
         phys = joda::ome::PhyiscalSize{static_cast<double>(defaultPhysicalSizeSettings.pixelWidth),

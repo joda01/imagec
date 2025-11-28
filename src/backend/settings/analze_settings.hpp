@@ -66,14 +66,22 @@ public:
   void setProjectPath(const std::filesystem::path &path)
   {
     projectPathWithFilename = path;
-    for(const auto &func : mProjectPathChangedCallback) {
+    for(const auto &[_, func] : mProjectPathChangedCallback) {
       func(path);
     }
   }
-  void registerProjectPathChangedCallback(const std::function<void(const std::filesystem::path &)> &fun)
+  uint64_t registerProjectPathChangedCallback(const std::function<void(const std::filesystem::path &)> &fun)
   {
-    mProjectPathChangedCallback.emplace_back(fun);
+    funId++;
+    mProjectPathChangedCallback.emplace(funId, fun);
+    return funId;
   }
+
+  void unregisterProjectPathChangedCallback(uint64_t id)
+  {
+    mProjectPathChangedCallback.erase(id);
+  }
+
   bool isProjectPathSet() const
   {
     return !projectPathWithFilename.empty();
@@ -83,14 +91,21 @@ public:
     projectPathWithFilename.clear();
   }
 
-  void registerSettingsChanged(const std::function<void(const AnalyzeSettings &)> &fun)
+  uint64_t registerSettingsChanged(const std::function<void(const AnalyzeSettings &)> &fun)
   {
-    mSettingsChangedCallbacks.emplace_back(fun);
+    funId++;
+    mSettingsChangedCallbacks.emplace(funId, fun);
+    return funId;
+  }
+
+  void unregisterSettingsChanged(uint64_t id)
+  {
+    mSettingsChangedCallbacks.erase(id);
   }
 
   void triggerSettingsChanged() const
   {
-    for(const auto &func : mSettingsChangedCallbacks) {
+    for(const auto &[_, func] : mSettingsChangedCallbacks) {
       func(*this);
     }
   }
@@ -104,7 +119,8 @@ private:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, configSchema, projectSettings, imageSetup, pipelineSetup, pipelines,
                                                        imagecMeta, meta);
 
-  std::vector<std::function<void(const std::filesystem::path &)>> mProjectPathChangedCallback;
-  std::vector<std::function<void(const AnalyzeSettings &)>> mSettingsChangedCallbacks;
+  std::map<uint64_t, std::function<void(const std::filesystem::path &)>> mProjectPathChangedCallback;
+  std::map<uint64_t, std::function<void(const AnalyzeSettings &)>> mSettingsChangedCallbacks;
+  static inline std::atomic<uint64_t> funId = 0;
 };
 }    // namespace joda::settings
