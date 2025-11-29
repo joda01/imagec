@@ -10,6 +10,7 @@
 ///
 
 #include <qabstractitemmodel.h>
+#include <cstddef>
 #include "backend/artifacts/roi/roi.hpp"
 #include "backend/helper/table/table.hpp"
 #include "backend/processor/initializer/pipeline_settings.hpp"
@@ -29,6 +30,7 @@ class TableModelPaintedPolygon : public QAbstractTableModel
 
 public:
   static constexpr int32_t CLASS_ROLE = 0x101;
+  static constexpr int32_t ID_ROLE    = 0x109;
 
   /////////////////////////////////////////////////////
   TableModelPaintedPolygon(const joda::settings::Classification *classification, const std::shared_ptr<atom::ObjectList> &polygons,
@@ -39,6 +41,7 @@ public:
   QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
   QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
   int32_t indexFor(atom::ROI *) const;
+  int32_t indexFor(uint64_t) const;
 
 private:
   /////////////////////////////////////////////////////
@@ -48,7 +51,7 @@ private:
   std::vector<std::pair<uint64_t, joda::atom::ROI *>> mSortedData;
   std::shared_ptr<atom::ObjectList> mObjectMap = nullptr;
 
-  QModelIndexList mSelectionBeforeReset;
+  std::set<uint64_t> mSelectedData;
 };
 
 }    // namespace joda::ui::gui

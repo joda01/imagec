@@ -38,26 +38,35 @@ TableModelPaintedPolygon::TableModelPaintedPolygon(const joda::settings::Classif
     throw std::runtime_error("Parent must not be empty and of type QTableView.");
   }
   polygons->registerOnStartChangeCallback([this] {
-    auto *tbl             = dynamic_cast<PlaceholderTableView *>(parent());
-    mSelectionBeforeReset = tbl->selectionModel()->selectedIndexes();
+    auto *tbl      = dynamic_cast<PlaceholderTableView *>(parent());
+    auto selection = tbl->selectionModel()->selectedIndexes();
+    mSelectedData.clear();
+    for(const auto &item : selection) {
+      mSelectedData.emplace(data(item, ID_ROLE).toULongLong());
+    }
     beginResetModel();
     //
   });
   polygons->registerOnChangeCallback([this] {
     sortData();
     endResetModel();
+
+    // Only restore selection if the size keeps the same
     auto *tbl                = dynamic_cast<PlaceholderTableView *>(parent());
     QItemSelectionModel *sel = tbl->selectionModel();
+    sel->blockSignals(true);
 
-    for(const QModelIndex &idx : mSelectionBeforeReset) {
-      if(!idx.isValid()) {
+    for(const auto &idx : mSelectedData) {
+      const auto foundRow = indexFor(idx);
+      if(foundRow < 0) {
         continue;
       }
-      QModelIndex newIndex = index(idx.row(), idx.column());
+      QModelIndex newIndex = index(foundRow, 0);
       if(newIndex.isValid()) {
         sel->select(newIndex, QItemSelectionModel::Select | QItemSelectionModel::Rows);
       }
     }
+    sel->blockSignals(false);
   });
 }
 
@@ -127,6 +136,10 @@ QVariant TableModelPaintedPolygon::data(const QModelIndex &index, int role) cons
     return mClassification->getClassFromId(roi->getClassId()).color.c_str();
   }
 
+  if(role == ID_ROLE) {
+    return QVariant::fromValue<quint64>(roi->getObjectId());
+  }
+
   if(role == Qt::DisplayRole) {
     QString className = mClassification->getClassFromId(roi->getClassId()).name.c_str();
     if(roi->getCategory() == joda::atom::ROI::Category::MANUAL_SEGMENTATION) {
@@ -192,6 +205,26 @@ int32_t TableModelPaintedPolygon::indexFor(atom::ROI *item) const
 /// \param[out]
 /// \return
 ///
+int32_t TableModelPaintedPolygon::indexFor(uint64_t idxIn) const
+{
+  int32_t idx = 0;
+  for(const auto &[idxO, _] : mSortedData) {
+    if(idxO == idxIn) {
+      return idx;
+    }
+    idx++;
+  }
+
+  return -1;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
 void TableModelPaintedPolygon::sortData()
 {
   mSortedData = std::vector<std::pair<uint64_t, joda::atom::ROI *>>(mObjectMap->getObjectList()->begin(), mObjectMap->getObjectList()->end());
@@ -200,10 +233,11 @@ void TableModelPaintedPolygon::sortData()
     const joda::atom::ROI *ra = a.second;
     const joda::atom::ROI *rb = b.second;
 
-    if(ra->getCategory() == rb->getCategory()) {
-      return ra->getObjectId() < rb->getObjectId();    // secondary key
-    }
-    return ra->getCategory() > rb->getCategory();    // primary key
+    return (ra->getCategory() > rb->getCategory())   ? true
+           : (ra->getCategory() < rb->getCategory()) ? false
+           : (ra->getClassId() < rb->getClassId())   ? true
+           : (ra->getClassId() > rb->getClassId())   ? false
+                                                     : (ra->getObjectId() < rb->getObjectId());
   });
 }
 

@@ -1603,6 +1603,7 @@ void PanelImageView::setSelectedRois(const std::set<joda::atom::ROI *> &idxs)
   // ==============================
   std::lock_guard<std::mutex> locked(mImageResetMutex);
   mOverlayMasks->setSelectedRois(idxs);
+  scheduleUpdate();
 }
 
 ///
@@ -1616,6 +1617,7 @@ void PanelImageView::deleteRois(const std::set<joda::atom::ROI *> &idxs)
 {
   std::lock_guard<std::mutex> locked(mImageResetMutex);
   mOverlayMasks->deleteRois(idxs);
+  scheduleUpdate();
 }
 
 ///
@@ -1641,7 +1643,9 @@ bool PanelImageView::deleteSelectedRois()
   }
 
   std::lock_guard<std::mutex> locked(mImageResetMutex);
-  return mOverlayMasks->deleteSelectedRois();
+  auto ret = mOverlayMasks->deleteSelectedRois();
+  scheduleUpdate();
+  return ret;
 }
 
 ///
