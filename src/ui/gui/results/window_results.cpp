@@ -96,6 +96,8 @@ WindowResults::WindowResults(WindowMain *windowMain) : mWindowMain(windowMain), 
   setWindowTitle("ImageC results");
   const QIcon myIcon(":/icons/icons/icon.png");
   setWindowIcon(myIcon);
+  setMinimumSize(1500, 800);
+  setObjectName("windowResult");
 
   // Add to dock
   mDockWidgetImagePreview->getImageWidget()->setShowCrossHairCursor(true);

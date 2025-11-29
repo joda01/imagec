@@ -683,6 +683,7 @@ void PanelPipelineSettings::setActive(bool setActive)
   if(!setActive && mIsActiveShown) {
     disconnect(mImageOpenedConnection);
     disconnect(mTrainingFinishedConnection);
+    mRefresh->setChecked(false);
     mPreviewResult->results.objectMap->triggerStartChangeCallback();
     mPreviewResult->results.objectMap->erase(joda::atom::ROI::Category::AUTO_SEGMENTATION);
     mPreviewResult->results.objectMap->triggerChangeCallback();
