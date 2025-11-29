@@ -86,7 +86,10 @@ auto AiModelParser::findAiModelFiles(const std::filesystem::path &workingDirecto
             if(entry.path().string().ends_with("rdf.yaml") || entry.path().string().ends_with("rdf.yml")) {
               auto modelInfo          = parseResourceDescriptionFile(entry.path());
               const auto relativePath = std::filesystem::relative(modelInfo.modelPath, workingDirectory);
-              modelInfo.modelPath     = relativePath;
+              if(!relativePath.empty()) {
+                modelInfo.modelPath = relativePath;
+              }
+              std::cout << "Emplace: " << relativePath << std::endl;
               aiModelFiles.emplace(relativePath, modelInfo);
             }
           } catch(const nlohmann::json::parse_error &ex) {
@@ -173,7 +176,7 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
   // Extract data
   // =======================================
   Data response;
-  std::string rdfFormatVersion = rdfParsed["format_version"];
+  const std::string rdfFormatVersion = rdfParsed["format_version"];
 
   response.description = rdfParsed["description"];
   response.modelName   = rdfParsed["name"];
@@ -304,7 +307,7 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
         elementToWork.spaceY   = calcOptimalSize(min_y, step_y);
       }
     }
-  } else if(rdfFormatVersion == "0.5.3") {
+  } else if(rdfFormatVersion == "0.5.3" || rdfFormatVersion == "0.5.4") {
     //
     //
     //
@@ -358,6 +361,12 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
           }
         }
       }
+      // If no c = channel is given it has to be interpreted as grayscale
+      if(std::string::npos == axesString.find('c')) {
+        elementToWork.channels = joda::settings::AiClassifierSettings::NetChannels::GRAYSCALE;
+        axesString.insert(1, "c");
+      }
+
       elementToWork.axes = axesString;
 
       if(input.contains("data")) {
@@ -473,7 +482,7 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
                                    .axes = axesOrder, .batch = batchSize, .channels = channelSize, .spaceX = outputWidth, .spaceY = outputHeight});
     }
 
-  } else if(rdfFormatVersion == "0.5.3") {
+  } else if(rdfFormatVersion == "0.5.3" || rdfFormatVersion == "0.5.4") {
     for(const auto &output : outputs) {
       if(output.contains("description")) {
         std::string description = output["description"];
@@ -578,6 +587,8 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
     response.modelParameter.modelArchitecture = settings::AiClassifierSettings::ModelArchitecture::YOLO_V5;
   } else if(helper::stringContains(description, "cyto3") || helper::stringContains(description, "cellpose")) {
     response.modelParameter.modelArchitecture = settings::AiClassifierSettings::ModelArchitecture::CYTO3;
+  } else if(helper::stringContains(description, "instanseg")) {
+    response.modelParameter.modelArchitecture = settings::AiClassifierSettings::ModelArchitecture::INSTAN_SEG;
   }
 
   return response;
@@ -674,9 +685,9 @@ std::string AiModelParser::Data::toString() const
     out << toInputOrder<settings::AiClassifierSettings::NetOutputParameters>(id, input) << "\n";
   }
 
-  out << "\n----\n”";
+  out << "\n----\n";
   for(size_t n = 0; n < authors.size(); n++) {
-    const auto &author = authors[n];
+    const auto author = authors[n];
     if(!author.affiliation.empty()) {
       out << author.affiliation << "/" << author.authorName;
     } else {

@@ -12,6 +12,7 @@
 ///
 
 #include "ai_classifier_settings_ui.hpp"
+#include <exception>
 #include "backend/helper/ai_model_parser/ai_model_parser.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 
@@ -141,6 +142,7 @@ AiClassifier::AiClassifier(joda::settings::AnalyzeSettings *analyzeSettings, jod
       {joda::settings::AiClassifierSettings::ModelArchitecture::YOLO_V5, "Yolo v5", generateIcon("connect")},
       {joda::settings::AiClassifierSettings::ModelArchitecture::U_NET, "U-Net", generateIcon("u")},
       {joda::settings::AiClassifierSettings::ModelArchitecture::CYTO3, "Cyto3", generateIcon("cellpose")},
+      {joda::settings::AiClassifierSettings::ModelArchitecture::INSTAN_SEG, "InstanSeg", generateIcon("instanseg")},
       {joda::settings::AiClassifierSettings::ModelArchitecture::STAR_DIST, "StarDist", generateIcon("star-color")},
       //{joda::settings::AiClassifierSettings::ModelArchitecture::MASK_R_CNN, "Mask R-CNN", generateIcon("connect")}
   });
@@ -232,11 +234,11 @@ void AiClassifier::updateInputFields(int32_t nrOfClasses, const settings::AiClas
 
 void AiClassifier::refreshModels()
 {
-  auto onnxModels = joda::ai::AiModelParser::findAiModelFiles(getWorkingDirectory());
+  auto models = joda::ai::AiModelParser::findAiModelFiles(getWorkingDirectory());
   std::vector<SettingComboBoxString::ComboEntry> entries;
-  entries.reserve(onnxModels.size() + 1);
+  entries.reserve(models.size() + 1);
   entries.emplace_back(SettingComboBoxString::ComboEntry{.key = "", .label = "Select model ..."});
-  for(const auto &[key, model] : onnxModels) {
+  for(const auto &[key, model] : models) {
     entries.emplace_back(SettingComboBoxString::ComboEntry{.key = model.modelPath.string(), .label = model.modelName.data()});
   }
   mModelPath->addOptions(entries);
@@ -257,7 +259,8 @@ void AiClassifier::updateModel()
          addFilter(classs, n, 1);
          n++;
        }*/
-    } catch(...) {
+    } catch(const std::exception &ex) {
+      std::cout << ex.what() << std::endl;
     }
   }
 }

@@ -11,6 +11,7 @@
 
 #include "setting_base.hpp"
 #include <iostream>
+#include <string>
 #include "backend/enums/enums_units.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/dialog_tooltip.hpp"
 #include "ui/gui/editor/widget_project_tabs/panel_classification.hpp"

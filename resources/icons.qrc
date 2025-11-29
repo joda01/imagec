@@ -9,13 +9,16 @@
     <file>icons/icons8-pytorch-16.png</file>
     <file>icons/icons8-onnx-24.png</file>
     <file>icons/icons8-cellpose-16.png</file>
+    <file>icons/icons8-instanseg-16.png</file>
     <file>icons/icons8-onnx-48.png</file>
     <file>icons/icon.png</file>
     <file>icons/icons8-star-color-48.png</file>
     <file>icons/icons8-onnx-16.png</file>
     <file>icons/icon_eva.png</file>
+    <file>icons/icons8-instanseg-24.png</file>
     <file>icons/icons8-connect-96.png</file>
     <file>icons/icons8-onnx-96.png</file>
+    <file>icons/icons8-instanseg-48.png</file>
     <file>icons/icons8-cellpose-96.png</file>
     <file>icons/icons8-pytorch-48.png</file>
     <file>icons/icons8-u-24.png</file>
@@ -29,6 +32,7 @@
     <file>icons/icons8-tensorflow-96.png</file>
     <file>icons/icons8-connect-16.png</file>
     <file>icons/icons8-connect-24.png</file>
+    <file>icons/icons8-instanseg-96.png</file>
 </qresource>
 <qresource prefix="/icons-svg/regular-black">
     <file>icons-svg/regular-black/caret-line-left.svg</file>

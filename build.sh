@@ -83,6 +83,7 @@ pack(){
     cp /root/.conan2/p/*/p/lib/libcublas-031ce6c2.so.12 .
     cp /root/.conan2/p/*/p/lib/libcublasLt-10b5e663.so.12 .
     cp /root/.conan2/p/*/p/lib/libcudnn.so.9 .
+    cp /root/.conan2/p/*/p/lib/libcudnn_ops.so.9 .
     cp /root/.conan2/p/*/p/lib/libcudnn_graph.so.9 .
     cp /root/.conan2/p/*/p/lib/libcudnn_heuristic.so.9 .
     cp /root/.conan2/p/*/p/lib/libcudnn_engines_runtime_compiled.so.9 .

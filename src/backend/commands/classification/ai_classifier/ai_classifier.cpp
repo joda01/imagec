@@ -113,10 +113,13 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
     case settings::AiClassifierSettings::ModelArchitecture::MASK_R_CNN:
       THROW("Mask R-CNN architecture is not supported yet");
       break;
-    case settings::AiClassifierSettings::ModelArchitecture::CYTO3:
+    case settings::AiClassifierSettings::ModelArchitecture::CYTO3: {
       ai::AiModelCyto3 cyto3({.maskThreshold = mSettings.thresholds.maskThreshold, .classThreshold = mSettings.thresholds.classThreshold});
       segResult = cyto3.processPrediction(device, imageNotUse, prediction);
-      break;
+    } break;
+    case settings::AiClassifierSettings::ModelArchitecture::INSTAN_SEG: {
+      segResult = {};
+    } break;
   }
 
   for(const auto &res : segResult) {
