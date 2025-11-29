@@ -50,6 +50,18 @@ public:
   {
     endResetModel();
   }
+
+  void beginInsertRow()
+  {
+    int newRowIndex = rowCount();
+    beginInsertRows(QModelIndex(), newRowIndex, newRowIndex);
+  }
+
+  void endInsertRow()
+  {
+    endInsertRows();
+  }
+
   void hideElement(int32_t row, bool hide);
   bool isHidden(int32_t row) const;
 

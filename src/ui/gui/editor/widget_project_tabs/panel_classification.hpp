@@ -47,7 +47,6 @@ public:
   explicit PanelClassification(const std::shared_ptr<atom::ObjectList> &objectMap, joda::settings::Classification *settings, WindowMain *windowMain,
                                DialogImageViewer *imageView);
   void fromSettings(const joda::settings::Classification &settings);
-  void toSettings();
   [[nodiscard]] auto getClasses() const -> std::map<enums::ClassIdIn, QString>;
   auto getSelectedClass() const -> enums::ClassId;
 
@@ -67,7 +66,7 @@ private:
   void openEditDialog(joda::settings::Class *, int32_t row);
   void openTemplate(const QString &path);
   void populateClassesFromImage();
-  void addClass(bool withUpdate = true);
+  void addClass();
   void moveClassToPosition(int32_t fromPos, int32_t newPos);
   auto findNextFreeClassId() -> enums::ClassId;
 

@@ -40,8 +40,7 @@ TableModelClasses::TableModelClasses(joda::settings::Classification *classificat
     throw std::runtime_error("Parent must not be empty and of type QTableView.");
   }
   if(nullptr != polygons) {
-    polygons->registerOnStartChangeCallback([this] { beginResetModel(); });
-    polygons->registerOnChangeCallback([this] { endResetModel(); });
+    polygons->registerOnChangeCallback([this] { emit dataChanged(index(0, 0), index(rowCount() - 1, columnCount() - 1)); });
   }
 }
 

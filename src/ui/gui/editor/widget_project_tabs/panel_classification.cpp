@@ -320,6 +320,7 @@ void PanelClassification::openEditDialog(joda::settings::Class *classToModify, i
   if(mClassSettingsDialog->exec(*classToModify) == 0) {
     QModelIndex indexToUpdt = mTableModelClasses->index(row, 0);
     mTableModelClasses->dataChanged(indexToUpdt, indexToUpdt);
+    mWindowMain->checkForSettingsChanged();
     mSettings->triggerSettingsChanged();
   }
 }
@@ -359,17 +360,18 @@ auto PanelClassification::findNextFreeClassId() -> enums::ClassId
 /// \param[out]
 /// \return
 ///
-void PanelClassification::addClass(bool withUpdate)
+void PanelClassification::addClass()
 {
   joda::settings::Class newClass;
   newClass.classId = findNextFreeClassId();
   if(mClassSettingsDialog->exec(newClass) == 0) {
+    mTableModelClasses->beginInsertRow();
     mSettings->classes.emplace_back(newClass);
+    mTableModelClasses->endInsertRow();
   }
-  if(withUpdate) {
-    onSettingChanged();
-    mSettings->triggerSettingsChanged();
-  }
+  mWindowMain->checkForSettingsChanged();
+  mSettings->triggerSettingsChanged();
+  emit settingsChanged();
 }
 
 ///
@@ -385,17 +387,6 @@ void PanelClassification::fromSettings(const joda::settings::Classification &set
   *mSettings = settings;
   mTableModelClasses->endChange();
   mSettings->triggerSettingsChanged();
-}
-
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void PanelClassification::toSettings()
-{
 }
 
 ///
@@ -461,7 +452,6 @@ auto PanelClassification::getSelectedClass() const -> enums::ClassId
 void PanelClassification::onSettingChanged()
 {
   fromSettings(*mSettings);
-  toSettings();
   mWindowMain->checkForSettingsChanged();
   emit settingsChanged();
 }

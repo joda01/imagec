@@ -47,6 +47,8 @@ private:
   const joda::settings::Classification *mClassification = nullptr;
   std::vector<std::pair<uint64_t, joda::atom::ROI *>> mSortedData;
   std::shared_ptr<atom::ObjectList> mObjectMap = nullptr;
+
+  QModelIndexList mSelectionBeforeReset;
 };
 
 }    // namespace joda::ui::gui

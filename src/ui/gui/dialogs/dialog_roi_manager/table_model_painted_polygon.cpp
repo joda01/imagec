@@ -25,21 +25,39 @@
 #include "backend/helper/base32.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/results_settings/results_settings.hpp"
+#include "ui/gui/helper/table_view.hpp"
 
 namespace joda::ui::gui {
 
 TableModelPaintedPolygon::TableModelPaintedPolygon(const joda::settings::Classification *classification,
-                                                   const std::shared_ptr<atom::ObjectList> &polygons, QObject *parent) :
-    QAbstractTableModel(parent),
+                                                   const std::shared_ptr<atom::ObjectList> &polygons, QObject *parentWidget) :
+    QAbstractTableModel(parentWidget),
     mClassification(classification), mObjectMap(polygons)
 {
-  if(parent == nullptr) {
+  if(parentWidget == nullptr) {
     throw std::runtime_error("Parent must not be empty and of type QTableView.");
   }
-  polygons->registerOnStartChangeCallback([this] { beginResetModel(); });
+  polygons->registerOnStartChangeCallback([this] {
+    auto *tbl             = dynamic_cast<PlaceholderTableView *>(parent());
+    mSelectionBeforeReset = tbl->selectionModel()->selectedIndexes();
+    beginResetModel();
+    //
+  });
   polygons->registerOnChangeCallback([this] {
     sortData();
     endResetModel();
+    auto *tbl                = dynamic_cast<PlaceholderTableView *>(parent());
+    QItemSelectionModel *sel = tbl->selectionModel();
+
+    for(const QModelIndex &idx : mSelectionBeforeReset) {
+      if(!idx.isValid()) {
+        continue;
+      }
+      QModelIndex newIndex = index(idx.row(), idx.column());
+      if(newIndex.isValid()) {
+        sel->select(newIndex, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+      }
+    }
   });
 }
 
