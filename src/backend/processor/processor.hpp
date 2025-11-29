@@ -186,12 +186,15 @@ public:
   /////////////////////////////////////////////////////
   Processor();
   void execute(const joda::settings::AnalyzeSettings &program, const std::string &jobName, const joda::thread::ThreadingSettings &threadingSettings,
-               imagesList_t &allImages);
+               const std::unique_ptr<imagesList_t> &imagesToAnalyze);
   void stop();
   std::string initializeGlobalContext(const joda::settings::AnalyzeSettings &program, const std::string &jobName, GlobalContext &globalContext);
 
-  void listImages(const joda::settings::AnalyzeSettings &program, imagesList_t &);
   const ProcessProgress &getProgress() const
+  {
+    return mProgress;
+  }
+  ProcessProgress &mutableProgress()
   {
     return mProgress;
   }

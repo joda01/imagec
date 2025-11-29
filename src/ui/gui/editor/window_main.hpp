@@ -138,6 +138,12 @@ private:
     IMAGES           = 3,
   };
 
+  enum class AnalyzeMode
+  {
+    AllImages,
+    SingleImage
+  };
+
   /////////////////////////////////////////////////////
   void createTopToolbar();
   void createLeftToolbar();
@@ -151,6 +157,7 @@ private:
   void moveEvent(QMoveEvent *event) override;
   void resizeEvent(QResizeEvent *event) override;
   void updateProjectPath();
+  void onStartClicked(AnalyzeMode mode);
 
   QWidget *createChannelWidget();
   QWidget *createReportingWidget();
@@ -200,7 +207,6 @@ public slots:
   void onNewProjectClicked();
   void onSaveProject();
   void onSaveProjectAs();
-  void onStartClicked();
   void onShowInfoDialog();
   void onShowHelpClicked();
   void onOpenClicked();

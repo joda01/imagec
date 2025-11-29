@@ -302,11 +302,17 @@ void WindowMain::createTopToolbar()
   });
   connect(mCompilerLog->getDialog(), &QDialog::finished, [this] { mShowCompilerLog->setChecked(false); });
 
+  auto *analysisMenu     = new QMenu();
+  auto *analyzeAllButton = analysisMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("fast-forward-circle"), "Analyze all images");
+  connect(analyzeAllButton, &QAction::triggered, [this] { onStartClicked(AnalyzeMode::AllImages); });
+  auto *analyzeSingleButton = analysisMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("play-circle"), "Analyze selected image");
+  connect(analyzeSingleButton, &QAction::triggered, [this] { onStartClicked(AnalyzeMode::SingleImage); });
+
   mStartAnalysisToolButton = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("person-simple-run"), "Start analyze", mTopToolBar);
+  mStartAnalysisToolButton->setMenu(analysisMenu);
   mStartAnalysisToolButton->setStatusTip("Start analyze");
   CHECK_GUI_THREAD(mStartAnalysisToolButton)
   mStartAnalysisToolButton->setEnabled(false);
-  connect(mStartAnalysisToolButton, &QAction::triggered, this, &WindowMain::onStartClicked);
 
   mShowInfoDialog = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("info"), "About", mTopToolBar);
   mShowInfoDialog->setStatusTip("Open about dialog");
@@ -319,6 +325,7 @@ void WindowMain::createTopToolbar()
   mTopToolBar->addAction(mSaveProject);
   mTopToolBar->addSeparator();
   mTopToolBar->addAction(mStartAnalysisToolButton);
+  qobject_cast<QToolButton *>(mTopToolBar->widgetForAction(mStartAnalysisToolButton))->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
 
   // =====================================
   // Menu bar
@@ -889,7 +896,7 @@ void WindowMain::loadLastOpened()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::onStartClicked()
+void WindowMain::onStartClicked(AnalyzeMode mode)
 {
   // If there are errors, starting the pipeline is not allowed
   if(mCompilerLog->getNumberOfErrors() > 0) {
@@ -903,8 +910,15 @@ void WindowMain::onStartClicked()
   try {
     mAnalyzeSettings.projectSettings.experimentSettings.experimentId   = mPanelProjectSettings->getExperimentId().toStdString();
     mAnalyzeSettings.projectSettings.experimentSettings.experimentName = mPanelProjectSettings->getExperimentName().toStdString();
-    DialogAnalyzeRunning dialg(this, mAnalyzeSettings);
-    dialg.exec();
+
+    DialogAnalyzeRunning *analyzeRunningDialog;
+    if(AnalyzeMode::SingleImage == mode) {
+      const auto [imagePath, series, omeInfo] = getImagePanel()->getSelectedImageOrFirst();
+      analyzeRunningDialog                    = new DialogAnalyzeRunning(this, mAnalyzeSettings, imagePath);
+    } else {
+      analyzeRunningDialog = new DialogAnalyzeRunning(this, mAnalyzeSettings, std::nullopt);
+    }
+    analyzeRunningDialog->exec();
     auto jobIinfo = getController()->getJobInformation();
     addToLastLoadedResults(jobIinfo.resultsFilePath.string().data(), jobIinfo.jobName.data());
     // Analysis finished -> generate new name

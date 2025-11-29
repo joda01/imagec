@@ -284,6 +284,7 @@ void Controller::stopLookingForFiles()
 void Controller::setWorkingDirectory(const std::filesystem::path &dir)
 {
   mWorkingDirectory.setWorkingDirectory(dir);
+  mWorkingDirectory.lookForImages();
 }
 
 ///
@@ -477,21 +478,31 @@ auto Controller::getImageProperties(const std::filesystem::path &imagePath, int 
 /// \return
 ///
 void Controller::start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings & /*threadSettings*/,
-                       const std::string &jobName)
+                       const std::string &jobName, const std::optional<std::filesystem::path> &fileToAnalyze)
 {
   if(mActThread.joinable()) {
     mActThread.join();
   }
-  setWorkingDirectory(settings.projectSettings.plate.imageFolder);
-  mWorkingDirectory.waitForFinished();
 
   mActProcessor.reset();
   mActProcessor = std::make_unique<processor::Processor>();
-  mActThread    = std::thread([this, settings, jobName] {
+  mActThread    = std::thread([this, settings, jobName, fileToAnalyze] {
+    auto imageList = std::make_unique<processor::imagesList_t>();
+    mActProcessor->mutableProgress().setStateLookingForImages();
+    imageList->setWorkingDirectory(settings.projectSettings.plate.imageFolder);
+
+    if(fileToAnalyze.has_value()) {
+      imageList->addFile(fileToAnalyze.value());
+    } else {
+      imageList->lookForImages();
+    }
+
+    imageList->waitForFinished();
+    mActProcessor->mutableProgress().setRunningPreparingPipeline();
+
     mActProcessor->execute(
         settings, jobName,
-        calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), static_cast<int32_t>(mWorkingDirectory.getNrOfFiles()), std::nullopt),
-        mWorkingDirectory);
+        calcOptimalThreadNumber(settings, imageList->gitFirstFile(), static_cast<int32_t>(imageList->getNrOfFiles()), std::nullopt), imageList);
   });
 }
 

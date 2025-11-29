@@ -66,7 +66,7 @@ void Processor::stop()
 }
 
 void Processor::execute(const joda::settings::AnalyzeSettings &program, const std::string &jobName,
-                        const joda::thread::ThreadingSettings &threadingSettings, imagesList_t &allImages)
+                        const joda::thread::ThreadingSettings &threadingSettings, const std::unique_ptr<imagesList_t> &imagesToAnalyze)
 {
   try {
     DurationCount::resetStats();
@@ -84,7 +84,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
     auto jobId = initializeGlobalContext(program, jobName, globalContext);
 
     // Looking for images in all folders
-    listImages(program, allImages);
+    mProgress.setTotalNrOfImages(static_cast<uint32_t>(imagesToAnalyze->getNrOfFiles()));
 
     //
     // Iterate over each plate and analyze the images
@@ -94,11 +94,11 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
     {
       BS::multi_future<void> imageFutures;
       PlateContext plateContext{.plateId = plate.plateId};
-      const auto &images = allImages.getFilesListAt();
+      const auto &images = imagesToAnalyze->getFilesListAt();
 
       mProgress.setRunningPreparingPipeline();
       auto imagesToProcess = db->prepareImages(plate.plateId, program.imageSetup.series, plate.groupBy, plate.filenameRegex, images,
-                                               allImages.getDirectoryAt(), program.imageSetup.imagePixelSizeSettings, mGlobThreadPool);
+                                               imagesToAnalyze->getDirectoryAt(), program.imageSetup.imagePixelSizeSettings, mGlobThreadPool);
       mProgress.setStateRunning();
 
       //
@@ -295,7 +295,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
     db->finishJob(jobId);
     globalContext.database->closeDatabase();
     mProgress.setStateFinished();
-    DurationCount::printStats(static_cast<int32_t>(allImages.getNrOfFiles()), mJobInformation.ouputFolder);
+    DurationCount::printStats(static_cast<int32_t>(imagesToAnalyze->getNrOfFiles()), mJobInformation.ouputFolder);
   } catch(const std::exception &ex) {
     mProgress.setStateError(mJobInformation, ex.what());
   }
@@ -358,15 +358,6 @@ std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSett
   globalContext.database           = std::make_unique<db::Database>();
   globalContext.database->openDatabase(globalContext.resultsOutputFolder / (joda::fs::FILE_NAME_RESULTS_DATABASE + joda::fs::EXT_DATABASE));
   return globalContext.database->startJob(program, jobName);
-}
-
-void Processor::listImages(const joda::settings::AnalyzeSettings &program, imagesList_t &allImages)
-{
-  mProgress.setStateLookingForImages();
-  allImages.setWorkingDirectory(program.projectSettings.plate.imageFolder);
-  allImages.waitForFinished();
-  mProgress.setTotalNrOfImages(static_cast<uint32_t>(allImages.getNrOfFiles()));
-  mProgress.setRunningPreparingPipeline();
 }
 
 ///

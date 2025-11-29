@@ -18,6 +18,7 @@
 #include <memory>
 #include <thread>
 #include "backend/helper/logger/console_logger.hpp"
+#include "ui/gui/editor/widget_project_tabs/panel_image.hpp"
 #include "ui/gui/editor/window_main.hpp"
 #include "ui/gui/helper/debugging.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
@@ -30,8 +31,10 @@ using namespace std::chrono_literals;
 /// \brief
 /// \author     Joachim Danmayr
 ///
-DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain, const joda::settings::AnalyzeSettings &settings) :
-    QDialog(windowMain), mStopped(false), mWindowMain(windowMain), mSettings(settings)
+DialogAnalyzeRunning::DialogAnalyzeRunning(WindowMain *windowMain, const joda::settings::AnalyzeSettings &settings,
+                                           const std::optional<std::filesystem::path> &fileToAnalyze) :
+    QDialog(windowMain),
+    mWindowMain(windowMain), mSettings(settings), mFileToAnalyze(fileToAnalyze)
 {
   //
   // Layout
@@ -139,12 +142,10 @@ void DialogAnalyzeRunning::onOpenResultsFolderClicked()
 void DialogAnalyzeRunning::refreshThread()
 {
   auto threadSettings = mWindowMain->getController()->calcOptimalThreadNumber(mSettings, std::nullopt);
-  // mWindowMain->getController()->reset();
-  mWindowMain->getController()->start(mSettings, threadSettings, mWindowMain->getJobName().toStdString());
+  mWindowMain->getController()->start(mSettings, threadSettings, mWindowMain->getJobName().toStdString(), mFileToAnalyze);
   mStartedTime = std::chrono::system_clock::now();
 
   // Wait unit new pipeline has been started. It could be that we are still waiting for finishing the prev thread.
-
   while(!mStopped) {
     std::this_thread::sleep_for(500ms);
     emit refreshEvent();

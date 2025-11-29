@@ -84,7 +84,8 @@ public:
                         enums::ZProjection zProjection) -> void;
 
   // FLOW CONTROL ///////////////////////////////////////////////////
-  void start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const std::string &jobName);
+  void start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const std::string &jobName,
+             const std::optional<std::filesystem::path> &fileToAnalyze);
   void stop();
   [[nodiscard]] auto getState() const -> const joda::processor::ProcessProgress &;
   [[nodiscard]] const processor::ProcessInformation &getJobInformation() const;

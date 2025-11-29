@@ -3,6 +3,7 @@
 #include <opencv2/core/hal/interface.h>
 #include <exception>
 #include <filesystem>
+#include <memory>
 #include <optional>
 #include <random>
 #include <sstream>
@@ -34,11 +35,11 @@ SCENARIO("pipeline:test:heatmap", "[processor]")
   joda::settings::AnalyzeSettings settings = nlohmann::json::parse(file);
   file.close();
   joda::processor::Processor processor;
-  processor::imagesList_t workingdirs;
-  workingdirs.setWorkingDirectory(settings.projectSettings.plate.imageFolder);
-  workingdirs.waitForFinished();
+  auto workingdirs = std::make_unique<processor::imagesList_t>();
+  workingdirs->setWorkingDirectory(settings.projectSettings.plate.imageFolder);
+  workingdirs->waitForFinished();
   processor.execute(settings, "test",
-                    joda::ctrl::Controller::calcOptimalThreadNumber(settings, workingdirs.gitFirstFile(), workingdirs.getNrOfFiles(), std::nullopt),
+                    joda::ctrl::Controller::calcOptimalThreadNumber(settings, workingdirs->gitFirstFile(), workingdirs->getNrOfFiles(), std::nullopt),
                     workingdirs);
 }
 

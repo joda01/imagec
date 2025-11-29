@@ -28,7 +28,8 @@ class DialogAnalyzeRunning : public QDialog
 
 public:
   /////////////////////////////////////////////////////
-  DialogAnalyzeRunning(WindowMain *windowMain, const joda::settings::AnalyzeSettings &settings);
+  DialogAnalyzeRunning(WindowMain *windowMain, const joda::settings::AnalyzeSettings &settings,
+                       const std::optional<std::filesystem::path> &fileToAnalyze);
 
 signals:
   void refreshEvent();
@@ -55,6 +56,7 @@ private:
   WindowMain *mWindowMain;
 
   const joda::settings::AnalyzeSettings mSettings;
+  const std::optional<std::filesystem::path> mFileToAnalyze;
 
 private slots:
   void onStopClicked();
