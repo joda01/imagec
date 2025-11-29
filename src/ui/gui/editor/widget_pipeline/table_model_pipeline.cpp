@@ -144,7 +144,32 @@ auto TableModelPipeline::getCell(int row) -> joda::settings::Pipeline *
   return nullptr;
 }
 
-void TableModelPipeline::refresh()
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void TableModelPipeline::beginInsertPipeline()
+{
+  int newRowIndex = rowCount();
+  beginInsertRows(QModelIndex(), newRowIndex, newRowIndex);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void TableModelPipeline::endInsertPipeline()
+{
+  endInsertRows();
+}
+
+void TableModelPipeline::resetModel()
 {
   beginResetModel();
   endResetModel();

@@ -69,7 +69,7 @@ public:
 private:
   /////////////////////////////////////////////////////
   void onAddChannel(const QString &path);
-  void movePipelineToPosition(size_t fromPos, size_t newPos);
+  void movePipelineToPosition(int32_t fromPos, int32_t newPos);
   void openSelectedPipelineSettings(int32_t selectedRow);
   void removePipelineWidget();
   void updatePipelineCommandUnits();

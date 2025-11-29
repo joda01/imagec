@@ -702,8 +702,6 @@ void PanelClassification::moveClassToPosition(int32_t fromPos, int32_t newPosIn)
   mTableClasses->selectionModel()->setCurrentIndex(indexToUpddTo,
                                                    QItemSelectionModel::SelectionFlag::Select | QItemSelectionModel::SelectionFlag::Rows);
   mWindowMain->checkForSettingsChanged();
-  std::cout << "triggered 01" << std::endl;
-
   mSettings->triggerSettingsChanged();
 }
 

@@ -460,8 +460,9 @@ void PanelPipeline::onAddChannel(const QString &path)
 ///
 void PanelPipeline::addElement(std::unique_ptr<PanelPipelineSettings> baseContainer)
 {
+  mTableModel->beginInsertPipeline();
   mChannels.emplace(std::move(baseContainer));
-  mTableModel->refresh();
+  mTableModel->endInsertPipeline();
 }
 
 ///
@@ -485,7 +486,7 @@ void PanelPipeline::erase(PanelPipelineSettings *toRemove)
       mChannels.erase(it);
       mWindowMain->checkForSettingsChanged();
     }
-    mTableModel->refresh();
+    mTableModel->resetModel();
   }
 }
 
@@ -499,7 +500,7 @@ void PanelPipeline::erase(PanelPipelineSettings *toRemove)
 void PanelPipeline::clear()
 {
   mChannels.clear();
-  mTableModel->refresh();
+  mTableModel->resetModel();
 }
 
 ///
@@ -623,9 +624,9 @@ void PanelPipeline::moveDown()
 /// \param[out]
 /// \return
 ///
-void PanelPipeline::movePipelineToPosition(size_t fromPos, size_t newPosIn)
+void PanelPipeline::movePipelineToPosition(int32_t fromPos, int32_t newPosIn)
 {
-  auto moveElementToListPosition = [](std::list<joda::settings::Pipeline> &myList, size_t oldPos, size_t newPos) {
+  auto moveElementToListPosition = [](std::list<joda::settings::Pipeline> &myList, int32_t oldPos, int32_t newPos) {
     // Get iterators to the old and new positions
     if(newPos > oldPos) {
       auto oldIt = std::next(myList.begin(), newPos);
@@ -641,8 +642,23 @@ void PanelPipeline::movePipelineToPosition(size_t fromPos, size_t newPosIn)
   };
 
   moveElementToListPosition(mAnalyzeSettings->pipelines, fromPos, newPosIn);
+
+  QModelIndex indexToUpdtFrom = mTableModel->index(fromPos, 0);
+  mTableModel->dataChanged(indexToUpdtFrom, indexToUpdtFrom);
+
+  QModelIndex indexToUpddTo = mTableModel->index(newPosIn, 0);
+  mTableModel->dataChanged(indexToUpddTo, indexToUpddTo);
+
+  mPipelineTable->blockSignals(true);
+  mPipelineTable->selectionModel()->blockSignals(true);
+  mPipelineTable->selectionModel()->setCurrentIndex(indexToUpdtFrom,
+                                                    QItemSelectionModel::SelectionFlag::Deselect | QItemSelectionModel::SelectionFlag::Rows);
+  mPipelineTable->selectionModel()->setCurrentIndex(indexToUpddTo,
+                                                    QItemSelectionModel::SelectionFlag::Select | QItemSelectionModel::SelectionFlag::Rows);
+  mPipelineTable->blockSignals(false);
+  mPipelineTable->selectionModel()->blockSignals(false);
+
   mWindowMain->checkForSettingsChanged();
-  mTableModel->refresh();
 }
 
 ///
