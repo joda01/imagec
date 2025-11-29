@@ -89,8 +89,7 @@ auto AiModelParser::findAiModelFiles(const std::filesystem::path &workingDirecto
               if(!relativePath.empty()) {
                 modelInfo.modelPath = relativePath;
               }
-              std::cout << "Emplace: " << relativePath << std::endl;
-              aiModelFiles.emplace(relativePath, modelInfo);
+              aiModelFiles.emplace(modelInfo.modelPath, modelInfo);
             }
           } catch(const nlohmann::json::parse_error &ex) {
             // std::cerr << "JSON Parse error: " << ex.what() << "\n"
@@ -119,7 +118,7 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
   }
 
   auto calcOptimalSize = [](int32_t min, int32_t step) {
-    int32_t k = static_cast<int32_t>((640.0F - static_cast<float>(min)) / static_cast<float>(step));
+    int32_t k = static_cast<int32_t>((1024.0F - static_cast<float>(min)) / static_cast<float>(step));
     if(k < 1) {
       k = 0;
     }

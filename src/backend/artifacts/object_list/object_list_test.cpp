@@ -38,7 +38,7 @@ SCENARIO("object_list", "[object_list]")
     enums::tile_t tile{7, 8};
     cv::Size tileSize{500, 600};
 
-    joda::atom::ROI myRoi(index, confidence, boundingBox, mask, contour, imageSize, originalImageSize, tile, tileSize);
+    joda::atom::ROI myRoi(index, confidence, boundingBox, mask, contour, {});
     list.push_back(myRoi);
   };
 

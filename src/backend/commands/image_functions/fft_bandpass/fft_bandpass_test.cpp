@@ -3,6 +3,7 @@
 #include "fft_bandpass.hpp"
 
 #include <filesystem>
+#include <optional>
 #include <string>
 #include "backend/commands/classification/ai_classifier/ai_classifier_settings.hpp"
 #include "backend/commands/image_functions/fft_bandpass/fft_bandpass.hpp"
@@ -23,12 +24,13 @@
 TEST_CASE("cmd::fftbandbass", "[fft_bandpass]")
 {
   std::filesystem::path imgPath = "/workspaces/imagec/tmp/tupless/C4_02.vsi";
+  joda::image::reader::ImageReader reader(imgPath);
 
-  auto omeXML = joda::image::reader::ImageReader::getOmeInformation(imgPath, 0, {});
-  auto img    = joda::image::reader::ImageReader::loadEntireImage(imgPath.string(), {0, 0, 0}, 0, 0, omeXML);
+  auto omeXML = reader.getOmeInformation(0, {});
+  auto img    = reader.loadEntireImage({0, 3, 0}, 0, 0, omeXML);
 
   for(int z = 1; z < omeXML.getNrOfZStack(0); z++) {
-    auto imgTmp = joda::image::reader::ImageReader::loadEntireImage(imgPath.string(), {z, 0, 0}, 0, 0, omeXML);
+    auto imgTmp = reader.loadEntireImage({z, 0, 0}, 0, 0, omeXML);
     cv::max(img, imgTmp, img);
   }
 
@@ -41,16 +43,16 @@ TEST_CASE("cmd::fftbandbass", "[fft_bandpass]")
   joda::atom::ObjectList result;
   joda::settings::ProjectImageSetup setup;
   joda::settings::ProjectPipelineSetup pipSetup;
-  joda::processor::PipelineInitializer pipeLinieInit(setup, pipSetup);
+  joda::processor::PipelineInitializer pipeLinieInit(setup, pipSetup, imgPath);
   joda::processor::GlobalContext glob;
   glob.resultsOutputFolder = "/workspaces/imagec/tmp";
   joda::processor::PlateContext plate;
-  joda::processor::ImageContext imgCtx{pipeLinieInit, imgPath, omeXML};
+  joda::processor::ImageContext imgCtx{pipeLinieInit, omeXML};
   auto list = std::make_shared<joda::atom::ObjectList>();
   joda::processor::IterationContext iter(list);
   joda::processor::ProcessContext context(glob, plate, imgCtx, iter);
 
-  ai.execute(context, img, result);
+  ai.execute(img);
 
   cv::imwrite("/workspaces/imagec/tmp/img.png", img / 10);
 }

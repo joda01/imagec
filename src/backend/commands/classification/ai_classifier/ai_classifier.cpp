@@ -22,6 +22,7 @@
 #include "backend/commands/classification/ai_classifier/frameworks/pytorch/ai_classifier_pytorch.hpp"
 #include "backend/commands/classification/ai_classifier/models/ai_model.hpp"
 #include "backend/commands/classification/ai_classifier/models/cyto3/ai_model_cyto3.hpp"
+#include "backend/commands/classification/ai_classifier/models/instanseg/ai_model_instanseg.hpp"
 #include "backend/commands/classification/ai_classifier/models/unet/ai_model_unet.hpp"
 #include "backend/commands/classification/ai_classifier/models/yolo/ai_model_yolo.hpp"
 #include "backend/enums/enum_objects.hpp"
@@ -118,7 +119,8 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
       segResult = cyto3.processPrediction(device, imageNotUse, prediction);
     } break;
     case settings::AiClassifierSettings::ModelArchitecture::INSTAN_SEG: {
-      segResult = {};
+      ai::AiModelInstanseg instanseg(ai::AiModelInstanseg::ProbabilitySettings{.maskThreshold = mSettings.thresholds.maskThreshold});
+      segResult = instanseg.processPrediction(device, imageNotUse, prediction);
     } break;
   }
 
