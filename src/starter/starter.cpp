@@ -28,6 +28,46 @@
 #include "ui/gui/editor/window_main.hpp"
 #include "version.h"
 
+#ifdef DEEP_DEBUG
+#include <cxxabi.h>
+#include <execinfo.h>
+#include <cstdlib>
+
+QStringList getBacktrace(int maxFrames = 30)
+{
+  void *addrlist[128];
+  int addrlen       = backtrace(addrlist, maxFrames);
+  char **symbollist = backtrace_symbols(addrlist, addrlen);
+
+  QStringList result;
+
+  for(int i = 0; i < addrlen; i++) {
+    QString line(symbollist[i]);
+    result << line;
+  }
+
+  free(symbollist);
+  return result;
+}
+
+class ShowEventFilter : public QObject
+{
+public:
+  bool eventFilter(QObject *obj, QEvent *event) override
+  {
+    if(event->type() == QEvent::Show) {
+      if(obj->parent() == nullptr) {
+        qDebug() << "SHOW:" << obj << "class:" << obj->metaObject()->className() << "name: " << obj->objectName();
+        auto bt = getBacktrace();
+        for(const auto &line : bt) {
+          qDebug().noquote() << line;
+        }
+      }
+    }
+    return QObject::eventFilter(obj, event);
+  }
+};
+#endif
 namespace joda::start {
 
 ///
@@ -117,6 +157,11 @@ int Starter::startUi(int argc, char *argv[])
   // Start QApplication
   // ======================================
   QApplication app(argc, argv);
+#ifdef DEEP_DEBUG
+  ShowEventFilter *filter = new ShowEventFilter();
+  app.installEventFilter(filter);
+#endif
+
   QApplication::setApplicationName(Version::getProgamName().data());
   QApplication::setApplicationVersion(Version::getVersion().data());
 

@@ -131,7 +131,7 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
   }
 
   {
-    mTrainingClasses = new QComboBoxMulti();
+    mTrainingClasses = new QComboBoxMulti(this);
 
     layout->addRow("Classes to train", mTrainingClasses);
   }
@@ -143,14 +143,14 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
 
   // Start training
   {
-    mButtonStartTraining = new QPushButton("Train");
+    mButtonStartTraining = new QPushButton("Train", this);
     connect(mButtonStartTraining, &QPushButton::pressed, [this]() { startTraining(); });
     layout->addRow(mButtonStartTraining);
   }
 
   // Stop training
   {
-    mButtonStopTraining = new QPushButton("Stop");
+    mButtonStopTraining = new QPushButton("Stop", this);
     CHECK_GUI_THREAD(mButtonStopTraining)
     mButtonStopTraining->setVisible(false);
     connect(mButtonStopTraining, &QPushButton::pressed, [this]() { stopTraining(); });
@@ -159,7 +159,7 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
 
   // Progress bar
   {
-    mProgress = new QProgressBar();
+    mProgress = new QProgressBar(this);
     mProgress->setMaximum(0);
     mProgress->setMinimum(0);
     layout->addRow(mProgress);
@@ -167,7 +167,7 @@ DialogMlTrainer::DialogMlTrainer(const joda::settings::AnalyzeSettings *analyzeS
   }
 
   {
-    mTrainingsLog = new QTextBrowser();
+    mTrainingsLog = new QTextBrowser(this);
     layout->addRow(mTrainingsLog);
 
     joda::cmd::PixelClassifier::registerProgressCallback([this](const std::string &progress) {

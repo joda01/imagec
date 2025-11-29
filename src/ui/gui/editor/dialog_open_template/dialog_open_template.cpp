@@ -28,7 +28,7 @@ DialogOpenTemplate::DialogOpenTemplate(const std::set<std::string> &directories,
     QDialog(parent), mDirectories(directories), mEndian(endian)
 {
   setWindowTitle("New project");
-  mSearch = new QLineEdit();
+  mSearch = new QLineEdit(this);
   mSearch->setPlaceholderText("Search...");
   connect(mSearch, &QLineEdit::textChanged, [this]() { filterCommands({mSearch->text()}); });
 
