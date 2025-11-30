@@ -22,6 +22,7 @@
 #include <stdexcept>
 #include <string>
 #include "backend/commands/classification/ai_classifier/ai_classifier_settings.hpp"
+#include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/rapidyaml/rapidyaml.hpp"
@@ -37,16 +38,10 @@ namespace joda::ai {
 /// \param[out]
 /// \return
 ///
-auto AiModelParser::getUsersAiModelDirectory() -> std::filesystem::path
+auto AiModelParser::getUsersAiModelDirectory(const std::filesystem::path &workingDirectory) -> std::filesystem::path
 {
-#ifdef _WIN32
-  auto homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path("imagec") /
-                 std::filesystem::path("models");
-#else
-  auto homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path(".imagec") /
-                 std::filesystem::path("models");
+  auto homeDir = workingDirectory / joda::fs::WORKING_DIRECTORY_MODELS_PATH;
 
-#endif
   if(!fs::exists(homeDir) || !fs::is_directory(homeDir)) {
     try {
       fs::create_directories(homeDir);
@@ -54,7 +49,7 @@ auto AiModelParser::getUsersAiModelDirectory() -> std::filesystem::path
       joda::log::logError("Cannot create users template directory!");
     }
   }
-  return homeDir.string();
+  return homeDir.generic_string();
 }
 
 ///
@@ -77,11 +72,14 @@ auto AiModelParser::getGlobalAiModelDirectory() -> std::filesystem::path
 /// \param[out]
 /// \return
 ///
-auto AiModelParser::findAiModelFiles() -> std::map<std::filesystem::path, Data>
+auto AiModelParser::findAiModelFiles(const std::filesystem::path &workingDirectory) -> std::map<std::filesystem::path, Data>
 {
   std::lock_guard<std::mutex> lock(lookForMutex);
   std::map<std::filesystem::path, Data> aiModelFiles;
-  std::vector<std::filesystem::path> directories{getGlobalAiModelDirectory(), getUsersAiModelDirectory()};
+  std::vector<std::filesystem::path> directories{getGlobalAiModelDirectory()};
+  if(!workingDirectory.empty()) {
+    directories.emplace_back(getUsersAiModelDirectory(workingDirectory));
+  }
 
   for(const auto &directory : directories) {
     if(fs::exists(directory) && fs::is_directory(directory)) {
@@ -89,7 +87,11 @@ auto AiModelParser::findAiModelFiles() -> std::map<std::filesystem::path, Data>
         if(entry.is_regular_file()) {
           try {
             if(entry.path().string().ends_with("rdf.yaml") || entry.path().string().ends_with("rdf.yml")) {
-              auto modelInfo = parseResourceDescriptionFile(entry.path());
+              auto modelInfo          = parseResourceDescriptionFile(entry.path());
+              const auto relativePath = std::filesystem::relative(modelInfo.modelPath, workingDirectory);
+              if(!relativePath.empty()) {
+                modelInfo.modelPath = relativePath;
+              }
               aiModelFiles.emplace(modelInfo.modelPath, modelInfo);
             }
           } catch(const nlohmann::json::parse_error &ex) {
@@ -176,7 +178,7 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
   // Extract data
   // =======================================
   Data response;
-  std::string rdfFormatVersion = rdfParsed["format_version"];
+  const std::string rdfFormatVersion = rdfParsed["format_version"];
 
   response.description = rdfParsed["description"];
   response.modelName   = rdfParsed["name"];
@@ -307,7 +309,7 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
         elementToWork.spaceY   = calcOptimalSize(min_y, step_y);
       }
     }
-  } else if(rdfFormatVersion == "0.5.3") {
+  } else if(rdfFormatVersion == "0.5.3" || rdfFormatVersion == "0.5.4") {
     //
     //
     //
@@ -361,6 +363,12 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
           }
         }
       }
+      // If no c = channel is given it has to be interpreted as grayscale
+      if(std::string::npos == axesString.find('c')) {
+        elementToWork.channels = joda::settings::AiClassifierSettings::NetChannels::GRAYSCALE;
+        axesString.insert(1, "c");
+      }
+
       elementToWork.axes = axesString;
 
       if(input.contains("data")) {
@@ -476,7 +484,7 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
                                    .axes = axesOrder, .batch = batchSize, .channels = channelSize, .spaceX = outputWidth, .spaceY = outputHeight});
     }
 
-  } else if(rdfFormatVersion == "0.5.3") {
+  } else if(rdfFormatVersion == "0.5.3" || rdfFormatVersion == "0.5.4") {
     for(const auto &output : outputs) {
       if(output.contains("description")) {
         std::string description = output["description"];
@@ -581,6 +589,8 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
     response.modelParameter.modelArchitecture = settings::AiClassifierSettings::ModelArchitecture::YOLO_V5;
   } else if(helper::stringContains(description, "cyto3") || helper::stringContains(description, "cellpose")) {
     response.modelParameter.modelArchitecture = settings::AiClassifierSettings::ModelArchitecture::CYTO3;
+  } else if(helper::stringContains(description, "instanseg")) {
+    response.modelParameter.modelArchitecture = settings::AiClassifierSettings::ModelArchitecture::INSTAN_SEG;
   }
 
   return response;
@@ -677,9 +687,9 @@ std::string AiModelParser::Data::toString() const
     out << toInputOrder<settings::AiClassifierSettings::NetOutputParameters>(id, input) << "\n";
   }
 
-  out << "\n----\n”";
+  out << "\n----\n";
   for(size_t n = 0; n < authors.size(); n++) {
-    const auto &author = authors[n];
+    const auto author = authors[n];
     if(!author.affiliation.empty()) {
       out << author.affiliation << "/" << author.authorName;
     } else {

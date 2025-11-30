@@ -16,6 +16,7 @@
 #include "backend/enums/enums_classes.hpp"
 #include "backend/settings/setting.hpp"
 #include <nlohmann/json.hpp>
+#include <opencv2/core/types.hpp>
 
 namespace joda::enums {
 
@@ -23,6 +24,12 @@ using tile_t   = std::tuple<int32_t, int32_t>;
 using zStack_t = int32_t;
 using tStack_t = int32_t;
 using cStack_t = int32_t;
+
+struct TileInfo
+{
+  enums::tile_t tileSegment;
+  cv::Size tileSize;
+};
 
 struct PlaneId
 {
@@ -43,6 +50,11 @@ struct PlaneId
   {
     return {static_cast<uint64_t>(id.cStack), static_cast<uint64_t>(id.zStack) << 32 | static_cast<uint64_t>(id.tStack)};
   };
+
+  bool operator==(const PlaneId &plane) const
+  {
+    return zStack == plane.zStack && cStack == plane.cStack && tStack == plane.tStack;
+  }
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(PlaneId, tStack, zStack, cStack);
 };

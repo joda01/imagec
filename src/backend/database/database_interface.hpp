@@ -18,10 +18,10 @@
 #include "backend/enums/enum_validity.hpp"
 #include "backend/helper/file_grouper/file_grouper_types.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
-#include "backend/helper/threadpool/thread_pool.hpp"
 #include "backend/processor/context/image_context.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include <duckdb/main/query_result.hpp>
+#include <BS_thread_pool.hpp>
 
 namespace joda::db {
 
@@ -86,8 +86,9 @@ public:
   virtual auto prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
                              const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
                              const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings,
-                             BS::thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> = 0;
-  virtual void setImageProcessed(uint64_t)                                                                                                      = 0;
+                             BS::light_thread_pool &globalThreadPool)
+      -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> = 0;
+  virtual void setImageProcessed(uint64_t)                                            = 0;
 
   virtual void insertImagePlane(uint64_t imageId, const enums::PlaneId &, const ome::OmeInfo::ImagePlane &) = 0;
 
@@ -126,7 +127,8 @@ public:
   auto prepareImages(uint8_t /*plateId*/, int32_t /*series*/, enums::GroupBy /*groupBy*/, const std::string & /*filenameRegex*/,
                      const std::vector<std::filesystem::path> & /*imagePaths*/, const std::filesystem::path & /*imagesBasePath*/,
                      const joda::settings::ProjectImageSetup::PhysicalSizeSettings & /*defaultPhysicalSizeSettings*/,
-                     BS::thread_pool & /*globalThreadPool*/) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> override
+                     BS::light_thread_pool & /*globalThreadPool*/)
+      -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> override
   {
     return {};
   }

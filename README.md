@@ -1,10 +1,13 @@
-[![C++ Build](https://github.com/joda01/imagec/actions/workflows/cmake-multi-platform.yml/badge.svg)](https://github.com/joda01/imagec/actions/workflows/cmake-multi-platform.yml)
-![GitHub Release](https://img.shields.io/github/v/release/joda01/imagec)
-![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/joda01/imagec/latest/total)
-![GitHub License](https://img.shields.io/github/license/joda01/imagec)
-[![ImageC Docs](https://img.shields.io/badge/docs-available-brightgreen)](https://imagec.org/doc/)
-[![Image.sc forum](https://img.shields.io/badge/dynamic/json.svg?label=forum&url=https%3A%2F%2Fforum.image.sc%2Ftags%2Fimagec.json&query=%24.topic_list.tags.0.topic_count&colorB=brightgreen&suffix=%20topics&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAABPklEQVR42m3SyyqFURTA8Y2BER0TDyExZ+aSPIKUlPIITFzKeQWXwhBlQrmFgUzMMFLKZeguBu5y+//17dP3nc5vuPdee6299gohUYYaDGOyyACq4JmQVoFujOMR77hNfOAGM+hBOQqB9TjHD36xhAa04RCuuXeKOvwHVWIKL9jCK2bRiV284QgL8MwEjAneeo9VNOEaBhzALGtoRy02cIcWhE34jj5YxgW+E5Z4iTPkMYpPLCNY3hdOYEfNbKYdmNngZ1jyEzw7h7AIb3fRTQ95OAZ6yQpGYHMMtOTgouktYwxuXsHgWLLl+4x++Kx1FJrjLTagA77bTPvYgw1rRqY56e+w7GNYsqX6JfPwi7aR+Y5SA+BXtKIRfkfJAYgj14tpOF6+I46c4/cAM3UhM3JxyKsxiOIhH0IO6SH/A1Kb1WBeUjbkAAAAAElFTkSuQmCC)](https://forum.image.sc/tag/imagec)
 
+[![Author: Joachim Danmayr](https://img.shields.io/badge/author-Joachim_Danmayr-009933)](https://imagec.org/about_imagec)
+[![ImageC Docs](https://img.shields.io/badge/docs-available-brightgreen?style=flat&color=009933)](https://imagec.org)
+[![Image.sc forum](https://img.shields.io/badge/dynamic/json.svg?label=forum&url=https%3A%2F%2Fforum.image.sc%2Ftags%2Fimagec.json&query=%24.topic_list.tags.0.topic_count&colorB=brightgreen&suffix=%20topics&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAABPklEQVR42m3SyyqFURTA8Y2BER0TDyExZ+aSPIKUlPIITFzKeQWXwhBlQrmFgUzMMFLKZeguBu5y+//17dP3nc5vuPdee6299gohUYYaDGOyyACq4JmQVoFujOMR77hNfOAGM+hBOQqB9TjHD36xhAa04RCuuXeKOvwHVWIKL9jCK2bRiV284QgL8MwEjAneeo9VNOEaBhzALGtoRy02cIcWhE34jj5YxgW+E5Z4iTPkMYpPLCNY3hdOYEfNbKYdmNngZ1jyEzw7h7AIb3fRTQ95OAZ6yQpGYHMMtOTgouktYwxuXsHgWLLl+4x++Kx1FJrjLTagA77bTPvYgw1rRqY56e+w7GNYsqX6JfPwi7aR+Y5SA+BXtKIRfkfJAYgj14tpOF6+I46c4/cAM3UhM3JxyKsxiOIhH0IO6SH/A1Kb1WBeUjbkAAAAAElFTkSuQmCC&style=flat&color=009933)](https://forum.image.sc/tag/imagec)
+![GitHub License](https://img.shields.io/github/license/joda01/imagec?style=flat)
+[![Language: C++23](https://img.shields.io/badge/Language-C%2B%2B23-yellow)](https://cppreference.com/)
+[![GitHub stars](https://img.shields.io/github/stars/joda01/imagec?style=flat&color=009999)](https://github.com/joda01/imagec/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/joda01/imagec?style=flat&color=009999)](https://github.com/joda01/imagec/forks)
+[![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/joda01/imagec/latest/total?style=flat&color=009999)](https://github.com/joda01/imagec-stats)
+[![GitHub release](https://img.shields.io/github/v/release/joda01/imagec?style=flat&color=660099)](https://github.com/joda01/imagec/releases)
 
 
 # ImageC (EVAnalyzer 2)
@@ -196,6 +199,7 @@ minizip/1.2.13|https://zlib.net|Zlib
 duckdb/1.1.3|https://github.com/cwida/duckdb|MIT
 cpp-httplib/0.19.0|https://github.com/yhirose/cpp-httplib|MIT
 cli11/2.5.0|https://github.com/CLIUtils/CLI11|BSD-3-Clause
+cereal/1.3.2|https://github.com/USCiLab/cereal|BSD-3-Clause
 onnx/1.17.0|https://github.com/onnx/onnx|Apache-2.0
 rapidyaml/0.7.1|https://github.com/biojppm/rapidyaml|['MIT']
 c4core/0.2.0|https://github.com/biojppm/c4core|['MIT']
@@ -212,24 +216,25 @@ safeint/3.0.28|https://github.com/dcleblanc/SafeInt|MIT
 ms-gsl/4.0.0|https://github.com/microsoft/GSL|MIT
 cpuinfo/cci.20231129|https://github.com/pytorch/cpuinfo|BSD-2-Clause
 nsync/1.26.0|https://github.com/google/nsync|Apache-2.0
-libtorch/2.4.0|https://pytorch.org|BSD-3-Clause
-fp16/cci.20210320|https://github.com/Maratyszcza/FP16|MIT
-psimd/cci.20200517|https://github.com/Maratyszcza/psimd|MIT
-fmt/10.2.1|https://github.com/fmtlib/fmt|MIT
-sleef/3.6.1|https://sleef.org|BSL-1.0
-openblas/0.3.28|https://www.openblas.net|BSD-3-Clause
-fbgemm/0.8.0|https://github.com/pytorch/FBGEMM|BSD-3-Clause
-asmjit/cci.20240531|https://asmjit.com|Zlib
-fxdiv/cci.20200417|https://github.com/Maratyszcza/FXdiv|MIT
-xnnpack/cci.20240229|https://github.com/google/XNNPACK|BSD-3-Clause
-pthreadpool/cci.20231129|https://github.com/Maratyszcza/pthreadpool|BSD-2-Clause
-libnuma/2.0.16|https://github.com/numactl/numactl|LGPL-2.1-or-later
+mlpack/4.6.2|https://github.com/mlpack/mlpack|BSD-3-Clause
+armadillo/12.6.4|http://arma.sourceforge.net|Apache-2.0
+openblas/0.3.25|https://www.openblas.net|BSD-3-Clause
+ensmallen/2.21.0|https://github.com/mlpack/ensmallen|BSD-3-Clause
+stb/cci.20230920|https://github.com/nothings/stb|['Unlicense', 'MIT']
+llvm-openmp/17.0.6|https://github.com/llvm/llvm-project/blob/main/openmp|Apache-2.0 WITH LLVM-exception
+bshoshany-thread-pool/5.0.0|https://github.com/bshoshany/thread-pool|MIT
+libtorch/2.9.0|None|BSD-3-Clause
 tensorflow-lite/2.15.0|https://www.tensorflow.org/lite/guide|Apache-2.0
 farmhash/cci.20190513|https://github.com/google/farmhash|MIT
 fft/cci.20061228|http://www.kurims.kyoto-u.ac.jp/~ooura/fft.html|LicenseRef-LICENSE
 gemmlowp/cci.20210928|https://github.com/google/gemmlowp|Apache-2.0
 ruy/cci.20231129|https://github.com/google/ruy|Apache-2.0
 intel-neon2sse/cci.20210225|https://github.com/intel/ARM_NEON_2_x86_SSE|BSD-2-Clause
+xnnpack/cci.20240229|https://github.com/google/XNNPACK|BSD-3-Clause
+fp16/cci.20210320|https://github.com/Maratyszcza/FP16|MIT
+psimd/cci.20200517|https://github.com/Maratyszcza/psimd|MIT
+pthreadpool/cci.20231129|https://github.com/Maratyszcza/pthreadpool|BSD-2-Clause
+fxdiv/cci.20200417|https://github.com/Maratyszcza/FXdiv|MIT
 
 <!---EXT-LIBS-->
 

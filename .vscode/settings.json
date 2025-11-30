@@ -88,12 +88,13 @@
         "semaphore": "cpp",
         "shared_mutex": "cpp",
         "queue": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "stdfloat": "cpp"
     },
     "files.exclude": {
         ".gitignore": false,
-        ".dockerignore": true,
-        ".clangd": true
+        ".dockerignore": false,
+        ".clangd": false
     },
     "C_Cpp.intelliSenseEngineFallback": "disabled",
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",

@@ -30,6 +30,7 @@
 #include <future>
 #include <utility>
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_base.hpp"
+#include "ui/gui/helper/debugging.hpp"
 
 namespace joda::ui::gui::helper {
 
@@ -66,6 +67,7 @@ public:
 
   void showToolBar(bool visible)
   {
+    CHECK_GUI_THREAD(mToolbarTop)
     mToolbarTop->setVisible(visible);
   }
 

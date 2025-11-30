@@ -96,10 +96,12 @@ WindowResults::WindowResults(WindowMain *windowMain) : mWindowMain(windowMain), 
   setWindowTitle("ImageC results");
   const QIcon myIcon(":/icons/icons/icon.png");
   setWindowIcon(myIcon);
+  setMinimumSize(1500, 800);
+  setObjectName("windowResult");
 
   // Add to dock
   mDockWidgetImagePreview->getImageWidget()->setShowCrossHairCursor(true);
-  mDockWidgetImagePreview->getImageWidget()->setOverlayButtonsVisible(false);
+  mDockWidgetImagePreview->getImageWidget()->setReadOnly(false);
   mDockWidgetImagePreview->getImageWidget()->removeVideoControl();
 
   static const int32_t SELECTED_INFO_WIDTH   = 250;
@@ -120,7 +122,6 @@ WindowResults::WindowResults(WindowMain *windowMain) : mWindowMain(windowMain), 
 
     connect(mGraphContainer.get(), &HeatmapWidget::onGraphDoubleClicked, [this](joda::table::TableCell cell) {
       std::lock_guard<std::mutex> lock(mLoadLock);
-
       openNextLevel({cell});
     });
     // connect(layout().getBackButton(), &QAction::triggered, [this] { mWindowMain->showPanelStartPage(); });
@@ -134,11 +135,10 @@ WindowResults::WindowResults(WindowMain *windowMain) : mWindowMain(windowMain), 
     connect(mDockWidgetClassList, &PanelClassificationList::settingsChanged, [this]() { refreshView(); });
 
     addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, mDockWidgetGraphSettings);
-    addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, mDockWidgetClassList);
     addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, mDockWidgetImagePreview);
+    splitDockWidget(mDockWidgetImagePreview, mDockWidgetClassList, Qt::Vertical);    // <- key line
 
-    tabifyDockWidget(mDockWidgetClassList, mDockWidgetGraphSettings);
-    tabifyDockWidget(mDockWidgetClassList, mDockWidgetImagePreview);
+    tabifyDockWidget(mDockWidgetImagePreview, mDockWidgetGraphSettings);
     mDockWidgetClassList->raise();
   }
 
@@ -324,6 +324,7 @@ void WindowResults::valueChangedEvent()
 ///
 void WindowResults::setHeatmapVisible(bool visible)
 {
+  CHECK_GUI_THREAD(mGraphContainer)
   mGraphContainer->setVisible(visible);
 }
 
@@ -363,6 +364,7 @@ void WindowResults::resetSettings()
 
   mHeatmapButton->setChecked(false);
   mTableButton->setChecked(true);
+  CHECK_GUI_THREAD(mDashboard)
   mDashboard->setVisible(true);
   mDashboard->reset();
   setHeatmapVisible(false);
@@ -407,12 +409,15 @@ auto WindowResults::createToolBar() -> QToolBar *
 
   mExportPng = exportMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("file-png"), "Save as PNG");
   mExportPng->setToolTip("Export PNG");
+  CHECK_GUI_THREAD(mExportPng)
   mExportPng->setVisible(false);
   connect(mExportPng, &QAction::triggered, [this]() { showFileSaveDialog("PNG image (*.png)"); });
 
   mExportSvg = exportMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("file-svg"), "Save as SVG");
   mExportSvg->setToolTip("Export SVG");
+  CHECK_GUI_THREAD(mExportSvg)
   mExportSvg->setVisible(false);
+  CHECK_GUI_THREAD(mExportSvg)
   mExportSvg->setEnabled(false);
   connect(mExportSvg, &QAction::triggered, [this]() { showFileSaveDialog("SVG image (*.svg)"); });
 
@@ -451,9 +456,13 @@ auto WindowResults::createToolBar() -> QToolBar *
   windowMode->setCheckable(true);
   windowMode->setStatusTip("Switch to window mode");
   connect(windowMode, &QAction::triggered, [this](bool enabled) {
+    CHECK_GUI_THREAD(mCascade)
     mCascade->setEnabled(enabled);
+    CHECK_GUI_THREAD(mTile)
     mTile->setEnabled(enabled);
+    CHECK_GUI_THREAD(mMinimize)
     mMinimize->setEnabled(enabled);
+    CHECK_GUI_THREAD(mRestore)
     mRestore->setEnabled(enabled);
     mDashboard->setWindowDisplayMode(enabled);
   });
@@ -461,24 +470,28 @@ auto WindowResults::createToolBar() -> QToolBar *
 
   windowMenu->addSeparator();
   mCascade = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("browsers"), "Cascade");
+  CHECK_GUI_THREAD(mCascade)
   mCascade->setEnabled(false);
   mCascade->setStatusTip("Cascade windows");
   connect(mCascade, &QAction::triggered, [this]() { mDashboard->cascadeSubWindows(); });
   windowMenu->addAction(mCascade);
 
   mTile = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("grid-four"), "Tile");
+  CHECK_GUI_THREAD(mTile)
   mTile->setEnabled(false);
   mTile->setStatusTip("Tile windows");
   connect(mTile, &QAction::triggered, [this]() { mDashboard->tileSubWindows(); });
   windowMenu->addAction(mTile);
 
   mMinimize = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("minus"), "Minimize");
+  CHECK_GUI_THREAD(mMinimize)
   mMinimize->setEnabled(false);
   mMinimize->setStatusTip("Minimize windows");
   connect(mMinimize, &QAction::triggered, [this]() { mDashboard->minimizeSubWindows(); });
   windowMenu->addAction(mMinimize);
 
   mRestore = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("app-window"), "Restore");
+  CHECK_GUI_THREAD(mRestore)
   mRestore->setEnabled(false);
   mRestore->setStatusTip("Restore windows");
   connect(mRestore, &QAction::triggered, [this]() { mDashboard->restoreSubWindows(); });
@@ -486,25 +499,6 @@ auto WindowResults::createToolBar() -> QToolBar *
 
   mFilter.sortColumns();
   toolbar->addSeparator();
-
-  //
-  // Show preview action
-  //
-  mShowPreview = new QAction(generateSvgIcon<Style::REGULAR, Color::RED>("image"), "");
-  mShowPreview->setCheckable(true);
-  mShowPreview->setChecked(true);
-  mShowPreview->setToolTip("Show preview");
-  connect(mShowPreview, &QAction::triggered, [this](bool checked) {
-    if(checked) {
-      if(mNavigation == Navigation::IMAGE && !mImageWorkingDirectory.empty()) {
-        mDockWidgetImagePreview->setVisible(true);
-        mDockWidgetImagePreview->raise();
-      }
-    } else {
-      mDockWidgetImagePreview->setVisible(false);
-    }
-  });
-  toolbar->addAction(mShowPreview);
 
   //
   // Mark as invalid button
@@ -516,6 +510,7 @@ auto WindowResults::createToolBar() -> QToolBar *
   mMarkAsInvalid->setToolTip("Exclude selected image from statistics");
   mMarkAsInvalid->setCheckable(true);
   toolbar->addAction(mMarkAsInvalid);
+  CHECK_GUI_THREAD(mMarkAsInvalid)
   mMarkAsInvalid->setEnabled(false);
   connect(mMarkAsInvalid, &QAction::triggered, this, &WindowResults::onMarkAsInvalidClicked);
 
@@ -587,44 +582,49 @@ void WindowResults::refreshBreadCrump()
 {
   switch(mNavigation) {
     case Navigation::PLATE:
+      CHECK_GUI_THREAD(mBreadCrumpWell)
       mBreadCrumpWell->setVisible(false);
+      CHECK_GUI_THREAD(mBreadCrumpImage)
       mBreadCrumpImage->setVisible(false);
+      CHECK_GUI_THREAD(mOpenNextLevel)
       mOpenNextLevel->setVisible(true);
-      mShowPreview->setEnabled(false);
-      mDockWidgetImagePreview->setVisible(false);
       mDockWidgetImagePreview->setFloating(false);
       mVideoControlButton->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
       break;
-    case Navigation::WELL:
+    case Navigation::WELL: {
+      CHECK_GUI_THREAD(mBreadCrumpWell)
       mBreadCrumpWell->setVisible(true);
+      CHECK_GUI_THREAD(mBreadCrumpImage)
       mBreadCrumpImage->setVisible(false);
+      CHECK_GUI_THREAD(mOpenNextLevel)
       mOpenNextLevel->setVisible(true);
-      mShowPreview->setEnabled(false);
-      mDockWidgetImagePreview->setVisible(false);
       mDockWidgetImagePreview->setFloating(false);
       mVideoControlButton->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());
+      std::string groupName;
       if(mSelectedDataSet.groupMeta.has_value()) {
-        auto platePos = "Well (" + std::string(1, (static_cast<char>(mSelectedDataSet.groupMeta->posY - 1) + 'A')) +
-                        std::to_string(mSelectedDataSet.groupMeta->posX) + ")";
-        mBreadCrumpWell->setText(platePos.data());
+        groupName = "Well (" + std::string(1, (static_cast<char>(mSelectedDataSet.groupMeta->posY - 1) + 'A')) +
+                    std::to_string(mSelectedDataSet.groupMeta->posX) + ")";
       }
-      break;
+      if(mActGroupId.size() > 1) {
+        groupName = "";
+        for(auto groupId : mActGroupId) {
+          auto groupInfo = mAnalyzer->selectGroupInfo(groupId);
+          groupName += groupInfo.groupName + ",";
+        }
+        if(!groupName.empty()) {
+          groupName.erase(groupName.size() - 1);
+        }
+      }
+      mBreadCrumpWell->setText(groupName.data());
+    } break;
     case Navigation::IMAGE:
+      CHECK_GUI_THREAD(mBreadCrumpWell)
       mBreadCrumpWell->setVisible(true);
+      CHECK_GUI_THREAD(mBreadCrumpImage)
       mBreadCrumpImage->setVisible(true);
+      CHECK_GUI_THREAD(mOpenNextLevel)
       mOpenNextLevel->setVisible(false);
       mVideoControlButton->setMaxTimeStacks(mAnalyzer->selectNrOfTimeStacks());    // Reset
-      if(!mImageWorkingDirectory.empty() && mDashboard->isVisible()) {
-        mShowPreview->setEnabled(true);
-        mDockWidgetImagePreview->setVisible(mShowPreview->isChecked());
-        if(mShowPreview->isChecked()) {
-          mDockWidgetImagePreview->raise();
-        }
-      } else {
-        mShowPreview->setChecked(false);
-        mShowPreview->setEnabled(false);
-        mDockWidgetImagePreview->setVisible(false);
-      }
 
       //
       std::string imageName;
@@ -660,6 +660,7 @@ bool WindowResults::showSelectWorkingDir(const QString & /*path*/)
   dialog.setWindowTitle("Select images Directory");
   dialog.setFileMode(QFileDialog::Directory);
   dialog.setOption(QFileDialog::ShowDirsOnly, true);
+  dialog.setOption(QFileDialog::DontUseNativeDialog, true);
   if(dialog.exec() == QDialog::Accepted) {
     mImageWorkingDirectory = std::filesystem::path(dialog.selectedFiles().first().toStdString());
     return true;
@@ -683,9 +684,6 @@ void WindowResults::loadPreview()
 
   if(mImageWorkingDirectory.empty()) {
     // No working directory selected. Make the image preview invisible
-    mShowPreview->setEnabled(false);
-    mShowPreview->setChecked(false);
-    mDockWidgetImagePreview->setVisible(false);
     mGeneratePreviewMutex.unlock();
     return;
   }
@@ -726,18 +724,10 @@ void WindowResults::loadPreview()
         imagePath  = mImageWorkingDirectory / imagePathRel;
         showDialog = !std::filesystem::exists(imagePath);
       } else {
-        if(mImageWorkingDirectory.empty()) {
-          mShowPreview->setEnabled(false);
-          mShowPreview->setChecked(false);
-          mDockWidgetImagePreview->setVisible(false);
-        }
         mGeneratePreviewMutex.unlock();
         return;
       }
     } else if(msgBox.clickedButton() == dontAskAgainButton) {
-      mShowPreview->setEnabled(false);
-      mShowPreview->setChecked(false);
-      mDockWidgetImagePreview->setVisible(false);
       mImageWorkingDirectory.clear();
       mGeneratePreviewMutex.unlock();
       return;
@@ -762,9 +752,7 @@ void WindowResults::previewThread()
 {
   while(!mStopped) {
     auto previewData = mPreviewQue.pop();
-
     try {
-      mDockWidgetImagePreview->getImageWidget()->setWaiting(true);
       int32_t tileWidth      = static_cast<int32_t>(previewData.analyzeMeta.tileWidth);
       int32_t tileHeight     = static_cast<int32_t>(previewData.analyzeMeta.tileHeight);
       int32_t series         = static_cast<int32_t>(previewData.analyzeMeta.series);
@@ -773,8 +761,9 @@ void WindowResults::previewThread()
       int32_t tileYNr        = static_cast<int32_t>(static_cast<float>(objectInfo.measCenterY) / static_cast<float>(tileHeight));
       // int32_t resolution     = 0;
 
-      auto plane = joda::image::reader::ImageReader::Plane{
-          .z = static_cast<int32_t>(objectInfo.stackZ), .c = static_cast<int32_t>(objectInfo.stackC), .t = static_cast<int32_t>(objectInfo.stackT)};
+      auto plane = joda::enums::PlaneId{.tStack = static_cast<int32_t>(objectInfo.stackT),
+                                        .zStack = static_cast<int32_t>(objectInfo.stackZ),
+                                        .cStack = static_cast<int32_t>(objectInfo.stackC)};
 
       mDockWidgetImagePreview->getImageWidget()->setImagePlane({plane, series, tileWidth, tileHeight, tileXNr, tileYNr});
       mDockWidgetImagePreview->getImageWidget()->getImagePanel()->openImage(previewData.imagePath);
@@ -792,7 +781,6 @@ void WindowResults::previewThread()
       // No image selected
       joda::log::logError("Preview error: " + std::string(ex.what()));
     }
-    mDockWidgetImagePreview->getImageWidget()->setWaiting(false);
   }
 }
 
@@ -814,7 +802,7 @@ void WindowResults::refreshView()
                   ? joda::settings::DensityMapSettings::ElementForm::CIRCLE
                   : joda::settings::DensityMapSettings::ElementForm::RECTANGLE;
 
-  mFilter.setFilter({.plateId = 0, .groupId = static_cast<uint16_t>(mActGroupId), .imageId = mActImageId, .tStack = mVideoControlButton->value()},
+  mFilter.setFilter({.plateId = 0, .groupId = mActGroupId, .imageId = mActImageId, .tStack = mVideoControlButton->value()},
                     {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
                     {.form               = form,
                      .heatmapRangeMode   = mFilter.getDensityMapSettings().heatmapRangeMode,
@@ -846,24 +834,21 @@ void WindowResults::refreshView()
               // If there are no groups, switch directly to well view
               mNavigation                = Navigation::WELL;
               auto getID                 = mActListData->data(0, 0)->getId();
-              mActGroupId                = getID;
+              mActGroupId                = {static_cast<uint16_t>(getID)};
               mSelectedWellId            = getID;
               mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(getID);
-              mFilter.setFilter(
-                  {.plateId = 0, .groupId = static_cast<uint16_t>(mActGroupId), .imageId = mActImageId, .tStack = mVideoControlButton->value()},
-                  {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
-                  {.densityMapAreaSize = static_cast<int32_t>(mDockWidgetGraphSettings->getDensityMapSize())});
+              mFilter.setFilter({.plateId = 0, .groupId = mActGroupId, .imageId = mActImageId, .tStack = mVideoControlButton->value()},
+                                {.rows = static_cast<uint16_t>(rows), .cols = static_cast<uint16_t>(cols), .wellImageOrder = wellOrder},
+                                {.densityMapAreaSize = static_cast<int32_t>(mDockWidgetGraphSettings->getDensityMapSize())});
               goto REFRESH_VIEW;
             }
 
           } break;
           case Navigation::WELL: {
-            std::cout << "Well" << std::endl;
             mActListData = std::make_shared<db::QueryResult>(
                 joda::db::StatsPerGroup::toTable(mAnalyzer.get(), mFilter, db::StatsPerGroup::Grouping::BY_WELL, &mActFilter));
           } break;
           case Navigation::IMAGE: {
-            std::cout << "Image" << std::endl;
             mActListData = std::make_shared<db::QueryResult>(joda::db::StatsPerImage::toTable(mAnalyzer.get(), mFilter, &mActFilter));
 
           } break;
@@ -984,20 +969,16 @@ void WindowResults::setSelectedElement(table::TableCell value)
       mSelectedDataSet.groupMeta = mAnalyzer->selectGroupInfo(value.getId());
       mSelectedDataSet.imageMeta.reset();
       mSelectedDataSet.objectInfo.reset();
+      CHECK_GUI_THREAD(mMarkAsInvalid)
       mMarkAsInvalid->setEnabled(false);
 
       // Act data
-      auto platePos =
-          std::string(1, (static_cast<char>(mSelectedDataSet.groupMeta->posY - 1) + 'A')) + std::to_string(mSelectedDataSet.groupMeta->posX);
+      auto platePos = mSelectedDataSet.groupMeta->groupName;
       mSelectedRowInfo->setText(platePos.data());
     } break;
     case Navigation::WELL: {
-      if(!mSelectedDataSet.groupMeta.has_value()) {
-      }
-
       mSelectedImageId = value.getId();
       mSelectedDataSet.objectInfo.reset();
-
       auto imageInfo             = mAnalyzer->selectImageInfo(value.getId());
       mSelectedDataSet.imageMeta = imageInfo;
       mMarkAsInvalid->blockSignals(true);
@@ -1008,17 +989,18 @@ void WindowResults::setSelectedElement(table::TableCell value)
         mMarkAsInvalid->setChecked(false);
       }
       mMarkAsInvalid->blockSignals(false);
+      CHECK_GUI_THREAD(mMarkAsInvalid)
       mMarkAsInvalid->setEnabled(true);
 
       // Act data
-      auto platePos = std::string(1, (static_cast<char>(mSelectedDataSet.groupMeta->posY - 1) + 'A')) +
-                      std::to_string(mSelectedDataSet.groupMeta->posX) + "/" + imageInfo.filename;
+      auto platePos = imageInfo.imageGroupName + "/" + imageInfo.filename;
       mSelectedRowInfo->setText(platePos.data());
     }
 
     break;
     case Navigation::IMAGE:
       mSelectedTileId = value.getObjectId();
+      CHECK_GUI_THREAD(mMarkAsInvalid)
       mMarkAsInvalid->setEnabled(false);
 
       mSelectedDataSet.objectInfo = mAnalyzer->selectObjectInfo(mSelectedTileId);
@@ -1030,8 +1012,7 @@ void WindowResults::setSelectedElement(table::TableCell value)
       if(mActImageId.size() > 1) {
         rowImageName = value.getRowName();
       }
-      auto platePos = std::string(1, (static_cast<char>(mSelectedDataSet.groupMeta->posY - 1) + 'A')) +
-                      std::to_string(mSelectedDataSet.groupMeta->posX) + "/" + rowImageName + "/" + std::to_string(value.getObjectId());
+      auto platePos = mSelectedDataSet.imageMeta->imageGroupName + "/" + rowImageName + "/" + std::to_string(value.getObjectId());
       mSelectedRowInfo->setText(platePos.data());
 
       loadPreview();
@@ -1062,7 +1043,11 @@ void WindowResults::openNextLevel(const std::vector<table::TableCell> &selectedR
       break;
     case Navigation::WELL:
       if(!selectedRows.empty()) {
-        mActGroupId = selectedRows.at(0).getId();
+        std::set<uint16_t> act;
+        for(const auto &row : selectedRows) {
+          act.emplace(row.getObjectId());
+        }
+        mActGroupId = act;
       } else {
         mNavigation = oldActMenu;
       }
@@ -1131,9 +1116,10 @@ void WindowResults::openFromFile(const QString &pathToDbFile)
   mAnalyzer->openDatabase(std::filesystem::path(pathToDbFile.toStdString()));
   mDbFilePath = std::filesystem::path(pathToDbFile.toStdString());
 
-  // We assume the images to be in the folder ../../../<IMAGES>
+  // Database results file is stored in <IMAGE-PATH>/imagec/results/<JOB-NAME>/results.icdb
+  // We assume the images to be in the folder ../../../../<IMAGES>
   // If not the user will be asked to select the image working directory.
-  mImageWorkingDirectory = mDbFilePath.parent_path().parent_path().parent_path();
+  mImageWorkingDirectory = mDbFilePath.parent_path().parent_path().parent_path().parent_path();
 
   mSelectedDataSet.analyzeMeta = mAnalyzer->selectExperiment();
   // Try to load settings if available
@@ -1188,11 +1174,15 @@ void WindowResults::openFromFile(const QString &pathToDbFile)
 void WindowResults::onShowTable()
 {
   if(mExportSvg != nullptr) {
+    CHECK_GUI_THREAD(mExportSvg)
     mExportSvg->setVisible(false);
+    CHECK_GUI_THREAD(mExportPng)
     mExportPng->setVisible(false);
   }
 
+  CHECK_GUI_THREAD(mDashboard)
   mDashboard->setVisible(true);
+  CHECK_GUI_THREAD(mDockWidgetGraphSettings)
   mDockWidgetGraphSettings->setVisible(false);
   setHeatmapVisible(false);
   refreshView();
@@ -1208,13 +1198,16 @@ void WindowResults::onShowTable()
 void WindowResults::onShowHeatmap()
 {
   if(mExportSvg != nullptr) {
+    CHECK_GUI_THREAD(mExportSvg)
     mExportSvg->setVisible(true);
+    CHECK_GUI_THREAD(mExportPng)
     mExportPng->setVisible(true);
   }
+  CHECK_GUI_THREAD(mDashboard)
   mDashboard->setVisible(false);
+  CHECK_GUI_THREAD(mDockWidgetGraphSettings)
   mDockWidgetGraphSettings->setVisible(true);
   mDockWidgetGraphSettings->raise();    // Make it the active tab
-  mDockWidgetImagePreview->setVisible(false);
   setHeatmapVisible(true);
   refreshView();
 }
@@ -1255,8 +1248,9 @@ void WindowResults::showOpenFileDialog()
 {
   std::filesystem::path filePath = mDbFilePath.parent_path();
 
-  QString filename = QFileDialog::getOpenFileName(this, "Open File", filePath.string().data(),
-                                                  "ImageC results files (*" + QString(joda::fs::EXT_DATABASE.data()) + ")");
+  QFileDialog::Options opt = QFileDialog::DontUseNativeDialog;
+  QString filename         = QFileDialog::getOpenFileName(this, "Open File", filePath.string().data(),
+                                                          "ImageC results files (*" + QString(joda::fs::EXT_DATABASE.data()) + ")", nullptr, opt);
   // Select save option
   if(filename.endsWith(joda::fs::EXT_DATABASE.data())) {
     openFromFile(filename);
@@ -1301,7 +1295,8 @@ void WindowResults::showFileSaveDialog(const QString &filter)
   }
 
   QString selectedFilter;
-  QString filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(), filter, &selectedFilter);
+  QFileDialog::Options opt       = QFileDialog::DontUseNativeDialog;
+  QString filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(), filter, &selectedFilter, opt);
   std::string filename           = filePathOfSettingsFile.toStdString();
   auto selectedEndian            = getEndianFromFilter(selectedFilter);
   if(!filename.ends_with(selectedEndian)) {
@@ -1335,6 +1330,7 @@ void WindowResults::saveData(const std::string &fileName, joda::exporter::xlsx::
     return;
   }
 
+  CHECK_GUI_THREAD(mExports)
   mExports->setEnabled(false);
   mBreadCrumpInfoText->setText("Export running ...");
   std::thread([this, fileName, format] {
@@ -1395,6 +1391,7 @@ void WindowResults::saveData(const std::string &fileName, joda::exporter::xlsx::
 ///
 void WindowResults::onFinishedExport()
 {
+  CHECK_GUI_THREAD(mExports)
   mExports->setEnabled(true);
   mBreadCrumpInfoText->setText("");
 }

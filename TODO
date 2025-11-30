@@ -1,14 +1,15 @@
-- [ ] For tiled images, calculate real X/Y values of pixels in region of interest
 - [ ] Ignore result folder
-- [ ] Describe file extensions
-- [ ] Describe templates
 - [ ] Handle non ASCII chars when inserting to DB
 - [ ] Support the filtering (validity) for image plane and cluster
 - [ ] Rethink control image naming to keep the order and store the ref to a control image in the database
 - [ ] allow to specify the intensity calculation mode for RGB images in (/workspaces/imagec/src/backend/commands/object_functions/measure/measure.hpp)
-- [ ] Improve object segmentation for U-NET
 - [ ] Support to keep tracking information in coloc 
 
 
-- [ ] Display t stack in description of well and plate view
-- [ ] Set temp t-stack in plate and well view
+
+- [ ] If color in classification is changed, the ROIs are not refreshed
+- [ ] Adapt templates to um
+- [ ] Add filter in ML training to select which classes should be used for training
+- [ ] Allow to stop training and show training process
+- [ ] Allow open more in well view
+- [ ] Control image is not working (shows always the image of the pipeline)

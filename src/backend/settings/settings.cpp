@@ -81,6 +81,7 @@ auto Settings::openSettings(const std::filesystem::path &pathIn) -> joda::settin
     }
   }    // namespace joda::settings
 
+  analyzeSettings.setProjectPath(pathIn);
   return analyzeSettings;
 }
 
@@ -95,6 +96,22 @@ void Settings::migrateSettings(std::string &settings)
 {
   helper::stringReplace(settings, "$edgeDetection", "$sobel");
   helper::stringReplace(settings, "\"$measure\"", "\"$measureIntensity\"");
+
+  //
+  // We removed class "0"
+  /// \todo Remove legacy
+  {
+    joda::settings::AnalyzeSettings analyzeSettings = nlohmann::json::parse(settings);
+
+    enums::ClassId lastAvailable = enums::ClassId::NONE;
+    for(const auto &classTmp : analyzeSettings.projectSettings.classification.classes) {
+      if(classTmp.classId < enums::ClassId::CMAX && classTmp.classId > lastAvailable) {
+        lastAvailable = classTmp.classId;
+      }
+    }
+    auto lastAvailableNr = static_cast<int32_t>(lastAvailable) + 1;
+    helper::stringReplace(settings, "\"" + std::to_string(0) + "\"", "\"" + std::to_string(lastAvailableNr) + "\"");
+  }
 }
 
 ///
@@ -106,7 +123,7 @@ void Settings::migrateSettings(std::string &settings)
 ///
 void Settings::storeSettings(const std::filesystem::path &pathIn, const joda::settings::AnalyzeSettings &settings)
 {
-  std::string path = pathIn.string();
+  std::string path = pathIn.generic_string();
   if(!path.empty()) {
     settings.meta.setModifiedAtDateToNow();
     nlohmann::json json = settings;
@@ -141,7 +158,7 @@ void Settings::storeSettings(const std::filesystem::path &pathIn, const joda::se
 ///
 void Settings::storeSettingsTemplate(const std::filesystem::path &pathIn, joda::settings::AnalyzeSettings settings, const SettingsMeta &settingsMeta)
 {
-  std::string path = pathIn.string();
+  std::string path = pathIn.generic_string();
   if(!path.empty()) {
     // Set modified at
     settings.meta = settingsMeta;
@@ -150,7 +167,6 @@ void Settings::storeSettingsTemplate(const std::filesystem::path &pathIn, joda::
     //
     // Remove settings
     //
-    settings.projectSettings.workingDirectory                = "";
     settings.projectSettings.experimentSettings.experimentId = "";
     settings.projectSettings.plate                           = {{}};
     settings.projectSettings.address                         = {};

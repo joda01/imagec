@@ -2,10 +2,18 @@
 
 #include "object_list.hpp"
 #include <exception>
+#include <fstream>
+#include <iostream>
 #include <list>
 #include <memory>
+#include <string>
 #include "backend/artifacts/roi/roi.hpp"
 #include "backend/commands/classification/classifier_filter.hpp"
+#include "backend/enums/enums_file_endians.hpp"
+#include "backend/helper/cereal_cv_mat.hpp"
+#include "backend/helper/logger/console_logger.hpp"
+#include <cereal/archives/binary.hpp>
+#include <nlohmann/json_fwd.hpp>
 
 namespace joda::atom {
 
@@ -30,7 +38,7 @@ void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const Sphe
               if(!intersecting.contains(box1->getObjectId()) && !intersecting.contains(box2->getObjectId())) {
                 if(isCollision(box1, box2)) {
                   auto colocROI =
-                      box1->calcIntersection(iterator, *box2, minIntersecion, tile, tileSize, objectClassIntersectingObjectsShouldBeAssignedTo);
+                      box1->calcIntersection(iterator, *box2, minIntersecion, {tile, tileSize}, objectClassIntersectingObjectsShouldBeAssignedTo);
                   if(!colocROI.isNull()) {
                     intersecting.emplace(box1->getObjectId());
                     intersecting.emplace(box2->getObjectId());
@@ -39,7 +47,8 @@ void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const Sphe
                     // Keep the links from a possible old round
                     colocROI.addLinkedRoi(box1->getLinkedRois());
                     colocROI.addLinkedRoi(box2->getLinkedRois());
-                    result->push_back(std::move(colocROI));
+                    bool inserRet = false;
+                    result->push_back(std::move(colocROI), inserRet);
                   }
                 }
               }
@@ -141,25 +150,31 @@ void SpheralIndex::calcIntersection(ObjectList *objectList, joda::processor::Pro
   }
 }
 
-void SpheralIndex::createBinaryImage(cv::Mat &img) const
+int64_t SpheralIndex::createBinaryImage(cv::Mat &img, uint16_t pixelClass, ROI::Category categoryFilter, const joda::enums::TileInfo &tileInfo) const
 {
+  int64_t addedRois = 0;
   for(const auto &roi : *this) {
+    if(categoryFilter != ROI::Category::ANY && roi.getCategory() != categoryFilter) {
+      continue;
+    }
+
     //   int left   = roi.getBoundingBoxTile().x;
-    //   int top    = roi.getBoundingBoxTile().y;
+    //   int top    = roi.getBoundingBoxTile().y,,;
     //   int width  = roi.getBoundingBoxTile().width;
     //   int height = roi.getBoundingBoxTile().height;
 
-    if(!roi.getMask().empty() && !roi.getBoundingBoxTile().empty() && roi.getBoundingBoxTile().x >= 0 && roi.getBoundingBoxTile().y >= 0 &&
-       roi.getBoundingBoxTile().width >= 0 && roi.getBoundingBoxTile().height >= 0 &&
-       roi.getBoundingBoxTile().x + roi.getBoundingBoxTile().width <= img.cols &&
-       roi.getBoundingBoxTile().y + roi.getBoundingBoxTile().height <= img.rows) {
+    const auto &boundigBox = roi.getBoundingBoxTile(tileInfo);
+    if(!roi.getMask().empty() && !boundigBox.empty() && boundigBox.x >= 0 && boundigBox.y >= 0 && boundigBox.width >= 0 && boundigBox.height >= 0 &&
+       boundigBox.x + boundigBox.width <= img.cols && boundigBox.y + boundigBox.height <= img.rows) {
       try {
-        img(roi.getBoundingBoxTile()).setTo(cv::Scalar(UINT16_MAX), roi.getMask());
+        img(boundigBox).setTo(cv::Scalar(pixelClass), roi.getMask());
+        addedRois++;
       } catch(const std::exception &ex) {
         std::cout << "PA: " << ex.what() << std::endl;
       }
     }
   }
+  return addedRois;
 }
 
 std::unique_ptr<SpheralIndex> SpheralIndex::clone()
@@ -205,6 +220,266 @@ void SpheralIndex::cloneFromOther(const SpheralIndex &other)
       newVec.emplace_back(oldNewPtrMap.at(oldRoi));
     }
     grid.emplace(key, newVec);
+  }
+}
+
+/////////////////////////////////////////////////////
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ObjectList::push_back(const ROI &roi)
+{
+  if(!contains(roi.getClassId())) {
+    SpheralIndex idx{};
+    operator[](roi.getClassId())->cloneFromOther(idx);
+  }
+  bool insertedRet = false;
+  auto &inserted   = at(roi.getClassId())->emplace(roi, insertedRet);
+  if(insertedRet) {
+    if(0 != inserted.getObjectId()) {
+      std::lock_guard<std::mutex> lock(mInsertLock);
+      objectsOrderedByObjectId[inserted.getObjectId()] = &inserted;
+    }
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ObjectList::erase(const ROI *roi)
+{
+  {
+    std::lock_guard<std::mutex> lock(mInsertLock);
+    objectsOrderedByObjectId.erase(roi->getObjectId());
+  }
+
+  if(contains(roi->getClassId())) {
+    at(roi->getClassId())->erase(roi);
+    if(at(roi->getClassId())->empty()) {
+      ObjectMap::erase(roi->getClassId());
+    }
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ObjectList::erase(enums::ClassId classToErase)
+{
+  {
+    std::lock_guard<std::mutex> lock(mInsertLock);
+    for(auto it = objectsOrderedByObjectId.begin(); it != objectsOrderedByObjectId.end();) {
+      if((it->second != nullptr) && it->second->getClassId() == classToErase) {
+        it = objectsOrderedByObjectId.erase(it);    // erase returns the next valid iterator
+      } else {
+        ++it;
+      }
+    }
+  }
+
+  ObjectMap::erase(classToErase);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ObjectList::erase(joda::atom::ROI::Category categoryToErase)
+{
+  std::vector<ROI *> toErase;
+  for(const auto &[classId, rois] : *this) {
+    for(auto &roi : *rois) {
+      if(roi.getCategory() == categoryToErase) {
+        toErase.emplace_back(&roi);
+      }
+    }
+  }
+
+  for(auto *roi : toErase) {
+    erase(roi);
+  }
+}
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ObjectList::clearAll()
+{
+  // triggerStartChangeCallback();
+  std::lock_guard<std::mutex> lock(mInsertLock);
+  std::map<enums::ClassId, std::unique_ptr<SpheralIndex>>::clear();
+  objectsOrderedByObjectId.clear();
+  // triggerChangeCallback();
+}
+
+void ObjectList::erase(const std::set<ROI *> &rois)
+{
+  triggerStartChangeCallback();
+  for(const joda::atom::ROI *roi : rois) {
+    erase(roi);
+  }
+  triggerChangeCallback();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ObjectList::mergeFrom(ObjectList &&other, joda::atom::ROI::Category categoryToKeep)
+{
+  //
+  // First erase
+  //
+  std::vector<ROI *> toErase;
+  for(const auto &[classId, rois] : *this) {
+    for(auto &roi : *rois) {
+      if(roi.getCategory() != categoryToKeep) {
+        toErase.emplace_back(&roi);
+      }
+    }
+  }
+
+  for(auto *roi : toErase) {
+    erase(roi);
+  }
+
+  //
+  // Now enter
+  //
+  for(const auto &grid : other) {
+    for(const auto &roi : *grid.second) {
+      push_back(roi);
+    }
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+std::unique_ptr<SpheralIndex> &ObjectList::operator[](enums::ClassId classId)
+{
+  if(!contains(classId)) {
+    auto newS = std::make_unique<SpheralIndex>();
+    ObjectMap::emplace(classId, std::move(newS));
+  }
+  return at(classId);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+[[nodiscard]] const ROI *ObjectList::getObjectById(uint64_t objectId) const
+{
+  std::lock_guard<std::mutex> lock(mInsertLock);
+  return objectsOrderedByObjectId.at(objectId);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+[[nodiscard]] bool ObjectList::containsObjectById(uint64_t objectId) const
+{
+  std::lock_guard<std::mutex> lock(mInsertLock);
+  return objectsOrderedByObjectId.contains(objectId);
+}
+
+[[nodiscard]] size_t ObjectList::sizeList() const
+{
+  std::lock_guard<std::mutex> lock(mInsertLock);
+  return objectsOrderedByObjectId.size();
+}
+
+[[nodiscard]] size_t ObjectList::sizeClasses() const
+{
+  return ObjectMap::size();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ObjectList::serialize(const std::filesystem::path &filename)
+{
+  try {
+    std::ofstream os(filename.string(), std::ios::binary);
+    cereal::BinaryOutputArchive archive(os);
+
+    // Save number of entries first (so we know how many to read back)
+    size_t count = objectsOrderedByObjectId.size();
+    archive(count);
+
+    // Write each pointed object (not the key)
+    for(const auto &[_, ptr] : objectsOrderedByObjectId) {
+      if(ptr->getCategory() == ROI::Category::MANUAL_SEGMENTATION) {
+        archive(*ptr);    // directly serialize the object
+      }
+    }
+  } catch(const std::exception &ex) {
+    joda::log::logWarning("Could not load ROIs. what: " + std::string(ex.what()));
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ObjectList::deserialize(const std::filesystem::path &filename)
+{
+  try {
+    clearAll();
+    std::ifstream is(filename.string(), std::ios::binary);
+    cereal::BinaryInputArchive archive(is);
+
+    size_t count;
+    archive(count);
+
+    for(size_t i = 0; i < count; ++i) {
+      ROI roi;
+      archive(roi);    // directly deserialize into allocated object
+      push_back(roi);
+    }
+  } catch(const std::exception &ex) {
+    joda::log::logWarning("Could not load ROIs. what: " + std::string(ex.what()));
   }
 }
 

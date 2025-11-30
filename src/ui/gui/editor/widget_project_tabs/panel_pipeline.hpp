@@ -24,12 +24,17 @@
 class DroppableWidget;
 class PlaceholderTableView;
 
+namespace joda::processor {
+class Preview;
+}
+
 namespace joda::ui::gui {
 
 class WindowMain;
 class PanelPipelineSettings;
 class DialogCommandSelection;
 class TableModelPipeline;
+class DialogMlTrainer;
 
 ///
 /// \class
@@ -42,7 +47,7 @@ class PanelPipeline : public QWidget
 
 public:
   /////////////////////////////////////////////////////
-  explicit PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSettings &settings);
+  explicit PanelPipeline(joda::processor::Preview *, WindowMain *windowMain, DialogMlTrainer *mlTraining, joda::settings::AnalyzeSettings *settings);
   void addElement(std::unique_ptr<PanelPipelineSettings> baseContainer);
   void erase(PanelPipelineSettings *toRemove);
   void clear();
@@ -64,7 +69,7 @@ public:
 private:
   /////////////////////////////////////////////////////
   void onAddChannel(const QString &path);
-  void movePipelineToPosition(size_t fromPos, size_t newPos);
+  void movePipelineToPosition(int32_t fromPos, int32_t newPos);
   void openSelectedPipelineSettings(int32_t selectedRow);
   void removePipelineWidget();
   void updatePipelineCommandUnits();
@@ -74,9 +79,10 @@ private:
   TableModelPipeline *mTableModel;
   std::set<std::unique_ptr<PanelPipelineSettings>> mChannels;    // The second value is the pointer to the array entry in the AnalyzeSettings
   WindowMain *mWindowMain;
-  joda::settings::AnalyzeSettings &mAnalyzeSettings;
+  joda::settings::AnalyzeSettings *mAnalyzeSettings;
   std::shared_ptr<DialogCommandSelection> mCommandSelectionDialog;
-  PanelPipelineSettings *mActivePipeline;
+  PanelPipelineSettings *mActivePipeline = nullptr;
+  DialogMlTrainer *mMlTraining;
 
   // Stack options ///////////////////////////////////////////
   QDialog *mStackOptionsDialog;
@@ -91,6 +97,7 @@ private:
 
   // ACTIONS///////////////////////////////////////////////////
   QMenu *mTemplatesMenu;
+  joda::processor::Preview *mPreviewResults;
 
   std::mutex mClosePipelineMutex;
 

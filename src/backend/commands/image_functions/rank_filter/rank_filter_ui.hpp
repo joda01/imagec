@@ -31,8 +31,10 @@ public:
   inline static std::string DESCRIPTION       = "Each pixel is set to the minimum, maximum or median value of its neighborhood.";
   inline static std::vector<std::string> TAGS = {"rank", "filter", "maximum", "minimum", "median"};
 
-  RankFilter(joda::settings::PipelineStep &pipelineStep, settings::RankFilterSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}})
+  RankFilter(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, settings::RankFilterSettings &settings,
+             QWidget *parent) :
+      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent,
+              {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::IMAGE}})
   {
     //
     //

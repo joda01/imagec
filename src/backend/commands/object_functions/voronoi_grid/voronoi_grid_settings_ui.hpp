@@ -40,8 +40,9 @@ public:
   inline static std::string DESCRIPTION       = "Partition a plane into regions close to each of a given set of objects";
   inline static std::vector<std::string> TAGS = {"voronoi", "grid", "delaunay", "triangulation", "tessellation"};
 
-  VoronoiGrid(joda::settings::PipelineStep &pipelineStep, settings::VoronoiGridSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}})
+  VoronoiGrid(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, settings::VoronoiGridSettings &settings,
+              QWidget *parent) :
+      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}})
   {
     auto *tab = addTab(
         "", [] {}, false);

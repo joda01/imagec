@@ -24,14 +24,14 @@ namespace joda::cmd {
 /// \author     Joachim Danmayr
 /// \brief      Gaussian Blur (2D convolution)
 ///
-class Blur : public Command
+class Blur : public ImageProcessingCommand
 {
 public:
   /////////////////////////////////////////////////////
   explicit Blur(const settings::BlurSettings &settings) : mSettings(settings)
   {
   }
-  void execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/) override
+  void execute(cv::Mat &image) override
   {
     int kernel[3]{0};    //= {-1, -1, -1, -1, 12, -1, -1, -1, -1};
     for(int n = 0; n < mSettings.repeat; n++) {

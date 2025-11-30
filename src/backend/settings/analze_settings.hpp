@@ -12,7 +12,9 @@
 #pragma once
 
 #include <cstddef>
+#include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <list>
 #include <map>
@@ -55,10 +57,70 @@ public:
   auto checkForErrors() const -> std::vector<std::pair<std::string, SettingParserLog_t>>;
   auto toResultsSettings() const -> ResultsSettings;
 
+  auto getProjectPath() const -> std::filesystem::path;
+  auto getProjectPathWithFileName() const -> std::filesystem::path
+  {
+    return projectPathWithFilename;
+  }
+
+  void setProjectPath(const std::filesystem::path &path)
+  {
+    projectPathWithFilename = path;
+    for(const auto &[_, func] : mProjectPathChangedCallback) {
+      func(path);
+    }
+  }
+  uint64_t registerProjectPathChangedCallback(const std::function<void(const std::filesystem::path &)> &fun)
+  {
+    funId++;
+    mProjectPathChangedCallback.emplace(funId, fun);
+    return funId;
+  }
+
+  void unregisterProjectPathChangedCallback(uint64_t id)
+  {
+    mProjectPathChangedCallback.erase(id);
+  }
+
+  bool isProjectPathSet() const
+  {
+    return !projectPathWithFilename.empty();
+  }
+  void clearProjectPath()
+  {
+    projectPathWithFilename.clear();
+  }
+
+  uint64_t registerSettingsChanged(const std::function<void(const AnalyzeSettings &)> &fun)
+  {
+    funId++;
+    mSettingsChangedCallbacks.emplace(funId, fun);
+    return funId;
+  }
+
+  void unregisterSettingsChanged(uint64_t id)
+  {
+    mSettingsChangedCallbacks.erase(id);
+  }
+
+  void triggerSettingsChanged() const
+  {
+    for(const auto &[_, func] : mSettingsChangedCallbacks) {
+      func(*this);
+    }
+  }
+
+  // This is just a temporary variable which holds the folder from which this settings file was loaded from / was stored in
+  std::filesystem::path projectPathWithFilename;
+
 private:
   std::string configSchema = "https://imagec.org/schemas/v1/analyze-settings.json";
   void check() const;
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, configSchema, projectSettings, imageSetup, pipelineSetup, pipelines,
                                                        imagecMeta, meta);
+
+  std::map<uint64_t, std::function<void(const std::filesystem::path &)>> mProjectPathChangedCallback;
+  std::map<uint64_t, std::function<void(const AnalyzeSettings &)>> mSettingsChangedCallbacks;
+  static inline std::atomic<uint64_t> funId = 0;
 };
 }    // namespace joda::settings

@@ -24,14 +24,14 @@ namespace joda::cmd {
 /// \author     Joachim Danmayr
 /// \brief      Gaussian Skeletonize (2D convolution)
 ///
-class Skeletonize : public Command
+class Skeletonize : public ImageProcessingCommand
 {
 public:
   /////////////////////////////////////////////////////
   explicit Skeletonize(const settings::SkeletonizeSettings &settings) : mSettings(settings)
   {
   }
-  void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override;
+  void execute(cv::Mat &image) override;
 
 private:
   /////////////////////////////////////////////////////

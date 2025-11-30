@@ -34,11 +34,12 @@ public:
   inline static std::string TITLE             = "Threshold";
   inline static std::string ICON              = "circle-half";
   inline static std::string DESCRIPTION       = "Converts a grayscale image to a binary image.";
-  inline static std::vector<std::string> TAGS = {"threshold", "background", "binary", "otsu", "li", "triangle", "shanbhag"};
+  inline static std::vector<std::string> TAGS = {"threshold", "background", "binary", "otsu", "li", "triangle", "shanbhag", "pixel classify"};
 
-  Threshold(joda::settings::PipelineStep &pipelineStep, settings::ThresholdSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::BINARY}}), mSettings(settings),
-      mParent(parent)
+  Threshold(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, settings::ThresholdSettings &settings,
+            QWidget *parent) :
+      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::BINARY}}),
+      mSettings(settings), mParent(parent)
   {
     if(settings.modelClasses.empty()) {
       addFilter();
@@ -88,9 +89,9 @@ private:
       //
       //
       //
-      mGrayScaleValue = generateThresholdClass("Threshold class", parent);
-      mGrayScaleValue->setValue(settings.modelClassId);
-      mGrayScaleValue->connectWithSetting(&settings.modelClassId);
+      mGrayScaleValue = generatePixelClass("Pixel class", parent, false);
+      mGrayScaleValue->setValue(settings.pixelClassId);
+      mGrayScaleValue->connectWithSetting(&settings.pixelClassId);
 
       outer.addSetting(tab, "Algorithm", {{mThresholdAlgorithm.get(), true, index}, {mGrayScaleValue.get(), true, index}});
 

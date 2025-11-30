@@ -32,6 +32,12 @@ makeIcons() {
     cmake -S . -B ./build -G "Unix Makefiles" -DTAG_NAME="devel-build" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_TOOLCHAIN_FILE="./build/build/Release/generators/conan_toolchain.cmake" -DCUDA_TOOLKIT_ROOT_DIR="/usr/local/cuda" -DCMAKE_CUDA_COMPILER="/usr/local/cuda/bin/nvcc" -DWITH_CUDA="True"
 }
 
+copy(){
+     cd build/build/output
+     cp ../imagec imagec
+     cp ../tests tests
+}
+
 pack(){
     rm -rf build/build/java
     rm -rf build/build/plugins
@@ -47,7 +53,10 @@ pack(){
     mkdir -p ./lib
     mkdir -p ./java
     mkdir -p ./templates
+    
     cp ../imagec imagec
+    
+    
     cp ../tests tests
     cp -r /root/.conan2/p/*/p/./plugins/* ./plugins
     cp -r ../../../resources/templates/* ./templates/
@@ -70,10 +79,11 @@ pack(){
     cp /root/.conan2/p/*/p/lib/libc10.so .
     cp /root/.conan2/p/*/p/lib/libc10_cuda.so .
     cp /root/.conan2/p/*/p/lib/libgomp-98b21ff3.so.1 .
-    cp /root/.conan2/p/*/p/lib/libcudart-218eec4c.so.12 .
-    cp /root/.conan2/p/*/p/lib/libcublas-f6c022dc.so.12 .
-    cp /root/.conan2/p/*/p/lib/libcublasLt-4ef47ce6.so.12 .
+    cp /root/.conan2/p/*/p/lib/libcudart-c3a75b33.so.12 .
+    cp /root/.conan2/p/*/p/lib/libcublas-031ce6c2.so.12 .
+    cp /root/.conan2/p/*/p/lib/libcublasLt-10b5e663.so.12 .
     cp /root/.conan2/p/*/p/lib/libcudnn.so.9 .
+    cp /root/.conan2/p/*/p/lib/libcudnn_ops.so.9 .
     cp /root/.conan2/p/*/p/lib/libcudnn_graph.so.9 .
     cp /root/.conan2/p/*/p/lib/libcudnn_heuristic.so.9 .
     cp /root/.conan2/p/*/p/lib/libcudnn_engines_runtime_compiled.so.9 .
@@ -131,7 +141,8 @@ for arg in "$@"; do
         --build)
             # Execute build and pack every time something in code has been changed
             build
-            pack
+            #pack
+            copy
             ;;
         --clean)
             clean

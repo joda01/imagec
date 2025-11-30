@@ -59,6 +59,8 @@ __global__ void followFlow(const float *flowX, const float *flowY, const float *
   int py = blockIdx.y * blockDim.y + threadIdx.y;
 
   if(mask[py * width + px] < maskThreshold) {
+    outputX[py * width + px] = -1;
+    outputY[py * width + px] = -1;
     return;
   }
 

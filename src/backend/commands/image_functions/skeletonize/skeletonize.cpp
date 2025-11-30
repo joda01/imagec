@@ -21,7 +21,7 @@
 
 namespace joda::cmd {
 
-void Skeletonize::execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/)
+void Skeletonize::execute(cv::Mat &image)
 {
   image.convertTo(image, CV_8UC1, 1.0 / 257.0);
   switch(mSettings.mode) {

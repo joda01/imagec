@@ -108,15 +108,11 @@ auto AiModelCyto3::processPrediction(const at::Device &device, const cv::Mat &in
   std::pair<cv::Mat, std::set<int>> result;
 
   if(device.is_cpu()) {
-    auto idx = DurationCount::start("Follow field CPU");
-    result   = followFlowFieldCpu(flowXImage, flowYImage, maskImage, mSettings.maskThreshold);
-    DurationCount::stop(idx);
+    result = followFlowFieldCpu(flowXImage, flowYImage, maskImage, mSettings.maskThreshold);
   }
 #ifdef WITH_CUDA
   else if(device.is_cuda()) {
-    auto idx = DurationCount::start("Follow field CUDA");
-    result   = followFlowFieldCuda(device, flowXImage, flowYImage, maskImage, mSettings.maskThreshold);
-    DurationCount::stop(idx);
+    result = followFlowFieldCuda(device, flowXImage, flowYImage, maskImage, mSettings.maskThreshold);
   }
 #endif
   else {
@@ -136,7 +132,6 @@ auto AiModelCyto3::processPrediction(const at::Device &device, const cv::Mat &in
 std::vector<AiModel::Result> extractObjectMasksAndBoundingBoxes(const cv::Mat &labelImage, const std::set<int> &labels)
 {
   CV_Assert(labelImage.type() == CV_32S || labelImage.type() == CV_8U);
-  auto cId = DurationCount::start("Extract objects");
 
   const int rows = labelImage.rows;
   const int cols = labelImage.cols;
@@ -191,7 +186,6 @@ std::vector<AiModel::Result> extractObjectMasksAndBoundingBoxes(const cv::Mat &l
 
     result.push_back(AiModel::Result{.boundingBox = bbox, .mask = croppedMask, .contour = adjustedContours.at(maxContourIdx), .classId = 0});
   }
-  DurationCount::stop(cId);
   return result;
 }
 
@@ -253,8 +247,11 @@ std::pair<cv::Mat, std::set<int>> followFlowFieldCuda(const at::Device &device, 
   for(int y = 0; y < flowY.rows; ++y) {
     for(int x = 0; x < flowX.cols; ++x) {
       // Get the landing pos
-      int lx = cvRound(h_outX.at(static_cast<size_t>(static_cast<int64_t>(y) * static_cast<int64_t>(flowX.cols) + static_cast<int64_t>(x))));
-      int ly = cvRound(h_outY.at(static_cast<size_t>(static_cast<int64_t>(y) * static_cast<int64_t>(flowX.cols) + static_cast<int64_t>(x))));
+      const int lx = cvRound(h_outX.at(static_cast<size_t>(static_cast<int64_t>(y) * static_cast<int64_t>(flowX.cols) + static_cast<int64_t>(x))));
+      const int ly = cvRound(h_outY.at(static_cast<size_t>(static_cast<int64_t>(y) * static_cast<int64_t>(flowX.cols) + static_cast<int64_t>(x))));
+      if(lx < 0 || ly < 0) {
+        continue;
+      }
       // Key for map
       auto key = std::make_pair(lx, ly);
       int label;

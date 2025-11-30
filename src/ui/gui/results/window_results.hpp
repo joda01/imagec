@@ -73,11 +73,6 @@ public:
     return mNavigation;
   }
 
-  [[nodiscard]] uint64_t getSelectedGroup() const
-  {
-    return mActGroupId;
-  }
-
   [[nodiscard]] uint64_t getSelectedImage() const
   {
     return mSelectedImageId;
@@ -165,7 +160,6 @@ private:
   std::mutex mSelectMutex;
 
   // TOOLBARS///////////////////////////////////////////////////
-  QAction *mShowPreview;
   QAction *mDeleteCol;
   QAction *mEditCol;
 
@@ -220,7 +214,7 @@ private:
   VideoControlButtonGroup *mVideoControlButton;
 
   /////////////////////////////////////////////////////
-  uint64 mActGroupId = 0;
+  std::set<uint16_t> mActGroupId;
   std::set<uint64_t> mActImageId;
   bool mStopped = false;
   uint64_t mSelectedWellId;

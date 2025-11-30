@@ -41,7 +41,7 @@ public:
     //
     // Grayscale to assign to
     //
-    int32_t modelClassId = UINT16_MAX;
+    int32_t pixelClassId = 1;
 
     //
     // Contrast threshold
@@ -58,7 +58,7 @@ public:
     {
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ThresholdAdaptive, method, contrastThreshold, thresholdOffset, modelClassId, kernelSize);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ThresholdAdaptive, method, contrastThreshold, thresholdOffset, pixelClassId, kernelSize);
   };
 
   std::list<ThresholdAdaptive> modelClasses;

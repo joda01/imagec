@@ -11,9 +11,7 @@ int main(int argc, char *argv[])
   setenv("QT_AUTO_SCREEN_SCALE_FACTOR", "0", 1);
   setenv("QT_SCALE_FACTOR", "1", 1);
   setenv("QT_SCREEN_SCALE_FACTORS", "1", 1);
-
 #endif
-
   joda::start::Starter cmdLine;
   cmdLine.exec(argc, argv);
   return 0;

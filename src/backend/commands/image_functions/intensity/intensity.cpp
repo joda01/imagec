@@ -16,7 +16,7 @@
 
 namespace joda::cmd {
 
-void IntensityTransformation::execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/)
+void IntensityTransformation::execute(cv::Mat &image)
 {
   if(mSettings.mode == settings::IntensityTransformationSettings::Mode::AUTOMATIC) {
     image = equalizeHist16Bit(image);

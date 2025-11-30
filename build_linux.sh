@@ -49,6 +49,8 @@ fetch_external_libs() {
     conan remote add imageclibs https://imagec.org:4431/artifactory/api/conan/imageclibs
     conan remote login imageclibs writer -p $CONAN_IMAGEC_ARTIFACTORY_PW
     conan profile detect
+    sudo cp "$WORKING_DIR/conan/profile_linux" /root/.conan2/profiles/default
+    
     conan install . \
       --profile "$WORKING_DIR/conan/profile_linux" \
       --output-folder=build \
@@ -74,7 +76,6 @@ build(){
     cmake --build . --config Release --target imagec --parallel 8
     cd ..
 }
-
 
 #
 #
@@ -120,10 +121,11 @@ pack(){
       cp /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12 .
       cp $USERS_DIR/.conan2/p/*/p/lib/libtorch_cuda.so .
       cp $USERS_DIR/.conan2/p/*/p/lib/libc10_cuda.so .
-      cp $USERS_DIR/.conan2/p/*/p/lib/libcudart-218eec4c.so.12 .
-      cp $USERS_DIR/.conan2/p/*/p/lib/libcublas-f6c022dc.so.12 .
-      cp $USERS_DIR/.conan2/p/*/p/lib/libcublasLt-4ef47ce6.so.12 .
+      cp $USERS_DIR/.conan2/p/*/p/lib/libcudart-c3a75b33.so.12 .
+      cp $USERS_DIR/.conan2/p/*/p/lib/libcublas-031ce6c2.so.12 .
+      cp $USERS_DIR/.conan2/p/*/p/lib/libcublasLt-10b5e663.so.12 .
       cp $USERS_DIR/.conan2/p/*/p/lib/libcudnn.so.9 .
+      cp $USERS_DIR/.conan2/p/*/p/lib/libcudnn_ops.so.9 .
       cp $USERS_DIR/.conan2/p/*/p/lib/libcudnn_graph.so.9 .
       cp $USERS_DIR/.conan2/p/*/p/lib/libcudnn_heuristic.so.9 .
       cp $USERS_DIR/.conan2/p/*/p/lib/libcudnn_engines_runtime_compiled.so.9 .

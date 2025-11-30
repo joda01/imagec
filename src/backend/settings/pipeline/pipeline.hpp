@@ -12,7 +12,9 @@
 #pragma once
 
 #include <chrono>
+#include <functional>
 #include <tuple>
+#include <vector>
 #include "backend/enums/enum_history.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/processor/initializer/pipeline_settings.hpp"
@@ -81,6 +83,9 @@ public:
   //
   bool locked = false;
 
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED_CONDITIONAL_CHECK(Pipeline, disabled, meta, pipelineSetup, pipelineSteps, disabled, locked);
+
+  /////////////////////////////////////////////////////
   /////////////////////////////////////////////////////
   void check() const;
 
@@ -113,15 +118,41 @@ public:
     return static_cast<size_t>(actHistoryIndex);
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED_CONDITIONAL_CHECK(Pipeline, disabled, meta, pipelineSetup, pipelineSteps, disabled, locked,
-                                                                         actHistoryIndex, history);
+  void registerHistoryChangeCallback(const std::function<void()> &func)
+  {
+    mHistoryChangeCallback.emplace_back(func);
+  }
+
+  void registerSnapShotRestored(const std::function<void(const Pipeline &)> &func)
+  {
+    mSnapshotRestored.emplace_back(func);
+  }
+
+  void registerPipelineChangedCallback(const std::function<void(const Pipeline &)> &func)
+  {
+    mPipelineChangedCallbacks.emplace_back(func);
+  }
+
+  void triggerPipelineChanged() const
+  {
+    for(const auto &f : mPipelineChangedCallbacks) {
+      f(*this);
+    }
+  }
+
+  std::vector<PipelineHistoryEntry> history;
 
 private:
   //
   // Changes of the pipeline steps over time
   //
-  std::vector<PipelineHistoryEntry> history{{.commitMessage = "Created"}};
+  void triggerHistoryChanged() const;
+  void triggerSnapshotRestored(const Pipeline &) const;
+
   int32_t actHistoryIndex = 0;
+  std::vector<std::function<void()>> mHistoryChangeCallback;
+  std::vector<std::function<void(const Pipeline &)>> mSnapshotRestored;
+  std::vector<std::function<void(const Pipeline &)>> mPipelineChangedCallbacks;
 };
 
 }    // namespace joda::settings

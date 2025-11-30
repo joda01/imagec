@@ -78,6 +78,9 @@ function Fetch-ExternalLibs {
       conan profile detect
   }
 
+
+  Copy-Item $GITHUB_WORKSPACE\conan\profile_win "C:\Users\runneradmin\.conan2\profiles\default" -Force
+
   conan install . `
       --profile $GITHUB_WORKSPACE\conan\profile_win `
       --output-folder=build `
@@ -172,7 +175,7 @@ function Pack {
       "fbgemm.dll",
       "libiomp5md.dll",
       "uv.dll",
-      "cupti64_2025.1.0.dll",
+      "cupti64_2025.1.1.dll",
       "asmjit.dll"
   )
 
@@ -219,6 +222,9 @@ function Pack {
   Copy-Item -Path "C:\Windows\System32\msvcp140_codecvt_ids.dll" -Destination "."  -Force
   Copy-Item -Path "C:\Windows\System32\vcomp140.dll" -Destination "."  -Force
 
+  #
+  # java
+  #
   Copy-Item -Recurse -Path "$WORKING_DIR/resources/templates" ./templates
   cd java
   Copy-Item -Recurse -Path "$WORKING_DIR/resources/java/bioformats.jar" -Destination "."

@@ -41,12 +41,16 @@ public:
     this->setModel(model);
   }
 
-  void addItem(const QString &atext, const QVariant &auserData)
+  void addItem(const QString &atext, const QVariant &auserData, bool isCheckable = true)
   {
     int row    = model->rowCount();
     auto *item = new QStandardItem();
     item->setText(atext);
-    item->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
+    if(isCheckable) {
+      item->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
+    } else {
+      // item->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
+    }
     item->setData(Qt::Unchecked, Qt::CheckStateRole);
     item->setData(auserData);
     model->setItem(row, 0, item);
@@ -67,6 +71,35 @@ public:
       if(model->item(i, 0)->checkState() == Qt::Checked) {
         QStandardItem *item = model->item(i, 0);
         checkedItems.emplace_back(item->data(), item->text());
+      }
+    }
+
+    return checkedItems;
+  }
+
+  [[nodiscard]] QVariantList getCheckedItemsAsVariantList() const
+  {
+    QVariantList checkedItems;
+
+    for(int i = 0; i < model->rowCount(); i++) {
+      if(model->item(i, 0)->checkState() == Qt::Checked) {
+        QStandardItem *item = model->item(i, 0);
+        checkedItems.emplace_back(item->data());
+      }
+    }
+
+    return checkedItems;
+  }
+
+  template <class T>
+  [[nodiscard]] std::set<T> getCheckedItemsAsTypedSet() const
+  {
+    std::set<T> checkedItems;
+
+    for(int i = 0; i < model->rowCount(); i++) {
+      if(model->item(i, 0)->checkState() == Qt::Checked) {
+        QStandardItem *item = model->item(i, 0);
+        checkedItems.emplace(static_cast<T>(item->data().toInt()));
       }
     }
 

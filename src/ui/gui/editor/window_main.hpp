@@ -21,6 +21,7 @@
 #include <mutex>
 #include <set>
 #include <string>
+#include "backend/enums/enums_classes.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/setting.hpp"
 #include "controller/controller.hpp"
@@ -45,7 +46,6 @@ class PanelImages;
 class PanelProjectSettings;
 class PanelCompilerLog;
 class DialogImageViewer;
-class DialogPreviewResults;
 
 ///
 /// \class
@@ -103,9 +103,9 @@ public:
     return mPreviewImage;
   }
 
-  auto getPreviewResultsDock() -> DialogPreviewResults *
+  auto mutableImagePreview() -> DialogImageViewer *
   {
-    return mPreviewResultsDialog;
+    return mPreviewImage;
   }
 
   void addToLastLoadedResults(const QString &path, const QString &jobName);
@@ -138,16 +138,26 @@ private:
     IMAGES           = 3,
   };
 
+  enum class AnalyzeMode
+  {
+    AllImages,
+    SingleImage
+  };
+
   /////////////////////////////////////////////////////
   void createTopToolbar();
   void createLeftToolbar();
   void loadLastOpened();
   void clearSettings();
   bool saveProject(std::filesystem::path filename, bool saveAs = false, bool createHistoryEntry = true);
+  void loadROI(const std::filesystem::path &imagePath);
+  void saveROI(const std::filesystem::path &imagePath);
   void closeEvent(QCloseEvent *event) override;
   AskEnum askForNewProject();
   void moveEvent(QMoveEvent *event) override;
   void resizeEvent(QResizeEvent *event) override;
+  void updateProjectPath();
+  void onStartClicked(AnalyzeMode mode);
 
   QWidget *createChannelWidget();
   QWidget *createReportingWidget();
@@ -162,10 +172,8 @@ private:
   DialogOpenTemplate *mDialogOpenProjectTemplates;
 
   ////Project settings/////////////////////////////////////////////////
-  joda ::settings::AnalyzeSettings *mActAnalyzeSettings = nullptr;
   joda::settings::AnalyzeSettings mAnalyzeSettings;
   joda::settings::AnalyzeSettings mAnalyzeSettingsOld;
-  std::filesystem::path mSelectedProjectSettingsFilePath;
   std::set<joda::enums::ClassId> mOutPutClassesOld;
 
   ////Left Toolbar/////////////////////////////////////////////////
@@ -177,8 +185,8 @@ private:
   PanelImages *mPanelImages                   = nullptr;
 
   ////Right Dock/////////////////////////////////////////////////
-  DialogImageViewer *mPreviewImage            = nullptr;
-  DialogPreviewResults *mPreviewResultsDialog = nullptr;
+  DialogImageViewer *mPreviewImage = nullptr;
+  joda::processor::Preview mPreviewResult;
 
   ////ToolbarIcons/////////////////////////////////////////////////
   QAction *mOpenProjectButton       = nullptr;
@@ -199,7 +207,6 @@ public slots:
   void onNewProjectClicked();
   void onSaveProject();
   void onSaveProjectAs();
-  void onStartClicked();
   void onShowInfoDialog();
   void onShowHelpClicked();
   void onOpenClicked();

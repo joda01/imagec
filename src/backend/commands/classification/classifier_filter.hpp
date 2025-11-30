@@ -134,7 +134,7 @@ struct ObjectClass
   //
   // Grayscale or object class id from model
   //
-  int32_t modelClassId = -1;
+  int32_t pixelClassId = -1;
 
   //
   // The detected probability of the selected model class is multiplied by this factor.
@@ -146,11 +146,11 @@ struct ObjectClass
   void check() const
   {
     CHECK_ERROR(!filters.empty(), "At least one classification filter must be given!");
-    CHECK_ERROR(modelClassId >= 0, "A model class id >= 0 must be given for classification.");
+    CHECK_ERROR(pixelClassId >= 0, "A model class id >= 0 must be given for classification.");
     CHECK_ERROR(outputClassNoMatch != enums::ClassIdIn::UNDEFINED, "Define a >no match< class in classifier settings!");
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectClass, filters, outputClassNoMatch, modelClassId, probabilityHandicap);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(ObjectClass, filters, outputClassNoMatch, pixelClassId, probabilityHandicap);
 };
 
 }    // namespace joda::settings

@@ -66,7 +66,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 #elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 #    add_compile_options(-Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic)
 #elseif (MSVC)
-#    add_compile_options(/W4 /permissive- /Zc:__cplusplus)
+#    add_compile_options(-openmp:llvm /bigobj /Zm200 /Zc:__cplusplus)
 endif()
 
 # Get the current user and host
@@ -107,6 +107,7 @@ else()
   unset(CMAKE_CUDA_ARCHITECTURES)
 endif()
 
+
 find_package( OpenCV REQUIRED ximgproc)
 find_package( PugiXML )
 find_package( JNI REQUIRED )
@@ -124,6 +125,10 @@ find_package( httplib REQUIRED )
 find_package( onnxruntime REQUIRED)
 find_package( tensorflowlite REQUIRED )
 find_package( Torch REQUIRED )
+find_package( cereal REQUIRED )
+find_package( mlpack REQUIRED )
+find_package( bshoshany-thread-pool REQUIRED )
+
 
 
 SET(DuckDB_USE_STATIC_LIBS TRUE)
@@ -145,6 +150,9 @@ set(LIBS
   onnxruntime::onnxruntime
   tensorflow::tensorflowlite
   ${TORCH_LIBRARIES}
+  cereal::cereal
+  mlpack::mlpack
+  bshoshany-thread-pool::bshoshany-thread-pool
 )
 
 set(RESOURCE_FILES
@@ -188,7 +196,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 
 target_sources(${PROJECT_NAME} PRIVATE ${RESOURCE_SOURCES})
-target_compile_definitions(${PROJECT_NAME} PUBLIC BS_THREAD_POOL_ENABLE_PRIORITY DUCKDB_BUILD_LIBRARY )
+target_compile_definitions(${PROJECT_NAME} PUBLIC BS_THREAD_POOL_ENABLE_PRIORITY DUCKDB_BUILD_LIBRARY MLPACK_ENABLE_ANN_SERIALIZATION )
 
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
@@ -198,6 +206,9 @@ set_target_properties( ${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME} ${LIBS})
+
+
+
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/src/build_info.h.in"
@@ -215,6 +226,7 @@ file(GLOB_RECURSE TEST_SOURCES
   ./src/*.cc
   ./src/*.c
   ./test/*.cpp
+    ./src/*.cu
    ${RESOURCE_SOURCES}
 )
 # Exclude main file from source
@@ -241,4 +253,4 @@ set(TESTING_LIBS
 
 set_property(TARGET tests PROPERTY CXX_STANDARD 20)
 target_link_libraries(tests ${LIBS} ${TESTING_LIBS})
-target_compile_definitions(tests PUBLIC UNIT_TEST BS_THREAD_POOL_ENABLE_PRIORITY)
+target_compile_definitions(tests PUBLIC UNIT_TEST BS_THREAD_POOL_ENABLE_PRIORITY MLPACK_ENABLE_ANN_SERIALIZATION)

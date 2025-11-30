@@ -18,6 +18,8 @@
 #include <qtoolbar.h>
 #include <qwidget.h>
 #include <functional>
+#include <mutex>
+#include "ui/gui/helper/debugging.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 
 namespace joda::ui::gui {
@@ -25,21 +27,27 @@ namespace joda::ui::gui {
 class VideoControlButtonGroup
 {
 public:
-  VideoControlButtonGroup(const std::function<void(void)> &onSettingsChanged, QToolBar *parentToolbar) : mCallback(onSettingsChanged)
+  VideoControlButtonGroup(const std::function<void(void)> &onSettingsChanged, QToolBar *parentToolbar) :
+      mCallback(onSettingsChanged), mParentToolbar(parentToolbar)
   {
     // Video timer
     mPlayTimer = new QTimer();
     QObject::connect(mPlayTimer, &QTimer::timeout, [this] {
-      if(mSpinnerActTimeStack->value() < getMaxTimeStacks()) {
-        mSpinnerActTimeStack->blockSignals(true);
-        mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() + 1);
-        mSpinnerActTimeStack->blockSignals(false);
+      if(getMaxTimeStacks() <= 1) {
+        mPlayTimer->stop();
+        mActionPlay->setChecked(false);
       } else {
-        mSpinnerActTimeStack->blockSignals(true);
-        mSpinnerActTimeStack->setValue(0);
-        mSpinnerActTimeStack->blockSignals(false);
+        if(mSpinnerActTimeStack->value() < getMaxTimeStacks()) {
+          mSpinnerActTimeStack->blockSignals(true);
+          mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() + 1);
+          mSpinnerActTimeStack->blockSignals(false);
+        } else {
+          mSpinnerActTimeStack->blockSignals(true);
+          mSpinnerActTimeStack->setValue(0);
+          mSpinnerActTimeStack->blockSignals(false);
+        }
+        mCallback();
       }
-      mCallback();
     });
 
     mSpinnerActTimeStack = new QSpinBox();
@@ -113,6 +121,10 @@ public:
 
   void setMaxTimeStacks(int32_t maxTStacks)
   {
+    if(nullptr == mSeekForward) {
+      return;
+    }
+    std::lock_guard<std::mutex> lock(mSetMutex);
     mTempMaxTimeStacks = maxTStacks;
     mSpinnerActTimeStack->setMaximum(maxTStacks);
     if(mTempMaxTimeStacks <= 1) {
@@ -120,22 +132,46 @@ public:
         mSpinnerActTimeStack->setValue(0);
       }
       if(mSeekForward->isEnabled()) {
-        mSeekForward->setEnabled(false);
-        mSeekBack->setEnabled(false);
-        mActionPlay->setChecked(false);
-        mActionPlay->setEnabled(false);
-        mSpinnerActTimeStack->setEnabled(false);
+        QMetaObject::invokeMethod(
+            mParentToolbar,    // or mActionPlay, or any QObject in the GUI thread
+            [this]() {
+              if(nullptr == mSeekForward) {
+                return;
+              }
+              CHECK_GUI_THREAD(mSeekForward)
+              mSeekForward->setEnabled(false);
+              CHECK_GUI_THREAD(mSeekBack)
+              mSeekBack->setEnabled(false);
+              mActionPlay->setChecked(false);
+              CHECK_GUI_THREAD(mActionPlay)
+              mActionPlay->setEnabled(false);
+              CHECK_GUI_THREAD(mSpinnerActTimeStack)
+              mSpinnerActTimeStack->setEnabled(false);
+              mPlayTimer->stop();
+            },
+            Qt::QueuedConnection);
       }
     } else {
       if(!mSeekForward->isEnabled()) {
-        mSeekForward->setEnabled(true);
-        mSeekBack->setEnabled(true);
-        mActionPlay->setEnabled(true);
-        mSpinnerActTimeStack->setEnabled(true);
+        QMetaObject::invokeMethod(
+            mParentToolbar,    // or mActionPlay, or any QObject in the GUI thread
+            [this]() {
+              if(nullptr == mSeekForward) {
+                return;
+              }
+              CHECK_GUI_THREAD(mSeekForward)
+              mSeekForward->setEnabled(true);
+              CHECK_GUI_THREAD(mSeekBack)
+              mSeekBack->setEnabled(true);
+              CHECK_GUI_THREAD(mActionPlay)
+              mActionPlay->setEnabled(true);
+              CHECK_GUI_THREAD(mSpinnerActTimeStack)
+              mSpinnerActTimeStack->setEnabled(true);
+            },
+            Qt::QueuedConnection);
       }
     }
   }
-
   [[nodiscard]] int32_t getMaxTimeStacks() const
   {
     return mTempMaxTimeStacks;
@@ -143,17 +179,25 @@ public:
 
   void setEnabled(bool enabled)
   {
+    CHECK_GUI_THREAD(mActionPlay)
     mActionPlay->setEnabled(enabled);
+    CHECK_GUI_THREAD(mSeekBack)
     mSeekBack->setEnabled(enabled);
+    CHECK_GUI_THREAD(mSeekForward)
     mSeekForward->setEnabled(enabled);
+    CHECK_GUI_THREAD(mSpinnerActTimeStackAction)
     mSpinnerActTimeStackAction->setEnabled(enabled);
   }
 
   void setVisible(bool visible)
   {
+    CHECK_GUI_THREAD(mActionPlay)
     mActionPlay->setVisible(visible);
+    CHECK_GUI_THREAD(mSeekBack)
     mSeekBack->setVisible(visible);
+    CHECK_GUI_THREAD(mSeekForward)
     mSeekForward->setVisible(visible);
+    CHECK_GUI_THREAD(mSpinnerActTimeStackAction)
     mSpinnerActTimeStackAction->setVisible(visible);
   }
 
@@ -180,18 +224,20 @@ private:
   // T-STACK //////////////////////////////////////////////////
   std::optional<int32_t> mMaxTimeStacks = std::nullopt;
   int32_t mPlaybackSpeed                = 1000;
-  QActionGroup *mPlaybackspeedGroup;
-  QMenu *mPlaybackSpeedSelector;
-  QTimer *mPlayTimer;
-  QAction *mActionPlay;
-  QAction *mSeekBack;
-  QAction *mSeekForward;
-  QSpinBox *mSpinnerActTimeStack;
-  QAction *mSpinnerActTimeStackAction;
-  bool mPlaybackToolbarVisible = false;
-  int32_t mTempMaxTimeStacks   = 0;
+  QActionGroup *mPlaybackspeedGroup     = nullptr;
+  QMenu *mPlaybackSpeedSelector         = nullptr;
+  QTimer *mPlayTimer                    = nullptr;
+  QAction *mActionPlay                  = nullptr;
+  QAction *mSeekBack                    = nullptr;
+  QAction *mSeekForward                 = nullptr;
+  QSpinBox *mSpinnerActTimeStack        = nullptr;
+  QAction *mSpinnerActTimeStackAction   = nullptr;
+  bool mPlaybackToolbarVisible          = false;
+  int32_t mTempMaxTimeStacks            = 0;
 
   std::function<void(void)> mCallback;
+  std::mutex mSetMutex;
+  QToolBar *mParentToolbar = nullptr;
 };
 
 }    // namespace joda::ui::gui

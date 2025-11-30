@@ -11,6 +11,7 @@
 
 #include <memory>
 #include "backend/commands/command.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include "pipeline_factory.hpp"
 
 namespace joda::settings {
@@ -21,8 +22,24 @@ void PipelineStep::operator()(processor::ProcessContext &context, cv::Mat &image
     return;
   }
   auto ret = PipelineFactory<joda::cmd::Command>::generate(*this);
+  DurationCount durationCountExec("Execute command");
   if(ret != nullptr) {
     ret->execute(context, image, result);
+  } else {
+    joda::log::logWarning("Command is null!");
+  }
+}
+
+void PipelineStep::operator()(cv::Mat &image) const
+{
+  if(disabled) {
+    return;
+  }
+  auto ret = PipelineFactory<joda::cmd::ImageProcessingCommand>::generateImageCommand(*this);
+  if(ret != nullptr) {
+    ret->execute(image);
+  } else {
+    joda::log::logWarning("generateImageCommand: Command is null!");
   }
 }
 

@@ -15,6 +15,7 @@
 #include <exception>
 #include <filesystem>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -87,23 +88,41 @@ void Controller::initApplication()
   // ======================================
   // Reserve system resources
   // ======================================
+  log::initLogger();
   auto systemRecourses   = joda::system::acquire();
   int32_t totalRam       = static_cast<int32_t>(std::ceil(static_cast<float>(systemRecourses.ramTotal) / 1000000.0F));
   int32_t availableRam   = static_cast<int32_t>(std::ceil(static_cast<float>(systemRecourses.ramAvailable) / 1000000.0F));
   int32_t jvmReservedRam = static_cast<int32_t>(std::ceil(static_cast<float>(systemRecourses.ramReservedForJVM) / 1000000.0F));
 
-  bool cudaAvailable = torch::cuda::is_available();
-  int numCudaDevices = torch::cuda::device_count();
+  // bool cudaAvailable = torch::cuda::is_available();
+  // int numCudaDevices = torch::cuda::device_count();
 
   joda::log::logInfo("Total available RAM " + std::to_string(totalRam) + " MB.");
   joda::log::logInfo("Usable RAM " + std::to_string(availableRam) + " MB.");
   joda::log::logInfo("JVM reserved RAM " + std::to_string(jvmReservedRam) + " MB.");
-  joda::log::logInfo("CUDA available: " + std::to_string(static_cast<int>(cudaAvailable)));
-  joda::log::logInfo("Found CUDA devices: " + std::to_string(numCudaDevices));
+  // joda::log::logInfo("CUDA available: " + std::to_string(static_cast<int>(cudaAvailable)));
+  // joda::log::logInfo("Found CUDA devices: " + std::to_string(numCudaDevices));
   joda::log::logInfo("Global template folder: " + templates::TemplateParser::getGlobalTemplateDirectory("").string());
   joda::log::logInfo("User template folder: " + templates::TemplateParser::getUsersTemplateDirectory().string());
 
   joda::image::reader::ImageReader::init(systemRecourses.ramReservedForJVM);    // Costs ~50MB RAM
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Controller::cleanShutdownApplication()
+{
+  if(mLastImageReader) {
+    mLastImageReader.reset();
+  }
+  joda::image::reader::ImageReader::destroy();
+  joda::log::logInfo("ImageC says goodbye!");
+  log::joinLogger();
 }
 
 ///
@@ -265,6 +284,7 @@ void Controller::stopLookingForFiles()
 void Controller::setWorkingDirectory(const std::filesystem::path &dir)
 {
   mWorkingDirectory.setWorkingDirectory(dir);
+  mWorkingDirectory.lookForImages();
 }
 
 ///
@@ -282,7 +302,7 @@ void Controller::registerImageLookupCallback(const std::function<void(joda::file
 void Controller::preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
                          const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,
                          const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, int32_t tStack,
-                         Preview &previewOut, const joda::ome::OmeInfo &ome, const settings::ObjectInputClassesExp &classesToHide)
+                         processor::Preview &previewOut, const joda::ome::OmeInfo &ome)
 {
   static std::filesystem::path lastImagePath;
   static int32_t lastImageChannel = -1;
@@ -297,24 +317,8 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
   }
 
   processor::Processor process;
-  auto [originalImg, overlay, editedImageWithoutOverlay, thumb, foundObjects, validity, objects] = process.generatePreview(
-      previewSettings, imageSetup, settings, threadSettings, pipeline, imagePath, tStack, 0, tileX, tileY, generateThumb, ome, classesToHide);
-  previewOut.originalImage.setImage(std::move(originalImg));
-  previewOut.overlay.setImage(std::move(overlay));
-  previewOut.editedImage.setImage(std::move(editedImageWithoutOverlay));
-  if(generateThumb) {
-    previewOut.thumbnail.setImage(std::move(thumb));
-  }
-  previewOut.results.foundObjects.clear();
-  for(const auto &[key, val] : foundObjects) {
-    previewOut.results.foundObjects[key].color    = val.color;
-    previewOut.results.foundObjects[key].count    = val.count;
-    previewOut.results.foundObjects[key].isHidden = classesToHide.contains(key);
-  }
-  previewOut.results.noiseDetected = validity.test(enums::ChannelValidityEnum::POSSIBLE_NOISE);
-  previewOut.results.isOverExposed = validity.test(enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
-  previewOut.tStacks               = ome.getNrOfTStack(imageSetup.series);
-  previewOut.objectMap             = std::move(objects);
+  process.generatePreview(previewSettings, imageSetup, settings, threadSettings, pipeline, imagePath, tStack, 0, tileX, tileY, generateThumb, ome,
+                          previewOut);
 }
 
 ///
@@ -322,21 +326,27 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
 /// \author
 /// \return
 ///
-auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
+auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::enums::PlaneId &imagePlane,
                            const joda::ome::TileToLoad &tileLoad,
-                           const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings, Preview &previewOut,
+                           const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings, processor::Preview &previewOut,
                            joda::ome::OmeInfo &omeOut, enums::ZProjection zProjection) -> void
 {
-  static std::filesystem::path lastImagePath;
-
-  if(lastImagePath != imagePath) {
-    lastImagePath          = imagePath;
-    ome::PhyiscalSize phys = {};
-    if(defaultPhysicalSizeSettings.mode == enums::PhysicalSizeMode::Manual) {
-      phys = joda::ome::PhyiscalSize{static_cast<double>(defaultPhysicalSizeSettings.pixelWidth),
-                                     static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.pixelSizeUnit};
+  {
+    std::lock_guard<std::mutex> lock(mReadMutex);
+    bool loadOme = false;
+    if(mLastImageReader == nullptr || mLastImageReader->getImagePath() != imagePath) {
+      mLastImageReader = std::make_unique<image::reader::ImageReader>(imagePath);
+      loadOme          = true;
     }
-    omeOut = joda::image::reader::ImageReader::getOmeInformation(imagePath, series, phys);
+
+    if(loadOme || omeOut.getNrOfSeries() == 0) {
+      ome::PhyiscalSize phys = {};
+      if(defaultPhysicalSizeSettings.mode == enums::PhysicalSizeMode::Manual) {
+        phys = joda::ome::PhyiscalSize{static_cast<double>(defaultPhysicalSizeSettings.pixelWidth),
+                                       static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.pixelSizeUnit};
+      }
+      omeOut = mLastImageReader->getOmeInformation(series, phys);
+    }
   }
   loadImage(imagePath, series, imagePlane, tileLoad, previewOut, &omeOut, zProjection);
 }
@@ -346,20 +356,20 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
 /// \author
 /// \return
 ///
-auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
-                           const joda::ome::TileToLoad &tileLoad, Preview &previewOut, const joda::ome::OmeInfo *omeIn,
+auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::enums::PlaneId &imagePlane,
+                           const joda::ome::TileToLoad &tileLoad, processor::Preview &previewOut, const joda::ome::OmeInfo *omeIn,
                            enums::ZProjection zProjection) -> void
 {
   if(nullptr == omeIn) {
     return;
   }
   static std::filesystem::path lastImagePath;
-  static joda::image::reader::ImageReader::Plane lastImagePlane = {-1, -1, -1};
-  static joda::ome::TileToLoad lastImageTile                    = {-1};
-  static int32_t lastImageSeries                                = -1;
-  static enums::ZProjection lastZProjection                     = enums::ZProjection::UNDEFINED;
-  bool generateThumb                                            = false;
-  bool refreshImage                                             = false;
+  static joda::enums::PlaneId lastImagePlane = {-1, -1, -1};
+  static joda::ome::TileToLoad lastImageTile = {-1};
+  static int32_t lastImageSeries             = -1;
+  static enums::ZProjection lastZProjection  = enums::ZProjection::UNDEFINED;
+  bool generateThumb                         = false;
+  bool refreshImage                          = false;
 
   if(imagePath != lastImagePath || previewOut.thumbnail.empty() || lastImagePlane != imagePlane || lastImageTile != tileLoad ||
      lastImageSeries != series || zProjection != lastZProjection) {
@@ -371,19 +381,23 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
     lastImageTile   = tileLoad;
     lastZProjection = zProjection;
   }
+  std::lock_guard<std::mutex> lock(mReadMutex);
+
+  if(mLastImageReader == nullptr || mLastImageReader->getImagePath() != imagePath) {
+    mLastImageReader = std::make_unique<image::reader::ImageReader>(imagePath);
+  }
 
   if(refreshImage) {
-    auto loadImageTile = [&tileLoad, series, &omeIn, &imagePath](int32_t z, int32_t c, int32_t t) {
-      return joda::image::reader::ImageReader::loadImageTile(imagePath.string(), joda::image::reader::ImageReader::Plane{.z = z, .c = c, .t = t},
-                                                             series, 0, tileLoad, *omeIn);
+    auto loadImageTile = [&tileLoad, series, &omeIn](int32_t z, int32_t c, int32_t t) {
+      return mLastImageReader->loadImageTile(joda::enums::PlaneId{.tStack = t, .zStack = z, .cStack = c}, series, 0, tileLoad, *omeIn);
     };
 
     //
     // Do z -projection if activated
     //
-    int32_t c  = imagePlane.c;
-    int32_t z  = imagePlane.z;
-    int32_t t  = imagePlane.t;
+    int32_t c  = imagePlane.cStack;
+    int32_t z  = imagePlane.zStack;
+    int32_t t  = imagePlane.tStack;
     auto image = loadImageTile(z, c, t);
 
     if(zProjection != enums::ZProjection::NONE && zProjection != enums::ZProjection::TAKE_MIDDLE) {
@@ -426,15 +440,14 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
       }
     }
 
-    previewOut.originalImage.setImage(std::move(image));
+    previewOut.originalImage.setImage(image, omeIn->getPseudoColorForChannel(series, c));
   }
 
   if(generateThumb) {
-    auto thumb = joda::image::reader::ImageReader::loadThumbnail(imagePath.string(), imagePlane, series, *omeIn);
-    previewOut.thumbnail.setImage(std::move(thumb));
+    auto thumb = mLastImageReader->loadThumbnail(imagePlane, series, *omeIn);
+    previewOut.thumbnail.setImage(thumb, omeIn->getPseudoColorForChannel(series, imagePlane.cStack));
   }
 
-  previewOut.results.foundObjects.clear();
   previewOut.tStacks = omeIn->getNrOfTStack(series);
 }
 
@@ -443,7 +456,7 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
 /// \author
 /// \return
 ///
-auto Controller::getImageProperties(const std::filesystem::path &image, int series,
+auto Controller::getImageProperties(const std::filesystem::path &imagePath, int series,
                                     const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings) -> joda::ome::OmeInfo
 {
   ome::PhyiscalSize phys = {};
@@ -451,7 +464,12 @@ auto Controller::getImageProperties(const std::filesystem::path &image, int seri
     phys = joda::ome::PhyiscalSize{static_cast<double>(defaultPhysicalSizeSettings.pixelWidth),
                                    static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.pixelSizeUnit};
   }
-  return joda::image::reader::ImageReader::getOmeInformation(image, static_cast<uint16_t>(series), phys);
+
+  std::lock_guard<std::mutex> lock(mReadMutex);
+  if(mLastImageReader == nullptr || mLastImageReader->getImagePath() != imagePath) {
+    mLastImageReader = std::make_unique<image::reader::ImageReader>(imagePath);
+  }
+  return mLastImageReader->getOmeInformation(static_cast<uint16_t>(series), phys);
 }
 
 // FLOW CONTROL ////////////////////////////////////////////////
@@ -460,21 +478,31 @@ auto Controller::getImageProperties(const std::filesystem::path &image, int seri
 /// \return
 ///
 void Controller::start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings & /*threadSettings*/,
-                       const std::string &jobName)
+                       const std::string &jobName, const std::optional<std::filesystem::path> &fileToAnalyze)
 {
   if(mActThread.joinable()) {
     mActThread.join();
   }
-  setWorkingDirectory(settings.projectSettings.plate.imageFolder);
-  mWorkingDirectory.waitForFinished();
 
   mActProcessor.reset();
   mActProcessor = std::make_unique<processor::Processor>();
-  mActThread    = std::thread([this, settings, jobName] {
+  mActThread    = std::thread([this, settings, jobName, fileToAnalyze] {
+    auto imageList = std::make_unique<processor::imagesList_t>();
+    mActProcessor->mutableProgress().setStateLookingForImages();
+    imageList->setWorkingDirectory(settings.projectSettings.plate.imageFolder);
+
+    if(fileToAnalyze.has_value()) {
+      imageList->addFile(fileToAnalyze.value());
+    } else {
+      imageList->lookForImages();
+    }
+
+    imageList->waitForFinished();
+    mActProcessor->mutableProgress().setRunningPreparingPipeline();
+
     mActProcessor->execute(
         settings, jobName,
-        calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), static_cast<int32_t>(mWorkingDirectory.getNrOfFiles()), std::nullopt),
-        mWorkingDirectory);
+        calcOptimalThreadNumber(settings, imageList->gitFirstFile(), static_cast<int32_t>(imageList->getNrOfFiles()), std::nullopt), imageList);
   });
 }
 
@@ -524,21 +552,11 @@ void Controller::stop()
 ///
 auto Controller::populateClassesFromImage(const joda::ome::OmeInfo &omeInfo, int32_t series) -> joda::settings::Classification
 {
-  std::map<std::string, std::vector<settings::ResultsTemplate>> templatePerType = {
-      {"spot",
-       std::vector<settings::ResultsTemplate>{
-           {settings::ResultsTemplate{.measureChannel = enums::Measurement::COUNT, .stats = {enums::Stats::OFF}}},
-           {settings::ResultsTemplate{.measureChannel = enums::Measurement::INTENSITY_AVG, .stats = {enums::Stats::SUM, enums::Stats::AVG}}},
-           {settings::ResultsTemplate{.measureChannel = enums::Measurement::INTENSITY_SUM, .stats = {enums::Stats::SUM, enums::Stats::AVG}}},
-           {settings::ResultsTemplate{.measureChannel = enums::Measurement::AREA_SIZE, .stats = {enums::Stats::SUM, enums::Stats::AVG}}}}},
-      {"nucleus", std::vector<settings::ResultsTemplate>{{settings::ResultsTemplate{.measureChannel = enums::Measurement::COUNT,
-                                                                                    .stats          = {enums::Stats::OFF}}}}},
-      {"cell", std::vector<settings::ResultsTemplate>{
-                   {settings::ResultsTemplate{.measureChannel = enums::Measurement::COUNT, .stats = {enums::Stats::OFF}}},
-                   {settings::ResultsTemplate{.measureChannel = enums::Measurement::INTERSECTING, .stats = {enums::Stats::OFF}}},
-                   {settings::ResultsTemplate{.measureChannel = enums::Measurement::INTENSITY_AVG, .stats = {enums::Stats::SUM, enums::Stats::AVG}}},
-                   {settings::ResultsTemplate{.measureChannel = enums::Measurement::INTENSITY_SUM, .stats = {enums::Stats::SUM, enums::Stats::AVG}}},
-                   {settings::ResultsTemplate{.measureChannel = enums::Measurement::AREA_SIZE, .stats = {enums::Stats::SUM, enums::Stats::AVG}}}}}};
+  const std::vector<settings::ResultsTemplate> measurements = std::vector<settings::ResultsTemplate>{
+      {settings::ResultsTemplate{.measureChannel = enums::Measurement::COUNT, .stats = {enums::Stats::OFF}}},
+      {settings::ResultsTemplate{.measureChannel = enums::Measurement::INTENSITY_AVG, .stats = {enums::Stats::SUM, enums::Stats::AVG}}},
+      {settings::ResultsTemplate{.measureChannel = enums::Measurement::INTENSITY_SUM, .stats = {enums::Stats::SUM, enums::Stats::AVG}}},
+      {settings::ResultsTemplate{.measureChannel = enums::Measurement::AREA_SIZE, .stats = {enums::Stats::SUM, enums::Stats::AVG}}}};
 
   const std::map<std::string, std::pair<std::string, std::string>> channelNameToColorMap = {
       {"dapi", {"#3399FF", "nucleus"}},    {"cfp", {"#33FFD1", "spot"}}, /*{"dpss", {"#??", "spot"}},*/ {"fitc", {"#66FF33", "spot"}},
@@ -549,34 +567,27 @@ auto Controller::populateClassesFromImage(const joda::ome::OmeInfo &omeInfo, int
 
   joda::settings::Classification classes;
   auto channels           = omeInfo.getChannelInfos(series);
-  enums::ClassId actClass = enums::ClassId::C0;
+  enums::ClassId actClass = enums::ClassId::C1;
   int colorIdx            = 0;
   for(const auto &[_, channelIn] : channels) {
-    auto addSubClass = [&actClass, &classes, &templatePerType](const std::string &channel, const std::string &subclass, const std::string &color) {
-      std::vector<settings::ResultsTemplate> measurements;
-      if(templatePerType.contains(subclass)) {
-        measurements = templatePerType.at(subclass);
-      }
-
-      classes.classes.push_back(joda::settings::Class{
-          .classId = actClass, .name = channel + "@" + subclass, .color = color, .notes = "", .defaultMeasurements = measurements});
+    auto addSubClass = [&actClass, &classes, &measurements](const std::string &channel, const std::string &color) {
+      classes.classes.push_back(
+          joda::settings::Class{.classId = actClass, .name = channel, .color = color, .notes = "", .defaultMeasurements = measurements});
       actClass = static_cast<enums::ClassId>((static_cast<uint16_t>(actClass)) + 1);
     };
     // auto waveLength         = channel.emissionWaveLength;
-    auto channelName        = helper::toLower(channelIn.name);
-    std::string color       = joda::settings::COLORS.at(static_cast<uint64_t>(colorIdx) % joda::settings::COLORS.size());
-    std::string channelType = "spot";
+    auto channelName  = helper::toLower(channelIn.name);
+    std::string color = joda::settings::COLORS.at(static_cast<uint64_t>(colorIdx) % joda::settings::COLORS.size());
     // Try to find the best matching
     for(const auto &[channelFluorophore, data] : channelNameToColorMap) {
       auto found = channelName.find(channelFluorophore);
       if(found != std::string::npos) {
-        color       = data.first;
-        channelType = data.second;
+        color = data.first;
         break;
       }
     }
 
-    addSubClass(channelName, channelType, color);
+    addSubClass(channelName, color);
   }
 
   return classes;
@@ -628,7 +639,7 @@ void Controller::exportData(const std::filesystem::path &pathToDbFile, const jod
                                                       .measuredChannels    = analyzer->selectMeasurementChannelsForClasses(),
                                                       .distanceFromClasses = analyzer->selectDistanceClassForClasses()});
   }
-  filter.setFilter(static_cast<uint8_t>(settings.filter.plateId), static_cast<uint16_t>(groupId), settings.filter.tStack, {imageId});
+  filter.setFilter(static_cast<uint8_t>(settings.filter.plateId), {static_cast<uint16_t>(groupId)}, settings.filter.tStack, {imageId});
 
   joda::log::logInfo("Export started!");
   auto grouping = db::StatsPerGroup::Grouping::BY_IMAGE;

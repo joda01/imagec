@@ -14,6 +14,8 @@
 #include <algorithm>
 #include <atomic>
 #include <bitset>
+#include <exception>
+#include <mutex>
 #include <string>
 #include <utility>
 #include <vector>
@@ -24,7 +26,9 @@
 #include "backend/enums/enums_units.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/global_enums.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/ome_parser/physical_size.hpp"
+#include <cereal/cereal.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
 #include <opencv2/dnn.hpp>
@@ -44,11 +48,29 @@ using ClassId    = joda::enums::ClassId;
 ///
 class ROI
 {
+  friend class cereal::access;
+
 public:
+  // Version for serializing - must be increased if a member variable was removed ///////////////////////////////////////////////////
+
+  const static inline int32_t ROI_SCHEMA_VERSION = 1;
+
   struct RoiObjectId
   {
     joda::enums::ClassId classId;
     joda::enums::PlaneId imagePlane;
+
+    template <class Archive>
+    void save(Archive &ar) const
+    {
+      ar(classId, imagePlane);
+    }
+
+    template <class Archive>
+    void load(Archive &ar)
+    {
+      ar(classId, imagePlane);
+    }
   };
 
   struct Intensity
@@ -81,33 +103,40 @@ public:
     cv::Mat intersectedMask = {};
   };
 
-  /////////////////////////////////////////////////////
+  enum class Category
+  {
+    ANY,
+    AUTO_SEGMENTATION,
+    MANUAL_SEGMENTATION
+  };
 
+  /////////////////////////////////////////////////////
   ROI();
   ROI(const ROI &) = delete;
   ROI(RoiObjectId index, Confidence confidence, const Boxes &boundingBox, const cv::Mat &mask, const std::vector<cv::Point> &contour,
-      const cv::Size &imageSize, const cv::Size &originalImageSize, const enums::tile_t &tile, const cv::Size &tileSize);
+      const joda::enums::TileInfo &tile);
 
   ROI(ROI &&input)
   noexcept :
-      mIsNull(input.mIsNull), mObjectId(input.mObjectId), mId(input.mId), mConfidence(input.mConfidence), mBoundingBoxTile(input.mBoundingBoxTile),
-      mBoundingBoxReal(input.mBoundingBoxReal), mMask(std::move(input.mMask)), mMaskContours(std::move(input.mMaskContours)),
-      mImageSize(input.mImageSize), mOriginalImageSize(input.mOriginalImageSize), mAreaSize(input.mAreaSize), mPerimeter(input.mPerimeter),
-      mCircularity(input.mCircularity), mCentroid(input.mCentroid), mParentObjectId(input.mParentObjectId), mTrackingId(input.mTrackingId),
-      mIntensity(std::move(input.mIntensity)), mOriginObjectId(input.mOriginObjectId), mLinkedWith(std::move(input.mLinkedWith))
+      mIsNull(input.mIsNull), mObjectId(input.mObjectId), mId(std::move(input.mId)), mBoundingBoxReal(input.mBoundingBoxReal),
+      mMask(std::move(input.mMask)), mMaskContours(std::move(input.mMaskContours)), mConfidence(input.mConfidence), mAreaSize(input.mAreaSize),
+      mPerimeter(input.mPerimeter), mCircularity(input.mCircularity), mCentroid(input.mCentroid), mParentObjectId(input.mParentObjectId),
+      mTrackingId(input.mTrackingId), mIntensity(std::move(input.mIntensity)), mOriginObjectId(input.mOriginObjectId),
+      mLinkedWith(std::move(input.mLinkedWith)), mCategory(input.mCategory), mIsSelected(input.mIsSelected)
   {
+    CV_Assert(mMask.type() == CV_8UC1);
   }
 
-  ROI(bool isNull, uint64_t objectId, RoiObjectId id, Confidence confidence, Boxes boundingBoxTile, Boxes boundingBoxReal, cv::Mat mask,
-      std::vector<cv::Point> maskContours, cv::Size imageSize, cv::Size originalImageSize, double areaSize, float perimeter, float circularity,
-      std::map<enums::ImageId, Intensity> intensity, uint64_t originObjectId, cv::Point centroid, uint64_t parentObjectId, uint64_t linkedObjectId,
-      std::set<ROI *> linkedWith) :
+  ROI(bool isNull, uint64_t objectId, RoiObjectId id, Confidence confidence, Boxes boundingBoxReal, cv::Mat mask, std::vector<cv::Point> maskContours,
+      double areaSize, float perimeter, float circularity, std::map<enums::ImageId, Intensity> intensity, uint64_t originObjectId, cv::Point centroid,
+      uint64_t parentObjectId, uint64_t linkedObjectId, std::set<ROI *> linkedWith, bool isSelected, Category category) :
       mIsNull(isNull),
-      mObjectId(objectId), mId(std::move(id)), mConfidence(confidence), mBoundingBoxTile(boundingBoxTile), mBoundingBoxReal(boundingBoxReal),
-      mMask(std::move(mask)), mMaskContours(std::move(maskContours)), mImageSize(imageSize), mOriginalImageSize(originalImageSize),
-      mAreaSize(areaSize), mPerimeter(perimeter), mCircularity(circularity), mCentroid(centroid), mParentObjectId(parentObjectId),
-      mTrackingId(linkedObjectId), mIntensity(std::move(intensity)), mOriginObjectId(originObjectId), mLinkedWith(std::move(linkedWith))
+      mObjectId(objectId), mId(std::move(id)), mBoundingBoxReal(boundingBoxReal), mMask(std::move(mask)), mMaskContours(std::move(maskContours)),
+      mConfidence(confidence), mAreaSize(areaSize), mPerimeter(perimeter), mCircularity(circularity), mCentroid(centroid),
+      mParentObjectId(parentObjectId), mTrackingId(linkedObjectId), mIntensity(std::move(intensity)), mOriginObjectId(originObjectId),
+      mLinkedWith(std::move(linkedWith)), mCategory(category), mIsSelected(isSelected)
   {
+    CV_Assert(mMask.type() == CV_8UC1);
   }
 
   bool isNull() const
@@ -117,32 +146,19 @@ public:
 
   [[nodiscard]] ROI clone() const
   {
-    return {mIsNull,         mObjectId,          mId,        mConfidence, mBoundingBoxTile, mBoundingBoxReal, mMask,           mMaskContours,
-            mImageSize,      mOriginalImageSize, mAreaSize,  mPerimeter,  mCircularity,     mIntensity,       mOriginObjectId, mCentroid,
-            mParentObjectId, mTrackingId,        mLinkedWith};
+    return {mIsNull,       mObjectId,       mId,         mConfidence,  mBoundingBoxReal, mMask,
+            mMaskContours, mAreaSize,       mPerimeter,  mCircularity, mIntensity,       mOriginObjectId,
+            mCentroid,     mParentObjectId, mTrackingId, mLinkedWith,  mIsSelected,      mCategory};
   }
 
   [[nodiscard]] ROI clone(enums::ClassId newClassId, uint64_t newParentObjectId) const
   {
-    return {mIsNull,
-            mObjectId,
-            {newClassId, mId.imagePlane},
-            mConfidence,
-            mBoundingBoxTile,
-            mBoundingBoxReal,
-            mMask,
-            mMaskContours,
-            mImageSize,
-            mOriginalImageSize,
-            mAreaSize,
-            mPerimeter,
-            mCircularity,
-            mIntensity,
-            mOriginObjectId,
-            mCentroid,
-            newParentObjectId,
-            mTrackingId,
-            mLinkedWith};
+    return {mIsNull,       mObjectId,         {newClassId, mId.imagePlane},
+            mConfidence,   mBoundingBoxReal,  mMask,
+            mMaskContours, mAreaSize,         mPerimeter,
+            mCircularity,  mIntensity,        mOriginObjectId,
+            mCentroid,     newParentObjectId, mTrackingId,
+            mLinkedWith,   mIsSelected,       mCategory};
   }
 
   [[nodiscard]] ROI copy() const
@@ -151,12 +167,9 @@ public:
             mGlobalUniqueObjectId++,
             mId,
             mConfidence,
-            mBoundingBoxTile,
             mBoundingBoxReal,
             mMask,
             mMaskContours,
-            mImageSize,
-            mOriginalImageSize,
             mAreaSize,
             mPerimeter,
             mCircularity,
@@ -165,7 +178,9 @@ public:
             mCentroid,
             mParentObjectId,
             mTrackingId,
-            mLinkedWith};
+            mLinkedWith,
+            false,
+            mCategory};
   }
 
   [[nodiscard]] ROI copy(enums::ClassId newClassId, uint64_t newParentObjectId) const
@@ -174,12 +189,9 @@ public:
             mGlobalUniqueObjectId++,
             {newClassId, mId.imagePlane},
             mConfidence,
-            mBoundingBoxTile,
             mBoundingBoxReal,
             mMask,
             mMaskContours,
-            mImageSize,
-            mOriginalImageSize,
             mAreaSize,
             mPerimeter,
             mCircularity,
@@ -188,7 +200,9 @@ public:
             mCentroid,
             newParentObjectId,
             mTrackingId,
-            mLinkedWith};
+            mLinkedWith,
+            false,
+            mCategory};
   }
 
   /// @brief  ATTENTION This method must be done befor the ROI is added to the spheral index
@@ -240,23 +254,12 @@ public:
     return mBoundingBoxReal;
   }
 
-  [[nodiscard]] auto getBoundingBoxTile() const -> const Boxes &
-  {
-    return mBoundingBoxTile;
-  }
+  [[nodiscard]] auto getBoundingBoxTile(const joda::enums::TileInfo &tile) const -> Boxes;
 
   [[nodiscard]] auto getCentroidReal() const -> cv::Point
   {
     int32_t cx = mCentroid.x + getBoundingBoxReal().x;
     int32_t cy = mCentroid.y + getBoundingBoxReal().y;
-
-    return {cx, cy};
-  }
-
-  [[nodiscard]] auto getCentroidTile() const -> cv::Point
-  {
-    int32_t cx = mCentroid.x + getBoundingBoxTile().x;
-    int32_t cy = mCentroid.y + getBoundingBoxTile().y;
 
     return {cx, cy};
   }
@@ -271,8 +274,9 @@ public:
     return mMaskContours;
   }
 
-  [[nodiscard]] const auto &getIntensity() const
+  [[nodiscard]] auto getIntensity() const
   {
+    std::lock_guard<std::mutex> lock(mIntensityMeasureMutex);
     return mIntensity;
   }
 
@@ -284,10 +288,10 @@ public:
     return mCircularity;
   }
 
-  [[nodiscard]] ROI calcIntersection(const enums::PlaneId &iterator, const ROI &roi, float minIntersection, const enums::tile_t &tile,
-                                     const cv::Size &tileSize, joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const;
+  [[nodiscard]] ROI calcIntersection(const enums::PlaneId &iterator, const ROI &roi, float minIntersection, const joda::enums::TileInfo &tile,
+                                     joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const;
 
-  auto measureIntensityAndAdd(const joda::atom::ImagePlane &image) -> Intensity;
+  auto measureIntensityAndAdd(const enums::ImageId &imageId, const cv::Mat &image, const joda::enums::TileInfo &tile) -> Intensity;
   auto measureDistanceAndAdd(const ROI &secondRoi) -> Distance;
 
   [[nodiscard]] bool isIntersecting(const ROI &roi, float minIntersection) const;
@@ -307,9 +311,9 @@ public:
     return mParentObjectId;
   }
 
-  void resize(float scaleX, float scaleY);
-  void drawCircle(float radius);
-  void fitEllipse();
+  void resize(float scaleX, float scaleY, const cv::Size &originalImageSize);
+  void drawCircle(float radius, const cv::Size &originalImageSize);
+  void fitEllipse(const cv::Size &originalImageSize);
   void addLinkedRoi(ROI *linked)
   {
     mLinkedWith.emplace(linked);
@@ -345,16 +349,55 @@ public:
   }
 
   void assignTrackingIdToAllLinkedRois(uint64_t trackingIdForLinked = 0);
-  auto calcGradients(const cv::Mat &image, cv::Mat &gradMag, cv::Mat &gradAngle) const -> void;
-  auto calcIntensity(const cv::Mat &imageOriginal) const -> Intensity;
-  bool isTouchingTheImageEdge() const;
+  auto calcIntensity(const cv::Mat &imageOriginal, const joda::enums::TileInfo &tile) const -> Intensity;
+  bool isTouchingTheImageEdge(const joda::enums::TileInfo &tileSize) const;
+
+  // Meta Information ///////////////////////////////////////////////////
+  void setIsSelected(bool selected)
+  {
+    mIsSelected = selected;
+  }
+  bool isSelected() const
+  {
+    return mIsSelected;
+  }
+  auto getCategory() const -> Category
+  {
+    return mCategory;
+  }
+  void setCategory(Category cat)
+  {
+    mCategory = cat;
+  }
+
+  template <class Archive>
+  void save(Archive &ar, std::uint32_t const /*version*/) const
+  {
+    try {
+      ar(mIsNull, mObjectId, mId, mBoundingBoxReal, mMask, mMaskContours, mConfidence, mAreaSize, mPerimeter, mCircularity, mCentroid,
+         mParentObjectId, mTrackingId,
+         /*mIntensity, mDistances*/ mOriginObjectId, /*mLinkedWith,*/ mCategory);
+    } catch(const std::exception &ex) {
+      joda::log::logError("Could not write roi " + std::string(ex.what()));
+    }
+  }
+
+  template <class Archive>
+  void load(Archive &ar, std::uint32_t const version)
+  {
+    if(version == ROI_SCHEMA_VERSION) {
+      ar(mIsNull, mObjectId, mId, mBoundingBoxReal, mMask, mMaskContours, mConfidence, mAreaSize, mPerimeter, mCircularity, mCentroid,
+         mParentObjectId, mTrackingId,
+         /*mIntensity, mDistances*/ mOriginObjectId, /*mLinkedWith,*/ mCategory);
+    }
+  }
 
 private:
   /////////////////////////////////////////////////////
   [[nodiscard]] uint64_t calcAreaSize() const;
   [[nodiscard]] float calcCircularity() const;
   [[nodiscard]] static auto calcCentroid(const cv::Mat &) -> cv::Point;
-  [[nodiscard]] Boxes calcRealBoundingBox(const enums::tile_t &tile, const cv::Size &tileSize) const;
+  [[nodiscard]] Boxes calcRealBoundingBox(const Boxes &boundingBoxTile, const joda::enums::TileInfo &tile) const;
 
   [[nodiscard]] auto calcIntersectingMask(const ROI &roi) const -> IntersectingMask;
   [[nodiscard]] static double getSmoothedLineLength(const std::vector<cv::Point> &);
@@ -362,23 +405,20 @@ private:
   [[nodiscard]] static float getTracedPerimeter(const std::vector<cv::Point> &points);
 
   // Identification ///////////////////////////////////////////////////
-  const bool mIsNull;
-  const uint64_t mObjectId;        ///< Global unique object ID
-  const RoiObjectId mId;           ///< Unique identification of the this ROI
-  const Confidence mConfidence;    ///< Probability
+  bool mIsNull;
+  uint64_t mObjectId;    ///< Global unique object ID
+  RoiObjectId mId;       ///< Unique identification of the this ROI
 
-  // Metrics ///////////////////////////////////////////////////
-  Boxes mBoundingBoxTile;    ///< Rectangle around the prediction in tile
+  // Coordinates ///////////////////////////////////////////////////
   Boxes mBoundingBoxReal;    ///< Rectangle around the prediction with real coordinates
   cv::Mat mMask;             ///< Segmentation mask
-
   std::vector<cv::Point> mMaskContours;
 
-  const cv::Size mImageSize;
-  const cv::Size mOriginalImageSize;
-  double mAreaSize;      ///< size of the masking area [px^2 ]
-  float mPerimeter;      ///< Perimeter (boundary size) [px]
-  float mCircularity;    ///< Circularity of the masking area [0-1]
+  // Metrics ///////////////////////////////////////////////////
+  Confidence mConfidence;    ///< Probability
+  double mAreaSize;          ///< size of the masking area [px^2 ]
+  float mPerimeter;          ///< Perimeter (boundary size) [px]
+  float mCircularity;        ///< Circularity of the masking area [0-1]
   cv::Point mCentroid;
   uint64_t mParentObjectId = 0;    // 0 if this object has no parent
   uint64_t mTrackingId     = 0;    // 0 if not linked with anything
@@ -387,9 +427,20 @@ private:
   std::map<enums::ImageId, Intensity> mIntensity;
   std::map<uint64_t, Distance> mDistances;    ///< Key is the ID of the object the distance was calculated to.
   uint64_t mOriginObjectId = 0;
+  std::set<ROI *> mLinkedWith;    // Temporary object to store linked objects and create a linked object IF afterwards
 
+  // Selectors ///////////////////////////////////////////////////
+  Category mCategory = Category::AUTO_SEGMENTATION;
+
+  // Temporary meta Information ///////////////////////////////////////////////////
+  bool mIsSelected                                            = false;
   static inline std::atomic<uint64_t> mGlobalUniqueObjectId   = 1;
   static inline std::atomic<uint64_t> mGlobalUniqueTrackingId = 1;
-  std::set<ROI *> mLinkedWith;    // Temporary object to store linked objects and create a linked object IF afterwards
+
+  // MUTEXES
+  mutable std::mutex mIntensityMeasureMutex;
 };
+
 }    // namespace joda::atom
+
+CEREAL_CLASS_VERSION(joda::atom::ROI, joda::atom::ROI::ROI_SCHEMA_VERSION);

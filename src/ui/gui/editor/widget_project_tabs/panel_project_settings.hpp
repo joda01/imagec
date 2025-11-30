@@ -18,6 +18,7 @@
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/project_settings.hpp"
 #include "ui/gui/helper/combo_placeholder.hpp"
+#include "ui/gui/helper/debugging.hpp"
 
 namespace joda::ui::gui {
 
@@ -68,6 +69,13 @@ public:
     mJobName->setPlaceholderText(joda::helper::RandomNameGenerator::GetRandomName().data());
   }
 
+  void setProjectPath(const QString &path)
+  {
+    CHECK_GUI_THREAD(mOpenProjectPath)
+    mOpenProjectPath->setEnabled(!path.isEmpty());
+    mProjectFilePath->setText(path);
+  }
+
 signals:
   void updateImagePreview();
 
@@ -77,13 +85,15 @@ private:
   WindowMain *mParentWindow;
 
   // WORKING directory ///////////////////////////////////////////////////
-  QLineEdit *mWorkingDir;
+  QLineEdit *mImageFilePath;
+  QLineEdit *mProjectFilePath;
+  QPushButton *mOpenProjectPath;
 
   // META ///////////////////////////////////////////////////
   QDialog *mMetaEditDialog;
   QLineEdit *mJobName;
   QLineEdit *mAddressOrganisation;
-  QLineEdit *mScientistsFirstName;
+  QLineEdit *mScientistsName;
   QLineEdit *mExperimentName;
   QLineEdit *mExperimentId;
 

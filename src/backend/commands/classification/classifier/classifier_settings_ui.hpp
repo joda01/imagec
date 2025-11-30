@@ -34,14 +34,15 @@ class Classifier : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE             = "Classifier";
+  inline static std::string TITLE             = "Object classifier";
   inline static std::string ICON              = "shapes";
   inline static std::string DESCRIPTION       = "Extract objects from a binary image.";
   inline static std::vector<std::string> TAGS = {"classifier", "classify", "objects"};
 
-  Classifier(joda::settings::PipelineStep &pipelineStep, settings::ClassifierSettings &settingsIn, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::BINARY}, {InOuts::OBJECT}}), mSettings(settingsIn),
-      mParent(parent)
+  Classifier(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, settings::ClassifierSettings &settingsIn,
+             QWidget *parent) :
+      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::BINARY}, {InOuts::OBJECT}}),
+      mSettings(settingsIn), mParent(parent)
   {
     this->mutableEditDialog()->setMinimumWidth(600);
     this->mutableEditDialog()->setMinimumHeight(400);
@@ -96,13 +97,13 @@ private:
 
       //
       //
-      mGrayScaleValue = generateThresholdClass("Threshold class input", parent);
-      mGrayScaleValue->setValue(settings.modelClassId);
-      mGrayScaleValue->connectWithSetting(&settings.modelClassId);
+      mGrayScaleValue = generatePixelClass("Pixel class input", parent, false);
+      mGrayScaleValue->setValue(settings.pixelClassId);
+      mGrayScaleValue->connectWithSetting(&settings.pixelClassId);
 
       //
       //
-      mMinParticleSize = SettingBase::create<SettingSpinBox<float>>(parent, {}, "Min particle size");
+      mMinParticleSize = SettingBase::create<SettingSpinBox<float>>(parent, {}, "Min. object size");
       mMinParticleSize->setMinMax(-1, std::numeric_limits<float>::max(), 3, 0.01);
       mMinParticleSize->setUnit("px", enums::ObjectType::AREA2D);
       mMinParticleSize->setValue(classifyFilter.metrics.minParticleSize);
@@ -110,7 +111,7 @@ private:
       mMinParticleSize->setShortDescription("Min. ");
       //
       //
-      mMaxParticleSize = SettingBase::create<SettingSpinBox<float>>(parent, {}, "Max particle size");
+      mMaxParticleSize = SettingBase::create<SettingSpinBox<float>>(parent, {}, "Max. object size");
       mMaxParticleSize->setMinMax(-1, std::numeric_limits<float>::max(), 3, 0.01);
       mMaxParticleSize->setUnit("px", enums::ObjectType::AREA2D);
       mMaxParticleSize->setValue(classifyFilter.metrics.maxParticleSize);
@@ -268,8 +269,9 @@ private slots:
   void addFilter()
   {
     settings::ObjectClass objClass;
-    auto &ret = mSettings.modelClasses.emplace_back(objClass);
-    auto *tab = addTab(
+    objClass.pixelClassId = static_cast<int32_t>(mSettings.modelClasses.size()) + 1;
+    auto &ret             = mSettings.modelClasses.emplace_back(objClass);
+    auto *tab             = addTab(
         "Filter", [this, &ret] { removeObjectClass(&ret); }, true);
     mClassifyFilter.emplace_back(ret, *this, tab, mSettings.modelClasses.size(), mParent);
     updateDisplayText();

@@ -28,6 +28,7 @@ namespace joda::ui::gui {
 ///
 PanelHistogram::PanelHistogram(PanelImageView *image, QWidget *parent) : QWidget(parent), mImagePanel(image)
 {
+  mFont.setPointSizeF(8);
 }
 
 ///
@@ -40,7 +41,6 @@ PanelHistogram::PanelHistogram(PanelImageView *image, QWidget *parent) : QWidget
 void PanelHistogram::paintEvent(QPaintEvent *event)
 {
   QWidget::paintEvent(event);
-
   QPainter painter(this);
   drawHistogram(painter);
 }
@@ -54,80 +54,105 @@ void PanelHistogram::paintEvent(QPaintEvent *event)
 ///
 void PanelHistogram::drawHistogram(QPainter &painter)
 {
-  const auto *image = mImagePanel->mutableImage()->getImage();
-  if(image == nullptr) {
-    return;
-  }
+  painter.setRenderHint(QPainter::Antialiasing, true);
 
-  const float RECT_START_X = 10;
-  const float RECT_START_Y = 12;
+  const double RECT_START_X = 10;
+  const double RECT_START_Y = 12;
   // const float RECT_HEIGHT   = 80;
   const float NR_OF_MARKERS = 8;
-  float RECT_WIDTH          = static_cast<float>(width()) - (RECT_START_X * 2);
+  double RECT_WIDTH         = static_cast<double>(width()) - (RECT_START_X * 2);
 
-  int type  = image->type();
-  int depth = type & CV_MAT_DEPTH_MASK;
-  if(depth == CV_16U && 1 == image->channels()) {
-    if(!image->empty()) {
-      // Place for the histogram
-      QFont font;
-      font.setPointSizeF(8);
-      painter.setFont(font);
-      painter.setPen(QColor(0, 89, 179));    // Set the pen color to light blue
-      painter.setBrush(Qt::NoBrush);         // Set the brush to no brush for transparent fill
+  // Place for the histogram
+  painter.setFont(mFont);
+  painter.setPen(QColor(0, 89, 179));    // Set the pen color to light blue
+  painter.setBrush(Qt::NoBrush);         // Set the brush to no brush for transparent fill
 
-      // Precalculation
-      // float histOffset    = mImagePanel->getHistogramOffset();
-      // float histZoom      = mImagePanel->getHitogramZoomFactor();
-      int number          = mImagePanel->mutableImage()->getHistogramDisplayAreaUpper() - mImagePanel->mutableImage()->getHistogramDisplayAreaLower();
-      float binWidth      = (RECT_WIDTH / static_cast<float>(number));
-      int markerPos       = static_cast<int32_t>(static_cast<float>(number) / NR_OF_MARKERS);
-      const auto &hist    = mImagePanel->mutableImage()->getHistogram();
-      int32_t compression = 1;
+  // Precalculation
+  // float histOffset    = mImagePanel->getHistogramOffset();
+  // float histZoom      = mImagePanel->getHitogramZoomFactor();
+  int number             = mImagePanel->mutableImage()->getHistogramDisplayAreaUpper() - mImagePanel->mutableImage()->getHistogramDisplayAreaLower();
+  double binWidth        = (RECT_WIDTH / static_cast<double>(number));
+  int markerPos          = static_cast<int32_t>(static_cast<float>(number) / NR_OF_MARKERS);
+  const auto &histograms = mImagePanel->mutableImage()->getHistogram();
+  const auto &colors     = mImagePanel->mutableImage()->getChannelColors();
 
-      if(number > UINT16_MAX / 2) {
-        compression = 2;
+  int32_t compression = 1;
+
+  if(number > UINT16_MAX / 2) {
+    compression = 2;
+  }
+  auto rectHeight = height() - 2 * static_cast<int32_t>(RECT_START_Y);
+
+  int32_t ch = 0;
+  for(const auto &hist : histograms) {
+    QPainterPath path;
+
+    int start = 1 + static_cast<int>(mImagePanel->mutableImage()->getHistogramDisplayAreaLower());
+    path.moveTo(0.0, static_cast<double>(height()) - static_cast<double>(hist.at<float>(start)) - 2.0 * RECT_START_Y);
+
+    for(int i = 2; i < number; i += compression) {
+      int idx = i + static_cast<int>(mImagePanel->mutableImage()->getHistogramDisplayAreaLower());
+      if(idx > hist.rows) {
+        idx = hist.rows;
       }
-      auto rectHeight = height() - static_cast<int32_t>(RECT_START_Y);
-      for(int i = 1; i < number; i += compression) {
-        int idx = i + mImagePanel->mutableImage()->getHistogramDisplayAreaLower();
-        if(idx > UINT16_MAX) {
-          idx = UINT16_MAX;
-        }
-        float startX    = (static_cast<float>(width()) - RECT_START_X - RECT_WIDTH) + static_cast<float>(i) * binWidth;
-        float startY    = static_cast<float>(height()) - RECT_START_Y;
-        float histValue = hist.at<float>(idx) * static_cast<float>(rectHeight);
-        painter.drawLine(static_cast<int32_t>(startX), static_cast<int32_t>(startY), static_cast<int32_t>(startX),
-                         static_cast<int32_t>(startY - histValue));
 
-        // Upper level indicator
-        if(idx == mImagePanel->mutableImage()->getUpperLevelContrast() ||
-           (compression != 1 && idx + 1 == mImagePanel->mutableImage()->getUpperLevelContrast())) {
-          painter.setPen(QColor(255, 0, 0));    // Set the pen color to red
-          painter.drawText(QRect(static_cast<int32_t>(startX - 50), static_cast<int32_t>(startY), 100, 12), Qt::AlignHCenter,
-                           std::to_string(idx).data());
-          painter.drawLine(static_cast<int32_t>(startX), static_cast<int32_t>(startY), static_cast<int32_t>(startX),
-                           static_cast<int32_t>(startY - static_cast<float>(rectHeight)));
-          painter.setPen(QColor(0, 89, 179));    // Set the pen color to light blue
-        }
+      double startX = (static_cast<double>(width()) - RECT_START_X - RECT_WIDTH) + static_cast<double>(i) * binWidth;
+      double startY = static_cast<double>(height()) - RECT_START_Y;
 
-        // Lower level indicator
-        if(idx == mImagePanel->mutableImage()->getLowerLevelContrast() ||
-           (compression != 1 && idx + 1 == mImagePanel->mutableImage()->getLowerLevelContrast())) {
-          painter.setPen(QColor(255, 0, 0));    // Set the pen color to red
-          painter.drawText(QRect(static_cast<int32_t>(startX - 50), static_cast<int32_t>(startY), 100, 12), Qt::AlignHCenter,
-                           std::to_string(idx).data());
-          painter.drawLine(static_cast<int32_t>(startX), static_cast<int32_t>(startY), static_cast<int32_t>(startX),
-                           static_cast<int32_t>(startY - static_cast<float>(rectHeight)));
-          painter.setPen(QColor(0, 89, 179));    // Set the pen color to light blue
-        }
+      {
+        double x1 = static_cast<double>(i - 1) * binWidth;
+        double y1 = static_cast<double>(height()) - static_cast<double>(hist.at<float>(idx - 1)) * rectHeight;
+        double x2 = static_cast<double>(i) * binWidth;
+        double y2 = static_cast<double>(height()) - static_cast<double>(hist.at<float>(idx)) * rectHeight;
 
-        if(i == 1 || i % markerPos == 0) {
-          painter.drawText(QRect(static_cast<int32_t>(startX - 50), static_cast<int32_t>(startY), 100, 12), Qt::AlignHCenter,
-                           std::to_string(idx).data());
-        }
+        double cx1 = x1 + binWidth / 3.0;
+        double cy1 = y1;
+        double cx2 = x2 - binWidth / 3.0;
+        double cy2 = y2;
+
+        path.cubicTo(cx1, cy1 - 2.0 * RECT_START_Y, cx2, cy2 - 2.0 * RECT_START_Y, x2, y2 - 2.0 * RECT_START_Y);
+      }
+
+      //
+      // Indicators
+      //
+      // Upper level indicator
+      if(idx == static_cast<int>(mImagePanel->mutableImage()->getUpperLevelContrast()) ||
+         (compression != 1 && idx + 1 == static_cast<int>(mImagePanel->mutableImage()->getUpperLevelContrast()))) {
+        painter.setPen(Qt::black);
+        painter.drawText(QRect(static_cast<int>(startX - 50.0), static_cast<int>(startY - 2.0 * RECT_START_Y - 4.0), 100, 12), Qt::AlignHCenter,
+                         std::to_string(idx).data());
+        painter.drawLine(static_cast<int>(startX), static_cast<int>(startY), static_cast<int>(startX),
+                         static_cast<int>(startY - static_cast<double>(rectHeight + 2.0 * RECT_START_Y)));
+        painter.setPen(Qt::black);
+      }
+
+      // Lower level indicator
+      if(idx == static_cast<int>(mImagePanel->mutableImage()->getLowerLevelContrast()) ||
+         (compression != 1 && idx + 1 == static_cast<int>(mImagePanel->mutableImage()->getLowerLevelContrast()))) {
+        painter.setPen(Qt::black);
+        painter.drawText(QRect(static_cast<int>(startX - 50.0), static_cast<int>(startY - 2.0 * RECT_START_Y - 4.0), 100, 12), Qt::AlignHCenter,
+                         std::to_string(idx).data());
+        painter.drawLine(static_cast<int>(startX), static_cast<int>(startY), static_cast<int>(startX),
+                         static_cast<int>(startY - static_cast<double>(rectHeight + 2.0 * RECT_START_Y)));
+        painter.setPen(Qt::black);
+      }
+
+      if(i == 2 || (markerPos > 0 && i % markerPos == 0)) {
+        painter.setPen(Qt::black);
+        painter.drawText(QRect(static_cast<int>(startX - 50.0), static_cast<int>(startY), 100, 12), Qt::AlignHCenter, std::to_string(idx).data());
       }
     }
+
+    QColor qcolor(static_cast<int>(colors[static_cast<size_t>(ch)][2] * 255.0F),     // R
+                  static_cast<int>(colors[static_cast<size_t>(ch)][1] * 255.0F),     // G
+                  static_cast<int>(colors[static_cast<size_t>(ch)][0] * 255.0F));    // B
+
+    QPen pen(qcolor);
+    pen.setWidth(1);
+    painter.setPen(pen);
+    painter.drawPath(path);
+    ch++;
   }
 }
 

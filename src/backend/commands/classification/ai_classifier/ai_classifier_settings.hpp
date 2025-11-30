@@ -52,8 +52,15 @@ struct AiClassifierSettings : public SettingBase
     YOLO_V5,
     STAR_DIST,
     CYTO3,
+    INSTAN_SEG,
     U_NET,
     MASK_R_CNN,
+  };
+
+  enum class GpuUsage
+  {
+    Auto,
+    CpuOnly
   };
 
   struct ModelParameters
@@ -173,6 +180,11 @@ struct AiClassifierSettings : public SettingBase
   std::string modelPath;
 
   //
+  // Either to use GPU if available or not
+  //
+  GpuUsage gpuUsage = GpuUsage::Auto;
+
+  //
   // Model parameter
   //
   ModelParameters modelParameter;
@@ -238,9 +250,15 @@ NLOHMANN_JSON_SERIALIZE_ENUM(AiClassifierSettings::ModelArchitecture, {
                                                                           {AiClassifierSettings::ModelArchitecture::UNKNOWN, "Unknown"},
                                                                           {AiClassifierSettings::ModelArchitecture::YOLO_V5, "YoloV5"},
                                                                           {AiClassifierSettings::ModelArchitecture::CYTO3, "Cyto3"},
+                                                                          {AiClassifierSettings::ModelArchitecture::INSTAN_SEG, "InstanSeg"},
                                                                           {AiClassifierSettings::ModelArchitecture::STAR_DIST, "StarDist"},
                                                                           {AiClassifierSettings::ModelArchitecture::U_NET, "U-Net"},
                                                                           {AiClassifierSettings::ModelArchitecture::MASK_R_CNN, "Mask R-CNN"},
                                                                       });
+
+NLOHMANN_JSON_SERIALIZE_ENUM(AiClassifierSettings::GpuUsage, {
+                                                                 {AiClassifierSettings::GpuUsage::Auto, "Auto"},
+                                                                 {AiClassifierSettings::GpuUsage::CpuOnly, "CPU"},
+                                                             });
 
 }    // namespace joda::settings

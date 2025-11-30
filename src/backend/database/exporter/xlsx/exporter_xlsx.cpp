@@ -297,7 +297,6 @@ void Exporter::createAnalyzeSettings(WorkBook &workbookSettings, const settings:
   addElement("Experiment name", settings.projectSettings.experimentSettings.experimentName);
   addElement("Job name", jobName);
   addElement("Notes", settings.projectSettings.experimentSettings.notes);
-  addElement("Working directory", settings.projectSettings.workingDirectory);
 
   const auto &plate = settings.projectSettings.plate;
   addTitle("Plate " + std::to_string(plate.plateId));

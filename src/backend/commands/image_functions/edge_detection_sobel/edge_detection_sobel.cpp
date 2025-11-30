@@ -23,6 +23,68 @@ namespace joda::cmd {
 
 void EdgeDetectionSobel::sobel(cv::Mat &image) const
 {
+  CV_Assert(image.type() == CV_16U || image.type() == CV_32F);
+
+  // Detect input type
+  bool inputIs16U = (image.type() == CV_16U);
+
+  // Convert to float if input is 16-bit
+  if(inputIs16U) {
+    sobel16Bit(image);
+  } else {
+    sobelFloat(image);
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void EdgeDetectionSobel::sobelFloat(cv::Mat &image) const
+{
+  // Compute Sobel derivatives
+  cv::Mat gradX;
+  cv::Mat gradY;
+  int ddepth = CV_32F;    // Use float to handle negative gradients safely
+  int scale  = 1;
+  int delta  = 0;
+
+  if(mSetting.derivativeOrderX > 0) {
+    cv::Sobel(image, gradX, ddepth, mSetting.derivativeOrderX, 0, mSetting.kernelSize, scale, delta, cv::BORDER_DEFAULT);
+  }
+  if(mSetting.derivativeOrderY > 0) {
+    cv::Sobel(image, gradY, ddepth, 0, mSetting.derivativeOrderY, mSetting.kernelSize, scale, delta, cv::BORDER_DEFAULT);
+  }
+
+  cv::Mat edgeImage;
+
+  if(mSetting.weighFunction == settings::EdgeDetectionSobelSettings::WeightFunction::ABS) {
+    // ABS weighting: average of absolute gradients
+    cv::Mat absGradX;
+    cv::Mat absGradY;
+    cv::absdiff(gradX, cv::Scalar::all(0), absGradX);
+    cv::absdiff(gradY, cv::Scalar::all(0), absGradY);
+    cv::addWeighted(absGradX, 0.5, absGradY, 0.5, 0, edgeImage);
+  } else if(mSetting.weighFunction == settings::EdgeDetectionSobelSettings::WeightFunction::MAGNITUDE) {
+    // Magnitude weighting
+    cv::magnitude(gradX, gradY, edgeImage);
+  }
+
+  image = edgeImage;    // CV_32F: keep float output
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void EdgeDetectionSobel::sobel16Bit(cv::Mat &image) const
+{
   // Compute Sobel derivatives in x and y directions.
   // Using CV_16S as the output depth to capture negative gradients.
   cv::Mat gradX;

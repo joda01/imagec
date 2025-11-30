@@ -38,10 +38,10 @@ void ObjectTransform::execute(processor::ProcessContext &context, cv::Mat & /*im
     switch(mSettings.function) {
       case settings::ObjectTransformSettings::Function::SCALE: {
         if(inputClass == outputClass) {
-          roi.resize(mSettings.factor, mSettings.factor);
+          roi.resize(mSettings.factor, mSettings.factor, context.getOriginalImageSize());
         } else {
           auto newRoi = roi.copy(outputClass, roi.getParentObjectId());
-          newRoi.resize(mSettings.factor, mSettings.factor);
+          newRoi.resize(mSettings.factor, mSettings.factor, context.getOriginalImageSize());
           resultIn.push_back(newRoi);
         }
       } break;
@@ -49,52 +49,52 @@ void ObjectTransform::execute(processor::ProcessContext &context, cv::Mat & /*im
         auto factor = mSettings.factor;
         // If factor is zero use the bounding box
         if(factor == 0) {
-          factor = static_cast<float>(std::max(roi.getBoundingBoxTile().width, roi.getBoundingBoxTile().height));
+          factor = static_cast<float>(std::max(roi.getBoundingBoxReal().width, roi.getBoundingBoxReal().height));
         }
         if(inputClass == outputClass) {
-          roi.drawCircle(factor);
+          roi.drawCircle(factor, context.getOriginalImageSize());
         } else {
           auto newRoi = roi.copy(outputClass, roi.getParentObjectId());
-          newRoi.drawCircle(factor);
+          newRoi.drawCircle(factor, context.getOriginalImageSize());
           resultIn.push_back(newRoi);
         }
       } break;
       case settings::ObjectTransformSettings::Function::FIT_ELLIPSE: {
         if(inputClass == outputClass) {
-          roi.fitEllipse();
+          roi.fitEllipse(context.getOriginalImageSize());
           if(mSettings.factor > 1) {
-            roi.resize(mSettings.factor, mSettings.factor);
+            roi.resize(mSettings.factor, mSettings.factor, context.getOriginalImageSize());
           }
         } else {
           auto newRoi = roi.copy(outputClass, roi.getParentObjectId());
-          newRoi.fitEllipse();
+          newRoi.fitEllipse(context.getOriginalImageSize());
           if(mSettings.factor > 1) {
-            newRoi.resize(mSettings.factor, mSettings.factor);
+            newRoi.resize(mSettings.factor, mSettings.factor, context.getOriginalImageSize());
           }
           resultIn.push_back(newRoi);
         }
       } break;
       case settings::ObjectTransformSettings::Function::MIN_CIRCLE: {
-        float areaLength = static_cast<float>(std::max(roi.getBoundingBoxTile().width, roi.getBoundingBoxTile().height));
+        float areaLength = static_cast<float>(std::max(roi.getBoundingBoxReal().width, roi.getBoundingBoxReal().height));
         if(areaLength < mSettings.factor) {
           areaLength = mSettings.factor;
         }
         if(inputClass == outputClass) {
-          roi.drawCircle(areaLength);
+          roi.drawCircle(areaLength, context.getOriginalImageSize());
         } else {
           auto newRoi = roi.copy(outputClass, roi.getParentObjectId());
-          newRoi.drawCircle(areaLength);
+          newRoi.drawCircle(areaLength, context.getOriginalImageSize());
           resultIn.push_back(newRoi);
         }
       } break;
       case settings::ObjectTransformSettings::Function::SNAP_AREA: {
-        float areaLength = static_cast<float>(std::max(roi.getBoundingBoxTile().width, roi.getBoundingBoxTile().height));
+        float areaLength = static_cast<float>(std::max(roi.getBoundingBoxReal().width, roi.getBoundingBoxReal().height));
         areaLength += mSettings.factor;
         if(inputClass == outputClass) {
-          roi.drawCircle(areaLength);
+          roi.drawCircle(areaLength, context.getOriginalImageSize());
         } else {
           auto newRoi = roi.copy(outputClass, roi.getParentObjectId());
-          newRoi.drawCircle(areaLength);
+          newRoi.drawCircle(areaLength, context.getOriginalImageSize());
           resultIn.push_back(newRoi);
         }
       } break;

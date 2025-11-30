@@ -12,9 +12,14 @@
 ///
 
 #include "console_logger.hpp"
+#include <array>
+#include <atomic>
+#include <chrono>
 #include <deque>
 #include <mutex>
 #include <regex>
+#include <string>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -32,6 +37,8 @@ LogLevel mLogLevel = LogLevel::TRACE;
 std::mutex mWriteMutex;
 float lastProgress = 0;
 std::vector<std::string> logBuffer;
+
+void enqueue(std::string_view msg, std::string_view tag, std::string_view color);
 
 void setLogLevel(LogLevel logLevel)
 {
@@ -135,35 +142,18 @@ auto logBufferToHtml() -> std::string
   return ansiToHtml(result);
 }
 
-void printOrAddToBuffer(const std::string &tmp)
-{
-  std::cout << tmp << std::endl;
-  logBuffer.emplace_back(tmp);
-}
-
 std::string toPercentString(float ratio)
 {
-  auto percent = int(ratio * 100.0);
+  auto percent = static_cast<int>(ratio * 100.0F);
   std::string percentString;
   if(percent < 10) {
-    percentString = "  " + std::to_string(percent) + "%";
-  } else if(percent < 100) {
     percentString = " " + std::to_string(percent) + "%";
-  } else {
+  } else if(percent < 100) {
     percentString = std::to_string(percent) + "%";
+  } else {
+    percentString = "FIN";
   }
   return percentString;
-}
-
-std::string getCurrentDateTimeISO()
-{
-  auto now                = std::chrono::system_clock::now();
-  std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
-  std::tm localTime       = *std::localtime(&currentTime);
-
-  std::ostringstream oss;
-  oss << std::put_time(&localTime, "%Y-%m-%dT%H:%M:%S");
-  return oss.str();
 }
 
 void logError(const std::string &message)
@@ -171,9 +161,7 @@ void logError(const std::string &message)
   if(mLogLevel < LogLevel::ERROR_) {
     return;
   }
-  std::string currentDateTimeISO = getCurrentDateTimeISO();
-  std::string tmp                = RED_COLOR + "[ERR] " + RESET_COLOR + "[" + currentDateTimeISO + "] " + message;
-  printOrAddToBuffer(tmp);
+  enqueue(message, "ERR", RED_COLOR);
 }
 
 void logWarning(const std::string &message)
@@ -181,9 +169,7 @@ void logWarning(const std::string &message)
   if(mLogLevel < LogLevel::WARNING) {
     return;
   }
-  std::string currentDateTimeISO = getCurrentDateTimeISO();
-  std::string tmp                = YELLOW_COLOR + "[WARN]" + RESET_COLOR + "[" + currentDateTimeISO + "] " + message;
-  printOrAddToBuffer(tmp);
+  enqueue(message, "WRN", YELLOW_COLOR);
 }
 
 void logInfo(const std::string &message)
@@ -191,9 +177,7 @@ void logInfo(const std::string &message)
   if(mLogLevel < LogLevel::INFO) {
     return;
   }
-  std::string currentDateTimeISO = getCurrentDateTimeISO();
-  std::string tmp                = BLUE_COLOR + "[INFO]" + RESET_COLOR + "[" + currentDateTimeISO + "] " + message;
-  printOrAddToBuffer(tmp);
+  enqueue(message, "INF", BLUE_COLOR);
 }
 
 void logDebug(const std::string &message)
@@ -201,9 +185,7 @@ void logDebug(const std::string &message)
   if(mLogLevel < LogLevel::DEBUG) {
     return;
   }
-  std::string currentDateTimeISO = getCurrentDateTimeISO();
-  std::string tmp                = GREEN_COLOR + "[DEBG]" + RESET_COLOR + "[" + currentDateTimeISO + "] " + message;
-  printOrAddToBuffer(tmp);
+  enqueue(message, "DBG", GREEN_COLOR);
 }
 
 void logTrace(const std::string &message)
@@ -211,17 +193,127 @@ void logTrace(const std::string &message)
   if(mLogLevel < LogLevel::TRACE) {
     return;
   }
-  std::string currentDateTimeISO = getCurrentDateTimeISO();
-  std::string tmp                = GRAY_COLOR + "[TRACE]" + RESET_COLOR + "[" + currentDateTimeISO + "] " + message;
-  printOrAddToBuffer(tmp);
+  enqueue(message, "TRC", GRAY_COLOR);
 }
 
 void logProgress(float ratio, const std::string &message)
 {
-  lastProgress                   = ratio;
-  std::string currentDateTimeISO = getCurrentDateTimeISO();
-  std::string tmp                = GRAY_COLOR + "[" + toPercentString(ratio) + "]" + RESET_COLOR + "[" + currentDateTimeISO + "] " + message;
-  printOrAddToBuffer(tmp);
+  lastProgress = ratio;
+  enqueue(message, toPercentString(ratio), GRAY_COLOR);
+}
+
+/////////////////////////////////////////////////////
+
+static constexpr size_t QUEUE_SIZE = 4096;    // power of 2 -> faster mask
+
+struct LogItem
+{
+  std::string text;    // final formatted string
+  std::atomic<bool> ready{false};
+};
+
+std::array<LogItem, QUEUE_SIZE> buffer;
+std::atomic<size_t> head{0};
+std::atomic<size_t> tail{0};
+
+std::atomic<bool> running{false};
+std::thread worker;
+
+inline std::string getCurrentDateTimeISO()
+{
+  auto now                = std::chrono::system_clock::now();
+  std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+  std::tm localTime       = *std::localtime(&currentTime);
+  char bufferLocal[20];
+  (void) std::strftime(bufferLocal, sizeof(bufferLocal), "%Y-%m-%dT%H:%M:%S", &localTime);
+  return bufferLocal;
+}
+
+// --- FAST timestamp + string builder ---
+static std::string buildLine(std::string_view color, std::string_view tag, std::string_view msg)
+{
+  auto ts = getCurrentDateTimeISO();
+
+  std::string out;
+  out.reserve(32 + ts.size() + msg.size());
+
+  out.append(color);
+  out.append("[");
+  out.append(tag);
+  out.append("]");
+  out.append(RESET_COLOR);
+  out.append("[");
+  out.append(ts);
+  out.append("] ");
+  out.append(msg);
+
+  return out;
+}
+
+// --- Zero-latency enqueue ---
+void enqueue(std::string_view msg, std::string_view tag, std::string_view color)
+{
+  size_t h    = head.load(std::memory_order_relaxed);
+  size_t next = (h + 1) & (QUEUE_SIZE - 1);
+  size_t t    = tail.load(std::memory_order_acquire);
+
+  if(next == t) {
+    // queue full → drop the message (zero-latency guarantee)
+    return;
+  }
+
+  LogItem &item = buffer[h];
+  item.text     = buildLine(color, tag, msg);    // local allocation only
+  item.ready.store(true, std::memory_order_release);
+  head.store(next, std::memory_order_release);
+}
+
+// --- Worker thread prints everything ---
+void workerLoop()
+{
+  while(running.load(std::memory_order_relaxed)) {
+    size_t t = tail.load(std::memory_order_relaxed);
+    size_t h = head.load(std::memory_order_acquire);
+
+    if(t == h) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(200));
+      continue;
+    }
+
+    LogItem &item = buffer[t];
+    if(item.ready.load(std::memory_order_acquire)) {
+      std::cout << item.text << '\n';
+      logBuffer.emplace_back(item.text);
+      item.ready.store(false, std::memory_order_relaxed);
+      tail.store((t + 1) & (QUEUE_SIZE - 1), std::memory_order_release);
+    }
+  }
+
+  // Flush remaining messages on shutdown
+  size_t t = tail.load();
+  size_t h = head.load();
+  while(t != h) {
+    LogItem &item = buffer[t];
+    if(item.ready.load()) {
+      std::cout << item.text << '\n';
+      logBuffer.emplace_back(item.text);
+    }
+    t = (t + 1) & (QUEUE_SIZE - 1);
+  }
+}
+
+void initLogger()
+{
+  running.store(true);
+  worker = std::thread([] { workerLoop(); });
+}
+
+void joinLogger()
+{
+  if(worker.joinable()) {
+    running.store(false);
+    worker.join();
+  }
 }
 
 }    // namespace joda::log

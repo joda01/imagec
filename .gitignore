@@ -20,7 +20,6 @@ tmpfile
 conan.lock
 CMakeUserPresets.json
 java
-*.log
 /test
 /models
 /models (Copy)

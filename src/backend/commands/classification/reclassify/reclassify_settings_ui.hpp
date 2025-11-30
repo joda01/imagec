@@ -40,9 +40,10 @@ public:
   inline static std::string DESCRIPTION       = "Change the classification of objects based on different parameters.";
   inline static std::vector<std::string> TAGS = {"classification", "reclassify", "copy", "move", "incell", "is in"};
 
-  Reclassify(joda::settings::PipelineStep &pipelineStep, settings::ReclassifySettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings),
-      mParent(parent)
+  Reclassify(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, settings::ReclassifySettings &settings,
+             QWidget *parent) :
+      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}),
+      mSettings(settings), mParent(parent)
   {
     auto *modelTab = addTab(
         "Base", [] {}, false);

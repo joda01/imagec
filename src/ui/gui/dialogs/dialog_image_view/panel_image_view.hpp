@@ -11,7 +11,10 @@
 
 #pragma once
 
+#include <qcolor.h>
+#include <qgraphicsitem.h>
 #include <qlabel.h>
+#include <qnamespace.h>
 #include <qwidget.h>
 #include <QtWidgets>
 #include <filesystem>
@@ -19,14 +22,23 @@
 #include <mutex>
 #include <string>
 #include <utility>
+#include "backend/artifacts/roi/roi.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/enums_units.hpp"
 #include "backend/enums/types.hpp"
 #include "backend/helper/image/image.hpp"
+#include "backend/settings/project_settings/project_classification.hpp"
 #include "controller/controller.hpp"
+#include "ui/gui/dialogs/dialog_image_view/customer_painter/graphics_contour_overlay.hpp"
+#include <opencv2/core/matx.hpp>
 #include <opencv2/core/types.hpp>
 
+class RoiOverlay;
+
 namespace joda::ui::gui {
+
+class VideoControlButtonGroup;
+using PaintedRoi_t = std::vector<QPoint>;
 
 ///
 /// \class      PanelImageView
@@ -36,6 +48,17 @@ class PanelImageView : public QGraphicsView
 {
   Q_OBJECT
 public:
+  enum State
+  {
+    MOVE,
+    SELECT,
+    PAINT_RECTANGLE,
+    PAINT_OVAL,
+    PAINT_POLYGON,
+    PAIN_BRUSH,
+    PAINT_MAGIC_WAND
+  };
+
   struct PixelInfo
   {
     int32_t posX       = 0;
@@ -51,7 +74,7 @@ public:
 
   struct CrossCursorInfo
   {
-    QPoint mCursorPos;
+    QPoint mCursorPos = {100, 100};
     PixelInfo pixelInfo;
   };
 
@@ -77,22 +100,19 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  PanelImageView(QWidget *parent = nullptr);
+  PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMap, const joda::settings::Classification *classSettings, VideoControlButtonGroup *,
+                 QWidget *parent = nullptr);
+  ~PanelImageView();
   void openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo = nullptr);
-  void setOverlay(const joda::image::Image &&overlay);
+  auto getCurrentImagePath() const -> std::filesystem::path;
   void setEditedImage(const joda::image::Image &&edited);
-  void clearOverlay();
   void reloadImage();
   void repaintImage();
-  void repaintViewport();
   void resetImage();
   void fitImageToScreenSize();
   void zoomImage(bool inOut);
   void setWaiting(bool waiting);
   void setShowThumbnail(bool);
-  void setShowPixelInfo(bool);
-  void setShowOverlay(bool);
-  void setOverlayOpaque(float opaque);
   void setShowEditedImage(bool);
   void setShowCrosshandCursor(bool);
   void setLockCrosshandCursor(bool);
@@ -104,26 +124,56 @@ public:
   int32_t getNrOfTstacks() const;
   int32_t getNrOfCstacks() const;
   int32_t getNrOfZstacks() const;
+  void setWaitBannerVisible(bool);
+  void setProjectPath(const std::filesystem::path &);
+
+  // SET STATE ///////////////////////////////////////////////////
+  void setState(State);
+  void setClassIdToUseForDrawing(enums::ClassId classId, const QColor &color);
 
   // INFORMATION NEEDED FROM EXTERNAL ///////////////////////////////////////////////////
   void setZprojection(enums::ZProjection);
+  auto getZprojection() const -> enums::ZProjection;
   void setSeries(int32_t);
-  void setImagePlane(const joda::image::reader::ImageReader::Plane &);
+  int32_t getSeries() const;
+  void setImageChannel(int32_t ch);
+  void setImagePlane(const joda::enums::PlaneId &);
+  auto getImagePlane() const -> joda::enums::PlaneId;
   void setSelectedTile(int32_t tileX, int32_t tileY);
   void setImageTile(int32_t tileWith, int32_t tileHeight);
+  auto getTileInfo() const -> enums::TileInfo;
   void setDefaultPhysicalSize(const joda::settings::ProjectImageSetup::PhysicalSizeSettings &);
+  auto getPhysicalSizeSettings() const -> const joda::settings::ProjectImageSetup::PhysicalSizeSettings &;
   auto mutableImage() -> joda::image::Image *;
+  auto getImage() const -> const joda::image::Image *;
+
+  // REGION OF INTERESTS //////////////////////////////////////////////
+  void setRegionsOfInterestFromObjectList();
+  void clearRegionOfInterest(joda::atom::ROI::Category sourceToDelete = joda::atom::ROI::Category::AUTO_SEGMENTATION);
+  void setSelectedRois(const std::set<joda::atom::ROI *> &idxs);
+  void deleteRois(const std::set<joda::atom::ROI *> &idx);
+  bool deleteSelectedRois();
+  void setFillRois(bool);
+  void setShowRois(bool);
+  void setRoisOpaque(float opaque);
+  void setRoisToHide(const std::set<enums::ClassId> &);
+  void setRoisSelectable(bool);
+  void setInfoText(const std::string &);
+  void shutdown();
 
 signals:
   /////////////////////////////////////////////////////
-  void classesToShowChanged(const settings::ObjectInputClasses &selectedClasses);
-  void updateImage();
-  void onImageRepainted();
   void tileClicked(int32_t tileX, int32_t tileY);
+  void paintedPolygonClicked(std::set<atom::ROI *>);
+  void drawingToolChanged(State);
+  void imageOpened();
+  void channelOpened();
 
 private:
   /////////////////////////////////////////////////////
+  void setLoadingImage(bool waiting);
   void mousePressEvent(QMouseEvent *event) override;
+  void mouseDoubleClickEvent(QMouseEvent *event) override;
   void mouseMoveEvent(QMouseEvent *event) override;
   void mouseReleaseEvent(QMouseEvent *event) override;
   void leaveEvent(QEvent *) override;
@@ -131,16 +181,23 @@ private:
   void paintEvent(QPaintEvent *event) override;
   void drawThumbnail(QPainter &);
   void drawCrossHairCursor(QPainter &);
-  void drawPixelInfo(QPainter &, int32_t startX, int32_t startY, const PixelInfo &info);
   void drawRuler(QPainter &);
+  void drawImageInfo(QPainter &, const PixelInfo &info, const std::optional<PixelInfo> &infoCursor);
+  void drawHeaderToolbar(QPainter &painter);
   void getClickedTileInThumbnail(QMouseEvent *event);
   void getThumbnailAreaEntered(QMouseEvent *event);
   auto fetchPixelInfoFromMousePosition(const QPoint &pos) const -> PixelInfo;
   auto imageCoordinatesToPreviewCoordinates(const QPoint &imageCoordinates) -> QPoint;
   auto imageCoordinatesToPreviewCoordinates(const QRect &imageCoordinates) -> QRect;
+  void setCursor();
+  void addPolygonToToObjectMap(const QPolygonF &);
+  void keyPressEvent(QKeyEvent *event) override;
+  auto getTileInfoInternal() const -> enums::TileInfo;
+  void scheduleUpdate();
 
-private:
   /////////////////////////////////////////////////////
+  const int32_t MAX_POLYGONS_TO_DRAW = 30000;
+
   const float THUMB_RECT_START_X       = 10;
   const float THUMB_RECT_START_Y       = 10;
   const float THUMB_RECT_HEIGHT_NORMAL = 128;
@@ -152,33 +209,52 @@ private:
   const float PIXEL_INFO_RECT_WIDTH  = 150;
   const float PIXEL_INFO_RECT_HEIGHT = 40;
 
+  const float TOP_TOOLBAR_HEIGHT          = 24;
+  const float TOP_TOOLBAR_HEIGHT_EXTENDED = 30;
+
   const float RULER_LENGTH = 100;
 
   // IMAGE ///////////////////////////////////////////////////
-  bool mPlaceholderImageSet = true;
   std::filesystem::path mLastPath;
-  joda::image::reader::ImageReader::Plane mLastPlane{-1, -1, -1};
+  joda::enums::PlaneId mLastPlane{-1, -1, -1};
   joda::ome::OmeInfo mOmeInfo;
-  joda::ctrl::Preview mPreviewImages;
+  joda::processor::Preview mPreviewImages;
   joda::image::Image *mImageToShow = nullptr;
-  float mOpaque                    = 0.9F;
-  joda::image::reader::ImageReader::Plane mPlane;
+  float mOpaque                    = 0.6F;
+  joda::enums::PlaneId mPlane{0, 0, 0};
   joda::ome::TileToLoad mTile;
+  joda::ome::TileToLoad mLastTile;
+
   enums::ZProjection mZprojection;
   int32_t mSeries = 0;
 
   // WIDGET ///////////////////////////////////////////////////
-  QGraphicsPixmapItem *mActPixmap = nullptr;
-  QGraphicsScene *scene           = nullptr;
+  QGraphicsScene *scene                         = nullptr;
+  VideoControlButtonGroup *mVideoControlButtons = nullptr;
+
+  // STATE AND PAINTING ///////////////////////////////////////////////////
+  State mState = State::MOVE;
+  QPointF mPaintOrigin;
+  QAbstractGraphicsShapeItem *mRubberItem = nullptr;
+  bool mDrawPolygon                       = false;
+  std::vector<QPointF> mPolygonPoints;
+  QGraphicsLineItem *mTempPolygonLine;
+  QGraphicsPolygonItem *mTempPolygonItem;
+  enums::ClassId mSelectedClassForDrawing = enums::ClassId::NONE;
+  QColor mPixelClassColor                 = Qt::gray;
+
+  // Overlays ///////////////////////////////////////////////////
+  RoiOverlay *mOverlayMasks       = nullptr;
+  ContourOverlay *mContourOverlay = nullptr;
+  QGraphicsItem *mOriginalImageScaled;
+  QGraphicsItem *mEditedImageScaled;
 
   // MOVE IMAGE ///////////////////////////////////////////////////
-  bool isDragging = false;
-  QPoint lastPos;
-  cv::Size mPixmapSize;
+  QSize mPixmapSize;
 
   // IMAGE INFO ///////////////////////////////////////////////////
   CrossCursorInfo mCrossCursorInfo;
-  QRect mLastCrossHairCursorPos = {0, 0, 0, 0};
+  QRect mLastCrossHairCursorPos = {100, 100, 0, 0};
   joda::settings::ProjectImageSetup::PhysicalSizeSettings mDefaultPhysicalSize;
 
   /////////////////////////////////////////////////////
@@ -191,24 +267,37 @@ private:
 
   /////////////////////////////////////////////////////
   bool mThumbnailAreaEntered = false;
+  std::string mInfoText;
+
+  // FONTS  ///////////////////////////////////////////////////
+  QFont mFontSmall;
+  QFont mFontMedium;
 
   // IMAGE CHANNEL SETTINGS ///////////////////////////////////////////////////
+  void storeChannelSettings();
   void restoreChannelSettings();
-  std::map<SettingsIdx, ChannelSettings> mChannelSettings;
+  joda::image_settings::ImageMeta mImageMeta;
+  std::filesystem::path mProjectPath;
 
   /////////////////////////////////////////////////////
-  bool mWaiting             = false;
-  bool mShowThumbnail       = true;
-  bool mShowPixelInfo       = true;
-  bool mShowCrosshandCursor = false;
-  bool mLockCrosshandCursor = false;
-  bool mShowOverlay         = true;
-  bool mShowEditedImage     = false;
-  bool mShowRuler           = true;
+  std::atomic<bool> mLoadingImage = false;
+  bool mWaiting                   = false;
+  bool mShowThumbnail             = true;
+  bool mShowCrosshandCursor       = false;
+  bool mLockCrosshandCursor       = false;
+  bool mShowEditedImage           = false;
+  bool mShowRuler                 = true;
+  bool mHideManualAnnotations     = false;
+  bool mWaitBannerVisible         = true;
+
+  // ROI///////////////////////////////////////////////////
+  bool mFillRoi    = false;
+  bool mShowRois   = true;
+  bool mSelectable = true;
+  const joda::settings::Classification *mClassSettings;
+  std::shared_ptr<atom::ObjectList> mObjectMap;
 
   mutable std::mutex mImageResetMutex;
-
-private slots:
-  void onUpdateImage();
+  std::atomic<bool> mPendingUpdate;
 };
 }    // namespace joda::ui::gui

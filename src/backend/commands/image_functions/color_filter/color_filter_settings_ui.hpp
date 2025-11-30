@@ -36,8 +36,9 @@ public:
   inline static std::string DESCRIPTION       = "Convert the image to a grayscale applying the selected color filter.";
   inline static std::vector<std::string> TAGS = {};
 
-  ColorFilter(joda::settings::PipelineStep &pipelineStep, settings::ColorFilterSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::IMAGE}})
+  ColorFilter(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, settings::ColorFilterSettings &settings,
+              QWidget *parent) :
+      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::IMAGE}})
   {
     if(settings.filter.empty()) {
       settings.filter.emplace_back(settings::ColorFilterSettings::Filter{});

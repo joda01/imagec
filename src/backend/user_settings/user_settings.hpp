@@ -35,6 +35,15 @@ public:
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Entry, path, title);
   };
 
+  struct DefaultJobMetaData
+  {
+    std::string firstName;
+    std::string lastName;
+    std::string organization;
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(DefaultJobMetaData, firstName, lastName, organization);
+  };
+
   static void save()
   {
     std::filesystem::path userSettingsPath = getUserHomeDir() / "userSettings.json";
@@ -100,6 +109,17 @@ public:
     save();
   }
 
+  static void setDefaultJobMetaData(const DefaultJobMetaData &meta)
+  {
+    mUser = meta;
+    save();
+  }
+
+  static auto getDefaultJobMeta() -> const DefaultJobMetaData &
+  {
+    return mUser;
+  }
+
 private:
   static void addToVector(std::vector<Entry> &vec, const Entry &entry)
   {
@@ -114,8 +134,9 @@ private:
   static inline std::vector<Entry> lastOpenedProjects;
   static inline std::vector<Entry> lastOpenedResults;
   static inline bool showNewProjectDialogOnStartup = true;
+  static inline DefaultJobMetaData mUser;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(UserSettings, lastOpenedProjects, lastOpenedResults, showNewProjectDialogOnStartup);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(UserSettings, lastOpenedProjects, lastOpenedResults, showNewProjectDialogOnStartup, mUser);
 };
 
 }    // namespace joda::user_settings

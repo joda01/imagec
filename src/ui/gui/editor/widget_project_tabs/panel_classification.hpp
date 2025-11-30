@@ -17,14 +17,21 @@
 #include <filesystem>
 #include <optional>
 #include <utility>
+#include "backend/artifacts/object_list/object_list.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/settings/project_settings/project_settings.hpp"
 #include "ui/gui/helper/color_combo/color_combo.hpp"
 #include "ui/gui/helper/table_widget.hpp"
 #include "ui/gui/results/dialog_class_settings.hpp"
 
+class PlaceholderTableView;
+
 namespace joda::ui::gui {
 
 class WindowMain;
+class DialogImageViewer;
+class TableModelRoi;
+class TableModelClasses;
 
 ///
 /// \class
@@ -37,45 +44,52 @@ class PanelClassification : public QWidget
 
 public:
   /////////////////////////////////////////////////////
-  explicit PanelClassification(joda::settings::Classification &settings, WindowMain *windowMain);
+  explicit PanelClassification(const std::shared_ptr<atom::ObjectList> &objectMap, joda::settings::Classification *settings, WindowMain *windowMain,
+                               DialogImageViewer *imageView);
   void fromSettings(const joda::settings::Classification &settings);
-  void toSettings();
   [[nodiscard]] auto getClasses() const -> std::map<enums::ClassIdIn, QString>;
+  auto getSelectedClass() const -> enums::ClassId;
+
+  [[nodiscard]] QSize sizeHint() const override
+  {
+    return QSize(300, QWidget::sizeHint().height());
+  }
 
 signals:
   void settingsChanged();
 
 private:
   /////////////////////////////////////////////////////
-  static constexpr int COL_ID      = 0;
-  static constexpr int COL_ID_ENUM = 1;
-  static constexpr int COL_NAME    = 2;
-  static constexpr int COL_COLOR   = 3;
-  static constexpr int COL_NOTES   = 4;
-  static constexpr int COL_HIDDEN  = 5;
-
-  /////////////////////////////////////////////////////
   void loadTemplates();
   void newTemplate();
   void saveAsNewTemplate();
-  void openEditDialog(int row, int column);
+  void openEditDialog(joda::settings::Class *, int32_t row);
   void openTemplate(const QString &path);
   void populateClassesFromImage();
-  void addClass(bool withUpdate = true);
-  void createTableItem(int32_t rowIdx, enums::ClassId classId, const std::string &name, const std::string &color, const std::string &notes);
+  void addClass();
   void moveClassToPosition(int32_t fromPos, int32_t newPos);
   auto findNextFreeClassId() -> enums::ClassId;
 
   /////////////////////////////////////////////////////
   WindowMain *mWindowMain;
-  joda::settings::Classification &mSettings;
-  PlaceholderTableWidget *mClasses;
+  joda::settings::Classification *mSettings;
+  PlaceholderTableView *mTableClasses;
+  TableModelClasses *mTableModelClasses;
+
+  /////////////////////////////////////////////////////
+  QAction *mActionHideClass;
+
+  /// ROI DETAILS ///////////////////////////////////
+  PlaceholderTableView *mTableRoiDetails;
+  TableModelRoi *mTableModelRoi;
 
   /// DIALOG //////////////////////////////////////////////////
   DialogClassSettings *mClassSettingsDialog;
 
   /// Actions //////////////////////////////////////////////////
   QMenu *mTemplateMenu;
+  const std::shared_ptr<atom::ObjectList> mObjectMap;
+  DialogImageViewer *mDialogImageView;
 
   /// TEMPLATE //////////////////////////////////////////////////
   bool askForChangeTemplateIndex();

@@ -129,6 +129,18 @@ public:
   // }
 };
 
+#ifdef _WIN32
+#include <windows.h>
+void attachConsole()
+{
+  AllocConsole();
+  FILE *fp;
+  freopen_s(&fp, "CONOUT$", "w", stdout);
+  freopen_s(&fp, "CONOUT$", "w", stderr);
+  freopen_s(&fp, "CONIN$", "r", stdin);
+}
+#endif
+
 ///
 /// \brief
 /// \author
@@ -138,6 +150,10 @@ public:
 ///
 int Cli::startCommandLineController(int argc, char *argv[])
 {
+#ifdef _WIN32
+  attachConsole();
+#endif
+
   std::cout << Version::getLogo();
   CLI::App app{"High throughput image processing application.", "imagec"};
   app.formatter(std::make_shared<NoOptionOptsFormatter>());
@@ -245,6 +261,7 @@ int Cli::startCommandLineController(int argc, char *argv[])
     }
   }
 
+  ctrl::Controller::cleanShutdownApplication();
   return 0;
 }
 
@@ -266,6 +283,7 @@ void Cli::startAnalyze(const std::filesystem::path &pathToSettingsFile, const st
     analyzeSettings = joda::settings::Settings::openSettings(pathToSettingsFile);
   } catch(const std::exception &ex) {
     joda::log::logError("Could not load settings file >" + std::string(ex.what()) + "<!");
+    ctrl::Controller::cleanShutdownApplication();
     std::exit(1);
   }
 
@@ -284,11 +302,11 @@ void Cli::startAnalyze(const std::filesystem::path &pathToSettingsFile, const st
   }
   if(hasError) {
     joda::log::logError("Configuration has errors!");
+    ctrl::Controller::cleanShutdownApplication();
     std::exit(0);
   }
 
   if(imagedInputFolder.has_value()) {
-    analyzeSettings.projectSettings.workingDirectory  = imagedInputFolder.value();
     analyzeSettings.projectSettings.plate.imageFolder = imagedInputFolder.value();
   }
 
@@ -298,7 +316,7 @@ void Cli::startAnalyze(const std::filesystem::path &pathToSettingsFile, const st
   if(jobName.empty()) {
     jobName = joda::helper::RandomNameGenerator::GetRandomName();
   }
-  mController->start(analyzeSettings, {}, jobName);
+  mController->start(analyzeSettings, {}, jobName, std::nullopt);
   joda::log::logInfo("Job >" + jobName + "< started!");
 
   // ==========================
@@ -327,6 +345,7 @@ void Cli::startAnalyze(const std::filesystem::path &pathToSettingsFile, const st
   }
   joda::log::logProgress(1, "Completed");
   joda::log::logInfo("Job >" + jobName + "< finished!");
+  ctrl::Controller::cleanShutdownApplication();
   std::exit(0);
 }
 
@@ -353,12 +372,13 @@ void Cli::exportData(const std::filesystem::path &pathToDatabasefile, std::files
       tStack = std::stoi(tStackIn);
     } catch(...) {
       joda::log::logError("Time stack must be a number!");
+      ctrl::Controller::cleanShutdownApplication();
       std::exit(1);
     }
   }
 
   if(outputPath.empty()) {
-    std::string fileName = pathToDatabasefile.filename().string();
+    std::string fileName = pathToDatabasefile.filename().generic_string();
     helper::stringReplace(fileName, ".icdb", "");
 
     if(format == exporter::xlsx::ExportSettings::ExportSettings::ExportFormat::XLSX) {
@@ -378,6 +398,7 @@ void Cli::exportData(const std::filesystem::path &pathToDatabasefile, std::files
       classes.emplace(settings.classes);
     } catch(const std::exception &ex) {
       joda::log::logError("Could not load template >" + classExportTemplate + "<. What: " + std::string(ex.what()));
+      ctrl::Controller::cleanShutdownApplication();
       exit(1);
     }
   }
@@ -389,8 +410,10 @@ void Cli::exportData(const std::filesystem::path &pathToDatabasefile, std::files
                             classes);
   } catch(const std::exception &ex) {
     joda::log::logError(ex.what());
+    ctrl::Controller::cleanShutdownApplication();
     std::exit(1);
   }
+  ctrl::Controller::cleanShutdownApplication();
   std::exit(0);
 }
 
@@ -467,6 +490,7 @@ auto toFormatEnum(const std::string &type) -> exporter::xlsx::ExportSettings::Ex
     typeEnum = exporter::xlsx::ExportSettings::ExportFormat::R;
   } else {
     joda::log::logError("Invalid export type!");
+    ctrl::Controller::cleanShutdownApplication();
     std::exit(1);
   }
   return typeEnum;
@@ -481,6 +505,7 @@ auto toStyleEnum(const std::string &format) -> exporter::xlsx::ExportSettings::E
     formatEnum = exporter::xlsx::ExportSettings::ExportStyle::HEATMAP;
   } else {
     joda::log::logError("Invalid export format!");
+    ctrl::Controller::cleanShutdownApplication();
     std::exit(1);
   }
   return formatEnum;

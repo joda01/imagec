@@ -33,6 +33,7 @@
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/settings.hpp"
 #include "ui/gui/dialogs/dialog_plate_settings/dialog_plate_settings.hpp"
+#include "ui/gui/helper/debugging.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 
 namespace joda::ui::gui {
@@ -143,6 +144,7 @@ PanelGraphSettings::PanelGraphSettings(QWidget *parent) : QDockWidget(parent)
       // Color map
       //
       static const std::vector<std::pair<QString, joda::plot::ColormapName>> items = {
+          {"ImageC Green-Red", joda::plot::ColormapName::IMAGEC_GREEN_RED},    //
           // {"Accent", joda::plot::ColormapName::ACCENT},
           // {"Blues", joda::plot::ColormapName::BLUES},
           // {"BrBG", joda::plot::ColormapName::BRBG},
@@ -235,10 +237,14 @@ PanelGraphSettings::PanelGraphSettings(QWidget *parent) : QDockWidget(parent)
       mColormapRangeSettings->addItem("Manual", static_cast<int>(joda::plot::ColorMappingMode::MANUAL));
       connect(mColormapRangeSettings, &QComboBox::currentIndexChanged, [this](int32_t /*index*/) {
         if(getColorMapRangeSetting() == joda::plot::ColorMappingMode::AUTO) {
+          CHECK_GUI_THREAD(mColorMapMinValue)
           mColorMapMinValue->setEnabled(false);
+          CHECK_GUI_THREAD(mColorMapMaxValue)
           mColorMapMaxValue->setEnabled(false);
         } else {
+          CHECK_GUI_THREAD(mColorMapMinValue)
           mColorMapMinValue->setEnabled(true);
+          CHECK_GUI_THREAD(mColorMapMaxValue)
           mColorMapMaxValue->setEnabled(true);
         }
 
@@ -257,7 +263,9 @@ PanelGraphSettings::PanelGraphSettings(QWidget *parent) : QDockWidget(parent)
       colorMapRangeLayout->addWidget(mColorMapMinValue);
       colorMapRangeLayout->addWidget(mColorMapMaxValue);
       formLayout->addRow(new QLabel(tr("Color range")), colorMapRangeLayout);
+      CHECK_GUI_THREAD(mColorMapMinValue)
       mColorMapMinValue->setEnabled(false);
+      CHECK_GUI_THREAD(mColorMapMaxValue)
       mColorMapMaxValue->setEnabled(false);
       formLayout->setContentsMargins(2, 0, 0, 0);
       layout->addLayout(formLayout);

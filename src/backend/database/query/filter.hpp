@@ -141,7 +141,7 @@ public:
   explicit ResultingTable(const settings::ResultsSettings *);
 
   void setData(const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, uint32_t row, uint32_t dbColIx,
-               const std::string & /*rowName*/, const table::TableCell &tableCell)
+               const table::TableCell &tableCell)
   {
     if(!mClassesAndClasses.contains(classsAndClass)) {
       mClassesAndClasses.emplace(classsAndClass, PreparedStatement{colName, mFilter});
@@ -155,9 +155,9 @@ public:
     }
   }
 
-  [[nodiscard]] int32_t getColIdxFromDbColIdx(const PreparedStatement &statement, uint32_t dbColIdx) const
+  [[nodiscard]] uint32_t getColIdxFromDbColIdx(const PreparedStatement &statement, uint32_t dbColIdx) const
   {
-    int32_t colIdx        = 0;
+    uint32_t colIdx       = 0;
     const auto &columnKey = statement.getColumnAt(dbColIdx);
     for(auto [itr, rangeEnd] = mTableMapping.equal_range(columnKey); itr != rangeEnd; ++itr) {
       const auto &element = itr->second;
@@ -166,7 +166,7 @@ public:
     return colIdx;
   }
 
-  void setRowID(const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, int32_t row, const std::string & /*rowName*/,
+  void setRowID(const QueryKey &classsAndClass, const settings::ResultsSettings::ColumnName &colName, uint32_t row, const std::string &rowName,
                 uint64_t rowId)
   {
     if(!mClassesAndClasses.contains(classsAndClass)) {
@@ -174,7 +174,7 @@ public:
     }
 
     for(auto [itr, element] : mTableMapping) {
-      mResultingTable.setDataId(row, element.colIdx, rowId);
+      mResultingTable.setDataId(row, element.colIdx, rowId, rowName);
     }
   }
 

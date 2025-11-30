@@ -37,9 +37,7 @@ public:
   explicit PanelImages(WindowMain *windowMain);
   [[nodiscard]] auto getSelectedImage() const -> std::tuple<std::filesystem::path, int32_t, joda::ome::OmeInfo>;
   [[nodiscard]] auto getSelectedImageOrFirst() const -> std::tuple<std::filesystem::path, int32_t, joda::ome::OmeInfo>;
-
-signals:
-  void imageSelectionChanged(int32_t newImgIdex, int32_t selectedSeries);
+  void deselectImages();
 
 private:
   /////////////////////////////////////////////////////
@@ -52,6 +50,9 @@ private:
   PlaceholderTableWidget *mImageMeta;
   QLineEdit *mSearchField;
   joda::ome::OmeInfo mOmeFromActSelectedImage;
+
+  mutable std::filesystem::path mPathOfFirst;
+  mutable joda::ome::OmeInfo mOmeOfFirstImage;
 
 private slots:
   void filterImages();

@@ -120,7 +120,7 @@ void RankFilter::rank(cv::Mat &ip, double radius, int filterType, int whichOutli
       cv::Point minLoc;
       cv::Point maxLoc;
       cv::minMaxLoc(ip, &minVal, &maxVal, &minLoc, &maxLoc);
-      offset = maxVal;    // background is maximum of possible range (255 or 65535)
+      offset = static_cast<float>(maxVal);    // background is maximum of possible range (255 or 65535)
     }
     cv::Mat fp;        // float processor
     cv::Mat snapFp;    // float processor
@@ -232,8 +232,8 @@ void RankFilter::doFiltering(cv::Mat &ip, std::shared_ptr<int> lineRadii, size_t
   int previousY = kHeight / 2 - cacheHeight;
 
   for(int y = 0; y < height; y++) {
-    for(int i = 0; i < cachePointersLength; i++) {    // shift kernel pointers to new line
-      cachePointers.get()[i] = (cachePointers.get()[i] + cacheWidth * (y - previousY)) % cacheLength;
+    for(int i = 0; i < static_cast<int>(cachePointersLength); i++) {    // shift kernel pointers to new line
+      cachePointers.get()[i] = (cachePointers.get()[i] + cacheWidth * (y - previousY)) % static_cast<int32_t>(cacheLength);
     }
     previousY = y;
 
@@ -387,7 +387,7 @@ void RankFilter::readLineToCache(cv::Mat &pixels, int pixelLineP, int xminInside
 void RankFilter::writeLineToPixels(float *values, cv::Mat &pixels, int pixelP, int length)
 {
   for(int i = 0, p = pixelP; i < length; i++, p++) {
-    pixels.at<uint16_t>(p) = static_cast<uint16_t>(((int) (values[i] + 0.5f)) & 0xffff);
+    pixels.at<uint16_t>(p) = static_cast<uint16_t>(static_cast<int32_t>(values[static_cast<size_t>(i)] + 0.5F) & 0xffff);
   }
 }
 
@@ -612,7 +612,7 @@ std::shared_ptr<int> RankFilter::makeLineRadii(double radius, size_t &length)
   kernel.get()[2 * kRadius + 1] = kRadius;
   int nPoints                   = 2 * kRadius + 1;
   for(int y = 1; y <= kRadius; y++) {    // lines above and below center together
-    int dx                              = (int) (std::sqrt(r2 - y * y + 1e-10));
+    int dx                              = static_cast<int>(std::sqrt(r2 - y * y + 1e-10));
     kernel.get()[2 * (kRadius - y)]     = -dx;
     kernel.get()[2 * (kRadius - y) + 1] = dx;
     kernel.get()[2 * (kRadius + y)]     = -dx;
@@ -627,9 +627,9 @@ std::shared_ptr<int> RankFilter::makeLineRadii(double radius, size_t &length)
 
 // kernel height
 
-int RankFilter::kHeight(int *lineRadii, size_t length)
+int RankFilter::kHeight(int * /*lineRadii*/, size_t length)
 {
-  return (length - 2) / 2;
+  return static_cast<int>((length - 2) / 2);
 }
 
 // kernel radius in x direction. width is 2+kRadius+1

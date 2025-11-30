@@ -1204,17 +1204,17 @@ public:
   // integer between 0 and 10 will be added to the end of the name, e.g `focused_turing3`
   static std::string GetRandomName()
   {
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    std::random_device devRand;
+    std::mt19937 generator(devRand());
     std::uniform_int_distribution<int> distributionLeft(0, (left.size() - 1));
     std::uniform_int_distribution<int> distributionRight(0, (right.size() - 1));
 
-    int leftRandom  = distributionLeft(gen);
-    int rightRandom = distributionRight(gen);
+    int leftRandom  = distributionLeft(generator);
+    int rightRandom = distributionRight(generator);
 
-    std::string name = std::string(left.at(leftRandom)) + "_" +
-                       std::string(right.at(rightRandom));    // nolint:gosec // G404: Use of weak random number
-                                                              // generator (math/rand instead of crypto/rand)
+    std::string name = std::string(left.at(static_cast<size_t>(leftRandom))) + "_" +
+                       std::string(right.at(static_cast<size_t>(rightRandom)));    // nolint:gosec // G404: Use of weak random number
+                                                                                   // generator (math/rand instead of crypto/rand)
     return name;
   }
 };

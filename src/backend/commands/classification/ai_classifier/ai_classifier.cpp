@@ -16,11 +16,13 @@
 #include <memory>
 #include <string>
 #include "backend/artifacts/roi/roi.hpp"
+#include "backend/commands/classification/ai_classifier/ai_classifier_settings.hpp"
 #include "backend/commands/classification/ai_classifier/frameworks/ai_framework.hpp"
 #include "backend/commands/classification/ai_classifier/frameworks/onnx/ai_classifier_onnx.hpp"
 #include "backend/commands/classification/ai_classifier/frameworks/pytorch/ai_classifier_pytorch.hpp"
 #include "backend/commands/classification/ai_classifier/models/ai_model.hpp"
 #include "backend/commands/classification/ai_classifier/models/cyto3/ai_model_cyto3.hpp"
+#include "backend/commands/classification/ai_classifier/models/instanseg/ai_model_instanseg.hpp"
 #include "backend/commands/classification/ai_classifier/models/unet/ai_model_unet.hpp"
 #include "backend/commands/classification/ai_classifier/models/yolo/ai_model_yolo.hpp"
 #include "backend/enums/enum_objects.hpp"
@@ -34,7 +36,7 @@
 
 namespace joda::cmd {
 
-at::Device getCudaDevice(c10::DeviceIndex index = 0);
+at::Device getCudaDevice(bool allowGpu, c10::DeviceIndex index = 0);
 
 ///
 /// \brief      Constructor
@@ -48,18 +50,19 @@ AiClassifier::AiClassifier(const settings::AiClassifierSettings &settings) : mSe
 
 void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNotUse, atom::ObjectList &result)
 {
-  at::Device device = getCudaDevice();
+  at::Device device            = getCudaDevice(mSettings.gpuUsage == settings::AiClassifierSettings::GpuUsage::Auto);
+  const auto absoluteModelPath = std::filesystem::weakly_canonical(context.getWorkingDirectory() / mSettings.modelPath);
 
-  auto parsed = joda::ai::AiModelParser::parseResourceDescriptionFile(mSettings.modelPath);
+  auto parsed = joda::ai::AiModelParser::parseResourceDescriptionFile(absoluteModelPath);
   if(parsed.inputs.empty()) {
     THROW("Could not read model input parameter!");
   }
   mSettings.modelInputParameter = parsed.inputs.begin()->second;
 
-  if(mSettings.modelPath.empty()) {
+  if(absoluteModelPath.empty()) {
     return;
   }
-  auto modelPath = std::filesystem::current_path() / std::filesystem::path(mSettings.modelPath);
+  auto modelPath = std::filesystem::current_path() / std::filesystem::path(absoluteModelPath);
   if(!std::filesystem::exists(modelPath)) {
     THROW("Could not open model >" + modelPath.string() + "<!");
   }
@@ -111,10 +114,14 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
     case settings::AiClassifierSettings::ModelArchitecture::MASK_R_CNN:
       THROW("Mask R-CNN architecture is not supported yet");
       break;
-    case settings::AiClassifierSettings::ModelArchitecture::CYTO3:
+    case settings::AiClassifierSettings::ModelArchitecture::CYTO3: {
       ai::AiModelCyto3 cyto3({.maskThreshold = mSettings.thresholds.maskThreshold, .classThreshold = mSettings.thresholds.classThreshold});
       segResult = cyto3.processPrediction(device, imageNotUse, prediction);
-      break;
+    } break;
+    case settings::AiClassifierSettings::ModelArchitecture::INSTAN_SEG: {
+      ai::AiModelInstanseg instanseg(ai::AiModelInstanseg::ProbabilitySettings{.maskThreshold = mSettings.thresholds.maskThreshold});
+      segResult = instanseg.processPrediction(device, imageNotUse, prediction);
+    } break;
   }
 
   for(const auto &res : segResult) {
@@ -124,7 +131,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
     if(static_cast<int32_t>(mSettings.modelClasses.size()) > res.classId) {
       auto objectClassToUse = *mSettings.modelClasses.begin();
       for(const auto &objectClass : mSettings.modelClasses) {
-        if(objectClass.modelClassId == res.classId) {
+        if(objectClass.pixelClassId == res.classId) {
           objectClassToUse = objectClass;
           break;
         }
@@ -135,8 +142,7 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
               .classId    = context.getClassId(objectClassToUse.outputClassNoMatch),
               .imagePlane = context.getActIterator(),
           },
-          context.getAppliedMinThreshold(), res.boundingBox, res.mask, res.contour, context.getImageSize(), context.getOriginalImageSize(),
-          context.getActTile(), context.getTileSize());
+          context.getAppliedMinThreshold(), res.boundingBox, res.mask, res.contour, context.getTileInfo());
 
       for(const auto &filter : objectClassToUse.filters) {
         if(joda::settings::ClassifierFilter::doesFilterMatch(context, detectedRoi, filter.metrics, filter.intensity)) {
@@ -144,8 +150,9 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
           break;
         }
       }
-
-      result.push_back(detectedRoi);
+      if(detectedRoi.getClassId() != enums::ClassId::NONE) {
+        result.push_back(detectedRoi);
+      }
     }
   }
 }
@@ -157,9 +164,9 @@ void AiClassifier::execute(processor::ProcessContext &context, cv::Mat &imageNot
 /// \param[out]
 /// \return
 ///
-at::Device getCudaDevice(c10::DeviceIndex index)
+at::Device getCudaDevice(bool allowGpu, c10::DeviceIndex index)
 {
-  if(torch::cuda::is_available()) {
+  if(allowGpu && torch::cuda::is_available()) {
     return {torch::kCUDA, index};
   }
   return {at::kCPU};

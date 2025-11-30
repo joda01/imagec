@@ -26,16 +26,16 @@ namespace joda::cmd {
 /// \brief      Base class for an image processing function
 /// \ref https://github.com/imagej/ImageJ/blob/master/ij/process/ShortBlitter.java#L14
 ///
-class MedianSubtraction : public Command
+class MedianSubtract : public ImageProcessingCommand
 {
 public:
   /////////////////////////////////////////////////////
-  explicit MedianSubtraction(const joda::settings::MedianSubtractSettings &settings) : mSettings(settings)
+  explicit MedianSubtract(const joda::settings::MedianSubtractSettings &settings) : mSettings(settings)
   {
   }
-  virtual ~MedianSubtraction() = default;
+  virtual ~MedianSubtract() = default;
 
-  void execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/) override
+  void execute(cv::Mat &image) override
   {
     auto medianBlurredImageOut = image.clone();
     algo::RankFilter rank;

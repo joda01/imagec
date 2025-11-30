@@ -38,9 +38,10 @@ public:
   inline static std::string DESCRIPTION       = "Measure the distance of all objects in two object classes.";
   inline static std::vector<std::string> TAGS = {"distance", "measure", "object"};
 
-  MeasureDistance(joda::settings::PipelineStep &pipelineStep, settings::MeasureDistanceSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}), mSettings(settings),
-      mParent(parent)
+  MeasureDistance(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep,
+                  settings::MeasureDistanceSettings &settings, QWidget *parent) :
+      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::OBJECT}, {InOuts::OBJECT}}),
+      mSettings(settings), mParent(parent)
   {
     //
     //

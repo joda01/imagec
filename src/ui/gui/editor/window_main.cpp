@@ -18,12 +18,15 @@
 #include <qlayout.h>
 #include <qlineedit.h>
 #include <qmenu.h>
+#include <qmessagebox.h>
+#include <qnamespace.h>
 #include <qobject.h>
 #include <qpushbutton.h>
 #include <qstackedwidget.h>
 #include <qtabwidget.h>
 #include <qtoolbutton.h>
 #include <qwidget.h>
+#include <torch/cuda.h>
 #include <QAction>
 #include <QIcon>
 #include <QMainWindow>
@@ -39,6 +42,8 @@
 #include <thread>
 #include "backend/enums/enums_file_endians.hpp"
 #include "backend/helper/ai_model_parser/ai_model_parser.hpp"
+#include "backend/helper/duration_count/duration_count.h"
+#include "backend/helper/fnv1a.hpp"
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/helper/random_name_generator.hpp"
@@ -62,6 +67,7 @@
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/template_parser/template_parser.hpp"
 #include "ui/gui/results/window_results.hpp"
+#include <nlohmann/json_fwd.hpp>
 #include "build_info.h"
 #include "version.h"
 
@@ -76,7 +82,6 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   setWindowIcon(myIcon);
   setWindowTitle(Version::getTitle().data());
   createTopToolbar();
-  createLeftToolbar();
   setMinimumSize(1500, 800);
   setObjectName("windowMain");
 
@@ -92,16 +97,11 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   //
   {
     mTopToolBar->addSeparator();
-    mPreviewImage = new DialogImageViewer(this, &mAnalyzeSettings, mTopToolBar);
+    mPreviewImage = new DialogImageViewer(this, mPreviewResult.results.objectMap, &mAnalyzeSettings, mTopToolBar);
     connect(mPreviewImage, &DialogImageViewer::settingChanged, [this]() { checkForSettingsChanged(); });
   }
 
-  //
-  // Preview results
-  //
-  {
-    mPreviewResultsDialog = new DialogPreviewResults(getSettings().projectSettings.classification, this);
-  }
+  createLeftToolbar();
 
   setCentralWidget(mPreviewImage);
   clearSettings();
@@ -117,12 +117,31 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   getController()->registerImageLookupCallback([this](joda::filesystem::State state) {
     if(state == joda::filesystem::State::FINISHED) {
       if(getController()->getNrOfFoundImages() > 0) {
-        mStartAnalysisToolButton->setEnabled(true);
+        QMetaObject::invokeMethod(
+            mStartAnalysisToolButton,
+            [this]() {
+              CHECK_GUI_THREAD(mStartAnalysisToolButton)
+              mStartAnalysisToolButton->setEnabled(true);
+            },
+            Qt::QueuedConnection);
+
       } else {
-        mStartAnalysisToolButton->setEnabled(false);
+        QMetaObject::invokeMethod(
+            mStartAnalysisToolButton,
+            [this]() {
+              CHECK_GUI_THREAD(mStartAnalysisToolButton)
+              mStartAnalysisToolButton->setEnabled(false);
+            },
+            Qt::QueuedConnection);
       }
     } else if(state == joda::filesystem::State::RUNNING) {
-      mStartAnalysisToolButton->setEnabled(false);
+      QMetaObject::invokeMethod(
+          mStartAnalysisToolButton,
+          [this]() {
+            CHECK_GUI_THREAD(mStartAnalysisToolButton)
+            mStartAnalysisToolButton->setEnabled(false);
+          },
+          Qt::QueuedConnection);
     }
   });
 
@@ -146,7 +165,7 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
   //
   // Initial background tasks
   //
-  std::thread([]() { joda::ai::AiModelParser::findAiModelFiles(); }).detach();
+  std::thread([this]() { joda::ai::AiModelParser::findAiModelFiles(mAnalyzeSettings.getProjectPath()); }).detach();
   std::thread([mainWindow = this, updater]() {
     joda::updater::Updater::Status status = joda::updater::Updater::Status::PENDING;
     joda::updater::Updater::CheckForUpdateResponse response;
@@ -183,9 +202,24 @@ WindowMain::WindowMain(joda::ctrl::Controller *controller, joda::updater::Update
     }
   }).detach();
 
+  CHECK_GUI_THREAD(mSaveProject)
   mSaveProject->setEnabled(false);
 
   QTimer::singleShot(0, this, SLOT(onNewProjectClicked();));
+
+  //
+  // Create a global shortcut for F5 to refresh the preview
+  //
+  {
+    QShortcut *shortcut = new QShortcut(QKeySequence(Qt::Key_F5), this);
+    shortcut->setContext(Qt::ApplicationShortcut);
+    connect(shortcut, &QShortcut::activated, this, [this]() {
+      auto *pip = mPanelPipeline->getSelectedPipeline();
+      if(pip != nullptr) {
+        pip->triggerPreviewUpdate();
+      }
+    });
+  }
 }
 
 WindowMain::~WindowMain() = default;
@@ -193,15 +227,25 @@ WindowMain::~WindowMain() = default;
 void WindowMain::closeEvent(QCloseEvent *event)
 {
   // Perform any actions before closing
-  int result = QMessageBox::question(this, "Confirm Exit", "Are you sure you want to exit?", QMessageBox::Yes | QMessageBox::No);
-
-  if(result == QMessageBox::Yes) {
-    // Accept the close event to allow the window to close
-    showPanelStartPage();
-    event->accept();
+  if(mSaveProject->isEnabled()) {
+    int result = QMessageBox::question(this, "Save project?", "Save project before close?", QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+    if(result == QMessageBox::Yes) {
+      // Accept the close event to allow the window to close
+      onSaveProject();
+      mPreviewImage->getImagePanel()->shutdown();
+      event->accept();
+    } else if(result == QMessageBox::No) {
+      saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
+      mPreviewImage->getImagePanel()->shutdown();
+      event->accept();
+    } else {
+      // Ignore the close event to keep the window open
+      event->ignore();
+    }
   } else {
-    // Ignore the close event to keep the window open
-    event->ignore();
+    mPreviewImage->getImagePanel()->shutdown();
+    saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
+    event->accept();
   }
 }
 
@@ -238,6 +282,7 @@ void WindowMain::createTopToolbar()
 
   mSaveProject = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("floppy-disk"), "Save", mTopToolBar);
   mSaveProject->setStatusTip("Save project");
+  CHECK_GUI_THREAD(mSaveProject)
   mSaveProject->setEnabled(false);
   connect(mSaveProject, &QAction::triggered, this, &WindowMain::onSaveProject);
 
@@ -257,10 +302,17 @@ void WindowMain::createTopToolbar()
   });
   connect(mCompilerLog->getDialog(), &QDialog::finished, [this] { mShowCompilerLog->setChecked(false); });
 
+  auto *analysisMenu     = new QMenu();
+  auto *analyzeAllButton = analysisMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("fast-forward-circle"), "Analyze all images");
+  connect(analyzeAllButton, &QAction::triggered, [this] { onStartClicked(AnalyzeMode::AllImages); });
+  auto *analyzeSingleButton = analysisMenu->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("play-circle"), "Analyze selected image");
+  connect(analyzeSingleButton, &QAction::triggered, [this] { onStartClicked(AnalyzeMode::SingleImage); });
+
   mStartAnalysisToolButton = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("person-simple-run"), "Start analyze", mTopToolBar);
+  mStartAnalysisToolButton->setMenu(analysisMenu);
   mStartAnalysisToolButton->setStatusTip("Start analyze");
+  CHECK_GUI_THREAD(mStartAnalysisToolButton)
   mStartAnalysisToolButton->setEnabled(false);
-  connect(mStartAnalysisToolButton, &QAction::triggered, this, &WindowMain::onStartClicked);
 
   mShowInfoDialog = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("info"), "About", mTopToolBar);
   mShowInfoDialog->setStatusTip("Open about dialog");
@@ -272,8 +324,8 @@ void WindowMain::createTopToolbar()
   mTopToolBar->addAction(mOpenProjectButton);
   mTopToolBar->addAction(mSaveProject);
   mTopToolBar->addSeparator();
-  mTopToolBar->addAction(mShowCompilerLog);
   mTopToolBar->addAction(mStartAnalysisToolButton);
+  qobject_cast<QToolButton *>(mTopToolBar->widgetForAction(mStartAnalysisToolButton))->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
 
   // =====================================
   // Menu bar
@@ -287,6 +339,10 @@ void WindowMain::createTopToolbar()
   fileMenu->addSeparator();
   fileMenu->addAction(mSaveProject);
   fileMenu->addAction(mSaveProjectAs);
+
+  auto *pipelineMenu = mTopMenuBar->addMenu("Pipeline");
+  pipelineMenu->addAction(mStartAnalysisToolButton);
+  pipelineMenu->addAction(mShowCompilerLog);
 
   auto *helpMenu = mTopMenuBar->addMenu("Help");
   helpMenu->addAction(mShowInfoDialog);
@@ -336,13 +392,14 @@ void WindowMain::createLeftToolbar()
 
   // Classification tab
   {
-    mPanelClassification = new PanelClassification(mAnalyzeSettings.projectSettings.classification, this);
+    mPanelClassification =
+        new PanelClassification(mPreviewResult.results.objectMap, &mAnalyzeSettings.projectSettings.classification, this, mPreviewImage);
     createDock("Classification", mPanelClassification);
   }
 
   // Pipeline Tab
   {
-    mPanelPipeline = new PanelPipeline(this, mAnalyzeSettings);
+    mPanelPipeline = new PanelPipeline(&mPreviewResult, this, mPreviewImage->getDialogMlTrainer(), &mAnalyzeSettings);
     createDock("Pipelines", mPanelPipeline);
   }
 
@@ -421,7 +478,7 @@ void WindowMain::onNewProjectClicked()
       return;
     }
     if(ret == AskEnum::yes) {
-      if(!saveProject(mSelectedProjectSettingsFilePath)) {
+      if(!saveProject(mAnalyzeSettings.getProjectPathWithFileName())) {
         // If save was not successful return
         return;
       }
@@ -431,6 +488,7 @@ void WindowMain::onNewProjectClicked()
   }
   showPanelStartPage();
   if(mode == DialogOpenTemplate::ReturnCode::EMPTY_PROJECT) {
+    saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
     clearSettings();
     checkForSettingsChanged();
   } else {
@@ -450,7 +508,11 @@ void WindowMain::onNewProjectClicked()
 ///
 void WindowMain::clearSettings()
 {
-  mSelectedProjectSettingsFilePath.clear();
+  mPreviewResult.results.objectMap->triggerStartChangeCallback();
+  mPanelImages->deselectImages();
+  mPreviewImage->getImagePanel()->resetImage();
+  mPreviewResult.results.objectMap->clearAll();
+  mAnalyzeSettings.clearProjectPath();
   mPanelPipeline->clear();
   mAnalyzeSettings    = {};
   mAnalyzeSettingsOld = {};
@@ -460,6 +522,8 @@ void WindowMain::clearSettings()
   mPanelProjectSettings->fromSettings({});
   mPanelClassification->fromSettings({});
   mPanelPipeline->fromSettings({});
+  mPreviewResult.results.objectMap->triggerChangeCallback();
+  mPreviewImage->getImagePanel()->setRegionsOfInterestFromObjectList();
 }
 
 ///
@@ -469,15 +533,14 @@ void WindowMain::clearSettings()
 void WindowMain::onOpenClicked()
 {
   QString folderToOpen = QDir::homePath();
-  if(!mAnalyzeSettings.projectSettings.workingDirectory.empty()) {
-    folderToOpen = mAnalyzeSettings.projectSettings.workingDirectory.data();
+  if(!mAnalyzeSettings.projectSettings.plate.imageFolder.empty()) {
+    folderToOpen = mAnalyzeSettings.projectSettings.plate.imageFolder.data();
   }
-  if(!mSelectedProjectSettingsFilePath.empty()) {
-    folderToOpen = mSelectedProjectSettingsFilePath.string().data();
+  if(mAnalyzeSettings.isProjectPathSet()) {
+    folderToOpen = mAnalyzeSettings.getProjectPath().string().data();
   }
 
-  QFileDialog::Options opt;
-
+  QFileDialog::Options opt = QFileDialog::DontUseNativeDialog;
   QString filePath =
       QFileDialog::getOpenFileName(this, "Open File", folderToOpen,
                                    "ImageC project, template or results files (*" + QString(joda::fs::EXT_PROJECT.data()) + " *" +
@@ -509,7 +572,50 @@ void WindowMain::onOpenClicked()
 ///
 void WindowMain::openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo)
 {
+  if(imagePath.empty()) {
+    return;
+  }
+  saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
   mPreviewImage->getImagePanel()->openImage(imagePath, omeInfo);
+  loadROI(imagePath);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::loadROI(const std::filesystem::path &imagePath)
+{
+  if(imagePath.empty() || !mAnalyzeSettings.isProjectPathSet()) {
+    return;
+  }
+  const std::filesystem::path projectPath(mAnalyzeSettings.getProjectPath());
+  auto storagePathNew =
+      joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath, joda::fs::FILE_NAME_ANNOTATIONS + joda::fs::EXT_ANNOTATION);
+  mPreviewResult.results.objectMap->triggerStartChangeCallback();
+  if(std::filesystem::exists(storagePathNew)) {
+    mPreviewResult.results.objectMap->deserialize(storagePathNew);
+  } else {
+    mPreviewResult.results.objectMap->clearAll();
+  }
+
+  mPreviewResult.results.objectMap->triggerChangeCallback();
+  mPreviewImage->getImagePanel()->setRegionsOfInterestFromObjectList();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
+void WindowMain::saveROI(const std::filesystem::path &imagePath)
+{
+  if(imagePath.empty() || !mAnalyzeSettings.isProjectPathSet()) {
+    return;
+  }
+  const std::filesystem::path projectPath(mAnalyzeSettings.getProjectPath());
+  auto imgIdOld =
+      joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath, joda::fs::FILE_NAME_ANNOTATIONS + joda::fs::EXT_ANNOTATION);
+  mPreviewResult.results.objectMap->serialize(imgIdOld);
 }
 
 ///
@@ -550,27 +656,35 @@ void WindowMain::addToLastLoadedResults(const QString &path, const QString &jobN
 ///
 void WindowMain::openProjectSettings(const QString &filePath, bool openFromTemplate)
 {
+  DurationCount durationCount("Open project");
   try {
+    saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
     joda::settings::AnalyzeSettings analyzeSettings = joda::settings::Settings::openSettings(filePath.toStdString());
 
-    // Assign temporary the newly loaded settings.
+    // Assign the classes first
     // This is needed to avoid a hen and eg problem when loading the output classes which are needed for the pipelines.
     // They must be known before the pipeline steps are loaded.
-    mActAnalyzeSettings = &analyzeSettings;
+    mAnalyzeSettings.projectSettings.classification = analyzeSettings.projectSettings.classification;
+
     showPanelStartPage();
     clearSettings();
+    mAnalyzeSettings.projectSettings.classification = analyzeSettings.projectSettings.classification;
 
     mPanelProjectSettings->fromSettings(analyzeSettings);
     mPanelPipeline->fromSettings(analyzeSettings);
     mPanelClassification->fromSettings(analyzeSettings.projectSettings.classification);
     mPreviewImage->fromSettings(analyzeSettings);
 
-    mAnalyzeSettings.projectSettings                = analyzeSettings.projectSettings;
-    mAnalyzeSettings.projectSettings.classification = analyzeSettings.projectSettings.classification;
-    mAnalyzeSettings.pipelineSetup                  = analyzeSettings.pipelineSetup;
-    mAnalyzeSettingsOld                             = mAnalyzeSettings;
+    mAnalyzeSettings.projectSettings         = analyzeSettings.projectSettings;
+    mAnalyzeSettings.pipelineSetup           = analyzeSettings.pipelineSetup;
+    mAnalyzeSettings.imageSetup              = analyzeSettings.imageSetup;
+    mAnalyzeSettings.meta                    = analyzeSettings.meta;
+    mAnalyzeSettings.projectPathWithFilename = analyzeSettings.projectPathWithFilename;
+    mAnalyzeSettingsOld                      = mAnalyzeSettings;
 
-    mPreviewImage->setImagePlane(DialogImageViewer::ImagePlaneSettings{.plane      = {.z = 0, .c = 0, .t = 0},
+    updateProjectPath();
+
+    mPreviewImage->setImagePlane(DialogImageViewer::ImagePlaneSettings{.plane      = {.tStack = 0, .zStack = 0, .cStack = 0},
                                                                        .series     = analyzeSettings.imageSetup.series,
                                                                        .tileWidth  = analyzeSettings.imageSetup.imageTileSettings.tileWidth,
                                                                        .tileHeight = analyzeSettings.imageSetup.imageTileSettings.tileHeight,
@@ -581,17 +695,13 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
       mPanelPipeline->addChannelFromSettings(channel);
     }
 
-    mActAnalyzeSettings = &mAnalyzeSettings;
-
     emit onOutputClassifierChanges();
     if(openFromTemplate) {
-      mSelectedProjectSettingsFilePath.clear();
-    } else {
-      mSelectedProjectSettingsFilePath = filePath.toStdString();
+      mAnalyzeSettings.clearProjectPath();
     }
     checkForSettingsChanged();
     if(!openFromTemplate) {
-      saveProject(mSelectedProjectSettingsFilePath, false, false);
+      saveProject(mAnalyzeSettings.getProjectPathWithFileName(), false, false);
       joda::user_settings::UserSettings::addLastOpenedProject(filePath.toStdString());
       loadLastOpened();
     }
@@ -612,33 +722,50 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
 /// \brief      Check if some settings have been changed
 /// \author     Joachim Danmayr
 ///
+void WindowMain::updateProjectPath()
+{
+  mPreviewImage->getImagePanel()->setProjectPath(mAnalyzeSettings.getProjectPath());
+
+  if(mAnalyzeSettings.isProjectPathSet()) {
+    mPanelProjectSettings->setProjectPath(mAnalyzeSettings.getProjectPath().string().data());
+  } else {
+    mPanelProjectSettings->setProjectPath("");
+  }
+}
+
+///
+/// \brief      Check if some settings have been changed
+/// \author     Joachim Danmayr
+///
 void WindowMain::checkForSettingsChanged()
 {
+  QString titlePr = mAnalyzeSettings.getProjectPathWithFileName().filename().string().data();
+  if(!mAnalyzeSettings.isProjectPathSet()) {
+    titlePr = "Untitled";
+  }
+
   std::lock_guard<std::mutex> lock(mCheckForSettingsChangedMutex);
   if(!joda::settings::Settings::isEqual(mAnalyzeSettings, mAnalyzeSettingsOld)) {
     // Not equal
-    mSaveProject->setEnabled(true);
-    if(mSelectedProjectSettingsFilePath.empty()) {
-      setWindowTitlePrefix("Untitled*");
-    } else {
-      setWindowTitlePrefix(QString((mSelectedProjectSettingsFilePath.filename().string() + "*").data()));
-    }
+
+    QMetaObject::invokeMethod(mSaveProject, [this]() {
+      CHECK_GUI_THREAD(mSaveProject)
+      mSaveProject->setEnabled(true);
+    });
+    titlePr += "*";
     /// \todo check if all updates still work
     auto actClasses = getOutputClasses();
-
     if(actClasses != mOutPutClassesOld) {
       mOutPutClassesOld = actClasses;
       emit onOutputClassifierChanges();
     }
   } else {
-    // Equal
-    mSaveProject->setEnabled(false);
-    if(mSelectedProjectSettingsFilePath.empty()) {
-      setWindowTitlePrefix("Untitled");
-    } else {
-      setWindowTitlePrefix(mSelectedProjectSettingsFilePath.filename().string().data());
-    }
+    QMetaObject::invokeMethod(mSaveProject, [this]() {
+      CHECK_GUI_THREAD(mSaveProject)
+      mSaveProject->setEnabled(false);
+    });
   }
+  setWindowTitlePrefix(titlePr);
   mCompilerLog->updateCompilerLog(mAnalyzeSettings);
 }
 
@@ -648,7 +775,11 @@ void WindowMain::checkForSettingsChanged()
 ///
 void WindowMain::onSaveProject()
 {
-  saveProject(mSelectedProjectSettingsFilePath);
+  if(mAnalyzeSettings.isProjectPathSet()) {
+    saveProject(mAnalyzeSettings.getProjectPathWithFileName());
+  } else {
+    saveProject("");
+  }
 }
 
 ///
@@ -669,16 +800,22 @@ bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
   bool okay = false;
   try {
     if(filename.empty()) {
-      std::filesystem::path filePath(mAnalyzeSettings.projectSettings.workingDirectory);
-      filePath = filePath / "imagec";
+      if(mAnalyzeSettings.projectSettings.plate.imageFolder.empty()) {
+        QMessageBox::information(this, "Save project ...", "Select an image directory first!");
+        return false;
+      }
+      std::filesystem::path filePath(mAnalyzeSettings.projectSettings.plate.imageFolder);
+      filePath = filePath / joda::fs::WORKING_DIRECTORY_PROJECT_PATH;
       if(!std::filesystem::exists(filePath)) {
         std::filesystem::create_directories(filePath);
       }
-      filePath = filePath / ("settings" + joda::fs::EXT_PROJECT);
+      filePath                 = filePath / (joda::fs::FILE_NAME_PROJECT_DEFAULT + joda::fs::EXT_PROJECT);
+      QFileDialog::Options opt = QFileDialog::DontUseNativeDialog;
       QString filePathOfSettingsFile =
           QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(),
                                        "ImageC project files (*" + QString(joda::fs::EXT_PROJECT.data()) + ");;ImageC project template (*" +
-                                           QString(joda::fs::EXT_PROJECT_TEMPLATE.data()) + ")");
+                                           QString(joda::fs::EXT_PROJECT_TEMPLATE.data()) + ")",
+                                       nullptr, opt);
       filename = filePathOfSettingsFile.toStdString();
     }
     bool storeAsTemplate = false;
@@ -700,7 +837,10 @@ bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
             }
           }
           joda::settings::Settings::storeSettings(filename, mAnalyzeSettings);
+          mAnalyzeSettings.setProjectPath(filename);
+          updateProjectPath();
         }
+        saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
         mAnalyzeSettingsOld = mAnalyzeSettings;
         checkForSettingsChanged();
       } else {
@@ -715,8 +855,7 @@ bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
     }
 
     if(!storeAsTemplate) {
-      mSelectedProjectSettingsFilePath = filename;
-      setWindowTitlePrefix(filename.filename().string().data());
+      setWindowTitlePrefix(mAnalyzeSettings.getProjectPathWithFileName().filename().string().data());
     }
     okay = true;
 
@@ -757,7 +896,7 @@ void WindowMain::loadLastOpened()
 /// \brief
 /// \author     Joachim Danmayr
 ///
-void WindowMain::onStartClicked()
+void WindowMain::onStartClicked(AnalyzeMode mode)
 {
   // If there are errors, starting the pipeline is not allowed
   if(mCompilerLog->getNumberOfErrors() > 0) {
@@ -771,8 +910,15 @@ void WindowMain::onStartClicked()
   try {
     mAnalyzeSettings.projectSettings.experimentSettings.experimentId   = mPanelProjectSettings->getExperimentId().toStdString();
     mAnalyzeSettings.projectSettings.experimentSettings.experimentName = mPanelProjectSettings->getExperimentName().toStdString();
-    DialogAnalyzeRunning dialg(this, mAnalyzeSettings);
-    dialg.exec();
+
+    DialogAnalyzeRunning *analyzeRunningDialog;
+    if(AnalyzeMode::SingleImage == mode) {
+      const auto [imagePath, series, omeInfo] = getImagePanel()->getSelectedImageOrFirst();
+      analyzeRunningDialog                    = new DialogAnalyzeRunning(this, mAnalyzeSettings, imagePath);
+    } else {
+      analyzeRunningDialog = new DialogAnalyzeRunning(this, mAnalyzeSettings, std::nullopt);
+    }
+    analyzeRunningDialog->exec();
     auto jobIinfo = getController()->getJobInformation();
     addToLastLoadedResults(jobIinfo.resultsFilePath.string().data(), jobIinfo.jobName.data());
     // Analysis finished -> generate new name
@@ -814,11 +960,6 @@ bool WindowMain::showPanelStartPage()
 void WindowMain::moveEvent(QMoveEvent *event)
 {
   QMainWindow::moveEvent(event);
-
-  if(mPreviewResultsDialog != nullptr) {
-    QPoint topRight = this->geometry().topRight();
-    mPreviewResultsDialog->move(topRight - QPoint(mPreviewResultsDialog->width() + 2, -250));
-  }
 }
 
 ///
@@ -829,11 +970,6 @@ void WindowMain::moveEvent(QMoveEvent *event)
 void WindowMain::resizeEvent(QResizeEvent *event)
 {
   QMainWindow::resizeEvent(event);
-
-  if(mPreviewResultsDialog != nullptr) {
-    QPoint topRight = this->geometry().topRight();
-    mPreviewResultsDialog->move(topRight - QPoint(mPreviewResultsDialog->width() + 2, -250));
-  }
 }
 
 ///
@@ -891,8 +1027,7 @@ void WindowMain::onShowInfoDialog()
         "<u>Maria Jaritsch</u> : Testing, AI-Training<br/><br/>"
         "<u>Patricia Hrasnova</u> : Testing, AI-Training<br/><br/>"
         "<u>Anna Dlugosch</u> : Testing<br/><br/>"
-        "<u>Heloisa Melo Benirschke</u> : AI-Training<br/><br/>"
-        "<u>Manfred Seiwald</u> : Integration testing<br/><br/>");
+        "<u>Heloisa Melo Benirschke</u> : AI-Training<br/><br/>");
 
     labelAbout->setOpenExternalLinks(true);
     labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -902,26 +1037,37 @@ void WindowMain::onShowInfoDialog()
   //
   // Version
   //
-  {
-    auto *widgetAbout = new QWidget();
-    auto *layoutAbout = new QVBoxLayout();
-    layoutAbout->setAlignment(Qt::AlignCenter);
-    widgetAbout->setLayout(layoutAbout);
-    tab->addTab(widgetAbout, "Version");
-    auto *labelAbout = new QLabel("<b>" + QString(Version::getProgamName().data()) + " " + QString(Version::getVersion().data()) + "</b><br/>" +
-                                  QString(Version::getBuildTime().data()) + "<br/><br/>" +
-                                  "CPU cores: " + QString(std::to_string(joda::system::getNrOfCPUs()).data()) +
-                                  "<br/>"
-                                  "RAM Total: " +
-                                  QString::number(static_cast<double>(joda::system::getTotalSystemMemory()) / 1000000.0, 'f', 2) +
-                                  "MB <br/>"
-                                  "RAM Available: " +
-                                  QString::number(static_cast<double>(joda::system::getAvailableSystemMemory()) / 1000000.0, 'f', 2) + " MB <br/>");
+  QMetaObject::invokeMethod(
+      this,
+      [&]() {
+        int32_t nrOfCudaDevices = 0;
+        bool cudaAvailable      = torch::cuda::is_available();
+        if(cudaAvailable) {
+          nrOfCudaDevices = torch::cuda::device_count();
+        }
+        auto *widgetAbout = new QWidget();
+        auto *layoutAbout = new QVBoxLayout();
+        layoutAbout->setAlignment(Qt::AlignCenter);
+        widgetAbout->setLayout(layoutAbout);
+        tab->addTab(widgetAbout, "Version");
+        auto *labelAbout = new QLabel("<b>" + QString(Version::getProgamName().data()) + " " + QString(Version::getVersion().data()) + "</b><br/>" +
+                                      QString(Version::getBuildTime().data()) + "<br/><br/>" +
+                                      "CPU cores: " + QString(std::to_string(joda::system::getNrOfCPUs()).data()) +
+                                      "<br/>"
+                                      "RAM Total: " +
+                                      QString::number(static_cast<double>(joda::system::getTotalSystemMemory()) / 1000000.0, 'f', 2) +
+                                      "MB <br/>"
+                                      "RAM Available: " +
+                                      QString::number(static_cast<double>(joda::system::getAvailableSystemMemory()) / 1000000.0, 'f', 2) +
+                                      " MB <br/>CUDA devices: " + QString::number(static_cast<double>(nrOfCudaDevices))
 
-    labelAbout->setOpenExternalLinks(true);
-    labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    layoutAbout->addWidget(labelAbout);
-  }
+        );
+
+        labelAbout->setOpenExternalLinks(true);
+        labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+        layoutAbout->addWidget(labelAbout);
+      },
+      Qt::QueuedConnection);
 
   //
   // Open source
@@ -958,8 +1104,8 @@ void WindowMain::onShowInfoDialog()
     tab->addTab(widgetAbout, "3rd party");
     auto *labelAbout = new QLabel();
     QString others =
-        "<u>KDE project</u> : Thanks to the KDE project for providing the <a "
-        "href=\"https://develop.kde.org/frameworks/breeze-icons/\">Breeze</a> icon set!<br/><br/>";
+        "<u>Phosphor icon set</u> : Thanks to the Phosphor icon project for providing the <a "
+        "href=\"https://phosphoricons.com/\">Phosphor</a> icon set!<br/><br/>";
     labelAbout->setText(others);
     labelAbout->setOpenExternalLinks(true);
     labelAbout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -1047,9 +1193,6 @@ QString WindowMain::bytesToString(int64_t bytes)
 ///
 auto WindowMain::getOutputClasses() -> std::set<joda::enums::ClassId>
 {
-  if(mActAnalyzeSettings != nullptr) {
-    return mActAnalyzeSettings->getOutputClasses();
-  }
   return mAnalyzeSettings.getOutputClasses();
 }
 

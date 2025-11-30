@@ -16,6 +16,7 @@
 #include <qboxlayout.h>
 #include <qlabel.h>
 #include <qpushbutton.h>
+#include "ui/gui/helper/debugging.hpp"
 
 namespace joda::ui::gui {
 
@@ -58,6 +59,7 @@ inline std::tuple<QLabel *, QPushButton *, QHBoxLayout *> createHelpTextLabel(co
   mHelpButton->setCursor(Qt::PointingHandCursor);
   mHelpButton->setIconSize({HELP_ICON_SIZE, HELP_ICON_SIZE});
   mHelpButton->setIcon(QIcon(":/icons/icons/icons8-info-48-fill.png"));
+  CHECK_GUI_THREAD(mHelpButton)
   mHelpButton->setVisible(false);
   hLayout->addWidget(mHelpButton);
   hLayout->addStretch(0);

@@ -56,7 +56,7 @@
         "modelClasses": [
           {
             "mode": "Manual",
-            "modelClassId": 65535,
+            "pixelClassId": 1,
             "thresholdMax": 65535,
             "thresholdMin": 4000
           }

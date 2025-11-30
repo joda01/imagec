@@ -20,6 +20,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <tuple>
 #include "backend/commands/image_functions/resize/resize.hpp"
 #include "backend/helper/duration_count/duration_count.h"
@@ -201,10 +202,12 @@ void ImageReader::init(uint64_t reservedRamForVMInBytes)
       } else {
         mBioformatsClass = static_cast<jclass>(myGlobEnv->NewGlobalRef(localCls));
         myGlobEnv->DeleteLocalRef(localCls);
-        mGetImageProperties = myGlobEnv->GetStaticMethodID(mBioformatsClass, "getImageProperties", "(Ljava/lang/String;I)Ljava/lang/String;");
-        mReadImage          = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImage", "(Ljava/lang/String;IIIII)[B");
-        mReadImageTile      = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImageTile", "(Ljava/lang/String;IIIIIIIII)[B");
-        mGetImageInfo       = myGlobEnv->GetStaticMethodID(mBioformatsClass, "readImageInfo", "(Ljava/lang/String;II)[I");
+
+        mConstructor        = myGlobEnv->GetMethodID(mBioformatsClass, "<init>", "(Ljava/lang/String;)V");
+        mClose              = myGlobEnv->GetMethodID(mBioformatsClass, "close", "()V");
+        mGetImageProperties = myGlobEnv->GetMethodID(mBioformatsClass, "getImageProperties", "(Ljava/lang/String;I)Ljava/lang/String;");
+        mReadImage          = myGlobEnv->GetMethodID(mBioformatsClass, "readImage", "(Ljava/nio/ByteBuffer;Ljava/lang/String;IIIII)V");
+        mReadImageTile      = myGlobEnv->GetMethodID(mBioformatsClass, "readImageTile", "(Ljava/nio/ByteBuffer;Ljava/lang/String;IIIIIIIII)V");
         joda::log::logTrace("JVM initialized!");
         mJVMInitialised = true;
       }
@@ -253,21 +256,63 @@ std::string ImageReader::getJavaVersion()
 
 ///
 /// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+ImageReader::ImageReader(const std::filesystem::path &imageFileName) : mImagePath(imageFileName)
+{
+  JNIEnv *myEnv;
+  myJVM->AttachCurrentThread(reinterpret_cast<void **>(&myEnv), nullptr);
+  jstring filePath = myEnv->NewStringUTF(imageFileName.string().c_str());
+
+  // 3. Create the object
+  mJavaImageReadObject = myEnv->NewObject(mBioformatsClass, mConstructor, filePath);
+  mJavaImageReadObject = myEnv->NewGlobalRef(mJavaImageReadObject);
+
+  if(mJavaImageReadObject == nullptr) {
+    // Could not create instance
+    return;
+  }
+
+  myEnv->DeleteLocalRef(filePath);
+  myJVM->DetachCurrentThread();
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+ImageReader::~ImageReader()
+{
+  JNIEnv *myEnv;
+  myJVM->AttachCurrentThread(reinterpret_cast<void **>(&myEnv), nullptr);
+  myEnv->CallVoidMethod(mJavaImageReadObject, mClose);
+  myEnv->DeleteGlobalRef(mJavaImageReadObject);
+  mJavaImageReadObject = nullptr;
+  myJVM->DetachCurrentThread();
+}
+
+///
+/// \brief
 /// \author
 /// \param[in]
 /// \param[out]
 /// \return
 ///
-cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &imagePlane, uint16_t series, uint16_t resolutionIdx,
-                                     const joda::ome::OmeInfo &ome)
+cv::Mat ImageReader::loadEntireImage(joda::enums::PlaneId imagePlane, uint16_t series, uint16_t resolutionIdx, const joda::ome::OmeInfo &ome) const
 {
   // Takes 150 ms
-  if(myJVM != nullptr && mJVMInitialised && imagePlane.c >= 0 && imagePlane.z >= 0 && imagePlane.t >= 0) {
+  if(myJVM != nullptr && mJVMInitialised && imagePlane.cStack >= 0 && imagePlane.zStack >= 0 && imagePlane.tStack >= 0) {
     // std::lock_guard<std::mutex> lock(mReadMutex);
 
     JNIEnv *myEnv;
     myJVM->AttachCurrentThread(reinterpret_cast<void **>(&myEnv), nullptr);
-    jstring filePath = myEnv->NewStringUTF(filename.c_str());
+    jstring filePath = myEnv->NewStringUTF(mImagePath.string().c_str());
 
     //
     // ReadImage Info
@@ -285,29 +330,68 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &i
     if(series >= ome.getNrOfSeries()) {
       series = static_cast<uint16_t>(ome.getNrOfSeries() - 1);
     }
-    jbyteArray readImg = static_cast<jbyteArray>(myEnv->CallStaticObjectMethod(
-        mBioformatsClass, mReadImage, filePath, static_cast<int>(series), static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t));
-    bool exception     = false;
-    if(myEnv->ExceptionCheck() != 0u) {
-      myEnv->ExceptionDescribe();
-      myEnv->ExceptionClear();
-      exception = true;
+    if(series >= ome.getNrOfSeries()) {
+      series = static_cast<uint16_t>(ome.getNrOfSeries() - 1);
+    }
+    if(imagePlane.tStack >= ome.getNrOfTStack(series)) {
+      imagePlane.tStack = ome.getNrOfTStack(series) - 1;
+    }
+    if(imagePlane.cStack >= ome.getNrOfChannels(series)) {
+      imagePlane.cStack = ome.getNrOfChannels(series) - 1;
+    }
+    if(imagePlane.zStack >= ome.getNrOfZStack(series)) {
+      imagePlane.zStack = ome.getNrOfZStack(series) - 1;
     }
 
-    if(readImg == nullptr || exception) {
-      myEnv->DeleteLocalRef(filePath);
-      myJVM->DetachCurrentThread();
-      joda::log::logError("Cannot load image tile info for >" + filename + "<, nullptr in result!");
+    auto format       = CV_16UC1;
+    int32_t widthTmp  = imageWidth;
+    int32_t heightTmp = imageHeight;
+    if(bitDepth == 16 && rgbChannelCount != 3) {
+      format = CV_16UC1;
+    } else if(bitDepth == 16 && rgbChannelCount != 3) {
+      format = CV_8UC1;
+    } else if(bitDepth == 8 && rgbChannelCount == 3 && isInterleaved) {
+      format = CV_8UC3;
+    } else if(bitDepth == 8 && rgbChannelCount == 4 && isInterleaved) {
+      format = CV_8UC4;
+    } else if(bitDepth == 8 && rgbChannelCount == 3 && !isInterleaved) {
+      format    = CV_8UC1;
+      heightTmp = imageHeight * 3;
+      widthTmp  = imageWidth;
+    } else if(bitDepth == 8 && rgbChannelCount == 4 && !isInterleaved) {
+      format    = CV_8UC1;
+      heightTmp = imageHeight * 4;
+      widthTmp  = imageWidth;
+    } else if(bitDepth == 8 && rgbChannelCount == 1 && !isInterleaved) {
+      format    = CV_8UC1;
+      heightTmp = imageHeight;
+      widthTmp  = imageWidth;
+    }
+
+    cv::Mat image         = cv::Mat::zeros(heightTmp, widthTmp, format);
+    const auto bufferSize = image.total() * image.elemSize();
+    // 3. Create a Java DirectByteBuffer object that points to our C++ memory address
+    jobject directBufferObj = myEnv->NewDirectByteBuffer(image.data, static_cast<int64_t>(bufferSize));
+    if(directBufferObj == nullptr) {
+      // Handle error: could not create direct buffer
       return {};
     }
 
-    cv::Mat loadedImage = convertImageToMat(myEnv, readImg, imageWidth, imageHeight, bitDepth, rgbChannelCount, isInterleaved, isLittleEndian);
+    myEnv->CallVoidMethod(mJavaImageReadObject, mReadImage, directBufferObj, filePath, static_cast<int>(series), static_cast<int>(resolutionIdx),
+                          imagePlane.zStack, imagePlane.cStack, imagePlane.tStack);
+    if(myEnv->ExceptionCheck() != 0u) {
+      myEnv->ExceptionDescribe();
+      myEnv->ExceptionClear();
+    }
+
+    convertImageToMat(image, imageWidth, imageHeight, bitDepth, rgbChannelCount, isInterleaved, isLittleEndian);
     //
     // Cleanup
     //
+    myEnv->DeleteLocalRef(directBufferObj);
     myEnv->DeleteLocalRef(filePath);
     myJVM->DetachCurrentThread();
-    return loadedImage;
+    return image;
   }
 
   return cv::Mat{};
@@ -320,12 +404,12 @@ cv::Mat ImageReader::loadEntireImage(const std::string &filename, const Plane &i
 /// \param[out]
 /// \return
 ///
-cv::Mat ImageReader::loadThumbnail(const std::string &filename, Plane imagePlane, uint16_t series, const joda::ome::OmeInfo &ome)
+cv::Mat ImageReader::loadThumbnail(joda::enums::PlaneId imagePlane, uint16_t series, const joda::ome::OmeInfo &ome) const
 {
   const int32_t THUMBNAIL_SIZE = 1024;
 
   // Takes 150 ms
-  if(nullptr != myJVM && mJVMInitialised && imagePlane.c >= 0 && imagePlane.z >= 0 && imagePlane.t >= 0) {
+  if(nullptr != myJVM && mJVMInitialised && imagePlane.cStack >= 0 && imagePlane.zStack >= 0 && imagePlane.tStack >= 0) {
     // std::lock_guard<std::mutex> lock(mReadMutex);
     if(series >= ome.getNrOfSeries()) {
       series = static_cast<uint16_t>(ome.getNrOfSeries() - 1);
@@ -365,7 +449,7 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, Plane imagePlane
     }
     JNIEnv *myEnv;
     myJVM->AttachCurrentThread(reinterpret_cast<void **>(&myEnv), nullptr);
-    jstring filePath = myEnv->NewStringUTF(filename.c_str());
+    jstring filePath = myEnv->NewStringUTF(mImagePath.string().c_str());
 
     //
     // ReadImage Info
@@ -380,37 +464,63 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, Plane imagePlane
     //
     // Check if channel exists
     //
-    imagePlane.c = std::min(imagePlane.c, ome.getNrOfChannels(series) - 1);
-    imagePlane.t = std::min(imagePlane.t, ome.getNrOfTStack(series) - 1);
-    imagePlane.z = std::min(imagePlane.z, ome.getNrOfZStack(series) - 1);
+    imagePlane.cStack = std::min(imagePlane.cStack, ome.getNrOfChannels(series) - 1);
+    imagePlane.tStack = std::min(imagePlane.tStack, ome.getNrOfTStack(series) - 1);
+    imagePlane.zStack = std::min(imagePlane.zStack, ome.getNrOfZStack(series) - 1);
+
+    auto format       = CV_16UC1;
+    int32_t widthTmp  = imageWidth;
+    int32_t heightTmp = imageHeight;
+    if(bitDepth == 16 && rgbChannelCount != 3) {
+      format = CV_16UC1;
+    } else if(bitDepth == 16 && rgbChannelCount != 3) {
+      format = CV_8UC1;
+    } else if(bitDepth == 8 && rgbChannelCount == 3 && isInterleaved) {
+      format = CV_8UC3;
+    } else if(bitDepth == 8 && rgbChannelCount == 4 && isInterleaved) {
+      format = CV_8UC4;
+    } else if(bitDepth == 8 && rgbChannelCount == 3 && !isInterleaved) {
+      format    = CV_8UC1;
+      heightTmp = imageHeight * 3;
+      widthTmp  = imageWidth;
+    } else if(bitDepth == 8 && rgbChannelCount == 4 && !isInterleaved) {
+      format    = CV_8UC1;
+      heightTmp = imageHeight * 4;
+      widthTmp  = imageWidth;
+    } else if(bitDepth == 8 && rgbChannelCount == 1 && !isInterleaved) {
+      format    = CV_8UC1;
+      heightTmp = imageHeight;
+      widthTmp  = imageWidth;
+    }
+
+    cv::Mat image         = cv::Mat::zeros(heightTmp, widthTmp, format);
+    const auto bufferSize = image.total() * image.elemSize();
+    // 3. Create a Java DirectByteBuffer object that points to our C++ memory address
+    jobject directBufferObj = myEnv->NewDirectByteBuffer(image.data, static_cast<int64_t>(bufferSize));
+    if(directBufferObj == nullptr) {
+      // Handle error: could not create direct buffer
+      return {};
+    }
 
     //
     // Read image
     //
-    jbyteArray readImg = static_cast<jbyteArray>(myEnv->CallStaticObjectMethod(
-        mBioformatsClass, mReadImage, filePath, static_cast<int>(series), static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c, imagePlane.t));
-    bool exception     = false;
+    myEnv->CallVoidMethod(mJavaImageReadObject, mReadImage, directBufferObj, filePath, static_cast<int>(series), static_cast<int>(resolutionIdx),
+                          imagePlane.zStack, imagePlane.cStack, imagePlane.tStack);
     if(myEnv->ExceptionCheck() != 0u) {
       myEnv->ExceptionDescribe();
       myEnv->ExceptionClear();
-      exception = true;
-    }
-
-    if(readImg == nullptr || exception) {
-      myEnv->DeleteLocalRef(filePath);
-      myJVM->DetachCurrentThread();
-      joda::log::logError("Cannot load image tile info for >" + filename + "<, nullptr in result!");
-      return {};
     }
 
     // jsize totalSizeLoaded = myEnv->GetArrayLength(readImg);
 
     // This is the image information
-    cv::Mat loadedImage = convertImageToMat(myEnv, readImg, imageWidth, imageHeight, bitDepth, rgbChannelCount, isInterleaved, isLittleEndian);
+    convertImageToMat(image, imageWidth, imageHeight, bitDepth, rgbChannelCount, isInterleaved, isLittleEndian);
 
+    myEnv->DeleteLocalRef(directBufferObj);
     myEnv->DeleteLocalRef(filePath);
     myJVM->DetachCurrentThread();
-    return (joda::image::func::Resizer::resizeWithAspectRatio(loadedImage, THUMBNAIL_SIZE, THUMBNAIL_SIZE));
+    return (joda::image::func::Resizer::resizeWithAspectRatio(image, THUMBNAIL_SIZE, THUMBNAIL_SIZE));
   }
 
   return cv::Mat{};
@@ -462,13 +572,13 @@ cv::Mat ImageReader::loadThumbnail(const std::string &filename, Plane imagePlane
 /// \param[in]  nrOfTilesToRead Nr of tiles which should form one composite image
 /// \return Loaded composite image
 ///
-cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &imagePlane, uint16_t series, uint16_t resolutionIdx,
-                                   const joda::ome::TileToLoad &tile, const joda::ome::OmeInfo &ome)
+cv::Mat ImageReader::loadImageTile(joda::enums::PlaneId imagePlane, uint16_t series, uint16_t resolutionIdx, joda::ome::TileToLoad tile,
+                                   const joda::ome::OmeInfo &ome) const
 {
-  if(nullptr != myJVM && mJVMInitialised && imagePlane.c >= 0 && imagePlane.z >= 0 && imagePlane.t >= 0) {
+  if(nullptr != myJVM && mJVMInitialised && imagePlane.cStack >= 0 && imagePlane.zStack >= 0 && imagePlane.tStack >= 0) {
     JNIEnv *myEnv = nullptr;
     myJVM->AttachCurrentThread(reinterpret_cast<void **>(&myEnv), nullptr);
-    jstring filePath = myEnv->NewStringUTF(filename.c_str());
+    jstring filePath = myEnv->NewStringUTF(mImagePath.string().c_str());
 
     //
     // ReadImage Info
@@ -501,34 +611,90 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
     if(series >= ome.getNrOfSeries()) {
       series = static_cast<uint16_t>(ome.getNrOfSeries() - 1);
     }
-    auto i1            = DurationCount::start("Load from filesystm");
-    jbyteArray readImg = static_cast<jbyteArray>(myEnv->CallStaticObjectMethod(mBioformatsClass, mReadImageTile, filePath, static_cast<int>(series),
-                                                                               static_cast<int>(resolutionIdx), imagePlane.z, imagePlane.c,
-                                                                               imagePlane.t, offsetX, offsetY, tileWidthToLoad, tileHeightToLoad));
+    if(imagePlane.tStack >= ome.getNrOfTStack(series)) {
+      imagePlane.tStack = ome.getNrOfTStack(series) - 1;
+    }
+    if(imagePlane.cStack >= ome.getNrOfChannels(series)) {
+      imagePlane.cStack = ome.getNrOfChannels(series) - 1;
+    }
+    if(imagePlane.zStack >= ome.getNrOfZStack(series)) {
+      imagePlane.zStack = ome.getNrOfZStack(series) - 1;
+    }
 
-    bool exception = false;
+    if(tile.tileWidth > ome.getImageInfo(series).resolutions.at(0).imageWidth) {
+      tile.tileWidth = ome.getImageInfo(series).resolutions.at(0).imageWidth;
+    }
+    if(tile.tileHeight > ome.getImageInfo(series).resolutions.at(0).imageHeight) {
+      tile.tileHeight = ome.getImageInfo(series).resolutions.at(0).imageHeight;
+    }
+    auto [tilesX, tilesY] = ome.getImageInfo(series).resolutions.at(0).getNrOfTiles(tile.tileWidth, tile.tileHeight);
+    if(tile.tileX > tilesX) {
+      tile.tileX = tilesX;
+    }
+    if(tile.tileY > tilesY) {
+      tile.tileY = tilesY;
+    }
+
+    DurationCount durationCount("Load from filesystem");
+
+    // 2. Allocate the memory block in native C++ heap
+    // This is *your* memory to manage.
+
+    auto format       = CV_16UC1;
+    int32_t widthTmp  = tileWidthToLoad;
+    int32_t heightTmp = tileHeightToLoad;
+    if(bitDepth == 16 && rgbChannelCount != 3) {
+      format = CV_16UC1;
+    } else if(bitDepth == 16 && rgbChannelCount != 3) {
+      format = CV_8UC1;
+    } else if(bitDepth == 8 && rgbChannelCount == 3 && isInterleaved) {
+      format = CV_8UC3;
+    } else if(bitDepth == 8 && rgbChannelCount == 4 && isInterleaved) {
+      format = CV_8UC4;
+    } else if(bitDepth == 8 && rgbChannelCount == 3 && !isInterleaved) {
+      format    = CV_8UC1;
+      heightTmp = imageHeight * 3;
+      widthTmp  = imageWidth;
+    } else if(bitDepth == 8 && rgbChannelCount == 4 && !isInterleaved) {
+      format    = CV_8UC1;
+      heightTmp = imageHeight * 4;
+      widthTmp  = imageWidth;
+    } else if(bitDepth == 8 && rgbChannelCount == 1 && !isInterleaved) {
+      format    = CV_8UC1;
+      heightTmp = imageHeight;
+      widthTmp  = imageWidth;
+    }
+
+    cv::Mat image         = cv::Mat::zeros(heightTmp, widthTmp, format);
+    const auto bufferSize = image.total() * image.elemSize();
+    // 3. Create a Java DirectByteBuffer object that points to our C++ memory address
+    jobject directBufferObj = myEnv->NewDirectByteBuffer(image.data, static_cast<int64_t>(bufferSize));
+    if(directBufferObj == nullptr) {
+      // Handle error: could not create direct buffer
+      return {};
+    }
+
+    myEnv->CallVoidMethod(mJavaImageReadObject, mReadImageTile, directBufferObj, filePath, static_cast<int>(series), static_cast<int>(resolutionIdx),
+                          imagePlane.zStack, imagePlane.cStack, imagePlane.tStack, offsetX, offsetY, tileWidthToLoad, tileHeightToLoad);
+
     if(myEnv->ExceptionCheck() != 0u) {
       myEnv->ExceptionDescribe();
       myEnv->ExceptionClear();
-      exception = true;
     }
-    DurationCount::stop(i1);
-    if(readImg == nullptr || exception) {
-      myEnv->DeleteLocalRef(filePath);
-      myJVM->DetachCurrentThread();
-      joda::log::logError("Cannot load image tile info for >" + filename + "<, nullptr in result!");
-      return {};
-    }
+
     //
     // Assign image data
     //
-    cv::Mat image = convertImageToMat(myEnv, readImg, tileWidthToLoad, tileHeightToLoad, bitDepth, rgbChannelCount, isInterleaved, isLittleEndian);
+    convertImageToMat(image, tileWidthToLoad, tileHeightToLoad, bitDepth, rgbChannelCount, isInterleaved, isLittleEndian);
 
     //
     // Cleanup
     //
+    // 6. Clean up JNI local references and the native memory
+    myEnv->DeleteLocalRef(directBufferObj);
     myEnv->DeleteLocalRef(filePath);
     myJVM->DetachCurrentThread();
+
     return image;
   }
   throw std::runtime_error("Could not open image!");
@@ -541,20 +707,19 @@ cv::Mat ImageReader::loadImageTile(const std::string &filename, const Plane &ima
 /// \param[out]
 /// \return
 ///
-auto ImageReader::getOmeInformation(const std::filesystem::path &filename, uint16_t series, const ome::PhyiscalSize &defaultSettings)
-    -> joda::ome::OmeInfo
+auto ImageReader::getOmeInformation(uint16_t series, const ome::PhyiscalSize &defaultSettings) const -> joda::ome::OmeInfo
 {
   if(nullptr != myJVM && mJVMInitialised) {
-    auto id = DurationCount::start("Get OEM");
+    DurationCount durationCount("Get OME");
     JNIEnv *myEnv;
     myJVM->AttachCurrentThread(reinterpret_cast<void **>(&myEnv), nullptr);
-    if(!std::filesystem::exists(filename)) {
-      joda::log::logError("File >" + filename.string() + "<, does not exist!");
+    if(mImagePath.string() != "warmup" && !std::filesystem::exists(mImagePath.string())) {
+      joda::log::logError("File >" + mImagePath.string() + "<, does not exist!");
       return {};
     }
 
-    jstring filePath = myEnv->NewStringUTF(filename.string().c_str());
-    jstring result   = static_cast<jstring>(myEnv->CallStaticObjectMethod(mBioformatsClass, mGetImageProperties, filePath, static_cast<int>(series)));
+    jstring filePath = myEnv->NewStringUTF(mImagePath.string().c_str());
+    jstring result   = static_cast<jstring>(myEnv->CallObjectMethod(mJavaImageReadObject, mGetImageProperties, filePath, static_cast<int>(series)));
     bool exception   = false;
     if(myEnv->ExceptionCheck() != 0u) {
       myEnv->ExceptionDescribe();
@@ -565,8 +730,7 @@ auto ImageReader::getOmeInformation(const std::filesystem::path &filename, uint1
     myEnv->DeleteLocalRef(filePath);
     if(result == nullptr || exception) {
       myJVM->DetachCurrentThread();
-      DurationCount::stop(id);
-      joda::log::logError("Cannot load OME info for >" + filename.string() + "<, nullptr in result!");
+      joda::log::logError("Cannot load OME info for >" + mImagePath.string() + "<, nullptr in result!");
       return {};
     }
 
@@ -580,13 +744,93 @@ auto ImageReader::getOmeInformation(const std::filesystem::path &filename, uint1
       omeInfo.loadOmeInformationFromXMLString(omeXML, defaultSettings);    ///\todo this method can throw an excaption
 
       myJVM->DetachCurrentThread();
-      DurationCount::stop(id);
       return omeInfo;
     } catch(...) {
+      myJVM->DetachCurrentThread();
       return {};
     }
   }
   return {};
+}
+
+void ImageReader::convertImageToMat(cv::Mat &image, int32_t imageWidth, int32_t imageHeight, int32_t bitDepth, int32_t rgbChannelCount,
+                                    bool isInterleaved, bool isLittleEndian)
+{
+  //
+  //
+  //
+
+  auto format = CV_16UC1;
+  if(bitDepth == 16 && rgbChannelCount != 3) {
+    format = CV_16UC1;
+  } else if(bitDepth == 16 && rgbChannelCount != 3) {
+    format = CV_8UC1;
+  } else if(bitDepth == 8 && rgbChannelCount == 3 && isInterleaved) {
+    format = CV_8UC3;
+  } else if(bitDepth == 8 && rgbChannelCount == 4 && isInterleaved) {
+    format = CV_8UC4;
+  } else if(bitDepth == 8 && rgbChannelCount == 3 && !isInterleaved) {
+    format = CV_8UC1;
+  } else if(bitDepth == 8 && rgbChannelCount == 4 && !isInterleaved) {
+    format = CV_8UC1;
+  } else if(bitDepth == 8 && rgbChannelCount == 1 && !isInterleaved) {
+    format = CV_8UC1;
+  }
+
+  if(!isLittleEndian) {
+    bigEndianToLittleEndian(image, static_cast<uint32_t>(format));
+  }
+
+  //
+  // Handling of special formats
+  //
+  // 16 bit grayscale
+  if(format == CV_16UC1) {
+    return;
+  }
+
+  // 8 bit grayscale interleaved
+  if(format == CV_8UC1 && rgbChannelCount == 1 && !isInterleaved) {
+    cv::Mat img16bit;
+    image.convertTo(img16bit, CV_16U, 256);    // Scale 8-bit values (0–255) to 16-bit (0–65535)
+    image = img16bit;
+    return;
+  }
+
+  // 8 bit grayscale
+  if(format == CV_8UC1) {
+    cv::Mat img16bit;
+    image.convertTo(img16bit, CV_16U, 256);    // Scale 8-bit values (0–255) to 16-bit (0–65535)
+  }
+
+  // Interleaved RGB image
+  if(format == CV_8UC3) {
+    cvtColor(image, image, cv::COLOR_RGB2BGR);
+    return;
+  }
+
+  // Interleaved RGB image
+  if(format == CV_8UC4) {
+    cvtColor(image, image, cv::COLOR_RGBA2BGR);
+    return;
+  }
+
+  // Planar RGB image
+  if(format == CV_8UC1 && rgbChannelCount >= 3) {
+    // Step 1: Split the non-interleaved matrix into separate R, G, B channels
+    cv::Mat redChannel   = image(cv::Rect(0, 0, imageWidth, imageHeight));                  // First part (R)
+    cv::Mat greenChannel = image(cv::Rect(0, imageHeight, imageWidth, imageHeight));        // Second part (G)
+    cv::Mat blueChannel  = image(cv::Rect(0, 2 * imageHeight, imageWidth, imageHeight));    // Third part (B)
+
+    // Step 2: Merge the separate channels into one BGR interleaved image
+    std::vector<cv::Mat> channels = {blueChannel, greenChannel, redChannel};    // OpenCV uses BGR
+    cv::Mat bgrImage              = cv::Mat::zeros(cv::Size(imageWidth, imageHeight), CV_8UC3);
+    cv::merge(channels, bgrImage);
+    image = bgrImage;
+    return;
+  }
+
+  throw std::invalid_argument("Not supported image format!");
 }
 
 cv::Mat ImageReader::convertImageToMat(JNIEnv *myEnv, const jbyteArray &readImg, int32_t imageWidth, int32_t imageHeight, int32_t bitDepth,

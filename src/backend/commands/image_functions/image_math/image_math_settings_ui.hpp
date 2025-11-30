@@ -40,8 +40,9 @@ public:
   inline static std::string DESCRIPTION       = "Apply basic mathematical operations on one or two images.";
   inline static std::vector<std::string> TAGS = {"invert", "math", "subtract", "add", "plus", "minus"};
 
-  ImageMath(joda::settings::PipelineStep &pipelineStep, settings::ImageMathSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent,
+  ImageMath(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, settings::ImageMathSettings &settings,
+            QWidget *parent) :
+      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent,
               {{InOuts::IMAGE, InOuts::BINARY}, {InOuts::OUTPUT_EQUAL_TO_INPUT}}),
       mParent(parent)
   {

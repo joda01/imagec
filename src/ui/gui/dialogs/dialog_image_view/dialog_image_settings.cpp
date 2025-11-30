@@ -20,6 +20,7 @@
 #include <qslider.h>
 #include <qtoolbar.h>
 #include "backend/enums/enums_units.hpp"
+#include "ui/gui/helper/debugging.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 #include "ui/gui/helper/iconless_dialog_button_box.hpp"
 #include "panel_histogram.hpp"
@@ -103,22 +104,28 @@ DialogImageSettings::DialogImageSettings(Settings *settings, QWidget *parent, co
   formLayout->addRow("Pixel size mode", physicalSize);
 
   mPixelWidth = new QLineEdit("0");
+  CHECK_GUI_THREAD(mPixelWidth)
   mPixelWidth->setEnabled(false);
   formLayout->addRow("Pixel width", mPixelWidth);
 
   mPixelHeight = new QLineEdit("0");
+  CHECK_GUI_THREAD(mPixelHeight)
   mPixelHeight->setEnabled(false);
   formLayout->addRow("Pixel height", mPixelHeight);
 
   connect(mPixelSizeMode, &QComboBox::currentIndexChanged, [&](int /*index*/) {
     if(mPixelSizeMode->currentData().toInt() == 0) {
       // Automatic
+      CHECK_GUI_THREAD(mPixelWidth)
       mPixelWidth->setEnabled(false);
+      CHECK_GUI_THREAD(mPixelHeight)
       mPixelHeight->setEnabled(false);
       setFromOme(mOmeInfo, mSeries->currentData().toInt(), static_cast<enums::Units>(mUnit->currentData().toInt()));
     } else {
       // Manual
+      CHECK_GUI_THREAD(mPixelWidth)
       mPixelWidth->setEnabled(true);
+      CHECK_GUI_THREAD(mPixelHeight)
       mPixelHeight->setEnabled(true);
     }
   });

@@ -122,11 +122,11 @@ auto TemplateParser::loadTemplate(const std::filesystem::path &pathToTemplate) -
 auto TemplateParser::getUsersTemplateDirectory() -> std::filesystem::path
 {
 #ifdef _WIN32
-  auto homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path("imagec") /
-                 std::filesystem::path("templates");
+  auto homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) /
+                 std::filesystem::path(joda::fs::USER_SETTINGS_PATH) / std::filesystem::path("templates");
 #else
-  auto homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path(".imagec") /
-                 std::filesystem::path("templates");
+  auto homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) /
+                 std::filesystem::path("." + joda::fs::USER_SETTINGS_PATH) / std::filesystem::path("templates");
 
 #endif
   if(!fs::exists(homeDir) || !fs::is_directory(homeDir)) {
@@ -136,7 +136,7 @@ auto TemplateParser::getUsersTemplateDirectory() -> std::filesystem::path
       joda::log::logError("Cannot create users template directory!");
     }
   }
-  return homeDir.string();
+  return homeDir.generic_string();
 }
 
 ///
@@ -178,7 +178,7 @@ void TemplateParser::saveTemplate(const settings::Pipeline &data, const std::fil
 std::filesystem::path TemplateParser::saveTemplate(nlohmann::json &json, const std::filesystem::path &pathToStoreTemplateIn,
                                                    const std::string &endian)
 {
-  std::string pathToStore = pathToStoreTemplateIn.string();
+  std::string pathToStore = pathToStoreTemplateIn.generic_string();
   if(!pathToStore.ends_with(endian)) {
     pathToStore += endian;
   }

@@ -33,7 +33,8 @@ template <Command_t CMD, class SETTING>
 class Factory : public CMD
 {
 public:
-  Factory(settings::PipelineStep &step, SETTING &setting, QWidget *parent = nullptr) : CMD(step, setting, parent)
+  Factory(joda::settings::AnalyzeSettings *analyzeSettings, settings::PipelineStep &step, SETTING &setting, QWidget *parent = nullptr) :
+      CMD(analyzeSettings, step, setting, parent)
   {
   }
 

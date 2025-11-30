@@ -126,8 +126,7 @@ cv::Mat Edm::makeFloatEDM(cv::Mat &ip, int backgroundValue, bool edgesAreBackgro
 ///
 /// \brief      Handle a line; two passes: left-to-right and right-to-left
 ///
-void Edm::edmLine(cv::Mat &bPixels, cv::Mat &fPixels, int **pointBufs, int width, int offset, int y,
-                  int backgroundValue, int yDist)
+void Edm::edmLine(cv::Mat &bPixels, cv::Mat &fPixels, int **pointBufs, int width, int offset, int y, int backgroundValue, int yDist)
 {
   int *points = pointBufs[0];    // the buffer for the left-to-right pass
   int pPrev   = NO_POINT;
@@ -211,6 +210,6 @@ float Edm::minDist2(int *points, int pPrev, int pDiag, int x, int y, int distSqr
     }
   }
   points[x] = nearestPoint;
-  return (float) distSqr;
+  return static_cast<float>(distSqr);
 }    // private float minDist2
 }    // namespace joda::image::func

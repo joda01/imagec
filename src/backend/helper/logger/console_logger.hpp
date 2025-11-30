@@ -34,6 +34,8 @@ enum class LogLevel
   VERBOSE = 5
 };
 
+extern void initLogger();
+extern void joinLogger();
 extern void setLogLevel(LogLevel logLevel);
 extern std::string getCurrentDateTimeISO();
 extern void logError(const std::string &message);

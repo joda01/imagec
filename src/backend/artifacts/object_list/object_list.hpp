@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <filesystem>
 #include <iostream>
 #include <list>
 #include <map>
@@ -47,11 +48,11 @@ public:
   {
   }
 
-  void createBinaryImage(cv::Mat &img) const;
+  int64_t createBinaryImage(cv::Mat &img, uint16_t pixelClass, ROI::Category categoryFilter, const joda::enums::TileInfo &tileInfo) const;
 
   bool empty() const
   {
-    return grid.empty();
+    return mElements.empty();
   }
 
   void clear()
@@ -126,19 +127,18 @@ public:
   }
 
 private:
-  const ROI &emplace(const ROI &box)
+  ROI &emplace(const ROI &box, bool &insertedRet)
   {
-    return insertIntoGrid(box);
+    return insertIntoGrid(box, insertedRet);
   }
 
-  const ROI &push_back(const ROI &box)
+  ROI &push_back(const ROI &box, bool &insertedRet)
   {
-    return insertIntoGrid(box);
+    return insertIntoGrid(box, insertedRet);
   }
 
   void erase(const ROI *eraseRoi)
   {
-    mElements.remove_if([eraseRoi](const ROI &obj) { return &obj == eraseRoi; });
     for(auto &[_, vec] : grid) {
       auto vecSizeBefore = vec.size();
       vec.erase(std::remove_if(vec.begin(), vec.end(), [eraseRoi](const ROI *obj) { return obj == eraseRoi; }), vec.end());
@@ -151,6 +151,7 @@ private:
         break;
       }
     }
+    mElements.remove_if([eraseRoi](const ROI &obj) { return &obj == eraseRoi; });
   }
 
   /////////////////////////////////////////////////////
@@ -158,17 +159,18 @@ private:
   unordered_map<pair<int, int>, std::vector<ROI *>, PairHash> grid;
   int mCellSize;
 
-  const ROI &insertIntoGrid(const ROI &boxIn)
+  ROI &insertIntoGrid(const ROI &boxIn, bool &insertedRet)
   {
     // If class id is none, do not enter the ROI
-    if(!mAllowNonValues && boxIn.getClassId() == enums::ClassId::NONE) {
-      return boxIn;
-    }
+    // if(!mAllowNonValues && boxIn.getClassId() == enums::ClassId::NONE) {
+    //  insertedRet = false;
+    //  return boxIn;
+    //}
     /// \todo generate an object ID
 
     //
     ROI cloned       = boxIn.clone();
-    const auto &rect = cloned.getBoundingBoxTile();
+    const auto &rect = cloned.getBoundingBoxReal();
     int min_x        = rect.x;
     int min_y        = rect.y;
     int max_x        = rect.x + rect.width;
@@ -182,18 +184,19 @@ private:
         grid[{x, y}].emplace_back(&inserted);
       }
     }
+    insertedRet = true;
     return inserted;
   }
 
   static bool isCollision(const ROI *box1, const ROI *box2)
   {
-    auto &rect1 = box1->getBoundingBoxTile();
+    auto &rect1 = box1->getBoundingBoxReal();
     int min01_x = rect1.x;
     int min11_y = rect1.y;
     int max21_x = rect1.x + rect1.width;
     int max31_y = rect1.y + rect1.height;
 
-    auto &rect2 = box2->getBoundingBoxTile();
+    auto &rect2 = box2->getBoundingBoxReal();
     int min02_x = rect2.x;
     int min12_y = rect2.y;
     int max22_x = rect2.x + rect2.width;
@@ -211,14 +214,26 @@ class SpheralIndexStandAlone : public SpheralIndex
 public:
   using SpheralIndex::SpheralIndex;
 
-  const ROI &emplace(const ROI &box)
+  ROI &emplace(const ROI &box, bool &insertedRet)
   {
-    return SpheralIndex::insertIntoGrid(box);
+    return SpheralIndex::insertIntoGrid(box, insertedRet);
   }
 
-  const ROI &push_back(const ROI &box)
+  ROI &push_back(const ROI &box, bool &insertedRet)
   {
-    return SpheralIndex::insertIntoGrid(box);
+    return SpheralIndex::insertIntoGrid(box, insertedRet);
+  }
+
+  ROI &emplace(const ROI &box)
+  {
+    bool insertedRet = false;
+    return SpheralIndex::insertIntoGrid(box, insertedRet);
+  }
+
+  ROI &push_back(const ROI &box)
+  {
+    bool insertedRet = false;
+    return SpheralIndex::insertIntoGrid(box, insertedRet);
   }
 };
 
@@ -227,61 +242,69 @@ using ObjectMap = std::map<enums::ClassId, std::unique_ptr<SpheralIndex>>;
 class ObjectList : public ObjectMap
 {
 public:
-  void push_back(const ROI &roi)
+  /////////////////////////////////////////////////////
+  ObjectList()                                       = default;
+  ObjectList(ObjectList &)                           = delete;
+  ObjectList(ObjectList &&other) noexcept            = delete;
+  ObjectList &operator=(ObjectList &&other) noexcept = delete;
+  const ROI &emplace(const ROI &box)                 = delete;
+
+  void push_back(const ROI &roi);
+  void clearAll();
+  void erase(const ROI *roi);
+  void erase(const std::set<ROI *> &roi);
+  void erase(enums::ClassId classToErase);
+  void erase(joda::atom::ROI::Category categoryToErase);
+  virtual std::unique_ptr<SpheralIndex> &operator[](enums::ClassId classId);
+  [[nodiscard]] const ROI *getObjectById(uint64_t objectId) const;
+  [[nodiscard]] bool containsObjectById(uint64_t objectId) const;
+  [[nodiscard]] size_t sizeList() const;
+  [[nodiscard]] size_t sizeClasses() const;
+  auto getObjectList() -> const std::map<uint64_t, ROI *> *
   {
-    if(!contains(roi.getClassId())) {
-      SpheralIndex idx{};
-      operator[](roi.getClassId())->cloneFromOther(idx);
+    return &objectsOrderedByObjectId;
+  }
+  void registerOnChangeCallback(const std::function<void()> &cb)
+  {
+    mChangeCallback.push_back(cb);
+  }
+  void registerOnStartChangeCallback(const std::function<void()> &cb)
+  {
+    mStartChangeCallback.push_back(cb);
+  }
+  void triggerChangeCallback() const
+  {
+    for(const auto &cb : mChangeCallback) {
+      cb();
     }
-    const auto &inserted = at(roi.getClassId())->emplace(roi);
-    if(inserted.getClassId() != enums::ClassId::NONE && 0 != inserted.getObjectId()) {
-      std::lock_guard<std::mutex> lock(mInsertLock);
-      objectsOrderedByObjectId[inserted.getObjectId()] = &inserted;
+  }
+
+  void triggerStartChangeCallback() const
+  {
+    for(const auto &cb : mStartChangeCallback) {
+      cb();
     }
   }
 
-  void erase(const ROI *roi)
-  {
-    if(contains(roi->getClassId())) {
-      at(roi->getClassId())->erase(roi);
-    }
-    objectsOrderedByObjectId.erase(roi->getObjectId());
-  }
+  void serialize(const std::filesystem::path &);
+  void deserialize(const std::filesystem::path &);
+  void mergeFrom(ObjectList &&other, joda::atom::ROI::Category categoryToKeep);
 
-  void erase(enums::ClassId classToErase)
+  // iterate safely
+  void forEach(const std::function<void(const value_type &)> &func) const
   {
-    ObjectMap::erase(classToErase);
-
-    for(auto it = objectsOrderedByObjectId.begin(); it != objectsOrderedByObjectId.end();) {
-      if((it->second != nullptr) && it->second->getClassId() == classToErase) {
-        it = objectsOrderedByObjectId.erase(it);    // erase returns the next valid iterator
-      } else {
-        ++it;
-      }
+    std::lock_guard<std::mutex> lock(mInsertLock);
+    for(const auto &it : *this) {
+      func(it);
     }
   }
 
-  std::unique_ptr<SpheralIndex> &operator[](enums::ClassId classId)
-  {
-    if(!contains(classId)) {
-      auto newS = std::make_unique<SpheralIndex>();
-      emplace(classId, std::move(newS));
-    }
-    return at(classId);
-  }
-
-  [[nodiscard]] const ROI *getObjectById(uint64_t objectId) const
-  {
-    return objectsOrderedByObjectId.at(objectId);
-  }
-
-  [[nodiscard]] bool containsObjectById(uint64_t objectId) const
-  {
-    return objectsOrderedByObjectId.contains(objectId);
-  }
-
-  std::map<uint64_t, const ROI *> objectsOrderedByObjectId;
-  std::mutex mInsertLock;
+private:
+  /////////////////////////////////////////////////////
+  std::map<uint64_t, ROI *> objectsOrderedByObjectId;
+  mutable std::mutex mInsertLock;
+  std::vector<std::function<void()>> mChangeCallback;
+  std::vector<std::function<void()>> mStartChangeCallback;
 };
 
 }    // namespace joda::atom

@@ -3,8 +3,25 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/processor/dependency_graph.hpp"
 #include "backend/settings/settings.hpp"
+#include "backend/user_settings/user_home_dir.hpp"
 
 namespace joda::settings {
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto AnalyzeSettings::getProjectPath() const -> std::filesystem::path
+{
+  if(projectPathWithFilename.empty()) {
+    return joda::user_settings::getUserHomeDir() / joda::fs::WORKING_DIRECTORY_TEMP_PROJECT_PATH;
+  }
+
+  return projectPathWithFilename.parent_path();
+}
 
 ///
 /// \brief

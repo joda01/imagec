@@ -25,6 +25,20 @@ namespace joda::settings {
 
 static const int32_t MAX_HISTORY_STEPS = 64;
 
+void Pipeline::triggerHistoryChanged() const
+{
+  for(const auto &f : mHistoryChangeCallback) {
+    f();
+  }
+}
+
+void Pipeline::triggerSnapshotRestored(const Pipeline &pip) const
+{
+  for(const auto &f : mSnapshotRestored) {
+    f(pip);
+  }
+}
+
 ///
 /// \brief      Create a snapshot of the actual pipeline steps
 /// \author     Joachim Danmayr
@@ -62,6 +76,7 @@ auto Pipeline::createSnapShot(enums::HistoryCategory category, const std::string
     }
   }
   actHistoryIndex = 0;
+  triggerHistoryChanged();
   return entry;
 }
 ///
@@ -76,6 +91,7 @@ void Pipeline::clearHistory()
   if(history.empty()) {
     history.emplace_back(PipelineHistoryEntry{.commitMessage = "Created"});
   }
+  triggerHistoryChanged();
 }
 
 ///
@@ -86,6 +102,7 @@ void Pipeline::eraseHistory()
 {
   actHistoryIndex = 0;
   history.clear();
+  triggerHistoryChanged();
 }
 
 ///
@@ -102,6 +119,8 @@ auto Pipeline::restoreSnapShot(size_t idx) const -> Pipeline
   pip.pipelineSteps.clear();
   pip.pipelineSteps   = history.at(idx).pipelineSteps;
   pip.actHistoryIndex = static_cast<int32_t>(idx);
+  triggerHistoryChanged();
+  triggerSnapshotRestored(pip);
   return pip;
 }
 
@@ -124,6 +143,7 @@ void Pipeline::tag(const std::string &tagName, size_t indexIn)
     throw std::runtime_error("This history entry does not exist!");
   }
   history.at(indexIn).tagMessage = tagName;
+  triggerHistoryChanged();
 }
 
 ///

@@ -30,18 +30,6 @@ TableModelPipeline::TableModelPipeline(const joda::settings::Classification &cla
   if(parent == nullptr) {
     throw std::runtime_error("Parent must not be empty and of type QTableView.");
   }
-
-  auto loadSvg = [](const QString &name) -> QString {
-    QFile file(":/icons-svg/22/icons-svg/22/" + name + ".svg");    // or use a file path
-    if(file.open(QIODevice::ReadOnly)) {
-      QByteArray imageData = file.readAll();
-      return QString::fromLatin1(imageData.toBase64());
-    }
-    return "";
-  };
-
-  base64IconName = loadSvg("text-field");
-  base64IconHash = loadSvg("irc-operator");
 }
 
 void TableModelPipeline::setData(std::list<joda::settings::Pipeline> *pipelines)
@@ -156,7 +144,32 @@ auto TableModelPipeline::getCell(int row) -> joda::settings::Pipeline *
   return nullptr;
 }
 
-void TableModelPipeline::refresh()
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void TableModelPipeline::beginInsertPipeline()
+{
+  int newRowIndex = rowCount();
+  beginInsertRows(QModelIndex(), newRowIndex, newRowIndex);
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void TableModelPipeline::endInsertPipeline()
+{
+  endInsertRows();
+}
+
+void TableModelPipeline::resetModel()
 {
   beginResetModel();
   endResetModel();

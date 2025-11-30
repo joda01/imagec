@@ -16,6 +16,7 @@
 #include <filesystem>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <utility>
 #include <variant>
@@ -246,6 +247,22 @@ public:
   void setColHeader(uint32_t colIdx, const settings::ResultsSettings::ColumnKey &data);
 
   Table();
+  Table(const Table &other)
+  {
+    mDataColOrganized = other.mDataColOrganized;
+    mTitle            = other.mTitle;
+  }
+
+  Table &operator=(const Table &other)
+  {
+    if(this == &other) {
+      return *this;
+    }
+    mDataColOrganized = other.mDataColOrganized;
+    mTitle            = other.mTitle;
+    return *this;
+  }
+
   explicit Table(const std::vector<TableColumn> &);
   void setTitle(const std::string &title);
   void init(uint32_t cols, uint32_t rows);
@@ -270,13 +287,24 @@ public:
 
   void setData(uint32_t row, uint32_t col, const TableCell &data)
   {
-    mDataColOrganized[col].rows[row] = std::make_shared<TableCell>(data);
+    if(data.getRowName().empty()) {
+      if(mDataColOrganized[col].rows[row] != nullptr) {
+        const auto rowName               = mDataColOrganized[col].rows[row]->getRowName();
+        mDataColOrganized[col].rows[row] = std::make_shared<TableCell>(data);
+        mDataColOrganized[col].rows[row]->setRowName(rowName);
+      } else {
+        mDataColOrganized[col].rows[row] = std::make_shared<TableCell>(data);
+      }
+    } else {
+      mDataColOrganized[col].rows[row] = std::make_shared<TableCell>(data);
+    }
   }
 
-  void setDataId(uint32_t row, uint32_t col, uint64_t id)
+  void setDataId(uint32_t row, uint32_t col, uint64_t id, const std::string &rowName)
   {
     if(mDataColOrganized[col].rows[row] == nullptr) {
       mDataColOrganized[col].rows[row] = std::make_shared<TableCell>();
+      mDataColOrganized[col].rows[row]->setRowName(rowName);
     }
     mDataColOrganized[col].rows[row]->setId(id);
   }
@@ -329,13 +357,14 @@ public:
     if(mDataColOrganized.empty()) {
       return ret;
     }
-    if(!mDataColOrganized.begin()->second.rows.contains(row)) {
-      return ret;
+    for(const auto &col : mDataColOrganized) {
+      if(col.second.rows.contains(row)) {
+        if(!col.second.rows.at(row)->getRowName().empty()) {
+          return col.second.rows.at(row)->getRowName();
+        }
+      }
     }
-    if(mDataColOrganized.begin()->second.rows.at(row) == nullptr) {
-      return ret;
-    }
-    return mDataColOrganized.begin()->second.rows.at(row)->getRowName();
+    return ret;
   }
 
   [[nodiscard]] const std::string &getTitle() const override
@@ -357,6 +386,7 @@ private:
   /////////////////////////////////////////////////////
   entry_t mDataColOrganized;    // <ROW, <COL, DATA>>
   std::string mTitle;
+  mutable std::mutex mAccessMutex;
 };
 
 }    // namespace joda::table

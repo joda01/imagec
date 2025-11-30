@@ -15,6 +15,7 @@
 #include <qtablewidget.h>
 #include <iostream>
 #include <string>
+#include "ui/gui/helper/table_view.hpp"
 
 namespace joda::ui::gui {
 
@@ -28,31 +29,51 @@ ColoredSquareDelegate::~ColoredSquareDelegate()
 
 void ColoredSquareDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+  painter->save();
+
+  // Draw background & selection
   QStyleOptionViewItem opt = option;
   initStyleOption(&opt, index);
+  QStyle *style = opt.widget ? opt.widget->style() : QApplication::style();
+  style->drawPrimitive(QStyle::PE_PanelItemViewItem, &opt, painter, opt.widget);
 
-  // Draw the background
-  // painter->save();
-  // painter->fillRect(opt.rect, opt.palette.color(QPalette::Base));
-  // painter->restore();
-
-  QString color;
-  auto *tbl = dynamic_cast<QTableWidget *>(parent());
-  if(parent() != nullptr && tbl->columnCount() > 3) {
-    color = tbl->item(index.row(), 3)->text();    // 3 is the column containg the color
+  // === 1. Get color for square ===
+  QColor color       = Qt::red;    // default
+  QVariant colorData = index.data(Qt::UserRole);
+  if(colorData.canConvert<QColor>()) {
+    color = colorData.value<QColor>();
   }
 
-  // Draw the colored square
-  QRect squareRect = opt.rect;
-  squareRect.setWidth(8);
-  squareRect.setHeight(8);
-  squareRect.moveTop(opt.rect.y() + opt.rect.height() / 2 - 4);
-  squareRect.moveLeft(opt.rect.left() + 5);
-  painter->fillRect(squareRect, QColor(color));    // Change the color as needed
+  bool isHidden = index.data(Qt::CheckStateRole).toBool();
 
-  // Draw the text
-  opt.rect.setLeft(squareRect.right() + 5);
-  QStyledItemDelegate::paint(painter, opt, index);
+  // === 2. Draw square ===
+  int squareSize = 8;
+  int margin     = 4;
+  QRect squareRect(opt.rect.left() + margin, opt.rect.center().y() - squareSize / 2, squareSize, squareSize);
+
+  painter->setRenderHint(QPainter::Antialiasing);
+  painter->setBrush(color);
+  painter->setPen(Qt::NoPen);
+  painter->drawRect(squareRect);
+
+  // === 3. Draw text to the right of the square ===
+  QString classs = index.data(Qt::DisplayRole).toString();
+
+  //  int32_t imgChannel = index.data(0x102).toInt();
+  const QString &text = classs;
+
+  QRect textRect = opt.rect.adjusted(squareSize + 2 * margin, 0, 0, 0);
+  if(isHidden) {
+    painter->setPen(Qt::gray);
+  } else {
+    painter->setPen(Qt::black);
+  }
+  QFont f = painter->font();
+  f.setItalic(isHidden);
+  painter->setFont(f);
+  painter->drawText(textRect, Qt::AlignVCenter | Qt::AlignLeft, text);
+
+  painter->restore();
 }
 
 }    // namespace joda::ui::gui

@@ -149,6 +149,7 @@ void PanelCompilerLog::updateCompilerLog(const joda::settings::AnalyzeSettings &
       delete item;                                                // Delete the item to free memory
     }
   }
+  //  QMultiHash<QModelIndex, QPersistentModelIndexData*>::erase(QMultiHash<QModelIndex, QPersistentModelIndexData*>::const_iterator)+0x2f2
   mLogOutput->setRowCount(0);
   auto errors = settings.checkForErrors();
   for(const auto &[pipelineName, error] : errors) {

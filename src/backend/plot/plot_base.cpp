@@ -90,6 +90,8 @@ void PlotBase::drawLeftAlignedText(cv::Mat &image, const std::string &text, cons
 cv::Mat PlotBase::buildColorLUT(ColormapName colorMap)
 {
   int colormapType = cv::COLORMAP_VIRIDIS;
+  cv::Mat customLUT(1, 256, CV_8UC3);
+  bool useCustom = false;
 
   switch(colorMap) {
     case ColormapName::INFERNO:
@@ -154,12 +156,10 @@ cv::Mat PlotBase::buildColorLUT(ColormapName colorMap)
       break;
     case ColormapName::COLORMAP_TWILIGHT_SHIFTED:
       colormapType = cv::COLORMAP_TWILIGHT_SHIFTED;
-
       break;
     case ColormapName::COLORMAP_DEEPGREEN:
       colormapType = cv::COLORMAP_DEEPGREEN;
       break;
-
     case ColormapName::ACCENT:
     case ColormapName::BLUES:
     case ColormapName::BRBG:
@@ -177,7 +177,6 @@ cv::Mat PlotBase::buildColorLUT(ColormapName colorMap)
     case ColormapName::PASTEL1:
     case ColormapName::PASTEL2:
     case ColormapName::PIYG:
-
     case ColormapName::PRGN:
     case ColormapName::PUBU:
     case ColormapName::PUBUGN:
@@ -212,6 +211,19 @@ cv::Mat PlotBase::buildColorLUT(ColormapName colorMap)
     case ColormapName::DEFAULT_MAP:
     case ColormapName::DEFAULT_COLORS_MAP:
       break;
+
+    case ColormapName::IMAGEC_GREEN_RED: {
+      useCustom = true;
+      for(int i = 0; i < 256; ++i) {
+        cv::Vec3b color;
+        if(i < 128) {
+          color = cv::Vec3b(0, 255, static_cast<uchar>(2 * i));    // BGR order: Blue=0, Green=255, Red=0→255
+        } else {
+          color = cv::Vec3b(0, static_cast<uchar>(255 - 2 * (i - 128)), 255);
+        }
+        customLUT.at<cv::Vec3b>(0, i) = color;
+      }
+    }
   }
 
   cv::Mat lut(1, 256, CV_8UC1);    // grayscale ramp 0..255
@@ -220,7 +232,12 @@ cv::Mat PlotBase::buildColorLUT(ColormapName colorMap)
   }
 
   cv::Mat colorLUT;
-  cv::applyColorMap(lut, colorLUT, colormapType);    // Apply chosen OpenCV colormap
+  if(useCustom) {
+    cv::Mat lutT = customLUT.t();    // Make it 256x1 instead of 1x256
+    cv::applyColorMap(lut, colorLUT, lutT);
+  } else {
+    cv::applyColorMap(lut, colorLUT, colormapType);
+  }
 
   return colorLUT;    // Returns a 1x256 CV_8UC3 BGR colormap
 }

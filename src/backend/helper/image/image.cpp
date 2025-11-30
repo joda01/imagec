@@ -10,6 +10,8 @@
 ///
 
 #include "image.hpp"
+#include <qnamespace.h>
+#include <QPainter>
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -36,9 +38,6 @@ namespace joda::image {
 ///
 Image::Image()
 {
-  for(int32_t i = 0; i < 65536; ++i) {
-    mLut[static_cast<size_t>(i)] = i;
-  }
 }
 
 ///
@@ -48,118 +47,52 @@ Image::Image()
 /// \param[out]
 /// \return
 ///
-void Image::setImage(const cv::Mat &&imageToDisplay, int32_t rescale)
+void Image::setImage(const cv::Mat &imageToDisplay, const cv::Vec3f &pseudoColor, int32_t rescale)
 {
+  setPseudoColor(pseudoColor);
+
   mOriginalImageSize = {imageToDisplay.cols, imageToDisplay.rows};
   if(rescale > 0) {
     std::lock_guard<std::mutex> lock(mLockMutex);
-    delete mOriginalImage;
-    mOriginalImage = new cv::Mat(imageToDisplay);
-    delete mImageOriginalScaled;
-    mImageOriginalScaled = new cv::Mat(joda::image::func::Resizer::resizeWithAspectRatio(imageToDisplay, std::min(imageToDisplay.cols, rescale),
-                                                                                         std::min(imageToDisplay.rows, rescale)));
+    mOriginalImage       = imageToDisplay.clone();
+    mImageOriginalScaled = joda::image::func::Resizer::resizeWithAspectRatio(imageToDisplay, std::min(imageToDisplay.cols, rescale),
+                                                                             std::min(imageToDisplay.rows, rescale));
   } else {
-    mImageOriginalScaled = &imageToDisplay;
-    mOriginalImage       = &imageToDisplay;
+    mImageOriginalScaled = imageToDisplay;
+    mOriginalImage       = imageToDisplay;
   }
-  int type  = mImageOriginalScaled->type();
+  mHistograms.clear();
+
+  int type  = mImageOriginalScaled.type();
   int depth = type & CV_MAT_DEPTH_MASK;
-  if(depth == CV_16U && 1 == mImageOriginalScaled->channels()) {
-    //
-    // Calc histogram
-    //
-    int histSize           = UINT16_MAX + 1;
-    float range[]          = {0, UINT16_MAX + 1};
-    const float *histRange = {range};
-    cv::calcHist(mImageOriginalScaled, 1, nullptr, cv::Mat(), mHistogram, 1, &histSize, &histRange);    //, uniform, accumulate);
+  if(depth == CV_16U && 1 == mImageOriginalScaled.channels()) {
+    mHistograms                   = {{}};
+    static const auto histSize    = UINT16_MAX + 1;
+    static const float range[2]   = {0, static_cast<float>(histSize)};
+    static const float *histRange = {range};
+    cv::calcHist(&mImageOriginalScaled, 1, nullptr, cv::Mat(), mHistograms.at(0), 1, &histSize, &histRange);
+    cv::normalize(mHistograms.at(0), mHistograms.at(0), 0, 1, cv::NORM_MINMAX);
+  } else if(depth == CV_8U && 3 == mImageOriginalScaled.channels()) {
+    mHistograms                   = {{}, {}, {}};
+    static const auto histSize    = UINT8_MAX + 1;
+    static const float range[2]   = {0, static_cast<float>(histSize)};
+    static const float *histRange = {range};
+    mHistogramMax                 = histSize;
 
-    // Normalize the histogram to [0, histImage.height()]
-    mHistogram.at<float>(0) = 0;    // We don't want to display black
-    cv::normalize(mHistogram, mHistogram, 0, 1, cv::NORM_MINMAX);
-  }
-}
+    int channels[] = {0};
+    cv::calcHist(&mImageOriginalScaled, 1, channels, cv::Mat(), mHistograms.at(0), 1, &histSize, &histRange);
+    cv::normalize(mHistograms.at(0), mHistograms.at(0), 0, 1, cv::NORM_MINMAX);
 
-///
-/// \brief
-/// \author
-/// \param[in]
-/// \param[out]
-/// \return
-///
-QPixmap Image::getPixmap(const Overlay &overlay) const
-{
-  std::lock_guard<std::mutex> lock(mLockMutex);
-  if(mImageOriginalScaled == nullptr) {
-    std::cout << "Ups it is null" << std::endl;
-    return {};
-  }
-  if(mLowerValue > mUpperValue) {
-    std::cerr << "Minimum value must be less than maximum value." << std::endl;
-    return {};
+    channels[0] = 1;
+    cv::calcHist(&mImageOriginalScaled, 1, channels, cv::Mat(), mHistograms.at(1), 1, &histSize, &histRange);
+    cv::normalize(mHistograms.at(1), mHistograms.at(1), 0, 1, cv::NORM_MINMAX);
+
+    channels[0] = 2;
+    cv::calcHist(&mImageOriginalScaled, 1, channels, cv::Mat(), mHistograms.at(2), 1, &histSize, &histRange);
+    cv::normalize(mHistograms.at(2), mHistograms.at(2), 0, 1, cv::NORM_MINMAX);
   }
 
-  // 65535....65535
-  // 3000 .......65535
-  // PxlInImg....New
-  int type  = mImageOriginalScaled->type();
-  int depth = type & CV_MAT_DEPTH_MASK;
-  cv::Mat imageTmp;
-
-  // Take 2ms
-  if(depth == CV_16U) {
-    imageTmp = mImageOriginalScaled->clone();
-    for(int y = 0; y < imageTmp.rows; ++y) {
-      for(int x = 0; x < imageTmp.cols; ++x) {
-        size_t pixelValue           = imageTmp.at<uint16_t>(y, x);
-        imageTmp.at<uint16_t>(y, x) = static_cast<uint16_t>(mLut[pixelValue]);
-      }
-    }
-    // Takes 20ms
-    if(overlay.combineWith != nullptr) {
-      // Convert 16-bit grayscale to 8-bit grayscale
-      imageTmp.convertTo(imageTmp, CV_8UC3, 255.0 / 65535.0);    // Normalize to 8-bit
-      cv::cvtColor(imageTmp, imageTmp, cv::COLOR_GRAY2BGR);
-
-      // Add transparent effect
-      cv::Mat coloredImage = overlay.combineWith->mImageOriginalScaled->clone();
-      int numPixels        = imageTmp.rows * imageTmp.cols;
-      for(int32_t n = 0; n < numPixels; n++) {
-        auto &original = imageTmp.at<cv::Vec3b>(n);
-        auto &mask     = coloredImage.at<cv::Vec3b>(n);
-        if(mask == cv::Vec3b{0, 0, 0}) {
-          mask = original;
-        } else {
-          for(int c = 0; c < 3; ++c) {
-            mask[c] = static_cast<uchar>(static_cast<float>(mask[c]) * overlay.opaque + static_cast<float>(original[c]) * (1.0F - overlay.opaque));
-          }
-        }
-      }
-
-      return encode(&coloredImage);
-    } else {
-      return encode(&imageTmp);
-    }
-  } else {
-    if(overlay.combineWith != nullptr) {
-      cv::Mat imageIn = mImageOriginalScaled->clone();
-      int numPixels   = imageIn.rows * imageIn.cols;
-      for(int32_t n = 0; n < numPixels; n++) {
-        auto &original   = imageIn.at<cv::Vec3b>(n);
-        const auto &mask = overlay.combineWith->mImageOriginalScaled->at<cv::Vec3b>(n);
-        if(mask == cv::Vec3b{0, 0, 0}) {
-          original = original;
-        } else {
-          for(int c = 0; c < 3; ++c) {
-            original[c] =
-                static_cast<uchar>(static_cast<float>(mask[c]) * overlay.opaque + static_cast<float>(original[c]) * (1.0F - overlay.opaque));
-          }
-        }
-      }
-      return encode(&imageIn);
-    }
-    return encode(mImageOriginalScaled);
-  }
-  return encode(mImageOriginalScaled);
+  refreshImageToPaint(mImageOriginalScaled);
 }
 
 ///
@@ -189,17 +122,7 @@ void Image::setBrightnessRange(int32_t lowerValue, int32_t upperValue, int32_t d
   mDisplayAreaLower = static_cast<uint16_t>(displayAreaLower);
   mDisplayAreaUpper = static_cast<uint16_t>(displayAreaUpper);
 
-  // Create a lookup table for mapping pixel values
-  for(size_t i = 0; i < 65536; ++i) {
-    if(i < mLowerValue) {
-      mLut[i] = 0;
-    } else if(i > mUpperValue) {
-      mLut[i] = 65535;
-    } else {
-      mLut[i] = static_cast<uint16_t>((static_cast<double>(i) - static_cast<double>(mLowerValue)) * 65535.0 /
-                                      (static_cast<double>(mUpperValue) - static_cast<double>(mLowerValue)));
-    }
-  }
+  refreshImageToPaint(mImageOriginalScaled);
 }
 
 ///
@@ -212,16 +135,19 @@ void Image::setBrightnessRange(int32_t lowerValue, int32_t upperValue, int32_t d
 void Image::autoAdjustBrightnessRange()
 {
   std::lock_guard<std::mutex> lock(mLockMutex);
-  if(mImageOriginalScaled != nullptr) {
-    if(mImageOriginalScaled->empty() || mImageOriginalScaled->channels() != 1) {
-      return;
-    }
-    int histSize           = UINT16_MAX + 1;
-    float range[]          = {0, UINT16_MAX + 1};
-    const float *histRange = {range};
-    cv::Mat hist;
-    cv::calcHist(mImageOriginalScaled, 1, nullptr, cv::Mat(), hist, 1, &histSize, &histRange);
-    auto [lowerIdx, upperIdx] = joda::cmd::EnhanceContrast::findContrastStretchBounds(hist, 0.005);
+  if(mImageOriginalScaled.empty()) {
+    return;
+  }
+  if(3 == mImageOriginalScaled.channels()) {
+    setBrightnessRange(0, 255, 0, 255);
+  }
+  // int histSize           = UINT16_MAX + 1;
+  // float range[]          = {0, UINT16_MAX + 1};
+  // const float *histRange = {range};
+  // cv::Mat hist;
+  // cv::calcHist(&mImageOriginalScaled, 1, nullptr, cv::Mat(), hist, 1, &histSize, &histRange);
+  if(mHistograms.size() == 1) {
+    auto [lowerIdx, upperIdx] = joda::cmd::EnhanceContrast::findContrastStretchBounds(mHistograms.at(0), 0.005);
     setBrightnessRange(lowerIdx, upperIdx, lowerIdx - 256, upperIdx + 256);
   }
 }
@@ -233,33 +159,131 @@ void Image::autoAdjustBrightnessRange()
 /// \param[out]
 /// \return
 ///
-QPixmap Image::encode(const cv::Mat *image) const
+void Image::setPseudoColor(const cv::Vec3f &color)
 {
-  if(mImageOriginalScaled == nullptr || image == nullptr) {
-    return {};
+  mPseudoColor.clear();
+  if(1 == mImageOriginalScaled.channels()) {
+    mPseudoColor.emplace_back(color);
+  } else {
+    mPseudoColor.emplace_back(cv::Vec3f{1.0, 0.0, 0.0});
+    mPseudoColor.emplace_back(cv::Vec3f{0.0, 1.0, 0.0});
+    mPseudoColor.emplace_back(cv::Vec3f{0.0, 0.0, 1.0});
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Image::setPseudoColorEnabled(bool enabled)
+{
+  mPSeudoColorEnabled = enabled;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Image::refreshImageToPaint(cv::Mat &img16)
+{
+  if(mLowerValue > mUpperValue) {
+    std::cerr << "Minimum value must be less than maximum value." << std::endl;
+    return;
   }
 
-  switch(image->type()) {
-    case CV_16UC1: {
-      return QPixmap::fromImage(QImage(image->data, image->cols, image->rows, static_cast<uint32_t>(image->step), QImage::Format_Grayscale16));
-    } break;
+  if(1 == mImageOriginalScaled.channels()) {
+    //
+    // Generate LUT
+    //
+    std::vector<uint16_t> lut16(65536);
+    double lower = static_cast<double>(mLowerValue);
+    double upper = static_cast<double>(mUpperValue);
+    for(size_t i = 0; i < 65536; ++i) {
+      if(i < static_cast<size_t>(lower)) {
+        lut16[i] = 0;
+      } else if(i > static_cast<size_t>(mUpperValue)) {
+        lut16[i] = 65535;
+      } else {
+        lut16[i] = static_cast<uint16_t>((static_cast<double>(i) - lower) * 65535.0 / (upper - lower));
+      }
+    }
+    //
+    // Prepate pseude colors
+    //
+    auto color = cv::Vec3f{1.0, 1.0, 1.0};
+    if(mPSeudoColorEnabled && !mPseudoColor.empty()) {
+      color = mPseudoColor.at(0);
+    }
 
-    case CV_8UC1: {
-      return QPixmap::fromImage(QImage(image->data, image->cols, image->rows, static_cast<uint32_t>(image->step), QImage::Format_Grayscale8));
-    } break;
-    case CV_8UC3: {
-      auto pixmap =
-          QPixmap::fromImage(QImage(image->data, image->cols, image->rows, static_cast<uint32_t>(image->step), QImage::Format_RGB888).rgbSwapped());
-      return pixmap;
-    } break;
-    case CV_8UC4: {
-      return QPixmap::fromImage(QImage(image->data, image->cols, image->rows, static_cast<uint32_t>(image->step), QImage::Format_ARGB32));
-    } break;
-    default:
-      std::cout << "Not supported" << std::endl;
-      break;
+    int rows = img16.rows;
+    int cols = img16.cols;
+
+    //
+    // Apply LUT and pseudo color
+    //
+    cv::Mat color8U(rows, cols, CV_8UC3);
+    for(int y = 0; y < rows; ++y) {
+      const uint16_t *srcRow = img16.ptr<uint16_t>(y);
+      cv::Vec3b *dstRow      = color8U.ptr<cv::Vec3b>(y);
+
+      for(int x = 0; x < cols; ++x) {
+        uint16_t val = lut16[srcRow[x]];    // apply LUT
+        for(int c = 0; c < 3; ++c) {
+          float scaled = static_cast<float>(val) * color[c];             // scale for channel
+          dstRow[x][c] = cv::saturate_cast<uint8_t>(scaled / 256.0F);    // 16->8 bit
+        }
+      }
+    }
+
+    std::lock_guard<std::mutex> lock(mPaintImage);
+    mQImage = QImage(color8U.data, color8U.cols, color8U.rows, static_cast<int>(color8U.step), QImage::Format_BGR888).copy();
+  } else if(3 == mImageOriginalScaled.channels()) {
+    std::lock_guard<std::mutex> lock(mPaintImage);
+    mQImage = QImage(mImageOriginalScaled.data, mImageOriginalScaled.cols, mImageOriginalScaled.rows, static_cast<int>(mImageOriginalScaled.step),
+                     QImage::Format_BGR888)
+                  .copy();
   }
-  return {};
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+QRectF Image::boundingRect() const
+{
+  std::lock_guard<std::mutex> lock(mPaintImage);
+  if(mQImage.isNull() || mQImage.width() == 0) {
+    return QRectF(0, 0, 0, 0);
+  }
+  return QRectF(QPointF(0, 0), mQImage.size());
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Image::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
+{
+  QImage localCopy;
+  {
+    std::lock_guard<std::mutex> guard(mPaintImage);
+    localCopy = mQImage;    // Implicit shared but safe: no writer now
+  }
+  if(!localCopy.isNull()) {
+    painter->drawImage(0, 0, localCopy);
+  }
 }
 
 }    // namespace joda::image

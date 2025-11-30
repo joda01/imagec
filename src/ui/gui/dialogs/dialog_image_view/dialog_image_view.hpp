@@ -21,6 +21,7 @@
 #include "backend/helper/image/image.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "controller/controller.hpp"
+#include "ui/gui/dialogs/dialog_ml_trainer/dialog_ml_trainer.hpp"
 #include "dialog_image_settings.hpp"
 #include "panel_image_view.hpp"
 
@@ -28,6 +29,8 @@ namespace joda::ui::gui {
 
 class HistoToolbar;
 class VideoControlButtonGroup;
+class DialogRoiManager;
+class DialogHistogramSettings;
 
 ///
 /// \class      DialogImageViewer
@@ -41,7 +44,7 @@ class DialogImageViewer : public QWidget
 public:
   struct ImagePlaneSettings
   {
-    joda::image::reader::ImageReader::Plane plane;
+    joda::enums::PlaneId plane;
     int32_t series;
     int32_t tileWidth;
     int32_t tileHeight;
@@ -50,7 +53,8 @@ public:
   };
 
   /////////////////////////////////////////////////////
-  DialogImageViewer(QWidget *parent, joda::settings::AnalyzeSettings *settings, QToolBar *toolbarParent = nullptr);
+  DialogImageViewer(QWidget *parent, const std::shared_ptr<atom::ObjectList> &objectMap, joda::settings::AnalyzeSettings *settings,
+                    QToolBar *toolbarParent = nullptr);
   ~DialogImageViewer();
 
   // IMAGE CONTROL ///////////////////////////////
@@ -63,15 +67,18 @@ public:
   int32_t getSelectedTimeStack() const;
   bool getFillOverlay() const;
   auto getImagePanel() -> PanelImageView *;
+  auto getDialogMlTrainer() -> DialogMlTrainer *
+  {
+    return mDialogMlTrainer;
+  }
 
   // SETTER ///////////////////////////////////////////
   void setImagePlane(const ImagePlaneSettings &);
-  void setImageChannel(int32_t channel);
   void setShowCrossHairCursor(bool show);
   void fromSettings(const joda::settings::AnalyzeSettings &settings);
 
   // Visibility ///////////////////////////////////////////
-  void setOverlayButtonsVisible(bool);
+  void setReadOnly(bool);
   void removeVideoControl();
 
 signals:
@@ -87,22 +94,26 @@ private:
   QVBoxLayout *mMainLayout;
 
   // IMAGE PANELS ///////////////////////////////////////////////////
-  PanelImageView mImageViewRight;
+  PanelImageView *mImagePanel;
 
   // ACTIONS //////////////////////////////////////////////////
   QAction *mFillOVerlay         = nullptr;
   QAction *showCrossHairCursor  = nullptr;
-  QAction *showPixelInfo        = nullptr;
   QAction *showOverlay          = nullptr;
   QSlider *mOverlayOpaque       = nullptr;
   QAction *mOverlayOpaqueAction = nullptr;
+  QAction *mActionMlTrainer     = nullptr;
 
-  QActionGroup *mImageChannelMenuGroup = nullptr;
-  QAction *mImageChannel               = nullptr;
-  std::map<int32_t, QAction *> mChannelSelections;
+  QAction *mSeparatorStatePaint;
+  QAction *mSeparatorPaintHistogram;
+  QAction *mSeparatorHistogramMlTraining;
+  QAction *mSeparatorFillAndOverlays;
+
+  // AI Trainer ////////////////////////////////////////////////////
+  DialogMlTrainer *mDialogMlTrainer = nullptr;
 
   // T-STACK //////////////////////////////////////////////////
-  VideoControlButtonGroup *mVideoButtonGroup;
+  VideoControlButtonGroup *mVideoButtonGroup = nullptr;
 
   // Z-STACK //////////////////////////////////////////////////
   int32_t mSelectedZStack = 0;
@@ -110,6 +121,14 @@ private:
 
   // IMAGE SETTINGS //////////////////////////////////////////////////
   DialogImageSettings::Settings mImageSettings;
+  DialogHistogramSettings *mHistogramSettings;
+
+  // PAINTING///////////////////////////////////////////////////
+  QAction *mMoveAction;
+  QAction *mSelectAction;
+  QAction *mActionPaintRectangle;
+  QAction *mActionPaintCircle;
+  QAction *mPaintPolygon;
 
   // ANALYZE SETTINGS ///////////////////////////////////
   joda::settings::AnalyzeSettings *mSettings = nullptr;
@@ -119,7 +138,6 @@ private slots:
   void onFitImageToScreenSizeClicked();
   void onZoomOutClicked();
   void onZoomInClicked();
-  void onShowPixelInfo(bool checked);
   void onShowThumbnailChanged(bool checked);
   void onShowCrossHandCursor(bool checked);
   void onSettingsChanged();

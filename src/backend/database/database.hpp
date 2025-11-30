@@ -23,7 +23,6 @@
 #include "backend/enums/types.hpp"
 #include "backend/helper/file_grouper/file_grouper_types.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
-#include "backend/helper/threadpool/thread_pool.hpp"
 #include "backend/processor/context/image_context.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/experiment_settings.hpp"
@@ -34,6 +33,7 @@
 #include <duckdb/main/database.hpp>
 #include <opencv2/core/types.hpp>
 #include "database_interface.hpp"
+#include <BS_thread_pool.hpp>
 
 namespace joda::db {
 
@@ -53,7 +53,8 @@ public:
 
   auto prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
                      const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
-                     const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings, BS::thread_pool &globalThreadPool)
+                     const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings,
+                     BS::light_thread_pool &globalThreadPool)
       -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> override;
   void setImageProcessed(uint64_t) override;
 
@@ -81,7 +82,7 @@ public:
   auto selectGroups() -> std::map<uint16_t, std::string>;
 
   auto selectImageChannels() -> std::map<uint32_t, joda::ome::OmeInfo::ChannelInfo>;
-  auto selectNrOfTimeStacks() -> int32_t;
+  auto selectNrOfTimeStacks() -> uint32_t;
 
   auto selectClasses() -> std::map<enums::ClassId, joda::settings::Class>;
 
@@ -89,6 +90,7 @@ public:
   auto selectImageInfo(uint64_t imageId) -> ImageInfo;
   auto selectObjectInfo(uint64_t objectId) -> ObjectInfo;
   auto selectImages() -> std::vector<ImageInfo>;
+  auto selectImagesOfGroup(const std::set<uint16_t> &groupIds) -> std::vector<ImageInfo>;
 
   auto selectOutputClasses() -> std::set<enums::ClassId>;
   auto selectMeasurementChannelsForClasses() -> std::map<enums::ClassId, std::set<int32_t>>;

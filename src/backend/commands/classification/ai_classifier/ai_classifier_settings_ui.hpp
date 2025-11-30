@@ -38,12 +38,14 @@ class AiClassifier : public Command
 {
 public:
   /////////////////////////////////////////////////////
-  inline static std::string TITLE             = "AI Classifier";
+  inline static std::string TITLE             = "AI object classifier";
   inline static std::string ICON              = "brain";    // application-dicom
   inline static std::string DESCRIPTION       = "Extract objects from an image using AI.";
   inline static std::vector<std::string> TAGS = {"classifier", "classify", "objects", "ai", "feature extraction", "pattern recognition"};
 
-  AiClassifier(joda::settings::PipelineStep &pipelineStep, settings::AiClassifierSettings &settings, QWidget *parent);
+  AiClassifier(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, settings::AiClassifierSettings &settings,
+               QWidget *parent);
+  ~AiClassifier() override;
 
 private:
   /////////////////////////////////////////////////////
@@ -60,9 +62,9 @@ private:
 
       //
       //
-      mGrayScaleValue = generateAiModelClass("AI class input", parent);
-      mGrayScaleValue->setValue(settings.modelClassId);
-      mGrayScaleValue->connectWithSetting(&settings.modelClassId);
+      mGrayScaleValue = generatePixelClass("AI model object class", parent, true);
+      mGrayScaleValue->setValue(settings.pixelClassId);
+      mGrayScaleValue->connectWithSetting(&settings.pixelClassId);
 
       //
       //
@@ -210,6 +212,7 @@ private:
   };
 
   std::unique_ptr<SettingComboBoxString> mModelPath;
+  std::unique_ptr<SettingComboBox<settings::AiClassifierSettings::GpuUsage>> mGpuMode;
   std::unique_ptr<SettingSpinBox<int32_t>> mNumberOdModelClasses;
   std::unique_ptr<SettingLineEdit<int32_t>> mNetWidth;
   std::unique_ptr<SettingLineEdit<int32_t>> mNetHeight;
@@ -263,11 +266,13 @@ private:
 
   void refreshModels();
   void updateModel();
+
+  uint64_t mRegisterId = 0;
 private slots:
   void addFilter(const std::string &title, int32_t classId, float handicap)
   {
     settings::ObjectClass objClass;
-    objClass.modelClassId        = classId;
+    objClass.pixelClassId        = classId;
     objClass.probabilityHandicap = handicap;
     auto &ret                    = mSettings.modelClasses.emplace_back(objClass);
     auto *tab                    = addTab(

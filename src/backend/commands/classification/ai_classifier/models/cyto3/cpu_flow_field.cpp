@@ -133,7 +133,7 @@ cv::Mat paintLabels(const cv::Mat &labels)
 
       // Assign color if not yet assigned
       if(labelColors.find(label) == labelColors.end()) {
-        labelColors[label] = cv::Vec3b(dist(rng), dist(rng), dist(rng));
+        labelColors[label] = cv::Vec3b(static_cast<uint8_t>(dist(rng)), static_cast<uint8_t>(dist(rng)), static_cast<uint8_t>(dist(rng)));
       }
 
       colorRow[x] = labelColors[label];

@@ -23,7 +23,7 @@ namespace joda::cmd {
 /// \author     Joachim Danmayr
 /// \brief      Gaussian Blur (2D convolution)
 ///
-class IntensityTransformation : public Command
+class IntensityTransformation : public ImageProcessingCommand
 {
 public:
   /////////////////////////////////////////////////////
@@ -31,7 +31,7 @@ public:
   {
   }
 
-  void execute(processor::ProcessContext & /*context*/, cv::Mat &image, atom::ObjectList & /*result*/) override;
+  void execute(cv::Mat &image) override;
 
 private:
   /////////////////////////////////////////////////////

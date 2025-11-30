@@ -49,9 +49,17 @@ public:
   }
 
   void setWorkingDirectory(const std::filesystem::path &inputFolder);
+  void lookForImages();
+  void addFile(const std::filesystem::path &file);
   inline std::string getWorkingDirectory()
   {
-    return mWorkingDirectory.string();
+    return mWorkingDirectory.generic_string();
+  }
+
+  void clear()
+  {
+    mWorkingDirectory.clear();
+    mListOfImagePaths.clear();
   }
 
   ///
@@ -145,9 +153,9 @@ public:
 private:
   /////////////////////////////////////////////////////
   void lookForImagesInFolderAndSubfolder();
-  bool parseFile(const std::filesystem::directory_entry &path)
+  bool parseFile(const std::filesystem::path &path)
   {
-    auto ext = path.path().extension().string();
+    auto ext = path.extension().generic_string();
     return mSupportedFormats.contains(ext);
   }
 

@@ -29,9 +29,8 @@ SCENARIO("pipeline:test:dependencygraph", "[dependencygraph]")
 {
   std::ifstream file("src/backend/processor/test/test_run.json");
   joda::settings::AnalyzeSettings settings = nlohmann::json::parse(file);
-  auto i                                   = DurationCount::start("Graphj");
+  DurationCount durationCount("Graph");
   joda::processor::DependencyGraph::calcGraph(settings);
-  DurationCount::stop(i);
 }
 }    // namespace joda::test
 

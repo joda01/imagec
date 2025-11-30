@@ -34,7 +34,7 @@ void DroppableWidget::dragLeaveEvent(QDragLeaveEvent *event)
 }
 void DroppableWidget::dropEvent(QDropEvent *event)
 {
-  QWidget *droppedWidget = (QWidget *) event->mimeData()->text().toLongLong();
+  QWidget *droppedWidget = reinterpret_cast<QWidget *>(event->mimeData()->text().toLongLong());
   if(droppedWidget == nullptr) {
     mInDrag = false;
     update();

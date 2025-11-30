@@ -32,7 +32,6 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/rle/rle.hpp"
-#include "backend/helper/threadpool/thread_pool.hpp"
 #include "backend/helper/uuid.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/settings/analze_settings.hpp"
@@ -50,6 +49,7 @@
 #include <duckdb/common/vector.hpp>
 #include <duckdb/main/appender.hpp>
 #include <nlohmann/json_fwd.hpp>
+#include <BS_thread_pool.hpp>
 
 namespace joda::db {
 
@@ -550,7 +550,7 @@ void Database::insertObjects(const joda::processor::ImageContext &imgContext, en
 auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
                              const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
                              const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings,
-                             BS::thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>
+                             BS::light_thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>
 {
   std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> imagesToProcess;
   joda::grp::FileGrouper grouper(groupBy, filenameRegex);
@@ -577,12 +577,13 @@ auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy gro
         phys = joda::ome::PhyiscalSize{static_cast<double>(defaultPhysicalSizeSettings.pixelWidth),
                                        static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.pixelSizeUnit};
       }
-      auto ome = joda::image::reader::ImageReader::getOmeInformation(imagePath, static_cast<uint16_t>(series), phys);
+      joda::image::reader::ImageReader reader(imagePath);
+      const auto ome = reader.getOmeInformation(static_cast<uint16_t>(series), phys);
       auto [physicalPixelSizeWidth, physicalPixelSizeHeight, physicalPixelSizeDepth] =
           ome.getPhyiscalSize(series).getPixelSize(defaultPhysicalSizeSettings.pixelSizeUnit);
       nlohmann::json physicalImageSizeUnit = defaultPhysicalSizeSettings.pixelSizeUnit;
 
-      uint64_t imageId = joda::helper::fnv1a(imagePath.string());
+      uint64_t imageId = joda::helper::generateImageIdFromPath(imagePath.string(), imagesBasePath);
       auto groupInfo   = grouper.getGroupForFilename(imagePath);
 
       {
@@ -696,8 +697,9 @@ void Database::insertImage(const joda::processor::ImageContext &image, const jod
          "VALUES (?, ?, ?, ?, ?, ?, ?, ? ,? )");
 
   auto [width, heigh] = image.imageMeta.getSize(image.series);
-  prepare->Execute(image.imageId, image.imagePath.filename().string(), image.imagePath.string(), image.imageMeta.getNrOfChannels(image.series),
-                   image.imageLoader.getNrOfZStacksToProcess(), image.imageLoader.getNrOfTStacksToProcess(), width, heigh, 0);
+  prepare->Execute(image.imageId, image.imageLoader.getImagePath().filename().string(), image.imageLoader.getImagePath().string(),
+                   image.imageMeta.getNrOfChannels(image.series), image.imageLoader.getNrOfZStacksToProcess(),
+                   image.imageLoader.getNrOfTStacksToProcess(), width, heigh, 0);
 }
 
 ///
@@ -1392,7 +1394,7 @@ auto Database::selectImageChannels() -> std::map<uint32_t, joda::ome::OmeInfo::C
 /// \param[out]
 /// \return
 ///
-auto Database::selectNrOfTimeStacks() -> int32_t
+auto Database::selectNrOfTimeStacks() -> uint32_t
 {
   std::unique_ptr<duckdb::QueryResult> result = select("SELECT MAX(nr_of_t_Stacks) FROM images");
   if(result->HasError()) {
@@ -1401,7 +1403,7 @@ auto Database::selectNrOfTimeStacks() -> int32_t
 
   auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
   if(materializedResult->RowCount() > 0) {
-    return static_cast<int32_t>(materializedResult->GetValue(0, 0).GetValue<uint32_t>());
+    return materializedResult->GetValue(0, 0).GetValue<uint32_t>();
   }
 
   return 0;
@@ -1488,12 +1490,14 @@ auto Database::selectImageInfo(uint64_t imageId) -> ImageInfo
 auto Database::selectImages() -> std::vector<ImageInfo>
 {
   std::unique_ptr<duckdb::QueryResult> result = select(
-      "SELECT images.file_name,images.original_file_path,images.relative_file_path,images.validity, images.width, images.height, groups.name "
+      "SELECT images.file_name,images.original_file_path,images.relative_file_path,images.validity, images.width, images.height, groups.name, "
+      "images.image_id "
       "FROM images "
       "JOIN images_groups ON "
       "     images.image_id = images_groups.image_id "
       "JOIN groups ON "
-      "     images_groups.group_id = groups.group_id ");
+      "     images_groups.group_id = groups.group_id "
+      "ORDER BY images.file_name");
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
@@ -1510,6 +1514,59 @@ auto Database::selectImages() -> std::vector<ImageInfo>
     info.width            = materializedResult->GetValue(4, n).GetValue<uint32_t>();
     info.height           = materializedResult->GetValue(5, n).GetValue<uint32_t>();
     info.imageGroupName   = materializedResult->GetValue(6, n).GetValue<std::string>();
+    info.imageId          = materializedResult->GetValue(7, n).GetValue<uint64_t>();
+    results.push_back(info);
+  }
+
+  return results;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Database::selectImagesOfGroup(const std::set<uint16_t> &groupIds) -> std::vector<ImageInfo>
+{
+  std::string groupFilter = "(";
+  int i                   = 0;
+  for(auto groupId : groupIds) {
+    groupFilter += (i > 0 ? ", " + std::to_string(groupId) : std::to_string(groupId));
+    i++;
+  }
+  groupFilter += ")";
+
+  std::unique_ptr<duckdb::QueryResult> result = select(
+      "SELECT images.file_name,images.original_file_path,images.relative_file_path,images.validity, images.width, images.height, groups.name, "
+      "images.image_id "
+      "FROM images "
+      "JOIN images_groups ON "
+      "     images.image_id = images_groups.image_id "
+      "JOIN groups ON "
+      "     images_groups.group_id = groups.group_id "
+      "WHERE images_groups.group_id IN" +
+      groupFilter +
+      " "
+      "ORDER BY images.file_name");
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+
+  std::vector<ImageInfo> results;
+  for(duckdb::idx_t n = 0; n < materializedResult->RowCount(); n++) {
+    ImageInfo info;
+    info.filename         = materializedResult->GetValue(0, n).GetValue<std::string>();
+    info.imageFilePath    = materializedResult->GetValue(1, n).GetValue<std::string>();
+    info.imageFilePathRel = materializedResult->GetValue(2, n).GetValue<std::string>();
+    info.validity         = materializedResult->GetValue(3, n).GetValue<uint64_t>();
+    info.width            = materializedResult->GetValue(4, n).GetValue<uint32_t>();
+    info.height           = materializedResult->GetValue(5, n).GetValue<uint32_t>();
+    info.imageGroupName   = materializedResult->GetValue(6, n).GetValue<std::string>();
+    info.imageId          = materializedResult->GetValue(7, n).GetValue<uint64_t>();
     results.push_back(info);
   }
 

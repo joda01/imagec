@@ -24,6 +24,7 @@
 #include <string>
 #include "backend/enums/enums_units.hpp"
 #include "backend/helper/logger/console_logger.hpp"
+#include "backend/helper/uuid.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "ui/gui/editor/widget_pipeline/dialog_command_selection/dialog_command_selection.hpp"
 #include "ui/gui/editor/widget_pipeline/dialog_pipeline_settings/dialog_pipeline_settings.hpp"
@@ -50,14 +51,22 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSettings &settings) : mWindowMain(windowMain), mAnalyzeSettings(settings)
+PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMain *windowMain, DialogMlTrainer *mlTraining,
+                             joda::settings::AnalyzeSettings *settings) :
+    mWindowMain(windowMain),
+    mAnalyzeSettings(settings), mMlTraining(mlTraining), mPreviewResults(previewResults)
 {
   mMainLayout = new QVBoxLayout();
   mMainLayout->setContentsMargins(0, 0, 0, 0);
+  mMainLayout->setAlignment(Qt::AlignTop);    // Align all items to top
+
   auto *toolbar = new QToolBar();
+  toolbar->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed);
   toolbar->setIconSize(QSize(16, 16));
 
   {
+    auto *submenu = new QMenu();
+
     //
     // New pipeline
     //
@@ -77,11 +86,13 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
       auto [path, series, ome] = mWindowMain->getImagePanel()->getSelectedImageOrFirst();
       if(path.empty()) {
         // Unit is only allowed to change if an image is opened, because we need the real pixel sizes.
+        CHECK_GUI_THREAD(mMeasureUnit)
         mMeasureUnit->setEnabled(false);
       } else {
+        CHECK_GUI_THREAD(mMeasureUnit)
         mMeasureUnit->setEnabled(true);
       }
-      fromSettings(mAnalyzeSettings);
+      fromSettings(*mAnalyzeSettings);
       auto ret = mStackOptionsDialog->exec();
       if(ret != 0) {
         toSettings();
@@ -97,15 +108,16 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     openTemplate->setStatusTip("Open pipeline from template");
     connect(openTemplate, &QAction::triggered, [this]() {
       QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
+      QFileDialog::Options opt       = QFileDialog::DontUseNativeDialog;
       QString filePathOfSettingsFile = QFileDialog::getOpenFileName(
-          this, "Open template", folderToOpen, "ImageC template files (*" + QString(joda::fs::EXT_PIPELINE_TEMPLATE.data()) + ")");
+          this, "Open template", folderToOpen, "ImageC template files (*" + QString(joda::fs::EXT_PIPELINE_TEMPLATE.data()) + ")", nullptr, opt);
       if(filePathOfSettingsFile.isEmpty()) {
         return;
       }
 
       addChannelFromPath(filePathOfSettingsFile);
     });
-    toolbar->addAction(openTemplate);
+    submenu->addAction(openTemplate);
 
     //
     // Save template
@@ -113,16 +125,16 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     auto *saveAsTemplateButton = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("floppy-disk"), "Save as template");
     saveAsTemplateButton->setStatusTip("Save pipeline as template");
     connect(saveAsTemplateButton, &QAction::triggered, [this]() { this->saveAsTemplate(); });
-    toolbar->addAction(saveAsTemplateButton);
+    submenu->addAction(saveAsTemplateButton);
 
-    toolbar->addSeparator();
+    submenu->addSeparator();
     //
     // Move down
     //
     auto *moveDown = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("caret-down"), "Move down");
     moveDown->setStatusTip("Move selected pipeline down");
     connect(moveDown, &QAction::triggered, this, &PanelPipeline::moveDown);
-    toolbar->addAction(moveDown);
+    submenu->addAction(moveDown);
 
     //
     // Move up
@@ -130,9 +142,9 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     auto *moveUp = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("caret-up"), "Move up");
     moveUp->setStatusTip("Move selected pipeline up");
     connect(moveUp, &QAction::triggered, this, &PanelPipeline::moveUp);
-    toolbar->addAction(moveUp);
+    submenu->addAction(moveUp);
 
-    toolbar->addSeparator();
+    submenu->addSeparator();
 
     //
     // Copy selection
@@ -144,15 +156,15 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
       copiedPipeline.meta.name += " (copy)";
       addChannelFromSettings(copiedPipeline);
     });
-    toolbar->addAction(copy);
-    toolbar->addSeparator();
+    submenu->addAction(copy);
+    submenu->addSeparator();
 
     //
     // Delete column
     //
     auto *deleteColumn = new QAction(generateSvgIcon<Style::REGULAR, Color::GRAY>("trash-simple"), "Delete selected pipeline", this);
     deleteColumn->setStatusTip("Delete selected pipeline");
-    toolbar->addAction(deleteColumn);
+    submenu->addAction(deleteColumn);
     connect(deleteColumn, &QAction::triggered, [this]() {
       QMessageBox messageBox(mWindowMain);
       messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning").pixmap(48, 48));
@@ -168,6 +180,14 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
       mWindowMain->showPanelStartPage();
       erase(getSelectedPipeline());
     });
+
+    // Submenu
+    auto *submenuAction = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("dots-three-vertical"), "");
+    submenuAction->setMenu(submenu);
+    toolbar->addAction(submenuAction);
+    auto *btn = qobject_cast<QToolButton *>(toolbar->widgetForAction(submenuAction));
+    btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
+    btn->setStyleSheet("QToolButton::menu-indicator { image: none; }");
   }
 
   {
@@ -237,9 +257,11 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     mPipelineTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     mPipelineTable->setItemDelegateForColumn(0, new HtmlDelegate(mPipelineTable));
     mPipelineTable->setItemDelegateForColumn(1, new ColorSquareDelegatePipeline(mPipelineTable));
-    mTableModel = new TableModelPipeline(mAnalyzeSettings.projectSettings.classification, mPipelineTable);
-    mTableModel->setData(&settings.pipelines);
+    mTableModel = new TableModelPipeline(mAnalyzeSettings->projectSettings.classification, mPipelineTable);
+    mTableModel->setData(&settings->pipelines);
     mPipelineTable->setModel(mTableModel);
+    mPipelineTable->setMaximumHeight(200);
+    mPipelineTable->setMinimumHeight(200);
 
     connect(mPipelineTable->selectionModel(), &QItemSelectionModel::currentChanged,
             [&](const QModelIndex &current, const QModelIndex &previous) { openSelectedPipeline(current, previous); });
@@ -247,9 +269,9 @@ PanelPipeline::PanelPipeline(WindowMain *windowMain, joda::settings::AnalyzeSett
     connect(mPipelineTable, &QTableView::doubleClicked, [this](const QModelIndex &index) { openSelectedPipelineSettings(index); });
   }
 
-  mCommandSelectionDialog = std::make_shared<DialogCommandSelection>(mWindowMain);
+  mCommandSelectionDialog = std::make_shared<DialogCommandSelection>(mAnalyzeSettings, mWindowMain);
 
-  mMainLayout->addWidget(toolbar);
+  mMainLayout->addWidget(toolbar, Qt::AlignTop);
   mMainLayout->addWidget(mPipelineTable, 1);
 
   setLayout(mMainLayout);
@@ -438,8 +460,9 @@ void PanelPipeline::onAddChannel(const QString &path)
 ///
 void PanelPipeline::addElement(std::unique_ptr<PanelPipelineSettings> baseContainer)
 {
+  mTableModel->beginInsertPipeline();
   mChannels.emplace(std::move(baseContainer));
-  mTableModel->refresh();
+  mTableModel->endInsertPipeline();
 }
 
 ///
@@ -459,11 +482,11 @@ void PanelPipeline::erase(PanelPipelineSettings *toRemove)
 
     if(it != mChannels.end()) {
       void *elementInSettings = &it->get()->mutablePipeline();
-      mAnalyzeSettings.pipelines.remove_if([&elementInSettings](const joda::settings::Pipeline &item) { return &item == elementInSettings; });
+      mAnalyzeSettings->pipelines.remove_if([&elementInSettings](const joda::settings::Pipeline &item) { return &item == elementInSettings; });
       mChannels.erase(it);
       mWindowMain->checkForSettingsChanged();
     }
-    mTableModel->refresh();
+    mTableModel->resetModel();
   }
 }
 
@@ -477,7 +500,7 @@ void PanelPipeline::erase(PanelPipelineSettings *toRemove)
 void PanelPipeline::clear()
 {
   mChannels.clear();
-  mTableModel->refresh();
+  mTableModel->resetModel();
 }
 
 ///
@@ -495,10 +518,11 @@ void PanelPipeline::addChannelFromSettings(joda::settings::Pipeline settings)
       return;
     }
   }
-  mAnalyzeSettings.pipelines.emplace_back();
-  auto &newlyAdded = mAnalyzeSettings.pipelines.back();
-  auto panel1 = std::make_unique<PanelPipelineSettings>(mWindowMain, mWindowMain->getPreviewDock(), mWindowMain->getPreviewResultsDock(), newlyAdded,
-                                                        mCommandSelectionDialog);
+  mAnalyzeSettings->pipelines.emplace_back();
+  auto &newlyAdded    = mAnalyzeSettings->pipelines.back();
+  newlyAdded.meta.uid = joda::helper::generate_uuid();
+  auto panel1         = std::make_unique<PanelPipelineSettings>(mWindowMain, mWindowMain->getPreviewDock(), mPreviewResults, newlyAdded,
+                                                        mCommandSelectionDialog, mMlTraining);
   panel1->fromSettings(settings);
   panel1->toSettings();
   addElement(std::move(panel1));
@@ -600,9 +624,9 @@ void PanelPipeline::moveDown()
 /// \param[out]
 /// \return
 ///
-void PanelPipeline::movePipelineToPosition(size_t fromPos, size_t newPosIn)
+void PanelPipeline::movePipelineToPosition(int32_t fromPos, int32_t newPosIn)
 {
-  auto moveElementToListPosition = [](std::list<joda::settings::Pipeline> &myList, size_t oldPos, size_t newPos) {
+  auto moveElementToListPosition = [](std::list<joda::settings::Pipeline> &myList, int32_t oldPos, int32_t newPos) {
     // Get iterators to the old and new positions
     if(newPos > oldPos) {
       auto oldIt = std::next(myList.begin(), newPos);
@@ -617,9 +641,24 @@ void PanelPipeline::movePipelineToPosition(size_t fromPos, size_t newPosIn)
     }
   };
 
-  moveElementToListPosition(mAnalyzeSettings.pipelines, fromPos, newPosIn);
+  moveElementToListPosition(mAnalyzeSettings->pipelines, fromPos, newPosIn);
+
+  QModelIndex indexToUpdtFrom = mTableModel->index(fromPos, 0);
+  mTableModel->dataChanged(indexToUpdtFrom, indexToUpdtFrom);
+
+  QModelIndex indexToUpddTo = mTableModel->index(newPosIn, 0);
+  mTableModel->dataChanged(indexToUpddTo, indexToUpddTo);
+
+  mPipelineTable->blockSignals(true);
+  mPipelineTable->selectionModel()->blockSignals(true);
+  mPipelineTable->selectionModel()->setCurrentIndex(indexToUpdtFrom,
+                                                    QItemSelectionModel::SelectionFlag::Deselect | QItemSelectionModel::SelectionFlag::Rows);
+  mPipelineTable->selectionModel()->setCurrentIndex(indexToUpddTo,
+                                                    QItemSelectionModel::SelectionFlag::Select | QItemSelectionModel::SelectionFlag::Rows);
+  mPipelineTable->blockSignals(false);
+  mPipelineTable->selectionModel()->blockSignals(false);
+
   mWindowMain->checkForSettingsChanged();
-  mTableModel->refresh();
 }
 
 ///
@@ -632,8 +671,9 @@ void PanelPipeline::movePipelineToPosition(size_t fromPos, size_t newPosIn)
 void PanelPipeline::saveAsTemplate()
 {
   QString folderToOpen           = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
-  QString filePathOfSettingsFile = QFileDialog::getSaveFileName(this, "Save template", folderToOpen,
-                                                                "ImageC template files (*" + QString(joda::fs::EXT_PIPELINE_TEMPLATE.data()) + ")");
+  QFileDialog::Options opt       = QFileDialog::DontUseNativeDialog;
+  QString filePathOfSettingsFile = QFileDialog::getSaveFileName(
+      this, "Save template", folderToOpen, "ImageC template files (*" + QString(joda::fs::EXT_PIPELINE_TEMPLATE.data()) + ")", nullptr, opt);
   if(filePathOfSettingsFile.isEmpty()) {
     return;
   }
@@ -661,13 +701,15 @@ void PanelPipeline::saveAsTemplate()
 ///
 void PanelPipeline::toSettings()
 {
-  mAnalyzeSettings.imageSetup.zStackHandling = static_cast<joda::settings::ProjectImageSetup::ZStackHandling>(mStackHandlingZ->currentData().toInt());
-  mAnalyzeSettings.imageSetup.tStackHandling = static_cast<joda::settings::ProjectImageSetup::TStackHandling>(mStackHandlingT->currentData().toInt());
+  mAnalyzeSettings->imageSetup.zStackHandling =
+      static_cast<joda::settings::ProjectImageSetup::ZStackHandling>(mStackHandlingZ->currentData().toInt());
+  mAnalyzeSettings->imageSetup.tStackHandling =
+      static_cast<joda::settings::ProjectImageSetup::TStackHandling>(mStackHandlingT->currentData().toInt());
 
-  mAnalyzeSettings.imageSetup.tStackSettings.startFrame = mTStackFrameStart->text().toInt();
-  mAnalyzeSettings.imageSetup.tStackSettings.endFrame   = mTStackFrameEnd->text().toInt();
+  mAnalyzeSettings->imageSetup.tStackSettings.startFrame = mTStackFrameStart->text().toInt();
+  mAnalyzeSettings->imageSetup.tStackSettings.endFrame   = mTStackFrameEnd->text().toInt();
 
-  mAnalyzeSettings.pipelineSetup.realSizesUnit = static_cast<enums::Units>(mMeasureUnit->currentData().toInt());
+  mAnalyzeSettings->pipelineSetup.realSizesUnit = static_cast<enums::Units>(mMeasureUnit->currentData().toInt());
 }
 
 ///

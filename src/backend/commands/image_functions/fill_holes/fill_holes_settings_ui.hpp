@@ -40,8 +40,10 @@ public:
   inline static std::string DESCRIPTION       = "Fill the holes within a binary image.";
   inline static std::vector<std::string> TAGS = {"fill", "holes"};
 
-  FillHoles(joda::settings::PipelineStep &pipelineStep, settings::FillHolesSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}}), mParent(parent)
+  FillHoles(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep, settings::FillHolesSettings &settings,
+            QWidget *parent) :
+      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::BINARY}, {InOuts::BINARY}}),
+      mParent(parent)
   {
     auto *modelTab = addTab(
         "Base", [] {}, false);

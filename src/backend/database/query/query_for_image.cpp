@@ -88,8 +88,8 @@ auto StatsPerImage::toTable(db::Database *database, const settings::ResultsSetti
         if(!materializedResult->GetValue(colIdx, rowIdx).IsNull()) {
           value = materializedResult->GetValue(colIdx, rowIdx).GetValue<double>();
         }
-        std::string fileNameTmp = "t=" + std::to_string(tStack) + " " + filename;
-        classesToExport.setData(classs, statement.getColNames(), static_cast<uint32_t>(rowIdx), static_cast<uint32_t>(colIdx), fileNameTmp,
+        std::string fileNameTmp = filename + " t(" + std::to_string(tStack) + ")";
+        classesToExport.setData(classs, statement.getColNames(), static_cast<uint32_t>(rowIdx), static_cast<uint32_t>(colIdx),
                                 table::TableCell{value,
                                                  table::TableCell::MetaData{.objectIdGroup      = objectId,
                                                                             .objectId           = objectIdReal,

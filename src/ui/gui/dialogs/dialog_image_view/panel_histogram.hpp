@@ -38,6 +38,7 @@ private:
 
   /////////////////////////////////////////////////////
   PanelImageView *mImagePanel;
+  QFont mFont;
 };
 
 }    // namespace joda::ui::gui

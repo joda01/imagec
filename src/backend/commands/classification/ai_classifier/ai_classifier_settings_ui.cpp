@@ -12,6 +12,8 @@
 ///
 
 #include "ai_classifier_settings_ui.hpp"
+#include <exception>
+#include "backend/helper/ai_model_parser/ai_model_parser.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
 
 namespace joda::ui::gui {
@@ -23,16 +25,17 @@ namespace joda::ui::gui {
 /// \param[out]
 /// \return
 ///
-AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings::AiClassifierSettings &settings, QWidget *parent) :
-    Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::OBJECT}}), mSettings(settings),
-    mParent(parent)
+AiClassifier::AiClassifier(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep,
+                           settings::AiClassifierSettings &settings, QWidget *parent) :
+    Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::OBJECT}}),
+    mSettings(settings), mParent(parent)
 {
   this->mutableEditDialog()->setMinimumWidth(700);
   this->mutableEditDialog()->setMinimumHeight(600);
 
   auto *openModelsPath = addActionButton("Open models path", generateSvgIcon<Style::REGULAR, Color::BLACK>("arrow-square-out"));
-  connect(openModelsPath, &QAction::triggered, []() {
-    QString appDirPath = QCoreApplication::applicationDirPath() + "/models";
+  connect(openModelsPath, &QAction::triggered, [this]() {
+    QString appDirPath = joda::ai::AiModelParser::getUsersAiModelDirectory(getWorkingDirectory()).string().c_str();
     QDesktopServices::openUrl(QUrl("file:///" + appDirPath));
   });
 
@@ -56,8 +59,15 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   mModelPath->setValue(settings.modelPath);
   mModelPath->connectWithSetting(&settings.modelPath);
   mModelPath->setShortDescription("Path:");
-
   connect(mModelPath.get(), &SettingBase::valueChanged, [&]() { updateModel(); });
+
+  //
+  //
+  mGpuMode = SettingBase::create<SettingComboBox<settings::AiClassifierSettings::GpuUsage>>(parent, {}, "GPU usage");
+  mGpuMode->addOptions({{settings::AiClassifierSettings::GpuUsage::Auto, "Auto"}, {settings::AiClassifierSettings::GpuUsage::CpuOnly, "CPU only"}});
+  mGpuMode->setValue(settings.gpuUsage);
+  mGpuMode->connectWithSetting(&settings.gpuUsage);
+
   //
   //
   mNumberOdModelClasses = SettingBase::create<SettingSpinBox<int32_t>>(parent, {}, "Nr. of model classes");
@@ -66,6 +76,7 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   mNumberOdModelClasses->setValue(static_cast<int32_t>(settings.modelClasses.size()));
   mNumberOdModelClasses->connectWithSetting(&nrOfClassesTmp);
   mNumberOdModelClasses->setShortDescription("Classes:");
+  CHECK_GUI_THREAD(mNumberOdModelClasses)
   mNumberOdModelClasses->setEnabled(false);
   connect(mNumberOdModelClasses.get(), &SettingBase::valueChanged, [this]() {
     // We have to add
@@ -131,6 +142,7 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
       {joda::settings::AiClassifierSettings::ModelArchitecture::YOLO_V5, "Yolo v5", generateIcon("connect")},
       {joda::settings::AiClassifierSettings::ModelArchitecture::U_NET, "U-Net", generateIcon("u")},
       {joda::settings::AiClassifierSettings::ModelArchitecture::CYTO3, "Cyto3", generateIcon("cellpose")},
+      {joda::settings::AiClassifierSettings::ModelArchitecture::INSTAN_SEG, "InstanSeg (coming soon)", generateIcon("instanseg")},
       {joda::settings::AiClassifierSettings::ModelArchitecture::STAR_DIST, "StarDist", generateIcon("star-color")},
       //{joda::settings::AiClassifierSettings::ModelArchitecture::MASK_R_CNN, "Mask R-CNN", generateIcon("connect")}
   });
@@ -175,6 +187,7 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   auto *col = addSetting(modelTab, "Model settings",
                          {
                              {mModelPath.get(), true, 0},
+                             {mGpuMode.get(), false, 0},
                              {mModelFormat.get(), false, 0},
                              {mModelArchitecture.get(), false, 0},
                              {mNumberOdModelClasses.get(), false, 0},
@@ -195,6 +208,16 @@ AiClassifier::AiClassifier(joda::settings::PipelineStep &pipelineStep, settings:
   }
 
   updateModel();
+  mRegisterId = registerProjectPathChangedCallback([this](const std::filesystem::path & /*path*/) {
+    refreshModels();
+    mModelPath->setValue(mSettings.modelPath);
+    updateModel();
+  });
+}
+
+AiClassifier::~AiClassifier()
+{
+  unregisterProjectPathChangeCallback(mRegisterId);
 }
 
 void AiClassifier::updateInputFields(int32_t nrOfClasses, const settings::AiClassifierSettings::ModelParameters &model,
@@ -211,11 +234,11 @@ void AiClassifier::updateInputFields(int32_t nrOfClasses, const settings::AiClas
 
 void AiClassifier::refreshModels()
 {
-  auto onnxModels = joda::ai::AiModelParser::findAiModelFiles();
+  auto models = joda::ai::AiModelParser::findAiModelFiles(getWorkingDirectory());
   std::vector<SettingComboBoxString::ComboEntry> entries;
-  entries.reserve(onnxModels.size() + 1);
+  entries.reserve(models.size() + 1);
   entries.emplace_back(SettingComboBoxString::ComboEntry{.key = "", .label = "Select model ..."});
-  for(const auto &[key, model] : onnxModels) {
+  for(const auto &[key, model] : models) {
     entries.emplace_back(SettingComboBoxString::ComboEntry{.key = model.modelPath.string(), .label = model.modelName.data()});
   }
   mModelPath->addOptions(entries);
@@ -236,7 +259,8 @@ void AiClassifier::updateModel()
          addFilter(classs, n, 1);
          n++;
        }*/
-    } catch(...) {
+    } catch(const std::exception &ex) {
+      std::cout << ex.what() << std::endl;
     }
   }
 }

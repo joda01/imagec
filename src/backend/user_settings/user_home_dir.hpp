@@ -9,6 +9,7 @@
 
 #include <QDir>
 #include <filesystem>
+#include "backend/enums/enums_file_endians.hpp"
 
 namespace joda::user_settings {
 
@@ -17,16 +18,16 @@ inline std::filesystem::path getUserHomeDir(const std::string &subPath = "")
   std::filesystem::path homeDir;
 #ifdef _WIN32
   if(subPath.empty()) {
-    homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path("imagec");
+    homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path(fs::USER_SETTINGS_PATH);
   } else {
-    homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path("imagec") /
+    homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path(fs::USER_SETTINGS_PATH) /
               std::filesystem::path(subPath);
   }
 #else
   if(subPath.empty()) {
-    homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path(".imagec");
+    homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path("." + fs::USER_SETTINGS_PATH);
   } else {
-    homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path(".imagec") /
+    homeDir = std::filesystem::path(QDir::toNativeSeparators(QDir::homePath()).toStdString()) / std::filesystem::path("." + fs::USER_SETTINGS_PATH) /
               std::filesystem::path(subPath);
   }
 #endif
@@ -34,7 +35,7 @@ inline std::filesystem::path getUserHomeDir(const std::string &subPath = "")
   if(!std::filesystem::exists(homeDir) || !std::filesystem::is_directory(homeDir)) {
     std::filesystem::create_directories(homeDir);
   }
-  return homeDir.string();
+  return homeDir.generic_string();
 }
 
 }    // namespace joda::user_settings

@@ -22,6 +22,7 @@
 #include <string>
 #include "backend/artifacts/image/image.hpp"
 #include "backend/artifacts/object_list/object_list.hpp"
+#include "backend/artifacts/roi/roi.hpp"
 #include "backend/database/database.hpp"
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_memory_idx.hpp"
@@ -49,6 +50,7 @@ struct GlobalContext
   friend class ProcessContext;
 
   std::filesystem::path resultsOutputFolder;
+  std::filesystem::path workingDirectory;
   std::unique_ptr<db::DatabaseInterface> database;
   std::map<enums::ClassId, joda::settings::Class> classes;
 
@@ -100,9 +102,11 @@ public:
   {
     return pipelineContext.actImagePlane.getId().imagePlane;
   }
-  [[nodiscard]] const std::filesystem::path &getActImagePath() const
+  [[nodiscard]] const std::filesystem::path &getActImagePath() const;
+
+  [[nodiscard]] const std::filesystem::path &getWorkingDirectory() const
   {
-    return imageContext.imagePath;
+    return globalContext.workingDirectory;
   }
 
   [[nodiscard]] const std::filesystem::path &getOutputFolder() const
@@ -113,6 +117,11 @@ public:
   [[nodiscard]] enums::tile_t getActTile() const
   {
     return pipelineContext.actImagePlane.tile;
+  }
+
+  [[nodiscard]] joda::enums::TileInfo getTileInfo() const
+  {
+    return {getActTile(), getTileSize()};
   }
 
   [[nodiscard]] cv::Size getTileSize() const
@@ -134,7 +143,7 @@ public:
 
   [[nodiscard]] joda::atom::ObjectList &getActObjects()
   {
-    return iterationContext.actObjects;
+    return iterationContext.getObjects();
   }
 
   [[nodiscard]] const joda::enums::PlaneId &getActIterator() const
@@ -176,7 +185,7 @@ public:
   [[nodiscard]] joda::atom::ObjectList *loadObjectsFromCache(joda::enums::ObjectStoreId cacheId = {}) const
   {
     if(cacheId.storeIdx == enums::MemoryIdx::M0) {
-      return &iterationContext.actObjects;
+      return &iterationContext.getObjects();
     }
     getCorrectObjectId(cacheId);
     return globalContext.objectCache.at(cacheId).get();

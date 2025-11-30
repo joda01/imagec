@@ -14,6 +14,7 @@
 #include <qboxlayout.h>
 #include <qtoolbar.h>
 #include <QtWidgets>
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -23,7 +24,6 @@
 #include "backend/helper/thread_safe_queue.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "ui/gui/dialogs/dialog_image_view/panel_image_view.hpp"
-#include "ui/gui/editor/widget_pipeline/dialog_preview_results/dialog_preview_results.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_command/command.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox.hpp"
 #include "ui/gui/editor/widget_pipeline/widget_setting/setting_combobox_classes_out.hpp"
@@ -45,23 +45,21 @@ class WindowMain;
 class AddCommandButtonBase;
 class PanelClassification;
 class DialogCommandSelection;
-class DialogPreviewResults;
 class DialogImageViewer;
-class DialogInteractiveAiTrainer;
+class DialogRoiManager;
+class DialogMlTrainer;
 
 class PanelPipelineSettings : public QWidget
 {
   Q_OBJECT
-
-  friend class DialogPreviewResults;
 
 signals:
   void updatePreviewStarted();
   void updatePreviewFinished(QString error);
 
 public:
-  PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, DialogPreviewResults *previewResults, joda::settings::Pipeline &settings,
-                        std::shared_ptr<DialogCommandSelection> &commandSelectionDialog);
+  PanelPipelineSettings(WindowMain *wm, DialogImageViewer *previewDock, joda::processor::Preview *previewResult, joda::settings::Pipeline &settings,
+                        std::shared_ptr<DialogCommandSelection> &commandSelectionDialog, DialogMlTrainer *mlTraining);
   ~PanelPipelineSettings();
 
   void addPipelineStep(std::unique_ptr<joda::ui::gui::Command> command, const settings::PipelineStep *);
@@ -93,6 +91,7 @@ public:
   void clearPipeline();
   void pipelineSavedEvent();
   void openPipelineSettings();
+  void triggerPreviewUpdate();
   auto getListOfCommands() -> std::vector<std::shared_ptr<Command>> *
   {
     return &mCommands;
@@ -104,9 +103,10 @@ private:
 
   /////////////////////////////////////////////////////
   void previewThread();
+  void setImageMustBeRefreshed(bool);
 
   // ACTIONS///////////////////////////////////////////////////
-  QAction *mInteractiveAITraining;
+  QAction *mRefresh = nullptr;
   QAction *mUndoAction;
   QAction *mHistoryAction;
   QAction *mActionDisabled;
@@ -118,7 +118,8 @@ private:
 
   /////////////////////////////////////////////////////
   DialogHistory *mDialogHistory;
-  DialogImageViewer *mPreviewImage            = nullptr;
+  DialogImageViewer *mPreviewImage = nullptr;
+  DialogMlTrainer *mMlTraining;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
   bool mIsActiveShown                         = false;
   bool mPreviewInProgress                     = false;
@@ -134,38 +135,20 @@ private:
   /////////////////////////////////////////////////////
   int32_t mLastSelectedPreviewSize = 0;
   joda::settings::Pipeline &mSettings;
-  joda::ctrl::Preview mPreviewResult;
-  DialogPreviewResults *mPreviewResultsDialog;
-
-  struct PreviewJob
-  {
-    settings::AnalyzeSettings settings;
-    joda::ctrl::Controller *controller;
-    DialogImageViewer *previewPanel;
-    std::tuple<std::filesystem::path, int32_t, joda::ome::OmeInfo> selectedImage;
-    int32_t pipelinePos;
-    int32_t selectedTileX = 0;
-    int32_t selectedTileY = 0;
-    int32_t timeStack     = 0;
-    std::map<enums::ClassIdIn, QString> classes;
-    settings::ObjectInputClassesExp classesToHide;
-    joda::thread::ThreadingSettings threadSettings;
-  };
-
-  bool mStopped = false;
-  joda::TSQueue<PreviewJob> mPreviewQue;
+  joda::processor::Preview *mPreviewResult;
+  bool mStopped                                         = false;
+  std::atomic<bool> mTriggerPreviewUpdate               = false;
+  std::atomic<int32_t> mNumberOfChangesSinceLastRefresh = 0;
   std::mutex mCheckForEmptyMutex;
   std::mutex mShutingDownMutex;
 
-  // AI Trainer ////////////////////////////////////////////////////
-  DialogInteractiveAiTrainer *mInteractiveAiTrainer;
+  QMetaObject::Connection mImageOpenedConnection;
+  QMetaObject::Connection mTrainingFinishedConnection;
 
 private slots:
   /////////////////////////////////////////////////////
-  void updatePreview();
   void onPreviewStarted();
   void onPreviewFinished(QString error);
-  void valueChangedEvent();
   void metaChangedEvent();
   void closeWindow();
   void onClassificationNameChanged();

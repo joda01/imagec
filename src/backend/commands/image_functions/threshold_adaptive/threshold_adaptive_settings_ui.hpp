@@ -36,9 +36,10 @@ public:
   inline static std::string DESCRIPTION       = "Converts a grayscale image to a binary image.";
   inline static std::vector<std::string> TAGS = {"threshold", "background", "binary", "adaptive", "sauvola", "nitblack", "otsu", "phanskalar"};
 
-  ThresholdAdaptive(joda::settings::PipelineStep &pipelineStep, settings::ThresholdAdaptiveSettings &settings, QWidget *parent) :
-      Command(pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::BINARY}}), mSettings(settings),
-      mParent(parent)
+  ThresholdAdaptive(joda::settings::AnalyzeSettings *analyzeSettings, joda::settings::PipelineStep &pipelineStep,
+                    settings::ThresholdAdaptiveSettings &settings, QWidget *parent) :
+      Command(analyzeSettings, pipelineStep, TITLE.data(), DESCRIPTION.data(), TAGS, ICON.data(), parent, {{InOuts::IMAGE}, {InOuts::BINARY}}),
+      mSettings(settings), mParent(parent)
   {
     if(settings.modelClasses.empty()) {
       addFilter();
@@ -106,9 +107,9 @@ private:
       //
       //
       //
-      mGrayScaleValue = generateThresholdClass("ThresholdAdaptive class", parent);
-      mGrayScaleValue->setValue(settings.modelClassId);
-      mGrayScaleValue->connectWithSetting(&settings.modelClassId);
+      mGrayScaleValue = generatePixelClass("Pixel class", parent, false);
+      mGrayScaleValue->setValue(settings.pixelClassId);
+      mGrayScaleValue->connectWithSetting(&settings.pixelClassId);
 
       outer.addSetting(tab, "Algorithm",
                        {{mThresholdAdaptiveAlgorithm.get(), true, index}, {mKernelSize.get(), true, index}, {mGrayScaleValue.get(), true, index}});

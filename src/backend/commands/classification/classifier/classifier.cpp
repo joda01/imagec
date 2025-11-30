@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include <string>
 #include "backend/commands/classification/classifier/classifier_settings.hpp"
+#include "backend/enums/enums_classes.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include <opencv2/core.hpp>
@@ -53,7 +54,7 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
   for(const auto &objectClass : mSettings.modelClasses) {
     // Create a mask where pixels with value 1 are set to 255
     cv::Mat binaryImage(image.size(), CV_8UC1);
-    binaryImage = image == objectClass.modelClassId;
+    binaryImage = image == objectClass.pixelClassId;
 
     // std::unique_ptr<image::detect::DetectionResults> response = std::make_unique<image::detect::DetectionResults>();
 
@@ -105,8 +106,7 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
       //
       joda::atom::ROI detectedRoi(
           atom::ROI::RoiObjectId{.classId = context.getClassId(objectClass.outputClassNoMatch), .imagePlane = context.getActIterator()},
-          context.getAppliedMinThreshold(), boundingBox, mask, contour, context.getImageSize(), context.getOriginalImageSize(), context.getActTile(),
-          context.getTileSize());
+          context.getAppliedMinThreshold(), boundingBox, mask, contour, context.getTileInfo());
 
       for(const auto &filter : objectClass.filters) {
         // If filter matches assign the new classs and class to the ROI
@@ -115,7 +115,9 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
           break;
         }
       }
-      result.push_back(detectedRoi);
+      if(detectedRoi.getClassId() != enums::ClassId::NONE) {
+        result.push_back(detectedRoi);
+      }
       i++;
     }
   }

@@ -105,8 +105,8 @@ public:
       INDIVIDUAL
     };
 
-    uint8_t plateId  = 0;
-    uint16_t groupId = 0;
+    uint8_t plateId = 0;
+    std::set<uint16_t> groupId;
     std::set<uint64_t> imageId;
     int32_t tStack                = 0;
     TStackHandling tStackHandling = TStackHandling::SLICE;
@@ -200,7 +200,7 @@ public:
     this->plateSetup = plateSetupIn;
   }
 
-  void setFilter(uint8_t plateId, uint16_t groupId, int32_t tStack, const std::set<uint64_t> &imageId)
+  void setFilter(uint8_t plateId, const std::set<uint16_t> &groupId, int32_t tStack, const std::set<uint64_t> &imageId)
   {
     filter.plateId = plateId;
     filter.groupId = groupId;

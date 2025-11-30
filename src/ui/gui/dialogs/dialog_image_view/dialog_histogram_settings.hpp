@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <qcombobox.h>
 #include <qdialog.h>
 #include <qscrollbar.h>
 #include <qslider.h>
@@ -22,6 +23,7 @@
 #include <qwindow.h>
 #include <tuple>
 #include "backend/helper/image/image.hpp"
+#include "ui/gui/helper/jump_spinbox.hpp"
 
 namespace joda::ui::gui {
 
@@ -41,6 +43,8 @@ public:
 private:
   /////////////////////////////////////////////////////
   void applyHistogramSettingsToImage();
+  void getHistogramSettingsFromImage();
+
   /////////////////////////////////////////////////////
   PanelImageView *mImagePanel = nullptr;
   PanelHistogram *mHistogramPanel;
@@ -49,6 +53,10 @@ private:
   QSpinBox *mSliderDisplayUpper;
   QSlider *mSliderHistogramMin;
   QSlider *mSliderHistogramMax;
+  QComboBox *mColorMode;
+
+  // CHANNEL SETTINGS ////////////////////////////////////////////
+  QComboBox *mImageChannel;
 };
 
 }    // namespace joda::ui::gui

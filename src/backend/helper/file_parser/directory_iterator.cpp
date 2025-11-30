@@ -13,6 +13,7 @@
 
 #include "directory_iterator.hpp"
 #include <exception>
+#include <filesystem>
 #include <iostream>
 #include <string>
 #include "backend/helper/logger/console_logger.hpp"
@@ -31,15 +32,41 @@ void DirectoryWatcher::setWorkingDirectory(const std::filesystem::path &inputFol
 {
   if(mWorkingDirectory != inputFolder) {
     mWorkingDirectory = inputFolder;
-    if(inputFolder.empty()) {
-      mListOfImagePaths.clear();
-      for(const auto &callback : mCallbacks) {
-        callback(State::FINISHED);
-      }
-    } else {
-      stop();
-      mWorkerThread = std::make_unique<std::thread>(&DirectoryWatcher::lookForImagesInFolderAndSubfolder, this);
+  }
+}
+
+///
+/// \brief      Add file
+/// \author     Joachim Danmayr
+///
+void DirectoryWatcher::lookForImages()
+{
+  if(mWorkingDirectory.empty()) {
+    mListOfImagePaths.clear();
+    for(const auto &callback : mCallbacks) {
+      callback(State::FINISHED);
     }
+  } else {
+    stop();
+    mWorkerThread = std::make_unique<std::thread>(&DirectoryWatcher::lookForImagesInFolderAndSubfolder, this);
+  }
+}
+
+///
+/// \brief      Add file
+/// \author     Joachim Danmayr
+///
+void DirectoryWatcher::addFile(const std::filesystem::path &file)
+{
+  try {
+    if(!is_directory(file)) {
+      auto supported = parseFile(file);
+      if(supported) {
+        mListOfImagePaths.push_back(file);
+      }
+    }
+  } catch(const std::exception &ex) {
+    std::cout << ex.what() << std::endl;
   }
 }
 
@@ -56,19 +83,10 @@ void DirectoryWatcher::lookForImagesInFolderAndSubfolder()
   }
 
   mListOfImagePaths.clear();
-  if(!mWorkingDirectory.empty()) {
+  if(!mWorkingDirectory.empty() && std::filesystem::exists(mWorkingDirectory)) {
     try {
       for(recursive_directory_iterator i(mWorkingDirectory), end; i != end; ++i) {
-        try {
-          if(!is_directory(i->path())) {
-            auto supported = parseFile(*i);
-            if(supported) {
-              mListOfImagePaths.push_back(*i);
-            }
-          }
-        } catch(const std::exception &ex) {
-          std::cout << ex.what() << std::endl;
-        }
+        addFile(i->path());
         if(mIsStopped) {
           break;
         }

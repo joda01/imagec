@@ -11,14 +11,14 @@ bool ClassifierFilter::doesFilterMatch(joda::processor::ProcessContext &context,
                                        const IntensityFilter &intensity)
 {
   if(metrics.excludeObjectsAtTheEdge) {
-    if(roi.isTouchingTheImageEdge()) {
+    if(roi.isTouchingTheImageEdge(context.getTileInfo())) {
       return false;
     }
   }
 
   if((intensity.minIntensity >= 0 && intensity.maxIntensity >= 0)) {
     const auto &cachedImage = context.loadImageFromCache(enums::MemoryScope::ITERATION, intensity.imageIn);
-    auto intensityMeasured  = roi.measureIntensityAndAdd(*cachedImage);
+    auto intensityMeasured  = roi.measureIntensityAndAdd(cachedImage->getId(), cachedImage->image, context.getTileInfo());
     if(intensityMeasured.intensityAvg < intensity.minIntensity || intensityMeasured.intensityAvg > intensity.maxIntensity) {
       // Intensity filter does not match
       return false;

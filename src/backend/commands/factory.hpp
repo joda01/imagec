@@ -40,6 +40,13 @@ public:
   virtual std::set<enums::MemoryIdx> getOutputImageCache() const                                     = 0;
 };
 
+class ImageCommandFactory
+{
+public:
+  virtual ~ImageCommandFactory()       = default;
+  virtual void execute(cv::Mat &image) = 0;
+};
+
 template <Command_t CMD, Setting_t SETTING>
 class Factory : public CommandFactory    // public joda::cmd::Command, public settings::SettingBase
 {
@@ -50,7 +57,11 @@ public:
   void execute(processor::ProcessContext &context, cv::Mat &image, atom::ObjectList &result) override
   {
     CMD func(mSetting);
-    func(context, image, result);
+    if constexpr(std::is_base_of<ImageProcessingCommand, CMD>::value) {
+      func(image);
+    } else {
+      func(context, image, result);
+    }
   }
   [[nodiscard]] settings::ObjectInputClasses getInputClasses() const override
   {
@@ -82,8 +93,20 @@ public:
     return ret;
   }
 
-private:
+protected:
   const SETTING &mSetting;
+};
+
+template <Command_t CMD, Setting_t SETTING>
+class FactoryImg : public Factory<CMD, SETTING>, public ImageCommandFactory    // public joda::cmd::Command, public settings::SettingBase
+{
+public:
+  using Factory<CMD, SETTING>::Factory;
+  void execute(cv::Mat &image) override
+  {
+    CMD func(Factory<CMD, SETTING>::mSetting);
+    func(image);
+  }
 };
 
 }    // namespace joda::cmd

@@ -17,6 +17,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <mutex>
 
 namespace joda::table {
 
@@ -38,6 +39,7 @@ void Table::setColHeader(const std::map<uint32_t, settings::ResultsSettings::Col
 
 void Table::setColHeader(uint32_t colIdx, const settings::ResultsSettings::ColumnKey &data)
 {
+  std::lock_guard<std::mutex> lock(mAccessMutex);
   mDataColOrganized[colIdx].colSettings = data;
 }
 
@@ -62,6 +64,7 @@ void Table::init(uint32_t cols, uint32_t rows)
 
 void Table::clear()
 {
+  std::lock_guard<std::mutex> lock(mAccessMutex);
   mDataColOrganized.clear();
 }
 
@@ -74,6 +77,7 @@ void Table::clear()
 ///
 [[nodiscard]] std::shared_ptr<const TableCell> Table::data(uint32_t row, uint32_t col) const
 {
+  std::lock_guard<std::mutex> lock(mAccessMutex);
   if(mDataColOrganized.contains(col)) {
     if(mDataColOrganized.at(col).rows.contains(row)) {
       return mDataColOrganized.at(col).rows.at(row);
@@ -91,6 +95,7 @@ void Table::clear()
 ///
 [[nodiscard]] std::shared_ptr<TableCell> Table::mutableData(uint32_t row, uint32_t col)
 {
+  std::lock_guard<std::mutex> lock(mAccessMutex);
   if(mDataColOrganized.contains(col)) {
     if(mDataColOrganized.at(col).rows.contains(row)) {
       return mDataColOrganized.at(col).rows.at(row);

@@ -37,35 +37,6 @@ class QueryFilter;
 
 namespace joda::ctrl {
 
-struct Preview
-{
-  struct PreviewCount
-  {
-    int32_t count = 0;
-    std::string color;
-    bool isHidden = false;
-  };
-
-  joda::image::Image thumbnail;
-  joda::image::Image originalImage;
-  joda::image::Image editedImage;
-  joda::image::Image overlay;
-
-  struct PreviewResults
-  {
-    std::map<joda::enums::ClassId, PreviewCount> foundObjects;
-    bool isOverExposed = false;
-    bool noiseDetected = false;
-  } results;
-
-  joda::atom::ObjectMap objectMap;
-
-  int height;
-  int width;
-  int tStacks = 1;    // Nr. of t stacks the image has.
-  std::string imageFileName;
-};
-
 ///
 /// \class      Controller
 /// \author     Joachim Danmayr
@@ -79,6 +50,7 @@ public:
 
   // SYSTEM ///////////////////////////////////////////////////
   static void initApplication();
+  static void cleanShutdownApplication();
   static auto getSystemResources() -> joda::system::SystemResources;
   static auto calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::filesystem::path &file, int nrOfFiles,
                                       const std::optional<joda::ome::OmeInfo> &imageOmeInfo) -> joda::thread::ThreadingSettings;
@@ -96,23 +68,24 @@ public:
   // PREVIEW ///////////////////////////////////////////////////
   void preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
                const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const settings::Pipeline &pipeline,
-               const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, int32_t tStack, Preview &previewOut, const joda::ome::OmeInfo &,
-               const settings::ObjectInputClassesExp &classesToHide);
+               const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, int32_t tStack, processor::Preview &previewOut,
+               const joda::ome::OmeInfo &);
   [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series,
                                                const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings)
       -> joda::ome::OmeInfo;
 
-  static auto loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
+  static auto loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::enums::PlaneId &imagePlane,
                         const joda::ome::TileToLoad &tileLoad,
-                        const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings, Preview &previewOut,
+                        const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings, processor::Preview &previewOut,
                         joda::ome::OmeInfo &omeOut, enums::ZProjection zProjection) -> void;
 
-  static auto loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::image::reader::ImageReader::Plane &imagePlane,
-                        const joda::ome::TileToLoad &tileLoad, Preview &previewOut, const joda::ome::OmeInfo *omeIn, enums::ZProjection zProjection)
-      -> void;
+  static auto loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::enums::PlaneId &imagePlane,
+                        const joda::ome::TileToLoad &tileLoad, processor::Preview &previewOut, const joda::ome::OmeInfo *omeIn,
+                        enums::ZProjection zProjection) -> void;
 
   // FLOW CONTROL ///////////////////////////////////////////////////
-  void start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const std::string &jobName);
+  void start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const std::string &jobName,
+             const std::optional<std::filesystem::path> &fileToAnalyze);
   void stop();
   [[nodiscard]] auto getState() const -> const joda::processor::ProcessProgress &;
   [[nodiscard]] const processor::ProcessInformation &getJobInformation() const;
@@ -127,6 +100,9 @@ private:
   processor::imagesList_t mWorkingDirectory;
   std::unique_ptr<processor::Processor> mActProcessor;
   std::thread mActThread;
+
+  static inline std::mutex mReadMutex;
+  static inline std::unique_ptr<image::reader::ImageReader> mLastImageReader;
 };
 
 }    // namespace joda::ctrl
