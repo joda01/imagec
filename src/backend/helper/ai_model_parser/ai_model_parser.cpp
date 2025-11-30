@@ -76,7 +76,10 @@ auto AiModelParser::findAiModelFiles(const std::filesystem::path &workingDirecto
 {
   std::lock_guard<std::mutex> lock(lookForMutex);
   std::map<std::filesystem::path, Data> aiModelFiles;
-  std::vector<std::filesystem::path> directories{getGlobalAiModelDirectory(), getUsersAiModelDirectory(workingDirectory)};
+  std::vector<std::filesystem::path> directories{getGlobalAiModelDirectory()};
+  if(!workingDirectory.empty()) {
+    directories.emplace_back(getUsersAiModelDirectory(workingDirectory));
+  }
 
   for(const auto &directory : directories) {
     if(fs::exists(directory) && fs::is_directory(directory)) {

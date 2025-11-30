@@ -67,13 +67,12 @@ auto AiModelInstanseg::processPrediction(const at::Device & /*device*/, const cv
 
   return {};
 
-  /*
   // ===============================
   // 2.  Apply a threshold to create a binary mask for the object
   // ===============================
-  cv::Mat binaryMask;
-  cv::threshold(mask, binaryMask, mSettings.maskThreshold, 1.0, cv::THRESH_BINARY);
-  binaryMask.convertTo(binaryMask, CV_8U, 255);
+  cv::Mat binaryMaskNuclei;
+  cv::threshold(nuclei, binaryMaskNuclei, mSettings.maskThreshold, 1.0, cv::THRESH_BINARY);
+  binaryMaskNuclei.convertTo(binaryMaskNuclei, CV_8U, 255);
 
   // cv::Mat binaryContourMask;
   // cv::threshold(contourMask, binaryContourMask, mSettings.contourThreshold, 1.0, cv::THRESH_BINARY);
@@ -85,69 +84,73 @@ auto AiModelInstanseg::processPrediction(const at::Device & /*device*/, const cv
   // ===============================
   // 3. Extract each individual object by finding connected components
   // ===============================
-  std::vector<cv::Mat> contours;
-  std::vector<std::vector<cv::Point>> contours_poly;
-  cv::findContours(binaryMask, contours_poly, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-
   std::vector<Result> results;
-  for(size_t j = 0; j < contours_poly.size(); ++j) {
-    // Create an empty mask for this object
-    cv::Mat object_mask = cv::Mat::zeros(binaryMask.size(), CV_8U);
+  auto extractObject = [&results, &tensorProbabilitiesCpu, originalHeight, originalWith](const cv::Mat &mask) {
+    std::vector<cv::Mat> contours;
+    std::vector<std::vector<cv::Point>> contours_poly;
+    cv::findContours(mask, contours_poly, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
-    // Draw the contour for this object on the empty mask
-    cv::drawContours(object_mask, contours_poly, static_cast<int>(j), cv::Scalar(255), cv::FILLED);
+    for(size_t j = 0; j < contours_poly.size(); ++j) {
+      // Create an empty mask for this object
+      cv::Mat object_mask = cv::Mat::zeros(mask.size(), CV_8U);
 
-    // Get the class probabilities for this object (we take the maximum probability over the mask)
-    cv::Mat object_probs = cv::Mat::zeros(binaryMask.size(), CV_32F);
+      // Draw the contour for this object on the empty mask
+      cv::drawContours(object_mask, contours_poly, static_cast<int>(j), cv::Scalar(255), cv::FILLED);
 
-    // Loop through the mask and find the max class probability
-    float max_prob      = 0.0f;
-    int predicted_class = -1;
+      // Get the class probabilities for this object (we take the maximum probability over the mask)
+      cv::Mat object_probs = cv::Mat::zeros(mask.size(), CV_32F);
 
-    for(int y = 0; y < originalHeight; ++y) {
-      for(int x = 0; x < originalWith; ++x) {
-        if(object_mask.at<uchar>(y, x) == 255) {
-          // Get the class probabilities at this pixel (for all classes)
-          for(int c = 0; c < tensorProbabilitiesCpu.size(1); ++c) {
-            float prob = tensorProbabilitiesCpu[0][c][y][x].item<float>();
-            if(prob > max_prob) {
-              max_prob        = prob;
-              predicted_class = c;
+      // Loop through the mask and find the max class probability
+      float max_prob      = 0.0F;
+      int predicted_class = -1;
+
+      for(int y = 0; y < originalHeight; ++y) {
+        for(int x = 0; x < originalWith; ++x) {
+          if(object_mask.at<uchar>(y, x) == 255) {
+            // Get the class probabilities at this pixel (for all classes)
+            for(int c = 0; c < tensorProbabilitiesCpu.size(1); ++c) {
+              float prob = tensorProbabilitiesCpu[0][c][y][x].item<float>();
+              if(prob > max_prob) {
+                max_prob        = prob;
+                predicted_class = c;
+              }
             }
           }
         }
       }
-    }
 
-    cv::Rect fittedBoundingBox = cv::boundingRect(contours_poly[j]);
-    // Fit the bounding box and mask to the new size
-    cv::Mat shiftedMask = cv::Mat::zeros(fittedBoundingBox.size(), CV_8UC1);
-    shiftedMask         = object_mask(fittedBoundingBox).clone();
+      cv::Rect fittedBoundingBox = cv::boundingRect(contours_poly[j]);
+      // Fit the bounding box and mask to the new size
+      cv::Mat shiftedMask = cv::Mat::zeros(fittedBoundingBox.size(), CV_8UC1);
+      shiftedMask         = object_mask(fittedBoundingBox).clone();
 
-    // Move the contour points
-    int32_t xOffset = fittedBoundingBox.x;
-    int32_t yOffset = fittedBoundingBox.y;
-    auto contour    = contours_poly[j];
-    for(auto &point : contour) {
-      point.x = point.x - xOffset;
-      if(point.x < 0) {
-        point.x = 0;
+      // Move the contour points
+      int32_t xOffset = fittedBoundingBox.x;
+      int32_t yOffset = fittedBoundingBox.y;
+      auto contour    = contours_poly[j];
+      for(auto &point : contour) {
+        point.x = point.x - xOffset;
+        if(point.x < 0) {
+          point.x = 0;
+        }
+        point.y = point.y - yOffset;
+        if(point.y < 0) {
+          point.y = 0;
+        }
       }
-      point.y = point.y - yOffset;
-      if(point.y < 0) {
-        point.y = 0;
-      }
+
+      // Add the individual object mask to the vector
+      results.push_back(Result{.boundingBox = fittedBoundingBox,
+                               .mask        = std::move(shiftedMask),
+                               .contour     = std::move(contour),
+                               .classId     = predicted_class,
+                               .probability = max_prob});
     }
+  };
 
-    // Add the individual object mask to the vector
-    results.push_back(Result{.boundingBox = fittedBoundingBox,
-                             .mask        = std::move(shiftedMask),
-                             .contour     = std::move(contour),
-                             .classId     = predicted_class,
-                             .probability = max_prob});
-  }
+  extractObject(nuclei);
 
-  return results;    // Return the vector of individual object masks*/
+  return results;    // Return the vector of individual object masks
 }
 
 }    // namespace joda::ai
