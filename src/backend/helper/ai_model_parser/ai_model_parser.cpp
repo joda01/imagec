@@ -121,7 +121,7 @@ auto AiModelParser::parseResourceDescriptionFile(std::filesystem::path rdfYaml) 
   }
 
   auto calcOptimalSize = [](int32_t min, int32_t step) {
-    int32_t k = static_cast<int32_t>((1024.0F - static_cast<float>(min)) / static_cast<float>(step));
+    int32_t k = static_cast<int32_t>((640.0F - static_cast<float>(min)) / static_cast<float>(step));
     if(k < 1) {
       k = 0;
     }

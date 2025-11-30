@@ -199,7 +199,7 @@ void logTrace(const std::string &message)
 void logProgress(float ratio, const std::string &message)
 {
   lastProgress = ratio;
-  enqueue(message, "[" + toPercentString(ratio) + "]", GRAY_COLOR);
+  enqueue(message, toPercentString(ratio), GRAY_COLOR);
 }
 
 /////////////////////////////////////////////////////
