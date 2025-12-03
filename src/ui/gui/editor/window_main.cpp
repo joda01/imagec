@@ -904,8 +904,8 @@ void WindowMain::onStartClicked(AnalyzeMode mode)
     return;
   }
 
-  // Go back to the start panel to free the RAM of the preview
-  showPanelStartPage();
+  showPanelStartPage();    // Go back to the start panel to free the RAM of the preview
+  onSaveProject();         // Save the actual project before starting the analysis
 
   try {
     mAnalyzeSettings.projectSettings.experimentSettings.experimentId   = mPanelProjectSettings->getExperimentId().toStdString();

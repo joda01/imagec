@@ -324,11 +324,9 @@ void ObjectList::erase(joda::atom::ROI::Category categoryToErase)
 ///
 void ObjectList::clearAll()
 {
-  // triggerStartChangeCallback();
   std::lock_guard<std::mutex> lock(mInsertLock);
   std::map<enums::ClassId, std::unique_ptr<SpheralIndex>>::clear();
   objectsOrderedByObjectId.clear();
-  // triggerChangeCallback();
 }
 
 void ObjectList::erase(const std::set<ROI *> &rois)

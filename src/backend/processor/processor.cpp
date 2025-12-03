@@ -156,7 +156,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
                       break;
                     }
                     auto objectCache = std::make_shared<joda::atom::ObjectList>();
-                    IterationContext iterationContext(objectCache);
+                    IterationContext iterationContext(objectCache, program.getProjectPath(), imagePath);
                     // Execute pipelines of this iteration
 
                     // Start with the highest prio pipelines down to the lowest prio
@@ -374,9 +374,6 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
 {
   DurationCount durationCount("Generate preview.");
 
-  // Prepare the output object class
-  auto objectMapBuffer = std::make_shared<joda::atom::ObjectList>();
-
   // Prepare thread pool
   mGlobThreadPool.reset(threadingSettings.coresUsed);
   auto poolSizeChannels = threadingSettings.coresUsed;
@@ -423,7 +420,8 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
   ImageContext imageContext{.imageLoader = imageLoader, .imageMeta = ome, .imageId = 1};
   imageLoader.init(imageContext);
 
-  IterationContext iterationContext(objectMapBuffer);
+  auto objectMapBuffer = std::make_shared<joda::atom::ObjectList>();
+  IterationContext iterationContext(objectMapBuffer, program.getProjectPath(), imagePath);
 
   size_t totalRuns = 0;
   for(const auto &[order, pipelines] : pipelineOrder) {
