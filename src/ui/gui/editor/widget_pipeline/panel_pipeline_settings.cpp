@@ -225,6 +225,7 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
   mSettings.registerPipelineChangedCallback([this](const settings::Pipeline &) { setImageMustBeRefreshed(true); });
+  mRegisterManualAnnotationAddedId = mPreviewResult->results.objectMap->registerManualAnnotationAdded([this]() { setImageMustBeRefreshed(true); });
 }
 
 ///
@@ -392,6 +393,7 @@ void PanelPipelineSettings::erasePipelineStep(const Command *toDelete, bool upda
 ///
 PanelPipelineSettings::~PanelPipelineSettings()
 {
+  mPreviewResult->results.objectMap->unregisterManualAnnotationAdded(mRegisterManualAnnotationAddedId);
   mStopped = true;
   if(mPreviewThread != nullptr) {
     if(mPreviewThread->joinable()) {
@@ -442,6 +444,7 @@ void PanelPipelineSettings::previewThread()
       emit updatePreviewStarted();
       try {
         // Collect data
+        mWindowMain->saveROI();
         settings::AnalyzeSettings settingsTmp           = mWindowMain->getSettings();
         auto *controller                                = mWindowMain->getController();
         const auto [imgIndex, selectedSeries, imgProps] = mWindowMain->getImagePanel()->getSelectedImage();

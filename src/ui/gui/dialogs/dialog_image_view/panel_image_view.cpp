@@ -2047,6 +2047,7 @@ void PanelImageView::addPolygonToToObjectMap(const QPolygonF &poly)
   mObjectMap->triggerStartChangeCallback();
   mObjectMap->push_back(paintedRoi);
   mObjectMap->triggerChangeCallback();
+  mObjectMap->triggerManuelAnnotationAdded();
   setRegionsOfInterestFromObjectList();
 }
 

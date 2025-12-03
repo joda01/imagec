@@ -264,24 +264,46 @@ public:
   {
     return &objectsOrderedByObjectId;
   }
-  void registerOnChangeCallback(const std::function<void()> &cb)
+  int32_t registerOnChangeCallback(const std::function<void()> &cb)
   {
-    mChangeCallback.push_back(cb);
+    mCallBackId++;
+    mChangeCallback.emplace(mCallBackId, cb);
+    return mCallBackId;
   }
-  void registerOnStartChangeCallback(const std::function<void()> &cb)
+  int32_t registerOnStartChangeCallback(const std::function<void()> &cb)
   {
-    mStartChangeCallback.push_back(cb);
+    mCallBackId++;
+    mStartChangeCallback.emplace(mCallBackId, cb);
+    return mCallBackId;
   }
+  int32_t registerManualAnnotationAdded(const std::function<void()> &cb)
+  {
+    mCallBackId++;
+    mManuelAnnotationAdded.emplace(mCallBackId, cb);
+    return mCallBackId;
+  }
+  void unregisterManualAnnotationAdded(int32_t id)
+  {
+    mManuelAnnotationAdded.erase(id);
+  }
+
   void triggerChangeCallback() const
   {
-    for(const auto &cb : mChangeCallback) {
+    for(const auto &[_, cb] : mChangeCallback) {
       cb();
     }
   }
 
   void triggerStartChangeCallback() const
   {
-    for(const auto &cb : mStartChangeCallback) {
+    for(const auto &[_, cb] : mStartChangeCallback) {
+      cb();
+    }
+  }
+
+  void triggerManuelAnnotationAdded() const
+  {
+    for(const auto &[_, cb] : mManuelAnnotationAdded) {
       cb();
     }
   }
@@ -303,8 +325,10 @@ private:
   /////////////////////////////////////////////////////
   std::map<uint64_t, ROI *> objectsOrderedByObjectId;
   mutable std::mutex mInsertLock;
-  std::vector<std::function<void()>> mChangeCallback;
-  std::vector<std::function<void()>> mStartChangeCallback;
+  std::map<int32_t, std::function<void()>> mChangeCallback;
+  std::map<int32_t, std::function<void()>> mStartChangeCallback;
+  std::map<int32_t, std::function<void()>> mManuelAnnotationAdded;
+  static inline std::atomic<int32_t> mCallBackId = 0;
 };
 
 }    // namespace joda::atom

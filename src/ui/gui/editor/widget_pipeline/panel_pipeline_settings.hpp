@@ -145,6 +145,9 @@ private:
   QMetaObject::Connection mImageOpenedConnection;
   QMetaObject::Connection mTrainingFinishedConnection;
 
+  /////////////////////////////////////////////////////
+  int32_t mRegisterManualAnnotationAddedId = -1;
+
 private slots:
   /////////////////////////////////////////////////////
   void onPreviewStarted();
