@@ -108,6 +108,8 @@ public:
     return mPreviewImage;
   }
 
+  auto getWorkingDirectoryForSave(const std::string &defaultName, const std::string &endian) const -> std::filesystem::path;
+
   void addToLastLoadedResults(const QString &path, const QString &jobName);
   void setWindowTitlePrefix(const QString &txt);
   void checkForSettingsChanged();

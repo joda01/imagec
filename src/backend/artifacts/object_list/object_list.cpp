@@ -2,6 +2,7 @@
 
 #include "object_list.hpp"
 #include <exception>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <list>
@@ -465,6 +466,9 @@ void ObjectList::deserialize(const std::filesystem::path &filename)
 {
   try {
     clearAll();
+    if(!std::filesystem::exists(filename)) {
+      return;
+    }
     std::ifstream is(filename.string(), std::ios::binary);
     cereal::BinaryInputArchive archive(is);
 

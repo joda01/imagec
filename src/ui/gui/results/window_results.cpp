@@ -1266,8 +1266,6 @@ void WindowResults::showOpenFileDialog()
 ///
 void WindowResults::showFileSaveDialog(const QString &filter)
 {
-  QString templatePath = joda::templates::TemplateParser::getUsersTemplateDirectory().string().data();
-
   auto getEndianFromFilter = [](const QString &filterIn) -> std::string {
     std::string endian;
     if(filterIn.contains("(*.xlsx)")) {

@@ -191,7 +191,7 @@ PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList>
       if(!indexes.isEmpty()) {
         int selectedRow = indexes.first().row();
         if(selectedRow > 0) {
-          if(askForDeleteClass()) {
+          if(askForDeleteClass("Delete selected class")) {
             auto it = mSettings->classes.begin();
             std::advance(it, selectedRow - 1);
             mSettings->classes.erase(it);
@@ -202,14 +202,88 @@ PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList>
     });
 
     // Submenu
-    auto *submenuAction = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("dots-three-vertical"), "");
-    submenuAction->setMenu(submenu);
-    toolbar->addAction(submenuAction);
-    auto *btn = qobject_cast<QToolButton *>(toolbar->widgetForAction(submenuAction));
-    btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
-    btn->setStyleSheet("QToolButton::menu-indicator { image: none; }");
+    {
+      auto *submenuAction = new QAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("dots-three-vertical"), "");
+      submenuAction->setMenu(submenu);
+      toolbar->addAction(submenuAction);
+      auto *btn = qobject_cast<QToolButton *>(toolbar->widgetForAction(submenuAction));
+      btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
+      btn->setStyleSheet("QToolButton::menu-indicator { image: none; }");
+    }
 
     // toolbar->addSeparator();
+
+    // Create spacer
+    QWidget *spacer = new QWidget();
+    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    toolbar->addWidget(spacer);
+
+    // Add right-side actions/widgets
+    {
+      auto *subMenuClassification = new QMenu();
+
+      auto *saveRois = subMenuClassification->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("box-arrow-up"), "Save manual annotations");
+      connect(saveRois, &QAction::triggered, [this] {
+        const auto filePath      = mWindowMain->getWorkingDirectoryForSave(joda::fs::FILE_NAME_ANNOTATIONS, joda::fs::EXT_ANNOTATION);
+        QFileDialog::Options opt = QFileDialog::DontUseNativeDialog;
+        QString fileToSave       = QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(),
+                                                                "ImageC annotations (*" + QString(joda::fs::EXT_ANNOTATION.data()) + ")", nullptr, opt);
+        if(!fileToSave.isEmpty()) {
+          mObjectMap->serialize(fileToSave.toStdString());
+        }
+      });
+
+      auto *openRois = subMenuClassification->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("box-arrow-down"), "Open manual annotations");
+      connect(openRois, &QAction::triggered, [this] {
+        const auto filePath      = mWindowMain->getWorkingDirectoryForSave(joda::fs::FILE_NAME_ANNOTATIONS, joda::fs::EXT_ANNOTATION);
+        QFileDialog::Options opt = QFileDialog::DontUseNativeDialog;
+        QString fileToOpen       = QFileDialog::getOpenFileName(this, "Open File", filePath.string().data(),
+                                                                "ImageC annotations (*" + QString(joda::fs::EXT_ANNOTATION.data()) + ")", nullptr, opt);
+        if(!fileToOpen.isEmpty()) {
+          mObjectMap->triggerStartChangeCallback();
+          mObjectMap->deserialize(fileToOpen.toStdString());
+          mObjectMap->triggerChangeCallback();
+          mDialogImageView->getImagePanel()->setRegionsOfInterestFromObjectList();
+          mObjectMap->triggerManuelAnnotationAdded();
+        }
+      });
+
+      subMenuClassification->addSeparator();
+
+      auto *delManualAnnotation =
+          subMenuClassification->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("eraser"), "Delete manual annotations");
+      connect(delManualAnnotation, &QAction::triggered, [this] {
+        if(!askForDeleteClass("Delete manual annotations?")) {
+          return;
+        }
+
+        mObjectMap->triggerStartChangeCallback();
+        mObjectMap->erase(joda::atom::ROI::Category::MANUAL_SEGMENTATION);
+        mObjectMap->triggerChangeCallback();
+        mDialogImageView->getImagePanel()->setRegionsOfInterestFromObjectList();
+        mObjectMap->triggerManuelAnnotationAdded();
+      });
+
+      auto *delAutomaticAnnotation =
+          subMenuClassification->addAction(generateSvgIcon<Style::REGULAR, Color::RED>("eraser"), "Delete automatic annotations");
+      connect(delAutomaticAnnotation, &QAction::triggered, [this] {
+        if(!askForDeleteClass("Delete automatic annotations?")) {
+          return;
+        }
+
+        mObjectMap->triggerStartChangeCallback();
+        mObjectMap->erase(joda::atom::ROI::Category::AUTO_SEGMENTATION);
+        mObjectMap->triggerChangeCallback();
+        mDialogImageView->getImagePanel()->setRegionsOfInterestFromObjectList();
+        mObjectMap->triggerManuelAnnotationAdded();
+      });
+
+      auto *classificationMenu = toolbar->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("list"), "");
+      classificationMenu->setMenu(subMenuClassification);
+      auto *btn = qobject_cast<QToolButton *>(toolbar->widgetForAction(classificationMenu));
+      btn->setPopupMode(QToolButton::ToolButtonPopupMode::InstantPopup);
+      btn->setStyleSheet("QToolButton::menu-indicator { image: none; }");
+    }
 
     //
     // Clear
@@ -545,12 +619,12 @@ bool PanelClassification::askForChangeTemplateIndex()
 /// \param[out]
 /// \return
 ///
-bool PanelClassification::askForDeleteClass()
+bool PanelClassification::askForDeleteClass(const QString &text)
 {
   QMessageBox messageBox(mWindowMain);
   messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::YELLOW>("warning").pixmap(48, 48));
   messageBox.setWindowTitle("Proceed?");
-  messageBox.setText("Remove selected class?");
+  messageBox.setText(text);
   QPushButton *noButton = messageBox.addButton(tr("No"), QMessageBox::NoRole);
   messageBox.addButton(tr("Yes"), QMessageBox::YesRole);
   messageBox.setDefaultButton(noButton);

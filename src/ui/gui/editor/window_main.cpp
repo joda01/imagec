@@ -805,6 +805,21 @@ void WindowMain::onSaveProjectAs()
 /// \brief
 /// \author     Joachim Danmayr
 ///
+auto WindowMain::getWorkingDirectoryForSave(const std::string &defaultName, const std::string &endian) const -> std::filesystem::path
+{
+  std::filesystem::path filePath(mAnalyzeSettings.projectSettings.plate.imageFolder);
+  filePath = filePath / joda::fs::WORKING_DIRECTORY_PROJECT_PATH;
+  if(!std::filesystem::exists(filePath)) {
+    std::filesystem::create_directories(filePath);
+  }
+  filePath = filePath / (defaultName + endian);
+  return filePath;
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
 bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool createHistoryEntry)
 {
   bool okay = false;
@@ -814,12 +829,7 @@ bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
         QMessageBox::information(this, "Save project ...", "Select an image directory first!");
         return false;
       }
-      std::filesystem::path filePath(mAnalyzeSettings.projectSettings.plate.imageFolder);
-      filePath = filePath / joda::fs::WORKING_DIRECTORY_PROJECT_PATH;
-      if(!std::filesystem::exists(filePath)) {
-        std::filesystem::create_directories(filePath);
-      }
-      filePath                 = filePath / (joda::fs::FILE_NAME_PROJECT_DEFAULT + joda::fs::EXT_PROJECT);
+      const auto filePath      = getWorkingDirectoryForSave(joda::fs::FILE_NAME_PROJECT_DEFAULT, joda::fs::EXT_PROJECT);
       QFileDialog::Options opt = QFileDialog::DontUseNativeDialog;
       QString filePathOfSettingsFile =
           QFileDialog::getSaveFileName(this, "Save File", filePath.string().data(),
