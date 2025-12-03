@@ -607,11 +607,21 @@ void WindowMain::loadROI(const std::filesystem::path &imagePath)
 /// \brief
 /// \author     Joachim Danmayr
 ///
+void WindowMain::saveROI()
+{
+  saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+///
 void WindowMain::saveROI(const std::filesystem::path &imagePath)
 {
   if(imagePath.empty() || !mAnalyzeSettings.isProjectPathSet()) {
     return;
   }
+  std::lock_guard<std::mutex> lock(mWriteRoi);
   const std::filesystem::path projectPath(mAnalyzeSettings.getProjectPath());
   auto imgIdOld =
       joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath, joda::fs::FILE_NAME_ANNOTATIONS + joda::fs::EXT_ANNOTATION);

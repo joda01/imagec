@@ -530,7 +530,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
   }
 
   previewOut.results.objectMap->triggerStartChangeCallback();
-  previewOut.results.objectMap->mergeFrom(std::move(*objectMapBuffer), joda::atom::ROI::Category::MANUAL_SEGMENTATION);
+  previewOut.results.objectMap->mergeFrom(std::move(*objectMapBuffer), {});
   previewOut.results.objectMap->triggerChangeCallback();
   objectMapBuffer.reset();
 

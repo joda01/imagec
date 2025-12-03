@@ -112,6 +112,7 @@ public:
   void setWindowTitlePrefix(const QString &txt);
   void checkForSettingsChanged();
   auto getOutputClasses() -> std::set<joda::enums::ClassId>;
+  void saveROI();
 
 public slots:
   void onBackClicked();
@@ -202,6 +203,7 @@ private:
 
   ////Mutexes/////////////////////////////////////////////////
   std::mutex mCheckForSettingsChangedMutex;
+  std::mutex mWriteRoi;
 
 public slots:
   void onNewProjectClicked();

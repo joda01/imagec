@@ -308,7 +308,8 @@ auto Settings::toResultsSettings(const ResultSettingsInput &settingsIn) -> Resul
       }
     }
 
-    for(const auto &classId : settingsIn.outputClasses) {
+    for(const auto &classs : settingsIn.classes) {
+      const auto classId = classs.classId;
       if(classId == enums::ClassId::UNDEFINED || classId == enums::ClassId::NONE) {
         continue;
       }
