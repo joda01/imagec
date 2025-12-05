@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OME
+    xmlns="http://www.openmicroscopy.org/Schemas/OME/2016-06"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openmicroscopy.org/Schemas/OME/2016-06 http://www.openmicroscopy.org/Schemas/OME/2016-06/ome.xsd">
+    <Experimenter ID="Experimenter:0" UserName="n.chaves-solano"/>
+    <Instrument ID="Instrument:0">
+        <Microscope/>
+        <Detector AmplificationGain="1.0" Gain="1.0" ID="Detector:0:0" Model="" Type="PMT" Zoom="1.0"/>
+        <Detector AmplificationGain="1.0" Gain="478.0" ID="Detector:1:0" Model="" Type="PMT" Zoom="1.0"/>
+        <Objective ID="Objective:0" Immersion="Oil" LensNA="1.4000000000000001" Model="Plan-Apochromat 40x/1.4 Oil DIC M27" NominalMagnification="40.0"/>
+    </Instrument>
+    <Image ID="Image:0" Name="">
+        <ExperimenterRef ID="Experimenter:0"/>
+        <InstrumentRef ID="Instrument:0"/>
+        <ObjectiveSettings ID="Objective:0" Medium="Oil" RefractiveIndex="1.518"/>
+        <StageLabel Name="Scene position #0" X="-6568.0" XUnit="µm" Y="2937.0" YUnit="µm" Z="35.131" ZUnit="µm"/>
+        <Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:0" Interleaved="false" PhysicalSizeX="0.415132918725895" PhysicalSizeXUnit="µm" PhysicalSizeY="0.415132918725895" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="512" SizeY="512" SizeZ="1" Type="uint8">
+            <Channel AcquisitionMode="LaserScanningConfocalMicroscopy" Color="65535" EmissionWavelength="453.50000000000006" EmissionWavelengthUnit="nm" ExcitationWavelength="405.00000000000006" ExcitationWavelengthUnit="nm" Fluor="DAPI" ID="Channel:0:0" IlluminationType="Epifluorescence" Name="Ch1-T1" SamplesPerPixel="1">
+                <DetectorSettings Binning="1x1" ID="Detector:0:0"/>
+                <LightPath/>
+            </Channel>
+            <Channel AcquisitionMode="LaserScanningConfocalMicroscopy" Color="16711935" EmissionWavelength="515.5218240000002" EmissionWavelengthUnit="nm" ExcitationWavelength="488.00000000000006" ExcitationWavelengthUnit="nm" Fluor="FITC" ID="Channel:0:1" IlluminationType="Epifluorescence" Name="Ch2 M-T2" SamplesPerPixel="1">
+                <DetectorSettings Binning="1x1" ID="Detector:1:0"/>
+                <LightPath/>
+            </Channel>
+            <MetadataOnly/>
+            <Plane DeltaT="2480.67451196" DeltaTUnit="s" PositionX="-6568.0" PositionXUnit="µm" PositionY="2937.0" PositionYUnit="µm" PositionZ="35.131" PositionZUnit="µm" TheC="0" TheT="0" TheZ="0"/>
+            <Plane DeltaT="2480.67451196" DeltaTUnit="s" PositionX="-6568.0" PositionXUnit="µm" PositionY="2937.0" PositionYUnit="µm" PositionZ="35.131" PositionZUnit="µm" TheC="1" TheT="0" TheZ="0"/>
+        </Pixels>
+    </Image>
+</OME>
+<JODA
+    xmlns="https://www.imagec.org/" SeriesCount="1">
+    <Series idx="0" ResolutionCount="1">
+        <PyramidResolution idx="0" width="512" height="512" TileWidth="512" TileHeight="512" BitsPerPixel="8" RGBChannelCount="1" IsInterleaved="0" IsLittleEndian="1"/>
+    </Series>
+</JODA>

@@ -905,6 +905,7 @@ void WindowMain::onStartClicked(AnalyzeMode mode)
   }
 
   // Go back to the start panel to free the RAM of the preview
+  onSaveProject();
   showPanelStartPage();
 
   try {

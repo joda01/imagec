@@ -661,6 +661,7 @@ void PanelPipelineSettings::onClassificationNameChanged()
 ///
 void PanelPipelineSettings::setActive(bool setActive)
 {
+  std::lock_guard<std::mutex> lock(mShutingDownMutex);
   if(!mIsActiveShown && setActive) {
     // Set the image channel initial to the selected channel of the pipeline
     if(mSettings.pipelineSetup.cStackIndex >= 0) {
@@ -688,7 +689,6 @@ void PanelPipelineSettings::setActive(bool setActive)
     mPreviewResult->results.objectMap->erase(joda::atom::ROI::Category::AUTO_SEGMENTATION);
     mPreviewResult->results.objectMap->triggerChangeCallback();
     mPreviewImage->getImagePanel()->setRegionsOfInterestFromObjectList();
-    std::lock_guard<std::mutex> lock(mShutingDownMutex);
     setImageMustBeRefreshed(false);
     mIsActiveShown = false;
     CHECK_GUI_THREAD(mToolbar)
@@ -698,7 +698,7 @@ void PanelPipelineSettings::setActive(bool setActive)
     mHistoryAction->setChecked(false);
     // Wait until preview render has been finished
     while(mPreviewInProgress) {
-      std::this_thread::sleep_for(100ms);
+      std::this_thread::sleep_for(200ms);
     }
   }
 }

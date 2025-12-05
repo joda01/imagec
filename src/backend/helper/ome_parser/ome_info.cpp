@@ -53,8 +53,8 @@ void OmeInfo::loadOmeInformationFromXMLString(const std::string &omeXML, const P
   std::string keyPrefix;    // OME:
 
 TRY_AGAIN:
-  std::string imageNameIn = std::string(doc.child("OME").child(std::string(keyPrefix + "Image").data()).attribute("Name").as_string());
-  if(imageNameIn.empty() && keyPrefix.empty()) {
+  const std::string imageIdIn = std::string(doc.child("OME").child(std::string(keyPrefix + "Image").data()).attribute("ID").as_string());
+  if(imageIdIn.empty() && keyPrefix.empty()) {
     keyPrefix = "OME:";
     goto TRY_AGAIN;
   }

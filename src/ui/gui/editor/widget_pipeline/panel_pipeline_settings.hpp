@@ -122,7 +122,7 @@ private:
   DialogMlTrainer *mMlTraining;
   std::unique_ptr<std::thread> mPreviewThread = nullptr;
   bool mIsActiveShown                         = false;
-  bool mPreviewInProgress                     = false;
+  std::atomic<bool> mPreviewInProgress        = false;
   bool mLoadingSettings                       = false;
   WindowMain *mWindowMain;
   AddCommandButtonBase *mTopAddCommandButton;

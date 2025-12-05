@@ -174,6 +174,10 @@ public:
     if(series < 0 || static_cast<size_t>(series) >= getNrOfSeries()) {
       series = 0;
     }
+    if(static_cast<int32_t>(mImageInfo.size()) <= series) {
+      static ImageInfo tmp;
+      return tmp;
+    }
     return mImageInfo.at(series);
   }
   [[nodiscard]] bool containsSeries(int32_t series) const
