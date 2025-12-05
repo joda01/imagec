@@ -17,6 +17,7 @@
 #include <memory>
 #include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/enums/enum_image_cache.hpp"
+#include "backend/helper/fnv1a.hpp"
 
 namespace joda::processor {
 
@@ -27,8 +28,13 @@ class IterationContext
   friend class ProcessContext;
 
 public:
-  explicit IterationContext(std::shared_ptr<joda::atom::ObjectList> &objectList) : actObjects(objectList)
+  explicit IterationContext(std::shared_ptr<joda::atom::ObjectList> &objectList, const std::filesystem::path &projectPath,
+                            const std::filesystem::path &imagePath) :
+      actObjects(objectList)
   {
+    auto storagePath = joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath,
+                                                                                   joda::fs::FILE_NAME_ANNOTATIONS + joda::fs::EXT_ANNOTATION);
+    objectList->deserialize(storagePath);
   }
   joda::atom::ObjectList &getObjects()
   {

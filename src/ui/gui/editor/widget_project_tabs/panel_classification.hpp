@@ -93,7 +93,7 @@ private:
 
   /// TEMPLATE //////////////////////////////////////////////////
   bool askForChangeTemplateIndex();
-  bool askForDeleteClass();
+  bool askForDeleteClass(const QString &text);
   bool mDontAsk = false;
 
 private slots:

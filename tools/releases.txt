@@ -1,0 +1,1689 @@
+Release: 0.0.3-alpha.27
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.26...0.0.3-alpha.27
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.26...0.0.3-alpha.27
+----------------------------------------
+Release: 0.0.3-alpha.26
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.25...0.0.3-alpha.26
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.25...0.0.3-alpha.26
+----------------------------------------
+Release: 0.0.3-alpha.25
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.24...0.0.3-alpha.25
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.24...0.0.3-alpha.25
+----------------------------------------
+Release: 0.0.3-alpha.24
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.23...0.0.3-alpha.24
+----------------------------------------
+Release: 0.0.3-alpha.23
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.22...0.0.3-alpha.23
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.22...0.0.3-alpha.23
+----------------------------------------
+Release: 0.0.3-alpha.22
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.21...0.0.3-alpha.22
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.21...0.0.3-alpha.22
+----------------------------------------
+Release: 0.0.3-alpha.21
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.20...0.0.3-alpha.21
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.20...0.0.3-alpha.21
+----------------------------------------
+Release: 0.0.3-alpha.20
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.19...0.0.3-alpha.20
+----------------------------------------
+Release: 0.0.3-alpha.19
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.18...0.0.3-alpha.19
+----------------------------------------
+Release: 0.0.3-alpha.18
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.17...0.0.3-alpha.18
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.17...0.0.3-alpha.18
+----------------------------------------
+Release: 0.0.3-alpha.17
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.16...0.0.3-alpha.17
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.16...0.0.3-alpha.17
+----------------------------------------
+Release: 0.0.3-alpha.16
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.15...0.0.3-alpha.16
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.15...0.0.3-alpha.16
+----------------------------------------
+Release: 0.0.3-alpha.15
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.14...0.0.3-alpha.15
+----------------------------------------
+Release: 0.0.3-alpha.14
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.13...0.0.3-alpha.14
+----------------------------------------
+Release: 0.0.3-alpha.13
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.12...0.0.3-alpha.13
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.12...0.0.3-alpha.13
+----------------------------------------
+Release: 0.0.3-alpha.12
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.11...0.0.3-alpha.12
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.11...0.0.3-alpha.12
+----------------------------------------
+Release: 0.0.3-alpha.11
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.10...0.0.3-alpha.11
+----------------------------------------
+Release: 0.0.3-alpha.10
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.9...0.0.3-alpha.10
+----------------------------------------
+Release: 0.0.3-alpha.9
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.8...0.0.3-alpha.9
+----------------------------------------
+Release: 0.0.3-alpha.8
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.7...0.0.3-alpha.8
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.7...0.0.3-alpha.8
+----------------------------------------
+Release: 0.0.3-alpha.7
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.6...0.0.3-alpha.7
+----------------------------------------
+Release: 0.0.3-alpha.6
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/0.0.3-alpha.5...0.0.3-alpha.6
+----------------------------------------
+Release: 0.0.2
+Description: ## What's Changed
+
+fix: Fixed bigEndianToLittleEndian conversion @joda01 
+fix: Support of not rectangle pixel sizes @joda01 
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/0.0.1...0.0.2
+----------------------------------------
+Release: 0.0.1
+Description: ## What's Changed
+
+* fix: Number of average intersecting objects in results may be wrong in case of multiple intersecting classes for the same object class by @joda01 
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.3.0-alpha.2...0.0.1
+----------------------------------------
+Release: v1.3.0-alpha.2
+Description: ## What's Changed
+
+* feat: Allow to work with real sizes instead of pixel values by @joda01 in https://github.com/joda01/imagec/pull/194
+* feat: Display ruler in preview and allow to select unit by @joda01 in https://github.com/joda01/imagec/pull/194
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/1.3.0-beta.2...v1.3.0-alpha.2
+----------------------------------------
+Release: v1.3.0-alpha.1
+Description: ## What's Changed
+
+* fix: Loading templates from absolute path @joda01
+* feat: Add filter option which allows to remove objects touching the edges @joda01
+* feat: With this release MacOS with Apple Silicon (ARM64) are supported.
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.2.0-alpha.1...v1.2.0-alpha.2
+----------------------------------------
+Release: v1.2.0-alpha.1
+Description: ## What's Changed
+
+* fix: Group zero was not shown in results by @joda01 in https://github.com/joda01/imagec/pull/188
+* fix: Was not possible to individually hide intensity values by @joda01 in https://github.com/joda01/imagec/pull/188
+* fix: Cycles in dependency graph is not resolved correctly @joda01
+* fix: Coloc was not calculated if coloc are class was set to `None` @joda01
+* fix: Templates and AI models are now loaded from absolute path @joda01
+* feat: Add CUDA support for pytorch models by @joda01 in https://github.com/joda01/imagec/pull/188
+* feat: Implemented CUDA kernel for cyto3 flow field decoding by @joda01 in https://github.com/joda01/imagec/pull/188
+* feat: AI models can now be loaded from users directory @joda01
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.1.0-beta.5...v1.2.0-beta.1
+----------------------------------------
+Release: v1.1.0-beta.5
+Description: ## What's Changed
+
+* fix: Group zero was not shown in results by @joda01
+* fix: Was not possible to individually hide intensity values by @joda01
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.1.0-beta.4...v1.1.0-beta.5
+----------------------------------------
+Release: v1.1.0-beta.4
+Description: ## What's Changed
+
+* fix: Added sigma to description of kernel by @joda01
+* fix: Autoselect image channel of selected pipeline by @joda01
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.1.0-beta.3...v1.1.0-beta.4
+----------------------------------------
+Release: v1.1.0-beta.3
+Description: ## What's Changed
+* feat: Added skeletonize command by @joda01
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.1.0-beta.2...v1.1.0-beta.3
+----------------------------------------
+Release: v1.1.0-beta.2
+Description: ## What's Changed
+* feat: Added support for cellpose/cyto3 by @joda01 in https://github.com/joda01/imagec/pull/186
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.1.0-beta.1...v1.1.0-beta.2
+----------------------------------------
+Release: v1.1.0-beta.1
+Description: ## What's Changed
+
+* feat: Added video support by @joda01 in https://github.com/joda01/imagec/pull/184
+* feat: Full redesign of the user interface by @joda01 in https://github.com/joda01/imagec/pull/184
+* feat: Results are now presented in a more intuitive form by @joda01 in https://github.com/joda01/imagec/pull/184
+* feat: Added live edit mode  by @joda01 in https://github.com/joda01/imagec/pull/184
+* feat: Object IDs are now shorten by @joda01 in https://github.com/joda01/imagec/pull/184
+* feat: Add object transform bounding ellipse by @joda01 in https://github.com/joda01/imagec/pull/184
+* feat: Added CLI support by @joda01 in https://github.com/joda01/imagec/pull/184
+* feat: Added well matrix editor  by @joda01 in https://github.com/joda01/imagec/pull/184
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.22...v1.1.0-beta.1
+----------------------------------------
+Release: v1.1.0-alpha.6
+Description: 
+----------------------------------------
+Release: v1.1.0-alpha.5
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.1.0-alpha.3...v1.1.0-alpha.5
+----------------------------------------
+Release: v1.1.0-alpha.4
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.1.0-alpha.3...v1.1.0-alpha.4
+----------------------------------------
+Release: v1.1.0-alpha.3
+Description: 
+----------------------------------------
+Release: v1.1.0-alpha.1
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.22...v1.1.0-alpha.1
+----------------------------------------
+Release: v1.0.0-beta.22
+Description: ## What's Changed
+* fix: Fixed u-net model object separation by @joda01 in https://github.com/joda01/imagec/pull/182
+* feat: Support for distance measurement by @joda01 in https://github.com/joda01/imagec/pull/182
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.21...v1.0.0-beta.22
+----------------------------------------
+Release: v1.0.0-beta.21
+Description: ## What's Changed
+fix: Class selector panel in preview too small
+feat: Extended the number of available temp memories from 4 to 9
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.20...v1.0.0-beta.21
+----------------------------------------
+Release: v1.0.0-beta.20
+Description: ## What's Changed
+* fix: Allow none as default output class by @joda01 in https://github.com/joda01/imagec/pull/179
+* fix: Object transform not possible to select output class correct by @joda01 in https://github.com/joda01/imagec/pull/181
+* fix: Corrected object ID painting ad the edges by @joda01 in https://github.com/joda01/imagec/pull/181
+* feat: Add interactive results preview. It is now possible to select an object in the results view which is highlighted in the original image afterwrds.  by @joda01 in https://github.com/joda01/imagec/pull/181
+* feat: Increased maximum class number from 32 to 50 by @joda01 in https://github.com/joda01/imagec/pull/181
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.19...v1.0.0-beta.20
+----------------------------------------
+Release: v1.0.0-beta.19
+Description: ## What's Changed
+* fix: Reclassify move if not intersecting was not working correctly by @joda01 in https://github.com/joda01/imagec/pull/176
+* fix: Object transform calculated wrong  centroid for objects on the left edges and the top by @joda01
+* feat: Added snap area and circle draw option in object transform by @joda01
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.18...v1.0.0-beta.19
+----------------------------------------
+Release: v1.0.0-beta.18
+Description: ## What's Changed
+* fix: Command is editable even it has been locked by @joda01 in https://github.com/joda01/imagec/pull/175
+* feat: Update EVAnalyzer templates by @joda01 in https://github.com/joda01/imagec/pull/175
+* feat: Added welcome screen with template selector and search function by @joda01 in https://github.com/joda01/imagec/pull/175
+* feat: Added undo button in pipeline view by @joda01 in https://github.com/joda01/imagec/pull/175
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.17...v1.0.0-beta.18
+----------------------------------------
+Release: v1.0.0-beta.17
+Description: ## What's Changed
+* fix: Crash when updating the preview because of std::_Rb_tree_insert_and_rebalance excetion by @joda01 in https://github.com/joda01/imagec/pull/172
+* fix: Crash in results view when last column was deleted deleted by @joda01 in https://github.com/joda01/imagec/pull/172
+* feat: Allow to define a not coloc class in colocalization command by @joda01 in https://github.com/joda01/imagec/pull/172
+* feat: Allow to copy classes  in classification tab by @joda01 in https://github.com/joda01/imagec/pull/172
+* feat: Allow to move up and down classes in classification tab by @joda01 in https://github.com/joda01/imagec/pull/172
+* feat!: Renamed $measurment to $measurementIntensity in project settings by @joda01 in https://github.com/joda01/imagec/pull/172
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.16...v1.0.0-beta.17
+----------------------------------------
+Release: v1.0.0-beta.16
+Description: ## What's Changed
+* fix: Application crashes when loading images with alpha channel by @joda01
+* feat: Rework the pipeline list panel for a better user experience by @joda01 in https://github.com/joda01/imagec/pull/169
+
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.15...v1.0.0-beta.16
+----------------------------------------
+Release: v1.0.0-beta.15
+Description: ## What's Changed
+* fix: Wrong matrix column number in image density map view by @joda01 in https://github.com/joda01/imagec/pull/168
+* fix: Remove senseless measurements from image results table view by @joda01 in https://github.com/joda01/imagec/pull/168
+* fix: Wrap text inside table column header by @joda01 in https://github.com/joda01/imagec/pull/168
+* fix: Fluorophore colors after populate image now show the emission color by @joda01 in https://github.com/joda01/imagec/pull/168
+* fix: Ask before deleting class from classification table by @joda01 in https://github.com/joda01/imagec/pull/168
+* feat: Allow to specify measurement beside class which simplifies the results template generation (removed results tab) by @joda01 in https://github.com/joda01/imagec/pull/168
+* feat: Added some more predefined classes in classification drop down  by @joda01 in https://github.com/joda01/imagec/pull/168
+* feat: Updated templates with measurement template  by @joda01 in https://github.com/joda01/imagec/pull/168
+* feat: Better readable image meta table by @joda01 in https://github.com/joda01/imagec/pull/168
+
+
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.14...v1.0.0-beta.15
+----------------------------------------
+Release: v1.0.0-beta.14
+Description: ## What's Changed
+* feat: Allow to show multiple images at once in results view by @joda01 in https://github.com/joda01/imagec/pull/167
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.13...v1.0.0-beta.14
+----------------------------------------
+Release: v1.0.0-beta.13
+Description: ## What's Changed
+* feat: User is now informed in status bar if software update is available by @joda01 in https://github.com/joda01/imagec/pull/166
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.12...v1.0.0-beta.13
+----------------------------------------
+Release: v1.0.0-beta.12
+Description: ## What's Changed
+* feat: Rework classification tab. It is now possible to delete classes. by @joda01 in https://github.com/joda01/imagec/pull/165
+* feat: Keep preview dialog settings when changing the pipeline. by @joda01 in https://github.com/joda01/imagec/pull/165
+* fix: Removed window flicker during project load process by @joda01 in https://github.com/joda01/imagec/pull/165
+* fix: Crash in results view if table header has no name by @joda01 in https://github.com/joda01/imagec/pull/165
+* fix: Fixed support of old database files from alpha versions by @joda01 in https://github.com/joda01/imagec/pull/165
+* fix: Wrong placeholder text in contrast settings (changed from 1-3 to 1-65535) by @joda01 in https://github.com/joda01/imagec/pull/165
+
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.11...v1.0.0-beta.12
+----------------------------------------
+Release: v1.0.0-beta.11
+Description: ## What's Changed
+* feat: Following image formats are now supported `tif,tiff,btif,btiff,btf,jpg,jpeg,vsi,ics,czi,nd2,lif,lei,fli,scn,sxm,lim,oir,top,stk,nd,bip,fli,msr,dm3,dm4,img,cr2,ch5,dib,ims,pic,raw,1sc,std,spc,avi,cif,sif,aim,svs,arf,sld` by @joda01 in https://github.com/joda01/imagec/pull/164
+* fix: Detection hierarchy setting was stored as number instead of string  by @joda01 in https://github.com/joda01/imagec/pull/164
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.10...v1.0.0-beta.11
+----------------------------------------
+Release: v1.0.0-beta.10
+Description: ## What's Changed
+* feat: Allow to export image based on image name instead of ID in command line mode by @joda01 in https://github.com/joda01/imagec/pull/157
+* fix: Incorrect well and image label in the Well() / Image() button when navigating through the results table by @joda01 in https://github.com/joda01/imagec/pull/158
+* fix: Support old database results without tracking id by @joda01 in https://github.com/joda01/imagec/pull/158
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.9...v1.0.0-beta.10
+----------------------------------------
+Release: v1.0.0-beta.9
+Description: ## What's Changed
+* fix: Wrong pipeline disabled state was not loaded by @joda01 in https://github.com/joda01/imagec/pull/154
+* fix: Pipeline notes were not stored correct  by @joda01 in https://github.com/joda01/imagec/pull/154
+* feat: Add ev project templates for coloc and uptake assay by @joda01 in https://github.com/joda01/imagec/pull/154
+* feat: Allow to set template meta information when saving a template  by @joda01 in https://github.com/joda01/imagec/pull/154
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.8...v1.0.0-beta.9
+----------------------------------------
+Release: v1.0.0-beta.8
+Description: ## What's Changed
+* fix:  In image statistics table view, objects may not be correctly aligned with their parents under certain conditions. by @joda01 in https://github.com/joda01/imagec/pull/146
+* fix: Extend  size of result panel in preview by @joda01 in https://github.com/joda01/imagec/pull/146
+* fix: Fixed min coloc area calculation by @joda01 in https://github.com/joda01/imagec/pull/146
+* fix: Manual heatmap scaling settings got lost on refrseh by @joda01 in https://github.com/joda01/imagec/pull/146
+* fix: Preview image default contrast settings lead to black preview image by @joda01 in https://github.com/joda01/imagec/pull/151
+* feat: Allow to create results table template file and add table generation wizard by @joda01 in https://github.com/joda01/imagec/pull/149
+* feat: Add filter logic option for reclassify command by @joda01 in https://github.com/joda01/imagec/pull/153
+* feat: Add tracking id for coloc by @joda01 in https://github.com/joda01/imagec/pull/146
+
+
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.7...v1.0.0-beta.8
+----------------------------------------
+Release: v1.0.0-beta.7
+Description: ## What's Changed
+* fix: results database file keeps busy after pipeline finishes, blocking it from being opened by @joda01 in https://github.com/joda01/imagec/pull/145
+* fix: Update from duckdb/1.1.0 -> duckdb/1.1.3 by @joda01 in https://github.com/joda01/imagec/pull/145
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.6...v1.0.0-beta.7
+----------------------------------------
+Release: v1.0.0-beta.6
+Description: ## What's Changed
+* feat!: Rework of coloc algorithm by @joda01 in https://github.com/joda01/imagec/pull/144
+* feat: Add column auto sort functionality by @joda01 in https://github.com/joda01/imagec/pull/144
+* feat: Add table column statustip @joda01 in https://github.com/joda01/imagec/pull/144
+* fix: Possible seg fault in `calcIntersectingMask` method of ROI @joda01 in https://github.com/joda01/imagec/pull/144
+* fix: Objects in image stats result are now arranged against matching object id and parent object id
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.5...v1.0.0-beta.6
+----------------------------------------
+Release: v1.0.0-beta.5
+Description: ## What's Changed
+
+fix: Broken XLSX on export with NaN by @joda01 
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.4...v1.0.0-beta.5
+
+----------------------------------------
+Release: v1.0.0-beta.4
+Description: ## What's Changed
+- fix: Memory scope was not used correctly for image cache by @joda01 
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.3...v1.0.0-beta.4
+
+
+
+----------------------------------------
+Release: v1.0.0-beta.3
+Description: ## What's Changed
+fix: Possible overflow in average intensity projection by @joda01 
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.2...v1.0.0-beta.3
+
+----------------------------------------
+Release: v1.0.0-beta.2
+Description: ## What's Changed
+* feat: Changed icon set to Breeze by @joda01 in https://github.com/joda01/imagec/pull/135
+* feat: Added new about dialog by @joda01 in https://github.com/joda01/imagec/pull/135
+* fix: Active delete database instance to force close  by @joda01 in https://github.com/joda01/imagec/pull/137
+* fix: Don't make results toolbar visible if database open fails  by @joda01 in https://github.com/joda01/imagec/pull/137
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-beta.1...v1.0.0-beta.2
+----------------------------------------
+Release: v1.0.0-beta.1
+Description: ## What's Changed
+
+* feat: Allow to set breakpoints in preview by @joda01 in https://github.com/joda01/imagec/pull/132
+* feat: Added histogram toolbar for preview image  by @joda01 in https://github.com/joda01/imagec/pull/132
+* feat: Allow to enable and disable overlay in preview image  by @joda01 in https://github.com/joda01/imagec/pull/132
+* feat: Added more auto threshold algorithms from ImageJ: Mean,  Shanbag, Renyi Entropy, Min Error, ... by @joda01 in https://github.com/joda01/imagec/pull/132
+* feat: Added experimental adaptive threshold command  by @joda01 in https://github.com/joda01/imagec/pull/132
+* feat: Added median and variance rank filter @joda01 
+* feat: Show result of possible filter in preview by @joda01 in https://github.com/joda01/imagec/pull/131
+* feat: Allow to export heatmap as PNG or SVG @joda01 in https://github.com/joda01/imagec/pull/131
+* feat: Allow to export x,y center of mass @joda01 in https://github.com/joda01/imagec/pull/131
+* feat: Allow to define operation order in image math command @joda01 in https://github.com/joda01/imagec/pull/131
+* feat: Allow to define cache scope (iteration or pipeline scoped) @joda01 in https://github.com/joda01/imagec/pull/131
+* feat: Add notes textfield to pipeline settings by @joda01
+* feat: Add rank filter by @joda01 in https://github.com/joda01/imagec/pull/130
+* feat: Added enhance contrast command by @joda01 in https://github.com/joda01/imagec/pull/130
+* feat: Added rank filter command by @joda01 in https://github.com/joda01/imagec/pull/130
+* feat: Allow to create history tags by @joda01 in https://github.com/joda01/imagec/pull/130
+* feat: Generate preview using multiple threads by @joda01 in https://github.com/joda01/imagec/pull/130
+* feat: Add clear button to history by @joda01 in https://github.com/joda01/imagec/pull/130
+* feat: Create thumbnail from thumbnail series if no pyramid information is stored. @joda01
+* feat: Added change history log for pipelines by @joda01 in https://github.com/joda01/imagec/pull/126
+* feat: Allow to create project templates by @joda01 in https://github.com/joda01/imagec/pull/129
+* feat: Allow to define results template in project by @joda01 in https://github.com/joda01/imagec/pull/129
+* feat: Allow to disable pipelines by @joda01 in https://github.com/joda01/imagec/pull/129
+* feat: Added classification suggestions using dropwdown by @joda01 in https://github.com/joda01/imagec/pull/129
+* feat: Improve usability of results panel (added breadcrumb for navigation, make not used sidebar invisible) by @joda01 in https://github.com/joda01/imagec/pull/129
+* feat: Center heatmap and plate in results view by @joda01 in https://github.com/joda01/imagec/pull/129
+* feat: Allow to measure object hierarchy/tree using reclassify move or copy by @joda01 in https://github.com/joda01/imagec/pull/125
+* feat: Added intersection measure channel to table by @joda01 in https://github.com/joda01/imagec/pull/125
+* feat: Allow to add object ID to results table by @joda01 in https://github.com/joda01/imagec/pull/125
+* feat: Allow to draw bounding box to control image by @joda01 in https://github.com/joda01/imagec/pull/125
+* feat: Allow to draw object ID to control image by @joda01 in https://github.com/joda01/imagec/pull/125
+* feat: Added separate command for Canny and Sobel by @joda01 in https://github.com/joda01/imagec/pull/123
+* feat: Allow to parameterize Sobel edge detector  by @joda01 in https://github.com/joda01/imagec/pull/123
+* feat: Use OpenCV sobel detection and added ImageJ implementation as fallback by @joda01 in https://github.com/joda01/imagec/pull/123
+* feat: Rework command selection dialog: Added short description and search and faster startup by @joda01 in https://github.com/joda01/imagec/pull/123
+* feat: Improved ImageC startup and pipeline editor performance by @joda01 in https://github.com/joda01/imagec/pull/123
+* feat: Open ImageC projects is know multiple times faster by @joda01 in https://github.com/joda01/imagec/pull/123
+* feat: Added morphological transform command by @joda01 in https://github.com/joda01/imagec/pull/121
+* feat: Added circle Hough-Transformation command by @joda01 in https://github.com/joda01/imagec/pull/121
+* feat: Added fill holes command by @joda01 in https://github.com/joda01/imagec/pull/121
+* feat: Added support for canny edge detection with parameters by @joda01 in https://github.com/joda01/imagec/pull/121
+* feat: Allow to select z-stack index for analyzing in pipeline by @joda01 in https://github.com/joda01/imagec/pull/121
+* feat: Added take the middle projection by @joda01 in https://github.com/joda01/imagec/pull/121
+* feat: Extended object classifier to allow specification of the contour finding mode (inner, outer or both) by @joda01 in https://github.com/joda01/imagec/pull/121
+* feat: Add yest cell brightfield pipeline template by @joda01 in https://github.com/joda01/imagec/pull/121
+* feat: It is now possible to start analyzes and export data using the command line by @joda01 in https://github.com/joda01/imagec/pull/121
+* feat: Support for pytorch trained AI models by @joda01 in https://github.com/joda01/imagec/pull/116
+* feat: Support for U-Net AI model architecture by @joda01 in https://github.com/joda01/imagec/pull/116
+* feat: Allow to reorder pipelines in overview using drag and drop by @joda01 in https://github.com/joda01/imagec/pull/111
+* feat: It is now possible to select the image series to analyze by @joda01 in https://github.com/joda01/imagec/pull/108
+* feat: Allow to define a probability handicap for AI detection by @joda01 in https://github.com/joda01/imagec/pull/99
+* feat: Added auto adjustment for preview by @joda01
+* feat: Allow to specify AI thresholds by @joda01
+* feat: Added auto adjust for thumbnail brightness  by @joda01 in https://github.com/joda01/imagec/pull/98
+* feat: It is no possible to populate classes from image channels automatically by @joda01
+* feat: Allow to store images to cache for later use in other pipeline by @joda01 in https://github.com/joda01/imagec/pull/94
+* feat: Allow different image types as command input by @joda01 in https://github.com/joda01/imagec/pull/92
+* feat: Add helper arrows by @joda01 in https://github.com/joda01/imagec/pull/92
+* feat: allow to select which elements to be shown in the preview by @joda01 in https://github.com/joda01/imagec/pull/92
+* feat: Added pixel information by @joda01 in https://github.com/joda01/imagec/pull/91
+* feat: Added and not by @joda01
+* feat: Fasten up preview by @joda01
+* feat: Added object transform command by @joda01
+* feat: Add image math command by @joda01
+* feat: Allow to set preview size and tile size by @joda01 in https://github.com/joda01/imagec/pull/89
+* feat: Added fine tuning options for color chooser by @joda01 
+* feat: feat: Added support for nd2 files
+* feat: Added classification templates by @joda01 in https://github.com/joda01/imagec/pull/87
+* feat: Allow to copy pipeline by @joda01 in https://github.com/joda01/imagec/pull/87
+* feat: Add R export by @joda01 in https://github.com/joda01/imagec/pull/84
+* feat: Allow to individual configure data export table by @joda01 in https://github.com/joda01/imagec/pull/84
+* feat: Last data export table configuration is stored to db now by @joda01 in https://github.com/joda01/imagec/pull/84
+* feat: Added reclassify option which allows to reclassify objects based on intersection and intensity. by @joda01 in https://github.com/joda01/imagec/pull/83
+* feat: Support of object math functions by @joda01
+* feat: Performance improvements on project load by @joda01 in https://github.com/joda01/imagec/pull/82
+* feat: MacOs support by @joda01
+* feat: Added support for RGB images by @joda01 in https://github.com/joda01/imagec/pull/80
+* feat: Added cross hair cursor feature by @joda01 in https://github.com/joda01/imagec/pull/80
+* feat: Add onnx runtime to allow AI model parsing by @joda01 in https://github.com/joda01/imagec/pull/79
+* feat: Added new icons by @joda01 in https://github.com/joda01/imagec/pull/76
+* feat: Added colored legend for preview by @joda01
+* feat: Added color code for pipeline generation by @joda01 in https://github.com/joda01/imagec/pull/72
+* feat: Added pipeline debug log by @joda01 in https://github.com/joda01/imagec/pull/71
+* feat: Allow to store and open templates by @joda01 in https://github.com/joda01/imagec/pull/70
+* feat: Allow to copy channels by @joda01 in https://github.com/joda01/imagec/pull/70
+* feat: Allow to set max threshold by @joda01 in https://github.com/joda01/imagec/pull/70
+* feat: Added tile size to heatmap size by @joda01 in https://github.com/joda01/imagec/pull/70
+* feat: Allow cross channel preview by @joda01 in https://github.com/joda01/imagec/pull/70
+* feat: Allow to reclassify copy by @joda01 in https://github.com/joda01/imagec/pull/70
+* feat: Allow to store export settings by @joda01 in https://github.com/joda01/imagec/pull/70
+* feat: Support for pyramid images in preview by @joda01 in https://github.com/joda01/imagec/pull/69
+* feat: Added sidebar showing image and channel information from OME XML by @joda01 in https://github.com/joda01/imagec/pull/65
+* feat: Add comparison view dialog which allows to compare edited and original image by @joda01 in https://github.com/joda01/imagec/pull/63
+* feat: Extened preview functionality which allows to compare edited with original image form @joda01 
+* feat: Added tooltip for reporting statistics  by @joda01 in https://github.com/joda01/imagec/pull/60
+* feat: Added start screen including new project wizard  by @joda01 in https://github.com/joda01/imagec/pull/60
+* feat: Use SQL database for data storage by @joda01 in https://github.com/joda01/imagec/pull/54
+* feat: Added unit test by @joda01 in https://github.com/joda01/imagec/pull/55
+* feat: Faster heatmap view by @joda01 in https://github.com/joda01/imagec/pull/56
+* feat: Allow to set fixed min/max values for heatmap
+* feat: Use duckdb by @joda01
+* feat: Allow to filter images by @joda01 in https://github.com/joda01/imagec/pull/53
+* feat: Added filter for voronoi channel by @joda01 in https://github.com/joda01/imagec/pull/52
+* feat: Design fixes by @joda01 in https://github.com/joda01/imagec/pull/51
+* feat: Added thread pool by @joda01 in https://github.com/joda01/imagec/pull/50
+* feat: Added tooltips by @joda01
+* feat: Multi threading JNI by @joda01
+* feat: Allow to display sum in overview by @joda01 in https://github.com/joda01/imagec/pull/49
+* feat: Added missing templates by @joda01 in https://github.com/joda01/imagec/pull/48
+* feat: Config change by @joda01 in https://github.com/joda01/imagec/pull/47
+* feat: Advanced reporting by @joda01 in https://github.com/joda01/imagec/pull/46
+* feat: Added advanced reporting by @joda01 in https://github.com/joda01/imagec/pull/44
+* feat: Added rank filter by @joda01 in https://github.com/joda01/imagec/pull/43
+* feat: Allow to create heatmap for wells by @joda01
+* feat: Allow to define a job name by @joda01
+* feat: Added rank filters by @joda01 in https://github.com/joda01/imagec/pull/42
+* feat: Allow to open and parse onnx models by @joda01 in https://github.com/joda01/imagec/pull/41
+* feat: Add cross channel counting support by @joda01 in https://github.com/joda01/imagec/pull/38
+* feat: Allow to zoom in preview by @joda01 in https://github.com/joda01/imagec/pull/35
+* feat: Added color selector by @joda01 in https://github.com/joda01/imagec/pull/34
+* feat: Added multi intensity calculation support for intersecting channels by @joda01 in https://github.com/joda01/imagec/pull/33
+* feat: Output with sorted images by @joda01 in https://github.com/joda01/imagec/pull/32
+* feat: Rewrite UI in QT by @joda01 in https://github.com/joda01/imagec/pull/25
+* feat: Added auto auto upload by @joda01 in https://github.com/joda01/imagec/pull/20
+* feat: Added exe signature by @joda01 in https://github.com/joda01/imagec/pull/19
+* feat: Added bioformats support by @joda01 in https://github.com/joda01/imagec/pull/16
+* feat: Create package for win and by @joda01 in https://github.com/joda01/imagec/pull/17
+* feat: Added bioformats support by @joda01 in https://github.com/joda01/imagec/pull/16
+* feat: Added live preview by @joda01 in https://github.com/joda01/imagec/pull/15
+* feat: Added all over report by @joda01 in https://github.com/joda01/imagec/pull/9
+* feat: Added support for reference spot removal by @joda01 in https://github.com/joda01/imagec/pull/12
+* feat: Added support for snap area by @joda01 in https://github.com/joda01/imagec/pull/13
+* feat: Added auto threshold support by @joda01 in https://github.com/joda01/imagec/pull/14
+* feat: Added all over report by @joda01 in https://github.com/joda01/imagec/pull/9
+* feat: Create detailed report by @joda01
+* feat: Added some more metrics to detailed report by @joda01
+* feat: Added support to read 8bit and 16bit tiff by @joda01
+* feat: Added preview functionality by @joda01
+* feat: First released preview of imageC by @joda01
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.86...v1.0.0-beta.1
+----------------------------------------
+Release: v2.0.0-alpha.86
+Description: ## What's Changed
+* fix: Fixed image divide: avoiding NaN and use float devide by @joda01 in https://github.com/joda01/imagec/pull/132
+* fix: Possible segfault in ROI intersecting mask calculation  by @joda01 in https://github.com/joda01/imagec/pull/132
+* feat: Allow to set breakpoints in preview by @joda01 in https://github.com/joda01/imagec/pull/132
+* feat: Added histogram toolbar for preview image  by @joda01 in https://github.com/joda01/imagec/pull/132
+* feat: Allow to enable and disable overlay in preview image  by @joda01 in https://github.com/joda01/imagec/pull/132
+* feat: Added more auto threshold algorithms from ImageJ: Mean,  Shanbag, Renyi Entropy, Min Error, ... by @joda01 in https://github.com/joda01/imagec/pull/132
+* feat: Added experimental adaptive threshold command  by @joda01 in https://github.com/joda01/imagec/pull/132
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.85...v2.0.0-alpha.86
+----------------------------------------
+Release: v2.0.0-alpha.85
+Description: ## What's Changed
+* feat: Added median and variance rank filter @joda01 
+* fix: Threshold validator was not executed @joda01 
+* fix: Morpho transform command has same input is output @joda01 
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.84...v2.0.0-alpha.85
+----------------------------------------
+Release: v2.0.0-alpha.84
+Description: ## What's Changed
+* feat: Show result of possible filter in preview by @joda01 in https://github.com/joda01/imagec/pull/131
+* feat: Allow to export heatmap as PNG or SVG @joda01 in https://github.com/joda01/imagec/pull/131
+* feat: Allow to export x,y center of mass @joda01 in https://github.com/joda01/imagec/pull/131
+* feat: Allow to define operation order in image math command @joda01 in https://github.com/joda01/imagec/pull/131
+* feat: Allow to define cache scope (iteration or pipeline scoped) @joda01 in https://github.com/joda01/imagec/pull/131
+* fix: After image cache command no additional command could be added @joda01 in https://github.com/joda01/imagec/pull/131
+* fix: Wrong reason for noisy images was used @joda01 in https://github.com/joda01/imagec/pull/131
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.83...v2.0.0-alpha.84
+----------------------------------------
+Release: v2.0.0-alpha.83
+Description: ## What's Changed
+* fix: Exit after export successful in command line by @joda01
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.82...v2.0.0-alpha.83
+----------------------------------------
+Release: v2.0.0-alpha.82
+Description: ## What's Changed
+* fix: Command line wrong working directory by @joda01
+* fix: Added missing shared libs for linux application by @joda01
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.81...v2.0.0-alpha.82
+----------------------------------------
+Release: v2.0.0-alpha.81
+Description: ## What's Changed
+* feat: Add notes textfield to pipeline settings by @joda01
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.80...v2.0.0-alpha.81
+----------------------------------------
+Release: v2.0.0-alpha.80
+Description: ## What's Changed
+* fix: Fixed auto contrast for thumbnail by @joda01 in https://github.com/joda01/imagec/pull/130
+* fix: Fixed image cache dependency graph calculation by @joda01 in https://github.com/joda01/imagec/pull/130
+* fix: Allow higher contrast values by @joda01 in https://github.com/joda01/imagec/pull/130
+* feat: Add rank filter by @joda01 in https://github.com/joda01/imagec/pull/130
+* feat: Added enhance contrast command by @joda01 in https://github.com/joda01/imagec/pull/130
+* feat: Added rank filter command by @joda01 in https://github.com/joda01/imagec/pull/130
+* feat: Allow to create history tags by @joda01 in https://github.com/joda01/imagec/pull/130
+* feat: Generate preview using multiple threads by @joda01 in https://github.com/joda01/imagec/pull/130
+* feat: Add clear button to history by @joda01 in https://github.com/joda01/imagec/pull/130
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.79...v2.0.0-alpha.80
+----------------------------------------
+Release: v2.0.0-alpha.79
+Description: ## What's Changed
+
+* fix: Fixed build optimization. @joda01
+* fix: RGB thumbnail where not created. @joda01
+* feat: Create thumbnail from thumbnail series if no pyramid information is stored. @joda01
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.78...v2.0.0-alpha.79
+----------------------------------------
+Release: v2.0.0-alpha.78
+Description: ## What's Changed
+* fix: Crash on edit classification by @joda01 in https://github.com/joda01/imagec/pull/129
+* fix: Fixed shifted values in image table if one or more elements are NaN by @joda01 in https://github.com/joda01/imagec/pull/129
+* fix: Removed not working tooltip in pipeline overview by @joda01 in https://github.com/joda01/imagec/pull/129
+* feat: Added change history log for pipelines by @joda01 in https://github.com/joda01/imagec/pull/126
+* feat: Allow to create project templates by @joda01 in https://github.com/joda01/imagec/pull/129
+* feat: Allow to define results template in project by @joda01 in https://github.com/joda01/imagec/pull/129
+* feat: Allow to disable pipelines by @joda01 in https://github.com/joda01/imagec/pull/129
+* feat: Added classification suggestions using dropwdown by @joda01 in https://github.com/joda01/imagec/pull/129
+* feat: Improve usability of results panel (added breadcrumb for navigation, make not used sidebar invisible) by @joda01 in https://github.com/joda01/imagec/pull/129
+* feat: Center heatmap and plate in results view by @joda01 in https://github.com/joda01/imagec/pull/129
+
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.77...v2.0.0-alpha.78
+----------------------------------------
+Release: v2.0.0-alpha.77
+Description: ## What's Changed
+* feat: Allow to measure object hierarchy/tree using reclassify move or copy by @joda01 in https://github.com/joda01/imagec/pull/125
+* feat: Added intersection measure channel to table by @joda01 in https://github.com/joda01/imagec/pull/125
+* feat: Allow to add object ID to results table by @joda01 in https://github.com/joda01/imagec/pull/125
+* feat: Allow to draw bounding box to control image by @joda01 in https://github.com/joda01/imagec/pull/125
+* feat: Allow to draw object ID to control image by @joda01 in https://github.com/joda01/imagec/pull/125
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.76...v2.0.0-alpha.77
+----------------------------------------
+Release: v2.0.0-alpha.76
+Description: ## What's Changed
+* feat: Added separate command for Canny and Sobel by @joda01 in https://github.com/joda01/imagec/pull/123
+* feat: Allow to parameterize Sobel edge detector  by @joda01 in https://github.com/joda01/imagec/pull/123
+* feat: Use OpenCV sobel detection and added ImageJ implementation as fallback by @joda01 in https://github.com/joda01/imagec/pull/123
+* feat: Rework command selection dialog: Added short description and search and faster startup by @joda01 in https://github.com/joda01/imagec/pull/123
+* feat: Improved ImageC startup and pipeline editor performance by @joda01 in https://github.com/joda01/imagec/pull/123
+* feat: Open ImageC projects is know multiple times faster by @joda01 in https://github.com/joda01/imagec/pull/123
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.75...v2.0.0-alpha.76
+----------------------------------------
+Release: v2.0.0-alpha.75
+Description: ## What's Changed
+* fix: Fixed crash when using mean intensity projection by @joda01 in https://github.com/joda01/imagec/pull/121
+* fix: AI model path not loaded correct under windows by @joda01 in https://github.com/joda01/imagec/pull/121
+* fix: AI model detail were not loading correctly on project open by @joda01 in https://github.com/joda01/imagec/pull/121
+* fix: Increased max pipeline name length to 30 by @joda01 in https://github.com/joda01/imagec/pull/121
+* fix: Reduced minimum windows size from 1600 to 1500 px by @joda01 in https://github.com/joda01/imagec/pull/121
+* feat: Added morphological transform command by @joda01 in https://github.com/joda01/imagec/pull/121
+* feat: Added circle Hough-Transformation command by @joda01 in https://github.com/joda01/imagec/pull/121
+* feat: Added fill holes command by @joda01 in https://github.com/joda01/imagec/pull/121
+* feat: Added support for canny edge detection with parameters by @joda01 in https://github.com/joda01/imagec/pull/121
+* feat: Allow to select z-stack index for analyzing in pipeline by @joda01 in https://github.com/joda01/imagec/pull/121
+* feat: Added take the middle projection by @joda01 in https://github.com/joda01/imagec/pull/121
+* feat: Extended object classifier to allow specification of the contour finding mode (inner, outer or both) by @joda01 in https://github.com/joda01/imagec/pull/121
+* feat: Add yest cell brightfield pipeline template by @joda01 in https://github.com/joda01/imagec/pull/121
+* feat: It is now possible to start analyzes and export data using the command line by @joda01 in https://github.com/joda01/imagec/pull/121
+
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.73...v2.0.0-alpha.75
+----------------------------------------
+Release: v2.0.0-alpha.74
+Description: 
+----------------------------------------
+Release: v2.0.0-alpha.73
+Description: ## What's Changed
+* feat: Support for pytorch trained AI models by @joda01 in https://github.com/joda01/imagec/pull/116
+* feat: Support for U-Net AI model architecture by @joda01 in https://github.com/joda01/imagec/pull/116
+* fix: Support 8 bit non interleaved images by @joda01 in https://github.com/joda01/imagec/pull/116
+* chore: Changed compiler for windows from mingw to msvc @joda01 in https://github.com/joda01/imagec/pull/116
+
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.72...v2.0.0-alpha.73
+----------------------------------------
+Release: v2.0.0-alpha.72
+Description: ## What's Changed
+* fix: Measure settings have not been updated by @joda01 in https://github.com/joda01/imagec/pull/114
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.71...v2.0.0-alpha.72
+----------------------------------------
+Release: v2.0.0-alpha.71
+Description: ## What's Changed
+* feat: Allow to reorder pipelines in overview using drag and drop by @joda01 in https://github.com/joda01/imagec/pull/111
+* feat(change): Pipeline opens now with double click instead of single click to avoid conflicts together with drag and drop by @joda01 in https://github.com/joda01/imagec/pull/111
+* fix: Reclassify move and copy does not work correct by @joda01 in https://github.com/joda01/imagec/pull/113
+* fix: Intensity filter was not applied in reclassify move and copy by @joda01 in https://github.com/joda01/imagec/pull/113
+* fix: Preview refresh was not triggered on empty text input by @joda01 in https://github.com/joda01/imagec/pull/113
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.70...v2.0.0-alpha.71
+----------------------------------------
+Release: v2.0.0-alpha.70
+Description: ## What's Changed
+* fix: images stored in big endian format are not loaded correct by @joda01 in https://github.com/joda01/imagec/pull/108
+* fix: Template for export cannot be saved by @joda01 in https://github.com/joda01/imagec/pull/109
+* fix: Wrong numbering in table view of results by @joda01 in https://github.com/joda01/imagec/pull/110
+* feat: It is now possible to select the image series to analyze by @joda01 in https://github.com/joda01/imagec/pull/108
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.69...v2.0.0-alpha.70
+----------------------------------------
+Release: v2.0.0-alpha.69
+Description: ## What's Changed
+* fix: dependency loop is resolved wrong for preview in case of recursive depending pipelines by @joda01 in https://github.com/joda01/imagec/pull/103
+* fix: coloc pipeline template load does not work by @joda01 in https://github.com/joda01/imagec/pull/104
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.68...v2.0.0-alpha.69
+----------------------------------------
+Release: v2.0.0-alpha.68
+Description: ## What's Changed
+- fix: Fixed spelling mistakes
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.67...v2.0.0-alpha.68
+----------------------------------------
+Release: v2.0.0-alpha.67
+Description: ## What's Changed
+* feat: Allow to define a probability handicap for AI detection by @joda01 in https://github.com/joda01/imagec/pull/99
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.66...v2.0.0-alpha.67
+----------------------------------------
+Release: v2.0.0-alpha.66
+Description: ## What's Changed
+* fix: Fixed crash when using not supported AI model by @joda01
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.65...v2.0.0-alpha.66
+----------------------------------------
+Release: v2.0.0-alpha.65
+Description: ## What's Changed
+* feat: Added auto adjustment for preview by @joda01
+* feat: Allow to specify AI thresholds by @joda01
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.63...v2.0.0-alpha.64
+----------------------------------------
+Release: v2.0.0-alpha.64
+Description: ## What's Changed
+* fix: Fixed auto preiview update by @joda01 in https://github.com/joda01/imagec/pull/97
+* feat: Added auto adjust for thumbnail brightness  by @joda01 in https://github.com/joda01/imagec/pull/98
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.63...v2.0.0-alpha.64
+----------------------------------------
+Release: v2.0.0-alpha.63
+Description: ## What's Changed
+feat: It is no possible to populate classes from image channels automatically by @joda01
+fix: Save as did not save the project if no changes were done by @joda01
+fix: Classes were not displayed correctly in commands after loading a template by @joda01
+fix: Some fixes in predefined templates by @joda01
+fix: Thumbnail was not updated when channel of image changed by @joda01
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.62...v2.0.0-alpha.63
+----------------------------------------
+Release: v2.0.0-alpha.62
+Description: ## What's Changed
+* feat!: Add colored classes (this is a breaking change since clusters are removed now) by @joda01 in https://github.com/joda01/imagec/pull/94
+* feat: Allow to store images to cache for later use in other pipeline by @joda01 in https://github.com/joda01/imagec/pull/94
+* fix: Crash when inserting command at top by @joda01 in https://github.com/joda01/imagec/pull/94
+* fix: Allow to start with any command in pipeline by @joda01 in https://github.com/joda01/imagec/pull/94
+* fix: Add mutex lock in preview to prevent crash when switching window  by @joda01 in https://github.com/joda01/imagec/pull/94
+* fix: Change position of pixel info dialog in advanced preview to prevent being hidden on edges by @joda01 in https://github.com/joda01/imagec/pull/94
+* fix: Fixed size of AI classifier edit dialog by @joda01 in https://github.com/joda01/imagec/pull/94
+* fix: Crash when AI model was not loaded successfully by @joda01 in https://github.com/joda01/imagec/pull/94
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.61...v2.0.0-alpha.62
+----------------------------------------
+Release: v2.0.0-alpha.61
+Description: ## What's Changed
+* fix: Fixed image math multiply and divide  by @joda01 in https://github.com/joda01/imagec/pull/93
+* fix: Set threshold settings per default to manual by @joda01 in https://github.com/joda01/imagec/pull/93
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.60...v2.0.0-alpha.61
+----------------------------------------
+Release: v2.0.0-alpha.60
+Description: ## What's Changed
+* feat: Allow different image types as command input by @joda01 in https://github.com/joda01/imagec/pull/92
+* feat: Add helper arrows by @joda01 in https://github.com/joda01/imagec/pull/92
+* feat: allow to select which elements to be shown in the preview by @joda01 in https://github.com/joda01/imagec/pull/92
+* fix: Fixed JVM ram allocation is now done dynamically by @joda01 in https://github.com/joda01/imagec/pull/92
+* fix: Visibility of of none types by @joda01 in https://github.com/joda01/imagec/pull/92
+* fix: Fixed dependency graph calculation by @joda01 in https://github.com/joda01/imagec/pull/92
+* fix: Image saver did not define output clusters and classes by @joda01 in https://github.com/joda01/imagec/pull/92
+* fix: Lock guard on image load to prevent loading the same image twize by @joda01 in https://github.com/joda01/imagec/pull/92
+* fix: Fixed reclassify interpretation by @joda01 in https://github.com/joda01/imagec/pull/92
+* fix: Removed max particle size from object classifier by @joda01 in https://github.com/joda01/imagec/pull/92
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.52...v2.0.0-alpha.60
+----------------------------------------
+Release: v2.0.0-alpha.59
+Description: 
+----------------------------------------
+Release: v2.0.0-alpha.58
+Description: 
+----------------------------------------
+Release: v2.0.0-alpha.57
+Description: 
+----------------------------------------
+Release: v2.0.0-alpha.56
+Description: 
+----------------------------------------
+Release: v2.0.0-alpha.55
+Description: 
+----------------------------------------
+Release: v2.0.0-alpha.54
+Description: 
+----------------------------------------
+Release: v2.0.0-alpha.53
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.52...v2.0.0-alpha.53
+----------------------------------------
+Release: v2.0.0-alpha.52
+Description: ## What's Changed
+* fix: Crash when switching pipeline tab @joda01
+----------------------------------------
+Release: 2.0.0-alpha.51
+Description: ## What's Changed
+* fix: Do not paint centroid @joda01
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.50...2.0.0-alpha.51
+----------------------------------------
+Release: v2.0.0-alpha.50
+Description: ## What's Changed
+* fix: Paint command as disabled after loading and it was disabled in setting @joda01 in https://github.com/joda01/imagec/pull/91
+* feat: Added pixel information by @joda01 in https://github.com/joda01/imagec/pull/91
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.46...v2.0.0-alpha.50
+
+----------------------------------------
+Release: v2.0.0-alpha.49
+Description: ## What's Changed
+* fix: Fixed dependency graph by @joda01
+* fix: Fixed grid in preview for small resolutions by @joda01
+* feat: Added and not by @joda01
+* feat: Fasten up preview by @joda01
+* feat: Added object transform command by @joda01
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.44...v2.0.0-alpha.47
+----------------------------------------
+Release: v2.0.0-alpha.46
+Description: ## What's Changed
+* fix: Color chooser when from color is bigger than to color by @joda01
+* feat: Add image math command by @joda01
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.44...v2.0.0-alpha.45
+----------------------------------------
+Release: v2.0.0-alpha.44
+Description: ## What's Changed
+* fix: Input clusters in UI not updated by @joda01
+* fix: Results table not opened correctly after run by @joda01
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.43...v2.0.0-alpha.44
+----------------------------------------
+Release: v2.0.0-alpha.43
+Description: ## What's Changed
+* fix: Plate size orientation by @joda01
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/2.0.0-alpha.42...v2.0.0-alpha.43
+----------------------------------------
+Release: 2.0.0-alpha.42
+Description: ## What's Changed
+* fix: Color chooser by @joda01 in https://github.com/joda01/imagec/pull/90
+* fix: Fixed heatmap export by @joda01 in https://github.com/joda01/imagec/pull/90
+* fix: Fixed tile selector in preview @joda01 in https://github.com/joda01/imagec/pull/90
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.41...2.0.0-alpha.42
+----------------------------------------
+Release: v2.0.0-alpha.41
+Description: ## What's Changed
+* feat: Allow to set preview size and tile size by @joda01 in https://github.com/joda01/imagec/pull/89
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.40...v2.0.0-alpha.41
+----------------------------------------
+Release: v2.0.0-alpha.40
+Description: ## What's Changed
+
+feat: Added fine tuning options for color chooser by @joda01 
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.39...v2.0.0-alpha.40
+----------------------------------------
+Release: v2.0.0-alpha.39
+Description: ## What's Changed
+
+* feat: feat: Added support for nd2 files
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.38...v2.0.0-alpha.39
+----------------------------------------
+Release: v2.0.0-alpha.38
+Description: ## What's Changed
+
+* fix: Fixed density map by @joda01 
+* fix: Crash on multiple intsenty values in one table by @joda01 
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.37...v2.0.0-alpha.38
+----------------------------------------
+Release: v2.0.0-alpha.37
+Description: ## What's Changed
+* fix: Fixed join which is also needed to include image_id by @joda01
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.36...v2.0.0-alpha.37
+----------------------------------------
+Release: v2.0.0-alpha.36
+Description: ## What's Changed
+* feat: Added classification templates by @joda01 in https://github.com/joda01/imagec/pull/87
+* feat: Allow to copy pipeline by @joda01 in https://github.com/joda01/imagec/pull/87
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.35...v2.0.0-alpha.36
+----------------------------------------
+Release: v2.0.0-alpha.35
+Description: ## What's Changed
+* feat: Add R export by @joda01 in https://github.com/joda01/imagec/pull/84
+* feat: Allow to individual configure data export table by @joda01 in https://github.com/joda01/imagec/pull/84
+* feat: Last data export table configuration is stored to db now by @joda01 in https://github.com/joda01/imagec/pull/84
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.34...v2.0.0-alpha.35
+----------------------------------------
+Release: v2.0.0-alpha.34
+Description: 
+----------------------------------------
+Release: v2.0.0-alpha.33
+Description: 
+----------------------------------------
+Release: v2.0.0-alpha.32
+Description: ## What's Changed
+* feat: Added reclassify option which allows to reclassify objects based on intersection and intensity. by @joda01 in https://github.com/joda01/imagec/pull/83
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.31...v2.0.0-alpha.32
+----------------------------------------
+Release: v2.0.0-alpha.31
+Description: ## What's Changed
+* feat: Support of object math functions by @joda01
+* feat: Performance improvements on project load by @joda01 in https://github.com/joda01/imagec/pull/82
+* fix: Fixed noise filter input field only allows numbers with 1 digit  by @joda01
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.25...v2.0.0-alpha.31
+----------------------------------------
+Release: v2.0.0-alpha.30
+Description: 
+----------------------------------------
+Release: v2.0.0-alpha.29
+Description: 
+----------------------------------------
+Release: v2.0.0-alpha.28
+Description: 
+----------------------------------------
+Release: v2.0.0-alpha.27
+Description: - feat: MacOs Try
+----------------------------------------
+Release: v2.0.0-alpha.26
+Description: 
+----------------------------------------
+Release: v2.0.0-alpha.25
+Description: ## What's Changed
+* fix: Fixed pipeline loading by @joda01 in https://github.com/joda01/imagec/pull/81
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.24...v2.0.0-alpha.25
+----------------------------------------
+Release: v2.0.0-alpha.24
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.23...v2.0.0-alpha.24
+----------------------------------------
+Release: v2.0.0-alpha.23
+Description: ## What's Changed
+* feat: Added support for RGB images by @joda01 in https://github.com/joda01/imagec/pull/80
+* feat: Added cross hair cursor feature by @joda01 in https://github.com/joda01/imagec/pull/80
+* fix: Fixed zoom behavior by @joda01 in https://github.com/joda01/imagec/pull/80
+* fix: Trigger preview update by @joda01 in https://github.com/joda01/imagec/pull/80
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.22...v2.0.0-alpha.23
+----------------------------------------
+Release: v2.0.0-alpha.22
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.21...v2.0.0-alpha.22
+----------------------------------------
+Release: v2.0.0-alpha.21
+Description: ## What's Changed
+* feat: Add onnx runtime to allow AI model parsing by @joda01 in https://github.com/joda01/imagec/pull/79
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.20...v2.0.0-alpha.21
+----------------------------------------
+Release: v2.0.0-alpha.20
+Description: ## What's Changed
+* feat: Added new icons by @joda01 in https://github.com/joda01/imagec/pull/76
+* feat: Added colored legend for preview by @joda01
+* fix: Set default z-projection to THIS to avoid pipeline error by @joda01
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.19...v2.0.0-alpha.20
+----------------------------------------
+Release: v2.0.0-alpha.19
+Description: 
+----------------------------------------
+Release: v2.0.0-alpha.17
+Description: 
+----------------------------------------
+Release: v2.0.0-alpha.16
+Description: 
+----------------------------------------
+Release: v2.0.0-alpha.15
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.14...v2.0.0-alpha.15
+----------------------------------------
+Release: v2.0.0-alpha.14
+Description: 
+----------------------------------------
+Release: v2.0.0-alpha.13
+Description: 
+----------------------------------------
+Release: v2.0.0-alpha.11
+Description: 
+----------------------------------------
+Release: v2.0.0-alpha.7
+Description: ## What's Changed
+* feat: Added color code for pipeline generation by @joda01 in https://github.com/joda01/imagec/pull/72
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.6...v2.0.0-alpha.7
+----------------------------------------
+Release: v2.0.0-alpha.6
+Description: ## What's Changed
+* feat: Added pipeline debug log by @joda01 in https://github.com/joda01/imagec/pull/71
+* fix: Made threshold and classifier more clear in usability by @joda01 in https://github.com/joda01/imagec/pull/71
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.5...v2.0.0-alpha.6
+----------------------------------------
+Release: v2.0.0-alpha.5
+Description: ## What's Changed
+
+* fix: Fixed well order assigenment by @joda01 in cd236d417b7e48f0e7b5aa0e9a8ac3fd8d34124a
+* fix: Fixed pipeline execution order in multi threading scenario by @joda01 in a9f08f73445ed46a5b23b8746e93f39f2157fd36
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.2...v2.0.0-alpha.3
+----------------------------------------
+Release: v2.0.0-alpha.2
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v2.0.0-alpha.1...v2.0.0-alpha.2
+
+## What's Changed
+* fix: Fixed image well statisitcs by @joda01
+
+
+----------------------------------------
+Release: v2.0.0-alpha.1
+Description: ## What's Changed
+* feat!: Concept rework by @joda01 in https://github.com/joda01/imagec/pull/70
+* feat: Allow to store and open templates by @joda01 in https://github.com/joda01/imagec/pull/70
+* feat: Allow to copy channels by @joda01 in https://github.com/joda01/imagec/pull/70
+* fix: Don't show thumbnail if no tiles by @joda01 in https://github.com/joda01/imagec/pull/70
+* feat: Allow to set max threshold by @joda01 in https://github.com/joda01/imagec/pull/70
+* fix: Segfault on loading wrong time by @joda01 in https://github.com/joda01/imagec/pull/70
+* feat: Added tile size to heatmap size by @joda01 in https://github.com/joda01/imagec/pull/70
+* fix: Fixed voronoi grid by @joda01 in https://github.com/joda01/imagec/pull/70
+* fix: Fixed list export by @joda01 in https://github.com/joda01/imagec/pull/70
+* feat: Allow cross channel preview by @joda01 in https://github.com/joda01/imagec/pull/70
+* feat: Allow to reclassify copy by @joda01 in https://github.com/joda01/imagec/pull/70
+* feat: Allow to store export settings by @joda01 in https://github.com/joda01/imagec/pull/70
+* fix: Close database on back clicked by @joda01 in https://github.com/joda01/imagec/pull/70
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.106...v2.0.0-alpha.1
+----------------------------------------
+Release: v1.0.0-alpha.124
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.123
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.122
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.121...v1.0.0-alpha.122
+----------------------------------------
+Release: v1.0.0-alpha.121
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.120
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.119
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.118
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.117...v1.0.0-alpha.118
+----------------------------------------
+Release: v1.0.0-alpha.117
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.116...v1.0.0-alpha.117
+----------------------------------------
+Release: v1.0.0-alpha.116
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.115...v1.0.0-alpha.116
+----------------------------------------
+Release: v1.0.0-alpha.115
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.114
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.113...v1.0.0-alpha.114
+----------------------------------------
+Release: v1.0.0-alpha.113
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.112
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.111
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.110...v1.0.0-alpha.111
+----------------------------------------
+Release: v1.0.0-alpha.110
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.109...v1.0.0-alpha.110
+----------------------------------------
+Release: v1.0.0-alpha.109
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.107...v1.0.0-alpha.109
+----------------------------------------
+Release: v1.0.0-alpha.107
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.106...v1.0.0-alpha.107
+
+Complete design rework
+----------------------------------------
+Release: v1.0.0-alpha.106
+Description: ## What's Changed
+* feat: Support for pyramid images in preview by @joda01 in https://github.com/joda01/imagec/pull/69
+* fix: Fixed export of well to XLSX by @joda01 in https://github.com/joda01/imagec/pull/69
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.105...v1.0.0-alpha.106
+----------------------------------------
+Release: v1.0.0-alpha.105
+Description: ## What's Changed
+* feat: Added sidebar showing image and channel information from OME XML by @joda01 in https://github.com/joda01/imagec/pull/65
+* fix: Fixed image propertie loading from tif @joda01
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.103...v1.0.0-alpha.105
+----------------------------------------
+Release: v1.0.0-alpha.102
+Description: ## What's Changed
+* feat: Add comparison view dialog which allows to compare edited and original image by @joda01 in https://github.com/joda01/imagec/pull/63
+* fix: Bounding box was painted in original image wich leads to wrong intensity values  @joda01 in https://github.com/joda01/imagec/pull/63
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.100...v1.0.0-alpha.102
+----------------------------------------
+Release: v1.0.0-alpha.101
+Description: ## What's Changed
+- fix: Bounding box was paintined in original image which leads to wrong intensity calculation from @joda01 
+- feat: Extened preview functionality which allows to compare edited with original image form @joda01 
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.100...v1.0.0-alpha.101
+----------------------------------------
+Release: v1.0.0-alpha.99
+Description: ## What's Changed
+* fix: Limit channel name to 15 chars to prevent crash on export for excel  by @joda01 in https://github.com/joda01/imagec/pull/60
+* fix: When repainting the heaptmap, the wait-cursor was displayed for too long  by @joda01 in https://github.com/joda01/imagec/pull/60
+* feat: Added tooltip for reporting statistics  by @joda01 in https://github.com/joda01/imagec/pull/60
+* feat: Added start screen including new project wizard  by @joda01 in https://github.com/joda01/imagec/pull/60
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.98...v1.0.0-alpha.99
+----------------------------------------
+Release: v1.0.0-alpha.100
+Description: ## What's Changed
+* fix: Remove channel and show home screen not working under Windows. by @joda01
+* fix: Working directory is not updated in Windows by @joda01
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.99...v1.0.0-alpha.100
+
+
+----------------------------------------
+Release: v1.0.0-alpha.98
+Description: ## What's Changed
+* feat: Use SQL database for data storage by @joda01 in https://github.com/joda01/imagec/pull/54
+* feat: Added unit test by @joda01 in https://github.com/joda01/imagec/pull/55
+* feat: Faster heatmap view by @joda01 in https://github.com/joda01/imagec/pull/56
+* feat: Allow to set fixed min/max values for heatmap
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.97...v1.0.0-alpha.98
+----------------------------------------
+Release: v1.0.0-alpha.97
+Description: feat: Use duckdb
+----------------------------------------
+Release: v1.0.0-alpha.96
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.95
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.94
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.93
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.92
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.91
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.90
+Description: chore: Allow to export images
+----------------------------------------
+Release: v1.0.0-alpha.89
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.88
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.87
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.86
+Description: chore: Use spartial index
+----------------------------------------
+Release: v1.0.0-alpha.85
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.84
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.83
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.82
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.81
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.80
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.79
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.78
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.76
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.75
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.74
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.73
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.71
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.70
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.69...v1.0.0-alpha.70
+----------------------------------------
+Release: v1.0.0-alpha.72
+Description: chore: No Ofast
+----------------------------------------
+Release: v1.0.0-alpha.69
+Description: ## What's Changed
+* feat: Allow to filter images by @joda01 in https://github.com/joda01/imagec/pull/53
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.68...v1.0.0-alpha.69
+----------------------------------------
+Release: v1.0.0-alpha.68
+Description: ## What's Changed
+* feat: Added filter for voronoi channel by @joda01 in https://github.com/joda01/imagec/pull/52
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.67...v1.0.0-alpha.68
+----------------------------------------
+Release: v1.0.0-alpha.67
+Description: ## What's Changed
+* feat: Design fixes by @joda01 in https://github.com/joda01/imagec/pull/51
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.66...v1.0.0-alpha.67
+----------------------------------------
+Release: v1.0.0-alpha.66
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.65
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.64...v1.0.0-alpha.65
+----------------------------------------
+Release: v1.0.0-alpha.64
+Description: ## What's Changed
+* feat: Added thread pool by @joda01 in https://github.com/joda01/imagec/pull/50
+* feat: Added tooltips by @joda01
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.63...v1.0.0-alpha.64
+----------------------------------------
+Release: v1.0.0-alpha.63
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.62...v1.0.0-alpha.63
+----------------------------------------
+Release: v1.0.0-alpha.62
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.61...v1.0.0-alpha.62
+----------------------------------------
+Release: v1.0.0-alpha.61
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.60...v1.0.0-alpha.61
+----------------------------------------
+Release: v1.0.0-alpha.60
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.59...v1.0.0-alpha.60
+----------------------------------------
+Release: v1.0.0-alpha.59
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.57...v1.0.0-alpha.59
+----------------------------------------
+Release: v1.0.0-alpha.57
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.56...v1.0.0-alpha.57
+----------------------------------------
+Release: v1.0.0-alpha.58
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.57...v1.0.0-alpha.58
+
+- feat: Multi threading JNI
+----------------------------------------
+Release: v1.0.0-alpha.56
+Description: ## What's Changed
+* feat: Allow to display sum in overview by @joda01 in https://github.com/joda01/imagec/pull/49
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.55...v1.0.0-alpha.56
+----------------------------------------
+Release: v1.0.0-alpha.55
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.54...v1.0.0-alpha.55
+----------------------------------------
+Release: v1.0.0-alpha.54
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.53...v1.0.0-alpha.54
+----------------------------------------
+Release: v1.0.0-alpha.53
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.52...v1.0.0-alpha.53
+----------------------------------------
+Release: v1.0.0-alpha.52
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.51...v1.0.0-alpha.52
+----------------------------------------
+Release: v1.0.0-alpha.51
+Description: ## What's Changed
+* feat: Added missing templates by @joda01 in https://github.com/joda01/imagec/pull/48
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.50...v1.0.0-alpha.51
+----------------------------------------
+Release: v1.0.0-alpha.50
+Description: ## What's Changed
+* feat: Config change by @joda01 in https://github.com/joda01/imagec/pull/47
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.49...v1.0.0-alpha.50
+----------------------------------------
+Release: v1.0.0-alpha.49
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.48...v1.0.0-alpha.49
+----------------------------------------
+Release: v1.0.0-alpha.48
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.47
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.46...v1.0.0-alpha.47
+----------------------------------------
+Release: v1.0.0-alpha.46
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.45...v1.0.0-alpha.46
+----------------------------------------
+Release: v1.0.0-alpha.45
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.44...v1.0.0-alpha.45
+----------------------------------------
+Release: v1.0.0-alpha.44
+Description: ## What's Changed
+* feat: Advanced reporting by @joda01 in https://github.com/joda01/imagec/pull/46
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.43...v1.0.0-alpha.44
+----------------------------------------
+Release: v1.0.0-alpha.43
+Description: ## What's Changed
+* feat: Added advanced reporting by @joda01 in https://github.com/joda01/imagec/pull/44
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.42...v1.0.0-alpha.43
+----------------------------------------
+Release: v1.0.0-alpha.42
+Description: ## What's Changed
+* feat: Added rank filter by @joda01 in https://github.com/joda01/imagec/pull/43
+* feat: Allow to create heatmap for wells
+* feat: Allow to define a job name
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.41...v1.0.0-alpha.42
+----------------------------------------
+Release: v1.0.0-alpha.41
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.40...v1.0.0-alpha.41
+----------------------------------------
+Release: v1.0.0-alpha.40
+Description: ## What's Changed
+* feat: Added rank filters by @joda01 in https://github.com/joda01/imagec/pull/42
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.39...v1.0.0-alpha.40
+----------------------------------------
+Release: v1.0.0-alpha.39
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.38...v1.0.0-alpha.39
+----------------------------------------
+Release: v1.0.0-alpha.38
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.37...v1.0.0-alpha.38
+----------------------------------------
+Release: v1.0.0-alpha.37
+Description: ## What's Changed
+* feat: Allow to open and parse onnx models by @joda01 in https://github.com/joda01/imagec/pull/41
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.36...v1.0.0-alpha.37
+----------------------------------------
+Release: v1.0.0-alpha.36
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.35
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.34...v1.0.0-alpha.35
+----------------------------------------
+Release: v1.0.0-alpha.34
+Description: ## What's Changed
+* fix: Fixed kernel size for median background subtraction by @joda01 in https://github.com/joda01/imagec/pull/39
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.33...v1.0.0-alpha.34
+----------------------------------------
+Release: v1.0.0-alpha.33
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.32...v1.0.0-alpha.33
+----------------------------------------
+Release: v1.0.0-alpha.32
+Description: ## What's Changed
+* feat: Add cross channel counting support by @joda01 in https://github.com/joda01/imagec/pull/38
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.31...v1.0.0-alpha.32
+----------------------------------------
+Release: v1.0.0-alpha.31
+Description: ## What's Changed
+* fix: Heatmap for big tiff by @joda01 in https://github.com/joda01/imagec/pull/37
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.30...v1.0.0-alpha.31
+----------------------------------------
+Release: v1.0.0-alpha.30
+Description: ## What's Changed
+* chore: Thread safe by @joda01 in https://github.com/joda01/imagec/pull/36
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.29...v1.0.0-alpha.30
+----------------------------------------
+Release: v1.0.0-alpha.29
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.28...v1.0.0-alpha.29
+----------------------------------------
+Release: v1.0.0-alpha.28
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.27...v1.0.0-alpha.28
+----------------------------------------
+Release: v1.0.0-alpha.27
+Description: ## What's Changed
+* feat: Allow to zoom in preview by @joda01 in https://github.com/joda01/imagec/pull/35
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.26...v1.0.0-alpha.27
+----------------------------------------
+Release: v1.0.0-alpha.26
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.25...v1.0.0-alpha.26
+----------------------------------------
+Release: v1.0.0-alpha.25
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.24...v1.0.0-alpha.25
+----------------------------------------
+Release: v1.0.0-alpha.24
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.23...v1.0.0-alpha.24
+----------------------------------------
+Release: v1.0.0-alpha.23
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.22...v1.0.0-alpha.23
+----------------------------------------
+Release: v1.0.0-alpha.22
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.21...v1.0.0-alpha.22
+----------------------------------------
+Release: v1.0.0-alpha.21
+Description: ## What's Changed
+* feat: Added color selector by @joda01 in https://github.com/joda01/imagec/pull/34
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.20...v1.0.0-alpha.21
+----------------------------------------
+Release: v1.0.0-alpha.20
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.19...v1.0.0-alpha.20
+----------------------------------------
+Release: v1.0.0-alpha.19
+Description: ## What's Changed
+* feat: Added multi intensity calculation support for intersecting channels by @joda01 in https://github.com/joda01/imagec/pull/33
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.18...v1.0.0-alpha.19
+----------------------------------------
+Release: v1.0.0-alpha.18
+Description: ## What's Changed
+* feat: Output with sorted images by @joda01 in https://github.com/joda01/imagec/pull/32
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.17...v1.0.0-alpha.18
+----------------------------------------
+Release: v1.0.0-alpha.17
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.16...v1.0.0-alpha.17
+----------------------------------------
+Release: v1.0.0-alpha.16
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.15...v1.0.0-alpha.16
+----------------------------------------
+Release: v1.0.0-alpha.15
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.14...v1.0.0-alpha.15
+----------------------------------------
+Release: v1.0.0-alpha.14
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.13...v1.0.0-alpha.14
+----------------------------------------
+Release: v1.0.0-alpha.9
+Description: ## What's Changed
+* feat: Rewrite UI in QT by @joda01 in https://github.com/joda01/imagec/pull/25
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.7...v1.0.0-alpha.9
+----------------------------------------
+Release: v1.0.0-alpha.13
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.12...v1.0.0-alpha.13
+----------------------------------------
+Release: v1.0.0-alpha.12
+Description: 
+----------------------------------------
+Release: v1.0.0-alpha.11
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.10...v1.0.0-alpha.11
+----------------------------------------
+Release: v1.0.0-alpha.10
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.9...v1.0.0-alpha.10
+----------------------------------------
+Release: v1.0.0-alpha.8
+Description: fix: rebuild with new opencv msys
+----------------------------------------
+Release: v1.0.0-alpha.7
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.6...v1.0.0-alpha.7
+----------------------------------------
+Release: v1.0.0-alpha.6
+Description: ## What's Changed
+* Design by @joda01 in https://github.com/joda01/imagec/pull/23
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.5...v1.0.0-alpha.6
+----------------------------------------
+Release: v1.0.0-alpha.5
+Description: ## What's Changed
+* fix: Fixed windows and linux bg colors by @joda01 in https://github.com/joda01/imagec/pull/21
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.4...v1.0.0-alpha.5
+----------------------------------------
+Release: v1.0.0-alpha.4
+Description: **Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.3...v1.0.0-alpha.4
+----------------------------------------
+Release: v1.0.0-alpha.3
+Description: ## What's Changed
+* feat: Added auto auto upload by @joda01 in https://github.com/joda01/imagec/pull/20
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.2...v1.0.0-alpha.3
+----------------------------------------
+Release: v1.0.0-alpha.2
+Description: ## What's Changed
+* feat: Added exe signature by @joda01 in https://github.com/joda01/imagec/pull/19
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v1.0.0-alpha.1...v1.0.0-alpha.2
+----------------------------------------
+Release: v1.0.0-alpha.1
+Description: ## What's Changed
+* feat: Added bioformats support by @joda01 in https://github.com/joda01/imagec/pull/16
+* feat: Create package for win and by @joda01 in https://github.com/joda01/imagec/pull/17
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v0.0.0-alpha.6...v1.0.0-alpha.1
+----------------------------------------
+Release: v0.0.0-alpha.24
+Description: 
+----------------------------------------
+Release: v0.0.0-alpha.23
+Description: 
+----------------------------------------
+Release: v0.0.0-alpha.22
+Description: 
+----------------------------------------
+Release: v0.0.0-alpha.21
+Description: 
+----------------------------------------
+Release: v0.0.0-alpha.20
+Description: 
+----------------------------------------
+Release: v0.0.0-alpha.18
+Description: 
+----------------------------------------
+Release: v0.0.0-alpha.17
+Description: 
+----------------------------------------
+Release: v0.0.0-alpha.16
+Description: 
+----------------------------------------
+Release: v0.0.0-alpha.15
+Description: 
+----------------------------------------
+Release: v0.0.0-alpha.14
+Description: 
+----------------------------------------
+Release: v0.0.0-alpha.13
+Description: 
+----------------------------------------
+Release: v0.0.0-alpha.12
+Description: 
+----------------------------------------
+Release: v0.0.0-alpha.11
+Description: 
+----------------------------------------
+Release: v0.0.0-alpha.10
+Description: 
+----------------------------------------
+Release: v0.0.0-alpha.8
+Description: 
+----------------------------------------
+Release: v0.0.0-alpha.7
+Description: ## What's Changed
+* feat: Added bioformats support by @joda01 in https://github.com/joda01/imagec/pull/16
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v0.0.0-alpha.6...v0.0.0-alpha.7
+----------------------------------------
+Release: v0.0.0-alpha.6
+Description: ## What's Changed
+* feat: Added live preview by @joda01 in https://github.com/joda01/imagec/pull/15
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v0.0.0-alpha.5...v0.0.0-alpha.6
+----------------------------------------
+Release: v0.0.0-alpha.5
+Description: ## What's Changed
+* fix: Also allow threshold for cell detection @joda01 
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v0.0.0-alpha.4...v0.0.0-alpha.5
+----------------------------------------
+Release: v0.0.0-alpha.4
+Description: ## What's Changed
+* feat: Added all over report by @joda01 in https://github.com/joda01/imagec/pull/9
+* chore: Added gitlab action by @joda01 in https://github.com/joda01/imagec/pull/11
+* feat: Added support for reference spot removal by @joda01 in https://github.com/joda01/imagec/pull/12
+* feat: Added support for snap area by @joda01 in https://github.com/joda01/imagec/pull/13
+* feat: Added auto threshold support by @joda01 in https://github.com/joda01/imagec/pull/14
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v0.0.0-preview3...v0.0.0-alpha.4
+----------------------------------------
+Release: v0.0.0-alpha.3
+Description: 
+----------------------------------------
+Release: v0.0.0-alpha.2
+Description: 
+----------------------------------------
+Release: v0.0.0-alpha.1
+Description: ## What's Changed
+* feat: Added all over report by @joda01 in https://github.com/joda01/imagec/pull/9
+
+
+**Full Changelog**: https://github.com/joda01/imagec/compare/v0.0.0-preview3...v0.0.0-alpha.1
+----------------------------------------
+Release: v0.0.0-preview3
+Description: * feat: Create detailed report
+* feat: Added some more metrics to detailed report
+* feat: Added support to read 8bit and 16bit tiff
+----------------------------------------
+Release: v0.0.0-preview2
+Description: - feat!: Added preprocessing functionality
+- feat: Added preview functionality
+----------------------------------------
+Release: v0.0.0-preview1
+Description: - feat: First released preview of imageC
+----------------------------------------

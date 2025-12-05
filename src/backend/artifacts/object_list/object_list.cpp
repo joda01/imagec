@@ -2,6 +2,7 @@
 
 #include "object_list.hpp"
 #include <exception>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <list>
@@ -324,11 +325,9 @@ void ObjectList::erase(joda::atom::ROI::Category categoryToErase)
 ///
 void ObjectList::clearAll()
 {
-  // triggerStartChangeCallback();
   std::lock_guard<std::mutex> lock(mInsertLock);
   std::map<enums::ClassId, std::unique_ptr<SpheralIndex>>::clear();
   objectsOrderedByObjectId.clear();
-  // triggerChangeCallback();
 }
 
 void ObjectList::erase(const std::set<ROI *> &rois)
@@ -467,6 +466,9 @@ void ObjectList::deserialize(const std::filesystem::path &filename)
 {
   try {
     clearAll();
+    if(!std::filesystem::exists(filename)) {
+      return;
+    }
     std::ifstream is(filename.string(), std::ios::binary);
     cereal::BinaryInputArchive archive(is);
 
