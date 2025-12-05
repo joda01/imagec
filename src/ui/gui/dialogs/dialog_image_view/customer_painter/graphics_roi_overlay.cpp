@@ -126,7 +126,7 @@ void RoiOverlay::refresh()
                 const int yy = static_cast<int>(static_cast<double>(y_offset + box.y) * scaleY);
 
                 // Optimization 6: Use direct raw pointer access for QImage
-                if(qimg.valid(yy, xx)) {
+                if(qimg.valid(xx, yy)) {
                   QRgb *line    = reinterpret_cast<QRgb *>(qimg.scanLine(yy));
                   QRgb actColor = line[xx];
                   if(qAlpha(actColor) == 0) {
