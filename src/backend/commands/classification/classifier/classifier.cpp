@@ -115,7 +115,7 @@ void Classifier::execute(processor::ProcessContext &context, cv::Mat &imageIn, a
           break;
         }
       }
-      if(detectedRoi.getClassId() != enums::ClassId::NONE) {
+      if(detectedRoi.getClassId() != enums::ClassId::NONE && detectedRoi.getClassId() != enums::ClassId::UNDEFINED) {
         result.push_back(detectedRoi);
       }
       i++;
