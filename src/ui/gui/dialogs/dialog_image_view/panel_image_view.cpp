@@ -613,7 +613,6 @@ void PanelImageView::setRoisOpaque(float opaque)
 void PanelImageView::setState(State state)
 {
   mState = state;
-  setCursor();
   if(state == State::MOVE) {
     setRoisSelectable(false);
     setDragMode(QGraphicsView::ScrollHandDrag);
@@ -624,6 +623,7 @@ void PanelImageView::setState(State state)
     setRoisSelectable(false);
     setDragMode(QGraphicsView::NoDrag);
   }
+  setCursor();
 }
 
 ///
@@ -651,13 +651,8 @@ void PanelImageView::setCursor()
 {
   switch(mState) {
     case MOVE:
-      if(mThumbnailAreaEntered) {
-        QGraphicsView::setCursor(Qt::CrossCursor);
-        viewport()->setCursor(Qt::CrossCursor);
-      } else {
-        QGraphicsView::setCursor(Qt::PointingHandCursor);
-        viewport()->setCursor(Qt::PointingHandCursor);
-      }
+      QGraphicsView::setCursor(Qt::PointingHandCursor);
+      viewport()->setCursor(Qt::PointingHandCursor);
       break;
     case SELECT:
       QGraphicsView::setCursor(Qt::ArrowCursor);
@@ -823,6 +818,7 @@ auto PanelImageView::getTileInfoInternal() const -> enums::TileInfo
 void PanelImageView::mousePressEvent(QMouseEvent *event)
 {
   QGraphicsView::mousePressEvent(event);
+  setCursor();
 
   if(mState == State::MOVE) {
     if(mShowCrosshandCursor && event->button() == Qt::RightButton) {
@@ -941,6 +937,7 @@ void PanelImageView::mouseMoveEvent(QMouseEvent *event)
     }
     QGraphicsView::mouseMoveEvent(event);
   }
+  setCursor();
   scheduleUpdate();
   updateCornerItemPosition();
 }
@@ -1018,6 +1015,7 @@ void PanelImageView::mouseReleaseEvent(QMouseEvent *event)
     }
     QGraphicsView::mouseReleaseEvent(event);
   }
+  setCursor();
   updateCornerItemPosition();
 }
 
