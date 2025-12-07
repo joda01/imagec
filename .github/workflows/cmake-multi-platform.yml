@@ -44,6 +44,13 @@ jobs:
           if-no-files-found: error
           path: build/build/output
 
+      - name: Upload SBOM to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: sbom/sbom.cdx.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   #
   # Windows
   #

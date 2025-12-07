@@ -1,0 +1,2815 @@
+{
+  "components": [
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/autoconf@2.71?rref=f9307992909d7fb3df459340f1932809",
+      "description": "Autoconf is an extensible package of M4 macros that produce shell scripts to automatically configure software source code packages",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.gnu.org/software/autoconf/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "GPL-2.0-or-later"
+          }
+        },
+        {
+          "license": {
+            "id": "GPL-3.0-or-later"
+          }
+        }
+      ],
+      "name": "autoconf",
+      "purl": "pkg:conan/autoconf@2.71?rref=f9307992909d7fb3df459340f1932809",
+      "type": "application",
+      "version": "2.71"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/automake@1.16.5?rref=058bda3e21c36c9aa8425daf3c1faf50",
+      "description": "Automake is a tool for automatically generating Makefile.in files compliant with the GNU Coding Standards.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.gnu.org/software/automake/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "GPL-2.0-or-later"
+          }
+        },
+        {
+          "license": {
+            "id": "GPL-3.0-or-later"
+          }
+        }
+      ],
+      "name": "automake",
+      "purl": "pkg:conan/automake@1.16.5?rref=058bda3e21c36c9aa8425daf3c1faf50",
+      "type": "application",
+      "version": "1.16.5"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/b2@5.2.1?rref=91bc73931a0acb655947a81569ed8b80",
+      "description": "B2 makes it easy to build C++ projects, everywhere.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.bfgroup.xyz/b2/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSL-1.0"
+          }
+        }
+      ],
+      "name": "b2",
+      "purl": "pkg:conan/b2@5.2.1?rref=91bc73931a0acb655947a81569ed8b80",
+      "type": "application",
+      "version": "5.2.1"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/cmake@3.30.5?rref=540068cc37f1d21b42b729c82d6bcb29",
+      "description": "CMake, the cross-platform, open-source build system.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/Kitware/CMake"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "name": "cmake",
+      "purl": "pkg:conan/cmake@3.30.5?rref=540068cc37f1d21b42b729c82d6bcb29",
+      "type": "application",
+      "version": "3.30.5"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/m4@1.4.19?rref=b38ced39a01e31fef5435bc634461fd2",
+      "description": "GNU M4 is an implementation of the traditional Unix macro processor",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.gnu.org/software/m4/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "GPL-3.0-only"
+          }
+        }
+      ],
+      "name": "m4",
+      "purl": "pkg:conan/m4@1.4.19?rref=b38ced39a01e31fef5435bc634461fd2",
+      "type": "application",
+      "version": "1.4.19"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/meson@1.2.2?rref=21b73818ba96d9eea465b310b5bbc993",
+      "description": "a project to create the best possible next-generation build system",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/mesonbuild/meson"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "meson",
+      "purl": "pkg:conan/meson@1.2.2?rref=21b73818ba96d9eea465b310b5bbc993",
+      "type": "application",
+      "version": "1.2.2"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/meson@1.3.0?rref=39e72c134c60664acd1368390f663f85",
+      "description": "a project to create the best possible next-generation build system",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/mesonbuild/meson"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "meson",
+      "purl": "pkg:conan/meson@1.3.0?rref=39e72c134c60664acd1368390f663f85",
+      "type": "application",
+      "version": "1.3.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/meson@1.3.2?rref=26ce8a76a36cc275cdfee1d757bc6561",
+      "description": "a project to create the best possible next-generation build system",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/mesonbuild/meson"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "meson",
+      "purl": "pkg:conan/meson@1.3.2?rref=26ce8a76a36cc275cdfee1d757bc6561",
+      "type": "application",
+      "version": "1.3.2"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/meson@1.4.0?rref=2262941cc8fbb0099dd0c196ca2a6c01",
+      "description": "a project to create the best possible next-generation build system",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/mesonbuild/meson"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "meson",
+      "purl": "pkg:conan/meson@1.4.0?rref=2262941cc8fbb0099dd0c196ca2a6c01",
+      "type": "application",
+      "version": "1.4.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/ninja@1.12.1?rref=fd583651bf0c6a901943495d49878803",
+      "description": "Ninja is a small build system with a focus on speed",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/ninja-build/ninja"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "ninja",
+      "purl": "pkg:conan/ninja@1.12.1?rref=fd583651bf0c6a901943495d49878803",
+      "type": "application",
+      "version": "1.12.1"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/xkeyboard-config@system?rref=57dd5c08e72ab06bc2ee0e756c0a2c41",
+      "description": "The non-arch keyboard configuration database for X Window.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.freedesktop.org/wiki/Software/XKeyboardConfig/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "xkeyboard-config",
+      "purl": "pkg:conan/xkeyboard-config@system?rref=57dd5c08e72ab06bc2ee0e756c0a2c41",
+      "type": "application",
+      "version": "system"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/abseil@20240116.1?rref=ac4d4c2caf9c04267de3e6a488a4f269",
+      "description": "Abseil Common Libraries (C++) from Google",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/abseil/abseil-cpp"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "abseil",
+      "purl": "pkg:conan/abseil@20240116.1?rref=ac4d4c2caf9c04267de3e6a488a4f269",
+      "type": "library",
+      "version": "20240116.1"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/ade@0.1.2d?rref=f225d0a218a7c9fbb81746806c7de53d",
+      "description": "Graph construction, manipulation, and processing framework",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/opencv/ade"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "ade",
+      "purl": "pkg:conan/ade@0.1.2d?rref=f225d0a218a7c9fbb81746806c7de53d",
+      "type": "library",
+      "version": "0.1.2d"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/armadillo@12.6.4?rref=b7ec34a03cb8c72f1ce2e5676ba87e68",
+      "description": "Armadillo is a high quality C++ library for linear algebra and scientific computing, aiming towards a good balance between speed and ease of use.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://arma.sourceforge.net"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "armadillo",
+      "purl": "pkg:conan/armadillo@12.6.4?rref=b7ec34a03cb8c72f1ce2e5676ba87e68",
+      "type": "library",
+      "version": "12.6.4"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/bison@3.8.2?rref=ed1ba0c42d2ab7ab64fc3a62e9ecc673",
+      "description": "Bison is a general-purpose parser generator",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.gnu.org/software/bison/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "GPL-3.0-or-later"
+          }
+        }
+      ],
+      "name": "bison",
+      "purl": "pkg:conan/bison@3.8.2?rref=ed1ba0c42d2ab7ab64fc3a62e9ecc673",
+      "type": "library",
+      "version": "3.8.2"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/boost@1.86.0?rref=12a366cc998a98b33ea0ce79cb7f319c",
+      "description": "Boost provides free peer-reviewed portable C++ source libraries",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.boost.org"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSL-1.0"
+          }
+        }
+      ],
+      "name": "boost",
+      "purl": "pkg:conan/boost@1.86.0?rref=12a366cc998a98b33ea0ce79cb7f319c",
+      "type": "library",
+      "version": "1.86.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/brotli@1.1.0?rref=d56d7bb9ca722942aba17369cb5c0519",
+      "description": "Brotli compression format",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/brotli"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "brotli",
+      "purl": "pkg:conan/brotli@1.1.0?rref=d56d7bb9ca722942aba17369cb5c0519",
+      "type": "library",
+      "version": "1.1.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/bshoshany-thread-pool@5.0.0?rref=d94da300363f0c35b8f41b2c5490c94d",
+      "description": "BS::thread_pool: a fast, lightweight, modern, and easy-to-use C++17 / C++20 / C++23 thread pool library",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/bshoshany/thread-pool"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "bshoshany-thread-pool",
+      "purl": "pkg:conan/bshoshany-thread-pool@5.0.0?rref=d94da300363f0c35b8f41b2c5490c94d",
+      "type": "library",
+      "version": "5.0.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/bzip2@1.0.8?rref=d00dac990f08d991998d624be81a9526",
+      "description": "bzip2 is a free and open-source file compression program that uses the Burrows Wheeler algorithm.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://sourceware.org/bzip2"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "bzip2-1.0.8"
+          }
+        }
+      ],
+      "name": "bzip2",
+      "purl": "pkg:conan/bzip2@1.0.8?rref=d00dac990f08d991998d624be81a9526",
+      "type": "library",
+      "version": "1.0.8"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/c4core@0.2.0?rref=fe7dc3e780c4e1d72246ec232a616d4f",
+      "description": "c4core is a library of low-level C++ utilities, written with low-latency projects in mind.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/biojppm/c4core"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "c4core",
+      "purl": "pkg:conan/c4core@0.2.0?rref=fe7dc3e780c4e1d72246ec232a616d4f",
+      "type": "library",
+      "version": "0.2.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/catch2@3.7.0?rref=ed6369424399fb0cab139b5a0ce492c1",
+      "description": "A modern, C++-native, header-only, framework for unit-tests, TDD and BDD",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/catchorg/Catch2"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSL-1.0"
+          }
+        }
+      ],
+      "name": "catch2",
+      "purl": "pkg:conan/catch2@3.7.0?rref=ed6369424399fb0cab139b5a0ce492c1",
+      "type": "library",
+      "version": "3.7.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/cereal@1.3.2?rref=b94802e904e1129e7fdb46d9bff5321d",
+      "description": "Serialization header-only library for C++11.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/USCiLab/cereal"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "name": "cereal",
+      "purl": "pkg:conan/cereal@1.3.2?rref=b94802e904e1129e7fdb46d9bff5321d",
+      "type": "library",
+      "version": "1.3.2"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/cli11@2.5.0?rref=1b7c81ea2bff6279eb2150bbe06a200a",
+      "description": "A command line parser for C++11 and beyond.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/CLIUtils/CLI11"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "name": "cli11",
+      "purl": "pkg:conan/cli11@2.5.0?rref=1b7c81ea2bff6279eb2150bbe06a200a",
+      "type": "library",
+      "version": "2.5.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/cpp-httplib@0.19.0?rref=13df66184b34143823e542921dc7e330",
+      "description": "A C++11 single-file header-only cross platform HTTP/HTTPS library.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/yhirose/cpp-httplib"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "cpp-httplib",
+      "purl": "pkg:conan/cpp-httplib@0.19.0?rref=13df66184b34143823e542921dc7e330",
+      "type": "library",
+      "version": "0.19.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/cpuinfo@cci.20231129?rref=15e94782b128bee8bfd047f6102a4d21",
+      "description": "cpuinfo is a library to detect essential for performance optimization information about host CPU.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/pytorch/cpuinfo"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "name": "cpuinfo",
+      "purl": "pkg:conan/cpuinfo@cci.20231129?rref=15e94782b128bee8bfd047f6102a4d21",
+      "type": "library",
+      "version": "cci.20231129"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/date@3.0.1?rref=d41f3965e7ef977e948cb57a31165545",
+      "description": "A date and time library based on the C++11/14/17 <chrono> header",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/HowardHinnant/date"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "date",
+      "purl": "pkg:conan/date@3.0.1?rref=d41f3965e7ef977e948cb57a31165545",
+      "type": "library",
+      "version": "3.0.1"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/double-conversion@3.3.0?rref=33321c201741cc32b51169c6d2d05e60",
+      "description": "Efficient binary-decimal and decimal-binary conversion routines for IEEE doubles.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/double-conversion"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "name": "double-conversion",
+      "purl": "pkg:conan/double-conversion@3.3.0?rref=33321c201741cc32b51169c6d2d05e60",
+      "type": "library",
+      "version": "3.3.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/duckdb@1.1.3?rref=494f338fd19149063cbfad0e2e58baf4",
+      "description": "DuckDB is an embeddable SQL OLAP Database Management System",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/cwida/duckdb"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "duckdb",
+      "purl": "pkg:conan/duckdb@1.1.3?rref=494f338fd19149063cbfad0e2e58baf4",
+      "type": "library",
+      "version": "1.1.3"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/eigen@3.4.0?rref=2e192482a8acff96fe34766adca2b24c",
+      "description": "Eigen is a C++ template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://eigen.tuxfamily.org"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "LGPL-3.0-or-later"
+          }
+        },
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "name": "eigen",
+      "purl": "pkg:conan/eigen@3.4.0?rref=2e192482a8acff96fe34766adca2b24c",
+      "type": "library",
+      "version": "3.4.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/ensmallen@2.21.0?rref=8cec8b388180597dcd0f4d2af46e68f0",
+      "description": "ensmallen is a high quality C++ library for non-linear numerical optimization.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/mlpack/ensmallen"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "name": "ensmallen",
+      "purl": "pkg:conan/ensmallen@2.21.0?rref=8cec8b388180597dcd0f4d2af46e68f0",
+      "type": "library",
+      "version": "2.21.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/expat@2.6.3?rref=39b80d3109fbe578fddfe4951f0b1d57",
+      "description": "Fast streaming XML parser written in C.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/libexpat/libexpat"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "expat",
+      "purl": "pkg:conan/expat@2.6.3?rref=39b80d3109fbe578fddfe4951f0b1d57",
+      "type": "library",
+      "version": "2.6.3"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/farmhash@cci.20190513?rref=af6593f545dd2b496e6bd019f1deb66f",
+      "description": "A family of hash functions",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/farmhash"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "farmhash",
+      "purl": "pkg:conan/farmhash@cci.20190513?rref=af6593f545dd2b496e6bd019f1deb66f",
+      "type": "library",
+      "version": "cci.20190513"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/fast_float@6.1.0?rref=f6088e57bf83ac9f9b3abf37fe766cea",
+      "description": "Fast and exact implementation of the C++ from_chars functions for float and double types.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/fastfloat/fast_float"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        },
+        {
+          "license": {
+            "id": "BSL-1.0"
+          }
+        },
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "fast_float",
+      "purl": "pkg:conan/fast_float@6.1.0?rref=f6088e57bf83ac9f9b3abf37fe766cea",
+      "type": "library",
+      "version": "6.1.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/fft@cci.20061228?rref=76a056c8ad3656ad557071c230f0f50c",
+      "description": "This is a package to calculate Discrete Fourier/Cosine/Sine Transforms of 2,3-dimensional sequences of length 2^N.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://www.kurims.kyoto-u.ac.jp/~ooura/fft.html"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "LicenseRef-LICENSE"
+        }
+      ],
+      "name": "fft",
+      "purl": "pkg:conan/fft@cci.20061228?rref=76a056c8ad3656ad557071c230f0f50c",
+      "type": "library",
+      "version": "cci.20061228"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/flatbuffers@23.5.26?rref=606a38635994b68e946db3207b0159d7",
+      "description": "Memory Efficient Serialization Library",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://google.github.io/flatbuffers"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "flatbuffers",
+      "purl": "pkg:conan/flatbuffers@23.5.26?rref=606a38635994b68e946db3207b0159d7",
+      "type": "library",
+      "version": "23.5.26"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/flex@2.6.4?rref=e35bc44b3fcbcd661e0af0dc5b5b1ad4",
+      "description": "Flex, the fast lexical analyzer generator",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/westes/flex"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "name": "flex",
+      "purl": "pkg:conan/flex@2.6.4?rref=e35bc44b3fcbcd661e0af0dc5b5b1ad4",
+      "type": "library",
+      "version": "2.6.4"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/fontconfig@2.15.0?rref=9242855e95c8a8b80f3bd89758a8bf97",
+      "description": "Fontconfig is a library for configuring and customizing font access",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://gitlab.freedesktop.org/fontconfig/fontconfig"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "fontconfig",
+      "purl": "pkg:conan/fontconfig@2.15.0?rref=9242855e95c8a8b80f3bd89758a8bf97",
+      "type": "library",
+      "version": "2.15.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/fp16@cci.20210320?rref=34dbac7f6fa3dee68830028b53de6c84",
+      "description": "Conversion to/from half-precision floating point formats.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/Maratyszcza/FP16"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "fp16",
+      "purl": "pkg:conan/fp16@cci.20210320?rref=34dbac7f6fa3dee68830028b53de6c84",
+      "type": "library",
+      "version": "cci.20210320"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/freetype@2.13.2?rref=5d2563803c8558d4ef47271a82c73d20",
+      "description": "FreeType is a freely available software library to render fonts.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.freetype.org"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "FTL"
+          }
+        }
+      ],
+      "name": "freetype",
+      "purl": "pkg:conan/freetype@2.13.2?rref=5d2563803c8558d4ef47271a82c73d20",
+      "type": "library",
+      "version": "2.13.2"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/fxdiv@cci.20200417?rref=0b3afe4c9d1b8d05f5f017984c8cb15a",
+      "description": "C99/C++ header-only library for division via fixed-point multiplication by inverse.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/Maratyszcza/FXdiv"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "fxdiv",
+      "purl": "pkg:conan/fxdiv@cci.20200417?rref=0b3afe4c9d1b8d05f5f017984c8cb15a",
+      "type": "library",
+      "version": "cci.20200417"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/gemmlowp@cci.20210928?rref=d241d866fe3e0d9b64d98d2031e81512",
+      "description": "Low-precision matrix multiplication",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/gemmlowp"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "gemmlowp",
+      "purl": "pkg:conan/gemmlowp@cci.20210928?rref=d241d866fe3e0d9b64d98d2031e81512",
+      "type": "library",
+      "version": "cci.20210928"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/gnu-config@cci.20210814?rref=dc430d754f465e8c74463019672fb97b",
+      "description": "The GNU config.guess and config.sub scripts",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://savannah.gnu.org/projects/config/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "GPL-3.0-or-later"
+          }
+        },
+        {
+          "license": {
+            "name": "autoconf-special-exception"
+          }
+        }
+      ],
+      "name": "gnu-config",
+      "purl": "pkg:conan/gnu-config@cci.20210814?rref=dc430d754f465e8c74463019672fb97b",
+      "type": "library",
+      "version": "cci.20210814"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/gperf@3.1?rref=1d622ad9717e9348ed3685c9994ad0b9",
+      "description": "GNU gperf is a perfect hash function generator",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.gnu.org/software/gperf"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "GPL-3.0-or-later"
+          }
+        }
+      ],
+      "name": "gperf",
+      "purl": "pkg:conan/gperf@3.1?rref=1d622ad9717e9348ed3685c9994ad0b9",
+      "type": "library",
+      "version": "3.1"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/harfbuzz@8.3.0?rref=c83405ed297bad6c9e9587e2a19c686a",
+      "description": "HarfBuzz is an OpenType text shaping engine.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://harfbuzz.github.io/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "harfbuzz",
+      "purl": "pkg:conan/harfbuzz@8.3.0?rref=c83405ed297bad6c9e9587e2a19c686a",
+      "type": "library",
+      "version": "8.3.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/icu@74.2?rref=a62036066fcce8a73a7119c8ae828b15",
+      "description": "ICU is a mature, widely used set of C/C++ and Java libraries providing Unicode and Globalization support for software applications.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://site.icu-project.org"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Unicode-3.0"
+        }
+      ],
+      "name": "icu",
+      "purl": "pkg:conan/icu@74.2?rref=a62036066fcce8a73a7119c8ae828b15",
+      "type": "library",
+      "version": "74.2"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/intel-neon2sse@cci.20210225?rref=56e8b51d756e9ae2a612e3489039e07b",
+      "description": "Header only library intended to simplify ARM->IA32 porting",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/intel/ARM_NEON_2_x86_SSE"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "name": "intel-neon2sse",
+      "purl": "pkg:conan/intel-neon2sse@cci.20210225?rref=56e8b51d756e9ae2a612e3489039e07b",
+      "type": "library",
+      "version": "cci.20210225"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/jbig@20160605?rref=2d29fa02aacd76902e0d2cbbc24631ef",
+      "description": "jbig for the Windows build of ImageMagick",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/ImageMagick/jbig"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "GPL-2.0"
+          }
+        }
+      ],
+      "name": "jbig",
+      "purl": "pkg:conan/jbig@20160605?rref=2d29fa02aacd76902e0d2cbbc24631ef",
+      "type": "library",
+      "version": "20160605"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/libbacktrace@cci.20240730?rref=7f1e39db056a8a9c08053d5deb924af2",
+      "description": "A C library that may be linked into a C/C++ program to produce symbolic backtraces.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/ianlancetaylor/libbacktrace"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "name": "libbacktrace",
+      "purl": "pkg:conan/libbacktrace@cci.20240730?rref=7f1e39db056a8a9c08053d5deb924af2",
+      "type": "library",
+      "version": "cci.20240730"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/libcurl@8.11.1?rref=1b764fa0056989be39a5d0bffecbe6c7",
+      "description": "command line tool and library for transferring data with URLs",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://curl.se"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "curl"
+          }
+        }
+      ],
+      "name": "libcurl",
+      "purl": "pkg:conan/libcurl@8.11.1?rref=1b764fa0056989be39a5d0bffecbe6c7",
+      "type": "library",
+      "version": "8.11.1"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/libdeflate@1.19?rref=3ea74a4549efc14d4b1202dc4bfbf602",
+      "description": "Heavily optimized library for DEFLATE/zlib/gzip compression and decompression.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/ebiggers/libdeflate"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "libdeflate",
+      "purl": "pkg:conan/libdeflate@1.19?rref=3ea74a4549efc14d4b1202dc4bfbf602",
+      "type": "library",
+      "version": "1.19"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/libffi@3.4.4?rref=72cccac6139293b6e97ec9cd676547ff",
+      "description": "A portable, high level programming interface to various calling conventions",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://sourceware.org/libffi/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "libffi",
+      "purl": "pkg:conan/libffi@3.4.4?rref=72cccac6139293b6e97ec9cd676547ff",
+      "type": "library",
+      "version": "3.4.4"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/libiconv@1.17?rref=73fefc1b696e069df90fd1d18aa63edd",
+      "description": "Convert text to and from Unicode",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.gnu.org/software/libiconv/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "LGPL-2.1-or-later"
+          }
+        }
+      ],
+      "name": "libiconv",
+      "purl": "pkg:conan/libiconv@1.17?rref=73fefc1b696e069df90fd1d18aa63edd",
+      "type": "library",
+      "version": "1.17"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/libjpeg@9e?rref=ebca87d1efc798db99cc9bbe2297679a",
+      "description": "Libjpeg is a widely used C library for reading and writing JPEG image files.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://ijg.org"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "IJG"
+          }
+        }
+      ],
+      "name": "libjpeg",
+      "purl": "pkg:conan/libjpeg@9e?rref=ebca87d1efc798db99cc9bbe2297679a",
+      "type": "library",
+      "version": "9e"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/libpng@1.6.44?rref=9e1aa08fb46946c7c91e4ae03bd49811",
+      "description": "libpng is the official PNG file format reference library.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://www.libpng.org"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "libpng-2.0"
+          }
+        }
+      ],
+      "name": "libpng",
+      "purl": "pkg:conan/libpng@1.6.44?rref=9e1aa08fb46946c7c91e4ae03bd49811",
+      "type": "library",
+      "version": "1.6.44"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/libtiff@4.6.0?rref=51d0e7e15d032aeec1b64e65c44ecd9f",
+      "description": "Library for Tag Image File Format (TIFF)",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://www.simplesystems.org/libtiff"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "libtiff"
+          }
+        }
+      ],
+      "name": "libtiff",
+      "purl": "pkg:conan/libtiff@4.6.0?rref=51d0e7e15d032aeec1b64e65c44ecd9f",
+      "type": "library",
+      "version": "4.6.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/libtool@2.4.7?rref=08316dad5c72c541ed21e039e4cf217b",
+      "description": "GNU libtool is a generic library support script. ",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.gnu.org/software/libtool/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "GPL-2.0-or-later"
+          }
+        },
+        {
+          "license": {
+            "id": "GPL-3.0-or-later"
+          }
+        }
+      ],
+      "name": "libtool",
+      "purl": "pkg:conan/libtool@2.4.7?rref=08316dad5c72c541ed21e039e4cf217b",
+      "type": "library",
+      "version": "2.4.7"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/libtorch@2.9.0?rref=81b1e7f6759128598e5b2e4f3eeda402",
+      "description": "Precompiled LibTorch binaries for multiple platforms",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "name": "libtorch",
+      "purl": "pkg:conan/libtorch@2.9.0?rref=81b1e7f6759128598e5b2e4f3eeda402",
+      "type": "library",
+      "version": "2.9.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/libwebp@1.3.2?rref=52f69c4a31c5cf033fdd9230d77a8e38",
+      "description": "Library to encode and decode images in WebP format",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://chromium.googlesource.com/webm/libwebp"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "name": "libwebp",
+      "purl": "pkg:conan/libwebp@1.3.2?rref=52f69c4a31c5cf033fdd9230d77a8e38",
+      "type": "library",
+      "version": "1.3.2"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/libxlsxwriter@1.1.8?rref=a5b016429f9d5d0a24616ae24e62ffd8",
+      "description": "A C library for creating Excel XLSX files",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/jmcnamara/libxlsxwriter"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "name": "libxlsxwriter",
+      "purl": "pkg:conan/libxlsxwriter@1.1.8?rref=a5b016429f9d5d0a24616ae24e62ffd8",
+      "type": "library",
+      "version": "1.1.8"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/libxml2@2.13.4?rref=72b3bfba0c37dfe22f20c587cc468f4c",
+      "description": "libxml2 is a software library for parsing XML documents",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://gitlab.gnome.org/GNOME/libxml2/-/wikis/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "libxml2",
+      "purl": "pkg:conan/libxml2@2.13.4?rref=72b3bfba0c37dfe22f20c587cc468f4c",
+      "type": "library",
+      "version": "2.13.4"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/llvm-openmp@17.0.6?rref=16b362e4738bb05fe648d1a2e1f4519c",
+      "description": "The OpenMP (Open Multi-Processing) specification is a standard for a set of compiler directives, library routines, and environment variables that can be used to specify shared memory parallelism in Fortran and C/C++ programs. This is the LLVM implementation.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/llvm/llvm-project/blob/main/openmp"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0 WITH LLVM-exception"
+        }
+      ],
+      "name": "llvm-openmp",
+      "purl": "pkg:conan/llvm-openmp@17.0.6?rref=16b362e4738bb05fe648d1a2e1f4519c",
+      "type": "library",
+      "version": "17.0.6"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/md4c@0.4.8?rref=9b5da52e0c0b803bb0d1a4b9fdfe10b1",
+      "description": "C Markdown parser. Fast. SAX-like interface. Compliant to CommonMark specification.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/mity/md4c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "md4c",
+      "purl": "pkg:conan/md4c@0.4.8?rref=9b5da52e0c0b803bb0d1a4b9fdfe10b1",
+      "type": "library",
+      "version": "0.4.8"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/minizip@1.2.13?rref=75d20b6a37ef70126334467f61acadde",
+      "description": "An experimental package to read and write files in .zip format, written on top of zlib",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://zlib.net"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Zlib"
+          }
+        }
+      ],
+      "name": "minizip",
+      "purl": "pkg:conan/minizip@1.2.13?rref=75d20b6a37ef70126334467f61acadde",
+      "type": "library",
+      "version": "1.2.13"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/mlpack@4.6.2?rref=e0575fa6a4d3a839d226a21f5af22fbf",
+      "description": "mlpack: a fast, header-only C++ machine learning library",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/mlpack/mlpack"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "name": "mlpack",
+      "purl": "pkg:conan/mlpack@4.6.2?rref=e0575fa6a4d3a839d226a21f5af22fbf",
+      "type": "library",
+      "version": "4.6.2"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/ms-gsl@4.0.0?rref=057429d7a351a5819da5ddd19ee33665",
+      "description": "Microsoft's implementation of the Guidelines Support Library",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/microsoft/GSL"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "ms-gsl",
+      "purl": "pkg:conan/ms-gsl@4.0.0?rref=057429d7a351a5819da5ddd19ee33665",
+      "type": "library",
+      "version": "4.0.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/nlohmann_json@3.11.3?rref=45828be26eb619a2e04ca517bb7b828d",
+      "description": "JSON for Modern C++ parser and generator.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/nlohmann/json"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "nlohmann_json",
+      "purl": "pkg:conan/nlohmann_json@3.11.3?rref=45828be26eb619a2e04ca517bb7b828d",
+      "type": "library",
+      "version": "3.11.3"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/nsync@1.26.0?rref=db2765efd5dd959e1812226c5523072c",
+      "description": "Library that exports various synchronization primitives",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/nsync"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "nsync",
+      "purl": "pkg:conan/nsync@1.26.0?rref=db2765efd5dd959e1812226c5523072c",
+      "type": "library",
+      "version": "1.26.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/onnx@1.17.0?rref=ff07f5679f8a1bafbf5ad9ff8e0686ed",
+      "description": "Open standard for machine learning interoperability.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/onnx/onnx"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "onnx",
+      "purl": "pkg:conan/onnx@1.17.0?rref=ff07f5679f8a1bafbf5ad9ff8e0686ed",
+      "type": "library",
+      "version": "1.17.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/onnxruntime@1.18.1?rref=d94722549d704e7bd85970ae9e0ca9b5",
+      "description": "ONNX Runtime: cross-platform, high performance ML inferencing and training accelerator",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://onnxruntime.ai"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "onnxruntime",
+      "purl": "pkg:conan/onnxruntime@1.18.1?rref=d94722549d704e7bd85970ae9e0ca9b5",
+      "type": "library",
+      "version": "1.18.1"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/openblas@0.3.25?rref=1bb1647237da54034ed5d5f8eeba2466",
+      "description": "An optimized BLAS library based on GotoBLAS2 1.13 BSD version",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.openblas.net"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "name": "openblas",
+      "purl": "pkg:conan/openblas@0.3.25?rref=1bb1647237da54034ed5d5f8eeba2466",
+      "type": "library",
+      "version": "0.3.25"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/opencv@4.10.0?rref=375c6f12ed7803970f0ec84298011dae",
+      "description": "OpenCV (Open Source Computer Vision Library)",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://opencv.org"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "opencv",
+      "purl": "pkg:conan/opencv@4.10.0?rref=375c6f12ed7803970f0ec84298011dae",
+      "type": "library",
+      "version": "4.10.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/opengl@system?rref=4df6fecde4084386beded3ed0e56e4ea",
+      "description": "cross-platform virtual conan package for the OpenGL support",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.opengl.org/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "opengl",
+      "purl": "pkg:conan/opengl@system?rref=4df6fecde4084386beded3ed0e56e4ea",
+      "type": "library",
+      "version": "system"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/openjpeg@2.5.2?rref=6f7b733e151d1bbf5ed05cbabb846828",
+      "description": "OpenJPEG is an open-source JPEG 2000 codec written in C language.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/uclouvain/openjpeg"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "name": "openjpeg",
+      "purl": "pkg:conan/openjpeg@2.5.2?rref=6f7b733e151d1bbf5ed05cbabb846828",
+      "type": "library",
+      "version": "2.5.2"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/openssl@3.4.1?rref=638c4c4df8ecdef1f7aa73fc0d07fde6",
+      "description": "A toolkit for the Transport Layer Security (TLS) and Secure Sockets Layer (SSL) protocols",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/openssl/openssl"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "openssl",
+      "purl": "pkg:conan/openssl@3.4.1?rref=638c4c4df8ecdef1f7aa73fc0d07fde6",
+      "type": "library",
+      "version": "3.4.1"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/pcre2@10.42?rref=ac2227071f79a062167cf2fee7189d66",
+      "description": "Perl Compatible Regular Expressions",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.pcre.org/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "name": "pcre2",
+      "purl": "pkg:conan/pcre2@10.42?rref=ac2227071f79a062167cf2fee7189d66",
+      "type": "library",
+      "version": "10.42"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/pkgconf@2.1.0?rref=27f44583701117b571307cf5b5fe5605",
+      "description": "package compiler and linker metadata toolkit",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://git.sr.ht/~kaniini/pkgconf"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "name": "pkgconf",
+      "purl": "pkg:conan/pkgconf@2.1.0?rref=27f44583701117b571307cf5b5fe5605",
+      "type": "library",
+      "version": "2.1.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/pkgconf@2.2.0?rref=6462942a22803086372db44689ba825f",
+      "description": "package compiler and linker metadata toolkit",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://git.sr.ht/~kaniini/pkgconf"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "name": "pkgconf",
+      "purl": "pkg:conan/pkgconf@2.2.0?rref=6462942a22803086372db44689ba825f",
+      "type": "library",
+      "version": "2.2.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/protobuf@3.21.12?rref=2099e6c66fcd31b52c3afc0c096c1d02",
+      "description": "Protocol Buffers - Google's data interchange format",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/protocolbuffers/protobuf"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "name": "protobuf",
+      "purl": "pkg:conan/protobuf@3.21.12?rref=2099e6c66fcd31b52c3afc0c096c1d02",
+      "type": "library",
+      "version": "3.21.12"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/psimd@cci.20200517?rref=83200a06ebb1ff39c5adff0d712c05fa",
+      "description": "Portable 128-bit SIMD intrinsics.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/Maratyszcza/psimd"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "psimd",
+      "purl": "pkg:conan/psimd@cci.20200517?rref=83200a06ebb1ff39c5adff0d712c05fa",
+      "type": "library",
+      "version": "cci.20200517"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/pthreadpool@cci.20231129?rref=c721f98463f06cc5bf835df5d6fd9843",
+      "description": "pthreadpool is a portable and efficient thread pool implementation. It provides similar functionality to #pragma omp parallel for, but with additional features.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/Maratyszcza/pthreadpool"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "name": "pthreadpool",
+      "purl": "pkg:conan/pthreadpool@cci.20231129?rref=c721f98463f06cc5bf835df5d6fd9843",
+      "type": "library",
+      "version": "cci.20231129"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/pugixml@1.14?rref=c6afdcf73d71858303d8260b0d76ff91",
+      "description": "Light-weight, simple and fast XML parser for C++ with XPath support",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://pugixml.org/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "pugixml",
+      "purl": "pkg:conan/pugixml@1.14?rref=c6afdcf73d71858303d8260b0d76ff91",
+      "type": "library",
+      "version": "1.14"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/qt@6.7.1?rref=dc6548387c44448b2b955171e9c7cc21",
+      "description": "Qt is a cross-platform framework for graphical user interfaces.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.qt.io"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "LGPL-3.0-only"
+          }
+        }
+      ],
+      "name": "qt",
+      "purl": "pkg:conan/qt@6.7.1?rref=dc6548387c44448b2b955171e9c7cc21",
+      "type": "library",
+      "version": "6.7.1"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/quirc@1.2?rref=92179dd521786aea0729f2c859cbbcb9",
+      "description": "QR decoder library",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/dlbeer/quirc"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "name": "quirc",
+      "purl": "pkg:conan/quirc@1.2?rref=92179dd521786aea0729f2c859cbbcb9",
+      "type": "library",
+      "version": "1.2"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/rapidyaml@0.7.1?rref=ceb887c84af64d2237003a64332a32bc",
+      "description": "a library to parse and emit YAML, and do it fast.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/biojppm/rapidyaml"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "rapidyaml",
+      "purl": "pkg:conan/rapidyaml@0.7.1?rref=ceb887c84af64d2237003a64332a32bc",
+      "type": "library",
+      "version": "0.7.1"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/re2@20231101?rref=7fbe0f79b2e8ae4e6aff5eeeeca9c4dd",
+      "description": "Fast, safe, thread-friendly regular expression library",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/re2"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "name": "re2",
+      "purl": "pkg:conan/re2@20231101?rref=7fbe0f79b2e8ae4e6aff5eeeeca9c4dd",
+      "type": "library",
+      "version": "20231101"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/ruy@cci.20231129?rref=f23bfbab527048bfffba001f7a81236d",
+      "description": "ruy is a matrix multiplication library.\nIts focus is to cover the matrix multiplication needs of neural network inference engines\n",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/ruy"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "ruy",
+      "purl": "pkg:conan/ruy@cci.20231129?rref=f23bfbab527048bfffba001f7a81236d",
+      "type": "library",
+      "version": "cci.20231129"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/safeint@3.0.28?rref=2866d897bcf43472f5d3a9466dceb9c8",
+      "description": "SafeInt is a class library for C++ that manages integer overflows.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/dcleblanc/SafeInt"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "safeint",
+      "purl": "pkg:conan/safeint@3.0.28?rref=2866d897bcf43472f5d3a9466dceb9c8",
+      "type": "library",
+      "version": "3.0.28"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/stb@cci.20230920?rref=ed79bd361e974a99137f214efb117eef",
+      "description": "single-file public domain libraries for C/C++",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/nothings/stb"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        },
+        {
+          "license": {
+            "id": "Unlicense"
+          }
+        }
+      ],
+      "name": "stb",
+      "purl": "pkg:conan/stb@cci.20230920?rref=ed79bd361e974a99137f214efb117eef",
+      "type": "library",
+      "version": "cci.20230920"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/tensorflow-lite@2.15.0?rref=d1d39a062bf00a61166d46a4537527fb",
+      "description": "TensorFlow Lite is a set of tools that enables on-device machine learning by helping developers run their models on mobile, embedded, and IoT devices.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.tensorflow.org/lite/guide"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "tensorflow-lite",
+      "purl": "pkg:conan/tensorflow-lite@2.15.0?rref=d1d39a062bf00a61166d46a4537527fb",
+      "type": "library",
+      "version": "2.15.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/wayland@1.22.0?rref=284b56bdbe57868770f46100784e3b4d",
+      "description": "Wayland is a project to define a protocol for a compositor to talk to its clients as well as a library implementation of the protocol",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://wayland.freedesktop.org"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "wayland",
+      "purl": "pkg:conan/wayland@1.22.0?rref=284b56bdbe57868770f46100784e3b4d",
+      "type": "library",
+      "version": "1.22.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/wayland-protocols@1.33?rref=ff1b6deb00cb3ddd949261217588a4de",
+      "description": "Wayland is a project to define a protocol for a compositor to talk to its clients as well as a library implementation of the protocol",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://gitlab.freedesktop.org/wayland/wayland-protocols"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "wayland-protocols",
+      "purl": "pkg:conan/wayland-protocols@1.33?rref=ff1b6deb00cb3ddd949261217588a4de",
+      "type": "library",
+      "version": "1.33"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/xkbcommon@1.6.0?rref=dababe41c183634d88ad56ef4740c045",
+      "description": "keymap handling library for toolkits and window systems",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/xkbcommon/libxkbcommon"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "xkbcommon",
+      "purl": "pkg:conan/xkbcommon@1.6.0?rref=dababe41c183634d88ad56ef4740c045",
+      "type": "library",
+      "version": "1.6.0"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/xnnpack@cci.20240229?rref=664f0a0cdfc43eee4f075170cde25fbd",
+      "description": "XNNPACK is a highly optimized library of floating-point neural network inference operators for ARM, WebAssembly, and x86 platforms.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/XNNPACK"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "name": "xnnpack",
+      "purl": "pkg:conan/xnnpack@cci.20240229?rref=664f0a0cdfc43eee4f075170cde25fbd",
+      "type": "library",
+      "version": "cci.20240229"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/xorg@system?rref=98f82cb669e4ebc6b4d9d8a4f3f1faf4",
+      "description": "The X.Org project provides an open source implementation of the X Window System.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.x.org/wiki/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "xorg",
+      "purl": "pkg:conan/xorg@system?rref=98f82cb669e4ebc6b4d9d8a4f3f1faf4",
+      "type": "library",
+      "version": "system"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/xz_utils@5.4.5?rref=b885d1d79c9d30cff3803f7f551dbe66",
+      "description": "XZ Utils is free general-purpose data compression software with a high compression ratio. XZ Utils were written for POSIX-like systems, but also work on some not-so-POSIX systems. XZ Utils are the successor to LZMA Utils.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://tukaani.org/xz"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "GPL-2.0-or-later"
+          }
+        },
+        {
+          "license": {
+            "id": "GPL-3.0-or-later"
+          }
+        },
+        {
+          "license": {
+            "id": "LGPL-2.1-or-later"
+          }
+        },
+        {
+          "license": {
+            "id": "Unlicense"
+          }
+        }
+      ],
+      "name": "xz_utils",
+      "purl": "pkg:conan/xz_utils@5.4.5?rref=b885d1d79c9d30cff3803f7f551dbe66",
+      "type": "library",
+      "version": "5.4.5"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/zlib@1.3.1?rref=f52e03ae3d251dec704634230cd806a2",
+      "description": "A Massively Spiffy Yet Delicately Unobtrusive Compression Library (Also Free, Not to Mention Unencumbered by Patents)",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://zlib.net"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Zlib"
+          }
+        }
+      ],
+      "name": "zlib",
+      "purl": "pkg:conan/zlib@1.3.1?rref=f52e03ae3d251dec704634230cd806a2",
+      "type": "library",
+      "version": "1.3.1"
+    },
+    {
+      "author": "Conan",
+      "bom-ref": "pkg:conan/zstd@1.5.5?rref=1f239731dc45147c7fc2f54bfbde73df",
+      "description": "Zstandard - Fast real-time compression algorithm",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/facebook/zstd"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "name": "zstd",
+      "purl": "pkg:conan/zstd@1.5.5?rref=1f239731dc45147c7fc2f54bfbde73df",
+      "type": "library",
+      "version": "1.5.5"
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:conan/abseil@20240116.1?rref=ac4d4c2caf9c04267de3e6a488a4f269"
+    },
+    {
+      "ref": "pkg:conan/ade@0.1.2d?rref=f225d0a218a7c9fbb81746806c7de53d"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/openblas@0.3.25?rref=1bb1647237da54034ed5d5f8eeba2466"
+      ],
+      "ref": "pkg:conan/armadillo@12.6.4?rref=b7ec34a03cb8c72f1ce2e5676ba87e68"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/m4@1.4.19?rref=b38ced39a01e31fef5435bc634461fd2"
+      ],
+      "ref": "pkg:conan/autoconf@2.71?rref=f9307992909d7fb3df459340f1932809"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/autoconf@2.71?rref=f9307992909d7fb3df459340f1932809"
+      ],
+      "ref": "pkg:conan/automake@1.16.5?rref=058bda3e21c36c9aa8425daf3c1faf50"
+    },
+    {
+      "ref": "pkg:conan/b2@5.2.1?rref=91bc73931a0acb655947a81569ed8b80"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/flex@2.6.4?rref=e35bc44b3fcbcd661e0af0dc5b5b1ad4",
+        "pkg:conan/m4@1.4.19?rref=b38ced39a01e31fef5435bc634461fd2"
+      ],
+      "ref": "pkg:conan/bison@3.8.2?rref=ed1ba0c42d2ab7ab64fc3a62e9ecc673"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/b2@5.2.1?rref=91bc73931a0acb655947a81569ed8b80",
+        "pkg:conan/bzip2@1.0.8?rref=d00dac990f08d991998d624be81a9526",
+        "pkg:conan/libbacktrace@cci.20240730?rref=7f1e39db056a8a9c08053d5deb924af2",
+        "pkg:conan/zlib@1.3.1?rref=f52e03ae3d251dec704634230cd806a2"
+      ],
+      "ref": "pkg:conan/boost@1.86.0?rref=12a366cc998a98b33ea0ce79cb7f319c"
+    },
+    {
+      "ref": "pkg:conan/brotli@1.1.0?rref=d56d7bb9ca722942aba17369cb5c0519"
+    },
+    {
+      "ref": "pkg:conan/bshoshany-thread-pool@5.0.0?rref=d94da300363f0c35b8f41b2c5490c94d"
+    },
+    {
+      "ref": "pkg:conan/bzip2@1.0.8?rref=d00dac990f08d991998d624be81a9526"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/fast_float@6.1.0?rref=f6088e57bf83ac9f9b3abf37fe766cea"
+      ],
+      "ref": "pkg:conan/c4core@0.2.0?rref=fe7dc3e780c4e1d72246ec232a616d4f"
+    },
+    {
+      "ref": "pkg:conan/catch2@3.7.0?rref=ed6369424399fb0cab139b5a0ce492c1"
+    },
+    {
+      "ref": "pkg:conan/cereal@1.3.2?rref=b94802e904e1129e7fdb46d9bff5321d"
+    },
+    {
+      "ref": "pkg:conan/cli11@2.5.0?rref=1b7c81ea2bff6279eb2150bbe06a200a"
+    },
+    {
+      "ref": "pkg:conan/cmake@3.30.5?rref=540068cc37f1d21b42b729c82d6bcb29"
+    },
+    {
+      "ref": "pkg:conan/cpp-httplib@0.19.0?rref=13df66184b34143823e542921dc7e330"
+    },
+    {
+      "ref": "pkg:conan/cpuinfo@cci.20231129?rref=15e94782b128bee8bfd047f6102a4d21"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/libcurl@8.11.1?rref=1b764fa0056989be39a5d0bffecbe6c7"
+      ],
+      "ref": "pkg:conan/date@3.0.1?rref=d41f3965e7ef977e948cb57a31165545"
+    },
+    {
+      "ref": "pkg:conan/double-conversion@3.3.0?rref=33321c201741cc32b51169c6d2d05e60"
+    },
+    {
+      "ref": "pkg:conan/duckdb@1.1.3?rref=494f338fd19149063cbfad0e2e58baf4"
+    },
+    {
+      "ref": "pkg:conan/eigen@3.4.0?rref=2e192482a8acff96fe34766adca2b24c"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/armadillo@12.6.4?rref=b7ec34a03cb8c72f1ce2e5676ba87e68"
+      ],
+      "ref": "pkg:conan/ensmallen@2.21.0?rref=8cec8b388180597dcd0f4d2af46e68f0"
+    },
+    {
+      "ref": "pkg:conan/expat@2.6.3?rref=39b80d3109fbe578fddfe4951f0b1d57"
+    },
+    {
+      "ref": "pkg:conan/farmhash@cci.20190513?rref=af6593f545dd2b496e6bd019f1deb66f"
+    },
+    {
+      "ref": "pkg:conan/fast_float@6.1.0?rref=f6088e57bf83ac9f9b3abf37fe766cea"
+    },
+    {
+      "ref": "pkg:conan/fft@cci.20061228?rref=76a056c8ad3656ad557071c230f0f50c"
+    },
+    {
+      "ref": "pkg:conan/flatbuffers@23.5.26?rref=606a38635994b68e946db3207b0159d7"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/m4@1.4.19?rref=b38ced39a01e31fef5435bc634461fd2"
+      ],
+      "ref": "pkg:conan/flex@2.6.4?rref=e35bc44b3fcbcd661e0af0dc5b5b1ad4"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/expat@2.6.3?rref=39b80d3109fbe578fddfe4951f0b1d57",
+        "pkg:conan/freetype@2.13.2?rref=5d2563803c8558d4ef47271a82c73d20",
+        "pkg:conan/gperf@3.1?rref=1d622ad9717e9348ed3685c9994ad0b9",
+        "pkg:conan/meson@1.4.0?rref=2262941cc8fbb0099dd0c196ca2a6c01",
+        "pkg:conan/pkgconf@2.1.0?rref=27f44583701117b571307cf5b5fe5605"
+      ],
+      "ref": "pkg:conan/fontconfig@2.15.0?rref=9242855e95c8a8b80f3bd89758a8bf97"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/psimd@cci.20200517?rref=83200a06ebb1ff39c5adff0d712c05fa"
+      ],
+      "ref": "pkg:conan/fp16@cci.20210320?rref=34dbac7f6fa3dee68830028b53de6c84"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/brotli@1.1.0?rref=d56d7bb9ca722942aba17369cb5c0519",
+        "pkg:conan/bzip2@1.0.8?rref=d00dac990f08d991998d624be81a9526",
+        "pkg:conan/libpng@1.6.44?rref=9e1aa08fb46946c7c91e4ae03bd49811",
+        "pkg:conan/meson@1.3.2?rref=26ce8a76a36cc275cdfee1d757bc6561",
+        "pkg:conan/pkgconf@2.1.0?rref=27f44583701117b571307cf5b5fe5605",
+        "pkg:conan/zlib@1.3.1?rref=f52e03ae3d251dec704634230cd806a2"
+      ],
+      "ref": "pkg:conan/freetype@2.13.2?rref=5d2563803c8558d4ef47271a82c73d20"
+    },
+    {
+      "ref": "pkg:conan/fxdiv@cci.20200417?rref=0b3afe4c9d1b8d05f5f017984c8cb15a"
+    },
+    {
+      "ref": "pkg:conan/gemmlowp@cci.20210928?rref=d241d866fe3e0d9b64d98d2031e81512"
+    },
+    {
+      "ref": "pkg:conan/gnu-config@cci.20210814?rref=dc430d754f465e8c74463019672fb97b"
+    },
+    {
+      "ref": "pkg:conan/gperf@3.1?rref=1d622ad9717e9348ed3685c9994ad0b9"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/meson@1.4.0?rref=2262941cc8fbb0099dd0c196ca2a6c01",
+        "pkg:conan/pkgconf@2.1.0?rref=27f44583701117b571307cf5b5fe5605"
+      ],
+      "ref": "pkg:conan/harfbuzz@8.3.0?rref=c83405ed297bad6c9e9587e2a19c686a"
+    },
+    {
+      "ref": "pkg:conan/icu@74.2?rref=a62036066fcce8a73a7119c8ae828b15"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/bshoshany-thread-pool@5.0.0?rref=d94da300363f0c35b8f41b2c5490c94d",
+        "pkg:conan/catch2@3.7.0?rref=ed6369424399fb0cab139b5a0ce492c1",
+        "pkg:conan/cereal@1.3.2?rref=b94802e904e1129e7fdb46d9bff5321d",
+        "pkg:conan/cli11@2.5.0?rref=1b7c81ea2bff6279eb2150bbe06a200a",
+        "pkg:conan/cpp-httplib@0.19.0?rref=13df66184b34143823e542921dc7e330",
+        "pkg:conan/duckdb@1.1.3?rref=494f338fd19149063cbfad0e2e58baf4",
+        "pkg:conan/flatbuffers@23.5.26?rref=606a38635994b68e946db3207b0159d7",
+        "pkg:conan/libtorch@2.9.0?rref=81b1e7f6759128598e5b2e4f3eeda402",
+        "pkg:conan/libxlsxwriter@1.1.8?rref=a5b016429f9d5d0a24616ae24e62ffd8",
+        "pkg:conan/mlpack@4.6.2?rref=e0575fa6a4d3a839d226a21f5af22fbf",
+        "pkg:conan/nlohmann_json@3.11.3?rref=45828be26eb619a2e04ca517bb7b828d",
+        "pkg:conan/onnx@1.17.0?rref=ff07f5679f8a1bafbf5ad9ff8e0686ed",
+        "pkg:conan/onnxruntime@1.18.1?rref=d94722549d704e7bd85970ae9e0ca9b5",
+        "pkg:conan/opencv@4.10.0?rref=375c6f12ed7803970f0ec84298011dae",
+        "pkg:conan/openssl@3.4.1?rref=638c4c4df8ecdef1f7aa73fc0d07fde6",
+        "pkg:conan/pugixml@1.14?rref=c6afdcf73d71858303d8260b0d76ff91",
+        "pkg:conan/qt@6.7.1?rref=dc6548387c44448b2b955171e9c7cc21",
+        "pkg:conan/rapidyaml@0.7.1?rref=ceb887c84af64d2237003a64332a32bc",
+        "pkg:conan/tensorflow-lite@2.15.0?rref=d1d39a062bf00a61166d46a4537527fb"
+      ],
+      "ref": "pkg:conan/imagec@1.0.0"
+    },
+    {
+      "ref": "pkg:conan/intel-neon2sse@cci.20210225?rref=56e8b51d756e9ae2a612e3489039e07b"
+    },
+    {
+      "ref": "pkg:conan/jbig@20160605?rref=2d29fa02aacd76902e0d2cbbc24631ef"
+    },
+    {
+      "ref": "pkg:conan/libbacktrace@cci.20240730?rref=7f1e39db056a8a9c08053d5deb924af2"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/libtool@2.4.7?rref=08316dad5c72c541ed21e039e4cf217b",
+        "pkg:conan/openssl@3.4.1?rref=638c4c4df8ecdef1f7aa73fc0d07fde6",
+        "pkg:conan/pkgconf@2.1.0?rref=27f44583701117b571307cf5b5fe5605",
+        "pkg:conan/zlib@1.3.1?rref=f52e03ae3d251dec704634230cd806a2"
+      ],
+      "ref": "pkg:conan/libcurl@8.11.1?rref=1b764fa0056989be39a5d0bffecbe6c7"
+    },
+    {
+      "ref": "pkg:conan/libdeflate@1.19?rref=3ea74a4549efc14d4b1202dc4bfbf602"
+    },
+    {
+      "ref": "pkg:conan/libffi@3.4.4?rref=72cccac6139293b6e97ec9cd676547ff"
+    },
+    {
+      "ref": "pkg:conan/libiconv@1.17?rref=73fefc1b696e069df90fd1d18aa63edd"
+    },
+    {
+      "ref": "pkg:conan/libjpeg@9e?rref=ebca87d1efc798db99cc9bbe2297679a"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/zlib@1.3.1?rref=f52e03ae3d251dec704634230cd806a2"
+      ],
+      "ref": "pkg:conan/libpng@1.6.44?rref=9e1aa08fb46946c7c91e4ae03bd49811"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/cmake@3.30.5?rref=540068cc37f1d21b42b729c82d6bcb29",
+        "pkg:conan/jbig@20160605?rref=2d29fa02aacd76902e0d2cbbc24631ef",
+        "pkg:conan/libdeflate@1.19?rref=3ea74a4549efc14d4b1202dc4bfbf602",
+        "pkg:conan/libjpeg@9e?rref=ebca87d1efc798db99cc9bbe2297679a",
+        "pkg:conan/libwebp@1.3.2?rref=52f69c4a31c5cf033fdd9230d77a8e38",
+        "pkg:conan/xz_utils@5.4.5?rref=b885d1d79c9d30cff3803f7f551dbe66",
+        "pkg:conan/zlib@1.3.1?rref=f52e03ae3d251dec704634230cd806a2",
+        "pkg:conan/zstd@1.5.5?rref=1f239731dc45147c7fc2f54bfbde73df"
+      ],
+      "ref": "pkg:conan/libtiff@4.6.0?rref=51d0e7e15d032aeec1b64e65c44ecd9f"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/automake@1.16.5?rref=058bda3e21c36c9aa8425daf3c1faf50",
+        "pkg:conan/gnu-config@cci.20210814?rref=dc430d754f465e8c74463019672fb97b",
+        "pkg:conan/m4@1.4.19?rref=b38ced39a01e31fef5435bc634461fd2"
+      ],
+      "ref": "pkg:conan/libtool@2.4.7?rref=08316dad5c72c541ed21e039e4cf217b"
+    },
+    {
+      "ref": "pkg:conan/libtorch@2.9.0?rref=81b1e7f6759128598e5b2e4f3eeda402"
+    },
+    {
+      "ref": "pkg:conan/libwebp@1.3.2?rref=52f69c4a31c5cf033fdd9230d77a8e38"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/minizip@1.2.13?rref=75d20b6a37ef70126334467f61acadde",
+        "pkg:conan/zlib@1.3.1?rref=f52e03ae3d251dec704634230cd806a2"
+      ],
+      "ref": "pkg:conan/libxlsxwriter@1.1.8?rref=a5b016429f9d5d0a24616ae24e62ffd8"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/libiconv@1.17?rref=73fefc1b696e069df90fd1d18aa63edd",
+        "pkg:conan/pkgconf@2.1.0?rref=27f44583701117b571307cf5b5fe5605",
+        "pkg:conan/zlib@1.3.1?rref=f52e03ae3d251dec704634230cd806a2"
+      ],
+      "ref": "pkg:conan/libxml2@2.13.4?rref=72b3bfba0c37dfe22f20c587cc468f4c"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/cmake@3.30.5?rref=540068cc37f1d21b42b729c82d6bcb29"
+      ],
+      "ref": "pkg:conan/llvm-openmp@17.0.6?rref=16b362e4738bb05fe648d1a2e1f4519c"
+    },
+    {
+      "ref": "pkg:conan/m4@1.4.19?rref=b38ced39a01e31fef5435bc634461fd2"
+    },
+    {
+      "ref": "pkg:conan/md4c@0.4.8?rref=9b5da52e0c0b803bb0d1a4b9fdfe10b1"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/ninja@1.12.1?rref=fd583651bf0c6a901943495d49878803"
+      ],
+      "ref": "pkg:conan/meson@1.2.2?rref=21b73818ba96d9eea465b310b5bbc993"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/ninja@1.12.1?rref=fd583651bf0c6a901943495d49878803"
+      ],
+      "ref": "pkg:conan/meson@1.3.0?rref=39e72c134c60664acd1368390f663f85"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/ninja@1.12.1?rref=fd583651bf0c6a901943495d49878803"
+      ],
+      "ref": "pkg:conan/meson@1.3.2?rref=26ce8a76a36cc275cdfee1d757bc6561"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/ninja@1.12.1?rref=fd583651bf0c6a901943495d49878803"
+      ],
+      "ref": "pkg:conan/meson@1.4.0?rref=2262941cc8fbb0099dd0c196ca2a6c01"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/bzip2@1.0.8?rref=d00dac990f08d991998d624be81a9526",
+        "pkg:conan/zlib@1.3.1?rref=f52e03ae3d251dec704634230cd806a2"
+      ],
+      "ref": "pkg:conan/minizip@1.2.13?rref=75d20b6a37ef70126334467f61acadde"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/armadillo@12.6.4?rref=b7ec34a03cb8c72f1ce2e5676ba87e68",
+        "pkg:conan/cereal@1.3.2?rref=b94802e904e1129e7fdb46d9bff5321d",
+        "pkg:conan/ensmallen@2.21.0?rref=8cec8b388180597dcd0f4d2af46e68f0",
+        "pkg:conan/llvm-openmp@17.0.6?rref=16b362e4738bb05fe648d1a2e1f4519c",
+        "pkg:conan/stb@cci.20230920?rref=ed79bd361e974a99137f214efb117eef"
+      ],
+      "ref": "pkg:conan/mlpack@4.6.2?rref=e0575fa6a4d3a839d226a21f5af22fbf"
+    },
+    {
+      "ref": "pkg:conan/ms-gsl@4.0.0?rref=057429d7a351a5819da5ddd19ee33665"
+    },
+    {
+      "ref": "pkg:conan/ninja@1.12.1?rref=fd583651bf0c6a901943495d49878803"
+    },
+    {
+      "ref": "pkg:conan/nlohmann_json@3.11.3?rref=45828be26eb619a2e04ca517bb7b828d"
+    },
+    {
+      "ref": "pkg:conan/nsync@1.26.0?rref=db2765efd5dd959e1812226c5523072c"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/protobuf@3.21.12?rref=2099e6c66fcd31b52c3afc0c096c1d02"
+      ],
+      "ref": "pkg:conan/onnx@1.17.0?rref=ff07f5679f8a1bafbf5ad9ff8e0686ed"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/abseil@20240116.1?rref=ac4d4c2caf9c04267de3e6a488a4f269",
+        "pkg:conan/boost@1.86.0?rref=12a366cc998a98b33ea0ce79cb7f319c",
+        "pkg:conan/cmake@3.30.5?rref=540068cc37f1d21b42b729c82d6bcb29",
+        "pkg:conan/cpuinfo@cci.20231129?rref=15e94782b128bee8bfd047f6102a4d21",
+        "pkg:conan/date@3.0.1?rref=d41f3965e7ef977e948cb57a31165545",
+        "pkg:conan/eigen@3.4.0?rref=2e192482a8acff96fe34766adca2b24c",
+        "pkg:conan/flatbuffers@23.5.26?rref=606a38635994b68e946db3207b0159d7",
+        "pkg:conan/ms-gsl@4.0.0?rref=057429d7a351a5819da5ddd19ee33665",
+        "pkg:conan/nlohmann_json@3.11.3?rref=45828be26eb619a2e04ca517bb7b828d",
+        "pkg:conan/nsync@1.26.0?rref=db2765efd5dd959e1812226c5523072c",
+        "pkg:conan/onnx@1.17.0?rref=ff07f5679f8a1bafbf5ad9ff8e0686ed",
+        "pkg:conan/protobuf@3.21.12?rref=2099e6c66fcd31b52c3afc0c096c1d02",
+        "pkg:conan/re2@20231101?rref=7fbe0f79b2e8ae4e6aff5eeeeca9c4dd",
+        "pkg:conan/safeint@3.0.28?rref=2866d897bcf43472f5d3a9466dceb9c8"
+      ],
+      "ref": "pkg:conan/onnxruntime@1.18.1?rref=d94722549d704e7bd85970ae9e0ca9b5"
+    },
+    {
+      "ref": "pkg:conan/openblas@0.3.25?rref=1bb1647237da54034ed5d5f8eeba2466"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/ade@0.1.2d?rref=f225d0a218a7c9fbb81746806c7de53d",
+        "pkg:conan/eigen@3.4.0?rref=2e192482a8acff96fe34766adca2b24c",
+        "pkg:conan/libjpeg@9e?rref=ebca87d1efc798db99cc9bbe2297679a",
+        "pkg:conan/libpng@1.6.44?rref=9e1aa08fb46946c7c91e4ae03bd49811",
+        "pkg:conan/libtiff@4.6.0?rref=51d0e7e15d032aeec1b64e65c44ecd9f",
+        "pkg:conan/libwebp@1.3.2?rref=52f69c4a31c5cf033fdd9230d77a8e38",
+        "pkg:conan/openjpeg@2.5.2?rref=6f7b733e151d1bbf5ed05cbabb846828",
+        "pkg:conan/protobuf@3.21.12?rref=2099e6c66fcd31b52c3afc0c096c1d02",
+        "pkg:conan/quirc@1.2?rref=92179dd521786aea0729f2c859cbbcb9",
+        "pkg:conan/zlib@1.3.1?rref=f52e03ae3d251dec704634230cd806a2"
+      ],
+      "ref": "pkg:conan/opencv@4.10.0?rref=375c6f12ed7803970f0ec84298011dae"
+    },
+    {
+      "ref": "pkg:conan/opengl@system?rref=4df6fecde4084386beded3ed0e56e4ea"
+    },
+    {
+      "ref": "pkg:conan/openjpeg@2.5.2?rref=6f7b733e151d1bbf5ed05cbabb846828"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/zlib@1.3.1?rref=f52e03ae3d251dec704634230cd806a2"
+      ],
+      "ref": "pkg:conan/openssl@3.4.1?rref=638c4c4df8ecdef1f7aa73fc0d07fde6"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/bzip2@1.0.8?rref=d00dac990f08d991998d624be81a9526",
+        "pkg:conan/zlib@1.3.1?rref=f52e03ae3d251dec704634230cd806a2"
+      ],
+      "ref": "pkg:conan/pcre2@10.42?rref=ac2227071f79a062167cf2fee7189d66"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/meson@1.2.2?rref=21b73818ba96d9eea465b310b5bbc993"
+      ],
+      "ref": "pkg:conan/pkgconf@2.1.0?rref=27f44583701117b571307cf5b5fe5605"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/meson@1.2.2?rref=21b73818ba96d9eea465b310b5bbc993"
+      ],
+      "ref": "pkg:conan/pkgconf@2.2.0?rref=6462942a22803086372db44689ba825f"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/zlib@1.3.1?rref=f52e03ae3d251dec704634230cd806a2"
+      ],
+      "ref": "pkg:conan/protobuf@3.21.12?rref=2099e6c66fcd31b52c3afc0c096c1d02"
+    },
+    {
+      "ref": "pkg:conan/psimd@cci.20200517?rref=83200a06ebb1ff39c5adff0d712c05fa"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/fxdiv@cci.20200417?rref=0b3afe4c9d1b8d05f5f017984c8cb15a"
+      ],
+      "ref": "pkg:conan/pthreadpool@cci.20231129?rref=c721f98463f06cc5bf835df5d6fd9843"
+    },
+    {
+      "ref": "pkg:conan/pugixml@1.14?rref=c6afdcf73d71858303d8260b0d76ff91"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/brotli@1.1.0?rref=d56d7bb9ca722942aba17369cb5c0519",
+        "pkg:conan/cmake@3.30.5?rref=540068cc37f1d21b42b729c82d6bcb29",
+        "pkg:conan/double-conversion@3.3.0?rref=33321c201741cc32b51169c6d2d05e60",
+        "pkg:conan/fontconfig@2.15.0?rref=9242855e95c8a8b80f3bd89758a8bf97",
+        "pkg:conan/freetype@2.13.2?rref=5d2563803c8558d4ef47271a82c73d20",
+        "pkg:conan/harfbuzz@8.3.0?rref=c83405ed297bad6c9e9587e2a19c686a",
+        "pkg:conan/icu@74.2?rref=a62036066fcce8a73a7119c8ae828b15",
+        "pkg:conan/libpng@1.6.44?rref=9e1aa08fb46946c7c91e4ae03bd49811",
+        "pkg:conan/md4c@0.4.8?rref=9b5da52e0c0b803bb0d1a4b9fdfe10b1",
+        "pkg:conan/ninja@1.12.1?rref=fd583651bf0c6a901943495d49878803",
+        "pkg:conan/opengl@system?rref=4df6fecde4084386beded3ed0e56e4ea",
+        "pkg:conan/openssl@3.4.1?rref=638c4c4df8ecdef1f7aa73fc0d07fde6",
+        "pkg:conan/pcre2@10.42?rref=ac2227071f79a062167cf2fee7189d66",
+        "pkg:conan/pkgconf@2.2.0?rref=6462942a22803086372db44689ba825f",
+        "pkg:conan/wayland@1.22.0?rref=284b56bdbe57868770f46100784e3b4d",
+        "pkg:conan/xkbcommon@1.6.0?rref=dababe41c183634d88ad56ef4740c045",
+        "pkg:conan/xorg@system?rref=98f82cb669e4ebc6b4d9d8a4f3f1faf4",
+        "pkg:conan/zlib@1.3.1?rref=f52e03ae3d251dec704634230cd806a2"
+      ],
+      "ref": "pkg:conan/qt@6.7.1?rref=dc6548387c44448b2b955171e9c7cc21"
+    },
+    {
+      "ref": "pkg:conan/quirc@1.2?rref=92179dd521786aea0729f2c859cbbcb9"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/c4core@0.2.0?rref=fe7dc3e780c4e1d72246ec232a616d4f"
+      ],
+      "ref": "pkg:conan/rapidyaml@0.7.1?rref=ceb887c84af64d2237003a64332a32bc"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/abseil@20240116.1?rref=ac4d4c2caf9c04267de3e6a488a4f269"
+      ],
+      "ref": "pkg:conan/re2@20231101?rref=7fbe0f79b2e8ae4e6aff5eeeeca9c4dd"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/cpuinfo@cci.20231129?rref=15e94782b128bee8bfd047f6102a4d21"
+      ],
+      "ref": "pkg:conan/ruy@cci.20231129?rref=f23bfbab527048bfffba001f7a81236d"
+    },
+    {
+      "ref": "pkg:conan/safeint@3.0.28?rref=2866d897bcf43472f5d3a9466dceb9c8"
+    },
+    {
+      "ref": "pkg:conan/stb@cci.20230920?rref=ed79bd361e974a99137f214efb117eef"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/abseil@20240116.1?rref=ac4d4c2caf9c04267de3e6a488a4f269",
+        "pkg:conan/cmake@3.30.5?rref=540068cc37f1d21b42b729c82d6bcb29",
+        "pkg:conan/eigen@3.4.0?rref=2e192482a8acff96fe34766adca2b24c",
+        "pkg:conan/farmhash@cci.20190513?rref=af6593f545dd2b496e6bd019f1deb66f",
+        "pkg:conan/fft@cci.20061228?rref=76a056c8ad3656ad557071c230f0f50c",
+        "pkg:conan/flatbuffers@23.5.26?rref=606a38635994b68e946db3207b0159d7",
+        "pkg:conan/fp16@cci.20210320?rref=34dbac7f6fa3dee68830028b53de6c84",
+        "pkg:conan/fxdiv@cci.20200417?rref=0b3afe4c9d1b8d05f5f017984c8cb15a",
+        "pkg:conan/gemmlowp@cci.20210928?rref=d241d866fe3e0d9b64d98d2031e81512",
+        "pkg:conan/intel-neon2sse@cci.20210225?rref=56e8b51d756e9ae2a612e3489039e07b",
+        "pkg:conan/pthreadpool@cci.20231129?rref=c721f98463f06cc5bf835df5d6fd9843",
+        "pkg:conan/ruy@cci.20231129?rref=f23bfbab527048bfffba001f7a81236d",
+        "pkg:conan/xnnpack@cci.20240229?rref=664f0a0cdfc43eee4f075170cde25fbd"
+      ],
+      "ref": "pkg:conan/tensorflow-lite@2.15.0?rref=d1d39a062bf00a61166d46a4537527fb"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/meson@1.3.0?rref=39e72c134c60664acd1368390f663f85"
+      ],
+      "ref": "pkg:conan/wayland-protocols@1.33?rref=ff1b6deb00cb3ddd949261217588a4de"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/expat@2.6.3?rref=39b80d3109fbe578fddfe4951f0b1d57",
+        "pkg:conan/libffi@3.4.4?rref=72cccac6139293b6e97ec9cd676547ff",
+        "pkg:conan/libxml2@2.13.4?rref=72b3bfba0c37dfe22f20c587cc468f4c",
+        "pkg:conan/meson@1.4.0?rref=2262941cc8fbb0099dd0c196ca2a6c01",
+        "pkg:conan/pkgconf@2.1.0?rref=27f44583701117b571307cf5b5fe5605"
+      ],
+      "ref": "pkg:conan/wayland@1.22.0?rref=284b56bdbe57868770f46100784e3b4d"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/bison@3.8.2?rref=ed1ba0c42d2ab7ab64fc3a62e9ecc673",
+        "pkg:conan/libxml2@2.13.4?rref=72b3bfba0c37dfe22f20c587cc468f4c",
+        "pkg:conan/meson@1.3.2?rref=26ce8a76a36cc275cdfee1d757bc6561",
+        "pkg:conan/pkgconf@2.1.0?rref=27f44583701117b571307cf5b5fe5605",
+        "pkg:conan/wayland-protocols@1.33?rref=ff1b6deb00cb3ddd949261217588a4de",
+        "pkg:conan/wayland@1.22.0?rref=284b56bdbe57868770f46100784e3b4d",
+        "pkg:conan/xkeyboard-config@system?rref=57dd5c08e72ab06bc2ee0e756c0a2c41",
+        "pkg:conan/xorg@system?rref=98f82cb669e4ebc6b4d9d8a4f3f1faf4"
+      ],
+      "ref": "pkg:conan/xkbcommon@1.6.0?rref=dababe41c183634d88ad56ef4740c045"
+    },
+    {
+      "ref": "pkg:conan/xkeyboard-config@system?rref=57dd5c08e72ab06bc2ee0e756c0a2c41"
+    },
+    {
+      "dependsOn": [
+        "pkg:conan/cpuinfo@cci.20231129?rref=15e94782b128bee8bfd047f6102a4d21",
+        "pkg:conan/fp16@cci.20210320?rref=34dbac7f6fa3dee68830028b53de6c84",
+        "pkg:conan/fxdiv@cci.20200417?rref=0b3afe4c9d1b8d05f5f017984c8cb15a",
+        "pkg:conan/pthreadpool@cci.20231129?rref=c721f98463f06cc5bf835df5d6fd9843"
+      ],
+      "ref": "pkg:conan/xnnpack@cci.20240229?rref=664f0a0cdfc43eee4f075170cde25fbd"
+    },
+    {
+      "ref": "pkg:conan/xorg@system?rref=98f82cb669e4ebc6b4d9d8a4f3f1faf4"
+    },
+    {
+      "ref": "pkg:conan/xz_utils@5.4.5?rref=b885d1d79c9d30cff3803f7f551dbe66"
+    },
+    {
+      "ref": "pkg:conan/zlib@1.3.1?rref=f52e03ae3d251dec704634230cd806a2"
+    },
+    {
+      "ref": "pkg:conan/zstd@1.5.5?rref=1f239731dc45147c7fc2f54bfbde73df"
+    }
+  ],
+  "metadata": {
+    "component": {
+      "author": "Joachim Danmayr <support@imagec.org>",
+      "bom-ref": "pkg:conan/imagec@1.0.0",
+      "description": "High throughput image analysis tool for bio science!",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://imagec.org"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "AGPL-3.0"
+          }
+        },
+        {
+          "license": {
+            "name": "imagec"
+          }
+        }
+      ],
+      "name": "imagec",
+      "purl": "pkg:conan/imagec@1.0.0",
+      "type": "application",
+      "version": "1.0.0"
+    },
+    "timestamp": "2025-12-07T16:10:31.935630+00:00",
+    "tools": [
+      {
+        "externalReferences": [
+          {
+            "type": "build-system",
+            "url": "https://github.com/CycloneDX/cyclonedx-python-lib/actions"
+          },
+          {
+            "type": "distribution",
+            "url": "https://pypi.org/project/cyclonedx-python-lib/"
+          },
+          {
+            "type": "documentation",
+            "url": "https://cyclonedx-python-library.readthedocs.io/"
+          },
+          {
+            "type": "issue-tracker",
+            "url": "https://github.com/CycloneDX/cyclonedx-python-lib/issues"
+          },
+          {
+            "type": "license",
+            "url": "https://github.com/CycloneDX/cyclonedx-python-lib/blob/main/LICENSE"
+          },
+          {
+            "type": "release-notes",
+            "url": "https://github.com/CycloneDX/cyclonedx-python-lib/blob/main/CHANGELOG.md"
+          },
+          {
+            "type": "vcs",
+            "url": "https://github.com/CycloneDX/cyclonedx-python-lib"
+          },
+          {
+            "type": "website",
+            "url": "https://github.com/CycloneDX/cyclonedx-python-lib/#readme"
+          }
+        ],
+        "name": "cyclonedx-python-lib",
+        "vendor": "CycloneDX",
+        "version": "5.2.0"
+      },
+      {
+        "externalReferences": [
+          {
+            "type": "website",
+            "url": "https://github.com/conan-io/conan-extensions"
+          }
+        ],
+        "name": "conan extension sbom:cyclonedx"
+      }
+    ]
+  },
+  "serialNumber": "urn:uuid:4fe1ea56-3356-4e13-9870-0a46e7aa8130",
+  "version": 1,
+  "$schema": "http://cyclonedx.org/schema/bom-1.4.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4"
+}
