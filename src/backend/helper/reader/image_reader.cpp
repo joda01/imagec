@@ -177,6 +177,11 @@ void ImageReader::init(uint64_t reservedRamForVMInBytes)
     std::string ramReserved = "-Xmx" + std::to_string(jvmRam) + "m";
     options[1].optionString = const_cast<char *>(ramReserved.data());
 
+    /*
+    options[2].optionString = const_cast<char*>("-XX:+UnlockDiagnosticVMOptions");
+options[3].optionString = const_cast<char*>("-XX:-SignalBasedCPUFeatures");
+    */
+
     initArgs.options  = options; /* Pass in the classpath that has been set up. */
     initArgs.nOptions = 2;       /* Pass in classpath and version options */
 

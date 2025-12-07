@@ -304,21 +304,8 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
                          const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, int32_t tStack,
                          processor::Preview &previewOut, const joda::ome::OmeInfo &ome)
 {
-  static std::filesystem::path lastImagePath;
-  static int32_t lastImageChannel = -1;
-  static int32_t lastImageSeries  = -1;
-  bool generateThumb              = false;
-  if(imagePath != lastImagePath || previewOut.thumbnail.empty() || lastImageChannel != pipeline.pipelineSetup.cStackIndex ||
-     lastImageSeries != imageSetup.series) {
-    lastImageSeries  = imageSetup.series;
-    lastImagePath    = imagePath;
-    generateThumb    = true;
-    lastImageChannel = pipeline.pipelineSetup.cStackIndex;
-  }
-
   processor::Processor process;
-  process.generatePreview(previewSettings, imageSetup, settings, threadSettings, pipeline, imagePath, tStack, 0, tileX, tileY, generateThumb, ome,
-                          previewOut);
+  process.generatePreview(previewSettings, imageSetup, settings, threadSettings, pipeline, imagePath, tStack, 0, tileX, tileY, ome, previewOut);
 }
 
 ///
@@ -328,8 +315,8 @@ void Controller::preview(const settings::ProjectImageSetup &imageSetup, const pr
 ///
 auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::enums::PlaneId &imagePlane,
                            const joda::ome::TileToLoad &tileLoad,
-                           const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings, processor::Preview &previewOut,
-                           joda::ome::OmeInfo &omeOut, enums::ZProjection zProjection) -> void
+                           const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings,
+                           processor::DisplayImages &previewOut, joda::ome::OmeInfo &omeOut, enums::ZProjection zProjection) -> void
 {
   {
     std::lock_guard<std::mutex> lock(mReadMutex);
@@ -357,7 +344,7 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
 /// \return
 ///
 auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::enums::PlaneId &imagePlane,
-                           const joda::ome::TileToLoad &tileLoad, processor::Preview &previewOut, const joda::ome::OmeInfo *omeIn,
+                           const joda::ome::TileToLoad &tileLoad, processor::DisplayImages &previewOut, const joda::ome::OmeInfo *omeIn,
                            enums::ZProjection zProjection) -> void
 {
   if(nullptr == omeIn) {

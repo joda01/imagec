@@ -76,11 +76,11 @@ public:
 
   static auto loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::enums::PlaneId &imagePlane,
                         const joda::ome::TileToLoad &tileLoad,
-                        const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings, processor::Preview &previewOut,
-                        joda::ome::OmeInfo &omeOut, enums::ZProjection zProjection) -> void;
+                        const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings,
+                        processor::DisplayImages &previewOut, joda::ome::OmeInfo &omeOut, enums::ZProjection zProjection) -> void;
 
   static auto loadImage(const std::filesystem::path &imagePath, uint16_t series, const joda::enums::PlaneId &imagePlane,
-                        const joda::ome::TileToLoad &tileLoad, processor::Preview &previewOut, const joda::ome::OmeInfo *omeIn,
+                        const joda::ome::TileToLoad &tileLoad, processor::DisplayImages &previewOut, const joda::ome::OmeInfo *omeIn,
                         enums::ZProjection zProjection) -> void;
 
   // FLOW CONTROL ///////////////////////////////////////////////////

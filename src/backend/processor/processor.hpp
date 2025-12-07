@@ -36,10 +36,15 @@ struct PreviewSettings
 {
 };
 
-struct Preview
+struct DisplayImages
 {
   joda::image::Image thumbnail;
   joda::image::Image originalImage;
+  int tStacks = 1;    // Nr. of t stacks the image has.
+};
+
+struct Preview
+{
   joda::image::Image editedImage;
 
   struct PreviewResults
@@ -207,7 +212,7 @@ public:
   auto generatePreview(const PreviewSettings &previewSettings, const settings::ProjectImageSetup &imageSetup,
                        const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,
                        const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX,
-                       int32_t tileY, bool generateThumb, const ome::OmeInfo &ome, Preview &previewOut) -> void;
+                       int32_t tileY, const ome::OmeInfo &ome, Preview &previewOut) -> void;
 
 private:
   /////////////////////////////////////////////////////

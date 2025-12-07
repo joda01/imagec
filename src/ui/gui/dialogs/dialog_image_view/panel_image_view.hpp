@@ -30,6 +30,8 @@
 #include "backend/settings/project_settings/project_classification.hpp"
 #include "controller/controller.hpp"
 #include "ui/gui/dialogs/dialog_image_view/customer_painter/graphics_contour_overlay.hpp"
+#include "ui/gui/dialogs/dialog_image_view/customer_painter/graphics_image_painter.hpp"
+#include "ui/gui/dialogs/dialog_image_view/customer_painter/graphics_thumbnail.hpp"
 #include <opencv2/core/matx.hpp>
 #include <opencv2/core/types.hpp>
 
@@ -105,7 +107,7 @@ public:
   ~PanelImageView();
   void openImage(const std::filesystem::path &imagePath, const ome::OmeInfo *omeInfo = nullptr);
   auto getCurrentImagePath() const -> std::filesystem::path;
-  void setEditedImage(const joda::image::Image &&edited);
+  void setEditedImage(joda::image::Image &&edited);
   void reloadImage();
   void repaintImage();
   void resetImage();
@@ -147,6 +149,10 @@ public:
   auto mutableImage() -> joda::image::Image *;
   auto getImage() const -> const joda::image::Image *;
 
+  void autoAdjustBrightnessRange();
+  void setBrightnessRange(int32_t lowerValue, int32_t upperValue, int32_t displayAreaLower, int32_t displayAreaUpper);
+  void setPseudoColorEnabled(bool);
+
   // REGION OF INTERESTS //////////////////////////////////////////////
   void setRegionsOfInterestFromObjectList();
   void clearRegionOfInterest(joda::atom::ROI::Category sourceToDelete = joda::atom::ROI::Category::AUTO_SEGMENTATION);
@@ -168,6 +174,7 @@ signals:
   void drawingToolChanged(State);
   void imageOpened();
   void channelOpened();
+  void emitOpenImageFinished(std::filesystem::path imagePath, processor::DisplayImages *newLoadedImages);
 
 private:
   /////////////////////////////////////////////////////
@@ -179,13 +186,11 @@ private:
   void leaveEvent(QEvent *) override;
   void wheelEvent(QWheelEvent *event) override;
   void paintEvent(QPaintEvent *event) override;
-  void drawThumbnail(QPainter &);
+  void resizeEvent(QResizeEvent *event) override;
   void drawCrossHairCursor(QPainter &);
   void drawRuler(QPainter &);
   void drawImageInfo(QPainter &, const PixelInfo &info, const std::optional<PixelInfo> &infoCursor);
   void drawHeaderToolbar(QPainter &painter);
-  void getClickedTileInThumbnail(QMouseEvent *event);
-  void getThumbnailAreaEntered(QMouseEvent *event);
   auto fetchPixelInfoFromMousePosition(const QPoint &pos) const -> PixelInfo;
   auto imageCoordinatesToPreviewCoordinates(const QPoint &imageCoordinates) -> QPoint;
   auto imageCoordinatesToPreviewCoordinates(const QRect &imageCoordinates) -> QRect;
@@ -194,20 +199,14 @@ private:
   void keyPressEvent(QKeyEvent *event) override;
   auto getTileInfoInternal() const -> enums::TileInfo;
   void scheduleUpdate();
+  void loadImageThread(std::filesystem::path imagePath, const ome::OmeInfo *omeInfo);
+  void updateCornerItemPosition();
 
   /////////////////////////////////////////////////////
   const int32_t MAX_POLYGONS_TO_DRAW = 30000;
 
-  const float THUMB_RECT_START_X       = 10;
-  const float THUMB_RECT_START_Y       = 10;
-  const float THUMB_RECT_HEIGHT_NORMAL = 128;
-  const float THUMB_RECT_WIDTH_NORMAL  = 128;
-
-  const float THUMB_RECT_HEIGHT_ZOOMED = 200;
-  const float THUMB_RECT_WIDTH_ZOOMED  = 200;
-
-  const float PIXEL_INFO_RECT_WIDTH  = 150;
-  const float PIXEL_INFO_RECT_HEIGHT = 40;
+  const float THUMB_RECT_START_X = 10;
+  const float THUMB_RECT_START_Y = 10;
 
   const float TOP_TOOLBAR_HEIGHT          = 24;
   const float TOP_TOOLBAR_HEIGHT_EXTENDED = 30;
@@ -215,12 +214,15 @@ private:
   const float RULER_LENGTH = 100;
 
   // IMAGE ///////////////////////////////////////////////////
+
   std::filesystem::path mLastPath;
   joda::enums::PlaneId mLastPlane{-1, -1, -1};
   joda::ome::OmeInfo mOmeInfo;
-  joda::processor::Preview mPreviewImages;
-  joda::image::Image *mImageToShow = nullptr;
-  float mOpaque                    = 0.6F;
+  processor::DisplayImages *mPreviewImages = nullptr;
+  joda::image::Image *mImageToShow         = nullptr;
+  joda::image::Image *mEditedImage         = nullptr;
+
+  float mOpaque = 0.6F;
   joda::enums::PlaneId mPlane{0, 0, 0};
   joda::ome::TileToLoad mTile;
   joda::ome::TileToLoad mLastTile;
@@ -244,10 +246,11 @@ private:
   QColor mPixelClassColor                 = Qt::gray;
 
   // Overlays ///////////////////////////////////////////////////
-  RoiOverlay *mOverlayMasks       = nullptr;
-  ContourOverlay *mContourOverlay = nullptr;
-  QGraphicsItem *mOriginalImageScaled;
-  QGraphicsItem *mEditedImageScaled;
+  RoiOverlay *mOverlayMasks                 = nullptr;
+  ContourOverlay *mContourOverlay           = nullptr;
+  GraphicsImagePainter *mOriginalImage      = nullptr;
+  GraphicsImagePainter *mGraphicEditedImage = nullptr;
+  GraphicsThumbnail *mThumbnail             = nullptr;
 
   // MOVE IMAGE ///////////////////////////////////////////////////
   QSize mPixmapSize;
@@ -266,7 +269,6 @@ private:
   int32_t mTileRectHeightScaled = 0;
 
   /////////////////////////////////////////////////////
-  bool mThumbnailAreaEntered = false;
   std::string mInfoText;
 
   // FONTS  ///////////////////////////////////////////////////
@@ -282,7 +284,6 @@ private:
   /////////////////////////////////////////////////////
   std::atomic<bool> mLoadingImage = false;
   bool mWaiting                   = false;
-  bool mShowThumbnail             = true;
   bool mShowCrosshandCursor       = false;
   bool mLockCrosshandCursor       = false;
   bool mShowEditedImage           = false;
@@ -299,5 +300,8 @@ private:
 
   mutable std::mutex mImageResetMutex;
   std::atomic<bool> mPendingUpdate;
+
+private slots:
+  void openImageFinished(std::filesystem::path imagePath, processor::DisplayImages *newLoadedImages);
 };
 }    // namespace joda::ui::gui
