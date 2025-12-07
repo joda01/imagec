@@ -102,7 +102,7 @@ PanelImageView::PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMa
   mGraphicEditedImage->setVisible(false);
 
   mThumbnail = new GraphicsThumbnail(&mTile);
-  mThumbnail->setZValue(60.0);
+  mThumbnail->setZValue(300.0);
 
   scene->addItem(mOverlayMasks);
   scene->addItem(mContourOverlay);
