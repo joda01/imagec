@@ -1,7 +1,7 @@
 conan sbom:cyclonedx --format 1.4_json . > sbom/sbom.cdx.json
 
-#conan config install https://github.com/conan-io/conan-extensions.git
 #pip install conan --upgrade --break-system-packages
+#conan config install https://github.com/conan-io/conan-extensions.git
 #pip install 'cyclonedx-python-lib>=5.0.0,<6' --break-system-packages
 
 #
