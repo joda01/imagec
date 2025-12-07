@@ -28,11 +28,12 @@ namespace joda::image {
 /// \author     Joachim Danmayr
 /// \brief      Class representing an image instance
 ///
-class Image : public QGraphicsItem
+class Image
 {
 public:
   /////////////////////////////////////////////////////
   Image();
+  Image(Image &&other) noexcept;
   ~Image()
   {
     clear();
@@ -105,9 +106,20 @@ public:
     return {mImageOriginalScaled.cols, mImageOriginalScaled.rows};
   }
 
-  QRectF boundingRect() const override;
+  QImage *mutableImage()
+  {
+    return &mQImage;
+  }
 
-  void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override;
+  void copyHistogramSettings(const Image &other)
+  {
+    mLowerValue       = other.mLowerValue;
+    mUpperValue       = other.mUpperValue;
+    mDisplayAreaLower = other.mDisplayAreaLower;
+    mDisplayAreaUpper = other.mDisplayAreaUpper;
+    mHistogramMax     = other.mHistogramMax;
+    refreshImageToPaint(mImageOriginalScaled);
+  }
 
 private:
   /////////////////////////////////////////////////////

@@ -370,7 +370,7 @@ std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSett
 auto Processor::generatePreview(const PreviewSettings &previewSettings, const settings::ProjectImageSetup &imageSetup,
                                 const settings::AnalyzeSettings &program, const joda::thread::ThreadingSettings &threadingSettings,
                                 const settings::Pipeline &pipelineStart, const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack,
-                                int32_t tileX, int32_t tileY, bool generateThumb, const ome::OmeInfo &ome, Preview &previewOut) -> void
+                                int32_t tileX, int32_t tileY, const ome::OmeInfo &ome, Preview &previewOut) -> void
 {
   DurationCount durationCount("Generate preview.");
 
@@ -386,18 +386,6 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
   if(pipelineOrder.empty()) {
     throw std::invalid_argument("Cycle detected in pipelines!");
   }
-
-  //
-  // Generate preview in a thread
-  //
-  cv::Mat thumb;
-  auto thumbThread = std::thread([&]() {
-    //  if(generateThumb) {
-    //    thumb = joda::image::reader::ImageReader::loadThumbnail(
-    //        imagePath.string(), joda::enums::PlaneId{.tStack = tStack, .zStack = zStack, .cStack = pipelineStart.pipelineSetup.cStackIndex},
-    //        static_cast<uint16_t>(imageSetup.series), ome);
-    //  }
-  });
 
   //
   // Get image
@@ -440,9 +428,9 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         continue;
       }
 
-      auto executePipeline = [&db, &thumbThread, &thumb, &finished, &ome, &previewOut, &previewSettings, &imageSetup, &totalRuns,
-                              pipeline  = pipelineToExecute, &globalContext, &plateContext, imagePath, &imageContext, &imageLoader, tileX, tileY,
-                              pipelines = pipelines, &iterationContext, tStack, zStack, executedSteps, &generateThumb]() -> void {
+      auto executePipeline = [&db, &finished, &ome, &previewOut, &previewSettings, &imageSetup, &totalRuns, pipeline         = pipelineToExecute,
+                              &globalContext, &plateContext, imagePath, &imageContext, &imageLoader, tileX, tileY, pipelines = pipelines,
+                              &iterationContext, tStack, zStack, executedSteps]() -> void {
         //
         // The last step is the wanted pipeline
         //
@@ -492,21 +480,12 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
           if(editedImageAtBreakpoint.empty()) {
             editedImageAtBreakpoint = context.getActImage().image.clone();
           }
-          ///\warning #warning "Exception on thread destructor"
-          thumbThread.join();
 
           //
           // Finished
           //
-          previewOut.originalImage.setImage(
-              context.loadImageFromCache(enums::MemoryScope::ITERATION, joda::enums::ImageId{.zProjection = enums::ZProjection::$, .imagePlane = {}})
-                  ->image,
-              ome.getPseudoColorForChannel(imageSetup.series, pipeline->pipelineSetup.cStackIndex));
           previewOut.editedImage.setImage(editedImageAtBreakpoint,
                                           ome.getPseudoColorForChannel(imageSetup.series, pipeline->pipelineSetup.cStackIndex));
-          if(generateThumb) {
-            previewOut.thumbnail.setImage(thumb, ome.getPseudoColorForChannel(imageSetup.series, pipeline->pipelineSetup.cStackIndex));
-          }
           previewOut.results.noiseDetected = db->getImageValidity().test(enums::ChannelValidityEnum::POSSIBLE_NOISE);
           previewOut.results.isOverExposed = db->getImageValidity().test(enums::ChannelValidityEnum::POSSIBLE_WRONG_THRESHOLD);
           previewOut.tStacks               = ome.getNrOfTStack(imageSetup.series);
@@ -533,14 +512,6 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
   previewOut.results.objectMap->mergeFrom(std::move(*objectMapBuffer), {});
   previewOut.results.objectMap->triggerChangeCallback();
   objectMapBuffer.reset();
-
-  if(!finished) {
-    thumbThread.join();
-    // return {{}, {}, {}, {}, {}, {}, std::map<enums::ClassId, std::unique_ptr<joda::atom::SpheralIndex>>{}};
-    return;
-  } else {
-    return;
-  }
 }
 
 }    // namespace joda::processor

@@ -40,6 +40,36 @@ Image::Image()
 {
 }
 
+Image::Image(Image &&other) noexcept
+{
+  // Lock the other's mutex to safely read its data
+  std::lock_guard<std::mutex> lock(other.mLockMutex);
+
+  // Move all movable members
+  mHistograms        = std::move(other.mHistograms);
+  mLowerValue        = other.mLowerValue;
+  mUpperValue        = other.mUpperValue;
+  mDisplayAreaLower  = other.mDisplayAreaLower;
+  mDisplayAreaUpper  = other.mDisplayAreaUpper;
+  mHistogramMax      = other.mHistogramMax;
+  mOriginalImageSize = other.mOriginalImageSize;
+
+  mPSeudoColorEnabled = other.mPSeudoColorEnabled;
+  mPseudoColor        = std::move(other.mPseudoColor);
+
+  mQImage              = std::move(other.mQImage);
+  mImageOriginalScaled = std::move(other.mImageOriginalScaled);
+  mOriginalImage       = std::move(other.mOriginalImage);
+
+  // Mutexes are default-constructed automatically (they cannot be moved)
+  // Clear the moved-from object
+  other.mHistograms.clear();
+  other.mPseudoColor.clear();
+  other.mImageOriginalScaled.release();
+  other.mOriginalImage.release();
+  other.mQImage = QImage{};
+}
+
 ///
 /// \brief
 /// \author
@@ -248,41 +278,6 @@ void Image::refreshImageToPaint(cv::Mat &img16)
     mQImage = QImage(mImageOriginalScaled.data, mImageOriginalScaled.cols, mImageOriginalScaled.rows, static_cast<int>(mImageOriginalScaled.step),
                      QImage::Format_BGR888)
                   .copy();
-  }
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-QRectF Image::boundingRect() const
-{
-  std::lock_guard<std::mutex> lock(mPaintImage);
-  if(mQImage.isNull() || mQImage.width() == 0) {
-    return QRectF(0, 0, 0, 0);
-  }
-  return QRectF(QPointF(0, 0), mQImage.size());
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-/// \param[in]
-/// \param[out]
-/// \return
-///
-void Image::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
-{
-  QImage localCopy;
-  {
-    std::lock_guard<std::mutex> guard(mPaintImage);
-    localCopy = mQImage;    // Implicit shared but safe: no writer now
-  }
-  if(!localCopy.isNull()) {
-    painter->drawImage(0, 0, localCopy);
   }
 }
 

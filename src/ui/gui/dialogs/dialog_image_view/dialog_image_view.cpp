@@ -291,7 +291,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
 
     connect(mImagePanel, &PanelImageView::tileClicked, this, &DialogImageViewer::onSettingsChanged);
     connect(mImagePanel, &PanelImageView::imageOpened, [this]() {
-      if(nullptr != mVideoButtonGroup) {
+      if(nullptr != mVideoButtonGroup && nullptr != mImagePanel) {
         mVideoButtonGroup->setMaxTimeStacks(mImagePanel->getNrOfTstacks());
       }
     });
@@ -350,7 +350,7 @@ void DialogImageViewer::setImagePlane(const ImagePlaneSettings &settings)
   mImageSettings.imageSeries = settings.series;
   mSelectedZStack            = settings.plane.zStack;
   mSelectedTStack            = settings.plane.tStack;
-  if(nullptr != mVideoButtonGroup) {
+  if(nullptr != mVideoButtonGroup && nullptr != mImagePanel) {
     mVideoButtonGroup->setMaxTimeStacks(mImagePanel->getNrOfTstacks());
     mVideoButtonGroup->setValue(settings.plane.tStack);
   }
@@ -466,7 +466,7 @@ void DialogImageViewer::applySettingsToImagePanel()
 {
   auto tileSizeIn = getTileSize();
   mImagePanel->setSeries(mImageSettings.imageSeries);
-  if(nullptr != mVideoButtonGroup) {
+  if(nullptr != mVideoButtonGroup && nullptr != mImagePanel) {
     mVideoButtonGroup->setMaxTimeStacks(mImagePanel->getNrOfTstacks());
     mSelectedTStack = mVideoButtonGroup->value();
     if(mVideoButtonGroup->isVideoRunning()) {

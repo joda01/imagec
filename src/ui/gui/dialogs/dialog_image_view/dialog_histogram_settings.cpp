@@ -50,16 +50,10 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
   //
   mSliderHistogramMin = new QSlider();
   mSliderHistogramMin->setOrientation(Qt::Orientation::Horizontal);
-  mSliderHistogramMin->setMinimum(imagePanel->mutableImage()->getHistogramDisplayAreaLower());
-  mSliderHistogramMin->setMaximum(imagePanel->mutableImage()->getHistogramDisplayAreaUpper());
-  mSliderHistogramMin->setValue(imagePanel->mutableImage()->getLowerLevelContrast());
   layout->addRow("Min", mSliderHistogramMin);
 
   mSliderHistogramMax = new QSlider();
   mSliderHistogramMax->setOrientation(Qt::Orientation::Horizontal);
-  mSliderHistogramMax->setMinimum(imagePanel->mutableImage()->getHistogramDisplayAreaLower());
-  mSliderHistogramMax->setMaximum(imagePanel->mutableImage()->getHistogramDisplayAreaUpper());
-  mSliderHistogramMax->setValue(imagePanel->mutableImage()->getUpperLevelContrast());
   layout->addRow("Max", mSliderHistogramMax);
 
   //
@@ -69,13 +63,11 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
   mSliderDisplayLower->setSingleStep(1);
   mSliderDisplayLower->setMinimum(0);
   mSliderDisplayLower->setMaximum(UINT16_MAX);
-  mSliderDisplayLower->setValue(imagePanel->mutableImage()->getHistogramDisplayAreaLower());
 
   mSliderDisplayUpper = new QSpinBox();
   mSliderDisplayUpper->setSingleStep(1);
   mSliderDisplayUpper->setMinimum(1);
   mSliderDisplayUpper->setMaximum(UINT16_MAX);
-  mSliderDisplayUpper->setValue(imagePanel->mutableImage()->getHistogramDisplayAreaUpper());
 
   auto *rangeLayout = new QHBoxLayout();
   rangeLayout->addWidget(mSliderDisplayLower);
@@ -86,7 +78,7 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
   autoAdjust->setAutoDefault(false);
   autoAdjust->setDefault(false);
   connect(autoAdjust, &QPushButton::pressed, [this]() {
-    mImagePanel->mutableImage()->autoAdjustBrightnessRange();
+    mImagePanel->autoAdjustBrightnessRange();
     getHistogramSettingsFromImage();
     mHistogramPanel->update();
     mImagePanel->repaintImage();
@@ -118,9 +110,8 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
     mSliderHistogramMin->setMinimum(mSliderDisplayLower->value());
     mSliderHistogramMax->setMinimum(mSliderDisplayLower->value());
 
-    mImagePanel->mutableImage()->setBrightnessRange(mSliderHistogramMin->value(), mSliderHistogramMax->value(),
-                                                    static_cast<int32_t>(mSliderDisplayLower->value()),
-                                                    static_cast<int32_t>(mSliderDisplayUpper->value()));
+    mImagePanel->setBrightnessRange(mSliderHistogramMin->value(), mSliderHistogramMax->value(), static_cast<int32_t>(mSliderDisplayLower->value()),
+                                    static_cast<int32_t>(mSliderDisplayUpper->value()));
     mHistogramPanel->update();
     mImagePanel->repaintImage();
 
@@ -135,10 +126,8 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
     CHECK_GUI_THREAD(mSliderHistogramMin);
     mSliderHistogramMin->setMaximum(mSliderDisplayUpper->value());
     mSliderHistogramMax->setMaximum(mSliderDisplayUpper->value());
-
-    mImagePanel->mutableImage()->setBrightnessRange(mSliderHistogramMin->value(), mSliderHistogramMax->value(),
-                                                    static_cast<int32_t>(mSliderDisplayLower->value()),
-                                                    static_cast<int32_t>(mSliderDisplayUpper->value()));
+    mImagePanel->setBrightnessRange(mSliderHistogramMin->value(), mSliderHistogramMax->value(), static_cast<int32_t>(mSliderDisplayLower->value()),
+                                    static_cast<int32_t>(mSliderDisplayUpper->value()));
     mHistogramPanel->update();
     mImagePanel->repaintImage();
     mSliderHistogramMin->blockSignals(false);
@@ -177,8 +166,13 @@ void DialogHistogramSettings::getHistogramSettingsFromImage()
         mImageChannel->blockSignals(true);
         mColorMode->blockSignals(true);
 
-        const auto lowerArea = mImagePanel->mutableImage()->getHistogramDisplayAreaLower();
-        const auto upperArea = mImagePanel->mutableImage()->getHistogramDisplayAreaUpper();
+        auto *mutableImg = mImagePanel->mutableImage();
+        if(mutableImg == nullptr) {
+          return;
+        }
+
+        const auto lowerArea = mutableImg->getHistogramDisplayAreaLower();
+        const auto upperArea = mutableImg->getHistogramDisplayAreaUpper();
 
         mSliderHistogramMin->setMinimum(lowerArea);
         mSliderHistogramMin->setMaximum(upperArea);
@@ -186,12 +180,12 @@ void DialogHistogramSettings::getHistogramSettingsFromImage()
         mSliderHistogramMax->setMinimum(lowerArea);
         mSliderHistogramMax->setMaximum(upperArea);
 
-        mSliderHistogramMin->setValue(mImagePanel->mutableImage()->getLowerLevelContrast());
-        mSliderHistogramMax->setValue(mImagePanel->mutableImage()->getUpperLevelContrast());
+        mSliderHistogramMin->setValue(mutableImg->getLowerLevelContrast());
+        mSliderHistogramMax->setValue(mutableImg->getUpperLevelContrast());
 
         mImageChannel->setCurrentIndex(mImagePanel->getImagePlane().cStack);
 
-        const bool usePseudoColors = mImagePanel->mutableImage()->getUsePseudoColors();
+        const bool usePseudoColors = mutableImg->getUsePseudoColors();
         if(usePseudoColors) {
           mColorMode->setCurrentIndex(1);
         } else {
@@ -228,17 +222,15 @@ void DialogHistogramSettings::applyHistogramSettingsToImage()
   blockSignals(true);
 
   if(mColorMode->currentData() == 0) {
-    mImagePanel->mutableImage()->setPseudoColorEnabled(false);
+    mImagePanel->setPseudoColorEnabled(false);
   } else {
-    mImagePanel->mutableImage()->setPseudoColorEnabled(true);
+    mImagePanel->setPseudoColorEnabled(true);
   }
 
-  mImagePanel->mutableImage()->setBrightnessRange(mSliderHistogramMin->value(), mSliderHistogramMax->value(),
-                                                  static_cast<int32_t>(mSliderDisplayLower->value()),
-                                                  static_cast<int32_t>(mSliderDisplayUpper->value()));
+  mImagePanel->setBrightnessRange(mSliderHistogramMin->value(), mSliderHistogramMax->value(), static_cast<int32_t>(mSliderDisplayLower->value()),
+                                  static_cast<int32_t>(mSliderDisplayUpper->value()));
 
   mHistogramPanel->update();
-  mImagePanel->repaintImage();
   blockSignals(false);
 }
 
