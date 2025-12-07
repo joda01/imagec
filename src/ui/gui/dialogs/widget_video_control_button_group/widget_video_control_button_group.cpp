@@ -47,10 +47,10 @@ VideoControlButtonGroup::VideoControlButtonGroup(const std::function<void(void)>
   mSpinnerActTimeStack = new QSpinBox();
   mSpinnerActTimeStack->setValue(0);
   mSpinnerActTimeStack->setMinimumWidth(65);
-  QWidget::connect(mSpinnerActTimeStack, &QSpinBox::valueChanged, [this] { mCallback(); });
+  connect(mSpinnerActTimeStack, &QSpinBox::valueChanged, [this] { mCallback(); });
 
   mSeekBack = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("skip-back"), "Backward");
-  QWidget::connect(mSeekBack, &QAction::triggered, [this] {
+  connect(mSeekBack, &QAction::triggered, [this] {
     if(mSpinnerActTimeStack->value() > 0) {
       mSpinnerActTimeStack->blockSignals(true);
       mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() - 1);
@@ -68,7 +68,7 @@ VideoControlButtonGroup::VideoControlButtonGroup(const std::function<void(void)>
     mPlaybackspeedGroup->addAction(action);
     action->setCheckable(true);
     action->setChecked(checked);
-    QWidget::connect(action, &QAction::triggered, [timeMs, this]() {
+    connect(action, &QAction::triggered, [timeMs, this]() {
       mPlaybackSpeed = timeMs;
       if(mActionPlay->isChecked()) {
         mPlayTimer->stop();
@@ -90,7 +90,7 @@ VideoControlButtonGroup::VideoControlButtonGroup(const std::function<void(void)>
   mActionPlay = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("play"), "Play/Stop");
   mActionPlay->setMenu(mPlaybackSpeedSelector);
   mActionPlay->setCheckable(true);
-  QWidget::connect(mActionPlay, &QAction::triggered, [this](bool selected) {
+  connect(mActionPlay, &QAction::triggered, [this](bool selected) {
     if(selected) {
       mPlayTimer->start(mPlaybackSpeed);
     } else {
@@ -102,7 +102,7 @@ VideoControlButtonGroup::VideoControlButtonGroup(const std::function<void(void)>
   mSpinnerActTimeStackAction = parentToolbar->addWidget(mSpinnerActTimeStack);
 
   mSeekForward = new QAction(generateSvgIcon<Style::REGULAR, Color::BLUE>("skip-forward"), "Forward");
-  QWidget::connect(mSeekForward, &QAction::triggered, [this] {
+  connect(mSeekForward, &QAction::triggered, [this] {
     if(mSpinnerActTimeStack->value() < getMaxTimeStacks()) {
       mSpinnerActTimeStack->blockSignals(true);
       mSpinnerActTimeStack->setValue(mSpinnerActTimeStack->value() + 1);
