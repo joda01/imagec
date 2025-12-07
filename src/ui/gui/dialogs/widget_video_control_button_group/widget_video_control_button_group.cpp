@@ -10,6 +10,7 @@
 ///
 
 #include "widget_video_control_button_group.hpp"
+#include <QWidget>
 
 namespace joda::ui::gui {
 
