@@ -1,0 +1,22 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "project_pipeline_setup.schema.json",
+    "title": "ProjectImageSetup",
+    "type": "object",
+    "properties": {
+        "realSizesUnit": {
+            "type": "string",
+            "enum": [
+                "Undefined",
+                "Px",
+                "nm",
+                "um",
+                "mm",
+                "cm",
+                "m",
+                "km"
+            ],
+            "default": "um"
+        }
+    }
+}

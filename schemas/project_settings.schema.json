@@ -1,0 +1,120 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "project_settings.schema.json",
+    "title": "ProjectSettings",
+    "description": "Project settings",
+    "type": "object",
+    "properties": {
+        "experimentSettings": {
+            "type": "object",
+            "properties": {
+                "experimentId": {
+                    "type": "string",
+                    "format": "uid"
+                },
+                "experimentName": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                }
+            }
+        },
+        "plate": {
+            "type": "object",
+            "properties": {
+                "plateId": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "imageFolder": {
+                    "type": "string"
+                },
+                "groupBy": {
+                    "type": "string",
+                    "enum": [
+                        "Unknown",
+                        "Off",
+                        "Directory",
+                        "Filename"
+                    ]
+                },
+                "filenameRegex": {
+                    "type": "string"
+                },
+                "plateSetup": {
+                    "type": "object",
+                    "properties": {
+                        "rows": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "cols": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "wellImageOrder": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "address": {
+            "type": "object",
+            "properties": {
+                "firstName": {
+                    "type": "string"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "organization": {
+                    "type": "string"
+                },
+                "streetAddress": {
+                    "type": "string"
+                },
+                "postalCode": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string",
+                    "format": "email"
+                }
+            }
+        },
+        "classification": {
+            "type": "object",
+            "properties": {
+                "meta": {
+                    "$ref": "settings_meta_settings.schema.json"
+                },
+                "classes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "project_class_settings.schema.json"
+                    }
+                }
+            }
+        }
+    }
+}

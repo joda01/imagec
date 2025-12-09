@@ -1,0 +1,145 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "project_class_settings.schema",
+    "title": "Class",
+    "type": "object",
+    "properties": {
+        "classId": {
+            "type": "string",
+            "description": "Object class ID enum",
+            "enum": [
+                "Undefined",
+                "None",
+                "0",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "10",
+                "11",
+                "12",
+                "13",
+                "14",
+                "15",
+                "16",
+                "17",
+                "18",
+                "19",
+                "20",
+                "21",
+                "22",
+                "23",
+                "24",
+                "25",
+                "26",
+                "27",
+                "28",
+                "29",
+                "30"
+            ],
+            "default": "Undefined"
+        },
+        "name": {
+            "type": "string",
+            "description": "Display name of the class"
+        },
+        "color": {
+            "type": "string",
+            "description": "Display color for this class"
+        },
+        "notes": {
+            "type": "string",
+            "description": "Further notes for the class"
+        },
+        "defaultMeasurements": {
+            "type": "array",
+            "description": "Default measurements for this class",
+            "items": {
+                "$ref": "#/$defs/ResultsTemplate"
+            }
+        },
+        "hidden": {
+            "type": "boolean",
+            "description": "Hide class in the UI",
+            "default": false
+        }
+    },
+    "required": [
+        "classId",
+        "name",
+        "notes",
+        "color",
+        "defaultMeasurements",
+        "hidden"
+    ],
+    "$defs": {
+        "ResultsTemplate": {
+            "title": "ResultsTemplate",
+            "type": "object",
+            "properties": {
+                "measureChannel": {
+                    "type": "string",
+                    "description": "Measurement channel enum",
+                    "enum": [
+                        "None",
+                        "Count",
+                        "None",
+                        "Count",
+                        "Confidence",
+                        "AreaSize",
+                        "Perimeter",
+                        "Circularity",
+                        "IntensitySum",
+                        "IntensityAvg",
+                        "IntensityMin",
+                        "IntensityMax",
+                        "CenteroidX",
+                        "CenteroidY",
+                        "ObjectId",
+                        "OriginObjectId",
+                        "ParentObjectId",
+                        "TrackingId",
+                        "BoxWidth",
+                        "BoxHeight",
+                        "Intersecting",
+                        "DistanceFromObjectId",
+                        "DistanceToObjectId",
+                        "DistanceCentroidToCentoid",
+                        "DistanceCentroidToSurfaceMin",
+                        "DistanceCentroidToSurfaceMax",
+                        "DistanceSurfaceToSurfaceMin",
+                        "DistanceSurfaceToSurfaceMax"
+                    ],
+                    "default": "None"
+                },
+                "stats": {
+                    "type": "array",
+                    "description": "Set of statistical operations",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "Off",
+                            "Cnt",
+                            "Avg",
+                            "Max",
+                            "Min",
+                            "Sum",
+                            "Median",
+                            "Stddev"
+                        ]
+                    },
+                    "uniqueItems": true
+                }
+            },
+            "required": [
+                "measureChannel",
+                "stats"
+            ]
+        }
+    }
+}

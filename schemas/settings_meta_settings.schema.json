@@ -1,0 +1,66 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "settings_meta_settings.schema.json",
+    "title": "SettingsMeta",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "description": "User-defined name of the channel"
+        },
+        "notes": {
+            "type": "string",
+            "description": "Notes in markdown format"
+        },
+        "color": {
+            "type": "string",
+            "description": "Color hex string (e.g. #B91717)",
+            "pattern": "^#[0-9A-Fa-f]{6}$",
+            "default": "#B91717"
+        },
+        "icon": {
+            "type": "string",
+            "description": "Base64-encoded PNG icon"
+        },
+        "revision": {
+            "type": "string",
+            "description": "Revision name or ID"
+        },
+        "uid": {
+            "type": "string",
+            "description": "Unique UUID",
+            "pattern": "^[0-9a-fA-F-]{36}$"
+        },
+        "group": {
+            "type": "string"
+        },
+        "category": {
+            "type": "string"
+        },
+        "tags": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "author": {
+            "type": "string"
+        },
+        "organization": {
+            "type": "string"
+        },
+        "webpage": {
+            "type": "string",
+            "format": "uri"
+        },
+        "modifiedAt": {
+            "type": "string",
+            "format": "date-time"
+        }
+    },
+    "required": [
+        "name",
+        "notes",
+        "revision"
+    ]
+}

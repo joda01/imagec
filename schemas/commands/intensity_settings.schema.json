@@ -1,0 +1,18 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "watershed_settings.schema.json",
+    "title": "WatershedSettings",
+    "description": "The watershed algorithm is a method used in image processing for image segmentation that treats the image data as a topographic map and finds boundaries by simulating the flooding of the landscape from local minima (catchment basins) until the watershed ridges are reached ",
+    "type": "object",
+    "properties": {
+        "maximumFinderTolerance": {
+            "type": "number",
+            "default": 0.5,
+            "minimum": 10,
+            "maximum": 1
+        }
+    },
+    "required": [
+        "maximumFinderTolerance"
+    ]
+}

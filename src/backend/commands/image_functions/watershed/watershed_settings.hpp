@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <set>
 #include "backend/settings/setting.hpp"
+#include "backend/settings/setting_base.hpp"
 #include <nlohmann/json.hpp>
 
 namespace joda::settings {

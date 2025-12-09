@@ -1,0 +1,37 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "AnalyzeSettings",
+    "description": "The main schema which describes an ImageC project file",
+    "type": "object",
+    "properties": {
+        "projectSettings": {
+            "$ref": "project_settings.schema.json"
+        },
+        "imageSetup": {
+            "$ref": "project_image_setup.schema.json"
+        },
+        "pipelineSetup": {
+            "$ref": "project_pipeline_setup.schema.json"
+        },
+        "pipelines": {
+            "type": "array",
+            "items": {
+                "$ref": "pipeline.schema.json"
+            }
+        },
+        "imagecMeta": {
+            "type": "object",
+            "properties": {
+                "imagecVersion": {
+                    "type": "string"
+                },
+                "buildTime": {
+                    "type": "string"
+                }
+            }
+        },
+        "meta": {
+            "$ref": "settings_meta_settings.schema.json"
+        }
+    }
+}

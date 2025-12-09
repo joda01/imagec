@@ -1,0 +1,145 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "project_image_setup.schema.json",
+    "title": "ProjectImageSetup",
+    "type": "object",
+    "properties": {
+        "zStackHandling": {
+            "type": "string",
+            "enum": [
+                "ExactOne",
+                "EachOne"
+            ],
+            "default": "ExactOne"
+        },
+        "tStackHandling": {
+            "type": "string",
+            "enum": [
+                "ExactOne",
+                "EachOne"
+            ],
+            "default": "EachOne"
+        },
+        "tStackSettings": {
+            "$ref": "#/$defs/TStackSettings"
+        },
+        "zStackSettings": {
+            "$ref": "#/$defs/ZStackSettings"
+        },
+        "imagePixelSizeSettings": {
+            "$ref": "#/$defs/PhysicalSizeSettings"
+        },
+        "imageTileSettings": {
+            "$ref": "#/$defs/ImageTileSettings"
+        },
+        "series": {
+            "type": "integer",
+            "default": 0
+        }
+    },
+    "required": [
+        "zStackHandling",
+        "tStackHandling",
+        "tStackSettings",
+        "zStackSettings",
+        "imagePixelSizeSettings",
+        "imageTileSettings",
+        "series"
+    ],
+    "$defs": {
+        "ImageTileSettings": {
+            "type": "object",
+            "properties": {
+                "tileWidth": {
+                    "type": "integer",
+                    "default": 4096
+                },
+                "tileHeight": {
+                    "type": "integer",
+                    "default": 4096
+                }
+            },
+            "required": [
+                "tileWidth",
+                "tileHeight"
+            ]
+        },
+        "TStackSettings": {
+            "type": "object",
+            "properties": {
+                "startFrame": {
+                    "type": "integer",
+                    "default": 0
+                },
+                "endFrame": {
+                    "type": "integer",
+                    "default": -1
+                }
+            },
+            "required": [
+                "startFrame",
+                "endFrame"
+            ]
+        },
+        "ZStackSettings": {
+            "type": "object",
+            "properties": {
+                "defaultZProjection": {
+                    "type": "string",
+                    "enum": [
+                        "None",
+                        "MaxIntensity",
+                        "MinIntensity",
+                        "AvgIntensity",
+                        "TakeMiddle"
+                    ],
+                    "default": "MaxIntensity"
+                }
+            },
+            "required": [
+                "defaultZProjection"
+            ]
+        },
+        "PhysicalSizeSettings": {
+            "type": "object",
+            "properties": {
+                "mode": {
+                    "type": "string",
+                    "enum": [
+                        "Automatic",
+                        "Manual"
+                    ],
+                    "default": "Automatic"
+                },
+                "pixelSizeUnit": {
+                    "type": "string",
+                    "enum": [
+                        "Undefined",
+                        "Px",
+                        "nm",
+                        "um",
+                        "mm",
+                        "cm",
+                        "m",
+                        "km"
+                    ],
+                    "default": "um"
+                },
+                "pixelWidth": {
+                    "type": "number",
+                    "default": 0
+                },
+                "pixelHeight": {
+                    "type": "number",
+                    "default": 0
+                }
+            },
+            "required": [
+                "mode",
+                "pixelSizeUnit",
+                "pixelWidth",
+                "pixelHeight"
+            ]
+        }
+    }
+}

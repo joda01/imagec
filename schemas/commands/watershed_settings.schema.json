@@ -1,0 +1,39 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "intensity_settings.schema.json",
+    "title": "IntensityTransformationSettings",
+    "description": "Modify the contrast, brightness and gamma of an image.",
+    "type": "object",
+    "properties": {
+        "mode": {
+            "type": "string",
+            "enum": [
+                "Manual",
+                "Automatic"
+            ]
+        },
+        "contrast": {
+            "type": "number",
+            "default": 1,
+            "minimum": 1,
+            "maximum": 256
+        },
+        "brightness": {
+            "type": "integer",
+            "default": 0,
+            "minimum": -32768,
+            "maximum": 32767
+        },
+        "gamma": {
+            "type": "integer",
+            "default": 0,
+            "minimum": 0
+        }
+    },
+    "required": [
+        "mode",
+        "contrast",
+        "brightness",
+        "gamma"
+    ]
+}

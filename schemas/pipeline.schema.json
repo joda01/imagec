@@ -1,0 +1,100 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "pipeline.schema.json",
+    "title": "Pipeline",
+    "description": "Pipeline settings",
+    "type": "object",
+    "properties": {
+        "meta": {
+            "$ref": "settings_meta_settings.schema.json"
+        },
+        "pipelineSetup": {
+            "type": "object",
+            "properties": {
+                "source": {
+                    "type": "string",
+                    "description": "From where the initial image for this pipeline should be loaded",
+                    "enum": [
+                        "FromFile",
+                        "FromMemory",
+                        "FromBlank"
+                    ],
+                    "default": "FromFile"
+                },
+                "cStackIndex": {
+                    "type": "integer",
+                    "description": "Image channel to load",
+                    "default": -2
+                },
+                "tStackIndex": {
+                    "type": "integer",
+                    "description": "Image Time-Stack to load (used if tStackHandling is EXACT_ONE)",
+                    "default": -1
+                },
+                "zStackIndex": {
+                    "type": "integer",
+                    "description": "Image Z-Stack to load (used if zStackHandling is EXACT_ONE)",
+                    "default": -1
+                },
+                "zProjection": {
+                    "type": "string",
+                    "description": "Z-projection mode (used if zStackHandling is INTENSITY_PROJECTION)",
+                    "enum": [
+                        "None",
+                        "MaxIntensity",
+                        "MinIntensity",
+                        "AvgIntensity",
+                        "TakeMiddle"
+                    ],
+                    "default": "MaxIntensity"
+                },
+                "defaultClassId": {
+                    "type": "string",
+                    "description": "Default class ID of this pipeline",
+                    "enum": [
+                        "Undefined",
+                        "None",
+                        "0",
+                        "1",
+                        "2",
+                        "3",
+                        "4",
+                        "5",
+                        "6",
+                        "7",
+                        "8",
+                        "9",
+                        "10",
+                        "11",
+                        "12",
+                        "13",
+                        "14",
+                        "15",
+                        "16",
+                        "17",
+                        "18",
+                        "19",
+                        "20",
+                        "21",
+                        "22",
+                        "23",
+                        "24",
+                        "25",
+                        "26",
+                        "27",
+                        "28",
+                        "29",
+                        "30"
+                    ],
+                    "default": "Undefined"
+                }
+            }
+        },
+        "pipelineSteps": {
+            "type": "array",
+            "items": {
+                "$ref": "pipeline_step.schema.json"
+            }
+        }
+    }
+}

@@ -1,0 +1,323 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "pipeline_step.schema.json",
+    "title": "PipelineStep",
+    "description": "This is a pipeline step. Each pipeline step must define exact one command.",
+    "type": "object",
+    "properties": {
+        "disabled": {
+            "type": "boolean",
+            "default": false,
+            "description": "Disabled pipeline steps are not executed"
+        },
+        "locked": {
+            "type": "boolean",
+            "default": false,
+            "description": "Locked pipeline steps cannot be edited"
+        },
+        "breakPoint": {
+            "type": "boolean",
+            "default": false,
+            "description": "Stop at this step"
+        },
+        "$blur": {
+            "$ref": "commands/blur_settings.schema.json"
+        },
+        "$intensityTransform": {
+            "$ref": "commands/intensity_settings.schema.json"
+        },
+        "$watershed": {
+            "$ref": "WatershedSettings.schema.json"
+        },
+        "$rollingBall": {
+            "$ref": "RollingBallSettings.schema.json"
+        },
+        "$medianSubtract": {
+            "$ref": "MedianSubtractSettings.schema.json"
+        },
+        "$sobel": {
+            "$ref": "EdgeDetectionSobelSettings.schema.json"
+        },
+        "$canny": {
+            "$ref": "EdgeDetectionCannySettings.schema.json"
+        },
+        "$crop": {
+            "$ref": "MarginCropSettings.schema.json"
+        },
+        "$objectTransform": {
+            "$ref": "ObjectTransformSettings.schema.json"
+        },
+        "$morphologicalTransform": {
+            "$ref": "MorphologicalTransformSettings.schema.json"
+        },
+        "$fillHoles": {
+            "$ref": "FillHolesSettings.schema.json"
+        },
+        "$houghTransform": {
+            "$ref": "HoughTransformSettings.schema.json"
+        },
+        "$enhanceContrast": {
+            "$ref": "EnhanceContrastSettings.schema.json"
+        },
+        "$rank": {
+            "$ref": "RankFilterSettings.schema.json"
+        },
+        "$skeletonize": {
+            "$ref": "SkeletonizeSettings.schema.json"
+        },
+        "$laplacian": {
+            "$ref": "LaplacianSettings.schema.json"
+        },
+        "$gaussianWeightedDev": {
+            "$ref": "WeightedDeviationSettings.schema.json"
+        },
+        "$structureTensor": {
+            "$ref": "StructureTensorSettings.schema.json"
+        },
+        "$hessian": {
+            "$ref": "HessianSettings.schema.json"
+        },
+        "$nop": {
+            "$ref": "NopSettings.schema.json"
+        },
+        "$imageToCache": {
+            "$ref": "ImageCacheSettings.schema.json"
+        },
+        "$imageMath": {
+            "$ref": "ImageMathSettings.schema.json"
+        },
+        "$thresholdValidator": {
+            "$ref": "ThresholdValidatorSettings.schema.json"
+        },
+        "$noiseValidator": {
+            "$ref": "NoiseValidatorSettings.schema.json"
+        },
+        "$colorFilter": {
+            "$ref": "ColorFilterSettings.schema.json"
+        },
+        "$objectsToImage": {
+            "$ref": "ObjectsToImageSettings.schema.json"
+        },
+        "$voronoi": {
+            "$ref": "VoronoiGridSettings.schema.json"
+        },
+        "$classify": {
+            "$ref": "ClassifierSettings.schema.json"
+        },
+        "$aiClassify": {
+            "$ref": "AiClassifierSettings.schema.json"
+        },
+        "$pixelClassify": {
+            "$ref": "PixelClassifierSettings.schema.json"
+        },
+        "$colocalization": {
+            "$ref": "ColocalizationSettings.schema.json"
+        },
+        "$reclassify": {
+            "$ref": "ReclassifySettings.schema.json"
+        },
+        "$measureIntensity": {
+            "$ref": "MeasureIntensitySettings.schema.json"
+        },
+        "$measureDistance": {
+            "$ref": "MeasureDistanceSettings.schema.json"
+        },
+        "$thresholdAdaptive": {
+            "$ref": "ThresholdAdaptiveSettings.schema.json"
+        },
+        "$threshold": {
+            "$ref": "ThresholdSettings.schema.json"
+        },
+        "$saveImage": {
+            "$ref": "ImageSaverSettings.schema.json"
+        }
+    },
+    "additionalProperties": false,
+    "oneOf": [
+        {
+            "required": [
+                "$blur"
+            ]
+        },
+        {
+            "required": [
+                "$intensityTransform"
+            ]
+        },
+        {
+            "required": [
+                "$watershed"
+            ]
+        },
+        {
+            "required": [
+                "$rollingBall"
+            ]
+        },
+        {
+            "required": [
+                "$medianSubtract"
+            ]
+        },
+        {
+            "required": [
+                "$sobel"
+            ]
+        },
+        {
+            "required": [
+                "$canny"
+            ]
+        },
+        {
+            "required": [
+                "$crop"
+            ]
+        },
+        {
+            "required": [
+                "$objectTransform"
+            ]
+        },
+        {
+            "required": [
+                "$morphologicalTransform"
+            ]
+        },
+        {
+            "required": [
+                "$fillHoles"
+            ]
+        },
+        {
+            "required": [
+                "$houghTransform"
+            ]
+        },
+        {
+            "required": [
+                "$enhanceContrast"
+            ]
+        },
+        {
+            "required": [
+                "$rank"
+            ]
+        },
+        {
+            "required": [
+                "$skeletonize"
+            ]
+        },
+        {
+            "required": [
+                "$laplacian"
+            ]
+        },
+        {
+            "required": [
+                "$gaussianWeightedDev"
+            ]
+        },
+        {
+            "required": [
+                "$structureTensor"
+            ]
+        },
+        {
+            "required": [
+                "$hessian"
+            ]
+        },
+        {
+            "required": [
+                "$nop"
+            ]
+        },
+        {
+            "required": [
+                "$imageToCache"
+            ]
+        },
+        {
+            "required": [
+                "$imageMath"
+            ]
+        },
+        {
+            "required": [
+                "$thresholdValidator"
+            ]
+        },
+        {
+            "required": [
+                "$noiseValidator"
+            ]
+        },
+        {
+            "required": [
+                "$colorFilter"
+            ]
+        },
+        {
+            "required": [
+                "$objectsToImage"
+            ]
+        },
+        {
+            "required": [
+                "$voronoi"
+            ]
+        },
+        {
+            "required": [
+                "$classify"
+            ]
+        },
+        {
+            "required": [
+                "$aiClassify"
+            ]
+        },
+        {
+            "required": [
+                "$pixelClassify"
+            ]
+        },
+        {
+            "required": [
+                "$colocalization"
+            ]
+        },
+        {
+            "required": [
+                "$reclassify"
+            ]
+        },
+        {
+            "required": [
+                "$measureIntensity"
+            ]
+        },
+        {
+            "required": [
+                "$measureDistance"
+            ]
+        },
+        {
+            "required": [
+                "$thresholdAdaptive"
+            ]
+        },
+        {
+            "required": [
+                "$threshold"
+            ]
+        },
+        {
+            "required": [
+                "$saveImage"
+            ]
+        }
+    ]
+}
