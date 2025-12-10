@@ -618,14 +618,18 @@ void WindowMain::saveROI()
 ///
 void WindowMain::saveROI(const std::filesystem::path &imagePath)
 {
-  if(imagePath.empty() || !mAnalyzeSettings.isProjectPathSet()) {
-    return;
+  try {
+    if(imagePath.empty() || !mAnalyzeSettings.isProjectPathSet()) {
+      return;
+    }
+    std::lock_guard<std::mutex> lock(mWriteRoi);
+    const std::filesystem::path projectPath(mAnalyzeSettings.getProjectPath());
+    auto imgIdOld = joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath,
+                                                                                joda::fs::FILE_NAME_ANNOTATIONS + joda::fs::EXT_ANNOTATION);
+    mPreviewResult.results.objectMap->serialize(imgIdOld);
+  } catch(const std::exception &ex) {
+    joda::log::logError("WindowMain::saveROI:" + std::string(ex.what()));
   }
-  std::lock_guard<std::mutex> lock(mWriteRoi);
-  const std::filesystem::path projectPath(mAnalyzeSettings.getProjectPath());
-  auto imgIdOld =
-      joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath, joda::fs::FILE_NAME_ANNOTATIONS + joda::fs::EXT_ANNOTATION);
-  mPreviewResult.results.objectMap->serialize(imgIdOld);
 }
 
 ///
@@ -692,8 +696,6 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     mAnalyzeSettings.projectPathWithFilename = analyzeSettings.projectPathWithFilename;
     mAnalyzeSettingsOld                      = mAnalyzeSettings;
 
-    updateProjectPath();
-
     mPreviewImage->setImagePlane(DialogImageViewer::ImagePlaneSettings{.plane      = {.tStack = 0, .zStack = 0, .cStack = 0},
                                                                        .series     = analyzeSettings.imageSetup.series,
                                                                        .tileWidth  = analyzeSettings.imageSetup.imageTileSettings.tileWidth,
@@ -709,6 +711,8 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
     if(openFromTemplate) {
       mAnalyzeSettings.clearProjectPath();
     }
+    updateProjectPath();
+
     checkForSettingsChanged();
     if(!openFromTemplate) {
       saveProject(mAnalyzeSettings.getProjectPathWithFileName(), false, false);
