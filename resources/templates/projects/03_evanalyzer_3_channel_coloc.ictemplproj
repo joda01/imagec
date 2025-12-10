@@ -1,17 +1,30 @@
 {
   "configSchema": "https://imagec.org/schemas/v1/analyze-settings.json",
   "imageSetup": {
+    "imagePixelSizeSettings": {
+      "mode": "Automatic",
+      "pixelHeight": 0.0,
+      "pixelSizeUnit": "um",
+      "pixelWidth": 0.0
+    },
     "imageTileSettings": {
       "tileHeight": 4096,
       "tileWidth": 4096
     },
     "series": 0,
     "tStackHandling": "EachOne",
-    "zStackHandling": "ExactOne"
+    "tStackSettings": {
+      "endFrame": -1,
+      "startFrame": 0
+    },
+    "zStackHandling": "ExactOne",
+    "zStackSettings": {
+      "defaultZProjection": "MaxIntensity"
+    }
   },
   "imagecMeta": {
-    "buildTime": "2025-05-18 08:49:40",
-    "imagecVersion": "v1.0.0-beta.17"
+    "buildTime": "2025-12-07 16:58:32",
+    "imagecVersion": "0.0.5"
   },
   "meta": {
     "author": "Melanie Schuerz",
@@ -26,10 +39,12 @@
     "tags": ["fluorescence","colocalization"],
     "uid": ""
   },
+  "pipelineSetup": {
+    "realSizesUnit": "Px"
+  },
   "pipelines": [
     {
       "disabled": false,
-      "history": [],
       "locked": false,
       "meta": {
         "color": "#B91717",
@@ -43,11 +58,11 @@
           "evs",
           "extracellular vesicle"
         ],
-        "uid": ""
+        "uid": "78e68c7c-b681-4968-b734-1b4fcdb006c5"
       },
       "pipelineSetup": {
         "cStackIndex": -2,
-        "defaultClassId": "0",
+        "defaultClassId": "15",
         "source": "FromFile",
         "tStackIndex": -1,
         "zProjection": "MaxIntensity",
@@ -110,19 +125,20 @@
                         "memoryId": "None",
                         "zProjection": "$"
                       },
-                      "maxIntensity": -1,
-                      "minIntensity": -1
+                      "maxIntensity": -1.0,
+                      "minIntensity": -1.0
                     },
                     "metrics": {
-                      "maxParticleSize": -1,
+                      "excludeObjectsAtTheEdge": false,
+                      "maxParticleSize": -1.0,
                       "minCircularity": 0.0,
-                      "minParticleSize": 5
+                      "minParticleSize": 5.0
                     },
                     "outputClass": "$"
                   }
                 ],
-                "pixelClassId": 1,
                 "outputClassNoMatch": "None",
+                "pixelClassId": 1,
                 "probabilityHandicap": 1.0
               }
             ]
@@ -172,7 +188,6 @@
     },
     {
       "disabled": false,
-      "history": [],
       "locked": false,
       "meta": {
         "color": "#B91717",
@@ -186,7 +201,7 @@
           "evs",
           "extracellular vesicle"
         ],
-        "uid": ""
+        "uid": "dd9ca817-664f-4913-8d2d-771a60f84d2b"
       },
       "pipelineSetup": {
         "cStackIndex": -2,
@@ -253,19 +268,20 @@
                         "memoryId": "None",
                         "zProjection": "$"
                       },
-                      "maxIntensity": -1,
-                      "minIntensity": -1
+                      "maxIntensity": -1.0,
+                      "minIntensity": -1.0
                     },
                     "metrics": {
-                      "maxParticleSize": -1,
+                      "excludeObjectsAtTheEdge": false,
+                      "maxParticleSize": -1.0,
                       "minCircularity": 0.0,
-                      "minParticleSize": 5
+                      "minParticleSize": 5.0
                     },
                     "outputClass": "$"
                   }
                 ],
-                "pixelClassId": 1,
                 "outputClassNoMatch": "None",
+                "pixelClassId": 1,
                 "probabilityHandicap": 1.0
               }
             ]
@@ -315,7 +331,6 @@
     },
     {
       "disabled": false,
-      "history": [],
       "locked": false,
       "meta": {
         "color": "#B91717",
@@ -329,7 +344,7 @@
           "evs",
           "extracellular vesicle"
         ],
-        "uid": ""
+        "uid": "5ef64bb5-1148-42e1-8be3-f776ed12e0d1"
       },
       "pipelineSetup": {
         "cStackIndex": -2,
@@ -396,19 +411,20 @@
                         "memoryId": "None",
                         "zProjection": "$"
                       },
-                      "maxIntensity": -1,
-                      "minIntensity": -1
+                      "maxIntensity": -1.0,
+                      "minIntensity": -1.0
                     },
                     "metrics": {
-                      "maxParticleSize": -1,
+                      "excludeObjectsAtTheEdge": false,
+                      "maxParticleSize": -1.0,
                       "minCircularity": 0.0,
-                      "minParticleSize": 5
+                      "minParticleSize": 5.0
                     },
                     "outputClass": "$"
                   }
                 ],
-                "pixelClassId": 1,
                 "outputClassNoMatch": "None",
+                "pixelClassId": 1,
                 "probabilityHandicap": 1.0
               }
             ]
@@ -458,7 +474,6 @@
     },
     {
       "disabled": true,
-      "history": [],
       "locked": false,
       "meta": {
         "color": "#B91717",
@@ -472,11 +487,11 @@
           "evs",
           "extracellular vesicle"
         ],
-        "uid": ""
+        "uid": "095a96b5-4421-4a4c-aa36-cea25bf9d64d"
       },
       "pipelineSetup": {
         "cStackIndex": -2,
-        "defaultClassId": "6",
+        "defaultClassId": "16",
         "source": "FromFile",
         "tStackIndex": -1,
         "zProjection": "MaxIntensity",
@@ -539,19 +554,20 @@
                         "memoryId": "None",
                         "zProjection": "$"
                       },
-                      "maxIntensity": -1,
-                      "minIntensity": -1
+                      "maxIntensity": -1.0,
+                      "minIntensity": -1.0
                     },
                     "metrics": {
-                      "maxParticleSize": -1,
+                      "excludeObjectsAtTheEdge": false,
+                      "maxParticleSize": -1.0,
                       "minCircularity": 0.0,
-                      "minParticleSize": 5
+                      "minParticleSize": 5.0
                     },
                     "outputClass": "$"
                   }
                 ],
-                "pixelClassId": 1,
                 "outputClassNoMatch": "None",
+                "pixelClassId": 1,
                 "probabilityHandicap": 1.0
               }
             ]
@@ -562,7 +578,11 @@
         {
           "$reclassify": {
             "hierarchyMode": "CreateTree",
-            "inputClasses": [],
+            "inputClasses": [
+              "1",
+              "5",
+              "15"
+            ],
             "intensity": {
               "imageIn": {
                 "imagePlane": {
@@ -573,20 +593,21 @@
                 "memoryId": "None",
                 "zProjection": "$"
               },
-              "maxIntensity": -1,
-              "minIntensity": -1
+              "maxIntensity": -1.0,
+              "minIntensity": -1.0
             },
             "intersection": {
               "filterLogic": 0,
               "inputClassesIntersectWith": [
-                "5"
+                "16"
               ],
               "minIntersection": 0.10000000149011612
             },
             "metrics": {
-              "maxParticleSize": -1,
+              "excludeObjectsAtTheEdge": false,
+              "maxParticleSize": -1.0,
               "minCircularity": -1.0,
-              "minParticleSize": -1
+              "minParticleSize": -1.0
             },
             "mode": "ReclassifyMove",
             "newClassId": "None"
@@ -598,7 +619,6 @@
     },
     {
       "disabled": false,
-      "history": [],
       "locked": false,
       "meta": {
         "color": "#B91717",
@@ -607,7 +627,7 @@
         "notes": "Colocalisation is set to 0.1 (0.1-1) as default and may be changed.\n\nWith these settings you will find the following groups:\nall spots: includes coloc and non-coloc spots\n- non colocalising ch1, ch2, ch3: spots only detected in the one respective channel\n- 2 channel coloc spots: e.g. ch1and 2 includes all spots that have channel 1 and 2 and also includes spots that might have ch3\n- 3 channel coloc spots: spots recognized in ch1, 2 and 3\n",
         "revision": "",
         "tags": [],
-        "uid": ""
+        "uid": "dd6266cb-2da8-4e52-ae54-6979bdea6366"
       },
       "pipelineSetup": {
         "cStackIndex": -1,
@@ -622,7 +642,7 @@
           "$colocalization": {
             "inputClasses": [
               {
-                "inputClassId": "0",
+                "inputClassId": "15",
                 "newClassId": "7",
                 "newClassIdNotIntersecting": "Undefined"
               },
@@ -654,7 +674,7 @@
           "$colocalization": {
             "inputClasses": [
               {
-                "inputClassId": "0",
+                "inputClassId": "15",
                 "newClassId": "8",
                 "newClassIdNotIntersecting": "Undefined"
               },
@@ -718,7 +738,7 @@
           "$colocalization": {
             "inputClasses": [
               {
-                "inputClassId": "0",
+                "inputClassId": "15",
                 "newClassId": "4",
                 "newClassIdNotIntersecting": "12"
               },
@@ -763,7 +783,7 @@
     "classification": {
       "classes": [
         {
-          "classId": "0",
+          "classId": "15",
           "color": "#5EFF00",
           "defaultMeasurements": [
             {
@@ -797,7 +817,7 @@
               ]
             }
           ],
-          "name": " ch1@allspots",
+          "name": "ch1@allspots",
           "notes": ""
         },
         {
@@ -874,6 +894,20 @@
             }
           ],
           "name": "ch3@all spots",
+          "notes": ""
+        },
+        {
+          "classId": "16",
+          "color": "#D2FF00",
+          "defaultMeasurements": [
+            {
+              "measureChannel": "Count",
+              "stats": [
+                "Off"
+              ]
+            }
+          ],
+          "name": "tetraspeck@spot",
           "notes": ""
         },
         {
@@ -1136,46 +1170,43 @@
       "experimentName": "Experiment",
       "notes": "1. Define working directory (all images in the respective directory will be analyzed with the same pipeline)\n2. If you have a plate-format design\n    -Group your images per well \n    -Define well order (how images are taken on the \t\t      microscope)"
     },
-    "plates": [
-      {
-        "filenameRegex": "_((.)([0-9]+))_([0-9]+)",
-        "groupBy": "Off",
-        "imageFolder": "",
-        "name": "",
-        "notes": "",
-        "plateId": 0,
-        "plateSetup": {
-          "cols": 0,
-          "rows": 0,
-          "wellImageOrder": [
-            [
-              1,
-              2,
-              3,
-              4
-            ],
-            [
-              5,
-              6,
-              7,
-              8
-            ],
-            [
-              9,
-              10,
-              11,
-              12
-            ],
-            [
-              13,
-              14,
-              15,
-              16
-            ]
+    "plate": {
+      "filenameRegex": "_((.)([0-9]+))_([0-9]+)",
+      "groupBy": "Off",
+      "imageFolder": "",
+      "name": "",
+      "notes": "",
+      "plateId": 0,
+      "plateSetup": {
+        "cols": 0,
+        "rows": 0,
+        "wellImageOrder": [
+          [
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7,
+            8
+          ],
+          [
+            9,
+            10,
+            11,
+            12
+          ],
+          [
+            13,
+            14,
+            15,
+            16
           ]
-        }
+        ]
       }
-    ],
-    "workingDirectory": ""
+    }
   }
 }
