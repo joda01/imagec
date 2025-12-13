@@ -157,6 +157,7 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
   }
   int64_t imgNr      = nrOfFiles;
   int64_t tileNr     = 1;
+  int64_t tStacks    = 1;
   int64_t pipelineNr = static_cast<int64_t>(settings.pipelines.size());
   // const auto &props    = ome.getImageInfo(settings.imageSetup.series);
   auto systemRecourses = getSystemResources();
@@ -178,20 +179,14 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
     threads.ramPerImage = static_cast<uint64_t>(imageInfo.imageMemoryUsage);
   }
 
+  tStacks = ome.getImageInfo(settings.imageSetup.series).nrOfTStacks;
+
   if(threads.ramPerImage <= 0) {
     threads.ramPerImage = 1;
   }
   threads.ramFree        = std::min(systemRecourses.ramAvailable, systemRecourses.ramReservedForJVM);
   threads.ramTotal       = systemRecourses.ramTotal;
   threads.coresAvailable = systemRecourses.cpus;
-
-  // No multi threading when AI is used, sinze AI is still using all cPUs
-  // for(const auto &ch : settings.getChannelsVector()) {
-  //  if(ch.getDetectionSettings().getDetectionMode() ==
-  //  settings::json::ChannelDetection::DetectionMode::AI) {
-  //    // return threads;
-  //  }
-  //}
 
   // Maximum number of cores depends on the available RAM.)
   int32_t maxNumberOfCoresToAssign =
@@ -208,22 +203,28 @@ auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settin
   threads.cores[joda::thread::ThreadingSettings::IMAGES]   = 1;
   threads.cores[joda::thread::ThreadingSettings::TILES]    = 1;
   threads.cores[joda::thread::ThreadingSettings::CHANNELS] = 1;
+  threads.cores[joda::thread::ThreadingSettings::STACKS]   = 1;
 
-  if(imgNr > tileNr) {
-    if(imgNr > pipelineNr) {
-      // Image Nr wins
-      threads.cores[joda::thread::ThreadingSettings::IMAGES] = maxNumberOfCoresToAssign;
-    } else {
-      // Channel Nr wins
-      threads.cores[joda::thread::ThreadingSettings::CHANNELS] = maxNumberOfCoresToAssign;
-    }
+  if(tStacks > imgNr) {
+    // Time stack wins
+    threads.cores[joda::thread::ThreadingSettings::STACKS] = maxNumberOfCoresToAssign;
   } else {
-    if(tileNr > pipelineNr) {
-      // Tile nr wins
-      threads.cores[joda::thread::ThreadingSettings::TILES] = maxNumberOfCoresToAssign;
+    if(imgNr > tileNr) {
+      if(imgNr > pipelineNr) {
+        // Image Nr wins
+        threads.cores[joda::thread::ThreadingSettings::IMAGES] = maxNumberOfCoresToAssign;
+      } else {
+        // Channel Nr wins
+        threads.cores[joda::thread::ThreadingSettings::CHANNELS] = maxNumberOfCoresToAssign;
+      }
     } else {
-      // Channel Nr wins
-      threads.cores[joda::thread::ThreadingSettings::CHANNELS] = maxNumberOfCoresToAssign;
+      if(tileNr > pipelineNr) {
+        // Tile nr wins
+        threads.cores[joda::thread::ThreadingSettings::TILES] = maxNumberOfCoresToAssign;
+      } else {
+        // Channel Nr wins
+        threads.cores[joda::thread::ThreadingSettings::CHANNELS] = maxNumberOfCoresToAssign;
+      }
     }
   }
 
@@ -332,7 +333,7 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
         phys = joda::ome::PhyiscalSize{static_cast<double>(defaultPhysicalSizeSettings.pixelWidth),
                                        static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.pixelSizeUnit};
       }
-      omeOut = mLastImageReader->getOmeInformation(series, phys);
+      omeOut = mLastImageReader->getOmeInformation(phys);
     }
   }
   loadImage(imagePath, series, imagePlane, tileLoad, previewOut, &omeOut, zProjection);
@@ -456,7 +457,7 @@ auto Controller::getImageProperties(const std::filesystem::path &imagePath, int 
   if(mLastImageReader == nullptr || mLastImageReader->getImagePath() != imagePath) {
     mLastImageReader = std::make_unique<image::reader::ImageReader>(imagePath);
   }
-  return mLastImageReader->getOmeInformation(static_cast<uint16_t>(series), phys);
+  return mLastImageReader->getOmeInformation(phys);
 }
 
 // FLOW CONTROL ////////////////////////////////////////////////

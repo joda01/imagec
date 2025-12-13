@@ -36,7 +36,7 @@ public:
 
   cv::Mat loadThumbnail(joda::enums::PlaneId directory, uint16_t series, const joda::ome::OmeInfo &ome) const;
 
-  auto getOmeInformation(uint16_t series, const ome::PhyiscalSize &defaultSettings) const -> joda::ome::OmeInfo;
+  auto getOmeInformation(const ome::PhyiscalSize &defaultSettings) const -> joda::ome::OmeInfo;
 
   static void init(uint64_t reservedRamForVMInBytes);
   static void destroy();

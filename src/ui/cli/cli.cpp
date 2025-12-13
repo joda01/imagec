@@ -18,6 +18,7 @@
 #include <string>
 #include <thread>
 #include "CLI/CLI.hpp"
+#include "backend/database/database.hpp"
 #include "backend/database/query/filter.hpp"
 #include "backend/helper/helper.hpp"
 #include "backend/helper/logger/console_logger.hpp"

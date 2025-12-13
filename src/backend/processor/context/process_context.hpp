@@ -23,7 +23,6 @@
 #include "backend/artifacts/image/image.hpp"
 #include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/artifacts/roi/roi.hpp"
-#include "backend/database/database.hpp"
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_memory_idx.hpp"
 #include "backend/enums/enum_objects.hpp"
@@ -33,13 +32,15 @@
 #include "backend/enums/types.hpp"
 #include "backend/global_enums.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
-#include "backend/processor/context/plate_context.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
-#include "image_context.hpp"
 #include "iteration_context.hpp"
 #include "pipeline_context.hpp"
+
+namespace joda::db {
+class DatabaseInterface;
+}
 
 namespace joda::processor {
 
@@ -61,7 +62,7 @@ private:
 class ProcessContext
 {
 public:
-  ProcessContext(GlobalContext &globalContext, PlateContext &plateContext, ImageContext &imageContext, IterationContext &iterationContext);
+  ProcessContext(const GlobalContext &globalContext, const PipelineInitializer &imageContext, IterationContext &iterationContext);
 
   void initDefaultSettings(enums::ClassId classId, enums::ZProjection zProjection, int32_t pipelineIndex, enums::Units realSizesUnit)
   {
@@ -124,15 +125,8 @@ public:
     return {getActTile(), getTileSize()};
   }
 
-  [[nodiscard]] cv::Size getTileSize() const
-  {
-    return imageContext.tileSize;
-  }
-
-  ome::PhyiscalSize getPhysicalPixelSIzeOfImage() const
-  {
-    return imageContext.imageMeta.getPhyiscalSize(imageContext.series);
-  }
+  [[nodiscard]] cv::Size getTileSize() const;
+  ome::PhyiscalSize getPhysicalPixelSIzeOfImage() const;
 
   void setActImage(const joda::atom::ImagePlane *image)
   {
@@ -196,26 +190,9 @@ public:
     return pipelineContext.actImagePlane.appliedMinThreshold;
   }
 
-  void setImageValidity(enums::ChannelValidityEnum validityIn)
-  {
-    enums::ChannelValidity validity;
-    validity.set(validityIn);
-    globalContext.database->setImageValidity(imageContext.imageId, validity);
-  }
-
-  void setImagePlaneValidity(enums::ChannelValidityEnum validityIn)
-  {
-    enums::ChannelValidity validity;
-    validity.set(validityIn);
-    globalContext.database->setImagePlaneValidity(imageContext.imageId, getActIterator(), validity);
-  }
-
-  void setImagePlaneClasssClasssValidity(enums::ClassIdIn classIn, enums::ChannelValidityEnum validityIn)
-  {
-    enums::ChannelValidity validity;
-    validity.set(validityIn);
-    globalContext.database->setImagePlaneClasssClasssValidity(imageContext.imageId, getActIterator(), getClassId(classIn), validity);
-  }
+  void setImageValidity(enums::ChannelValidityEnum validityIn);
+  void setImagePlaneValidity(enums::ChannelValidityEnum validityIn);
+  void setImagePlaneClasssClasssValidity(enums::ClassIdIn classIn, enums::ChannelValidityEnum validityIn);
 
   // void storeObjectsToCache(joda::enums::ObjectStoreId cacheId, const joda::atom::ObjectList &object) const
   //{
@@ -235,11 +212,7 @@ public:
     return pipelineContext.actImagePlane.image.size();
   }
 
-  [[nodiscard]] cv::Size getOriginalImageSize() const
-  {
-    return {imageContext.imageMeta.getImageWidth(imageContext.series, 0), imageContext.imageMeta.getImageHeight(imageContext.series, 0)};
-  }
-
+  [[nodiscard]] cv::Size getOriginalImageSize() const;
   [[nodiscard]] enums::ClassId getClassId(enums::ClassIdIn in) const
   {
     if(in >= enums::ClassIdIn::TEMP_01 && in <= enums::ClassIdIn::TEMP_LAST) {
@@ -322,9 +295,8 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  GlobalContext &globalContext;
-  PlateContext &plateContext;
-  ImageContext &imageContext;
+  const GlobalContext &globalContext;
+  const PipelineInitializer &imageContext;
   IterationContext &iterationContext;
   PipelineContext pipelineContext;
 };

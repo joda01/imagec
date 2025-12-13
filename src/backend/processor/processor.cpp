@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include <vector>
 #include "backend/artifacts/roi/roi.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver.hpp"
 #include "backend/commands/image_functions/image_saver/image_saver_settings.hpp"
@@ -33,7 +34,6 @@
 #include "backend/helper/logger/console_logger.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/threading/threading.hpp"
-#include "backend/processor/context/plate_context.hpp"
 #include "backend/processor/context/process_context.hpp"
 #include "backend/processor/dependency_graph.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
@@ -65,6 +65,71 @@ void Processor::stop()
   mGlobThreadPool.purge();
 }
 
+struct Task
+{
+public:
+  /////////////////////////////////////////////////////
+  // program.getProjectPath()
+  Task(const GlobalContext *globCtx, const PipelineInitializer *imgCtx, const std::filesystem::path &projectPath, const PipelineOrder_t *pipeline,
+       int32_t tileX, int32_t tileY, int32_t tStack, int32_t zStack) :
+      globalContext(globCtx),
+      imageContext(imgCtx), pipelineOrder(pipeline), mtileX(tileX), mtileY(tileY), mtStack(tStack), mzStack(zStack),
+      objectCache(std::make_shared<joda::atom::ObjectList>()), iterationContext(objectCache, projectPath, imgCtx->getImagePath())
+  {
+  }
+
+  void execute()
+  {
+    for(const auto &[order, pipelines] : *pipelineOrder) {
+      for(const auto &pipelineToExecute : pipelines) {    // These are pipelines in one prio step -> Can be parallelized
+        processPipeline(pipelineToExecute);
+      }
+    }
+
+    globalContext->database->insertObjects(*imageContext, imageContext->getPixelSizeUnit(), iterationContext.getObjects());
+  }
+
+  void processPipeline(const joda::settings::Pipeline *pipelineToExecute)
+  {
+    DurationCount durationImagePipelineProcess("Process pipeline");
+    ProcessContext context{*globalContext, *imageContext, iterationContext};
+    imageContext->initPipeline(pipelineToExecute->pipelineSetup, {mtileX, mtileY},
+                               {.tStack = mtStack, .zStack = mzStack, .cStack = pipelineToExecute->pipelineSetup.cStackIndex}, context,
+                               pipelineToExecute->index);
+
+    const auto planeId    = context.getActImage().getId().imagePlane;
+    const auto nrChannels = imageContext->getNrOfChannels();
+    if(pipelineToExecute->pipelineSetup.cStackIndex >= 0 && pipelineToExecute->pipelineSetup.cStackIndex < nrChannels) {
+      DurationCount waitCounter("DB insert image plane");
+      globalContext->database->insertImagePlane(imageContext->getImageId(), planeId,
+                                                imageContext->getChannelInfos()
+                                                    .at(static_cast<uint32_t>(pipelineToExecute->pipelineSetup.cStackIndex))
+                                                    .planes.at(planeId.tStack)
+                                                    .at(planeId.zStack));
+    }
+
+    // Execute the pipeline
+    DurationCount durationCountPipelineSteps("Process pipeline steps");
+    for(const auto &step : pipelineToExecute->pipelineSteps) {
+      step(context, context.getActImage().image, context.getActObjects());
+    }
+    durationCountPipelineSteps.stop();
+    iterationContext.removeTemporaryObjects(&context);
+  }
+
+private:
+  /////////////////////////////////////////////////////
+  const GlobalContext *globalContext;
+  const PipelineInitializer *imageContext;
+  const PipelineOrder_t *pipelineOrder;
+  int32_t mtileX  = 0;
+  int32_t mtileY  = 0;
+  int32_t mtStack = 0;
+  int32_t mzStack = 0;
+  std::shared_ptr<joda::atom::ObjectList> objectCache;
+  IterationContext iterationContext;
+};
+
 void Processor::execute(const joda::settings::AnalyzeSettings &program, const std::string &jobName,
                         const joda::thread::ThreadingSettings &threadingSettings, const std::unique_ptr<imagesList_t> &imagesToAnalyze)
 {
@@ -72,9 +137,6 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
     DurationCount::resetStats();
     // Prepare thread pool
     mGlobThreadPool.reset(threadingSettings.coresUsed);
-    int poolSizeImages   = threadingSettings.cores.at(joda::thread::ThreadingSettings::IMAGES);
-    int poolSizeChannels = threadingSettings.cores.at(joda::thread::ThreadingSettings::CHANNELS);
-    int poolSizeTiles    = threadingSettings.cores.at(joda::thread::ThreadingSettings::TILES);
 
     // Resolve dependencies
     auto pipelineOrder = joda::processor::DependencyGraph::calcGraph(program);
@@ -89,210 +151,71 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
     //
     // Iterate over each plate and analyze the images
     //
-    auto &db          = globalContext.database;
-    const auto &plate = program.projectSettings.plate;
-    {
-      BS::multi_future<void> imageFutures;
-      PlateContext plateContext{.plateId = plate.plateId};
-      const auto &images = imagesToAnalyze->getFilesListAt();
+    const auto &plate  = program.projectSettings.plate;
+    const auto &images = imagesToAnalyze->getFilesListAt();
 
-      mProgress.setRunningPreparingPipeline();
-      auto imagesToProcess = db->prepareImages(plate.plateId, program.imageSetup.series, plate.groupBy, plate.filenameRegex, images,
-                                               imagesToAnalyze->getDirectoryAt(), program.imageSetup.imagePixelSizeSettings, mGlobThreadPool);
-      mProgress.setStateRunning();
+    mProgress.setRunningPreparingPipeline();
+    auto imagesToProcess = globalContext.database->prepareImages(plate.plateId, program.imageSetup.series, plate.groupBy, plate.filenameRegex, images,
+                                                                 imagesToAnalyze->getDirectoryAt(), program, mGlobThreadPool);
 
-      //
-      // Iterate over each image
-      //
-      for(const auto &actImage : imagesToProcess) {
-        auto analyzeImage = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db, &poolSizeTiles, &poolSizeChannels, &actImage]() {
-          DurationCount durationImageProcess("Process image");
-          auto const [imagePath, omeInfo, imageId] = actImage;
-          PipelineInitializer imageLoader(program.imageSetup, program.pipelineSetup, imagePath);
-          ImageContext imageContext{.imageLoader = imageLoader, .imageMeta = omeInfo, .imageId = imageId};
-          imageLoader.init(imageContext);
+    //
+    // Iterate over each image
+    //
+    int32_t nrOfTiles = 0;
+    std::vector<std::unique_ptr<Task>> tasks;
+    for(const auto &actImage : imagesToProcess) {
+      const auto [tilesX, tilesY] = actImage->getNrOfTilesToProcess();
+      const auto nrtStack         = actImage->getNrOfTStacksToProcess();
+      const auto nrzSTack         = actImage->getNrOfZStacksToProcess();
 
-          //
-          // Start the iteration over planes
-          //
-          auto [tilesX, tilesY] = imageLoader.getNrOfTilesToProcess();
-          auto nrtStack         = imageLoader.getNrOfTStacksToProcess();
-          auto nrzSTack         = imageLoader.getNrOfZStacksToProcess();
-          auto nrChannels       = omeInfo.getNrOfChannels(imageContext.series);
-
-          mProgress.setTotalNrOfTiles(mProgress.totalImages() * tilesX * tilesY * nrtStack);
-          BS::multi_future<void> tilesFutures;
-
-          for(int tileX = 0; tileX < tilesX; tileX++) {
-            if(mProgress.isStopping()) {
-              break;
-            }
-            for(int tileY = 0; tileY < tilesY; tileY++) {
-              if(mProgress.isStopping()) {
-                break;
-              }
-
-              auto analyzeTile = [this, &program, &globalContext, &plateContext, &pipelineOrder, &db, imagePath = imagePath, nrtStack, nrzSTack,
-                                  nrChannels, &imageContext, &imageLoader, tileX, tileY, &poolSizeChannels]() {
-                DurationCount durationTileProcess("Process tile");
-
-                // Start of the image specific function
-                int32_t tStackStart = 0;
-                auto tStackEnd      = static_cast<int32_t>(nrtStack);
-                if(program.imageSetup.tStackSettings.startFrame > static_cast<int32_t>(nrtStack)) {
-                  tStackStart = static_cast<int32_t>(nrtStack);
-                } else {
-                  tStackStart = program.imageSetup.tStackSettings.startFrame;
-                }
-                if(program.imageSetup.tStackSettings.endFrame >= 0 && program.imageSetup.tStackSettings.endFrame <= static_cast<int32_t>(nrtStack)) {
-                  tStackEnd = program.imageSetup.tStackSettings.endFrame;
-                }
-                for(int tStack = tStackStart; tStack < tStackEnd; tStack++) {
-                  if(mProgress.isStopping()) {
-                    break;
-                  }
-                  for(int zStack = 0; zStack < static_cast<int32_t>(nrzSTack); zStack++) {
-                    if(mProgress.isStopping()) {
-                      break;
-                    }
-                    auto objectCache = std::make_shared<joda::atom::ObjectList>();
-                    IterationContext iterationContext(objectCache, program.getProjectPath(), imagePath);
-                    // Execute pipelines of this iteration
-
-                    // Start with the highest prio pipelines down to the lowest prio
-                    for(const auto &[order, pipelines] : pipelineOrder) {
-                      auto executePipelineOrder = [this, &globalContext, &plateContext, &db, imagePath, &imageContext, &imageLoader, tileX, tileY,
-                                                   nrChannels, pipelines = pipelines, &iterationContext, tStack, zStack, &poolSizeChannels]() {
-                        DurationCount durationPipelineOrderProcess("Process pipeline order");
-
-                        // These are pipelines in onw prio step -> Can be parallelized
-                        BS::multi_future<void> pipelinesFutures;
-                        for(const auto &pipelineToExecute : pipelines) {
-                          DurationCount durationImagePipelineProcess("Process pipeline");
-
-                          if(mProgress.isStopping()) {
-                            break;
-                          }
-                          auto executePipeline = [pipeline = pipelineToExecute, this, &globalContext, &plateContext, &db, imagePath, &imageContext,
-                                                  &imageLoader, tileX, tileY, nrChannels, pipelines = pipelines, &iterationContext, tStack,
-                                                  zStack]() {
-                            //
-                            // Load the image imagePlane
-                            //
-
-                            ProcessContext context{globalContext, plateContext, imageContext, iterationContext};
-                            imageLoader.initPipeline(pipeline->pipelineSetup, {tileX, tileY},
-                                                     {.tStack = tStack, .zStack = zStack, .cStack = pipeline->pipelineSetup.cStackIndex}, context,
-                                                     pipeline->index);
-
-                            auto planeId = context.getActImage().getId().imagePlane;
-                            try {
-                              if(pipeline->pipelineSetup.cStackIndex >= 0 && pipeline->pipelineSetup.cStackIndex < nrChannels) {
-                                DurationCount waitCounter("DB insert image plane");
-                                db->insertImagePlane(imageContext.imageId, planeId,
-                                                     imageContext.imageMeta.getChannelInfos(imageContext.series)
-                                                         .at(static_cast<uint32_t>(pipeline->pipelineSetup.cStackIndex))
-                                                         .planes.at(planeId.tStack)
-                                                         .at(planeId.zStack));
-                              }
-                            } catch(const std::exception &ex) {
-                              std::cout << "Insert Plane: " << ex.what() << std::endl;
-                            }
-
-                            //
-                            // Execute the pipeline
-                            //
-                            {
-                              DurationCount durationCountPipelineSteps("Process pipeline steps");
-                              for(const auto &step : pipeline->pipelineSteps) {
-                                if(mProgress.isStopping()) {
-                                  break;
-                                }
-                                // Execute a pipeline step
-                                step(context, context.getActImage().image, context.getActObjects());
-                              }
-                            }
-
-                            // Remove temporary objects from pipeline
-                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_01));
-                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_02));
-                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_03));
-                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_04));
-                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_05));
-                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_06));
-                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_07));
-                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_08));
-                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_09));
-                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_10));
-                            iterationContext.getObjects().erase(context.getTemporaryClassId(enums::ClassIdIn::TEMP_11));
-                          };
-
-                          if(poolSizeChannels > 1) {
-                            pipelinesFutures.push_back(mGlobThreadPool.submit_task(executePipeline));
-                          } else {
-                            executePipeline();
-                          }
-                        }
-                        {
-                          if(poolSizeChannels > 1) {
-                            pipelinesFutures.wait();
-                          }
-                        }
-                      };
-                      executePipelineOrder();
-                    }
-
-                    // Iteration for all tiles finished
-
-                    // Insert objects to database
-
-                    try {
-                      DurationCount durationCount("Insert into DB");
-                      db->insertObjects(imageContext, program.imageSetup.imagePixelSizeSettings.pixelSizeUnit, iterationContext.getObjects());
-                    } catch(const std::exception &ex) {
-                      std::cout << "Insert Obj: " << ex.what() << std::endl;
-                    }
-                  }
-
-                  // Time frame finished
-                  mProgress.incProcessedTiles();
-                }
-                // Tile finished
-              };
-
-              if(poolSizeTiles > 1) {
-                tilesFutures.push_back(mGlobThreadPool.submit_task(analyzeTile));
-              } else {
-                analyzeTile();
-              }
+      for(int32_t tileX = 0; tileX < tilesX; tileX++) {
+        for(int32_t tileY = 0; tileY < tilesY; tileY++) {
+          // Start of the image specific function
+          int32_t tStackStart = 0;
+          auto tStackEnd      = static_cast<int32_t>(nrtStack);
+          if(program.imageSetup.tStackSettings.startFrame > static_cast<int32_t>(nrtStack)) {
+            tStackStart = static_cast<int32_t>(nrtStack);
+          } else {
+            tStackStart = program.imageSetup.tStackSettings.startFrame;
+          }
+          if(program.imageSetup.tStackSettings.endFrame >= 0 && program.imageSetup.tStackSettings.endFrame <= static_cast<int32_t>(nrtStack)) {
+            tStackEnd = program.imageSetup.tStackSettings.endFrame;
+          }
+          for(int32_t tStack = tStackStart; tStack < tStackEnd; tStack++) {
+            for(int32_t zStack = 0; zStack < static_cast<int32_t>(nrzSTack); zStack++) {
+              tasks.emplace_back(
+                  std::make_unique<Task>(&globalContext, actImage.get(), program.getProjectPath(), &pipelineOrder, tilesX, tilesY, tStack, zStack));
+              nrOfTiles++;
             }
           }
-          {
-            if(poolSizeTiles > 1) {
-              tilesFutures.wait();
-            }
-          }
-
-          // Image finished
-          db->setImageProcessed(imageContext.imageId);
-          mProgress.incProcessedImages();
-        };
-
-        if(poolSizeImages > 1) {
-          imageFutures.push_back(mGlobThreadPool.submit_task(analyzeImage));
-        } else {
-          analyzeImage();
         }
       }
-      {
-        if(poolSizeImages > 1) {
-          imageFutures.wait();
-        }
+
+      // Image finished
+      // db->setImageProcessed(imageContext.imageId);
+      // mProgress.incProcessedImages();
+    }
+    mProgress.setTotalNrOfImages(imagesToProcess.size());
+    mProgress.setTotalNrOfTiles(nrOfTiles);
+    mProgress.setStateRunning();
+
+    uint32_t addedTasks = 0;
+    for(const auto &taskToProcess : tasks) {
+      if(addedTasks >= threadingSettings.coresUsed) {
+        addedTasks = 0;
+        mGlobThreadPool.wait();
       }
+      mGlobThreadPool.submit_task([this, &taskToProcess]() {
+        taskToProcess->execute();
+        mProgress.incProcessedTiles();
+      });
+      addedTasks++;
     }
 
+    mGlobThreadPool.wait();
+
     // Done
-    db->finishJob(jobId);
+    globalContext.database->finishJob(jobId);
     globalContext.database->closeDatabase();
     mProgress.setStateFinished();
     DurationCount::printStats(static_cast<int32_t>(imagesToAnalyze->getNrOfFiles()), mJobInformation.ouputFolder);
@@ -301,6 +224,13 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
   }
 }
 
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
 std::string Processor::initializeGlobalContext(const joda::settings::AnalyzeSettings &program, const std::string &jobName,
                                                GlobalContext &globalContext)
 {
@@ -402,11 +332,8 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
     globalContext.classes.emplace(elem.classId, elem);
   }
 
-  PlateContext plateContext{.plateId = 0};
   joda::grp::FileGrouper grouper(enums::GroupBy::OFF, "");
-  PipelineInitializer imageLoader(imageSetup, program.pipelineSetup, imagePath);
-  ImageContext imageContext{.imageLoader = imageLoader, .imageMeta = ome, .imageId = 1};
-  imageLoader.init(imageContext);
+  PipelineInitializer imageLoader(program.imageSetup, program.pipelineSetup, imagePath, program.getProjectPath());
 
   auto objectMapBuffer = std::make_shared<joda::atom::ObjectList>();
   IterationContext iterationContext(objectMapBuffer, program.getProjectPath(), imagePath);
@@ -428,9 +355,8 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         continue;
       }
 
-      auto executePipeline = [&db, &finished, &ome, &previewOut, &previewSettings, &imageSetup, &totalRuns, pipeline         = pipelineToExecute,
-                              &globalContext, &plateContext, imagePath, &imageContext, &imageLoader, tileX, tileY, pipelines = pipelines,
-                              &iterationContext, tStack, zStack, executedSteps]() -> void {
+      auto executePipeline = [&db, &finished, &ome, &previewOut, &imageSetup, &totalRuns, pipeline = pipelineToExecute, &globalContext, imagePath,
+                              &imageLoader, tileX, tileY, pipelines = pipelines, &iterationContext, tStack, zStack, executedSteps]() -> void {
         //
         // The last step is the wanted pipeline
         //
@@ -439,7 +365,7 @@ auto Processor::generatePreview(const PreviewSettings &previewSettings, const se
         //
         // Load the image imagePlane
         //
-        ProcessContext context{globalContext, plateContext, imageContext, iterationContext};
+        ProcessContext context{globalContext, imageLoader, iterationContext};
         imageLoader.initPipeline(pipeline->pipelineSetup, {tileX, tileY},
                                  {.tStack = tStack, .zStack = zStack, .cStack = pipeline->pipelineSetup.cStackIndex}, context, pipeline->index);
         auto planeId = context.getActImage().getId().imagePlane;

@@ -23,7 +23,7 @@
 #include "backend/enums/types.hpp"
 #include "backend/helper/file_grouper/file_grouper_types.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
-#include "backend/processor/context/image_context.hpp"
+#include "backend/processor/context/iteration_context.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/experiment_settings.hpp"
 #include "backend/settings/project_settings/project_plates.hpp"
@@ -53,13 +53,12 @@ public:
 
   auto prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
                      const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
-                     const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings,
-                     BS::light_thread_pool &globalThreadPool)
-      -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> override;
+                     const joda::settings::AnalyzeSettings &analyzeSettings, BS::light_thread_pool &globalThreadPool)
+      -> std::vector<std::shared_ptr<joda::processor::PipelineInitializer>> override;
   void setImageProcessed(uint64_t) override;
 
   void insertGroup(uint16_t plateId, const joda::grp::GroupInformation &groupInfo);
-  void insertImage(const joda::processor::ImageContext &, const joda::grp::GroupInformation &groupInfo);
+  void insertImage(const joda::processor::PipelineInitializer &, const joda::grp::GroupInformation &groupInfo);
   void insetImageToGroup(uint16_t plateId, uint64_t imageId, uint16_t imageIdx, const joda::grp::GroupInformation &groupInfo);
 
   void insertImageChannels(uint64_t imageId, int32_t series, const joda::ome::OmeInfo &ome);
@@ -75,7 +74,7 @@ public:
                                const std::map<enums::ClassId, std::set<enums::ClassId>> &intersectingChannels,
                                const std::map<enums::ClassId, std::set<enums::ClassId>> &distanceChannels);
 
-  void insertObjects(const joda::processor::ImageContext &, enums::Units, const joda::atom::ObjectList &) override;
+  void insertObjects(const joda::processor::PipelineInitializer &, enums::Units, const joda::atom::ObjectList &) override;
 
   auto selectExperiment() -> AnalyzeMeta;
   auto selectPlates() -> std::map<uint16_t, joda::settings::Plate>;

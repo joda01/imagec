@@ -41,6 +41,8 @@ public:
     return *actObjects;
   }
 
+  void removeTemporaryObjects(ProcessContext *context);
+
 private:
   /////////////////////////////////////////////////////
   enums::imageCache_t imageCache;

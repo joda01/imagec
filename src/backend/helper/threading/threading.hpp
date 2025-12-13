@@ -27,7 +27,8 @@ struct ThreadingSettings
   {
     IMAGES,
     TILES,
-    CHANNELS
+    CHANNELS,
+    STACKS
   };
   uint64_t ramPerImage    = 0;
   uint64_t ramFree        = 0;
@@ -35,6 +36,6 @@ struct ThreadingSettings
   uint32_t coresAvailable = 0;
   uint32_t coresUsed      = 0;
   uint64_t totalRuns      = 0;
-  std::map<Type, int32_t> cores{{IMAGES, 1}, {TILES, 1}, {CHANNELS, 1}};
+  std::map<Type, int32_t> cores{{IMAGES, 1}, {TILES, 1}, {CHANNELS, 1}, {STACKS, 1}};
 };
 }    // namespace joda::thread

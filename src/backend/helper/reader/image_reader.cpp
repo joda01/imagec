@@ -712,7 +712,7 @@ cv::Mat ImageReader::loadImageTile(joda::enums::PlaneId imagePlane, uint16_t ser
 /// \param[out]
 /// \return
 ///
-auto ImageReader::getOmeInformation(uint16_t series, const ome::PhyiscalSize &defaultSettings) const -> joda::ome::OmeInfo
+auto ImageReader::getOmeInformation(const ome::PhyiscalSize &defaultSettings) const -> joda::ome::OmeInfo
 {
   if(nullptr != myJVM && mJVMInitialised) {
     DurationCount durationCount("Get OME");
@@ -724,7 +724,7 @@ auto ImageReader::getOmeInformation(uint16_t series, const ome::PhyiscalSize &de
     }
 
     jstring filePath = myEnv->NewStringUTF(mImagePath.string().c_str());
-    jstring result   = static_cast<jstring>(myEnv->CallObjectMethod(mJavaImageReadObject, mGetImageProperties, filePath, static_cast<int>(series)));
+    jstring result   = static_cast<jstring>(myEnv->CallObjectMethod(mJavaImageReadObject, mGetImageProperties, filePath, static_cast<int>(0)));
     bool exception   = false;
     if(myEnv->ExceptionCheck() != 0u) {
       myEnv->ExceptionDescribe();

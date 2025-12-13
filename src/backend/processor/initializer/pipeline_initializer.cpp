@@ -19,12 +19,10 @@
 #include <utility>
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_memory_idx.hpp"
-
 #include "backend/enums/types.hpp"
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/fnv1a.hpp"
 #include "backend/helper/reader/image_reader.hpp"
-#include "backend/processor/context/image_context.hpp"
 #include "backend/processor/context/process_context.hpp"
 #include "backend/settings/project_settings/project_image_setup.hpp"
 #include <opencv2/core/mat.hpp>
@@ -40,31 +38,37 @@ namespace joda::processor {
 /// \return
 ///
 PipelineInitializer::PipelineInitializer(const settings::ProjectImageSetup &settings, const settings::ProjectPipelineSetup &pipelineSetup,
-                                         const std::filesystem::path &imagePath) :
+                                         const std::filesystem::path &imagePath, const std::filesystem::path &imagesBasePath) :
     mSettings(settings),
     mSettingsPipeline(pipelineSetup), mImageRead(imagePath)
 {
-}
-
-void PipelineInitializer::init(ImageContext &imageContextOut)
-{
-  mImageContext         = &imageContextOut;
-  mImageContext->series = mSettings.series;
-  if(mSettings.series >= static_cast<int32_t>(imageContextOut.imageMeta.getNrOfSeries())) {
-    mImageContext->series = static_cast<int32_t>(imageContextOut.imageMeta.getNrOfSeries()) - 1;
+  ome::PhyiscalSize phys = {};
+  if(settings.imagePixelSizeSettings.mode == enums::PhysicalSizeMode::Manual) {
+    phys =
+        joda::ome::PhyiscalSize{static_cast<double>(settings.imagePixelSizeSettings.pixelWidth),
+                                static_cast<double>(settings.imagePixelSizeSettings.pixelHeight), 0, settings.imagePixelSizeSettings.pixelSizeUnit};
   }
-  mSelectedSeries            = mImageContext->series;
-  mImageContext->nrOfZStacks = static_cast<uint32_t>(imageContextOut.imageMeta.getNrOfZStack(mImageContext->series));
-  mTotalNrOfZChannels        = imageContextOut.imageMeta.getNrOfZStack(mImageContext->series);
-  mTotalNrOfTChannels        = imageContextOut.imageMeta.getNrOfTStack(mImageContext->series);
-  mTotalNrOfChannels         = imageContextOut.imageMeta.getNrOfChannels(mImageContext->series);
+  mImageMeta = mImageRead.getOmeInformation(phys);
+  mImageId   = joda::helper::generateImageIdFromPath(imagePath.string(), imagesBasePath);
+
+  auto series = settings.series;
+  if(settings.series >= static_cast<int32_t>(mImageMeta.getNrOfSeries())) {
+    series = static_cast<int32_t>(mImageMeta.getNrOfSeries()) - 1;
+  }
+  mSelectedSeries = series;
+
+  nrOfZStacks = static_cast<uint32_t>(mImageMeta.getNrOfZStack(series));
+
+  mTotalNrOfZChannels = mImageMeta.getNrOfZStack(series);
+  mTotalNrOfTChannels = mImageMeta.getNrOfTStack(series);
+  mTotalNrOfChannels  = mImageMeta.getNrOfChannels(series);
 
   switch(mSettings.tStackHandling) {
     case settings::ProjectImageSetup::TStackHandling::EXACT_ONE:
       mTstackToLoad = 1;
       break;
     case settings::ProjectImageSetup::TStackHandling::EACH_ONE:
-      mTstackToLoad = static_cast<uint32_t>(imageContextOut.imageMeta.getNrOfTStack(mImageContext->series));
+      mTstackToLoad = static_cast<uint32_t>(mImageMeta.getNrOfTStack(series));
       break;
   }
 
@@ -73,24 +77,24 @@ void PipelineInitializer::init(ImageContext &imageContextOut)
       mZStackToLoad = 1;
       break;
     case settings::ProjectImageSetup::ZStackHandling::EACH_ONE:
-      mZStackToLoad = static_cast<uint32_t>(imageContextOut.imageMeta.getNrOfZStack(mImageContext->series));
+      mZStackToLoad = static_cast<uint32_t>(mImageMeta.getNrOfZStack(series));
       break;
   }
 
   // Load image in tiles if too big
-  const auto &imageInfo = imageContextOut.imageMeta.getImageInfo(mImageContext->series).resolutions.at(0);
-  auto imageSize        = imageContextOut.imageMeta.getSize(mImageContext->series);
+  const auto &imageInfo = mImageMeta.getImageInfo(series).resolutions.at(0);
+  auto imageSize        = mImageMeta.getSize(series);
 
   if(std::get<0>(imageSize) > getCompositeTileSize().width || std::get<1>(imageSize) > getCompositeTileSize().height) {
-    mNrOfTiles               = imageInfo.getNrOfTiles(getCompositeTileSize().width, getCompositeTileSize().height);
-    imageContextOut.tileSize = {getCompositeTileSize().width, getCompositeTileSize().height};
+    mNrOfTiles = imageInfo.getNrOfTiles(getCompositeTileSize().width, getCompositeTileSize().height);
+    tileSize   = {getCompositeTileSize().width, getCompositeTileSize().height};
 
-    mImageContext->loadImageInTiles = true;
+    loadImageInTiles = true;
   } else {
-    mImageContext->loadImageInTiles = false;
-    mNrOfTiles                      = {1, 1};
-    auto size                       = imageSize;
-    imageContextOut.tileSize        = {static_cast<int32_t>(std::get<0>(size)), static_cast<int32_t>(std::get<1>(size))};
+    loadImageInTiles = false;
+    mNrOfTiles       = {1, 1};
+    auto size        = imageSize;
+    tileSize         = {static_cast<int32_t>(std::get<0>(size)), static_cast<int32_t>(std::get<1>(size))};
   }
 }
 
@@ -148,10 +152,10 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
   // Start with blank image
   //
   if(joda::settings::PipelineSettings::Source::BLANK == pipelineSetup.source || c < 0 || c >= mTotalNrOfChannels) {
-    auto imageHeight = mImageContext->imageMeta.getImageInfo(imagePlaneOut.series).resolutions.at(0).imageHeight;
-    auto imageWidth  = mImageContext->imageMeta.getImageInfo(imagePlaneOut.series).resolutions.at(0).imageWidth;
+    auto imageHeight = mImageMeta.getImageInfo(imagePlaneOut.series).resolutions.at(0).imageHeight;
+    auto imageWidth  = mImageMeta.getImageInfo(imagePlaneOut.series).resolutions.at(0).imageWidth;
 
-    if(mImageContext->loadImageInTiles) {
+    if(loadImageInTiles) {
       int32_t offsetX          = std::get<0>(tile) * getCompositeTileSize().width;
       int32_t offsetY          = std::get<1>(tile) * getCompositeTileSize().height;
       int32_t tileWidthToLoad  = getCompositeTileSize().width;
@@ -184,7 +188,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
         loadImageAndStoreToCache(enums::MemoryScope::ITERATION, planeToLoad,
                                  mSettings.zStackHandling == settings::ProjectImageSetup::ZStackHandling::EACH_ONE ? enums::ZProjection::NONE
                                                                                                                    : pipelineSetup.zProjection,
-                                 tile, processContext, *mImageContext)));
+                                 tile, processContext)));
   }
 
   //
@@ -202,8 +206,7 @@ void PipelineInitializer::initPipeline(const joda::settings::PipelineSettings &p
 ///
 enums::ImageId PipelineInitializer::loadImageAndStoreToCache(enums::MemoryScope scope, const enums::PlaneId &planeToLoad,
                                                              enums::ZProjection zProjection, const enums::tile_t &tile,
-                                                             joda::processor::ProcessContext &processContext,
-                                                             processor::ImageContext &imageContext) const
+                                                             joda::processor::ProcessContext &processContext) const
 {
   static std::mutex mLoadMutex;
 
@@ -216,7 +219,7 @@ enums::ImageId PipelineInitializer::loadImageAndStoreToCache(enums::MemoryScope 
   int32_t t = planeToLoad.tStack;
 
   if(zProjection == enums::ZProjection::TAKE_MIDDLE) {
-    z                      = static_cast<int32_t>(imageContext.nrOfZStacks / 2);
+    z                      = static_cast<int32_t>(nrOfZStacks / 2);
     auto &planeToLoadEdit  = const_cast<enums::PlaneId &>(planeToLoad);
     planeToLoadEdit.zStack = z;
   } else if(zProjection != enums::ZProjection::NONE) {
@@ -233,22 +236,20 @@ enums::ImageId PipelineInitializer::loadImageAndStoreToCache(enums::MemoryScope 
   //
   // Load from image file
   //
-  auto loadEntireImage = [this, &imageContext, series = imageContext.series](int32_t zIn, int32_t cIn, int32_t tIn) {
+  auto loadEntireImage = [this, series = mSelectedSeries](int32_t zIn, int32_t cIn, int32_t tIn) {
     return mImageRead.loadEntireImage(joda::enums::PlaneId{.tStack = tIn, .zStack = zIn, .cStack = cIn}, static_cast<uint16_t>(series), 0,
-                                      imageContext.imageMeta);
+                                      mImageMeta);
   };
 
-  auto loadImageTile = [this, &imageContext, &tile, series = imageContext.series](int32_t zIn, int32_t cIn, int32_t tIn) {
-    return mImageRead.loadImageTile(joda::enums::PlaneId{.tStack = tIn, .zStack = zIn, .cStack = cIn}, static_cast<uint16_t>(series), 0,
-                                    joda::ome::TileToLoad{.tileX      = std::get<0>(tile),
-                                                          .tileY      = std::get<1>(tile),
-                                                          .tileWidth  = imageContext.tileSize.width,
-                                                          .tileHeight = imageContext.tileSize.height},
-                                    imageContext.imageMeta);
+  auto loadImageTile = [this, &tile, series = mSelectedSeries](int32_t zIn, int32_t cIn, int32_t tIn) {
+    return mImageRead.loadImageTile(
+        joda::enums::PlaneId{.tStack = tIn, .zStack = zIn, .cStack = cIn}, static_cast<uint16_t>(series), 0,
+        joda::ome::TileToLoad{.tileX = std::get<0>(tile), .tileY = std::get<1>(tile), .tileWidth = tileSize.width, .tileHeight = tileSize.height},
+        mImageMeta);
   };
 
   std::function<cv::Mat(int32_t, int32_t, int32_t)> loadImage = loadEntireImage;
-  if(imageContext.loadImageInTiles) {
+  if(loadImageInTiles) {
     loadImage = loadImageTile;
   }
 
@@ -290,12 +291,12 @@ enums::ImageId PipelineInitializer::loadImageAndStoreToCache(enums::MemoryScope 
         break;
     }
 
-    for(uint32_t zIdx = 1; zIdx < imageContext.nrOfZStacks; zIdx++) {
+    for(uint32_t zIdx = 1; zIdx < nrOfZStacks; zIdx++) {
       func(static_cast<int32_t>(zIdx));
     }
     // Avg intensity projection
     if(enums::ZProjection::AVG_INTENSITY == zProjection) {
-      image = image / imageContext.nrOfZStacks;
+      image = image / nrOfZStacks;
       image.convertTo(image, imageType);    // no scaling
     }
   }

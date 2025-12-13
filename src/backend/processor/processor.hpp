@@ -24,6 +24,7 @@
 #include "backend/helper/image/image.hpp"
 #include "backend/helper/threading/threading.hpp"
 #include "backend/processor/context/process_context.hpp"
+#include "backend/processor/dependency_graph.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
 #include <opencv2/core/mat.hpp>
@@ -194,6 +195,8 @@ public:
                const std::unique_ptr<imagesList_t> &imagesToAnalyze);
   void stop();
   std::string initializeGlobalContext(const joda::settings::AnalyzeSettings &program, const std::string &jobName, GlobalContext &globalContext);
+
+  /////////////////////////////////////////////////////
 
   const ProcessProgress &getProgress() const
   {

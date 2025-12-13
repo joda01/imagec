@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <exception>
 #include <filesystem>
+#include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <string>
@@ -429,130 +430,134 @@ std::unique_ptr<duckdb::QueryResult> Database::select(const std::string &query, 
 /// \param[out]
 /// \return
 ///
-void Database::insertObjects(const joda::processor::ImageContext &imgContext, enums::Units physicalSizeUnit,
+void Database::insertObjects(const processor::PipelineInitializer &imgContext, enums::Units physicalSizeUnit,
                              const joda::atom::ObjectList &objectsList)
 {
-  auto connection = acquire();
-  // connection->BeginTransaction();
-  auto objects               = duckdb::Appender(*connection, "objects");
-  auto object_measurements   = duckdb::Appender(*connection, "object_measurements");
-  auto distance_measurements = duckdb::Appender(*connection, "distance_measurements");
-  const auto &physicalSize   = imgContext.imageMeta.getPhyiscalSize(imgContext.series);
+  try {
+    auto connection = acquire();
+    // connection->BeginTransaction();
+    auto objects               = duckdb::Appender(*connection, "objects");
+    auto object_measurements   = duckdb::Appender(*connection, "object_measurements");
+    auto distance_measurements = duckdb::Appender(*connection, "distance_measurements");
+    const auto &physicalSize   = imgContext.getPhysicalPixelSIzeOfImage();
 
-  for(const auto &[_, obj] : objectsList) {
-    for(const auto &roi : *obj) {
-      objects.BeginRow();
-      // Primary key
-      objects.Append<uint64_t>(imgContext.imageId);                         // "	image_id UBIGINT,"
-      objects.Append<uint64_t>(roi.getObjectId());                          // " object_id UBIGINT,"
-      objects.Append<uint16_t>(static_cast<uint16_t>(roi.getClassId()));    // " class_id USMALLINT,"
-      objects.Append<uint32_t>(static_cast<uint32_t>(roi.getC()));          // " stack_c UINTEGER,"
-      objects.Append<uint32_t>(static_cast<uint32_t>(roi.getZ()));          // " stack_z UINTEGER,"
-      objects.Append<uint32_t>(static_cast<uint32_t>(roi.getT()));          // " stack_t UINTEGER,"
-      // Data
-      objects.Append<float>(roi.getConfidence());                                          // " meas_confidence float,"
-      objects.Append<double>(roi.getAreaSize(physicalSize, physicalSizeUnit));             // " meas_area_size DOUBLE,"
-      objects.Append<float>(roi.getPerimeter(physicalSize, physicalSizeUnit));             // " meas_perimeter float,"
-      objects.Append<float>(roi.getCircularity());                                         // " meas_circularity float,"
-      objects.Append<uint32_t>(static_cast<uint32_t>(roi.getCentroidReal().x));            // " meas_center_x UINTEGER,"
-      objects.Append<uint32_t>(static_cast<uint32_t>(roi.getCentroidReal().y));            // " meas_center_y UINTEGER,"
-      objects.Append<uint32_t>(static_cast<uint32_t>(roi.getBoundingBoxReal().x));         // " meas_box_x UINTEGER,"
-      objects.Append<uint32_t>(static_cast<uint32_t>(roi.getBoundingBoxReal().y));         // " meas_box_y UINTEGER,"
-      objects.Append<uint32_t>(static_cast<uint32_t>(roi.getBoundingBoxReal().width));     // " meas_box_width UINTEGER,"
-      objects.Append<uint32_t>(static_cast<uint32_t>(roi.getBoundingBoxReal().height));    // " meas_box_height UINTEGER,"
-
-      auto mask =
-          duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER), duckdb::LogicalType(duckdb::LogicalTypeId::BOOLEAN), {}, {});
-      objects.Append<duckdb::Value>(mask);
-      /* objects.Append<duckdb::Value>(
-           joda::rle::rle_encode({roi.getMask().datastart, roi.getMask().dataend}));    // " meas_mask BOOLEAN[]"*/
-
-      duckdb::vector<duckdb::Value> flattenPoints;
-      // flatten(roi.getContour(), flattenPoints);
-      auto contour = duckdb::Value::LIST(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER), flattenPoints);
-      objects.Append<duckdb::Value>(contour);    // " meas_contour UINTEGER[]"
-
-      objects.Append<uint64_t>(roi.getOriginObjectId());    // "	meas_origin_object_id UBIGINT"
-      objects.Append<uint64_t>(roi.getParentObjectId());    // "	meas_parent_object_id UBIGINT"
-      if(roi.getParentObjectId() > 0 && objectsList.containsObjectById(roi.getParentObjectId())) {
-        objects.Append<uint16_t>(
-            static_cast<uint16_t>(objectsList.getObjectById(roi.getParentObjectId())->getClassId()));    // "	meas_parent_class_id USMALLINT"
-      } else {
-        objects.AppendDefault();    // No parent
-      }
-      objects.Append<uint64_t>(roi.getTrackingId());    // "	meas_tracking_id UBIGINT"
-
-      objects.EndRow();
-
-      //
-      // Intensities
-      //
-      for(const auto &[plane, intensity] : roi.getIntensity()) {
-        object_measurements.BeginRow();
+    for(const auto &[_, obj] : objectsList) {
+      for(const auto &roi : *obj) {
+        objects.BeginRow();
         // Primary key
-        object_measurements.Append<uint64_t>(imgContext.imageId);    //       "	image_id UBIGINT,"
-        object_measurements.Append<uint64_t>(roi.getObjectId());     //       " object_id UBIGINT,"
-        //  Data
-        object_measurements.Append<uint32_t>(static_cast<uint32_t>(plane.imagePlane.cStack));    //       " meas_stack_c UINTEGER,"
-        object_measurements.Append<uint32_t>(static_cast<uint32_t>(plane.imagePlane.zStack));    //       " meas_stack_z UINTEGER,"
-        object_measurements.Append<uint32_t>(static_cast<uint32_t>(plane.imagePlane.tStack));    //       " meas_stack_t UINTEGER,"
-        object_measurements.Append<uint64_t>(intensity.intensitySum);                            //       " meas_intensity_sum UBIGINT,"
-        object_measurements.Append<float>(intensity.intensityAvg);                               //       " meas_intensity_avg float,"
-        object_measurements.Append<uint32_t>(static_cast<uint32_t>(intensity.intensityMin));     //       " meas_intensity_min UINTEGER,"
-        object_measurements.Append<uint32_t>(static_cast<uint32_t>(intensity.intensityMax));     //       " meas_intensity_max UINTEGER"
-        object_measurements.EndRow();
-      }
+        objects.Append<uint64_t>(imgContext.getImageId());                    // "	image_id UBIGINT,"
+        objects.Append<uint64_t>(roi.getObjectId());                          // " object_id UBIGINT,"
+        objects.Append<uint16_t>(static_cast<uint16_t>(roi.getClassId()));    // " class_id USMALLINT,"
+        objects.Append<uint32_t>(static_cast<uint32_t>(roi.getC()));          // " stack_c UINTEGER,"
+        objects.Append<uint32_t>(static_cast<uint32_t>(roi.getZ()));          // " stack_z UINTEGER,"
+        objects.Append<uint32_t>(static_cast<uint32_t>(roi.getT()));          // " stack_t UINTEGER,"
+        // Data
+        objects.Append<float>(roi.getConfidence());                                          // " meas_confidence float,"
+        objects.Append<double>(roi.getAreaSize(physicalSize, physicalSizeUnit));             // " meas_area_size DOUBLE,"
+        objects.Append<float>(roi.getPerimeter(physicalSize, physicalSizeUnit));             // " meas_perimeter float,"
+        objects.Append<float>(roi.getCircularity());                                         // " meas_circularity float,"
+        objects.Append<uint32_t>(static_cast<uint32_t>(roi.getCentroidReal().x));            // " meas_center_x UINTEGER,"
+        objects.Append<uint32_t>(static_cast<uint32_t>(roi.getCentroidReal().y));            // " meas_center_y UINTEGER,"
+        objects.Append<uint32_t>(static_cast<uint32_t>(roi.getBoundingBoxReal().x));         // " meas_box_x UINTEGER,"
+        objects.Append<uint32_t>(static_cast<uint32_t>(roi.getBoundingBoxReal().y));         // " meas_box_y UINTEGER,"
+        objects.Append<uint32_t>(static_cast<uint32_t>(roi.getBoundingBoxReal().width));     // " meas_box_width UINTEGER,"
+        objects.Append<uint32_t>(static_cast<uint32_t>(roi.getBoundingBoxReal().height));    // " meas_box_height UINTEGER,"
 
-      //
-      // Distance
-      //
-      for(const auto &[measObjectId, distance] : roi.getDistances(physicalSize, physicalSizeUnit)) {
-        try {
-          distance_measurements.BeginRow();
+        auto mask =
+            duckdb::Value::MAP(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER), duckdb::LogicalType(duckdb::LogicalTypeId::BOOLEAN), {}, {});
+        objects.Append<duckdb::Value>(mask);
+        /* objects.Append<duckdb::Value>(
+             joda::rle::rle_encode({roi.getMask().datastart, roi.getMask().dataend}));    // " meas_mask BOOLEAN[]"*/
+
+        duckdb::vector<duckdb::Value> flattenPoints;
+        // flatten(roi.getContour(), flattenPoints);
+        auto contour = duckdb::Value::LIST(duckdb::LogicalType(duckdb::LogicalTypeId::UINTEGER), flattenPoints);
+        objects.Append<duckdb::Value>(contour);    // " meas_contour UINTEGER[]"
+
+        objects.Append<uint64_t>(roi.getOriginObjectId());    // "	meas_origin_object_id UBIGINT"
+        objects.Append<uint64_t>(roi.getParentObjectId());    // "	meas_parent_object_id UBIGINT"
+        if(roi.getParentObjectId() > 0 && objectsList.containsObjectById(roi.getParentObjectId())) {
+          objects.Append<uint16_t>(
+              static_cast<uint16_t>(objectsList.getObjectById(roi.getParentObjectId())->getClassId()));    // "	meas_parent_class_id USMALLINT"
+        } else {
+          objects.AppendDefault();    // No parent
+        }
+        objects.Append<uint64_t>(roi.getTrackingId());    // "	meas_tracking_id UBIGINT"
+
+        objects.EndRow();
+
+        //
+        // Intensities
+        //
+        for(const auto &[plane, intensity] : roi.getIntensity()) {
+          object_measurements.BeginRow();
           // Primary key
-          distance_measurements.Append<uint64_t>(imgContext.imageId);                         //       "	image_id UBIGINT,"
-          distance_measurements.Append<uint64_t>(roi.getObjectId());                          //       " object_id UBIGINT,"
-          distance_measurements.Append<uint16_t>(static_cast<uint16_t>(roi.getClassId()));    //       " meas_class_id USMALLINT,"
-          distance_measurements.Append<uint64_t>(measObjectId);                               //       " meas_object_id UBIGINT,"
-          distance_measurements.Append<uint16_t>(
-              static_cast<uint16_t>(objectsList.getObjectById(measObjectId)->getClassId()));    //       " meas_class_id USMALLINT,"
-
+          object_measurements.Append<uint64_t>(imgContext.getImageId());    //       "	image_id UBIGINT,"
+          object_measurements.Append<uint64_t>(roi.getObjectId());          //       " object_id UBIGINT,"
           //  Data
-          distance_measurements.Append<uint32_t>(static_cast<uint32_t>(roi.getC()));      //       " meas_stack_c UINTEGER,"
-          distance_measurements.Append<uint32_t>(static_cast<uint32_t>(roi.getZ()));      //       " meas_stack_z UINTEGER,"
-          distance_measurements.Append<uint32_t>(static_cast<uint32_t>(roi.getT()));      //       " meas_stack_t UINTEGER,"
-          distance_measurements.Append<double>(distance.distanceCentroidToCentroid);      // meas_distance_center_to_center DOUBLE,"
-          distance_measurements.Append<double>(distance.distanceCentroidToSurfaceMin);    // meas_distance_center_to_surface_min DOUBLE,"
-          distance_measurements.Append<double>(distance.distanceCentroidToSurfaceMax);    // meas_distance_center_to_surface_max DOUBLE,"
-          distance_measurements.Append<double>(distance.distanceSurfaceToSurfaceMin);     // meas_distance_surface_to_surface_min DOUBLE,
-          distance_measurements.Append<double>(distance.distanceSurfaceToSurfaceMax);     // meas_distance_surface_to_surface_max DOUBLE"
+          object_measurements.Append<uint32_t>(static_cast<uint32_t>(plane.imagePlane.cStack));    //       " meas_stack_c UINTEGER,"
+          object_measurements.Append<uint32_t>(static_cast<uint32_t>(plane.imagePlane.zStack));    //       " meas_stack_z UINTEGER,"
+          object_measurements.Append<uint32_t>(static_cast<uint32_t>(plane.imagePlane.tStack));    //       " meas_stack_t UINTEGER,"
+          object_measurements.Append<uint64_t>(intensity.intensitySum);                            //       " meas_intensity_sum UBIGINT,"
+          object_measurements.Append<float>(intensity.intensityAvg);                               //       " meas_intensity_avg float,"
+          object_measurements.Append<uint32_t>(static_cast<uint32_t>(intensity.intensityMin));     //       " meas_intensity_min UINTEGER,"
+          object_measurements.Append<uint32_t>(static_cast<uint32_t>(intensity.intensityMax));     //       " meas_intensity_max UINTEGER"
+          object_measurements.EndRow();
+        }
 
-          distance_measurements.EndRow();
-        } catch(const std::exception &ex) {
-          joda::log::logError("Could not found object with ID >" + std::to_string(measObjectId) + "<");
+        //
+        // Distance
+        //
+        for(const auto &[measObjectId, distance] : roi.getDistances(physicalSize, physicalSizeUnit)) {
+          try {
+            distance_measurements.BeginRow();
+            // Primary key
+            distance_measurements.Append<uint64_t>(imgContext.getImageId());                    //       "	image_id UBIGINT,"
+            distance_measurements.Append<uint64_t>(roi.getObjectId());                          //       " object_id UBIGINT,"
+            distance_measurements.Append<uint16_t>(static_cast<uint16_t>(roi.getClassId()));    //       " meas_class_id USMALLINT,"
+            distance_measurements.Append<uint64_t>(measObjectId);                               //       " meas_object_id UBIGINT,"
+            distance_measurements.Append<uint16_t>(
+                static_cast<uint16_t>(objectsList.getObjectById(measObjectId)->getClassId()));    //       " meas_class_id USMALLINT,"
+
+            //  Data
+            distance_measurements.Append<uint32_t>(static_cast<uint32_t>(roi.getC()));      //       " meas_stack_c UINTEGER,"
+            distance_measurements.Append<uint32_t>(static_cast<uint32_t>(roi.getZ()));      //       " meas_stack_z UINTEGER,"
+            distance_measurements.Append<uint32_t>(static_cast<uint32_t>(roi.getT()));      //       " meas_stack_t UINTEGER,"
+            distance_measurements.Append<double>(distance.distanceCentroidToCentroid);      // meas_distance_center_to_center DOUBLE,"
+            distance_measurements.Append<double>(distance.distanceCentroidToSurfaceMin);    // meas_distance_center_to_surface_min DOUBLE,"
+            distance_measurements.Append<double>(distance.distanceCentroidToSurfaceMax);    // meas_distance_center_to_surface_max DOUBLE,"
+            distance_measurements.Append<double>(distance.distanceSurfaceToSurfaceMin);     // meas_distance_surface_to_surface_min DOUBLE,
+            distance_measurements.Append<double>(distance.distanceSurfaceToSurfaceMax);     // meas_distance_surface_to_surface_max DOUBLE"
+
+            distance_measurements.EndRow();
+          } catch(const std::exception &ex) {
+            joda::log::logError("Could not found object with ID >" + std::to_string(measObjectId) + "<");
+          }
         }
       }
     }
-  }
-  objects.Close();
-  object_measurements.Close();
-  distance_measurements.Close();
+    objects.Close();
+    object_measurements.Close();
+    distance_measurements.Close();
 
-  //
-  // Statistics
-  //
-  // auto statistics             = duckdb::Appender(*connection, "statistics");
-  // auto statistic_measurements = duckdb::Appender(*connection, "statistic_measurements");
-  // statistics.Close();
-  // statistic_measurements.Close();
+    //
+    // Statistics
+    //
+    // auto statistics             = duckdb::Appender(*connection, "statistics");
+    // auto statistic_measurements = duckdb::Appender(*connection, "statistic_measurements");
+    // statistics.Close();
+    // statistic_measurements.Close();
+  } catch(const std::exception &ex) {
+    std::cout << "Insert Obj: " << ex.what() << std::endl;
+  }
 }
 
 auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
                              const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
-                             const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings,
-                             BS::light_thread_pool &globalThreadPool) -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>>
+                             const joda::settings::AnalyzeSettings &analyzeSettings, BS::light_thread_pool &globalThreadPool)
+    -> std::vector<std::shared_ptr<joda::processor::PipelineInitializer>>
 {
-  std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> imagesToProcess;
+  std::vector<std::shared_ptr<joda::processor::PipelineInitializer>> imagesToProcess;
   joda::grp::FileGrouper grouper(groupBy, filenameRegex);
 
   auto connection      = acquire();
@@ -571,24 +576,18 @@ auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy gro
 
   for(const auto &imagePath : imagePaths) {
     auto prepareImage = [&groups, &grouper, &addedGroups, &imagesToProcess, &images, &images_groups, &images_channels, &insertMutex, &series, plateId,
-                         imagePath, &imagesBasePath, &defaultPhysicalSizeSettings]() {
-      ome::PhyiscalSize phys = {};
-      if(defaultPhysicalSizeSettings.mode == enums::PhysicalSizeMode::Manual) {
-        phys = joda::ome::PhyiscalSize{static_cast<double>(defaultPhysicalSizeSettings.pixelWidth),
-                                       static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.pixelSizeUnit};
-      }
-      joda::image::reader::ImageReader reader(imagePath);
-      const auto ome = reader.getOmeInformation(static_cast<uint16_t>(series), phys);
-      auto [physicalPixelSizeWidth, physicalPixelSizeHeight, physicalPixelSizeDepth] =
-          ome.getPhyiscalSize(series).getPixelSize(defaultPhysicalSizeSettings.pixelSizeUnit);
-      nlohmann::json physicalImageSizeUnit = defaultPhysicalSizeSettings.pixelSizeUnit;
+                         imagePath, &imagesBasePath, &analyzeSettings]() {
+      const auto &element = imagesToProcess.emplace_back(std::make_shared<joda::processor::PipelineInitializer>(
+          analyzeSettings.imageSetup, analyzeSettings.pipelineSetup, imagePath, imagesBasePath));
 
-      uint64_t imageId = joda::helper::generateImageIdFromPath(imagePath.string(), imagesBasePath);
-      auto groupInfo   = grouper.getGroupForFilename(imagePath);
+      auto groupInfo = grouper.getGroupForFilename(imagePath);
+
+      auto [physicalPixelSizeWidth, physicalPixelSizeHeight, physicalPixelSizeDepth] =
+          element->getPhyiscalSize().getPixelSize(analyzeSettings.imageSetup.imagePixelSizeSettings.pixelSizeUnit);
+      nlohmann::json physicalImageSizeUnit = analyzeSettings.imageSetup.imagePixelSizeSettings.pixelSizeUnit;
 
       {
         std::lock_guard<std::mutex> lock(insertMutex);
-        imagesToProcess.emplace_back(imagePath, ome, imageId);
         // Group
         {
           if(!addedGroups.contains(groupInfo.groupId)) {
@@ -608,39 +607,39 @@ auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy gro
         {
           auto relativePath = std::filesystem::relative(imagePath, imagesBasePath);
           images.BeginRow();
-          images.Append<uint64_t>(imageId);                                                     //       " image_id UBIGINT,"
-          images.Append<duckdb::string_t>(imagePath.filename().string());                       //       " file_name TEXT,"
-          images.Append<duckdb::string_t>(imagePath.string());                                  //       " original_file_path TEXT
-          images.Append<duckdb::string_t>(relativePath.string());                               //       " relative_file_path TEXT
-          images.Append<uint32_t>(static_cast<uint32_t>(ome.getNrOfChannels(series)));          //       " nr_of_c_stacks UINTEGER
-          images.Append<uint32_t>(static_cast<uint32_t>(ome.getNrOfZStack(series)));            //       " nr_of_z_stacks UINTEGER
-          images.Append<uint32_t>(static_cast<uint32_t>(ome.getNrOfTStack(series)));            //       " nr_of_t_stacks UINTEGER
-          images.Append<uint32_t>(static_cast<uint32_t>(std::get<0>(ome.getSize(series))));     //       " width UINTEGER,"
-          images.Append<uint32_t>(static_cast<uint32_t>(std::get<1>(ome.getSize(series))));     //       " height UINTEGER,"
-          images.Append<uint64_t>(0);                                                           //       " validity UBIGINT,"
-          images.Append<bool>(false);                                                           //       " processed BOOL,"
-          images.Append<double>(physicalPixelSizeWidth);                                        //       " physicalPixelSizeWidth DOUBLE
-          images.Append<double>(physicalPixelSizeHeight);                                       //       " physicalPixelSizeHeight DOUBLE
-          images.Append<double>(physicalPixelSizeDepth);                                        //       " physicalPixelSizeDepth DOUBLE,
-          images.Append<duckdb::string_t>(physicalImageSizeUnit.get<std::string>().c_str());    //       " physicalPixelSizeUnit STRING,
+          images.Append<uint64_t>(element->getImageId());                                          //       " image_id UBIGINT,"
+          images.Append<duckdb::string_t>(imagePath.filename().string());                          //       " file_name TEXT,"
+          images.Append<duckdb::string_t>(imagePath.string());                                     //       " original_file_path TEXT
+          images.Append<duckdb::string_t>(relativePath.string());                                  //       " relative_file_path TEXT
+          images.Append<uint32_t>(static_cast<uint32_t>(element->getNrOfChannels()));              //       " nr_of_c_stacks UINTEGER
+          images.Append<uint32_t>(static_cast<uint32_t>(element->getNrOfZStack()));                //       " nr_of_z_stacks UINTEGER
+          images.Append<uint32_t>(static_cast<uint32_t>(element->getNrOfTStack()));                //       " nr_of_t_stacks UINTEGER
+          images.Append<uint32_t>(static_cast<uint32_t>(std::get<0>(element->getImageSize())));    //       " width UINTEGER,"
+          images.Append<uint32_t>(static_cast<uint32_t>(std::get<1>(element->getImageSize())));    //       " height UINTEGER,"
+          images.Append<uint64_t>(0);                                                              //       " validity UBIGINT,"
+          images.Append<bool>(false);                                                              //       " processed BOOL,"
+          images.Append<double>(physicalPixelSizeWidth);                                           //       " physicalPixelSizeWidth DOUBLE
+          images.Append<double>(physicalPixelSizeHeight);                                          //       " physicalPixelSizeHeight DOUBLE
+          images.Append<double>(physicalPixelSizeDepth);                                           //       " physicalPixelSizeDepth DOUBLE,
+          images.Append<duckdb::string_t>(physicalImageSizeUnit.get<std::string>().c_str());       //       " physicalPixelSizeUnit STRING,
           images.EndRow();
         }
 
         // Image Group
         {
           images_groups.BeginRow();
-          images_groups.Append<uint16_t>(plateId);               //       " plate_id USMALLINT,"
-          images_groups.Append<uint16_t>(groupInfo.groupId);     //       " group_id USMALLINT,"
-          images_groups.Append<uint64_t>(imageId);               //       " image_id UBIGINT,"
-          images_groups.Append<uint32_t>(groupInfo.imageIdx);    //       " image_group_idx UINTEGER, "
+          images_groups.Append<uint16_t>(plateId);                  //       " plate_id USMALLINT,"
+          images_groups.Append<uint16_t>(groupInfo.groupId);        //       " group_id USMALLINT,"
+          images_groups.Append<uint64_t>(element->getImageId());    //       " image_id UBIGINT,"
+          images_groups.Append<uint32_t>(groupInfo.imageIdx);       //       " image_group_idx UINTEGER, "
           images_groups.EndRow();
         }
 
         // Image channel
         {
-          for(const auto &[channelId, channel] : ome.getChannelInfos(series)) {
+          for(const auto &[channelId, channel] : element->getChannelInfos()) {
             images_channels.BeginRow();
-            images_channels.Append<uint64_t>(imageId);                      // " image_id UBIGINT,"
+            images_channels.Append<uint64_t>(element->getImageId());        // " image_id UBIGINT,"
             images_channels.Append<uint32_t>(channelId);                    // " stack_c UINTEGER, "
             images_channels.Append<duckdb::string_t>(channel.channelId);    // " channel_id TEXT,"
             images_channels.Append<duckdb::string_t>(channel.name);         // " name TEXT,"
@@ -688,7 +687,7 @@ void Database::insertGroup(uint16_t plateId, const joda::grp::GroupInformation &
 /// \param[out]
 /// \return
 ///
-void Database::insertImage(const joda::processor::ImageContext &image, const joda::grp::GroupInformation & /*groupInfo*/)
+void Database::insertImage(const joda::processor::PipelineInitializer &image, const joda::grp::GroupInformation & /*groupInfo*/)
 {
   auto connection = acquire();
   auto prepare    = connection->Prepare(
@@ -696,10 +695,9 @@ void Database::insertImage(const joda::processor::ImageContext &image, const jod
          "nr_of_t_stacks,width,height,validity) "
          "VALUES (?, ?, ?, ?, ?, ?, ?, ? ,? )");
 
-  auto [width, heigh] = image.imageMeta.getSize(image.series);
-  prepare->Execute(image.imageId, image.imageLoader.getImagePath().filename().string(), image.imageLoader.getImagePath().string(),
-                   image.imageMeta.getNrOfChannels(image.series), image.imageLoader.getNrOfZStacksToProcess(),
-                   image.imageLoader.getNrOfTStacksToProcess(), width, heigh, 0);
+  auto [width, heigh] = image.getImageSize();
+  prepare->Execute(image.getImageId(), image.getImagePath().filename().string(), image.getImagePath().string(), image.getNrOfChannels(),
+                   image.getNrOfZStacksToProcess(), image.getNrOfTStacksToProcess(), width, heigh, 0);
 }
 
 ///
@@ -765,9 +763,13 @@ void Analyzer::unMarkImageChannelAsManualInvalid(const std::string &analyzeId, u
 ///
 void Database::insertImagePlane(uint64_t imageId, const enums::PlaneId &planeId, const ome::OmeInfo::ImagePlane & /*planeInfo*/)
 {
-  auto connection = acquire();
-  auto prepare    = connection->Prepare("INSERT OR IGNORE INTO images_planes (image_id, stack_c, stack_z, stack_t, validity) VALUES (?, ?, ?, ?, ?)");
-  prepare->Execute(imageId, planeId.cStack, planeId.zStack, planeId.tStack, 0);
+  try {
+    auto connection = acquire();
+    auto prepare = connection->Prepare("INSERT OR IGNORE INTO images_planes (image_id, stack_c, stack_z, stack_t, validity) VALUES (?, ?, ?, ?, ?)");
+    prepare->Execute(imageId, planeId.cStack, planeId.zStack, planeId.tStack, 0);
+  } catch(const std::exception &ex) {
+    std::cout << "Insert Plane: " << ex.what() << std::endl;
+  }
 }
 
 ///
