@@ -184,7 +184,7 @@ void Processor::execute(const joda::settings::AnalyzeSettings &program, const st
           for(int32_t tStack = tStackStart; tStack < tStackEnd; tStack++) {
             for(int32_t zStack = 0; zStack < static_cast<int32_t>(nrzSTack); zStack++) {
               tasks.emplace_back(
-                  std::make_unique<Task>(&globalContext, actImage.get(), program.getProjectPath(), &pipelineOrder, tilesX, tilesY, tStack, zStack));
+                  std::make_unique<Task>(&globalContext, actImage.get(), program.getProjectPath(), &pipelineOrder, tileX, tileY, tStack, zStack));
               nrOfTiles++;
             }
           }
