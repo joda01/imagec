@@ -47,6 +47,10 @@ ProcessContext::ProcessContext(GlobalContext &globalContextIn, PlateContext &pla
       cacheId.imagePlane.zStack = getActIterator().zStack;
     }
 
+    if(cacheId.imagePlane.tStack < 0) {
+      cacheId.imagePlane.tStack = getActIterator().tStack;
+    }
+
     imageContext.imageLoader.loadImageAndStoreToCache(scope, cacheId.imagePlane, cacheId.zProjection, pipelineContext.actImagePlane.tile, *this,
                                                       imageContext);
   }
