@@ -1784,7 +1784,6 @@ void PanelImageView::setLockCrosshandCursor(bool lock)
 ///
 void PanelImageView::setCursorPosition(const QPoint &pos)
 {
-  std::lock_guard<std::mutex> locked(mImageResetMutex);
   mCrossCursorInfo.mCursorPos = pos;
   mCrossCursorInfo.pixelInfo  = fetchPixelInfoFromMousePosition(mCrossCursorInfo.mCursorPos);
   scheduleUpdate();
