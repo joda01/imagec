@@ -1307,21 +1307,21 @@ auto Database::selectPlates() -> std::map<uint16_t, joda::settings::Plate>
 /// \param[out]
 /// \return
 ///
-auto Database::selectGroups() -> std::map<uint16_t, std::string>
+auto Database::selectGroups() -> std::vector<std::pair<uint16_t, std::string>>
 {
-  std::unique_ptr<duckdb::QueryResult> result = select("SELECT group_id, name FROM groups");
+  std::unique_ptr<duckdb::QueryResult> result = select("SELECT group_id, name FROM groups ORDER BY name");
   if(result->HasError()) {
     throw std::invalid_argument(result->GetError());
   }
 
   auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
 
-  std::map<uint16_t, std::string> results;
+  std::vector<std::pair<uint16_t, std::string>> results;
   for(size_t n = 0; n < materializedResult->RowCount(); n++) {
-    uint16_t plateId = materializedResult->GetValue(0, n).GetValue<uint16_t>();
+    uint16_t groupId = materializedResult->GetValue(0, n).GetValue<uint16_t>();
     std::string name = materializedResult->GetValue(1, n).GetValue<std::string>();
 
-    results.emplace(plateId, name);
+    results.emplace_back(groupId, name);
   }
 
   return results;
