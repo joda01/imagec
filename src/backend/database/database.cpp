@@ -554,7 +554,7 @@ void Database::insertObjects(const processor::PipelineInitializer &imgContext, e
 
 auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
                              const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
-                             const joda::settings::AnalyzeSettings &analyzeSettings, BS::light_thread_pool &globalThreadPool)
+                             const joda::settings::AnalyzeSettings &analyzeSettings, std::unique_ptr<BS::thread_pool<>> &threadPool)
     -> std::vector<std::shared_ptr<joda::processor::PipelineInitializer>>
 {
   std::vector<std::shared_ptr<joda::processor::PipelineInitializer>> imagesToProcess;
@@ -572,13 +572,13 @@ auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy gro
   //
   // Preparing -> Insert all images to database
   //
-  BS::multi_future<void> prepareFuture;
-
   for(const auto &imagePath : imagePaths) {
-    auto prepareImage = [&groups, &grouper, &addedGroups, &imagesToProcess, &images, &images_groups, &images_channels, &insertMutex, &series, plateId,
+    //
+    //
+    auto prepareImage = [&groups, &grouper, &addedGroups, &imagesToProcess, &images, &images_groups, &images_channels, &insertMutex, plateId,
                          imagePath, &imagesBasePath, &analyzeSettings]() {
-      const auto &element = imagesToProcess.emplace_back(std::make_shared<joda::processor::PipelineInitializer>(
-          analyzeSettings.imageSetup, analyzeSettings.pipelineSetup, imagePath, imagesBasePath));
+      const auto element = std::make_shared<joda::processor::PipelineInitializer>(analyzeSettings.imageSetup, analyzeSettings.pipelineSetup,
+                                                                                  imagePath, imagesBasePath);
 
       auto groupInfo = grouper.getGroupForFilename(imagePath);
 
@@ -588,6 +588,8 @@ auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy gro
 
       {
         std::lock_guard<std::mutex> lock(insertMutex);
+        imagesToProcess.emplace_back(element);
+
         // Group
         {
           if(!addedGroups.contains(groupInfo.groupId)) {
@@ -649,10 +651,10 @@ auto Database::prepareImages(uint8_t plateId, int32_t series, enums::GroupBy gro
       }
     };
 
-    prepareFuture.push_back(globalThreadPool.submit_task(prepareImage));
+    (void) threadPool->submit_task(prepareImage);
   }
 
-  prepareFuture.wait();
+  threadPool->wait();
 
   groups.Close();
   images.Close();

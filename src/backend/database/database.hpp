@@ -53,7 +53,7 @@ public:
 
   auto prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
                      const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
-                     const joda::settings::AnalyzeSettings &analyzeSettings, BS::light_thread_pool &globalThreadPool)
+                     const joda::settings::AnalyzeSettings &analyzeSettings, std::unique_ptr<BS::thread_pool<>> &threadPool)
       -> std::vector<std::shared_ptr<joda::processor::PipelineInitializer>> override;
   void setImageProcessed(uint64_t) override;
 

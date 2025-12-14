@@ -151,9 +151,9 @@ inline uint64_t getAvailableSystemMemory()
 
 #endif
 
-inline unsigned int getNrOfCPUs()
+inline int getNrOfCPUs()
 {
-  return std::thread::hardware_concurrency();
+  return static_cast<int>(std::thread::hardware_concurrency());
 }
 
 struct SystemResources

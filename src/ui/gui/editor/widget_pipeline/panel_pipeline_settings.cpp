@@ -452,7 +452,6 @@ void PanelPipelineSettings::previewThread()
         const auto imageHeight                          = imgProps.getImageInfo(selectedSeries).resolutions.at(0).imageHeight;
         const auto [selectedTileX, selectedTileY]       = mPreviewImage->getImagePanel()->getSelectedTile();
         const auto timeStack                            = mPreviewImage->getSelectedTimeStack();
-        const auto threadSettings                       = mWindowMain->getController()->calcOptimalThreadNumber(settingsTmp, imgProps);
         const joda::settings::Pipeline *myPipeline      = nullptr;
         for(auto &pip : settingsTmp.pipelines) {
           if(!pip.meta.uid.empty() && pip.meta.uid == getPipeline().meta.uid) {
@@ -472,8 +471,8 @@ void PanelPipelineSettings::previewThread()
             tileSize.tileHeight = imageHeight;
           }
           if(myPipeline != nullptr) {
-            controller->preview(settingsTmp.imageSetup, processor::PreviewSettings{}, settingsTmp, threadSettings, *myPipeline, imgIndex,
-                                selectedTileX, selectedTileY, timeStack, *mPreviewResult, imgProps);
+            controller->preview(settingsTmp.imageSetup, processor::PreviewSettings{}, settingsTmp, *myPipeline, imgIndex, selectedTileX,
+                                selectedTileY, timeStack, *mPreviewResult, imgProps);
 
           } else {
             errorMsg = "No images found! Select working directory.";

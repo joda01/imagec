@@ -18,10 +18,13 @@
 #include "backend/enums/enum_validity.hpp"
 #include "backend/helper/file_grouper/file_grouper_types.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
-#include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include <duckdb/main/query_result.hpp>
 #include <BS_thread_pool.hpp>
+
+namespace joda::processor {
+class PipelineInitializer;
+}
 
 namespace joda::db {
 
@@ -85,7 +88,7 @@ public:
 
   virtual auto prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
                              const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
-                             const joda::settings::AnalyzeSettings &analyzeSettings, BS::light_thread_pool &globalThreadPool)
+                             const joda::settings::AnalyzeSettings &analyzeSettings, std::unique_ptr<BS::thread_pool<>> &threadPool)
       -> std::vector<std::shared_ptr<joda::processor::PipelineInitializer>> = 0;
   virtual void setImageProcessed(uint64_t)                                  = 0;
 
@@ -98,6 +101,10 @@ public:
                                                  enums::ChannelValidity validity)                               = 0;
 
   virtual void insertObjects(const processor::PipelineInitializer &, enums::Units, const joda::atom::ObjectList &) = 0;
+  [[nodiscard]] virtual auto getImageValidity() const -> enums::ChannelValidity
+  {
+    return {};
+  }
 };
 
 ///
@@ -125,7 +132,7 @@ public:
 
   auto prepareImages(uint8_t /*plateId*/, int32_t /*series*/, enums::GroupBy /*groupBy*/, const std::string & /*filenameRegex*/,
                      const std::vector<std::filesystem::path> & /*imagePaths*/, const std::filesystem::path & /*imagesBasePath*/,
-                     const joda::settings::AnalyzeSettings & /*projectImageSetup*/, BS::light_thread_pool & /*globalThreadPool*/)
+                     const joda::settings::AnalyzeSettings & /*projectImageSetup*/, std::unique_ptr<BS::thread_pool<>> & /*globalThreadPool*/)
       -> std::vector<std::shared_ptr<joda::processor::PipelineInitializer>> override
   {
     return {};
@@ -158,7 +165,7 @@ public:
   {
   }
 
-  [[nodiscard]] auto getImageValidity() const -> enums::ChannelValidity
+  [[nodiscard]] auto getImageValidity() const -> enums::ChannelValidity override
   {
     if(mImageValidity.empty()) {
       return {};

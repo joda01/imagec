@@ -23,8 +23,8 @@
 #include "backend/helper/ome_parser/ome_info.hpp"
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/system/system_resources.hpp"
-#include "backend/helper/threading/threading.hpp"
 #include "backend/processor/processor.hpp"
+#include <BS_thread_pool.hpp>
 
 namespace joda::settings {
 class AnalyzeSettings;
@@ -52,10 +52,7 @@ public:
   static void initApplication();
   static void cleanShutdownApplication();
   static auto getSystemResources() -> joda::system::SystemResources;
-  static auto calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::filesystem::path &file, int nrOfFiles,
-                                      const std::optional<joda::ome::OmeInfo> &imageOmeInfo) -> joda::thread::ThreadingSettings;
-  auto calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::optional<joda::ome::OmeInfo> &imageOmeInfo)
-      -> joda::thread::ThreadingSettings;
+
   // FILES ///////////////////////////////////////////////////
   auto getNrOfFoundImages() -> uint32_t;
   auto getListOfFoundImages() const -> const std::vector<std::filesystem::path> &;
@@ -67,10 +64,9 @@ public:
 
   // PREVIEW ///////////////////////////////////////////////////
   void preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
-               const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const settings::Pipeline &pipeline,
-               const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, int32_t tStack, processor::Preview &previewOut,
-               const joda::ome::OmeInfo &);
-  [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image, int series,
+               const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX,
+               int32_t tileY, int32_t tStack, processor::Preview &previewOut, const joda::ome::OmeInfo &);
+  [[nodiscard]] static auto getImageProperties(const std::filesystem::path &image,
                                                const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings)
       -> joda::ome::OmeInfo;
 
@@ -84,11 +80,10 @@ public:
                         enums::ZProjection zProjection) -> void;
 
   // FLOW CONTROL ///////////////////////////////////////////////////
-  void start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings, const std::string &jobName,
-             const std::optional<std::filesystem::path> &fileToAnalyze);
+  void start(const settings::AnalyzeSettings &settings, const std::string &jobName, const std::optional<std::filesystem::path> &fileToAnalyze);
   void stop();
   [[nodiscard]] auto getState() const -> const joda::processor::ProcessProgress &;
-  [[nodiscard]] const processor::ProcessInformation &getJobInformation() const;
+  [[nodiscard]] auto getJobInformation() const -> const std::unique_ptr<processor::GlobalContext> &;
 
   // EXPORT ///////////////////////////////////////
 
@@ -103,6 +98,7 @@ private:
 
   static inline std::mutex mReadMutex;
   static inline std::unique_ptr<image::reader::ImageReader> mLastImageReader;
+  static inline std::unique_ptr<BS::thread_pool<>> mGlobThreadPool;
 };
 
 }    // namespace joda::ctrl

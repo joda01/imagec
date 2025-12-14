@@ -22,12 +22,12 @@
 #include "backend/helper/file_grouper/file_grouper.hpp"
 #include "backend/helper/file_parser/directory_iterator.hpp"
 #include "backend/helper/image/image.hpp"
-#include "backend/helper/threading/threading.hpp"
 #include "backend/processor/context/process_context.hpp"
 #include "backend/processor/dependency_graph.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline_step.hpp"
 #include <opencv2/core/mat.hpp>
+#include <BS_thread_pool.hpp>
 
 namespace joda::processor {
 
@@ -72,25 +72,18 @@ enum class ProcessState
   FINISHED_WITH_ERROR
 };
 
-struct ProcessInformation
-{
-  std::filesystem::path ouputFolder;
-  std::filesystem::path resultsFilePath;
-  std::string jobName;
-  std::chrono::system_clock::time_point timestampStarted;
-  std::string errorLog;
-};
-
 class ProcessProgress
 {
 public:
   void reset()
   {
-    state               = ProcessState::INITIALIZING;
-    totalNrOfImages     = 0;
-    processedNrOfImages = 0;
-    totalNrOfTiles      = 0;
-    processedNrOfTiles  = 0;
+    state                  = ProcessState::INITIALIZING;
+    totalNrOfImages        = 0;
+    processedNrOfImages    = 0;
+    totalNrOfTiles         = 0;
+    processedNrOfTiles     = 0;
+    processedPipelineSteps = 0;
+    mWhat.clear();
   }
 
   void incProcessedImages()
@@ -100,6 +93,10 @@ public:
   void incProcessedTiles()
   {
     processedNrOfTiles++;
+  }
+  void incProcessedPipelineSteps()
+  {
+    processedPipelineSteps++;
   }
 
   void setStateFinished()
@@ -127,10 +124,10 @@ public:
     state = ProcessState::RUNNING_PREPARING_PIPELINE;
   }
 
-  void setStateError(ProcessInformation &info, const std::string &errorMsg)
+  void setStateError(const std::string &errorMsg)
   {
-    state         = ProcessState::FINISHED_WITH_ERROR;
-    info.errorLog = errorMsg;
+    state = ProcessState::FINISHED_WITH_ERROR;
+    mWhat = errorMsg;
   }
 
   void setTotalNrOfImages(uint32_t images)
@@ -168,6 +165,11 @@ public:
     return processedNrOfTiles;
   }
 
+  uint32_t finishedPipelineSteps() const
+  {
+    return processedPipelineSteps;
+  }
+
   bool isStopping() const
   {
     return state == ProcessState::STOPPING;
@@ -178,12 +180,20 @@ public:
     return state == ProcessState::FINISHED;
   }
 
+  auto &what() const
+  {
+    return mWhat;
+  }
+
 private:
-  std::atomic<ProcessState> state           = ProcessState::INITIALIZING;
-  std::atomic<uint32_t> totalNrOfImages     = 0;
-  std::atomic<uint32_t> processedNrOfImages = 0;
-  std::atomic<uint32_t> totalNrOfTiles      = 0;
-  std::atomic<uint32_t> processedNrOfTiles  = 0;
+  std::atomic<ProcessState> state              = ProcessState::INITIALIZING;
+  std::atomic<uint32_t> totalNrOfImages        = 0;
+  std::atomic<uint32_t> processedNrOfImages    = 0;
+  std::atomic<uint32_t> totalNrOfTiles         = 0;
+  std::atomic<uint32_t> processedNrOfTiles     = 0;
+  std::atomic<uint32_t> processedPipelineSteps = 0;
+
+  std::string mWhat;
 };
 
 class Processor
@@ -191,35 +201,43 @@ class Processor
 public:
   /////////////////////////////////////////////////////
   Processor();
-  void execute(const joda::settings::AnalyzeSettings &program, const std::string &jobName, const joda::thread::ThreadingSettings &threadingSettings,
-               const std::unique_ptr<imagesList_t> &imagesToAnalyze);
   void stop();
-  std::string initializeGlobalContext(const joda::settings::AnalyzeSettings &program, const std::string &jobName, GlobalContext &globalContext);
 
-  /////////////////////////////////////////////////////
+  void execute(std::unique_ptr<BS::thread_pool<>> &threadPool, const joda::settings::AnalyzeSettings &program, const std::string &jobName,
+               const std::unique_ptr<imagesList_t> &imagesToAnalyze);
+
+  auto generatePreview(std::unique_ptr<BS::thread_pool<>> &threadPool, const PreviewSettings &previewSettings,
+                       const settings::ProjectImageSetup &imageSetup, const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline,
+                       const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX, int32_t tileY, const ome::OmeInfo &ome,
+                       Preview &previewOut) -> void;
 
   const ProcessProgress &getProgress() const
   {
     return mProgress;
+  }
+  const std::unique_ptr<GlobalContext> &getGlobalContext() const
+  {
+    return mGlobalContext;
   }
   ProcessProgress &mutableProgress()
   {
     return mProgress;
   }
 
-  const ProcessInformation &getJobInformation() const
-  {
-    return mJobInformation;
-  }
-
-  auto generatePreview(const PreviewSettings &previewSettings, const settings::ProjectImageSetup &imageSetup,
-                       const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,
-                       const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tStack, int32_t zStack, int32_t tileX,
-                       int32_t tileY, const ome::OmeInfo &ome, Preview &previewOut) -> void;
+  //  const ProcessInformation &getJobInformation() const
+  //  {
+  //    return mJobInformation;
+  //  }
 
 private:
   /////////////////////////////////////////////////////
+  template <class DATABASE_TYPE>
+  std::unique_ptr<GlobalContext> initializeGlobalContext(const joda::settings::AnalyzeSettings &program, const std::string &jobName);
+  void prepareOutputFolder(const joda::settings::AnalyzeSettings &program, const std::unique_ptr<GlobalContext> &globalContext) const;
+
+  /////////////////////////////////////////////////////
   ProcessProgress mProgress = {};
-  ProcessInformation mJobInformation;
+  std::unique_ptr<GlobalContext> mGlobalContext;
+  std::atomic<bool> mCancelAll{false};
 };
 }    // namespace joda::processor

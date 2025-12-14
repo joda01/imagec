@@ -23,6 +23,7 @@
 #include "backend/artifacts/image/image.hpp"
 #include "backend/artifacts/object_list/object_list.hpp"
 #include "backend/artifacts/roi/roi.hpp"
+#include "backend/database/database_interface.hpp"
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_memory_idx.hpp"
 #include "backend/enums/enum_objects.hpp"
@@ -38,10 +39,6 @@
 #include "iteration_context.hpp"
 #include "pipeline_context.hpp"
 
-namespace joda::db {
-class DatabaseInterface;
-}
-
 namespace joda::processor {
 
 using objectCache_t = std::map<enums::ObjectStoreId, std::unique_ptr<joda::atom::ObjectList>>;
@@ -50,10 +47,14 @@ struct GlobalContext
 {
   friend class ProcessContext;
 
-  std::filesystem::path resultsOutputFolder;
   std::filesystem::path workingDirectory;
+  std::filesystem::path resultsOutputFolder;
+  std::filesystem::path resultsDatabaseFilePath;
   std::unique_ptr<db::DatabaseInterface> database;
   std::map<enums::ClassId, joda::settings::Class> classes;
+  std::string jobId;
+  std::string jobName;
+  std::chrono::system_clock::time_point timestampStarted;
 
 private:
   objectCache_t objectCache;

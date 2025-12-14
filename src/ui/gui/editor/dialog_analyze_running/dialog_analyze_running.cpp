@@ -129,20 +129,19 @@ void DialogAnalyzeRunning::onCloseAndOpenClicked()
   if(mRefreshThread && mRefreshThread->joinable()) {
     mRefreshThread->join();
   }
-  mWindowMain->openResultsSettings(mWindowMain->getController()->getJobInformation().resultsFilePath.string().data());
+  mWindowMain->openResultsSettings(mWindowMain->getController()->getJobInformation()->resultsDatabaseFilePath.string().data());
   close();
 }
 
 void DialogAnalyzeRunning::onOpenResultsFolderClicked()
 {
-  QString folderPath = mWindowMain->getController()->getJobInformation().ouputFolder.string().data();
+  QString folderPath = mWindowMain->getController()->getJobInformation()->resultsOutputFolder.string().data();
   QDesktopServices::openUrl(QUrl("file:///" + folderPath));
 }
 
 void DialogAnalyzeRunning::refreshThread()
 {
-  auto threadSettings = mWindowMain->getController()->calcOptimalThreadNumber(mSettings, std::nullopt);
-  mWindowMain->getController()->start(mSettings, threadSettings, mWindowMain->getJobName().toStdString(), mFileToAnalyze);
+  mWindowMain->getController()->start(mSettings, mWindowMain->getJobName().toStdString(), mFileToAnalyze);
   mStartedTime = std::chrono::system_clock::now();
 
   // Wait unit new pipeline has been started. It could be that we are still waiting for finishing the prev thread.
@@ -168,17 +167,20 @@ void DialogAnalyzeRunning::refreshThread()
 
 void DialogAnalyzeRunning::onRefreshData()
 {
-  QString newTextAllOver = "Processing Image 0/0";
-  QString newTextImage   = "Processing Tile 0/0";
-  auto actState          = joda::processor::ProcessState::INITIALIZING;
+  QString newTextAllOver          = "Processing Image 0/0";
+  QString newTextImage            = "Processing Tile 0/0";
+  QString newTextPipelineProgress = "Processing Tile 0/0";
+
+  auto actState = joda::processor::ProcessState::INITIALIZING;
   try {
     const auto &state = mWindowMain->getController()->getState();
     if(state.getState() == joda::processor::ProcessState::RUNNING || state.getState() == joda::processor::ProcessState::RUNNING_PREPARING_PIPELINE) {
       mEndedTime = std::chrono::system_clock::now();
     }
-    actState       = state.getState();
-    newTextAllOver = QString("Processing Image %1/%2").arg(state.finishedImages()).arg(state.totalImages());
-    newTextImage   = QString("Processing Tile %1/%2").arg(state.finishedTiles()).arg(state.totalTiles());
+    actState                = state.getState();
+    newTextAllOver          = QString("Processing Image %1/%2").arg(state.finishedImages()).arg(state.totalImages());
+    newTextImage            = QString("Processing Tile %1/%2").arg(state.finishedTiles()).arg(state.totalTiles());
+    newTextPipelineProgress = QString("Processing pipelines %1").arg(state.finishedPipelineSteps());
 
   } catch(const std::exception &ex) {
     joda::log::logWarning("Pipeline error: " + std::string(ex.what()));
@@ -229,7 +231,7 @@ void DialogAnalyzeRunning::onRefreshData()
       // Color red = #860000
       messageBox.setIconPixmap(generateSvgIcon<Style::REGULAR, Color::RED>("warning-diamond").pixmap(48, 48));
       messageBox.setWindowTitle("Error...");
-      messageBox.setText("Error in execution got >" + QString(mWindowMain->getController()->getJobInformation().errorLog.data()) + "<.");
+      messageBox.setText("Error in execution got >" + QString(mWindowMain->getController()->getState().what().data()) + "<.");
       messageBox.addButton(tr("Okay"), QMessageBox::AcceptRole);
       messageBox.exec();
     }
@@ -238,7 +240,7 @@ void DialogAnalyzeRunning::onRefreshData()
   } else if(actState == joda::processor::ProcessState::RUNNING_PREPARING_PIPELINE) {
     progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Preparing images ...";
   } else {
-    progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>Processing pipelines ...";
+    progressText = "<html>" + newTextAllOver + "<br/>" + newTextImage + "<br/>" + newTextPipelineProgress;
   }
 
   mProgressText->setText(progressText);

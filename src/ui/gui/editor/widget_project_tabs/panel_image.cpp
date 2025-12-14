@@ -143,7 +143,7 @@ auto PanelImages::getSelectedImage() const -> std::tuple<std::filesystem::path, 
         if(mPathOfFirst != pathIn) {
           mPathOfFirst                            = pathIn;
           const auto &defaultPhysicalSizeSettings = mWindowMain->getSettings().imageSetup.imagePixelSizeSettings;
-          mOmeOfFirstImage = mWindowMain->getController()->getImageProperties(mPathOfFirst, series, defaultPhysicalSizeSettings);
+          mOmeOfFirstImage                        = mWindowMain->getController()->getImageProperties(mPathOfFirst, defaultPhysicalSizeSettings);
           return {mPathOfFirst, series, mOmeOfFirstImage};
         } else {
           return {mPathOfFirst, series, mOmeOfFirstImage};
@@ -208,7 +208,7 @@ void PanelImages::updateImageMeta()
   if(!selectedItems.isEmpty()) {
     auto [imagePath, series, _]             = getSelectedImage();
     const auto &defaultPhysicalSizeSettings = mWindowMain->getSettings().imageSetup.imagePixelSizeSettings;
-    mOmeFromActSelectedImage                = mWindowMain->getController()->getImageProperties(imagePath, series, defaultPhysicalSizeSettings);
+    mOmeFromActSelectedImage                = mWindowMain->getController()->getImageProperties(imagePath, defaultPhysicalSizeSettings);
     // Open image
     mWindowMain->openImage(imagePath, &mOmeFromActSelectedImage);
     auto tileSize = mWindowMain->getSettings().imageSetup.imageTileSettings;

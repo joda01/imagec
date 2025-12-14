@@ -317,7 +317,7 @@ void Cli::startAnalyze(const std::filesystem::path &pathToSettingsFile, const st
   if(jobName.empty()) {
     jobName = joda::helper::RandomNameGenerator::GetRandomName();
   }
-  mController->start(analyzeSettings, {}, jobName, std::nullopt);
+  mController->start(analyzeSettings, jobName, std::nullopt);
   joda::log::logInfo("Job >" + jobName + "< started!");
 
   // ==========================
