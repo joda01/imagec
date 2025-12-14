@@ -19,6 +19,7 @@
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/processor/context/process_context.hpp"
 #include "backend/settings/project_settings/project_image_setup.hpp"
+#include "backend/settings/project_settings/project_pipeline_setup.hpp"
 #include <opencv2/core/types.hpp>
 #include "pipeline_settings.hpp"
 
@@ -37,8 +38,7 @@ public:
 
   /////////////////////////////////////////////////////
   PipelineInitializer(const settings::ProjectImageSetup &settings, const settings::ProjectPipelineSetup &pipelineSetup,
-                      const std::filesystem::path &imagePath);
-  void init(ImageContext &imageContextOut);
+                      const std::filesystem::path &imagePath, const std::filesystem::path &imagesBasePath);
 
   [[nodiscard]] const std::tuple<int32_t, int32_t> &getNrOfTilesToProcess() const
   {
@@ -56,8 +56,7 @@ public:
   auto getCompositeTileSize() const -> TileSize const;
 
   enums::ImageId loadImageAndStoreToCache(enums::MemoryScope scope, const enums::PlaneId &planeToLoad, enums::ZProjection zProjection,
-                                          const enums::tile_t &tile, joda::processor::ProcessContext &processContext,
-                                          processor::ImageContext &imageContext) const;
+                                          const enums::tile_t &tile, joda::processor::ProcessContext &processContext) const;
 
   void initPipeline(const joda::settings::PipelineSettings &settings, const enums::tile_t &tile, const joda::enums::PlaneId &imagePartToLoad,
                     ProcessContext &processStepOu, int32_t pipelineIndex) const;
@@ -65,6 +64,71 @@ public:
   auto &getImagePath() const
   {
     return mImageRead.getImagePath();
+  }
+
+  auto getImageId() const
+  {
+    return mImageId;
+  }
+
+  auto getSeries() const
+  {
+    return mSelectedSeries;
+  }
+
+  auto getImageHeight() const
+  {
+    return mImageMeta.getImageHeight(mSelectedSeries, 0);
+  }
+
+  auto getImageWidth() const
+  {
+    return mImageMeta.getImageWidth(mSelectedSeries, 0);
+  }
+
+  [[nodiscard]] cv::Size getTileSize() const
+  {
+    return tileSize;
+  }
+
+  ome::PhyiscalSize getPhysicalPixelSIzeOfImage() const
+  {
+    return mImageMeta.getPhyiscalSize(mSelectedSeries);
+  }
+
+  auto getImageSize() const
+  {
+    return mImageMeta.getSize(mSelectedSeries);
+  }
+
+  auto getNrOfChannels() const
+  {
+    return mImageMeta.getNrOfChannels(mSelectedSeries);
+  }
+
+  auto getNrOfZStack() const
+  {
+    return mImageMeta.getNrOfZStack(mSelectedSeries);
+  }
+
+  auto getNrOfTStack() const
+  {
+    return mImageMeta.getNrOfTStack(mSelectedSeries);
+  }
+
+  auto getPhyiscalSize() const
+  {
+    return mImageMeta.getPhyiscalSize(mSelectedSeries);
+  }
+
+  auto getChannelInfos() const
+  {
+    return mImageMeta.getChannelInfos(mSelectedSeries);
+  }
+
+  enums::Units getPixelSizeUnit() const
+  {
+    return mSettings.imagePixelSizeSettings.pixelSizeUnit;
   }
 
 private:
@@ -83,8 +147,14 @@ private:
   /////////////////////////////////////////////////////
   const settings::ProjectImageSetup &mSettings;
   const settings::ProjectPipelineSetup &mSettingsPipeline;
-  processor::ImageContext *mImageContext = nullptr;
   image::reader::ImageReader mImageRead;
+  joda::ome::OmeInfo mImageMeta;
+
+  // IMAGE context///////////////////////////////////////////////////
+  uint32_t nrOfZStacks  = 0;
+  cv::Size tileSize     = {};
+  bool loadImageInTiles = false;
+  uint64_t mImageId;
 };
 
 }    // namespace joda::processor

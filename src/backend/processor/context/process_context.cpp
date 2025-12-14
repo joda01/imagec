@@ -12,16 +12,17 @@
 
 #include "process_context.hpp"
 #include <stdexcept>
+#include "backend/database/database.hpp"
 #include "backend/enums/enum_images.hpp"
 #include "backend/enums/enum_memory_idx.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
 
 namespace joda::processor {
 
-ProcessContext::ProcessContext(GlobalContext &globalContextIn, PlateContext &plateContextIn, ImageContext &imageContextIn,
+ProcessContext::ProcessContext(const GlobalContext &globalContextIn, const PipelineInitializer &imageContextIn,
                                IterationContext &iterationContextIn) :
     globalContext(globalContextIn),
-    plateContext(plateContextIn), imageContext(imageContextIn), iterationContext(iterationContextIn)
+    imageContext(imageContextIn), iterationContext(iterationContextIn)
 {
 }
 
@@ -47,8 +48,11 @@ ProcessContext::ProcessContext(GlobalContext &globalContextIn, PlateContext &pla
       cacheId.imagePlane.zStack = getActIterator().zStack;
     }
 
-    imageContext.imageLoader.loadImageAndStoreToCache(scope, cacheId.imagePlane, cacheId.zProjection, pipelineContext.actImagePlane.tile, *this,
-                                                      imageContext);
+    if(cacheId.imagePlane.tStack < 0) {
+      cacheId.imagePlane.tStack = getActIterator().tStack;
+    }
+
+    imageContext.loadImageAndStoreToCache(scope, cacheId.imagePlane, cacheId.zProjection, pipelineContext.actImagePlane.tile, *this);
   }
   if(scope == enums::MemoryScope::ITERATION) {
     return iterationContext.imageCache.at(getMemoryIdx(cacheId)).get();
@@ -59,7 +63,43 @@ ProcessContext::ProcessContext(GlobalContext &globalContextIn, PlateContext &pla
 
 [[nodiscard]] const std::filesystem::path &ProcessContext::getActImagePath() const
 {
-  return imageContext.imageLoader.getImagePath();
+  return imageContext.getImagePath();
+}
+
+void ProcessContext::setImageValidity(enums::ChannelValidityEnum validityIn)
+{
+  enums::ChannelValidity validity;
+  validity.set(validityIn);
+  globalContext.database->setImageValidity(imageContext.getImageId(), validity);
+}
+
+void ProcessContext::setImagePlaneValidity(enums::ChannelValidityEnum validityIn)
+{
+  enums::ChannelValidity validity;
+  validity.set(validityIn);
+  globalContext.database->setImagePlaneValidity(imageContext.getImageId(), getActIterator(), validity);
+}
+
+void ProcessContext::setImagePlaneClasssClasssValidity(enums::ClassIdIn classIn, enums::ChannelValidityEnum validityIn)
+{
+  enums::ChannelValidity validity;
+  validity.set(validityIn);
+  globalContext.database->setImagePlaneClasssClasssValidity(imageContext.getImageId(), getActIterator(), getClassId(classIn), validity);
+}
+
+[[nodiscard]] cv::Size ProcessContext::getOriginalImageSize() const
+{
+  return {imageContext.getImageWidth(), imageContext.getImageHeight()};
+}
+
+[[nodiscard]] cv::Size ProcessContext::getTileSize() const
+{
+  return imageContext.getTileSize();
+}
+
+ome::PhyiscalSize ProcessContext::getPhysicalPixelSIzeOfImage() const
+{
+  return imageContext.getPhysicalPixelSIzeOfImage();
 }
 
 }    // namespace joda::processor

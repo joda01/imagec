@@ -944,8 +944,8 @@ void WindowMain::onStartClicked(AnalyzeMode mode)
       analyzeRunningDialog = new DialogAnalyzeRunning(this, mAnalyzeSettings, std::nullopt);
     }
     analyzeRunningDialog->exec();
-    auto jobIinfo = getController()->getJobInformation();
-    addToLastLoadedResults(jobIinfo.resultsFilePath.string().data(), jobIinfo.jobName.data());
+    const auto &jobIinfo = getController()->getJobInformation();
+    addToLastLoadedResults(jobIinfo->resultsDatabaseFilePath.string().data(), jobIinfo->jobName.data());
     // Analysis finished -> generate new name
     mPanelProjectSettings->generateNewJobName();
   } catch(const std::exception &ex) {

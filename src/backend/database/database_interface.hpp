@@ -18,10 +18,13 @@
 #include "backend/enums/enum_validity.hpp"
 #include "backend/helper/file_grouper/file_grouper_types.hpp"
 #include "backend/helper/ome_parser/ome_info.hpp"
-#include "backend/processor/context/image_context.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include <duckdb/main/query_result.hpp>
 #include <BS_thread_pool.hpp>
+
+namespace joda::processor {
+class PipelineInitializer;
+}
 
 namespace joda::db {
 
@@ -85,10 +88,9 @@ public:
 
   virtual auto prepareImages(uint8_t plateId, int32_t series, enums::GroupBy groupBy, const std::string &filenameRegex,
                              const std::vector<std::filesystem::path> &imagePaths, const std::filesystem::path &imagesBasePath,
-                             const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings,
-                             BS::light_thread_pool &globalThreadPool)
-      -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> = 0;
-  virtual void setImageProcessed(uint64_t)                                            = 0;
+                             const joda::settings::AnalyzeSettings &analyzeSettings, std::unique_ptr<BS::thread_pool<>> &threadPool)
+      -> std::vector<std::shared_ptr<joda::processor::PipelineInitializer>> = 0;
+  virtual void setImageProcessed(uint64_t)                                  = 0;
 
   virtual void insertImagePlane(uint64_t imageId, const enums::PlaneId &, const ome::OmeInfo::ImagePlane &) = 0;
 
@@ -98,7 +100,11 @@ public:
   virtual void setImagePlaneClasssClasssValidity(uint64_t imageId, const enums::PlaneId &, enums::ClassId classId,
                                                  enums::ChannelValidity validity)                               = 0;
 
-  virtual void insertObjects(const joda::processor::ImageContext &, enums::Units, const joda::atom::ObjectList &) = 0;
+  virtual void insertObjects(const processor::PipelineInitializer &, enums::Units, const joda::atom::ObjectList &) = 0;
+  [[nodiscard]] virtual auto getImageValidity() const -> enums::ChannelValidity
+  {
+    return {};
+  }
 };
 
 ///
@@ -126,9 +132,8 @@ public:
 
   auto prepareImages(uint8_t /*plateId*/, int32_t /*series*/, enums::GroupBy /*groupBy*/, const std::string & /*filenameRegex*/,
                      const std::vector<std::filesystem::path> & /*imagePaths*/, const std::filesystem::path & /*imagesBasePath*/,
-                     const joda::settings::ProjectImageSetup::PhysicalSizeSettings & /*defaultPhysicalSizeSettings*/,
-                     BS::light_thread_pool & /*globalThreadPool*/)
-      -> std::vector<std::tuple<std::filesystem::path, joda::ome::OmeInfo, uint64_t>> override
+                     const joda::settings::AnalyzeSettings & /*projectImageSetup*/, std::unique_ptr<BS::thread_pool<>> & /*globalThreadPool*/)
+      -> std::vector<std::shared_ptr<joda::processor::PipelineInitializer>> override
   {
     return {};
   }
@@ -156,11 +161,11 @@ public:
   {
   }
 
-  void insertObjects(const joda::processor::ImageContext &, enums::Units, const joda::atom::ObjectList &) override
+  void insertObjects(const processor::PipelineInitializer &, enums::Units, const joda::atom::ObjectList &) override
   {
   }
 
-  [[nodiscard]] auto getImageValidity() const -> enums::ChannelValidity
+  [[nodiscard]] auto getImageValidity() const -> enums::ChannelValidity override
   {
     if(mImageValidity.empty()) {
       return {};

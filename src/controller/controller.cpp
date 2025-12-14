@@ -35,6 +35,7 @@
 #include "backend/helper/reader/image_reader.hpp"
 #include "backend/helper/system/system_resources.hpp"
 #include "backend/helper/table/table.hpp"
+#include "backend/processor/context/process_context.hpp"
 #include "backend/processor/initializer/pipeline_initializer.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
@@ -106,6 +107,12 @@ void Controller::initApplication()
   joda::log::logInfo("User template folder: " + templates::TemplateParser::getUsersTemplateDirectory().string());
 
   joda::image::reader::ImageReader::init(systemRecourses.ramReservedForJVM);    // Costs ~50MB RAM
+
+  // ======================================
+  // Init thread pool
+  // ======================================
+  const int32_t threads = std::max(1, (joda::system::getNrOfCPUs() - 1));
+  mGlobThreadPool       = std::make_unique<BS::thread_pool<>>(threads);
 }
 
 ///
@@ -123,117 +130,6 @@ void Controller::cleanShutdownApplication()
   joda::image::reader::ImageReader::destroy();
   joda::log::logInfo("ImageC says goodbye!");
   log::joinLogger();
-}
-
-///
-/// \brief
-/// \author
-/// \return
-///
-auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::optional<joda::ome::OmeInfo> &imageOmeInfo)
-    -> joda::thread::ThreadingSettings
-{
-  if(mWorkingDirectory.getNrOfFiles() > 0) {
-    return calcOptimalThreadNumber(settings, mWorkingDirectory.gitFirstFile(), static_cast<int32_t>(mWorkingDirectory.getNrOfFiles()), imageOmeInfo);
-  }
-  return {};
-}
-
-///
-/// \brief
-/// \author
-/// \return
-///
-auto Controller::calcOptimalThreadNumber(const settings::AnalyzeSettings &settings, const std::filesystem::path &file, int nrOfFiles,
-                                         const std::optional<joda::ome::OmeInfo> &imageOmeInfo) -> joda::thread::ThreadingSettings
-{
-  joda::thread::ThreadingSettings threads;
-
-  joda::ome::OmeInfo ome;
-  if(!imageOmeInfo.has_value()) {
-    ome = getImageProperties(file, settings.imageSetup.series, settings.imageSetup.imagePixelSizeSettings);
-  } else {
-    ome = imageOmeInfo.value();
-  }
-  int64_t imgNr      = nrOfFiles;
-  int64_t tileNr     = 1;
-  int64_t pipelineNr = static_cast<int64_t>(settings.pipelines.size());
-  // const auto &props    = ome.getImageInfo(settings.imageSetup.series);
-  auto systemRecourses = getSystemResources();
-
-  // Load image in tiles if too big
-  const auto &imageInfo = ome.getImageInfo(settings.imageSetup.series).resolutions.at(0);
-
-  bool canLoadTiles =
-      (imageInfo.optimalTileHeight <= settings.imageSetup.imageTileSettings.tileHeight && imageInfo.optimalTileWidth <= imageInfo.imageWidth);
-  if(canLoadTiles && (imageInfo.imageWidth > settings.imageSetup.imageTileSettings.tileWidth ||
-                      imageInfo.imageHeight > settings.imageSetup.imageTileSettings.tileHeight)) {
-    auto [tilesX, tilesY] = imageInfo.getNrOfTiles(settings.imageSetup.imageTileSettings.tileWidth, settings.imageSetup.imageTileSettings.tileHeight);
-    tileNr                = static_cast<int64_t>(tilesX) * tilesY;
-    threads.ramPerImage   = static_cast<uint64_t>((imageInfo.rgbChannelCount * imageInfo.bits * settings.imageSetup.imageTileSettings.tileWidth *
-                                                 settings.imageSetup.imageTileSettings.tileHeight) /
-                                                8);
-  } else {
-    tileNr              = 1;
-    threads.ramPerImage = static_cast<uint64_t>(imageInfo.imageMemoryUsage);
-  }
-
-  if(threads.ramPerImage <= 0) {
-    threads.ramPerImage = 1;
-  }
-  threads.ramFree        = std::min(systemRecourses.ramAvailable, systemRecourses.ramReservedForJVM);
-  threads.ramTotal       = systemRecourses.ramTotal;
-  threads.coresAvailable = systemRecourses.cpus;
-
-  // No multi threading when AI is used, sinze AI is still using all cPUs
-  // for(const auto &ch : settings.getChannelsVector()) {
-  //  if(ch.getDetectionSettings().getDetectionMode() ==
-  //  settings::json::ChannelDetection::DetectionMode::AI) {
-  //    // return threads;
-  //  }
-  //}
-
-  // Maximum number of cores depends on the available RAM.)
-  int32_t maxNumberOfCoresToAssign =
-      static_cast<int32_t>(std::min(static_cast<uint64_t>(systemRecourses.cpus), static_cast<uint64_t>(threads.ramFree / threads.ramPerImage)));
-  if(maxNumberOfCoresToAssign <= 0) {
-    maxNumberOfCoresToAssign = 1;
-  }
-  if(maxNumberOfCoresToAssign > 1 && maxNumberOfCoresToAssign == static_cast<int32_t>(systemRecourses.cpus)) {
-    // Don't use all CPU cores if there are more than 1
-    maxNumberOfCoresToAssign--;
-  }
-  threads.coresUsed = static_cast<uint32_t>(maxNumberOfCoresToAssign);
-
-  threads.cores[joda::thread::ThreadingSettings::IMAGES]   = 1;
-  threads.cores[joda::thread::ThreadingSettings::TILES]    = 1;
-  threads.cores[joda::thread::ThreadingSettings::CHANNELS] = 1;
-
-  if(imgNr > tileNr) {
-    if(imgNr > pipelineNr) {
-      // Image Nr wins
-      threads.cores[joda::thread::ThreadingSettings::IMAGES] = maxNumberOfCoresToAssign;
-    } else {
-      // Channel Nr wins
-      threads.cores[joda::thread::ThreadingSettings::CHANNELS] = maxNumberOfCoresToAssign;
-    }
-  } else {
-    if(tileNr > pipelineNr) {
-      // Tile nr wins
-      threads.cores[joda::thread::ThreadingSettings::TILES] = maxNumberOfCoresToAssign;
-    } else {
-      // Channel Nr wins
-      threads.cores[joda::thread::ThreadingSettings::CHANNELS] = maxNumberOfCoresToAssign;
-    }
-  }
-
-  threads.totalRuns = static_cast<uint64_t>(imgNr * tileNr * pipelineNr);
-
-  /* joda::log::logInfo("Calculated threads " + std::to_string(imageInfo.optimalTileHeight) + "x" + std::to_string(imageInfo.optimalTileWidth) + " | "
-     + std::to_string((float) threads.ramPerImage / 1000000.0f) + " MB " + " | " + std::to_string(threads.coresUsed));*/
-
-  joda::log::logInfo("Number of CPU cores to use: " + std::to_string(threads.coresUsed));
-  return threads;
 }
 
 ///
@@ -300,12 +196,11 @@ void Controller::registerImageLookupCallback(const std::function<void(joda::file
 // PREVIEW ///////////////////////////////////////////////////
 
 void Controller::preview(const settings::ProjectImageSetup &imageSetup, const processor::PreviewSettings &previewSettings,
-                         const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings &threadSettings,
-                         const settings::Pipeline &pipeline, const std::filesystem::path &imagePath, int32_t tileX, int32_t tileY, int32_t tStack,
-                         processor::Preview &previewOut, const joda::ome::OmeInfo &ome)
+                         const settings::AnalyzeSettings &settings, const settings::Pipeline &pipeline, const std::filesystem::path &imagePath,
+                         int32_t tileX, int32_t tileY, int32_t tStack, processor::Preview &previewOut, const joda::ome::OmeInfo &ome)
 {
   processor::Processor process;
-  process.generatePreview(previewSettings, imageSetup, settings, threadSettings, pipeline, imagePath, tStack, 0, tileX, tileY, ome, previewOut);
+  process.generatePreview(mGlobThreadPool, previewSettings, imageSetup, settings, pipeline, imagePath, tStack, 0, tileX, tileY, ome, previewOut);
 }
 
 ///
@@ -332,7 +227,7 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
         phys = joda::ome::PhyiscalSize{static_cast<double>(defaultPhysicalSizeSettings.pixelWidth),
                                        static_cast<double>(defaultPhysicalSizeSettings.pixelHeight), 0, defaultPhysicalSizeSettings.pixelSizeUnit};
       }
-      omeOut = mLastImageReader->getOmeInformation(series, phys);
+      omeOut = mLastImageReader->getOmeInformation(phys);
     }
   }
   loadImage(imagePath, series, imagePlane, tileLoad, previewOut, &omeOut, zProjection);
@@ -443,7 +338,7 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
 /// \author
 /// \return
 ///
-auto Controller::getImageProperties(const std::filesystem::path &imagePath, int series,
+auto Controller::getImageProperties(const std::filesystem::path &imagePath,
                                     const joda::settings::ProjectImageSetup::PhysicalSizeSettings &defaultPhysicalSizeSettings) -> joda::ome::OmeInfo
 {
   ome::PhyiscalSize phys = {};
@@ -456,7 +351,7 @@ auto Controller::getImageProperties(const std::filesystem::path &imagePath, int 
   if(mLastImageReader == nullptr || mLastImageReader->getImagePath() != imagePath) {
     mLastImageReader = std::make_unique<image::reader::ImageReader>(imagePath);
   }
-  return mLastImageReader->getOmeInformation(static_cast<uint16_t>(series), phys);
+  return mLastImageReader->getOmeInformation(phys);
 }
 
 // FLOW CONTROL ////////////////////////////////////////////////
@@ -464,8 +359,8 @@ auto Controller::getImageProperties(const std::filesystem::path &imagePath, int 
 /// \author
 /// \return
 ///
-void Controller::start(const settings::AnalyzeSettings &settings, const joda::thread::ThreadingSettings & /*threadSettings*/,
-                       const std::string &jobName, const std::optional<std::filesystem::path> &fileToAnalyze)
+void Controller::start(const settings::AnalyzeSettings &settings, const std::string &jobName,
+                       const std::optional<std::filesystem::path> &fileToAnalyze)
 {
   if(mActThread.joinable()) {
     mActThread.join();
@@ -487,9 +382,7 @@ void Controller::start(const settings::AnalyzeSettings &settings, const joda::th
     imageList->waitForFinished();
     mActProcessor->mutableProgress().setRunningPreparingPipeline();
 
-    mActProcessor->execute(
-        settings, jobName,
-        calcOptimalThreadNumber(settings, imageList->gitFirstFile(), static_cast<int32_t>(imageList->getNrOfFiles()), std::nullopt), imageList);
+    mActProcessor->execute(mGlobThreadPool, settings, jobName, imageList);
   });
 }
 
@@ -524,12 +417,16 @@ void Controller::stop()
 /// \author
 /// \return
 ///
-[[nodiscard]] const processor::ProcessInformation &Controller::getJobInformation() const
+[[nodiscard]] auto Controller::getJobInformation() const -> const std::unique_ptr<processor::GlobalContext> &
 {
   if(mActProcessor) {
-    return mActProcessor->getJobInformation();
+    const auto &globctx = mActProcessor->getGlobalContext();
+    if(!globctx) {
+      throw std::runtime_error("Glob context is null!");
+    }
+    return globctx;
   }
-  throw std::runtime_error("No job executed!");
+  throw std::runtime_error("No job running!");
 }
 
 ///
