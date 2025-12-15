@@ -144,6 +144,9 @@ void VideoControlButtonGroup::setMaxTimeStacks(int32_t maxTStacks)
       QMetaObject::invokeMethod(
           mSpinnerActTimeStack,
           [this] {
+            if(mSpinnerActTimeStack == nullptr) {
+              return;
+            }
             CHECK_GUI_THREAD(mSpinnerActTimeStack)
             mSpinnerActTimeStack->setValue(0);
           },
