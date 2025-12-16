@@ -211,7 +211,7 @@ private:
   std::unique_ptr<std::thread> mPreviewThread;
 
   // T-STACK //////////////////////////////////////////////////
-  VideoControlButtonGroup *mVideoControlButton;
+  VideoControlButtonGroup *mVideoControlButton = nullptr;
 
   /////////////////////////////////////////////////////
   std::set<uint16_t> mActGroupId;

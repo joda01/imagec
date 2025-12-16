@@ -324,7 +324,7 @@ DialogImageViewer::DialogImageViewer(QWidget *parent, const std::shared_ptr<atom
   // setLayout(layout);
   setLayout(mMainLayout);
 
-  onSettingsChanged();
+  // onSettingsChanged(); // Leads to a crash on startup
 }
 
 ///
@@ -467,7 +467,6 @@ void DialogImageViewer::applySettingsToImagePanel()
   auto tileSizeIn = getTileSize();
   mImagePanel->setSeries(mImageSettings.imageSeries);
   if(nullptr != mVideoButtonGroup && nullptr != mImagePanel) {
-    mVideoButtonGroup->setMaxTimeStacks(mImagePanel->getNrOfTstacks());
     mSelectedTStack = mVideoButtonGroup->value();
     if(mVideoButtonGroup->isVideoRunning()) {
       mImagePanel->setWaitBannerVisible(false);
@@ -509,6 +508,9 @@ void DialogImageViewer::applySettingsToImagePanel()
 ///
 void DialogImageViewer::onSettingsChanged()
 {
+  if(nullptr != mVideoButtonGroup && nullptr != mImagePanel) {
+    mVideoButtonGroup->setMaxTimeStacks(mImagePanel->getNrOfTstacks());
+  }
   applySettingsToImagePanel();
   mImagePanel->reloadImage();
   emit settingChanged();
