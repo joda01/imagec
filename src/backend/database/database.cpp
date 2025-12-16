@@ -1846,4 +1846,96 @@ auto Database::selectGroupIdFromGroupName(const std::string &groupName) -> uint1
   return UINT16_MAX;
 }
 
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+auto Database::selectRegionOfInterests(uint64_t imageId, uint16_t classIdIn) -> std::map<int32_t, std::vector<atom::ROI>>
+{
+  std::unique_ptr<duckdb::QueryResult> result = select(
+      "SELECT "
+      "object_id,class_id,stack_c,stack_z,stack_t,meas_confidence,meas_area_size,meas_perimeter,meas_circularity,meas_center_x,meas_center_y,meas_"
+      "box_x,meas_box_y,"
+      "meas_box_width,meas_box_height,meas_origin_object_id,meas_parent_object_id,meas_parent_class_id,meas_tracking_id  FROM objects WHERE image_id "
+      "= ? AND class_id = ?",
+      imageId, classIdIn);
+
+  if(result->HasError()) {
+    throw std::invalid_argument(result->GetError());
+  }
+  auto materializedResult = result->Cast<duckdb::StreamQueryResult>().Materialize();
+
+  std::map<int32_t, std::vector<atom::ROI>> retVals;
+
+  for(duckdb::idx_t row = 0; row < materializedResult->RowCount(); row++) {
+    const uint64_t objectId       = materializedResult->GetValue(0, row).GetValue<uint64_t>();
+    const uint16_t classId        = materializedResult->GetValue(1, row).GetValue<uint16_t>();
+    const int32_t stackC          = static_cast<int32_t>(materializedResult->GetValue(2, row).GetValue<uint32_t>());
+    const int32_t stackZ          = static_cast<int32_t>(materializedResult->GetValue(3, row).GetValue<uint32_t>());
+    const int32_t stackT          = static_cast<int32_t>(materializedResult->GetValue(4, row).GetValue<uint32_t>());
+    const float confidence        = materializedResult->GetValue(5, row).GetValue<float>();
+    const double areaSize         = materializedResult->GetValue(6, row).GetValue<double>();
+    const float perimeter         = materializedResult->GetValue(7, row).GetValue<float>();
+    const float circularity       = materializedResult->GetValue(8, row).GetValue<float>();
+    const int32_t centerX         = static_cast<int32_t>(materializedResult->GetValue(9, row).GetValue<uint32_t>());
+    const int32_t centerY         = static_cast<int32_t>(materializedResult->GetValue(10, row).GetValue<uint32_t>());
+    const int32_t boxX            = static_cast<int32_t>(materializedResult->GetValue(11, row).GetValue<uint32_t>());
+    const int32_t boxY            = static_cast<int32_t>(materializedResult->GetValue(12, row).GetValue<uint32_t>());
+    const int32_t boxWidth        = static_cast<int32_t>(materializedResult->GetValue(13, row).GetValue<uint32_t>());
+    const int32_t boxHeight       = static_cast<int32_t>(materializedResult->GetValue(14, row).GetValue<uint32_t>());
+    const uint64_t originObjectId = materializedResult->GetValue(15, row).GetValue<uint64_t>();
+    const uint64_t parentObjectId = materializedResult->GetValue(16, row).GetValue<uint64_t>();
+    // const uint16_t parentClassId  = materializedResult->GetValue(17, 0).GetValue<uint16_t>();
+    const uint64_t trackingId = materializedResult->GetValue(18, row).GetValue<uint64_t>();
+
+    atom::ROI roi(false, objectId,
+                  atom::ROI::RoiObjectId{.classId    = static_cast<joda::enums::ClassId>(classId),
+                                         .imagePlane = {.tStack = stackT, .zStack = stackZ, .cStack = stackC}},
+                  confidence, {boxX, boxY, boxWidth, boxHeight}, {}, {}, areaSize, perimeter, circularity, {}, originObjectId, {centerX, centerY},
+                  parentObjectId, trackingId, {}, false, atom::ROI::Category::AUTO_SEGMENTATION);
+    retVals[stackT].emplace_back(std::move(roi));
+  }
+  return retVals;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void Database::setTrackingId(const std::map<int32_t, std::vector<atom::ROI>> &rois)
+{
+  auto connection = acquire();
+  connection->Query("BEGIN TRANSACTION");
+
+  connection->Query("CREATE TEMP TABLE updates(id UBIGINT, val UBIGINT)");
+
+  // Use Appender for fast inserts
+  auto appender = duckdb::Appender(*connection, "updates");
+
+  for(const auto &[frameId, spots] : rois) {
+    for(const auto &roi : spots) {
+      appender.BeginRow();
+      appender.Append(roi.getObjectId());
+      appender.Append(roi.getTrackingId());
+      appender.EndRow();
+    }
+  }
+  appender.Close();
+
+  connection->Query(R"(
+        UPDATE objects
+        SET objects.meas_tracking_id = updates.val
+        FROM updates
+        WHERE objects.object_id = updates.id
+    )");
+
+  connection->Query("COMMIT");
+}
+
 }    // namespace joda::db

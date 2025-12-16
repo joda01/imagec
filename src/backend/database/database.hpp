@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <memory>
 #include <vector>
+#include "backend/artifacts/roi/roi.hpp"
 #include "backend/enums/enum_validity.hpp"
 #include "backend/enums/enums_classes.hpp"
 #include "backend/enums/types.hpp"
@@ -96,6 +97,9 @@ public:
   auto selectIntersectingClassForClasses() -> std::map<enums::ClassId, std::set<enums::ClassId>>;
   auto selectDistanceClassForClasses() -> std::map<enums::ClassId, std::set<enums::ClassId>>;
   auto selectColocalizingClasses() -> std::set<std::set<enums::ClassId>>;
+
+  auto selectRegionOfInterests(uint64_t imageId, uint16_t classId) -> std::map<int32_t, std::vector<atom::ROI>>;
+  void setTrackingId(const std::map<int32_t, std::vector<atom::ROI>> &roi);
 
   void updateResultsTableSettings(const std::string &jobId, const std::string &settings);
   auto selectResultsTableSettings(const std::string &jobId) -> std::string;
