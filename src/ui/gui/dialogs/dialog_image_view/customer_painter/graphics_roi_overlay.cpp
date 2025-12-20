@@ -89,7 +89,8 @@ void RoiOverlay::refresh()
   //
   mObjectMap->forEach([&, this](const auto &pair) {
     const auto &[clasId, classs] = pair;
-    const auto &classSetting     = mClassificationSettings->getClassFromId(clasId);
+
+    const auto &classSetting = mClassificationSettings->getClassFromId(clasId);
 
     if(!classSetting.hidden) {
       // Optimization 2: Use QImage::pixel format for direct pixel manipulation

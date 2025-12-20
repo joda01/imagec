@@ -13,6 +13,15 @@
 
 namespace joda::processor {
 
+IterationContext::IterationContext(std::shared_ptr<joda::atom::ObjectList> &objectList, const std::filesystem::path &projectPath,
+                                   const std::filesystem::path &imagePath, int32_t tStack) :
+    actObjects(objectList)
+{
+  auto storagePath =
+      joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath, joda::fs::FILE_NAME_ANNOTATIONS + joda::fs::EXT_ANNOTATION);
+  objectList->deserialize(storagePath, tStack);
+}
+
 void IterationContext::removeTemporaryObjects(ProcessContext *context)
 {
   getObjects().erase(context->getTemporaryClassId(enums::ClassIdIn::TEMP_01));

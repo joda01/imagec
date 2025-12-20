@@ -241,7 +241,7 @@ PanelClassification::PanelClassification(const std::shared_ptr<atom::ObjectList>
                                                                 "ImageC annotations (*" + QString(joda::fs::EXT_ANNOTATION.data()) + ")", nullptr, opt);
         if(!fileToOpen.isEmpty()) {
           mObjectMap->triggerStartChangeCallback();
-          mObjectMap->deserialize(fileToOpen.toStdString());
+          mObjectMap->deserialize(fileToOpen.toStdString(), -1);    /// \todo How to store and load time stack data
           mObjectMap->triggerChangeCallback();
           mDialogImageView->getImagePanel()->setRegionsOfInterestFromObjectList();
           mObjectMap->triggerManuelAnnotationAdded();

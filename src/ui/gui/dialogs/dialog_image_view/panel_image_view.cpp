@@ -23,6 +23,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <ranges>
@@ -235,9 +236,13 @@ void PanelImageView::openImageFinished(std::filesystem::path imagePath, processo
     storeChannelSettings();
     mImageMeta.open(imagePath, mProjectPath);
   }
+  saveROI();
+  loadROI();
+
   restoreChannelSettings();
   setRegionsOfInterestFromObjectList();
   repaintImage();
+
   if(mLastPath != imagePath) {
     emit imageOpened();
     mLastPath = imagePath;
@@ -246,7 +251,6 @@ void PanelImageView::openImageFinished(std::filesystem::path imagePath, processo
   }
   mLastPlane = mPlane;
   mLastTile  = mTile;
-  loadROI();
   setLoadingImage(false);
   emit channelOpened();
 }
@@ -738,7 +742,6 @@ int32_t PanelImageView::getSeries() const
 void PanelImageView::setImagePlane(const joda::enums::PlaneId &plane)
 {
   std::lock_guard<std::mutex> locked(mImageResetMutex);
-  saveROI();
   storeChannelSettings();
   mPlane = plane;
 }
@@ -753,7 +756,6 @@ void PanelImageView::setImagePlane(const joda::enums::PlaneId &plane)
 void PanelImageView::setImageChannel(int32_t ch)
 {
   std::lock_guard<std::mutex> locked(mImageResetMutex);
-  saveROI();
   storeChannelSettings();
   mPlane.cStack = ch;
 }
@@ -781,7 +783,6 @@ auto PanelImageView::getImagePlane() const -> joda::enums::PlaneId
 void PanelImageView::setImageTile(int32_t tileWith, int32_t tileHeight)
 {
   std::lock_guard<std::mutex> locked(mImageResetMutex);
-  saveROI();
   mTile.tileWidth  = tileWith;
   mTile.tileHeight = tileHeight;
 }
@@ -796,7 +797,6 @@ void PanelImageView::setImageTile(int32_t tileWith, int32_t tileHeight)
 void PanelImageView::setSelectedTile(int32_t tileX, int32_t tileY)
 {
   std::lock_guard<std::mutex> locked(mImageResetMutex);
-  saveROI();
   mTile.tileX = tileX;
   mTile.tileY = tileY;
 }
@@ -2075,9 +2075,21 @@ void PanelImageView::saveROI()
     if(mLastPath.empty() || mProjectPath.empty()) {
       return;
     }
-    auto imgIdOld = joda::helper::generateImageMetaDataStoragePathFromImagePath(mLastPath, mProjectPath,
-                                                                                joda::fs::FILE_NAME_ANNOTATIONS + joda::fs::EXT_ANNOTATION);
-    mObjectMap->serialize(imgIdOld);
+    auto storagePathNew = joda::helper::generateImageMetaDataStoragePathFromImagePath(mLastPath, mProjectPath,
+                                                                                      joda::fs::FILE_NAME_ANNOTATIONS + joda::fs::EXT_ANNOTATION);
+
+    std::unique_ptr<atom::ObjectList> tmp = std::make_unique<atom::ObjectList>();
+    if(std::filesystem::exists(storagePathNew)) {
+      tmp->deserializeWithoutGivenTimeStack(storagePathNew, mLastPlane.tStack);
+    }
+
+    const auto &tmpList = mObjectMap->getObjectList();
+    for(const auto &[_, roi] : *tmpList) {
+      tmp->push_back(*roi);
+    }
+
+    tmp->serialize(storagePathNew);
+
   } catch(const std::exception &ex) {
     joda::log::logError("WindowMain::saveROI:" + std::string(ex.what()));
   }
@@ -2099,13 +2111,12 @@ void PanelImageView::loadROI()
                                                                                     joda::fs::FILE_NAME_ANNOTATIONS + joda::fs::EXT_ANNOTATION);
   mObjectMap->triggerStartChangeCallback();
   if(std::filesystem::exists(storagePathNew)) {
-    mObjectMap->deserialize(storagePathNew);
+    mObjectMap->deserialize(storagePathNew, mPlane.tStack);
   } else {
     mObjectMap->clearAll();
   }
 
   mObjectMap->triggerChangeCallback();
-  setRegionsOfInterestFromObjectList();
 }
 
 }    // namespace joda::ui::gui
