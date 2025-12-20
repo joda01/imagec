@@ -51,5 +51,4 @@ inline std::filesystem::path generateImageMetaDataStoragePathFromImagePath(const
   path = path / fileName;
   return path;
 }
-
 }    // namespace joda::helper

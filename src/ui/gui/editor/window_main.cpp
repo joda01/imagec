@@ -235,7 +235,7 @@ void WindowMain::closeEvent(QCloseEvent *event)
       mPreviewImage->getImagePanel()->shutdown();
       event->accept();
     } else if(result == QMessageBox::No) {
-      saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
+      mPreviewImage->getImagePanel()->saveROI();
       mPreviewImage->getImagePanel()->shutdown();
       event->accept();
     } else {
@@ -244,7 +244,7 @@ void WindowMain::closeEvent(QCloseEvent *event)
     }
   } else {
     mPreviewImage->getImagePanel()->shutdown();
-    saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
+    mPreviewImage->getImagePanel()->saveROI();
     event->accept();
   }
 }
@@ -488,7 +488,7 @@ void WindowMain::onNewProjectClicked()
   }
   showPanelStartPage();
   if(mode == DialogOpenTemplate::ReturnCode::EMPTY_PROJECT) {
-    saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
+    mPreviewImage->getImagePanel()->saveROI();
     clearSettings();
     checkForSettingsChanged();
   } else {
@@ -575,61 +575,7 @@ void WindowMain::openImage(const std::filesystem::path &imagePath, const ome::Om
   if(imagePath.empty()) {
     return;
   }
-  saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
   mPreviewImage->getImagePanel()->openImage(imagePath, omeInfo);
-  loadROI(imagePath);
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
-void WindowMain::loadROI(const std::filesystem::path &imagePath)
-{
-  if(imagePath.empty() || !mAnalyzeSettings.isProjectPathSet()) {
-    return;
-  }
-  const std::filesystem::path projectPath(mAnalyzeSettings.getProjectPath());
-  auto storagePathNew =
-      joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath, joda::fs::FILE_NAME_ANNOTATIONS + joda::fs::EXT_ANNOTATION);
-  mPreviewResult.results.objectMap->triggerStartChangeCallback();
-  if(std::filesystem::exists(storagePathNew)) {
-    mPreviewResult.results.objectMap->deserialize(storagePathNew);
-  } else {
-    mPreviewResult.results.objectMap->clearAll();
-  }
-
-  mPreviewResult.results.objectMap->triggerChangeCallback();
-  mPreviewImage->getImagePanel()->setRegionsOfInterestFromObjectList();
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
-void WindowMain::saveROI()
-{
-  saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
-}
-
-///
-/// \brief
-/// \author     Joachim Danmayr
-///
-void WindowMain::saveROI(const std::filesystem::path &imagePath)
-{
-  try {
-    if(imagePath.empty() || !mAnalyzeSettings.isProjectPathSet()) {
-      return;
-    }
-    std::lock_guard<std::mutex> lock(mWriteRoi);
-    const std::filesystem::path projectPath(mAnalyzeSettings.getProjectPath());
-    auto imgIdOld = joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath,
-                                                                                joda::fs::FILE_NAME_ANNOTATIONS + joda::fs::EXT_ANNOTATION);
-    mPreviewResult.results.objectMap->serialize(imgIdOld);
-  } catch(const std::exception &ex) {
-    joda::log::logError("WindowMain::saveROI:" + std::string(ex.what()));
-  }
 }
 
 ///
@@ -672,7 +618,7 @@ void WindowMain::openProjectSettings(const QString &filePath, bool openFromTempl
 {
   DurationCount durationCount("Open project");
   try {
-    saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
+    mPreviewImage->getImagePanel()->saveROI();
     joda::settings::AnalyzeSettings analyzeSettings = joda::settings::Settings::openSettings(filePath.toStdString());
 
     // Assign the classes first
@@ -864,7 +810,7 @@ bool WindowMain::saveProject(std::filesystem::path filename, bool saveAs, bool c
           mAnalyzeSettings.setProjectPath(filename);
           updateProjectPath();
         }
-        saveROI(mPreviewImage->getImagePanel()->getCurrentImagePath());
+        mPreviewImage->getImagePanel()->saveROI();
         mAnalyzeSettingsOld = mAnalyzeSettings;
         checkForSettingsChanged();
       } else {

@@ -166,6 +166,8 @@ public:
   void setRoisSelectable(bool);
   void setInfoText(const std::string &);
   void shutdown();
+  void saveROI();
+  void loadROI();
 
 signals:
   /////////////////////////////////////////////////////

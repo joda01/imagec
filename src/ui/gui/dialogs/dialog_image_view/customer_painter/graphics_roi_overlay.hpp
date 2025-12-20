@@ -32,8 +32,8 @@ public:
   RoiOverlay(const std::shared_ptr<joda::atom::ObjectList> &, const joda::settings::Classification *, ContourOverlay *, QWidget *parent);
 
   /////////////////////////////////////////////////////
-  void setOverlay(const cv::Size &imageSize, const cv::Size &previewSize, const joda::enums::TileInfo &tileInfo);
-  void refresh(const joda::enums::TileInfo &tileInfo);
+  void setOverlay(const cv::Size &imageSize, const cv::Size &previewSize, const joda::enums::TileInfo &tileInfo, const joda::enums::PlaneId &plane);
+  void refresh(const joda::enums::TileInfo &tileInfo, const joda::enums::PlaneId &plane);
   void setAlpha(float);
   void setFill(bool fill)
   {
@@ -59,6 +59,7 @@ private:
   cv::Size mImageSize;
   cv::Size mPreviewSize;
   joda::enums::TileInfo mTileInfo;
+  joda::enums::PlaneId mPlaneId;
   std::shared_ptr<joda::atom::ObjectList> mObjectMap            = nullptr;
   const joda::settings::Classification *mClassificationSettings = nullptr;
   float mAlpha                                                  = 0.8F;

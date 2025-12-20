@@ -39,8 +39,8 @@ struct TileToLoad
 {
   int32_t tileX      = 0;
   int32_t tileY      = 0;
-  int32_t tileWidth  = 256;
-  int32_t tileHeight = 256;
+  int32_t tileWidth  = 4096;
+  int32_t tileHeight = 4096;
 
   bool operator==(const TileToLoad &tile) const
   {

@@ -45,17 +45,20 @@ RoiOverlay::RoiOverlay(const std::shared_ptr<joda::atom::ObjectList> &objectMap,
 /// \param[out]
 /// \return
 ///
-void RoiOverlay::setOverlay(const cv::Size &imageSize, const cv::Size &previewSize, const joda::enums::TileInfo &tileInfo)
+void RoiOverlay::setOverlay(const cv::Size &imageSize, const cv::Size &previewSize, const joda::enums::TileInfo &tileInfo,
+                            const joda::enums::PlaneId &plane)
 {
   mTileInfo    = tileInfo;
   mImageSize   = imageSize;
   mPreviewSize = previewSize;
+  mPlaneId     = plane;
   refresh();
 }
 
-void RoiOverlay::refresh(const joda::enums::TileInfo &tileInfo)
+void RoiOverlay::refresh(const joda::enums::TileInfo &tileInfo, const joda::enums::PlaneId &plane)
 {
   mTileInfo = tileInfo;
+  mPlaneId  = plane;
   refresh();
 }
 

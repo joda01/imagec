@@ -82,7 +82,7 @@ public:
        const PipelineOrder_t *pipeline, int32_t tileX, int32_t tileY, int32_t tStack, int32_t zStack) :
       mProgress(progress),
       globalContext(globCtx), imageContext(imgCtx), pipelineOrder(pipeline), mtileX(tileX), mtileY(tileY), mtStack(tStack), mzStack(zStack),
-      objectCache(std::make_shared<joda::atom::ObjectList>()), iterationContext(objectCache, projectPath, imgCtx->getImagePath())
+      objectCache(std::make_shared<joda::atom::ObjectList>()), iterationContext(objectCache, projectPath, imgCtx->getImagePath(), tStack)
   {
   }
 
