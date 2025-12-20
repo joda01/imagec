@@ -29,13 +29,7 @@ class IterationContext
 
 public:
   explicit IterationContext(std::shared_ptr<joda::atom::ObjectList> &objectList, const std::filesystem::path &projectPath,
-                            const std::filesystem::path &imagePath) :
-      actObjects(objectList)
-  {
-    auto storagePath = joda::helper::generateImageMetaDataStoragePathFromImagePath(imagePath, projectPath,
-                                                                                   joda::fs::FILE_NAME_ANNOTATIONS + joda::fs::EXT_ANNOTATION);
-    objectList->deserialize(storagePath);
-  }
+                            const std::filesystem::path &imagePath, int32_t /*tStack*/);
   joda::atom::ObjectList &getObjects()
   {
     return *actObjects;

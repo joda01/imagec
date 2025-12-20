@@ -444,7 +444,7 @@ void PanelPipelineSettings::previewThread()
       emit updatePreviewStarted();
       try {
         // Collect data
-        mWindowMain->saveROI();
+        mPreviewImage->getImagePanel()->saveROI();
         settings::AnalyzeSettings settingsTmp           = mWindowMain->getSettings();
         auto *controller                                = mWindowMain->getController();
         const auto [imgIndex, selectedSeries, imgProps] = mWindowMain->getImagePanel()->getSelectedImage();

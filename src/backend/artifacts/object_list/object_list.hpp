@@ -309,7 +309,9 @@ public:
   }
 
   void serialize(const std::filesystem::path &);
-  void deserialize(const std::filesystem::path &);
+  void deserialize(const std::filesystem::path &, int32_t tStack);
+  void deserializeWithoutGivenTimeStack(const std::filesystem::path &, int32_t tStack);
+
   void mergeFrom(ObjectList &&other, joda::atom::ROI::Category categoryToKeep);
 
   // iterate safely

@@ -462,7 +462,7 @@ void ObjectList::serialize(const std::filesystem::path &filename)
 /// \param[out]
 /// \return
 ///
-void ObjectList::deserialize(const std::filesystem::path &filename)
+void ObjectList::deserialize(const std::filesystem::path &filename, int32_t tStack)
 {
   try {
     clearAll();
@@ -478,7 +478,41 @@ void ObjectList::deserialize(const std::filesystem::path &filename)
     for(size_t i = 0; i < count; ++i) {
       ROI roi;
       archive(roi);    // directly deserialize into allocated object
-      push_back(roi);
+      if(roi.getT() == tStack || tStack < 0) {
+        push_back(roi);
+      }
+    }
+  } catch(const std::exception &ex) {
+    joda::log::logWarning("Could not load ROIs. what: " + std::string(ex.what()));
+  }
+}
+
+///
+/// \brief
+/// \author     Joachim Danmayr
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void ObjectList::deserializeWithoutGivenTimeStack(const std::filesystem::path &filename, int32_t tStack)
+{
+  try {
+    clearAll();
+    if(!std::filesystem::exists(filename)) {
+      return;
+    }
+    std::ifstream is(filename.string(), std::ios::binary);
+    cereal::BinaryInputArchive archive(is);
+
+    size_t count;
+    archive(count);
+
+    for(size_t i = 0; i < count; ++i) {
+      ROI roi;
+      archive(roi);    // directly deserialize into allocated object
+      if(roi.getT() != tStack) {
+        push_back(roi);
+      }
     }
   } catch(const std::exception &ex) {
     joda::log::logWarning("Could not load ROIs. what: " + std::string(ex.what()));

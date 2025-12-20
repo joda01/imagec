@@ -45,17 +45,20 @@ RoiOverlay::RoiOverlay(const std::shared_ptr<joda::atom::ObjectList> &objectMap,
 /// \param[out]
 /// \return
 ///
-void RoiOverlay::setOverlay(const cv::Size &imageSize, const cv::Size &previewSize, const joda::enums::TileInfo &tileInfo)
+void RoiOverlay::setOverlay(const cv::Size &imageSize, const cv::Size &previewSize, const joda::enums::TileInfo &tileInfo,
+                            const joda::enums::PlaneId &plane)
 {
   mTileInfo    = tileInfo;
   mImageSize   = imageSize;
   mPreviewSize = previewSize;
+  mPlaneId     = plane;
   refresh();
 }
 
-void RoiOverlay::refresh(const joda::enums::TileInfo &tileInfo)
+void RoiOverlay::refresh(const joda::enums::TileInfo &tileInfo, const joda::enums::PlaneId &plane)
 {
   mTileInfo = tileInfo;
+  mPlaneId  = plane;
   refresh();
 }
 
@@ -86,7 +89,8 @@ void RoiOverlay::refresh()
   //
   mObjectMap->forEach([&, this](const auto &pair) {
     const auto &[clasId, classs] = pair;
-    const auto &classSetting     = mClassificationSettings->getClassFromId(clasId);
+
+    const auto &classSetting = mClassificationSettings->getClassFromId(clasId);
 
     if(!classSetting.hidden) {
       // Optimization 2: Use QImage::pixel format for direct pixel manipulation

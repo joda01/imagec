@@ -23,6 +23,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <ranges>
@@ -129,6 +130,7 @@ PanelImageView::PanelImageView(const std::shared_ptr<atom::ObjectList> &objectMa
 ///
 PanelImageView::~PanelImageView()
 {
+  saveROI();
 }
 
 ///
@@ -140,6 +142,7 @@ PanelImageView::~PanelImageView()
 ///
 void PanelImageView::shutdown()
 {
+  saveROI();
   storeChannelSettings();
 }
 
@@ -233,9 +236,13 @@ void PanelImageView::openImageFinished(std::filesystem::path imagePath, processo
     storeChannelSettings();
     mImageMeta.open(imagePath, mProjectPath);
   }
+  saveROI();
+  loadROI();
+
   restoreChannelSettings();
   setRegionsOfInterestFromObjectList();
   repaintImage();
+
   if(mLastPath != imagePath) {
     emit imageOpened();
     mLastPath = imagePath;
@@ -264,7 +271,9 @@ void PanelImageView::setEditedImage(joda::image::Image &&edited)
     }
     auto *newEditedImage = new joda::image::Image(std::move(edited));
     mGraphicEditedImage->setImageToPaint(newEditedImage->mutableImage());
-    newEditedImage->copyHistogramSettings(edited);
+    if(nullptr != mEditedImage) {
+      newEditedImage->copyHistogramSettings(*mEditedImage);
+    }
     if(mShowEditedImage) {
       mImageToShow = newEditedImage;
     }
@@ -570,17 +579,18 @@ auto PanelImageView::getImage() const -> const joda::image::Image *
 ///
 void PanelImageView::setRegionsOfInterestFromObjectList()
 {
+  const auto imagePlane = getImagePlane();
   std::lock_guard<std::mutex> locked(mImageResetMutex);
   if(mImageToShow != nullptr && mPreviewImages != nullptr) {
     const auto &size = mImageToShow->getPreviewImageSize();
     if(mOverlayMasks != nullptr && !size.isNull() && !size.isEmpty() && size.width() > 0 && size.height() > 0) {
       mOverlayMasks->setOverlay({mPreviewImages->originalImage.getOriginalImage()->cols, mPreviewImages->originalImage.getOriginalImage()->rows},
-                                {size.width(), size.height()}, getTileInfoInternal());
+                                {size.width(), size.height()}, getTileInfoInternal(), imagePlane);
     } else {
-      mOverlayMasks->refresh(getTileInfoInternal());
+      mOverlayMasks->refresh(getTileInfoInternal(), imagePlane);
     }
   } else {
-    mOverlayMasks->refresh(getTileInfoInternal());
+    mOverlayMasks->refresh(getTileInfoInternal(), imagePlane);
   }
 }
 
@@ -731,8 +741,8 @@ int32_t PanelImageView::getSeries() const
 ///
 void PanelImageView::setImagePlane(const joda::enums::PlaneId &plane)
 {
-  storeChannelSettings();
   std::lock_guard<std::mutex> locked(mImageResetMutex);
+  storeChannelSettings();
   mPlane = plane;
 }
 
@@ -745,8 +755,8 @@ void PanelImageView::setImagePlane(const joda::enums::PlaneId &plane)
 ///
 void PanelImageView::setImageChannel(int32_t ch)
 {
-  storeChannelSettings();
   std::lock_guard<std::mutex> locked(mImageResetMutex);
+  storeChannelSettings();
   mPlane.cStack = ch;
 }
 
@@ -1623,7 +1633,7 @@ void PanelImageView::clearRegionOfInterest(joda::atom::ROI::Category sourceToDel
 {
   std::lock_guard<std::mutex> locked(mImageResetMutex);
   mObjectMap->erase(sourceToDelete);
-  mOverlayMasks->refresh(getTileInfoInternal());
+  mOverlayMasks->refresh(getTileInfoInternal(), getImagePlane());
 }
 
 ///
@@ -2050,6 +2060,63 @@ void PanelImageView::scheduleUpdate()
     // Schedule update on the next event loop iteration
     QTimer::singleShot(0, this, [this]() { viewport()->update(); });
   }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::saveROI()
+{
+  try {
+    if(mLastPath.empty() || mProjectPath.empty()) {
+      return;
+    }
+    auto storagePathNew = joda::helper::generateImageMetaDataStoragePathFromImagePath(mLastPath, mProjectPath,
+                                                                                      joda::fs::FILE_NAME_ANNOTATIONS + joda::fs::EXT_ANNOTATION);
+
+    std::unique_ptr<atom::ObjectList> tmp = std::make_unique<atom::ObjectList>();
+    if(std::filesystem::exists(storagePathNew)) {
+      tmp->deserializeWithoutGivenTimeStack(storagePathNew, mLastPlane.tStack);
+    }
+
+    const auto &tmpList = mObjectMap->getObjectList();
+    for(const auto &[_, roi] : *tmpList) {
+      tmp->push_back(*roi);
+    }
+
+    tmp->serialize(storagePathNew);
+
+  } catch(const std::exception &ex) {
+    joda::log::logError("WindowMain::saveROI:" + std::string(ex.what()));
+  }
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
+void PanelImageView::loadROI()
+{
+  if(mLastPath.empty() || mProjectPath.empty()) {
+    return;
+  }
+  auto storagePathNew = joda::helper::generateImageMetaDataStoragePathFromImagePath(mLastPath, mProjectPath,
+                                                                                    joda::fs::FILE_NAME_ANNOTATIONS + joda::fs::EXT_ANNOTATION);
+  mObjectMap->triggerStartChangeCallback();
+  if(std::filesystem::exists(storagePathNew)) {
+    mObjectMap->deserialize(storagePathNew, mPlane.tStack);
+  } else {
+    mObjectMap->clearAll();
+  }
+
+  mObjectMap->triggerChangeCallback();
 }
 
 }    // namespace joda::ui::gui

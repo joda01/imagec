@@ -47,6 +47,7 @@
 #include <thread>
 #include <utility>
 #include "backend/commands/classification/ai_classifier/ai_classifier_settings.hpp"
+#include "backend/data_analysis/object_tracker/object_tracker.hpp"
 #include "backend/database/data/heatmap/data_heatmap.hpp"
 #include "backend/database/database.hpp"
 #include "backend/database/database_interface.hpp"
@@ -501,6 +502,20 @@ auto WindowResults::createToolBar() -> QToolBar *
   toolbar->addSeparator();
 
   //
+  // Data analysis
+  //
+  auto *dataAnalysis   = new QMenu("Data analysis");
+  auto *objectTracking = dataAnalysis->addAction("Object tracking");
+  connect(objectTracking, &QAction::triggered, [this]() {
+    auto rois = mAnalyzer->selectRegionOfInterests(mSelectedImageId, 1);
+    joda::data_analyze::object_tracker::ObjectTracker tracker;
+    tracker.runTracker(rois);
+    std::cout << "Finished" << std::endl;
+
+    mAnalyzer->setTrackingId(rois);
+  });
+
+  //
   // Mark as invalid button
   //
   // edit-select-none
@@ -535,6 +550,7 @@ auto WindowResults::createToolBar() -> QToolBar *
   fileMenu->addSeparator();
   fileMenu->addMenu(exportMenu);
 
+  //  mTopMenuBar->addMenu(dataAnalysis);
   mTopMenuBar->addMenu(windowMenu);
 
   return toolbar;
