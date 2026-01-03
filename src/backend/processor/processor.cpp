@@ -294,7 +294,7 @@ auto Processor::generatePreview(std::unique_ptr<BS::thread_pool<>> &threadPool, 
   //
   const auto pipelineOrder = joda::processor::DependencyGraph::calcGraph(program, &pipelineStart);
   if(pipelineOrder.empty()) {
-    throw std::invalid_argument("Cycle detected in pipelines!");
+    throw std::invalid_argument("Pipeline disabled or cycle detected!");
   }
 
   auto globalContext = initializeGlobalContext<db::PreviewDatabase>(program, "preview");

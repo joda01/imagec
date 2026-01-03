@@ -421,7 +421,10 @@
         {
           "$reclassify": {
             "hierarchyMode": "CreateTree",
-            "inputClasses": [],
+            "inputClasses": [
+              "2",
+              "1"
+            ],
             "intensity": {
               "imageIn": {
                 "imagePlane": {
@@ -602,7 +605,7 @@
               ]
             }
           ],
-          "name": " ch1@allspots",
+          "name": "ch1@allspots",
           "notes": ""
         },
         {

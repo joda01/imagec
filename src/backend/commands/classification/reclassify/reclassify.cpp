@@ -26,7 +26,10 @@ Reclassify::Reclassify(const settings::ReclassifySettings &settings) : mSettings
 void Reclassify::execute(processor::ProcessContext &context, cv::Mat & /*image*/, atom::ObjectList & /*resultIn*/)
 {
   for(const auto &inputClassification : mSettings.inputClasses) {
-    auto *objectList                                  = context.loadObjectsFromCache();
+    auto *objectList = context.loadObjectsFromCache();
+    if(!objectList->contains(context.getClassId(inputClassification))) {
+      continue;
+    }
     std::unique_ptr<atom::SpheralIndex> &objectsInOut = objectList->at(context.getClassId(inputClassification));
 
     if(mSettings.intersection.inputClassesIntersectWith.empty()) {

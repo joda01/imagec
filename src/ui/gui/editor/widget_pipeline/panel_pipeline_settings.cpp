@@ -143,6 +143,10 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   mActionDisabled = mToolbar->addAction(generateSvgIcon<Style::REGULAR, Color::BLACK>("selection-slash"), "Disable pipeline");
   mActionDisabled->setStatusTip("Temporary disable this pipeline");
   mActionDisabled->setCheckable(true);
+  connect(mActionDisabled, &QAction::triggered, [this](bool selected) {
+    mSettings.disabled = selected;
+    setImageMustBeRefreshed(true);
+  });
 
   mToolbar->addSeparator();
 
