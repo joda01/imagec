@@ -24,7 +24,7 @@
     "notes": "Uptake assay with two spot channels and brightfield cell.",
     "revision": "1.0",
     "tags": ["fluorescence","colocalization","brightfield"],
-    "uid": ""
+    "uid": "f2f9f97b-3362-4b51-b6c5-1a8390d7dda6"
   },
   "pipelines": [
     {
@@ -43,7 +43,7 @@
           "evs",
           "extracellular vesicle"
         ],
-        "uid": ""
+        "uid": "c5580c17-a3ce-4d4e-b064-adae6ac2e363"
       },
       "pipelineSetup": {
         "cStackIndex": -2,
@@ -148,7 +148,7 @@
           "evs",
           "extracellular vesicle"
         ],
-        "uid": ""
+        "uid": "e90bd085-dbf4-4eaa-879b-c3a572918f52"
       },
       "pipelineSetup": {
         "cStackIndex": -2,
@@ -243,7 +243,7 @@
         "notes": "Based on the detected nuclei a Voronoi algorithm is used to separete individual cells. The detected cell area is used to find the border of the cells\n1. Measure intensity per cell in your required channels (default Ch0,1 and 2 is measured)",
         "revision": "",
         "tags": [],
-        "uid": ""
+        "uid": "553fd30b-af41-4684-b7fd-41f4b31ef0ef"
       },
       "pipelineSetup": {
         "cStackIndex": -1,
@@ -328,11 +328,11 @@
           "evs",
           "extracellular vesicle"
         ],
-        "uid": ""
+        "uid": "7c35f804-7489-4082-8c70-0baa6aa96dff"
       },
       "pipelineSetup": {
         "cStackIndex": -2,
-        "defaultClassId": "0",
+        "defaultClassId": "21",
         "source": "FromFile",
         "tStackIndex": -1,
         "zProjection": "MaxIntensity",
@@ -403,7 +403,7 @@
                       "minCircularity": 0.0,
                       "minParticleSize": 5
                     },
-                    "outputClass": "0"
+                    "outputClass": "21"
                   }
                 ],
                 "pixelClassId": 1,
@@ -419,7 +419,7 @@
           "$reclassify": {
             "hierarchyMode": "CreateTree",
             "inputClasses": [
-              "0"
+              "21"
             ],
             "intensity": {
               "imageIn": {
@@ -520,7 +520,7 @@
           "evs",
           "extracellular vesicle"
         ],
-        "uid": ""
+        "uid": "d9a6a354-c40f-4f5e-b511-7556419fc563"
       },
       "pipelineSetup": {
         "cStackIndex": -2,
@@ -712,7 +712,7 @@
           "evs",
           "extracellular vesicle"
         ],
-        "uid": ""
+        "uid": "a0e66f6a-21b9-432c-b719-f37e8e5c776f"
       },
       "pipelineSetup": {
         "cStackIndex": -2,
@@ -899,7 +899,7 @@
         "notes": "Colocalisation is set to 0.1 (0.1-1) as default and may be changed.\n\nWith these settings you will find the following groups:\n- @spots: contains spots outside the cells\n- @in-cell-spots: includes all spots that are within the cell(coloc and non-coloc spots)\n- @ in-cell-spot non coloc: spots only detected in the one respective channel\n- 2 channel coloc spots (e.g. ch1@in-cell-spots coloc ch2) includes all spots in cell that have channel 1 and 2 and also includes spots that might have ch3\n- 3 channel coloc spots: in-cell-spots recognized in ch1, 2 and 3\n",
         "revision": "",
         "tags": [],
-        "uid": ""
+        "uid": "fa25a246-a3c6-480d-b13f-77c3b0a2f4c2"
       },
       "pipelineSetup": {
         "cStackIndex": -1,
@@ -1111,7 +1111,7 @@
           "notes": ""
         },
         {
-          "classId": "0",
+          "classId": "21",
           "color": "#33CFFF",
           "defaultMeasurements": [
             {
@@ -1713,7 +1713,7 @@
         "notes": "",
         "revision": "",
         "tags": [],
-        "uid": ""
+        "uid": "432f13d1-3e69-4339-b875-9d512ee0f301"
       }
     },
     "experimentSettings": {

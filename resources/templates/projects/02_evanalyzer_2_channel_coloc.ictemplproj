@@ -22,8 +22,11 @@
     "name": "Coloc 2 channels",
     "notes": "Spot colocalization with two image channels.",
     "revision": "1.0",
-    "tags": ["fluorescence","colocalization"],
-    "uid": ""
+    "tags": [
+      "fluorescence",
+      "colocalization"
+    ],
+    "uid": "f81816f8-eac9-40b5-a83e-1caec4c890d6"
   },
   "pipelines": [
     {
@@ -42,11 +45,11 @@
           "evs",
           "extracellular vesicle"
         ],
-        "uid": ""
+        "uid": "64774504-0403-4b91-93e8-03a9daf7c4c6"
       },
       "pipelineSetup": {
         "cStackIndex": -2,
-        "defaultClassId": "0",
+        "defaultClassId": "2",
         "source": "FromFile",
         "tStackIndex": -1,
         "zProjection": "MaxIntensity",
@@ -185,7 +188,7 @@
           "evs",
           "extracellular vesicle"
         ],
-        "uid": ""
+        "uid": "622dbe87-43bb-4e34-930a-18d54196c80b"
       },
       "pipelineSetup": {
         "cStackIndex": -2,
@@ -328,7 +331,7 @@
           "evs",
           "extracellular vesicle"
         ],
-        "uid": ""
+        "uid": "ecf06590-f961-4cf9-a9ce-cd6212f93c8d"
       },
       "pipelineSetup": {
         "cStackIndex": -2,
@@ -463,7 +466,7 @@
         "notes": "1. Minimum colocalisation (area) (0.1-1) can be determined.",
         "revision": "",
         "tags": [],
-        "uid": ""
+        "uid": "00a65329-bee7-4c87-b31e-cba463194472"
       },
       "pipelineSetup": {
         "cStackIndex": -1,
@@ -478,7 +481,7 @@
           "$colocalization": {
             "inputClasses": [
               {
-                "inputClassId": "0",
+                "inputClassId": "2",
                 "newClassId": "7",
                 "newClassIdNotIntersecting": "4"
               },
@@ -565,7 +568,7 @@
     "classification": {
       "classes": [
         {
-          "classId": "0",
+          "classId": "2",
           "color": "#5EFF00",
           "defaultMeasurements": [
             {
@@ -812,7 +815,7 @@
         "notes": "",
         "revision": "",
         "tags": [],
-        "uid": ""
+        "uid": "882c7360-02c3-4b54-b7a3-9bfb74f820cf"
       }
     },
     "experimentSettings": {

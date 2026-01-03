@@ -37,7 +37,7 @@
     "notes": "Spot colocalization with three image channels.",
     "revision": "1.0",
     "tags": ["fluorescence","colocalization"],
-    "uid": ""
+    "uid": "554c93d9-3975-47e4-a207-14a489ef2019"
   },
   "pipelineSetup": {
     "realSizesUnit": "Px"
@@ -1162,7 +1162,7 @@
         "notes": "",
         "revision": "",
         "tags": [],
-        "uid": ""
+        "uid": "0adcdfcd-0a04-4eb4-ab1b-5b1645b5c396"
       }
     },
     "experimentSettings": {

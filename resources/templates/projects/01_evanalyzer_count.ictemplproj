@@ -24,7 +24,7 @@
     "notes": "Count the number of spots in an image channel.",
     "revision": "1.0",
     "tags": ["fluorescence","count"],
-    "uid": ""
+    "uid": "415091bf-e0f5-4d43-b7e6-97d8aa775830"
   },
   "pipelines": [
     {
@@ -43,11 +43,11 @@
           "evs",
           "extracellular vesicle"
         ],
-        "uid": ""
+        "uid": "43a93950-fa8b-48bf-9e4b-849855d92bf3"
       },
       "pipelineSetup": {
         "cStackIndex": -2,
-        "defaultClassId": "0",
+        "defaultClassId": "21",
         "source": "FromFile",
         "tStackIndex": -1,
         "zProjection": "MaxIntensity",
@@ -186,7 +186,7 @@
           "evs",
           "extracellular vesicle"
         ],
-        "uid": ""
+        "uid": "c1e4c1df-1ff2-40d8-b08c-3a28cc69af4d"
       },
       "pipelineSetup": {
         "cStackIndex": -2,
@@ -325,7 +325,7 @@
     "classification": {
       "classes": [
         {
-          "classId": "0",
+          "classId": "21",
           "color": "#33CFFF",
           "defaultMeasurements": [
             {
@@ -385,7 +385,7 @@
         "notes": "",
         "revision": "",
         "tags": [],
-        "uid": ""
+        "uid": "ee3da24b-3956-4bfe-a291-105a76fa433a"
       }
     },
     "experimentSettings": {

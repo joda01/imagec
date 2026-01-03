@@ -137,11 +137,12 @@ struct ReclassifySettings : public SettingBase
     ObjectOutputClasses out;
     out.emplace(newClassId);
 
-    if(mode == Mode::RECLASSIFY_MOVE) {
-      for(const auto &in : inputClasses) {
-        out.emplace(in);
-      }
-    }
+    // Leads to wrong positive cycle detection
+    // if(mode == Mode::RECLASSIFY_MOVE) {
+    //  for(const auto &in : inputClasses) {
+    //    out.emplace(in);
+    //  }
+    //}
     return out;
   }
 

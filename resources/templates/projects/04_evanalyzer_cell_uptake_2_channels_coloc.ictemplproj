@@ -24,7 +24,7 @@
     "notes": "Uptake assay with two spot channels and brightfield cell.",
     "revision": "1.0",
     "tags": ["fluorescence","colocalization","brightfield"],
-    "uid": ""
+    "uid": "24022cac-e101-4bff-bcdb-7947f48691fd"
   },
   "pipelines": [
     {
@@ -43,7 +43,7 @@
           "evs",
           "extracellular vesicle"
         ],
-        "uid": ""
+        "uid": "19f148fa-84d8-4bca-bb41-ea9f1ef64ded"
       },
       "pipelineSetup": {
         "cStackIndex": -2,
@@ -148,7 +148,7 @@
           "evs",
           "extracellular vesicle"
         ],
-        "uid": ""
+        "uid": "12b7d67b-e70b-4045-94bf-30dc142048ac"
       },
       "pipelineSetup": {
         "cStackIndex": -2,
@@ -243,7 +243,7 @@
         "notes": "Based on the detected nuclei a Voronoi algorithm is used to separete individual cells. The detected cell area is used to find the border of the cells\n1. Measure intensity per cell in your required channels (default Ch0,1 and 2 is measured)",
         "revision": "",
         "tags": [],
-        "uid": ""
+        "uid": "ccb9f1a0-f923-4542-a014-e38d8220b7b4"
       },
       "pipelineSetup": {
         "cStackIndex": -1,
@@ -328,11 +328,11 @@
           "evs",
           "extracellular vesicle"
         ],
-        "uid": ""
+        "uid": "4721df61-2ce3-4214-9ef3-8d51f6825789"
       },
       "pipelineSetup": {
         "cStackIndex": -2,
-        "defaultClassId": "0",
+        "defaultClassId": "21",
         "source": "FromFile",
         "tStackIndex": -1,
         "zProjection": "MaxIntensity",
@@ -403,7 +403,7 @@
                       "minCircularity": 0.0,
                       "minParticleSize": 5
                     },
-                    "outputClass": "0"
+                    "outputClass": "21"
                   }
                 ],
                 "pixelClassId": 1,
@@ -419,7 +419,7 @@
           "$reclassify": {
             "hierarchyMode": "CreateTree",
             "inputClasses": [
-              "0"
+              "21"
             ],
             "intensity": {
               "imageIn": {
@@ -526,7 +526,7 @@
           "evs",
           "extracellular vesicle"
         ],
-        "uid": ""
+        "uid": "3eb72219-1c47-4d24-94ce-5d7473d1fa59"
       },
       "pipelineSetup": {
         "cStackIndex": -2,
@@ -719,7 +719,7 @@
         "notes": "",
         "revision": "",
         "tags": [],
-        "uid": ""
+        "uid": "f0830ffb-26a3-4dd5-bbcd-a294218368b9"
       },
       "pipelineSetup": {
         "cStackIndex": -1,
@@ -835,7 +835,7 @@
           "notes": ""
         },
         {
-          "classId": "0",
+          "classId": "21",
           "color": "#33CFFF",
           "defaultMeasurements": [
             {
@@ -1111,7 +1111,7 @@
         "notes": "",
         "revision": "",
         "tags": [],
-        "uid": ""
+        "uid": "abd6d086-1640-4909-a5f9-97d54917972b"
       }
     },
     "experimentSettings": {
