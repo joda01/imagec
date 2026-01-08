@@ -21,8 +21,7 @@ namespace joda::atom {
 void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const SpheralIndex *other, SpheralIndex *result,
                                       const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
                                       const std::set<joda::enums::ClassId> &objectClassesOther,
-                                      joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo, float minIntersecion,
-                                      const enums::tile_t &tile, const cv::Size &tileSize) const
+                                      joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo, float minIntersecion) const
 {
   std::set<uint64_t> intersecting;
   // Check for collisions between objects in grid1 and grid2
@@ -38,8 +37,7 @@ void SpheralIndex::calcColocalization(const enums::PlaneId &iterator, const Sphe
               // Each intersecting particle is only allowed to be counted once
               if(!intersecting.contains(box1->getObjectId()) && !intersecting.contains(box2->getObjectId())) {
                 if(isCollision(box1, box2)) {
-                  auto colocROI =
-                      box1->calcIntersection(iterator, *box2, minIntersecion, {tile, tileSize}, objectClassIntersectingObjectsShouldBeAssignedTo);
+                  auto colocROI = box1->calcIntersection(iterator, *box2, minIntersecion, objectClassIntersectingObjectsShouldBeAssignedTo);
                   if(!colocROI.isNull()) {
                     intersecting.emplace(box1->getObjectId());
                     intersecting.emplace(box2->getObjectId());

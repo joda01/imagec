@@ -96,8 +96,7 @@ public:
   void calcColocalization(const enums::PlaneId &iterator, const SpheralIndex *other, SpheralIndex *result,
                           const std::optional<std::set<joda::enums::ClassId>> objectClassesMe,
                           const std::set<joda::enums::ClassId> &objectClassesOther,
-                          joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo, float minIntersecion, const enums::tile_t &tile,
-                          const cv::Size &tileSize) const;
+                          joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo, float minIntersecion) const;
 
   void calcIntersection(ObjectList *objectList, joda::processor::ProcessContext &context, joda::settings::ReclassifySettings::Mode func,
                         joda::settings::ReclassifySettings::FilterLogic filterLogic,

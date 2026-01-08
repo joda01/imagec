@@ -288,7 +288,7 @@ public:
     return mCircularity;
   }
 
-  [[nodiscard]] ROI calcIntersection(const enums::PlaneId &iterator, const ROI &roi, float minIntersection, const joda::enums::TileInfo &tile,
+  [[nodiscard]] ROI calcIntersection(const enums::PlaneId &iterator, const ROI &roi, float minIntersection,
                                      joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const;
 
   auto measureIntensityAndAdd(const enums::ImageId &imageId, const cv::Mat &image, const joda::enums::TileInfo &tile) -> Intensity;

@@ -377,7 +377,7 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
 /// \param[in]  roi   ROI to check against
 /// \return     Intersection of the areas in percent
 ///
-[[nodiscard]] ROI ROI::calcIntersection(const enums::PlaneId &iterator, const ROI &roi, float minIntersection, const joda::enums::TileInfo &tile,
+[[nodiscard]] ROI ROI::calcIntersection(const enums::PlaneId &iterator, const ROI &roi, float minIntersection,
                                         joda::enums::ClassId objectClassIntersectingObjectsShouldBeAssignedTo) const
 {
   auto intersectingMask = calcIntersectingMask(roi);
@@ -405,7 +405,8 @@ double ROI::getLength(const std::vector<cv::Point> &points, bool closeShape)
                  intersectingMask.intersectedRect,
                  intersectingMask.intersectedMask,
                  contour,
-                 tile};
+                 {}};    // When calculating the intersection of objects the position is still in real pos, so the tile information must be zero to
+                         // avoid double calculating.
     }
   }
   return {};
