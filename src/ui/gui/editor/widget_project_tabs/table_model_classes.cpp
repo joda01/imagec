@@ -28,6 +28,7 @@
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/project_settings/project_class.hpp"
 #include "backend/settings/results_settings/results_settings.hpp"
+#include "ui/gui/helper/item_data_roles.hpp"
 
 namespace joda::ui::gui {
 
@@ -100,7 +101,7 @@ QVariant TableModelClasses::data(const QModelIndex &index, int role) const
 
   auto classs = getCell(index.row());
 
-  if(role == CLASS_ROLE) {
+  if(role == joda::ui::gui::ItemDataRole::UserRoleClassId) {
     return static_cast<int32_t>(classs.classId);
   }
 
@@ -108,7 +109,7 @@ QVariant TableModelClasses::data(const QModelIndex &index, int role) const
     return classs.color.c_str();
   }
 
-  if(role == Qt::CheckStateRole) {
+  if(role == joda::ui::gui::ItemDataRole::UserRoleElementIsDisabled) {
     return classs.hidden;
   }
 

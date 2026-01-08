@@ -119,8 +119,8 @@ private:
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT_EXTENDED(AnalyzeSettings, configSchema, projectSettings, imageSetup, pipelineSetup, pipelines,
                                                        imagecMeta, meta);
 
-  std::map<uint64_t, std::function<void(const std::filesystem::path &)>> mProjectPathChangedCallback;
-  std::map<uint64_t, std::function<void(const AnalyzeSettings &)>> mSettingsChangedCallbacks;
+  static inline std::map<uint64_t, std::function<void(const std::filesystem::path &)>> mProjectPathChangedCallback;
+  static inline std::map<uint64_t, std::function<void(const AnalyzeSettings &)>> mSettingsChangedCallbacks;
   static inline std::atomic<uint64_t> funId = 0;
 };
 }    // namespace joda::settings

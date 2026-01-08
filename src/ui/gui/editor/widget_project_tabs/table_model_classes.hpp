@@ -31,7 +31,6 @@ class TableModelClasses : public QAbstractTableModel
   Q_OBJECT
 
 public:
-  static constexpr int32_t CLASS_ROLE        = 0x101;
   static inline const std::string NONE_COLOR = "#565656";
 
   /////////////////////////////////////////////////////

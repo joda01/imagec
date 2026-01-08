@@ -17,6 +17,7 @@
 #include <qnamespace.h>
 #include <QPainter>
 #include <QStyledItemDelegate>
+#include "ui/gui/helper/item_data_roles.hpp"
 
 namespace joda::ui::gui {
 
@@ -44,7 +45,7 @@ public:
       color = colorData.value<QColor>();
     }
 
-    bool isHidden = index.data(Qt::CheckStateRole).toBool();
+    const bool isHidden = index.data(joda::ui::gui::ItemDataRole::UserRoleElementIsDisabled).toBool();
 
     // === 2. Draw square ===
     int squareSize = 8;
@@ -59,8 +60,16 @@ public:
     // === 3. Draw text to the right of the square ===
     QString classs = index.data(Qt::DisplayRole).toString();
 
-    int32_t imgChannel = index.data(0x102).toInt();
-    QString text       = classs + " / CH" + QString::number(imgChannel);
+    const int32_t imgChannel = index.data(joda::ui::gui::ItemDataRole::UserRoleChannelId).toInt();
+    QString suffix;
+    if(imgChannel == -1) {
+      suffix = "None";
+    } else if(imgChannel == -2) {
+      suffix = "Undefined";
+    } else {
+      suffix = "CH" + QString::number(imgChannel);
+    }
+    QString text = classs + "/" + suffix;
 
     QRect textRect = opt.rect.adjusted(squareSize + 2 * margin, 0, 0, 0);
     if(isHidden) {

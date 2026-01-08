@@ -29,8 +29,6 @@
 #include "ui/gui/editor/widget_pipeline/dialog_command_selection/dialog_command_selection.hpp"
 #include "ui/gui/editor/widget_pipeline/dialog_pipeline_settings/dialog_pipeline_settings.hpp"
 #include "ui/gui/editor/widget_pipeline/panel_pipeline_settings.hpp"
-#include "ui/gui/editor/widget_pipeline/table_item_delegate_pipeline.hpp"
-#include "ui/gui/editor/widget_pipeline/table_model_pipeline.hpp"
 #include "ui/gui/editor/widget_project_tabs/panel_image.hpp"
 #include "ui/gui/editor/window_main.hpp"
 #include "ui/gui/helper/droppable_widget/droppable_widget.hpp"
@@ -41,6 +39,8 @@
 #include "ui/gui/helper/pipeline_overview_delegate.hpp"
 #include "ui/gui/helper/table_view.hpp"
 #include "ui/gui/helper/template_parser/template_parser.hpp"
+#include "table_item_delegate_pipeline.hpp"
+#include "table_model_pipeline.hpp"
 
 namespace joda::ui::gui {
 
@@ -257,8 +257,7 @@ PanelPipeline::PanelPipeline(joda::processor::Preview *previewResults, WindowMai
     mPipelineTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     mPipelineTable->setItemDelegateForColumn(0, new HtmlDelegate(mPipelineTable));
     mPipelineTable->setItemDelegateForColumn(1, new ColorSquareDelegatePipeline(mPipelineTable));
-    mTableModel = new TableModelPipeline(mAnalyzeSettings->projectSettings.classification, mPipelineTable);
-    mTableModel->setData(&settings->pipelines);
+    mTableModel = new TableModelPipeline(mAnalyzeSettings->projectSettings.classification, settings, mPipelineTable);
     mPipelineTable->setModel(mTableModel);
     mPipelineTable->setMaximumHeight(200);
     mPipelineTable->setMinimumHeight(200);

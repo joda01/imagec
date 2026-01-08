@@ -145,6 +145,8 @@ PanelPipelineSettings::PanelPipelineSettings(WindowMain *wm, DialogImageViewer *
   mActionDisabled->setCheckable(true);
   connect(mActionDisabled, &QAction::triggered, [this](bool selected) {
     mSettings.disabled = selected;
+    mSettings.triggerPipelineChanged();
+    mWindowMain->getSettings().triggerSettingsChanged();
     setImageMustBeRefreshed(true);
   });
 
@@ -265,6 +267,7 @@ void PanelPipelineSettings::openPipelineSettings()
 {
   auto *dialog = new DialogPipelineSettings(mWindowMain->getSettings().projectSettings.classification, mSettings, mWindowMain);
   if(dialog->exec() == QDialog::Accepted) {
+    mSettings.triggerPipelineChanged();
   }
 }
 

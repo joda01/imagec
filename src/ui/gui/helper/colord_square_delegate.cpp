@@ -15,6 +15,7 @@
 #include <qtablewidget.h>
 #include <iostream>
 #include <string>
+#include "ui/gui/helper/item_data_roles.hpp"
 #include "ui/gui/helper/table_view.hpp"
 
 namespace joda::ui::gui {
@@ -44,7 +45,7 @@ void ColoredSquareDelegate::paint(QPainter *painter, const QStyleOptionViewItem 
     color = colorData.value<QColor>();
   }
 
-  bool isHidden = index.data(Qt::CheckStateRole).toBool();
+  const bool isHidden = index.data(joda::ui::gui::ItemDataRole::UserRoleElementIsDisabled).toBool();
 
   // === 2. Draw square ===
   int squareSize = 8;

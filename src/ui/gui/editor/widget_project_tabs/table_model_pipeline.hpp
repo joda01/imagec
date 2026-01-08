@@ -12,6 +12,7 @@
 #include <qabstractitemmodel.h>
 #include "backend/helper/table/table.hpp"
 #include "backend/processor/initializer/pipeline_settings.hpp"
+#include "backend/settings/analze_settings.hpp"
 #include "backend/settings/pipeline/pipeline.hpp"
 #include "backend/settings/project_settings/project_classification.hpp"
 
@@ -27,12 +28,8 @@ class TableModelPipeline : public QAbstractTableModel
   Q_OBJECT
 
 public:
-  static constexpr int32_t CLASS_ROLE       = 0x101;
-  static constexpr int32_t CHANNEL_IDX_ROLE = 0x102;
-
   /////////////////////////////////////////////////////
-  TableModelPipeline(const joda::settings::Classification &, QObject *parent = nullptr);
-  void setData(std::list<joda::settings::Pipeline> *pipelines);
+  TableModelPipeline(const joda::settings::Classification &, joda::settings::AnalyzeSettings *analyzeSettings, QObject *parent = nullptr);
   auto getCell(int row) -> joda::settings::Pipeline *;
   int rowCount(const QModelIndex &parent = QModelIndex()) const override;
   int columnCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -41,9 +38,10 @@ public:
   void beginInsertPipeline();
   void endInsertPipeline();
   void resetModel();
+  void allDataChanged();
 
 private:
-  std::list<joda::settings::Pipeline> *mPipelines = nullptr;
+  joda::settings::AnalyzeSettings *mAnalyzeSettings = nullptr;
   const joda::settings::Classification &mClassSettings;
 };
 

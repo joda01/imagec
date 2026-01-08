@@ -1,8 +1,10 @@
 
 #pragma once
+#include <qtextcursor.h>
 #include <QPainter>
 #include <QStyledItemDelegate>
 #include <QTextDocument>
+#include "ui/gui/helper/item_data_roles.hpp"
 
 class HtmlDelegate : public QStyledItemDelegate
 {
@@ -13,20 +15,29 @@ public:
   {
     painter->save();
 
+    const bool isHidden = index.data(joda::ui::gui::ItemDataRole::UserRoleElementIsDisabled).toBool();
+
     QTextDocument doc;
     doc.setHtml(index.data().toString());
     doc.setTextWidth(option.rect.width());
 
-    // Draw background and selection (optional but common)
-    QStyleOptionViewItem opt(option);
+    if(isHidden) {
+      QTextCursor cursor(&doc);
+      cursor.select(QTextCursor::Document);
+      QTextCharFormat format;
+      format.setForeground(Qt::gray);    // Or option.palette.color(QPalette::Disabled, QPalette::Text)
+      format.setFontItalic(true);
+      cursor.mergeCharFormat(format);
+    }
+
+    // Standard background drawing
+    QStyleOptionViewItem opt = option;
     initStyleOption(&opt, index);
-    opt.text = "";    // Prevent default text rendering
+    opt.text = "";
     opt.widget->style()->drawControl(QStyle::CE_ItemViewItem, &opt, painter);
 
-    // Translate and draw HTML
     painter->translate(option.rect.topLeft());
-    QRect clip(0, 0, option.rect.width(), option.rect.height());
-    doc.drawContents(painter, clip);
+    doc.drawContents(painter, QRectF(0, 0, option.rect.width(), option.rect.height()));
 
     painter->restore();
   }

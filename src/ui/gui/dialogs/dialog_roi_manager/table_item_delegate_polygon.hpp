@@ -17,6 +17,7 @@
 #include <qnamespace.h>
 #include <QPainter>
 #include <QStyledItemDelegate>
+#include "ui/gui/helper/item_data_roles.hpp"
 
 namespace joda::ui::gui {
 
@@ -44,7 +45,7 @@ public:
       color = colorData.value<QColor>();
     }
 
-    bool isHidden = index.data(Qt::CheckStateRole).toBool();
+    const bool isHidden = index.data(joda::ui::gui::ItemDataRole::UserRoleElementIsDisabled).toBool();
 
     // === 2. Draw square ===
     int squareSize = 8;
