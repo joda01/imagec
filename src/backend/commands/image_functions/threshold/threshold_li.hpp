@@ -94,7 +94,16 @@ public:
       //
       // #define IS_NEG( x ) ( ( x ) < -DBL_EPSILON )
       // DBL_EPSILON = 2.220446049250313E-16
-      temp = (mean_back - mean_obj) / (std::log(mean_back) - std::log(mean_obj));
+      if(mean_back != 0 && mean_obj != 0) {
+        const auto dividend = (std::log(mean_back) - std::log(mean_obj));
+        if(dividend != 0) {
+          temp = (mean_back - mean_obj) / dividend;
+        } else {
+          temp = 0;
+        }
+      } else {
+        temp = 0;
+      }
 
       if(temp < -2.220446049250313E-16) {
         new_thresh = static_cast<int>(temp - 0.5);
