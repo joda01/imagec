@@ -108,12 +108,14 @@ struct ImageMeta
   void open(const std::filesystem::path &imageFile, const std::filesystem::path &projectPath)
   {
     if(projectPath.empty()) {
+      *this = {};
       return;
     }
     auto metaFileName = joda::helper::generateImageMetaDataStoragePathFromImagePath(imageFile, projectPath, joda::fs::FILE_NAME_image_meta + ".json");
 
     std::ifstream ifs(metaFileName);
     if(!ifs) {
+      *this = {};
       return;
     }
     std::string wholeFile;
@@ -123,11 +125,13 @@ struct ImageMeta
     ifs.close();
 
     if(wholeFile.empty()) {
+      *this = {};
       return;
     }
     try {
       *this = nlohmann::json::parse(wholeFile);
     } catch(...) {
+      *this = {};
     }
   }
 

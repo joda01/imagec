@@ -25,6 +25,7 @@
 #include "backend/helper/base32.hpp"
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/results_settings/results_settings.hpp"
+#include "ui/gui/helper/item_data_roles.hpp"
 #include "ui/gui/helper/table_view.hpp"
 
 namespace joda::ui::gui {
@@ -42,7 +43,7 @@ TableModelPaintedPolygon::TableModelPaintedPolygon(const joda::settings::Classif
     auto selection = tbl->selectionModel()->selectedIndexes();
     mSelectedData.clear();
     for(const auto &item : selection) {
-      mSelectedData.emplace(data(item, ID_ROLE).toULongLong());
+      mSelectedData.emplace(data(item, joda::ui::gui::ItemDataRole::UserRoleIdRole).toULongLong());
     }
     beginResetModel();
     //
@@ -128,7 +129,7 @@ QVariant TableModelPaintedPolygon::data(const QModelIndex &index, int role) cons
   if(roi == nullptr) {
     return {};
   }
-  if(role == CLASS_ROLE) {
+  if(role == joda::ui::gui::ItemDataRole::UserRoleClassId) {
     return static_cast<int32_t>(roi->getClassId());
   }
 
@@ -136,7 +137,11 @@ QVariant TableModelPaintedPolygon::data(const QModelIndex &index, int role) cons
     return mClassification->getClassFromId(roi->getClassId()).color.c_str();
   }
 
-  if(role == ID_ROLE) {
+  if(role == joda::ui::gui::ItemDataRole::UserRoleElementIsDisabled) {
+    return false;
+  }
+
+  if(role == joda::ui::gui::ItemDataRole::UserRoleIdRole) {
     return QVariant::fromValue<quint64>(roi->getObjectId());
   }
 

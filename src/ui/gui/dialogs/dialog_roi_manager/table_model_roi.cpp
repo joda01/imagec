@@ -23,6 +23,7 @@
 #include "backend/settings/analze_settings.hpp"
 #include "backend/settings/results_settings/results_settings.hpp"
 #include "ui/gui/dialogs/dialog_image_view/panel_image_view.hpp"
+#include "ui/gui/helper/item_data_roles.hpp"
 
 namespace joda::ui::gui {
 
@@ -101,6 +102,10 @@ QVariant TableModelRoi::data(const QModelIndex &index, int role) const
   std::lock_guard<std::mutex> lock(mSetDataLock);
   if(mROI == nullptr) {
     return {};
+  }
+
+  if(role == joda::ui::gui::ItemDataRole::UserRoleElementIsDisabled) {
+    return false;
   }
 
   if(role == Qt::DisplayRole) {

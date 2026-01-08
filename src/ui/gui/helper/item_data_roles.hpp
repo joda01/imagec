@@ -17,7 +17,8 @@ enum ItemDataRole
 {
   UserRoleElementIsDisabled = 0x101,
   UserRoleClassId           = 0x102,
-  UserRoleChannelId         = 0x103
+  UserRoleChannelId         = 0x103,
+  UserRoleIdRole            = 0x104
 };
 
 }

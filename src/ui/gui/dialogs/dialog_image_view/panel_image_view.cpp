@@ -233,24 +233,31 @@ void PanelImageView::openImageFinished(std::filesystem::path imagePath, processo
     fitImageToScreenSize();
   }
   if(mLastPath != imagePath) {
-    storeChannelSettings();
+    if(!mLastPath.empty()) {
+      storeChannelSettings();
+    }
     mImageMeta.open(imagePath, mProjectPath);
   }
-  saveROI();
-  loadROI();
+
+  if(mLastPath != imagePath) {
+    saveROI();
+  }
+
+  if(mLastPath != imagePath) {
+    mLastPath = imagePath;    // Don't change the order, loadROI() accesses the mLastPath
+    loadROI();
+    emit imageOpened();
+  } else if(mLastPlane.tStack != mPlane.tStack || mLastTile != mTile) {
+    emit imageOpened();
+  }
+
+  mLastPlane = mPlane;    // Don't change the order, restoreChannelSettings() accesses the mLastPlane
+  mLastTile  = mTile;
 
   restoreChannelSettings();
   setRegionsOfInterestFromObjectList();
   repaintImage();
 
-  if(mLastPath != imagePath) {
-    emit imageOpened();
-    mLastPath = imagePath;
-  } else if(mLastPlane.tStack != mPlane.tStack || mLastTile != mTile) {
-    emit imageOpened();
-  }
-  mLastPlane = mPlane;
-  mLastTile  = mTile;
   setLoadingImage(false);
   emit channelOpened();
 }
@@ -395,7 +402,8 @@ void PanelImageView::storeChannelSettings()
   if(mImageToShow == nullptr) {
     return;
   }
-  mImageMeta.setHistogramSetingsForChannel({.channel            = mPlane.cStack,
+
+  mImageMeta.setHistogramSetingsForChannel({.channel            = mLastPlane.cStack,
                                             .lowerLevelContrast = mImageToShow->getLowerLevelContrast(),
                                             .upperLevelContrast = mImageToShow->getUpperLevelContrast(),
                                             .lowerRange         = mImageToShow->getHistogramDisplayAreaLower(),
@@ -416,7 +424,7 @@ void PanelImageView::storeChannelSettings()
 ///
 void PanelImageView::restoreChannelSettings()
 {
-  auto histoSettings = mImageMeta.getHistogramSettingsForImageChannel(mPlane.cStack, mShowEditedImage);
+  auto histoSettings = mImageMeta.getHistogramSettingsForImageChannel(mLastPlane.cStack, mShowEditedImage);
 
   if(histoSettings.lowerRange == 0 && histoSettings.upperRange == 0) {
     {

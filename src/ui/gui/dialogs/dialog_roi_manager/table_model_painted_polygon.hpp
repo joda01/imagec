@@ -29,9 +29,6 @@ class TableModelPaintedPolygon : public QAbstractTableModel
   Q_OBJECT
 
 public:
-  static constexpr int32_t CLASS_ROLE = 0x101;
-  static constexpr int32_t ID_ROLE    = 0x109;
-
   /////////////////////////////////////////////////////
   TableModelPaintedPolygon(const joda::settings::Classification *classification, const std::shared_ptr<atom::ObjectList> &polygons,
                            QObject *parent = nullptr);
