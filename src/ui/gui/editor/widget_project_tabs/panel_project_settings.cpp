@@ -227,7 +227,11 @@ PanelProjectSettings::PanelProjectSettings(joda::settings::AnalyzeSettings &sett
     mPlateSize = new QComboBox();
     mPlateSize->addItem("1", 1);
     mPlateSize->addItem("2 x 3", 203);
+    mPlateSize->addItem("2 x 4", 204);
+    mPlateSize->addItem("2 x 6", 206);
     mPlateSize->addItem("3 x 4", 304);
+    mPlateSize->addItem("3 x 5", 305);
+    mPlateSize->addItem("3 x 6", 306);
     mPlateSize->addItem("4 x 6", 406);
     mPlateSize->addItem("6 x 8", 608);
     mPlateSize->addItem("8 x 12", 812);
