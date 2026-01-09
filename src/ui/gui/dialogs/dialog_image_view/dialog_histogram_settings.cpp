@@ -20,6 +20,7 @@
 #include <qtoolbar.h>
 #include <cstdint>
 #include <string>
+#include "backend/enums/types.hpp"
 #include "ui/gui/dialogs/dialog_image_view/panel_image_view.hpp"
 #include "ui/gui/helper/debugging.hpp"
 #include "ui/gui/helper/icon_generator.hpp"
@@ -90,7 +91,7 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
   mColorMode->addItem("Grayscale", 0);
   mColorMode->addItem("Pseudo color", 1);
 
-  layout->addRow(mColorMode);
+  layout->addRow("Color mode", mColorMode);
 
   //
   // Image channel
@@ -99,7 +100,16 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
   for(int n = 0; n < 9; n++) {
     mImageChannel->addItem("Channel " + QString::number(n), n);
   }
-  layout->addRow(mImageChannel);
+  layout->addRow("Channel", mImageChannel);
+
+  //
+  // Image z-Stack
+  //
+  mZChannel = new QSpinBox();
+  mZChannel->setSingleStep(1);
+  mZChannel->setMinimum(0);
+  mZChannel->setMaximum(UINT16_MAX);
+  layout->addRow("Z-Stack", mZChannel);
 
   // Connect
   connect(mSliderDisplayLower, &QSpinBox::editingFinished, [this] {
@@ -143,6 +153,11 @@ DialogHistogramSettings::DialogHistogramSettings(PanelImageView *imagePanel, QWi
     mImagePanel->reloadImage();
   });
 
+  connect(mZChannel, &QSpinBox::editingFinished, [this] {
+    mImagePanel->setImageZStack(mZChannel->value());
+    mImagePanel->reloadImage();
+  });
+
   // This is the problemantic connect
   connect(mImagePanel, &PanelImageView::channelOpened, [this] { getHistogramSettingsFromImage(); });
 
@@ -164,6 +179,7 @@ void DialogHistogramSettings::getHistogramSettingsFromImage()
         mSliderHistogramMin->blockSignals(true);
         mSliderHistogramMax->blockSignals(true);
         mImageChannel->blockSignals(true);
+        mZChannel->blockSignals(true);
         mColorMode->blockSignals(true);
 
         auto *mutableImg = mImagePanel->mutableImage();
@@ -185,6 +201,18 @@ void DialogHistogramSettings::getHistogramSettingsFromImage()
 
         mImageChannel->setCurrentIndex(mImagePanel->getImagePlane().cStack);
 
+        if(mImagePanel->getZprojection() == enums::ZProjection::NONE) {
+          mZChannel->setValue(mImagePanel->getImagePlane().zStack);
+          if(!mZChannel->isEnabled()) {
+            mZChannel->setEnabled(true);
+          }
+        } else {
+          mZChannel->setValue(0);
+          if(mZChannel->isEnabled()) {
+            mZChannel->setEnabled(false);
+          }
+        }
+
         const bool usePseudoColors = mutableImg->getUsePseudoColors();
         if(usePseudoColors) {
           mColorMode->setCurrentIndex(1);
@@ -204,6 +232,7 @@ void DialogHistogramSettings::getHistogramSettingsFromImage()
 
         mColorMode->blockSignals(false);
         mImageChannel->blockSignals(false);
+        mZChannel->blockSignals(false);
         mSliderHistogramMin->blockSignals(false);
         mSliderHistogramMax->blockSignals(false);
       },

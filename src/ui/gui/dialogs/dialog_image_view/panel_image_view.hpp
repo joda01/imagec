@@ -139,6 +139,7 @@ public:
   void setSeries(int32_t);
   int32_t getSeries() const;
   void setImageChannel(int32_t ch);
+  void setImageZStack(int32_t zStack);
   void setImagePlane(const joda::enums::PlaneId &);
   auto getImagePlane() const -> joda::enums::PlaneId;
   void setSelectedTile(int32_t tileX, int32_t tileY);

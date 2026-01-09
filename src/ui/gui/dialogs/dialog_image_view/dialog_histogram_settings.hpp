@@ -57,6 +57,7 @@ private:
 
   // CHANNEL SETTINGS ////////////////////////////////////////////
   QComboBox *mImageChannel;
+  QSpinBox *mZChannel;
 };
 
 }    // namespace joda::ui::gui

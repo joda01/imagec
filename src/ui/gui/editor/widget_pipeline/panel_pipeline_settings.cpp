@@ -674,8 +674,17 @@ void PanelPipelineSettings::setActive(bool setActive)
   if(!mIsActiveShown && setActive) {
     // Set the image channel initial to the selected channel of the pipeline
     if(mSettings.pipelineSetup.cStackIndex >= 0) {
+      bool reload = false;
       if(mPreviewImage->getImagePanel()->getImagePlane().cStack != mSettings.pipelineSetup.cStackIndex) {
         mPreviewImage->getImagePanel()->setImageChannel(mSettings.pipelineSetup.cStackIndex);
+        reload = true;
+      }
+
+      if(mPreviewImage->getImagePanel()->getImagePlane().zStack != mSettings.pipelineSetup.zStackIndex) {
+        mPreviewImage->getImagePanel()->setImageZStack(mSettings.pipelineSetup.zStackIndex);
+        reload = true;
+      }
+      if(reload) {
         mPreviewImage->getImagePanel()->reloadImage();
       }
     }

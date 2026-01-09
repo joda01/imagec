@@ -775,6 +775,20 @@ void PanelImageView::setImageChannel(int32_t ch)
 /// \param[out]
 /// \return
 ///
+void PanelImageView::setImageZStack(int32_t zStack)
+{
+  std::lock_guard<std::mutex> locked(mImageResetMutex);
+  storeChannelSettings();
+  mPlane.zStack = zStack;
+}
+
+///
+/// \brief
+/// \author
+/// \param[in]
+/// \param[out]
+/// \return
+///
 auto PanelImageView::getImagePlane() const -> joda::enums::PlaneId
 {
   std::lock_guard<std::mutex> locked(mImageResetMutex);
@@ -1287,7 +1301,28 @@ void PanelImageView::drawImageInfo(QPainter &painter, const PixelInfo &info, con
   mFontSmall  = painter.font();
   mFontSmall.setPointSize(8);
 
-  QString leftText       = QString("Channel %1").arg(mPlane.cStack);
+  QString zStackInfo;
+  switch(mZprojection) {
+    case enums::ZProjection::$:
+    case enums::ZProjection::UNDEFINED:
+    case enums::ZProjection::NONE:
+      zStackInfo = QString::number(mPlane.zStack);
+      break;
+    case enums::ZProjection::MAX_INTENSITY:
+      zStackInfo = "Max";
+      break;
+    case enums::ZProjection::MIN_INTENSITY:
+      zStackInfo = "Min";
+      break;
+    case enums::ZProjection::AVG_INTENSITY:
+      zStackInfo = "Avg";
+      break;
+    case enums::ZProjection::TAKE_MIDDLE:
+      zStackInfo = "Mid";
+      break;
+  }
+
+  QString leftText       = QString("C %1/Z %2/T %3").arg(mPlane.cStack).arg(zStackInfo).arg(mPlane.tStack);
   auto generateRightText = [](const PixelInfo &pxInfo) -> QString {
     if(pxInfo.grayScale >= 0) {
       return QString("x=%1, y=%2, intensity=%3").arg(pxInfo.posX).arg(pxInfo.posY).arg(pxInfo.grayScale);
@@ -1539,34 +1574,34 @@ void PanelImageView::keyPressEvent(QKeyEvent *event)
     setState(State::PAIN_BRUSH);
     emit drawingToolChanged(State::PAIN_BRUSH);
   } else if(event->key() == Qt::Key_0) {
-    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.tStack, .cStack = 0});
+    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.zStack, .cStack = 0});
     reloadImage();
   } else if(event->key() == Qt::Key_1) {
-    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.tStack, .cStack = 1});
+    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.zStack, .cStack = 1});
     reloadImage();
   } else if(event->key() == Qt::Key_2) {
-    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.tStack, .cStack = 2});
+    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.zStack, .cStack = 2});
     reloadImage();
   } else if(event->key() == Qt::Key_3) {
-    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.tStack, .cStack = 3});
+    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.zStack, .cStack = 3});
     reloadImage();
   } else if(event->key() == Qt::Key_4) {
-    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.tStack, .cStack = 4});
+    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.zStack, .cStack = 4});
     reloadImage();
   } else if(event->key() == Qt::Key_5) {
-    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.tStack, .cStack = 5});
+    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.zStack, .cStack = 5});
     reloadImage();
   } else if(event->key() == Qt::Key_6) {
-    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.tStack, .cStack = 6});
+    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.zStack, .cStack = 6});
     reloadImage();
   } else if(event->key() == Qt::Key_7) {
-    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.tStack, .cStack = 7});
+    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.zStack, .cStack = 7});
     reloadImage();
   } else if(event->key() == Qt::Key_8) {
-    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.tStack, .cStack = 8});
+    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.zStack, .cStack = 8});
     reloadImage();
   } else if(event->key() == Qt::Key_9) {
-    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.tStack, .cStack = 9});
+    setImagePlane({.tStack = mPlane.tStack, .zStack = mPlane.zStack, .cStack = 9});
     reloadImage();
   }
 }
