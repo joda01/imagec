@@ -1,7 +1,7 @@
 ///
 /// \file      console_logger.hpp
 /// \author    Joachim Danmayr
-/// \date      2023-05-14
+/// \date      2025-02-10
 ///
 /// \copyright Copyright 2019 Joachim Danmayr
 ///            This software is licensed for **non-commercial** use only.
@@ -11,14 +11,8 @@
 
 #pragma once
 
-#include <chrono>
-#include <ctime>
-#include <iomanip>
-#include <iostream>
-#include <mutex>
-#include <ostream>
-#include <sstream>    // std::ostringstream
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace joda::log {
@@ -34,17 +28,45 @@ enum class LogLevel
   VERBOSE = 5
 };
 
-extern void initLogger();
-extern void joinLogger();
-extern void setLogLevel(LogLevel logLevel);
-extern std::string getCurrentDateTimeISO();
-extern void logError(const std::string &message);
-extern void logWarning(const std::string &message);
-extern void logInfo(const std::string &message);
-extern void logDebug(const std::string &message);
-extern void logTrace(const std::string &message);
-extern void logProgress(float progress, const std::string &message);
-extern auto getLogBuffer() -> const std::vector<std::string> &;
-extern auto logBufferToHtml() -> std::string;
+/**
+ * @brief Initializes the background worker thread.
+ * Must be called before logging if async output is required.
+ */
+void initLogger();
+
+/**
+ * @brief Stops the worker thread and flushes remaining logs.
+ */
+void joinLogger();
+
+/**
+ * @brief Sets the global filter level for logging.
+ */
+void setLogLevel(LogLevel logLevel);
+
+/**
+ * @brief Returns a thread-safe ISO 8601 timestamp string.
+ */
+std::string getCurrentDateTimeISO();
+
+// Logging API
+void logError(const std::string &message);
+void logWarning(const std::string &message);
+void logInfo(const std::string &message);
+void logDebug(const std::string &message);
+void logTrace(const std::string &message);
+void logProgress(float progress, const std::string &message);
+
+/**
+ * @brief Returns a copy of the current log history.
+ * Thread-safe: creates a snapshot under a mutex.
+ */
+std::vector<std::string> getLogBuffer();
+
+/**
+ * @brief Converts the current log buffer to an HTML-formatted string.
+ * This includes ANSI color code parsing.
+ */
+std::string logBufferToHtml();
 
 }    // namespace joda::log
