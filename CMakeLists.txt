@@ -69,6 +69,10 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 #    add_compile_options(-openmp:llvm /bigobj /Zm200 /Zc:__cplusplus)
 endif()
 
+
+# add_compile_options(/Zi)
+# add_link_options(/DEBUG)
+
 # Get the current user and host
 execute_process(COMMAND whoami OUTPUT_VARIABLE BUILD_USER OUTPUT_STRIP_TRAILING_WHITESPACE)
 execute_process(COMMAND hostname OUTPUT_VARIABLE BUILD_HOST OUTPUT_STRIP_TRAILING_WHITESPACE)
