@@ -291,8 +291,8 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
         image = image + tmp;
       };
 
-      std::function<void(int)> func;
-      auto imageType = image.type();
+      std::function<void(int)> func = nullptr;
+      auto imageType                = image.type();
 
       switch(zProjection) {
         case enums::ZProjection::MAX_INTENSITY:
@@ -311,9 +311,10 @@ auto Controller::loadImage(const std::filesystem::path &imagePath, uint16_t seri
         case enums::ZProjection::TAKE_MIDDLE:
           break;
       }
-
-      for(uint32_t zIdx = 1; zIdx < static_cast<uint32_t>(omeIn->getNrOfZStack(series)); zIdx++) {
-        func(static_cast<int32_t>(zIdx));
+      if(func != nullptr) {
+        for(uint32_t zIdx = 1; zIdx < static_cast<uint32_t>(omeIn->getNrOfZStack(series)); zIdx++) {
+          func(static_cast<int32_t>(zIdx));
+        }
       }
       // Avg intensity projection
       if(enums::ZProjection::AVG_INTENSITY == zProjection) {

@@ -270,8 +270,8 @@ enums::ImageId PipelineInitializer::loadImageAndStoreToCache(enums::MemoryScope 
       image = image + tmp;
     };
 
-    std::function<void(int)> func;
-    auto imageType = image.type();
+    std::function<void(int)> func = nullptr;
+    auto imageType                = image.type();
 
     switch(zProjection) {
       case enums::ZProjection::MAX_INTENSITY:
@@ -291,8 +291,10 @@ enums::ImageId PipelineInitializer::loadImageAndStoreToCache(enums::MemoryScope 
         break;
     }
 
-    for(uint32_t zIdx = 1; zIdx < nrOfZStacks; zIdx++) {
-      func(static_cast<int32_t>(zIdx));
+    if(func != nullptr) {
+      for(uint32_t zIdx = 1; zIdx < nrOfZStacks; zIdx++) {
+        func(static_cast<int32_t>(zIdx));
+      }
     }
     // Avg intensity projection
     if(enums::ZProjection::AVG_INTENSITY == zProjection) {

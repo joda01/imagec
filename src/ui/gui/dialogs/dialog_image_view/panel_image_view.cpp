@@ -22,6 +22,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <exception>
 #include <filesystem>
 #include <memory>
 #include <mutex>
@@ -39,6 +40,7 @@
 #include "backend/helper/duration_count/duration_count.h"
 #include "backend/helper/fnv1a.hpp"
 #include "backend/helper/image/image.hpp"
+#include "backend/helper/logger/console_logger.hpp"
 #include "controller/controller.hpp"
 #include "ui/gui/dialogs/dialog_image_view/customer_painter/graphics_roi_overlay.hpp"
 #include "ui/gui/dialogs/dialog_image_view/customer_painter/graphics_thumbnail.hpp"
@@ -158,6 +160,7 @@ void PanelImageView::openImage(const std::filesystem::path &imagePath, const ome
   {
     std::lock_guard<std::mutex> locked(mImageResetMutex);
     if(mLoadingImage) {
+      joda::log::logTrace("Still loading an image!");
       return;
     }
     setLoadingImage(true);
@@ -182,18 +185,34 @@ void PanelImageView::loadImageThread(std::filesystem::path imagePath, const ome:
 
   auto *previewImage = new processor::DisplayImages();
   if(loadOme) {
-    auto [tilesX, tilesY] = mOmeInfo.getImageInfo(mSeries).resolutions.at(0).getNrOfTiles(mTile.tileWidth, mTile.tileHeight);
-    if(mTile.tileX > tilesX || mTile.tileY > tilesY) {
+    try {
+      auto [tilesX, tilesY] = mOmeInfo.getImageInfo(mSeries).resolutions.at(0).getNrOfTiles(mTile.tileWidth, mTile.tileHeight);
+
+      if(mTile.tileX > tilesX || mTile.tileY > tilesY) {
+        mTile.tileX = 0;
+        mTile.tileY = 0;
+      }
+    } catch(...) {
       mTile.tileX = 0;
       mTile.tileY = 0;
     }
-    joda::ctrl::Controller::loadImage(imagePath, static_cast<uint16_t>(mSeries), mPlane, mTile, *previewImage, &mOmeInfo, mZprojection);
+
+    try {
+      joda::ctrl::Controller::loadImage(imagePath, static_cast<uint16_t>(mSeries), mPlane, mTile, *previewImage, &mOmeInfo, mZprojection);
+    } catch(const std::exception &ex) {
+      joda::log::logWarning("Could not open image: " + std::string(ex.what()));
+    }
+
   } else {
     if(mPlane.tStack >= mOmeInfo.getNrOfTStack(mSeries)) {
       mPlane.tStack = mOmeInfo.getNrOfTStack(mSeries) - 1;
     }
-    joda::ctrl::Controller::loadImage(imagePath, static_cast<uint16_t>(mSeries), mPlane, mTile, mDefaultPhysicalSize, *previewImage, mOmeInfo,
-                                      mZprojection);
+    try {
+      joda::ctrl::Controller::loadImage(imagePath, static_cast<uint16_t>(mSeries), mPlane, mTile, mDefaultPhysicalSize, *previewImage, mOmeInfo,
+                                        mZprojection);
+    } catch(const std::exception &ex) {
+      joda::log::logWarning("Could not open image: " + std::string(ex.what()));
+    }
   }
 
   emit emitOpenImageFinished(imagePath, previewImage);
@@ -210,6 +229,7 @@ void PanelImageView::openImageFinished(std::filesystem::path imagePath, processo
 {
   const auto &imgInfo = mOmeInfo.getImageInfo(mSeries).resolutions;
   if(imgInfo.empty()) {
+    setLoadingImage(false);
     return;
   }
   mOriginalImage->setImageToPaint(newLoadedImages->originalImage.mutableImage());
