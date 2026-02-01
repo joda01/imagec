@@ -31,7 +31,7 @@ jobs:
           sudo rm -rf /usr/local/lib/android/sdk
           sudo rm -rf /usr/local/.ghcup
           sudo rm -rf /usr/share/swift
-          sudo docker rmi -f $(docker images -aq)
+          sudo docker images -aq | xargs -r sudo docker rmi -f
 
           sudo chmod +x ./build_linux.sh
           sudo ./build_linux.sh "${{ github.ref_name }}" "${{ secrets.CONAN_IMAGEC_ARTIFACTORY_PW }}" ${{ matrix.with-cuda }} "${{ github.workspace }}"
