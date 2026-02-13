@@ -30,7 +30,8 @@ public:
     PERCENTILE,
     RENYI_ENTROPY,
     SHANBHAG,
-    YEN
+    YEN,
+    IMAGE_MEAN
   };
 
   struct Threshold
@@ -97,6 +98,9 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ThresholdSettings::Methods, {{ThresholdSettings::Me
                                                           {ThresholdSettings::Methods::PERCENTILE, "Percentil"},
                                                           {ThresholdSettings::Methods::RENYI_ENTROPY, "TenyiEntropy"},
                                                           {ThresholdSettings::Methods::SHANBHAG, "Shanbhag"},
-                                                          {ThresholdSettings::Methods::YEN, "Yen"}})
+                                                          {ThresholdSettings::Methods::YEN, "Yen"},
+                                                          {ThresholdSettings::Methods::IMAGE_MEAN, "ImageMean"}
+
+                                                         })
 
 }    // namespace joda::settings

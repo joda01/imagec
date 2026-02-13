@@ -82,7 +82,10 @@ private:
                                        {joda::settings::ThresholdSettings::Methods::MINIMUM, "Minimum"},
                                        {joda::settings::ThresholdSettings::Methods::PERCENTILE, "Percentile"},
                                        {joda::settings::ThresholdSettings::Methods::RENYI_ENTROPY, "Renyi entropy"},
-                                       {joda::settings::ThresholdSettings::Methods::YEN, "Yen"}});
+                                       {joda::settings::ThresholdSettings::Methods::YEN, "Yen"},
+                                       {joda::settings::ThresholdSettings::Methods::IMAGE_MEAN, "Joda"}
+
+      });
       mThresholdAlgorithm->setValue(settings.method);
       mThresholdAlgorithm->connectWithSetting(&settings.method);
 

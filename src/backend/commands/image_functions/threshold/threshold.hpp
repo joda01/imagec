@@ -16,6 +16,7 @@
 #include <cstdint>
 #include "backend/commands/command.hpp"
 #include "backend/commands/image_functions/threshold/threshold_huang.hpp"
+#include "backend/commands/image_functions/threshold/threshold_image_mean.hpp"
 #include "backend/commands/image_functions/threshold/threshold_intermodes.hpp"
 #include "backend/commands/image_functions/threshold/threshold_isodata.hpp"
 #include "backend/commands/image_functions/threshold/threshold_max_entropy.hpp"
@@ -74,7 +75,7 @@ public:
 
 private:
   /////////////////////////////////////////////////////
-  [[nodiscard]] uint16_t calcThresholdValue(const settings::ThresholdSettings::Threshold &settings, cv::Mat &histogram) const
+  [[nodiscard]] uint16_t calcThresholdValue(const settings::ThresholdSettings::Threshold &settings, cv::Mat &histogram, const cv::Mat &image) const
   {
     switch(settings.method) {
       case settings::ThresholdSettings::Methods::NONE:
@@ -110,6 +111,8 @@ private:
         return ThresholdRenyiEntropy::calcThresholdValue(histogram);
       case settings::ThresholdSettings::Methods::YEN:
         return ThresholdYen::calcThresholdValue(histogram);
+      case settings::ThresholdSettings::Methods::IMAGE_MEAN:
+        return ThresholdImageMean::calcThresholdValue(image);
     }
     return settings.thresholdMin;
   }
@@ -151,7 +154,12 @@ private:
 
     uint16_t thresholdTempMin = settings.thresholdMin;
     if(settings.method != settings::ThresholdSettings::Methods::MANUAL && settings.method != settings::ThresholdSettings::Methods::NONE) {
-      thresholdTempMin = scaleAndSetThreshold(0, calcThresholdValue(settings, histogram) + 1 + settings.cValue, min, max);
+      if(settings.method == settings::ThresholdSettings::Methods::IMAGE_MEAN) {
+        thresholdTempMin = static_cast<uint16_t>(calcThresholdValue(settings, histogram, srcImg) + settings.cValue);
+
+      } else {
+        thresholdTempMin = scaleAndSetThreshold(0, calcThresholdValue(settings, histogram, srcImg) + 1 + settings.cValue, min, max);
+      }
     }
 
     return {std::min(std::max(settings.thresholdMin, thresholdTempMin), settings.thresholdMax), settings.thresholdMax};
