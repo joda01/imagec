@@ -91,9 +91,11 @@ void GraphicsThumbnail::setImageToPaint(QImage *img, cv::Size originalImageSize)
   // Calc Bounding rect
   //
   const QSizeF targetSize(128, 128);
-  const QSize imgSize = mImageToPaint->size();
-  mBoundingRect       = QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, imgSize.scaled(targetSize.toSize(), Qt::KeepAspectRatio),
-                                            QRectF(0, 0, targetSize.width(), targetSize.height()).toRect());
+  const QSize imgSize      = mImageToPaint->size();
+  const auto scaled_size   = imgSize.scaled(targetSize.toSize(), Qt::KeepAspectRatio);
+  const qreal aspect_ratio = static_cast<qreal>(scaled_size.width()) / static_cast<qreal>(scaled_size.height());
+  mBoundingRect            = QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, scaled_size,
+                                                 QRectF(0, 0, static_cast<qreal>(targetSize.width()) * aspect_ratio, targetSize.height()).toRect());
 
   //
   // Prepare tile rects
