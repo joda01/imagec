@@ -73,10 +73,12 @@ DialogPipelineSettings::DialogPipelineSettings(const joda::settings::Classificat
 
   zStackIndex = new QLineEdit();
   zStackIndex->setPlaceholderText("Z-Stack to analyze [0 - 65535]");
+  zStackIndex->setText("0");
   formLayout->addRow("z-index", zStackIndex);
 
   tStackIndex = new QLineEdit();
   tStackIndex->setPlaceholderText("T-Stack to analyze [0 - 65535]");
+  tStackIndex->setText("0");
   formLayout->addRow("t-index", tStackIndex);
 
   defaultClassId = new QComboBox();
@@ -181,13 +183,13 @@ void DialogPipelineSettings::fromSettings()
   if(mSettings.pipelineSetup.zStackIndex >= 0) {
     zStackIndex->setText(QString::number((mSettings.pipelineSetup.zStackIndex)));
   } else {
-    zStackIndex->setText("");
+    zStackIndex->setText("0");
   }
 
   if(mSettings.pipelineSetup.tStackIndex >= 0) {
     tStackIndex->setText(QString::number((mSettings.pipelineSetup.tStackIndex)));
   } else {
-    tStackIndex->setText("");
+    tStackIndex->setText("0");
   }
 
   mPipelineNotes->setText(mSettings.meta.notes.data());
