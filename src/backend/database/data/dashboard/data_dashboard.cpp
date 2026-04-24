@@ -11,6 +11,7 @@
 
 #include "data_dashboard.hpp"
 #include <memory>
+#include <string>
 #include "backend/enums/enum_measurements.hpp"
 #include "backend/helper/base32.hpp"
 #include "backend/helper/table/table.hpp"
@@ -73,16 +74,22 @@ auto Dashboard::convert(const std::shared_ptr<joda::table::Table> tableIn, const
     // Group the colocalizing classes (those with at least one common tracking id) to one table
     for(const auto &colcGroup : classesWithSameTrackingId) {
       if(colcGroup.contains(col.colSettings.classId)) {
-        // uint32_t mapId = 0;
+        uint32_t mapId = 0;
         if(classesWithSameTrackingIdMappingTable.contains(colcGroup)) {
-          // mapId = classesWithSameTrackingIdMappingTable.at(colcGroup);
+          mapId = classesWithSameTrackingIdMappingTable.at(colcGroup);
         } else {
+          mapId = mapIdIdx;
           classesWithSameTrackingIdMappingTable.emplace(colcGroup, mapIdIdx);
           mapIdIdx++;
         }
-        auto &work = colocalizing[mapIdIdx];
+        std::string colName;
+        for(const auto &id : colcGroup) {
+          colName += "(" + std::to_string(static_cast<int>(id)) + ")";
+        }
+
+        auto &work = colocalizing[mapId];
         work.cols.emplace_back(&col);
-        work.colName = "Colocalization: " + col.colSettings.names.className;
+        work.colName = "Colocalization: " + col.colSettings.names.className + " " + colName;
       }
     }
   }
