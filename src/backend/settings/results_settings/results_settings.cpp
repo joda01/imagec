@@ -34,7 +34,7 @@ std::string ResultsSettings::ColumnKey::createHeader(const std::string &unit) co
   };
 
   if(getType(measureChannel) == MeasureType::INTENSITY) {
-    return names.className + "-" + toString(measureChannel, unit) + createStatsHeader(stats) + " " + "(C" + std::to_string(crossChannelStacksC) +
+    return names.className + "-" + toString(measureChannel, unit) + createStatsHeader(stats) + " " + "(CH" + std::to_string(crossChannelStacksC) +
            ")" + stacks;
   }
   if(getType(measureChannel) == MeasureType::INTERSECTION) {
@@ -78,7 +78,7 @@ std::string ResultsSettings::ColumnKey::createHtmlHeader(HeaderStyle style, cons
   }
 
   if(getType(measureChannel) == MeasureType::INTENSITY) {
-    return className + toString(measureChannel, unit) + " " + createStatsHeader(stats) + " " + "(C" + std::to_string(crossChannelStacksC) + ")" +
+    return className + toString(measureChannel, unit) + " " + createStatsHeader(stats) + " " + "(CH" + std::to_string(crossChannelStacksC) + ")" +
            stacks;
   }
   if(getType(measureChannel) == MeasureType::INTERSECTION) {
